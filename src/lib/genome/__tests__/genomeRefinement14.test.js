@@ -1,17 +1,17 @@
 /**
- * CurriculumOS refine loop — iteration 11.
+ * CurriculumOS refine loop — iteration 14.
  *
- * Coverage: a seventh… now eighth bridge family lights up a previously-unused
- * archetype — method/conservation-balance — bridging chemistry and economics:
- *   balancing a chemical equation  ↔  balancing the national accounts.
- * Both track a conserved quantity across a boundary so the books close
- * (chem/conservation-of-mass ↔ econ/circular-flow-of-income). This is the most
- * striking transfer in the genome so far: the SAME cognitive move taught in a
- * chemistry course and an economics course. Genome now 22 concepts.
+ * Coverage: a NINTH bridge family lights up the last big systems archetype —
+ * structure/stock-and-flow — bridging biology and economics:
+ *   a population level  ↔  a capital stock.
+ * Both change only through their inflow/outflow rates; you predict the level's
+ * trajectory from the net flow, not a jump (bio/population-dynamics ↔
+ * econ/capital-accumulation). The classic systems-thinking transfer, now on the
+ * free genome path. Genome: 24 concepts / 12 archetypes / 9 bridge families.
  *
- * The pair also exercises iteration 10's reasoning-move scaffold and iteration
- * 8's "Same Structure" slide on a brand-new archetype, end-to-end into PPTX,
- * with the standing no-provenance-leak guarantee.
+ * The pair re-proves that adding a bridge family is pure data: the iter-12 "How
+ * Experts Think" slide and the iter-8 "Same Structure" slide both light up for a
+ * brand-new archetype with zero machinery changes.
  */
 import { beforeAll, describe, expect, it } from 'vitest';
 import { readFileSync } from 'node:fs';
@@ -51,26 +51,24 @@ function genesisLibrary() {
 
 const library = genesisLibrary();
 
-// A cross-department course: balance a chemical equation, then balance the
-// national accounts — both instance method/conservation-balance.
 const COURSE = {
-  courseName: 'Conservation Across the Sciences',
+  courseName: 'Stocks and Flows Across the Sciences',
   lessons: [
     {
-      title: 'Lesson 1: Balancing Chemical Equations',
+      title: 'Lesson 1: Population Growth',
       sections: [
         {
-          topicSection: 'conservation of mass balancing chemical equations stoichiometric balance',
-          learningObjectives: 'Balance equations using the conservation of mass.',
+          topicSection: 'population dynamics population growth exponential and logistic growth births and deaths',
+          learningObjectives: 'Model how a population grows over time.',
         },
       ],
     },
     {
-      title: 'Lesson 2: The Circular Flow of Income',
+      title: 'Lesson 2: Capital Accumulation',
       sections: [
         {
-          topicSection: 'circular flow of income leakages and injections national income accounting',
-          learningObjectives: 'Explain when the circular flow of income is in balance.',
+          topicSection: 'capital accumulation capital stock net investment depreciation',
+          learningObjectives: 'Explain how the capital stock accumulates.',
         },
       ],
     },
@@ -81,30 +79,28 @@ function linkCourse() {
   return runGenomeLinker({ courseMap: COURSE, lessonIndices: [0, 1], library, itemPlan: buildQuizItemPlan(6) });
 }
 
-describe('iteration 11a — conservation-balance bridges chemistry and economics', () => {
-  it('resolves both source-anchored concepts on the free genome path', () => {
+describe('iteration 14a — stock-and-flow bridges biology and economics', () => {
+  it('resolves both source-anchored concepts with citations', () => {
     const linked = linkCourse();
-    expect(linked.lessonContent['lesson-1'].conceptProvenance.conceptIds).toContain('chem/conservation-of-mass');
-    expect(linked.lessonContent['lesson-2'].conceptProvenance.conceptIds).toContain('econ/circular-flow-of-income');
-    // Source-anchored (T2): both carry a citation.
+    expect(linked.lessonContent['lesson-1'].conceptProvenance.conceptIds).toContain('bio/population-dynamics');
+    expect(linked.lessonContent['lesson-2'].conceptProvenance.conceptIds).toContain('econ/capital-accumulation');
     expect(linked.lessonContent['lesson-1'].conceptProvenance.citations.length).toBeGreaterThan(0);
     expect(linked.lessonContent['lesson-2'].conceptProvenance.citations.length).toBeGreaterThan(0);
   });
 
-  it('bridges the exact chem ↔ econ pair on the conservation-balance archetype', () => {
+  it('bridges the exact bio ↔ econ pair on the stock-and-flow archetype', () => {
     const linked = linkCourse();
-    const bridge = linked.bridges.find((b) => b.archetype === 'method/conservation-balance');
+    const bridge = linked.bridges.find((b) => b.archetype === 'structure/stock-and-flow');
     expect(bridge).toBeTruthy();
     expect([bridge.fromConcept.id, bridge.toConcept.id].sort()).toEqual([
-      'chem/conservation-of-mass',
-      'econ/circular-flow-of-income',
+      'bio/population-dynamics',
+      'econ/capital-accumulation',
     ]);
-    // Number-safe structural connective, no unfilled slots.
     expect(bridge.note).toContain('↔');
     expect(bridge.note).not.toMatch(/\{[a-z]/);
   });
 
-  it('does not falsely resolve conservation-of-mass for an unrelated lesson', () => {
+  it('does not falsely resolve capital-accumulation for an unrelated lesson', () => {
     const linked = runGenomeLinker({
       courseMap: {
         courseName: 'Photosynthesis Only',
@@ -125,71 +121,60 @@ describe('iteration 11a — conservation-balance bridges chemistry and economics
       itemPlan: buildQuizItemPlan(6),
     });
     const ids = linked.lessonContent['lesson-1']?.conceptProvenance?.conceptIds || [];
-    expect(ids).not.toContain('chem/conservation-of-mass');
+    expect(ids).not.toContain('econ/capital-accumulation');
   });
 });
 
-describe('iteration 11b — the bridge and its reasoning routine reach the study guide', () => {
-  it('renders the deep-structure bridge and the conservation-balance reasoning routine', () => {
+describe('iteration 14b — the new family drives every teaching surface', () => {
+  it('renders the bridge prose and the stock-and-flow reasoning routine in the study guide', () => {
     const linked = linkCourse();
-    const enrichment = { source: 'iter11-test', lessonContent: linked.lessonContent };
+    const enrichment = { source: 'iter14-test', lessonContent: linked.lessonContent };
     const blueprint = JSON.parse(JSON.stringify(buildCourseBlueprint(COURSE, { enrichment })));
     const compiled = compileBlueprintDeliverables(blueprint, ['studyGuides'], {});
     const serialized = JSON.stringify(compiled.studyGuides.studyGuides);
-    // The transfer prose (iteration 5/8 machinery) on the new family.
     expect(serialized).toContain('shares the deep structure');
-    // The metacognitive scaffold (iteration 10) on the new archetype's moves.
     const guide = compiled.studyGuides.studyGuides.find(
-      (g) =>
-        Array.isArray(g.reasoningRoutine) &&
-        g.reasoningRoutine.some((r) => /Conservation and balance/i.test(r.structure)),
+      (g) => Array.isArray(g.reasoningRoutine) && g.reasoningRoutine.some((r) => /Stock and flow/i.test(r.structure)),
     );
     expect(guide).toBeTruthy();
-    expect(guide.reasoningRoutine.some((r) => /draw the boundary/i.test(r.howToReason))).toBe(true);
-    expect(guide.reasoningRoutine.some((r) => /close the balance/i.test(r.howToReason))).toBe(true);
-    // No metadata or unfilled slots leak into instructor-facing prose.
-    expect(serialized).not.toContain('archetypeName');
+    expect(guide.reasoningRoutine.some((r) => /separate the level from its rates/i.test(r.howToReason))).toBe(true);
     expect(serialized).not.toMatch(/\{[a-z][a-z ]{2,}\}/);
   });
-});
 
-describe('iteration 11c — the "Same Structure" slide reaches real PPTX without leaking provenance', () => {
-  let slideXml = '';
-  let notesXml = '';
-  beforeAll(async () => {
+  it('renders both the Same Structure and How Experts Think slides in real PPTX without leaks', async () => {
     installCanvasStub();
     const { buildSlideDeckPptxBlob } = await import('../../exporters/pptxExporter.js');
     const linked = linkCourse();
-    const enrichment = { source: 'iter11-test', lessonContent: linked.lessonContent };
+    const enrichment = { source: 'iter14-test', lessonContent: linked.lessonContent };
     const blueprint = JSON.parse(JSON.stringify(buildCourseBlueprint(COURSE, { enrichment })));
     const compiled = compileBlueprintDeliverables(blueprint, ['slideDecks'], {});
-    const blob = await buildSlideDeckPptxBlob(compiled.slideDecks, COURSE.courseName, 0);
+    const blob = await buildSlideDeckPptxBlob(compiled.slideDecks, COURSE.courseName, 1);
     const zip = await JSZip.loadAsync(await blob.arrayBuffer());
+    let slideXml = '';
+    let notesXml = '';
     for (const path of Object.keys(zip.files).sort()) {
       if (/^ppt\/slides\/slide\d+\.xml$/.test(path)) slideXml += await zip.file(path).async('string');
       else if (/^ppt\/notesSlides\/notesSlide\d+\.xml$/.test(path)) notesXml += await zip.file(path).async('string');
     }
-  });
-
-  it('renders the transfer slide and leaks no provenance into the PPTX', () => {
+    expect(slideXml).toContain('How Experts Think');
     expect(slideXml).toContain('Same Structure');
     const all = slideXml + notesXml;
     expect(all).not.toContain('archetype-bridge');
-    expect(all).not.toContain('enrichmentSource');
-    expect(all).not.toContain('conservation-balance'); // raw archetype id never leaks
+    expect(all).not.toContain('archetype-reasoning');
+    expect(all).not.toContain('stock-and-flow'); // raw archetype id never leaks
   });
 });
 
-describe('iteration 11d — genome coverage milestone', () => {
-  it('spans at least 22 concepts and 11 instantiated archetypes', () => {
+describe('iteration 14c — genome coverage milestone', () => {
+  it('spans 24 concepts and at least 12 instantiated archetypes incl. stock-and-flow', () => {
     const manifest = JSON.parse(readFileSync(join(process.cwd(), 'public/genome/manifest.json'), 'utf8'));
-    expect(manifest.conceptCount).toBeGreaterThanOrEqual(22);
+    expect(manifest.conceptCount).toBe(24);
     const used = new Set();
     for (const shard of manifest.shards) {
       const body = JSON.parse(readFileSync(join(process.cwd(), 'public/genome', shard.path), 'utf8'));
       for (const k of body.kernels) for (const e of k.edges?.instanceOf || []) used.add(e.archetype);
     }
-    expect(used.has('method/conservation-balance')).toBe(true);
-    expect(used.size).toBeGreaterThanOrEqual(11);
+    expect(used.has('structure/stock-and-flow')).toBe(true);
+    expect(used.size).toBeGreaterThanOrEqual(12);
   });
 });
