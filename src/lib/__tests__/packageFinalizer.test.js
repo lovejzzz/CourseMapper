@@ -925,8 +925,8 @@ describe('packageFinalizer', () => {
     expect(result.deliverables.courseFaq.data.faqGuide.purpose).toBe(
       'Student-facing support FAQ compiled from the shared course blueprint.',
     );
-    expect(
-      (result.readiness.warnings || []).filter((warning) => /double-period/.test(warning.message)),
-    ).toHaveLength(0);
+    expect((result.readiness.warnings || []).filter((warning) => /double-period/.test(warning.message))).toHaveLength(
+      0,
+    );
   });
 });

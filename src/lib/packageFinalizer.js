@@ -349,7 +349,9 @@ export function runDeterministicPackageFinalizer({
     contentQualityIssues.length === 0
       ? baseReadiness
       : (() => {
-          const issues = normalizeReadinessIssues(dedupeIssues([...(baseReadiness.issues || []), ...contentQualityIssues]));
+          const issues = normalizeReadinessIssues(
+            dedupeIssues([...(baseReadiness.issues || []), ...contentQualityIssues]),
+          );
           const blockers = issues.filter((issue) => issue.severity === 'blocker');
           const warnings = issues.filter((issue) => issue.severity === 'warning');
           return {

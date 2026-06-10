@@ -18,7 +18,8 @@ import { isProvenanceMirrorKey } from './compiledLanguageFinalizer.js';
 const DOUBLE_PERIOD_RE = /([a-z])\.\.(?!\.)/g;
 const ARTICLE_A_VOWEL_RE = /\ba(\s+)([AEIOU][a-z]{3,})/g;
 const LEADING_COLON_RE = /^\s*:\s*/;
-const DANGLING_CLAUSE_RE = /\s*\b(?:and|or|for|in|of|to|the|with|before|after|around|aligned to|into|from)\s*([.])\s*$/i;
+const DANGLING_CLAUSE_RE =
+  /\s*\b(?:and|or|for|in|of|to|the|with|before|after|around|aligned to|into|from)\s*([.])\s*$/i;
 const DANGLING_EXEMPT_RE = /\b(?:etc|e\.g|i\.e)[.]\s*$/i;
 
 export const MECHANICAL_FINDING_CODES = [

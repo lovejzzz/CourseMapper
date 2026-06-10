@@ -127,9 +127,7 @@ function estimateRowHeight(row, columns) {
     if (!text) return;
     // Excel column width is roughly characters-per-line at this type size
     const charsPerLine = Math.max(8, Math.round(columns[colIndex]?.width || DEFAULT_COLUMN_WIDTH));
-    const lines = text
-      .split('\n')
-      .reduce((sum, line) => sum + Math.max(1, Math.ceil(line.length / charsPerLine)), 0);
+    const lines = text.split('\n').reduce((sum, line) => sum + Math.max(1, Math.ceil(line.length / charsPerLine)), 0);
     maxLines = Math.max(maxLines, lines);
   });
   return Math.min(MAX_ROW_HEIGHT, Math.max(MIN_ROW_HEIGHT, maxLines * LINE_HEIGHT_PT + ROW_PADDING_PT));

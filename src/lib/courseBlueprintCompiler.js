@@ -1451,7 +1451,6 @@ function blueprintTeachingMoves(blueprint) {
   );
 }
 
-
 function lessonTeachingMoves(blueprint, lesson = {}) {
   const moves = blueprintTeachingMoves(blueprint);
   const lessonTitle = stripLessonPrefix(lesson.title || 'this lesson');
@@ -14464,8 +14463,7 @@ function compactSlideDisplayBullet(slide, bullet, index, lesson) {
   // activity slides used to render "Practice: Constructivism: Constructivism
   // adapts…" because the cue was unconditional for that slide type.
   const conceptAlreadyNamed = cleanText(compact).toLowerCase().includes(cleanText(concept).toLowerCase());
-  const needsLessonCue =
-    !conceptAlreadyNamed && (type === 'activity' || type === 'discussion' || compact.length >= 70);
+  const needsLessonCue = !conceptAlreadyNamed && (type === 'activity' || type === 'discussion' || compact.length >= 70);
   const lessonSpecific = needsLessonCue
     ? conciseClause(`${concept}: ${compact}`, compact, maxLength)
     : conciseClause(compact, fallback, maxLength);
@@ -15027,7 +15025,9 @@ function compileDiscussions(blueprint) {
 function activityMinutesFromSessionPlan(classSessionPlan) {
   const segments = Array.isArray(classSessionPlan?.segments) ? classSessionPlan.segments : [];
   const practice = segments
-    .filter((segment) => /practice|sprint|workshop|appl|rehears|drill|simulat|lab|studio|build/i.test(segment?.phase || ''))
+    .filter((segment) =>
+      /practice|sprint|workshop|appl|rehears|drill|simulat|lab|studio|build/i.test(segment?.phase || ''),
+    )
     .map((segment) => Number(segment?.minutes))
     .filter((minutes) => Number.isFinite(minutes) && minutes > 0);
   if (practice.length === 0) return null;

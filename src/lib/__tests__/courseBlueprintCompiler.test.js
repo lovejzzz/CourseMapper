@@ -1999,9 +1999,7 @@ describe('courseBlueprintCompiler', () => {
     expect(blueprint.lessons[0].studentArtifact).toBe('Policy memo checkpoint 1');
 
     expect(compiled.lessonPlans.lessonPlans[0].materials.join(' ')).toContain('Case packet 1');
-    expect(compiled.slideDecks.decks[0].slides.flatMap((slide) => slide.bullets).join(' ')).toContain(
-      'Case packet 1',
-    );
+    expect(compiled.slideDecks.decks[0].slides.flatMap((slide) => slide.bullets).join(' ')).toContain('Case packet 1');
     expect(compiled.assignments.assignments[0].sourceUsePlan.approvedSources[0]).toMatch(
       /Case packet|Instructor-provided|the Lesson 1 materials/,
     );

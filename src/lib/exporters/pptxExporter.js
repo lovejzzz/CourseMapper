@@ -282,9 +282,7 @@ function spokePhrase(bullet, maxLen = NATIVE_VISUAL_LIMITS.spokeLabel) {
  */
 function planNativeVisual(s, slideType, visKind, hasGeneratedImage, hasLatex) {
   if (!visKind || hasGeneratedImage) return null;
-  const bullets = (Array.isArray(s.bullets) ? s.bullets : [])
-    .map((b) => String(b ?? '').trim())
-    .filter(Boolean);
+  const bullets = (Array.isArray(s.bullets) ? s.bullets : []).map((b) => String(b ?? '').trim()).filter(Boolean);
   if (bullets.length === 0) return null;
   // LaTeX bullets go through image rendering — keep the plain text layout.
   if (hasLatex && bullets.concat(s.title || '').some((t) => containsLatex(t))) return null;
@@ -543,7 +541,9 @@ async function buildSlideForDeck(pptx, deck, theme, slideIndex, totalSlides, opt
   const visDesc = hasVisual ? vis.description || vis.d || '' : '';
   const visAlt = hasVisual ? vis.altText || vis.at || '' : '';
   const generatedVisualImage = hasVisual ? getGeneratedVisualImage(vis) : null;
-  const nativeVisual = hasVisual ? planNativeVisual(s, slideType, visKind, Boolean(generatedVisualImage), hasLatex) : null;
+  const nativeVisual = hasVisual
+    ? planNativeVisual(s, slideType, visKind, Boolean(generatedVisualImage), hasLatex)
+    : null;
 
   if (slideType === 'title') {
     // ── TITLE SLIDE ─────────────────────────────────────────────────────

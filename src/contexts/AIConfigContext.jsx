@@ -80,9 +80,7 @@ export function AIConfigProvider({ children }) {
   // mail-merge packages exactly this way). Fall back to the catalog baseline
   // profile, which carries provider-level structured-output metadata.
   const [generationPlan, setGenerationPlan] = useState(() =>
-    createGenerationPlan(
-      modelCapabilities || createBaseModelCapabilities(provider, { id: modelId, maxOutputTokens }),
-    ),
+    createGenerationPlan(modelCapabilities || createBaseModelCapabilities(provider, { id: modelId, maxOutputTokens })),
   );
 
   // ── Persist API key, provider & model to localStorage ──
@@ -115,9 +113,7 @@ export function AIConfigProvider({ children }) {
     if (!matchesCurrentModel) {
       // Same v0.12.1 rule as the initial state: resolve the catalog baseline
       // for the current provider/model instead of a bare (degraded) profile.
-      setGenerationPlan(
-        createGenerationPlan(createBaseModelCapabilities(provider, { id: modelId, maxOutputTokens })),
-      );
+      setGenerationPlan(createGenerationPlan(createBaseModelCapabilities(provider, { id: modelId, maxOutputTokens })));
       return;
     }
     setGenerationPlan(createGenerationPlan(modelCapabilities));

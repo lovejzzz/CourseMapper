@@ -171,14 +171,16 @@ describe('xlsxGenerator', () => {
       lessons: [
         {
           title: 'Lesson 1: Foundations of Evidence-Based Reasoning in the Social Sciences',
-          sections: [
-            { learningGoals: longText, topicSection: 'Evidence foundations', evaluateDesign: longText },
-          ],
+          sections: [{ learningGoals: longText, topicSection: 'Evidence foundations', evaluateDesign: longText }],
         },
         {
           title: 'Lesson 2: Checkpoint',
           sections: [
-            { learningGoals: 'Check alignment.\nReview rubric.', topicSection: 'Alignment checkpoint', evaluateDesign: true },
+            {
+              learningGoals: 'Check alignment.\nReview rubric.',
+              topicSection: 'Alignment checkpoint',
+              evaluateDesign: true,
+            },
           ],
         },
       ],
@@ -212,7 +214,9 @@ describe('xlsxGenerator', () => {
     // Evaluate Design (col D here) uses the wrapped data style, not the centered one
     expect(text).toContain('<c r="D2" t="inlineStr" s="2">');
     expect(text).not.toContain('s="5"');
-    expect(styles).toMatch(/<xf numFmtId="0" fontId="2" fillId="0" [^>]*><alignment vertical="top" horizontal="left" wrapText="1"\/>/);
+    expect(styles).toMatch(
+      /<xf numFmtId="0" fontId="2" fillId="0" [^>]*><alignment vertical="top" horizontal="left" wrapText="1"\/>/,
+    );
   });
 
   it('bands alternating lesson blocks with the soft fill', async () => {
@@ -270,6 +274,8 @@ describe('xlsxGenerator', () => {
     const buffer = await buildXlsxBuffer(twoLessonMap(), columns);
     const styles = await stylesText(buffer);
 
-    expect(styles).toMatch(/<xf numFmtId="0" fontId="1" fillId="2" [^>]*><alignment vertical="center" horizontal="left" wrapText="1"\/>/);
+    expect(styles).toMatch(
+      /<xf numFmtId="0" fontId="1" fillId="2" [^>]*><alignment vertical="center" horizontal="left" wrapText="1"\/>/,
+    );
   });
 });

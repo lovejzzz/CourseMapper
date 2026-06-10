@@ -333,7 +333,13 @@ export function _buildDocxContentShared(featureId, data, children, docx) {
                   new Paragraph({
                     spacing: { line: SINGLE_SP },
                     children: [
-                      new TextRun({ text: String(k), bold: true, size: BODY_SIZE, font: FONT, color: theme.headingColor }),
+                      new TextRun({
+                        text: String(k),
+                        bold: true,
+                        size: BODY_SIZE,
+                        font: FONT,
+                        color: theme.headingColor,
+                      }),
                     ],
                   }),
                 ],
@@ -1107,7 +1113,13 @@ export function _buildDocxContentShared(featureId, data, children, docx) {
             headers,
             syl.weeklySchedule.map((w) =>
               hasDates
-                ? [w.week || '', (w.dates !== w.week && w.dates) || '', w.topic || '', w.readings || '', w.assignments || '']
+                ? [
+                    w.week || '',
+                    (w.dates !== w.week && w.dates) || '',
+                    w.topic || '',
+                    w.readings || '',
+                    w.assignments || '',
+                  ]
                 : [w.week || '', w.topic || '', w.readings || '', w.assignments || ''],
             ),
           ),

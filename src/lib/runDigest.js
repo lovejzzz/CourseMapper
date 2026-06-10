@@ -54,8 +54,7 @@ export function buildRunDigest({ budget = {}, exportVerification = null, finish 
   const enrichmentOutcome = budget.enrichmentOutcome || null;
   const compiledWithoutEnrichment =
     compiledFeatureCount > 0 &&
-    (!enrichmentOutcome ||
-      (enrichmentOutcome.modelStage !== 'ran' && (enrichmentOutcome.enrichedLessons || 0) === 0));
+    (!enrichmentOutcome || (enrichmentOutcome.modelStage !== 'ran' && (enrichmentOutcome.enrichedLessons || 0) === 0));
 
   return {
     digestVersion: 1,
