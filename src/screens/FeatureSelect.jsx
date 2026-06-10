@@ -618,10 +618,14 @@ export default function FeatureSelect({
                 onClick={allSelected ? deselectAll : selectAll}
                 className="w-fit rounded-lg border border-slate-200 bg-white px-3 py-2 text-[11px] font-bold text-slate-600 transition-colors hover:border-blue-200 hover:bg-blue-50 hover:text-blue-700 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300 dark:hover:border-blue-400/40 dark:hover:bg-blue-400/10 dark:hover:text-blue-200"
               >
-                {allSelected ? 'Course Map only' : 'Select all'}
+                {allSelected ? 'Clear selection' : 'Select all'}
               </button>
             </div>
 
+            {/* v0.13: the course structure isn't a deliverable choice — it is
+                what generation produces (the Course Graph), and every
+                deliverable, including the Course Map view and XLSX export,
+                renders from it. */}
             {baseFeature && (
               <div className="rounded-xl border border-slate-950 bg-slate-950 px-4 py-3 text-white shadow-sm dark:border-slate-700 dark:bg-slate-900">
                 <div className="flex items-start gap-3">
@@ -632,23 +636,15 @@ export default function FeatureSelect({
                   </div>
                   <div className="min-w-0 flex-1">
                     <div className="flex flex-wrap items-center gap-2">
-                      <h3 className="text-sm font-semibold">{baseFeature.label}</h3>
+                      <h3 className="text-sm font-semibold">Course structure</h3>
                       <span className="rounded bg-white px-1.5 py-0.5 text-[9px] font-semibold text-slate-950">
-                        Base workspace
+                        Always included
                       </span>
                     </div>
                     <p className="mt-1 line-clamp-1 text-[11px] leading-relaxed text-slate-300">
-                      {baseFeature.description}
+                      Concepts, objectives, assessments, and sessions — built from your syllabus; the Course Map view
+                      and every deliverable render from it.
                     </p>
-                  </div>
-                  <div className="flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-md border border-white/30 bg-white/15">
-                    <svg className="h-3 w-3 text-white" fill="currentColor" viewBox="0 0 20 20">
-                      <path
-                        fillRule="evenodd"
-                        d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z"
-                        clipRule="evenodd"
-                      />
-                    </svg>
                   </div>
                 </div>
               </div>
@@ -839,7 +835,7 @@ export default function FeatureSelect({
       <footer className="py-4 text-center">
         <div className="flex items-center justify-center gap-3 text-[10px] text-slate-300/70">
           <a href="#/changelog" className="font-medium hover:text-indigo-500 transition-colors duration-200">
-            v0.12.1
+            v0.13.0
           </a>
           <span>·</span>
           <a href="#/privacy" className="hover:text-indigo-500 transition-colors duration-200">

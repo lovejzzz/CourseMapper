@@ -102,6 +102,13 @@ import { buildCompactPackageTrustReceipt, buildPackageTrustBoundarySummary } fro
 import { getChunkCount } from './lib/parallelGenerator';
 import { buildHumanReviewRecommendation, summarizeRepairEvidence } from './lib/packageTrust';
 import { traceLog } from './lib/traceLog';
+import {
+  attachEnrichmentToGraph,
+  courseGraphStats,
+  deriveCourseGraphFromCourseMap,
+  renderCourseMapFromGraph,
+  validateCourseGraph,
+} from './lib/courseGraph';
 
 const STORAGE_KEY = 'coursemapper-project';
 const CLOUD_PROJECT_FORMAT = 'coursemapper-blueprint-v1';
@@ -531,6 +538,16 @@ export default function AppFlow({ startupAction = null, onStartupHandled, onRetu
     setSlideTheme,
   } = useCourse();
 
+  // v0.13: the CourseGraph is the project's source of truth — the course map
+  // shown in the workspace is a render of it. Kept as AppFlow state (not in
+  // the course store) so the blast radius of the v0.13 transition stays
+  // small; persisted in the project snapshot as formatVersion 2.
+  const [courseGraph, setCourseGraph] = useState(null);
+  const courseGraphRef = useRef(courseGraph);
+  useEffect(() => {
+    courseGraphRef.current = courseGraph;
+  }, [courseGraph]);
+
   const [hasSavedSession, setHasSavedSession] = useState(false);
 
   // ── Model & File Config (from AIConfigContext) ──
@@ -712,10 +729,17 @@ export default function AppFlow({ startupAction = null, onStartupHandled, onRetu
         : (outcome.enrichedLessons || 0) > 0
           ? `genome-only (${outcome.enrichedLessons} lesson${outcome.enrichedLessons === 1 ? '' : 's'}); model stage ${outcome.modelStage}`
           : outcome.modelStage;
+    const graphStats = courseGraphStats(courseGraphRef.current);
     return {
       enrichment,
       genomeLinker: budget.pipeline?.genomeLinker || 'not run',
       ...(budget.pipeline?.planHealth ? { planHealth: budget.pipeline.planHealth } : {}),
+      // v0.13: the package records the graph it was compiled from.
+      ...(graphStats
+        ? {
+            courseGraph: `${graphStats.sessions} sessions · ${graphStats.concepts} concepts (${graphStats.genomeLinkedConcepts} genome-linked, ${graphStats.authoredConcepts} authored) · ${graphStats.outcomes} outcomes`,
+          }
+        : {}),
     };
   }, []);
 
@@ -777,6 +801,30 @@ export default function AppFlow({ startupAction = null, onStartupHandled, onRetu
     },
     [setCourseMap, version.pushVersion],
   );
+  // v0.13: generation delivers the derived CourseGraph (with enrichment
+  // attached) — adopt it as the project's source of truth.
+  const handleCourseGraph = useCallback((graph) => {
+    if (!graph || !validateCourseGraph(graph).valid) return;
+    setCourseGraph(graph);
+  }, []);
+  // v0.13 write-back: course-map edits (grid cells, agent actions, repairs)
+  // re-derive the graph so it never drifts from what the instructor sees.
+  // The enrichment overlay (authored kernels, lens) is preserved across
+  // re-derivation — edits to structure never discard authored content.
+  useEffect(() => {
+    if (!courseMap?.lessons || !courseGraphRef.current) return;
+    try {
+      const rendered = renderCourseMapFromGraph(courseGraphRef.current);
+      if (JSON.stringify(rendered) === JSON.stringify(courseMap)) return;
+      const rederived = attachEnrichmentToGraph(
+        deriveCourseGraphFromCourseMap(courseMap),
+        courseGraphRef.current.enrichmentOverlay,
+      );
+      setCourseGraph(rederived);
+    } catch {
+      /* graph consistency is best-effort — the map remains usable */
+    }
+  }, [courseMap]);
 
   useEffect(() => {
     try {
@@ -860,6 +908,7 @@ export default function AppFlow({ startupAction = null, onStartupHandled, onRetu
     columns,
     onApiCallEvent: recordApiCallEvent,
     onCourseMapRepair: handleGeneratedCourseMapRepair,
+    onCourseGraph: handleCourseGraph,
   });
   // Keep deliverables ref fresh for use in stable callbacks
   deliverablesRef.current = deliv.deliverables;
@@ -1721,8 +1770,11 @@ export default function AppFlow({ startupAction = null, onStartupHandled, onRetu
       const safeCourseMap =
         courseMap && typeof courseMap === 'object' && Array.isArray(courseMap.lessons) ? courseMap : { lessons: [] };
       return sanitizeProjectSnapshot({
-        formatVersion: 1,
+        // v0.13 formatVersion 2: the CourseGraph rides along as the source
+        // of truth; v1 projects (no graph) derive one on restore.
+        formatVersion: 2,
         courseMap: safeCourseMap,
+        ...(courseGraph ? { courseGraph } : {}),
         columns,
         hasGenerated: true,
         provider,
@@ -1745,6 +1797,7 @@ export default function AppFlow({ startupAction = null, onStartupHandled, onRetu
     },
     [
       courseMap,
+      courseGraph,
       columns,
       provider,
       modelId,
@@ -2089,6 +2142,17 @@ export default function AppFlow({ startupAction = null, onStartupHandled, onRetu
       if (!saved.courseMap) return;
       const restoredDeliverables = await compileCompactProjectDeliverables(saved);
       setCourseMap(saved.courseMap);
+      // v0.13: restore the CourseGraph (formatVersion 2) or derive one from
+      // the legacy map — every restored project becomes graph-backed.
+      if (saved.courseGraph && validateCourseGraph(saved.courseGraph).valid) {
+        setCourseGraph(saved.courseGraph);
+      } else {
+        try {
+          setCourseGraph(deriveCourseGraphFromCourseMap(saved.courseMap));
+        } catch {
+          setCourseGraph(null);
+        }
+      }
       setColumns(saved.columns || [...DEFAULT_COLUMNS]);
       setHasGenerated(true);
       restoreProjectAIConfig(saved, { providerFallback: 'openai' });
@@ -2378,6 +2442,7 @@ export default function AppFlow({ startupAction = null, onStartupHandled, onRetu
     resetExport();
     deliv.resetDeliverables();
     setCourseMap(null);
+    setCourseGraph(null);
     setOldCourseMap(null);
     setUserEdits([]);
     setFiles([]);

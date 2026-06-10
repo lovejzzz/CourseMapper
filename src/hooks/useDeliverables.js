@@ -506,6 +506,9 @@ export default function useDeliverables({
   columns,
   onApiCallEvent,
   onCourseMapRepair,
+  // v0.13: receives the derived CourseGraph after each generation so the
+  // app can persist it as the project's source of truth.
+  onCourseGraph,
 }) {
   // ── Read deliverables from the store ──
   const storeState = useContext(CourseStateContext);
@@ -623,7 +626,6 @@ export default function useDeliverables({
       const blueprintCompiler = blueprintCompilerEnabled ? await import('../lib/courseBlueprintCompiler') : null;
       const getBlueprintCompiledFeatures = blueprintCompiler?.getBlueprintCompiledFeatures || (() => []);
       const estimateBlueprintCompilerSavings = blueprintCompiler?.estimateBlueprintCompilerSavings || (() => 0);
-      const buildCourseBlueprint = blueprintCompiler?.buildCourseBlueprint;
       const compactBlueprintForStorage = blueprintCompiler?.compactBlueprintForStorage || ((blueprint) => blueprint);
       const compileBlueprintDeliverables = blueprintCompiler?.compileBlueprintDeliverables;
       const blueprintCompiledFeatureIds = getBlueprintCompiledFeatures(requestedFeatures, {
@@ -1384,10 +1386,38 @@ export default function useDeliverables({
             'progress',
           );
         }
+        // v0.13: the COURSE GRAPH is the source of truth. The repaired map +
+        // enrichment derive into typed entities; the map consumers see from
+        // here on is a render of the graph, and the blueprint compiles FROM
+        // the graph (golden-equivalence-gated against the legacy path in
+        // tests/course-graph-golden.test.js).
+        const courseGraphLib = await import('../lib/courseGraph');
+        const courseGraph = courseGraphLib.attachEnrichmentToGraph(
+          courseGraphLib.deriveCourseGraphFromCourseMap(blueprintCourseMap),
+          blueprintEnrichment,
+        );
+        if (typeof onCourseGraph === 'function') {
+          onCourseGraph(courseGraph, { source: 'generation' });
+        }
+        const graphStats = courseGraphLib.courseGraphStats(courseGraph);
+        const alignmentFindings = courseGraphLib.lintCourseGraphAlignment(courseGraph);
+        if (graphStats) {
+          recordGenerationApiCallEvent({
+            type: 'pipelineDecision',
+            stage: 'courseGraph',
+            label: 'Course graph',
+            detail: `${graphStats.sessions} sessions · ${graphStats.concepts} concepts (${graphStats.genomeLinkedConcepts} genome-linked) · ${graphStats.outcomes} outcomes · ${graphStats.assessments} assessments${alignmentFindings.length > 0 ? ` · ${alignmentFindings.length} alignment finding(s)` : ''}`,
+          });
+        }
+        // v0.13 P6: alignment as structural lint — misalignments the prose
+        // pipeline could not see (an outcome never assessed, an assessment
+        // due before its concept is taught) surface in the generation log.
+        for (const finding of alignmentFindings.slice(0, 4)) {
+          appendLog(`⚠ Alignment: ${finding.message}`, 'warn');
+        }
         const blueprint = compactBlueprintForStorage(
-          buildCourseBlueprint(blueprintCourseMap, {
+          courseGraphLib.buildBlueprintFromGraph(courseGraph, {
             scopeIndices,
-            enrichment: blueprintEnrichment,
             localization: (await import('../lib/professorProfile')).getProfile(),
             compilerPath: {
               mode: blueprintEnrichment ? 'enriched' : 'deterministic',
@@ -3958,6 +3988,7 @@ export default function useDeliverables({
       deliverables,
       recordApiCallEvent,
       onCourseMapRepair,
+      onCourseGraph,
       logIfRecovered,
       getGenerationConfig,
     ],

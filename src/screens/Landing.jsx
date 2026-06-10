@@ -766,7 +766,7 @@ export default function Landing({
             href="#/changelog"
             className="font-medium transition-colors duration-200 hover:text-blue-600 dark:hover:text-blue-300"
           >
-            v0.12.1
+            v0.13.0
           </a>
           <span>·</span>
           <a href="#/privacy" className="transition-colors duration-200 hover:text-blue-600 dark:hover:text-blue-300">

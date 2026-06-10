@@ -1,0 +1,138 @@
+import { describe, expect, it } from 'vitest';
+import { COURSE_GRAPH_VERSION, courseGraphStats, createEmptyCourseGraph, validateCourseGraph } from '../schema.js';
+import { deriveCourseGraphFromCourseMap } from '../deriveFromCourseMap.js';
+import { renderCourseMapFromGraph } from '../renderCourseMap.js';
+import { enrichmentFromGraph } from '../blueprintFromGraph.js';
+import { lintCourseGraphAlignment } from '../alignmentLint.js';
+
+function fixtureMap() {
+  return {
+    courseName: 'Principles of Microeconomics',
+    lessons: [
+      {
+        title: 'Lesson 1: Scarcity and Economic Thinking',
+        sections: [
+          {
+            topicSection: '1.1: Opportunity Cost',
+            learningGoals: '1. Build an economic way of thinking grounded in tradeoffs.',
+            learningObjectives:
+              '1a. Analyze opportunity cost using personal examples.\n1b. Evaluate tradeoffs in a budget decision.',
+            weeklyAssessments: '1. Week 1 quiz: applied opportunity cost problems.',
+            asyncActivities: '1. Read: chapter on scarcity.\n2. Watch: tradeoffs mini-lecture.',
+            syncActivities: '1. Workshop: budget-line case analysis.',
+            technologyNeeded: 'Shared workspace and LMS quiz.',
+            presentationFormat: 'Case discussion',
+            supportingResources: 'OpenStax chapter on scarcity',
+            evaluateDesign: 'Objectives are measurable and assessed by the weekly quiz.',
+          },
+        ],
+      },
+      {
+        title: 'Lesson 2: Demand and Supply Basics',
+        sections: [
+          {
+            topicSection: '2.1: Demand Curve',
+            learningObjectives: 'Analyze demand shifts using market events.',
+            weeklyAssessments: 'Problem set 2: demand and supply shifts.',
+            supportingResources: 'OpenStax chapter on demand and supply',
+            customColumn: 'Custom value survives the round trip.',
+          },
+        ],
+      },
+    ],
+  };
+}
+
+describe('courseGraph (v0.13 P0)', () => {
+  it('creates a valid empty graph and validates referential integrity', () => {
+    const graph = createEmptyCourseGraph({ courseName: 'Test Course' });
+    expect(graph.version).toBe(COURSE_GRAPH_VERSION);
+    expect(validateCourseGraph(graph).valid).toBe(true);
+
+    graph.edges.teaches.push(['s99', 'c99']);
+    const invalid = validateCourseGraph(graph);
+    expect(invalid.valid).toBe(false);
+    expect(invalid.issues.some((issue) => issue.code === 'dangling-edge')).toBe(true);
+  });
+
+  it('derives entities, edges, and lossless extras from a course map', () => {
+    const graph = deriveCourseGraphFromCourseMap(fixtureMap());
+    expect(validateCourseGraph(graph).valid).toBe(true);
+    expect(graph.sessions).toHaveLength(2);
+    expect(graph.outcomes).toHaveLength(3);
+    expect(graph.outcomes[0]).toMatchObject({ label: '1a', bloomVerb: 'analyze' });
+    expect(graph.assessments).toHaveLength(2);
+    expect(graph.resources).toHaveLength(2);
+    expect(graph.concepts.map((concept) => concept.term)).toEqual(['Opportunity Cost', 'Demand Curve']);
+    // Alignment edges: each assessment assesses its section's outcomes.
+    expect(graph.edges.assesses.length).toBeGreaterThan(0);
+    // Compiler-owned and custom columns pass through verbatim.
+    expect(graph.sessions[0].sections[0].extras.presentationFormat).toBe('Case discussion');
+    expect(graph.sessions[1].sections[0].extras.customColumn).toBe('Custom value survives the round trip.');
+  });
+
+  it('round-trips derive → render preserving every readiness-relevant cell', () => {
+    const original = fixtureMap();
+    const rendered = renderCourseMapFromGraph(deriveCourseGraphFromCourseMap(original));
+
+    expect(rendered.courseName).toBe(original.courseName);
+    expect(rendered.lessons).toHaveLength(2);
+    expect(rendered.lessons[0].title).toBe(original.lessons[0].title);
+    const section = rendered.lessons[0].sections[0];
+    expect(section.topicSection).toBe('1.1: Opportunity Cost');
+    expect(section.learningObjectives).toBe(
+      '1a. Analyze opportunity cost using personal examples.\n1b. Evaluate tradeoffs in a budget decision.',
+    );
+    expect(section.weeklyAssessments).toBe('1. Week 1 quiz: applied opportunity cost problems.');
+    expect(section.asyncActivities).toBe('1. Read: chapter on scarcity.\n2. Watch: tradeoffs mini-lecture.');
+    expect(section.presentationFormat).toBe('Case discussion');
+    expect(rendered.lessons[1].sections[0].customColumn).toBe('Custom value survives the round trip.');
+    // The v0.12.1 stem rule holds at render time: no stem in the cell.
+    expect(section.learningObjectives).not.toContain('Students will be able to');
+  });
+
+  it('renders manual overrides verbatim over entity rendering', () => {
+    const graph = deriveCourseGraphFromCourseMap(fixtureMap());
+    graph.sessions[0].sections[0].overrides.learningObjectives = 'Instructor wrote this exact text.';
+    const rendered = renderCourseMapFromGraph(graph);
+    expect(rendered.lessons[0].sections[0].learningObjectives).toBe('Instructor wrote this exact text.');
+  });
+
+  it('lints alignment structurally — unassessed outcomes, premature assessments, weights', () => {
+    const graph = deriveCourseGraphFromCourseMap(fixtureMap());
+    // The derived fixture is aligned: every section's assessments assess its
+    // outcomes, nothing is due before it is taught.
+    expect(lintCourseGraphAlignment(graph)).toEqual([]);
+
+    // Break alignment: an outcome nothing assesses…
+    graph.edges.assesses = graph.edges.assesses.filter(([, outcomeId]) => outcomeId !== graph.outcomes[0].id);
+    // …and an assessment due before its outcome's session is taught.
+    const lateOutcome = graph.outcomes.find((outcome) => outcome.sessionRef === graph.sessions[1].id);
+    graph.assessments[0].dueSession = 1;
+    graph.edges.assesses.push([graph.assessments[0].id, lateOutcome.id]);
+    // …and weights that cannot account for the whole grade.
+    graph.assessments.forEach((assessment, index) => {
+      assessment.weightPct = index === 0 ? 10 : 20;
+    });
+    graph.assessments.push({ id: 'a99', title: 'Extra quiz', dueSession: 2, weightPct: 10 });
+
+    const findings = lintCourseGraphAlignment(graph);
+    const codes = findings.map((finding) => finding.code);
+    expect(codes).toContain('unassessed-outcomes');
+    expect(codes).toContain('assessed-before-taught');
+    expect(codes).toContain('weights-do-not-sum');
+  });
+
+  it('assembles the enrichment overlay from concept kernels and reports stats', () => {
+    const graph = deriveCourseGraphFromCourseMap(fixtureMap());
+    const conceptId = graph.concepts[0].id;
+    graph.concepts[0].kernel = { tm: 'Opportunity Cost', fs: [{ tx: 'A real fact.' }] };
+    graph.edges.genomeLink.push([conceptId, 'econ/opportunity-cost']);
+
+    const overlay = enrichmentFromGraph(graph);
+    expect(overlay.lessonContent['lesson-1']).toMatchObject({ tm: 'Opportunity Cost' });
+
+    const stats = courseGraphStats(graph);
+    expect(stats).toMatchObject({ sessions: 2, genomeLinkedConcepts: 1 });
+  });
+});

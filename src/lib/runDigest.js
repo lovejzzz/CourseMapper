@@ -114,6 +114,7 @@ function pipelineLines(pipeline = {}) {
     genomeLinker: 'genome linker',
     enrichmentModelStage: 'enrichment (model)',
     planHealth: 'plan health',
+    courseGraph: 'course graph',
   };
   return Object.entries(pipeline).map(([stage, detail]) => `  ${labels[stage] || stage}: ${detail}`);
 }

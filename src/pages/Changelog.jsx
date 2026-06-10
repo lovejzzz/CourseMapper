@@ -3,6 +3,48 @@ import Header from '../components/Header';
 
 const releases = [
   {
+    version: '0.13.0',
+    date: 'June 10, 2026',
+    title: 'The Course Graph: Structure Becomes the Source of Truth',
+    highlights: [
+      'CourseMapper now builds a typed Course Graph from your syllabus — concepts, outcomes, assessments, sessions, and resources with explicit alignment edges between them — and every deliverable, including the Course Map itself, renders from it',
+      'The Course Map is no longer a deliverable you select: course structure is always included, the map grid is its workspace view, and the XLSX remains available as an export — the locked "Course Map" card is retired',
+      'Alignment is now checked structurally instead of asserted in prose: outcomes nobody assesses, assessments due before their concepts are taught, and grade weights that do not sum to 100% surface as findings at generation time',
+      'A golden equivalence harness proves the graph-driven compile is byte-identical to the proven map-driven path on the full fixture matrix — the architecture changed, the output did not',
+    ],
+    sections: [
+      {
+        label: 'Graph-First Pipeline',
+        icon: 'AI',
+        color: 'indigo',
+        items: [
+          'New src/lib/courseGraph module: a versioned schema with stable entity ids (concepts ≡ knowledge kernels, outcomes, assessments, sessions, resources) plus teaches / assesses / practicedIn / genome-link edges; validation and stats helpers feed the run digest and PACKAGE_MANIFEST.json.',
+          'Generation derives the graph from the repaired course map and attached enrichment, then compiles the blueprint FROM the graph — enrichment kernels live on Concept entities and reach the compiler through the same overlay, proven equivalent by the golden harness.',
+          'Course-map edits (grid cells, agent actions, repairs) re-derive the graph automatically while preserving authored enrichment, so the source of truth never drifts from what the instructor sees; a manual-override render layer keeps free-text edits verbatim.',
+          'Projects persist as formatVersion 2 with the graph aboard; legacy projects derive a graph on restore — every project becomes graph-backed with no migration step for the user.',
+        ],
+      },
+      {
+        label: 'Structural Alignment Lint',
+        icon: 'QA',
+        color: 'emerald',
+        items: [
+          'lintCourseGraphAlignment turns Quality Matters alignment from a prose claim into checkable constraints: unassessed outcomes, sessions without outcomes, assessed-before-taught orderings, and weight sums are reported in the generation log and digest.',
+          'The run digest and downloaded package manifest now record the graph the package was compiled from (sessions, concepts, genome-linked vs authored, outcomes, assessments).',
+        ],
+      },
+      {
+        label: 'Product Changes',
+        icon: 'UI',
+        color: 'amber',
+        items: [
+          'Feature selection: the locked Course Map card became an always-included "Course structure" note — the deliverable list now contains only real outputs, and the column editor is labeled as what it is: view settings for the Course Map grid and XLSX export.',
+          'The model wire format intentionally stays the proven lean-atoms contract in this release; native entity-id authoring (the two-pass extraction/authorship contract) and agent graph tools land in v0.13.x behind the same golden-harness and live-proof gates — see docs/V0.13_COURSE_GRAPH_IR_ROADMAP.md for the full status ledger.',
+        ],
+      },
+    ],
+  },
+  {
     version: '0.12.1',
     date: 'June 10, 2026',
     title: 'Content Stack Always On: Enrichment Activation + Export Polish',
