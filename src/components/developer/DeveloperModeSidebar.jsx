@@ -145,6 +145,9 @@ function ApiCallBudgetCard({ budget }) {
           {usageSummary && (
             <p className="mt-0.5 text-[10px] font-semibold opacity-75">
               Spend {usageSummary.label} ({usageSummary.inputTokensDisplay} in / {usageSummary.outputTokensDisplay} out)
+              {usageSummary.reasoningOutputTokensDisplay
+                ? ` · ${usageSummary.reasoningOutputTokensDisplay} reasoning`
+                : ''}
             </p>
           )}
           {compilerSummary && (

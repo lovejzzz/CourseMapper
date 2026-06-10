@@ -194,6 +194,24 @@ function inferStructuredOutputControls(provider, modelId, supportsJsonMode) {
   };
 }
 
+// v0.9.11 P1: explicit per-task reasoning effort for effort/level-controlled
+// models. Reasoning servers default to MEDIUM when the field is omitted and
+// bill thinking as output tokens — a silent tax on schema-following tasks.
+// Structure inference (course map, examine/verification) keeps medium;
+// constrained JSON authoring (enrichment, repair, deliverable chunks) runs low.
+// Budget-controlled providers (Anthropic, Gemini 2.5) are intentionally NOT
+// mapped: omitting the field disables thinking on Anthropic, and Gemini 2.5
+// Pro rejects thinkingBudget below its floor, so the safe default is unchanged.
+const REASONING_TASK_EFFORT_MAP = {
+  'course-map': 'medium',
+  verification: 'medium',
+  'assessment-alignment': 'medium',
+  blueprintEnrichment: 'low',
+  repair: 'low',
+  generation: 'low',
+  default: 'low',
+};
+
 function inferReasoningControls(provider, modelId) {
   const id = String(modelId || '').toLowerCase();
   if (provider === 'openai' && (/^o\d/.test(id) || /^gpt-[5-9]/.test(id))) {
@@ -204,6 +222,7 @@ function inferReasoningControls(provider, modelId) {
       defaultLevel: /^gpt-[5-9]/.test(id) ? 'medium' : 'high',
       applyByDefault: false,
       highValueTasks: ['course-map', 'assessment-alignment', 'rubrics', 'verification', 'repair'],
+      taskEffortMap: { ...REASONING_TASK_EFFORT_MAP },
     };
   }
   if (provider === 'anthropic' && /claude-(?:opus|sonnet|haiku)-(?:[4-9]|\d{2,})|claude-3-7/.test(id)) {
@@ -224,6 +243,7 @@ function inferReasoningControls(provider, modelId) {
       defaultLevel: id.includes('pro') ? 'high' : 'medium',
       applyByDefault: false,
       highValueTasks: ['course-map', 'assessment-alignment', 'verification'],
+      taskEffortMap: { ...REASONING_TASK_EFFORT_MAP },
     };
   }
   if (provider === 'google' && /gemini-2\.5/.test(id)) {
@@ -244,6 +264,7 @@ function inferReasoningControls(provider, modelId) {
       defaultLevel: id.includes('pro') || id.includes('reasoner') ? 'high' : 'medium',
       applyByDefault: false,
       highValueTasks: ['course-map', 'assessment-alignment', 'verification', 'repair'],
+      taskEffortMap: { ...REASONING_TASK_EFFORT_MAP },
     };
   }
   return { supported: false, control: 'none', applyByDefault: false, highValueTasks: [] };
@@ -855,6 +876,13 @@ export function createGenerationPlan(profile = {}) {
     outputBudgetScale,
     blueprintCompiler: profile.blueprintCompiler !== false,
     blueprintEnrichment: profile.blueprintEnrichment === true,
+    // v0.9.11 P3: lean course-map atoms are the default for models that can
+    // follow a structured contract — the compiler renders stems, numbering,
+    // and the compiler-owned columns. prompt_only/webllm profiles keep the
+    // verbose contract. Set false here (or in a saved plan) to opt out.
+    // courseMapOutputTokens stays unscaled: it is a cap, not a target —
+    // unused budget is free, truncation-driven continuations are not.
+    leanCourseMapAtoms: profile.provider !== 'webllm' && structuredOutputMode !== 'prompt_only',
     parallelFeatureCalls,
     retryConcurrency,
     initialStreamRetries: chunkStrategy === 'conservative' ? 3 : 2,
@@ -876,6 +904,7 @@ export function createGenerationPlan(profile = {}) {
       defaultBudgetTokens: reasoning.defaultBudgetTokens || null,
       enabledByDefault: reasoning.applyByDefault === true,
       highValueTasks: reasoning.highValueTasks || [],
+      taskEffortMap: reasoning.taskEffortMap || null,
     },
     caching: {
       mode: caching.mode || 'none',

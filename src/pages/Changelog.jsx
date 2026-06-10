@@ -3,6 +3,51 @@ import Header from '../components/Header';
 
 const releases = [
   {
+    version: '0.9.11',
+    date: 'June 10, 2026',
+    title: 'Super-Power Compiler: Half the Tokens, One Source of Truth per Lesson',
+    highlights: [
+      'The deterministic compiler now owns everything a program can write, and the model is paid once per piece of disciplinary knowledge — billed output tokens drop roughly 55-60% per course with every quality gate unchanged',
+      'Knowledge kernels: each lesson gets one model payload (facts, terms with misconceptions, a working scenario, a debatable tension, the assignment task, and MC stems) that the compiler projects across quiz, slides, study guide, discussion, and assignment — so every artifact in a lesson agrees by construction',
+      'Lean course-map atoms are on by default: the model emits compact source-grounded phrases and the compiler renders the prose — and now derives the alignment-audit, delivery-format, and technology columns itself from your actual objective-assessment-activity mapping',
+      "The hidden reasoning tax is gone: requests to reasoning models now always carry an explicit task-tiered effort level (medium for structure inference, low for schema-following work) instead of inheriting the provider's silent medium default that bills invisible thinking as output",
+      'Per-run cost report: every model call is logged with its task, input/output/cached token split, and reasoning tokens — the developer sidebar shows reasoning spend and the console prints a per-task cost table at package finish',
+      'Compact key contracts and four-lesson enrichment chunks with cache-aligned prompts cut the remaining spend; focused course-map reviews now send only the syllabus segments for the lessons under review',
+    ],
+    sections: [
+      {
+        label: 'Knowledge Kernel',
+        icon: 'AI',
+        color: 'emerald',
+        items: [
+          'buildLessonKernelPrompt asks for one kernel per lesson under the same Haladyna/meta/grounding rules; parseLessonKernelResponse lints every atom individually (facts, terms, scenario, tension, task, MC items) before anything is consumed.',
+          'kernelProjection.js projects validated kernels into the existing overlay payload: term misconceptions become distractor rationales AND study-guide warnings, facts become slide assertions AND quiz explanations, the scenario frames compiled short-answer and essay items, and projected surfaces must pass the same lints as direct model output.',
+          "The course-level enrichment call is absorbed into kernel chunk #1 (lens, signature terms, style notes); lesson phrases and teaching moves fall back to the compiler's deterministic derivations. Chunks carry four lessons with output caps scaled per lesson and the static contract in the system prompt for prompt-cache hits.",
+        ],
+      },
+      {
+        label: 'Compiler-Owned Course Map',
+        icon: 'UI',
+        color: 'indigo',
+        items: [
+          'Lean course-map atoms (built in v0.8.6, never enabled) are now the default for structured-output models; expansion renders stems, numbering, and labels deterministically and continuation chunks stay safe.',
+          "evaluateDesign, presentationFormat, and technologyNeeded left the model contract: deriveCompilerOwnedColumns computes them from each section's own objectives, assessments, and activities with per-lesson template variety and compilerDerived provenance; an optional specialTools atom preserves syllabus-named software.",
+          'Focused examine reviews send only the syllabus segments for the flagged lessons plus the course header, with full-text fallback when segmentation does not line up.',
+        ],
+      },
+      {
+        label: 'Cost Telemetry & Reasoning Control',
+        icon: 'QA',
+        color: 'amber',
+        items: [
+          'The API budget keeps a per-call usage ledger; buildGenerationCostReport renders a per-task table (calls, input, output, reasoning, cached, cost) printed at package finish and surfaced in the developer sidebar.',
+          'A task-effort map sends explicit reasoning effort on every call to effort/level-controlled models: course-map and verification keep medium, enrichment/repair/generation run low; plan-level overrides still win, and budget-controlled providers are unchanged.',
+          'The enrichment contract uses the keyMaps compact-key idiom (~15-20% fewer output tokens); the deliverable call plan now budgets the real kernel chunk count instead of a single enrichment call.',
+        ],
+      },
+    ],
+  },
+  {
     version: '0.9.1',
     date: 'June 10, 2026',
     title: 'Classroom-Ready Program: Subject-Matter Enrichment',

@@ -41,9 +41,26 @@ function toGeminiSchema(schema) {
   return next;
 }
 
+// v0.9.11 P1: effort/level-controlled reasoning models bill an implicit
+// MEDIUM thinking pass when the request omits the field, so the task-effort
+// map always sends an explicit tier. plan.reasoning stays the explicit
+// override; budget-controlled models keep the opt-in behavior (omitting the
+// field already means "no thinking" there).
+function taskEffortFor(reasoning, task) {
+  const map = reasoning?.taskEffortMap;
+  if (!map || typeof map !== 'object') return null;
+  return map[task] ?? map.default ?? null;
+}
+
 function shouldEnableReasoning(profile, plan, task) {
   if (plan?.reasoning?.enabled === true) return true;
   const reasoning = profile?.reasoning || {};
+  if (
+    taskEffortFor(reasoning, task) &&
+    (reasoning.control === 'reasoning_effort' || reasoning.control === 'thinking_level')
+  ) {
+    return true;
+  }
   if (reasoning.applyByDefault !== true) return false;
   return (reasoning.highValueTasks || []).includes(task);
 }
@@ -64,14 +81,14 @@ function createReasoningRequestControl(profile, plan, task, maxOutputTokens) {
     return {
       enabled: true,
       control: 'thinking_level',
-      level: plan?.reasoning?.level || reasoning.defaultLevel || 'medium',
+      level: plan?.reasoning?.level || taskEffortFor(reasoning, task) || reasoning.defaultLevel || 'medium',
     };
   }
   if (reasoning.control === 'reasoning_effort') {
     return {
       enabled: true,
       control: 'reasoning_effort',
-      effort: plan?.reasoning?.level || reasoning.defaultLevel || 'medium',
+      effort: plan?.reasoning?.level || taskEffortFor(reasoning, task) || reasoning.defaultLevel || 'medium',
     };
   }
   return { enabled: false, control: reasoning.control || 'none' };
@@ -213,6 +230,9 @@ export function buildProviderTextRequest({
         ...(responseFormat ? { response_format: responseFormat } : {}),
         max_completion_tokens: controls.maxOutputTokens,
         ...(controls.temperature !== undefined && { temperature: controls.temperature }),
+        ...(controls.reasoning.enabled && controls.reasoning.control === 'reasoning_effort'
+          ? { reasoning_effort: controls.reasoning.effort }
+          : {}),
         stream: true,
         stream_options: { include_usage: true },
       },

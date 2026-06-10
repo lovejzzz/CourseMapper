@@ -395,6 +395,7 @@ export function summarizeApiUsageBudget(budget = {}) {
   const totalTokensDisplay = formatTokenCount(usage.totalTokens || 0);
   const estimated = (usage.estimatedCallCount || 0) > 0 || (usage.costEstimatedCallCount || 0) > 0;
   const reported = (usage.reportedCallCount || 0) > 0;
+  const reasoningOutputTokens = usage.reasoningOutputTokens || 0;
   return {
     costUsd: usage.costUsd || 0,
     costDisplay,
@@ -404,11 +405,107 @@ export function summarizeApiUsageBudget(budget = {}) {
     totalTokensDisplay,
     inputTokensDisplay: formatTokenCount(usage.inputTokens || 0),
     outputTokensDisplay: formatTokenCount(usage.outputTokens || 0),
+    reasoningOutputTokens,
+    reasoningOutputTokensDisplay: reasoningOutputTokens > 0 ? formatTokenCount(reasoningOutputTokens) : '',
     estimated,
     reported,
     sourceLabel: estimated ? (reported ? 'partly estimated' : 'estimated') : 'provider reported',
     label: `${costDisplay || 'Cost unknown'}${hasKnownCost && hasUnknownCost ? ' + unknown' : ''} \u00b7 ${totalTokensDisplay} tokens${estimated ? ' estimated' : ''}`,
   };
+}
+
+// \u2500\u2500 Generation cost report (v0.9.11 P0) \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
+// Turns the budget's per-call usage ledger into the proof artifact for the
+// compiler cost-shift program: every model call with its task attribution,
+// token split (including hidden reasoning tokens), and cost.
+
+function taskKeyForRow(row = {}) {
+  return row.task || row.featureId || 'unattributed';
+}
+
+export function buildGenerationCostReport(budget = {}) {
+  const rows = Array.isArray(budget.usageLedger) ? budget.usageLedger : [];
+  if (rows.length === 0) return null;
+  const byTask = {};
+  for (const row of rows) {
+    const key = taskKeyForRow(row);
+    const current = byTask[key] || {
+      task: key,
+      calls: 0,
+      inputTokens: 0,
+      outputTokens: 0,
+      reasoningOutputTokens: 0,
+      cachedInputTokens: 0,
+      costUsd: 0,
+      costKnown: false,
+    };
+    current.calls += 1;
+    current.inputTokens += row.inputTokens || 0;
+    current.outputTokens += row.outputTokens || 0;
+    current.reasoningOutputTokens += row.reasoningOutputTokens || 0;
+    current.cachedInputTokens += row.cachedInputTokens || 0;
+    if (finiteNumber(row.costUsd) !== null) {
+      current.costUsd += row.costUsd;
+      current.costKnown = true;
+    }
+    byTask[key] = current;
+  }
+  const usage = budget.tokenUsage || {};
+  return {
+    runId: budget.runId || '',
+    rows,
+    byTask: Object.values(byTask).sort((a, b) => b.outputTokens - a.outputTokens),
+    totals: {
+      calls: rows.length,
+      inputTokens: usage.inputTokens || 0,
+      outputTokens: usage.outputTokens || 0,
+      reasoningOutputTokens: usage.reasoningOutputTokens || 0,
+      cachedInputTokens: usage.cachedInputTokens || 0,
+      totalTokens: usage.totalTokens || 0,
+      costUsd: usage.costUsd || 0,
+      costKnownCallCount: usage.costKnownCallCount || 0,
+      costUnknownCallCount: usage.costUnknownCallCount || 0,
+      estimatedCallCount: usage.estimatedCallCount || 0,
+    },
+  };
+}
+
+export function formatGenerationCostReport(report) {
+  if (!report || !Array.isArray(report.byTask) || report.byTask.length === 0) return '';
+  const pad = (value, width) => String(value).padStart(width);
+  const lines = [
+    `Generation cost report (${report.runId || 'run'}): ${report.totals.calls} call${report.totals.calls === 1 ? '' : 's'}`,
+    'task                          calls      in     out  reason  cached     cost',
+  ];
+  for (const task of report.byTask) {
+    lines.push(
+      [
+        String(task.task).slice(0, 28).padEnd(28),
+        pad(task.calls, 7),
+        pad(formatTokenCount(task.inputTokens), 8),
+        pad(formatTokenCount(task.outputTokens), 8),
+        pad(task.reasoningOutputTokens > 0 ? formatTokenCount(task.reasoningOutputTokens) : '-', 8),
+        pad(task.cachedInputTokens > 0 ? formatTokenCount(task.cachedInputTokens) : '-', 8),
+        pad(task.costKnown ? formatUsd(task.costUsd) : '?', 9),
+      ].join(''),
+    );
+  }
+  const totals = report.totals;
+  lines.push(
+    [
+      'TOTAL'.padEnd(28),
+      pad(totals.calls, 7),
+      pad(formatTokenCount(totals.inputTokens), 8),
+      pad(formatTokenCount(totals.outputTokens), 8),
+      pad(totals.reasoningOutputTokens > 0 ? formatTokenCount(totals.reasoningOutputTokens) : '-', 8),
+      pad(totals.cachedInputTokens > 0 ? formatTokenCount(totals.cachedInputTokens) : '-', 8),
+      pad(totals.costKnownCallCount > 0 ? formatUsd(totals.costUsd) : '?', 9),
+    ].join(''),
+  );
+  if (totals.estimatedCallCount > 0) {
+    lines.push(`(${totals.estimatedCallCount} call${totals.estimatedCallCount === 1 ? '' : 's'} estimated locally)`);
+  }
+  return lines.join('\n');
 }
 
 export function summarizeApiFeatureUsageBudget(budget = {}, options = {}) {

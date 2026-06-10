@@ -1,4 +1,4 @@
-import { LEAN_COLUMN_DEFS } from './leanCourseMap';
+import { COMPILER_OWNED_LEAN_KEYS, LEAN_COLUMN_DEFS, LEAN_SPECIAL_TOOLS_DEF } from './leanCourseMap';
 
 // Feature 2.3 — BYOM: Reconstruct course structure from uploaded materials
 export const RECONSTRUCT_SYSTEM_PROMPT = `You are an expert instructional designer. Your course maps align with Quality Matters (QM) Higher Education Rubric standards for learning objectives, instructional alignment, and course technology. The instructor has uploaded their existing course materials (slides, notes, lecture outlines, prior syllabi, or other teaching artifacts). Your task is to REVERSE-ENGINEER the course structure from these materials and produce a structured Course Map.
@@ -90,6 +90,25 @@ COURSE NAME FIELD RULES (read carefully):
 - Only patch courseName when the source materials explicitly show a different official title or the generated title is clearly wrong.
 - If the current title is "Social Policy and Welfare", a suggestion like "Social Policy and Welfare, 14-week undergraduate course" is invalid because it adds metadata instead of correcting the title.`;
 
+/**
+ * v0.9.11 P5: when the examine pass is focused on a few lessons, send only the
+ * syllabus segments for those lessons (plus any leading header text) instead
+ * of the full document. Uses the same week/lesson markers the generator's
+ * segmentSyllabus relies on; any misalignment falls back to the full text.
+ */
+function selectSyllabusSegmentsForLessons(text, lessonIndices) {
+  if (!text || text.length < 200 || !Array.isArray(lessonIndices) || lessonIndices.length === 0) return text;
+  const parts = text.split(/(?=(?:^|\n)\s*(?:Week|Lesson|Module|Session|Unit|Class)\s+\d+)/gi).filter(Boolean);
+  if (parts.length < 2) return text;
+  const headerLed = !/^\s*(?:Week|Lesson|Module|Session|Unit|Class)\s+\d+/i.test(parts[0]);
+  const header = headerLed ? parts[0] : '';
+  const segments = headerLed ? parts.slice(1) : parts;
+  const wanted = new Set(lessonIndices);
+  const selected = segments.filter((_, segmentIndex) => wanted.has(segmentIndex));
+  if (selected.length < lessonIndices.length) return text; // segments don't line up — keep the full document
+  return [header.trim(), ...selected.map((segment) => segment.trim())].filter(Boolean).join('\n\n');
+}
+
 export function buildExamineUserPrompt(courseMap, syllabusText, scopeIndices = null, options = {}) {
   const scopeNote =
     Array.isArray(scopeIndices) && scopeIndices.length > 0
@@ -117,9 +136,17 @@ export function buildExamineUserPrompt(courseMap, syllabusText, scopeIndices = n
     ? `\n\n🎯 FOCUSED REVIEW: Deterministic checks already passed for the other ${allLessons.length - focusIndices.length} lesson(s) of this ${allLessons.length}-lesson course map. Only the ${focusIndices.length} lesson(s) included above need review; each carries its original 0-based "lessonIndex". Patches MUST use those exact lessonIndex values. Do NOT add or remove lessons, and do NOT patch lessons that are not included.`
     : '';
 
+  // Focused reviews only need the syllabus segments for the focus lessons.
+  const examineSyllabusText =
+    focusIndices && syllabusText ? selectSyllabusSegmentsForLessons(syllabusText, focusIndices) : syllabusText;
+  const syllabusTrimNote =
+    focusIndices && examineSyllabusText !== syllabusText
+      ? ' (excerpted to the segments for the lessons under review, plus the course header)'
+      : '';
+
   return `Here is the Course Map to examine:\n\n${JSON.stringify(mapPayload)}${
-    syllabusText
-      ? `\n\nHere is the original syllabus/course material for reference:\n\n${syllabusText.slice(0, 30000)}`
+    examineSyllabusText
+      ? `\n\nHere is the original syllabus/course material for reference${syllabusTrimNote}:\n\n${examineSyllabusText.slice(0, 30000)}`
       : ''
   }${scopeNote}${focusNote}\n\nExamine this course map thoroughly. Return ONLY a JSON patches object for cells that need fixing. If nothing needs fixing, return {"patches": []}:`;
 }
@@ -212,10 +239,15 @@ export function buildUserPrompt(
   options = {},
 ) {
   // Filter to only enabled columns (enabled defaults to true when field is missing)
-  const enabledColumns = columns && columns.length > 0 ? columns.filter((c) => c.enabled !== false) : columns;
+  let enabledColumns = columns && columns.length > 0 ? columns.filter((c) => c.enabled !== false) : columns;
 
   // Lean mode (v0.8.6): the model emits compact atoms; the app renders prose.
   const lean = options.lean === true;
+  // v0.9.11 P3b: in lean mode the compiler owns evaluateDesign,
+  // presentationFormat, and technologyNeeded — don't buy them from the model.
+  if (lean && enabledColumns && enabledColumns.length > 0) {
+    enabledColumns = enabledColumns.filter((col) => !COMPILER_OWNED_LEAN_KEYS.includes(col.key));
+  }
   const activeColumnDefs = lean ? { ...DEFAULT_COLUMN_DEFS, ...LEAN_COLUMN_DEFS } : DEFAULT_COLUMN_DEFS;
   const sampleFor = (key, label) => {
     if (!lean) {
@@ -244,10 +276,14 @@ export function buildUserPrompt(
   } else {
     // Fallback to defaults
     for (const [key, desc] of Object.entries(activeColumnDefs)) {
+      if (lean && COMPILER_OWNED_LEAN_KEYS.includes(key)) continue;
       columnDefs += `- ${key}: ${desc}\n`;
       sampleSection += `          "${key}": ${lean ? sampleFor(key, key) : '"Example content..."'},\n`;
       colKeys.push(key);
     }
+  }
+  if (lean) {
+    columnDefs += `- specialTools: ${LEAN_SPECIAL_TOOLS_DEF}\n`;
   }
 
   // Build lesson scope instruction
@@ -283,17 +319,17 @@ ${lessonScopeInstruction}
 3. For each week/lesson, create 2-5 topic subsections.
 ${guideline4}
 ${guideline5}
-6. Do NOT leave any field empty — always provide meaningful content. presentationFormat in particular must be a short concrete delivery label, never "" or "TBD".
+6. Do NOT leave any field empty — always provide meaningful content.${lean ? '' : ' presentationFormat in particular must be a short concrete delivery label, never "" or "TBD".'}
 7. Each section MUST contain ALL of the following keys: ${colKeys.join(', ')}.
 ${
   lean
     ? `8. LEAN OUTPUT MODE: Array fields contain compact atoms (short phrases), NOT prose. No stem sentences, no list numbering inside strings — the application renders stems and numbering deterministically. When a section has multiple learning goals, prefix each objective atom with its goal reference (e.g., "1a. Analyze...", "2b. Evaluate...").
-9. Every atom must still be specific to this lesson and grounded in the source materials. Terse but concrete; never generic filler.`
+9. Every atom must still be specific to this lesson and grounded in the source materials. Terse but concrete; never generic filler. Do NOT generate evaluateDesign, presentationFormat, or technologyNeeded — the application derives these from your other fields. Add the optional "specialTools" array ONLY when the syllabus names concrete software or equipment for that section.`
     : `8. When a section has multiple learning goals, number them sequentially (1, 2, 3… — never skip a number). Then prefix each learning objective with the goal number it maps to (e.g., 1a, 1b, 2a, 2b). If there is only one goal, no numbering is needed.
 9. CRITICAL — For learningObjectives: Write "Students will be able to:" ONCE as the opening stem, then list each objective starting directly with a Bloom's verb. Do NOT repeat "Students will be able to" on every line. Example: "Students will be able to:\\n1a. Analyze the impact of policy...\\n1b. Compare federal and state frameworks...\\n2a. Evaluate advocacy strategies..."`
 }
 10. If the syllabus below contains "--- SEGMENT N ---" markers, use these segments to accurately map content to the correct lesson/week. Each segment corresponds to one lesson.
-11. QM ALIGNMENT: Ensure learning objectives at the module level are measurable, consistent with course-level goals, and suited to the course level. Make the relationship between objectives, activities, and assessments explicit in the evaluateDesign column. Assessments should measure stated objectives; activities should help learners achieve them; instructional materials should support them.
+11. QM ALIGNMENT: Ensure learning objectives at the module level are measurable, consistent with course-level goals, and suited to the course level.${lean ? '' : ' Make the relationship between objectives, activities, and assessments explicit in the evaluateDesign column.'} Assessments should measure stated objectives; activities should help learners achieve them; instructional materials should support them.
 
 COLUMN DEFINITIONS:
 ${columnDefs}

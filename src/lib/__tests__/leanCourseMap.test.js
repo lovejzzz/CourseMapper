@@ -1,5 +1,12 @@
 import { describe, expect, it } from 'vitest';
-import { expandLeanCourseMap, expandLeanSectionField, isLeanCourseMapEnabled } from '../leanCourseMap';
+import {
+  COMPILER_OWNED_LEAN_KEYS,
+  deriveCompilerOwnedColumns,
+  expandLeanCourseMap,
+  expandLeanSectionField,
+  isLeanCourseMapEnabled,
+} from '../leanCourseMap';
+import { createBaseModelCapabilities, createGenerationPlan } from '../modelCapabilities';
 import { buildUserPrompt } from '../prompts';
 
 describe('expandLeanSectionField', () => {
@@ -104,9 +111,120 @@ describe('lean prompt contract', () => {
 });
 
 describe('isLeanCourseMapEnabled', () => {
-  it('is opt-in only', () => {
+  it('reads the explicit plan flag', () => {
     expect(isLeanCourseMapEnabled({ leanCourseMapAtoms: true })).toBe(true);
     expect(isLeanCourseMapEnabled({})).toBe(false);
     expect(isLeanCourseMapEnabled(null)).toBe(false);
+  });
+
+  it('is on by default for structured-output models and off for prompt-only profiles (v0.9.11 P3)', () => {
+    const openai = createGenerationPlan(
+      createBaseModelCapabilities('openai', { id: 'gpt-5-mini', maxOutputTokens: 128000 }),
+    );
+    expect(openai.leanCourseMapAtoms).toBe(true);
+    expect(isLeanCourseMapEnabled(openai)).toBe(true);
+
+    const webllm = createGenerationPlan(createBaseModelCapabilities('webllm', { id: 'llama-3.2-3b' }));
+    expect(isLeanCourseMapEnabled(webllm)).toBe(false);
+
+    // Saved-plan opt-out stays respected.
+    expect(isLeanCourseMapEnabled({ ...openai, leanCourseMapAtoms: false })).toBe(false);
+  });
+});
+
+describe('compiler-owned columns (v0.9.11 P3b)', () => {
+  const sectionFor = (overrides = {}) => ({
+    learningGoals: 'Understand policy systems',
+    topicSection: '1.1: Policy Foundations',
+    learningObjectives:
+      'Students will be able to:\n1. Analyze the impact of immigration policy on communities\n2. Compare federal and state frameworks',
+    weeklyAssessments: '1. Reflection Paper: impact of policy on communities',
+    asyncActivities: '1. Read: Chapter 5 on policy frameworks',
+    syncActivities: '1. Debate: immigration policy impacts',
+    supportingResources: '1. Nazario, S. (2020). Chapter 3.',
+    ...overrides,
+  });
+  const mapFor = (sections) => ({
+    courseName: 'Policy 101',
+    lessons: sections.map((section, index) => ({
+      title: `Lesson ${index + 1}: Topic ${index + 1}`,
+      sections: [section],
+    })),
+  });
+
+  it('derives the three compiler-owned columns from section content with provenance', () => {
+    const derived = deriveCompilerOwnedColumns(mapFor([sectionFor()]));
+    const section = derived.lessons[0].sections[0];
+    expect(section.presentationFormat).toBe('Interactive seminar + reading');
+    expect(section.technologyNeeded).toContain('LMS');
+    expect(section.technologyNeeded).toContain('Video conferencing');
+    // evaluateDesign is computed from the section's actual mapping, not asserted.
+    expect(section.evaluateDesign.toLowerCase()).toContain('analyze and compare');
+    expect(section.evaluateDesign.toLowerCase()).toContain('reflection paper');
+    expect(derived.lessons[0].compilerDerived).toEqual(COMPILER_OWNED_LEAN_KEYS.slice().sort());
+  });
+
+  it('varies evaluateDesign across lessons via rotation and interpolation', () => {
+    const derived = deriveCompilerOwnedColumns(
+      mapFor([
+        sectionFor(),
+        sectionFor({
+          learningObjectives: 'Students will be able to:\n1. Evaluate advocacy strategies',
+          weeklyAssessments: '1. Case Brief: advocacy outcomes',
+          syncActivities: '1. Workshop: stakeholder mapping',
+        }),
+        sectionFor({
+          learningObjectives: 'Students will be able to:\n1. Design a policy memo',
+          weeklyAssessments: '1. Memo Draft: housing policy',
+          syncActivities: '1. Peer review: memo outlines',
+        }),
+      ]),
+    );
+    const cells = derived.lessons.map((lesson) => lesson.sections[0].evaluateDesign);
+    expect(new Set(cells).size).toBe(3);
+  });
+
+  it('consumes specialTools atoms into technologyNeeded and removes the key', () => {
+    const derived = deriveCompilerOwnedColumns(mapFor([sectionFor({ specialTools: ['SPSS', 'ArcGIS'] })]));
+    const section = derived.lessons[0].sections[0];
+    expect(section.technologyNeeded).toContain('SPSS');
+    expect(section.technologyNeeded).toContain('ArcGIS');
+    expect(section.specialTools).toBeUndefined();
+  });
+
+  it('never overwrites cells that already have content', () => {
+    const derived = deriveCompilerOwnedColumns(
+      mapFor([
+        sectionFor({
+          presentationFormat: 'Simulation workshop',
+          technologyNeeded: '1. NYU Brightspace (submission)',
+          evaluateDesign: 'Hand-written alignment note.',
+        }),
+      ]),
+    );
+    const section = derived.lessons[0].sections[0];
+    expect(section.presentationFormat).toBe('Simulation workshop');
+    expect(section.technologyNeeded).toBe('1. NYU Brightspace (submission)');
+    expect(section.evaluateDesign).toBe('Hand-written alignment note.');
+    expect(derived.lessons[0].compilerDerived).toBeUndefined();
+  });
+
+  it('drops compiler-owned columns from the lean contract and offers specialTools', () => {
+    const columns = [
+      { key: 'learningObjectives', label: 'Learning Objectives', enabled: true },
+      { key: 'evaluateDesign', label: 'Evaluate Design', enabled: true },
+      { key: 'technologyNeeded', label: 'Technology Needed', enabled: true },
+      { key: 'presentationFormat', label: 'Presentation Format', enabled: true },
+    ];
+    const lean = buildUserPrompt('Syllabus text', columns, null, false, null, null, { lean: true });
+    expect(lean).not.toContain('- evaluateDesign:');
+    expect(lean).not.toContain('- presentationFormat:');
+    expect(lean).not.toContain('- technologyNeeded:');
+    expect(lean).toContain('- specialTools:');
+    expect(lean).toContain('Do NOT generate evaluateDesign');
+
+    const verbose = buildUserPrompt('Syllabus text', columns, null, false, null, null);
+    expect(verbose).toContain('- evaluateDesign:');
+    expect(verbose).toContain('- presentationFormat:');
   });
 });

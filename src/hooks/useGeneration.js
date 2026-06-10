@@ -16,7 +16,12 @@ import { filterExaminePatches } from '../lib/examinePatchFilter';
 import { failureEventFields } from '../lib/failureClassification';
 import { log, warn, error as logError } from '../lib/logger';
 import { getModeSystemAddition, getModeCourseMapNote } from '../lib/pedagogicalModes';
-import { LEAN_SYSTEM_ADDITION, expandLeanCourseMap, isLeanCourseMapEnabled } from '../lib/leanCourseMap';
+import {
+  LEAN_SYSTEM_ADDITION,
+  deriveCompilerOwnedColumns,
+  expandLeanCourseMap,
+  isLeanCourseMapEnabled,
+} from '../lib/leanCourseMap';
 import { validateCourseMap } from '../lib/validateCourseMap';
 
 function cellText(value) {
@@ -983,6 +988,10 @@ Generate lessons ${actual + 1} through ${expectedCount} now as JSON:`;
           // Lean mode: deterministically render instructor-facing cell prose
           // from compact model atoms. Idempotent — string cells pass through.
           finalResult = expandLeanCourseMap(finalResult);
+          // Compiler-owned columns (evaluateDesign, presentationFormat,
+          // technologyNeeded) were not requested in lean mode — derive them
+          // before validation so the examine scan never flags them as gaps.
+          if (leanCourseMap) finalResult = deriveCompilerOwnedColumns(finalResult);
 
           // Post-generation structural validation — auto-fix missing titles, sections, column keys
           const { warnings: validationWarnings } = validateCourseMap(finalResult, columns);
@@ -1041,6 +1050,7 @@ Generate lessons ${actual + 1} through ${expectedCount} now as JSON:`;
             setIsStreaming(false);
             // Continuation chunks may also carry lean atoms — expand again (idempotent).
             finalResult = expandLeanCourseMap(finalResult);
+            if (leanCourseMap) finalResult = deriveCompilerOwnedColumns(finalResult);
             if (finalResult.lessons.length < expected) {
               setCompletenessInfo({
                 expected,

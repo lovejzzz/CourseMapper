@@ -325,6 +325,42 @@ describe('buildExamineUserPrompt', () => {
     expect(prompt).not.toContain('SCOPE CONSTRAINT');
   });
 
+  it('trims the syllabus to focus-lesson segments plus header in focused mode (v0.9.11 P5)', () => {
+    const map = {
+      courseName: 'Focus Course',
+      lessons: [
+        { title: 'Alpha Lesson', sections: [{ topicSection: 'A' }] },
+        { title: 'Beta Lesson', sections: [{ topicSection: 'B' }] },
+        { title: 'Gamma Lesson', sections: [{ topicSection: 'C' }] },
+      ],
+    };
+    const header = `Focus Course Syllabus${'\nCourse policies and grading overview.'.repeat(4)}`;
+    const syllabus = [
+      header,
+      `Week 1: Alpha topics${'\nAlpha reading list and activities.'.repeat(4)}`,
+      `Week 2: Beta topics${'\nBeta reading list and activities.'.repeat(4)}`,
+      `Week 3: Gamma topics${'\nGamma reading list and activities.'.repeat(4)}`,
+    ].join('\n');
+
+    const focused = buildExamineUserPrompt(map, syllabus, null, { focusLessonIndices: [2] });
+    expect(focused).toContain('Gamma reading list');
+    expect(focused).toContain('Course policies'); // header always retained
+    expect(focused).not.toContain('Alpha reading list');
+    expect(focused).not.toContain('Beta reading list');
+    expect(focused).toContain('excerpted to the segments');
+
+    // Unsegmentable syllabi fall back to the full document.
+    const flat = `No weekly markers here at all. ${'Just one long policy paragraph. '.repeat(20)}`;
+    const fallback = buildExamineUserPrompt(map, flat, null, { focusLessonIndices: [2] });
+    expect(fallback).toContain('Just one long policy paragraph');
+    expect(fallback).not.toContain('excerpted to the segments');
+
+    // Full reviews are never trimmed.
+    const full = buildExamineUserPrompt(map, syllabus, null, {});
+    expect(full).toContain('Alpha reading list');
+    expect(full).toContain('Beta reading list');
+  });
+
   it('sends only focus lessons with original indices in focused review mode', () => {
     const map = {
       courseName: 'Focus Course',

@@ -663,13 +663,21 @@ export default function useDeliverables({
         includeCourseMap: false,
         includeRepairRetryReserve: costMode !== 'finalizerRetry',
       });
+      // v0.9.11 P4: the kernel stage makes one call per 4 lessons (course-level
+      // block absorbed into chunk #1); legacy course-level-only enrichment is 1.
+      const enrichmentLessonCount = Array.isArray(scopeIndices) ? scopeIndices.length : lessonCount;
+      const plannedEnrichmentCalls = !blueprintEnrichmentRequested
+        ? 0
+        : generationOptions.lessonContentEnrichment !== false
+          ? Math.max(1, Math.ceil(enrichmentLessonCount / 4))
+          : 1;
       const costPlan = blueprintEnrichmentRequested
         ? {
             ...baseCostPlan,
-            blueprintEnrichmentCalls: 1,
-            plannedCalls: baseCostPlan.plannedCalls + 1,
-            softCallLimit: baseCostPlan.softCallLimit + 1,
-            hardCallLimit: baseCostPlan.hardCallLimit + 1,
+            blueprintEnrichmentCalls: plannedEnrichmentCalls,
+            plannedCalls: baseCostPlan.plannedCalls + plannedEnrichmentCalls,
+            softCallLimit: baseCostPlan.softCallLimit + plannedEnrichmentCalls,
+            hardCallLimit: baseCostPlan.hardCallLimit + plannedEnrichmentCalls,
           }
         : baseCostPlan;
       const cappedCostPlan =
@@ -694,7 +702,7 @@ export default function useDeliverables({
           label: 'Deliverable call plan',
           detail: `${cappedCostPlan.deliverableChunkCalls} generation call${
             cappedCostPlan.deliverableChunkCalls === 1 ? '' : 's'
-          }${blueprintEnrichmentRequested ? ' + 1 blueprint enrichment call' : ''} + ${
+          }${blueprintEnrichmentRequested ? ` + ${plannedEnrichmentCalls} blueprint enrichment call${plannedEnrichmentCalls === 1 ? '' : 's'}` : ''} + ${
             cappedCostPlan.repairRetryReserve
           } repair reserve${
             compiledSavings > 0 ? `; blueprint compiler saves about ${compiledSavings} generation call(s)` : ''
@@ -1006,8 +1014,15 @@ export default function useDeliverables({
         const enrichmentMaxOutputTokens = Math.max(512, Math.min(outputCap, Number(maxOutputTokens) || outputCap));
 
         try {
-          const { buildBlueprintEnrichmentPrompt, chooseBlueprintEnrichmentPath, parseBlueprintEnrichmentResponse } =
-            await import('../lib/blueprintEnrichmentPass');
+          const {
+            buildBlueprintEnrichmentPayload,
+            buildBlueprintEnrichmentPrompt,
+            buildLessonKernelPrompt,
+            chooseBlueprintEnrichmentPath,
+            normalizeAbsorbedCourseLevel,
+            parseBlueprintEnrichmentResponse,
+            parseLessonKernelResponse,
+          } = await import('../lib/blueprintEnrichmentPass');
           const decision = chooseBlueprintEnrichmentPath(blueprintCourseMap, {
             mode: blueprintEnrichmentMode,
             scopeIndices,
@@ -1017,103 +1032,128 @@ export default function useDeliverables({
             costMode,
           });
           if (!decision.shouldRunEnrichment) return null;
-          const prompts = buildBlueprintEnrichmentPrompt(blueprintCourseMap, { scopeIndices });
-          appendLog('Enriching blueprint...', 'progress');
-          recordGenerationApiCallEvent({
-            type: 'blueprintEnrichmentCall',
-            label: 'Enrich blueprint',
-            detail: `${prompts.approxInputTokens} input tokens estimated`,
-            featureId: 'blueprintEnrichment',
-          });
-          const result = await streamProvider(provider, apiKey, modelId, prompts.systemPrompt, prompts.userPrompt, {
-            maxOutputTokens: enrichmentMaxOutputTokens,
-            modelCapabilities,
-            generationPlan,
-            featureId: 'blueprintEnrichment',
-            task: 'blueprintEnrichment',
-            allowProviderFallback: maxProviderCalls === null || getRemainingProviderCalls() > 0,
-            onApiCallEvent: recordGenerationApiCallEvent,
-            signal: controller.signal,
-          });
-          const enrichment = parseBlueprintEnrichmentResponse(result?.fullText || '', { payload: prompts.payload });
-          if (!enrichment) {
-            appendLog('⚠ Blueprint enrichment was rejected by source-grounding checks', 'warn');
+          const kernelStage = generationOptions.lessonContentEnrichment !== false;
+
+          let enrichment = null;
+          if (!kernelStage) {
+            // Standalone course-level call — only when the kernel stage is off
+            // (v0.9.11 P4c absorbed it into kernel chunk #1 otherwise).
+            const prompts = buildBlueprintEnrichmentPrompt(blueprintCourseMap, { scopeIndices });
+            appendLog('Enriching blueprint...', 'progress');
+            recordGenerationApiCallEvent({
+              type: 'blueprintEnrichmentCall',
+              label: 'Enrich blueprint',
+              detail: `${prompts.approxInputTokens} input tokens estimated`,
+              featureId: 'blueprintEnrichment',
+            });
+            const result = await streamProvider(provider, apiKey, modelId, prompts.systemPrompt, prompts.userPrompt, {
+              maxOutputTokens: enrichmentMaxOutputTokens,
+              modelCapabilities,
+              generationPlan,
+              featureId: 'blueprintEnrichment',
+              task: 'blueprintEnrichment',
+              allowProviderFallback: maxProviderCalls === null || getRemainingProviderCalls() > 0,
+              onApiCallEvent: recordGenerationApiCallEvent,
+              signal: controller.signal,
+            });
+            enrichment = parseBlueprintEnrichmentResponse(result?.fullText || '', { payload: prompts.payload });
+            if (!enrichment) {
+              appendLog('⚠ Blueprint enrichment was rejected by source-grounding checks', 'warn');
+              return null;
+            }
+            appendLog(
+              `✓ Blueprint enrichment applied (${enrichment.signatureTerms.length} terms, ${enrichment.quality?.sourceGroundingSignalCount || 0} source signal${enrichment.quality?.sourceGroundingSignalCount === 1 ? '' : 's'})`,
+              'done',
+            );
+            return enrichment;
+          }
+
+          // v0.9.11 P4: knowledge-kernel stage. The model writes each piece of
+          // disciplinary knowledge once per lesson; the deterministic
+          // projection fans it out across quiz, slides, study guide,
+          // discussion, and assignment surfaces. Chunked four lessons per
+          // call; chunk #1 also carries the absorbed course-level block.
+          const lessonIndices = Array.isArray(scopeIndices)
+            ? scopeIndices
+            : (blueprintCourseMap.lessons || []).map((_, lessonIdx) => lessonIdx);
+          const lessonContent = {};
+          let absorbedCourseLevel = null;
+          const chunkSize = 4;
+          for (let start = 0; start < lessonIndices.length; start += chunkSize) {
+            if (!hasProviderCallBudget()) {
+              appendLog('⚠ Content enrichment stopped early: call cap', 'warn');
+              break;
+            }
+            const chunk = lessonIndices.slice(start, start + chunkSize);
+            const kernelPrompt = buildLessonKernelPrompt(blueprintCourseMap, chunk, {
+              questionsPerLesson: getGenerationConfig('quizBank')?.questionsPerLesson,
+              includeCourseLevel: start === 0,
+            });
+            recordGenerationApiCallEvent({
+              type: 'blueprintEnrichmentCall',
+              label: 'Enrich lesson kernels',
+              detail: `Lessons ${chunk.map((lessonIdx) => lessonIdx + 1).join(', ')} — ${kernelPrompt.approxInputTokens} input tokens estimated`,
+              featureId: 'blueprintEnrichment',
+            });
+            try {
+              const kernelResult = await streamProvider(
+                provider,
+                apiKey,
+                modelId,
+                kernelPrompt.systemPrompt,
+                kernelPrompt.userPrompt,
+                {
+                  // ~1.2k output tokens per kernel lesson, floor at the legacy cap.
+                  maxOutputTokens: Math.max(enrichmentMaxOutputTokens, 1200 * chunk.length, 2400),
+                  modelCapabilities,
+                  generationPlan,
+                  featureId: 'blueprintEnrichment',
+                  task: 'blueprintEnrichment',
+                  allowProviderFallback: maxProviderCalls === null || getRemainingProviderCalls() > 0,
+                  onApiCallEvent: recordGenerationApiCallEvent,
+                  signal: controller.signal,
+                },
+              );
+              const parsedKernels = parseLessonKernelResponse(kernelResult?.fullText || '', {
+                prompt: kernelPrompt,
+              });
+              if (parsedKernels) {
+                Object.assign(lessonContent, parsedKernels.lessons);
+                if (start === 0 && parsedKernels.courseLevel) {
+                  absorbedCourseLevel = normalizeAbsorbedCourseLevel(
+                    parsedKernels.courseLevel,
+                    buildBlueprintEnrichmentPayload(blueprintCourseMap, { scopeIndices }),
+                  );
+                }
+                if (parsedKernels.issues.length > 0) {
+                  appendLog(
+                    `Content enrichment dropped ${parsedKernels.issues.length} atom(s) that failed item-writing or grounding checks`,
+                    'progress',
+                  );
+                }
+              }
+            } catch (chunkErr) {
+              if (chunkErr?.name === 'AbortError') throw chunkErr;
+              appendLog(`⚠ Content enrichment chunk failed: ${chunkErr.message || 'model error'}`, 'warn');
+            }
+          }
+
+          const enrichedLessonCount = Object.keys(lessonContent).length;
+          if (enrichedLessonCount === 0) {
+            appendLog('⚠ Blueprint enrichment produced no usable lesson kernels', 'warn');
             return null;
           }
+          enrichment = {
+            signatureTerms: absorbedCourseLevel?.signatureTerms || [],
+            lens: absorbedCourseLevel?.lens || null,
+            styleNotes: absorbedCourseLevel?.styleNotes || [],
+            quality: absorbedCourseLevel?.quality || { source: 'kernel-only' },
+            lessonContent,
+          };
           appendLog(
-            `✓ Blueprint enrichment applied (${enrichment.signatureTerms.length} terms, ${enrichment.quality?.sourceGroundingSignalCount || 0} source signal${enrichment.quality?.sourceGroundingSignalCount === 1 ? '' : 's'})`,
+            `✓ Knowledge kernels enriched for ${enrichedLessonCount} lesson${enrichedLessonCount === 1 ? '' : 's'} (quiz, slides, study guide, discussion, assignment from one payload)${absorbedCourseLevel ? ` + course lens (${absorbedCourseLevel.signatureTerms.length} terms)` : ''}`,
             'done',
           );
-
-          // v0.9.1 Phase 1: per-lesson subject-matter content (quiz items +
-          // key terms), chunked two lessons per call, individually validated.
-          if (generationOptions.lessonContentEnrichment !== false) {
-            const { buildLessonContentEnrichmentPrompt, parseLessonContentEnrichmentResponse } =
-              await import('../lib/blueprintEnrichmentPass');
-            const lessonIndices = Array.isArray(scopeIndices)
-              ? scopeIndices
-              : (blueprintCourseMap.lessons || []).map((_, lessonIdx) => lessonIdx);
-            const lessonContent = {};
-            const chunkSize = 2;
-            for (let start = 0; start < lessonIndices.length; start += chunkSize) {
-              if (!hasProviderCallBudget()) {
-                appendLog('⚠ Content enrichment stopped early: call cap', 'warn');
-                break;
-              }
-              const chunk = lessonIndices.slice(start, start + chunkSize);
-              const contentPrompt = buildLessonContentEnrichmentPrompt(blueprintCourseMap, chunk, {
-                questionsPerLesson: getGenerationConfig('quizBank')?.questionsPerLesson,
-              });
-              recordGenerationApiCallEvent({
-                type: 'blueprintEnrichmentCall',
-                label: 'Enrich lesson content',
-                detail: `Lessons ${chunk.map((lessonIdx) => lessonIdx + 1).join(', ')} — ${contentPrompt.approxInputTokens} input tokens estimated`,
-                featureId: 'blueprintEnrichment',
-              });
-              try {
-                const contentResult = await streamProvider(
-                  provider,
-                  apiKey,
-                  modelId,
-                  contentPrompt.systemPrompt,
-                  contentPrompt.userPrompt,
-                  {
-                    maxOutputTokens: Math.max(enrichmentMaxOutputTokens, 2400),
-                    modelCapabilities,
-                    generationPlan,
-                    featureId: 'blueprintEnrichment',
-                    task: 'blueprintEnrichment',
-                    allowProviderFallback: maxProviderCalls === null || getRemainingProviderCalls() > 0,
-                    onApiCallEvent: recordGenerationApiCallEvent,
-                    signal: controller.signal,
-                  },
-                );
-                const parsedContent = parseLessonContentEnrichmentResponse(contentResult?.fullText || '', {
-                  prompt: contentPrompt,
-                });
-                if (parsedContent) {
-                  Object.assign(lessonContent, parsedContent.lessons);
-                  if (parsedContent.issues.length > 0) {
-                    appendLog(
-                      `Content enrichment dropped ${parsedContent.issues.length} item(s) that failed item-writing or grounding checks`,
-                      'progress',
-                    );
-                  }
-                }
-              } catch (chunkErr) {
-                if (chunkErr?.name === 'AbortError') throw chunkErr;
-                appendLog(`⚠ Content enrichment chunk failed: ${chunkErr.message || 'model error'}`, 'warn');
-              }
-            }
-            const enrichedLessonCount = Object.keys(lessonContent).length;
-            if (enrichedLessonCount > 0) {
-              enrichment.lessonContent = lessonContent;
-              appendLog(
-                `✓ Subject-matter content enriched for ${enrichedLessonCount} lesson${enrichedLessonCount === 1 ? '' : 's'} (quiz items + key terms)`,
-                'done',
-              );
-            }
-          }
           return enrichment;
         } catch (err) {
           if (err?.name === 'AbortError') {

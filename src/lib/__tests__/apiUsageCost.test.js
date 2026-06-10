@@ -1,8 +1,10 @@
 import { describe, expect, it } from 'vitest';
 import {
   buildApiUsageEvent,
+  buildGenerationCostReport,
   estimateUsageCost,
   extractUsageFromProviderChunk,
+  formatGenerationCostReport,
   mergeReportedUsage,
   summarizeApiFeatureUsageBudget,
   summarizeApiUsageBudget,
@@ -104,6 +106,76 @@ describe('apiUsageCost', () => {
       savedProviderCalls: 2,
     });
     expect(compilerSummary.label).toContain('2 compiled');
+  });
+
+  it('builds a per-task generation cost report from the usage ledger', () => {
+    let budget = createApiCallBudget();
+    budget = applyApiCallBudgetEvent(budget, {
+      type: 'apiUsage',
+      provider: 'openai',
+      modelId: 'gpt-5-mini',
+      task: 'course-map',
+      featureId: 'course-map',
+      usage: {
+        inputTokens: 12000,
+        outputTokens: 9000,
+        totalTokens: 21000,
+        reasoningOutputTokens: 4000,
+        estimated: false,
+      },
+      costUsd: 0.021,
+    });
+    budget = applyApiCallBudgetEvent(budget, {
+      type: 'apiUsage',
+      provider: 'openai',
+      modelId: 'gpt-5-mini',
+      task: 'blueprintEnrichment',
+      featureId: 'blueprintEnrichment',
+      usage: { inputTokens: 1700, outputTokens: 2300, totalTokens: 4000, cachedInputTokens: 900, estimated: false },
+      costUsd: 0.005,
+    });
+    budget = applyApiCallBudgetEvent(budget, {
+      type: 'apiUsage',
+      provider: 'openai',
+      modelId: 'gpt-5-mini',
+      task: 'blueprintEnrichment',
+      featureId: 'blueprintEnrichment',
+      usage: { inputTokens: 1700, outputTokens: 2400, totalTokens: 4100, cachedInputTokens: 900, estimated: false },
+      costUsd: 0.005,
+    });
+
+    expect(budget.usageLedger).toHaveLength(3);
+    expect(budget.usageLedger[0]).toMatchObject({
+      task: 'course-map',
+      reasoningOutputTokens: 4000,
+      outputTokens: 9000,
+    });
+
+    const report = buildGenerationCostReport(budget);
+    expect(report.totals).toMatchObject({
+      calls: 3,
+      inputTokens: 15400,
+      outputTokens: 13700,
+      reasoningOutputTokens: 4000,
+      cachedInputTokens: 1800,
+    });
+    const enrichmentTask = report.byTask.find((task) => task.task === 'blueprintEnrichment');
+    expect(enrichmentTask).toMatchObject({ calls: 2, outputTokens: 4700, cachedInputTokens: 1800 });
+
+    const text = formatGenerationCostReport(report);
+    expect(text).toContain('course-map');
+    expect(text).toContain('blueprintEnrichment');
+    expect(text).toContain('TOTAL');
+    // Reasoning tokens must be visible — they are the P1 proof metric.
+    expect(text).toMatch(/reason/);
+
+    const summary = summarizeApiUsageBudget(budget);
+    expect(summary.reasoningOutputTokensDisplay).toBe('4.0k');
+  });
+
+  it('returns null cost report when no usage rows were recorded', () => {
+    expect(buildGenerationCostReport(createApiCallBudget())).toBeNull();
+    expect(formatGenerationCostReport(null)).toBe('');
   });
 
   it('does not expose internal custom deliverable IDs in spend labels', () => {

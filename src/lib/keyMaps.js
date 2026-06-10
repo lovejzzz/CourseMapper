@@ -260,6 +260,35 @@ const courseFaq = {
   ce: 'concreteExample',
 };
 
+// v0.9.11 P2: lesson-content enrichment contract (blueprintEnrichmentPass).
+// Wrapper keys (lessons, quizItems, keyTerms, slideContent, discussionPrompt,
+// assignmentCore) plus lessonId/index/type stay full — the parser reads them
+// and they repeat at most once per lesson.
+const enrichment = {
+  q: 'question',
+  op: 'options',
+  ai: 'answerIndex',
+  dr: 'distractorRationales',
+  an: 'answer',
+  ex: 'explanation',
+  sg: 'scoringGuidance',
+  tr: 'term',
+  df: 'definition',
+  eg: 'example',
+  mi: 'misconception',
+  ti: 'title',
+  bu: 'bullets',
+  no: 'notes',
+  pr: 'prompt',
+  tn: 'tension',
+  po: 'positions',
+  td: 'taskDescription',
+  pa: 'parameters',
+  // kernel contract (v0.9.11 P4): scenario block
+  su: 'setup',
+  ma: 'materials',
+};
+
 export const KEY_MAPS = {
   lessonPlans,
   slideDecks,
@@ -269,6 +298,7 @@ export const KEY_MAPS = {
   discussions,
   studyGuides,
   courseFaq,
+  enrichment,
   // syllabus intentionally excluded — single object, no array repetition
 };
 

@@ -1,3 +1,6 @@
+import { expandKeys } from './keyMaps';
+import { projectKernelToSurfaces } from './kernelProjection';
+
 const DEFAULT_MAX_LESSONS = 12;
 const MAX_TEXT_CHARS = 320;
 const SOURCE_WORD_LIMIT = 80;
@@ -621,10 +624,8 @@ const LESSON_CONTENT_SYSTEM_PROMPT = [
 const META_SURFACE_RE =
   /\b(?:evidence move|success criteri\w*|course evidence|lesson evidence|rubric|the (?:Week\s*\d+|weekly) \w+|this (?:course|lesson)|the lesson|artifact|submission|checkpoint)\b/i;
 
-export function buildLessonContentEnrichmentPrompt(courseMap, lessonIndices, options = {}) {
-  const questionsPerLesson = Math.max(5, Math.min(7, Number(options.questionsPerLesson) || 6));
-  const keyTermsPerLesson = Math.max(3, Math.min(6, Number(options.keyTermsPerLesson) || 4));
-  const lessons = asArray(lessonIndices)
+function summarizeLessonsForContent(courseMap, lessonIndices) {
+  return asArray(lessonIndices)
     .map((lessonIndex) => {
       const lesson = courseMap?.lessons?.[lessonIndex];
       if (!lesson) return null;
@@ -644,16 +645,30 @@ export function buildLessonContentEnrichmentPrompt(courseMap, lessonIndices, opt
       };
     })
     .filter(Boolean);
+}
 
-  const itemPlan = [
+export function buildQuizItemPlan(questionsPerLesson) {
+  const count = Math.max(5, Math.min(7, Number(questionsPerLesson) || 6));
+  return [
     { index: 0, type: 'multiple_choice', bloom: 'Remember', note: 'foundational fact or definition' },
     { index: 1, type: 'multiple_choice', bloom: 'Apply', note: 'apply the concept to a concrete scenario' },
     { index: 2, type: 'multiple_choice', bloom: 'Analyze', note: 'compare/diagnose using the concept' },
     { index: 3, type: 'short_answer', bloom: 'Analyze', note: 'short written analysis with model answer' },
     { index: 4, type: 'multiple_choice', bloom: 'Evaluate', note: 'judge a claim or method' },
     { index: 5, type: 'essay', bloom: 'Create', note: 'synthesis task with sample answer and scoring guidance' },
-  ].slice(0, questionsPerLesson);
+  ].slice(0, count);
+}
 
+export function buildLessonContentEnrichmentPrompt(courseMap, lessonIndices, options = {}) {
+  const questionsPerLesson = Math.max(5, Math.min(7, Number(options.questionsPerLesson) || 6));
+  const keyTermsPerLesson = Math.max(3, Math.min(6, Number(options.keyTermsPerLesson) || 4));
+  const lessons = summarizeLessonsForContent(courseMap, lessonIndices);
+
+  const itemPlan = buildQuizItemPlan(questionsPerLesson);
+
+  // v0.9.11 P2: short keys in the output contract (expanded by expandKeys on
+  // parse) — key names repeat per item per lesson, so this trims ~15-20% of
+  // output tokens without touching the content the model writes.
   const schema = {
     lessons: [
       {
@@ -662,38 +677,38 @@ export function buildLessonContentEnrichmentPrompt(courseMap, lessonIndices, opt
           {
             index: 0,
             type: 'multiple_choice|short_answer|essay',
-            question: 'content-bearing stem about the subject',
-            options: ['A', 'B', 'C', 'D — multiple_choice only; omit otherwise'],
-            answerIndex: 0,
-            distractorRationales: ['misconception behind each wrong option — multiple_choice only'],
-            answer: 'model answer — short_answer/essay only',
-            explanation: 'why the key is correct, in subject terms',
-            scoringGuidance: 'short_answer/essay only',
+            q: 'content-bearing stem about the subject',
+            op: ['A', 'B', 'C', 'D — multiple_choice only; omit otherwise'],
+            ai: 0,
+            dr: ['misconception behind each wrong option — multiple_choice only'],
+            an: 'model answer — short_answer/essay only',
+            ex: 'why the key is correct, in subject terms',
+            sg: 'short_answer/essay only',
           },
         ],
         keyTerms: [
           {
-            term: 'real disciplinary term',
-            definition: 'correct 1-2 sentence definition in subject language',
-            example: 'concrete domain example',
-            misconception: 'common student misunderstanding of this term',
+            tr: 'real disciplinary term',
+            df: 'correct 1-2 sentence definition in subject language',
+            eg: 'concrete domain example',
+            mi: 'common student misunderstanding of this term',
           },
         ],
         slideContent: [
           {
-            title: 'assertion-style claim about the subject (a sentence that is true)',
-            bullets: ['2-4 evidence-bearing bullets: facts, numbers, examples — each under 16 words'],
-            notes: '2-4 sentence speaker explanation of the claim in subject terms',
+            ti: 'assertion-style claim about the subject (a sentence that is true)',
+            bu: ['2-4 evidence-bearing bullets: facts, numbers, examples — each under 16 words'],
+            no: '2-4 sentence speaker explanation of the claim in subject terms',
           },
         ],
         discussionPrompt: {
-          prompt: 'a genuinely debatable disciplinary question',
-          tension: 'one sentence naming why reasonable positions disagree',
-          positions: ['2-3 defensible positions, one short sentence each'],
+          pr: 'a genuinely debatable disciplinary question',
+          tn: 'one sentence naming why reasonable positions disagree',
+          po: ['2-3 defensible positions, one short sentence each'],
         },
         assignmentCore: {
-          taskDescription: '2-3 sentences: the actual case/dataset/text students work on and what they produce',
-          parameters: ['2-4 concrete parameters: length, data source, format, constraints'],
+          td: '2-3 sentences: the actual case/dataset/text students work on and what they produce',
+          pa: ['2-4 concrete parameters: length, data source, format, constraints'],
         },
       },
     ],
@@ -705,6 +720,7 @@ export function buildLessonContentEnrichmentPrompt(courseMap, lessonIndices, opt
     JSON.stringify(itemPlan),
     `…and ${keyTermsPerLesson} keyTerms drawn from the lesson topics/objectives, plus 3 slideContent entries, one discussionPrompt, and one assignmentCore per lesson.`,
     'Question difficulty and cognitive level must match the plan. Use the objectives verbatim as the knowledge targets.',
+    'Use the abbreviated JSON keys exactly as shown: q=question, op=options, ai=answerIndex, dr=distractorRationales, an=answer, ex=explanation, sg=scoringGuidance, tr=term, df=definition, eg=example, mi=misconception, ti=title, bu=bullets, no=notes, pr=prompt, tn=tension, po=positions, td=taskDescription, pa=parameters.',
     'Return JSON matching this shape:',
     JSON.stringify(schema),
     '',
@@ -803,7 +819,9 @@ export function lintEnrichedAssignmentCore(core) {
  * issues: [{lessonId, surface, index, problems}] } or null when unusable.
  */
 export function parseLessonContentEnrichmentResponse(text, { prompt } = {}) {
-  const parsed = parseJsonObject(text);
+  // Expand the P2 short-key contract before validation; full-key responses
+  // (older models, retries on the legacy contract) pass through unchanged.
+  const parsed = expandKeys('enrichment', parseJsonObject(text));
   if (!parsed || !Array.isArray(parsed.lessons)) return null;
   const groundingText = JSON.stringify(prompt?.lessons || []);
   const lessons = {};
@@ -893,4 +911,280 @@ export function parseLessonContentEnrichmentResponse(text, { prompt } = {}) {
   }
   if (Object.keys(lessons).length === 0) return null;
   return { lessons, issues };
+}
+
+// ════════════════════════════════════════════════════════════════════════════
+// Knowledge kernel (v0.9.11 P4)
+//
+// One model payload per lesson holds the knowledge atoms; the deterministic
+// projection (kernelProjection.js) turns them into the same surface payload
+// the v0.9.1 overlays consume. The model writes each piece of disciplinary
+// knowledge exactly once: misconceptions feed distractor rationales AND the
+// study guide; facts feed slides AND quiz explanations; the scenario feeds
+// short-answer and essay frames.
+// ════════════════════════════════════════════════════════════════════════════
+
+const KERNEL_KEY_LEGEND =
+  'Abbreviated JSON keys: q=question, op=options, ai=answerIndex, ex=explanation, tr=term, df=definition, eg=example, mi=misconception, pr=prompt, tn=tension, po=positions, td=taskDescription, pa=parameters, su=setup, ma=materials.';
+
+function buildKernelSchema() {
+  return {
+    lessons: [
+      {
+        lessonId: 'lesson-1',
+        facts: [
+          '5-8 one-sentence content-bearing claims about the subject (each under 20 words, specific enough to anchor a slide title or quiz explanation)',
+        ],
+        keyTerms: [
+          {
+            tr: 'real disciplinary term',
+            df: 'correct 1-2 sentence definition in subject language',
+            eg: 'concrete domain example',
+            mi: 'common student misunderstanding of this term',
+          },
+        ],
+        scenario: {
+          su: '2-3 sentence concrete case/dataset/text setup students can analyze',
+          ma: 'the specific materials, data, or text students examine',
+        },
+        discussionPrompt: {
+          pr: 'a genuinely debatable disciplinary question',
+          tn: 'one sentence naming why reasonable positions disagree',
+          po: ['2-3 defensible positions, one short sentence each'],
+        },
+        assignmentCore: {
+          td: '2-3 sentences: the actual case/dataset/text students work on and what they produce',
+          pa: ['2-4 concrete parameters: length, data source, format, constraints'],
+        },
+        mc: [
+          {
+            q: 'content-bearing multiple-choice stem about the subject',
+            op: ['exactly 4 options, homogeneous in length and grammar'],
+            ai: 0,
+            ex: 'why the key is correct, in subject terms',
+          },
+        ],
+      },
+    ],
+  };
+}
+
+const KERNEL_COURSE_LEVEL_SCHEMA = {
+  courseLevel: {
+    signatureTerms: ['4-10 discipline-specific terms that should recur across compiled materials'],
+    lens: {
+      domain: 'short course domain',
+      evidenceNoun: 'specific evidence noun',
+      decisionNoun: 'specific decision noun',
+      learnerRole: 'student role in this course',
+      exampleNoun: 'specific scenario/example noun',
+    },
+    styleNotes: ['1-4 short style rules for this course'],
+  },
+};
+
+/**
+ * Kernel prompt: everything static (system role, legend, schema, item plan)
+ * lives in the system prompt so chunked calls share an identical prefix —
+ * Anthropic gets an explicit cache_control hit and OpenAI's automatic prefix
+ * cache can engage. The user prompt carries only the course line and the
+ * lesson summaries for this chunk.
+ */
+export function buildLessonKernelPrompt(courseMap, lessonIndices, options = {}) {
+  const itemPlan = buildQuizItemPlan(options.questionsPerLesson);
+  const keyTermsPerLesson = Math.max(3, Math.min(6, Number(options.keyTermsPerLesson) || 4));
+  const mcCount = itemPlan.filter((slot) => slot.type === 'multiple_choice').length;
+  const includeCourseLevel = options.includeCourseLevel === true;
+  const lessons = summarizeLessonsForContent(courseMap, lessonIndices);
+
+  const systemPrompt = [
+    LESSON_CONTENT_SYSTEM_PROMPT,
+    `For every lesson in the request, return one knowledge kernel: 5-8 facts, ${keyTermsPerLesson} keyTerms, one scenario, one discussionPrompt, one assignmentCore, and exactly ${mcCount} mc items.`,
+    `The mc items follow this cognitive plan (matching list order): ${itemPlan
+      .filter((slot) => slot.type === 'multiple_choice')
+      .map((slot) => `${slot.bloom} (${slot.note})`)
+      .join('; ')}.`,
+    KERNEL_KEY_LEGEND,
+    'Return JSON matching this shape:',
+    JSON.stringify({
+      ...buildKernelSchema(),
+      ...(includeCourseLevel ? KERNEL_COURSE_LEVEL_SCHEMA : {}),
+    }),
+    includeCourseLevel
+      ? 'Also include the courseLevel object once (not per lesson), grounded in the same source facts.'
+      : '',
+  ]
+    .filter(Boolean)
+    .join('\n');
+
+  const userPrompt = [
+    `Course: ${truncateText(courseMap?.courseName || 'Untitled Course', 120)}`,
+    'Lessons:',
+    JSON.stringify(lessons),
+  ].join('\n');
+
+  return {
+    systemPrompt,
+    userPrompt,
+    lessons,
+    itemPlan,
+    includeCourseLevel,
+    approxInputTokens: Math.ceil((systemPrompt.length + userPrompt.length) / 4),
+  };
+}
+
+export function lintKernelFact(fact) {
+  const issues = [];
+  const text = cleanText(fact);
+  if (text.length < 20) issues.push('fact-too-short');
+  if (text.split(/\s+/).length > 24) issues.push('fact-too-long');
+  if (META_SURFACE_RE.test(text)) issues.push('meta-fact');
+  return issues;
+}
+
+export function lintKernelScenario(scenario) {
+  const issues = [];
+  if (cleanText(scenario?.setup).length < 40) issues.push('scenario-too-short');
+  if (META_SURFACE_RE.test(cleanText(scenario?.setup))) issues.push('meta-scenario');
+  return issues;
+}
+
+/** Course-level block absorbed into kernel chunk #1 (replaces the standalone call). */
+export function normalizeAbsorbedCourseLevel(courseLevel, payload) {
+  if (!courseLevel || typeof courseLevel !== 'object') return null;
+  const signatureTerms = asArray(courseLevel.signatureTerms)
+    .map((term) => truncateText(term, 60))
+    .filter(Boolean)
+    .slice(0, 10);
+  const lensSource = courseLevel.lens && typeof courseLevel.lens === 'object' ? courseLevel.lens : {};
+  const lens = Object.fromEntries(
+    ['domain', 'evidenceNoun', 'decisionNoun', 'learnerRole', 'exampleNoun']
+      .map((key) => [key, truncateText(lensSource[key], 80)])
+      .filter(([, value]) => value),
+  );
+  const styleNotes = asArray(courseLevel.styleNotes)
+    .map((note) => truncateText(note, 160))
+    .filter(Boolean)
+    .slice(0, 4);
+  const grounded = payload ? countVocabularySignals({ signatureTerms, lens }, sourceVocabulary(payload)) : 1;
+  if (signatureTerms.length === 0 && Object.keys(lens).length === 0) return null;
+  if (grounded === 0) return null;
+  return {
+    signatureTerms,
+    lens: Object.keys(lens).length > 0 ? lens : null,
+    styleNotes,
+    quality: { source: 'kernel-chunk-1', sourceGroundingSignalCount: grounded },
+  };
+}
+
+/**
+ * Parse + validate a kernel response, then project each lesson's kernel into
+ * the surface payload the existing overlays consume. Invalid atoms are
+ * dropped individually; a lesson needs at least valid keyTerms or mc items to
+ * be kept. Returns { lessons, issues, courseLevel } or null when unusable.
+ */
+export function parseLessonKernelResponse(text, { prompt } = {}) {
+  const parsed = expandKeys('enrichment', parseJsonObject(text));
+  if (!parsed || !Array.isArray(parsed.lessons)) return null;
+  const groundingText = JSON.stringify(prompt?.lessons || []);
+  const itemPlan = Array.isArray(prompt?.itemPlan) ? prompt.itemPlan : buildQuizItemPlan(6);
+  const lessons = {};
+  const issues = [];
+
+  for (const entry of parsed.lessons) {
+    const lessonId = cleanText(entry?.lessonId);
+    if (!lessonId) continue;
+    const promptLesson = (prompt?.lessons || []).find((lesson) => lesson.lessonId === lessonId);
+
+    const facts = [];
+    asArray(entry?.facts).forEach((fact, index) => {
+      const problems = lintKernelFact(fact);
+      if (problems.length > 0) issues.push({ lessonId, surface: 'facts', index, problems });
+      else facts.push(cleanText(fact));
+    });
+
+    const keyTerms = [];
+    asArray(entry?.keyTerms).forEach((term, index) => {
+      const problems = lintEnrichedKeyTerm(term, { lessonTitle: promptLesson?.title || '' });
+      if (problems.length > 0) issues.push({ lessonId, surface: 'keyTerms', index, problems });
+      else {
+        keyTerms.push({
+          term: cleanText(term.term),
+          definition: cleanText(term.definition),
+          example: cleanText(term.example),
+          misconception: cleanText(term.misconception),
+        });
+      }
+    });
+
+    let scenario = null;
+    if (entry?.scenario) {
+      const problems = lintKernelScenario(entry.scenario);
+      if (problems.length > 0) issues.push({ lessonId, surface: 'scenario', index: 0, problems });
+      else scenario = { setup: cleanText(entry.scenario.setup), materials: cleanText(entry.scenario.materials) };
+    }
+
+    let discussionPrompt = null;
+    if (entry?.discussionPrompt) {
+      const problems = lintEnrichedDiscussionPrompt(entry.discussionPrompt);
+      if (problems.length > 0) issues.push({ lessonId, surface: 'discussionPrompt', index: 0, problems });
+      else {
+        discussionPrompt = {
+          prompt: cleanText(entry.discussionPrompt.prompt),
+          tension: cleanText(entry.discussionPrompt.tension),
+          positions: asArray(entry.discussionPrompt.positions).map(cleanText).filter(Boolean),
+        };
+      }
+    }
+
+    let assignmentCore = null;
+    if (entry?.assignmentCore) {
+      const problems = lintEnrichedAssignmentCore(entry.assignmentCore);
+      if (problems.length > 0) issues.push({ lessonId, surface: 'assignmentCore', index: 0, problems });
+      else {
+        assignmentCore = {
+          taskDescription: cleanText(entry.assignmentCore.taskDescription),
+          parameters: asArray(entry.assignmentCore.parameters).map(cleanText).filter(Boolean),
+        };
+      }
+    }
+
+    const mc = [];
+    asArray(entry?.mc).forEach((item, index) => {
+      const problems = lintEnrichedQuizItem({ ...item, type: 'multiple_choice' }, { groundingText });
+      if (problems.length > 0) issues.push({ lessonId, surface: 'mc', index, problems });
+      else {
+        mc.push({
+          question: cleanText(item.question),
+          options: asArray(item.options).map(cleanText).filter(Boolean),
+          answerIndex: Number(item.answerIndex) || 0,
+          explanation: cleanText(item.explanation),
+        });
+      }
+    });
+
+    if (keyTerms.length === 0 && mc.length === 0) continue;
+
+    const payload = projectKernelToSurfaces(
+      { facts, keyTerms, scenario, discussionPrompt, assignmentCore, mc },
+      { itemPlan },
+    );
+    // Projected slides must pass the same surface lint the direct contract does.
+    if (Array.isArray(payload.slideContent)) {
+      const slideContent = payload.slideContent.filter((slide, index) => {
+        const problems = lintEnrichedSlideContent(slide);
+        if (problems.length > 0) {
+          issues.push({ lessonId, surface: 'slideContent', index, problems });
+          return false;
+        }
+        return true;
+      });
+      if (slideContent.length > 0) payload.slideContent = slideContent;
+      else delete payload.slideContent;
+    }
+    lessons[lessonId] = payload;
+  }
+
+  if (Object.keys(lessons).length === 0) return null;
+  return { lessons, issues, courseLevel: parsed.courseLevel || null };
 }

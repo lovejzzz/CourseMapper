@@ -91,7 +91,13 @@ import { verifyPackageExports } from './lib/packageExportVerifier';
 import { generateCourseHealthReport } from './lib/pedagogicalValidator';
 import { applyApiCallBudgetEvent, createApiCallBudget, getApiCallBudgetTotal } from './lib/apiCallBudget';
 import { buildApiCostPlan, evaluateApiCostControl } from './lib/apiCostControl';
-import { summarizeApiFeatureUsageBudget, summarizeApiUsageBudget, summarizeCompilerSavings } from './lib/apiUsageCost';
+import {
+  buildGenerationCostReport,
+  formatGenerationCostReport,
+  summarizeApiFeatureUsageBudget,
+  summarizeApiUsageBudget,
+  summarizeCompilerSavings,
+} from './lib/apiUsageCost';
 import { buildCompactPackageTrustReceipt, buildPackageTrustBoundarySummary } from './lib/packageFinalizerSummary';
 import { getChunkCount } from './lib/parallelGenerator';
 import { buildHumanReviewRecommendation, summarizeRepairEvidence } from './lib/packageTrust';
@@ -249,6 +255,8 @@ function traceApiCallBudget(event = {}, budget = {}) {
       ? {
           inputTokens: budget.tokenUsage.inputTokens || 0,
           outputTokens: budget.tokenUsage.outputTokens || 0,
+          reasoningOutputTokens: budget.tokenUsage.reasoningOutputTokens || 0,
+          cachedInputTokens: budget.tokenUsage.cachedInputTokens || 0,
           totalTokens: budget.tokenUsage.totalTokens || 0,
           costUsd: budget.tokenUsage.costUsd || 0,
           costKnownCallCount: budget.tokenUsage.costKnownCallCount || 0,
@@ -993,6 +1001,11 @@ export default function AppFlow({ startupAction = null, onStartupHandled, onRetu
           lessonCount: Array.isArray(finalizerCourseMap?.lessons) ? finalizerCourseMap.lessons.length : 0,
           deliverableIds: Object.keys(finalizerDeliverables || {}),
         });
+        // v0.9.11 P0: print the run's per-task cost table once generation work
+        // is done and packaging begins — the proof artifact for cost-shift work.
+        const costReport = buildGenerationCostReport(apiCallBudgetRef.current || {});
+        const costReportText = formatGenerationCostReport(costReport);
+        if (costReportText) traceLog(`[CM][COST]\n${costReportText}`, { runId: costReport.runId });
         const runFinalizer = (retryLimit) =>
           runDeterministicPackageFinalizer({
             courseMap: finalizerCourseMap,

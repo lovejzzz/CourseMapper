@@ -3,6 +3,9 @@ import { drainPendingApiCallEvents, recordPendingApiCallEvent } from './apiCallP
 import { addUsageTotals, normalizeApiUsage } from './apiUsageCost';
 
 const MAX_RECENT_EVENTS = 12;
+// Per-call usage rows for the generation cost report. A full course run is
+// well under this cap (course map + examine + enrichment chunks + retries).
+const MAX_USAGE_LEDGER_ROWS = 150;
 
 const PROVIDER_CALL_COUNTERS = [
   'modelDiscoveryCalls',
@@ -70,6 +73,7 @@ export function createApiCallBudget(overrides = {}) {
       featureIds: Array.isArray(overrides.compilerSavings?.featureIds) ? [...overrides.compilerSavings.featureIds] : [],
     },
     recentEvents: Array.isArray(overrides.recentEvents) ? overrides.recentEvents.slice(0, MAX_RECENT_EVENTS) : [],
+    usageLedger: Array.isArray(overrides.usageLedger) ? overrides.usageLedger.slice(-MAX_USAGE_LEDGER_ROWS) : [],
   };
   return {
     ...budget,
@@ -223,6 +227,26 @@ export function applyApiCallBudgetEvent(currentBudget, event = {}) {
       ...next.failureClasses,
       [event.failureClass]: (next.failureClasses?.[event.failureClass] || 0) + count,
     };
+  }
+  if (usage && event.type === 'apiUsage') {
+    next.usageLedger = [
+      ...(next.usageLedger || []),
+      {
+        at,
+        task: event.task || '',
+        featureId: event.featureId || '',
+        label: event.label || '',
+        provider: event.provider || '',
+        modelId: event.modelId || '',
+        inputTokens: usage.inputTokens || 0,
+        outputTokens: usage.outputTokens || 0,
+        reasoningOutputTokens: usage.reasoningOutputTokens || 0,
+        cachedInputTokens: usage.cachedInputTokens || 0,
+        totalTokens: usage.totalTokens || 0,
+        costUsd: event.costUsd ?? usage.costUsd ?? null,
+        estimated: Boolean(usage.estimated),
+      },
+    ].slice(-MAX_USAGE_LEDGER_ROWS);
   }
   if (usage) {
     next.tokenUsage = addUsageTotals(next.tokenUsage || {}, usage, {

@@ -100,6 +100,68 @@ describe('lesson content enrichment contracts', () => {
     expect(titleAsTerm).toContain('term-is-lesson-title');
   });
 
+  it('requests the short-key contract and parses it identically to full keys (v0.9.11 P2)', () => {
+    const prompt = buildLessonContentEnrichmentPrompt(COURSE_MAP, [0]);
+    // The output contract must use abbreviated keys — that is where the savings are.
+    expect(prompt.userPrompt).toContain('"q":');
+    expect(prompt.userPrompt).toContain('"dr":');
+    expect(prompt.userPrompt).toContain('"tr":');
+    expect(prompt.userPrompt).toContain('q=question');
+
+    const shortItem = {
+      index: GOOD_ITEM.index,
+      type: GOOD_ITEM.type,
+      q: GOOD_ITEM.question,
+      op: GOOD_ITEM.options,
+      ai: GOOD_ITEM.answerIndex,
+      dr: GOOD_ITEM.distractorRationales,
+      ex: GOOD_ITEM.explanation,
+    };
+    const shortTerm = {
+      tr: GOOD_TERM.term,
+      df: GOOD_TERM.definition,
+      eg: GOOD_TERM.example,
+      mi: GOOD_TERM.misconception,
+    };
+    const shortResponse = JSON.stringify({
+      lessons: [
+        {
+          lessonId: 'lesson-1',
+          quizItems: [shortItem],
+          keyTerms: [shortTerm],
+          slideContent: [
+            {
+              ti: 'Greenhouse gases absorb and re-emit outgoing longwave radiation',
+              bu: ['CO2 absorbs infrared radiation', 'Part of the energy is re-emitted toward the surface'],
+              no: 'Walk through the radiative balance: shortwave in, longwave out, and what absorption changes.',
+            },
+          ],
+          discussionPrompt: {
+            pr: 'Should climate models prioritize equilibrium sensitivity or transient response for policy advice?',
+            tn: 'The two metrics answer different policy timescales.',
+            po: ['Equilibrium sensitivity sets the long-run stakes.', 'Transient response matches policy horizons.'],
+          },
+          assignmentCore: {
+            td: 'Students analyze the Mauna Loa CO2 record and a regional temperature dataset, then produce a two-page attribution brief.',
+            pa: ['Two pages maximum', 'Mauna Loa monthly means as the data source'],
+          },
+        },
+      ],
+    });
+    const fullResponse = JSON.stringify({
+      lessons: [{ lessonId: 'lesson-1', quizItems: [GOOD_ITEM], keyTerms: [GOOD_TERM] }],
+    });
+
+    const fromShort = parseLessonContentEnrichmentResponse(shortResponse, { prompt });
+    const fromFull = parseLessonContentEnrichmentResponse(fullResponse, { prompt });
+    expect(fromShort.lessons['lesson-1'].quizItems).toEqual(fromFull.lessons['lesson-1'].quizItems);
+    expect(fromShort.lessons['lesson-1'].keyTerms).toEqual(fromFull.lessons['lesson-1'].keyTerms);
+    expect(fromShort.lessons['lesson-1'].slideContent).toHaveLength(1);
+    expect(fromShort.lessons['lesson-1'].discussionPrompt.positions).toHaveLength(2);
+    expect(fromShort.lessons['lesson-1'].assignmentCore.parameters).toHaveLength(2);
+    expect(fromShort.issues).toHaveLength(0);
+  });
+
   it('parser drops invalid items individually and keeps valid ones', () => {
     const prompt = buildLessonContentEnrichmentPrompt(COURSE_MAP, [0]);
     const response = JSON.stringify({

@@ -1,9 +1,9 @@
 # Course Mapper
 
-AI-powered instructional design platform with an embedded teaching assistant agent. Upload your syllabus and generate a structured Course Map, lesson plans, slide decks, rubrics, quizzes, assignments, discussion prompts, study guides, and a polished syllabus — all pedagogically aligned, validated, and fully editable. Then use the AI agent to revise, validate, research, and visualize your curriculum through natural conversation.
+AI-powered instructional design platform built around a **deterministic course compiler** and an embedded teaching assistant agent. Upload your syllabus and generate a structured Course Map, lesson plans, slide decks, rubrics, quizzes, assignments, discussion prompts, study guides, and a polished syllabus — all pedagogically aligned, validated, and fully editable. Then use the AI agent to revise, validate, research, and visualize your curriculum through natural conversation.
 
 **Live:** [https://edutool.dev](https://edutool.dev)
-**Current release:** v0.8.6
+**Current release:** v0.9.11
 
 ---
 
@@ -22,6 +22,26 @@ Course Mapper is a **purpose-built instructional design tool**, not a general ch
 9. **Privacy-first.** Static BYOK app by default. There is no Course Mapper backend server; project data is stored in your browser unless you explicitly sign in for Firebase cloud sync or export to Google Drive. API keys go directly to providers.
 
 > **What Course Mapper does NOT claim:** It does not fact-check content or verify citations. It does not replace instructor expertise. It is a drafting and productivity tool — it generates the scaffold, the instructor refines it.
+
+---
+
+## The Course Compiler (our flagship)
+
+Most AI tools regenerate everything with every request and bill you for every word. Course Mapper inverts that: a **deterministic blueprint compiler** owns structure, formatting, alignment, and trust surfaces, and the model is paid only for what a program cannot write — disciplinary knowledge.
+
+**How a course is built:**
+
+1. **One model pass reads your syllabus** and emits a compact course map as lean atoms — short, source-grounded phrases. The compiler renders the instructor-facing prose, numbering, and stems, and derives the alignment-audit, delivery-format, and technology columns itself (computed from your actual objective↔assessment↔activity mapping, not asserted by a model).
+2. **One knowledge kernel per lesson** (a few budgeted model calls for the whole course) supplies the facts, key terms with misconceptions, a working scenario, a debatable tension, the assignment task, and quiz stems — each piece of knowledge written **once**, validated item-by-item against assessment-writing rules (Haladyna), meta-content checks, and source-grounding rules.
+3. **The compiler projects that kernel everywhere**: misconceptions become quiz distractor feedback _and_ study-guide warnings; facts become slide assertions _and_ quiz explanations; the scenario frames the short-answer and essay items; the tension drives the discussion. All **9 deliverables compile with zero additional AI calls** — IDs, point values, Bloom's ladders, answer-key rotation, accessibility structure, and provenance records are compiler-owned and reproducible.
+4. **Deterministic gates judge the output** — a 132-case blueprint matrix, a 40-sample gold audit, substance/meta-content measurement, export verification down to the Office XML — and a per-run **cost report** shows every model call with its token split, including hidden reasoning tokens.
+
+**What this buys you:**
+
+- **Roughly half the API cost per course** vs. v0.9.1 (and far less than chat-tool regeneration loops): lean atoms, compact key contracts, task-tiered reasoning effort, absorbed calls, and the kernel's buy-knowledge-once design.
+- **Coherence by construction** — every artifact draws from the same kernel, so the quiz, slides, study guide, and assignment for a lesson agree with each other.
+- **Honest provenance** — model-written fields carry enrichment-source marks; compiler-derived cells carry derivation marks; nothing pretends to be instructor-verified.
+- **Reproducibility** — the same blueprint compiles to the same package, byte-for-byte where it matters.
 
 ---
 
@@ -116,6 +136,9 @@ An embedded multi-step AI agent with native tool calling, not a chatbot wrapper.
 - **v0.8.58 red-team quality hardening** — Adds a 260-scenario red-team inventory, a dedicated agent safety gate, and a repeatable 34-course export torture sweep that passed 34/34 courses with 2,531 exported files inspected.
 - **v0.8.59 real-browser agent quality harness** — Adds a checked-in 25-scenario browser harness, response-quality scoring, tighter read-only/mutation guards, and side-panel receipt hardening; final proof passed 25/25 real browser scenarios at 100/100 response quality.
 - **v0.8.6 compiler efficiency and trust surface** — Anthropic prompt caching on generation calls, focused course-map review payloads, flag-gated lean course-map atoms with deterministic prose rendering, a calibrated copy-variety regression gate in the gold audit, and a workspace trust strip showing compiled/repaired/stale/failed package state.
+- **v0.9.0 agent TA redesign** — The agent became a teaching assistant who knows the course inside out: a rendered-content index with lexical search, read/search/explain-design/trace-objective tools, viewport awareness ("on screen now"), observe/propose/apply agency contract, and depth-routed model selection.
+- **v0.9.1 classroom-ready program** — Subject-matter enrichment: budgeted per-lesson model calls write real quiz items, key terms, slide content, discussion prompts, and assignment cores inside compiler-owned frames, with Haladyna item lint, meta-content detection, grounding rules, localization interview, pre-export checklist, and a university-standard CCR rubric with a standing judge.
+- **v0.9.11 super-power compiler** — The cost-shift release: per-run token telemetry with reasoning-token visibility, task-tiered reasoning effort (kills the silent medium-effort default on reasoning models), compact key contracts, lean course-map atoms on by default with compiler-derived alignment/format/technology columns, the per-lesson knowledge kernel with deterministic projection across all surfaces, and segment-trimmed review payloads — roughly half the billed output tokens per course with quality gates unchanged.
 
 ### Inline AI Editing
 
