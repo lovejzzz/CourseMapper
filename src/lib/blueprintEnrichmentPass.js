@@ -1,4 +1,5 @@
 import { expandKeys } from './keyMaps';
+import { lintItemAdmission } from './itemAdmissionLint';
 import { projectKernelToSurfaces } from './kernelProjection';
 
 const DEFAULT_MAX_LESSONS = 12;
@@ -756,6 +757,9 @@ export function lintEnrichedQuizItem(item, { groundingText = '' } = {}) {
     if (lengths.length === 4 && Math.max(...lengths) > Math.min(...lengths) * 3 + 20) issues.push('option-homogeneity');
     if (new Set(options.map((option) => option.toLowerCase())).size !== options.length)
       issues.push('duplicate-options');
+    // CurriculumOS V1 Phase A: test-wiseness battery shared with the foundry
+    // admission gate — cues that reveal the key without knowing the content.
+    issues.push(...lintItemAdmission({ ...item, options }));
   } else if (cleanText(item?.answer).length < 30) {
     issues.push('model-answer-too-short');
   }

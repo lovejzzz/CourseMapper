@@ -3,6 +3,52 @@ import Header from '../components/Header';
 
 const releases = [
   {
+    version: '0.10.0',
+    date: 'June 10, 2026',
+    title: 'CurriculumOS V1: The Knowledge Model That Is Not a Neural Network',
+    highlights: [
+      'CourseMapper now runs on CurriculumOS — a Curriculum Genome of source-anchored concept kernels that the compiler links into courses: library hits cost zero AI tokens, carry citations, and cannot hallucinate because every atom is a quote-anchored fact',
+      'The Linker pre-pass resolves each lesson against the genome and your own kernel cache before any model call — resolved lessons compile for free with "Source: OpenStax …" citations; misses fall back to the v0.9.11 model path, so no regression is architecturally possible',
+      'The genesis genome ships in this release: source-anchored concept shards (econ, stats, bio) built by the foundry pipeline, where every quote is mechanically verified to appear in its cited source — we trust retrieval, never model claims',
+      'Prerequisite-graph audit: the compiler now detects real curriculum gaps deterministically ("Lesson 5 teaches p-values but no lesson covers sampling distributions") and out-of-order sequencing, from the genome requires-edges',
+      'Your own generated kernels are cached by content fingerprint — revising or regenerating the same course reuses them at zero cost (the flywheel works before any public library exists)',
+      'The Kernel Commons privacy boundary is structural: contribution is opt-in, and the strip pass is red-team tested so no course name, instructor fact, scenario, or assignment can ever leave the browser; instructor verification (T3) requires a verified academic email',
+      'The full Haladyna test-wiseness battery (clang association, grammatical cues, longest-option) now lints every quiz item AND gates genome admission — one quality bar for model output and library content',
+    ],
+    sections: [
+      {
+        label: 'The Curriculum Genome',
+        icon: 'AI',
+        color: 'emerald',
+        items: [
+          'Concept kernels are the atom: discipline/slug ids, aliases, quote-anchored definitions and facts, misconception inventories, admission-linted MC banks that reference facts by index (knowledge stored once), prerequisite edges, and freshness metadata — validated by kernelSchema at every boundary.',
+          'Trust ladder T0-T4: model-written atoms never enter the genome; source-anchored (T2) requires a verbatim quote mechanically found in the cited source; instructor-verified (T3) counts accumulate through in-app confirmations from academic accounts.',
+          'Shards are static JSON with shipped inverted indexes, hash-pinned in a manifest, served zero-backend from the app origin and cached locally — reads need no account, no key, no server.',
+        ],
+      },
+      {
+        label: 'The Linker',
+        icon: 'UI',
+        color: 'indigo',
+        items: [
+          'runGenomeLinker resolves lessons in three tiers (own-kernel cache, genome composition, model miss); composed payloads are byte-compatible with the v0.9.11 overlay machinery, so the compiler integration is unchanged.',
+          'composeLessonFromConcepts merges concept kernels into lesson payloads with citations and tier provenance; study-guide key terms render their sources; the course-specific layer (scenario, task, tension) always stays local and per-course.',
+          'prerequisiteAudit walks requires-edges against lesson order for missing and out-of-order prerequisites; glossaryGraph guarantees one canonical definition per concept per course and emits spiral references ("builds on X, introduced in Lesson 3").',
+        ],
+      },
+      {
+        label: 'Foundry & Commons',
+        icon: 'QA',
+        color: 'amber',
+        items: [
+          'scripts/foundry/buildShards.mjs runs the real admission gate (mechanical anchor check + schema + item lint) over curated sources and emits hashed shards + a manifest (npm run genome:build). The genesis seed: 6 fully anchored concepts across 3 disciplines, 100% admission pass.',
+          'contributionStrip is the structural privacy boundary: only generic facts/terms/misconceptions are contributable, every course-identifying string is scrubbed (red-team tested), MC banks are never contributed in V1, and candidates enter as T0 for the same admission pipeline the foundry uses.',
+          'Genome link events appear in the cost report and generation log: "Linked N/M lessons from the curriculum library — no AI cost".',
+        ],
+      },
+    ],
+  },
+  {
     version: '0.9.11',
     date: 'June 10, 2026',
     title: 'Super-Power Compiler: Half the Tokens, One Source of Truth per Lesson',

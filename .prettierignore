@@ -19,3 +19,4 @@ scripts/normalizeRubricsRepair.mjs
 scripts/normalizeSlideDecksRepair.mjs
 scripts/runInternalQualityNextCell.mjs
 scripts/updateQualityDashboard.mjs
+public/genome

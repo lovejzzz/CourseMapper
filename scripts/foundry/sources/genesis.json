@@ -1,0 +1,417 @@
+{
+  "_comment": "CurriculumOS V1 genesis seed. Curated foundational concepts from open educational resources (OpenStax). Each kernel's anchored quotes are verified by the foundry's mechanical anchor check against the sourceSnapshots below before admission. Scaling to the full ~50-title library is the next foundry run.",
+  "sourceSnapshots": {
+    "openstax:microeconomics-3e#5": "Price elasticity of demand measures the responsiveness of quantity demanded to a change in price; it is computed as the percentage change in quantity demanded divided by the percentage change in price. Demand is described as elastic when the absolute value of the elasticity is greater than one, meaning quantity responds proportionally more than price. Demand is inelastic when the absolute value is less than one. Necessities tend to have inelastic demand because consumers have few substitutes, while luxuries tend to have elastic demand. The availability of close substitutes is a primary determinant of elasticity.",
+    "openstax:microeconomics-3e#3": "A demand curve shows the quantity of a good that consumers are willing and able to purchase at each price, holding all other factors constant. Demand curves typically slope downward, reflecting the law of demand: as price falls, quantity demanded rises. A change in price causes a movement along the demand curve, whereas a change in income, tastes, or the price of related goods shifts the entire curve.",
+    "openstax:statistics#7": "A sampling distribution is the probability distribution of a statistic obtained from a large number of samples drawn from a specific population. The central limit theorem states that the sampling distribution of the sample mean approaches a normal distribution as the sample size increases, regardless of the shape of the population distribution. The standard deviation of the sampling distribution of the mean is the population standard deviation divided by the square root of the sample size.",
+    "openstax:statistics#9": "A p-value is the probability of obtaining a test statistic at least as extreme as the one observed, assuming the null hypothesis is true. A small p-value indicates that the observed data would be unlikely under the null hypothesis. The p-value is not the probability that the null hypothesis is true, and it does not measure the size of an effect.",
+    "openstax:biology-2e#8": "Photosynthesis is the process by which plants, algae, and some bacteria convert light energy into chemical energy stored in glucose. The light-dependent reactions capture energy from sunlight to produce ATP and NADPH, which the Calvin cycle then uses to fix carbon dioxide into sugar. Oxygen is released as a byproduct of splitting water molecules.",
+    "openstax:biology-2e#3": "The cell membrane, also called the plasma membrane, is a selectively permeable barrier that regulates which substances enter and leave the cell. It is composed of a phospholipid bilayer with embedded proteins. The membrane maintains the internal environment of the cell while allowing the exchange of nutrients and wastes."
+  },
+  "kernels": [
+    {
+      "id": "econ/price-elasticity-of-demand",
+      "rev": 1,
+      "term": "Price elasticity of demand",
+      "aliases": ["PED", "demand elasticity", "elasticity of demand"],
+      "level": "intro",
+      "difficulty": 2,
+      "bloomCeiling": "Analyze",
+      "definition": {
+        "text": "Price elasticity of demand is the percentage change in quantity demanded divided by the percentage change in price.",
+        "anchor": {
+          "src": "openstax:microeconomics-3e#5",
+          "loc": "5.1",
+          "quote": "the percentage change in quantity demanded divided by the percentage change in price"
+        },
+        "tier": 2
+      },
+      "facts": [
+        {
+          "text": "Demand is elastic when the absolute value of the elasticity is greater than one.",
+          "anchor": {
+            "src": "openstax:microeconomics-3e#5",
+            "loc": "5.1",
+            "quote": "Demand is described as elastic when the absolute value of the elasticity is greater than one"
+          },
+          "tier": 2
+        },
+        {
+          "text": "Necessities tend to have inelastic demand because consumers have few substitutes.",
+          "anchor": {
+            "src": "openstax:microeconomics-3e#5",
+            "loc": "5.2",
+            "quote": "Necessities tend to have inelastic demand because consumers have few substitutes"
+          },
+          "tier": 2
+        },
+        {
+          "text": "The availability of close substitutes is a primary determinant of elasticity.",
+          "anchor": {
+            "src": "openstax:microeconomics-3e#5",
+            "loc": "5.2",
+            "quote": "The availability of close substitutes is a primary determinant of elasticity"
+          },
+          "tier": 2
+        }
+      ],
+      "misconceptions": [
+        {
+          "text": "Students confuse the slope of the demand curve with its elasticity; slope uses absolute units while elasticity uses percentage change.",
+          "corrective": "Elasticity compares percentage changes, so it varies along a straight-line demand curve even though the slope is constant.",
+          "tier": 1
+        }
+      ],
+      "examples": [
+        { "text": "Insulin has highly inelastic demand because patients have no close substitute.", "domain": "health" }
+      ],
+      "mcBank": [
+        {
+          "stem": "A 10 percent price increase reduces quantity demanded by 25 percent. This demand is best described as",
+          "options": ["elastic", "unit elastic", "inelastic", "perfectly inelastic"],
+          "answerIndex": 0,
+          "explanationFactRef": 0,
+          "rationaleRefs": [0]
+        }
+      ],
+      "edges": { "requires": ["econ/demand-curve"], "recommends": ["econ/substitute-goods"] },
+      "attribution": ["OpenStax Principles of Microeconomics 3e, Ch. 5"]
+    },
+    {
+      "id": "econ/demand-curve",
+      "rev": 1,
+      "term": "Demand curve",
+      "aliases": ["demand schedule", "law of demand"],
+      "level": "intro",
+      "difficulty": 1,
+      "bloomCeiling": "Understand",
+      "definition": {
+        "text": "A demand curve shows the quantity of a good consumers are willing and able to purchase at each price, holding other factors constant.",
+        "anchor": {
+          "src": "openstax:microeconomics-3e#3",
+          "loc": "3.1",
+          "quote": "the quantity of a good that consumers are willing and able to purchase at each price, holding all other factors constant"
+        },
+        "tier": 2
+      },
+      "facts": [
+        {
+          "text": "Demand curves typically slope downward, reflecting the law of demand.",
+          "anchor": {
+            "src": "openstax:microeconomics-3e#3",
+            "loc": "3.1",
+            "quote": "Demand curves typically slope downward, reflecting the law of demand"
+          },
+          "tier": 2
+        },
+        {
+          "text": "A change in price causes a movement along the demand curve, while a change in income or tastes shifts the curve.",
+          "anchor": {
+            "src": "openstax:microeconomics-3e#3",
+            "loc": "3.2",
+            "quote": "A change in price causes a movement along the demand curve"
+          },
+          "tier": 2
+        }
+      ],
+      "misconceptions": [
+        {
+          "text": "Students treat a price change as shifting the demand curve, when it only causes movement along the curve.",
+          "tier": 1
+        }
+      ],
+      "examples": [
+        {
+          "text": "When coffee prices fall, consumers buy more coffee, moving down the demand curve.",
+          "domain": "retail"
+        }
+      ],
+      "mcBank": [
+        {
+          "stem": "A decrease in consumer income for a normal good will most directly",
+          "options": [
+            "shift the demand curve leftward",
+            "move quantity demanded up along the curve",
+            "make demand perfectly elastic",
+            "raise the equilibrium price"
+          ],
+          "answerIndex": 0,
+          "rationaleRefs": [0]
+        }
+      ],
+      "edges": { "recommends": ["econ/price-elasticity-of-demand"] },
+      "attribution": ["OpenStax Principles of Microeconomics 3e, Ch. 3"]
+    },
+    {
+      "id": "stats/sampling-distribution",
+      "rev": 1,
+      "term": "Sampling distribution",
+      "aliases": ["distribution of the sample mean", "central limit theorem"],
+      "level": "intro",
+      "difficulty": 3,
+      "bloomCeiling": "Apply",
+      "definition": {
+        "text": "A sampling distribution is the probability distribution of a statistic obtained from many samples drawn from a population.",
+        "anchor": {
+          "src": "openstax:statistics#7",
+          "loc": "7.1",
+          "quote": "the probability distribution of a statistic obtained from a large number of samples drawn from a specific population"
+        },
+        "tier": 2
+      },
+      "facts": [
+        {
+          "text": "The central limit theorem states the sampling distribution of the mean approaches normal as sample size increases, regardless of population shape.",
+          "anchor": {
+            "src": "openstax:statistics#7",
+            "loc": "7.2",
+            "quote": "the sampling distribution of the sample mean approaches a normal distribution as the sample size increases, regardless of the shape of the population distribution"
+          },
+          "tier": 2
+        },
+        {
+          "text": "The standard deviation of the sampling distribution of the mean equals the population standard deviation divided by the square root of the sample size.",
+          "anchor": {
+            "src": "openstax:statistics#7",
+            "loc": "7.2",
+            "quote": "the population standard deviation divided by the square root of the sample size"
+          },
+          "tier": 2
+        }
+      ],
+      "misconceptions": [
+        {
+          "text": "Students believe a larger sample makes the population itself normal, rather than the sampling distribution of the mean.",
+          "tier": 1
+        }
+      ],
+      "examples": [
+        {
+          "text": "Averaging 40 dice rolls many times yields a near-normal distribution of averages even though a single roll is uniform.",
+          "domain": "probability"
+        }
+      ],
+      "mcBank": [
+        {
+          "stem": "According to the central limit theorem, increasing the sample size makes the sampling distribution of the mean",
+          "options": [
+            "closer to normal and narrower",
+            "closer to the population shape",
+            "wider and more skewed",
+            "identical to a single observation"
+          ],
+          "answerIndex": 0,
+          "explanationFactRef": 0,
+          "rationaleRefs": [0]
+        }
+      ],
+      "edges": { "recommends": ["stats/p-value"] },
+      "attribution": ["OpenStax Introductory Statistics, Ch. 7"]
+    },
+    {
+      "id": "stats/p-value",
+      "rev": 1,
+      "term": "p-value",
+      "aliases": ["probability value", "significance probability"],
+      "level": "intro",
+      "difficulty": 3,
+      "bloomCeiling": "Evaluate",
+      "definition": {
+        "text": "A p-value is the probability of obtaining a test statistic at least as extreme as the one observed, assuming the null hypothesis is true.",
+        "anchor": {
+          "src": "openstax:statistics#9",
+          "loc": "9.3",
+          "quote": "the probability of obtaining a test statistic at least as extreme as the one observed, assuming the null hypothesis is true"
+        },
+        "tier": 2
+      },
+      "facts": [
+        {
+          "text": "A small p-value indicates the observed data would be unlikely under the null hypothesis.",
+          "anchor": {
+            "src": "openstax:statistics#9",
+            "loc": "9.3",
+            "quote": "A small p-value indicates that the observed data would be unlikely under the null hypothesis"
+          },
+          "tier": 2
+        },
+        {
+          "text": "The p-value is not the probability that the null hypothesis is true, and it does not measure effect size.",
+          "anchor": {
+            "src": "openstax:statistics#9",
+            "loc": "9.4",
+            "quote": "The p-value is not the probability that the null hypothesis is true, and it does not measure the size of an effect"
+          },
+          "tier": 2
+        }
+      ],
+      "misconceptions": [
+        {
+          "text": "Students interpret the p-value as the probability that the null hypothesis is true.",
+          "corrective": "It is a probability about the data given the null, not about the hypothesis given the data.",
+          "tier": 1
+        }
+      ],
+      "examples": [
+        {
+          "text": "A p-value of 0.03 means data this extreme would occur 3 percent of the time if the null were true.",
+          "domain": "research"
+        }
+      ],
+      "mcBank": [
+        {
+          "stem": "A study reports p = 0.02. Which interpretation is correct?",
+          "options": [
+            "Data this extreme would be unlikely if the null hypothesis were true",
+            "There is a 2 percent chance the null hypothesis is true",
+            "The effect is large",
+            "The result will replicate 98 percent of the time"
+          ],
+          "answerIndex": 0,
+          "explanationFactRef": 0,
+          "rationaleRefs": [0]
+        }
+      ],
+      "edges": { "requires": ["stats/sampling-distribution"] },
+      "attribution": ["OpenStax Introductory Statistics, Ch. 9"]
+    },
+    {
+      "id": "bio/photosynthesis",
+      "rev": 1,
+      "term": "Photosynthesis",
+      "aliases": ["light reactions", "Calvin cycle"],
+      "level": "intro",
+      "difficulty": 2,
+      "bloomCeiling": "Understand",
+      "definition": {
+        "text": "Photosynthesis is the process by which plants, algae, and some bacteria convert light energy into chemical energy stored in glucose.",
+        "anchor": {
+          "src": "openstax:biology-2e#8",
+          "loc": "8.1",
+          "quote": "convert light energy into chemical energy stored in glucose"
+        },
+        "tier": 2
+      },
+      "facts": [
+        {
+          "text": "The light-dependent reactions produce ATP and NADPH from sunlight.",
+          "anchor": {
+            "src": "openstax:biology-2e#8",
+            "loc": "8.2",
+            "quote": "The light-dependent reactions capture energy from sunlight to produce ATP and NADPH"
+          },
+          "tier": 2
+        },
+        {
+          "text": "The Calvin cycle uses ATP and NADPH to fix carbon dioxide into sugar.",
+          "anchor": {
+            "src": "openstax:biology-2e#8",
+            "loc": "8.3",
+            "quote": "the Calvin cycle then uses to fix carbon dioxide into sugar"
+          },
+          "tier": 2
+        },
+        {
+          "text": "Oxygen is released as a byproduct of splitting water molecules.",
+          "anchor": {
+            "src": "openstax:biology-2e#8",
+            "loc": "8.2",
+            "quote": "Oxygen is released as a byproduct of splitting water molecules"
+          },
+          "tier": 2
+        }
+      ],
+      "misconceptions": [
+        {
+          "text": "Students think plants get their mass mainly from soil rather than from carbon dioxide fixed during photosynthesis.",
+          "tier": 1
+        }
+      ],
+      "examples": [
+        { "text": "A tree builds most of its woody mass from carbon captured out of the air.", "domain": "ecology" }
+      ],
+      "mcBank": [
+        {
+          "stem": "During photosynthesis, the oxygen released by a plant comes from",
+          "options": [
+            "water molecules that are split",
+            "carbon dioxide molecules",
+            "glucose breakdown",
+            "soil minerals"
+          ],
+          "answerIndex": 0,
+          "explanationFactRef": 2,
+          "rationaleRefs": [0]
+        }
+      ],
+      "edges": { "recommends": ["bio/cell-membrane"] },
+      "attribution": ["OpenStax Biology 2e, Ch. 8"]
+    },
+    {
+      "id": "bio/cell-membrane",
+      "rev": 1,
+      "term": "Cell membrane",
+      "aliases": ["plasma membrane", "phospholipid bilayer"],
+      "level": "intro",
+      "difficulty": 2,
+      "bloomCeiling": "Understand",
+      "definition": {
+        "text": "The cell membrane is a selectively permeable barrier that regulates which substances enter and leave the cell.",
+        "anchor": {
+          "src": "openstax:biology-2e#3",
+          "loc": "3.4",
+          "quote": "a selectively permeable barrier that regulates which substances enter and leave the cell"
+        },
+        "tier": 2
+      },
+      "facts": [
+        {
+          "text": "The membrane is composed of a phospholipid bilayer with embedded proteins.",
+          "anchor": {
+            "src": "openstax:biology-2e#3",
+            "loc": "3.4",
+            "quote": "composed of a phospholipid bilayer with embedded proteins"
+          },
+          "tier": 2
+        },
+        {
+          "text": "The membrane maintains the internal environment while allowing exchange of nutrients and wastes.",
+          "anchor": {
+            "src": "openstax:biology-2e#3",
+            "loc": "3.4",
+            "quote": "maintains the internal environment of the cell while allowing the exchange of nutrients and wastes"
+          },
+          "tier": 2
+        }
+      ],
+      "misconceptions": [
+        {
+          "text": "Students think the membrane is a solid wall rather than a fluid, selectively permeable bilayer.",
+          "tier": 1
+        }
+      ],
+      "examples": [
+        {
+          "text": "Oxygen diffuses freely across the membrane while large charged ions require protein channels.",
+          "domain": "physiology"
+        }
+      ],
+      "mcBank": [
+        {
+          "stem": "The cell membrane is best described as",
+          "options": [
+            "selectively permeable",
+            "completely impermeable",
+            "freely permeable to everything",
+            "a rigid outer wall"
+          ],
+          "answerIndex": 0,
+          "explanationFactRef": 0,
+          "rationaleRefs": [0]
+        }
+      ],
+      "edges": {},
+      "attribution": ["OpenStax Biology 2e, Ch. 3"]
+    }
+  ]
+}

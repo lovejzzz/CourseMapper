@@ -13360,11 +13360,15 @@ function generalTermGuide(term, lesson = {}, lens = {}, termIndex = 0) {
 function enrichedKeyTermsForLesson(lesson, { fallback }) {
   const enriched = lesson?.enrichment?.keyTerms;
   if (!Array.isArray(enriched) || enriched.length === 0) return fallback();
+  // CurriculumOS V1: a genome-linked term carries a source citation; surface it
+  // so the study guide can render "Source: …". Compiler-only terms have none.
+  const linked = lesson?.enrichment?.conceptProvenance?.source === 'genome-linked';
   return enriched.map((term) => ({
     term: term.term,
     definition: term.definition,
     example: term.example || '',
-    enrichmentSource: 'lesson-content-enrichment',
+    ...(term.source ? { source: term.source } : {}),
+    enrichmentSource: linked ? 'genome-linked' : 'lesson-content-enrichment',
   }));
 }
 

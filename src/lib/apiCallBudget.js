@@ -55,6 +55,9 @@ export function createApiCallBudget(overrides = {}) {
     courseMapCalls: overrides.courseMapCalls || 0,
     deliverableChunkCalls: overrides.deliverableChunkCalls || 0,
     blueprintEnrichmentCalls: overrides.blueprintEnrichmentCalls || 0,
+    // CurriculumOS V1: genome links are NOT provider calls (kept out of
+    // PROVIDER_CALL_COUNTERS) but tracked so the cost report can show free hits.
+    genomeLinkEvents: overrides.genomeLinkEvents || 0,
     repairRetryCalls: overrides.repairRetryCalls || 0,
     streamRetryCalls,
     providerFallbackCalls: overrides.providerFallbackCalls || 0,
@@ -95,6 +98,8 @@ function counterForType(type) {
       return 'deliverableChunkCalls';
     case 'blueprintEnrichmentCall':
       return 'blueprintEnrichmentCalls';
+    case 'genomeLink':
+      return 'genomeLinkEvents';
     case 'repairRetryCall':
       return 'repairRetryCalls';
     case 'streamRetryCall':
