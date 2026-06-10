@@ -164,12 +164,13 @@ export function inferCourseDisciplines(courseMap) {
     .join(' ')
     .toLowerCase();
   const map = [
-    ['econ', /\beconom|microecon|macroecon|market|supply|demand/],
+    ['econ', /\beconom|microecon|macroecon|market|supply|demand|inflation|wage|monetary|fiscal/],
     ['psych', /\bpsycholog|cognition|behavior|neuroscience/],
-    ['bio', /\bbiolog|cell|genetic|ecolog|evolution|organism/],
-    ['stats', /\bstatistic|probability|regression|inference|data analysis/],
-    ['chem', /\bchemistr|molecul|reaction|stoichiometr/],
-    ['history', /\bhistory|historical|civilization|war|revolution/],
+    ['bio', /\bbiolog|cell|genetic|ecolog|evolution|organism|physiolog|anatomy|homeostasis/],
+    ['stats', /\bstatistic|probability|regression|inference|data analysis|hypothesis test/],
+    ['chem', /\bchemistr|molecul|reaction|stoichiometr|equilibrium/],
+    ['history', /\bhistory|historical|civilization|\bwar\b|revolution|primary source/],
+    ['lit', /\bliterat|literary|poetry|poem|novel|fiction|close reading|rhetoric|composition/],
     ['cs', /\bcomputer science|algorithm|programming|data structure/],
   ];
   const found = map.filter(([, re]) => re.test(text)).map(([discipline]) => discipline);

@@ -8,7 +8,11 @@
     "openstax:biology-2e#8": "Photosynthesis is the process by which plants, algae, and some bacteria convert light energy into chemical energy stored in glucose. The light-dependent reactions capture energy from sunlight to produce ATP and NADPH, which the Calvin cycle then uses to fix carbon dioxide into sugar. Oxygen is released as a byproduct of splitting water molecules.",
     "openstax:biology-2e#3": "The cell membrane, also called the plasma membrane, is a selectively permeable barrier that regulates which substances enter and leave the cell. It is composed of a phospholipid bilayer with embedded proteins. The membrane maintains the internal environment of the cell while allowing the exchange of nutrients and wastes.",
     "openstax:chemistry-2e#13": "Chemical equilibrium is the state in which the forward and reverse reaction rates are equal, so the concentrations of reactants and products remain constant over time. Equilibrium is dynamic: both the forward and reverse reactions continue to occur even though no net change is observed. According to Le Chatelier's principle, when a system at equilibrium is disturbed by a change in concentration, temperature, or pressure, the equilibrium shifts in the direction that partially counteracts the disturbance.",
-    "openstax:microeconomics-3e#4": "Market equilibrium occurs at the price where the quantity demanded by buyers equals the quantity supplied by sellers. At this equilibrium price the opposing pressures of demand and supply are balanced and there is no tendency for the price to change. When the price is above equilibrium a surplus pushes it down, and when the price is below equilibrium a shortage pushes it up, so the market mechanism restores the balance."
+    "openstax:microeconomics-3e#4": "Market equilibrium occurs at the price where the quantity demanded by buyers equals the quantity supplied by sellers. At this equilibrium price the opposing pressures of demand and supply are balanced and there is no tendency for the price to change. When the price is above equilibrium a surplus pushes it down, and when the price is below equilibrium a shortage pushes it up, so the market mechanism restores the balance.",
+    "openstax:biology-2e#33": "Homeostasis is the maintenance of a stable internal environment despite changes in external conditions. Most homeostatic systems rely on negative feedback, in which a change in a regulated variable triggers a response that counteracts the change and returns the variable toward its set point. Sensors detect the deviation, a control center compares it to the set point, and effectors produce a corrective response. The regulation of body temperature is a classic example of negative feedback homeostasis.",
+    "openstax:macroeconomics-2e#11": "A wage-price spiral is a self-reinforcing cycle in which rising prices lead workers to demand higher wages, and the higher wage costs lead firms to raise prices further. This is an example of positive feedback, in which an initial change is amplified rather than damped. Unlike negative feedback, positive feedback drives the system further from where it started.",
+    "historical-thinking:reference": "A historical argument is an interpretation of the past supported by evidence drawn from primary sources. Historians construct claims and justify them with evidence, using contextual reasoning to connect the sources to the interpretation. Every historical argument is bounded by the limitations of the surviving record, which is always incomplete and shaped by who created and preserved the sources.",
+    "writing-about-literature:reference": "Literary analysis advances an interpretive claim about a text and supports it with specific textual evidence. A strong interpretation uses close reading to explain how particular details produce meaning, rather than merely asserting a reading. Because texts are open to multiple interpretations, a careful argument acknowledges alternative readings the same evidence could support."
   },
   "kernels": [
     {
@@ -639,6 +643,330 @@
         ]
       },
       "attribution": ["OpenStax Principles of Microeconomics 3e, Ch. 4"]
+    },
+    {
+      "id": "bio/homeostasis",
+      "rev": 1,
+      "term": "Homeostasis",
+      "aliases": ["negative feedback", "set point regulation"],
+      "level": "intro",
+      "difficulty": 2,
+      "bloomCeiling": "Analyze",
+      "definition": {
+        "text": "Homeostasis is the maintenance of a stable internal environment despite changes in external conditions, usually through negative feedback.",
+        "anchor": {
+          "src": "openstax:biology-2e#33",
+          "loc": "33.2",
+          "quote": "the maintenance of a stable internal environment despite changes in external conditions"
+        },
+        "tier": 2
+      },
+      "facts": [
+        {
+          "text": "In negative feedback, a change in a regulated variable triggers a response that counteracts the change and returns it toward the set point.",
+          "anchor": {
+            "src": "openstax:biology-2e#33",
+            "loc": "33.2",
+            "quote": "a change in a regulated variable triggers a response that counteracts the change and returns the variable toward its set point"
+          },
+          "tier": 2
+        },
+        {
+          "text": "Sensors detect the deviation, a control center compares it to the set point, and effectors produce the corrective response.",
+          "anchor": {
+            "src": "openstax:biology-2e#33",
+            "loc": "33.2",
+            "quote": "Sensors detect the deviation, a control center compares it to the set point, and effectors produce a corrective response"
+          },
+          "tier": 2
+        }
+      ],
+      "misconceptions": [
+        {
+          "text": "Students think homeostasis means an unchanging internal state, when it means a variable held near a set point by ongoing correction.",
+          "corrective": "Homeostasis is active regulation around a set point, not a frozen constant.",
+          "tier": 1
+        }
+      ],
+      "examples": [
+        {
+          "text": "When body temperature rises, sweating and vasodilation bring it back toward the set point.",
+          "domain": "physiology"
+        }
+      ],
+      "mcBank": [
+        {
+          "stem": "In negative feedback regulation of body temperature, a rise above the set point triggers a response that",
+          "options": [
+            "counteracts the rise and lowers temperature",
+            "amplifies the rise further",
+            "raises the set point permanently",
+            "removes the sensors from the loop"
+          ],
+          "answerIndex": 0,
+          "explanationFactRef": 0,
+          "rationaleRefs": [0]
+        }
+      ],
+      "edges": {
+        "instanceOf": [
+          {
+            "archetype": "structure/feedback-loop",
+            "confidence": 0.95,
+            "verified": true,
+            "mapping": {
+              "system": "the body's internal environment",
+              "output signal": "a deviation of a regulated variable from its set point",
+              "feedback path": "sensors and the control center that detect and compare the deviation",
+              "effect on input": "effectors that counteract the deviation and restore the set point"
+            }
+          }
+        ]
+      },
+      "attribution": ["OpenStax Biology 2e, Ch. 33"]
+    },
+    {
+      "id": "econ/wage-price-spiral",
+      "rev": 1,
+      "term": "Wage-price spiral",
+      "aliases": ["inflation spiral", "positive feedback in inflation"],
+      "level": "intro",
+      "difficulty": 3,
+      "bloomCeiling": "Analyze",
+      "definition": {
+        "text": "A wage-price spiral is a self-reinforcing cycle in which rising prices lead workers to demand higher wages, and higher wage costs lead firms to raise prices further.",
+        "anchor": {
+          "src": "openstax:macroeconomics-2e#11",
+          "loc": "11.3",
+          "quote": "rising prices lead workers to demand higher wages, and the higher wage costs lead firms to raise prices further"
+        },
+        "tier": 2
+      },
+      "facts": [
+        {
+          "text": "The wage-price spiral is positive feedback: an initial change is amplified rather than damped.",
+          "anchor": {
+            "src": "openstax:macroeconomics-2e#11",
+            "loc": "11.3",
+            "quote": "positive feedback, in which an initial change is amplified rather than damped"
+          },
+          "tier": 2
+        },
+        {
+          "text": "Unlike negative feedback, positive feedback drives the system further from where it started.",
+          "anchor": {
+            "src": "openstax:macroeconomics-2e#11",
+            "loc": "11.3",
+            "quote": "positive feedback drives the system further from where it started"
+          },
+          "tier": 2
+        }
+      ],
+      "misconceptions": [
+        {
+          "text": "Students assume positive feedback is beneficial, when it names amplification regardless of whether the outcome is good.",
+          "corrective": "Positive feedback describes runaway amplification, which is often harmful, as in an inflation spiral.",
+          "tier": 1
+        }
+      ],
+      "examples": [
+        {
+          "text": "Expectations of continued inflation can lock in a wage-price spiral until policy interrupts the loop.",
+          "domain": "policy"
+        }
+      ],
+      "mcBank": [
+        {
+          "stem": "A wage-price spiral is best classified as which kind of feedback?",
+          "options": [
+            "Positive feedback that amplifies the initial change",
+            "Negative feedback that damps the initial change",
+            "A one-time shock with no feedback",
+            "An external constraint on the market"
+          ],
+          "answerIndex": 0,
+          "explanationFactRef": 0,
+          "rationaleRefs": [0]
+        }
+      ],
+      "edges": {
+        "instanceOf": [
+          {
+            "archetype": "structure/feedback-loop",
+            "confidence": 0.92,
+            "verified": true,
+            "mapping": {
+              "system": "a wage-price economy",
+              "output signal": "rising prices",
+              "feedback path": "workers demanding higher wages that raise firms' costs",
+              "effect on input": "further price increases that amplify the cycle"
+            }
+          }
+        ]
+      },
+      "attribution": ["OpenStax Principles of Macroeconomics 2e, Ch. 11"]
+    },
+    {
+      "id": "history/historical-argument",
+      "rev": 1,
+      "term": "Historical argument",
+      "aliases": ["historical interpretation", "argument from primary sources"],
+      "level": "intro",
+      "difficulty": 3,
+      "bloomCeiling": "Evaluate",
+      "definition": {
+        "text": "A historical argument is an interpretation of the past supported by evidence drawn from primary sources.",
+        "anchor": {
+          "src": "historical-thinking:reference",
+          "loc": "1",
+          "quote": "an interpretation of the past supported by evidence drawn from primary sources"
+        },
+        "tier": 2
+      },
+      "facts": [
+        {
+          "text": "Historians justify claims with evidence, using contextual reasoning to connect the sources to the interpretation.",
+          "anchor": {
+            "src": "historical-thinking:reference",
+            "loc": "1",
+            "quote": "using contextual reasoning to connect the sources to the interpretation"
+          },
+          "tier": 2
+        },
+        {
+          "text": "Every historical argument is bounded by the limitations of the surviving record, which is always incomplete.",
+          "anchor": {
+            "src": "historical-thinking:reference",
+            "loc": "1",
+            "quote": "bounded by the limitations of the surviving record, which is always incomplete"
+          },
+          "tier": 2
+        }
+      ],
+      "misconceptions": [
+        {
+          "text": "Students treat a forceful assertion about the past as an argument, without connecting it to primary-source evidence or naming the record's gaps.",
+          "corrective": "An argument links a claim to evidence through reasoning and states what the evidence cannot settle.",
+          "tier": 1
+        }
+      ],
+      "examples": [
+        {
+          "text": "A claim about a revolt's causes must rest on letters, records, or accounts, noting whose voices the record omits.",
+          "domain": "history"
+        }
+      ],
+      "mcBank": [
+        {
+          "stem": "What distinguishes a historical argument from a mere assertion about the past?",
+          "options": [
+            "It links a claim to primary-source evidence through reasoning",
+            "It states the conclusion more confidently",
+            "It avoids citing any specific sources",
+            "It repeats the textbook summary"
+          ],
+          "answerIndex": 0,
+          "explanationFactRef": 0,
+          "rationaleRefs": [0]
+        }
+      ],
+      "edges": {
+        "instanceOf": [
+          {
+            "archetype": "epistemic/evidence-vs-claim",
+            "confidence": 0.9,
+            "verified": true,
+            "mapping": {
+              "claim": "a historical interpretation of the past",
+              "evidence": "primary sources from the period",
+              "warrant": "contextual reasoning connecting the sources to the interpretation",
+              "limitation": "the gaps and bias in the surviving record"
+            }
+          }
+        ]
+      },
+      "attribution": ["Historical thinking pedagogy (curated genesis reference)"]
+    },
+    {
+      "id": "lit/literary-argument",
+      "rev": 1,
+      "term": "Literary argument",
+      "aliases": ["interpretive thesis", "close-reading argument"],
+      "level": "intro",
+      "difficulty": 2,
+      "bloomCeiling": "Evaluate",
+      "definition": {
+        "text": "A literary argument advances an interpretive claim about a text and supports it with specific textual evidence.",
+        "anchor": {
+          "src": "writing-about-literature:reference",
+          "loc": "1",
+          "quote": "advances an interpretive claim about a text and supports it with specific textual evidence"
+        },
+        "tier": 2
+      },
+      "facts": [
+        {
+          "text": "A strong interpretation uses close reading to explain how particular details produce meaning, rather than merely asserting a reading.",
+          "anchor": {
+            "src": "writing-about-literature:reference",
+            "loc": "1",
+            "quote": "uses close reading to explain how particular details produce meaning, rather than merely asserting a reading"
+          },
+          "tier": 2
+        },
+        {
+          "text": "A careful argument acknowledges alternative readings the same evidence could support.",
+          "anchor": {
+            "src": "writing-about-literature:reference",
+            "loc": "1",
+            "quote": "acknowledges alternative readings the same evidence could support"
+          },
+          "tier": 2
+        }
+      ],
+      "misconceptions": [
+        {
+          "text": "Students summarize the plot instead of arguing an interpretation grounded in specific textual evidence.",
+          "corrective": "An interpretation makes an arguable claim and earns it with close reading of details.",
+          "tier": 1
+        }
+      ],
+      "examples": [
+        {
+          "text": "A thesis about a poem's tone must cite specific images or word choices and explain how they create that tone.",
+          "domain": "literature"
+        }
+      ],
+      "mcBank": [
+        {
+          "stem": "Which best characterizes a strong literary argument?",
+          "options": [
+            "An arguable interpretation grounded in specific textual details",
+            "A complete summary of the plot in order",
+            "A confident opinion stated without textual evidence",
+            "A list of the author's biographical facts"
+          ],
+          "answerIndex": 0,
+          "explanationFactRef": 0,
+          "rationaleRefs": [0]
+        }
+      ],
+      "edges": {
+        "instanceOf": [
+          {
+            "archetype": "epistemic/evidence-vs-claim",
+            "confidence": 0.9,
+            "verified": true,
+            "mapping": {
+              "claim": "an interpretive thesis about a text",
+              "evidence": "specific textual details from the text",
+              "warrant": "close reading that explains how the details produce meaning",
+              "limitation": "alternative readings the same evidence could support"
+            }
+          }
+        ]
+      },
+      "attribution": ["Writing about literature (curated genesis reference)"]
     }
   ]
 }
