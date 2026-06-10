@@ -26,7 +26,9 @@
     "historical-method:reference": "In historical method, a primary source is evidence about its maker and moment as much as its ostensible subject. Source criticism asks who created the source, when, why, and for whom before asking what it reports, because the maker's position and purpose shape what the source can reliably support. A single source is corroborated against others, since provenance and bias bound the claims any one document can support.",
     "openstax:statistics#2": "Data provenance is the record of where a dataset came from: who collected it, by what method, and for what purpose. Before trusting the numbers, a statistician asks how the data were sampled and measured, because the collection method and its purpose can bias what the data can support. Conclusions are only as trustworthy as the provenance of the data behind them.",
     "openstax:macroeconomics-2e#6": "Economists use a proxy variable, an observable stand-in, to measure a construct they cannot observe directly. Gross domestic product is widely used as a proxy for economic well-being, but it captures only marketed output and misses unpaid work, income distribution, and environmental costs. Because the proxy is not the construct, conclusions drawn from it inherit whatever the measure leaves out.",
-    "openstax:biology-2e#47": "A bioindicator is a species or biological response used to measure the health of an ecosystem that cannot be assessed all at once. The presence of pollution-sensitive mayfly larvae, for example, indicates good water quality, while their absence signals degradation. A bioindicator captures the conditions it is sensitive to and misses stressors it does not respond to, so one indicator alone gives an incomplete picture."
+    "openstax:biology-2e#47": "A bioindicator is a species or biological response used to measure the health of an ecosystem that cannot be assessed all at once. The presence of pollution-sensitive mayfly larvae, for example, indicates good water quality, while their absence signals degradation. A bioindicator captures the conditions it is sensitive to and misses stressors it does not respond to, so one indicator alone gives an incomplete picture.",
+    "literary-close-reading:reference": "Close reading interprets a literary work by moving between its parts and the whole: each textual detail is read in light of the whole work, and the reader's sense of the whole is revised as more details accumulate. A close reading earns an interpretive claim by showing how specific passages support it, rather than cataloguing details for their own sake. Meaning emerges from the circle between part and whole, not from any single line in isolation.",
+    "historical-context:reference": "Contextual interpretation reads a historical source by moving between the detail and its context: each detail is understood in light of the broader period, and the historian's picture of the period is revised as more details come to light. A claim about the past earns support when specific evidence is situated in its context, not when details are listed in isolation. Understanding emerges from the circle between the particular source and the whole era."
   },
   "kernels": [
     {
@@ -2282,6 +2284,168 @@
         ]
       },
       "attribution": ["OpenStax Biology 2e, Ch. 47"]
+    },
+    {
+      "id": "lit/close-reading",
+      "rev": 1,
+      "term": "Close reading",
+      "aliases": ["textual detail", "passage analysis"],
+      "level": "intro",
+      "difficulty": 3,
+      "bloomCeiling": "Analyze",
+      "definition": {
+        "text": "Close reading interprets a literary work by moving between its parts and the whole: each textual detail is read in light of the whole work, and the reader's sense of the whole is revised as more details accumulate.",
+        "anchor": {
+          "src": "literary-close-reading:reference",
+          "loc": "1",
+          "quote": "each textual detail is read in light of the whole work, and the reader's sense of the whole is revised as more details accumulate"
+        },
+        "tier": 2
+      },
+      "facts": [
+        {
+          "text": "A close reading earns an interpretive claim by showing how specific passages support it, rather than cataloguing details for their own sake.",
+          "anchor": {
+            "src": "literary-close-reading:reference",
+            "loc": "1",
+            "quote": "A close reading earns an interpretive claim by showing how specific passages support it"
+          },
+          "tier": 2
+        },
+        {
+          "text": "Meaning emerges from the circle between part and whole, not from any single line in isolation.",
+          "anchor": {
+            "src": "literary-close-reading:reference",
+            "loc": "1",
+            "quote": "Meaning emerges from the circle between part and whole, not from any single line in isolation"
+          },
+          "tier": 2
+        }
+      ],
+      "misconceptions": [
+        {
+          "text": "Students catalogue textual details without connecting them to a claim about the whole work, producing description instead of interpretation.",
+          "corrective": "Require each detail to earn its place by supporting an interpretive claim about the whole.",
+          "tier": 1
+        }
+      ],
+      "examples": [
+        {
+          "text": "A repeated image of locked doors gains meaning only when read against the novel as a whole, where it tracks the heroine's loss of freedom.",
+          "domain": "literature"
+        }
+      ],
+      "mcBank": [
+        {
+          "stem": "A strong close reading connects a textual detail to",
+          "options": [
+            "an interpretive claim about the whole work",
+            "the total number of words on the page",
+            "the author's documented daily writing schedule",
+            "a rule that every metaphor must mean the same thing"
+          ],
+          "answerIndex": 0,
+          "explanationFactRef": 0,
+          "rationaleRefs": [0]
+        }
+      ],
+      "edges": {
+        "instanceOf": [
+          {
+            "archetype": "interpretive/hermeneutic-circle",
+            "confidence": 0.93,
+            "verified": true,
+            "mapping": {
+              "work": "the literary work",
+              "part": "a textual detail or passage",
+              "whole": "the whole text",
+              "interpretive claim": "the interpretation of the work"
+            }
+          }
+        ]
+      },
+      "attribution": ["Writing about literature: close reading"]
+    },
+    {
+      "id": "history/contextual-interpretation",
+      "rev": 1,
+      "term": "Contextual interpretation",
+      "aliases": ["historical context", "situating a source"],
+      "level": "intro",
+      "difficulty": 3,
+      "bloomCeiling": "Analyze",
+      "definition": {
+        "text": "Contextual interpretation reads a historical source by moving between the detail and its context: each detail is understood in light of the broader period, and the historian's picture of the period is revised as more details come to light.",
+        "anchor": {
+          "src": "historical-context:reference",
+          "loc": "1",
+          "quote": "each detail is understood in light of the broader period, and the historian's picture of the period is revised as more details come to light"
+        },
+        "tier": 2
+      },
+      "facts": [
+        {
+          "text": "A claim about the past earns support when specific evidence is situated in its context, not when details are listed in isolation.",
+          "anchor": {
+            "src": "historical-context:reference",
+            "loc": "1",
+            "quote": "A claim about the past earns support when specific evidence is situated in its context"
+          },
+          "tier": 2
+        },
+        {
+          "text": "Understanding emerges from the circle between the particular source and the whole era.",
+          "anchor": {
+            "src": "historical-context:reference",
+            "loc": "1",
+            "quote": "Understanding emerges from the circle between the particular source and the whole era"
+          },
+          "tier": 2
+        }
+      ],
+      "misconceptions": [
+        {
+          "text": "Students judge a past detail by present-day standards instead of situating it in the context of its own period.",
+          "corrective": "Read each detail in light of the period it belongs to before drawing a claim about the past.",
+          "tier": 1
+        }
+      ],
+      "examples": [
+        {
+          "text": "A single inventory entry means little until it is situated in the trade patterns of its decade, which reshape what the whole archive shows.",
+          "domain": "history"
+        }
+      ],
+      "mcBank": [
+        {
+          "stem": "Situating a historical detail in its context means reading it in light of",
+          "options": [
+            "the broader period it belongs to",
+            "whichever interpretation is most popular today",
+            "the alphabetical order of the archive's folders",
+            "a fixed assumption that all sources mean one thing"
+          ],
+          "answerIndex": 0,
+          "explanationFactRef": 0,
+          "rationaleRefs": [0]
+        }
+      ],
+      "edges": {
+        "instanceOf": [
+          {
+            "archetype": "interpretive/hermeneutic-circle",
+            "confidence": 0.9,
+            "verified": true,
+            "mapping": {
+              "work": "the historical record of a period",
+              "part": "a single source or detail",
+              "whole": "the broader historical context",
+              "interpretive claim": "the claim about the past"
+            }
+          }
+        ]
+      },
+      "attribution": ["Historical thinking framework: contextualization"]
     }
   ]
 }
