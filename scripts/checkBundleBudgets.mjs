@@ -17,7 +17,10 @@ const lazyChunkBudgets = [
   // v0.8.6: +8 KiB raw / +2 KiB gzip for PackageTrustStrip and lean course-map
   // atoms (deliberate feature growth, measured at 219.2 KiB raw / 66.3 gzip).
   { prefix: 'AppFlow-', rawKiB: 222, gzipKiB: 68 },
-  { prefix: 'ChatPanel-', rawKiB: 330, gzipKiB: 105 },
+  // v0.9.0: +12 KiB raw / +4 KiB gzip for the course-native agent (content
+  // index + renderer reuse, digest card, journal — measured at 341.0 KiB raw
+  // / 92.8 gzip). Deliberate feature growth; gzip headroom unchanged.
+  { prefix: 'ChatPanel-', rawKiB: 350, gzipKiB: 105 },
   { prefix: 'DeliverableView-', rawKiB: 170, gzipKiB: 35 },
   { prefix: 'DeveloperModePanel-', rawKiB: 130, gzipKiB: 35 },
   { prefix: 'ExportSidePanel-', rawKiB: 35, gzipKiB: 12 },

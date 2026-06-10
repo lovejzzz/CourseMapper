@@ -7,6 +7,7 @@
  * Usage: node scripts/v0861OutputQualityRepro.mjs [--json] [--dump featureId]
  */
 import { buildCourseBlueprint, compileBlueprintDeliverables } from '../src/lib/courseBlueprintCompiler.js';
+import { isProvenanceMirrorKey } from '../src/lib/compiledLanguageFinalizer.js';
 
 const LESSON_TOPICS = [
   'Climate Science, Justice Frameworks, and Community Resilience Basics',
@@ -111,7 +112,12 @@ function* walkStrings(node, path = '$') {
   } else if (Array.isArray(node)) {
     for (let i = 0; i < node.length; i += 1) yield* walkStrings(node[i], `${path}[${i}]`);
   } else if (node && typeof node === 'object') {
-    for (const [key, value] of Object.entries(node)) yield* walkStrings(value, `${path}.${key}`);
+    for (const [key, value] of Object.entries(node)) {
+      // Provenance mirrors stay byte-faithful to the blueprint and never
+      // render; the rendered-text audit below covers everything visible.
+      if (isProvenanceMirrorKey(key)) continue;
+      yield* walkStrings(value, `${path}.${key}`);
+    }
   }
 }
 

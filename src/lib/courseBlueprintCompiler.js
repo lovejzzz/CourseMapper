@@ -3768,7 +3768,11 @@ function buildMisconceptionMap({ title, concepts, artifact }) {
     },
     {
       misconception: `One example is enough to prove the ${shortTitle} claim.`,
-      correction: `Students should compare evidence, name a limitation, and explain why ${secondary} changes the decision.`,
+      correction: [
+        `Students should compare ${shortTitle} evidence, name a limitation, and explain why ${secondary} changes the decision.`,
+        `Strong ${shortTitle} answers weigh more than one piece of evidence and say where ${secondary} would bend the conclusion.`,
+        `Students should test the ${shortTitle} claim against a second source and state how ${secondary} shifts the decision.`,
+      ][Array.from(cleanText(shortTitle)).reduce((sum, ch) => sum + ch.charCodeAt(0), 0) % 3],
       check: `Ask what would change their ${secondary} answer if the evidence source or context changed.`,
     },
   ];
@@ -5712,8 +5716,11 @@ function buildArtifactGenreDecode(lesson = {}, profile = {}, modalityDecode = {}
   const artifact = stripTerminalPunctuation(lesson.studentArtifact || 'the lesson artifact');
   const concept = lesson.keyConcepts?.[0] || stripLessonPrefix(lesson.title) || 'the lesson focus';
   const artifactText = `${lesson.studentArtifact || ''} ${lesson.title || ''}`.toLowerCase();
+  // Outcomes are part of the decode context: genre signals like
+  // "target-language vocabulary" live in objective sentences that phrase-based
+  // concept extraction may legitimately drop from keyConcepts.
   const contextText =
-    `${lesson.title || ''} ${lesson.studentArtifact || ''} ${lesson.activityPattern || ''} ${(lesson.keyConcepts || []).join(' ')}`.toLowerCase();
+    `${lesson.title || ''} ${lesson.studentArtifact || ''} ${lesson.activityPattern || ''} ${(lesson.keyConcepts || []).join(' ')} ${(lesson.outcomes || []).join(' ')}`.toLowerCase();
   const artifactMatches = (pattern) => pattern.test(artifactText);
   const contextMatches = (pattern) => pattern.test(contextText);
   let genre = 'applied-artifact';
@@ -12833,7 +12840,9 @@ function compileAssignments(blueprint) {
           `Select specific ${lens.evidenceNoun} from course readings, activities, or discussion notes for ${assessmentTitle}.`,
           lesson.sourceUsePlan?.studentAttributionMove ||
             `Name the reading, activity, or course note used before explaining the evidence for ${assessmentTitle}.`,
-          lesson.evidencePlan?.limitationCue || `Name one limitation before finalizing ${assessmentTitle}.`,
+          lesson.evidencePlan?.limitationCue
+            ? `${stripTerminalPunctuation(lesson.evidencePlan.limitationCue)}, then revisit it when finalizing ${assessmentTitle}.`
+            : `Name one limitation before finalizing ${assessmentTitle}.`,
           `For ${stripLessonPrefix(lesson.title)}, ${submissionProfile.reviewProtocol}.`,
           assessment.anchorExampleSet?.studentFacingUse ||
             `Compare a strong and partial sample before finalizing ${assessmentTitle}.`,
@@ -13570,11 +13579,16 @@ function labelQuizOption(letter, text) {
 function quizCorrectExplanation({ answer, concept, artifact, objective, lesson, index }) {
   const lessonNumber = Number(lesson?.lessonNumber || 1);
   const compactObjective = conciseClause(objective, 'the lesson objective', 70);
+  // Six variants, each anchored to the artifact or quoted objective: with six
+  // questions per lesson no two same-lesson questions share a variant, and
+  // cross-lesson collisions differ through the artifact reference.
   const variants = [
     `${answer} is correct because it connects ${concept} to ${artifact}, uses lesson evidence, and supports the objective "${objective}".`,
-    `${answer} is the strongest move: it grounds ${concept} in inspectable course evidence and advances the lesson objective.`,
+    `${answer} is the strongest move: it grounds ${concept} in inspectable course evidence and advances the objective behind ${artifact}.`,
     `${answer} works because it ties ${concept} evidence to a visible decision in ${artifact} instead of stopping at recall.`,
     `${answer} best fits the objective (${compactObjective}): it selects relevant evidence and explains why the evidence changes ${artifact}.`,
+    `${answer} holds up because it treats ${concept} as a working tool for ${artifact}, not a definition to restate.`,
+    `${answer} earns the point by pairing ${concept} evidence with the specific decision required by ${artifact}.`,
   ];
   return variants[(lessonNumber + index) % variants.length];
 }

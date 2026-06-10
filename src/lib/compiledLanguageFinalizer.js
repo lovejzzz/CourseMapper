@@ -12,12 +12,18 @@
  * sees the same finished language.
  */
 
+import { isInternalExportMetadataKey } from './exporters/exporterUtils';
+
 const TITLE_LIKE_KEY_RE =
   /^(?:id|key|slug|tags|anchor|sourceColumns|relatedLessons|lessonNumbers|format|type|category|difficulty|bloomsLevel|weight|points)$/i;
 // Speaker notes are presenter-facing: keep exact artifact names there so the
 // instructor reads the precise deliverable being coached, and so per-lesson
 // specificity stays visible to the classroom-readiness boilerplate gate.
-const REPLACEMENT_EXEMPT_KEY_RE = /^(?:notes|speakerNotes|instructorNotes)$/i;
+// Review/trust surfaces also stay exact: a "spot-check X for <lesson>" line
+// must keep its lesson-specific wording or readiness gates (rightly) flag it
+// as generic guidance.
+const REPLACEMENT_EXEMPT_KEY_RE =
+  /^(?:notes|speakerNotes|instructorNotes|localReviewAction|reviewerAction|reviewFocus|localConfirmationCue|localReviewNeeded)$/i;
 
 const ARTIFACT_KIND_PATTERNS = [
   [/\bdiscussion\b.*\bquiz\b|\bquiz\b.*\bdiscussion\b/, 'discussion-and-quiz'],
@@ -130,14 +136,22 @@ function buildReferenceTargets(blueprint = {}) {
     // instead of collapsing into a generic "Lesson N" that reads mechanical
     // and erases the per-lesson language the readiness gates look for.
     const firstTopicUnit = (topic.split(/,|\band\b|[:—–]/i)[0] || '').trim();
-    const topicShort =
-      firstTopicUnit.length >= 8 && firstTopicUnit.length < topic.length && firstTopicUnit.length <= 42
-        ? firstTopicUnit
-        : `Lesson ${lessonNumber}`;
+    let topicShort;
+    if (firstTopicUnit.length >= 8 && firstTopicUnit.length <= 42) {
+      topicShort = firstTopicUnit;
+    } else if (topic.length <= 48) {
+      // Separator-less mid-length topics shorten to themselves: dropping the
+      // "Lesson N: " prefix is still a win, and a "Lesson N" fallback would
+      // erase the lesson-specific words quality gates look for.
+      topicShort = topic;
+    } else {
+      const leadWords = topic.split(/\s+/).slice(0, 5).join(' ');
+      topicShort = leadWords.length >= 8 ? leadWords : `Lesson ${lessonNumber}`;
+    }
     if (topic.length >= 25 && title.length > topic.length) {
       push({ pattern: title, replacement: topicShort, startsWithArticle: false, keep: 2 });
     }
-    if (topic.length >= 40) {
+    if (topic.length >= 40 && topicShort.toLowerCase() !== topic.toLowerCase()) {
       push({ pattern: topic, replacement: topicShort, startsWithArticle: false, keep: 2 });
     }
     // Source cues are inlined into nearly every template sentence; shorten the
@@ -225,6 +239,18 @@ function replaceReferencesInString(value, targets, counts) {
   return text;
 }
 
+const PROVENANCE_KEY_RE =
+  /^(?:evidencePlan|sourceUsePlan|objectiveEvidencePlan|calibrationPlan|weightProvenance|gradingWeightProvenance)$/;
+
+/**
+ * True for subtrees the finalizer leaves byte-faithful to the blueprint
+ * (provenance mirrors). Quality checks skip them for the same reason the
+ * finalizer does: they never render and are compared verbatim by audits.
+ */
+export function isProvenanceMirrorKey(key) {
+  return isInternalExportMetadataKey(key) || PROVENANCE_KEY_RE.test(String(key || ''));
+}
+
 function walkAndRewrite(node, rewrite, parentKey = '') {
   if (typeof node === 'string') return rewrite(node, parentKey);
   if (Array.isArray(node)) {
@@ -235,6 +261,10 @@ function walkAndRewrite(node, rewrite, parentKey = '') {
   }
   if (node && typeof node === 'object') {
     for (const key of Object.keys(node)) {
+      // Provenance and grounding subtrees are compared byte-for-byte against
+      // blueprint values by quality audits and never render in exports —
+      // leave them completely untouched.
+      if (isInternalExportMetadataKey(key) || PROVENANCE_KEY_RE.test(key)) continue;
       node[key] = walkAndRewrite(node[key], rewrite, key);
     }
     return node;

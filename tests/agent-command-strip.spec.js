@@ -297,7 +297,9 @@ test.describe('Agent command entry points', () => {
     await expect(activityReceipt).toContainText('Lesson Plans');
 
     const request = agentRequests[0];
-    expect(request.model).toBe('gpt-5.4-mini');
+    // v0.9 per-turn routing: "/improve" is an authorship turn, so the
+    // configured mini model escalates to the high-reasoning sibling.
+    expect(request.model).toBe('gpt-5.5');
     expect(request.temperature).toBeUndefined();
     expect(request.tools.map((tool) => tool.function?.name)).toContain('inspect_workspace');
     expect(request.tools.map((tool) => tool.function?.name)).toContain('plan_workspace_next_step');

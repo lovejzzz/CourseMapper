@@ -9,7 +9,7 @@
  * defects visible to the finish pipeline and the trust strip as warnings.
  */
 
-import { isInternalExportMetadataKey } from './exporters/exporterUtils.js';
+import { isProvenanceMirrorKey } from './compiledLanguageFinalizer.js';
 
 const DANGLING_CLAUSE_RE = /\b(?:and|or|for|in|of|to|the|with|before|after|around|aligned to|into|from)\s*[.]\s*$/i;
 const DANGLING_EXEMPT_RE = /\b(?:etc|e\.g|i\.e)[.]\s*$/i;
@@ -28,9 +28,9 @@ function* walkStrings(node, path = '$') {
     }
   } else if (node && typeof node === 'object') {
     for (const [key, value] of Object.entries(node)) {
-      // Internal receipt/trace subtrees never render in exports; auditing
-      // them would warn on text instructors cannot see.
-      if (isInternalExportMetadataKey(key)) continue;
+      // Internal receipt/trace and provenance subtrees never render in
+      // exports; auditing them would warn on text instructors cannot see.
+      if (isProvenanceMirrorKey(key)) continue;
       yield* walkStrings(value, `${path}.${key}`);
     }
   }
