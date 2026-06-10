@@ -6,7 +6,9 @@
     "openstax:statistics#7": "A sampling distribution is the probability distribution of a statistic obtained from a large number of samples drawn from a specific population. The central limit theorem states that the sampling distribution of the sample mean approaches a normal distribution as the sample size increases, regardless of the shape of the population distribution. The standard deviation of the sampling distribution of the mean is the population standard deviation divided by the square root of the sample size.",
     "openstax:statistics#9": "A p-value is the probability of obtaining a test statistic at least as extreme as the one observed, assuming the null hypothesis is true. A small p-value indicates that the observed data would be unlikely under the null hypothesis. The p-value is not the probability that the null hypothesis is true, and it does not measure the size of an effect.",
     "openstax:biology-2e#8": "Photosynthesis is the process by which plants, algae, and some bacteria convert light energy into chemical energy stored in glucose. The light-dependent reactions capture energy from sunlight to produce ATP and NADPH, which the Calvin cycle then uses to fix carbon dioxide into sugar. Oxygen is released as a byproduct of splitting water molecules.",
-    "openstax:biology-2e#3": "The cell membrane, also called the plasma membrane, is a selectively permeable barrier that regulates which substances enter and leave the cell. It is composed of a phospholipid bilayer with embedded proteins. The membrane maintains the internal environment of the cell while allowing the exchange of nutrients and wastes."
+    "openstax:biology-2e#3": "The cell membrane, also called the plasma membrane, is a selectively permeable barrier that regulates which substances enter and leave the cell. It is composed of a phospholipid bilayer with embedded proteins. The membrane maintains the internal environment of the cell while allowing the exchange of nutrients and wastes.",
+    "openstax:chemistry-2e#13": "Chemical equilibrium is the state in which the forward and reverse reaction rates are equal, so the concentrations of reactants and products remain constant over time. Equilibrium is dynamic: both the forward and reverse reactions continue to occur even though no net change is observed. According to Le Chatelier's principle, when a system at equilibrium is disturbed by a change in concentration, temperature, or pressure, the equilibrium shifts in the direction that partially counteracts the disturbance.",
+    "openstax:microeconomics-3e#4": "Market equilibrium occurs at the price where the quantity demanded by buyers equals the quantity supplied by sellers. At this equilibrium price the opposing pressures of demand and supply are balanced and there is no tendency for the price to change. When the price is above equilibrium a surplus pushes it down, and when the price is below equilibrium a shortage pushes it up, so the market mechanism restores the balance."
   },
   "kernels": [
     {
@@ -472,6 +474,171 @@
         ]
       },
       "attribution": ["OpenStax Biology 2e, Ch. 3"]
+    },
+    {
+      "id": "chem/chemical-equilibrium",
+      "rev": 1,
+      "term": "Chemical equilibrium",
+      "aliases": ["dynamic equilibrium", "Le Chatelier's principle"],
+      "level": "intro",
+      "difficulty": 3,
+      "bloomCeiling": "Analyze",
+      "definition": {
+        "text": "Chemical equilibrium is the state in which the forward and reverse reaction rates are equal, so the concentrations of reactants and products stay constant.",
+        "anchor": {
+          "src": "openstax:chemistry-2e#13",
+          "loc": "13.1",
+          "quote": "the forward and reverse reaction rates are equal, so the concentrations of reactants and products remain constant over time"
+        },
+        "tier": 2
+      },
+      "facts": [
+        {
+          "text": "Equilibrium is dynamic: the forward and reverse reactions both continue even though no net change is observed.",
+          "anchor": {
+            "src": "openstax:chemistry-2e#13",
+            "loc": "13.1",
+            "quote": "both the forward and reverse reactions continue to occur even though no net change is observed"
+          },
+          "tier": 2
+        },
+        {
+          "text": "By Le Chatelier's principle, a disturbed equilibrium shifts in the direction that partially counteracts the disturbance.",
+          "anchor": {
+            "src": "openstax:chemistry-2e#13",
+            "loc": "13.3",
+            "quote": "the equilibrium shifts in the direction that partially counteracts the disturbance"
+          },
+          "tier": 2
+        }
+      ],
+      "misconceptions": [
+        {
+          "text": "Students think a reaction at equilibrium has stopped, when the forward and reverse reactions continue at equal rates.",
+          "corrective": "Equilibrium is dynamic balance, not the absence of reaction.",
+          "tier": 1
+        }
+      ],
+      "examples": [
+        {
+          "text": "Adding more reactant to a system at equilibrium shifts it toward products until balance is restored.",
+          "domain": "chemistry"
+        }
+      ],
+      "mcBank": [
+        {
+          "stem": "When a reaction reaches chemical equilibrium, what is true of the forward and reverse reactions?",
+          "options": [
+            "They continue at equal rates",
+            "They both stop completely",
+            "Only the forward reaction continues",
+            "Only the reverse reaction continues"
+          ],
+          "answerIndex": 0,
+          "explanationFactRef": 0,
+          "rationaleRefs": [0]
+        }
+      ],
+      "edges": {
+        "instanceOf": [
+          {
+            "archetype": "structure/equilibrium",
+            "confidence": 0.95,
+            "verified": true,
+            "mapping": {
+              "system": "a reversible chemical reaction",
+              "opposing processes": "the forward and reverse reactions",
+              "balanced quantity": "the concentrations of reactants and products",
+              "perturbation": "a change in concentration, temperature, or pressure",
+              "restoring force": "the equilibrium shift that counteracts the disturbance (Le Chatelier's principle)"
+            }
+          }
+        ]
+      },
+      "attribution": ["OpenStax Chemistry 2e, Ch. 13"]
+    },
+    {
+      "id": "econ/market-equilibrium",
+      "rev": 1,
+      "term": "Market equilibrium",
+      "aliases": ["equilibrium price", "supply and demand balance"],
+      "level": "intro",
+      "difficulty": 2,
+      "bloomCeiling": "Analyze",
+      "definition": {
+        "text": "Market equilibrium occurs at the price where the quantity demanded by buyers equals the quantity supplied by sellers.",
+        "anchor": {
+          "src": "openstax:microeconomics-3e#4",
+          "loc": "4.1",
+          "quote": "the price where the quantity demanded by buyers equals the quantity supplied by sellers"
+        },
+        "tier": 2
+      },
+      "facts": [
+        {
+          "text": "At the equilibrium price the opposing pressures of demand and supply are balanced and the price has no tendency to change.",
+          "anchor": {
+            "src": "openstax:microeconomics-3e#4",
+            "loc": "4.1",
+            "quote": "the opposing pressures of demand and supply are balanced and there is no tendency for the price to change"
+          },
+          "tier": 2
+        },
+        {
+          "text": "A price above equilibrium creates a surplus that pushes it down; a price below creates a shortage that pushes it up.",
+          "anchor": {
+            "src": "openstax:microeconomics-3e#4",
+            "loc": "4.2",
+            "quote": "a surplus pushes it down, and when the price is below equilibrium a shortage pushes it up"
+          },
+          "tier": 2
+        }
+      ],
+      "misconceptions": [
+        {
+          "text": "Students think market equilibrium means nothing changes, when buying and selling continue and only the price is stable.",
+          "corrective": "Equilibrium is a balance of ongoing opposing pressures, not a frozen market.",
+          "tier": 1
+        }
+      ],
+      "examples": [
+        {
+          "text": "If a price ceiling holds the price below equilibrium, the resulting shortage persists because the restoring rise is blocked.",
+          "domain": "policy"
+        }
+      ],
+      "mcBank": [
+        {
+          "stem": "At a price above the market equilibrium price, what happens?",
+          "options": [
+            "A surplus forms and pushes the price down toward equilibrium",
+            "A shortage forms and pushes the price up",
+            "Quantity demanded equals quantity supplied",
+            "The equilibrium price rises permanently"
+          ],
+          "answerIndex": 0,
+          "explanationFactRef": 1,
+          "rationaleRefs": [0]
+        }
+      ],
+      "edges": {
+        "requires": ["econ/demand-curve"],
+        "instanceOf": [
+          {
+            "archetype": "structure/equilibrium",
+            "confidence": 0.95,
+            "verified": true,
+            "mapping": {
+              "system": "a competitive market",
+              "opposing processes": "demand pressure and supply pressure",
+              "balanced quantity": "the equilibrium price",
+              "perturbation": "a price set above or below equilibrium",
+              "restoring force": "the surplus or shortage that pushes the price back to balance"
+            }
+          }
+        ]
+      },
+      "attribution": ["OpenStax Principles of Microeconomics 3e, Ch. 4"]
     }
   ]
 }
