@@ -34,6 +34,21 @@ Goal: make CourseMapper credible for real classroom pilots while keeping the age
 9. Versioned package handoff so users can recover prior generated packages.
 10. Public demo packages showing polished complete outputs across multiple subjects.
 
+## v0.13 - The Course Graph Release (planned)
+
+Goal: replace the prose course map as the source of truth with a typed, model-authored course graph (concepts, outcomes, assessments, sessions, resources, and their alignment edges); the course map becomes one deterministic render of the graph.
+
+Full plan: `docs/V0.13_COURSE_GRAPH_IR_ROADMAP.md`
+
+1. Two-pass generation: a cheap extraction pass that parses the syllabus into structural entities, then a parallel authorship pass that writes concepts and outcomes only for topics the Curriculum Genome does not already cover — absorbing the kernel stage into the main call.
+2. Alignment becomes edges, not prose: every outcome assessed, every assessed concept taught first, weights summing — structural lint instead of asserted "evaluate design" sentences.
+3. The course map stays as the workspace home view and an XLSX export, but stops being a generated deliverable: the locked Course Map card in feature selection retires, and the column editor becomes view settings.
+4. Cell edits write back to graph entities and re-render all views free; smart-sync cascades stop spending AI calls on re-derivation; agent editing moves to entity operations.
+5. Golden equivalence harness gates every phase: graph-driven deliverables must match or beat the map-driven path on the full quality matrix before defaults flip.
+6. Cost: ~25-35% cheaper cold, 60-85% cheaper for genome-covered or kernel-cached courses (regeneration approaches extraction-only, ~$0.02-0.03); generation wall clock from ~2.5 minutes toward 60-90 seconds.
+7. Begin retiring the prose-to-structure inference layer of the 16k-line blueprint compiler — the layer where both output audits' defect classes lived.
+8. Defers but enables: interview-first onboarding, backward-design generation order, and the living course that absorbs semester feedback.
+
 ## v0.12.1 - Enrichment Activation and Export Polish Release
 
 Goal: fix the degraded-plan bug that silently shipped all four v0.12 test courses as zero-enrichment mail merge, remove every deterministic text artifact, and make the DOCX/PPTX/XLSX exports open clean without manual fixing.
