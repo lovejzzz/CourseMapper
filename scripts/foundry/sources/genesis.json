@@ -24,7 +24,9 @@
     "openstax:macroeconomics-2e#1": "In the circular flow of income, money that households earn returns to firms as spending unless it leaks out of the flow as saving, taxes, or spending on imports. Leakages are balanced by injections such as investment, government spending, and exports that add spending back into the flow. When total leakages equal total injections, the circular flow is in balance and national income neither rises nor falls.",
     "openstax:macroeconomics-2e#7": "The capital stock is the total quantity of equipment, structures, and tools available for production at a point in time. It rises through gross investment and falls through depreciation as capital wears out. Net investment, which is gross investment minus depreciation, is the change in the capital stock over a period; the stock grows only when net investment is positive.",
     "historical-method:reference": "In historical method, a primary source is evidence about its maker and moment as much as its ostensible subject. Source criticism asks who created the source, when, why, and for whom before asking what it reports, because the maker's position and purpose shape what the source can reliably support. A single source is corroborated against others, since provenance and bias bound the claims any one document can support.",
-    "openstax:statistics#2": "Data provenance is the record of where a dataset came from: who collected it, by what method, and for what purpose. Before trusting the numbers, a statistician asks how the data were sampled and measured, because the collection method and its purpose can bias what the data can support. Conclusions are only as trustworthy as the provenance of the data behind them."
+    "openstax:statistics#2": "Data provenance is the record of where a dataset came from: who collected it, by what method, and for what purpose. Before trusting the numbers, a statistician asks how the data were sampled and measured, because the collection method and its purpose can bias what the data can support. Conclusions are only as trustworthy as the provenance of the data behind them.",
+    "openstax:macroeconomics-2e#6": "Economists use a proxy variable, an observable stand-in, to measure a construct they cannot observe directly. Gross domestic product is widely used as a proxy for economic well-being, but it captures only marketed output and misses unpaid work, income distribution, and environmental costs. Because the proxy is not the construct, conclusions drawn from it inherit whatever the measure leaves out.",
+    "openstax:biology-2e#47": "A bioindicator is a species or biological response used to measure the health of an ecosystem that cannot be assessed all at once. The presence of pollution-sensitive mayfly larvae, for example, indicates good water quality, while their absence signals degradation. A bioindicator captures the conditions it is sensitive to and misses stressors it does not respond to, so one indicator alone gives an incomplete picture."
   },
   "kernels": [
     {
@@ -1156,7 +1158,7 @@
       "id": "econ/economic-model",
       "rev": 1,
       "term": "Economic model",
-      "aliases": ["model assumptions", "simplifying assumptions"],
+      "aliases": ["economic model assumptions", "simplifying assumptions"],
       "level": "intro",
       "difficulty": 2,
       "bloomCeiling": "Evaluate",
@@ -1237,7 +1239,7 @@
       "id": "stats/statistical-model",
       "rev": 1,
       "term": "Statistical model",
-      "aliases": ["regression model", "model assumptions"],
+      "aliases": ["regression model", "statistical model assumptions"],
       "level": "intro",
       "difficulty": 3,
       "bloomCeiling": "Evaluate",
@@ -2118,6 +2120,168 @@
         ]
       },
       "attribution": ["OpenStax Introductory Statistics, Ch. 1"]
+    },
+    {
+      "id": "econ/proxy-variable",
+      "rev": 1,
+      "term": "Proxy variable",
+      "aliases": ["proxy measure", "stand-in variable"],
+      "level": "intro",
+      "difficulty": 3,
+      "bloomCeiling": "Evaluate",
+      "definition": {
+        "text": "A proxy variable is an observable stand-in used to measure a construct that cannot be observed directly.",
+        "anchor": {
+          "src": "openstax:macroeconomics-2e#6",
+          "loc": "6.4",
+          "quote": "an observable stand-in, to measure a construct they cannot observe directly"
+        },
+        "tier": 2
+      },
+      "facts": [
+        {
+          "text": "GDP is used as a proxy for economic well-being, but it captures only marketed output and misses unpaid work, income distribution, and environmental costs.",
+          "anchor": {
+            "src": "openstax:macroeconomics-2e#6",
+            "loc": "6.4",
+            "quote": "it captures only marketed output and misses unpaid work, income distribution, and environmental costs"
+          },
+          "tier": 2
+        },
+        {
+          "text": "Because the proxy is not the construct, conclusions drawn from it inherit whatever the measure leaves out.",
+          "anchor": {
+            "src": "openstax:macroeconomics-2e#6",
+            "loc": "6.4",
+            "quote": "Because the proxy is not the construct, conclusions drawn from it inherit whatever the measure leaves out"
+          },
+          "tier": 2
+        }
+      ],
+      "misconceptions": [
+        {
+          "text": "Students treat GDP as if it were well-being itself, forgetting it is only a proxy that misses unpaid work and distribution.",
+          "corrective": "Hold the construct (well-being) fixed and ask what a different measure would capture that GDP does not.",
+          "tier": 1
+        }
+      ],
+      "examples": [
+        {
+          "text": "Two countries with equal GDP can differ sharply in well-being if one has far more unpaid care work and a more equal income distribution.",
+          "domain": "economics"
+        }
+      ],
+      "mcBank": [
+        {
+          "stem": "GDP is used as a proxy for economic well-being, but it",
+          "options": [
+            "misses unpaid work, distribution, and environmental costs",
+            "cannot be computed without a full national census every year",
+            "is rejected by most national statistics offices",
+            "is identical to a nation's total population"
+          ],
+          "answerIndex": 0,
+          "explanationFactRef": 0,
+          "rationaleRefs": [0]
+        }
+      ],
+      "edges": {
+        "instanceOf": [
+          {
+            "archetype": "epistemic/operationalization",
+            "confidence": 0.93,
+            "verified": true,
+            "mapping": {
+              "construct": "economic well-being",
+              "measure": "gross domestic product",
+              "what the measure captures": "marketed output",
+              "what it misses": "unpaid work, income distribution, and environmental costs"
+            }
+          }
+        ]
+      },
+      "attribution": ["OpenStax Principles of Macroeconomics 2e, Ch. 6"]
+    },
+    {
+      "id": "bio/bioindicator",
+      "rev": 1,
+      "term": "Bioindicator",
+      "aliases": ["indicator species", "biomarker"],
+      "level": "intro",
+      "difficulty": 3,
+      "bloomCeiling": "Evaluate",
+      "definition": {
+        "text": "A bioindicator is a species or biological response used to measure the health of an ecosystem that cannot be assessed all at once.",
+        "anchor": {
+          "src": "openstax:biology-2e#47",
+          "loc": "47.1",
+          "quote": "a species or biological response used to measure the health of an ecosystem that cannot be assessed all at once"
+        },
+        "tier": 2
+      },
+      "facts": [
+        {
+          "text": "The presence of pollution-sensitive mayfly larvae indicates good water quality, while their absence signals degradation.",
+          "anchor": {
+            "src": "openstax:biology-2e#47",
+            "loc": "47.1",
+            "quote": "indicates good water quality, while their absence signals degradation"
+          },
+          "tier": 2
+        },
+        {
+          "text": "A bioindicator captures the conditions it is sensitive to and misses stressors it does not respond to.",
+          "anchor": {
+            "src": "openstax:biology-2e#47",
+            "loc": "47.1",
+            "quote": "A bioindicator captures the conditions it is sensitive to and misses stressors it does not respond to"
+          },
+          "tier": 2
+        }
+      ],
+      "misconceptions": [
+        {
+          "text": "Students treat one indicator species as a full measure of ecosystem health, forgetting it misses stressors it is not sensitive to.",
+          "corrective": "Hold the construct (ecosystem health) fixed and pair the indicator with others that capture different stressors.",
+          "tier": 1
+        }
+      ],
+      "examples": [
+        {
+          "text": "A stream with abundant mayfly larvae reads as healthy on that indicator, yet could still carry a heavy-metal load the larvae tolerate.",
+          "domain": "biology"
+        }
+      ],
+      "mcBank": [
+        {
+          "stem": "A single bioindicator species gives an incomplete picture of ecosystem health because",
+          "options": [
+            "it misses stressors it is not sensitive to",
+            "all species respond identically to every kind of pollution there is",
+            "ecosystem health can instead be measured directly and instantly",
+            "indicator species are far too rare to ever be observed"
+          ],
+          "answerIndex": 0,
+          "explanationFactRef": 1,
+          "rationaleRefs": [0]
+        }
+      ],
+      "edges": {
+        "instanceOf": [
+          {
+            "archetype": "epistemic/operationalization",
+            "confidence": 0.9,
+            "verified": true,
+            "mapping": {
+              "construct": "ecosystem health",
+              "measure": "an indicator species' presence",
+              "what the measure captures": "the conditions the species is sensitive to",
+              "what it misses": "stressors the species does not respond to"
+            }
+          }
+        ]
+      },
+      "attribution": ["OpenStax Biology 2e, Ch. 47"]
     }
   ]
 }

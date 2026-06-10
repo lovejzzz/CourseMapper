@@ -120,7 +120,99 @@ export function admitKernel(rawKernel, { sources = {}, requireAnchors = true } =
   };
 }
 
-/** Admit a batch; returns admitted kernels + a rejection report. */
+// Generic connective words that carry no disambiguating signal in a surface.
+const SURFACE_STOPWORDS = new Set([
+  'the',
+  'a',
+  'an',
+  'of',
+  'and',
+  'or',
+  'to',
+  'in',
+  'for',
+  'on',
+  'as',
+  'is',
+  'are',
+  'its',
+  'it',
+  'that',
+  'this',
+  'what',
+  'where',
+  'when',
+  'how',
+  'why',
+  'with',
+  'from',
+  'by',
+  'were',
+  'was',
+  'came',
+  'come',
+  'into',
+  'onto',
+  'over',
+  'per',
+  'about',
+  'their',
+  'they',
+  'them',
+]);
+
+function surfaceTokens(text) {
+  return normalizeForMatch(text)
+    .split(/[^a-z0-9]+/)
+    .filter((token) => token.length >= 4 && !SURFACE_STOPWORDS.has(token));
+}
+
+function disciplineOf(id) {
+  return String(id || '').split('/')[0];
+}
+
+/**
+ * Cross-discipline alias-collision lint (warning-only; never rejects).
+ *
+ * Kernel resolution is token-coverage based, so two kernels in DIFFERENT
+ * disciplines that share surface vocabulary cross-resolve in a mixed-discipline
+ * course (a real defect found in refine-loop iter 15: a history "source
+ * criticism" kernel was pulled into a statistics data lesson because "source"/
+ * "provenance" overlapped). This flags every surface of kernel A (≥1 meaningful
+ * token after stripping stopwords and tokens < 4 chars) whose token set is a
+ * SUBSET of the combined surface tokens of a kernel B in another discipline —
+ * the exact condition under which B's lesson can fully match A's surface.
+ *
+ * @returns {{ surface, of, containedIn }[]} collisions (empty when clean)
+ */
+export function findAliasCollisions(kernels = []) {
+  const entries = kernels
+    .filter((kernel) => kernel && kernel.id)
+    .map((kernel) => {
+      const perSurface = [kernel.term, ...(kernel.aliases || [])]
+        .filter(Boolean)
+        .map((surface) => ({ surface, tokens: new Set(surfaceTokens(surface)) }))
+        .filter((entry) => entry.tokens.size > 0);
+      const all = new Set();
+      for (const entry of perSurface) for (const token of entry.tokens) all.add(token);
+      return { id: kernel.id, discipline: disciplineOf(kernel.id), perSurface, all };
+    });
+
+  const collisions = [];
+  for (const a of entries) {
+    for (const b of entries) {
+      if (a.id === b.id || a.discipline === b.discipline) continue;
+      for (const { surface, tokens } of a.perSurface) {
+        if ([...tokens].every((token) => b.all.has(token))) {
+          collisions.push({ surface, of: a.id, containedIn: b.id });
+        }
+      }
+    }
+  }
+  return collisions;
+}
+
+/** Admit a batch; returns admitted kernels + a rejection report + alias collisions. */
 export function admitBatch(rawKernels = [], options = {}) {
   const admitted = [];
   const report = [];
@@ -131,5 +223,5 @@ export function admitBatch(rawKernels = [], options = {}) {
       report.push({ id: raw?.id || '(no id)', admitted: result.admitted, rejections: result.rejections });
     }
   }
-  return { admitted, report };
+  return { admitted, report, aliasCollisions: findAliasCollisions(admitted) };
 }

@@ -121,9 +121,9 @@ describe('iteration 15b — the new family drives the study guide', () => {
 });
 
 describe('iteration 15c — genome coverage milestone', () => {
-  it('spans 26 concepts and at least 13 instantiated archetypes incl. source-criticism', () => {
+  it('spans at least 26 concepts and 13 instantiated archetypes incl. source-criticism', () => {
     const manifest = JSON.parse(readFileSync(join(process.cwd(), 'public/genome/manifest.json'), 'utf8'));
-    expect(manifest.conceptCount).toBe(26);
+    expect(manifest.conceptCount).toBeGreaterThanOrEqual(26);
     const used = new Set();
     for (const shard of manifest.shards) {
       const body = JSON.parse(readFileSync(join(process.cwd(), 'public/genome', shard.path), 'utf8'));

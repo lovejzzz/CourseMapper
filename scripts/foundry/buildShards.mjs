@@ -19,7 +19,7 @@ import { readFileSync, writeFileSync, readdirSync, mkdirSync, existsSync } from 
 import { createHash } from 'node:crypto';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { admitBatch } from '../../src/lib/genome/foundryAdmission.js';
+import { admitBatch, findAliasCollisions } from '../../src/lib/genome/foundryAdmission.js';
 import { buildConceptIndex } from '../../src/lib/genome/conceptResolver.js';
 import { normalizeArchetype } from '../../src/lib/genome/archetypeSchema.js';
 
@@ -138,6 +138,18 @@ function main() {
   if (rejected.length > 0) {
     console.log(`[foundry] ${rejected.length} kernel(s) rejected:`);
     for (const entry of rejected) console.log(`  - ${entry.id}: ${entry.rejections.join('; ')}`);
+  }
+
+  // Cross-discipline alias-collision lint (warning-only): two kernels in
+  // different disciplines whose surfaces share generic vocabulary cross-resolve
+  // in a mixed-discipline course (refine-loop iter 15/16). Run across the whole
+  // admitted set so it catches collisions that span shards.
+  const collisions = findAliasCollisions(allAdmitted);
+  if (collisions.length > 0) {
+    console.log(`[foundry] ⚠ ${collisions.length} cross-discipline alias collision(s):`);
+    for (const c of collisions) console.log(`  - "${c.surface}" of ${c.of} ⊆ ${c.containedIn}`);
+  } else {
+    console.log('[foundry] alias-collision lint: clean (no cross-discipline surface overlaps)');
   }
 }
 
