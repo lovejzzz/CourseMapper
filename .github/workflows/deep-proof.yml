@@ -1,12 +1,16 @@
 name: Deep proof gates
 
+# Deep proof is the heavy, slow battery (gold audit + full e2e + audits, ~15-25
+# min). It is NOT a per-commit gate on main: routine commits are covered by the
+# ~2-3 min "Fast verification" workflow plus the full battery run locally before
+# every push. Deep proof runs nightly (catch within a day), on every release/**
+# branch (so releases are fully gated), and on demand via workflow_dispatch.
 on:
   workflow_dispatch:
   schedule:
     - cron: '0 9 * * *'
   push:
     branches:
-      - main
       - 'release/**'
 
 permissions:
