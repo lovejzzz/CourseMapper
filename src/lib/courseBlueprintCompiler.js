@@ -15253,6 +15253,35 @@ function compileSlideDecks(blueprint) {
           ...(isEnriched ? { enrichmentSource: slide.enrichmentSource } : {}),
         };
       });
+      // CurriculumOS Layer 2: bring the expert reasoning routine for this
+      // lesson's deep structure onto a lecture slide ("How Experts Think"),
+      // not only the study guide (iteration 10). Modeling the thinking routine
+      // aloud — making the invisible expert process visible — is the
+      // metacognitive move that turns recall into understanding (A+ pedagogy at
+      // the point of instruction). Number-safe; provenance tag never rendered.
+      const reasoningScaffolds = Array.isArray(lesson.enrichment?.reasoningScaffolds)
+        ? lesson.enrichment.reasoningScaffolds
+        : [];
+      for (const scaffold of reasoningScaffolds.slice(0, 1)) {
+        const moves = (scaffold.moves || []).map((m) => String(m).trim()).filter(Boolean);
+        if (moves.length < 2) continue;
+        const structure = String(scaffold.archetypeName || '').toLowerCase();
+        slides.push({
+          title: `How Experts Think: ${scaffold.term}`,
+          type: 'content',
+          bullets: [
+            `Reason about ${scaffold.term} as ${structure} — the expert routine:`,
+            ...moves.map((m) => `${m.charAt(0).toUpperCase()}${m.slice(1)}`),
+          ],
+          notes: `Model this routine aloud on a worked example before students try it: walk through "${moves.join('", then "')}". Naming the steps an expert runs — instead of only showing the answer — is what makes the thinking transferable.`,
+          visual: null,
+          activityType: 'worked example',
+          timer: '4 min',
+          bloomsLevel: 'Apply',
+          objectiveLink: `Apply the expert reasoning routine for ${scaffold.term}`,
+          enrichmentSource: 'archetype-reasoning',
+        });
+      }
       // CurriculumOS Layer 2: when this lesson bridges to a deep structure
       // taught earlier in the course, add a "Same Structure" slide so the
       // transfer is taught at the point of instruction, not just in the study
