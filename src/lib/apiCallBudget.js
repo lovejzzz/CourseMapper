@@ -85,7 +85,19 @@ export function createApiCallBudget(overrides = {}) {
     // this constructor, so any field not listed is silently dropped by the
     // next event (the first enriched production run printed the mail-merge
     // warning because this field vanished mid-run).
-    ...(overrides.enrichmentOutcome ? { enrichmentOutcome: { ...overrides.enrichmentOutcome } } : {}),
+    // v0.14.1 P2.2: the outcome now also carries requestedLessons +
+    // missingLessons (per-lesson coverage); the array is cloned here so it
+    // survives every rebuild without aliasing the previous budget.
+    ...(overrides.enrichmentOutcome
+      ? {
+          enrichmentOutcome: {
+            ...overrides.enrichmentOutcome,
+            ...(Array.isArray(overrides.enrichmentOutcome.missingLessons)
+              ? { missingLessons: [...overrides.enrichmentOutcome.missingLessons] }
+              : {}),
+          },
+        }
+      : {}),
   };
   return {
     ...budget,
@@ -323,4 +335,50 @@ export function applyApiCallBudgetEvent(currentBudget, event = {}) {
 
 export function getApiCallBudgetTotal(budget = {}) {
   return PROVIDER_CALL_COUNTERS.reduce((total, counter) => total + (budget[counter] || 0), 0);
+}
+
+/**
+ * v0.14.1 P2.2: ONE formatter for the enrichment-coverage surface, shared by
+ * the PACKAGE_MANIFEST pipeline state, the run-digest pipeline line, and the
+ * generation log. Partial coverage is loud — "ran (12/14 — lessons 13, 14
+ * fell back to template)" — full coverage keeps the simple form.
+ */
+export function formatEnrichmentOutcomeLabel(outcome) {
+  if (!outcome) return 'unknown';
+  const enriched = Number(outcome.enrichedLessons) || 0;
+  if (outcome.modelStage === 'ran') {
+    const requested = Number(outcome.requestedLessons) || 0;
+    const missing = Array.isArray(outcome.missingLessons) ? outcome.missingLessons : [];
+    if (requested > 0 && missing.length > 0) {
+      return `ran (${enriched}/${requested} — lesson${missing.length === 1 ? '' : 's'} ${missing.join(', ')} fell back to template)`;
+    }
+    return `ran (${enriched} lesson${enriched === 1 ? '' : 's'} enriched)`;
+  }
+  if (enriched > 0) {
+    return `genome-only (${enriched} lesson${enriched === 1 ? '' : 's'}); model stage ${outcome.modelStage}`;
+  }
+  return outcome.modelStage || 'unknown';
+}
+
+/**
+ * v0.14.1 P2.4: judgment always speaks. One builder for the judgment stage
+ * event so every run that reached the linker carries a `pipeline.judgment`
+ * line in the digest and manifest. Previously the event fired only when gaps
+ * existed — "ran clean" and "never ran" were indistinguishable.
+ */
+export function buildJudgmentStageEvent({ judgment = null, linkedConceptCount = 0, genomeLinkedLessons = 0 } = {}) {
+  const base = { type: 'pipelineDecision', stage: 'judgment', label: 'Course judgment' };
+  if (judgment && ((judgment.missing || 0) > 0 || (judgment.outOfOrder || 0) > 0)) {
+    return {
+      ...base,
+      detail: `${judgment.missing} prerequisite gap${judgment.missing === 1 ? '' : 's'} (${judgment.bridgeable} bridgeable with cited primers, ${judgment.assumedBackground} assumed background)${judgment.outOfOrder ? ` · ${judgment.outOfOrder} out-of-order` : ''} · ${judgment.primersBuilt} primer${judgment.primersBuilt === 1 ? '' : 's'} built`,
+    };
+  }
+  if (genomeLinkedLessons > 0 && linkedConceptCount > 0) {
+    return {
+      ...base,
+      detail: `no gaps across ${linkedConceptCount} linked concept${linkedConceptCount === 1 ? '' : 's'}`,
+    };
+  }
+  return { ...base, detail: 'not evaluated (0 genome-linked lessons)' };
 }

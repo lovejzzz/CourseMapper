@@ -1097,18 +1097,55 @@ export function normalizeAbsorbedCourseLevel(courseLevel, payload) {
  * the surface payload the existing overlays consume. Invalid atoms are
  * dropped individually; a lesson needs at least valid keyTerms or mc items to
  * be kept. Returns { lessons, issues, courseLevel } or null when unusable.
+ *
+ * v0.14.1 P2.1: dropped LESSONS get an explicit issue row too (surface
+ * 'lesson' with a `reason`) — the v0.14 audit shipped final-exam-week quizzes
+ * with zero geology because whole-lesson drops were silent. Entries whose
+ * lessonId is outside the requested chunk (`expectedLessonIds`, defaulting to
+ * the prompt's lesson list) are rejected instead of overwriting another
+ * chunk's lesson via the caller's Object.assign merge.
  */
-export function parseLessonKernelResponse(text, { prompt } = {}) {
+export function parseLessonKernelResponse(text, { prompt, expectedLessonIds } = {}) {
   const parsed = expandKeys('enrichment', parseJsonObject(text));
   if (!parsed || !Array.isArray(parsed.lessons)) return null;
   const groundingText = JSON.stringify(prompt?.lessons || []);
   const itemPlan = Array.isArray(prompt?.itemPlan) ? prompt.itemPlan : buildQuizItemPlan(6);
+  const chunkLessonIds = new Set(
+    (Array.isArray(expectedLessonIds) && expectedLessonIds.length > 0
+      ? expectedLessonIds
+      : (prompt?.lessons || []).map((lesson) => lesson?.lessonId)
+    ).filter(Boolean),
+  );
   const lessons = {};
   const issues = [];
 
-  for (const entry of parsed.lessons) {
+  for (const [entryIndex, entry] of parsed.lessons.entries()) {
     const lessonId = cleanText(entry?.lessonId);
-    if (!lessonId) continue;
+    if (!lessonId) {
+      issues.push({
+        lessonId: 'unknown-entry',
+        surface: 'lesson',
+        index: entryIndex,
+        reason: 'no-lesson-id',
+        atomIssueCount: 0,
+        problems: ['no-lesson-id'],
+      });
+      continue;
+    }
+    // A model that renumbers lessons inside the chunk could overwrite another
+    // chunk's already-parsed lesson — reject anything outside the request.
+    if (chunkLessonIds.size > 0 && !chunkLessonIds.has(lessonId)) {
+      issues.push({
+        lessonId,
+        surface: 'lesson',
+        index: entryIndex,
+        reason: 'out-of-chunk-lesson-id',
+        atomIssueCount: 0,
+        problems: ['out-of-chunk-lesson-id'],
+      });
+      continue;
+    }
+    const issueCountAtEntryStart = issues.length;
     const promptLesson = (prompt?.lessons || []).find((lesson) => lesson.lessonId === lessonId);
 
     const facts = [];
@@ -1194,7 +1231,19 @@ export function parseLessonKernelResponse(text, { prompt } = {}) {
       }
     });
 
-    if (keyTerms.length === 0 && mc.length === 0) continue;
+    if (keyTerms.length === 0 && mc.length === 0) {
+      // The whole lesson falls back to template — say so with a row of its
+      // own, not just the per-atom rows above (which only count atoms).
+      issues.push({
+        lessonId,
+        surface: 'lesson',
+        index: entryIndex,
+        reason: 'all-atoms-linted-out',
+        atomIssueCount: issues.length - issueCountAtEntryStart,
+        problems: ['all-atoms-linted-out'],
+      });
+      continue;
+    }
 
     const payload = projectKernelToSurfaces(
       { facts, keyTerms, scenario, discussionPrompt, assignmentCore, mc, workedExample },

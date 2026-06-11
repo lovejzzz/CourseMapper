@@ -8,12 +8,12 @@
  * the three screen footers, and the Changelog entry.
  */
 export const LATEST_RELEASE = {
-  version: '0.14.0',
-  date: 'June 10, 2026',
-  title: 'Judgment: the genome reasons about teaching',
+  version: '0.14.1',
+  date: 'June 11, 2026',
+  title: 'Output Integrity: every promise kept, every gate honest',
   highlights: [
-    'Prerequisite-gap diagnosis: CourseMapper reads a whole course against the whole knowledge graph and flags concepts a lesson builds on but the course never teaches — then classifies each gap as bridgeable (in the genome) or assumed background (foundational, outside it)',
-    'Cited bridge injection: for every bridgeable gap, a quote-anchored "prerequisite primer" (definition + fact + real citation) is built from the missing kernel and rendered as a Prerequisite Check in the lesson plan and a resource in the syllabus — the hole is filled, with receipts, at zero AI cost',
-    'Course Competency Map: every concept mapped to its Bloom level (owned data) and curated, link-checked standards codes (NGSS to start) — the accreditation crosswalk, generated in the syllabus from the course’s verified concepts',
+    'The assessment registry: every assessment the course map promises now carries an identity (A7.2, kind, weight) and becomes a real artifact — midterms and finals compile as actual exams with answer keys, oral performances get prompt sheets and speaking rubrics, and the map, briefs, rubrics, and syllabus all render the same verbatim title',
+    'The map becomes an index: course-map cells hyperlink to the actual brief and exam files in the download, clicking an assessment in the app opens its deliverable (and back), and every brief carries its Course Map reference stamp',
+    'Gates that measure meaning: silent partial enrichment, off-topic citations, and map-promised-but-never-generated assessments — the three silent failures of the v0.14 audit — now warn loudly in the digest, manifest, and finish report, and the reading list rejects famous-but-irrelevant papers with a topical relevance gate',
   ],
 };

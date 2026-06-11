@@ -18,6 +18,24 @@ import {
   TierToggle,
 } from './shared/SharedComponents';
 
+// v0.14.1 (3.5): the lesson number an assignment belongs to — compiled briefs
+// carry lessonNumber; AI-authored ones mention "Week N"/"Lesson N" in their
+// dueWeek/relatedLessons text.
+function assignmentLessonNumber(assignment) {
+  if (Number.isInteger(assignment?.lessonNumber) && assignment.lessonNumber > 0) return assignment.lessonNumber;
+  const probes = [
+    assignment?.dueWeek,
+    assignment?.lessonTitle,
+    assignment?.lesson,
+    ...(Array.isArray(assignment?.relatedLessons) ? assignment.relatedLessons : []),
+  ];
+  for (const probe of probes) {
+    const match = String(probe || '').match(/(?:Lesson|Week)\s*(\d+)/i);
+    if (match) return Number(match[1]);
+  }
+  return null;
+}
+
 // ─── Assignment Briefs ───
 export default function AssignmentsView({
   data,
@@ -32,6 +50,7 @@ export default function AssignmentsView({
   onAcceptProposal,
   onDismissProposal,
   onRegenerateProposal,
+  onShowInCourseMap,
 }) {
   const [localTiers, setLocalTiers] = useState({});
   if (!data) return isStreaming ? <StreamingBanner /> : <EmptyState />;
@@ -63,6 +82,15 @@ export default function AssignmentsView({
                 onRegenerate={() => onRegenerateProposal?.(i)}
               />
             )}
+            {/* v0.14.1 (3.5): focus anchor — the course-map chip flow scrolls
+                to and highlights this wrapper (DeliverableView's listener). */}
+            <div
+              data-assessment-anchor="true"
+              data-assessment-id={baseA.assessmentId || ''}
+              data-assessment-title={baseA.title || ''}
+              data-lesson-number={assignmentLessonNumber(baseA) ?? ''}
+              className="rounded-squircle-xs transition-shadow duration-300"
+            >
             <CollapsibleCard
               viewportIndex={i}
               title={a.title || `Assignment ${i + 1}`}
@@ -77,7 +105,7 @@ export default function AssignmentsView({
             >
               <div className="pt-3 space-y-4">
                 {/* Meta chips */}
-                <div className="flex flex-wrap gap-1.5">
+                <div className="flex flex-wrap gap-1.5 items-center">
                   {a.assignmentType && <Badge color="orange">{a.assignmentType}</Badge>}
                   {a.bloomsLevel && <BloomsTag level={a.bloomsLevel} />}
                   {a.relatedLessons?.map((l, j) => (
@@ -85,6 +113,23 @@ export default function AssignmentsView({
                       {l}
                     </Badge>
                   ))}
+                  {/* v0.14.1 (3.5): reverse of the map's assessment chips —
+                      jump to this assessment's Weekly Assessments cell. */}
+                  {onShowInCourseMap && !isStudentView && (
+                    <button
+                      type="button"
+                      data-show-in-coursemap="true"
+                      onClick={() => onShowInCourseMap(baseA)}
+                      className="tactile inline-flex items-center gap-1 text-[10px] font-semibold px-2 py-0.5 rounded-full text-slate-500 bg-slate-100/80 border border-slate-200/60 hover:text-indigo-600 hover:bg-indigo-50 hover:border-indigo-200/60 transition-all duration-150"
+                      title="Show this assessment's row in the course map"
+                    >
+                      <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <rect x="3" y="3" width="18" height="18" rx="2" stroke="currentColor" strokeWidth={1.6} />
+                        <path d="M3 9h18M3 15h18M9 3v18" stroke="currentColor" strokeWidth={1.6} strokeLinecap="round" />
+                      </svg>
+                      Show in course map
+                    </button>
+                  )}
                 </div>
 
                 {/* Overview */}
@@ -341,6 +386,7 @@ export default function AssignmentsView({
                 )}
               </div>
             </CollapsibleCard>
+            </div>
           </React.Fragment>
         );
       })}

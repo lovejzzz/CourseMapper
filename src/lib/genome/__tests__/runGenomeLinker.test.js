@@ -82,7 +82,13 @@ describe('runGenomeLinker', () => {
 
     expect(result.lessonContent['lesson-1']).toBeTruthy();
     expect(result.lessonContent['lesson-1'].enrichmentSource).toBe('genome-linked');
-    expect(result.missingIndices).toEqual([1]); // game theory has no kernel
+    // v0.14.1 (4.5): a 1-kernel match is a PARTIAL — the cited composition
+    // ships (lessonContent above), but the lesson also stays on the model
+    // path for augmentation, so missingIndices carries it alongside the
+    // true miss (game theory has no kernel).
+    expect(result.missingIndices).toEqual([0, 1]);
+    expect(result.partialOverlays['lesson-1']).toBe(result.lessonContent['lesson-1']);
+    expect(result.telemetry.partialFromGenome).toBe(1);
     expect(result.telemetry.resolvedFromGenome).toBe(1);
     expect(result.telemetry.misses).toBe(1);
     expect(result.telemetry.citationsRendered).toBeGreaterThan(0);

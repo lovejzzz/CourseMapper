@@ -44,13 +44,40 @@ function citationLabel(anchor) {
  *
  * @param {object[]} conceptKernels — resolved concept kernels (kernelSchema shape)
  * @param {object} courseLayer — { scenario, discussionPrompt, assignmentCore } (optional)
- * @param {object} options — { itemPlan }
- * @returns {{ payload, conceptProvenance }|null}
+ * @param {object} options — { itemPlan, getArchetype, mcOffsets, excludeWorkedExampleConcepts }
+ *   - mcOffsets: Map (or plain object) conceptId → first unused mcBank index.
+ *     v0.14.1 (4.6): the linker's course-level cursor — a concept repeated in
+ *     a later lesson draws the NEXT unused items instead of restarting at 0.
+ *   - excludeWorkedExampleConcepts: Set of conceptIds whose worked example
+ *     already shipped in an earlier lesson (first-occurrence-only).
+ * @returns {{ payload, conceptProvenance, consumption }|null}
+ *   consumption = { mcConsumed: { [conceptId]: count }, workedExampleConceptId }
+ *   — what THIS composition actually drew from each bank, so the linker can
+ *   advance its cursors only when the composition ships.
  */
 export function composeLessonFromConcepts(conceptKernels = [], courseLayer = {}, options = {}) {
   const kernels = conceptKernels.filter((kernel) => kernel && kernel.id);
   if (kernels.length === 0) return null;
   const getArchetype = typeof options.getArchetype === 'function' ? options.getArchetype : () => null;
+  // v0.14.1 (4.6): per-concept mcBank offsets. This loop is the true choke
+  // point for cross-lesson quiz dedupe: it is the LAST place concept identity
+  // exists — below, the per-kernel banks flatten into one `mc` pool, and
+  // kernelProjection's `mcItems.slice(0, mcSlots.length)` only narrows that
+  // already-offset pool to the lesson's slots.
+  const rawOffsets = options.mcOffsets || null;
+  const offsetFor = (id) => {
+    if (!rawOffsets) return 0;
+    const raw = typeof rawOffsets.get === 'function' ? rawOffsets.get(id) : rawOffsets[id];
+    return Number.isInteger(raw) && raw > 0 ? raw : 0;
+  };
+  const excludedWorkedExamples = options.excludeWorkedExampleConcepts || null;
+  const workedExampleExcluded = (id) =>
+    Boolean(
+      excludedWorkedExamples &&
+        (typeof excludedWorkedExamples.has === 'function'
+          ? excludedWorkedExamples.has(id)
+          : Array.isArray(excludedWorkedExamples) && excludedWorkedExamples.includes(id)),
+    );
 
   // Layer 2: instantiate each concept's verified archetype mapping into
   // template-priced misconceptions and a structural task item. Grounded
@@ -112,10 +139,15 @@ export function composeLessonFromConcepts(conceptKernels = [], courseLayer = {},
   }));
 
   // MC bank: dereference each item's fact/misconception refs into the prose
-  // the projection's quiz overlay expects.
+  // the projection's quiz overlay expects. v0.14.1 (4.6): each kernel's bank
+  // starts at its course-level offset — items an earlier lesson already
+  // shipped never enter this lesson's pool (the World Lit L7=L14 dup). An
+  // exhausted bank contributes nothing; the compiler's deterministic frames
+  // fill un-overlaid slots downstream.
   const mc = [];
+  const mcSourceConcepts = []; // parallel to mc: which concept supplied each item
   for (const kernel of kernels) {
-    for (const item of kernel.mcBank || []) {
+    for (const item of (kernel.mcBank || []).slice(offsetFor(kernel.id))) {
       const explanation =
         item.explanationFactRef != null
           ? cleanText(kernel.facts?.[item.explanationFactRef]?.text)
@@ -126,6 +158,7 @@ export function composeLessonFromConcepts(conceptKernels = [], courseLayer = {},
         answerIndex: Number(item.answerIndex) || 0,
         explanation,
       });
+      mcSourceConcepts.push(kernel.id);
     }
   }
 
@@ -146,7 +179,20 @@ export function composeLessonFromConcepts(conceptKernels = [], courseLayer = {},
 
   // v0.13.3: the first concept carrying a worked example supplies the
   // lesson's quantitative walkthrough (math bought once in the genome).
-  const workedExample = kernels.map((kernel) => (kernel.workedExamples || [])[0]).find(Boolean) || null;
+  // v0.14.1 (4.6): first-occurrence-only across the run — a concept whose
+  // example shipped in an earlier lesson is skipped (the v0.12.1
+  // seenScaffolds rule), so a repeated concept recaps its term without
+  // re-shipping the identical walkthrough.
+  let workedExample = null;
+  let workedExampleConceptId = null;
+  for (const kernel of kernels) {
+    if (workedExampleExcluded(kernel.id)) continue;
+    const example = (kernel.workedExamples || [])[0];
+    if (!example) continue;
+    workedExample = example;
+    workedExampleConceptId = kernel.id;
+    break;
+  }
 
   const lessonKernel = {
     facts,
@@ -159,6 +205,17 @@ export function composeLessonFromConcepts(conceptKernels = [], courseLayer = {},
   };
 
   const payload = projectKernelToSurfaces(lessonKernel, { itemPlan: options.itemPlan || [] });
+
+  // v0.14.1 (4.6): report what the projection actually consumed so the linker
+  // advances its course-level cursors by truth, not by pool size. The
+  // projection emits exactly the first mcSlotCount pool items
+  // (kernelProjection's `mcItems.slice(0, mcSlots.length)`), and
+  // mcSourceConcepts is parallel to the pool, so attribution is positional.
+  const mcSlotCount = (options.itemPlan || []).filter((slot) => slot.type === 'multiple_choice').length;
+  const mcConsumed = {};
+  for (const conceptId of mcSourceConcepts.slice(0, mcSlotCount)) {
+    mcConsumed[conceptId] = (mcConsumed[conceptId] || 0) + 1;
+  }
 
   // Restore the citation-bearing key terms (projection strips extra fields).
   payload.keyTerms = keyTerms;
@@ -218,5 +275,116 @@ export function composeLessonFromConcepts(conceptKernels = [], courseLayer = {},
       : {}),
   };
 
-  return { payload: { ...payload, conceptProvenance }, conceptProvenance };
+  // v0.14.1 (4.6): the worked example counts as shipped only if it survived
+  // the projection (an empty `problem` is dropped there).
+  const consumption = {
+    mcConsumed,
+    workedExampleConceptId: payload.workedExample ? workedExampleConceptId : null,
+  };
+
+  return { payload: { ...payload, conceptProvenance }, conceptProvenance, consumption };
+}
+
+/**
+ * v0.14.1 (4.5): merge a thin genome composition (the linker's partial
+ * overlay) with the model's kernel payload for the same lesson — the genome
+ * AUGMENTS the model, never displaces it. The v0.14 audit showed linked
+ * lessons shipping 1 key term while model-enriched neighbours got 3-4.
+ *
+ * Merge rules:
+ *  - keyTerms: genome terms FIRST (they carry citations), model terms fill
+ *    to par, deduped by term name. Misconceptions/corrections ride inside
+ *    the terms, so the dedup unions them too.
+ *  - quizItems: genome-first within each item type, deduped by stem, slotted
+ *    back onto the item plan's indices (the quiz overlay maps strictly by
+ *    slot index and type); leftovers append after the plan.
+ *  - genome-only blocks (reasoningScaffolds, prerequisitePrimers, structural
+ *    bridges, worked example) are preserved; scaffolds union by archetype.
+ *  - enrichmentSource becomes 'genome-augmented' and conceptProvenance is
+ *    preserved so the genomeLink edge writer (4.4) still writes edges.
+ *
+ * @param {object|null} genomePartial — composed genome payload (may be null)
+ * @param {object|null} modelPayload — parsed model kernel payload (may be null)
+ * @returns {object|null} the merged enrichment payload
+ */
+export function mergeLessonPayloads(genomePartial, modelPayload) {
+  if (!genomePartial || typeof genomePartial !== 'object') return modelPayload || null;
+  if (!modelPayload || typeof modelPayload !== 'object') return genomePartial;
+
+  const termKey = (term) => cleanText(term?.term).toLowerCase();
+  const keyTerms = [];
+  const seenTerms = new Set();
+  for (const term of [...(genomePartial.keyTerms || []), ...(modelPayload.keyTerms || [])]) {
+    const key = termKey(term);
+    if (!key || seenTerms.has(key)) continue;
+    seenTerms.add(key);
+    keyTerms.push(term);
+  }
+
+  // Slot map: the model payload was projected with the live item plan, so its
+  // index/type pairs are authoritative; genome-only indices fill any gap.
+  const slotTypeByIndex = new Map();
+  for (const item of [...(modelPayload.quizItems || []), ...(genomePartial.quizItems || [])]) {
+    const index = Number(item?.index);
+    if (!Number.isFinite(index) || slotTypeByIndex.has(index)) continue;
+    slotTypeByIndex.set(index, item.type || 'multiple_choice');
+  }
+  const stemKey = (item) => cleanText(item?.question).toLowerCase();
+  const queuesByType = new Map();
+  const seenStems = new Set();
+  for (const item of [...(genomePartial.quizItems || []), ...(modelPayload.quizItems || [])]) {
+    const key = stemKey(item);
+    if (!key || seenStems.has(key)) continue;
+    seenStems.add(key);
+    const type = item.type || 'multiple_choice';
+    if (!queuesByType.has(type)) queuesByType.set(type, []);
+    queuesByType.get(type).push(item);
+  }
+  const quizItems = [];
+  const slotIndices = [...slotTypeByIndex.keys()].sort((a, b) => a - b);
+  for (const index of slotIndices) {
+    const queue = queuesByType.get(slotTypeByIndex.get(index)) || [];
+    const item = queue.shift();
+    if (item) quizItems.push({ ...item, index });
+  }
+  let overflowIndex = slotIndices.length > 0 ? slotIndices[slotIndices.length - 1] + 1 : 0;
+  for (const queue of queuesByType.values()) {
+    for (const item of queue) quizItems.push({ ...item, index: overflowIndex++ });
+  }
+
+  const genomeScaffolds = genomePartial.reasoningScaffolds || [];
+  const reasoningScaffolds = [
+    ...genomeScaffolds,
+    ...(modelPayload.reasoningScaffolds || []).filter(
+      (scaffold) => !genomeScaffolds.some((genome) => genome.archetypeName === scaffold.archetypeName),
+    ),
+  ];
+  const facts = [...new Set([...(genomePartial.kernel?.facts || []), ...(modelPayload.kernel?.facts || [])])];
+
+  return {
+    ...modelPayload,
+    keyTerms,
+    quizItems,
+    // The genome's worked example is source-anchored math bought once in the
+    // library — it outranks a model-written walkthrough.
+    ...(genomePartial.workedExample ? { workedExample: genomePartial.workedExample } : {}),
+    ...(!modelPayload.slideContent && genomePartial.slideContent ? { slideContent: genomePartial.slideContent } : {}),
+    ...(!modelPayload.discussionPrompt && genomePartial.discussionPrompt
+      ? { discussionPrompt: genomePartial.discussionPrompt }
+      : {}),
+    ...(!modelPayload.assignmentCore && genomePartial.assignmentCore
+      ? { assignmentCore: genomePartial.assignmentCore }
+      : {}),
+    ...(reasoningScaffolds.length > 0 ? { reasoningScaffolds } : {}),
+    ...(genomePartial.prerequisitePrimers ? { prerequisitePrimers: genomePartial.prerequisitePrimers } : {}),
+    ...(genomePartial.structuralConnections ? { structuralConnections: genomePartial.structuralConnections } : {}),
+    ...(genomePartial.structuralBridges ? { structuralBridges: genomePartial.structuralBridges } : {}),
+    kernel: {
+      ...(modelPayload.kernel || {}),
+      facts,
+      scenario: modelPayload.kernel?.scenario || genomePartial.kernel?.scenario || null,
+    },
+    enrichmentSource: 'genome-augmented',
+    conceptProvenance: genomePartial.conceptProvenance,
+  };
 }

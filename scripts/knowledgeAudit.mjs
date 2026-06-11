@@ -56,6 +56,8 @@ function bookUrlFromSrc(src) {
   const openstax = String(src).match(/^openstax:([a-z0-9-]+)/i);
   if (openstax) return openStaxBookUrl(openstax[1]);
   if (/^uh-oer:human-nutrition/i.test(src)) return 'https://pressbooks.oer.hawaii.edu/humannutrition2/';
+  // V0.14.1 4.1: OpenGeology "An Introduction to Geology" (CC BY-NC-SA 4.0).
+  if (/^opengeology:introduction-to-geology/i.test(src)) return 'https://opengeology.org/textbook/';
   // Curated in-genome reference srcs (e.g. "historical-thinking:reference")
   // have no web home by design — they are not dead links.
   if (/:reference$/i.test(src)) return 'internal';

@@ -497,7 +497,9 @@ describe('repairCourseMapReadiness', () => {
     });
 
     expect(result.changed).toBe(true);
-    expect(result.courseMap.lessons[0].sections[0].learningObjectives).toBe('Explain psychological science.');
+    // v0.14.1 (1.14): goal-reference labels ("1a.") survive the repair —
+    // deriveFromCourseMap maps outcomes back to goals through them.
+    expect(result.courseMap.lessons[0].sections[0].learningObjectives).toBe('1a. Explain psychological science.');
     expect(result.courseMap.lessons[0].sections[0].weeklyAssessments).toBe('Study guide spanning Lessons 1-2.');
     expect(result.courseMap.lessons[1].title).toBe('Lesson 2: Applied Reflection');
   });
@@ -524,7 +526,7 @@ describe('repairCourseMapReadiness', () => {
 
     expect(result.changed).toBe(true);
     expect(JSON.stringify(result.courseMap)).not.toMatch(/Students will be able to/i);
-    expect(result.courseMap.lessons[0].sections[0].learningObjectives).toBe('Analyze usability findings.');
+    expect(result.courseMap.lessons[0].sections[0].learningObjectives).toBe('1a. Analyze usability findings.');
   });
 });
 

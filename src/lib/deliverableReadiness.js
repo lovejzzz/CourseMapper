@@ -149,6 +149,27 @@ function filterLessonArray(items, lessonIndices) {
   return items.filter((_, index) => lessonIndices.includes(index));
 }
 
+/**
+ * v0.14.1 (3.2): registry-mode deliverables break the one-item-per-lesson
+ * positional assumption (N briefs per lesson, exam entries appended to the
+ * quiz bank). Items that declare their own integer `lessonNumber` scope by
+ * it; items without one keep positional scoping against their ORIGINAL
+ * index, so legacy arrays (no lessonNumber anywhere) filter byte-identically
+ * to filterLessonArray, and mixed arrays (weekly quizzes + appended exams)
+ * route each item correctly.
+ */
+function filterLessonAwareArray(items, lessonIndices) {
+  if (!Array.isArray(items)) return items;
+  return items.filter((item, index) =>
+    Number.isInteger(item?.lessonNumber)
+      ? lessonIndices.includes(item.lessonNumber - 1)
+      : lessonIndices.includes(index),
+  );
+}
+
+// Features whose registry-mode arrays can hold several items per lesson.
+const LESSON_AWARE_SCOPE_KEYS = new Set(['assignments', 'rubrics', 'quizzes', 'quizBank']);
+
 export function scopeCourseMapToLessons(courseMap, lessonFilter) {
   if (!Array.isArray(lessonFilter) || !courseMap?.lessons) return courseMap;
   return {
@@ -178,9 +199,10 @@ export function scopeDeliverableDataToLessons(featureId, data, lessonFilter) {
   let changed = false;
   for (const key of keys) {
     if (!Array.isArray(scopedData[key])) continue;
+    const filter = LESSON_AWARE_SCOPE_KEYS.has(key) ? filterLessonAwareArray : filterLessonArray;
     scopedData = {
       ...scopedData,
-      [key]: filterLessonArray(scopedData[key], lessonFilter),
+      [key]: filter(scopedData[key], lessonFilter),
     };
     changed = true;
   }
@@ -347,7 +369,12 @@ function getCourseMapFallbackValue(key, courseMap, lesson, section, lessonIndex)
 }
 
 function stripCourseMapListPrefix(value) {
-  return text(value).replace(/^\s*(?:[-*•]|\d+[a-z]?[.)]?|[a-z][.)])\s*/i, '');
+  const raw = text(value);
+  // v0.14.1 (1.14): goal-reference labels ("1a.", "2b.") are load-bearing —
+  // deriveFromCourseMap maps outcomes back to goals through them. Only bare
+  // numbering ("1.", "a)", "-") is redundant and stripped.
+  if (/^\s*\d+[a-z][.)]/i.test(raw)) return raw.trim();
+  return raw.replace(/^\s*(?:[-*•]|\d+[.)]?|[a-z][.)])\s*/i, '');
 }
 
 function normalizeCourseMapObjectives(value) {
@@ -356,16 +383,22 @@ function normalizeCourseMapObjectives(value) {
   if (!raw) return value;
   const normalizedLines = raw
     .split(/\n|;/)
-    .map((line) =>
-      stripCourseMapListPrefix(line)
+    .map((line) => {
+      // v0.14.1 (1.14): keep goal-reference prefixes intact; strip only the
+      // stem and redundant bare numbering, then enforce terminal punctuation.
+      const goalMatch = text(line).match(/^\s*(\d+[a-z])[.)]\s*(.*)$/i);
+      const label = goalMatch ? `${goalMatch[1]}.` : '';
+      const body = (goalMatch ? goalMatch[2] : stripCourseMapListPrefix(line))
         .replace(/^students?\s+will\s+be\s+able\s+to:?\s*/i, '')
-        .trim(),
-    )
-    .filter(Boolean)
-    // v0.12.1: deterministic terminal punctuation — the v0.12 audit shipped
-    // one course with 120/120 objective lines missing periods while the
-    // other three had them (same template, different-run drift).
-    .map((line) => (/[.?!:]$/.test(line) ? line : `${line}.`));
+        .trim();
+      if (!body) return '';
+      // v0.12.1: deterministic terminal punctuation — the v0.12 audit shipped
+      // one course with 120/120 objective lines missing periods while the
+      // other three had them (same template, different-run drift).
+      const punctuated = /[.?!:]$/.test(body) ? body : `${body}.`;
+      return label ? `${label} ${punctuated}` : punctuated;
+    })
+    .filter(Boolean);
   const normalized = normalizedLines.join('\n');
   return normalized || raw.replace(/^students?\s+will\s+be\s+able\s+to:?\s*/i, '').trim();
 }
@@ -412,6 +445,20 @@ function normalizeCourseMapLessonTitle(title, lessonIndex, lessonCount) {
 
 function needsCourseMapFieldRepair(value) {
   return !hasMeaningfulValue(value) || findPublishabilityPlaceholders(value, { limit: 1 }).length > 0;
+}
+
+// v0.14.1 (1.15b): final corruption assertion — repaired course-map output
+// may never carry JSON syntax into a cell. The OUTPUT-V014 Mandarin run
+// shipped 'topicSection": "' verbatim in row 26 and the corruption
+// propagated into the brief and syllabus.
+const CELL_JSON_SPLICE_RE = /(?:^|[^\\])"\s*:\s*["[]/;
+const CELL_JSON_KEY_RE =
+  /\b(?:topicSection|learningGoals|learningObjectives|weeklyAssessments|asyncActivities|syncActivities|technologyNeeded|presentationFormat|supportingResources|evaluateDesign)"/;
+
+function courseMapCellIsCorrupted(value) {
+  const raw = text(value);
+  if (!raw) return false;
+  return CELL_JSON_SPLICE_RE.test(raw) || CELL_JSON_KEY_RE.test(raw);
 }
 
 export function repairCourseMapReadiness({ courseMap, columns = [], lessonFilter = null } = {}) {
@@ -482,7 +529,27 @@ export function repairCourseMapReadiness({ courseMap, columns = [], lessonFilter
           ...nextSection,
           [key]: normalizedValue,
         };
-        repairedFields.push(`Lesson ${lessonIndex + 1}, Section ${sectionIndex + 1} ${columnLabel(columns, key)}`);
+        // v0.14.1 (1.14): formatting normalizations are labeled distinctly
+        // from genuine template fills so run logs stop reporting 30 fake
+        // content "repairs" per run — consumers can filter on the suffix.
+        repairedFields.push(
+          `Lesson ${lessonIndex + 1}, Section ${sectionIndex + 1} ${columnLabel(columns, key)} (formatting)`,
+        );
+        sectionsChanged = true;
+        changed = true;
+      }
+      // v0.14.1 (1.15b): no cell leaves the repair pass with JSON syntax in
+      // it — corrupted cells are replaced through the same clean fallback
+      // fill and logged loudly so the corruption stays visible upstream.
+      for (const key of columnsToNormalize) {
+        if (!courseMapCellIsCorrupted(nextSection?.[key])) continue;
+        nextSection = {
+          ...nextSection,
+          [key]: getCourseMapFallbackValue(key, courseMap, nextLesson, nextSection, lessonIndex),
+        };
+        repairedFields.push(
+          `Lesson ${lessonIndex + 1}, Section ${sectionIndex + 1} ${columnLabel(columns, key)} (corruption)`,
+        );
         sectionsChanged = true;
         changed = true;
       }

@@ -255,16 +255,6 @@ const NATIVE_VISUAL_LIMITS = {
   definition: 260, // max chars for the concept-map definition card
 };
 
-/** Split "Lead — rest" / "Lead: rest" bullets into two table cells. */
-function splitBulletForTable(bullet) {
-  const match = /\s+[—–-]\s+|:\s+/.exec(bullet);
-  if (!match) return null;
-  const lead = bullet.slice(0, match.index).trim();
-  const rest = bullet.slice(match.index + match[0].length).trim();
-  if (!lead || !rest || lead.length > NATIVE_VISUAL_LIMITS.tableRowLead) return null;
-  return [lead, rest];
-}
-
 /** Shorten a bullet to a spoke-sized phrase, or null when it won't fit. */
 function spokePhrase(bullet, maxLen = NATIVE_VISUAL_LIMITS.spokeLabel) {
   const clean = String(bullet || '')
@@ -288,16 +278,28 @@ function planNativeVisual(s, slideType, visKind, hasGeneratedImage, hasLatex) {
   if (hasLatex && bullets.concat(s.title || '').some((t) => containsLatex(t))) return null;
 
   if (slideType === 'content' && /\b(table|organizer)\b/i.test(visKind)) {
-    // Evidence table: lead assertion stays as text, remaining bullets become
-    // table rows (two columns when every row splits on an em-dash/colon).
-    if (bullets.length < 3) return null;
+    // Evidence table — v0.14.1 (5.2c): rows render ONLY when the compiler
+    // shipped pre-paired claim/evidence rows on the descriptor (each pair
+    // authored from the same source atom). The old fallback split display
+    // bullets on ":"/"—", which fabricated rows pairing claims with
+    // unrelated leftovers in all 58 audited decks; with no real rows the
+    // slide keeps its plain text layout.
+    const visual = s.visual || s.vi || {};
+    const rows = (Array.isArray(visual.rows) ? visual.rows : [])
+      .map((row) => (Array.isArray(row) ? row.map((cell) => String(cell ?? '').trim()) : []))
+      .filter(
+        (row) =>
+          row.length === 2 &&
+          row[0] &&
+          row[1] &&
+          row[0].length <= NATIVE_VISUAL_LIMITS.tableRowLead &&
+          row[1].length <= NATIVE_VISUAL_LIMITS.tableRow,
+      )
+      .slice(0, 4);
+    if (rows.length < 2) return null;
     const lead = bullets[0];
-    if (lead.length > NATIVE_VISUAL_LIMITS.tableLead) return null;
-    const rowSources = bullets.slice(1, 5);
-    if (rowSources.some((b) => b.length > NATIVE_VISUAL_LIMITS.tableRow)) return null;
-    const splits = rowSources.map(splitBulletForTable);
-    const twoCol = splits.every(Boolean);
-    return { type: 'evidenceTable', lead, twoCol, rows: twoCol ? splits : rowSources.map((b) => [b]) };
+    if (!lead || lead.length > NATIVE_VISUAL_LIMITS.tableLead) return null;
+    return { type: 'evidenceTable', lead, twoCol: true, rows };
   }
 
   if (slideType === 'question' && /\bmatrix\b/i.test(visKind)) {
@@ -348,28 +350,31 @@ function addEvidenceTable(pptx, slide, theme, plan, visKind, tracker) {
     tableY = 1.35;
   const tableW = SLIDE_W - tableX - 0.4;
   const leadColW = 1.55;
+  const headerOptions = {
+    fill: { color: theme.primary },
+    color: 'FFFFFF',
+    bold: true,
+    fontSize: 9,
+    charSpacing: 2,
+    align: 'left',
+    valign: 'middle',
+  };
+  // v0.14.1 (5.2b/c): rows are always pre-paired claim/evidence cells, and
+  // the old single colspan header (the uppercased visKind) shipped an hMerge
+  // continuation that read as an EMPTY cell — the header now names the two
+  // columns, so every emitted cell carries content. The visKind label stays
+  // visible in the speaker notes' SUGGESTED VISUAL block.
   const headerRow = [
-    {
-      text: String(visKind || 'Evidence').toUpperCase(),
-      options: {
-        ...(plan.twoCol ? { colspan: 2 } : {}),
-        fill: { color: theme.primary },
-        color: 'FFFFFF',
-        bold: true,
-        fontSize: 9,
-        charSpacing: 2,
-        align: 'left',
-        valign: 'middle',
-      },
-    },
+    { text: 'CLAIM', options: { ...headerOptions } },
+    { text: 'EVIDENCE', options: { ...headerOptions } },
   ];
   const bodyRows = plan.rows.map((cells) =>
     cells.map((cell, ci) => ({
       text: cell,
       options: {
-        fill: { color: plan.twoCol && ci === 0 ? theme.light : 'FFFFFF' },
+        fill: { color: ci === 0 ? theme.light : 'FFFFFF' },
         color: theme.bodyText,
-        bold: plan.twoCol && ci === 0,
+        bold: ci === 0,
         fontSize: 10,
         align: 'left',
         valign: 'middle',
@@ -380,7 +385,7 @@ function addEvidenceTable(pptx, slide, theme, plan, visKind, tracker) {
     x: tableX,
     y: tableY,
     w: tableW,
-    colW: plan.twoCol ? [leadColW, tableW - leadColW] : [tableW],
+    colW: [leadColW, tableW - leadColW],
     border: { type: 'solid', pt: 0.5, color: 'D5DEEA' },
     fontFace: FONT_BODY,
     margin: 0.06,
@@ -394,33 +399,46 @@ function addDecisionMatrix(pptx, slide, theme, plan, tracker) {
   const x = 0.7,
     y = 2.15;
   const w = SLIDE_W - 1.4;
-  const rows = [];
-  for (let i = 0; i < plan.cells.length; i += 2) {
-    const pair = plan.cells.slice(i, i + 2);
-    rows.push(
-      pair.map((cell) => ({
-        text: cell,
-        options: {
-          ...(pair.length === 1 ? { colspan: 2 } : {}),
-          fill: { color: 'FFFFFF' },
-          color: theme.bodyText,
-          fontSize: 11,
-          align: 'left',
-          valign: 'middle',
-        },
-      })),
-    );
-  }
-  slide.addTable(rows, {
+  const rowH = 1.05;
+  // v0.14.1 (5.2b): an odd option count used to ship as a colspan cell whose
+  // hMerge continuation read as a trailing EMPTY cell in every audited deck
+  // ("…: Reteach | <empty>"). Only complete pairs go into the two-column
+  // grid; a leftover option renders as its own full-width single-cell row,
+  // so every emitted cell carries content.
+  const cellOptions = {
+    fill: { color: 'FFFFFF' },
+    color: theme.bodyText,
+    fontSize: 11,
+    align: 'left',
+    valign: 'middle',
+  };
+  const tableOptions = {
     x,
-    y,
     w,
-    colW: [w / 2, w / 2],
+    rowH,
     border: { type: 'solid', pt: 1, color: theme.accent },
     fontFace: FONT_BODY,
     margin: 0.08,
     autoPage: false,
-  });
+  };
+  const pairs = [];
+  for (let i = 0; i + 1 < plan.cells.length; i += 2) {
+    pairs.push([plan.cells[i], plan.cells[i + 1]]);
+  }
+  const leftover = plan.cells.length % 2 === 1 ? plan.cells[plan.cells.length - 1] : null;
+  if (pairs.length > 0) {
+    slide.addTable(
+      pairs.map((pair) => pair.map((cell) => ({ text: cell, options: { ...cellOptions } }))),
+      { ...tableOptions, y, colW: [w / 2, w / 2] },
+    );
+  }
+  if (leftover) {
+    slide.addTable([[{ text: leftover, options: { ...cellOptions } }]], {
+      ...tableOptions,
+      y: y + pairs.length * rowH,
+      colW: [w],
+    });
+  }
   tracker.add({ x, y, w, h: 2.4, label: 'decision-matrix' });
 }
 
@@ -1457,7 +1475,14 @@ async function buildSlideForDeck(pptx, deck, theme, slideIndex, totalSlides, opt
       altText: 'Decorative',
     });
 
-    slide.addText('KEY TAKEAWAYS', {
+    // v0.14.1 (5.2a): slides 11 and 12 of every audited deck both carried the
+    // "KEY TAKEAWAYS" kicker — slide 11 is the readiness self-check (compiled
+    // type "summary", title "… readiness check"), slide 12 the carry-forward.
+    // The kicker now names the slide's actual role.
+    const summaryKicker = /readiness|self.?check|check[\s-]?in\b/i.test(s.title || '')
+      ? 'READINESS CHECK'
+      : 'KEY TAKEAWAYS';
+    slide.addText(summaryKicker, {
       x: 0.7,
       y: 0.4,
       w: 6,
@@ -1944,6 +1969,39 @@ async function createPptxWithDecks(data, courseName, themeIndex) {
 }
 
 /**
+ * v0.14.1 (1.13): strip run-level <a:ea> overrides that pin CJK glyphs to a
+ * Latin face. pptxgenjs 4.0.1 hardcodes
+ *   <a:latin .../><a:ea typeface="${fontFace}" .../><a:cs .../>
+ * for EVERY run that sets fontFace (dist/pptxgen.cjs.js, genXmlTextRunProperties)
+ * — there is no option to suppress it, so every Georgia/Trebuchet MS run in
+ * our decks carried w:eastAsia="Georgia"-style overrides and CJK text
+ * rendered as tofu in LibreOffice/Google Slides/PDF pipelines. The
+ * theme1.xml pptxgenjs writes is fine (its <a:ea typeface=""/> plus
+ * per-script font tables are CJK-capable), so removing the run-level
+ * override lets renderers fall back correctly.
+ */
+async function stripLatinEastAsiaOverrides(blob) {
+  const mod = await safeImport(() => import('jszip'));
+  const JSZip = mod.default || mod;
+  const zip = await JSZip.loadAsync(typeof blob.arrayBuffer === 'function' ? await blob.arrayBuffer() : blob);
+  const escapeFace = (face) => face.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  const faces = [...new Set([FONT_HEADING, FONT_BODY, FONT_LABEL])].map(escapeFace).join('|');
+  const eaOverride = new RegExp(`<a:ea typeface="(?:${faces})"[^>]*/>`, 'g');
+  let changed = false;
+  for (const name of Object.keys(zip.files)) {
+    if (!/^ppt\/.*\.xml$/.test(name)) continue;
+    const xml = await zip.file(name).async('string');
+    const next = xml.replace(eaOverride, '');
+    if (next !== xml) {
+      zip.file(name, next);
+      changed = true;
+    }
+  }
+  if (!changed) return blob;
+  return await zip.generateAsync({ type: 'blob', compression: 'DEFLATE' });
+}
+
+/**
  * Export slide deck data as a .pptx file.
  */
 export async function exportSlideDeckPptx(data, courseName, themeIndex) {
@@ -1960,7 +2018,8 @@ export async function exportSlideDeckPptx(data, courseName, themeIndex) {
  */
 export async function buildSlideDeckPptxBlob(data, courseName, themeIndex) {
   const pptx = await createPptxWithDecks(data, courseName, themeIndex);
-  return await pptx.write({ outputType: 'blob' });
+  const blob = await pptx.write({ outputType: 'blob' });
+  return await stripLatinEastAsiaOverrides(blob);
 }
 
 /**
@@ -1987,7 +2046,8 @@ export async function buildSingleDeckPptxBlob(deck, deckIndex, courseName, theme
     await buildSlideForDeck(pptx, deckWithIndex, theme, si, slides.length, { hasLatex });
   }
 
-  return await pptx.write({ outputType: 'blob' });
+  const blob = await pptx.write({ outputType: 'blob' });
+  return await stripLatinEastAsiaOverrides(blob);
 }
 
 /**

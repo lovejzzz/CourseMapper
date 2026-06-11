@@ -1,0 +1,352 @@
+/**
+ * v0.14.1 Phase 1 batch B fixture tests (roadmap items 1.1, 1.8, 1.10
+ * finalizer part, 1.14, 1.15).
+ *
+ * Failure shapes lifted from the OUTPUT-V014 four-course audit:
+ *  - 1.1  CS shipped 12 lessons titled "Autograded quiz and lab checkpoint"
+ *         and every document rewrote mentions to "the Week 2 quiz" (×1,064).
+ *  - 1.8  evaluateDesign rotated 4 always-positive verdicts it never checked.
+ *  - 1.10 "Lab Evidence Thread" survived into syllabus + brief (keep: 1).
+ *  - 1.14 the repair pass stripped "1a." goal labels and logged 30 fake
+ *         objective "repairs" per run.
+ *  - 1.15 Mandarin row 26 shipped raw JSON ('topicSection": "') in a cell.
+ */
+import { describe, expect, it } from 'vitest';
+
+import { finalizeCompiledDeliverableLanguage } from '../src/lib/compiledLanguageFinalizer';
+import {
+  deriveCompilerOwnedColumns,
+  expandLeanCourseMap,
+  expandLeanSectionField,
+} from '../src/lib/leanCourseMap';
+import { repairCourseMapReadiness } from '../src/lib/deliverableReadiness';
+import { deriveCourseGraphFromCourseMap } from '../src/lib/courseGraph';
+
+const OBJECTIVE_COLUMNS = [
+  { key: 'learningObjectives', label: 'Learning Objectives', enabled: true },
+  { key: 'topicSection', label: 'Topic Section', enabled: true },
+];
+
+describe('1.1 — week numbers resolve from the enclosing lesson, not the first minted target', () => {
+  const sharedTitle = 'Autograded quiz and lab checkpoint';
+  const mentionBlock = [
+    `Complete ${sharedTitle} this week.`,
+    `Review ${sharedTitle} expectations with a partner.`,
+    `Submit ${sharedTitle} online before Friday.`,
+    `Revisit ${sharedTitle} feedback before the next class.`,
+  ].join(' ');
+  const blueprint = {
+    lessons: [
+      { lessonNumber: 2, title: 'Lesson 2: Loops', studentArtifact: sharedTitle },
+      { lessonNumber: 5, title: 'Lesson 5: Functions', studentArtifact: sharedTitle },
+      { lessonNumber: 9, title: 'Lesson 9: Files', studentArtifact: sharedTitle },
+    ],
+    assessments: [
+      { title: sharedTitle, artifact: sharedTitle, lessonNumbers: [2] },
+      { title: sharedTitle, artifact: sharedTitle, lessonNumbers: [5] },
+      { title: sharedTitle, artifact: sharedTitle, lessonNumbers: [9] },
+    ],
+  };
+
+  it('gives every per-lesson document its OWN week number for a title shared across lessons', () => {
+    const data = {
+      lessonPlans: [
+        { lessonNumber: 2, overview: mentionBlock },
+        { lessonNumber: 5, overview: mentionBlock },
+        { lessonNumber: 9, overview: mentionBlock },
+      ],
+    };
+    finalizeCompiledDeliverableLanguage('lessonPlans', data, blueprint);
+
+    expect(data.lessonPlans[0].overview).toContain('the Week 2 quiz');
+    expect(data.lessonPlans[1].overview).toContain('the Week 5 quiz');
+    expect(data.lessonPlans[1].overview).not.toContain('Week 2');
+    expect(data.lessonPlans[2].overview).toContain('the Week 9 quiz');
+    expect(data.lessonPlans[2].overview).not.toContain('Week 2');
+  });
+
+  it('uses week-neutral phrasing for course-level documents when the title is multi-lesson', () => {
+    const data = {
+      lessonPlans: [{ lessonNumber: 2, overview: mentionBlock }],
+      courseOverview: `${sharedTitle} anchors practice. Each week revisit ${sharedTitle} for feedback. The ${sharedTitle} recurs every week.`,
+    };
+    finalizeCompiledDeliverableLanguage('lessonPlans', data, blueprint);
+
+    expect(data.courseOverview).toContain('weekly quiz');
+    expect(data.courseOverview).not.toMatch(/Week \d/);
+  });
+
+  it('keeps the correct week for distinct titles, including in course-level scopes', () => {
+    const labTitle = 'Mineral identification lab report';
+    const mentions = `Draft ${labTitle} early. Refine ${labTitle} with feedback. Submit ${labTitle} before class ends.`;
+    const geoBlueprint = {
+      lessons: [{ lessonNumber: 7, title: 'Lesson 7: Minerals', studentArtifact: labTitle }],
+      assessments: [{ title: labTitle, artifact: labTitle, lessonNumbers: [7] }],
+    };
+    const data = {
+      lessonPlans: [{ lessonNumber: 7, overview: mentions }],
+      syllabusNote: mentions,
+    };
+    finalizeCompiledDeliverableLanguage('lessonPlans', data, geoBlueprint);
+
+    expect(data.lessonPlans[0].overview).toContain('the Week 7 lab work');
+    // Unique title: a lesson-less scope falls back to the artifact's own lesson.
+    expect(data.syllabusNote).toContain('the Week 7 lab work');
+    expect(JSON.stringify(data)).not.toContain('Week 2');
+  });
+});
+
+describe('1.10 (finalizer part) — projectName internal vocabulary is replaced everywhere', () => {
+  it('leaves zero "Lab Evidence Thread" mentions (keep: 0)', () => {
+    const blueprint = {
+      lessons: [
+        {
+          lessonNumber: 1,
+          title: 'Lesson 1: Variables and Types',
+          studentArtifact: 'Weekly reflection memo on variables',
+          throughlineCase: { projectName: 'Python Foundations Lab Evidence Thread', evidencePacket: '' },
+        },
+      ],
+    };
+    const data = {
+      syllabus: {
+        overview:
+          'Add one item to the Python Foundations Lab Evidence Thread after each lab. ' +
+          'The Python Foundations Lab Evidence Thread is reviewed at midterm. ' +
+          'Bring the Python Foundations Lab Evidence Thread to office hours.',
+      },
+    };
+    finalizeCompiledDeliverableLanguage('syllabus', data, blueprint);
+
+    expect(JSON.stringify(data)).not.toContain('Lab Evidence Thread');
+    expect(data.syllabus.overview).toContain('course evidence thread');
+  });
+});
+
+describe('1.8 — evaluateDesign reports computed alignment, never asserted praise', () => {
+  const OLD_TEMPLATE_SIGNATURES = [
+    'chain is intact',
+    'is the evidence for the stated objectives',
+    'Alignment check:',
+    'practice precedes evidence',
+  ];
+
+  const mapFor = (sections) => ({
+    courseName: 'Intro CS',
+    lessons: sections.map((section, index) => ({
+      title: `Lesson ${index + 1}: Topic ${index + 1}`,
+      sections: [section],
+    })),
+  });
+
+  it('names an objective that no assessment reflects', () => {
+    const derived = deriveCompilerOwnedColumns(
+      mapFor([
+        {
+          topicSection: '3.1: While Loops',
+          learningGoals: 'Master control flow',
+          learningObjectives: '1. Trace while loop execution\n2. Create a counter function',
+          weeklyAssessments: '1. Autograded check: counter function creation',
+          asyncActivities: '1. Read: textbook pages on counters',
+          syncActivities: '1. Lab: build counter functions together',
+        },
+      ]),
+    );
+    const cell = derived.lessons[0].sections[0].evaluateDesign;
+    expect(cell).toContain("Objective 'Trace while loop execution' has no matching assessment");
+  });
+
+  it('emits the measured sentence on a clean section and never the old templates', () => {
+    const derived = deriveCompilerOwnedColumns(
+      mapFor([
+        {
+          topicSection: '4.1: Dictionaries',
+          learningGoals: 'Use key-value stores',
+          learningObjectives: '1. Create a dictionary of records\n2. Retrieve values by key',
+          weeklyAssessments: '1. Quiz: create and retrieve dictionary entries',
+          asyncActivities: '1. Read: dictionary basics',
+          syncActivities: '1. Lab: create dictionaries and retrieve values by key',
+        },
+        {
+          topicSection: '5.1: Files',
+          learningGoals: 'Persist data',
+          learningObjectives: '1. Write records to a file\n2. Parse file contents into lists',
+          weeklyAssessments: '1. Lab checkpoint: write and parse a records file',
+          asyncActivities: '1. Read: file handling chapter',
+          syncActivities: '1. Workshop: write and parse files in pairs',
+        },
+      ]),
+    );
+    const cells = derived.lessons.map((lesson) => lesson.sections[0].evaluateDesign);
+    expect(cells[0]).toBe(
+      'Each objective verb (create, retrieve) is exercised by an activity and measured by an assessment.',
+    );
+    for (const cell of cells) {
+      for (const signature of OLD_TEMPLATE_SIGNATURES) {
+        expect(cell).not.toContain(signature);
+      }
+    }
+  });
+
+  it('reports a missing assessment column instead of praising it', () => {
+    const derived = deriveCompilerOwnedColumns(
+      mapFor([
+        {
+          topicSection: '1.1: Orientation',
+          learningGoals: 'Get oriented',
+          learningObjectives: '1. Describe the course workflow',
+          weeklyAssessments: '',
+          asyncActivities: '1. Read: the syllabus',
+          syncActivities: '',
+        },
+      ]),
+    );
+    const cell = derived.lessons[0].sections[0].evaluateDesign;
+    expect(cell).toContain('No assessment is listed for this section');
+  });
+});
+
+describe('1.14 — objectives round-trip with goal labels intact and honest repair logs', () => {
+  it('render adds no bare numbering and keeps model-authored goal prefixes', () => {
+    expect(expandLeanSectionField('learningObjectives', ['Analyze X', 'Compare Y'])).toBe('Analyze X\nCompare Y');
+    expect(expandLeanSectionField('learningObjectives', ['1a. Analyze policy impact', '2b. Evaluate strategies'])).toBe(
+      '1a. Analyze policy impact\n2b. Evaluate strategies',
+    );
+  });
+
+  it('survives render → repair with prefixes intact, and the repair log separates formatting from fills', () => {
+    const leanMap = {
+      courseName: 'Policy Lab',
+      lessons: [
+        {
+          title: 'Lesson 1: Foundations',
+          sections: [
+            {
+              topicSection: '1.1: Foundations',
+              learningObjectives: ['1a. Analyze policy impact', '2b. Evaluate strategies'],
+              weeklyAssessments: ['Memo: policy analysis'],
+              asyncActivities: ['Read: chapter 1'],
+            },
+          ],
+        },
+        {
+          title: 'Lesson 2: Methods',
+          sections: [
+            {
+              topicSection: '2.1: Methods',
+              learningObjectives: '',
+              weeklyAssessments: ['Quiz: methods'],
+              asyncActivities: ['Read: chapter 2'],
+            },
+          ],
+        },
+      ],
+    };
+    const expanded = expandLeanCourseMap(leanMap);
+    expect(expanded.lessons[0].sections[0].learningObjectives).toBe(
+      '1a. Analyze policy impact\n2b. Evaluate strategies',
+    );
+
+    const repair = repairCourseMapReadiness({
+      courseMap: expanded,
+      columns: [{ key: 'learningObjectives', label: 'Learning Objectives', enabled: true }],
+    });
+    // Goal labels intact; deterministic terminal punctuation still applied.
+    expect(repair.courseMap.lessons[0].sections[0].learningObjectives).toBe(
+      '1a. Analyze policy impact.\n2b. Evaluate strategies.',
+    );
+    // The normalize branch is labeled (formatting); the genuine template
+    // fill keeps the loud unsuffixed label.
+    expect(repair.repairedFields).toContain('Lesson 1, Section 1 Learning Objectives (formatting)');
+    expect(repair.repairedFields).toContain('Lesson 2, Section 1 Learning Objectives');
+    expect(repair.repairedFields).not.toContain('Lesson 2, Section 1 Learning Objectives (formatting)');
+
+    // deriveFromCourseMap still receives the goal labels it maps outcomes
+    // back to goals with (compatibility check — file untouched).
+    const graph = deriveCourseGraphFromCourseMap(repair.courseMap);
+    const lessonOneLabels = graph.outcomes
+      .filter((outcome) => outcome.sessionRef === graph.sessions[0].id)
+      .map((outcome) => outcome.label);
+    expect(lessonOneLabels).toEqual(['1a', '2b']);
+  });
+
+  it('logs zero objective repairs for an already-canonical cell', () => {
+    const canonical = {
+      courseName: 'Policy Lab',
+      lessons: [
+        {
+          title: 'Lesson 1: Foundations',
+          sections: [
+            {
+              topicSection: '1.1: Foundations',
+              learningObjectives: '1a. Analyze policy impact.\n2b. Evaluate strategies.',
+            },
+          ],
+        },
+      ],
+    };
+    const repair = repairCourseMapReadiness({
+      courseMap: canonical,
+      columns: [{ key: 'learningObjectives', label: 'Learning Objectives', enabled: true }],
+    });
+    expect(repair.repairedFields).toEqual([]);
+  });
+});
+
+describe('1.15 — JSON corruption never reaches a course-map cell', () => {
+  it('rejects a lean section value carrying spliced JSON and repairs it from the clean template', () => {
+    const corruptLean = {
+      courseName: 'Elementary Mandarin Chinese I',
+      lessons: [
+        {
+          title: 'Lesson 1: Review',
+          sections: [
+            {
+              topicSection: 'Greetings review',
+              learningObjectives: [
+                'Recognize the four tones',
+                'topicSection": "Numbers", "learningObjectives": ["Count to ten',
+              ],
+              weeklyAssessments: ['Oral check: tone pairs'],
+            },
+          ],
+        },
+      ],
+    };
+    const expanded = expandLeanCourseMap(corruptLean);
+    // The corrupted value never reaches the cell — rejected wholesale.
+    expect(expanded.lessons[0].sections[0].learningObjectives).toBe('');
+
+    const repaired = repairCourseMapReadiness({ courseMap: expanded, columns: OBJECTIVE_COLUMNS });
+    const cell = repaired.courseMap.lessons[0].sections[0].learningObjectives;
+    expect(cell.length).toBeGreaterThan(5);
+    expect(cell).not.toMatch(/"\s*:\s*["[]/);
+    expect(
+      repaired.repairedFields.some(
+        (label) => label.includes('Learning Objectives') && !label.includes('(formatting)'),
+      ),
+    ).toBe(true);
+  });
+
+  it('asserts on already-spliced string cells in repairCourseMapReadiness and logs a corruption repair', () => {
+    const corruptMap = {
+      courseName: 'Elementary Mandarin Chinese I',
+      lessons: [
+        {
+          title: 'Lesson 1: Numbers',
+          sections: [
+            {
+              topicSection: 'Numbers',
+              learningObjectives: 'Recognize tones, topicSection": "Numbers", "learningObjectives": [',
+            },
+          ],
+        },
+      ],
+    };
+    const result = repairCourseMapReadiness({ courseMap: corruptMap, columns: OBJECTIVE_COLUMNS });
+    const after = result.courseMap.lessons[0].sections[0].learningObjectives;
+    expect(after).not.toMatch(/topicSection"/);
+    expect(after).not.toMatch(/(?:^|[^\\])"\s*:\s*["[]/);
+    expect(result.repairedFields).toContain('Lesson 1, Section 1 Learning Objectives (corruption)');
+  });
+});

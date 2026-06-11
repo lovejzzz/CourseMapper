@@ -189,6 +189,97 @@ export function buildSlideContentFromKernel(kernel) {
   return slides.slice(0, 3);
 }
 
+function firstSentenceOf(text) {
+  const cleaned = cleanText(text);
+  if (!cleaned) return '';
+  return cleaned.split(/(?<=[.!?])\s+/)[0] || cleaned;
+}
+
+function lowercaseLead(text) {
+  const cleaned = cleanText(text);
+  if (!cleaned) return '';
+  const firstWord = cleaned.split(/\s+/)[0];
+  // Leave acronym leads ("DNA", "GDP growth") intact.
+  if (firstWord.length > 1 && firstWord === firstWord.toUpperCase()) return cleaned;
+  return cleaned.charAt(0).toLowerCase() + cleaned.slice(1);
+}
+
+function escapeRegExp(text) {
+  return text.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
+/**
+ * Rewrite a term definition as a clause that can follow "this is a case of
+ * <term>: …" — drops a leading "<term> is/are/refers to/means" so the term
+ * name is never glued to itself.
+ */
+function definitionAsClause(term) {
+  const clause = stripTerminalPeriod(term?.definition);
+  if (!clause) return '';
+  const name = cleanText(term?.term);
+  if (!name) return clause;
+  const lead = new RegExp(`^(?:the\\s+)?${escapeRegExp(name)}\\s+(?:is|are|refers to|describes|means)\\s+`, 'i');
+  return clause.replace(lead, '');
+}
+
+/**
+ * v0.14.1 (1.5): a sample answer a grader could actually use as a model —
+ * built AROUND the scenario instead of gluing anchor-fact + definition
+ * (which "answered" delta-core analysis questions with the bare definition
+ * of weathering, twice). Used by both the short-answer and essay
+ * projections. Every field is optional; the output stays grammatical with
+ * no doubled periods for arbitrary inputs.
+ */
+export function composeScenarioAnswer(scenario, term, fact, { position = '', counterpoint = '' } = {}) {
+  const sentences = [];
+  const positionClause = stripTerminalPeriod(position);
+  if (positionClause) sentences.push(ensureSentence(`A defensible position: ${positionClause}`));
+
+  // The same source the stem uses: the scenario setup, trimmed to its first
+  // sentence and any imperative lead ("Consider/Imagine/Suppose …").
+  const setupClause = stripTerminalPeriod(firstSentenceOf(scenario?.setup)).replace(
+    /^(?:consider|imagine|suppose(?:\s+that)?|picture|examine)\s+/i,
+    '',
+  );
+  const termName = cleanText(term?.term);
+  const definition = definitionAsClause(term);
+  if (termName && definition) {
+    sentences.push(
+      setupClause
+        ? ensureSentence(
+            `In a scenario where ${lowercaseLead(setupClause)}, this is a case of ${termName}: ${lowercaseLead(definition)}`,
+          )
+        : ensureSentence(`This is a case of ${termName}: ${lowercaseLead(definition)}`),
+    );
+  } else if (definition) {
+    sentences.push(ensureSentence(definition));
+  } else if (setupClause && termName) {
+    sentences.push(
+      ensureSentence(`In a scenario where ${lowercaseLead(setupClause)}, the concept at work is ${termName}`),
+    );
+  }
+
+  const factClause = stripTerminalPeriod(fact);
+  if (factClause && factClause.toLowerCase() !== definition.toLowerCase()) {
+    sentences.push(ensureSentence(`The key supporting evidence: ${lowercaseLead(factClause)}`));
+  }
+
+  const counterClause = stripTerminalPeriod(counterpoint);
+  sentences.push(
+    counterClause
+      ? ensureSentence(
+          `A strong answer also engages the opposing view — ${lowercaseLead(counterClause)} — and explains why the evidence weighs against it`,
+        )
+      : 'A strong answer also names one limitation or alternative reading of the evidence.',
+  );
+  return sentences
+    .filter(Boolean)
+    .join(' ')
+    .replace(/\.{2,}/g, '.')
+    .replace(/\s{2,}/g, ' ')
+    .trim();
+}
+
 function buildShortAnswerItem(kernel, index) {
   const term = kernel?.keyTerms?.[0];
   const setup = cleanText(kernel?.scenario?.setup);
@@ -202,7 +293,9 @@ function buildShortAnswerItem(kernel, index) {
     options: [],
     answerIndex: 0,
     distractorRationales: [],
-    answer: `${ensureSentence(fact)} ${ensureSentence(term.definition)}`.trim(),
+    // v0.14.1 (1.5): the model answer engages the scenario instead of gluing
+    // anchor-fact + definition.
+    answer: composeScenarioAnswer(kernel?.scenario, term, fact),
     explanation: '',
     scoringGuidance: `Full credit requires accurate use of ${term.term}, direct reference to ${materials}, and a defended conclusion; partial credit for correct concepts supported by thin evidence.`,
   };
@@ -227,7 +320,12 @@ function buildEssayItem(kernel, index) {
     options: [],
     answerIndex: 0,
     distractorRationales: [],
-    answer: `${ensureSentence(positions[0] || '')} ${ensureSentence(sampleFact)}`.trim(),
+    // v0.14.1 (1.5): the model answer takes the position the stem demands and
+    // engages the opposing view, instead of position-sentence + fact glue.
+    answer: composeScenarioAnswer(kernel?.scenario, term, sampleFact, {
+      position: positions[0] || '',
+      counterpoint: positions[1] || '',
+    }),
     explanation: '',
     scoringGuidance: `Strong responses state a clear position, engage at least one opposing view${counterposition}, and ground every claim in course evidence; weak responses restate the prompt without committing to a position.`,
   };
@@ -247,6 +345,11 @@ export function projectKernelToSurfaces(kernel, { itemPlan = [] } = {}) {
 
   const quizItems = [];
   const mcItems = Array.isArray(kernel?.mc) ? kernel.mc : [];
+  // Cross-lesson quiz dedupe (v0.14.1 4.6) happens UPSTREAM of this slice: by
+  // the time the pool reaches the projection, concept identity is gone
+  // (composeLessonFromConcepts flattens per-kernel mcBanks into `kernel.mc`),
+  // so the per-concept offsets apply there and this slice only narrows the
+  // already-deduped pool to this lesson's MC slots.
   mcItems.slice(0, mcSlots.length).forEach((item, position) => {
     quizItems.push({
       index: mcSlots[position]?.index ?? position,

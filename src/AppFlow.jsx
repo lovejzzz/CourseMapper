@@ -35,6 +35,7 @@ import useDeliverables from './hooks/useDeliverables';
 import useSmartSync from './hooks/useSmartSync';
 import useEditProposal from './hooks/useEditProposal';
 import useDeliverableUndo from './hooks/useDeliverableUndo';
+import useDeliverableFocusRouter from './hooks/useDeliverableFocusRouter';
 import { extractEditContext } from './lib/editContextExtractor';
 import {
   applyCanonicalPatchesToCourseMap,
@@ -89,7 +90,12 @@ import { evaluateClassroomReadiness } from './lib/classroomReadiness';
 import { runDeterministicPackageFinalizer } from './lib/packageFinalizer';
 import { verifyPackageExports } from './lib/packageExportVerifier';
 import { generateCourseHealthReport } from './lib/pedagogicalValidator';
-import { applyApiCallBudgetEvent, createApiCallBudget, getApiCallBudgetTotal } from './lib/apiCallBudget';
+import {
+  applyApiCallBudgetEvent,
+  createApiCallBudget,
+  formatEnrichmentOutcomeLabel,
+  getApiCallBudgetTotal,
+} from './lib/apiCallBudget';
 import { buildApiCostPlan, evaluateApiCostControl } from './lib/apiCostControl';
 import {
   buildGenerationCostReport,
@@ -655,6 +661,11 @@ export default function AppFlow({ startupAction = null, onStartupHandled, onRetu
     [setActiveTab],
   );
 
+  // v0.14.1 (3.5): assessment chips in the course map open the matching
+  // deliverable tab; "Show in course map" from a deliverable reroutes through
+  // focusCourseMapTarget while the map tab is hidden.
+  useDeliverableFocusRouter({ activeTab, setActiveTab, setMobileWorkspaceView, focusCourseMapTarget });
+
   const focusExamPatch = useCallback(
     (patch) => {
       if (!patch) return;
@@ -723,13 +734,10 @@ export default function AppFlow({ startupAction = null, onStartupHandled, onRetu
   const getManifestPipelineState = useCallback(() => {
     const budget = apiCallBudgetRef.current || {};
     const outcome = budget.enrichmentOutcome || null;
-    const enrichment = !outcome
-      ? 'unknown'
-      : outcome.modelStage === 'ran'
-        ? `ran (${outcome.enrichedLessons} lesson${outcome.enrichedLessons === 1 ? '' : 's'} enriched)`
-        : (outcome.enrichedLessons || 0) > 0
-          ? `genome-only (${outcome.enrichedLessons} lesson${outcome.enrichedLessons === 1 ? '' : 's'}); model stage ${outcome.modelStage}`
-          : outcome.modelStage;
+    // v0.14.1 P2.2: shared formatter — partial coverage reads
+    // "ran (12/14 — lessons 13, 14 fell back to template)" in the manifest,
+    // matching the digest pipeline line.
+    const enrichment = formatEnrichmentOutcomeLabel(outcome);
     const graphStats = courseGraphStats(courseGraphRef.current);
     const coverage = knowledgeCoverage(courseGraphRef.current);
     return {
@@ -853,8 +861,16 @@ export default function AppFlow({ startupAction = null, onStartupHandled, onRetu
         setCourseGraph(deriveCourseGraphFromCourseMap(courseMap));
         return;
       }
+      // v0.14.1 (3.3a): the visible map is the DISPLAY render (assessment
+      // reference suffixes included) — compare against the same variant so
+      // a freshly pushed render never triggers a spurious re-derivation.
+      // The canonical render is also accepted: maps from pre-registry saves
+      // and repair pushes carry no suffixes.
+      const renderedDisplay = renderCourseMapFromGraph(courseGraphRef.current, { assessmentReferences: true });
+      const mapJson = JSON.stringify(courseMap);
+      if (JSON.stringify(renderedDisplay) === mapJson) return;
       const rendered = renderCourseMapFromGraph(courseGraphRef.current);
-      if (JSON.stringify(rendered) === JSON.stringify(courseMap)) return;
+      if (JSON.stringify(rendered) === mapJson) return;
       const rederived = attachEnrichmentToGraph(
         deriveCourseGraphFromCourseMap(courseMap),
         courseGraphRef.current.enrichmentOverlay,
@@ -1148,6 +1164,14 @@ export default function AppFlow({ startupAction = null, onStartupHandled, onRetu
             blockOnValidationWarnings: false,
             maxRetryActions: retryLimit,
             retryWarnings: false,
+            // v0.14.1 P2.2: partial enrichment coverage surfaces as a
+            // finalizer warning (blocker below 60%) instead of staying a
+            // digest-only secret.
+            enrichmentOutcome: apiCallBudgetRef.current?.enrichmentOutcome || null,
+            // v0.14.1 P2.5: the graph's promised assessments reconcile
+            // against downstream artifacts — a phantom midterm/oral warns
+            // here instead of shipping silently.
+            courseGraph: courseGraphRef.current || null,
           });
 
         setPackageQualityPass({
@@ -1629,6 +1653,10 @@ export default function AppFlow({ startupAction = null, onStartupHandled, onRetu
               repairsApplied: totalRepairsApplied,
               retryCallCount,
               finishRunId,
+              // v0.14.1 P2.5: map↔deliverable reconciliation findings reach
+              // the digest's flagged checks (incl. the info-level aggregate
+              // that stays out of the readiness warning count).
+              assessmentReconciliationIssues: result.assessmentReconciliationIssues || [],
             },
             generation: {
               provider: result.provider || '',

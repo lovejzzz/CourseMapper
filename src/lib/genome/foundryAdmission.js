@@ -162,7 +162,11 @@ const SURFACE_STOPWORDS = new Set([
 ]);
 
 function surfaceTokens(text) {
+  // Hyphenated compounds are single lexical units: without the join, "p-value"
+  // tokenizes to the lone generic token {value} and collides with any kernel
+  // that mentions "value" ("key-value pairs", "assigning a value").
   return normalizeForMatch(text)
+    .replace(/([a-z0-9])-([a-z0-9])/g, '$1$2')
     .split(/[^a-z0-9]+/)
     .filter((token) => token.length >= 4 && !SURFACE_STOPWORDS.has(token));
 }

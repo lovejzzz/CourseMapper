@@ -106,7 +106,14 @@ describe('course graph golden equivalence (v0.13 P0)', () => {
     };
 
     // Legacy path: overlay passed through options.enrichment.lessonContent.
-    const mapBlueprint = buildCourseBlueprint(repaired, { enrichment: { lessonContent: { 'lesson-1': kernel } } });
+    // v0.14.1 Phase 3: the assessment registry is shared infrastructure —
+    // both paths consume the SAME registry (deriveCourseGraphFromCourseMap
+    // is the single derivation), so equivalence continues to prove that the
+    // graph render/derive round trip adds no divergence of its own.
+    const mapBlueprint = buildCourseBlueprint(repaired, {
+      enrichment: { lessonContent: { 'lesson-1': kernel } },
+      assessmentRegistry: deriveCourseGraphFromCourseMap(repaired).assessments,
+    });
     const mapCompiled = compileBlueprintDeliverables(mapBlueprint, ['studyGuides', 'quizBank']);
 
     // Graph path: the kernel lives on the Concept entity (Concept ≡ kernel).
@@ -129,7 +136,14 @@ describe('course graph golden equivalence (v0.13 P0)', () => {
       const repaired = repairCourseMapReadiness({ courseMap: fixture }).courseMap || fixture;
       const features = getBlueprintCompiledFeatures(ALL_FEATURES, { enabled: true });
 
-      const mapBlueprint = buildCourseBlueprint(repaired);
+      // v0.14.1 Phase 3: production compiles through the registry (graph
+      // path always passes graph.assessments). The map path receives the
+      // registry from the SAME shared derivation, so this gate keeps
+      // proving the render/derive round trip is divergence-free — the
+      // documented adaptation mechanism for an allowlisted improvement.
+      const mapBlueprint = buildCourseBlueprint(repaired, {
+        assessmentRegistry: deriveCourseGraphFromCourseMap(repaired).assessments,
+      });
       const mapCompiled = compileBlueprintDeliverables(mapBlueprint, features);
 
       const graph = deriveCourseGraphFromCourseMap(repaired);

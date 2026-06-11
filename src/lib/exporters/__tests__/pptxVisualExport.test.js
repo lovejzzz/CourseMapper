@@ -149,8 +149,10 @@ const FIXTURE = {
           },
         },
 
-        // 6. content — evidence-table kind with short, splittable bullets:
-        // should render a NATIVE table (v0.12.1) from the slide's own data.
+        // 6. content — evidence-table kind with pre-paired claim/evidence
+        // rows on the descriptor (v0.14.1 5.2c): should render a NATIVE
+        // table (v0.12.1). The exporter no longer fabricates rows by
+        // splitting bullets — rows arrive paired from the compiler.
         {
           title: 'Markets clear where supply meets demand',
           type: 'content',
@@ -166,6 +168,11 @@ const FIXTURE = {
             kind: 'evidence table',
             description: 'Evidence table comparing price, cost, and elasticity signals',
             altText: 'Three-row table of market evidence signals.',
+            rows: [
+              ['Price signal', 'shows willingness to pay at the margin'],
+              ['Cost curve', 'reveals the producer break-even point'],
+              ['Elasticity', 'predicts the response to a price change'],
+            ],
           },
         },
 
@@ -383,18 +390,58 @@ describe('PPTX export — native visuals (v0.12.1)', () => {
   const NATIVE_TABLE_XML = /<a:tbl[\s>]/;
   const count = (xml, re) => (xml.match(new RegExp(re, 'g')) || []).length;
 
-  it('content slide with an evidence-table visual renders a native PPTX table', () => {
-    // Fixture slide index 5 = content with kind 'evidence table'
+  it('content slide with pre-paired evidence rows renders a native PPTX table', () => {
+    // Fixture slide index 5 = content with kind 'evidence table' and
+    // descriptor rows. v0.14.1 (5.2c): the header names the two columns
+    // (the old single colspan header read as an empty trailing cell), and
+    // rows come from the descriptor, never from splitting bullets.
     const xml = slideXmls[5];
     expect(xml).toMatch(NATIVE_TABLE_XML);
-    // Header row carries the descriptor kind, uppercased
-    expect(xml).toContain('EVIDENCE TABLE');
-    // Rows split on the em-dash into lead + detail cells
+    expect(xml).toContain('CLAIM');
+    expect(xml).toContain('EVIDENCE');
     expect(xml).toContain('Price signal');
     expect(xml).toContain('shows willingness to pay at the margin');
     expect(xml).toContain('reveals the producer break-even point');
     // Lead assertion stays on the slide as text
     expect(xml).toContain('Each evidence row names the signal');
+  });
+
+  it('evidence-table kind WITHOUT descriptor rows keeps the text layout (5.2c)', async () => {
+    // The audited defect shape: colon/dash-bearing bullets that the old
+    // exporter chopped into fake claim/evidence pairs. With no pre-paired
+    // rows the slide must keep its plain text layout.
+    const blob = await buildSlideDeckPptxBlob(
+      {
+        decks: [
+          {
+            lessonTitle: 'Lesson 1: No Fabricated Tables',
+            slides: [
+              {
+                title: 'Markets clear where supply meets demand',
+                type: 'content',
+                bullets: [
+                  'Each evidence row names the signal and what it tells you about the market.',
+                  'Price signal — shows willingness to pay at the margin',
+                  'Cost curve — reveals the producer break-even point',
+                ],
+                notes: 'No table without paired rows.',
+                visual: {
+                  kind: 'evidence table',
+                  description: 'Evidence table comparing price and cost signals',
+                  altText: 'Two-row table of market evidence signals.',
+                },
+              },
+            ],
+          },
+        ],
+      },
+      'Test Course',
+      0,
+    );
+    const zip = await JSZip.loadAsync(await blob.arrayBuffer());
+    const xml = await zip.file('ppt/slides/slide1.xml').async('string');
+    expect(xml).not.toMatch(NATIVE_TABLE_XML);
+    expect(xml).toContain('Price signal');
   });
 
   it('discussion slide with a decision-matrix visual renders a native grid table', () => {

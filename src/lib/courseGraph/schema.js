@@ -125,6 +125,17 @@ export function validateCourseGraph(graph) {
     }
   }
 
+  // v0.14.1 (3.1): registry kinds are a closed set — the compiler branches
+  // on them (brief / exam document / oral prompt sheet / lesson-plan listing).
+  // Kind is optional (pre-registry graphs validate unchanged), but a present
+  // kind must be recognizable.
+  const ASSESSMENT_KINDS = new Set(['graded-artifact', 'in-class', 'exam', 'oral']);
+  for (const assessment of graph.assessments || []) {
+    if (assessment?.kind !== undefined && assessment?.kind !== '' && !ASSESSMENT_KINDS.has(assessment.kind)) {
+      push('invalid-assessment-kind', `Assessment "${assessment?.id}" has unknown kind "${assessment.kind}".`);
+    }
+  }
+
   const sessionNumbers = new Set();
   for (const session of graph.sessions || []) {
     if (Number.isInteger(session?.number)) {
@@ -150,6 +161,11 @@ export function courseGraphStats(graph) {
     concepts: (graph.concepts || []).length,
     outcomes: (graph.outcomes || []).length,
     assessments: (graph.assessments || []).length,
+    // v0.14.1 (3.1): the registry's graded subset — what the compiler turns
+    // into briefs, exam documents, and oral prompt sheets.
+    gradedAssessments: (graph.assessments || []).filter(
+      (assessment) => assessment?.kind && assessment.kind !== 'in-class',
+    ).length,
     resources: (graph.resources || []).length,
     genomeLinkedConcepts: linked.size,
     authoredConcepts: authored,

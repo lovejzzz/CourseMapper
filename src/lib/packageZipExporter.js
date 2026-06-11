@@ -161,6 +161,40 @@ function lessonFileStem(courseMap, lessonIndex) {
   return `Lesson ${String(lessonIndex + 1).padStart(2, '0')} - ${safeTitle}`;
 }
 
+// v0.14.1 (3.3d): the manifest's assessment registry — every map-promised
+// assessment with its kind, lesson, weight, and the package file that
+// fulfills it (briefs/orals → the lesson's Assignment Briefs docx, exams →
+// the lesson's Quiz & Exam Bank docx, in-class → the Lesson Plans listing).
+function buildManifestAssessments({ registry, files }) {
+  if (!Array.isArray(registry) || registry.length === 0) return null;
+  const fileFor = (featureId, lessonNumber) => {
+    const prefix = `Lesson ${String(lessonNumber).padStart(2, '0')} - `;
+    return (
+      files.find((file) => file.featureId === featureId && file.path.split('/').pop().startsWith(prefix))?.path || null
+    );
+  };
+  return registry
+    .filter((assessment) => assessment?.title && Number.isInteger(assessment?.dueSession))
+    .map((assessment) => {
+      const kind = assessment.kind || 'graded-artifact';
+      const artifact =
+        kind === 'exam'
+          ? fileFor('quizBank', assessment.dueSession)
+          : kind === 'in-class'
+            ? fileFor('lessonPlans', assessment.dueSession)
+            : fileFor('assignments', assessment.dueSession);
+      return {
+        id: assessment.id || '',
+        title: assessment.title,
+        kind,
+        lesson: assessment.dueSession,
+        weightPct: Number.isFinite(assessment.weightPct) ? assessment.weightPct : null,
+        artifact,
+        ...(kind === 'in-class' ? { note: 'in-class activity — listed in the lesson plan' } : {}),
+      };
+    });
+}
+
 function buildManifest({
   courseName,
   lessonFilter,
@@ -169,6 +203,7 @@ function buildManifest({
   requestedFeatureIds,
   requiredAssets = [],
   pipelineState = null,
+  assessments = null,
 }) {
   return {
     courseName,
@@ -177,6 +212,8 @@ function buildManifest({
     // v0.12.1: how the content was produced (enrichment / genome linker /
     // plan health) so downloaded packages are auditable without console logs.
     ...(pipelineState ? { pipeline: pipelineState } : {}),
+    // v0.14.1 (3.3d): the assessment registry, with artifact file links.
+    ...(assessments && assessments.length > 0 ? { assessments } : {}),
     requestedFeatures: requestedFeatureIds.map((featureId) => ({
       featureId: publicFeatureId(featureId),
       label: resolveFeatureLabel(featureId),
@@ -202,6 +239,7 @@ export async function buildCourseMaterialsZip({
   readiness = null,
   featureIds = null,
   pipelineState = null,
+  courseGraph = null,
 } = {}) {
   const JSZip = (await safeImport(() => import('jszip'))).default;
   const { buildDeliverableDocxBlob } = await safeImport(() => import('./exporters/bulkDocxExporter'));
@@ -225,7 +263,15 @@ export async function buildCourseMaterialsZip({
 
   try {
     const filteredCourseMap = scopeCourseMapToLessons(courseMap, lessonFilter);
-    const buffer = await buildXlsxBuffer(filteredCourseMap, columns);
+    // v0.14.1 (3.4): package context only — assessment cells hyperlink to the
+    // deliverable files this zip writes (relative paths, see xlsxGenerator).
+    const buffer = await buildXlsxBuffer(filteredCourseMap, columns, {
+      packageLinks: {
+        courseGraph,
+        featureIds: requestedDeliverableIds,
+        lessonNumbers: lessonIndices.map((index) => index + 1),
+      },
+    });
     await addRequiredOfficeFile(zip, files, failures, `Course Map/${safeCourseName} - Course Map.xlsx`, buffer, {
       featureId: 'courseMap',
       format: 'xlsx',
@@ -341,6 +387,18 @@ export async function buildCourseMaterialsZip({
 
   if (failures.length > 0) throw new PackageZipExportError(failures);
 
+  // v0.14.1 (3.3d): the registry rides the manifest. The caller's graph is
+  // authoritative; without one (legacy callers) the registry derives from
+  // the course map — deterministic and identical to what generation built.
+  let assessmentRegistry = Array.isArray(courseGraph?.assessments) ? courseGraph.assessments : null;
+  if (!assessmentRegistry && courseMap?.lessons) {
+    try {
+      const { deriveCourseGraphFromCourseMap } = await safeImport(() => import('./courseGraph/deriveFromCourseMap.js'));
+      assessmentRegistry = deriveCourseGraphFromCourseMap(courseMap)?.assessments || null;
+    } catch {
+      assessmentRegistry = null;
+    }
+  }
   const manifest = buildManifest({
     courseName: safeCourseName,
     lessonFilter,
@@ -349,6 +407,7 @@ export async function buildCourseMaterialsZip({
     requestedFeatureIds,
     requiredAssets,
     pipelineState,
+    assessments: buildManifestAssessments({ registry: assessmentRegistry, files }),
   });
   const manifestText = JSON.stringify(manifest, null, 2);
   zip.file('PACKAGE_MANIFEST.json', manifestText);

@@ -18,6 +18,14 @@ import {
   TierToggle,
 } from './shared/SharedComponents';
 
+// v0.14.1 (3.5): the lesson a quiz/exam entry belongs to — compiled exam
+// entries carry lessonNumber; weekly entries name their lesson in the title.
+function quizLessonNumber(quiz, index) {
+  if (Number.isInteger(quiz?.lessonNumber) && quiz.lessonNumber > 0) return quiz.lessonNumber;
+  const match = String(quiz?.lessonTitle || '').match(/(?:Lesson|Week)\s*(\d+)/i);
+  return match ? Number(match[1]) : index + 1;
+}
+
 // ─── Quiz Bank ───
 export default function QuizBankView({
   data,
@@ -64,6 +72,15 @@ export default function QuizBankView({
                 onRegenerate={() => onRegenerateProposal?.(i)}
               />
             )}
+            {/* v0.14.1 (3.5): focus anchor — exam chips in the course map
+                scroll to and highlight this wrapper (DeliverableView). */}
+            <div
+              data-assessment-anchor="true"
+              data-assessment-id={baseQuiz.assessmentId || ''}
+              data-assessment-title={baseQuiz.lessonTitle || ''}
+              data-lesson-number={quizLessonNumber(baseQuiz, i)}
+              className="rounded-squircle-xs transition-shadow duration-300"
+            >
             <CollapsibleCard
               viewportIndex={i}
               title={quiz.lessonTitle || `Quiz ${i + 1}`}
@@ -96,6 +113,7 @@ export default function QuizBankView({
                 ))}
               </div>
             </CollapsibleCard>
+            </div>
           </React.Fragment>
         );
       })}

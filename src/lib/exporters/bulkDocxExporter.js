@@ -2,9 +2,22 @@ import { getDocx, resolveFeatureLabel } from './exporterUtils.js';
 import { getArrayKey } from '../syncDependencies.js';
 import { _buildDocxContentShared, buildDocxDocument, buildDocxTitleChildren } from './docxExporter.js';
 
-// Features whose root array is one-entry-per-lesson; their covers can say
-// "N lessons". Everything else gets the neutral "N sections".
-const LESSON_ROOTED_FEATURES = new Set(['lessonPlans', 'slideDecks', 'quizBank', 'studyGuides', 'discussions']);
+// Cover-meta noun per feature. v0.14.1 (1.11): assignments/rubrics/courseFaq
+// were missing from the old lesson-rooted set, so a 15-brief export said
+// "15 sections" on its cover. Features whose root array is strictly
+// one-entry-per-lesson say "N lessons"; features counted by their own unit
+// use the feature-label noun; anything unknown (custom deliverables) keeps
+// the neutral "N sections".
+const COVER_NOUNS = {
+  lessonPlans: 'lessons',
+  slideDecks: 'lessons',
+  quizBank: 'lessons',
+  studyGuides: 'lessons',
+  discussions: 'lessons',
+  courseFaq: 'lessons',
+  assignments: 'assignment briefs',
+  rubrics: 'rubrics',
+};
 
 // ════════════════════════════════════════════════════════════════
 // BLOB-ONLY DOCX (for ZIP bundling — no file-save)
@@ -23,12 +36,12 @@ export async function buildDeliverableDocxBlob(featureId, data, courseName) {
   // Cover page when the document bundles several top-level entries.
   // v0.10.1 fix: count the feature's ROOT array, not the largest nested
   // array — a single-lesson quiz with 48 questions printed "48 lessons".
-  const rootKey = getArrayKey(featureId);
+  const rootKey = getArrayKey(featureId, data);
   const rootArray = Array.isArray(data?.[rootKey])
     ? data[rootKey]
     : Object.values(data || {}).find((value) => Array.isArray(value)) || [];
   const itemCount = rootArray.length;
-  const coverNoun = LESSON_ROOTED_FEATURES.has(featureId) ? 'lessons' : 'sections';
+  const coverNoun = COVER_NOUNS[featureId] || 'sections';
   const children = buildDocxTitleChildren(docx, courseName, label, {
     cover: itemCount >= 4,
     coverMeta: itemCount >= 4 ? `${itemCount} ${coverNoun}` : '',

@@ -18,7 +18,22 @@ function withLabel(label, text) {
   return label ? `${label}. ${text}` : text;
 }
 
-function renderSection(graph, section) {
+// v0.14.1 (3.3a): the deliverable reference each graded registry entry
+// renders after its title — the map cell becomes an index into the package.
+// In-class items render plain (they live inside the session, not in a file).
+// The canonical (compile/round-trip) render omits these; deriveFromCourseMap
+// strips them back out of displayed maps.
+function assessmentReferenceSuffix(assessment) {
+  const kind = assessment?.kind;
+  if (kind === 'exam') return ' → Quiz & Exam Bank';
+  if (kind === 'graded-artifact' || kind === 'oral') {
+    const lesson = Number.isInteger(assessment?.dueSession) ? assessment.dueSession : 0;
+    return lesson > 0 ? ` → Assignment Briefs / Lesson ${String(lesson).padStart(2, '0')}` : ' → Assignment Briefs';
+  }
+  return '';
+}
+
+function renderSection(graph, section, options = {}) {
   const outcomesById = new Map(graph.outcomes.map((outcome) => [outcome.id, outcome]));
   const assessmentsById = new Map(graph.assessments.map((assessment) => [assessment.id, assessment]));
   const resourcesById = new Map(graph.resources.map((resource) => [resource.id, resource]));
@@ -30,7 +45,12 @@ function renderSection(graph, section) {
   const assessmentAtoms = (section.assessmentRefs || [])
     .map((id) => assessmentsById.get(id))
     .filter(Boolean)
-    .map((assessment) => withLabel(assessment.label, assessment.title));
+    .map((assessment) =>
+      withLabel(
+        assessment.label,
+        `${assessment.title}${options.assessmentReferences ? assessmentReferenceSuffix(assessment) : ''}`,
+      ),
+    );
   const resourceAtoms = (section.resourceRefs || [])
     .map((id) => resourcesById.get(id))
     .filter(Boolean)
@@ -62,8 +82,17 @@ function renderSection(graph, section) {
   return rendered;
 }
 
-/** Deterministic CourseGraph → course map. */
-export function renderCourseMapFromGraph(graph) {
+/**
+ * Deterministic CourseGraph → course map.
+ *
+ * `options.assessmentReferences` (v0.14.1 3.3a) renders the DISPLAY variant:
+ * graded/exam/oral registry titles carry a "→ <deliverable>" suffix so the
+ * visible map indexes the package. The default render stays canonical —
+ * the compile path (blueprintFromGraph) and the derive↔render round trip
+ * depend on suffix-free cells, and deriveFromCourseMap strips the suffix
+ * when a displayed map is re-derived.
+ */
+export function renderCourseMapFromGraph(graph, options = {}) {
   if (!graph || typeof graph !== 'object') return null;
   const sessions = [...(graph.sessions || [])].sort((a, b) => (a.number || 0) - (b.number || 0));
   return {
@@ -72,7 +101,7 @@ export function renderCourseMapFromGraph(graph) {
     ...(graph.course?.meta && typeof graph.course.meta === 'object' ? graph.course.meta : {}),
     lessons: sessions.map((session) => ({
       title: session.title,
-      sections: (session.sections || []).map((section) => renderSection(graph, section)),
+      sections: (session.sections || []).map((section) => renderSection(graph, section, options)),
     })),
   };
 }

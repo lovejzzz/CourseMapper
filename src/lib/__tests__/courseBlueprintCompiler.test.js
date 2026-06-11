@@ -1984,13 +1984,13 @@ describe('courseBlueprintCompiler', () => {
     );
 
     expect(blueprint.courseThroughlineContext).toMatchObject({
-      projectName: 'Applied Social Policy Studio Policy Evidence Thread',
+      projectName: 'Applied Social Policy Studio Policy Casebook',
       clientName: 'the course audience',
       sourceMode: 'instructor-provided',
     });
-    expect(blueprint.courseArc.throughline).toContain('Applied Social Policy Studio Policy Evidence Thread');
+    expect(blueprint.courseArc.throughline).toContain('Applied Social Policy Studio Policy Casebook');
     expect(blueprint.lessons[0].throughlineCase).toMatchObject({
-      projectName: 'Applied Social Policy Studio Policy Evidence Thread',
+      projectName: 'Applied Social Policy Studio Policy Casebook',
       // v0.12.1: lesson-specific resources resolve as the evidence packet
       // instead of the unresolved placeholder.
       evidencePacket: expect.stringContaining('Case packet 1'),
@@ -3665,8 +3665,12 @@ describe('courseBlueprintCompiler', () => {
     expect(storedBlueprint.semanticContract).toBeUndefined();
     expect(storedBlueprint.compilerContract).toBeUndefined();
 
+    // v0.14.1 (3.2): weight/weightPercent joined the persisted anchor keys —
+    // the registry path's grading weights must survive storage (kind/
+    // registryId/dueSession persist too, but only registry anchors carry
+    // them; this legacy anchor does not).
     expect(Object.keys(storedBlueprint.assessments[0]).sort()).toEqual(
-      ['artifact', 'id', 'lessonNumbers', 'relatedLessons', 'source', 'title'].sort(),
+      ['artifact', 'id', 'lessonNumbers', 'relatedLessons', 'source', 'title', 'weight', 'weightPercent'].sort(),
     );
     expect(storedBlueprint.assessments[0]).toMatchObject({
       id: 'assessment-1',
@@ -4576,9 +4580,10 @@ describe('courseBlueprintCompiler', () => {
         }),
       ]),
     });
-    expect(new Set(compiled.quizBank.quizzes[0].bloomsCoverage)).toEqual(
-      new Set(['Remember', 'Apply', 'Analyze', 'Evaluate', 'Create']),
-    );
+    // v0.14.1 (5.4): coverage states only the levels actually present on the
+    // items (stem-verb derived), deduped and in taxonomy order — the old pin
+    // byte-encoded the audited "all five levels in every quiz" defect.
+    expect(compiled.quizBank.quizzes[0].bloomsCoverage).toEqual(['Understand', 'Apply', 'Create']);
     expect(compiled.quizBank.quizzes[0].quizBlueprint.questionPlan).toEqual(
       expect.arrayContaining([
         expect.objectContaining({
@@ -4598,10 +4603,14 @@ describe('courseBlueprintCompiler', () => {
       bloomSource: 'prerequisite diagnostic',
     });
     expect(compiled.quizBank.quizzes[0].questions[4]).toMatchObject({
-      bloomsLevel: 'Evaluate',
+      // v0.14.1 (5.4): the tag follows the question's stem verb ("Which use
+      // of evidence…" → Apply); the planned Evaluate level stays visible in
+      // quizPlan.bloom as provenance.
+      bloomsLevel: 'Apply',
       objectiveAligned: expect.stringContaining('Evaluate implementation tradeoffs 1'),
       quizPlan: expect.objectContaining({
         role: 'quality-evaluation',
+        bloom: 'Evaluate',
         objectiveAlignmentStrategy: 'analysis-decision-objective-match',
       }),
     });
@@ -4611,15 +4620,14 @@ describe('courseBlueprintCompiler', () => {
         role: 'transfer-synthesis',
       }),
     });
+    // v0.14.1 (5.4) Bloom honesty: every quiz's coverage line must equal the
+    // set of its items' actual tags (the old pin demanded all five levels in
+    // every quiz — the audited verbatim-coverage defect).
     expect(
       compiled.quizBank.quizzes.every((quiz) => {
-        const blooms = new Set(quiz.bloomsCoverage || []);
+        const itemLevels = new Set(quiz.questions.map((question) => question.bloomsLevel));
         return (
-          blooms.has('Remember') &&
-          blooms.has('Apply') &&
-          blooms.has('Analyze') &&
-          blooms.has('Evaluate') &&
-          blooms.has('Create')
+          quiz.bloomsCoverage.length === itemLevels.size && quiz.bloomsCoverage.every((level) => itemLevels.has(level))
         );
       }),
     ).toBe(true);
@@ -4698,9 +4706,9 @@ describe('courseBlueprintCompiler', () => {
     expect(compiled.slideDecks.decks[0].sourceGrounding.instructorPreference).toContain(
       'concise course-specific notes',
     );
-    expect(compiled.rubrics.rubrics[0].teacherNotes).toContain('criterion-specific');
+    expect(compiled.rubrics.rubrics[0].teacherNotes).toContain('rubric criteria');
     expect(compiled.assignments.assignments[0].sourceGrounding.instructorPreference).toContain('criterion-specific');
-    expect(compiled.discussions.discussions[0].guidelines).toContain('criterion-specific');
+    expect(compiled.discussions.discussions[0].guidelines).toContain('rubric criteria');
     expect(compiled.quizBank.quizzes[0].assessmentBlueprint).toContain('applied analysis');
   });
 
@@ -5681,7 +5689,9 @@ describe('courseBlueprintCompiler', () => {
       source: 'source-grounded-quiz-plan',
       lessonBloom: 'Evaluate',
     });
-    expect(new Set(compiled.quizBank.quizzes[1].bloomsCoverage).size).toBeGreaterThanOrEqual(4);
+    // v0.14.1 (5.4): coverage reflects actual stem-verb tags (the synthetic
+    // frames span Understand/Apply/Create), not the planned five-level claim.
+    expect(new Set(compiled.quizBank.quizzes[1].bloomsCoverage).size).toBeGreaterThanOrEqual(3);
     expect(compiled.quizBank.quizzes[1].questions.every((question) => question.quizPlan?.bloomSource)).toBe(true);
     expect(compiled.assignments.assignments[1].title).toContain('Case worksheet');
     expect(compiled.assignments.assignments[1].sourceGrounding.reviewActionability.reviewerAction).toMatch(

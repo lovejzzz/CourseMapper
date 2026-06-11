@@ -24,6 +24,8 @@ import { searchScholarlyReadings, searchBookMetadata } from './providers.js';
 
 function cleanText(value) {
   return String(value ?? '')
+    // V0.14.1 D1: strip HTML tags so markup never reaches a citation/syllabus.
+    .replace(/<[^>]+>/g, ' ')
     .replace(/\s+/g, ' ')
     .trim();
 }
@@ -66,7 +68,95 @@ function openTextbookUrl(label) {
     const slug = openstax[1].toLowerCase().trim().replace(/\s+/g, '-');
     return { url: openStaxBookUrl(slug), license: 'CC BY 4.0', attribution: `OpenStax, Rice University` };
   }
-  return { url: '', license: 'open license (see source)', attribution: label };
+  // V0.14.1 4.8: drop the "(see source)" placeholder — the appendix already
+  // names the origin; an unregistered open source is just "open license".
+  return { url: '', license: 'open license', attribution: label };
+}
+
+/**
+ * V0.14.1 4.8: humanize a raw genome shard key into a readable citation title.
+ * Shard reference keys look like "writing about literature:reference §1" — the
+ * key is an internal identifier, never a title. Strip the ":reference §N"
+ * suffix and title-case the remainder.
+ *   "writing about literature:reference §1" → "Writing About Literature (open textbook)"
+ */
+function titleCaseWords(text) {
+  return cleanText(text)
+    .toLowerCase()
+    .split(/\s+/)
+    .filter(Boolean)
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(' ');
+}
+
+function isShardKeyLabel(label) {
+  // OpenStax / OER book labels ("OpenStax astronomy 2e §2.1") carry no colon;
+  // shard reference keys do ("…:reference §N", "…:something §N").
+  if (/:reference\b/i.test(label)) return true;
+  return /\S:\S/.test(label) && /§/.test(label) && !/:\/\//.test(label);
+}
+
+function humanizeShardKey(label) {
+  const base = cleanText(label)
+    .replace(/:reference\b.*$/i, '')
+    .replace(/:[\w-]+\s*§.*$/i, '')
+    .replace(/\s*§\s*\d.*$/, '')
+    .trim();
+  return `${titleCaseWords(base || label)} (open textbook)`;
+}
+
+/**
+ * V0.14.1 4.8: resolve a genome citation entry to a rendered citation.
+ * Accepts either a plain string label (current shard data) or an object
+ * carrying `{ displayTitle, sourceUrl, key }` (foundry manifest, added later).
+ * Display metadata is always PREFERRED when present; otherwise a shard-key
+ * label is humanized and a book label is rendered as-is. Never repeats the
+ * raw key inside one citation and never emits the "(see source)" placeholder.
+ */
+function resolveGenomeCitation(entry) {
+  let rawLabel = '';
+  let displayTitle = '';
+  let sourceUrl = '';
+  if (entry && typeof entry === 'object') {
+    rawLabel = cleanText(entry.key || entry.text || entry.label || entry.source || '');
+    displayTitle = cleanText(entry.displayTitle || '');
+    sourceUrl = cleanText(entry.sourceUrl || '');
+  } else {
+    rawLabel = cleanText(entry);
+  }
+  if (!rawLabel && !displayTitle) return null;
+
+  if (displayTitle) {
+    const { url, license } = openTextbookUrl(rawLabel || displayTitle);
+    const href = sourceUrl || url;
+    return {
+      dedupeKey: (rawLabel || displayTitle).toLowerCase(),
+      citation: `${displayTitle} (open textbook, ${license}${href ? ` — ${href}` : ''})`,
+      url: href,
+      license,
+      attribution: displayTitle,
+    };
+  }
+
+  if (isShardKeyLabel(rawLabel)) {
+    const humanized = humanizeShardKey(rawLabel);
+    return {
+      dedupeKey: rawLabel.toLowerCase(),
+      citation: `${humanized}, open license`,
+      url: '',
+      license: 'open license',
+      attribution: humanized,
+    };
+  }
+
+  const { url, license, attribution } = openTextbookUrl(rawLabel);
+  return {
+    dedupeKey: rawLabel.toLowerCase(),
+    citation: `${rawLabel} (open textbook, ${license}${url ? ` — ${url}` : ''})`,
+    url,
+    license,
+    attribution,
+  };
 }
 
 function sessionsByNumber(graph) {
@@ -130,16 +220,23 @@ export function attachGenomeResources(graph) {
     const numberMatch = String(key).match(/^lesson-(\d+)$/);
     const session = numberMatch ? byNumber.get(Number(numberMatch[1])) : null;
     if (!session || !payload || typeof payload !== 'object') continue;
-    const labels = [
+    // V0.14.1 4.8: resolve each provenance entry through resolveGenomeCitation
+    // so raw shard keys ("writing about literature:reference §1") render as
+    // readable titles and displayTitle metadata is preferred when present.
+    const rawEntries = [
       ...(payload.conceptProvenance?.citations || []),
       ...(payload.keyTerms || []).map((term) => term?.source),
-    ]
-      .map(cleanText)
-      .filter(Boolean);
-    for (const label of [...new Set(labels)].slice(0, 2)) {
-      const { url, license, attribution } = openTextbookUrl(label);
-      const citation = `${label} (open textbook, ${license}${url ? ` — ${url}` : ''})`;
-      if (seen.has(citation.toLowerCase()) || seen.has(label.toLowerCase())) continue;
+    ].filter((entry) => (entry && typeof entry === 'object') || cleanText(entry));
+    const resolved = [];
+    const localKeys = new Set();
+    for (const entry of rawEntries) {
+      const citation = resolveGenomeCitation(entry);
+      if (!citation || localKeys.has(citation.dedupeKey)) continue;
+      localKeys.add(citation.dedupeKey);
+      resolved.push(citation);
+    }
+    for (const { citation, dedupeKey, url, license, attribution } of resolved.slice(0, 2)) {
+      if (seen.has(citation.toLowerCase()) || seen.has(dedupeKey)) continue;
       seen.add(citation.toLowerCase());
       attachResource(graph, session, {
         id: nextId(),
@@ -158,10 +255,13 @@ export function attachGenomeResources(graph) {
     // course assumes but never teaches. One resource per primer, marked so
     // the lesson plan and appendix render it as a "needed background" item.
     for (const primer of payload.prerequisitePrimers || []) {
-      const { url, license, attribution } = openTextbookUrl(cleanText(primer.source));
+      const rawSource = cleanText(primer.source);
+      const { url, license, attribution } = openTextbookUrl(rawSource);
       const definition = cleanText(primer.definition);
+      // V0.14.1 4.8: never render a raw shard key as the source in-line.
+      const sourceLabel = rawSource ? (isShardKeyLabel(rawSource) ? humanizeShardKey(rawSource) : rawSource) : '';
       const citation = `Prerequisite primer — ${cleanText(primer.prerequisiteTerm)}: ${definition}${
-        primer.source ? ` (${cleanText(primer.source)})` : ''
+        sourceLabel ? ` (${sourceLabel})` : ''
       }`;
       if (seen.has(citation.toLowerCase())) continue;
       seen.add(citation.toLowerCase());
@@ -181,14 +281,186 @@ export function attachGenomeResources(graph) {
   return attached;
 }
 
-function readingQueryForSession(graph, session) {
+// ── V0.14.1 citation relevance (item 2.6) ──────────────────────────────────
+// The audit's single most credibility-damaging defect: the most-cited paper in
+// ALL of science was attached as a weekly reading for a bare term (MNIST for
+// geologic time, cancer-stats for world literature). Two layers fix it: a
+// DISCIPLINE ANCHOR threaded into the search, and a local topical-relevance
+// gate over the already-fetched title+abstract.
+
+// Generic course-title words that carry no discipline signal — dropped from
+// the anchor so "Introduction to Astronomy" → "Astronomy".
+const ANCHOR_NOISE = new Set([
+  'introduction',
+  'intro',
+  'introductory',
+  'foundations',
+  'foundation',
+  'fundamentals',
+  'fundamental',
+  'principles',
+  'basics',
+  'essentials',
+  'survey',
+  'overview',
+  'topics',
+  'studies',
+  'study',
+  'course',
+  'general',
+  'applied',
+  'advanced',
+  'and',
+  'of',
+  'to',
+  'the',
+  'a',
+  'an',
+  'for',
+  'in',
+  'i',
+  'ii',
+  'iii',
+]);
+
+// Stopwords for relevance tokenization — generic words that should not count
+// as a topical hit.
+const RELEVANCE_STOPWORDS = new Set([
+  ...ANCHOR_NOISE,
+  'lesson',
+  'week',
+  'unit',
+  'module',
+  'using',
+  'about',
+  'with',
+  'from',
+  'into',
+  'over',
+  'this',
+  'that',
+  'these',
+  'those',
+  'your',
+  'their',
+  'how',
+  'why',
+  'what',
+  'when',
+  'where',
+  'are',
+  'its',
+  'between',
+]);
+
+/** Lowercase, glue apostrophes, punctuation → space; returns a normalized string. */
+function normalizeForMatch(text) {
+  return cleanText(text)
+    .toLowerCase()
+    .replace(/['`’‘]/g, '')
+    .replace(/[^a-z0-9\s]/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+/** Significant tokens (≥4 chars, non-stopword), lightly de-pluralized. */
+function significantTokens(text) {
+  return normalizeForMatch(text)
+    .split(/\s+/)
+    .filter(Boolean)
+    .map((token) => (token.length > 4 && token.endsWith('s') ? token.slice(0, -1) : token))
+    .filter((token) => token.length >= 4 && !RELEVANCE_STOPWORDS.has(token));
+}
+
+/**
+ * The discipline anchor for a course: course-title tokens with generic words
+ * stripped. Falls back to nothing when the course name is generic/absent — the
+ * gate still works off concept + session-title terms.
+ */
+function courseDisciplineAnchor(graph) {
+  const name = cleanText(graph?.course?.name);
+  if (!name) return '';
+  const tokens = normalizeForMatch(name)
+    .split(/\s+/)
+    .filter((token) => token.length >= 3 && !ANCHOR_NOISE.has(token));
+  return tokens.join(' ');
+}
+
+function conceptTermsForSession(graph, session) {
   const teaches = (graph.edges?.teaches || []).filter((edge) => edge?.from === session.id);
   const conceptsById = new Map((graph.concepts || []).map((concept) => [concept.id, concept]));
-  const terms = teaches
+  return teaches
     .map((edge) => conceptsById.get(edge.to))
     .map((concept) => cleanText(concept?.term || concept?.title || concept?.name))
     .filter(Boolean);
+}
+
+function readingQueryForSession(graph, session) {
+  // Arg1 to the provider stays the bare concept term (the discipline anchor is
+  // applied at the provider boundary so the OpenAlex `search=` string carries
+  // it without coupling the query to the gate's term set).
+  const terms = conceptTermsForSession(graph, session);
   return terms[0] || cleanText(session.title).replace(/^Lesson \d+:?\s*/i, '');
+}
+
+/**
+ * Assemble the term set used by the relevance gate: concept terms (the strong
+ * topical signal), the session title (sans "Lesson N:"), and the course
+ * discipline anchor. Multi-word terms also become phrases for substring match.
+ */
+function relevanceTermsForSession(graph, session, anchor) {
+  const conceptTerms = conceptTermsForSession(graph, session);
+  const sessionTitle = cleanText(session.title).replace(/^Lesson \d+:?\s*/i, '');
+  const conceptTokens = new Set();
+  const allTokens = new Set();
+  const phrases = [];
+  const strongConceptTokens = new Set();
+
+  for (const term of conceptTerms) {
+    const tokens = significantTokens(term);
+    for (const token of tokens) {
+      conceptTokens.add(token);
+      allTokens.add(token);
+      if (token.length >= 6) strongConceptTokens.add(token);
+    }
+    const phrase = normalizeForMatch(term);
+    if (phrase.includes(' ')) phrases.push(phrase);
+  }
+  for (const token of significantTokens(sessionTitle)) allTokens.add(token);
+  const titlePhrase = normalizeForMatch(sessionTitle);
+  if (titlePhrase.includes(' ')) phrases.push(titlePhrase);
+  for (const token of significantTokens(anchor)) allTokens.add(token);
+
+  return { conceptTokens, allTokens, strongConceptTokens, phrases };
+}
+
+/**
+ * Score a candidate work's topical relevance against the lesson's term set.
+ * Returns { hits, phraseHit, strongConceptHit, pass }.
+ *
+ * Threshold (calibrated against the audit fixtures): a work passes when it
+ *   (a) contains a multi-word concept/title PHRASE, OR
+ *   (b) hits ≥2 DISTINCT query tokens, OR
+ *   (c) hits ≥1 STRONG (≥6-char) concept token — the topical handle for
+ *       legitimately single-word lessons ("Carbohydrates", "Inflammation").
+ * The audit's off-topic papers (MNIST, global-cancer-statistics,
+ * QUANTUM-ESPRESSO, hypertension guidelines) share ZERO concept tokens with
+ * their mis-assigned lessons, so they fail all three clauses; Horton 1945
+ * ("…STREAMS AND THEIR DRAINAGE BASINS…") hits stream/drainage/basin and the
+ * "drainage basin" phrase, so it passes.
+ */
+export function scoreReadingRelevance(work, terms) {
+  const { allTokens = new Set(), strongConceptTokens = new Set(), phrases = [] } = terms || {};
+  const contentNorm = normalizeForMatch(`${work?.title || ''} ${work?.abstract || ''}`);
+  const contentTokens = new Set(significantTokens(contentNorm));
+
+  let hits = 0;
+  for (const token of allTokens) if (contentTokens.has(token)) hits += 1;
+  let strongConceptHit = false;
+  for (const token of strongConceptTokens) if (contentTokens.has(token)) strongConceptHit = true;
+  const phraseHit = phrases.some((phrase) => phrase && contentNorm.includes(phrase));
+
+  return { hits, phraseHit, strongConceptHit, pass: phraseHit || hits >= 2 || strongConceptHit };
 }
 
 function formatScholarlyCitation(work) {
@@ -210,21 +482,56 @@ export async function attachOpenReadings(graph, { providers = {}, signal, maxSes
   const sessions = [...(graph.sessions || [])].sort((a, b) => (a.number || 0) - (b.number || 0)).slice(0, maxSessions);
   const seen = existingCitations(graph);
   const nextId = nextResourceIdFactory(graph);
+  const anchor = courseDisciplineAnchor(graph);
+  // V0.14.1 2.6: decisions the gate makes are recorded on the graph so the
+  // trust surface / telemetry can log them (the return shape stays a count,
+  // which existing callers depend on).
+  if (!Array.isArray(graph.readingListDecisions)) graph.readingListDecisions = [];
+  const decisions = graph.readingListDecisions;
   let attached = 0;
 
   const lessonResults = await Promise.allSettled(
     sessions.map(async (session) => {
       const query = readingQueryForSession(graph, session);
       if (!query) return { session, works: [] };
-      const works = await fetchReadings(query, { limit: 1, signal });
+      // V0.14.1 B: request several candidates (per relevance ranking) and
+      // anchor the search to the course discipline, so the gate has on-topic
+      // options to choose from.
+      const works = await fetchReadings(query, { limit: 6, signal, anchor });
       return { session, works };
     }),
   );
   for (const settled of lessonResults) {
     if (settled.status !== 'fulfilled') continue;
     const { session, works } = settled.value;
-    const work = (works || [])[0];
-    if (!work?.title || !work?.url) continue;
+    const candidates = (works || []).filter((work) => work?.title && work?.url);
+    if (candidates.length === 0) continue;
+
+    // V0.14.1 2.6: topical-relevance gate. Score every candidate; keep the
+    // best passing one (tie-break by citation count); if none passes, attach
+    // NOTHING and record why — no more MNIST-for-geology attachments.
+    const terms = relevanceTermsForSession(graph, session, anchor);
+    const scored = candidates
+      .map((work) => ({ work, score: scoreReadingRelevance(work, terms) }))
+      .filter((entry) => entry.score.pass)
+      .sort(
+        (a, b) =>
+          b.score.hits - a.score.hits ||
+          Number(b.score.phraseHit) - Number(a.score.phraseHit) ||
+          (b.work.citedBy || 0) - (a.work.citedBy || 0),
+      );
+    if (scored.length === 0) {
+      decisions.push({
+        type: 'no-relevant-reading',
+        lesson: session.number ?? null,
+        sessionId: session.id ?? null,
+        rejected: candidates.length,
+        candidates: candidates.slice(0, 4).map((work) => work.title),
+        message: `no relevant open reading found for L${session.number ?? '?'} (rejected ${candidates.length} famous-but-off-topic)`,
+      });
+      continue;
+    }
+    const work = scored[0].work;
     const citation = formatScholarlyCitation(work);
     if (seen.has(citation.toLowerCase())) continue;
     seen.add(citation.toLowerCase());

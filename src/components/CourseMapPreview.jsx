@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { buildLessonGroupMap, GROUP_COLORS } from '../lib/moduleGrouper';
+import { deriveCourseGraphFromCourseMap } from '../lib/courseGraph/deriveFromCourseMap.js';
 
 // Flatten a cell value to a plain string (handles arrays from AI responses)
 function toStr(val) {
@@ -43,6 +44,112 @@ const LIST_PREFIX = /^(?:[-•*]|\d+[a-z]?[.):])\s/;
 
 function courseMapCellKey({ lessonIndex, sectionIndex, field }) {
   return `${lessonIndex ?? ''}:${sectionIndex ?? 'lesson'}:${field || ''}`;
+}
+
+// ── v0.14.1 (3.5): assessment chips — the map cell indexes the deliverables ──
+// Each Weekly Assessments line that maps to a registry entry with a downstream
+// artifact becomes a clickable chip dispatching 'coursemapper:focus-deliverable'
+// (the symmetric flow of the 'coursemapper:focus-coursemap-cell' listener
+// below): exam → Quiz & Exam Bank, graded/oral → Assignment Briefs. In-class
+// entries live inside the session, so their lines render plain.
+const ASSESSMENT_FEATURE_BY_KIND = {
+  exam: 'quizBank',
+  oral: 'assignments',
+  'graded-artifact': 'assignments',
+};
+
+function canonicalAssessmentLineText(line) {
+  // "2. Map Activity: x → Assignment Briefs / Lesson 07" → "Map Activity: x"
+  return line
+    .trim()
+    .replace(LIST_PREFIX, '')
+    .split(/\s+→\s+/)[0]
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+/**
+ * Match a cell line to its registry entry: by position first (the registry
+ * splits the same cell into the same atoms), falling back to an exact title
+ * match when manual edits reordered lines. Exported for tests.
+ */
+export function resolveAssessmentChip(line, lineIndex, entries) {
+  if (!entries || entries.length === 0) return null;
+  const text = canonicalAssessmentLineText(line);
+  let entry = entries[lineIndex];
+  if (!entry || (text && entry.title.toLowerCase() !== text.toLowerCase())) {
+    entry = entries.find((candidate) => candidate.title.toLowerCase() === text.toLowerCase()) || entry;
+  }
+  if (!entry) return null;
+  const featureId = ASSESSMENT_FEATURE_BY_KIND[entry.kind];
+  if (!featureId) return null;
+  return {
+    featureId,
+    lessonNumber: entry.dueSession,
+    assessmentId: entry.id,
+    title: entry.title,
+  };
+}
+
+// Weekly Assessments cell body: linkable lines render as chips, the rest as
+// plain lines. Lives inside EditableCell's display span — chip clicks stop
+// propagation so the cell does not enter edit mode.
+function AssessmentCellContent({ text, entries }) {
+  const lines = splitIntoItems(text || '');
+  if (lines.length === 0) return null;
+
+  const dispatchChip = (chip) => {
+    window.dispatchEvent(new CustomEvent('coursemapper:focus-deliverable', { detail: chip }));
+  };
+
+  return (
+    <div className="space-y-1.5">
+      {lines.map((line, i) => {
+        const trimmed = line.trim();
+        const prefix = trimmed.match(/^(?:[-•*]|\d+[a-z]?[.):])/)?.[0] || '';
+        const cleaned = prefix ? trimmed.replace(LIST_PREFIX, '') : trimmed;
+        const chip = resolveAssessmentChip(line, i, entries);
+        return (
+          <div key={i} className="flex gap-1.5 leading-relaxed items-start">
+            {prefix && <span className="text-indigo-400 font-semibold flex-shrink-0 text-[10px] mt-[2px]">{prefix}</span>}
+            {chip ? (
+              <button
+                type="button"
+                data-assessment-chip="true"
+                data-assessment-id={chip.assessmentId}
+                data-feature-id={chip.featureId}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  e.preventDefault();
+                  dispatchChip(chip);
+                }}
+                onKeyDown={(e) => {
+                  // Keep Enter/Space on the chip from bubbling into the
+                  // cell's click-to-edit handler.
+                  if (e.key === 'Enter' || e.key === ' ') e.stopPropagation();
+                }}
+                className="tactile inline-flex items-start gap-1 px-2 py-0.5 -ml-0.5 rounded-full text-left font-medium text-indigo-700 bg-indigo-50/70 border border-indigo-200/60 hover:bg-indigo-100/80 hover:border-indigo-300/70 transition-all duration-150"
+                title={`Open in ${chip.featureId === 'quizBank' ? 'Quiz & Exam Bank' : 'Assignment Briefs'}`}
+                aria-label={`Open "${chip.title}" in ${chip.featureId === 'quizBank' ? 'Quiz & Exam Bank' : 'Assignment Briefs'}`}
+              >
+                <span>{cleaned}</span>
+                <svg className="w-3 h-3 flex-shrink-0 mt-[2px]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"
+                  />
+                </svg>
+              </button>
+            ) : (
+              <span>{cleaned}</span>
+            )}
+          </div>
+        );
+      })}
+    </div>
+  );
 }
 
 // Format cell text: split by newlines, detect bullets/numbers, render structured
@@ -124,6 +231,23 @@ export default function CourseMapPreview({
 
   // Build a map: lessonIndex → group
   const lessonGroupMap = useMemo(() => buildLessonGroupMap(moduleGroups), [moduleGroups]);
+
+  // ── v0.14.1 (3.5): assessment registry for the cell chips ──
+  // Derived from the rendered map itself (the same deterministic path the
+  // package exporter's manifest uses), so chips stay in lockstep with manual
+  // cell edits even when App-level courseGraph state lags a re-derivation.
+  const assessmentRegistry = useMemo(() => {
+    if (isStreaming || !courseMap?.lessons?.length) return null;
+    try {
+      return deriveCourseGraphFromCourseMap(courseMap);
+    } catch {
+      return null;
+    }
+  }, [courseMap, isStreaming]);
+  const assessmentsById = useMemo(
+    () => new Map((assessmentRegistry?.assessments || []).map((assessment) => [assessment.id, assessment])),
+    [assessmentRegistry],
+  );
 
   // Build a set of lesson indices that are the FIRST in their group (= header position)
   const groupFirstLessonMap = useMemo(() => {
@@ -690,6 +814,14 @@ export default function CourseMapPreview({
                     return (() => {
                       const isFocused =
                         focusedCellKey === courseMapCellKey({ lessonIndex: li, sectionIndex: si, field: key });
+                      // v0.14.1 (3.5): this section's registry entries, in
+                      // cell order — drives the assessment chips.
+                      const assessmentEntries =
+                        key === 'weeklyAssessments'
+                          ? (assessmentRegistry?.sessions?.[li]?.sections?.[si]?.assessmentRefs || [])
+                              .map((id) => assessmentsById.get(id))
+                              .filter(Boolean)
+                          : null;
                       return (
                         <td
                           key={key}
@@ -731,6 +863,7 @@ export default function CourseMapPreview({
                                 highlight={true}
                                 onAIContextMenu={onAIContextMenu}
                                 cellContext={{ lessonIndex: li, sectionIndex: si, columnKey: key }}
+                                assessmentEntries={assessmentEntries}
                               />
                             </div>
                           ) : (
@@ -741,6 +874,7 @@ export default function CourseMapPreview({
                               highlight={isChanged}
                               onAIContextMenu={onAIContextMenu}
                               cellContext={{ lessonIndex: li, sectionIndex: si, columnKey: key }}
+                              assessmentEntries={assessmentEntries}
                             />
                           )}
                         </td>
@@ -811,7 +945,7 @@ export default function CourseMapPreview({
   );
 }
 
-function EditableCell({ text, isStreaming, onSave, highlight, onAIContextMenu, cellContext }) {
+function EditableCell({ text, isStreaming, onSave, highlight, onAIContextMenu, cellContext, assessmentEntries }) {
   const [editing, setEditing] = useState(false);
   const [value, setValue] = useState(text);
   const textareaRef = useRef(null);
@@ -892,7 +1026,11 @@ function EditableCell({ text, isStreaming, onSave, highlight, onAIContextMenu, c
       tabIndex={onSave && !isStreaming ? 0 : undefined}
       aria-label={onSave && !isStreaming ? 'Click to edit cell' : undefined}
     >
-      <FormattedText text={text} />
+      {assessmentEntries?.length > 0 ? (
+        <AssessmentCellContent text={text} entries={assessmentEntries} />
+      ) : (
+        <FormattedText text={text} />
+      )}
     </span>
   );
 }

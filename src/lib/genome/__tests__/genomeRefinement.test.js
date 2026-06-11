@@ -141,7 +141,12 @@ describe('iteration 1 — genome-linked output through full compilation', () => 
     const { linked } = linkedEnrichment();
     expect(linked.telemetry.resolvedFromGenome).toBe(2);
     expect(linked.telemetry.citationsRendered).toBeGreaterThan(0);
-    expect(linked.missingIndices).toEqual([]);
+    // v0.14.1 (4.5): both lessons matched a single kernel, so they are
+    // PARTIAL links — the cited compositions ship (lessonContent), and the
+    // lessons also stay on the model path so augmentation can fill key
+    // terms to par.
+    expect(linked.missingIndices).toEqual([0, 1]);
+    expect(Object.keys(linked.partialOverlays)).toEqual(['lesson-1', 'lesson-2']);
   });
 
   it('orders prerequisites correctly and reports no findings for the right sequence', () => {
@@ -189,6 +194,9 @@ describe('iteration 1 — genome-linked output through full compilation', () => 
       'quizBank',
       compileBlueprintDeliverables(baselineBlueprint, ['quizBank'], {}).quizBank,
     );
-    expect(linkedAudit.metaShare).toBeLessThan(baseline.metaShare);
+    // v0.14.1: the deterministic quiz frames became content-bearing (item 1.7),
+    // so the un-linked baseline's meta share dropped to match the linked run.
+    // Linked output must never be MORE meta than baseline; equality is fine.
+    expect(linkedAudit.metaShare).toBeLessThanOrEqual(baseline.metaShare);
   });
 });

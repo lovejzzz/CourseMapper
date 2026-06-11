@@ -1,5 +1,6 @@
 import { safeImport } from './safeImport.js';
 import { assertOfficeExportHasNoInternalText } from './exportTextInspector.js';
+import { BODY_FONT } from './exporters/docTheme.js';
 
 // Lazy-loaded heavy dependencies
 let _docx, _saveAs;
@@ -27,7 +28,9 @@ const DEFAULT_LABELS = {
 };
 
 // ── Design tokens ──
-const FONT = 'Calibri';
+// v0.14.1 (1.13): object form (no eastAsia slot) — a string font would pin
+// w:eastAsia to Calibri and render CJK course maps as tofu.
+const FONT = BODY_FONT;
 const ACCENT = '2B579A';
 const ACCENT_LIGHT = 'D6E4F0';
 const H2_COLOR = '333333';

@@ -8,7 +8,12 @@
 import { generateCourseHealthReport } from './pedagogicalValidator';
 import { executeResearch } from './academicSearch';
 import { getArrayKey } from './syncDependencies';
-import { preValidateAction, preValidateCourseMapPatch } from './agentActions';
+import {
+  applyAssessmentAddressing,
+  preValidateAction,
+  preValidateCourseMapPatch,
+  resolveAssessmentReference,
+} from './agentActions';
 import { generateImages, OPENAI_SLIDE_IMAGE_MODEL } from './imageSearch';
 import { addMemory, searchMemories, deleteMemory, getMemories, MEMORY_CATEGORIES } from './agentMemory';
 import { saveAgentPrefs } from './cloudStorage';
@@ -247,7 +252,11 @@ function normalizeCourseFaqCloudExportActions(action = {}, ctx = {}) {
 }
 
 function normalizeDeliverableActionsForContext(actions = [], ctx = {}) {
-  return actions.flatMap((action) => normalizeCourseFaqCloudExportActions(action, ctx));
+  return actions
+    // v0.14.1 (3.6): "A7.2"/registry-title references resolve to concrete
+    // featureId/lessonIndex/itemIndex BEFORE validation and sync projection.
+    .map((action) => applyAssessmentAddressing(action, ctx))
+    .flatMap((action) => normalizeCourseFaqCloudExportActions(action, ctx));
 }
 
 const IMAGE_WORTHY_SLIDE_TYPES = new Set(['content', 'bridge', 'example', 'keyTerm', 'activity']);
@@ -1742,10 +1751,10 @@ export const AGENT_TOOLS = {
 
   edit_course_map: {
     description:
-      'Edit course map: rename lesson titles, edit cells (objectives, activities, topics, etc.), add or remove lessons. Changes are applied immediately. For title renames, set field to "title".',
+      'Edit course map: rename lesson titles, edit cells (objectives, activities, topics, etc.), add or remove lessons. Changes are applied immediately. For title renames, set field to "title". Assessments are addressable: {assessmentId:"A7.2", value} (or assessmentTitle) resolves to that assessment\'s weeklyAssessments cell without needing lessonIndex/sectionIndex/field.',
     params: {
       patches:
-        'array — each: {lessonIndex, sectionIndex?, field, value} for cells, {lessonIndex, field:"title", value} for rename, {action:"addLesson", title, sections?} to add, {action:"removeLesson", lessonIndex} to remove',
+        'array — each: {lessonIndex, sectionIndex?, field, value} for cells, {lessonIndex, field:"title", value} for rename, {action:"addLesson", title, sections?} to add, {action:"removeLesson", lessonIndex} to remove, {assessmentId:"A7.2"|assessmentTitle, value} to edit an assessment\'s weeklyAssessments cell by registry reference',
     },
     // Explicit JSON Schema for better LLM tool-calling accuracy
     jsonSchema: {
@@ -1766,6 +1775,16 @@ export const AGENT_TOOLS = {
                   'Field to edit: "title" for lesson title, or cell field name: "learningGoals", "learningObjectives", "topicSection", "weeklyAssessments", "asyncActivities", "syncActivities", "supportingResources", "technologyNeeded", "presentationFormat", "evaluateDesign". Abbreviations also accepted: "lo", "lg", "tp", "as", "ac", "rs"',
               },
               value: { type: 'string', description: 'New value for the field' },
+              assessmentId: {
+                type: 'string',
+                description:
+                  'Assessment registry id, e.g. "A7.2" (lesson 7, second Weekly Assessments atom). Resolves lessonIndex/sectionIndex/field to that assessment\'s weeklyAssessments cell when they are omitted.',
+              },
+              assessmentTitle: {
+                type: 'string',
+                description:
+                  'Alternative to assessmentId: the assessment\'s exact registry title (as shown in the Weekly Assessments cell, without the "→ ..." reference suffix).',
+              },
               action: { type: 'string', description: 'Special action: "addLesson" or "removeLesson"' },
               title: { type: 'string', description: 'Title for new lesson (when action is "addLesson")' },
               sections: {
@@ -1801,7 +1820,21 @@ export const AGENT_TOOLS = {
       );
       let nextAddLessonIndex = Array.isArray(ctx.courseMap?.lessons) ? ctx.courseMap.lessons.length : undefined;
       for (let index = 0; index < patches.length; index++) {
-        const patch = patches[index];
+        // v0.14.1 (3.6): a patch may address its target by assessment registry
+        // id ("A7.2") or title — resolve to the owning weeklyAssessments cell
+        // coordinates (explicit lessonIndex/sectionIndex/field still win).
+        let patch = patches[index];
+        if (patch && (patch.assessmentId || patch.assessmentTitle) && !patch.action) {
+          const resolved = resolveAssessmentReference(patch.assessmentId || patch.assessmentTitle, {
+            courseMap: ctx.courseMap,
+          });
+          if (resolved) {
+            patch = { ...patch };
+            if (patch.lessonIndex == null) patch.lessonIndex = resolved.courseMapTarget.lessonIndex;
+            if (patch.sectionIndex == null) patch.sectionIndex = resolved.courseMapTarget.sectionIndex;
+            if (!patch.field) patch.field = resolved.courseMapTarget.field;
+          }
+        }
         let action;
         if (patch.action === 'addLesson') {
           const lessonIndex = Number.isInteger(patch.lessonIndex) ? patch.lessonIndex : nextAddLessonIndex;
@@ -1880,10 +1913,10 @@ export const AGENT_TOOLS = {
 
   edit_deliverables: {
     description:
-      'Add, edit, or remove deliverable items. Course-design edits may be queued as blueprint sync patches instead of directly mutating artifact JSON; local wording/format edits are applied immediately with undo support when syncPolicy:"localOnly" is set. For slide decks, prefer expanded paths such as decks[].slides[].notes/visual; shorthand aliases are still accepted.',
+      'Add, edit, or remove deliverable items. Course-design edits may be queued as blueprint sync patches instead of directly mutating artifact JSON; local wording/format edits are applied immediately with undo support when syncPolicy:"localOnly" is set. For slide decks, prefer expanded paths such as decks[].slides[].notes/visual; shorthand aliases are still accepted. Assessments are addressable: an action naming assessmentId ("A7.2") or assessmentTitle resolves to the deliverable item that fulfills the assessment — exam → the quizBank lesson entry, graded/oral → the assignments array index — filling featureId/lessonIndex/itemIndex when omitted.',
     params: {
       actions:
-        'array — each: {type:"addItem"|"removeItem"|"editItem"|"replaceItem"|"regenerateLesson", featureId, lessonIndex, item?, itemIndex?, path?, value?, syncPolicy?:"auto"|"localOnly"|"blueprint"}',
+        'array — each: {type:"addItem"|"removeItem"|"editItem"|"replaceItem"|"regenerateLesson", featureId, lessonIndex, item?, itemIndex?, path?, value?, assessmentId?, assessmentTitle?, field?, syncPolicy?:"auto"|"localOnly"|"blueprint"}',
     },
     // Explicit JSON Schema for better LLM tool-calling accuracy
     jsonSchema: {
@@ -1923,6 +1956,20 @@ export const AGENT_TOOLS = {
                 items: {},
               },
               value: { description: 'New value to set (for editItem)' },
+              assessmentId: {
+                type: 'string',
+                description:
+                  'Assessment registry id, e.g. "A7.2" (lesson 7, second Weekly Assessments atom). Resolves to the fulfilling deliverable item: exam → the quizBank lesson entry (fills lessonIndex), graded/oral → the assignments array index (fills lessonIndex AND itemIndex). With editItem, combine with "field" to edit one field without spelling out the path.',
+              },
+              assessmentTitle: {
+                type: 'string',
+                description: 'Alternative to assessmentId: the assessment\'s exact registry title.',
+              },
+              field: {
+                type: 'string',
+                description:
+                  'With assessmentId/assessmentTitle on editItem: the item field to edit (e.g. "overview", "title") — expands to path [rootKey, resolvedIndex, field].',
+              },
               syncPolicy: {
                 type: 'string',
                 enum: ['auto', 'localOnly', 'blueprint'],

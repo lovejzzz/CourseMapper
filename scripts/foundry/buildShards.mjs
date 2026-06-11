@@ -49,9 +49,23 @@ function main() {
   const allAdmitted = [];
   const fullReport = [];
   const archetypes = [];
+  // V0.14.1 4.8: collect per-reference display metadata (displayTitle + sourceUrl)
+  // so genome citations render a human title instead of a raw shard key. Keyed by
+  // the reference src (e.g. "writing-about-literature:reference"); merged across
+  // sources and pinned into the manifest for the reading-list engine to prefer.
+  const references = {};
 
   for (const file of sourceFiles) {
     const raw = JSON.parse(readFileSync(join(sourcesDir, file), 'utf8'));
+    if (raw.references && typeof raw.references === 'object') {
+      for (const [key, meta] of Object.entries(raw.references)) {
+        if (!meta || typeof meta !== 'object') continue;
+        references[key] = {
+          displayTitle: String(meta.displayTitle || '').trim(),
+          ...(meta.sourceUrl ? { sourceUrl: String(meta.sourceUrl).trim() } : {}),
+        };
+      }
+    }
     // Archetype sources (Layer 2) carry `archetypes`, not concept `kernels`.
     if (Array.isArray(raw.archetypes)) {
       let admitted = 0;
@@ -128,6 +142,7 @@ function main() {
     conceptCount: allAdmitted.length,
     shards: shards.sort((a, b) => a.id.localeCompare(b.id)),
     ...(archetypeManifest ? { archetypeShard: archetypeManifest } : {}),
+    ...(Object.keys(references).length > 0 ? { references } : {}),
   };
   writeFileSync(join(outDir, 'manifest.json'), JSON.stringify(manifest, null, 2));
   console.log(

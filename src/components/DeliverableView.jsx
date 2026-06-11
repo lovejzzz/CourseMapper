@@ -21,6 +21,28 @@ import SyllabusView from './deliverables/SyllabusView';
 import CourseFaqView from './deliverables/CourseFaqView';
 import { normalizeRubricCoverage, normalizeRubricSupport } from '../lib/deliverablePostProcess';
 
+// ── v0.14.1 (3.5): assessment focus helpers ─────────────────────────────────
+// "Lesson 7" / "Week 7" mentions on a deliverable item resolve its lesson
+// number (compiled items also carry an explicit lessonNumber).
+export function parseItemLessonNumber(item) {
+  if (Number.isInteger(item?.lessonNumber) && item.lessonNumber > 0) return item.lessonNumber;
+  const probes = [
+    item?.lessonTitle,
+    item?.lt,
+    item?.dueWeek,
+    item?.lesson,
+    item?.title,
+    ...(Array.isArray(item?.relatedLessons) ? item.relatedLessons : []),
+  ];
+  for (const probe of probes) {
+    const match = String(probe || '').match(/(?:Lesson|Week)\s*(\d+)/i);
+    if (match) return Number(match[1]);
+  }
+  return null;
+}
+
+const FOCUS_HIGHLIGHT_CLASSES = ['ring-2', 'ring-amber-400', 'ring-inset', 'rounded-squircle-xs'];
+
 function getCoverageGap(featureId, data, courseMap) {
   if (!data || !courseMap) return null;
 
@@ -145,6 +167,95 @@ export default function DeliverableView({
     onDataChange(coverageGap.repairedData);
   }, [coverageGap, featureId, isStreaming, onDataChange, status]);
 
+  // ── v0.14.1 (3.5): course-map assessment chips land here ──
+  // The focus router switches the tab, then re-dispatches focus-deliverable-item;
+  // scroll to the matching item anchor and transiently highlight it (mirror of
+  // CourseMapPreview's focus-coursemap-cell listener: same 120ms settle, same
+  // amber ring, timed clear, cleanup on unmount).
+  const contentRef = useRef(null);
+  const focusTimersRef = useRef([]);
+  useEffect(() => {
+    const clearTimers = () => {
+      focusTimersRef.current.forEach((timer) => window.clearTimeout(timer));
+      focusTimersRef.current = [];
+    };
+
+    const handleFocusItem = (event) => {
+      const detail = event.detail || {};
+      if (detail.featureId && detail.featureId !== featureId) return;
+
+      const settleTimer = window.setTimeout(() => {
+        const anchors = Array.from(contentRef.current?.querySelectorAll('[data-assessment-anchor="true"]') || []);
+        if (anchors.length === 0) return;
+        const probeTitle = String(detail.title || '')
+          .trim()
+          .toLowerCase();
+        const match =
+          (detail.assessmentId &&
+            anchors.find((anchor) => anchor.dataset.assessmentId === String(detail.assessmentId))) ||
+          (probeTitle &&
+            anchors.find((anchor) => (anchor.dataset.assessmentTitle || '').toLowerCase().includes(probeTitle))) ||
+          (Number.isInteger(detail.lessonNumber) &&
+            anchors.find((anchor) => Number(anchor.dataset.lessonNumber) === detail.lessonNumber)) ||
+          null;
+        if (!match) return;
+
+        match.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        match.classList.add(...FOCUS_HIGHLIGHT_CLASSES);
+        const highlightTimer = window.setTimeout(() => {
+          match.classList.remove(...FOCUS_HIGHLIGHT_CLASSES);
+        }, 5000);
+        focusTimersRef.current.push(highlightTimer);
+      }, 120);
+      focusTimersRef.current.push(settleTimer);
+    };
+
+    window.addEventListener('coursemapper:focus-deliverable-item', handleFocusItem);
+    return () => {
+      window.removeEventListener('coursemapper:focus-deliverable-item', handleFocusItem);
+      clearTimers();
+    };
+  }, [featureId]);
+
+  // Reverse direction: "Show in course map" on an item header dispatches the
+  // EXISTING focus-coursemap-cell event with the item's Weekly Assessments
+  // cell coordinates (the preview's listener handles scroll + highlight; the
+  // focus router switches the tab first when the map is hidden).
+  const handleShowInCourseMap = useCallback(
+    (item) => {
+      const lessons = courseMap?.lessons || [];
+      const lessonNumber = parseItemLessonNumber(item);
+      const lessonIndex = Number.isInteger(lessonNumber)
+        ? Math.min(Math.max(lessonNumber - 1, 0), Math.max(lessons.length - 1, 0))
+        : 0;
+      const sections = lessons[lessonIndex]?.sections || [];
+      const probe = String(item?.title || item?.t || '')
+        .trim()
+        .toLowerCase();
+      let sectionIndex = probe
+        ? sections.findIndex((section) =>
+            String(section?.weeklyAssessments || '')
+              .toLowerCase()
+              .includes(probe),
+          )
+        : -1;
+      if (sectionIndex < 0) {
+        sectionIndex = sections.findIndex((section) => String(section?.weeklyAssessments || '').trim());
+      }
+      window.dispatchEvent(
+        new CustomEvent('coursemapper:focus-coursemap-cell', {
+          detail: {
+            type: 'courseMapCell',
+            lessonIndex,
+            sectionIndex: Math.max(sectionIndex, 0),
+            field: 'weeklyAssessments',
+          },
+        }),
+      );
+    },
+    [courseMap],
+  );
+
   // ── Early returns (after all hooks) ──
   if (status === 'error') return <ErrorState error={error} onRetry={onRetry} />;
 
@@ -184,6 +295,7 @@ export default function DeliverableView({
     onRegenerateProposal,
     slideTheme,
     onSlideThemeChange,
+    onShowInCourseMap: handleShowInCourseMap,
     ...editProps,
   };
 
@@ -465,11 +577,17 @@ export default function DeliverableView({
               Exit Full Screen
             </button>
           </div>
-          <div className="max-w-5xl mx-auto px-6 py-4">{deliverableContent}</div>
+          <div ref={contentRef} className="max-w-5xl mx-auto px-6 py-4">
+            {deliverableContent}
+          </div>
         </div>
       </FocusTrap>
     );
   }
 
-  return <div className={isSlides ? 'relative h-[calc(100vh-8rem)]' : 'relative'}>{deliverableContent}</div>;
+  return (
+    <div ref={contentRef} className={isSlides ? 'relative h-[calc(100vh-8rem)]' : 'relative'}>
+      {deliverableContent}
+    </div>
+  );
 }

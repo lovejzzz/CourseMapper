@@ -24,29 +24,63 @@ function lessonIdFor(lessonIndex) {
   return `lesson-${lessonIndex + 1}`;
 }
 
+// v0.14.1 (4.5): below this floor a genome match AUGMENTS the model instead
+// of displacing it. One matched kernel projects one key term, so treating any
+// match as full resolution shipped 1-term lessons next to 3-4-term model
+// lessons (the v0.14 World Lit audit).
+const FULL_RESOLUTION_MIN_KERNELS = 2;
+const FULL_RESOLUTION_MIN_KEY_TERMS = 3;
+
 /**
  * @param {object} args
  *  - courseMap, lessonIndices
  *  - library  (getIndex/getKernel)
  *  - cache    (get/set) — optional own-kernel cache
  *  - itemPlan, courseLevel hint
- * @returns {{ lessonContent, missingIndices, telemetry }}
+ *  - uncoveredDisciplines — inferred disciplines with no shard (P2.7), passed
+ *    through so the budget event can explain a 0-link run
+ * @returns {{ lessonContent, missingIndices, partialOverlays, telemetry }}
  */
-export function runGenomeLinker({ courseMap, lessonIndices, library, cache = null, itemPlan = [], level = null } = {}) {
+export function runGenomeLinker({
+  courseMap,
+  lessonIndices,
+  library,
+  cache = null,
+  itemPlan = [],
+  level = null,
+  uncoveredDisciplines = [],
+} = {}) {
   const lessonContent = {};
   const missingIndices = [];
+  // v0.14.1 (4.5): thin genome matches, keyed `lesson-N`. These lessons ALSO
+  // go to the model (they sit in missingIndices); the caller merges the two
+  // payloads via mergeLessonPayloads — genome terms first, model fills to par.
+  const partialOverlays = {};
   const telemetry = {
     resolvedFromCache: 0,
     resolvedFromGenome: 0,
+    partialFromGenome: 0,
     misses: 0,
     conceptHits: 0,
     citationsRendered: 0,
     tierCounts: {},
+    uncoveredDisciplines: [...uncoveredDisciplines],
   };
 
   const index = library?.getIndex ? library.getIndex() : null;
   const resolution = index ? resolveCourseConcepts(courseMap, index, { level }) : { perLesson: [] };
   const byLesson = new Map(resolution.perLesson.map((entry) => [entry.lessonIndex, entry]));
+
+  // v0.14.1 (4.6): cross-lesson quiz dedupe. conceptResolver deliberately
+  // allows the same concept in multiple lessons (coherence boost), but the
+  // composition always drew mcBank items from index 0 — World Lit shipped
+  // L7's Q1+Q2 byte-identical in L14. Track the next unused mcBank index per
+  // concept across the WHOLE run so a repeated concept draws fresh items; an
+  // exhausted bank yields fewer genome items and the compiler's deterministic
+  // frames fill the un-overlaid slots. Worked examples are
+  // first-occurrence-only (the v0.12.1 seenScaffolds rule for slides).
+  const mcBankOffsets = new Map(); // conceptId → next unused mcBank index
+  const shippedWorkedExampleConcepts = new Set(); // conceptIds whose example shipped
 
   for (const lessonIndex of lessonIndices) {
     const lesson = courseMap?.lessons?.[lessonIndex];
@@ -71,15 +105,41 @@ export function runGenomeLinker({ courseMap, lessonIndices, library, cache = nul
         {
           itemPlan,
           getArchetype: library.getArchetype ? (id) => library.getArchetype(id) : undefined,
+          mcOffsets: mcBankOffsets,
+          excludeWorkedExampleConcepts: shippedWorkedExampleConcepts,
         },
       );
       if (composed?.payload && (composed.payload.quizItems?.length || composed.payload.keyTerms?.length)) {
-        lessonContent[lessonId] = { ...composed.payload, enrichmentSource: 'genome-linked' };
+        // v0.14.1 (4.6): advance the course-level cursors only when the
+        // composition actually ships (full resolution OR partial overlay —
+        // both paths put these items in front of students). A rejected
+        // composition leaves its bank items available to later lessons.
+        for (const [conceptId, count] of Object.entries(composed.consumption?.mcConsumed || {})) {
+          if (count > 0) mcBankOffsets.set(conceptId, (mcBankOffsets.get(conceptId) || 0) + count);
+        }
+        if (composed.consumption?.workedExampleConceptId) {
+          shippedWorkedExampleConcepts.add(composed.consumption.workedExampleConceptId);
+        }
+        const payload = { ...composed.payload, enrichmentSource: 'genome-linked' };
+        lessonContent[lessonId] = payload;
         telemetry.resolvedFromGenome += 1;
         telemetry.conceptHits += conceptKernels.length;
         const tier = composed.conceptProvenance.tier;
         telemetry.tierCounts[tier] = (telemetry.tierCounts[tier] || 0) + 1;
         telemetry.citationsRendered += composed.conceptProvenance.citations.length;
+        // v0.14.1 (4.5): the genome augments, never displaces. A thin match
+        // stays available here (genome-only runs still ship its cited terms),
+        // but the lesson is NOT fully resolved: it keeps its place in
+        // missingIndices so the model path runs, and the composed payload is
+        // stashed as a partial overlay for the caller's merge.
+        if (
+          conceptKernels.length < FULL_RESOLUTION_MIN_KERNELS ||
+          (composed.payload.keyTerms?.length || 0) < FULL_RESOLUTION_MIN_KEY_TERMS
+        ) {
+          partialOverlays[lessonId] = payload;
+          telemetry.partialFromGenome += 1;
+          missingIndices.push(lessonIndex);
+        }
         continue;
       }
     }
@@ -143,6 +203,8 @@ export function runGenomeLinker({ courseMap, lessonIndices, library, cache = nul
   return {
     lessonContent,
     missingIndices,
+    partialOverlays,
+    uncoveredDisciplines: [...uncoveredDisciplines],
     telemetry,
     prerequisiteFindings,
     prerequisitePrimers,

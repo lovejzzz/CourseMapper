@@ -88,6 +88,23 @@ export function selectShardsForDisciplines(manifest, disciplines = []) {
 }
 
 /**
+ * v0.14.1 P2.7: which inferred disciplines have NO shard in the manifest.
+ * selectShardsForDisciplines returns [] silently on a coverage miss, so the
+ * v0.14 audit's 0-link courses (cs, geo, lang) gave no hint the discipline
+ * simply was not covered. Surfaced here so the genomeLink budget event can
+ * say "no shard for inferred discipline 'cs'" instead of an unexplained
+ * "0 genome + 0 cached".
+ */
+export function uncoveredDisciplinesForManifest(manifest, disciplines = []) {
+  const wanted = [
+    ...new Set(disciplines.map((discipline) => String(discipline || '').toLowerCase()).filter(Boolean)),
+  ];
+  if (wanted.length === 0) return [];
+  const covered = new Set((manifest?.shards || []).map((shard) => String(shard.discipline || '').toLowerCase()));
+  return wanted.filter((discipline) => !covered.has(discipline));
+}
+
+/**
  * Load the given shards into a kernel library. Best-effort: an unavailable
  * shard is skipped, never fatal — but a shard whose content fails its
  * manifest hash is REJECTED (integrity over availability). Returns
@@ -142,7 +159,18 @@ export async function loadArchetypeShard(library, manifest, options = {}) {
 
 export async function hydrateLibraryForDisciplines(library, disciplines, options = {}) {
   const manifest = await loadGenomeManifest(options);
-  if (!manifest) return { manifestVersion: null, added: 0, shardIds: [], rejectedShards: [], archetypesAdded: 0 };
+  if (!manifest) {
+    return {
+      manifestVersion: null,
+      added: 0,
+      shardIds: [],
+      rejectedShards: [],
+      archetypesAdded: 0,
+      // v0.14.1 P2.7: no genome deployed → every inferred discipline is
+      // uncovered, and the linker reports that instead of a silent 0-link.
+      uncoveredDisciplines: uncoveredDisciplinesForManifest(null, disciplines),
+    };
+  }
   const shards = selectShardsForDisciplines(manifest, disciplines);
   const { added, rejectedShards } = await loadShardsIntoLibrary(library, shards, options);
   // The archetype shard is global (not discipline-keyed) — load it whenever any
@@ -154,6 +182,7 @@ export async function hydrateLibraryForDisciplines(library, disciplines, options
     shardIds: shards.map((shard) => shard.id),
     rejectedShards,
     archetypesAdded,
+    uncoveredDisciplines: uncoveredDisciplinesForManifest(manifest, disciplines),
   };
 }
 
@@ -177,6 +206,16 @@ export function inferCourseDisciplines(courseMap) {
     ['history', /\bhistory|historical|civilization|\bwar\b|revolution|primary source/],
     ['lit', /\bliterat|literary|poetry|poem|novel|fiction|close reading|rhetoric|composition/],
     ['cs', /\bcomputer science|algorithm|programming|data structure/],
+    // v0.14.1 (4.2): geology + world-language inference. The v0.14 audit's
+    // Physical Geology and Mandarin courses inferred NOTHING — no regex
+    // existed, so the 0-link runs looked like linker failures. The 'lang'
+    // key has no shard yet; inferring it makes the gap visible through the
+    // 2.7 "no shard for inferred discipline" logging instead of silent.
+    ['geo', /\bgeolog|plate tectonic|mineral|seismolog|volcan|earth science|petrolog|geomorpholog|stratigraph/],
+    [
+      'lang',
+      /\bmandarin|\bchinese|\bspanish|\bfrench|\bgerman|\bjapanese|\barabic|\bkorean|\bitalian|foreign language|world language|\blanguage\b.*\b(?:elementary|beginner|beginning|conversation|i{1,3}|[12])\b/,
+    ],
   ];
   const found = map.filter(([, re]) => re.test(text)).map(([discipline]) => discipline);
   return [...new Set(found)];

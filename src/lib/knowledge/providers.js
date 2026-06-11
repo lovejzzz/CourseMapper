@@ -22,8 +22,39 @@ const OPENALEX_MAILTO = 'coursemapper@nyu.edu';
 
 function cleanText(value) {
   return String(value ?? '')
+    // V0.14.1 D1: strip HTML tags before they reach a syllabus. OpenAlex
+    // display_names occasionally carry markup ("A short history of<i>SHELX</i>");
+    // collapse the tag to a space so adjacent words don't fuse.
+    .replace(/<[^>]+>/g, ' ')
     .replace(/\s+/g, ' ')
     .trim();
+}
+
+/**
+ * V0.14.1 D2: author-name hygiene.
+ *  - normalize glued initials ("OliverH." → "Oliver H.") — OpenAlex
+ *    display_name artifacts. Conservative: only the specific pattern of a
+ *    lowercase letter immediately followed by a trailing single-capital
+ *    initial within one token.
+ */
+function normalizeAuthorName(name) {
+  return cleanText(name)
+    .split(/\s+/)
+    .map((token) => token.replace(/([a-z])([A-Z]\.)$/, '$1 $2'))
+    .join(' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+/**
+ * V0.14.1 D2: render up to three authors, appending " et al." when the full
+ * authorship list is longer — instead of silently truncating at three.
+ */
+function formatAuthorList(names, totalCount) {
+  const cleaned = (names || []).map(normalizeAuthorName).filter(Boolean);
+  const joined = cleaned.slice(0, 3).join(', ');
+  const total = Number.isFinite(totalCount) ? totalCount : cleaned.length;
+  return total > 3 && joined ? `${joined} et al.` : joined;
 }
 
 /** ISO week stamp — cache keys roll over weekly, not per-session. */
@@ -82,28 +113,36 @@ function abstractFromInvertedIndex(invertedIndex) {
 }
 
 /**
- * OpenAlex: peer-reviewed readings for a concept. Prefers open-access,
- * recent, and cited works. Returns [] on any failure.
+ * OpenAlex: peer-reviewed readings for a concept. Returns [] on any failure.
+ *
+ * V0.14.1 B (citation relevance): the old `sort=cited_by_count:desc` returned
+ * the most-cited papers in ALL of science for a bare term — the root cause of
+ * the audit's MNIST-for-geology / cancer-stats-for-literature attachments. We
+ * now use OpenAlex's DEFAULT relevance ranking (omit `sort` so `relevance_score`
+ * orders `search=` results) and fold the caller's discipline `anchor` into the
+ * search string. Citation count survives as `citedBy` for a downstream
+ * tie-break only. The caller requests several candidates and applies a local
+ * topical-relevance gate (see readingListEngine.scoreReadingRelevance).
  */
-export async function searchScholarlyReadings(query, { limit = 3, signal } = {}) {
+export async function searchScholarlyReadings(query, { limit = 3, signal, anchor } = {}) {
   const q = cleanText(query);
   if (!q) return [];
+  const search = cleanText(anchor) ? `${q} ${cleanText(anchor)}` : q;
   try {
     const url =
-      `https://api.openalex.org/works?search=${encodeURIComponent(q)}` +
-      `&filter=is_oa:true,is_retracted:false&sort=cited_by_count:desc&per_page=${limit}` +
+      `https://api.openalex.org/works?search=${encodeURIComponent(search)}` +
+      `&filter=is_oa:true,is_retracted:false&per_page=${limit}` +
       `&select=id,display_name,authorships,publication_year,cited_by_count,doi,primary_location,open_access,abstract_inverted_index` +
       `&mailto=${OPENALEX_MAILTO}`;
-    const json = await cachedFetchJson(`openalex:${q}:${limit}`, url, { signal });
+    const json = await cachedFetchJson(`openalex:${search}:${limit}`, url, { signal });
     return (json.results || []).map((work) => ({
       provider: 'openalex',
       kind: 'peer-reviewed reading',
       title: cleanText(work.display_name),
-      authors: (work.authorships || [])
-        .slice(0, 3)
-        .map((authorship) => cleanText(authorship.author?.display_name))
-        .filter(Boolean)
-        .join(', '),
+      authors: formatAuthorList(
+        (work.authorships || []).map((authorship) => authorship.author?.display_name),
+        (work.authorships || []).length,
+      ),
       year: work.publication_year || null,
       citedBy: work.cited_by_count || 0,
       abstract: abstractFromInvertedIndex(work.abstract_inverted_index),
@@ -135,7 +174,7 @@ export async function searchEducationResearch(query, { limit = 3, signal } = {})
       provider: 'eric',
       kind: 'education research',
       title: cleanText(doc.title),
-      authors: Array.isArray(doc.author) ? doc.author.slice(0, 3).join(', ') : cleanText(doc.author),
+      authors: Array.isArray(doc.author) ? formatAuthorList(doc.author, doc.author.length) : normalizeAuthorName(doc.author),
       year: Number(doc.publicationdateyear) || null,
       peerReviewed: doc.peerreviewed === 'T' || doc.peerreviewed === true,
       abstract: cleanText(doc.description).slice(0, 400),
@@ -165,7 +204,7 @@ export async function searchBookMetadata(query, { limit = 3, signal } = {}) {
       provider: 'openlibrary',
       kind: 'book',
       title: cleanText(doc.title),
-      authors: (doc.author_name || []).slice(0, 3).join(', '),
+      authors: formatAuthorList(doc.author_name, (doc.author_name || []).length),
       year: doc.first_publish_year || null,
       publisher: (doc.publisher || [])[0] || '',
       isbn: (doc.isbn || [])[0] || null,

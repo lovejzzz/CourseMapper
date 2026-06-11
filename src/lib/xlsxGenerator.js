@@ -1,6 +1,8 @@
 import { safeImport } from './safeImport.js';
 import { assertOfficeExportHasNoInternalText, sanitizeInternalExportLanguage } from './exportTextInspector.js';
 import { buildXlsxWorkbook, columnName, XLSX_MIME } from './lightweightXlsx.js';
+import { resolveFeatureLabel } from './exporters/exporterUtils.js';
+import { sanitizeFilePart } from './packageZipExporter.js';
 
 // Lazy-loaded download helper
 let _saveAs;
@@ -69,6 +71,108 @@ function buildColumns(customColumns) {
   return cols;
 }
 
+// ── v0.14.1 (3.4): package-context hyperlinks on assessment cells ───────────
+// Inside a downloaded package the course map indexes the deliverables, so each
+// Weekly Assessments cell links to the package file that fulfills it.
+//
+// Variant choice (Excel allows ONE hyperlink per CELL, not per line): the cell
+// text stays exactly as rendered — each line already carries its own
+// "→ Assignment Briefs / Lesson NN" / "→ Quiz & Exam Bank" reference from
+// 3.3a — and the whole cell links to the lesson's PRIMARY artifact file:
+// the lesson's Assignment Briefs docx when the section has any graded/oral
+// entry (after 3a's zip-naming decision one file carries all of that lesson's
+// briefs), else the lesson's Quiz & Exam Bank docx when the section carries an
+// exam. In-class-only cells get no link (they live inside the session).
+//
+// Links are OPT-IN via buildXlsxBuffer options.packageLinks — the standalone
+// course-map download and the Google Sheets upload build the same workbook
+// without options and must never carry dead relative links.
+
+const HYPERLINK_REL_TYPE = 'http://schemas.openxmlformats.org/officeDocument/2006/relationships/hyperlink';
+
+function escapeXmlAttr(value) {
+  return String(value ?? '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&apos;');
+}
+
+// Mirrors packageZipExporter's truncateFilePart + lessonFileStem (not exported
+// there); any change to the zip naming must be mirrored here so the relative
+// targets keep matching the real file names the zip writes.
+function truncateLessonFilePart(value, maxLength = 95) {
+  const text = sanitizeFilePart(value, 'Lesson');
+  if (text.length <= maxLength) return text;
+  return (
+    text
+      .slice(0, maxLength)
+      .replace(/\s+\S*$/, '')
+      .replace(/[.\-\s]+$/g, '') || text.slice(0, maxLength)
+  );
+}
+
+// "../Assignment Briefs/Lesson 08 - <title> - Assignment Briefs.docx" — the
+// path of the lesson's deliverable docx RELATIVE to the xlsx, which lives one
+// folder deep ("Course Map/<name>.xlsx") inside the extracted package.
+function lessonArtifactRelativePath(lessonTitle, lessonNumber, featureId) {
+  const label = sanitizeFilePart(resolveFeatureLabel(featureId), 'Deliverable');
+  const withoutPrefix = String(lessonTitle || '')
+    .replace(/^(?:lesson|week)\s*\d+\s*[:.-]?\s*/i, '')
+    .trim();
+  const safeTitle = truncateLessonFilePart(withoutPrefix || lessonTitle || `Lesson ${lessonNumber}`);
+  return `../${label}/Lesson ${String(lessonNumber).padStart(2, '0')} - ${safeTitle} - ${label}.docx`;
+}
+
+/**
+ * Resolve the registry the hyperlinks read from. The caller's graph is
+ * authoritative when it maps 1:1 onto the rendered map; a lesson-filtered map
+ * (its sessions no longer align by index) falls back to deriving from the
+ * rendered map itself — the same deterministic path the package exporter uses
+ * for its manifest registry.
+ */
+async function buildPackageLinkContext(courseMap, packageLinks) {
+  if (!packageLinks || typeof packageLinks !== 'object') return null;
+  const requested = Array.isArray(packageLinks.featureIds) ? packageLinks.featureIds : ['assignments', 'quizBank'];
+  const linkableFeatures = new Set(requested.filter((id) => id === 'assignments' || id === 'quizBank'));
+  if (linkableFeatures.size === 0) return null;
+
+  const lessons = Array.isArray(courseMap?.lessons) ? courseMap.lessons : [];
+  if (lessons.length === 0) return null;
+
+  let graph = null;
+  const provided = packageLinks.courseGraph;
+  if (Array.isArray(provided?.assessments) && provided?.sessions?.length === lessons.length) {
+    graph = provided;
+  } else {
+    try {
+      const { deriveCourseGraphFromCourseMap } = await safeImport(() => import('./courseGraph/deriveFromCourseMap.js'));
+      graph = deriveCourseGraphFromCourseMap(courseMap);
+    } catch {
+      return null;
+    }
+  }
+  if (!Array.isArray(graph?.assessments) || graph.assessments.length === 0) return null;
+
+  return {
+    graph,
+    linkableFeatures,
+    // Original lesson numbers per rendered row block (lesson-filtered package
+    // exports renumber positions but keep the zip's per-lesson file names).
+    lessonNumbers: Array.isArray(packageLinks.lessonNumbers) ? packageLinks.lessonNumbers : null,
+  };
+}
+
+// One linkable feature per cell: graded/oral entries win (briefs), then exams.
+function sectionLinkFeature(entries, linkableFeatures) {
+  if (entries.some((entry) => entry.kind === 'graded-artifact' || entry.kind === 'oral')) {
+    if (linkableFeatures.has('assignments')) return 'assignments';
+  }
+  if (entries.some((entry) => entry.kind === 'exam') && linkableFeatures.has('quizBank')) return 'quizBank';
+  return null;
+}
+
 // Flatten a cell value to a plain string (handles arrays from AI responses)
 function toStr(val) {
   if (val == null) return '';
@@ -134,10 +238,21 @@ function estimateRowHeight(row, columns) {
 }
 
 /**
- * Build xlsx buffer without downloading (for Google Sheets upload).
+ * Build xlsx buffer without downloading (for Google Sheets upload and the
+ * package zip).
+ *
+ * @param {object} [options] — { packageLinks } (v0.14.1 3.4): present ONLY in
+ *   the package-export context; assessment cells then hyperlink to the
+ *   package's deliverable files. Shape: { courseGraph?, featureIds?,
+ *   lessonNumbers? } — see buildPackageLinkContext.
  */
-export async function buildXlsxBuffer(courseMap, customColumns) {
-  const { columns, rows, merges, bandedRowIndexes } = buildCourseMapSheet(courseMap, customColumns);
+export async function buildXlsxBuffer(courseMap, customColumns, options = {}) {
+  const linkContext = await buildPackageLinkContext(courseMap, options.packageLinks);
+  const { columns, rows, merges, bandedRowIndexes, hyperlinks } = buildCourseMapSheet(
+    courseMap,
+    customColumns,
+    linkContext,
+  );
   const buffer = await buildXlsxWorkbook({
     title: `${courseMap.courseName || 'Course'} Course Map`,
     sheets: [
@@ -158,12 +273,13 @@ export async function buildXlsxBuffer(courseMap, customColumns) {
       },
     ],
   });
-  return await polishCourseMapWorkbook(buffer, columnName(columns.length));
+  return await polishCourseMapWorkbook(buffer, columnName(columns.length), hyperlinks);
 }
 
 // Workbook polish that the shared lightweight builder has no API for:
-// universal fonts, centered header labels, tab color, autofilter, print setup.
-async function polishCourseMapWorkbook(buffer, lastColumn) {
+// universal fonts, centered header labels, tab color, autofilter, print setup,
+// and (v0.14.1 3.4, package context only) cell hyperlinks + their rels part.
+async function polishCourseMapWorkbook(buffer, lastColumn, hyperlinks = []) {
   const JSZip = await getJSZip();
   const zip = await JSZip.loadAsync(buffer);
 
@@ -183,6 +299,36 @@ async function polishCourseMapWorkbook(buffer, lastColumn) {
     `<sheetPr><tabColor rgb="${HEADER_TAB_COLOR}"/><pageSetUpPr fitToPage="1"/></sheetPr><sheetViews>`,
   );
   sheet = sheet.replace('</sheetData>', `</sheetData><autoFilter ref="A1:${lastColumn}1"/>`);
+
+  // v0.14.1 (3.4): one external hyperlink per assessment cell. Targets are
+  // package-relative with forward slashes (URI-encoded so "Quiz & Exam Bank"
+  // survives), so they resolve wherever the zip is extracted. The <hyperlinks>
+  // block must precede pageMargins per the CT_Worksheet element order.
+  if (hyperlinks.length > 0) {
+    const relIdByTarget = new Map();
+    const relationships = [];
+    const hyperlinkXml = hyperlinks
+      .map(({ ref, target, tooltip }) => {
+        let relId = relIdByTarget.get(target);
+        if (!relId) {
+          relId = `rIdHl${relIdByTarget.size + 1}`;
+          relIdByTarget.set(target, relId);
+          relationships.push(
+            `<Relationship Id="${relId}" Type="${HYPERLINK_REL_TYPE}" Target="${escapeXmlAttr(encodeURI(target))}" TargetMode="External"/>`,
+          );
+        }
+        const tooltipAttr = tooltip ? ` tooltip="${escapeXmlAttr(tooltip)}"` : '';
+        return `<hyperlink ref="${ref}" r:id="${relId}"${tooltipAttr}/>`;
+      })
+      .join('');
+    sheet = sheet.replace('</worksheet>', `<hyperlinks>${hyperlinkXml}</hyperlinks></worksheet>`);
+    zip.file(
+      'xl/worksheets/_rels/sheet1.xml.rels',
+      `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">${relationships.join('')}</Relationships>`,
+    );
+  }
+
   sheet = sheet.replace(
     '</worksheet>',
     '<pageMargins left="0.25" right="0.25" top="0.5" bottom="0.5" header="0.3" footer="0.3"/>' +
@@ -201,19 +347,26 @@ async function polishCourseMapWorkbook(buffer, lastColumn) {
   return await zip.generateAsync({ type: 'arraybuffer', mimeType: XLSX_MIME });
 }
 
-function buildCourseMapSheet(courseMap, customColumns) {
+function buildCourseMapSheet(courseMap, customColumns, linkContext = null) {
   const columns = stripEmptyColumns(buildColumns(customColumns), courseMap);
   const rows = [columns.map((col) => sanitizeInternalExportLanguage(col.header))];
   const merges = [];
   // Alternate the soft band fill per LESSON block (lesson 1 plain, lesson 2
   // banded, ...) so each lesson's section rows read as one group.
   const bandedRowIndexes = new Set();
+  // v0.14.1 (3.4): package-context hyperlinks \u2014 { ref, target, tooltip }.
+  const hyperlinks = [];
+  const assessmentColumnIndex = columns.findIndex((col) => col.key === 'weeklyAssessments');
+  const assessmentsById = linkContext
+    ? new Map(linkContext.graph.assessments.map((assessment) => [assessment.id, assessment]))
+    : null;
 
   let currentRowNumber = 2;
   let lessonIndex = 0;
   for (const lesson of courseMap.lessons || []) {
     const startRowNumber = currentRowNumber;
     const sections = lesson.sections && lesson.sections.length > 0 ? lesson.sections : [{}];
+    let sectionIndex = 0;
     for (const section of sections) {
       rows.push(
         columns.map((col) => {
@@ -228,7 +381,25 @@ function buildCourseMapSheet(courseMap, customColumns) {
         }),
       );
       if (lessonIndex % 2 === 1) bandedRowIndexes.add(rows.length - 1);
+
+      if (linkContext && assessmentColumnIndex >= 0 && toStr(section.weeklyAssessments)) {
+        const registrySection = linkContext.graph.sessions?.[lessonIndex]?.sections?.[sectionIndex];
+        const entries = (registrySection?.assessmentRefs || [])
+          .map((id) => assessmentsById.get(id))
+          .filter(Boolean);
+        const featureId = sectionLinkFeature(entries, linkContext.linkableFeatures);
+        if (featureId) {
+          const lessonNumber = linkContext.lessonNumbers?.[lessonIndex] ?? lessonIndex + 1;
+          hyperlinks.push({
+            ref: `${columnName(assessmentColumnIndex + 1)}${currentRowNumber}`,
+            target: lessonArtifactRelativePath(lesson.title, lessonNumber, featureId),
+            tooltip: `Open ${resolveFeatureLabel(featureId)} for Lesson ${String(lessonNumber).padStart(2, '0')}`,
+          });
+        }
+      }
+
       currentRowNumber++;
+      sectionIndex++;
     }
 
     const endRowNumber = currentRowNumber - 1;
@@ -238,5 +409,5 @@ function buildCourseMapSheet(courseMap, customColumns) {
     lessonIndex++;
   }
 
-  return { columns, rows, merges, bandedRowIndexes };
+  return { columns, rows, merges, bandedRowIndexes, hyperlinks };
 }

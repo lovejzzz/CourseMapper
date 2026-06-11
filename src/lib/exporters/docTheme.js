@@ -20,6 +20,14 @@ export const DOC_FONTS = {
   body: 'Calibri',
 };
 
+// v0.14.1 (1.13): run-level font OBJECTS for the docx library. Passing a
+// STRING font makes docx expand it into all four w:rFonts slots INCLUDING
+// w:eastAsia, which pins CJK runs to Calibri/Georgia and renders tofu in
+// LibreOffice, Google Docs, and PDF pipelines. The object form deliberately
+// omits eastAsia so renderers fall back to a real CJK face.
+export const BODY_FONT = { ascii: DOC_FONTS.body, hAnsi: DOC_FONTS.body, cs: DOC_FONTS.body };
+export const HEAD_FONT = { ascii: DOC_FONTS.heading, hAnsi: DOC_FONTS.heading, cs: DOC_FONTS.heading };
+
 export const DOC_THEMES = {
   indigo: {
     id: 'indigo',

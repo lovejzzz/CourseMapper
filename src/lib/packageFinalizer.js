@@ -255,6 +255,225 @@ function applyDeterministicRepairs({
   };
 }
 
+/**
+ * v0.14.1 P2.2: partial enrichment coverage becomes a readiness issue the
+ * finalizer reports (visible in finish_complete and the UI) instead of a
+ * digest-only fact. Coverage < 60% is a blocker; any shortfall is a warning.
+ * Not routed into the retry queue — recovery already ran at generation time
+ * (useDeliverables P2.3) and compiled deliverables are frozen here.
+ */
+export function buildEnrichmentCoverageIssues(enrichmentOutcome) {
+  if (!enrichmentOutcome || enrichmentOutcome.modelStage !== 'ran') return [];
+  const requested = Number(enrichmentOutcome.requestedLessons) || 0;
+  const enriched = Number(enrichmentOutcome.enrichedLessons) || 0;
+  if (requested <= 0 || enriched >= requested) return [];
+  const missing = Array.isArray(enrichmentOutcome.missingLessons) ? enrichmentOutcome.missingLessons : [];
+  const coverage = enriched / requested;
+  return [
+    normalizeReadinessIssue({
+      severity: coverage < 0.6 ? 'blocker' : 'warning',
+      featureId: 'courseMap',
+      label: 'Enrichment coverage',
+      message: `Enrichment covered ${enriched}/${requested} lessons${
+        missing.length > 0 ? ` — lesson${missing.length === 1 ? '' : 's'} ${missing.join(', ')} fell back to template content` : ''
+      }`,
+      source: 'enrichmentCoverage',
+      retryable: false,
+      autoFixable: false,
+    }),
+  ];
+}
+
+// v0.14.1 P2.5: high-stakes language in a map assessment title — a phantom
+// midterm/final/oral is a much worse ship than a missing in-class check.
+const HIGH_STAKES_ASSESSMENT_RE = /\b(midterm|final|exam|capstone|performance|portfolio)\b/i;
+
+const ASSESSMENT_TITLE_STOPWORDS = new Set([
+  'a',
+  'an',
+  'and',
+  'as',
+  'at',
+  'by',
+  'for',
+  'from',
+  'in',
+  'into',
+  'of',
+  'on',
+  'or',
+  'per',
+  'the',
+  'to',
+  'with',
+]);
+
+function normalizeAssessmentTitle(value) {
+  return String(value ?? '')
+    .toLowerCase()
+    .replace(/[^\p{L}\p{N}]+/gu, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+function assessmentTitleTokens(value) {
+  return normalizeAssessmentTitle(value)
+    .split(' ')
+    .filter((token) => token && !ASSESSMENT_TITLE_STOPWORDS.has(token));
+}
+
+function parseLessonNumberFromText(value) {
+  if (Number.isInteger(value)) return value;
+  const match = String(value ?? '').match(/\d+/);
+  return match ? Number(match[0]) : null;
+}
+
+/**
+ * Downstream surfaces a map-promised assessment can resolve against:
+ *  - blueprint.assessments (title + artifact, per lesson) when the caller
+ *    still holds the blueprint (tests, future graph-first wiring);
+ *  - the compiled deliverables the finalizer always receives: assignment
+ *    briefs (title per dueWeek), the course assignment map, rubric titles,
+ *    and the syllabus grading-table rows (course-level).
+ * Lesson-plan prose is deliberately NOT scanned: at the finalizer call site
+ * it derives from the same blueprint.assessments (no independent signal) and
+ * can echo raw map cells, which would let a phantom midterm resolve itself.
+ */
+function collectDownstreamAssessmentCandidates({ blueprint, deliverables }) {
+  const candidates = [];
+  const push = (title, lessons) => {
+    const normalized = normalizeAssessmentTitle(title);
+    if (!normalized) return;
+    const lessonNumbers = (Array.isArray(lessons) ? lessons : [lessons]).filter(Number.isInteger);
+    candidates.push({
+      normalized,
+      tokens: new Set(normalized.split(' ')),
+      // null = course-level surface (syllabus grading row): matches any lesson.
+      lessonNumbers: lessonNumbers.length > 0 ? lessonNumbers : null,
+    });
+  };
+
+  for (const assessment of blueprint?.assessments || []) {
+    push(assessment?.title, assessment?.lessonNumbers);
+    if (assessment?.artifact && assessment.artifact !== assessment.title) {
+      push(assessment.artifact, assessment?.lessonNumbers);
+    }
+  }
+
+  const doneData = (featureId) => {
+    const entry = deliverables?.[featureId];
+    return entry?.status === 'done' && entry.data ? entry.data : null;
+  };
+
+  const assignments = doneData('assignments');
+  for (const brief of assignments?.assignments || []) push(brief?.title, parseLessonNumberFromText(brief?.dueWeek));
+  for (const row of assignments?.courseAssignmentMap || []) push(row?.artifact, parseLessonNumberFromText(row?.week));
+
+  const rubrics = doneData('rubrics');
+  for (const rubric of rubrics?.rubrics || []) push(rubric?.title, parseLessonNumberFromText(rubric?.lessonTitle));
+
+  const syllabus = doneData('syllabus');
+  for (const row of syllabus?.requirements || []) push(row?.name, null);
+
+  return candidates;
+}
+
+/**
+ * Tiered match against same-lesson (or course-level) candidates:
+ *  1. exact normalized title equality;
+ *  2. token subset — every meaningful graph-title token appears in the
+ *     candidate (map atom "Quiz: plate boundary evidence" ⊆ fused brief
+ *     "Quiz: plate boundary evidence and map Activity");
+ *  3. label subset — the fusion keeps only the second atom's pre-colon label,
+ *     so "Map Activity: boundary identification" resolves when its label
+ *     tokens {map, activity} all appear in the candidate. The label carries
+ *     the genre keyword, so a midterm can only label-resolve against text
+ *     that still says "midterm".
+ */
+function assessmentResolvesDownstream(assessment, candidates) {
+  const title = String(assessment?.title ?? '').trim();
+  const normalized = normalizeAssessmentTitle(title);
+  if (!normalized) return true;
+  const tokens = assessmentTitleTokens(title);
+  const colonIndex = title.indexOf(':');
+  const labelTokens = colonIndex > 0 ? assessmentTitleTokens(title.slice(0, colonIndex)) : [];
+  const dueSession = Number.isInteger(assessment?.dueSession) ? assessment.dueSession : null;
+
+  return candidates.some((candidate) => {
+    if (dueSession !== null && candidate.lessonNumbers !== null && !candidate.lessonNumbers.includes(dueSession)) {
+      return false;
+    }
+    if (candidate.normalized === normalized) return true;
+    if (tokens.length > 0 && tokens.every((token) => candidate.tokens.has(token))) return true;
+    return labelTokens.length > 0 && labelTokens.every((token) => candidate.tokens.has(token));
+  });
+}
+
+/**
+ * v0.14.1 P2.5: the map↔deliverable reconciliation gate. The v0.14 audit
+ * found course maps promising assessments that exist nowhere downstream —
+ * Geology's "Midterm Exam: minerals through metamorphic rocks", Mandarin's
+ * oral rubrics — because the blueprint mints ONE assessment per lesson while
+ * the graph carries every map atom. Until the Phase 3 assessment registry
+ * makes the drift impossible by construction, this gate detects it the day
+ * it regresses: every graph assessment must resolve to a downstream artifact.
+ * Unresolved high-stakes titles become warnings (message names the
+ * assessment and lesson); the rest fold into ONE info-level aggregate so
+ * legitimately brief-less in-class checks do not drown the user. Info issues
+ * are NOT merged into readiness (the schema would coerce them to warnings) —
+ * they surface through the finalizer result and the run digest.
+ * Graph-optional: legacy projects without a course graph return [] quietly,
+ * as does a package with no assessment-bearing artifact to reconcile against.
+ */
+export function buildAssessmentReconciliationIssues({ courseGraph, blueprint, deliverables } = {}) {
+  const graphAssessments = Array.isArray(courseGraph?.assessments) ? courseGraph.assessments : [];
+  if (graphAssessments.length === 0) return [];
+  const candidates = collectDownstreamAssessmentCandidates({ blueprint, deliverables });
+  if (candidates.length === 0) return [];
+
+  const issues = [];
+  const inClassOnlyTitles = [];
+  for (const assessment of graphAssessments) {
+    const title = String(assessment?.title ?? '').trim();
+    if (!title) continue;
+    if (assessmentResolvesDownstream(assessment, candidates)) continue;
+    const dueSession = Number.isInteger(assessment?.dueSession) ? assessment.dueSession : null;
+    if (HIGH_STAKES_ASSESSMENT_RE.test(title)) {
+      issues.push(
+        normalizeReadinessIssue({
+          severity: 'warning',
+          featureId: 'courseMap',
+          label: 'Assessment reconciliation',
+          message: `${title} — promised in course map${
+            dueSession !== null ? ` (Lesson ${dueSession})` : ''
+          }, no matching assignment or exam was generated`,
+          source: 'assessmentReconciliation',
+          ...(dueSession !== null ? { lessonNumber: dueSession } : {}),
+          retryable: false,
+          autoFixable: false,
+        }),
+      );
+    } else {
+      inClassOnlyTitles.push(title);
+    }
+  }
+  if (inClassOnlyTitles.length > 0) {
+    issues.push({
+      severity: 'info',
+      featureId: 'courseMap',
+      label: 'Assessment reconciliation',
+      message: `${inClassOnlyTitles.length} additional map assessment${
+        inClassOnlyTitles.length === 1 ? ' has' : 's have'
+      } no dedicated artifact (in-class activities)`,
+      source: 'assessmentReconciliation',
+      assessmentTitles: inClassOnlyTitles.slice(0, 8),
+      retryable: false,
+      autoFixable: false,
+    });
+  }
+  return issues;
+}
+
 function summarizeFinalizerStatus({ status, readiness, repairQueue, repairsApplied, retryActions }) {
   const repairText =
     repairsApplied > 0 ? `Auto-fixed ${repairsApplied} safe issue${repairsApplied === 1 ? '' : 's'}. ` : '';
@@ -291,6 +510,9 @@ export function runDeterministicPackageFinalizer({
   blockOnValidationWarnings = false,
   maxRetryActions = 4,
   retryWarnings = true,
+  enrichmentOutcome = null,
+  courseGraph = null,
+  blueprint = null,
 } = {}) {
   const repairResult = applyDeterministicRepairs({
     courseMap,
@@ -345,12 +567,33 @@ export function runDeterministicPackageFinalizer({
       healthReport,
     },
   );
+  // v0.14.1 P2.2: coverage issues join readiness (warning, blocker < 60%)
+  // but stay OUT of the retry channel below — the finalizer cannot re-enrich
+  // frozen compiled deliverables; recovery ran at generation time.
+  const enrichmentCoverageIssues = buildEnrichmentCoverageIssues(enrichmentOutcome);
+  // v0.14.1 P2.5: graph assessments with no downstream artifact. Warnings
+  // (high-stakes phantoms) join readiness at the same merge point as
+  // coverage; the info aggregate stays out (the issue schema would coerce it
+  // to a warning) and rides the result for the digest. Never in the retry
+  // channel — no retry pass can mint a missing exam; Phase 3's assessment
+  // registry fixes that by construction.
+  const assessmentReconciliationIssues = buildAssessmentReconciliationIssues({
+    courseGraph,
+    blueprint,
+    deliverables: finalDeliverables,
+  });
+  const reconciliationWarnings = assessmentReconciliationIssues.filter((issue) => issue.severity !== 'info');
   const readiness =
-    contentQualityIssues.length === 0
+    contentQualityIssues.length === 0 && enrichmentCoverageIssues.length === 0 && reconciliationWarnings.length === 0
       ? baseReadiness
       : (() => {
           const issues = normalizeReadinessIssues(
-            dedupeIssues([...(baseReadiness.issues || []), ...contentQualityIssues]),
+            dedupeIssues([
+              ...(baseReadiness.issues || []),
+              ...contentQualityIssues,
+              ...enrichmentCoverageIssues,
+              ...reconciliationWarnings,
+            ]),
           );
           const blockers = issues.filter((issue) => issue.severity === 'blocker');
           const warnings = issues.filter((issue) => issue.severity === 'warning');
@@ -405,6 +648,9 @@ export function runDeterministicPackageFinalizer({
     deliverables: finalDeliverables,
     readiness,
     classroomReadiness: readiness.classroomReadiness,
+    // v0.14.1 P2.5: the full reconciliation finding list (warnings + the
+    // info aggregate) for callers that surface it in the run digest.
+    assessmentReconciliationIssues,
     healthReport,
     repairQueue: {
       ...repairQueue,

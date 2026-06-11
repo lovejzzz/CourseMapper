@@ -29,7 +29,8 @@ function pricingAccuracy(ledger = []) {
  * @param {object} args
  *  - budget: the api call budget (usageLedger, pipeline, counters, tokenUsage)
  *  - exportVerification: verifier result ({status, checked, failed, warningCount, checks})
- *  - finish: { finalStatus, blockers, warnings, repairsApplied, retryCallCount, finishRunId }
+ *  - finish: { finalStatus, blockers, warnings, repairsApplied, retryCallCount, finishRunId,
+ *      assessmentReconciliationIssues }
  *  - generation: { provider, modelId, lessonCount, featureIds }
  */
 export function buildRunDigest({ budget = {}, exportVerification = null, finish = {}, generation = {} } = {}) {
@@ -55,6 +56,44 @@ export function buildRunDigest({ budget = {}, exportVerification = null, finish 
   const compiledWithoutEnrichment =
     compiledFeatureCount > 0 &&
     (!enrichmentOutcome || (enrichmentOutcome.modelStage !== 'ran' && (enrichmentOutcome.enrichedLessons || 0) === 0));
+  // v0.14.1 P2.2: the zero-enrichment gate generalizes to a coverage
+  // fraction. The v0.14 audit shipped Geology at 12/14 ("ran" looked green)
+  // — partial coverage now flags at warning with the lesson numbers.
+  const requestedLessons = Number(enrichmentOutcome?.requestedLessons) || 0;
+  const enrichedLessons = Number(enrichmentOutcome?.enrichedLessons) || 0;
+  const missingLessons = Array.isArray(enrichmentOutcome?.missingLessons) ? enrichmentOutcome.missingLessons : [];
+  const enrichmentCoverage = requestedLessons > 0 ? enrichedLessons / requestedLessons : null;
+  const partialEnrichment =
+    enrichmentOutcome?.modelStage === 'ran' && enrichmentCoverage !== null && enrichmentCoverage < 1;
+  const coverageChecks = [];
+  if (compiledWithoutEnrichment) {
+    coverageChecks.push({
+      featureId: 'content',
+      status: 'warning',
+      message: `${compiledFeatureCount} deliverable type(s) compiled without enrichment (mail-merge risk) — check enrichment setting and model capability profile`,
+    });
+  }
+  if (partialEnrichment) {
+    coverageChecks.push({
+      featureId: 'content',
+      status: 'warning',
+      message: `partial enrichment (${enrichedLessons}/${requestedLessons})${
+        missingLessons.length > 0
+          ? ` — lesson${missingLessons.length === 1 ? '' : 's'} ${missingLessons.join(', ')} fell back to template`
+          : ''
+      }`,
+    });
+  }
+  // v0.14.1 P2.5: map↔deliverable reconciliation findings ride the flagged
+  // checks so a phantom map assessment (Geology's midterm, Mandarin's oral
+  // rubric) is visible in the run record, not only the readiness UI.
+  const reconciliationChecks = (
+    Array.isArray(finish.assessmentReconciliationIssues) ? finish.assessmentReconciliationIssues : []
+  ).map((issue) => ({
+    featureId: 'alignment',
+    status: issue.severity === 'blocker' ? 'failed' : issue.severity === 'warning' ? 'warning' : 'info',
+    message: String(issue.message || '').slice(0, 200),
+  }));
 
   return {
     digestVersion: 1,
@@ -93,16 +132,8 @@ export function buildRunDigest({ budget = {}, exportVerification = null, finish 
       exportFailed: exportVerification?.failed ?? 0,
       exportWarnings: exportVerification?.warningCount ?? 0,
       compiledWithoutEnrichment,
-      flaggedChecks: compiledWithoutEnrichment
-        ? [
-            {
-              featureId: 'content',
-              status: 'warning',
-              message: `${compiledFeatureCount} deliverable type(s) compiled without enrichment (mail-merge risk) — check enrichment setting and model capability profile`,
-            },
-            ...flaggedChecks,
-          ]
-        : flaggedChecks,
+      enrichmentCoverage,
+      flaggedChecks: [...coverageChecks, ...reconciliationChecks, ...flaggedChecks],
     },
   };
 }

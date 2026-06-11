@@ -8,6 +8,7 @@
 import { getArrayKey } from './syncDependencies';
 import { isInternalExportMetadataKey } from './exporters/exporterUtils';
 import { KEY_MAPS } from './keyMaps';
+import { deriveCourseGraphFromCourseMap } from './courseGraph/deriveFromCourseMap.js';
 
 // ── Course map field aliases (agent shorthand → actual field key) ────────────
 // The AI may use abbreviated names; resolve them to real course map field keys.
@@ -75,6 +76,163 @@ function normalizeCourseMapField(field, sections, columns = []) {
   });
 
   return allowedFields.has(resolved) ? resolved : null;
+}
+
+// ── v0.14.1 (3.6): assessment addressing ─────────────────────────────────────
+// Assessments are addressable by registry id ("A7.2" = lesson 7, second map
+// atom) or by registry title. ADDRESSING ONLY: a reference resolves to the
+// coordinates the EXISTING edit paths already understand — the owning
+// weeklyAssessments course-map cell, and the deliverable item that fulfills
+// the assessment (exam → quizBank lesson entry, graded/oral → assignments
+// array index). No new tools, no new mutation semantics.
+
+const ASSESSMENT_ID_RE = /^A\d+\.\d+$/i;
+
+function normalizeAssessmentText(value) {
+  return String(value || '')
+    .replace(/\s+/g, ' ')
+    .trim()
+    .toLowerCase();
+}
+
+/**
+ * Resolve "A7.2" or a registry title against the course map's assessment
+ * registry (derived deterministically — the identical path the compiler and
+ * package manifest consume).
+ *
+ * @returns {null | { assessment, courseMapTarget: { lessonIndex, sectionIndex,
+ *   field: 'weeklyAssessments' }, deliverableFeatureId: 'assignments' |
+ *   'quizBank' | null }}
+ */
+export function resolveAssessmentReference(reference, { courseMap } = {}) {
+  const ref =
+    typeof reference === 'string'
+      ? reference
+      : reference?.assessmentId || reference?.assessmentTitle || reference?.title;
+  if (!ref || !courseMap?.lessons?.length) return null;
+
+  let graph;
+  try {
+    graph = deriveCourseGraphFromCourseMap(courseMap);
+  } catch {
+    return null;
+  }
+  const assessments = graph?.assessments || [];
+  const trimmedRef = String(ref).trim();
+
+  let assessment = null;
+  if (ASSESSMENT_ID_RE.test(trimmedRef)) {
+    assessment = assessments.find((entry) => entry.id.toLowerCase() === trimmedRef.toLowerCase()) || null;
+  } else {
+    const probe = normalizeAssessmentText(trimmedRef);
+    const exact = assessments.filter((entry) => normalizeAssessmentText(entry.title) === probe);
+    if (exact.length === 1) {
+      assessment = exact[0];
+    } else if (exact.length === 0 && probe.length >= 4) {
+      // Unambiguous containment only — a vague reference must not mutate the
+      // wrong assessment.
+      const loose = assessments.filter((entry) => {
+        const title = normalizeAssessmentText(entry.title);
+        return title.includes(probe) || probe.includes(title);
+      });
+      if (loose.length === 1) assessment = loose[0];
+    }
+  }
+  if (!assessment) return null;
+
+  const lessonIndex = assessment.dueSession - 1;
+  const sections = graph.sessions?.[lessonIndex]?.sections || [];
+  let sectionIndex = sections.findIndex((section) => (section.assessmentRefs || []).includes(assessment.id));
+  if (sectionIndex < 0) sectionIndex = 0;
+
+  return {
+    assessment,
+    courseMapTarget: { lessonIndex, sectionIndex, field: 'weeklyAssessments' },
+    deliverableFeatureId:
+      assessment.kind === 'exam' ? 'quizBank' : assessment.kind === 'in-class' ? null : 'assignments',
+  };
+}
+
+/** Locate the deliverable item a resolved assessment maps to. */
+function findAssessmentDeliverableIndex(resolved, deliverables) {
+  const featureId = resolved.deliverableFeatureId;
+  const data = featureId ? deliverables?.[featureId]?.data : null;
+  if (!data) return null;
+  const arrKey = getArrayKey(featureId, data);
+  const arr = data?.[arrKey];
+  if (!Array.isArray(arr)) return null;
+
+  const probe = normalizeAssessmentText(resolved.assessment.title);
+  // 1) Phase 3a reverse stamps: compiled items carry the registry id.
+  let index = arr.findIndex(
+    (item) => String(item?.assessmentId || '').toLowerCase() === resolved.assessment.id.toLowerCase(),
+  );
+  // 2) Exact title match (assignments title their items with the registry title).
+  if (index < 0) {
+    index = arr.findIndex(
+      (item) => normalizeAssessmentText(firstValue(item, ['title', 't', 'lessonTitle', 'lt'])) === probe,
+    );
+  }
+  // 3) Lesson-number match for per-lesson arrays (quizBank).
+  if (index < 0) {
+    index = arr.findIndex((item) => {
+      const itemLesson = Number.isInteger(item?.lessonNumber)
+        ? item.lessonNumber
+        : Number(
+            String(firstValue(item, ['lessonTitle', 'lt', 'dueWeek', 'title', 't']) || '').match(
+              /(?:Lesson|Week)\s*(\d+)/i,
+            )?.[1],
+          );
+      return itemLesson === resolved.assessment.dueSession;
+    });
+  }
+  // 4) quizBank arrays are lesson-ordered — fall back to positional.
+  if (index < 0 && featureId === 'quizBank' && resolved.assessment.dueSession - 1 < arr.length) {
+    index = resolved.assessment.dueSession - 1;
+  }
+  return { featureId, arrKey, index: index >= 0 ? index : null };
+}
+
+/**
+ * Fill an action's coordinates from its assessment reference (assessmentId or
+ * assessmentTitle). Explicit coordinates always win — only missing fields are
+ * resolved. Returns the action unchanged when nothing resolves.
+ */
+export function applyAssessmentAddressing(action, ctx = {}) {
+  if (!action || typeof action !== 'object') return action;
+  const reference = action.assessmentId ?? action.assessmentTitle ?? action.assessmentRef;
+  if (!reference) return action;
+  const resolved = resolveAssessmentReference(reference, ctx);
+  if (!resolved) return action;
+  const next = { ...action };
+
+  // Course-map actions target the owning weeklyAssessments cell.
+  if (next.type === 'editCell') {
+    if (next.lessonIndex == null) next.lessonIndex = resolved.courseMapTarget.lessonIndex;
+    if (next.sectionIndex == null) next.sectionIndex = resolved.courseMapTarget.sectionIndex;
+    if (!next.field) next.field = resolved.courseMapTarget.field;
+    return next;
+  }
+
+  // Deliverable actions target the fulfilling item.
+  if (!next.featureId || next.featureId === 'assessments') {
+    if (resolved.deliverableFeatureId) next.featureId = resolved.deliverableFeatureId;
+  }
+  const located = findAssessmentDeliverableIndex(resolved, ctx.deliverables);
+  if (located && located.featureId === next.featureId && Number.isInteger(located.index)) {
+    if (next.featureId === 'assignments') {
+      // Flat array: the executor addresses assignments by itemIndex
+      // (removeItem) and by lessonIndex-as-array-position (replaceItem).
+      if (next.itemIndex == null) next.itemIndex = located.index;
+      if (next.lessonIndex == null) next.lessonIndex = located.index;
+    } else if (next.lessonIndex == null) {
+      next.lessonIndex = located.index;
+    }
+    if (next.type === 'editItem' && !next.path && typeof next.field === 'string' && next.field) {
+      next.path = [located.arrKey, located.index, next.field];
+    }
+  }
+  return next;
 }
 
 // ── Action Types ─────────────────────────────────────────────────────────────
@@ -146,7 +304,9 @@ function inferAddItemSubArrayKey(featureId, item, requestedSubKey) {
 export function executeAction(action, ctx) {
   if (!action?.type) return { success: false, message: 'Invalid action: missing type' };
 
-  const { type, ...params } = action;
+  // v0.14.1 (3.6): resolve assessment references ("A7.2" / registry title)
+  // into the coordinates the executors below already understand.
+  const { type, ...params } = applyAssessmentAddressing(action, ctx);
 
   try {
     switch (type) {
@@ -681,6 +841,8 @@ function execRegenerateLesson({ featureId, lessonIndex }, { regenerateLesson, co
  */
 export function preValidateAction(action, ctx) {
   if (!action?.type) return { valid: false, reason: 'Missing action type' };
+  // v0.14.1 (3.6): validate the same resolved coordinates executeAction runs.
+  action = applyAssessmentAddressing(action, ctx);
   const { deliverables, courseMap } = ctx;
 
   // Deliverable actions require the deliverable to exist with data

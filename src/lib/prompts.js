@@ -254,6 +254,11 @@ export function buildUserPrompt(
       return activeColumnDefs[key] ? `"Example content for ${label}..."` : `"Thoughtful content for ${label}..."`;
     }
     if (key === 'topicSection' || key === 'presentationFormat') return `"Short ${label} string"`;
+    // Vary the example shapes: uniform two-atom samples anchor the model to
+    // identical counts in every lesson (the v0.14 audit found 3 of 4 courses
+    // shipped exactly 2 concepts / 8 outcomes / 4 assessments per lesson).
+    if (key === 'learningObjectives') return `["1a. compact objective", "1b. compact objective", "2a. compact objective"]`;
+    if (key === 'weeklyAssessments') return `["compact atom 1"]`;
     return `["compact atom 1", "compact atom 2"]`;
   };
 
@@ -324,7 +329,8 @@ ${guideline5}
 ${
   lean
     ? `8. LEAN OUTPUT MODE: Array fields contain compact atoms (short phrases), NOT prose. No stem sentences, no list numbering inside strings — the application renders stems and numbering deterministically. When a section has multiple learning goals, prefix each objective atom with its goal reference (e.g., "1a. Analyze...", "2b. Evaluate...").
-9. Every atom must still be specific to this lesson and grounded in the source materials. Terse but concrete; never generic filler. Do NOT generate evaluateDesign, presentationFormat, or technologyNeeded — the application derives these from your other fields. Add the optional "specialTools" array ONLY when the syllabus names concrete software or equipment for that section.`
+9. Every atom must still be specific to this lesson and grounded in the source materials. Terse but concrete; never generic filler. Do NOT generate evaluateDesign, presentationFormat, or technologyNeeded — the application derives these from your other fields. Add the optional "specialTools" array ONLY when the syllabus names concrete software or equipment for that section.
+9b. Let counts follow the content: the number of sections per lesson, objectives per section, and assessments per section should vary with what the material genuinely contains. Do NOT standardize counts across lessons — a heavy lesson may need 3 sections and 5 objectives, a light one 2 and 3.`
     : `8. When a section has multiple learning goals, number them sequentially (1, 2, 3… — never skip a number). Then prefix each learning objective with the goal number it maps to (e.g., 1a, 1b, 2a, 2b). If there is only one goal, no numbering is needed.
 9. CRITICAL — For learningObjectives: Write "Students will be able to:" ONCE as the opening stem, then list each objective starting directly with a Bloom's verb. Do NOT repeat "Students will be able to" on every line. Example: "Students will be able to:\\n1a. Analyze the impact of policy...\\n1b. Compare federal and state frameworks...\\n2a. Evaluate advocacy strategies..."`
 }

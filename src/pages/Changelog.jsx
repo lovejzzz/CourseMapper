@@ -3,6 +3,32 @@ import Header from '../components/Header';
 
 const releases = [
   {
+    version: '0.14.1',
+    date: 'June 11, 2026',
+    title: 'Output Integrity: every promise kept, every gate honest',
+    highlights: [
+      'The assessment registry ends the map↔deliverable divide: every assessment atom in the course map derives a typed registry entry (id "A7.2", kind exam/oral/graded/in-class, weight summing to 100) and the compiler consumes it — midterms and finals compile as real exams with answer keys drawn from the covered lessons’ verified item banks, oral performances get prompt sheets and speaking rubrics built from the lesson’s kernel vocabulary, every graded atom gets its brief with the registry title verbatim, and in-class checks are listed in the lesson plan instead of silently vanishing',
+      'The map becomes an index, not a parallel document: Weekly Assessments cells in the XLSX hyperlink to the actual brief and exam files inside the download, assessment chips in the app open the deliverable view (and "Show in course map" goes back), briefs carry a "Course Map L8 · A8.1 · 5%" stamp, the syllabus grading table renders id — title, and PACKAGE_MANIFEST lists the full registry with resolved artifact paths',
+      'Gates now measure meaning, not just structure: partial enrichment names its fallen lessons in the digest, manifest, and a finish warning (blocker below 60%) and spends reserved retry budget to recover them; the judgment line always renders (gaps, "no gaps across N linked concepts", or "not evaluated"); a reconciliation gate flags any map-promised assessment that no artifact implements; and the output-artifact gate gained eight armed defect classes from the v0.14 audit (JSON-in-cells, week-label mismatches, fused casing, truncated bullets, CJK font overrides, internal vocabulary, cover-meta, citation hygiene)',
+      'The reading list stops assigning famous-but-irrelevant papers: OpenAlex queries are discipline-anchored and relevance-ranked instead of citation-count-sorted, every candidate passes a topical overlap gate before attaching (the MNIST paper no longer qualifies as a Geologic Time reading), author lists append "et al.", HTML tags are stripped, and genome citations render humanized titles instead of raw shard keys',
+      'The genome covers the audit’s blind spots: cs-intro (OpenStax Introduction to Python Programming) and geo-intro (OpenGeology) shards bring the genome to 12 disciplines / 110 quote-verified concepts with prerequisite chains; geology and language courses now infer their disciplines; genome links write real graph edges (the "(0 genome-linked)" lie is dead); thin matches augment model enrichment instead of displacing it; repeated concepts draw fresh quiz items instead of duplicating verbatim; and re-linked concepts get a recap expert slide instead of none',
+      'A fifteen-fix quality sweep closes every remaining audit defect: week references resolve against their own lesson (the "Week 2 quiz" bug class is structurally gone), sample answers engage their scenario, "Aligns to" matches the stem, quiz frames ask content questions with rotating distractor pools, Bloom tags derive from stem verbs, Evaluate Design reports real section lint instead of rotating praise, slide bullets end in punctuation or an honest ellipsis, evidence tables render only genuine claim–evidence pairs (worked examples take the slide otherwise), speaker notes stop chanting the lesson title, hanzi runs no longer pin CJK-less fonts, Required Assets match the course genre (wet-lab courses finally get their experiment list), and raw JSON can never again ship inside a course-map cell',
+    ],
+    sections: [
+      {
+        label: 'Proof',
+        icon: 'QA',
+        color: 'emerald',
+        items: [
+          'Every finding from the V0.14 four-course audit (Mandarin, CS Python, Physical Geology, World Literature) maps to a fix with a regression test: twelve new test files, ~190 new tests, full suite 2580 → 2756 passing with the output-artifact gate fully armed (zero pending markers).',
+          'The audit’s headline defects are proven dead in fixtures shaped like the real courses: the phantom Geology midterm now compiles as a 14-item exam and the reconciliation gate reports zero high-stakes warnings; the Mandarin oral performance produces a prompt sheet and speaking rubric; the "Week 2 quiz" collision fixture renders every lesson’s own week number.',
+          'All 24 new genome kernels passed the mechanical quote-verification gate against live sources; npm run knowledge:audit: 0 failures, 0 warnings; the alias-collision lint stayed honest — hyphen-aware tokenization plus two degenerate aliases removed at the source rather than whitelisted.',
+          'Golden equivalence held without regenerating goldens: both compile paths consume the registry through the same shared derivation. Generation cost unchanged — the registry, exams, links, and gates are all deterministic.',
+        ],
+      },
+    ],
+  },
+  {
     version: '0.14.0',
     date: 'June 10, 2026',
     title: 'Judgment: the genome reasons about teaching',

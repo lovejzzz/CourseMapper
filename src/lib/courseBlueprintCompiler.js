@@ -244,27 +244,40 @@ function wordsFromConcepts(values, limit = 8) {
 }
 
 const OBJECTIVE_STEM_LEAD_RE =
-  /^(?:students?\s+(?:will\s+)?(?:be\s+able\s+to\s+)?)?(?:define|explain|describe|analyze|evaluate|create|design|compare|apply|synthesize|formulate|interpret|critique|develop|construct|identify|use|build|examine|assess|distinguish|review|practice|connect)\s+/i;
+  /^(?:students?\s+(?:will\s+)?(?:be\s+able\s+to\s+)?)?(?:define|explain|describe|analyze|evaluate|create|design|compare|apply|synthesize|formulate|interpret|critique|develop|construct|identify|use|build|examine|assess|distinguish|review|practice|connect|integrate|demonstrate|combine|classify|organize|summarize|investigate|explore|justify|relate|revise)\s+/i;
 
 function isQuestionLikeTitle(value) {
   return /^(?:what|why|how|when|where|who)\b/i.test(cleanText(value)) || /\b(?:and why|why it matters)\b/i.test(value);
 }
 
+const OBJECTIVE_IMPERATIVE_VERB_RE =
+  /^(?:analyze|evaluate|create|design|explain|compare|apply|synthesize|formulate|interpret|critique|develop|construct|identify|describe|use|integrate|connect|demonstrate|distinguish|examine|assess|review|practice|build|combine|classify|organize|summarize|investigate|explore|justify|relate|revise)\b/i;
+
+// v0.14.1: an objective sentence with a comma list ("Integrate mineral,
+// rock, and process concepts") is a command, not comma-separated terms —
+// splitting it shipped fragments like "Integrate mineral" as key terms.
+function isObjectiveSentenceValue(value) {
+  const text = cleanText(value);
+  if (!/^[A-Z]/.test(text) || !OBJECTIVE_IMPERATIVE_VERB_RE.test(text)) return false;
+  const commaIndex = text.indexOf(',');
+  return commaIndex !== -1 && /\b(?:and|or)\s+\S/i.test(text.slice(commaIndex));
+}
+
 function splitConceptValues(value) {
-  return splitList(value).flatMap((item) =>
-    cleanText(item)
+  return splitList(value).flatMap((item) => {
+    const text = cleanText(item);
+    if (isObjectiveSentenceValue(text)) return [text];
+    return text
       .split(/,\s*/)
       .map((part) => part.trim().replace(/^(?:and|or)\s+/i, ''))
-      .filter(Boolean),
-  );
+      .filter(Boolean);
+  });
 }
 
 function isObjectiveLikeConcept(value) {
-  return (
-    /^(?:analyze|evaluate|create|design|explain|compare|apply|synthesize|formulate|interpret|critique|develop|construct|identify|describe|use)\b/i.test(
-      cleanText(value),
-    ) && wordCount(value) > 4
-  );
+  const text = cleanText(value);
+  if (isObjectiveSentenceValue(text)) return true;
+  return OBJECTIVE_IMPERATIVE_VERB_RE.test(text) && wordCount(text) > 4;
 }
 
 function isOverlongConceptCandidate(value) {
@@ -353,10 +366,33 @@ function trimDanglingTail(value) {
   return text;
 }
 
-function conciseClause(value, fallback = 'course evidence', maxLength = 120) {
+function conciseClause(value, fallback = 'course evidence', maxLength = 120, { ellipsis = false } = {}) {
   const firstItem = splitList(value)[0] || cleanText(value, fallback);
   const text = stripTerminalPunctuation(firstItem || fallback);
   if (text.length <= maxLength) return text;
+  // v0.14.1 slide path: a cut bullet must read as deliberately shortened, not
+  // accidentally chopped ("…course pattern: run"). Back up to the last clause
+  // boundary when one keeps enough of the budget; otherwise mark the cut with
+  // an ellipsis so content verbs never strand at the end of a display bullet.
+  if (ellipsis) {
+    const slice = text.slice(0, maxLength);
+    const sentenceEnd = Math.max(
+      slice.lastIndexOf('.'),
+      slice.lastIndexOf('!'),
+      slice.lastIndexOf('?'),
+      slice.lastIndexOf(';'),
+    );
+    if (sentenceEnd >= Math.floor(maxLength * 0.6)) {
+      return cleanText(slice.slice(0, sentenceEnd + 1));
+    }
+    const clauseEnd = slice.lastIndexOf(',');
+    if (clauseEnd >= Math.floor(maxLength * 0.6)) {
+      const clause = trimDanglingTail(stripTerminalPunctuation(slice.slice(0, clauseEnd)));
+      if (clause) return `${clause}…`;
+    }
+    const wordCut = trimDanglingTail(stripTerminalPunctuation(slice.replace(/\s+\S*$/g, '')));
+    return wordCut ? `${wordCut}…` : fallback;
+  }
   // Prefer ending on a clause boundary; otherwise cut at a word boundary and
   // trim any dangling connective so the clause still reads as complete.
   const slice = text.slice(0, maxLength);
@@ -1482,6 +1518,51 @@ function featurePreference(blueprint, featureId) {
   return describeInstructorPreferenceForFeature(blueprintPreferenceProfile(blueprint), featureId);
 }
 
+// v0.14.1: preference bucket tokens from instructorPreferenceProfile.js are
+// internal vocabulary ("criterion-specific") — map each token to the phrase
+// an instructor would actually read before it reaches compiled text.
+const PREFERENCE_DISPLAY_LABELS = {
+  'criterion-specific': 'feedback tied to specific rubric criteria',
+  'criterion-specific feedback': 'feedback tied to specific rubric criteria',
+  'criterion-specific evidence feedback': 'feedback tied to specific rubric criteria and evidence',
+  'avoid vague rubric feedback patterns': 'avoiding vague rubric feedback',
+  'avoid generic praise-only feedback': 'avoiding generic praise-only feedback',
+  'concise course-specific notes': 'concise, course-specific slide notes',
+  'concise course-specific notes slides': 'concise, course-specific slides',
+  'avoid repetitive slide boilerplate': 'avoiding repetitive slide boilerplate',
+  'applied analysis with clear rationales': 'applied analysis questions with clear rationales',
+  'applied analysis with clear rationales quiz items': 'applied analysis quiz items with clear rationales',
+  'avoid low-context recall-only item sets': 'avoiding recall-only question sets',
+  'evidence-based applied checks': 'applied checks grounded in course evidence',
+  'avoid assessment items without rationale or evidence use':
+    'avoiding assessment items that lack rationales or evidence use',
+  'scaffolded evidence-to-artifact assessment': 'assessment scaffolded from evidence to the final artifact',
+  'avoid unscaffolded final-only assessment': 'avoiding final-only assessment without scaffolding',
+  'avoid lecture-heavy pacing': 'avoiding lecture-heavy pacing',
+  'scaffolded applied performance': 'scaffolded, applied performance tasks',
+  'avoid underspecified assignment handoffs': 'avoiding underspecified assignment handoffs',
+  'evidence-based peer response': 'peer responses grounded in evidence',
+  'avoid unsupported opinion exchange': 'avoiding opinion exchange without evidence',
+};
+
+function preferenceDisplayPhrase(preference) {
+  const mapped = unique(
+    cleanText(preference)
+      .split(/;\s*/)
+      .map((segment) => cleanText(segment))
+      .filter(Boolean)
+      .map((segment) => PREFERENCE_DISPLAY_LABELS[segment.toLowerCase()] || segment),
+    8,
+  );
+  // Drop a phrase another phrase already contains ("…rubric criteria" next
+  // to "…rubric criteria and evidence") so the sentence does not stutter.
+  const kept = mapped.filter(
+    (phrase, index) =>
+      !mapped.some((other, otherIndex) => otherIndex !== index && other.toLowerCase().includes(phrase.toLowerCase())),
+  );
+  return (kept.length > 0 ? kept : mapped).join('; ');
+}
+
 function preferenceReceipt(profile) {
   const normalized = normalizeInstructorPreferenceProfile(profile);
   if (!normalized) return null;
@@ -1548,6 +1629,58 @@ function inferBloomLevelFromSignals(signals = [], fallback = 'Apply') {
     matchedSignal: entries[0]?.text.slice(0, 220) || '',
     fallbackUsed: true,
   };
+}
+
+// v0.14.1 (5.4) Bloom honesty: per-item tags used to come from the quiz
+// frame's planned role (every quiz claimed Remember→Create regardless of its
+// stems) and BLOOM_TEXT_PATTERNS matched verbs anywhere in the signal in
+// taxonomy-descending order ("Produce the four tones in isolated syllables"
+// → Create because "produce" sits in the Create pattern). This map assigns
+// the level of the EARLIEST stem verb in the question or outcome text — the
+// verb that anchors what the student is actually asked to do — with the
+// existing assignment kept as the fallback when no mapped verb appears.
+const BLOOM_TAXONOMY_ORDER = ['Remember', 'Understand', 'Apply', 'Analyze', 'Evaluate', 'Create'];
+
+const BLOOM_STEM_VERBS = [
+  ['Remember', ['define', 'identify', 'list', 'name', 'recall', 'state', 'recognize']],
+  ['Understand', ['explain', 'describe', 'summarize', 'classify', 'interpret', 'distinguish']],
+  ['Apply', ['use', 'apply', 'demonstrate', 'solve', 'produce', 'practice', 'implement']],
+  ['Analyze', ['analyze', 'compare', 'trace', 'differentiate', 'examine', 'debug']],
+  ['Evaluate', ['evaluate', 'justify', 'critique', 'assess', 'defend']],
+  ['Create', ['create', 'design', 'compose', 'construct', 'develop', 'build']],
+];
+
+function bloomVerbForms(verb) {
+  if (/y$/.test(verb)) {
+    const stem = verb.slice(0, -1);
+    return [verb, `${stem}ies`, `${stem}ied`, `${verb}ing`];
+  }
+  if (/e$/.test(verb)) {
+    return [verb, `${verb}s`, `${verb}d`, `${verb.slice(0, -1)}ing`];
+  }
+  return [verb, `${verb}s`, `${verb}es`, `${verb}ed`, `${verb}ing`];
+}
+
+const BLOOM_STEM_VERB_PATTERNS = BLOOM_STEM_VERBS.map(([level, verbs]) => ({
+  level,
+  pattern: new RegExp(`\\b(?:${verbs.flatMap(bloomVerbForms).join('|')})\\b`, 'i'),
+}));
+
+export function bloomLevelFromStemVerb(text) {
+  const stem = cleanText(text);
+  if (!stem) return null;
+  let best = null;
+  for (const { level, pattern } of BLOOM_STEM_VERB_PATTERNS) {
+    const match = stem.match(pattern);
+    if (match && (best === null || match.index < best.index)) {
+      best = { level, index: match.index };
+    }
+  }
+  return best ? best.level : null;
+}
+
+function sortBloomLevels(levels) {
+  return BLOOM_TAXONOMY_ORDER.filter((level) => levels.includes(level));
 }
 
 function syntheticAssessmentPatternForBloom(bloomsLevel) {
@@ -3613,10 +3746,15 @@ function buildStudentArtifactLabel(assessmentText, title, fallback) {
   if (parts.length === 0) return fallback || `${stripLessonPrefix(title)} artifact`;
   const labels = parts.map((part) => assessmentTaskLabel(part, `${stripLessonPrefix(title)} artifact`));
   if (labels.length === 1) return labels[0];
-  const combined = `${labels[0]} and ${labels[1].charAt(0).toLowerCase()}${labels[1].slice(1)}`;
+  // v0.14.1: keep the second label's casing intact — lowercasing only its
+  // first character shipped fused titles like "Grammar Check and oral Drill".
+  const combined = `${labels[0]} and ${labels[1]}`;
   return combined.length <= 82 ? combined : labels[0];
 }
 
+// v0.14.1: domainLabel is course-facing — it names the running project in
+// syllabi and briefs ("<Course> Lab Notebook"), so it must read like a thing
+// a student keeps, not an internal pipeline label ("Lab Evidence Thread").
 function instructorProvidedThroughlineProfile(courseName, domainLabel, setting) {
   const courseLabel = cleanText(courseName, 'Course');
   return {
@@ -3655,56 +3793,56 @@ function selectThroughlineProfile({ courseName = '', courseConcepts = [], lens =
   if (/\b(social policy|welfare|benefits|human services|social work|poverty|public assistance)\b/.test(text)) {
     return instructorProvidedThroughlineProfile(
       courseName,
-      'Policy Evidence Thread',
+      'Policy Casebook',
       'a course-specific policy or practice context supplied by the instructor',
     );
   }
   if (/\b(environment|climate|sustainability|resilience|urban|planning)\b/.test(text)) {
     return instructorProvidedThroughlineProfile(
       courseName,
-      'Sustainability Evidence Thread',
+      'Sustainability Casebook',
       'an instructor-provided environmental, planning, or sustainability context',
     );
   }
   if (/\b(policy|public administration|governance|regulatory|stakeholder|equity)\b/.test(text)) {
     return instructorProvidedThroughlineProfile(
       courseName,
-      'Policy Analysis Thread',
+      'Policy Analysis Portfolio',
       'an instructor-provided policy decision context',
     );
   }
   if (/\b(healthcare|health care|clinical|patient|nursing|medical|care coordination)\b/.test(text)) {
     return instructorProvidedThroughlineProfile(
       courseName,
-      'Clinical Evidence Thread',
+      'Clinical Case Log',
       'an instructor-provided care, safety, or clinical reasoning context',
     );
   }
   if (/\b(research methods|survey|interview|ethnography|statistics|mixed methods|data collection)\b/.test(text)) {
     return instructorProvidedThroughlineProfile(
       courseName,
-      'Research Design Thread',
+      'Research Notebook',
       'an instructor-provided research question, source set, or methods example',
     );
   }
   if (/\b(lab|chemistry|biology|experiment|synthesis|chromatography|spectroscopy)\b/.test(text)) {
     return instructorProvidedThroughlineProfile(
       courseName,
-      'Lab Evidence Thread',
+      'Lab Notebook',
       'an instructor-provided lab procedure, observation, or results context',
     );
   }
   if (/\b(design|studio|prototype|user experience|ux|product)\b/.test(text)) {
     return instructorProvidedThroughlineProfile(
       courseName,
-      'Design Evidence Thread',
+      'Design Portfolio',
       'an instructor-provided user, prototype, or design critique context',
     );
   }
 
   return instructorProvidedThroughlineProfile(
     courseName,
-    'Evidence Thread',
+    'Evidence Portfolio',
     'the instructor-provided course context and assigned materials',
   );
 }
@@ -5776,6 +5914,45 @@ function normalizeAuditComparable(value) {
   return cleanText(value).toLowerCase();
 }
 
+// v0.14.1: primaryMode values are internal modality ids ("lecture-exam") —
+// interpolating them raw produced instructor text like "the lecture exam
+// evidence routine". Each id maps to the phrase a reader would actually use.
+const MODALITY_EVIDENCE_ROUTINE_LABELS = {
+  'world-language': 'the way this course collects spoken and written language evidence',
+  'accounting-finance-analysis': 'the way this course collects financial-analysis evidence',
+  'policy-analysis': 'the way this course collects policy-analysis evidence',
+  'economics-analysis': 'the way this course collects economic-analysis evidence',
+  'ethics-argumentation': 'the way this course collects argument and position evidence',
+  'information-literacy': 'the way this course collects source-evaluation evidence',
+  'teacher-preparation': 'the way this course collects teaching-practice evidence',
+  'counseling-practice': 'the way this course collects practice-session evidence',
+  'statistics-inference': 'the way this course collects statistical-reasoning evidence',
+  'data-science-lab': 'the way this course collects notebook and model evidence',
+  'programming-lab': 'the way this course collects code and test evidence',
+  'lecture-exam': 'the way this course collects exam and retrieval evidence',
+  'clinical-placement-practicum': 'the way this course collects placement and site evidence',
+  'clinical-judgment-simulation': 'the way this course collects clinical-judgment evidence',
+  'clinical-simulation': 'the way this course collects simulation evidence',
+  'capstone-project': 'the way this course collects project-milestone evidence',
+  'competency-based': 'the way this course collects competency evidence',
+  'performing-arts': 'the way this course collects rehearsal and performance evidence',
+  'creative-studio': 'the way this course collects studio-work evidence',
+  'case-method': 'the way this course collects case-analysis evidence',
+  'legal-doctrinal': 'the way this course collects case-brief and doctrine evidence',
+  'proof-seminar': 'the way this course collects proof and reasoning evidence',
+  'engineering-design-lab': 'the way this course collects design and test evidence',
+  'interpretive-humanities': 'the way this course collects textual-interpretation evidence',
+  'studio-lab': 'the way this course collects studio and critique evidence',
+  'field-applied': 'the way this course collects field-observation evidence',
+  'applied-lab': 'the way this course collects lab-procedure and results evidence',
+  'online-hybrid': 'the way this course collects online participation evidence',
+  'weekly-applied-seminar': 'the way this course collects seminar and artifact evidence',
+};
+
+function modalityEvidenceRoutineLabel(mode) {
+  return MODALITY_EVIDENCE_ROUTINE_LABELS[cleanText(mode)] || 'the way this course collects its evidence';
+}
+
 function buildLessonModalityDecode(profile = {}, lesson = {}) {
   const pattern = profile.teachingPattern || {};
   const mode = profile.primaryMode || 'weekly-applied-seminar';
@@ -5800,7 +5977,7 @@ function buildLessonModalityDecode(profile = {}, lesson = {}) {
       contextualizeModalityRoutine('instructorMove', pattern.instructorMove, { lesson, concept, artifact, mode }) ||
       `model one ${concept} decision, then coach students as they revise ${artifact}`,
     studentProduct: contextualizeModalityProduct(pattern.studentProduct, { lesson, concept, artifact }),
-    artifactCheck: `Confirm ${artifact} shows ${concept} through the ${mode} evidence routine, not only topic recall.`,
+    artifactCheck: `Confirm ${artifact} shows ${concept} through ${modalityEvidenceRoutineLabel(mode)}, not only topic recall.`,
     localReviewQuestion: `Confirm the local setting supports this ${mode} practice pattern before publishing ${stripLessonPrefix(lesson.title)}.`,
   };
 }
@@ -8209,14 +8386,22 @@ export function validateBlueprintSemanticContract(blueprint = {}) {
       );
     }
     if (!assessment) {
-      findings.push(
-        makeContractFinding(
-          'blocker',
-          'assessmentCoverage',
-          'Lesson has no assessment anchor for downstream assignments and rubrics.',
-          lessonNumber,
-        ),
-      );
+      // v0.14.1 (3.2): on the registry path a lesson whose map cell holds
+      // only in-class activities legitimately has no graded anchor (no
+      // brief, no rubric) — the registry still covers it in the lesson plan.
+      const registryCoversLesson =
+        Array.isArray(blueprint.assessmentRegistry) &&
+        blueprint.assessmentRegistry.some((entry) => entry.dueSession === lessonNumber);
+      if (!registryCoversLesson) {
+        findings.push(
+          makeContractFinding(
+            'blocker',
+            'assessmentCoverage',
+            'Lesson has no assessment anchor for downstream assignments and rubrics.',
+            lessonNumber,
+          ),
+        );
+      }
     } else if (!cleanText(assessment.artifact || lesson.studentArtifact)) {
       findings.push(
         makeContractFinding('blocker', 'assessmentAnchor', 'Assessment anchor is missing an artifact.', lessonNumber),
@@ -9799,18 +9984,29 @@ function compactSourceConflictReport(report = {}) {
   };
 }
 
-function shouldRebuildAssessmentAnchors(lessons = [], assessments = []) {
+function anchorNeedsRebuild(assessment) {
+  return (
+    !assessment?.artifact ||
+    !Array.isArray(assessment.criteria) ||
+    assessment.criteria.length < 3 ||
+    !Number.isFinite(assessment.weightPercent) ||
+    !assessment.weightProvenance?.source
+  );
+}
+
+function shouldRebuildAssessmentAnchors(lessons = [], assessments = [], assessmentRegistry = null) {
+  // v0.14.1 (3.2): registry-mode blueprints legitimately carry MORE (or
+  // fewer) anchors than lessons — one per graded registry entry. Health is
+  // judged per anchor; a restored compact blueprint (criteria stripped by
+  // storage) rebuilds from the persisted registry instead of the legacy
+  // one-per-lesson minting.
+  if (Array.isArray(assessmentRegistry) && assessmentRegistry.length > 0) {
+    if (!Array.isArray(assessments) || assessments.length === 0) return true;
+    if (!assessments.every((assessment) => assessment?.registryId)) return true;
+    return assessments.some(anchorNeedsRebuild);
+  }
   if (!Array.isArray(assessments) || assessments.length !== lessons.length) return true;
-  return lessons.some((lesson, index) => {
-    const assessment = findAssessmentForLesson(assessments, lesson, index);
-    return (
-      !assessment?.artifact ||
-      !Array.isArray(assessment.criteria) ||
-      assessment.criteria.length < 3 ||
-      !Number.isFinite(assessment.weightPercent) ||
-      !assessment.weightProvenance?.source
-    );
-  });
+  return lessons.some((lesson, index) => anchorNeedsRebuild(findAssessmentForLesson(assessments, lesson, index)));
 }
 
 function deriveRoutineFieldsForLesson(lesson = {}, index = 0) {
@@ -10060,8 +10256,12 @@ function deriveBlueprintForCompiler(blueprint = {}, options = {}) {
   ) {
     lessons = addCourseSequenceSemantics(lessons);
   }
-  let assessments = shouldRebuildAssessmentAnchors(lessons, blueprint.assessments)
-    ? buildAssessmentAnchors(lessons)
+  // v0.14.1 (3.2): the persisted registry governs anchor rebuilds — a
+  // restored blueprint reproduces the registry anchors (same ids, titles,
+  // weights), never the legacy fused one-per-lesson set.
+  const compileAssessmentRegistry = normalizeAssessmentRegistry(blueprint.assessmentRegistry);
+  let assessments = shouldRebuildAssessmentAnchors(lessons, blueprint.assessments, compileAssessmentRegistry)
+    ? buildAssessmentAnchors(lessons, compileAssessmentRegistry)
     : blueprint.assessments;
   const sourceConflictReport =
     blueprint.sourceConflictReport?.status && Array.isArray(blueprint.sourceConflictReport?.lessonRows)
@@ -10091,8 +10291,8 @@ function deriveBlueprintForCompiler(blueprint = {}, options = {}) {
   if (lessons.some((lesson) => !lesson.objectiveEvidencePlan?.objectiveRows)) {
     lessons = attachObjectiveEvidenceToLessons(lessons, assessments);
   }
-  if (shouldRebuildAssessmentAnchors(lessons, assessments)) {
-    assessments = buildAssessmentAnchors(lessons);
+  if (shouldRebuildAssessmentAnchors(lessons, assessments, compileAssessmentRegistry)) {
+    assessments = buildAssessmentAnchors(lessons, compileAssessmentRegistry);
   }
 
   const assessmentArchitecture =
@@ -10455,6 +10655,14 @@ const ASSESSMENT_ANCHOR_STORAGE_KEYS = new Set([
   'lessonNumbers',
   'relatedLessons',
   'source',
+  // v0.14.1 (3.2): registry identity persists with the project — recompiles
+  // and the reconciliation gate need kind/id/weight after restore. Legacy
+  // anchors never carry these keys, so their stored shape is unchanged.
+  'registryId',
+  'kind',
+  'dueSession',
+  'weight',
+  'weightPercent',
 ]);
 
 const SOURCE_TRACE_STORAGE_KEYS = new Set([
@@ -10548,6 +10756,12 @@ export function compactBlueprintForStorage(blueprint = {}) {
   // citations are small and exports must survive restore.
   if (Array.isArray(blueprint.knowledgeResources) && blueprint.knowledgeResources.length > 0) {
     compact.knowledgeResources = clonePlain(blueprint.knowledgeResources);
+  }
+  // v0.14.1 (3.2): the full assessment registry (including in-class entries)
+  // stays enumerable — lesson plans and study guides list it on recompile,
+  // and it is small (id/title/kind/dueSession/weightPct per map atom).
+  if (Array.isArray(blueprint.assessmentRegistry) && blueprint.assessmentRegistry.length > 0) {
+    compact.assessmentRegistry = clonePlain(blueprint.assessmentRegistry);
   }
   return attachHydratedFields(compact, blueprint, TOP_LEVEL_HYDRATED_BLUEPRINT_KEYS);
 }
@@ -11836,7 +12050,220 @@ function buildAssessmentAnchorExamples(lesson, criteria, criterionEvidenceMap, v
   };
 }
 
-function buildAssessmentAnchors(lessons) {
+// ── v0.14.1 Phase 3.2: the compiler consumes the assessment registry ───────
+// blueprint.assessments stops being one-fused-anchor-per-lesson: when the
+// course graph supplies a registry (deriveFromCourseMap 3.1), every graded
+// registry entry becomes a full assessment anchor with its VERBATIM map
+// title — kind 'graded-artifact'/'oral' get briefs, kind 'exam' compiles a
+// real exam document in the quiz bank, kind 'in-class' stays a lesson-plan
+// activity (no anchor). buildStudentArtifactLabel's fusion path is retired
+// on this path; it remains the legacy fallback when no graph exists.
+
+const REGISTRY_ASSESSMENT_KINDS = new Set(['graded-artifact', 'exam', 'oral', 'in-class']);
+
+function normalizeAssessmentRegistry(registry) {
+  if (!Array.isArray(registry)) return null;
+  const entries = registry
+    .filter(
+      (entry) => entry && typeof entry === 'object' && cleanText(entry.title) && Number.isInteger(entry.dueSession),
+    )
+    .map((entry, index) => ({
+      id: cleanText(entry.id) || `A${entry.dueSession}.${index + 1}`,
+      title: cleanText(entry.title),
+      kind: REGISTRY_ASSESSMENT_KINDS.has(entry.kind) ? entry.kind : 'graded-artifact',
+      dueSession: entry.dueSession,
+      weightPct: Number.isFinite(entry.weightPct) ? entry.weightPct : null,
+    }));
+  return entries.length > 0 ? entries : null;
+}
+
+// Speaking-performance criteria for kind 'oral' — parameterized from the
+// lesson's own terms and title (no hardcoded English-course phrasing), so
+// compileRubrics attaches a real speaking rubric to the prompt sheet.
+function buildSpeakingAssessmentCriteria(lesson, assessmentTitle) {
+  const concept = lesson.keyConcepts?.[0] || stripLessonPrefix(lesson.title);
+  const terms = unique(
+    [
+      ...((lesson.enrichment?.keyTerms || []).map((term) => cleanText(term?.term)) || []),
+      ...(lesson.keyConcepts || []).map((term) => cleanText(term)),
+    ].filter(Boolean),
+    3,
+  );
+  const title = stripTerminalPunctuation(assessmentTitle);
+  return [
+    `Pronunciation and intelligibility while presenting ${concept} in ${title}`,
+    `Fluency and pacing across the ${title} speaking tasks`,
+    `Vocabulary use: accurate, in-context use of ${terms.length > 0 ? terms.join(', ') : `${concept} terms`}`,
+    `Task completion and interaction for ${title}`,
+  ];
+}
+
+function registryExamRoleDescriptor(lesson, entry) {
+  const isFinal = /\b(final|comprehensive)\b/i.test(entry.title);
+  const concept = lesson.keyConcepts?.[0] || stripLessonPrefix(lesson.title);
+  return {
+    role: 'summative-exam',
+    label: isFinal ? 'Final exam' : 'Exam',
+    stakes: 'high',
+    rawWeight: 18,
+    gradingMode: 'timed exam scored against the included answer key',
+    roleRationale: `${entry.title} verifies cumulative command of the covered lessons under exam conditions.`,
+    studentFacingPurpose: `Show what you can do without scaffolding: apply the covered concepts, including ${concept}, under exam conditions.`,
+    feedbackWindow: 'Return scores with an answer-key review within one week.',
+    revisionUse: `Use the answer-key review to target the concepts ${entry.title} showed need reteaching.`,
+  };
+}
+
+function registryOralRoleDescriptor(lesson, entry) {
+  const concept = lesson.keyConcepts?.[0] || stripLessonPrefix(lesson.title);
+  const highStakes = /\b(final|midterm|capstone)\b/i.test(entry.title);
+  return {
+    role: 'oral-performance',
+    label: 'Oral performance',
+    stakes: highStakes ? 'high' : 'medium-high',
+    rawWeight: highStakes ? 16 : 10,
+    gradingMode: 'live performance scored with the speaking rubric',
+    roleRationale: `${entry.title} shows whether students can use ${concept} in live, spoken performance, not only in writing.`,
+    studentFacingPurpose: `Demonstrate spoken command of ${concept} using the prompt sheet tasks.`,
+    feedbackWindow: 'Return rubric-level feedback within one week of the performance.',
+    revisionUse: `Use speaking-rubric feedback to target pronunciation, fluency, or vocabulary gaps before the next performance.`,
+  };
+}
+
+function registryWeightProvenance(entry, lesson) {
+  return {
+    version: 1,
+    planStatus: 'registry-distributed',
+    planPolicy:
+      'Weights come from the course-map assessment registry: distributed across each lesson’s assessments by kind (exams heavier), summing to 100%.',
+    planReviewReason: 'Registry weights are kind-aware drafts unless the course map stated explicit percentages.',
+    source: 'course-map-registry',
+    sourceStatus: 'registry-distributed',
+    sourceWeightPercent: null,
+    sourceEvidence: entry.title,
+    reviewRequired: true,
+    rationale: `Weight ${entry.weightPct}% reflects "${entry.title}" (${entry.kind}) within the Lesson ${entry.dueSession} assessment set.`,
+    reviewerAction: `Confirm the official grading weight for ${entry.title} (${lesson.title}) before publishing.`,
+  };
+}
+
+/**
+ * Registry-mode anchors: one full anchor per graded registry entry, sharing
+ * the lesson's pedagogical machinery (criteria, validity, calibration,
+ * anchor examples) while carrying registry identity (id, kind, verbatim
+ * title, registry weight). A lesson with two graded artifacts gets two
+ * anchors — two briefs, two rubrics.
+ */
+function buildRegistryAssessmentAnchors(lessons, registry) {
+  const lessonByNumber = new Map(lessons.map((lesson) => [lesson.lessonNumber, lesson]));
+  const graded = registry.filter((entry) => entry.kind !== 'in-class' && lessonByNumber.has(entry.dueSession));
+  if (graded.length === 0) return null;
+
+  // Weight hygiene: registry weights sum to 100 at derive time; scoped
+  // compiles (lesson subsets) and null weights re-normalize here so the
+  // syllabus grading table always totals 100.
+  const known = graded.reduce((sum, entry) => sum + (Number.isFinite(entry.weightPct) ? entry.weightPct : 0), 0);
+  const unknown = graded.filter((entry) => !Number.isFinite(entry.weightPct));
+  let weights = graded.map((entry) => (Number.isFinite(entry.weightPct) ? entry.weightPct : 0));
+  if (unknown.length > 0 || known !== 100) {
+    weights = distributeWeightedPercent(
+      graded.map((entry) =>
+        Number.isFinite(entry.weightPct) && entry.weightPct > 0
+          ? entry.weightPct
+          : entry.kind === 'exam'
+            ? 3
+            : entry.kind === 'oral'
+              ? 2
+              : 1,
+      ),
+    );
+  }
+
+  const lessonCount = lessons.length || 1;
+  const lessonIndexByNumber = new Map(lessons.map((lesson, index) => [lesson.lessonNumber, index]));
+  const lessonRoleDescriptors = lessons.map((lesson, index) =>
+    buildAssessmentRoleDescriptor({ lesson, index, lessonCount }),
+  );
+
+  return graded.map((entry, position) => {
+    const lesson = lessonByNumber.get(entry.dueSession);
+    const lessonIndex = lessonIndexByNumber.get(entry.dueSession) || 0;
+    const weightPercent = weights[position] || 0;
+    const normalizedEntry = { ...entry, weightPct: weightPercent };
+    const roleDescriptor =
+      entry.kind === 'exam'
+        ? registryExamRoleDescriptor(lesson, normalizedEntry)
+        : entry.kind === 'oral'
+          ? registryOralRoleDescriptor(lesson, normalizedEntry)
+          : lessonRoleDescriptors[lessonIndex];
+    const criteria =
+      entry.kind === 'oral' ? buildSpeakingAssessmentCriteria(lesson, entry.title) : buildAssessmentCriteria(lesson);
+    const validityEvidence = buildAssessmentValidityEvidence(lesson);
+    const criterionEvidenceMap = buildCriterionEvidenceMap(lesson, criteria, validityEvidence);
+    const criterionWeightPlan = buildCriterionWeightPlan(lesson, criteria, criterionEvidenceMap, 100);
+    const criterionObjectiveAlignment = buildCriterionObjectiveAlignment({
+      lesson,
+      criteria,
+      criterionWeightPlan,
+      criterionEvidenceMap,
+    });
+    const assessment = {
+      id: entry.id,
+      registryId: entry.id,
+      kind: entry.kind,
+      // Identity rule (3.2a): the registry title VERBATIM — no fusion, no
+      // re-labeling. The map cell and the brief now read identically.
+      title: entry.title,
+      artifact: entry.title,
+      lessonNumbers: [lesson.lessonNumber],
+      dueSession: entry.dueSession,
+      relatedLessons: [lesson.title],
+      weight: `${weightPercent}%`,
+      weightPercent,
+      weightProvenance: registryWeightProvenance(normalizedEntry, lesson),
+      points: 100,
+      role: roleDescriptor.role,
+      roleLabel: roleDescriptor.label,
+      stakes: roleDescriptor.stakes,
+      gradingMode: roleDescriptor.gradingMode,
+      roleRationale: roleDescriptor.roleRationale,
+      studentFacingPurpose: roleDescriptor.studentFacingPurpose,
+      revisionUse: roleDescriptor.revisionUse,
+      bloomsLevel: lesson.bloomsLevel,
+      objectives: lesson.outcomes,
+      criteria,
+      successCriteria: lesson.successCriteria,
+      feedbackUse: lesson.feedbackCycle?.nextUse || lesson.feedbackMoment,
+      feedbackCycle: lesson.feedbackCycle,
+      validityEvidence,
+      calibrationPlan: buildAssessmentCalibrationPlan(lesson, validityEvidence),
+      criterionEvidenceMap,
+      criterionWeightPlan,
+      criterionObjectiveAlignment,
+      anchorExampleSet: buildAssessmentAnchorExamples(lesson, criteria, criterionEvidenceMap, validityEvidence),
+      source: 'course-map-registry',
+    };
+    return {
+      ...assessment,
+      cadence: buildAssessmentCadence({
+        assessment,
+        lesson,
+        index: lessonIndex,
+        lessonCount,
+        roleDescriptor,
+        weightPercent,
+      }),
+    };
+  });
+}
+
+function buildAssessmentAnchors(lessons, registry = null) {
+  // v0.14.1 (3.2): registry path — gated on graph presence; legacy projects
+  // without a course graph compile exactly as before.
+  if (registry) {
+    const registryAnchors = buildRegistryAssessmentAnchors(lessons, registry);
+    if (registryAnchors) return registryAnchors;
+  }
   const source = lessons;
   const roleDescriptors = source.map((lesson, index) =>
     buildAssessmentRoleDescriptor({ lesson, index, lessonCount: source.length || 1 }),
@@ -11973,7 +12400,11 @@ export function buildCourseBlueprint(courseMap, options = {}) {
       courseThroughlineContext,
     );
   });
-  const assessments = buildAssessmentAnchors(baseLessons);
+  // v0.14.1 (3.2): the course graph's assessment registry (when present)
+  // becomes the blueprint's assessment identity — gated on graph presence so
+  // legacy map-only projects keep today's one-anchor-per-lesson behavior.
+  const assessmentRegistry = normalizeAssessmentRegistry(options.assessmentRegistry);
+  const assessments = buildAssessmentAnchors(baseLessons, assessmentRegistry);
   const sourceRiskRegister = buildSourceRiskRegister({ lessons: baseLessons, assessments });
   const localization =
     options.localization && typeof options.localization === 'object'
@@ -12115,6 +12546,11 @@ export function buildCourseBlueprint(courseMap, options = {}) {
           })),
         }
       : {}),
+    // v0.14.1 (3.2d): the FULL registry (including in-class entries) rides
+    // the blueprint so lesson plans list every map assessment and study
+    // guides can name in-class checks. blueprint.assessments above carries
+    // only the graded subset (briefs / exams / orals).
+    ...(assessmentRegistry ? { assessmentRegistry } : {}),
     ...(localization && Object.keys(localization).length > 0 ? { localization } : {}),
     policies: {
       lateWork:
@@ -12677,6 +13113,26 @@ function buildRequiredTextsFromKnowledge(blueprint) {
   return texts;
 }
 
+// v0.14.1: course-level outcome lists used to flatMap lesson outcomes into a
+// capped unique() — the cap exhausted on Lessons 1-2, so syllabus SLOs never
+// mentioned the back half of the course. Round-robin instead: first outcome
+// of each lesson, then second of each, preserving lesson order and deduping.
+function sampleAcrossLessons(lessons, getter, cap = 10) {
+  const lists = asArray(lessons).map((lesson) =>
+    asArray(getter(lesson))
+      .map((value) => cleanText(value))
+      .filter(Boolean),
+  );
+  const rounds = lists.reduce((max, list) => Math.max(max, list.length), 0);
+  const sampled = [];
+  for (let round = 0; round < rounds; round += 1) {
+    for (const list of lists) {
+      if (list[round]) sampled.push(list[round]);
+    }
+  }
+  return unique(sampled, cap);
+}
+
 function compileSyllabus(blueprint) {
   const instructorPreferenceReceipt = preferenceReceipt(blueprintPreferenceProfile(blueprint));
   const compilerProofBundle = blueprint.compilerProofBundle || buildCompilerProofBundle(blueprint);
@@ -12695,7 +13151,9 @@ function compileSyllabus(blueprint) {
     // The feedback-loop reminder reads once for the whole table, not per row.
     const feedbackText = index === 0 ? ' Feedback is used to improve later course artifacts.' : '';
     return {
-      name: assessment.title,
+      // v0.14.1 (3.2f): registry rows render "A7.1 — <title>" so every
+      // grading-table line is distinguishable and traceable to its map cell.
+      name: assessment.registryId ? `${assessment.registryId} — ${assessment.title}` : assessment.title,
       weight: assessment.weight,
       description: `${assessment.artifact}. ${criteriaText}${feedbackText}`,
     };
@@ -12803,10 +13261,7 @@ function compileSyllabus(blueprint) {
       instructorFeedbackLoadPlan: compactFeedbackLoadPlan,
       blueprintAssumptionLedger: compactAssumptions,
       packageCoherenceMatrix: compactCoherence,
-      learningOutcomes: unique(
-        blueprint.lessons.flatMap((lesson) => lesson.outcomes),
-        7,
-      ),
+      learningOutcomes: sampleAcrossLessons(blueprint.lessons, (lesson) => lesson.outcomes, 10),
       courseAtAGlance: blueprint.lessons.map((lesson) => {
         const assessment = assessmentForLesson(lesson);
         return {
@@ -12841,25 +13296,29 @@ function compileSyllabus(blueprint) {
           localReviewAction: lessonLocalReviewAction(lesson),
         };
       }),
-      outcomeAlignmentMatrix: unique(
-        blueprint.lessons.flatMap((lesson) => lesson.outcomes),
-        7,
-      ).map((outcome) => ({
-        outcome,
-        bloomsLevel: inferBloomLevelFromSignals([{ source: 'course outcome', text: outcome }]).level,
-        assessedBy: blueprint.assessments
-          .filter((assessment) =>
-            assessment.objectives.some(
-              (objective) => cleanText(objective).toLowerCase() === cleanText(outcome).toLowerCase(),
-            ),
-          )
-          .map((assessment) => assessment.title)
-          .slice(0, 3),
-        practicedIn: blueprint.lessons
-          .filter((lesson) => lesson.outcomes.includes(outcome))
-          .map((lesson) => lesson.title)
-          .slice(0, 4),
-      })),
+      outcomeAlignmentMatrix: sampleAcrossLessons(blueprint.lessons, (lesson) => lesson.outcomes, 10).map(
+        (outcome) => ({
+          outcome,
+          // v0.14.1 (5.4): the row's level follows the outcome's stem verb
+          // ("Produce the four tones…" → Apply, not Create); the anywhere-match
+          // inference is only the fallback for verb-less outcomes.
+          bloomsLevel:
+            bloomLevelFromStemVerb(outcome) ||
+            inferBloomLevelFromSignals([{ source: 'course outcome', text: outcome }]).level,
+          assessedBy: blueprint.assessments
+            .filter((assessment) =>
+              assessment.objectives.some(
+                (objective) => cleanText(objective).toLowerCase() === cleanText(outcome).toLowerCase(),
+              ),
+            )
+            .map((assessment) => assessment.title)
+            .slice(0, 3),
+          practicedIn: blueprint.lessons
+            .filter((lesson) => lesson.outcomes.includes(outcome))
+            .map((lesson) => lesson.title)
+            .slice(0, 4),
+        }),
+      ),
       lessonAlignmentMatrix: (blueprint.alignmentMatrix || []).map((row) => ({
         week: `Week ${row.lessonNumber}`,
         lesson: stripLessonPrefix(row.lessonTitle),
@@ -13013,13 +13472,47 @@ function compileSyllabus(blueprint) {
   };
 }
 
+// v0.14.1 (3.2c): the oral prompt sheet's speaking tasks, built from the
+// lesson's own kernel terms and scenario seeds — deterministic, lesson-
+// parameterized, never hardcoded to one language or discipline.
+function buildSpeakingPrompts({ lesson, assessment, lens }) {
+  const concept = lesson.keyConcepts?.[0] || stripLessonPrefix(lesson.title);
+  const terms = unique(
+    [
+      ...((lesson.enrichment?.keyTerms || []).map((term) => cleanText(term?.term)) || []),
+      ...(lesson.keyConcepts || []).map((term) => cleanText(term)),
+    ].filter(Boolean),
+    5,
+  );
+  const scenario =
+    lesson.throughlineCase?.lessonCaseName || `${stripLessonPrefix(lesson.title)} ${lens.exampleNoun || 'scenario'}`;
+  const sourceCue = lesson.evidencePlan?.sourceCue || `${stripLessonPrefix(lesson.title)} course materials`;
+  const title = stripTerminalPunctuation(assessment.title);
+  return [
+    `Opening task (60–90 seconds): introduce ${stripTerminalPunctuation(scenario)} using at least ${Math.min(3, Math.max(1, terms.length))} of these terms: ${terms.length > 0 ? terms.join(', ') : concept}.`,
+    ...terms
+      .slice(0, 3)
+      .map(
+        (term) =>
+          `Prompt — ${term}: explain ${term} in your own words, then give one concrete example drawn from ${sourceCue}.`,
+      ),
+    `Interaction task: respond to one follow-up question about ${concept} — defend a choice you made and name one limitation.`,
+    `Closing task: state what you would practice next to improve before repeating ${title}.`,
+  ];
+}
+
 function compileAssignments(blueprint) {
   const lens = blueprintLens(blueprint);
   const preference = featurePreference(blueprint, 'assignments');
+  // v0.14.1 (3.2b): exam-kind registry assessments compile as REAL exam
+  // documents in the quiz bank, not as assignment briefs. Legacy anchors
+  // carry no kind and all keep their briefs.
+  const briefAssessments = blueprint.assessments.filter((assessment) => assessment.kind !== 'exam');
   return {
     courseAssignmentMap: blueprint.assessments.map((assessment) => ({
       week: assessment.lessonNumbers[0],
       artifact: assessment.title,
+      ...(assessment.registryId ? { assessmentId: assessment.registryId } : {}),
       assessmentRole: assessment.roleLabel,
       weight: assessment.weight,
       gradingWeightProvenance: compactWeightProvenance(assessment.weightProvenance),
@@ -13028,24 +13521,47 @@ function compileAssignments(blueprint) {
           .map((entry) => `${entry.priority || entry.criterion}: ${entry.weight}%`)
           .join('; ') || '',
       feedbackWindow: assessment.cadence?.feedbackWindow,
-      expectedFile: 'Document, presentation, or course-site submission as assigned',
+      expectedFile:
+        assessment.kind === 'exam'
+          ? 'Exam paper with answer key — see the Quiz & Exam Bank document'
+          : 'Document, presentation, or course-site submission as assigned',
       length: 'Course-appropriate length with enough evidence to address every criterion',
       nextPortfolioUse: assessment.feedbackUse,
     })),
-    assignments: blueprint.assessments.map((assessment, index) => {
-      const lesson = blueprint.lessons[index] || {};
+    assignments: briefAssessments.map((assessment, index) => {
+      // Registry mode allows several briefs per lesson — resolve the lesson
+      // by number (identical to the positional lookup on the legacy
+      // one-anchor-per-lesson path).
+      const lesson =
+        blueprint.lessons.find((item) => item.lessonNumber === assessment.lessonNumbers?.[0]) ||
+        blueprint.lessons[index] ||
+        {};
       const submissionProfile = buildAssignmentSubmissionProfile({ lesson, assessment, lens });
       const assessmentTitle = stripTerminalPunctuation(assessment.title);
       const assessmentArtifact = stripTerminalPunctuation(
         assessment.artifact || submissionProfile.artifact || assessment.title,
       );
       const feedbackPriority = preference
-        ? `${assessment.feedbackUse} Preference profile: ${preference}.`
+        ? `${assessment.feedbackUse} Instructor preference: ${preferenceDisplayPhrase(preference)}.`
         : assessment.feedbackUse;
       const finalMilestoneFeedback = `Final feedback on ${assessmentTitle} should identify one criterion strength, one revision priority, and the next use of the submitted evidence. ${assessment.feedbackUse}`;
+      const isOral = assessment.kind === 'oral';
       return {
         title: assessment.title,
-        assignmentType: submissionProfile.assignmentType,
+        // v0.14.1 (3.3b): the reverse stamp — every registry brief names the
+        // map cell it fulfills ("Course Map L8 · A8.1 · 5%"), rendered in the
+        // brief's meta line.
+        ...(assessment.registryId
+          ? {
+              assessmentId: assessment.registryId,
+              lessonNumber: assessment.lessonNumbers[0],
+              courseMapRef: `Course Map L${assessment.lessonNumbers[0]} · ${assessment.registryId} · ${assessment.weightPercent}%`,
+            }
+          : {}),
+        // v0.14.1 (3.2c): an oral assessment's brief is a prompt sheet — the
+        // speaking tasks come from the lesson's kernel terms and scenario.
+        ...(isOral ? { speakingPrompts: buildSpeakingPrompts({ lesson, assessment, lens }) } : {}),
+        assignmentType: isOral ? 'Oral performance prompt sheet' : submissionProfile.assignmentType,
         relatedLessons: assessment.relatedLessons,
         dueWeek: `Week ${assessment.lessonNumbers[0]}`,
         estimatedTime: submissionProfile.estimatedTime,
@@ -13276,8 +13792,13 @@ function compileAssignments(blueprint) {
 function compileRubrics(blueprint) {
   const lens = blueprintLens(blueprint);
   const preference = featurePreference(blueprint, 'rubrics');
+  // v0.14.1 (3.2e): rubrics attach per graded assessment (id-linked) — a
+  // lesson with two graded artifacts gets two rubric entries. Exams carry
+  // answer keys in the quiz bank, not rubrics. Legacy anchors (no kind)
+  // all keep their rubrics.
+  const rubricAssessments = blueprint.assessments.filter((assessment) => assessment.kind !== 'exam');
   return {
-    rubrics: blueprint.assessments.map((assessment) => {
+    rubrics: rubricAssessments.map((assessment) => {
       const lesson = blueprint.lessons.find((item) => item.lessonNumber === assessment.lessonNumbers[0]);
       const validityEvidence = assessment.validityEvidence || {};
       const criterionWeightPlan = Array.isArray(assessment.criterionWeightPlan)
@@ -13341,9 +13862,13 @@ function compileRubrics(blueprint) {
       });
       return {
         title: `${assessment.title} Rubric`,
+        // v0.14.1 (3.2e): id-linked rubric identity on the registry path.
+        ...(assessment.registryId
+          ? { assessmentId: assessment.registryId, lessonNumber: assessment.lessonNumbers[0] }
+          : {}),
         lessonTitle: assessment.relatedLessons.join(', '),
         gradedWork: assessment.artifact,
-        assessmentType: 'Assignment',
+        assessmentType: assessment.kind === 'oral' ? 'Oral performance (speaking rubric)' : 'Assignment',
         totalPoints: assessment.points,
         percentOfGrade: assessment.weight,
         weightPercent: assessment.weightPercent,
@@ -13418,7 +13943,7 @@ function compileRubrics(blueprint) {
         courseModalityProfile: blueprint.courseModalityProfile,
         learnerContextCue: lessonLearnerContextCue(blueprint, lesson),
         taskDirections: `Score the ${assessment.artifact} for ${assessment.relatedLessons.join(', ')} using the criteria below. Treat it as ${lesson?.artifactGenre?.label || lesson?.artifactGenre?.genre || 'the named artifact genre'} and look for this evidence standard: ${lesson?.artifactGenre?.evidenceStandard || lesson?.artifactGenre?.evidenceRequirement || 'criterion-specific evidence tied to the course artifact'}.`,
-        instructorFacilitationNote: `Share the ${assessment.title} rubric before students draft, then use criterion-level feedback for ${assessment.artifact} revision guidance. Prerequisite check: ${lesson?.prerequisitePlan?.diagnosticCheck || `confirm students can connect prior knowledge to ${assessment.artifact}.`} Calibration check: ${assessment.calibrationPlan?.scorerNorming || validityEvidence.calibrationCheck || `review whether ${assessment.artifact} evidence matches the intended learning target before scoring`} Bias check: ${assessment.calibrationPlan?.biasCheck || `confirm scores reflect rubric evidence for ${assessment.artifact}.`} Source check: ${lesson?.sourceUsePlan?.noInventedSources || `confirm ${assessment.artifact} cites only approved course sources.`}${preference ? ` Preference profile: ${preference}.` : ''}`,
+        instructorFacilitationNote: `Share the ${assessment.title} rubric before students draft, then use criterion-level feedback for ${assessment.artifact} revision guidance. Prerequisite check: ${lesson?.prerequisitePlan?.diagnosticCheck || `confirm students can connect prior knowledge to ${assessment.artifact}.`} Calibration check: ${assessment.calibrationPlan?.scorerNorming || validityEvidence.calibrationCheck || `review whether ${assessment.artifact} evidence matches the intended learning target before scoring`} Bias check: ${assessment.calibrationPlan?.biasCheck || `confirm scores reflect rubric evidence for ${assessment.artifact}.`} Source check: ${lesson?.sourceUsePlan?.noInventedSources || `confirm ${assessment.artifact} cites only approved course sources.`}${preference ? ` Instructor preference: ${preferenceDisplayPhrase(preference)}.` : ''}`,
         calibrationProtocol: assessment.calibrationPlan,
         accessibilityAndUDL:
           `${lesson?.accessibilityPlan?.expression || `For ${assessment.title}, allow equivalent accessible formats when students demonstrate the same ${lens.evidenceNoun}, reasoning, and communication criteria.`} ${lesson?.accessibilityPlan?.accommodationReviewCue || ''}`.trim(),
@@ -13455,7 +13980,7 @@ function compileRubrics(blueprint) {
         assessmentCadence: assessment.cadence,
         revisionUse: assessment.revisionUse,
         teacherNotes: preference
-          ? `${assessment.feedbackUse} Apply the learned preference profile: ${preference}.`
+          ? `${assessment.feedbackUse} Apply the learned instructor preference: ${preferenceDisplayPhrase(preference)}.`
           : assessment.feedbackUse,
         tags: unique(['rubric', assessment.title, ...assessment.relatedLessons, ...assessment.criteria], 10),
       };
@@ -13630,9 +14155,20 @@ function compileStudyGuides(blueprint) {
         blueprint.assessments.find((item) => (item.lessonNumbers || []).includes(lesson.lessonNumber)) ||
         blueprint.assessments[index] ||
         {};
+      // v0.14.1 (3.2d): in-class registry items are named in the study guide
+      // so students know which checks happen live in the session.
+      const inClassChecks = Array.isArray(blueprint.assessmentRegistry)
+        ? blueprint.assessmentRegistry.filter(
+            (entry) => entry.dueSession === lesson.lessonNumber && entry.kind === 'in-class',
+          )
+        : [];
       return {
         lessonTitle: lesson.title,
-        examScope: `Use this guide to prepare for Week ${lesson.lessonNumber} checks on ${phrase.context} and later assessments.`,
+        examScope: `Use this guide to prepare for Week ${lesson.lessonNumber} checks on ${phrase.context} and later assessments.${
+          inClassChecks.length > 0
+            ? ` In-class checks this week: ${inClassChecks.map((entry) => stripTerminalPunctuation(entry.title)).join('; ')}.`
+            : ''
+        }`,
         summary: isDataScience
           ? `${lesson.title} focuses on ${lesson.keyConcepts.slice(0, 3).join(', ')}. Students should inspect ${datasetName}, read notebook outputs, use ${dataScienceEvidenceCue}, and explain how the evidence changes the modeling decision.`
           : `${lesson.title} focuses on ${lesson.keyConcepts.slice(0, 3).join(', ')}. Students should connect those ideas to the weekly activity pattern, ${phrase.evidenceMove}, and ${phrase.decisionMove}.`,
@@ -13905,22 +14441,49 @@ function buildQuizQuestionPlan({ lesson, assessment = {}, targetCount = 6 }) {
     const nextUncoveredObjective = lessonObjectives.find(
       (objective) => !usedObjectiveKeys.has(normalizeObjectiveKey(objective)),
     );
-    const usesCoverageObjective = Boolean(
-      nextUncoveredObjective && (!alignedObjective || usedObjectiveKeys.has(alignedKey)),
-    );
-    const objective = usesCoverageObjective ? nextUncoveredObjective : alignedObjective || objectiveFallback;
+    // v0.14.1: when the criterion alignment cannot place an item, align it
+    // to the uncovered objective its source signal actually talks about
+    // (shared content tokens) instead of handing out the next unused
+    // objective regardless of content. Restricting the lexical match to
+    // uncovered objectives keeps the guarantee that over six items the
+    // objectives still spread; blind rotation remains only as the fallback
+    // when nothing overlaps.
+    const usesAlignedObjective = Boolean(alignedObjective && !usedObjectiveKeys.has(alignedKey));
+    const lexicalMatch = usesAlignedObjective
+      ? null
+      : lessonObjectives
+          .map((objective, objectiveIndex) => ({
+            objective,
+            objectiveIndex,
+            score: objectiveOverlapScore(row.sourceSignal, objective),
+          }))
+          .filter((entry) => entry.score >= 1 && !usedObjectiveKeys.has(normalizeObjectiveKey(entry.objective)))
+          .sort((a, b) => b.score - a.score || a.objectiveIndex - b.objectiveIndex)[0];
+    const usesLexicalObjective = Boolean(lexicalMatch);
+    const usesCoverageObjective = !usesAlignedObjective && !usesLexicalObjective && Boolean(nextUncoveredObjective);
+    const objective = usesAlignedObjective
+      ? alignedObjective
+      : usesLexicalObjective
+        ? lexicalMatch.objective
+        : usesCoverageObjective
+          ? nextUncoveredObjective
+          : alignedObjective || objectiveFallback;
     usedObjectiveKeys.add(normalizeObjectiveKey(objective));
     return {
       ...row,
       questionIndex: index,
       objective,
-      objectiveAlignmentStrategy: usesCoverageObjective
-        ? 'lesson-objective-coverage'
-        : objectiveAlignment?.strategy || 'lesson-primary-objective',
-      objectiveAlignmentRationale: usesCoverageObjective
-        ? 'Question plan rotates through lesson objectives so every objective receives at least one quiz/check item before repeating.'
-        : objectiveAlignment?.rationale ||
-          'Question uses the primary lesson objective because no stronger criterion match was available.',
+      objectiveAlignmentStrategy: usesLexicalObjective
+        ? 'stem-objective-lexical-match'
+        : usesCoverageObjective
+          ? 'lesson-objective-coverage'
+          : objectiveAlignment?.strategy || 'lesson-primary-objective',
+      objectiveAlignmentRationale: usesLexicalObjective
+        ? 'Question aligns to the uncovered lesson objective that shares the most content terms with its source signal.'
+        : usesCoverageObjective
+          ? 'Question plan rotates through lesson objectives so every objective receives at least one quiz/check item before repeating.'
+          : objectiveAlignment?.rationale ||
+            'Question uses the primary lesson objective because no stronger criterion match was available.',
       source: 'source-grounded-quiz-plan',
     };
   });
@@ -13978,20 +14541,45 @@ function buildMultipleChoiceOptions({ lesson, index, concept, artifact, use, cor
   const correctLetter = correctLetterForQuestion(lesson, index);
   const sourceCue = lesson?.evidencePlan?.sourceCue || 'the assigned course materials';
   const lessonFocus = stripLessonPrefix(lesson?.title || 'this lesson');
-  // A rotating pool of plausible-but-flawed moves, phrased in parallel with
+  // Rotating pools of plausible-but-flawed moves, phrased in parallel with
   // typical correct options so the right answer is not the stylistic odd one
-  // out and adjacent lessons do not reuse the same three distractors.
-  const distractorPool = [
-    `Define ${concept} accurately but stop before connecting it to evidence from ${sourceCue}.`,
-    `Choose a familiar ${lessonFocus} example first, even when it does not support ${artifact}.`,
-    `Recommend the next step for ${artifact} before comparing evidence or naming a limitation.`,
-    `Summarize ${lessonFocus} thoroughly without taking a position the evidence can support.`,
-    `Cite ${sourceCue} from memory instead of checking what it actually says about ${concept}.`,
-    `Treat one strong example as proof that the ${concept} claim holds in every case.`,
-    `Match the response to personal experience rather than to the ${lessonFocus} success criteria.`,
-    `Repeat the strongest ${lessonFocus} claim from class discussion without naming its evidence or limits.`,
+  // out. v0.14.1: three alternate pools rotate by lesson index so adjacent
+  // lessons draw different distractor sets and the bank is not gameable by
+  // pattern-matching one recycled wrong-answer family.
+  const distractorPools = [
+    [
+      `Define ${concept} accurately but stop before connecting it to evidence from ${sourceCue}.`,
+      `Choose a familiar ${lessonFocus} example first, even when it does not support ${artifact}.`,
+      `Recommend the next step for ${artifact} before comparing evidence or naming a limitation.`,
+      `Summarize ${lessonFocus} thoroughly without taking a position the evidence can support.`,
+      `Cite ${sourceCue} from memory instead of checking what it actually says about ${concept}.`,
+      `Treat one strong example as proof that the ${concept} claim holds in every case.`,
+      `Match the response to personal experience rather than to the ${lessonFocus} success criteria.`,
+      `Repeat the strongest ${lessonFocus} claim from class discussion without naming its evidence or limits.`,
+    ],
+    [
+      `Apply ${concept} to the first example that comes to mind without checking it against ${sourceCue}.`,
+      `Copy the structure of an earlier ${artifact} and swap in new terms without re-testing the evidence.`,
+      `List every ${lessonFocus} term from the notes instead of selecting the evidence ${artifact} needs.`,
+      `Pick the option that sounds most confident, even when no ${lessonFocus} evidence backs it.`,
+      `Average the group's opinions about ${concept} rather than weighing what ${sourceCue} shows.`,
+      `Quote ${sourceCue} at length without explaining what it changes for ${artifact}.`,
+      `Rely on the single strongest number in ${sourceCue} and ignore the conditions around it.`,
+      `Postpone the ${artifact} decision until more evidence appears, leaving the claim untested.`,
+    ],
+    [
+      `Restate the ${concept} definition in new words and treat that as the analysis for ${artifact}.`,
+      `Use evidence from a different lesson because it is easier to find than ${sourceCue}.`,
+      `Choose the evidence that confirms a first impression of ${lessonFocus} and discard the rest.`,
+      `Describe the ${artifact} requirements accurately but never connect them to ${concept}.`,
+      `Trust a peer's summary of ${sourceCue} instead of checking the source detail directly.`,
+      `Make the safest possible claim so no ${lessonFocus} evidence is needed to defend it.`,
+      `Add more examples to ${artifact} without testing whether each one supports the ${concept} claim.`,
+      `Treat a disagreement in ${sourceCue} as noise instead of evidence worth weighing for ${artifact}.`,
+    ],
   ];
   const lessonNumber = Number(lesson?.lessonNumber || 1);
+  const distractorPool = distractorPools[(lessonNumber - 1 + index) % distractorPools.length];
   const start = (lessonNumber * 3 + index * 2) % distractorPool.length;
   const rotated = distractorPool.slice(start).concat(distractorPool.slice(0, start));
   const distractors = unique(rotated, 3);
@@ -14102,6 +14690,14 @@ export function buildQuizAtomsForLesson(lesson, blueprint, options = {}) {
     options.assessment ||
     blueprint.assessments?.find((item) => (item.lessonNumbers || []).includes(lesson.lessonNumber)) ||
     {};
+  // v0.14.1: frames 2 and 4 are student-facing content questions built from
+  // the lesson's scenario seed and evidence plan — the old instructor-meta
+  // frames ("Which instructor question…", "Which feedback move…") shipped
+  // verbatim whenever enrichment did not overlay those slots.
+  const scenario =
+    lesson.throughlineCase?.lessonCaseName ||
+    [lens.exampleNoun, secondary].filter(Boolean).map(stripTerminalPunctuation).join(' focused on ');
+  const evidenceCue = lesson.evidencePlan?.sourceCue || 'the assigned course materials';
   const quizPlan = buildQuizQuestionPlan({ lesson, assessment, targetCount: 6 });
   const atoms = [
     buildMultipleChoiceQuestion({
@@ -14136,8 +14732,8 @@ export function buildQuizAtomsForLesson(lesson, blueprint, options = {}) {
       objective: quizPlan[2].objective,
       concept: secondary,
       use: quizPlan[2].use,
-      prompt: `Which instructor question would best reveal whether students can analyze ${secondary} in ${lesson.title}?`,
-      correct: `Ask students to compare two pieces of evidence and explain which one better supports ${artifact}.`,
+      prompt: `In the ${scenario}, which approach best applies ${secondary} to strengthen ${artifact}?`,
+      correct: `Test ${secondary} against two pieces of evidence from ${evidenceCue} and keep the one that better supports ${artifact}.`,
       plan: quizPlan[2],
     }),
     buildShortAnswerQuestion({
@@ -14157,8 +14753,8 @@ export function buildQuizAtomsForLesson(lesson, blueprint, options = {}) {
       objective: quizPlan[4].objective,
       concept,
       use: quizPlan[4].use,
-      prompt: `Which feedback move best helps students evaluate the quality of ${artifact}?`,
-      correct: `Compare ${artifact} against the ${concept} success criteria, identify the weakest evidence link, and choose one revision priority.`,
+      prompt: `Which use of evidence best supports a claim about ${concept} in ${artifact}?`,
+      correct: `Cite a specific detail from ${evidenceCue} that shows ${concept} at work in ${artifact}, then state what that detail changes.`,
       plan: quizPlan[4],
     }),
     buildEssayQuestion({
@@ -14172,7 +14768,20 @@ export function buildQuizAtomsForLesson(lesson, blueprint, options = {}) {
     }),
   ];
   const framed = atoms.slice(0, targetCount).map((atom, index) => ({ ...atom, id: quizQuestionId(lesson, index) }));
-  return overlayEnrichedQuizItems(framed, lesson);
+  // v0.14.1 (5.4) Bloom honesty: the tag follows the stem verb of the FINAL
+  // question text (after any enrichment overlay), not the frame's planned
+  // role — recall/explain stems shipped tagged Analyze/Evaluate in every
+  // audited quiz file. The planned level stays in quizPlan.bloom as
+  // provenance; when no mapped verb appears, the plan's level stands.
+  return overlayEnrichedQuizItems(framed, lesson).map((atom) => {
+    const stemLevel = bloomLevelFromStemVerb(atom.question);
+    if (!stemLevel || stemLevel === atom.bloomsLevel) return atom;
+    return {
+      ...atom,
+      bloomsLevel: stemLevel,
+      tags: (atom.tags || []).map((tag) => (tag === atom.bloomsLevel ? stemLevel : tag)),
+    };
+  });
 }
 
 /**
@@ -14214,6 +14823,170 @@ function overlayEnrichedQuizItems(framedAtoms, lesson) {
   });
 }
 
+// ── v0.14.1 (3.2b): real exam documents from the registry ───────────────────
+// A kind-'exam' registry assessment ("Midterm Exam: minerals through
+// metamorphic rocks") compiles into an additional quiz-bank entry — its own
+// title, items drawn from the covered lesson range, mixed item types, and an
+// answer key — so every existing exporter/view iterates it naturally.
+// Deterministic, zero AI calls; stems are exam-specific rephrasings of the
+// frame machinery so weekly-quiz items are not duplicated verbatim.
+
+function examCoveredLessons(blueprint, assessment) {
+  const dueLesson = assessment.lessonNumbers?.[0] || 0;
+  const lessons = blueprint.lessons || [];
+  const isFinal = /\b(final|comprehensive)\b/i.test(assessment.title);
+  if (isFinal) return lessons;
+  const before = lessons.filter((lesson) => lesson.lessonNumber < dueLesson);
+  return before.length > 0 ? before : lessons.filter((lesson) => lesson.lessonNumber <= dueLesson);
+}
+
+function buildExamShortAnswerItem({ blueprint, assessment, covered, lens, examSlug, ordinal }) {
+  const first = covered[0];
+  const last = covered[covered.length - 1];
+  const conceptA = first.keyConcepts?.[0] || stripLessonPrefix(first.title);
+  const conceptB = last.keyConcepts?.[0] || stripLessonPrefix(last.title);
+  return {
+    id: `${examSlug}-q${ordinal}`,
+    type: 'short_answer',
+    bloomsLevel: 'Analyze',
+    difficulty: 'Medium',
+    estimatedMinutes: 6,
+    points: 4,
+    objectiveAligned: last.outcomes?.[0] || '',
+    intendedUse: `Summative item on ${assessment.title}; score against the answer guide below.`,
+    question: `In 3-4 sentences, compare ${conceptA} (${stripLessonPrefix(first.title)}) with ${conceptB} (${stripLessonPrefix(last.title)}): explain one way they connect and one decision each one supports in ${blueprint.courseName}.`,
+    answer: `A complete answer defines both concepts accurately, names a concrete connection between ${conceptA} and ${conceptB}, and states one decision each supports — with at least one specific course example rather than generic phrasing.`,
+    sampleAnswer: `${sentenceCase(conceptA)} and ${conceptB} connect because the second builds on evidence the first establishes. ${sentenceCase(conceptA)} supports decisions in ${stripLessonPrefix(first.title)}, while ${conceptB} drives the choices in ${stripLessonPrefix(last.title)}.`,
+    explanation: `Cross-lesson synthesis: the item checks whether students can relate ${conceptA} to ${conceptB} instead of recalling each in isolation.`,
+    scoringGuidance: `Full credit requires both concepts used accurately, one explicit connection, and one decision per concept. Partial credit when only one concept is applied with evidence. Flag answers that define terms without connecting them.`,
+    tags: ['exam', 'short answer', conceptA, conceptB].filter(Boolean),
+  };
+}
+
+function buildExamEssayItem({ blueprint, assessment, covered, lens, examSlug, ordinal }) {
+  const last = covered[covered.length - 1];
+  const concept = last.keyConcepts?.[0] || stripLessonPrefix(last.title);
+  const span = `${stripLessonPrefix(covered[0].title)} through ${stripLessonPrefix(last.title)}`;
+  return {
+    id: `${examSlug}-q${ordinal}`,
+    type: 'essay',
+    bloomsLevel: 'Evaluate',
+    difficulty: 'Hard',
+    estimatedMinutes: 15,
+    points: 10,
+    objectiveAligned: last.outcomes?.[0] || '',
+    intendedUse: `Summative synthesis for ${assessment.title}; score with the rubric hints below.`,
+    question: `Synthesize the covered material (${span}): choose the two concepts that most changed how you make ${lens.decisionNoun} decisions in ${blueprint.courseName}, justify the choice with course ${lens.evidenceNoun}, and name one limitation of each.`,
+    rubricHints: `Strong responses pick two concepts from different covered lessons, support each with specific ${lens.evidenceNoun}, connect them, and name a real limitation for each.`,
+    sampleAnswer: `A strong response selects two covered concepts (for example, ${concept} and one earlier idea), shows with concrete course evidence how each changes a decision, connects the two, and closes with one limitation per concept.`,
+    explanation: `The essay is scored for synthesis across the covered range, not for restating any single lesson.`,
+    scoringGuidance: `Full credit requires two accurately used concepts from different lessons, evidence for each, an explicit connection, and two limitations. Partial credit when concepts are accurate but unconnected.`,
+    tags: ['exam', 'essay', concept].filter(Boolean),
+  };
+}
+
+function buildRegistryExamEntry(blueprint, assessment, examOrdinal) {
+  const lens = blueprintLens(blueprint);
+  const covered = examCoveredLessons(blueprint, assessment);
+  if (covered.length === 0) return null;
+  const examSlug = String(assessment.registryId || `exam-${examOrdinal + 1}`).replace(/[^A-Za-z0-9.]+/g, '-');
+  const itemsPerLesson = covered.length > 8 ? 1 : 2;
+  // Index base 6+ keeps the answer-letter rotation and distractor draws off
+  // the weekly quiz's 0-5 frames; each exam gets its own band so a midterm
+  // and final never mint identical items for the same lesson.
+  const indexBase = 6 + examOrdinal * 3;
+  const questions = [];
+  covered.forEach((lesson) => {
+    const concept = primaryConceptForLesson(lesson);
+    const secondary =
+      normalizeConceptCandidates((lesson.keyConcepts || []).slice(1), { title: lesson.title, limit: 1 })[0] || concept;
+    const artifact = stripTerminalPunctuation(lesson.studentArtifact);
+    const lessonFocus = stripLessonPrefix(lesson.title);
+    const sourceCue = lesson.evidencePlan?.sourceCue || 'the assigned course materials';
+    const plan = (questionIndex, bloom, difficulty, use) => ({
+      source: 'registry-exam-compiler',
+      role: 'exam item',
+      bloom,
+      difficulty,
+      use,
+      questionIndex,
+      objective: lesson.outcomes?.[0] || '',
+      bloomSource: 'exam-frame',
+      sourceSignal: `${lessonFocus} course-map evidence`,
+      objectiveAlignmentStrategy: 'covered-lesson-objective',
+      objectiveAlignmentRationale: `Exam item drawn from ${lesson.title} coverage.`,
+    });
+    questions.push(
+      buildMultipleChoiceQuestion({
+        lesson,
+        index: indexBase,
+        bloom: 'Understand',
+        difficulty: 'Medium',
+        objective: lesson.outcomes?.[0] || '',
+        concept,
+        use: 'summative exam evidence',
+        prompt: `Which statement most accurately connects ${concept} to the work in ${lessonFocus}?`,
+        correct: `${sentenceCase(concept)} explains a specific ${lessonFocus} decision and names the evidence that supports it.`,
+        plan: plan(indexBase, 'Understand', 'Medium', 'summative exam evidence'),
+      }),
+    );
+    if (itemsPerLesson > 1) {
+      questions.push(
+        buildMultipleChoiceQuestion({
+          lesson,
+          index: indexBase + 1,
+          bloom: 'Apply',
+          difficulty: 'Hard',
+          objective: lesson.outcomes?.[1] || lesson.outcomes?.[0] || '',
+          concept: secondary,
+          use: 'summative exam application',
+          prompt: `A classmate reviewing ${lessonFocus} treats ${secondary} as vocabulary to memorize. Which response best corrects this with course evidence?`,
+          correct: `Show how ${secondary} changed a concrete choice in ${artifact}, citing one detail from ${sourceCue}.`,
+          plan: plan(indexBase + 1, 'Apply', 'Hard', 'summative exam application'),
+        }),
+      );
+    }
+  });
+  // Re-id items under the exam's own namespace so the bank index never
+  // collides with weekly-quiz ids ("lesson-3-q7") or a second exam.
+  const renumbered = questions.map((question, index) => ({ ...question, id: `${examSlug}-q${index + 1}` }));
+  renumbered.push(
+    buildExamShortAnswerItem({ blueprint, assessment, covered, lens, examSlug, ordinal: renumbered.length + 1 }),
+  );
+  renumbered.push(
+    buildExamEssayItem({ blueprint, assessment, covered, lens, examSlug, ordinal: renumbered.length + 1 }),
+  );
+
+  const totalPoints = renumbered.reduce((sum, question) => sum + Number(question.points || 0), 0);
+  const totalMinutes = renumbered.reduce((sum, question) => sum + Number(question.estimatedMinutes || 0), 0);
+  const firstLesson = covered[0].lessonNumber;
+  const lastLesson = covered[covered.length - 1].lessonNumber;
+  const mcCount = renumbered.filter((question) => question.type === 'multiple_choice').length;
+  return {
+    // The em-dash display form ("Midterm Exam — minerals through metamorphic
+    // rocks") heads the document; assessmentId ties it back to the map cell.
+    lessonTitle: assessment.title.replace(/:\s*/, ' — '),
+    kind: 'exam',
+    assessmentId: assessment.registryId || assessment.id,
+    lessonNumber: assessment.lessonNumbers?.[0] || lastLesson,
+    examScope: `Covers Lessons ${firstLesson}–${lastLesson}: ${stripLessonPrefix(covered[0].title)} through ${stripLessonPrefix(covered[covered.length - 1].title)}.`,
+    totalQuestions: renumbered.length,
+    totalPoints,
+    bloomsCoverage: sortBloomLevels(renumbered.map((question) => question.bloomsLevel)),
+    pointPlan: `${assessment.title} uses ${mcCount} multiple-choice item(s) at 2 points, 1 short-answer item at 4 points, and 1 essay item at 10 points for ${totalPoints} total points (about ${totalMinutes} minutes).`,
+    answerKey: renumbered.map((question, index) => ({
+      question: index + 1,
+      type: question.type,
+      // Constructed-response items key on their scoring guide: the rubric
+      // hints (essay) or model answer (short answer) stand in for a letter.
+      answer: String(question.answer || question.rubricHints || question.sampleAnswer || ''),
+    })),
+    formativeFeedbackNote: `Administer ${assessment.title} under the course's exam conditions. The answer key follows the question paper; review the most-missed covered lessons (${firstLesson}–${lastLesson}) in the next session.`,
+    questions: renumbered,
+    tags: unique(['exam', assessment.title, ...covered.slice(0, 3).map((lesson) => lesson.title)], 8),
+  };
+}
+
 function compileQuizBank(blueprint, config = {}) {
   const preference = featurePreference(blueprint, 'quizBank');
   const quizzes = blueprint.lessons.map((lesson, index) => {
@@ -14246,10 +15019,11 @@ function compileQuizBank(blueprint, config = {}) {
       artifactGenre: lesson.artifactGenre,
       learnerContextCue: lessonLearnerContextCue(blueprint, lesson),
       pointPlan: `${lesson.title} uses ${questions.filter((question) => question.type === 'multiple_choice').length} multiple-choice item(s) at 2 points, ${questions.filter((question) => question.type === 'short_answer').length} short-answer item(s) at 4 points, and ${questions.filter((question) => question.type === 'essay').length} essay item(s) at 8 points for ${totalPoints} total points.`,
-      bloomsCoverage: unique(
-        questions.map((question) => question.bloomsLevel),
-        6,
-      ),
+      // v0.14.1 (5.4): the coverage line states only the levels ACTUALLY
+      // present on this quiz's items, deduped and in taxonomy order — every
+      // audited quiz file claimed "Remember, Apply, Analyze, Evaluate,
+      // Create" verbatim regardless of content.
+      bloomsCoverage: sortBloomLevels(questions.map((question) => question.bloomsLevel)),
       quizBlueprint: {
         source: 'source-grounded-quiz-plan',
         lessonBloom: lesson.bloomsLevel,
@@ -14257,12 +15031,21 @@ function compileQuizBank(blueprint, config = {}) {
         questionPlan: questions.map((question) => question.quizPlan),
       },
       objectiveEvidenceChecklist: objectiveEvidenceChecklist(lesson.objectiveEvidencePlan),
-      formativeFeedbackNote: `For ${lesson.title}, administer these questions after students practice ${compactList(lesson.keyConcepts, 'the lesson concepts', 3)}. ${lesson.prerequisitePlan?.diagnosticCheck || 'Check prerequisite understanding before scoring readiness.'} ${assessment.anchorExampleSet?.scorerCalibrationUse || 'Compare responses against strong and partial anchor examples before scoring.'} ${lesson.learningTransferPlan?.spacedPracticeCue || 'Use the results as spaced retrieval before the next artifact.'} Review missed items within one class session, allow screen-reader-friendly text formats or extended time as needed, and ask students to use results to revise ${lesson.studentArtifact}. Estimated completion time is ${totalMinutes} minutes.${preference ? ` Preference profile: ${preference}.` : ''}`,
+      formativeFeedbackNote: `For ${lesson.title}, administer these questions after students practice ${compactList(lesson.keyConcepts, 'the lesson concepts', 3)}. ${lesson.prerequisitePlan?.diagnosticCheck || 'Check prerequisite understanding before scoring readiness.'} ${assessment.anchorExampleSet?.scorerCalibrationUse || 'Compare responses against strong and partial anchor examples before scoring.'} ${lesson.learningTransferPlan?.spacedPracticeCue || 'Use the results as spaced retrieval before the next artifact.'} Review missed items within one class session, allow screen-reader-friendly text formats or extended time as needed, and ask students to use results to revise ${lesson.studentArtifact}. Estimated completion time is ${totalMinutes} minutes.${preference ? ` Instructor preference: ${preferenceDisplayPhrase(preference)}.` : ''}`,
       questions,
-      assessmentBlueprint: `${lesson.title} covers ${lesson.outcomes.join('; ')} with a source-grounded quiz plan for ${compactList(lesson.keyConcepts, stripLessonPrefix(lesson.title), 3)} and ${stripTerminalPunctuation(lesson.studentArtifact)}: ${questions.map((question) => `${question.quizPlan.role} -> ${question.bloomsLevel}`).join('; ')}. ${lesson.learningTransferPlan?.transferTask || `Students transfer quiz evidence into ${lesson.studentArtifact}.`} Results indicate which parts of ${lesson.studentArtifact} need reteaching or feedback.${preference ? ` Instructor preference: ${preference}.` : ''}`,
+      assessmentBlueprint: `${lesson.title} covers ${lesson.outcomes.join('; ')} with a source-grounded quiz plan for ${compactList(lesson.keyConcepts, stripLessonPrefix(lesson.title), 3)} and ${stripTerminalPunctuation(lesson.studentArtifact)}: ${questions.map((question) => `${question.quizPlan.role} -> ${question.bloomsLevel}`).join('; ')}. ${lesson.learningTransferPlan?.transferTask || `Students transfer quiz evidence into ${lesson.studentArtifact}.`} Results indicate which parts of ${lesson.studentArtifact} need reteaching or feedback.${preference ? ` Instructor preference: ${preferenceDisplayPhrase(preference)}.` : ''}`,
       tags: unique(['quiz bank', lesson.title, ...lesson.keyConcepts, lesson.studentArtifact], 8),
     };
   });
+
+  // v0.14.1 (3.2b): registry exams append as additional entries with their
+  // own titles — the Geology midterm/final finally exist as documents.
+  blueprint.assessments
+    .filter((assessment) => assessment.kind === 'exam')
+    .forEach((assessment, examOrdinal) => {
+      const examEntry = buildRegistryExamEntry(blueprint, assessment, examOrdinal);
+      if (examEntry) quizzes.push(examEntry);
+    });
 
   return {
     quizzes,
@@ -14396,6 +15179,30 @@ function slideDeckPhrase(blueprint, lesson) {
   };
 }
 
+/**
+ * v0.14.1 (5.2c): genuine claim/evidence rows for the deck's "evidence
+ * table" slide. The exporter used to fabricate rows by splitting display
+ * bullets on ":"/"—", which paired claims with unrelated leftovers in all
+ * 58 audited decks ("Adding a new key creates a new entry" | "`{...}` maps
+ * labels to data"). A row is only real when both halves come from the SAME
+ * source atom — an enriched key term whose definition (claim) and example
+ * (evidence) were authored together. Lengths track the exporter's native
+ * table guards (lead 42 / row 130 chars).
+ */
+function enrichedEvidenceTableRows(lesson) {
+  const terms = Array.isArray(lesson?.enrichment?.keyTerms) ? lesson.enrichment.keyTerms : [];
+  return terms
+    .map((term) => {
+      const claim = cleanText(term?.term);
+      const definition = stripTerminalPunctuation(cleanText(term?.definition));
+      const example = stripTerminalPunctuation(cleanText(term?.example));
+      if (!claim || !definition || !example) return null;
+      return [claim, `${definition} — e.g., ${example}`];
+    })
+    .filter((row) => row && row[0].length <= 42 && row[1].length <= 130)
+    .slice(0, 4);
+}
+
 function slideVisual(lesson, slide) {
   const { type, title } = slide;
   if (['title', 'agenda', 'objectives', 'closing'].includes(type)) {
@@ -14433,11 +15240,27 @@ function slideVisual(lesson, slide) {
         return spokes.length >= 2 ? { hub, spokes } : {};
       })(),
     },
-    content: {
-      kind: /limit|honest|gap/i.test(title) ? 'constraint map' : 'evidence table',
-      purpose: `Make the evidence standard for ${artifact} inspectable.`,
-      evidenceUse: `Compare ${concept}, ${secondary}, and the success criterion before students draft.`,
-    },
+    content: /worked example/i.test(title)
+      ? {
+          // v0.14.1 (5.2c): the worked-example fallback slide must not
+          // re-suggest a table — its steps ARE the visual.
+          kind: 'worked example walkthrough',
+          purpose: `Model the ${concept} solution path step by step before students try ${artifact}.`,
+          evidenceUse: `Annotate each step so students can reuse the reasoning in ${artifact}.`,
+        }
+      : {
+          kind: /limit|honest|gap/i.test(title) ? 'constraint map' : 'evidence table',
+          purpose: `Make the evidence standard for ${artifact} inspectable.`,
+          evidenceUse: `Compare ${concept}, ${secondary}, and the success criterion before students draft.`,
+          // v0.14.1 (5.2c): renderable claim/evidence rows ride the
+          // descriptor (the v0.13.3 hub/spokes pattern) so the exporter
+          // never has to fabricate pairs from display bullets.
+          ...(() => {
+            if (/limit|honest|gap/i.test(title)) return {};
+            const rows = enrichedEvidenceTableRows(lesson);
+            return rows.length >= 2 ? { rows } : {};
+          })(),
+        },
     example: {
       kind: 'annotated example',
       purpose: `Mark where a strong ${concept} example uses ${source} evidence to change the decision for ${artifact}.`,
@@ -14493,6 +15316,8 @@ function slideVisual(lesson, slide) {
     // v0.13.3: renderable concept-map data (hub + short spoke terms) rides
     // the descriptor so the PPTX exporter can draw a native group.
     ...(selected.hub && Array.isArray(selected.spokes) ? { hub: selected.hub, spokes: selected.spokes } : {}),
+    // v0.14.1 (5.2c): pre-paired claim/evidence rows for the evidence table.
+    ...(Array.isArray(selected.rows) && selected.rows.length >= 2 ? { rows: selected.rows } : {}),
     visualPlan,
   };
 }
@@ -14662,13 +15487,37 @@ function slideNotes({ lesson, title, type, bullets, nextCue, lens }) {
     .join(' ');
 }
 
+// v0.14.1 (5.2d): slide style used to strip terminal punctuation from EVERY
+// bullet, which made long complete bullets indistinguishable from mid-clause
+// truncations (the reason the output gate's truncated-bullet check stayed
+// expected-fail). Decision: bullets >= 60 chars keep sentence punctuation —
+// restoring the source's own mark ("?" stays a question) or a period when
+// the clause is complete; short labels and fragments (< 60 chars) stay
+// unpunctuated; truncations already end in "…" (1.3). With that, a >=60-char
+// line ending in a bare lowercase word is a true defect signal.
+const PUNCTUATED_BULLET_MIN_LENGTH = 60;
+
+function punctuateDisplayBullet(display, source) {
+  const text = cleanText(display);
+  if (!text || text.length < PUNCTUATED_BULLET_MIN_LENGTH) return text;
+  if (/[.!?…;:]$/.test(text)) return text;
+  const sourceMark = cleanText(source).match(/([.!?])\s*$/);
+  return `${text}${sourceMark ? sourceMark[1] : '.'}`;
+}
+
 function compactSlideDisplayBullet(slide, bullet, index, lesson) {
   const type = cleanText(slide?.type).toLowerCase();
-  const maxLength = type === 'activity' || type === 'discussion' ? 78 : 112;
+  const fullLength = type === 'activity' || type === 'discussion' ? 78 : 112;
+  // v0.14.1: the "Practice:"-style label is part of the rendered bullet, so
+  // it spends the same budget — compute the cap net of the prepended label
+  // instead of truncating first and prepending after.
+  const labels = ['Practice', 'Evidence', 'Debrief'];
+  const label = type === 'activity' ? labels[index] || `Step ${index + 1}` : '';
+  const maxLength = label ? Math.max(40, fullLength - (label.length + 2)) : fullLength;
   const fallback = type === 'activity' ? 'Complete the practice step' : 'Use course evidence';
   const concept = primarySlideConcept(lesson);
   const artifact = slideArtifact(lesson);
-  const compact = conciseClause(bullet, fallback, maxLength)
+  const compact = conciseClause(bullet, fallback, maxLength, { ellipsis: true })
     .replace(/^students?\s+/i, '')
     .replace(/^use\s+/i, 'Use ');
   // v0.12.1: never prepend the concept when the bullet already names it —
@@ -14677,17 +15526,16 @@ function compactSlideDisplayBullet(slide, bullet, index, lesson) {
   const conceptAlreadyNamed = cleanText(compact).toLowerCase().includes(cleanText(concept).toLowerCase());
   const needsLessonCue = !conceptAlreadyNamed && (type === 'activity' || type === 'discussion' || compact.length >= 70);
   const lessonSpecific = needsLessonCue
-    ? conciseClause(`${concept}: ${compact}`, compact, maxLength)
-    : conciseClause(compact, fallback, maxLength);
-  if (type !== 'activity') return lessonSpecific;
-  const labels = ['Practice', 'Evidence', 'Debrief'];
+    ? conciseClause(`${concept}: ${compact}`, compact, maxLength, { ellipsis: true })
+    : conciseClause(compact, fallback, maxLength, { ellipsis: true });
+  if (type !== 'activity') return punctuateDisplayBullet(lessonSpecific, bullet);
   const activityCue =
     index === 1
-      ? conciseClause(`${concept} evidence for ${artifact}`, lessonSpecific, maxLength)
+      ? conciseClause(`${concept} evidence for ${artifact}`, lessonSpecific, maxLength, { ellipsis: true })
       : index === 2
-        ? conciseClause(`${concept} decision for ${artifact}`, lessonSpecific, maxLength)
+        ? conciseClause(`${concept} decision for ${artifact}`, lessonSpecific, maxLength, { ellipsis: true })
         : lessonSpecific;
-  return `${labels[index] || `Step ${index + 1}`}: ${activityCue}`;
+  return punctuateDisplayBullet(`${label}: ${activityCue}`, bullet);
 }
 
 function displayBulletsForSlide(slide, lesson) {
@@ -15155,6 +16003,36 @@ function adjustDeckLengthForContent(slides, lesson) {
   }
 }
 
+/**
+ * v0.14.1 (5.2c): when the lesson cannot field a real evidence table (< 2
+ * claim/evidence rows from the same source atoms), the table slide's content
+ * is replaced by the lesson's kernel worked example when one exists — the
+ * v0.13.3 workedExamples finally get slide presence — so deck content varies
+ * with lesson data instead of every deck shipping the same fabricated table.
+ * Without a worked example the slide keeps its key-concept detail as plain
+ * text (the exporter no longer fabricates rows from bullets).
+ */
+function applyEvidenceSlideIntegrity(slides, lesson) {
+  if (enrichedEvidenceTableRows(lesson).length >= 2) return;
+  const workedExample = lesson?.enrichment?.workedExample;
+  const problem = cleanText(workedExample?.problem);
+  const steps = (Array.isArray(workedExample?.steps) ? workedExample.steps : []).map(cleanText).filter(Boolean);
+  if (!problem || steps.length < 2) return;
+  const target = slides.find(
+    (slide) => slide.type === 'content' && !/limit|honest|gap|worked example/i.test(slide.title || ''),
+  );
+  if (!target) return;
+  const result = cleanText(workedExample.result);
+  target.title = `Worked example: ${conciseClause(problem, 'the lesson worked example', 64)}`;
+  target.bullets = [
+    `Problem: ${problem}`,
+    ...steps.slice(0, 3).map((step, index) => `Step ${index + 1}: ${stripTerminalPunctuation(step)}.`),
+    ...(result ? [`Result: ${result}`] : []),
+  ];
+  target.notes = `Work the example on the board step by step: ${stripTerminalPunctuation(problem)}. Solution path: ${steps.join(' → ')}.${result ? ` Result: ${stripTerminalPunctuation(result)}.` : ''} Have students annotate each step, then assign one variation before they continue ${slideArtifact(lesson)}.`;
+  target.enrichmentSource = 'kernel-worked-example';
+}
+
 function compileDiscussions(blueprint) {
   const lens = blueprintLens(blueprint);
   const preference = featurePreference(blueprint, 'discussions');
@@ -15224,7 +16102,7 @@ function compileDiscussions(blueprint) {
         equityConsiderations:
           lesson.accessibilityPlan?.participationProtocol ||
           `Begin with two minutes of individual think time on ${lesson.studentArtifact}, allow written or spoken entry, invite quieter voices before a second comment from the same student, and provide sentence frames so students can cite ${lesson.keyConcepts[0] || stripLessonPrefix(lesson.title)} evidence without rushing.`,
-        guidelines: `${buildDiscussionGuidelinesForFormat(lesson, discussionProtocol)}${preference ? ` Preference profile: ${preference}.` : ''}`,
+        guidelines: `${buildDiscussionGuidelinesForFormat(lesson, discussionProtocol)}${preference ? ` Instructor preference: ${preferenceDisplayPhrase(preference)}.` : ''}`,
         tags: unique(['discussion', format, lesson.bloomsLevel, ...lesson.keyConcepts.slice(0, 4)], 8),
       };
     }),
@@ -15451,6 +16329,7 @@ function buildSlideDeckIrForLesson(blueprint, lesson, index) {
   ];
   overlayEnrichedSlideContent(slides, lesson);
   adjustDeckLengthForContent(slides, lesson);
+  applyEvidenceSlideIntegrity(slides, lesson);
   const slideMinutes = slides.reduce((sum, slide) => sum + Number(slide.minutes || 0), 0);
   const slideTimingFit = {
     slideMinutes,
@@ -15535,8 +16414,9 @@ function compileSlideDecks(blueprint) {
         const visual = slideVisual(lesson, slide);
         // Enriched teaching slides keep their model-written assertion bullets
         // and explanatory notes verbatim; the display rewriter only shapes
-        // compiler-template bullets.
-        const isEnriched = slide.enrichmentSource === 'lesson-content-enrichment';
+        // compiler-template bullets. v0.14.1 (5.2c): kernel worked-example
+        // slides are authored content too — their steps must not be cut.
+        const isEnriched = ['lesson-content-enrichment', 'kernel-worked-example'].includes(slide.enrichmentSource);
         const displayBullets = isEnriched ? slide.bullets : displayBulletsForSlide(slide, lesson);
         return {
           title: slide.title,
@@ -15574,7 +16454,28 @@ function compileSlideDecks(blueprint) {
         const moves = (scaffold.moves || []).map((m) => String(m).trim()).filter(Boolean);
         if (moves.length < 2) continue;
         const scaffoldKey = `${scaffold.term}::${scaffold.archetypeName}`;
-        if (seenScaffolds.has(scaffoldKey)) continue;
+        if (seenScaffolds.has(scaffoldKey)) {
+          // v0.14.1 (4.7): a re-linked concept's later lesson used to lose
+          // the slide entirely (WorldLit L14 in the OUTPUT-V014 audit).
+          // Repeat occurrences now render a compact RECAP variant — the
+          // routine's moves compressed to retrieval-practice bullets.
+          slides.push({
+            title: `How Experts Think: ${scaffold.term} — recap`,
+            type: 'content',
+            bullets: moves.slice(0, 3).map((move) => {
+              const compressed = conciseClause(move, move, 56);
+              return `${compressed.charAt(0).toUpperCase()}${compressed.slice(1)}`;
+            }),
+            notes: `Quick retrieval practice: students saw this routine earlier in the course. Ask them to reconstruct the steps for ${scaffold.term} before revealing the bullets, then apply one step to today's material.`,
+            visual: null,
+            activityType: 'retrieval practice',
+            timer: '2 min',
+            bloomsLevel: 'Apply',
+            objectiveLink: `Recall the expert reasoning routine for ${scaffold.term}`,
+            enrichmentSource: 'archetype-reasoning-recap',
+          });
+          continue;
+        }
         seenScaffolds.add(scaffoldKey);
         const structure = String(scaffold.archetypeName || '').toLowerCase();
         slides.push({
@@ -15831,7 +16732,7 @@ function buildLessonPlanOutline(blueprint, lesson) {
         ? `${stripTerminalPunctuation(kernelScenario.setup)}. Students identify which evidence, assumptions, and constraints matter most.`
         : `${sentenceCase(stripTerminalPunctuation(modality.signaturePractice))}. Students identify which evidence, assumptions, and constraints matter most for ${stripLessonPrefix(lesson.title)}.`,
       instructorNotes: `${stripTerminalPunctuation(modality.instructorMove)}; press for ${artifact} evidence about ${concept}. Watch for this misconception: ${misconception?.misconception || `students may use ${concept} without evidence`}.`,
-      instructorRole: `Coach the ${modality.mode} evidence routine and press for specificity in ${artifact}.`,
+      instructorRole: `Coach ${modalityEvidenceRoutineLabel(modality.mode)} and press for specificity in ${artifact}.`,
       grouping: 'Pairs with instructor check-ins',
       bloomsLevel: 'Analyze',
     },
@@ -15980,9 +16881,30 @@ function compileLessonPlans(blueprint) {
         weeklySubmissionCriteria:
           `Submit ${artifact} with concrete evidence, a clear claim or recommendation, and one explicit revision move based on feedback. ${artifactGenre.evidenceRequirement || ''} Quality focus: ${artifactGenre.qualityFocus || 'concept accuracy, evidence specificity, decision logic, and revision quality'}.`.trim(),
         localCaseReplacementNote: `If the named case for ${stripLessonPrefix(lesson.title)} is not locally relevant, replace it with a comparable ${lens.exampleNoun} that still requires students to use evidence about ${concept} and defend the same decision moves.`,
+        // v0.14.1 (3.2d): the lesson plan lists EVERY registry assessment for
+        // this lesson — graded artifacts with their weights, in-class
+        // activities marked as such — so map promises are visible where the
+        // session is planned. Registry path only; legacy plans are unchanged.
+        ...(Array.isArray(blueprint.assessmentRegistry)
+          ? (() => {
+              const entries = blueprint.assessmentRegistry.filter(
+                (entry) => entry.dueSession === lesson.lessonNumber,
+              );
+              return entries.length > 0
+                ? {
+                    assessmentBlock: entries.map((entry) => ({
+                      id: entry.id,
+                      title: entry.title,
+                      kind: entry.kind,
+                      weight: entry.kind === 'in-class' ? 'in class' : `${entry.weightPct ?? 0}%`,
+                    })),
+                  }
+                : {};
+            })()
+          : {}),
         assessmentCriteria: lesson.successCriteria,
         calibrationCue:
-          `${assessment.calibrationPlan?.scorerNorming || `Before collecting work, compare two sample responses and name what makes the stronger ${artifact} more defensible.`} ${assessment.calibrationPlan?.biasCheck || ''}${preference ? ` Preference profile: ${preference}.` : ''}`.trim(),
+          `${assessment.calibrationPlan?.scorerNorming || `Before collecting work, compare two sample responses and name what makes the stronger ${artifact} more defensible.`} ${assessment.calibrationPlan?.biasCheck || ''}${preference ? ` Instructor preference: ${preferenceDisplayPhrase(preference)}.` : ''}`.trim(),
         bloomsLevels: unique(
           ['Remember', 'Understand', 'Apply', 'Analyze', lesson.bloomsLevel, 'Evaluate', 'Create'],
           6,
@@ -16201,7 +17123,7 @@ function compileLessonPlans(blueprint) {
           learnerContextCue: lessonLearnerContextCue(blueprint, lesson),
           methodSpecificMiniRubric: `Mini-rubric: Score ${artifact} for concept accuracy, evidence quality, reasoning strength, and feedback-informed revision.`,
           studentHandout: `One-page guide with the lesson objective, success criteria, outline, and submission checklist for ${stripLessonPrefix(lesson.title)}.`,
-          instructorPrep: `Prepare the exemplar, one misconception check, and one targeted feedback prompt before teaching ${stripLessonPrefix(lesson.title)}.${preference ? ` Apply learned instructor preferences: ${preference}.` : ''}`,
+          instructorPrep: `Prepare the exemplar, one misconception check, and one targeted feedback prompt before teaching ${stripLessonPrefix(lesson.title)}.${preference ? ` Apply learned instructor preferences: ${preferenceDisplayPhrase(preference)}.` : ''}`,
           accessibilityAndUDL:
             lesson.accessibilityPlan?.accommodationReviewCue ||
             `Keep the ${stripLessonPrefix(lesson.title)} directions chunked, provide plain-language criteria, and let students choose an equivalent response format that still demonstrates ${concept}.`,

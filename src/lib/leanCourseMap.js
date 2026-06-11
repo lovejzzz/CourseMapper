@@ -82,8 +82,40 @@ function renderLearningObjectives(items) {
   // v0.12.1: the stem never lives in the cell — the readiness repair strips
   // it (logging a fake per-lesson "repair") and the pedagogical validator
   // treats it as non-publishable. Exporters/preview render the stem.
-  const lines = items.map((item, index) => (hasListPrefix(item) ? item : `${index + 1}. ${item}`));
-  return lines.join('\n');
+  // v0.14.1 (1.14): no bare numeric prefixes either — the readiness
+  // normalize pass stripped them right back out while logging 30 fake
+  // "repairs" per run, and preview/exporters re-derive numbering anyway.
+  // Model-authored goal-reference prefixes ("1a.", "2b.") pass through
+  // intact: deriveFromCourseMap maps outcomes to goals through them.
+  return items.join('\n');
+}
+
+// v0.14.1 (1.15a): the OUTPUT-V014 Mandarin run shipped raw JSON
+// ('topicSection": "') inside a course-map cell after a malformed
+// wire-format section was spliced into atom text. Any section value carrying
+// JSON syntax fragments is rejected wholesale (set to '') so the readiness
+// repair fills the clean per-column template instead of propagating fragment
+// text into cells, briefs, and the syllabus.
+const JSON_SPLICE_RE = /"\s*:\s*["[]/;
+const JSON_KEY_FRAGMENT_RE =
+  /\b(?:topicSection|learningGoals|learningObjectives|weeklyAssessments|asyncActivities|syncActivities|technologyNeeded|presentationFormat|supportingResources|evaluateDesign|specialTools)"/;
+
+function textLooksLikeJsonFragment(value) {
+  const textValue = String(value ?? '');
+  if (!textValue) return false;
+  if (JSON_SPLICE_RE.test(textValue) || JSON_KEY_FRAGMENT_RE.test(textValue)) return true;
+  // Structural imbalance betrays a spliced fragment — but only when paired
+  // with wire-format residue, so prose with a stray quote stays untouched.
+  const quoteCount = (textValue.match(/"/g) || []).length;
+  if (quoteCount % 2 === 1 && /[:[{]/.test(textValue)) return true;
+  const openCount = (textValue.match(/[[{]/g) || []).length;
+  const closeCount = (textValue.match(/[\]}]/g) || []).length;
+  return openCount !== closeCount && textValue.includes('"');
+}
+
+export function leanSectionValueIsCorrupt(value) {
+  if (Array.isArray(value)) return value.some((atom) => textLooksLikeJsonFragment(atom));
+  return typeof value === 'string' && textLooksLikeJsonFragment(value);
 }
 
 export function expandLeanSectionField(key, value) {
@@ -111,6 +143,13 @@ export function expandLeanCourseMap(courseMap) {
       let sectionChanged = false;
       const next = {};
       for (const [key, value] of Object.entries(section)) {
+        // Corrupted values never reach a cell: the empty cell is repaired
+        // from the clean template downstream (repairCourseMapReadiness).
+        if (leanSectionValueIsCorrupt(value)) {
+          sectionChanged = true;
+          next[key] = '';
+          continue;
+        }
         const expanded = expandLeanSectionField(key, value);
         if (expanded !== value) sectionChanged = true;
         next[key] = expanded;
@@ -180,27 +219,6 @@ function objectiveVerbs(objectivesCell) {
   return verbs;
 }
 
-function verbListText(verbs) {
-  if (verbs.length === 0) return 'apply the section content';
-  if (verbs.length === 1) return verbs[0];
-  return `${verbs.slice(0, -1).join(', ')} and ${verbs[verbs.length - 1]}`;
-}
-
-function assessmentLabel(section) {
-  const first = cellLines(section.weeklyAssessments)[0] || '';
-  const label = clipPhrase(first.split(':')[0] || '', 5);
-  return label ? `the ${label.toLowerCase()}` : 'the weekly assessment';
-}
-
-function activityLabel(section) {
-  const first = cellLines(section.syncActivities)[0] || cellLines(section.asyncActivities)[0] || '';
-  if (!first) return 'the weekly activities';
-  const [head, ...rest] = first.split(':');
-  const focus = clipPhrase(rest.join(':'), 6);
-  const verb = clipPhrase(head, 4).toLowerCase();
-  return focus ? `the ${verb} on ${focus.toLowerCase()}` : `the ${verb}`;
-}
-
 function derivePresentationFormat(section, lessonIndex) {
   const sync = cellLines(section.syncActivities).join(' ').toLowerCase();
   const async = cellLines(section.asyncActivities).join(' ').toLowerCase();
@@ -248,24 +266,73 @@ function deriveTechnologyNeeded(section) {
   return tools.map((tool, index) => `${index + 1}. ${tool}`).join('\n');
 }
 
-const EVALUATE_DESIGN_TEMPLATES = [
-  (verbs, assessment, activity) =>
-    `Objectives ask students to ${verbs}; ${assessment} measures that directly, and ${activity} provides structured practice beforehand. The objective-activity-assessment chain is intact for this section.`,
-  (verbs, assessment, activity) =>
-    `${assessment.charAt(0).toUpperCase()}${assessment.slice(1)} is the evidence for the stated objectives (${verbs}), with ${activity} building the underlying skill first. Each objective here has a matching activity and assessment.`,
-  (verbs, assessment, activity) =>
-    `Alignment check: ${activity} rehearses what ${assessment} grades, and both trace back to objectives that ${verbs}. No orphan objectives or unassessed activities in this section.`,
-  (verbs, assessment, activity) =>
-    `This section's objectives (${verbs}) drive both ${activity} and ${assessment}; practice precedes evidence, and the assessment measures the same verbs the objectives state.`,
-];
+// v0.14.1 (1.8): evaluateDesign is COMPUTED from the section's actual
+// objective↔assessment↔activity lexical overlap — the four rotating
+// always-positive templates asserted alignment they never checked. The
+// course-level alignmentLint (courseGraph/alignmentLint.js) checks graph
+// edges; these are the deterministic section-local equivalents, run on the
+// raw cells before any graph exists.
+const ALIGNMENT_STOPWORDS = new Set([
+  'the', 'and', 'for', 'with', 'from', 'into', 'onto', 'about', 'their', 'this', 'that',
+  'these', 'those', 'through', 'using', 'between', 'within', 'where', 'which', 'while',
+  'will', 'have', 'each', 'than', 'then', 'them', 'they', 'your', 'one', 'two', 'how',
+  'course', 'week', 'weekly', 'lesson', 'section', 'student', 'students', 'chapter',
+]);
 
-function deriveEvaluateDesign(section, lessonIndex) {
-  const template = EVALUATE_DESIGN_TEMPLATES[lessonIndex % EVALUATE_DESIGN_TEMPLATES.length];
-  return template(
-    verbListText(objectiveVerbs(section.learningObjectives)),
-    assessmentLabel(section),
-    activityLabel(section),
-  );
+function alignmentWords(line) {
+  return (cleanAtom(line).toLowerCase().match(/[a-z]{3,}/g) || []).filter((word) => !ALIGNMENT_STOPWORDS.has(word));
+}
+
+function stemOf(word) {
+  const stripped = word.replace(/(?:ations?|ements?|ings?|ities|ity|ies|ers?|ed|es|s)$/, '');
+  return stripped.length >= 3 ? stripped : word;
+}
+
+function wordsShareStem(a, b) {
+  const stemA = stemOf(a);
+  const stemB = stemOf(b);
+  if (stemA.length < 3 || stemB.length < 3) return stemA === stemB;
+  return stemA.startsWith(stemB) || stemB.startsWith(stemA);
+}
+
+function poolReflectsObjective(poolWords, objectiveWords) {
+  return objectiveWords.some((objectiveWord) => poolWords.some((poolWord) => wordsShareStem(poolWord, objectiveWord)));
+}
+
+function deriveEvaluateDesign(section) {
+  const objectives = cellLines(section.learningObjectives).filter((line) => !/^students will be able to/i.test(line));
+  const assessmentLines = cellLines(section.weeklyAssessments);
+  const activityLines = [...cellLines(section.syncActivities), ...cellLines(section.asyncActivities)];
+  const assessmentWords = assessmentLines.flatMap(alignmentWords);
+  const activityWords = activityLines.flatMap(alignmentWords);
+
+  const findings = [];
+  if (objectives.length === 0) {
+    findings.push('No learning objectives are stated for this section, so alignment cannot be confirmed.');
+  }
+  if (assessmentLines.length === 0) {
+    findings.push('No assessment is listed for this section, so its objectives are not measured.');
+  }
+  if (objectives.length > 0 && assessmentLines.length > 0) {
+    for (const objective of objectives) {
+      const objectiveWords = alignmentWords(objective);
+      if (objectiveWords.length === 0) continue;
+      const label = clipPhrase(objective, 9);
+      if (!poolReflectsObjective(assessmentWords, objectiveWords)) {
+        findings.push(`Objective '${label}' has no matching assessment in this section.`);
+      } else if (activityLines.length > 0 && !poolReflectsObjective(activityWords, objectiveWords)) {
+        findings.push(`Objective '${label}' has no supporting activity in this section.`);
+      }
+    }
+  }
+  if (findings.length > 0) return findings.join(' ');
+
+  const verbs = objectiveVerbs(section.learningObjectives);
+  const verbList = verbs.length > 0 ? ` (${verbs.join(', ')})` : '';
+  if (activityLines.length === 0) {
+    return `Each objective verb${verbList} is measured by an assessment; no activities are listed to rehearse it first.`;
+  }
+  return `Each objective verb${verbList} is exercised by an activity and measured by an assessment.`;
 }
 
 export function deriveCompilerOwnedColumns(courseMap) {
@@ -290,7 +357,7 @@ export function deriveCompilerOwnedColumns(courseMap) {
         sectionChanged = true;
       }
       if (!hasCellContent(next.evaluateDesign)) {
-        next.evaluateDesign = deriveEvaluateDesign(next, lessonIndex);
+        next.evaluateDesign = deriveEvaluateDesign(next);
         derivedKeys.add('evaluateDesign');
         sectionChanged = true;
       }

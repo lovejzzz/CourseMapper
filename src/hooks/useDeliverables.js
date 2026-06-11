@@ -64,6 +64,7 @@ import {
 import { repairCourseMapReadiness } from '../lib/deliverableReadiness';
 import { enrichmentPreferenceOverride } from '../lib/enrichmentPreference';
 import { buildApiCostPlan, isNonRetryableFailureClass } from '../lib/apiCostControl';
+import { buildJudgmentStageEvent, formatEnrichmentOutcomeLabel } from '../lib/apiCallBudget';
 import { classifyError } from '../lib/failureClassification';
 import { traceLog } from '../lib/traceLog';
 
@@ -1065,9 +1066,15 @@ export default function useDeliverables({
             library,
             cache: lessonKernelCache,
             itemPlan: buildQuizItemPlan(getGenerationConfig('quizBank')?.questionsPerLesson),
+            // v0.14.1 P2.7: inferred disciplines with no shard ride into the
+            // linker telemetry so the budget event can explain a 0-link run.
+            uncoveredDisciplines: hydration.uncoveredDisciplines || [],
           });
           genomeLink = {
             lessonContent: linked.lessonContent,
+            // v0.14.1 P4.5: thin genome matches — these lessons also run the
+            // model; the merge below folds the cited genome terms back in.
+            partialOverlays: linked.partialOverlays || {},
             telemetry: {
               ...linked.telemetry,
               shardIds: hydration.shardIds,
@@ -1086,23 +1093,34 @@ export default function useDeliverables({
             },
           };
           const t = linked.telemetry;
+          // v0.14.1 P2.7: a 0-link run caused by missing shard coverage says
+          // so — "0 genome + 0 cached" alone gave no hint the discipline
+          // simply isn't in the genome yet.
+          const uncovered = t.uncoveredDisciplines || [];
+          const uncoveredNote =
+            uncovered.length > 0
+              ? ` (no shard for inferred discipline${uncovered.length === 1 ? '' : 's'} ${uncovered
+                  .map((discipline) => `'${discipline}'`)
+                  .join(', ')})`
+              : '';
           recordGenerationApiCallEvent({
             type: 'genomeLink',
             label: 'CurriculumOS linker',
-            detail: `${t.resolvedFromGenome} genome + ${t.resolvedFromCache} cached of ${allLessonIndices.length} lessons (${t.conceptHits} concepts, ${t.citationsRendered} citations, ${t.bridgeCount || 0} bridges)`,
+            detail: `${t.resolvedFromGenome} genome + ${t.resolvedFromCache} cached of ${allLessonIndices.length} lessons (${t.conceptHits} concepts, ${t.citationsRendered} citations, ${t.bridgeCount || 0} bridges)${uncoveredNote}`,
             featureId: 'blueprintEnrichment',
           });
           // v0.14 P3: the judgment surface — what the genome reasoned about
           // this course (prerequisite gaps found, bridged, or flagged).
-          const judgment = linked.prerequisiteJudgment;
-          if (judgment && (judgment.missing > 0 || judgment.outOfOrder > 0)) {
-            recordGenerationApiCallEvent({
-              type: 'pipelineDecision',
-              stage: 'judgment',
-              label: 'Course judgment',
-              detail: `${judgment.missing} prerequisite gap${judgment.missing === 1 ? '' : 's'} (${judgment.bridgeable} bridgeable with cited primers, ${judgment.assumedBackground} assumed background)${judgment.outOfOrder ? ` · ${judgment.outOfOrder} out-of-order` : ''} · ${judgment.primersBuilt} primer${judgment.primersBuilt === 1 ? '' : 's'} built`,
-            });
-          }
+          // v0.14.1 P2.4: ALWAYS emitted once the linker ran — "ran clean"
+          // and "found nothing to evaluate" are reportable states, not
+          // silence (the v0.14 audit's judgment layer never spoke).
+          recordGenerationApiCallEvent(
+            buildJudgmentStageEvent({
+              judgment: linked.prerequisiteJudgment,
+              linkedConceptCount: t.conceptHits || 0,
+              genomeLinkedLessons: (t.resolvedFromGenome || 0) + (t.resolvedFromCache || 0),
+            }),
+          );
           if ((linked.bridges || []).length > 0) {
             appendLog(
               `✓ Drew ${linked.bridges.length} structural bridge${linked.bridges.length === 1 ? '' : 's'} between concepts sharing a deep structure (transfer learning)`,
@@ -1110,8 +1128,11 @@ export default function useDeliverables({
             );
           }
           if (linked.telemetry.resolvedFromGenome + linked.telemetry.resolvedFromCache > 0) {
+            // v0.14.1 P4.5: partial links still run the model for
+            // augmentation, so they are not "no AI cost" — say so.
+            const partialCount = linked.telemetry.partialFromGenome || 0;
             appendLog(
-              `✓ Linked ${linked.telemetry.resolvedFromGenome + linked.telemetry.resolvedFromCache}/${allLessonIndices.length} lesson(s) from the curriculum library — no AI cost (${linked.telemetry.conceptHits} concept${linked.telemetry.conceptHits === 1 ? '' : 's'}, ${linked.telemetry.citationsRendered} citation${linked.telemetry.citationsRendered === 1 ? '' : 's'})`,
+              `✓ Linked ${linked.telemetry.resolvedFromGenome + linked.telemetry.resolvedFromCache}/${allLessonIndices.length} lesson(s) from the curriculum library — no AI cost (${linked.telemetry.conceptHits} concept${linked.telemetry.conceptHits === 1 ? '' : 's'}, ${linked.telemetry.citationsRendered} citation${linked.telemetry.citationsRendered === 1 ? '' : 's'})${partialCount > 0 ? ` — ${partialCount} thin match${partialCount === 1 ? '' : 'es'} will be model-augmented` : ''}`,
               'done',
             );
           }
@@ -1241,12 +1262,20 @@ export default function useDeliverables({
           // projection fans it out across quiz, slides, study guide,
           // discussion, and assignment surfaces. Chunked four lessons per
           // call; chunk #1 also carries the absorbed course-level block.
-          // Lessons the genome linker already resolved never reach the model.
+          // Lessons the genome linker FULLY resolved never reach the model.
+          // v0.14.1 P4.5: partially linked lessons (thin matches) go to the
+          // model too — the genome augments, never displaces; the model
+          // payload below overwrites the thin one and the merge after the
+          // loops folds the cited genome terms back in.
           const lessonContent = { ...(genomeLink?.lessonContent || {}) };
           let absorbedCourseLevel = null;
           const genomeTelemetry = genomeLink?.telemetry || null;
           const genomeLinkPowers = genomeLink?.powers || null;
-          const lessonIndices = allLessonIndices.filter((lessonIndex) => !lessonContent[`lesson-${lessonIndex + 1}`]);
+          const partialOverlays = genomeLink?.partialOverlays || {};
+          const lessonIndices = allLessonIndices.filter((lessonIndex) => {
+            const lessonId = `lesson-${lessonIndex + 1}`;
+            return !lessonContent[lessonId] || Boolean(partialOverlays[lessonId]);
+          });
           const chunkSize = 4;
           for (let start = 0; start < lessonIndices.length; start += chunkSize) {
             if (!hasProviderCallBudget()) {
@@ -1285,6 +1314,9 @@ export default function useDeliverables({
               );
               const parsedKernels = parseLessonKernelResponse(kernelResult?.fullText || '', {
                 prompt: kernelPrompt,
+                // v0.14.1 P2.1: a renumbered lessonId must not overwrite
+                // another chunk's lesson through the Object.assign below.
+                expectedLessonIds: chunk.map((lessonIdx) => `lesson-${lessonIdx + 1}`),
               });
               if (parsedKernels) {
                 Object.assign(lessonContent, parsedKernels.lessons);
@@ -1316,6 +1348,120 @@ export default function useDeliverables({
             }
           }
 
+          // v0.14.1 P2.3: spend recovery budget on dropped lessons BEFORE
+          // compilation. The v0.14 audit runs finished with 8-14 unused
+          // finish-retry calls while Geology L13/L14 and WorldLit L8 shipped
+          // template content — one extra kernel call each would have fixed
+          // them. Max 2 extra calls, recorded through the normal budget
+          // machinery, batched like the main loop (≤4 lessons per call).
+          const listMissingLessonIndices = () =>
+            allLessonIndices.filter((lessonIdx) => !lessonContent[`lesson-${lessonIdx + 1}`]);
+          let enrichmentRecoveryCalls = 0;
+          while (enrichmentRecoveryCalls < 2 && listMissingLessonIndices().length > 0) {
+            if (!hasProviderCallBudget()) break;
+            const retryChunk = listMissingLessonIndices().slice(0, chunkSize);
+            enrichmentRecoveryCalls += 1;
+            const retryPrompt = buildLessonKernelPrompt(blueprintCourseMap, retryChunk, {
+              questionsPerLesson: getGenerationConfig('quizBank')?.questionsPerLesson,
+              includeCourseLevel: false,
+            });
+            recordGenerationApiCallEvent({
+              type: 'blueprintEnrichmentCall',
+              label: 'Enrich lesson kernels (recovery)',
+              detail: `Recovery ${enrichmentRecoveryCalls}/2 for dropped lesson${retryChunk.length === 1 ? '' : 's'} ${retryChunk
+                .map((lessonIdx) => lessonIdx + 1)
+                .join(', ')} — ${retryPrompt.approxInputTokens} input tokens estimated`,
+              featureId: 'blueprintEnrichment',
+            });
+            try {
+              const retryResult = await streamProvider(
+                provider,
+                apiKey,
+                modelId,
+                retryPrompt.systemPrompt,
+                retryPrompt.userPrompt,
+                {
+                  maxOutputTokens: Math.max(enrichmentMaxOutputTokens, 1200 * retryChunk.length, 2400),
+                  modelCapabilities,
+                  generationPlan,
+                  featureId: 'blueprintEnrichment',
+                  task: 'blueprintEnrichment',
+                  allowProviderFallback: maxProviderCalls === null || getRemainingProviderCalls() > 0,
+                  onApiCallEvent: recordGenerationApiCallEvent,
+                  signal: controller.signal,
+                },
+              );
+              const recoveredKernels = parseLessonKernelResponse(retryResult?.fullText || '', {
+                prompt: retryPrompt,
+                expectedLessonIds: retryChunk.map((lessonIdx) => `lesson-${lessonIdx + 1}`),
+              });
+              if (recoveredKernels) {
+                Object.assign(lessonContent, recoveredKernels.lessons);
+                if (lessonKernelCache) {
+                  for (const [lessonId, payload] of Object.entries(recoveredKernels.lessons)) {
+                    const lessonIdx = Number(String(lessonId).replace('lesson-', '')) - 1;
+                    const lesson = blueprintCourseMap.lessons?.[lessonIdx];
+                    if (lesson) lessonKernelCache.set(lesson, payload);
+                  }
+                }
+                const recoveredNumbers = Object.keys(recoveredKernels.lessons).map((lessonId) =>
+                  Number(String(lessonId).replace('lesson-', '')),
+                );
+                if (recoveredNumbers.length > 0) {
+                  appendLog(
+                    `✓ Enrichment recovery restored lesson${recoveredNumbers.length === 1 ? '' : 's'} ${recoveredNumbers.join(', ')}`,
+                    'done',
+                  );
+                }
+              }
+            } catch (recoveryErr) {
+              if (recoveryErr?.name === 'AbortError') throw recoveryErr;
+              appendLog(`⚠ Enrichment recovery call failed: ${recoveryErr.message || 'model error'}`, 'warn');
+            }
+          }
+
+          // v0.14.1 P4.5: fold the genome partials back in — genome keyTerms
+          // first (they carry citations), model terms fill to par, provenance
+          // preserved so the graph's genomeLink edges still get written. A
+          // lesson whose model call failed keeps its thin genome payload
+          // (cited content beats template). Merged payloads replace the raw
+          // model entry in the own-kernel cache so revisions stay cited.
+          if (Object.keys(partialOverlays).length > 0) {
+            const { mergeLessonPayloads } = await import('../lib/genome/composeLessonFromConcepts');
+            let mergedCount = 0;
+            for (const [lessonId, partial] of Object.entries(partialOverlays)) {
+              const modelPayload = lessonContent[lessonId];
+              if (!modelPayload || modelPayload === partial || modelPayload.enrichmentSource === 'genome-linked') {
+                continue; // model never delivered — the genome partial stands
+              }
+              const merged = mergeLessonPayloads(partial, modelPayload);
+              lessonContent[lessonId] = merged;
+              mergedCount += 1;
+              if (lessonKernelCache) {
+                const lessonIdx = Number(String(lessonId).replace('lesson-', '')) - 1;
+                const lesson = blueprintCourseMap.lessons?.[lessonIdx];
+                if (lesson) lessonKernelCache.set(lesson, merged);
+              }
+            }
+            if (mergedCount > 0) {
+              appendLog(
+                `✓ Genome citations merged into ${mergedCount} model-enriched lesson${mergedCount === 1 ? '' : 's'} (genome terms first, model fills to par)`,
+                'done',
+              );
+            }
+          }
+
+          // v0.14.1 P2.1/P2.2: per-lesson coverage — name exactly which
+          // requested lessons fell back to template, at WARN level, and carry
+          // the numbers into the enrichment outcome (digest + manifest).
+          const missingLessonNumbers = listMissingLessonIndices().map((lessonIdx) => lessonIdx + 1);
+          if (missingLessonNumbers.length > 0) {
+            appendLog(
+              `⚠ Enrichment fell back to template for lesson${missingLessonNumbers.length === 1 ? '' : 's'} ${missingLessonNumbers.join(', ')}`,
+              'warn',
+            );
+          }
+
           const enrichedLessonCount = Object.keys(lessonContent).length;
           if (enrichedLessonCount === 0) {
             appendLog('⚠ Blueprint enrichment produced no usable lesson kernels', 'warn');
@@ -1328,6 +1474,11 @@ export default function useDeliverables({
             styleNotes: absorbedCourseLevel?.styleNotes || [],
             quality: absorbedCourseLevel?.quality || { source: 'kernel-only' },
             lessonContent,
+            coverage: {
+              requestedLessons: allLessonIndices.length,
+              enrichedLessons: enrichedLessonCount,
+              missingLessons: missingLessonNumbers,
+            },
             ...(genomeTelemetry ? { genomeTelemetry } : {}),
             ...(genomeLinkPowers ? { genomeLinkPowers } : {}),
             stageDecisions,
@@ -1383,21 +1534,32 @@ export default function useDeliverables({
           });
         }
         const blueprintEnrichment = await runBlueprintEnrichment(blueprintCourseMap);
+        // v0.12.1: structured outcome for the run digest's content-risk
+        // gate — string parsing of `detail` is too fragile to gate on.
+        // v0.14.1 P2.2: the outcome carries per-lesson coverage (requested +
+        // missing lesson numbers) so partial enrichment reads as
+        // "ran (12/14 — lessons 13, 14 fell back to template)" everywhere
+        // (digest pipeline line, PACKAGE_MANIFEST, finalizer warning).
+        const enrichmentOutcome = {
+          modelStage: blueprintEnrichment?.stageDecisions?.modelStage || 'none',
+          enrichedLessons: blueprintEnrichment?.lessonContent
+            ? Object.keys(blueprintEnrichment.lessonContent).length
+            : 0,
+          ...(blueprintEnrichment?.coverage
+            ? {
+                requestedLessons: blueprintEnrichment.coverage.requestedLessons,
+                missingLessons: blueprintEnrichment.coverage.missingLessons,
+              }
+            : {}),
+        };
         recordGenerationApiCallEvent({
           type: 'pipelineDecision',
           stage: 'enrichmentModelStage',
           label: 'Enrichment decision',
           detail: blueprintEnrichment?.stageDecisions
-            ? `${blueprintEnrichment.stageDecisions.modelStage} (linker: ${blueprintEnrichment.stageDecisions.genomeLinker})`
+            ? `${formatEnrichmentOutcomeLabel(enrichmentOutcome)} (linker: ${blueprintEnrichment.stageDecisions.genomeLinker})`
             : 'deterministic compile only (no enrichment object)',
-          // v0.12.1: structured outcome for the run digest's content-risk
-          // gate — string parsing of `detail` is too fragile to gate on.
-          outcome: {
-            modelStage: blueprintEnrichment?.stageDecisions?.modelStage || 'none',
-            enrichedLessons: blueprintEnrichment?.lessonContent
-              ? Object.keys(blueprintEnrichment.lessonContent).length
-              : 0,
-          },
+          outcome: enrichmentOutcome,
         });
         const instructorPreferenceProfile = await loadInstructorPreferenceProfile();
         if (instructorPreferenceProfile?.signalCount > 0) {
@@ -1449,10 +1611,15 @@ export default function useDeliverables({
         if (typeof onCourseGraph === 'function') {
           onCourseGraph(courseGraph, { source: 'generation' });
         }
-        if (genomeResourceCount + openReadingCount > 0 && typeof onCourseMapRepair === 'function') {
-          // Push the resource-bearing render so the visible map (and any
-          // later graph re-derivation) keeps the attached readings.
-          onCourseMapRepair(courseGraphLib.renderCourseMapFromGraph(courseGraph), { source: 'knowledgeBackbone' });
+        if (typeof onCourseMapRepair === 'function') {
+          // Push the DISPLAY render: resource-bearing cells plus the
+          // v0.14.1 (3.3a) assessment reference suffixes ("→ Assignment
+          // Briefs / Lesson 08") so the visible map indexes the package.
+          // Re-derivation strips the suffixes (deriveFromCourseMap), so the
+          // graph never drifts.
+          onCourseMapRepair(courseGraphLib.renderCourseMapFromGraph(courseGraph, { assessmentReferences: true }), {
+            source: 'knowledgeBackbone',
+          });
         }
         const graphStats = courseGraphLib.courseGraphStats(courseGraph);
         const alignmentFindings = courseGraphLib.lintCourseGraphAlignment(courseGraph);

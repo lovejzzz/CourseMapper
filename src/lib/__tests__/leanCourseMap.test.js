@@ -13,13 +13,15 @@ describe('expandLeanSectionField', () => {
   // v0.12.1: the stem never lives in the cell — the readiness repair strips
   // it and the validator treats it as non-publishable, so the expander must
   // not add it back (it used to, guaranteeing a fake "repair" every run).
-  it('numbers unprefixed atoms without adding the objectives stem', () => {
+  // v0.14.1 (1.14): same fate for bare numbering — the repair normalize pass
+  // stripped it right back out while logging 30 fake "repairs" per run.
+  it('renders unprefixed atoms without numbering or the objectives stem', () => {
     const out = expandLeanSectionField('learningObjectives', [
       'Analyze the impact of immigration policy on communities',
       'Compare federal and state policy frameworks',
     ]);
     expect(out).toBe(
-      '1. Analyze the impact of immigration policy on communities\n2. Compare federal and state policy frameworks',
+      'Analyze the impact of immigration policy on communities\nCompare federal and state policy frameworks',
     );
   });
 
@@ -70,7 +72,7 @@ describe('expandLeanCourseMap', () => {
   it('expands every lean section into standard course-map prose', () => {
     const expanded = expandLeanCourseMap(leanMap);
     const section = expanded.lessons[0].sections[0];
-    expect(section.learningObjectives).toBe('1. Analyze policy frameworks');
+    expect(section.learningObjectives).toBe('Analyze policy frameworks');
     expect(section.asyncActivities).toBe('1. Read: Chapter 1');
     expect(section.topicSection).toBe('1.1: Overview');
   });
@@ -162,9 +164,12 @@ describe('compiler-owned columns (v0.9.11 P3b)', () => {
     expect(section.presentationFormat).toBe('Interactive seminar + reading');
     expect(section.technologyNeeded).toContain('LMS');
     expect(section.technologyNeeded).toContain('Video conferencing');
-    // evaluateDesign is computed from the section's actual mapping, not asserted.
-    expect(section.evaluateDesign.toLowerCase()).toContain('analyze and compare');
-    expect(section.evaluateDesign.toLowerCase()).toContain('reflection paper');
+    // evaluateDesign is computed from the section's actual mapping, not
+    // asserted (v0.14.1 1.8): the reflection paper covers the policy-impact
+    // objective but nothing assesses the frameworks comparison — say so.
+    expect(section.evaluateDesign).toBe(
+      "Objective 'Compare federal and state frameworks' has no matching assessment in this section.",
+    );
     expect(derived.lessons[0].compilerDerived).toEqual(COMPILER_OWNED_LEAN_KEYS.slice().sort());
   });
 

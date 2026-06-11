@@ -1,5 +1,27 @@
 {
   "_comment": "CurriculumOS V1 genesis seed. Curated foundational concepts from open educational resources (OpenStax). Each kernel's anchored quotes are verified by the foundry's mechanical anchor check against the sourceSnapshots below before admission. Scaling to the full ~50-title library is the next foundry run.",
+  "references": {
+    "writing-about-literature:reference": {
+      "displayTitle": "Writing About Literature",
+      "sourceUrl": "https://human.libretexts.org/Bookshelves/Literature_and_Literacy"
+    },
+    "literary-close-reading:reference": {
+      "displayTitle": "Close Reading in Literary Study",
+      "sourceUrl": "https://human.libretexts.org/Bookshelves/Literature_and_Literacy"
+    },
+    "historical-thinking:reference": {
+      "displayTitle": "Historical Thinking and Argument",
+      "sourceUrl": "https://human.libretexts.org/Bookshelves/History"
+    },
+    "historical-method:reference": {
+      "displayTitle": "Historical Method and Source Criticism",
+      "sourceUrl": "https://human.libretexts.org/Bookshelves/History"
+    },
+    "historical-context:reference": {
+      "displayTitle": "Historical Context and Interpretation",
+      "sourceUrl": "https://human.libretexts.org/Bookshelves/History"
+    }
+  },
   "sourceSnapshots": {
     "openstax:microeconomics-3e#5": "Price elasticity of demand measures the responsiveness of quantity demanded to a change in price; it is computed as the percentage change in quantity demanded divided by the percentage change in price. Demand is described as elastic when the absolute value of the elasticity is greater than one, meaning quantity responds proportionally more than price. Demand is inelastic when the absolute value is less than one. Necessities tend to have inelastic demand because consumers have few substitutes, while luxuries tend to have elastic demand. The availability of close substitutes is a primary determinant of elasticity.",
     "openstax:microeconomics-3e#3": "A demand curve shows the quantity of a good that consumers are willing and able to purchase at each price, holding all other factors constant. Demand curves typically slope downward, reflecting the law of demand: as price falls, quantity demanded rises. A change in price causes a movement along the demand curve, whereas a change in income, tastes, or the price of related goods shifts the entire curve.",
@@ -42,7 +64,11 @@
       "id": "econ/price-elasticity-of-demand",
       "rev": 1,
       "term": "Price elasticity of demand",
-      "aliases": ["PED", "demand elasticity", "elasticity of demand"],
+      "aliases": [
+        "PED",
+        "demand elasticity",
+        "elasticity of demand"
+      ],
       "level": "intro",
       "difficulty": 2,
       "bloomCeiling": "Analyze",
@@ -100,15 +126,26 @@
       "mcBank": [
         {
           "stem": "A 10 percent price increase reduces quantity demanded by 25 percent. This demand is best described as",
-          "options": ["elastic", "unit elastic", "inelastic", "perfectly inelastic"],
+          "options": [
+            "elastic",
+            "unit elastic",
+            "inelastic",
+            "perfectly inelastic"
+          ],
           "answerIndex": 0,
           "explanationFactRef": 0,
-          "rationaleRefs": [0]
+          "rationaleRefs": [
+            0
+          ]
         }
       ],
       "edges": {
-        "requires": ["econ/demand-curve"],
-        "recommends": ["econ/substitute-goods"],
+        "requires": [
+          "econ/demand-curve"
+        ],
+        "recommends": [
+          "econ/substitute-goods"
+        ],
         "instanceOf": [
           {
             "archetype": "method/marginal-analysis",
@@ -123,13 +160,18 @@
           }
         ]
       },
-      "attribution": ["OpenStax Principles of Microeconomics 3e, Ch. 5"]
+      "attribution": [
+        "OpenStax Principles of Microeconomics 3e, Ch. 5"
+      ]
     },
     {
       "id": "econ/demand-curve",
       "rev": 1,
       "term": "Demand curve",
-      "aliases": ["demand schedule", "law of demand"],
+      "aliases": [
+        "demand schedule",
+        "law of demand"
+      ],
       "level": "intro",
       "difficulty": 1,
       "bloomCeiling": "Understand",
@@ -184,19 +226,28 @@
             "raise the equilibrium price"
           ],
           "answerIndex": 0,
-          "rationaleRefs": [0]
+          "rationaleRefs": [
+            0
+          ]
         }
       ],
       "edges": {
-        "recommends": ["econ/price-elasticity-of-demand"]
+        "recommends": [
+          "econ/price-elasticity-of-demand"
+        ]
       },
-      "attribution": ["OpenStax Principles of Microeconomics 3e, Ch. 3"]
+      "attribution": [
+        "OpenStax Principles of Microeconomics 3e, Ch. 3"
+      ]
     },
     {
       "id": "stats/sampling-distribution",
       "rev": 1,
       "term": "Sampling distribution",
-      "aliases": ["distribution of the sample mean", "central limit theorem"],
+      "aliases": [
+        "distribution of the sample mean",
+        "central limit theorem"
+      ],
       "level": "intro",
       "difficulty": 3,
       "bloomCeiling": "Apply",
@@ -252,11 +303,15 @@
           ],
           "answerIndex": 0,
           "explanationFactRef": 0,
-          "rationaleRefs": [0]
+          "rationaleRefs": [
+            0
+          ]
         }
       ],
       "edges": {
-        "recommends": ["stats/p-value"],
+        "recommends": [
+          "stats/p-value"
+        ],
         "instanceOf": [
           {
             "archetype": "method/sampling-and-inference",
@@ -271,13 +326,18 @@
           }
         ]
       },
-      "attribution": ["OpenStax Introductory Statistics, Ch. 7"]
+      "attribution": [
+        "OpenStax Introductory Statistics, Ch. 7"
+      ]
     },
     {
       "id": "stats/p-value",
       "rev": 1,
       "term": "p-value",
-      "aliases": ["probability value", "significance probability"],
+      "aliases": [
+        "probability value",
+        "significance probability"
+      ],
       "level": "intro",
       "difficulty": 3,
       "bloomCeiling": "Evaluate",
@@ -334,11 +394,15 @@
           ],
           "answerIndex": 0,
           "explanationFactRef": 0,
-          "rationaleRefs": [0]
+          "rationaleRefs": [
+            0
+          ]
         }
       ],
       "edges": {
-        "requires": ["stats/sampling-distribution"],
+        "requires": [
+          "stats/sampling-distribution"
+        ],
         "instanceOf": [
           {
             "archetype": "method/sampling-and-inference",
@@ -353,13 +417,18 @@
           }
         ]
       },
-      "attribution": ["OpenStax Introductory Statistics, Ch. 9"]
+      "attribution": [
+        "OpenStax Introductory Statistics, Ch. 9"
+      ]
     },
     {
       "id": "bio/photosynthesis",
       "rev": 1,
       "term": "Photosynthesis",
-      "aliases": ["light reactions", "Calvin cycle"],
+      "aliases": [
+        "light reactions",
+        "Calvin cycle"
+      ],
       "level": "intro",
       "difficulty": 2,
       "bloomCeiling": "Understand",
@@ -424,19 +493,28 @@
           ],
           "answerIndex": 0,
           "explanationFactRef": 2,
-          "rationaleRefs": [0]
+          "rationaleRefs": [
+            0
+          ]
         }
       ],
       "edges": {
-        "recommends": ["bio/cell-membrane"]
+        "recommends": [
+          "bio/cell-membrane"
+        ]
       },
-      "attribution": ["OpenStax Biology 2e, Ch. 8"]
+      "attribution": [
+        "OpenStax Biology 2e, Ch. 8"
+      ]
     },
     {
       "id": "bio/cell-membrane",
       "rev": 1,
       "term": "Cell membrane",
-      "aliases": ["plasma membrane", "phospholipid bilayer"],
+      "aliases": [
+        "plasma membrane",
+        "phospholipid bilayer"
+      ],
       "level": "intro",
       "difficulty": 2,
       "bloomCeiling": "Understand",
@@ -492,7 +570,9 @@
           ],
           "answerIndex": 0,
           "explanationFactRef": 0,
-          "rationaleRefs": [0]
+          "rationaleRefs": [
+            0
+          ]
         }
       ],
       "edges": {
@@ -510,13 +590,18 @@
           }
         ]
       },
-      "attribution": ["OpenStax Biology 2e, Ch. 3"]
+      "attribution": [
+        "OpenStax Biology 2e, Ch. 3"
+      ]
     },
     {
       "id": "chem/chemical-equilibrium",
       "rev": 1,
       "term": "Chemical equilibrium",
-      "aliases": ["dynamic equilibrium", "Le Chatelier's principle"],
+      "aliases": [
+        "dynamic equilibrium",
+        "Le Chatelier's principle"
+      ],
       "level": "intro",
       "difficulty": 3,
       "bloomCeiling": "Analyze",
@@ -573,10 +658,15 @@
           ],
           "answerIndex": 0,
           "explanationFactRef": 0,
-          "rationaleRefs": [0]
+          "rationaleRefs": [
+            0
+          ]
         }
       ],
       "edges": {
+        "requires": [
+          "chem/conservation-of-mass"
+        ],
         "instanceOf": [
           {
             "archetype": "structure/equilibrium",
@@ -592,13 +682,18 @@
           }
         ]
       },
-      "attribution": ["OpenStax Chemistry 2e, Ch. 13"]
+      "attribution": [
+        "OpenStax Chemistry 2e, Ch. 13"
+      ]
     },
     {
       "id": "econ/market-equilibrium",
       "rev": 1,
       "term": "Market equilibrium",
-      "aliases": ["equilibrium price", "supply and demand balance"],
+      "aliases": [
+        "equilibrium price",
+        "supply and demand balance"
+      ],
       "level": "intro",
       "difficulty": 2,
       "bloomCeiling": "Analyze",
@@ -655,11 +750,15 @@
           ],
           "answerIndex": 0,
           "explanationFactRef": 1,
-          "rationaleRefs": [0]
+          "rationaleRefs": [
+            0
+          ]
         }
       ],
       "edges": {
-        "requires": ["econ/demand-curve"],
+        "requires": [
+          "econ/demand-curve"
+        ],
         "instanceOf": [
           {
             "archetype": "structure/equilibrium",
@@ -675,13 +774,18 @@
           }
         ]
       },
-      "attribution": ["OpenStax Principles of Microeconomics 3e, Ch. 4"]
+      "attribution": [
+        "OpenStax Principles of Microeconomics 3e, Ch. 4"
+      ]
     },
     {
       "id": "bio/homeostasis",
       "rev": 1,
       "term": "Homeostasis",
-      "aliases": ["negative feedback", "set point regulation"],
+      "aliases": [
+        "negative feedback",
+        "set point regulation"
+      ],
       "level": "intro",
       "difficulty": 2,
       "bloomCeiling": "Analyze",
@@ -738,7 +842,9 @@
           ],
           "answerIndex": 0,
           "explanationFactRef": 0,
-          "rationaleRefs": [0]
+          "rationaleRefs": [
+            0
+          ]
         }
       ],
       "edges": {
@@ -756,13 +862,18 @@
           }
         ]
       },
-      "attribution": ["OpenStax Biology 2e, Ch. 33"]
+      "attribution": [
+        "OpenStax Biology 2e, Ch. 33"
+      ]
     },
     {
       "id": "econ/wage-price-spiral",
       "rev": 1,
       "term": "Wage-price spiral",
-      "aliases": ["inflation spiral", "positive feedback in inflation"],
+      "aliases": [
+        "inflation spiral",
+        "positive feedback in inflation"
+      ],
       "level": "intro",
       "difficulty": 3,
       "bloomCeiling": "Analyze",
@@ -819,7 +930,9 @@
           ],
           "answerIndex": 0,
           "explanationFactRef": 0,
-          "rationaleRefs": [0]
+          "rationaleRefs": [
+            0
+          ]
         }
       ],
       "edges": {
@@ -837,13 +950,18 @@
           }
         ]
       },
-      "attribution": ["OpenStax Principles of Macroeconomics 2e, Ch. 11"]
+      "attribution": [
+        "OpenStax Principles of Macroeconomics 2e, Ch. 11"
+      ]
     },
     {
       "id": "history/historical-argument",
       "rev": 1,
       "term": "Historical argument",
-      "aliases": ["historical interpretation", "argument from primary sources"],
+      "aliases": [
+        "historical interpretation",
+        "argument from primary sources"
+      ],
       "level": "intro",
       "difficulty": 3,
       "bloomCeiling": "Evaluate",
@@ -900,10 +1018,16 @@
           ],
           "answerIndex": 0,
           "explanationFactRef": 0,
-          "rationaleRefs": [0]
+          "rationaleRefs": [
+            0
+          ]
         }
       ],
       "edges": {
+        "requires": [
+          "history/primary-source-criticism",
+          "history/contextual-interpretation"
+        ],
         "instanceOf": [
           {
             "archetype": "epistemic/evidence-vs-claim",
@@ -918,13 +1042,18 @@
           }
         ]
       },
-      "attribution": ["Historical thinking pedagogy (curated genesis reference)"]
+      "attribution": [
+        "Historical thinking pedagogy (curated genesis reference)"
+      ]
     },
     {
       "id": "lit/literary-argument",
       "rev": 1,
       "term": "Literary argument",
-      "aliases": ["interpretive thesis", "close-reading argument"],
+      "aliases": [
+        "interpretive thesis",
+        "close-reading argument"
+      ],
       "level": "intro",
       "difficulty": 2,
       "bloomCeiling": "Evaluate",
@@ -981,10 +1110,15 @@
           ],
           "answerIndex": 0,
           "explanationFactRef": 0,
-          "rationaleRefs": [0]
+          "rationaleRefs": [
+            0
+          ]
         }
       ],
       "edges": {
+        "requires": [
+          "lit/close-reading"
+        ],
         "instanceOf": [
           {
             "archetype": "epistemic/evidence-vs-claim",
@@ -999,13 +1133,18 @@
           }
         ]
       },
-      "attribution": ["Writing about literature (curated genesis reference)"]
+      "attribution": [
+        "Writing about literature (curated genesis reference)"
+      ]
     },
     {
       "id": "econ/consumer-choice",
       "rev": 1,
       "term": "Consumer choice",
-      "aliases": ["utility maximization", "budget constraint"],
+      "aliases": [
+        "utility maximization",
+        "budget constraint"
+      ],
       "level": "intro",
       "difficulty": 2,
       "bloomCeiling": "Apply",
@@ -1062,7 +1201,9 @@
           ],
           "answerIndex": 0,
           "explanationFactRef": 1,
-          "rationaleRefs": [0]
+          "rationaleRefs": [
+            0
+          ]
         }
       ],
       "edges": {
@@ -1080,13 +1221,18 @@
           }
         ]
       },
-      "attribution": ["OpenStax Principles of Microeconomics 3e, Ch. 6"]
+      "attribution": [
+        "OpenStax Principles of Microeconomics 3e, Ch. 6"
+      ]
     },
     {
       "id": "bio/optimal-foraging",
       "rev": 1,
       "term": "Optimal foraging",
-      "aliases": ["foraging theory", "energy maximization"],
+      "aliases": [
+        "foraging theory",
+        "energy maximization"
+      ],
       "level": "intro",
       "difficulty": 3,
       "bloomCeiling": "Apply",
@@ -1143,7 +1289,9 @@
           ],
           "answerIndex": 0,
           "explanationFactRef": 0,
-          "rationaleRefs": [0]
+          "rationaleRefs": [
+            0
+          ]
         }
       ],
       "edges": {
@@ -1161,13 +1309,18 @@
           }
         ]
       },
-      "attribution": ["OpenStax Biology 2e, Ch. 45"]
+      "attribution": [
+        "OpenStax Biology 2e, Ch. 45"
+      ]
     },
     {
       "id": "econ/economic-model",
       "rev": 1,
       "term": "Economic model",
-      "aliases": ["economic model assumptions", "simplifying assumptions"],
+      "aliases": [
+        "economic model assumptions",
+        "simplifying assumptions"
+      ],
       "level": "intro",
       "difficulty": 2,
       "bloomCeiling": "Evaluate",
@@ -1224,7 +1377,9 @@
           ],
           "answerIndex": 0,
           "explanationFactRef": 1,
-          "rationaleRefs": [0]
+          "rationaleRefs": [
+            0
+          ]
         }
       ],
       "edges": {
@@ -1242,13 +1397,18 @@
           }
         ]
       },
-      "attribution": ["OpenStax Principles of Microeconomics 3e, Ch. 1"]
+      "attribution": [
+        "OpenStax Principles of Microeconomics 3e, Ch. 1"
+      ]
     },
     {
       "id": "stats/statistical-model",
       "rev": 1,
       "term": "Statistical model",
-      "aliases": ["regression model", "statistical model assumptions"],
+      "aliases": [
+        "regression model",
+        "statistical model assumptions"
+      ],
       "level": "intro",
       "difficulty": 3,
       "bloomCeiling": "Evaluate",
@@ -1305,7 +1465,9 @@
           ],
           "answerIndex": 0,
           "explanationFactRef": 1,
-          "rationaleRefs": [0]
+          "rationaleRefs": [
+            0
+          ]
         }
       ],
       "edges": {
@@ -1323,13 +1485,18 @@
           }
         ]
       },
-      "attribution": ["OpenStax Introductory Statistics, Ch. 12"]
+      "attribution": [
+        "OpenStax Introductory Statistics, Ch. 12"
+      ]
     },
     {
       "id": "bio/cellular-respiration",
       "rev": 1,
       "term": "Cellular respiration",
-      "aliases": ["glycolysis", "oxidative phosphorylation"],
+      "aliases": [
+        "glycolysis",
+        "oxidative phosphorylation"
+      ],
       "level": "intro",
       "difficulty": 3,
       "bloomCeiling": "Analyze",
@@ -1386,7 +1553,9 @@
           ],
           "answerIndex": 0,
           "explanationFactRef": 0,
-          "rationaleRefs": [0]
+          "rationaleRefs": [
+            0
+          ]
         }
       ],
       "edges": {
@@ -1404,13 +1573,18 @@
           }
         ]
       },
-      "attribution": ["OpenStax Biology 2e, Ch. 7"]
+      "attribution": [
+        "OpenStax Biology 2e, Ch. 7"
+      ]
     },
     {
       "id": "chem/titration",
       "rev": 1,
       "term": "Titration",
-      "aliases": ["titration procedure", "endpoint determination"],
+      "aliases": [
+        "titration procedure",
+        "endpoint determination"
+      ],
       "level": "intro",
       "difficulty": 2,
       "bloomCeiling": "Apply",
@@ -1467,10 +1641,15 @@
           ],
           "answerIndex": 0,
           "explanationFactRef": 0,
-          "rationaleRefs": [0]
+          "rationaleRefs": [
+            0
+          ]
         }
       ],
       "edges": {
+        "requires": [
+          "chem/conservation-of-mass"
+        ],
         "instanceOf": [
           {
             "archetype": "process/staged-process",
@@ -1485,13 +1664,18 @@
           }
         ]
       },
-      "attribution": ["OpenStax Chemistry 2e, Ch. 4"]
+      "attribution": [
+        "OpenStax Chemistry 2e, Ch. 4"
+      ]
     },
     {
       "id": "stats/observational-study",
       "rev": 1,
       "term": "Observational study",
-      "aliases": ["confounding variable", "spurious association"],
+      "aliases": [
+        "confounding variable",
+        "spurious association"
+      ],
       "level": "intro",
       "difficulty": 3,
       "bloomCeiling": "Evaluate",
@@ -1548,7 +1732,9 @@
           ],
           "answerIndex": 0,
           "explanationFactRef": 0,
-          "rationaleRefs": [0]
+          "rationaleRefs": [
+            0
+          ]
         }
       ],
       "edges": {
@@ -1566,13 +1752,18 @@
           }
         ]
       },
-      "attribution": ["OpenStax Introductory Statistics, Ch. 1"]
+      "attribution": [
+        "OpenStax Introductory Statistics, Ch. 1"
+      ]
     },
     {
       "id": "econ/natural-experiment",
       "rev": 1,
       "term": "Natural experiment",
-      "aliases": ["quasi-experiment", "policy evaluation"],
+      "aliases": [
+        "quasi-experiment",
+        "policy evaluation"
+      ],
       "level": "intro",
       "difficulty": 3,
       "bloomCeiling": "Evaluate",
@@ -1629,7 +1820,9 @@
           ],
           "answerIndex": 0,
           "explanationFactRef": 0,
-          "rationaleRefs": [0]
+          "rationaleRefs": [
+            0
+          ]
         }
       ],
       "edges": {
@@ -1647,13 +1840,19 @@
           }
         ]
       },
-      "attribution": ["OpenStax Principles of Macroeconomics 2e, Ch. 2"]
+      "attribution": [
+        "OpenStax Principles of Macroeconomics 2e, Ch. 2"
+      ]
     },
     {
       "id": "chem/conservation-of-mass",
       "rev": 1,
       "term": "Conservation of mass",
-      "aliases": ["balancing chemical equations", "law of conservation of mass", "stoichiometric balance"],
+      "aliases": [
+        "balancing chemical equations",
+        "law of conservation of mass",
+        "stoichiometric balance"
+      ],
       "level": "intro",
       "difficulty": 3,
       "bloomCeiling": "Apply",
@@ -1710,7 +1909,9 @@
           ],
           "answerIndex": 1,
           "explanationFactRef": 1,
-          "rationaleRefs": [0]
+          "rationaleRefs": [
+            0
+          ]
         }
       ],
       "edges": {
@@ -1728,13 +1929,19 @@
           }
         ]
       },
-      "attribution": ["OpenStax Chemistry 2e, Ch. 4"]
+      "attribution": [
+        "OpenStax Chemistry 2e, Ch. 4"
+      ]
     },
     {
       "id": "econ/circular-flow-of-income",
       "rev": 1,
       "term": "Circular flow of income",
-      "aliases": ["leakages and injections", "national income accounting", "circular flow"],
+      "aliases": [
+        "leakages and injections",
+        "national income accounting",
+        "circular flow"
+      ],
       "level": "intro",
       "difficulty": 3,
       "bloomCeiling": "Analyze",
@@ -1783,10 +1990,17 @@
       "mcBank": [
         {
           "stem": "For the circular flow of income to be in balance, total leakages must equal",
-          "options": ["total injections", "total consumption", "the money supply", "the trade deficit"],
+          "options": [
+            "total injections",
+            "total consumption",
+            "the money supply",
+            "the trade deficit"
+          ],
           "answerIndex": 0,
           "explanationFactRef": 1,
-          "rationaleRefs": [0]
+          "rationaleRefs": [
+            0
+          ]
         }
       ],
       "edges": {
@@ -1804,13 +2018,19 @@
           }
         ]
       },
-      "attribution": ["OpenStax Principles of Macroeconomics 2e, Ch. 1"]
+      "attribution": [
+        "OpenStax Principles of Macroeconomics 2e, Ch. 1"
+      ]
     },
     {
       "id": "bio/population-dynamics",
       "rev": 1,
       "term": "Population dynamics",
-      "aliases": ["population growth", "exponential and logistic growth", "births and deaths"],
+      "aliases": [
+        "population growth",
+        "exponential and logistic growth",
+        "births and deaths"
+      ],
       "level": "intro",
       "difficulty": 3,
       "bloomCeiling": "Analyze",
@@ -1867,7 +2087,9 @@
           ],
           "answerIndex": 1,
           "explanationFactRef": 0,
-          "rationaleRefs": [0]
+          "rationaleRefs": [
+            0
+          ]
         }
       ],
       "edges": {
@@ -1885,13 +2107,19 @@
           }
         ]
       },
-      "attribution": ["OpenStax Biology 2e, Ch. 45"]
+      "attribution": [
+        "OpenStax Biology 2e, Ch. 45"
+      ]
     },
     {
       "id": "econ/capital-accumulation",
       "rev": 1,
       "term": "Capital accumulation",
-      "aliases": ["capital stock", "net investment", "depreciation"],
+      "aliases": [
+        "capital stock",
+        "net investment",
+        "depreciation"
+      ],
       "level": "intro",
       "difficulty": 3,
       "bloomCeiling": "Analyze",
@@ -1948,7 +2176,9 @@
           ],
           "answerIndex": 0,
           "explanationFactRef": 1,
-          "rationaleRefs": [0]
+          "rationaleRefs": [
+            0
+          ]
         }
       ],
       "edges": {
@@ -1966,13 +2196,19 @@
           }
         ]
       },
-      "attribution": ["OpenStax Principles of Macroeconomics 2e, Ch. 7"]
+      "attribution": [
+        "OpenStax Principles of Macroeconomics 2e, Ch. 7"
+      ]
     },
     {
       "id": "history/primary-source-criticism",
       "rev": 1,
       "term": "Source criticism",
-      "aliases": ["primary source criticism", "evaluating a primary source", "historical source analysis"],
+      "aliases": [
+        "primary source criticism",
+        "evaluating a primary source",
+        "historical source analysis"
+      ],
       "level": "intro",
       "difficulty": 3,
       "bloomCeiling": "Analyze",
@@ -2029,7 +2265,9 @@
           ],
           "answerIndex": 0,
           "explanationFactRef": 0,
-          "rationaleRefs": [0]
+          "rationaleRefs": [
+            0
+          ]
         }
       ],
       "edges": {
@@ -2047,13 +2285,18 @@
           }
         ]
       },
-      "attribution": ["Historical thinking framework: source criticism"]
+      "attribution": [
+        "Historical thinking framework: source criticism"
+      ]
     },
     {
       "id": "stats/data-provenance",
       "rev": 1,
       "term": "Data provenance",
-      "aliases": ["data collection bias", "how the data were collected", "where the data came from"],
+      "aliases": [
+        "data collection bias",
+        "how the data were collected"
+      ],
       "level": "intro",
       "difficulty": 3,
       "bloomCeiling": "Analyze",
@@ -2110,7 +2353,9 @@
           ],
           "answerIndex": 0,
           "explanationFactRef": 0,
-          "rationaleRefs": [0]
+          "rationaleRefs": [
+            0
+          ]
         }
       ],
       "edges": {
@@ -2128,13 +2373,18 @@
           }
         ]
       },
-      "attribution": ["OpenStax Introductory Statistics, Ch. 1"]
+      "attribution": [
+        "OpenStax Introductory Statistics, Ch. 1"
+      ]
     },
     {
       "id": "econ/proxy-variable",
       "rev": 1,
       "term": "Proxy variable",
-      "aliases": ["proxy measure", "stand-in variable"],
+      "aliases": [
+        "proxy measure",
+        "stand-in variable"
+      ],
       "level": "intro",
       "difficulty": 3,
       "bloomCeiling": "Evaluate",
@@ -2191,7 +2441,9 @@
           ],
           "answerIndex": 0,
           "explanationFactRef": 0,
-          "rationaleRefs": [0]
+          "rationaleRefs": [
+            0
+          ]
         }
       ],
       "edges": {
@@ -2209,13 +2461,18 @@
           }
         ]
       },
-      "attribution": ["OpenStax Principles of Macroeconomics 2e, Ch. 6"]
+      "attribution": [
+        "OpenStax Principles of Macroeconomics 2e, Ch. 6"
+      ]
     },
     {
       "id": "bio/bioindicator",
       "rev": 1,
       "term": "Bioindicator",
-      "aliases": ["indicator species", "biomarker"],
+      "aliases": [
+        "indicator species",
+        "biomarker"
+      ],
       "level": "intro",
       "difficulty": 3,
       "bloomCeiling": "Evaluate",
@@ -2272,7 +2529,9 @@
           ],
           "answerIndex": 0,
           "explanationFactRef": 1,
-          "rationaleRefs": [0]
+          "rationaleRefs": [
+            0
+          ]
         }
       ],
       "edges": {
@@ -2290,13 +2549,18 @@
           }
         ]
       },
-      "attribution": ["OpenStax Biology 2e, Ch. 47"]
+      "attribution": [
+        "OpenStax Biology 2e, Ch. 47"
+      ]
     },
     {
       "id": "lit/close-reading",
       "rev": 1,
       "term": "Close reading",
-      "aliases": ["textual detail", "passage analysis"],
+      "aliases": [
+        "textual detail",
+        "passage analysis"
+      ],
       "level": "intro",
       "difficulty": 3,
       "bloomCeiling": "Analyze",
@@ -2353,7 +2617,9 @@
           ],
           "answerIndex": 0,
           "explanationFactRef": 0,
-          "rationaleRefs": [0]
+          "rationaleRefs": [
+            0
+          ]
         }
       ],
       "edges": {
@@ -2371,13 +2637,18 @@
           }
         ]
       },
-      "attribution": ["Writing about literature: close reading"]
+      "attribution": [
+        "Writing about literature: close reading"
+      ]
     },
     {
       "id": "history/contextual-interpretation",
       "rev": 1,
       "term": "Contextual interpretation",
-      "aliases": ["historical context", "situating a source"],
+      "aliases": [
+        "historical context",
+        "situating a source"
+      ],
       "level": "intro",
       "difficulty": 3,
       "bloomCeiling": "Analyze",
@@ -2434,10 +2705,15 @@
           ],
           "answerIndex": 0,
           "explanationFactRef": 0,
-          "rationaleRefs": [0]
+          "rationaleRefs": [
+            0
+          ]
         }
       ],
       "edges": {
+        "requires": [
+          "history/primary-source-criticism"
+        ],
         "instanceOf": [
           {
             "archetype": "interpretive/hermeneutic-circle",
@@ -2452,13 +2728,18 @@
           }
         ]
       },
-      "attribution": ["Historical thinking framework: contextualization"]
+      "attribution": [
+        "Historical thinking framework: contextualization"
+      ]
     },
     {
       "id": "bio/species-concept",
       "rev": 1,
       "term": "Species concept",
-      "aliases": ["the species problem", "defining a species"],
+      "aliases": [
+        "the species problem",
+        "defining a species"
+      ],
       "level": "intro",
       "difficulty": 3,
       "bloomCeiling": "Evaluate",
@@ -2515,7 +2796,9 @@
           ],
           "answerIndex": 0,
           "explanationFactRef": 0,
-          "rationaleRefs": [0]
+          "rationaleRefs": [
+            0
+          ]
         }
       ],
       "edges": {
@@ -2533,13 +2816,18 @@
           }
         ]
       },
-      "attribution": ["OpenStax Biology 2e, Ch. 18"]
+      "attribution": [
+        "OpenStax Biology 2e, Ch. 18"
+      ]
     },
     {
       "id": "econ/labor-force-classification",
       "rev": 1,
       "term": "Labor force classification",
-      "aliases": ["who counts as unemployed", "labor force participation"],
+      "aliases": [
+        "who counts as unemployed",
+        "labor force participation"
+      ],
       "level": "intro",
       "difficulty": 3,
       "bloomCeiling": "Evaluate",
@@ -2596,7 +2884,9 @@
           ],
           "answerIndex": 0,
           "explanationFactRef": 0,
-          "rationaleRefs": [0]
+          "rationaleRefs": [
+            0
+          ]
         }
       ],
       "edges": {
@@ -2614,13 +2904,18 @@
           }
         ]
       },
-      "attribution": ["OpenStax Principles of Macroeconomics 2e, Ch. 8"]
+      "attribution": [
+        "OpenStax Principles of Macroeconomics 2e, Ch. 8"
+      ]
     },
     {
       "id": "econ/opportunity-cost",
       "rev": 1,
       "term": "Opportunity cost",
-      "aliases": ["trade-off", "next best alternative"],
+      "aliases": [
+        "trade-off",
+        "next best alternative"
+      ],
       "level": "intro",
       "difficulty": 2,
       "bloomCeiling": "Apply",
@@ -2677,17 +2972,24 @@
           ],
           "answerIndex": 0,
           "explanationFactRef": 1,
-          "rationaleRefs": [0]
+          "rationaleRefs": [
+            0
+          ]
         }
       ],
       "edges": {},
-      "attribution": ["OpenStax Principles of Microeconomics 3e, Ch. 2"]
+      "attribution": [
+        "OpenStax Principles of Microeconomics 3e, Ch. 2"
+      ]
     },
     {
       "id": "econ/supply-curve",
       "rev": 1,
       "term": "Supply curve",
-      "aliases": ["law of supply", "supply schedule"],
+      "aliases": [
+        "law of supply",
+        "supply schedule"
+      ],
       "level": "intro",
       "difficulty": 2,
       "bloomCeiling": "Apply",
@@ -2744,17 +3046,24 @@
           ],
           "answerIndex": 0,
           "explanationFactRef": 0,
-          "rationaleRefs": [0]
+          "rationaleRefs": [
+            0
+          ]
         }
       ],
       "edges": {},
-      "attribution": ["OpenStax Principles of Microeconomics 3e, Ch. 3"]
+      "attribution": [
+        "OpenStax Principles of Microeconomics 3e, Ch. 3"
+      ]
     },
     {
       "id": "econ/comparative-advantage",
       "rev": 1,
       "term": "Comparative advantage",
-      "aliases": ["gains from trade", "specialization"],
+      "aliases": [
+        "gains from trade",
+        "specialization"
+      ],
       "level": "intro",
       "difficulty": 3,
       "bloomCeiling": "Analyze",
@@ -2811,17 +3120,24 @@
           ],
           "answerIndex": 0,
           "explanationFactRef": 1,
-          "rationaleRefs": [0]
+          "rationaleRefs": [
+            0
+          ]
         }
       ],
       "edges": {},
-      "attribution": ["OpenStax Principles of Microeconomics 3e, Ch. 19"]
+      "attribution": [
+        "OpenStax Principles of Microeconomics 3e, Ch. 19"
+      ]
     },
     {
       "id": "econ/externality",
       "rev": 1,
       "term": "Externality",
-      "aliases": ["spillover cost", "third-party effect"],
+      "aliases": [
+        "spillover cost",
+        "third-party effect"
+      ],
       "level": "intro",
       "difficulty": 3,
       "bloomCeiling": "Analyze",
@@ -2878,7 +3194,9 @@
           ],
           "answerIndex": 0,
           "explanationFactRef": 0,
-          "rationaleRefs": [0]
+          "rationaleRefs": [
+            0
+          ]
         }
       ],
       "edges": {
@@ -2896,13 +3214,18 @@
           }
         ]
       },
-      "attribution": ["OpenStax Principles of Microeconomics 3e, Ch. 12"]
+      "attribution": [
+        "OpenStax Principles of Microeconomics 3e, Ch. 12"
+      ]
     },
     {
       "id": "econ/monopoly",
       "rev": 1,
       "term": "Monopoly",
-      "aliases": ["price maker", "market power"],
+      "aliases": [
+        "price maker",
+        "market power"
+      ],
       "level": "intro",
       "difficulty": 3,
       "bloomCeiling": "Analyze",
@@ -2959,11 +3282,15 @@
           ],
           "answerIndex": 0,
           "explanationFactRef": 0,
-          "rationaleRefs": [0]
+          "rationaleRefs": [
+            0
+          ]
         }
       ],
       "edges": {},
-      "attribution": ["OpenStax Principles of Microeconomics 3e, Ch. 9"]
+      "attribution": [
+        "OpenStax Principles of Microeconomics 3e, Ch. 9"
+      ]
     }
   ]
 }

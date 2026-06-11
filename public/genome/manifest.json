@@ -1,7 +1,7 @@
 {
-  "version": "2026-06-10",
+  "version": "2026-06-11",
   "generator": "curriculumos-foundry-v1",
-  "conceptCount": 86,
+  "conceptCount": 110,
   "shards": [
     {
       "id": "astro-intro",
@@ -25,7 +25,15 @@
       "level": "intro",
       "path": "chem-intro.json",
       "conceptCount": 3,
-      "hash": "713008a1aeb968b0"
+      "hash": "e5b827b832dcaa7c"
+    },
+    {
+      "id": "cs-intro",
+      "discipline": "cs",
+      "level": "intro",
+      "path": "cs-intro.json",
+      "conceptCount": 12,
+      "hash": "7d8ba01ea3552f1d"
     },
     {
       "id": "econ-intro",
@@ -36,12 +44,20 @@
       "hash": "0ec29a3138d7005a"
     },
     {
+      "id": "geo-intro",
+      "discipline": "geo",
+      "level": "intro",
+      "path": "geo-intro.json",
+      "conceptCount": 12,
+      "hash": "8caf1e66f7e046c9"
+    },
+    {
       "id": "history-intro",
       "discipline": "history",
       "level": "intro",
       "path": "history-intro.json",
       "conceptCount": 3,
-      "hash": "4a225085ed13a266"
+      "hash": "ab603e52e1b457ad"
     },
     {
       "id": "lit-intro",
@@ -49,7 +65,7 @@
       "level": "intro",
       "path": "lit-intro.json",
       "conceptCount": 2,
-      "hash": "17bdbcad1b5bbac1"
+      "hash": "cb84948c0071c0f0"
     },
     {
       "id": "nursing-intro",
@@ -81,12 +97,38 @@
       "level": "intro",
       "path": "stats-intro.json",
       "conceptCount": 5,
-      "hash": "54b073a85264ddbe"
+      "hash": "b08589496f490784"
     }
   ],
   "archetypeShard": {
     "path": "archetypes.json",
     "archetypeCount": 16,
     "hash": "9edcd75e86f39585"
+  },
+  "references": {
+    "writing-about-literature:reference": {
+      "displayTitle": "Writing About Literature",
+      "sourceUrl": "https://human.libretexts.org/Bookshelves/Literature_and_Literacy"
+    },
+    "literary-close-reading:reference": {
+      "displayTitle": "Close Reading in Literary Study",
+      "sourceUrl": "https://human.libretexts.org/Bookshelves/Literature_and_Literacy"
+    },
+    "historical-thinking:reference": {
+      "displayTitle": "Historical Thinking and Argument",
+      "sourceUrl": "https://human.libretexts.org/Bookshelves/History"
+    },
+    "historical-method:reference": {
+      "displayTitle": "Historical Method and Source Criticism",
+      "sourceUrl": "https://human.libretexts.org/Bookshelves/History"
+    },
+    "historical-context:reference": {
+      "displayTitle": "Historical Context and Interpretation",
+      "sourceUrl": "https://human.libretexts.org/Bookshelves/History"
+    },
+    "opengeology:introduction-to-geology": {
+      "displayTitle": "An Introduction to Geology",
+      "sourceUrl": "https://opengeology.org/textbook/"
+    }
   }
 }

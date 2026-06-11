@@ -9,7 +9,7 @@ export {
   validateCourseGraph,
   courseGraphStats,
 } from './schema.js';
-export { deriveCourseGraphFromCourseMap } from './deriveFromCourseMap.js';
+export { classifyAssessmentKind, deriveCourseGraphFromCourseMap } from './deriveFromCourseMap.js';
 export { renderCourseMapFromGraph } from './renderCourseMap.js';
 export { attachEnrichmentToGraph, buildBlueprintFromGraph, enrichmentFromGraph } from './blueprintFromGraph.js';
 export { lintCourseGraphAlignment } from './alignmentLint.js';

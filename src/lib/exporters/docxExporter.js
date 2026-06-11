@@ -6,10 +6,13 @@ import { formatRequiredText, normalizeCourseRequirements } from './syllabusExpor
 // DOCX EXPORT
 // ════════════════════════════════════════════════════════════════
 
-import { getDocTheme, DOC_FONTS } from './docTheme.js';
+import { getDocTheme, BODY_FONT, HEAD_FONT } from './docTheme.js';
 
-export const FONT = DOC_FONTS.body;
-export const FONT_HEAD = DOC_FONTS.heading;
+// v0.14.1 (1.13): object form ({ ascii, hAnsi, cs } — no eastAsia) so CJK
+// runs fall back to a real CJK face instead of tofu; every `font:` site in
+// this module flows through these two constants.
+export const FONT = BODY_FONT;
+export const FONT_HEAD = HEAD_FONT;
 // Theme-aware accent: documents pick up the active doc theme at build time;
 // the constant remains the indigo default for callers that import it.
 export const ACCENT = '2B579A';
@@ -506,6 +509,18 @@ export function _buildDocxContentShared(featureId, data, children, docx) {
           children.push(makeSubHeading('Materials & Resources'));
           p.materials.forEach((m) => children.push(makeBullet(m)));
         }
+        // v0.14.1 (3.2d): every map-promised assessment for this lesson —
+        // graded artifacts with weights, in-class activities marked as such.
+        if (Array.isArray(p.assessmentBlock) && p.assessmentBlock.length > 0) {
+          children.push(makeSubHeading('Assessments This Week'));
+          p.assessmentBlock.forEach((entry) =>
+            children.push(
+              makeBullet(
+                `${entry.title}${entry.weight === 'in class' ? ' — in class' : entry.weight ? ` (${entry.weight})` : ''}`,
+              ),
+            ),
+          );
+        }
         // Session Outline — as a table
         if (p.outline?.length) {
           children.push(makeSubHeading('Session Outline'));
@@ -820,11 +835,19 @@ export function _buildDocxContentShared(featureId, data, children, docx) {
           a.estimatedTime,
           a.totalPoints && `${a.totalPoints} pts`,
           a.percentOfGrade,
+          // v0.14.1 (3.3b): the reverse stamp — "Course Map L8 · A8.1 · 5%"
+          // ties the brief back to the map cell that promised it.
+          a.courseMapRef,
         ].filter(Boolean);
         if (aMeta.length) children.push(makeMeta(aMeta.join('  ·  ')));
         if (a.relatedLessons?.length) children.push(makeBold('Related Lessons', a.relatedLessons.join(', ')));
         if (a.overview) children.push(makeBold('Overview', a.overview));
         if (a.description) children.push(makeBold('Description', a.description));
+        // v0.14.1 (3.2c): oral prompt sheets carry their speaking tasks.
+        if (Array.isArray(a.speakingPrompts) && a.speakingPrompts.length > 0) {
+          children.push(makeSubHeading('Speaking Prompts'));
+          a.speakingPrompts.forEach((prompt) => children.push(makeBullet(prompt)));
+        }
         if (a.objectives?.length) {
           children.push(makeSubHeading('Learning Objectives'));
           a.objectives.forEach((o) => children.push(makeBullet(o)));

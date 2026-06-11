@@ -52,9 +52,10 @@ describe('iteration 7 — genome spans 6 disciplines', () => {
     expect(manifest.conceptCount).toBeGreaterThanOrEqual(18);
     const disciplines = new Set(manifest.shards.map((s) => s.discipline));
     // v0.13.3: astronomy joined; v0.13.5: psychology, nursing, and nutrition
-    // (the Open Knowledge Backbone flagship shards) joined.
+    // (the Open Knowledge Backbone flagship shards) joined; v0.14.1: cs and geo
+    // joined (the two disciplines the V0.14 four-course audit found uncovered).
     expect(disciplines).toEqual(
-      new Set(['astro', 'econ', 'stats', 'bio', 'chem', 'history', 'lit', 'psych', 'nursing', 'nutrition']),
+      new Set(['astro', 'econ', 'stats', 'bio', 'chem', 'history', 'lit', 'psych', 'nursing', 'nutrition', 'cs', 'geo']),
     );
   });
 
