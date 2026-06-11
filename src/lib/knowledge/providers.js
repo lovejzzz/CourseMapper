@@ -115,6 +115,22 @@ function abstractFromInvertedIndex(invertedIndex) {
 }
 
 /**
+ * V0.14.1 round-2 (citation relevance, layer A): normalize an OpenAlex topic
+ * object ({ display_name, field: { display_name }, domain: { display_name } })
+ * into { name, field, domain } — the discipline classification the reading
+ * gate uses to reject off-discipline papers regardless of token overlap.
+ */
+function normalizeOpenAlexTopic(topic) {
+  if (!topic || typeof topic !== 'object') return null;
+  const normalized = {
+    name: cleanText(topic.display_name),
+    field: cleanText(topic.field?.display_name),
+    domain: cleanText(topic.domain?.display_name),
+  };
+  return normalized.name || normalized.field || normalized.domain ? normalized : null;
+}
+
+/**
  * OpenAlex: peer-reviewed readings for a concept. Returns [] on any failure.
  *
  * V0.14.1 B (citation relevance): the old `sort=cited_by_count:desc` returned
@@ -131,10 +147,13 @@ export async function searchScholarlyReadings(query, { limit = 3, signal, anchor
   if (!q) return [];
   const search = cleanText(anchor) ? `${q} ${cleanText(anchor)}` : q;
   try {
+    // V0.14.1 round-2: primary_topic + topics ride the select so the reading
+    // gate can reject off-discipline candidates by field/domain (the diabetes
+    // review for a literature course) instead of trusting token overlap.
     const url =
       `https://api.openalex.org/works?search=${encodeURIComponent(search)}` +
       `&filter=is_oa:true,is_retracted:false&per_page=${limit}` +
-      `&select=id,display_name,authorships,publication_year,cited_by_count,doi,primary_location,open_access,abstract_inverted_index` +
+      `&select=id,display_name,authorships,publication_year,cited_by_count,doi,primary_location,open_access,abstract_inverted_index,primary_topic,topics` +
       `&mailto=${OPENALEX_MAILTO}`;
     const json = await cachedFetchJson(`openalex:${search}:${limit}`, url, { signal });
     return (json.results || []).map((work) => ({
@@ -148,6 +167,8 @@ export async function searchScholarlyReadings(query, { limit = 3, signal, anchor
       year: work.publication_year || null,
       citedBy: work.cited_by_count || 0,
       abstract: abstractFromInvertedIndex(work.abstract_inverted_index),
+      primaryTopic: normalizeOpenAlexTopic(work.primary_topic),
+      topics: (Array.isArray(work.topics) ? work.topics : []).map(normalizeOpenAlexTopic).filter(Boolean).slice(0, 3),
       url:
         work.open_access?.oa_url ||
         (work.doi ? `https://doi.org/${work.doi.replace(/^https?:\/\/doi\.org\//, '')}` : work.id),

@@ -21,6 +21,10 @@
  */
 
 import { searchScholarlyReadings, searchBookMetadata } from './providers.js';
+// V0.14.1 round-2: the same discipline inference the genome linker uses maps
+// the course onto an OpenAlex field/domain allowlist (no import cycle —
+// libraryShardLoader imports nothing from knowledge/).
+import { inferCourseDisciplines } from '../genome/libraryShardLoader.js';
 
 function cleanText(value) {
   return (
@@ -262,7 +266,18 @@ export function attachGenomeResources(graph) {
       const definition = cleanText(primer.definition);
       // V0.14.1 4.8: never render a raw shard key as the source in-line.
       const sourceLabel = rawSource ? (isShardKeyLabel(rawSource) ? humanizeShardKey(rawSource) : rawSource) : '';
-      const citation = `Prerequisite primer — ${cleanText(primer.prerequisiteTerm)}: ${definition}${
+      // Round-3 polish: genome definitions often open with the term itself
+      // ("Close reading interprets a literary work…"), so the "term: " label
+      // built the "X: X" echo chain the v0.12.1 gate flags ("Prerequisite
+      // primer — Close reading: Close reading interprets…"). When the
+      // definition already leads with the term, the definition alone carries
+      // both label and content.
+      const term = cleanText(primer.prerequisiteTerm);
+      const definitionLeadsWithTerm =
+        term.length > 0 &&
+        definition.toLowerCase().startsWith(term.toLowerCase()) &&
+        !/\w/.test(definition.charAt(term.length));
+      const citation = `Prerequisite primer — ${definitionLeadsWithTerm ? definition : `${term}: ${definition}`}${
         sourceLabel ? ` (${sourceLabel})` : ''
       }`;
       if (seen.has(citation.toLowerCase())) continue;
@@ -354,6 +369,164 @@ const RELEVANCE_STOPWORDS = new Set([
   'its',
   'between',
 ]);
+
+// ── V0.14.1 round-2: discipline topic gate ──────────────────────────────────
+// The Round-1 Crucible live run showed the token gate leaks on GENERIC tokens:
+// World Lit attached "Knowledge translation of research findings"
+// (implementation science) on the word "translation", a disability-internet
+// study on "solitude", and a cardiovascular-diabetes review on "literature
+// review". Layer A: OpenAlex works now carry primary_topic field/domain — a
+// candidate whose primary topic sits OUTSIDE the course's allowed
+// fields/domains is rejected REGARDLESS of token overlap. Layer B: when topic
+// data is absent, the token gate hardens (≥2 distinct hits, at least one
+// non-generic).
+
+// Course discipline (inferCourseDisciplines keys) → allowed OpenAlex
+// primary_topic FIELD and/or DOMAIN display names. Fields and domains are
+// checked SEPARATELY (a Psychology-field paper carries domain "Social
+// Sciences" — matching domains against field entries would re-open the lit
+// leak). A candidate passes when its field matches an allowed field OR its
+// domain matches an allowed domain (case-insensitive). Disciplines without
+// an entry get no topic filter (token gate only). Note the OpenAlex field
+// "Social Sciences" is the linguistics/sociology field, distinct from the
+// "Social Sciences" DOMAIN that spans psychology, economics, business…
+export const OPENALEX_DISCIPLINE_TOPIC_ALLOWLIST = {
+  lit: { fields: ['Arts and Humanities', 'Social Sciences'] },
+  lang: { fields: ['Arts and Humanities', 'Social Sciences'] },
+  history: { fields: ['Arts and Humanities', 'Social Sciences'] },
+  cs: { fields: ['Computer Science', 'Mathematics', 'Engineering', 'Decision Sciences'] },
+  geo: { fields: ['Earth and Planetary Sciences', 'Environmental Science'] },
+  astro: { fields: ['Physics and Astronomy', 'Earth and Planetary Sciences'] },
+  chem: {
+    fields: ['Chemistry', 'Chemical Engineering', 'Materials Science', 'Biochemistry, Genetics and Molecular Biology'],
+  },
+  bio: {
+    domains: ['Life Sciences'],
+    fields: [
+      'Agricultural and Biological Sciences',
+      'Biochemistry, Genetics and Molecular Biology',
+      'Immunology and Microbiology',
+      'Neuroscience',
+      'Environmental Science',
+    ],
+  },
+  nursing: { domains: ['Health Sciences', 'Life Sciences'] },
+  nutrition: { domains: ['Health Sciences', 'Life Sciences'], fields: ['Agricultural and Biological Sciences'] },
+  psych: { fields: ['Psychology', 'Neuroscience', 'Social Sciences'] },
+  econ: {
+    fields: [
+      'Economics, Econometrics and Finance',
+      'Business, Management and Accounting',
+      'Social Sciences',
+      'Decision Sciences',
+    ],
+  },
+  stats: { fields: ['Mathematics', 'Decision Sciences'] },
+};
+
+// Tokens too generic to carry a topical match on their own — every Round-1
+// leak rode one of these (translation, solitude, narrative, literature…).
+// Stored de-pluralized to mirror significantTokens' normalization.
+const GENERIC_OVERLAP_TOKENS = new Set(
+  [
+    'translation',
+    'solitude',
+    'narrative',
+    'knowledge',
+    'synthesis',
+    'evaluation',
+    'analysis',
+    'structure',
+    'language',
+    'reading',
+    'writing',
+    'world',
+    'global',
+    'modern',
+    'story',
+    'stories',
+    'storytelling',
+    'literature',
+    'literary',
+    'culture',
+    'cultural',
+    'history',
+    'historical',
+    'theory',
+    'research',
+    'practice',
+    'learning',
+    'teaching',
+    'education',
+    'student',
+    'development',
+    'review',
+    'systematic',
+    'evidence',
+    'question',
+    'introduction',
+    'approach',
+    'method',
+    'model',
+    'system',
+    'context',
+    'community',
+    'identity',
+    'power',
+    'change',
+    'communication',
+    'information',
+    'text',
+    'media',
+    'social',
+    'human',
+    'people',
+    'study',
+    'findings',
+  ].map((token) => (token.length > 4 && token.endsWith('s') ? token.slice(0, -1) : token)),
+);
+
+/**
+ * The OpenAlex topic profile allowed for this course — { fields: Set,
+ * domains: Set } — or null when the course's inferred disciplines carry no
+ * mapping (→ token gate only). Multiple inferred disciplines union.
+ */
+export function allowedTopicNamesForCourse(graph) {
+  const disciplines = inferCourseDisciplines({
+    courseName: cleanText(graph?.course?.name),
+    lessons: (graph?.sessions || []).map((session) => ({ title: cleanText(session?.title) })),
+  });
+  const fields = new Set();
+  const domains = new Set();
+  let mapped = false;
+  for (const discipline of disciplines) {
+    const entry = OPENALEX_DISCIPLINE_TOPIC_ALLOWLIST[discipline];
+    if (!entry) continue;
+    mapped = true;
+    for (const name of entry.fields || []) fields.add(name.toLowerCase());
+    for (const name of entry.domains || []) domains.add(name.toLowerCase());
+  }
+  return mapped ? { fields, domains } : null;
+}
+
+/**
+ * 'on-discipline' | 'off-discipline' | 'no-topic-data' | 'unfiltered'.
+ * Checks the work's primary topic (falling back to its first listed topic):
+ * its field against the allowed FIELDS, its domain against the allowed
+ * DOMAINS — never crosswise. 'unfiltered' = the course has no topic mapping,
+ * so only the token gate applies; 'no-topic-data' = the WORK carries no
+ * classification, so the hardened token gate applies.
+ */
+export function topicGateVerdict(work, allowedTopics) {
+  if (!allowedTopics) return 'unfiltered';
+  const topic = work?.primaryTopic || (Array.isArray(work?.topics) ? work.topics[0] : null);
+  const field = cleanText(topic?.field).toLowerCase();
+  const domain = cleanText(topic?.domain).toLowerCase();
+  if (!field && !domain) return 'no-topic-data';
+  return (field && allowedTopics.fields.has(field)) || (domain && allowedTopics.domains.has(domain))
+    ? 'on-discipline'
+    : 'off-discipline';
+}
 
 /** Lowercase, glue apostrophes, punctuation → space; returns a normalized string. */
 function normalizeForMatch(text) {
@@ -457,12 +630,20 @@ export function scoreReadingRelevance(work, terms) {
   const contentTokens = new Set(significantTokens(contentNorm));
 
   let hits = 0;
-  for (const token of allTokens) if (contentTokens.has(token)) hits += 1;
+  // V0.14.1 round-2: hits on tokens OUTSIDE the generic-overlap list — the
+  // hardened no-topic-data gate requires at least one ("translation" alone
+  // can no longer attach an implementation-science paper to a lit lesson).
+  let specificHits = 0;
+  for (const token of allTokens) {
+    if (!contentTokens.has(token)) continue;
+    hits += 1;
+    if (!GENERIC_OVERLAP_TOKENS.has(token)) specificHits += 1;
+  }
   let strongConceptHit = false;
   for (const token of strongConceptTokens) if (contentTokens.has(token)) strongConceptHit = true;
   const phraseHit = phrases.some((phrase) => phrase && contentNorm.includes(phrase));
 
-  return { hits, phraseHit, strongConceptHit, pass: phraseHit || hits >= 2 || strongConceptHit };
+  return { hits, specificHits, phraseHit, strongConceptHit, pass: phraseHit || hits >= 2 || strongConceptHit };
 }
 
 function formatScholarlyCitation(work) {
@@ -485,6 +666,9 @@ export async function attachOpenReadings(graph, { providers = {}, signal, maxSes
   const seen = existingCitations(graph);
   const nextId = nextResourceIdFactory(graph);
   const anchor = courseDisciplineAnchor(graph);
+  // V0.14.1 round-2: the course's OpenAlex field/domain allowlist (null when
+  // the inferred disciplines carry no mapping → token gate only).
+  const allowedTopicNames = allowedTopicNamesForCourse(graph);
   // V0.14.1 2.6: decisions the gate makes are recorded on the graph so the
   // trust surface / telemetry can log them (the return shape stays a count,
   // which existing callers depend on).
@@ -509,13 +693,31 @@ export async function attachOpenReadings(graph, { providers = {}, signal, maxSes
     const candidates = (works || []).filter((work) => work?.title && work?.url);
     if (candidates.length === 0) continue;
 
-    // V0.14.1 2.6: topical-relevance gate. Score every candidate; keep the
-    // best passing one (tie-break by citation count); if none passes, attach
+    // V0.14.1 2.6 + round-2: layered relevance gate. Layer A rejects any
+    // candidate whose OpenAlex primary topic field/domain falls outside the
+    // course's discipline allowlist — REGARDLESS of token overlap (the
+    // diabetes review is Health Sciences → out for a lit course). Layer B:
+    // on-discipline (or unfiltered) candidates pass the existing token gate;
+    // candidates with NO topic data face the hardened gate (phrase match, or
+    // ≥2 distinct hits with at least one non-generic token). Keep the best
+    // passing one (tie-break by citation count); if none passes, attach
     // NOTHING and record why — no more MNIST-for-geology attachments.
     const terms = relevanceTermsForSession(graph, session, anchor);
+    let rejectedOffDiscipline = 0;
     const scored = candidates
-      .map((work) => ({ work, score: scoreReadingRelevance(work, terms) }))
-      .filter((entry) => entry.score.pass)
+      .map((work) => {
+        const verdict = topicGateVerdict(work, allowedTopicNames);
+        if (verdict === 'off-discipline') rejectedOffDiscipline += 1;
+        const score = scoreReadingRelevance(work, terms);
+        const pass =
+          verdict === 'off-discipline'
+            ? false
+            : verdict === 'no-topic-data'
+              ? score.phraseHit || (score.hits >= 2 && score.specificHits >= 1)
+              : score.pass;
+        return { work, score, verdict, pass };
+      })
+      .filter((entry) => entry.pass)
       .sort(
         (a, b) =>
           b.score.hits - a.score.hits ||
@@ -528,6 +730,7 @@ export async function attachOpenReadings(graph, { providers = {}, signal, maxSes
         lesson: session.number ?? null,
         sessionId: session.id ?? null,
         rejected: candidates.length,
+        ...(rejectedOffDiscipline > 0 ? { rejectedOffDiscipline } : {}),
         candidates: candidates.slice(0, 4).map((work) => work.title),
         message: `no relevant open reading found for L${session.number ?? '?'} (rejected ${candidates.length} famous-but-off-topic)`,
       });

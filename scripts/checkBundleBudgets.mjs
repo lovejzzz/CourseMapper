@@ -19,7 +19,11 @@ const lazyChunkBudgets = [
   // v0.9.11: +5 KiB raw for the generation cost report.
   // v0.10.1: +3 KiB raw for the run-digest wiring + slimmed trace branch
   // (the digest builder/formatter are lazy-imported, not in this chunk).
-  { prefix: 'AppFlow-', rawKiB: 234, gzipKiB: 71 },
+  // v0.14.2: +6 KiB raw / +2 KiB gzip for the Crucible-loop hardening —
+  // lesson-regen merge safety (exam-preserving, stub-rejecting), romanization
+  // recovery in the enrichment retry loop, and the deliverable focus router
+  // (measured at 236.5 KiB raw / 71.7 gzip). Deliberate feature growth.
+  { prefix: 'AppFlow-', rawKiB: 240, gzipKiB: 73 },
   // v0.9.0: +12 KiB raw / +4 KiB gzip for the course-native agent (content
   // index + renderer reuse, digest card, journal — measured at 341.0 KiB raw
   // / 92.8 gzip). Deliberate feature growth; gzip headroom unchanged.

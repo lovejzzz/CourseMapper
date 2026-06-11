@@ -702,6 +702,10 @@ export function _buildDocxContentShared(featureId, data, children, docx) {
       const stripOptionLetter = (option) => String(option ?? '').replace(/^[A-Z][.)]\s+/, '');
       for (const quiz of expanded[key] || []) {
         children.push(makeHeading(quiz.lessonTitle || 'Quiz'));
+        // v0.14.1 round 2 (bug 1): registry exam entries carry an examScope
+        // ("Covers Lessons 1–7: …") — print it so the exam document states
+        // its covered range; the field never rendered before.
+        if (quiz.examScope) children.push(makeBold('Exam Scope', quiz.examScope));
         if (quiz.bloomsCoverage?.length) children.push(makeBold("Bloom's Coverage", quiz.bloomsCoverage.join(', ')));
         const questions = quiz.questions || [];
 

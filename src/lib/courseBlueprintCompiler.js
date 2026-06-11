@@ -292,6 +292,17 @@ function isOverbroadLessonTitleConcept(value, title) {
   return wordCount(text) > 6 || isQuestionLikeTitle(text);
 }
 
+// v0.14.1 round-2 (fix 3b): internal portfolio-thread artifacts — minted
+// evidence-packet descriptors ("<packet> for Lesson 5: <topic>") or anything
+// naming an "evidence packet" — must never bind into a concept/topic slot
+// (the live Week 5 success criterion read "Names the relevant Lesson 5
+// evidence packet concept accurately"). Excluded here so every concept
+// consumer falls back to the section topic instead.
+function isEvidencePacketLikeConcept(value) {
+  const text = cleanText(value);
+  return /\bevidence packet\b/i.test(text) || /\bfor Lesson \d+\s*:|:\s*Lesson \d+\b/i.test(text);
+}
+
 function normalizeConceptCandidates(values, { title = '', limit = 8 } = {}) {
   const candidates = unique(
     asArray(values)
@@ -303,7 +314,8 @@ function normalizeConceptCandidates(values, { title = '', limit = 8 } = {}) {
           !isWeakConcept(value) &&
           !isObjectiveLikeConcept(value) &&
           !isOverlongConceptCandidate(value) &&
-          !isOverbroadLessonTitleConcept(value, title),
+          !isOverbroadLessonTitleConcept(value, title) &&
+          !isEvidencePacketLikeConcept(value),
       ),
     limit * 2,
   );
@@ -3904,6 +3916,17 @@ function buildLessonThroughlineCase(context, lesson) {
   // for boilerplate repetition.
   const resourceCounts = context.resourceCounts || {};
   const isLessonSpecific = (reading) => (resourceCounts[cleanText(reading).toLowerCase()] ?? 1) <= 2;
+  // v0.14.1 round-2 (fix 3): never elect the lesson's SUBJECT as its evidence
+  // packet. World Lit Lesson 5 read "The Thousand and One Nights" — the same
+  // string as the lesson topic — and electing it as the packet let the
+  // finalizer rewrite the work's title to "the Lesson 5 evidence packet" in
+  // topic cells and success criteria. A reading equal to the lesson
+  // title/topic or a key concept stays a reading only.
+  const topicLikeStrings = new Set(
+    [lessonTitle, lesson?.title, ...(lesson?.keyConcepts || [])]
+      .map((text) => cleanText(text).toLowerCase())
+      .filter(Boolean),
+  );
   const lessonResource =
     context.sourceMode === 'instructor-provided'
       ? (lesson?.readings || [])
@@ -3914,6 +3937,7 @@ function buildLessonThroughlineCase(context, lesson) {
               reading.length >= 8 &&
               reading.length <= 90 &&
               !/instructor-provided course/i.test(reading) &&
+              !topicLikeStrings.has(reading.toLowerCase()) &&
               isLessonSpecific(reading),
           )
       : null;
@@ -3947,7 +3971,12 @@ function attachThroughlineCaseToLesson(lesson, context) {
   const concept = lesson.keyConcepts?.[0] || stripLessonPrefix(lesson.title);
   const artifact = stripTerminalPunctuation(lesson.studentArtifact || 'the lesson artifact');
   const sourceCue = throughlineCase.evidencePacket;
-  const readings = unique([sourceCue, ...(lesson.readings || [])], 8);
+  // v0.14.1 round-2 (fix 3): the packet cue is a supporting item, not the
+  // week's lead material — the live World Lit syllabus listed "The Lesson N
+  // evidence packet" as the FIRST named material in 7 week rows. Real
+  // readings lead; the cue trails (deduped in place when it IS a real
+  // reading already present in the list).
+  const readings = unique([...(lesson.readings || []), sourceCue], 8);
   const evidencePlan = {
     ...(lesson.evidencePlan || {}),
     sourceCue,
@@ -13133,6 +13162,23 @@ function sampleAcrossLessons(lessons, getter, cap = 10) {
   return unique(sampled, cap);
 }
 
+/**
+ * v0.14.1 round-2 (fix 3): the syllabus week row lists student-facing
+ * materials. A MINTED evidence-packet descriptor ("<packet name> for Lesson
+ * 5: <topic>") is internal portfolio-thread scaffolding — it is dropped from
+ * the row whenever the lesson has at least one real reading (lesson plans
+ * keep the cue through evidencePlan/sourceUsePlan). Real readings elected as
+ * the packet are real materials and stay.
+ */
+function syllabusWeeklyReadings(lesson) {
+  const readings = Array.isArray(lesson.readings) ? lesson.readings : [];
+  const isMintedPacket = (reading) =>
+    /\bfor Lesson \d+\s*:|:\s*Lesson \d+\b/i.test(cleanText(reading)) &&
+    cleanText(reading).toLowerCase() === cleanText(lesson.throughlineCase?.evidencePacket).toLowerCase();
+  const real = readings.filter((reading) => !isMintedPacket(reading));
+  return real.length > 0 ? real : readings;
+}
+
 function compileSyllabus(blueprint) {
   const instructorPreferenceReceipt = preferenceReceipt(blueprintPreferenceProfile(blueprint));
   const compilerProofBundle = blueprint.compilerProofBundle || buildCompilerProofBundle(blueprint);
@@ -13438,7 +13484,7 @@ function compileSyllabus(blueprint) {
         week: `Week ${lesson.lessonNumber}`,
         dates: `Week ${lesson.lessonNumber}`,
         topic: stripLessonPrefix(lesson.title),
-        readings: lesson.readings.join('; '),
+        readings: syllabusWeeklyReadings(lesson).join('; '),
         assignments: `${lesson.studentArtifact}. Success criterion: ${lesson.successCriteria[0]} Estimated workload: ${lesson.workloadEstimate.studentFacingEstimate}.`,
       })),
       academicIntegrity: blueprint.policies.academicIntegrity,
@@ -14107,6 +14153,17 @@ function generalTermGuide(term, lesson = {}, lens = {}, termIndex = 0) {
  * disciplinary definitions with examples and misconceptions) replace the
  * deterministic role-based term guides when present; fallback otherwise.
  */
+/**
+ * v0.14.1 round-2 (fix 4): the display name for an enriched key term — a
+ * non-Latin term carrying a romanization renders as "你好 (nǐ hǎo)" in the
+ * study-guide table and the slide key-term line.
+ */
+function displayKeyTermName(term) {
+  const name = cleanText(term?.term);
+  const romanization = cleanText(term?.romanization);
+  return romanization && !name.includes(romanization) ? `${name} (${romanization})` : name;
+}
+
 function enrichedKeyTermsForLesson(lesson, { fallback }) {
   const enriched = lesson?.enrichment?.keyTerms;
   if (!Array.isArray(enriched) || enriched.length === 0) return fallback();
@@ -14114,7 +14171,7 @@ function enrichedKeyTermsForLesson(lesson, { fallback }) {
   // so the study guide can render "Source: …". Compiler-only terms have none.
   const linked = lesson?.enrichment?.conceptProvenance?.source === 'genome-linked';
   return enriched.map((term) => ({
-    term: term.term,
+    term: displayKeyTermName(term),
     definition: term.definition,
     example: term.example || '',
     ...(term.source ? { source: term.source } : {}),
@@ -14987,14 +15044,252 @@ function buildRegistryExamEntry(blueprint, assessment, examOrdinal) {
   };
 }
 
+// ── v0.14.1 round 2 (bug 2): review/exam-week weekly quizzes ────────────────
+// A review lesson ("Midterm Review and Exam") introduces no new concept, so
+// the standard frames degrade into topic-name substitution ("Which statement
+// best explains why Midterm Review and Exam matters for the Week 8 quiz?")
+// and enrichment has nothing to overlay. The weekly quiz for such a lesson is
+// retrieval practice over the COVERED range instead: items sample prior
+// lessons' concepts (the Phase-3a exam machinery at weekly scale) with stems
+// distinct from both the prior lessons' own weekly quizzes and any compiled
+// exam, so nothing duplicates.
+
+const REVIEW_LESSON_TITLE_RE = /\b(review|midterm|final|exam)\b/i;
+
+function isReviewStyleLesson(lesson, blueprint) {
+  if (REVIEW_LESSON_TITLE_RE.test(stripLessonPrefix(lesson?.title || ''))) return true;
+  const registryEntries = (blueprint.assessments || []).filter((assessment) =>
+    (assessment.lessonNumbers || []).includes(lesson.lessonNumber),
+  );
+  const examCount = registryEntries.filter((assessment) => assessment.kind === 'exam').length;
+  return examCount > 0 && examCount * 2 >= registryEntries.length;
+}
+
+// Prior teaching lessons a review week can draw from (review weeks themselves
+// contribute no new material). Empty → the caller falls back to the frames.
+function reviewWeekSourceLessons(blueprint, lesson) {
+  return (blueprint.lessons || []).filter(
+    (candidate) =>
+      candidate.lessonNumber < lesson.lessonNumber &&
+      !REVIEW_LESSON_TITLE_RE.test(stripLessonPrefix(candidate.title || '')),
+  );
+}
+
+// Evenly spaced sample so the quiz spans the covered range instead of
+// clustering on the first weeks.
+function sampleLessonsAcrossRange(lessons, count) {
+  if (lessons.length <= count) return [...lessons];
+  const picked = [];
+  const step = (lessons.length - 1) / Math.max(1, count - 1);
+  for (let position = 0; position < count; position += 1) {
+    const candidate = lessons[Math.round(position * step)];
+    if (!picked.includes(candidate)) picked.push(candidate);
+  }
+  for (const lesson of lessons) {
+    if (picked.length >= count) break;
+    if (!picked.includes(lesson)) picked.push(lesson);
+  }
+  return picked;
+}
+
+function buildReviewWeekQuizAtoms(lesson, blueprint, options = {}) {
+  const lens = blueprintLens(blueprint);
+  const covered = options.covered || [];
+  const usedStems = options.usedStems instanceof Set ? options.usedStems : new Set();
+  const reviewFocus = stripLessonPrefix(lesson.title);
+  const reviewArtifact = stripTerminalPunctuation(lesson.studentArtifact);
+  const sampled = sampleLessonsAcrossRange(covered, 4);
+  const quizPlan = buildQuizQuestionPlan({ lesson, assessment: options.assessment || {}, targetCount: 6 });
+  const planFor = (slot, sourceLesson) => ({
+    ...quizPlan[slot],
+    source: 'review-week-compiler',
+    objectiveAlignmentStrategy: 'covered-lesson-retrieval',
+    objectiveAlignmentRationale: `Review-week item drawn from ${sourceLesson.title} for ${reviewFocus}.`,
+  });
+  // Items are framed on the PRIOR lesson's concepts/evidence but point at the
+  // review week's artifact, so week labels stay consistent inside the
+  // exported lesson document. Index band 18+ keeps the answer-letter rotation
+  // and distractor draws off both the weekly frames (0–5) and the exam bands
+  // (6+), so a review quiz never mints an exam item verbatim.
+  //
+  // v0.14.1 round 2 (Crucible Round-2, CS L11): the hybrid carries the REVIEW
+  // lesson's number, not the source lesson's. The answer letter is
+  // (lessonNumber + index) % 4 — with 10 covered lessons the evenly-spaced
+  // sample steps the source lessonNumber by +3 while the ordinal steps +1, so
+  // the sum stepped +4 ≡ 0 (mod 4) and every key landed on the same letter
+  // (the live all-D Lesson 11 paper). Keying rotation to the review lesson +
+  // ordinal makes the four letters consecutive — varied for every lesson
+  // count by construction.
+  const mcFor = (sourceLesson, slot, ordinal) => {
+    const concept = primaryConceptForLesson(sourceLesson);
+    const sourceFocus = stripLessonPrefix(sourceLesson.title);
+    const sourceCue = sourceLesson.evidencePlan?.sourceCue || 'the assigned course materials';
+    const hybrid = { ...sourceLesson, lessonNumber: lesson.lessonNumber, studentArtifact: lesson.studentArtifact };
+    const prompts = [
+      `While preparing for ${reviewFocus}, which check shows ${concept} from ${sourceFocus} is still ready to use?`,
+      `A study group revisits ${sourceFocus} during ${reviewFocus}. Which move uses ${concept} correctly?`,
+      `Which review step best confirms command of ${concept} (${sourceFocus}) before ${reviewArtifact}?`,
+      `A practice problem from ${sourceFocus} resurfaces in ${reviewFocus}. Which response shows ${concept} transfers to new evidence?`,
+    ];
+    const corrects = [
+      `Re-apply ${concept} to a fresh example from ${sourceCue} and confirm the same decision logic holds for ${reviewArtifact}.`,
+      `Use ${concept} to work one ${sourceFocus} example end-to-end, then check the result against ${sourceCue}.`,
+      `Explain ${concept} from memory, then verify the explanation against ${sourceCue} before relying on it in ${reviewArtifact}.`,
+      `Apply ${concept} to the new evidence first, and only then compare the answer with the original ${sourceFocus} work.`,
+    ];
+    return buildMultipleChoiceQuestion({
+      lesson: hybrid,
+      index: 18 + ordinal,
+      bloom: quizPlan[slot].bloom,
+      difficulty: quizPlan[slot].difficulty,
+      objective: sourceLesson.outcomes?.[0] || quizPlan[slot].objective,
+      concept,
+      use: quizPlan[slot].use,
+      prompt: prompts[ordinal % prompts.length],
+      correct: corrects[ordinal % corrects.length],
+      plan: planFor(slot, sourceLesson),
+    });
+  };
+
+  const mcSources = [sampled[0], sampled[1 % sampled.length], sampled[2 % sampled.length], sampled[3 % sampled.length]];
+  const pairA = sampled[Math.min(1, sampled.length - 1)];
+  const pairB = sampled[Math.max(0, sampled.length - 2)];
+  const conceptA = primaryConceptForLesson(pairA);
+  // Single-source review weeks contrast the lesson's primary concept with its
+  // secondary one instead of comparing a concept against itself.
+  const conceptB =
+    pairB !== pairA
+      ? primaryConceptForLesson(pairB)
+      : normalizeConceptCandidates((pairA.keyConcepts || []).slice(1), { title: pairA.title, limit: 1 })[0] ||
+        primaryConceptForLesson(pairA);
+  const span = `${stripLessonPrefix(covered[0].title)} through ${stripLessonPrefix(covered[covered.length - 1].title)}`;
+  const atoms = [
+    mcFor(mcSources[0], 0, 0),
+    mcFor(mcSources[1], 1, 1),
+    mcFor(mcSources[2], 2, 2),
+    withQuizPlan(
+      {
+        id: quizQuestionId(lesson, 3),
+        type: 'short_answer',
+        bloomsLevel: 'Analyze',
+        difficulty: 'Medium',
+        estimatedMinutes: 5,
+        points: 4,
+        objectiveAligned: pairA.outcomes?.[0] || quizPlan[3].objective,
+        intendedUse: `Formative written check during ${reviewFocus}; use responses to target re-teaching before ${reviewArtifact}.`,
+        question: `In 2-3 sentences, name the most important difference between ${conceptA} (${stripLessonPrefix(pairA.title)}) and ${conceptB} (${stripLessonPrefix(pairB.title)}), and state one check from your ${reviewFocus} preparation that would catch a mix-up between them.`,
+        answer: `A complete answer states one accurate difference between ${conceptA} and ${conceptB} and names a concrete self-check (a worked example, a ${lens.evidenceNoun} comparison, or a practice item) that distinguishes them.`,
+        sampleAnswer: `${sentenceCase(conceptA)} and ${conceptB} differ in what each one explains; re-working one example of each side by side during ${reviewFocus} exposes any mix-up before ${reviewArtifact}.`,
+        explanation: `Review retrieval: the item checks discrimination between two covered concepts rather than recall of either in isolation.`,
+        scoringGuidance: `Full credit requires an accurate difference plus a concrete check. Partial credit when the difference is right but the check is generic. Flag answers that define both terms without contrasting them.`,
+        tags: unique(['review', conceptA, conceptB, 'short answer'], 8),
+      },
+      planFor(3, pairA),
+    ),
+    mcFor(mcSources[3], 4, 3),
+    withQuizPlan(
+      {
+        id: quizQuestionId(lesson, 5),
+        type: 'essay',
+        bloomsLevel: 'Evaluate',
+        difficulty: 'Hard',
+        estimatedMinutes: 12,
+        points: 8,
+        objectiveAligned: covered[covered.length - 1].outcomes?.[0] || quizPlan[5].objective,
+        intendedUse: `Exam-prep synthesis for ${reviewFocus}; score with the rubric hints before students revise their study plan.`,
+        question: `Plan your strongest preparation for ${reviewArtifact}: pick the two concepts from ${span} you most need to re-verify, justify each choice with course ${lens.evidenceNoun}, and describe the practice you will use to close each gap.`,
+        rubricHints: `Strong responses pick two concepts from different covered lessons, give an honest evidence-based reason each needs re-verification, and name a concrete practice step per concept.`,
+        sampleAnswer: `A strong response names two covered concepts (for example, ${conceptA} and ${conceptB}), cites the course ${lens.evidenceNoun} that exposed each gap, and commits to one re-work exercise per concept before ${reviewArtifact}.`,
+        explanation: `The essay is scored for metacognitive synthesis across the covered range, not for restating any single lesson.`,
+        scoringGuidance: `Full credit requires two accurately described concepts, an evidence-based justification for each, and a concrete practice plan. Partial credit when the concepts are accurate but the plan is generic.`,
+        tags: unique(['review', 'essay', conceptA, conceptB], 8),
+      },
+      planFor(5, covered[covered.length - 1]),
+    ),
+  ];
+  // Re-id under the review lesson's own namespace (the MC builder minted ids
+  // under each SOURCE lesson, which would collide with that lesson's weekly
+  // quiz in the bank index), then drop any stem that — despite the distinct
+  // templates — already appears in a prior weekly quiz or the exam paper.
+  // Finally, the deterministic answer-key spread guard re-rotates degenerate
+  // keys (hard requirement: no review quiz ships with nearly all MC items on
+  // one letter, whatever the lesson configuration).
+  return spreadReviewQuizAnswerKeys(
+    atoms
+      .map((atom, index) => ({ ...atom, id: quizQuestionId(lesson, index) }))
+      .filter((atom) => !usedStems.has(atom.question)),
+    lesson,
+  );
+}
+
+// ── v0.14.1 round 2 (bug 1): review-quiz answer-key degeneration guard ──────
+// The live CS Lesson 11 paper keyed every multiple-choice answer as D (see
+// the rotation note in buildReviewWeekQuizAtoms). Belt-and-suspenders: after
+// building any review-week quiz, if more than half of its MC items still
+// share one answer letter, re-rotate the keys deterministically — assign
+// consecutive letters from (lessonNumber + ordinal) % 4 and swap each item's
+// option text so the correct text follows its letter.
+
+function reassignMultipleChoiceAnswer(atom, targetLetter) {
+  const fromIndex = QUIZ_ANSWER_LETTERS.indexOf(atom.answer);
+  const toIndex = QUIZ_ANSWER_LETTERS.indexOf(targetLetter);
+  if (fromIndex < 0 || toIndex < 0 || fromIndex === toIndex) return atom;
+  const texts = (atom.options || []).map((option) => String(option).replace(/^[A-D]\.\s*/, ''));
+  if (texts.length !== QUIZ_ANSWER_LETTERS.length || !texts[fromIndex]) return atom;
+  const next = [...texts];
+  next[toIndex] = texts[fromIndex];
+  next[fromIndex] = texts[toIndex];
+  return {
+    ...atom,
+    answer: targetLetter,
+    options: next.map((text, index) => labelQuizOption(QUIZ_ANSWER_LETTERS[index], text)),
+    explanation:
+      typeof atom.explanation === 'string'
+        ? atom.explanation.replace(new RegExp(`^${atom.answer}\\b`), targetLetter)
+        : atom.explanation,
+  };
+}
+
+function spreadReviewQuizAnswerKeys(atoms, lesson) {
+  const mcAtoms = atoms.filter((atom) => atom.type === 'multiple_choice');
+  if (mcAtoms.length < 2) return atoms;
+  const counts = {};
+  for (const atom of mcAtoms) counts[atom.answer] = (counts[atom.answer] || 0) + 1;
+  const maxShared = Math.max(...Object.values(counts));
+  if (maxShared <= Math.ceil(mcAtoms.length / 2)) return atoms;
+  const lessonNumber = Number(lesson?.lessonNumber || 1);
+  let ordinal = 0;
+  return atoms.map((atom) => {
+    if (atom.type !== 'multiple_choice') return atom;
+    const target = QUIZ_ANSWER_LETTERS[(lessonNumber + ordinal) % QUIZ_ANSWER_LETTERS.length];
+    ordinal += 1;
+    return reassignMultipleChoiceAnswer(atom, target);
+  });
+}
+
 function compileQuizBank(blueprint, config = {}) {
   const preference = featurePreference(blueprint, 'quizBank');
+  // Exam entries are built FIRST so review-week weekly quizzes can dedup
+  // against the exam paper; they still append AFTER the weekly entries.
+  const examEntries = [];
+  blueprint.assessments
+    .filter((assessment) => assessment.kind === 'exam')
+    .forEach((assessment, examOrdinal) => {
+      const examEntry = buildRegistryExamEntry(blueprint, assessment, examOrdinal);
+      if (examEntry) examEntries.push(examEntry);
+    });
+  const usedStems = new Set(examEntries.flatMap((entry) => entry.questions.map((question) => question.question)));
   const quizzes = blueprint.lessons.map((lesson, index) => {
     const assessment =
       blueprint.assessments.find((item) => (item.lessonNumbers || []).includes(lesson.lessonNumber)) ||
       blueprint.assessments[index] ||
       {};
-    const questions = buildQuizAtomsForLesson(lesson, blueprint, { ...config, assessment });
+    const reviewSources = isReviewStyleLesson(lesson, blueprint) ? reviewWeekSourceLessons(blueprint, lesson) : [];
+    const questions =
+      reviewSources.length > 0
+        ? buildReviewWeekQuizAtoms(lesson, blueprint, { covered: reviewSources, assessment, usedStems })
+        : buildQuizAtomsForLesson(lesson, blueprint, { ...config, assessment });
+    questions.forEach((question) => usedStems.add(question.question));
     const totalPoints = questions.reduce((sum, question) => sum + Number(question.points || 0), 0);
     const totalMinutes = questions.reduce((sum, question) => sum + Number(question.estimatedMinutes || 0), 0);
     return {
@@ -15040,12 +15335,7 @@ function compileQuizBank(blueprint, config = {}) {
 
   // v0.14.1 (3.2b): registry exams append as additional entries with their
   // own titles — the Geology midterm/final finally exist as documents.
-  blueprint.assessments
-    .filter((assessment) => assessment.kind === 'exam')
-    .forEach((assessment, examOrdinal) => {
-      const examEntry = buildRegistryExamEntry(blueprint, assessment, examOrdinal);
-      if (examEntry) quizzes.push(examEntry);
-    });
+  examEntries.forEach((examEntry) => quizzes.push(examEntry));
 
   return {
     quizzes,
@@ -15149,8 +15439,12 @@ function slideArtifact(lesson) {
 }
 
 function slideSourceCue(lesson) {
+  // v0.14.1 round-2 (fix 3): the per-lesson evidence cue no longer leads
+  // lesson.readings (the syllabus lists real materials first), so decks read
+  // it from the evidence plan explicitly — deck guidance keeps per-lesson
+  // specificity while student-facing materials lists stay clean.
   return (
-    asArray(lesson?.readings)
+    asArray([lesson?.evidencePlan?.sourceCue, ...asArray(lesson?.readings)])
       .map(normalizeSlidePhrase)
       .find((part) => !isWeakSlidePhrase(part)) || `${primarySlideConcept(lesson)} course materials`
   );
@@ -15193,7 +15487,9 @@ function enrichedEvidenceTableRows(lesson) {
   const terms = Array.isArray(lesson?.enrichment?.keyTerms) ? lesson.enrichment.keyTerms : [];
   return terms
     .map((term) => {
-      const claim = cleanText(term?.term);
+      // v0.14.1 round-2 (fix 4): the slide key-term cell pairs non-Latin
+      // terms with their romanization ("你好 (nǐ hǎo)").
+      const claim = displayKeyTermName(term);
       const definition = stripTerminalPunctuation(cleanText(term?.definition));
       const example = stripTerminalPunctuation(cleanText(term?.example));
       if (!claim || !definition || !example) return null;
@@ -15505,6 +15801,28 @@ function punctuateDisplayBullet(display, source) {
   return `${text}${sourceMark ? sourceMark[1] : '.'}`;
 }
 
+// Round-3 polish: true when the bullet's first word(s) repeat the concept's
+// last word(s) (case-insensitive, 1-3 words) — the "Creating and Accessing
+// Lists" → "Lists adapts…" echo class. Word-sequence equality only, so a
+// bullet that merely shares vocabulary mid-phrase is unaffected.
+function bulletLeadsWithConceptTail(bulletText, concept) {
+  const bulletWords = cleanText(bulletText)
+    .toLowerCase()
+    .split(/\s+/)
+    .map((word) => word.replace(/[^\w'-]+$/g, ''))
+    .filter(Boolean);
+  const conceptWords = cleanText(concept)
+    .toLowerCase()
+    .replace(/[^\w\s'-]+$/g, '')
+    .split(/\s+/)
+    .filter(Boolean);
+  if (bulletWords.length === 0 || conceptWords.length === 0) return false;
+  for (let span = Math.min(3, bulletWords.length, conceptWords.length); span >= 1; span -= 1) {
+    if (bulletWords.slice(0, span).join(' ') === conceptWords.slice(-span).join(' ')) return true;
+  }
+  return false;
+}
+
 function compactSlideDisplayBullet(slide, bullet, index, lesson) {
   const type = cleanText(slide?.type).toLowerCase();
   const fullLength = type === 'activity' || type === 'discussion' ? 78 : 112;
@@ -15523,7 +15841,15 @@ function compactSlideDisplayBullet(slide, bullet, index, lesson) {
   // v0.12.1: never prepend the concept when the bullet already names it —
   // activity slides used to render "Practice: Constructivism: Constructivism
   // adapts…" because the cue was unconditional for that slide type.
-  const conceptAlreadyNamed = cleanText(compact).toLowerCase().includes(cleanText(concept).toLowerCase());
+  // Round-3 polish: the live CS L7 deck shipped "Practice: Creating and
+  // Accessing Lists: Lists adapts the course pattern: run…" — the bullet's
+  // SUBJECT was the topic's tail word ("Lists"), so the substring check
+  // missed it and the prepend built an "X: X" echo. When the bullet's
+  // leading word(s) equal the concept's trailing word(s), the topic is
+  // already the bullet's subject — prepend only the label.
+  const conceptAlreadyNamed =
+    cleanText(compact).toLowerCase().includes(cleanText(concept).toLowerCase()) ||
+    bulletLeadsWithConceptTail(compact, concept);
   const needsLessonCue = !conceptAlreadyNamed && (type === 'activity' || type === 'discussion' || compact.length >= 70);
   const lessonSpecific = needsLessonCue
     ? conciseClause(`${concept}: ${compact}`, compact, maxLength, { ellipsis: true })

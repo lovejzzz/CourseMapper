@@ -1442,7 +1442,16 @@ export default function AppFlow({ startupAction = null, onStartupHandled, onRetu
                 action.featureId,
                 result.courseMap || courseMapRef.current,
                 action.lessonIndex,
-                { mode: 'finalizerRetry', maxProviderCalls: action.estimatedCalls || 1 },
+                {
+                  mode: 'finalizerRetry',
+                  maxProviderCalls: action.estimatedCalls || 1,
+                  // v0.14.1 round 2: the finalizer holds the AUTHORITATIVE
+                  // deliverable data. The hook's render-closure snapshot can be
+                  // stale/null when this whole chain runs in one synchronous
+                  // task (the live CS run replaced the entire 17-entry quiz
+                  // bank with a single regenerated lesson because of this).
+                  currentData: finalizerDeliverables[action.featureId]?.data || null,
+                },
               );
               tracePackageFinish(finishRunId, 'retry_action_done', {
                 key: retryActionKey,

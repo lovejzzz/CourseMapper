@@ -3,6 +3,12 @@ import useStreamReader from './useStreamReader';
 import { getDeliverablePrompt } from '../lib/deliverablePrompts';
 import { getDeliverableResponseSchema } from '../lib/deliverableSchemas';
 import { getArrayKey } from '../lib/syncDependencies';
+import {
+  PER_ASSESSMENT_REGEN_FEATURES,
+  addTargetLessonIdentity,
+  isUnsafeFullReplacement,
+  mergeRegeneratedLessonItems,
+} from '../lib/lessonRegenMerge';
 import { getCustomDeliverable } from '../lib/customDeliverableLibrary';
 import { scoreHeuristic, computeAvgScore } from '../lib/deliverableQualityScorer';
 import { generateImages, OPENAI_SLIDE_IMAGE_MODEL } from '../lib/imageSearch';
@@ -137,122 +143,9 @@ function patchScopeNumbering(parsed, featureId, scopeIndices, courseMap) {
   return { ...parsed, [k]: patched };
 }
 
-const PER_ASSESSMENT_REGEN_FEATURES = new Set(['rubrics', 'assignments']);
-
-function normalizeLessonMatch(value) {
-  return String(value || '')
-    .toLowerCase()
-    .replace(/\b(?:lesson|week|module|unit|session)\s*\d{1,2}\b/g, ' ')
-    .replace(/[^a-z0-9]+/g, ' ')
-    .replace(/\s+/g, ' ')
-    .trim();
-}
-
-function extractLessonNumbersFromText(value) {
-  const numbers = new Set();
-  const raw = String(value || '');
-  for (const match of raw.matchAll(/\b(?:lesson|week|module|unit|session)\s*(\d{1,2})\b/gi)) {
-    const number = Number(match[1]);
-    if (Number.isFinite(number)) numbers.add(number);
-  }
-  return [...numbers];
-}
-
-function collectLessonIdentityText(item) {
-  const values = [
-    item?.lessonTitle,
-    item?.lt,
-    item?.title,
-    item?.t,
-    item?.assessmentTitle,
-    item?.assessment,
-    item?.assessmentType,
-    item?.at,
-    item?.taskTitle,
-    item?.taskDirections,
-    item?.linkedAssignment,
-    item?.weekNumber,
-    item?.wk,
-    item?.dueWeek,
-    item?.dw,
-    ...(Array.isArray(item?.relatedLessons) ? item.relatedLessons : []),
-    ...(Array.isArray(item?.rl) ? item.rl : []),
-    ...(Array.isArray(item?.tags) ? item.tags : []),
-    ...(Array.isArray(item?.tg) ? item.tg : []),
-  ];
-  return values.filter(Boolean).join(' ');
-}
-
-function getItemLessonNumbers(item) {
-  return extractLessonNumbersFromText(collectLessonIdentityText(item));
-}
-
-function getCourseLessonTitle(courseMap, lessonIndex) {
-  return courseMap?.lessons?.[lessonIndex]?.title || `Lesson ${lessonIndex + 1}`;
-}
-
-function itemMatchesLesson(item, lessonNumber, normalizedLessonTitle) {
-  const numbers = getItemLessonNumbers(item);
-  if (numbers.includes(lessonNumber)) return true;
-  if (!normalizedLessonTitle) return false;
-  return normalizeLessonMatch(collectLessonIdentityText(item)).includes(normalizedLessonTitle);
-}
-
-function addTargetLessonIdentity(item, courseMap, lessonIndex) {
-  if (!item || typeof item !== 'object') return item;
-  const lessonNumber = lessonIndex + 1;
-  const lessonTitle = getCourseLessonTitle(courseMap, lessonIndex);
-  const explicitTitle = `Lesson ${lessonNumber}: ${lessonTitle}`;
-  const next = { ...item };
-  const numbers = getItemLessonNumbers(next);
-  const titleText = String(next.lessonTitle || next.lt || '');
-
-  if (!numbers.includes(lessonNumber) || !titleText.trim()) {
-    next.lessonTitle = explicitTitle;
-  }
-  return next;
-}
-
-function sortLessonScopedItems(items) {
-  return [...items].sort((a, b) => {
-    const aNumber = getItemLessonNumbers(a)[0] || 9999;
-    const bNumber = getItemLessonNumbers(b)[0] || 9999;
-    return aNumber - bNumber;
-  });
-}
-
-function mergeRegeneratedLessonItems(featureId, existingArr, newArr, lessonIndex, courseMap) {
-  const incoming = Array.isArray(newArr) ? newArr.filter(Boolean) : [];
-  const existing = Array.isArray(existingArr) ? [...existingArr] : [];
-  if (incoming.length === 0) return existing;
-
-  if (!PER_ASSESSMENT_REGEN_FEATURES.has(featureId)) {
-    const merged = [...existing];
-    if (lessonIndex < merged.length) merged[lessonIndex] = incoming[0];
-    else merged.push(incoming[0]);
-    for (let i = 1; i < incoming.length; i++) {
-      const itemTitle = incoming[i]?.lessonTitle || incoming[i]?.title || '';
-      const matchIdx = itemTitle
-        ? merged.findIndex((m, idx) => idx !== lessonIndex && (m?.lessonTitle === itemTitle || m?.title === itemTitle))
-        : -1;
-      if (matchIdx >= 0) merged[matchIdx] = incoming[i];
-    }
-    return merged;
-  }
-
-  const lessonNumber = lessonIndex + 1;
-  const normalizedLessonTitle = normalizeLessonMatch(getCourseLessonTitle(courseMap, lessonIndex));
-  const preparedIncoming = incoming.map((item) => addTargetLessonIdentity(item, courseMap, lessonIndex));
-  const firstMatchIndex = existing.findIndex((item) => itemMatchesLesson(item, lessonNumber, normalizedLessonTitle));
-  const keptExisting = existing.filter((item) => !itemMatchesLesson(item, lessonNumber, normalizedLessonTitle));
-
-  if (firstMatchIndex < 0) {
-    return sortLessonScopedItems([...keptExisting, ...preparedIncoming]);
-  }
-
-  const insertIndex = Math.min(firstMatchIndex, keptExisting.length);
-  return [...keptExisting.slice(0, insertIndex), ...preparedIncoming, ...keptExisting.slice(insertIndex)];
-}
+// v0.14.1 round 2 (Crucible Round-2): the single-lesson merge — and its
+// quiz-bank exam/validity guards — lives in src/lib/lessonRegenMerge.js so the
+// regression tests exercise the exact production merge.
 
 function prepareRegeneratedLessonData(featureId, parsed, lessonIndex, courseMap) {
   if (!PER_ASSESSMENT_REGEN_FEATURES.has(featureId)) {
@@ -1197,6 +1090,9 @@ export default function useDeliverables({
             buildBlueprintEnrichmentPrompt,
             buildLessonKernelPrompt,
             chooseBlueprintEnrichmentPath,
+            courseUsesNonLatinScript,
+            listLessonRomanizationGaps,
+            mergeRomanizationRecovery,
             normalizeAbsorbedCourseLevel,
             parseBlueprintEnrichmentResponse,
             parseLessonKernelResponse,
@@ -1354,23 +1250,64 @@ export default function useDeliverables({
           // template content — one extra kernel call each would have fixed
           // them. Max 2 extra calls, recorded through the normal budget
           // machinery, batched like the main loop (≤4 lessons per call).
+          //
+          // Round-3 polish: language courses spend the SAME budget on
+          // romanization gaps — lessons whose parsed keyTerms carry CJK/
+          // non-Latin terms with no usable rm (the round-3 Mandarin pinyin
+          // coverage sat at 8/15 despite the strengthened prompt). Missing
+          // lessons keep priority; rm-incomplete lessons fill the remaining
+          // batch slots, and a returned lesson MERGES (original payload kept,
+          // retry contributes rm + new terms only when the original was thin).
           const listMissingLessonIndices = () =>
             allLessonIndices.filter((lessonIdx) => !lessonContent[`lesson-${lessonIdx + 1}`]);
+          const languageCourse = courseUsesNonLatinScript(blueprintCourseMap);
+          const listRomanizationGapIndices = () =>
+            languageCourse
+              ? allLessonIndices.filter(
+                  (lessonIdx) => listLessonRomanizationGaps(lessonContent[`lesson-${lessonIdx + 1}`]).length > 0,
+                )
+              : [];
           let enrichmentRecoveryCalls = 0;
-          while (enrichmentRecoveryCalls < 2 && listMissingLessonIndices().length > 0) {
+          while (
+            enrichmentRecoveryCalls < 2 &&
+            (listMissingLessonIndices().length > 0 || listRomanizationGapIndices().length > 0)
+          ) {
             if (!hasProviderCallBudget()) break;
-            const retryChunk = listMissingLessonIndices().slice(0, chunkSize);
+            const missingChunk = listMissingLessonIndices().slice(0, chunkSize);
+            const romanizationChunk = listRomanizationGapIndices().slice(
+              0,
+              Math.max(0, chunkSize - missingChunk.length),
+            );
+            const retryChunk = [...missingChunk, ...romanizationChunk];
             enrichmentRecoveryCalls += 1;
+            const romanizationFocus = Object.fromEntries(
+              romanizationChunk.map((lessonIdx) => [
+                `lesson-${lessonIdx + 1}`,
+                listLessonRomanizationGaps(lessonContent[`lesson-${lessonIdx + 1}`]),
+              ]),
+            );
             const retryPrompt = buildLessonKernelPrompt(blueprintCourseMap, retryChunk, {
               questionsPerLesson: getGenerationConfig('quizBank')?.questionsPerLesson,
               includeCourseLevel: false,
+              ...(romanizationChunk.length > 0 ? { romanizationFocus } : {}),
             });
+            const retryDetailParts = [
+              missingChunk.length > 0
+                ? `dropped lesson${missingChunk.length === 1 ? '' : 's'} ${missingChunk.map((lessonIdx) => lessonIdx + 1).join(', ')}`
+                : '',
+              romanizationChunk.length > 0
+                ? `romanization gap${romanizationChunk.length === 1 ? '' : 's'} in lesson${romanizationChunk.length === 1 ? '' : 's'} ${romanizationChunk.map((lessonIdx) => lessonIdx + 1).join(', ')}`
+                : '',
+            ].filter(Boolean);
             recordGenerationApiCallEvent({
               type: 'blueprintEnrichmentCall',
-              label: 'Enrich lesson kernels (recovery)',
-              detail: `Recovery ${enrichmentRecoveryCalls}/2 for dropped lesson${retryChunk.length === 1 ? '' : 's'} ${retryChunk
-                .map((lessonIdx) => lessonIdx + 1)
-                .join(', ')} — ${retryPrompt.approxInputTokens} input tokens estimated`,
+              label:
+                missingChunk.length > 0
+                  ? 'Enrich lesson kernels (recovery)'
+                  : 'Enrich lesson kernels (romanization recovery)',
+              detail: `Recovery ${enrichmentRecoveryCalls}/2 for ${retryDetailParts.join(
+                ' + ',
+              )} — ${retryPrompt.approxInputTokens} input tokens estimated`,
               featureId: 'blueprintEnrichment',
             });
             try {
@@ -1396,20 +1333,36 @@ export default function useDeliverables({
                 expectedLessonIds: retryChunk.map((lessonIdx) => `lesson-${lessonIdx + 1}`),
               });
               if (recoveredKernels) {
-                Object.assign(lessonContent, recoveredKernels.lessons);
-                if (lessonKernelCache) {
-                  for (const [lessonId, payload] of Object.entries(recoveredKernels.lessons)) {
-                    const lessonIdx = Number(String(lessonId).replace('lesson-', '')) - 1;
-                    const lesson = blueprintCourseMap.lessons?.[lessonIdx];
-                    if (lesson) lessonKernelCache.set(lesson, payload);
+                const restoredNumbers = [];
+                const romanizedNumbers = [];
+                for (const [lessonId, payload] of Object.entries(recoveredKernels.lessons)) {
+                  const lessonNumber = Number(String(lessonId).replace('lesson-', ''));
+                  const original = lessonContent[lessonId];
+                  if (original) {
+                    // Romanization retry: the accepted payload stays; the
+                    // retry only contributes rm (and fills thin term lists).
+                    const gapsBefore = listLessonRomanizationGaps(original).length;
+                    const merged = mergeRomanizationRecovery(original, payload);
+                    lessonContent[lessonId] = merged;
+                    if (gapsBefore > listLessonRomanizationGaps(merged).length) romanizedNumbers.push(lessonNumber);
+                  } else {
+                    lessonContent[lessonId] = payload;
+                    restoredNumbers.push(lessonNumber);
+                  }
+                  if (lessonKernelCache) {
+                    const lesson = blueprintCourseMap.lessons?.[lessonNumber - 1];
+                    if (lesson) lessonKernelCache.set(lesson, lessonContent[lessonId]);
                   }
                 }
-                const recoveredNumbers = Object.keys(recoveredKernels.lessons).map((lessonId) =>
-                  Number(String(lessonId).replace('lesson-', '')),
-                );
-                if (recoveredNumbers.length > 0) {
+                if (restoredNumbers.length > 0) {
                   appendLog(
-                    `✓ Enrichment recovery restored lesson${recoveredNumbers.length === 1 ? '' : 's'} ${recoveredNumbers.join(', ')}`,
+                    `✓ Enrichment recovery restored lesson${restoredNumbers.length === 1 ? '' : 's'} ${restoredNumbers.join(', ')}`,
+                    'done',
+                  );
+                }
+                if (romanizedNumbers.length > 0) {
+                  appendLog(
+                    `✓ Romanization recovery added pinyin/romanization for lesson${romanizedNumbers.length === 1 ? '' : 's'} ${romanizedNumbers.join(', ')}`,
                     'done',
                   );
                 }
@@ -3852,10 +3805,29 @@ export default function useDeliverables({
       setCurrentFeatures((prev) => new Set([...prev, featureId]));
       setIsGenerating(true);
 
-      // Capture CURRENT data snapshot NOW (before any async work) to prevent snap-back
-      const existingDataSnapshot = deliverables[featureId]?.data ?? null;
+      // Capture CURRENT data snapshot NOW (before any async work) to prevent snap-back.
+      // v0.14.1 round 2: callers that hold authoritative state (the package
+      // finalizer's retry loop runs in the same synchronous task as the
+      // generation that produced the data, so this hook's render closure can
+      // be STALE) pass it via options.currentData — the live CS run's null
+      // closure snapshot let a one-lesson regen result replace the entire
+      // 17-entry quiz bank.
+      const optionCurrentData =
+        regenerationOptions.currentData && typeof regenerationOptions.currentData === 'object'
+          ? regenerationOptions.currentData
+          : null;
+      const existingDataSnapshot = optionCurrentData ?? deliverables[featureId]?.data ?? null;
       const existingKey = getArrayKey(featureId, existingDataSnapshot);
       const existingArr = existingDataSnapshot?.[existingKey] || [];
+      const onLessonMergeReject = (reason) => {
+        appendLog(`⚠ ${label}: Lesson ${lessonIndex + 1} regen result rejected — ${reason}`, 'warn');
+        traceGeneration(
+          regenerationRunId,
+          'lesson_regen_entry_rejected',
+          { featureId, label, lessonIndex, lessonNumber: lessonIndex + 1, reason },
+          'warn',
+        );
+      };
 
       dispatch({ type: 'MARK_LESSON_REGENERATING', featureId, lessonIndex });
 
@@ -3906,7 +3878,9 @@ export default function useDeliverables({
               if (existingKey && existingDataSnapshot) {
                 const newKey = getArrayKey(featureId, finalParsed);
                 const newArr = (newKey ? finalParsed[newKey] : null) || [];
-                const merged = mergeRegeneratedLessonItems(featureId, existingArr, newArr, lessonIndex, courseMap);
+                const merged = mergeRegeneratedLessonItems(featureId, existingArr, newArr, lessonIndex, courseMap, {
+                  onReject: onLessonMergeReject,
+                });
                 nextData = { ...existingDataSnapshot, [existingKey]: merged };
               }
               dispatch(actions.setDeliverableDone(featureId, nextData));
@@ -4097,9 +4071,32 @@ export default function useDeliverables({
           if (existingKey && existingDataSnapshot) {
             const newKey = getArrayKey(featureId, finalParsed);
             const newArr = (newKey ? finalParsed[newKey] : null) || [];
-            const merged = mergeRegeneratedLessonItems(featureId, existingArr, newArr, lessonIndex, courseMap);
+            const merged = mergeRegeneratedLessonItems(featureId, existingArr, newArr, lessonIndex, courseMap, {
+              onReject: onLessonMergeReject,
+            });
             nextData = { ...existingDataSnapshot, [existingKey]: merged };
             dispatch(actions.setDeliverableDone(featureId, nextData));
+          } else if (isUnsafeFullReplacement(featureId, finalParsed, courseMap)) {
+            // v0.14.1 round 2: with no snapshot to merge into, a single-lesson
+            // result must NOT become the feature's full data — the live CS run
+            // shipped a one-entry quiz bank (every other lesson's quiz and both
+            // exams gone) exactly this way.
+            onLessonMergeReject(
+              'no current data snapshot to merge into; refusing to replace the whole deliverable with a single-lesson result',
+            );
+            dispatch({ type: 'CLEAR_LESSON_REGENERATING', featureId });
+            const rejectedResult = {
+              status: 'rejected',
+              reason: 'unsafe_full_replacement',
+              featureId,
+              lessonIndex,
+              data: null,
+              itemCount: 0,
+              syncSource: 'model-fallback',
+              providerCallCount: providerCallsUsed,
+            };
+            traceGeneration(regenerationRunId, 'lesson_regen_rejected', rejectedResult, 'warn');
+            return rejectedResult;
           } else {
             dispatch(actions.setDeliverableDone(featureId, finalParsed));
           }

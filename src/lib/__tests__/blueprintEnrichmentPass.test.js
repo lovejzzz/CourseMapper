@@ -4,6 +4,7 @@ import {
   buildBlueprintEnrichmentPrompt,
   chooseBlueprintEnrichmentPath,
   evaluateBlueprintEnrichmentQuality,
+  lintEnrichedKeyTerm,
   normalizeBlueprintEnrichmentResponse,
   parseBlueprintEnrichmentResponse,
 } from '../blueprintEnrichmentPass';
@@ -437,5 +438,31 @@ describe('blueprint enrichment pass', () => {
         practiceMove: expect.stringContaining('sampling frame evidence'),
       },
     });
+  });
+});
+
+describe('lintEnrichedKeyTerm script-aware term length', () => {
+  // Long enough to clear the 40-char definition floor, free of META_SURFACE_RE words.
+  const definition = 'A common everyday greeting spoken when meeting another person for the first time.';
+
+  it('accepts a 2-character hanzi term', () => {
+    const issues = lintEnrichedKeyTerm(
+      { term: '你好', definition, example: '你好！我是王老师。(Nǐ hǎo! Wǒ shì Wáng lǎoshī.)' },
+      { lessonTitle: 'Lesson 3: Greetings and Introductions' },
+    );
+    expect(issues).not.toContain('term-missing');
+    expect(issues).toEqual([]);
+  });
+
+  it('still rejects a 2-character Latin term', () => {
+    const issues = lintEnrichedKeyTerm(
+      {
+        term: 'if',
+        definition: 'A keyword that branches program flow based on a boolean condition result.',
+        example: 'if x > 0: print(x)',
+      },
+      { lessonTitle: 'Lesson 3: Conditionals and Boolean Logic' },
+    );
+    expect(issues).toContain('term-missing');
   });
 });

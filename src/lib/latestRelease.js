@@ -8,12 +8,12 @@
  * the three screen footers, and the Changelog entry.
  */
 export const LATEST_RELEASE = {
-  version: '0.14.1',
+  version: '0.14.2',
   date: 'June 11, 2026',
-  title: 'Output Integrity: every promise kept, every gate honest',
+  title: 'The Crucible: generate, grade, refine — until A+',
   highlights: [
-    'The assessment registry: every assessment the course map promises now carries an identity (A7.2, kind, weight) and becomes a real artifact — midterms and finals compile as actual exams with answer keys, oral performances get prompt sheets and speaking rubrics, and the map, briefs, rubrics, and syllabus all render the same verbatim title',
-    'The map becomes an index: course-map cells hyperlink to the actual brief and exam files in the download, clicking an assessment in the app opens its deliverable (and back), and every brief carries its Course Map reference stamp',
-    'Gates that measure meaning: silent partial enrichment, off-topic citations, and map-promised-but-never-generated assessments — the three silent failures of the v0.14 audit — now warn loudly in the digest, manifest, and finish report, and the reading list rejects famous-but-irrelevant papers with a topical relevance gate',
+    'The Crucible: a built-in generate→grade→refine harness that runs real courses through the live app, downloads the packages, and grades them with the full four-course-audit rulebook — seven scored dimensions, evidence-quoting findings, round-over-round deltas, ~$0.10 and ~3 minutes per course',
+    'Four live rounds of refinement took the reference courses from 51–59 (F) on v0.14.0 output to 100/100/100/100 with zero P0 and zero P1 findings — midterms and finals survive into real exam papers with varied answer keys, review weeks quiz real content from prior lessons, and language-course key terms pair hanzi with tone-marked pinyin',
+    'Live-only bugs the offline suite could never see are fixed at the source: a stale-snapshot regen that could replace a whole quiz bank with one lesson, exam papers silently retitled by the repair pass, citation relevance now verified against OpenAlex topic fields, and study guides that stop chanting the lesson title',
   ],
 };

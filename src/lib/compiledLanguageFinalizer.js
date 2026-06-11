@@ -91,6 +91,11 @@ function escapeRegExp(value) {
 const A_TO_AN_EXCEPTION_RE =
   /^(?:one(?:s|-)?|once|uni[a-z]*|usab[a-z]*|usag[a-z]*|use[a-z]*|usual[a-z]*|euro[a-z]*|ufo[a-z]*|utens[a-z]*)$/i;
 
+// v0.14.1 round-2 (fix 5): 1-3 char code tokens that are ALSO common English
+// words. A bare strip of `and`/`or` produced the unreadable "combine tests
+// with and or" on a live CS slide — these wrap in single quotes instead.
+const SHORT_CODE_WORD_RE = /^(?:a|an|and|or|not|in|is|if|as|for|on|at|to|by|of|do|no|the|all|any)$/i;
+
 function fixMechanicalSeams(value) {
   let text = value;
   // v0.14.1 (5.1): markdown code spans render their backticks verbatim in
@@ -98,8 +103,14 @@ function fixMechanicalSeams(value) {
   // on slides in the OUTPUT-V014 audit) — enriched key-term examples carry
   // them into slides, study guides, and quizzes. DOCX/PPTX have no code-span
   // concept, so paired delimiters are stripped and the content kept; a lone
-  // backtick (a legitimate character) is left alone.
-  text = text.replace(/`([^`\n]+)`/g, '$1');
+  // backtick (a legitimate character) is left alone. Round-2 refinement: a
+  // span holding a short code token that doubles as a common English word
+  // ("`and`", "`or`") keeps a delimiter — single quotes — because the bare
+  // strip destroyed readability ("combine tests with and or"). Longer or
+  // symbol-bearing spans keep the plain strip.
+  text = text.replace(/`([^`\n]+)`/g, (match, content) =>
+    content.length <= 3 && SHORT_CODE_WORD_RE.test(content) ? `'${content}'` : content,
+  );
   // Leading punctuation fragments ("# 1.1:" section titles stripped upstream).
   text = text.replace(/^\s*[:;,–—]\s+/, '');
   // Stitched double periods: "evidence move in X.." and "X. . Next".
@@ -251,12 +262,20 @@ function buildReferenceTargets(blueprint = {}) {
     const evidencePacket = String(lesson?.throughlineCase?.evidencePacket || '')
       .trim()
       .replace(/[.!?]+$/, '');
-    push({
-      pattern: evidencePacket,
-      replacement: `the Lesson ${lessonNumber} evidence packet`,
-      startsWithArticle: true,
-      keep: 2,
-    });
+    // v0.14.1 round-2 (fix 3): only MINTED packet descriptors ("<packet name>
+    // for Lesson 5: <topic>") get the evidence-packet short reference. When
+    // the v0.12.1 path picked a REAL reading as the packet, this target
+    // rewrote every 3rd+ mention of that work's title — World Lit's "The
+    // Thousand and One Nights" became "the Lesson 5 evidence packet" in topic
+    // cells and success criteria. Real titles stay verbatim everywhere.
+    if (/\bfor Lesson \d+\s*:|:\s*Lesson \d+\b/i.test(evidencePacket)) {
+      push({
+        pattern: evidencePacket,
+        replacement: `the Lesson ${lessonNumber} evidence packet`,
+        startsWithArticle: true,
+        keep: 2,
+      });
+    }
     const projectName = String(lesson?.throughlineCase?.projectName || '').trim();
     // v0.14.1 (1.10): keep 0 — internal vocabulary like "Lab Evidence
     // Thread" must never survive into reader-facing text, so every mention
@@ -351,11 +370,26 @@ function walkAndRewrite(node, rewrite, parentKey = '') {
   return node;
 }
 
+// v0.14.1 round-2 (fix 2): name/title fields render canonical identities —
+// the geology syllabus grading table shipped "A1.1 — the Week 1 quiz" because
+// the keep-count rewrote the NAME cell's registry title on its 3rd document
+// mention. Registry titles in "id — title" renders must never shorten, so
+// artifact-short-ref targets skip name/title keys entirely; topic-phrase
+// shortenings and every other field (descriptions included) are unaffected.
+const CANONICAL_NAME_KEY_RE = /^(?:name|title)$/i;
+
+function targetsForKey(targets, key) {
+  if (!CANONICAL_NAME_KEY_RE.test(key)) return targets;
+  return targets.filter((target) => target.replacement?.kind !== ARTIFACT_REFERENCE_MARKER);
+}
+
 function rewriteScope(scope, targets, contextLessonNumber = 0) {
   const counts = new Map();
   walkAndRewrite(scope, (value, key) => {
     if (TITLE_LIKE_KEY_RE.test(key) || REPLACEMENT_EXEMPT_KEY_RE.test(key)) return fixMechanicalSeams(value);
-    return fixMechanicalSeams(replaceReferencesInString(value, targets, counts, contextLessonNumber));
+    return fixMechanicalSeams(
+      replaceReferencesInString(value, targetsForKey(targets, key), counts, contextLessonNumber),
+    );
   });
 }
 
@@ -386,6 +420,101 @@ function compressNoteLessonTitleMentions(note, lessonTitle) {
     // "this lesson review"); sentence starts re-capitalize.
     return isSentenceStart(full, offset) ? compressed.charAt(0).toUpperCase() + compressed.slice(1) : compressed;
   });
+}
+
+// Round-3 polish: study guides chant the lesson title — the live world-lit L4
+// guide opened with FIVE full-title mentions in two paragraphs ("…checks on
+// Tang Poetry and Lyrical Precision…", "Lesson 4: Tang Poetry and Lyrical
+// Precision focuses on Tang Poetry and Lyrical Precision…"). The deck
+// speaker-note compressor (5.3) extends to study-guide PROSE with a
+// document-level budget: the first 2 full-title mentions stay, later ones
+// compress to a short alternating form. Headings, key-term tables, and
+// examScope/assessment-name fields stay exact — those surfaces are scanned
+// by identity and readiness gates and must keep canonical wording.
+const STUDY_GUIDE_TITLE_COMPRESSIONS = ['this lesson', 'the lesson'];
+// Only the guide's OWN prose fields are compressed. Everything else is out of
+// scope by construction:
+//   - heading/scope surfaces (lessonTitle, examScope) and the key-term table
+//     keep exact lesson/assessment wording for identity and readiness gates;
+//   - blueprint-mirror subtrees (teachingIntent, prerequisitePlan,
+//     modalityDecode, anchorExampleSet, learningTransferPlan, workedExample,
+//     misconceptionMap-backed commonMisconceptions, …) are SHARED objects —
+//     other deliverables embed the same references, so mutating them here
+//     would rewrite lesson plans and slide decks at a distance.
+const STUDY_GUIDE_COMPRESS_FIELDS = [
+  'summary',
+  'conceptConnections',
+  'reviewQuestions',
+  'practiceActivities',
+  'studentResources',
+  'examPrep',
+  'reasoningRoutine',
+];
+// Inside those fields, canonical-name and topic-list keys stay exact.
+const STUDY_GUIDE_COMPRESS_EXEMPT_KEY_RE = /^(?:keyTopicsToKnow|term|title|name|structure)$/i;
+
+function walkStudyGuideProse(node, visit, parentKey = '') {
+  if (typeof node === 'string') return visit(node, parentKey);
+  if (Array.isArray(node)) {
+    for (let index = 0; index < node.length; index += 1) {
+      node[index] = walkStudyGuideProse(node[index], visit, parentKey);
+    }
+    return node;
+  }
+  if (node && typeof node === 'object') {
+    for (const key of Object.keys(node)) {
+      if (isInternalExportMetadataKey(key) || PROVENANCE_KEY_RE.test(key)) continue;
+      if (STUDY_GUIDE_COMPRESS_EXEMPT_KEY_RE.test(key)) continue;
+      node[key] = walkStudyGuideProse(node[key], visit, key);
+    }
+    return node;
+  }
+  return node;
+}
+
+function compressStudyGuideTitleMentions(guide) {
+  const title = String(guide?.lessonTitle || '').trim();
+  const topic = title.replace(/^lesson\s*\d+\s*[:.\-–—]\s*/i, '').trim();
+  if (topic.length < 8) return;
+  // "Lesson N: X focuses on X, …" — the sentence subject is the lesson title
+  // and the first focus item repeats it verbatim; drop the redundant first
+  // item (only when more items follow, so "focuses on" always keeps an
+  // object).
+  const echoRegex = new RegExp(
+    `(\\b${escapeRegExp(topic)}\\b[^.!?\\n]{0,40}?focuses on )${escapeRegExp(topic)},\\s*`,
+    'gi',
+  );
+  // Full-title mentions in prose: an optional determiner and an optional
+  // "Lesson N:" prefix are consumed by the match so the compressed form
+  // never yields "the this lesson".
+  const mentionRegex = new RegExp(
+    `(\\b(?:the|a|an|your|their|its|our)\\s+)?(?:Lesson\\s*\\d+\\s*[:.\\-–—]\\s*)?\\b${escapeRegExp(topic)}(?![A-Za-z0-9])`,
+    'gi',
+  );
+  let seen = 0;
+  const compressString = (value) => {
+    let text = value.replace(echoRegex, '$1');
+    text = text.replace(mentionRegex, (match, determiner, offset, full) => {
+      seen += 1;
+      if (seen <= 2) return match;
+      let compressed = STUDY_GUIDE_TITLE_COMPRESSIONS[(seen - 3) % STUDY_GUIDE_TITLE_COMPRESSIONS.length];
+      // Possessive determiners read as the lesson's own attribute:
+      // "self-check your <title> evidence" → "self-check this lesson's
+      // evidence" (plain articles are simply consumed, as in 5.3).
+      if (determiner && /^(?:your|their|its|our)\s+$/i.test(determiner)) compressed = `${compressed}'s`;
+      return isSentenceStart(full, offset) ? compressed.charAt(0).toUpperCase() + compressed.slice(1) : compressed;
+    });
+    return text;
+  };
+  for (const field of STUDY_GUIDE_COMPRESS_FIELDS) {
+    if (guide[field] === undefined) continue;
+    guide[field] = walkStudyGuideProse(guide[field], compressString, field);
+  }
+}
+
+function rewriteStudyGuideScope(guide, targets, contextLessonNumber = 0) {
+  rewriteScope(guide, targets, contextLessonNumber);
+  compressStudyGuideTitleMentions(guide);
 }
 
 function rewriteDeckScope(deck, targets, contextLessonNumber = 0) {
@@ -444,7 +573,8 @@ export function finalizeCompiledDeliverableLanguage(featureId, data, blueprint =
     walkAndRewrite(data, (value) => fixMechanicalSeams(value));
     return data;
   }
-  const rewriteItem = featureId === 'slideDecks' ? rewriteDeckScope : rewriteScope;
+  const rewriteItem =
+    featureId === 'slideDecks' ? rewriteDeckScope : featureId === 'studyGuides' ? rewriteStudyGuideScope : rewriteScope;
   const rootResidue = {};
   for (const [key, value] of Object.entries(data)) {
     if (Array.isArray(value) && value.every((item) => item && typeof item === 'object')) {

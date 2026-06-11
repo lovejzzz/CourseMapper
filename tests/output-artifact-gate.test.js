@@ -37,6 +37,21 @@ import {
 import { buildDeliverableDocxBlob } from '../src/lib/exporters/bulkDocxExporter';
 import { buildSlideDeckPptxBlob } from '../src/lib/exporters/pptxExporter';
 import { buildXlsxBuffer } from '../src/lib/xlsxGenerator';
+// v0.14.1: the armed defect-class patterns now live in one shared, importable
+// module so the live-run deep quality grader checks the SAME tables this gate
+// pins. The tuple views ([regex, label]) keep scanSurfaces byte-identical.
+import {
+  ARTIFACT_PATTERN_TUPLES,
+  JSON_SYNTAX_PATTERN_TUPLES,
+  FUSED_TITLE_PATTERN_TUPLES,
+  ARMED_INTERNAL_VOCAB_PATTERN_TUPLES,
+  PENDING_INTERNAL_VOCAB_PATTERN_TUPLES,
+  COVER_META_PATTERN_TUPLES,
+  SHOULD_BE_LESSON_ROOTED,
+  EAST_ASIA_OVERRIDE_PATTERN,
+  isTruncatedBulletLine,
+  findWeekLabelMismatches as findWeekLabelMismatchDescriptors,
+} from './lib/artifactDefectPatterns.js';
 
 const COURSES = [
   {
@@ -93,105 +108,20 @@ function fixtureCourseMap({ courseName, topics }) {
   };
 }
 
-// Every entry mirrors a defect class shipped in the v0.12 production audit.
-const ARTIFACT_PATTERNS = [
-  // Same letter twice ("A. A. Option"), not preceded by an author-list comma —
-  // v0.13.5's cited references legitimately print APA initials ("H. L.",
-  // "Adesope, O. O.") which the original any-two-initials pattern flagged.
-  [/(?<!, )\b([A-Z])\. \1\. /, 'doubled option letters "A. A."'],
-  [/\bits the /i, 'slot grammar "its the"'],
-  [/\bname one the /i, '"name one the Week N quiz"'],
-  [/[a-z]\.\.(?!\.)/, 'double period'],
-  [/Learning {2}Objectives/, 'double-space column label'],
-  [/Instructor-provided course materials/i, 'unresolved source placeholder'],
-  [/multiple_choice|short_answer/, 'raw enum id in print'],
-  // Echo chains only — "Practice with X: For X" / "X: X". A plain
-  // ": For Week 1 quiz, …" is legitimate English and must not trip the gate.
-  [/\b([A-Z][\w &'-]{3,50}): For \1\b/, '"X: For X" echo chain'],
-  [/\b([A-Z][\w &'-]{3,50}): \1\b/, '"X: X" echo chain'],
-];
+// The armed defect-class tables now live in tests/lib/artifactDefectPatterns.js
+// (shared with the live-run deep quality grader). The gate consumes the tuple
+// views so scanSurfaces below is byte-identical to the pre-refactor gate.
+const ARTIFACT_PATTERNS = ARTIFACT_PATTERN_TUPLES;
+const JSON_SYNTAX_PATTERNS = JSON_SYNTAX_PATTERN_TUPLES;
+const FUSED_TITLE_PATTERNS = FUSED_TITLE_PATTERN_TUPLES;
+const ARMED_INTERNAL_VOCAB_PATTERNS = ARMED_INTERNAL_VOCAB_PATTERN_TUPLES;
+const PENDING_INTERNAL_VOCAB_PATTERNS = PENDING_INTERNAL_VOCAB_PATTERN_TUPLES;
 
-// ── v0.14.1 Phase 0.2 pattern tables (OUTPUT-V014 defect classes) ──────────
-
-// Raw JSON syntax rendered as visible cell text — the Mandarin course map
-// shipped `topicSection": "` inside row 26 and the corruption propagated
-// into the brief and syllabus (roadmap item 1.15).
-const JSON_SYNTAX_PATTERNS = [
-  [/\b(topicSection|learningObjectives|weeklyAssessments)"\s*:/, 'raw course-map JSON key in cell text'],
-  [/"\s*:\s*\[/, 'JSON array syntax `": [` in cell text'],
-];
-
-// Two assessment atoms fused with `and` + first-char-lowercased second label
-// (courseBlueprintCompiler fusion, roadmap item 1.2): "Grammar Check and
-// oral Drill", "Participation Check and exit Ticket", and the colon-title
-// form "Quiz: plate boundary evidence and map Activity".
-const FUSED_TITLE_PATTERNS = [
-  [/\b[A-Z][a-z]+ and [a-z]+ [A-Z][a-z]+/, 'fused title with interior-lowercase label'],
-  [/: [a-z][a-z ]+ and [a-z]+ [A-Z][a-z]+/, 'fused colon-title with interior-lowercase label'],
-];
-
-// Internal pipeline vocabulary in student-facing text (roadmap item 1.10).
-// Both subsets are armed since item 1.10 landed; the split is kept so the
-// detector self-tests below keep naming which audit string each table owns.
-const ARMED_INTERNAL_VOCAB_PATTERNS = [
-  [/Lab Evidence Thread/, 'internal projectName "Lab Evidence Thread"'],
-  [/Preference profile:/, 'raw bucket token "Preference profile:"'],
-];
-const PENDING_INTERNAL_VOCAB_PATTERNS = [
-  [/Evidence Thread packet item/, 'internal phrase "Evidence Thread packet item"'],
-  [/\bevidence routine\b/, 'internal modality id "evidence routine"'],
-];
-
-// Features whose root array is one-entry-per-lesson; their docx covers must
-// say "N lessons", never the neutral "N sections". `assignments` is the
-// audited bug — missing from bulkDocxExporter's LESSON_ROOTED_FEATURES
-// (item 1.11, which should also audit rubrics/faqs).
-const SHOULD_BE_LESSON_ROOTED = ['lessonPlans', 'slideDecks', 'quizBank', 'studyGuides', 'discussions', 'assignments'];
-
-// docx string fonts expand to all four w:rFonts slots including eastAsia,
-// and the pptx run properties pin a:ea — both force CJK glyphs into
-// Calibri/Georgia, which have none (item 1.13). The attribute is emitted
-// deterministically regardless of content, so the English fixtures are a
-// valid probe surface.
-const EAST_ASIA_OVERRIDE_PATTERN = /w:eastAsia="(?:Calibri|Georgia)"|<a:ea typeface="(?:Calibri|Georgia)"/;
-
-// Truncated slide bullet heuristic (item 1.3): the compiler caps bullets at
-// 78/112 chars and cuts at a word boundary, leaving content words dangling
-// ("…adapts the course pattern: run"). A bullet >= 60 chars that ends in a
-// bare lowercase letter has no terminal punctuation by definition; lines
-// under 60 chars (legitimately unpunctuated short labels) and ALL-CAPS
-// headers (never end in [a-z]) are exempt.
-function isTruncatedBulletLine(line) {
-  return line.length >= 60 && /[a-z]$/.test(line);
-}
-
-// Week-label consistency (item 1.1): the language finalizer dedupes
-// replacement targets by pattern text, so titles shared across lessons all
-// rewrite to the first lesson's week — CS shipped "the Week 2 quiz" inside
-// lessons 3–14, 1,064 times. Any "the Week N quiz/check/exam/paper" inside
-// a lesson-scoped compiled item must match that item's lesson number.
-// ("the next Week 1 quiz" is a forward reference and does not match.)
+// Week-label consistency (item 1.1): the shared findWeekLabelMismatches
+// returns rich descriptors; the gate wants the one-line `detail` strings it
+// always compared, so adapt the descriptor shape here.
 function findWeekLabelMismatches(data, courseName, surface) {
-  const failures = [];
-  for (const value of Object.values(data || {})) {
-    if (!Array.isArray(value)) continue;
-    for (const item of value) {
-      if (!item || typeof item !== 'object') continue;
-      const scope = item.lessonTitle || (Array.isArray(item.relatedLessons) ? item.relatedLessons[0] : '') || '';
-      const scopeMatch = /Lesson (\d+)\b/.exec(String(scope));
-      const lessonNumber = scopeMatch
-        ? Number(scopeMatch[1])
-        : item.blueprintGrounding?.lessonNumber || item.sourceGrounding?.lessonNumber;
-      if (!lessonNumber) continue;
-      const itemText = JSON.stringify(item);
-      for (const ref of itemText.matchAll(/\bthe Week (\d+) (?:quiz|check|exam|paper)/gi)) {
-        if (Number(ref[1]) !== lessonNumber) {
-          failures.push(`${courseName} / ${surface}: lesson ${lessonNumber} references "${ref[0]}"`);
-        }
-      }
-    }
-  }
-  return failures;
+  return findWeekLabelMismatchDescriptors(data, courseName, surface).map((failure) => failure.detail);
 }
 
 async function extractRenderedParts(buffer) {
@@ -318,7 +248,7 @@ describe('output artifact gate extensions (v0.14.1 phase 0.2)', () => {
 
   // V0.14.1 item 1.11 landed (bulkDocxExporter COVER_NOUNS) — active gate.
   it('renders no "N sections" cover meta on lesson-rooted features', async () => {
-    const failures = await scanSurfaces([[/\b\d+ sections\b/, 'neutral "N sections" cover meta']], {
+    const failures = await scanSurfaces(COVER_META_PATTERN_TUPLES, {
       surfaceFilter: (surface) => SHOULD_BE_LESSON_ROOTED.includes(surface),
     });
     expect(failures, failures.join('\n')).toEqual([]);

@@ -158,6 +158,26 @@ describe('3.1 — registry schema (derive)', () => {
     expect(classifyAssessmentKind('Final Exam: comprehensive assessment')).toBe('exam');
   });
 
+  it('v0.14.1 round 2: exam kind requires the exam noun as the operative head (live CS Round-2 atoms)', () => {
+    // The live Round-2 misclassification: a PRACTICE artifact got exam kind,
+    // 5% exam weight, and a full compiled exam paper on the bare \bmidterm\b.
+    expect(classifyAssessmentKind('Practice Set: midterm preparation')).toBe('graded-artifact');
+    expect(classifyAssessmentKind('Midterm Exam: cumulative assessment')).toBe('exam');
+    // Prep/review/readiness/study qualifiers force graded-artifact…
+    expect(classifyAssessmentKind('Midterm prep worksheet')).toBe('graded-artifact');
+    expect(classifyAssessmentKind('Final readiness checklist')).toBe('graded-artifact');
+    expect(classifyAssessmentKind('Midterm study guide')).toBe('graded-artifact');
+    expect(classifyAssessmentKind('Post-Exam Reflection: strengths and gaps')).toBe('graded-artifact');
+    // …and a review session is an in-class activity, not a graded artifact.
+    expect(classifyAssessmentKind('Final Exam Review Session')).toBe('in-class');
+    // Standalone "Midterm"/"Final" is still the exam itself.
+    expect(classifyAssessmentKind('Midterm')).toBe('exam');
+    expect(classifyAssessmentKind('Final (25%)')).toBe('exam');
+    // Another artifact noun as the head keeps its own kind.
+    expect(classifyAssessmentKind('Final Project: integration milestone')).toBe('graded-artifact');
+    expect(classifyAssessmentKind('Final Essay: comparative analysis')).toBe('graded-artifact');
+  });
+
   it('keeps the sum-to-100 invariant with in-class entries at zero weight', () => {
     const total = graph.assessments.reduce((sum, assessment) => sum + (assessment.weightPct || 0), 0);
     expect(total).toBe(100);

@@ -42,7 +42,6 @@ const BLOOM_VERB_RE =
 // Performance" is an oral), and explicit in-class activity words beat the
 // graded-artifact default.
 const ASSESSMENT_KIND_RULES = [
-  ['exam', /\b(midterm|final exam|exam:|comprehensive assessment)\b/i],
   ['oral', /\b(oral|speaking|presentation|performance)\b/i],
   [
     'in-class',
@@ -54,11 +53,32 @@ const ASSESSMENT_KIND_RULES = [
   ],
 ];
 
+// v0.14.1 round 2 (Crucible Round-2, CS Python): the old bare-\bmidterm\b
+// rule classified "Practice Set: midterm preparation" as kind 'exam' — a
+// PRACTICE artifact got 5% exam weight and a full compiled exam paper. Exam
+// kind now requires the exam noun as the OPERATIVE HEAD of the title:
+//  - "midterm exam" / "final exam" / "exam:" / "comprehensive exam|assessment";
+//  - a standalone "midterm"/"final" still counts (the word itself is the
+//    artifact) UNLESS a prep/review qualifier follows it — those force
+//    graded-artifact ("in-class" when it is a review session) — or another
+//    artifact noun is the head ("Final Project", "Final Oral Performance").
+const EXAM_PREP_QUALIFIER_RE =
+  /\b(?:midterm|final)s?(?:\s+exam)?\s+(?:preparation|prep|review|readiness|practice|study|checklist|reflection)\b/i;
+const EXAM_HEAD_RE = /\b(?:midterm|final)\s+exam\b|\bexam\s*:|^\s*exam\b|\bcomprehensive\s+(?:exam|assessment)\b/i;
+const BARE_MIDTERM_FINAL_RE = /\b(?:midterm|final)s?\b/i;
+
 export function classifyAssessmentKind(title) {
   const text = String(title || '');
+  if (EXAM_PREP_QUALIFIER_RE.test(text)) {
+    return /\breview\s+session\b/i.test(text) ? 'in-class' : 'graded-artifact';
+  }
+  if (EXAM_HEAD_RE.test(text)) return 'exam';
+  const bareMidtermOrFinal = BARE_MIDTERM_FINAL_RE.test(text);
   for (const [kind, pattern] of ASSESSMENT_KIND_RULES) {
     if (pattern.test(text)) return kind;
   }
+  // "Midterm" / "Final" with no other artifact noun: the word IS the exam.
+  if (bareMidtermOrFinal) return 'exam';
   // Unrecognized artifacts default to graded: a named deliverable with no
   // activity keyword deserves a brief, and the reconciliation gate then
   // resolves it by construction.

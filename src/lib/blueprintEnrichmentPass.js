@@ -83,6 +83,97 @@ function cleanText(value, fallback = '') {
     .trim();
 }
 
+// ── v0.14.1 round-2 (fix 4): romanization for language courses ──────────────
+// The live Mandarin study guides shipped hanzi key terms with no tone-marked
+// pinyin. The compiler cannot invent romanization deterministically, but the
+// kernel prompt CAN ask for it: language courses get an extra keyTerm field
+// `rm` (optional everywhere else; lint stays tolerant when absent).
+
+// CJK (hanzi/kana/hangul) plus the other major non-Latin scripts a world-
+// language course is likely to teach in (Cyrillic, Hebrew, Arabic,
+// Devanagari, Thai).
+const NON_LATIN_SCRIPT_RE =
+  /[\u0400-\u04ff\u0590-\u05ff\u0600-\u06ff\u0904-\u097f\u0e00-\u0e7f\u3040-\u30ff\u3400-\u4dbf\u4e00-\u9fff\uac00-\ud7af]/;
+
+const LANGUAGE_COURSE_NAME_RE =
+  /\bmandarin|\bchinese|\bjapanese|\bkorean|\bcantonese|\barabic|\bhebrew|\brussian|\bhindi|\bthai|\bvietnamese|world language|foreign language/i;
+
+/**
+ * True when the course teaches in (or about) a non-Latin script — the gate
+ * for the romanization prompt instruction. Reads the course name plus the
+ * leading lesson titles, so "Elementary Mandarin Chinese I" and a course
+ * whose titles carry hanzi both qualify.
+ */
+export function courseUsesNonLatinScript(courseMap) {
+  const text = [courseMap?.courseName, ...(courseMap?.lessons || []).slice(0, 8).map((lesson) => lesson?.title)]
+    .filter(Boolean)
+    .join(' ');
+  return NON_LATIN_SCRIPT_RE.test(text) || LANGUAGE_COURSE_NAME_RE.test(text);
+}
+
+const ROMANIZATION_PROMPT_LINE =
+  'Language-course key terms: every keyTerm whose tr contains non-Latin script (hanzi, kana, hangul, etc.) MUST include rm = its learner-facing romanization with tone or vowel marks (e.g. pinyin "nǐ hǎo") — a non-Latin term without rm is incomplete and will be rejected. Omit rm for Latin-script terms.';
+
+/**
+ * Sanitize a model-supplied romanization: plausible romanizations are short
+ * Latin-script strings. Anything carrying the original script or absurd
+ * length is dropped (the TERM is kept — a bad rm never costs the atom).
+ */
+function sanitizeRomanization(value) {
+  const text = cleanText(value);
+  if (!text || text.length > 80 || NON_LATIN_SCRIPT_RE.test(text)) return '';
+  return text;
+}
+
+/**
+ * Round-3 polish (romanization recovery): the terms in a parsed lesson
+ * payload that still need romanization — non-Latin script with no usable
+ * (sanitizeRomanization-non-empty) rm. Empty for Latin-script lessons, so
+ * non-language courses never enter the recovery path.
+ */
+export function listLessonRomanizationGaps(payload) {
+  const terms = Array.isArray(payload?.keyTerms) ? payload.keyTerms : [];
+  return terms
+    .filter((term) => NON_LATIN_SCRIPT_RE.test(cleanText(term?.term)) && !sanitizeRomanization(term?.romanization))
+    .map((term) => cleanText(term.term))
+    .filter(Boolean);
+}
+
+/**
+ * Round-3 polish: merge a romanization-recovery retry into the lesson payload
+ * the chunk loop already accepted. The ORIGINAL lesson wins everywhere — the
+ * retry only contributes rm values for terms matched by term string, plus
+ * whole new terms when the original parsed thin (< 3 keyTerms). A recovery
+ * call can therefore never lose content that already passed the lints.
+ */
+export function mergeRomanizationRecovery(original, retry) {
+  if (!original) return retry || null;
+  const retryTerms = Array.isArray(retry?.keyTerms) ? retry.keyTerms : [];
+  if (retryTerms.length === 0) return original;
+  const retryRomanizations = new Map();
+  for (const term of retryTerms) {
+    const key = cleanText(term?.term).toLowerCase();
+    const romanization = sanitizeRomanization(term?.romanization);
+    if (key && romanization && !retryRomanizations.has(key)) retryRomanizations.set(key, romanization);
+  }
+  const originalTerms = Array.isArray(original.keyTerms) ? original.keyTerms : [];
+  const keyTerms = originalTerms.map((term) => {
+    if (sanitizeRomanization(term?.romanization)) return term;
+    const recovered = retryRomanizations.get(cleanText(term?.term).toLowerCase());
+    return recovered ? { ...term, romanization: recovered } : term;
+  });
+  if (originalTerms.length < 3) {
+    const known = new Set(keyTerms.map((term) => cleanText(term?.term).toLowerCase()));
+    for (const term of retryTerms) {
+      const key = cleanText(term?.term).toLowerCase();
+      if (!key || known.has(key)) continue;
+      known.add(key);
+      keyTerms.push(term);
+    }
+  }
+  return { ...original, keyTerms };
+}
+
 function truncateText(value, limit = MAX_TEXT_CHARS) {
   const text = cleanText(value);
   if (text.length <= limit) return text;
@@ -720,6 +811,8 @@ export function buildLessonContentEnrichmentPrompt(courseMap, lessonIndices, opt
     `Write assessment content for ${lessons.length} lesson(s). For each lesson produce exactly ${itemPlan.length} quizItems following this plan:`,
     JSON.stringify(itemPlan),
     `…and ${keyTermsPerLesson} keyTerms drawn from the lesson topics/objectives, plus 3 slideContent entries, one discussionPrompt, and one assignmentCore per lesson.`,
+    // v0.14.1 round-2 (fix 4): same romanization contract as the kernel path.
+    ...(courseUsesNonLatinScript(courseMap) ? [ROMANIZATION_PROMPT_LINE] : []),
     'Question difficulty and cognitive level must match the plan. Use the objectives verbatim as the knowledge targets.',
     'Use the abbreviated JSON keys exactly as shown: q=question, op=options, ai=answerIndex, dr=distractorRationales, an=answer, ex=explanation, sg=scoringGuidance, tr=term, df=definition, eg=example, mi=misconception, ti=title, bu=bullets, no=notes, pr=prompt, tn=tension, po=positions, td=taskDescription, pa=parameters.',
     'Return JSON matching this shape:',
@@ -776,7 +869,14 @@ export function lintEnrichedKeyTerm(term, { lessonTitle = '' } = {}) {
   const issues = [];
   const name = cleanText(term?.term);
   const definition = cleanText(term?.definition);
-  if (name.length < 3) issues.push('term-missing');
+  // v0.14.1 round-2 (fix 4): `rm` (romanization) is an OPTIONAL field —
+  // requested only for language courses, fine when absent everywhere. It is
+  // sanitized at parse time (sanitizeRomanization) rather than linted, so a
+  // malformed rm never costs the whole term.
+  // Script-aware minimum: 你好 / 谢谢 / 水 are complete terms at 1-2 chars, so
+  // non-Latin-script terms pass at 1+; the 3-char floor stays for Latin script.
+  const minTermLength = NON_LATIN_SCRIPT_RE.test(name) ? 1 : 3;
+  if (name.length < minTermLength) issues.push('term-missing');
   if (definition.length < 40) issues.push('definition-too-short');
   if (META_SURFACE_RE.test(definition) || META_SURFACE_RE.test(cleanText(term?.example)))
     issues.push('meta-definition');
@@ -860,11 +960,15 @@ export function parseLessonContentEnrichmentResponse(text, { prompt } = {}) {
         issues.push({ lessonId, surface: 'keyTerms', index, problems });
         return;
       }
+      const romanization = sanitizeRomanization(term.rm || term.romanization);
       keyTerms.push({
         term: cleanText(term.term),
         definition: cleanText(term.definition),
         example: cleanText(term.example),
         misconception: cleanText(term.misconception),
+        // v0.14.1 round-2 (fix 4): optional romanization rides along so the
+        // study guide renders "你好 (nǐ hǎo)".
+        ...(romanization ? { romanization } : {}),
       });
     });
     const slideContent = [];
@@ -1015,6 +1119,9 @@ export function buildLessonKernelPrompt(courseMap, lessonIndices, options = {}) 
       .map((slot) => `${slot.bloom} (${slot.note})`)
       .join('; ')}.`,
     KERNEL_KEY_LEGEND,
+    // v0.14.1 round-2 (fix 4): language courses pair every non-Latin term
+    // with its romanization (rm) so study guides can render "你好 (nǐ hǎo)".
+    ...(courseUsesNonLatinScript(courseMap) ? [ROMANIZATION_PROMPT_LINE] : []),
     'Return JSON matching this shape:',
     JSON.stringify({
       ...buildKernelSchema(),
@@ -1027,10 +1134,28 @@ export function buildLessonKernelPrompt(courseMap, lessonIndices, options = {}) 
     .filter(Boolean)
     .join('\n');
 
+  // Round-3 polish: the romanization-recovery retry names the exact terms
+  // that came back without rm, per lesson — a focused ask converts far more
+  // reliably than re-sending the generic instruction ("Return the same
+  // lesson with rm added for: 请坐, 再说一遍").
+  const romanizationFocus =
+    options.romanizationFocus && typeof options.romanizationFocus === 'object' ? options.romanizationFocus : null;
+  const romanizationFocusLines = romanizationFocus
+    ? Object.entries(romanizationFocus)
+        .filter(([, terms]) => Array.isArray(terms) && terms.length > 0)
+        .map(
+          ([lessonId, terms]) =>
+            `- ${lessonId}: return the same lesson with rm (tone-marked romanization) added for: ${terms.join(', ')}`,
+        )
+    : [];
+
   const userPrompt = [
     `Course: ${truncateText(courseMap?.courseName || 'Untitled Course', 120)}`,
     'Lessons:',
     JSON.stringify(lessons),
+    ...(romanizationFocusLines.length > 0
+      ? ['Romanization recovery — these lessons returned non-Latin keyTerms without rm:', ...romanizationFocusLines]
+      : []),
     // OpenAI's json_object response format requires the word "JSON" in an
     // INPUT message — the system prompt maps to `instructions`, which the
     // guard does not scan. Without this line every kernel call 400s
@@ -1160,6 +1285,7 @@ export function parseLessonKernelResponse(text, { prompt, expectedLessonIds } = 
       const problems = lintEnrichedKeyTerm(term, { lessonTitle: promptLesson?.title || '' });
       if (problems.length > 0) issues.push({ lessonId, surface: 'keyTerms', index, problems });
       else {
+        const romanization = sanitizeRomanization(term.rm || term.romanization);
         keyTerms.push({
           term: cleanText(term.term),
           definition: cleanText(term.definition),
@@ -1168,6 +1294,9 @@ export function parseLessonKernelResponse(text, { prompt, expectedLessonIds } = 
           // v0.13.3: the corrective statement — the payoff line that counters
           // the misconception (never a restated definition).
           correction: cleanText(term.correction),
+          // v0.14.1 round-2 (fix 4): optional romanization for language
+          // courses ("你好" → "nǐ hǎo").
+          ...(romanization ? { romanization } : {}),
         });
       }
     });

@@ -3,6 +3,33 @@ import Header from '../components/Header';
 
 const releases = [
   {
+    version: '0.14.2',
+    date: 'June 11, 2026',
+    title: 'The Crucible: generate, grade, refine — until A+',
+    highlights: [
+      'The Crucible (npm run crucible): a built-in generate→grade→refine harness — Playwright drives the real app end to end (upload, generate, finalize, download), captures the full console story, and grades every package with the four-course-audit rulebook codified: seven weighted dimensions (identity, substance, citations, honesty, consistency, discipline probes, format), evidence-quoting P0/P1/P2 findings, per-round Markdown reports with baseline deltas, ~$0.10 and ~3 minutes per course',
+      'Four live refinement rounds took the reference courses (Mandarin, CS Python, Physical Geology, World Literature) from 51–59 (F) graded on v0.14.0 output to 100/100/100/100 with zero P0 and zero P1 findings — the loop caught and fixed eleven live-only defects across the rounds, each with a regression test',
+      'The exam pipeline survives production: the finish-pass repair was silently retitling compiled midterms to "Lesson 1" headings (fixed: exams keep their own lesson identity and skip single-week alignment), and a stale-snapshot lesson regen could replace a 17-entry quiz bank with one regenerated lesson (fixed: snapshot threading, exam-preserving merge, unrenderable-stub rejection) — Geology and CS midterms/finals now ship as real exam papers with distributed answer keys and "Covers Lessons 1–7" scopes',
+      'Review weeks teach again: a review/exam lesson’s weekly quiz now draws its items from the prior lessons’ verified kernels instead of topic-name process frames, deduplicated against both those lessons’ own quizzes and the compiled exam',
+      'Citation relevance is now classification-checked, not just word-matched: OpenAlex topic fields/domains must match the course discipline (a cardiovascular review can no longer attach to a literature course via one shared token), with the token gate hardened against generic-word overlap as fallback',
+      'Language courses pair script with sound end to end: CJK-aware term lint (你好 is a valid 2-character term), a romanization contract in the kernel prompt, and a recovery retry that re-asks for missing pinyin within the existing 2-call budget — study-guide key terms render "爸爸 (bàba)" style; coverage rose from 0 to 12/15 guides across the rounds',
+      'Prose polish from the rounds: study guides stop chanting the lesson title (keep-2-then-compress, same mechanism as speaker notes), practice labels no longer echo their topic ("Lists: Lists"), prerequisite primers drop redundant term labels, and "midterm preparation" artifacts are no longer classified as exams',
+    ],
+    sections: [
+      {
+        label: 'Proof',
+        icon: 'QA',
+        color: 'emerald',
+        items: [
+          'Round trajectory on live production output, identical course prompts and model: baseline (v0.14.0 packages) 51/54/56/59 → Round 1: 90–92 A with zero P0 → Round 4: 100/100/100/100 with zero P0 and zero P1. Total refinement spend: ~$1.70 across four rounds.',
+          'The grader is itself proof-tested: tests/crucible-grader-proof.test.js builds a real package through the actual exporters, seeds eight deliberate defect classes (decapitated exam, off-topic citation, JSON-in-cell, week-label drift, CJK-less language course…), and asserts each fires with verbatim evidence — while a healthy package scores 100 with zero findings.',
+          'Every live-only bug fixed this release carries a regression test at the layer that failed: the stale-snapshot regen merge (src/lib/lessonRegenMerge.js), the exam-retitling repair pass, review-week quiz sourcing, answer-key distribution, the kind classifier, and the romanization recovery loop. Full suite: 2,821 passing.',
+          'The Crucible runs offline too: --skip-generate regrades any prior round’s artifacts after grader changes, and --import-baseline turns manually downloaded packages into a graded baseline — the v0.14.0 audit corpus is the permanent floor.',
+        ],
+      },
+    ],
+  },
+  {
     version: '0.14.1',
     date: 'June 11, 2026',
     title: 'Output Integrity: every promise kept, every gate honest',

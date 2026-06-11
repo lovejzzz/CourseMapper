@@ -216,6 +216,25 @@ function reducer(state, action) {
         },
       };
     }
+    // v0.14.1 round 2: end a lesson-regen WITHOUT replacing data — used when a
+    // regen result is rejected (the store's data is authoritative; the hook's
+    // closure snapshot may be stale or null).
+    case 'CLEAR_LESSON_REGENERATING': {
+      const cur = state.deliverables[action.featureId];
+      if (!cur) return state;
+      return {
+        ...state,
+        deliverables: {
+          ...state.deliverables,
+          [action.featureId]: {
+            ...cur,
+            status: cur.data ? 'done' : cur.status,
+            regeneratingIndex: null,
+            // data is intentionally NOT changed
+          },
+        },
+      };
+    }
     default:
       return state;
   }

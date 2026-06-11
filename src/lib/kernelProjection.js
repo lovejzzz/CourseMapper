@@ -410,6 +410,10 @@ export function projectKernelToSurfaces(kernel, { itemPlan = [] } = {}) {
       // guides pair each misconception with a real correction, not the
       // definition restated.
       correction: cleanText(term.correction),
+      // v0.14.1 round-2 (fix 4): optional romanization (language courses)
+      // survives projection so study guides and slides can render
+      // "term (romanization)".
+      ...(cleanText(term.romanization) ? { romanization: cleanText(term.romanization) } : {}),
     })),
     ...(slideContent.length > 0 ? { slideContent } : {}),
     ...(discussionPrompt ? { discussionPrompt } : {}),

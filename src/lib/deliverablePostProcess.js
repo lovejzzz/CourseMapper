@@ -2480,6 +2480,14 @@ export function normalizeAssignmentAssessmentAlignment(data, courseMap) {
 
 function inferQuizLessonIndex(quiz, courseMap, quizIndex, quizCount) {
   const lessons = Array.isArray(courseMap?.lessons) ? courseMap.lessons : [];
+  // v0.14.1 round 2 (bug 1): registry-mode entries carry their own integer
+  // lessonNumber — trust it before any text sniffing. The live geology
+  // midterm's tags listed its covered lessons ("Lesson 1: Introduction…"),
+  // so the haystack probe below re-homed the exam to lesson 1.
+  const ownLessonNumber = Number(quiz?.lessonNumber ?? quiz?.ln);
+  if (Number.isInteger(ownLessonNumber) && ownLessonNumber >= 1 && ownLessonNumber <= lessons.length) {
+    return ownLessonNumber - 1;
+  }
   const haystack = [
     quiz?.lessonTitle,
     quiz?.lt,
@@ -2521,6 +2529,14 @@ export function normalizeQuizAssessmentAlignment(data, courseMap) {
   let patchedObjectiveAlignment = 0;
   let changed = false;
   const nextQuizzes = quizzes.map((quiz, quizIndex) => {
+    // v0.14.1 round 2 (bug 1): registry exam entries keep their own identity.
+    // This very normalizer retitled the live geology midterm/final and both
+    // cs-python exams to "Lesson 1: …" (their covered-lesson tags fooled
+    // inferQuizLessonIndex), decapitating the exam inside the exported docx —
+    // PACKAGE_MANIFEST promised an exam the document never named. An exam
+    // spans a RANGE of lessons, so single-week title/objective alignment
+    // never applies to it.
+    if (quiz?.kind === 'exam') return quiz;
     const lessonIndex = inferQuizLessonIndex(quiz, courseMap, quizIndex, quizzes.length);
     const anchor = lessonIndex === null ? null : anchors[lessonIndex];
     if (!anchor) return quiz;
