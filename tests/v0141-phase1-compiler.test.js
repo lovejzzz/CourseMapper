@@ -166,10 +166,7 @@ function makeLoopLesson(lessonNumber) {
     lessonNumber,
     title: `Lesson ${lessonNumber}: Loops in Python`,
     keyConcepts: ['while loops', 'for loops'],
-    outcomes: [
-      'Use for loops to iterate over a list of items',
-      'Trace while loop execution until the condition fails',
-    ],
+    outcomes: ['Use for loops to iterate over a list of items', 'Trace while loop execution until the condition fails'],
     studentArtifact: 'Loop practice worksheet',
     successCriteria: ['Worksheet shows correct loop traces with the stopping condition named'],
     prerequisitePlan: {

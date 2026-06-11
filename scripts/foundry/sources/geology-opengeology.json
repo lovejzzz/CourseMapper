@@ -25,18 +25,8 @@
       "id": "geo/minerals",
       "rev": 1,
       "term": "Minerals and identification",
-      "aliases": [
-        "mineral identification",
-        "Mohs hardness",
-        "streak and luster",
-        "cleavage"
-      ],
-      "tags": [
-        "geology",
-        "minerals",
-        "physical properties",
-        "identification"
-      ],
+      "aliases": ["mineral identification", "Mohs hardness", "streak and luster", "cleavage"],
+      "tags": ["geology", "minerals", "physical properties", "identification"],
       "level": "intro",
       "difficulty": 2,
       "bloomCeiling": "Analyze",
@@ -108,38 +98,21 @@
       "mcBank": [
         {
           "stem": "Which property is the most reliable for identifying a mineral whose surface color varies?",
-          "options": [
-            "Streak",
-            "Specimen color",
-            "Size",
-            "Weight"
-          ],
+          "options": ["Streak", "Specimen color", "Size", "Weight"],
           "answerIndex": 0,
           "explanationFactRef": 1,
-          "rationaleRefs": [
-            1
-          ]
+          "rationaleRefs": [1]
         },
         {
           "stem": "On the Mohs scale, which mineral has the greatest hardness?",
-          "options": [
-            "Diamond",
-            "Corundum",
-            "Quartz",
-            "Talc"
-          ],
+          "options": ["Diamond", "Corundum", "Quartz", "Talc"],
           "answerIndex": 0,
           "explanationFactRef": 0,
           "rationaleRefs": []
         },
         {
           "stem": "A mineral that breaks repeatedly along smooth flat planes is showing",
-          "options": [
-            "cleavage",
-            "streak",
-            "luster",
-            "fracture"
-          ],
+          "options": ["cleavage", "streak", "luster", "fracture"],
           "answerIndex": 0,
           "explanationFactRef": 2,
           "rationaleRefs": []
@@ -154,16 +127,12 @@
           ],
           "answerIndex": 0,
           "explanationFactRef": 0,
-          "rationaleRefs": [
-            0
-          ]
+          "rationaleRefs": [0]
         }
       ],
       "edges": {
         "requires": [],
-        "recommends": [
-          "geo/silicate-structures"
-        ]
+        "recommends": ["geo/silicate-structures"]
       },
       "attribution": [
         "An Introduction to Geology (opengeology.org), §3.1 What is a mineral; §3.5 Identifying minerals"
@@ -174,18 +143,8 @@
       "id": "geo/silicate-structures",
       "rev": 1,
       "term": "Silicate structures",
-      "aliases": [
-        "silicate minerals",
-        "silica tetrahedron",
-        "silicon-oxygen tetrahedron",
-        "rock-forming minerals"
-      ],
-      "tags": [
-        "geology",
-        "minerals",
-        "silicates",
-        "crystal structure"
-      ],
+      "aliases": ["silicate minerals", "silica tetrahedron", "silicon-oxygen tetrahedron", "rock-forming minerals"],
+      "tags": ["geology", "minerals", "silicates", "crystal structure"],
       "level": "intro",
       "difficulty": 3,
       "bloomCeiling": "Analyze",
@@ -243,17 +202,10 @@
       "mcBank": [
         {
           "stem": "How many oxygen atoms surround the central silicon in a silica tetrahedron?",
-          "options": [
-            "Four",
-            "Two",
-            "Six",
-            "Eight"
-          ],
+          "options": ["Four", "Two", "Six", "Eight"],
           "answerIndex": 0,
           "explanationFactRef": 0,
-          "rationaleRefs": [
-            0
-          ]
+          "rationaleRefs": [0]
         },
         {
           "stem": "Silicate minerals are described as the most abundant rock-forming minerals because they",
@@ -269,59 +221,32 @@
         },
         {
           "stem": "Silica tetrahedra link to one another by sharing",
-          "options": [
-            "corner oxygen atoms",
-            "silicon atoms",
-            "electrons only",
-            "water molecules"
-          ],
+          "options": ["corner oxygen atoms", "silicon atoms", "electrons only", "water molecules"],
           "answerIndex": 0,
           "explanationFactRef": 1,
           "rationaleRefs": []
         },
         {
           "stem": "Which arrangement of tetrahedra is NOT a silicate structure described here?",
-          "options": [
-            "Random scatter with no bonds",
-            "Single chains",
-            "Sheets",
-            "Three-dimensional frameworks"
-          ],
+          "options": ["Random scatter with no bonds", "Single chains", "Sheets", "Three-dimensional frameworks"],
           "answerIndex": 0,
           "explanationFactRef": 1,
           "rationaleRefs": []
         }
       ],
       "edges": {
-        "requires": [
-          "geo/minerals"
-        ],
-        "recommends": [
-          "geo/igneous-rocks"
-        ]
+        "requires": ["geo/minerals"],
+        "recommends": ["geo/igneous-rocks"]
       },
-      "attribution": [
-        "An Introduction to Geology (opengeology.org), §3.1 Silicate minerals"
-      ],
+      "attribution": ["An Introduction to Geology (opengeology.org), §3.1 Silicate minerals"],
       "license": "CC-BY-NC-SA-4.0"
     },
     {
       "id": "geo/igneous-rocks",
       "rev": 1,
       "term": "Igneous rocks and magma",
-      "aliases": [
-        "igneous rock",
-        "intrusive and extrusive",
-        "magma cooling",
-        "crystal size",
-        "plutonic and volcanic"
-      ],
-      "tags": [
-        "geology",
-        "igneous",
-        "magma",
-        "rocks"
-      ],
+      "aliases": ["igneous rock", "intrusive and extrusive", "magma cooling", "crystal size", "plutonic and volcanic"],
+      "tags": ["geology", "igneous", "magma", "rocks"],
       "level": "intro",
       "difficulty": 2,
       "bloomCeiling": "Analyze",
@@ -392,79 +317,43 @@
           ],
           "answerIndex": 0,
           "explanationFactRef": 1,
-          "rationaleRefs": [
-            0
-          ]
+          "rationaleRefs": [0]
         },
         {
           "stem": "Igneous rock forms by the cooling and crystallization of",
-          "options": [
-            "magma or lava",
-            "weathered sediment",
-            "compressed mud",
-            "metamorphosed shale"
-          ],
+          "options": ["magma or lava", "weathered sediment", "compressed mud", "metamorphosed shale"],
           "answerIndex": 0,
           "explanationFactRef": 0,
           "rationaleRefs": []
         },
         {
           "stem": "An extrusive (volcanic) igneous rock is characterized by",
-          "options": [
-            "a fine-grained texture",
-            "very large crystals",
-            "fossil layers",
-            "foliated bands"
-          ],
+          "options": ["a fine-grained texture", "very large crystals", "fossil layers", "foliated bands"],
           "answerIndex": 0,
           "explanationFactRef": 2,
           "rationaleRefs": []
         },
         {
           "stem": "What is molten rock called once it has erupted onto Earth's surface?",
-          "options": [
-            "Lava",
-            "Magma",
-            "Protolith",
-            "Sediment"
-          ],
+          "options": ["Lava", "Magma", "Protolith", "Sediment"],
           "answerIndex": 0,
           "explanationFactRef": 0,
-          "rationaleRefs": [
-            1
-          ]
+          "rationaleRefs": [1]
         }
       ],
       "edges": {
-        "requires": [
-          "geo/minerals"
-        ],
-        "recommends": [
-          "geo/volcanism"
-        ]
+        "requires": ["geo/minerals"],
+        "recommends": ["geo/volcanism"]
       },
-      "attribution": [
-        "An Introduction to Geology (opengeology.org), §4.1 Magma generation and igneous textures"
-      ],
+      "attribution": ["An Introduction to Geology (opengeology.org), §4.1 Magma generation and igneous textures"],
       "license": "CC-BY-NC-SA-4.0"
     },
     {
       "id": "geo/volcanism",
       "rev": 1,
       "term": "Volcanism and volcanic hazards",
-      "aliases": [
-        "volcanoes",
-        "magma viscosity",
-        "eruptive style",
-        "pyroclastic flow",
-        "volcanic hazards"
-      ],
-      "tags": [
-        "geology",
-        "volcanism",
-        "hazards",
-        "magma viscosity"
-      ],
+      "aliases": ["volcanoes", "magma viscosity", "eruptive style", "pyroclastic flow", "volcanic hazards"],
+      "tags": ["geology", "volcanism", "hazards", "magma viscosity"],
       "level": "intro",
       "difficulty": 3,
       "bloomCeiling": "Evaluate",
@@ -535,18 +424,11 @@
           ],
           "answerIndex": 0,
           "explanationFactRef": 2,
-          "rationaleRefs": [
-            0
-          ]
+          "rationaleRefs": [0]
         },
         {
           "stem": "As the silica content of magma increases, its viscosity",
-          "options": [
-            "increases",
-            "decreases",
-            "stays constant",
-            "becomes zero"
-          ],
+          "options": ["increases", "decreases", "stays constant", "becomes zero"],
           "answerIndex": 0,
           "explanationFactRef": 1,
           "rationaleRefs": []
@@ -561,50 +443,29 @@
           ],
           "answerIndex": 0,
           "explanationFactRef": 0,
-          "rationaleRefs": [
-            0
-          ]
+          "rationaleRefs": [0]
         },
         {
           "stem": "A fast-moving cloud of hot ash and gas racing down a volcano's flank is a",
-          "options": [
-            "pyroclastic flow",
-            "lava lake",
-            "geyser",
-            "mudslide of clay"
-          ],
+          "options": ["pyroclastic flow", "lava lake", "geyser", "mudslide of clay"],
           "answerIndex": 0,
           "explanationFactRef": 2,
           "rationaleRefs": []
         }
       ],
       "edges": {
-        "requires": [
-          "geo/igneous-rocks"
-        ],
+        "requires": ["geo/igneous-rocks"],
         "recommends": []
       },
-      "attribution": [
-        "An Introduction to Geology (opengeology.org), §4.4 Volcanic eruptions and hazards"
-      ],
+      "attribution": ["An Introduction to Geology (opengeology.org), §4.4 Volcanic eruptions and hazards"],
       "license": "CC-BY-NC-SA-4.0"
     },
     {
       "id": "geo/weathering-erosion",
       "rev": 1,
       "term": "Weathering and erosion",
-      "aliases": [
-        "weathering",
-        "erosion",
-        "mechanical weathering",
-        "chemical weathering"
-      ],
-      "tags": [
-        "geology",
-        "weathering",
-        "erosion",
-        "surface processes"
-      ],
+      "aliases": ["weathering", "erosion", "mechanical weathering", "chemical weathering"],
+      "tags": ["geology", "weathering", "erosion", "surface processes"],
       "level": "intro",
       "difficulty": 2,
       "bloomCeiling": "Analyze",
@@ -675,23 +536,14 @@
           ],
           "answerIndex": 0,
           "explanationFactRef": 0,
-          "rationaleRefs": [
-            0
-          ]
+          "rationaleRefs": [0]
         },
         {
           "stem": "Which process changes minerals into new substances rather than just smaller pieces?",
-          "options": [
-            "Chemical weathering",
-            "Mechanical weathering",
-            "Erosion",
-            "Deposition"
-          ],
+          "options": ["Chemical weathering", "Mechanical weathering", "Erosion", "Deposition"],
           "answerIndex": 0,
           "explanationFactRef": 2,
-          "rationaleRefs": [
-            1
-          ]
+          "rationaleRefs": [1]
         },
         {
           "stem": "Erosion is typically driven by",
@@ -707,12 +559,7 @@
         },
         {
           "stem": "A cliff cracked into fragments by repeated freezing of water is an example of",
-          "options": [
-            "mechanical weathering",
-            "chemical weathering",
-            "lithification",
-            "metamorphism"
-          ],
+          "options": ["mechanical weathering", "chemical weathering", "lithification", "metamorphism"],
           "answerIndex": 0,
           "explanationFactRef": 1,
           "rationaleRefs": []
@@ -720,32 +567,17 @@
       ],
       "edges": {
         "requires": [],
-        "recommends": [
-          "geo/sedimentary-rocks"
-        ]
+        "recommends": ["geo/sedimentary-rocks"]
       },
-      "attribution": [
-        "An Introduction to Geology (opengeology.org), §5.1 Weathering and erosion"
-      ],
+      "attribution": ["An Introduction to Geology (opengeology.org), §5.1 Weathering and erosion"],
       "license": "CC-BY-NC-SA-4.0"
     },
     {
       "id": "geo/sedimentary-rocks",
       "rev": 1,
       "term": "Sedimentary rocks and environments",
-      "aliases": [
-        "sedimentary rock",
-        "lithification",
-        "clastic rocks",
-        "deposition",
-        "depositional environment"
-      ],
-      "tags": [
-        "geology",
-        "sedimentary",
-        "lithification",
-        "stratigraphy"
-      ],
+      "aliases": ["sedimentary rock", "lithification", "clastic rocks", "deposition", "depositional environment"],
+      "tags": ["geology", "sedimentary", "lithification", "stratigraphy"],
       "level": "intro",
       "difficulty": 2,
       "bloomCeiling": "Analyze",
@@ -817,17 +649,10 @@
       "mcBank": [
         {
           "stem": "The combined processes of compaction and cementation that turn sediment into rock are called",
-          "options": [
-            "lithification",
-            "crystallization",
-            "metamorphism",
-            "erosion"
-          ],
+          "options": ["lithification", "crystallization", "metamorphism", "erosion"],
           "answerIndex": 0,
           "explanationFactRef": 1,
-          "rationaleRefs": [
-            0
-          ]
+          "rationaleRefs": [0]
         },
         {
           "stem": "Clastic sedimentary rocks are composed of",
@@ -851,9 +676,7 @@
           ],
           "answerIndex": 0,
           "explanationFactRef": 3,
-          "rationaleRefs": [
-            1
-          ]
+          "rationaleRefs": [1]
         },
         {
           "stem": "What happens first in forming a clastic sedimentary rock?",
@@ -865,41 +688,22 @@
           ],
           "answerIndex": 0,
           "explanationFactRef": 0,
-          "rationaleRefs": [
-            0
-          ]
+          "rationaleRefs": [0]
         }
       ],
       "edges": {
-        "requires": [
-          "geo/weathering-erosion"
-        ],
-        "recommends": [
-          "geo/geologic-time"
-        ]
+        "requires": ["geo/weathering-erosion"],
+        "recommends": ["geo/geologic-time"]
       },
-      "attribution": [
-        "An Introduction to Geology (opengeology.org), §5.3 Sedimentary rocks"
-      ],
+      "attribution": ["An Introduction to Geology (opengeology.org), §5.3 Sedimentary rocks"],
       "license": "CC-BY-NC-SA-4.0"
     },
     {
       "id": "geo/metamorphic-rocks",
       "rev": 1,
       "term": "Metamorphic rocks and protoliths",
-      "aliases": [
-        "metamorphic rock",
-        "protolith",
-        "parent rock",
-        "foliation",
-        "metamorphism"
-      ],
-      "tags": [
-        "geology",
-        "metamorphic",
-        "protolith",
-        "foliation"
-      ],
+      "aliases": ["metamorphic rock", "protolith", "parent rock", "foliation", "metamorphism"],
+      "tags": ["geology", "metamorphic", "protolith", "foliation"],
       "level": "intro",
       "difficulty": 3,
       "bloomCeiling": "Analyze",
@@ -970,30 +774,18 @@
           ],
           "answerIndex": 0,
           "explanationFactRef": 0,
-          "rationaleRefs": [
-            0
-          ]
+          "rationaleRefs": [0]
         },
         {
           "stem": "The original rock that undergoes metamorphism is called the",
-          "options": [
-            "protolith",
-            "lava",
-            "clast",
-            "cement"
-          ],
+          "options": ["protolith", "lava", "clast", "cement"],
           "answerIndex": 0,
           "explanationFactRef": 1,
           "rationaleRefs": []
         },
         {
           "stem": "The alignment of minerals into planes under directed pressure is called",
-          "options": [
-            "foliation",
-            "cleavage",
-            "lithification",
-            "luster"
-          ],
+          "options": ["foliation", "cleavage", "lithification", "luster"],
           "answerIndex": 0,
           "explanationFactRef": 2,
           "rationaleRefs": []
@@ -1008,41 +800,22 @@
           ],
           "answerIndex": 0,
           "explanationFactRef": 0,
-          "rationaleRefs": [
-            0
-          ]
+          "rationaleRefs": [0]
         }
       ],
       "edges": {
-        "requires": [
-          "geo/sedimentary-rocks",
-          "geo/igneous-rocks"
-        ],
-        "recommends": [
-          "geo/rock-cycle"
-        ]
+        "requires": ["geo/sedimentary-rocks", "geo/igneous-rocks"],
+        "recommends": ["geo/rock-cycle"]
       },
-      "attribution": [
-        "An Introduction to Geology (opengeology.org), §6.1 Metamorphism and metamorphic rocks"
-      ],
+      "attribution": ["An Introduction to Geology (opengeology.org), §6.1 Metamorphism and metamorphic rocks"],
       "license": "CC-BY-NC-SA-4.0"
     },
     {
       "id": "geo/rock-cycle",
       "rev": 1,
       "term": "The rock cycle",
-      "aliases": [
-        "rock cycle",
-        "igneous sedimentary metamorphic",
-        "rock transformation",
-        "three rock types"
-      ],
-      "tags": [
-        "geology",
-        "rock cycle",
-        "rocks",
-        "earth materials"
-      ],
+      "aliases": ["rock cycle", "igneous sedimentary metamorphic", "rock transformation", "three rock types"],
+      "tags": ["geology", "rock cycle", "rocks", "earth materials"],
       "level": "intro",
       "difficulty": 2,
       "bloomCeiling": "Analyze",
@@ -1125,18 +898,11 @@
           ],
           "answerIndex": 0,
           "explanationFactRef": 2,
-          "rationaleRefs": [
-            0
-          ]
+          "rationaleRefs": [0]
         },
         {
           "stem": "Lithified sediment becomes which kind of rock?",
-          "options": [
-            "Sedimentary",
-            "Igneous",
-            "Metamorphic",
-            "Molten"
-          ],
+          "options": ["Sedimentary", "Igneous", "Metamorphic", "Molten"],
           "answerIndex": 0,
           "explanationFactRef": 1,
           "rationaleRefs": []
@@ -1151,41 +917,22 @@
           ],
           "answerIndex": 0,
           "explanationFactRef": 2,
-          "rationaleRefs": [
-            1
-          ]
+          "rationaleRefs": [1]
         }
       ],
       "edges": {
-        "requires": [
-          "geo/igneous-rocks",
-          "geo/sedimentary-rocks",
-          "geo/metamorphic-rocks"
-        ],
+        "requires": ["geo/igneous-rocks", "geo/sedimentary-rocks", "geo/metamorphic-rocks"],
         "recommends": []
       },
-      "attribution": [
-        "An Introduction to Geology (opengeology.org), §4 The rock cycle"
-      ],
+      "attribution": ["An Introduction to Geology (opengeology.org), §4 The rock cycle"],
       "license": "CC-BY-NC-SA-4.0"
     },
     {
       "id": "geo/earths-interior",
       "rev": 1,
       "term": "Earth's interior",
-      "aliases": [
-        "Earth structure",
-        "crust mantle core",
-        "asthenosphere",
-        "lithosphere",
-        "layered interior"
-      ],
-      "tags": [
-        "geology",
-        "earth structure",
-        "interior",
-        "mantle"
-      ],
+      "aliases": ["Earth structure", "crust mantle core", "asthenosphere", "lithosphere", "layered interior"],
+      "tags": ["geology", "earth structure", "interior", "mantle"],
       "level": "intro",
       "difficulty": 2,
       "bloomCeiling": "Understand",
@@ -1248,38 +995,21 @@
       "mcBank": [
         {
           "stem": "What is the state of most of Earth's mantle?",
-          "options": [
-            "Solid rock that flows slowly",
-            "A sea of liquid magma",
-            "Molten metal",
-            "Loose sediment"
-          ],
+          "options": ["Solid rock that flows slowly", "A sea of liquid magma", "Molten metal", "Loose sediment"],
           "answerIndex": 0,
           "explanationFactRef": 2,
-          "rationaleRefs": [
-            0
-          ]
+          "rationaleRefs": [0]
         },
         {
           "stem": "Earth's layers from outside to inside are",
-          "options": [
-            "crust, mantle, core",
-            "core, mantle, crust",
-            "mantle, crust, core",
-            "crust, core, mantle"
-          ],
+          "options": ["crust, mantle, core", "core, mantle, crust", "mantle, crust, core", "crust, core, mantle"],
           "answerIndex": 0,
           "explanationFactRef": 0,
           "rationaleRefs": []
         },
         {
           "stem": "The Earth's core is composed mostly of",
-          "options": [
-            "iron and nickel",
-            "silica and oxygen",
-            "water and ice",
-            "carbon and clay"
-          ],
+          "options": ["iron and nickel", "silica and oxygen", "water and ice", "carbon and clay"],
           "answerIndex": 0,
           "explanationFactRef": 1,
           "rationaleRefs": []
@@ -1299,31 +1029,17 @@
       ],
       "edges": {
         "requires": [],
-        "recommends": [
-          "geo/plate-tectonics"
-        ]
+        "recommends": ["geo/plate-tectonics"]
       },
-      "attribution": [
-        "An Introduction to Geology (opengeology.org), §2.1 Earth's interior"
-      ],
+      "attribution": ["An Introduction to Geology (opengeology.org), §2.1 Earth's interior"],
       "license": "CC-BY-NC-SA-4.0"
     },
     {
       "id": "geo/plate-tectonics",
       "rev": 1,
       "term": "Plate tectonics and boundaries",
-      "aliases": [
-        "plate tectonics",
-        "plate boundaries",
-        "divergent convergent transform",
-        "lithospheric plates"
-      ],
-      "tags": [
-        "geology",
-        "plate tectonics",
-        "boundaries",
-        "lithosphere"
-      ],
+      "aliases": ["plate tectonics", "plate boundaries", "divergent convergent transform", "lithospheric plates"],
+      "tags": ["geology", "plate tectonics", "boundaries", "lithosphere"],
       "level": "intro",
       "difficulty": 2,
       "bloomCeiling": "Analyze",
@@ -1394,79 +1110,43 @@
           ],
           "answerIndex": 0,
           "explanationFactRef": 0,
-          "rationaleRefs": [
-            1
-          ]
+          "rationaleRefs": [1]
         },
         {
           "stem": "The San Andreas Fault, where plates slide horizontally past one another, is a",
-          "options": [
-            "transform boundary",
-            "divergent boundary",
-            "convergent boundary",
-            "subduction zone"
-          ],
+          "options": ["transform boundary", "divergent boundary", "convergent boundary", "subduction zone"],
           "answerIndex": 0,
           "explanationFactRef": 2,
           "rationaleRefs": []
         },
         {
           "stem": "Lithospheric plates move over the",
-          "options": [
-            "solid but ductile asthenosphere",
-            "liquid outer core",
-            "ocean water",
-            "a layer of liquid magma"
-          ],
+          "options": ["solid but ductile asthenosphere", "liquid outer core", "ocean water", "a layer of liquid magma"],
           "answerIndex": 0,
           "explanationFactRef": 0,
-          "rationaleRefs": [
-            0
-          ]
+          "rationaleRefs": [0]
         },
         {
           "stem": "Which boundary type destroys lithosphere as plates collide?",
-          "options": [
-            "Convergent",
-            "Divergent",
-            "Transform",
-            "Constructive"
-          ],
+          "options": ["Convergent", "Divergent", "Transform", "Constructive"],
           "answerIndex": 0,
           "explanationFactRef": 1,
           "rationaleRefs": []
         }
       ],
       "edges": {
-        "requires": [
-          "geo/earths-interior"
-        ],
-        "recommends": [
-          "geo/earthquakes"
-        ]
+        "requires": ["geo/earths-interior"],
+        "recommends": ["geo/earthquakes"]
       },
-      "attribution": [
-        "An Introduction to Geology (opengeology.org), §2.4 Plate boundaries"
-      ],
+      "attribution": ["An Introduction to Geology (opengeology.org), §2.4 Plate boundaries"],
       "license": "CC-BY-NC-SA-4.0"
     },
     {
       "id": "geo/earthquakes",
       "rev": 1,
       "term": "Earthquakes and seismic waves",
-      "aliases": [
-        "earthquake",
-        "seismic waves",
-        "P waves and S waves",
-        "elastic rebound",
-        "body waves"
-      ],
-      "tags": [
-        "geology",
-        "earthquakes",
-        "seismology",
-        "seismic waves"
-      ],
+      "aliases": ["earthquake", "seismic waves", "P waves and S waves", "elastic rebound", "body waves"],
+      "tags": ["geology", "earthquakes", "seismology", "seismic waves"],
       "level": "intro",
       "difficulty": 3,
       "bloomCeiling": "Analyze",
@@ -1537,23 +1217,14 @@
           ],
           "answerIndex": 0,
           "explanationFactRef": 2,
-          "rationaleRefs": [
-            0
-          ]
+          "rationaleRefs": [0]
         },
         {
           "stem": "The theory that explains how stored energy is released in an earthquake is",
-          "options": [
-            "elastic rebound",
-            "the rock cycle",
-            "lithification",
-            "convection"
-          ],
+          "options": ["elastic rebound", "the rock cycle", "lithification", "convection"],
           "answerIndex": 0,
           "explanationFactRef": 0,
-          "rationaleRefs": [
-            1
-          ]
+          "rationaleRefs": [1]
         },
         {
           "stem": "P waves move through rock by",
@@ -1569,49 +1240,25 @@
         },
         {
           "stem": "The fact that S waves cannot pass through Earth's outer core tells geologists the outer core is",
-          "options": [
-            "liquid",
-            "solid",
-            "empty",
-            "made of gas"
-          ],
+          "options": ["liquid", "solid", "empty", "made of gas"],
           "answerIndex": 0,
           "explanationFactRef": 2,
-          "rationaleRefs": [
-            0
-          ]
+          "rationaleRefs": [0]
         }
       ],
       "edges": {
-        "requires": [
-          "geo/plate-tectonics"
-        ],
-        "recommends": [
-          "geo/earths-interior"
-        ]
+        "requires": ["geo/plate-tectonics"],
+        "recommends": ["geo/earths-interior"]
       },
-      "attribution": [
-        "An Introduction to Geology (opengeology.org), §9.1 Earthquakes and seismic waves"
-      ],
+      "attribution": ["An Introduction to Geology (opengeology.org), §9.1 Earthquakes and seismic waves"],
       "license": "CC-BY-NC-SA-4.0"
     },
     {
       "id": "geo/geologic-time",
       "rev": 1,
       "term": "Geologic time and relative dating",
-      "aliases": [
-        "geologic time",
-        "relative dating",
-        "superposition",
-        "deep time",
-        "absolute dating"
-      ],
-      "tags": [
-        "geology",
-        "geologic time",
-        "dating",
-        "stratigraphy"
-      ],
+      "aliases": ["geologic time", "relative dating", "superposition", "deep time", "absolute dating"],
+      "tags": ["geology", "geologic time", "dating", "stratigraphy"],
       "level": "intro",
       "difficulty": 2,
       "bloomCeiling": "Analyze",
@@ -1683,12 +1330,7 @@
       "mcBank": [
         {
           "stem": "In an undisturbed sequence of sedimentary layers, the oldest layer is",
-          "options": [
-            "at the bottom",
-            "at the top",
-            "in the middle",
-            "impossible to tell"
-          ],
+          "options": ["at the bottom", "at the top", "in the middle", "impossible to tell"],
           "answerIndex": 0,
           "explanationFactRef": 1,
           "rationaleRefs": []
@@ -1703,23 +1345,14 @@
           ],
           "answerIndex": 0,
           "explanationFactRef": 0,
-          "rationaleRefs": [
-            1
-          ]
+          "rationaleRefs": [1]
         },
         {
           "stem": "About how old is the Earth?",
-          "options": [
-            "4.54 billion years",
-            "4.54 million years",
-            "6,000 years",
-            "454 billion years"
-          ],
+          "options": ["4.54 billion years", "4.54 million years", "6,000 years", "454 billion years"],
           "answerIndex": 0,
           "explanationFactRef": 3,
-          "rationaleRefs": [
-            0
-          ]
+          "rationaleRefs": [0]
         },
         {
           "stem": "Steeply tilted sedimentary layers indicate that",
@@ -1735,14 +1368,10 @@
         }
       ],
       "edges": {
-        "requires": [
-          "geo/sedimentary-rocks"
-        ],
+        "requires": ["geo/sedimentary-rocks"],
         "recommends": []
       },
-      "attribution": [
-        "An Introduction to Geology (opengeology.org), §7.1 Relative dating and geologic time"
-      ],
+      "attribution": ["An Introduction to Geology (opengeology.org), §7.1 Relative dating and geologic time"],
       "license": "CC-BY-NC-SA-4.0"
     }
   ]

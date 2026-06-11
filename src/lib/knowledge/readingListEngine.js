@@ -23,11 +23,13 @@
 import { searchScholarlyReadings, searchBookMetadata } from './providers.js';
 
 function cleanText(value) {
-  return String(value ?? '')
-    // V0.14.1 D1: strip HTML tags so markup never reaches a citation/syllabus.
-    .replace(/<[^>]+>/g, ' ')
-    .replace(/\s+/g, ' ')
-    .trim();
+  return (
+    String(value ?? '')
+      // V0.14.1 D1: strip HTML tags so markup never reaches a citation/syllabus.
+      .replace(/<[^>]+>/g, ' ')
+      .replace(/\s+/g, ' ')
+      .trim()
+  );
 }
 
 /**

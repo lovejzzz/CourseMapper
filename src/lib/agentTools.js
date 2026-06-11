@@ -252,11 +252,13 @@ function normalizeCourseFaqCloudExportActions(action = {}, ctx = {}) {
 }
 
 function normalizeDeliverableActionsForContext(actions = [], ctx = {}) {
-  return actions
-    // v0.14.1 (3.6): "A7.2"/registry-title references resolve to concrete
-    // featureId/lessonIndex/itemIndex BEFORE validation and sync projection.
-    .map((action) => applyAssessmentAddressing(action, ctx))
-    .flatMap((action) => normalizeCourseFaqCloudExportActions(action, ctx));
+  return (
+    actions
+      // v0.14.1 (3.6): "A7.2"/registry-title references resolve to concrete
+      // featureId/lessonIndex/itemIndex BEFORE validation and sync projection.
+      .map((action) => applyAssessmentAddressing(action, ctx))
+      .flatMap((action) => normalizeCourseFaqCloudExportActions(action, ctx))
+  );
 }
 
 const IMAGE_WORTHY_SLIDE_TYPES = new Set(['content', 'bridge', 'example', 'keyTerm', 'activity']);
@@ -1963,7 +1965,7 @@ export const AGENT_TOOLS = {
               },
               assessmentTitle: {
                 type: 'string',
-                description: 'Alternative to assessmentId: the assessment\'s exact registry title.',
+                description: "Alternative to assessmentId: the assessment's exact registry title.",
               },
               field: {
                 type: 'string',

@@ -103,7 +103,13 @@ function compileFromMap(courseMap) {
 
 function decodeRelTargets(relsXml) {
   return [...relsXml.matchAll(/Target="([^"]*)"/g)].map(([, target]) =>
-    decodeURI(target.replace(/&amp;/g, '&').replace(/&quot;/g, '"').replace(/&lt;/g, '<').replace(/&gt;/g, '>')),
+    decodeURI(
+      target
+        .replace(/&amp;/g, '&')
+        .replace(/&quot;/g, '"')
+        .replace(/&lt;/g, '<')
+        .replace(/&gt;/g, '>'),
+    ),
   );
 }
 
@@ -267,12 +273,13 @@ describe('3.5 — CourseMapPreview assessment chips', () => {
     const byId = new Map(graph.assessments.map((assessment) => [assessment.id, assessment]));
     const entries = graph.sessions[2].sections[1].assessmentRefs.map((id) => byId.get(id));
 
-    expect(resolveAssessmentChip('1. Midterm Exam: minerals through plate tectonics → Quiz & Exam Bank', 0, entries))
-      .toMatchObject({ featureId: 'quizBank', assessmentId: 'A3.3' });
-    // Reordered line still resolves through the exact-title fallback.
     expect(
-      resolveAssessmentChip('Midterm Exam: minerals through plate tectonics', 1, entries),
-    ).toMatchObject({ assessmentId: 'A3.3' });
+      resolveAssessmentChip('1. Midterm Exam: minerals through plate tectonics → Quiz & Exam Bank', 0, entries),
+    ).toMatchObject({ featureId: 'quizBank', assessmentId: 'A3.3' });
+    // Reordered line still resolves through the exact-title fallback.
+    expect(resolveAssessmentChip('Midterm Exam: minerals through plate tectonics', 1, entries)).toMatchObject({
+      assessmentId: 'A3.3',
+    });
     // In-class entries never become chips.
     expect(resolveAssessmentChip('2. Gallery walk: fold structures', 1, entries)).toBeNull();
     expect(resolveAssessmentChip('anything', 0, [])).toBeNull();
@@ -444,9 +451,7 @@ describe('3.5 — focus routing and DeliverableView scroll/highlight', () => {
     } finally {
       window.removeEventListener('coursemapper:focus-coursemap-cell', listener);
     }
-    expect(received).toEqual([
-      { type: 'courseMapCell', lessonIndex: 2, sectionIndex: 0, field: 'weeklyAssessments' },
-    ]);
+    expect(received).toEqual([{ type: 'courseMapCell', lessonIndex: 2, sectionIndex: 0, field: 'weeklyAssessments' }]);
   });
 });
 
@@ -475,7 +480,12 @@ describe('3.6 — agent addressing resolves "A7.2"-style references', () => {
         quizzes: [
           { lessonTitle: 'Lesson 1: Minerals', questions: [] },
           { lessonTitle: 'Lesson 2: Igneous Rocks', questions: [] },
-          { lessonTitle: 'Midterm Exam — minerals through plate tectonics', lessonNumber: 3, assessmentId: 'A3.3', questions: [] },
+          {
+            lessonTitle: 'Midterm Exam — minerals through plate tectonics',
+            lessonNumber: 3,
+            assessmentId: 'A3.3',
+            questions: [],
+          },
         ],
       },
     },

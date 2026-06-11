@@ -275,7 +275,9 @@ export function buildEnrichmentCoverageIssues(enrichmentOutcome) {
       featureId: 'courseMap',
       label: 'Enrichment coverage',
       message: `Enrichment covered ${enriched}/${requested} lessons${
-        missing.length > 0 ? ` — lesson${missing.length === 1 ? '' : 's'} ${missing.join(', ')} fell back to template content` : ''
+        missing.length > 0
+          ? ` — lesson${missing.length === 1 ? '' : 's'} ${missing.join(', ')} fell back to template content`
+          : ''
       }`,
       source: 'enrichmentCoverage',
       retryable: false,

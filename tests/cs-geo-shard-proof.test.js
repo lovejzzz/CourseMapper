@@ -65,20 +65,35 @@ function buildCourse(courseName, lessons) {
 }
 
 const PYTHON_COURSE = buildCourse('Introduction to Python Programming', [
-  ['Variables, Expressions, and Assignment', 'variables and assignment assignment statement expressions and data types type conversion'],
+  [
+    'Variables, Expressions, and Assignment',
+    'variables and assignment assignment statement expressions and data types type conversion',
+  ],
   ['Conditionals and Boolean Logic', 'if-else statements boolean operators branching conditional statements'],
   ['Loops and Iteration', 'while loop loop condition for loop range function iterating over a container'],
   ['Functions and Scope', 'defining functions function definition variable scope parameters and return'],
-  ['Lists and Dictionaries with nested data', 'list indexing ordered collection dictionary key-value pairs nested data'],
+  [
+    'Lists and Dictionaries with nested data',
+    'list indexing ordered collection dictionary key-value pairs nested data',
+  ],
   ['Strings and File I/O', 'string slicing substring file I/O reading from files open function'],
   ['Recursion and Classes', 'recursive function base case object-oriented programming classes and instances'],
 ]);
 
 const GEOLOGY_COURSE = buildCourse('Physical Geology', [
   ['Mineral Identification', 'mineral identification Mohs hardness streak and luster cleavage silica tetrahedron'],
-  ['Igneous Rocks and Volcanic Processes', 'igneous rock intrusive and extrusive magma cooling magma viscosity volcanoes eruptive style'],
-  ['Sedimentary and Metamorphic Rocks', 'weathering erosion sedimentary rock lithification metamorphic rock protolith foliation rock cycle'],
-  ['Plate Tectonics', 'plate tectonics plate boundaries divergent convergent transform Earth structure earthquakes seismic waves'],
+  [
+    'Igneous Rocks and Volcanic Processes',
+    'igneous rock intrusive and extrusive magma cooling magma viscosity volcanoes eruptive style',
+  ],
+  [
+    'Sedimentary and Metamorphic Rocks',
+    'weathering erosion sedimentary rock lithification metamorphic rock protolith foliation rock cycle',
+  ],
+  [
+    'Plate Tectonics',
+    'plate tectonics plate boundaries divergent convergent transform Earth structure earthquakes seismic waves',
+  ],
   ['Geologic Time', 'geologic time relative dating superposition deep time'],
 ]);
 
@@ -103,9 +118,7 @@ function resolvedIdsByLesson(linked) {
   const map = {};
   for (const [key, payload] of Object.entries(linked.lessonContent || {})) {
     const num = Number(String(key).match(/^lesson-(\d+)$/)?.[1]);
-    const ids = (payload?.conceptProvenance?.conceptIds || [])
-      .map((c) => c.id || c)
-      .filter(Boolean);
+    const ids = (payload?.conceptProvenance?.conceptIds || []).map((c) => c.id || c).filter(Boolean);
     map[num] = ids;
   }
   return map;
@@ -144,7 +157,9 @@ describe('cs-intro shard proof (V0.14.1 4.1)', () => {
     const plans = compiled.lessonPlans.lessonPlans;
     const withWorked = plans.filter((plan) => plan.workedExample?.problem);
     expect(withWorked.length).toBeGreaterThanOrEqual(1);
-    const anyTrace = withWorked.some((plan) => Array.isArray(plan.workedExample.steps) && plan.workedExample.steps.length >= 2);
+    const anyTrace = withWorked.some(
+      (plan) => Array.isArray(plan.workedExample.steps) && plan.workedExample.steps.length >= 2,
+    );
     expect(anyTrace).toBe(true);
   });
 

@@ -62,7 +62,11 @@ function makeKernel(id, term, { bankSize = 1, workedExample = false } = {}) {
       },
     ],
     misconceptions: [
-      { text: `Students assume ${term} is arbitrary.`, corrective: `${term} follows from the fixture evidence.`, tier: 2 },
+      {
+        text: `Students assume ${term} is arbitrary.`,
+        corrective: `${term} follows from the fixture evidence.`,
+        tier: 2,
+      },
     ],
     examples: [{ text: `${term} appears in the fixture field example.` }],
     mcBank: Array.from({ length: bankSize }, (_, position) =>
@@ -259,7 +263,12 @@ describe('4.5 genome augments, never displaces', () => {
   };
 
   it('a 1-kernel match stays unresolved (model path runs) with the composition stashed as a partial overlay', () => {
-    const linked = runGenomeLinker({ courseMap: oneKernelCourse, lessonIndices: [0], library: oneKernelLibrary(), itemPlan });
+    const linked = runGenomeLinker({
+      courseMap: oneKernelCourse,
+      lessonIndices: [0],
+      library: oneKernelLibrary(),
+      itemPlan,
+    });
     expect(linked.missingIndices).toContain(0);
     expect(linked.partialOverlays['lesson-1']).toBeTruthy();
     expect(linked.partialOverlays['lesson-1'].enrichmentSource).toBe('genome-linked');
@@ -271,7 +280,12 @@ describe('4.5 genome augments, never displaces', () => {
   });
 
   it('mergeLessonPayloads: genome term first with its citation, model fills to par, dedup by name and stem', () => {
-    const linked = runGenomeLinker({ courseMap: oneKernelCourse, lessonIndices: [0], library: oneKernelLibrary(), itemPlan });
+    const linked = runGenomeLinker({
+      courseMap: oneKernelCourse,
+      lessonIndices: [0],
+      library: oneKernelLibrary(),
+      itemPlan,
+    });
     const genomePartial = linked.partialOverlays['lesson-1'];
     const modelPayload = {
       quizItems: [
@@ -283,8 +297,20 @@ describe('4.5 genome augments, never displaces', () => {
           options: ['w', 'x', 'y', 'z'],
           answerIndex: 1,
         },
-        { index: 1, type: 'multiple_choice', question: 'What drives mantle convection?', options: ['a', 'b', 'c', 'd'], answerIndex: 0 },
-        { index: 2, type: 'multiple_choice', question: 'Where do transform faults occur?', options: ['a', 'b', 'c', 'd'], answerIndex: 2 },
+        {
+          index: 1,
+          type: 'multiple_choice',
+          question: 'What drives mantle convection?',
+          options: ['a', 'b', 'c', 'd'],
+          answerIndex: 0,
+        },
+        {
+          index: 2,
+          type: 'multiple_choice',
+          question: 'Where do transform faults occur?',
+          options: ['a', 'b', 'c', 'd'],
+          answerIndex: 2,
+        },
         { index: 3, type: 'short_answer', question: 'Explain subduction zone volcanism.', options: [], answerIndex: 0 },
       ],
       keyTerms: [
@@ -293,7 +319,10 @@ describe('4.5 genome augments, never displaces', () => {
         { term: 'Convergent boundary', definition: 'model definition' },
         { term: 'Transform fault', definition: 'model definition' },
       ],
-      kernel: { facts: ['Model fact about mantle convection.'], scenario: { setup: 'Model scenario.', materials: 'maps' } },
+      kernel: {
+        facts: ['Model fact about mantle convection.'],
+        scenario: { setup: 'Model scenario.', materials: 'maps' },
+      },
       enrichmentSource: 'lesson-content-enrichment',
     };
 

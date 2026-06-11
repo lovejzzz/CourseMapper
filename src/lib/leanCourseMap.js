@@ -273,14 +273,53 @@ function deriveTechnologyNeeded(section) {
 // edges; these are the deterministic section-local equivalents, run on the
 // raw cells before any graph exists.
 const ALIGNMENT_STOPWORDS = new Set([
-  'the', 'and', 'for', 'with', 'from', 'into', 'onto', 'about', 'their', 'this', 'that',
-  'these', 'those', 'through', 'using', 'between', 'within', 'where', 'which', 'while',
-  'will', 'have', 'each', 'than', 'then', 'them', 'they', 'your', 'one', 'two', 'how',
-  'course', 'week', 'weekly', 'lesson', 'section', 'student', 'students', 'chapter',
+  'the',
+  'and',
+  'for',
+  'with',
+  'from',
+  'into',
+  'onto',
+  'about',
+  'their',
+  'this',
+  'that',
+  'these',
+  'those',
+  'through',
+  'using',
+  'between',
+  'within',
+  'where',
+  'which',
+  'while',
+  'will',
+  'have',
+  'each',
+  'than',
+  'then',
+  'them',
+  'they',
+  'your',
+  'one',
+  'two',
+  'how',
+  'course',
+  'week',
+  'weekly',
+  'lesson',
+  'section',
+  'student',
+  'students',
+  'chapter',
 ]);
 
 function alignmentWords(line) {
-  return (cleanAtom(line).toLowerCase().match(/[a-z]{3,}/g) || []).filter((word) => !ALIGNMENT_STOPWORDS.has(word));
+  return (
+    cleanAtom(line)
+      .toLowerCase()
+      .match(/[a-z]{3,}/g) || []
+  ).filter((word) => !ALIGNMENT_STOPWORDS.has(word));
 }
 
 function stemOf(word) {

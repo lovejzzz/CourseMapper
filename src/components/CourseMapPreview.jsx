@@ -111,7 +111,9 @@ function AssessmentCellContent({ text, entries }) {
         const chip = resolveAssessmentChip(line, i, entries);
         return (
           <div key={i} className="flex gap-1.5 leading-relaxed items-start">
-            {prefix && <span className="text-indigo-400 font-semibold flex-shrink-0 text-[10px] mt-[2px]">{prefix}</span>}
+            {prefix && (
+              <span className="text-indigo-400 font-semibold flex-shrink-0 text-[10px] mt-[2px]">{prefix}</span>
+            )}
             {chip ? (
               <button
                 type="button"

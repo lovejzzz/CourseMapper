@@ -20,10 +20,7 @@
  */
 import { describe, expect, it } from 'vitest';
 
-import {
-  buildAssessmentReconciliationIssues,
-  runDeterministicPackageFinalizer,
-} from '../src/lib/packageFinalizer.js';
+import { buildAssessmentReconciliationIssues, runDeterministicPackageFinalizer } from '../src/lib/packageFinalizer.js';
 import { buildRunDigest, formatRunDigest } from '../src/lib/runDigest.js';
 
 // ── Fixtures ──
@@ -208,9 +205,7 @@ describe('buildAssessmentReconciliationIssues — graph-optional (P2.5)', () => 
   });
 
   it('returns [] when the graph carries no assessments', () => {
-    expect(
-      buildAssessmentReconciliationIssues({ courseGraph: graphWithAssessments([]), blueprint }),
-    ).toEqual([]);
+    expect(buildAssessmentReconciliationIssues({ courseGraph: graphWithAssessments([]), blueprint })).toEqual([]);
   });
 
   it('returns [] when the package has no assessment-bearing artifact to reconcile against', () => {
@@ -324,9 +319,7 @@ describe('finalizer integration (P2.5)', () => {
       selectedFeatures: ['courseMap'],
       courseGraph,
     });
-    const reconciliation = result.readiness.warnings.filter(
-      (issue) => issue.source === 'assessmentReconciliation',
-    );
+    const reconciliation = result.readiness.warnings.filter((issue) => issue.source === 'assessmentReconciliation');
     expect(reconciliation).toHaveLength(1);
     expect(reconciliation[0].message).toBe(
       'Midterm Exam: research synthesis — promised in course map (Lesson 1), no matching assignment or exam was generated',
@@ -337,9 +330,7 @@ describe('finalizer integration (P2.5)', () => {
     // The info aggregate stays OUT of readiness (the schema would coerce it
     // to a warning) and rides the result for the digest.
     expect(
-      result.readiness.issues.some(
-        (issue) => issue.source === 'assessmentReconciliation' && issue.severity === 'info',
-      ),
+      result.readiness.issues.some((issue) => issue.source === 'assessmentReconciliation' && issue.severity === 'info'),
     ).toBe(false);
     const notice = result.assessmentReconciliationIssues.find((issue) => issue.severity === 'info');
     expect(notice).toBeTruthy();

@@ -81,38 +81,38 @@ export default function QuizBankView({
               data-lesson-number={quizLessonNumber(baseQuiz, i)}
               className="rounded-squircle-xs transition-shadow duration-300"
             >
-            <CollapsibleCard
-              viewportIndex={i}
-              title={quiz.lessonTitle || `Quiz ${i + 1}`}
-              subtitle={subtitle}
-              defaultOpen={i < 3}
-              accent="sky"
-              streaming={isStreaming && i === quizzes.length - 1}
-              regenerating={regeneratingIndex === i}
-              fresh={!!freshLessonIndices?.has(i)}
-              onRegenerate={onRegenerateLesson && !isStreaming ? () => onRegenerateLesson(i) : undefined}
-              onTitleEdit={onEdit ? (newTitle) => onEdit([key, i, 'lessonTitle'], newTitle) : undefined}
-            >
-              <div className="pt-3 space-y-3">
-                {quiz.bloomsCoverage?.length > 0 && (
-                  <div className="flex flex-wrap gap-1">
-                    {quiz.bloomsCoverage.map((b, k) => (
-                      <BloomsTag key={k} level={b} />
-                    ))}
-                  </div>
-                )}
-                {(quiz.questions || []).map((q, j) => (
-                  <QuestionCard
-                    key={j}
-                    question={q}
-                    number={j + 1}
-                    qPath={[key, i, 'questions', j]}
-                    onEdit={onEdit}
-                    onSaveToBank={onSaveToBank}
-                  />
-                ))}
-              </div>
-            </CollapsibleCard>
+              <CollapsibleCard
+                viewportIndex={i}
+                title={quiz.lessonTitle || `Quiz ${i + 1}`}
+                subtitle={subtitle}
+                defaultOpen={i < 3}
+                accent="sky"
+                streaming={isStreaming && i === quizzes.length - 1}
+                regenerating={regeneratingIndex === i}
+                fresh={!!freshLessonIndices?.has(i)}
+                onRegenerate={onRegenerateLesson && !isStreaming ? () => onRegenerateLesson(i) : undefined}
+                onTitleEdit={onEdit ? (newTitle) => onEdit([key, i, 'lessonTitle'], newTitle) : undefined}
+              >
+                <div className="pt-3 space-y-3">
+                  {quiz.bloomsCoverage?.length > 0 && (
+                    <div className="flex flex-wrap gap-1">
+                      {quiz.bloomsCoverage.map((b, k) => (
+                        <BloomsTag key={k} level={b} />
+                      ))}
+                    </div>
+                  )}
+                  {(quiz.questions || []).map((q, j) => (
+                    <QuestionCard
+                      key={j}
+                      question={q}
+                      number={j + 1}
+                      qPath={[key, i, 'questions', j]}
+                      onEdit={onEdit}
+                      onSaveToBank={onSaveToBank}
+                    />
+                  ))}
+                </div>
+              </CollapsibleCard>
             </div>
           </React.Fragment>
         );

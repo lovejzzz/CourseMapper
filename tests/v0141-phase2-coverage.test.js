@@ -142,10 +142,7 @@ describe('parseLessonKernelResponse per-lesson drop tracking (P2.1)', () => {
 
   it('keeps in-chunk lessons intact when other entries are dropped', () => {
     const response = JSON.stringify({
-      lessons: [
-        { lessonId: 'lesson-2', ...GOOD_KERNEL_ENTRY },
-        ALL_BAD_ATOMS_ENTRY,
-      ],
+      lessons: [{ lessonId: 'lesson-2', ...GOOD_KERNEL_ENTRY }, ALL_BAD_ATOMS_ENTRY],
     });
     const parsed = parseLessonKernelResponse(response, {
       prompt,
@@ -194,9 +191,9 @@ describe('enrichment coverage label (P2.2)', () => {
   });
 
   it('keeps the legacy genome-only and skipped forms', () => {
-    expect(
-      formatEnrichmentOutcomeLabel({ modelStage: 'skipped: enrichment flag off', enrichedLessons: 13 }),
-    ).toBe('genome-only (13 lessons); model stage skipped: enrichment flag off');
+    expect(formatEnrichmentOutcomeLabel({ modelStage: 'skipped: enrichment flag off', enrichedLessons: 13 })).toBe(
+      'genome-only (13 lessons); model stage skipped: enrichment flag off',
+    );
     expect(formatEnrichmentOutcomeLabel({ modelStage: 'skipped: no model configured', enrichedLessons: 0 })).toBe(
       'skipped: no model configured',
     );
@@ -382,12 +379,10 @@ describe('finalizer enrichment-coverage issues (P2.2)', () => {
   });
 
   it('emits nothing at full coverage or when the model stage did not run', () => {
-    expect(
-      buildEnrichmentCoverageIssues({ modelStage: 'ran', enrichedLessons: 14, requestedLessons: 14 }),
-    ).toEqual([]);
-    expect(
-      buildEnrichmentCoverageIssues({ modelStage: 'skipped: enrichment flag off', enrichedLessons: 3 }),
-    ).toEqual([]);
+    expect(buildEnrichmentCoverageIssues({ modelStage: 'ran', enrichedLessons: 14, requestedLessons: 14 })).toEqual([]);
+    expect(buildEnrichmentCoverageIssues({ modelStage: 'skipped: enrichment flag off', enrichedLessons: 3 })).toEqual(
+      [],
+    );
     expect(buildEnrichmentCoverageIssues(null)).toEqual([]);
   });
 });

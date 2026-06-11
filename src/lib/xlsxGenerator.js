@@ -384,9 +384,7 @@ function buildCourseMapSheet(courseMap, customColumns, linkContext = null) {
 
       if (linkContext && assessmentColumnIndex >= 0 && toStr(section.weeklyAssessments)) {
         const registrySection = linkContext.graph.sessions?.[lessonIndex]?.sections?.[sectionIndex];
-        const entries = (registrySection?.assessmentRefs || [])
-          .map((id) => assessmentsById.get(id))
-          .filter(Boolean);
+        const entries = (registrySection?.assessmentRefs || []).map((id) => assessmentsById.get(id)).filter(Boolean);
         const featureId = sectionLinkFeature(entries, linkContext.linkableFeatures);
         if (featureId) {
           const lessonNumber = linkContext.lessonNumbers?.[lessonIndex] ?? lessonIndex + 1;

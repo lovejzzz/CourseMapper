@@ -132,12 +132,7 @@
         },
         {
           "stem": "In Python, the names count and Count refer to",
-          "options": [
-            "two different variables",
-            "the same variable",
-            "an error at runtime",
-            "a single constant"
-          ],
+          "options": ["two different variables", "the same variable", "an error at runtime", "a single constant"],
           "answerIndex": 0,
           "explanationFactRef": 3,
           "rationaleRefs": []
@@ -360,12 +355,7 @@
         },
         {
           "stem": "The boolean expression (x > 0) and (x < 10) is True only when",
-          "options": [
-            "x is between 0 and 10",
-            "x is greater than 0",
-            "x is less than 10",
-            "x equals 0 or 10"
-          ],
+          "options": ["x is between 0 and 10", "x is greater than 0", "x is less than 10", "x equals 0 or 10"],
           "answerIndex": 0,
           "explanationFactRef": 2,
           "rationaleRefs": [1]
@@ -623,12 +613,7 @@
         },
         {
           "stem": "Over which of these can a Python for loop iterate directly?",
-          "options": [
-            "A list of values",
-            "A single integer",
-            "A boolean",
-            "A float"
-          ],
+          "options": ["A list of values", "A single integer", "A boolean", "A float"],
           "answerIndex": 0,
           "explanationFactRef": 0,
           "rationaleRefs": []
@@ -641,7 +626,13 @@
       "id": "cs/functions",
       "rev": 1,
       "term": "Functions and scope",
-      "aliases": ["defining functions", "function definition", "variable scope", "parameters and return", "functions and scope"],
+      "aliases": [
+        "defining functions",
+        "function definition",
+        "variable scope",
+        "parameters and return",
+        "functions and scope"
+      ],
       "tags": ["python", "functions", "scope", "abstraction"],
       "level": "intro",
       "difficulty": 2,
@@ -761,12 +752,7 @@
         },
         {
           "stem": "To use a value computed inside a function elsewhere, the function must",
-          "options": [
-            "return the value",
-            "print the value",
-            "store it in a local variable",
-            "define it again outside"
-          ],
+          "options": ["return the value", "print the value", "store it in a local variable", "define it again outside"],
           "answerIndex": 0,
           "explanationFactRef": 2,
           "rationaleRefs": [0]
@@ -896,7 +882,9 @@
         }
       ],
       "edges": { "requires": ["cs/for-loops"], "recommends": ["cs/dictionaries"] },
-      "attribution": ["OpenStax Introduction to Python Programming, §3.4 List basics; §9.1 Modifying and iterating lists"]
+      "attribution": [
+        "OpenStax Introduction to Python Programming, §3.4 List basics; §9.1 Modifying and iterating lists"
+      ]
     },
     {
       "id": "cs/dictionaries",
@@ -1207,24 +1195,14 @@
         },
         {
           "stem": "What does readlines() return?",
-          "options": [
-            "A list of every line",
-            "Only the first line",
-            "A single combined string",
-            "The number of lines"
-          ],
+          "options": ["A list of every line", "Only the first line", "A single combined string", "The number of lines"],
           "answerIndex": 0,
           "explanationFactRef": 2,
           "rationaleRefs": []
         },
         {
           "stem": "Calling read() a second time on the same open file usually returns",
-          "options": [
-            "an empty string",
-            "the contents again",
-            "the first line",
-            "an error"
-          ],
+          "options": ["an empty string", "the contents again", "the first line", "an error"],
           "answerIndex": 0,
           "explanationFactRef": 1,
           "rationaleRefs": [0]
@@ -1480,7 +1458,9 @@
         }
       ],
       "edges": { "requires": ["cs/functions"], "recommends": [] },
-      "attribution": ["OpenStax Introduction to Python Programming, §11.1 Object-oriented programming basics; §11.2 Classes and instances"]
+      "attribution": [
+        "OpenStax Introduction to Python Programming, §11.1 Object-oriented programming basics; §11.2 Classes and instances"
+      ]
     }
   ]
 }

@@ -81,8 +81,16 @@ describe('1.5 composeScenarioAnswer', () => {
     for (const answer of [
       composeScenarioAnswer(null, null, ''),
       composeScenarioAnswer({ setup: '', materials: '' }, { term: '', definition: '' }, ''),
-      composeScenarioAnswer(null, { term: 'osmosis', definition: 'Osmosis is diffusion of water across a membrane.' }, ''),
-      composeScenarioAnswer({ setup: 'Consider a tide pool that warms by ten degrees at noon.' }, { term: 'thermal stress' }, 'Some fact.'),
+      composeScenarioAnswer(
+        null,
+        { term: 'osmosis', definition: 'Osmosis is diffusion of water across a membrane.' },
+        '',
+      ),
+      composeScenarioAnswer(
+        { setup: 'Consider a tide pool that warms by ten degrees at noon.' },
+        { term: 'thermal stress' },
+        'Some fact.',
+      ),
     ]) {
       expect(answer.length).toBeGreaterThan(0);
       expect(answer).toMatch(/[.!?]$/);

@@ -257,7 +257,8 @@ export function buildUserPrompt(
     // Vary the example shapes: uniform two-atom samples anchor the model to
     // identical counts in every lesson (the v0.14 audit found 3 of 4 courses
     // shipped exactly 2 concepts / 8 outcomes / 4 assessments per lesson).
-    if (key === 'learningObjectives') return `["1a. compact objective", "1b. compact objective", "2a. compact objective"]`;
+    if (key === 'learningObjectives')
+      return `["1a. compact objective", "1b. compact objective", "2a. compact objective"]`;
     if (key === 'weeklyAssessments') return `["compact atom 1"]`;
     return `["compact atom 1", "compact atom 2"]`;
   };

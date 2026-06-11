@@ -18,10 +18,7 @@
  */
 import { describe, expect, it } from 'vitest';
 
-import {
-  buildCourseBlueprint,
-  compileBlueprintDeliverables,
-} from '../src/lib/courseBlueprintCompiler';
+import { buildCourseBlueprint, compileBlueprintDeliverables } from '../src/lib/courseBlueprintCompiler';
 import {
   buildBlueprintFromGraph,
   classifyAssessmentKind,
@@ -460,7 +457,11 @@ describe('3.3d — package manifest carries the registry; per-lesson files route
     const byId = new Map(manifest.assessments.map((entry) => [entry.id, entry]));
     expect(byId.get('A7.1')).toMatchObject({ kind: 'graded-artifact', lesson: 7 });
     expect(byId.get('A7.1').artifact).toMatch(/^Assignment Briefs\/Lesson 07 .*\.docx$/);
-    expect(byId.get('A7.3')).toMatchObject({ kind: 'exam', lesson: 7, title: 'Midterm Exam: minerals through metamorphic rocks' });
+    expect(byId.get('A7.3')).toMatchObject({
+      kind: 'exam',
+      lesson: 7,
+      title: 'Midterm Exam: minerals through metamorphic rocks',
+    });
     expect(byId.get('A7.3').artifact).toMatch(/^Quiz & Exam Bank\/Lesson 07 .*\.docx$/);
     expect(byId.get('A7.4').kind).toBe('in-class');
     expect(byId.get('A7.4').note).toContain('in-class');

@@ -74,9 +74,9 @@ export function composeLessonFromConcepts(conceptKernels = [], courseLayer = {},
   const workedExampleExcluded = (id) =>
     Boolean(
       excludedWorkedExamples &&
-        (typeof excludedWorkedExamples.has === 'function'
-          ? excludedWorkedExamples.has(id)
-          : Array.isArray(excludedWorkedExamples) && excludedWorkedExamples.includes(id)),
+      (typeof excludedWorkedExamples.has === 'function'
+        ? excludedWorkedExamples.has(id)
+        : Array.isArray(excludedWorkedExamples) && excludedWorkedExamples.includes(id)),
     );
 
   // Layer 2: instantiate each concept's verified archetype mapping into

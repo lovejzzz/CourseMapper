@@ -55,7 +55,20 @@ describe('iteration 7 — genome spans 6 disciplines', () => {
     // (the Open Knowledge Backbone flagship shards) joined; v0.14.1: cs and geo
     // joined (the two disciplines the V0.14 four-course audit found uncovered).
     expect(disciplines).toEqual(
-      new Set(['astro', 'econ', 'stats', 'bio', 'chem', 'history', 'lit', 'psych', 'nursing', 'nutrition', 'cs', 'geo']),
+      new Set([
+        'astro',
+        'econ',
+        'stats',
+        'bio',
+        'chem',
+        'history',
+        'lit',
+        'psych',
+        'nursing',
+        'nutrition',
+        'cs',
+        'geo',
+      ]),
     );
   });
 

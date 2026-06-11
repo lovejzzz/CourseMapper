@@ -96,9 +96,7 @@ export function selectShardsForDisciplines(manifest, disciplines = []) {
  * "0 genome + 0 cached".
  */
 export function uncoveredDisciplinesForManifest(manifest, disciplines = []) {
-  const wanted = [
-    ...new Set(disciplines.map((discipline) => String(discipline || '').toLowerCase()).filter(Boolean)),
-  ];
+  const wanted = [...new Set(disciplines.map((discipline) => String(discipline || '').toLowerCase()).filter(Boolean))];
   if (wanted.length === 0) return [];
   const covered = new Set((manifest?.shards || []).map((shard) => String(shard.discipline || '').toLowerCase()));
   return wanted.filter((discipline) => !covered.has(discipline));

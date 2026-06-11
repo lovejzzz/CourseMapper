@@ -16887,9 +16887,7 @@ function compileLessonPlans(blueprint) {
         // session is planned. Registry path only; legacy plans are unchanged.
         ...(Array.isArray(blueprint.assessmentRegistry)
           ? (() => {
-              const entries = blueprint.assessmentRegistry.filter(
-                (entry) => entry.dueSession === lesson.lessonNumber,
-              );
+              const entries = blueprint.assessmentRegistry.filter((entry) => entry.dueSession === lesson.lessonNumber);
               return entries.length > 0
                 ? {
                     assessmentBlock: entries.map((entry) => ({

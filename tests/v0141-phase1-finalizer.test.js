@@ -14,11 +14,7 @@
 import { describe, expect, it } from 'vitest';
 
 import { finalizeCompiledDeliverableLanguage } from '../src/lib/compiledLanguageFinalizer';
-import {
-  deriveCompilerOwnedColumns,
-  expandLeanCourseMap,
-  expandLeanSectionField,
-} from '../src/lib/leanCourseMap';
+import { deriveCompilerOwnedColumns, expandLeanCourseMap, expandLeanSectionField } from '../src/lib/leanCourseMap';
 import { repairCourseMapReadiness } from '../src/lib/deliverableReadiness';
 import { deriveCourseGraphFromCourseMap } from '../src/lib/courseGraph';
 
@@ -322,9 +318,7 @@ describe('1.15 — JSON corruption never reaches a course-map cell', () => {
     expect(cell.length).toBeGreaterThan(5);
     expect(cell).not.toMatch(/"\s*:\s*["[]/);
     expect(
-      repaired.repairedFields.some(
-        (label) => label.includes('Learning Objectives') && !label.includes('(formatting)'),
-      ),
+      repaired.repairedFields.some((label) => label.includes('Learning Objectives') && !label.includes('(formatting)')),
     ).toBe(true);
   });
 

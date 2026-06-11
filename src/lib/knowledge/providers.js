@@ -21,13 +21,15 @@ const CACHE_PREFIX = 'cm-knowledge:';
 const OPENALEX_MAILTO = 'coursemapper@nyu.edu';
 
 function cleanText(value) {
-  return String(value ?? '')
-    // V0.14.1 D1: strip HTML tags before they reach a syllabus. OpenAlex
-    // display_names occasionally carry markup ("A short history of<i>SHELX</i>");
-    // collapse the tag to a space so adjacent words don't fuse.
-    .replace(/<[^>]+>/g, ' ')
-    .replace(/\s+/g, ' ')
-    .trim();
+  return (
+    String(value ?? '')
+      // V0.14.1 D1: strip HTML tags before they reach a syllabus. OpenAlex
+      // display_names occasionally carry markup ("A short history of<i>SHELX</i>");
+      // collapse the tag to a space so adjacent words don't fuse.
+      .replace(/<[^>]+>/g, ' ')
+      .replace(/\s+/g, ' ')
+      .trim()
+  );
 }
 
 /**
@@ -174,7 +176,9 @@ export async function searchEducationResearch(query, { limit = 3, signal } = {})
       provider: 'eric',
       kind: 'education research',
       title: cleanText(doc.title),
-      authors: Array.isArray(doc.author) ? formatAuthorList(doc.author, doc.author.length) : normalizeAuthorName(doc.author),
+      authors: Array.isArray(doc.author)
+        ? formatAuthorList(doc.author, doc.author.length)
+        : normalizeAuthorName(doc.author),
       year: Number(doc.publicationdateyear) || null,
       peerReviewed: doc.peerreviewed === 'T' || doc.peerreviewed === true,
       abstract: cleanText(doc.description).slice(0, 400),
