@@ -8,12 +8,13 @@
  * the three screen footers, and the Changelog entry.
  */
 export const LATEST_RELEASE = {
-  version: '0.14.2',
+  version: '0.14.3',
   date: 'June 11, 2026',
-  title: 'The Crucible: generate, grade, refine — until A+',
+  title: 'The Quality Surface: every package ships its own audit',
   highlights: [
-    'The Crucible: a built-in generate→grade→refine harness that runs real courses through the live app, downloads the packages, and grades them with the full four-course-audit rulebook — seven scored dimensions, evidence-quoting findings, round-over-round deltas, ~$0.10 and ~3 minutes per course',
-    'Four live rounds of refinement took the reference courses from 51–59 (F) on v0.14.0 output to 100/100/100/100 with zero P0 and zero P1 findings — midterms and finals survive into real exam papers with varied answer keys, review weeks quiz real content from prior lessons, and language-course key terms pair hanzi with tone-marked pinyin',
-    'Live-only bugs the offline suite could never see are fixed at the source: a stale-snapshot regen that could replace a whole quiz bank with one lesson, exam papers silently retitled by the repair pass, citation relevance now verified against OpenAlex topic fields, and study guides that stop chanting the lesson title',
+    'The quality badge: every generated package now grades itself at finalize time with the full Crucible rulebook — the score lands as a badge in the export panel, a quality block in PACKAGE_MANIFEST.json, and a QUALITY_REPORT.md inside the zip, so the receipts travel with the course',
+    'The reference net grew from 4 to 10 courses plus a rotating stranger: six genome-covered disciplines went through live rounds for the first time (econ linked 14/14 lessons and its deliberately mis-ordered prerequisite was diagnosed on camera), and every round now cross-checks the in-app score against the Crucible’s so the two graders can never drift silently',
+    'Depth, measured then raised: enriched decks now carry common-pitfalls and worked-example walkthrough slides (~12 content slides against a new bar of 5), rubric criteria quote their assignment’s actual parameters, quizzes grow to 8 items from unused verified banks — and the grader’s thresholds rose only after the live round measured the content clearing them',
+    'An advisory LLM judge (--judge) gives the professor-read the deterministic grader can’t: non-gating, honest, and its first verdict — “solid content, still too templated to teach as-is” — is the declared north star for v0.14.4 Grounding',
   ],
 };

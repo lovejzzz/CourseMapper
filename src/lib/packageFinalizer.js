@@ -286,6 +286,62 @@ export function buildEnrichmentCoverageIssues(enrichmentOutcome) {
   ];
 }
 
+/**
+ * v0.14.3 WS-A A3: P0 findings from the finalize-time quality grade surface
+ * through the same readiness/warnings channel as enrichment coverage —
+ * they should be impossible (the gates run earlier), which is exactly why
+ * showing them is cheap honesty. Warning severity, never a blocker, never
+ * retried (the grader reads frozen compiled output; no retry pass can
+ * change what it measures).
+ */
+export function buildQualityGateIssues(quality) {
+  if (quality?.status !== 'graded') return [];
+  const p0 = Number(quality?.findingCounts?.p0) || 0;
+  if (p0 <= 0) return [];
+  return [
+    normalizeReadinessIssue({
+      severity: 'warning',
+      featureId: 'courseMap',
+      label: 'Quality grade',
+      message: `Package quality grader found ${p0} P0 finding${p0 === 1 ? '' : 's'} (score ${quality.score}/100, grade ${quality.grade}) — see QUALITY_REPORT.md in the download`,
+      source: 'qualityGate',
+      retryable: false,
+      autoFixable: false,
+    }),
+  ];
+}
+
+/**
+ * Merge a finalize-time quality grade into a finalizer result: attaches
+ * `quality` and, when the grade carries P0 findings, appends the qualityGate
+ * warning to the readiness channel (recomputing status/counts the same way
+ * runDeterministicPackageFinalizer's merge point does). Grading happens
+ * AFTER the finalizer returns (it needs the run digest), so this helper is
+ * the integration seam AppFlow applies — mirroring how
+ * buildEnrichmentCoverageIssues folds into readiness inside the finalizer.
+ */
+export function applyQualityToFinalizerResult(result, quality) {
+  if (!result) return result;
+  const issues = buildQualityGateIssues(quality);
+  if (issues.length === 0) return { ...result, quality: quality || null };
+  const readiness = result.readiness || {};
+  const mergedIssues = normalizeReadinessIssues(dedupeIssues([...(readiness.issues || []), ...issues]));
+  const blockers = mergedIssues.filter((issue) => issue.severity === 'blocker');
+  const warnings = mergedIssues.filter((issue) => issue.severity === 'warning');
+  return {
+    ...result,
+    quality,
+    readiness: {
+      ...readiness,
+      status: blockers.length > 0 ? 'blocked' : warnings.length > 0 ? 'warnings' : 'ready',
+      isBlocked: blockers.length > 0,
+      blockers,
+      warnings,
+      issues: mergedIssues,
+    },
+  };
+}
+
 // v0.14.1 P2.5: high-stakes language in a map assessment title — a phantom
 // midterm/final/oral is a much worse ship than a missing in-class check.
 const HIGH_STAKES_ASSESSMENT_RE = /\b(midterm|final|exam|capstone|performance|portfolio)\b/i;

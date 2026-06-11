@@ -25,6 +25,13 @@ import { searchScholarlyReadings, searchBookMetadata } from './providers.js';
 // the course onto an OpenAlex field/domain allowlist (no import cycle —
 // libraryShardLoader imports nothing from knowledge/).
 import { inferCourseDisciplines } from '../genome/libraryShardLoader.js';
+// v0.14.3 round-2 FIX-1: the famous-offender blacklist + matcher + shared yield
+// rule are single-sourced in the quality library so the engine REJECTS a known
+// offender at ATTACH time (defense-in-depth caught it at grading, but the
+// engine still attached it — e.g. the stats cancer-statistics paper that passes
+// the Medicine/Health-Science topic field and the "statistics" token gate).
+// Plain ESM, no node builtins — safe to import here.
+import { matchesKnownOffender, blacklistYieldsToTopicalOverlap } from '../quality/artifactDefectPatterns.js';
 
 function cleanText(value) {
   return (
@@ -119,7 +126,17 @@ function humanizeShardKey(label) {
  * label is humanized and a book label is rendered as-is. Never repeats the
  * raw key inside one citation and never emits the "(see source)" placeholder.
  */
-function resolveGenomeCitation(entry) {
+// v0.14.3 (license-repetition product fix): a fully-linked course (e.g. astro
+// 14/14) emits one genome citation per section, and EVERY one rendered the full
+// "(open textbook, CC BY 4.0 — https://openstax.org/books/…)" license string —
+// so a 14–17-citation Sources & Licenses section repeated the 8-word shingle
+// "open textbook cc by 4 0 https openstax" 14–17× and tripped the export
+// repeated-phrase gate (limit 12). The license + source-base are stated INLINE
+// on the first citation of each license group and the rest abbreviate to
+// "<title> (open textbook)" — the §-section in the title still uniquely names
+// the source, and the per-group license note (Required Texts) carries the
+// license/url once. `abbreviateLicense` requests the short form.
+function resolveGenomeCitation(entry, { abbreviateLicense = false } = {}) {
   let rawLabel = '';
   let displayTitle = '';
   let sourceUrl = '';
@@ -132,15 +149,23 @@ function resolveGenomeCitation(entry) {
   }
   if (!rawLabel && !displayTitle) return null;
 
+  // The license-group key: the license + the source base (book URL sans the
+  // §-section suffix), so all citations of one open textbook collapse to one
+  // inline license statement. Empty when there's no resolvable textbook URL.
+  const licenseGroupKey = (url, license) =>
+    url ? `${cleanText(license).toLowerCase()}|${url.replace(/[#§].*$/, '')}` : '';
+
   if (displayTitle) {
     const { url, license } = openTextbookUrl(rawLabel || displayTitle);
     const href = sourceUrl || url;
+    const tail = abbreviateLicense ? ' (open textbook)' : ` (open textbook, ${license}${href ? ` — ${href}` : ''})`;
     return {
       dedupeKey: (rawLabel || displayTitle).toLowerCase(),
-      citation: `${displayTitle} (open textbook, ${license}${href ? ` — ${href}` : ''})`,
+      citation: `${displayTitle}${tail}`,
       url: href,
       license,
       attribution: displayTitle,
+      licenseGroupKey: licenseGroupKey(href, license),
     };
   }
 
@@ -152,16 +177,19 @@ function resolveGenomeCitation(entry) {
       url: '',
       license: 'open license',
       attribution: humanized,
+      licenseGroupKey: '',
     };
   }
 
   const { url, license, attribution } = openTextbookUrl(rawLabel);
+  const tail = abbreviateLicense ? ' (open textbook)' : ` (open textbook, ${license}${url ? ` — ${url}` : ''})`;
   return {
     dedupeKey: rawLabel.toLowerCase(),
-    citation: `${rawLabel} (open textbook, ${license}${url ? ` — ${url}` : ''})`,
+    citation: `${rawLabel}${tail}`,
     url,
     license,
     attribution,
+    licenseGroupKey: licenseGroupKey(url, license),
   };
 }
 
@@ -220,6 +248,22 @@ export function attachGenomeResources(graph) {
   const byNumber = sessionsByNumber(graph);
   const seen = existingCitations(graph);
   const nextId = nextResourceIdFactory(graph);
+  // v0.14.3 license-repetition fix: course-level set of license groups already
+  // rendered with their full inline license. The first citation of each open
+  // textbook states the license + URL; the rest abbreviate to "(open textbook)"
+  // so the Sources & Licenses section doesn't repeat the license boilerplate
+  // once per section (the export repeated-phrase gate). Seeded from already-
+  // attached genome resources so a re-entrant pass reproduces the same
+  // abbreviation decisions and stays idempotent (a previously-abbreviated
+  // citation must NOT re-resolve to its full form on the second pass): the
+  // dedupeKey is the abbreviation-invariant identity, recorded on each
+  // resource, and re-seeds both the dedup set and the license-group set.
+  const seenLicenseGroups = new Set();
+  for (const resource of graph.resources || []) {
+    if (resource?.origin !== 'genome') continue;
+    if (resource.dedupeKey) seen.add(String(resource.dedupeKey).toLowerCase());
+    if (resource.licenseGroupKey) seenLicenseGroups.add(resource.licenseGroupKey);
+  }
   let attached = 0;
 
   for (const [key, payload] of Object.entries(lessonContent)) {
@@ -239,11 +283,26 @@ export function attachGenomeResources(graph) {
       const citation = resolveGenomeCitation(entry);
       if (!citation || localKeys.has(citation.dedupeKey)) continue;
       localKeys.add(citation.dedupeKey);
-      resolved.push(citation);
+      resolved.push({ citation, entry });
     }
-    for (const { citation, dedupeKey, url, license, attribution } of resolved.slice(0, 2)) {
-      if (seen.has(citation.toLowerCase()) || seen.has(dedupeKey)) continue;
+    for (const { citation: resolvedCitation, entry } of resolved.slice(0, 2)) {
+      // Dedup on the stable dedupeKey (unaffected by the license tail) before
+      // touching the license group, so a skipped duplicate never consumes the
+      // group's full-license "slot".
+      const { dedupeKey } = resolvedCitation;
+      if (seen.has(dedupeKey)) continue;
+      // Abbreviate the license tail once a license group has appeared, but
+      // re-resolve only when needed so the first occurrence keeps its full form.
+      let final = resolvedCitation;
+      const groupKey = resolvedCitation.licenseGroupKey;
+      if (groupKey && seenLicenseGroups.has(groupKey)) {
+        final = resolveGenomeCitation(entry, { abbreviateLicense: true }) || resolvedCitation;
+      }
+      const { citation, url, license, attribution } = final;
+      if (seen.has(citation.toLowerCase())) continue;
       seen.add(citation.toLowerCase());
+      seen.add(dedupeKey);
+      if (groupKey) seenLicenseGroups.add(groupKey);
       attachResource(graph, session, {
         id: nextId(),
         citation,
@@ -253,6 +312,9 @@ export function attachGenomeResources(graph) {
         url,
         license,
         attribution,
+        // Stable identity for idempotent re-entry (abbreviation-invariant).
+        dedupeKey,
+        licenseGroupKey: groupKey || '',
       });
       attached += 1;
     }
@@ -412,7 +474,10 @@ export const OPENALEX_DISCIPLINE_TOPIC_ALLOWLIST = {
   },
   nursing: { domains: ['Health Sciences', 'Life Sciences'] },
   nutrition: { domains: ['Health Sciences', 'Life Sciences'], fields: ['Agricultural and Biological Sciences'] },
-  psych: { fields: ['Psychology', 'Neuroscience', 'Social Sciences'] },
+  // v0.14.3 (FP-3): clinical psychology legitimately cites medical/health
+  // literature (clinical trials, neuropsychiatry), so Medicine/Health Sciences
+  // are on-discipline here as for nursing/nutrition.
+  psych: { domains: ['Health Sciences'], fields: ['Psychology', 'Neuroscience', 'Social Sciences', 'Medicine'] },
   econ: {
     fields: [
       'Economics, Econometrics and Finance',
@@ -421,7 +486,10 @@ export const OPENALEX_DISCIPLINE_TOPIC_ALLOWLIST = {
       'Decision Sciences',
     ],
   },
-  stats: { fields: ['Mathematics', 'Decision Sciences'] },
+  // v0.14.3 (FP-3): biostatistics / epidemiology cite the medical studies they
+  // analyze (STROBE, observational-study reporting), so Medicine/Health
+  // Sciences are on-discipline for an intro-stats course.
+  stats: { domains: ['Health Sciences'], fields: ['Mathematics', 'Decision Sciences', 'Medicine'] },
 };
 
 // Tokens too generic to carry a topical match on their own — every Round-1
@@ -561,6 +629,30 @@ function courseDisciplineAnchor(graph) {
   return tokens.join(' ');
 }
 
+/**
+ * The discipline's own NAME tokens for the offender yield rule — the inferred
+ * discipline keys plus the course-title discipline anchor — so a famous
+ * offender sharing only the field label (a stats paper sharing "statistics",
+ * a nursing paper sharing "nursing") with the lesson does NOT yield. Matches
+ * significantTokens' normalization so set membership lines up.
+ */
+function disciplineNameTokensForCourse(graph, anchor) {
+  const disciplines = inferCourseDisciplines({
+    courseName: cleanText(graph?.course?.name),
+    lessons: (graph?.sessions || []).map((session) => ({ title: cleanText(session?.title) })),
+  });
+  const tokens = new Set();
+  for (const discipline of disciplines) {
+    for (const token of significantTokens(discipline)) tokens.add(token);
+  }
+  for (const token of significantTokens(anchor)) tokens.add(token);
+  // The bare-discipline statistics/nursing family the field label inflects to.
+  for (const root of ['statistic', 'nursing', 'nutrition', 'psychology', 'geology', 'economic']) {
+    if (tokens.has(root) || cleanText(graph?.course?.name).toLowerCase().includes(root.slice(0, 6))) tokens.add(root);
+  }
+  return tokens;
+}
+
 function conceptTermsForSession(graph, session) {
   const teaches = (graph.edges?.teaches || []).filter((edge) => edge?.from === session.id);
   const conceptsById = new Map((graph.concepts || []).map((concept) => [concept.id, concept]));
@@ -666,6 +758,9 @@ export async function attachOpenReadings(graph, { providers = {}, signal, maxSes
   const seen = existingCitations(graph);
   const nextId = nextResourceIdFactory(graph);
   const anchor = courseDisciplineAnchor(graph);
+  // v0.14.3 round-2 FIX-1: discipline-name tokens dropped from the offender
+  // yield rule (so an offender sharing only the field label never yields).
+  const offenderDisciplineTokens = disciplineNameTokensForCourse(graph, anchor);
   // V0.14.1 round-2: the course's OpenAlex field/domain allowlist (null when
   // the inferred disciplines carry no mapping → token gate only).
   const allowedTopicNames = allowedTopicNamesForCourse(graph);
@@ -704,19 +799,37 @@ export async function attachOpenReadings(graph, { providers = {}, signal, maxSes
     // NOTHING and record why — no more MNIST-for-geology attachments.
     const terms = relevanceTermsForSession(graph, session, anchor);
     let rejectedOffDiscipline = 0;
-    const scored = candidates
-      .map((work) => {
-        const verdict = topicGateVerdict(work, allowedTopicNames);
-        if (verdict === 'off-discipline') rejectedOffDiscipline += 1;
-        const score = scoreReadingRelevance(work, terms);
-        const pass =
-          verdict === 'off-discipline'
-            ? false
-            : verdict === 'no-topic-data'
-              ? score.phraseHit || (score.hits >= 2 && score.specificHits >= 1)
-              : score.pass;
-        return { work, score, verdict, pass };
-      })
+    const rejectedKnownOffenders = [];
+    const scored = candidates.map((work) => {
+      // v0.14.3 round-2 FIX-1: a famous off-discipline offender (cancer
+      // statistics, MNIST, …) is REJECTED at attach time REGARDLESS of the
+      // topic-field allowlist and the token gate, UNLESS its title shares
+      // strong topical overlap with the lesson concept per the SAME shared
+      // yield rule the grader uses (generic words + the discipline's own name
+      // are ignored — a sampling lesson's only tie to cancer-statistics is
+      // the generic "statistics", so it never yields).
+      const offender = matchesKnownOffender(work?.title);
+      if (
+        offender &&
+        !blacklistYieldsToTopicalOverlap(new Set(significantTokens(work?.title)), terms.conceptTokens, {
+          disciplineNameTokens: offenderDisciplineTokens,
+        })
+      ) {
+        rejectedKnownOffenders.push(cleanText(work?.title));
+        return { work, score: scoreReadingRelevance(work, terms), pass: false };
+      }
+      const verdict = topicGateVerdict(work, allowedTopicNames);
+      if (verdict === 'off-discipline') rejectedOffDiscipline += 1;
+      const score = scoreReadingRelevance(work, terms);
+      const pass =
+        verdict === 'off-discipline'
+          ? false
+          : verdict === 'no-topic-data'
+            ? score.phraseHit || (score.hits >= 2 && score.specificHits >= 1)
+            : score.pass;
+      return { work, score, pass };
+    });
+    const passing = scored
       .filter((entry) => entry.pass)
       .sort(
         (a, b) =>
@@ -724,19 +837,32 @@ export async function attachOpenReadings(graph, { providers = {}, signal, maxSes
           Number(b.score.phraseHit) - Number(a.score.phraseHit) ||
           (b.work.citedBy || 0) - (a.work.citedBy || 0),
       );
-    if (scored.length === 0) {
+    if (passing.length === 0) {
+      // v0.14.3 round-2 FIX-1: when a known offender was rejected and nothing
+      // relevant remains, name it ("rejected known-offender: <title>"). The
+      // contract is unchanged — one decision per lesson, only when nothing
+      // attaches; a successful attach still records zero decisions.
       decisions.push({
         type: 'no-relevant-reading',
         lesson: session.number ?? null,
         sessionId: session.id ?? null,
         rejected: candidates.length,
         ...(rejectedOffDiscipline > 0 ? { rejectedOffDiscipline } : {}),
+        ...(rejectedKnownOffenders.length > 0
+          ? {
+              rejectedKnownOffender: rejectedKnownOffenders.length,
+              knownOffenders: rejectedKnownOffenders,
+              knownOffenderMessage: rejectedKnownOffenders
+                .map((title) => `rejected known-offender: ${title}`)
+                .join('; '),
+            }
+          : {}),
         candidates: candidates.slice(0, 4).map((work) => work.title),
         message: `no relevant open reading found for L${session.number ?? '?'} (rejected ${candidates.length} famous-but-off-topic)`,
       });
       continue;
     }
-    const work = scored[0].work;
+    const work = passing[0].work;
     const citation = formatScholarlyCitation(work);
     if (seen.has(citation.toLowerCase())) continue;
     seen.add(citation.toLowerCase());

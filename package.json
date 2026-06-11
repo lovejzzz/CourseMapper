@@ -1,6 +1,6 @@
 {
   "name": "course-mapper",
-  "version": "0.14.2",
+  "version": "0.14.3",
   "type": "module",
   "description": "AI-powered course syllabus to course map generator",
   "scripts": {
@@ -36,6 +36,8 @@
     "crucible": "node scripts/crucible.mjs --courses all",
     "crucible:smoke": "node scripts/crucible.mjs --courses smoke",
     "crucible:dry": "node scripts/crucible.mjs --dry-run",
+    "crucible:history": "node scripts/crucible.mjs --history",
+    "crucible:calibrate": "node scripts/crucible.mjs --calibrate",
     "quality:browser:smoke": "node scripts/liveBrowserQualityLoop.mjs --profile smoke --courses 1",
     "quality:browser:nightly": "node scripts/liveBrowserQualityLoop.mjs --profile nightly --courses 3",
     "quality:browser:weekly": "node scripts/liveBrowserQualityLoop.mjs --profile weekly --courses 10",

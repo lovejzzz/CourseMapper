@@ -108,9 +108,10 @@ function fixtureCourseMap({ courseName, topics }) {
   };
 }
 
-// The armed defect-class tables now live in tests/lib/artifactDefectPatterns.js
-// (shared with the live-run deep quality grader). The gate consumes the tuple
-// views so scanSurfaces below is byte-identical to the pre-refactor gate.
+// The armed defect-class tables now live in src/lib/quality/
+// artifactDefectPatterns.js (v0.14.3 A1 — app-loadable, imported here via
+// the tests/lib shim; shared with the live-run deep quality grader). The
+// gate consumes the tuple views so scanSurfaces stays byte-identical.
 const ARTIFACT_PATTERNS = ARTIFACT_PATTERN_TUPLES;
 const JSON_SYNTAX_PATTERNS = JSON_SYNTAX_PATTERN_TUPLES;
 const FUSED_TITLE_PATTERNS = FUSED_TITLE_PATTERN_TUPLES;
@@ -307,6 +308,47 @@ describe('output artifact gate extensions (v0.14.1 phase 0.2)', () => {
       }
     }
     expect(failures, failures.join('\n')).toEqual([]);
+  }, 120000);
+});
+
+// v0.14.3 WS-A A5(2): every generated package ships its own audit — the gate
+// builds a real package zip from the healthy fixture and asserts the quality
+// surface (QUALITY_REPORT.md at the zip root + manifest.quality with the
+// graded score) the way a downloaded package carries it.
+describe('package quality surface (v0.14.3 WS-A)', () => {
+  it('ships QUALITY_REPORT.md and a manifest.quality block (score ≥ 85) on the healthy fixture package', async () => {
+    const { compileBlueprintDeliverables } = await import('../src/lib/courseBlueprintCompiler');
+    const { deriveCourseGraphFromCourseMap, buildBlueprintFromGraph, renderCourseMapFromGraph } =
+      await import('../src/lib/courseGraph');
+    const { buildCourseMaterialsZip } = await import('../src/lib/packageZipExporter.js');
+
+    const course = COURSES[0];
+    const courseMap = fixtureCourseMap(course);
+    const graph = deriveCourseGraphFromCourseMap(courseMap);
+    const blueprint = buildBlueprintFromGraph(graph);
+    const compiled = compileBlueprintDeliverables(blueprint, GATE_FEATURES);
+    const deliverables = {};
+    for (const featureId of GATE_FEATURES) {
+      deliverables[featureId] = { status: 'done', data: compiled[featureId] };
+    }
+    const result = await buildCourseMaterialsZip({
+      courseMap: renderCourseMapFromGraph(graph, { assessmentReferences: true }),
+      courseName: course.courseName,
+      deliverables,
+      featureIds: ['courseMap', ...GATE_FEATURES],
+      courseGraph: graph,
+    });
+
+    expect(result.quality?.status).toBe('graded');
+    expect(result.quality.score, JSON.stringify(result.qualityResult?.findings || [])).toBeGreaterThanOrEqual(85);
+    expect(result.quality.findingCounts.p0).toBe(0);
+
+    const zip = await JSZip.loadAsync(await result.blob.arrayBuffer());
+    expect(zip.file('QUALITY_REPORT.md')).toBeTruthy();
+    const manifest = JSON.parse(await zip.file('PACKAGE_MANIFEST.json').async('string'));
+    expect(manifest.quality).toEqual(result.quality);
+    expect(manifest.quality.graderVersion).toBeTruthy();
+    expect(Object.keys(manifest.quality.dimensions || {}).length).toBeGreaterThan(0);
   }, 120000);
 });
 

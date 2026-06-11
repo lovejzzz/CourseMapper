@@ -3,6 +3,34 @@ import Header from '../components/Header';
 
 const releases = [
   {
+    version: '0.14.3',
+    date: 'June 11, 2026',
+    title: 'The Quality Surface: every package ships its own audit',
+    highlights: [
+      'The quality badge: packages grade themselves at finalize time with the full Crucible rulebook running in the browser (the grader moved to src/lib/quality behind a FileProvider — fs for the harness, in-memory for the app). The score surfaces three ways: a badge chip in the export panel with a click-through findings modal, a quality block in PACKAGE_MANIFEST.json, and a QUALITY_REPORT.md shipped inside every zip. The package never grades its own report or quality block, and the landing bundle grew by zero bytes (the grader is its own 38.6 KiB lazy chunk).',
+      'Breadth: the reference suite grew from 4 to 10 courses — econ, stats, psych, nursing, nutrition, and astronomy joined with lesson titles mapped to genome shard concepts, putting the genome path under live fire at scale for the first time (econ-intro genome-linked 14/14 lessons; its deliberately mis-ordered elasticity/demand-curve pair was diagnosed by the judgment layer on camera). A rotating non-gating "stranger" course probes unknown disciplines, and a dispatch-only nightly workflow is staged pending the repo-secret decision.',
+      'The two graders can never drift silently: every live round reads each downloaded package’s in-app score from its manifest and fails on >3 points of disagreement with the Crucible’s own grade.',
+      'Depth, measured then raised: enriched decks gained common-pitfalls slides ("It’s tempting to think X — in fact Y") and worked-example walkthroughs recomposed from unused verified quiz banks (~12 content slides measured against a new bar of 5); rubric criteria now quote their assignment’s actual parameters verbatim; weekly quizzes grow to 8 items when banks afford it. Grader thresholds rose only after the live round measured the content clearing them: boilerplate 60→50% (measured: 4%), meta-MCQ 20→15% (measured: 0%).',
+      'Compiler diet phase 1, honestly: six legacy prose-recovery branches instrumented with always-on telemetry, proven against a four-class fixture matrix — which FALSIFIED two of three dead-branch hypotheses before anything was deleted. The one the matrix exposed (lesson-level title fusion still running on the registry path, shipping fused pseudo-titles into prose 1,300+ times per course) was fixed the same day: studentArtifact now derives from the verbatim highest-weight registry title, and the telemetry is the permanent regression net.',
+      'An advisory LLM judge (--judge): one bundled professor-read call per course over three sampled artifacts, parsed defensively, never gating. Its first live verdict — solid kernel content, still too templated to teach as-is (3–5/10) — ships honestly in the round reports and is the declared north star for v0.14.4 Grounding.',
+      'Crucible sharpening: parallel browser contexts (rounds ~2× faster), a --max-spend guard, retry-once on flaky generations, score-trajectory history (crucible:history), round content diffing (--diff), and the verdict ledger — every confirmed true/false finding in the loop’s history, regression-checked against any grader change in one command (crucible:calibrate).',
+      'Discipline-true citation calibration from the breadth round: the known-offender blacklist now also rejects at attach time in the reading engine (defense-in-depth both sides), yields only to genuine topical overlap (a nursing immunology week keeps its innate-immunity-in-Alzheimer’s paper; a stats course never gets "Global Cancer Statistics" via the token "statistics"), medical literature is on-discipline for stats/nutrition/nursing/psych, and OpenStax license boilerplate renders once per group instead of 16 times per syllabus.',
+    ],
+    sections: [
+      {
+        label: 'Proof',
+        icon: 'QA',
+        color: 'emerald',
+        items: [
+          'Release verification round: 11 live courses (10 reference + stranger), all reference courses 100/A with zero P0/P1 after discipline calibration, in-app badge scores Δ0 against the Crucible across the board, total round cost ~$1.15.',
+          'The breadth round did its job twice over: six of seven findings on the new disciplines were grader miscalibrations (fixed, ledgered, and regression-locked via crucible:calibrate — 13 true positives still detected, 11 false positives still quiet), and one was a real product regression (the cancer-statistics attach) caught by the grader layer and fixed product-side before the tag.',
+          'The fixture matrix prevented two premature deletions: branches hypothesized dead were measured load-bearing (4,717 kind-inference hits on the registry class) and went to the phase-2 backlog with data instead of being deleted on vibes.',
+          'Full suite 2,953 passing; output-artifact gate fully armed; golden equivalence byte-green through every compiler change; bundle budgets green with the landing chunk unchanged.',
+        ],
+      },
+    ],
+  },
+  {
     version: '0.14.2',
     date: 'June 11, 2026',
     title: 'The Crucible: generate, grade, refine — until A+',

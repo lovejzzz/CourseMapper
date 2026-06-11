@@ -1,0 +1,218 @@
+[
+  {
+    "checkId": "registered-exam-artifact-contains-no-exam-content-never-appears-in-the-document",
+    "courseId": "cs-python",
+    "roundId": "round-2026-06-11T06-39-33-774Z",
+    "evidenceHash": "28151ca59b4369a52a1072b2998ebf5abca95827",
+    "verdict": "true-positive",
+    "note": "Confirmed live (v0.14.2 Round 1 deep read): L11 quiz bank shipped without registered exam artifact A11.2; generation-side fix verified clean from Round 3.",
+    "recordedAt": "2026-06-11T18:39:56.875Z"
+  },
+  {
+    "checkId": "registered-exam-artifact-contains-no-exam-content-never-appears-in-the-document",
+    "courseId": "cs-python",
+    "roundId": "round-2026-06-11T06-39-33-774Z",
+    "evidenceHash": "b0012c31099102baab5ef02c4c033767a4308826",
+    "verdict": "true-positive",
+    "note": "Confirmed live (v0.14.2 Round 1 deep read): L11 quiz bank shipped without registered exam artifact A11.5; generation-side fix verified clean from Round 3.",
+    "recordedAt": "2026-06-11T18:39:56.875Z"
+  },
+  {
+    "checkId": "registered-exam-artifact-contains-no-exam-content-never-appears-in-the-document",
+    "courseId": "geology",
+    "roundId": "round-2026-06-11T06-39-33-774Z",
+    "evidenceHash": "b2693d6a896f395a9fae08001994831c3caa092e",
+    "verdict": "true-positive",
+    "note": "Confirmed live (v0.14.2 Round 1 deep read): quiz bank shipped without registered exam artifact A8.3; generation-side fix verified clean from Round 2.",
+    "recordedAt": "2026-06-11T18:39:56.875Z"
+  },
+  {
+    "checkId": "registered-exam-artifact-contains-no-exam-content-never-appears-in-the-document",
+    "courseId": "geology",
+    "roundId": "round-2026-06-11T06-39-33-774Z",
+    "evidenceHash": "4074fc4ee7e871508f8f1ed38f0e027018242671",
+    "verdict": "true-positive",
+    "note": "Confirmed live (v0.14.2 Round 1 deep read): quiz bank shipped without registered exam artifact A14.3; generation-side fix verified clean from Round 2.",
+    "recordedAt": "2026-06-11T18:39:56.875Z"
+  },
+  {
+    "checkId": "off-discipline-reading-attached-to-a-student-reading-slot",
+    "courseId": "world-lit",
+    "roundId": "round-2026-06-11T06-39-33-774Z",
+    "evidenceHash": "23fb85ff3359a8fc305fc5dd0c31ab475f96ee6b",
+    "verdict": "true-positive",
+    "note": "Confirmed live (v0.14.2 Round 1 deep read): off-topic open-access reading attached to a student reading slot; clean from Round 2.",
+    "recordedAt": "2026-06-11T18:39:56.875Z"
+  },
+  {
+    "checkId": "off-discipline-reading-attached-to-a-student-reading-slot",
+    "courseId": "world-lit",
+    "roundId": "round-2026-06-11T06-39-33-774Z",
+    "evidenceHash": "2deb9e6a995097d8e9729e658f26bc4440ec9ff6",
+    "verdict": "true-positive",
+    "note": "Confirmed live (v0.14.2 Round 1 deep read): off-topic open-access reading attached to a student reading slot; clean from Round 2.",
+    "recordedAt": "2026-06-11T18:39:56.875Z"
+  },
+  {
+    "checkId": "off-discipline-reading-attached-to-a-student-reading-slot",
+    "courseId": "world-lit",
+    "roundId": "round-2026-06-11T06-39-33-774Z",
+    "evidenceHash": "7c14e80f993d4e9d4e56097ae862c0676d0355e9",
+    "verdict": "true-positive",
+    "note": "Confirmed live (v0.14.2 Round 1 deep read): off-topic open-access reading attached to a student reading slot; clean from Round 2.",
+    "recordedAt": "2026-06-11T18:39:56.875Z"
+  },
+  {
+    "checkId": "off-discipline-reading-attached-to-a-student-reading-slot",
+    "courseId": "world-lit",
+    "roundId": "round-2026-06-11T06-39-33-774Z",
+    "evidenceHash": "26801942788ecd4d94fe7218d185118f75fbb45e",
+    "verdict": "true-positive",
+    "note": "Confirmed live (v0.14.2 Round 1 deep read): off-topic open-access reading attached to a student reading slot; clean from Round 2.",
+    "recordedAt": "2026-06-11T18:39:56.875Z"
+  },
+  {
+    "checkId": "off-discipline-reading-attached-to-a-student-reading-slot",
+    "courseId": "world-lit",
+    "roundId": "round-2026-06-11T06-39-33-774Z",
+    "evidenceHash": "ba82e36b7ab03f8430d60b837c7729cfec1a87ef",
+    "verdict": "true-positive",
+    "note": "Confirmed live (v0.14.2 Round 1 deep read): off-topic open-access reading attached to a student reading slot; clean from Round 2.",
+    "recordedAt": "2026-06-11T18:39:56.875Z"
+  },
+  {
+    "checkId": "off-discipline-reading-attached-to-a-student-reading-slot",
+    "courseId": "world-lit",
+    "roundId": "round-2026-06-11T06-39-33-774Z",
+    "evidenceHash": "c165f3ad6c24cf54034488e5ff36c5b1d6d76819",
+    "verdict": "true-positive",
+    "note": "Confirmed live (v0.14.2 Round 1 deep read): off-topic open-access reading attached to a student reading slot; clean from Round 2.",
+    "recordedAt": "2026-06-11T18:39:56.875Z"
+  },
+  {
+    "checkId": "no-study-guide-pairs-hanzi-with-tone-marked-pinyin",
+    "courseId": "mandarin",
+    "roundId": "round-2026-06-11T06-39-33-774Z",
+    "evidenceHash": "9c5e9f63d923ef1f740195aacd1731421d88b565",
+    "verdict": "true-positive",
+    "note": "Confirmed live (v0.14.2 Round 1 deep read): no study guide paired hanzi with tone-marked pinyin; clean from Round 2.",
+    "recordedAt": "2026-06-11T18:39:56.875Z"
+  },
+  {
+    "checkId": "registered-exam-artifact-contains-no-exam-content-never-appears-in-the-document",
+    "courseId": "cs-python",
+    "roundId": "round-2026-06-11T16-11-11-692Z",
+    "evidenceHash": "c683e720e4a52fa241b682ea62c2b1d010932611",
+    "verdict": "true-positive",
+    "note": "Confirmed live (v0.14.2 Round 2 deep read): L11 quiz bank still missing registered exam artifact A11.2; fixed for Round 3.",
+    "recordedAt": "2026-06-11T18:39:56.875Z"
+  },
+  {
+    "checkId": "registered-exam-artifact-contains-no-exam-content-never-appears-in-the-document",
+    "courseId": "cs-python",
+    "roundId": "round-2026-06-11T16-11-11-692Z",
+    "evidenceHash": "0b5c5897ceb9c6cac26a875450623272c8e4c501",
+    "verdict": "true-positive",
+    "note": "Confirmed live (v0.14.2 Round 2 deep read): L11 quiz bank still missing registered exam artifact A11.3; fixed for Round 3.",
+    "recordedAt": "2026-06-11T18:39:56.875Z"
+  },
+  {
+    "checkId": "lesson-n-title-differs-across-deliverable-types",
+    "courseId": "geology",
+    "roundId": "round-2026-06-11T16-11-11-692Z",
+    "evidenceHash": "9b8de268a820ff3d84dde013ea9e8cefe7cd4b47",
+    "verdict": "false-positive",
+    "note": "reconstructed: Round-2 grader flagged geology L13 title drift that was actually benign cover-format variance; title-normalization fix landed in the v0.14.2 loop (tests/crucible-grader-proof.test.js).",
+    "recordedAt": "2026-06-11T18:39:56.875Z"
+  },
+  {
+    "checkId": "lesson-n-title-differs-across-deliverable-types",
+    "courseId": "world-lit",
+    "roundId": "round-2026-06-11T16-11-11-692Z",
+    "evidenceHash": "0a62ebe4d2f2270bfc40da06e500b465e47945ef",
+    "verdict": "false-positive",
+    "note": "reconstructed: Round-2 grader flagged world-lit L2 title drift that was actually benign cover-format variance; title-normalization fix landed in the v0.14.2 loop (tests/crucible-grader-proof.test.js).",
+    "recordedAt": "2026-06-11T18:39:56.875Z"
+  },
+  {
+    "checkId": "fused-colon-title-with-interior-lowercase-label",
+    "courseId": "cs-python",
+    "roundId": "round-2026-06-11T17-37-20-085Z",
+    "evidenceHash": "42dd1eb8aa09e8b5b1cb394091f8017911b5cbec",
+    "verdict": "false-positive",
+    "note": "reconstructed: Round-4 grader fabricated a fused-colon-title match across a paragraph join in cs-python; per-paragraph format scanning fixed it (tests/crucible-grader-proof.test.js FP-1).",
+    "recordedAt": "2026-06-11T18:39:56.875Z"
+  },
+  {
+    "checkId": "known-off-discipline-citation-offender-attached-to-a-reading-slot",
+    "courseId": "nursing-fundamentals",
+    "roundId": "round-2026-06-11T19-22-04-185Z",
+    "evidenceHash": "5782abe75bd039820c6bddfecb9a4e2362c38228",
+    "verdict": "false-positive",
+    "note": "discipline-breadth calibration v0.14.3 (FP-1): the 'Alzheimer' blacklist fired on a real immunology reading whose title carries the lesson concept 'innate immunity' (Week 8 'Innate versus Adaptive Immunity'); the blacklist now yields to ≥2-token topical overlap (zero-overlap MNIST stays absolute).",
+    "recordedAt": "2026-06-11T19:50:00.000Z"
+  },
+  {
+    "checkId": "known-off-discipline-citation-offender-attached-to-a-reading-slot",
+    "courseId": "nursing-fundamentals",
+    "roundId": "round-2026-06-11T19-22-04-185Z",
+    "evidenceHash": "2510058484bb8e1cfddc3efea46d3a4287f06d52",
+    "verdict": "false-positive",
+    "note": "discipline-breadth calibration v0.14.3 (FP-1): the same immunology reading listed in the nursing syllabus Sources section; topical overlap against the union of all lesson concepts clears it.",
+    "recordedAt": "2026-06-11T19:50:00.000Z"
+  },
+  {
+    "checkId": "seeded-prerequisite-gap-not-diagnosed-expected-a-bridged-gap-in-the-judgment-line-and-a-prerequisite-primer-naming-in-a-lesson-plan",
+    "courseId": "econ-intro",
+    "roundId": "round-2026-06-11T19-22-04-185Z",
+    "evidenceHash": "1c940384781ad471c940c943cea19f817561fe97",
+    "verdict": "false-positive",
+    "note": "discipline-breadth calibration v0.14.3 (FP-2): the seeded elasticity-before-demand-curve gap WAS diagnosed as out-of-order ('2 out-of-order'), the correct v0.14 classification; out-of-order prereqs do not get cited primers, so requiring a primer was wrong. The check now fires only on zero gaps of any kind.",
+    "recordedAt": "2026-06-11T19:50:00.000Z"
+  },
+  {
+    "checkId": "off-discipline-reading-attached-to-a-student-reading-slot",
+    "courseId": "stats-intro",
+    "roundId": "round-2026-06-11T19-22-04-185Z",
+    "evidenceHash": "4cfeb614129cdc2624c91c9b47094eab6d9c644d",
+    "verdict": "false-positive",
+    "note": "discipline-breadth calibration v0.14.3 (FP-3): STROBE (observational-study reporting) is a topically-relevant reading for a biostatistics observational-studies lesson; the medicine/clinical-methods markers are now on-discipline for stats/nutrition/nursing/psych.",
+    "recordedAt": "2026-06-11T19:50:00.000Z"
+  },
+  {
+    "checkId": "off-discipline-reading-attached-to-a-student-reading-slot",
+    "courseId": "nutrition-101",
+    "roundId": "round-2026-06-11T19-22-04-185Z",
+    "evidenceHash": "82c8887935773df051eaad3cd877e96ac5873602",
+    "verdict": "false-positive",
+    "note": "discipline-breadth calibration v0.14.3 (FP-3): the saturated/trans-fat ↔ cardiovascular/diabetes review is clinical-nutrition literature, on-discipline for a nutrition lipids lesson; medicine markers allowed for nutrition.",
+    "recordedAt": "2026-06-11T19:50:00.000Z"
+  },
+  {
+    "checkId": "doubled-option-letters",
+    "courseId": "astro-101",
+    "roundId": "round-2026-06-11T19-22-04-185Z",
+    "evidenceHash": "4f07a2dd7c2668da79ec1325f74c401ca1c608c2",
+    "verdict": "false-positive",
+    "note": "discipline-breadth calibration v0.14.3 (FP-4): 'F. F. S. van der Tak' is an author-initials list, not a quiz option; the doubled-option-letters pattern now excludes a third trailing initial (author list) while real 'A. A. Option' doubling still matches.",
+    "recordedAt": "2026-06-11T19:50:00.000Z"
+  },
+  {
+    "checkId": "doubled-option-letters",
+    "courseId": "astro-101",
+    "roundId": "round-2026-06-11T19-22-04-185Z",
+    "evidenceHash": "92fcec2e1cbb336e2ba0a9f4f8642413a40613a6",
+    "verdict": "false-positive",
+    "note": "discipline-breadth calibration v0.14.3 (FP-4): the same astro author-initials list in the syllabus Sources section (after the license tail, at segment start); the tightened pattern leaves it clean.",
+    "recordedAt": "2026-06-11T19:50:00.000Z"
+  },
+  {
+    "checkId": "truncated-slide-bullet-ending-mid-clause-without-terminal-punctuation",
+    "courseId": "stats-intro",
+    "roundId": "round-2026-06-11T19-22-04-185Z",
+    "evidenceHash": "8e51b8bef7b901e17c22c298a2798ad41d0ab5d1",
+    "verdict": "false-positive",
+    "note": "discipline-breadth calibration v0.14.3 (FP-5): 'population under the null hypothesis ↔ the full population…' is a concept-map relationship pair (A ↔ B), legitimately unpunctuated; arrow bullets are now exempt from the truncation heuristic.",
+    "recordedAt": "2026-06-11T19:50:00.000Z"
+  }
+]

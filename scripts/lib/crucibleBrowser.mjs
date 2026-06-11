@@ -386,6 +386,7 @@ export async function runCourseInBrowser({
   let zipPath = null;
   let status = 'failed';
   let errorText = null;
+  let legacyPathTelemetry = null;
 
   try {
     phase = 'loading-landing';
@@ -450,6 +451,12 @@ export async function runCourseInBrowser({
     phase = 'done';
     await page.screenshot({ path: path.join(outDir, 'workspace-ready.png'), fullPage: true }).catch(() => {});
     status = 'passed';
+    // WS-C C4: read the compiler's legacy-branch telemetry while the page is alive.
+    legacyPathTelemetry = await page
+      .evaluate(() =>
+        typeof globalThis.__cmLegacyPathTelemetry === 'function' ? globalThis.__cmLegacyPathTelemetry() : null,
+      )
+      .catch(() => null);
   } catch (error) {
     errorText = redactSecrets(error.stack || error.message || String(error));
     appendConsoleLine(
@@ -477,6 +484,7 @@ export async function runCourseInBrowser({
     digestPath,
     durationMs: Date.now() - startedAt,
     phase,
+    legacyPathTelemetry,
   };
   if (errorText) result.error = errorText;
   return result;

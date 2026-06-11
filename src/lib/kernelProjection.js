@@ -363,6 +363,54 @@ export function projectKernelToSurfaces(kernel, { itemPlan = [] } = {}) {
       scoringGuidance: '',
     });
   });
+
+  // v0.14.3 D1(b)+D3: the (already offset-deduped) pool often holds more
+  // authored items than the plan has slots — content the lesson paid for but
+  // never showed. Take a clean PREFIX of the unused tail (prefix semantics
+  // keep the linker's course-level consumption cursor honest: consumed items
+  // are always pool[0..n-1], so a repeated concept never re-draws one):
+  //   - the first unused item becomes `mcWalkthrough` — recast downstream as
+  //     a worked-example slide (stem = scenario, key = resolution,
+  //     explanation = the why);
+  //   - the next up-to-2 items become extension quiz items at the indices
+  //     after the plan (slots 7-8 of the weekly quiz), flagged
+  //     `extension: true` so the compiler appends them without minting frames.
+  // An item that fails the validity screen ends the prefix; everything after
+  // it stays in the bank for later lessons of the same concept.
+  let mcWalkthrough = null;
+  if (mcSlots.length > 0) {
+    const usableReserve = [];
+    for (const item of mcItems.slice(mcSlots.length)) {
+      const options = (item?.options || []).map(cleanText).filter(Boolean);
+      if (!cleanText(item?.question) || options.length !== 4 || !cleanText(item?.explanation)) break;
+      usableReserve.push({ ...item, options });
+      if (usableReserve.length >= 3) break;
+    }
+    const [walkthroughItem, ...extensionItems] = usableReserve;
+    if (walkthroughItem) {
+      mcWalkthrough = {
+        question: cleanText(walkthroughItem.question),
+        options: walkthroughItem.options,
+        answerIndex: Number(walkthroughItem.answerIndex) || 0,
+        explanation: cleanText(walkthroughItem.explanation),
+      };
+    }
+    const extensionBase = itemPlan.reduce((max, slot) => Math.max(max, Number(slot?.index) || 0), -1) + 1;
+    extensionItems.slice(0, 2).forEach((item, position) => {
+      quizItems.push({
+        index: extensionBase + position,
+        type: 'multiple_choice',
+        extension: true,
+        question: cleanText(item.question),
+        options: item.options,
+        answerIndex: Number(item.answerIndex) || 0,
+        distractorRationales: matchDistractorRationales(item, keyTerms),
+        answer: '',
+        explanation: cleanText(item.explanation),
+        scoringGuidance: '',
+      });
+    });
+  }
   if (shortAnswerSlot) {
     const shortAnswer = buildShortAnswerItem(kernel, shortAnswerSlot.index);
     if (shortAnswer) quizItems.push(shortAnswer);
@@ -419,6 +467,9 @@ export function projectKernelToSurfaces(kernel, { itemPlan = [] } = {}) {
     ...(discussionPrompt ? { discussionPrompt } : {}),
     ...(assignmentCore ? { assignmentCore } : {}),
     ...(workedExample ? { workedExample } : {}),
+    // v0.14.3 D1(b): one genuinely unused bank item for the deck's second
+    // application slide — never the same item the quiz slots consumed.
+    ...(mcWalkthrough ? { mcWalkthrough } : {}),
     kernel: {
       facts: Array.isArray(kernel?.facts) ? kernel.facts.map(cleanText).filter(Boolean) : [],
       scenario: kernel?.scenario

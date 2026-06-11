@@ -1,0 +1,338 @@
+/**
+ * v0143-quality-badge.test.js — WS-A proof: the package grades itself.
+ *
+ * Covers the V0.14.3 roadmap A1–A3 contracts end-to-end through the REAL
+ * exporters (no mocks):
+ *
+ *   (1) FileProvider parity — the same fixture package grades byte-
+ *       identically through the Node fs provider (Crucible path, via the
+ *       tests/lib shim) and the browser memory provider; the in-app honesty
+ *       source (honestyFromDigest) differs from console mode by EXACTLY the
+ *       checks named in IN_APP_EXCLUDED_CHECKS.
+ *   (2) Healthy package through the real packageZipExporter — manifest
+ *       gains quality { score ≥ 85, grade, graderVersion, findingCounts,
+ *       dimensions, gradedAt }, QUALITY_REPORT.md ships at the zip root,
+ *       and the grader never grades its own outputs (a regrade of the
+ *       downloaded zip reproduces the embedded score).
+ *   (3) Seeded P0 — a discipline P0 (Mandarin-titled course with zero CJK)
+ *       lands in manifest.quality.findingCounts AND surfaces as a
+ *       finalizer readiness warning through applyQualityToFinalizerResult.
+ *   (4) Timeout path — quality { status: 'not-graded', reason } while the
+ *       zip stays complete.
+ *   (5) Export verifier count regression net — QUALITY_REPORT.md adds no
+ *       verifier checks and changes no counts.
+ *
+ * The Crucible cross-check column (roadmap A5(4), inAppScore in the round
+ * report) belongs to the WS-B/release agent — deliberately not here.
+ */
+import { beforeAll, describe, expect, it } from 'vitest';
+import fs from 'node:fs';
+import os from 'node:os';
+import path from 'node:path';
+import JSZip from 'jszip';
+
+import { compileBlueprintDeliverables } from '../src/lib/courseBlueprintCompiler';
+import {
+  buildBlueprintFromGraph,
+  deriveCourseGraphFromCourseMap,
+  renderCourseMapFromGraph,
+} from '../src/lib/courseGraph';
+import { buildCourseMaterialsZip } from '../src/lib/packageZipExporter.js';
+import { verifyPackageExports } from '../src/lib/packageExportVerifier.js';
+import { applyQualityToFinalizerResult, runDeterministicPackageFinalizer } from '../src/lib/packageFinalizer.js';
+import { buildRunDigest } from '../src/lib/runDigest.js';
+// The shim path — the exact module the Crucible driver lazy-imports. It must
+// keep the legacy grade({ extractedDir }) signature working (A1).
+import { grade, honestyFromDigest, GRADER_VERSION, IN_APP_EXCLUDED_CHECKS } from './lib/deepQualityGrader.js';
+import { createMemoryFileProvider } from '../src/lib/quality/fileProviders.js';
+
+beforeAll(() => {
+  // pptx text-fit pass measures with OffscreenCanvas — stub for node env.
+  const context = { font: '', measureText: (text) => ({ width: String(text || '').length * 7 }) };
+  globalThis.OffscreenCanvas = class OffscreenCanvas {
+    getContext() {
+      return context;
+    }
+  };
+});
+
+const GEO_FEATURES = ['syllabus', 'lessonPlans', 'slideDecks', 'assignments', 'rubrics', 'quizBank', 'studyGuides'];
+const GEO_COURSE = { id: 'geology', title: 'Physical Geology', featureIds: GEO_FEATURES };
+
+const PIPELINE_STATE = {
+  genomeLinker: '2 genome + 0 cached of 4 lessons (8 concepts, 6 citations, 1 bridges)',
+  enrichment: 'ran (4/4)',
+  judgment: 'no gaps across 8 linked concepts',
+  knowledgeBackbone: '2/4 lessons genome-linked · 6 cited open resources',
+};
+
+function geologyCourseMap(courseName = 'Physical Geology') {
+  const topics = [
+    ['Minerals', 'mineral identification'],
+    ['Igneous Rocks', 'igneous textures'],
+    ['Sedimentary Rocks', 'sedimentary environments'],
+    ['Metamorphic Rocks', 'metamorphic grade'],
+  ];
+  return {
+    courseName,
+    semester: 'Fall 2026',
+    lessons: topics.map(([title, concept], index) => ({
+      title: `Lesson ${index + 1}: ${title}`,
+      sections: [
+        {
+          topicSection: `${index + 1}.1: ${title}`,
+          learningGoals: `1. Build field-ready understanding of ${concept}.`,
+          learningObjectives: `Analyze ${concept} using specimen evidence.\nEvaluate how ${concept} changes a field decision.`,
+          weeklyAssessments: `Quiz: ${concept} problems`,
+          asyncActivities: `Read the assigned chapter on ${title.toLowerCase()}.`,
+          syncActivities: `Workshop: ${concept} case analysis.`,
+          supportingResources: `OpenStax geology chapter on ${title.toLowerCase()}`,
+        },
+      ],
+    })),
+  };
+}
+
+function healthyBudget() {
+  return { runId: 'run-quality-1', usageLedger: [], pipeline: { ...PIPELINE_STATE } };
+}
+
+function healthyDigest() {
+  return buildRunDigest({
+    budget: healthyBudget(),
+    exportVerification: { status: 'passed', checked: 30, failed: 0, warningCount: 0, checks: [] },
+    finish: { finalStatus: 'ready', blockers: 0, warnings: 0, repairsApplied: 0, retryCallCount: 0 },
+    generation: { provider: 'anthropic', lessonCount: 4, featureIds: GEO_FEATURES },
+  });
+}
+
+// Console transcript for the fs/Crucible grading mode — consistent with
+// PIPELINE_STATE so the healthy honesty checks all pass.
+function healthyConsoleLog() {
+  return [
+    `[CM][API] genomeLink {"label":"CurriculumOS linker","detail":"${PIPELINE_STATE.genomeLinker}"}`,
+    `[CM][API] pipelineDecision {"label":"Course judgment","detail":"${PIPELINE_STATE.judgment}"}`,
+    `2/4 lessons genome-linked · 6 cited open resources`,
+    `enrichment: ran (4/4)`,
+  ].join('\n');
+}
+
+function buildPackageFixture(courseName = 'Physical Geology') {
+  const courseMap = geologyCourseMap(courseName);
+  const graph = deriveCourseGraphFromCourseMap(courseMap);
+  const blueprint = buildBlueprintFromGraph(graph);
+  const compiled = compileBlueprintDeliverables(blueprint, GEO_FEATURES);
+  const displayMap = renderCourseMapFromGraph(graph, { assessmentReferences: true });
+  const deliverables = {};
+  for (const featureId of GEO_FEATURES) {
+    deliverables[featureId] = { status: 'done', data: compiled[featureId] };
+  }
+  return { courseMap: displayMap, deliverables, graph };
+}
+
+async function buildPackage({ courseName = 'Physical Geology', quality = {} } = {}) {
+  const { courseMap, deliverables, graph } = buildPackageFixture(courseName);
+  const result = await buildCourseMaterialsZip({
+    courseMap,
+    courseName,
+    deliverables,
+    featureIds: ['courseMap', ...GEO_FEATURES],
+    courseGraph: graph,
+    pipelineState: { ...PIPELINE_STATE },
+    quality,
+  });
+  return { ...result, fixture: { courseMap, deliverables, graph } };
+}
+
+async function extractZipToDir(blob, dir) {
+  const zip = await JSZip.loadAsync(await blob.arrayBuffer());
+  for (const name of Object.keys(zip.files)) {
+    const entry = zip.files[name];
+    if (entry.dir) continue;
+    const dest = path.join(dir, name);
+    fs.mkdirSync(path.dirname(dest), { recursive: true });
+    fs.writeFileSync(dest, await entry.async('nodebuffer'));
+  }
+}
+
+async function fileMapFromZip(blob) {
+  const zip = await JSZip.loadAsync(await blob.arrayBuffer());
+  const map = {};
+  for (const [name, entry] of Object.entries(zip.files)) {
+    if (entry.dir) continue;
+    map[name] = await entry.async('uint8array');
+  }
+  return map;
+}
+
+describe('A5(1) — memory vs fs FileProvider parity', () => {
+  it('grades the same package identically through both providers, minus IN_APP_EXCLUDED_CHECKS', async () => {
+    const { blob } = await buildPackage({ quality: false });
+    const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'v0143-parity-'));
+    try {
+      await extractZipToDir(blob, dir);
+      // Seed BOTH console-only honesty signals so the exclusion list is
+      // exercised, not vacuous: a genuine app error (console-noise P2) and a
+      // mass LO-field repair line (mass-repair-fill P1).
+      const consoleLogText = [
+        healthyConsoleLog(),
+        "[error] Uncaught TypeError: Cannot read properties of undefined (reading 'lessons')",
+        '[CM] blueprint_course_map_repaired {"repairedFieldCount": 14}',
+      ].join('\n');
+      const digest = healthyDigest();
+
+      // (a) Pure provider parity — same console honesty mode, fs vs memory.
+      const fsResult = await grade({ extractedDir: dir, consoleLogText, digest, course: GEO_COURSE });
+      const memResult = await grade({
+        fileProvider: createMemoryFileProvider(await fileMapFromZip(blob)),
+        consoleLogText,
+        digest,
+        course: GEO_COURSE,
+      });
+      expect(memResult.findings).toEqual(fsResult.findings);
+      expect(memResult.scores).toEqual(fsResult.scores);
+      expect(memResult.overall).toEqual(fsResult.overall);
+
+      // (b) In-app honesty mode differs by EXACTLY the excluded checks.
+      expect(IN_APP_EXCLUDED_CHECKS.map((check) => check.id)).toEqual(['console-noise', 'mass-repair-fill']);
+      for (const check of IN_APP_EXCLUDED_CHECKS) {
+        expect(check.reason.length, check.id).toBeGreaterThan(10);
+        // Each excluded check actually fired in console mode (seeded above).
+        expect(
+          fsResult.findings.some((finding) => check.detailPattern.test(finding.detail)),
+          `expected seeded console-mode finding for ${check.id}`,
+        ).toBe(true);
+      }
+      const inAppResult = await grade({
+        fileProvider: createMemoryFileProvider(await fileMapFromZip(blob)),
+        honesty: honestyFromDigest(healthyBudget(), digest),
+        course: GEO_COURSE,
+      });
+      const stripIds = (findings) => findings.map(({ id: _id, ...rest }) => rest);
+      const fsMinusExcluded = fsResult.findings.filter(
+        (finding) => !IN_APP_EXCLUDED_CHECKS.some((check) => check.detailPattern.test(finding.detail)),
+      );
+      expect(stripIds(inAppResult.findings)).toEqual(stripIds(fsMinusExcluded));
+    } finally {
+      fs.rmSync(dir, { recursive: true, force: true });
+    }
+  }, 120000);
+});
+
+describe('A5(2) — healthy package ships its own audit', () => {
+  it('manifest.quality score ≥ 85, QUALITY_REPORT.md in the zip, self-outputs never graded', async () => {
+    const result = await buildPackage({ quality: { budget: healthyBudget(), digest: healthyDigest() } });
+
+    expect(result.quality?.status).toBe('graded');
+    expect(result.quality.score).toBeGreaterThanOrEqual(85);
+    expect(result.quality.graderVersion).toBe(GRADER_VERSION);
+    expect(result.quality.findingCounts.p0).toBe(0);
+    expect(Object.keys(result.quality.dimensions)).toContain('honesty');
+    expect(result.quality.gradedAt).toMatch(/^\d{4}-\d{2}-\d{2}T/);
+
+    const zip = await JSZip.loadAsync(await result.blob.arrayBuffer());
+    const report = await zip.file('QUALITY_REPORT.md').async('string');
+    expect(report).toContain('## Scores');
+    expect(report).toContain(`**Overall: ${result.quality.score}/100 (${result.quality.grade})**`);
+    const manifest = JSON.parse(await zip.file('PACKAGE_MANIFEST.json').async('string'));
+    expect(manifest.quality).toEqual(result.quality);
+    // The report rides the returned files list but, like the manifest's own
+    // entry, is not in manifest.files (the manifest is finalized first).
+    expect(result.files.some((file) => file.path === 'QUALITY_REPORT.md')).toBe(true);
+    expect((manifest.files || []).some((file) => file.path === 'QUALITY_REPORT.md')).toBe(false);
+
+    // Self-grading exclusion: regrading the DOWNLOADED zip (which now
+    // contains manifest.quality + QUALITY_REPORT.md) reproduces the embedded
+    // score exactly — the grader ignores its own outputs.
+    const regrade = await grade({
+      fileProvider: createMemoryFileProvider(await fileMapFromZip(result.blob)),
+      honesty: honestyFromDigest(healthyBudget(), healthyDigest()),
+      course: GEO_COURSE,
+    });
+    expect(regrade.overall.score).toBe(result.quality.score);
+    expect(regrade.findings.filter((finding) => /quality_report/i.test(finding.file))).toEqual([]);
+  }, 120000);
+});
+
+describe('A5(3) — seeded P0 reaches the manifest and the readiness channel', () => {
+  it('a Mandarin-titled package with zero CJK carries the discipline P0 and the finalizer warning', async () => {
+    // The in-zip course identity comes from the manifest courseName — naming
+    // the geology-content fixture as a Mandarin course makes the language
+    // probe fire deterministically (zero CJK/pinyin in its own materials).
+    const result = await buildPackage({
+      courseName: 'Elementary Mandarin Chinese I',
+      quality: { budget: healthyBudget(), digest: healthyDigest() },
+    });
+    expect(result.quality?.status).toBe('graded');
+    expect(result.quality.findingCounts.p0).toBeGreaterThanOrEqual(1);
+    const manifest = JSON.parse(
+      await (await JSZip.loadAsync(await result.blob.arrayBuffer())).file('PACKAGE_MANIFEST.json').async('string'),
+    );
+    expect(manifest.quality.findingCounts.p0).toBeGreaterThanOrEqual(1);
+
+    // The finalizer integration seam AppFlow applies after grading: the P0
+    // becomes a readiness WARNING (source qualityGate), never a blocker.
+    const { fixture } = result;
+    const finalizerResult = runDeterministicPackageFinalizer({
+      courseMap: fixture.courseMap,
+      deliverables: fixture.deliverables,
+      selectedFeatures: GEO_FEATURES,
+      courseGraph: fixture.graph,
+    });
+    const withQuality = applyQualityToFinalizerResult(finalizerResult, result.quality);
+    expect(withQuality.quality).toEqual(result.quality);
+    const warning = withQuality.readiness.warnings.find((issue) => issue.source === 'qualityGate');
+    expect(warning, JSON.stringify(withQuality.readiness.warnings)).toBeTruthy();
+    expect(warning.severity).toBe('warning');
+    expect(warning.message).toMatch(/P0 finding/);
+    expect(warning.message).toMatch(/QUALITY_REPORT\.md/);
+    expect(withQuality.readiness.blockers).toEqual(finalizerResult.readiness.blockers);
+
+    // A clean grade adds nothing to the channel.
+    const clean = applyQualityToFinalizerResult(finalizerResult, {
+      status: 'graded',
+      score: 100,
+      grade: 'A',
+      findingCounts: { p0: 0, p1: 0, p2: 0 },
+    });
+    expect(clean.readiness.warnings.filter((issue) => issue.source === 'qualityGate')).toEqual([]);
+  }, 120000);
+});
+
+describe('A5(4) — timeout path never blocks the package', () => {
+  it('quality reports not-graded on timeout while the zip stays complete', async () => {
+    const result = await buildPackage({ quality: { timeoutMs: 0 } });
+    expect(result.quality.status).toBe('not-graded');
+    expect(result.quality.reason).toMatch(/timed out/);
+
+    const zip = await JSZip.loadAsync(await result.blob.arrayBuffer());
+    const manifest = JSON.parse(await zip.file('PACKAGE_MANIFEST.json').async('string'));
+    expect(manifest.quality).toEqual(result.quality);
+    // No report without a grade, and every regular file still ships.
+    expect(zip.file('QUALITY_REPORT.md')).toBeNull();
+    const names = Object.keys(zip.files).filter((name) => !zip.files[name].dir);
+    expect(names).toContain('PACKAGE_MANIFEST.json');
+    for (const featureFolder of ['Course Map', 'Lesson Plans', 'Slide Decks', 'Quiz & Exam Bank']) {
+      expect(
+        names.some((name) => name.startsWith(`${featureFolder}/`)),
+        `missing ${featureFolder} in ${names.join(', ')}`,
+      ).toBe(true);
+    }
+  }, 120000);
+});
+
+describe('A5(5) — export verifier count regression net', () => {
+  it('the report file adds no verifier checks: counts match the feature formula exactly', async () => {
+    const { courseMap, deliverables } = buildPackageFixture();
+    const verification = await verifyPackageExports({
+      courseMap,
+      deliverables,
+      selectedFeatures: ['courseMap', ...GEO_FEATURES],
+    });
+    expect(verification.failed).toBe(0);
+    // courseMap → 2 checks (xlsx + pdf); each deliverable → 4 checks
+    // (content + csv + docx/pptx + pdf). QUALITY_REPORT.md must not appear.
+    expect(verification.checked).toBe(2 + GEO_FEATURES.length * 4);
+    expect(verification.checks.every((check) => check.featureId !== 'quality')).toBe(true);
+  }, 120000);
+});

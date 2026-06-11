@@ -13,7 +13,14 @@ import { UIProvider } from './contexts/UIContext';
 import { CourseProvider } from './contexts/CourseContext';
 import ErrorBoundary from './components/ErrorBoundary';
 import { PageSkeleton } from './components/LoadingScreen';
+import { getLegacyPathTelemetry } from './lib/legacyPathTelemetry';
 import './index.css';
+
+// v0.14.3 WS-C (C1): the Crucible driver reads legacy-branch hit counters
+// post-generation via page.evaluate(() => window.__cmLegacyPathTelemetry()).
+// Always on — exposes the live function (not a snapshot) so reads see every
+// compile that ran before the read.
+window.__cmLegacyPathTelemetry = getLegacyPathTelemetry;
 
 function Router() {
   const getPage = () => {

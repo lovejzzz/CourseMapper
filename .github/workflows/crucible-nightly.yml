@@ -1,0 +1,76 @@
+name: Crucible nightly
+
+# The Crucible is CourseMapper's autonomous generate → grade loop. This workflow
+# runs a SMOKE round (the cs-python smoke pool, ~$0.25) in CI so regressions are
+# caught without a local run.
+#
+# DISPATCH-ONLY for now. The cron is commented out deliberately: an unattended
+# nightly run spends ~$10-15/month against the OpenAI key in repo secrets, which
+# is an open decision for the repo owner (see V0.14.3 roadmap WS-B4). Enable the
+# schedule only after that decision is made.
+#
+# Secret: COURSEMAPPER_OPENAI_API_KEY — an OpenAI API key with access to the
+# generation model. When the secret is EMPTY (e.g. a fork, or a dispatch before
+# the key is set) the run exits 0 with a notice instead of a red X, so a bare
+# dispatch never fails the repo.
+on:
+  workflow_dispatch:
+  # schedule:
+  #   - cron: '0 8 * * *' # enable after the repo secret decision — ~$10-15/mo autonomous spend
+
+permissions:
+  contents: read
+
+concurrency:
+  group: crucible-nightly-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  crucible-smoke:
+    name: Crucible smoke round
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Install Playwright Chromium
+        run: npx playwright install --with-deps chromium
+
+      - name: Build
+        run: npm run build
+
+      - name: Guard — require the API key secret
+        id: guard
+        shell: bash
+        env:
+          COURSEMAPPER_OPENAI_API_KEY: ${{ secrets.COURSEMAPPER_OPENAI_API_KEY }}
+        run: |
+          if [[ -z "${COURSEMAPPER_OPENAI_API_KEY}" ]]; then
+            echo "::notice::COURSEMAPPER_OPENAI_API_KEY is not set — skipping the live Crucible round (exit 0)."
+            echo "run_crucible=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "run_crucible=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Crucible smoke round (max spend $0.60)
+        if: steps.guard.outputs.run_crucible == 'true'
+        env:
+          COURSEMAPPER_OPENAI_API_KEY: ${{ secrets.COURSEMAPPER_OPENAI_API_KEY }}
+        run: node scripts/crucible.mjs --courses smoke --max-spend 0.60
+
+      - name: Upload round artifacts
+        if: always() && steps.guard.outputs.run_crucible == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: crucible-round
+          path: verification-output/crucible/round-*
+          if-no-files-found: ignore

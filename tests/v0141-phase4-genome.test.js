@@ -386,8 +386,11 @@ describe('4.5 genome augments, never displaces', () => {
 describe('4.6 cross-lesson quiz dedupe — mcBank offsets + first-occurrence worked example', () => {
   // conceptResolver deliberately resolves the same concept in multiple
   // lessons (coherence boost) — the fix is in what each repeat DRAWS, not in
-  // the resolution. itemPlan(6) has 4 MC slots, so a 6-item bank must split
-  // 4 / 2 / 0 across three lessons resolving to the same concept.
+  // the resolution. itemPlan(6) has 4 MC slots. v0.14.3 D1(b)+D3: a lesson
+  // with unused bank items beyond its slots now ALSO consumes a contiguous
+  // prefix of the tail — one mcWalkthrough (deck application slide) and up
+  // to two extension quiz items — so a 6-item bank is fully consumed by one
+  // lesson (4 slots + walkthrough + 1 extension) and splits 6 / 0 / 0.
   const bankStems = (term, size) =>
     Array.from({ length: size }, (_, position) =>
       position === 0 ? `Which statement best describes ${term}?` : `${term} bank item ${position}: which claim holds?`,
@@ -411,18 +414,31 @@ describe('4.6 cross-lesson quiz dedupe — mcBank offsets + first-occurrence wor
     (payload?.quizItems || []).filter((item) => item.type === 'multiple_choice').map((item) => item.question);
 
   it('a repeated concept draws the NEXT unused mcBank items — zero verbatim stem overlap (the WL L7=L14 dup)', () => {
+    // v0.14.3 depth slice: a 6-item bank is fully drained by lesson A
+    // (slots + walkthrough + extension), so exercising the cross-lesson
+    // cursor now needs a deeper bank — 12 items leave lesson B real draws.
+    const library = createKernelLibrary({ storage: memoryStorage() });
+    library.addKernel(makeKernel('lit/literary-argument', 'Literary Argument', { bankSize: 12, workedExample: true }));
     const linked = runGenomeLinker({
       courseMap: repeatedConceptCourse(2),
       lessonIndices: [0, 1],
-      library: litLibrary(),
+      library,
       itemPlan,
     });
-    const stems = bankStems('Literary Argument', 6);
-    // Lesson A consumes items 0..3 (4 MC slots in the plan).
-    expect(mcStemsOf(linked.lessonContent['lesson-1'])).toEqual(stems.slice(0, 4));
-    // Lesson B starts at the course-level cursor: items 4..5, nothing reused.
-    expect(mcStemsOf(linked.lessonContent['lesson-2'])).toEqual(stems.slice(4, 6));
-    const stemsA = new Set(mcStemsOf(linked.lessonContent['lesson-1']));
+    const stems = bankStems('Literary Argument', 12);
+    // Lesson A: items 0..3 fill the 4 MC slots; item 4 becomes the deck
+    // walkthrough (v0.14.3 D1b); items 5..6 become extension quiz items
+    // (v0.14.3 D3) — 7 consumed in total.
+    expect(mcStemsOf(linked.lessonContent['lesson-1'])).toEqual([...stems.slice(0, 4), ...stems.slice(5, 7)]);
+    expect(linked.lessonContent['lesson-1'].mcWalkthrough.question).toBe(stems[4]);
+    // Lesson B starts at the course-level cursor (item 7): slots take 7..10,
+    // item 11 becomes ITS walkthrough, nothing reused.
+    expect(mcStemsOf(linked.lessonContent['lesson-2'])).toEqual(stems.slice(7, 11));
+    expect(linked.lessonContent['lesson-2'].mcWalkthrough.question).toBe(stems[11]);
+    const stemsA = new Set([
+      ...mcStemsOf(linked.lessonContent['lesson-1']),
+      linked.lessonContent['lesson-1'].mcWalkthrough.question,
+    ]);
     expect(mcStemsOf(linked.lessonContent['lesson-2']).filter((stem) => stemsA.has(stem))).toEqual([]);
     // Lesson B's items keep numeric slot indices for the quiz overlay.
     expect(linked.lessonContent['lesson-2'].quizItems.every((item) => Number.isFinite(item.index))).toBe(true);
@@ -477,8 +493,12 @@ describe('4.6 cross-lesson quiz dedupe — mcBank offsets + first-occurrence wor
       itemPlan,
     });
     // Lesson 2's concept was never consumed before — it starts at item 0,
-    // even though lesson 1 advanced the cursor for ITS concept.
-    expect(mcStemsOf(linked.lessonContent['lesson-2'])).toEqual(bankStems('Seafloor Spreading', 6).slice(0, 4));
+    // even though lesson 1 advanced the cursor for ITS concept. v0.14.3
+    // depth slice: items 0..3 fill the slots, item 4 becomes the deck
+    // walkthrough, item 5 the lone extension quiz item.
+    const spreadingStems = bankStems('Seafloor Spreading', 6);
+    expect(mcStemsOf(linked.lessonContent['lesson-2'])).toEqual([...spreadingStems.slice(0, 4), spreadingStems[5]]);
+    expect(linked.lessonContent['lesson-2'].mcWalkthrough.question).toBe(spreadingStems[4]);
     // And its own worked example ships — the seen-set is per concept.
     expect(linked.lessonContent['lesson-2'].workedExample.problem).toMatch(/Seafloor Spreading rate/);
   });

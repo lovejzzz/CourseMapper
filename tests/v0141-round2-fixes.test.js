@@ -44,6 +44,11 @@ import {
   topicGateVerdict,
   allowedTopicNamesForCourse,
 } from '../src/lib/knowledge/readingListEngine.js';
+import {
+  matchesKnownOffender,
+  blacklistYieldsToTopicalOverlap,
+  isTruncatedBulletLine,
+} from '../src/lib/quality/artifactDefectPatterns.js';
 import { finalizeCompiledDeliverableLanguage } from '../src/lib/compiledLanguageFinalizer.js';
 import {
   buildCourseBlueprint,
@@ -1423,5 +1428,234 @@ describe('round-3 polish 4 — "X: X" echo chains are gone from labels and prime
     expect(citations.some((citation) => ECHO_RE.test(citation))).toBe(false);
     // …and definitions that do NOT lead with the term keep the "term: definition" label.
     expect(citations[1]).toContain('Prerequisite primer — Meter: The patterned rhythm');
+  });
+});
+
+// ════════════════════════════════════════════════════════════════════════════
+// v0.14.3 round-2 surgical fixes (verification-output/crucible/
+// round-2026-06-11T20-21-08-130Z) — stats-intro P0 + P1.
+//   FIX 1: known-offender blacklist goes product-side — the engine rejects the
+//          famous offender at ATTACH time off the SAME shared list + yield rule
+//          the grader uses, with a generic/discipline-name-token refinement.
+//   FIX 2: one unpunctuated verbatim-passthrough slide-bullet path gains the
+//          ≥60-char terminal-punctuation rule.
+// ════════════════════════════════════════════════════════════════════════════
+
+describe('round-2 FIX 1 — known-offender blacklist is single-sourced and enforced at attach time', () => {
+  // The exact stats-intro offender from the round: "Global Cancer Statistics,
+  // 2002" (Parkin et al.) — a Medicine/Health-Science topic field (legal for an
+  // intro-stats course per the v0.14.3 calibration) whose only tie to a
+  // sampling lesson is the generic word "statistics".
+  const CANCER_STATS_2002 = {
+    title: 'Global Cancer Statistics, 2002',
+    abstract:
+      'Estimates of worldwide cancer incidence and mortality for the year 2002, by site and region, ' +
+      'from population-based cancer registries.',
+    url: 'https://onlinelibrary.wiley.com/doi/pdfdirect/10.3322/canjclin.55.2.74',
+    citedBy: 40000,
+    authors: 'Donald Maxwell Parkin, Freddie Bray, Jacques Ferlay et al.',
+    license: 'open access',
+    // The legitimate stats topic field that the v0.14.3 calibration allows.
+    primaryTopic: { name: 'Cancer Epidemiology', field: 'Medicine', domain: 'Health Sciences' },
+  };
+
+  // A genuinely on-topic stats reading (STROBE) to prove the gate still lets
+  // real Medicine-field stats readings through.
+  const STROBE_WORK = {
+    title: 'The Strengthening the Reporting of Observational Studies in Epidemiology (STROBE) statement',
+    abstract:
+      'Reporting guidelines for observational studies: sampling frame, confounding, p-values, ' +
+      'confidence intervals, and significance testing in cohort and case-control designs.',
+    url: 'https://www.equator-network.org/strobe.pdf',
+    citedBy: 30000,
+    authors: 'Erik von Elm, Douglas G. Altman et al.',
+    license: 'cc-by',
+    primaryTopic: { name: 'Epidemiological Methods', field: 'Medicine', domain: 'Health Sciences' },
+  };
+
+  // The nursing FP-1 keeper: a paper whose title shares the lesson's REAL
+  // concept ("innate immunity") despite carrying the "Alzheimer" blacklist key.
+  const NURSING_IMMUNITY_WORK = {
+    title: 'Microglial-mediated innate immunity and inflammation in Alzheimer disease',
+    abstract:
+      'Rare coding variants implicate microglial innate immune signalling and neuroinflammation in ' +
+      'the pathogenesis of late-onset disease.',
+    url: 'https://doi.org/10.1038/ng.3916',
+    citedBy: 1200,
+    authors: 'Rebecca Sims, GERAD/PERADES et al.',
+    license: 'cc-by',
+    primaryTopic: { name: 'Neuroimmunology', field: 'Immunology and Microbiology', domain: 'Life Sciences' },
+  };
+
+  function courseGraph({ courseName, number, sessionTitle, conceptTerms }) {
+    return {
+      course: { name: courseName },
+      sessions: [{ id: 's1', number, title: sessionTitle, sections: [{ topic: 'x' }] }],
+      concepts: conceptTerms.map((term, index) => ({ id: `c${index + 1}`, term })),
+      edges: { teaches: conceptTerms.map((_, index) => ({ from: 's1', to: `c${index + 1}` })) },
+      resources: [],
+    };
+  }
+
+  it('the shared matcher + list live in artifactDefectPatterns and the grader/engine import them', () => {
+    // The matcher identifies the exact round offender and the historical class.
+    expect(matchesKnownOffender('Global Cancer Statistics, 2002')).toBe('Global cancer statistics');
+    expect(matchesKnownOffender('Gradient-Based Learning Applied to Document Recognition (MNIST)')).toBeTruthy();
+    expect(matchesKnownOffender('A close reading of Tang poetry')).toBe(null);
+  });
+
+  it('the yield rule ignores generic + discipline-name tokens: cancer-stats never yields to a stats lesson', () => {
+    // The ONLY overlap between "Global Cancer Statistics" and a sampling lesson
+    // is the generic, discipline-name token "statistics" → no yield.
+    const titleTokens = new Set(['global', 'cancer', 'statistics']);
+    const samplingConcept = new Set(['sampling', 'distribution', 'statistics', 'estimator']);
+    expect(
+      blacklistYieldsToTopicalOverlap(titleTokens, samplingConcept, {
+        disciplineNameTokens: ['statistics', 'statistical'],
+      }),
+    ).toBe(false);
+    // …but a nursing immunity lesson KEEPS its Alzheimer-innate-immunity paper:
+    // the overlap tokens ("innate","immunity") are neither generic nor the name.
+    const immunityTitle = new Set(['microglial', 'innate', 'immunity', 'inflammation', 'alzheimer']);
+    const immunityConcept = new Set(['innate', 'adaptive', 'immunity', 'inflammation']);
+    expect(blacklistYieldsToTopicalOverlap(immunityTitle, immunityConcept, { disciplineNameTokens: ['nursing'] })).toBe(
+      true,
+    );
+  });
+
+  it('REJECTS the cancer-statistics paper for a stats sampling lesson at attach time', async () => {
+    const graph = courseGraph({
+      courseName: 'Introductory Statistics',
+      number: 5,
+      sessionTitle: 'Lesson 5: P-Values and Significance',
+      conceptTerms: ['sampling distribution', 'significance testing'],
+    });
+    const attached = await attachOpenReadings(graph, { providers: stubReadings([CANCER_STATS_2002]) });
+    expect(attached).toBe(0);
+    expect(graph.resources).toHaveLength(0);
+    const decision = graph.readingListDecisions[0];
+    expect(decision.type).toBe('no-relevant-reading');
+    expect(decision.rejectedKnownOffender).toBe(1);
+    expect(decision.knownOffenderMessage).toContain('rejected known-offender: Global Cancer Statistics, 2002');
+  });
+
+  it('still attaches a genuinely on-topic Medicine-field stats reading (STROBE) — the calibration survives', async () => {
+    const graph = courseGraph({
+      courseName: 'Introductory Statistics',
+      number: 5,
+      sessionTitle: 'Lesson 5: Significance Testing and Reporting',
+      conceptTerms: ['significance testing', 'observational study reporting'],
+    });
+    const attached = await attachOpenReadings(graph, { providers: stubReadings([STROBE_WORK, CANCER_STATS_2002]) });
+    expect(attached).toBe(1);
+    expect(graph.resources[0].citation).toContain('STROBE');
+    expect(graph.readingListDecisions || []).toHaveLength(0);
+  });
+
+  it('a nursing immunity lesson KEEPS its Alzheimer-innate-immunity paper (the yield case)', async () => {
+    const graph = courseGraph({
+      courseName: 'Foundations for Nursing Practice',
+      number: 8,
+      sessionTitle: 'Lesson 8: Innate versus Adaptive Immunity',
+      conceptTerms: ['innate immunity', 'inflammation'],
+    });
+    const attached = await attachOpenReadings(graph, { providers: stubReadings([NURSING_IMMUNITY_WORK]) });
+    expect(attached).toBe(1);
+    expect(graph.resources[0].citation).toContain('innate immunity');
+    expect(graph.readingListDecisions || []).toHaveLength(0);
+  });
+});
+
+describe('round-2 FIX 2 — verbatim-passthrough slide bullets gain the ≥60-char punctuation rule', () => {
+  // The live stats-intro deck (Lesson 06 — Logic of Hypothesis Testing) shipped
+  // four anchor-fact bullets verbatim via the enriched-slide passthrough; the
+  // second was a ≥60-char complete clause with NO terminal punctuation.
+  const STATS_BULLET = 'The test direction must match the claim: two-sided, greater than, or less than';
+
+  function statsEnrichedCourseMap() {
+    return {
+      courseName: 'Introductory Statistics',
+      lessons: [
+        {
+          title: 'Lesson 6: Logic of Hypothesis Testing',
+          sections: [
+            {
+              topicSection: 'hypothesis testing; significance',
+              learningObjectives:
+                'State null and alternative hypotheses precisely.\nInterpret a p-value in the context of a claim.',
+              weeklyAssessments: 'Quiz: hypothesis logic',
+              asyncActivities: 'Read the hypothesis-testing chapter.',
+              syncActivities: 'Workshop: frame three claims as hypotheses.',
+              supportingResources: 'OpenStax statistics chapter on hypothesis testing',
+            },
+          ],
+        },
+      ],
+    };
+  }
+
+  it('the exact stats bullet shape gains a terminal period when it ships via an enriched slide', () => {
+    const blueprint = buildCourseBlueprint(statsEnrichedCourseMap(), {
+      enrichment: {
+        source: 'test-enrichment',
+        lessonContent: {
+          'lesson-1': {
+            quizItems: [],
+            keyTerms: [],
+            // The slideContent passthrough — the exact live shape (a title +
+            // a list of complete-clause anchor facts, unpunctuated).
+            slideContent: [
+              {
+                title: 'Anchor facts: hypothesis logic',
+                bullets: [
+                  'The parameter under study is the population quantity being tested',
+                  STATS_BULLET,
+                  'A conclusion should be stated in context, not as proof',
+                ],
+              },
+            ],
+          },
+        },
+      },
+    });
+    const decks = compileBlueprintDeliverable('slideDecks', blueprint, { skipLanguageFinalizer: true });
+    const allBullets = decks.decks.flatMap((deck) => deck.slides.flatMap((slide) => slide.bullets || []));
+    const punctuated = allBullets.find((bullet) => bullet.startsWith('The test direction must match the claim'));
+    expect(punctuated, JSON.stringify(allBullets, null, 1)).toBeTruthy();
+    expect(punctuated.endsWith('.')).toBe(true);
+    // No ≥60-char bullet leaves the deck unpunctuated (the grader's check).
+    for (const bullet of allBullets) {
+      expect(isTruncatedBulletLine(bullet), bullet).toBe(false);
+    }
+  });
+
+  it('short labels stay bare and relationship-arrow pairs stay unpunctuated', () => {
+    const blueprint = buildCourseBlueprint(statsEnrichedCourseMap(), {
+      enrichment: {
+        source: 'test-enrichment',
+        lessonContent: {
+          'lesson-1': {
+            quizItems: [],
+            keyTerms: [],
+            slideContent: [
+              {
+                title: 'Mix of bullet shapes',
+                bullets: [
+                  'Null vs alternative', // short label (< 60 chars) → stays bare
+                  'Sampling distribution ↔ the population the samples are drawn from', // arrow pair → bare
+                ],
+              },
+            ],
+          },
+        },
+      },
+    });
+    const decks = compileBlueprintDeliverable('slideDecks', blueprint, { skipLanguageFinalizer: true });
+    const allBullets = decks.decks.flatMap((deck) => deck.slides.flatMap((slide) => slide.bullets || []));
+    const shortLabel = allBullets.find((bullet) => bullet === 'Null vs alternative');
+    expect(shortLabel, JSON.stringify(allBullets, null, 1)).toBe('Null vs alternative');
+    const arrowPair = allBullets.find((bullet) => bullet.includes('↔'));
+    expect(arrowPair).toBeTruthy();
+    expect(arrowPair.endsWith('.')).toBe(false);
   });
 });

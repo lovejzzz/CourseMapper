@@ -3,6 +3,7 @@ import { finalizeCompiledDeliverableLanguage } from './compiledLanguageFinalizer
 import { getChunkCount } from './parallelGenerator';
 import { getCustomDeliverable } from './customDeliverableLibrary';
 import { buildObservationProtocol } from './observationProtocols';
+import { recordLegacyPathHit } from './legacyPathTelemetry';
 import { whyThisWorksNote, buildMethodsStatement } from './knowledge/pedagogyEvidence';
 import { buildCompetencyMap } from './knowledge/competencyMap';
 import {
@@ -221,16 +222,22 @@ function wordsFromConcepts(values, limit = 8) {
       String(value)
         .split(/\n|;|\||•|:|,|\(|\)|–|—|\band\b|\bor\b|\bversus\b|\bvs\.?\b/i)
         .map((part) => stripListPrefix(part))
-        .map((part) =>
-          part
-            .replace(OBJECTIVE_STEM_LEAD_RE, '')
+        .map((part) => {
+          const stemStripped = part.replace(OBJECTIVE_STEM_LEAD_RE, '');
+          if (stemStripped !== part) {
+            // v0.14.3 C1: hypothesized dead on graph path (graph concepts
+            // arrive typed, never as objective prose) — delete after
+            // live-round proof.
+            recordLegacyPathHit('objective-stem-strip', part);
+          }
+          return stemStripped
             .replace(
               /\s+(?:in|for|across|within|through)\s+(?:context|course activities|this course|the course)\.?$/i,
               '',
             )
             .replace(/[.!?]+$/, '')
-            .trim(),
-        ),
+            .trim();
+        }),
     )
     .filter((phrase) => {
       if (!phrase) return false;
@@ -267,10 +274,18 @@ function splitConceptValues(value) {
   return splitList(value).flatMap((item) => {
     const text = cleanText(item);
     if (isObjectiveSentenceValue(text)) return [text];
-    return text
+    const parts = text
       .split(/,\s*/)
       .map((part) => part.trim().replace(/^(?:and|or)\s+/i, ''))
       .filter(Boolean);
+    if (parts.length > 1) {
+      // v0.14.3 C1: hypothesized dead on graph path (graph concepts arrive
+      // typed, one per node) — delete after live-round proof. No provenance
+      // signal reaches this pure helper, so the hit records unconditionally;
+      // the fixture matrix attributes it per fixture class instead.
+      recordLegacyPathHit('concept-comma-split', text);
+    }
+    return parts;
   });
 }
 
@@ -3758,6 +3773,14 @@ function buildStudentArtifactLabel(assessmentText, title, fallback) {
   if (parts.length === 0) return fallback || `${stripLessonPrefix(title)} artifact`;
   const labels = parts.map((part) => assessmentTaskLabel(part, `${stripLessonPrefix(title)} artifact`));
   if (labels.length === 1) return labels[0];
+  // v0.14.3 C1: the C2 matrix FALSIFIED the original dead-branch hypothesis
+  // (lesson-level fusion still ran on the registry path), so the registry
+  // path now overrides studentArtifact with the verbatim registry title
+  // BEFORE this label is built (registryStudentArtifactTitle in
+  // buildCourseBlueprint). Fusion is therefore legacy/no-registry only;
+  // the telemetry stays as the regression net — any registry-path hit
+  // fails tests/v0143-compiler-diet.test.js.
+  recordLegacyPathHit('student-artifact-fusion', `${labels[0]} + ${labels[1]}`);
   // v0.14.1: keep the second label's casing intact — lowercasing only its
   // first character shipped fused titles like "Grammar Check and oral Drill".
   const combined = `${labels[0]} and ${labels[1]}`;
@@ -10034,8 +10057,21 @@ function shouldRebuildAssessmentAnchors(lessons = [], assessments = [], assessme
     if (!assessments.every((assessment) => assessment?.registryId)) return true;
     return assessments.some(anchorNeedsRebuild);
   }
-  if (!Array.isArray(assessments) || assessments.length !== lessons.length) return true;
-  return lessons.some((lesson, index) => anchorNeedsRebuild(findAssessmentForLesson(assessments, lesson, index)));
+  // v0.14.3 C1: hypothesized dead on graph path — graph blueprints always
+  // carry the persisted registry, so the legacy one-per-lesson rebuild
+  // decision below never runs there. Delete after live-round proof.
+  if (!Array.isArray(assessments) || assessments.length !== lessons.length) {
+    recordLegacyPathHit(
+      'legacy-anchor-rebuild',
+      `anchors=${Array.isArray(assessments) ? assessments.length : 'none'} lessons=${lessons.length}`,
+    );
+    return true;
+  }
+  if (lessons.some((lesson, index) => anchorNeedsRebuild(findAssessmentForLesson(assessments, lesson, index)))) {
+    recordLegacyPathHit('legacy-anchor-rebuild', 'per-lesson anchor health forced a legacy rebuild');
+    return true;
+  }
+  return false;
 }
 
 function deriveRoutineFieldsForLesson(lesson = {}, index = 0) {
@@ -11089,7 +11125,7 @@ function lessonLearnerContextCue(blueprint, lesson) {
   return lesson?.learnerContextCue || buildLessonLearnerContextCue(blueprint?.learnerContextProfile || {}, lesson);
 }
 
-function extractLessonBlueprint(lesson, originalIndex) {
+function extractLessonBlueprint(lesson, originalIndex, assessmentRegistry = null) {
   const lessonNumber = originalIndex + 1;
   const sourceLessonTitle = cleanText(lesson?.title || lesson?.lessonTitle || lesson?.lt || '');
   const rawLessonTitle = stripLessonPrefix(lesson?.title || lesson?.lessonTitle || lesson?.lt || '');
@@ -11174,9 +11210,15 @@ function extractLessonBlueprint(lesson, originalIndex) {
     bloomsLevel,
   });
   const assessmentLink = hasAssessment ? assessmentText : synthesizedAssessment;
-  const studentArtifact = hasAssessment
-    ? buildStudentArtifactLabel(assessmentText, title, synthesizedAssessment)
-    : synthesizedAssessment;
+  // v0.14.3 (C1 falsification fix): on the registry path the lesson's central
+  // artifact is the verbatim title of its highest-weight registry entry —
+  // fusion never runs, so the v0.14.1 identity rule (map atoms render
+  // verbatim) holds at the lesson level too. Fusion remains for legacy
+  // no-registry compiles only.
+  const registryArtifactTitle = registryStudentArtifactTitle(assessmentRegistry, lessonNumber);
+  const studentArtifact =
+    registryArtifactTitle ||
+    (hasAssessment ? buildStudentArtifactLabel(assessmentText, title, synthesizedAssessment) : synthesizedAssessment);
   const confidence = buildLessonConfidence({
     hasTitle,
     hasObjectives,
@@ -12106,6 +12148,21 @@ function normalizeAssessmentRegistry(registry) {
   return entries.length > 0 ? entries : null;
 }
 
+// v0.14.3 (C1 falsification fix): the lesson's central artifact name on the
+// registry path — the verbatim title of the highest-weight non-in-class
+// entry due that lesson (exams/orals included: a review week's central
+// artifact IS its exam). Returns '' when no registry or no entries, which
+// keeps the legacy fusion path in charge for map-only compiles.
+function registryStudentArtifactTitle(registry, lessonNumber) {
+  if (!Array.isArray(registry)) return '';
+  const forLesson = registry.filter((entry) => entry.dueSession === lessonNumber);
+  if (forLesson.length === 0) return '';
+  const gradeable = forLesson.filter((entry) => entry.kind !== 'in-class');
+  const pool = gradeable.length > 0 ? gradeable : forLesson;
+  const ranked = [...pool].sort((a, b) => (b.weightPct ?? -1) - (a.weightPct ?? -1));
+  return ranked[0].title;
+}
+
 // Speaking-performance criteria for kind 'oral' — parameterized from the
 // lesson's own terms and title (no hardcoded English-course phrasing), so
 // compileRubrics attaches a real speaking rubric to the prompt sheet.
@@ -12373,8 +12430,14 @@ function buildAssessmentAnchors(lessons, registry = null) {
 }
 
 export function buildCourseBlueprint(courseMap, options = {}) {
+  // v0.14.1 (3.2): the course graph's assessment registry (when present)
+  // becomes the blueprint's assessment identity — gated on graph presence so
+  // legacy map-only projects keep today's one-anchor-per-lesson behavior.
+  // v0.14.3: normalized BEFORE extraction so lesson-level studentArtifact
+  // derives from verbatim registry titles instead of the fusion path.
+  const assessmentRegistry = normalizeAssessmentRegistry(options.assessmentRegistry);
   const extractedLessons = selectedLessonEntries(courseMap, options.scopeIndices).map(({ lesson, originalIndex }) =>
-    extractLessonBlueprint(lesson, originalIndex),
+    extractLessonBlueprint(lesson, originalIndex, assessmentRegistry),
   );
   const sourceConflictReport = buildSourceConflictReport(extractedLessons);
   const conflictAwareLessons = attachSourceConflictSignals(extractedLessons, sourceConflictReport);
@@ -12429,10 +12492,6 @@ export function buildCourseBlueprint(courseMap, options = {}) {
       courseThroughlineContext,
     );
   });
-  // v0.14.1 (3.2): the course graph's assessment registry (when present)
-  // becomes the blueprint's assessment identity — gated on graph presence so
-  // legacy map-only projects keep today's one-anchor-per-lesson behavior.
-  const assessmentRegistry = normalizeAssessmentRegistry(options.assessmentRegistry);
   const assessments = buildAssessmentAnchors(baseLessons, assessmentRegistry);
   const sourceRiskRegister = buildSourceRiskRegister({ lessons: baseLessons, assessments });
   const localization =
@@ -13835,6 +13894,104 @@ function compileAssignments(blueprint) {
   };
 }
 
+// ── v0.14.3 D2: rubric criteria quote the task ──────────────────────────────
+// When the assessment's brief carries structured parameters ("Work within
+// these parameters: …" — Phase-1C authored content on
+// lesson.enrichment.assignmentCore.parameters), the rubric grades THOSE
+// requirements: one criterion per parameter (cap 3), phrased as an
+// assessable outcome, plus the two most defensible generic criteria
+// (evidence quality + communication). Weights redistribute to the rubric's
+// existing total. Parameterless briefs keep today's rubric untouched.
+
+const PARAMETER_PRESENCE_VERB_RE =
+  /^(?:include|provide|add|attach|incorporate|report|state|name|list|show|present|submit)\b\s*/i;
+const PARAMETER_CITATION_VERB_RE = /^(?:cite|reference|quote|credit|attribute)\b\s*/i;
+const PARAMETER_PROCESS_VERB_RE =
+  /^(?:use|apply|follow|work within|keep|limit|stay within|maintain|ensure|separate|write|draft|format|organize|complete|explain|compare|analyze|base|ground)\b\s*/i;
+
+function parameterCriterionName(parameter, ordinal) {
+  const text = stripTerminalPunctuation(cleanText(parameter));
+  let core = text;
+  let suffix = 'addressed as specified';
+  if (PARAMETER_PRESENCE_VERB_RE.test(text)) {
+    core = text.replace(PARAMETER_PRESENCE_VERB_RE, '');
+    suffix = 'present and correct';
+  } else if (PARAMETER_CITATION_VERB_RE.test(text)) {
+    core = text.replace(PARAMETER_CITATION_VERB_RE, '');
+    suffix = 'cited accurately';
+  } else if (PARAMETER_PROCESS_VERB_RE.test(text)) {
+    core = text.replace(PARAMETER_PROCESS_VERB_RE, '');
+    suffix = 'handled as specified';
+  }
+  core = core
+    .replace(/^(?:only|at least|at most|no more than|exactly|up to)\s+/i, '')
+    .replace(/^(?:one|two|three|four|five|six|a|an|the)\s+/i, '');
+  const lead = sentenceCase(conciseClause(core, text, 56));
+  return `${lead} — ${suffix} (per brief parameter ${ordinal})`;
+}
+
+// Split an integer weight total across n criteria (largest-first remainder),
+// so the redistributed weights sum to the rubric's existing total exactly.
+function splitWeightTotal(total, count) {
+  if (count <= 0) return [];
+  const base = Math.floor(total / count);
+  const remainder = total - base * count;
+  return Array.from({ length: count }, (_, index) => base + (index < remainder ? 1 : 0));
+}
+
+function buildParameterCriterionRow({ parameter, ordinal, weight, assessment, lesson, objective }) {
+  const artifact = stripTerminalPunctuation(assessment.artifact || assessment.title);
+  const verbatim = stripTerminalPunctuation(cleanText(parameter));
+  const shortForm = conciseClause(verbatim, verbatim, 90, { ellipsis: true });
+  const criterion = parameterCriterionName(parameter, ordinal);
+  const priority = `brief parameter ${ordinal} fidelity`;
+  const evidenceSignal = `The brief requires: "${verbatim}". Look for visible evidence in ${artifact} that this parameter is satisfied, accurate, and integrated with the surrounding work.`;
+  const calibrationUse = `Before scoring, ask whether two scorers point to the same place in ${artifact} where "${shortForm}" is satisfied.`;
+  const feedbackUse = `If the parameter is unmet, quote it verbatim — "${shortForm}" — and name the smallest revision to ${artifact} that satisfies it.`;
+  return {
+    criterion,
+    briefParameter: verbatim,
+    objectiveAligned: objective || assessment.objectives?.[0] || '',
+    objectiveAlignmentEvidence: {
+      criterion,
+      objective: objective || assessment.objectives?.[0] || '',
+      strategy: 'brief-parameter-derived',
+      rationale: `Criterion grades the brief's own parameter ("${shortForm}") so the rubric scores the assigned task, not a generic process.`,
+    },
+    weight,
+    points: Math.round((weight / 100) * (assessment.points || 100)),
+    priority,
+    weightingRationale: `The brief sets this parameter for ${artifact}; grading it directly keeps the rubric specific to the assigned task.`,
+    evidenceSignal,
+    calibrationUse,
+    feedbackUse,
+    exemplary: `Meets the brief parameter — "${verbatim}" — fully and accurately in ${artifact}; a scorer can point to where it is satisfied and how it strengthens the work.`,
+    proficient: `Satisfies "${shortForm}" with only minor lapses in completeness, accuracy, or integration with the rest of ${artifact}.`,
+    developing: `Addresses "${shortForm}" partially — attempted but incomplete, inaccurate, or disconnected from the surrounding work in ${artifact}.`,
+    beginning: `Does not satisfy "${shortForm}" in the submitted ${artifact}.`,
+    performanceBandEvidence: {
+      priority,
+      evidenceSignal,
+      scorerQuestion: calibrationUse,
+      commonPitfall: `Do not give full credit when ${artifact} merely mentions the parameter topic without actually satisfying "${shortForm}".`,
+      revisionTarget: feedbackUse,
+    },
+  };
+}
+
+// The two most defensible generic criteria to keep beside parameter-derived
+// ones: evidence quality and communication (analysis logic is implicit in
+// evidence use; feedback/revision documentation is process, not task).
+function selectKeptGenericCriteria(criteria = []) {
+  const evidenceCriterion =
+    criteria.find((criterion) => /\b(accuracy|evidence|source)\b/i.test(criterion)) || criteria[0];
+  const communicationCriterion =
+    criteria.find(
+      (criterion) => criterion !== evidenceCriterion && /\b(communication|organization|format)\b/i.test(criterion),
+    ) || criteria.find((criterion) => criterion !== evidenceCriterion);
+  return [evidenceCriterion, communicationCriterion].filter(Boolean);
+}
+
 function compileRubrics(blueprint) {
   const lens = blueprintLens(blueprint);
   const preference = featurePreference(blueprint, 'rubrics');
@@ -13859,14 +14016,14 @@ function compileRubrics(blueprint) {
             assessment.criterionEvidenceMap || [],
             assessment.points || 100,
           );
-      const criteria = assessment.criteria.map((criterion, index) => {
+      const buildStandardCriterionRow = (criterion, index, weightOverride) => {
         const planEntry =
           criterionWeightPlan.find(
             (entry) => cleanText(entry.criterion).toLowerCase() === cleanText(criterion).toLowerCase(),
           ) ||
           criterionWeightPlan[index] ||
           {};
-        const weight = Number(planEntry.weight || 0);
+        const weight = Number.isFinite(weightOverride) ? weightOverride : Number(planEntry.weight || 0);
         const evidenceEntry = assessment.criterionEvidenceMap?.[index] || {};
         const objectiveAlignment =
           assessment.criterionObjectiveAlignment?.find(
@@ -13905,7 +14062,66 @@ function compileRubrics(blueprint) {
           beginning: performanceBand.beginning,
           performanceBandEvidence: performanceBand.performanceBandEvidence,
         };
-      });
+      };
+      // v0.14.3 D2: the brief's structured parameters (this assessment's
+      // lesson, the same source compileAssignments renders as "Work within
+      // these parameters: …") become the leading rubric criteria. A brief
+      // with no parameters keeps today's rubric verbatim.
+      const briefParameters = (lesson?.enrichment?.assignmentCore?.parameters || [])
+        .map((parameter) => cleanText(parameter))
+        .filter(Boolean)
+        .slice(0, 3);
+      let criteria;
+      let effectiveWeightPlan = criterionWeightPlan;
+      if (briefParameters.length > 0) {
+        const keptGenericCriteria = selectKeptGenericCriteria(assessment.criteria);
+        const totalWeight = criterionWeightPlan.reduce((sum, entry) => sum + Number(entry.weight || 0), 0) || 100;
+        const weights = splitWeightTotal(totalWeight, briefParameters.length + keptGenericCriteria.length);
+        const objectives = (assessment.objectives || []).filter(Boolean);
+        const parameterRows = briefParameters.map((parameter, parameterIndex) => {
+          const objective =
+            objectives
+              .map((candidate, objectiveIndex) => ({
+                candidate,
+                objectiveIndex,
+                score: objectiveOverlapScore(parameter, candidate),
+              }))
+              .sort((a, b) => b.score - a.score || a.objectiveIndex - b.objectiveIndex)[0]?.candidate ||
+            objectives[0] ||
+            '';
+          return buildParameterCriterionRow({
+            parameter,
+            ordinal: parameterIndex + 1,
+            weight: weights[parameterIndex],
+            assessment,
+            lesson,
+            objective,
+          });
+        });
+        const keptRows = keptGenericCriteria.map((criterion, keptIndex) =>
+          buildStandardCriterionRow(
+            criterion,
+            assessment.criteria.indexOf(criterion),
+            weights[briefParameters.length + keptIndex],
+          ),
+        );
+        criteria = [...parameterRows, ...keptRows];
+        // The rubric's weight plan must describe the criteria it actually
+        // grades — guidance, architecture, and grounding all read this plan.
+        effectiveWeightPlan = criteria.map((row) => ({
+          criterion: row.criterion,
+          priority: row.priority || `Criterion ${criteria.indexOf(row) + 1}`,
+          weight: row.weight,
+          points: row.points,
+          rationale: row.weightingRationale || `Weight reflects the relative grading importance of "${row.criterion}".`,
+          evidenceSignal: row.evidenceSignal || '',
+          calibrationUse: row.calibrationUse || '',
+          feedbackUse: row.feedbackUse || '',
+          studentTransparency: `Tell students that "${row.criterion}" is worth ${row.weight}% before they draft, and show the evidence signal used for scoring.`,
+        }));
+      } else {
+        criteria = assessment.criteria.map((criterion, index) => buildStandardCriterionRow(criterion, index));
+      }
       return {
         title: `${assessment.title} Rubric`,
         // v0.14.1 (3.2e): id-linked rubric identity on the registry path.
@@ -13930,7 +14146,7 @@ function compileRubrics(blueprint) {
           studentFacingPurpose: assessment.studentFacingPurpose,
           cadence: assessment.cadence,
           revisionUse: assessment.revisionUse,
-          criterionWeightPlan,
+          criterionWeightPlan: effectiveWeightPlan,
         },
         bloomsLevel: assessment.bloomsLevel,
         blueprintGrounding: lessonSourceGrounding(lesson, {
@@ -13942,7 +14158,7 @@ function compileRubrics(blueprint) {
           assessmentValidity: validityEvidence,
           gradingCalibrationPlan: assessment.calibrationPlan,
           criterionEvidenceMap: assessment.criterionEvidenceMap,
-          criterionWeightPlan,
+          criterionWeightPlan: effectiveWeightPlan,
           criterionObjectiveAlignment: assessment.criterionObjectiveAlignment,
           anchorExampleSet: assessment.anchorExampleSet,
           assessmentArchitecture: {
@@ -13952,7 +14168,7 @@ function compileRubrics(blueprint) {
             cadence: assessment.cadence,
             weightProvenance: compactWeightProvenance(assessment.weightProvenance),
             revisionUse: assessment.revisionUse,
-            criterionWeightPlan,
+            criterionWeightPlan: effectiveWeightPlan,
           },
           learnerContextProfile: blueprint.learnerContextProfile,
           courseModalityProfile: blueprint.courseModalityProfile,
@@ -13968,10 +14184,10 @@ function compileRubrics(blueprint) {
         assessmentValidity: validityEvidence,
         gradingCalibrationPlan: assessment.calibrationPlan,
         criterionEvidenceMap: assessment.criterionEvidenceMap,
-        criterionWeightPlan,
+        criterionWeightPlan: effectiveWeightPlan,
         criterionObjectiveAlignment: assessment.criterionObjectiveAlignment,
         objectiveEvidenceChecklist: objectiveEvidenceChecklist(lesson?.objectiveEvidencePlan),
-        criterionWeightGuidance: `Weight criterion feedback by instructional importance: ${criterionWeightPlan
+        criterionWeightGuidance: `Weight criterion feedback by instructional importance: ${effectiveWeightPlan
           .map((entry) => `${entry.priority} ${entry.weight}%`)
           .join('; ')}.`,
         anchorExampleSet: assessment.anchorExampleSet,
@@ -14410,8 +14626,17 @@ function quizObjectiveAlignmentForRole(lesson, assessment = {}, role = '') {
   const alignments = Array.isArray(assessment.criterionObjectiveAlignment)
     ? assessment.criterionObjectiveAlignment
     : [];
-  const objective = (strategyPattern, fallbackIndex = 0) =>
-    alignments.find((entry) => strategyPattern.test(entry?.strategy || '')) || alignments[fallbackIndex] || null;
+  const objective = (strategyPattern, fallbackIndex = 0) => {
+    const matched = alignments.find((entry) => strategyPattern.test(entry?.strategy || ''));
+    if (matched) {
+      // v0.14.3 C1: the strategy-LABEL fuzzy matcher wins the alignment
+      // decision here, where a registry/outcome id could key directly —
+      // measured (not assumed dead) for the live round; replace after proof.
+      recordLegacyPathHit('quiz-strategy-label-match', `${role} -> ${matched.strategy || ''}`);
+      return matched;
+    }
+    return alignments[fallbackIndex] || null;
+  };
 
   if (/retrieval|source-application/i.test(role)) {
     return objective(/source-evidence/i, 0);
@@ -14830,7 +15055,7 @@ export function buildQuizAtomsForLesson(lesson, blueprint, options = {}) {
   // role — recall/explain stems shipped tagged Analyze/Evaluate in every
   // audited quiz file. The planned level stays in quizPlan.bloom as
   // provenance; when no mapped verb appears, the plan's level stands.
-  return overlayEnrichedQuizItems(framed, lesson).map((atom) => {
+  const overlaid = overlayEnrichedQuizItems(framed, lesson).map((atom) => {
     const stemLevel = bloomLevelFromStemVerb(atom.question);
     if (!stemLevel || stemLevel === atom.bloomsLevel) return atom;
     return {
@@ -14839,6 +15064,95 @@ export function buildQuizAtomsForLesson(lesson, blueprint, options = {}) {
       tags: (atom.tags || []).map((tag) => (tag === atom.bloomsLevel ? stemLevel : tag)),
     };
   });
+  // v0.14.3 D3: 6 → 8 items where the bank affords it.
+  return appendBankExtensionQuizAtoms(overlaid, lesson);
+}
+
+// ── v0.14.3 D3: extension quiz items from genuinely unused bank items ──────
+// The kernel projection flags up to two unused mcBank items (`extension:
+// true`, indices after the 6-slot plan) once the planned slots and the
+// D1(b) walkthrough are served — the linker's course-level cursor already
+// counted them as consumed, so nothing here can duplicate another lesson.
+// NO new frames exist: with no flagged items the quiz stays at 6, and the
+// header totals (points, minutes, Bloom coverage) derive from the final
+// question list as always.
+function appendBankExtensionQuizAtoms(atoms, lesson) {
+  const extensions = (lesson?.enrichment?.quizItems || [])
+    .filter(
+      (item) =>
+        item?.extension === true &&
+        (item.type || 'multiple_choice') === 'multiple_choice' &&
+        cleanText(item.question).length > 0 &&
+        Array.isArray(item.options) &&
+        item.options.length === 4,
+    )
+    .slice(0, 2);
+  if (extensions.length === 0) return atoms;
+  const lessonObjectives = (lesson.outcomes || [])
+    .map((objective) => normalizeObjectiveText(objective))
+    .filter(Boolean);
+  const extended = [...atoms];
+  extensions.forEach((enriched, ordinal) => {
+    const index = Number.isInteger(enriched.index) ? enriched.index : atoms.length + ordinal;
+    // Preserve the deterministic answer-letter rotation the framed items use.
+    const answer = correctLetterForQuestion(lesson, index);
+    const targetSlot = QUIZ_ANSWER_LETTERS.indexOf(answer);
+    const answerIndex = Number(enriched.answerIndex) || 0;
+    const keyText = enriched.options[answerIndex] || enriched.options[0];
+    const distractors = enriched.options.filter((_, optionIndex) => optionIndex !== answerIndex);
+    const ordered = [...distractors];
+    ordered.splice(targetSlot < 0 ? 0 : targetSlot, 0, keyText);
+    const bloom = bloomLevelFromStemVerb(enriched.question) || 'Apply';
+    const objective =
+      lessonObjectives
+        .map((candidate, objectiveIndex) => ({
+          candidate,
+          objectiveIndex,
+          score: objectiveOverlapScore(enriched.question, candidate),
+        }))
+        .sort((a, b) => b.score - a.score || a.objectiveIndex - b.objectiveIndex)[0]?.candidate ||
+      objectiveForLesson(lesson.title, lesson.keyConcepts);
+    extended.push(
+      withQuizPlan(
+        {
+          id: quizQuestionId(lesson, index),
+          type: 'multiple_choice',
+          bloomsLevel: bloom,
+          difficulty: 'Medium',
+          estimatedMinutes: 2,
+          points: 2,
+          objectiveAligned: objective,
+          intendedUse: `Retrieval practice extension for ${lesson.title}; drawn from the lesson's unused authored item bank.`,
+          question: enriched.question,
+          options: ordered.map((text, optionIndex) => labelQuizOption(QUIZ_ANSWER_LETTERS[optionIndex], text)),
+          answer,
+          ...(enriched.distractorRationales?.length > 0
+            ? { distractorRationale: enriched.distractorRationales.join(' ') }
+            : {}),
+          ...(enriched.explanation ? { explanation: `${answer}. ${enriched.explanation}` } : {}),
+          tags: quizTags(lesson, 'multiple_choice', bloom, 'retrieval practice'),
+          enrichmentSource: 'kernel-bank-extension',
+        },
+        {
+          source: 'kernel-bank-extension',
+          role: 'bank-extension-retrieval',
+          bloom,
+          difficulty: 'Medium',
+          use: 'retrieval practice extension',
+          questionIndex: index,
+          bloomSource: 'authored bank item stem',
+          sourceSignal: enriched.question,
+          objectiveAlignmentStrategy: 'stem-objective-lexical-match',
+          objectiveAlignmentRationale:
+            'Extension item aligns to the lesson objective sharing the most content terms with its authored stem.',
+        },
+      ),
+    );
+  });
+  // D3 invariant: re-run the deterministic answer-key spread guard across the
+  // EXTENDED item set (the v0.14.2 review-quiz guard, applied here) — no
+  // extended quiz ships with more than half its MC keys on one letter.
+  return spreadReviewQuizAnswerKeys(extended, lesson);
 }
 
 /**
@@ -15544,19 +15858,27 @@ function slideVisual(lesson, slide) {
           purpose: `Model the ${concept} solution path step by step before students try ${artifact}.`,
           evidenceUse: `Annotate each step so students can reuse the reasoning in ${artifact}.`,
         }
-      : {
-          kind: /limit|honest|gap/i.test(title) ? 'constraint map' : 'evidence table',
-          purpose: `Make the evidence standard for ${artifact} inspectable.`,
-          evidenceUse: `Compare ${concept}, ${secondary}, and the success criterion before students draft.`,
-          // v0.14.1 (5.2c): renderable claim/evidence rows ride the
-          // descriptor (the v0.13.3 hub/spokes pattern) so the exporter
-          // never has to fabricate pairs from display bullets.
-          ...(() => {
-            if (/limit|honest|gap/i.test(title)) return {};
-            const rows = enrichedEvidenceTableRows(lesson);
-            return rows.length >= 2 ? { rows } : {};
-          })(),
-        },
+      : /common pitfalls/i.test(title)
+        ? {
+            // v0.14.3 D1(a): the pitfalls slide's bullets ARE the visual —
+            // tempting claim vs corrective, run as a vote-then-reveal.
+            kind: 'misconception vote-and-reveal',
+            purpose: `Surface the tempting ${concept} misreadings before they reach ${artifact}.`,
+            evidenceUse: `Vote on each tempting claim, then test it against the corrective and ${source}.`,
+          }
+        : {
+            kind: /limit|honest|gap/i.test(title) ? 'constraint map' : 'evidence table',
+            purpose: `Make the evidence standard for ${artifact} inspectable.`,
+            evidenceUse: `Compare ${concept}, ${secondary}, and the success criterion before students draft.`,
+            // v0.14.1 (5.2c): renderable claim/evidence rows ride the
+            // descriptor (the v0.13.3 hub/spokes pattern) so the exporter
+            // never has to fabricate pairs from display bullets.
+            ...(() => {
+              if (/limit|honest|gap/i.test(title)) return {};
+              const rows = enrichedEvidenceTableRows(lesson);
+              return rows.length >= 2 ? { rows } : {};
+            })(),
+          },
     example: {
       kind: 'annotated example',
       purpose: `Mark where a strong ${concept} example uses ${source} evidence to change the decision for ${artifact}.`,
@@ -15799,6 +16121,28 @@ function punctuateDisplayBullet(display, source) {
   if (/[.!?…;:]$/.test(text)) return text;
   const sourceMark = cleanText(source).match(/([.!?])\s*$/);
   return `${text}${sourceMark ? sourceMark[1] : '.'}`;
+}
+
+// A bullet that pairs two ideas with a relationship arrow ("A ↔ B") is a
+// structured concept-map pair — complete and deliberately unpunctuated (mirrors
+// isTruncatedBulletLine's RELATIONSHIP_ARROW exemption in the grader).
+const SLIDE_RELATIONSHIP_ARROW = /[↔→⟷⇄⇆➜➔]/;
+
+// v0.14.3 round-2 FIX-2: enriched/kernel slides keep their authored assertion
+// bullets VERBATIM (skipping the display rewriter so steps and worked examples
+// aren't mangled), but that passthrough also skipped punctuateDisplayBullet —
+// so a ≥60-char complete clause with no terminal mark shipped raw (the live
+// stats deck: "The test direction must match the claim: two-sided, greater
+// than, or less than"). Apply the SAME ≥60-char terminal-punctuation rule to
+// each passthrough bullet (its own text is both display and source), leaving
+// short labels bare and relationship-arrow pairs untouched.
+function punctuatePassthroughBullets(bullets) {
+  if (!Array.isArray(bullets)) return bullets;
+  return bullets.map((bullet) => {
+    if (typeof bullet !== 'string') return bullet;
+    if (SLIDE_RELATIONSHIP_ARROW.test(bullet)) return bullet;
+    return punctuateDisplayBullet(bullet, bullet);
+  });
 }
 
 // Round-3 polish: true when the bullet's first word(s) repeat the concept's
@@ -16359,6 +16703,143 @@ function applyEvidenceSlideIntegrity(slides, lesson) {
   target.enrichmentSource = 'kernel-worked-example';
 }
 
+// ── v0.14.3 D1: two deterministic content slides from data the lesson
+// already paid for ─────────────────────────────────────────────────────────
+// Deck length becomes data-driven 12-14: a lesson with real misconception
+// pairs gains a "Common pitfalls" slide, and a lesson whose kernel bank had
+// an unused MC item gains a second application slide (the item recast as a
+// worked walkthrough). Zero AI calls — pure recomposition of authored atoms.
+
+// A teachable deck stays 12-14 slides; the depth slides never push past it.
+const MAX_DEPTH_DECK_SLIDES = 14;
+
+// Lowercase a clause lead so it reads mid-sentence; acronym leads ("DNA",
+// "GDP growth") stay intact.
+function lowercaseClauseLead(value) {
+  const text = cleanText(value);
+  if (!text) return '';
+  const firstWord = text.split(/\s+/)[0];
+  if (firstWord.length > 1 && firstWord === firstWord.toUpperCase()) return text;
+  return text.charAt(0).toLowerCase() + text.slice(1);
+}
+
+// The realness signal (D1a): enrichment keyTerms carrying a misconception are
+// model- or genome-authored subject matter — the same signal the study guide
+// (enrichedMisconceptions) and the lesson-plan warm-up poll already trust.
+// Compiler-template misconceptions live on lesson.misconceptionMap and never
+// reach this list, so a template-only lesson produces no pitfalls slide.
+function lessonMisconceptionPairs(lesson) {
+  const seen = new Set();
+  const pairs = [];
+  for (const term of lesson?.enrichment?.keyTerms || []) {
+    const misconception = cleanText(term?.misconception);
+    if (!misconception) continue;
+    const key = misconception.toLowerCase();
+    if (seen.has(key)) continue;
+    // The corrective is the kernel's own counter-statement when one exists;
+    // the fallback phrases the definition as the counter (study-guide rule).
+    const corrective =
+      cleanText(term?.correction).replace(/^in fact[,:]?\s*/i, '') ||
+      stripTerminalPunctuation(cleanText(term?.definition));
+    if (!corrective) continue;
+    seen.add(key);
+    pairs.push({ misconception, corrective });
+  }
+  return pairs;
+}
+
+function applyCommonPitfallsSlide(slides, lesson, { concept, objective }) {
+  if (slides.length >= MAX_DEPTH_DECK_SLIDES) return;
+  const pairs = lessonMisconceptionPairs(lesson).slice(0, 3);
+  if (pairs.length < 2) return;
+  const bullets = pairs.map((pair) => {
+    // conciseClause splits list-ish text on semicolons (splitList) — soften
+    // them to commas first so a two-clause corrective keeps both clauses.
+    const tempting = conciseClause(
+      stripTerminalPunctuation(pair.misconception).replace(/;\s+/g, ', '),
+      pair.misconception,
+      78,
+      { ellipsis: true },
+    );
+    const corrective = conciseClause(
+      stripTerminalPunctuation(pair.corrective).replace(/;\s+/g, ', '),
+      pair.corrective,
+      88,
+      { ellipsis: true },
+    );
+    return punctuateDisplayBullet(
+      `It's tempting to think ${lowercaseClauseLead(tempting)} — in fact ${lowercaseClauseLead(corrective)}`,
+      pair.corrective,
+    );
+  });
+  // Placement: directly after the key-concept/evidence/example cluster, so
+  // the repair lands while the concept is still on screen.
+  const exampleIndex = slides.findIndex((slide) => slide.type === 'example');
+  const activityIndex = slides.findIndex((slide) => slide.type === 'activity');
+  const insertAt = exampleIndex >= 0 ? exampleIndex + 1 : activityIndex >= 0 ? activityIndex : slides.length - 2;
+  slides.splice(insertAt, 0, {
+    type: 'content',
+    title: `Common pitfalls in ${stripTerminalPunctuation(concept)}`,
+    bullets,
+    notes: `Run each tempting claim as a quick true/false vote before revealing the corrective. ${pairs
+      .map(
+        (pair) => `${ensureSentenceCompiler(pair.misconception)} In fact: ${ensureSentenceCompiler(pair.corrective)}`,
+      )
+      .join(' ')} Close by asking students which pitfall they are most likely to make and what check would catch it.`,
+    minutes: 4,
+    bloom: 'Understand',
+    objective: objective || null,
+    activity: null,
+    enrichmentSource: 'kernel-misconception-pitfalls',
+  });
+}
+
+function applyMcWalkthroughSlide(slides, lesson, { concept, objective }) {
+  if (slides.length >= MAX_DEPTH_DECK_SLIDES) return;
+  const item = lesson?.enrichment?.mcWalkthrough;
+  const stem = cleanText(item?.question);
+  const options = (item?.options || []).map(cleanText).filter(Boolean);
+  const resolution = options[Number(item?.answerIndex) || 0] || options[0] || '';
+  const why = cleanText(item?.explanation);
+  if (!stem || !resolution || !why) return;
+  // All three lines are authored text recomposed: the unused bank item's stem
+  // is the scenario, its key is the resolution, its answer-key explanation is
+  // the why. Placement: after the activity, as the second application pass.
+  const activityIndex = slides.findIndex((slide) => slide.type === 'activity');
+  const discussionIndex = slides.findIndex((slide) => slide.type === 'discussion');
+  const insertAt = activityIndex >= 0 ? activityIndex + 1 : discussionIndex >= 0 ? discussionIndex : slides.length - 2;
+  // Soften semicolons before conciseClause (splitList would drop the second
+  // clause), and keep the title heading-styled (no terminal period).
+  const softStem = stem.replace(/;\s+/g, ', ');
+  slides.splice(insertAt, 0, {
+    type: 'content',
+    title: `Worked example: ${stripTerminalPunctuation(conciseClause(softStem, `apply ${concept}`, 64, { ellipsis: true })) || `apply ${concept}`}`,
+    bullets: [
+      punctuateDisplayBullet(`Scenario: ${conciseClause(softStem, stem, 100, { ellipsis: true })}`, stem),
+      punctuateDisplayBullet(
+        `Resolution: ${conciseClause(resolution.replace(/;\s+/g, ', '), resolution, 98, { ellipsis: true })}`,
+        resolution,
+      ),
+      punctuateDisplayBullet(
+        `Why it holds: ${conciseClause(why.replace(/;\s+/g, ', '), why, 96, { ellipsis: true })}`,
+        why,
+      ),
+    ],
+    notes: `Walk the scenario before revealing the resolution: ${ensureSentenceCompiler(stem)} Have students commit to an answer, then show the resolution — ${ensureSentenceCompiler(resolution)} The reasoning to model aloud: ${ensureSentenceCompiler(why)}`,
+    minutes: 5,
+    bloom: 'Apply',
+    objective: objective || null,
+    activity: null,
+    enrichmentSource: 'kernel-mc-walkthrough',
+  });
+}
+
+function ensureSentenceCompiler(value) {
+  const text = cleanText(value);
+  if (!text) return '';
+  return /[.!?…]$/.test(text) ? text : `${text}.`;
+}
+
 function compileDiscussions(blueprint) {
   const lens = blueprintLens(blueprint);
   const preference = featurePreference(blueprint, 'discussions');
@@ -16656,6 +17137,10 @@ function buildSlideDeckIrForLesson(blueprint, lesson, index) {
   overlayEnrichedSlideContent(slides, lesson);
   adjustDeckLengthForContent(slides, lesson);
   applyEvidenceSlideIntegrity(slides, lesson);
+  // v0.14.3 D1: depth slides AFTER the integrity pass so the worked-example
+  // fallback never targets (and overwrites) a freshly inserted depth slide.
+  applyCommonPitfallsSlide(slides, lesson, { concept, objective: objectiveOne });
+  applyMcWalkthroughSlide(slides, lesson, { concept, objective: objectiveTwo });
   const slideMinutes = slides.reduce((sum, slide) => sum + Number(slide.minutes || 0), 0);
   const slideTimingFit = {
     slideMinutes,
@@ -16742,8 +17227,18 @@ function compileSlideDecks(blueprint) {
         // and explanatory notes verbatim; the display rewriter only shapes
         // compiler-template bullets. v0.14.1 (5.2c): kernel worked-example
         // slides are authored content too — their steps must not be cut.
-        const isEnriched = ['lesson-content-enrichment', 'kernel-worked-example'].includes(slide.enrichmentSource);
-        const displayBullets = isEnriched ? slide.bullets : displayBulletsForSlide(slide, lesson);
+        // v0.14.3 D1: the pitfalls and walkthrough depth slides carry
+        // pre-compressed authored bullets ("It's tempting to think X — in
+        // fact Y") that the display rewriter would mangle.
+        const isEnriched = [
+          'lesson-content-enrichment',
+          'kernel-worked-example',
+          'kernel-misconception-pitfalls',
+          'kernel-mc-walkthrough',
+        ].includes(slide.enrichmentSource);
+        const displayBullets = isEnriched
+          ? punctuatePassthroughBullets(slide.bullets)
+          : displayBulletsForSlide(slide, lesson);
         return {
           title: slide.title,
           type: slide.type,
@@ -16807,10 +17302,13 @@ function compileSlideDecks(blueprint) {
         slides.push({
           title: `How Experts Think: ${scaffold.term}`,
           type: 'content',
-          bullets: [
+          // FIX-2 audit: the authored reasoning-move bullets are an uncapped
+          // verbatim-passthrough source — apply the same ≥60-char punctuation
+          // rule so a complete-clause move never ships unpunctuated.
+          bullets: punctuatePassthroughBullets([
             `Reason about ${scaffold.term} as ${structure} — the expert routine:`,
             ...moves.map((m) => `${m.charAt(0).toUpperCase()}${m.slice(1)}`),
-          ],
+          ]),
           notes: `Model this routine aloud on a worked example before students try it: walk through "${moves.join('", then "')}". Naming the steps an expert runs — instead of only showing the answer — is what makes the thinking transferable.`,
           visual: null,
           activityType: 'worked example',

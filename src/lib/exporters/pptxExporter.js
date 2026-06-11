@@ -195,9 +195,12 @@ function buildFallbackSpeakerNotes(deck, slide, slideIndex, totalSlides) {
   const lessonTitle = deck.lessonTitle || deck.title || `Lesson ${deck._deckIndex + 1 || 1}`;
   const slideTitle = slide.title || `Slide ${slideIndex + 1}`;
   const rawBullets = Array.isArray(slide.bullets) ? slide.bullets : Array.isArray(slide.content) ? slide.content : [];
+  // Bullets are clause fragments inside this sentence — strip their terminal
+  // periods (v0.14.3 punctuates long display bullets) so the join never
+  // produces ".; " or ".." seams.
   const bullets = rawBullets
     .slice(0, 3)
-    .map((bullet) => String(bullet).trim())
+    .map((bullet) => String(bullet).trim().replace(/\.+$/, ''))
     .filter(Boolean)
     .join('; ');
   const focus = bullets || 'the central concept on this slide';

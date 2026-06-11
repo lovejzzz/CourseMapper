@@ -87,7 +87,7 @@ import {
   repairWorkspaceReadiness,
 } from './lib/deliverableReadiness';
 import { evaluateClassroomReadiness } from './lib/classroomReadiness';
-import { runDeterministicPackageFinalizer } from './lib/packageFinalizer';
+import { applyQualityToFinalizerResult, runDeterministicPackageFinalizer } from './lib/packageFinalizer';
 import { verifyPackageExports } from './lib/packageExportVerifier';
 import { generateCourseHealthReport } from './lib/pedagogicalValidator';
 import {
@@ -782,6 +782,9 @@ export default function AppFlow({ startupAction = null, onStartupHandled, onRetu
   const chatSendRef = useRef(null);
   const packageFinalizerRef = useRef(null);
   const packageFinalizerInFlightRef = useRef(null);
+  // v0.14.3 WS-A A2: the last run digest, kept so the ZIP download path can
+  // hand the quality grader the same honesty source the finalize grade used.
+  const lastRunDigestRef = useRef(null);
   const packageGenerationInFlightRef = useRef(false);
   const [packageGenerationBusy, setPackageGenerationBusy] = useState(false);
   const suppressedPackageRetryKeysRef = useRef(new Set());
@@ -1620,39 +1623,15 @@ export default function AppFlow({ startupAction = null, onStartupHandled, onRetu
         const spendText = apiSpendSummary ? ` API spend: ${apiSpendSummary.label}.` : '';
         const compilerText = compilerSummary ? ` ${compilerSummary.label}.` : '';
 
-        setPackageQualityPass({
-          status: finalStatus,
-          message:
-            finalStatus === 'ready'
-              ? `${repairText}${exportText}${finalizerMessage}${spendText}${compilerText}`
-              : `${retryText}${skippedRetryText}${repairText}${exportText}${finalizerMessage}${spendText}${compilerText}`,
-          repairsApplied: totalRepairsApplied,
-          warnings,
-          blockers,
-          receipt: receiptWithSpend,
-        });
-        tracePackageFinish(finishRunId, 'finish_complete', {
-          finalStatus,
-          blockers,
-          warnings,
-          retryCount,
-          retryPassCount,
-          retryCallCount,
-          skippedRetryActionCount,
-          retryBudgetRemaining: remainingRetryCallBudget,
-          exportStatus: exportVerification?.status,
-          // Slimmed in v0.10.1 — the structured detail now lives in the run
-          // digest emitted below instead of repeating cumulative blobs here.
-          apiSpend: apiSpendSummary?.label || '',
-          compilerSavings: compilerSummary?.label || '',
-        });
-
         // v0.10.1: the RUN DIGEST — one structured diagnostic per finish,
         // built for auditing real runs (decisions + reasons, honest costs,
         // actual gate messages). Lazy import keeps it out of this chunk.
+        // v0.14.3 WS-A: built BEFORE the final state set so the quality
+        // grader can read it as its in-app honesty source.
+        let runDigest = null;
         try {
           const { buildRunDigest, formatRunDigest } = await import('./lib/runDigest');
-          const digest = buildRunDigest({
+          runDigest = buildRunDigest({
             budget: apiCallBudgetRef.current || {},
             exportVerification,
             finish: {
@@ -1675,11 +1654,79 @@ export default function AppFlow({ startupAction = null, onStartupHandled, onRetu
               featureIds,
             },
           });
-          console.info(`[CM][RUN DIGEST]\n${formatRunDigest(digest)}`);
-          console.info(`[CM][DIGEST] ${JSON.stringify(digest)}`);
+          console.info(`[CM][RUN DIGEST]\n${formatRunDigest(runDigest)}`);
+          console.info(`[CM][DIGEST] ${JSON.stringify(runDigest)}`);
         } catch {
           /* digest is diagnostics-only — never block the finish on it */
         }
+        lastRunDigestRef.current = runDigest;
+
+        // v0.14.3 WS-A A2: after export_verify passes, the package grades
+        // itself — deterministic deep-quality grade over the same in-memory
+        // file map the ZIP download assembles. Lazy chunk, 10s timeout,
+        // non-blocking: any failure becomes quality { status: 'not-graded' }.
+        let packageQuality = null;
+        if ((exportVerification?.failed || 0) > 0) {
+          packageQuality = { status: 'not-graded', reason: 'export verification failed' };
+        } else {
+          try {
+            const { gradePackageAtFinalize } = await import('./lib/quality/finalizeQualityGate');
+            packageQuality = await gradePackageAtFinalize({
+              courseMap: result.courseMap || courseMapRef.current,
+              deliverables: result.deliverables || deliverablesRef.current || {},
+              featureIds,
+              columns,
+              lessonFilter,
+              slideTheme,
+              courseGraph: courseGraphRef.current || null,
+              pipelineState: getManifestPipelineState(),
+              budget: apiCallBudgetRef.current || {},
+              digest: runDigest,
+            });
+          } catch (err) {
+            packageQuality = { status: 'not-graded', reason: err?.message || 'grading unavailable' };
+          }
+        }
+        // A3: P0 findings push a warning through the readiness channel
+        // (mirrors the enrichment-coverage integration in the finalizer).
+        result = applyQualityToFinalizerResult(result, packageQuality);
+        tracePackageFinish(finishRunId, 'quality_grade_done', {
+          status: packageQuality?.status,
+          score: packageQuality?.score ?? null,
+          grade: packageQuality?.grade ?? null,
+          p0: packageQuality?.findingCounts?.p0 ?? null,
+          reason: packageQuality?.reason || '',
+        });
+
+        setPackageQualityPass({
+          status: finalStatus,
+          message:
+            finalStatus === 'ready'
+              ? `${repairText}${exportText}${finalizerMessage}${spendText}${compilerText}`
+              : `${retryText}${skippedRetryText}${repairText}${exportText}${finalizerMessage}${spendText}${compilerText}`,
+          repairsApplied: totalRepairsApplied,
+          warnings,
+          blockers,
+          receipt: receiptWithSpend,
+          // v0.14.3 WS-A A3: the quality badge data (score, grade, findings)
+          // for the export panel chip + modal.
+          quality: packageQuality,
+        });
+        tracePackageFinish(finishRunId, 'finish_complete', {
+          finalStatus,
+          blockers,
+          warnings,
+          retryCount,
+          retryPassCount,
+          retryCallCount,
+          skippedRetryActionCount,
+          retryBudgetRemaining: remainingRetryCallBudget,
+          exportStatus: exportVerification?.status,
+          // Slimmed in v0.10.1 — the structured detail now lives in the run
+          // digest emitted below instead of repeating cumulative blobs here.
+          apiSpend: apiSpendSummary?.label || '',
+          compilerSavings: compilerSummary?.label || '',
+        });
 
         return {
           ...result,
@@ -1723,6 +1770,7 @@ export default function AppFlow({ startupAction = null, onStartupHandled, onRetu
       columns,
       commitFinalizerResult,
       deliverableConfig,
+      getManifestPipelineState,
       lessonScope.indices,
       lessonScope.type,
       selectedFeatures,
@@ -4438,6 +4486,10 @@ export default function AppFlow({ startupAction = null, onStartupHandled, onRetu
                     hasGenerated && selectedFeatures.length > 1 && packageQualityPass?.status !== 'idle'
                   }
                   getPipelineState={getManifestPipelineState}
+                  getQualityContext={() => ({
+                    budget: apiCallBudgetRef.current || {},
+                    digest: lastRunDigestRef.current,
+                  })}
                 />
               </div>
             )}

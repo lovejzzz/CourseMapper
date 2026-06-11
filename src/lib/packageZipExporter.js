@@ -77,7 +77,14 @@ function createFailure(featureId, format, message, extra = {}) {
   };
 }
 
-function addRequiredFile(zip, files, failures, path, content, { featureId, format, minBytes = MIN_EXPORT_BYTES } = {}) {
+function addRequiredFile(
+  zip,
+  files,
+  failures,
+  path,
+  content,
+  { featureId, format, minBytes = MIN_EXPORT_BYTES, fileContents = null } = {},
+) {
   const size = getExportPartSize(content);
   if (size < minBytes) {
     failures.push(
@@ -91,6 +98,7 @@ function addRequiredFile(zip, files, failures, path, content, { featureId, forma
     return false;
   }
   zip.file(path, content);
+  if (fileContents) fileContents[path] = content;
   files.push({ path, featureId: publicFeatureId(featureId), label: resolveFeatureLabel(featureId), format, size });
   return true;
 }
@@ -101,7 +109,7 @@ async function addRequiredOfficeFile(
   failures,
   path,
   content,
-  { featureId, format, minBytes = MIN_EXPORT_BYTES } = {},
+  { featureId, format, minBytes = MIN_EXPORT_BYTES, fileContents = null } = {},
 ) {
   const size = getExportPartSize(content);
   if (size < minBytes) {
@@ -132,7 +140,9 @@ async function addRequiredOfficeFile(
     return false;
   }
 
-  zip.file(path, await getZipFileContent(content));
+  const zipContent = await getZipFileContent(content);
+  zip.file(path, zipContent);
+  if (fileContents) fileContents[path] = zipContent;
   files.push({ path, featureId: publicFeatureId(featureId), label: resolveFeatureLabel(featureId), format, size });
   return true;
 }
@@ -240,6 +250,13 @@ export async function buildCourseMaterialsZip({
   featureIds = null,
   pipelineState = null,
   courseGraph = null,
+  // v0.14.3 WS-A: the package grades itself. `quality` is ON by default
+  // ({ budget, digest, courseId, timeoutMs } enriches the honesty source);
+  // pass `quality: false` to skip grading entirely. `assembleOnly: true`
+  // skips blob generation — the finalize-time grading path builds the same
+  // file map and quality block without paying for zip compression.
+  quality = {},
+  assembleOnly = false,
 } = {}) {
   const JSZip = (await safeImport(() => import('jszip'))).default;
   const { buildDeliverableDocxBlob } = await safeImport(() => import('./exporters/bulkDocxExporter'));
@@ -253,11 +270,16 @@ export async function buildCourseMaterialsZip({
   const lessonIndices = getLessonIndicesForZip(courseMap, lessonFilter);
   const files = [];
   const failures = [];
+  // v0.14.3 A1/A2: the in-memory file map (path → string | ArrayBuffer) the
+  // grader reads through createMemoryFileProvider — the same bytes the zip
+  // receives, captured at assembly time.
+  const fileContents = {};
 
   if (readiness?.issues?.length > 0) {
     const reportPath = 'READINESS_REPORT.txt';
     const report = buildReadinessReport(readiness, { courseName: safeCourseName });
     zip.file(reportPath, report);
+    fileContents[reportPath] = report;
     files.push({ path: reportPath, featureId: 'readiness', format: 'txt', size: getExportPartSize(report) });
   }
 
@@ -275,6 +297,7 @@ export async function buildCourseMaterialsZip({
     await addRequiredOfficeFile(zip, files, failures, `Course Map/${safeCourseName} - Course Map.xlsx`, buffer, {
       featureId: 'courseMap',
       format: 'xlsx',
+      fileContents,
     });
   } catch (err) {
     failures.push(
@@ -326,6 +349,7 @@ export async function buildCourseMaterialsZip({
             {
               featureId,
               format: 'pptx',
+              fileContents,
             },
           );
         } catch (err) {
@@ -355,6 +379,7 @@ export async function buildCourseMaterialsZip({
           {
             featureId,
             format: 'docx',
+            fileContents,
           },
         );
       } catch (err) {
@@ -382,6 +407,7 @@ export async function buildCourseMaterialsZip({
       featureId: 'requiredAssets',
       format: 'md',
       minBytes: 64,
+      fileContents,
     });
   }
 
@@ -409,6 +435,80 @@ export async function buildCourseMaterialsZip({
     pipelineState,
     assessments: buildManifestAssessments({ registry: assessmentRegistry, files }),
   });
+
+  // ── v0.14.3 WS-A A2/A3: the package grades itself ─────────────────────────
+  // Ordering contract: the manifest is itself IN the zip and grading needs the
+  // file map INCLUDING the manifest — so the grader runs over the map with the
+  // manifest serialized WITHOUT its quality block, then quality is injected
+  // before zip assembly. The grader ignores manifest.quality and skips
+  // QUALITY_REPORT.md by contract, so a downloaded package regrades to the
+  // same score. Grading is bounded (10s default) and never fails the export:
+  // any timeout/error becomes quality { status: 'not-graded', reason }.
+  let qualityBlock = null;
+  let qualityResult = null;
+  let qualityReportMarkdown = null;
+  if (quality !== false) {
+    const qualityOptions = quality && typeof quality === 'object' ? quality : {};
+    const timeoutMs = Number.isFinite(qualityOptions.timeoutMs) ? qualityOptions.timeoutMs : 10000;
+    try {
+      // Lazy: the grader + defect patterns are their own chunk, loaded only
+      // when finalize-grading runs (bundle discipline, WS-A A4).
+      const [graderModule, providersModule] = await Promise.all([
+        safeImport(() => import('./quality/deepQualityGrader.js')),
+        safeImport(() => import('./quality/fileProviders.js')),
+      ]);
+      const { grade, renderReportMarkdown, honestyFromDigest, GRADER_VERSION } = graderModule;
+      const gradedFileMap = { ...fileContents, 'PACKAGE_MANIFEST.json': JSON.stringify(manifest, null, 2) };
+      const gradePromise = grade({
+        fileProvider: providersModule.createMemoryFileProvider(gradedFileMap),
+        // In-app honesty source: direct budget/digest object assertions
+        // replace the Crucible's console-log scan (same checks; the two
+        // console-only checks are named in IN_APP_EXCLUDED_CHECKS).
+        honesty: honestyFromDigest(qualityOptions.budget || null, qualityOptions.digest || null),
+        // Discipline probes key off the course title — the manifest's
+        // courseName is the authoritative in-app source.
+        course: {
+          id: qualityOptions.courseId || '',
+          title: safeCourseName,
+          featureIds: requestedFeatureIds,
+        },
+      });
+      const raced = await new Promise((resolve) => {
+        const timer = setTimeout(() => resolve({ timedOut: true }), Math.max(0, timeoutMs));
+        gradePromise.then(
+          (value) => {
+            clearTimeout(timer);
+            resolve({ value });
+          },
+          (error) => {
+            clearTimeout(timer);
+            resolve({ error });
+          },
+        );
+      });
+      if (raced.timedOut) {
+        qualityBlock = { status: 'not-graded', reason: `grading timed out after ${timeoutMs}ms` };
+      } else if (raced.error) {
+        qualityBlock = { status: 'not-graded', reason: raced.error?.message || 'grading failed' };
+      } else {
+        qualityResult = raced.value;
+        qualityBlock = {
+          status: 'graded',
+          score: qualityResult.overall.score,
+          grade: qualityResult.overall.grade,
+          graderVersion: GRADER_VERSION,
+          findingCounts: { p0: qualityResult.stats.p0, p1: qualityResult.stats.p1, p2: qualityResult.stats.p2 },
+          dimensions: qualityResult.scores,
+          gradedAt: new Date().toISOString(),
+        };
+        qualityReportMarkdown = renderReportMarkdown(qualityResult, { courseTitle: safeCourseName });
+      }
+    } catch (err) {
+      qualityBlock = { status: 'not-graded', reason: err?.message || 'grader unavailable' };
+    }
+    manifest.quality = qualityBlock;
+  }
+
   const manifestText = JSON.stringify(manifest, null, 2);
   zip.file('PACKAGE_MANIFEST.json', manifestText);
   files.push({
@@ -417,6 +517,33 @@ export async function buildCourseMaterialsZip({
     format: 'json',
     size: getExportPartSize(manifestText),
   });
+
+  if (qualityReportMarkdown) {
+    // A3: the package carries its own audit at the zip root. Like the
+    // manifest's own entry, the report is NOT listed in manifest.files (the
+    // manifest is finalized first); the returned `files` array carries it.
+    // The grader and export verifier both exclude it by contract.
+    zip.file('QUALITY_REPORT.md', qualityReportMarkdown);
+    files.push({
+      path: 'QUALITY_REPORT.md',
+      featureId: 'quality',
+      format: 'md',
+      size: getExportPartSize(qualityReportMarkdown),
+    });
+  }
+
+  if (assembleOnly) {
+    return {
+      blob: null,
+      fileName: `${safeCourseName} - Course Materials.zip`,
+      files,
+      manifest,
+      size: 0,
+      quality: qualityBlock,
+      qualityResult,
+      qualityReportMarkdown,
+    };
+  }
 
   const blob = await zip.generateAsync({ type: 'blob', compression: 'DEFLATE', compressionOptions: { level: 6 } });
   const zipSize = getExportPartSize(blob);
@@ -432,6 +559,9 @@ export async function buildCourseMaterialsZip({
     files,
     manifest,
     size: zipSize,
+    quality: qualityBlock,
+    qualityResult,
+    qualityReportMarkdown,
   };
 }
 

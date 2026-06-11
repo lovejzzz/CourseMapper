@@ -211,9 +211,17 @@ export function composeLessonFromConcepts(conceptKernels = [], courseLayer = {},
   // projection emits exactly the first mcSlotCount pool items
   // (kernelProjection's `mcItems.slice(0, mcSlots.length)`), and
   // mcSourceConcepts is parallel to the pool, so attribution is positional.
+  // v0.14.3 D1(b)+D3: the projection now also consumes a contiguous prefix of
+  // the unused tail — one walkthrough item (the deck's second application
+  // slide) plus up to two flagged extension quiz items (weekly-quiz slots
+  // 7-8). Counting them here is what keeps the course-level cursor honest:
+  // a concept repeated in a later lesson must never re-draw an item that
+  // shipped on a slide or in an extended quiz.
   const mcSlotCount = (options.itemPlan || []).filter((slot) => slot.type === 'multiple_choice').length;
+  const extensionCount = (payload.quizItems || []).filter((item) => item.extension === true).length;
+  const mcConsumedCount = Math.min(mcSlotCount, mc.length) + (payload.mcWalkthrough ? 1 : 0) + extensionCount;
   const mcConsumed = {};
-  for (const conceptId of mcSourceConcepts.slice(0, mcSlotCount)) {
+  for (const conceptId of mcSourceConcepts.slice(0, mcConsumedCount)) {
     mcConsumed[conceptId] = (mcConsumed[conceptId] || 0) + 1;
   }
 
@@ -368,6 +376,10 @@ export function mergeLessonPayloads(genomePartial, modelPayload) {
     // The genome's worked example is source-anchored math bought once in the
     // library — it outranks a model-written walkthrough.
     ...(genomePartial.workedExample ? { workedExample: genomePartial.workedExample } : {}),
+    // v0.14.3 D1(b): the unused-bank walkthrough item rides the merge — its
+    // consumption was already counted against the genome cursor when the
+    // partial composition shipped.
+    ...(genomePartial.mcWalkthrough ? { mcWalkthrough: genomePartial.mcWalkthrough } : {}),
     ...(!modelPayload.slideContent && genomePartial.slideContent ? { slideContent: genomePartial.slideContent } : {}),
     ...(!modelPayload.discussionPrompt && genomePartial.discussionPrompt
       ? { discussionPrompt: genomePartial.discussionPrompt }

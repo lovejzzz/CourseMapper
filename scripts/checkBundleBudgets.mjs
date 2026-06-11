@@ -32,12 +32,26 @@ const lazyChunkBudgets = [
   { prefix: 'DeveloperModePanel-', rawKiB: 130, gzipKiB: 35 },
   // v0.9.1: +3 KiB raw for the pre-export checklist (localization gaps +
   // compiler-flagged local reviews, measured at 38.0 KiB raw / 10.x gzip).
+  // v0.14.3 WS-A: +5.1 KiB raw / +1.3 KiB gzip for the quality badge chip +
+  // report modal (measured at 36.8 KiB raw / 10.3 gzip).
   { prefix: 'ExportSidePanel-', rawKiB: 40, gzipKiB: 12 },
+  // v0.14.3 WS-A A4: the deep quality grader + defect patterns — the
+  // package-grades-itself chunk, lazy-loaded only when finalize-grading or a
+  // ZIP download runs (measured at 38.6 KiB raw / 13.9 KiB gzip; the roadmap
+  // expected 40–60 KiB raw). Never preloaded on landing — also listed in
+  // forbiddenInitialChunks below.
+  { prefix: 'deepQualityGrader-', rawKiB: 48, gzipKiB: 18 },
+  // The finalize-time grading seam AppFlow lazy-imports (assembles the file
+  // map via packageZipExporter and returns the badge data; measured at
+  // 1.1 KiB raw / 0.6 gzip).
+  { prefix: 'finalizeQualityGate-', rawKiB: 4, gzipKiB: 2 },
   { prefix: 'webllm-', rawKiB: 5, gzipKiB: 2 },
 ];
 
 const forbiddenInitialChunks = [
   /webllm/i,
+  /deepQualityGrader/i,
+  /finalizeQualityGate/i,
   /citation-js/i,
   /exceljs/i,
   /jspdf/i,

@@ -495,6 +495,162 @@ function ReadinessConfirm({
   );
 }
 
+// ── Quality badge (v0.14.3 WS-A A3) ──────────────────────────────────────────
+// Chip styling mirrors PackageTrustStrip's trust chips; click opens the
+// report modal. The modal renders a STRUCTURED summary from the grade result
+// object instead of markdown — the app's markdown renderer lives in the chat
+// chunk (MessageBubble) and pulling it into the export panel chunk would be
+// heavier than the data it formats; the full markdown report ships in the
+// ZIP as QUALITY_REPORT.md.
+function qualityIssueCount(quality) {
+  if (Number.isFinite(quality?.findingCount)) return quality.findingCount;
+  const counts = quality?.findingCounts || {};
+  return (counts.p0 || 0) + (counts.p1 || 0) + (counts.p2 || 0);
+}
+
+function QualityBadge({ quality, onOpen }) {
+  if (!quality) return null;
+  const chipBase = 'inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[10px] font-bold';
+  if (quality.status !== 'graded') {
+    return (
+      <span
+        data-testid="quality-badge-not-graded"
+        title={`Quality grading did not run: ${quality.reason || 'unknown reason'}`}
+        className={`${chipBase} border-slate-200 bg-slate-50 text-slate-500`}
+      >
+        Quality — not graded
+      </span>
+    );
+  }
+  const p0 = quality.findingCounts?.p0 || 0;
+  const issues = qualityIssueCount(quality);
+  const tone =
+    p0 > 0 || quality.grade === 'F'
+      ? 'border-rose-200 bg-rose-50 text-rose-700'
+      : quality.grade === 'A' || quality.grade === 'B'
+        ? 'border-emerald-200 bg-emerald-50 text-emerald-700'
+        : 'border-amber-200 bg-amber-50 text-amber-700';
+  return (
+    <button
+      type="button"
+      data-testid="quality-badge"
+      onClick={onOpen}
+      title={`Deterministic package grade ${quality.score}/100 (${quality.grade}) · ${issues} issue${
+        issues === 1 ? '' : 's'
+      } — click for the full report (also shipped as QUALITY_REPORT.md in the ZIP)`}
+      className={`${chipBase} ${tone} tactile transition-colors hover:brightness-95`}
+    >
+      Quality {quality.score} · {quality.grade} · {issues} issue{issues === 1 ? '' : 's'}
+    </button>
+  );
+}
+
+const QUALITY_SEVERITY_TONES = {
+  P0: 'bg-rose-100 text-rose-700',
+  P1: 'bg-amber-100 text-amber-700',
+  P2: 'bg-slate-100 text-slate-600',
+};
+
+function QualityReportModal({ quality, onClose }) {
+  if (!quality || quality.status !== 'graded') return null;
+  const dimensions = Object.entries(quality.dimensions || {});
+  const findings = Array.isArray(quality.findings) ? quality.findings : [];
+  const counts = quality.findingCounts || {};
+  return (
+    <div
+      data-testid="quality-report-modal"
+      className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/30 backdrop-blur-sm animate-in fade-in duration-200"
+      onClick={onClose}
+    >
+      <div
+        className="bg-white/95 backdrop-blur-lg rounded-2xl shadow-2xl border border-slate-200/60 w-full max-w-lg mx-4 max-h-[80vh] flex flex-col animate-in slide-in-from-bottom-4 duration-300"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="flex items-center justify-between px-5 py-4 border-b border-slate-100">
+          <div className="min-w-0">
+            <p className="text-sm font-bold text-slate-800">
+              Package quality — {quality.score}/100 ({quality.grade})
+            </p>
+            <p className="text-[10px] text-slate-400">
+              {counts.p0 || 0} P0 · {counts.p1 || 0} P1 · {counts.p2 || 0} P2 · grader v{quality.graderVersion}
+              {quality.gradedAt ? ` · ${new Date(quality.gradedAt).toLocaleString()}` : ''}
+            </p>
+          </div>
+          <button
+            type="button"
+            onClick={onClose}
+            aria-label="Close quality report"
+            className="ml-3 flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-lg text-slate-400 transition-colors hover:bg-slate-100 hover:text-slate-600"
+          >
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
+        <div className="overflow-y-auto px-5 py-4 space-y-4">
+          <div>
+            <p className="text-[9px] font-bold text-slate-400 uppercase tracking-wider mb-1.5">Dimension scores</p>
+            <div className="grid grid-cols-2 gap-1">
+              {dimensions.map(([dimension, score]) => (
+                <div
+                  key={dimension}
+                  className="flex items-center justify-between rounded-lg bg-slate-50 px-2 py-1 text-[11px]"
+                >
+                  <span className="text-slate-500 capitalize">{dimension}</span>
+                  <span className="font-bold text-slate-700">
+                    {score}
+                    {quality.grades?.[dimension] ? ` · ${quality.grades[dimension]}` : ''}
+                  </span>
+                </div>
+              ))}
+            </div>
+          </div>
+          <div>
+            <p className="text-[9px] font-bold text-slate-400 uppercase tracking-wider mb-1.5">
+              Findings ({findings.length})
+            </p>
+            {findings.length === 0 ? (
+              <p className="rounded-lg bg-emerald-50 px-2 py-1.5 text-[11px] font-semibold text-emerald-700">
+                No detectable defects — every deterministic check passed.
+              </p>
+            ) : (
+              <ul className="space-y-1.5">
+                {findings.map((finding) => (
+                  <li key={finding.id} className="rounded-lg border border-slate-100 bg-white px-2 py-1.5">
+                    <div className="flex items-center gap-1.5">
+                      <span
+                        className={`rounded px-1 py-0.5 text-[9px] font-bold ${
+                          QUALITY_SEVERITY_TONES[finding.severity] || QUALITY_SEVERITY_TONES.P2
+                        }`}
+                      >
+                        {finding.severity}
+                      </span>
+                      <span className="text-[9px] font-semibold uppercase tracking-wide text-slate-400">
+                        {finding.dimension}
+                      </span>
+                    </div>
+                    <p className="mt-0.5 text-[11px] leading-snug text-slate-700">{finding.detail}</p>
+                    {finding.file ? <p className="text-[9px] text-slate-400 break-all">{finding.file}</p> : null}
+                    {finding.evidence ? (
+                      <p className="mt-0.5 rounded bg-slate-50 px-1.5 py-1 font-mono text-[9px] leading-snug text-slate-500 break-words">
+                        {finding.evidence}
+                      </p>
+                    ) : null}
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
+          <p className="text-[10px] text-slate-400 leading-snug">
+            The full markdown report ships inside the package ZIP as QUALITY_REPORT.md, and the manifest carries this
+            grade under <span className="font-mono">quality</span>.
+          </p>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function ReadinessFinalizingPanel({ finishingPackage = false, message = '' }) {
   return (
     <div className="rounded-xl border border-indigo-100 bg-indigo-50/70 px-3 py-2.5 text-indigo-700">
@@ -531,6 +687,7 @@ export default function ExportSidePanel({
   isPackageGenerationRunning = false,
   preferPackageScope = false,
   getPipelineState = null, // v0.12.1: () => manifest pipeline block, read at export time
+  getQualityContext = null, // v0.14.3: () => { budget, digest } — the ZIP grade's honesty source
 }) {
   const { courseMap, columns, selectedFeatures, slideTheme } = useCourse();
   const [scope, setScope] = useState('current'); // 'current' | 'all'
@@ -542,6 +699,7 @@ export default function ExportSidePanel({
   const [pendingReadinessExport, setPendingReadinessExport] = useState(null);
   const [autoRepairingReadiness, setAutoRepairingReadiness] = useState(false);
   const [finishPackageBusy, setFinishPackageBusy] = useState(false);
+  const [qualityModalOpen, setQualityModalOpen] = useState(false);
   const [readinessRepairAttempts, setReadinessRepairAttempts] = useState(() => new Set());
   const readinessConfirmRef = useRef(null);
   const isPackageQualityRunning = packageQualityPass?.status === 'running';
@@ -865,6 +1023,10 @@ export default function ExportSidePanel({
             readiness: downloadReadiness,
             featureIds: getExportFeatureIds(exportScope),
             pipelineState: typeof getPipelineState === 'function' ? getPipelineState() : null,
+            // v0.14.3 WS-A: the ZIP grades itself before assembly — budget +
+            // digest feed the in-app honesty checks (manifest.quality +
+            // QUALITY_REPORT.md ride the download).
+            quality: typeof getQualityContext === 'function' ? { ...(getQualityContext() || {}) } : {},
           });
           setLastOk(`ZIP downloaded with ${zipResult.files.length} file${zipResult.files.length === 1 ? '' : 's'}.`);
         }
@@ -1020,8 +1182,19 @@ export default function ExportSidePanel({
           </div>
           <div className="min-w-0">
             <p className="text-xs font-bold text-slate-800">Finish package</p>
+            {/* v0.14.3 WS-A A3: the quality badge — the package's own grade,
+                next to the trust surface, styled like the trust chips. */}
+            {packageQualityPass?.quality && (
+              <div className="mt-1">
+                <QualityBadge quality={packageQualityPass.quality} onOpen={() => setQualityModalOpen(true)} />
+              </div>
+            )}
           </div>
         </div>
+
+        {qualityModalOpen && (
+          <QualityReportModal quality={packageQualityPass?.quality} onClose={() => setQualityModalOpen(false)} />
+        )}
 
         {/* ── Pre-export checklist (v0.9.1) ── */}
         {checklistItems.length > 0 && (

@@ -13,6 +13,7 @@
  */
 
 import { isInternalExportMetadataKey } from './exporters/exporterUtils';
+import { recordLegacyPathHit } from './legacyPathTelemetry';
 
 const TITLE_LIKE_KEY_RE =
   /^(?:id|key|slug|tags|anchor|sourceColumns|relatedLessons|lessonNumbers|format|type|category|difficulty|bloomsLevel|weight|points)$/i;
@@ -75,6 +76,17 @@ const ARTIFACT_REFERENCE_MARKER = 'artifact-short-ref';
 function resolveReplacement(target, contextLessonNumber = 0) {
   const { replacement } = target;
   if (typeof replacement === 'string') return replacement;
+  if (replacement.assessmentId) {
+    // v0.14.3 C1: this target carries registry identity (assessmentId, so
+    // the registry kind was available) yet the ARTIFACT_KIND title-pattern
+    // inference's result is what gets consumed. Hypothesized dead on the
+    // graph path — FALSIFIED by the C2 fixture matrix
+    // (tests/v0143-compiler-diet.test.js): the inference is load-bearing for
+    // every 3rd+ mention short reference because the registry kind
+    // vocabulary cannot produce the readable noun. Phase-2 backlog (key the
+    // noun off registry kind + title head); telemetry stays as the measure.
+    recordLegacyPathHit('finalizer-kind-inference', `inferred=${replacement.artifactKind} pattern=${target.pattern}`);
+  }
   // The enclosing item's lesson wins; lesson-less scopes (syllabus,
   // course-level residue) fall back to the artifact's own lesson — unless
   // the same title is shared across lessons, where any single week number
