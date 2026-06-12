@@ -3,6 +3,17 @@ import Header from '../components/Header';
 
 const releases = [
   {
+    version: '0.14.8',
+    date: 'June 12, 2026',
+    title: 'Deep clean: one menu, a quieter export panel, better prose',
+    highlights: [
+      'One disclosure: the header carried two "More" menus after v0.14.7 (the CTA’s and the workspace’s) — they merged. Finish package and Save .coursemapper now live in the single workspace More menu; the morphing primary action (Building… → Review N → Download ZIP) stands alone.',
+      'The export panel is actions-only: the review-count chips left (the header Review button and the agent panel’s short report are the entries), the Backup section moved into the More menu, and what remains is scope, lesson selection, and download.',
+      'Lesson-title mention budget: a long title ("Crisis and Conservatism in the Late 20th Century") repeated by every templated field of every brief hit the export audit’s repetition limit live. Within one brief or discussion, the full title now appears at most twice — later mentions compress grammatically ("this lesson", "the lesson") — with identity fields and shared structures untouched (a first draft of this fix leaked into Lesson Plans through shared nested objects; the audit caught it before it shipped).',
+      'The Crucible driver follows the v0.14.7 landing relabel, so live rounds keep working against the deployed site.',
+    ],
+  },
+  {
     version: '0.14.7',
     date: 'June 12, 2026',
     title: 'Convergence: one graph, one machine, one voice',

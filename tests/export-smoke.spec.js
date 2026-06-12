@@ -512,7 +512,9 @@ test.describe('Export smoke', () => {
     });
     expect(audit.issues).toEqual([]);
 
-    await expectDownload(page, () => page.getByTestId('export-save-project').click(), {
+    // v0.14.7.1: Save .coursemapper lives in the header's ONE More menu.
+    await page.getByTestId('workspace-more-menu-trigger').click();
+    await expectDownload(page, () => page.getByTestId('workspace-menu-save-project').click(), {
       extension: 'coursemapper',
       nameIncludes: 'Export Smoke Course',
       minBytes: 1000,

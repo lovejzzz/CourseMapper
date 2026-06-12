@@ -216,7 +216,7 @@ describe('E2b/E2d — one radius scale, no ALL-CAPS section labels', () => {
   it('the export panel section labels use sentence case + weight (12px slate)', () => {
     const panel = read('src/components/ExportSidePanel.jsx');
     expect(panel).toContain('text-xs font-semibold text-slate-500');
-    for (const label of ['Lesson scope', 'Package ZIP', 'Backup', 'Download', 'Google Drive']) {
+    for (const label of ['Lesson scope', 'Package ZIP', 'Download', 'Google Drive']) {
       expect(panel).toContain(`>${label}</p>`);
     }
   });

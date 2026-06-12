@@ -136,3 +136,100 @@ describe('v0.14.6 (1) — exam correct-option rotation stays under the shingle a
     expect(signatures.size).toBeGreaterThanOrEqual(4);
   });
 });
+
+describe('v0.14.7.1 — long lesson titles stay under the mention budget in briefs/discussions', () => {
+  // Live repro (US History run-1781276589370): "crisis and conservatism in
+  // the late 20th century" ×12 within one section — 4-5 briefs per lesson,
+  // each templated field naming the full title. The finalizer caps the full
+  // title at 2 mentions per item; later mentions become "this lesson".
+  const LONG_TITLE_MAP = {
+    courseName: 'United States History since 1865',
+    semester: 'Fall 2026',
+    lessons: [
+      {
+        title: 'Lesson 1: Reconstruction and the New South',
+        sections: [
+          {
+            topicSection: '1.1: Reconstruction and the New South',
+            learningGoals: '1. Explain Reconstruction outcomes.',
+            learningObjectives: 'Analyze Reconstruction sources.\nEvaluate competing narratives.',
+            weeklyAssessments: 'Quiz: Reconstruction sources',
+            asyncActivities: 'Read the assigned chapter.',
+            syncActivities: 'Discussion seminar.',
+            supportingResources: 'Primary source packet',
+          },
+        ],
+      },
+      {
+        title: 'Lesson 2: Crisis and Conservatism in the Late 20th Century',
+        sections: [
+          {
+            topicSection: '2.1: Crisis and Conservatism in the Late 20th Century',
+            learningGoals: '1. Trace conservative political realignment.',
+            learningObjectives: 'Analyze realignment evidence.\nEvaluate policy arguments.',
+            weeklyAssessments:
+              'DBQ Essay: stagflation and politics\nPrimary Source Set: campaign rhetoric\nReflection: deindustrialization\nQuiz: late 20th century shifts',
+            asyncActivities: 'Annotate the campaign speeches.',
+            syncActivities: 'Structured academic controversy.',
+            supportingResources: 'Document-based question packet',
+          },
+        ],
+      },
+    ],
+  };
+  const FOCUS = /crisis and conservatism in the late 20th century/gi;
+  const graph = deriveCourseGraphFromCourseMap(LONG_TITLE_MAP);
+  const blueprint = buildBlueprintFromGraph(graph);
+  const compiled = compileBlueprintDeliverables(blueprint, ['assignments', 'discussions']);
+
+  // Identity fields (titles, lesson references, provenance lessonTitle keys)
+  // KEEP the full title by design — the budget applies to prose. Mirror the
+  // finalizer's skip philosophy when counting.
+  const IDENTITY_KEYS = new Set([
+    'title',
+    'lessonTitle',
+    'assessmentTitle',
+    'assignmentTitle',
+    'rubricTitle',
+    'relatedLessons',
+    'courseMapRef',
+    'registryId',
+    'assessmentId',
+    'id',
+    'name',
+  ]);
+  // The cap targets TOP-LEVEL prose fields only — nested structures are
+  // shared across features (mutating them leaked into Lesson Plans live)
+  // and the section renderers stamp top-level fields. Count what the cap
+  // governs.
+  function proseMentions(item) {
+    let sum = 0;
+    for (const [key, value] of Object.entries(item)) {
+      if (IDENTITY_KEYS.has(key) || typeof value !== 'string') continue;
+      sum += (value.match(FOCUS) || []).length;
+    }
+    return sum;
+  }
+
+  it('every brief/discussion item mentions the full title at most twice in PROSE fields', () => {
+    for (const featureId of ['assignments', 'discussions']) {
+      const items = compiled[featureId][featureId];
+      expect(items.length).toBeGreaterThan(0);
+      for (const item of items) {
+        expect(proseMentions(item), `${featureId} item "${item.title || ''}" prose mentions`).toBeLessThanOrEqual(2);
+      }
+    }
+  });
+
+  it('per-section PROSE totals stay well under the export audit limit of 12', () => {
+    for (const featureId of ['assignments', 'discussions']) {
+      const total = compiled[featureId][featureId].reduce((sum, item) => sum + proseMentions(item), 0);
+      expect(total, `${featureId} section prose total`).toBeLessThan(12);
+    }
+  });
+
+  it('capped mentions read as prose ("this lesson"), not as holes', () => {
+    const briefBodies = JSON.stringify(compiled.assignments.assignments);
+    expect(briefBodies.toLowerCase()).toContain('this lesson');
+  });
+});

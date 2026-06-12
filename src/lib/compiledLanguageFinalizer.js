@@ -654,11 +654,84 @@ function itemLessonNumberOf(item) {
  * Scopes the repetition budget per lesson item (elements of root-level arrays)
  * so each document keeps its first full-title mentions and shortens the rest.
  */
+// ── v0.14.7.1: lesson-title mention budget ──────────────────────────────────
+// A long lesson title ("Crisis and Conservatism in the Late 20th Century")
+// repeated by every templated field of every brief in its lesson hit the
+// export audit's 12-per-section shingle limit live (4-5 briefs/lesson × 2-3
+// mentions). Within ONE item, the full title may appear at most twice; later
+// mentions become "this lesson" — which is also just better prose. Only
+// LONG titles (≥4 words) are budgeted: short ones can't form an 8-word
+// shingle and repeat naturally. Identity fields are never touched.
+const TITLE_MENTION_FEATURES = new Set(['assignments', 'discussions']);
+const TITLE_MENTION_BUDGET = 2;
+const TITLE_MENTION_SKIP_KEYS = new Set([
+  'title',
+  'lessonTitle',
+  'assessmentTitle',
+  'assignmentTitle',
+  'rubricTitle',
+  'registryId',
+  'assessmentId',
+  'id',
+  'name',
+  // Identity REFERENCES keep the full title by design — and must not eat
+  // the prose budget slots.
+  'relatedLessons',
+  'courseMapRef',
+]);
+
+function capLessonTitleMentions(featureId, data, blueprint) {
+  if (!TITLE_MENTION_FEATURES.has(featureId)) return;
+  const lessons = Array.isArray(blueprint?.lessons) ? blueprint.lessons : [];
+  const focusByNumber = new Map();
+  lessons.forEach((lesson, index) => {
+    const focus = String(lesson?.title || '')
+      .replace(/^lesson\s*\d+\s*[:.\-\u2013\u2014]\s*/i, '')
+      .trim();
+    if (focus.split(/\s+/).filter(Boolean).length >= 4) {
+      focusByNumber.set(index + 1, focus);
+    }
+  });
+  if (focusByNumber.size === 0) return;
+  for (const value of Object.values(data)) {
+    if (!Array.isArray(value)) continue;
+    for (const item of value) {
+      if (!item || typeof item !== 'object') continue;
+      const focus = focusByNumber.get(itemLessonNumberOf(item));
+      if (!focus) continue;
+      // TOP-LEVEL string fields only: compiled items share nested structures
+      // (evidence plans, grounding traces) across features — recursing into
+      // them once leaked "this lesson" into Lesson Plans that were never a
+      // target. Top-level fields are the item's own prose and the only text
+      // the section renderers stamp repeatedly.
+      const regex = new RegExp(`\\b${escapeRegExp(focus)}(?![A-Za-z0-9])`, 'gi');
+      let used = 0;
+      for (const [key, fieldValue] of Object.entries(item)) {
+        if (typeof fieldValue !== 'string' || TITLE_MENTION_SKIP_KEYS.has(key)) continue;
+        item[key] = fieldValue.replace(regex, (match, offset, whole) => {
+          used += 1;
+          if (used <= TITLE_MENTION_BUDGET) return match;
+          const before = whole.slice(0, offset);
+          // Position-aware compression so every capped mention stays
+          // grammatical: sentence subjects become "This lesson", positions
+          // already inside a determiner phrase ("the revised <Title>
+          // evidence") become bare "lesson", everything else takes
+          // "the lesson".
+          if (offset === 0 || /[.!?]\s+$|\n\s*$/.test(before)) return 'This lesson';
+          if (/\b(?:the|a|an|your|their|its|our|this|each|every)\b[^.!?\n]{0,24}$/i.test(before)) return 'lesson';
+          return 'the lesson';
+        });
+      }
+    }
+  }
+}
+
 export function finalizeCompiledDeliverableLanguage(featureId, data, blueprint = {}) {
   if (!data || typeof data !== 'object') return data;
   const targets = buildReferenceTargets(blueprint);
   if (targets.length === 0) {
     walkAndRewrite(data, (value) => fixMechanicalSeams(value));
+    capLessonTitleMentions(featureId, data, blueprint);
     return data;
   }
   const rewriteItem =
@@ -675,5 +748,6 @@ export function finalizeCompiledDeliverableLanguage(featureId, data, blueprint =
   for (const [key, value] of Object.entries(rootResidue)) {
     data[key] = value;
   }
+  capLessonTitleMentions(featureId, data, blueprint);
   return data;
 }

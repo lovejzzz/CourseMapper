@@ -1295,48 +1295,10 @@ export default function ExportSidePanel({
           onExecuteSync={onExecuteSync}
         />
 
-        {/* ── Review (v0.14.4 WS-C1): the ONE queue entry — per-class counts
-            ("2 observations · 15 spot-checks · 1 structural") replace the
-            single "N items need your eyes" number; chips open the drawer
-            focused on that class. ── */}
-        {reviewQueue.total > 0 && (
-          <div
-            data-testid="review-queue-entry"
-            className="rounded-lg border border-slate-200/70 bg-slate-50/60 px-3 py-2"
-          >
-            <div className="flex items-center justify-between">
-              <p className="text-xs font-semibold text-slate-700">Review</p>
-              <button
-                data-testid="review-queue-open"
-                onClick={() => openReviewQueue(null)}
-                className="text-xs font-semibold text-indigo-500 hover:text-indigo-700 transition-colors"
-              >
-                Open queue
-              </button>
-            </div>
-            {outstandingReview.total > 0 ? (
-              <div className="mt-1.5 flex flex-wrap gap-1">
-                {REVIEW_CLASS_KEYS.filter((classKey) => outstandingReview.counts[classKey] > 0).map((classKey) => (
-                  <button
-                    key={classKey}
-                    data-testid={`review-queue-chip-${classKey}`}
-                    onClick={() => openReviewQueue(outstandingReview.classes[classKey][0]?.id || null)}
-                    className="rounded-full border border-slate-200/70 bg-white px-2 py-0.5 text-xs font-semibold text-slate-600 transition-colors hover:border-indigo-200 hover:text-indigo-600"
-                  >
-                    {outstandingReview.counts[classKey]}{' '}
-                    {outstandingReview.counts[classKey] === 1
-                      ? REVIEW_CLASS_LABELS[classKey].singular
-                      : REVIEW_CLASS_LABELS[classKey].plural}
-                  </button>
-                ))}
-              </div>
-            ) : (
-              <p data-testid="review-queue-entry-clear" className="mt-1 text-xs font-semibold text-emerald-600">
-                All clear — every review item is handled.
-              </p>
-            )}
-          </div>
-        )}
+        {/* v0.14.7.1 deep clean: the review ENTRY moved out of this panel
+            entirely — the header's morphing CTA ("Review N") and the agent
+            panel's one-line report are the queue entries; the drawer above
+            still lives here. The panel is actions-only. */}
 
         {/* ── Scope toggle ── */}
         <div className="flex items-center bg-slate-100/80 rounded-lg p-0.5 gap-0.5">
@@ -1477,27 +1439,8 @@ export default function ExportSidePanel({
               </button>
             </div>
 
-            {/* Save Project file */}
-            <div className="pt-1 border-t border-slate-100 space-y-1.5">
-              <p className="text-xs font-semibold text-slate-500">Backup</p>
-              <p className="text-xs text-slate-400 leading-snug">Save a portable .coursemapper file.</p>
-              <button
-                data-testid="export-save-project"
-                onClick={onSaveProject}
-                disabled={!!busy || isPackageQualityRunning}
-                className="tactile flex items-center justify-center gap-2 w-full py-2.5 rounded-lg text-xs font-semibold text-slate-600 bg-white/60 border border-slate-200/50 hover:bg-white/80 transition-all disabled:opacity-40 disabled:cursor-not-allowed"
-              >
-                <svg className="w-3.5 h-3.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4"
-                  />
-                </svg>
-                Save .coursemapper
-              </button>
-            </div>
+            {/* v0.14.7.1: Save .coursemapper moved to the header's one More
+                menu — the panel keeps export verbs only. */}
           </div>
         )}
 

@@ -501,11 +501,14 @@ describe('DigestCard → review queue routing', () => {
 // ── Surface contracts (source scans, build-ribbon test convention) ──────────
 
 describe('WS-C surface contracts', () => {
-  it('ExportSidePanel replaced the anxious checklist banner with the queue entry', () => {
+  it('ExportSidePanel is actions-only: no checklist banner, no review entry (v0.14.7.1 deep clean)', () => {
     const source = readSource('src/components/ExportSidePanel.jsx');
     expect(source).not.toContain('preexport-checklist');
     expect(source).not.toContain('summarizeChecklist');
-    expect(source).toContain('review-queue-entry');
+    // The review ENTRY moved out of the panel — the header CTA ("Review N")
+    // and the agent panel are the queue entries; the DRAWER still lives here.
+    expect(source).not.toContain('review-queue-entry');
+    expect(source).toContain('<ReviewQueue');
     expect(source).toContain('buildReviewQueue');
   });
 

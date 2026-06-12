@@ -3668,25 +3668,16 @@ export default function AppFlow({ startupAction = null, onStartupHandled, onRetu
                     {workspaceSaveText}
                   </span>
                 )}
-                {/* v0.14.7 WS-F1: ONE morphing verb — Building… → Review N →
-                    Download ZIP. Finish package and Save .coursemapper live in
-                    its More menu; renders nothing pre-generation. */}
+                {/* v0.14.7 WS-F1 (+.1 deep clean): ONE morphing verb —
+                    Building… → Review N → Download ZIP; renders nothing
+                    pre-generation. The header's ONE disclosure is the
+                    workspace More below — no second menu here. */}
                 <PrimaryCta
                   ribbonModel={buildRibbonModel}
                   reviewCount={headerReviewQueue.total}
                   canDownload={packageQualityPass?.status === 'ready'}
                   onDownload={() => window.dispatchEvent(new CustomEvent('coursemapper:request-zip-download'))}
                   onReview={() => handleReviewQueueOpenChange(true)}
-                  onFinishPackage={() =>
-                    handleFinishPackageFromExport({
-                      selectedFeatureIds: selectedFeatures,
-                      lessonFilter: lessonScope.type === 'specific' ? lessonScope.indices : null,
-                    })
-                  }
-                  finishPackageDisabled={finishPackageDisabled}
-                  finishPackageTitle={finishPackageTitle}
-                  finishRunning={isFinishPassRunning(packageQualityPass)}
-                  onSaveProject={handleSaveProject}
                 />
                 <DarkModeToggle />
                 <UserMenu
@@ -3710,6 +3701,36 @@ export default function AppFlow({ startupAction = null, onStartupHandled, onRetu
                     </svg>
                   </summary>
                   <div className="absolute right-0 z-30 mt-2 w-56 overflow-hidden rounded-lg border border-slate-200 bg-white p-1.5 shadow-xl shadow-slate-950/10">
+                    {/* v0.14.7.1: package actions live HERE — the header's
+                        one disclosure — not in a second CTA-side menu. */}
+                    {hasGenerated && (
+                      <>
+                        <button
+                          type="button"
+                          data-testid="workspace-finish-package"
+                          onClick={() =>
+                            handleFinishPackageFromExport({
+                              selectedFeatureIds: selectedFeatures,
+                              lessonFilter: lessonScope.type === 'specific' ? lessonScope.indices : null,
+                            })
+                          }
+                          disabled={finishPackageDisabled}
+                          title={finishPackageTitle}
+                          className="flex w-full items-center gap-2 rounded-md px-3 py-2 text-left text-xs font-semibold text-slate-700 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-40"
+                        >
+                          {isFinishPassRunning(packageQualityPass) ? 'Finishing' : 'Finish package'}
+                        </button>
+                        <button
+                          type="button"
+                          data-testid="workspace-menu-save-project"
+                          onClick={handleSaveProject}
+                          className="flex w-full items-center gap-2 rounded-md px-3 py-2 text-left text-xs font-semibold text-slate-700 hover:bg-slate-50"
+                        >
+                          Save .coursemapper
+                        </button>
+                        <div className="my-1 border-t border-slate-100" />
+                      </>
+                    )}
                     <button
                       type="button"
                       data-testid="workspace-menu-new-project"

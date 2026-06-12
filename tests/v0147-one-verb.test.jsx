@@ -118,76 +118,26 @@ describe('F1 — the morphing CTA state matrix', () => {
   });
 });
 
-describe('F1 — the More disclosure', () => {
-  it('carries Finish package + Save .coursemapper as real buttons behind an aria-expanded trigger', () => {
-    const onFinishPackage = vi.fn();
-    const onSaveProject = vi.fn();
-    const { container } = mount(
-      <PrimaryCta
-        ribbonModel={READY_MODEL}
-        reviewCount={0}
-        canDownload
-        onFinishPackage={onFinishPackage}
-        onSaveProject={onSaveProject}
-      />,
-    );
-    const trigger = container.querySelector('[data-testid="primary-cta-more"]');
-    expect(trigger).not.toBeNull();
-    expect(trigger.tagName).toBe('BUTTON');
-    expect(trigger.getAttribute('aria-expanded')).toBe('false');
+describe('F1 — ONE disclosure: the workspace More owns the package actions', () => {
+  it('PrimaryCta carries NO menu of its own (two "More" buttons was the live feedback that killed it)', () => {
+    const { container } = mount(<PrimaryCta ribbonModel={READY_MODEL} reviewCount={0} canDownload />);
+    expect(container.querySelector('[data-testid="primary-cta-more"]')).toBeNull();
     expect(container.querySelector('[data-testid="primary-cta-menu"]')).toBeNull();
-
-    act(() => {
-      trigger.click();
-    });
-    expect(trigger.getAttribute('aria-expanded')).toBe('true');
-    const menu = container.querySelector('[data-testid="primary-cta-menu"]');
-    expect(menu).not.toBeNull();
-
-    const finish = menu.querySelector('[data-testid="workspace-finish-package"]');
-    expect(finish.tagName).toBe('BUTTON');
-    expect(finish.textContent).toContain('Finish package');
-    act(() => {
-      finish.click();
-    });
-    expect(onFinishPackage).toHaveBeenCalledTimes(1);
-
-    act(() => {
-      trigger.click();
-    });
-    const save = container.querySelector('[data-testid="primary-cta-save-project"]');
-    expect(save.tagName).toBe('BUTTON');
-    expect(save.textContent).toContain('Save .coursemapper');
-    act(() => {
-      save.click();
-    });
-    expect(onSaveProject).toHaveBeenCalledTimes(1);
+    expect(container.querySelectorAll('button')).toHaveLength(1); // the one verb
   });
 
-  it('Finish package honors the existing disabled logic and running label', () => {
-    const onFinishPackage = vi.fn();
-    const { container } = mount(
-      <PrimaryCta
-        ribbonModel={RUNNING_MODEL}
-        reviewCount={0}
-        canDownload={false}
-        onFinishPackage={onFinishPackage}
-        finishPackageDisabled
-        finishRunning
-        finishPackageTitle="Package finishing is already running."
-      />,
-    );
-    act(() => {
-      container.querySelector('[data-testid="primary-cta-more"]').click();
-    });
-    const finish = container.querySelector('[data-testid="workspace-finish-package"]');
-    expect(finish.disabled).toBe(true);
-    expect(finish.textContent).toContain('Finishing');
-    expect(finish.getAttribute('title')).toBe('Package finishing is already running.');
-    act(() => {
-      finish.click();
-    });
-    expect(onFinishPackage).not.toHaveBeenCalled();
+  it('the workspace More menu hosts Finish package + Save .coursemapper with the existing logic (source contract)', () => {
+    const appFlow = read('src/AppFlow.jsx');
+    const menuStart = appFlow.indexOf('workspace-more-menu-trigger');
+    expect(menuStart).toBeGreaterThan(-1);
+    const menu = appFlow.slice(menuStart, menuStart + 4000);
+    expect(menu).toContain('data-testid="workspace-finish-package"');
+    expect(menu).toContain('data-testid="workspace-menu-save-project"');
+    expect(menu).toContain('disabled={finishPackageDisabled}');
+    expect(menu).toContain("isFinishPassRunning(packageQualityPass) ? 'Finishing' : 'Finish package'");
+    expect(menu).toContain('onClick={handleSaveProject}');
+    // And it is the ONLY "More" disclosure in the header.
+    expect(appFlow).not.toContain('primary-cta-more');
   });
 });
 
@@ -195,10 +145,10 @@ describe('F1/F2 — source wiring (the header has ONE verb; the paths exist)', (
   it('AppFlow renders PrimaryCta and no longer renders the Finish package button at header top level', () => {
     const appFlow = read('src/AppFlow.jsx');
     expect(appFlow).toContain('<PrimaryCta');
-    // The standalone header button is gone — its testid now lives ONLY on the
-    // PrimaryCta menu item.
-    expect(appFlow).not.toContain('data-testid="workspace-finish-package"');
-    expect(read('src/components/PrimaryCta.jsx')).toContain('data-testid="workspace-finish-package"');
+    // The standalone header button is gone — the finish action lives ONLY in
+    // the workspace More menu (PrimaryCta carries no menu at all).
+    expect(read('src/components/PrimaryCta.jsx')).not.toContain('workspace-finish-package');
+    expect(appFlow).toContain('data-testid="workspace-finish-package"');
     // Download routes through the one export executor, not a second builder.
     expect(appFlow).toContain("new CustomEvent('coursemapper:request-zip-download')");
     expect(appFlow).toContain('reviewCount={headerReviewQueue.total}');
