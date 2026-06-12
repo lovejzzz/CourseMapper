@@ -48,6 +48,8 @@ function buildPackageStatus(packageQualityPass) {
   const blockers = compactCount(packageQualityPass?.blockers);
   const warnings = compactCount(packageQualityPass?.warnings);
 
+  if (status === 'running' && packageQualityPass?.phase === 'generation')
+    return { label: 'Building', tone: MUTED_TONE };
   if (status === 'running') return { label: 'Finishing', tone: WARN_TONE };
   if (status === 'ready') return { label: 'Ready', tone: GOOD_TONE };
   if (status === 'blocked' || blockers > 0) return { label: 'Needs attention', tone: BAD_TONE };
@@ -304,15 +306,17 @@ export default function AgentWorkingSetPanel(props) {
   const needsAttention = summary.packageStatus.label === 'Needs attention' || summary.failedFeatureCount > 0;
   const localOnly = summary.toolStateLabel !== 'AI connected';
   const headline =
-    summary.packageStatus.label === 'Finishing'
-      ? 'Finishing package'
-      : needsAttention
-        ? 'Review before export'
-        : summary.packageStatus.label === 'Ready'
-          ? 'Ready to export'
-          : localOnly
-            ? 'Workspace open'
-            : 'Workspace ready';
+    summary.packageStatus.label === 'Building'
+      ? 'Building package'
+      : summary.packageStatus.label === 'Finishing'
+        ? 'Finishing package'
+        : needsAttention
+          ? 'Review before export'
+          : summary.packageStatus.label === 'Ready'
+            ? 'Ready to export'
+            : localOnly
+              ? 'Workspace open'
+              : 'Workspace ready';
   const supportLine = [
     summary.scopeLabel,
     quietMaterialParts.length > 0 ? quietMaterialParts.join(', ') : 'No generated materials yet',

@@ -338,6 +338,38 @@ describe('A3 — type rhythm', () => {
     expect(unknown.textContent).toBe('Hand-written reviewer note.');
   });
 
+  it('v0.14.6: multi-sentence finding verdicts clamp to the first check behind a count toggle', async () => {
+    const longVerdict =
+      "Objective 'Interpret function notation from graphs, tables, and formulas' has no matching assessment in this section. " +
+      "Objective 'Present clear mathematical work under time limits' has no matching assessment in this section. " +
+      "Objective 'Verify results with units, graphs, and reasoning' has no matching assessment in this section.";
+    const courseMap = fixtureCourseMap();
+    courseMap.lessons[0].sections[0].evaluateDesign = longVerdict;
+    renderPreview(courseMap);
+
+    const finding = container.querySelector('[data-evaluate-verdict="finding"]');
+    expect(finding).toBeTruthy();
+    expect(finding.textContent).toContain('Interpret function notation');
+    // The second and third checks are clamped away until expanded.
+    expect(finding.textContent).not.toContain('under time limits');
+
+    const toggle = container.querySelector('[data-testid="evaluate-design-toggle"]');
+    expect(toggle).toBeTruthy();
+    expect(toggle.textContent).toBe('Show all 3 checks');
+    await act(async () => {
+      toggle.click();
+    });
+    const expanded = container.querySelector('[data-evaluate-verdict="finding"]');
+    expect(expanded.textContent).toContain('under time limits');
+    expect(expanded.textContent).toContain('Verify results with units');
+    expect(container.querySelector('[data-testid="evaluate-design-toggle"]').textContent).toBe('Show less');
+
+    // Single-sentence findings stay un-clamped — no toggle noise.
+    renderPreview(fixtureCourseMap());
+    expect(container.querySelector('[data-evaluate-verdict="finding"]')).toBeTruthy();
+    expect(container.querySelector('[data-testid="evaluate-design-toggle"]')).toBeFalsy();
+  });
+
   it('classifyEvaluateDesign tolerates arbitrary text and keeps booleans out of the verdict path', () => {
     expect(classifyEvaluateDesign('Each objective verb (analyze) is exercised by an activity.')).toBe('clean');
     expect(classifyEvaluateDesign('No issues found; alignment intact.')).toBe('clean');

@@ -19,6 +19,47 @@ export default function DigestCard({ digest, onPrompt, onDismiss, status, onOpen
   if (observations.length === 0) return null;
   const dismissed = status === 'dismissed';
 
+  // v0.14.6 calm pass: with the review queue wired, this card is an entry
+  // point, not a second reading surface — one clamped line per observation
+  // that opens the queue, where the full text and why-it-matters live.
+  if (onOpenInQueue) {
+    return (
+      <NoticeBanner
+        severity="warning"
+        title={`Worth a look — ${observations.length} observation${observations.length > 1 ? 's' : ''}`}
+        headerAction={
+          !dismissed && onDismiss ? (
+            <button
+              onClick={onDismiss}
+              className="text-xs text-slate-400 hover:text-slate-600 transition-colors dark:hover:text-slate-300"
+              title="Dismiss observations"
+            >
+              Dismiss
+            </button>
+          ) : null
+        }
+      >
+        <div className="space-y-1">
+          {observations.map((entry) => (
+            <button
+              key={entry.id}
+              data-testid="digest-open-in-queue"
+              onClick={() => onOpenInQueue(entry)}
+              disabled={dismissed}
+              className="tactile flex w-full items-center gap-2 rounded-md bg-white/60 px-2.5 py-1.5 text-left transition-colors hover:bg-white/90 disabled:cursor-default disabled:opacity-60 dark:bg-white/5 dark:hover:bg-white/10"
+              title="Open in review queue"
+            >
+              <span className="min-w-0 flex-1 truncate text-xs leading-snug text-slate-700 dark:text-slate-200">
+                {entry.observation}
+              </span>
+              <span className="shrink-0 text-[12px] font-semibold text-amber-700 dark:text-amber-300">Review</span>
+            </button>
+          ))}
+        </div>
+      </NoticeBanner>
+    );
+  }
+
   return (
     <NoticeBanner
       severity="warning"
@@ -42,25 +83,15 @@ export default function DigestCard({ digest, onPrompt, onDismiss, status, onOpen
             <p className="text-xs text-slate-500 mt-0.5 italic">{entry.whyItMatters}</p>
             {!dismissed && (
               <div className="flex gap-1.5 mt-1.5">
-                {onOpenInQueue ? (
+                {(entry.prompts || []).map((promptEntry) => (
                   <button
-                    data-testid="digest-open-in-queue"
-                    onClick={() => onOpenInQueue(entry)}
+                    key={promptEntry.label}
+                    onClick={() => onPrompt?.(promptEntry.prompt)}
                     className="text-xs px-2 py-0.5 rounded bg-amber-100/80 text-amber-800 hover:bg-amber-200/80 transition-colors font-medium dark:bg-amber-500/10 dark:text-amber-200 dark:hover:bg-amber-500/20"
                   >
-                    Open in review queue
+                    {promptEntry.label}
                   </button>
-                ) : (
-                  (entry.prompts || []).map((promptEntry) => (
-                    <button
-                      key={promptEntry.label}
-                      onClick={() => onPrompt?.(promptEntry.prompt)}
-                      className="text-xs px-2 py-0.5 rounded bg-amber-100/80 text-amber-800 hover:bg-amber-200/80 transition-colors font-medium dark:bg-amber-500/10 dark:text-amber-200 dark:hover:bg-amber-500/20"
-                    >
-                      {promptEntry.label}
-                    </button>
-                  ))
-                )}
+                ))}
               </div>
             )}
           </div>

@@ -15403,6 +15403,26 @@ function buildExamEssayItem({ blueprint, assessment, covered, lens, examSlug, or
   };
 }
 
+// Within one exam section every covered lesson previously minted the same
+// correct-option tail ("…decision and names the evidence that supports it"),
+// which the export shingle audit flags at 12 repeats — a 15-lesson final hit
+// 15 live. Five equivalent phrasings rotated by covered position keep the
+// option unambiguously correct (concept → specific decision → named
+// evidence) while staying under template frequency; no two variants share an
+// 8-word chunk, the audit's shingle size.
+const EXAM_UNDERSTAND_CORRECT_TEMPLATES = [
+  ({ concept, lessonFocus }) =>
+    `${sentenceCase(concept)} explains a specific ${lessonFocus} decision and names the evidence that supports it.`,
+  ({ concept, lessonFocus }) =>
+    `The response uses ${concept} to justify one concrete ${lessonFocus} decision, citing the evidence behind it.`,
+  ({ concept, lessonFocus }) =>
+    `A specific ${lessonFocus} decision is explained through ${concept}, with the supporting evidence named.`,
+  ({ concept, lessonFocus }) =>
+    `The answer connects one ${lessonFocus} decision to ${concept} and points out its supporting evidence.`,
+  ({ concept, lessonFocus }) =>
+    `Applying ${concept} accounts for a particular ${lessonFocus} decision and the evidence used to make it.`,
+];
+
 function buildRegistryExamEntry(blueprint, assessment, examOrdinal) {
   const lens = blueprintLens(blueprint);
   const covered = examCoveredLessons(blueprint, assessment);
@@ -15414,7 +15434,7 @@ function buildRegistryExamEntry(blueprint, assessment, examOrdinal) {
   // and final never mint identical items for the same lesson.
   const indexBase = 6 + examOrdinal * 3;
   const questions = [];
-  covered.forEach((lesson) => {
+  covered.forEach((lesson, coveredIndex) => {
     const concept = primaryConceptForLesson(lesson);
     const secondary =
       normalizeConceptCandidates((lesson.keyConcepts || []).slice(1), { title: lesson.title, limit: 1 })[0] || concept;
@@ -15444,7 +15464,9 @@ function buildRegistryExamEntry(blueprint, assessment, examOrdinal) {
         concept,
         use: 'summative exam evidence',
         prompt: `Which statement most accurately connects ${concept} to the work in ${lessonFocus}?`,
-        correct: `${sentenceCase(concept)} explains a specific ${lessonFocus} decision and names the evidence that supports it.`,
+        correct: EXAM_UNDERSTAND_CORRECT_TEMPLATES[
+          (coveredIndex + examOrdinal) % EXAM_UNDERSTAND_CORRECT_TEMPLATES.length
+        ]({ concept, lessonFocus }),
         plan: plan(indexBase, 'Understand', 'Medium', 'summative exam evidence'),
       }),
     );

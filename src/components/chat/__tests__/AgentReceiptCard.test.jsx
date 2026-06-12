@@ -24,7 +24,7 @@ describe('AgentReceiptCard', () => {
       checked: ['Readiness', 'Export files'],
       planning: { required: true, status: 'planned', label: 'Planned before execution via Inspect workspace' },
       verification: { required: true, status: 'verified', label: 'Verified after mutation via Validate course' },
-      next: 'Download when ready.',
+      next: 'Download anytime.',
     });
 
     expect(summary).toMatchObject({
@@ -43,7 +43,7 @@ describe('AgentReceiptCard', () => {
         status: 'verified',
         label: 'Verified after mutation via Validate course',
       }),
-      next: 'Download when ready.',
+      next: 'Download anytime.',
     });
   });
 

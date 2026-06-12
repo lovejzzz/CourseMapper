@@ -108,7 +108,11 @@ export function classifyEvaluateDesign(value) {
 
 // Evaluate Design cell body: lint-clean prose recedes (small check + quiet
 // 12px slate), findings keep normal weight behind a small amber dot.
+// v0.14.6: multi-sentence finding verdicts (a course-level row can carry a
+// dozen objective checks) clamp to their first sentence behind a count —
+// the full wall blew the row open and made the table read as broken.
 function EvaluateDesignCell({ text }) {
+  const [showAllFindings, setShowAllFindings] = useState(false);
   const verdict = classifyEvaluateDesign(text);
   if (verdict === 'clean') {
     return (
@@ -127,13 +131,31 @@ function EvaluateDesignCell({ text }) {
     );
   }
   if (verdict === 'finding') {
+    const full = toStr(text).trim();
+    const sentences = full
+      .split(/\.\s+/)
+      .filter(Boolean)
+      .map((sentence) => (sentence.endsWith('.') ? sentence : `${sentence}.`));
+    const isLong = sentences.length > 1 && full.length > 220;
     return (
       <div className="flex items-start gap-1.5" data-evaluate-verdict="finding">
         <span
           className="w-2 h-2 rounded-full bg-amber-400 dark:bg-amber-500 flex-shrink-0 mt-[5px]"
           aria-hidden="true"
         />
-        <span>{text}</span>
+        <span className="min-w-0">
+          {isLong && !showAllFindings ? sentences[0] : full}
+          {isLong && (
+            <button
+              type="button"
+              data-testid="evaluate-design-toggle"
+              onClick={() => setShowAllFindings((value) => !value)}
+              className="tactile ml-1.5 text-[12px] font-semibold text-indigo-600 hover:text-indigo-800 hover:underline decoration-indigo-300 underline-offset-2 dark:text-indigo-300 dark:hover:text-indigo-200"
+            >
+              {showAllFindings ? 'Show less' : `Show all ${sentences.length} checks`}
+            </button>
+          )}
+        </span>
       </div>
     );
   }

@@ -168,6 +168,45 @@ describe('B1 — buildRibbonModel selector', () => {
     expect(model.pipelineChips).toEqual([]);
   });
 
+  it('generation umbrella (phase: generation) never marks later steps done — the 1:58 AM screenshot bug', () => {
+    // Live repro: onGenerate sets packageQualityPass running as a
+    // whole-pipeline umbrella BEFORE the map streams. The ribbon must not
+    // read that as "finish pass running" and check Enrich/Compile early.
+    const budget = applyEvents(createApiCallBudget(), [{ type: 'reset', runId: 'run-ribbon-1' }, ...MAP_EVENTS]);
+    const model = buildBuildRibbonModel({
+      budget,
+      generation: { progressStep: 'generating', isStreaming: true, streamDetail: 'Generating the course map' },
+      deliverables: NO_DELIVERABLES,
+      packageQualityPass: {
+        status: 'running',
+        phase: 'generation',
+        message: 'Generating, repairing, and verifying the package before export...',
+      },
+    });
+    expect(model.stage).toBe('map');
+    expect(model.steps.map((step) => step.status)).toEqual(['active', 'pending', 'pending', 'pending', 'pending']);
+  });
+
+  it('generation umbrella while deliverables compile: Compile is active, not pre-checked', () => {
+    const budget = applyEvents(createApiCallBudget(), [
+      { type: 'reset', runId: 'run-ribbon-1' },
+      ...MAP_EVENTS,
+      ...GENOME_EVENTS,
+      ENRICH_CHUNK_EVENT,
+      ...COMPILE_EVENTS,
+    ]);
+    const model = buildBuildRibbonModel({
+      budget,
+      generation: DONE_GENERATION,
+      deliverables: { isGenerating: true, doneCount: 3, totalCount: 9 },
+      packageQualityPass: { status: 'running', phase: 'generation', message: 'Generating 9 deliverables...' },
+    });
+    expect(model.stage).toBe('compile');
+    expect(model.steps.map((step) => step.status)).toEqual(['done', 'done', 'active', 'pending', 'pending']);
+    expect(model.done.compile).toBe(false);
+    expect(model.done.verify).toBe(false);
+  });
+
   it('enrich stage: the latest enrichment chunk event becomes "Enriching lessons 9–12"', () => {
     const budget = applyEvents(createApiCallBudget(), [
       { type: 'reset', runId: 'run-ribbon-1' },
@@ -426,8 +465,11 @@ describe('B3 — export panel and agent panel defer to the ribbon', () => {
 
   it('ProgressHeader: the running finish card is a one-line ribbon reference', () => {
     const source = readSource('src/components/chat/ProgressHeader.jsx');
-    expect(source).toContain('Building — see the progress ribbon.');
-    // The finished receipt message still renders once the pass completes.
+    expect(source).toContain('Finishing — see the progress ribbon.');
+    // The finished receipt message still renders once the pass completes —
+    // but never the generation umbrella's own message (v0.14.6 phase split).
     expect(source).toContain('packageQualityPass.message');
+    expect(source).toContain('isFinishPassRunning');
+    expect(source).toContain('!isGenerationUmbrellaRunning');
   });
 });

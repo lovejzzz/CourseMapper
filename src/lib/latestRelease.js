@@ -8,13 +8,13 @@
  * the three screen footers, and the Changelog entry.
  */
 export const LATEST_RELEASE = {
-  version: '0.14.5',
+  version: '0.14.6',
   date: 'June 12, 2026',
-  title: "Grounding: the instructor's own materials, the model's own structure",
+  title: 'Calm finish: the status that tells the truth',
   highlights: [
-    'The readings registry: works the syllabus names ("Things Fall Apart, Weeks 8–9") become first-class entities inherited verbatim by the course map, syllabus, lesson plans, briefs, and discussion prompts — retrieval only fills empty slots, and provenance (instructor → genome → retrieved) is enforced by the package\'s own grader',
-    'Native graph authoring ships flag-gated: the model authors typed entities directly (Pass A skeleton + parallel Pass B), proven live side-by-side — 36% cheaper and 57% faster than the prose path — with the default staying prose until the quality bar is met (one known gap: resource transcription)',
-    'Decks render real visuals from data already authored: native concept-map shapes and worked-example charts, zero new AI calls, with geometry proven in tests and an arming rule that never penalizes pre-feature packages',
-    "The Crucible tests providers we don't default to (--provider anthropic|google with a namespaced drift ledger), language courses gain pronunciation references and dialogue practice, and the compiler diet continues with live-telemetry-backed rekeys",
+    'The build ribbon never checks a step that has not run: generation and the finish pass are now distinct phases, so Compile stops wearing a green check while the map is still streaming, the header stops claiming "Grading…" before anything exists, and the agent panel says "Building package" until finishing actually starts',
+    'The ready state calmed down: the agent panel\'s receipt wall shrinks to what the chips don\'t already say, "Worth a look" becomes a one-line entry into the review queue instead of a second reading surface, and every count speaks one language — materials',
+    'Exam banks rotate their correct-option phrasing across covered lessons, so a 15-lesson comprehensive final no longer stamps one sentence pattern 15 times into a single section',
+    'Long Evaluate Design verdicts clamp to their first check behind a "Show all N checks" toggle — a course-level audit row no longer blows the table open',
   ],
 };

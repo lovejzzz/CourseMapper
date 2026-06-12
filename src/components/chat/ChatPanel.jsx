@@ -597,7 +597,7 @@ function buildPackageFinishReceipt(result = {}) {
     checked: ['Readiness', 'Classroom fit', 'Content validation', 'Export files'],
     issues: extractSummaryIssues(summary),
     stateDiffs: buildPackageRepairReceiptDiffs(result),
-    next: status === 'done' ? 'Download when ready.' : 'Review the remaining package issues before export.',
+    next: status === 'done' ? 'Download anytime.' : 'Review the remaining package issues before export.',
   });
 }
 
@@ -1296,6 +1296,7 @@ export default function ChatPanel({
         proactiveReviewDoneRef.current = true;
         packageQualityPassUpdateRef.current?.({
           status: 'running',
+          phase: 'finish',
           source: 'auto-review-pending',
           message: 'Finishing package: checking, repairing, and preparing export...',
           repairsApplied: 0,

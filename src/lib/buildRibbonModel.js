@@ -20,6 +20,7 @@
  */
 import { formatUsd } from './apiUsageCost';
 import { getApiCallBudgetTotal } from './apiCallBudget';
+import { isFinishPassRunning } from './packagePassPhase';
 
 const STEP_ORDER = [
   { id: 'map', label: 'Map' },
@@ -115,10 +116,14 @@ export function buildBuildRibbonModel({
   packageQualityPass = null,
 } = {}) {
   const finishStatus = packageQualityPass?.status || 'idle';
-  const finishRunning = finishStatus === 'running';
-  const finishComplete = finishStatus === 'ready' || finishStatus === 'blocked';
   const mapRunning = Boolean(generation.isStreaming) || MAP_RUNNING_STEPS.has(generation.progressStep);
   const delivRunning = Boolean(deliverables.isGenerating);
+  // status:'running' with phase:'generation' is the whole-pipeline umbrella,
+  // not the finish pass — without this split, Enrich/Compile wore green
+  // checks while the map was still streaming. The map/deliv guards keep a
+  // missing phase from re-opening that hole.
+  const finishRunning = isFinishPassRunning(packageQualityPass) && !mapRunning && !delivRunning;
+  const finishComplete = finishStatus === 'ready' || finishStatus === 'blocked';
   const hasBudgetActivity = (budget.recentEvents?.length || 0) > 0 || getApiCallBudgetTotal(budget) > 0;
 
   // Idle: a fresh or restored workspace with no run this session — hidden.

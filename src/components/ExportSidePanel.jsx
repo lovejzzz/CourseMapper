@@ -348,7 +348,7 @@ function ReadinessPanel({ readiness, onIssueClick, quality = null, onOpenQuality
           wrap: 'border-emerald-100 bg-emerald-50/70 text-emerald-700',
           icon: 'bg-emerald-100 text-emerald-600',
           title: 'Ready to download',
-          meta: `${readiness.doneFeatureCount}/${readiness.featureCount} sections checked`,
+          meta: `${readiness.doneFeatureCount}/${readiness.featureCount} materials checked`,
         };
 
   return (
@@ -369,7 +369,9 @@ function ReadinessPanel({ readiness, onIssueClick, quality = null, onOpenQuality
                 stamp; the full chip lives in the workspace header. */}
             {!isBlocked && !hasWarnings && <QualityStamp quality={quality} onOpen={onOpenQuality} />}
           </div>
-          <p className="mt-0.5 text-xs leading-snug opacity-80">{helperText}</p>
+          {/* v0.14.6 calm pass: when everything is green the ✓ + meta already
+              say it — restating "All selected materials passed…" was noise. */}
+          {(isBlocked || hasWarnings) && <p className="mt-0.5 text-xs leading-snug opacity-80">{helperText}</p>}
           {/* v0.14.4 WS-B3: the repairs/warnings receipt folded into the
               download card's detail line — the only place this info lives
               now that the in-panel stage narration is gone. */}
@@ -1337,7 +1339,7 @@ export default function ExportSidePanel({
           ) : (
             <>
               <span className="font-semibold text-slate-600">
-                {allReadyCount} deliverable{allReadyCount !== 1 ? 's' : ''}
+                {allReadyCount} material{allReadyCount !== 1 ? 's' : ''}
               </span>{' '}
               ready
             </>

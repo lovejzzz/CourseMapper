@@ -30,6 +30,10 @@ export default function WorkspaceQualityChip({ packageQualityPass, onOpenReport 
   const status = packageQualityPass?.status || 'idle';
   const quality = packageQualityPass?.quality || null;
 
+  // During the generation phase the build ribbon narrates progress and no
+  // grading has started — claiming "Grading…" then was a lie the user caught.
+  if (status === 'running' && packageQualityPass?.phase === 'generation') return null;
+
   if (status === 'running') {
     return (
       <span

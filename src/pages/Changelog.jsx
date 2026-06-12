@@ -3,6 +3,18 @@ import Header from '../components/Header';
 
 const releases = [
   {
+    version: '0.14.6',
+    date: 'June 12, 2026',
+    title: 'Calm finish: the status that tells the truth',
+    highlights: [
+      'Phase-aware status: packageQualityPass now records whether the pipeline is generating or finishing. The build ribbon stops pre-checking Enrich/Compile during map streaming (the 1:58 AM screenshot bug), the header quality chip stays silent until grading actually runs, the Finish button reads “Finish package” while generation owns the run, and the agent panel headline says “Building package” — each surface now reports the phase the pipeline is really in.',
+      'The ready state calmed down: the agent-panel receipt drops the trust-boundary and cost-driver walls (the run digest and quality report already carry them) and keeps a short detail row; “Worth a look” collapses to one clamped line per observation that opens the review queue; the export panel stops restating “all materials passed” under a green check; and “sections”/“deliverables” unify into “materials” everywhere counts appear.',
+      'Exam-frame texture: a comprehensive final covering 15 lessons stamped the same correct-option tail 15× into one quiz-bank section — over the export shingle audit’s limit of 12. Five equivalent phrasings now rotate by covered position (no two share an 8-word chunk), capping any template at 3 repeats while the answer stays unambiguous.',
+      'Long Evaluate Design verdicts — a course-level row can carry a dozen objective checks — clamp to their first sentence behind “Show all N checks”, so the audit prose stops blowing the course-map table open.',
+      'All four fixes came from one live Calculus I run (the user’s screenshots, console log, and downloaded zip); the package itself regraded 100/A offline with zero findings — the work this release is UI truth, not output quality.',
+    ],
+  },
+  {
     version: '0.14.5',
     date: 'June 12, 2026',
     title: "Grounding: the instructor's own materials, the model's own structure",

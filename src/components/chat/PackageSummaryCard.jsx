@@ -82,45 +82,35 @@ export default function PackageSummaryCard({ summary, embedded = false }) {
   const compilerSummary = summary.compilerSummary || null;
   const repairEvidenceText = summary.repairSummary && summary.repairSummary !== 'none' ? summary.repairSummary : '';
   const reviewRecommendation = summary.reviewRecommendation || '';
-  const featureSpend = Array.isArray(summary.apiFeatureSpendSummary) ? summary.apiFeatureSpendSummary.slice(0, 3) : [];
-  const featureSpendText = featureSpend
-    .map((item) => `${item.label}: ${item.costDisplay || 'cost unknown'}`)
-    .join('; ');
-  const trustBoundaryItems = Array.isArray(summary.trustBoundary?.items)
-    ? summary.trustBoundary.items.filter((item) => item?.label && item?.value).slice(0, 6)
-    : [];
-  const compactReceiptFields = Array.isArray(summary.compactTrustReceipt?.fields)
-    ? summary.compactTrustReceipt.fields.filter((item) => item?.label && item?.value).slice(0, 10)
-    : [];
   const reviewActions = Array.isArray(summary.reviewActions)
     ? summary.reviewActions.filter((item) => item?.label && item?.action).slice(0, 5)
     : [];
   const statusText = summary.ready
-    ? `${summary.checkedSections || 'All selected'} materials checked. Download when ready.`
+    ? `${summary.checkedSections || 'All selected'} materials checked — download anytime.`
     : summary.nextAction || 'Review the items below before export.';
-  const reviewText = summary.ready ? 'Human check: dates, policies, and official readings.' : reviewRecommendation;
+  const reviewText = summary.ready
+    ? 'Before class, confirm dates, policies, and official readings.'
+    : reviewRecommendation;
   const primaryChips = [
     summary.repairsApplied > 0 ? repairText : null,
     summary.blockerCount > 0 || summary.warningCount > 0 ? issueText : null,
     summary.exportFailed > 0 || summary.exportWarningCount > 0 || summary.ready ? exportText : null,
   ].filter(Boolean);
+  // v0.14.6 calm pass: details list only what the chips above DON'T already
+  // say. The full receipt (trust boundary, per-feature cost drivers) lives in
+  // the run digest and the quality report — repeating it here built the
+  // "wall of receipts" the ready state drowned in.
   const detailChips = [
-    issueText,
-    classroomText,
-    exportText,
-    summary.checkedSections ? `${summary.checkedSections} checked` : null,
+    summary.classroomBlockerCount > 0 || summary.classroomWarningCount > 0 ? classroomText : null,
     summary.lessonCount ? `${summary.lessonCount} lessons` : null,
     spendText,
     compilerSummary?.label,
   ].filter(Boolean);
   const hasDetails =
     detailChips.length > 0 ||
-    trustBoundaryItems.length > 0 ||
-    compactReceiptFields.length > 0 ||
     Boolean(repairEvidenceText && summary.repairsApplied > 0) ||
     Boolean(reviewText) ||
     reviewActions.length > 0 ||
-    Boolean(featureSpendText) ||
     summary.topIssues?.length > 0;
   const showTopIssues = summary.tone === 'blocked' || expanded;
 
@@ -166,29 +156,6 @@ export default function PackageSummaryCard({ summary, embedded = false }) {
                 ))}
               </div>
             )}
-            {expanded && trustBoundaryItems.length > 0 && (
-              <div className="mt-2 flex flex-wrap gap-1.5 text-[10px] leading-snug">
-                {trustBoundaryItems.map((item) => (
-                  <span key={item.id || item.label} className="rounded-md bg-white/55 px-2 py-1 text-slate-600">
-                    <span className="font-semibold text-slate-700">{item.label}: </span>
-                    {item.value}
-                  </span>
-                ))}
-              </div>
-            )}
-            {expanded && compactReceiptFields.length > 0 && (
-              <div
-                data-testid="package-compact-trust-receipt"
-                className="mt-2 grid grid-cols-1 gap-1.5 text-[10px] leading-snug sm:grid-cols-2"
-              >
-                {compactReceiptFields.map((item) => (
-                  <div key={item.id || item.label} className="rounded-md bg-white/60 px-2 py-1 text-slate-600">
-                    <span className="font-semibold text-slate-700">{item.label}: </span>
-                    {item.value}
-                  </div>
-                ))}
-              </div>
-            )}
             {expanded && repairEvidenceText && summary.repairsApplied > 0 && (
               <p className="mt-1 text-[10px] font-medium leading-snug text-slate-500">
                 Auto-fixed: {repairEvidenceText}
@@ -209,11 +176,6 @@ export default function PackageSummaryCard({ summary, embedded = false }) {
                   </div>
                 ))}
               </div>
-            )}
-            {expanded && featureSpendText && (
-              <p className="mt-1 text-[10px] font-medium leading-snug text-slate-500">
-                Cost drivers: {featureSpendText}
-              </p>
             )}
           </div>
         </div>

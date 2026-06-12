@@ -99,6 +99,7 @@ import {
   getApiCallBudgetTotal,
 } from './lib/apiCallBudget';
 import { buildBuildRibbonModel } from './lib/buildRibbonModel';
+import { isFinishPassRunning } from './lib/packagePassPhase';
 import { buildApiCostPlan, evaluateApiCostControl } from './lib/apiCostControl';
 import {
   buildGenerationCostReport,
@@ -1234,6 +1235,7 @@ export default function AppFlow({ startupAction = null, onStartupHandled, onRetu
 
         setPackageQualityPass({
           status: 'running',
+          phase: 'finish',
           message: 'Finishing package: checking, repairing, and preparing export...',
           repairsApplied: 0,
           warnings: 0,
@@ -1455,6 +1457,7 @@ export default function AppFlow({ startupAction = null, onStartupHandled, onRetu
           });
           setPackageQualityPass({
             status: 'running',
+            phase: 'finish',
             message:
               retryActionsToRun.length > 0
                 ? `Finishing package: retry pass ${retryPassCount}/${retryPassLimit}, fixing ${retryActionsToRun.length} weak area${
@@ -2799,6 +2802,7 @@ export default function AppFlow({ startupAction = null, onStartupHandled, onRetu
         setDownloadedFile('');
         setPackageQualityPass({
           status: 'running',
+          phase: 'generation',
           message: `Generating ${requestedFeatures.length} deliverable${
             requestedFeatures.length === 1 ? '' : 's'
           }, then checking the package...`,
@@ -2995,6 +2999,7 @@ export default function AppFlow({ startupAction = null, onStartupHandled, onRetu
       setHasGenerated(true);
       setPackageQualityPass({
         status: 'running',
+        phase: 'generation',
         message: 'Generating, repairing, and verifying the package before export...',
         repairsApplied: 0,
         warnings: 0,
@@ -3048,6 +3053,7 @@ export default function AppFlow({ startupAction = null, onStartupHandled, onRetu
     try {
       setPackageQualityPass({
         status: 'running',
+        phase: 'generation',
         message: 'Resuming generation, then repairing and verifying the package...',
         repairsApplied: 0,
         warnings: 0,
@@ -3366,9 +3372,10 @@ export default function AppFlow({ startupAction = null, onStartupHandled, onRetu
   const isPackageGenerationRunning = packageGenerationBusy || gen.isStreaming || deliv.isGenerating;
   const finishPackageDisabled =
     !canRunPackageFinalizer || packageQualityPass?.status === 'running' || isPackageGenerationRunning;
-  const finishPackageTitle =
-    packageQualityPass?.status === 'running'
-      ? 'Package finishing is already running.'
+  const finishPackageTitle = isFinishPassRunning(packageQualityPass)
+    ? 'Package finishing is already running.'
+    : isPackageGenerationRunning
+      ? 'Generation is running — the package is checked automatically when it finishes.'
       : !canFinishPackageWithAgent
         ? 'Run deterministic package checks. Connect AI for model-backed repairs.'
         : 'Finish, repair, verify, and prepare the package for export.';
@@ -3609,7 +3616,7 @@ export default function AppFlow({ startupAction = null, onStartupHandled, onRetu
                         d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"
                       />
                     </svg>
-                    {packageQualityPass?.status === 'running' ? 'Finishing' : 'Finish package'}
+                    {isFinishPassRunning(packageQualityPass) ? 'Finishing' : 'Finish package'}
                   </button>
                 )}
                 <DarkModeToggle />

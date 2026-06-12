@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { resolveLabel, STEPS } from './constants';
+import { isFinishPassRunning } from '../../lib/packagePassPhase';
 
 /**
  * ProgressHeader — Compact collapsible progress bar at the top of the chat panel.
@@ -104,7 +105,11 @@ export default function ProgressHeader({
   const delivDoneCount = getDeliverableDoneCount({ delivRows, delivProgress, isDelivGenerating });
   const allDelivDone = delivRows.length > 0 && !isDelivGenerating && delivRows.every((r) => r.status === 'done');
   const hasDelivErrors = delivRows.some((r) => r.status === 'error');
-  const isPackageQualityRunning = packageQualityPass?.status === 'running';
+  // Finish-phase only: the generation umbrella also reports status 'running'
+  // but its narration belongs to the build ribbon and the step labels below.
+  const isPackageQualityRunning = isFinishPassRunning(packageQualityPass);
+  const isGenerationUmbrellaRunning =
+    packageQualityPass?.status === 'running' && packageQualityPass?.phase === 'generation';
   const hasPackageQualityBlockers = packageQualityPass?.status === 'blocked' || packageQualityPass?.blockers > 0;
   const hasPackageQualityWarnings = packageQualityPass?.warnings > 0;
   const hasPackageQualityIssues = hasPackageQualityBlockers || hasPackageQualityWarnings;
@@ -330,7 +335,7 @@ export default function ProgressHeader({
             </div>
           )}
 
-          {packageQualityPass?.message && (
+          {packageQualityPass?.message && !isGenerationUmbrellaRunning && (
             <div
               className={`px-2.5 py-2 rounded-lg border ${
                 isPackageQualityRunning
@@ -351,7 +356,7 @@ export default function ProgressHeader({
                     ribbon owns the live narration — this card defers to it
                     instead of repeating the same message. */}
                 <span className="text-[12px] font-semibold">
-                  {isPackageQualityRunning ? 'Building — see the progress ribbon.' : packageQualityPass.message}
+                  {isPackageQualityRunning ? 'Finishing — see the progress ribbon.' : packageQualityPass.message}
                 </span>
               </div>
             </div>

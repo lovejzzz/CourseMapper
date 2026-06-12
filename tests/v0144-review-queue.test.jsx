@@ -480,8 +480,12 @@ describe('DigestCard → review queue routing', () => {
     });
     expect(onOpenInQueue).toHaveBeenCalledWith(DIGEST_OBSERVATIONS[0]);
     expect(onPrompt).not.toHaveBeenCalled();
-    // the card stays a narrative surface
-    expect(container.textContent).toContain('Observations only — nothing was changed.');
+    // v0.14.6 calm pass: with the queue wired the card is a compact entry
+    // point — observation text in one clamped row; the full narrative (why
+    // it matters, "nothing was changed") lives in the queue drawer.
+    expect(container.textContent).toContain(DIGEST_OBSERVATIONS[0].observation);
+    expect(container.textContent).not.toContain(DIGEST_OBSERVATIONS[0].whyItMatters);
+    expect(container.textContent).not.toContain('Observations only — nothing was changed.');
   });
 
   it('keeps the legacy prompt buttons when no queue is wired (back-compat contract)', async () => {

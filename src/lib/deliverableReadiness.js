@@ -1270,7 +1270,7 @@ export function buildReadinessReport(readiness, { courseName = 'Course' } = {}) 
     `Generated: ${new Date().toISOString()}`,
     '',
     `Status: ${readiness?.status || 'unknown'}`,
-    `Checked sections: ${readiness?.doneFeatureCount ?? 0}/${readiness?.featureCount ?? 0}`,
+    `Checked materials: ${readiness?.doneFeatureCount ?? 0}/${readiness?.featureCount ?? 0}`,
     `Lessons in scope: ${readiness?.lessonCount ?? 0}`,
     '',
   ];
