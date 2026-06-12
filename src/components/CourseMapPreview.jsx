@@ -111,10 +111,12 @@ function AssessmentCellContent({ text, entries }) {
         const chip = resolveAssessmentChip(line, i, entries);
         return (
           <div key={i} className="flex gap-1.5 leading-relaxed items-start">
-            {prefix && (
-              <span className="text-indigo-400 font-semibold flex-shrink-0 text-[10px] mt-[2px]">{prefix}</span>
-            )}
+            {prefix && <span className="text-slate-400 font-medium flex-shrink-0 text-[10px] mt-[2px]">{prefix}</span>}
             {chip ? (
+              // v0.14.4: quiet link, not a bubble — the table stays a table and
+              // interactivity surfaces on hover (underline + arrow). Indigo is
+              // reserved for interactive text; the linked title reads inline
+              // with the numbered list instead of breaking its rhythm.
               <button
                 type="button"
                 data-assessment-chip="true"
@@ -126,22 +128,23 @@ function AssessmentCellContent({ text, entries }) {
                   dispatchChip(chip);
                 }}
                 onKeyDown={(e) => {
-                  // Keep Enter/Space on the chip from bubbling into the
+                  // Keep Enter/Space on the link from bubbling into the
                   // cell's click-to-edit handler.
                   if (e.key === 'Enter' || e.key === ' ') e.stopPropagation();
                 }}
-                className="tactile inline-flex items-start gap-1 px-2 py-0.5 -ml-0.5 rounded-full text-left font-medium text-indigo-700 bg-indigo-50/70 border border-indigo-200/60 hover:bg-indigo-100/80 hover:border-indigo-300/70 transition-all duration-150"
+                className="group inline text-left font-medium text-indigo-600 hover:text-indigo-800 hover:underline decoration-indigo-300 underline-offset-2 transition-colors duration-150"
                 title={`Open in ${chip.featureId === 'quizBank' ? 'Quiz & Exam Bank' : 'Assignment Briefs'}`}
                 aria-label={`Open "${chip.title}" in ${chip.featureId === 'quizBank' ? 'Quiz & Exam Bank' : 'Assignment Briefs'}`}
               >
                 <span>{cleaned}</span>
-                <svg className="w-3 h-3 flex-shrink-0 mt-[2px]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"
-                  />
+                <svg
+                  className="inline-block w-3 h-3 ml-0.5 -mt-[2px] opacity-0 group-hover:opacity-100 transition-opacity duration-150"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                  aria-hidden="true"
+                >
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 17L17 7M9 7h8v8" />
                 </svg>
               </button>
             ) : (
@@ -171,7 +174,7 @@ function FormattedText({ text }) {
           const prefix = line.trim().match(/^(?:[-•*]|\d+[a-z]?[.):])/)?.[0] || '•';
           return (
             <li key={i} className="flex gap-1.5 leading-relaxed">
-              <span className="text-indigo-400 font-semibold flex-shrink-0 text-[10px] mt-[2px]">{prefix}</span>
+              <span className="text-slate-400 font-medium flex-shrink-0 text-[10px] mt-[2px]">{prefix}</span>
               <span>{cleaned}</span>
             </li>
           );
