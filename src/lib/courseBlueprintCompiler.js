@@ -3752,7 +3752,7 @@ function buildSourceUsePlan({ title, concepts, resources, evidencePlan, artifact
   const approvedSources =
     Array.isArray(resources) && resources.length > 0
       ? resources.slice(0, 4)
-      : ['Instructor-provided course materials and notes'];
+      : ['Class notes and assigned materials for this course'];
   return {
     approvedSources,
     citationExpectation: `Use instructor-provided materials for ${stripLessonPrefix(title)}. When source details are available, name the author, title, page, slide, case, dataset, or activity label used for ${artifactName}.`,
@@ -3800,7 +3800,7 @@ function instructorProvidedThroughlineProfile(courseName, domainLabel, setting) 
     projectName: `${courseLabel} ${domainLabel}`,
     clientName: 'the course audience',
     datasetName: '',
-    casePacketName: 'Instructor-provided course materials',
+    casePacketName: 'Class notes and assigned materials',
     stakeholderGroup: 'students, instructors, peer reviewers, and relevant course audiences',
     setting,
     sourceMode: 'instructor-provided',
@@ -10105,7 +10105,7 @@ function deriveRoutineFieldsForLesson(lesson = {}, index = 0) {
   const readings =
     Array.isArray(lesson.readings) && lesson.readings.length > 0
       ? lesson.readings
-      : ['Instructor-provided course materials and notes'];
+      : ['Class notes and assigned materials for this course'];
   const activityPattern =
     lesson.activityPattern ||
     `Concept model, applied practice, peer discussion, and individual reflection for ${stripLessonPrefix(title)}.`;
@@ -11290,7 +11290,7 @@ function extractLessonBlueprint(lesson, originalIndex, assessmentRegistry = null
     sourceAnchor(
       'resources',
       hasResources ? 'course-map' : 'compiler-inferred',
-      resources.join('; ') || 'Instructor-provided course materials and notes',
+      resources.join('; ') || 'Class notes and assigned materials for this course',
       confidence.fields.resources.confidence,
     ),
   ];
@@ -11304,14 +11304,14 @@ function extractLessonBlueprint(lesson, originalIndex, assessmentRegistry = null
   const evidencePlan = buildEvidencePlan({
     title,
     concepts: keyConcepts,
-    resources: resources.length > 0 ? resources : ['Instructor-provided course materials and notes'],
+    resources: resources.length > 0 ? resources : ['Class notes and assigned materials for this course'],
     activities,
     artifact: studentArtifact,
   });
   const sourceUsePlan = buildSourceUsePlan({
     title,
     concepts: keyConcepts,
-    resources: resources.length > 0 ? resources : ['Instructor-provided course materials and notes'],
+    resources: resources.length > 0 ? resources : ['Class notes and assigned materials for this course'],
     evidencePlan,
     artifact: studentArtifact,
   });
@@ -11353,7 +11353,7 @@ function extractLessonBlueprint(lesson, originalIndex, assessmentRegistry = null
     activities.join('; '),
     `Concept model, applied practice, peer discussion, and individual reflection for ${stripLessonPrefix(title)}.`,
   );
-  const readings = resources.length > 0 ? resources : ['Instructor-provided course materials and notes'];
+  const readings = resources.length > 0 ? resources : ['Class notes and assigned materials for this course'];
   const sourceEvidenceTrace = buildSourceEvidenceTrace({
     lessonNumber,
     title,

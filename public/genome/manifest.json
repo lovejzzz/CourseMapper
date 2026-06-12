@@ -1,7 +1,7 @@
 {
   "version": "2026-06-12",
   "generator": "curriculumos-foundry-v1",
-  "conceptCount": 215,
+  "conceptCount": 223,
   "shards": [
     {
       "id": "astro-intro",
@@ -58,6 +58,14 @@
       "path": "history-intro.json",
       "conceptCount": 54,
       "hash": "fce285e0492c5c22"
+    },
+    {
+      "id": "lang-intro",
+      "discipline": "lang",
+      "level": "intro",
+      "path": "lang-intro.json",
+      "conceptCount": 8,
+      "hash": "3a91e58cd9db5e18"
     },
     {
       "id": "lit-intro",

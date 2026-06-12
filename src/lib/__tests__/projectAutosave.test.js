@@ -2,6 +2,23 @@ import { describe, expect, it } from 'vitest';
 import { buildLocalAutosavePayload } from '../projectAutosave';
 
 describe('buildLocalAutosavePayload', () => {
+  it('v0.15: prunes history but KEEPS deliverables before ever falling to compact', () => {
+    const fullSnapshot = {
+      courseMap: { lessons: [] },
+      chatHistory: Array.from({ length: 200 }, (_, i) => ({ role: 'assistant', text: 'x'.repeat(50) + i })),
+      versionHistory: Array.from({ length: 30 }, () => ({ map: 'y'.repeat(100) })),
+      userEdits: [{ key: 'title' }],
+      deliverables: { rubrics: { status: 'done', data: { body: 'the package itself' } } },
+    };
+    const compactSnapshot = { deliverableSaveMode: 'recompile-on-open', deliverables: {} };
+    const result = buildLocalAutosavePayload({ fullSnapshot, compactSnapshot, maxFullChars: 5_000 });
+    expect(result.mode).toBe('pruned');
+    const parsed = JSON.parse(result.payload);
+    expect(parsed.deliverables.rubrics.data.body).toBe('the package itself');
+    expect(parsed.chatHistory).toEqual([]);
+    expect(parsed.localSaveMode).toBe('pruned-history-autosave');
+  });
+
   it('keeps full snapshots when they fit in the browser autosave budget', () => {
     const fullSnapshot = {
       courseMap: { lessons: [] },

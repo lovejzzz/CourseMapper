@@ -27,10 +27,11 @@ const lazyChunkBudgets = [
   // buildRibbonModel selector + BuildRibbon/TabReadyTick render (one status
   // spine replacing the tab counter, rainbow dots, and in-panel narration;
   // measured at 245.5 KiB raw / 74.6 gzip). Deliberate feature growth.
-  // v0.14.9 B1/C2 (June 2026): +4 KiB — AppFlow became the review queue's
-  // single owner (the header/drawer count fix) and gained the same-generation
-  // voice A/B hook. The real remedy is the v0.15 C4 AppFlow extraction diet.
-  { prefix: 'AppFlow-', rawKiB: 252, gzipKiB: 76 },
+  // v0.14.9 B1/C2 (June 2026): +4 KiB raw — AppFlow became the review
+  // queue's single owner and gained the voice A/B hook. v0.15: +1 KiB gzip —
+  // the sync-race fixes and the contribute-kernels action. BOTH allowances
+  // die in the v0.15.1 C1 diet (AppFlow < 4,000 lines, chunk ≤ 248/76).
+  { prefix: 'AppFlow-', rawKiB: 252, gzipKiB: 77 },
   // v0.9.0: +12 KiB raw / +4 KiB gzip for the course-native agent (content
   // index + renderer reuse, digest card, journal — measured at 341.0 KiB raw
   // / 92.8 gzip). Deliberate feature growth; gzip headroom unchanged.

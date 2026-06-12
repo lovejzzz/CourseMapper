@@ -1,6 +1,6 @@
 {
   "name": "course-mapper",
-  "version": "0.14.9",
+  "version": "0.15.0",
   "type": "module",
   "description": "AI-powered course syllabus to course map generator",
   "scripts": {
@@ -49,7 +49,8 @@
     "audit:expert:packet": "node scripts/externalQualityProofPacket.mjs",
     "audit:deliverables": "vitest run tests/deliverable-quality-audit.test.js",
     "audit:agent:openai": "vitest run tests/agent-openai.test.js",
-    "audit:agent": "vitest run tests/agent-anthropic.test.js tests/agent-multi-turn.test.js tests/agent-quality-probe.test.js tests/agent-content-quality.test.js tests/agent-prose-regression.test.js tests/cache-smoke.test.js tests/agent-skill-nudge.test.js tests/partial-failure-recovery.test.js"
+    "audit:agent": "vitest run tests/agent-anthropic.test.js tests/agent-multi-turn.test.js tests/agent-quality-probe.test.js tests/agent-content-quality.test.js tests/agent-prose-regression.test.js tests/cache-smoke.test.js tests/agent-skill-nudge.test.js tests/partial-failure-recovery.test.js",
+    "curriculumos:proof": "npx vite-node scripts/curriculumosHeadlessProof.mjs"
   },
   "dependencies": {
     "@codemirror/commands": "^6.10.3",

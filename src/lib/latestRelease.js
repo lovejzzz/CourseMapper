@@ -8,12 +8,12 @@
  * the three screen footers, and the Changelog entry.
  */
 export const LATEST_RELEASE = {
-  version: '0.14.9',
+  version: '0.15.0',
   date: 'June 12, 2026',
-  title: 'Coverage & Calm: the genome learns more subjects, the surface earns one count',
+  title: 'The Teachable Core: sync proven to the ZIP, the brain stands alone, the genome teaches itself',
   highlights: [
-    'One review count everywhere: the header, drawer, and agent panel read a single queue — the headline counts judgment items; routine spot-checks confirm in one click',
-    'The Seal shows two numbers: "Quality 100 · Texture 74" — the structural grade plus the advisory texture meter, so a perfect score can no longer hide templated prose',
-    'The genome learned U.S. history (51 OpenStax concepts) and deepened literature (32 concepts), and the on-miss extraction flywheel turned live: a Korean course with no shard extracted 8 citation-verified kernels and relinked from cache at zero cost',
+    'Sync edit proven end-to-end in a live browser: edit a cell, approve the 9-deliverable plan, and the downloaded ZIP carries the change — three real bugs found and fixed on the way',
+    'CurriculumOS stands alone: one React-free facade compiles, links, and deep-grades a full course headless (99/A, zero P0s) — the website is now formally the first client of the product',
+    'The genome taught itself Korean for everyone: the kernels one workspace extracted shipped as a real shard through the new contribution pipeline — kernels only, no course content',
   ],
 };

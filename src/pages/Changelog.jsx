@@ -3,6 +3,19 @@ import Header from '../components/Header';
 
 const releases = [
   {
+    version: '0.15.0',
+    date: 'June 12, 2026',
+    title: 'The Teachable Core: sync proven to the ZIP, the brain stands alone, the genome teaches itself',
+    highlights: [
+      'Sync edit, proven end-to-end and fixed three layers deep: a live browser proof (edit a course-map cell → approve → download) exposed that the pending-sync suggestion was consumed into chat within one render — starving the header count and the review drawer\u2019s "Sync now" — that an auto finish pass could grade a half-synced package and park it on a phantom blocker, and that the post-sync re-grade could read state one render early. All three fixed; the proof now passes wall to wall: edit → "Review 10" in 5s → drawer shows the 9-deliverable plan → Sync now → re-graded 100/A → the downloaded ZIP carries the edit in 7 files across 6 deliverable families.',
+      'CurriculumOS stands alone: the compiler, genome, extraction, and deep grader now live behind one React-free facade (src/curriculumos) with four verbs — compileCourse, linkGenome, extractOnMiss, gradePackage. The standing proof (npm run curriculumos:proof) compiles, links, and deep-grades a full course headless: 99/A, zero P0s, 61 real export files, no browser. An eslint wall keeps the boundary from regressing. The website is now formally the first client of the product.',
+      'The genome taught itself a subject, for everyone: the eight Korean kernels extracted live in v0.14.9 round-tripped through the new contribution pipeline (workspace More menu → "Contribute extracted kernels" → foundry source file → the same validate-and-build gate hand-authored sources pass) and shipped as the lang shard — the last zero-link course family in the test net now links 8/8. Contributions carry kernels only; no course content ever leaves the workspace.',
+      'Restores stopped degrading: an oversized autosave used to silently fall back to a deliverable-less snapshot, and reopening recompiled WITHOUT the saved enrichment — a restored package drifted 237 changes from its own graph. The autosave now prunes history before ever dropping deliverables, and compact restores compile from the saved CourseGraph, enrichment included.',
+      'No more "Instructor-provided course materials" placeholder: the no-readings fallback (93 P1s on the Mandarin native round) now reads "Class notes and assigned materials" — honest copy for courses without a reading list, pinned by a readings-less compile test at zero flagged occurrences.',
+      'The advisory judge joined the permanent record: round reports now carry a judge trajectory across all stored rounds (the 4–6/10 teachability ceiling is visible release-over-release), and the voice pass ran its second fair trial. Default flips stay calendar-gated, per the standing rules.',
+    ],
+  },
+  {
     version: '0.14.9',
     date: 'June 12, 2026',
     title: 'Coverage & Calm: the genome learns more subjects, the surface earns one count',

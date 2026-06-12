@@ -1,0 +1,595 @@
+{
+  "_comment": "CONTRIBUTED by the on-miss extraction flywheel (v0.14.9 A3 live proof, Beginning Korean I, June 12, 2026) — the first commons round-trip. These kernels are TIER-1 CONSENSUS: the prose is model-generated and carries NO source anchors (there is no snapshot to quote); every attribution names a real published work verified to EXIST via Open Library at extraction time (coverage references, not quoted sources). Admitted in-app by the same admitKernel gate hand-authored sources pass; human-reviewed before genome:build.",
+  "_contributedFrom": "coursemapper-genome-local (extraction cache)",
+  "sourceSnapshots": {},
+  "kernels": [
+    {
+      "id": "lang/hangul-foundations",
+      "rev": 1,
+      "term": "Hangul Foundations",
+      "aliases": ["Basic Hangul", "Introduction to Hangul"],
+      "discipline": "lang",
+      "tags": ["writing system", "alphabet", "korean"],
+      "level": "intro",
+      "difficulty": 1,
+      "bloomCeiling": "Apply",
+      "definition": {
+        "text": "Hangul is the Korean writing system made of letters that are grouped into syllable blocks. Beginning learners focus on recognizing the basic consonant and vowel shapes and combining them into readable syllables.",
+        "anchor": null,
+        "tier": 1,
+        "verifiedBy": 0
+      },
+      "facts": [
+        {
+          "text": "Hangul uses a small set of consonant and vowel symbols that combine into syllable blocks.",
+          "anchor": null,
+          "tier": 1,
+          "verifiedBy": 0,
+          "contested": false
+        },
+        {
+          "text": "Each syllable block usually contains at least one consonant and one vowel.",
+          "anchor": null,
+          "tier": 1,
+          "verifiedBy": 0,
+          "contested": false
+        },
+        {
+          "text": "The visual shape of a letter can help learners remember how it is pronounced or articulated.",
+          "anchor": null,
+          "tier": 1,
+          "verifiedBy": 0,
+          "contested": false
+        }
+      ],
+      "misconceptions": [
+        {
+          "text": "Hangul is an alphabet where letters are written in a simple left-to-right line like English.",
+          "corrective": "Hangul is alphabetic, but it is written in stacked syllable blocks rather than a linear string of letters.",
+          "anchor": null,
+          "tier": 1
+        },
+        {
+          "text": "Learning Hangul means memorizing whole words.",
+          "corrective": "Learners first master individual consonants and vowels, then combine them to read syllables and words.",
+          "anchor": null,
+          "tier": 1
+        }
+      ],
+      "examples": [],
+      "workedExamples": [],
+      "mcBank": [],
+      "edges": {},
+      "variants": [],
+      "freshness": {
+        "sourceEdition": "",
+        "reviewBy": "",
+        "volatility": "low"
+      },
+      "license": "CC-BY-4.0",
+      "attribution": [
+        "Integrated Korean, Young-mee Cho, Hyo Sang Lee, Carol Schulz et al., (2000) — verified via Open Library",
+        "Elementary Korean, Ross King, Ross King, Jaehoon Yeon, (2000) — verified via Open Library"
+      ],
+      "standards": []
+    },
+    {
+      "id": "lang/pronunciation-and-sound-patterns",
+      "rev": 1,
+      "term": "Pronunciation and Sound Patterns",
+      "aliases": ["Korean pronunciation", "Sound rules"],
+      "discipline": "lang",
+      "tags": ["phonology", "pronunciation", "sound change"],
+      "level": "intro",
+      "difficulty": 2,
+      "bloomCeiling": "Apply",
+      "definition": {
+        "text": "Pronunciation and sound patterns in Korean cover how letters are actually pronounced in speech, including common sound changes at syllable boundaries. Beginning learners need these patterns to read aloud accurately and recognize words when spoken.",
+        "anchor": null,
+        "tier": 1,
+        "verifiedBy": 0
+      },
+      "facts": [
+        {
+          "text": "Some Korean sounds are realized differently in speech than they are spelled.",
+          "anchor": null,
+          "tier": 1,
+          "verifiedBy": 0,
+          "contested": false
+        },
+        {
+          "text": "Sound changes often happen because one syllable affects the next syllable.",
+          "anchor": null,
+          "tier": 1,
+          "verifiedBy": 0,
+          "contested": false
+        },
+        {
+          "text": "Accurate pronunciation improves both listening comprehension and speaking clarity.",
+          "anchor": null,
+          "tier": 1,
+          "verifiedBy": 0,
+          "contested": false
+        }
+      ],
+      "misconceptions": [
+        {
+          "text": "Korean pronunciation is exactly the same as the spelling in every case.",
+          "corrective": "Many common pronunciations involve regular sound changes, so learners must notice both spelling and spoken form.",
+          "anchor": null,
+          "tier": 1
+        },
+        {
+          "text": "If a sound change happens, the spelling should also change.",
+          "corrective": "Korean spelling often stays stable even when pronunciation shifts in speech.",
+          "anchor": null,
+          "tier": 1
+        }
+      ],
+      "examples": [],
+      "workedExamples": [],
+      "mcBank": [],
+      "edges": {
+        "requires": ["lang/hangul-foundations"]
+      },
+      "variants": [],
+      "freshness": {
+        "sourceEdition": "",
+        "reviewBy": "",
+        "volatility": "low"
+      },
+      "license": "CC-BY-4.0",
+      "attribution": [
+        "Integrated Korean, Young-mee Cho, Hyo Sang Lee, Carol Schulz et al., (2000) — verified via Open Library",
+        "Elementary Korean, Ross King, Ross King, Jaehoon Yeon, (2000) — verified via Open Library"
+      ],
+      "standards": []
+    },
+    {
+      "id": "lang/greetings-and-introductions",
+      "rev": 1,
+      "term": "Greetings and Introductions",
+      "aliases": ["Basic greetings", "Self-introduction"],
+      "discipline": "lang",
+      "tags": ["conversation", "social language", "politeness"],
+      "level": "intro",
+      "difficulty": 1,
+      "bloomCeiling": "Apply",
+      "definition": {
+        "text": "Greetings and introductions are the first interpersonal language functions learners use to start and end conversations, state names, and exchange simple personal information. In Korean, these expressions are closely tied to politeness and social context.",
+        "anchor": null,
+        "tier": 1,
+        "verifiedBy": 0
+      },
+      "facts": [
+        {
+          "text": "Korean greetings often change depending on whether the setting is formal, neutral, or casual.",
+          "anchor": null,
+          "tier": 1,
+          "verifiedBy": 0,
+          "contested": false
+        },
+        {
+          "text": "Introductions commonly include a name and a brief phrase about meeting someone.",
+          "anchor": null,
+          "tier": 1,
+          "verifiedBy": 0,
+          "contested": false
+        },
+        {
+          "text": "Polite sentence endings are standard in many beginner greetings.",
+          "anchor": null,
+          "tier": 1,
+          "verifiedBy": 0,
+          "contested": false
+        }
+      ],
+      "misconceptions": [
+        {
+          "text": "A single greeting works in every situation.",
+          "corrective": "The appropriate greeting depends on relationship, setting, and level of politeness.",
+          "anchor": null,
+          "tier": 1
+        },
+        {
+          "text": "Introductions only require saying a name.",
+          "corrective": "A basic introduction often includes greeting words, name, and a polite closing or self-descriptive phrase.",
+          "anchor": null,
+          "tier": 1
+        }
+      ],
+      "examples": [],
+      "workedExamples": [],
+      "mcBank": [],
+      "edges": {
+        "requires": ["lang/hangul-foundations", "lang/honorifics-and-politeness-levels"]
+      },
+      "variants": [],
+      "freshness": {
+        "sourceEdition": "",
+        "reviewBy": "",
+        "volatility": "low"
+      },
+      "license": "CC-BY-4.0",
+      "attribution": [
+        "Integrated Korean, Young-mee Cho, Hyo Sang Lee, Carol Schulz et al., (2000) — verified via Open Library",
+        "Korean From Zero! 1, George Trombley, Reed Bullen, Sunhee Bong, (2014) — verified via Open Library"
+      ],
+      "standards": []
+    },
+    {
+      "id": "lang/numbers-age-and-counting",
+      "rev": 1,
+      "term": "Numbers, Age, and Counting",
+      "aliases": ["Korean numbers", "Counting systems"],
+      "discipline": "lang",
+      "tags": ["numeracy", "grammar", "counters"],
+      "level": "intro",
+      "difficulty": 3,
+      "bloomCeiling": "Apply",
+      "definition": {
+        "text": "Numbers, age, and counting in Korean involve using different number systems and selecting the right form for age, quantity, time, and measurement contexts. Learners must also use counters in many counting expressions.",
+        "anchor": null,
+        "tier": 1,
+        "verifiedBy": 0
+      },
+      "facts": [
+        {
+          "text": "Korean commonly uses two number systems: native Korean and Sino-Korean.",
+          "anchor": null,
+          "tier": 1,
+          "verifiedBy": 0,
+          "contested": false
+        },
+        {
+          "text": "Age expressions are often taught with a specific counting pattern rather than direct translation from English.",
+          "anchor": null,
+          "tier": 1,
+          "verifiedBy": 0,
+          "contested": false
+        },
+        {
+          "text": "Many nouns require measure words or counters when counted.",
+          "anchor": null,
+          "tier": 1,
+          "verifiedBy": 0,
+          "contested": false
+        }
+      ],
+      "misconceptions": [
+        {
+          "text": "One Korean number system is used for every counting situation.",
+          "corrective": "Different contexts favor different number systems, so learners must choose based on the grammatical setting.",
+          "anchor": null,
+          "tier": 1
+        },
+        {
+          "text": "You can count nouns in Korean without counters.",
+          "corrective": "In many cases, a counter is required between the numeral and the noun.",
+          "anchor": null,
+          "tier": 1
+        }
+      ],
+      "examples": [],
+      "workedExamples": [
+        {
+          "problem": "Choose the appropriate number form and counter for counting three books.",
+          "steps": [
+            "Identify that books are counted with a counter.",
+            "Use the native Korean or Sino-Korean number system according to the classroom pattern being practiced.",
+            "Combine numeral + counter + noun in the correct order."
+          ],
+          "result": "A correct response follows the pattern for counting books with the appropriate counter.",
+          "anchor": null
+        }
+      ],
+      "mcBank": [],
+      "edges": {
+        "requires": ["lang/hangul-foundations"]
+      },
+      "variants": [],
+      "freshness": {
+        "sourceEdition": "",
+        "reviewBy": "",
+        "volatility": "low"
+      },
+      "license": "CC-BY-4.0",
+      "attribution": [
+        "Integrated Korean, Young-mee Cho, Hyo Sang Lee, Carol Schulz et al., (2000) — verified via Open Library",
+        "Elementary Korean, Ross King, Ross King, Jaehoon Yeon, (2000) — verified via Open Library"
+      ],
+      "standards": []
+    },
+    {
+      "id": "lang/particles-and-sentence-basics",
+      "rev": 1,
+      "term": "Particles and Sentence Basics",
+      "aliases": ["Subject markers", "Basic Korean sentence structure"],
+      "discipline": "lang",
+      "tags": ["grammar", "particles", "syntax"],
+      "level": "intro",
+      "difficulty": 3,
+      "bloomCeiling": "Apply",
+      "definition": {
+        "text": "Particles are short grammatical markers attached to nouns to show their role in a sentence, such as topic or subject. Sentence basics also include the common Korean word order and the use of final endings to complete a sentence.",
+        "anchor": null,
+        "tier": 1,
+        "verifiedBy": 0
+      },
+      "facts": [
+        {
+          "text": "Particles help show what each noun is doing in the sentence.",
+          "anchor": null,
+          "tier": 1,
+          "verifiedBy": 0,
+          "contested": false
+        },
+        {
+          "text": "Korean often places the verb at the end of the sentence.",
+          "anchor": null,
+          "tier": 1,
+          "verifiedBy": 0,
+          "contested": false
+        },
+        {
+          "text": "A sentence usually needs a final ending to sound complete and grammatically formed.",
+          "anchor": null,
+          "tier": 1,
+          "verifiedBy": 0,
+          "contested": false
+        }
+      ],
+      "misconceptions": [
+        {
+          "text": "Particles are optional decoration.",
+          "corrective": "Particles carry grammatical meaning and often determine how the sentence is interpreted.",
+          "anchor": null,
+          "tier": 1
+        },
+        {
+          "text": "Korean word order must match English word order exactly.",
+          "corrective": "Korean allows different surface order because particles identify grammatical roles.",
+          "anchor": null,
+          "tier": 1
+        }
+      ],
+      "examples": [],
+      "workedExamples": [],
+      "mcBank": [],
+      "edges": {
+        "requires": ["lang/hangul-foundations", "lang/greetings-and-introductions"]
+      },
+      "variants": [],
+      "freshness": {
+        "sourceEdition": "",
+        "reviewBy": "",
+        "volatility": "low"
+      },
+      "license": "CC-BY-4.0",
+      "attribution": [
+        "Integrated Korean, Young-mee Cho, Hyo Sang Lee, Carol Schulz et al., (2000) — verified via Open Library",
+        "KOREAN GRAMMAR IN USE, Ahn Jean-Myung, Lee Kyung-ah, Han Hoo-youn, (2010) — verified via Open Library"
+      ],
+      "standards": []
+    },
+    {
+      "id": "lang/present-tense-verb-conjugation",
+      "rev": 1,
+      "term": "Present Tense Verb Conjugation",
+      "aliases": ["Basic verb conjugation", "Non-past forms"],
+      "discipline": "lang",
+      "tags": ["grammar", "verbs", "inflection"],
+      "level": "intro",
+      "difficulty": 4,
+      "bloomCeiling": "Apply",
+      "definition": {
+        "text": "Present tense verb conjugation is the process of changing a verb stem so it fits the sentence’s politeness level and grammatical context. In beginner Korean, this usually means forming common present or non-past endings for everyday communication.",
+        "anchor": null,
+        "tier": 1,
+        "verifiedBy": 0
+      },
+      "facts": [
+        {
+          "text": "Korean verbs are conjugated by attaching endings to a verb stem.",
+          "anchor": null,
+          "tier": 1,
+          "verifiedBy": 0,
+          "contested": false
+        },
+        {
+          "text": "The final ending can reflect politeness and sentence type.",
+          "anchor": null,
+          "tier": 1,
+          "verifiedBy": 0,
+          "contested": false
+        },
+        {
+          "text": "Beginner learners usually practice regular patterns before irregular ones.",
+          "anchor": null,
+          "tier": 1,
+          "verifiedBy": 0,
+          "contested": false
+        }
+      ],
+      "misconceptions": [
+        {
+          "text": "The verb form stays unchanged no matter the subject or context.",
+          "corrective": "Korean verbs change form to express politeness, sentence type, and grammatical context.",
+          "anchor": null,
+          "tier": 1
+        },
+        {
+          "text": "Present tense in Korean is formed the same way as in English.",
+          "corrective": "Korean present or non-past forms use stem-plus-ending patterns that differ from English auxiliary-based tense marking.",
+          "anchor": null,
+          "tier": 1
+        }
+      ],
+      "examples": [],
+      "workedExamples": [],
+      "mcBank": [],
+      "edges": {
+        "requires": ["lang/particles-and-sentence-basics", "lang/honorifics-and-politeness-levels"]
+      },
+      "variants": [],
+      "freshness": {
+        "sourceEdition": "",
+        "reviewBy": "",
+        "volatility": "low"
+      },
+      "license": "CC-BY-4.0",
+      "attribution": [
+        "Integrated Korean, Young-mee Cho, Hyo Sang Lee, Carol Schulz et al., (2000) — verified via Open Library",
+        "KOREAN GRAMMAR IN USE, Ahn Jean-Myung, Lee Kyung-ah, Han Hoo-youn, (2010) — verified via Open Library"
+      ],
+      "standards": []
+    },
+    {
+      "id": "lang/honorifics-and-politeness-levels",
+      "rev": 1,
+      "term": "Honorifics and Politeness Levels",
+      "aliases": ["Speech levels", "Polite forms"],
+      "discipline": "lang",
+      "tags": ["pragmatics", "sociolinguistics", "register"],
+      "level": "intro",
+      "difficulty": 3,
+      "bloomCeiling": "Analyze",
+      "definition": {
+        "text": "Honorifics and politeness levels are systems in Korean used to show respect toward the listener or the person being discussed. They influence verb endings, vocabulary choices, and the overall tone of speech.",
+        "anchor": null,
+        "tier": 1,
+        "verifiedBy": 0
+      },
+      "facts": [
+        {
+          "text": "Politeness in Korean is often marked through sentence endings.",
+          "anchor": null,
+          "tier": 1,
+          "verifiedBy": 0,
+          "contested": false
+        },
+        {
+          "text": "Honorific language can also affect word choice, not only verb endings.",
+          "anchor": null,
+          "tier": 1,
+          "verifiedBy": 0,
+          "contested": false
+        },
+        {
+          "text": "The appropriate level depends on social relationship and situation.",
+          "anchor": null,
+          "tier": 1,
+          "verifiedBy": 0,
+          "contested": false
+        }
+      ],
+      "misconceptions": [
+        {
+          "text": "Honorifics are only used for royalty or extremely formal occasions.",
+          "corrective": "Honorific and polite forms are used broadly in everyday Korean whenever respect or social distance is relevant.",
+          "anchor": null,
+          "tier": 1
+        },
+        {
+          "text": "Politeness is optional and does not affect grammar.",
+          "corrective": "Politeness is built into Korean grammar and strongly shapes how sentences are formed.",
+          "anchor": null,
+          "tier": 1
+        }
+      ],
+      "examples": [],
+      "workedExamples": [],
+      "mcBank": [],
+      "edges": {
+        "requires": ["lang/hangul-foundations"]
+      },
+      "variants": [],
+      "freshness": {
+        "sourceEdition": "",
+        "reviewBy": "",
+        "volatility": "low"
+      },
+      "license": "CC-BY-4.0",
+      "attribution": [
+        "KOREAN GRAMMAR IN USE, Ahn Jean-Myung, Lee Kyung-ah, Han Hoo-youn, (2010) — verified via Open Library"
+      ],
+      "standards": []
+    },
+    {
+      "id": "lang/asking-questions",
+      "rev": 1,
+      "term": "Asking Questions",
+      "aliases": ["Question forms", "Interrogatives"],
+      "discipline": "lang",
+      "tags": ["conversation", "grammar", "interrogatives"],
+      "level": "intro",
+      "difficulty": 2,
+      "bloomCeiling": "Apply",
+      "definition": {
+        "text": "Asking questions in Korean involves using question endings and question words to request information, confirmation, or clarification. Beginner learners practice both yes-no questions and wh-questions in polite, simple forms.",
+        "anchor": null,
+        "tier": 1,
+        "verifiedBy": 0
+      },
+      "facts": [
+        {
+          "text": "Korean questions often use the same sentence structure as statements, with a question marking change at the end.",
+          "anchor": null,
+          "tier": 1,
+          "verifiedBy": 0,
+          "contested": false
+        },
+        {
+          "text": "Question words can appear in the sentence where the missing information belongs.",
+          "anchor": null,
+          "tier": 1,
+          "verifiedBy": 0,
+          "contested": false
+        },
+        {
+          "text": "Polite question forms are common in beginning communication.",
+          "anchor": null,
+          "tier": 1,
+          "verifiedBy": 0,
+          "contested": false
+        }
+      ],
+      "misconceptions": [
+        {
+          "text": "Questions must be formed by moving the verb to the front of the sentence.",
+          "corrective": "Korean usually keeps the basic sentence order and changes the final ending or uses a question word.",
+          "anchor": null,
+          "tier": 1
+        },
+        {
+          "text": "Every question needs a special question word.",
+          "corrective": "Yes-no questions can be asked without a question word; the ending or intonation signals the question.",
+          "anchor": null,
+          "tier": 1
+        }
+      ],
+      "examples": [],
+      "workedExamples": [],
+      "mcBank": [],
+      "edges": {
+        "requires": [
+          "lang/particles-and-sentence-basics",
+          "lang/present-tense-verb-conjugation",
+          "lang/honorifics-and-politeness-levels"
+        ]
+      },
+      "variants": [],
+      "freshness": {
+        "sourceEdition": "",
+        "reviewBy": "",
+        "volatility": "low"
+      },
+      "license": "CC-BY-4.0",
+      "attribution": [
+        "Integrated Korean, Young-mee Cho, Hyo Sang Lee, Carol Schulz et al., (2000) — verified via Open Library",
+        "KOREAN GRAMMAR IN USE, Ahn Jean-Myung, Lee Kyung-ah, Han Hoo-youn, (2010) — verified via Open Library"
+      ],
+      "standards": []
+    }
+  ]
+}

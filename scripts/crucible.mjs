@@ -839,6 +839,14 @@ async function readRoundSummary(dirName) {
   const dirPath = path.join(crucibleRoot, dirName);
   const roundJson = await readJsonIfExists(path.join(dirPath, 'round.json'));
   const courseDirents = await fs.readdir(dirPath, { withFileTypes: true }).catch(() => []);
+  // v0.15 T3: the advisory judge joins the trajectory — round.json already
+  // stores judgeOverall per course; surface it so the 4–6/10 ceiling is
+  // visible release-over-release in one table.
+  const judgeById = new Map(
+    (roundJson?.courses || [])
+      .filter((course) => Number.isFinite(course.judgeOverall))
+      .map((course) => [course.id, course.judgeOverall]),
+  );
   const courses = [];
   let costUsd = 0;
   let costSeen = false;
@@ -853,6 +861,7 @@ async function readRoundSummary(dirName) {
       overall: Number.isFinite(normalized.overall) ? normalized.overall : null,
       p0: Number.isFinite(normalized.p0Count) ? normalized.p0Count : null,
       p1: Number.isFinite(normalized.p1Count) ? normalized.p1Count : null,
+      judge: judgeById.has(dirent.name) ? judgeById.get(dirent.name) : null,
     });
     if (digest) {
       costUsd += digestCostUsd(digest);
@@ -888,7 +897,7 @@ function renderHistoryMarkdown(summaries) {
     `| ${header.map(() => '---').join(' | ')} |`,
     ...rows.map((row) => `| ${row.join(' | ')} |`),
     '',
-    '_Cell format: overall · P0/P1._',
+    '_Cell format: overall · P0/P1 (· jN = advisory judge /10 when the round ran --judge)._',
   ];
   return lines.join('\n');
 }

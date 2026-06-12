@@ -79,4 +79,28 @@ export default [
       },
     },
   },
+  // v0.15 S1: the CurriculumOS boundary wall — the brain's facade may never
+  // grow a React/browser dependency. The headless proof
+  // (npm run curriculumos:proof) is the runtime half of this guarantee.
+  {
+    files: ['src/curriculumos/**/*.js'],
+    rules: {
+      'no-restricted-imports': [
+        'error',
+        {
+          patterns: [
+            {
+              group: ['react', 'react-dom', 'react/*', 'react-dom/*'],
+              message: 'CurriculumOS is React-free by contract.',
+            },
+            {
+              group: ['*hooks/*', '*components/*', '*contexts/*', '*screens/*', '*pages/*'],
+              message: 'CurriculumOS may not depend on app UI layers.',
+            },
+          ],
+        },
+      ],
+      'no-restricted-globals': ['error', 'window', 'document', 'localStorage', 'sessionStorage'],
+    },
+  },
 ];

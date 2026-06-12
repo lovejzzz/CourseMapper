@@ -446,7 +446,9 @@ export function buildHistoryTable(summaries, courseOrder = []) {
         if (!course || !Number.isFinite(course.overall)) return '—';
         const p0 = Number.isFinite(course.p0) ? course.p0 : '?';
         const p1 = Number.isFinite(course.p1) ? course.p1 : '?';
-        return `${course.overall} · ${p0}/${p1}`;
+        // v0.15 T3: the advisory judge rides the trajectory when present.
+        const judge = Number.isFinite(course.judge) ? ` · j${course.judge}` : '';
+        return `${course.overall} · ${p0}/${p1}${judge}`;
       }),
       Number.isFinite(summary.costUsd) ? `$${summary.costUsd.toFixed(2)}` : '—',
     ];

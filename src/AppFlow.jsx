@@ -109,6 +109,8 @@ import {
   selectOutstandingQueue,
 } from './lib/reviewQueueModel';
 import { buildPreExportChecklist } from './lib/preExportChecklist';
+import { downloadContribution, readExtractedKernels } from './lib/genome/contributeKernels';
+import { APP_VERSION } from './lib/appVersion';
 import { isFinishPassRunning } from './lib/packagePassPhase';
 import { buildApiCostPlan, evaluateApiCostControl } from './lib/apiCostControl';
 import {
@@ -1058,16 +1060,44 @@ export default function AppFlow({ startupAction = null, onStartupHandled, onRetu
     return [];
   }, [chatHistory]);
 
-  // v0.14.7 WS-G4: "Sync now" from the review queue — same approval the
-  // chat card grants, one execution pathway (the smartSync plan).
+  // v0.15 (sync-test finding): ChatPanel consumes the live
+  // pendingSyncSuggestion into a chat message (role 'syncSuggestion',
+  // status 'pending') and CLEARS the hook state within one render — so the
+  // queue's sync class and the drawer's Sync now must read the DURABLE
+  // message, exactly like reviewObservations reads the digest message. The
+  // live state covers only the pre-consumption window.
+  const pendingSyncFromChat = useMemo(() => {
+    for (let i = chatHistory.length - 1; i >= 0; i--) {
+      const message = chatHistory[i];
+      if (message?.role === 'syncSuggestion') {
+        return message.status === 'pending' ? message : null;
+      }
+    }
+    return null;
+  }, [chatHistory]);
+
+  // v0.14.7 WS-G4 (rebuilt in v0.15): "Sync now" from the review queue —
+  // approve through the router's ONE pathway (chatSendRef carries it), so
+  // the plan executes AND the chat card flips to done. Fallbacks keep the
+  // action alive if the chat panel is not mounted.
   const smartSyncRef = useRef(null);
+  // v0.15: the post-sync regrade waits for the STORE to settle (every
+  // selected feature done/error and the sync runner idle) before grading —
+  // refs lag dispatches by a render, and grading mid-write parked live
+  // packages on phantom "not ready" blockers.
+  const [syncRegradePending, setSyncRegradePending] = useState(false);
   const handleExecuteSyncFromQueue = useCallback(() => {
-    const suggestion = smartSyncRef.current?.pendingSyncSuggestion;
+    const suggestion = smartSyncRef.current?.pendingSyncSuggestion || pendingSyncFromChat;
     if (!suggestion) return;
+    const approveViaRouter = chatSendRef.current?.approveSyncSuggestion;
+    if (typeof approveViaRouter === 'function' && suggestion.id) {
+      approveViaRouter(suggestion.id);
+      return;
+    }
     smartSyncRef.current
-      .executeSyncPlan(suggestion.plan, suggestion.changedFieldsSummary)
+      ?.executeSyncPlan(suggestion.plan, suggestion.changedFieldsSummary)
       .finally(() => smartSyncRef.current?.clearPendingSyncSuggestion());
-  }, []);
+  }, [pendingSyncFromChat]);
 
   const handleReviewQueueOpenChange = useCallback((open, focusId = null) => {
     if (!open) {
@@ -1210,7 +1240,29 @@ export default function AppFlow({ startupAction = null, onStartupHandled, onRetu
       deliverablesOverride = null,
       source = 'auto',
     } = {}) => {
+      // v0.15 (sync-proof race): a finish pass that STARTS while a sync is
+      // still rewriting deliverables grades a half-synced package — the live
+      // repro left a permanent "blocked · Study Guides is not ready" verdict
+      // because an 'auto' pass fired mid-sync and the post-sync regrade
+      // JOINED it. Auto/manual passes wait for the sync's own regrade.
+      if (smartSyncRef.current?.isSyncing && source !== 'sync') {
+        tracePackageFinish('skipped', 'skip_while_syncing', { source, selectedFeatureIds });
+        return Promise.resolve(null);
+      }
       if (packageFinalizerInFlightRef.current) {
+        if (source === 'sync') {
+          // The in-flight pass may have started mid-sync (stale inputs) —
+          // chain a FRESH pass behind it instead of adopting its verdict.
+          tracePackageFinish('existing', 'chain_after_existing', { source, selectedFeatureIds });
+          const prior = packageFinalizerInFlightRef.current;
+          return prior
+            .catch(() => {})
+            .then(() =>
+              packageFinalizerRef.current
+                ? packageFinalizerRef.current({ retry: false, source: 'sync', selectedFeatureIds, lessonFilter })
+                : null,
+            );
+        }
         tracePackageFinish('existing', 'join_existing', {
           source,
           selectedFeatureIds,
@@ -1955,13 +2007,13 @@ export default function AppFlow({ startupAction = null, onStartupHandled, onRetu
         featureIds.forEach((id) => next.add(id));
         return next;
       });
-      // v0.14.7 WS-G3: post-sync truth — a sync changes the package, so the
-      // grade must change with it. Quiet deterministic finalize + re-grade
-      // (no retry loops); a stale "Quality 100 · A" over an edited package
-      // becomes unrepresentable.
-      if (typeof packageFinalizerRef.current === 'function') {
-        packageFinalizerRef.current({ retry: false, source: 'sync' }).catch(() => {});
-      }
+      // v0.14.7 WS-G3 → v0.15: post-sync truth — a sync changes the
+      // package, so the grade must change with it. The regrade no longer
+      // fires HERE: at this moment the deliverables ref can lag the last
+      // synced feature by one render (the live proof graded a package whose
+      // Assignment Briefs were "not ready" and parked it on a blocker).
+      // The flag below hands off to a settle-aware effect.
+      setSyncRegradePending(true);
     }, []),
     onRequestProposal: useCallback(
       ({ featureId, lessonIndex, editContext, courseMap: cm }) => {
@@ -1975,6 +2027,24 @@ export default function AppFlow({ startupAction = null, onStartupHandled, onRetu
   });
   smartSyncRef.current = smartSync;
 
+  // (Declared with the smartSyncRef block above; the effect lives HERE
+  // because its deps read smartSync, which is initialized just above —
+  // referencing it earlier is a temporal-dead-zone crash at render.)
+  useEffect(() => {
+    if (!syncRegradePending) return;
+    if (smartSync.isSyncing) return;
+    const pendingFeature = selectedFeatures.some((featureId) => {
+      if (featureId === 'courseMap') return false;
+      const entry = deliv.deliverables[featureId];
+      return entry && entry.status !== 'done' && entry.status !== 'error';
+    });
+    if (pendingFeature) return;
+    setSyncRegradePending(false);
+    if (typeof packageFinalizerRef.current === 'function') {
+      packageFinalizerRef.current({ retry: false, source: 'sync' }).catch(() => {});
+    }
+  }, [syncRegradePending, smartSync.isSyncing, deliv.deliverables, selectedFeatures]);
+
   // ── v0.14.9 B1: THE review queue — one object, one owner. ───────────────
   // AppFlow builds the full queue (spot-check checklist INCLUDED) and owns
   // review progress; the header CTA, the panel-hosted drawer, and the digest
@@ -1983,6 +2053,14 @@ export default function AppFlow({ startupAction = null, onStartupHandled, onRetu
   // routine confirmations that live only inside the drawer. This is the fix
   // for the live "Review 3" header vs 26-item panel divergence: two builders
   // with two definitions can never agree by accident.
+  // v0.15 F2: the contribute action surfaces only when this browser has
+  // extracted kernels to give (kernels only — the privacy boundary).
+  const extractedKernelCount = useMemo(
+    () => readExtractedKernels().length,
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [packageQualityPass],
+  );
+
   const reviewChecklistItems = useMemo(() => {
     try {
       return buildPreExportChecklist({ courseMap, deliverables: deliv.deliverables });
@@ -1997,9 +2075,16 @@ export default function AppFlow({ startupAction = null, onStartupHandled, onRetu
         observations: reviewObservations,
         finalizerResult: lastRunDigest,
         qualityPass: packageQualityPass,
-        syncSuggestion: smartSync.pendingSyncSuggestion,
+        syncSuggestion: smartSync.pendingSyncSuggestion || pendingSyncFromChat,
       }),
-    [reviewChecklistItems, reviewObservations, lastRunDigest, packageQualityPass, smartSync.pendingSyncSuggestion],
+    [
+      reviewChecklistItems,
+      reviewObservations,
+      lastRunDigest,
+      packageQualityPass,
+      smartSync.pendingSyncSuggestion,
+      pendingSyncFromChat,
+    ],
   );
   const reviewRunId = useMemo(
     () =>
@@ -2630,14 +2715,33 @@ export default function AppFlow({ startupAction = null, onStartupHandled, onRetu
       const configMap = Object.fromEntries(
         compiledFeatureIds.map((featureId) => [featureId, saved.deliverableConfig?.[featureId] || {}]),
       );
-      const blueprint = compactBlueprintForStorage(
-        buildCourseBlueprint(saved.courseMap, {
-          compilerPath: {
-            mode: 'compact-restore',
-            reason: 'Restored from a compact CourseMapper project.',
-          },
-        }),
-      );
+      // v0.15 (sync-test finding): a compact restore used to compile from
+      // the BARE course map, silently dropping the saved graph's enrichment
+      // overlay — the restored package drifted 237 registry changes from
+      // the graph, and a post-restore ZIP shipped the degraded tier. The
+      // saved CourseGraph is the source of truth: compile FROM it whenever
+      // it rode along (formatVersion 2); the bare-map path stays as the
+      // legacy belt for v1 snapshots only.
+      let blueprint = null;
+      if (saved.courseGraph && Array.isArray(saved.courseGraph.sessions)) {
+        try {
+          const { buildBlueprintFromGraph } = await import('./lib/courseGraph');
+          blueprint = compactBlueprintForStorage(buildBlueprintFromGraph(saved.courseGraph));
+        } catch (graphErr) {
+          warn('[Project] compact restore: graph compile failed, falling back to map:', graphErr);
+          blueprint = null;
+        }
+      }
+      if (!blueprint) {
+        blueprint = compactBlueprintForStorage(
+          buildCourseBlueprint(saved.courseMap, {
+            compilerPath: {
+              mode: 'compact-restore',
+              reason: 'Restored from a compact CourseMapper project.',
+            },
+          }),
+        );
+      }
       const compiled = compileBlueprintDeliverables(blueprint, compiledFeatureIds, { configMap });
       return Object.fromEntries(
         compiledFeatureIds
@@ -3817,6 +3921,17 @@ export default function AppFlow({ startupAction = null, onStartupHandled, onRetu
                         >
                           Save .coursemapper
                         </button>
+                        {extractedKernelCount > 0 && (
+                          <button
+                            type="button"
+                            data-testid="workspace-menu-contribute-kernels"
+                            onClick={() => downloadContribution({ appVersion: APP_VERSION })}
+                            title="Download the concept kernels this workspace extracted (kernels only — no course content) as a foundry source file you can contribute to the shared genome."
+                            className="flex w-full items-center gap-2 rounded-md px-3 py-2 text-left text-xs font-semibold text-slate-700 hover:bg-slate-50"
+                          >
+                            Contribute {extractedKernelCount} extracted kernel{extractedKernelCount === 1 ? '' : 's'}
+                          </button>
+                        )}
                         <div className="my-1 border-t border-slate-100" />
                       </>
                     )}

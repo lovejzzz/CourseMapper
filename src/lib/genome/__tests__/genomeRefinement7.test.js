@@ -55,7 +55,9 @@ describe('iteration 7 — genome spans 6 disciplines', () => {
     // (the Open Knowledge Backbone flagship shards) joined; v0.14.1: cs and geo
     // joined (the two disciplines the V0.14 four-course audit found uncovered);
     // V0.14.7 WS-E E1: math joined (OpenStax Calculus Volume 1 — the live
-    // Calculus I course that linked only 5/15).
+    // Calculus I course that linked only 5/15); v0.15 F3: lang joined — the
+    // FIRST shard the genome taught itself (the Beginning Korean extraction
+    // contributed through the commons round-trip).
     expect(disciplines).toEqual(
       new Set([
         'astro',
@@ -71,6 +73,7 @@ describe('iteration 7 — genome spans 6 disciplines', () => {
         'cs',
         'geo',
         'math',
+        'lang',
       ]),
     );
   });

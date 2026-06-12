@@ -1215,6 +1215,14 @@ export default function ChatPanel({
       }
       return chat.send(prompt, options);
     };
+    // v0.15: the review queue's "Sync now" approves through the SAME router
+    // pathway the chat card uses — execute the plan AND mark the suggestion
+    // message done. Without this, the queue path read the live
+    // pendingSyncSuggestion, which this panel consumes into chat history
+    // (and nulls) within one render — the drawer's sync action was dead in
+    // live use; only the chat card worked.
+    chatSendRef.current.approveSyncSuggestion = (suggestionId, selectedPlan = null) =>
+      chat.handleApproveSyncSuggestion(suggestionId, selectedPlan);
   }, [chat, chatSendRef]);
 
   // ── Bridge sync suggestion from useSmartSync into chat messages ──
