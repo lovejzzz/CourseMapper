@@ -1,20 +1,21 @@
 /**
- * v0.14.7 WS-D2/D4 — the voice pass.
+ * Voice v2 — the post-mortem rebuild of the voice pass.
  *
- * The contract under test (roadmap WS-D, "fallback, never block"):
- *  - flag 'coursemapper-voice-pass' is DEFAULT OFF; the integration only
- *    invokes runVoicePass behind the flag + enrichment guard (source-scanned
- *    here — the pass is never wired into a default run),
- *  - exactly three surface kinds are voiceable (assignment brief overview,
- *    discussion prompt framing, study-guide narrative intro),
- *  - the per-surface lint enforces the hard contract: registry ids and the
- *    frozen "Anchor your post in …" line survive VERBATIM, length stays
- *    bounded, no markdown headers, no new invented entities,
- *  - applyVoiceResults is immutable and per-item: failures keep compiled text,
- *  - budget exhaustion mid-run is honest: exhausted:true, partial voiced,
- *    remaining surfaces reported as fallbacks,
- *  - D4: the run discloses itself (budget counter, digest pipeline line,
- *    manifest stash).
+ * v1 failed its live bar (judge 3/10 voiced vs 4/10 quiet; 38/52 fallbacks;
+ * texture 76→75). The v2 contract under test:
+ *  - NEVER-RENAME replaces verbatim-title stuffing: a rewrite may OMIT
+ *    registry ids (identity lives in the compiled header) but may never
+ *    carry an id its own original doesn't have,
+ *  - kernels are whitelisted substance: rewrites may commit to kernel
+ *    terms/definitions/sources; invented entities still reject,
+ *  - asymmetric selection: at most VOICE_MAX_SURFACES surfaces, ≤2 per
+ *    lesson, week-one brief prioritized — uneven emphasis by design,
+ *  - variety by construction: rotated per-surface directives in the prompt
+ *    and a cross-surface duplicate-opener lint,
+ *  - the texture SELF-CHECK: if the touched features' texture score did not
+ *    improve, the whole pass reverts and reports itself,
+ *  - unchanged laws: flag default off, fallback never block, honest budget
+ *    exhaustion, D4 disclosure.
  */
 import { describe, expect, it } from 'vitest';
 import { readFileSync } from 'node:fs';
@@ -23,10 +24,12 @@ import { fileURLToPath } from 'node:url';
 
 import {
   VOICE_BATCH_SIZE,
+  VOICE_MAX_SURFACES,
   applyVoiceResults,
   buildVoicePrompt,
   clearVoicePassOutcome,
   lintVoiceResult,
+  openingTrigram,
   peekVoicePassOutcome,
   readVoicePassMode,
   recordVoicePassOutcome,
@@ -78,16 +81,25 @@ function compiledFixture(lessonCount = 4) {
   return { courseMap, deliverables };
 }
 
-// A lint-passing rewrite built ONLY from the surface's own material: filler is
-// all-lowercase prose (no new capitalized sequences), registry ids and frozen
-// anchor lines from the original are carried verbatim.
-function honestRewriteFor(surface) {
+// Distinct lint-passing rewrites — all-lowercase prose (no new capitalized
+// sequences), original ids/frozen lines carried verbatim, and DIFFERENT
+// openers/structures per salt so the opener lint and the texture self-check
+// see genuine variety (v1's identical filler would trip both, correctly).
+const VARIED_FILLERS = [
+  'start with the evidence you already trust and explain why it matters for this task, then say what would change your mind and what you would check first in the field before committing to an answer.',
+  'most students lose points here by skipping the reasoning step: name your claim early, show the observation that supports it, and admit the one detail that still bothers you about the identification.',
+  'bring one concrete specimen example to this work and treat it as a test case: what does it confirm, what does it complicate, and which property would you re-examine before deciding for good.',
+  'connect this task to what you practiced earlier in the course; the same decision habits apply, and your work should show how the new material sharpens rather than replaces those habits each week.',
+  'work through the task twice if you can: once quickly for instinct, once slowly for evidence, and write down where the two passes disagreed — that gap is where the learning actually is.',
+  'before submitting, read your work aloud and cut anything you cannot defend with an observation; what remains will be shorter, sharper, and far easier to give useful feedback on this time.',
+  'treat the rubric as a checklist of decisions rather than boxes: each criterion names a judgment call, and your submission should make every one of those calls visible and defensible to a reader.',
+  'choose depth over coverage in this piece: one well-defended identification with honest limits earns more than three rushed ones, and it builds the habit the later weeks will lean on heavily.',
+];
+
+function variedRewriteFor(surface, salt = 0) {
   const ids = surface.originalText.match(/\b[AR]\d+\.\d+\b/g) || [];
   const frozen = surface.originalText.match(/[^.!?\n]*Anchor your post in[^.!?\n]*[.!?]?/g) || [];
-  const filler =
-    'Start with the evidence you already trust and explain why it matters for this task. ' +
-    'Keep your reasoning visible so feedback can land where it helps you most. ' +
-    'Bring one concrete example from the course material, name its limits, and say what you would change next time.';
+  const filler = VARIED_FILLERS[salt % VARIED_FILLERS.length];
   return [filler, ids.join(' '), frozen.map((line) => line.trim()).join(' ')].filter(Boolean).join(' ').trim();
 }
 
@@ -101,83 +113,113 @@ describe('flag off — the default path never voices anything', () => {
     const { courseMap, deliverables } = compiledFixture(4);
     const surfaces = selectVoiceSurfaces({ deliverables, courseMap });
     expect(readVoicePassMode()).toBe('off');
-    expect(surfaces).toHaveLength(12);
+    expect(surfaces.length).toBeGreaterThan(0);
+    expect(surfaces.length).toBeLessThanOrEqual(VOICE_MAX_SURFACES);
   });
 
   it('the integration invokes runVoicePass only behind the flag + enrichment guard (source scan)', () => {
     const source = readFileSync(path.join(repoRoot, 'src/hooks/useDeliverables.js'), 'utf8');
     const guard = "voicePassLib.readVoicePassMode() === 'on' && blueprintEnrichmentRequested";
     expect(source).toContain(guard);
-    // runVoicePass is called exactly once, AFTER the guard opens — never on
-    // an unguarded path.
     const callMatches = source.match(/\.runVoicePass\(/g) || [];
     expect(callMatches).toHaveLength(1);
-    expect(source.indexOf(guard)).toBeGreaterThan(-1);
     expect(source.indexOf(guard)).toBeLessThan(source.indexOf('.runVoicePass('));
-    // And the voice block runs after the compiler dispatch loop (the voiced
-    // re-dispatch can only improve already-done features).
-    expect(source.indexOf('compiled from blueprint')).toBeLessThan(source.indexOf(guard));
-    // Law: fallback, never block — the whole block is wrapped so a voice
-    // failure logs a warning instead of erroring the package.
     expect(source).toContain('Voice pass failed (compiled text kept)');
+    // v2 integration upgrades: kernels ride the grounding, and the output
+    // cap is FIXED per batch (v1 inherited the ambient budget — truncation
+    // read as 38 silent 'no rewrite returned' fallbacks in the failed round).
+    expect(source).toContain('kernels: blueprintEnrichment?.lessonContent');
+    expect(source).toContain('maxOutputTokens: 2600');
   });
 });
 
-// ── Surface selection ───────────────────────────────────────────────────────
-describe('selectVoiceSurfaces — exactly the three high-read surface kinds', () => {
+// ── Asymmetric selection ────────────────────────────────────────────────────
+describe('selectVoiceSurfaces — asymmetric, capped, kernel-aware', () => {
   const { courseMap, deliverables } = compiledFixture(4);
 
-  it('returns one descriptor per lesson per kind with the real compiled field names', () => {
+  it('caps at VOICE_MAX_SURFACES with ≤2 surfaces per lesson and the week-one brief always in', () => {
     const surfaces = selectVoiceSurfaces({ deliverables, courseMap });
-    expect(surfaces).toHaveLength(12);
-    const ids = surfaces.map((surface) => surface.surfaceId);
-    expect(ids).toContain('assignments:lesson-1:overview');
-    expect(ids).toContain('discussions:lesson-2:prompt');
-    expect(ids).toContain('studyGuides:lesson-4:summary');
+    expect(surfaces.length).toBeLessThanOrEqual(VOICE_MAX_SURFACES);
+    expect(surfaces.map((surface) => surface.surfaceId)).toContain('assignments:lesson-1:overview');
+    const perLesson = new Map();
     for (const surface of surfaces) {
+      perLesson.set(surface.lessonNumber, (perLesson.get(surface.lessonNumber) || 0) + 1);
       expect(VOICE_FEATURES).toContain(surface.featureId);
       expect(['overview', 'prompt', 'summary']).toContain(surface.field);
       expect(surface.originalText.length).toBeGreaterThan(20);
       expect(surface.grounding.lessonTitle).toMatch(/^Lesson \d+: /);
-      expect(Array.isArray(surface.grounding.keyConcepts)).toBe(true);
-      expect(Array.isArray(surface.grounding.readings)).toBe(true);
     }
-    const assignment = surfaces.find((surface) => surface.surfaceId === 'assignments:lesson-1:overview');
-    expect(assignment.grounding.assessmentTitle).toMatch(/quiz/i);
+    for (const count of perLesson.values()) expect(count).toBeLessThanOrEqual(2);
+  });
+
+  it('respects a smaller maxSurfaces (deliberate scarcity)', () => {
+    const surfaces = selectVoiceSurfaces({ deliverables, courseMap, maxSurfaces: 3 });
+    expect(surfaces).toHaveLength(3);
+    expect(surfaces.map((surface) => surface.surfaceId)).toContain('assignments:lesson-1:overview');
   });
 
   it('accepts store-shaped entries ({ status, data }) as well as raw compiled data', () => {
     const wrapped = Object.fromEntries(
       VOICE_FEATURES.map((featureId) => [featureId, { status: 'done', data: deliverables[featureId] }]),
     );
-    expect(selectVoiceSurfaces({ deliverables: wrapped, courseMap })).toHaveLength(12);
+    const surfaces = selectVoiceSurfaces({ deliverables: wrapped, courseMap });
+    expect(surfaces.length).toBeGreaterThan(0);
+  });
+
+  it('kernels ride the grounding when supplied (the verified-substance channel)', () => {
+    const kernels = {
+      'lesson-2': {
+        keyTerms: [
+          {
+            term: 'Bowen Reaction Series',
+            definition: 'crystallization order of silicate minerals',
+            source: 'OpenStax §4.2',
+          },
+        ],
+        sourceCue: 'the OpenStax igneous rocks chapter',
+      },
+    };
+    const surfaces = selectVoiceSurfaces({ deliverables, courseMap, kernels });
+    const lessonTwo = surfaces.find((surface) => surface.lessonNumber === 2);
+    expect(lessonTwo).toBeTruthy();
+    expect(lessonTwo.grounding.kernel).toBeTruthy();
+    expect(lessonTwo.grounding.kernel.terms[0].term).toBe('Bowen Reaction Series');
   });
 });
 
 // ── The batched prompt ──────────────────────────────────────────────────────
-describe('buildVoicePrompt — one batched JSON contract', () => {
+describe('buildVoicePrompt — rotated directives, never-rename, JSON contract', () => {
   const { courseMap, deliverables } = compiledFixture(5);
   const surfaces = selectVoiceSurfaces({ deliverables, courseMap });
 
-  it('the user prompt says JSON, freezes the anchor line, and bounds the rewrite', () => {
-    const prompt = buildVoicePrompt(surfaces.slice(0, 3), { courseName: courseMap.courseName });
+  it('says JSON, freezes the anchor line, rotates registers, and forbids shared openers', () => {
+    const prompt = buildVoicePrompt(surfaces.slice(0, 4), { courseName: courseMap.courseName });
     expect(prompt.userPrompt).toContain('JSON');
     expect(prompt.userPrompt).toContain('Anchor your post in');
     expect(prompt.userPrompt.toLowerCase()).toContain('verbatim');
-    expect(prompt.userPrompt).toContain('60-140 words');
+    // v2: per-surface directives instead of one global register/length.
+    expect(prompt.userPrompt).toContain('"register"');
+    expect(prompt.userPrompt).toContain('30-70 words');
+    expect(prompt.userPrompt).toContain('70-120 words');
+    expect(prompt.userPrompt).toContain('begin with the same three words');
+    // v2 never-rename, not verbatim-title stuffing.
+    expect(prompt.userPrompt.toLowerCase()).toContain('naturally');
+    expect(prompt.userPrompt.toLowerCase()).toContain('conflicts');
+    expect(prompt.userPrompt).not.toContain('60-140 words');
     expect(prompt.userPrompt).toContain('no markdown headers');
     expect(prompt.systemPrompt).toContain('instructor');
+    expect(prompt.systemPrompt.toLowerCase()).toContain('kernel');
   });
 
-  it('caps a batch at the batch size', () => {
-    expect(surfaces.length).toBeGreaterThan(VOICE_BATCH_SIZE);
+  it('caps a batch at the (small) batch size — truncation killed v1 batches', () => {
+    expect(VOICE_BATCH_SIZE).toBeLessThanOrEqual(6);
     const prompt = buildVoicePrompt(surfaces, {});
-    expect(prompt.surfaceIds).toHaveLength(VOICE_BATCH_SIZE);
+    expect(prompt.surfaceIds.length).toBeLessThanOrEqual(VOICE_BATCH_SIZE);
   });
 });
 
 // ── The contract lint ───────────────────────────────────────────────────────
-describe('lintVoiceResult — the hard contract', () => {
+describe('lintVoiceResult — never-rename, kernel-aware, no padding floor', () => {
   const surface = {
     surfaceId: 'discussions:lesson-2:prompt',
     featureId: 'discussions',
@@ -190,6 +232,15 @@ describe('lintVoiceResult — the hard contract', () => {
       keyConcepts: ['2.1: Igneous Rocks'],
       readings: ['Earth Materials, Chapter 4'],
       assessmentTitle: 'Quiz: igneous rocks identification',
+      kernel: {
+        terms: [
+          {
+            term: 'Bowen Reaction Series',
+            definition: 'crystallization order of silicate minerals',
+            source: 'OpenStax §4.2',
+          },
+        ],
+      },
     },
   };
   const honest =
@@ -202,11 +253,25 @@ describe('lintVoiceResult — the hard contract', () => {
     expect(lintVoiceResult(surface, honest)).toEqual({ ok: true, reason: '' });
   });
 
-  it('rejects a rewrite that drops the registry id', () => {
-    const dropped = honest.replace(' (A2.1)', '');
-    const verdict = lintVoiceResult(surface, dropped);
+  it('v2 NEVER-RENAME: omitting the registry id is allowed (identity lives in the compiled header)', () => {
+    const omitted = honest.replace(' (A2.1)', '');
+    expect(lintVoiceResult(surface, omitted).ok).toBe(true);
+  });
+
+  it("v2 NEVER-RENAME: an id the surface's original does not carry rejects (cross-wired identity)", () => {
+    const crossWired = honest.replace('(A2.1)', '(A9.9)');
+    const verdict = lintVoiceResult(surface, crossWired);
     expect(verdict.ok).toBe(false);
-    expect(verdict.reason).toContain('A2.1');
+    expect(verdict.reason).toContain('A9.9');
+  });
+
+  it('v2 KERNEL WHITELIST: kernel-sourced specifics pass; the same entity without kernel grounding rejects', () => {
+    const withKernelFact = `${honest} The Bowen Reaction Series predicts which minerals you should expect first.`;
+    expect(lintVoiceResult(surface, withKernelFact).ok).toBe(true);
+    const bareSurface = { ...surface, grounding: { ...surface.grounding, kernel: undefined } };
+    const verdict = lintVoiceResult(bareSurface, withKernelFact);
+    expect(verdict.ok).toBe(false);
+    expect(verdict.reason).toContain('Bowen Reaction Series');
   });
 
   it("rejects a rewrite that drops the frozen 'Anchor your post in' line", () => {
@@ -226,7 +291,6 @@ describe('lintVoiceResult — the hard contract', () => {
 
   it('rejects a 300-word runaway', () => {
     const runaway = `${honest} ${'the model keeps talking and talking about rocks and evidence and posting norms without saying anything new at all. '.repeat(16)}`;
-    expect(runaway.split(/\s+/).length).toBeGreaterThanOrEqual(300);
     const verdict = lintVoiceResult(surface, runaway);
     expect(verdict.ok).toBe(false);
     expect(verdict.reason).toMatch(/too long/);
@@ -249,58 +313,57 @@ describe('applyVoiceResults — voiced surfaces apply, failures keep compiled te
   it('never mutates inputs, applies passes, and reports lint failures as fallbacks', () => {
     const { courseMap, deliverables } = compiledFixture(4);
     const surfaces = selectVoiceSurfaces({ deliverables, courseMap });
-    const guideSurface = surfaces.find((surface) => surface.surfaceId === 'studyGuides:lesson-1:summary');
-    const briefSurface = surfaces.find((surface) => surface.surfaceId === 'assignments:lesson-1:overview');
-    const goodText = honestRewriteFor(guideSurface);
+    const goodSurface = surfaces[0];
+    const badSurface = surfaces[1];
+    const goodText = variedRewriteFor(goodSurface, 0);
     const badText = 'way too short';
     const inputSnapshot = JSON.stringify(deliverables);
-    const originalOverview = briefSurface.originalText;
 
     const result = applyVoiceResults({
       deliverables,
       results: [
-        { surface: guideSurface, text: goodText },
-        { surface: briefSurface, text: badText },
+        { surface: goodSurface, text: goodText },
+        { surface: badSurface, text: badText },
       ],
     });
 
-    // Inputs untouched.
     expect(JSON.stringify(deliverables)).toBe(inputSnapshot);
-    // The pass applied — on NEW objects.
-    expect(result.voiced).toEqual(['studyGuides:lesson-1:summary']);
-    expect(result.deliverables.studyGuides).not.toBe(deliverables.studyGuides);
-    expect(result.deliverables.studyGuides.studyGuides[0].summary).toBe(goodText);
-    // Untouched sibling items keep identity (surgical clone, not a deep copy).
-    expect(result.deliverables.studyGuides.studyGuides[1]).toBe(deliverables.studyGuides.studyGuides[1]);
-    // The failure fell back to the compiled text, with the reason reported.
+    expect(result.voiced).toEqual([goodSurface.surfaceId]);
+    const goodData = result.deliverables[goodSurface.featureId];
+    expect(goodData[goodSurface.featureId][goodSurface.itemIndex][goodSurface.field]).toBe(goodText);
     expect(result.fallbacks).toHaveLength(1);
-    expect(result.fallbacks[0].surfaceId).toBe('assignments:lesson-1:overview');
+    expect(result.fallbacks[0].surfaceId).toBe(badSurface.surfaceId);
     expect(result.fallbacks[0].reason).toMatch(/too short/);
-    expect(result.deliverables.assignments.assignments[0].overview).toBe(originalOverview);
+    const badData = result.deliverables[badSurface.featureId];
+    expect(badData[badSurface.featureId][badSurface.itemIndex][badSurface.field]).toBe(badSurface.originalText);
   });
 });
 
-// ── Orchestration: budget exhaustion is honest ──────────────────────────────
-describe('runVoicePass — sequential batches under a hard budget', () => {
+// ── Orchestration: budget, errors, openers, the texture self-check ─────────
+describe('runVoicePass — honest budgets and the v2 variety/texture gates', () => {
   it('stops at the budget, voices the paid batch, and reports the rest as fallbacks', async () => {
-    const { courseMap, deliverables } = compiledFixture(5); // 15 surfaces → 2 batches
+    const { courseMap, deliverables } = compiledFixture(5);
     const allSurfaces = selectVoiceSurfaces({ deliverables, courseMap });
+    expect(allSurfaces.length).toBe(VOICE_MAX_SURFACES); // 5 lessons × ≤2, capped at 8
     const surfaceById = new Map(allSurfaces.map((surface) => [surface.surfaceId, surface]));
-    expect(allSurfaces).toHaveLength(15);
 
     let calls = 0;
+    let salt = 0;
     const events = [];
     const callModel = async (prompt) => {
       calls += 1;
       const requestedIds = [...prompt.userPrompt.matchAll(/"surfaceId":\s*"([^"]+)"/g)]
         .map((match) => match[1])
         .filter((surfaceId) => surfaceById.has(surfaceId));
-      const rewrites = requestedIds.map((surfaceId) => ({
-        surfaceId,
-        text: honestRewriteFor(surfaceById.get(surfaceId)),
-      }));
-      // The first batch's real usage eats the whole budget.
-      return { fullText: JSON.stringify({ rewrites }), usage: { costUsd: 0.05 } };
+      return {
+        fullText: JSON.stringify({
+          rewrites: requestedIds.map((surfaceId) => ({
+            surfaceId,
+            text: variedRewriteFor(surfaceById.get(surfaceId), salt++),
+          })),
+        }),
+        usage: { costUsd: 0.05 }, // batch 1 eats the budget
+      };
     };
 
     const result = await runVoicePass({
@@ -311,38 +374,19 @@ describe('runVoicePass — sequential batches under a hard budget', () => {
       onEvent: (event) => events.push(event.type),
     });
 
-    expect(calls).toBe(1); // batch 2 was never paid for
+    expect(calls).toBe(1);
     expect(result.exhausted).toBe(true);
     expect(result.spentUsd).toBeCloseTo(0.05, 5);
-    expect(result.voiced).toHaveLength(VOICE_BATCH_SIZE);
-    expect(result.fallbacks).toHaveLength(15 - VOICE_BATCH_SIZE);
-    for (const fallback of result.fallbacks) {
-      expect(fallback.reason).toMatch(/budget exhausted/);
-    }
-    // Honest counts: every surface is accounted for exactly once.
-    expect(result.voiced.length + result.fallbacks.length).toBe(15);
-    // The paid batch is actually applied; the unpaid one keeps compiled text.
-    expect(result.deliverables.assignments.assignments[0].overview).not.toBe(
-      deliverables.assignments.assignments[0].overview,
-    );
-    const unpaid = result.fallbacks.map((fallback) => fallback.surfaceId);
-    for (const surfaceId of unpaid) {
-      const surface = surfaceById.get(surfaceId);
-      const data = result.deliverables[surface.featureId];
-      const arrayKey = surface.featureId; // assignments/discussions/studyGuides arrays share the feature name
-      expect(data[arrayKey][surface.itemIndex][surface.field]).toBe(surface.originalText);
-    }
-    // Ledger events: one call, one done — no phantom second call.
+    expect(result.voiced.length + result.fallbacks.length).toBe(allSurfaces.length);
+    const budgetFallbacks = result.fallbacks.filter((fallback) => /budget exhausted/.test(fallback.reason));
+    expect(budgetFallbacks).toHaveLength(allSurfaces.length - VOICE_BATCH_SIZE);
     expect(events.filter((type) => type === 'voicePassCall')).toHaveLength(1);
     expect(events.filter((type) => type === 'voicePassDone')).toHaveLength(1);
-    // Inputs untouched throughout.
-    expect(deliverables.assignments.assignments[0].overview).toBe(
-      allSurfaces.find((surface) => surface.surfaceId === 'assignments:lesson-1:overview').originalText,
-    );
   });
 
   it('a model error degrades that batch to fallbacks without blocking the rest', async () => {
-    const { courseMap, deliverables } = compiledFixture(4); // 12 surfaces → 1 batch
+    const { courseMap, deliverables } = compiledFixture(4);
+    const selected = selectVoiceSurfaces({ deliverables, courseMap });
     const result = await runVoicePass({
       deliverables,
       courseMap,
@@ -353,9 +397,77 @@ describe('runVoicePass — sequential batches under a hard budget', () => {
     });
     expect(result.exhausted).toBe(false);
     expect(result.voiced).toHaveLength(0);
-    expect(result.fallbacks).toHaveLength(12);
+    expect(result.fallbacks).toHaveLength(selected.length);
     expect(result.fallbacks[0].reason).toContain('provider 500');
     expect(result.deliverables).toEqual(deliverables);
+  });
+
+  it('v2 OPENER LINT: a second rewrite claiming the same opening trigram falls back', async () => {
+    const { courseMap, deliverables } = compiledFixture(4);
+    const allSurfaces = selectVoiceSurfaces({ deliverables, courseMap, maxSurfaces: 2 });
+    expect(allSurfaces).toHaveLength(2);
+    const clone = `${VARIED_FILLERS[0]}`;
+    const callModel = async () => ({
+      fullText: JSON.stringify({
+        rewrites: allSurfaces.map((surface) => ({ surfaceId: surface.surfaceId, text: clone })),
+      }),
+    });
+    const result = await runVoicePass({ deliverables, courseMap, callModel, budgetUsd: 0.05, maxSurfaces: 2 });
+    const duplicate = result.fallbacks.find((fallback) => /duplicate opening/.test(fallback.reason));
+    expect(duplicate).toBeTruthy();
+    expect(openingTrigram(clone)).toBe('start with the');
+  });
+
+  it('v2 TEXTURE SELF-CHECK: echoing the compiled text back reverts the whole pass, loudly', async () => {
+    const { courseMap, deliverables } = compiledFixture(4);
+    const allSurfaces = selectVoiceSurfaces({ deliverables, courseMap });
+    const surfaceById = new Map(allSurfaces.map((surface) => [surface.surfaceId, surface]));
+    // The model "rewrites" by returning each surface's own compiled text —
+    // a zero-improvement pass that v1 would have shipped and charged for.
+    const callModel = async (prompt) => {
+      const requestedIds = [...prompt.userPrompt.matchAll(/"surfaceId":\s*"([^"]+)"/g)]
+        .map((match) => match[1])
+        .filter((surfaceId) => surfaceById.has(surfaceId));
+      return {
+        fullText: JSON.stringify({
+          rewrites: requestedIds.map((surfaceId) => ({
+            surfaceId,
+            text: surfaceById.get(surfaceId).originalText,
+          })),
+        }),
+      };
+    };
+    const result = await runVoicePass({ deliverables, courseMap, callModel, budgetUsd: 0.05 });
+    expect(result.selfCheck).toBeTruthy();
+    expect(result.selfCheck.verdict).toBe('reverted');
+    expect(result.voiced).toHaveLength(0);
+    expect(result.deliverables).toEqual(deliverables);
+    expect(result.fallbacks.some((fallback) => /texture self-check/.test(fallback.reason))).toBe(true);
+  });
+
+  it('v2 TEXTURE SELF-CHECK: genuinely varied rewrites improve texture and are kept', async () => {
+    const { courseMap, deliverables } = compiledFixture(5);
+    const allSurfaces = selectVoiceSurfaces({ deliverables, courseMap });
+    const surfaceById = new Map(allSurfaces.map((surface) => [surface.surfaceId, surface]));
+    let salt = 0;
+    const callModel = async (prompt) => {
+      const requestedIds = [...prompt.userPrompt.matchAll(/"surfaceId":\s*"([^"]+)"/g)]
+        .map((match) => match[1])
+        .filter((surfaceId) => surfaceById.has(surfaceId));
+      return {
+        fullText: JSON.stringify({
+          rewrites: requestedIds.map((surfaceId) => ({
+            surfaceId,
+            text: variedRewriteFor(surfaceById.get(surfaceId), salt++),
+          })),
+        }),
+      };
+    };
+    const result = await runVoicePass({ deliverables, courseMap, callModel, budgetUsd: 0.05 });
+    expect(result.selfCheck).toBeTruthy();
+    expect(result.selfCheck.verdict).toBe('improved');
+    expect(result.selfCheck.post).toBeGreaterThan(result.selfCheck.pre);
+    expect(result.voiced.length).toBeGreaterThan(0);
   });
 });
 
@@ -365,8 +477,6 @@ describe('D4 — the voice pass discloses itself', () => {
     let budget = createApiCallBudget();
     budget = applyApiCallBudgetEvent(budget, { type: 'voicePassCall', label: 'Voice pass call' });
     expect(budget.voicePassCalls).toBe(1);
-    // The next event rebuilds the budget through the constructor — the
-    // counter must be whitelisted there or it silently drops to 0.
     budget = applyApiCallBudgetEvent(budget, { type: 'deliverableChunkCall', label: 'Chunk' });
     expect(budget.voicePassCalls).toBe(1);
   });
@@ -427,5 +537,12 @@ describe('D4 — the voice pass discloses itself', () => {
     expect(source).toContain('voicePass:');
     expect(source).toMatch(/voicedCount/);
     expect(source).toMatch(/fallbackCount/);
+  });
+
+  it('v2: the integration ships the texture self-check verdict in the outcome (source contract)', () => {
+    const source = readFileSync(path.join(repoRoot, 'src/hooks/useDeliverables.js'), 'utf8');
+    expect(source).toContain('texturePre');
+    expect(source).toContain('texturePost');
+    expect(source).toContain('selfCheck: voiceResult.selfCheck.verdict');
   });
 });

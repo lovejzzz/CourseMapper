@@ -2088,7 +2088,12 @@ export default function useDeliverables({
               const callModel = async (prompt) => {
                 let usage = null;
                 const result = await streamProvider(provider, apiKey, modelId, prompt.systemPrompt, prompt.userPrompt, {
-                  maxOutputTokens,
+                  // Voice v2: a FIXED cap sized to the 5-surface batches
+                  // (~800 words + JSON overhead). v1 inherited the ambient
+                  // deliverable budget — 12-surface batches truncated, and
+                  // truncation read as 38 silent 'no rewrite returned'
+                  // fallbacks in the failed proof round.
+                  maxOutputTokens: 2600,
                   modelCapabilities,
                   featureId: 'voicePass',
                   task: 'voicePass',
@@ -2115,6 +2120,9 @@ export default function useDeliverables({
               const voiceResult = await voicePassLib.runVoicePass({
                 deliverables: compiledForVoice,
                 courseMap: blueprintCourseMap,
+                // Voice v2: kernels are the verified substance the rewrites
+                // may commit to (style without substance was v1's padding).
+                kernels: blueprintEnrichment?.lessonContent || lastEnrichmentOverlayRef.current?.lessonContent || null,
                 callModel,
                 onEvent: (event) => {
                   if (event?.type === 'voicePassCall') {
@@ -2145,10 +2153,23 @@ export default function useDeliverables({
                 fallbackCount: voiceResult.fallbacks.length,
                 spentUsd: voiceResult.spentUsd,
                 exhausted: voiceResult.exhausted,
+                // Voice v2: the texture self-check verdict ships in the
+                // manifest — our own rewrites get gated, not just graded.
+                ...(voiceResult.selfCheck
+                  ? {
+                      texturePre: voiceResult.selfCheck.pre,
+                      texturePost: voiceResult.selfCheck.post,
+                      selfCheck: voiceResult.selfCheck.verdict,
+                    }
+                  : {}),
               });
               appendLog(
-                `✓ Voice pass: ${voiceResult.voiced.length} surfaces voiced, ${voiceResult.fallbacks.length} fallbacks ($${voiceResult.spentUsd.toFixed(3)})`,
-                'done',
+                `✓ Voice pass: ${voiceResult.voiced.length} surfaces voiced, ${voiceResult.fallbacks.length} fallbacks ($${voiceResult.spentUsd.toFixed(3)})${
+                  voiceResult.selfCheck
+                    ? ` — texture ${voiceResult.selfCheck.pre}→${voiceResult.selfCheck.post} (${voiceResult.selfCheck.verdict})`
+                    : ''
+                }`,
+                voiceResult.selfCheck?.verdict === 'reverted' ? 'warn' : 'done',
               );
               if (voiceResult.exhausted) {
                 appendLog('⚠ Voice pass budget exhausted mid-run — remaining surfaces keep compiled text', 'warn');

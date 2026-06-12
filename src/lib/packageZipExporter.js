@@ -254,6 +254,15 @@ function buildManifest({
             enabled: Boolean(voicePass.enabled),
             voicedCount: Number(voicePass.voicedCount) || 0,
             fallbackCount: Number(voicePass.fallbackCount) || 0,
+            // Voice v2: the texture self-check verdict is part of the
+            // disclosure — a kept pass proves it measured an improvement.
+            ...(voicePass.selfCheck
+              ? {
+                  selfCheck: String(voicePass.selfCheck),
+                  texturePre: Number(voicePass.texturePre) || null,
+                  texturePost: Number(voicePass.texturePost) || null,
+                }
+              : {}),
           },
         }
       : {}),

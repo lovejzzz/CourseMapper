@@ -454,7 +454,9 @@ export async function runCourseInBrowser({
     phase = 'submitting-prompt';
     // aria-label "Describe your course" — src/screens/Landing.jsx:567.
     await page.getByLabel('Describe your course').fill(course.prompt);
-    const landingContinue = page.getByRole('button', { name: /^Continue$/ }).last();
+    // v0.14.7 WS-F2: with a key + prompt present the primary relabels to
+    // "Adjust setup" (quick start sits beside it) — same deliberate path.
+    const landingContinue = page.getByRole('button', { name: /^(Continue|Adjust setup)$/ }).last();
     await expect(landingContinue).toBeEnabled({ timeout: remaining(10_000) });
     await landingContinue.click();
 
