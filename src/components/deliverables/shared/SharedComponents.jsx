@@ -16,18 +16,18 @@ export function QualityBadge({ quality }) {
     <div className="relative inline-block">
       <button
         onClick={() => setShowTips((v) => !v)}
-        className={`flex items-center gap-1.5 text-[9px] font-bold px-2 py-0.5 rounded-full border ${colors.bg} ${colors.text} ${colors.border} hover:opacity-80 transition-opacity`}
+        className={`flex items-center gap-1.5 text-[10px] font-bold px-2 py-0.5 rounded-full border ${colors.bg} ${colors.text} ${colors.border} hover:opacity-80 transition-opacity`}
         title="Quality score — click for tips"
       >
         <span>★ {avg}/10</span>
       </button>
       {showTips && (
-        <div className="absolute right-0 top-full mt-1.5 w-64 bg-white/98 backdrop-blur-xl rounded-xl border border-slate-200/60 shadow-xl z-50 p-3 space-y-2 animate-spring-in">
+        <div className="absolute right-0 top-full mt-1.5 w-64 bg-white/98 backdrop-blur-xl rounded-lg border border-slate-200/60 shadow-xl z-50 p-3 space-y-2 animate-spring-in">
           <div className="flex items-center justify-between mb-1">
-            <span className="text-[10px] font-bold text-slate-700">Quality Scorecard</span>
+            <span className="text-xs font-bold text-slate-700">Quality Scorecard</span>
             <button
               onClick={() => setShowTips(false)}
-              className="text-slate-400 hover:text-slate-600 text-[10px]"
+              className="text-slate-400 hover:text-slate-600 text-xs"
               aria-label="Close quality scorecard"
             >
               ✕
@@ -43,23 +43,23 @@ export function QualityBadge({ quality }) {
               const c = scoreColor(score);
               return (
                 <div key={label} className="flex items-center gap-2">
-                  <span className="text-[9px] text-slate-500 w-28 flex-shrink-0">{label}</span>
+                  <span className="text-xs text-slate-500 w-28 flex-shrink-0">{label}</span>
                   <div className="flex-1 h-1 bg-slate-100 rounded-full overflow-hidden">
                     <div
                       className={`h-1 rounded-full ${c.bg.replace('bg-', 'bg-').replace('-100', '-400')}`}
                       style={{ width: `${score * 10}%` }}
                     />
                   </div>
-                  <span className={`text-[9px] font-bold ${c.text}`}>{score}</span>
+                  <span className={`text-xs font-bold ${c.text}`}>{score}</span>
                 </div>
               );
             })}
           </div>
           {tips.length > 0 && (
             <div className="pt-2 border-t border-slate-100 space-y-1">
-              <p className="text-[9px] font-bold text-slate-400 uppercase tracking-wider">Improvement Tips</p>
+              <p className="text-xs font-semibold text-slate-500">Improvement Tips</p>
               {tips.map((tip, i) => (
-                <p key={i} className="text-[10px] text-slate-600 leading-snug">
+                <p key={i} className="text-xs text-slate-600 leading-snug">
                   • {tip}
                 </p>
               ))}
@@ -222,7 +222,7 @@ export function SaveToBankButton({ onClick }) {
   return (
     <button
       onClick={handleClick}
-      className={`flex items-center gap-1 text-[9px] font-semibold px-2 py-1 rounded transition-all ${saved ? 'text-emerald-600 bg-emerald-50 border border-emerald-200' : 'text-slate-400 bg-slate-50 border border-slate-200 hover:text-amber-600 hover:bg-amber-50 hover:border-amber-200'}`}
+      className={`flex items-center gap-1 text-xs font-semibold px-2 py-1 rounded transition-all ${saved ? 'text-emerald-600 bg-emerald-50 border border-emerald-200' : 'text-slate-400 bg-slate-50 border border-slate-200 hover:text-amber-600 hover:bg-amber-50 hover:border-amber-200'}`}
       title="Save to Assessment Bank"
     >
       {saved ? '✓ Saved to Bank' : '💾 Save to Bank'}
@@ -237,9 +237,7 @@ export function StreamingBanner() {
         <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-indigo-400 opacity-75"></span>
         <span className="relative inline-flex rounded-full h-2 w-2 bg-indigo-500"></span>
       </span>
-      <p className="text-[11px] font-medium text-indigo-600">
-        Writing content live — items appear as they're generated...
-      </p>
+      <p className="text-xs font-medium text-indigo-600">Writing content live — items appear as they're generated...</p>
     </div>
   );
 }
@@ -278,7 +276,7 @@ export function ErrorState({ error, onRetry }) {
           <button
             onClick={handleRetry}
             disabled={retrying}
-            className="tactile inline-flex items-center gap-2 px-4 py-2 rounded-lg text-[11px] font-semibold text-white bg-indigo-500 hover:bg-indigo-600 disabled:opacity-60 disabled:cursor-not-allowed transition-all duration-200"
+            className="tactile inline-flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-semibold text-white bg-indigo-500 hover:bg-indigo-600 disabled:opacity-60 disabled:cursor-not-allowed transition-all duration-200"
           >
             {retrying ? (
               <>
@@ -344,7 +342,7 @@ export function WaitingState({ stage }) {
 
       {/* Skeleton table preview */}
       <div className="mx-auto max-w-2xl px-4 animate-pulse">
-        <div className="rounded-xl border border-slate-200 dark:border-slate-700 overflow-hidden">
+        <div className="rounded-lg border border-slate-200 dark:border-slate-700 overflow-hidden">
           {/* Header row */}
           <div className="flex gap-4 px-4 py-3 bg-slate-50 dark:bg-slate-800/60">
             <div className="h-3 w-16 bg-slate-200 dark:bg-slate-700 rounded" />
@@ -442,7 +440,7 @@ export function EmptyState({ featureId, onGenerate }) {
         </div>
         <button
           onClick={onGenerate}
-          className="tactile inline-flex items-center gap-2 px-5 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-semibold rounded-xl transition-all shadow-btn hover:shadow-btn-hover"
+          className="tactile inline-flex items-center gap-2 px-5 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-semibold rounded-md transition-all shadow-btn hover:shadow-btn-hover"
         >
           <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
@@ -461,6 +459,7 @@ export const ViewportContext = React.createContext(null);
 export function CollapsibleCard({
   title,
   subtitle,
+  metaLine = null,
   defaultOpen = false,
   accent = 'indigo',
   streaming = false,
@@ -555,13 +554,23 @@ export function CollapsibleCard({
               >
                 {title}
                 {fresh && !regenerating && (
-                  <span className="ml-2 text-[9px] font-bold text-emerald-500 bg-emerald-50 border border-emerald-200 px-1.5 py-0.5 rounded-full align-middle">
+                  <span className="ml-2 text-[10px] font-bold text-emerald-500 bg-emerald-50 border border-emerald-200 px-1.5 py-0.5 rounded-full align-middle">
                     ✦ new
                   </span>
                 )}
               </h3>
             )}
-            {subtitle && <p className="text-[11px] text-slate-400 truncate">{subtitle}</p>}
+            {subtitle && <p className="text-xs text-slate-400 truncate">{subtitle}</p>}
+            {/* v0.14.4 WS-D (D1): registry identity line — id · kind · weight,
+                always visible in the header even while the card is collapsed. */}
+            {metaLine && (
+              <p
+                data-registry-identity="true"
+                className="text-[12px] text-slate-500 dark:text-slate-400 truncate mt-0.5"
+              >
+                {metaLine}
+              </p>
+            )}
           </div>
           {streaming && (
             <span className="relative flex h-2 w-2 flex-shrink-0">
@@ -585,7 +594,7 @@ export function CollapsibleCard({
             }}
             disabled={regenerating}
             title="Regenerate this lesson"
-            className="flex-shrink-0 flex items-center gap-1 px-3 py-3.5 text-[10px] font-semibold text-slate-400 hover:text-violet-600 hover:bg-violet-50/40 transition-all disabled:opacity-40 border-l border-slate-100/60"
+            className="flex-shrink-0 flex items-center gap-1 px-3 py-3.5 text-xs font-semibold text-slate-400 hover:text-indigo-600 hover:bg-indigo-50/40 transition-all disabled:opacity-40 border-l border-slate-100/60"
           >
             {regenerating ? (
               <svg className="animate-spin w-3 h-3" fill="none" viewBox="0 0 24 24">
@@ -614,7 +623,7 @@ export function CollapsibleCard({
 export function Badge({ children, color = 'indigo' }) {
   return (
     <span
-      className={`inline-block text-[10px] font-semibold px-2 py-0.5 rounded-full bg-${color}-100/80 text-${color}-700`}
+      className={`inline-block text-xs font-semibold px-2 py-0.5 rounded-full bg-${color}-100/80 text-${color}-700`}
     >
       {children}
     </span>
@@ -634,7 +643,7 @@ export function BloomsTag({ level }) {
   if (!level) return null;
   const cls = BLOOMS_COLORS[level] || 'bg-slate-100 text-slate-600';
   return (
-    <span className={`inline-block text-[9px] font-bold px-1.5 py-0.5 rounded uppercase tracking-wide ${cls}`}>
+    <span className={`inline-block text-[10px] font-bold px-1.5 py-0.5 rounded uppercase tracking-wide ${cls}`}>
       {level}
     </span>
   );
@@ -642,7 +651,61 @@ export function BloomsTag({ level }) {
 
 // ─── Section heading ───
 export function SectionHeading({ children }) {
-  return <h4 className="text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-1.5">{children}</h4>;
+  return <h4 className="text-xs font-semibold text-slate-500 mb-1.5">{children}</h4>;
+}
+
+// ── v0.14.4 WS-D (D1): lesson grouping chrome ───────────────────────────────
+// A compact horizontal jump-nav rail (L1…L13 + Ungrouped) pinned to the top
+// of the view's scroll container, and the sticky lesson group header it jumps
+// to. Both stay 12px (the WS-E scale floor) and carry dark: variants.
+
+export function LessonJumpRail({ groups, onJump }) {
+  if (!Array.isArray(groups) || groups.length < 2) return null;
+  return (
+    <nav
+      aria-label="Jump to lesson"
+      data-jump-nav-rail="true"
+      className="sticky top-0 z-20 flex items-center gap-1 h-10 px-1.5 -mx-1.5 overflow-x-auto bg-white/85 dark:bg-slate-900/85 backdrop-blur-sm rounded-lg"
+    >
+      {groups.map((group) => (
+        <button
+          key={group.key}
+          type="button"
+          data-jump-nav={group.key}
+          onClick={() => onJump?.(group.key)}
+          title={
+            group.lessonNumber != null
+              ? `Jump to Lesson ${group.lessonNumber} (${group.items.length} item${group.items.length !== 1 ? 's' : ''})`
+              : `Jump to ungrouped items (${group.items.length})`
+          }
+          className="tactile flex-shrink-0 text-[12px] font-semibold px-2 py-0.5 rounded-full text-slate-500 dark:text-slate-400 bg-slate-100/80 dark:bg-slate-800/80 border border-slate-200/70 dark:border-slate-700/70 hover:text-indigo-600 dark:hover:text-indigo-300 hover:bg-indigo-50 dark:hover:bg-indigo-950/40 hover:border-indigo-200/70 dark:hover:border-indigo-800/70 transition-colors duration-150"
+        >
+          {group.lessonNumber != null ? `L${group.lessonNumber}` : 'Ungrouped'}
+        </button>
+      ))}
+    </nav>
+  );
+}
+
+export function LessonGroupHeader({ groupKey, lessonNumber, lessonTitle, count, headerRef }) {
+  return (
+    <div
+      ref={headerRef}
+      data-lesson-group-header={groupKey}
+      className="sticky top-10 z-10 scroll-mt-12 flex items-center gap-2 px-3 py-2 rounded-lg bg-slate-50/95 dark:bg-slate-800/95 backdrop-blur-sm border border-slate-200/60 dark:border-slate-700/60"
+    >
+      <span className="text-[12px] font-semibold text-slate-700 dark:text-slate-200 truncate">
+        {lessonNumber != null ? `Lesson ${lessonNumber}` : 'Ungrouped'}
+        {lessonTitle ? ` — ${lessonTitle}` : ''}
+      </span>
+      <span
+        data-group-count="true"
+        className="ml-auto flex-shrink-0 text-[12px] font-medium tabular-nums text-slate-500 dark:text-slate-400 bg-white/80 dark:bg-slate-900/60 border border-slate-200/60 dark:border-slate-700/60 px-2 py-0.5 rounded-full"
+      >
+        {count}
+      </span>
+    </div>
+  );
 }
 
 // ── Feature 4.1: Tiered Differentiation Inline Toggle ──
@@ -662,7 +725,7 @@ export function TierToggle({ activeTier, onChange }) {
             e.stopPropagation();
             onChange(id);
           }}
-          className={`px-3 py-1 rounded-md text-[10px] font-semibold transition-all border ${
+          className={`px-3 py-1 rounded-md text-xs font-semibold transition-all border ${
             activeTier === id
               ? color + ' shadow-sm'
               : 'text-slate-400 bg-transparent border-transparent hover:text-slate-600'

@@ -96,7 +96,7 @@ function textMatchesQuery(lesson, question, query) {
 
 function Pill({ children, className = '' }) {
   return (
-    <span className={`inline-flex rounded-full border px-2 py-0.5 text-[10px] font-bold ${className}`}>{children}</span>
+    <span className={`inline-flex rounded-full border px-2 py-0.5 text-xs font-bold ${className}`}>{children}</span>
   );
 }
 
@@ -141,15 +141,15 @@ export default function CourseFaqView({
         <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
           <div className="grid grid-cols-3 gap-2 text-center sm:w-[360px]">
             <div className="rounded-lg border border-cyan-100 bg-cyan-50/70 px-3 py-2">
-              <p className="text-[10px] font-bold uppercase tracking-wide text-cyan-500">Lessons</p>
+              <p className="text-xs font-semibold text-slate-500">Lessons</p>
               <p className="mt-1 text-lg font-bold text-slate-800">{lessons.length}</p>
             </div>
             <div className="rounded-lg border border-cyan-100 bg-white/70 px-3 py-2">
-              <p className="text-[10px] font-bold uppercase tracking-wide text-cyan-500">Questions</p>
+              <p className="text-xs font-semibold text-slate-500">Questions</p>
               <p className="mt-1 text-lg font-bold text-slate-800">{totalQuestions}</p>
             </div>
             <div className="rounded-lg border border-cyan-100 bg-white/70 px-3 py-2">
-              <p className="text-[10px] font-bold uppercase tracking-wide text-cyan-500">Categories</p>
+              <p className="text-xs font-semibold text-slate-500">Categories</p>
               <p className="mt-1 text-lg font-bold text-slate-800">{categoryCounts.size}</p>
             </div>
           </div>
@@ -175,7 +175,7 @@ export default function CourseFaqView({
                 type="button"
                 data-testid={`course-faq-category-${slugify(category)}`}
                 onClick={() => setActiveCategory(category)}
-                className={`shrink-0 rounded-full border px-3 py-1.5 text-[11px] font-bold transition-all ${
+                className={`shrink-0 rounded-full border px-3 py-1.5 text-xs font-bold transition-all ${
                   isActive
                     ? 'border-cyan-300 bg-cyan-500 text-white shadow-sm'
                     : 'border-slate-200 bg-white/70 text-slate-500 hover:border-cyan-200 hover:text-cyan-700'
@@ -212,7 +212,7 @@ export default function CourseFaqView({
                         key={`${tag}-${tagIndex}`}
                         type="button"
                         onClick={() => setQuery(String(tag))}
-                        className="rounded-full border border-cyan-100 bg-cyan-50/70 px-2 py-0.5 text-[10px] font-semibold text-cyan-700 hover:border-cyan-200 hover:bg-cyan-100"
+                        className="rounded-full border border-cyan-100 bg-cyan-50/70 px-2 py-0.5 text-xs font-semibold text-cyan-700 hover:border-cyan-200 hover:bg-cyan-100"
                       >
                         {tag}
                       </button>
@@ -257,7 +257,7 @@ export default function CourseFaqView({
                         {question.relatedConcepts.map((concept, conceptIndex) => (
                           <span
                             key={`${concept}-${conceptIndex}`}
-                            className="rounded-full bg-slate-100 px-2 py-0.5 text-[10px] font-semibold text-slate-500"
+                            className="rounded-full bg-slate-100 px-2 py-0.5 text-xs font-semibold text-slate-500"
                           >
                             {concept}
                           </span>

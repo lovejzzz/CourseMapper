@@ -13,7 +13,7 @@ export default function TermsOfService() {
           <h1 className="text-2xl font-extrabold tracking-tight text-slate-800">
             Terms of <span className="text-gradient">Service</span>
           </h1>
-          <p className="text-slate-600 text-[12px] font-medium mt-1">Last updated: {LAST_UPDATED}</p>
+          <p className="text-slate-600 text-xs font-medium mt-1">Last updated: {LAST_UPDATED}</p>
         </div>
 
         <div className="glass panel-glow rounded-squircle shadow-glass p-8 space-y-6 text-sm text-slate-700 leading-relaxed">
@@ -168,7 +168,7 @@ function Section({ title, children }) {
   return (
     <div>
       <h2 className="text-[15px] font-bold text-slate-800 mb-2 flex items-center gap-2">
-        <div className="w-1.5 h-1.5 rounded-full bg-indigo-500" />
+        <div className="w-1.5 h-1.5 rounded-full bg-slate-400 dark:bg-slate-500" />
         {title}
       </h2>
       {children}

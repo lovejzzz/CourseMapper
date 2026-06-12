@@ -1119,6 +1119,8 @@ export default function ChatPanel({
   // User ID for cloud sync
   uid,
   onApiCallEvent,
+  // v0.14.4 WS-C1: the observation card routes into the unified review queue
+  onOpenReviewQueue,
 }) {
   const [workspaceModelConfigOpen, setWorkspaceModelConfigOpen] = useState(false);
   const openWorkspaceModelConfig = useCallback(() => {
@@ -2750,6 +2752,7 @@ export default function ChatPanel({
         onConfigureAI={openWorkspaceModelConfig}
         onSelectProposal={chat.handleSelectProposal}
         onDigestPrompt={(prompt) => chat.send(prompt)}
+        onDigestOpenReview={onOpenReviewQueue}
         onDigestDismiss={(messageIndex) =>
           chat.updateLocalMessage(
             (msg, i) => i === messageIndex && msg.role === 'digest',

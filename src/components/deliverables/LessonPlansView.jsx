@@ -100,10 +100,10 @@ export default function LessonPlansView({
                 {plan.warmUp && (
                   <div className="bg-amber-50/50 rounded-lg p-3 border border-amber-100/60">
                     <div className="flex items-center gap-2 mb-1.5">
-                      <span className="text-[11px]">🔥</span>
+                      <span className="text-xs">🔥</span>
                       <SectionHeading>Warm-Up</SectionHeading>
                       {plan.warmUp.duration && (
-                        <span className="text-[10px] text-amber-600 font-semibold ml-auto">{plan.warmUp.duration}</span>
+                        <span className="text-xs text-amber-600 font-semibold ml-auto">{plan.warmUp.duration}</span>
                       )}
                     </div>
                     {plan.warmUp.type && <Badge color="amber">{plan.warmUp.type}</Badge>}
@@ -113,13 +113,13 @@ export default function LessonPlansView({
                       </p>
                     )}
                     {plan.warmUp.purpose && (
-                      <p className="text-[11px] text-slate-500 mt-1 leading-relaxed">
+                      <p className="text-xs text-slate-500 mt-1 leading-relaxed">
                         <span className="font-semibold">Purpose:</span>{' '}
                         <E value={plan.warmUp.purpose} path={[key, i, 'warmUp', 'purpose']} onEdit={onEdit} />
                       </p>
                     )}
                     {plan.warmUp.facilitation && (
-                      <p className="text-[11px] text-slate-400 mt-1 leading-relaxed italic">
+                      <p className="text-xs text-slate-400 mt-1 leading-relaxed italic">
                         💡{' '}
                         <E value={plan.warmUp.facilitation} path={[key, i, 'warmUp', 'facilitation']} onEdit={onEdit} />
                       </p>
@@ -167,12 +167,12 @@ export default function LessonPlansView({
                               <td className="px-3 py-2 font-medium text-slate-700 align-top">
                                 <E value={row.activity} path={[key, i, 'outline', j, 'activity']} onEdit={onEdit} />
                                 {row.grouping && (
-                                  <span className="block text-[9px] text-slate-400 mt-0.5">{row.grouping}</span>
+                                  <span className="block text-xs text-slate-400 mt-0.5">{row.grouping}</span>
                                 )}
                               </td>
                               <td className="px-3 py-2 align-top">
                                 {row.type && (
-                                  <span className="text-[9px] text-indigo-500 bg-indigo-50 px-1.5 py-0.5 rounded font-medium">
+                                  <span className="text-xs text-indigo-500 bg-indigo-50 px-1.5 py-0.5 rounded font-medium">
                                     {row.type}
                                   </span>
                                 )}
@@ -186,13 +186,13 @@ export default function LessonPlansView({
                                   multiline
                                 />
                                 {(row.instructorNotes || row.notes) && (
-                                  <span className="block mt-1 text-[10px] text-slate-400 italic">
+                                  <span className="block mt-1 text-xs text-slate-400 italic">
                                     💡{' '}
                                     <E
                                       value={row.instructorNotes || row.notes}
                                       path={[key, i, 'outline', j, row.instructorNotes ? 'instructorNotes' : 'notes']}
                                       onEdit={onEdit}
-                                      className="text-[10px] text-slate-400 italic"
+                                      className="text-xs text-slate-400 italic"
                                     />
                                   </span>
                                 )}
@@ -209,7 +209,7 @@ export default function LessonPlansView({
                 {plan.formativeCheck && (
                   <div className="bg-sky-50/50 rounded-lg p-3 border border-sky-100/60">
                     <div className="flex items-center gap-2 mb-1.5">
-                      <span className="text-[11px]">📋</span>
+                      <span className="text-xs">📋</span>
                       <SectionHeading>Formative Assessment</SectionHeading>
                     </div>
                     {plan.formativeCheck.type && <Badge color="sky">{plan.formativeCheck.type}</Badge>}
@@ -225,7 +225,7 @@ export default function LessonPlansView({
                       </p>
                     )}
                     {plan.formativeCheck.objectiveAligned && (
-                      <p className="text-[11px] text-slate-500 mt-1">
+                      <p className="text-xs text-slate-500 mt-1">
                         <span className="font-semibold">Aligns to:</span>{' '}
                         <E
                           value={plan.formativeCheck.objectiveAligned}
@@ -235,7 +235,7 @@ export default function LessonPlansView({
                       </p>
                     )}
                     {plan.formativeCheck.instructorAction && (
-                      <p className="text-[11px] text-slate-400 mt-1 italic">
+                      <p className="text-xs text-slate-400 mt-1 italic">
                         💡{' '}
                         <E
                           value={plan.formativeCheck.instructorAction}
@@ -252,13 +252,13 @@ export default function LessonPlansView({
                   (plan.udlNotes.representation || plan.udlNotes.engagement || plan.udlNotes.expression) && (
                     <div className="bg-teal-50/40 rounded-lg p-3 border border-teal-100/50">
                       <div className="flex items-center gap-2 mb-1.5">
-                        <span className="text-[11px]">♿</span>
+                        <span className="text-xs">♿</span>
                         <SectionHeading>UDL Notes</SectionHeading>
                       </div>
                       {plan.udlNotes.representation && (
                         <div className="mb-1.5">
-                          <span className="text-[10px] font-bold text-teal-700 uppercase">Representation</span>
-                          <p className="text-[11px] text-slate-600 mt-0.5 leading-relaxed">
+                          <span className="text-xs font-semibold text-slate-500">Representation</span>
+                          <p className="text-xs text-slate-600 mt-0.5 leading-relaxed">
                             <E
                               value={plan.udlNotes.representation}
                               path={[key, i, 'udlNotes', 'representation']}
@@ -269,8 +269,8 @@ export default function LessonPlansView({
                       )}
                       {plan.udlNotes.engagement && (
                         <div className="mb-1.5">
-                          <span className="text-[10px] font-bold text-teal-700 uppercase">Engagement</span>
-                          <p className="text-[11px] text-slate-600 mt-0.5 leading-relaxed">
+                          <span className="text-xs font-semibold text-slate-500">Engagement</span>
+                          <p className="text-xs text-slate-600 mt-0.5 leading-relaxed">
                             <E
                               value={plan.udlNotes.engagement}
                               path={[key, i, 'udlNotes', 'engagement']}
@@ -281,8 +281,8 @@ export default function LessonPlansView({
                       )}
                       {plan.udlNotes.expression && (
                         <div>
-                          <span className="text-[10px] font-bold text-teal-700 uppercase">Expression</span>
-                          <p className="text-[11px] text-slate-600 mt-0.5 leading-relaxed">
+                          <span className="text-xs font-semibold text-slate-500">Expression</span>
+                          <p className="text-xs text-slate-600 mt-0.5 leading-relaxed">
                             <E
                               value={plan.udlNotes.expression}
                               path={[key, i, 'udlNotes', 'expression']}
@@ -317,10 +317,10 @@ export default function LessonPlansView({
                         )}
                         <div className="flex gap-3 mt-1.5">
                           {plan.homework.estimatedTime && (
-                            <span className="text-[10px] text-slate-400">⏱ {plan.homework.estimatedTime}</span>
+                            <span className="text-xs text-slate-400">⏱ {plan.homework.estimatedTime}</span>
                           )}
                           {plan.homework.connectionToNext && (
-                            <span className="text-[10px] text-indigo-400">→ {plan.homework.connectionToNext}</span>
+                            <span className="text-xs text-indigo-400">→ {plan.homework.connectionToNext}</span>
                           )}
                         </div>
                       </div>

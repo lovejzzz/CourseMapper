@@ -437,7 +437,7 @@ function ChatBody({ messages, input, setInput, isStreaming, sendMessage, handleS
             className={`flex flex-col items-center justify-center h-full ${compact ? 'pt-8' : 'pt-16'} animate-fade-up`}
           >
             <div
-              className={`${compact ? 'w-10 h-10 mb-3' : 'w-16 h-16 mb-6'} rounded-2xl bg-gradient-to-br from-indigo-500/10 to-violet-500/10 flex items-center justify-center`}
+              className={`${compact ? 'w-10 h-10 mb-3' : 'w-16 h-16 mb-6'} rounded-lg bg-gradient-to-br from-indigo-500/10 to-violet-500/10 flex items-center justify-center`}
             >
               <svg
                 className={`${compact ? 'w-5 h-5' : 'w-8 h-8'} text-indigo-400`}
@@ -454,7 +454,7 @@ function ChatBody({ messages, input, setInput, isStreaming, sendMessage, handleS
               </svg>
             </div>
             <h2 className={`${compact ? 'text-sm' : 'text-lg'} font-bold text-slate-700 mb-1.5`}>How can I help?</h2>
-            <p className={`${compact ? 'text-[11px] mb-4' : 'text-sm mb-8'} text-slate-400 text-center max-w-md`}>
+            <p className={`${compact ? 'text-xs mb-4' : 'text-sm mb-8'} text-slate-400 text-center max-w-md`}>
               Ask me about features, exporting, editing, AI models, and more.
             </p>
             <div className={`grid ${compact ? 'grid-cols-1 gap-1.5' : 'grid-cols-2 gap-2'} max-w-lg w-full`}>
@@ -464,7 +464,7 @@ function ChatBody({ messages, input, setInput, isStreaming, sendMessage, handleS
                   onClick={() => {
                     sendMessage(q);
                   }}
-                  className={`tactile text-left ${compact ? 'px-3 py-2 rounded-lg text-[11px]' : 'px-4 py-3 rounded-xl text-xs'} font-medium text-slate-500 bg-white/50 border border-slate-200/30 hover:bg-indigo-50/60 hover:border-indigo-200/40 hover:text-indigo-600 shadow-glass hover:shadow-glow-indigo transition-all duration-300`}
+                  className={`tactile text-left ${compact ? 'px-3 py-2 rounded-lg text-xs' : 'px-4 py-3 rounded-lg text-xs'} font-medium text-slate-500 bg-white/50 border border-slate-200/30 hover:bg-indigo-50/60 hover:border-indigo-200/40 hover:text-indigo-600 shadow-glass hover:shadow-glow-indigo transition-all duration-300`}
                 >
                   {q}
                 </button>
@@ -531,7 +531,7 @@ function ChatBody({ messages, input, setInput, isStreaming, sendMessage, handleS
             </button>
           )}
         </form>
-        <p className="text-[9px] text-slate-400 mt-1.5 text-center">
+        <p className="text-xs text-slate-400 mt-1.5 text-center">
           Powered by your configured AI provider — answers may occasionally be inaccurate
         </p>
       </div>
@@ -577,7 +577,7 @@ export function HelpDrawer({ isOpen, onClose, courseMap, activeTab }) {
               </div>
               <div>
                 <h2 className="text-sm font-bold text-slate-800">Help</h2>
-                <p className="text-[10px] text-slate-400">Ask anything about Course Mapper</p>
+                <p className="text-xs text-slate-400">Ask anything about Course Mapper</p>
               </div>
             </div>
             <button
@@ -610,7 +610,7 @@ export default function FaqChatbot() {
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-4">
             <a href="#/" className="relative group">
-              <div className="absolute -inset-1 bg-gradient-to-br from-indigo-500/20 to-violet-500/20 rounded-2xl blur-lg opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+              <div className="absolute -inset-1 bg-gradient-to-br from-indigo-500/20 to-violet-500/20 rounded-lg blur-lg opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
               <div className="relative w-10 h-10 rounded-[12px] bg-gradient-to-br from-indigo-500 via-violet-500 to-purple-600 flex items-center justify-center shadow-lg shadow-indigo-500/20">
                 <svg className="w-5 h-5 text-white/95" viewBox="0 0 24 24" fill="none">
                   <path
@@ -651,7 +651,7 @@ export default function FaqChatbot() {
           </div>
           <a
             href="#/"
-            className="tactile group flex items-center gap-2 px-4 py-2 rounded-pill text-[11px] font-semibold text-slate-500 bg-white/50 border border-slate-200/40 hover:bg-white/70 hover:text-slate-700 shadow-glass hover:shadow-glass-lg transition-all duration-300"
+            className="tactile group flex items-center gap-2 px-4 py-2 rounded-pill text-xs font-semibold text-slate-500 bg-white/50 border border-slate-200/40 hover:bg-white/70 hover:text-slate-700 shadow-glass hover:shadow-glass-lg transition-all duration-300"
           >
             <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
@@ -666,7 +666,7 @@ export default function FaqChatbot() {
         <ChatBody {...chat} courseMap={null} />
       </main>
       <footer className="max-w-4xl mx-auto px-8 py-3 text-center">
-        <p className="text-[10px] text-slate-300/70">
+        <p className="text-xs text-slate-300/70">
           Built by{' '}
           <a href="#/contact" className="font-medium hover:text-indigo-500 transition-colors">
             Tian Xing
@@ -682,7 +682,7 @@ function ChatBubble({ role, content, isLast, isStreaming, compact = false }) {
     return (
       <div className="flex justify-end animate-spring-in">
         <div
-          className={`max-w-[80%] ${compact ? 'px-3 py-2 text-[12px]' : 'px-4 py-3 text-sm'} rounded-2xl rounded-br-md bg-gradient-to-r from-indigo-500 to-violet-500 text-white leading-relaxed shadow-lg shadow-indigo-500/10`}
+          className={`max-w-[80%] ${compact ? 'px-3 py-2 text-[12px]' : 'px-4 py-3 text-sm'} rounded-lg rounded-br-sm bg-gradient-to-r from-indigo-500 to-violet-500 text-white leading-relaxed shadow-lg shadow-indigo-500/10`}
         >
           {content}
         </div>
@@ -694,7 +694,7 @@ function ChatBubble({ role, content, isLast, isStreaming, compact = false }) {
     <div className="flex justify-start animate-spring-in">
       <div className={`flex gap-2.5 max-w-[85%]`}>
         <div
-          className={`${compact ? 'w-6 h-6' : 'w-7 h-7'} rounded-full bg-gradient-to-br from-slate-100 to-slate-200 flex items-center justify-center flex-shrink-0 mt-1 shadow-sm`}
+          className={`${compact ? 'w-6 h-6' : 'w-7 h-7'} rounded-full bg-gradient-to-br from-slate-100 to-slate-200 dark:from-slate-800 dark:to-slate-700 flex items-center justify-center flex-shrink-0 mt-1 shadow-sm`}
         >
           <svg
             className={`${compact ? 'w-3 h-3' : 'w-3.5 h-3.5'} text-indigo-500`}
@@ -711,7 +711,7 @@ function ChatBubble({ role, content, isLast, isStreaming, compact = false }) {
           </svg>
         </div>
         <div
-          className={`${compact ? 'px-3 py-2 text-[12px]' : 'px-4 py-3 text-sm'} rounded-2xl rounded-bl-md bg-white/70 border border-slate-200/40 shadow-glass text-slate-700 leading-relaxed`}
+          className={`${compact ? 'px-3 py-2 text-[12px]' : 'px-4 py-3 text-sm'} rounded-lg rounded-bl-sm bg-white/70 border border-slate-200/40 shadow-glass text-slate-700 leading-relaxed`}
         >
           {content ? (
             <FormattedContent text={content} />

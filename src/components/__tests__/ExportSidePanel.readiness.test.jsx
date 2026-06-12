@@ -111,7 +111,11 @@ describe('ExportSidePanel readiness repair timing', () => {
     });
 
     expect(onAutoRepairReadiness).not.toHaveBeenCalled();
-    expect(container.textContent).toContain('Finishing package');
+    // v0.14.4 WS-B3: the panel no longer narrates the running stage (that is
+    // the build ribbon's job) — it simply withholds the readiness card while
+    // the workflow runs instead of rendering a "Finishing package" card.
+    expect(container.querySelector('[data-testid="readiness-panel"]')).toBeNull();
+    expect(container.textContent).not.toContain('Finishing package is repairing');
   });
 
   it('auto-repairs readiness blockers once the package is idle', async () => {

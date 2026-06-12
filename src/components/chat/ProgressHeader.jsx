@@ -347,7 +347,12 @@ export default function ProgressHeader({
                     <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
                   </svg>
                 )}
-                <span className="text-[12px] font-semibold">{packageQualityPass.message}</span>
+                {/* v0.14.4 WS-B3: while the finish pass runs, the build
+                    ribbon owns the live narration — this card defers to it
+                    instead of repeating the same message. */}
+                <span className="text-[12px] font-semibold">
+                  {isPackageQualityRunning ? 'Building — see the progress ribbon.' : packageQualityPass.message}
+                </span>
               </div>
             </div>
           )}

@@ -8,13 +8,13 @@
  * the three screen footers, and the Changelog entry.
  */
 export const LATEST_RELEASE = {
-  version: '0.14.3',
-  date: 'June 11, 2026',
-  title: 'The Quality Surface: every package ships its own audit',
+  version: '0.14.4',
+  date: 'June 12, 2026',
+  title: 'Calm Surface: the UI catches up to the pipeline',
   highlights: [
-    'The quality badge: every generated package now grades itself at finalize time with the full Crucible rulebook — the score lands as a badge in the export panel, a quality block in PACKAGE_MANIFEST.json, and a QUALITY_REPORT.md inside the zip, so the receipts travel with the course',
-    'The reference net grew from 4 to 10 courses plus a rotating stranger: six genome-covered disciplines went through live rounds for the first time (econ linked 14/14 lessons and its deliberately mis-ordered prerequisite was diagnosed on camera), and every round now cross-checks the in-app score against the Crucible’s so the two graders can never drift silently',
-    'Depth, measured then raised: enriched decks now carry common-pitfalls and worked-example walkthrough slides (~12 content slides against a new bar of 5), rubric criteria quote their assignment’s actual parameters, quizzes grow to 8 items from unused verified banks — and the grader’s thresholds rose only after the live round measured the content clearing them',
-    'An advisory LLM judge (--judge) gives the professor-read the deterministic grader can’t: non-gating, honest, and its first verdict — “solid content, still too templated to teach as-is” — is the declared north star for v0.14.4 Grounding',
+    'The course map becomes calm and legible: a light sticky header replaces the navy block, lesson bands group sections with live meta chips, assessment bubbles become quiet links that open their deliverable, and a density toggle plus per-lesson collapse let instructors shape the view',
+    'One fact, one place: a build ribbon under the header is the single status spine — live stage labels, recovery retries, genome and judgment chips, and the cost ticker all rendered from events the pipeline already streams; the quality grade moves to the header crown; duplicate status cards, tab counters, and rainbow dots are gone',
+    'One review queue: observations, spot-checks, and structural notices merge into a triaged step-through drawer with per-class counts — and the noisy structural false-positives (quiz-header metadata, the "Probability language" discipline misfire) were fixed at the source so the counts are honest',
+    'Deliverable views scale to the registry: 51 briefs group under sticky lesson headers with jump rails and registry identity lines, exams stand out with their coverage scope, and every artifact round-trips to its course-map cell in one click',
   ],
 };

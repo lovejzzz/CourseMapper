@@ -180,10 +180,10 @@ function CodeBlock({ code, language }) {
   return (
     <div className="my-2 rounded-lg bg-slate-900 border border-slate-700/50 overflow-hidden">
       <div className="flex items-center justify-between px-3 py-1.5 bg-slate-800/80 border-b border-slate-700/50">
-        <span className="text-[11px] font-mono text-slate-400">{displayLang}</span>
+        <span className="text-xs font-mono text-slate-400">{displayLang}</span>
         <button
           onClick={handleCopy}
-          className="flex items-center gap-1 text-[11px] text-slate-400 hover:text-slate-200 transition-colors"
+          className="flex items-center gap-1 text-xs text-slate-400 hover:text-slate-200 transition-colors"
           title="Copy code"
         >
           {copied ? (
@@ -457,7 +457,7 @@ function EditableUserMessage({ text, onEditSubmit }) {
             onChange={(e) => setEditText(e.target.value)}
             onKeyDown={handleKeyDown}
             rows={Math.min(editText.split('\n').length + 1, 8)}
-            className="w-full px-3.5 py-2.5 text-[13px] rounded-2xl rounded-br-md bg-white border-2 border-indigo-400 text-slate-800 leading-relaxed resize-none focus:outline-none focus:ring-2 focus:ring-indigo-300"
+            className="w-full px-3.5 py-2.5 text-[13px] rounded-lg rounded-br-sm bg-white border-2 border-indigo-400 text-slate-800 leading-relaxed resize-none focus:outline-none focus:ring-2 focus:ring-indigo-300"
           />
           <div className="flex justify-end gap-2 mt-1.5">
             <button
@@ -465,13 +465,13 @@ function EditableUserMessage({ text, onEditSubmit }) {
                 setIsEditing(false);
                 setEditText(text);
               }}
-              className="px-3 py-1 text-[11px] font-medium text-slate-500 hover:text-slate-700 rounded-lg hover:bg-slate-100 transition-colors"
+              className="px-3 py-1 text-xs font-medium text-slate-500 hover:text-slate-700 rounded-lg hover:bg-slate-100 transition-colors"
             >
               Cancel
             </button>
             <button
               onClick={handleSubmit}
-              className="px-3 py-1 text-[11px] font-medium text-white bg-indigo-500 hover:bg-indigo-600 rounded-lg shadow-sm transition-colors"
+              className="px-3 py-1 text-xs font-medium text-white bg-indigo-500 hover:bg-indigo-600 rounded-lg shadow-sm transition-colors"
             >
               Send
             </button>
@@ -484,7 +484,7 @@ function EditableUserMessage({ text, onEditSubmit }) {
   return (
     <div data-testid="chat-message-user" className="flex justify-end animate-spring-in group/usermsg">
       <div className="relative max-w-[85%]">
-        <div className="px-3.5 py-2.5 text-[13px] rounded-2xl rounded-br-md bg-gradient-to-r from-indigo-500 to-violet-500 text-white leading-relaxed shadow-lg shadow-indigo-500/10 whitespace-pre-wrap">
+        <div className="px-3.5 py-2.5 text-[13px] rounded-lg rounded-br-sm bg-gradient-to-r from-indigo-500 to-violet-500 text-white leading-relaxed shadow-lg shadow-indigo-500/10 whitespace-pre-wrap">
           {text}
         </div>
         {/* Edit button — appears on hover */}
@@ -546,7 +546,7 @@ export default function MessageBubble({
       <div className="flex justify-start animate-spring-in" role="alert" aria-live="assertive">
         <div
           data-testid="chat-message-error"
-          className="flex items-start gap-2 max-w-[85%] px-3.5 py-2.5 text-[13px] rounded-2xl rounded-bl-md bg-red-50/80 text-red-700 border border-red-200/40 leading-relaxed"
+          className="flex items-start gap-2 max-w-[85%] px-3.5 py-2.5 text-[13px] rounded-lg rounded-bl-sm bg-red-50/80 text-red-700 border border-red-200/40 leading-relaxed"
         >
           <svg
             className="w-4 h-4 flex-shrink-0 mt-0.5 text-red-500"
@@ -574,7 +574,7 @@ export default function MessageBubble({
   return (
     <div data-testid="chat-message-assistant" className="flex justify-start animate-spring-in group/msg">
       <div className="flex gap-2.5 max-w-[90%]">
-        <div className="w-6 h-6 rounded-full bg-gradient-to-br from-slate-100 to-slate-200 flex items-center justify-center flex-shrink-0 mt-1 shadow-sm">
+        <div className="w-6 h-6 rounded-full bg-gradient-to-br from-slate-100 to-slate-200 dark:from-slate-800 dark:to-slate-700 flex items-center justify-center flex-shrink-0 mt-1 shadow-sm">
           <svg className="w-3 h-3 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path
               strokeLinecap="round"
@@ -585,7 +585,7 @@ export default function MessageBubble({
           </svg>
         </div>
         <div className="relative">
-          <div className="px-3.5 py-2.5 text-[13px] rounded-2xl rounded-bl-md bg-white/70 border border-slate-200/40 shadow-glass text-slate-700 leading-relaxed">
+          <div className="px-3.5 py-2.5 text-[13px] rounded-lg rounded-bl-sm bg-white/70 border border-slate-200/40 shadow-glass text-slate-700 leading-relaxed">
             {text ? (
               <FormattedContent text={text} />
             ) : isLast && isStreaming ? (

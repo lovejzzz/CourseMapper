@@ -90,12 +90,12 @@ export default function StudyGuidesView({
                             <span className="text-xs font-bold text-teal-800">
                               <E value={t.term} path={[key, i, 'keyTerms', j, 'term']} onEdit={onEdit} />
                             </span>
-                            <span className="text-[11px] text-slate-600">
+                            <span className="text-xs text-slate-600">
                               — <E value={t.definition} path={[key, i, 'keyTerms', j, 'definition']} onEdit={onEdit} />
                             </span>
                           </div>
                           {t.example && (
-                            <p className="text-[10px] text-teal-600 mt-0.5 italic">
+                            <p className="text-xs text-teal-600 mt-0.5 italic">
                               <span className="font-semibold not-italic">Ex:</span>{' '}
                               <E value={t.example} path={[key, i, 'keyTerms', j, 'example']} onEdit={onEdit} />
                             </p>
@@ -165,7 +165,7 @@ export default function StudyGuidesView({
                         return (
                           <li key={j} className="text-xs text-slate-700">
                             <div className="flex items-start gap-2">
-                              <span className="flex-shrink-0 w-5 h-5 rounded-full bg-teal-100 text-teal-700 text-[10px] font-bold flex items-center justify-center mt-0.5">
+                              <span className="flex-shrink-0 w-5 h-5 rounded-full bg-teal-100 text-teal-700 text-xs font-bold flex items-center justify-center mt-0.5">
                                 {j + 1}
                               </span>
                               <div className="flex-1">
@@ -178,13 +178,13 @@ export default function StudyGuidesView({
                                   onEdit={onEdit}
                                 />
                                 {hint && (
-                                  <p className="text-[10px] text-slate-400 mt-0.5 italic">
+                                  <p className="text-xs text-slate-400 mt-0.5 italic">
                                     💡{' '}
                                     <E
                                       value={hint}
                                       path={[key, i, 'reviewQuestions', j, 'hint']}
                                       onEdit={onEdit}
-                                      className="text-[10px] text-slate-400 italic"
+                                      className="text-xs text-slate-400 italic"
                                     />
                                   </p>
                                 )}
@@ -215,10 +215,10 @@ export default function StudyGuidesView({
                 {/* Exam Prep */}
                 {g.examPrep && (
                   <div className="bg-amber-50/40 rounded-lg p-3 border border-amber-100/50 space-y-2">
-                    <h4 className="text-[11px] font-bold text-amber-700 uppercase tracking-wider">📝 Exam Prep</h4>
+                    <h4 className="text-xs font-bold text-amber-700">📝 Exam Prep</h4>
                     {g.examPrep.keyTopicsToKnow?.length > 0 && (
                       <div>
-                        <span className="text-[10px] font-bold text-amber-700 uppercase">High-Probability Topics</span>
+                        <span className="text-xs font-semibold text-amber-700">High-Probability Topics</span>
                         <ul className="mt-1 space-y-0.5">
                           {g.examPrep.keyTopicsToKnow.map((t, j) => (
                             <li key={j} className="text-xs text-slate-700 flex gap-1.5">
@@ -231,7 +231,7 @@ export default function StudyGuidesView({
                     )}
                     {g.examPrep.commonErrors && (
                       <div>
-                        <span className="text-[10px] font-bold text-red-600 uppercase">Common Errors to Avoid</span>
+                        <span className="text-xs font-semibold text-red-600">Common Errors to Avoid</span>
                         <p className="text-xs text-slate-700 mt-0.5 leading-relaxed">
                           <E
                             value={g.examPrep.commonErrors}
@@ -244,9 +244,7 @@ export default function StudyGuidesView({
                     )}
                     {g.examPrep.reviewStrategy && (
                       <div>
-                        <span className="text-[10px] font-bold text-teal-700 uppercase">
-                          Recommended Study Strategy
-                        </span>
+                        <span className="text-xs font-semibold text-slate-500">Recommended Study Strategy</span>
                         <p className="text-xs text-slate-700 mt-0.5 leading-relaxed">
                           <E
                             value={g.examPrep.reviewStrategy}
@@ -259,7 +257,7 @@ export default function StudyGuidesView({
                     )}
                     {g.examPrep.timeManagement && (
                       <div>
-                        <span className="text-[10px] font-bold text-slate-500 uppercase">Time Management</span>
+                        <span className="text-xs font-semibold text-slate-500">Time Management</span>
                         <p className="text-xs text-slate-700 mt-0.5 leading-relaxed">
                           <E
                             value={g.examPrep.timeManagement}
@@ -275,7 +273,7 @@ export default function StudyGuidesView({
                 {/* Legacy examTips field */}
                 {!g.examPrep && g.examTips && (
                   <div className="bg-amber-50/40 rounded-lg p-3 border border-amber-100/50">
-                    <h4 className="text-[11px] font-bold text-amber-700 mb-1">💡 Exam Tips</h4>
+                    <h4 className="text-xs font-bold text-amber-700 mb-1">💡 Exam Tips</h4>
                     <p className="text-xs text-slate-700">
                       <E value={g.examTips} path={[key, i, 'examTips']} onEdit={onEdit} multiline />
                     </p>

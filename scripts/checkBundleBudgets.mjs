@@ -23,7 +23,11 @@ const lazyChunkBudgets = [
   // lesson-regen merge safety (exam-preserving, stub-rejecting), romanization
   // recovery in the enrichment retry loop, and the deliverable focus router
   // (measured at 236.5 KiB raw / 71.7 gzip). Deliberate feature growth.
-  { prefix: 'AppFlow-', rawKiB: 240, gzipKiB: 73 },
+  // v0.14.4 WS-B: +8 KiB raw / +3 KiB gzip for the build ribbon — the
+  // buildRibbonModel selector + BuildRibbon/TabReadyTick render (one status
+  // spine replacing the tab counter, rainbow dots, and in-panel narration;
+  // measured at 245.5 KiB raw / 74.6 gzip). Deliberate feature growth.
+  { prefix: 'AppFlow-', rawKiB: 248, gzipKiB: 76 },
   // v0.9.0: +12 KiB raw / +4 KiB gzip for the course-native agent (content
   // index + renderer reuse, digest card, journal — measured at 341.0 KiB raw
   // / 92.8 gzip). Deliberate feature growth; gzip headroom unchanged.
@@ -34,7 +38,12 @@ const lazyChunkBudgets = [
   // compiler-flagged local reviews, measured at 38.0 KiB raw / 10.x gzip).
   // v0.14.3 WS-A: +5.1 KiB raw / +1.3 KiB gzip for the quality badge chip +
   // report modal (measured at 36.8 KiB raw / 10.3 gzip).
-  { prefix: 'ExportSidePanel-', rawKiB: 40, gzipKiB: 12 },
+  // v0.14.4 WS-C: +10.7 KiB raw / +2.7 KiB gzip for the unified review queue
+  // — the reviewQueueModel classifier + ReviewQueue step-through drawer live
+  // in THIS chunk (not AppFlow's) so the queue loads with the export panel
+  // that hosts it (measured at 47.5 KiB raw / 13.0 gzip). Deliberate feature
+  // growth; the checklist banner UI it replaces was already here.
+  { prefix: 'ExportSidePanel-', rawKiB: 52, gzipKiB: 15 },
   // v0.14.3 WS-A A4: the deep quality grader + defect patterns — the
   // package-grades-itself chunk, lazy-loaded only when finalize-grading or a
   // ZIP download runs (measured at 38.6 KiB raw / 13.9 KiB gzip; the roadmap

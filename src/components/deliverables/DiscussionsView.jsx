@@ -86,7 +86,7 @@ export default function DiscussionsView({
                   {d.bloomsLevel && <BloomsTag level={d.bloomsLevel} />}
                   {d.format && <Badge color="rose">{d.format}</Badge>}
                   {d.estimatedDuration && (
-                    <span className="text-[10px] text-slate-400 self-center">⏱ {d.estimatedDuration}</span>
+                    <span className="text-xs text-slate-400 self-center">⏱ {d.estimatedDuration}</span>
                   )}
                 </div>
 
@@ -107,7 +107,7 @@ export default function DiscussionsView({
                     <E value={d.prompt} path={['discussions', i, 'prompt']} onEdit={onEdit} multiline />
                   </p>
                   {d.evidenceRequirement && (
-                    <p className="text-[11px] text-rose-600 mt-2 italic">
+                    <p className="text-xs text-rose-600 mt-2 italic">
                       📚{' '}
                       <E
                         value={d.evidenceRequirement}
@@ -148,7 +148,7 @@ export default function DiscussionsView({
                               />
                             </p>
                             {locator && (
-                              <p className="mt-1 text-[11px] text-slate-500">
+                              <p className="mt-1 text-xs text-slate-500">
                                 <span className="font-semibold text-slate-600">Locator: </span>
                                 <E
                                   value={locator}
@@ -158,7 +158,7 @@ export default function DiscussionsView({
                               </p>
                             )}
                             {artifactUse && (
-                              <p className="mt-1 text-[11px] text-slate-600 leading-relaxed">
+                              <p className="mt-1 text-xs text-slate-600 leading-relaxed">
                                 <E
                                   value={artifactUse}
                                   path={['discussions', i, sourceArtifactKey, j, useKey]}
@@ -203,8 +203,8 @@ export default function DiscussionsView({
                     <SectionHeading>Facilitation Tips</SectionHeading>
                     {d.facilitationTips.opening && (
                       <div className="mb-1.5">
-                        <span className="text-[10px] font-bold text-amber-700 uppercase">Opening</span>
-                        <p className="text-[11px] text-slate-600 mt-0.5 leading-relaxed">
+                        <span className="text-xs font-semibold text-slate-500">Opening</span>
+                        <p className="text-xs text-slate-600 mt-0.5 leading-relaxed">
                           <E
                             value={d.facilitationTips.opening}
                             path={['discussions', i, 'facilitationTips', 'opening']}
@@ -215,8 +215,8 @@ export default function DiscussionsView({
                     )}
                     {d.facilitationTips.ifStalls && (
                       <div className="mb-1.5">
-                        <span className="text-[10px] font-bold text-amber-700 uppercase">If Discussion Stalls</span>
-                        <p className="text-[11px] text-slate-600 mt-0.5 leading-relaxed">
+                        <span className="text-xs font-semibold text-slate-500">If Discussion Stalls</span>
+                        <p className="text-xs text-slate-600 mt-0.5 leading-relaxed">
                           <E
                             value={d.facilitationTips.ifStalls}
                             path={['discussions', i, 'facilitationTips', 'ifStalls']}
@@ -227,8 +227,8 @@ export default function DiscussionsView({
                     )}
                     {d.facilitationTips.ifDominates && (
                       <div className="mb-1.5">
-                        <span className="text-[10px] font-bold text-amber-700 uppercase">If One Student Dominates</span>
-                        <p className="text-[11px] text-slate-600 mt-0.5 leading-relaxed">
+                        <span className="text-xs font-semibold text-slate-500">If One Student Dominates</span>
+                        <p className="text-xs text-slate-600 mt-0.5 leading-relaxed">
                           <E
                             value={d.facilitationTips.ifDominates}
                             path={['discussions', i, 'facilitationTips', 'ifDominates']}
@@ -239,8 +239,8 @@ export default function DiscussionsView({
                     )}
                     {d.facilitationTips.closure && (
                       <div>
-                        <span className="text-[10px] font-bold text-amber-700 uppercase">Closing the Discussion</span>
-                        <p className="text-[11px] text-slate-600 mt-0.5 leading-relaxed">
+                        <span className="text-xs font-semibold text-slate-500">Closing the Discussion</span>
+                        <p className="text-xs text-slate-600 mt-0.5 leading-relaxed">
                           <E
                             value={d.facilitationTips.closure}
                             path={['discussions', i, 'facilitationTips', 'closure']}
@@ -287,10 +287,8 @@ export default function DiscussionsView({
                 {/* Equity considerations */}
                 {d.equityConsiderations && (
                   <div className="bg-teal-50/40 rounded-lg p-3 border border-teal-100/50">
-                    <h4 className="text-[10px] font-bold text-teal-700 uppercase tracking-wide mb-1">
-                      ♿ Equity &amp; Inclusion
-                    </h4>
-                    <p className="text-[11px] text-slate-600 leading-relaxed">
+                    <h4 className="text-xs font-semibold text-slate-500 mb-1">♿ Equity &amp; Inclusion</h4>
+                    <p className="text-xs text-slate-600 leading-relaxed">
                       <E
                         value={d.equityConsiderations}
                         path={['discussions', i, 'equityConsiderations']}

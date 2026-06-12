@@ -24,7 +24,7 @@ function SylPolicyBlock({ label, value, path, onEdit }) {
   if (!value) return null;
   return (
     <div>
-      <h4 className="text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-1">{label}</h4>
+      <h4 className="text-xs font-semibold text-slate-500 mb-1">{label}</h4>
       <p className="text-xs text-slate-600 leading-relaxed">
         <E value={value} path={path} onEdit={onEdit} multiline />
       </p>
@@ -153,7 +153,7 @@ export default function SyllabusView({ data, isStreaming, onEdit }) {
       {syl.learningOutcomes?.length > 0 && (
         <div>
           <h3 className="text-sm font-bold text-slate-700 mb-1.5">Student Learning Outcomes</h3>
-          <p className="text-[10px] text-slate-400 mb-2">
+          <p className="text-xs text-slate-400 mb-2">
             Upon successful completion of this course, students will be able to:
           </p>
           <ol className="space-y-1.5 list-decimal list-inside">
@@ -174,12 +174,12 @@ export default function SyllabusView({ data, isStreaming, onEdit }) {
       {Array.isArray(syl.outcomeAlignmentMatrix) && syl.outcomeAlignmentMatrix.length > 0 && (
         <div>
           <h3 className="text-sm font-bold text-slate-700 mb-1.5">Outcome ↔ Assessment Alignment</h3>
-          <p className="text-[10px] text-slate-400 mb-2">
+          <p className="text-xs text-slate-400 mb-2">
             Every listed outcome is mapped to the graded artifacts that measure it and the lessons where students
             practice before being assessed.
           </p>
           <div className="overflow-x-auto">
-            <table className="w-full text-[11px] border-collapse">
+            <table className="w-full text-xs border-collapse">
               <thead>
                 <tr className="border-b border-slate-200/60 bg-slate-50/40">
                   <th className="text-left px-2 py-1.5 font-semibold text-slate-500 w-[40%]">Learning outcome</th>

@@ -41,10 +41,48 @@ async function toArrayBuffer(blob) {
   return null;
 }
 
+// ── v0.14.4 WS-C3a: structural metadata never counts toward repetition ──────
+// The quiz DOCX renders per-item scaffolding at item frequency BY DESIGN:
+// "Q3 (Multiple choice, 2 pts, ~2 min): …" item headers, the answer key's
+// uppercased "ANSWER — B" callout labels, "Aligns to:" / "Intended use:" key
+// lines, and pts/min meta rows. A 13-question quiz legitimately repeats that
+// scaffold 13× inside one section — the v0.14.2 Crucible round flagged exactly
+// that ("multiple choice 2 pts 2 min which statement" ×13). Strip the scaffold
+// BEFORE shingling; everything else still counts, so genuine template stamping
+// (license boilerplate, repeated content sentences) flags exactly as before.
+// Patterns mirror docxExporter.js quizBank rendering: humanizeQuestionType
+// labels + the qMeta "(type, N pts, ~N min)" join + makeCallout's
+// tracked-uppercase label run.
+const QUIZ_TYPE_LABEL = '(?:multiple choice|short answer|true\\s*/\\s*false|fill in the blank|essay|matching)';
+const POINTS_TOKEN = '\\d+(?:\\.\\d+)?\\s*pts?';
+const MINUTES_TOKEN = '~\\s*\\d+\\s*min';
+const QUIZ_META_TOKEN = `(?:${QUIZ_TYPE_LABEL}|${POINTS_TOKEN}|${MINUTES_TOKEN})`;
+// "Q3 (Multiple choice, 2 pts, ~2 min): " — strip the header, keep the stem.
+const QUIZ_ITEM_HEADER_PREFIX = new RegExp(
+  `^Q\\d+\\s*\\(\\s*${QUIZ_META_TOKEN}(?:\\s*,\\s*${QUIZ_META_TOKEN})*\\s*\\)\\s*:?\\s*`,
+  'i',
+);
+// makeCallout uppercases only its LABEL run ("ANSWER — B"); the explanation
+// run keeps body case — so consume leading uppercase-only tokens after
+// ANSWER and stop at the first token containing a lowercase letter.
+const ANSWER_SCAFFOLD_PREFIX = /^ANSWER\b(?:\s+[^a-z\s]+(?=\s|$))*\s*/;
+// Whole lines that are pure scaffolding: answer-key alignment/use stamps and
+// standalone points/timing meta rows.
+const STRUCTURAL_LINE_PATTERNS = [
+  /^(?:aligns to|intended use)\s*:/i,
+  new RegExp(`^(?:${POINTS_TOKEN}|${MINUTES_TOKEN})(?:\\s*[·,;]\\s*(?:${POINTS_TOKEN}|${MINUTES_TOKEN}))*$`, 'i'),
+];
+
+export function stripStructuralMetadata(paragraph) {
+  const text = String(paragraph || '').trim();
+  if (STRUCTURAL_LINE_PATTERNS.some((pattern) => pattern.test(text))) return '';
+  return text.replace(QUIZ_ITEM_HEADER_PREFIX, '').replace(ANSWER_SCAFFOLD_PREFIX, '');
+}
+
 export function findWorstPhraseRepetition(paragraphs) {
   const phraseCounts = new Map();
   for (const paragraph of paragraphs) {
-    const words = paragraph
+    const words = stripStructuralMetadata(paragraph)
       .toLowerCase()
       .replace(/[^a-z0-9\s]/g, ' ')
       .split(/\s+/)

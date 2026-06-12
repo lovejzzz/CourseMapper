@@ -154,7 +154,7 @@ export function CustomDeliverableBuilder({ isOpen, onClose, onSave, editDef }) {
             <div className="flex gap-2 mt-3">
               <button
                 onClick={() => setStep(1)}
-                className={`px-3 py-1 rounded-lg text-[11px] font-semibold transition-all ${
+                className={`px-3 py-1 rounded-lg text-xs font-semibold transition-all ${
                   step === 1 ? 'bg-indigo-500 text-white' : 'text-slate-500 hover:bg-slate-100'
                 }`}
               >
@@ -162,7 +162,7 @@ export function CustomDeliverableBuilder({ isOpen, onClose, onSave, editDef }) {
               </button>
               <button
                 onClick={() => setStep(2)}
-                className={`px-3 py-1 rounded-lg text-[11px] font-semibold transition-all ${
+                className={`px-3 py-1 rounded-lg text-xs font-semibold transition-all ${
                   step === 2 ? 'bg-indigo-500 text-white' : 'text-slate-500 hover:bg-slate-100'
                 }`}
               >
@@ -183,7 +183,7 @@ export function CustomDeliverableBuilder({ isOpen, onClose, onSave, editDef }) {
                       <button
                         onClick={handleAutoFill}
                         disabled={!name.trim() || isAutoFilling}
-                        className={`flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-semibold transition-all ${
+                        className={`flex items-center gap-1 px-2 py-0.5 rounded-md text-xs font-semibold transition-all ${
                           name.trim() && !isAutoFilling
                             ? 'text-violet-600 hover:bg-violet-50 hover:text-violet-700'
                             : 'text-slate-300 cursor-not-allowed'
@@ -316,7 +316,7 @@ export function CustomDeliverableBuilder({ isOpen, onClose, onSave, editDef }) {
                       <button
                         key={opt}
                         onClick={() => setTone(tone === opt ? '' : opt)}
-                        className={`px-3 py-1.5 rounded-lg text-[11px] font-medium transition-all ${
+                        className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
                           tone === opt
                             ? 'bg-indigo-500 text-white shadow-sm'
                             : 'bg-white/60 text-slate-600 border border-slate-200/60 hover:bg-white/90'
@@ -336,7 +336,7 @@ export function CustomDeliverableBuilder({ isOpen, onClose, onSave, editDef }) {
                       <button
                         key={opt}
                         onClick={() => setStyle(style === opt ? '' : opt)}
-                        className={`px-3 py-1.5 rounded-lg text-[11px] font-medium transition-all ${
+                        className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
                           style === opt
                             ? 'bg-indigo-500 text-white shadow-sm'
                             : 'bg-white/60 text-slate-600 border border-slate-200/60 hover:bg-white/90'
@@ -356,7 +356,7 @@ export function CustomDeliverableBuilder({ isOpen, onClose, onSave, editDef }) {
                       <button
                         key={opt}
                         onClick={() => setLength(length === opt ? '' : opt)}
-                        className={`px-3 py-1.5 rounded-lg text-[11px] font-medium transition-all ${
+                        className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
                           length === opt
                             ? 'bg-indigo-500 text-white shadow-sm'
                             : 'bg-white/60 text-slate-600 border border-slate-200/60 hover:bg-white/90'
@@ -378,7 +378,7 @@ export function CustomDeliverableBuilder({ isOpen, onClose, onSave, editDef }) {
                     onChange={(e) => setSystemPrompt(e.target.value)}
                     placeholder="You are an expert instructional designer. Generate the requested deliverable..."
                     rows={3}
-                    className="w-full bg-white/60 border border-slate-200/60 rounded-lg px-3 py-2 text-[11px] text-slate-700 placeholder:text-slate-300 resize-none focus:outline-none focus:ring-2 focus:ring-indigo-300 focus:border-indigo-300 transition-all font-mono"
+                    className="w-full bg-white/60 border border-slate-200/60 rounded-lg px-3 py-2 text-xs text-slate-700 placeholder:text-slate-300 resize-none focus:outline-none focus:ring-2 focus:ring-indigo-300 focus:border-indigo-300 transition-all font-mono"
                   />
                 </div>
 
@@ -387,8 +387,8 @@ export function CustomDeliverableBuilder({ isOpen, onClose, onSave, editDef }) {
                   <label className="text-xs font-semibold text-slate-700 block mb-1">
                     User Prompt Template <span className="font-normal text-slate-400">(optional)</span>
                   </label>
-                  <p className="text-[10px] text-slate-400 mb-1">
-                    Use <code className="text-[9px] bg-slate-100 px-1 py-0.5 rounded">{'{{courseMap}}'}</code> where
+                  <p className="text-xs text-slate-400 mb-1">
+                    Use <code className="text-[10px] bg-slate-100 px-1 py-0.5 rounded">{'{{courseMap}}'}</code> where
                     course data should be inserted.
                   </p>
                   <textarea
@@ -396,7 +396,7 @@ export function CustomDeliverableBuilder({ isOpen, onClose, onSave, editDef }) {
                     onChange={(e) => setUserPromptTemplate(e.target.value)}
                     placeholder={`Generate [deliverable type] for this course:\n\n{{courseMap}}\n\nReturn ONLY valid JSON.`}
                     rows={5}
-                    className="w-full bg-white/60 border border-slate-200/60 rounded-lg px-3 py-2 text-[11px] text-slate-700 placeholder:text-slate-300 resize-none focus:outline-none focus:ring-2 focus:ring-indigo-300 focus:border-indigo-300 transition-all font-mono"
+                    className="w-full bg-white/60 border border-slate-200/60 rounded-lg px-3 py-2 text-xs text-slate-700 placeholder:text-slate-300 resize-none focus:outline-none focus:ring-2 focus:ring-indigo-300 focus:border-indigo-300 transition-all font-mono"
                   />
                 </div>
               </>
@@ -541,7 +541,7 @@ export default function FeatureSelect({
           </button>
           <button
             onClick={() => setShowHelp(true)}
-            className="tactile flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-[11px] font-semibold text-slate-500 transition-colors hover:text-blue-600 dark:text-slate-400 dark:hover:text-blue-200"
+            className="tactile flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-semibold text-slate-500 transition-colors hover:text-blue-600 dark:text-slate-400 dark:hover:text-blue-200"
           >
             <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path
@@ -586,7 +586,7 @@ export default function FeatureSelect({
                     </span>
                     <div>
                       <p className="text-[12px] font-bold text-slate-800 dark:text-slate-100">Developer template</p>
-                      <p className="text-[10px] text-slate-500 dark:text-slate-400">Apply saved defaults.</p>
+                      <p className="text-xs text-slate-500 dark:text-slate-400">Apply saved defaults.</p>
                     </div>
                   </div>
                 </div>
@@ -610,13 +610,13 @@ export default function FeatureSelect({
             <div className="mb-4 flex flex-col gap-3 border-b border-slate-100 pb-4 sm:flex-row sm:items-center sm:justify-between dark:border-slate-800">
               <div>
                 <h2 className="text-base font-semibold text-slate-900 dark:text-white">Package contents</h2>
-                <p className="mt-0.5 text-[11px] font-medium text-slate-500 dark:text-slate-400">
+                <p className="mt-0.5 text-xs font-medium text-slate-500 dark:text-slate-400">
                   Course Map + {selectedMaterialCount} material{selectedMaterialCount === 1 ? '' : 's'}.
                 </p>
               </div>
               <button
                 onClick={allSelected ? deselectAll : selectAll}
-                className="w-fit rounded-lg border border-slate-200 bg-white px-3 py-2 text-[11px] font-bold text-slate-600 transition-colors hover:border-blue-200 hover:bg-blue-50 hover:text-blue-700 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300 dark:hover:border-blue-400/40 dark:hover:bg-blue-400/10 dark:hover:text-blue-200"
+                className="w-fit rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs font-bold text-slate-600 transition-colors hover:border-blue-200 hover:bg-blue-50 hover:text-blue-700 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300 dark:hover:border-blue-400/40 dark:hover:bg-blue-400/10 dark:hover:text-blue-200"
               >
                 {allSelected ? 'Clear selection' : 'Select all'}
               </button>
@@ -637,11 +637,11 @@ export default function FeatureSelect({
                   <div className="min-w-0 flex-1">
                     <div className="flex flex-wrap items-center gap-2">
                       <h3 className="text-sm font-semibold">Course structure</h3>
-                      <span className="rounded bg-white px-1.5 py-0.5 text-[9px] font-semibold text-slate-950">
+                      <span className="rounded bg-white px-1.5 py-0.5 text-[10px] font-semibold text-slate-950">
                         Always included
                       </span>
                     </div>
-                    <p className="mt-1 line-clamp-1 text-[11px] leading-relaxed text-slate-300">
+                    <p className="mt-1 line-clamp-1 text-xs leading-relaxed text-slate-300">
                       Concepts, objectives, assessments, and sessions — built from your syllabus; the Course Map view
                       and every deliverable render from it.
                     </p>
@@ -756,12 +756,12 @@ export default function FeatureSelect({
                       <div className="flex items-center gap-2">
                         <h3 className="text-sm font-semibold text-slate-900 dark:text-slate-100">{feature.label}</h3>
                         {isCustom && (
-                          <span className="rounded bg-violet-50 px-1.5 py-0.5 text-[9px] font-semibold text-violet-600 dark:bg-violet-400/10 dark:text-violet-200">
+                          <span className="rounded bg-violet-50 px-1.5 py-0.5 text-[10px] font-semibold text-violet-600 dark:bg-violet-400/10 dark:text-violet-200">
                             Custom
                           </span>
                         )}
                       </div>
-                      <p className="mt-1 line-clamp-1 text-[11px] leading-relaxed text-slate-500 dark:text-slate-400">
+                      <p className="mt-1 line-clamp-1 text-xs leading-relaxed text-slate-500 dark:text-slate-400">
                         {feature.description}
                       </p>
                     </div>
@@ -797,7 +797,7 @@ export default function FeatureSelect({
                   <h3 className="text-sm font-semibold text-slate-700 transition-colors group-hover:text-blue-600 dark:text-slate-200 dark:group-hover:text-blue-200">
                     Create custom
                   </h3>
-                  <p className="mt-0.5 text-[11px] leading-relaxed text-slate-500 dark:text-slate-400">
+                  <p className="mt-0.5 text-xs leading-relaxed text-slate-500 dark:text-slate-400">
                     Add one material type.
                   </p>
                 </div>
@@ -835,7 +835,7 @@ export default function FeatureSelect({
       <footer className="py-4 text-center">
         <div className="flex items-center justify-center gap-3 text-[10px] text-slate-300/70">
           <a href="#/changelog" className="font-medium hover:text-indigo-500 transition-colors duration-200">
-            v0.14.3
+            v0.14.4
           </a>
           <span>·</span>
           <a href="#/privacy" className="hover:text-indigo-500 transition-colors duration-200">

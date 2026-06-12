@@ -67,7 +67,7 @@ function DeliverableExtras({ featureId, config, onChange, modelConfigPlan }) {
       {/* ── Universal Controls: Tone ── */}
       <div className="space-y-1">
         <label className="text-xs font-medium text-slate-700">Tone</label>
-        <p className="text-[10px] text-slate-400">
+        <p className="text-xs text-slate-400">
           {defaultLabel('tone')
             ? `Model default: ${modelDefaults.tone}.`
             : 'Sets the voice and register of the output.'}
@@ -81,7 +81,7 @@ function DeliverableExtras({ featureId, config, onChange, modelConfigPlan }) {
               <button
                 key={opt}
                 onClick={() => onChange({ ...config, tone: isAuto ? null : config.tone === opt ? null : opt })}
-                className={`tactile px-3 py-1.5 rounded-lg text-[11px] font-medium transition-all duration-150 ${
+                className={`tactile px-3 py-1.5 rounded-lg text-xs font-medium transition-all duration-150 ${
                   isActive
                     ? 'bg-indigo-500 text-white shadow-sm'
                     : 'bg-white/60 text-slate-600 border border-slate-200/60 hover:bg-white/90'
@@ -97,7 +97,7 @@ function DeliverableExtras({ featureId, config, onChange, modelConfigPlan }) {
       {/* ── Universal Controls: Style & Format ── */}
       <div className="space-y-1">
         <label className="text-xs font-medium text-slate-700">Style & Format</label>
-        <p className="text-[10px] text-slate-400">
+        <p className="text-xs text-slate-400">
           {defaultLabel('style')
             ? `Model default: ${modelDefaults.style}.`
             : 'How the content is structured and presented.'}
@@ -111,7 +111,7 @@ function DeliverableExtras({ featureId, config, onChange, modelConfigPlan }) {
               <button
                 key={opt}
                 onClick={() => onChange({ ...config, style: isAuto ? null : config.style === opt ? null : opt })}
-                className={`tactile px-3 py-1.5 rounded-lg text-[11px] font-medium transition-all duration-150 ${
+                className={`tactile px-3 py-1.5 rounded-lg text-xs font-medium transition-all duration-150 ${
                   isActive
                     ? 'bg-indigo-500 text-white shadow-sm'
                     : 'bg-white/60 text-slate-600 border border-slate-200/60 hover:bg-white/90'
@@ -127,7 +127,7 @@ function DeliverableExtras({ featureId, config, onChange, modelConfigPlan }) {
       {/* ── Universal Controls: Output Length ── */}
       <div className="space-y-1">
         <label className="text-xs font-medium text-slate-700">Output Length</label>
-        <p className="text-[10px] text-slate-400">
+        <p className="text-xs text-slate-400">
           {defaultLabel('outputLength')
             ? `Model default: ${modelDefaults.outputLength}.`
             : 'Controls how much detail the AI generates.'}
@@ -145,7 +145,7 @@ function DeliverableExtras({ featureId, config, onChange, modelConfigPlan }) {
                 onClick={() =>
                   onChange({ ...config, outputLength: isAuto ? null : config.outputLength === opt ? null : opt })
                 }
-                className={`tactile px-3 py-1.5 rounded-lg text-[11px] font-medium transition-all duration-150 ${
+                className={`tactile px-3 py-1.5 rounded-lg text-xs font-medium transition-all duration-150 ${
                   isActive
                     ? 'bg-indigo-500 text-white shadow-sm'
                     : 'bg-white/60 text-slate-600 border border-slate-200/60 hover:bg-white/90'
@@ -162,7 +162,7 @@ function DeliverableExtras({ featureId, config, onChange, modelConfigPlan }) {
       <div>
         <button
           onClick={() => setShowPromptEditor((v) => !v)}
-          className="flex items-center gap-1.5 text-[11px] font-semibold text-slate-500 hover:text-indigo-500 transition-colors"
+          className="flex items-center gap-1.5 text-xs font-semibold text-slate-500 hover:text-indigo-500 transition-colors"
         >
           <svg
             className={`w-3 h-3 transition-transform duration-200 ${showPromptEditor ? 'rotate-90' : ''}`}
@@ -176,7 +176,7 @@ function DeliverableExtras({ featureId, config, onChange, modelConfigPlan }) {
         </button>
         {showPromptEditor && (
           <div className="mt-2 space-y-2 animate-spring-in">
-            <p className="text-[10px] text-slate-400">
+            <p className="text-xs text-slate-400">
               Override the system prompt sent to the AI. Leave blank to use the default.
             </p>
             <textarea
@@ -184,9 +184,9 @@ function DeliverableExtras({ featureId, config, onChange, modelConfigPlan }) {
               onChange={(e) => onChange({ ...config, customSystemPrompt: e.target.value })}
               placeholder="You are an expert instructional designer…"
               rows={3}
-              className="w-full bg-white/60 border border-slate-200/60 rounded-lg px-3 py-2 text-[11px] text-slate-700 placeholder:text-slate-300 resize-none focus:outline-none focus:ring-1 focus:ring-indigo-300 focus:border-indigo-300 transition-all font-mono"
+              className="w-full bg-white/60 border border-slate-200/60 rounded-lg px-3 py-2 text-xs text-slate-700 placeholder:text-slate-300 resize-none focus:outline-none focus:ring-1 focus:ring-indigo-300 focus:border-indigo-300 transition-all font-mono"
             />
-            <p className="text-[10px] text-slate-400">
+            <p className="text-xs text-slate-400">
               Override the user prompt. Use{' '}
               <code className="text-[9px] bg-slate-100 px-1 py-0.5 rounded">{'{{courseMap}}'}</code> as a placeholder
               for course data.
@@ -196,7 +196,7 @@ function DeliverableExtras({ featureId, config, onChange, modelConfigPlan }) {
               onChange={(e) => onChange({ ...config, customUserPrompt: e.target.value })}
               placeholder="Generate detailed lesson plans for this course: {{courseMap}}"
               rows={4}
-              className="w-full bg-white/60 border border-slate-200/60 rounded-lg px-3 py-2 text-[11px] text-slate-700 placeholder:text-slate-300 resize-none focus:outline-none focus:ring-1 focus:ring-indigo-300 focus:border-indigo-300 transition-all font-mono"
+              className="w-full bg-white/60 border border-slate-200/60 rounded-lg px-3 py-2 text-xs text-slate-700 placeholder:text-slate-300 resize-none focus:outline-none focus:ring-1 focus:ring-indigo-300 focus:border-indigo-300 transition-all font-mono"
             />
           </div>
         )}
@@ -206,9 +206,7 @@ function DeliverableExtras({ featureId, config, onChange, modelConfigPlan }) {
       <div>
         <p className="text-xs font-medium text-slate-600 mb-1.5">
           Example file
-          <span className="ml-1.5 text-[10px] font-normal text-slate-400">
-            optional — show the AI what format you want
-          </span>
+          <span className="ml-1.5 text-xs font-normal text-slate-400">optional — show the AI what format you want</span>
         </p>
         {file ? (
           <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-white/60 border border-slate-200/60">
@@ -225,7 +223,7 @@ function DeliverableExtras({ featureId, config, onChange, modelConfigPlan }) {
                 d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
               />
             </svg>
-            <span className="text-[11px] text-slate-700 font-medium truncate flex-1">{file.name}</span>
+            <span className="text-xs text-slate-700 font-medium truncate flex-1">{file.name}</span>
             <button onClick={removeFile} className="text-slate-300 hover:text-red-400 transition-colors flex-shrink-0">
               <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -237,7 +235,7 @@ function DeliverableExtras({ featureId, config, onChange, modelConfigPlan }) {
             onClick={() => inputRef.current?.click()}
             onDrop={handleDrop}
             onDragOver={(e) => e.preventDefault()}
-            className="tactile flex items-center gap-2 px-3 py-2 rounded-lg text-[11px] font-medium text-slate-400 border border-dashed border-slate-200/60 hover:border-indigo-300 hover:text-indigo-500 hover:bg-indigo-50/30 transition-all duration-200 w-full"
+            className="tactile flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-medium text-slate-400 border border-dashed border-slate-200/60 hover:border-indigo-300 hover:text-indigo-500 hover:bg-indigo-50/30 transition-all duration-200 w-full"
           >
             <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path
@@ -263,7 +261,7 @@ function DeliverableExtras({ featureId, config, onChange, modelConfigPlan }) {
       <div>
         <p className="text-xs font-medium text-slate-600 mb-1.5">
           Additional instructions
-          <span className="ml-1.5 text-[10px] font-normal text-slate-400">
+          <span className="ml-1.5 text-xs font-normal text-slate-400">
             optional — specific requirements for this deliverable
           </span>
         </p>
@@ -272,7 +270,7 @@ function DeliverableExtras({ featureId, config, onChange, modelConfigPlan }) {
           onChange={(e) => onChange({ ...config, extraInstructions: e.target.value })}
           placeholder={`e.g. "Use 4-point scales", "Match our department rubric format", "Focus on social work competencies"…`}
           rows={3}
-          className="w-full bg-white/60 border border-slate-200/60 rounded-lg px-3 py-2 text-[11px] text-slate-700 placeholder:text-slate-300 resize-none focus:outline-none focus:ring-1 focus:ring-indigo-300 focus:border-indigo-300 transition-all"
+          className="w-full bg-white/60 border border-slate-200/60 rounded-lg px-3 py-2 text-xs text-slate-700 placeholder:text-slate-300 resize-none focus:outline-none focus:ring-1 focus:ring-indigo-300 focus:border-indigo-300 transition-all"
         />
       </div>
     </div>
@@ -286,7 +284,7 @@ function Toggle({ label, value, onChange, description }) {
     <div className="flex items-center justify-between gap-4">
       <div className="min-w-0">
         <p className="text-xs font-medium text-slate-700">{label}</p>
-        {description && <p className="text-[10px] text-slate-400 mt-0.5">{description}</p>}
+        {description && <p className="text-xs text-slate-400 mt-0.5">{description}</p>}
       </div>
       <button
         onClick={() => onChange(!value)}
@@ -308,13 +306,13 @@ function Select({ label, value, onChange, options, description }) {
   return (
     <div className="space-y-1">
       <label className="text-xs font-medium text-slate-700">{label}</label>
-      {description && <p className="text-[10px] text-slate-400">{description}</p>}
+      {description && <p className="text-xs text-slate-400">{description}</p>}
       <div className="flex flex-wrap gap-1.5 mt-1">
         {options.map((opt) => (
           <button
             key={opt}
             onClick={() => onChange(opt)}
-            className={`tactile px-3 py-1.5 rounded-lg text-[11px] font-medium transition-all duration-150 ${
+            className={`tactile px-3 py-1.5 rounded-lg text-xs font-medium transition-all duration-150 ${
               value === opt
                 ? 'bg-indigo-500 text-white shadow-sm'
                 : 'bg-white/60 text-slate-600 border border-slate-200/60 hover:bg-white/90'
@@ -332,12 +330,12 @@ function DropdownSelect({ label, value, onChange, options, description, disabled
   return (
     <div className="space-y-1">
       <label className="text-xs font-medium text-slate-700">{label}</label>
-      {description && <p className="text-[10px] text-slate-400">{description}</p>}
+      {description && <p className="text-xs text-slate-400">{description}</p>}
       <select
         value={value || ''}
         onChange={(e) => onChange(e.target.value)}
         disabled={disabled}
-        className="w-full h-8 rounded-lg border border-slate-200/70 bg-white/70 px-2.5 text-[11px] font-medium text-slate-700 shadow-sm outline-none transition-all focus:border-indigo-300 focus:ring-1 focus:ring-indigo-200 disabled:cursor-not-allowed disabled:opacity-60"
+        className="w-full h-8 rounded-lg border border-slate-200/70 bg-white/70 px-2.5 text-xs font-medium text-slate-700 shadow-sm outline-none transition-all focus:border-indigo-300 focus:ring-1 focus:ring-indigo-200 disabled:cursor-not-allowed disabled:opacity-60"
       >
         {options.map((opt) => (
           <option key={opt.value || opt} value={opt.value || opt}>
@@ -345,7 +343,7 @@ function DropdownSelect({ label, value, onChange, options, description, disabled
           </option>
         ))}
       </select>
-      {status && <p className="text-[10px] text-slate-400 leading-snug">{status}</p>}
+      {status && <p className="text-xs text-slate-400 leading-snug">{status}</p>}
     </div>
   );
 }
@@ -355,7 +353,7 @@ function NumberInput({ label, value, onChange, min, max, description }) {
     <div className="flex items-center justify-between gap-4">
       <div className="min-w-0">
         <p className="text-xs font-medium text-slate-700">{label}</p>
-        {description && <p className="text-[10px] text-slate-400 mt-0.5">{description}</p>}
+        {description && <p className="text-xs text-slate-400 mt-0.5">{description}</p>}
       </div>
       <div className="flex items-center gap-1.5 flex-shrink-0">
         <button
@@ -383,7 +381,7 @@ function ModelTuningSummary({ modelLabel, plan }) {
     <div className="rounded-squircle-xs border border-indigo-100/70 bg-white/55 px-4 py-3 shadow-sm shadow-indigo-100/30">
       <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
         <div className="min-w-0">
-          <p className="text-[10px] font-semibold uppercase tracking-wider text-indigo-500">Model-tuned defaults</p>
+          <p className="text-xs font-semibold text-slate-500">Model-tuned defaults</p>
           <p className="mt-0.5 truncate text-xs font-medium text-slate-700">
             {modelLabel || 'Selected model'} uses {plan.label.toLowerCase()}.
           </p>
@@ -393,7 +391,7 @@ function ModelTuningSummary({ modelLabel, plan }) {
             {tags.map((tag) => (
               <span
                 key={tag}
-                className="rounded-full border border-indigo-100 bg-indigo-50/70 px-2 py-1 text-[10px] font-semibold text-indigo-600"
+                className="rounded-full border border-slate-200 bg-slate-100/70 px-2 py-1 text-xs font-semibold text-slate-600"
               >
                 {tag}
               </span>
@@ -413,13 +411,13 @@ function MultiToggle({ label, options, selected, onChange, description }) {
   return (
     <div className="space-y-1.5">
       <p className="text-xs font-medium text-slate-700">{label}</p>
-      {description && <p className="text-[10px] text-slate-400">{description}</p>}
+      {description && <p className="text-xs text-slate-400">{description}</p>}
       <div className="flex flex-wrap gap-1.5 mt-1">
         {options.map((opt) => (
           <button
             key={opt}
             onClick={() => toggle(opt)}
-            className={`tactile px-3 py-1.5 rounded-lg text-[11px] font-medium transition-all duration-150 ${
+            className={`tactile px-3 py-1.5 rounded-lg text-xs font-medium transition-all duration-150 ${
               selected.includes(opt)
                 ? 'bg-indigo-500 text-white shadow-sm'
                 : 'bg-white/60 text-slate-600 border border-slate-200/60 hover:bg-white/90'
@@ -496,7 +494,7 @@ function AdvancedSection({ children, label = 'Advanced options', testId = undefi
     <div className="pt-2" data-testid={testId}>
       <button
         onClick={() => setOpen((v) => !v)}
-        className="flex items-center gap-1.5 text-[11px] font-semibold text-slate-400 hover:text-indigo-500 transition-colors mb-2"
+        className="flex items-center gap-1.5 text-xs font-semibold text-slate-400 hover:text-indigo-500 transition-colors mb-2"
         data-testid={testId ? `${testId}-toggle` : undefined}
         aria-expanded={open}
       >
@@ -1335,11 +1333,11 @@ function DeliverablePreview({ featureId, delivData, courseMap, columns, promptTe
         className="mb-4 rounded-lg border border-slate-200/40 overflow-hidden"
       >
         <div className="px-3 py-1.5 bg-slate-50/60 border-b border-slate-200/40 flex items-center justify-between">
-          <p className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider flex items-center gap-1.5">
+          <p className="text-xs font-semibold text-slate-500 flex items-center gap-1.5">
             {label} — {realContent.total || realContent.items?.length || 0}{' '}
             {featureId === 'courseMap' ? 'lessons' : 'items'}
             {isExample && (
-              <span className="px-1.5 py-0.5 rounded bg-amber-50 text-amber-500 text-[9px] font-semibold normal-case tracking-normal">
+              <span className="px-1.5 py-0.5 rounded bg-amber-50 text-amber-600 text-[10px] font-semibold">
                 Sample layout
               </span>
             )}
@@ -1465,7 +1463,7 @@ function DeliverableConfigContent({
             promptText={promptText}
             lessonCount={lessonCount}
           />
-          <p className="text-[11px] text-slate-500">
+          <p className="text-xs text-slate-500">
             View settings for the Course Map grid and XLSX export — click to enable/disable, drag to reorder,
             double-click to rename.
           </p>
@@ -1582,7 +1580,7 @@ function DeliverableConfigContent({
                 )}
               </>
             ) : (
-              <p className="text-[10px] text-slate-400 leading-snug">
+              <p className="text-xs text-slate-400 leading-snug">
                 GPT Image slide visuals are available when the model provider is OpenAI.
               </p>
             )}
@@ -1883,7 +1881,7 @@ function DeliverableConfigContent({
         return (
           <div className="space-y-4">
             {customDef && (
-              <p className="text-[11px] text-slate-500 italic">
+              <p className="text-xs text-slate-500 italic">
                 Custom deliverable — all generation settings are in Advanced options below.
               </p>
             )}
@@ -1974,7 +1972,7 @@ export default function Config({
             </button>
             <button
               onClick={() => setShowHelp(true)}
-              className="tactile flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-[11px] font-semibold text-slate-500 transition-colors hover:text-blue-600 dark:text-slate-400 dark:hover:text-blue-200"
+              className="tactile flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-semibold text-slate-500 transition-colors hover:text-blue-600 dark:text-slate-400 dark:hover:text-blue-200"
             >
               <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path
@@ -2009,11 +2007,11 @@ export default function Config({
               <div className="mb-4 flex flex-col gap-2 border-b border-slate-100 pb-4 sm:flex-row sm:items-center sm:justify-between dark:border-slate-800">
                 <div>
                   <p className="text-base font-semibold text-slate-900 dark:text-white">Ready to generate</p>
-                  <p className="text-[11px] font-medium text-slate-500 dark:text-slate-400">
+                  <p className="text-xs font-medium text-slate-500 dark:text-slate-400">
                     Course Map + {selectedMaterialCount} material{selectedMaterialCount === 1 ? '' : 's'}.
                   </p>
                 </div>
-                <span className="w-fit rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-[11px] font-bold text-slate-700 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300">
+                <span className="w-fit rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-xs font-bold text-slate-700 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300">
                   {scopeDescription}
                 </span>
               </div>
@@ -2037,10 +2035,8 @@ export default function Config({
                 {configurableFeatures.length > 0 && (
                   <div className="space-y-2">
                     <div className="flex items-end justify-between gap-3 px-1">
-                      <p className="text-[10px] font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">
-                        Materials
-                      </p>
-                      <p className="text-[10px] font-medium text-slate-500 dark:text-slate-400">Optional tuning</p>
+                      <p className="text-xs font-semibold text-slate-500 dark:text-slate-400">Materials</p>
+                      <p className="text-xs font-medium text-slate-500 dark:text-slate-400">Optional tuning</p>
                     </div>
                     {configurableFeatures.map((feature) => {
                       const config = deliverableConfig[feature.id] || {};
@@ -2131,7 +2127,7 @@ export default function Config({
               className="rounded-2xl border border-slate-200/80 bg-white p-3 shadow-sm dark:border-slate-700 dark:bg-slate-950"
             >
               {lessonScope.type === 'specific' && !scopeValid && (
-                <p className="text-center text-[11px] text-amber-500 mb-2">Select at least one lesson to continue.</p>
+                <p className="text-center text-xs text-amber-500 mb-2">Select at least one lesson to continue.</p>
               )}
               <button
                 data-testid="config-generate-button"
@@ -2157,9 +2153,9 @@ export default function Config({
 
         {/* Footer */}
         <footer className="py-4 text-center">
-          <div className="flex items-center justify-center gap-3 text-[10px] text-slate-300/70">
+          <div className="flex items-center justify-center gap-3 text-xs text-slate-300/70">
             <a href="#/changelog" className="font-medium hover:text-indigo-500 transition-colors duration-200">
-              v0.14.3
+              v0.14.4
             </a>
             <span>·</span>
             <a href="#/privacy" className="hover:text-indigo-500 transition-colors duration-200">

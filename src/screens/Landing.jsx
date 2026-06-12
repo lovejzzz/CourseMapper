@@ -492,7 +492,7 @@ export default function Landing({
                     data-testid="sample-courses-shuffle"
                     onClick={shuffleCourseExamples}
                     title="Shuffle sample courses"
-                    className="tactile rounded-full px-0.5 py-1 text-[10px] font-semibold uppercase tracking-wider text-slate-500 transition-colors hover:text-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-300 dark:text-slate-400 dark:hover:text-blue-200 dark:focus:ring-blue-500/50"
+                    className="tactile rounded-full px-0.5 py-1 text-xs font-semibold text-slate-500 transition-colors hover:text-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-300 dark:text-slate-400 dark:hover:text-blue-200 dark:focus:ring-blue-500/50"
                   >
                     Try
                   </button>
@@ -502,7 +502,7 @@ export default function Landing({
                       data-testid="course-example-chip"
                       data-example-text={text}
                       onClick={() => (onExampleSelect ? onExampleSelect(text) : setPromptText(text))}
-                      className="tactile flex items-center gap-1.5 rounded-full border border-slate-200 bg-white px-3 py-1.5 text-[11px] font-medium text-slate-600 transition-all duration-200 hover:border-blue-200 hover:bg-blue-50 hover:text-blue-600 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300 dark:hover:border-blue-400/40 dark:hover:bg-blue-400/10 dark:hover:text-blue-200"
+                      className="tactile flex items-center gap-1.5 rounded-full border border-slate-200 bg-white px-3 py-1.5 text-xs font-medium text-slate-600 transition-all duration-200 hover:border-blue-200 hover:bg-blue-50 hover:text-blue-600 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300 dark:hover:border-blue-400/40 dark:hover:bg-blue-400/10 dark:hover:text-blue-200"
                     >
                       {label}
                     </button>
@@ -511,8 +511,8 @@ export default function Landing({
               )}
 
               {hasSavedSession && (
-                <div className="mt-5 flex items-center gap-3 rounded-2xl border border-blue-200/70 bg-blue-50/70 px-4 py-3 animate-spring-in dark:border-blue-400/20 dark:bg-blue-400/10">
-                  <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-xl bg-white text-blue-600 dark:bg-slate-950 dark:text-blue-200">
+                <div className="mt-5 flex items-center gap-3 rounded-lg border border-blue-200/70 bg-blue-50/70 px-4 py-3 animate-spring-in dark:border-blue-400/20 dark:bg-blue-400/10">
+                  <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg bg-white text-blue-600 dark:bg-slate-950 dark:text-blue-200">
                     <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path
                         strokeLinecap="round"
@@ -524,11 +524,11 @@ export default function Landing({
                   </div>
                   <div className="min-w-0 flex-1">
                     <p className="text-xs font-semibold text-slate-800 dark:text-slate-100">Previous session found</p>
-                    <p className="text-[11px] text-slate-500 dark:text-slate-400">Resume it or start fresh.</p>
+                    <p className="text-xs text-slate-500 dark:text-slate-400">Resume it or start fresh.</p>
                   </div>
                   <button
                     onClick={onRestoreSession}
-                    className="tactile flex items-center gap-1.5 rounded-lg bg-slate-950 px-3.5 py-2 text-[11px] font-semibold text-white shadow-sm transition-all hover:brightness-110 dark:bg-white dark:text-slate-950"
+                    className="tactile flex items-center gap-1.5 rounded-lg bg-slate-950 px-3.5 py-2 text-xs font-semibold text-white shadow-sm transition-all hover:brightness-110 dark:bg-white dark:text-slate-950"
                   >
                     <svg className="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path
@@ -581,7 +581,7 @@ export default function Landing({
                     {files.map((file, i) => (
                       <div
                         key={i}
-                        className="flex items-center justify-between rounded-xl bg-slate-50 px-3 py-1.5 animate-spring-in dark:bg-slate-800"
+                        className="flex items-center justify-between rounded-md bg-slate-50 px-3 py-1.5 animate-spring-in dark:bg-slate-800"
                       >
                         <div className="flex min-w-0 items-center gap-2">
                           <FileIcon ext={file.name.split('.').pop()} />
@@ -589,7 +589,7 @@ export default function Landing({
                             {file.name}
                           </span>
                           {file.size > 0 && (
-                            <span className="flex-shrink-0 text-[10px] text-slate-400">{formatSize(file.size)}</span>
+                            <span className="flex-shrink-0 text-xs text-slate-400">{formatSize(file.size)}</span>
                           )}
                         </div>
                         <button
@@ -618,7 +618,7 @@ export default function Landing({
                   <button
                     type="button"
                     onClick={() => document.getElementById('landing-file-input').click()}
-                    className="tactile flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-[11px] font-medium text-slate-500 transition-all duration-200 hover:bg-blue-50 hover:text-blue-600 dark:text-slate-400 dark:hover:bg-blue-400/10 dark:hover:text-blue-200"
+                    className="tactile flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-medium text-slate-500 transition-all duration-200 hover:bg-blue-50 hover:text-blue-600 dark:text-slate-400 dark:hover:bg-blue-400/10 dark:hover:text-blue-200"
                   >
                     <svg className="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path
@@ -630,7 +630,7 @@ export default function Landing({
                     </svg>
                     {files.length > 0 ? 'Add files' : 'Attach files'}
                   </button>
-                  <span className="text-right text-[10px] leading-4 text-slate-500 dark:text-slate-400">
+                  <span className="text-right text-xs leading-4 text-slate-500 dark:text-slate-400">
                     {isDragging ? (
                       'Drop to attach'
                     ) : (
@@ -729,7 +729,7 @@ export default function Landing({
               <button
                 onClick={onGenerate}
                 disabled={!canGenerate || isGenerating}
-                className={`tactile btn-glow mt-5 w-full rounded-2xl px-8 py-4 text-sm font-semibold tracking-wide transition-all duration-300 ${
+                className={`tactile btn-glow mt-5 w-full rounded-lg px-8 py-4 text-sm font-semibold tracking-wide transition-all duration-300 ${
                   canGenerate && !isGenerating
                     ? 'bg-slate-950 text-white shadow-lg shadow-slate-950/15 hover:brightness-110 dark:bg-white dark:text-slate-950 dark:shadow-white/10'
                     : 'cursor-not-allowed bg-slate-200/90 text-slate-500 shadow-none dark:bg-slate-800 dark:text-slate-500'
@@ -762,7 +762,7 @@ export default function Landing({
       </main>
 
       <footer className="px-5 py-4 text-center">
-        <div className="flex items-center justify-center gap-3 text-[10px] text-slate-500/80 dark:text-slate-400">
+        <div className="flex items-center justify-center gap-3 text-xs text-slate-500/80 dark:text-slate-400">
           {/* v0.13: the version number carries a "what's new" popover — the
               latest release summary on hover/focus, full history on click. */}
           <span className="group relative inline-block">
@@ -776,28 +776,25 @@ export default function Landing({
             <div
               id="latest-release-popover"
               role="tooltip"
-              className="pointer-events-none absolute bottom-full left-1/2 z-30 mb-2 w-72 -translate-x-1/2 rounded-xl border border-slate-200/80 bg-white/95 p-3 text-left opacity-0 shadow-xl backdrop-blur-sm transition-opacity duration-200 group-hover:pointer-events-auto group-hover:opacity-100 group-focus-within:pointer-events-auto group-focus-within:opacity-100 dark:border-slate-700 dark:bg-slate-900/95"
+              className="pointer-events-none absolute bottom-full left-1/2 z-30 mb-2 w-72 -translate-x-1/2 rounded-lg border border-slate-200/80 bg-white/95 p-3 text-left opacity-0 shadow-xl backdrop-blur-sm transition-opacity duration-200 group-hover:pointer-events-auto group-hover:opacity-100 group-focus-within:pointer-events-auto group-focus-within:opacity-100 dark:border-slate-700 dark:bg-slate-900/95"
             >
-              <p className="text-[10px] font-semibold uppercase tracking-wide text-indigo-500 dark:text-indigo-300">
+              <p className="text-xs font-semibold text-slate-500 dark:text-slate-400">
                 What's new in v{LATEST_RELEASE.version} · {LATEST_RELEASE.date}
               </p>
-              <p className="mt-1 text-[11px] font-semibold leading-snug text-slate-700 dark:text-slate-200">
+              <p className="mt-1 text-xs font-semibold leading-snug text-slate-700 dark:text-slate-200">
                 {LATEST_RELEASE.title}
               </p>
               <ul className="mt-1.5 space-y-1">
                 {LATEST_RELEASE.highlights.map((highlight) => (
-                  <li
-                    key={highlight}
-                    className="flex gap-1.5 text-[10px] leading-snug text-slate-500 dark:text-slate-400"
-                  >
-                    <span className="mt-0.5 h-1 w-1 flex-shrink-0 rounded-full bg-indigo-400" />
+                  <li key={highlight} className="flex gap-1.5 text-xs leading-snug text-slate-500 dark:text-slate-400">
+                    <span className="mt-0.5 h-1 w-1 flex-shrink-0 rounded-full bg-slate-400 dark:bg-slate-500" />
                     <span>{highlight}</span>
                   </li>
                 ))}
               </ul>
               <a
                 href="#/changelog"
-                className="mt-2 inline-block text-[10px] font-semibold text-blue-600 hover:underline dark:text-blue-300"
+                className="mt-2 inline-block text-xs font-semibold text-blue-600 hover:underline dark:text-blue-300"
               >
                 Read the full changelog →
               </a>

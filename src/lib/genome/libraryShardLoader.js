@@ -210,9 +210,15 @@ export function inferCourseDisciplines(courseMap) {
     // key has no shard yet; inferring it makes the gap visible through the
     // 2.7 "no shard for inferred discipline" logging instead of silent.
     ['geo', /\bgeolog|plate tectonic|mineral|seismolog|volcan|earth science|petrolog|geomorpholog|stratigraph/],
+    // v0.14.4 C3b: the old generic clause (`\blanguage\b.*\b(?:…|i{1,3}|[12])\b`)
+    // matched prose like "Probability language and sample spaces" whenever any
+    // standalone i/1/2 appeared later in the joined titles. Named languages
+    // keep word-boundary matching; the generic "language" clause now requires
+    // a language-COURSE shape — "language" as head noun of a course phrase —
+    // never "X language and Y" prose.
     [
       'lang',
-      /\bmandarin|\bchinese|\bspanish|\bfrench|\bgerman|\bjapanese|\barabic|\bkorean|\bitalian|foreign language|world language|\blanguage\b.*\b(?:elementary|beginner|beginning|conversation|i{1,3}|[12])\b/,
+      /\bmandarin|\bchinese|\bspanish|\bfrench|\bgerman|\bjapanese|\barabic|\bkorean|\bitalian|\bamerican sign language\b|\b(?:foreign|world|second)[- ]language|\blanguage[- ](?:course|learning|acquisition|immersion)\b/,
     ],
   ];
   const found = map.filter(([, re]) => re.test(text)).map(([discipline]) => discipline);

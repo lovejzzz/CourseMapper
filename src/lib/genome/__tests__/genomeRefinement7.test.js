@@ -179,6 +179,54 @@ describe('iteration 7 — three cross-discipline bridge families render', () => 
   });
 });
 
+// v0.14.4 C3b: the generic "language" clause requires a language-COURSE shape.
+// The old pattern (`\blanguage\b.*\b(?:…|i{1,3}|[12])\b`) matched the stats
+// lesson title "Probability language and sample spaces" whenever a standalone
+// i/1/2 appeared anywhere later in the joined titles.
+describe('v0.14.4 C3b — lang inference requires course-shaped "language", never prose', () => {
+  it('does NOT route "Probability language and sample spaces" prose to lang', () => {
+    const disciplines = inferCourseDisciplines({
+      courseName: 'Introductory Statistics',
+      lessons: [
+        { title: 'Probability language and sample spaces' },
+        // A standalone roman-numeral token later in the joined text — the
+        // exact shape that satisfied the old `.*\b(?:i{1,3}|[12])\b` tail.
+        { title: 'Type I and Type II errors' },
+        { title: 'Sampling distributions, lesson 2' },
+      ],
+    });
+    expect(disciplines).not.toContain('lang');
+    expect(disciplines).toContain('stats');
+  });
+
+  it('still routes named-language course titles to lang', () => {
+    expect(
+      inferCourseDisciplines({
+        courseName: 'Elementary Mandarin Chinese I',
+        lessons: [{ title: 'Greetings and Self-Introductions' }, { title: 'The Pinyin System and Four Tones' }],
+      }),
+    ).toEqual(['lang']);
+    expect(inferCourseDisciplines({ courseName: 'Beginning French II', lessons: [] })).toContain('lang');
+  });
+
+  it('routes course-shaped generic "language" phrases to lang', () => {
+    expect(inferCourseDisciplines({ courseName: 'Second Language Acquisition', lessons: [] })).toContain('lang');
+    expect(inferCourseDisciplines({ courseName: 'World Languages Survey', lessons: [] })).toContain('lang');
+    expect(inferCourseDisciplines({ courseName: 'Foreign Language Pedagogy', lessons: [] })).toContain('lang');
+    expect(inferCourseDisciplines({ courseName: 'American Sign Language I', lessons: [] })).toContain('lang');
+    expect(inferCourseDisciplines({ courseName: 'Language Learning and Technology', lessons: [] })).toContain('lang');
+  });
+
+  it('leaves other "X language and Y" prose alone', () => {
+    expect(
+      inferCourseDisciplines({
+        courseName: 'Introduction to Psychology',
+        lessons: [{ title: 'Body language and nonverbal communication, part 1' }],
+      }),
+    ).not.toContain('lang');
+  });
+});
+
 describe('iteration 7 — discipline inference covers the new disciplines', () => {
   it('routes biology, macroeconomics, history, and literature courses to their shards', () => {
     expect(inferCourseDisciplines({ courseName: 'Human Physiology', lessons: [{ title: 'Homeostasis' }] })).toContain(

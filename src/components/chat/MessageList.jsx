@@ -54,6 +54,7 @@ export default function MessageList({
   onConfigureAI,
   onSelectProposal,
   onDigestPrompt,
+  onDigestOpenReview,
   onDigestDismiss,
   onAcceptDiff,
   onRejectDiff,
@@ -183,7 +184,7 @@ export default function MessageList({
         {/* Greeting + suggestion starters — inline at the top of the chat stream */}
         <div className="space-y-3">
           <div className="flex items-start gap-2.5">
-            <div className="w-6 h-6 rounded-full bg-gradient-to-br from-slate-100 to-slate-200 flex items-center justify-center flex-shrink-0 shadow-sm">
+            <div className="w-6 h-6 rounded-full bg-gradient-to-br from-slate-100 to-slate-200 dark:from-slate-800 dark:to-slate-700 flex items-center justify-center flex-shrink-0 shadow-sm">
               <svg className="w-3 h-3 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path
                   strokeLinecap="round"
@@ -220,7 +221,7 @@ export default function MessageList({
                         ? `agent-starter-${s.action}`
                         : undefined
                   }
-                  className="tactile text-[12px] px-3 py-1.5 rounded-full bg-white/60 border border-slate-200/40 text-slate-600 hover:bg-indigo-50/60 hover:border-indigo-300/40 hover:text-indigo-600 transition-all shadow-sm"
+                  className="tactile text-[12px] px-3 py-1.5 rounded-full bg-white/60 border border-slate-200/40 text-slate-600 hover:bg-indigo-50/60 hover:border-indigo-300/40 dark:hover:border-indigo-500/40 hover:text-indigo-600 transition-all shadow-sm"
                 >
                   {s.text}
                 </button>
@@ -321,6 +322,7 @@ export default function MessageList({
                 digest={msg.digest}
                 status={msg.status}
                 onPrompt={onDigestPrompt}
+                onOpenInQueue={onDigestOpenReview ? (entry) => onDigestOpenReview(entry.id) : undefined}
                 onDismiss={onDigestDismiss ? () => onDigestDismiss(i) : undefined}
               />
             );
@@ -421,7 +423,7 @@ export default function MessageList({
         <button
           type="button"
           onClick={() => scrollToBottom('smooth')}
-          className="absolute bottom-3 left-1/2 -translate-x-1/2 z-10 flex items-center gap-2 px-3 py-1.5 rounded-full bg-indigo-500 text-white text-[11px] font-semibold shadow-lg hover:bg-indigo-600 focus:outline-none focus:ring-2 focus:ring-indigo-300 transition-all animate-in fade-in slide-in-from-bottom-2 duration-200"
+          className="absolute bottom-3 left-1/2 -translate-x-1/2 z-10 flex items-center gap-2 px-3 py-1.5 rounded-full bg-indigo-500 text-white text-xs font-semibold shadow-lg hover:bg-indigo-600 focus:outline-none focus:ring-2 focus:ring-indigo-300 transition-all animate-in fade-in slide-in-from-bottom-2 duration-200"
           aria-label={`Jump to ${pendingNewCount} new message${pendingNewCount === 1 ? '' : 's'}`}
         >
           <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">

@@ -4,7 +4,19 @@ import { safeImport } from '../lib/safeImport';
 import { summarizeReadiness } from '../lib/deliverableReadiness';
 import { evaluateStrictPackageReadiness } from '../lib/packageFinalizer';
 import { normalizeReadinessIssue } from '../lib/readinessIssueSchema';
-import { buildPreExportChecklist, setChecklistItemConfirmed, summarizeChecklist } from '../lib/preExportChecklist';
+import { buildPreExportChecklist } from '../lib/preExportChecklist';
+import ReviewQueue from './ReviewQueue';
+import NoticeBanner from './NoticeBanner';
+import {
+  REVIEW_CLASS_KEYS,
+  REVIEW_CLASS_LABELS,
+  applyReviewMark,
+  buildReviewQueue,
+  loadReviewProgress,
+  resolveReviewRunId,
+  saveReviewProgress,
+  selectOutstandingQueue,
+} from '../lib/reviewQueueModel';
 import {
   exportDeliverableCsv,
   exportDeliverablePdf,
@@ -139,7 +151,7 @@ function FmtBtn({ fmt, label, disabled, busy, onClick }) {
       data-testid={`export-format-${fmt.id}`}
       onClick={onClick}
       disabled={disabled || busy}
-      className={`tactile flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg text-[11px] font-semibold transition-all duration-200 w-full
+      className={`tactile flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg text-xs font-semibold transition-all duration-200 w-full
         ${disabled ? 'opacity-30 cursor-not-allowed bg-slate-100 text-slate-400 border border-slate-200/40' : colorMap[fmt.color]}
         ${busy ? 'opacity-70' : ''}`}
     >
@@ -164,7 +176,7 @@ function GDriveBtn({ fmt, label, disabled, busy, onClick }) {
       data-testid={`export-format-${fmt.id}`}
       onClick={onClick}
       disabled={disabled || busy}
-      className={`tactile flex items-center gap-2 px-3 py-2 rounded-lg text-[11px] font-semibold transition-all duration-200 w-full
+      className={`tactile flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-semibold transition-all duration-200 w-full
         ${disabled ? 'opacity-30 cursor-not-allowed bg-slate-100 text-slate-400 border border-slate-200/40' : btnClass}`}
     >
       {busy ? (
@@ -305,7 +317,7 @@ function getDownloadReadiness(readiness) {
   };
 }
 
-function ReadinessPanel({ readiness, onIssueClick }) {
+function ReadinessPanel({ readiness, onIssueClick, quality = null, onOpenQuality = null, finishSummary = '' }) {
   if (!readiness || readiness.featureCount === 0) return null;
 
   const isBlocked = readiness.blockers.length > 0;
@@ -340,28 +352,39 @@ function ReadinessPanel({ readiness, onIssueClick }) {
         };
 
   return (
-    <div data-testid="readiness-panel" className={`rounded-xl border px-3 py-2.5 ${tone.wrap}`}>
+    <div data-testid="readiness-panel" className={`rounded-lg border px-3 py-2.5 ${tone.wrap}`}>
       <div className="flex items-start gap-2">
         <span
-          className={`mt-0.5 flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full text-[11px] ${tone.icon}`}
+          className={`mt-0.5 flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full text-xs ${tone.icon}`}
         >
           {isBlocked ? '!' : hasWarnings ? '•' : '✓'}
         </span>
         <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5">
-            <p data-testid="readiness-status" className="text-[11px] font-bold">
+            <p data-testid="readiness-status" className="text-xs font-bold">
               {tone.title}
             </p>
-            <span className="text-[9px] font-semibold opacity-70">{tone.meta}</span>
+            <span className="text-xs font-semibold opacity-70">{tone.meta}</span>
+            {/* v0.14.4 WS-B2: the download card carries the compact grade
+                stamp; the full chip lives in the workspace header. */}
+            {!isBlocked && !hasWarnings && <QualityStamp quality={quality} onOpen={onOpenQuality} />}
           </div>
-          <p className="mt-0.5 text-[10px] leading-snug opacity-80">{helperText}</p>
+          <p className="mt-0.5 text-xs leading-snug opacity-80">{helperText}</p>
+          {/* v0.14.4 WS-B3: the repairs/warnings receipt folded into the
+              download card's detail line — the only place this info lives
+              now that the in-panel stage narration is gone. */}
+          {!isBlocked && !hasWarnings && finishSummary && (
+            <p data-testid="readiness-finish-summary" className="mt-0.5 text-xs leading-snug opacity-70">
+              {finishSummary}
+            </p>
+          )}
           {issuesToShow.length > 0 && (
             <ul className="mt-1.5 space-y-1">
               {issuesToShow.map((issue, index) => (
                 <li
                   key={`${issue.featureId}-${issue.message}-${index}`}
                   data-testid="readiness-issue"
-                  className="text-[10px] leading-snug"
+                  className="text-xs leading-snug"
                 >
                   {canNavigate(issue) ? (
                     <button
@@ -428,18 +451,18 @@ function ReadinessConfirm({
   })();
 
   return (
-    <div ref={confirmRef} data-testid="readiness-confirm" className={`rounded-xl border px-3 py-3 ${tone.wrap}`}>
-      <p className="text-[11px] font-bold">{tone.title}</p>
-      <p className="mt-1 text-[10px] leading-snug">{tone.description}</p>
+    <div ref={confirmRef} data-testid="readiness-confirm" className={`rounded-lg border px-3 py-3 ${tone.wrap}`}>
+      <p className="text-xs font-bold">{tone.title}</p>
+      <p className="mt-1 text-xs leading-snug">{tone.description}</p>
       {pendingExport.repairsApplied > 0 && (
-        <p className="mt-1 text-[10px] font-semibold">
+        <p className="mt-1 text-xs font-semibold">
           Auto-fixed {pendingExport.repairsApplied} safe issue
           {pendingExport.repairsApplied === 1 ? '' : 's'} before this check.
         </p>
       )}
       <ul className="mt-2 space-y-1">
         {issues.map((issue, index) => (
-          <li key={`${issue.featureId}-${issue.message}-${index}`} className="text-[10px] leading-snug">
+          <li key={`${issue.featureId}-${issue.message}-${index}`} className="text-xs leading-snug">
             {canNavigate(issue) ? (
               <button
                 type="button"
@@ -459,7 +482,7 @@ function ReadinessConfirm({
         ))}
       </ul>
       {readiness.issues.length > issues.length && (
-        <p className="mt-1 text-[10px] font-semibold opacity-70">
+        <p className="mt-1 text-xs font-semibold opacity-70">
           +{readiness.issues.length - issues.length} more issue
           {readiness.issues.length - issues.length === 1 ? '' : 's'}
         </p>
@@ -471,7 +494,7 @@ function ReadinessConfirm({
             data-testid="readiness-finish-package"
             onClick={() => onFinishPackage?.(pendingExport.format, readiness, pendingExport.scope)}
             disabled={finishPackageBusy}
-            className={`rounded-lg border bg-white/70 px-2 py-1.5 text-[10px] font-bold hover:bg-white disabled:cursor-not-allowed disabled:opacity-60 ${tone.reviewButton}`}
+            className={`rounded-lg border bg-white/70 px-2 py-1.5 text-xs font-bold hover:bg-white disabled:cursor-not-allowed disabled:opacity-60 ${tone.reviewButton}`}
           >
             {finishPackageBusy ? 'Finishing package...' : 'Finish package'}
           </button>
@@ -485,7 +508,7 @@ function ReadinessConfirm({
               }
               onCancel();
             }}
-            className={`rounded-lg border bg-white/70 px-2 py-1.5 text-[10px] font-bold hover:bg-white ${tone.reviewButton}`}
+            className={`rounded-lg border bg-white/70 px-2 py-1.5 text-xs font-bold hover:bg-white ${tone.reviewButton}`}
           >
             Open first issue
           </button>
@@ -495,52 +518,32 @@ function ReadinessConfirm({
   );
 }
 
-// ── Quality badge (v0.14.3 WS-A A3) ──────────────────────────────────────────
-// Chip styling mirrors PackageTrustStrip's trust chips; click opens the
-// report modal. The modal renders a STRUCTURED summary from the grade result
+// ── Quality stamp (v0.14.4 WS-B2) ─────────────────────────────────────────────
+// The PRIMARY quality chip moved to the workspace header (WorkspaceQualityChip
+// beside the course title); the panel keeps only this compact "100 · A" stamp
+// on the Ready-to-download card. Click opens the same report modal — which
+// stays in this file: it renders a STRUCTURED summary from the grade result
 // object instead of markdown — the app's markdown renderer lives in the chat
 // chunk (MessageBubble) and pulling it into the export panel chunk would be
 // heavier than the data it formats; the full markdown report ships in the
 // ZIP as QUALITY_REPORT.md.
-function qualityIssueCount(quality) {
-  if (Number.isFinite(quality?.findingCount)) return quality.findingCount;
-  const counts = quality?.findingCounts || {};
-  return (counts.p0 || 0) + (counts.p1 || 0) + (counts.p2 || 0);
-}
-
-function QualityBadge({ quality, onOpen }) {
-  if (!quality) return null;
-  const chipBase = 'inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[10px] font-bold';
-  if (quality.status !== 'graded') {
-    return (
-      <span
-        data-testid="quality-badge-not-graded"
-        title={`Quality grading did not run: ${quality.reason || 'unknown reason'}`}
-        className={`${chipBase} border-slate-200 bg-slate-50 text-slate-500`}
-      >
-        Quality — not graded
-      </span>
-    );
-  }
+export function QualityStamp({ quality, onOpen }) {
+  if (quality?.status !== 'graded') return null;
   const p0 = quality.findingCounts?.p0 || 0;
-  const issues = qualityIssueCount(quality);
   const tone =
-    p0 > 0 || quality.grade === 'F'
-      ? 'border-rose-200 bg-rose-50 text-rose-700'
-      : quality.grade === 'A' || quality.grade === 'B'
-        ? 'border-emerald-200 bg-emerald-50 text-emerald-700'
-        : 'border-amber-200 bg-amber-50 text-amber-700';
+    (quality.grade === 'A' || quality.grade === 'B') && p0 === 0
+      ? 'border-emerald-200 bg-white/70 text-emerald-700'
+      : 'border-amber-200 bg-white/70 text-amber-700';
   return (
     <button
       type="button"
-      data-testid="quality-badge"
+      data-testid="quality-stamp"
       onClick={onOpen}
-      title={`Deterministic package grade ${quality.score}/100 (${quality.grade}) · ${issues} issue${
-        issues === 1 ? '' : 's'
-      } — click for the full report (also shipped as QUALITY_REPORT.md in the ZIP)`}
-      className={`${chipBase} ${tone} tactile transition-colors hover:brightness-95`}
+      title={`Deterministic package grade ${quality.score}/100 (${quality.grade}) — click for the full report`}
+      aria-label={`Package quality ${quality.score} out of 100, grade ${quality.grade} — open the quality report`}
+      className={`inline-flex items-center gap-0.5 rounded-full border px-1.5 py-0.5 font-mono text-[10px] font-bold transition-colors hover:brightness-95 ${tone}`}
     >
-      Quality {quality.score} · {quality.grade} · {issues} issue{issues === 1 ? '' : 's'}
+      {quality.score} · {quality.grade}
     </button>
   );
 }
@@ -563,7 +566,7 @@ function QualityReportModal({ quality, onClose }) {
       onClick={onClose}
     >
       <div
-        className="bg-white/95 backdrop-blur-lg rounded-2xl shadow-2xl border border-slate-200/60 w-full max-w-lg mx-4 max-h-[80vh] flex flex-col animate-in slide-in-from-bottom-4 duration-300"
+        className="bg-white/95 backdrop-blur-lg rounded-lg shadow-2xl border border-slate-200/60 w-full max-w-lg mx-4 max-h-[80vh] flex flex-col animate-in slide-in-from-bottom-4 duration-300"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex items-center justify-between px-5 py-4 border-b border-slate-100">
@@ -571,7 +574,7 @@ function QualityReportModal({ quality, onClose }) {
             <p className="text-sm font-bold text-slate-800">
               Package quality — {quality.score}/100 ({quality.grade})
             </p>
-            <p className="text-[10px] text-slate-400">
+            <p className="text-xs text-slate-400">
               {counts.p0 || 0} P0 · {counts.p1 || 0} P1 · {counts.p2 || 0} P2 · grader v{quality.graderVersion}
               {quality.gradedAt ? ` · ${new Date(quality.gradedAt).toLocaleString()}` : ''}
             </p>
@@ -589,12 +592,12 @@ function QualityReportModal({ quality, onClose }) {
         </div>
         <div className="overflow-y-auto px-5 py-4 space-y-4">
           <div>
-            <p className="text-[9px] font-bold text-slate-400 uppercase tracking-wider mb-1.5">Dimension scores</p>
+            <p className="text-xs font-semibold text-slate-500 mb-1.5">Dimension scores</p>
             <div className="grid grid-cols-2 gap-1">
               {dimensions.map(([dimension, score]) => (
                 <div
                   key={dimension}
-                  className="flex items-center justify-between rounded-lg bg-slate-50 px-2 py-1 text-[11px]"
+                  className="flex items-center justify-between rounded-lg bg-slate-50 px-2 py-1 text-xs"
                 >
                   <span className="text-slate-500 capitalize">{dimension}</span>
                   <span className="font-bold text-slate-700">
@@ -606,11 +609,9 @@ function QualityReportModal({ quality, onClose }) {
             </div>
           </div>
           <div>
-            <p className="text-[9px] font-bold text-slate-400 uppercase tracking-wider mb-1.5">
-              Findings ({findings.length})
-            </p>
+            <p className="text-xs font-semibold text-slate-500 mb-1.5">Findings ({findings.length})</p>
             {findings.length === 0 ? (
-              <p className="rounded-lg bg-emerald-50 px-2 py-1.5 text-[11px] font-semibold text-emerald-700">
+              <p className="rounded-lg bg-emerald-50 px-2 py-1.5 text-xs font-semibold text-emerald-700">
                 No detectable defects — every deterministic check passed.
               </p>
             ) : (
@@ -619,20 +620,18 @@ function QualityReportModal({ quality, onClose }) {
                   <li key={finding.id} className="rounded-lg border border-slate-100 bg-white px-2 py-1.5">
                     <div className="flex items-center gap-1.5">
                       <span
-                        className={`rounded px-1 py-0.5 text-[9px] font-bold ${
+                        className={`rounded px-1 py-0.5 text-[10px] font-bold ${
                           QUALITY_SEVERITY_TONES[finding.severity] || QUALITY_SEVERITY_TONES.P2
                         }`}
                       >
                         {finding.severity}
                       </span>
-                      <span className="text-[9px] font-semibold uppercase tracking-wide text-slate-400">
-                        {finding.dimension}
-                      </span>
+                      <span className="text-xs font-semibold capitalize text-slate-400">{finding.dimension}</span>
                     </div>
-                    <p className="mt-0.5 text-[11px] leading-snug text-slate-700">{finding.detail}</p>
-                    {finding.file ? <p className="text-[9px] text-slate-400 break-all">{finding.file}</p> : null}
+                    <p className="mt-0.5 text-xs leading-snug text-slate-700">{finding.detail}</p>
+                    {finding.file ? <p className="text-xs text-slate-400 break-all">{finding.file}</p> : null}
                     {finding.evidence ? (
-                      <p className="mt-0.5 rounded bg-slate-50 px-1.5 py-1 font-mono text-[9px] leading-snug text-slate-500 break-words">
+                      <p className="mt-0.5 rounded bg-slate-50 px-1.5 py-1 font-mono text-xs leading-snug text-slate-500 break-words">
                         {finding.evidence}
                       </p>
                     ) : null}
@@ -641,7 +640,7 @@ function QualityReportModal({ quality, onClose }) {
               </ul>
             )}
           </div>
-          <p className="text-[10px] text-slate-400 leading-snug">
+          <p className="text-xs text-slate-400 leading-snug">
             The full markdown report ships inside the package ZIP as QUALITY_REPORT.md, and the manifest carries this
             grade under <span className="font-mono">quality</span>.
           </p>
@@ -651,26 +650,11 @@ function QualityReportModal({ quality, onClose }) {
   );
 }
 
-function ReadinessFinalizingPanel({ finishingPackage = false, message = '' }) {
-  return (
-    <div className="rounded-xl border border-indigo-100 bg-indigo-50/70 px-3 py-2.5 text-indigo-700">
-      <div className="flex items-start gap-2">
-        <span className="mt-0.5 flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full bg-indigo-100 text-indigo-600">
-          <Spin />
-        </span>
-        <div className="min-w-0 flex-1">
-          <p className="text-[11px] font-bold">Finishing package</p>
-          <p className="mt-0.5 text-[10px] leading-snug opacity-80">
-            {message ||
-              (finishingPackage
-                ? 'Checking, fixing, and verifying export.'
-                : 'Fixing known issues before showing the export package.')}
-          </p>
-        </div>
-      </div>
-    </div>
-  );
-}
+// v0.14.4 WS-B3: ReadinessFinalizingPanel removed — the in-panel stage
+// narration ("Finishing package / Generating, repairing…") now lives in ONE
+// place, the build ribbon under the workspace header. While a finish pass
+// runs the panel simply withholds the readiness card (its data is mid-repair)
+// instead of narrating.
 
 // ── Main Component ────────────────────────────────────────────────────────────
 export default function ExportSidePanel({
@@ -684,10 +668,24 @@ export default function ExportSidePanel({
   onFinishPackage,
   canFinishPackage = false,
   packageQualityPass,
+  // v0.14.4 WS-B2: the findings modal can be driven by the workspace header
+  // chip — when the parent passes an open-state handler the modal runs in
+  // controlled mode; otherwise the panel keeps its own local state.
+  qualityModalOpen: qualityModalOpenProp,
+  onQualityModalOpenChange = null,
   isPackageGenerationRunning = false,
   preferPackageScope = false,
   getPipelineState = null, // v0.12.1: () => manifest pipeline block, read at export time
   getQualityContext = null, // v0.14.3: () => { budget, digest } — the ZIP grade's honesty source
+  // v0.14.4 WS-C1/C2: the unified review queue. Observations arrive from the
+  // agent digest (AppFlow reads them off chat history), the run digest feeds
+  // the structural class; open-state can be driven by the parent so the
+  // agent-panel observation card routes into the SAME drawer.
+  reviewObservations = [],
+  lastRunDigest = null,
+  reviewQueueOpen: reviewQueueOpenProp,
+  onReviewQueueOpenChange = null,
+  reviewQueueFocusId = null,
 }) {
   const { courseMap, columns, selectedFeatures, slideTheme } = useCourse();
   const [scope, setScope] = useState('current'); // 'current' | 'all'
@@ -699,11 +697,26 @@ export default function ExportSidePanel({
   const [pendingReadinessExport, setPendingReadinessExport] = useState(null);
   const [autoRepairingReadiness, setAutoRepairingReadiness] = useState(false);
   const [finishPackageBusy, setFinishPackageBusy] = useState(false);
-  const [qualityModalOpen, setQualityModalOpen] = useState(false);
+  const [qualityModalOpenLocal, setQualityModalOpenLocal] = useState(false);
+  const qualityModalControlled = typeof onQualityModalOpenChange === 'function';
+  const qualityModalOpen = qualityModalControlled ? Boolean(qualityModalOpenProp) : qualityModalOpenLocal;
+  const setQualityModalOpen = qualityModalControlled ? onQualityModalOpenChange : setQualityModalOpenLocal;
   const [readinessRepairAttempts, setReadinessRepairAttempts] = useState(() => new Set());
   const readinessConfirmRef = useRef(null);
   const isPackageQualityRunning = packageQualityPass?.status === 'running';
   const isPackageWorkflowRunning = isPackageGenerationRunning || isPackageQualityRunning;
+  // v0.14.4 WS-B3: "5 safe repairs applied · 1 export warning" — the
+  // finish-pass receipt details that exist nowhere else once the in-panel
+  // stage narration card is removed (the ribbon narrates stages, not these).
+  const finishSummary = useMemo(() => {
+    if (packageQualityPass?.status !== 'ready') return '';
+    const repairs = Number(packageQualityPass?.repairsApplied) || 0;
+    const exportWarnings = Number(packageQualityPass?.receipt?.exportWarningCount) || 0;
+    const parts = [];
+    if (repairs > 0) parts.push(`${repairs} safe repair${repairs === 1 ? '' : 's'} applied`);
+    if (exportWarnings > 0) parts.push(`${exportWarnings} export warning${exportWarnings === 1 ? '' : 's'}`);
+    return parts.join(' · ');
+  }, [packageQualityPass]);
 
   // All-tab lesson filter (null = all lessons)
   const allLessons = courseMap?.lessons || [];
@@ -711,22 +724,68 @@ export default function ExportSidePanel({
 
   const courseName = courseMap?.courseName || 'Course';
 
-  // ── Pre-export checklist (v0.9.1): localization gaps + compiler-flagged
-  // local-review items, confirmable in place. Honest, never blocking.
-  const [checklistVersion, setChecklistVersion] = useState(0);
-  const [checklistOpen, setChecklistOpen] = useState(false);
+  // ── Review queue (v0.14.4 WS-C1/C2): one queue, three classes. The old
+  // "N items need your eyes" checklist becomes the spot-check class; agent
+  // digest observations and export/quality structural notices join it. The
+  // entry shows per-class counts instead of one anxious number; the drawer
+  // steps through items with progress persisted per finish run.
   const checklistItems = useMemo(() => {
-    void checklistVersion;
     try {
       return buildPreExportChecklist({ courseMap, deliverables });
     } catch {
       return [];
     }
-  }, [courseMap, deliverables, checklistVersion]);
-  const checklistSummary = useMemo(() => summarizeChecklist(checklistItems), [checklistItems]);
-  const toggleChecklistItem = (item) => {
-    setChecklistItemConfirmed(courseName, item.id, !item.confirmed);
-    setChecklistVersion((version) => version + 1);
+  }, [courseMap, deliverables]);
+  const reviewQueue = useMemo(
+    () =>
+      buildReviewQueue({
+        reviewItems: checklistItems,
+        observations: reviewObservations,
+        finalizerResult: lastRunDigest,
+        qualityPass: packageQualityPass,
+      }),
+    [checklistItems, lastRunDigest, packageQualityPass, reviewObservations],
+  );
+  const reviewRunId = useMemo(
+    () => resolveReviewRunId({ finalizerResult: lastRunDigest, qualityPass: packageQualityPass, courseName }),
+    [courseName, lastRunDigest, packageQualityPass],
+  );
+  const [reviewProgress, setReviewProgress] = useState(() => loadReviewProgress(reviewRunId));
+  useEffect(() => {
+    // A NEW finish pass carries a new run id — progress resets honestly.
+    setReviewProgress(loadReviewProgress(reviewRunId));
+  }, [reviewRunId]);
+  const outstandingReview = useMemo(
+    () => selectOutstandingQueue(reviewQueue, reviewProgress),
+    [reviewQueue, reviewProgress],
+  );
+  const [reviewQueueOpenLocal, setReviewQueueOpenLocal] = useState(false);
+  const [reviewQueueFocusLocal, setReviewQueueFocusLocal] = useState(null);
+  const reviewQueueControlled = typeof onReviewQueueOpenChange === 'function';
+  const reviewQueueOpen = reviewQueueControlled ? Boolean(reviewQueueOpenProp) : reviewQueueOpenLocal;
+  const effectiveReviewFocusId = reviewQueueControlled ? reviewQueueFocusId : reviewQueueFocusLocal;
+  const openReviewQueue = (focusId = null) => {
+    if (reviewQueueControlled) {
+      onReviewQueueOpenChange(true, focusId);
+    } else {
+      setReviewQueueFocusLocal(focusId);
+      setReviewQueueOpenLocal(true);
+    }
+  };
+  const closeReviewQueue = () => {
+    if (reviewQueueControlled) {
+      onReviewQueueOpenChange(false, null);
+    } else {
+      setReviewQueueOpenLocal(false);
+      setReviewQueueFocusLocal(null);
+    }
+  };
+  const handleReviewMark = (item, mark) => {
+    setReviewProgress((prev) => {
+      const next = applyReviewMark(prev, item.id, mark);
+      saveReviewProgress(next);
+      return next;
+    });
   };
 
   // ── Determine what we're exporting ──────────────────────────────────────────
@@ -1167,11 +1226,16 @@ export default function ExportSidePanel({
       className="export-side-panel flex flex-col gap-4 w-full lg:w-64 lg:flex-shrink-0"
     >
       {/* ── Panel card ── */}
-      <div className="rounded-2xl border border-slate-200/70 bg-white p-4 shadow-sm space-y-4">
+      <div className="rounded-lg border border-slate-200/70 bg-white p-4 shadow-sm space-y-4">
         {/* Header */}
         <div className="flex items-start gap-2">
-          <div className="w-7 h-7 rounded-lg bg-slate-950 flex items-center justify-center flex-shrink-0 shadow-sm">
-            <svg className="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <div className="w-7 h-7 rounded-lg bg-slate-950 dark:bg-white flex items-center justify-center flex-shrink-0 shadow-sm">
+            <svg
+              className="w-3.5 h-3.5 text-white dark:text-slate-950"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
               <path
                 strokeLinecap="round"
                 strokeLinejoin="round"
@@ -1182,13 +1246,6 @@ export default function ExportSidePanel({
           </div>
           <div className="min-w-0">
             <p className="text-xs font-bold text-slate-800">Finish package</p>
-            {/* v0.14.3 WS-A A3: the quality badge — the package's own grade,
-                next to the trust surface, styled like the trust chips. */}
-            {packageQualityPass?.quality && (
-              <div className="mt-1">
-                <QualityBadge quality={packageQualityPass.quality} onOpen={() => setQualityModalOpen(true)} />
-              </div>
-            )}
           </div>
         </div>
 
@@ -1196,45 +1253,54 @@ export default function ExportSidePanel({
           <QualityReportModal quality={packageQualityPass?.quality} onClose={() => setQualityModalOpen(false)} />
         )}
 
-        {/* ── Pre-export checklist (v0.9.1) ── */}
-        {checklistItems.length > 0 && (
+        <ReviewQueue
+          open={reviewQueueOpen}
+          queue={reviewQueue}
+          progress={reviewProgress}
+          focusItemId={effectiveReviewFocusId}
+          onClose={closeReviewQueue}
+          onMark={handleReviewMark}
+        />
+
+        {/* ── Review (v0.14.4 WS-C1): the ONE queue entry — per-class counts
+            ("2 observations · 15 spot-checks · 1 structural") replace the
+            single "N items need your eyes" number; chips open the drawer
+            focused on that class. ── */}
+        {reviewQueue.total > 0 && (
           <div
-            data-testid="preexport-checklist"
-            className={`rounded-xl border px-3 py-2 ${checklistSummary.open > 0 ? 'border-amber-200/70 bg-amber-50/50' : 'border-emerald-200/70 bg-emerald-50/40'}`}
+            data-testid="review-queue-entry"
+            className="rounded-lg border border-slate-200/70 bg-slate-50/60 px-3 py-2"
           >
-            <button
-              onClick={() => setChecklistOpen((open) => !open)}
-              className="w-full flex items-center justify-between text-left"
-            >
-              <span
-                className={`text-[11px] font-semibold ${checklistSummary.open > 0 ? 'text-amber-700' : 'text-emerald-700'}`}
+            <div className="flex items-center justify-between">
+              <p className="text-xs font-semibold text-slate-700">Review</p>
+              <button
+                data-testid="review-queue-open"
+                onClick={() => openReviewQueue(null)}
+                className="text-xs font-semibold text-indigo-500 hover:text-indigo-700 transition-colors"
               >
-                {checklistSummary.headline}
-              </span>
-              <span className="text-[10px] text-slate-400">{checklistOpen ? 'Hide' : 'Review'}</span>
-            </button>
-            {checklistOpen && (
-              <ul className="mt-2 space-y-1.5 max-h-48 overflow-y-auto">
-                {checklistItems.map((item) => (
-                  <li key={item.id} className="flex items-start gap-2">
-                    <input
-                      type="checkbox"
-                      checked={item.confirmed}
-                      onChange={() => toggleChecklistItem(item)}
-                      className="mt-0.5 accent-emerald-600"
-                      aria-label={`Confirm: ${item.label}`}
-                    />
-                    <div className="min-w-0">
-                      <p
-                        className={`text-[11px] leading-snug ${item.confirmed ? 'text-slate-400 line-through' : 'text-slate-700'}`}
-                      >
-                        {item.label}
-                      </p>
-                      {!item.confirmed && <p className="text-[10px] text-slate-400 leading-snug">{item.detail}</p>}
-                    </div>
-                  </li>
+                Open queue
+              </button>
+            </div>
+            {outstandingReview.total > 0 ? (
+              <div className="mt-1.5 flex flex-wrap gap-1">
+                {REVIEW_CLASS_KEYS.filter((classKey) => outstandingReview.counts[classKey] > 0).map((classKey) => (
+                  <button
+                    key={classKey}
+                    data-testid={`review-queue-chip-${classKey}`}
+                    onClick={() => openReviewQueue(outstandingReview.classes[classKey][0]?.id || null)}
+                    className="rounded-full border border-slate-200/70 bg-white px-2 py-0.5 text-xs font-semibold text-slate-600 transition-colors hover:border-indigo-200 hover:text-indigo-600"
+                  >
+                    {outstandingReview.counts[classKey]}{' '}
+                    {outstandingReview.counts[classKey] === 1
+                      ? REVIEW_CLASS_LABELS[classKey].singular
+                      : REVIEW_CLASS_LABELS[classKey].plural}
+                  </button>
                 ))}
-              </ul>
+              </div>
+            ) : (
+              <p data-testid="review-queue-entry-clear" className="mt-1 text-xs font-semibold text-emerald-600">
+                All clear — every review item is handled.
+              </p>
             )}
           </div>
         )}
@@ -1253,7 +1319,7 @@ export default function ExportSidePanel({
                 setScope(s.id);
                 clearPendingReadinessExport();
               }}
-              className={`flex-1 py-1.5 rounded-md text-[11px] font-semibold transition-all duration-200 ${
+              className={`flex-1 py-1.5 rounded-md text-xs font-semibold transition-all duration-200 ${
                 scope === s.id ? 'bg-white text-slate-800 shadow-sm' : 'text-slate-400 hover:text-slate-600'
               }`}
             >
@@ -1263,14 +1329,14 @@ export default function ExportSidePanel({
         </div>
 
         {/* Scope description */}
-        <p className="text-[10px] text-slate-400 leading-snug -mt-1">
+        <p className="text-xs text-slate-400 leading-snug -mt-1">
           {scope === 'current' ? (
             <>
-              <span className="font-semibold text-indigo-500">{tabLabel}</span> only
+              <span className="font-semibold text-slate-600">{tabLabel}</span> only
             </>
           ) : (
             <>
-              <span className="font-semibold text-indigo-500">
+              <span className="font-semibold text-slate-600">
                 {allReadyCount} deliverable{allReadyCount !== 1 ? 's' : ''}
               </span>{' '}
               ready
@@ -1278,16 +1344,17 @@ export default function ExportSidePanel({
           )}
         </p>
 
-        {showReadinessFinalizing ? (
-          <ReadinessFinalizingPanel
-            finishingPackage={finishPackageBusy || isPackageQualityRunning}
-            message={
-              packageQualityPass?.message ||
-              (isPackageGenerationRunning ? 'Generating course materials before export.' : '')
-            }
+        {/* v0.14.4 WS-B3: while a finish/generation pass runs, the build
+            ribbon narrates — the panel shows nothing here instead of a
+            duplicate "Finishing package…" card. */}
+        {!showReadinessFinalizing && (
+          <ReadinessPanel
+            readiness={displayedReadiness}
+            onIssueClick={onReadinessIssueClick}
+            quality={packageQualityPass?.quality || null}
+            onOpenQuality={() => setQualityModalOpen(true)}
+            finishSummary={finishSummary}
           />
-        ) : (
-          <ReadinessPanel readiness={displayedReadiness} onIssueClick={onReadinessIssueClick} />
         )}
 
         <ReadinessConfirm
@@ -1300,12 +1367,6 @@ export default function ExportSidePanel({
           confirmRef={readinessConfirmRef}
         />
 
-        {isPackageQualityRunning && (
-          <p className="rounded-lg bg-indigo-50 px-2 py-1.5 text-[10px] font-semibold text-indigo-700">
-            Finishing package is checking materials before export.
-          </p>
-        )}
-
         {/* ────────────────────────────────────────────────────────────── */}
         {/* ALL MODE: Lesson scope + ZIP download + Save Project file     */}
         {/* ────────────────────────────────────────────────────────────── */}
@@ -1315,10 +1376,10 @@ export default function ExportSidePanel({
             {allLessons.length > 0 && (
               <div>
                 <div className="flex items-center justify-between mb-1.5">
-                  <p className="text-[9px] font-bold text-slate-400 uppercase tracking-wider">Lesson scope</p>
+                  <p className="text-xs font-semibold text-slate-500">Lesson scope</p>
                   <button
                     onClick={() => setSelectedLessons(allSelected ? [] : null)}
-                    className="text-[9px] font-semibold text-indigo-500 hover:text-indigo-700 transition-colors"
+                    className="text-xs font-semibold text-indigo-500 hover:text-indigo-700 transition-colors"
                   >
                     {allSelected ? 'Uncheck all' : 'Select all'}
                   </button>
@@ -1331,13 +1392,13 @@ export default function ExportSidePanel({
                       <button
                         key={idx}
                         onClick={() => toggleLesson(idx)}
-                        className={`w-full flex items-center gap-1.5 px-2 py-1 rounded-md text-[10px] text-left transition-colors ${
+                        className={`w-full flex items-center gap-1.5 px-2 py-1 rounded-md text-xs text-left transition-colors ${
                           isOn ? 'bg-indigo-50 text-indigo-700' : 'text-slate-400 hover:bg-slate-50'
                         }`}
                       >
                         <span
                           className={`w-3.5 h-3.5 rounded flex-shrink-0 border flex items-center justify-center ${
-                            isOn ? 'bg-indigo-500 border-indigo-500' : 'border-slate-300'
+                            isOn ? 'bg-indigo-500 border-indigo-500' : 'border-slate-300 dark:border-slate-600'
                           }`}
                         >
                           {isOn && (
@@ -1352,7 +1413,7 @@ export default function ExportSidePanel({
                   })}
                 </div>
                 {!allSelected && (
-                  <p className="text-[9px] text-slate-400 mt-1">
+                  <p className="text-xs text-slate-400 mt-1">
                     {selectedCount} of {allLessons.length} lessons selected
                   </p>
                 )}
@@ -1360,7 +1421,7 @@ export default function ExportSidePanel({
             )}
 
             <div>
-              <p className="text-[9px] font-bold text-slate-400 uppercase tracking-wider mb-1.5">Package ZIP</p>
+              <p className="text-xs font-semibold text-slate-500 mb-1.5">Package ZIP</p>
               <button
                 data-testid="export-download-zip"
                 onClick={() => doExport('zip')}
@@ -1374,7 +1435,7 @@ export default function ExportSidePanel({
                   !courseMap ||
                   (selectedLessons !== null && selectedLessons.length === 0)
                 }
-                className="tactile flex w-full items-center justify-center gap-2 rounded-xl bg-slate-950 py-2.5 text-[12px] font-bold text-white shadow-sm transition-colors hover:bg-slate-800 disabled:cursor-not-allowed disabled:bg-slate-200 disabled:text-slate-400"
+                className="tactile flex w-full items-center justify-center gap-2 rounded-lg bg-slate-950 py-2.5 text-xs font-bold text-white shadow-sm transition-colors hover:bg-slate-800 disabled:cursor-not-allowed disabled:bg-slate-200 disabled:text-slate-400 dark:bg-white dark:text-slate-950 dark:hover:bg-slate-200 dark:disabled:bg-slate-800 dark:disabled:text-slate-500"
               >
                 {busy === 'zip' ? (
                   <Spin />
@@ -1394,13 +1455,13 @@ export default function ExportSidePanel({
 
             {/* Save Project file */}
             <div className="pt-1 border-t border-slate-100 space-y-1.5">
-              <p className="text-[9px] font-bold text-slate-400 uppercase tracking-wider">Backup</p>
-              <p className="text-[10px] text-slate-400 leading-snug">Save a portable .coursemapper file.</p>
+              <p className="text-xs font-semibold text-slate-500">Backup</p>
+              <p className="text-xs text-slate-400 leading-snug">Save a portable .coursemapper file.</p>
               <button
                 data-testid="export-save-project"
                 onClick={onSaveProject}
                 disabled={!!busy || isPackageQualityRunning}
-                className="tactile flex items-center justify-center gap-2 w-full py-2.5 rounded-lg text-[11px] font-semibold text-slate-600 bg-white/60 border border-slate-200/50 hover:bg-white/80 transition-all disabled:opacity-40 disabled:cursor-not-allowed"
+                className="tactile flex items-center justify-center gap-2 w-full py-2.5 rounded-lg text-xs font-semibold text-slate-600 bg-white/60 border border-slate-200/50 hover:bg-white/80 transition-all disabled:opacity-40 disabled:cursor-not-allowed"
               >
                 <svg className="w-3.5 h-3.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path
@@ -1422,7 +1483,7 @@ export default function ExportSidePanel({
         {scope === 'current' && activeTab === 'slideDecks' && (
           <>
             <div className="space-y-2">
-              <p className="text-[9px] font-bold text-slate-400 uppercase tracking-wider">Download</p>
+              <p className="text-xs font-semibold text-slate-500">Download</p>
               <FmtBtn
                 fmt={{ id: 'pptx', label: '.pptx', color: 'pptx' }}
                 disabled={isPackageQualityRunning || isDisabled('pptx')}
@@ -1437,7 +1498,7 @@ export default function ExportSidePanel({
               />
             </div>
             <div className="space-y-2">
-              <p className="text-[9px] font-bold text-slate-400 uppercase tracking-wider">Google Drive</p>
+              <p className="text-xs font-semibold text-slate-500">Google Drive</p>
               <GDriveBtn
                 fmt={{ id: 'gslides', label: 'Google Slides' }}
                 disabled={isPackageQualityRunning || isDisabled('gslides')}
@@ -1454,7 +1515,7 @@ export default function ExportSidePanel({
         {scope === 'current' && activeTab === 'courseMap' && (
           <>
             <div className="space-y-2">
-              <p className="text-[9px] font-bold text-slate-400 uppercase tracking-wider">Download</p>
+              <p className="text-xs font-semibold text-slate-500">Download</p>
               <div className="grid grid-cols-2 gap-1.5">
                 {DOWNLOAD_FORMATS.map((fmt) => (
                   <FmtBtn
@@ -1468,7 +1529,7 @@ export default function ExportSidePanel({
               </div>
             </div>
             <div className="space-y-2">
-              <p className="text-[9px] font-bold text-slate-400 uppercase tracking-wider">Google Drive</p>
+              <p className="text-xs font-semibold text-slate-500">Google Drive</p>
               <div className="flex flex-col gap-1.5">
                 {CLOUD_FORMATS.map((fmt) => (
                   <GDriveBtn
@@ -1490,7 +1551,7 @@ export default function ExportSidePanel({
         {scope === 'current' && activeTab !== 'courseMap' && activeTab !== 'slideDecks' && (
           <>
             <div className="space-y-2">
-              <p className="text-[9px] font-bold text-slate-400 uppercase tracking-wider">Download</p>
+              <p className="text-xs font-semibold text-slate-500">Download</p>
               <div className="grid grid-cols-2 gap-1.5">
                 {DOWNLOAD_FORMATS.map((fmt) => (
                   <FmtBtn
@@ -1504,7 +1565,7 @@ export default function ExportSidePanel({
               </div>
             </div>
             <div className="space-y-2">
-              <p className="text-[9px] font-bold text-slate-400 uppercase tracking-wider">Google Drive</p>
+              <p className="text-xs font-semibold text-slate-500">Google Drive</p>
               <div className="flex flex-col gap-1.5">
                 {CLOUD_FORMATS.filter((fmt) => !isDisabled(fmt.id)).map((fmt) => (
                   <GDriveBtn
@@ -1516,7 +1577,7 @@ export default function ExportSidePanel({
                   />
                 ))}
                 {CLOUD_FORMATS.every((fmt) => isDisabled(fmt.id)) && (
-                  <p className="text-[10px] text-slate-300 italic">No cloud export available</p>
+                  <p className="text-xs text-slate-300 italic">No cloud export available</p>
                 )}
               </div>
             </div>
@@ -1527,7 +1588,7 @@ export default function ExportSidePanel({
         {lastOk && (
           <p
             data-testid="export-success"
-            className="text-[10px] font-semibold text-emerald-600 bg-emerald-50 rounded-lg px-2 py-1.5 animate-spring-in"
+            className="text-xs font-semibold text-emerald-600 bg-emerald-50 rounded-lg px-2 py-1.5 animate-spring-in"
           >
             ✓ {lastOk}
           </p>
@@ -1535,18 +1596,18 @@ export default function ExportSidePanel({
         {lastError && (
           <p
             data-testid="export-error"
-            className="text-[10px] font-semibold text-red-500 bg-red-50 rounded-lg px-2 py-1.5 animate-spring-in"
+            className="text-xs font-semibold text-red-500 bg-red-50 rounded-lg px-2 py-1.5 animate-spring-in"
           >
             ✗ {lastError}
           </p>
         )}
         {lastNotice && !lastError && (
-          <p
-            data-testid="export-notice"
-            className="text-[10px] font-semibold text-amber-700 bg-amber-50 rounded-lg px-2 py-1.5 animate-spring-in"
-          >
-            {lastNotice}
-          </p>
+          // WS-E2: the export panel's amber notice shares the NoticeBanner
+          // shell with the agent panel's "Worth a look" card — one attention
+          // component, not two.
+          <NoticeBanner severity="warning" dataTestId="export-notice" className="animate-spring-in">
+            <p className="text-xs font-semibold text-amber-700 dark:text-amber-300">{lastNotice}</p>
+          </NoticeBanner>
         )}
       </div>
     </div>

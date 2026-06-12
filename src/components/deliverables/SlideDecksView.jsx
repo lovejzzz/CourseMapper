@@ -221,7 +221,7 @@ function AddBulletBtn({ dataKey, deckIndex, slideIndex, bulletsKey, currentCount
   return (
     <button
       onClick={() => onEdit([dataKey, deckIndex, 'slides', slideIndex, bulletsKey, currentCount], 'New point')}
-      className="mt-2 flex items-center gap-1 text-[10px] text-slate-400 hover:text-indigo-500 transition-colors opacity-0 group-hover/slide:opacity-100"
+      className="mt-2 flex items-center gap-1 text-xs text-slate-400 hover:text-indigo-500 transition-colors opacity-0 group-hover/slide:opacity-100"
       title="Add bullet point"
     >
       <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -1191,7 +1191,7 @@ export default function SlideDecksView({ data, isStreaming, onEdit, slideTheme, 
       <div className="flex items-center gap-0 px-2 pt-2 border-b border-slate-200/60 bg-slate-50/50 overflow-x-auto flex-shrink-0">
         {/* Theme picker */}
         <div className="flex items-center gap-1.5 mr-3 pl-1 flex-shrink-0">
-          <span className="text-[9px] font-semibold text-slate-400 uppercase tracking-wider mr-0.5">Theme</span>
+          <span className="text-xs font-semibold text-slate-500 mr-0.5">Theme</span>
           {SLIDE_THEMES.map((t, ti) => (
             <button
               key={ti}
@@ -1231,7 +1231,7 @@ export default function SlideDecksView({ data, isStreaming, onEdit, slideTheme, 
                     setEditingDeckTab(null);
                   }
                 }}
-                className="px-2 py-1.5 text-[11px] font-medium border border-indigo-300 rounded bg-white text-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-300 min-w-[100px]"
+                className="px-2 py-1.5 text-xs font-medium border border-indigo-300 rounded bg-white text-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-300 min-w-[100px]"
               />
             ) : (
               <button
@@ -1245,14 +1245,14 @@ export default function SlideDecksView({ data, isStreaming, onEdit, slideTheme, 
                   }
                 }}
                 title={i === activeDeck && onEdit ? 'Click to edit title' : undefined}
-                className={`px-4 py-2 text-[11px] font-medium whitespace-nowrap transition-all border-b-2 ${
+                className={`px-4 py-2 text-xs font-medium whitespace-nowrap transition-all border-b-2 ${
                   i === activeDeck
                     ? 'border-indigo-500 text-indigo-700 bg-white'
                     : 'border-transparent text-slate-400 hover:text-slate-600 hover:bg-slate-100/60'
                 } ${i === activeDeck && onEdit ? 'cursor-text' : ''}`}
               >
                 {d.lessonTitle || `Deck ${i + 1}`}
-                <span className={`ml-1.5 text-[9px] ${i === activeDeck ? 'text-indigo-400' : 'text-slate-300'}`}>
+                <span className={`ml-1.5 text-[10px] ${i === activeDeck ? 'text-indigo-400' : 'text-slate-300'}`}>
                   ({d.slides?.length || 0})
                 </span>
               </button>
@@ -1276,7 +1276,7 @@ export default function SlideDecksView({ data, isStreaming, onEdit, slideTheme, 
               >
                 <div className="flex gap-2 items-start">
                   <span
-                    className={`text-[9px] font-bold mt-2 w-5 text-right flex-shrink-0 tabular-nums ${isActive ? 'text-indigo-500' : 'text-slate-400'}`}
+                    className={`text-[10px] font-bold mt-2 w-5 text-right flex-shrink-0 tabular-nums ${isActive ? 'text-indigo-500' : 'text-slate-400'}`}
                   >
                     {j + 1}
                   </span>
@@ -1305,7 +1305,7 @@ export default function SlideDecksView({ data, isStreaming, onEdit, slideTheme, 
                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-indigo-400 opacity-75"></span>
                 <span className="relative inline-flex rounded-full h-2 w-2 bg-indigo-500"></span>
               </span>
-              <span className="text-[9px] text-slate-400">Generating...</span>
+              <span className="text-xs text-slate-400">Generating...</span>
             </div>
           )}
         </div>
@@ -1340,7 +1340,7 @@ export default function SlideDecksView({ data, isStreaming, onEdit, slideTheme, 
                     </svg>
                     Prev
                   </button>
-                  <span className="text-[11px] text-slate-500 font-semibold bg-white/60 px-3 py-1 rounded-full shadow-sm tabular-nums">
+                  <span className="text-xs text-slate-500 font-semibold bg-white/60 px-3 py-1 rounded-full shadow-sm tabular-nums">
                     {activeSlide + 1} / {slides.length}
                   </span>
                   <button
@@ -1399,12 +1399,12 @@ export default function SlideDecksView({ data, isStreaming, onEdit, slideTheme, 
                   </div>
                 )}
                 <div className="flex-1 min-w-0">
-                  <p className="text-[10px] font-semibold text-indigo-500 uppercase tracking-wider">
+                  <p className="text-xs font-semibold text-slate-500">
                     {generatedImage?.url ? 'Generated visual' : 'Suggested visual'} · {kind}
                   </p>
                   {desc && <p className="text-xs text-slate-600 leading-snug mt-0.5">{desc}</p>}
                   {alt && (
-                    <p className="text-[10px] text-slate-400 leading-snug mt-1">
+                    <p className="text-xs text-slate-400 leading-snug mt-1">
                       <span className="font-semibold">Alt text:</span> {alt}
                     </p>
                   )}
@@ -1430,31 +1430,31 @@ export default function SlideDecksView({ data, isStreaming, onEdit, slideTheme, 
                     d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z"
                   />
                 </svg>
-                <span className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider">Speaker Notes</span>
+                <span className="text-xs font-semibold text-slate-500">Speaker notes</span>
                 {/* Metadata chips */}
                 <div className="flex items-center gap-1.5 ml-2">
                   {slide?.activityType && (
-                    <span className="text-[9px] font-semibold px-1.5 py-0.5 rounded bg-amber-50 text-amber-700">
+                    <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded bg-amber-50 text-amber-700">
                       <E
                         value={slide.activityType}
                         path={[key, activeDeck, 'slides', activeSlide, 'activityType']}
                         onEdit={onEdit}
-                        className="text-[9px] font-semibold text-amber-700"
+                        className="text-[10px] font-semibold text-amber-700"
                       />
                     </span>
                   )}
                   {(slide?.timeEstimate || slide?.ti || slide?.timer) && (
-                    <span className="text-[9px] text-slate-500 px-1.5 py-0.5 rounded bg-slate-50 font-mono">
+                    <span className="text-[10px] text-slate-500 px-1.5 py-0.5 rounded bg-slate-50 font-mono">
                       ⏱ {slide.timeEstimate || slide.ti || slide.timer}
                     </span>
                   )}
                   {slide?.bloomsLevel && (
-                    <span className="text-[9px] font-semibold px-1.5 py-0.5 rounded bg-violet-50 text-violet-600">
+                    <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded bg-violet-50 text-violet-600">
                       <E
                         value={slide.bloomsLevel}
                         path={[key, activeDeck, 'slides', activeSlide, 'bloomsLevel']}
                         onEdit={onEdit}
-                        className="text-[9px] font-semibold text-violet-600"
+                        className="text-[10px] font-semibold text-violet-600"
                       />
                     </span>
                   )}

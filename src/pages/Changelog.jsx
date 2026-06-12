@@ -3,6 +3,31 @@ import Header from '../components/Header';
 
 const releases = [
   {
+    version: '0.14.4',
+    date: 'June 12, 2026',
+    title: 'Calm Surface: the UI catches up to the pipeline',
+    highlights: [
+      'The table is the product: the course map gets a sticky light header, lesson-band rows with section/assessment meta chips, a 13px reading rhythm with quiet goal-label badges, per-lesson collapse, and a comfortable/compact density toggle — and the Evaluate Design column now renders its alignment verdict with a status icon instead of hiding prose behind a checkbox.',
+      'One status spine: the build ribbon under the workspace header renders the generation story from events the pipeline already streams — live stage sub-labels ("Recovery 1/2 — lessons 1–3"), the cost ticker, and genome/judgment/coverage chips on completion. The quality grade moved beside the course title; the tab bar dropped its counters and rainbow dots for per-tab ready ticks; duplicate status cards in the agent panel and export panel were retired.',
+      'One review queue: "items need your eyes", agent observations, and export warnings merged into a single triaged drawer (observations · spot-checks · structural notices) with step-through review, jump-to-target, and per-package progress that resets on a new finish pass. The structural class was made honest product-side: quiz-header metadata no longer trips the repeated-phrase export gate, and lesson-title prose like "Probability language" no longer misfires the language-discipline inference.',
+      'Deliverable views at registry scale: briefs and rubrics group under sticky lesson headers with jump rails and registry identity lines (id · kind · weight · Course Map stamp), rubric cards link to their brief, exams render with an emphasis shell, coverage scope, and a separated answer key — and "Show in course map" round-trips from every artifact.',
+      'Tokens and parity, end to end: the accent rule (slate structure / indigo interactive / status colors only for status), a 12px reading-text floor with a counted 10px badge scale, one radius scale, sentence-case section labels, a shared NoticeBanner for attention moments — swept across the workspace, landing, marketing pages, and chat chrome, with dark-mode gap fixes wherever the global override layer missed.',
+      'In-browser refinement: the release was driven end-to-end in a real browser — computed-style checks confirmed the spec (header slate-50/12px, links indigo-600, composited dark-mode contrast 6.9:1+), mobile at 375px shows no horizontal overflow with the table properly scroll-contained, and the one real find (the preview title wrapping to three lines on mobile) was fixed and re-verified live.',
+    ],
+    sections: [
+      {
+        label: 'Proof',
+        icon: 'QA',
+        color: 'emerald',
+        items: [
+          'Live verification round on the rebuilt UI: all reference courses 100/A with zero findings and in-app badge drift Δ0 — the UI work moved no artifact bytes, exactly as the roadmap required.',
+          'Every workstream landed with component tests and seeded-browser screenshots (light + dark, three workspace states): 6 new v0144 test files, the codified token scans extended to the landing/pages/chat surfaces, full suite 3,227 passing.',
+          'Bundle discipline held: the landing chunk is byte-unchanged; the AppFlow and ExportSidePanel growth for the ribbon and queue was measured and budgeted explicitly (+8 KiB and +12 KiB with documented comments).',
+        ],
+      },
+    ],
+  },
+  {
     version: '0.14.3',
     date: 'June 11, 2026',
     title: 'The Quality Surface: every package ships its own audit',
@@ -1920,8 +1945,8 @@ export default function Changelog() {
 
               {/* Highlights */}
               {release.highlights && (
-                <div className="mb-10 p-5 rounded-2xl bg-gradient-to-r from-indigo-50/80 to-violet-50/60 border border-indigo-100/60">
-                  <p className="text-xs font-semibold text-indigo-600 uppercase tracking-wider mb-3">Highlights</p>
+                <div className="mb-10 p-5 rounded-lg bg-gradient-to-r from-indigo-50/80 to-violet-50/60 dark:from-indigo-500/10 dark:to-violet-500/10 border border-indigo-100/60">
+                  <p className="text-xs font-semibold text-indigo-600 mb-3">Highlights</p>
                   <ul className="space-y-2">
                     {release.highlights.map((h, i) => (
                       <li key={i} className="flex items-start gap-2.5 text-sm text-slate-700 leading-relaxed">
@@ -1941,9 +1966,7 @@ export default function Changelog() {
                     <div key={section.label}>
                       <div className="flex items-center gap-2 mb-4">
                         <span className={`text-base ${colors.icon}`}>{section.icon}</span>
-                        <h3 className="text-sm font-semibold text-slate-800 uppercase tracking-wider">
-                          {section.label}
-                        </h3>
+                        <h3 className="text-sm font-semibold text-slate-800">{section.label}</h3>
                         <span className={`ml-1 text-[10px] font-bold px-2 py-0.5 rounded-full border ${colors.badge}`}>
                           {section.items.length}
                         </span>

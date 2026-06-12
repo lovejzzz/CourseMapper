@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useCallback, lazy, Suspense } from 'react';
+import React, { useState, useEffect, useMemo, useRef, useCallback, lazy, Suspense } from 'react';
 import { createPortal } from 'react-dom';
 import FocusTrap from 'focus-trap-react';
 import { DEFAULT_COLUMNS } from './components/ColumnEditor';
@@ -8,6 +8,8 @@ import Landing from './screens/Landing';
 import AppLogo from './components/AppLogo';
 import DarkModeToggle from './components/DarkModeToggle';
 import PackageTrustStrip from './components/PackageTrustStrip';
+import WorkspaceQualityChip from './components/WorkspaceQualityChip';
+import BuildRibbon, { TabReadyTick } from './components/BuildRibbon';
 import UserMenu from './components/UserMenu';
 
 // Lazy-load screens/components not needed on initial landing page
@@ -96,6 +98,7 @@ import {
   formatEnrichmentOutcomeLabel,
   getApiCallBudgetTotal,
 } from './lib/apiCallBudget';
+import { buildBuildRibbonModel } from './lib/buildRibbonModel';
 import { buildApiCostPlan, evaluateApiCostControl } from './lib/apiCostControl';
 import {
   buildGenerationCostReport,
@@ -115,6 +118,7 @@ import {
   renderCourseMapFromGraph,
   validateCourseGraph,
 } from './lib/courseGraph';
+import { matchEntityIds } from './lib/nativeGraphAuthoring';
 import { knowledgeCoverage } from './lib/knowledge';
 
 const STORAGE_KEY = 'coursemapper-project';
@@ -409,19 +413,17 @@ function AddDeliverableButton({ unselected, showAddDeliverable, setShowAddDelive
           <>
             <div className="fixed inset-0 z-[9998]" onClick={() => setShowAddDeliverable(false)} />
             <div
-              className="fixed z-[9999] bg-white/95 backdrop-blur-xl rounded-xl border border-slate-200/60 shadow-xl p-2 min-w-[220px] max-h-[70vh] overflow-y-auto animate-spring-in"
+              className="fixed z-[9999] bg-white/95 backdrop-blur-xl rounded-lg border border-slate-200/60 shadow-xl p-2 min-w-[220px] max-h-[70vh] overflow-y-auto animate-spring-in"
               style={{ top: dropPos.top, left: dropPos.left }}
             >
               {builtIn.length > 0 && (
                 <>
-                  <p className="text-[9px] font-bold text-slate-400 uppercase tracking-wider px-2 pt-1 pb-1.5">
-                    Add Deliverable
-                  </p>
+                  <p className="text-xs font-semibold text-slate-500 px-2 pt-1 pb-1.5">Add deliverable</p>
                   {builtIn.map((feature) => (
                     <button
                       key={feature.id}
                       onClick={() => onAdd(feature)}
-                      className="w-full text-left px-2 py-2 rounded-lg text-[11px] font-medium text-slate-600 hover:bg-indigo-50 hover:text-indigo-700 transition-colors"
+                      className="w-full text-left px-2 py-2 rounded-md text-xs font-medium text-slate-600 hover:bg-indigo-50 hover:text-indigo-700 transition-colors"
                     >
                       {feature.label}
                     </button>
@@ -431,14 +433,12 @@ function AddDeliverableButton({ unselected, showAddDeliverable, setShowAddDelive
               {custom.length > 0 && (
                 <>
                   <div className="border-t border-slate-100/80 my-1.5" />
-                  <p className="text-[9px] font-bold text-slate-400 uppercase tracking-wider px-2 pt-1 pb-1.5">
-                    Your Custom
-                  </p>
+                  <p className="text-xs font-semibold text-slate-500 px-2 pt-1 pb-1.5">Your custom</p>
                   {custom.map((feature) => (
                     <button
                       key={feature.id}
                       onClick={() => onAdd(feature)}
-                      className="w-full text-left px-2 py-2 rounded-lg text-[11px] font-medium text-violet-600 hover:bg-violet-50 hover:text-violet-700 transition-colors"
+                      className="w-full text-left px-2 py-2 rounded-md text-xs font-medium text-indigo-600 hover:bg-indigo-50 hover:text-indigo-700 transition-colors"
                     >
                       {feature.label}
                     </button>
@@ -452,7 +452,7 @@ function AddDeliverableButton({ unselected, showAddDeliverable, setShowAddDelive
                   setShowAddDeliverable(false);
                   onCreateCustom();
                 }}
-                className="w-full text-left px-2 py-2 rounded-lg text-[11px] font-medium text-indigo-500 hover:bg-indigo-50 hover:text-indigo-700 transition-colors flex items-center gap-1.5"
+                className="w-full text-left px-2 py-2 rounded-md text-xs font-medium text-indigo-500 hover:bg-indigo-50 hover:text-indigo-700 transition-colors flex items-center gap-1.5"
               >
                 <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
@@ -878,7 +878,16 @@ export default function AppFlow({ startupAction = null, onStartupHandled, onRetu
         deriveCourseGraphFromCourseMap(courseMap),
         courseGraphRef.current.enrichmentOverlay,
       );
-      setCourseGraph(rederived);
+      // v0.14.5 WS-B (B4): native-authored graphs keep stable entity ids
+      // across re-derivation — sessions match by (order, normalized title),
+      // assessments/readings by (dueSession, normalized title); new entities
+      // get fresh ids. ONLY for authoredBy 'native' graphs; the prose path
+      // keeps today's behavior (zero regression surface).
+      setCourseGraph(
+        courseGraphRef.current.authoredBy === 'native'
+          ? matchEntityIds(courseGraphRef.current, { ...rederived, authoredBy: 'native' })
+          : rederived,
+      );
     } catch {
       /* graph consistency is best-effort — the map remains usable */
     }
@@ -995,6 +1004,52 @@ export default function AppFlow({ startupAction = null, onStartupHandled, onRetu
     warnings: 0,
     blockers: 0,
   });
+  // v0.14.4 WS-B2: the quality findings modal lives inside ExportSidePanel's
+  // tree, but the header chip must open it too — so the open-state lives here
+  // (the common parent) and the panel renders the modal in controlled mode.
+  const [qualityReportOpen, setQualityReportOpen] = useState(false);
+  // v0.14.4 WS-C: the unified review queue's open-state lives here (the
+  // common parent) — the export panel's entry chips and the agent panel's
+  // observation card both route into the SAME drawer hosted by
+  // ExportSidePanel. focusId targets a specific item (observation source id).
+  const [reviewQueueRequest, setReviewQueueRequest] = useState(null); // { focusId } | null
+  useEffect(() => {
+    // A fresh finish/grade pass invalidates the previous report — close it so
+    // a stale modal never pops back when the new grade lands. The review
+    // queue closes too: its items are about to be replaced.
+    if (packageQualityPass?.status === 'running') {
+      setQualityReportOpen(false);
+      setReviewQueueRequest(null);
+    }
+  }, [packageQualityPass?.status]);
+
+  // The agent's "Worth a look" digest observations feed the queue's
+  // observation class. ChatPanel appends the digest message to chat history;
+  // the latest one wins (older digests describe an older package).
+  const reviewObservations = useMemo(() => {
+    for (let i = chatHistory.length - 1; i >= 0; i--) {
+      const message = chatHistory[i];
+      if (message?.role === 'digest' && Array.isArray(message.digest?.observations)) {
+        return message.digest.observations;
+      }
+    }
+    return [];
+  }, [chatHistory]);
+
+  const handleReviewQueueOpenChange = useCallback((open, focusId = null) => {
+    if (!open) {
+      setReviewQueueRequest(null);
+      return;
+    }
+    // Mirror the quality chip's mobile handling: the drawer lives in the
+    // export panel's subtree, so bring that view forward first.
+    setMobileWorkspaceView('export');
+    setReviewQueueRequest({ focusId: typeof focusId === 'string' && focusId ? focusId : null });
+  }, []);
+  const handleOpenReviewQueueFromObservation = useCallback(
+    (observationId) => handleReviewQueueOpenChange(true, observationId || null),
+    [handleReviewQueueOpenChange],
+  );
 
   const applyPackageReadinessRepairs = useCallback(
     ({ selectedFeatureIds = selectedFeatures, lessonFilter = null } = {}) => {
@@ -3252,11 +3307,20 @@ export default function AppFlow({ startupAction = null, onStartupHandled, onRetu
           ? 'Workspace sync is still applying.'
           : '';
   const developerIdeDisabled = Boolean(developerIdeDisabledReason);
-  const activeDeliverableProgressIds = Object.keys(deliv.progress?.perFeature || {});
-  const activeDeliverableProgressTotal = activeDeliverableProgressIds.length || deliv.progress?.total || 0;
-  const activeDeliverableReadyCount = activeDeliverableProgressIds.filter(
-    (featureId) => deliv.deliverables?.[featureId]?.status === 'done',
-  ).length;
+  // v0.14.4 WS-B1: the build ribbon model — derived from state this
+  // component already holds (api-call budget events + lifecycle flags).
+  // The tab bar's "Generating 0/9…" counter collapsed into this (WS-B3).
+  const ribbonFeatureIds = selectedFeatures.filter((id) => id !== 'courseMap');
+  const buildRibbonModel = buildBuildRibbonModel({
+    budget: apiCallBudget,
+    generation: { progressStep: gen.progressStep, isStreaming: gen.isStreaming, streamDetail: gen.streamDetail },
+    deliverables: {
+      isGenerating: deliv.isGenerating,
+      doneCount: ribbonFeatureIds.filter((id) => deliv.deliverables?.[id]?.status === 'done').length,
+      totalCount: ribbonFeatureIds.length,
+    },
+    packageQualityPass,
+  });
   const workspaceCourseTitle =
     String(courseMap?.courseName || '').trim() ||
     String(promptText || '')
@@ -3460,7 +3524,7 @@ export default function AppFlow({ startupAction = null, onStartupHandled, onRetu
           {/* Top bar */}
           <div
             data-testid="workspace-header"
-            className="workspace-header-row rounded-2xl border border-slate-200/70 bg-white px-4 py-3 shadow-sm"
+            className="workspace-header-row rounded-lg border border-slate-200/70 bg-white px-4 py-3 shadow-sm"
           >
             <div className="flex flex-col gap-3 xl:flex-row xl:items-center xl:justify-between">
               <div className="flex min-w-0 items-center gap-3">
@@ -3468,11 +3532,11 @@ export default function AppFlow({ startupAction = null, onStartupHandled, onRetu
                   <AppLogo className="h-9 w-auto object-contain" />
                 </a>
                 <div className="min-w-0">
-                  <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Workspace</p>
-                  <h1 className="mt-0.5 max-w-[min(640px,78vw)] truncate text-lg font-bold tracking-tight text-slate-950">
+                  <p className="text-xs font-semibold text-slate-400">Workspace</p>
+                  <h1 className="mt-0.5 max-w-[min(640px,78vw)] truncate text-lg font-bold tracking-tight text-slate-950 dark:text-slate-100">
                     {workspaceCourseTitle}
                   </h1>
-                  <div className="mt-1 flex min-w-0 flex-wrap items-center gap-x-2 gap-y-1 text-[10px] font-semibold text-slate-500">
+                  <div className="mt-1 flex min-w-0 flex-wrap items-center gap-x-2 gap-y-1 text-xs font-semibold text-slate-500">
                     {workspaceLessonCount > 0 && (
                       <span>
                         {workspaceLessonCount} lesson{workspaceLessonCount === 1 ? '' : 's'}
@@ -3500,12 +3564,24 @@ export default function AppFlow({ startupAction = null, onStartupHandled, onRetu
                     />
                   </div>
                 </div>
+                {/* v0.14.4 WS-B2: the package grade in the crown — primary
+                    placement, immediately right of the title cluster. Click
+                    opens the findings modal hosted by ExportSidePanel; on
+                    mobile the export view is brought forward first so the
+                    modal's subtree is visible. */}
+                <WorkspaceQualityChip
+                  packageQualityPass={packageQualityPass}
+                  onOpenReport={() => {
+                    setMobileWorkspaceView('export');
+                    setQualityReportOpen(true);
+                  }}
+                />
               </div>
 
               <div className="flex min-w-0 flex-wrap items-center gap-2">
                 {courseMap && (
                   <span
-                    className={`hidden rounded-full border px-3 py-1 text-[10px] font-bold md:inline-flex ${workspaceSaveTone}`}
+                    className={`hidden rounded-full border px-3 py-1 text-xs font-bold md:inline-flex ${workspaceSaveTone}`}
                     title={workspaceSaveTitle}
                   >
                     {workspaceSaveText}
@@ -3523,7 +3599,7 @@ export default function AppFlow({ startupAction = null, onStartupHandled, onRetu
                     }
                     disabled={finishPackageDisabled}
                     title={finishPackageTitle}
-                    className="tactile inline-flex items-center gap-2 rounded-xl bg-slate-950 px-3.5 py-2 text-xs font-bold text-white shadow-sm transition-colors hover:bg-slate-800 disabled:cursor-not-allowed disabled:bg-slate-200 disabled:text-slate-400"
+                    className="tactile inline-flex items-center gap-2 rounded-md bg-slate-950 px-3.5 py-2 text-xs font-bold text-white shadow-sm transition-colors hover:bg-slate-800 disabled:cursor-not-allowed disabled:bg-slate-200 disabled:text-slate-400 dark:bg-white dark:text-slate-950 dark:hover:bg-slate-200 dark:disabled:bg-slate-800 dark:disabled:text-slate-500"
                   >
                     <svg className="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path
@@ -3550,14 +3626,14 @@ export default function AppFlow({ startupAction = null, onStartupHandled, onRetu
                 <details className="relative">
                   <summary
                     data-testid="workspace-more-menu-trigger"
-                    className="tactile flex cursor-pointer list-none items-center gap-2 rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-bold text-slate-600 transition-colors hover:border-slate-300 hover:bg-slate-50 [&::-webkit-details-marker]:hidden"
+                    className="tactile flex cursor-pointer list-none items-center gap-2 rounded-md border border-slate-200 bg-white px-3 py-2 text-xs font-bold text-slate-600 transition-colors hover:border-slate-300 hover:bg-slate-50 dark:hover:border-slate-600 [&::-webkit-details-marker]:hidden"
                   >
                     More
                     <svg className="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="m19 9-7 7-7-7" />
                     </svg>
                   </summary>
-                  <div className="absolute right-0 z-30 mt-2 w-56 overflow-hidden rounded-xl border border-slate-200 bg-white p-1.5 shadow-xl shadow-slate-950/10">
+                  <div className="absolute right-0 z-30 mt-2 w-56 overflow-hidden rounded-lg border border-slate-200 bg-white p-1.5 shadow-xl shadow-slate-950/10">
                     <button
                       type="button"
                       data-testid="workspace-menu-new-project"
@@ -3566,7 +3642,7 @@ export default function AppFlow({ startupAction = null, onStartupHandled, onRetu
                         setNewProjectCloudSaveFailed(false);
                         setNewProjectConfirm(true);
                       }}
-                      className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-xs font-semibold text-slate-700 hover:bg-slate-50"
+                      className="flex w-full items-center gap-2 rounded-md px-3 py-2 text-left text-xs font-semibold text-slate-700 hover:bg-slate-50"
                     >
                       New Project
                     </button>
@@ -3575,7 +3651,7 @@ export default function AppFlow({ startupAction = null, onStartupHandled, onRetu
                       data-testid="workspace-menu-add-materials"
                       onClick={() => addMaterialInputRef.current?.click()}
                       disabled={gen.isStreaming || rev.isRevising}
-                      className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-xs font-semibold text-slate-700 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-40"
+                      className="flex w-full items-center gap-2 rounded-md px-3 py-2 text-left text-xs font-semibold text-slate-700 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-40"
                     >
                       Add Materials
                     </button>
@@ -3586,7 +3662,7 @@ export default function AppFlow({ startupAction = null, onStartupHandled, onRetu
                           type="button"
                           onClick={version.undo}
                           disabled={version.activeVersion <= 0}
-                          className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-xs font-semibold text-slate-700 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-40"
+                          className="flex w-full items-center gap-2 rounded-md px-3 py-2 text-left text-xs font-semibold text-slate-700 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-40"
                         >
                           Undo
                         </button>
@@ -3594,11 +3670,11 @@ export default function AppFlow({ startupAction = null, onStartupHandled, onRetu
                           type="button"
                           onClick={version.redo}
                           disabled={version.activeVersion >= version.versionHistory.length - 1}
-                          className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-xs font-semibold text-slate-700 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-40"
+                          className="flex w-full items-center gap-2 rounded-md px-3 py-2 text-left text-xs font-semibold text-slate-700 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-40"
                         >
                           Redo
                         </button>
-                        <p className="px-3 pb-1 pt-0.5 text-[10px] font-medium text-slate-400">
+                        <p className="px-3 pb-1 pt-0.5 text-xs font-medium text-slate-400">
                           Version {version.activeVersion + 1}/{version.versionHistory.length}
                         </p>
                       </>
@@ -3616,6 +3692,10 @@ export default function AppFlow({ startupAction = null, onStartupHandled, onRetu
               className="hidden"
             />
           </div>
+
+          {/* v0.14.4 WS-B1: the build ribbon — the single status spine.
+              Hidden entirely on a fresh/empty workspace (model is null). */}
+          <BuildRibbon model={buildRibbonModel} />
 
           {/* ── Deliverable tabs ── */}
           {workspaceTabs.length > 1 && (
@@ -3644,7 +3724,7 @@ export default function AppFlow({ startupAction = null, onStartupHandled, onRetu
                       ? `Drop to remove ${tabDrag.label || 'deliverable'}`
                       : 'Course Map cannot be removed'
                   }
-                  className={`flex h-9 items-center justify-center gap-2 rounded-pill border px-4 text-[10px] font-bold shadow-glass backdrop-blur-xl transition-all duration-150 pointer-events-none ${
+                  className={`flex h-9 items-center justify-center gap-2 rounded-pill border px-4 text-xs font-bold shadow-glass backdrop-blur-xl transition-all duration-150 pointer-events-none ${
                     canDeleteDraggedTab
                       ? tabDrag.overDelete
                         ? 'scale-105 border-red-300 bg-red-100/95 text-red-700 shadow-red-500/20'
@@ -3673,12 +3753,11 @@ export default function AppFlow({ startupAction = null, onStartupHandled, onRetu
           {workspaceTabs.length > 0 && (
             <div
               data-testid="workspace-deliverable-tabs"
-              className="flex items-center gap-1 overflow-x-auto rounded-2xl border border-slate-200/70 bg-white/76 p-1 shadow-sm scrollbar-hide"
+              className="flex items-center gap-1 overflow-x-auto rounded-lg border border-slate-200/70 bg-white/76 p-1 shadow-sm scrollbar-hide"
             >
               {workspaceTabs.map((feature, tabIdx) => {
                 const isActive = activeTab === feature.id;
                 const delivState = deliv.deliverables[feature.id];
-                const isStreaming = delivState?.status === 'streaming';
                 const isDone = delivState?.status === 'done';
                 const isError = delivState?.status === 'error';
                 const isCourseMapDone = feature.id === 'courseMap' && gen.progressStep === 'done';
@@ -3743,51 +3822,33 @@ export default function AppFlow({ startupAction = null, onStartupHandled, onRetu
                           });
                         }
                       }}
-                      className={`tactile flex items-center gap-2 px-3 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition-all duration-200 flex-shrink-0 cursor-grab active:cursor-grabbing touch-none select-none ${
+                      className={`tactile flex items-center gap-2 px-3 py-1.5 rounded-md text-xs font-semibold whitespace-nowrap transition-all duration-200 flex-shrink-0 cursor-grab active:cursor-grabbing touch-none select-none ${
                         isDraggingThis
                           ? 'opacity-20 scale-95'
                           : isDropTarget
                             ? 'scale-[1.03] -translate-y-0.5 bg-indigo-50 text-indigo-600'
                             : isActive
-                              ? 'bg-slate-950 text-white shadow-sm'
+                              ? 'bg-slate-950 text-white shadow-sm dark:bg-white dark:text-slate-950'
                               : 'text-slate-500 hover:bg-slate-100/80 hover:text-slate-700'
                       }`}
                     >
-                      {/* Status dot — cascade sync takes priority for non-courseMap tabs */}
-                      {feature.id !== 'courseMap' && (
-                        <span
-                          className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${
-                            isSyncingThis
-                              ? 'bg-amber-400 animate-pulse'
-                              : isStaleTab && !isSyncingThis
-                                ? staleConf?.level === 'high'
-                                  ? 'bg-amber-400'
-                                  : staleConf?.level === 'medium'
-                                    ? 'bg-amber-300'
-                                    : 'bg-amber-200'
-                                : hasUnseen
-                                  ? 'bg-amber-400'
-                                  : isStreaming
-                                    ? 'bg-indigo-400 animate-pulse'
-                                    : isDone
-                                      ? 'bg-emerald-400'
-                                      : isError
-                                        ? 'bg-red-400'
-                                        : 'bg-slate-300'
-                          }`}
-                        />
-                      )}
-                      {feature.id === 'courseMap' && (
-                        <span
-                          className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${
-                            gen.isStreaming
-                              ? 'bg-indigo-400 animate-pulse'
-                              : isCourseMapDone
-                                ? 'bg-emerald-400'
-                                : 'bg-slate-300'
-                          }`}
-                        />
-                      )}
+                      {/* v0.14.4 WS-B3: rainbow status dots removed — build
+                          progress lives in the ribbon. Tabs keep only a
+                          per-tab ready tick (and a red cross on failure);
+                          stale/unseen still use the text suffixes below. */}
+                      <TabReadyTick
+                        status={
+                          feature.id === 'courseMap'
+                            ? isCourseMapDone
+                              ? 'done'
+                              : null
+                            : isDone
+                              ? 'done'
+                              : isError
+                                ? 'error'
+                                : null
+                        }
+                      />
                       {feature.label}
                       {isStaleTab && !isSyncingThis
                         ? staleConf?.level === 'high'
@@ -3826,12 +3887,8 @@ export default function AppFlow({ startupAction = null, onStartupHandled, onRetu
                   );
                 })()}
 
-              {/* Deliverable generation progress */}
-              {deliv.isGenerating && (
-                <span className="ml-2 text-[10px] text-indigo-500 font-medium animate-pulse whitespace-nowrap flex-shrink-0">
-                  Generating {activeDeliverableReadyCount}/{activeDeliverableProgressTotal}…
-                </span>
-              )}
+              {/* v0.14.4 WS-B3: the "Generating 0/9…" counter moved into the
+                  build ribbon's compile stage label. */}
 
               {/* Sync All Stale button — appears when any deliverable is stale */}
               {(() => {
@@ -3857,7 +3914,7 @@ export default function AppFlow({ startupAction = null, onStartupHandled, onRetu
                         }
                       }
                     }}
-                    className="tactile flex items-center gap-1.5 ml-2 px-3 py-1.5 rounded-pill text-[10px] font-semibold text-amber-700 bg-amber-50/70 border border-amber-200/60 hover:bg-amber-100 transition-all duration-200 whitespace-nowrap flex-shrink-0"
+                    className="tactile flex items-center gap-1.5 ml-2 px-3 py-1.5 rounded-pill text-xs font-semibold text-amber-700 bg-amber-50/70 border border-amber-200/60 hover:bg-amber-100 transition-all duration-200 whitespace-nowrap flex-shrink-0"
                   >
                     <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path
@@ -3929,9 +3986,7 @@ export default function AppFlow({ startupAction = null, onStartupHandled, onRetu
                   transform: tabDrag.moved ? 'translate3d(0,-6px,0) rotate(-1deg)' : 'translate3d(0,0,0)',
                 }}
               >
-                <span
-                  className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${tabDrag.id === 'courseMap' ? 'bg-emerald-400' : 'bg-indigo-400'}`}
-                />
+                <span className="w-1.5 h-1.5 rounded-full flex-shrink-0 bg-indigo-400" />
                 <span className="truncate">{tabDrag.label}</span>
               </div>,
               document.body,
@@ -4260,6 +4315,7 @@ export default function AppFlow({ startupAction = null, onStartupHandled, onRetu
                   chatSendRef={chatSendRef}
                   uid={user?.uid || null}
                   onApiCallEvent={recordApiCallEvent}
+                  onOpenReviewQueue={handleOpenReviewQueueFromObservation}
                 />
               </ErrorBoundary>
             </div>
@@ -4481,6 +4537,8 @@ export default function AppFlow({ startupAction = null, onStartupHandled, onRetu
                   onFinishPackage={handleFinishPackageFromExport}
                   canFinishPackage={canRunPackageFinalizer}
                   packageQualityPass={packageQualityPass}
+                  qualityModalOpen={qualityReportOpen}
+                  onQualityModalOpenChange={setQualityReportOpen}
                   isPackageGenerationRunning={isPackageGenerationRunning}
                   preferPackageScope={
                     hasGenerated && selectedFeatures.length > 1 && packageQualityPass?.status !== 'idle'
@@ -4490,6 +4548,11 @@ export default function AppFlow({ startupAction = null, onStartupHandled, onRetu
                     budget: apiCallBudgetRef.current || {},
                     digest: lastRunDigestRef.current,
                   })}
+                  reviewObservations={reviewObservations}
+                  lastRunDigest={lastRunDigestRef.current}
+                  reviewQueueOpen={Boolean(reviewQueueRequest)}
+                  reviewQueueFocusId={reviewQueueRequest?.focusId || null}
+                  onReviewQueueOpenChange={handleReviewQueueOpenChange}
                 />
               </div>
             )}
