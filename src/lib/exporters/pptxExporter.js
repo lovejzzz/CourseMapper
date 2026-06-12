@@ -258,6 +258,74 @@ const NATIVE_VISUAL_LIMITS = {
   definition: 260, // max chars for the concept-map definition card
 };
 
+// ── v0.14.5 WS-C (C1): concept-map shape geometry ───────────────────────────
+// The keyTerm layout's visual zone sits right of the definition card (card
+// ends at x 4.8) and above the slide-number chip (chip starts at y 5.185):
+// x 4.95–9.6, y 1.05–5.15 on the 10 × 5.625in deck. The hub is a centered
+// ellipse; spokes seat on a FIXED slot table keyed by spoke count — no
+// auto-layout. Wide slots (2.05in) hold 1-2 per row; three-across rows
+// (counts 5-6) use narrow slots (1.45in). Every slot clears the hub band
+// (y 2.6–3.6) and the zone bounds — tests/v0145-deck-visuals.test.js proves
+// the geometry for all six counts.
+export const CONCEPT_MAP_GEOMETRY = {
+  zone: { x: 4.95, y: 1.05, w: 4.65, h: 4.1 },
+  hub: { x: 6.025, y: 2.6, w: 2.5, h: 1.0 },
+  spokeH: 0.9,
+  maxSpokes: 6,
+  slots: {
+    1: [{ x: 6.25, y: 1.1, w: 2.05 }],
+    2: [
+      { x: 6.25, y: 1.1, w: 2.05 },
+      { x: 6.25, y: 4.2, w: 2.05 },
+    ],
+    3: [
+      { x: 5.05, y: 1.1, w: 2.05 },
+      { x: 7.5, y: 1.1, w: 2.05 },
+      { x: 6.25, y: 4.2, w: 2.05 },
+    ],
+    4: [
+      { x: 5.05, y: 1.1, w: 2.05 },
+      { x: 7.5, y: 1.1, w: 2.05 },
+      { x: 5.05, y: 4.2, w: 2.05 },
+      { x: 7.5, y: 4.2, w: 2.05 },
+    ],
+    5: [
+      { x: 4.95, y: 1.1, w: 1.45 },
+      { x: 6.55, y: 1.1, w: 1.45 },
+      { x: 8.15, y: 1.1, w: 1.45 },
+      { x: 5.05, y: 4.2, w: 2.05 },
+      { x: 7.5, y: 4.2, w: 2.05 },
+    ],
+    6: [
+      { x: 4.95, y: 1.1, w: 1.45 },
+      { x: 6.55, y: 1.1, w: 1.45 },
+      { x: 8.15, y: 1.1, w: 1.45 },
+      { x: 4.95, y: 4.2, w: 1.45 },
+      { x: 6.55, y: 4.2, w: 1.45 },
+      { x: 8.15, y: 4.2, w: 1.45 },
+    ],
+  },
+};
+
+// v0.14.5 WS-C (C2): the worked-example bar chart fills the same right-half
+// visual zone the evidence table uses on content slides.
+export const WE_PLOT_GEOMETRY = { x: 4.95, y: 1.35, w: 4.65, h: 3.45 };
+
+// Shape text obeys the 3-word rule: labels of ≤3 words render verbatim,
+// longer ones cut to three words with the deck's ellipsis discipline (single
+// '…', never a stranded connective).
+const SPOKE_TRAILING_CONNECTIVE = /^(?:and|or|of|to|in|on|for|with|the|a|an|vs|via|at|by|from)$/i;
+function spokeShapeLabel(text) {
+  const words = String(text || '')
+    .trim()
+    .split(/\s+/)
+    .filter(Boolean);
+  if (words.length <= 3) return words.join(' ');
+  const kept = words.slice(0, 3);
+  while (kept.length > 1 && SPOKE_TRAILING_CONNECTIVE.test(kept[kept.length - 1])) kept.pop();
+  return `${kept.join(' ')}…`;
+}
+
 /** Shorten a bullet to a spoke-sized phrase, or null when it won't fit. */
 function spokePhrase(bullet, maxLen = NATIVE_VISUAL_LIMITS.spokeLabel) {
   const clean = String(bullet || '')
@@ -321,10 +389,15 @@ function planNativeVisual(s, slideType, visKind, hasGeneratedImage, hasLatex) {
     // map rendered in the v0.13.1 live audit.
     const visual = s.visual || s.vi || {};
     const descriptorHub = String(visual.hub || '').trim();
-    const descriptorSpokes = (Array.isArray(visual.spokes) ? visual.spokes : [])
+    const rawSpokes = (Array.isArray(visual.spokes) ? visual.spokes : [])
       .map((spoke) => String(spoke ?? '').trim())
-      .filter((spoke) => spoke && spoke.length <= NATIVE_VISUAL_LIMITS.spokeLabel)
-      .slice(0, 4);
+      .filter(Boolean);
+    // v0.14.5 (C1): more spokes than the fixed slot table seats → keep
+    // today's text rendering rather than invent an auto-layout.
+    if (rawSpokes.length > CONCEPT_MAP_GEOMETRY.maxSpokes) return null;
+    const descriptorSpokes = rawSpokes
+      .filter((spoke) => spoke.length <= NATIVE_VISUAL_LIMITS.spokeLabel)
+      .slice(0, CONCEPT_MAP_GEOMETRY.maxSpokes);
     if (descriptorHub && descriptorHub.length <= NATIVE_VISUAL_LIMITS.hubLabel && descriptorSpokes.length >= 2) {
       const definition = bullets.find((b) => b.length <= NATIVE_VISUAL_LIMITS.definition) || '';
       if (definition) return { type: 'conceptMap', hub: descriptorHub, definition, spokes: descriptorSpokes };
@@ -342,6 +415,24 @@ function planNativeVisual(s, slideType, visKind, hasGeneratedImage, hasLatex) {
       .slice(0, 4);
     if (spokes.length < 2) return null;
     return { type: 'conceptMap', hub, definition, spokes };
+  }
+
+  if (slideType === 'content' && /\bworked\s*example\b/i.test(visKind)) {
+    // v0.14.5 (C2): the compiler attaches a wePlot descriptor ONLY when the
+    // worked example's own steps/result computed 2-6 labeled numbers
+    // (extractWorkedExamplePairs — conservative, no fabrication). Re-validate
+    // here so a hand-edited descriptor can never chart garbage; anything
+    // short of 2 clean pairs keeps the step-by-step text layout.
+    const visual = s.visual || s.vi || {};
+    const pairs = (Array.isArray(visual.wePlot?.pairs) ? visual.wePlot.pairs : [])
+      .map((pair) => ({
+        label: String(pair?.label || '').trim(),
+        value: Number(pair?.value),
+        unit: String(pair?.unit || '').trim(),
+      }))
+      .filter((pair) => pair.label && Number.isFinite(pair.value));
+    if (pairs.length >= 2 && pairs.length <= 6) return { type: 'wePlot', pairs };
+    return null;
   }
 
   return null;
@@ -393,6 +484,8 @@ function addEvidenceTable(pptx, slide, theme, plan, visKind, tracker) {
     fontFace: FONT_BODY,
     margin: 0.06,
     autoPage: false,
+    // v0.14.5 (C3): cmViz name — counts as a native visual in the grader bar.
+    objectName: 'cmVizTable',
   });
   tracker.add({ x: tableX, y: tableY, w: tableW, h: 3.4, label: 'evidence-table' });
 }
@@ -423,6 +516,8 @@ function addDecisionMatrix(pptx, slide, theme, plan, tracker) {
     fontFace: FONT_BODY,
     margin: 0.08,
     autoPage: false,
+    // v0.14.5 (C3): cmViz name — counts as a native visual in the grader bar.
+    objectName: 'cmVizMatrix',
   };
   const pairs = [];
   for (let i = 0; i + 1 < plan.cells.length; i += 2) {
@@ -445,27 +540,31 @@ function addDecisionMatrix(pptx, slide, theme, plan, tracker) {
   tracker.add({ x, y, w, h: 2.4, label: 'decision-matrix' });
 }
 
-/** Render the hub-and-spoke concept map group on a key-concept slide. */
+/**
+ * Render the hub-and-spoke concept map group on a key-concept slide.
+ * v0.14.5 (C1): real ellipses on the fixed CONCEPT_MAP_GEOMETRY slot table
+ * (deterministic positions by spoke count, never auto-layout). The hub
+ * carries the theme accent fill with dark primary text — the deck's
+ * accent-chip rule (accent backgrounds always take theme.primary text, see
+ * the ACTIVITY badge). Spokes are white ellipses with ≤3-word labels under
+ * the ellipsis discipline. Every shape is named with the 'cmViz' prefix so
+ * the package grader can tell feature-bearing decks from pre-v0.14.5
+ * artifacts (the C3 arming rule). Shape text runs go through the same
+ * fontFace pipeline as every text box, so stripLatinEastAsiaOverrides
+ * cleans their <a:ea> overrides on the way out.
+ */
 function addConceptMapGroup(pptx, slide, theme, plan, tracker) {
-  const hubX = 6.45,
-    hubY = 2.42,
-    hubW = 2.4,
-    hubH = 0.8;
-  const hubCx = hubX + hubW / 2,
-    hubCy = hubY + hubH / 2;
-  const spokeW = 2.05,
-    spokeH = 0.95;
-  const slots = [
-    { x: 5.05, y: 1.05 },
-    { x: 7.6, y: 1.05 },
-    { x: 5.05, y: 3.7 },
-    { x: 7.6, y: 3.7 },
-  ];
-  const spokes = plan.spokes.map((text, i) => ({ text, ...slots[i] }));
+  const { hub, spokeH, slots, maxSpokes } = CONCEPT_MAP_GEOMETRY;
+  const slotRow = slots[Math.min(plan.spokes.length, maxSpokes)] || [];
+  const spokes = plan.spokes
+    .slice(0, slotRow.length)
+    .map((text, index) => ({ text: spokeShapeLabel(text), ...slotRow[index] }));
+  const hubCx = hub.x + hub.w / 2,
+    hubCy = hub.y + hub.h / 2;
 
-  // Connector lines first so the shapes draw on top of them.
+  // Connector lines first so the ellipses draw on top of them.
   for (const spoke of spokes) {
-    const scx = spoke.x + spokeW / 2,
+    const scx = spoke.x + spoke.w / 2,
       scy = spoke.y + spokeH / 2;
     slide.addShape(pptx.ShapeType.line, {
       x: Math.min(hubCx, scx),
@@ -474,63 +573,95 @@ function addConceptMapGroup(pptx, slide, theme, plan, tracker) {
       h: Math.abs(scy - hubCy),
       flipH: (scx - hubCx) * (scy - hubCy) < 0,
       line: { color: theme.secondary, pt: 1.25 },
+      objectName: 'cmVizConn',
       altText: 'Decorative',
     });
   }
 
   for (const spoke of spokes) {
-    slide.addShape(pptx.ShapeType.roundRect, {
+    const spokeSize = autoFitFontSize(spoke.text, spoke.w - 0.3, spokeH - 0.25, FONT_BODY, 11, 8, 1.15);
+    slide.addText(spoke.text, {
+      shape: pptx.ShapeType.ellipse,
       x: spoke.x,
       y: spoke.y,
-      w: spokeW,
+      w: spoke.w,
       h: spokeH,
       fill: { color: 'FFFFFF' },
       line: { color: theme.secondary, pt: 1 },
-      rectRadius: 0.08,
-      altText: `Related idea: ${spoke.text}`,
-    });
-    const spokeSize = autoFitFontSize(spoke.text, spokeW - 0.2, spokeH - 0.1, FONT_BODY, 11, 8, 1.2);
-    slide.addText(spoke.text, {
-      x: spoke.x + 0.1,
-      y: spoke.y + 0.05,
-      w: spokeW - 0.2,
-      h: spokeH - 0.1,
       fontSize: spokeSize,
       fontFace: FONT_BODY,
       color: theme.bodyText,
       align: 'center',
       valign: 'middle',
-      lineSpacingMultiple: 1.2,
+      lineSpacingMultiple: 1.15,
+      objectName: 'cmVizSpoke',
+      altText: `Related idea: ${spoke.text}`,
     });
-    tracker.add({ x: spoke.x, y: spoke.y, w: spokeW, h: spokeH, label: `concept-spoke` });
+    tracker.add({ x: spoke.x, y: spoke.y, w: spoke.w, h: spokeH, label: 'concept-spoke' });
   }
 
-  // Hub on top.
-  slide.addShape(pptx.ShapeType.roundRect, {
-    x: hubX,
-    y: hubY,
-    w: hubW,
-    h: hubH,
-    fill: { color: theme.primary },
-    line: { color: theme.accent, pt: 1.5 },
-    rectRadius: 0.1,
-    altText: `Central concept: ${plan.hub}`,
-  });
-  const hubSize = autoFitFontSize(plan.hub, hubW - 0.2, hubH - 0.1, FONT_HEADING, 14, 10, 1.15);
+  // Hub on top — centered ellipse, accent fill, dark text.
+  const hubSize = autoFitFontSize(plan.hub, hub.w - 0.35, hub.h - 0.25, FONT_HEADING, 14, 9, 1.1);
   slide.addText(plan.hub, {
-    x: hubX + 0.1,
-    y: hubY + 0.05,
-    w: hubW - 0.2,
-    h: hubH - 0.1,
+    shape: pptx.ShapeType.ellipse,
+    x: hub.x,
+    y: hub.y,
+    w: hub.w,
+    h: hub.h,
+    fill: { color: theme.accent },
+    line: { color: theme.primary, pt: 1.5 },
     fontSize: hubSize,
     fontFace: FONT_HEADING,
-    color: 'FFFFFF',
+    color: theme.primary,
     bold: true,
     align: 'center',
     valign: 'middle',
-    lineSpacingMultiple: 1.15,
+    lineSpacingMultiple: 1.1,
+    objectName: 'cmVizHub',
+    altText: `Central concept: ${plan.hub}`,
   });
-  tracker.add({ x: hubX, y: hubY, w: hubW, h: hubH, label: 'concept-hub' });
+  tracker.add({ x: hub.x, y: hub.y, w: hub.w, h: hub.h, label: 'concept-hub' });
+}
+
+/**
+ * Render the worked-example bar chart in the content slide's visual zone.
+ * v0.14.5 (C2): a pptxgenjs NATIVE chart — pptxgenjs 4.0.1 ships its chart
+ * writer inside the same prebuilt dist file the exporter already
+ * lazy-loads, so addChart pulls no new module into the pptx chunk (the
+ * chart-vs-bar-shapes decision: native charts work in the bundled build,
+ * measured in tests/v0145-deck-visuals.test.js, so the dependency-free
+ * rect fallback was not needed). Single series, theme colors, value labels
+ * on, no legend; category labels are the extracted pair labels under the
+ * 3-word ellipsis rule. Data is ONLY the descriptor's authored pairs.
+ */
+function addWorkedExamplePlot(pptx, slide, theme, plan, tracker) {
+  const box = WE_PLOT_GEOMETRY;
+  const labels = plan.pairs.map((pair) => spokeShapeLabel(pair.label));
+  const values = plan.pairs.map((pair) => pair.value);
+  slide.addChart(pptx.ChartType.bar, [{ name: 'Worked example values', labels, values }], {
+    x: box.x,
+    y: box.y,
+    w: box.w,
+    h: box.h,
+    barDir: 'col',
+    chartColors: [theme.secondary],
+    showLegend: false,
+    showTitle: false,
+    showValue: true,
+    dataLabelColor: theme.bodyText,
+    dataLabelFontFace: FONT_BODY,
+    dataLabelFontSize: 10,
+    catAxisLabelColor: theme.bodyText,
+    catAxisLabelFontFace: FONT_BODY,
+    catAxisLabelFontSize: 9,
+    valAxisHidden: true,
+    valGridLine: { style: 'none' },
+    objectName: 'cmVizChart',
+    altText: `Bar chart of worked-example values: ${plan.pairs
+      .map((pair) => `${pair.label} ${pair.value}${pair.unit ? ` ${pair.unit}` : ''}`)
+      .join(', ')}`,
+  });
+  tracker.add({ x: box.x, y: box.y, w: box.w, h: box.h, label: 'worked-example-plot' });
 }
 
 /**
@@ -1714,6 +1845,38 @@ async function buildSlideForDeck(pptx, deck, theme, slideIndex, totalSlides, opt
       });
       tracker.add({ x: 0.45, y: 1.35, w: leadW, h: leadH, label: 'evidence-lead' });
       addEvidenceTable(pptx, slide, theme, nativeVisual, visKind, tracker);
+    } else if (nativeVisual?.type === 'wePlot') {
+      // Worked-example plot (v0.14.5 C2): the authored step bullets keep the
+      // left half (the reasoning IS the content) and the computed values
+      // render as a native bar chart in the visual zone — the same split the
+      // evidence table uses, so neither zone can overflow the slide.
+      const plotLeftW = 4.15,
+        plotLeftH = H - 1.6;
+      const plotSize = autoFitBullets(bullets, plotLeftW, plotLeftH, FONT_BODY, 14, 10, 1.4, 10);
+      slide.addText(
+        bullets.map((b, bi) => ({
+          text: `${b}\n`,
+          options: {
+            bullet: { code: '25CF' },
+            fontSize: plotSize,
+            color: bi === 0 ? theme.bodyText : '444444',
+            breakLine: true,
+            paraSpaceAfter: 10,
+            lineSpacingMultiple: 1.4,
+            bold: bi === 0,
+          },
+        })),
+        {
+          x: 0.45,
+          y: 1.2,
+          w: plotLeftW,
+          h: plotLeftH,
+          fontFace: FONT_BODY,
+          valign: 'top',
+        },
+      );
+      tracker.add({ x: 0.45, y: 1.2, w: plotLeftW, h: plotLeftH, label: 'worked-example-bullets' });
+      addWorkedExamplePlot(pptx, slide, theme, nativeVisual, tracker);
     } else if (bullets.length > 0) {
       // Content bullets — two-column if 4+
       if (useTwoCol) {
@@ -1841,6 +2004,13 @@ async function buildSlideForDeck(pptx, deck, theme, slideIndex, totalSlides, opt
     line: { width: 0 },
     rectRadius: 0.05,
     altText: 'Decorative',
+    // v0.14.5 (C3) arming marker: every deck's FIRST slide stamps the
+    // visual-layer feature name into its XML (an invisible cNvPr name). The
+    // grader's native-visual bar arms only on packages carrying a cmViz
+    // marker, so decks exported before this feature are never graded on
+    // visuals — and a feature-era deck that renders zero visuals still
+    // carries the marker and CAN be flagged.
+    ...(slideIndex === 0 ? { objectName: 'cmVizLayer' } : {}),
   });
   slide.addText(`${slideIndex + 1}/${totalSlides}`, {
     x: W - 0.95,
@@ -1898,6 +2068,10 @@ async function buildSlideForDeck(pptx, deck, theme, slideIndex, totalSlides, opt
       tracker.add({ x: px, y: py, w: pw, h: ph, label: 'generated visual' });
     }
   }
+
+  // v0.14.5 (C3): report what rendered so the multi-deck audit line can
+  // count native visuals across the build.
+  return { nativeVisualType: nativeVisual?.type || null };
 }
 
 /**
@@ -1934,13 +2108,15 @@ async function createPptxWithDecks(data, courseName, themeIndex) {
   }
 
   const deckAudit = [];
+  let nativeVisualCount = 0;
   for (let di = 0; di < decks.length; di++) {
     const deck = decks[di];
     const theme = themeWithCourseAccent(resolveTheme(di, themeIndex), courseName);
     const slides = deck.slides || [];
 
     for (let si = 0; si < slides.length; si++) {
-      await buildSlideForDeck(pptx, deck, theme, si, slides.length, { hasLatex });
+      const built = await buildSlideForDeck(pptx, deck, theme, si, slides.length, { hasLatex });
+      if (built?.nativeVisualType) nativeVisualCount += 1;
     }
 
     deckAudit.push({ lesson: deck.lessonTitle || `Deck ${di + 1}`, slides: slides.length });
@@ -1956,8 +2132,10 @@ async function createPptxWithDecks(data, courseName, themeIndex) {
     const minSlides = Math.min(...slideCounts);
     const maxSlides = Math.max(...slideCounts);
     const median = [...slideCounts].sort((a, b) => a - b)[Math.floor(slideCounts.length / 2)];
+    // v0.14.5 (C3): the audit line counts native visuals (tables, matrices,
+    // concept maps, worked-example charts) rendered across the build.
     console.log(
-      `[CM] PPTX audit: ${deckAudit.length} decks, ${totalSlides} total slides (min: ${minSlides}, max: ${maxSlides}, median: ${median})`,
+      `[CM] PPTX audit: ${deckAudit.length} decks, ${totalSlides} total slides, ${nativeVisualCount} native visuals (min: ${minSlides}, max: ${maxSlides}, median: ${median})`,
     );
     const thin = deckAudit.filter((d) => d.slides < Math.max(5, Math.floor(median * 0.4)));
     if (thin.length > 0) {

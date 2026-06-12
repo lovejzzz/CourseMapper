@@ -11,6 +11,7 @@ import fs from 'node:fs/promises';
 import net from 'node:net';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { PROVIDER_KEY_RULES, pickApiKeyFromEnvText } from './crucibleRound.mjs';
 
 const moduleDir = path.dirname(fileURLToPath(import.meta.url));
 export const repoRoot = path.resolve(moduleDir, '..', '..');
@@ -19,34 +20,53 @@ export const defaultApiEnvPath = path.join(repoRoot, 'API-dontComit', 'api.ev');
 const MODEL_DISPLAY_NAMES = {
   'gpt-5.4-mini': 'GPT-5.4 mini',
   'gpt-5.4': 'GPT-5.4',
+  // V0.14.5 WS-E (E1): per-provider Crucible defaults (see PROVIDER_DEFAULT_MODELS
+  // in crucibleRound.mjs for why these exact ids).
+  'claude-haiku-4-5': 'Claude Haiku 4.5',
+  'gemini-2.5-flash-lite': 'Gemini 2.5 Flash Lite',
 };
 
 export function modelDisplayName(modelId) {
   return MODEL_DISPLAY_NAMES[modelId] || modelId;
 }
 
-// Borrowed from scripts/liveBrowserQualityLoop.mjs (redact).
+// Borrowed from scripts/liveBrowserQualityLoop.mjs (redact). E1: covers all
+// three provider key shapes — sk-ant-… matches the sk- rule; AIza… (Google)
+// gets its own rule.
 export function redactSecrets(value) {
-  return String(value || '').replace(/\bsk-[A-Za-z0-9_-]{8,}\b/g, '[redacted-openai-key]');
+  return String(value || '')
+    .replace(/\bsk-[A-Za-z0-9_-]{8,}\b/g, '[redacted-api-key]')
+    .replace(/\bAIza[0-9A-Za-z_-]{8,}\b/g, '[redacted-google-key]');
 }
 
-// Borrowed from scripts/liveBrowserQualityLoop.mjs (readApiKey):
-// env fallbacks COURSEMAPPER_OPENAI_API_KEY / OPENAI_API_KEY, then API-dontComit/api.ev.
-export async function loadApiKey(apiEnvPath = defaultApiEnvPath) {
-  const fromEnv = process.env.COURSEMAPPER_OPENAI_API_KEY || process.env.OPENAI_API_KEY;
-  if (fromEnv?.trim()) return fromEnv.trim();
+// ── V0.14.5 WS-E (E1): provider-aware API key loading ───────────────────────
+// The pure half (PROVIDER_KEY_RULES + pickApiKeyFromEnvText) lives in
+// crucibleRound.mjs so it is unit-testable without this module's Playwright
+// import; this is the fs/env half.
+export { pickApiKeyFromEnvText };
 
-  const content = await fs.readFile(apiEnvPath, 'utf8');
-  for (const line of content.split(/\r?\n/)) {
-    const trimmed = line.trim();
-    if (!trimmed || trimmed.startsWith('#')) continue;
-    const match = trimmed.match(/^(?:export\s+)?([A-Z0-9_]+)\s*=\s*(.*)$/i);
-    const key = match ? match[1] : '';
-    let value = match ? match[2] : trimmed;
-    value = value.trim().replace(/^['"]|['"]$/g, '');
-    if ((/OPENAI|API_KEY/i.test(key) || value.startsWith('sk-')) && value.startsWith('sk-')) return value;
+/**
+ * Borrowed from scripts/liveBrowserQualityLoop.mjs (readApiKey), extended for
+ * provider breadth (E1): per-provider env fallbacks first, then the
+ * API-dontComit/api.ev file. A missing key throws a CLEAR, actionable message
+ * naming the provider, the env vars checked, and the expected key shape —
+ * the driver exits on it before any server/browser/spend.
+ */
+export async function loadApiKey(apiEnvPath = defaultApiEnvPath, provider = 'openai') {
+  const rules = PROVIDER_KEY_RULES[provider];
+  if (!rules) throw new Error(`Unknown provider "${provider}" (expected openai, anthropic, or google)`);
+  for (const envVar of rules.envVars) {
+    const fromEnv = process.env[envVar];
+    if (fromEnv?.trim()) return fromEnv.trim();
   }
-  throw new Error(`No OpenAI API key found in ${apiEnvPath}`);
+
+  const content = await fs.readFile(apiEnvPath, 'utf8').catch(() => '');
+  const picked = pickApiKeyFromEnvText(content, provider);
+  if (picked) return picked;
+  throw new Error(
+    `No ${provider} API key found — checked env (${rules.envVars.join(', ')}) and ${apiEnvPath} ` +
+      `for a ${rules.shapeHint} key. Add one or run with a provider whose key is configured.`,
+  );
 }
 
 // Borrowed from scripts/liveBrowserQualityLoop.mjs (isPortFree/findFreePort).
@@ -341,6 +361,14 @@ export async function runCourseInBrowser({
   headed = false,
   browser: sharedBrowser,
   overallTimeoutMs = 12 * 60_000,
+  // V0.14.5 WS-B3: 'native' seeds the coursemapper-authoring-mode flag so the
+  // app runs the Pass A/B graph-authoring path; 'prose'/undefined seeds
+  // nothing (absence IS the prose default — readAuthoringMode()).
+  authoringMode,
+  // V0.14.5 WS-E (E1): which provider the app should run against. Seeds
+  // 'coursemapper-provider' plus the provider-scoped key slot the app reads
+  // (src/contexts/AIConfigContext.jsx getSavedApiKeyForProvider).
+  provider = 'openai',
 }) {
   const startedAt = Date.now();
   const deadlineAt = startedAt + overallTimeoutMs;
@@ -392,16 +420,27 @@ export async function runCourseInBrowser({
     phase = 'loading-landing';
     // localStorage seeding borrowed from scripts/liveBrowserQualityLoop.mjs (runCourse).
     await page.addInitScript(
-      ({ key, selectedModelId, selectedModelName }) => {
+      ({ key, selectedModelId, selectedModelName, authoring, selectedProvider }) => {
         localStorage.clear();
         sessionStorage.clear();
-        localStorage.setItem('coursemapper-provider', 'openai');
+        // E1: the app reads the provider from 'coursemapper-provider' and the
+        // key from the provider-scoped slot (plaintext is accepted — the
+        // secureStorage getter falls back to plaintext for legacy values).
+        localStorage.setItem('coursemapper-provider', selectedProvider);
         localStorage.setItem('coursemapper-apikey', key);
-        localStorage.setItem('coursemapper-apikey-provider:openai', key);
+        localStorage.setItem(`coursemapper-apikey-provider:${selectedProvider}`, key);
         localStorage.setItem('coursemapper-modelid', selectedModelId);
         localStorage.setItem('coursemapper-modelname', selectedModelName);
+        // WS-B3: only 'native' is ever written — absence is the prose default.
+        if (authoring === 'native') localStorage.setItem('coursemapper-authoring-mode', 'native');
       },
-      { key: apiKey, selectedModelId: modelId, selectedModelName: modelName || modelDisplayName(modelId) },
+      {
+        key: apiKey,
+        selectedModelId: modelId,
+        selectedModelName: modelName || modelDisplayName(modelId),
+        authoring: authoringMode || null,
+        selectedProvider: provider || 'openai',
+      },
     );
     await page.goto(baseUrl, { waitUntil: 'domcontentloaded' });
 

@@ -139,6 +139,118 @@ export function clampConcurrency(raw, { fallback = 2, max = 3 } = {}) {
   return Math.max(1, Math.min(max, Math.floor(value)));
 }
 
+// ── V0.14.5 WS-E (E1): provider breadth — flag parsing + course expansion ───
+
+/**
+ * Per-provider default generation models for `--provider` rounds. Chosen as
+ * the CHEAPEST generation-capable model the app itself recognizes:
+ * - openai  gpt-5.4-mini — the existing Crucible default ($0.75/$4.50 per M,
+ *   src/lib/apiUsageCost.js:60); full structured-output + reasoning support.
+ * - anthropic claude-haiku-4-5 — cheapest current Anthropic model ($1/$5 per
+ *   M); matches the app's structured-output gate
+ *   (modelCapabilities.js inferStructuredOutputControls:
+ *   /claude-(?:fable|opus|sonnet|haiku)-(?:[4-9]|\d{2,})/) and its
+ *   thinking-budget reasoning gate. Sonnet/Opus cost 3–10×.
+ * - google  gemini-2.5-flash-lite — cheapest current-generation Gemini the
+ *   app lists ($0.10/$0.40 per M, apiUsageCost.js; in the
+ *   GOOGLE_VERTEX_EXPRESS_TEXT_MODEL_FALLBACKS catalog) with json-schema
+ *   structured outputs and the gemini-2.5 thinking-budget profile. The 2.0
+ *   flash-lite line is marginally cheaper but a generation older.
+ * `--model` still overrides.
+ */
+export const PROVIDER_DEFAULT_MODELS = {
+  openai: 'gpt-5.4-mini',
+  anthropic: 'claude-haiku-4-5',
+  google: 'gemini-2.5-flash-lite',
+};
+
+export const SUPPORTED_PROVIDERS = Object.keys(PROVIDER_DEFAULT_MODELS);
+
+/** --provider openai|anthropic|google (default 'openai'); anything else throws. */
+export function parseProviderFlag(raw) {
+  if (raw === undefined || raw === null || raw === true || raw === '') return 'openai';
+  const value = String(raw).toLowerCase();
+  if (SUPPORTED_PROVIDERS.includes(value)) return value;
+  throw new Error(`--provider must be ${SUPPORTED_PROVIDERS.join(', ')} (got "${raw}")`);
+}
+
+/**
+ * Suffix run-dir/course ids with the provider for non-openai rounds
+ * (cs-python → cs-python--anthropic) so provider rounds NEVER collide with
+ * the openai history in stored-round scans, baselines, or history columns.
+ * Default openai rounds keep today's naming exactly. Composes with
+ * expandCoursesForAuthoring (apply AFTER it): baseId stays the ORIGINAL
+ * course id, so baseline lookups and authoring pairing keep working.
+ */
+export function expandCoursesForProvider(courses, provider = 'openai') {
+  const list = Array.isArray(courses) ? courses : [];
+  if (provider === 'openai') return list.map((course) => ({ ...course, provider: 'openai' }));
+  return list.map((course) => ({
+    ...course,
+    id: `${course.id}--${provider}`,
+    baseId: course.baseId || course.id,
+    provider,
+  }));
+}
+
+// ── E1: provider-aware API key shapes (pure half; fs/env half lives in ──────
+// crucibleBrowser.mjs loadApiKey). Key shapes: OpenAI sk-… (but NEVER
+// sk-ant-…), Anthropic sk-ant-…, Google AIza…. File lines may be named
+// (ANTHROPIC_API_KEY=…) or bare values.
+export const PROVIDER_KEY_RULES = {
+  openai: {
+    envVars: ['COURSEMAPPER_OPENAI_API_KEY', 'OPENAI_API_KEY'],
+    keyNameRe: /OPENAI|^API_KEY$/i,
+    valueShape: (value) => value.startsWith('sk-') && !value.startsWith('sk-ant-'),
+    shapeHint: 'sk-… (not sk-ant-…)',
+  },
+  anthropic: {
+    envVars: ['COURSEMAPPER_ANTHROPIC_API_KEY', 'ANTHROPIC_API_KEY'],
+    keyNameRe: /ANTHROPIC/i,
+    valueShape: (value) => value.startsWith('sk-ant-'),
+    shapeHint: 'sk-ant-…',
+  },
+  google: {
+    envVars: ['COURSEMAPPER_GOOGLE_API_KEY', 'GOOGLE_API_KEY', 'GEMINI_API_KEY'],
+    keyNameRe: /GOOGLE|GEMINI/i,
+    valueShape: (value) => /^AIza[0-9A-Za-z_-]+$/.test(value),
+    shapeHint: 'AIza…',
+  },
+};
+
+/**
+ * Pick the requested provider's key out of an api.ev-style text blob
+ * (KEY=value lines, optional export prefix/quotes, bare-value lines).
+ * The three shapes are mutually exclusive (sk-… minus sk-ant-, sk-ant-…,
+ * AIza…), so the VALUE shape alone discriminates providers — an
+ * ANTHROPIC_API_KEY=sk-ant-… line can never be returned for openai, and a
+ * mislabeled line (OPENAI_API_KEY=AIza…) is rejected by shape. A line whose
+ * NAME clearly belongs to a different provider is skipped even when the
+ * shape matched. Returns '' when absent.
+ */
+export function pickApiKeyFromEnvText(content, provider = 'openai') {
+  const rules = PROVIDER_KEY_RULES[provider];
+  if (!rules) return '';
+  for (const line of String(content || '').split(/\r?\n/)) {
+    const trimmed = line.trim();
+    if (!trimmed || trimmed.startsWith('#')) continue;
+    const match = trimmed.match(/^(?:export\s+)?([A-Z0-9_]+)\s*=\s*(.*)$/i);
+    const key = match ? match[1] : '';
+    let value = match ? match[2] : trimmed;
+    value = value.trim().replace(/^['"]|['"]$/g, '');
+    if (!value || !rules.valueShape(value)) continue;
+    const namedForOtherProvider =
+      key &&
+      !rules.keyNameRe.test(key) &&
+      Object.entries(PROVIDER_KEY_RULES).some(
+        ([otherProvider, other]) => otherProvider !== provider && other.keyNameRe.test(key),
+      );
+    if (namedForOtherProvider) continue;
+    return value;
+  }
+  return '';
+}
+
 // ── E4: verdict ledger — check ids, evidence hashing, calibration diff ──────
 
 /**
@@ -181,32 +293,43 @@ export function findingEvidenceHash(finding) {
   return crypto.createHash('sha1').update(normalizeFindingEvidence(finding)).digest('hex');
 }
 
+/** E3: verdicts and findings recorded before provider rounds carry no
+ *  provider field — they are ALL openai history. Defaulting here keeps the
+ *  whole stored ledger valid without a rewrite. */
+export function findingProvider(entryOrFinding) {
+  return entryOrFinding?.provider || 'openai';
+}
+
 /**
  * Diff current (re-graded) findings against the verdict ledger.
  *
  * @param {object} input
- * @param {Array} input.ledger entries { checkId, courseId, roundId, evidenceHash, verdict, note }
- * @param {Array} input.findings current findings { roundId, courseId, checkId, evidenceHash, severity, detail, file }
+ * @param {Array} input.ledger entries { checkId, courseId, roundId, evidenceHash, verdict, note, provider? }
+ * @param {Array} input.findings current findings { roundId, courseId, checkId, evidenceHash, severity, detail, file, provider? }
  * @param {Iterable<string>} input.storedRoundIds round dirs actually present on disk
  * @returns {{ verified: Array, missingTruePositives: Array, resurfacedFalsePositives: Array,
  *   quietFalsePositives: Array, skipped: Array, unvetted: Array, ok: boolean }}
  *
  * Rules:
- * - true-positive entry: a current finding in the same round+course with the
- *   same checkId must exist; exact evidenceHash match = 'ok', checkId-only
- *   match = 'ok (evidence drifted)'. Neither = CALIBRATION FAILURE.
- * - false-positive entry: ANY current finding in the same round+course with
- *   the same checkId = CALIBRATION FAILURE (the FP pattern resurfaced).
- *   Reconstructed entries carry approximate hashes, so FP matching is by
- *   checkId, never by hash.
+ * - V0.14.5 E3: matching is namespaced by (roundId, courseId, PROVIDER) —
+ *   `provider` defaults to 'openai' when absent on either side (back
+ *   compatible with the pre-provider ledger). An Anthropic-only finding can
+ *   therefore never read as an OpenAI regression or vice versa.
+ * - true-positive entry: a current finding in the same round+course+provider
+ *   with the same checkId must exist; exact evidenceHash match = 'ok',
+ *   checkId-only match = 'ok (evidence drifted)'. Neither = CALIBRATION FAILURE.
+ * - false-positive entry: ANY current finding in the same
+ *   round+course+provider with the same checkId = CALIBRATION FAILURE (the FP
+ *   pattern resurfaced). Reconstructed entries carry approximate hashes, so
+ *   FP matching is by checkId, never by hash.
  * - findings not consumed by a ledger entry are 'unvetted (add a verdict)',
- *   collapsed by round+course+checkId.
+ *   collapsed by round+course+provider+checkId and listing their provider.
  */
 export function diffLedger({ ledger, findings, storedRoundIds }) {
   const stored = new Set(storedRoundIds || []);
   const pools = new Map();
   for (const finding of findings || []) {
-    const key = `${finding.roundId}|${finding.courseId}`;
+    const key = `${finding.roundId}|${finding.courseId}|${findingProvider(finding)}`;
     if (!pools.has(key)) pools.set(key, []);
     pools.get(key).push(finding);
   }
@@ -223,7 +346,7 @@ export function diffLedger({ ledger, findings, storedRoundIds }) {
       skipped.push({ entry, status: 'skipped (round not stored locally)' });
       continue;
     }
-    const pool = pools.get(`${entry.roundId}|${entry.courseId}`) || [];
+    const pool = pools.get(`${entry.roundId}|${entry.courseId}|${findingProvider(entry)}`) || [];
     if (entry.verdict === 'true-positive') {
       const exact = pool.find((f) => f.checkId === entry.checkId && f.evidenceHash === entry.evidenceHash);
       const drifted = exact || pool.find((f) => f.checkId === entry.checkId && !consumed.has(f));
@@ -252,11 +375,15 @@ export function diffLedger({ ledger, findings, storedRoundIds }) {
   const unvettedMap = new Map();
   for (const finding of findings || []) {
     if (consumed.has(finding)) continue;
-    const key = `${finding.roundId}|${finding.courseId}|${finding.checkId}`;
+    const provider = findingProvider(finding);
+    const key = `${finding.roundId}|${finding.courseId}|${provider}|${finding.checkId}`;
     if (!unvettedMap.has(key)) {
       unvettedMap.set(key, {
         roundId: finding.roundId,
         courseId: finding.courseId,
+        // E3: unvetted findings name their provider so a verdict written from
+        // this list lands in the right namespace.
+        provider,
         checkId: finding.checkId,
         severity: finding.severity,
         count: 0,
@@ -624,6 +751,187 @@ export function renderJudgeSection(judge) {
     lines.push(
       `- **${artifact.name || '(unnamed)'}: ${Number.isFinite(artifact.score) ? `${artifact.score}/10` : 'n/a'}** — ${artifact.notes || ''}`,
     );
+  }
+  lines.push('');
+  return lines.join('\n');
+}
+
+// ── v0.14.5 WS-B (B3): authoring side-by-side (--authoring) ─────────────────
+// Pure halves of the prose-vs-native paired round: course-list expansion,
+// entry pairing, delta computation, and report rendering. scripts/crucible.mjs
+// owns the flag parsing entry point and all I/O. The P0/drift gates apply to
+// each run INDEPENDENTLY through the normal entry flow — nothing here gates.
+
+// Acceptance bar (V0.14.5 B3): native within 2 points on every course and a
+// cost cut of 20% or better. Report-only — the default flip is a human call
+// after two consecutive clean rounds.
+export const AUTHORING_SCORE_TOLERANCE = 2;
+export const AUTHORING_COST_CUT_TARGET = 0.2;
+
+/** --authoring prose|native|both (default 'prose'); anything else throws. */
+export function parseAuthoringFlag(raw) {
+  if (raw === undefined || raw === null || raw === true || raw === '') return 'prose';
+  const value = String(raw).toLowerCase();
+  if (value === 'prose' || value === 'native' || value === 'both') return value;
+  throw new Error(`--authoring must be prose, native, or both (got "${raw}")`);
+}
+
+/**
+ * Expand the course list for an authoring round. Default prose rounds keep
+ * today's run-dir naming EXACTLY (course.id, no suffix) so stored history and
+ * baselines stay comparable; 'native' and 'both' suffix the run dirs
+ * (course--prose / course--native) and carry { baseId, authoring } so every
+ * downstream consumer (reports, gates, history columns) treats each run as
+ * its own course while pairing can still find the twins.
+ */
+export function expandCoursesForAuthoring(courses, authoring = 'prose') {
+  const list = Array.isArray(courses) ? courses : [];
+  if (authoring === 'prose') {
+    return list.map((course) => ({ ...course, baseId: course.id, authoring: 'prose' }));
+  }
+  const modes = authoring === 'both' ? ['prose', 'native'] : [authoring];
+  return list.flatMap((course) =>
+    modes.map((mode) => ({ ...course, id: `${course.id}--${mode}`, baseId: course.id, authoring: mode })),
+  );
+}
+
+/** digest.gates.enrichmentCoverage — the kernel-coverage fraction (or null). */
+export function kernelCoverageFromDigest(digest) {
+  const value = digest?.gates?.enrichmentCoverage;
+  return Number.isFinite(value) ? value : null;
+}
+
+function entryDigest(entry) {
+  return entry?.runResult?.digest || entry?.digest || null;
+}
+
+/** The comparable stats for one round entry (cost prefers spendUsd — it
+ *  includes failed attempts — falling back to the digest). */
+export function authoringEntryStats(entry) {
+  if (!entry) return null;
+  const digest = entryDigest(entry);
+  const digestCost = digestCostUsd(digest);
+  return {
+    overall: Number.isFinite(entry.gradeResult?.overall) ? entry.gradeResult.overall : null,
+    p0: Number.isFinite(entry.gradeResult?.p0Count) ? entry.gradeResult.p0Count : null,
+    p1: Number.isFinite(entry.gradeResult?.p1Count) ? entry.gradeResult.p1Count : null,
+    costUsd: Number.isFinite(entry.runResult?.spendUsd) ? entry.runResult.spendUsd : digestCost > 0 ? digestCost : null,
+    durationMs: Number.isFinite(entry.runResult?.attemptsDurationMs)
+      ? entry.runResult.attemptsDurationMs
+      : Number.isFinite(entry.runResult?.durationMs)
+        ? entry.runResult.durationMs
+        : null,
+    kernelCoverage: kernelCoverageFromDigest(digest),
+  };
+}
+
+/**
+ * Group round entries into prose/native twins by baseId. Entries without an
+ * authoring tag (plain rounds, older course.json files) are ignored — there
+ * is nothing to pair. Partial pairs (one side failed to produce an entry)
+ * are kept so the report can say which side is missing.
+ */
+export function pairAuthoringEntries(entries) {
+  const byBase = new Map();
+  for (const entry of entries || []) {
+    const authoring = entry?.course?.authoring;
+    if (authoring !== 'prose' && authoring !== 'native') continue;
+    const baseId = entry.course.baseId || entry.course.id;
+    if (!byBase.has(baseId)) byBase.set(baseId, { courseId: baseId, prose: null, native: null });
+    byBase.get(baseId)[authoring] = entry;
+  }
+  return [...byBase.values()].filter((pair) => pair.prose || pair.native);
+}
+
+/**
+ * Per-course deltas against the B3 acceptance bar. Score delta is
+ * native − prose (positive = native better); cost delta is the native cost
+ * as a fraction change vs prose (−0.25 = 25% cheaper). Verdict flags are
+ * REPORT-ONLY: the default flip needs them clean twice on different days.
+ */
+export function buildAuthoringComparison(
+  pairs,
+  { scoreTolerance = AUTHORING_SCORE_TOLERANCE, costCutTarget = AUTHORING_COST_CUT_TARGET } = {},
+) {
+  const rows = [];
+  for (const pair of pairs || []) {
+    const prose = authoringEntryStats(pair.prose);
+    const native = authoringEntryStats(pair.native);
+    const complete = Boolean(prose && native);
+    const scoreDelta =
+      complete && Number.isFinite(prose.overall) && Number.isFinite(native.overall)
+        ? Math.round((native.overall - prose.overall) * 100) / 100
+        : null;
+    const costDeltaPct =
+      complete && Number.isFinite(prose.costUsd) && prose.costUsd > 0 && Number.isFinite(native.costUsd)
+        ? Math.round(((native.costUsd - prose.costUsd) / prose.costUsd) * 1000) / 1000
+        : null;
+    const durationDeltaMs =
+      complete && Number.isFinite(prose.durationMs) && Number.isFinite(native.durationMs)
+        ? native.durationMs - prose.durationMs
+        : null;
+    rows.push({
+      courseId: pair.courseId,
+      prose,
+      native,
+      complete,
+      scoreDelta,
+      costDeltaPct,
+      durationDeltaMs,
+      scoreWithinTolerance: scoreDelta === null ? null : scoreDelta >= -scoreTolerance,
+      costCutMet: costDeltaPct === null ? null : costDeltaPct <= -costCutTarget,
+    });
+  }
+  return rows;
+}
+
+const fmtScore = (value) => (Number.isFinite(value) ? String(value) : '—');
+const fmtCost = (value) => (Number.isFinite(value) ? `$${value.toFixed(2)}` : '—');
+const fmtSeconds = (ms) => (Number.isFinite(ms) ? `${Math.round(ms / 1000)}s` : '—');
+const fmtCoverage = (value) => (Number.isFinite(value) ? `${Math.round(value * 100)}%` : '—');
+
+/** "## Authoring side-by-side" markdown: paired columns + the delta block. */
+export function renderAuthoringSection(comparison) {
+  const rows = Array.isArray(comparison) ? comparison : [];
+  if (rows.length === 0) return '';
+  const lines = [
+    '## Authoring side-by-side (prose vs native)',
+    '',
+    '_Same course, same model, both authoring paths. Gates (P0, in-app drift) apply to each run independently above; this section is the paired comparison for the B3 acceptance bar: native within ' +
+      `${AUTHORING_SCORE_TOLERANCE} points, cost −${Math.round(AUTHORING_COST_CUT_TARGET * 100)}% or better._`,
+    '',
+    '| Course | Score (prose → native) | Cost (prose → native) | Wall-clock (prose → native) | Kernel coverage (prose → native) | P0/P1 (prose) | P0/P1 (native) |',
+    '| --- | --- | --- | --- | --- | --- | --- |',
+  ];
+  for (const row of rows) {
+    lines.push(
+      `| ${row.courseId} | ${fmtScore(row.prose?.overall)} → ${fmtScore(row.native?.overall)} | ` +
+        `${fmtCost(row.prose?.costUsd)} → ${fmtCost(row.native?.costUsd)} | ` +
+        `${fmtSeconds(row.prose?.durationMs)} → ${fmtSeconds(row.native?.durationMs)} | ` +
+        `${fmtCoverage(row.prose?.kernelCoverage)} → ${fmtCoverage(row.native?.kernelCoverage)} | ` +
+        `${row.prose ? `${row.prose.p0 ?? '?'}/${row.prose.p1 ?? '?'}` : '—'} | ` +
+        `${row.native ? `${row.native.p0 ?? '?'}/${row.native.p1 ?? '?'}` : '—'} |`,
+    );
+  }
+  lines.push('', '### Deltas (native vs prose)', '');
+  for (const row of rows) {
+    if (!row.complete) {
+      lines.push(`- **${row.courseId}**: incomplete pair (${row.prose ? 'native' : 'prose'} run missing)`);
+      continue;
+    }
+    const scorePart =
+      row.scoreDelta === null
+        ? 'score n/a'
+        : `score ${row.scoreDelta >= 0 ? '+' : ''}${row.scoreDelta} (within ${AUTHORING_SCORE_TOLERANCE}: ${row.scoreWithinTolerance ? 'yes' : 'NO'})`;
+    const costPart =
+      row.costDeltaPct === null
+        ? 'cost n/a'
+        : `cost ${row.costDeltaPct > 0 ? '+' : ''}${Math.round(row.costDeltaPct * 100)}% (≥${Math.round(AUTHORING_COST_CUT_TARGET * 100)}% cut: ${row.costCutMet ? 'yes' : 'NO'})`;
+    const clockPart =
+      row.durationDeltaMs === null
+        ? 'wall-clock n/a'
+        : `wall-clock ${row.durationDeltaMs >= 0 ? '+' : '−'}${Math.round(Math.abs(row.durationDeltaMs) / 1000)}s`;
+    lines.push(`- **${row.courseId}**: ${scorePart} · ${costPart} · ${clockPart}`);
   }
   lines.push('');
   return lines.join('\n');

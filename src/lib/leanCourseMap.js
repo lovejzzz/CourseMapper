@@ -40,6 +40,16 @@ export const COMPILER_OWNED_LEAN_KEYS = ['evaluateDesign', 'presentationFormat',
 export const LEAN_SPECIAL_TOOLS_DEF =
   'OPTIONAL array of tool names ONLY when the syllabus explicitly names concrete software/equipment for this section (e.g., "SPSS", "ArcGIS", "Logic Pro"). Omit the key otherwise.';
 
+// v0.14.5 WS-A (A1): the readings registry's wire format — an OPTIONAL
+// per-section array of VERBATIM work/reading titles exactly as the source
+// names them. HARD traceability rule: only works the source actually names;
+// never invent, never normalize or shorten a title; omit the key when the
+// source names none. The registry (graph.readings) consumes this key — it is
+// NEVER rendered into prose cells here (supportingResources cells gain the
+// names through the graph render, the single write path).
+export const LEAN_READINGS_DEF =
+  'OPTIONAL array of assigned works/readings ONLY when the source names them for this section, each the VERBATIM title AS NAMED (e.g., "OpenStax Ch. 4: Cell Structure", "course packet pp. 12-30"). Never invent or alter titles. Omit the key when the source names none.';
+
 const NUMBERED_LIST_KEYS = new Set([
   'weeklyAssessments',
   'asyncActivities',
@@ -98,7 +108,7 @@ function renderLearningObjectives(items) {
 // text into cells, briefs, and the syllabus.
 const JSON_SPLICE_RE = /"\s*:\s*["[]/;
 const JSON_KEY_FRAGMENT_RE =
-  /\b(?:topicSection|learningGoals|learningObjectives|weeklyAssessments|asyncActivities|syncActivities|technologyNeeded|presentationFormat|supportingResources|evaluateDesign|specialTools)"/;
+  /\b(?:topicSection|learningGoals|learningObjectives|weeklyAssessments|asyncActivities|syncActivities|technologyNeeded|presentationFormat|supportingResources|evaluateDesign|specialTools|readings)"/;
 
 function textLooksLikeJsonFragment(value) {
   const textValue = String(value ?? '');
@@ -122,6 +132,12 @@ export function expandLeanSectionField(key, value) {
   if (!Array.isArray(value)) return value;
   // specialTools stays an atom array — deriveCompilerOwnedColumns consumes it.
   if (key === 'specialTools') return value;
+  // v0.14.5 (A1): readings stays a VERBATIM atom array — the readings
+  // registry (deriveCourseGraphFromCourseMap) consumes it. It never expands
+  // into prose: supportingResources cells gain the names through the graph
+  // render (renderCourseMapFromGraph), the single write path, so no title
+  // ever rides a prose splice.
+  if (key === 'readings') return value;
   const items = atomList(value);
   if (key === 'learningObjectives') return renderLearningObjectives(items);
   if (key === 'learningGoals') return renderLearningGoals(items);
@@ -143,6 +159,26 @@ export function expandLeanCourseMap(courseMap) {
       let sectionChanged = false;
       const next = {};
       for (const [key, value] of Object.entries(section)) {
+        // v0.14.5 (A1): readings is strictly additive — a malformed or
+        // corrupt readings value NEVER breaks or degrades the run. Anything
+        // that is not a clean array of verbatim title strings is dropped
+        // wholesale (omit-when-absent everywhere downstream).
+        if (key === 'readings') {
+          if (!Array.isArray(value) || leanSectionValueIsCorrupt(value)) {
+            sectionChanged = true;
+            continue;
+          }
+          const titles = value.map(cleanAtom).filter(Boolean);
+          if (titles.length === 0) {
+            sectionChanged = true;
+            continue;
+          }
+          if (titles.length !== value.length || titles.some((title, index) => title !== value[index])) {
+            sectionChanged = true;
+          }
+          next.readings = titles;
+          continue;
+        }
         // Corrupted values never reach a cell: the empty cell is repaired
         // from the clean template downstream (repairCourseMapReadiness).
         if (leanSectionValueIsCorrupt(value)) {

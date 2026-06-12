@@ -536,6 +536,15 @@ export function _buildDocxContentShared(featureId, data, children, docx) {
           });
           children.push(makeTableFn(colDXA, ['Time', 'Activity', 'Description & Notes'], outlineRows));
         }
+        // v0.14.5 (F2): language-course dialogue practice — 4-6 model-authored
+        // turns using the lesson's vocabulary, inside the practice block.
+        if (p.dialoguePractice?.turns?.length) {
+          children.push(makeSubHeading('Dialogue Practice'));
+          if (p.dialoguePractice.intro) children.push(makeText(p.dialoguePractice.intro));
+          p.dialoguePractice.turns.forEach((turn) =>
+            children.push(makeBullet(`${turn.speaker}: ${turn.line}${turn.rm ? ` (${turn.rm})` : ''}`)),
+          );
+        }
         // v0.13.3: the quantitative walkthrough — problem, numbered steps,
         // result callout — so "a concise worked example" is never a promise.
         if (p.workedExample?.problem) {
@@ -956,6 +965,15 @@ export function _buildDocxContentShared(featureId, data, children, docx) {
                 return [t.term || '', parts.join(' — ')];
               }),
             ),
+          );
+        }
+        // v0.14.5 (F2): language-course dialogue practice, right after the
+        // key terms it draws its vocabulary from.
+        if (g.dialoguePractice?.turns?.length) {
+          children.push(makeSubHeading('Dialogue Practice'));
+          if (g.dialoguePractice.intro) children.push(makeText(g.dialoguePractice.intro));
+          g.dialoguePractice.turns.forEach((turn) =>
+            children.push(makeBullet(`${turn.speaker}: ${turn.line}${turn.rm ? ` (${turn.rm})` : ''}`)),
           );
         }
         // v0.13.3: the worked example students study from.

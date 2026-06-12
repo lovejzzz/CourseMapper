@@ -1,4 +1,4 @@
-import { COMPILER_OWNED_LEAN_KEYS, LEAN_COLUMN_DEFS, LEAN_SPECIAL_TOOLS_DEF } from './leanCourseMap';
+import { COMPILER_OWNED_LEAN_KEYS, LEAN_COLUMN_DEFS, LEAN_READINGS_DEF, LEAN_SPECIAL_TOOLS_DEF } from './leanCourseMap';
 
 // Feature 2.3 — BYOM: Reconstruct course structure from uploaded materials
 export const RECONSTRUCT_SYSTEM_PROMPT = `You are an expert instructional designer. Your course maps align with Quality Matters (QM) Higher Education Rubric standards for learning objectives, instructional alignment, and course technology. The instructor has uploaded their existing course materials (slides, notes, lecture outlines, prior syllabi, or other teaching artifacts). Your task is to REVERSE-ENGINEER the course structure from these materials and produce a structured Course Map.
@@ -290,6 +290,10 @@ export function buildUserPrompt(
   }
   if (lean) {
     columnDefs += `- specialTools: ${LEAN_SPECIAL_TOOLS_DEF}\n`;
+    // v0.14.5 (A1): the readings registry wire key — verbatim titles only,
+    // hard traceability, omit when the source names none.
+    columnDefs += `- readings: ${LEAN_READINGS_DEF}\n`;
+    sampleSection += `          "readings": ["One reading title exactly as the source names it"],\n`;
   }
 
   // Build lesson scope instruction
@@ -360,6 +364,76 @@ ${segmentSyllabus(syllabusText)}
 
 Generate the complete Course Map JSON now:`;
 }
+
+// ── v0.14.5 WS-B (B1): native graph authoring — Pass A ─────────────────────
+// One LOW-reasoning call: syllabus → typed skeleton emitted as entity JSON
+// with ids, not spreadsheet prose (the V0.13 deferred contract). The skeleton
+// carries STRUCTURE only — sessions, course goals, the assessment plan, and
+// instructor-named readings (the WS-A registry shares this shape). All
+// disciplinary substance (outcomes, kernels, activities) is Pass B's job.
+//
+// Traceability mirrors the lean contract's hard rules (LEAN_READINGS_DEF):
+// titles are VERBATIM as the source names them, never invented, omitted when
+// the source names nothing.
+export const NATIVE_SKELETON_SYSTEM_PROMPT = `You are an expert instructional designer extracting the structure of a course from its syllabus or source materials. You TRANSCRIBE what the instructor already wrote — you do not author new content in this pass.
+
+Return ONLY one valid JSON object, no markdown and no commentary, in exactly this shape:
+{
+  "course": { "name": "Official course title", "term": "FA26 or TBD", "goals": ["short course-level goal phrases"] },
+  "sessions": [
+    { "id": "s1", "order": 1, "title": "Lesson title as the source presents it", "sectionTitles": ["2-4 short topic titles for this session"] }
+  ],
+  "assessments": [
+    { "id": "a1", "title": "Assessment title VERBATIM as named in the source", "kind": "graded-artifact|in-class|exam|oral", "dueSession": 3, "weightPct": 20 }
+  ],
+  "readings": [
+    { "id": "r1", "title": "Reading/work title VERBATIM as named in the source", "dueSession": 8 }
+  ]
+}
+
+RULES:
+1. Sessions: one entry per week/lesson/session, ids "s1", "s2", ... in order. Cover the WHOLE course.
+2. HARD TRACEABILITY: assessment and reading titles must be VERBATIM from the source — never invent, never normalize, never shorten a title. Omit "readings" entries (or the array) entirely when the source names no specific works. kind and weightPct only when the source supports them; omit otherwise.
+3. dueSession is the 1-based session number the item belongs to. When the source gives no week, attach it to the most plausible session from context.
+4. RECURRING ASSESSMENTS: when the source states a recurring cadence ("weekly autograded quizzes", "weekly labs", "weekly reading responses"), expand it into one assessments[] entry PER SESSION it applies to — title each "<cadence artifact>: <that session's topic>" (e.g. "Autograded quiz: while loops") with the cadence's kind. Expanding a stated cadence is transcription of the assessment PLAN, not invention; one-off named titles stay verbatim under rule 2. The full assessments[] array must cover the whole plan: most courses carry at least one entry per teaching session, so if your array has fewer entries than sessions, re-read the source for a stated cadence before returning.
+5. Keep it compact: short strings, no prose sentences, no explanations.`;
+
+/**
+ * Pass A user prompt. MUST contain the word "JSON" (the v0.13.1 json_object
+ * rule: OpenAI's json_object response format requires it in an INPUT message;
+ * the system prompt maps to `instructions`, which the guard does not scan).
+ */
+export function buildNativeSkeletonUserPrompt(syllabusText, { expectedLessons = null, confidence = null } = {}) {
+  const countLine =
+    expectedLessons && confidence === 'high'
+      ? `The course has exactly ${expectedLessons} sessions — return exactly that many entries in "sessions".`
+      : expectedLessons
+        ? `The course appears to have around ${expectedLessons} sessions; transcribe the actual structure (count weekly sessions, not modules).`
+        : 'Auto-detect the number of sessions from the source structure.';
+  return [
+    'Extract the typed course skeleton from the following source materials.',
+    countLine,
+    'If the text contains "--- SEGMENT N ---" markers, each segment corresponds to one session.',
+    '',
+    'SOURCE MATERIALS:',
+    segmentSyllabus(syllabusText),
+    '',
+    'Return ONLY the skeleton JSON object now:',
+  ].join('\n');
+}
+
+// ── v0.14.5 WS-B (B2): native graph authoring — Pass B addition ─────────────
+// Pass B rides the EXISTING kernel contract (blueprintEnrichmentPass's
+// buildLessonKernelPrompt schema, linters, and out-of-chunk guard). This
+// addition extends each lessons[] entry with the authorship the prose path
+// bought from the course-map call: goal, outcomes, and activity atoms. The
+// atoms follow the lean rules — no stems, no numbering inside strings.
+export const NATIVE_PASS_B_AUTHORING_ADDITION = `NATIVE AUTHORING ADDITION: every lessons[] entry must ALSO include these fields:
+- "goal": one short course-goal phrase this lesson serves (no sentence stem).
+- "outcomes": 3-5 measurable objective phrases, each starting with a Bloom's verb (e.g., "Analyze the impact of X on Y"). NO "Students will be able to" stem; no numbering inside the strings.
+- "async": 2-3 short out-of-class activity atoms, each "Verb: object" (e.g., "Read: Chapter 5 on policy frameworks").
+- "sync": 2-3 short in-class activity atoms (e.g., "Debate: competing interpretations of X").
+For lessons listed as CONTENT-SOURCED, return ONLY lessonId, goal, outcomes, async, and sync — their kernel content (keyTerms, facts, mc, scenario, discussionPrompt, assignmentCore) is already sourced from the curriculum library and must NOT be re-authored.`;
 
 // ── Feature 6.4: AI Gap Filler ──
 

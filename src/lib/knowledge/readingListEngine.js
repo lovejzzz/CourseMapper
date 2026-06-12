@@ -754,7 +754,38 @@ export async function attachOpenReadings(graph, { providers = {}, signal, maxSes
   if (!graph || typeof graph !== 'object' || !Array.isArray(graph.resources)) return 0;
   const fetchReadings = providers.searchScholarlyReadings || searchScholarlyReadings;
   const fetchBooks = providers.searchBookMetadata || searchBookMetadata;
-  const sessions = [...(graph.sessions || [])].sort((a, b) => (a.number || 0) - (b.number || 0)).slice(0, maxSessions);
+  // v0.14.5 (A4): the provenance principle — what the instructor already
+  // said outranks what we can retrieve. Sessions whose registry slot is
+  // non-empty (graph.readings entries due that lesson) are SKIPPED entirely:
+  // OpenAlex never attaches alongside an instructor-named reading, and the
+  // skip is recorded in the decision vocabulary ('slot filled by instructor
+  // reading'). Genome citations are tier 2 and still attach elsewhere
+  // (attachGenomeResources) — only the retrieved tier demotes here.
+  const instructorReadingsByLesson = new Map();
+  for (const reading of Array.isArray(graph.readings) ? graph.readings : []) {
+    if (!reading || !cleanText(reading.title) || !Number.isInteger(reading.dueSession)) continue;
+    if (!instructorReadingsByLesson.has(reading.dueSession)) instructorReadingsByLesson.set(reading.dueSession, []);
+    instructorReadingsByLesson.get(reading.dueSession).push(reading);
+  }
+  const allSessions = [...(graph.sessions || [])]
+    .sort((a, b) => (a.number || 0) - (b.number || 0))
+    .slice(0, maxSessions);
+  if (!Array.isArray(graph.readingListDecisions)) graph.readingListDecisions = [];
+  const sessions = [];
+  for (const session of allSessions) {
+    const slotReadings = instructorReadingsByLesson.get(session.number) || [];
+    if (slotReadings.length === 0) {
+      sessions.push(session);
+      continue;
+    }
+    graph.readingListDecisions.push({
+      type: 'slot-filled-by-instructor-reading',
+      lesson: session.number ?? null,
+      sessionId: session.id ?? null,
+      instructorReadings: slotReadings.slice(0, 4).map((reading) => reading.title),
+      message: `slot filled by instructor reading (L${session.number ?? '?'}: "${slotReadings[0].title}")`,
+    });
+  }
   const seen = existingCitations(graph);
   const nextId = nextResourceIdFactory(graph);
   const anchor = courseDisciplineAnchor(graph);
@@ -877,6 +908,31 @@ export async function attachOpenReadings(graph, { providers = {}, signal, maxSes
       attribution: work.attribution || 'OpenAlex (CC0 metadata)',
     });
     attached += 1;
+  }
+
+  // v0.14.5 (A4): when the registry names a 'book', the OpenLibrary lookup
+  // ENRICHES the registry entry (isbn/url/publisher onto the entity) and
+  // NEVER replaces its title — the instructor's verbatim title stays even
+  // when OpenLibrary metadata disagrees. The generic course-level book
+  // resource is skipped in that case (the registry book IS the required
+  // text; a retrieved sibling would displace upward).
+  const registryBook = (Array.isArray(graph.readings) ? graph.readings : []).find(
+    (reading) => reading?.kind === 'book' && cleanText(reading.title),
+  );
+  if (registryBook) {
+    try {
+      const books = await fetchBooks(cleanText(registryBook.title), { limit: 1, signal });
+      const book = (books || [])[0];
+      if (book) {
+        if (book.isbn && !registryBook.isbn) registryBook.isbn = cleanText(book.isbn);
+        if (book.url && !registryBook.url) registryBook.url = cleanText(book.url);
+        if (book.publisher && !registryBook.publisher) registryBook.publisher = cleanText(book.publisher);
+        // registryBook.title is intentionally untouched — verbatim forever.
+      }
+    } catch {
+      /* enrichment is optional */
+    }
+    return attached;
   }
 
   // Course-level book metadata for the syllabus Required Texts / appendix —

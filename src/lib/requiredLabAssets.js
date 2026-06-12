@@ -1,3 +1,5 @@
+import { expandKeys } from './keyMaps';
+
 function collectCourseMapSourceText(courseMap) {
   const parts = [
     courseMap?.courseName,
@@ -228,6 +230,133 @@ export function collectRequiredLabAssets({ courseMap }) {
       // genre's asset list.
       return [];
   }
+}
+
+// ── v0.14.5 (F1): generated pronunciation reference for language courses ────
+// Language-genre packages gain a generated markdown asset built from data the
+// package already carries: the compiled study guides' key terms, whose
+// romanization the v0.14.1 rm contract paired with every non-Latin term
+// ("你好 (nǐ hǎo)" — displayKeyTermName in courseBlueprintCompiler.js, which
+// also carries the structured scriptTerm/romanization fields since v0.14.5).
+// Non-language courses are untouched: no genre signal or no rm-carrying
+// vocabulary → no asset.
+
+// Keep in sync with NON_LATIN_SCRIPT_RE in src/lib/blueprintEnrichmentPass.js
+// (not exported there; the pattern is copied, same as WET_LAB_SIGNAL above).
+const NON_LATIN_SCRIPT_RE =
+  /[\u0400-\u04ff\u0590-\u05ff\u0600-\u06ff\u0904-\u097f\u0e00-\u0e7f\u3040-\u30ff\u3400-\u4dbf\u4e00-\u9fff\uac00-\ud7af]/;
+
+// Mandarin signal: gates the four-tones section (tones are Mandarin-specific;
+// a kana or hangul course gets the vocabulary table without the tone chart).
+const MANDARIN_SIGNAL_RE = /\b(mandarin|pinyin|hanzi|chinese)\b/i;
+
+const VOCABULARY_ROW_CAP = 40;
+
+function firstSentence(text, maxChars = 90) {
+  const cleaned = String(text || '')
+    .replace(/\s+/g, ' ')
+    .trim();
+  if (!cleaned) return '';
+  const sentenceEnd = cleaned.search(/[.!?](\s|$)/);
+  const sentence = sentenceEnd > 0 ? cleaned.slice(0, sentenceEnd + 1) : cleaned;
+  if (sentence.length <= maxChars) return sentence;
+  return `${sentence.slice(0, maxChars - 1).replace(/\s+\S*$/, '')}…`;
+}
+
+/** Parse a display-formatted term "你好 (nǐ hǎo)" back into script + rm. */
+function splitDisplayTerm(displayTerm) {
+  const match = /^(.+?)\s*\(([^()]+)\)$/.exec(String(displayTerm || '').trim());
+  if (!match) return null;
+  const [, script, rm] = match;
+  if (!NON_LATIN_SCRIPT_RE.test(script) || NON_LATIN_SCRIPT_RE.test(rm)) return null;
+  return { script: script.trim(), rm: rm.trim() };
+}
+
+function studyGuideEntries(deliverables) {
+  const data = deliverables?.studyGuides?.data;
+  if (!data || typeof data !== 'object') return [];
+  // Same tolerance as the exporters: expand compact keys, accept either root.
+  const expanded = expandKeys('studyGuides', data) || {};
+  const guides = expanded.guides || expanded.studyGuides;
+  return Array.isArray(guides) ? guides : [];
+}
+
+/**
+ * The vocabulary rows for the pronunciation reference, lesson-ordered and
+ * capped at 40: every study-guide key term that carries romanization. Reads
+ * the structured fields (scriptTerm/romanization, written by the compiler
+ * since v0.14.5) and falls back to parsing the "term (rm)" display format for
+ * packages compiled before the structured fields existed.
+ */
+export function collectPronunciationRows({ deliverables } = {}, { cap = VOCABULARY_ROW_CAP } = {}) {
+  const rows = [];
+  const seen = new Set();
+  for (const guide of studyGuideEntries(deliverables)) {
+    for (const term of Array.isArray(guide?.keyTerms) ? guide.keyTerms : []) {
+      const structured =
+        term?.scriptTerm && term?.romanization
+          ? { script: String(term.scriptTerm), rm: String(term.romanization) }
+          : null;
+      const parsed = structured || splitDisplayTerm(term?.term);
+      if (!parsed || !NON_LATIN_SCRIPT_RE.test(parsed.script)) continue;
+      const key = `${parsed.script}|${parsed.rm}`.toLowerCase();
+      if (seen.has(key)) continue;
+      seen.add(key);
+      rows.push({ script: parsed.script, rm: parsed.rm, gloss: firstSentence(term?.definition) });
+      if (rows.length >= cap) return rows;
+    }
+  }
+  return rows;
+}
+
+const MANDARIN_TONE_SECTION = [
+  '## The four Mandarin tones',
+  '',
+  'Every syllable carries a tone; the tone mark sits over the main vowel of the pinyin.',
+  '',
+  '| Tone | Mark | Example | Contour |',
+  '| --- | --- | --- | --- |',
+  '| 1st | ā | mā 妈 ("mother") | high and level |',
+  '| 2nd | á | má 麻 ("hemp") | rising |',
+  '| 3rd | ǎ | mǎ 马 ("horse") | falling then rising |',
+  '| 4th | à | mà 骂 ("to scold") | sharp falling |',
+  '',
+  'The neutral tone is unmarked (ma 吗, the question particle).',
+].join('\n');
+
+/**
+ * The generated "Pronunciation reference" markdown for a language-genre
+ * package, or null when the course is not language-genre or no vocabulary
+ * with romanization is reachable (a Latin-script language course ships
+ * nothing — an empty chart would be noise, and a four-tones chart for
+ * Spanish would be wrong).
+ */
+export function buildPronunciationReference({ courseMap, deliverables } = {}) {
+  if (classifyCourseAssetGenre({ courseMap }) !== 'language') return null;
+  const rows = collectPronunciationRows({ deliverables });
+  if (rows.length === 0) return null;
+
+  const courseText = `${courseIdentityText(courseMap)} ${searchableExportText({ courseMap })}`;
+  const mandarin = MANDARIN_SIGNAL_RE.test(courseText);
+  const scriptHeader = mandarin ? 'Hanzi' : 'Term';
+  const rmHeader = mandarin ? 'Pinyin' : 'Romanization';
+
+  const lines = [
+    '# Pronunciation Reference',
+    '',
+    `Generated pronunciation support for ${courseMap?.courseName || 'this course'}. ` +
+      'The vocabulary below is drawn from the lesson study guides in this package, in lesson order.',
+    '',
+    ...(mandarin ? [MANDARIN_TONE_SECTION, ''] : []),
+    '## Vocabulary reference',
+    '',
+    `| ${scriptHeader} | ${rmHeader} | Gloss |`,
+    '| --- | --- | --- |',
+    ...rows.map((row) => `| ${row.script} | ${row.rm} | ${row.gloss || '—'} |`),
+    '',
+    `_${rows.length} term(s); capped at ${VOCABULARY_ROW_CAP}. Romanizations come from the same reviewed vocabulary the lesson materials teach._`,
+  ];
+  return { markdown: lines.join('\n'), rowCount: rows.length, mandarin };
 }
 
 export function buildRequiredLabAssetsReport(requirements, { courseName }) {

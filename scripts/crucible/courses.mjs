@@ -180,6 +180,24 @@ export const strangerPool = [
   },
 ];
 
+// ── V0.14.5 WS-A (A5): the Grounding proof fixture ──────────────────────────
+// World Lit EXTENDED with an explicit per-week reading list naming the real
+// canon — the texts the V0.14 audit found missing. Deliberately NOT in
+// 'all'/'extended' (those stay comparable across loop history): it runs by
+// its own id in Grounding proof rounds. `expectReadings: true` arms the
+// grader's named-reading penetration check (deepQualityGrader checkReadings)
+// — an empty manifest readings registry fails the round.
+export const groundingCourses = [
+  {
+    id: 'world-lit-readings',
+    title: 'World Literature',
+    lessonCount: 14,
+    expectReadings: true,
+    prompt:
+      'World Literature, a 14-lesson undergraduate seminar with weekly reading responses and close-reading checks; the syllabus assigns a named primary text nearly every week and course materials must name those texts. Lessons cover: what counts as world literature; the oral epic tradition; the Homeric epic; classical drama; Tang poetry; frame narratives; the medieval journey narrative; comparative reading methods culminating in a comparative essay proposal; postcolonial literature; magical realism; modernist poetry; the fantastic and the infinite library; contemporary global fiction; and a final paper with course synthesis. Required readings as named on the syllabus: Week 2 reads Gilgamesh; Week 3 reads The Odyssey; Week 4 reads Antigone; Week 5 reads selected poems of Li Bai and Du Fu; Week 6 reads The Thousand and One Nights; Week 7 reads Inferno; Week 9 reads Things Fall Apart; Week 10 reads One Hundred Years of Solitude; Week 11 reads The Waste Land; Week 12 reads The Library of Babel.',
+  },
+];
+
 export const smokePool = referenceCourses.filter((course) => course.id === 'cs-python');
 
 // The original four audit courses — 'all' resolves to exactly these so release
@@ -187,7 +205,12 @@ export const smokePool = referenceCourses.filter((course) => course.id === 'cs-p
 const AUDIT_COURSE_IDS = ['mandarin', 'cs-python', 'geology', 'world-lit'];
 
 export function getCourseById(id) {
-  return referenceCourses.find((course) => course.id === id) || strangerPool.find((course) => course.id === id) || null;
+  return (
+    referenceCourses.find((course) => course.id === id) ||
+    groundingCourses.find((course) => course.id === id) ||
+    strangerPool.find((course) => course.id === id) ||
+    null
+  );
 }
 
 /**
@@ -228,7 +251,7 @@ export function resolveCourses(spec) {
   const courses = ids.map((id) => {
     const course = getCourseById(id);
     if (!course) {
-      const known = [...referenceCourses, ...strangerPool].map((c) => c.id).join(', ');
+      const known = [...referenceCourses, ...groundingCourses, ...strangerPool].map((c) => c.id).join(', ');
       throw new Error(`Unknown course id "${id}" — known ids: ${known} (or "all"/"extended"/"smoke")`);
     }
     return course;

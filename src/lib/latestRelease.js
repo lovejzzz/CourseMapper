@@ -8,13 +8,13 @@
  * the three screen footers, and the Changelog entry.
  */
 export const LATEST_RELEASE = {
-  version: '0.14.4',
+  version: '0.14.5',
   date: 'June 12, 2026',
-  title: 'Calm Surface: the UI catches up to the pipeline',
+  title: "Grounding: the instructor's own materials, the model's own structure",
   highlights: [
-    'The course map becomes calm and legible: a light sticky header replaces the navy block, lesson bands group sections with live meta chips, assessment bubbles become quiet links that open their deliverable, and a density toggle plus per-lesson collapse let instructors shape the view',
-    'One fact, one place: a build ribbon under the header is the single status spine — live stage labels, recovery retries, genome and judgment chips, and the cost ticker all rendered from events the pipeline already streams; the quality grade moves to the header crown; duplicate status cards, tab counters, and rainbow dots are gone',
-    'One review queue: observations, spot-checks, and structural notices merge into a triaged step-through drawer with per-class counts — and the noisy structural false-positives (quiz-header metadata, the "Probability language" discipline misfire) were fixed at the source so the counts are honest',
-    'Deliverable views scale to the registry: 51 briefs group under sticky lesson headers with jump rails and registry identity lines, exams stand out with their coverage scope, and every artifact round-trips to its course-map cell in one click',
+    'The readings registry: works the syllabus names ("Things Fall Apart, Weeks 8–9") become first-class entities inherited verbatim by the course map, syllabus, lesson plans, briefs, and discussion prompts — retrieval only fills empty slots, and provenance (instructor → genome → retrieved) is enforced by the package\'s own grader',
+    'Native graph authoring ships flag-gated: the model authors typed entities directly (Pass A skeleton + parallel Pass B), proven live side-by-side — 36% cheaper and 57% faster than the prose path — with the default staying prose until the quality bar is met (one known gap: resource transcription)',
+    'Decks render real visuals from data already authored: native concept-map shapes and worked-example charts, zero new AI calls, with geometry proven in tests and an arming rule that never penalizes pre-feature packages',
+    "The Crucible tests providers we don't default to (--provider anthropic|google with a namespaced drift ledger), language courses gain pronunciation references and dialogue practice, and the compiler diet continues with live-telemetry-backed rekeys",
   ],
 };

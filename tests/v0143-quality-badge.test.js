@@ -24,8 +24,15 @@
  *
  * The Crucible cross-check column (roadmap A5(4), inAppScore in the round
  * report) belongs to the WS-B/release agent — deliberately not here.
+ *
+ * V0.14.4 WS-B2 adds the chip-placement contracts at the bottom: the
+ * workspace-header WorkspaceQualityChip states (grading… / Quality N · G /
+ * Not graded) and ExportSidePanel's compact download-card QualityStamp,
+ * both rendered from the same packageQualityPass.quality value.
  */
 import { beforeAll, describe, expect, it } from 'vitest';
+import React from 'react';
+import { renderToStaticMarkup } from 'react-dom/server';
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
@@ -45,6 +52,8 @@ import { buildRunDigest } from '../src/lib/runDigest.js';
 // keep the legacy grade({ extractedDir }) signature working (A1).
 import { grade, honestyFromDigest, GRADER_VERSION, IN_APP_EXCLUDED_CHECKS } from './lib/deepQualityGrader.js';
 import { createMemoryFileProvider } from '../src/lib/quality/fileProviders.js';
+import WorkspaceQualityChip from '../src/components/WorkspaceQualityChip.jsx';
+import { QualityStamp } from '../src/components/ExportSidePanel.jsx';
 
 beforeAll(() => {
   // pptx text-fit pass measures with OffscreenCanvas — stub for node env.
@@ -319,6 +328,96 @@ describe('A5(4) — timeout path never blocks the package', () => {
       ).toBe(true);
     }
   }, 120000);
+});
+
+// ── V0.14.4 WS-B2: quality to the crown ──────────────────────────────────────
+// The PRIMARY chip renders in the workspace header from the same
+// packageQualityPass state the export panel reads; the panel keeps a compact
+// stamp on the Ready-to-download card. Both open the same report modal
+// (open-state lifted to AppFlow; the panel renders it in controlled mode).
+const gradedQuality = (overrides = {}) => ({
+  status: 'graded',
+  score: 100,
+  grade: 'A',
+  findingCounts: { p0: 0, p1: 0, p2: 0 },
+  ...overrides,
+});
+
+describe('B2 — WorkspaceQualityChip header states', () => {
+  const render = (packageQualityPass) =>
+    renderToStaticMarkup(React.createElement(WorkspaceQualityChip, { packageQualityPass, onOpenReport: () => {} }));
+
+  it('renders nothing before any finish pass runs', () => {
+    expect(render(null)).toBe('');
+    expect(render({ status: 'idle' })).toBe('');
+    // A blocked generation without a grade result stays silent too.
+    expect(render({ status: 'blocked', message: 'Generation failed.' })).toBe('');
+  });
+
+  it('pulses a slate "Grading…" state while the finish/grade pass runs', () => {
+    const html = render({ status: 'running', message: 'Finishing package…' });
+    expect(html).toContain('workspace-quality-chip-grading');
+    expect(html).toContain('Grading…');
+    expect(html).toContain('animate-pulse');
+    expect(html).toContain('slate');
+    expect(html).toContain('aria-label="Package quality: grading in progress"');
+  });
+
+  it('renders the emerald graded chip for A/B with zero P0s, as a ≥32px button', () => {
+    const html = render({ status: 'ready', quality: gradedQuality() });
+    expect(html).toContain('workspace-quality-chip');
+    expect(html).toContain('Quality 100 · A');
+    expect(html).toContain('emerald');
+    expect(html).toContain('<button');
+    expect(html).toContain('min-h-[32px]');
+    expect(html).toContain('aria-label="Package quality: 100 out of 100, grade A, 0 issues — open the quality report"');
+  });
+
+  it('turns amber when a P0 lands or the grade drops to C/D', () => {
+    const withP0 = render({
+      status: 'ready',
+      quality: gradedQuality({ score: 88, grade: 'B', findingCounts: { p0: 1, p1: 0, p2: 2 } }),
+    });
+    expect(withP0).toContain('amber');
+    expect(withP0).not.toContain('emerald');
+    expect(withP0).toContain('including 1 critical');
+
+    const gradeC = render({
+      status: 'ready',
+      quality: gradedQuality({ score: 74, grade: 'C', findingCounts: { p0: 0, p1: 3, p2: 1 } }),
+    });
+    expect(gradeC).toContain('amber');
+    expect(gradeC).toContain('Quality 74 · C');
+  });
+
+  it('renders the slate "Not graded" state with the reason in the tooltip', () => {
+    const html = render({
+      status: 'ready',
+      quality: { status: 'not-graded', reason: 'quality grading timed out after 20000ms' },
+    });
+    expect(html).toContain('workspace-quality-chip-not-graded');
+    expect(html).toContain('Not graded');
+    expect(html).toContain('slate');
+    expect(html).toContain('title="Quality grading did not run: quality grading timed out after 20000ms"');
+  });
+});
+
+describe('B2 — ExportSidePanel compact download-card stamp', () => {
+  const render = (quality) => renderToStaticMarkup(React.createElement(QualityStamp, { quality, onOpen: () => {} }));
+
+  it('stamps "100 · A" on the card for a graded package', () => {
+    const html = render(gradedQuality());
+    expect(html).toContain('quality-stamp');
+    expect(html).toContain('100 · A');
+    expect(html).toContain('emerald');
+    expect(html).toContain('<button');
+  });
+
+  it('turns amber for P0/low grades and stays silent when not graded', () => {
+    expect(render(gradedQuality({ score: 70, grade: 'C' }))).toContain('amber');
+    expect(render({ status: 'not-graded', reason: 'timeout' })).toBe('');
+    expect(render(null)).toBe('');
+  });
 });
 
 describe('A5(5) — export verifier count regression net', () => {

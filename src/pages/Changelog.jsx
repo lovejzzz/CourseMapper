@@ -3,6 +3,30 @@ import Header from '../components/Header';
 
 const releases = [
   {
+    version: '0.14.5',
+    date: 'June 12, 2026',
+    title: "Grounding: the instructor's own materials, the model's own structure",
+    highlights: [
+      'The readings registry inverts the sourcing order: works the syllabus names become first-class entities (R8.1, kind, provenance) inherited verbatim by the course map, syllabus schedule and Required Texts, lesson-plan materials, brief source cues, and discussion prompts ("Anchor your post in Antigone"). Retrieval attaches only to empty slots; OpenLibrary may enrich a named book\'s metadata but never replaces its title; the provenance order — instructor-named, genome-cited, retrieved-open — is enforced by the package\'s own grader and recorded in the manifest.',
+      "Native graph authoring (the V0.13 contract) ships flag-gated: one low-reasoning Pass A call transcribes the syllabus into typed entities, parallel Pass B batches author lesson content onto those ids, and assembly rides the prose path's own derivation so registry identity comes from proven code. The live side-by-side proof: 36% cheaper ($0.07 vs $0.11) and 57% faster (65–76s vs 151–178s) per course. The quality bar (within 2 points, no new finding classes) is not yet met — one known gap, resource transcription — so the default stays prose, exactly as the gate was designed. The round also hardened the path: a degenerate-skeleton gate falls back loudly, and a compile-stage belt turns any throw into errored features instead of a silent hang.",
+      'The deck visual layer renders what the pipeline already authors, at zero new AI calls: concept-map hub-and-spoke shapes with deterministic geometry (proven in-bounds for every spoke count) and worked-example bar charts extracted conservatively from numeric walkthroughs — absent data means no visual, never a fabricated one, and pre-feature packages are never retroactively penalized.',
+      "Compiler diet phase 2, decided by live telemetry from 22 real generations: the finalizer's 19-regex artifact-kind scan retired on the registry path (96,943 live consumptions rekeyed to registry identity), the strategy-label rekey was honestly refused for lack of outcome ids (requirement specified instead), and the legacy-path endgame is scoped with measured line counts in docs/V0.14.5_LEGACY_PATH_ENDGAME_NOTE.md.",
+      'Provider breadth and the language slice: Crucible rounds run on Anthropic and Google models with per-provider keys, run-dir suffixes, and a namespaced drift ledger so provider deltas never read as regressions (key-gated pending secrets); language courses gain a generated pronunciation reference (tones plus a hanzi–pinyin–gloss table from kernel data) and dialogue practice riding the kernel call; the lang-shard question is answered honestly in docs/V0.14.5_LANG_SHARD_NOTE.md — the model path is the right architecture.',
+    ],
+    sections: [
+      {
+        label: 'Proof',
+        icon: 'QA',
+        color: 'emerald',
+        items: [
+          'Grounding proven live: the world-lit-readings fixture course (the canon the original audit found missing — Gilgamesh through Borges) generated at 100/A with 28 instructor-named readings in the manifest, verbatim inheritance across all surfaces, and the highest advisory-judge score yet recorded (6/10 vs 5/10 for its readings-free twin).',
+          'The side-by-side harness caught a real live-only failure before it could ship: the verbatim-transcription rule made the model honestly return one assessment for "weekly quizzes", and the degenerate registry hit an uncaught compiler throw — root-caused from the captured console, fixed with a cadence-expansion rule plus loud fallbacks, re-proven live the same day.',
+          'Full suite 3,236 passing; golden equivalence byte-green throughout; release rounds all 100/A with badge drift Δ0; total verification spend for both releases ~$1.60.',
+        ],
+      },
+    ],
+  },
+  {
     version: '0.14.4',
     date: 'June 12, 2026',
     title: 'Calm Surface: the UI catches up to the pipeline',

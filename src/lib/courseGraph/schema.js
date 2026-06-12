@@ -23,6 +23,10 @@ export const COURSE_GRAPH_VERSION = 1;
 const ENTITY_COLLECTIONS = ['concepts', 'outcomes', 'assessments', 'sessions', 'resources'];
 const EDGE_COLLECTIONS = ['teaches', 'assesses', 'requires', 'practicedIn', 'instanceOf', 'genomeLink'];
 
+// v0.14.5 (A1): the readings registry's closed kind set — the compiler and
+// the retrieval demotion branch on these, so an unknown kind is a defect.
+const READING_KINDS = new Set(['book', 'chapter', 'article', 'packet', 'media', 'other']);
+
 export function createEmptyCourseGraph({ courseName = '', description = '' } = {}) {
   return {
     version: COURSE_GRAPH_VERSION,
@@ -32,6 +36,11 @@ export function createEmptyCourseGraph({ courseName = '', description = '' } = {
     assessments: [],
     sessions: [],
     resources: [],
+    // v0.14.5 (A1): instructor-named readings — first-class registry
+    // entities ({ id, title, author, kind, sourceText, dueSession,
+    // sectionRef, instructorProvided }; flat scalars only, the Firestore
+    // rule). Legacy graphs without the collection stay valid (additive).
+    readings: [],
     edges: {
       teaches: [],
       assesses: [],
@@ -136,6 +145,40 @@ export function validateCourseGraph(graph) {
     }
   }
 
+  // v0.14.5 (A1): the readings registry. OPTIONAL by construction — graphs
+  // saved before v0.14.5 carry no collection and stay valid (readings are
+  // strictly additive; a missing registry never degrades anything). When
+  // present: array shape, unique ids, closed kind set, integer dueSession,
+  // and flat scalar fields only (no nested arrays — the Firestore rule).
+  if (graph.readings !== undefined) {
+    if (!Array.isArray(graph.readings)) {
+      push('missing-collection', 'Course graph collection "readings" is not an array.');
+    } else {
+      for (const reading of graph.readings) {
+        if (!isNonEmptyString(reading?.id)) {
+          push('missing-id', 'An entity in "readings" has no id.');
+          continue;
+        }
+        if (ids.has(reading.id)) push('duplicate-id', `Entity id "${reading.id}" is used more than once.`);
+        ids.add(reading.id);
+        if (!isNonEmptyString(reading.title)) {
+          push('invalid-reading', `Reading "${reading.id}" has no title.`);
+        }
+        if (reading.kind !== undefined && reading.kind !== '' && !READING_KINDS.has(reading.kind)) {
+          push('invalid-reading-kind', `Reading "${reading.id}" has unknown kind "${reading.kind}".`);
+        }
+        if (reading.dueSession !== undefined && !Number.isInteger(reading.dueSession)) {
+          push('invalid-reading', `Reading "${reading.id}" has a non-integer dueSession.`);
+        }
+        for (const [key, value] of Object.entries(reading)) {
+          if (Array.isArray(value)) {
+            push('invalid-reading', `Reading "${reading.id}" field "${key}" is an array — readings are flat scalars.`);
+          }
+        }
+      }
+    }
+  }
+
   const sessionNumbers = new Set();
   for (const session of graph.sessions || []) {
     if (Number.isInteger(session?.number)) {
@@ -167,6 +210,8 @@ export function courseGraphStats(graph) {
       (assessment) => assessment?.kind && assessment.kind !== 'in-class',
     ).length,
     resources: (graph.resources || []).length,
+    // v0.14.5 (A1): instructor-named readings in the registry.
+    readings: (graph.readings || []).length,
     genomeLinkedConcepts: linked.size,
     authoredConcepts: authored,
   };

@@ -9,11 +9,17 @@ import {
   JUDGE_MODEL,
   JUDGE_MODEL_RATES_USD,
   NEXT_COURSE_ESTIMATE_USD,
+  PROVIDER_DEFAULT_MODELS,
+  SUPPORTED_PROVIDERS,
   buildHistoryTable,
   buildJudgePrompt,
   clampConcurrency,
   deriveCheckId,
   diffLedger,
+  expandCoursesForAuthoring,
+  expandCoursesForProvider,
+  findingProvider,
+  parseProviderFlag,
   diffSections,
   digestCostUsd,
   docxStyledParagraphs,
@@ -274,6 +280,131 @@ describe('E4 — ledger diffing', () => {
     expect(diff.ok).toBe(true);
     expect(diff.skipped).toHaveLength(1);
     expect(diff.skipped[0].status).toMatch(/not stored locally/);
+  });
+
+  // ── V0.14.5 E3: provider namespacing — (checkId, course, provider) ────────
+  describe('V0.14.5 E3 — provider-namespaced verdict matching', () => {
+    it('absent provider on BOTH sides defaults to openai (the whole pre-provider ledger stays valid)', () => {
+      // The entire pre-E3 ledger and all pre-E3 findings carry no provider —
+      // they must keep matching exactly as before.
+      const diff = diffLedger({ ledger: [tp()], findings: [finding()], storedRoundIds: ['round-1'] });
+      expect(diff.ok).toBe(true);
+      expect(diff.verified).toHaveLength(1);
+      expect(findingProvider(tp())).toBe('openai');
+      expect(findingProvider({ provider: 'anthropic' })).toBe('anthropic');
+    });
+
+    it('an anthropic-only finding NEVER satisfies an openai true-positive (and vice versa)', () => {
+      // Same round dir family, same course base, same checkId — but the
+      // finding came from an anthropic run. The openai TP must read MISSING,
+      // not verified-by-proxy.
+      const diff = diffLedger({
+        ledger: [tp()],
+        findings: [finding({ provider: 'anthropic' })],
+        storedRoundIds: ['round-1'],
+      });
+      expect(diff.ok).toBe(false);
+      expect(diff.missingTruePositives).toHaveLength(1);
+      // …and the anthropic finding is unvetted under ITS provider.
+      expect(diff.unvetted).toHaveLength(1);
+      expect(diff.unvetted[0].provider).toBe('anthropic');
+    });
+
+    it('a known openai false positive does NOT read as resurfaced when only anthropic fires it', () => {
+      // "Anthropic renders shorter bullets" — documented drift, not an openai
+      // FP resurfacing. The openai FP stays quiet; the anthropic finding is
+      // listed unvetted with its provider so it can earn its own verdict.
+      const fp = tp({ verdict: 'false-positive' });
+      const diff = diffLedger({
+        ledger: [fp],
+        findings: [finding({ provider: 'anthropic' })],
+        storedRoundIds: ['round-1'],
+      });
+      expect(diff.ok).toBe(true);
+      expect(diff.quietFalsePositives).toHaveLength(1);
+      expect(diff.resurfacedFalsePositives).toHaveLength(0);
+      expect(diff.unvetted[0].provider).toBe('anthropic');
+    });
+
+    it('a provider-tagged verdict matches only findings from that provider', () => {
+      const anthropicTp = tp({ provider: 'anthropic', courseId: 'cs-python--anthropic' });
+      const matched = diffLedger({
+        ledger: [anthropicTp],
+        findings: [finding({ provider: 'anthropic', courseId: 'cs-python--anthropic' })],
+        storedRoundIds: ['round-1'],
+      });
+      expect(matched.ok).toBe(true);
+      expect(matched.verified).toHaveLength(1);
+
+      const crossProvider = diffLedger({
+        ledger: [anthropicTp],
+        findings: [finding({ courseId: 'cs-python--anthropic' })], // no provider → openai
+        storedRoundIds: ['round-1'],
+      });
+      expect(crossProvider.ok).toBe(false);
+      expect(crossProvider.missingTruePositives).toHaveLength(1);
+    });
+
+    it('same-provider findings collapse into one unvetted group; cross-provider stay separate', () => {
+      const diff = diffLedger({
+        ledger: [],
+        findings: [
+          finding({ provider: 'anthropic', evidenceHash: 'h1' }),
+          finding({ provider: 'anthropic', evidenceHash: 'h2' }),
+          finding({ provider: 'google', evidenceHash: 'h3' }),
+        ],
+        storedRoundIds: ['round-1'],
+      });
+      expect(diff.unvetted).toHaveLength(2);
+      expect(diff.unvetted.find((group) => group.provider === 'anthropic').count).toBe(2);
+      expect(diff.unvetted.find((group) => group.provider === 'google').count).toBe(1);
+    });
+  });
+});
+
+describe('V0.14.5 E1 — provider flag, defaults, and course expansion', () => {
+  it('parseProviderFlag defaults to openai and accepts the three supported providers', () => {
+    expect(parseProviderFlag(undefined)).toBe('openai');
+    expect(parseProviderFlag(true)).toBe('openai');
+    expect(parseProviderFlag('')).toBe('openai');
+    expect(parseProviderFlag('anthropic')).toBe('anthropic');
+    expect(parseProviderFlag('GOOGLE')).toBe('google');
+    expect(() => parseProviderFlag('azure')).toThrow(/--provider must be/);
+  });
+
+  it('each provider defaults to its cheapest generation-capable model', () => {
+    expect(PROVIDER_DEFAULT_MODELS).toEqual({
+      openai: 'gpt-5.4-mini',
+      anthropic: 'claude-haiku-4-5',
+      google: 'gemini-2.5-flash-lite',
+    });
+    expect(SUPPORTED_PROVIDERS).toEqual(['openai', 'anthropic', 'google']);
+  });
+
+  it('openai keeps run-dir naming EXACTLY (history/baselines stay comparable)', () => {
+    const courses = expandCoursesForProvider([{ id: 'cs-python', title: 'CS' }], 'openai');
+    expect(courses).toHaveLength(1);
+    expect(courses[0].id).toBe('cs-python');
+    expect(courses[0].provider).toBe('openai');
+  });
+
+  it('non-openai providers suffix run dirs and keep baseId for baseline lookup', () => {
+    const courses = expandCoursesForProvider([{ id: 'cs-python', title: 'CS' }], 'anthropic');
+    expect(courses[0].id).toBe('cs-python--anthropic');
+    expect(courses[0].baseId).toBe('cs-python');
+    expect(courses[0].provider).toBe('anthropic');
+  });
+
+  it('composes with the authoring expansion: provider suffix lands AFTER the authoring suffix', () => {
+    const expanded = expandCoursesForProvider(
+      expandCoursesForAuthoring([{ id: 'cs-python', title: 'CS' }], 'both'),
+      'google',
+    );
+    expect(expanded.map((course) => course.id)).toEqual(['cs-python--prose--google', 'cs-python--native--google']);
+    // baseId stays the ORIGINAL course id so baseline lookup and authoring
+    // pairing (pairAuthoringEntries keys on baseId) both keep working.
+    expect(expanded.every((course) => course.baseId === 'cs-python')).toBe(true);
+    expect(expanded.map((course) => course.authoring)).toEqual(['prose', 'native']);
   });
 });
 

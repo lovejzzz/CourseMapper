@@ -134,6 +134,13 @@ export function buildBlueprintFromGraph(graph, options = {}) {
     (assessment) =>
       assessment && typeof assessment === 'object' && assessment.title && Number.isInteger(assessment.dueSession),
   );
+  // v0.14.5 (A2): the readings registry rides into the blueprint the same
+  // way — instructor-named titles become the leading items of every readings
+  // surface (lesson-plan materials, syllabus week rows, briefs, discussion
+  // anchors). Strictly additive: an empty registry changes nothing.
+  const readingsRegistry = (graph?.readings || []).filter(
+    (reading) => reading && typeof reading === 'object' && reading.title && Number.isInteger(reading.dueSession),
+  );
   const enrichment =
     options.enrichment && typeof options.enrichment === 'object'
       ? { ...graphEnrichment, ...options.enrichment }
@@ -146,5 +153,6 @@ export function buildBlueprintFromGraph(graph, options = {}) {
     // required texts. Explicit options win.
     ...(knowledgeResources.length > 0 && !options.knowledgeResources ? { knowledgeResources } : {}),
     ...(assessmentRegistry.length > 0 && !options.assessmentRegistry ? { assessmentRegistry } : {}),
+    ...(readingsRegistry.length > 0 && !options.readingsRegistry ? { readingsRegistry } : {}),
   });
 }

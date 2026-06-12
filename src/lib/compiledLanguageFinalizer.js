@@ -56,6 +56,67 @@ function artifactKindOf(artifactTitle = '') {
   return 'artifact';
 }
 
+// ── v0.14.5 WS-D (D1): registry-keyed reference nouns ───────────────────────
+// Targets that carry registry identity (assessmentId — the Phase 3a fields)
+// derive the short-reference noun from REGISTRY KIND + TITLE HEAD-NOUN,
+// retiring the 19-regex ARTIFACT_KIND_PATTERNS scan on the registry path.
+// The phase-1 matrix (tests/v0143-compiler-diet.test.js) falsified the
+// "inference is dead" hypothesis — the regex result was load-bearing for
+// every 3rd+ mention because the registry kind vocabulary
+// (graded-artifact/exam/oral/in-class) is too coarse for a readable noun —
+// and queued exactly this rekey. The pre-colon label of a registry title is
+// authored as the artifact's own genre ("Quiz: …" → 'quiz', "Lab
+// Practical: …" → 'practical'), so its head noun beats a pattern guess.
+// The regex scan remains ONLY for targets without registry identity
+// (legacy/no-registry blueprints) and as the telemetry-counted fallback
+// when a registry target arrives without a recognizable kind.
+const REGISTRY_KIND_FALLBACK_NOUNS = {
+  exam: 'exam',
+  oral: 'oral check',
+  'graded-artifact': 'assignment',
+  'in-class': 'check',
+};
+
+// Label words that name the schedule slot, not the artifact genre — a
+// pre-colon label like "Week 3" must never yield "the Week 3 week".
+const HEAD_NOUN_BLOCKLIST_RE = /^(?:week|lesson|session|module|unit|part|day)$/;
+
+// Head noun of a label: the last word, trailing numerals stripped
+// ("Lab Practical 2" → 'practical'); empty when the word is too short or
+// names a schedule slot instead of a genre.
+function titleHeadNoun(label) {
+  const match = String(label || '')
+    .replace(/[\s\d.)#-]+$/g, '')
+    .match(/[A-Za-z][A-Za-z'-]*$/);
+  const head = match ? match[0].toLowerCase() : '';
+  if (head.length < 3 || HEAD_NOUN_BLOCKLIST_RE.test(head)) return '';
+  return head;
+}
+
+function registryArtifactNoun(kind, title) {
+  const fallback = REGISTRY_KIND_FALLBACK_NOUNS[kind] || '';
+  // Unknown/missing kind: no derivation — the caller falls back to the
+  // regex scan and records the (re-scoped) finalizer-kind-inference hit.
+  if (!fallback) return '';
+  if (kind === 'exam') return 'exam';
+  const text = String(title || '').trim();
+  const colonIndex = text.indexOf(':');
+  if (kind === 'oral') {
+    // "Final Oral Performance" → 'performance' (anywhere in the title — a
+    // trailing phrase like "… with course vocabulary" must not hide it);
+    // labeled heads keep their own noun ("Oral Presentation: …" →
+    // 'presentation'); everything else reads as 'oral check'. Colon-less
+    // heads other than 'performance' stay on the fallback — free-form
+    // titles end in prepositional tails too often for a last-word guess.
+    if (/\bperformances?\b/i.test(text)) return 'performance';
+    const head = colonIndex > 0 ? titleHeadNoun(text.slice(0, colonIndex)) : '';
+    return head || fallback;
+  }
+  // graded-artifact / in-class: the pre-colon label IS the authored genre.
+  const head = colonIndex > 0 ? titleHeadNoun(text.slice(0, colonIndex)) : '';
+  return head || fallback;
+}
+
 function shortReferenceForKind(kind, lessonNumber = 0) {
   const week = lessonNumber > 0 ? `Week ${lessonNumber}` : 'weekly';
   if (kind === 'discussion-and-quiz') return `the ${week} discussion and quiz`;
@@ -76,17 +137,12 @@ const ARTIFACT_REFERENCE_MARKER = 'artifact-short-ref';
 function resolveReplacement(target, contextLessonNumber = 0) {
   const { replacement } = target;
   if (typeof replacement === 'string') return replacement;
-  if (replacement.assessmentId) {
-    // v0.14.3 C1: this target carries registry identity (assessmentId, so
-    // the registry kind was available) yet the ARTIFACT_KIND title-pattern
-    // inference's result is what gets consumed. Hypothesized dead on the
-    // graph path — FALSIFIED by the C2 fixture matrix
-    // (tests/v0143-compiler-diet.test.js): the inference is load-bearing for
-    // every 3rd+ mention short reference because the registry kind
-    // vocabulary cannot produce the readable noun. Phase-2 backlog (key the
-    // noun off registry kind + title head); telemetry stays as the measure.
-    recordLegacyPathHit('finalizer-kind-inference', `inferred=${replacement.artifactKind} pattern=${target.pattern}`);
-  }
+  // v0.14.5 WS-D (D1): replacement.artifactKind is fully decided at target
+  // build time — registry kind + title head-noun for registry-identified
+  // targets, ARTIFACT_KIND_PATTERNS for legacy targets — so consumption is
+  // pure. (The v0.14.3 C1 'finalizer-kind-inference' telemetry used to fire
+  // here on every registry-target consumption; it is re-scoped to the build
+  // site and fires only when the regex scan runs DESPITE registry identity.)
   // The enclosing item's lesson wins; lesson-less scopes (syllabus,
   // course-level residue) fall back to the artifact's own lesson — unless
   // the same title is shared across lessons, where any single week number
@@ -199,17 +255,37 @@ function buildReferenceTargets(blueprint = {}) {
   // distinct and fall back to week-neutral phrasing in course-level scopes.
   for (const assessment of Array.isArray(blueprint.assessments) ? blueprint.assessments : []) {
     const assessmentLesson = Array.isArray(assessment?.lessonNumbers) ? assessment.lessonNumbers[0] : 0;
+    // v0.14.5 WS-D (D1): registry identity present → the noun comes from
+    // registry kind + title head-noun; the 19-regex scan never runs. The
+    // scan survives only for assessments without registry identity (legacy
+    // blueprints) and as the counted fallback for a registry target whose
+    // kind is missing/unrecognized.
+    const hasRegistryIdentity = Boolean(assessment?.registryId);
+    const registryNoun = hasRegistryIdentity ? registryArtifactNoun(assessment?.kind, assessment?.title) : '';
     for (const phrasing of [assessment?.title, assessment?.artifact]) {
       const text = String(phrasing || '')
         .trim()
         .replace(/[.!?]+$/, '');
+      let artifactKind = registryNoun;
+      if (!artifactKind && text) {
+        if (hasRegistryIdentity) {
+          // Re-scoped v0.14.3 C1 branch: the regex scan running DESPITE
+          // registry identity. Zero on the registry path is the D1
+          // regression net (tests/v0143-compiler-diet.test.js).
+          recordLegacyPathHit(
+            'finalizer-kind-inference',
+            `registry-kind=${assessment?.kind || 'none'} pattern=${text}`,
+          );
+        }
+        artifactKind = artifactKindOf(text);
+      }
       push({
         pattern: text,
         replacement: {
           kind: ARTIFACT_REFERENCE_MARKER,
-          artifactKind: artifactKindOf(text),
+          artifactKind,
           lessonNumber: assessmentLesson,
-          ...(assessment?.registryId ? { assessmentId: assessment.registryId } : {}),
+          ...(hasRegistryIdentity ? { assessmentId: assessment.registryId } : {}),
         },
         startsWithArticle: true,
         keep: 2,

@@ -5,9 +5,35 @@
 //   node scripts/crucible.mjs [--courses all|extended|smoke|<id,id,…>]
 //                             [--rounds 1] [--model gpt-5.4-mini] [--baseline <runDir>]
 //                             [--concurrency 2] [--max-spend 2.50] [--stranger]
+//                             [--authoring prose|native|both]
+//                             [--provider openai|anthropic|google]
 //                             [--judge] [--dry-run] [--headed] [--skip-generate <dir>]
 //                             [--calibrate] [--history] [--diff <roundDirA> <roundDirB>]
 //                             [--import-baseline] [--api-env <path>]
+//
+//   --provider: (V0.14.5 WS-E E1) run the round against another provider. The
+//               driver seeds the app's provider switch (coursemapper-provider
+//               + the provider-scoped key slot) and picks that provider's
+//               cheapest generation-capable default model
+//               (PROVIDER_DEFAULT_MODELS; --model still overrides). API keys
+//               resolve per provider from env / API-dontComit/api.ev by key
+//               shape (sk-… / sk-ant-… / AIza…); a missing key exits with a
+//               clear message before any server, browser, or spend. Non-openai
+//               course run dirs gain a provider suffix (cs-python--anthropic)
+//               so provider rounds never collide with openai history, and the
+//               drift ledger (--calibrate) keys verdicts by
+//               (checkId, course, provider) — provider deltas are FINDINGS
+//               (drift documentation), never conflated with regression. Only
+//               P0s gate, same as openai rounds.
+//
+//   --authoring: (V0.14.5 WS-B3) seed the app's 'coursemapper-authoring-mode'
+//                flag. 'prose' (default) keeps today's behavior and run-dir
+//                naming exactly; 'native' runs the Pass A/B graph-authoring
+//                path (run dirs suffixed --native); 'both' runs each course
+//                TWICE (course--prose / course--native), the round report
+//                gaining an "Authoring side-by-side" section with paired
+//                score/cost/wall-clock/kernel-coverage columns + deltas. The
+//                P0 and drift gates apply to each run independently.
 //
 //   --judge: (advisory, off by default) on a live or --skip-generate run, sample
 //            3 artifacts per non-stranger course (mid-lesson lesson plan + quiz
@@ -70,9 +96,18 @@ import {
   DEFAULT_MAX_SPEND_USD,
   INAPP_SCORE_DRIFT_LIMIT,
   JUDGE_MODEL,
+  PROVIDER_DEFAULT_MODELS,
+  buildAuthoringComparison,
   buildHistoryTable,
   buildJudgePrompt,
   clampConcurrency,
+  expandCoursesForAuthoring,
+  expandCoursesForProvider,
+  findingProvider,
+  pairAuthoringEntries,
+  parseAuthoringFlag,
+  parseProviderFlag,
+  renderAuthoringSection,
   deriveCheckId,
   diffLedger,
   diffSections,
@@ -347,10 +382,13 @@ function formatScoreDelta(current, baseline) {
   return `${current} (${sign}${Math.round(delta * 100) / 100} vs baseline ${baseline})`;
 }
 
-function buildRoundReportMd({ roundLabel, modelId, entries, baseline, totals }) {
+function buildRoundReportMd({ roundLabel, modelId, entries, baseline, totals, provider = 'openai' }) {
   const lines = [
-    `# Crucible Round Report — ${roundLabel}`,
+    // E1: the title carries provider+model so a provider round is identifiable
+    // from the first line of its report.
+    `# Crucible Round Report — ${roundLabel} (${provider} · ${modelId})`,
     '',
+    `- Provider: ${provider}`,
     `- Model: ${modelId}`,
     `- Courses: ${entries.length}`,
     `- Total generation time: ${Math.round(totals.durationMs / 1000)}s`,
@@ -374,7 +412,9 @@ function buildRoundReportMd({ roundLabel, modelId, entries, baseline, totals }) 
   lines.push(`| ${header.map(() => '---').join(' | ')} |`);
   for (const entry of entries) {
     const grade = entry.gradeResult;
-    const baselineGrade = baseline?.reports?.[entry.course.id]?.normalized || null;
+    // Authoring runs (course--prose / course--native) compare against the
+    // base course's baseline report.
+    const baselineGrade = baseline?.reports?.[entry.course.baseId || entry.course.id]?.normalized || null;
     const cells = [
       entry.course.id,
       entry.runResult ? entry.runResult.statusLabel || entry.runResult.status : grade?.status || 'regrade',
@@ -429,6 +469,11 @@ function buildRoundReportMd({ roundLabel, modelId, entries, baseline, totals }) 
   };
   emitFindingSection('P0', p0Findings);
   emitFindingSection('P1', p1Findings);
+
+  // V0.14.5 WS-B3: the prose-vs-native paired comparison (only when the round
+  // actually carries authoring-tagged entries — plain rounds render nothing).
+  const authoringSection = renderAuthoringSection(buildAuthoringComparison(pairAuthoringEntries(entries)));
+  if (authoringSection) lines.push('', authoringSection);
 
   const ungraded = entries.filter((entry) => !entry.gradeResult?.graded);
   if (ungraded.length > 0) {
@@ -614,6 +659,7 @@ const FLOW_BUNDLE_SELECTORS = [
   'export-download-zip', // src/components/ExportSidePanel.jsx:1192
   'coursemapper-apikey', // localStorage seed key (src/contexts/AIConfigContext.jsx)
   'coursemapper-modelid',
+  'coursemapper-authoring-mode', // WS-B3 native-authoring flag (src/lib/nativeGraphAuthoring.js)
   'Describe your course', // src/screens/Landing.jsx:567
   'Generate workspace', // src/screens/Config.jsx:2147
   'Download ZIP',
@@ -866,13 +912,17 @@ async function showHistory() {
   printAlignedTable(header, rows);
 }
 
-async function finishRound({ roundDir, roundLabel, modelId, entries, baseline, spendAbortReason = null }) {
+async function finishRound({ roundDir, roundLabel, modelId, entries, baseline, spendAbortReason = null, provider }) {
   const totals = computeTotals(entries);
-  const reportMd = buildRoundReportMd({ roundLabel, modelId, entries, baseline, totals });
+  // Regrades infer the provider from the course entries (course.json carries
+  // it since E1); absent everywhere → openai (all pre-E1 history is openai).
+  const roundProvider = provider || entries.map((entry) => entry.course?.provider).find(Boolean) || 'openai';
+  const reportMd = buildRoundReportMd({ roundLabel, modelId, entries, baseline, totals, provider: roundProvider });
   await fs.writeFile(path.join(roundDir, 'ROUND_REPORT.md'), reportMd);
   await writeJson(path.join(roundDir, 'round.json'), {
     label: roundLabel,
     modelId,
+    provider: roundProvider,
     finishedAt: new Date().toISOString(),
     baseline: baseline?.dir || null,
     spendAbortReason,
@@ -892,6 +942,11 @@ async function finishRound({ roundDir, roundLabel, modelId, entries, baseline, s
       judgeOverall: entry.judge?.parsed?.overall ?? null,
       judgeSpendUsd: entry.judge?.spendUsd ?? null,
       stranger: isStranger(entry.course) || undefined,
+      // V0.14.5 WS-B3: authoring-tagged runs keep their pairing identity.
+      authoring: entry.course.authoring || undefined,
+      // V0.14.5 WS-E (E1): non-openai runs keep their provider identity.
+      provider: entry.course.provider && entry.course.provider !== 'openai' ? entry.course.provider : undefined,
+      baseId: entry.course.baseId && entry.course.baseId !== entry.course.id ? entry.course.baseId : undefined,
     })),
   });
 
@@ -1013,6 +1068,9 @@ async function regradeExisting(options) {
 // grader's P0/P1 findings against the durable verdict ledger at
 // scripts/crucible/verdicts.json. P2s are excluded: the ledger gates the P0/P1
 // severities that gate rounds.
+// V0.14.5 E3: matching is namespaced by (checkId, course, PROVIDER). Ledger
+// entries and course dirs without a provider field default to 'openai' — the
+// whole pre-provider history stays valid without a rewrite.
 async function collectCourseDirs(roundDirPath) {
   const dirents = await fs.readdir(roundDirPath, { withFileTypes: true }).catch(() => []);
   const out = [];
@@ -1063,6 +1121,10 @@ async function calibrate() {
         findings.push({
           roundId,
           courseId: course.id,
+          // E3: namespace by provider (course.json carries it for E1 runs;
+          // pre-provider dirs default to openai) so an Anthropic-only finding
+          // never reads as an OpenAI regression.
+          provider: findingProvider(course),
           checkId: deriveCheckId(finding),
           evidenceHash: findingEvidenceHash(finding),
           severity: finding.severity,
@@ -1086,14 +1148,21 @@ async function calibrate() {
     ...diff.resurfacedFalsePositives,
     ...diff.skipped,
   ]) {
-    rows.push([shortRound(entry.roundId), entry.courseId, entry.verdict, entry.checkId.slice(0, 56), status]);
+    rows.push([
+      shortRound(entry.roundId),
+      entry.courseId,
+      findingProvider(entry),
+      entry.verdict,
+      entry.checkId.slice(0, 56),
+      status,
+    ]);
   }
-  rows.sort((a, b) => `${a[0]}|${a[1]}|${a[3]}`.localeCompare(`${b[0]}|${b[1]}|${b[3]}`));
-  printAlignedTable(['round', 'course', 'verdict', 'checkId', 'status'], rows);
+  rows.sort((a, b) => `${a[0]}|${a[1]}|${a[4]}`.localeCompare(`${b[0]}|${b[1]}|${b[4]}`));
+  printAlignedTable(['round', 'course', 'provider', 'verdict', 'checkId', 'status'], rows);
 
   if (diff.unvetted.length > 0) {
     console.log('');
-    log(`unvetted findings (add a verdict to ${path.relative(repoRoot, verdictsLedgerPath)}):`);
+    log(`unvetted findings (add a verdict to ${path.relative(repoRoot, verdictsLedgerPath)} — include the provider):`);
     const unvettedRows = diff.unvetted
       .sort((a, b) =>
         `${a.roundId}|${a.courseId}|${a.checkId}`.localeCompare(`${b.roundId}|${b.courseId}|${b.checkId}`),
@@ -1101,24 +1170,29 @@ async function calibrate() {
       .map((item) => [
         shortRound(item.roundId),
         item.courseId,
+        // E3: unvetted findings list their provider so a new verdict lands in
+        // the right namespace.
+        findingProvider(item),
         item.severity,
         item.checkId.slice(0, 56),
         `×${item.count}`,
       ]);
-    printAlignedTable(['round', 'course', 'sev', 'checkId', 'count'], unvettedRows);
+    printAlignedTable(['round', 'course', 'provider', 'sev', 'checkId', 'count'], unvettedRows);
   }
 
   console.log('');
   if (!diff.ok) {
     for (const { entry } of diff.missingTruePositives) {
       log(
-        `CALIBRATION FAILURE: true positive missing — ${entry.roundId}/${entry.courseId} ${entry.checkId}` +
+        `CALIBRATION FAILURE: true positive missing — ${entry.roundId}/${entry.courseId} ` +
+          `[${findingProvider(entry)}] ${entry.checkId}` +
           (entry.note ? ` (${entry.note})` : ''),
       );
     }
     for (const { entry } of diff.resurfacedFalsePositives) {
       log(
-        `CALIBRATION FAILURE: false positive resurfaced — ${entry.roundId}/${entry.courseId} ${entry.checkId}` +
+        `CALIBRATION FAILURE: false positive resurfaced — ${entry.roundId}/${entry.courseId} ` +
+          `[${findingProvider(entry)}] ${entry.checkId}` +
           (entry.note ? ` (${entry.note})` : ''),
       );
     }
@@ -1383,18 +1457,34 @@ async function writeStrangerFindings(roundDir, strangerEntries) {
 }
 
 async function runLiveRounds(options) {
-  const courses = resolveCourses(options.courses);
+  const baseCourses = resolveCourses(options.courses);
   // WS-B3: --stranger appends one rotating-pool course (deterministic per day).
   if (options.stranger) {
     const stranger = pickStranger();
-    if (stranger && !courses.some((course) => course.id === stranger.id)) {
-      courses.push(stranger);
+    if (stranger && !baseCourses.some((course) => course.id === stranger.id)) {
+      baseCourses.push(stranger);
       log(`stranger slot: appended "${stranger.title}" (${stranger.id}) — generic probes, never gates`);
     }
   }
+  // V0.14.5 WS-B3: --authoring prose|native|both. 'both' runs every course
+  // twice (course--prose / course--native run dirs); default 'prose' keeps
+  // today's behavior and naming exactly.
+  const authoring = parseAuthoringFlag(options.authoring);
+  // V0.14.5 WS-E (E1): --provider openai|anthropic|google. Non-openai runs
+  // suffix the course run dirs (cs-python--anthropic) so provider rounds
+  // never collide with openai history. Applied AFTER the authoring expansion
+  // so baseId stays the original course id for baseline lookups and pairing.
+  const provider = parseProviderFlag(options.provider);
+  const courses = expandCoursesForProvider(expandCoursesForAuthoring(baseCourses, authoring), provider);
+  if (authoring !== 'prose') {
+    log(`authoring mode: ${authoring} — ${courses.length} run(s) across ${baseCourses.length} course(s)`);
+  }
   const rounds = Math.max(1, Number(options.rounds) || 1);
-  const modelId = options.model || 'gpt-5.4-mini';
+  // E1: each provider defaults to its cheapest generation-capable model
+  // (documented at PROVIDER_DEFAULT_MODELS); --model still overrides.
+  const modelId = options.model || PROVIDER_DEFAULT_MODELS[provider];
   const modelName = options.modelName || modelDisplayName(modelId);
+  if (provider !== 'openai') log(`provider: ${provider} (model ${modelId})`);
   const headed = Boolean(options.headed);
   // E1: parallel generation (browser CONTEXTS in one chromium; the app is
   // stateless across tabs). --concurrency 1 is the sequential fallback.
@@ -1405,7 +1495,29 @@ async function runLiveRounds(options) {
     throw new Error(`--max-spend must be a positive dollar amount (got "${options.maxSpend}")`);
   }
   const apiEnvPath = options.apiEnv ? path.resolve(repoRoot, options.apiEnv) : defaultApiEnvPath;
-  const apiKey = await loadApiKey(apiEnvPath);
+  // E1: a missing key for the REQUESTED provider exits with the loader's
+  // actionable message (provider, env vars checked, expected key shape) —
+  // a clean exit before any server, browser, or spend; never a mid-round crash.
+  let apiKey;
+  try {
+    apiKey = await loadApiKey(apiEnvPath, provider);
+  } catch (error) {
+    log(`ABORTED: ${redactSecrets(error.message)}`);
+    process.exitCode = 1;
+    return;
+  }
+  // E1×E7: the advisory judge always speaks OpenAI (JUDGE_MODEL). On a
+  // non-openai round it needs its own key; when absent the judge is disabled
+  // (advisory — the round itself is unaffected).
+  let judgeApiKey = apiKey;
+  if (options.judge && provider !== 'openai') {
+    judgeApiKey = await loadApiKey(apiEnvPath, 'openai').catch((error) => {
+      log(
+        `--judge: no OpenAI key for the judge on a ${provider} round (${redactSecrets(error.message)}) — judge disabled`,
+      );
+      return null;
+    });
+  }
   const baseline = options.baseline ? await loadBaselineReports(options.baseline) : null;
   if (options.baseline && Object.keys(baseline.reports).length === 0) {
     log(`warning: baseline ${baseline.dir} has no report.json files — grade it first with --skip-generate`);
@@ -1433,7 +1545,9 @@ async function runLiveRounds(options) {
       entries = await runPool(courses, concurrency, async (course) => {
         const courseDir = path.join(roundDir, course.id);
         await fs.mkdir(courseDir, { recursive: true });
-        await writeJson(path.join(courseDir, 'course.json'), { ...course, modelId, roundLabel });
+        // E3: course.json carries the provider so --calibrate can namespace
+        // this run's findings (absent on pre-E1 dirs → openai by default).
+        await writeJson(path.join(courseDir, 'course.json'), { ...course, provider, modelId, roundLabel });
 
         if (!spendState.abortReason) {
           const decision = spendGuardDecision({ spentUsd: spendState.spentUsd, maxSpendUsd });
@@ -1479,6 +1593,11 @@ async function runLiveRounds(options) {
             outDir: courseDir,
             headed,
             browser,
+            // WS-B3: seed 'coursemapper-authoring-mode' alongside the other
+            // localStorage keys ('prose'/undefined seeds nothing — default).
+            authoringMode: course.authoring,
+            // E1: seed the app's provider switch + provider-scoped key slot.
+            provider,
           });
           attempts.push(runResult);
           if (runResult.status === 'passed') break;
@@ -1513,17 +1632,19 @@ async function runLiveRounds(options) {
           courseDir,
           course,
           runResult,
-          baselineRaw: baseline?.reports?.[course.id]?.raw || null,
+          baselineRaw: baseline?.reports?.[course.baseId || course.id]?.raw || null,
         });
         if (gradeResult.status === 'pending-grader') log(`  ${course.id}: ${GRADER_UNAVAILABLE_MESSAGE}`);
         // A5(4): cross-check the in-app self-grade against the Crucible's.
         const inAppScore = await readInAppScore(courseDir);
         // E7: the advisory judge (off by default). Its spend counts toward the
         // --max-spend accounting; it never gates and never changes exit code.
+        // E1: the judge speaks OpenAI — on non-openai rounds judgeApiKey is the
+        // separately-loaded OpenAI key (or null → judge disabled, advisory).
         const judge = await maybeJudgeCourse({
           options,
           grader: await loadGrader(),
-          apiKey,
+          apiKey: judgeApiKey,
           courseDir,
           course,
         });
@@ -1540,7 +1661,15 @@ async function runLiveRounds(options) {
       roundDir,
       entries.filter((entry) => isStranger(entry.course)),
     );
-    await finishRound({ roundDir, roundLabel, modelId, entries, baseline, spendAbortReason: spendState.abortReason });
+    await finishRound({
+      roundDir,
+      roundLabel,
+      modelId,
+      entries,
+      baseline,
+      spendAbortReason: spendState.abortReason,
+      provider,
+    });
   }
 }
 

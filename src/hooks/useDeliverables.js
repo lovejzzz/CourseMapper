@@ -69,6 +69,7 @@ import {
 } from '../lib/deliverablePostProcess';
 import { repairCourseMapReadiness } from '../lib/deliverableReadiness';
 import { enrichmentPreferenceOverride } from '../lib/enrichmentPreference';
+import { readAuthoringMode, takeNativeSkeleton } from '../lib/nativeGraphAuthoring';
 import { buildApiCostPlan, isNonRetryableFailureClass } from '../lib/apiCostControl';
 import { buildJudgmentStageEvent, formatEnrichmentOutcomeLabel } from '../lib/apiCallBudget';
 import { classifyError } from '../lib/failureClassification';
@@ -915,7 +916,13 @@ export default function useDeliverables({
         return true;
       };
 
-      const runBlueprintEnrichment = async (blueprintCourseMap) => {
+      // v0.14.5 WS-B (B2): on the native authoring path the second argument
+      // carries the Pass A skeleton — the model enrichment stage is replaced
+      // by parallel Pass B batches authoring outcomes + kernels onto the
+      // skeleton's session ids. The genome linker stage is SHARED (runs first,
+      // unchanged); fully linked lessons ride Pass B as content-sourced
+      // entries (goal/outcomes/activities only — augment, never displace).
+      const runBlueprintEnrichment = async (blueprintCourseMap, nativeSkeleton = null) => {
         const abortKey = 'blueprintEnrichment';
         const controller = new AbortController();
         abortMapRef.current.set(abortKey, controller);
@@ -1067,6 +1074,235 @@ export default function useDeliverables({
             stageDecisions,
           };
         };
+
+        // ── v0.14.5 WS-B (B2): native Pass B — replaces the model stage ──
+        // Pass B is NOT optional enrichment on the native path: it replaces
+        // both the course-map call's authorship and the enrichment calls, so
+        // it bypasses the adaptive enrichment decision. Batches of 4 lessons
+        // run in PARALLEL under the existing featureConcurrency discipline
+        // (today's kernel chunks are sequential — the v0.13.1 wall-clock
+        // finding). Unusable results return genome-only and the caller falls
+        // back to the prose derive LOUDLY.
+        if (nativeSkeleton) {
+          if (!enrichmentModelAvailable) {
+            stageDecisions.modelStage = 'skipped: no model configured';
+            appendLog('⚠ Native Pass B skipped: no model', 'warn');
+            return genomeOnlyEnrichment();
+          }
+          if (!hasProviderCallBudget()) {
+            stageDecisions.modelStage = 'skipped: call cap reached';
+            appendLog('⚠ Native Pass B skipped: call cap', 'warn');
+            return genomeOnlyEnrichment();
+          }
+          try {
+            const [
+              { buildNativePassBPrompt, parseNativePassBResponse },
+              { buildBlueprintEnrichmentPayload, normalizeAbsorbedCourseLevel },
+            ] = await Promise.all([import('../lib/nativeGraphAuthoring'), import('../lib/blueprintEnrichmentPass')]);
+            const lessonContent = { ...(genomeLink?.lessonContent || {}) };
+            const partialOverlays = genomeLink?.partialOverlays || {};
+            const genomeTelemetry = genomeLink?.telemetry || null;
+            const genomeLinkPowers = genomeLink?.powers || null;
+            const nativeAuthored = {};
+            const lessonIdOf = (lessonIdx) => `lesson-${lessonIdx + 1}`;
+            // Fully genome-resolved lessons skip kernel authorship (the
+            // augment/displace rules); partial overlays still buy the model
+            // kernel and merge the cited genome terms back in below.
+            const contentSourcedSet = new Set(
+              allLessonIndices
+                .map(lessonIdOf)
+                .filter((lessonId) => lessonContent[lessonId] && !partialOverlays[lessonId]),
+            );
+            let absorbedCourseLevel = null;
+            const chunkSize = 4;
+            const batches = [];
+            for (let start = 0; start < allLessonIndices.length; start += chunkSize) {
+              batches.push(allLessonIndices.slice(start, start + chunkSize));
+            }
+            appendLog(
+              `Authoring lesson content onto the Pass A skeleton (${batches.length} parallel batch${batches.length === 1 ? '' : 'es'}, ${contentSourcedSet.size} lesson(s) content-sourced from the curriculum library)...`,
+              'progress',
+            );
+
+            const runPassBBatch = async (chunk, { includeCourseLevel, recoveryLabel = null }) => {
+              const expectedLessonIds = chunk.map(lessonIdOf);
+              const contentSourcedLessonIds = recoveryLabel
+                ? expectedLessonIds.filter((lessonId) => Boolean(lessonContent[lessonId]))
+                : expectedLessonIds.filter((lessonId) => contentSourcedSet.has(lessonId));
+              const prompt = buildNativePassBPrompt(blueprintCourseMap, chunk, {
+                questionsPerLesson: getGenerationConfig('quizBank')?.questionsPerLesson,
+                includeCourseLevel,
+                contentSourcedLessonIds,
+              });
+              recordGenerationApiCallEvent({
+                type: 'blueprintEnrichmentCall',
+                label: recoveryLabel || 'Author lesson batch (native Pass B)',
+                detail: `Lessons ${chunk.map((lessonIdx) => lessonIdx + 1).join(', ')} — ${prompt.approxInputTokens} input tokens estimated`,
+                featureId: 'blueprintEnrichment',
+              });
+              const result = await streamProvider(provider, apiKey, modelId, prompt.systemPrompt, prompt.userPrompt, {
+                maxOutputTokens: Math.max(enrichmentMaxOutputTokens, 1300 * chunk.length, 2600),
+                modelCapabilities,
+                generationPlan,
+                featureId: 'blueprintEnrichment',
+                task: 'blueprintEnrichment',
+                allowProviderFallback: maxProviderCalls === null || getRemainingProviderCalls() > 0,
+                onApiCallEvent: recordGenerationApiCallEvent,
+                signal: controller.signal,
+              });
+              const parsed = parseNativePassBResponse(result?.fullText || '', {
+                prompt,
+                expectedLessonIds,
+                contentSourcedLessonIds,
+              });
+              for (const [lessonId, payload] of Object.entries(parsed.kernels)) {
+                lessonContent[lessonId] = payload;
+                if (lessonKernelCache) {
+                  const lessonIdx = Number(String(lessonId).replace('lesson-', '')) - 1;
+                  const lesson = blueprintCourseMap.lessons?.[lessonIdx];
+                  if (lesson) lessonKernelCache.set(lesson, payload);
+                }
+              }
+              for (const [lessonId, authored] of Object.entries(parsed.authored)) {
+                if (!nativeAuthored[lessonId]) nativeAuthored[lessonId] = authored;
+              }
+              if (includeCourseLevel && parsed.courseLevel) {
+                absorbedCourseLevel = normalizeAbsorbedCourseLevel(
+                  parsed.courseLevel,
+                  buildBlueprintEnrichmentPayload(blueprintCourseMap, { scopeIndices }),
+                );
+              }
+              if (parsed.issues.length > 0) {
+                appendLog(
+                  `Native Pass B dropped ${parsed.issues.length} atom(s) that failed item-writing or grounding checks`,
+                  'progress',
+                );
+              }
+            };
+
+            const limit = pLimit(getFeatureConcurrency(generationPlan));
+            await Promise.all(
+              batches.map((chunk, batchIndex) =>
+                limit(async () => {
+                  if (!hasProviderCallBudget()) {
+                    appendLog('⚠ Native Pass B stopped early: call cap', 'warn');
+                    return;
+                  }
+                  try {
+                    await runPassBBatch(chunk, { includeCourseLevel: batchIndex === 0 });
+                  } catch (batchErr) {
+                    if (batchErr?.name === 'AbortError') throw batchErr;
+                    appendLog(`⚠ Native Pass B batch failed: ${batchErr.message || 'model error'}`, 'warn');
+                  }
+                }),
+              ),
+            );
+
+            // Recovery (same budget discipline as the prose kernel stage,
+            // v0.14.1 P2.3): ≤2 extra sequential calls for lessons whose
+            // kernel OR authored outcomes never arrived.
+            const listMissingKernelIndices = () =>
+              allLessonIndices.filter((lessonIdx) => !lessonContent[lessonIdOf(lessonIdx)]);
+            const listMissingAuthoredIndices = () =>
+              allLessonIndices.filter((lessonIdx) => !nativeAuthored[lessonIdOf(lessonIdx)]);
+            let nativeRecoveryCalls = 0;
+            while (
+              nativeRecoveryCalls < 2 &&
+              (listMissingKernelIndices().length > 0 || listMissingAuthoredIndices().length > 0) &&
+              hasProviderCallBudget()
+            ) {
+              const kernelChunk = listMissingKernelIndices().slice(0, chunkSize);
+              const authoredChunk = listMissingAuthoredIndices()
+                .filter((lessonIdx) => !kernelChunk.includes(lessonIdx))
+                .slice(0, Math.max(0, chunkSize - kernelChunk.length));
+              const retryChunk = [...kernelChunk, ...authoredChunk].sort((a, b) => a - b);
+              if (retryChunk.length === 0) break;
+              nativeRecoveryCalls += 1;
+              try {
+                await runPassBBatch(retryChunk, {
+                  includeCourseLevel: false,
+                  recoveryLabel: `Author lesson batch (native recovery ${nativeRecoveryCalls}/2)`,
+                });
+              } catch (recoveryErr) {
+                if (recoveryErr?.name === 'AbortError') throw recoveryErr;
+                appendLog(`⚠ Native Pass B recovery failed: ${recoveryErr.message || 'model error'}`, 'warn');
+              }
+            }
+
+            // v0.14.1 P4.5: fold genome partials back in — cited terms first,
+            // model fills to par; provenance preserved for genomeLink edges.
+            if (Object.keys(partialOverlays).length > 0) {
+              const { mergeLessonPayloads } = await import('../lib/genome/composeLessonFromConcepts');
+              for (const [lessonId, partial] of Object.entries(partialOverlays)) {
+                const modelPayload = lessonContent[lessonId];
+                if (!modelPayload || modelPayload === partial || modelPayload.enrichmentSource === 'genome-linked') {
+                  continue;
+                }
+                const merged = mergeLessonPayloads(partial, modelPayload);
+                lessonContent[lessonId] = merged;
+                if (lessonKernelCache) {
+                  const lessonIdx = Number(String(lessonId).replace('lesson-', '')) - 1;
+                  const lesson = blueprintCourseMap.lessons?.[lessonIdx];
+                  if (lesson) lessonKernelCache.set(lesson, merged);
+                }
+              }
+            }
+
+            const missingLessonNumbers = listMissingKernelIndices().map((lessonIdx) => lessonIdx + 1);
+            if (missingLessonNumbers.length > 0) {
+              appendLog(
+                `⚠ Native Pass B fell back to template for lesson${missingLessonNumbers.length === 1 ? '' : 's'} ${missingLessonNumbers.join(', ')}`,
+                'warn',
+              );
+            }
+            const missingAuthoredNumbers = listMissingAuthoredIndices().map((lessonIdx) => lessonIdx + 1);
+            if (missingAuthoredNumbers.length > 0) {
+              appendLog(
+                `⚠ Native Pass B returned no outcomes for lesson${missingAuthoredNumbers.length === 1 ? '' : 's'} ${missingAuthoredNumbers.join(', ')} — those lessons keep structural cells`,
+                'warn',
+              );
+            }
+
+            const enrichedLessonCount = Object.keys(lessonContent).length;
+            if (enrichedLessonCount === 0 && Object.keys(nativeAuthored).length === 0) {
+              appendLog('⚠ Native Pass B produced no usable payloads', 'warn');
+              stageDecisions.modelStage = 'failed: no usable Pass B payloads';
+              return genomeOnlyEnrichment();
+            }
+            appendLog(
+              `✓ Native Pass B authored ${Object.keys(nativeAuthored).length} lesson(s) of outcomes + activities onto the skeleton (${enrichedLessonCount} lesson kernel${enrichedLessonCount === 1 ? '' : 's'} total)`,
+              'done',
+            );
+            abortMapRef.current.delete(abortKey);
+            return {
+              signatureTerms: absorbedCourseLevel?.signatureTerms || [],
+              lens: absorbedCourseLevel?.lens || null,
+              styleNotes: absorbedCourseLevel?.styleNotes || [],
+              quality: absorbedCourseLevel?.quality || { source: 'native-pass-b' },
+              lessonContent,
+              coverage: {
+                requestedLessons: allLessonIndices.length,
+                enrichedLessons: enrichedLessonCount,
+                missingLessons: missingLessonNumbers,
+              },
+              ...(genomeTelemetry ? { genomeTelemetry } : {}),
+              ...(genomeLinkPowers ? { genomeLinkPowers } : {}),
+              stageDecisions,
+              // Consumed by assembleNativeCourseGraph (and stripped before the
+              // enrichment overlay is attached to the graph).
+              nativeAuthored,
+            };
+          } catch (nativeErr) {
+            if (nativeErr?.name === 'AbortError') {
+              abortMapRef.current.delete(abortKey);
+              appendLog('Native Pass B stopped', 'warn');
+              return null;
+            }
+            appendLog(`⚠ Native Pass B failed: ${nativeErr.message || 'model error'}`, 'warn');
+            stageDecisions.modelStage = `failed: ${nativeErr.message || 'model error'}`;
+            return genomeOnlyEnrichment();
+          }
+        }
 
         // ── Stage 2 gates: the MODEL enrichment stage ──
         if (!blueprintEnrichmentRequested) {
@@ -1464,11 +1700,44 @@ export default function useDeliverables({
           `Compiling ${labelList} from the ${blueprintEnrichmentRequested ? 'enriched ' : ''}course blueprint...`,
           'progress',
         );
-        const courseMapRepair = repairCourseMapReadiness({
-          courseMap,
-          columns,
-          lessonFilter: scopeIndices,
-        });
+        // v0.14.5 WS-B: native authoring — take the Pass A skeleton (a
+        // single-run stash: read & clear, integrity-checked against this
+        // course map). The flag alone is NOT enough: regenerations and
+        // scoped runs legitimately arrive without a skeleton and use the
+        // prose pipeline on the (already authored) map. Only a map that is
+        // still an UN-authored skeleton with no stash is a real fallback —
+        // and that one is loud, never silent.
+        const authoringNative = readAuthoringMode() === 'native' && costMode !== 'finalizerRetry';
+        const nativeSkeleton = authoringNative ? takeNativeSkeleton(courseMap) : null;
+        if (authoringNative && !nativeSkeleton) {
+          const mapLooksUnauthored = !(courseMap.lessons || []).some((lesson) =>
+            (lesson?.sections || []).some((section) => {
+              const objectives = section?.learningObjectives;
+              return Array.isArray(objectives) ? objectives.length > 0 : Boolean(String(objectives || '').trim());
+            }),
+          );
+          if (mapLooksUnauthored) {
+            recordGenerationApiCallEvent({
+              type: 'nativeAuthoringFellBack',
+              label: 'Native authoring fell back to prose',
+              detail: 'no Pass A skeleton available for an unauthored course map',
+            });
+            appendLog(
+              '⚠ Native authoring: no Pass A skeleton reached the deliverables stage — compiling through the prose pipeline',
+              'warn',
+            );
+          }
+        }
+        // The skeleton render is intentionally thin pre-Pass-B; the readiness
+        // repair would template-fill it. The native path re-renders the map
+        // from the assembled graph instead, so repair is prose-path-only.
+        const courseMapRepair = nativeSkeleton
+          ? { courseMap, changed: false, repairedFields: [] }
+          : repairCourseMapReadiness({
+              courseMap,
+              columns,
+              lessonFilter: scopeIndices,
+            });
         const blueprintCourseMap = courseMapRepair.courseMap || courseMap;
         if (courseMapRepair.changed) {
           appendLog(
@@ -1486,7 +1755,7 @@ export default function useDeliverables({
             repairedFields: courseMapRepair.repairedFields,
           });
         }
-        const blueprintEnrichment = await runBlueprintEnrichment(blueprintCourseMap);
+        const blueprintEnrichment = await runBlueprintEnrichment(blueprintCourseMap, nativeSkeleton);
         // v0.12.1: structured outcome for the run digest's content-risk
         // gate — string parsing of `detail` is too fragile to gate on.
         // v0.14.1 P2.2: the outcome carries per-lesson coverage (requested +
@@ -1526,11 +1795,91 @@ export default function useDeliverables({
         // here on is a render of the graph, and the blueprint compiles FROM
         // the graph (golden-equivalence-gated against the legacy path in
         // tests/course-graph-golden.test.js).
+        //
+        // v0.14.5 WS-B: on the native path the graph is ASSEMBLED from the
+        // Pass A skeleton + Pass B authorship instead of derived from map
+        // prose — same schema, same downstream, authoredBy: 'native' for B4
+        // id stability. Assembly failures fall back to the derive LOUDLY.
         const courseGraphLib = await import('../lib/courseGraph');
-        const courseGraph = courseGraphLib.attachEnrichmentToGraph(
-          courseGraphLib.deriveCourseGraphFromCourseMap(blueprintCourseMap),
-          blueprintEnrichment,
-        );
+        // Pass B's nativeAuthored block is assembly input, not overlay data —
+        // strip it so the stored enrichmentOverlay keeps the standard shape.
+        // The prose path passes blueprintEnrichment through UNTOUCHED
+        // (including null) so its compile stays byte-identical.
+        const enrichmentForGraph =
+          blueprintEnrichment && blueprintEnrichment.nativeAuthored
+            ? Object.fromEntries(Object.entries(blueprintEnrichment).filter(([key]) => key !== 'nativeAuthored'))
+            : blueprintEnrichment;
+        let courseGraph = null;
+        // v0.14.5 hotfix (round 2026-06-12T04-52): the assembly gate is the
+        // pure resolveNativeAssembly seam — a degenerate skeleton (fewer
+        // assessments than lessons; the live round shipped 1 for 15) or an
+        // assembly throw resolves to a LOUD fellBack + the prose-repair
+        // path below, never a graph the compiler's contract gate will
+        // reject with an uncaught throw (the silent ten-minute hang).
+        let nativeFallbackMap = null;
+        if (nativeSkeleton) {
+          const { resolveNativeAssembly } = await import('../lib/nativeGraphAuthoring');
+          const resolution = resolveNativeAssembly({
+            skeleton: nativeSkeleton,
+            passBBySession: blueprintEnrichment?.nativeAuthored || {},
+          });
+          if (resolution.ok) {
+            courseGraph = courseGraphLib.attachEnrichmentToGraph(resolution.graph, enrichmentForGraph);
+            recordGenerationApiCallEvent({
+              type: 'pipelineDecision',
+              stage: 'nativeAuthoring',
+              label: 'Native graph authoring',
+              detail: `assembled ${resolution.graph.sessions.length} sessions onto Pass A entity ids · Pass B authored ${
+                Object.keys(blueprintEnrichment?.nativeAuthored || {}).length
+              } lesson(s) · ${(resolution.graph.readings || []).length} registry readings`,
+            });
+          } else {
+            recordGenerationApiCallEvent({
+              type: 'nativeAuthoringFellBack',
+              label: 'Native authoring fell back to prose',
+              detail: resolution.reason,
+            });
+            appendLog(
+              `⚠ Native authoring fell back (${resolution.reason}) — compiling through the prose pipeline`,
+              'warn',
+            );
+            nativeFallbackMap = resolution.fallbackMap;
+          }
+        }
+        if (!courseGraph) {
+          let proseSourceMap = blueprintCourseMap;
+          if (nativeSkeleton) {
+            // The native branch skipped the readiness repair (the skeleton
+            // render is intentionally thin pre-Pass-B). Falling back to the
+            // prose compile means running that repair NOW — on the assembled
+            // render when assembly succeeded (it carries Pass B's authored
+            // outcomes/activities), else on the original map — so the derive
+            // below sees the per-lesson assessment cells the compiler's
+            // contract gate requires. Without this, the fallback compiles
+            // the same degenerate registry and hits the same blocked throw.
+            const fallbackRepair = repairCourseMapReadiness({
+              courseMap: nativeFallbackMap || courseMap,
+              columns,
+              lessonFilter: scopeIndices,
+            });
+            proseSourceMap = fallbackRepair.courseMap || nativeFallbackMap || courseMap;
+            if (fallbackRepair.changed) {
+              appendLog(
+                `Filled sparse fields for the prose fallback compile: ${fallbackRepair.repairedFields.slice(0, 3).join('; ')}${fallbackRepair.repairedFields.length > 3 ? ` +${fallbackRepair.repairedFields.length - 3} more` : ''}`,
+                'progress',
+              );
+              traceGeneration(generationRunId, 'blueprint_course_map_repaired', {
+                repairedFieldCount: fallbackRepair.repairedFields.length,
+                repairedFields: fallbackRepair.repairedFields,
+                source: 'native-fallback',
+              });
+            }
+          }
+          courseGraph = courseGraphLib.attachEnrichmentToGraph(
+            courseGraphLib.deriveCourseGraphFromCourseMap(proseSourceMap),
+            enrichmentForGraph,
+          );
+        }
         // v0.13.5 P2: the Open Knowledge Backbone — genome anchor sections
         // become cited Resource entities (free, offline), then open
         // peer-reviewed readings and book metadata attach when the network
@@ -1694,7 +2043,42 @@ export default function useDeliverables({
         }
       };
 
-      await runBlueprintCompiler();
+      // v0.14.5 hotfix (round 2026-06-12T04-52): a compiler throw must NEVER
+      // escape generateAll — the live native runs died here (semantic
+      // contract blocked the degenerate blueprint) with no console event, no
+      // feature errors, isGenerating stuck true, and the finalize flow
+      // waiting forever (the silent ten-minute hang). On throw: every
+      // blueprint-compiled feature is marked errored LOUDLY and the run
+      // completes through the normal tail (run_complete + finalize gating).
+      try {
+        await runBlueprintCompiler();
+      } catch (compileErr) {
+        if (compileErr?.name === 'AbortError') throw compileErr;
+        const compileErrMessage = compileErr?.message || 'Blueprint compile failed';
+        appendLog(`✗ Blueprint compile failed: ${compileErrMessage}`, 'error');
+        recordGenerationApiCallEvent({
+          type: 'pipelineDecision',
+          stage: 'blueprintCompiler',
+          label: 'Blueprint compile failed',
+          detail: compileErrMessage,
+        });
+        traceGeneration(
+          generationRunId,
+          'blueprint_compiler_failed',
+          { error: summarizeError(compileErr), featureIds: blueprintCompiledFeatureIds },
+          'error',
+        );
+        for (const fid of blueprintCompiledFeatureIds) {
+          markFeatureError(fid, compileErrMessage);
+          setProgress((prev) => ({
+            ...prev,
+            perFeature: {
+              ...prev.perFeature,
+              [fid]: { ...(prev.perFeature?.[fid] || {}), status: 'error' },
+            },
+          }));
+        }
+      }
 
       const runChunk = async ({ featureId, chunkIndex, chunkScope, isWholeCourse }) => {
         if (timedOutFeaturesRef.current.has(featureId)) return;

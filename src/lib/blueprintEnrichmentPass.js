@@ -125,6 +125,46 @@ function sanitizeRomanization(value) {
   return text;
 }
 
+// ── v0.14.5 (F2): dialogue scripts for language courses ─────────────────────
+// The kernel contract gains an optional per-lesson `dialogue` field, gated by
+// the SAME language signal as rm (courseUsesNonLatinScript). It mirrors the
+// rm contract end to end: language-gated prompt line, lint-tolerant parsing
+// (a malformed dialogue never costs the lesson), optional everywhere else.
+// COST DISCIPLINE: dialogue deliberately does NOT join the romanization
+// recovery retry (listLessonRomanizationGaps stays keyTerms-only) — an absent
+// dialogue is fine and never earns a second model call.
+
+const DIALOGUE_PROMPT_LINE =
+  'Language-course dialogue: for each lesson ALSO return dialogue = 4-6 short conversational turns that use this ' +
+  'lesson\'s keyTerms vocabulary, shaped [{"speaker":"A"|"B","line":"one short sentence in the target script",' +
+  '"rm":"its tone- or vowel-marked romanization"}]. Alternate speakers A and B and keep each line under 12 words. ' +
+  'Omit dialogue when the lesson teaches no target-script vocabulary.';
+
+const DIALOGUE_TURN_CAP = 6;
+const DIALOGUE_LINE_MAX_CHARS = 160;
+
+/**
+ * Sanitize a model-supplied dialogue: malformed turns are DROPPED (never the
+ * lesson), the cap is 6 turns, speakers normalize to alternating A/B, and
+ * each turn's rm passes the same sanitizer as keyTerm romanization. Fewer
+ * than 2 usable turns → no dialogue at all (a one-line "dialogue" is noise).
+ */
+export function sanitizeDialogueTurns(value) {
+  const turns = [];
+  for (const raw of asArray(value)) {
+    if (turns.length >= DIALOGUE_TURN_CAP) break;
+    if (!raw || typeof raw !== 'object') continue;
+    const line = cleanText(raw.line ?? raw.ln);
+    if (!line || line.length > DIALOGUE_LINE_MAX_CHARS) continue;
+    if (META_SURFACE_RE.test(line)) continue;
+    const speakerRaw = cleanText(raw.speaker ?? raw.sp).toUpperCase();
+    const speaker = speakerRaw === 'A' || speakerRaw === 'B' ? speakerRaw : turns.length % 2 === 0 ? 'A' : 'B';
+    const romanization = sanitizeRomanization(raw.rm ?? raw.romanization);
+    turns.push({ speaker, line, ...(romanization ? { rm: romanization } : {}) });
+  }
+  return turns.length >= 2 ? turns : [];
+}
+
 /**
  * Round-3 polish (romanization recovery): the terms in a parsed lesson
  * payload that still need romanization — non-Latin script with no usable
@@ -1121,7 +1161,10 @@ export function buildLessonKernelPrompt(courseMap, lessonIndices, options = {}) 
     KERNEL_KEY_LEGEND,
     // v0.14.1 round-2 (fix 4): language courses pair every non-Latin term
     // with its romanization (rm) so study guides can render "你好 (nǐ hǎo)".
-    ...(courseUsesNonLatinScript(courseMap) ? [ROMANIZATION_PROMPT_LINE] : []),
+    // v0.14.5 (F2): the same gate adds the optional dialogue field — 4-6
+    // short turns using the lesson's vocabulary, rendered into lesson plans
+    // and study guides. Both lines ride the SAME kernel call (no extra cost).
+    ...(courseUsesNonLatinScript(courseMap) ? [ROMANIZATION_PROMPT_LINE, DIALOGUE_PROMPT_LINE] : []),
     'Return JSON matching this shape:',
     JSON.stringify({
       ...buildKernelSchema(),
@@ -1378,6 +1421,13 @@ export function parseLessonKernelResponse(text, { prompt, expectedLessonIds } = 
       { facts, keyTerms, scenario, discussionPrompt, assignmentCore, mc, workedExample },
       { itemPlan },
     );
+    // v0.14.5 (F2): the optional language-course dialogue rides the payload
+    // beside the projected surfaces. Malformed turns were dropped above the
+    // lesson line (sanitizeDialogueTurns) — a bad dialogue never costs the
+    // lesson, and an ABSENT dialogue is fine: it does not join the
+    // romanization recovery retry (cost discipline).
+    const dialogue = sanitizeDialogueTurns(entry?.dialogue);
+    if (dialogue.length > 0) payload.dialogue = dialogue;
     // Projected slides must pass the same surface lint the direct contract does.
     if (Array.isArray(payload.slideContent)) {
       const slideContent = payload.slideContent.filter((slide, index) => {

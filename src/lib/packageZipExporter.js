@@ -205,6 +205,27 @@ function buildManifestAssessments({ registry, files }) {
     });
 }
 
+// v0.14.5 (A5): the manifest's readings registry — every instructor-named
+// reading with its verbatim title, lesson, kind, and provenance tag.
+// Provenance vocabulary: 'instructor-named' (extracted from the syllabus
+// text) | 'instructor-provided' (the A3 reading-list upload path sets
+// instructorProvided: true). Strictly additive: no registry → no key.
+function buildManifestReadings(registry) {
+  if (!Array.isArray(registry) || registry.length === 0) return null;
+  const entries = registry
+    .filter(
+      (reading) => reading && typeof reading === 'object' && reading.title && Number.isInteger(reading.dueSession),
+    )
+    .map((reading) => ({
+      id: reading.id || '',
+      title: reading.title,
+      lesson: reading.dueSession,
+      kind: reading.kind || 'other',
+      provenance: reading.instructorProvided === true ? 'instructor-provided' : 'instructor-named',
+    }));
+  return entries.length > 0 ? entries : null;
+}
+
 function buildManifest({
   courseName,
   lessonFilter,
@@ -214,6 +235,7 @@ function buildManifest({
   requiredAssets = [],
   pipelineState = null,
   assessments = null,
+  readings = null,
 }) {
   return {
     courseName,
@@ -224,6 +246,8 @@ function buildManifest({
     ...(pipelineState ? { pipeline: pipelineState } : {}),
     // v0.14.1 (3.3d): the assessment registry, with artifact file links.
     ...(assessments && assessments.length > 0 ? { assessments } : {}),
+    // v0.14.5 (A5): the readings registry with provenance tags.
+    ...(readings && readings.length > 0 ? { readings } : {}),
     requestedFeatures: requestedFeatureIds.map((featureId) => ({
       featureId: publicFeatureId(featureId),
       label: resolveFeatureLabel(featureId),
@@ -396,7 +420,7 @@ export async function buildCourseMaterialsZip({
 
   if (failures.length > 0) throw new PackageZipExportError(failures);
 
-  const { collectRequiredLabAssets, buildRequiredLabAssetsReport } = await safeImport(
+  const { collectRequiredLabAssets, buildRequiredLabAssetsReport, buildPronunciationReference } = await safeImport(
     () => import('./requiredLabAssets'),
   );
   const requiredAssets = collectRequiredLabAssets({ courseMap, deliverables, requestedFeatureIds });
@@ -410,6 +434,24 @@ export async function buildCourseMaterialsZip({
       fileContents,
     });
   }
+  // v0.14.5 (F1): language-genre packages also ship a GENERATED pronunciation
+  // reference (tone marks + the lessons' romanized vocabulary), built from the
+  // compiled study guides this zip already carries — no extra data pass.
+  // Returns null for non-language courses and for language courses with no
+  // romanized vocabulary, so every other genre is untouched.
+  if (typeof buildPronunciationReference === 'function') {
+    const pronunciation = buildPronunciationReference({ courseMap, deliverables });
+    if (pronunciation?.markdown) {
+      addRequiredFile(
+        zip,
+        files,
+        failures,
+        `Required Assets/${safeCourseName} - Pronunciation Reference.md`,
+        pronunciation.markdown,
+        { featureId: 'requiredAssets', format: 'md', minBytes: 64, fileContents },
+      );
+    }
+  }
 
   if (failures.length > 0) throw new PackageZipExportError(failures);
 
@@ -417,12 +459,17 @@ export async function buildCourseMaterialsZip({
   // authoritative; without one (legacy callers) the registry derives from
   // the course map — deterministic and identical to what generation built.
   let assessmentRegistry = Array.isArray(courseGraph?.assessments) ? courseGraph.assessments : null;
-  if (!assessmentRegistry && courseMap?.lessons) {
+  // v0.14.5 (A5): the readings registry rides the manifest the same way.
+  let readingsRegistry = Array.isArray(courseGraph?.readings) ? courseGraph.readings : null;
+  if ((!assessmentRegistry || !readingsRegistry) && courseMap?.lessons) {
     try {
       const { deriveCourseGraphFromCourseMap } = await safeImport(() => import('./courseGraph/deriveFromCourseMap.js'));
-      assessmentRegistry = deriveCourseGraphFromCourseMap(courseMap)?.assessments || null;
+      const derivedGraph = deriveCourseGraphFromCourseMap(courseMap);
+      if (!assessmentRegistry) assessmentRegistry = derivedGraph?.assessments || null;
+      if (!readingsRegistry) readingsRegistry = derivedGraph?.readings || null;
     } catch {
-      assessmentRegistry = null;
+      assessmentRegistry = assessmentRegistry || null;
+      readingsRegistry = readingsRegistry || null;
     }
   }
   const manifest = buildManifest({
@@ -434,6 +481,7 @@ export async function buildCourseMaterialsZip({
     requiredAssets,
     pipelineState,
     assessments: buildManifestAssessments({ registry: assessmentRegistry, files }),
+    readings: buildManifestReadings(readingsRegistry),
   });
 
   // ── v0.14.3 WS-A A2/A3: the package grades itself ─────────────────────────

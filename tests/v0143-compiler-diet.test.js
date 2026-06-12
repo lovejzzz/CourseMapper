@@ -19,12 +19,16 @@
  *     highest-weight registry title (registryStudentArtifactTitle) before
  *     any derived cue is built, so fusion is legacy/no-registry only. The
  *     zero assertion below is the permanent regression net.
- *   - finalizer-kind-inference: HYPOTHESIS FALSIFIED — the title-pattern
- *     inference is LOAD-BEARING on the registry path: it supplies the
- *     readable noun ("quiz", "memo") for every 3rd+ mention short reference;
- *     the registry kind vocabulary (graded-artifact/exam/oral/in-class) is
- *     too coarse to replace it as-is. Phase-2 backlog: key the noun off the
- *     registry kind + title head instead of 19 regexes.
+ *   - finalizer-kind-inference: HYPOTHESIS FALSIFIED (2026-06-11, 4,717
+ *     consumptions on the registry class — the title-pattern inference
+ *     supplied the readable noun for every 3rd+ mention short reference;
+ *     the registry kind vocabulary is too coarse alone), THEN REKEYED in
+ *     v0.14.5 WS-D (D1): registry-identified targets now derive the noun
+ *     from registry kind + title head-noun (registryArtifactNoun), the
+ *     19-regex scan runs only for targets WITHOUT registry identity, and
+ *     the telemetry branch is re-scoped to fire only when the regex scan
+ *     runs DESPITE registry identity. The zero assertion below is the
+ *     permanent regression net (the fusion precedent).
  *   - the legacy (no-graph) fixture HITS fusion and rebuild: proves the
  *     telemetry fires at all and the legacy path stays alive for map-only
  *     projects.
@@ -32,11 +36,16 @@
  *     quiz-strategy-label-match) are MEASUREMENTS for the live round, not
  *     pass/fail dogma — counts are logged via console.table and asserted
  *     loosely with the measured values recorded in comments. Notable:
- *     concept-comma-split measured ZERO on both graph-path classes (graph
- *     concepts arrive typed), so it joins the certified-dead candidates if
- *     the live round agrees.
+ *     concept-comma-split measured ZERO on both graph-path classes here,
+ *     but the LIVE v0.14.5 rounds FALSIFIED the fixture zero — see the
+ *     section (3) record. Fixture zeros were a corpus artifact, not proof.
  *
- * No deletions happen here (that is C3, gated on the live round).
+ * Deletion status (v0.14.5 WS-D D3, live rounds 2026-06-11): NO branch is
+ * deletable yet — every certified-dead candidate was either falsified live
+ * (concept-comma-split) or is alive on the legacy fixture classes that the
+ * live graph-path rounds cannot exercise (legacy-anchor-rebuild). See
+ * docs/V0.14.5_LEGACY_PATH_ENDGAME_NOTE.md for the per-branch live table
+ * and the V0.13 P5 deletion plan.
  */
 import { describe, expect, it } from 'vitest';
 
@@ -366,11 +375,18 @@ describe('legacyPathTelemetry module', () => {
 
 describe('graph-path fixtures vs the hypothesized-dead branches', () => {
   it('legacy-anchor-rebuild: ZERO hits on both graph-path classes (the regression net)', () => {
-    // Certified-dead candidate: graph blueprints always carry the persisted
-    // registry, so the legacy one-per-lesson rebuild decision never runs —
-    // direct compile AND compact-storage restore both stay on the registry
-    // branch. If this assertion ever fails, the graph path lost its registry
-    // somewhere — fix that, do not relax this test.
+    // Graph blueprints always carry the persisted registry, so the legacy
+    // one-per-lesson rebuild decision never runs — direct compile AND
+    // compact-storage restore both stay on the registry branch. If this
+    // assertion ever fails, the graph path lost its registry somewhere —
+    // fix that, do not relax this test.
+    // LIVE VERDICT (v0.14.5 WS-D D3): zero across all 11 live course runs
+    // (round 2026-06-11T20-21-08) — but the live corpus is 100% graph-path,
+    // so the zeros only re-confirm the structural short-circuit. The branch
+    // stays: it is the active safety net for no-registry compiles (12
+    // matrix-core + 1 legacy-fixture hits below prove it load-bearing
+    // there). Deletion is gated on V0.13 P5 (derive-on-open unconditional)
+    // — see docs/V0.14.5_LEGACY_PATH_ENDGAME_NOTE.md.
     for (const label of ['phase3-registry', 'course-graph-golden']) {
       const telemetry = classTelemetry(label);
       expect(
@@ -393,20 +409,25 @@ describe('graph-path fixtures vs the hypothesized-dead branches', () => {
     expect(hitsOf(classTelemetry('course-graph-golden'), 'student-artifact-fusion')).toBe(0);
   });
 
-  it('finalizer-kind-inference: hypothesis FALSIFIED — pattern inference is load-bearing on the registry path', () => {
-    // Measured 2026-06-11: 4,717 consumptions on the registry class and
-    // 1,508 on the golden class — every 3rd+ mention short reference for a
-    // registry-keyed target resolves through artifactKindOf's title
-    // patterns, because the registry kind vocabulary
-    // (graded-artifact/exam/oral/in-class) cannot produce the readable noun
-    // ("the Week 5 quiz"). NOT deletable as-is — phase-2 backlog: derive the
-    // reference noun from registry kind + title head, keep patterns for
-    // non-registry targets. Loose floor (tolerance note): exact counts drift
-    // with any prose/template change; nonzero is the load-bearing proof.
-    expect(hitsOf(classTelemetry('phase3-registry'), 'finalizer-kind-inference')).toBeGreaterThanOrEqual(1);
-    expect(hitsOf(classTelemetry('course-graph-golden'), 'finalizer-kind-inference')).toBeGreaterThanOrEqual(1);
+  it('finalizer-kind-inference: ZERO hits on the registry path (falsified, then rekeyed — the regression net)', () => {
+    // History (the fusion precedent): measured 2026-06-11 at 4,717
+    // consumptions on the registry class and 1,508 on the golden class
+    // (5,227 / 8,980 on the v0.14.5 corpus; 96,943 across the 11-course
+    // live round 2026-06-11T20-21) — the title-pattern inference supplied
+    // the readable noun ("the Week 5 quiz") for every 3rd+ mention short
+    // reference because the registry kind vocabulary
+    // (graded-artifact/exam/oral/in-class) cannot produce it alone. REKEYED
+    // in v0.14.5 WS-D (D1): registryArtifactNoun derives the noun from
+    // registry kind + title head-noun at target build time, and the branch
+    // is re-scoped to fire only when the 19-regex scan runs DESPITE
+    // registry identity (kind missing/unrecognized). Any registry-path hit
+    // is now a regression: either the registry lost its kind vocabulary on
+    // the way to the finalizer, or a new target site bypassed the rekey.
+    expect(hitsOf(classTelemetry('phase3-registry'), 'finalizer-kind-inference')).toBe(0);
+    expect(hitsOf(classTelemetry('course-graph-golden'), 'finalizer-kind-inference')).toBe(0);
     // Structural inverse: without a registry there is no assessmentId on any
-    // reference target, so the branch can never fire on legacy compiles.
+    // reference target, so the re-scoped branch can never fire on legacy
+    // compiles either — the regex scan there runs WITHOUT registry identity.
     expect(hitsOf(classTelemetry('matrix-core'), 'finalizer-kind-inference')).toBe(0);
     expect(hitsOf(classTelemetry('legacy single fixture'), 'finalizer-kind-inference')).toBe(0);
   });
@@ -451,15 +472,26 @@ describe('measured counts for the phase-2 backlog (live-round comparison values)
   //   course-graph-golden (graph, 2)           0         214          270
   //   legacy single fixture (1)                3           8           24
   //
-  // These are RECORDINGS, not contracts: the live 10-course round decides
-  // each branch's fate. Tolerance note: assertions only pin "still
-  // measurable" (>= 0); exact counts drift with fixture/compiler changes —
-  // refresh the table above when they do. Standout signal for C3:
-  // concept-comma-split is ZERO on both graph-path classes (graph concepts
-  // arrive typed), so it is a certified-dead candidate alongside
-  // legacy-anchor-rebuild; objective-stem-strip and the quiz strategy-label
-  // matcher are demonstrably alive on the graph path and stay in the
-  // phase-2 backlog.
+  // LIVE VERDICT (v0.14.5 WS-D, 11-course Crucible round
+  // 2026-06-11T20-21-08, all graph-path generations):
+  //   - concept-comma-split: FIXTURE ZERO FALSIFIED LIVE — 36 hits across
+  //     10/11 courses (1-10 per course; e.g. "Solstices, equinoxes, and
+  //     seasonal markers"). Model-authored concept/topic strings carry
+  //     comma lists that the fixture corpus never did; the splitter is
+  //     load-bearing on the LIVE graph path. Not deletable, not
+  //     narrowable to legacy-only entry.
+  //   - objective-stem-strip: alive live (56-242 per course, 1,742 total).
+  //   - quiz-strategy-label-match: alive live (159-270 per course, 2,658
+  //     total, every course; firstContext "diagnostic-retrieval ->
+  //     source-evidence-objective-match"). Rekey to outcome ids is NOT
+  //     possible yet — criterionObjectiveAlignment carries only text (see
+  //     docs/V0.14.5_LEGACY_PATH_ENDGAME_NOTE.md for the id-plumbing
+  //     requirement).
+  //
+  // These are RECORDINGS, not contracts. Tolerance note: assertions only
+  // pin "still measurable" (>= 0); exact counts drift with fixture/compiler
+  // changes — refresh the table above when they do. The live round closed
+  // the C3 question for this trio: all three stay, with telemetry armed.
   it('concept-comma-split / objective-stem-strip / quiz-strategy-label-match stay measurable', () => {
     for (const { label, telemetry } of fixtureHitMatrix()) {
       for (const branch of BRANCHES.slice(3)) {

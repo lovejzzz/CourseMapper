@@ -6,7 +6,16 @@ import {
   buildUserPrompt,
   EXAMINE_SYSTEM_PROMPT,
   buildExamineUserPrompt,
+  NATIVE_SKELETON_SYSTEM_PROMPT,
+  buildNativeSkeletonUserPrompt,
 } from '../lib/prompts';
+import {
+  NativeAuthoringError,
+  buildNativeWireMap,
+  parseNativeSkeletonResponse,
+  readAuthoringMode,
+  stashNativeSkeleton,
+} from '../lib/nativeGraphAuthoring';
 import { checkTokenLimit, truncateToFit } from '../lib/tokenEstimator';
 import { detectExpectedLessons } from '../lib/detectLessons';
 import useStreamReader from './useStreamReader';
@@ -930,6 +939,117 @@ Generate lessons ${actual + 1} through ${expectedCount} now as JSON:`;
         try {
           await new Promise((r) => setTimeout(r, 400));
           setProgressStep('generating');
+
+          // ── v0.14.5 WS-B (B1): native graph authoring — Pass A, flag-gated.
+          // 'coursemapper-authoring-mode' = 'native' replaces the prose
+          // course-map call with ONE low-reasoning typed-skeleton call; Pass B
+          // (useDeliverables) authors content onto the skeleton's session ids.
+          // Gated to full-course runs on structured-output (lean-capable)
+          // models, never on a degraded plan. ANY failure falls back to the
+          // prose path below LOUDLY ('nativeAuthoringFellBack') — never silent.
+          if (
+            readAuthoringMode() === 'native' &&
+            !scopeIndices &&
+            leanCourseMap &&
+            !generationPlan?.planDegraded &&
+            !isReconstruct
+          ) {
+            try {
+              const skeletonSource = tokenCheck.fits ? combinedText : truncateToFit(combinedText, modelId).text;
+              const skeletonUserPrompt = buildNativeSkeletonUserPrompt(skeletonSource, {
+                expectedLessons: detected?.expected || null,
+                confidence: detected?.confidence || null,
+              });
+              fullTextRef.current = '';
+              recordApiCallEvent({
+                type: 'nativeSkeletonCall',
+                label: 'Native graph authoring — Pass A skeleton',
+                detail: `${currentModelName} · typed skeleton (sessions, assessments, readings)`,
+              });
+              const skeletonResult = await streamProvider(
+                provider,
+                apiKey,
+                modelId,
+                NATIVE_SKELETON_SYSTEM_PROMPT,
+                skeletonUserPrompt,
+                {
+                  maxOutputTokens: generationPlan?.courseMapOutputTokens || maxOutputTokens,
+                  modelCapabilities,
+                  generationPlan,
+                  // No taskEffortMap entry for 'nativeSkeleton' → the map's
+                  // default tier ('low') — Pass A's low-reasoning contract.
+                  task: 'nativeSkeleton',
+                  onApiCallEvent: recordApiCallEvent,
+                  onChunk: (text, count) => {
+                    fullTextRef.current = text;
+                    updateGenerationProgress(text, count);
+                  },
+                },
+              );
+              const skeleton = parseNativeSkeletonResponse(skeletonResult?.fullText || '', {
+                expectedLessons: detected?.confidence === 'high' ? detected?.expected || null : null,
+              });
+              const nativeMap = buildNativeWireMap(skeleton);
+              // Hand the skeleton to the deliverables stage (Pass B + assembly).
+              stashNativeSkeleton(skeleton);
+              workingModelRef.current = { provider, apiKey, modelId };
+              setCourseMap(nativeMap);
+              courseMapRef.current = nativeMap;
+              setIsStreaming(false);
+              setStreamDetail('');
+              stoppedTextRef.current = '';
+              stoppedPromptRef.current = null;
+              pushVersion(nativeMap, 'Initial generation (native graph authoring)');
+              addLog(
+                currentModelName,
+                `Pass A skeleton: ${skeleton.sessions.length} sessions, ${skeleton.assessments.length} assessments, ${skeleton.readings.length} named readings`,
+                'success',
+              );
+              setCompletenessInfo({
+                expected: detected?.expected || skeleton.sessions.length,
+                actual: skeleton.sessions.length,
+                confidence: detected?.confidence || 'high',
+                status: detected?.expected && skeleton.sessions.length < detected.expected ? 'incomplete' : 'complete',
+              });
+              // The examine pass would only flag the (intentionally) thin
+              // skeleton cells Pass B is about to author — skip it explicitly.
+              setOldCourseMap(null);
+              setExamChanges([]);
+              setPendingExamPatches(null);
+              recordApiCallEvent({
+                type: 'skippedExamine',
+                label: 'Skipped course-map review',
+                detail: 'native authoring — Pass B authors lesson content next',
+              });
+              setStreamProgress(100);
+              setProgressStep('done');
+              setStatus('done');
+              setUserEdits([]);
+              try {
+                localStorage.removeItem(STREAM_SAVE_KEY);
+              } catch {}
+              return nativeMap;
+            } catch (nativeErr) {
+              if (nativeErr?.name === 'AbortError') throw nativeErr;
+              const reason =
+                nativeErr instanceof NativeAuthoringError
+                  ? `${nativeErr.code}: ${nativeErr.message}`
+                  : nativeErr?.message || 'unknown error';
+              stashNativeSkeleton(null);
+              recordApiCallEvent({
+                type: 'nativeAuthoringFellBack',
+                label: 'Native authoring fell back to prose',
+                detail: reason,
+              });
+              addLog(
+                currentModelName,
+                `Native graph authoring failed (${reason}) — falling back to the prose course-map path`,
+                'warning',
+              );
+              setIsStreaming(true);
+              setStreamProgress(0);
+            }
+          }
 
           fullTextRef.current = '';
           lastGoodParseRef.current = null;

@@ -24,6 +24,9 @@ const ENTITY_KEYS = new Set([
   'asyncActivities',
   'syncActivities',
   'supportingResources',
+  // v0.14.5 (A1): the per-section readings wire key — consumed into the
+  // readings registry (graph.readings), never passed through extras.
+  'readings',
 ]);
 
 const BLOOM_VERB_RE =
@@ -83,6 +86,63 @@ export function classifyAssessmentKind(title) {
   // activity keyword deserves a brief, and the reconciliation gate then
   // resolves it by construction.
   return 'graded-artifact';
+}
+
+// ── v0.14.5 WS-A (A1): the readings registry ────────────────────────────────
+// Every section-level `readings` wire atom becomes a first-class registry
+// entry with a stable id ("R8.1" = lesson 8, first reading atom, counted
+// across the lesson's sections in cell order), a kind, and the VERBATIM
+// title AS NAMED in the source. The fusion lesson applies by construction:
+// the title is never cased, truncated, or shortened anywhere downstream.
+//
+// Kind classification uses cheap lexical signals only; anything ambiguous
+// defaults to 'other'. Order matters: packet beats chapter ("course packet
+// pp. 12-30" is a packet even though "pp." also marks chapters).
+const READING_KIND_RULES = [
+  ['packet', /\b(?:course\s+)?packet\b|\bcourse\s+pack\b|\bcourse\s+reader\b/i],
+  ['chapter', /\bch(?:s?\.|apters?)\s*\d|§|\bpp?\.\s*\d|\bpages?\s+\d/i],
+  ['article', /\barticle\b|\bessay\b|\bjournal\b/i],
+  ['media', /\bfilm\b|\bvideo\b|\bdocumentary\b|\bpodcast\b|\bepisode\b|\brecording\b|\baudio\b/i],
+  ['book', /\bnovel\b|\bbook\b|\bmemoir\b/i],
+];
+
+// Conservative "Author, Title" author parse: ONLY the unambiguous
+// "Lastname, Firstname. Title" citation shape yields an author — a bare
+// "Gilgamesh, Tablets I–IV" stays author-less rather than minting a fake
+// author from a work's own name. The verbatim source string is ALWAYS the
+// title; the author is supplementary metadata.
+const AUTHOR_TITLE_RE = /^([A-Z][\w'’-]+,\s+[A-Z][\w'’-]+(?:\s+[A-Z]\.)?)[.]\s+(\S.*)$/;
+
+export function parseReadingAuthor(sourceText) {
+  const match = cleanText(sourceText).match(AUTHOR_TITLE_RE);
+  return match ? match[1] : '';
+}
+
+export function classifyReadingKind(sourceText) {
+  const text = cleanText(sourceText);
+  for (const [kind, pattern] of READING_KIND_RULES) {
+    if (pattern.test(text)) return kind;
+  }
+  // The unambiguous citation shape ("Achebe, Chinua. Things Fall Apart")
+  // names a book; everything else stays 'other' — never guess.
+  if (parseReadingAuthor(text)) return 'book';
+  return 'other';
+}
+
+/** Split a readings wire value into verbatim title atoms. Arrays pass through
+ *  atom-by-atom; a stray string splits on newlines ONLY (titles may contain
+ *  semicolons and commas — never split on punctuation). */
+function readingAtoms(value) {
+  if (Array.isArray(value)) {
+    return value.map((atom) => cleanText(atom)).filter(Boolean);
+  }
+  if (typeof value === 'string') {
+    return value
+      .split('\n')
+      .map((atom) => cleanText(atom))
+      .filter(Boolean);
+  }
+  return [];
 }
 
 // Relative grading mass per kind — exams heavier than orals, orals heavier
@@ -243,6 +303,10 @@ export function deriveCourseGraphFromCourseMap(courseMap, options = {}) {
     // "A7.2" = lesson 7, second assessment atom (counted across the
     // lesson's sections in cell order).
     let lessonAssessmentOrdinal = 0;
+    // v0.14.5 (A1): same id discipline for readings — "R8.1" = lesson 8,
+    // first reading atom. Render→derive keeps ids stable for unchanged
+    // titles because the render writes the readings array back in order.
+    let lessonReadingOrdinal = 0;
     const session = {
       id: sessionId,
       number: sessionNumber,
@@ -320,7 +384,39 @@ export function deriveCourseGraphFromCourseMap(courseMap, options = {}) {
         section.assessmentRefs.push(assessment.id);
       }
 
+      // v0.14.5 (A1): the readings registry — verbatim instructor-named
+      // titles from the section's `readings` wire array. Strictly additive:
+      // a malformed value derives to nothing and the run is unchanged.
+      const sectionReadingTitles = new Set();
+      for (const atom of readingAtoms(rawSection?.readings)) {
+        lessonReadingOrdinal += 1;
+        const reading = {
+          id: `R${sessionNumber}.${lessonReadingOrdinal}`,
+          title: atom,
+          author: parseReadingAuthor(atom),
+          kind: classifyReadingKind(atom),
+          sourceText: atom,
+          dueSession: sessionNumber,
+          sectionRef: section.id,
+          // The A3 upload path sets true; syllabus-extracted entries are
+          // instructor-NAMED but not instructor-UPLOADED.
+          instructorProvided: false,
+        };
+        graph.readings.push(reading);
+        if (!Array.isArray(section.readingRefs)) section.readingRefs = [];
+        section.readingRefs.push(reading.id);
+        sectionReadingTitles.add(atom.toLowerCase());
+      }
+
       for (const atom of splitCellAtoms(rawSection?.supportingResources)) {
+        // v0.14.5 (A2a): the graph render leads supportingResources cells
+        // with the section's registry titles — re-deriving a rendered map
+        // must NOT mint duplicate syllabus Resource entities for them (the
+        // registry already carries their identity; round-trip id stability).
+        const withoutListPrefix = atom.replace(/^\d+[.)]\s+/, '');
+        if (sectionReadingTitles.has(atom.toLowerCase()) || sectionReadingTitles.has(withoutListPrefix.toLowerCase())) {
+          continue;
+        }
         let resourceId = resourceIdByCitation.get(atom.toLowerCase());
         if (!resourceId) {
           resourceId = nextId('r');

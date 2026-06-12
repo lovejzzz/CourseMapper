@@ -452,18 +452,22 @@ describe('PPTX export — native visuals (v0.12.1)', () => {
     expect(xml).toContain('Voucher: targets the neediest households');
   });
 
-  it('keyTerm slide with a concept-map visual renders a hub-and-spoke shape group', () => {
+  it('keyTerm slide with a concept-map visual renders a hub-and-spoke ellipse group (v0.14.5 C1)', () => {
     // Fixture slide index 7 = keyTerm with kind 'concept map'
     const xml = slideXmls[7];
     // Hub label = the concept (slide title)
     expect(xml).toContain('Opportunity Cost');
-    // Spoke phrases from the explanatory bullets
-    expect(xml).toContain('Includes non-money costs like time');
-    expect(xml).toContain('Drives the shape of the production frontier');
-    // Shape group: card + slide-number chip + hub + 3 spokes ≥ 6 roundRects…
-    expect(count(xml, 'prst="roundRect"')).toBeGreaterThanOrEqual(6);
+    // v0.14.5 (C1): hub + spokes are named ellipses on the fixed slot
+    // table — the cmViz prefix is the grader's feature marker.
+    expect(count(xml, 'name="cmVizHub"')).toBe(1);
+    expect(count(xml, 'name="cmVizSpoke"')).toBe(3);
+    expect(count(xml, 'name="cmVizConn"')).toBe(3);
+    expect(count(xml, 'prst="ellipse"')).toBeGreaterThanOrEqual(4); // hub + 3 spokes (+ progress dots)
     // …and one connector line per spoke
     expect(count(xml, 'prst="line"')).toBeGreaterThanOrEqual(3);
+    // Spoke text obeys the 3-word ellipsis rule
+    expect(xml).toContain('Includes non-money costs…');
+    expect(xml).toContain('Drives the shape…');
     // The definition still renders in the concept card
     expect(xml).toContain('next-best alternative');
   });

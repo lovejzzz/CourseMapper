@@ -37,6 +37,7 @@ function renderSection(graph, section, options = {}) {
   const outcomesById = new Map(graph.outcomes.map((outcome) => [outcome.id, outcome]));
   const assessmentsById = new Map(graph.assessments.map((assessment) => [assessment.id, assessment]));
   const resourcesById = new Map(graph.resources.map((resource) => [resource.id, resource]));
+  const readingsById = new Map((graph.readings || []).map((reading) => [reading.id, reading]));
 
   const objectiveAtoms = (section.objectiveRefs || [])
     .map((id) => outcomesById.get(id))
@@ -56,6 +57,27 @@ function renderSection(graph, section, options = {}) {
     .filter(Boolean)
     .map((resource) => resource.citation);
 
+  // v0.14.5 (A2a): instructor-named registry readings render as the LEADING
+  // supportingResources items, verbatim (the fusion lesson: no casing
+  // surgery, no truncation), followed by the existing resource atoms with
+  // identical entries deduped. The verbatim readings array ALSO rides the
+  // rendered section so derive(render(graph)) reproduces the registry with
+  // stable ids — the single source for the registry is section.readings.
+  const readingTitles = (section.readingRefs || [])
+    .map((id) => readingsById.get(id))
+    .filter(Boolean)
+    .map((reading) => reading.title);
+  const readingTitleSet = new Set(readingTitles.map((title) => title.toLowerCase()));
+  const dedupedResourceAtoms =
+    readingTitleSet.size > 0
+      ? resourceAtoms.filter((atom) => {
+          const withoutListPrefix = String(atom).replace(/^\d+[.)]\s+/, '');
+          return (
+            !readingTitleSet.has(String(atom).toLowerCase()) && !readingTitleSet.has(withoutListPrefix.toLowerCase())
+          );
+        })
+      : resourceAtoms;
+
   const rendered = {
     topicSection: section.topic || '',
     learningGoals: expandLeanSectionField('learningGoals', section.goals || []),
@@ -63,7 +85,8 @@ function renderSection(graph, section, options = {}) {
     weeklyAssessments: expandLeanSectionField('weeklyAssessments', assessmentAtoms),
     asyncActivities: expandLeanSectionField('asyncActivities', section.asyncActivities || []),
     syncActivities: expandLeanSectionField('syncActivities', section.syncActivities || []),
-    supportingResources: expandLeanSectionField('supportingResources', resourceAtoms),
+    supportingResources: expandLeanSectionField('supportingResources', [...readingTitles, ...dedupedResourceAtoms]),
+    ...(readingTitles.length > 0 ? { readings: readingTitles } : {}),
     ...(section.extras && typeof section.extras === 'object' ? section.extras : {}),
   };
 

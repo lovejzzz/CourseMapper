@@ -74,7 +74,18 @@ import {
 // v0.14.3 WS-A A3: the grader version stamped into manifest.quality. Bump on
 // any change to checks, weights, or severity penalties so a package's quality
 // block names the exact grader that produced it.
-export const GRADER_VERSION = '1.0.0';
+// 1.1.0 — v0.14.5 WS-A (A5): named-reading penetration + provenance-order
+// checks over the manifest readings registry.
+// 1.2.0 — v0.14.5 WS-C (C3): native-visual bar over slide decks. ARMING
+// RULE: the check fires only when a deck in the package declares the
+// v0.14.5 visual layer — a 'cmViz'-prefixed shape name in its slide XML
+// (the exporter stamps 'cmVizLayer' on every deck's first slide, and names
+// every rendered visual cmVizHub/Spoke/Conn/Chart/Table/Matrix). Packages
+// exported before the visual layer carry no marker and are never graded on
+// visuals, so stored Crucible rounds stay quiet; armed packages take a P2
+// per enriched deck (kernel-derived slides present) that renders zero
+// native visuals.
+export const GRADER_VERSION = '1.2.0';
 
 // ── Dimension weights & letter bands (documented in the module header) ──────
 export const DIMENSION_WEIGHTS = {
@@ -703,6 +714,137 @@ function collectDownstreamTitleTokenSets(files) {
     if (set.size > 0) sets.push(set);
   }
   return sets;
+}
+
+// ── v0.14.5 WS-A (A5): the readings registry receipts ───────────────────────
+// (1) Named-reading penetration: every manifest readings[] entry appears
+//     VERBATIM (whitespace-normalized, case-insensitive — never shortened,
+//     never fused) in its week's lesson plan AND in the syllabus schedule.
+//     P1 per missing surface.
+// (2) Provenance order: in a week's rendered materials, no retrieved-tier
+//     item (an "Open-access via …" OpenAlex citation) lists ABOVE an
+//     instructor-named reading. P1. Checked inside the lesson plan's
+//     "Materials & Resources" block and inside each syllabus schedule row.
+// Self-arming: the checks run whenever manifest.readings is populated; a
+// course fixture with expectReadings: true additionally fails the round when
+// the registry never materialized at all.
+
+const READING_RETRIEVED_RE = /open-access via/i;
+// Lesson-plan sub-headings that terminate the materials block (docxExporter
+// rendering order: Materials & Resources → Assessments This Week → Session
+// Outline → …).
+const MATERIALS_BLOCK_END_RE =
+  /^(assessments this week|session outline|worked example|observation protocol|key terms|formative check|homework|closing activity)$/i;
+
+function normalizeReadingMatchText(text) {
+  return String(text || '')
+    .replace(/\s+/g, ' ')
+    .trim()
+    .toLowerCase();
+}
+
+function checkReadings(findings, { files, manifest }, course) {
+  const readings = Array.isArray(manifest?.readings) ? manifest.readings : [];
+  if (readings.length === 0) {
+    if (course?.expectReadings) {
+      findings.add({
+        severity: 'P1',
+        dimension: 'identity',
+        file: 'PACKAGE_MANIFEST.json',
+        detail:
+          'course names per-week readings (expectReadings) but the manifest carries no readings registry — extraction or inheritance dropped the instructor readings',
+        evidence: 'manifest.readings missing or empty',
+      });
+    }
+    return;
+  }
+
+  // Any extracted syllabus file qualifies (docx in production packages;
+  // text fixtures in synthetic grader tests read identically).
+  const syllabusFile = files.find((file) => file.featureId === 'syllabus');
+  const lessonPlanFiles = files.filter((file) => file.featureId === 'lessonPlans');
+  const syllabusText = syllabusFile ? normalizeReadingMatchText(syllabusFile.text) : '';
+
+  // (1) Penetration — each registry title must reach both surfaces verbatim.
+  for (const entry of readings) {
+    const title = normalizeReadingMatchText(entry.title);
+    if (!title) continue;
+    const plan = lessonPlanFiles.find((file) => file.lessonNumber === entry.lesson);
+    if (plan && !normalizeReadingMatchText(plan.text).includes(title)) {
+      findings.add({
+        severity: 'P1',
+        dimension: 'identity',
+        file: plan.path,
+        detail: `named reading ${entry.id || ''} "${entry.title}" (L${entry.lesson}) does not appear verbatim in its week's lesson plan materials`,
+        evidence: entry.title,
+      });
+    }
+    if (syllabusFile && !syllabusText.includes(title)) {
+      findings.add({
+        severity: 'P1',
+        dimension: 'identity',
+        file: syllabusFile.path,
+        detail: `named reading ${entry.id || ''} "${entry.title}" (L${entry.lesson}) does not appear verbatim in the syllabus schedule`,
+        evidence: entry.title,
+      });
+    }
+  }
+
+  // (2) Provenance order — lesson-plan materials block.
+  for (const plan of lessonPlanFiles) {
+    const lessonTitles = readings
+      .filter((entry) => entry.lesson === plan.lessonNumber)
+      .map((entry) => normalizeReadingMatchText(entry.title))
+      .filter(Boolean);
+    if (lessonTitles.length === 0) continue;
+    const lines = (plan.paragraphs || []).map((line) => normalizeReadingMatchText(line));
+    const start = lines.findIndex((line) => line === 'materials & resources');
+    if (start === -1) continue;
+    let firstInstructor = -1;
+    let firstRetrieved = -1;
+    for (let index = start + 1; index < lines.length; index += 1) {
+      const line = lines[index];
+      if (MATERIALS_BLOCK_END_RE.test(line)) break;
+      if (firstRetrieved === -1 && READING_RETRIEVED_RE.test(line)) firstRetrieved = index;
+      if (firstInstructor === -1 && lessonTitles.some((title) => line.includes(title))) firstInstructor = index;
+    }
+    if (firstRetrieved !== -1 && firstInstructor !== -1 && firstRetrieved < firstInstructor) {
+      findings.add({
+        severity: 'P1',
+        dimension: 'citations',
+        file: plan.path,
+        detail: `provenance order violated in L${plan.lessonNumber} materials: a retrieved open reading lists above the instructor-named reading`,
+        evidence: (plan.paragraphs || [])[firstRetrieved] || 'retrieved item listed first',
+      });
+    }
+  }
+
+  // (2b) Provenance order — syllabus schedule rows (one extracted line per
+  // cell, so a retrieved citation and a registry title on the same line
+  // belong to the same week's readings cell).
+  if (syllabusFile) {
+    for (const rawLine of syllabusFile.paragraphs || []) {
+      const line = normalizeReadingMatchText(rawLine);
+      const retrievedMatch = line.match(READING_RETRIEVED_RE);
+      if (!retrievedMatch) continue;
+      const retrievedIndex = line.search(READING_RETRIEVED_RE);
+      for (const entry of readings) {
+        const title = normalizeReadingMatchText(entry.title);
+        if (!title) continue;
+        const titleIndex = line.indexOf(title);
+        if (titleIndex !== -1 && retrievedIndex < titleIndex) {
+          findings.add({
+            severity: 'P1',
+            dimension: 'citations',
+            file: syllabusFile.path,
+            detail: `provenance order violated in the syllabus schedule: a retrieved open reading lists above instructor-named "${entry.title}"`,
+            evidence: rawLine,
+          });
+          break;
+        }
+      }
+    }
+  }
 }
 
 // CONSISTENCY — week labels, lesson-title cross-deliverable, objectives match.
@@ -2486,6 +2628,41 @@ function formatScanUnits(file) {
 }
 
 // FORMAT — every artifactDefectPatterns check across text + raw XML.
+// ── v0.14.5 WS-C (C3): the native-visual bar over slide decks ───────────────
+// Enriched decks (those carrying kernel-derived slides) should render at
+// least one native visual — a concept-map shape group, worked-example chart,
+// evidence table, or decision matrix. ARMING RULE: pre-v0.14.5 packages
+// rendered visuals as text only, so the check arms ONLY when some deck in
+// the package declares the visual layer via a 'cmViz'-prefixed shape name
+// (the exporter stamps 'cmVizLayer' on every deck's first slide). No marker
+// anywhere → the package pre-dates the feature → not graded on visuals (the
+// stored Crucible rounds stay quiet). P2 initially — calibration severity.
+const VISUAL_LAYER_MARKER = /name="cmViz/;
+const NATIVE_VISUAL_SHAPE = /name="cmViz(?:Hub|Spoke|Conn|Chart|Table|Matrix)/;
+// Kernel-derived slide titles the compiler emits deterministically — the
+// "enriched deck" signal readable from rendered XML alone.
+const ENRICHED_DECK_TITLE_PATTERNS = [/^Worked example: /i, /^Common pitfalls in /i, /^How Experts Think/i];
+
+function checkDeckVisuals(findings, { files }) {
+  const decks = files.filter((file) => file.featureId === 'slideDecks' && file.kind === 'pptx');
+  if (!decks.some((deck) => VISUAL_LAYER_MARKER.test(deck.rawXml || ''))) return;
+  for (const deck of decks) {
+    const enrichedTitles = (deck.slides || [])
+      .map((slide) => (slide.title || '').replace(/\s+/g, ' ').trim())
+      .filter((title) => ENRICHED_DECK_TITLE_PATTERNS.some((pattern) => pattern.test(title)));
+    if (enrichedTitles.length === 0) continue;
+    if (NATIVE_VISUAL_SHAPE.test(deck.rawXml || '')) continue;
+    findings.add({
+      severity: 'P2',
+      dimension: 'format',
+      file: deck.path,
+      detail:
+        'enriched deck renders no native visual (concept-map shapes, worked-example chart, table, or matrix) despite carrying kernel-derived slides (roadmap WS-C C3)',
+      evidence: quote(enrichedTitles.join('; ')),
+    });
+  }
+}
+
 function checkFormat(findings, { files }) {
   const TEXT_TABLES = [
     ...ARTIFACT_PATTERNS,
@@ -2620,6 +2797,10 @@ export async function grade({
 
   checkStructure(findings, pkg, course);
   checkIdentity(findings, pkg, course);
+  // v0.14.5 (A5): named-reading penetration + provenance order. Self-arming
+  // on manifest.readings; expectReadings courses also fail on an absent
+  // registry.
+  checkReadings(findings, pkg, course);
   checkConsistency(findings, pkg);
   // Honesty source: the Crucible passes console text; the in-app finalize
   // path passes honestyFromDigest(budget, digest) (v0.14.3 WS-A A2).
@@ -2631,6 +2812,9 @@ export async function grade({
   checkSubstance(findings, pkg, course);
   checkDiscipline(findings, pkg, course);
   checkFormat(findings, pkg);
+  // v0.14.5 WS-C (C3): native-visual bar — self-arming on the cmViz marker,
+  // silent for packages exported before the visual layer existed.
+  checkDeckVisuals(findings, pkg);
 
   // Score each dimension.
   const scores = {};
@@ -2664,6 +2848,8 @@ export async function grade({
     ),
     hasManifest: Boolean(pkg.manifest),
     registryCount: Array.isArray(pkg.manifest?.assessments) ? pkg.manifest.assessments.length : 0,
+    // v0.14.5 (A5): the manifest readings registry size.
+    readingsCount: Array.isArray(pkg.manifest?.readings) ? pkg.manifest.readings.length : 0,
   };
 
   return {

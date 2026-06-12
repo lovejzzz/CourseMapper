@@ -279,10 +279,14 @@ function splitConceptValues(value) {
       .map((part) => part.trim().replace(/^(?:and|or)\s+/i, ''))
       .filter(Boolean);
     if (parts.length > 1) {
-      // v0.14.3 C1: hypothesized dead on graph path (graph concepts arrive
-      // typed, one per node) — delete after live-round proof. No provenance
-      // signal reaches this pure helper, so the hit records unconditionally;
-      // the fixture matrix attributes it per fixture class instead.
+      // v0.14.3 C1 hypothesis ("dead on graph path — graph concepts arrive
+      // typed") FALSIFIED by the live v0.14.5 rounds: 36 hits across 10/11
+      // graph-path courses (round 2026-06-11T20-21; e.g. "Solstices,
+      // equinoxes, and seasonal markers"). Model-authored concept/topic
+      // strings carry comma lists the fixture corpus never did — the
+      // splitter is LOAD-BEARING on the live graph path and stays. No
+      // provenance signal reaches this pure helper, so the hit records
+      // unconditionally; fixture classes attribute it in the diet matrix.
       recordLegacyPathHit('concept-comma-split', text);
     }
     return parts;
@@ -10057,9 +10061,14 @@ function shouldRebuildAssessmentAnchors(lessons = [], assessments = [], assessme
     if (!assessments.every((assessment) => assessment?.registryId)) return true;
     return assessments.some(anchorNeedsRebuild);
   }
-  // v0.14.3 C1: hypothesized dead on graph path — graph blueprints always
-  // carry the persisted registry, so the legacy one-per-lesson rebuild
-  // decision below never runs there. Delete after live-round proof.
+  // v0.14.3 C1, v0.14.5 WS-D (D3) verdict: zero hits across all 11 live
+  // course runs (round 2026-06-11T20-21) — but the live corpus is 100%
+  // graph-path, so the zeros only re-confirm the structural short-circuit
+  // above. The legacy arm below is LOAD-BEARING for no-registry compiles
+  // (12 matrix-core + 1 legacy-fixture hits in the diet matrix; it is what
+  // detects criteria-stripped anchors after compact-storage restore).
+  // Deletion is gated on V0.13 P5 (derive-on-open unconditional) — see
+  // docs/V0.14.5_LEGACY_PATH_ENDGAME_NOTE.md.
   if (!Array.isArray(assessments) || assessments.length !== lessons.length) {
     recordLegacyPathHit(
       'legacy-anchor-rebuild',
@@ -10828,6 +10837,12 @@ export function compactBlueprintForStorage(blueprint = {}) {
   if (Array.isArray(blueprint.assessmentRegistry) && blueprint.assessmentRegistry.length > 0) {
     compact.assessmentRegistry = clonePlain(blueprint.assessmentRegistry);
   }
+  // v0.14.5 (A2): the readings registry persists with the project — small
+  // (id/title/author/kind/dueSession per named work) and recompiles must
+  // keep naming instructor readings verbatim after restore.
+  if (Array.isArray(blueprint.readingsRegistry) && blueprint.readingsRegistry.length > 0) {
+    compact.readingsRegistry = clonePlain(blueprint.readingsRegistry);
+  }
   return attachHydratedFields(compact, blueprint, TOP_LEVEL_HYDRATED_BLUEPRINT_KEYS);
 }
 
@@ -11125,7 +11140,7 @@ function lessonLearnerContextCue(blueprint, lesson) {
   return lesson?.learnerContextCue || buildLessonLearnerContextCue(blueprint?.learnerContextProfile || {}, lesson);
 }
 
-function extractLessonBlueprint(lesson, originalIndex, assessmentRegistry = null) {
+function extractLessonBlueprint(lesson, originalIndex, assessmentRegistry = null, readingsRegistry = null) {
   const lessonNumber = originalIndex + 1;
   const sourceLessonTitle = cleanText(lesson?.title || lesson?.lessonTitle || lesson?.lt || '');
   const rawLessonTitle = stripLessonPrefix(lesson?.title || lesson?.lessonTitle || lesson?.lt || '');
@@ -11154,7 +11169,14 @@ function extractLessonBlueprint(lesson, originalIndex, assessmentRegistry = null
     isWeakConcept(rawTitleConcept) || isOverbroadLessonTitleConcept(rawTitleConcept, title)
       ? wordsFromConcepts([rawTitleConcept], 4)
       : unique([rawTitleConcept].concat(wordsFromConcepts([rawTitleConcept], 4)), 4);
-  const resources = unique(meaningfulEntries(splitList(resourceText)), 6);
+  // v0.14.5 (A2): instructor-named registry readings LEAD the lesson's
+  // resources/readings, verbatim — the provenance principle (instructor-named
+  // before genome-cited before retrieved). unique() dedupes identical entries
+  // case-insensitively, keeping the registry's verbatim form when the
+  // supportingResources cell already names the same work (the graph render
+  // does exactly that), so no title ever appears twice or gets re-cased.
+  const registryReadingTitles = registryReadingTitlesForLesson(readingsRegistry, lessonNumber);
+  const resources = unique([...registryReadingTitles, ...meaningfulEntries(splitList(resourceText))], 6);
   const asyncActivities = meaningfulEntries(splitList(asyncActivityText));
   const syncActivities = meaningfulEntries(splitList(syncActivityText));
   const activities = [...syncActivities, ...asyncActivities];
@@ -12148,6 +12170,44 @@ function normalizeAssessmentRegistry(registry) {
   return entries.length > 0 ? entries : null;
 }
 
+// ── v0.14.5 WS-A (A2): the readings registry in the compiler ────────────────
+// Instructor-named readings outrank everything retrievable (the Grounding
+// principle: instructor-named → genome-cited → retrieved-open → nothing).
+// The normalized registry rides the blueprint; lesson.readings leads with
+// the lesson's verbatim registry titles, which by construction makes every
+// downstream surface (lesson-plan MATERIALS, syllabus week rows, brief
+// source cues, discussion anchors, study guides) name them first. Titles
+// render VERBATIM everywhere — no casing surgery, no truncation (the fusion
+// lesson) — and the compiledLanguageFinalizer never registers reading
+// titles as reference-shortening targets, so they cannot be rewritten.
+const READING_REGISTRY_KINDS = new Set(['book', 'chapter', 'article', 'packet', 'media', 'other']);
+
+function normalizeReadingsRegistry(registry) {
+  if (!Array.isArray(registry)) return null;
+  const entries = registry
+    .filter(
+      (entry) => entry && typeof entry === 'object' && cleanText(entry.title) && Number.isInteger(entry.dueSession),
+    )
+    .map((entry, index) => ({
+      id: cleanText(entry.id) || `R${entry.dueSession}.${index + 1}`,
+      // VERBATIM by contract — cleanText only collapses whitespace.
+      title: cleanText(entry.title),
+      author: cleanText(entry.author),
+      kind: READING_REGISTRY_KINDS.has(entry.kind) ? entry.kind : 'other',
+      dueSession: entry.dueSession,
+      instructorProvided: entry.instructorProvided === true,
+      ...(cleanText(entry.isbn) ? { isbn: cleanText(entry.isbn) } : {}),
+      ...(cleanText(entry.url) ? { url: cleanText(entry.url) } : {}),
+    }));
+  return entries.length > 0 ? entries : null;
+}
+
+/** Verbatim registry titles due a given lesson, in registry order. */
+function registryReadingTitlesForLesson(registry, lessonNumber) {
+  if (!Array.isArray(registry)) return [];
+  return registry.filter((entry) => entry.dueSession === lessonNumber).map((entry) => entry.title);
+}
+
 // v0.14.3 (C1 falsification fix): the lesson's central artifact name on the
 // registry path — the verbatim title of the highest-weight non-in-class
 // entry due that lesson (exams/orals included: a review week's central
@@ -12436,8 +12496,11 @@ export function buildCourseBlueprint(courseMap, options = {}) {
   // v0.14.3: normalized BEFORE extraction so lesson-level studentArtifact
   // derives from verbatim registry titles instead of the fusion path.
   const assessmentRegistry = normalizeAssessmentRegistry(options.assessmentRegistry);
+  // v0.14.5 (A2): the readings registry — instructor-named titles lead every
+  // readings surface. Strictly additive: absent/malformed → null → unchanged.
+  const readingsRegistry = normalizeReadingsRegistry(options.readingsRegistry);
   const extractedLessons = selectedLessonEntries(courseMap, options.scopeIndices).map(({ lesson, originalIndex }) =>
-    extractLessonBlueprint(lesson, originalIndex, assessmentRegistry),
+    extractLessonBlueprint(lesson, originalIndex, assessmentRegistry, readingsRegistry),
   );
   const sourceConflictReport = buildSourceConflictReport(extractedLessons);
   const conflictAwareLessons = attachSourceConflictSignals(extractedLessons, sourceConflictReport);
@@ -12639,6 +12702,10 @@ export function buildCourseBlueprint(courseMap, options = {}) {
     // guides can name in-class checks. blueprint.assessments above carries
     // only the graded subset (briefs / exams / orals).
     ...(assessmentRegistry ? { assessmentRegistry } : {}),
+    // v0.14.5 (A2): the readings registry rides the blueprint so the
+    // syllabus (Required Texts, week rows), discussions (anchor phrases),
+    // and recompiles keep naming instructor readings verbatim.
+    ...(readingsRegistry ? { readingsRegistry } : {}),
     ...(localization && Object.keys(localization).length > 0 ? { localization } : {}),
     policies: {
       lateWork:
@@ -13164,6 +13231,32 @@ function buildSourcesAndLicenses(blueprint) {
   };
 }
 
+// v0.14.5 (A2b): registry 'book' entries with an author seed Required Texts
+// — ONLY the unambiguous case (a conservative "Lastname, Firstname. Title"
+// author parse marks a named book; bare titles stay week-row readings).
+// The verbatim source string is the title; the author already lives inside
+// it, so the rendered entry never echoes the author twice. Instructor-named
+// texts list FIRST (the provenance principle) — retrieval never displaces.
+function buildRequiredTextsFromReadings(blueprint) {
+  const registry = Array.isArray(blueprint.readingsRegistry) ? blueprint.readingsRegistry : [];
+  const texts = [];
+  const seen = new Set();
+  for (const entry of registry) {
+    if (entry.kind !== 'book' || !cleanText(entry.author)) continue;
+    const title = cleanText(entry.title);
+    if (!title || seen.has(title.toLowerCase())) continue;
+    seen.add(title.toLowerCase());
+    texts.push({
+      title,
+      author: '',
+      edition: '',
+      isbn: cleanText(entry.isbn),
+      note: 'Course-assigned text (instructor-named). Confirm the edition with the instructor.',
+    });
+  }
+  return texts;
+}
+
 // v0.13.5 P2: real required texts from knowledge resources — the open
 // textbook(s) the genome anchors quote, plus Open Library book metadata —
 // replacing the "Instructor-provided course reading packet" placeholder.
@@ -13468,9 +13561,18 @@ function compileSyllabus(blueprint) {
           blueprint.lessons.find((lesson) => lesson.lessonNumber === row.lessonNumber) || {},
         ),
       })),
-      requiredTexts:
-        buildRequiredTextsFromKnowledge(blueprint).length > 0
-          ? buildRequiredTextsFromKnowledge(blueprint)
+      // v0.14.5 (A2b): instructor-named registry books lead; genome/open
+      // metadata texts follow; the placeholder only when both are empty.
+      requiredTexts: (() => {
+        const fromReadings = buildRequiredTextsFromReadings(blueprint);
+        const fromKnowledge = buildRequiredTextsFromKnowledge(blueprint);
+        const seenTitles = new Set(fromReadings.map((text) => text.title.toLowerCase()));
+        const combined = [
+          ...fromReadings,
+          ...fromKnowledge.filter((text) => !seenTitles.has(cleanText(text.title).toLowerCase())),
+        ];
+        return combined.length > 0
+          ? combined
           : [
               {
                 title: 'Instructor-provided course reading packet',
@@ -13479,7 +13581,8 @@ function compileSyllabus(blueprint) {
                 isbn: '',
                 note: 'Required course materials are distributed through the official course site or assigned in class.',
               },
-            ],
+            ];
+      })(),
       sourceUsePolicy: {
         citationExpectation:
           'Use instructor-provided readings, datasets, cases, slides, activities, and notes. Name the source used when making evidence-based claims.',
@@ -14388,11 +14491,41 @@ function enrichedKeyTermsForLesson(lesson, { fallback }) {
   const linked = lesson?.enrichment?.conceptProvenance?.source === 'genome-linked';
   return enriched.map((term) => ({
     term: displayKeyTermName(term),
+    // v0.14.5 (F1): keep the STRUCTURED script/romanization pair alongside the
+    // display form so package-time consumers (the generated pronunciation
+    // reference in requiredLabAssets.js) read fields, not parsed parentheses.
+    // The docx/csv exporters ignore unknown keyTerm fields.
+    ...(cleanText(term?.romanization)
+      ? { scriptTerm: cleanText(term.term), romanization: cleanText(term.romanization) }
+      : {}),
     definition: term.definition,
     example: term.example || '',
     ...(term.source ? { source: term.source } : {}),
     enrichmentSource: linked ? 'genome-linked' : 'lesson-content-enrichment',
   }));
+}
+
+/**
+ * v0.14.5 (F2): the language-course dialogue practice block. The kernel's
+ * optional `dialogue` (4-6 sanitized turns using the lesson's vocabulary —
+ * blueprintEnrichmentPass.js sanitizeDialogueTurns) renders as a "Dialogue
+ * Practice" subsection in the lesson plan's practice block and the study
+ * guide after the key terms. Null when the lesson carries no dialogue —
+ * non-language courses are untouched.
+ */
+function buildDialoguePractice(lesson) {
+  const turns = Array.isArray(lesson?.enrichment?.dialogue) ? lesson.enrichment.dialogue : [];
+  if (turns.length < 2) return null;
+  return {
+    intro: `Practice this exchange aloud in pairs, then swap roles. The vocabulary comes from ${stripLessonPrefix(
+      lesson.title,
+    )}.`,
+    turns: turns.map((turn) => ({
+      speaker: turn.speaker === 'B' ? 'B' : 'A',
+      line: cleanText(turn.line),
+      ...(cleanText(turn.rm) ? { rm: cleanText(turn.rm) } : {}),
+    })),
+  };
 }
 
 function compileStudyGuides(blueprint) {
@@ -14464,6 +14597,12 @@ function compileStudyGuides(blueprint) {
               ? keyTerms.map((term) => dataScienceTermGuide(term, lesson))
               : keyTerms.map((term, termIndex) => generalTermGuide(term, lesson, lens, termIndex)),
         }),
+        // v0.14.5 (F2): language-course dialogue practice renders right after
+        // the key terms (docxExporter places the subsection there).
+        ...(() => {
+          const dialoguePractice = buildDialoguePractice(lesson);
+          return dialoguePractice ? { dialoguePractice } : {};
+        })(),
         // CurriculumOS Layer 2: the expert's reasoning routine for this deep
         // structure — metacognitive scaffolding that teaches HOW to think
         // about the kind of problem, not just the facts. Genome-linked only.
@@ -14629,9 +14768,17 @@ function quizObjectiveAlignmentForRole(lesson, assessment = {}, role = '') {
   const objective = (strategyPattern, fallbackIndex = 0) => {
     const matched = alignments.find((entry) => strategyPattern.test(entry?.strategy || ''));
     if (matched) {
-      // v0.14.3 C1: the strategy-LABEL fuzzy matcher wins the alignment
-      // decision here, where a registry/outcome id could key directly —
-      // measured (not assumed dead) for the live round; replace after proof.
+      // v0.14.3 C1 measurement, v0.14.5 WS-D (D2) verdict: the live
+      // 11-course round (2026-06-11T20-21) hit this matcher 159-270 times
+      // in EVERY course (2,658 total) — same shape as the fixture matrix
+      // (270/graph class). The outcome-id rekey is NOT possible yet:
+      // criterionObjectiveAlignment entries carry only TEXT ({criterion,
+      // objective, strategy, …} — buildCriterionObjectiveAlignment builds
+      // them from lesson.outcomes, plain prose strings; graph Outcome ids
+      // are flattened away by renderCourseMapFromGraph before the compiler
+      // ever runs). The matcher stays until outcome ids ride the blueprint
+      // — the id-plumbing requirement is specified in
+      // docs/V0.14.5_LEGACY_PATH_ENDGAME_NOTE.md. Telemetry stays armed.
       recordLegacyPathHit('quiz-strategy-label-match', `${role} -> ${matched.strategy || ''}`);
       return matched;
     }
@@ -15813,6 +15960,78 @@ function enrichedEvidenceTableRows(lesson) {
     .slice(0, 4);
 }
 
+// ── v0.14.5 WS-C (C2): worked-example plot pairs ────────────────────────────
+// A worked-example slide can carry a small native bar chart when the
+// example's own steps/result lines compute 2-6 labeled numeric values. The
+// extractor is deliberately CONSERVATIVE — it reads only two explicit
+// authored shapes:
+//   (a) "Label: … = N unit"  — a labeled computation whose final =/≈ sign is
+//       followed by the line's terminal number ("Fat: 9 g × 9 kcal/g =
+//       81 kcal", "Compute the diameter ratio: 4 / 1 = 4"), or a pure
+//       labeled value ("Discharge: 40 m³/s");
+//   (b) "VAR = N unit"       — a terminal variable assignment, including
+//       chained equations ("P² = 1.88² = 3.53", "a = 3.53^(1/3) ≈ 1.52",
+//       "D = 10 parsecs (about 32.6 light-years)").
+// Substitution lines ending in an expression ("v = 22 km/s per Mly ×
+// 100 Mly"), prose results, and mid-sentence percentages are all skipped.
+// Fewer than two pairs means NO descriptor — absent data never becomes a
+// placeholder chart (the WS-C principle).
+const WE_PAIR_NUMBER_SOURCE = String.raw`[-+]?\d[\d,]*(?:\.\d+)?`;
+const WE_PAIR_UNIT_SOURCE = String.raw`[A-Za-z%][A-Za-z0-9%/·^°²³-]{0,11}`;
+const WE_PAIR_VALUE_TAIL = new RegExp(
+  `[=≈]\\s*(${WE_PAIR_NUMBER_SOURCE})\\s*(${WE_PAIR_UNIT_SOURCE})?\\s*(?:\\([^()]*\\))?$`,
+);
+const WE_PAIR_PURE_VALUE = new RegExp(`^(${WE_PAIR_NUMBER_SOURCE})\\s*(${WE_PAIR_UNIT_SOURCE})?$`);
+const WE_PAIR_VARIABLE_LEAD = /^([A-Za-z][A-Za-z0-9'’²³]{0,11})\s*[=≈]/;
+
+function workedExamplePairFromLine(rawLine) {
+  // Drop trailing commentary ("a ≈ 1.52 AU — Mars orbits…") and terminal
+  // punctuation before matching.
+  const line = cleanText(rawLine)
+    .replace(/\s+[—–]\s+[^—–]*$/, '')
+    .replace(/[.!?]\s*$/, '')
+    .trim();
+  if (!line) return null;
+  const firstColon = line.indexOf(':');
+  const lead = firstColon > 0 ? line.slice(0, firstColon).trim() : '';
+  // A lead is a usable label only when it is short, prose-only authored text
+  // (no digits, no equation signs) — "Carbohydrate", "Square the period".
+  const leadIsLabel = Boolean(lead) && lead.length <= 40 && !/[\d=≈]/.test(lead);
+  const tail = line.slice(line.lastIndexOf(':') + 1).trim();
+  const valueMatch = tail.match(WE_PAIR_VALUE_TAIL) || (leadIsLabel ? tail.match(WE_PAIR_PURE_VALUE) : null);
+  if (!valueMatch) return null;
+  const value = Number(valueMatch[1].replace(/,/g, ''));
+  if (!Number.isFinite(value) || Math.abs(value) >= 1e9) return null;
+  // Prefer the equation's own variable as the label ("P²", "a", "v"); fall
+  // back to the authored lead label.
+  const variable = tail.match(WE_PAIR_VARIABLE_LEAD);
+  const label = variable ? variable[1] : leadIsLabel ? lead : '';
+  if (!label) return null;
+  return { label, value, ...(valueMatch[2] ? { unit: valueMatch[2] } : {}) };
+}
+
+export function extractWorkedExamplePairs(workedExample) {
+  const steps = Array.isArray(workedExample?.steps) ? workedExample.steps : [];
+  const result = cleanText(workedExample?.result);
+  const lines = [...steps.map((step) => ({ text: step })), ...(result ? [{ text: result, isResult: true }] : [])];
+  const pairs = [];
+  const seen = new Set();
+  for (const line of lines) {
+    const pair = workedExamplePairFromLine(line.text);
+    if (!pair) continue;
+    // A result line restating the final computation charts once — by label
+    // ("a ≈ 1.52" after the cube-root step) or by value ("Discharge:
+    // 40 m³/s" after "Q = … = 40 m³/s"). The step's computation wins.
+    const key = pair.label.toLowerCase();
+    if (seen.has(key)) continue;
+    if (line.isResult && pairs.length > 0 && pairs[pairs.length - 1].value === pair.value) continue;
+    seen.add(key);
+    pairs.push(pair);
+    if (pairs.length === 6) break;
+  }
+  return pairs.length >= 2 ? pairs : [];
+}
+
 function slideVisual(lesson, slide) {
   const { type, title } = slide;
   if (['title', 'agenda', 'objectives', 'closing'].includes(type)) {
@@ -15845,7 +16064,9 @@ function slideVisual(lesson, slide) {
             ...(lesson.keyConcepts || []).map((term) => cleanText(term)),
             cleanText(secondary),
           ].filter((term) => term && term.length <= 26 && term.toLowerCase() !== hub.toLowerCase()),
-          4,
+          // v0.14.5 (C1): the exporter's fixed slot table now seats up to six
+          // spokes (ellipse grid, deterministic positions by count).
+          6,
         );
         return spokes.length >= 2 ? { hub, spokes } : {};
       })(),
@@ -15857,6 +16078,16 @@ function slideVisual(lesson, slide) {
           kind: 'worked example walkthrough',
           purpose: `Model the ${concept} solution path step by step before students try ${artifact}.`,
           evidenceUse: `Annotate each step so students can reuse the reasoning in ${artifact}.`,
+          // v0.14.5 (C2): plottable (label, number) pairs computed by the
+          // example's own lines ride the descriptor so the exporter can draw
+          // a native bar chart. ONLY the kernel worked-example slide — the
+          // mc-walkthrough shares the "Worked example:" title prefix but its
+          // content is a recast bank item, not lesson.enrichment.workedExample.
+          ...(() => {
+            if (slide.enrichmentSource !== 'kernel-worked-example') return {};
+            const pairs = extractWorkedExamplePairs(lesson?.enrichment?.workedExample);
+            return pairs.length >= 2 ? { wePlot: { kind: 'bar', pairs } } : {};
+          })(),
         }
       : /common pitfalls/i.test(title)
         ? {
@@ -15936,6 +16167,8 @@ function slideVisual(lesson, slide) {
     ...(selected.hub && Array.isArray(selected.spokes) ? { hub: selected.hub, spokes: selected.spokes } : {}),
     // v0.14.1 (5.2c): pre-paired claim/evidence rows for the evidence table.
     ...(Array.isArray(selected.rows) && selected.rows.length >= 2 ? { rows: selected.rows } : {}),
+    // v0.14.5 (C2): worked-example plot pairs for the native bar chart.
+    ...(selected.wePlot ? { wePlot: selected.wePlot } : {}),
     visualPlan,
   };
 }
@@ -16860,6 +17093,13 @@ function compileDiscussions(blueprint) {
         blueprint.assessments.find((item) => (item.lessonNumbers || []).includes(lesson.lessonNumber)) ||
         blueprint.assessments[index] ||
         {};
+      // v0.14.5 (A2e): when the lesson has an instructor-named registry
+      // reading, the prompt anchors the post in the ACTUAL work, verbatim.
+      const anchorReadingTitle = registryReadingTitlesForLesson(blueprint.readingsRegistry, lesson.lessonNumber)[0];
+      const basePrompt = lesson.enrichment?.discussionPrompt?.prompt || buildDiscussionPrompt(lesson, phrase, lens);
+      const prompt = anchorReadingTitle
+        ? `${stripTerminalPunctuation(basePrompt)}${/[?]$/.test(cleanText(basePrompt)) ? '?' : '.'} Anchor your post in ${anchorReadingTitle}.`
+        : basePrompt;
       return {
         lessonTitle: lesson.title,
         bloomsLevel: lesson.bloomsLevel,
@@ -16885,7 +17125,7 @@ function compileDiscussions(blueprint) {
         context: lesson.enrichment?.discussionPrompt?.tension
           ? `${lesson.enrichment.discussionPrompt.tension} ${lesson.title} asks students to take and defend a position with course evidence.`
           : `${lesson.title} asks students to work with ${phrase.context}. The discussion should test how students ${phrase.evidenceMove} and whether they can ${stripTerminalPunctuation(phrase.decisionMove).toLowerCase()} before they finalize ${lesson.studentArtifact}.`,
-        prompt: lesson.enrichment?.discussionPrompt?.prompt || buildDiscussionPrompt(lesson, phrase, lens),
+        prompt,
         ...(lesson.enrichment?.discussionPrompt?.positions?.length > 0
           ? {
               positionMap: lesson.enrichment.discussionPrompt.positions,
@@ -17745,6 +17985,13 @@ function compileLessonPlans(blueprint) {
           facilitation: `${teachingMoves.openingMove} Then name the quality cue students should carry into ${artifact}.`,
         },
         outline,
+        // v0.14.5 (F2): language-course dialogue practice — rendered by the
+        // docx exporter as a "Dialogue Practice" subsection inside the
+        // practice block (immediately after the session outline).
+        ...(() => {
+          const dialoguePractice = buildDialoguePractice(lesson);
+          return dialoguePractice ? { dialoguePractice } : {};
+        })(),
         // v0.13.3: the quantitative walkthrough the mini-lesson references —
         // authored once (genome exemplar or kernel call), rendered in full.
         ...(lesson.enrichment?.workedExample ? { workedExample: lesson.enrichment.workedExample } : {}),

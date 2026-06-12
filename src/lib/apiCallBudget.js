@@ -12,6 +12,10 @@ const PROVIDER_CALL_COUNTERS = [
   'creditCheckCalls',
   'capabilityProbeCalls',
   'courseMapCalls',
+  // v0.14.5 WS-B: the native Pass A skeleton call — replaces the course-map
+  // call on the native authoring path; a real provider call, so it counts
+  // toward cost control like every other counter here.
+  'nativeSkeletonCalls',
   'deliverableChunkCalls',
   'blueprintEnrichmentCalls',
   'repairRetryCalls',
@@ -53,6 +57,10 @@ export function createApiCallBudget(overrides = {}) {
     creditCheckCalls: overrides.creditCheckCalls || 0,
     capabilityProbeCalls: overrides.capabilityProbeCalls || 0,
     courseMapCalls: overrides.courseMapCalls || 0,
+    // v0.14.5 WS-B: listed in this constructor EXPLICITLY — every event
+    // rebuilds the budget through here, and any field not listed is silently
+    // dropped by the next event (the v0.13.1 enrichmentOutcome trap).
+    nativeSkeletonCalls: overrides.nativeSkeletonCalls || 0,
     deliverableChunkCalls: overrides.deliverableChunkCalls || 0,
     blueprintEnrichmentCalls: overrides.blueprintEnrichmentCalls || 0,
     // CurriculumOS V1: genome links are NOT provider calls (kept out of
@@ -115,6 +123,8 @@ function counterForType(type) {
       return 'capabilityProbeCalls';
     case 'courseMapCall':
       return 'courseMapCalls';
+    case 'nativeSkeletonCall':
+      return 'nativeSkeletonCalls';
     case 'deliverableChunkCall':
       return 'deliverableChunkCalls';
     case 'blueprintEnrichmentCall':
@@ -285,6 +295,14 @@ export function applyApiCallBudgetEvent(currentBudget, event = {}) {
   }
   if (event.type === 'courseMapCall') {
     next.pipeline = { ...next.pipeline, courseMap: event.detail || 'ran' };
+  }
+  // v0.14.5 WS-B: Pass A REPLACES the course-map call on the native path —
+  // the digest's "course map" pipeline line says so instead of going silent.
+  if (event.type === 'nativeSkeletonCall') {
+    next.pipeline = { ...next.pipeline, courseMap: event.detail || 'native graph authoring (Pass A skeleton)' };
+  }
+  if (event.type === 'nativeAuthoringFellBack') {
+    next.pipeline = { ...next.pipeline, nativeAuthoring: `fell back to prose: ${event.detail || 'unknown reason'}` };
   }
   if (event.type === 'pipelineDecision') {
     next.pipeline = { ...next.pipeline, [event.stage || 'stage']: event.detail || '' };
