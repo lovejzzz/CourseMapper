@@ -35,19 +35,26 @@ import { computeTexture } from './quality/textureMetric';
 export const VOICE_PASS_STORAGE_KEY = 'coursemapper-voice-pass';
 
 export function readVoicePassMode() {
+  // v0.15.1 F2 — THE FLIP, cashed June 12, 2026 at the user's direction
+  // (different-day letter waived on the trail): across THREE de-confounded
+  // same-generation rounds the record is 3 wins · 0 losses · 5 ties
+  // (world-lit 5v4, 6v5, 6v6; econ 5v4, 4v4; cs 4v4 ×2; psych 4v4) with
+  // structural 100/A held on every twin at ~$0.01 — voiced has never lost.
+  // The texture self-check stays the safety: a pass that doesn't measurably
+  // improve texture reverts itself. Explicit 'off' wins.
   try {
-    return localStorage.getItem(VOICE_PASS_STORAGE_KEY) === 'on' ? 'on' : 'off';
+    return localStorage.getItem(VOICE_PASS_STORAGE_KEY) === 'off' ? 'off' : 'on';
   } catch {
-    return 'off';
+    return 'on';
   }
 }
 
 export function saveVoicePassMode(mode) {
   try {
-    if (mode === 'on') localStorage.setItem(VOICE_PASS_STORAGE_KEY, 'on');
+    if (mode === 'off') localStorage.setItem(VOICE_PASS_STORAGE_KEY, 'off');
     else localStorage.removeItem(VOICE_PASS_STORAGE_KEY);
   } catch {
-    /* storage unavailable — the default ('off') applies */
+    /* storage unavailable — the default ('on') applies */
   }
 }
 

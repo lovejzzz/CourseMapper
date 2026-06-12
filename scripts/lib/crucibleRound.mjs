@@ -796,7 +796,9 @@ export function parseVoiceFlag(raw) {
 export function expandCoursesForVoice(courses, voice = 'off') {
   const list = Array.isArray(courses) ? courses : [];
   if (voice === 'off') {
-    return list.map((course) => ({ ...course, voice: 'off' }));
+    // v0.15.1 F2 (post-flip): the default round carries NO voice tag — the
+    // app default (on) applies. An EXPLICIT quiet arm comes from 'both'/'ab'.
+    return list.map((course) => ({ ...course }));
   }
   if (voice === 'ab') {
     return list.map((course) => ({ ...course, baseId: course.baseId || course.id, voice: 'ab', abArm: 'quiet' }));
@@ -895,7 +897,11 @@ export function parseAuthoringFlag(raw) {
 export function expandCoursesForAuthoring(courses, authoring = 'prose') {
   const list = Array.isArray(courses) ? courses : [];
   if (authoring === 'prose') {
-    return list.map((course) => ({ ...course, baseId: course.id, authoring: 'prose' }));
+    // v0.15.1 F1 (post-flip): PLAIN rounds carry NO authoring tag — the
+    // driver seeds nothing and the app default (native) applies, so release
+    // rounds test what users actually get. Explicit --authoring arms still
+    // tag and seed their mode.
+    return list.map((course) => ({ ...course, baseId: course.id }));
   }
   const modes = authoring === 'both' ? ['prose', 'native'] : [authoring];
   return list.flatMap((course) =>

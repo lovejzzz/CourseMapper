@@ -87,14 +87,13 @@ async function main() {
   const deliverableState = Object.fromEntries(
     compiledFeatureIds.map((id) => [id, { status: 'done', data: deliverables[id] }]),
   );
-  // pptxgenjs needs a DOM `document` — the ONE browser-coupled corner the
-  // boundary work surfaced (named here, scheduled for the v0.15.1 diet).
-  // The other eight features assemble and grade fully headless.
-  const headlessFeatureIds = ['courseMap', ...compiledFeatureIds.filter((id) => id !== 'slideDecks')];
+  // v0.15.1 C3: ALL NINE features assemble and grade headless — the slide
+  // text-fit measurer gained a heuristic tier for canvas-less runtimes,
+  // and the last named browser exception died here.
   const graded = await gradePackage({
     courseMap: COURSE,
     deliverables: deliverableState,
-    featureIds: headlessFeatureIds,
+    featureIds: ['courseMap', ...compiledFeatureIds],
   });
   const quality = graded.quality || {};
   log(

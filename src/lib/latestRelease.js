@@ -8,12 +8,12 @@
  * the three screen footers, and the Changelog entry.
  */
 export const LATEST_RELEASE = {
-  version: '0.15.0',
+  version: '0.15.1',
   date: 'June 12, 2026',
-  title: 'The Teachable Core: sync proven to the ZIP, the brain stands alone, the genome teaches itself',
+  title: 'Client of the Brain: both defaults cashed, the last browser corner gone',
   highlights: [
-    'Sync edit proven end-to-end in a live browser: edit a cell, approve the 9-deliverable plan, and the downloaded ZIP carries the change — three real bugs found and fixed on the way',
-    'CurriculumOS stands alone: one React-free facade compiles, links, and deep-grades a full course headless (99/A, zero P0s) — the website is now formally the first client of the product',
-    'The genome taught itself Korean for everyone: the kernels one workspace extracted shipped as a real shard through the new contribution pipeline — kernels only, no course content',
+    'Native authoring is now the default — 100/A with zero findings on every proof course, ~35% cheaper, ~2× faster; prose stays one click away',
+    'The voice pass is on by default — three fair trials, never lost (3-0-5), structural quality held on every twin, ~$0.01 per package, with a self-check that reverts any pass that does not help',
+    'The headless brain now grades all nine deliverable types with zero browser APIs, and the AppFlow diet began with three clean extractions',
   ],
 };

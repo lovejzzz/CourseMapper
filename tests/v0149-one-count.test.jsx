@@ -200,10 +200,15 @@ describe('B1 — both surfaces render from the one queue object', () => {
 });
 
 describe('B1 — surface contracts (source scans)', () => {
-  it('AppFlow owns the one queue and passes it down; the panel builds nothing', () => {
+  it('the queue has ONE owner (the hook); AppFlow consumes it; the panel builds nothing', () => {
     const appFlow = read('src/AppFlow.jsx');
+    const owner = read('src/hooks/useReviewQueueOwner.js');
     const panel = read('src/components/ExportSidePanel.jsx');
-    expect(appFlow).toContain('buildReviewQueue({');
+    // v0.15.1 C1: the builder lives in the hook now — the contract is the
+    // same: one buildReviewQueue call in the codebase's UI layer.
+    expect(owner).toContain('buildReviewQueue({');
+    expect(appFlow).not.toContain('buildReviewQueue(');
+    expect(appFlow).toContain('useReviewQueueOwner({');
     expect(appFlow).toContain('reviewCount={outstandingReview.counts.headline}');
     expect(appFlow).toContain('reviewQueue={reviewQueue}');
     expect(panel).not.toContain('buildReviewQueue');

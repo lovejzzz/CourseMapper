@@ -158,30 +158,34 @@ describe('authoring-mode flag (B3)', () => {
     delete globalThis.localStorage;
   });
 
-  it('defaults to prose when localStorage is unavailable or unset', () => {
-    expect(readAuthoringMode()).toBe('prose');
+  // v0.15.1 F1 — THE FLIP: native is the default; prose is the explicit
+  // opt-out. Evidence: day-1 bar met (v0.14.7), day-2 mandarin failure
+  // root-caused + fixed + validated, then all three courses 100/A · 0 P1 ·
+  // −35% cost · ~2× faster (round-2026-06-12T22-27-07-743Z).
+  it('defaults to NATIVE when localStorage is unavailable or unset', () => {
+    expect(readAuthoringMode()).toBe('native');
     const store = new Map();
     globalThis.localStorage = {
       getItem: (key) => (store.has(key) ? store.get(key) : null),
       setItem: (key, value) => store.set(key, String(value)),
       removeItem: (key) => store.delete(key),
     };
-    expect(readAuthoringMode()).toBe('prose');
+    expect(readAuthoringMode()).toBe('native');
   });
 
-  it('reads native only for the exact stored value, and save round-trips', () => {
+  it('reads prose only for the exact opt-out value, and save round-trips', () => {
     const store = new Map();
     globalThis.localStorage = {
       getItem: (key) => (store.has(key) ? store.get(key) : null),
       setItem: (key, value) => store.set(key, String(value)),
       removeItem: (key) => store.delete(key),
     };
-    saveAuthoringMode('native');
-    expect(store.get(AUTHORING_MODE_STORAGE_KEY)).toBe('native');
-    expect(readAuthoringMode()).toBe('native');
-    store.set(AUTHORING_MODE_STORAGE_KEY, 'bogus');
+    saveAuthoringMode('prose');
+    expect(store.get(AUTHORING_MODE_STORAGE_KEY)).toBe('prose');
     expect(readAuthoringMode()).toBe('prose');
-    saveAuthoringMode('prose'); // anything non-native clears the key
+    store.set(AUTHORING_MODE_STORAGE_KEY, 'bogus');
+    expect(readAuthoringMode()).toBe('native');
+    saveAuthoringMode('native'); // the default clears the key
     expect(store.has(AUTHORING_MODE_STORAGE_KEY)).toBe(false);
   });
 });
@@ -953,7 +957,10 @@ describe('crucible --authoring helpers (B3)', () => {
   it('expandCoursesForAuthoring: prose keeps run-dir naming exactly; both doubles with suffixes', () => {
     const prose = expandCoursesForAuthoring(courses, 'prose');
     expect(prose.map((course) => course.id)).toEqual(['cs-python', 'geology']);
-    expect(prose[0]).toMatchObject({ baseId: 'cs-python', authoring: 'prose' });
+    // v0.15.1 post-flip: plain rounds carry NO authoring tag — the driver
+    // seeds nothing and the app default (native) applies.
+    expect(prose[0]).toMatchObject({ baseId: 'cs-python' });
+    expect(prose[0].authoring).toBeUndefined();
 
     const both = expandCoursesForAuthoring(courses, 'both');
     expect(both.map((course) => course.id)).toEqual([

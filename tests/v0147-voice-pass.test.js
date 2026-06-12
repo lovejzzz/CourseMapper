@@ -105,14 +105,18 @@ function variedRewriteFor(surface, salt = 0) {
 
 // ── The flag + the integration guard ────────────────────────────────────────
 describe('flag off — the default path never voices anything', () => {
-  it('readVoicePassMode defaults to off (no storage in node)', () => {
-    expect(readVoicePassMode()).toBe('off');
+  // v0.15.1 F2 — THE FLIP: voice defaults ON after going 3-0 across two
+  // de-confounded same-generation rounds (structural 100/A on every twin,
+  // ~$0.01 each); 'off' is the explicit opt-out and the texture self-check
+  // keeps reverting any pass that doesn't measurably improve texture.
+  it('readVoicePassMode defaults to ON (no storage in node)', () => {
+    expect(readVoicePassMode()).toBe('on');
   });
 
-  it('selectVoiceSurfaces still works with the flag off (pure selection, no flag read)', () => {
+  it('selectVoiceSurfaces is pure selection (no flag read)', () => {
     const { courseMap, deliverables } = compiledFixture(4);
     const surfaces = selectVoiceSurfaces({ deliverables, courseMap });
-    expect(readVoicePassMode()).toBe('off');
+    expect(readVoicePassMode()).toBe('on');
     expect(surfaces.length).toBeGreaterThan(0);
     expect(surfaces.length).toBeLessThanOrEqual(VOICE_MAX_SURFACES);
   });

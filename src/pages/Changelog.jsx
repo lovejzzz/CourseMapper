@@ -3,6 +3,18 @@ import Header from '../components/Header';
 
 const releases = [
   {
+    version: '0.15.1',
+    date: 'June 12, 2026',
+    title: 'Client of the Brain: both defaults cashed, the last browser corner gone',
+    highlights: [
+      'NATIVE AUTHORING IS THE DEFAULT. The bar was met on every course it ever blocked: after the placeholder fix, all three proof courses (including the Mandarin course that failed with 93 findings) generate native at 100/A with zero P1s, about 35% cheaper and roughly twice as fast — and the Mandarin native arm now out-scores its prose twin with the advisory judge. Prose remains one click away as the explicit fallback, and every native fallback reason still discloses itself in the run digest.',
+      'THE VOICE PASS IS ON BY DEFAULT. Across three de-confounded same-generation trials (twin packages that differ only by voiced surfaces), voiced never lost: 3 wins, 0 losses, 5 ties, structural 100/A held on every twin, about a penny per package. The texture self-check stays armed — a pass that does not measurably improve texture reverts itself. Off is one click away.',
+      'The CurriculumOS headless proof now grades ALL NINE deliverable types with zero browser APIs — the slide text-fit measurer gained a heuristic tier for canvas-less runtimes, deleting the one named exception from v0.15.0.',
+      'The AppFlow diet began: the review-queue owner, the compact-restore compiler, and the tab drag/reorder/delete machinery moved into their own modules (three clean extractions, ~240 lines), with the deeper diet and the machine-ownership inversion carried explicitly to the next release.',
+      'The Crucible follows the new world: plain rounds now test exactly what users get (native + voiced defaults), while explicit prose/quiet arms seed their opt-outs — twin protocols keep their controlled baselines.',
+    ],
+  },
+  {
     version: '0.15.0',
     date: 'June 12, 2026',
     title: 'The Teachable Core: sync proven to the ZIP, the brain stands alone, the genome teaches itself',

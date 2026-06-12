@@ -434,9 +434,14 @@ export async function runCourseInBrowser({
         localStorage.setItem(`coursemapper-apikey-provider:${selectedProvider}`, key);
         localStorage.setItem('coursemapper-modelid', selectedModelId);
         localStorage.setItem('coursemapper-modelname', selectedModelName);
-        // WS-B3: only 'native' is ever written — absence is the prose default.
+        // v0.15.1 (post-flip): the app defaults are native + voiced. Plain
+        // rounds seed NOTHING (test what users get); explicit arms seed
+        // their mode, including the opt-outs ('prose', 'off') that the
+        // quiet/ab twins depend on for a voice-free generation.
         if (authoring === 'native') localStorage.setItem('coursemapper-authoring-mode', 'native');
+        if (authoring === 'prose') localStorage.setItem('coursemapper-authoring-mode', 'prose');
         if (voice === 'on') localStorage.setItem('coursemapper-voice-pass', 'on');
+        if (voice === 'off' || voice === 'ab') localStorage.setItem('coursemapper-voice-pass', 'off');
       },
       {
         key: apiKey,

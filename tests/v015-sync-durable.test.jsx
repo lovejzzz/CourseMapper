@@ -56,11 +56,15 @@ describe('the chat message is a valid queue source', () => {
 });
 
 describe('host wiring (source scans)', () => {
-  it('AppFlow reads the durable message and feeds it to the queue', () => {
+  it('the queue owner reads the durable message (live state || chat message)', () => {
+    // v0.15.1 C1: the durable-source logic moved into useReviewQueueOwner.
+    const owner = read('src/hooks/useReviewQueueOwner.js');
+    expect(owner).toContain("message?.role === 'syncSuggestion'");
+    expect(owner).toContain("message.status === 'pending' ? message : null");
+    expect(owner).toContain('syncSuggestion: pendingSyncSuggestion || pendingSyncFromChat');
+    // AppFlow feeds the live state in and consumes pendingSyncFromChat out.
     const appFlow = read('src/AppFlow.jsx');
-    expect(appFlow).toContain("message?.role === 'syncSuggestion'");
-    expect(appFlow).toContain("message.status === 'pending' ? message : null");
-    expect(appFlow).toContain('syncSuggestion: smartSync.pendingSyncSuggestion || pendingSyncFromChat');
+    expect(appFlow).toContain('pendingSyncSuggestion: smartSync.pendingSyncSuggestion');
   });
 
   it('the drawer Sync now approves through the router pathway (execute + mark done)', () => {

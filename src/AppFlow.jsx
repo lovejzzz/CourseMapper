@@ -100,15 +100,9 @@ import {
   getApiCallBudgetTotal,
 } from './lib/apiCallBudget';
 import { buildBuildRibbonModel } from './lib/buildRibbonModel';
-import {
-  applyReviewMark,
-  buildReviewQueue,
-  loadReviewProgress,
-  resolveReviewRunId,
-  saveReviewProgress,
-  selectOutstandingQueue,
-} from './lib/reviewQueueModel';
-import { buildPreExportChecklist } from './lib/preExportChecklist';
+import useReviewQueueOwner from './hooks/useReviewQueueOwner';
+import useTabDrag from './hooks/useTabDrag';
+import { compileCompactProjectDeliverables } from './lib/projectRestoreCompiler';
 import { downloadContribution, readExtractedKernels } from './lib/genome/contributeKernels';
 import { APP_VERSION } from './lib/appVersion';
 import { isFinishPassRunning } from './lib/packagePassPhase';
@@ -724,7 +718,6 @@ export default function AppFlow({ startupAction = null, onStartupHandled, onRetu
   const [newProjectError, setNewProjectError] = useState('');
   const [newProjectCloudSaveFailed, setNewProjectCloudSaveFailed] = useState(false);
   const [deleteTabConfirm, setDeleteTabConfirm] = useState(null);
-  const [tabDrag, setTabDrag] = useState(null);
   const [developerMode, setDeveloperMode] = useState(() => {
     try {
       return localStorage.getItem('coursemapper-developer-mode') === 'true';
@@ -795,6 +788,21 @@ export default function AppFlow({ startupAction = null, onStartupHandled, onRetu
   const tabButtonRefs = useRef(new Map());
   const trashDropRef = useRef(null);
   const suppressTabClickRef = useRef(false);
+  // v0.15.1 C1: the tab drag/reorder/delete machinery lives in useTabDrag —
+  // extracted verbatim; UIContext keeps dragTabIdx (other surfaces dim).
+  // workspaceTabs derives after the screen returns below, so it rides a ref.
+  const workspaceTabsRef = useRef([]);
+  const { tabDrag, handleTabPointerDown, handleTabPointerMove, handleTabPointerUp, handleTabPointerCancel } =
+    useTabDrag({
+      workspaceTabsRef,
+      tabButtonRefs,
+      trashDropRef,
+      suppressTabClickRef,
+      setSelectedFeatures,
+      setDeleteTabConfirm,
+      setDragTabIdx,
+      onDragStart: () => handleCascadeHover(null),
+    });
   // Shared focus: the deliverable item currently on the instructor's screen,
   // reported by DeliverableView and read by the chat agent's context builder.
   const viewportRef = useRef(null);
@@ -1060,44 +1068,12 @@ export default function AppFlow({ startupAction = null, onStartupHandled, onRetu
     return [];
   }, [chatHistory]);
 
-  // v0.15 (sync-test finding): ChatPanel consumes the live
-  // pendingSyncSuggestion into a chat message (role 'syncSuggestion',
-  // status 'pending') and CLEARS the hook state within one render — so the
-  // queue's sync class and the drawer's Sync now must read the DURABLE
-  // message, exactly like reviewObservations reads the digest message. The
-  // live state covers only the pre-consumption window.
-  const pendingSyncFromChat = useMemo(() => {
-    for (let i = chatHistory.length - 1; i >= 0; i--) {
-      const message = chatHistory[i];
-      if (message?.role === 'syncSuggestion') {
-        return message.status === 'pending' ? message : null;
-      }
-    }
-    return null;
-  }, [chatHistory]);
-
-  // v0.14.7 WS-G4 (rebuilt in v0.15): "Sync now" from the review queue —
-  // approve through the router's ONE pathway (chatSendRef carries it), so
-  // the plan executes AND the chat card flips to done. Fallbacks keep the
-  // action alive if the chat panel is not mounted.
   const smartSyncRef = useRef(null);
   // v0.15: the post-sync regrade waits for the STORE to settle (every
   // selected feature done/error and the sync runner idle) before grading —
   // refs lag dispatches by a render, and grading mid-write parked live
   // packages on phantom "not ready" blockers.
   const [syncRegradePending, setSyncRegradePending] = useState(false);
-  const handleExecuteSyncFromQueue = useCallback(() => {
-    const suggestion = smartSyncRef.current?.pendingSyncSuggestion || pendingSyncFromChat;
-    if (!suggestion) return;
-    const approveViaRouter = chatSendRef.current?.approveSyncSuggestion;
-    if (typeof approveViaRouter === 'function' && suggestion.id) {
-      approveViaRouter(suggestion.id);
-      return;
-    }
-    smartSyncRef.current
-      ?.executeSyncPlan(suggestion.plan, suggestion.changedFieldsSummary)
-      .finally(() => smartSyncRef.current?.clearPendingSyncSuggestion());
-  }, [pendingSyncFromChat]);
 
   const handleReviewQueueOpenChange = useCallback((open, focusId = null) => {
     if (!open) {
@@ -2045,14 +2021,10 @@ export default function AppFlow({ startupAction = null, onStartupHandled, onRetu
     }
   }, [syncRegradePending, smartSync.isSyncing, deliv.deliverables, selectedFeatures]);
 
-  // ── v0.14.9 B1: THE review queue — one object, one owner. ───────────────
-  // AppFlow builds the full queue (spot-check checklist INCLUDED) and owns
-  // review progress; the header CTA, the panel-hosted drawer, and the digest
-  // entry all read this one object. The header shows counts.headline
-  // (judgment items: syncs + observations + structural) — spot-checks are
-  // routine confirmations that live only inside the drawer. This is the fix
-  // for the live "Review 3" header vs 26-item panel divergence: two builders
-  // with two definitions can never agree by accident.
+  // v0.15.1 C1: the review queue's single owner lives in
+  // useReviewQueueOwner (extracted from the v0.14.9 B1 block) — one queue
+  // object feeds the header CTA, the panel-hosted drawer, and the digest
+  // entry; the headline counts judgment items only.
   // v0.15 F2: the contribute action surfaces only when this browser has
   // extracted kernels to give (kernels only — the privacy boundary).
   const extractedKernelCount = useMemo(
@@ -2061,65 +2033,33 @@ export default function AppFlow({ startupAction = null, onStartupHandled, onRetu
     [packageQualityPass],
   );
 
-  const reviewChecklistItems = useMemo(() => {
-    try {
-      return buildPreExportChecklist({ courseMap, deliverables: deliv.deliverables });
-    } catch {
-      return [];
-    }
-  }, [courseMap, deliv.deliverables]);
-  const reviewQueue = useMemo(
-    () =>
-      buildReviewQueue({
-        reviewItems: reviewChecklistItems,
-        observations: reviewObservations,
-        finalizerResult: lastRunDigest,
-        qualityPass: packageQualityPass,
-        syncSuggestion: smartSync.pendingSyncSuggestion || pendingSyncFromChat,
-      }),
-    [
-      reviewChecklistItems,
+  const { reviewQueue, reviewProgress, outstandingReview, pendingSyncFromChat, handleReviewMark, handleReviewMarkAll } =
+    useReviewQueueOwner({
+      courseMap,
+      deliverables: deliv.deliverables,
       reviewObservations,
       lastRunDigest,
       packageQualityPass,
-      smartSync.pendingSyncSuggestion,
-      pendingSyncFromChat,
-    ],
-  );
-  const reviewRunId = useMemo(
-    () =>
-      resolveReviewRunId({
-        finalizerResult: lastRunDigest,
-        qualityPass: packageQualityPass,
-        courseName: courseMap?.courseName || '',
-      }),
-    [lastRunDigest, packageQualityPass, courseMap?.courseName],
-  );
-  const [reviewProgress, setReviewProgress] = useState(() => loadReviewProgress(reviewRunId));
-  useEffect(() => {
-    // A NEW finish pass carries a new run id — progress resets honestly.
-    setReviewProgress(loadReviewProgress(reviewRunId));
-  }, [reviewRunId]);
-  const outstandingReview = useMemo(
-    () => selectOutstandingQueue(reviewQueue, reviewProgress),
-    [reviewQueue, reviewProgress],
-  );
-  const handleReviewMark = useCallback((item, mark) => {
-    setReviewProgress((prev) => {
-      const next = applyReviewMark(prev, item.id, mark);
-      saveReviewProgress(next);
-      return next;
+      pendingSyncSuggestion: smartSync.pendingSyncSuggestion,
+      chatHistory,
     });
-  }, []);
-  // Confirm-all for the spot-check class: one state update, one persist.
-  const handleReviewMarkAll = useCallback((items, mark) => {
-    setReviewProgress((prev) => {
-      let next = prev;
-      for (const item of Array.isArray(items) ? items : []) next = applyReviewMark(next, item.id, mark);
-      saveReviewProgress(next);
-      return next;
-    });
-  }, []);
+
+  // v0.14.7 WS-G4 (rebuilt in v0.15): "Sync now" from the review queue —
+  // approve through the router's ONE pathway (chatSendRef carries it), so
+  // the plan executes AND the chat card flips to done. Fallbacks keep the
+  // action alive if the chat panel is not mounted.
+  const handleExecuteSyncFromQueue = useCallback(() => {
+    const suggestion = smartSyncRef.current?.pendingSyncSuggestion || pendingSyncFromChat;
+    if (!suggestion) return;
+    const approveViaRouter = chatSendRef.current?.approveSyncSuggestion;
+    if (typeof approveViaRouter === 'function' && suggestion.id) {
+      approveViaRouter(suggestion.id);
+      return;
+    }
+    smartSyncRef.current
+      ?.executeSyncPlan(suggestion.plan, suggestion.changedFieldsSummary)
+      .finally(() => smartSyncRef.current?.clearPendingSyncSuggestion());
+  }, [pendingSyncFromChat]);
 
   // v0.14.9 C2: the same-generation voice A/B driver hook. The Crucible's
   // --voice ab protocol enables the voice flag AFTER a quiet export, then
@@ -2688,77 +2628,6 @@ export default function AppFlow({ startupAction = null, onStartupHandled, onRetu
       URL.revokeObjectURL(url);
     } catch (e) {
       gen.setError('Save project failed: ' + e.message);
-    }
-  }
-
-  async function compileCompactProjectDeliverables(saved) {
-    if (saved?.deliverableSaveMode !== 'recompile-on-open') return {};
-    if (!saved?.courseMap || !Array.isArray(saved.courseMap.lessons)) return {};
-    const selectedFeatureIds = Array.isArray(saved.selectedFeatures)
-      ? saved.selectedFeatures.filter((featureId) => featureId && featureId !== 'courseMap')
-      : [];
-    const featureIds =
-      Array.isArray(saved.deliverableFeatureIds) && saved.deliverableFeatureIds.length > 0
-        ? saved.deliverableFeatureIds
-        : selectedFeatureIds;
-    if (featureIds.length === 0) return {};
-
-    try {
-      const {
-        buildCourseBlueprint,
-        compactBlueprintForStorage,
-        compileBlueprintDeliverables,
-        getBlueprintCompiledFeatures,
-      } = await import('./lib/courseBlueprintCompiler');
-      const compiledFeatureIds = getBlueprintCompiledFeatures(featureIds);
-      if (compiledFeatureIds.length === 0) return {};
-      const configMap = Object.fromEntries(
-        compiledFeatureIds.map((featureId) => [featureId, saved.deliverableConfig?.[featureId] || {}]),
-      );
-      // v0.15 (sync-test finding): a compact restore used to compile from
-      // the BARE course map, silently dropping the saved graph's enrichment
-      // overlay — the restored package drifted 237 registry changes from
-      // the graph, and a post-restore ZIP shipped the degraded tier. The
-      // saved CourseGraph is the source of truth: compile FROM it whenever
-      // it rode along (formatVersion 2); the bare-map path stays as the
-      // legacy belt for v1 snapshots only.
-      let blueprint = null;
-      if (saved.courseGraph && Array.isArray(saved.courseGraph.sessions)) {
-        try {
-          const { buildBlueprintFromGraph } = await import('./lib/courseGraph');
-          blueprint = compactBlueprintForStorage(buildBlueprintFromGraph(saved.courseGraph));
-        } catch (graphErr) {
-          warn('[Project] compact restore: graph compile failed, falling back to map:', graphErr);
-          blueprint = null;
-        }
-      }
-      if (!blueprint) {
-        blueprint = compactBlueprintForStorage(
-          buildCourseBlueprint(saved.courseMap, {
-            compilerPath: {
-              mode: 'compact-restore',
-              reason: 'Restored from a compact CourseMapper project.',
-            },
-          }),
-        );
-      }
-      const compiled = compileBlueprintDeliverables(blueprint, compiledFeatureIds, { configMap });
-      return Object.fromEntries(
-        compiledFeatureIds
-          .filter((featureId) => compiled[featureId])
-          .map((featureId) => [
-            featureId,
-            {
-              ...(saved.deliverableManifest?.[featureId] || {}),
-              status: 'done',
-              data: compiled[featureId],
-              restoredFrom: 'compact-project',
-            },
-          ]),
-      );
-    } catch (e) {
-      warn('[Project] compact restore failed:', e);
-      return {};
     }
   }
 
@@ -3558,6 +3427,7 @@ export default function AppFlow({ startupAction = null, onStartupHandled, onRetu
   const allFeaturesForTabs = [...FEATURES, ...listCustomDeliverables().map(toFeatureEntry)];
   const featureMap = Object.fromEntries(allFeaturesForTabs.map((f) => [f.id, f]));
   const workspaceTabs = selectedFeatures.map((id) => featureMap[id]).filter(Boolean);
+  workspaceTabsRef.current = workspaceTabs;
   const mobileWorkspaceViews = [
     { id: 'content', label: activeTab === 'courseMap' ? 'Course Map' : 'Content' },
     { id: 'agent', label: 'Agent' },
@@ -3645,121 +3515,6 @@ export default function AppFlow({ startupAction = null, onStartupHandled, onRetu
       : !canFinishPackageWithAgent
         ? 'Run deterministic package checks. Connect AI for model-backed repairs.'
         : 'Finish, repair, verify, and prepare the package for export.';
-  const handleTabPointerDown = (feature, tabIdx) => (e) => {
-    if (e.button !== 0) return;
-    const rect = e.currentTarget.getBoundingClientRect();
-    setDragTabIdx(tabIdx);
-    setTabDrag({
-      id: feature.id,
-      label: feature.label,
-      index: tabIdx,
-      pointerId: e.pointerId,
-      startX: e.clientX,
-      startY: e.clientY,
-      pointerX: e.clientX,
-      pointerY: e.clientY,
-      originX: rect.left,
-      originY: rect.top,
-      x: rect.left,
-      y: rect.top,
-      width: rect.width,
-      height: rect.height,
-      overIndex: tabIdx,
-      overDelete: false,
-      moved: false,
-    });
-    handleCascadeHover(null);
-    e.currentTarget.setPointerCapture?.(e.pointerId);
-  };
-
-  const handleTabPointerMove = (featureId) => (e) => {
-    setTabDrag((prev) => {
-      if (!prev || prev.id !== featureId || prev.pointerId !== e.pointerId) return prev;
-      const dx = e.clientX - prev.startX;
-      const dy = e.clientY - prev.startY;
-      const moved = prev.moved || Math.hypot(dx, dy) > 4;
-      let overDelete = false;
-      let overIndex = prev.overIndex;
-
-      if (moved) {
-        const trashRect = trashDropRef.current?.getBoundingClientRect();
-        if (trashRect) {
-          overDelete =
-            e.clientX >= trashRect.left - 12 &&
-            e.clientX <= trashRect.right + 12 &&
-            e.clientY >= trashRect.top - 12 &&
-            e.clientY <= trashRect.bottom + 12;
-        }
-        if (!overDelete) {
-          let nearest = null;
-          for (const [id, el] of tabButtonRefs.current.entries()) {
-            if (!el || id === prev.id) continue;
-            const rect = el.getBoundingClientRect();
-            const yNear = e.clientY >= rect.top - 22 && e.clientY <= rect.bottom + 22;
-            if (!yNear) continue;
-            const centerX = rect.left + rect.width / 2;
-            const distance = Math.abs(e.clientX - centerX);
-            if (!nearest || distance < nearest.distance) {
-              const idx = workspaceTabs.findIndex((f) => f.id === id);
-              nearest = { idx, distance };
-            }
-          }
-          if (nearest && nearest.idx >= 0) overIndex = nearest.idx;
-        }
-      }
-
-      return {
-        ...prev,
-        pointerX: e.clientX,
-        pointerY: e.clientY,
-        x: prev.originX + dx,
-        y: prev.originY + dy,
-        overIndex,
-        overDelete,
-        moved,
-      };
-    });
-  };
-
-  const finishTabDrag = (drag) => {
-    setDragTabIdx(null);
-    setTabDrag(null);
-    if (!drag?.moved) return;
-
-    suppressTabClickRef.current = true;
-    window.setTimeout(() => {
-      suppressTabClickRef.current = false;
-    }, 0);
-
-    if (drag.overDelete && drag.id !== 'courseMap') {
-      setDeleteTabConfirm({ id: drag.id, label: drag.label });
-      return;
-    }
-    if (drag.overDelete) return;
-
-    const dropIdx = drag.overIndex;
-    if (dropIdx == null || dropIdx === drag.index) return;
-    setSelectedFeatures((prev) => {
-      const fromIdx = prev.indexOf(drag.id);
-      if (fromIdx < 0 || dropIdx < 0 || dropIdx >= prev.length || fromIdx === dropIdx) return prev;
-      const next = [...prev];
-      const [moved] = next.splice(fromIdx, 1);
-      next.splice(dropIdx, 0, moved);
-      return next;
-    });
-  };
-
-  const handleTabPointerUp = (featureId) => (e) => {
-    if (!tabDrag || tabDrag.id !== featureId || tabDrag.pointerId !== e.pointerId) return;
-    finishTabDrag(tabDrag);
-  };
-
-  const handleTabPointerCancel = (featureId) => (e) => {
-    if (!tabDrag || tabDrag.id !== featureId || tabDrag.pointerId !== e.pointerId) return;
-    setDragTabIdx(null);
-    setTabDrag(null);
-  };
-
   const confirmDeleteDeliverable = () => {
     const target = deleteTabConfirm;
     if (!target || target.id === 'courseMap') return;

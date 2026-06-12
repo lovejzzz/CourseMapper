@@ -514,7 +514,10 @@ describe('WS-C surface contracts', () => {
     // v0.14.9 B1: the panel no longer builds a rival queue — the ONE queue
     // object arrives as a prop from AppFlow, the queue's single owner.
     expect(source).not.toContain('buildReviewQueue');
-    expect(readSource('src/AppFlow.jsx')).toContain('buildReviewQueue({');
+    // v0.15.1 C1: the ONE queue builder moved into useReviewQueueOwner —
+    // AppFlow consumes the hook; the panel still builds nothing.
+    expect(readSource('src/hooks/useReviewQueueOwner.js')).toContain('buildReviewQueue({');
+    expect(readSource('src/AppFlow.jsx')).toContain('useReviewQueueOwner({');
   });
 
   it('the queue only dispatches the existing focus events (DeliverableView is another lane)', () => {

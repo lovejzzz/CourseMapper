@@ -16,18 +16,31 @@ export const SLIDE_H = 5.625; // inches (16:9)
 let _ctx = null;
 
 function getContext() {
-  if (!_ctx) {
-    let canvas;
+  if (_ctx === null) {
     if (typeof OffscreenCanvas !== 'undefined') {
-      canvas = new OffscreenCanvas(1, 1);
-    } else {
-      canvas = document.createElement('canvas');
+      _ctx = new OffscreenCanvas(1, 1).getContext('2d');
+    } else if (typeof document !== 'undefined') {
+      const canvas = document.createElement('canvas');
       canvas.width = 1;
       canvas.height = 1;
+      _ctx = canvas.getContext('2d');
+    } else {
+      // v0.15.1 C3: headless (Node/vite-node) — no canvas anywhere. The
+      // callers fall back to the heuristic estimator below so PPTX export
+      // works in the CurriculumOS headless path; browser behavior is
+      // untouched (canvas measurement stays authoritative when present).
+      _ctx = false;
     }
-    _ctx = canvas.getContext('2d');
   }
-  return _ctx;
+  return _ctx || null;
+}
+
+// Average glyph advance as a fraction of the font size — the standing
+// approximation for proportional Latin text when no canvas can measure.
+const HEURISTIC_GLYPH_EM = 0.52;
+
+function heuristicTextWidthIn(text, fontSizePt) {
+  return (String(text).length * fontSizePt * HEURISTIC_GLYPH_EM) / PT_PER_INCH;
 }
 
 // ── Text Measurement ──────────────────────────────────────────────────────
@@ -42,6 +55,7 @@ function getContext() {
 export function measureTextWidth(text, fontFamily, fontSizePt) {
   if (!text) return 0;
   const ctx = getContext();
+  if (!ctx) return heuristicTextWidthIn(text, fontSizePt);
   const fontSizePx = (fontSizePt * DPI) / PT_PER_INCH;
   ctx.font = `${fontSizePx}px "${fontFamily}"`;
   return ctx.measureText(text).width / DPI;
@@ -61,6 +75,20 @@ export function measureTextWidth(text, fontFamily, fontSizePt) {
 export function estimateTextHeight(text, fontFamily, fontSizePt, maxWidthIn, lineSpacing = 1.4) {
   if (!text) return 0;
   const ctx = getContext();
+  if (!ctx) {
+    // Headless heuristic: greedy wrap by estimated glyph width.
+    const lineHeightIn = (fontSizePt * lineSpacing) / PT_PER_INCH;
+    let totalLines = 0;
+    for (const para of String(text).split('\n')) {
+      if (!para.trim()) {
+        totalLines += 1;
+        continue;
+      }
+      const lineWidth = heuristicTextWidthIn(para, fontSizePt);
+      totalLines += Math.max(1, Math.ceil(lineWidth / Math.max(maxWidthIn, 0.1)));
+    }
+    return totalLines * lineHeightIn;
+  }
   const fontSizePx = (fontSizePt * DPI) / PT_PER_INCH;
   ctx.font = `${fontSizePx}px "${fontFamily}"`;
 
