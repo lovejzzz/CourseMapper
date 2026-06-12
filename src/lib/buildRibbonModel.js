@@ -20,17 +20,10 @@
  */
 import { formatUsd } from './apiUsageCost';
 import { getApiCallBudgetTotal } from './apiCallBudget';
-import { isFinishPassRunning } from './packagePassPhase';
-
-const STEP_ORDER = [
-  { id: 'map', label: 'Map' },
-  { id: 'enrich', label: 'Enrich' },
-  { id: 'compile', label: 'Compile' },
-  { id: 'verify', label: 'Verify' },
-  { id: 'grade', label: 'Grade' },
-];
-
-const MAP_RUNNING_STEPS = new Set(['parsing', 'sending', 'generating', 'examining', 'continuing']);
+// v0.14.7 WS-C2: stage/done/step decisions live in the pipeline machine —
+// this module is now a RENDER of machine state (labels, chips, cost), and
+// re-derives no phase truth of its own.
+import { derivePipelineState, deriveStepStatuses } from './pipelineMachine';
 
 // "9, 10, 11, 12" → "9–12"; non-contiguous lists keep the comma form.
 export function formatLessonRange(listText = '') {
@@ -60,15 +53,6 @@ function enrichmentLabelFromEvent(event) {
     if (range) return `Enriching lesson${range.includes('–') || range.includes(',') ? 's' : ''} ${range}`;
   }
   return event?.label || 'Enriching lesson kernels';
-}
-
-// Latest pipeline-activity event — decides enrich vs compile while
-// deliverables generate. recentEvents is newest-first.
-function latestActivityEvent(budget) {
-  const events = Array.isArray(budget?.recentEvents) ? budget.recentEvents : [];
-  return events.find((event) =>
-    ['blueprintEnrichmentCall', 'deliverableChunkCall', 'compiledDeliverable', 'repairRetryCall'].includes(event?.type),
-  );
 }
 
 // "6 genome + 0 cached of 13 lessons (…)" → { linked: 6, total: 13 }
@@ -114,71 +98,68 @@ export function buildBuildRibbonModel({
   generation = {},
   deliverables = {},
   packageQualityPass = null,
+  sync = null,
 } = {}) {
   const finishStatus = packageQualityPass?.status || 'idle';
-  const mapRunning = Boolean(generation.isStreaming) || MAP_RUNNING_STEPS.has(generation.progressStep);
-  const delivRunning = Boolean(deliverables.isGenerating);
-  // status:'running' with phase:'generation' is the whole-pipeline umbrella,
-  // not the finish pass — without this split, Enrich/Compile wore green
-  // checks while the map was still streaming. The map/deliv guards keep a
-  // missing phase from re-opening that hole.
-  const finishRunning = isFinishPassRunning(packageQualityPass) && !mapRunning && !delivRunning;
-  const finishComplete = finishStatus === 'ready' || finishStatus === 'blocked';
   const hasBudgetActivity = (budget.recentEvents?.length || 0) > 0 || getApiCallBudgetTotal(budget) > 0;
+  const pipeline = derivePipelineState({ budget, generation, deliverables, packageQualityPass, sync });
 
-  // Idle: a fresh or restored workspace with no run this session — hidden.
-  if (!hasBudgetActivity && !mapRunning && !delivRunning && finishStatus === 'idle') return null;
+  // Idle: a fresh or restored workspace with no run THIS SESSION — hidden.
+  // A restored map (progressStep 'done' from a save) makes the machine read
+  // 'lull', but without budget activity or a finish state there is nothing
+  // to narrate (the historical rule, pinned by the hidden-ribbon test).
+  if (!hasBudgetActivity && !pipeline.running && finishStatus === 'idle') return null;
 
   const doneCount = Number(deliverables.doneCount) || 0;
   const totalCount = Number(deliverables.totalCount) || 0;
-  const mapDone = generation.progressStep === 'done' || delivRunning || finishRunning || finishComplete;
-  const compileDone = finishComplete || finishRunning || (totalCount > 0 && doneCount >= totalCount && !delivRunning);
-  const enrichDone = compileDone || Boolean(budget.enrichmentOutcome);
-  const verifyDone = finishComplete;
-  const gradeDone = finishComplete && Boolean(packageQualityPass?.quality);
 
   let stage;
   let stageLabel = '';
-  let running = true;
-  if (mapRunning) {
-    stage = 'map';
-    stageLabel = String(generation.streamDetail || '').trim() || 'Generating the course map';
-  } else if (delivRunning) {
-    const activity = latestActivityEvent(budget);
-    if (activity?.type === 'blueprintEnrichmentCall') {
+  let running = pipeline.running;
+  switch (pipeline.state) {
+    case 'mapping':
+      stage = 'map';
+      stageLabel = String(generation.streamDetail || '').trim() || 'Generating the course map';
+      break;
+    case 'enriching':
       stage = 'enrich';
-      stageLabel = enrichmentLabelFromEvent(activity);
-    } else {
+      stageLabel = enrichmentLabelFromEvent(pipeline.activity);
+      break;
+    case 'compiling':
       stage = 'compile';
       stageLabel =
         totalCount > 0 ? `Compiling deliverables · ${doneCount}/${totalCount} ready` : 'Compiling deliverables';
-    }
-  } else if (finishRunning) {
-    stage = 'verify';
-    stageLabel = String(packageQualityPass?.message || '').trim() || 'Verifying and grading the package';
-  } else if (finishComplete) {
-    stage = 'ready';
-    running = false;
-    if (finishStatus === 'blocked') {
+      break;
+    case 'verifying':
+      stage = 'verify';
+      stageLabel = String(packageQualityPass?.message || '').trim() || 'Verifying and grading the package';
+      break;
+    case 'syncing':
+      // v0.14.7 WS-G3: an approved sync plan executing post-ready.
+      stage = 'syncing';
+      stageLabel =
+        Number(sync?.pendingCount) > 0
+          ? `Syncing ${sync.pendingCount} material${sync.pendingCount === 1 ? '' : 's'}…`
+          : 'Syncing approved changes…';
+      break;
+    case 'blocked': {
+      stage = 'ready';
       const blockers = Number(packageQualityPass?.blockers) || 0;
       stageLabel = blockers > 0 ? `Needs review — ${blockers} blocker${blockers === 1 ? '' : 's'}` : 'Needs review';
+      break;
     }
-  } else {
-    // Lull between phases (e.g. map done, deliverables not started, finish
-    // not running) — show progress so far without a pulse.
-    running = false;
-    const doneFlags = { map: mapDone, enrich: enrichDone, compile: compileDone, verify: verifyDone, grade: gradeDone };
-    stage = (STEP_ORDER.find((step) => !doneFlags[step.id]) || STEP_ORDER[STEP_ORDER.length - 1]).id;
+    case 'ready':
+      stage = 'ready';
+      break;
+    default:
+      // lull (and the unreachable idle-with-activity) — show progress so
+      // far without a pulse; the machine names the next pending step.
+      stage = pipeline.nextStep || 'map';
+      running = false;
   }
 
-  const done = { map: mapDone, enrich: enrichDone, compile: compileDone, verify: verifyDone, grade: gradeDone };
-  const activeIndex = running ? STEP_ORDER.findIndex((step) => step.id === stage) : -1;
-  const steps = STEP_ORDER.map((step, index) => {
-    let status = 'pending';
-    if (stage === 'ready' || done[step.id] || (activeIndex >= 0 && index < activeIndex)) status = 'done';
-    if (running && index === activeIndex) status = 'active';
-    return { id: step.id, label: step.label, status };
-  });
+  const done = pipeline.done;
+  const steps = deriveStepStatuses(pipeline);
 
   const costUsd = budget.tokenUsage?.costUsd || 0;
   const spendDisplay = costUsd > 0 ? formatUsd(costUsd) : '';

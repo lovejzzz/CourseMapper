@@ -179,6 +179,23 @@ export default function SyncSuggestionCard({ suggestion, onApprove, onSkip }) {
       {!collapsed && (
         <div className="px-3.5 pb-2.5 space-y-1.5 border-t border-amber-100/50">
           <p className={`text-[12px] ${theme.subtext} pt-1.5`}>{editDesc}</p>
+          {/* v0.14.7 WS-G4: the recompile-diff preview — exactly what will
+              change, named per entity, BEFORE the user approves. */}
+          {Array.isArray(suggestion.changesPreview) && suggestion.changesPreview.length > 0 && (
+            <ul data-testid="sync-changes-preview" className="space-y-0.5">
+              {suggestion.changesPreview.slice(0, 5).map((change, index) => (
+                <li key={`${change.summary}-${index}`} className="flex gap-1.5 text-[12px] leading-snug text-slate-600">
+                  <span className="mt-[7px] h-1 w-1 flex-shrink-0 rounded-full bg-amber-400" aria-hidden="true" />
+                  <span>{change.summary}</span>
+                </li>
+              ))}
+              {suggestion.changesPreview.length > 5 && (
+                <li className="text-[12px] italic text-slate-400">
+                  +{suggestion.changesPreview.length - 5} more in the review queue
+                </li>
+              )}
+            </ul>
+          )}
           {isBlueprintSync && isPending && (
             <p className="rounded-lg bg-white/65 px-2.5 py-2 text-[12px] font-medium leading-snug text-slate-700">
               Keep this edit only here, or sync it through the course blueprint?

@@ -10,6 +10,7 @@ import DarkModeToggle from './components/DarkModeToggle';
 import PackageTrustStrip from './components/PackageTrustStrip';
 import WorkspaceQualityChip from './components/WorkspaceQualityChip';
 import BuildRibbon, { TabReadyTick } from './components/BuildRibbon';
+import PrimaryCta from './components/PrimaryCta';
 import UserMenu from './components/UserMenu';
 
 // Lazy-load screens/components not needed on initial landing page
@@ -99,6 +100,7 @@ import {
   getApiCallBudgetTotal,
 } from './lib/apiCallBudget';
 import { buildBuildRibbonModel } from './lib/buildRibbonModel';
+import { buildReviewQueue } from './lib/reviewQueueModel';
 import { isFinishPassRunning } from './lib/packagePassPhase';
 import { buildApiCostPlan, evaluateApiCostControl } from './lib/apiCostControl';
 import {
@@ -514,11 +516,19 @@ export default function AppFlow({ startupAction = null, onStartupHandled, onRetu
     setAddLessonsModal,
   } = useUI();
 
+  // v0.14.7 WS-F2: quick start — the landing prompt box can generate with
+  // defaults directly. The flag defers the generate call one render so the
+  // select-all feature selection COMMITS before generation reads it
+  // (getOrderedSelectedDeliverables closes over selectedFeatures). Declared
+  // before the return-to-landing guard below, which must not bounce the
+  // flow back to App's landing during the one-render quick-start window.
+  const [quickStartPending, setQuickStartPending] = useState(false);
+
   useEffect(() => {
-    if (screen === 'landing' && !isHandlingStartupAction && !startupAction) {
+    if (screen === 'landing' && !isHandlingStartupAction && !startupAction && !quickStartPending) {
       onReturnToLanding?.();
     }
-  }, [screen, isHandlingStartupAction, startupAction, onReturnToLanding]);
+  }, [screen, isHandlingStartupAction, startupAction, onReturnToLanding, quickStartPending]);
 
   // ── Course data state (from CourseContext) ──
   const {
@@ -1036,6 +1046,17 @@ export default function AppFlow({ startupAction = null, onStartupHandled, onRetu
     }
     return [];
   }, [chatHistory]);
+
+  // v0.14.7 WS-G4: "Sync now" from the review queue — same approval the
+  // chat card grants, one execution pathway (the smartSync plan).
+  const smartSyncRef = useRef(null);
+  const handleExecuteSyncFromQueue = useCallback(() => {
+    const suggestion = smartSyncRef.current?.pendingSyncSuggestion;
+    if (!suggestion) return;
+    smartSyncRef.current
+      .executeSyncPlan(suggestion.plan, suggestion.changedFieldsSummary)
+      .finally(() => smartSyncRef.current?.clearPendingSyncSuggestion());
+  }, []);
 
   const handleReviewQueueOpenChange = useCallback((open, focusId = null) => {
     if (!open) {
@@ -1912,6 +1933,9 @@ export default function AppFlow({ startupAction = null, onStartupHandled, onRetu
     deliv,
     gen,
     courseMapRef,
+    // v0.14.7 WS-G2: the stored graph carries the enrichment overlay the
+    // blast-radius recompile diffs against.
+    courseGraphRef,
     selectedFeatures,
     onSyncComplete: useCallback((featureIds) => {
       setUnseenChanges((prev) => {
@@ -1919,6 +1943,13 @@ export default function AppFlow({ startupAction = null, onStartupHandled, onRetu
         featureIds.forEach((id) => next.add(id));
         return next;
       });
+      // v0.14.7 WS-G3: post-sync truth — a sync changes the package, so the
+      // grade must change with it. Quiet deterministic finalize + re-grade
+      // (no retry loops); a stale "Quality 100 · A" over an edited package
+      // becomes unrepresentable.
+      if (typeof packageFinalizerRef.current === 'function') {
+        packageFinalizerRef.current({ retry: false, source: 'sync' }).catch(() => {});
+      }
     }, []),
     onRequestProposal: useCallback(
       ({ featureId, lessonIndex, editContext, courseMap: cm }) => {
@@ -1930,6 +1961,7 @@ export default function AppFlow({ startupAction = null, onStartupHandled, onRetu
     onApplyCanonicalPatches: applyArtifactBlueprintPatches,
     onResolveCanonicalPatchRequests: resolveArtifactBlueprintPatchRequests,
   });
+  smartSyncRef.current = smartSync;
 
   // Wire editor with smartSync notifyEdit
   const editor = useCourseMapEditor({
@@ -3046,6 +3078,30 @@ export default function AppFlow({ startupAction = null, onStartupHandled, onRetu
     }
   }
 
+  // v0.14.7 WS-F2: one decision to first value. Mirrors FeatureSelect's
+  // "Select all" (built-ins minus syllabus when a syllabus file is attached,
+  // plus custom deliverables), keeps model/config defaults untouched, then
+  // runs the SAME generation path the Config screen's CTA calls.
+  function handleQuickStart() {
+    // Seed the agent context + the instant lesson-count scan, exactly as the
+    // deliberate path does on continue — quick start skips screens, not context.
+    setChatHistory((prev) => upsertLandingAgentContextMessages(prev, { promptText, files }));
+    const promptRegex = detectExpectedLessons(promptText);
+    if (promptRegex.expected) setLessonCount(promptRegex.expected);
+    const baseFeatures = hasSyllabusFile ? FEATURES.filter((f) => f.id !== 'syllabus') : FEATURES;
+    setSelectedFeatures([...baseFeatures, ...listCustomDeliverables().map(toFeatureEntry)].map((f) => f.id));
+    setQuickStartPending(true);
+  }
+
+  useEffect(() => {
+    if (!quickStartPending) return;
+    setQuickStartPending(false);
+    // Runs on the render AFTER the select-all commit, so onGenerate's closure
+    // sees the full feature selection — never the stale pre-quick-start one.
+    onGenerate();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [quickStartPending]);
+
   async function onResume() {
     if (packageGenerationInFlightRef.current) return;
     packageGenerationInFlightRef.current = true;
@@ -3179,6 +3235,11 @@ export default function AppFlow({ startupAction = null, onStartupHandled, onRetu
           setScreen('workspace');
         } else if (startupAction.type === 'openCloudProject') {
           await handleOpenCloudProject(startupAction.projectId);
+        } else if (startupAction.type === 'quickStart') {
+          // v0.14.7 WS-F2: the PRIMARY landing (App.jsx) enters the flow
+          // here — select-all + defaults + the same onGenerate the Config
+          // CTA calls (via the quickStartPending one-render deferral).
+          handleQuickStart();
         }
       } catch (err) {
         warn('[Startup] action failed:', err);
@@ -3207,6 +3268,7 @@ export default function AppFlow({ startupAction = null, onStartupHandled, onRetu
       <>
         <Landing
           onGenerate={handleLandingContinue}
+          onQuickStart={handleQuickStart}
           canGenerate={
             (files.length > 0 || promptText.trim().length > 0) &&
             apiKey.trim() &&
@@ -3326,6 +3388,8 @@ export default function AppFlow({ startupAction = null, onStartupHandled, onRetu
       totalCount: ribbonFeatureIds.length,
     },
     packageQualityPass,
+    // v0.14.7 WS-G3: an executing sync owns the ribbon narrative.
+    sync: { isSyncing: smartSync.isSyncing, pendingCount: smartSync.pendingSyncCount },
   });
   const workspaceCourseTitle =
     String(courseMap?.courseName || '').trim() ||
@@ -3379,6 +3443,16 @@ export default function AppFlow({ startupAction = null, onStartupHandled, onRetu
       : !canFinishPackageWithAgent
         ? 'Run deterministic package checks. Connect AI for model-backed repairs.'
         : 'Finish, repair, verify, and prepare the package for export.';
+  // v0.14.7 WS-F1: the header CTA's honest review count — the same classifier
+  // the export panel's queue uses, fed from the same AppFlow-scope inputs.
+  // (The spot-check class is panel-local checklist data and stays there; the
+  // panel's drawer remains the one full review surface.)
+  const headerReviewQueue = buildReviewQueue({
+    observations: reviewObservations,
+    qualityPass: packageQualityPass,
+    finalizerResult: lastRunDigestRef.current,
+    syncSuggestion: smartSync.pendingSyncSuggestion,
+  });
 
   const handleTabPointerDown = (feature, tabIdx) => (e) => {
     if (e.button !== 0) return;
@@ -3594,31 +3668,26 @@ export default function AppFlow({ startupAction = null, onStartupHandled, onRetu
                     {workspaceSaveText}
                   </span>
                 )}
-                {courseMap && gen.progressStep === 'done' && (
-                  <button
-                    type="button"
-                    data-testid="workspace-finish-package"
-                    onClick={() =>
-                      handleFinishPackageFromExport({
-                        selectedFeatureIds: selectedFeatures,
-                        lessonFilter: lessonScope.type === 'specific' ? lessonScope.indices : null,
-                      })
-                    }
-                    disabled={finishPackageDisabled}
-                    title={finishPackageTitle}
-                    className="tactile inline-flex items-center gap-2 rounded-md bg-slate-950 px-3.5 py-2 text-xs font-bold text-white shadow-sm transition-colors hover:bg-slate-800 disabled:cursor-not-allowed disabled:bg-slate-200 disabled:text-slate-400 dark:bg-white dark:text-slate-950 dark:hover:bg-slate-200 dark:disabled:bg-slate-800 dark:disabled:text-slate-500"
-                  >
-                    <svg className="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2.2}
-                        d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"
-                      />
-                    </svg>
-                    {isFinishPassRunning(packageQualityPass) ? 'Finishing' : 'Finish package'}
-                  </button>
-                )}
+                {/* v0.14.7 WS-F1: ONE morphing verb — Building… → Review N →
+                    Download ZIP. Finish package and Save .coursemapper live in
+                    its More menu; renders nothing pre-generation. */}
+                <PrimaryCta
+                  ribbonModel={buildRibbonModel}
+                  reviewCount={headerReviewQueue.total}
+                  canDownload={packageQualityPass?.status === 'ready'}
+                  onDownload={() => window.dispatchEvent(new CustomEvent('coursemapper:request-zip-download'))}
+                  onReview={() => handleReviewQueueOpenChange(true)}
+                  onFinishPackage={() =>
+                    handleFinishPackageFromExport({
+                      selectedFeatureIds: selectedFeatures,
+                      lessonFilter: lessonScope.type === 'specific' ? lessonScope.indices : null,
+                    })
+                  }
+                  finishPackageDisabled={finishPackageDisabled}
+                  finishPackageTitle={finishPackageTitle}
+                  finishRunning={isFinishPassRunning(packageQualityPass)}
+                  onSaveProject={handleSaveProject}
+                />
                 <DarkModeToggle />
                 <UserMenu
                   onOpenProjects={() => setShowProjectPicker(true)}
@@ -4559,6 +4628,8 @@ export default function AppFlow({ startupAction = null, onStartupHandled, onRetu
                   lastRunDigest={lastRunDigestRef.current}
                   reviewQueueOpen={Boolean(reviewQueueRequest)}
                   reviewQueueFocusId={reviewQueueRequest?.focusId || null}
+                  syncSuggestion={smartSync.pendingSyncSuggestion}
+                  onExecuteSync={handleExecuteSyncFromQueue}
                   onReviewQueueOpenChange={handleReviewQueueOpenChange}
                 />
               </div>

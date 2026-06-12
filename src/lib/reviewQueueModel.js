@@ -25,9 +25,12 @@
 
 export const REVIEW_PROGRESS_STORAGE_KEY = 'coursemapper-review-progress';
 
-export const REVIEW_CLASS_KEYS = ['observations', 'spotChecks', 'structural'];
+// v0.14.7 WS-G4: pending syncs lead the queue — the one class whose items
+// are ACTIONS (approve a recompile with a known diff), not just reading.
+export const REVIEW_CLASS_KEYS = ['sync', 'observations', 'spotChecks', 'structural'];
 
 export const REVIEW_CLASS_LABELS = {
+  sync: { title: 'Pending sync', singular: 'sync', plural: 'syncs' },
   observations: { title: 'Observations', singular: 'observation', plural: 'observations' },
   spotChecks: { title: 'Spot-checks', singular: 'spot-check', plural: 'spot-checks' },
   structural: { title: 'Structural notices', singular: 'structural', plural: 'structural' },
@@ -164,14 +167,42 @@ function structuralFromQuality(qualityPass) {
  *  - qualityPass: packageQualityPass ({ quality: { findings, gradedAt } })
  * @returns {{ classes: object, counts: object, total: number }}
  */
+// v0.14.7 WS-G4: one queue item per affected deliverable in the pending
+// sync plan, carrying the recompile-diff summaries as the preview — the
+// educator sees exactly what will change BEFORE approving.
+function classifySyncSuggestion(suggestion) {
+  if (!suggestion || !Array.isArray(suggestion.plan) || suggestion.plan.length === 0) return [];
+  return suggestion.plan.map((entry) => {
+    const changes = Array.isArray(entry.changes) ? entry.changes : [];
+    const lessonNumbers = [...new Set((entry.lessonIndices || []).map((idx) => idx + 1))];
+    return {
+      id: reviewItemId('sync', `${suggestion.id}:${entry.featureId}`),
+      classKey: 'sync',
+      severity: 'action',
+      title: `${entry.featureId}${lessonNumbers.length > 0 ? ` — lesson${lessonNumbers.length === 1 ? '' : 's'} ${lessonNumbers.join(', ')}` : ' — full document'}`,
+      detail:
+        changes.length > 0
+          ? changes
+              .slice(0, 3)
+              .map((change) => change.summary)
+              .join(' · ') + (changes.length > 3 ? ` · +${changes.length - 3} more` : '')
+          : suggestion.changedFieldsSummary || 'Pending sync',
+      target: NON_TARGET_FEATURE_IDS.has(entry.featureId) ? null : { featureId: entry.featureId },
+      syncPlanId: suggestion.id,
+    };
+  });
+}
+
 export function buildReviewQueue({
   reviewItems = [],
   observations = [],
   finalizerResult = null,
   qualityPass = null,
+  syncSuggestion = null,
 } = {}) {
   const seenChecks = new Set();
   const classes = {
+    sync: classifySyncSuggestion(syncSuggestion),
     observations: classifyObservations(observations),
     spotChecks: classifySpotChecks(reviewItems),
     structural: [
@@ -181,11 +212,16 @@ export function buildReviewQueue({
     ],
   };
   const counts = {
+    sync: (classes.sync || []).length,
     observations: classes.observations.length,
     spotChecks: classes.spotChecks.length,
     structural: classes.structural.length,
   };
-  return { classes, counts, total: counts.observations + counts.spotChecks + counts.structural };
+  return {
+    classes,
+    counts,
+    total: counts.sync + counts.observations + counts.spotChecks + counts.structural,
+  };
 }
 
 /** Flatten the queue in display order: observations → spot-checks → structural. */
@@ -209,11 +245,16 @@ export function selectOutstandingQueue(queue, progress) {
     classes[classKey] = (queue?.classes?.[classKey] || []).filter((item) => !isHandled(item, progress));
   }
   const counts = {
+    sync: (classes.sync || []).length,
     observations: classes.observations.length,
     spotChecks: classes.spotChecks.length,
     structural: classes.structural.length,
   };
-  return { classes, counts, total: counts.observations + counts.spotChecks + counts.structural };
+  return {
+    classes,
+    counts,
+    total: counts.sync + counts.observations + counts.spotChecks + counts.structural,
+  };
 }
 
 /**

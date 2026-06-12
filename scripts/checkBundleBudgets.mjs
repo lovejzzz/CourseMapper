@@ -49,7 +49,9 @@ const lazyChunkBudgets = [
   // ZIP download runs (measured at 38.6 KiB raw / 13.9 KiB gzip; the roadmap
   // expected 40–60 KiB raw). Never preloaded on landing — also listed in
   // forbiddenInitialChunks below.
-  { prefix: 'deepQualityGrader-', rawKiB: 48, gzipKiB: 18 },
+  // 2026-06-12 (v0.14.7 WS-D1): +texture dimension (textureMetric.js) —
+  // measured 49.4 raw / 17.7 gzip; raw budget raised 48 → 54, gzip held.
+  { prefix: 'deepQualityGrader-', rawKiB: 54, gzipKiB: 18 },
   // The finalize-time grading seam AppFlow lazy-imports (assembles the file
   // map via packageZipExporter and returns the badge data; measured at
   // 1.1 KiB raw / 0.6 gzip).

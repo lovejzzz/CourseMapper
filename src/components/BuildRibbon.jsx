@@ -108,7 +108,10 @@ export default function BuildRibbon({ model }) {
         {model.stageLabel}
       </p>
 
-      <div className="flex flex-shrink-0 items-center gap-1.5">
+      {/* v0.14.7 F3: the pipeline chips are dense diagnostics the Seal
+          already summarizes — on phones they pushed the page wide (658px at
+          a 375px viewport), so they render from md up. */}
+      <div className="hidden flex-shrink-0 items-center gap-1.5 md:flex">
         {model.stage === 'ready' &&
           model.pipelineChips.map((chip) => (
             <span

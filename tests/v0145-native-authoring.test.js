@@ -35,6 +35,7 @@ import {
   AUTHORING_MODE_STORAGE_KEY,
   NativeAuthoringError,
   assembleNativeCourseGraph,
+  briefNamesResources,
   buildNativePassBPrompt,
   buildNativeWireMap,
   isDegenerateNativeGraph,
@@ -93,6 +94,12 @@ const SKELETON_RESPONSE = JSON.stringify({
     { id: 'a3', title: 'Field Sketch Warm-up', kind: 'bogus-kind', dueSession: 99 },
   ],
   readings: [{ id: 'r1', title: 'OpenStax Ch. 4: Igneous Rocks', dueSession: 3 }],
+  // v0.14.7 WS-B1: per-session supporting materials. The second entry tests
+  // id defaulting (m2) and dueSession clamping (99 → 3).
+  resources: [
+    { id: 'm1', title: 'Mineral ID lab worksheet', dueSession: 2 },
+    { title: 'Volcanic hazards case packet', dueSession: 99 },
+  ],
 });
 
 function parsedSkeleton() {
@@ -425,7 +432,14 @@ describe('native assembly → CourseGraph', () => {
 //     marks features errored instead of letting a compiler throw kill the
 //     run.
 
-function makeSkeletonFixture({ sessionCount = 15, assessmentsPerSession = null, assessments = null } = {}) {
+function makeSkeletonFixture({
+  sessionCount = 15,
+  assessmentsPerSession = null,
+  assessments = null,
+  readings = [],
+  resources = [],
+  sourceText = null,
+} = {}) {
   const sessions = Array.from({ length: sessionCount }, (_, index) => ({
     id: `s${index + 1}`,
     order: index + 1,
@@ -455,8 +469,10 @@ function makeSkeletonFixture({ sessionCount = 15, assessmentsPerSession = null, 
       course: { name: 'CS Python', term: 'FA26', goals: ['Reason with code'] },
       sessions,
       assessments: skeletonAssessments,
-      readings: [],
+      readings,
+      resources,
     }),
+    sourceText ? { sourceText } : {},
   );
 }
 
@@ -637,6 +653,158 @@ describe('Pass A recurring-cadence contract (defect 1, contract side)', () => {
     // The cadence expansion must not weaken verbatim traceability for
     // one-off named titles.
     expect(NATIVE_SKELETON_SYSTEM_PROMPT).toMatch(/one-off named titles stay verbatim/i);
+  });
+});
+
+// ── v0.14.7 WS-B1: Pass A resource transcription ────────────────────────────
+// The last side-by-side round's ONLY P1 class: 66 "unresolved source
+// placeholder" findings, all from Pass A never transcribing supporting
+// resources/materials — every empty resource surface compiled to the
+// "Instructor-provided course materials" placeholder. Three seams die here:
+//  - contract: skeleton.resources (verbatim titles + the RULE 4-style
+//    cadence-expansion discipline) in NATIVE_SKELETON_SYSTEM_PROMPT;
+//  - lint: brief names resources + skeleton transcribed none →
+//    resolveNativeAssembly resolves to the SAME loud fellBack path as the
+//    degenerate-skeleton gate (reason 'missing-resources (…)');
+//  - assembly: transcribed resources ride the wire map's supportingResources
+//    cells → syllabus-origin graph.resources → every derived map render.
+
+describe('Pass A resource transcription (v0.14.7 WS-B1)', () => {
+  const RESOURCE_BRIEF =
+    'A 15-lesson introductory college course with weekly autograded quizzes and hands-on coding labs.';
+  const NO_RESOURCE_BRIEF =
+    'A 15-lesson seminar on ethics, epistemology, and metaphysics with weekly discussion posts and a final essay.';
+
+  it('the skeleton prompt carries the supporting-resources rule (verbatim + cadence expansion)', () => {
+    expect(NATIVE_SKELETON_SYSTEM_PROMPT).toMatch(/SUPPORTING RESOURCES/);
+    expect(NATIVE_SKELETON_SYSTEM_PROMPT).toMatch(/"resources"/);
+    expect(NATIVE_SKELETON_SYSTEM_PROMPT).toMatch(/one resources\[\] entry PER SESSION/);
+    expect(NATIVE_SKELETON_SYSTEM_PROMPT).toMatch(/transcription of the materials PLAN, not invention/);
+    expect(NATIVE_SKELETON_SYSTEM_PROMPT).toMatch(/Omit "resources" entries \(or the array\) entirely/);
+    // Readings and resources are SEPARATE registries — never duplicated.
+    expect(NATIVE_SKELETON_SYSTEM_PROMPT).toMatch(/stay in "readings", never duplicated/);
+    // Resource titles ride the HARD TRACEABILITY rule with the other two.
+    expect(NATIVE_SKELETON_SYSTEM_PROMPT).toMatch(/assessment, reading, and resource titles must be VERBATIM/);
+  });
+
+  it('parses resources: verbatim titles, defaulted ids, clamped dueSession', () => {
+    const skeleton = parsedSkeleton();
+    expect(skeleton.resources).toHaveLength(2);
+    expect(skeleton.resources[0]).toMatchObject({ id: 'm1', title: 'Mineral ID lab worksheet', dueSession: 2 });
+    // Missing id defaults from order; dueSession 99 clamps into range.
+    expect(skeleton.resources[1]).toMatchObject({ id: 'm2', title: 'Volcanic hazards case packet', dueSession: 3 });
+    // No sourceText option → the brief signal is UNKNOWN, never asserted.
+    expect(skeleton.sourceNamesResources).toBeUndefined();
+  });
+
+  it('briefNamesResources: fires on the materials vocabulary, quiet on topic-only briefs', () => {
+    expect(briefNamesResources('a 14-lesson undergraduate course with weekly labs using hand-specimen kits')).toBe(
+      true,
+    );
+    expect(briefNamesResources(RESOURCE_BRIEF)).toBe(true);
+    expect(briefNamesResources('Required readings as named on the syllabus: Week 2 reads Gilgamesh')).toBe(true);
+    expect(briefNamesResources('each unit ships a dataset and a starter notebook')).toBe(true);
+    expect(briefNamesResources(NO_RESOURCE_BRIEF)).toBe(false);
+    // Topic words must not trip it: "templates" (the C++ sense) and bare
+    // "software"/"reading passages" are course content, not named materials.
+    expect(briefNamesResources('covers C++ templates and generic programming in a software design studio')).toBe(false);
+    expect(briefNamesResources('basic characters and short reading passages; food and dining')).toBe(false);
+    expect(briefNamesResources('')).toBe(false);
+  });
+
+  it('parse stamps sourceNamesResources from the brief only when sourceText is provided', () => {
+    expect(makeSkeletonFixture({ sourceText: RESOURCE_BRIEF }).sourceNamesResources).toBe(true);
+    expect(makeSkeletonFixture({ sourceText: NO_RESOURCE_BRIEF }).sourceNamesResources).toBe(false);
+    expect(makeSkeletonFixture().sourceNamesResources).toBeUndefined();
+  });
+
+  it('lint: brief names resources + skeleton transcribed none → the loud fellBack with the named reason', () => {
+    const skeleton = makeSkeletonFixture({ sourceText: RESOURCE_BRIEF });
+    const resolution = resolveNativeAssembly({ skeleton, passBBySession: makePassBFixture() });
+    expect(resolution.ok).toBe(false);
+    expect(resolution.code).toBe('missing-resources');
+    expect(resolution.reason).toBe('missing-resources (brief names resources, skeleton has none)');
+    // Same fallback contract as the degenerate gate: the ASSEMBLED render
+    // rides into the prose repair, Pass B authorship intact.
+    expect(resolution.fallbackMap.lessons).toHaveLength(15);
+    expect(JSON.stringify(resolution.fallbackMap.lessons[6])).toContain('Analyze concept 7 alpha');
+  });
+
+  it('lint: a skeleton WITH transcribed resources passes', () => {
+    const skeleton = makeSkeletonFixture({
+      sourceText: RESOURCE_BRIEF,
+      resources: Array.from({ length: 15 }, (_, index) => ({
+        id: `m${index + 1}`,
+        title: `Lab handout: topic ${index + 1}`,
+        dueSession: index + 1,
+      })),
+    });
+    const resolution = resolveNativeAssembly({ skeleton, passBBySession: makePassBFixture() });
+    expect(resolution.ok).toBe(true);
+    expect(resolution.graph.authoredBy).toBe('native');
+  });
+
+  it('lint: registry readings alone satisfy the resource surface (the render leads cells with them)', () => {
+    const skeleton = makeSkeletonFixture({
+      sourceText: 'Required readings as named on the syllabus drive weekly discussion.',
+      readings: [{ id: 'r1', title: 'Gilgamesh, Tablets I–IV', dueSession: 2 }],
+    });
+    expect(skeleton.sourceNamesResources).toBe(true);
+    expect(resolveNativeAssembly({ skeleton, passBBySession: makePassBFixture() }).ok).toBe(true);
+  });
+
+  it('lint: brief naming NO resources + empty skeleton resources passes (no false positive)', () => {
+    const quiet = makeSkeletonFixture({ sourceText: NO_RESOURCE_BRIEF });
+    expect(resolveNativeAssembly({ skeleton: quiet, passBBySession: makePassBFixture() }).ok).toBe(true);
+    // A skeleton parsed WITHOUT sourceText (older call sites, stashed
+    // skeletons from before the stamp) never arms the lint.
+    const unstamped = makeSkeletonFixture();
+    expect(resolveNativeAssembly({ skeleton: unstamped, passBBySession: makePassBFixture() }).ok).toBe(true);
+  });
+
+  it('the degenerate-skeleton gate still wins over the resource lint', () => {
+    const skeleton = makeSkeletonFixture({
+      sourceText: RESOURCE_BRIEF,
+      assessments: [{ id: 'a1', title: 'Final project integrating the full semester', dueSession: 15 }],
+    });
+    const resolution = resolveNativeAssembly({ skeleton, passBBySession: makePassBFixture() });
+    expect(resolution.ok).toBe(false);
+    expect(resolution.code).toBe('degenerate-skeleton');
+  });
+
+  it('assembly carries resources into graph.resources and the derived map supportingResources cells', () => {
+    const { graph, courseMap } = assembled();
+    const syllabusResources = graph.resources.filter((resource) => resource.origin === 'syllabus');
+    expect(syllabusResources.map((resource) => resource.citation)).toEqual([
+      'Mineral ID lab worksheet',
+      'Volcanic hazards case packet',
+    ]);
+    expect(syllabusResources[0].sessionRefs).toEqual([2]);
+    expect(syllabusResources[1].sessionRefs).toEqual([3]);
+    // The derived map's cells — the surface the compiler's resource
+    // extraction reads (empty here is what compiled to the placeholder).
+    const lesson2Cell = String(courseMap.lessons[1].sections[0].supportingResources);
+    expect(lesson2Cell).toContain('Mineral ID lab worksheet');
+    const lesson3Cell = String(courseMap.lessons[2].sections[0].supportingResources);
+    expect(lesson3Cell).toContain('Volcanic hazards case packet');
+    // Provenance order holds: the instructor-named registry reading LEADS
+    // the cell; transcribed materials follow.
+    expect(lesson3Cell.indexOf('OpenStax Ch. 4: Igneous Rocks')).toBeGreaterThanOrEqual(0);
+    expect(lesson3Cell.indexOf('OpenStax Ch. 4: Igneous Rocks')).toBeLessThan(
+      lesson3Cell.indexOf('Volcanic hazards case packet'),
+    );
+  });
+
+  it('the wire map places session resources on the FIRST section of the due lesson', () => {
+    const wireMap = buildNativeWireMap(parsedSkeleton());
+    expect(wireMap.lessons[1].sections[0].supportingResources).toEqual(['Mineral ID lab worksheet']);
+    expect(wireMap.lessons[2].sections[0].supportingResources).toEqual(['Volcanic hazards case packet']);
+    expect(wireMap.lessons[2].sections[1].supportingResources).toBeUndefined();
+    expect(wireMap.lessons[0].sections[0].supportingResources).toBeUndefined();
+    // Skeletons stashed before the field existed stay safe.
+    const legacy = parsedSkeleton();
+    delete legacy.resources;
+    expect(() => buildNativeWireMap(legacy)).not.toThrow();
   });
 });
 

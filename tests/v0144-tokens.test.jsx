@@ -42,6 +42,7 @@ const OWNED_CHROME = [
   'src/components/ExportSidePanel.jsx',
   'src/components/ReviewQueue.jsx',
   'src/components/BuildRibbon.jsx',
+  'src/components/PrimaryCta.jsx',
   'src/components/WorkspaceQualityChip.jsx',
   'src/components/NoticeBanner.jsx',
   'src/components/PackageTrustStrip.jsx',
@@ -58,6 +59,7 @@ const NO_CAPS_FILES = [
   'src/components/ExportSidePanel.jsx',
   'src/components/ReviewQueue.jsx',
   'src/components/BuildRibbon.jsx',
+  'src/components/PrimaryCta.jsx',
   'src/components/WorkspaceQualityChip.jsx',
   'src/components/NoticeBanner.jsx',
   'src/components/chat/DigestCard.jsx',
@@ -188,6 +190,7 @@ describe('E2a — 12px text floor in owned workspace chrome', () => {
       'src/components/ExportSidePanel.jsx': 2, // quality stamp + P0/P1 severity code
       'src/components/ReviewQueue.jsx': 0,
       'src/components/BuildRibbon.jsx': 0,
+      'src/components/PrimaryCta.jsx': 0,
       'src/components/WorkspaceQualityChip.jsx': 1, // header trust-chip scale
       'src/components/NoticeBanner.jsx': 0,
       'src/components/PackageTrustStrip.jsx': 1, // header trust-chip scale

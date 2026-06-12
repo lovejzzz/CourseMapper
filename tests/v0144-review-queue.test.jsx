@@ -196,7 +196,7 @@ function buildFixtureQueue() {
 describe('buildReviewQueue — three classes from three entrances', () => {
   it('classes every source into observations / spotChecks / structural with honest counts', () => {
     const queue = buildFixtureQueue();
-    expect(queue.counts).toEqual({ observations: 2, spotChecks: 3, structural: 4 });
+    expect(queue.counts).toEqual({ sync: 0, observations: 2, spotChecks: 3, structural: 4 });
     expect(queue.total).toBe(9);
     // structural = 2 flagged warnings (info excluded) + 1 non-duplicate
     // export check (passed excluded, duplicate deduped) + 1 P2 finding (P1 excluded)
@@ -236,7 +236,7 @@ describe('buildReviewQueue — three classes from three entrances', () => {
     const confirmed = queue.classes.spotChecks.find((item) => item.sourceId === 'review-quizBank-0');
     expect(confirmed.reviewedAtSource).toBe(true);
     const outstanding = selectOutstandingQueue(queue, { reviewed: [], dismissed: [] });
-    expect(outstanding.counts).toEqual({ observations: 2, spotChecks: 2, structural: 4 });
+    expect(outstanding.counts).toEqual({ sync: 0, observations: 2, spotChecks: 2, structural: 4 });
   });
 
   it('handles empty / missing sources without throwing', () => {

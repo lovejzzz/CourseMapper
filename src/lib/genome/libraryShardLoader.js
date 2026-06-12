@@ -200,6 +200,16 @@ export function inferCourseDisciplines(courseMap) {
     ['nutrition', /\bnutrition|dietetic|macronutrient|micronutrient|dietary|food science|\bdiet\b/],
     ['bio', /\bbiolog|cell|genetic|ecolog|evolution|organism|physiolog|anatomy|homeostasis/],
     ['stats', /\bstatistic|probability|regression|inference|data analysis|hypothesis test/],
+    // V0.14.7 WS-E (E1): the math shard (OpenStax Calculus Volume 1 foundry
+    // run) — the live Calculus I course that linked 5/15 had no 'math' hint at
+    // all. Deliberately tight: "differentiation" requires the word boundary so
+    // "differentiated instruction" (teacher prep) and "cell differentiation"
+    // need calculus company before the shard loads; bare "integral" prose
+    // ("an integral part of…") never matches.
+    [
+      'math',
+      /\bcalculus|\bderivativ|\bantiderivativ|\bdifferentiation\b|\b(?:definite|indefinite) integral|\bintegrals\b|\blimit laws?\b|\blimits? of (?:a )?function|\bmathematic|\bprecalculus|\btrigonometr|\blinear algebra/,
+    ],
     ['chem', /\bchemistr|molecul|reaction|stoichiometr|equilibrium/],
     ['history', /\bhistory|historical|civilization|\bwar\b|revolution|primary source/],
     ['lit', /\bliterat|literary|poetry|poem|novel|fiction|close reading|rhetoric|composition/],

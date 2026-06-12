@@ -964,7 +964,7 @@ Generate lessons ${actual + 1} through ${expectedCount} now as JSON:`;
               recordApiCallEvent({
                 type: 'nativeSkeletonCall',
                 label: 'Native graph authoring — Pass A skeleton',
-                detail: `${currentModelName} · typed skeleton (sessions, assessments, readings)`,
+                detail: `${currentModelName} · typed skeleton (sessions, assessments, readings, resources)`,
               });
               const skeletonResult = await streamProvider(
                 provider,
@@ -988,6 +988,10 @@ Generate lessons ${actual + 1} through ${expectedCount} now as JSON:`;
               );
               const skeleton = parseNativeSkeletonResponse(skeletonResult?.fullText || '', {
                 expectedLessons: detected?.confidence === 'high' ? detected?.expected || null : null,
+                // v0.14.7 WS-B1: stamp the brief-side resource signal so the
+                // compile-stage missing-resources lint (resolveNativeAssembly)
+                // can hold Pass A to the transcription contract.
+                sourceText: skeletonSource,
               });
               const nativeMap = buildNativeWireMap(skeleton);
               // Hand the skeleton to the deliverables stage (Pass B + assembly).
@@ -1002,7 +1006,7 @@ Generate lessons ${actual + 1} through ${expectedCount} now as JSON:`;
               pushVersion(nativeMap, 'Initial generation (native graph authoring)');
               addLog(
                 currentModelName,
-                `Pass A skeleton: ${skeleton.sessions.length} sessions, ${skeleton.assessments.length} assessments, ${skeleton.readings.length} named readings`,
+                `Pass A skeleton: ${skeleton.sessions.length} sessions, ${skeleton.assessments.length} assessments, ${skeleton.readings.length} named readings, ${(skeleton.resources || []).length} resources`,
                 'success',
               );
               setCompletenessInfo({

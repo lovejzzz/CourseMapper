@@ -326,6 +326,9 @@ export default function Landing({
   onGenerate,
   canGenerate,
   isGenerating,
+  // v0.14.7 WS-F2: quick start — generate the full package with defaults,
+  // straight from the prompt box (skips FeatureSelect/Config).
+  onQuickStart,
   // Session restore
   hasSavedSession,
   onRestoreSession,
@@ -442,6 +445,11 @@ export default function Landing({
     },
     [setFiles],
   );
+
+  // v0.14.7 WS-F2: quick start shows only when there is a prompt to act on
+  // AND a stored API key ('coursemapper-apikey', surfaced via useAIConfig) —
+  // one decision to first value, defaults for everything else.
+  const canQuickStart = Boolean(onQuickStart) && promptText.trim().length > 0 && Boolean(apiKey?.trim());
 
   // Build a summary label for the collapsed AI config bar
   const configSummaryLabel = (() => {
@@ -749,13 +757,30 @@ export default function Landing({
                   </span>
                 ) : (
                   <span className="flex items-center justify-center gap-2.5">
-                    Continue
+                    {canQuickStart ? 'Adjust setup' : 'Continue'}
                     <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" />
                     </svg>
                   </span>
                 )}
               </button>
+
+              {canQuickStart && (
+                <>
+                  <button
+                    type="button"
+                    data-testid="landing-quick-start"
+                    onClick={() => onQuickStart(promptText)}
+                    disabled={isGenerating}
+                    className="tactile mt-3 w-full rounded-lg border border-slate-200 bg-white/80 px-8 py-3 text-sm font-semibold text-slate-700 transition-all duration-200 hover:border-blue-200 hover:bg-blue-50 hover:text-blue-600 disabled:cursor-not-allowed disabled:opacity-50 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200 dark:hover:border-blue-400/40 dark:hover:bg-blue-400/10 dark:hover:text-blue-200"
+                  >
+                    Generate with defaults
+                  </button>
+                  <p className="mt-1.5 text-center text-xs text-slate-500 dark:text-slate-400">
+                    Quick start — every deliverable, default settings, straight to the workspace.
+                  </p>
+                </>
+              )}
             </section>
           </div>
         </div>

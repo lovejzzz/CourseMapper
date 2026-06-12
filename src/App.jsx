@@ -63,6 +63,13 @@ export default function App() {
     startFlow({ type: 'continue' }, 'features');
   }, [startFlow]);
 
+  // v0.14.7 WS-F2: quick start from the primary landing — one decision to
+  // first value. promptText/files live in shared context, so the flow reads
+  // them after mount; the action just names the intent.
+  const handleQuickStart = useCallback(() => {
+    startFlow({ type: 'quickStart' });
+  }, [startFlow]);
+
   const handleRestoreSession = useCallback(() => {
     startFlow({ type: 'restore' });
   }, [startFlow]);
@@ -126,6 +133,7 @@ export default function App() {
       <Suspense fallback={<LoadingScreen />}>
         <Landing
           onGenerate={handleContinue}
+          onQuickStart={handleQuickStart}
           canGenerate={
             (files.length > 0 || promptText.trim().length > 0) &&
             apiKey.trim() &&

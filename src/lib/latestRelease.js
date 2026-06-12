@@ -8,13 +8,13 @@
  * the three screen footers, and the Changelog entry.
  */
 export const LATEST_RELEASE = {
-  version: '0.14.6',
+  version: '0.14.7',
   date: 'June 12, 2026',
-  title: 'Calm finish: the status that tells the truth',
+  title: 'Convergence: one graph, one machine, one voice',
   highlights: [
-    'The build ribbon never checks a step that has not run: generation and the finish pass are now distinct phases, so Compile stops wearing a green check while the map is still streaming, the header stops claiming "Grading…" before anything exists, and the agent panel says "Building package" until finishing actually starts',
-    'The ready state calmed down: the agent panel\'s receipt wall shrinks to what the chips don\'t already say, "Worth a look" becomes a one-line entry into the review queue instead of a second reading surface, and every count speaks one language — materials',
-    'Exam banks rotate their correct-option phrasing across covered lessons, so a 15-lesson comprehensive final no longer stamps one sentence pattern 15 times into a single section',
-    'Long Evaluate Design verdicts clamp to their first check behind a "Show all N checks" toggle — a course-level audit row no longer blows the table open',
+    'Sync became the star: edits are checked by RECOMPILING the package and diffing against what you have — the approval card shows exactly what will change, the syllabus is never silently left behind, synced lessons keep their subject-matter kernels, and every sync ends with a fresh quality grade',
+    'Quick start: describe your course on the landing page and generate with defaults in one click — a live six-lesson course went prompt-to-100/A in 68 seconds',
+    'Native graph authoring closed its last gap (supporting-resource transcription) and met its quality bar live: 100/A with zero findings at 22% lower cost; prose enrichment now runs its model calls in parallel (−34% wall-clock)',
+    'The genome learned math (22 OpenStax-cited calculus concepts — Calculus I now links 15/15 lessons), the grader gained a calibrated texture dimension, and a flag-gated voice pass shipped honestly: its first proof round FAILED its bar, so it stays off by default',
   ],
 };

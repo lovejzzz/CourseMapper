@@ -5,9 +5,9 @@
  * The model authors typed graph entities natively instead of spreadsheet
  * prose:
  *  - Pass A (useGeneration, ONE low-reasoning call): syllabus → typed
- *    skeleton ({ course, sessions, assessments, readings } with ids) —
- *    parsed here with a degraded-plan guard (malformed → typed error → the
- *    caller falls back to the prose path LOUDLY, budget event
+ *    skeleton ({ course, sessions, assessments, readings, resources } with
+ *    ids) — parsed here with a degraded-plan guard (malformed → typed error
+ *    → the caller falls back to the prose path LOUDLY, budget event
  *    'nativeAuthoringFellBack'; never silent).
  *  - Pass B (useDeliverables, parallel batched calls): outcomes + kernel
  *    content authored ONTO Pass A's session ids, riding the EXISTING kernel
@@ -104,6 +104,27 @@ function extractJsonObject(text) {
 
 const SKELETON_ASSESSMENT_KINDS = new Set(['graded-artifact', 'in-class', 'exam', 'oral']);
 
+// ── v0.14.7 WS-B1: the brief-side resource signal ───────────────────────────
+// The prose path's supportingResources handling speaks a concrete-materials
+// vocabulary: the column contract names "readings, articles, videos, textbook
+// chapters, and other materials" extracted from the syllabus (prompts.js
+// DEFAULT_COLUMN_DEFS.supportingResources), and the lab-asset classifier keys
+// on session-materials nouns — kits, manuals, handouts (requiredLabAssets.js).
+// This regex is that same signal applied to the SOURCE text: deliberately
+// conservative (bare topic words like "software" or "templates" stay out —
+// a C++ brief must not trip it). A false positive only costs one run's
+// native savings (the loud prose fallback); a false negative ships the
+// "unresolved source placeholder" P1 class, 66 findings in the last
+// side-by-side round.
+const BRIEF_RESOURCE_CUE_RE =
+  /\b(?:hand-?outs?|worksheets?|problem sets?|labs?|laboratory|kits?|data ?sets?|starter (?:code|notebooks?|files?)|course (?:packets?|readers?)|case packets?|textbooks?|lecture slides?|slide decks?|study guides?|(?:required|assigned) (?:readings?|texts?))\b/i;
+
+/** True when the source brief/course text names supporting resources or
+ *  materials the skeleton is expected to transcribe. */
+export function briefNamesResources(sourceText) {
+  return BRIEF_RESOURCE_CUE_RE.test(String(sourceText || ''));
+}
+
 // ── B1: Pass A parser ───────────────────────────────────────────────────────
 
 /**
@@ -113,12 +134,19 @@ const SKELETON_ASSESSMENT_KINDS = new Set(['graded-artifact', 'in-class', 'exam'
  * Throws NativeAuthoringError on anything structurally unusable — the
  * caller turns that into the loud prose fallback.
  *
+ * v0.14.7 WS-B1: `sourceText` (when provided) stamps the skeleton with the
+ * brief-side resource signal (`sourceNamesResources`) so the compile-stage
+ * lint in resolveNativeAssembly can compare what the brief names against
+ * what Pass A transcribed — the seam itself never sees the brief.
+ *
  * @returns {{ course: { name, term, goals: string[] },
  *   sessions: [{ id, order, title, sectionTitles: string[] }],
  *   assessments: [{ id, title, kind?, dueSession, weightPct? }],
- *   readings: [{ id, title, dueSession }] }}
+ *   readings: [{ id, title, dueSession }],
+ *   resources: [{ id, title, dueSession }],
+ *   sourceNamesResources?: boolean }}
  */
-export function parseNativeSkeletonResponse(text, { expectedLessons = null } = {}) {
+export function parseNativeSkeletonResponse(text, { expectedLessons = null, sourceText = null } = {}) {
   const parsed = extractJsonObject(text);
   if (!parsed) throw new NativeAuthoringError('skeleton-unparseable', 'Pass A returned no parseable JSON object');
   if (!Array.isArray(parsed.sessions) || parsed.sessions.length === 0) {
@@ -185,6 +213,17 @@ export function parseNativeSkeletonResponse(text, { expectedLessons = null } = {
     })
     .filter(Boolean);
 
+  // v0.14.7 WS-B1: per-session supporting resources/materials — same shape
+  // and discipline as readings (verbatim titles, clamped dueSession, ids
+  // defaulted "m1"… from order).
+  const resources = asArray(parsed.resources)
+    .map((entry, index) => {
+      const title = cleanText(entry?.title, 240);
+      if (!title) return null;
+      return { id: cleanText(entry?.id, 24) || `m${index + 1}`, title, dueSession: clampDue(entry?.dueSession) };
+    })
+    .filter(Boolean);
+
   return {
     course: {
       name: cleanText(parsed.course?.name, 160) || 'Untitled Course',
@@ -197,6 +236,13 @@ export function parseNativeSkeletonResponse(text, { expectedLessons = null } = {
     sessions,
     assessments,
     readings,
+    resources,
+    // Only stamped when the caller supplied the brief text — absent means
+    // "signal unknown" and the missing-resources lint stays un-armed (old
+    // call sites and stashed skeletons keep today's behavior exactly).
+    ...(typeof sourceText === 'string' && sourceText.length > 0
+      ? { sourceNamesResources: briefNamesResources(sourceText) }
+      : {}),
   };
 }
 
@@ -242,6 +288,14 @@ export function buildNativeWireMap(skeleton, passBBySession = {}) {
     const syncSlices = distributeAcross(authored.syncActivities, sectionTitles.length);
     const sessionAssessments = skeleton.assessments.filter((entry) => entry.dueSession === session.order);
     const sessionReadings = skeleton.readings.filter((entry) => entry.dueSession === session.order);
+    // v0.14.7 WS-B1: transcribed supporting materials ride the first
+    // section's supportingResources cell (same first-section convention as
+    // assessments/readings). deriveCourseGraphFromCourseMap mints them as
+    // syllabus-origin Resource entities; the graph render writes them back
+    // into every derived map's supportingResources cells, so the compiler's
+    // resource surface is never empty when the source named materials — the
+    // "Instructor-provided course materials" placeholder class dies here.
+    const sessionResources = asArray(skeleton.resources).filter((entry) => entry.dueSession === session.order);
 
     const sections = sectionTitles.map((title, sectionIndex) => ({
       topicSection: `${session.order}.${sectionIndex + 1}: ${title}`,
@@ -257,6 +311,9 @@ export function buildNativeWireMap(skeleton, passBBySession = {}) {
       ...(syncSlices[sectionIndex].length > 0 ? { syncActivities: syncSlices[sectionIndex] } : {}),
       ...(sectionIndex === 0 && sessionReadings.length > 0
         ? { readings: sessionReadings.map((reading) => reading.title) }
+        : {}),
+      ...(sectionIndex === 0 && sessionResources.length > 0
+        ? { supportingResources: sessionResources.map((resource) => resource.title) }
         : {}),
     }));
 
@@ -466,6 +523,26 @@ export function resolveNativeAssembly({ skeleton, passBBySession = {} }) {
         ok: false,
         code: 'degenerate-skeleton',
         reason: `degenerate-skeleton (${assessmentCount} assessment${assessmentCount === 1 ? '' : 's'} for ${graph.sessions.length} lessons)`,
+        fallbackMap: courseMap,
+      };
+    }
+    // v0.14.7 WS-B1: the resource-transcription lint. The last side-by-side
+    // round's ONLY P1 class (66 "unresolved source placeholder" findings)
+    // was Pass A transcribing no supporting resources while the brief named
+    // them — every resource surface then compiled to the placeholder. When
+    // the brief carried the resource signal (stamped at parse time) and the
+    // skeleton transcribed NOTHING into either registry — readings count
+    // too, because the graph render leads supportingResources cells with
+    // registry readings — the skeleton is not a faithful transcription:
+    // same loud fellBack → prose-repair path as the degenerate gate.
+    if (
+      skeleton?.sourceNamesResources === true &&
+      asArray(skeleton.resources).length + asArray(skeleton.readings).length === 0
+    ) {
+      return {
+        ok: false,
+        code: 'missing-resources',
+        reason: 'missing-resources (brief names resources, skeleton has none)',
         fallbackMap: courseMap,
       };
     }

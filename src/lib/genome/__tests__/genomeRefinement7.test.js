@@ -53,7 +53,9 @@ describe('iteration 7 — genome spans 6 disciplines', () => {
     const disciplines = new Set(manifest.shards.map((s) => s.discipline));
     // v0.13.3: astronomy joined; v0.13.5: psychology, nursing, and nutrition
     // (the Open Knowledge Backbone flagship shards) joined; v0.14.1: cs and geo
-    // joined (the two disciplines the V0.14 four-course audit found uncovered).
+    // joined (the two disciplines the V0.14 four-course audit found uncovered);
+    // V0.14.7 WS-E E1: math joined (OpenStax Calculus Volume 1 — the live
+    // Calculus I course that linked only 5/15).
     expect(disciplines).toEqual(
       new Set([
         'astro',
@@ -68,6 +70,7 @@ describe('iteration 7 — genome spans 6 disciplines', () => {
         'nutrition',
         'cs',
         'geo',
+        'math',
       ]),
     );
   });

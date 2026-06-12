@@ -18,6 +18,9 @@ const PROVIDER_CALL_COUNTERS = [
   'nativeSkeletonCalls',
   'deliverableChunkCalls',
   'blueprintEnrichmentCalls',
+  // v0.14.7 WS-D2: the voice pass — flag-gated post-compile rewrite batches;
+  // real provider calls, counted like enrichment.
+  'voicePassCalls',
   'repairRetryCalls',
   'streamRetryCalls',
   'providerFallbackCalls',
@@ -63,6 +66,10 @@ export function createApiCallBudget(overrides = {}) {
     nativeSkeletonCalls: overrides.nativeSkeletonCalls || 0,
     deliverableChunkCalls: overrides.deliverableChunkCalls || 0,
     blueprintEnrichmentCalls: overrides.blueprintEnrichmentCalls || 0,
+    // v0.14.7 WS-D2: listed in this constructor EXPLICITLY (the budget
+    // constructor whitelist trap) — any field not rebuilt here is silently
+    // dropped by the next event.
+    voicePassCalls: overrides.voicePassCalls || 0,
     // CurriculumOS V1: genome links are NOT provider calls (kept out of
     // PROVIDER_CALL_COUNTERS) but tracked so the cost report can show free hits.
     genomeLinkEvents: overrides.genomeLinkEvents || 0,
@@ -129,6 +136,8 @@ function counterForType(type) {
       return 'deliverableChunkCalls';
     case 'blueprintEnrichmentCall':
       return 'blueprintEnrichmentCalls';
+    case 'voicePassCall':
+      return 'voicePassCalls';
     case 'genomeLink':
       return 'genomeLinkEvents';
     case 'repairRetryCall':

@@ -5,6 +5,7 @@ import {
   compileBlueprintDeliverables,
   isBlueprintCompiledFeature,
 } from './courseBlueprintCompiler';
+import { attachEnrichmentToGraph, buildBlueprintFromGraph, deriveCourseGraphFromCourseMap } from './courseGraph';
 
 function cleanText(value, fallback = '') {
   return String(value ?? fallback)
@@ -27,26 +28,42 @@ function getCourseLessonTitle(courseMap, lessonIndex) {
   );
 }
 
-function getItemLessonNumbers(item) {
-  const values = [
-    item?.lessonNumber,
-    item?.lessonIndex != null ? Number(item.lessonIndex) + 1 : null,
-    item?.week,
-    item?.weekNumber,
-    item?.lesson,
-    item?.module,
-    item?.title,
-    item?.lessonTitle,
-    item?.topic,
-    item?.name,
-  ];
-  const numbers = [];
-  for (const value of values) {
+/**
+ * v0.14.7 WS-G5: identity before content. Compiled items carry numeric
+ * lesson identity (lessonNumber/lessonIndex) and registry ids ("A7.2" →
+ * session 7); those are checked FIRST. The title-text regex survives only
+ * as a last resort for legacy data, and callers can tell which tier
+ * matched via getItemLessonIdentity().tier ('id' | 'text' | 'none').
+ */
+function getItemLessonIdentity(item) {
+  const idNumbers = [];
+  for (const value of [item?.lessonNumber, item?.week, item?.weekNumber]) {
+    const n = Number(value);
+    if (Number.isFinite(n) && n > 0) idNumbers.push(n);
+  }
+  if (item?.lessonIndex != null) {
+    const n = Number(item.lessonIndex) + 1;
+    if (Number.isFinite(n) && n > 0) idNumbers.push(n);
+  }
+  // Registry ids: "A7.2" / "R8.1" → session number is the integer part.
+  for (const value of [item?.assessmentId, item?.registryId, item?.readingId]) {
+    const match = String(value ?? '').match(/^[A-Z](\d{1,2})\./);
+    if (match) idNumbers.push(Number(match[1]));
+  }
+  if (idNumbers.length > 0) return { tier: 'id', numbers: [...new Set(idNumbers)] };
+
+  const textNumbers = [];
+  for (const value of [item?.lesson, item?.module, item?.title, item?.lessonTitle, item?.topic, item?.name]) {
     const text = String(value ?? '');
     const match = text.match(/\b(?:lesson|week|module)?\s*(\d{1,2})\b/i);
-    if (match) numbers.push(Number(match[1]));
+    if (match) textNumbers.push(Number(match[1]));
   }
-  return [...new Set(numbers.filter((n) => Number.isFinite(n) && n > 0))];
+  const numbers = [...new Set(textNumbers.filter((n) => Number.isFinite(n) && n > 0))];
+  return { tier: numbers.length > 0 ? 'text' : 'none', numbers };
+}
+
+function getItemLessonNumbers(item) {
+  return getItemLessonIdentity(item).numbers;
 }
 
 function collectLessonIdentityText(item) {
@@ -66,31 +83,91 @@ function collectLessonIdentityText(item) {
     .join(' ');
 }
 
-function itemMatchesLesson(item, lessonNumber, normalizedLessonTitle) {
-  const numbers = getItemLessonNumbers(item);
-  if (numbers.includes(lessonNumber)) return true;
-  if (!normalizedLessonTitle) return false;
-  return normalizeLessonMatch(collectLessonIdentityText(item)).includes(normalizedLessonTitle);
+function itemMatchesLesson(item, lessonNumber, normalizedLessonTitle, { onTextTierMatch } = {}) {
+  const identity = getItemLessonIdentity(item);
+  // Tier 1 — numeric/registry identity: authoritative in both directions.
+  if (identity.tier === 'id') return identity.numbers.includes(lessonNumber);
+  // Tier 2 — legacy text matching, loud when it decides anything.
+  const textMatched =
+    identity.numbers.includes(lessonNumber) ||
+    (Boolean(normalizedLessonTitle) &&
+      normalizeLessonMatch(collectLessonIdentityText(item)).includes(normalizedLessonTitle));
+  if (textMatched && typeof onTextTierMatch === 'function') onTextTierMatch(item);
+  return textMatched;
 }
 
-export function buildCompiledLessonPatchData(featureId, compiledData, courseMap, lessonIndex) {
+export function buildCompiledLessonPatchData(featureId, compiledData, courseMap, lessonIndex, options = {}) {
   if (!compiledData) return null;
   const compiledKey = getArrayKey(featureId, compiledData);
   if (!compiledKey) return compiledData;
   const compiledItems = compiledData?.[compiledKey] || [];
   const lessonNumber = lessonIndex + 1;
   const normalizedLessonTitle = normalizeLessonMatch(getCourseLessonTitle(courseMap, lessonIndex));
-  const lessonItems = compiledItems.filter((item) => itemMatchesLesson(item, lessonNumber, normalizedLessonTitle));
+  const lessonItems = compiledItems.filter((item) =>
+    itemMatchesLesson(item, lessonNumber, normalizedLessonTitle, { onTextTierMatch: options.onTextTierMatch }),
+  );
   const patchItems =
     lessonItems.length > 0 ? lessonItems : compiledItems[lessonIndex] ? [compiledItems[lessonIndex]] : [];
   return patchItems.length > 0 ? { ...compiledData, [compiledKey]: patchItems } : null;
 }
 
-export function compileBlueprintLessonPatch({ featureId, courseMap, lessonIndex, config, instructorPreferences }) {
+/**
+ * v0.14.7 WS-G1: the sync compile keeps its subject matter.
+ *
+ * The original implementation compiled the bare prose blueprint — never
+ * merging the enrichment kernels — so every compiler-synced lesson silently
+ * regressed from subject-matter-grounded content to the mail-merge tier
+ * (audit §2.9, the exact defect class v0.12.1/v0.14.1 were fought over).
+ * Kernels now come from two tiers: the stored graph enrichment overlay
+ * (this session's generation) and the fingerprint-keyed lesson kernel cache
+ * (survives reloads; an edited lesson's changed fingerprint MISSES, which is
+ * the correct invalidation — the caller may then refresh that one kernel).
+ *
+ * Returns { data, lessonEnriched, enrichedLessonCount } — `data` is the
+ * per-lesson patch; `lessonEnriched` says whether THIS lesson compiled with
+ * its kernel (the G1 honesty gate reads it; a false is loud, never silent).
+ */
+export function compileBlueprintLessonPatch({
+  featureId,
+  courseMap,
+  lessonIndex,
+  config,
+  instructorPreferences,
+  enrichmentOverlay = null,
+  kernelCache = null,
+  onTextTierMatch = null,
+}) {
   if (!isBlueprintCompiledFeature(featureId)) return null;
-  const blueprint = compactBlueprintForStorage(buildCourseBlueprint(courseMap, { instructorPreferences }));
+
+  const lessonContent = { ...(enrichmentOverlay?.lessonContent || {}) };
+  if (kernelCache) {
+    (courseMap?.lessons || []).forEach((lesson, idx) => {
+      const lessonId = `lesson-${idx + 1}`;
+      if (lessonContent[lessonId]) return;
+      const cached = typeof kernelCache.get === 'function' ? kernelCache.get(lesson) : null;
+      if (cached) lessonContent[lessonId] = cached;
+    });
+  }
+  const enrichedLessonCount = Object.keys(lessonContent).length;
+  const lessonEnriched = Boolean(lessonContent[`lesson-${lessonIndex + 1}`]);
+
+  let blueprint;
+  if (enrichedLessonCount > 0) {
+    const graph = deriveCourseGraphFromCourseMap(courseMap);
+    attachEnrichmentToGraph(graph, {
+      ...(enrichmentOverlay && typeof enrichmentOverlay === 'object' ? enrichmentOverlay : {}),
+      lessonContent,
+    });
+    blueprint = compactBlueprintForStorage(buildBlueprintFromGraph(graph, { instructorPreferences }));
+  } else {
+    blueprint = compactBlueprintForStorage(buildCourseBlueprint(courseMap, { instructorPreferences }));
+  }
   const compiled = compileBlueprintDeliverables(blueprint, [featureId], {
     configMap: { [featureId]: config || {} },
   });
-  return buildCompiledLessonPatchData(featureId, compiled?.[featureId], courseMap, lessonIndex);
+  const data = buildCompiledLessonPatchData(featureId, compiled?.[featureId], courseMap, lessonIndex, {
+    onTextTierMatch,
+  });
+  if (!data) return null;
+  return { data, lessonEnriched, enrichedLessonCount };
 }

@@ -365,6 +365,7 @@ export async function runCourseInBrowser({
   // app runs the Pass A/B graph-authoring path; 'prose'/undefined seeds
   // nothing (absence IS the prose default — readAuthoringMode()).
   authoringMode,
+  voiceMode, // v0.14.7 WS-D3: seeds 'coursemapper-voice-pass' when 'on'
   // V0.14.5 WS-E (E1): which provider the app should run against. Seeds
   // 'coursemapper-provider' plus the provider-scoped key slot the app reads
   // (src/contexts/AIConfigContext.jsx getSavedApiKeyForProvider).
@@ -420,7 +421,7 @@ export async function runCourseInBrowser({
     phase = 'loading-landing';
     // localStorage seeding borrowed from scripts/liveBrowserQualityLoop.mjs (runCourse).
     await page.addInitScript(
-      ({ key, selectedModelId, selectedModelName, authoring, selectedProvider }) => {
+      ({ key, selectedModelId, selectedModelName, authoring, voice, selectedProvider }) => {
         localStorage.clear();
         sessionStorage.clear();
         // E1: the app reads the provider from 'coursemapper-provider' and the
@@ -433,12 +434,14 @@ export async function runCourseInBrowser({
         localStorage.setItem('coursemapper-modelname', selectedModelName);
         // WS-B3: only 'native' is ever written — absence is the prose default.
         if (authoring === 'native') localStorage.setItem('coursemapper-authoring-mode', 'native');
+        if (voice === 'on') localStorage.setItem('coursemapper-voice-pass', 'on');
       },
       {
         key: apiKey,
         selectedModelId: modelId,
         selectedModelName: modelName || modelDisplayName(modelId),
         authoring: authoringMode || null,
+        voice: voiceMode || null,
         selectedProvider: provider || 'openai',
       },
     );

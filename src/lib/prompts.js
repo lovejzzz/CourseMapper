@@ -368,9 +368,12 @@ Generate the complete Course Map JSON now:`;
 // ── v0.14.5 WS-B (B1): native graph authoring — Pass A ─────────────────────
 // One LOW-reasoning call: syllabus → typed skeleton emitted as entity JSON
 // with ids, not spreadsheet prose (the V0.13 deferred contract). The skeleton
-// carries STRUCTURE only — sessions, course goals, the assessment plan, and
-// instructor-named readings (the WS-A registry shares this shape). All
-// disciplinary substance (outcomes, kernels, activities) is Pass B's job.
+// carries STRUCTURE only — sessions, course goals, the assessment plan,
+// instructor-named readings (the WS-A registry shares this shape), and
+// per-session supporting resources/materials (v0.14.7 WS-B1: the gap that
+// produced 66 "unresolved source placeholder" P1s — empty resource surfaces
+// compile to the placeholder the quality gate flags). All disciplinary
+// substance (outcomes, kernels, activities) is Pass B's job.
 //
 // Traceability mirrors the lean contract's hard rules (LEAN_READINGS_DEF):
 // titles are VERBATIM as the source names them, never invented, omitted when
@@ -388,15 +391,19 @@ Return ONLY one valid JSON object, no markdown and no commentary, in exactly thi
   ],
   "readings": [
     { "id": "r1", "title": "Reading/work title VERBATIM as named in the source", "dueSession": 8 }
+  ],
+  "resources": [
+    { "id": "m1", "title": "Supporting material/resource title VERBATIM as named in the source", "dueSession": 5 }
   ]
 }
 
 RULES:
 1. Sessions: one entry per week/lesson/session, ids "s1", "s2", ... in order. Cover the WHOLE course.
-2. HARD TRACEABILITY: assessment and reading titles must be VERBATIM from the source — never invent, never normalize, never shorten a title. Omit "readings" entries (or the array) entirely when the source names no specific works. kind and weightPct only when the source supports them; omit otherwise.
+2. HARD TRACEABILITY: assessment, reading, and resource titles must be VERBATIM from the source — never invent, never normalize, never shorten a title. Omit "readings" entries (or the array) entirely when the source names no specific works. kind and weightPct only when the source supports them; omit otherwise.
 3. dueSession is the 1-based session number the item belongs to. When the source gives no week, attach it to the most plausible session from context.
 4. RECURRING ASSESSMENTS: when the source states a recurring cadence ("weekly autograded quizzes", "weekly labs", "weekly reading responses"), expand it into one assessments[] entry PER SESSION it applies to — title each "<cadence artifact>: <that session's topic>" (e.g. "Autograded quiz: while loops") with the cadence's kind. Expanding a stated cadence is transcription of the assessment PLAN, not invention; one-off named titles stay verbatim under rule 2. The full assessments[] array must cover the whole plan: most courses carry at least one entry per teaching session, so if your array has fewer entries than sessions, re-read the source for a stated cadence before returning.
-5. Keep it compact: short strings, no prose sentences, no explanations.`;
+5. SUPPORTING RESOURCES: "resources" carries the per-session supporting materials the source names (handouts, worksheets, lab sheets, kits, datasets, starter code, slides, study guides) — assigned works/readings stay in "readings", never duplicated here. One-off named materials stay verbatim under rule 2. When the source states a recurring materials cadence ("weekly lab handouts", "weekly labs using hand-specimen kits"), expand it into one resources[] entry PER SESSION it applies to — title each "<cadence material>: <that session's topic>" (e.g. "Lab handout: mineral identification") — the same discipline as rule 4: expanding a stated cadence is transcription of the materials PLAN, not invention. Omit "resources" entries (or the array) entirely when the source names no supporting materials.
+6. Keep it compact: short strings, no prose sentences, no explanations.`;
 
 /**
  * Pass A user prompt. MUST contain the word "JSON" (the v0.13.1 json_object

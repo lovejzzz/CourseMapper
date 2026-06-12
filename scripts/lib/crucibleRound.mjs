@@ -768,6 +768,36 @@ export function renderJudgeSection(judge) {
 export const AUTHORING_SCORE_TOLERANCE = 2;
 export const AUTHORING_COST_CUT_TARGET = 0.2;
 
+/** v0.14.7 WS-D3: --voice off|on|both (default 'off'); anything else throws. */
+export function parseVoiceFlag(raw) {
+  if (raw === undefined || raw === null || raw === true || raw === '') return 'off';
+  const value = String(raw).toLowerCase();
+  if (value === 'off' || value === 'on' || value === 'both') return value;
+  throw new Error(`--voice must be off, on, or both (got "${raw}")`);
+}
+
+/**
+ * Expand the course list for a voice round (mirrors the authoring expansion:
+ * default 'off' keeps run-dir naming EXACTLY; 'on'/'both' suffix the run
+ * dirs — course--quiet / course--voiced — and carry { baseId, voice } so
+ * twins stay pairable). Apply AFTER the authoring expansion.
+ */
+export function expandCoursesForVoice(courses, voice = 'off') {
+  const list = Array.isArray(courses) ? courses : [];
+  if (voice === 'off') {
+    return list.map((course) => ({ ...course, voice: 'off' }));
+  }
+  const modes = voice === 'both' ? ['off', 'on'] : [voice];
+  return list.flatMap((course) =>
+    modes.map((mode) => ({
+      ...course,
+      id: `${course.id}--${mode === 'on' ? 'voiced' : 'quiet'}`,
+      baseId: course.baseId || course.id,
+      voice: mode,
+    })),
+  );
+}
+
 /** --authoring prose|native|both (default 'prose'); anything else throws. */
 export function parseAuthoringFlag(raw) {
   if (raw === undefined || raw === null || raw === true || raw === '') return 'prose';

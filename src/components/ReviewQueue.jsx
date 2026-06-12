@@ -42,7 +42,16 @@ export function dispatchReviewJump(item) {
   return true;
 }
 
-export default function ReviewQueue({ open, queue, progress, focusItemId = null, onClose, onMark }) {
+export default function ReviewQueue({
+  open,
+  queue,
+  progress,
+  focusItemId = null,
+  onClose,
+  onMark,
+  // v0.14.7 WS-G4: sync items are ACTIONS — approving executes the plan.
+  onExecuteSync = null,
+}) {
   const items = useMemo(() => flattenReviewQueue(queue), [queue]);
   const [currentId, setCurrentId] = useState(null);
 
@@ -219,6 +228,16 @@ export default function ReviewQueue({ open, queue, progress, focusItemId = null,
                           {item.detail && <p className="mt-0.5 text-xs leading-snug text-slate-400">{item.detail}</p>}
                         </button>
                         <div className="mt-1.5 flex items-center gap-1.5">
+                          {item.classKey === 'sync' && typeof onExecuteSync === 'function' && (
+                            <button
+                              type="button"
+                              data-testid="review-queue-sync-now"
+                              onClick={() => onExecuteSync(item)}
+                              className="rounded-md bg-indigo-600 px-2 py-0.5 text-xs font-bold text-white transition-colors hover:bg-indigo-700"
+                            >
+                              Sync now
+                            </button>
+                          )}
                           {item.target ? (
                             <button
                               type="button"

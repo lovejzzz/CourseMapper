@@ -148,6 +148,9 @@ function pipelineLines(pipeline = {}) {
     courseGraph: 'course graph',
     knowledgeBackbone: 'knowledge backbone',
     judgment: 'course judgment',
+    // v0.14.7 WS-D4: the voice pass discloses itself in the digest pipeline
+    // ("voice pass: voiced N surface(s), M fallback(s) (~$X)").
+    voicePass: 'voice pass',
   };
   return Object.entries(pipeline).map(([stage, detail]) => `  ${labels[stage] || stage}: ${detail}`);
 }

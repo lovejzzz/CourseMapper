@@ -3,6 +3,20 @@ import Header from '../components/Header';
 
 const releases = [
   {
+    version: '0.14.7',
+    date: 'June 12, 2026',
+    title: 'Convergence: one graph, one machine, one voice',
+    highlights: [
+      'Sync as a star feature: the blast radius of an edit is computed by recompiling the package (~0.5s) and diffing against current state by registry identity — the syllabus rejoins the radius (its grading table was silently excluded from every per-lesson plan), synced lessons keep their knowledge kernels (with a one-call refresh when an edit invalidates one, disclosed), the approval surfaces (chat card + review queue) preview exactly what will change before you click, and every executed sync re-runs the quality grade — a stale seal is now unrepresentable.',
+      'One pipeline machine: a single derivePipelineState selector now owns every phase decision (mapping → enriching → compiling → verifying → ready/blocked/syncing); the ribbon, chip, buttons, and agent panel all render machine state, pinned by a 12-state matrix test.',
+      'One verb: the header carries a morphing primary action — Building… → Review N → Download ZIP — with Finish package and Save .coursemapper under one More menu. Quick start on the landing page generates with defaults in one click (live proof: prompt → 100/A package in 68s).',
+      'Native authoring met its bar live: Pass A now transcribes supporting resources (the gap behind 66 placeholder findings), and the side-by-side round scored 100/A vs 100/A with zero P1s at 22% lower cost. Prose enrichment calls run in parallel (117s vs a 178s baseline). The default flip awaits the second-day round per the standing bar.',
+      'The genome learned math: 22 OpenStax Calculus concepts with verified citations; a Calculus I course links 15/15 lessons (was 5/15). On-miss kernel extraction shipped flag-gated with provider-verified citations only.',
+      'Quality measurement grew a texture dimension (slot-masked cross-document sameness, opener variety, template tails) — advisory weight 0, calibrated so templated docs score 10 and varied docs 100. The voice pass shipped flag-gated and its first live proof round honestly FAILED its bar (judge 3/10 voiced vs 4/10 quiet, over budget) — the default stays off, which is the bar system working.',
+      'Mobile: the ribbon’s ready-state chips no longer push the page wide at phone widths.',
+    ],
+  },
+  {
     version: '0.14.6',
     date: 'June 12, 2026',
     title: 'Calm finish: the status that tells the truth',

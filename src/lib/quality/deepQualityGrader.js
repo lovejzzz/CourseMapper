@@ -70,6 +70,8 @@ import {
   matchesKnownOffender,
   blacklistYieldsToTopicalOverlap as offenderYieldsToTopicalOverlap,
 } from './artifactDefectPatterns.js';
+// V0.14.7 WS-D D1: the advisory texture metric (weight 0).
+import { computeTexture, textureDocsFromFiles, buildTextureAdvisories, TEXTURE_VERSION } from './textureMetric.js';
 
 // v0.14.3 WS-A A3: the grader version stamped into manifest.quality. Bump on
 // any change to checks, weights, or severity penalties so a package's quality
@@ -85,9 +87,20 @@ import {
 // visuals, so stored Crucible rounds stay quiet; armed packages take a P2
 // per enriched deck (kernel-derived slides present) that renders zero
 // native visuals.
-export const GRADER_VERSION = '1.2.0';
+// 1.3.0 — V0.14.7 WS-D (D1): 'texture' joins as an ADVISORY dimension at
+// WEIGHT 0 (templated-ness made measurable: slot-masked cross-document
+// shingle sameness, sentence-opener variety, template-tail frequency —
+// textureMetric.js). Weight 0 + a separate advisory list (never the
+// findings list) means no existing dimension score, severity count,
+// deduction, or overall grade changes — it only ADDS the texture row to
+// the report's dimension table and result.texture to the grade object.
+export const GRADER_VERSION = '1.3.0';
 
 // ── Dimension weights & letter bands (documented in the module header) ──────
+// texture (V0.14.7 WS-D D1) is ADVISORY: weight 0 keeps the overall score
+// byte-identical to grader 1.2.0; its score comes from textureMetric.js, not
+// from findings deductions, and its advisories live in result.texture (never
+// the findings list). Calibrate before any weight > 0 (the v0.14.3 trap).
 export const DIMENSION_WEIGHTS = {
   identity: 20,
   substance: 20,
@@ -97,6 +110,7 @@ export const DIMENSION_WEIGHTS = {
   consistency: 10,
   structure: 10,
   format: 5,
+  texture: 0,
 };
 const SEVERITY_PENALTY = { P0: 25, P1: 8, P2: 3 };
 const DIMENSIONS = Object.keys(DIMENSION_WEIGHTS);
@@ -2816,6 +2830,17 @@ export async function grade({
   // silent for packages exported before the visual layer existed.
   checkDeckVisuals(findings, pkg);
 
+  // V0.14.7 WS-D D1 — texture, the advisory dimension (weight 0). Known slot
+  // values (course title + registry titles) are masked so slot variation
+  // alone earns no texture credit; its advisories stay OUT of the findings
+  // list so no severity count, deduction, or report line changes.
+  const textureSlotValues = [
+    course?.title,
+    ...(Array.isArray(pkg.manifest?.assessments) ? pkg.manifest.assessments.map((entry) => entry?.title) : []),
+    ...(Array.isArray(pkg.manifest?.readings) ? pkg.manifest.readings.map((entry) => entry?.title) : []),
+  ].filter(Boolean);
+  const texture = computeTexture(textureDocsFromFiles(pkg.files), { slotValues: textureSlotValues });
+
   // Score each dimension.
   const scores = {};
   const grades = {};
@@ -2828,6 +2853,10 @@ export async function grade({
     scores[dimension] = score;
     grades[dimension] = letterGrade(score);
   }
+  // texture's score comes from the metric, never from findings deductions
+  // (and at weight 0 it contributes nothing to the weighted overall below).
+  scores.texture = texture.score;
+  grades.texture = letterGrade(texture.score);
 
   const totalWeight = Object.values(DIMENSION_WEIGHTS).reduce((sum, weight) => sum + weight, 0);
   const weighted =
@@ -2858,6 +2887,19 @@ export async function grade({
     overall: { score: overallScore, grade: letterGrade(overallScore) },
     findings: findings.list,
     stats,
+    // V0.14.7 WS-D D1: the advisory texture block — sub-scores, worst
+    // repeated-shingle evidence, and P2-STYLE advisories in a SEPARATE list
+    // (they never join findings and never subtract points).
+    texture: {
+      version: TEXTURE_VERSION,
+      score: texture.score,
+      grade: grades.texture,
+      measured: texture.measured,
+      subScores: texture.subScores,
+      evidence: texture.evidence,
+      groups: texture.groups,
+      advisories: buildTextureAdvisories(texture),
+    },
   };
 }
 

@@ -688,6 +688,9 @@ export default function ExportSidePanel({
   reviewQueueOpen: reviewQueueOpenProp,
   onReviewQueueOpenChange = null,
   reviewQueueFocusId = null,
+  // v0.14.7 WS-G4: the pending sync suggestion + its approval executor.
+  syncSuggestion = null,
+  onExecuteSync = null,
 }) {
   const { courseMap, columns, selectedFeatures, slideTheme } = useCourse();
   const [scope, setScope] = useState('current'); // 'current' | 'all'
@@ -745,8 +748,11 @@ export default function ExportSidePanel({
         observations: reviewObservations,
         finalizerResult: lastRunDigest,
         qualityPass: packageQualityPass,
+        // v0.14.7 WS-G4: the pending sync plan leads the queue, with the
+        // recompile-diff preview per affected deliverable.
+        syncSuggestion,
       }),
-    [checklistItems, lastRunDigest, packageQualityPass, reviewObservations],
+    [checklistItems, lastRunDigest, packageQualityPass, reviewObservations, syncSuggestion],
   );
   const reviewRunId = useMemo(
     () => resolveReviewRunId({ finalizerResult: lastRunDigest, qualityPass: packageQualityPass, courseName }),
@@ -1221,6 +1227,30 @@ export default function ExportSidePanel({
         : zipPendingReadiness
           ? 'Finish package'
           : 'Download ZIP';
+  // The ZIP button's guards, hoisted so the header CTA's request shares them.
+  const zipDownloadDisabled =
+    !!busy ||
+    isPackageQualityRunning ||
+    finishPackageBusy ||
+    (zipPendingReadiness && !canFinishPackage) ||
+    zipPendingNeedsAttention ||
+    allReadyCount === 0 ||
+    !courseMap ||
+    (selectedLessons !== null && selectedLessons.length === 0);
+
+  // v0.14.7 WS-F1: the workspace header's Download ZIP routes HERE — one
+  // export executor. The ref keeps the listener bound once while reading the
+  // current guards + doExport closure on every request.
+  const requestZipDownloadRef = useRef(() => {});
+  requestZipDownloadRef.current = () => {
+    if (zipDownloadDisabled) return;
+    doExport('zip');
+  };
+  useEffect(() => {
+    const onRequestZipDownload = () => requestZipDownloadRef.current();
+    window.addEventListener('coursemapper:request-zip-download', onRequestZipDownload);
+    return () => window.removeEventListener('coursemapper:request-zip-download', onRequestZipDownload);
+  }, []);
 
   return (
     <div
@@ -1262,6 +1292,7 @@ export default function ExportSidePanel({
           focusItemId={effectiveReviewFocusId}
           onClose={closeReviewQueue}
           onMark={handleReviewMark}
+          onExecuteSync={onExecuteSync}
         />
 
         {/* ── Review (v0.14.4 WS-C1): the ONE queue entry — per-class counts
@@ -1427,16 +1458,7 @@ export default function ExportSidePanel({
               <button
                 data-testid="export-download-zip"
                 onClick={() => doExport('zip')}
-                disabled={
-                  !!busy ||
-                  isPackageQualityRunning ||
-                  finishPackageBusy ||
-                  (zipPendingReadiness && !canFinishPackage) ||
-                  zipPendingNeedsAttention ||
-                  allReadyCount === 0 ||
-                  !courseMap ||
-                  (selectedLessons !== null && selectedLessons.length === 0)
-                }
+                disabled={zipDownloadDisabled}
                 className="tactile flex w-full items-center justify-center gap-2 rounded-lg bg-slate-950 py-2.5 text-xs font-bold text-white shadow-sm transition-colors hover:bg-slate-800 disabled:cursor-not-allowed disabled:bg-slate-200 disabled:text-slate-400 dark:bg-white dark:text-slate-950 dark:hover:bg-slate-200 dark:disabled:bg-slate-800 dark:disabled:text-slate-500"
               >
                 {busy === 'zip' ? (

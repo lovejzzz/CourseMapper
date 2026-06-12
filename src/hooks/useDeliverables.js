@@ -78,6 +78,9 @@ import { traceLog } from '../lib/traceLog';
 const PROVIDER_CALL_EVENT_TYPES = new Set([
   'deliverableChunkCall',
   'blueprintEnrichmentCall',
+  // v0.14.7 WS-D2: voice-pass batches are real provider calls — they count
+  // against the run's call cap like every other model stage.
+  'voicePassCall',
   'repairRetryCall',
   'streamRetryCall',
   'retriedCall',
@@ -430,6 +433,11 @@ export default function useDeliverables({
   const startedRef = useRef(false);
   // Track the active sync generation ID so stale results can be discarded
   const activeSyncGenRef = useRef(0);
+  // v0.14.7 WS-G1: the latest generation's enrichment overlay (kernels),
+  // kept for compiler syncs so an edited lesson recompile keeps its subject
+  // matter. Reload-survival comes from the fingerprint-keyed kernel cache;
+  // this ref covers the common same-session edit path for free.
+  const lastEnrichmentOverlayRef = useRef(null);
 
   const deliverableConfigRef = useRef(deliverableConfig);
   deliverableConfigRef.current = deliverableConfig;
@@ -1409,15 +1417,28 @@ export default function useDeliverables({
             return !lessonContent[lessonId] || Boolean(partialOverlays[lessonId]);
           });
           const chunkSize = 4;
+          // v0.14.7 WS-A: enrichment chunks are independent (kernels are
+          // keyed by lessonId and the P2.1 expectedLessonIds guard prevents
+          // cross-chunk overwrites), so they run CONCURRENTLY in groups of
+          // four instead of the old serial loop — on a 15-lesson course the
+          // serial wait was most of the 152s-vs-65s gap against the native
+          // path. Budget is checked at each chunk's launch; AbortError still
+          // aborts the whole stage (all calls share controller.signal).
+          const enrichmentChunks = [];
           for (let start = 0; start < lessonIndices.length; start += chunkSize) {
+            enrichmentChunks.push({
+              chunk: lessonIndices.slice(start, start + chunkSize),
+              isFirstChunk: start === 0,
+            });
+          }
+          const runEnrichmentChunk = async ({ chunk, isFirstChunk }) => {
             if (!hasProviderCallBudget()) {
               appendLog('⚠ Content enrichment stopped early: call cap', 'warn');
-              break;
+              return;
             }
-            const chunk = lessonIndices.slice(start, start + chunkSize);
             const kernelPrompt = buildLessonKernelPrompt(blueprintCourseMap, chunk, {
               questionsPerLesson: getGenerationConfig('quizBank')?.questionsPerLesson,
-              includeCourseLevel: start === 0,
+              includeCourseLevel: isFirstChunk,
             });
             recordGenerationApiCallEvent({
               type: 'blueprintEnrichmentCall',
@@ -1452,7 +1473,7 @@ export default function useDeliverables({
               });
               if (parsedKernels) {
                 Object.assign(lessonContent, parsedKernels.lessons);
-                if (start === 0 && parsedKernels.courseLevel) {
+                if (isFirstChunk && parsedKernels.courseLevel) {
                   absorbedCourseLevel = normalizeAbsorbedCourseLevel(
                     parsedKernels.courseLevel,
                     buildBlueprintEnrichmentPayload(blueprintCourseMap, { scopeIndices }),
@@ -1478,6 +1499,10 @@ export default function useDeliverables({
               if (chunkErr?.name === 'AbortError') throw chunkErr;
               appendLog(`⚠ Content enrichment chunk failed: ${chunkErr.message || 'model error'}`, 'warn');
             }
+          };
+          const enrichmentConcurrency = 4;
+          for (let start = 0; start < enrichmentChunks.length; start += enrichmentConcurrency) {
+            await Promise.all(enrichmentChunks.slice(start, start + enrichmentConcurrency).map(runEnrichmentChunk));
           }
 
           // v0.14.1 P2.3: spend recovery budget on dropped lessons BEFORE
@@ -1809,6 +1834,7 @@ export default function useDeliverables({
           blueprintEnrichment && blueprintEnrichment.nativeAuthored
             ? Object.fromEntries(Object.entries(blueprintEnrichment).filter(([key]) => key !== 'nativeAuthored'))
             : blueprintEnrichment;
+        lastEnrichmentOverlayRef.current = enrichmentForGraph || lastEnrichmentOverlayRef.current;
         let courseGraph = null;
         // v0.14.5 hotfix (round 2026-06-12T04-52): the assembly gate is the
         // pure resolveNativeAssembly seam — a degenerate skeleton (fewer
@@ -2040,6 +2066,106 @@ export default function useDeliverables({
             featureId: fid,
             itemCount: getDeliverableItemCount(fid, data),
           });
+        }
+
+        // ── v0.14.7 WS-D2: the voice pass ──────────────────────────────────
+        // Flag-gated (default OFF — D3's live proof rounds gate any flip):
+        // batched rewrites of ONLY the high-read connective prose (assignment
+        // overviews, discussion prompt framings, study-guide intros), grounded
+        // in the package's own data, with per-surface lint + fallback to the
+        // compiled text. Law: fallback, never block — only a user abort
+        // (AbortError) escapes this block.
+        try {
+          const voicePassLib = await import('../lib/voicePass');
+          // D4 single-run disclosure stash: cleared every compile so a
+          // toggled-off run never inherits a stale "voice pass ran" claim.
+          voicePassLib.clearVoicePassOutcome();
+          if (voicePassLib.readVoicePassMode() === 'on' && blueprintEnrichmentRequested && enrichmentModelAvailable) {
+            const voiceAbortKey = 'voicePass';
+            const controller = new AbortController();
+            abortMapRef.current.set(voiceAbortKey, controller);
+            try {
+              const callModel = async (prompt) => {
+                let usage = null;
+                const result = await streamProvider(provider, apiKey, modelId, prompt.systemPrompt, prompt.userPrompt, {
+                  maxOutputTokens,
+                  modelCapabilities,
+                  featureId: 'voicePass',
+                  task: 'voicePass',
+                  onApiCallEvent: (event) => {
+                    // Capture the per-call cost for runVoicePass's budget
+                    // ledger while still forwarding every event to the
+                    // generation budget.
+                    if (event?.type === 'apiUsage' && Number.isFinite(event.costUsd)) {
+                      usage = { costUsd: event.costUsd };
+                    }
+                    recordGenerationApiCallEvent(event);
+                  },
+                  signal: controller.signal,
+                });
+                return { fullText: result?.fullText || '', usage };
+              };
+              // Voice only the features this run actually dispatched as done
+              // (validation-rejected features keep their error state).
+              const compiledForVoice = Object.fromEntries(
+                blueprintCompiledFeatureIds
+                  .filter((fid) => completedFeatureIds.has(fid))
+                  .map((fid) => [fid, compiled[fid]]),
+              );
+              const voiceResult = await voicePassLib.runVoicePass({
+                deliverables: compiledForVoice,
+                courseMap: blueprintCourseMap,
+                callModel,
+                onEvent: (event) => {
+                  if (event?.type === 'voicePassCall') {
+                    recordGenerationApiCallEvent({
+                      type: 'voicePassCall',
+                      label: 'Voice pass call',
+                      detail: typeof event.detail === 'string' ? event.detail : '',
+                      featureId: 'voicePass',
+                      task: 'voicePass',
+                    });
+                  } else if (event?.type === 'voicePassDone') {
+                    recordGenerationApiCallEvent({
+                      type: 'pipelineDecision',
+                      stage: 'voicePass',
+                      label: 'Voice pass',
+                      detail: typeof event.detail === 'string' ? event.detail : '',
+                    });
+                  }
+                },
+              });
+              const voicedFeatureIds = new Set(voiceResult.voiced.map((surfaceId) => String(surfaceId).split(':')[0]));
+              for (const fid of voicedFeatureIds) {
+                if (voiceResult.deliverables[fid]) markFeatureDone(fid, voiceResult.deliverables[fid]);
+              }
+              voicePassLib.recordVoicePassOutcome({
+                enabled: true,
+                voicedCount: voiceResult.voiced.length,
+                fallbackCount: voiceResult.fallbacks.length,
+                spentUsd: voiceResult.spentUsd,
+                exhausted: voiceResult.exhausted,
+              });
+              appendLog(
+                `✓ Voice pass: ${voiceResult.voiced.length} surfaces voiced, ${voiceResult.fallbacks.length} fallbacks ($${voiceResult.spentUsd.toFixed(3)})`,
+                'done',
+              );
+              if (voiceResult.exhausted) {
+                appendLog('⚠ Voice pass budget exhausted mid-run — remaining surfaces keep compiled text', 'warn');
+              }
+              traceGeneration(generationRunId, 'voice_pass_done', {
+                voicedCount: voiceResult.voiced.length,
+                fallbackCount: voiceResult.fallbacks.length,
+                spentUsd: voiceResult.spentUsd,
+                exhausted: voiceResult.exhausted,
+              });
+            } finally {
+              abortMapRef.current.delete(voiceAbortKey);
+            }
+          }
+        } catch (voiceErr) {
+          if (voiceErr?.name === 'AbortError') throw voiceErr;
+          appendLog(`⚠ Voice pass failed (compiled text kept): ${voiceErr?.message || 'voice pass error'}`, 'warn');
         }
       };
 
@@ -4248,14 +4374,94 @@ export default function useDeliverables({
         if (canCompileSyncLesson) {
           try {
             const { compileBlueprintLessonPatch } = await import('../lib/compiledLessonSync');
+            const { createLessonKernelCache } = await import('../lib/genome/lessonKernelCache');
             const instructorPreferenceProfile = await loadInstructorPreferenceProfile();
-            const lessonPatchData = compileBlueprintLessonPatch({
-              featureId,
-              courseMap,
-              lessonIndex,
-              config: getGenerationConfig(featureId),
-              instructorPreferences: instructorPreferenceProfile,
-            });
+            // v0.14.7 WS-G1: the sync compile rides the stored enrichment
+            // overlay (this session's kernels) + the fingerprint-keyed
+            // kernel cache (survives reloads). An invalidating edit misses
+            // BOTH — that lesson refreshes its kernel below (one cheap
+            // call) instead of silently shipping mail-merge (audit §2.9).
+            const kernelCache = createLessonKernelCache();
+            const compilePatch = () =>
+              compileBlueprintLessonPatch({
+                featureId,
+                courseMap,
+                lessonIndex,
+                config: getGenerationConfig(featureId),
+                instructorPreferences: instructorPreferenceProfile,
+                enrichmentOverlay: lastEnrichmentOverlayRef.current,
+                kernelCache,
+                onTextTierMatch: (item) =>
+                  traceGeneration(
+                    regenerationRunId,
+                    'lesson_regen_text_tier_match',
+                    { featureId, lessonIndex, itemTitle: String(item?.title || item?.lessonTitle || '').slice(0, 80) },
+                    'warn',
+                  ),
+              });
+            let compileResult = compilePatch();
+            let kernelRefreshCalls = 0;
+            if (compileResult && !compileResult.lessonEnriched && hasProviderCallBudget()) {
+              // Kernel refresh: ONE low-cost enrichment call for this lesson,
+              // cached by fingerprint so the next sync of it is free.
+              try {
+                const { buildLessonKernelPrompt, parseLessonKernelResponse } =
+                  await import('../lib/blueprintEnrichmentPass');
+                const kernelPrompt = buildLessonKernelPrompt(courseMap, [lessonIndex], {
+                  questionsPerLesson: getGenerationConfig('quizBank')?.questionsPerLesson,
+                  includeCourseLevel: false,
+                });
+                recordRegenerationApiCallEvent({
+                  type: 'blueprintEnrichmentCall',
+                  label: 'Sync kernel refresh',
+                  detail: `Lesson ${lessonIndex + 1} — edited fields invalidated its kernel`,
+                  featureId: 'blueprintEnrichment',
+                });
+                kernelRefreshCalls += 1;
+                const kernelResult = await streamProvider(
+                  provider,
+                  apiKey,
+                  modelId,
+                  kernelPrompt.systemPrompt,
+                  kernelPrompt.userPrompt,
+                  {
+                    maxOutputTokens: 2400,
+                    modelCapabilities,
+                    featureId: 'blueprintEnrichment',
+                    task: 'blueprintEnrichment',
+                    onApiCallEvent: recordRegenerationApiCallEvent,
+                  },
+                );
+                const parsedKernels = parseLessonKernelResponse(kernelResult?.fullText || '', {
+                  prompt: kernelPrompt,
+                  expectedLessonIds: [`lesson-${lessonIndex + 1}`],
+                });
+                const refreshed = parsedKernels?.lessons?.[`lesson-${lessonIndex + 1}`];
+                if (refreshed) {
+                  const lesson = courseMap.lessons?.[lessonIndex];
+                  if (lesson) kernelCache.set(lesson, refreshed);
+                  compileResult = compilePatch();
+                  appendLog(`✓ Lesson ${lessonIndex + 1} kernel refreshed for sync`, 'done');
+                }
+              } catch (refreshErr) {
+                if (refreshErr?.name === 'AbortError') throw refreshErr;
+                appendLog(`⚠ Sync kernel refresh failed: ${refreshErr.message || 'model error'}`, 'warn');
+              }
+            }
+            if (compileResult && !compileResult.lessonEnriched) {
+              // The G1 gate: an unenriched sync is allowed only LOUDLY.
+              appendLog(
+                `⚠ ${label}: Lesson ${lessonIndex + 1} synced WITHOUT its knowledge kernel (template tier) — review before export`,
+                'warn',
+              );
+              traceGeneration(
+                regenerationRunId,
+                'lesson_regen_sync_unenriched',
+                { featureId, label, lessonIndex, lessonNumber: lessonIndex + 1 },
+                'warn',
+              );
+            }
+            const lessonPatchData = compileResult?.data || null;
             if (lessonPatchData) {
               const finalParsed = prepareRegeneratedLessonData(featureId, lessonPatchData, lessonIndex, courseMap);
               let nextData = finalParsed;
@@ -4284,7 +4490,11 @@ export default function useDeliverables({
                 data: nextData,
                 itemCount: getDeliverableItemCount(featureId, nextData),
                 syncSource: 'blueprint-compiler',
-                providerCallCount: 0,
+                providerCallCount: kernelRefreshCalls,
+                // v0.14.7 WS-G1: the gate reads this — 'kernel' means the
+                // synced lesson kept its subject matter; 'missing' is loud
+                // upstream (sync summary + receipt).
+                enrichment: compileResult.lessonEnriched ? 'kernel' : 'missing',
               };
               traceGeneration(regenerationRunId, 'lesson_regen_compiled', {
                 featureId,
@@ -4676,6 +4886,9 @@ export default function useDeliverables({
     markFeatureStale,
     clearFeatureStale,
     clearSyncStalePlan,
+    // v0.14.7 WS-G2: the recompile-and-diff blast radius recompiles with the
+    // SAME per-feature configs generation used, or its diffs would be noise.
+    getGenerationConfig,
     optimisticUpdate,
     staleCount,
     started: startedRef.current,

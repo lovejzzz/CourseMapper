@@ -96,6 +96,7 @@ export default function useSmartSync({
   deliv, // return value of useDeliverables
   gen, // return value of useGeneration (for gen.isStreaming guard)
   courseMapRef, // ref to current courseMap (always fresh)
+  courseGraphRef = null, // v0.14.7 WS-G2: stored graph (enrichment overlay rides it)
   selectedFeatures,
   onSyncComplete, // callback(affectedFeatureIds[]) — called when sync batch done
   onRequestProposal, // callback({ featureId, lessonIndex, editContext, courseMap })
@@ -274,6 +275,9 @@ export default function useSmartSync({
                   lessonIndex: lessonIdx,
                   syncSource: lessonResult?.syncSource || 'unknown',
                   providerCallCount: Number(lessonResult?.providerCallCount || 0),
+                  // v0.14.7 WS-G1: 'kernel' = subject matter preserved;
+                  // 'missing' = template tier, surfaced loudly below.
+                  enrichment: lessonResult?.enrichment || null,
                 });
               }
             }
@@ -308,6 +312,16 @@ export default function useSmartSync({
       }
 
       const providerCallCount = resultDetails.reduce((sum, item) => sum + Number(item.providerCallCount || 0), 0);
+      // v0.14.7 WS-G1 gate: a sync that shipped any lesson WITHOUT its
+      // knowledge kernel is named in the log and the summary — never silent.
+      const enrichmentMissingCount = resultDetails.filter((item) => item.enrichment === 'missing').length;
+      if (enrichmentMissingCount > 0) {
+        appendSyncLog(
+          'error',
+          'sync',
+          `${enrichmentMissingCount} synced lesson${enrichmentMissingCount === 1 ? '' : 's'} compiled WITHOUT knowledge kernels (template tier) — review before export`,
+        );
+      }
       const syncSummary = {
         completedFeatureIds: [...completedFeatureIds],
         changedFieldsSummary,
@@ -321,6 +335,7 @@ export default function useSmartSync({
         modelFallbackCount:
           resultDetails.filter((item) => item.syncSource === 'model-fallback').length +
           Number(canonicalPatchResolution?.providerCallCount || 0),
+        enrichmentMissingCount,
       };
       completedFeatureIds.syncSummary = syncSummary;
       return completedFeatureIds;
@@ -534,7 +549,52 @@ export default function useSmartSync({
     const priorityFeatureId =
       priorityIds.size === 1 && courseMapEdits.every((e) => e.excludeFeatureId) ? [...priorityIds][0] : null;
 
-    const plan = buildSyncPlan(courseMapEdits, currentFeatures, currentDeliv.deliverables, priorityFeatureId);
+    // v0.14.7 WS-G2: the TRUE blast radius — recompile against the edited
+    // map (cheap, deterministic) and diff per registry identity. The hand
+    // map (buildSyncPlan) survives only as the belt when recompile throws.
+    // Two silent-divergence holes close here by construction: the syllabus
+    // rejoins the radius (grading-table diffs) and readings edits propagate
+    // to every surface that inherits them.
+    let plan = null;
+    try {
+      const [{ computeSyncBlastRadius }, { createLessonKernelCache }, preferenceRuntime] = await Promise.all([
+        import('../lib/syncBlastRadius'),
+        import('../lib/genome/lessonKernelCache'),
+        import('../lib/instructorPreferenceRuntime').catch(() => null),
+      ]);
+      const configMap =
+        typeof currentDeliv.getGenerationConfig === 'function'
+          ? Object.fromEntries(
+              (currentFeatures || [])
+                .filter((featureId) => featureId !== 'courseMap')
+                .map((featureId) => [featureId, currentDeliv.getGenerationConfig(featureId)]),
+            )
+          : {};
+      const radius = computeSyncBlastRadius({
+        courseMap: currentCourseMap,
+        deliverables: currentDeliv.deliverables,
+        selectedFeatures: currentFeatures,
+        configMap,
+        instructorPreferences: preferenceRuntime?.loadCurrentInstructorPreferenceProfile?.() ?? null,
+        enrichmentOverlay: courseGraphRef?.current?.enrichmentOverlay || null,
+        kernelCache: createLessonKernelCache(),
+      });
+      if (radius.plan.length > 0) {
+        plan = radius.plan;
+      } else if ((radius.undiffableFeatures || []).length === 0) {
+        appendSyncLog('done', 'sync', 'Edit checked against a recompile — no deliverables are affected');
+        return;
+      }
+      // Empty plan WITH undiffable features: unprovable ≠ unaffected — the
+      // dependency-map belt below decides.
+    } catch (radiusErr) {
+      appendSyncLog(
+        'error',
+        'sync',
+        `Recompile-diff unavailable (${radiusErr?.message || 'error'}) — using the dependency map`,
+      );
+    }
+    if (!plan) plan = buildSyncPlan(courseMapEdits, currentFeatures, currentDeliv.deliverables, priorityFeatureId);
     if (plan.length === 0) return;
 
     // Build human-readable summary of changed fields
@@ -582,6 +642,11 @@ export default function useSmartSync({
       },
       plan: planWithStaleEdits,
       changedFieldsSummary,
+      // v0.14.7 WS-G4: the recompile-diff summaries — the approval surface
+      // shows exactly what will change BEFORE the user clicks Sync.
+      changesPreview: planWithStaleEdits
+        .flatMap((entry) => (Array.isArray(entry.changes) ? entry.changes : []))
+        .slice(0, 8),
     });
 
     appendSyncLog(

@@ -2,6 +2,7 @@ import { buildReadinessReport, scopeCourseMapToLessons, scopeDeliverableDataToLe
 import { assertOfficeExportHasNoInternalText } from './exportTextInspector';
 import { resolveFeatureLabel } from './exporters/exporterUtils.js';
 import { safeImport } from './safeImport';
+import { peekVoicePassOutcome } from './voicePass.js';
 
 const MIN_EXPORT_BYTES = 128;
 const SPLIT_BY_LESSON_FEATURES = new Set([
@@ -236,6 +237,7 @@ function buildManifest({
   pipelineState = null,
   assessments = null,
   readings = null,
+  voicePass = null,
 }) {
   return {
     courseName,
@@ -244,6 +246,17 @@ function buildManifest({
     // v0.12.1: how the content was produced (enrichment / genome linker /
     // plan health) so downloaded packages are auditable without console logs.
     ...(pipelineState ? { pipeline: pipelineState } : {}),
+    // v0.14.7 WS-D4: disclose when the voice pass rewrote connective prose —
+    // provenance discipline applies to our own rewrites too.
+    ...(voicePass
+      ? {
+          voicePass: {
+            enabled: Boolean(voicePass.enabled),
+            voicedCount: Number(voicePass.voicedCount) || 0,
+            fallbackCount: Number(voicePass.fallbackCount) || 0,
+          },
+        }
+      : {}),
     // v0.14.1 (3.3d): the assessment registry, with artifact file links.
     ...(assessments && assessments.length > 0 ? { assessments } : {}),
     // v0.14.5 (A5): the readings registry with provenance tags.
@@ -482,6 +495,9 @@ export async function buildCourseMaterialsZip({
     pipelineState,
     assessments: buildManifestAssessments({ registry: assessmentRegistry, files }),
     readings: buildManifestReadings(readingsRegistry),
+    // v0.14.7 WS-D4: callers may pass the outcome on pipelineState; otherwise
+    // the generation run's single-run stash discloses it (cleared each compile).
+    voicePass: pipelineState?.voicePass || peekVoicePassOutcome(),
   });
 
   // ── v0.14.3 WS-A A2/A3: the package grades itself ─────────────────────────

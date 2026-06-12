@@ -1,7 +1,7 @@
 {
-  "version": "2026-06-11",
+  "version": "2026-06-12",
   "generator": "curriculumos-foundry-v1",
-  "conceptCount": 110,
+  "conceptCount": 132,
   "shards": [
     {
       "id": "astro-intro",
@@ -66,6 +66,14 @@
       "path": "lit-intro.json",
       "conceptCount": 2,
       "hash": "cb84948c0071c0f0"
+    },
+    {
+      "id": "math-intro",
+      "discipline": "math",
+      "level": "intro",
+      "path": "math-intro.json",
+      "conceptCount": 22,
+      "hash": "5077853a5693bb0a"
     },
     {
       "id": "nursing-intro",

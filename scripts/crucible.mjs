@@ -102,10 +102,12 @@ import {
   buildJudgePrompt,
   clampConcurrency,
   expandCoursesForAuthoring,
+  expandCoursesForVoice,
   expandCoursesForProvider,
   findingProvider,
   pairAuthoringEntries,
   parseAuthoringFlag,
+  parseVoiceFlag,
   parseProviderFlag,
   renderAuthoringSection,
   deriveCheckId,
@@ -660,6 +662,7 @@ const FLOW_BUNDLE_SELECTORS = [
   'coursemapper-apikey', // localStorage seed key (src/contexts/AIConfigContext.jsx)
   'coursemapper-modelid',
   'coursemapper-authoring-mode', // WS-B3 native-authoring flag (src/lib/nativeGraphAuthoring.js)
+  'coursemapper-voice-pass', // v0.14.7 WS-D2 voice-pass flag (src/lib/voicePass.js)
   'Describe your course', // src/screens/Landing.jsx:567
   'Generate workspace', // src/screens/Config.jsx:2147
   'Download ZIP',
@@ -1475,9 +1478,18 @@ async function runLiveRounds(options) {
   // never collide with openai history. Applied AFTER the authoring expansion
   // so baseId stays the original course id for baseline lookups and pairing.
   const provider = parseProviderFlag(options.provider);
-  const courses = expandCoursesForProvider(expandCoursesForAuthoring(baseCourses, authoring), provider);
+  // v0.14.7 WS-D3: --voice off|on|both — voiced/quiet twins for the voice
+  // pass proof rounds (applied after authoring, before provider suffixing).
+  const voice = parseVoiceFlag(options.voice);
+  const courses = expandCoursesForProvider(
+    expandCoursesForVoice(expandCoursesForAuthoring(baseCourses, authoring), voice),
+    provider,
+  );
   if (authoring !== 'prose') {
     log(`authoring mode: ${authoring} — ${courses.length} run(s) across ${baseCourses.length} course(s)`);
+  }
+  if (voice !== 'off') {
+    log(`voice mode: ${voice} — ${courses.length} run(s) across ${baseCourses.length} course(s)`);
   }
   const rounds = Math.max(1, Number(options.rounds) || 1);
   // E1: each provider defaults to its cheapest generation-capable model
@@ -1596,6 +1608,7 @@ async function runLiveRounds(options) {
             // WS-B3: seed 'coursemapper-authoring-mode' alongside the other
             // localStorage keys ('prose'/undefined seeds nothing — default).
             authoringMode: course.authoring,
+            voiceMode: course.voice,
             // E1: seed the app's provider switch + provider-scoped key slot.
             provider,
           });

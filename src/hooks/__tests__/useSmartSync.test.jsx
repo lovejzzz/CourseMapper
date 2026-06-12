@@ -7,6 +7,13 @@ import { createRoot } from 'react-dom/client';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import useSmartSync from '../useSmartSync';
 import { applyCanonicalPatchesToCourseMap } from '../../lib/artifactBlueprintProjection';
+// v0.14.7 WS-G2: runSync dynamic-imports these on the course-map branch.
+// Pre-warm them so the import() calls resolve as microtasks under fake
+// timers (a cold module load is real I/O the fake-timer flush can't wait
+// out, and the stale-marking assertions would race it).
+import '../../lib/syncBlastRadius';
+import '../../lib/genome/lessonKernelCache';
+import '../../lib/instructorPreferenceRuntime';
 
 globalThis.IS_REACT_ACT_ENVIRONMENT = true;
 
