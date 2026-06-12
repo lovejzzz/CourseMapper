@@ -196,7 +196,9 @@ function buildFixtureQueue() {
 describe('buildReviewQueue — three classes from three entrances', () => {
   it('classes every source into observations / spotChecks / structural with honest counts', () => {
     const queue = buildFixtureQueue();
-    expect(queue.counts).toEqual({ sync: 0, observations: 2, spotChecks: 3, structural: 4 });
+    // v0.14.9 B1: counts gained `headline` — judgment items only (sync +
+    // observations + structural); spot-checks stay out of the headline.
+    expect(queue.counts).toEqual({ sync: 0, observations: 2, spotChecks: 3, structural: 4, headline: 6 });
     expect(queue.total).toBe(9);
     // structural = 2 flagged warnings (info excluded) + 1 non-duplicate
     // export check (passed excluded, duplicate deduped) + 1 P2 finding (P1 excluded)
@@ -236,7 +238,7 @@ describe('buildReviewQueue — three classes from three entrances', () => {
     const confirmed = queue.classes.spotChecks.find((item) => item.sourceId === 'review-quizBank-0');
     expect(confirmed.reviewedAtSource).toBe(true);
     const outstanding = selectOutstandingQueue(queue, { reviewed: [], dismissed: [] });
-    expect(outstanding.counts).toEqual({ sync: 0, observations: 2, spotChecks: 2, structural: 4 });
+    expect(outstanding.counts).toEqual({ sync: 0, observations: 2, spotChecks: 2, structural: 4, headline: 6 });
   });
 
   it('handles empty / missing sources without throwing', () => {
@@ -509,7 +511,10 @@ describe('WS-C surface contracts', () => {
     // and the agent panel are the queue entries; the DRAWER still lives here.
     expect(source).not.toContain('review-queue-entry');
     expect(source).toContain('<ReviewQueue');
-    expect(source).toContain('buildReviewQueue');
+    // v0.14.9 B1: the panel no longer builds a rival queue — the ONE queue
+    // object arrives as a prop from AppFlow, the queue's single owner.
+    expect(source).not.toContain('buildReviewQueue');
+    expect(readSource('src/AppFlow.jsx')).toContain('buildReviewQueue({');
   });
 
   it('the queue only dispatches the existing focus events (DeliverableView is another lane)', () => {

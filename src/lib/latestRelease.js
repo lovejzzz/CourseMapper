@@ -8,12 +8,12 @@
  * the three screen footers, and the Changelog entry.
  */
 export const LATEST_RELEASE = {
-  version: '0.14.8',
+  version: '0.14.9',
   date: 'June 12, 2026',
-  title: 'Deep clean: one menu, a quieter export panel, better prose',
+  title: 'Coverage & Calm: the genome learns more subjects, the surface earns one count',
   highlights: [
-    'The header has exactly ONE More menu — Finish package and Save .coursemapper joined New Project, Add Materials, and Undo/Redo in the workspace menu; the morphing primary action stands alone',
-    'The export panel is actions-only: scope, lesson selection, and download. The review counts moved to the header Review button and the agent panel; the Backup section lives in the More menu',
-    'Long lesson titles stop echoing: within one brief or discussion, the full title appears at most twice — later mentions read as "this lesson", which fixed a repeated-phrase export warning and just reads better',
+    'One review count everywhere: the header, drawer, and agent panel read a single queue — the headline counts judgment items; routine spot-checks confirm in one click',
+    'The Seal shows two numbers: "Quality 100 · Texture 74" — the structural grade plus the advisory texture meter, so a perfect score can no longer hide templated prose',
+    'The genome learned U.S. history (51 OpenStax concepts) and deepened literature (32 concepts), and the on-miss extraction flywheel turned live: a Korean course with no shard extracted 8 citation-verified kernels and relinked from cache at zero cost',
   ],
 };

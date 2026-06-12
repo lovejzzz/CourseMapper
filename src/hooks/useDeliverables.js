@@ -1029,6 +1029,91 @@ export default function useDeliverables({
               genomeLinkedLessons: (t.resolvedFromGenome || 0) + (t.resolvedFromCache || 0),
             }),
           );
+          // ── v0.14.9 A3: on-miss extraction — the flywheel's first live
+          // turn. Flag-gated (GENOME_EXTRACTION_FLAG, default OFF), exactly
+          // ONE low-cost model call per run (≤8 concepts, 1600-token cap —
+          // worst case well under the $0.05 disclosure ceiling); every
+          // citation is provider-verified (OpenAlex / Open Library), and a
+          // candidate with ZERO verified citations is rejected outright.
+          // Admitted kernels persist to the local kernel cache, so the SAME
+          // course's next compile links them at $0. Failure never blocks —
+          // the model path runs for the missed lessons either way.
+          try {
+            const extraction = await import('../lib/knowledge/genomeExtraction');
+            const flagValue =
+              typeof localStorage !== 'undefined' ? localStorage.getItem(extraction.GENOME_EXTRACTION_FLAG) : null;
+            if (extraction.shouldOfferExtraction({ flagValue, linkResult: linked }) && apiKey) {
+              const providers = await import('../lib/knowledge/providers');
+              const missedNames = (linked.missingIndices || [])
+                .map((lessonIdx) => blueprintCourseMap.lessons?.[lessonIdx]?.title || '')
+                .filter(Boolean);
+              const disciplineHint = (inferCourseDisciplines(blueprintCourseMap)[0] || '').toLowerCase();
+              const callModel = async (prompt) => {
+                const result = await streamProvider(
+                  provider,
+                  apiKey,
+                  modelId,
+                  'You are a precise curriculum knowledge engineer. Reply with a JSON array only.',
+                  prompt,
+                  {
+                    // Sized for the prompt's 8-candidate cap (~350 tokens per
+                    // full candidate shape). The first live run used 1600 and
+                    // TRUNCATED — the reply parsed to 0/0 candidates, the
+                    // same output-cap failure class as voice v1. Still well
+                    // under the $0.05 ceiling on every supported tier.
+                    maxOutputTokens: 4000,
+                    modelCapabilities,
+                    featureId: 'blueprintEnrichment',
+                    task: 'genomeExtract',
+                    onApiCallEvent: recordGenerationApiCallEvent,
+                    signal: controller.signal,
+                  },
+                );
+                return result?.fullText || '';
+              };
+              const extracted = await extraction.runOnMissGenomeExtraction({
+                flagValue,
+                linkResult: linked,
+                conceptNames: missedNames,
+                courseTitle: blueprintCourseMap.courseName || '',
+                discipline: disciplineHint,
+                callModel,
+                providers,
+              });
+              if (extracted.offered) {
+                const admittedCount = extracted.entries.length;
+                if (admittedCount > 0) library.persistLocalKernels(extracted.entries);
+                stageDecisions.genomeExtraction = `ran (${admittedCount}/${extracted.candidateCount} admitted)`;
+                recordGenerationApiCallEvent({
+                  type: 'pipelineDecision',
+                  stage: 'genomeExtraction',
+                  label: 'On-miss kernel extraction',
+                  detail: `${admittedCount}/${extracted.candidateCount} candidates admitted, ${extracted.rejected.length} rejected${
+                    extracted.rejected.length > 0
+                      ? ` (${extracted.rejected
+                          .map((entry) => `${entry.id}: ${entry.reasons.join('/')}`)
+                          .join('; ')
+                          .slice(0, 200)})`
+                      : ''
+                  } — citations provider-verified, admitted kernels cached locally for the next run`,
+                  featureId: 'blueprintEnrichment',
+                });
+                appendLog(
+                  admittedCount > 0
+                    ? `✓ Extracted ${admittedCount} verified concept kernel${admittedCount === 1 ? '' : 's'} for this course — cached locally, so the next run links them at no cost`
+                    : extracted.candidateCount === 0
+                      ? 'Extraction returned no parseable candidates — nothing was kept'
+                      : `Extraction proposed ${extracted.candidateCount} candidate${extracted.candidateCount === 1 ? '' : 's'} but none passed citation verification — nothing model-invented was kept`,
+                  admittedCount > 0 ? 'done' : 'warn',
+                );
+              }
+            } else if (extraction.isExtractionFlagEnabled(flagValue)) {
+              stageDecisions.genomeExtraction = 'flag on, no linker misses';
+            }
+          } catch (extractErr) {
+            // Diagnostics only — extraction may never block the compile.
+            stageDecisions.genomeExtraction = `failed: ${extractErr?.message || 'unknown'}`;
+          }
           if ((linked.bridges || []).length > 0) {
             appendLog(
               `✓ Drew ${linked.bridges.length} structural bridge${linked.bridges.length === 1 ? '' : 's'} between concepts sharing a deep structure (transfer learning)`,
@@ -4888,6 +4973,92 @@ export default function useDeliverables({
   // Backward compat: expose currentFeature as first active feature (for consumers that need a single string)
   const currentFeature = currentFeatures.size > 0 ? currentFeatures.values().next().value : null;
 
+  // ── v0.14.9 C2: post-hoc voice pass — the same-generation A/B hook. ──────
+  // Runs the EXACT voice pass the compile stage runs (same selector, lints,
+  // batch caps, texture self-check), but over the CURRENT compiled
+  // deliverables — so a proof harness can export a quiet ZIP and a voiced
+  // ZIP from ONE generation: twins that differ ONLY by voiced surfaces.
+  // Flag-gated like the in-pipeline pass ('coursemapper-voice-pass' must be
+  // on); driver/dev surface only — no normal UI flow calls this.
+  const runVoicePassPostHoc = useCallback(
+    async (courseMap) => {
+      const voicePassLib = await import('../lib/voicePass');
+      if (voicePassLib.readVoicePassMode() !== 'on') return { ran: false, reason: 'voice flag off' };
+      if (!provider || !modelId || (provider !== 'webllm' && !apiKey)) {
+        return { ran: false, reason: 'no model configured' };
+      }
+      const compiledForVoice = {};
+      for (const [fid, entry] of Object.entries(deliverables || {})) {
+        if (entry?.status === 'done' && entry.data) compiledForVoice[fid] = entry.data;
+      }
+      if (Object.keys(compiledForVoice).length === 0) return { ran: false, reason: 'no compiled deliverables' };
+      const controller = new AbortController();
+      abortMapRef.current.set('voicePassPostHoc', controller);
+      try {
+        const callModel = async (prompt) => {
+          let usage = null;
+          const result = await streamProvider(provider, apiKey, modelId, prompt.systemPrompt, prompt.userPrompt, {
+            maxOutputTokens: 2600,
+            modelCapabilities,
+            featureId: 'voicePass',
+            task: 'voicePass',
+            onApiCallEvent: (event) => {
+              if (event?.type === 'apiUsage' && Number.isFinite(event.costUsd)) usage = { costUsd: event.costUsd };
+              if (typeof onApiCallEvent === 'function') onApiCallEvent(event);
+            },
+            signal: controller.signal,
+          });
+          return { fullText: result?.fullText || '', usage };
+        };
+        const voiceResult = await voicePassLib.runVoicePass({
+          deliverables: compiledForVoice,
+          courseMap: courseMap || null,
+          kernels: lastEnrichmentOverlayRef.current?.lessonContent || null,
+          callModel,
+        });
+        const voicedFeatureIds = new Set(voiceResult.voiced.map((surfaceId) => String(surfaceId).split(':')[0]));
+        for (const fid of voicedFeatureIds) {
+          if (voiceResult.deliverables[fid]) dispatch(actions.setDeliverableDone(fid, voiceResult.deliverables[fid]));
+        }
+        // Same manifest disclosure the in-pipeline pass records — the voiced
+        // twin's ZIP says exactly what the pass did.
+        voicePassLib.recordVoicePassOutcome({
+          enabled: true,
+          postHoc: true,
+          voicedCount: voiceResult.voiced.length,
+          fallbackCount: voiceResult.fallbacks.length,
+          spentUsd: voiceResult.spentUsd,
+          exhausted: voiceResult.exhausted,
+          ...(voiceResult.selfCheck
+            ? {
+                texturePre: voiceResult.selfCheck.pre,
+                texturePost: voiceResult.selfCheck.post,
+                selfCheck: voiceResult.selfCheck.verdict,
+              }
+            : {}),
+        });
+        appendLog(
+          `✓ Voice pass (post-hoc): ${voiceResult.voiced.length} surfaces voiced, ${voiceResult.fallbacks.length} fallbacks ($${voiceResult.spentUsd.toFixed(3)})`,
+          'done',
+        );
+        return {
+          ran: true,
+          voicedCount: voiceResult.voiced.length,
+          fallbackCount: voiceResult.fallbacks.length,
+          spentUsd: voiceResult.spentUsd,
+          selfCheck: voiceResult.selfCheck?.verdict || null,
+        };
+      } catch (err) {
+        if (err?.name === 'AbortError') return { ran: false, reason: 'aborted' };
+        appendLog(`⚠ Post-hoc voice pass failed (compiled text kept): ${err?.message || 'voice pass error'}`, 'warn');
+        return { ran: false, reason: err?.message || 'voice pass error' };
+      } finally {
+        abortMapRef.current.delete('voicePassPostHoc');
+      }
+    },
+    [apiKey, appendLog, deliverables, dispatch, modelCapabilities, modelId, onApiCallEvent, provider, streamProvider],
+  );
+
   return {
     deliverables,
     setDeliverables,
@@ -4910,6 +5081,8 @@ export default function useDeliverables({
     // v0.14.7 WS-G2: the recompile-and-diff blast radius recompiles with the
     // SAME per-feature configs generation used, or its diffs would be noise.
     getGenerationConfig,
+    // v0.14.9 C2: the same-generation voice A/B hook (driver surface).
+    runVoicePassPostHoc,
     optimisticUpdate,
     staleCount,
     started: startedRef.current,

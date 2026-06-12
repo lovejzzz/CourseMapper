@@ -151,7 +151,9 @@ describe('F1/F2 — source wiring (the header has ONE verb; the paths exist)', (
     expect(appFlow).toContain('data-testid="workspace-finish-package"');
     // Download routes through the one export executor, not a second builder.
     expect(appFlow).toContain("new CustomEvent('coursemapper:request-zip-download')");
-    expect(appFlow).toContain('reviewCount={headerReviewQueue.total}');
+    // v0.14.9 B1: the CTA shows the HEADLINE count — outstanding judgment
+    // items (sync + observations + structural), never the spot-check tally.
+    expect(appFlow).toContain('reviewCount={outstandingReview.counts.headline}');
     expect(appFlow).toContain('onReview={() => handleReviewQueueOpenChange(true)}');
   });
 

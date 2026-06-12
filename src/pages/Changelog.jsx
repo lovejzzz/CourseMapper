@@ -3,6 +3,20 @@ import Header from '../components/Header';
 
 const releases = [
   {
+    version: '0.14.9',
+    date: 'June 12, 2026',
+    title: 'Coverage & Calm: the genome learns more subjects, the surface earns one count',
+    highlights: [
+      'ONE review count: the header said "Review 3" while the panel counted 26 — two builders, two truths. Now one queue object (built once, owned by the workspace) feeds the header, the drawer, and the agent panel; the headline counts items needing JUDGMENT (observations, structural notices, pending syncs) while routine spot-checks live in the drawer behind a one-click "Confirm all". Verified live: header "Review 1", drawer "1 judgment + 20 spot-checks", twenty confirmations in one click.',
+      'The two-number Seal: the header chip now reads "Quality 100 · Texture 74" — the calibrated texture meter (how templated the prose feels) renders beside the structural grade in advisory slate, with sub-scores and worst-repeated-phrase evidence in the quality report. One perfect number can hide a 5/10; now both numbers are visible. Texture stays weight 0 — it informs, it never gates.',
+      'The genome learned U.S. history and deepened literature: a foundry run over OpenStax U.S. History added 51 era concepts (Reconstruction through the War on Terror; the live U.S. History course that linked 0/15 now links 10+/15), and two Milne Open Textbooks added 32 literature concepts (epic and oral tradition, the novel, drama, poetry craft, postcolonial criticism). The history inference also tightened — art-history surveys, "War and Peace", and CS image reconstruction no longer trip it — and a resolver precision bug the new shards exposed (function words counting as concept evidence) is fixed.',
+      'The flywheel turned, live: on-miss kernel extraction (flag-gated, default OFF) ran its first proof on a Beginning Korean course — no shard exists for languages, so one disclosed $0.002 call proposed kernels, the providers verified every citation against real textbooks (Integrated Korean, Elementary Korean — via Open Library), 8 kernels were admitted and cached, and the SAME course regenerated with "Genome 10/12" at zero link cost. Candidates with unverifiable citations are rejected outright; nothing model-invented persists.',
+      'The genome chip tells the truth kindly: a course in a subject the genome has not learned yet shows "No knowledge shard yet · [subject]" (muted) instead of wearing a "Genome 0/15" that reads as failure. A real zero against an existing shard stays an honest zero.',
+      'A calmer crown: "9 compiled" and "auto-fixed" chips moved to the receipts (the crown keeps title, Seal, lessons·model, autosave — stale/failed alerts still surface); the standalone dependency-map row between ribbon and tabs folded into the tab bar, returning a full row of space; the lesson-scope checkbox wall collapsed to "All 12 lessons · Edit"; and map cells now hyphenate at syllable boundaries instead of breaking mid-word.',
+      'Proof rounds, honestly: the native-authoring day-two round met its bar on cs-python and geology (100/A, zero P1s, up to 57% cheaper) but FAILED on the Mandarin course (93 unresolved-source-placeholder P1s) — so the default stays prose, per the standing rule. The voice pass got its de-confounded protocol (generate once, export quiet and voiced twins from the same session — the twins differ only by voiced surfaces, $0.01 each) and won its first fair trial on world-lit (judge 5/10 voiced vs 4/10 quiet, structural 100/A held); the flag stays off pending the day-two round.',
+    ],
+  },
+  {
     version: '0.14.8',
     date: 'June 12, 2026',
     title: 'Deep clean: one menu, a quieter export panel, better prose',

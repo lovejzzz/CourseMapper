@@ -103,6 +103,8 @@ import {
   clampConcurrency,
   expandCoursesForAuthoring,
   expandCoursesForVoice,
+  pairVoiceAbEntries,
+  renderVoiceAbSection,
   expandCoursesForProvider,
   findingProvider,
   pairAuthoringEntries,
@@ -1662,8 +1664,61 @@ async function runLiveRounds(options) {
           course,
         });
         if (Number.isFinite(judge?.spendUsd)) spendState.spentUsd += judge.spendUsd;
-        return { course, runResult, gradeResult, inAppScore, judge };
+
+        // v0.14.9 C2: --voice ab — the voiced twin from the SAME generation.
+        // The driver exported it after the quiet zip; grade and judge it as
+        // its own entry (id `${course.id}--voiced`) so the round table and
+        // the A/B verdict section carry both arms. The voice pass's own
+        // spend (runVoicePass ledger) joins the round's spend accounting.
+        let abTwin = null;
+        if (course.voice === 'ab' && runResult.status === 'passed' && runResult.voiceAb?.voicedZipPath) {
+          const voicedCourse = {
+            ...course,
+            id: `${course.id}--voiced`,
+            baseId: course.baseId || course.id,
+            abArm: 'voiced',
+          };
+          const voicedDir = path.join(roundDir, voicedCourse.id);
+          await fs.mkdir(voicedDir, { recursive: true });
+          await writeJson(path.join(voicedDir, 'course.json'), { ...voicedCourse, provider, modelId, roundLabel });
+          const voiceSpend = Number(runResult.voiceAb.outcome?.spentUsd) || 0;
+          spendState.spentUsd += voiceSpend;
+          const voicedRun = {
+            ...runResult,
+            zipPath: runResult.voiceAb.voicedZipPath,
+            spendUsd: voiceSpend,
+            statusLabel: 'passed (voiced twin)',
+            voiceAb: null,
+          };
+          const voicedFiles = await extractZip(voicedRun.zipPath, path.join(voicedDir, 'extracted'));
+          log(`  ${voicedCourse.id}: extracted ${voicedFiles} files (same-generation voiced twin)`);
+          const voicedGrade = await gradeAndReport({
+            courseDir: voicedDir,
+            course: voicedCourse,
+            runResult: voicedRun,
+            baselineRaw: null,
+          });
+          const voicedJudge = await maybeJudgeCourse({
+            options,
+            grader: await loadGrader(),
+            apiKey: judgeApiKey,
+            courseDir: voicedDir,
+            course: voicedCourse,
+          });
+          if (Number.isFinite(voicedJudge?.spendUsd)) spendState.spentUsd += voicedJudge.spendUsd;
+          abTwin = {
+            course: voicedCourse,
+            runResult: voicedRun,
+            gradeResult: voicedGrade,
+            inAppScore: null,
+            judge: voicedJudge,
+          };
+        }
+        return { course, runResult, gradeResult, inAppScore, judge, abTwin };
       });
+      // Flatten the ab twins into the entry list — every downstream consumer
+      // (tables, history, stranger findings) sees each arm as its own course.
+      entries = entries.flatMap((entry) => (entry.abTwin ? [entry, { ...entry.abTwin }] : [entry]));
     } finally {
       await browser.close().catch(() => {});
       await server.stop().catch(() => {});
@@ -1683,6 +1738,18 @@ async function runLiveRounds(options) {
       spendAbortReason: spendState.abortReason,
       provider,
     });
+
+    // v0.14.9 C2: the same-generation A/B verdict — appended to the round
+    // report when --voice ab ran, so the de-confounded comparison reads in
+    // one place (per-course arms + the tally against the bar).
+    if (voice === 'ab') {
+      const abSection = renderVoiceAbSection(pairVoiceAbEntries(entries));
+      if (abSection) {
+        await fs.appendFile(path.join(roundDir, 'ROUND_REPORT.md'), `\n${abSection}`).catch(() => {});
+        const tally = abSection.split('\n').find((line) => line.startsWith('**Tally:**'));
+        if (tally) log(`  voice A/B ${tally.replace(/\*\*/g, '')}`);
+      }
+    }
   }
 }
 

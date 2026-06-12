@@ -33,6 +33,27 @@ const STOP_WORDS = new Set([
   'understand',
   'week',
   'will',
+  // v0.14.9 A1/A2: pure function words. The deepened shards introduced
+  // multi-word surfaces like "women writers and the canon", and a film
+  // lesson resolved it at 0.64 by matching ONLY {and, the} — function
+  // words must never count as concept evidence. (Two-char words like
+  // "of"/"in" were already under the length floor.)
+  'able',
+  'and',
+  'about',
+  'between',
+  'from',
+  'into',
+  'for',
+  'the',
+  'their',
+  'this',
+  'that',
+  'through',
+  'versus',
+  'with',
+  'within',
+  'your',
 ]);
 
 const RESOLVED_THRESHOLD = 0.62;

@@ -211,7 +211,17 @@ export function inferCourseDisciplines(courseMap) {
       /\bcalculus|\bderivativ|\bantiderivativ|\bdifferentiation\b|\b(?:definite|indefinite) integral|\bintegrals\b|\blimit laws?\b|\blimits? of (?:a )?function|\bmathematic|\bprecalculus|\btrigonometr|\blinear algebra/,
     ],
     ['chem', /\bchemistr|molecul|reaction|stoichiometr|equilibrium/],
-    ['history', /\bhistory|historical|civilization|\bwar\b|revolution|primary source/],
+    // v0.14.9 A1: tightened with the deepened US-history shard. The old
+    // pattern (`\bhistory|historical|\bwar\b|revolution`) tripped on art
+    // history surveys, literature courses reading historical novels ("War
+    // and Peace"), and CS "image reconstruction". Now: an explicit
+    // history-course phrase, "history of X", or strong US-survey era
+    // markers. Bare "reconstruction" stays out (CS/medical imaging);
+    // "revolution" needs its era prefix.
+    [
+      'history',
+      /\b(?:u\.?s\.?|american|united states|world|european|western|modern|global) history|\bhistory of\b|\bhistory\s+(?:course|survey|since|to)\b|\bcivilization\b|\bprimary sources?\b|\breconstruction era|\bradical reconstruction|\bgilded age|\bprogressive era|\bnew deal\b|\bgreat depression|\bworld war\b|\bcivil war\b|\bcold war\b|\bcivil rights movement|\b(?:american|french|industrial) revolution/,
+    ],
     ['lit', /\bliterat|literary|poetry|poem|novel|fiction|close reading|rhetoric|composition/],
     ['cs', /\bcomputer science|algorithm|programming|data structure/],
     // v0.14.1 (4.2): geology + world-language inference. The v0.14 audit's

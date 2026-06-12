@@ -4,19 +4,8 @@ import { safeImport } from '../lib/safeImport';
 import { summarizeReadiness } from '../lib/deliverableReadiness';
 import { evaluateStrictPackageReadiness } from '../lib/packageFinalizer';
 import { normalizeReadinessIssue } from '../lib/readinessIssueSchema';
-import { buildPreExportChecklist } from '../lib/preExportChecklist';
 import ReviewQueue from './ReviewQueue';
 import NoticeBanner from './NoticeBanner';
-import {
-  REVIEW_CLASS_KEYS,
-  REVIEW_CLASS_LABELS,
-  applyReviewMark,
-  buildReviewQueue,
-  loadReviewProgress,
-  resolveReviewRunId,
-  saveReviewProgress,
-  selectOutstandingQueue,
-} from '../lib/reviewQueueModel';
 import {
   exportDeliverableCsv,
   exportDeliverablePdf,
@@ -610,6 +599,33 @@ function QualityReportModal({ quality, onClose }) {
               ))}
             </div>
           </div>
+          {Number.isFinite(quality.texture?.score) && (
+            <div data-testid="quality-texture-row">
+              <p className="text-xs font-semibold text-slate-500 mb-1.5">
+                Texture {quality.texture.score}/100
+                <span className="ml-1.5 font-medium text-slate-400">advisory — weight 0 in the grade</span>
+              </p>
+              <div className="grid grid-cols-3 gap-1">
+                {['sameness', 'openers', 'tails'].map((subKey) => (
+                  <div
+                    key={subKey}
+                    className="flex items-center justify-between rounded-lg bg-slate-50 px-2 py-1 text-xs"
+                  >
+                    <span className="text-slate-500 capitalize">{subKey}</span>
+                    <span className="font-bold text-slate-700">
+                      {Number.isFinite(quality.texture.subScores?.[subKey]) ? quality.texture.subScores[subKey] : '—'}
+                    </span>
+                  </div>
+                ))}
+              </div>
+              {Array.isArray(quality.texture.evidence) && quality.texture.evidence.length > 0 && (
+                <p className="mt-1 rounded bg-slate-50 px-1.5 py-1 font-mono text-xs leading-snug text-slate-500 break-words">
+                  Most repeated: “{quality.texture.evidence[0].shingle}” — {quality.texture.evidence[0].docCount} of{' '}
+                  {quality.texture.evidence[0].docTotal} {quality.texture.evidence[0].feature} documents
+                </p>
+              )}
+            </div>
+          )}
           <div>
             <p className="text-xs font-semibold text-slate-500 mb-1.5">Findings ({findings.length})</p>
             {findings.length === 0 ? (
@@ -679,17 +695,19 @@ export default function ExportSidePanel({
   preferPackageScope = false,
   getPipelineState = null, // v0.12.1: () => manifest pipeline block, read at export time
   getQualityContext = null, // v0.14.3: () => { budget, digest } — the ZIP grade's honesty source
-  // v0.14.4 WS-C1/C2: the unified review queue. Observations arrive from the
-  // agent digest (AppFlow reads them off chat history), the run digest feeds
-  // the structural class; open-state can be driven by the parent so the
-  // agent-panel observation card routes into the SAME drawer.
-  reviewObservations = [],
-  lastRunDigest = null,
+  // v0.14.9 B1: THE review queue is built and owned by AppFlow (one queue
+  // object feeds the header CTA's headline count, this drawer, and the agent
+  // digest entry) — the panel stopped building a rival queue, which is how
+  // the header and drawer once showed two different numbers. Progress and
+  // marking live with the queue's owner; this panel only hosts the drawer.
+  reviewQueue = null,
+  reviewProgress = null,
+  onReviewMark = null,
+  onReviewMarkAll = null,
   reviewQueueOpen: reviewQueueOpenProp,
   onReviewQueueOpenChange = null,
   reviewQueueFocusId = null,
-  // v0.14.7 WS-G4: the pending sync suggestion + its approval executor.
-  syncSuggestion = null,
+  // v0.14.7 WS-G4: the pending sync approval executor.
   onExecuteSync = null,
 }) {
   const { courseMap, columns, selectedFeatures, slideTheme } = useCourse();
@@ -726,47 +744,14 @@ export default function ExportSidePanel({
   // All-tab lesson filter (null = all lessons)
   const allLessons = courseMap?.lessons || [];
   const [selectedLessons, setSelectedLessons] = useState(null); // null = all
+  // v0.14.9 B5: the checkbox wall hides behind "All N lessons · Edit" while
+  // every lesson is in scope — editing or a partial scope reveals it.
+  const [editingLessonScope, setEditingLessonScope] = useState(false);
 
   const courseName = courseMap?.courseName || 'Course';
 
-  // ── Review queue (v0.14.4 WS-C1/C2): one queue, three classes. The old
-  // "N items need your eyes" checklist becomes the spot-check class; agent
-  // digest observations and export/quality structural notices join it. The
-  // entry shows per-class counts instead of one anxious number; the drawer
-  // steps through items with progress persisted per finish run.
-  const checklistItems = useMemo(() => {
-    try {
-      return buildPreExportChecklist({ courseMap, deliverables });
-    } catch {
-      return [];
-    }
-  }, [courseMap, deliverables]);
-  const reviewQueue = useMemo(
-    () =>
-      buildReviewQueue({
-        reviewItems: checklistItems,
-        observations: reviewObservations,
-        finalizerResult: lastRunDigest,
-        qualityPass: packageQualityPass,
-        // v0.14.7 WS-G4: the pending sync plan leads the queue, with the
-        // recompile-diff preview per affected deliverable.
-        syncSuggestion,
-      }),
-    [checklistItems, lastRunDigest, packageQualityPass, reviewObservations, syncSuggestion],
-  );
-  const reviewRunId = useMemo(
-    () => resolveReviewRunId({ finalizerResult: lastRunDigest, qualityPass: packageQualityPass, courseName }),
-    [courseName, lastRunDigest, packageQualityPass],
-  );
-  const [reviewProgress, setReviewProgress] = useState(() => loadReviewProgress(reviewRunId));
-  useEffect(() => {
-    // A NEW finish pass carries a new run id — progress resets honestly.
-    setReviewProgress(loadReviewProgress(reviewRunId));
-  }, [reviewRunId]);
-  const outstandingReview = useMemo(
-    () => selectOutstandingQueue(reviewQueue, reviewProgress),
-    [reviewQueue, reviewProgress],
-  );
+  // ── Review queue drawer hosting (v0.14.9 B1: the queue itself arrives as
+  // a prop from AppFlow — see the props block).
   const [reviewQueueOpenLocal, setReviewQueueOpenLocal] = useState(false);
   const [reviewQueueFocusLocal, setReviewQueueFocusLocal] = useState(null);
   const reviewQueueControlled = typeof onReviewQueueOpenChange === 'function';
@@ -787,13 +772,6 @@ export default function ExportSidePanel({
       setReviewQueueOpenLocal(false);
       setReviewQueueFocusLocal(null);
     }
-  };
-  const handleReviewMark = (item, mark) => {
-    setReviewProgress((prev) => {
-      const next = applyReviewMark(prev, item.id, mark);
-      saveReviewProgress(next);
-      return next;
-    });
   };
 
   // ── Determine what we're exporting ──────────────────────────────────────────
@@ -1291,7 +1269,8 @@ export default function ExportSidePanel({
           progress={reviewProgress}
           focusItemId={effectiveReviewFocusId}
           onClose={closeReviewQueue}
-          onMark={handleReviewMark}
+          onMark={onReviewMark}
+          onMarkAll={onReviewMarkAll}
           onExecuteSync={onExecuteSync}
         />
 
@@ -1367,17 +1346,42 @@ export default function ExportSidePanel({
         {/* ────────────────────────────────────────────────────────────── */}
         {scope === 'all' && (
           <div className="space-y-3">
-            {/* Lesson scope selector */}
-            {allLessons.length > 0 && (
+            {/* Lesson scope selector — v0.14.9 B5: the common case (all
+                lessons) is ONE calm line; the checkbox wall renders only
+                while editing scope or while a partial scope is active. */}
+            {allLessons.length > 0 && allSelected && !editingLessonScope && (
+              <div className="flex items-center justify-between" data-testid="lesson-scope-collapsed">
+                <p className="text-xs font-semibold text-slate-500">Lesson scope</p>
+                <button
+                  data-testid="lesson-scope-edit"
+                  onClick={() => setEditingLessonScope(true)}
+                  className="text-xs font-semibold text-indigo-500 hover:text-indigo-700 transition-colors"
+                >
+                  All {allLessons.length} lessons · Edit
+                </button>
+              </div>
+            )}
+            {allLessons.length > 0 && (!allSelected || editingLessonScope) && (
               <div>
                 <div className="flex items-center justify-between mb-1.5">
                   <p className="text-xs font-semibold text-slate-500">Lesson scope</p>
-                  <button
-                    onClick={() => setSelectedLessons(allSelected ? [] : null)}
-                    className="text-xs font-semibold text-indigo-500 hover:text-indigo-700 transition-colors"
-                  >
-                    {allSelected ? 'Uncheck all' : 'Select all'}
-                  </button>
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={() => setSelectedLessons(allSelected ? [] : null)}
+                      className="text-xs font-semibold text-indigo-500 hover:text-indigo-700 transition-colors"
+                    >
+                      {allSelected ? 'Uncheck all' : 'Select all'}
+                    </button>
+                    {allSelected && (
+                      <button
+                        data-testid="lesson-scope-done"
+                        onClick={() => setEditingLessonScope(false)}
+                        className="text-xs font-semibold text-slate-400 hover:text-slate-600 transition-colors"
+                      >
+                        Done
+                      </button>
+                    )}
+                  </div>
                 </div>
                 <div className="space-y-0.5 max-h-36 overflow-y-auto pr-0.5">
                   {allLessons.map((lesson, idx) => {

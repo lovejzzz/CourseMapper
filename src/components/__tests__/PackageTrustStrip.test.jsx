@@ -33,8 +33,8 @@ describe('summarizePackageTrust', () => {
   });
 });
 
-describe('PackageTrustStrip', () => {
-  it('renders provenance chips for a generated package', () => {
+describe('PackageTrustStrip — alerts only since v0.14.9 B3', () => {
+  it('renders ONLY the attention chips; provenance receipts stay out of the crown', () => {
     const html = renderToStaticMarkup(
       <PackageTrustStrip
         deliverables={deliverables}
@@ -43,11 +43,29 @@ describe('PackageTrustStrip', () => {
       />,
     );
     expect(html).toContain('data-testid="package-trust-strip"');
-    expect(html).toContain('2 compiled');
-    expect(html).toContain('1 custom');
-    expect(html).toContain('2 auto-fixed');
     expect(html).toContain('1 stale');
     expect(html).toContain('1 failed');
+    // Receipts (compiled / custom / auto-fixed / cited) live in the digest
+    // and finish receipt now — never in the header.
+    expect(html).not.toContain('compiled');
+    expect(html).not.toContain('custom');
+    expect(html).not.toContain('auto-fixed');
+    expect(html).not.toContain('cited sources');
+  });
+
+  it('renders nothing when nothing needs attention — a calm package wears no chips', () => {
+    const healthy = {
+      syllabus: { status: 'done', data: {}, stale: false },
+      quizBank: { status: 'done', data: {}, stale: false },
+    };
+    const html = renderToStaticMarkup(
+      <PackageTrustStrip
+        deliverables={healthy}
+        selectedFeatures={['courseMap', 'syllabus', 'quizBank']}
+        packageQualityPass={{ status: 'done', repairsApplied: 4 }}
+      />,
+    );
+    expect(html).toBe('');
   });
 
   it('renders nothing before any deliverable exists', () => {

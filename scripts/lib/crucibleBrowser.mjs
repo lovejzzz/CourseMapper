@@ -416,6 +416,8 @@ export async function runCourseInBrowser({
   let status = 'failed';
   let errorText = null;
   let legacyPathTelemetry = null;
+  // v0.14.9 C2: --voice ab twin output ({ voicedZipPath, outcome }) or null.
+  let voiceAb = null;
 
   try {
     phase = 'loading-landing';
@@ -492,6 +494,38 @@ export async function runCourseInBrowser({
     zipPath = path.join(outDir, `${course.id}-package.zip`);
     await downloadZip(page, zipPath, remaining);
 
+    // v0.14.9 C2: --voice ab — the same-generation A/B. The generation above
+    // ran with the voice flag OFF, so the zip just saved is the QUIET twin.
+    // Enable the flag, run the post-hoc voice pass over the SAME compiled
+    // state (the app's driver event hook), and export the VOICED twin: two
+    // packages from one generation, differing only by voiced surfaces.
+    if (voiceMode === 'ab') {
+      phase = 'voice-ab-pass';
+      const voiceOutcome = await page.evaluate(async () => {
+        localStorage.setItem('coursemapper-voice-pass', 'on');
+        return await new Promise((resolve) => {
+          const timer = setTimeout(() => resolve({ ran: false, reason: 'timeout waiting for voice pass' }), 240_000);
+          const onDone = (event) => {
+            clearTimeout(timer);
+            globalThis.removeEventListener('coursemapper:dev-voice-pass-done', onDone);
+            resolve(event.detail || null);
+          };
+          globalThis.addEventListener('coursemapper:dev-voice-pass-done', onDone);
+          globalThis.dispatchEvent(new CustomEvent('coursemapper:dev-run-voice-pass'));
+        });
+      });
+      appendConsoleLine(
+        `${new Date().toISOString()} [crucible-driver] voice ab pass: ${JSON.stringify(voiceOutcome || null)}`,
+      );
+      if (!voiceOutcome?.ran) {
+        throw new Error(`voice ab pass did not run: ${voiceOutcome?.reason || 'no outcome'}`);
+      }
+      phase = 'voice-ab-download';
+      const voicedZipPath = path.join(outDir, `${course.id}-voiced-package.zip`);
+      await downloadZip(page, voicedZipPath, remaining);
+      voiceAb = { voicedZipPath, outcome: voiceOutcome };
+    }
+
     phase = 'done';
     await page.screenshot({ path: path.join(outDir, 'workspace-ready.png'), fullPage: true }).catch(() => {});
     status = 'passed';
@@ -529,6 +563,7 @@ export async function runCourseInBrowser({
     durationMs: Date.now() - startedAt,
     phase,
     legacyPathTelemetry,
+    voiceAb,
   };
   if (errorText) result.error = errorText;
   return result;

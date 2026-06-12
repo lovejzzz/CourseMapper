@@ -361,9 +361,11 @@ describe('B1 — buildRibbonModel selector', () => {
     expect(formatLessonRange('9, 10, 11, 12')).toBe('9–12');
     expect(formatLessonRange('1, 3, 7')).toBe('1, 3, 7');
     expect(formatLessonRange('4')).toBe('4');
+    // v0.14.9 A4: the parser also reports no-shard disciplines (none here).
     expect(parseGenomeLinkerDetail('6 genome + 0 cached of 13 lessons (22 concepts)')).toEqual({
       linked: 6,
       total: 13,
+      uncovered: [],
     });
     expect(parseGenomeLinkerDetail('ran')).toBeNull();
     expect(parseJudgmentDetail('no gaps across 22 linked concepts')).toBe('Judgment clean');

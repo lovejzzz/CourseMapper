@@ -122,8 +122,14 @@ describe('flag off — the default path never voices anything', () => {
     const guard = "voicePassLib.readVoicePassMode() === 'on' && blueprintEnrichmentRequested";
     expect(source).toContain(guard);
     const callMatches = source.match(/\.runVoicePass\(/g) || [];
-    expect(callMatches).toHaveLength(1);
+    // v0.14.9 C2: TWO call sites — the in-pipeline pass (behind the guard
+    // above) and runVoicePassPostHoc, the same-generation A/B hook, which
+    // gates itself on readVoicePassMode() !== 'on' before anything else.
+    expect(callMatches).toHaveLength(2);
     expect(source.indexOf(guard)).toBeLessThan(source.indexOf('.runVoicePass('));
+    expect(source).toContain(
+      "if (voicePassLib.readVoicePassMode() !== 'on') return { ran: false, reason: 'voice flag off' };",
+    );
     expect(source).toContain('Voice pass failed (compiled text kept)');
     // v2 integration upgrades: kernels ride the grounding, and the output
     // cap is FIXED per batch (v1 inherited the ambient budget — truncation

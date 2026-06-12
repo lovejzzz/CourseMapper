@@ -18,11 +18,17 @@ import {
  * mobileWorkspaceView handling).
  *
  * This component never mutates progress itself — Mark reviewed / Dismiss
- * call back into the host (ExportSidePanel), which owns the persisted
+ * call back into the queue's owner (AppFlow since v0.14.9 B1; ExportSidePanel
+ * only hosts the drawer), which owns the persisted
  * 'coursemapper-review-progress' state.
+ *
+ * v0.14.9 B1: spot-checks are ROUTINE confirmations — they don't count toward
+ * the header CTA's headline number, and their class header carries a
+ * "Confirm all" so fifteen look-here items are one click, not fifteen.
  */
 
 const CLASS_TONES = {
+  sync: 'bg-indigo-600 text-white',
   observations: 'bg-amber-100 text-amber-700',
   spotChecks: 'bg-indigo-100 text-indigo-700',
   structural: 'bg-slate-200 text-slate-600',
@@ -49,6 +55,8 @@ export default function ReviewQueue({
   focusItemId = null,
   onClose,
   onMark,
+  // v0.14.9 B1: batch mark (the spot-check class's Confirm all).
+  onMarkAll = null,
   // v0.14.7 WS-G4: sync items are ACTIONS — approving executes the plan.
   onExecuteSync = null,
 }) {
@@ -195,6 +203,22 @@ export default function ReviewQueue({
                   <span className="text-xs font-semibold text-slate-400">
                     {openCount} of {classItems.length} open
                   </span>
+                  {classKey === 'spotChecks' && openCount > 0 && typeof onMarkAll === 'function' && (
+                    <button
+                      type="button"
+                      data-testid="review-queue-confirm-all"
+                      onClick={() =>
+                        onMarkAll(
+                          classItems.filter((item) => itemState(item, progress) === 'open'),
+                          'reviewed',
+                        )
+                      }
+                      title="Spot-checks are routine confirmations — confirm every open one"
+                      className="ml-auto rounded-md bg-indigo-50 px-2 py-0.5 text-xs font-semibold text-indigo-600 transition-colors hover:bg-indigo-100"
+                    >
+                      Confirm all
+                    </button>
+                  )}
                 </div>
                 <ul className="space-y-1.5">
                   {classItems.map((item) => {

@@ -768,12 +768,16 @@ export function renderJudgeSection(judge) {
 export const AUTHORING_SCORE_TOLERANCE = 2;
 export const AUTHORING_COST_CUT_TARGET = 0.2;
 
-/** v0.14.7 WS-D3: --voice off|on|both (default 'off'); anything else throws. */
+/**
+ * v0.14.7 WS-D3: --voice off|on|both; v0.14.9 C2 adds 'ab' — the
+ * same-generation A/B (generate ONCE with the flag off, post-hoc voice the
+ * same compiled state, export twin zips). Anything else throws.
+ */
 export function parseVoiceFlag(raw) {
   if (raw === undefined || raw === null || raw === true || raw === '') return 'off';
   const value = String(raw).toLowerCase();
-  if (value === 'off' || value === 'on' || value === 'both') return value;
-  throw new Error(`--voice must be off, on, or both (got "${raw}")`);
+  if (value === 'off' || value === 'on' || value === 'both' || value === 'ab') return value;
+  throw new Error(`--voice must be off, on, both, or ab (got "${raw}")`);
 }
 
 /**
@@ -781,11 +785,19 @@ export function parseVoiceFlag(raw) {
  * default 'off' keeps run-dir naming EXACTLY; 'on'/'both' suffix the run
  * dirs — course--quiet / course--voiced — and carry { baseId, voice } so
  * twins stay pairable). Apply AFTER the authoring expansion.
+ *
+ * 'ab' deliberately does NOT expand: one browser run per course produces
+ * BOTH arms (the driver exports quiet, runs the post-hoc voice pass, exports
+ * voiced) — that is what de-confounds the comparison. The voiced twin entry
+ * is fabricated by the round loop from the second zip.
  */
 export function expandCoursesForVoice(courses, voice = 'off') {
   const list = Array.isArray(courses) ? courses : [];
   if (voice === 'off') {
     return list.map((course) => ({ ...course, voice: 'off' }));
+  }
+  if (voice === 'ab') {
+    return list.map((course) => ({ ...course, baseId: course.baseId || course.id, voice: 'ab', abArm: 'quiet' }));
   }
   const modes = voice === 'both' ? ['off', 'on'] : [voice];
   return list.flatMap((course) =>
@@ -796,6 +808,70 @@ export function expandCoursesForVoice(courses, voice = 'off') {
       voice: mode,
     })),
   );
+}
+
+/**
+ * v0.14.9 C2: pair the two arms of every --voice ab course in a finished
+ * entry list. The quiet arm is the course's main entry (abArm 'quiet'); the
+ * voiced twin was fabricated from the second zip (abArm 'voiced',
+ * id `${baseId}--voiced`). Returns [{ baseId, quiet, voiced }].
+ */
+export function pairVoiceAbEntries(entries = []) {
+  const arms = entries.filter((entry) => entry?.course?.abArm);
+  const byBase = new Map();
+  for (const entry of arms) {
+    const baseId = entry.course.baseId || entry.course.id;
+    const pair = byBase.get(baseId) || { baseId, quiet: null, voiced: null };
+    pair[entry.course.abArm === 'voiced' ? 'voiced' : 'quiet'] = entry;
+    byBase.set(baseId, pair);
+  }
+  return [...byBase.values()];
+}
+
+/**
+ * The voice A/B verdict section for ROUND_REPORT.md. Reads each arm's judge
+ * overall (advisory) and structural score; the per-course verdict is which
+ * arm the judge preferred. The BAR (met twice on different days before any
+ * default talk): judge prefers voiced on a majority of courses with the
+ * voiced arm's structural grade held.
+ */
+export function renderVoiceAbSection(pairs = []) {
+  if (pairs.length === 0) return '';
+  const lines = ['## Voice A/B (same generation — de-confounded)', ''];
+  let voicedWins = 0;
+  let quietWins = 0;
+  let ties = 0;
+  for (const pair of pairs) {
+    const quietJudge = pair.quiet?.judge?.parsed?.overall ?? null;
+    const voicedJudge = pair.voiced?.judge?.parsed?.overall ?? null;
+    const quietScore = pair.quiet?.gradeResult?.overallScore ?? pair.quiet?.gradeResult?.score ?? null;
+    const voicedScore = pair.voiced?.gradeResult?.overallScore ?? pair.voiced?.gradeResult?.score ?? null;
+    let verdict = 'no judge — structural only';
+    if (Number.isFinite(quietJudge) && Number.isFinite(voicedJudge)) {
+      if (voicedJudge > quietJudge) {
+        verdict = 'judge prefers VOICED';
+        voicedWins += 1;
+      } else if (quietJudge > voicedJudge) {
+        verdict = 'judge prefers QUIET';
+        quietWins += 1;
+      } else {
+        verdict = 'judge tie';
+        ties += 1;
+      }
+    }
+    lines.push(
+      `- **${pair.baseId}**: quiet ${quietScore ?? '—'}/judge ${quietJudge ?? '—'} vs voiced ${voicedScore ?? '—'}/judge ${voicedJudge ?? '—'} — ${verdict}`,
+    );
+  }
+  const judged = voicedWins + quietWins + ties;
+  if (judged > 0) {
+    lines.push(
+      '',
+      `**Tally:** voiced ${voicedWins} · quiet ${quietWins} · ties ${ties} — bar (this round): voiced wins a majority with structural held.`,
+    );
+  }
+  lines.push('');
+  return lines.join('\n');
 }
 
 /** --authoring prose|native|both (default 'prose'); anything else throws. */

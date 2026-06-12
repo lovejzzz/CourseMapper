@@ -112,7 +112,10 @@
           "rationaleRefs": [0]
         }
       ],
-      "edges": { "requires": [], "recommends": ["nutrition/dietary-guidelines"] },
+      "edges": {
+        "requires": [],
+        "recommends": ["nutrition/dietary-guidelines"]
+      },
       "attribution": ["University of Hawai'i Human Nutrition 2e, Ch. 1 Basic Concepts — Introduction"]
     },
     {
@@ -210,7 +213,10 @@
           "rationaleRefs": [0]
         }
       ],
-      "edges": { "requires": ["nutrition/six-classes-of-nutrients"], "recommends": ["nutrition/dietary-fiber"] },
+      "edges": {
+        "requires": ["nutrition/six-classes-of-nutrients"],
+        "recommends": ["nutrition/dietary-fiber"]
+      },
       "attribution": ["University of Hawai'i Human Nutrition 2e, Ch. 4 Carbohydrates — Introduction"]
     },
     {
@@ -299,7 +305,10 @@
           "rationaleRefs": [0]
         }
       ],
-      "edges": { "requires": ["nutrition/carbohydrates"], "recommends": [] },
+      "edges": {
+        "requires": ["nutrition/carbohydrates"],
+        "recommends": []
+      },
       "attribution": ["University of Hawai'i Human Nutrition 2e, Ch. 4 Carbohydrates — Introduction"]
     },
     {
@@ -387,7 +396,10 @@
           "rationaleRefs": [0]
         }
       ],
-      "edges": { "requires": ["nutrition/six-classes-of-nutrients"], "recommends": [] },
+      "edges": {
+        "requires": ["nutrition/six-classes-of-nutrients"],
+        "recommends": []
+      },
       "attribution": ["University of Hawai'i Human Nutrition 2e, Ch. 6 Protein — Defining Protein"]
     },
     {
@@ -496,7 +508,10 @@
           "rationaleRefs": [0]
         }
       ],
-      "edges": { "requires": ["nutrition/six-classes-of-nutrients"], "recommends": ["nutrition/energy-balance"] },
+      "edges": {
+        "requires": ["nutrition/six-classes-of-nutrients"],
+        "recommends": ["nutrition/energy-balance"]
+      },
       "attribution": ["University of Hawai'i Human Nutrition 2e, Ch. 5 Lipids — Introduction and How Lipids Work"]
     },
     {
@@ -598,7 +613,10 @@
           "rationaleRefs": [0]
         }
       ],
-      "edges": { "requires": ["nutrition/six-classes-of-nutrients"], "recommends": ["nutrition/major-minerals"] },
+      "edges": {
+        "requires": ["nutrition/six-classes-of-nutrients"],
+        "recommends": ["nutrition/major-minerals"]
+      },
       "attribution": [
         "University of Hawai'i Human Nutrition 2e, Ch. 9 Vitamins — Introduction and Fat-Soluble Vitamins"
       ]
@@ -707,7 +725,10 @@
           "rationaleRefs": [0]
         }
       ],
-      "edges": { "requires": ["nutrition/six-classes-of-nutrients"], "recommends": [] },
+      "edges": {
+        "requires": ["nutrition/six-classes-of-nutrients"],
+        "recommends": []
+      },
       "attribution": ["University of Hawai'i Human Nutrition 2e, Ch. 10 Major Minerals — Introduction and Calcium"]
     },
     {
@@ -800,7 +821,10 @@
           "rationaleRefs": [0]
         }
       ],
-      "edges": { "requires": ["nutrition/six-classes-of-nutrients"], "recommends": [] },
+      "edges": {
+        "requires": ["nutrition/six-classes-of-nutrients"],
+        "recommends": []
+      },
       "attribution": [
         "University of Hawai'i Human Nutrition 2e, Ch. 3 Water and Electrolytes — Water's Importance to Vitality"
       ]
@@ -1158,7 +1182,10 @@
           "rationaleRefs": [0]
         }
       ],
-      "edges": { "requires": ["nutrition/six-classes-of-nutrients"], "recommends": ["nutrition/nutrition-labels"] },
+      "edges": {
+        "requires": ["nutrition/six-classes-of-nutrients"],
+        "recommends": ["nutrition/nutrition-labels"]
+      },
       "attribution": [
         "University of Hawai'i Human Nutrition 2e, Ch. 1 — Achieving a Healthy Diet; Ch. 12 — Building Healthy Eating Patterns"
       ]
@@ -1167,7 +1194,7 @@
       "id": "nutrition/nutrition-labels",
       "rev": 1,
       "term": "Reading a Nutrition Facts label",
-      "aliases": ["nutrition facts panel", "percent DV", "food labels", "%DV"],
+      "aliases": ["nutrition facts panel", "percent daily value", "food labels", "%DV"],
       "tags": ["consumer skills", "food labels", "quantitative"],
       "level": "intro",
       "difficulty": 3,
@@ -1285,7 +1312,10 @@
           "rationaleRefs": [0]
         }
       ],
-      "edges": { "requires": ["nutrition/six-classes-of-nutrients"], "recommends": ["nutrition/energy-balance"] },
+      "edges": {
+        "requires": ["nutrition/six-classes-of-nutrients"],
+        "recommends": ["nutrition/energy-balance"]
+      },
       "attribution": [
         "University of Hawai'i Human Nutrition 2e, Ch. 12 Nutrition Applications — Discovering Nutrition Facts"
       ]

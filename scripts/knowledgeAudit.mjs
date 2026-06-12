@@ -58,6 +58,11 @@ function bookUrlFromSrc(src) {
   if (/^uh-oer:human-nutrition/i.test(src)) return 'https://pressbooks.oer.hawaii.edu/humannutrition2/';
   // V0.14.1 4.1: OpenGeology "An Introduction to Geology" (CC BY-NC-SA 4.0).
   if (/^opengeology:introduction-to-geology/i.test(src)) return 'https://opengeology.org/textbook/';
+  // v0.14.9 A2: Milne Open Textbooks (SUNY Geneseo) — "Literature, the
+  // Humanities, and Humanity" (CC BY-NC-SA) and "Naming the Unnameable"
+  // (CC BY), the literature foundry books.
+  const milne = String(src).match(/^milne:([a-z0-9-]+)/i);
+  if (milne) return `https://milnepublishing.geneseo.edu/${milne[1]}/`;
   // Curated in-genome reference srcs (e.g. "historical-thinking:reference")
   // have no web home by design — they are not dead links.
   if (/:reference$/i.test(src)) return 'internal';

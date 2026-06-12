@@ -29,6 +29,15 @@ export const REVIEW_PROGRESS_STORAGE_KEY = 'coursemapper-review-progress';
 // are ACTIONS (approve a recompile with a known diff), not just reading.
 export const REVIEW_CLASS_KEYS = ['sync', 'observations', 'spotChecks', 'structural'];
 
+// v0.14.9 B1: the HEADLINE count is items needing JUDGMENT — syncs to approve,
+// observations to weigh, structural notices to read. Spot-checks are routine
+// confirmations (the per-deliverable look-here checklist); they live in the
+// drawer under their own class with a confirm-all, but they do not inflate
+// the number an instructor sees on the header CTA. This is the definitional
+// fix for the live "Review 3" vs "26" divergence: one queue object, two
+// deliberate views of it.
+export const JUDGMENT_CLASS_KEYS = ['sync', 'observations', 'structural'];
+
 export const REVIEW_CLASS_LABELS = {
   sync: { title: 'Pending sync', singular: 'sync', plural: 'syncs' },
   observations: { title: 'Observations', singular: 'observation', plural: 'observations' },
@@ -217,6 +226,7 @@ export function buildReviewQueue({
     spotChecks: classes.spotChecks.length,
     structural: classes.structural.length,
   };
+  counts.headline = counts.sync + counts.observations + counts.structural;
   return {
     classes,
     counts,
@@ -250,6 +260,7 @@ export function selectOutstandingQueue(queue, progress) {
     spotChecks: classes.spotChecks.length,
     structural: classes.structural.length,
   };
+  counts.headline = counts.sync + counts.observations + counts.structural;
   return {
     classes,
     counts,

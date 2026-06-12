@@ -100,7 +100,15 @@ import {
   getApiCallBudgetTotal,
 } from './lib/apiCallBudget';
 import { buildBuildRibbonModel } from './lib/buildRibbonModel';
-import { buildReviewQueue } from './lib/reviewQueueModel';
+import {
+  applyReviewMark,
+  buildReviewQueue,
+  loadReviewProgress,
+  resolveReviewRunId,
+  saveReviewProgress,
+  selectOutstandingQueue,
+} from './lib/reviewQueueModel';
+import { buildPreExportChecklist } from './lib/preExportChecklist';
 import { isFinishPassRunning } from './lib/packagePassPhase';
 import { buildApiCostPlan, evaluateApiCostControl } from './lib/apiCostControl';
 import {
@@ -796,6 +804,9 @@ export default function AppFlow({ startupAction = null, onStartupHandled, onRetu
   // v0.14.3 WS-A A2: the last run digest, kept so the ZIP download path can
   // hand the quality grader the same honesty source the finalize grade used.
   const lastRunDigestRef = useRef(null);
+  // v0.14.9 B1: the digest mirrored into state so the review queue (a memo)
+  // rebuilds when a finish pass lands — the ref alone is not reactive.
+  const [lastRunDigest, setLastRunDigest] = useState(null);
   const packageGenerationInFlightRef = useRef(false);
   const [packageGenerationBusy, setPackageGenerationBusy] = useState(false);
   const suppressedPackageRetryKeysRef = useRef(new Set());
@@ -1739,6 +1750,7 @@ export default function AppFlow({ startupAction = null, onStartupHandled, onRetu
           /* digest is diagnostics-only — never block the finish on it */
         }
         lastRunDigestRef.current = runDigest;
+        setLastRunDigest(runDigest);
 
         // v0.14.3 WS-A A2: after export_verify passes, the package grades
         // itself — deterministic deep-quality grade over the same in-memory
@@ -1962,6 +1974,92 @@ export default function AppFlow({ startupAction = null, onStartupHandled, onRetu
     onResolveCanonicalPatchRequests: resolveArtifactBlueprintPatchRequests,
   });
   smartSyncRef.current = smartSync;
+
+  // ── v0.14.9 B1: THE review queue — one object, one owner. ───────────────
+  // AppFlow builds the full queue (spot-check checklist INCLUDED) and owns
+  // review progress; the header CTA, the panel-hosted drawer, and the digest
+  // entry all read this one object. The header shows counts.headline
+  // (judgment items: syncs + observations + structural) — spot-checks are
+  // routine confirmations that live only inside the drawer. This is the fix
+  // for the live "Review 3" header vs 26-item panel divergence: two builders
+  // with two definitions can never agree by accident.
+  const reviewChecklistItems = useMemo(() => {
+    try {
+      return buildPreExportChecklist({ courseMap, deliverables: deliv.deliverables });
+    } catch {
+      return [];
+    }
+  }, [courseMap, deliv.deliverables]);
+  const reviewQueue = useMemo(
+    () =>
+      buildReviewQueue({
+        reviewItems: reviewChecklistItems,
+        observations: reviewObservations,
+        finalizerResult: lastRunDigest,
+        qualityPass: packageQualityPass,
+        syncSuggestion: smartSync.pendingSyncSuggestion,
+      }),
+    [reviewChecklistItems, reviewObservations, lastRunDigest, packageQualityPass, smartSync.pendingSyncSuggestion],
+  );
+  const reviewRunId = useMemo(
+    () =>
+      resolveReviewRunId({
+        finalizerResult: lastRunDigest,
+        qualityPass: packageQualityPass,
+        courseName: courseMap?.courseName || '',
+      }),
+    [lastRunDigest, packageQualityPass, courseMap?.courseName],
+  );
+  const [reviewProgress, setReviewProgress] = useState(() => loadReviewProgress(reviewRunId));
+  useEffect(() => {
+    // A NEW finish pass carries a new run id — progress resets honestly.
+    setReviewProgress(loadReviewProgress(reviewRunId));
+  }, [reviewRunId]);
+  const outstandingReview = useMemo(
+    () => selectOutstandingQueue(reviewQueue, reviewProgress),
+    [reviewQueue, reviewProgress],
+  );
+  const handleReviewMark = useCallback((item, mark) => {
+    setReviewProgress((prev) => {
+      const next = applyReviewMark(prev, item.id, mark);
+      saveReviewProgress(next);
+      return next;
+    });
+  }, []);
+  // Confirm-all for the spot-check class: one state update, one persist.
+  const handleReviewMarkAll = useCallback((items, mark) => {
+    setReviewProgress((prev) => {
+      let next = prev;
+      for (const item of Array.isArray(items) ? items : []) next = applyReviewMark(next, item.id, mark);
+      saveReviewProgress(next);
+      return next;
+    });
+  }, []);
+
+  // v0.14.9 C2: the same-generation voice A/B driver hook. The Crucible's
+  // --voice ab protocol enables the voice flag AFTER a quiet export, then
+  // dispatches this event; the done-event lets it await the pass before the
+  // second export — twin ZIPs from ONE generation. Nothing in the normal UI
+  // dispatches this.
+  const runVoicePassPostHocRef = useRef(null);
+  runVoicePassPostHocRef.current = deliv.runVoicePassPostHoc;
+  useEffect(() => {
+    const handler = () => {
+      Promise.resolve(runVoicePassPostHocRef.current?.(courseMapRef.current))
+        .then((result) => {
+          window.dispatchEvent(new CustomEvent('coursemapper:dev-voice-pass-done', { detail: result || null }));
+        })
+        .catch((err) => {
+          window.dispatchEvent(
+            new CustomEvent('coursemapper:dev-voice-pass-done', {
+              detail: { ran: false, reason: err?.message || 'voice pass failed' },
+            }),
+          );
+        });
+    };
+    window.addEventListener('coursemapper:dev-run-voice-pass', handler);
+    return () => window.removeEventListener('coursemapper:dev-run-voice-pass', handler);
+  }, []);
 
   // Wire editor with smartSync notifyEdit
   const editor = useCourseMapEditor({
@@ -3443,17 +3541,6 @@ export default function AppFlow({ startupAction = null, onStartupHandled, onRetu
       : !canFinishPackageWithAgent
         ? 'Run deterministic package checks. Connect AI for model-backed repairs.'
         : 'Finish, repair, verify, and prepare the package for export.';
-  // v0.14.7 WS-F1: the header CTA's honest review count — the same classifier
-  // the export panel's queue uses, fed from the same AppFlow-scope inputs.
-  // (The spot-check class is panel-local checklist data and stays there; the
-  // panel's drawer remains the one full review surface.)
-  const headerReviewQueue = buildReviewQueue({
-    observations: reviewObservations,
-    qualityPass: packageQualityPass,
-    finalizerResult: lastRunDigestRef.current,
-    syncSuggestion: smartSync.pendingSyncSuggestion,
-  });
-
   const handleTabPointerDown = (feature, tabIdx) => (e) => {
     if (e.button !== 0) return;
     const rect = e.currentTarget.getBoundingClientRect();
@@ -3637,11 +3724,13 @@ export default function AppFlow({ startupAction = null, onStartupHandled, onRetu
                         </span>
                       </>
                     )}
+                    {/* v0.14.9 B3: alerts only (stale/failed) — compiled,
+                        auto-fixed, and cited-source receipts moved to the
+                        digest and finish receipt. */}
                     <PackageTrustStrip
                       deliverables={deliv.deliverables}
                       selectedFeatures={selectedFeatures}
                       packageQualityPass={packageQualityPass}
-                      knowledgeCoverage={knowledgeCoverage(courseGraph)}
                     />
                   </div>
                 </div>
@@ -3674,7 +3763,7 @@ export default function AppFlow({ startupAction = null, onStartupHandled, onRetu
                     workspace More below — no second menu here. */}
                 <PrimaryCta
                   ribbonModel={buildRibbonModel}
-                  reviewCount={headerReviewQueue.total}
+                  reviewCount={outstandingReview.counts.headline}
                   canDownload={packageQualityPass?.status === 'ready'}
                   onDownload={() => window.dispatchEvent(new CustomEvent('coursemapper:request-zip-download'))}
                   onReview={() => handleReviewQueueOpenChange(true)}
@@ -3794,59 +3883,12 @@ export default function AppFlow({ startupAction = null, onStartupHandled, onRetu
               Hidden entirely on a fresh/empty workspace (model is null). */}
           <BuildRibbon model={buildRibbonModel} />
 
-          {/* ── Deliverable tabs ── */}
-          {workspaceTabs.length > 1 && (
-            <div className="flex items-center gap-2 mb-1 min-h-9">
-              <button
-                onClick={() => setShowDepMap(true)}
-                className="tactile p-1.5 rounded-full text-slate-400 hover:bg-white/60 hover:text-indigo-500 transition-all duration-200"
-                title="Dependency Map — see how deliverables connect"
-                aria-label="Open dependency map"
-              >
-                <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M4 6h16M4 12h8m-8 6h16M16 12l4-4m0 0l-4-4m4 4H12"
-                  />
-                </svg>
-              </button>
-              {tabDrag && (
-                <div
-                  ref={trashDropRef}
-                  role="button"
-                  aria-label={
-                    canDeleteDraggedTab
-                      ? `Drop to remove ${tabDrag.label || 'deliverable'}`
-                      : 'Course Map cannot be removed'
-                  }
-                  className={`flex h-9 items-center justify-center gap-2 rounded-pill border px-4 text-xs font-bold shadow-glass backdrop-blur-xl transition-all duration-150 pointer-events-none ${
-                    canDeleteDraggedTab
-                      ? tabDrag.overDelete
-                        ? 'scale-105 border-red-300 bg-red-100/95 text-red-700 shadow-red-500/20'
-                        : 'border-red-200/80 bg-red-50/90 text-red-500'
-                      : 'border-slate-200/80 bg-white/70 text-slate-300'
-                  }`}
-                >
-                  <svg
-                    className={`h-3.5 w-3.5 transition-transform duration-150 ${tabDrag.overDelete ? 'scale-110' : ''}`}
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6M9 7V4a1 1 0 011-1h4a1 1 0 011 1v3m-8 0h10"
-                    />
-                  </svg>
-                  <span>{canDeleteDraggedTab ? 'Drop to delete' : 'Locked'}</span>
-                </div>
-              )}
-            </div>
-          )}
+          {/* ── Deliverable tabs ──
+              v0.14.9 B3: the old standalone utility row (dependency-map button
+              + drag-trash zone) between the ribbon and this bar is gone — the
+              dependency-map control folds into the bar's right edge and the
+              drag-trash zone floats as a fixed pill during a drag, returning
+              a full row of vertical rhythm. */}
           {workspaceTabs.length > 0 && (
             <div
               data-testid="workspace-deliverable-tabs"
@@ -4061,8 +4103,69 @@ export default function AppFlow({ startupAction = null, onStartupHandled, onRetu
                   </button>
                 </div>
               )}
+
+              {/* v0.14.9 B3: the dependency-map control, folded in from its
+                  deleted standalone row. ml-auto keeps it at the right edge
+                  whenever the tabs leave room. */}
+              {workspaceTabs.length > 1 && (
+                <button
+                  onClick={() => setShowDepMap(true)}
+                  className="tactile ml-auto flex-shrink-0 p-1.5 rounded-full text-slate-400 hover:bg-white/60 hover:text-indigo-500 transition-all duration-200"
+                  title="Dependency Map — see how deliverables connect"
+                  aria-label="Open dependency map"
+                >
+                  <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M4 6h16M4 12h8m-8 6h16M16 12l4-4m0 0l-4-4m4 4H12"
+                    />
+                  </svg>
+                </button>
+              )}
             </div>
           )}
+
+          {/* v0.14.9 B3: the drag-trash zone — a fixed pill at the top of the
+              viewport, only while a tab is being dragged. Drop detection is
+              rect-based (trashDropRef), so a fixed element works unchanged. */}
+          {tabDrag &&
+            typeof document !== 'undefined' &&
+            createPortal(
+              <div
+                ref={trashDropRef}
+                role="button"
+                aria-label={
+                  canDeleteDraggedTab
+                    ? `Drop to remove ${tabDrag.label || 'deliverable'}`
+                    : 'Course Map cannot be removed'
+                }
+                className={`fixed left-1/2 top-4 z-[9999] flex h-10 -translate-x-1/2 items-center justify-center gap-2 rounded-pill border px-5 text-xs font-bold shadow-glass backdrop-blur-xl transition-all duration-150 pointer-events-none ${
+                  canDeleteDraggedTab
+                    ? tabDrag.overDelete
+                      ? 'scale-105 border-red-300 bg-red-100/95 text-red-700 shadow-red-500/20'
+                      : 'border-red-200/80 bg-red-50/90 text-red-500'
+                    : 'border-slate-200/80 bg-white/70 text-slate-300'
+                }`}
+              >
+                <svg
+                  className={`h-3.5 w-3.5 transition-transform duration-150 ${tabDrag.overDelete ? 'scale-110' : ''}`}
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6M9 7V4a1 1 0 011-1h4a1 1 0 011 1v3m-8 0h10"
+                  />
+                </svg>
+                <span>{canDeleteDraggedTab ? 'Drop to delete' : 'Locked'}</span>
+              </div>,
+              document.body,
+            )}
 
           {tabDrag &&
             typeof document !== 'undefined' &&
@@ -4645,11 +4748,12 @@ export default function AppFlow({ startupAction = null, onStartupHandled, onRetu
                     budget: apiCallBudgetRef.current || {},
                     digest: lastRunDigestRef.current,
                   })}
-                  reviewObservations={reviewObservations}
-                  lastRunDigest={lastRunDigestRef.current}
+                  reviewQueue={reviewQueue}
+                  reviewProgress={reviewProgress}
+                  onReviewMark={handleReviewMark}
+                  onReviewMarkAll={handleReviewMarkAll}
                   reviewQueueOpen={Boolean(reviewQueueRequest)}
                   reviewQueueFocusId={reviewQueueRequest?.focusId || null}
-                  syncSuggestion={smartSync.pendingSyncSuggestion}
                   onExecuteSync={handleExecuteSyncFromQueue}
                   onReviewQueueOpenChange={handleReviewQueueOpenChange}
                 />

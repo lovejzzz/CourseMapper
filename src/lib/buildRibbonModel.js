@@ -55,11 +55,22 @@ function enrichmentLabelFromEvent(event) {
   return event?.label || 'Enriching lesson kernels';
 }
 
-// "6 genome + 0 cached of 13 lessons (…)" → { linked: 6, total: 13 }
+// "6 genome + 0 cached of 13 lessons (…)" → { linked: 6, total: 13 }.
+// v0.14.9 A4: the P2.7 no-shard note ("(no shard for inferred discipline
+// 'history')") is parsed too, so the chip can distinguish ABSENCE (no shard
+// exists for this subject) from a zero (shard exists, nothing matched).
 export function parseGenomeLinkerDetail(detail = '') {
-  const match = String(detail).match(/(\d+)\s+genome\s*\+\s*(\d+)\s+cached of (\d+) lessons?/);
+  const text = String(detail);
+  const match = text.match(/(\d+)\s+genome\s*\+\s*(\d+)\s+cached of (\d+) lessons?/);
   if (!match) return null;
-  return { linked: Number(match[1]) + Number(match[2]), total: Number(match[3]) };
+  const uncoveredMatch = text.match(/no shard for inferred disciplines? ([^)]+)/);
+  const uncovered = uncoveredMatch
+    ? uncoveredMatch[1]
+        .split(',')
+        .map((part) => part.trim().replace(/^'+|'+$/g, ''))
+        .filter(Boolean)
+    : [];
+  return { linked: Number(match[1]) + Number(match[2]), total: Number(match[3]), uncovered };
 }
 
 // buildJudgmentStageEvent strings → a short chip label (or null to omit).
@@ -80,7 +91,18 @@ function buildPipelineChips(budget) {
   const chips = [];
   const genome = parseGenomeLinkerDetail(budget?.pipeline?.genomeLinker);
   if (genome) {
-    chips.push({ id: 'genome', label: `Genome ${genome.linked}/${genome.total}`, emphasis: genome.linked > 0 });
+    if (genome.linked === 0 && genome.uncovered.length > 0) {
+      // v0.14.9 A4: absence isn't an error — a course in a subject the
+      // genome hasn't learned yet stops wearing a zero. Muted, not amber.
+      chips.push({
+        id: 'genome',
+        label: `No knowledge shard yet · ${genome.uncovered.join(', ')}`,
+        emphasis: false,
+        muted: true,
+      });
+    } else {
+      chips.push({ id: 'genome', label: `Genome ${genome.linked}/${genome.total}`, emphasis: genome.linked > 0 });
+    }
   }
   const judgment = parseJudgmentDetail(budget?.pipeline?.judgment);
   if (judgment) chips.push({ id: 'judgment', label: judgment, emphasis: false });

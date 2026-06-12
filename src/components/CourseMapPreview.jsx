@@ -866,7 +866,7 @@ export default function CourseMapPreview({
                           className={`${cellPad} ${cellText} align-top text-slate-600 dark:text-slate-300 transition-all duration-500 ${
                             evaluateFocused ? 'ring-2 ring-amber-400 ring-inset bg-amber-50/80' : ''
                           }`}
-                          style={{ wordBreak: 'break-word', overflowWrap: 'anywhere' }}
+                          style={{ overflowWrap: 'break-word', hyphens: 'auto' }}
                           data-coursemap-cell="true"
                           data-lesson-index={li}
                           data-section-index={si}
@@ -904,7 +904,7 @@ export default function CourseMapPreview({
                           className={`${cellPad} ${cellText} align-top transition-colors duration-300 ${
                             unchanged ? 'bg-slate-50/60 text-slate-400' : 'bg-emerald-50/50 text-emerald-800'
                           }`}
-                          style={{ wordBreak: 'break-word', overflowWrap: 'anywhere' }}
+                          style={{ overflowWrap: 'break-word', hyphens: 'auto' }}
                           data-changed={!unchanged ? 'true' : undefined}
                           data-coursemap-cell="true"
                           data-lesson-index={li}
@@ -924,7 +924,7 @@ export default function CourseMapPreview({
                           key={key}
                           rowSpan={rowSpan}
                           className={`${cellPad} ${cellText} align-top text-slate-600 dark:text-slate-300`}
-                          style={{ wordBreak: 'break-word', overflowWrap: 'anywhere' }}
+                          style={{ overflowWrap: 'break-word', hyphens: 'auto' }}
                           data-coursemap-cell="true"
                           data-lesson-index={li}
                           data-section-index={si}
@@ -961,7 +961,7 @@ export default function CourseMapPreview({
                                   ? 'bg-emerald-50/40'
                                   : ''
                           }`}
-                          style={{ wordBreak: 'break-word', overflowWrap: 'anywhere' }}
+                          style={{ overflowWrap: 'break-word', hyphens: 'auto' }}
                           data-coursemap-cell="true"
                           data-lesson-index={li}
                           data-section-index={si}

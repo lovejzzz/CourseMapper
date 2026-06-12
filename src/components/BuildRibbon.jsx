@@ -118,9 +118,11 @@ export default function BuildRibbon({ model }) {
               key={chip.id}
               data-testid={`ribbon-chip-${chip.id}`}
               className={`rounded-full border px-2 py-0.5 text-[12px] font-semibold ${
-                chip.emphasis
-                  ? 'border-indigo-200 bg-indigo-50 text-indigo-700 dark:border-indigo-500/40 dark:bg-indigo-500/10 dark:text-indigo-300'
-                  : 'border-slate-200 bg-slate-50 text-slate-600 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-300'
+                chip.muted
+                  ? 'border-slate-200/70 bg-transparent text-slate-400 dark:border-slate-700 dark:text-slate-500'
+                  : chip.emphasis
+                    ? 'border-indigo-200 bg-indigo-50 text-indigo-700 dark:border-indigo-500/40 dark:bg-indigo-500/10 dark:text-indigo-300'
+                    : 'border-slate-200 bg-slate-50 text-slate-600 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-300'
               }`}
             >
               {chip.label}

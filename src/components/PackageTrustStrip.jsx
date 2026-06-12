@@ -1,11 +1,15 @@
 /**
- * PackageTrustStrip — v0.8.6 trust surface.
+ * PackageTrustStrip — v0.8.6 trust surface, slimmed to ALERTS in v0.14.9 B3.
  *
- * Compact package-level provenance chips for the workspace header: how many
- * deliverables were deterministically compiled vs custom/model-generated,
- * safe repairs applied by the last finish run, stale and failed counts.
- * The compiler already tracks all of this — this strip just makes it visible
- * without opening receipts or audit reports.
+ * The crown is status, not receipts: "N compiled", "N custom", "N auto-fixed",
+ * and "N cited sources" are provenance facts that already live in the digest,
+ * the finish receipt, and QUALITY_REPORT.md — they no longer occupy the
+ * header. What remains here is only what needs ATTENTION right now: stale
+ * deliverables (resync) and failed generations (retry). A calm package
+ * renders nothing.
+ *
+ * summarizePackageTrust still computes the full provenance summary — receipt
+ * surfaces consume it; this component just stopped wearing it.
  */
 
 // Standard deliverables produced by the deterministic blueprint compiler.
@@ -71,48 +75,16 @@ function Chip({ tone = 'slate', title, testId, children }) {
   );
 }
 
-export default function PackageTrustStrip({ deliverables, selectedFeatures, packageQualityPass, knowledgeCoverage }) {
+export default function PackageTrustStrip({ deliverables, selectedFeatures, packageQualityPass }) {
   const trust = summarizePackageTrust({ deliverables, selectedFeatures, packageQualityPass });
-  if (trust.done === 0 && trust.failed === 0) return null;
+  if (trust.stale === 0 && trust.failed === 0) return null;
 
   return (
     <span
       data-testid="package-trust-strip"
       className="inline-flex min-w-0 flex-wrap items-center gap-1.5"
-      aria-label="Package trust summary"
+      aria-label="Package attention summary"
     >
-      {(knowledgeCoverage?.openResources || 0) > 0 && (
-        <Chip
-          tone="emerald"
-          testId="trust-chip-cited"
-          title={`${knowledgeCoverage.genomeLinkedLessons}/${knowledgeCoverage.sessions} lessons genome-linked · ${knowledgeCoverage.sessionsWithResources} lessons with attached open readings — every source carries a license and attribution`}
-        >
-          {knowledgeCoverage.openResources} cited sources
-        </Chip>
-      )}
-      {trust.compiled > 0 && (
-        <Chip
-          tone="emerald"
-          testId="trust-chip-compiled"
-          title="Deterministically compiled from your course blueprint — repeatable and reviewable, no model improvisation"
-        >
-          {trust.compiled} compiled
-        </Chip>
-      )}
-      {trust.custom > 0 && (
-        <Chip tone="slate" testId="trust-chip-custom" title="Custom deliverables outside the standard compiled set">
-          {trust.custom} custom
-        </Chip>
-      )}
-      {trust.repairsApplied > 0 && (
-        <Chip
-          tone="slate"
-          testId="trust-chip-repairs"
-          title="Safe deterministic repairs applied by the last finish-package run"
-        >
-          {trust.repairsApplied} auto-fixed
-        </Chip>
-      )}
       {trust.stale > 0 && (
         <Chip tone="amber" testId="trust-chip-stale" title="Affected by course-map edits — resync to update">
           {trust.stale} stale
