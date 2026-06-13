@@ -3,6 +3,17 @@ import Header from '../components/Header';
 
 const releases = [
   {
+    version: '0.15.2',
+    date: 'June 12, 2026',
+    title: 'The genome teaches itself headless, and the judge gets a ruler',
+    highlights: [
+      'The flywheel ran with no app at all: a Node script using the CurriculumOS facade linked the Korean course, found the three lessons the genome had never learned, extracted candidates with one model call, verified citations against the real providers — and honestly REJECTED "final conversation project" (a course activity, not a knowledge concept; no verifiable citations). The two admitted kernels shipped through the same human-reviewed gate, growing the lang shard to 10 concepts. Second contribution round-trip complete.',
+      'The advisory judge got measured (docs/JUDGE_VARIANCE_NOTE.md): across 11 rounds and 51 judged packages, per-course noise is about ±1 point while course identity separates cleanly (world-lit 5.4 vs mandarin 3.9). Verdict: the judge stays advisory; A/B protocols now require a 2-point margin or 6+ judged pairs (the voice flip\u2019s 8-pair, zero-loss record satisfies the aggregate form retroactively); and the real teachability KPI is moving per-course MEANS, tracked by the trajectory table.',
+      'The machine-ownership inversion began: pipelineMachine grew four named finish-phase selectors and four components (the trust strip, the export panel, the quality chip, the agent working-set panel) now read phase only through them — pinned by a scan test that names ChatPanel as the explicit, shrink-only remainder.',
+      'Carried with reasons: the depth-slice A/B (redesigned by the variance note to need an aggregate protocol — it headlines v0.15.3) and diet phase 2 (AppFlow at 4,734 lines, budgets unchanged).',
+    ],
+  },
+  {
     version: '0.15.1',
     date: 'June 12, 2026',
     title: 'Client of the Brain: both defaults cashed, the last browser corner gone',

@@ -5,6 +5,7 @@ import { summarizeReadiness } from '../lib/deliverableReadiness';
 import { evaluateStrictPackageReadiness } from '../lib/packageFinalizer';
 import { normalizeReadinessIssue } from '../lib/readinessIssueSchema';
 import ReviewQueue from './ReviewQueue';
+import { isFinishPassActive, isPackageReady } from '../lib/pipelineMachine';
 import NoticeBanner from './NoticeBanner';
 import {
   exportDeliverableCsv,
@@ -726,13 +727,13 @@ export default function ExportSidePanel({
   const setQualityModalOpen = qualityModalControlled ? onQualityModalOpenChange : setQualityModalOpenLocal;
   const [readinessRepairAttempts, setReadinessRepairAttempts] = useState(() => new Set());
   const readinessConfirmRef = useRef(null);
-  const isPackageQualityRunning = packageQualityPass?.status === 'running';
+  const isPackageQualityRunning = isFinishPassActive(packageQualityPass);
   const isPackageWorkflowRunning = isPackageGenerationRunning || isPackageQualityRunning;
   // v0.14.4 WS-B3: "5 safe repairs applied · 1 export warning" — the
   // finish-pass receipt details that exist nowhere else once the in-panel
   // stage narration card is removed (the ribbon narrates stages, not these).
   const finishSummary = useMemo(() => {
-    if (packageQualityPass?.status !== 'ready') return '';
+    if (!isPackageReady(packageQualityPass)) return '';
     const repairs = Number(packageQualityPass?.repairsApplied) || 0;
     const exportWarnings = Number(packageQualityPass?.receipt?.exportWarningCount) || 0;
     const parts = [];

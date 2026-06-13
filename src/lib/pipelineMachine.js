@@ -150,3 +150,30 @@ export function deriveStepStatuses(pipeline) {
     return { id: step.id, label: step.label, status };
   });
 }
+
+// ── v0.15.2 C2: finish-pass selectors — the machine-ownership inversion. ────
+// Components stop reading packageQualityPass.status directly; these named
+// selectors are the ONE vocabulary for finish-pass phase questions, so the
+// v0.14.6 class of bug (each surface re-deriving phase truth and drifting)
+// cannot recur one selector at a time. The source-scan test
+// (tests/v0152-machine-selectors.test.js) pins which files have migrated.
+
+/** The finish/grade pass is actively running (either phase). */
+export function isFinishPassActive(packageQualityPass) {
+  return packageQualityPass?.status === 'running';
+}
+
+/** The package finished and is exportable. */
+export function isPackageReady(packageQualityPass) {
+  return packageQualityPass?.status === 'ready';
+}
+
+/** The finish pass parked the package on blockers. */
+export function isPackageBlocked(packageQualityPass) {
+  return packageQualityPass?.status === 'blocked';
+}
+
+/** Coarse finish status string for receipts/labels ('idle' when absent). */
+export function finishStatusOf(packageQualityPass) {
+  return packageQualityPass?.status || 'idle';
+}

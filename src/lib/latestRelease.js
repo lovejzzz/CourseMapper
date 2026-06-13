@@ -8,12 +8,12 @@
  * the three screen footers, and the Changelog entry.
  */
 export const LATEST_RELEASE = {
-  version: '0.15.1',
+  version: '0.15.2',
   date: 'June 12, 2026',
-  title: 'Client of the Brain: both defaults cashed, the last browser corner gone',
+  title: 'The genome teaches itself headless, and the judge gets a ruler',
   highlights: [
-    'Native authoring is now the default — 100/A with zero findings on every proof course, ~35% cheaper, ~2× faster; prose stays one click away',
-    'The voice pass is on by default — three fair trials, never lost (3-0-5), structural quality held on every twin, ~$0.01 per package, with a self-check that reverts any pass that does not help',
-    'The headless brain now grades all nine deliverable types with zero browser APIs, and the AppFlow diet began with three clean extractions',
+    'The extraction flywheel ran entirely without the app — and honestly rejected a non-concept while teaching the lang shard two more verified kernels (now 10)',
+    'The advisory judge is now characterized: ±1 point of noise, real course-identity signal, verdict advisory-forever unless margins reach 2 points or 6+ judged pairs',
+    'Four components now ask the pipeline machine — not raw state — what phase the package is in, with a scan test that only lets the remaining list shrink',
   ],
 };

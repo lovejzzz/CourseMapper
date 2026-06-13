@@ -14,6 +14,8 @@
 
 // Standard deliverables produced by the deterministic blueprint compiler.
 // Mirrors BLUEPRINT_COMPILED_FEATURES without importing the compiler bundle.
+import { finishStatusOf } from '../lib/pipelineMachine';
+
 const COMPILED_FEATURE_IDS = new Set([
   'syllabus',
   'lessonPlans',
@@ -53,7 +55,7 @@ export function summarizePackageTrust({ deliverables = {}, selectedFeatures = []
     failed,
     stale,
     repairsApplied: Number(packageQualityPass?.repairsApplied) || 0,
-    finishStatus: packageQualityPass?.status || 'idle',
+    finishStatus: finishStatusOf(packageQualityPass),
   };
 }
 

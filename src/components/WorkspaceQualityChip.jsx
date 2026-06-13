@@ -15,6 +15,8 @@
  * plumbing, just the existing value passed to the header JSX.
  */
 
+import { finishStatusOf } from '../lib/pipelineMachine';
+
 // Same grade result shape ExportSidePanel's report modal consumes.
 function issueCount(quality) {
   if (Number.isFinite(quality?.findingCount)) return quality.findingCount;
@@ -27,7 +29,7 @@ const CHIP_BASE =
   'inline-flex min-h-[32px] shrink-0 items-center gap-1 rounded-full border px-2.5 text-[10px] font-bold';
 
 export default function WorkspaceQualityChip({ packageQualityPass, onOpenReport }) {
-  const status = packageQualityPass?.status || 'idle';
+  const status = finishStatusOf(packageQualityPass);
   const quality = packageQualityPass?.quality || null;
 
   // During the generation phase the build ribbon narrates progress and no

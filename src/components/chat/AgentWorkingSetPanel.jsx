@@ -1,4 +1,5 @@
 import React from 'react';
+import { finishStatusOf } from '../../lib/pipelineMachine';
 import { resolveLabel } from './constants';
 import { getWorkspacePlanActionKey } from './WorkspacePlanCard';
 import { AGENT_SOURCE_CONTEXT_ROLE, getAgentSourceContextSummary } from '../../lib/agentSourceContext';
@@ -44,7 +45,7 @@ function buildScopeLabel(lessonScope, lessonCount) {
 }
 
 function buildPackageStatus(packageQualityPass) {
-  const status = String(packageQualityPass?.status || '').toLowerCase();
+  const status = String(finishStatusOf(packageQualityPass)).toLowerCase().replace('idle', '');
   const blockers = compactCount(packageQualityPass?.blockers);
   const warnings = compactCount(packageQualityPass?.warnings);
 
