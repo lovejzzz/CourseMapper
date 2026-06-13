@@ -32,8 +32,14 @@ export async function compileCompactProjectDeliverables(saved) {
     } = await import('./courseBlueprintCompiler');
     const compiledFeatureIds = getBlueprintCompiledFeatures(featureIds);
     if (compiledFeatureIds.length === 0) return {};
-    const configMap = Object.fromEntries(
-      compiledFeatureIds.map((featureId) => [featureId, saved.deliverableConfig?.[featureId] || {}]),
+    // v0.15.3 D1: restore compiles with the CURRENT depth flag — same
+    // injection as generation and sync, so a restored package never drifts
+    // from what a fresh compile would produce.
+    const { applyLessonDepthToConfigMap } = await import('./lessonDepth');
+    const configMap = applyLessonDepthToConfigMap(
+      Object.fromEntries(
+        compiledFeatureIds.map((featureId) => [featureId, saved.deliverableConfig?.[featureId] || {}]),
+      ),
     );
     // v0.15 (sync-test finding): a compact restore used to compile from
     // the BARE course map, silently dropping the saved graph's enrichment

@@ -4,9 +4,10 @@
  * pipelineMachine's finish-pass selectors (isFinishPassActive,
  * isPackageReady, isPackageBlocked, finishStatusOf) are the ONE vocabulary
  * for finish-phase questions. Each migrated file is pinned at ZERO direct
- * `packageQualityPass.status` reads; ChatPanel is the named remaining
- * consumer (eight reads with effect/ref semantics — carried to the next
- * release, listed here so the carry is visible, not silent).
+ * `packageQualityPass.status` reads. v0.15.3 completed the inversion:
+ * ChatPanel (the last carried consumer — eight reads with effect/ref
+ * semantics) migrated onto a single machine-derived `finishStatus`, and the
+ * carried list is EMPTY and pinned empty.
  */
 import { describe, expect, it } from 'vitest';
 import fs from 'node:fs';
@@ -25,10 +26,12 @@ const MIGRATED_FILES = [
   'src/components/ExportSidePanel.jsx',
   'src/components/WorkspaceQualityChip.jsx',
   'src/components/chat/AgentWorkingSetPanel.jsx',
+  'src/components/chat/ChatPanel.jsx',
 ];
 
-// Carried consumers — shrink this list, never grow it.
-const CARRIED_FILES = ['src/components/chat/ChatPanel.jsx'];
+// Carried consumers — emptied in v0.15.3; it must STAY empty (a new direct
+// reader anywhere is a regression, not a carry).
+const CARRIED_FILES = [];
 
 describe('the selectors', () => {
   it('answer the four phase questions consistently', () => {
@@ -55,13 +58,9 @@ describe('migration state (source scans)', () => {
     });
   }
 
-  it('the carried list only shrinks (ChatPanel is the named remainder)', () => {
-    // If this fails because a carried file migrated: move it to
-    // MIGRATED_FILES. If it fails because a NEW direct read appeared in a
-    // migrated file, that is a regression — use the selectors.
-    for (const file of CARRIED_FILES) {
-      const source = read(file);
-      expect(DIRECT_READ.test(source)).toBe(true); // still carried, honestly
-    }
+  it('the inversion is complete — the carried list is empty and stays empty', () => {
+    // v0.15.3 C2: ChatPanel was the last carried consumer. Any future direct
+    // `.status` read is a regression — use the selectors.
+    expect(CARRIED_FILES).toEqual([]);
   });
 });

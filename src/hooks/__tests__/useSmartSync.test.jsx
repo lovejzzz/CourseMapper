@@ -14,6 +14,7 @@ import { applyCanonicalPatchesToCourseMap } from '../../lib/artifactBlueprintPro
 import '../../lib/syncBlastRadius';
 import '../../lib/genome/lessonKernelCache';
 import '../../lib/instructorPreferenceRuntime';
+import '../../lib/lessonDepth';
 
 globalThis.IS_REACT_ACT_ENVIRONMENT = true;
 

@@ -557,19 +557,29 @@ export default function useSmartSync({
     // to every surface that inherits them.
     let plan = null;
     try {
-      const [{ computeSyncBlastRadius }, { createLessonKernelCache }, preferenceRuntime] = await Promise.all([
+      const [
+        { computeSyncBlastRadius },
+        { createLessonKernelCache },
+        preferenceRuntime,
+        { applyLessonDepthToConfigMap },
+      ] = await Promise.all([
         import('../lib/syncBlastRadius'),
         import('../lib/genome/lessonKernelCache'),
         import('../lib/instructorPreferenceRuntime').catch(() => null),
+        import('../lib/lessonDepth'),
       ]);
-      const configMap =
+      // v0.15.3 D1: the recompile-and-diff must compile with the SAME depth
+      // mode the package was generated with, or every lesson plan reads as
+      // phantom drift.
+      const configMap = applyLessonDepthToConfigMap(
         typeof currentDeliv.getGenerationConfig === 'function'
           ? Object.fromEntries(
               (currentFeatures || [])
                 .filter((featureId) => featureId !== 'courseMap')
                 .map((featureId) => [featureId, currentDeliv.getGenerationConfig(featureId)]),
             )
-          : {};
+          : {},
+      );
       const radius = computeSyncBlastRadius({
         courseMap: currentCourseMap,
         deliverables: currentDeliv.deliverables,

@@ -11,7 +11,6 @@ import {
 } from '../lib/lessonRegenMerge';
 import { getCustomDeliverable } from '../lib/customDeliverableLibrary';
 import { scoreHeuristic, computeAvgScore } from '../lib/deliverableQualityScorer';
-import { generateImages, OPENAI_SLIDE_IMAGE_MODEL } from '../lib/imageSearch';
 import { notifyDone } from '../lib/notifyDone';
 import { CourseStateContext, CourseDispatchContext, actions } from '../model/courseStore.jsx';
 import {
@@ -330,6 +329,9 @@ async function enrichSlideDeckImages(data, config, { apiKey, appendLog, signal, 
         });
       }
 
+      // v0.15.3 C1: lazy — image generation is a rare path; keep the module
+      // out of the workspace chunk (same pattern as genomeExtraction).
+      const { generateImages, OPENAI_SLIDE_IMAGE_MODEL } = await import('../lib/imageSearch');
       const result = await generateImages(
         prompt,
         {
@@ -2065,8 +2067,14 @@ export default function useDeliverables({
             instructorPreferences: instructorPreferenceProfile,
           }),
         );
-        const compilerConfigMap = Object.fromEntries(
-          blueprintCompiledFeatureIds.map((featureId) => [featureId, getGenerationConfig(featureId)]),
+        // v0.15.3 D1: the lesson-depth flag rides the configMap on EVERY
+        // app compile path (generation here, sync recompile, compact
+        // restore) — a path that forgot it would surface as phantom drift.
+        const { applyLessonDepthToConfigMap } = await import('../lib/lessonDepth');
+        const compilerConfigMap = applyLessonDepthToConfigMap(
+          Object.fromEntries(
+            blueprintCompiledFeatureIds.map((featureId) => [featureId, getGenerationConfig(featureId)]),
+          ),
         );
         const compiled = compileBlueprintDeliverables(blueprint, blueprintCompiledFeatureIds, {
           configMap: compilerConfigMap,

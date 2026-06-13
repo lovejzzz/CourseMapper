@@ -17757,7 +17757,7 @@ function buildLessonPlanMaterials(lesson) {
   );
 }
 
-function buildLessonPlanOutline(blueprint, lesson) {
+function buildLessonPlanOutline(blueprint, lesson, { depth = 'flat' } = {}) {
   const lens = blueprintLens(blueprint);
   const phrase = lessonPhrase(blueprint, lesson);
   const sessionSegments = Array.isArray(lesson.classSessionPlan?.segments) ? lesson.classSessionPlan.segments : [];
@@ -17778,6 +17778,24 @@ function buildLessonPlanOutline(blueprint, lesson) {
   const kernelFact = (kernelPayload?.kernel?.facts || [])[0] || '';
   const kernelScenario = kernelPayload?.kernel?.scenario || null;
   const kernelWorkedExample = kernelPayload?.workedExample || null;
+  // v0.15.3 D1: DEEP mode carries the kernel inside the back-half steps too —
+  // the collaborative debate runs the kernel's tension, the sprint checks
+  // drafts against the worked example's moves and the term corrections, and
+  // the exit ticket closes the warm-up misconception loop — with the genome
+  // citation named in the step that uses it. Every deep line falls back to
+  // the flat frame when its atom is missing, so deep mode on a kernel-less
+  // course compiles byte-identical to flat.
+  const deep = depth === 'deep';
+  const kernelDiscussion =
+    deep && cleanText(kernelPayload?.discussionPrompt?.prompt) ? kernelPayload.discussionPrompt : null;
+  const kernelTermA = deep ? (kernelPayload?.keyTerms || [])[0] || null : null;
+  const kernelCitation = deep
+    ? cleanText(
+        (kernelPayload?.conceptProvenance?.citations || [])[0] ||
+          (kernelPayload?.keyTerms || []).find((term) => cleanText(term.source))?.source ||
+          '',
+      )
+    : '';
 
   return [
     {
@@ -17828,8 +17846,16 @@ function buildLessonPlanOutline(blueprint, lesson) {
       type: 'Discussion',
       // v0.12.1: strip a leading "For <lesson>," from the routine variant —
       // after "use this routine:" it produced an "X … : For X," echo.
-      description: `Teams apply ${concept} to a new scenario, compare options, and use this routine: ${stripTerminalPunctuation(cleanText(modality.evidenceRoutine)).replace(/^For [^,]{2,70},\s*/i, '')}.`,
-      instructorNotes: `Require each group to cite at least one reading, example, or class note about ${concept} before they report out. ${modality.artifactCheck}`,
+      description: kernelDiscussion
+        ? `Teams take a position on the lesson's live question — “${stripTerminalPunctuation(kernelDiscussion.prompt)}” — and defend it with evidence${kernelCitation ? ` from ${kernelCitation}` : ` about ${concept}`}.`
+        : `Teams apply ${concept} to a new scenario, compare options, and use this routine: ${stripTerminalPunctuation(cleanText(modality.evidenceRoutine)).replace(/^For [^,]{2,70},\s*/i, '')}.`,
+      instructorNotes: kernelDiscussion
+        ? `${
+            (kernelDiscussion.positions || []).filter(Boolean).length >= 2
+              ? `Seed the two camps if teams converge: “${stripTerminalPunctuation(kernelDiscussion.positions[0])}” versus “${stripTerminalPunctuation(kernelDiscussion.positions[1])}.” `
+              : ''
+          }A claim counts only when it uses ${kernelTermA?.term || concept} precisely. ${modality.artifactCheck}`
+        : `Require each group to cite at least one reading, example, or class note about ${concept} before they report out. ${modality.artifactCheck}`,
       instructorRole: `Moderate the ${stripLessonPrefix(lesson.title)} tradeoff discussion and calibrate ${artifact} against ${modality.studentProduct}.`,
       grouping: 'Small groups then share-out',
       bloomsLevel: 'Evaluate',
@@ -17838,8 +17864,16 @@ function buildLessonPlanOutline(blueprint, lesson) {
       time: formatDuration(independent),
       activity: 'Independent artifact sprint',
       type: 'Workshop',
-      description: `Students draft ${artifact} while using the lesson success criteria, feedback prompts, and exemplar moves as a checklist.`,
-      instructorNotes: `Conference with students who need support on ${artifact}; redirect them to the exact ${concept} criterion and this modality check: ${modality.artifactCheck}`,
+      description:
+        deep && kernelWorkedExample
+          ? `Students draft ${artifact}, mirroring the worked example's solution path on their own case — every move the board model made needs an analog in the draft.`
+          : deep && kernelTermA?.definition
+            ? `Students draft ${artifact}; the bar is precise use of ${kernelTermA.term} — ${stripTerminalPunctuation(kernelTermA.definition)}${kernelCitation ? ` (${kernelCitation})` : ''}.`
+            : `Students draft ${artifact} while using the lesson success criteria, feedback prompts, and exemplar moves as a checklist.`,
+      instructorNotes:
+        deep && kernelMisconception
+          ? `Conference against the kernel bar for ${artifact}: redirect drafts drifting toward “${stripTerminalPunctuation(kernelMisconception.misconception)}” to the correction — ${stripTerminalPunctuation(kernelMisconception.correction || `in fact, ${kernelMisconception.definition}`)}. ${modality.artifactCheck}`
+          : `Conference with students who need support on ${artifact}; redirect them to the exact ${concept} criterion and this modality check: ${modality.artifactCheck}`,
       instructorRole: `Provide targeted feedback on ${artifact} and confirm readiness for submission.`,
       grouping: 'Independent work with spot coaching',
       bloomsLevel: lesson.bloomsLevel,
@@ -17848,8 +17882,14 @@ function buildLessonPlanOutline(blueprint, lesson) {
       time: formatDuration(debrief),
       activity: 'Debrief and exit ticket',
       type: 'Closure',
-      description: `Students share one revision they made to ${artifact}, one question they still have about ${concept}, and one way today’s ${modality.mode} work prepares them for the next artifact.`,
-      instructorNotes: `${stripTerminalPunctuation(modality.feedbackRoutine)}; ground the debrief in ${artifact} evidence about ${concept}. Use exit-ticket responses to decide whether the next lesson should review ${concept} before extending it.`,
+      description:
+        deep && kernelMisconception
+          ? `Exit ticket: revisit the warm-up vote — students explain in their own words why “${stripTerminalPunctuation(kernelMisconception.misconception)}” fails, citing one piece of evidence from today’s work on ${artifact}.`
+          : `Students share one revision they made to ${artifact}, one question they still have about ${concept}, and one way today’s ${modality.mode} work prepares them for the next artifact.`,
+      instructorNotes:
+        deep && kernelMisconception
+          ? `A secure ticket restates the correction in the student’s own words${kernelCitation ? ` and can point to ${kernelCitation}` : ''}; sort tickets into secure, partial, and reteach piles to set the next lesson’s warm-up for ${concept}.`
+          : `${stripTerminalPunctuation(modality.feedbackRoutine)}; ground the debrief in ${artifact} evidence about ${concept}. Use exit-ticket responses to decide whether the next lesson should review ${concept} before extending it.`,
       instructorRole: `Synthesize patterns from ${stripLessonPrefix(lesson.title)} and set up the next lesson.`,
       grouping: 'Whole class plus individual exit ticket',
       bloomsLevel: 'Evaluate',
@@ -17857,10 +17897,14 @@ function buildLessonPlanOutline(blueprint, lesson) {
   ];
 }
 
-function compileLessonPlans(blueprint) {
+function compileLessonPlans(blueprint, options = {}) {
   const lens = blueprintLens(blueprint);
   const preference = featurePreference(blueprint, 'lessonPlans');
   const compilerProofBundle = blueprint.compilerProofBundle || buildCompilerProofBundle(blueprint);
+  // v0.15.3 D1: the depth slice rides the per-feature configMap so the
+  // compiler stays pure — the app injects the flag via
+  // applyLessonDepthToConfigMap; headless A/B harnesses pass it explicitly.
+  const lessonDepth = options.configMap?.lessonPlans?.depth === 'deep' ? 'deep' : 'flat';
   return {
     lessonPlans: blueprint.lessons.map((lesson, index) => {
       const teachingMoves = lessonTeachingMoves(blueprint, lesson);
@@ -17877,7 +17921,7 @@ function compileLessonPlans(blueprint) {
         blueprint.assessments[index] ||
         {};
       const classSessionPlan = lesson.classSessionPlan || buildClassSessionPlan({ lesson, modalityDecode: modality });
-      const outline = buildLessonPlanOutline(blueprint, { ...lesson, classSessionPlan });
+      const outline = buildLessonPlanOutline(blueprint, { ...lesson, classSessionPlan }, { depth: lessonDepth });
       const outlineMinutes = outline.reduce((sum, item) => sum + (Number.parseInt(item.time, 10) || 0), 0);
       const dryRunRow =
         compilerProofBundle.classroomDryRunPlan?.lessonRows?.find((row) => row.lessonNumber === lesson.lessonNumber) ||

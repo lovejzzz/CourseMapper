@@ -3,6 +3,19 @@ import Header from '../components/Header';
 
 const releases = [
   {
+    version: '0.15.3',
+    date: 'June 12, 2026',
+    title: 'Measured Depth: the experiment ran at the right size, and deep won',
+    highlights: [
+      'THE DEPTH SLICE FINALLY RAN — at the size the variance note demanded. Eight genome-linked courses, each compiled twice through the headless facade (identical inputs, one flag), all sixteen packages assembled, structurally graded, and judged by the same advisory instrument the quality rounds use. First run caught a real defect in the deep arm (a raw shard-key tail leaking into an exit ticket — fixed at the source in citationLabel); the first VALID trial came back deep 3 wins · 0 losses · 5 ties with structure at 99/A and texture identical on every twin — the same record shape that cashed the voice flip. DEEP IS NOW THE DEFAULT: collaborative segments run the kernel’s live debate with the citation named in the step, independent sprints check drafts against the worked example’s moves and the term corrections, and the exit ticket asks students to refute the warm-up misconception in their own words. Flat stays one click away.',
+      'The depth flag rides EVERY compile path through one injector — generation, sync recompile-and-diff, per-lesson recompiles, and compact restore — so the depth of your package can never silently disagree with the depth of its recompile (a disagreement would have surfaced as phantom sync drift).',
+      'Every round report now reads its own ruler: a per-course judge-means table (mean ± sd vs the v0.15.2 characterization baseline) renders below the trajectory, in the report and in --history — the KPI the variance note named, with the target on the wall: mandarin 3.86 → 5+.',
+      'The machine-ownership inversion is COMPLETE: ChatPanel’s eight direct phase reads collapsed onto one machine-derived status, the carried list is empty and pinned empty — no surface anywhere reads packageQualityPass.status raw.',
+      'Diet phase 2 landed: save/restore/autosave and the developer-template store moved into useProjectPersistence, the readiness-repair callback into useWorkspaceRepairs — AppFlow dropped from 4,734 to 3,992 lines with zero behavior change (full battery + the live sync-edit proof as the net). The bundle budget RATCHETED DOWN for the first time (256→255 raw, 77→76.5 gzip) with the remaining distance to 248/76 named: the useDeliverables split, next release’s diet lane.',
+      'An instructor review packet now ships in the repo (docs/instructor-review/): a live-generated package plus a one-page guide asking the only questions a machine cannot — would you teach week 3 as-is, what would you change first, what would your students notice is missing.',
+    ],
+  },
+  {
     version: '0.15.2',
     date: 'June 12, 2026',
     title: 'The genome teaches itself headless, and the judge gets a ruler',

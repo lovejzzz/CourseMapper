@@ -6,6 +6,7 @@ import {
   isBlueprintCompiledFeature,
 } from './courseBlueprintCompiler';
 import { attachEnrichmentToGraph, buildBlueprintFromGraph, deriveCourseGraphFromCourseMap } from './courseGraph';
+import { applyLessonDepthToConfigMap } from './lessonDepth';
 
 function cleanText(value, fallback = '') {
   return String(value ?? fallback)
@@ -162,8 +163,10 @@ export function compileBlueprintLessonPatch({
   } else {
     blueprint = compactBlueprintForStorage(buildCourseBlueprint(courseMap, { instructorPreferences }));
   }
+  // v0.15.3 D1: per-lesson recompiles carry the depth flag too — same
+  // injection as full generation, sync radius, and compact restore.
   const compiled = compileBlueprintDeliverables(blueprint, [featureId], {
-    configMap: { [featureId]: config || {} },
+    configMap: applyLessonDepthToConfigMap({ [featureId]: config || {} }),
   });
   const data = buildCompiledLessonPatchData(featureId, compiled?.[featureId], courseMap, lessonIndex, {
     onTextTierMatch,

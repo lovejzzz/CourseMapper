@@ -101,6 +101,10 @@ import {
   buildHistoryTable,
   buildJudgePrompt,
   clampConcurrency,
+  computeJudgeMeans,
+  JUDGE_MEANS_BASELINE,
+  JUDGE_MEANS_TARGET,
+  renderJudgeMeansSection,
   expandCoursesForAuthoring,
   expandCoursesForVoice,
   pairVoiceAbEntries,
@@ -924,6 +928,26 @@ async function showHistory() {
   );
   log(`score trajectory across ${summaries.length} stored round(s) (cell = overall · P0/P1):`);
   printAlignedTable(header, rows);
+  // v0.15.3 D2: the KPI readout — per-course judge means ± sd vs baseline.
+  const means = computeJudgeMeans(summaries);
+  if (means.length > 0) {
+    console.log('');
+    log(`per-course judge means (KPI target: ${JUDGE_MEANS_TARGET}):`);
+    printAlignedTable(
+      ['course', 'n', 'mean', 'sd', 'range', 'Δ vs baseline'],
+      means.map((row) => {
+        const base = JUDGE_MEANS_BASELINE.means?.[row.id];
+        return [
+          row.id,
+          row.n,
+          row.mean.toFixed(2),
+          row.sd.toFixed(2),
+          `${row.min}-${row.max}`,
+          Number.isFinite(base) ? `${row.mean - base >= 0 ? '+' : ''}${(row.mean - base).toFixed(2)}` : '—',
+        ];
+      }),
+    );
+  }
 }
 
 async function finishRound({ roundDir, roundLabel, modelId, entries, baseline, spendAbortReason = null, provider }) {
@@ -966,12 +990,15 @@ async function finishRound({ roundDir, roundLabel, modelId, entries, baseline, s
 
   // E5: every new ROUND_REPORT carries the score trajectory across all stored
   // rounds (this round included — its round.json was just written above).
+  // v0.15.3 D2: followed by the per-course judge MEANS — the variance note's
+  // KPI — so the ruler reads itself on every round.
   try {
     const summaries = await scanRoundHistory();
     if (summaries.length > 0) {
       await fs.appendFile(
         path.join(roundDir, 'ROUND_REPORT.md'),
-        `\n## Score trajectory (all stored rounds)\n\n${renderHistoryMarkdown(summaries)}\n`,
+        `\n## Score trajectory (all stored rounds)\n\n${renderHistoryMarkdown(summaries)}\n` +
+          `\n${renderJudgeMeansSection(computeJudgeMeans(summaries))}\n`,
       );
     }
   } catch (error) {

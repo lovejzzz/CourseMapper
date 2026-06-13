@@ -758,6 +758,89 @@ export function renderJudgeSection(judge) {
   return lines.join('\n');
 }
 
+// ── v0.15.3 D2: the per-course-means ruler ──────────────────────────────────
+// The variance note's verdict made per-course judge MEANS the real KPI (the
+// band is 3–6; single readings are ±1 noise). These pure halves compute the
+// means from stored round summaries and render the KPI section every
+// ROUND_REPORT now carries below the trajectory table.
+
+// The v0.15.2 characterization baseline (docs/JUDGE_VARIANCE_NOTE.md, 51
+// artifacts / 11 rounds). Δ in the means table reads against these numbers;
+// re-baseline only when the judge model or prompt changes.
+export const JUDGE_MEANS_BASELINE = {
+  label: 'v0.15.2 note (2026-06-12)',
+  means: {
+    'world-lit': 5.4,
+    'world-lit-readings': 5.33,
+    geology: 4.5,
+    'econ-intro': 4.2,
+    'cs-python': 4.08,
+    mandarin: 3.86,
+    'psych-101': 3.67,
+  },
+};
+
+/** The named target on the wall: the weakest course mean crossing 5. */
+export const JUDGE_MEANS_TARGET = 'mandarin 3.86 → 5+';
+
+/**
+ * Per-course judge means ± sd across stored round summaries
+ * ([{ courses: [{ id, judge }] }]). Twin/tagged ids ("world-lit--voiced",
+ * "cs-python--native") fold into their base course — the KPI tracks course
+ * identity, not arm identity. Courses with fewer than `minN` readings are
+ * excluded (a single reading is noise, per the note). Sorted by mean desc.
+ */
+export function computeJudgeMeans(summaries, { minN = 2 } = {}) {
+  const byCourse = new Map();
+  for (const summary of summaries || []) {
+    for (const course of summary?.courses || []) {
+      if (!Number.isFinite(course?.judge)) continue;
+      const baseId = String(course.id).split('--')[0];
+      if (!byCourse.has(baseId)) byCourse.set(baseId, []);
+      byCourse.get(baseId).push(course.judge);
+    }
+  }
+  const rows = [];
+  for (const [id, values] of byCourse) {
+    if (values.length < minN) continue;
+    const mean = values.reduce((sum, value) => sum + value, 0) / values.length;
+    const sd = Math.sqrt(values.reduce((sum, value) => sum + (value - mean) ** 2, 0) / values.length);
+    rows.push({
+      id,
+      n: values.length,
+      mean: Math.round(mean * 100) / 100,
+      sd: Math.round(sd * 100) / 100,
+      min: Math.min(...values),
+      max: Math.max(...values),
+    });
+  }
+  return rows.sort((a, b) => b.mean - a.mean || a.id.localeCompare(b.id));
+}
+
+/** The "## Per-course judge means" KPI section (markdown). */
+export function renderJudgeMeansSection(means, { baseline = JUDGE_MEANS_BASELINE } = {}) {
+  const lines = [
+    '## Per-course judge means (the KPI)',
+    '',
+    `_Single readings are ±1 noise — the teachability KPI is each course's MEAN moving (target: ${JUDGE_MEANS_TARGET}). Δ reads against the ${baseline.label} baseline; see docs/JUDGE_VARIANCE_NOTE.md._`,
+    '',
+  ];
+  if (!means || means.length === 0) {
+    lines.push('_No course has 2+ judge readings yet — run rounds with --judge to feed the ruler._', '');
+    return lines.join('\n');
+  }
+  lines.push('| course | n | mean | sd | range | Δ vs baseline |', '| --- | --- | --- | --- | --- | --- |');
+  for (const row of means) {
+    const base = baseline.means?.[row.id];
+    const delta = Number.isFinite(base) ? `${row.mean - base >= 0 ? '+' : ''}${(row.mean - base).toFixed(2)}` : '—';
+    lines.push(
+      `| ${row.id} | ${row.n} | ${row.mean.toFixed(2)} | ${row.sd.toFixed(2)} | ${row.min}–${row.max} | ${delta} |`,
+    );
+  }
+  lines.push('');
+  return lines.join('\n');
+}
+
 // ── v0.14.5 WS-B (B3): authoring side-by-side (--authoring) ─────────────────
 // Pure halves of the prose-vs-native paired round: course-list expansion,
 // entry pairing, delta computation, and report rendering. scripts/crucible.mjs

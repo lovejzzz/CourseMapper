@@ -29,10 +29,20 @@ function citationLabel(anchor) {
   if (!anchor?.src) return '';
   // "openstax:astronomy-2e#2" → "OpenStax astronomy 2e" (+ " §loc").
   // The #chapter fragment is internal anchor bookkeeping, not citation text.
+  // v0.15.3 D1: the ":reference" doc-id tail on foundry-contributed srcIds
+  // ("writing-about-literature:reference") is bookkeeping too — leaking it
+  // into compiled text produces the exact ":reference §" raw-shard-key
+  // pattern the deep grader's citation hygiene check flags (caught live by
+  // the depth A/B: the deep lit arm shipped it inside an exit ticket and
+  // graded 98 to flat's 99). Milne/Open Geology prefixes get the same
+  // readable treatment as OpenStax/UH OER.
   const src = anchor.src
     .replace(/#.*$/, '')
+    .replace(/:reference$/i, '')
     .replace(/^openstax:/, 'OpenStax ')
     .replace(/^uh-oer:/, 'UH OER ')
+    .replace(/^milne:/, 'Milne OER ')
+    .replace(/^opengeology:/, 'Open Geology ')
     .replace(/-/g, ' ');
   return anchor.loc ? `${src} §${anchor.loc}` : src;
 }

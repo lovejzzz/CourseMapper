@@ -11,6 +11,7 @@ import { resolveLabel } from './constants';
 import { evaluateWorkspaceReadiness } from '../../lib/deliverableReadiness';
 import { buildPostGenerationDigest } from '../../lib/agentDigest';
 import { classifyFinalizePackageStepStatus, normalizePackageSummary } from '../../lib/packageFinalizerSummary';
+import { finishStatusOf, isFinishPassActive, isPackageReady } from '../../lib/pipelineMachine';
 import { summarizeLandingAgentContext } from '../../lib/landingAgentContext';
 import { useAIConfig } from '../../contexts/AIConfigContext';
 
@@ -62,12 +63,14 @@ function summarizePackageQuality(readiness, repairsApplied = 0) {
 }
 
 function buildPackageReceiptSummary(packageQualityPass, courseMap, selectedFeatures = []) {
-  if (!packageQualityPass || packageQualityPass.status === 'running' || packageQualityPass.status === 'idle')
-    return null;
+  // v0.15.3 C2: phase questions go through the machine's selectors —
+  // finishStatusOf(null) is 'idle', which covers the missing-pass case.
+  const finishStatus = finishStatusOf(packageQualityPass);
+  if (finishStatus === 'running' || finishStatus === 'idle') return null;
   const receipt = packageQualityPass.receipt || {};
   const blockerCount = Number(packageQualityPass.blockers || 0);
   const warningCount = Number(packageQualityPass.warnings || 0);
-  const ready = packageQualityPass.status === 'ready' && blockerCount === 0 && warningCount === 0;
+  const ready = isPackageReady(packageQualityPass) && blockerCount === 0 && warningCount === 0;
   const tone = ready ? 'excellent' : blockerCount > 0 ? 'blocked' : 'assumptions';
   const checkedFeatureCount = Array.isArray(selectedFeatures) ? selectedFeatures.length : 0;
   return {
@@ -106,7 +109,9 @@ function buildPackageReceiptMessage(packageReceiptSummary, packageQualityPass) {
   if (!packageReceiptSummary) return null;
   const summary = packageReceiptSummary;
   const keyParts = [
-    packageQualityPass?.status || 'done',
+    // Reachable only with a built summary (status ready/blocked/done), where
+    // finishStatusOf returns the same value the old `.status || 'done'` did.
+    finishStatusOf(packageQualityPass),
     summary.ready ? 'ready' : 'review',
     summary.checkedSections || 'sections',
     summary.lessonCount || 0,
@@ -437,7 +442,7 @@ function getAgentCommandTemporaryBlockMessage({
   directPlanActionRunning = false,
 }) {
   const displayText = item?.displayText || item?.label || 'that action';
-  if (packageQualityPass?.status === 'running') {
+  if (isFinishPassActive(packageQualityPass)) {
     return `I'm already checking the package. Wait for that to finish, then run ${displayText} again.`;
   }
   if (isDelivGenerating) {
@@ -1240,8 +1245,11 @@ export default function ChatPanel({
   const prevDelivGeneratingRef = useRef(isDelivGenerating);
   const proactiveReviewDoneRef = useRef(false);
   const autoReviewTimerRef = useRef(null);
-  const packageQualityStatusRef = useRef(packageQualityPass?.status || 'idle');
-  packageQualityStatusRef.current = packageQualityPass?.status || 'idle';
+  // v0.15.3 C2: ONE machine-derived status feeds the ref, the effects, and
+  // every dep array below — the component never reads .status directly.
+  const finishStatus = finishStatusOf(packageQualityPass);
+  const packageQualityStatusRef = useRef(finishStatus);
+  packageQualityStatusRef.current = finishStatus;
   const applyDeterministicReadinessRepairs = useCallback(() => {
     if (typeof autoRepairReadinessRef.current !== 'function') {
       return {
@@ -1275,14 +1283,14 @@ export default function ChatPanel({
   }, [chat.isStreaming]);
   useEffect(() => {
     if (
-      packageQualityPass?.status === 'running' &&
+      finishStatus === 'running' &&
       packageQualityPass?.source !== 'auto-review-pending' &&
       autoReviewTimerRef.current
     ) {
       clearTimeout(autoReviewTimerRef.current);
       autoReviewTimerRef.current = null;
     }
-  }, [packageQualityPass?.source, packageQualityPass?.status]);
+  }, [packageQualityPass?.source, finishStatus]);
   useEffect(() => {
     const wasGenerating = prevDelivGeneratingRef.current;
     prevDelivGeneratingRef.current = isDelivGenerating;
@@ -1372,7 +1380,7 @@ export default function ChatPanel({
         }, 2000);
       }
     }
-  }, [isDelivGenerating, packageQualityPass?.status]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [isDelivGenerating, finishStatus]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // v0.9.2 — the TA's eyes: when a generation run completes, surface at most
   // three grounded observations as quiet chips. Observe-only by contract.
@@ -1400,7 +1408,7 @@ export default function ChatPanel({
     error ||
     (currentStep && currentStep !== 'done') ||
     isDelivGenerating ||
-    packageQualityPass?.status === 'running'
+    finishStatus === 'running'
   );
 
   // Extract latest agent progress for the fixed status area (not in chat scroll)
@@ -1569,13 +1577,7 @@ export default function ChatPanel({
       maxRetryPasses = 3,
       agentPromptOverride = null,
     } = {}) => {
-      if (
-        !(
-          typeof finalizePackageRef.current === 'function' &&
-          !agentCommandDisabled &&
-          packageQualityPass?.status !== 'running'
-        )
-      ) {
+      if (!(typeof finalizePackageRef.current === 'function' && !agentCommandDisabled && finishStatus !== 'running')) {
         return false;
       }
 
@@ -1649,7 +1651,7 @@ export default function ChatPanel({
       }
       return true;
     },
-    [agentCommandDisabled, chat, courseMap, lessonScope, packageQualityPass?.status, selectedFeatures],
+    [agentCommandDisabled, chat, courseMap, finishStatus, lessonScope, selectedFeatures],
   );
   const runDirectWorkspacePlan = useCallback(
     async ({
@@ -2108,7 +2110,7 @@ export default function ChatPanel({
         ['safe-edit', 'safe-auto-fix'].includes(action?.safeMode) &&
         typeof finalizePackageRef.current === 'function' &&
         !agentCommandDisabled &&
-        packageQualityPass?.status !== 'running';
+        finishStatus !== 'running';
       if (!canRunDirectFinalize) return false;
 
       const displayText = followUp.displayText || action?.title || 'Fix package readiness';
@@ -2126,11 +2128,11 @@ export default function ChatPanel({
       agentCommandDisabled,
       chat,
       courseMap?.lessons?.length,
+      finishStatus,
       lessonScope,
       notifyAgentCommandTemporarilyBlocked,
       onAuditPackage,
       onGenerateFeatures,
-      packageQualityPass?.status,
       runDirectPackageAudit,
       runDirectPackageFinish,
       selectedFeatures,
