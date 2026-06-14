@@ -92,11 +92,11 @@ function hasLanguageCourseSignal(identityText, text) {
   return LANGUAGE_TOKENS.filter((pattern) => pattern.test(text)).length >= 2;
 }
 
-// Replicated from deriveTechnologyNeeded() in src/lib/leanCourseMap.js
-// (laboratory-course detection, the "beakers" regex) — it is not exported
-// there, so the pattern is copied; keep the two in sync.
+// Physical lab assets require physical lab evidence. A bare "lab" is too
+// broad: computational labs, language labs, and notebook labs are normal in
+// non-wet-lab courses and must not ship goggles/specimen kits.
 const WET_LAB_SIGNAL =
-  /\b(lab|laboratory|experiment\w*|titration|spectroscop\w+|chromatograph\w+|microscop\w+|synthesis|reagent|specimen|dissect\w+|assay|recrystalliz\w+)\b/i;
+  /\b(wet lab|lab safety|bench lab|bench experiment\w*|laboratory methods?|titration|spectroscop\w+|chromatograph\w+|microscop\w+|chemical synthesis|organic synthesis|reagent|specimen|dissect\w+|assay|recrystalliz\w+|pipette|beaker|streak plate|hand lens|field notebook|(?:rock|mineral|biological|chemical)\s+samples?|sample kit)\b/i;
 
 /**
  * Which asset genre this course belongs to. Exported so tests (and the

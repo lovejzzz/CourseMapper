@@ -432,7 +432,7 @@ async function runCourse({ browser, baseUrl, course, index, runDir, apiKey, mode
     await expect(page.getByText('Connected').first()).toBeVisible({ timeout: 120_000 });
     await writeProgress('provider-connected');
     await page.getByLabel('Describe your course').fill(course.prompt);
-    const landingContinue = page.getByRole('button', { name: /^Continue$/ }).last();
+    const landingContinue = page.getByRole('button', { name: /^(Continue|Adjust setup)$/ }).last();
     await expect(landingContinue).toBeEnabled({ timeout: 10_000 });
     await landingContinue.click();
 

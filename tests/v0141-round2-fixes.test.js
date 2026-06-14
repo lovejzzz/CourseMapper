@@ -1322,8 +1322,9 @@ describe('round-3 polish 3 — study guides stop chanting the lesson title', () 
     expect(text).not.toMatch(/\b(?:the|a|an) this lesson\b/i);
     expect(text).not.toMatch(/\bthe the\b/i);
     expect(text).not.toMatch(/\byour this lesson\b/i);
-    // "self-check your <title> evidence" → the possessive compressed form.
-    expect(data.studyGuides[0].conceptConnections[1]).toContain("self-check this lesson's evidence");
+    // "self-check your <title> evidence" compresses to a topic-specific
+    // possessive, not a generic "this lesson" placeholder.
+    expect(data.studyGuides[0].conceptConnections[1]).toContain("self-check Tang Poetry's evidence");
   });
 
   it('non-study-guide deliverables keep the existing behavior (no document budget)', () => {

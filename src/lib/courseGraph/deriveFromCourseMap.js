@@ -69,11 +69,23 @@ const EXAM_PREP_QUALIFIER_RE =
   /\b(?:midterm|final)s?(?:\s+exam)?\s+(?:preparation|prep|review|readiness|practice|study|checklist|reflection)\b/i;
 const EXAM_HEAD_RE = /\b(?:midterm|final)\s+exam\b|\bexam\s*:|^\s*exam\b|\bcomprehensive\s+(?:exam|assessment)\b/i;
 const BARE_MIDTERM_FINAL_RE = /\b(?:midterm|final)s?\b/i;
+const NON_EXAM_ASSESSMENT_HEAD_RE =
+  /\b(problem set|computational lab|lab|notebook|worksheet|project|report|essay|assignment|brief|reflection|study guide|checklist|practice set)\b/i;
+
+function nonExamAssessmentHead(title) {
+  const head = String(title || '')
+    .split(':')[0]
+    .trim();
+  return NON_EXAM_ASSESSMENT_HEAD_RE.test(head) && !/\bexam\b/i.test(head);
+}
 
 export function classifyAssessmentKind(title) {
   const text = String(title || '');
   if (EXAM_PREP_QUALIFIER_RE.test(text)) {
     return /\breview\s+session\b/i.test(text) ? 'in-class' : 'graded-artifact';
+  }
+  if (nonExamAssessmentHead(text) && /\b(?:midterm|final|exam)\b/i.test(text)) {
+    return 'graded-artifact';
   }
   if (EXAM_HEAD_RE.test(text)) return 'exam';
   const bareMidtermOrFinal = BARE_MIDTERM_FINAL_RE.test(text);
@@ -272,6 +284,26 @@ function conceptTermFromTopic(topic) {
   return cleanText(String(topic ?? '').replace(/^\d+(?:\.\d+)*\s*[:.-]\s*/, ''));
 }
 
+function lessonFocusFromSection(section, session) {
+  return (
+    conceptTermFromTopic(section?.topic) ||
+    cleanText(session?.title).replace(/^(?:lesson|week)\s*\d+\s*[:.-]\s*/i, '') ||
+    'lesson focus'
+  );
+}
+
+function sanitizeGenericAssessmentTitle(title, section, session) {
+  const text = cleanText(title);
+  if (!/\b(?:this|the)\s+lesson\b/i.test(text)) return text;
+  const focus = lessonFocusFromSection(section, session);
+  return cleanText(
+    text
+      .replace(/:\s*(?:this|the)\s+lesson(?:\s+(?:focus|artifact|work|assessment))?\b/gi, `: ${focus}`)
+      .replace(/\b(?:this|the)\s+lesson\s+(?:artifact|work|assessment)\b/gi, `${focus} artifact`)
+      .replace(/\b(?:this|the)\s+lesson\b/gi, focus),
+  );
+}
+
 /**
  * Derive a CourseGraph from a course map.
  * @param {object} courseMap — { courseName, lessons: [{ title, sections: [...] }] }
@@ -362,15 +394,16 @@ export function deriveCourseGraphFromCourseMap(courseMap, options = {}) {
         const { label, text: rawText } = splitListPrefix(atom);
         const text = stripAssessmentReferenceSuffix(rawText);
         if (!text) continue;
+        const assessmentTitle = sanitizeGenericAssessmentTitle(text, section, session);
         lessonAssessmentOrdinal += 1;
         const assessment = {
           // v0.14.1 (3.1): stable registry identity — "A<lesson>.<ordinal>".
           id: `A${sessionNumber}.${lessonAssessmentOrdinal}`,
-          title: text,
+          title: assessmentTitle,
           label,
           dueSession: sessionNumber,
           genre: '',
-          kind: classifyAssessmentKind(text),
+          kind: classifyAssessmentKind(assessmentTitle),
           weightPct: null,
           sectionRef: section.id,
           sourceText: text,

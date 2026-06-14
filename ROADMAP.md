@@ -4,6 +4,29 @@
 
 CourseMapper is moving toward a "consider it done" course-production agent. The user should describe the course, choose scope/materials, and receive a finished draft package. The agent owns generation, QA, repair, alignment, and export readiness. Human involvement should be final approval only, not QA labor.
 
+## v0.15.4 - Truthful Linear Algebra Package Quality
+
+Goal: close the live Linear Algebra audit gap where the export looked polished
+but carried false wet-lab assets, generic study-guide phrasing, thin math
+decks, reused secondary-section content, and a 100/A report despite unevaluated
+judgment.
+
+Full plan: `docs/V0.15.4_TRUTHFUL_LINEAR_ALGEBRA_ROADMAP.md`
+
+1. Tighten Required Assets genre detection so computational Python labs do not
+   trigger physical wet-lab supply lists.
+2. Repair sparse course-map sections from their own topic before borrowing
+   sibling content.
+3. Keep problem sets and computational labs about midterm/final review as
+   graded artifacts, not exams.
+4. Preserve study-guide specificity after the language finalizer compresses
+   repeated titles.
+5. Add deterministic Linear Algebra worked examples with chartable numeric
+   steps when kernel enrichment is absent.
+6. Make the package grader flag wet-lab asset leaks, generic lesson artifact
+   phrases, and unevaluated structured-STEM judgment instead of reporting a
+   clean 100.
+
 ## v0.7 - God-Mode Delivery Release
 
 Goal: make the website feel like an autonomous course package producer, not a prompt-and-review tool.

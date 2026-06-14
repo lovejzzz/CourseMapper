@@ -519,7 +519,13 @@ function compressNoteLessonTitleMentions(note, lessonTitle) {
 // compress to a short alternating form. Headings, key-term tables, and
 // examScope/assessment-name fields stay exact — those surfaces are scanned
 // by identity and readiness gates and must keep canonical wording.
-const STUDY_GUIDE_TITLE_COMPRESSIONS = ['this lesson', 'the lesson'];
+function studyGuideTopicCompression(topic) {
+  const units = String(topic || '')
+    .split(/,|\band\b|[:—–]/i)
+    .map((part) => part.trim())
+    .filter((part) => part.length >= 8);
+  return units[0] || topic;
+}
 // Only the guide's OWN prose fields are compressed. Everything else is out of
 // scope by construction:
 //   - heading/scope surfaces (lessonTitle, examScope) and the key-term table
@@ -564,6 +570,7 @@ function compressStudyGuideTitleMentions(guide) {
   const title = String(guide?.lessonTitle || '').trim();
   const topic = title.replace(/^lesson\s*\d+\s*[:.\-–—]\s*/i, '').trim();
   if (topic.length < 8) return;
+  const topicCompression = studyGuideTopicCompression(topic);
   // "Lesson N: X focuses on X, …" — the sentence subject is the lesson title
   // and the first focus item repeats it verbatim; drop the redundant first
   // item (only when more items follow, so "focuses on" always keeps an
@@ -585,7 +592,7 @@ function compressStudyGuideTitleMentions(guide) {
     text = text.replace(mentionRegex, (match, determiner, offset, full) => {
       seen += 1;
       if (seen <= 2) return match;
-      let compressed = STUDY_GUIDE_TITLE_COMPRESSIONS[(seen - 3) % STUDY_GUIDE_TITLE_COMPRESSIONS.length];
+      let compressed = topicCompression;
       // Possessive determiners read as the lesson's own attribute:
       // "self-check your <title> evidence" → "self-check this lesson's
       // evidence" (plain articles are simply consumed, as in 5.3).

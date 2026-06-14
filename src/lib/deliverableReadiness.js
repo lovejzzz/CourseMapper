@@ -262,12 +262,19 @@ function titleCandidateFromCourseMapTopic(value) {
     .split('/')
     .map((part) => text(part))
     .filter(Boolean);
-  const candidate =
+  let candidate =
     slashParts.length > 1
       ? /^(?:studio\s+seminar|clinical\s+placement|field\s+application)$/i.test(slashParts[0])
         ? slashParts[slashParts.length - 1]
         : slashParts.join(' and ')
       : source;
+  const commaParts = candidate
+    .split(',')
+    .map((part) => text(part))
+    .filter(Boolean);
+  if (slashParts.length > 1 && commaParts.length >= 6) {
+    candidate = commaParts.slice(-5).join(', ');
+  }
   return text(candidate.replace(/^(?:studio\s+seminar|clinical\s+placement|field\s+application)\s*[:.-]?\s*/i, ''))
     .replace(/^(?:and\s+)+/i, '')
     .replace(/\s+/g, ' ')
@@ -301,19 +308,29 @@ function pickCourseMapTopic(candidates = []) {
 
 function getCourseMapTopic(courseMap, lesson, section, lessonIndex) {
   const sections = Array.isArray(lesson?.sections) && lesson.sections.length > 0 ? lesson.sections : [section || {}];
-  const topicCandidates = sections.flatMap((sourceSection) =>
-    courseMapTopicList(sourceSection?.topicSection || sourceSection?.topic),
-  );
-  const supportingCandidates = sections.flatMap((sourceSection) =>
-    [sourceSection?.learningObjectives, sourceSection?.learningGoals, sourceSection?.weeklyAssessments].flatMap(
-      courseMapTopicList,
-    ),
-  );
+  const sectionTopicCandidates = courseMapTopicList(section?.topicSection || section?.topic);
+  const sectionSupportingCandidates = [
+    section?.learningObjectives,
+    section?.learningGoals,
+    section?.weeklyAssessments,
+  ].flatMap(courseMapTopicList);
+  const siblingTopicCandidates = sections
+    .filter((sourceSection) => sourceSection !== section)
+    .flatMap((sourceSection) => courseMapTopicList(sourceSection?.topicSection || sourceSection?.topic));
+  const siblingSupportingCandidates = sections
+    .filter((sourceSection) => sourceSection !== section)
+    .flatMap((sourceSection) =>
+      [sourceSection?.learningObjectives, sourceSection?.learningGoals, sourceSection?.weeklyAssessments].flatMap(
+        courseMapTopicList,
+      ),
+    );
   const titleCandidates = courseMapTopicList(lesson?.title);
   const courseCandidates = courseMapTopicList(courseMap?.courseName);
   const raw =
-    pickCourseMapTopic(topicCandidates) ||
-    pickCourseMapTopic(supportingCandidates) ||
+    pickCourseMapTopic(sectionTopicCandidates) ||
+    pickCourseMapTopic(sectionSupportingCandidates) ||
+    pickCourseMapTopic(siblingTopicCandidates) ||
+    pickCourseMapTopic(siblingSupportingCandidates) ||
     pickCourseMapTopic(titleCandidates) ||
     pickCourseMapTopic(courseCandidates);
   return raw || `Lesson ${lessonIndex + 1}`;

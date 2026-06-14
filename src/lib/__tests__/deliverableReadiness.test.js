@@ -528,6 +528,38 @@ describe('repairCourseMapReadiness', () => {
     expect(JSON.stringify(result.courseMap)).not.toMatch(/Students will be able to/i);
     expect(result.courseMap.lessons[0].sections[0].learningObjectives).toBe('1a. Analyze usability findings.');
   });
+
+  it('repairs sparse secondary sections from their own topic instead of the first section', () => {
+    const result = repairCourseMapReadiness({
+      courseMap: {
+        courseName: 'Linear Algebra',
+        lessons: [
+          {
+            title: 'Lesson 5: Bases and Dimension',
+            sections: [
+              {
+                topicSection: '5.1: bases',
+                learningObjectives: 'Explain how a basis spans a vector space.',
+                weeklyAssessments: 'Proof-based problem set: bases',
+              },
+              {
+                topicSection: '5.2: dimension',
+                learningObjectives: '',
+                weeklyAssessments: '',
+                supportingResources: '',
+              },
+            ],
+          },
+        ],
+      },
+    });
+
+    const second = result.courseMap.lessons[0].sections[1];
+    expect(second.learningObjectives).toMatch(/dimension/i);
+    expect(second.weeklyAssessments).toMatch(/dimension/i);
+    expect(second.supportingResources).toMatch(/dimension/i);
+    expect(second.learningObjectives).not.toMatch(/bases/i);
+  });
 });
 
 describe('repairWorkspaceReadiness', () => {

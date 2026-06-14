@@ -94,7 +94,9 @@ import { computeTexture, textureDocsFromFiles, buildTextureAdvisories, TEXTURE_V
 // findings list) means no existing dimension score, severity count,
 // deduction, or overall grade changes — it only ADDS the texture row to
 // the report's dimension table and result.texture to the grade object.
-export const GRADER_VERSION = '1.3.0';
+// 1.4.0 — v0.15.4: required-asset genre plausibility, generic lesson artifact
+// leaks, and unevaluated knowledge-judgment honesty for structured STEM.
+export const GRADER_VERSION = '1.4.0';
 
 // ── Dimension weights & letter bands (documented in the module header) ──────
 // texture (V0.14.7 WS-D D1) is ADVISORY: weight 0 keeps the overall score
@@ -556,6 +558,19 @@ function checkStructure(findings, { files, manifest }, course) {
         evidence: match ? match[1] : 'data-science asset noun',
       });
     }
+    if (!isWetLabCourse(course, manifest) && WET_LAB_REQUIRED_ASSET_RE.test(md)) {
+      const match =
+        /(.{0,50}(?:specimen|sample kit|goggles|gloves|hand lenses?|streak plates?|field notebook|lab safety|bench|field activities).{0,50})/i.exec(
+          md,
+        );
+      findings.add({
+        severity: 'P1',
+        dimension: 'structure',
+        file: requiredAsset.path,
+        detail: 'Required Assets list cites physical wet-lab materials for a non-wet-lab course',
+        evidence: match ? match[1] : 'physical wet-lab asset noun',
+      });
+    }
   }
 }
 
@@ -563,6 +578,21 @@ function isDataScienceCourse(course) {
   const text = `${course?.title || ''} ${course?.id || ''}`.toLowerCase();
   return /data science|machine learning|applied ml|\bstatistic|analytics|deep learning/.test(text);
 }
+
+function isWetLabCourse(course, manifest) {
+  const text = `${course?.title || ''} ${course?.id || ''} ${manifest?.courseName || ''}`.toLowerCase();
+  if (
+    /\b(linear algebra|calculus|mathematics|computer science|python|statistics|data science|machine learning)\b/.test(
+      text,
+    )
+  ) {
+    return false;
+  }
+  return /\b(geology|chemistry|biology|microbiology|anatomy|physiology|wet lab|laboratory)\b/.test(text);
+}
+
+const WET_LAB_REQUIRED_ASSET_RE =
+  /\b(specimen|sample kit|rock, mineral|biological, or chemical samples|goggles|gloves|hand lenses?|streak plates?|field notebook|lab safety|bench|field activities)\b/i;
 
 // IDENTITY — the assessment registry (v0.14.1 Phase 3).
 function checkIdentity(findings, { files, manifest }, _course) {
@@ -1307,6 +1337,28 @@ function checkGenomeBar(findings, pkg, course, consoleLogText, honesty) {
       });
     }
   }
+}
+
+function isStructuredStemCourse(course, manifest) {
+  const text = `${course?.title || ''} ${course?.id || ''} ${manifest?.courseName || ''}`.toLowerCase();
+  return /\b(linear algebra|calculus|mathematics|statistics|physics|chemistry|biology|geology|astronomy|computer science)\b/.test(
+    text,
+  );
+}
+
+function checkUnevaluatedCourseJudgment(findings, pkg, course, consoleLogText, honesty) {
+  if (probesSuppressed(course) || course?.expectGenome) return;
+  const counts = genomeLinkerCounts(pkg.manifest);
+  if (!counts || counts.genome + counts.cached > 0 || !isStructuredStemCourse(course, pkg.manifest)) return;
+  const judgment = judgmentLineFor(pkg, consoleLogText, honesty);
+  if (!/not evaluated/i.test(judgment)) return;
+  findings.add({
+    severity: 'P2',
+    dimension: 'honesty',
+    file: 'PACKAGE_MANIFEST.json',
+    detail: `course judgment was not evaluated because no lessons linked to the knowledge backbone (${counts.genome} genome + ${counts.cached} cached of ${counts.lessons} lessons)`,
+    evidence: quote([counts.line, judgment].filter(Boolean).join(' | '), 160),
+  });
 }
 
 // CITATIONS — blacklist offenders, relevance heuristic, hygiene.
@@ -2686,6 +2738,19 @@ function checkFormat(findings, { files }) {
     ...BACKTICK_LEAK_PATTERNS,
   ];
   for (const file of files) {
+    const templateArtifact =
+      /\b(this this lesson|this the lesson|the lesson criterion|(?:Proof-based problem set|Computational lab in Python):\s*(?:This|The)\s+lesson)\b/i.exec(
+        file.text || '',
+      );
+    if (templateArtifact) {
+      findings.add({
+        severity: 'P1',
+        dimension: 'format',
+        file: file.path,
+        detail: 'generic lesson placeholder leaked into student-facing artifact wording',
+        evidence: templateArtifact[0],
+      });
+    }
     // FORMAT text patterns are scanned PER paragraph/cell line, never on the
     // flattened blob, so a regex can't span a line/paragraph/cell boundary
     // (the fused-title + echo-chain Round-1 FP class). Dedupe per pattern per
@@ -2822,6 +2887,7 @@ export async function grade({
   else checkHonesty(findings, pkg, consoleLogText, digest);
   // V0.14.3 WS-B2: the genome bar (genome-expecting courses only).
   checkGenomeBar(findings, pkg, course, consoleLogText, honesty);
+  checkUnevaluatedCourseJudgment(findings, pkg, course, consoleLogText, honesty);
   checkCitations(findings, pkg, course);
   checkSubstance(findings, pkg, course);
   checkDiscipline(findings, pkg, course);

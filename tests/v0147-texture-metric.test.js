@@ -344,7 +344,7 @@ describe('D1(3)+(4) — weight-0 invariance and the report row on a real package
   });
 
   it('keeps every pre-texture weight and pins texture at WEIGHT 0', () => {
-    expect(GRADER_VERSION).toBe('1.3.0');
+    expect(GRADER_VERSION).toBe('1.4.0');
     expect(DIMENSION_WEIGHTS).toEqual({
       identity: 20,
       substance: 20,

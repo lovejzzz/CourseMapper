@@ -4234,6 +4234,36 @@ function primaryConceptForLesson(lesson = {}) {
   );
 }
 
+function genericLessonPhrase(value) {
+  return /^(?:this|the)\s+lesson(?:\s+(?:focus|artifact|criterion|work|assessment))?$/i.test(cleanText(value));
+}
+
+function lessonFocusFallback(lesson = {}) {
+  const titleFocus = stripTerminalPunctuation(stripLessonPrefix(lesson?.title || ''));
+  if (titleFocus && !genericLessonPhrase(titleFocus) && !isWeakConcept(titleFocus)) return titleFocus;
+  const concept = normalizeConceptCandidates(lesson?.keyConcepts || [], { title: lesson?.title, limit: 1 })[0];
+  if (concept && !genericLessonPhrase(concept)) return concept;
+  const week = Number.isFinite(Number(lesson?.lessonNumber)) ? `Week ${lesson.lessonNumber}` : 'weekly';
+  return `${week} focus`;
+}
+
+function lessonDisplayConcept(lesson = {}) {
+  const concept = primaryConceptForLesson(lesson);
+  return genericLessonPhrase(concept) ? lessonFocusFallback(lesson) : concept;
+}
+
+function lessonDisplayArtifact(value, lesson = {}) {
+  const focus = lessonFocusFallback(lesson);
+  const fallback = `${focus} artifact`;
+  let artifact = stripTerminalPunctuation(cleanText(value, fallback));
+  if (!artifact || genericLessonPhrase(artifact)) return fallback;
+  artifact = artifact
+    .replace(/:\s*(?:this|the)\s+lesson(?:\s+(?:focus|artifact|work|assessment))?\b/gi, `: ${focus}`)
+    .replace(/\b(?:this|the)\s+lesson\s+(?:artifact|work|assessment)\b/gi, `${focus} artifact`)
+    .replace(/\b(?:this|the)\s+lesson\b/gi, focus);
+  return stripTerminalPunctuation(artifact) || fallback;
+}
+
 function buildConceptDependencyGraph({ lessons = [], assessments = [] }) {
   const nodes = lessons.map((lesson, index) => {
     const assessment =
@@ -14469,8 +14499,8 @@ function generalTermGuide(term, lesson = {}, lens = {}, termIndex = 0) {
 
 function lessonSpecificityAnchor(lesson = {}) {
   const week = Number.isFinite(Number(lesson.lessonNumber)) ? `Week ${lesson.lessonNumber}` : 'This lesson';
-  const concept = primaryConceptForLesson(lesson);
-  const artifact = stripTerminalPunctuation(cleanText(lesson.studentArtifact, 'the lesson artifact'));
+  const concept = lessonDisplayConcept(lesson);
+  const artifact = lessonDisplayArtifact(lesson.studentArtifact, lesson);
   return { week, concept, artifact };
 }
 
@@ -14551,6 +14581,7 @@ function compileStudyGuides(blueprint) {
       const casePacket = lesson.throughlineCase?.evidencePacket || `${stripLessonPrefix(lesson.title)} lab packet`;
       const primaryConcept = primaryConceptForLesson(lesson);
       const specificity = lessonSpecificityAnchor(lesson);
+      const studyArtifact = specificity.artifact;
       const lessonSourceCue =
         lesson.evidencePlan?.sourceCue || lesson.throughlineCase?.evidencePacket || 'the lesson evidence';
       const keyTerms = studyGuideTermsForLesson(lesson);
@@ -14634,12 +14665,12 @@ function compileStudyGuides(blueprint) {
           // Layer 2: analogical bridges lead — structural transfer is the
           // highest-value connection a study guide can name.
           ...(Array.isArray(lesson.enrichment?.structuralConnections) ? lesson.enrichment.structuralConnections : []),
-          `${lesson.title} connects to the assessment artifact: ${lesson.studentArtifact}.`,
+          `${lesson.title} connects to the assessment artifact: ${studyArtifact}.`,
           lesson.prerequisitePlan?.prerequisiteEvidence ||
-            `Prerequisite readiness should be checked before students prepare ${lesson.studentArtifact}.`,
+            `Prerequisite readiness should be checked before students prepare ${studyArtifact}.`,
           assessment.anchorExampleSet?.studentFacingUse ||
-            `Compare strong and partial anchor examples before preparing ${lesson.studentArtifact}.`,
-          `${specificity.week} prepares students to meet this ${specificity.concept} criterion for ${specificity.artifact}: ${lesson.successCriteria[0]}`,
+            `Compare strong and partial anchor examples before preparing ${studyArtifact}.`,
+          `${specificity.week} prepares students to meet the ${specificity.concept} criterion for ${specificity.artifact}: ${lesson.successCriteria[0]}`,
         ],
         ...(lesson.enrichment?.workedExample ? { workedExample: lesson.enrichment.workedExample } : {}),
         commonMisconceptions:
@@ -14680,7 +14711,7 @@ function compileStudyGuides(blueprint) {
                   hint: `Connect the metric tradeoff to the stakeholder or classroom case, not just to a score.`,
                 },
                 {
-                  question: `What data-quality, fairness, or limitation note should be included before ${lesson.studentArtifact} is submitted?`,
+                  question: `What data-quality, fairness, or limitation note should be included before ${studyArtifact} is submitted?`,
                   bloomsLevel: 'Apply',
                   hint: `Use ${datasetName}, ${casePacket}, and one model-card style limitation.`,
                 },
@@ -14705,7 +14736,7 @@ function compileStudyGuides(blueprint) {
                     ]
                   : [
                       {
-                        question: `What would strong ${specificity.week} work on ${lesson.studentArtifact} need to show about ${specificity.concept}?`,
+                        question: `What would strong ${specificity.week} work on ${studyArtifact} need to show about ${specificity.concept}?`,
                         bloomsLevel: 'Evaluate',
                         hint: `${lesson.successCriteria.join(' ')} Artifact genre check: ${lesson.artifactGenre?.qualityFocus || 'evidence specificity and revision quality'}.`,
                       },
@@ -14741,8 +14772,8 @@ function compileStudyGuides(blueprint) {
           keyTopicsToKnow: lesson.keyConcepts.slice(0, 5),
           timeline: `Review ${lesson.title} notes after Week ${lesson.lessonNumber}, then revisit before the next assessment.`,
           commonErrors: isDataScience
-            ? `Avoid treating accuracy as enough, ignoring false-positive/false-negative costs, skipping data-quality checks, or submitting ${lesson.studentArtifact} without a limitation note.`
-            : `Avoid unsupported claims, vague ${phrase.context} definitions, and responses that omit ${lesson.studentArtifact}.`,
+            ? `Avoid treating accuracy as enough, ignoring false-positive/false-negative costs, skipping data-quality checks, or submitting ${studyArtifact} without a limitation note.`
+            : `Avoid unsupported claims, vague ${phrase.context} definitions, and responses that omit ${studyArtifact}.`,
           reviewStrategy: isDataScience
             ? `For ${specificity.week}, practice explaining how ${primaryConcept} uses one dataset issue, one validation metric, one threshold or model-performance tradeoff, and one fairness or limitation note for ${specificity.artifact}.`
             : `${lessonVariant(lesson, [
@@ -16113,6 +16144,70 @@ export function extractWorkedExamplePairs(workedExample) {
   return pairs.length >= 2 ? pairs : [];
 }
 
+const LINEAR_ALGEBRA_WORKED_EXAMPLE_RE =
+  /\b(linear algebra|matrix|matrices|vector|basis|dimension|rank|determinant|eigen|orthogonal|projection|svd|singular value|system of linear equations|row reduction|span|linear independence|least squares)\b/i;
+
+function deterministicWorkedExampleForLesson(lesson = {}) {
+  const text = [
+    lesson.title,
+    lesson.studentArtifact,
+    ...(lesson.keyConcepts || []),
+    ...(lesson.outcomes || []),
+    lesson.activityPattern,
+  ]
+    .join(' ')
+    .toLowerCase();
+  if (!LINEAR_ALGEBRA_WORKED_EXAMPLE_RE.test(text)) return null;
+
+  if (/\beigen|eigenvalue|eigenvector/.test(text)) {
+    return {
+      problem: 'Find the eigenvalues of A = [[2, 0], [0, 3]].',
+      steps: ['Set det(A - lambda I) = (2 - lambda)(3 - lambda) = 0.', 'lambda1 = 2.', 'lambda2 = 3.'],
+      result: 'Eigenvalues: 2 and 3.',
+    };
+  }
+  if (/\bbasis|dimension|span|linear independence|rank/.test(text)) {
+    return {
+      problem: 'Decide the dimension of span{(1, 0, 0), (0, 1, 0)} in R3.',
+      steps: ['Pivot count: p = 2.', 'Free variables: f = 1.', 'Dimension: d = 2.'],
+      result: 'The span is a 2-dimensional plane in R3.',
+    };
+  }
+  if (/\bdeterminant/.test(text)) {
+    return {
+      problem: 'Compute det([[3, 2], [4, 5]]).',
+      steps: ['Diagonal product: a = 15.', 'Off-diagonal product: b = 8.', 'Determinant: d = 7.'],
+      result: 'The determinant is 7.',
+    };
+  }
+  if (/\borthogonal|projection|least squares/.test(text)) {
+    return {
+      problem: 'Project v = (2, 1) onto u = (3, 0).',
+      steps: ['Dot product: p = 6.', 'Norm squared: n = 9.', 'Coefficient: c = 0.67.'],
+      result: 'The projection is approximately (2, 0).',
+    };
+  }
+  if (/\bsvd|singular value/.test(text)) {
+    return {
+      problem: 'Interpret a 2 x 2 matrix with singular values 5 and 2.',
+      steps: ['Largest stretch: sigma1 = 5.', 'Second stretch: sigma2 = 2.', 'Condition ratio: k = 2.5.'],
+      result: 'The matrix stretches one orthogonal direction 2.5 times more than the other.',
+    };
+  }
+  if (/\bmatrix|matrices/.test(text)) {
+    return {
+      problem: 'Identify the shape of A = [[1, 2, 3], [4, 5, 6]].',
+      steps: ['Rows: r = 2.', 'Columns: c = 3.', 'Entries: n = 6.'],
+      result: 'A is a 2 by 3 matrix with 6 entries.',
+    };
+  }
+  return {
+    problem: 'Solve the system x + y = 3 and x - y = 1.',
+    steps: ['Add the equations: 2x = 4.', 'Solve: x = 2.', 'Substitute: y = 1.'],
+    result: 'The solution is (2, 1).',
+  };
+}
+
 function slideVisual(lesson, slide) {
   const { type, title } = slide;
   if (['title', 'agenda', 'objectives', 'closing'].includes(type)) {
@@ -16165,8 +16260,8 @@ function slideVisual(lesson, slide) {
           // mc-walkthrough shares the "Worked example:" title prefix but its
           // content is a recast bank item, not lesson.enrichment.workedExample.
           ...(() => {
-            if (slide.enrichmentSource !== 'kernel-worked-example') return {};
-            const pairs = extractWorkedExamplePairs(lesson?.enrichment?.workedExample);
+            if (!/worked-example/.test(slide.enrichmentSource || '')) return {};
+            const pairs = extractWorkedExamplePairs(slide.workedExample || lesson?.enrichment?.workedExample);
             return pairs.length >= 2 ? { wePlot: { kind: 'bar', pairs } } : {};
           })(),
         }
@@ -16998,7 +17093,7 @@ function adjustDeckLengthForContent(slides, lesson) {
  */
 function applyEvidenceSlideIntegrity(slides, lesson) {
   if (enrichedEvidenceTableRows(lesson).length >= 2) return;
-  const workedExample = lesson?.enrichment?.workedExample;
+  const workedExample = lesson?.enrichment?.workedExample || deterministicWorkedExampleForLesson(lesson);
   const problem = cleanText(workedExample?.problem);
   const steps = (Array.isArray(workedExample?.steps) ? workedExample.steps : []).map(cleanText).filter(Boolean);
   if (!problem || steps.length < 2) return;
@@ -17014,7 +17109,10 @@ function applyEvidenceSlideIntegrity(slides, lesson) {
     ...(result ? [`Result: ${result}`] : []),
   ];
   target.notes = `Work the example on the board step by step: ${stripTerminalPunctuation(problem)}. Solution path: ${steps.join(' → ')}.${result ? ` Result: ${stripTerminalPunctuation(result)}.` : ''} Have students annotate each step, then assign one variation before they continue ${slideArtifact(lesson)}.`;
-  target.enrichmentSource = 'kernel-worked-example';
+  target.enrichmentSource = lesson?.enrichment?.workedExample
+    ? 'kernel-worked-example'
+    : 'deterministic-worked-example';
+  target.workedExample = workedExample;
 }
 
 // ── v0.14.3 D1: two deterministic content slides from data the lesson
@@ -17562,6 +17660,7 @@ function compileSlideDecks(blueprint) {
         const isEnriched = [
           'lesson-content-enrichment',
           'kernel-worked-example',
+          'deterministic-worked-example',
           'kernel-misconception-pitfalls',
           'kernel-mc-walkthrough',
         ].includes(slide.enrichmentSource);

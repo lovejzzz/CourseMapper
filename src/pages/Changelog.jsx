@@ -3,6 +3,19 @@ import Header from '../components/Header';
 
 const releases = [
   {
+    version: '0.15.4',
+    date: 'June 14, 2026',
+    title: 'Truthful Course Packages: the audit catches what teachers see',
+    highlights: [
+      'Linear Algebra no longer inherits the wrong lab identity: "Computational lab in Python" stays computational, while physical supplies still appear for real wet-lab courses with specimens, safety equipment, hand lenses, or field notebooks.',
+      'Sparse secondary course-map rows now repair from their own topic before borrowing from sibling sections, so "dimension" does not carry "bases" objectives/resources and review/exam rows stop inheriting stale topic content.',
+      'Assessment identity is stricter: problem sets and computational labs about midterm/final review stay graded artifacts instead of becoming full exam records.',
+      'Study guides keep topic-specific language after title compression; the pass no longer creates learner-facing phrases like "this lesson criterion" or generic "the lesson" questions.',
+      'Math slide decks gain deterministic Linear Algebra worked examples when enrichment is missing, including chartable numeric steps for systems, matrices, determinants, bases, projections, eigenvalues, and SVD.',
+      'The package grader now flags physical wet-lab Required Assets in non-wet-lab courses, generic lesson-artifact placeholders, and unevaluated structured-STEM judgments, so these packages cannot quietly claim a perfect 100/A.',
+    ],
+  },
+  {
     version: '0.15.3',
     date: 'June 12, 2026',
     title: 'Measured Depth: the experiment ran at the right size, and deep won',

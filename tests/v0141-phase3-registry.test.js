@@ -168,6 +168,8 @@ describe('3.1 — registry schema (derive)', () => {
     expect(classifyAssessmentKind('Final readiness checklist')).toBe('graded-artifact');
     expect(classifyAssessmentKind('Midterm study guide')).toBe('graded-artifact');
     expect(classifyAssessmentKind('Post-Exam Reflection: strengths and gaps')).toBe('graded-artifact');
+    expect(classifyAssessmentKind('Proof-based problem set: review and final exam')).toBe('graded-artifact');
+    expect(classifyAssessmentKind('Computational lab in Python: midterm review')).toBe('graded-artifact');
     // …and a review session is an in-class activity, not a graded artifact.
     expect(classifyAssessmentKind('Final Exam Review Session')).toBe('in-class');
     // Standalone "Midterm"/"Final" is still the exam itself.
