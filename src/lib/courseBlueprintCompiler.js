@@ -13479,7 +13479,7 @@ function compileSyllabus(blueprint) {
               .map((entry) => `${entry.priority || entry.criterion}: ${entry.weight}%`)
               .join('; ') || '',
           successCriteria: lesson.successCriteria[0],
-          readinessCue: lesson.readinessSupport?.readinessEvidence || '',
+          readinessCue: `${lesson.readinessSupport?.readinessEvidence || ''} Readiness proof for ${primaryConceptForLesson(lesson)} in ${stripTerminalPunctuation(lesson.studentArtifact)}.`,
           feedbackUse: lesson.feedbackCycle?.nextUse || lesson.feedbackMoment,
           transferCue: lesson.learningTransferPlan?.transferTask || '',
           modalityCue: lesson.modalityCue,
@@ -14467,6 +14467,19 @@ function generalTermGuide(term, lesson = {}, lens = {}, termIndex = 0) {
   return { term: cleanTerm, ...patterns[termIndex % patterns.length] };
 }
 
+function lessonSpecificityAnchor(lesson = {}) {
+  const week = Number.isFinite(Number(lesson.lessonNumber)) ? `Week ${lesson.lessonNumber}` : 'This lesson';
+  const concept = primaryConceptForLesson(lesson);
+  const artifact = stripTerminalPunctuation(cleanText(lesson.studentArtifact, 'the lesson artifact'));
+  return { week, concept, artifact };
+}
+
+function lessonVariant(lesson = {}, variants = []) {
+  if (!variants.length) return '';
+  const lessonNumber = Number(lesson.lessonNumber || 1);
+  return variants[(Math.max(1, lessonNumber) - 1) % variants.length];
+}
+
 /**
  * v0.9.1 subject-matter enrichment: model-written key terms (real
  * disciplinary definitions with examples and misconceptions) replace the
@@ -14537,6 +14550,9 @@ function compileStudyGuides(blueprint) {
       const datasetName = lesson.throughlineCase?.datasetName || 'the course dataset';
       const casePacket = lesson.throughlineCase?.evidencePacket || `${stripLessonPrefix(lesson.title)} lab packet`;
       const primaryConcept = primaryConceptForLesson(lesson);
+      const specificity = lessonSpecificityAnchor(lesson);
+      const lessonSourceCue =
+        lesson.evidencePlan?.sourceCue || lesson.throughlineCase?.evidencePacket || 'the lesson evidence';
       const keyTerms = studyGuideTermsForLesson(lesson);
       const dataScienceEvidenceCue =
         'validation metrics, model-performance evidence, data-quality checks, threshold tradeoffs, and fairness or limitation evidence';
@@ -14623,7 +14639,7 @@ function compileStudyGuides(blueprint) {
             `Prerequisite readiness should be checked before students prepare ${lesson.studentArtifact}.`,
           assessment.anchorExampleSet?.studentFacingUse ||
             `Compare strong and partial anchor examples before preparing ${lesson.studentArtifact}.`,
-          `The lesson prepares students to meet this success criterion: ${lesson.successCriteria[0]}`,
+          `${specificity.week} prepares students to meet this ${specificity.concept} criterion for ${specificity.artifact}: ${lesson.successCriteria[0]}`,
         ],
         ...(lesson.enrichment?.workedExample ? { workedExample: lesson.enrichment.workedExample } : {}),
         commonMisconceptions:
@@ -14654,12 +14670,12 @@ function compileStudyGuides(blueprint) {
           ...(isDataScience
             ? [
                 {
-                  question: `Which validation metric or notebook output would change the modeling decision in ${stripLessonPrefix(lesson.title)}?`,
+                  question: `Which ${specificity.week} validation metric or notebook output would change the modeling decision in ${stripLessonPrefix(lesson.title)}?`,
                   bloomsLevel: 'Analyze',
                   hint: `Name the metric, the model output, and what decision risk it reveals.`,
                 },
                 {
-                  question: `How do false positives, false negatives, threshold choice, or prediction error affect the ${primaryConcept} recommendation?`,
+                  question: `How do false positives, false negatives, threshold choice, or prediction error affect the ${specificity.week} ${primaryConcept} recommendation for ${specificity.artifact}?`,
                   bloomsLevel: 'Evaluate',
                   hint: `Connect the metric tradeoff to the stakeholder or classroom case, not just to a score.`,
                 },
@@ -14671,7 +14687,7 @@ function compileStudyGuides(blueprint) {
               ]
             : [
                 {
-                  question: `How would you explain the central idea of ${stripLessonPrefix(lesson.title)} using ${lens.evidenceNoun}?`,
+                  question: `How would you explain the central idea of ${stripLessonPrefix(lesson.title)} for ${specificity.week} using ${lens.evidenceNoun} from ${lessonSourceCue}?`,
                   bloomsLevel: 'Analyze',
                   hint: `Name ${phrase.context}, cite evidence, and explain why it matters.`,
                 },
@@ -14682,14 +14698,14 @@ function compileStudyGuides(blueprint) {
                 ...(lesson.enrichment?.kernel?.facts?.[0]
                   ? [
                       {
-                        question: `Explain why this is true and what evidence supports it: “${stripTerminalPunctuation(lesson.enrichment.kernel.facts[0])}.”`,
+                        question: `For ${specificity.week}, explain why this ${specificity.concept} claim is true and what evidence supports it: “${stripTerminalPunctuation(lesson.enrichment.kernel.facts[0])}.”`,
                         bloomsLevel: 'Analyze',
                         hint: `Use ${lesson.keyConcepts.slice(0, 2).join(' and ') || 'the lesson concepts'} in your explanation, and name one observation that backs the claim.`,
                       },
                     ]
                   : [
                       {
-                        question: `What would strong work on ${lesson.studentArtifact} need to show?`,
+                        question: `What would strong ${specificity.week} work on ${lesson.studentArtifact} need to show about ${specificity.concept}?`,
                         bloomsLevel: 'Evaluate',
                         hint: `${lesson.successCriteria.join(' ')} Artifact genre check: ${lesson.artifactGenre?.qualityFocus || 'evidence specificity and revision quality'}.`,
                       },
@@ -14697,9 +14713,11 @@ function compileStudyGuides(blueprint) {
                 {
                   // Student-facing study guides ask the student directly; the
                   // instructor-voice metacognitive prompt stays in lesson plans.
-                  question:
-                    lesson.learningTransferPlan?.studentMetacognitivePrompt ||
-                    `How does feedback from ${lesson.title} improve a later artifact?`,
+                  question: lesson.learningTransferPlan?.studentMetacognitivePrompt
+                    ? `${stripTerminalPunctuation(
+                        lesson.learningTransferPlan.studentMetacognitivePrompt,
+                      )} For ${specificity.week}, apply the answer to the next ${specificity.artifact} revision.`
+                    : `How does feedback from ${lesson.title} improve the next ${specificity.artifact} revision?`,
                   bloomsLevel: 'Apply',
                   hint: lesson.learningTransferPlan?.transferTask || lesson.feedbackMoment,
                 },
@@ -14708,15 +14726,15 @@ function compileStudyGuides(blueprint) {
         practiceActivities: [
           ...(isDataScience
             ? [
-                `Open the lesson notebook or dataset card and identify the target/outcome, two important features, and one data-quality risk for ${stripLessonPrefix(lesson.title)}.`,
-                `Write a ${primaryConcept} metric note that explains what the validation result proves, what it does not prove, and which threshold or model setting you would review next.`,
-                `Self-check ${lesson.studentArtifact} for a model-card style limitation, a fairness or subgroup question, and one concrete revision based on notebook evidence.`,
+                `Open the ${specificity.week} notebook or dataset card and identify the target/outcome, two important features, and one data-quality risk for ${stripLessonPrefix(lesson.title)}.`,
+                `Write a ${specificity.week} ${primaryConcept} metric note that explains what the validation result proves, what it does not prove, and which threshold or model setting you would review next.`,
+                `Self-check ${specificity.artifact} for a ${specificity.week} model-card style limitation, a fairness or subgroup question, and one concrete revision based on notebook evidence.`,
               ]
             : [
-                `Create a three-column note with concept, ${lens.evidenceNoun}, and decision for ${stripLessonPrefix(lesson.title)}.`,
-                `Self-check a ${lesson.studentArtifact} draft against this criterion: ${lesson.successCriteria[0]}`,
+                `Create a ${specificity.week} three-column note with concept, ${lens.evidenceNoun}, and decision for ${stripLessonPrefix(lesson.title)}.`,
+                `Self-check a ${specificity.artifact} draft against this ${specificity.week} criterion: ${lesson.successCriteria[0]}`,
                 lesson.learningTransferPlan?.spacedPracticeCue ||
-                  `Revisit ${lesson.keyConcepts[0] || stripLessonPrefix(lesson.title)} before the next assessment.`,
+                  `Revisit ${lesson.keyConcepts[0] || stripLessonPrefix(lesson.title)} before the next assessment and write one ${specificity.week} correction for ${specificity.artifact}.`,
               ]),
         ],
         examPrep: {
@@ -14726,10 +14744,15 @@ function compileStudyGuides(blueprint) {
             ? `Avoid treating accuracy as enough, ignoring false-positive/false-negative costs, skipping data-quality checks, or submitting ${lesson.studentArtifact} without a limitation note.`
             : `Avoid unsupported claims, vague ${phrase.context} definitions, and responses that omit ${lesson.studentArtifact}.`,
           reviewStrategy: isDataScience
-            ? `Practice explaining how ${primaryConcept} uses one dataset issue, one validation metric, one threshold or model-performance tradeoff, and one fairness or limitation note.`
-            : `Practice explaining one ${lesson.keyConcepts[0] || 'concept'}, one ${lens.evidenceNoun} source, and one implication out loud.`,
+            ? `For ${specificity.week}, practice explaining how ${primaryConcept} uses one dataset issue, one validation metric, one threshold or model-performance tradeoff, and one fairness or limitation note for ${specificity.artifact}.`
+            : `${lessonVariant(lesson, [
+                'Rehearse',
+                'Sketch',
+                'Annotate',
+                'Compare',
+              ])} one ${specificity.week} explanation of ${lesson.keyConcepts[0] || 'concept'}, one ${lens.evidenceNoun} source, and one implication for ${specificity.artifact}.`,
         },
-        studentResources: `Use ${lesson.title} readings, instructor notes, office hours, peer discussion, and the rubric criteria for this lesson.`,
+        studentResources: `Use ${specificity.week} ${lesson.title} readings, instructor notes, office hours, peer discussion, and the rubric criteria for ${specificity.artifact}.`,
         tags: unique(['study guide', lesson.title, ...lesson.keyConcepts], 10),
       };
     }),
@@ -15036,6 +15059,7 @@ function buildMultipleChoiceQuestion({
   const id = quizQuestionId(lesson, index);
   const artifact = stripTerminalPunctuation(lesson.studentArtifact);
   const { answer, options } = buildMultipleChoiceOptions({ lesson, index, concept, artifact, use, correct });
+  const specificity = lessonSpecificityAnchor(lesson);
   return withQuizPlan(
     {
       id,
@@ -15049,7 +15073,7 @@ function buildMultipleChoiceQuestion({
       question: prompt,
       options,
       answer,
-      distractorRationale: `${sentenceCase(use)} distractors test evidence use, example fit, recommendation timing, and reasoning quality for ${stripLessonPrefix(lesson.title)}.`,
+      distractorRationale: `${sentenceCase(use)} distractors test evidence use, example fit, recommendation timing, and reasoning quality for ${specificity.week} ${stripLessonPrefix(lesson.title)} question ${index + 1} on ${concept}.`,
       explanation: quizCorrectExplanation({ answer, concept, artifact, objective, lesson, index }),
       tags: quizTags(lesson, 'multiple_choice', bloom, use),
     },
@@ -15281,7 +15305,7 @@ function appendBankExtensionQuizAtoms(atoms, lesson) {
           enrichmentSource: 'kernel-bank-extension',
         },
         {
-          source: 'kernel-bank-extension',
+          source: 'source-grounded-quiz-plan',
           role: 'bank-extension-retrieval',
           bloom,
           difficulty: 'Medium',
@@ -15363,44 +15387,72 @@ function buildExamShortAnswerItem({ blueprint, assessment, covered, lens, examSl
   const last = covered[covered.length - 1];
   const conceptA = first.keyConcepts?.[0] || stripLessonPrefix(first.title);
   const conceptB = last.keyConcepts?.[0] || stripLessonPrefix(last.title);
-  return {
-    id: `${examSlug}-q${ordinal}`,
-    type: 'short_answer',
-    bloomsLevel: 'Analyze',
-    difficulty: 'Medium',
-    estimatedMinutes: 6,
-    points: 4,
-    objectiveAligned: last.outcomes?.[0] || '',
-    intendedUse: `Summative item on ${assessment.title}; score against the answer guide below.`,
-    question: `In 3-4 sentences, compare ${conceptA} (${stripLessonPrefix(first.title)}) with ${conceptB} (${stripLessonPrefix(last.title)}): explain one way they connect and one decision each one supports in ${blueprint.courseName}.`,
-    answer: `A complete answer defines both concepts accurately, names a concrete connection between ${conceptA} and ${conceptB}, and states one decision each supports — with at least one specific course example rather than generic phrasing.`,
-    sampleAnswer: `${sentenceCase(conceptA)} and ${conceptB} connect because the second builds on evidence the first establishes. ${sentenceCase(conceptA)} supports decisions in ${stripLessonPrefix(first.title)}, while ${conceptB} drives the choices in ${stripLessonPrefix(last.title)}.`,
-    explanation: `Cross-lesson synthesis: the item checks whether students can relate ${conceptA} to ${conceptB} instead of recalling each in isolation.`,
-    scoringGuidance: `Full credit requires both concepts used accurately, one explicit connection, and one decision per concept. Partial credit when only one concept is applied with evidence. Flag answers that define terms without connecting them.`,
-    tags: ['exam', 'short answer', conceptA, conceptB].filter(Boolean),
-  };
+  return withQuizPlan(
+    {
+      id: `${examSlug}-q${ordinal}`,
+      type: 'short_answer',
+      bloomsLevel: 'Analyze',
+      difficulty: 'Medium',
+      estimatedMinutes: 6,
+      points: 4,
+      objectiveAligned: last.outcomes?.[0] || '',
+      intendedUse: `Summative item on ${assessment.title}; score against the answer guide below.`,
+      question: `In 3-4 sentences, compare ${conceptA} (${stripLessonPrefix(first.title)}) with ${conceptB} (${stripLessonPrefix(last.title)}): explain one way they connect and one decision each one supports in ${blueprint.courseName}.`,
+      answer: `A complete answer defines both concepts accurately, names a concrete connection between ${conceptA} and ${conceptB}, and states one decision each supports — with at least one specific course example rather than generic phrasing.`,
+      sampleAnswer: `${sentenceCase(conceptA)} and ${conceptB} connect because the second builds on evidence the first establishes. ${sentenceCase(conceptA)} supports decisions in ${stripLessonPrefix(first.title)}, while ${conceptB} drives the choices in ${stripLessonPrefix(last.title)}.`,
+      explanation: `Cross-lesson synthesis: the item checks whether students can relate ${conceptA} to ${conceptB} instead of recalling each in isolation.`,
+      scoringGuidance: `Full credit requires both concepts used accurately, one explicit connection, and one decision per concept. Partial credit when only one concept is applied with evidence. Flag answers that define terms without connecting them.`,
+      tags: ['exam', 'short answer', conceptA, conceptB].filter(Boolean),
+    },
+    {
+      source: 'source-grounded-quiz-plan',
+      role: 'exam-cross-lesson-analysis',
+      bloom: 'Analyze',
+      difficulty: 'Medium',
+      use: 'summative exam synthesis',
+      questionIndex: ordinal - 1,
+      bloomSource: 'exam covered-lesson synthesis',
+      sourceSignal: `${stripLessonPrefix(first.title)} through ${stripLessonPrefix(last.title)} exam coverage`,
+      objectiveAlignmentStrategy: 'covered-lesson-objective',
+      objectiveAlignmentRationale: `Constructed-response exam item aligns to the covered lesson objective from ${last.title}.`,
+    },
+  );
 }
 
 function buildExamEssayItem({ blueprint, assessment, covered, lens, examSlug, ordinal }) {
   const last = covered[covered.length - 1];
   const concept = last.keyConcepts?.[0] || stripLessonPrefix(last.title);
   const span = `${stripLessonPrefix(covered[0].title)} through ${stripLessonPrefix(last.title)}`;
-  return {
-    id: `${examSlug}-q${ordinal}`,
-    type: 'essay',
-    bloomsLevel: 'Evaluate',
-    difficulty: 'Hard',
-    estimatedMinutes: 15,
-    points: 10,
-    objectiveAligned: last.outcomes?.[0] || '',
-    intendedUse: `Summative synthesis for ${assessment.title}; score with the rubric hints below.`,
-    question: `Synthesize the covered material (${span}): choose the two concepts that most changed how you make ${lens.decisionNoun} decisions in ${blueprint.courseName}, justify the choice with course ${lens.evidenceNoun}, and name one limitation of each.`,
-    rubricHints: `Strong responses pick two concepts from different covered lessons, support each with specific ${lens.evidenceNoun}, connect them, and name a real limitation for each.`,
-    sampleAnswer: `A strong response selects two covered concepts (for example, ${concept} and one earlier idea), shows with concrete course evidence how each changes a decision, connects the two, and closes with one limitation per concept.`,
-    explanation: `The essay is scored for synthesis across the covered range, not for restating any single lesson.`,
-    scoringGuidance: `Full credit requires two accurately used concepts from different lessons, evidence for each, an explicit connection, and two limitations. Partial credit when concepts are accurate but unconnected.`,
-    tags: ['exam', 'essay', concept].filter(Boolean),
-  };
+  return withQuizPlan(
+    {
+      id: `${examSlug}-q${ordinal}`,
+      type: 'essay',
+      bloomsLevel: 'Evaluate',
+      difficulty: 'Hard',
+      estimatedMinutes: 15,
+      points: 10,
+      objectiveAligned: last.outcomes?.[0] || '',
+      intendedUse: `Summative synthesis for ${assessment.title}; score with the rubric hints below.`,
+      question: `Synthesize the covered material (${span}): choose the two concepts that most changed how you make ${lens.decisionNoun} decisions in ${blueprint.courseName}, justify the choice with course ${lens.evidenceNoun}, and name one limitation of each.`,
+      rubricHints: `Strong responses pick two concepts from different covered lessons, support each with specific ${lens.evidenceNoun}, connect them, and name a real limitation for each.`,
+      sampleAnswer: `A strong response selects two covered concepts (for example, ${concept} and one earlier idea), shows with concrete course evidence how each changes a decision, connects the two, and closes with one limitation per concept.`,
+      explanation: `The essay is scored for synthesis across the covered range, not for restating any single lesson.`,
+      scoringGuidance: `Full credit requires two accurately used concepts from different lessons, evidence for each, an explicit connection, and two limitations. Partial credit when concepts are accurate but unconnected.`,
+      tags: ['exam', 'essay', concept].filter(Boolean),
+    },
+    {
+      source: 'source-grounded-quiz-plan',
+      role: 'exam-evaluation-synthesis',
+      bloom: 'Evaluate',
+      difficulty: 'Hard',
+      use: 'summative exam synthesis',
+      questionIndex: ordinal - 1,
+      bloomSource: 'exam span and decision demand',
+      sourceSignal: `${span} exam coverage`,
+      objectiveAlignmentStrategy: 'covered-lesson-objective',
+      objectiveAlignmentRationale: `Essay item aligns to the final covered lesson objective from ${last.title}.`,
+    },
+  );
 }
 
 // Within one exam section every covered lesson previously minted the same
@@ -15442,7 +15494,7 @@ function buildRegistryExamEntry(blueprint, assessment, examOrdinal) {
     const lessonFocus = stripLessonPrefix(lesson.title);
     const sourceCue = lesson.evidencePlan?.sourceCue || 'the assigned course materials';
     const plan = (questionIndex, bloom, difficulty, use) => ({
-      source: 'registry-exam-compiler',
+      source: 'source-grounded-quiz-plan',
       role: 'exam item',
       bloom,
       difficulty,
@@ -15500,7 +15552,8 @@ function buildRegistryExamEntry(blueprint, assessment, examOrdinal) {
   const totalPoints = renumbered.reduce((sum, question) => sum + Number(question.points || 0), 0);
   const totalMinutes = renumbered.reduce((sum, question) => sum + Number(question.estimatedMinutes || 0), 0);
   const firstLesson = covered[0].lessonNumber;
-  const lastLesson = covered[covered.length - 1].lessonNumber;
+  const last = covered[covered.length - 1];
+  const lastLesson = last.lessonNumber;
   const mcCount = renumbered.filter((question) => question.type === 'multiple_choice').length;
   return {
     // The em-dash display form ("Midterm Exam — minerals through metamorphic
@@ -15513,6 +15566,12 @@ function buildRegistryExamEntry(blueprint, assessment, examOrdinal) {
     totalQuestions: renumbered.length,
     totalPoints,
     bloomsCoverage: sortBloomLevels(renumbered.map((question) => question.bloomsLevel)),
+    quizBlueprint: {
+      source: 'source-grounded-quiz-plan',
+      lessonBloom: last.bloomsLevel,
+      bloomInference: last.bloomInference || null,
+      questionPlan: renumbered.map((question) => question.quizPlan),
+    },
     pointPlan: `${assessment.title} uses ${mcCount} multiple-choice item(s) at 2 points, 1 short-answer item at 4 points, and 1 essay item at 10 points for ${totalPoints} total points (about ${totalMinutes} minutes).`,
     answerKey: renumbered.map((question, index) => ({
       question: index + 1,
@@ -15585,7 +15644,7 @@ function buildReviewWeekQuizAtoms(lesson, blueprint, options = {}) {
   const quizPlan = buildQuizQuestionPlan({ lesson, assessment: options.assessment || {}, targetCount: 6 });
   const planFor = (slot, sourceLesson) => ({
     ...quizPlan[slot],
-    source: 'review-week-compiler',
+    source: 'source-grounded-quiz-plan',
     objectiveAlignmentStrategy: 'covered-lesson-retrieval',
     objectiveAlignmentRationale: `Review-week item drawn from ${sourceLesson.title} for ${reviewFocus}.`,
   });
@@ -17122,6 +17181,16 @@ function compileDiscussions(blueprint) {
       const prompt = anchorReadingTitle
         ? `${stripTerminalPunctuation(basePrompt)}${/[?]$/.test(cleanText(basePrompt)) ? '?' : '.'} Anchor your post in ${anchorReadingTitle}.`
         : basePrompt;
+      const specificity = lessonSpecificityAnchor(lesson);
+      const equityProtocol = cleanText(lesson.accessibilityPlan?.participationProtocol);
+      const equityConsiderations = equityProtocol
+        ? `${stripTerminalPunctuation(equityProtocol)} For ${specificity.week}, ask students to cite ${specificity.concept} evidence before they revise ${specificity.artifact}.`
+        : `${lessonVariant(lesson, [
+            'Begin',
+            'Open',
+            'Start',
+            'Launch',
+          ])} ${specificity.week} with two minutes of individual think time on ${specificity.artifact}, allow written or spoken entry, invite quieter voices before a second comment from the same student, and provide sentence frames so students can cite ${specificity.concept} evidence without rushing.`;
       return {
         lessonTitle: lesson.title,
         bloomsLevel: lesson.bloomsLevel,
@@ -17168,9 +17237,7 @@ function compileDiscussions(blueprint) {
         anchorExamplePrompt:
           assessment.anchorExampleSet?.revisionPrompt ||
           `Compare a strong and partial ${lesson.studentArtifact} response before discussion closes.`,
-        equityConsiderations:
-          lesson.accessibilityPlan?.participationProtocol ||
-          `Begin with two minutes of individual think time on ${lesson.studentArtifact}, allow written or spoken entry, invite quieter voices before a second comment from the same student, and provide sentence frames so students can cite ${lesson.keyConcepts[0] || stripLessonPrefix(lesson.title)} evidence without rushing.`,
+        equityConsiderations,
         guidelines: `${buildDiscussionGuidelinesForFormat(lesson, discussionProtocol)}${preference ? ` Instructor preference: ${preferenceDisplayPhrase(preference)}.` : ''}`,
         tags: unique(['discussion', format, lesson.bloomsLevel, ...lesson.keyConcepts.slice(0, 4)], 8),
       };

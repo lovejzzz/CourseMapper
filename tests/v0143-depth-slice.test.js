@@ -390,14 +390,15 @@ describe('D3 — weekly quiz extension from unused bank items', () => {
       expect(item.enrichmentSource).toBe('kernel-bank-extension');
       expect(item.options).toHaveLength(4);
       expect(item.points).toBe(2);
-      expect(item.quizPlan.source).toBe('kernel-bank-extension');
+      expect(item.quizPlan.source).toBe('source-grounded-quiz-plan');
+      expect(item.quizPlan.role).toBe('bank-extension-retrieval');
     }
   });
 
   it('keeps the thin-bank lesson at 6 items with no frames in slots 7-8', () => {
     expect(thinQuiz.totalQuestions).toBe(6);
     expect(thinQuiz.questions).toHaveLength(6);
-    expect(thinQuiz.questions.some((item) => item.quizPlan?.source === 'kernel-bank-extension')).toBe(false);
+    expect(thinQuiz.questions.some((item) => item.quizPlan?.role === 'bank-extension-retrieval')).toBe(false);
   });
 
   it('never duplicates a stem anywhere in the bank (weekly + extension + exams)', () => {
