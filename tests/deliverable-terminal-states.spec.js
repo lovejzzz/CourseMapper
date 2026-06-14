@@ -30,6 +30,7 @@ function courseMapFixture() {
 
 const CUSTOM_FAILURE_ID = 'custom_terminal_failure_pack';
 const CUSTOM_FAILURE_NAME = 'Terminal Failure Pack';
+const landingSetupButton = (page) => page.getByTestId('landing-setup-button');
 
 function customFailureDeliverableFixture() {
   return {
@@ -122,7 +123,7 @@ test.describe('All-deliverables terminal states', () => {
     await page.goto('/');
     await expect(page.locator('text=Connected').first()).toBeVisible({ timeout: 10000 });
     await page.locator('textarea').fill('Build a 4-week course about testing deliverable terminal states.');
-    await page.getByRole('button', { name: 'Continue' }).click();
+    await landingSetupButton(page).click();
 
     await expect(page.getByRole('heading', { name: 'Choose materials' })).toBeVisible({ timeout: 10000 });
     await page.getByRole('button', { name: /Lesson Plans/ }).click();
@@ -144,30 +145,30 @@ test.describe('All-deliverables terminal states', () => {
     await ideButton.click({ force: true });
     await expect(page.getByTestId('developer-mode-panel')).toHaveCount(0);
 
-    await expect(page.getByTestId('workspace-agent-panel').getByTestId('progress-phase-label')).toHaveText(
-      /Finish failed sections|Finish(?:ing)? package/,
-      { timeout: 20000 },
-    );
-
-    await page.getByLabel('Expand generation progress').click();
     const agentPanel = page.getByTestId('workspace-agent-panel');
-    await expect(agentPanel.getByText('Lesson Plans', { exact: true })).toBeVisible();
-    await expect(agentPanel.getByText(CUSTOM_FAILURE_NAME, { exact: true })).toBeVisible();
+    const packageSummary = agentPanel.getByTestId('package-summary-card').last();
+
+    await expect
+      .poll(
+        async () =>
+          page.evaluate((customFailureId) => {
+            const saved = JSON.parse(localStorage.getItem('coursemapper-project') || '{}');
+            return {
+              lessonPlans: saved.deliverables?.lessonPlans?.status,
+              customFailure: saved.deliverables?.[customFailureId]?.status,
+            };
+          }, CUSTOM_FAILURE_ID),
+        { timeout: 30000 },
+      )
+      .toEqual({ lessonPlans: 'done', customFailure: 'error' });
+
+    await expect(packageSummary.getByText('Review before export')).toBeVisible({ timeout: 30000 });
+    await expect(packageSummary).toContainText('1 issue to fix');
+    await expect(packageSummary).toContainText('Custom Deliverable failed to generate');
+    await expect(ideButton).toBeEnabled({ timeout: 5000 });
 
     await page.getByRole('button', { name: new RegExp(`^${CUSTOM_FAILURE_NAME}`) }).click();
     await expect(page.getByText('All chunks failed')).toBeVisible();
     await expect(page.locator('text=Generating')).toHaveCount(0);
-
-    await expect
-      .poll(async () =>
-        page.evaluate((customFailureId) => {
-          const saved = JSON.parse(localStorage.getItem('coursemapper-project') || '{}');
-          return {
-            lessonPlans: saved.deliverables?.lessonPlans?.status,
-            customFailure: saved.deliverables?.[customFailureId]?.status,
-          };
-        }, CUSTOM_FAILURE_ID),
-      )
-      .toEqual({ lessonPlans: 'done', customFailure: 'error' });
   });
 });

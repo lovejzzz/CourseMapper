@@ -31,6 +31,8 @@ function openAiRespondStream(text) {
   ].join('\n');
 }
 
+const landingSetupButton = (page) => page.getByTestId('landing-setup-button');
+
 function courseMapFixture() {
   return {
     courseName: 'Auto Review Regression Course',
@@ -181,7 +183,7 @@ test.describe('Agent auto-review', () => {
     await page.goto('/');
     await expect(page.getByText('Connected').first()).toBeVisible({ timeout: 10000 });
     await page.locator('textarea').fill('Build a 2-week course for the auto-review regression test.');
-    await page.getByRole('button', { name: 'Continue' }).click();
+    await landingSetupButton(page).click();
 
     await expect(page.getByRole('heading', { name: 'Choose materials' })).toBeVisible({ timeout: 10000 });
     await page.getByRole('button', { name: /Lesson Plans/ }).click();

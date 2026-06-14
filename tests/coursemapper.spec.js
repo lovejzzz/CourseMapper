@@ -14,6 +14,8 @@ function isAppFlowRequest(url) {
   return /\/src\/AppFlow\.jsx(?:$|\?)/.test(url) || /\/assets\/AppFlow-[^/]+\.js$/.test(url);
 }
 
+const landingSetupButton = (page) => page.getByTestId('landing-setup-button');
+
 // ─────────────────────────────────────────────────────────────────────────────
 // 1. LANDING PAGE
 // ─────────────────────────────────────────────────────────────────────────────
@@ -87,7 +89,7 @@ test.describe('Landing Page', () => {
   });
 
   test('Continue button is disabled without API key', async ({ page }) => {
-    const continueBtn = page.locator('button:has-text("Continue")');
+    const continueBtn = landingSetupButton(page);
     await expect(continueBtn).toBeVisible();
     await expect(continueBtn).toBeDisabled();
   });
@@ -100,23 +102,22 @@ test.describe('Landing Page', () => {
     await page.reload();
     await expect(page.locator('h1')).toBeVisible({ timeout: 10000 });
     // Even with API key, empty prompt should keep button disabled
-    await expect(page.locator('button:has-text("Continue")')).toBeDisabled();
+    await expect(landingSetupButton(page)).toBeDisabled();
   });
 
   test('footer links are present and correct', async ({ page }) => {
-    await expect(page.locator('a[href="#/changelog"]')).toBeVisible();
+    await expect(page.getByRole('link', { name: /^v\d+\.\d+\.\d+$/ })).toBeVisible();
     await expect(page.locator('a[href="#/privacy"]')).toBeVisible();
     await expect(page.locator('a[href="#/terms"]')).toBeVisible();
-    await expect(page.locator('a[href="#/contact"]')).toHaveText('Tian Xing');
-    await expect(page.getByText('Built by')).toBeVisible();
+    await expect(page.locator('a[href="#/contact"]')).toHaveText('Contact');
   });
 
   test('contact route shows Tian Xing email', async ({ page }) => {
-    await page.getByRole('link', { name: 'Tian Xing' }).click();
+    await page.getByRole('link', { name: 'Contact' }).click();
 
     await expect(page.locator('h1:has-text("Contact")')).toBeVisible();
-    await expect(page.getByText('xingpicuture@gmail.com')).toBeVisible();
-    await expect(page.locator('a[href="mailto:xingpicuture@gmail.com"]')).toBeVisible();
+    await expect(page.getByText('xingpicture@gmail.com')).toBeVisible();
+    await expect(page.locator('a[href="mailto:xingpicture@gmail.com"]')).toBeVisible();
   });
 
   test('dark mode toggle exists and works', async ({ page }) => {
@@ -517,7 +518,7 @@ test.describe('Lazy Shell', () => {
     expect(appFlowRequests.length, 'AppFlow should not be requested on initial landing load').toBe(0);
 
     await page.getByTestId('course-example-chip').first().click();
-    await page.locator('button:has-text("Continue")').click();
+    await landingSetupButton(page).click();
     await expect(page.getByRole('heading', { name: 'Choose materials' })).toBeVisible({ timeout: 10000 });
     expect(appFlowRequests.length, 'AppFlow should be requested after leaving landing').toBeGreaterThan(0);
   });
@@ -560,7 +561,7 @@ test.describe('Configure Generation', () => {
     await page.goto('/');
     await expect(page.locator('text=Connected').first()).toBeVisible({ timeout: 10000 });
     await page.locator('textarea').fill('Build an 8-lesson Spanish for Healthcare Professionals course.');
-    await page.getByRole('button', { name: 'Continue' }).click();
+    await landingSetupButton(page).click();
 
     await expect(page.getByRole('heading', { name: 'Choose materials' })).toBeVisible({ timeout: 10000 });
     await expect(page.getByTestId('feature-select-sticky-action')).toBeVisible();
@@ -610,7 +611,7 @@ test.describe('Configure Generation', () => {
     await page.goto('/');
     await expect(page.locator('text=Connected').first()).toBeVisible({ timeout: 10000 });
     await page.locator('textarea').fill('Build a 12-lesson course with a student FAQ.');
-    await page.getByRole('button', { name: 'Continue' }).click();
+    await landingSetupButton(page).click();
 
     await expect(page.getByRole('heading', { name: 'Choose materials' })).toBeVisible({ timeout: 10000 });
     await page.getByRole('button', { name: /Course FAQ/ }).click();
@@ -679,7 +680,7 @@ test.describe('Configure Generation', () => {
     await page.goto('/');
     await expect(page.locator('text=Connected').first()).toBeVisible({ timeout: 10000 });
     await page.locator('textarea').fill('Build a 12-lesson course with slide decks.');
-    await page.getByRole('button', { name: 'Continue' }).click();
+    await landingSetupButton(page).click();
 
     await expect(page.getByRole('heading', { name: 'Choose materials' })).toBeVisible({ timeout: 10000 });
     await page.getByRole('button', { name: /Slide Decks/ }).click();
@@ -728,7 +729,7 @@ test.describe('Configure Generation', () => {
 
     await page.goto('/');
     await page.locator('textarea').fill('Build a 12-lesson course with reusable institution policies.');
-    await page.getByRole('button', { name: 'Continue' }).click();
+    await landingSetupButton(page).click();
 
     await expect(page.getByRole('heading', { name: 'Choose materials' })).toBeVisible({ timeout: 10000 });
     await page.getByRole('button', { name: /Course FAQ/ }).click();
@@ -779,7 +780,7 @@ test.describe('Hash Routing', () => {
   test('#/contact renders the contact page', async ({ page }) => {
     await page.goto('/#/contact');
     await expect(page.locator('h1:has-text("Contact")')).toBeVisible({ timeout: 10000 });
-    await expect(page.getByText('xingpicuture@gmail.com')).toBeVisible();
+    await expect(page.getByText('xingpicture@gmail.com')).toBeVisible();
   });
 
   test('#/faq redirects to #/', async ({ page }) => {
@@ -796,9 +797,7 @@ test.describe('Hash Routing', () => {
   test('footer link navigates to changelog', async ({ page }) => {
     await loadApp(page);
     await page.locator('a[href="#/changelog"]').first().click();
-    await expect(page.locator('text=AI Teaching Agent').or(page.locator('text=0.5')).first()).toBeVisible({
-      timeout: 5000,
-    });
+    await expect(page.locator('h1:has-text("Changelog")')).toBeVisible({ timeout: 5000 });
   });
 });
 
@@ -1307,6 +1306,7 @@ test.describe('Static Pages', () => {
     await page.goto('/#/changelog');
     await page.waitForTimeout(1000);
     const body = await page.locator('body').textContent();
+    expect(body).toContain('0.15.3');
     expect(body).toContain('0.5');
     expect(body.length).toBeGreaterThan(200);
   });

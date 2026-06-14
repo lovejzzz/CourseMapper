@@ -170,6 +170,7 @@ describe('F1/F2 — source wiring (the header has ONE verb; the paths exist)', (
   it('Landing carries the quick-start affordance, gated on prompt + stored API key', () => {
     const landing = read('src/screens/Landing.jsx');
     expect(landing).toContain('Generate with defaults');
+    expect(landing).toContain('data-testid="landing-setup-button"');
     expect(landing).toContain('data-testid="landing-quick-start"');
     expect(landing).toContain(
       'const canQuickStart = Boolean(onQuickStart) && promptText.trim().length > 0 && Boolean(apiKey?.trim());',

@@ -189,8 +189,8 @@ export default function PrivacyPolicy() {
           <Section title="Contact">
             <p>
               Course Mapper is built by Tian Xing. For privacy questions or concerns, contact{' '}
-              <a href="mailto:xingpicuture@gmail.com" className="text-indigo-500 hover:text-indigo-700 underline">
-                xingpicuture@gmail.com
+              <a href="mailto:xingpicture@gmail.com" className="text-indigo-500 hover:text-indigo-700 underline">
+                xingpicture@gmail.com
               </a>
               .
             </p>

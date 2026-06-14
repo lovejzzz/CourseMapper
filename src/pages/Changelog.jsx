@@ -2059,56 +2059,66 @@ export default function Changelog() {
 
         {/* Releases */}
         <div className="space-y-20">
-          {releases.map((release) => (
-            <article key={release.version} className="relative">
-              {/* Version header */}
-              <div className="flex items-baseline gap-4 mb-8">
-                <span className="text-2xl font-bold text-slate-900 tracking-tight">v{release.version}</span>
-                <span className="text-sm text-slate-600 font-medium">{release.date}</span>
-              </div>
+          {releases.map((release) => {
+            const sections = Array.isArray(release.sections) ? release.sections : [];
 
-              {/* Highlights */}
-              {release.highlights && (
-                <div className="mb-10 p-5 rounded-lg bg-gradient-to-r from-indigo-50/80 to-violet-50/60 dark:from-indigo-500/10 dark:to-violet-500/10 border border-indigo-100/60">
-                  <p className="text-xs font-semibold text-indigo-600 mb-3">Highlights</p>
-                  <ul className="space-y-2">
-                    {release.highlights.map((h, i) => (
-                      <li key={i} className="flex items-start gap-2.5 text-sm text-slate-700 leading-relaxed">
-                        <span className="mt-1 w-1.5 h-1.5 rounded-full bg-indigo-400 flex-shrink-0" />
-                        {h}
-                      </li>
-                    ))}
-                  </ul>
+            return (
+              <article key={release.version} className="relative">
+                {/* Version header */}
+                <div className="flex items-baseline gap-4 mb-8">
+                  <span className="text-2xl font-bold text-slate-900 tracking-tight">v{release.version}</span>
+                  <span className="text-sm text-slate-600 font-medium">{release.date}</span>
                 </div>
-              )}
 
-              {/* Sections */}
-              <div className="space-y-8">
-                {release.sections.map((section) => {
-                  const colors = colorMap[section.color] || colorMap.slate;
-                  return (
-                    <div key={section.label}>
-                      <div className="flex items-center gap-2 mb-4">
-                        <span className={`text-base ${colors.icon}`}>{section.icon}</span>
-                        <h3 className="text-sm font-semibold text-slate-800">{section.label}</h3>
-                        <span className={`ml-1 text-[10px] font-bold px-2 py-0.5 rounded-full border ${colors.badge}`}>
-                          {section.items.length}
-                        </span>
-                      </div>
-                      <ul className="space-y-2.5 pl-1">
-                        {section.items.map((item, i) => (
-                          <li key={i} className="flex items-start gap-3 text-sm text-slate-700 leading-relaxed">
-                            <span className={`mt-[7px] w-1.5 h-1.5 rounded-full ${colors.dot} flex-shrink-0`} />
-                            {item}
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
-                  );
-                })}
-              </div>
-            </article>
-          ))}
+                {/* Highlights */}
+                {release.highlights && (
+                  <div className="mb-10 p-5 rounded-lg bg-gradient-to-r from-indigo-50/80 to-violet-50/60 dark:from-indigo-500/10 dark:to-violet-500/10 border border-indigo-100/60">
+                    <p className="text-xs font-semibold text-indigo-600 mb-3">Highlights</p>
+                    <ul className="space-y-2">
+                      {release.highlights.map((h, i) => (
+                        <li key={i} className="flex items-start gap-2.5 text-sm text-slate-700 leading-relaxed">
+                          <span className="mt-1 w-1.5 h-1.5 rounded-full bg-indigo-400 flex-shrink-0" />
+                          {h}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+
+                {/* Sections */}
+                {sections.length > 0 && (
+                  <div className="space-y-8">
+                    {sections.map((section) => {
+                      const colors = colorMap[section.color] || colorMap.slate;
+                      const items = Array.isArray(section.items) ? section.items : [];
+
+                      return (
+                        <div key={section.label}>
+                          <div className="flex items-center gap-2 mb-4">
+                            <span className={`text-base ${colors.icon}`}>{section.icon}</span>
+                            <h3 className="text-sm font-semibold text-slate-800">{section.label}</h3>
+                            <span
+                              className={`ml-1 text-[10px] font-bold px-2 py-0.5 rounded-full border ${colors.badge}`}
+                            >
+                              {items.length}
+                            </span>
+                          </div>
+                          <ul className="space-y-2.5 pl-1">
+                            {items.map((item, i) => (
+                              <li key={i} className="flex items-start gap-3 text-sm text-slate-700 leading-relaxed">
+                                <span className={`mt-[7px] w-1.5 h-1.5 rounded-full ${colors.dot} flex-shrink-0`} />
+                                {item}
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+              </article>
+            );
+          })}
         </div>
       </main>
 

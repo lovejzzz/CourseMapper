@@ -4,8 +4,8 @@ import { expect, test } from '@playwright/test';
  * v0.8.6 — package trust strip.
  *
  * Restores a generated workspace with a mix of compiled, custom, stale, and
- * failed deliverables, then verifies the workspace header surfaces honest
- * provenance chips without opening receipts.
+ * failed deliverables, then verifies the workspace header surfaces only the
+ * attention chips that still belong in the crown.
  */
 async function restoreMixedTrustWorkspace(page) {
   await page.goto('/');
@@ -82,15 +82,15 @@ async function restoreMixedTrustWorkspace(page) {
 }
 
 test.describe('Package trust strip', () => {
-  test('shows compiled, custom, stale, and failed chips for a restored mixed package', async ({ page }) => {
+  test('shows stale and failed attention chips for a restored mixed package', async ({ page }) => {
     await restoreMixedTrustWorkspace(page);
 
     const strip = page.getByTestId('package-trust-strip');
     await expect(strip).toBeVisible({ timeout: 10000 });
-    await expect(page.getByTestId('trust-chip-compiled')).toHaveText('2 compiled');
-    await expect(page.getByTestId('trust-chip-custom')).toHaveText('1 custom');
     await expect(page.getByTestId('trust-chip-stale')).toHaveText('1 stale');
     await expect(page.getByTestId('trust-chip-failed')).toHaveText('1 failed');
+    await expect(strip).not.toContainText('compiled');
+    await expect(strip).not.toContainText('custom');
   });
 
   test('shows no trust strip on a fresh landing page', async ({ page }) => {

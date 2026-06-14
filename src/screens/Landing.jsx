@@ -735,6 +735,7 @@ export default function Landing({
               </div>
 
               <button
+                data-testid="landing-setup-button"
                 onClick={onGenerate}
                 disabled={!canGenerate || isGenerating}
                 className={`tactile btn-glow mt-5 w-full rounded-lg px-8 py-4 text-sm font-semibold tracking-wide transition-all duration-300 ${

@@ -447,6 +447,14 @@ async function switchWorkspaceTab(page, label) {
   await expect(page.getByTestId('export-side-panel')).toContainText(`${label} only`);
 }
 
+async function uncheckAllExportLessons(page) {
+  const editButton = page.getByTestId('lesson-scope-edit');
+  if (await editButton.isVisible().catch(() => false)) {
+    await editButton.click();
+  }
+  await page.getByRole('button', { name: 'Uncheck all' }).click();
+}
+
 test.describe('Export smoke', () => {
   test('downloads representative generated workspace formats and reports cloud auth errors', async ({
     page,
@@ -1740,7 +1748,7 @@ test.describe('Export smoke', () => {
     });
 
     await page.getByTestId('export-scope-all').click();
-    await page.getByRole('button', { name: 'Uncheck all' }).click();
+    await uncheckAllExportLessons(page);
     await page.getByRole('button', { name: 'Lesson 1: Export Reliability' }).click();
     await expect(page.getByText('1 of 2 lessons selected')).toBeVisible();
     await expect(page.getByTestId('readiness-status')).toContainText('Ready');
@@ -1766,7 +1774,7 @@ test.describe('Export smoke', () => {
 
     await page.getByTestId('export-scope-all').click();
     await expect(page.getByTestId('readiness-status')).toContainText('Ready');
-    await page.getByRole('button', { name: 'Uncheck all' }).click();
+    await uncheckAllExportLessons(page);
     await expect(page.getByText('0 of 2 lessons selected')).toBeVisible();
     await expect(page.getByTestId('readiness-status')).toContainText('Finish package');
     await expect(page.getByTestId('readiness-panel')).toContainText('Select at least one lesson before exporting.');
@@ -1777,7 +1785,7 @@ test.describe('Export smoke', () => {
     await restoreExportWorkspace(page);
 
     await page.getByTestId('export-scope-all').click();
-    await page.getByRole('button', { name: 'Uncheck all' }).click();
+    await uncheckAllExportLessons(page);
     await expect(page.getByTestId('readiness-panel')).toContainText('Select at least one lesson before exporting.');
 
     await page.getByTestId('export-scope-current').click();

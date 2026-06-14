@@ -47,6 +47,8 @@ function courseMapFixture() {
   };
 }
 
+const landingSetupButton = (page) => page.getByTestId('landing-setup-button');
+
 function lessonPlansFixture() {
   return {
     lessonPlans: courseMapFixture().lessons.map((lesson) => ({
@@ -127,7 +129,7 @@ test.describe('Landing to Agent continuity', () => {
     });
     await expect(page.getByText('starter-notebook-outline.txt')).toBeVisible({ timeout: 10000 });
 
-    await page.getByRole('button', { name: 'Continue' }).click();
+    await landingSetupButton(page).click();
     await expect(page.getByRole('heading', { name: 'Choose materials' })).toBeVisible({ timeout: 10000 });
     await page.getByRole('button', { name: /Lesson Plans/ }).click();
     await page.getByTestId('feature-select-continue').click();

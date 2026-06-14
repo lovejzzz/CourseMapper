@@ -19,6 +19,6 @@ test.describe('Provider picker', () => {
     await page
       .getByLabel('Describe your course')
       .fill('Design an 8 lesson graduate course on trauma-informed social work practice.');
-    await expect(page.getByRole('button', { name: 'Continue' })).toBeDisabled();
+    await expect(page.getByTestId('landing-setup-button')).toBeDisabled();
   });
 });
