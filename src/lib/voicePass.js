@@ -25,9 +25,9 @@
  *     and says so. The judge confirms improvement; it never discovers
  *     failure again.
  *
- * Standing laws unchanged: DEFAULT OFF (flip gated on live proof rounds,
- * bar met twice on different days); fallback never block; pure module with
- * the model call injected; D4 disclosure for manifest/digest.
+ * Current law: default on after v0.15.1 proof rounds, with explicit 'off' as
+ * the compatibility fallback; fallback never blocks; pure module with the
+ * model call injected; D4 disclosure for manifest/digest.
  */
 import { computeTexture } from './quality/textureMetric';
 

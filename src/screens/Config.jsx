@@ -12,6 +12,7 @@ import { useUI } from '../contexts/UIContext';
 import { useCourse } from '../contexts/CourseContext';
 import { useAIConfig } from '../contexts/AIConfigContext';
 import { fetchOpenAIImageModels, OPENAI_IMAGE_MODEL_FALLBACKS, OPENAI_SLIDE_IMAGE_MODEL } from '../lib/imageSearch';
+import { APP_VERSION } from '../lib/appVersion';
 import {
   applyModelAwareDeliverableDefaults,
   createModelAwareConfigPlan,
@@ -2155,7 +2156,7 @@ export default function Config({
         <footer className="py-4 text-center">
           <div className="flex items-center justify-center gap-3 text-xs text-slate-300/70">
             <a href="#/changelog" className="font-medium hover:text-indigo-500 transition-colors duration-200">
-              v0.15.4
+              v{APP_VERSION}
             </a>
             <span>·</span>
             <a href="#/privacy" className="hover:text-indigo-500 transition-colors duration-200">

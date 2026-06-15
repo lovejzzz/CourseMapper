@@ -1508,7 +1508,7 @@ describe('courseBlueprintCompiler', () => {
       // v0.8.61 language finalizer shortens repeated artifact titles to
       // week-anchored references after their first mentions.
       readinessCue: expect.stringMatching(/Question-quality memo|Week 1 memo/),
-      feedbackUse: expect.stringContaining('course artifact'),
+      feedbackUse: expect.stringContaining('source-based artifact'),
       publishGate: 'instructor-spot-check-before-publish',
       workload: expect.stringContaining('hours including class time'),
     });
@@ -3276,7 +3276,7 @@ describe('courseBlueprintCompiler', () => {
       formativeEvidence: expect.stringContaining('annotated Policy memo checkpoint 1 line'),
       feedbackMethod: expect.stringContaining('criterion-level feedback'),
       studentRevisionAction: expect.stringContaining('evidence-backed Policy Topic 1 reasoning'),
-      nextUse: expect.stringContaining('next course artifact'),
+      nextUse: expect.stringContaining('next source-based artifact'),
       closureCheck: expect.stringContaining('what feedback changed'),
     });
     expect(blueprint.lessons[0].learningTransferPlan).toMatchObject({
@@ -3381,11 +3381,15 @@ describe('courseBlueprintCompiler', () => {
         fallbackUsed: false,
       }),
     });
-    expect(blueprint.lessons[0].studentArtifact).toMatch(/^Design note: create/i);
+    expect(blueprint.lessons[0].studentArtifact).toMatch(
+      /Discharge Instruction Prototype (design draft|prototype brief|synthesis artifact|implementation note)/i,
+    );
     expect(blueprint.assessments[0]).toMatchObject({
       bloomsLevel: 'Create',
       source: 'sparse-fallback',
-      artifact: expect.stringMatching(/^Design note: create/i),
+      artifact: expect.stringMatching(
+        /Discharge Instruction Prototype (design draft|prototype brief|synthesis artifact|implementation note)/i,
+      ),
     });
   });
 
@@ -5605,7 +5609,9 @@ describe('courseBlueprintCompiler', () => {
       matchedVerb: 'evaluate',
       fallbackUsed: false,
     });
-    expect(blueprint.lessons[1].studentArtifact).toContain('Case worksheet');
+    expect(blueprint.lessons[1].studentArtifact).toMatch(
+      /Policy Topic 2 (decision memo|criteria check|judgment worksheet|case response)/i,
+    );
     expect(blueprint.lessons[1].confidence.fields.assessment).toMatchObject({
       source: 'sparse-fallback',
       confidence: 'needs-review',
@@ -5639,7 +5645,7 @@ describe('courseBlueprintCompiler', () => {
         assessmentSource: 'sparse-fallback',
       },
     });
-    expect(blueprint.lessons[1].compilerDecision.reviewFocus[0]).toMatch(/Case worksheet|Lesson 2/i);
+    expect(blueprint.lessons[1].compilerDecision.reviewFocus[0]).toMatch(/Policy Topic 2|Lesson 2/i);
     expect(blueprint.compilerDecisionMatrix).toMatchObject({
       status: 'review-required',
       reviewRequiredCount: 1,
@@ -5671,7 +5677,7 @@ describe('courseBlueprintCompiler', () => {
             'source-inferred-field',
             'synthesized-assessment',
           ]),
-          reviewerAction: expect.stringMatching(/Case worksheet|Lesson 2/i),
+          reviewerAction: expect.stringMatching(/Policy Topic 2|Lesson 2/i),
         }),
       ],
     });
@@ -5684,7 +5690,7 @@ describe('courseBlueprintCompiler', () => {
       publishGate: 'local-review-required-before-publish',
       reviewRequired: true,
     });
-    expect(compiled.slideDecks.decks[1].slideDeckSequenceGuide.localReviewAction).toMatch(/Case worksheet|Lesson 2/i);
+    expect(compiled.slideDecks.decks[1].slideDeckSequenceGuide.localReviewAction).toMatch(/Policy Topic 2|Lesson 2/i);
     expect(compiled.quizBank.quizzes[1].quizBlueprint).toMatchObject({
       source: 'source-grounded-quiz-plan',
       lessonBloom: 'Evaluate',
@@ -5693,9 +5699,9 @@ describe('courseBlueprintCompiler', () => {
     // frames span Understand/Apply/Create), not the planned five-level claim.
     expect(new Set(compiled.quizBank.quizzes[1].bloomsCoverage).size).toBeGreaterThanOrEqual(3);
     expect(compiled.quizBank.quizzes[1].questions.every((question) => question.quizPlan?.bloomSource)).toBe(true);
-    expect(compiled.assignments.assignments[1].title).toContain('Case worksheet');
+    expect(compiled.assignments.assignments[1].title).toContain(blueprint.lessons[1].studentArtifact);
     expect(compiled.assignments.assignments[1].sourceGrounding.reviewActionability.reviewerAction).toMatch(
-      /Case worksheet|Lesson 2/i,
+      /Policy Topic 2|Lesson 2/i,
     );
   });
 

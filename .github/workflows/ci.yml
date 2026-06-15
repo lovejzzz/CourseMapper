@@ -35,6 +35,9 @@ jobs:
       - name: Lint
         run: npm run lint
 
+      - name: Release history audit
+        run: npm run audit:release-history
+
       - name: Unit and closed-loop tests
         run: npm test
 

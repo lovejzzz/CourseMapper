@@ -1507,9 +1507,9 @@ async function runLiveRounds(options) {
       log(`stranger slot: appended "${stranger.title}" (${stranger.id}) — generic probes, never gates`);
     }
   }
-  // V0.14.5 WS-B3: --authoring prose|native|both. 'both' runs every course
-  // twice (course--prose / course--native run dirs); default 'prose' keeps
-  // today's behavior and naming exactly.
+  // V0.15.1 post-flip: omitted --authoring keeps the plain current-default app
+  // path and run-dir naming. Explicit 'both' runs every course twice
+  // (course--prose / course--native run dirs).
   const authoring = parseAuthoringFlag(options.authoring);
   // V0.14.5 WS-E (E1): --provider openai|anthropic|google. Non-openai runs
   // suffix the course run dirs (cs-python--anthropic) so provider rounds

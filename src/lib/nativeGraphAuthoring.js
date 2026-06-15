@@ -46,7 +46,8 @@ import { NATIVE_PASS_B_AUTHORING_ADDITION } from './prompts';
 
 // ── B3: the authoring-mode flag ─────────────────────────────────────────────
 // localStorage/dev setting, same channel discipline as enrichmentPreference:
-// read where generation starts, no UI. 'prose' (default) | 'native'.
+// read where generation starts, no UI. 'native' is the default; 'prose' is
+// the explicit compatibility fallback.
 export const AUTHORING_MODE_STORAGE_KEY = 'coursemapper-authoring-mode';
 
 export function readAuthoringMode() {

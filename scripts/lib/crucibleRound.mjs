@@ -961,7 +961,7 @@ export function renderVoiceAbSection(pairs = []) {
   return lines.join('\n');
 }
 
-/** --authoring prose|native|both (default 'prose'); anything else throws. */
+/** --authoring prose|native|both. Omitted means the plain current-default app path. */
 export function parseAuthoringFlag(raw) {
   if (raw === undefined || raw === null || raw === true || raw === '') return 'prose';
   const value = String(raw).toLowerCase();
@@ -970,9 +970,10 @@ export function parseAuthoringFlag(raw) {
 }
 
 /**
- * Expand the course list for an authoring round. Default prose rounds keep
- * today's run-dir naming EXACTLY (course.id, no suffix) so stored history and
- * baselines stay comparable; 'native' and 'both' suffix the run dirs
+ * Expand the course list for an authoring round. Plain rounds keep today's
+ * run-dir naming EXACTLY (course.id, no suffix) so stored history and
+ * baselines stay comparable while still seeding no mode and testing current app
+ * defaults. Explicit 'native' and 'both' suffix the run dirs
  * (course--prose / course--native) and carry { baseId, authoring } so every
  * downstream consumer (reports, gates, history columns) treats each run as
  * its own course while pairing can still find the twins.

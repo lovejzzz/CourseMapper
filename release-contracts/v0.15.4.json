@@ -1,0 +1,143 @@
+{
+  "version": "0.15.4",
+  "date": "June 14, 2026",
+  "title": "Truthful Course Packages: the audit catches what teachers see",
+  "status": "verified-current",
+  "proofSummary": {
+    "local": [
+      "npm run lint",
+      "npm run format:check",
+      "npm run test",
+      "npm run build",
+      "npm run bundle:check",
+      "npm run audit:gold",
+      "npm run quality:browser:smoke -- --skip-git-gate"
+    ],
+    "targeted": [
+      "npx vitest run src/lib/__tests__/requiredLabAssets.test.js src/lib/__tests__/deliverableReadiness.test.js tests/v0141-phase3-registry.test.js tests/v0154-linear-algebra-output-quality.test.js tests/v0141-round2-fixes.test.js tests/v0147-texture-metric.test.js",
+      "npx playwright test tests/coursemapper.spec.js -g \"changelog page has version entries\""
+    ],
+    "ciFast": {
+      "status": "success",
+      "commit": "42d3479",
+      "runName": "Fast verification",
+      "url": "https://github.com/lovejzzz/CourseMapper/actions/runs/27489961631"
+    },
+    "deploy": {
+      "status": "success",
+      "commit": "42d3479",
+      "runName": "Deploy to GitHub Pages",
+      "url": "https://github.com/lovejzzz/CourseMapper/actions/runs/27490036943"
+    },
+    "ciDeep": {
+      "status": "not-current",
+      "note": "Deep proof is scheduled/manual/release-branch scoped. The latest scheduled run visible during the June 14 audit was an older failure on 269897a, while local v0.15.4 gold audit passed 40/40."
+    },
+    "liveProvider": {
+      "status": "local-only",
+      "note": "No new live-provider behavior is claimed by this archived contract; the v0.15.4 release relied on local gold/browser proof plus fast CI/deploy."
+    },
+    "manualHuman": {
+      "status": "not-current",
+      "note": "The instructor-review packet exists, but human feedback ingestion was not part of v0.15.4."
+    }
+  },
+  "claims": [
+    {
+      "id": "v0154-required-assets-genre",
+      "status": "verified-current",
+      "changelogHighlightIndex": 0,
+      "summary": "Computational Python labs no longer trigger physical wet-lab Required Assets.",
+      "anchors": [
+        "src/lib/requiredLabAssets.js",
+        "src/lib/__tests__/requiredLabAssets.test.js",
+        "src/lib/quality/deepQualityGrader.js"
+      ],
+      "proofCommands": [
+        "npx vitest run src/lib/__tests__/requiredLabAssets.test.js tests/v0154-linear-algebra-output-quality.test.js",
+        "npm run audit:gold"
+      ],
+      "proofScopes": ["unit", "gold-audit"]
+    },
+    {
+      "id": "v0154-section-topic-repair",
+      "status": "verified-current",
+      "changelogHighlightIndex": 1,
+      "summary": "Sparse secondary course-map rows repair from their own topic before borrowing sibling content.",
+      "anchors": [
+        "src/lib/deliverableReadiness.js",
+        "src/lib/__tests__/deliverableReadiness.test.js",
+        "scripts/__tests__/hybridPipelineAudit.test.js"
+      ],
+      "proofCommands": [
+        "npx vitest run src/lib/__tests__/deliverableReadiness.test.js",
+        "npx vitest run scripts/__tests__/hybridPipelineAudit.test.js --testNamePattern \"covers a messy imported clinical studio map\""
+      ],
+      "proofScopes": ["unit", "stress-fixture"]
+    },
+    {
+      "id": "v0154-assessment-identity",
+      "status": "verified-current",
+      "changelogHighlightIndex": 2,
+      "summary": "Problem sets and computational labs about midterm/final review stay graded artifacts, not exam records.",
+      "anchors": [
+        "src/lib/courseGraph/deriveFromCourseMap.js",
+        "tests/v0141-phase3-registry.test.js",
+        "tests/v0154-linear-algebra-output-quality.test.js"
+      ],
+      "proofCommands": [
+        "npx vitest run tests/v0141-phase3-registry.test.js tests/v0154-linear-algebra-output-quality.test.js"
+      ],
+      "proofScopes": ["unit", "course-graph"]
+    },
+    {
+      "id": "v0154-study-guide-language",
+      "status": "verified-current",
+      "changelogHighlightIndex": 3,
+      "summary": "Study-guide title compression remains topic-specific and does not leak generic lesson placeholders.",
+      "anchors": [
+        "src/lib/courseBlueprintCompiler.js",
+        "src/lib/compiledLanguageFinalizer.js",
+        "tests/v0141-round2-fixes.test.js",
+        "tests/v0154-linear-algebra-output-quality.test.js"
+      ],
+      "proofCommands": [
+        "npx vitest run tests/v0141-round2-fixes.test.js tests/v0154-linear-algebra-output-quality.test.js"
+      ],
+      "proofScopes": ["unit", "compiled-output"]
+    },
+    {
+      "id": "v0154-linear-algebra-worked-examples",
+      "status": "verified-current",
+      "changelogHighlightIndex": 4,
+      "summary": "Linear Algebra decks get deterministic worked examples and chartable numeric steps when enrichment is absent.",
+      "anchors": ["src/lib/courseBlueprintCompiler.js", "tests/v0154-linear-algebra-output-quality.test.js"],
+      "proofCommands": ["npx vitest run tests/v0154-linear-algebra-output-quality.test.js"],
+      "proofScopes": ["unit", "compiled-output"]
+    },
+    {
+      "id": "v0154-grader-honesty",
+      "status": "verified-current",
+      "changelogHighlightIndex": 5,
+      "summary": "The package grader flags wet-lab asset leaks, generic lesson-artifact placeholders, and unevaluated structured-STEM judgments.",
+      "anchors": [
+        "src/lib/quality/deepQualityGrader.js",
+        "tests/v0147-texture-metric.test.js",
+        "tests/v0154-linear-algebra-output-quality.test.js"
+      ],
+      "proofCommands": [
+        "npx vitest run tests/v0147-texture-metric.test.js tests/v0154-linear-algebra-output-quality.test.js",
+        "npm run audit:gold"
+      ],
+      "proofScopes": ["unit", "gold-audit"]
+    }
+  ],
+  "carryForward": [
+    {
+      "id": "moving-the-means",
+      "status": "carry-forward",
+      "source": "docs/V0.15.4_MOVING_THE_MEANS_ROADMAP.md",
+      "next": "docs/V0.15.5_TRUTH_LEDGER_ROADMAP.md"
+    }
+  ]
+}

@@ -4,6 +4,79 @@
 
 CourseMapper is moving toward a "consider it done" course-production agent. The user should describe the course, choose scope/materials, and receive a finished draft package. The agent owns generation, QA, repair, alignment, and export readiness. Human involvement should be final approval only, not QA labor.
 
+## v0.15.8 - Professor Adoption Engine
+
+Goal: turn the v0.15.7 professor-adoption research roadmap into an executable
+quality gate. CourseMapper should benchmark generated packages against 15
+public professor-taught university course cases, score adoption realism, write
+machine-readable findings, and repair the current domain-fit/source-specificity
+gaps without claiming professor approval.
+
+Full plan: `docs/V0.15.8_PROFESSOR_ADOPTION_ENGINE_ROADMAP.md`
+
+1. Add `audit:professor-adoption:smoke`, `audit:professor-adoption`, and
+   `audit:professor-adoption:100` around a new professor-adoption audit CLI.
+2. Commit 15 public-source course manifests with instructor names, artifacts,
+   work products, assessment architecture, operations, blockers, and judge
+   checks.
+3. Score source fidelity, discipline fit, deliverable authenticity, instructor
+   workload, student clarity, course operations, accessibility, and craft.
+4. Write Markdown, JSON, and JSONL reports with autonomous decision fields,
+   ranked repair actions, owner modules, acceptance criteria, and proof
+   commands.
+5. Use the first smoke cases, MIT 18.06 Linear Algebra, Berkeley Data 8, and
+   Yale ENGL 310, to repair generic discipline fit, vague "course evidence"
+   language, and templated phrasing in the compiler.
+6. Keep release claims honest: public-source professor-adoption benchmarked,
+   not professor-approved or externally validated.
+
+## v0.15.6 - The Self-Improving Ruler
+
+Goal: build CourseMapper's own quality-discovery loop for a no-human-reviewer
+world. v0.15.5 made release history honest; v0.15.6 should make the project
+better at finding its own next real defect through adversarial course
+scenarios, synthetic faculty review roles, evidence-backed findings, repair
+candidates, and before/after proof.
+
+Full plan: `docs/V0.15.6_SELF_IMPROVING_RULER_ROADMAP.md`
+
+1. Add a synthetic faculty board with multiple reviewer roles: working
+   instructor, student-in-room, assessment designer, source-fidelity auditor,
+   accessibility reviewer, and skeptical department chair.
+2. Generate adversarial internal course scenarios that probe sparse maps,
+   multi-section contamination, quantitative worked examples, language support,
+   clinical/studio/lab modality, seminars, policy boundaries, and reading-list
+   extremes.
+3. Write self-found findings to a defect ledger with artifact evidence,
+   severity, category, suspected owner module, proposed fix, and required proof
+   commands.
+4. Generate repair candidates that name the likely root cause, files, tests,
+   anti-overfit checks, and before/after proof plan.
+5. Keep proof honest: synthetic review is not human proof, and release
+   contracts must say manual-human evidence is unavailable unless real reviewer
+   evidence exists.
+
+## v0.15.5 - The Truth Ledger
+
+Goal: turn the changelog from hand-written release storytelling into an
+auditable product contract with one current-release source, claim-level proof
+metadata, stale-comment checks, and explicit carry-forward status for superseded
+roadmaps.
+
+Full plan: `docs/V0.15.5_TRUTH_LEDGER_ROADMAP.md`
+
+1. Derive app version, latest release popover, top changelog entry, and footers
+   from one current-release manifest.
+2. Add a release contract ledger for the current shipped release with code
+   anchors and proof commands for each claim.
+3. Add `npm run audit:release-history` so release metadata drift, missing proof
+   metadata, stale default comments, and superseded-roadmap ambiguity fail
+   locally and in targeted tests.
+4. Mark the old "Moving the Means" v0.15.4 roadmap as carry-forward rather than
+   shipped scope.
+5. Keep the bigger next moves explicit: instructor feedback ingestion,
+   CurriculumOS lift-out, provenance inspection, and judge/human mean movement.
+
 ## v0.15.4 - Truthful Linear Algebra Package Quality
 
 Goal: close the live Linear Algebra audit gap where the export looked polished

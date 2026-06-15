@@ -361,9 +361,9 @@ export async function runCourseInBrowser({
   headed = false,
   browser: sharedBrowser,
   overallTimeoutMs = 12 * 60_000,
-  // V0.14.5 WS-B3: 'native' seeds the coursemapper-authoring-mode flag so the
-  // app runs the Pass A/B graph-authoring path; 'prose'/undefined seeds
-  // nothing (absence IS the prose default — readAuthoringMode()).
+  // V0.15.1 post-flip: undefined seeds nothing so the app's current default
+  // path is tested. Explicit 'prose' / 'native' arms still seed their mode for
+  // controlled comparisons.
   authoringMode,
   voiceMode, // v0.14.7 WS-D3: seeds 'coursemapper-voice-pass' when 'on'
   // V0.14.5 WS-E (E1): which provider the app should run against. Seeds

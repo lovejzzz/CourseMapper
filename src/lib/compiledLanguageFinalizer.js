@@ -370,7 +370,7 @@ function buildReferenceTargets(blueprint = {}) {
     // is replaced (keep: 1 used to let the first one through per document).
     push({
       pattern: projectName,
-      replacement: 'the course evidence thread',
+      replacement: 'the lesson evidence thread',
       startsWithArticle: true,
       keep: 0,
     });

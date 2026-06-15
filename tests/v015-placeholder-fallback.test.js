@@ -9,7 +9,7 @@
  * (src/lib/quality/artifactDefectPatterns.js). Any course whose lessons
  * carry no resource-shaped readings hit it on every assignment surface.
  *
- * The fallback family is now "Class notes and assigned materials…" — what a
+ * The fallback family is now "Class notes and assigned source materials…" — what a
  * student actually uses when no reading list ships — and this file pins a
  * full compile of a readings-less course at ZERO flagged occurrences.
  */
@@ -65,7 +65,7 @@ describe('F1 — a readings-less compile carries no flagged placeholder', () => 
 
   it('the honest fallback names class notes instead', () => {
     const everything = JSON.stringify(compiled);
-    expect(everything).toMatch(/Class notes and assigned materials/);
+    expect(everything).toMatch(/Class notes and assigned source materials/);
   });
 
   it('courses WITH readings still cite them (the fallback stays a fallback)', () => {
