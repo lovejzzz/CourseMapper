@@ -4,19 +4,42 @@
 
 CourseMapper is moving toward a "consider it done" course-production agent. The user should describe the course, choose scope/materials, and receive a finished draft package. The agent owns generation, QA, repair, alignment, and export readiness. Human involvement should be final approval only, not QA labor.
 
+## v0.15.9 - 30-Case Professor Adoption Expansion
+
+Goal: make the professor-adoption gate broad enough for release-grade
+university-readiness work without pretending public benchmark evidence is
+professor approval. The v0.15.8 engine started with 15 cases; the next step is
+30 curated professor/course cases that cover the discipline gaps surfaced by
+the research plan.
+
+1. Expand the full professor-adoption run to 30 official public-source cases.
+2. Add coverage for chemistry, economics, psychology, statistics, philosophy,
+   political science, engineering design, law/policy, accounting, studio art,
+   music, education, public health, environmental science, and advanced AI/ML.
+3. Keep the smoke profile stable at three canonical cases, while the full and
+   100-round profiles exercise the broader manifest pack.
+4. Require every added case to include a public source URL, instructor names,
+   visible student work products, assessment architecture, operations/support
+   expectations, required signal groups, and source-specific lesson resources.
+5. Treat any expansion failure as a real compiler or manifest-quality finding:
+   repair, rerun the case, then rerun full and 100-round gates before pushing.
+6. Preserve the claim boundary: CourseMapper is benchmarked against public
+   professor-taught course artifacts, not approved or endorsed by those
+   instructors.
+
 ## v0.15.8 - Professor Adoption Engine
 
 Goal: turn the v0.15.7 professor-adoption research roadmap into an executable
-quality gate. CourseMapper should benchmark generated packages against 15
-public professor-taught university course cases, score adoption realism, write
-machine-readable findings, and repair the current domain-fit/source-specificity
-gaps without claiming professor approval.
+quality gate. CourseMapper should benchmark generated packages against an
+initial 15 public professor-taught university course cases, score adoption
+realism, write machine-readable findings, and repair the current
+domain-fit/source-specificity gaps without claiming professor approval.
 
 Full plan: `docs/V0.15.8_PROFESSOR_ADOPTION_ENGINE_ROADMAP.md`
 
 1. Add `audit:professor-adoption:smoke`, `audit:professor-adoption`, and
    `audit:professor-adoption:100` around a new professor-adoption audit CLI.
-2. Commit 15 public-source course manifests with instructor names, artifacts,
+2. Commit the initial 15 public-source course manifests with instructor names, artifacts,
    work products, assessment architecture, operations, blockers, and judge
    checks.
 3. Score source fidelity, discipline fit, deliverable authenticity, instructor

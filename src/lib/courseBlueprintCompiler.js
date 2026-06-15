@@ -384,6 +384,32 @@ function compactList(values, fallback = 'source evidence', limit = 3) {
   return items.length > 0 ? items.join(', ') : fallback;
 }
 
+function compactSourceCue(value, fallback = 'assigned source materials', maxWords = 6) {
+  const text = stripTerminalPunctuation(cleanText(value, fallback));
+  if (!text) return fallback;
+  const clauses = text
+    .split(/\s*(?:[;|\n,]|\/)\s*/g)
+    .map((part) => stripTerminalPunctuation(cleanText(part)))
+    .filter(Boolean);
+  const boundedClause = clauses.find((part) => {
+    const count = wordCount(part);
+    return count >= 3 && count <= maxWords;
+  });
+  if (boundedClause) return boundedClause;
+  const words = text
+    .replace(/[^\w\s.-]+/g, ' ')
+    .split(/\s+/)
+    .map((word) => word.trim())
+    .filter((word) => word && !/^(?:and|or|the|a|an)$/i.test(word));
+  if (words.length <= maxWords) return words.join(' ') || text;
+  return words.slice(0, maxWords).join(' ');
+}
+
+function compactFallbackEvidencePacket(title, lessonNumber) {
+  const focus = compactSourceCue(stripLessonPrefix(title), `Lesson ${lessonNumber} source`, 4);
+  return `${focus} source packet`;
+}
+
 const DANGLING_TAIL_RE =
   /(?:\s+(?:and|or|but|for|in|of|to|the|a|an|with|into|onto|from|on|at|by|that|which|as|before|after|around|between|against|toward|towards|about|through|will|should|must|can|their|its|this|these|those|when|while|where|whether|because|so|than|then|also|both|each|per|via|plus|aligned|using)|[,:;–—-])+$/i;
 
@@ -3814,7 +3840,10 @@ function buildDifficultyProfile({ originalIndex, bloomsLevel, hasAssessment, con
 function buildEvidencePlan({ title, concepts, resources, activities, artifact }) {
   const concept = concepts[0] || stripLessonPrefix(title) || 'the lesson focus';
   const secondary = concepts[1] || concept;
-  const sourceCue = resources[0] || activities[0] || `${stripLessonPrefix(title)} course materials`;
+  const sourceCue = compactSourceCue(
+    resources[0] || activities[0] || `${stripLessonPrefix(title)} course materials`,
+    `${stripLessonPrefix(title)} materials`,
+  );
   return {
     sourceCue,
     evidenceRequirement: `Use a concrete detail from ${sourceCue} to explain ${concept}.`,
@@ -3826,7 +3855,10 @@ function buildEvidencePlan({ title, concepts, resources, activities, artifact })
 function buildSourceUsePlan({ title, concepts, resources, evidencePlan, artifact }) {
   const concept = concepts[0] || stripLessonPrefix(title) || 'the lesson focus';
   const artifactName = stripTerminalPunctuation(artifact);
-  const sourceCue = evidencePlan?.sourceCue || resources?.[0] || `${stripLessonPrefix(title)} course materials`;
+  const sourceCue = compactSourceCue(
+    evidencePlan?.sourceCue || resources?.[0] || `${stripLessonPrefix(title)} course materials`,
+    `${stripLessonPrefix(title)} materials`,
+  );
   const approvedSources =
     Array.isArray(resources) && resources.length > 0
       ? resources.slice(0, 4)
@@ -4046,10 +4078,10 @@ function buildLessonThroughlineCase(context, lesson) {
               isLessonSpecific(reading),
           )
       : null;
-  const fallbackEvidencePacket = `${lessonTitle} class notes and assigned materials`;
+  const fallbackEvidencePacket = compactFallbackEvidencePacket(lessonTitle, lesson.lessonNumber);
   const evidencePacket =
     context.sourceMode === 'instructor-provided'
-      ? lessonResource || fallbackEvidencePacket
+      ? compactSourceCue(lessonResource || fallbackEvidencePacket, fallbackEvidencePacket)
       : `${context.casePacketName}: Lesson ${lesson.lessonNumber} ${lessonTitle}`;
   const isDataScienceCase = /\b(model|analytics|dataset|notebook|data science|machine learning|triage)\b/i.test(
     [context.projectName, context.clientName, context.datasetName, context.casePacketName, context.setting].join(' '),

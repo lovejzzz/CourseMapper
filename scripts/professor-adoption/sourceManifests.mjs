@@ -1127,6 +1127,1249 @@ export const PROFESSOR_ADOPTION_MANIFESTS = [
       ],
     }),
   }),
+  manifest({
+    id: 'mit-5111sc-chemical-science',
+    courseFamily: 'Chemistry lecture, problem sets, exams, and molecular reasoning',
+    title: 'MIT 5.111SC Principles of Chemical Science',
+    sourceUrl: 'https://ocw.mit.edu/courses/5-111sc-principles-of-chemical-science-fall-2014/',
+    publicInstructorNames: ['Catherine Drennan'],
+    disciplineFamily: 'chemistry-physical-organic-inorganic',
+    modality: 'lecture-problem-set-exam',
+    sourceArtifacts: [
+      'syllabus',
+      'lecture videos',
+      'lecture notes',
+      'problem sets',
+      'problem set solutions',
+      'exams',
+      'exam solutions',
+      'instructor insights',
+    ],
+    primaryStudentWorkProducts: [
+      'problem sets',
+      'molecular explanations',
+      'equilibrium calculations',
+      'exam responses',
+    ],
+    assessmentArchitecture: ['problem sets', 'exams', 'exam solutions'],
+    supportAndOperationsModel: ['self-paced sequence', 'problem set solution review', 'exam preparation'],
+    mustPreserveSignals: [
+      'electronic structure',
+      'thermodynamics',
+      'acid-base',
+      'redox',
+      'kinetics',
+      'catalysis',
+      'problem sets',
+      'exams',
+    ],
+    requiredSignalGroups: [
+      signal(
+        'chemistry-content-signals',
+        'electronic structure, thermodynamics, acid-base, redox, kinetics, or catalysis',
+        [
+          '\\belectronic structure\\b',
+          '\\bthermodynamics\\b',
+          '\\bacid[-\\s]?base\\b',
+          '\\bredox\\b',
+          '\\bkinetics\\b',
+          '\\bcatalysis\\b',
+        ],
+      ),
+      signal('chemistry-work-products', 'problem sets, molecular explanations, calculations, exams, or solutions', [
+        '\\bproblem set\\b',
+        '\\bmolecular\\b',
+        '\\bcalculation\\b',
+        '\\bexam\\b',
+        '\\bsolution\\b',
+      ]),
+    ],
+    courseMap: makeCourseMap({
+      courseName:
+        'MIT 5.111SC Principles of Chemical Science public-source benchmark: electronic structure, thermodynamics, acid-base and redox equilibria, kinetics, catalysis, problem sets, exams, solutions',
+      lessons: [
+        lesson('Week 1: Electronic structure and molecular shape', [
+          section(
+            'Electronic structure, orbitals, bonding, molecular geometry',
+            'Use electronic structure to explain why a molecule has a particular three-dimensional shape.',
+            'Lecture-video analysis, molecular model comparison, and problem set solution critique.',
+            'Problem set explanation with molecular structure evidence',
+            '5.111SC electronic structure lecture notes, molecular geometry video, problem set solution key',
+          ),
+        ]),
+        lesson('Week 2: Thermodynamics and equilibria', [
+          section(
+            'Thermodynamics, acid-base equilibrium, redox equilibrium, chemical systems',
+            'Calculate an equilibrium condition and explain the thermodynamic reason for the direction of change.',
+            'Students solve an acid-base calculation, compare a redox setup, and annotate one solution path.',
+            'Equilibrium calculation and exam-style rationale',
+            'Thermodynamics notes, acid-base problem set, redox exam review problems',
+          ),
+        ]),
+        lesson('Week 3: Kinetics and catalysis', [
+          section(
+            'Chemical kinetics, reaction rates, catalysis, biological and environmental applications',
+            'Interpret rate evidence and explain how a catalyst changes a reaction pathway.',
+            'Rate-law worked example followed by catalysis case discussion.',
+            'Kinetics problem set and catalysis short answer',
+            'Kinetics lecture video, catalysis lecture notes, exam solution examples',
+          ),
+        ]),
+      ],
+    }),
+  }),
+  manifest({
+    id: 'mit-1401-microeconomics',
+    courseFamily: 'Economics lecture, problem sets, and exams',
+    title: 'MIT 14.01 Principles of Microeconomics',
+    sourceUrl: 'https://ocw.mit.edu/courses/14-01-principles-of-microeconomics-fall-2023/',
+    publicInstructorNames: ['Jonathan Gruber'],
+    disciplineFamily: 'economics-quantitative-social-science',
+    modality: 'lecture-problem-set-exam',
+    sourceArtifacts: [
+      'syllabus',
+      'lecture notes',
+      'lecture videos',
+      'instructor insights',
+      'problem sets',
+      'problem set solutions',
+      'exams',
+      'exam solutions',
+    ],
+    primaryStudentWorkProducts: ['problem sets', 'graphs', 'economic model explanations', 'exam responses'],
+    assessmentArchitecture: ['problem sets', 'exams', 'exam solutions'],
+    supportAndOperationsModel: ['lecture sequence', 'problem set solution review', 'exam review cadence'],
+    mustPreserveSignals: [
+      'supply and demand',
+      'market equilibrium',
+      'consumer theory',
+      'firms',
+      'monopoly',
+      'externalities',
+      'problem sets',
+    ],
+    requiredSignalGroups: [
+      signal(
+        'microeconomics-content-signals',
+        'supply and demand, equilibrium, consumer theory, firms, monopoly, or externalities',
+        [
+          '\\bsupply and demand\\b',
+          '\\bequilibrium\\b',
+          '\\bconsumer theory\\b',
+          '\\bfirms?\\b',
+          '\\bmonopoly\\b',
+          '\\bexternalit(?:y|ies)\\b',
+        ],
+      ),
+      signal('microeconomics-work-products', 'problem sets, diagrams, graphs, model explanations, or exams', [
+        '\\bproblem set\\b',
+        '\\bdiagram\\b',
+        '\\bgraph\\b',
+        '\\bmodel\\b',
+        '\\bexam\\b',
+      ]),
+    ],
+    courseMap: makeCourseMap({
+      courseName:
+        'MIT 14.01 Principles of Microeconomics public-source benchmark: supply and demand, market equilibrium, consumer theory, firms, monopoly, externalities, problem sets, exams, solutions',
+      lessons: [
+        lesson('Week 1: Supply, demand, and equilibrium', [
+          section(
+            'Supply and demand, market equilibrium, comparative statics, surplus',
+            'Use a graph to predict how a market changes after a demand or supply shock.',
+            'Instructor graph model, peer diagram check, and problem set solution comparison.',
+            'Problem set graph with economic explanation',
+            '14.01 lecture notes on supply and demand, problem set solution, exam graph item',
+          ),
+        ]),
+        lesson('Week 2: Consumer and firm decisions', [
+          section(
+            'Consumer theory, budget constraints, production, costs, firm behavior',
+            'Explain a consumer or firm decision using the relevant microeconomic model.',
+            'Students compare two model assumptions and solve a cost-curve exercise.',
+            'Model explanation and calculation checkpoint',
+            'Consumer theory lecture video, firm behavior notes, problem set cost exercise',
+          ),
+        ]),
+        lesson('Week 3: Market power and policy', [
+          section(
+            'Monopoly, oligopoly, welfare economics, public goods, externalities',
+            'Evaluate a policy intervention by comparing welfare before and after the market failure.',
+            'Policy case discussion with graph annotation and exam-style short answer.',
+            'Externalities exam response with welfare diagram',
+            'Monopoly lecture notes, public goods problem set, exam solution on externalities',
+          ),
+        ]),
+      ],
+    }),
+  }),
+  manifest({
+    id: 'yale-psyc110-intro-psychology',
+    courseFamily: 'Psychology lecture, reading responses, experiments, and exams',
+    title: 'Yale PSYC 110 Introduction to Psychology',
+    sourceUrl: 'https://oyc.yale.edu/introduction-psychology/psyc-110',
+    publicInstructorNames: ['Paul Bloom'],
+    disciplineFamily: 'psychology-cognitive-social-science',
+    modality: 'lecture-reading-response-exam',
+    sourceArtifacts: ['about', 'syllabus', 'sessions', 'texts', 'reading responses', 'book review', 'exams'],
+    primaryStudentWorkProducts: ['reading responses', 'book review', 'experimental participation', 'exam responses'],
+    assessmentArchitecture: ['reading responses', 'book review', 'midterm examination', 'final examination'],
+    supportAndOperationsModel: [
+      'lecture sequence',
+      'sample exams',
+      'course website',
+      'experimental participation routine',
+    ],
+    mustPreserveSignals: [
+      'perception',
+      'learning',
+      'memory',
+      'decision-making',
+      'development',
+      'brain',
+      'reading responses',
+      'book review',
+      'experiments',
+    ],
+    requiredSignalGroups: [
+      signal(
+        'psychology-content-signals',
+        'perception, learning, memory, decision-making, development, or brain evidence',
+        [
+          '\\bperception\\b',
+          '\\blearning\\b',
+          '\\bmemory\\b',
+          '\\bdecision[-\\s]?making\\b',
+          '\\bdevelopment\\b',
+          '\\bbrain\\b',
+        ],
+      ),
+      signal(
+        'psychology-work-products',
+        'reading responses, book review, experimental participation, midterm, or final exam',
+        [
+          '\\breading response\\b',
+          '\\bbook review\\b',
+          '\\bexperiment(?:al)? participation\\b',
+          '\\bmidterm\\b',
+          '\\bfinal exam\\b',
+        ],
+      ),
+    ],
+    courseMap: makeCourseMap({
+      courseName:
+        'Yale PSYC 110 Introduction to Psychology public-source benchmark: perception, learning, memory, decision-making, development, brain, reading responses, book review, experimental participation, midterm, final exam',
+      lessons: [
+        lesson('Week 1: Brain, development, and psychological evidence', [
+          section(
+            'Brain, development, thought, behavior, scientific psychology',
+            'Explain how psychological evidence links a behavior claim to development or brain function.',
+            'Lecture analysis followed by short reading-response planning.',
+            'Reading response with evidence claim',
+            'PSYC 110 lecture sessions on brain and development, Gray psychology reading, reading response instructions',
+          ),
+        ]),
+        lesson('Week 2: Perception, language, and memory', [
+          section(
+            'Perception, language, memory, communication, experimental evidence',
+            'Compare two explanations for a perception or memory finding using experiment evidence.',
+            'Students annotate a sample exam item and connect it to a reading response.',
+            'Midterm-style response and experimental participation reflection',
+            'Perception lecture session, memory lecture session, sample midterm materials',
+          ),
+        ]),
+        lesson('Week 3: Social life, morality, and mental illness', [
+          section(
+            'Decision-making, morality, emotion, mental illness, individual differences',
+            'Use psychological concepts to analyze a book-review claim about behavior.',
+            'Book review workshop with concept-evidence map and final exam planning.',
+            'Book review thesis and final exam outline',
+            'Morality lecture session, mental illness lecture session, book review requirements',
+          ),
+        ]),
+      ],
+    }),
+  }),
+  manifest({
+    id: 'mit-18650-statistics-applications',
+    courseFamily: 'Statistics theory, problem sets, and applications',
+    title: 'MIT 18.650 Statistics for Applications',
+    sourceUrl: 'https://ocw.mit.edu/courses/18-650-statistics-for-applications-fall-2016/',
+    publicInstructorNames: ['Philippe Rigollet'],
+    disciplineFamily: 'statistics-applications',
+    modality: 'lecture-problem-set',
+    sourceArtifacts: ['syllabus', 'lecture slides', 'lecture videos', 'assignments', 'problem sets'],
+    primaryStudentWorkProducts: [
+      'problem sets',
+      'statistical derivations',
+      'data-fitting analyses',
+      'estimation arguments',
+    ],
+    assessmentArchitecture: ['assignments', 'problem sets'],
+    supportAndOperationsModel: ['lecture slide sequence', 'video lectures', 'assignment cadence'],
+    mustPreserveSignals: [
+      'statistical methods',
+      'probability',
+      'estimation',
+      'confidence intervals',
+      'hypothesis testing',
+      'regression',
+      'problem sets',
+    ],
+    requiredSignalGroups: [
+      signal(
+        'statistics-content-signals',
+        'probability, estimation, confidence intervals, hypothesis testing, regression, or statistical methods',
+        [
+          '\\bprobability\\b',
+          '\\bestimation\\b',
+          '\\bconfidence interval\\b',
+          '\\bhypothesis test\\b',
+          '\\bregression\\b',
+          '\\bstatistical method\\b',
+        ],
+      ),
+      signal('statistics-work-products', 'problem sets, derivations, data-fitting analyses, or estimation arguments', [
+        '\\bproblem set\\b',
+        '\\bderivation\\b',
+        '\\bdata[-\\s]?fitting\\b',
+        '\\bestimat(?:e|ion)\\b',
+        '\\bargument\\b',
+      ]),
+    ],
+    courseMap: makeCourseMap({
+      courseName:
+        'MIT 18.650 Statistics for Applications public-source benchmark: probability, estimation, confidence intervals, hypothesis testing, regression, nonparametric data fitting, problem sets',
+      lessons: [
+        lesson('Week 1: Estimation and uncertainty', [
+          section(
+            'Probability models, estimators, bias, variance, confidence intervals',
+            'Construct an estimator and explain its uncertainty with a confidence interval.',
+            'Lecture-slide walkthrough, derivation check, and problem set comparison.',
+            'Problem set derivation with estimation argument',
+            '18.650 lecture slides on estimation, video lecture, assignment problem on confidence intervals',
+          ),
+        ]),
+        lesson('Week 2: Hypothesis testing and decisions', [
+          section(
+            'Hypothesis testing, p-values, error rates, decision rules',
+            'Choose a test and justify what the result can and cannot conclude.',
+            'Students compare two decision rules and audit one statistical claim.',
+            'Hypothesis test problem set response',
+            'Hypothesis testing lecture slides, video lecture, assignment solution outline',
+          ),
+        ]),
+        lesson('Week 3: Regression and applications', [
+          section(
+            'Regression, nonparametric regression, data fitting, model assumptions',
+            'Fit a statistical model and evaluate whether the assumptions support the inference.',
+            'Data-fitting example followed by assumption critique.',
+            'Regression analysis with model limitation note',
+            'Regression lecture slides, nonparametric data fitting example, assignment problem set',
+          ),
+        ]),
+      ],
+    }),
+  }),
+  manifest({
+    id: 'yale-phil176-death',
+    courseFamily: 'Philosophy lecture, discussion sections, and short papers',
+    title: 'Yale PHIL 176 Death',
+    sourceUrl: 'https://oyc.yale.edu/death/phil-176',
+    publicInstructorNames: ['Shelly Kagan'],
+    disciplineFamily: 'philosophy-ethics-writing',
+    modality: 'lecture-discussion-paper',
+    sourceArtifacts: ['about', 'syllabus', 'sessions', 'texts', 'discussion sections', 'short papers'],
+    primaryStudentWorkProducts: ['short papers', 'philosophical arguments', 'discussion participation'],
+    assessmentArchitecture: ['discussion section attendance and participation', 'three short papers'],
+    supportAndOperationsModel: ['lecture sequence', 'discussion sections', 'paper revision opportunities'],
+    mustPreserveSignals: [
+      'personal identity',
+      'immortality',
+      'death',
+      'suicide',
+      'morality',
+      'discussion section',
+      'short papers',
+    ],
+    requiredSignalGroups: [
+      signal(
+        'philosophy-death-content',
+        'personal identity, immortality, death, suicide, morality, or philosophical argument',
+        [
+          '\\bpersonal identity\\b',
+          '\\bimmortality\\b',
+          '\\bdeath\\b',
+          '\\bsuicide\\b',
+          '\\bmoral(?:ity)?\\b',
+          '\\bphilosophical argument\\b',
+        ],
+      ),
+      signal('philosophy-paper-products', 'short papers, arguments, textual evidence, and discussion sections', [
+        '\\bshort paper\\b',
+        '\\bargument\\b',
+        '\\btextual evidence\\b',
+        '\\bdiscussion section\\b',
+      ]),
+    ],
+    courseMap: makeCourseMap({
+      courseName:
+        'Yale PHIL 176 Death public-source benchmark: Shelly Kagan, personal identity, immortality, nature and badness of death, suicide, discussion sections, three short papers',
+      lessons: [
+        lesson('Week 1: Persons, souls, and personal identity', [
+          section(
+            'Dualism, physicalism, personal identity, soul theory, body theory',
+            'Build a philosophical argument about whether personal identity depends on a soul, body, or personality.',
+            'Lecture argument map, text comparison, and discussion-section question drafting.',
+            'Short paper argument outline',
+            'PHIL 176 sessions on persons and personal identity, Plato Phaedo reading, discussion section prompt',
+          ),
+        ]),
+        lesson('Week 2: Death, immortality, and value', [
+          section(
+            'Nature of death, badness of death, immortality, value of life',
+            'Evaluate whether death is bad by comparing deprivation and immortality arguments.',
+            'Argument reconstruction followed by paper revision conference.',
+            'Short paper draft with objection and reply',
+            'Death lecture sessions, Nagel Death reading, Williams Makropulos case reading',
+          ),
+        ]),
+        lesson('Week 3: Suicide and moral judgment', [
+          section(
+            'Rationality of suicide, morality of suicide, uncertainty, course conclusion',
+            'Analyze a suicide argument with attention to rationality, morality, and uncertainty.',
+            'Discussion-section debate and final paper evidence check.',
+            'Final short paper revision memo',
+            'Suicide lecture sessions, Hume On Suicide reading, paper grading criteria',
+          ),
+        ]),
+      ],
+    }),
+  }),
+  manifest({
+    id: 'yale-plsc114-political-philosophy',
+    courseFamily: 'Political philosophy lecture, sections, papers, and final exam',
+    title: 'Yale PLSC 114 Introduction to Political Philosophy',
+    sourceUrl: 'https://oyc.yale.edu/political-science/plsc-114',
+    publicInstructorNames: ['Steven B. Smith'],
+    disciplineFamily: 'political-philosophy-writing',
+    modality: 'lecture-discussion-paper-exam',
+    sourceArtifacts: ['about', 'syllabus', 'sessions', 'texts', 'short papers', 'final exam', 'discussion sections'],
+    primaryStudentWorkProducts: ['short papers', 'discussion participation', 'final exam essays'],
+    assessmentArchitecture: [
+      'three short papers',
+      'final examination',
+      'discussion section attendance and participation',
+    ],
+    supportAndOperationsModel: ['lecture sequence', 'weekly discussion sections', 'paper preparation'],
+    mustPreserveSignals: [
+      'Plato',
+      'Aristotle',
+      'Machiavelli',
+      'Hobbes',
+      'Locke',
+      'Rousseau',
+      'short papers',
+      'final exam',
+    ],
+    requiredSignalGroups: [
+      signal('political-philosophy-content', 'Plato, Aristotle, Machiavelli, Hobbes, Locke, Rousseau, or Tocqueville', [
+        '\\bPlato\\b',
+        '\\bAristotle\\b',
+        '\\bMachiavelli\\b',
+        '\\bHobbes\\b',
+        '\\bLocke\\b',
+        '\\bRousseau\\b',
+        '\\bTocqueville\\b',
+      ]),
+      signal(
+        'political-philosophy-work-products',
+        'short papers, discussion sections, final exam, and textual argument',
+        ['\\bshort paper\\b', '\\bdiscussion section\\b', '\\bfinal exam\\b', '\\bargument\\b'],
+      ),
+    ],
+    courseMap: makeCourseMap({
+      courseName:
+        'Yale PLSC 114 Introduction to Political Philosophy public-source benchmark: Plato, Aristotle, Machiavelli, Hobbes, Locke, Rousseau, Tocqueville, short papers, discussion sections, final exam',
+      lessons: [
+        lesson('Week 1: The polis and Socratic citizenship', [
+          section(
+            'Plato, Socrates, citizenship, polis, political philosophy',
+            'Use a Platonic text to define a political-philosophy problem about citizenship.',
+            'Text discussion, passage annotation, and section-question workshop.',
+            'Short paper passage analysis',
+            'PLSC 114 Plato sessions, Trial and Death of Socrates reading, paper prompt',
+          ),
+        ]),
+        lesson('Week 2: Sovereignty, law, and consent', [
+          section(
+            'Machiavelli, Hobbes, Locke, sovereignty, law, constitutional government',
+            'Compare two theories of political authority using textual evidence.',
+            'Seminar debate with argument map and counterclaim check.',
+            'Short paper comparative argument',
+            'Machiavelli session, Hobbes Leviathan reading, Locke Second Treatise reading',
+          ),
+        ]),
+        lesson('Week 3: Democracy and modern political life', [
+          section(
+            'Rousseau, Tocqueville, democracy, institutions, ways of life',
+            'Explain how a theory of democracy shapes institutions and civic life.',
+            'Discussion-section synthesis and final exam essay planning.',
+            'Final exam essay outline',
+            'Rousseau political writings, Tocqueville Democracy in America reading, final exam review',
+          ),
+        ]),
+      ],
+    }),
+  }),
+  manifest({
+    id: 'mit-2009-product-engineering',
+    courseFamily: 'Engineering design studio and product prototype teams',
+    title: 'MIT 2.009 Product Engineering Process',
+    sourceUrl: 'https://ocw.mit.edu/courses/2-009-product-engineering-process-fall-2021/',
+    publicInstructorNames: ['David Wallace'],
+    disciplineFamily: 'engineering-design-studio',
+    modality: 'large-team-design-prototype',
+    sourceArtifacts: ['lecture notes', 'image gallery', 'projects with examples', 'design process examples'],
+    primaryStudentWorkProducts: ['sketch models', 'spreadsheets', 'geometric models', 'mockups', 'alpha prototypes'],
+    assessmentArchitecture: ['team milestones', 'design reviews', 'prototype demonstrations', 'final presentation'],
+    supportAndOperationsModel: [
+      'large teams',
+      'team roles',
+      'consensus building',
+      'design reviews',
+      'live audience presentation',
+    ],
+    mustPreserveSignals: [
+      'product opportunities',
+      'design alternatives',
+      'sketch models',
+      'mockups',
+      'prototypes',
+      'large teams',
+      'presentation',
+    ],
+    requiredSignalGroups: [
+      signal(
+        'product-engineering-products',
+        'sketch models, mockups, prototypes, design alternatives, or product opportunities',
+        [
+          '\\bsketch model\\b',
+          '\\bmockup\\b',
+          '\\bprototype\\b',
+          '\\bdesign alternative\\b',
+          '\\bproduct opportunit(?:y|ies)\\b',
+        ],
+      ),
+      signal(
+        'product-engineering-operations',
+        'large teams, team roles, consensus, design reviews, or final presentation operations',
+        ['\\blarge team\\b', '\\bteam role\\b', '\\bconsensus\\b', '\\bdesign review\\b', '\\bfinal presentation\\b'],
+        { dimension: 'courseOperations', scoreImpact: 7, severity: 'P1' },
+      ),
+    ],
+    courseMap: makeCourseMap({
+      courseName:
+        'MIT 2.009 Product Engineering Process public-source benchmark: large teams, product opportunities, design alternatives, sketch models, spreadsheets, geometric models, mockups, alpha prototypes, design reviews, final presentation',
+      lessons: [
+        lesson('Week 1: Opportunity framing and team roles', [
+          section(
+            'Product opportunities, user needs, team roles, consensus building',
+            'Frame a product opportunity and assign team roles that support a design process.',
+            'Opportunity scan, role negotiation, and design-review criteria setup.',
+            'Team opportunity brief and role map',
+            '2.009 lecture notes on product opportunities, team-role guidance, project example gallery',
+          ),
+        ]),
+        lesson('Week 2: Models, mockups, and design alternatives', [
+          section(
+            'Sketch models, spreadsheets, geometric models, mockups, design alternatives',
+            'Compare design alternatives using models that make tradeoffs visible.',
+            'Sketch model build, spreadsheet estimate, and peer critique of mockups.',
+            'Design alternative matrix with prototype evidence',
+            '2.009 model examples, mockup image gallery, design review notes',
+          ),
+        ]),
+        lesson('Week 3: Alpha prototype and final presentation', [
+          section(
+            'Alpha prototypes, working product models, presentation media, live audience',
+            'Demonstrate a working alpha prototype and explain the evidence behind design decisions.',
+            'Prototype rehearsal, failure-mode review, and live presentation storyboard.',
+            'Prototype demonstration and final presentation deck',
+            '2.009 project examples, prototype documentation, final presentation expectations',
+          ),
+        ]),
+      ],
+    }),
+  }),
+  manifest({
+    id: 'mit-24235j-philosophy-law',
+    courseFamily: 'Law and political philosophy writing seminar',
+    title: 'MIT 24.235J Philosophy of Law',
+    sourceUrl: 'https://ocw.mit.edu/courses/24-235j-philosophy-of-law-spring-2012/',
+    publicInstructorNames: ['Julia Markovits', 'Jennifer Carr'],
+    disciplineFamily: 'law-policy-philosophy-writing',
+    modality: 'seminar-written-assignments',
+    sourceArtifacts: ['syllabus', 'readings', 'written assignments with examples'],
+    primaryStudentWorkProducts: ['legal-philosophy essays', 'case arguments', 'interpretation analyses'],
+    assessmentArchitecture: ['written assignments', 'essay examples'],
+    supportAndOperationsModel: ['reading sequence', 'argument-focused writing assignments', 'example papers'],
+    mustPreserveSignals: [
+      'law',
+      'morality',
+      'legal interpretation',
+      'obligation',
+      'punishment',
+      'responsibility',
+      'liberty',
+      'legal ethics',
+    ],
+    requiredSignalGroups: [
+      signal(
+        'philosophy-law-content',
+        'law, morality, legal interpretation, obligation, punishment, responsibility, liberty, or legal ethics',
+        [
+          '\\blaw\\b',
+          '\\bmorality\\b',
+          '\\blegal interpretation\\b',
+          '\\bobligation\\b',
+          '\\bpunishment\\b',
+          '\\bresponsibility\\b',
+          '\\bliberty\\b',
+          '\\blegal ethics\\b',
+        ],
+      ),
+      signal(
+        'philosophy-law-work-products',
+        'written assignments, essays, case arguments, and interpretation analyses',
+        ['\\bwritten assignment\\b', '\\bessay\\b', '\\bcase argument\\b', '\\binterpretation\\b'],
+      ),
+    ],
+    courseMap: makeCourseMap({
+      courseName:
+        'MIT 24.235J Philosophy of Law public-source benchmark: nature of law, morality, legal interpretation, obligation, punishment, responsibility, liberty, legal ethics, written assignments with examples',
+      lessons: [
+        lesson('Week 1: Nature of law and morality', [
+          section(
+            'Nature of law, morality, obligation to obey the law',
+            'Use a legal-philosophy argument to explain whether law depends on morality.',
+            'Reading discussion, argument reconstruction, and written-assignment example review.',
+            'Written assignment thesis with objection',
+            'Philosophy of Law syllabus, readings on law and morality, written assignment example',
+          ),
+        ]),
+        lesson('Week 2: Interpretation and legal reasoning', [
+          section(
+            'Legal interpretation, theories of interpretation, case argument',
+            'Analyze a legal interpretation problem and defend the reasoning standard used.',
+            'Case argument workshop with peer critique of interpretive assumptions.',
+            'Interpretation analysis essay paragraph',
+            'Legal interpretation readings, case argument example, assignment criteria',
+          ),
+        ]),
+        lesson('Week 3: Punishment, liberty, and ethics', [
+          section(
+            'Punishment, responsibility, liberty, legal ethics',
+            'Evaluate a punishment or liberty claim using responsibility and ethics concepts.',
+            'Ethics debate, counterargument map, and essay revision conference.',
+            'Legal ethics essay revision memo',
+            'Punishment readings, liberty readings, written assignment with example response',
+          ),
+        ]),
+      ],
+    }),
+  }),
+  manifest({
+    id: 'mit-15501-accounting',
+    courseFamily: 'Business accounting lecture, problem sets, and exams',
+    title: 'MIT 15.501 Introduction to Financial and Managerial Accounting',
+    sourceUrl: 'https://ocw.mit.edu/courses/15-501-introduction-to-financial-and-managerial-accounting-spring-2004/',
+    publicInstructorNames: ['Sugata Roychowdhury'],
+    disciplineFamily: 'business-accounting',
+    modality: 'lecture-problem-set-exam',
+    sourceArtifacts: ['syllabus', 'lecture notes', 'problem sets', 'problem set solutions', 'exams', 'exam solutions'],
+    primaryStudentWorkProducts: [
+      'problem sets',
+      'financial statement analyses',
+      'managerial reports',
+      'exam responses',
+    ],
+    assessmentArchitecture: ['problem sets', 'exams', 'exam solutions'],
+    supportAndOperationsModel: ['lecture sequence', 'problem set solution review', 'exam preparation'],
+    mustPreserveSignals: [
+      'financial accounting',
+      'managerial accounting',
+      'financial statements',
+      'reports',
+      'problem sets',
+      'exams',
+    ],
+    requiredSignalGroups: [
+      signal(
+        'accounting-content-signals',
+        'financial accounting, managerial accounting, financial statements, reports, or accounting readers',
+        [
+          '\\bfinancial accounting\\b',
+          '\\bmanagerial accounting\\b',
+          '\\bfinancial statement\\b',
+          '\\breport\\b',
+          '\\baccounting\\b',
+        ],
+      ),
+      signal('accounting-work-products', 'problem sets, statement analyses, managerial reports, or exam responses', [
+        '\\bproblem set\\b',
+        '\\bstatement analysis\\b',
+        '\\bmanagerial report\\b',
+        '\\bexam\\b',
+      ]),
+    ],
+    courseMap: makeCourseMap({
+      courseName:
+        'MIT 15.501 Introduction to Financial and Managerial Accounting public-source benchmark: financial accounting, managerial accounting, financial statements, managerial reports, lecture notes, problem sets, exams, solutions',
+      lessons: [
+        lesson('Week 1: Financial statements and exchange of resources', [
+          section(
+            'Financial accounting, financial statements, assets, liabilities, equity',
+            'Read a financial statement and explain how accounting supports resource exchange.',
+            'Lecture-note diagram analysis and problem set statement classification.',
+            'Problem set financial statement analysis',
+            '15.501 lecture 1 diagram, financial accounting notes, problem set solution',
+          ),
+        ]),
+        lesson('Week 2: Accruals and performance measurement', [
+          section(
+            'Accrual accounting, revenue, expenses, performance reports',
+            'Use accrual logic to explain why accounting income differs from cash movement.',
+            'Worked accounting entries followed by exam-style correction exercise.',
+            'Accounting entries problem set and exam rationale',
+            'Accrual lecture notes, problem set entries, exam solution key',
+          ),
+        ]),
+        lesson('Week 3: Managerial accounting and control', [
+          section(
+            'Managerial accounting, cost behavior, internal reports, control decisions',
+            'Prepare a managerial report that supports a business control decision.',
+            'Cost report workshop with peer review of decision implications.',
+            'Managerial report and problem set calculation',
+            'Managerial accounting lecture notes, cost problem set, exam review problem',
+          ),
+        ]),
+      ],
+    }),
+  }),
+  manifest({
+    id: 'mit-4301-visual-arts',
+    courseFamily: 'Studio art, critique, and project examples',
+    title: 'MIT 4.301 Introduction to the Visual Arts',
+    sourceUrl: 'https://ocw.mit.edu/courses/4-301-introduction-to-the-visual-arts-spring-2007/',
+    publicInstructorNames: ['Joe Zane'],
+    disciplineFamily: 'studio-art-visual-practice',
+    modality: 'studio-project-critique',
+    sourceArtifacts: ['syllabus', 'lecture videos', 'image gallery', 'projects with examples'],
+    primaryStudentWorkProducts: ['video pieces', 'sculpture work', 'public-space projects', 'artist statements'],
+    assessmentArchitecture: ['studio projects', 'project examples', 'critique participation'],
+    supportAndOperationsModel: [
+      'studio practice',
+      'critique sequence',
+      'image documentation',
+      'public art project presentation',
+    ],
+    mustPreserveSignals: [
+      'visual language',
+      'contemporary art',
+      'video',
+      'sculpture',
+      'public space',
+      'projects',
+      'critique',
+    ],
+    requiredSignalGroups: [
+      signal(
+        'visual-arts-content-signals',
+        'visual language, contemporary art, video, sculpture, public space, or real/unreal practice',
+        [
+          '\\bvisual language\\b',
+          '\\bcontemporary art\\b',
+          '\\bvideo\\b',
+          '\\bsculpture\\b',
+          '\\bpublic space\\b',
+          '\\breal\\/unreal\\b',
+        ],
+      ),
+      signal(
+        'visual-arts-work-products',
+        'studio projects, image documentation, critique, artist statements, or project examples',
+        [
+          '\\bstudio project\\b',
+          '\\bimage documentation\\b',
+          '\\bcritique\\b',
+          '\\bartist statement\\b',
+          '\\bproject example\\b',
+        ],
+      ),
+    ],
+    courseMap: makeCourseMap({
+      courseName:
+        'MIT 4.301 Introduction to the Visual Arts public-source benchmark: visual language, contemporary art practices, video, sculpture, public space, projects with examples, image gallery, critique',
+      lessons: [
+        lesson('Week 1: Visual language and contemporary practice', [
+          section(
+            'Visual language, contemporary art, artistic practice, seeing and meaning',
+            'Use visual-language vocabulary to explain how an artwork makes meaning.',
+            'Image-gallery observation, visual vocabulary discussion, and critique protocol setup.',
+            'Artist statement draft with visual evidence',
+            '4.301 lecture video, image gallery, visual language project example',
+          ),
+        ]),
+        lesson('Week 2: Video, sculpture, and the real/unreal', [
+          section(
+            'Video, sculpture, real/unreal, material choices, installation context',
+            'Develop a project concept that uses medium and context to question the real/unreal boundary.',
+            'Studio experiment with video or sculpture followed by peer critique.',
+            'Studio project proposal and process documentation',
+            '4.301 video project example, sculpture project example, critique notes',
+          ),
+        ]),
+        lesson('Week 3: Public space and final project documentation', [
+          section(
+            'Public space, performance, audience, documentation, critique',
+            'Present a public-space project with documentation that supports the artistic intent.',
+            'Public art rehearsal, image documentation review, and final critique.',
+            'Final project documentation and critique reflection',
+            '4.301 public art image gallery, project example, final critique prompt',
+          ),
+        ]),
+      ],
+    }),
+  }),
+  manifest({
+    id: 'mit-21m011-western-music',
+    courseFamily: 'Music history, listening, written, media, and presentation assignments',
+    title: 'MIT 21M.011 Introduction to Western Music',
+    sourceUrl: 'https://ocw.mit.edu/courses/21m-011-introduction-to-western-music-fall-2024/',
+    publicInstructorNames: ['Teresa M. Neff', 'Michael Goetjen'],
+    disciplineFamily: 'music-history-listening',
+    modality: 'listening-writing-presentation',
+    sourceArtifacts: [
+      'readings',
+      'written assignments',
+      'media assignments',
+      'editable files',
+      'presentation assignments',
+    ],
+    primaryStudentWorkProducts: ['listening analyses', 'written assignments', 'media assignments', 'presentations'],
+    assessmentArchitecture: ['written assignments', 'media assignments', 'presentation assignments'],
+    supportAndOperationsModel: [
+      'listening sequence',
+      'repertoire history',
+      'assignment files',
+      'presentation workflow',
+    ],
+    mustPreserveSignals: [
+      'Western classical music',
+      'plainchant',
+      'concert music',
+      'opera',
+      'composers',
+      'listening',
+      'presentation',
+    ],
+    requiredSignalGroups: [
+      signal(
+        'western-music-content',
+        'Western classical music, plainchant, opera, concert music, composers, or repertoire history',
+        [
+          '\\bWestern classical music\\b',
+          '\\bplainchant\\b',
+          '\\bopera\\b',
+          '\\bconcert music\\b',
+          '\\bcomposer\\b',
+          '\\brepertoire\\b',
+        ],
+      ),
+      signal('music-work-products', 'listening analysis, written assignments, media assignments, or presentations', [
+        '\\blistening analysis\\b',
+        '\\bwritten assignment\\b',
+        '\\bmedia assignment\\b',
+        '\\bpresentation\\b',
+      ]),
+    ],
+    courseMap: makeCourseMap({
+      courseName:
+        'MIT 21M.011 Introduction to Western Music public-source benchmark: Western classical music, plainchant, concert music, opera, composers, listening analysis, written assignments, media assignments, presentation assignments',
+      lessons: [
+        lesson('Week 1: Notation, plainchant, and listening method', [
+          section(
+            'Western classical music, plainchant, notation, listening vocabulary',
+            'Write a listening analysis that connects musical evidence to historical context.',
+            'Guided listening, notation cue identification, and assignment file walkthrough.',
+            'Listening analysis written assignment',
+            '21M.011 readings on early notation, plainchant listening example, written assignment file',
+          ),
+        ]),
+        lesson('Week 2: Form, repertoire, and composers', [
+          section(
+            'Repertoire history, composers, concert music, style, form',
+            'Compare two repertoire examples using form, style, and historical evidence.',
+            'Listening comparison, media annotation, and peer response.',
+            'Media assignment with annotated listening notes',
+            '21M.011 repertoire readings, concert music listening example, media assignment template',
+          ),
+        ]),
+        lesson('Week 3: Opera and contemporary concert music', [
+          section(
+            'Opera, contemporary composers, concert culture, presentation argument',
+            'Build a presentation that explains how a musical work reflects its cultural context.',
+            'Presentation storyboard, listening excerpt selection, and claim-evidence review.',
+            'Presentation assignment with listening excerpts',
+            '21M.011 opera readings, contemporary concert music prompt, presentation assignment file',
+          ),
+        ]),
+      ],
+    }),
+  }),
+  manifest({
+    id: 'mit-11124-intro-education',
+    courseFamily: 'Education theory, media, games, and policy assignments',
+    title: 'MIT 11.124 Introduction to Education: Looking Forward and Looking Back on Education',
+    sourceUrl:
+      'https://ocw.mit.edu/courses/11-124-introduction-to-education-looking-forward-and-looking-back-on-education-fall-2011/',
+    publicInstructorNames: ['Eric Klopfer', 'Wendy Huang', 'Jo-Ann Graziano', 'Jason Haas'],
+    disciplineFamily: 'education-teaching-policy',
+    modality: 'activity-writing-presentation',
+    sourceArtifacts: [
+      'syllabus',
+      'activity assignments',
+      'presentation assignments',
+      'written assignments',
+      'instructor insights',
+    ],
+    primaryStudentWorkProducts: [
+      'activity assignments',
+      'written assignments',
+      'presentation assignments',
+      'education analyses',
+    ],
+    assessmentArchitecture: ['activity assignments', 'written assignments', 'presentation assignments'],
+    supportAndOperationsModel: ['K-12 case settings', 'media and simulation activities', 'education reform discussion'],
+    mustPreserveSignals: [
+      'teaching',
+      'learning',
+      'K-12',
+      'education reform',
+      'simulations',
+      'games',
+      'digital divide',
+      'assignments',
+    ],
+    requiredSignalGroups: [
+      signal(
+        'education-content-signals',
+        'teaching, learning, K-12, education reform, simulations, games, or digital divide',
+        [
+          '\\bteaching\\b',
+          '\\blearning\\b',
+          '\\bK[-\\s]?12\\b',
+          '\\beducation reform\\b',
+          '\\bsimulation\\b',
+          '\\bgame\\b',
+          '\\bdigital divide\\b',
+        ],
+      ),
+      signal(
+        'education-work-products',
+        'activity assignments, written assignments, presentations, or education analyses',
+        [
+          '\\bactivity assignment\\b',
+          '\\bwritten assignment\\b',
+          '\\bpresentation assignment\\b',
+          '\\beducation analysis\\b',
+        ],
+      ),
+    ],
+    courseMap: makeCourseMap({
+      courseName:
+        'MIT 11.124 Introduction to Education public-source benchmark: teaching and learning science and mathematics in K-12 settings, education reform, media, simulations, games, digital divide, activity assignments, written assignments, presentations',
+      lessons: [
+        lesson('Week 1: Looking back at teaching and learning', [
+          section(
+            'Teaching, learning, K-12 settings, history of education, education reform',
+            'Analyze how a historical view of schooling shapes a current reform argument.',
+            'Case discussion, reform timeline, and written-assignment planning.',
+            'Written education analysis',
+            '11.124 instructor insights, history of education reading, written assignment prompt',
+          ),
+        ]),
+        lesson('Week 2: Media, simulations, and games', [
+          section(
+            'Education media, simulations, games, science and mathematics learning',
+            'Evaluate a simulation or game as a learning tool for a K-12 concept.',
+            'Activity assignment with media critique and peer testing protocol.',
+            'Activity assignment and classroom-use reflection',
+            '11.124 simulation activity, games reading, activity assignment instructions',
+          ),
+        ]),
+        lesson('Week 3: Digital divide and future education', [
+          section(
+            'Digital divide, education technology, access, future learning environments',
+            'Design a presentation that addresses access and learning quality in an education technology proposal.',
+            'Presentation rehearsal with access-risk review and learner-impact check.',
+            'Presentation assignment with digital-divide argument',
+            '11.124 digital divide reading, presentation assignment prompt, education reform discussion notes',
+          ),
+        ]),
+      ],
+    }),
+  }),
+  manifest({
+    id: 'mit-20104j-toxicology-public-health',
+    courseFamily: 'Public health toxicology, risk assessment, and case studies',
+    title: 'MIT 20.104J Chemicals in the Environment: Toxicology and Public Health',
+    sourceUrl:
+      'https://ocw.mit.edu/courses/20-104j-chemicals-in-the-environment-toxicology-and-public-health-be-104j-spring-2005/',
+    publicInstructorNames: ['James Sherley', 'Laura Green', 'Steven Tannenbaum'],
+    disciplineFamily: 'public-health-toxicology',
+    modality: 'lecture-problem-set-project-exam',
+    sourceArtifacts: [
+      'syllabus',
+      'lecture notes',
+      'projects with examples',
+      'written assignments with examples',
+      'problem sets',
+      'problem set solutions',
+      'exams',
+      'exam solutions',
+    ],
+    primaryStudentWorkProducts: [
+      'risk assessments',
+      'case studies',
+      'problem sets',
+      'written assignments',
+      'exam responses',
+    ],
+    assessmentArchitecture: ['projects', 'written assignments', 'problem sets', 'exams'],
+    supportAndOperationsModel: ['case-study sequence', 'problem set solution review', 'risk assessment examples'],
+    mustPreserveSignals: [
+      'toxicology',
+      'public health',
+      'epidemiology',
+      'biostatistics',
+      'exposure',
+      'risk assessment',
+      'case studies',
+    ],
+    requiredSignalGroups: [
+      signal(
+        'public-health-toxicology-content',
+        'toxicology, public health, epidemiology, biostatistics, exposure, or risk assessment',
+        [
+          '\\btoxicology\\b',
+          '\\bpublic health\\b',
+          '\\bepidemiology\\b',
+          '\\bbiostatistics\\b',
+          '\\bexposure\\b',
+          '\\brisk assessment\\b',
+        ],
+      ),
+      signal(
+        'public-health-work-products',
+        'risk assessments, case studies, problem sets, written assignments, or exams',
+        [
+          '\\brisk assessment\\b',
+          '\\bcase stud(?:y|ies)\\b',
+          '\\bproblem set\\b',
+          '\\bwritten assignment\\b',
+          '\\bexam\\b',
+        ],
+      ),
+    ],
+    courseMap: makeCourseMap({
+      courseName:
+        'MIT 20.104J Chemicals in the Environment public-source benchmark: toxicology, public health, epidemiology, biostatistics, exposure, metabolism, biological effects, risk assessment, case studies, problem sets, written assignments, exams',
+      lessons: [
+        lesson('Week 1: Exposure, disease, and epidemiology', [
+          section(
+            'Chemical exposure, epidemiology, disease causation, biostatistics',
+            'Explain how exposure evidence and epidemiology support or limit a disease-causation claim.',
+            'Lecture-note case analysis, biostatistics check, and problem set solution review.',
+            'Problem set response with exposure-evidence rationale',
+            '20.104J lecture notes on exposure, epidemiology case study, problem set solution',
+          ),
+        ]),
+        lesson('Week 2: Toxicology and internal dose', [
+          section(
+            'Toxicology, internal distribution, metabolism, cellular reactions, biological effects',
+            'Trace a chemical from exposure through metabolism to a possible biological effect.',
+            'Pathway diagram, case-study discussion, and written-assignment example critique.',
+            'Written toxicology case analysis',
+            'Toxicology lecture notes, written assignment example, case-study project prompt',
+          ),
+        ]),
+        lesson('Week 3: Risk assessment and regulation', [
+          section(
+            'Qualitative risk assessment, quantitative risk assessment, regulatory decision-making',
+            'Build a risk assessment and explain how uncertainty affects a regulatory decision.',
+            'Risk assessment workshop followed by exam-style policy question.',
+            'Risk assessment project and exam response',
+            'Risk assessment notes, project example, exam solution materials',
+          ),
+        ]),
+      ],
+    }),
+  }),
+  manifest({
+    id: 'mit-12103-environmental-policy',
+    courseFamily: 'Environmental science-policy controversy writing and presentations',
+    title: 'MIT 12.103 Strange Bedfellows: Science and Environmental Policy',
+    sourceUrl: 'https://ocw.mit.edu/courses/12-103-strange-bedfellows-science-and-environmental-policy-fall-2005/',
+    publicInstructorNames: ['Stephen M. Meyer', 'Kip Hodges'],
+    disciplineFamily: 'environmental-science-policy',
+    modality: 'case-study-position-statement-presentation',
+    sourceArtifacts: ['syllabus', 'written assignments with examples', 'presentation assignments with examples'],
+    primaryStudentWorkProducts: ['position statements', 'environmental controversy analyses', 'presentations'],
+    assessmentArchitecture: ['written assignments', 'position statements', 'presentation assignments'],
+    supportAndOperationsModel: ['case-study sequence', 'science-policy debate', 'presentation practice'],
+    mustPreserveSignals: [
+      'scientific knowledge',
+      'environmental policymaking',
+      'global warming',
+      'biodiversity loss',
+      'nuclear waste',
+      'position statements',
+    ],
+    requiredSignalGroups: [
+      signal(
+        'environmental-policy-content',
+        'scientific knowledge, environmental policymaking, global warming, biodiversity loss, or nuclear waste',
+        [
+          '\\bscientific knowledge\\b',
+          '\\benvironmental policymaking\\b',
+          '\\bglobal warming\\b',
+          '\\bbiodiversity loss\\b',
+          '\\bnuclear waste\\b',
+        ],
+      ),
+      signal(
+        'environmental-policy-work-products',
+        'position statements, controversy analyses, presentations, or science-policy arguments',
+        [
+          '\\bposition statement\\b',
+          '\\bcontroversy analysis\\b',
+          '\\bpresentation\\b',
+          '\\bscience[-\\s]?policy argument\\b',
+        ],
+      ),
+    ],
+    courseMap: makeCourseMap({
+      courseName:
+        'MIT 12.103 Strange Bedfellows public-source benchmark: scientific knowledge, discovery, environmental policymaking, global warming, biodiversity loss, nuclear waste disposal siting, position statements, presentation assignments',
+      lessons: [
+        lesson('Week 1: Science in environmental policymaking', [
+          section(
+            'Scientific knowledge, discovery, method, argument, environmental policymaking',
+            'Explain how a scientific argument can be used or misused in an environmental policy dispute.',
+            'Case framing, evidence-role map, and position-statement example critique.',
+            'Position statement claim and evidence map',
+            '12.103 syllabus, science-policy case description, position statement example',
+          ),
+        ]),
+        lesson('Week 2: Climate and biodiversity controversies', [
+          section(
+            'Global warming, biodiversity loss, policy controversy, uncertainty',
+            'Write a position statement that distinguishes scientific uncertainty from policy disagreement.',
+            'Global warming case discussion, biodiversity argument review, and peer response.',
+            'Environmental controversy analysis',
+            'Global warming assignment example, biodiversity case notes, written assignment criteria',
+          ),
+        ]),
+        lesson('Week 3: Nuclear waste and public presentation', [
+          section(
+            'Nuclear waste disposal siting, public risk, science-policy presentation',
+            'Present a science-policy argument about nuclear waste with evidence and stakeholder implications.',
+            'Presentation rehearsal, stakeholder question round, and evidence audit.',
+            'Presentation assignment with science-policy argument',
+            'Nuclear waste case materials, presentation assignment example, position statement rubric',
+          ),
+        ]),
+      ],
+    }),
+  }),
+  manifest({
+    id: 'mit-67960-deep-learning',
+    courseFamily: 'Advanced AI/ML theory, problem sets, projects, and applications',
+    title: 'MIT 6.7960 Deep Learning',
+    sourceUrl: 'https://ocw.mit.edu/courses/6-7960-deep-learning-fall-2024/',
+    publicInstructorNames: ['Phillip Isola', 'Sara Beery', 'Jeremy Bernstein'],
+    disciplineFamily: 'advanced-ai-machine-learning',
+    modality: 'lecture-problem-set-project',
+    sourceArtifacts: ['readings', 'problem sets', 'lecture videos', 'lecture notes', 'projects with examples'],
+    primaryStudentWorkProducts: ['problem sets', 'model analyses', 'implementation projects', 'project reports'],
+    assessmentArchitecture: ['problem sets', 'projects with examples'],
+    supportAndOperationsModel: ['lecture notes', 'readings', 'problem set cadence', 'project example workflow'],
+    mustPreserveSignals: [
+      'deep learning',
+      'MLPs',
+      'CNNs',
+      'RNNs',
+      'graph nets',
+      'transformers',
+      'backpropagation',
+      'projects',
+    ],
+    requiredSignalGroups: [
+      signal(
+        'deep-learning-content',
+        'MLPs, CNNs, RNNs, graph nets, transformers, backpropagation, or automatic differentiation',
+        [
+          '\\bMLPs?\\b',
+          '\\bCNNs?\\b',
+          '\\bRNNs?\\b',
+          '\\bgraph nets?\\b',
+          '\\btransformer\\b',
+          '\\bbackpropagation\\b',
+          '\\bautomatic differentiation\\b',
+        ],
+      ),
+      signal(
+        'deep-learning-work-products',
+        'problem sets, projects, model analyses, implementations, or project reports',
+        ['\\bproblem set\\b', '\\bproject\\b', '\\bmodel analysis\\b', '\\bimplementation\\b', '\\bproject report\\b'],
+      ),
+    ],
+    courseMap: makeCourseMap({
+      courseName:
+        'MIT 6.7960 Deep Learning public-source benchmark: MLPs, CNNs, RNNs, graph nets, transformers, geometry and invariances, backpropagation, automatic differentiation, computer vision, NLP, robotics, problem sets, projects',
+      lessons: [
+        lesson('Week 1: Neural networks and backpropagation', [
+          section(
+            'MLPs, neural networks, backpropagation, automatic differentiation',
+            'Implement a neural network component and explain how backpropagation updates its parameters.',
+            'Lecture-note derivation, implementation trace, and problem set debugging.',
+            'Problem set implementation with model analysis',
+            '6.7960 lecture notes on MLPs, backpropagation video, problem set starter code',
+          ),
+        ]),
+        lesson('Week 2: Architectures for vision, sequence, and graph data', [
+          section(
+            'CNNs, RNNs, graph nets, transformers, invariances',
+            'Choose an architecture and justify how its inductive bias matches the data structure.',
+            'Architecture comparison, reading discussion, and project example critique.',
+            'Model analysis memo and architecture-selection problem',
+            'CNN/RNN/graph net readings, transformer lecture notes, project example',
+          ),
+        ]),
+        lesson('Week 3: Applications and project reports', [
+          section(
+            'Computer vision, natural language processing, robotics, generalization, project reports',
+            'Evaluate a deep learning application by connecting model behavior to data, training, and generalization.',
+            'Project report workshop with failure-mode review and application ethics check.',
+            'Project report and presentation checkpoint',
+            'Computer vision lecture video, NLP lecture notes, robotics project example',
+          ),
+        ]),
+      ],
+    }),
+  }),
 ];
 
 export function sanitizeProfessorAdoptionManifest(manifest) {

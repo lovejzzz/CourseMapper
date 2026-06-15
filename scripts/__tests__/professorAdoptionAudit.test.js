@@ -13,7 +13,7 @@ import {
 
 describe('professor adoption audit contracts', () => {
   it('keeps the public-source manifest pack valid and selects the smoke profile deterministically', () => {
-    expect(PROFESSOR_ADOPTION_MANIFESTS).toHaveLength(15);
+    expect(PROFESSOR_ADOPTION_MANIFESTS).toHaveLength(30);
     for (const manifest of PROFESSOR_ADOPTION_MANIFESTS) {
       expect(validateProfessorAdoptionManifest(manifest)).toMatchObject({ valid: true, blockers: [] });
       expect(manifest.sourceUrl).toMatch(/^https?:\/\//);
@@ -25,7 +25,7 @@ describe('professor adoption audit contracts', () => {
     expect(selectProfessorAdoptionManifests({ profile: 'smoke' }).map((manifest) => manifest.id)).toEqual(
       PROFESSOR_ADOPTION_SMOKE_CASE_IDS,
     );
-    expect(selectProfessorAdoptionManifests({ profile: 'full' })).toHaveLength(15);
+    expect(selectProfessorAdoptionManifests({ profile: 'full' })).toHaveLength(30);
   });
 
   it('treats professor approval language as a hard blocker, not a benchmark pass', () => {
