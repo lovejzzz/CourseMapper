@@ -76,10 +76,10 @@ describe('F1 — the morphing CTA state matrix', () => {
     expect(cta.querySelector('.animate-spin')).not.toBeNull();
   });
 
-  it('ready + reviews outstanding → "Review N" (indigo interactive), click opens the queue', () => {
+  it('ready + reviews outstanding + not downloadable → "Review N" (indigo interactive), click opens the queue', () => {
     const onReview = vi.fn();
     const { container } = mount(
-      <PrimaryCta ribbonModel={READY_MODEL} reviewCount={3} canDownload onReview={onReview} />,
+      <PrimaryCta ribbonModel={READY_MODEL} reviewCount={3} canDownload={false} onReview={onReview} />,
     );
     const cta = container.querySelector('[data-testid="primary-cta"]');
     expect(cta.textContent).toContain('Review 3');
@@ -90,10 +90,10 @@ describe('F1 — the morphing CTA state matrix', () => {
     expect(onReview).toHaveBeenCalledTimes(1);
   });
 
-  it('ready + zero reviews + downloadable package → "Download ZIP" (dark primary), click downloads', () => {
+  it('ready + downloadable package → "Download ZIP" (dark primary), click downloads even with reviews', () => {
     const onDownload = vi.fn();
     const { container } = mount(
-      <PrimaryCta ribbonModel={READY_MODEL} reviewCount={0} canDownload onDownload={onDownload} />,
+      <PrimaryCta ribbonModel={READY_MODEL} reviewCount={3} canDownload onDownload={onDownload} />,
     );
     const cta = container.querySelector('[data-testid="primary-cta"]');
     expect(cta.textContent).toContain('Download ZIP');

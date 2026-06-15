@@ -76,7 +76,7 @@ export function buildRunDigest({ budget = {}, exportVerification = null, finish 
   if (partialEnrichment) {
     coverageChecks.push({
       featureId: 'content',
-      status: 'warning',
+      status: finish.finalStatus === 'ready' ? 'info' : 'warning',
       message: `partial enrichment (${enrichedLessons}/${requestedLessons})${
         missingLessons.length > 0
           ? ` — lesson${missingLessons.length === 1 ? '' : 's'} ${missingLessons.join(', ')} fell back to template`

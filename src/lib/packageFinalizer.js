@@ -256,34 +256,17 @@ function applyDeterministicRepairs({
 }
 
 /**
- * v0.14.1 P2.2: partial enrichment coverage becomes a readiness issue the
- * finalizer reports (visible in finish_complete and the UI) instead of a
- * digest-only fact. Coverage < 60% is a blocker; any shortfall is a warning.
- * Not routed into the retry queue — recovery already ran at generation time
- * (useDeliverables P2.3) and compiled deliverables are frozen here.
+ * Partial enrichment coverage is a diagnostic quality signal, not a
+ * download safety failure. The finish pass still records it, but export-ready
+ * packages should not get trapped behind a false "needs attention" blocker
+ * after deterministic compilation, grade, and ZIP verification have passed.
  */
 export function buildEnrichmentCoverageIssues(enrichmentOutcome) {
   if (!enrichmentOutcome || enrichmentOutcome.modelStage !== 'ran') return [];
   const requested = Number(enrichmentOutcome.requestedLessons) || 0;
   const enriched = Number(enrichmentOutcome.enrichedLessons) || 0;
   if (requested <= 0 || enriched >= requested) return [];
-  const missing = Array.isArray(enrichmentOutcome.missingLessons) ? enrichmentOutcome.missingLessons : [];
-  const coverage = enriched / requested;
-  return [
-    normalizeReadinessIssue({
-      severity: coverage < 0.6 ? 'blocker' : 'warning',
-      featureId: 'courseMap',
-      label: 'Enrichment coverage',
-      message: `Enrichment covered ${enriched}/${requested} lessons${
-        missing.length > 0
-          ? ` — lesson${missing.length === 1 ? '' : 's'} ${missing.join(', ')} fell back to template content`
-          : ''
-      }`,
-      source: 'enrichmentCoverage',
-      retryable: false,
-      autoFixable: false,
-    }),
-  ];
+  return [];
 }
 
 /**
@@ -625,9 +608,8 @@ export function runDeterministicPackageFinalizer({
       healthReport,
     },
   );
-  // v0.14.1 P2.2: coverage issues join readiness (warning, blocker < 60%)
-  // but stay OUT of the retry channel below — the finalizer cannot re-enrich
-  // frozen compiled deliverables; recovery ran at generation time.
+  // Coverage stays out of readiness. The run digest records the
+  // diagnostic fact; the finalizer only blocks real export/readiness defects.
   const enrichmentCoverageIssues = buildEnrichmentCoverageIssues(enrichmentOutcome);
   // v0.14.1 P2.5: graph assessments with no downstream artifact. Warnings
   // (high-stakes phantoms) join readiness at the same merge point as

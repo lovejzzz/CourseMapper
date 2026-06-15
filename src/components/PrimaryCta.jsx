@@ -5,10 +5,11 @@
  * pipeline machine's ribbon model:
  *
  *   running                  → "Building…" (disabled — the ribbon narrates)
- *   ready + reviews pending  → "Review N" (opens the review queue)
- *   ready + clear + package  → "Download ZIP" (routes to the export panel's
+ *   ready + package          → "Download ZIP" (routes to the export panel's
  *                              doExport('zip') via a window event — the panel
  *                              stays the ONE export executor)
+ *   ready + reviews pending  → "Review N" only when the package is not yet
+ *                              downloadable
  *   anything else            → nothing (the pre-generation header stays as-is)
  *
  * v0.14.7.1 deep clean: this component no longer carries its own More menu —
@@ -35,7 +36,7 @@ function Spinner() {
 export default function PrimaryCta({ ribbonModel, reviewCount = 0, canDownload = false, onDownload, onReview }) {
   const running = Boolean(ribbonModel?.running);
   const ready = !running && ribbonModel?.stage === 'ready';
-  const state = running ? 'building' : ready && reviewCount > 0 ? 'review' : ready && canDownload ? 'download' : null;
+  const state = running ? 'building' : ready && canDownload ? 'download' : ready && reviewCount > 0 ? 'review' : null;
   // No package yet (fresh/restored-idle workspace) or blocked with nothing to
   // review — the header shows no verb; the export panel keeps full controls.
   if (!state) return null;

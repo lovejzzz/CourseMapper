@@ -132,7 +132,7 @@ describe('B1 — both surfaces render from the one queue object', () => {
       <PrimaryCta
         ribbonModel={READY_MODEL}
         reviewCount={outstanding.counts.headline}
-        canDownload
+        canDownload={false}
         onReview={() => {}}
       />,
     );
