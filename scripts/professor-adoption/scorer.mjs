@@ -9,8 +9,6 @@ export const ADOPTION_DIMENSIONS = [
   { id: 'packageCraft', label: 'Package craft', weight: 5 },
 ];
 
-const DIMENSION_WEIGHTS = Object.fromEntries(ADOPTION_DIMENSIONS.map((dimension) => [dimension.id, dimension.weight]));
-
 const FEATURE_LABELS = {
   syllabus: 'Syllabus',
   lessonPlans: 'Lesson Plans',

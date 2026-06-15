@@ -4,6 +4,33 @@
 
 CourseMapper is moving toward a "consider it done" course-production agent. The user should describe the course, choose scope/materials, and receive a finished draft package. The agent owns generation, QA, repair, alignment, and export readiness. Human involvement should be final approval only, not QA labor.
 
+## v0.15.10 - Source-Verified Professor Adoption Judge
+
+Goal: make the professor-adoption engine prove that its benchmark cases are
+grounded in official public course sources before the project adds more
+professors. The 30-case gate is now broad enough for a stable full run; the
+next quality jump is source provenance, coverage visibility, and harder
+manifest accountability.
+
+Full plan: `docs/V0.15.10_SOURCE_VERIFIED_PROFESSOR_ADOPTION_ROADMAP.md`
+
+1. Add `audit:professor-adoption:sources` and
+   `audit:professor-adoption:sources:smoke` to verify source URLs, titles,
+   instructors/course staff, source artifacts, work products, assessment
+   architecture, and course-specific signals.
+2. Use official public source metadata where available, including MIT OCW
+   `data.json`, and fall back to public page text for Yale OYC, Berkeley, and
+   Harvard course pages.
+3. Write Markdown, JSON, JSONL, and autonomous-action outputs for source
+   provenance failures, with target files and proof commands.
+4. Add a coverage dashboard to the normal professor-adoption report so the
+   engine shows discipline families, source hosts, clusters, thin areas, and
+   next expansion focus without agent interpretation.
+5. Keep the 30-case manifest as the stable full gate and defer 60-case
+   expansion until source provenance is green.
+6. Preserve the release boundary: benchmarked against public course sources,
+   not endorsed, approved, or externally validated by those instructors.
+
 ## v0.15.9 - 30-Case Professor Adoption Expansion
 
 Goal: make the professor-adoption gate broad enough for release-grade

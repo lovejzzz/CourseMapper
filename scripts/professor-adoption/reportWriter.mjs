@@ -55,6 +55,10 @@ function renderFindingLines(results = []) {
   return findings.length > 0 ? findings : ['- No professor-adoption findings.'];
 }
 
+function renderCountRows(rows = []) {
+  return rows.length > 0 ? rows.map((row) => `| ${safeCell(row.id)} | ${row.count} |`) : ['| none | 0 |'];
+}
+
 export function buildProfessorAdoptionLedger(payload = {}) {
   return (payload.results || []).flatMap((result) =>
     (result.findings || []).map((finding) => ({
@@ -134,6 +138,28 @@ export function renderProfessorAdoptionMarkdown(payload = {}) {
       '| --- | ---: | ---: |',
       ...renderDimensionRows(payload.results || []),
     ]),
+    '',
+    '## Coverage Dashboard',
+    '',
+    `Cases: ${payload.coverage?.caseCount || 0}`,
+    `Strategy: ${payload.coverage?.strategy?.recommendation || 'No coverage strategy recorded.'}`,
+    `Next expansion focus: ${safeCell(payload.coverage?.strategy?.nextExpansionFocus?.join(', ') || 'none')}`,
+    '',
+    '### Discipline Families',
+    '',
+    table([
+      '| Discipline family | Cases |',
+      '| --- | ---: |',
+      ...renderCountRows(payload.coverage?.disciplineFamilies),
+    ]),
+    '',
+    '### Source Hosts',
+    '',
+    table(['| Source host | Cases |', '| --- | ---: |', ...renderCountRows(payload.coverage?.sourceHosts)]),
+    '',
+    '### Discipline Clusters',
+    '',
+    table(['| Cluster | Cases |', '| --- | ---: |', ...renderCountRows(payload.coverage?.clusters)]),
     '',
     '## Source Case Board',
     '',

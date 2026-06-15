@@ -3316,9 +3316,14 @@ async function inspectExportPackageSamples({ fixtures = [], results = [], runtim
       )
         .filter(([, count]) => count > 1)
         .map(([filePath]) => filePath);
+      const unsafeFilenameChars = '<>:"|?*';
       const unsafePaths = files
         .map((file) => file.path)
-        .filter((filePath) => /[<>:"|?*\u0000-\u001f]/.test(path.basename(filePath || '')));
+        .filter((filePath) =>
+          Array.from(path.basename(filePath || '')).some(
+            (character) => unsafeFilenameChars.includes(character) || character.charCodeAt(0) < 32,
+          ),
+        );
       const status =
         missingFeatureIds.length > 0 || duplicatePaths.length > 0 || unsafePaths.length > 0 ? 'failed' : 'passed';
       samples.push({

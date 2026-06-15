@@ -2,6 +2,15 @@ function severityRank(severity) {
   return severity === 'P0' ? 0 : severity === 'P1' ? 1 : severity === 'P2' ? 2 : 3;
 }
 
+function actionTypeForFinding(finding = {}) {
+  if (finding.failureClass === 'unsupported-approval-claim') return 'repair-claims';
+  if (finding.failureClass === 'source-access-failed') return 'blocked-source-access';
+  if (/^source-/.test(finding.failureClass || '') || finding.artifact === 'source manifest') {
+    return 'repair-source-manifest';
+  }
+  return 'repair-code';
+}
+
 function groupFindings(results = []) {
   const grouped = new Map();
   for (const result of results) {
@@ -11,7 +20,7 @@ function groupFindings(results = []) {
       const current = grouped.get(key) || {
         id: key,
         priority: finding.severity || 'P2',
-        type: finding.failureClass === 'unsupported-approval-claim' ? 'repair-claims' : 'repair-code',
+        type: actionTypeForFinding(finding),
         status: 'required',
         targetArea: finding.suspectedOwner || 'compiler',
         affectedCases: [],
@@ -77,7 +86,7 @@ export function buildProfessorAdoptionDecision({ summary = {}, results = [], pro
     const top = required[0];
     return {
       status: summary.status,
-      nextAction: top.type === 'repair-claims' ? 'repair-claims' : 'repair-code',
+      nextAction: top.type,
       requiresHumanInterpretation: false,
       rationale:
         p0Count > 0
@@ -105,7 +114,7 @@ export function buildProfessorAdoptionDecision({ summary = {}, results = [], pro
       },
       stoppingRule: {
         stopRecommended: false,
-        nextAction: top.type === 'repair-claims' ? 'repair-claims' : 'repair-code',
+        nextAction: top.type,
         reason: `Required autonomous action remains: ${top.id}.`,
       },
     };

@@ -1,8 +1,10 @@
 import { describe, expect, it } from 'vitest';
 
 import { buildProfessorAdoptionDecision } from '../professor-adoption/decision.mjs';
+import { buildProfessorAdoptionCoverage } from '../professor-adoption/coverage.mjs';
 import { buildProfessorAdoptionLedger } from '../professor-adoption/reportWriter.mjs';
 import { scoreProfessorAdoptionCase } from '../professor-adoption/scorer.mjs';
+import { verifyProfessorAdoptionSource } from '../professor-adoption/sourceVerifier.mjs';
 import {
   PROFESSOR_ADOPTION_MANIFESTS,
   PROFESSOR_ADOPTION_SMOKE_CASE_IDS,
@@ -26,6 +28,119 @@ describe('professor adoption audit contracts', () => {
       PROFESSOR_ADOPTION_SMOKE_CASE_IDS,
     );
     expect(selectProfessorAdoptionManifests({ profile: 'full' })).toHaveLength(30);
+  });
+
+  it('builds a coverage dashboard for the 30-case gate', () => {
+    const coverage = buildProfessorAdoptionCoverage(PROFESSOR_ADOPTION_MANIFESTS);
+
+    expect(coverage.caseCount).toBe(30);
+    expect(coverage.strategy.nextStableGateSize).toBe(30);
+    expect(coverage.strategy.nextExtendedPoolTarget).toBe(60);
+    expect(coverage.sourceHosts).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ id: 'ocw.mit.edu' }),
+        expect.objectContaining({ id: 'oyc.yale.edu' }),
+      ]),
+    );
+    expect(coverage.strategy.recommendation).toMatch(/source verification/i);
+  });
+
+  it('verifies MIT OCW source provenance from official data.json metadata', async () => {
+    const manifest = getProfessorAdoptionManifest('mit-1401-microeconomics');
+    const fetchedUrls = [];
+    const result = await verifyProfessorAdoptionSource(manifest, {
+      fetchText: async (url) => {
+        fetchedUrls.push(url);
+        if (url === manifest.sourceUrl) {
+          return '<main><h1>Principles of Microeconomics</h1><p>Lecture notes, problem sets, exams, supply, demand, externalities.</p></main>';
+        }
+        expect(url).toBe('https://ocw.mit.edu/courses/14-01-principles-of-microeconomics-fall-2023/data.json');
+        return JSON.stringify({
+          course_title: 'Principles of Microeconomics',
+          primary_course_number: '14.01',
+          course_description:
+            'Supply and demand, market equilibrium, consumer theory, production and firms, monopoly, public goods, and externalities.',
+          instructors: [{ title: 'Prof. Jonathan Gruber' }],
+          learning_resource_types: [
+            'Lecture Notes',
+            'Lecture Videos',
+            'Instructor Insights',
+            'Problem Sets',
+            'Problem Set Solutions',
+            'Exams',
+            'Exam Solutions',
+          ],
+          topics: [['Social Science', 'Economics', 'Microeconomics']],
+        });
+      },
+    });
+
+    expect(result.status).toBe('pass');
+    expect(result.score).toBe(100);
+    expect(fetchedUrls).toEqual([
+      'https://ocw.mit.edu/courses/14-01-principles-of-microeconomics-fall-2023/data.json',
+      manifest.sourceUrl,
+    ]);
+    expect(result.checkedUrl).toContain('data.json');
+    expect(result.checkedUrl).toContain(manifest.sourceUrl);
+    expect(result.verification.instructorMatches).toEqual(
+      expect.arrayContaining([expect.objectContaining({ value: 'Jonathan Gruber', matched: true })]),
+    );
+  });
+
+  it('combines explicit evidence URLs for multi-page public course sites', async () => {
+    const manifest = getProfessorAdoptionManifest('berkeley-data8-fa25');
+    const fetchedUrls = [];
+    const result = await verifyProfessorAdoptionSource(manifest, {
+      fetchText: async (url) => {
+        fetchedUrls.push(url);
+        if (url.endsWith('/staff/')) {
+          return '<main><h1>Staff</h1><h2>Instructors</h2><h3>Jeremy Sanchez</h3></main>';
+        }
+        if (url.endsWith('/syllabus/')) {
+          return '<main><h1>Syllabus</h1><p>Homework, exams, notebooks, datasets, and Python labs.</p></main>';
+        }
+        if (url.endsWith('/schedule/')) {
+          return '<main><h1>Weekly Calendar & OH</h1><p>Office hours, projects, and deadlines.</p></main>';
+        }
+        return '<main><h1>UC Berkeley Data 8 Fall 2025</h1><nav>Staff Resources FAQ Textbook</nav></main>';
+      },
+    });
+
+    expect(result.status).toBe('pass');
+    expect(fetchedUrls).toEqual([manifest.sourceUrl, ...manifest.sourceEvidenceUrls]);
+    expect(result.checkedUrl).toContain('/staff/');
+    expect(result.verification.instructorMatches).toEqual([
+      expect.objectContaining({ value: 'Jeremy Sanchez', matched: true }),
+    ]);
+  });
+
+  it('turns unsupported source provenance into autonomous manifest repair evidence', async () => {
+    const manifest = {
+      ...getProfessorAdoptionManifest('mit-1401-microeconomics'),
+      publicInstructorNames: ['Imaginary Teacher'],
+    };
+    const result = await verifyProfessorAdoptionSource(manifest, {
+      fetchText: async () =>
+        JSON.stringify({
+          course_title: 'Principles of Microeconomics',
+          course_description:
+            'Supply and demand, market equilibrium, consumer theory, firms, monopoly, externalities, problem sets, exams.',
+          instructors: [{ title: 'Prof. Jonathan Gruber' }],
+          learning_resource_types: ['Lecture Notes', 'Problem Sets', 'Exams'],
+        }),
+    });
+
+    expect(result.status).toBe('repair-required');
+    expect(result.findings).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          failureClass: 'source-instructor-mismatch',
+          suspectedOwner: 'scripts/professor-adoption/sourceManifests.mjs',
+          requiredRepairAction: 'repair-source-instructor-provenance',
+        }),
+      ]),
+    );
   });
 
   it('treats professor approval language as a hard blocker, not a benchmark pass', () => {

@@ -15,6 +15,7 @@ import {
   selectProfessorAdoptionManifests,
   validateProfessorAdoptionManifest,
 } from './professor-adoption/sourceManifests.mjs';
+import { buildProfessorAdoptionCoverage } from './professor-adoption/coverage.mjs';
 import { writeProfessorAdoptionReport } from './professor-adoption/reportWriter.mjs';
 
 const ROOT = process.cwd();
@@ -253,6 +254,7 @@ export async function buildProfessorAdoptionAudit(options = {}) {
       note: 'Public-source professor-adoption benchmark. This does not claim professor approval or endorsement.',
     },
     summary,
+    coverage: buildProfessorAdoptionCoverage(manifests),
     manifests,
     results,
   };

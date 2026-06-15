@@ -36,6 +36,7 @@ function manifest({
   courseFamily,
   title,
   sourceUrl,
+  sourceEvidenceUrls = [],
   publicInstructorNames,
   disciplineFamily,
   modality,
@@ -53,6 +54,7 @@ function manifest({
     courseFamily,
     title,
     sourceUrl,
+    sourceEvidenceUrls,
     publicInstructorNames,
     disciplineFamily,
     modality,
@@ -100,7 +102,14 @@ export const PROFESSOR_ADOPTION_MANIFESTS = [
     publicInstructorNames: ['Gilbert Strang'],
     disciplineFamily: 'math-quantitative',
     modality: 'lecture-problem-set',
-    sourceArtifacts: ['syllabus', 'calendar', 'readings', 'assignments', 'exams', 'study materials'],
+    sourceArtifacts: [
+      'lecture videos',
+      'instructor insights',
+      'problem sets',
+      'problem set solutions',
+      'exams',
+      'exam solutions',
+    ],
     primaryStudentWorkProducts: ['problem sets', 'worked solutions', 'exam responses'],
     assessmentArchitecture: ['problem sets', 'midterm exams', 'final exam'],
     supportAndOperationsModel: ['lecture sequence', 'study materials', 'problem set cadence'],
@@ -173,15 +182,29 @@ export const PROFESSOR_ADOPTION_MANIFESTS = [
     primaryStudentWorkProducts: ['proof write-ups', 'counterexample analyses', 'exam proofs'],
     assessmentArchitecture: ['problem sets', 'recitation work', 'exams'],
     supportAndOperationsModel: ['lecture sequence', 'recitation sequence', 'proof problem cadence'],
-    mustPreserveSignals: ['definitions', 'theorems', 'hypotheses', 'counterexamples', 'proofs'],
+    mustPreserveSignals: [
+      'convergence',
+      'sequences',
+      'series',
+      'continuity',
+      'differentiability',
+      'Riemann integral',
+      'proofs',
+    ],
     requiredSignalGroups: [
-      signal('proof-course-work-products', 'definitions, theorem statements, proof tasks, and counterexamples', [
-        '\\bdefinition\\b',
-        '\\btheorem\\b',
-        '\\bhypothes(?:is|es)\\b',
-        '\\bcounterexample\\b',
-        '\\bproof\\b',
-      ]),
+      signal(
+        'proof-course-work-products',
+        'sequences, convergence, continuity, differentiability, Riemann integral, functions, and proof tasks',
+        [
+          '\\bsequence\\b',
+          '\\bconvergence\\b',
+          '\\bcontinuity\\b',
+          '\\bdifferentiability\\b',
+          '\\bRiemann\\b',
+          '\\bfunction\\b',
+          '\\bproof\\b',
+        ],
+      ),
       signal('proof-rigor-criteria', 'proof rigor criteria', [
         '\\blogical implication\\b',
         '\\bquantifier\\b',
@@ -191,14 +214,14 @@ export const PROFESSOR_ADOPTION_MANIFESTS = [
     ],
     courseMap: makeCourseMap({
       courseName:
-        'MIT 18.100A Real Analysis public-source benchmark: definitions, theorems, counterexamples, rigorous proof writing',
+        'MIT 18.100A Real Analysis public-source benchmark: convergence, sequences, series, continuity, differentiability, Riemann integral, rigorous proof writing',
       lessons: [
-        lesson('Week 1: Sets, functions, and proof language', [
+        lesson('Week 1: Real numbers, sequences, functions, and proof language', [
           section(
-            'Definitions, quantifiers, functions, logical implication',
-            'Write a proof that uses definitions and quantifiers without skipping hypotheses.',
-            'Definition unpacking and proof strategy comparison.',
-            'Proof write-up with hypothesis checklist',
+            'Real numbers, sequences, functions, quantifiers, logical implication',
+            'Write a proof about a sequence or function without skipping assumptions.',
+            'Sequence example unpacking and proof strategy comparison.',
+            'Proof write-up with assumption checklist',
           ),
         ]),
         lesson('Week 2: Sequences and convergence', [
@@ -215,6 +238,14 @@ export const PROFESSOR_ADOPTION_MANIFESTS = [
             'Use the definition of continuity to prove or disprove a claim.',
             'Counterexample workshop with proof critique.',
             'Recitation proof portfolio entry',
+          ),
+        ]),
+        lesson('Week 4: Differentiability and Riemann integration', [
+          section(
+            'Differentiability, Riemann integral, functions, limit operations',
+            'Explain how differentiability or Riemann integrability depends on precise limiting arguments.',
+            'Students compare proof outlines for differentiability and Riemann integral claims.',
+            'Problem set proof with exam-style reflection',
           ),
         ]),
       ],
@@ -287,7 +318,12 @@ export const PROFESSOR_ADOPTION_MANIFESTS = [
     courseFamily: 'Data science lab and large-course operations',
     title: 'UC Berkeley Data 8 Fall 2025',
     sourceUrl: 'https://data8.org/fa25/',
-    publicInstructorNames: ['Jeremy Sanchez', 'Data 8 course staff'],
+    sourceEvidenceUrls: [
+      'https://data8.org/fa25/staff/',
+      'https://data8.org/fa25/syllabus/',
+      'https://data8.org/fa25/schedule/',
+    ],
+    publicInstructorNames: ['Jeremy Sanchez'],
     disciplineFamily: 'data-science-lab',
     modality: 'large-course-data-lab',
     sourceArtifacts: [
@@ -498,38 +534,54 @@ export const PROFESSOR_ADOPTION_MANIFESTS = [
     disciplineFamily: 'world-language',
     modality: 'communicative-language',
     sourceArtifacts: ['syllabus', 'calendar', 'readings', 'assignments', 'related resources', 'language lab'],
-    primaryStudentWorkProducts: ['dialogues', 'oral practice', 'listening logs', 'vocabulary and grammar tasks'],
+    primaryStudentWorkProducts: [
+      'activity assignments',
+      'active communication practice',
+      'vocabulary work',
+      'language lab practice',
+    ],
     assessmentArchitecture: ['assignments', 'language lab practice', 'oral and written checks'],
     supportAndOperationsModel: ['coordinated language lab', 'calendar', 'related resources'],
-    mustPreserveSignals: ['speaking', 'listening', 'vocabulary', 'grammar', 'culture', 'dialogue'],
+    mustPreserveSignals: [
+      'active communication',
+      'vocabulary',
+      'grammatical concepts',
+      'French',
+      'culture',
+      'language lab',
+    ],
     requiredSignalGroups: [
-      signal('language-practice-products', 'speaking, listening, pronunciation, vocabulary, grammar, or dialogue', [
-        '\\bspeaking\\b',
-        '\\blistening\\b',
-        '\\bpronunciation\\b',
-        '\\bvocabulary\\b',
-        '\\bgrammar\\b',
-        '\\bdialogue\\b',
-      ]),
+      signal(
+        'language-practice-products',
+        'active communication, vocabulary, grammatical concepts, French language use, culture, or language lab work',
+        [
+          '\\bactive communication\\b',
+          '\\bvocabulary\\b',
+          '\\bgrammatical concept\\b',
+          '\\bFrench\\b',
+          '\\bculture\\b',
+          '\\blanguage lab\\b',
+        ],
+      ),
     ],
     courseMap: makeCourseMap({
       courseName:
-        'MIT French I public-source benchmark: communicative language learning, speaking, listening, vocabulary, grammar, culture, language lab',
+        'MIT French I public-source benchmark: active communication, vocabulary, grammatical concepts, French language and culture, language lab',
       lessons: [
         lesson('Week 1: Greetings and classroom communication', [
           section(
-            'French greetings, pronunciation, classroom phrases, listening comprehension',
-            'Use target-language greetings and classroom requests in a short dialogue.',
-            'Paired speaking rehearsal, pronunciation feedback, and listening check.',
-            'Oral dialogue and vocabulary quiz',
+            'French greetings, classroom phrases, active communication, vocabulary',
+            'Use target-language greetings and classroom requests in French.',
+            'Paired communication rehearsal, vocabulary feedback, and language lab check.',
+            'Activity assignment and vocabulary check',
           ),
         ]),
         lesson('Week 2: Describing people and routines', [
           section(
-            'Vocabulary, grammar, present tense, cultural comparison',
+            'Vocabulary, grammatical concepts, present tense, cultural comparison',
             'Describe a routine in French and respond to a partner question.',
-            'Language lab listening practice and guided grammar noticing.',
-            'Presentational script with oral recording',
+            'Language lab practice and guided grammatical-concept noticing.',
+            'Language lab activity assignment',
           ),
         ]),
       ],
@@ -867,6 +919,7 @@ export const PROFESSOR_ADOPTION_MANIFESTS = [
     courseFamily: 'Large introductory programming course',
     title: 'UC Berkeley CS 61A Spring 2026',
     sourceUrl: 'https://cs61a.org/',
+    sourceEvidenceUrls: ['https://cs61a.org/instructor'],
     publicInstructorNames: ['Dan Garcia', 'Manuel A Sabin'],
     disciplineFamily: 'large-course-programming',
     modality: 'lecture-lab-discussion-project',
