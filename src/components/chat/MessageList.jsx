@@ -74,6 +74,7 @@ export default function MessageList({
   courseMap,
   activeTab,
   deliverables,
+  packageQualityPass = null,
   isAgentMode,
   isGenerating,
   isDelivGenerating,
@@ -324,6 +325,7 @@ export default function MessageList({
                 onPrompt={onDigestPrompt}
                 onOpenInQueue={onDigestOpenReview ? (entry) => onDigestOpenReview(entry.id) : undefined}
                 onDismiss={onDigestDismiss ? () => onDigestDismiss(i) : undefined}
+                packageQualityPass={packageQualityPass}
               />
             );
           }

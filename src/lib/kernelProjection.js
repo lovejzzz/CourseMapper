@@ -76,6 +76,12 @@ function stripTerminalPeriod(text) {
   return cleanText(text).replace(/\.+$/, '');
 }
 
+function projectionVariant(seed, variants = []) {
+  if (!variants.length) return '';
+  const index = Math.max(0, Number(seed) || 0);
+  return variants[index % variants.length];
+}
+
 function contentWords(text) {
   return cleanText(text)
     .toLowerCase()
@@ -286,6 +292,12 @@ function buildShortAnswerItem(kernel, index) {
   if (!term || !setup) return null;
   const materials = cleanText(kernel?.scenario?.materials) || 'the scenario evidence';
   const fact = bestFactFor(term, kernel.facts) || kernel.facts?.[0] || '';
+  const scoringGuidance = projectionVariant(index, [
+    `Full credit uses ${term.term} accurately, cites ${materials}, and reaches a defensible conclusion; give partial credit when the concept is right but the evidence is thin.`,
+    `Score for three visible moves: correct ${term.term} language, direct use of ${materials}, and a conclusion the evidence can support.`,
+    `A strong answer names ${term.term}, points to the scenario evidence, and explains the conclusion; answers with accurate ideas but weak support earn partial credit.`,
+    `Award full credit only when ${term.term}, ${materials}, and the final claim work together. Concept recall without evidence stays below full credit.`,
+  ]);
   return {
     index,
     type: 'short_answer',
@@ -297,7 +309,7 @@ function buildShortAnswerItem(kernel, index) {
     // anchor-fact + definition.
     answer: composeScenarioAnswer(kernel?.scenario, term, fact),
     explanation: '',
-    scoringGuidance: `Full credit requires accurate use of ${term.term}, direct reference to ${materials}, and a defended conclusion; partial credit for correct concepts supported by thin evidence.`,
+    scoringGuidance,
   };
 }
 
@@ -311,6 +323,12 @@ function buildEssayItem(kernel, index) {
   const positions = Array.isArray(discussion?.positions) ? discussion.positions.map(cleanText).filter(Boolean) : [];
   const counterposition = positions[1] ? ` (for example: ${stripTerminalPeriod(positions[1]).toLowerCase()})` : '';
   const sampleFact = term ? bestFactFor(term, kernel.facts) : kernel.facts?.[0] || '';
+  const scoringGuidance = projectionVariant(index, [
+    `Strong responses commit to a position, test the counterargument${counterposition}, and keep every claim tied to course evidence; weak responses summarize without deciding.`,
+    `Full-credit essays make a claim, explain why a plausible alternative falls short${counterposition}, and use the assigned evidence rather than general opinion.`,
+    `Look for a clear position, at least one opposing view${counterposition}, and evidence for each major claim. Responses that restate the prompt without taking a stand need revision.`,
+    `Score the essay by tracing claim, counterclaim, evidence, and conclusion; unsupported position statements should not receive full credit.`,
+  ]);
   return {
     index,
     type: 'essay',
@@ -327,7 +345,7 @@ function buildEssayItem(kernel, index) {
       counterpoint: positions[1] || '',
     }),
     explanation: '',
-    scoringGuidance: `Strong responses state a clear position, engage at least one opposing view${counterposition}, and ground every claim in course evidence; weak responses restate the prompt without committing to a position.`,
+    scoringGuidance,
   };
 }
 

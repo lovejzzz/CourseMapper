@@ -14,10 +14,33 @@ import NoticeBanner from '../NoticeBanner';
  * v0.14.4 WS-E2: the amber shell is NoticeBanner (shared with the export
  * panel's notice) — one attention component, not two.
  */
-export default function DigestCard({ digest, onPrompt, onDismiss, status, onOpenInQueue }) {
+function isCleanReadyPackage(packageQualityPass) {
+  if (!packageQualityPass || packageQualityPass.status !== 'ready') return false;
+  const blockerCount = Number(packageQualityPass.blockers || 0);
+  const warningCount = Number(packageQualityPass.warnings || 0);
+  const receipt = packageQualityPass.receipt || {};
+  const exportFailed = Number(receipt.exportFailed || 0);
+  const exportWarnings = Number(receipt.exportWarningCount || 0);
+  const quality = packageQualityPass.quality || {};
+  const qualityFindings = quality.findingCounts || {};
+  const qualityIssues =
+    Number(qualityFindings.p0 || 0) + Number(qualityFindings.p1 || 0) + Number(qualityFindings.p2 || 0);
+  const qualityClean = !quality.score || (Number(quality.score) >= 100 && qualityIssues === 0);
+  return blockerCount === 0 && warningCount === 0 && exportFailed === 0 && exportWarnings === 0 && qualityClean;
+}
+
+export default function DigestCard({ digest, onPrompt, onDismiss, status, onOpenInQueue, packageQualityPass = null }) {
   const observations = digest?.observations || [];
   if (observations.length === 0) return null;
   const dismissed = status === 'dismissed';
+  const cleanReady = isCleanReadyPackage(packageQualityPass);
+  const severity = cleanReady ? 'info' : 'warning';
+  const title = cleanReady
+    ? `Optional polish — ${observations.length} observation${observations.length > 1 ? 's' : ''}`
+    : `Worth a look — ${observations.length} observation${observations.length > 1 ? 's' : ''}`;
+  const actionClass = cleanReady
+    ? 'shrink-0 text-[12px] font-semibold text-slate-500 dark:text-slate-300'
+    : 'shrink-0 text-[12px] font-semibold text-amber-700 dark:text-amber-300';
 
   // v0.14.6 calm pass: with the review queue wired, this card is an entry
   // point, not a second reading surface — one clamped line per observation
@@ -25,8 +48,8 @@ export default function DigestCard({ digest, onPrompt, onDismiss, status, onOpen
   if (onOpenInQueue) {
     return (
       <NoticeBanner
-        severity="warning"
-        title={`Worth a look — ${observations.length} observation${observations.length > 1 ? 's' : ''}`}
+        severity={severity}
+        title={title}
         headerAction={
           !dismissed && onDismiss ? (
             <button
@@ -52,7 +75,7 @@ export default function DigestCard({ digest, onPrompt, onDismiss, status, onOpen
               <span className="min-w-0 flex-1 truncate text-xs leading-snug text-slate-700 dark:text-slate-200">
                 {entry.observation}
               </span>
-              <span className="shrink-0 text-[12px] font-semibold text-amber-700 dark:text-amber-300">Review</span>
+              <span className={actionClass}>{cleanReady ? 'Polish' : 'Review'}</span>
             </button>
           ))}
         </div>
@@ -62,8 +85,8 @@ export default function DigestCard({ digest, onPrompt, onDismiss, status, onOpen
 
   return (
     <NoticeBanner
-      severity="warning"
-      title={`Worth a look — ${observations.length} observation${observations.length > 1 ? 's' : ''} from your new package`}
+      severity={severity}
+      title={`${title}${cleanReady ? '' : ' from your new package'}`}
       headerAction={
         !dismissed && onDismiss ? (
           <button

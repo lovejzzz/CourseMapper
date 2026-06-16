@@ -157,7 +157,9 @@ describe('projectKernelToSurfaces', () => {
     const essay = byIndex[5];
     expect(essay.type).toBe('essay');
     expect(essay.question).toContain('emissions cuts or adaptation');
-    expect(essay.scoringGuidance).toContain('opposing view');
+    expect(essay.scoringGuidance).toMatch(/opposing view|alternative|counterclaim/i);
+    expect(essay.scoringGuidance).not.toContain('state a clear position, engage at least one opposing view');
+    expect(shortAnswer.scoringGuidance).not.toContain('partial credit for correct concepts supported by thin evidence');
 
     // Projected items satisfy the same lint as direct model items.
     for (const item of payload.quizItems) {

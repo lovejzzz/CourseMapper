@@ -2784,6 +2784,7 @@ export default function ChatPanel({
         courseMap={courseMap}
         activeTab={activeTab}
         deliverables={deliverables}
+        packageQualityPass={packageQualityPass}
         isAgentMode={isAgentMode}
         isAgentProviderReady={chat.isAgentProviderReady}
         isGenerating={!!(currentStep && currentStep !== 'done')}

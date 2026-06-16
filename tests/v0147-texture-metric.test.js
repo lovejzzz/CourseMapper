@@ -30,7 +30,12 @@ import os from 'node:os';
 import path from 'node:path';
 import JSZip from 'jszip';
 
-import { computeTexture, maskSlots, buildTextureAdvisories } from '../src/lib/quality/textureMetric.js';
+import {
+  computeTexture,
+  maskSlots,
+  buildTextureAdvisories,
+  normalizeTextureText,
+} from '../src/lib/quality/textureMetric.js';
 import { buildCourseBlueprint, compileBlueprintDeliverables } from '../src/lib/courseBlueprintCompiler';
 import {
   buildBlueprintFromGraph,
@@ -155,6 +160,35 @@ describe('D1(1) — synthetic calibration: slot-varied stamps vs varied prose', 
     expect(masked).not.toMatch(/mineral identification/i);
     // Single capitalized words survive — honest specificity is not masked.
     expect(maskSlots('Anchor your post in Antigone tonight.')).toContain('Antigone');
+  });
+
+  it('strips export structure labels while preserving repeated body prose for the judge', () => {
+    const normalized = normalizeTextureText(
+      [
+        'Scoring Guidance Full credit requires evidence and a limitation.',
+        'Rubric',
+        'Beginning Lists ideas without source evidence.',
+        'Active learning lowers failure rates across STEM disciplines (Freeman et al., 2014). doi:10.1073/pnas.1319030111',
+      ].join('\n'),
+    );
+
+    expect(normalized).toContain('Full credit requires evidence and a limitation.');
+    expect(normalized).toContain('Lists ideas without source evidence.');
+    expect(normalized).not.toContain('Scoring Guidance');
+    expect(normalized).not.toMatch(/^Rubric$/m);
+    expect(normalized).not.toContain('Freeman et al.');
+    expect(normalized).not.toContain('doi:');
+
+    const labeledStamp = computeTexture(
+      Array.from({ length: 5 }, (_, index) => ({
+        id: `doc-${index}`,
+        feature: 'rubrics',
+        text: normalizeTextureText(
+          `Scoring Guidance Full credit requires evidence and a limitation.\nBeginning Lists ideas without source evidence.`,
+        ),
+      })),
+    );
+    expect(labeledStamp.evidence.some((item) => /full credit requires evidence/.test(item.shingle))).toBe(true);
   });
 });
 
@@ -309,6 +343,19 @@ describe('D1(2b) — compiler prose texture regression guard', () => {
     expect(countPhrase(text, 'one example is enough to prove')).toBeLessThanOrEqual(2);
     expect(countPhrase(text, 'concise worked example that shows how')).toBeLessThanOrEqual(2);
     expect(countPhrase(text, 'independent work with spot coaching')).toBeLessThanOrEqual(2);
+    expect(countPhrase(text, 'a heading to copy')).toBeLessThanOrEqual(2);
+    expect(countPhrase(text, 'a limitation and avoids invented source detail')).toBeLessThanOrEqual(2);
+    expect(countPhrase(text, 'acknowledge a limitation or risk')).toBeLessThanOrEqual(2);
+    expect(countPhrase(text, 'a decision tool for the')).toBeLessThanOrEqual(2);
+    expect(countPhrase(text, 'as a label without showing what evidence makes it')).toBeLessThanOrEqual(2);
+    expect(countPhrase(text, 'limitation that would sharpen')).toBeLessThanOrEqual(2);
+    expect(countPhrase(text, 'bias check: check whether')).toBeLessThanOrEqual(2);
+    expect(countPhrase(text, 'use feedback to improve')).toBeLessThanOrEqual(2);
+    expect(countPhrase(text, 'marked revision, not just a conversation')).toBeLessThanOrEqual(2);
+    expect(countPhrase(text, 'memo, annotated outline')).toBeLessThanOrEqual(2);
+    expect(countPhrase(text, 'a next step that is feasible')).toBeLessThanOrEqual(2);
+    expect(countPhrase(text, 'extending, questioning, or refining')).toBeLessThanOrEqual(2);
+    expect(countPhrase(text, 'apply the lesson concepts to a new scenario')).toBeLessThanOrEqual(2);
   });
 });
 

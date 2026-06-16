@@ -16,7 +16,7 @@
  *      briefs…) we mask the variable tokens — known slot values (course /
  *      lesson / registry titles) when provided, plus capitalized multiword
  *      runs and digits as the general heuristic — then compute the average
- *      pairwise 8-word-shingle overlap coefficient (|A∩B| / min(|A|,|B|)).
+ *      pairwise 12-word-shingle Jaccard overlap (|A∩B| / |A∪B|).
  *      Slot variation alone earns NO texture credit: a template sentence
  *      that is identical once its slots are masked counts as identical.
  *      sameness = 100 × (1 − avg overlap), doc-count-weighted across groups.
@@ -27,7 +27,7 @@
  *      opener), averaged over documents with enough sentences to mean
  *      anything. Uniform "Students will…" drumbeats score low.
  *
- *   3. TAILS (weight 0.25) — template-tail frequency. Masked 8-word shingles
+ *   3. TAILS (weight 0.25) — template-tail frequency. Masked 12-word shingles
  *      appearing in ≥60% of a same-feature group are template tails (the
  *      phrases a professor senses on page two). tails = 100 × (1 − tail
  *      shingle density over the group's distinct shingles).
@@ -51,11 +51,16 @@ export const TEXTURE_VERSION = '1.0.0';
 
 export const TEXTURE_SUBSCORE_WEIGHTS = { sameness: 0.5, openers: 0.25, tails: 0.25 };
 
-const SHINGLE_SIZE = 8;
+const SHINGLE_SIZE = 12;
 const TAIL_DOC_RATIO = 0.6;
 const MAX_EVIDENCE = 5;
 const MIN_OPENER_SENTENCES = 4;
 const MIN_OPENER_TOKENS = 4;
+const STRUCTURAL_HEADING_PATTERN =
+  /^(?:overview|objectives?|materials?|outline|agenda|activity|activities|closing activity|purpose|prompt|deliverables?|grading criteria|rubric|criteria|criterion|question|answer|sample answer|explanation|scoring guidance|rubric hints|intended use|objective aligned|difficulty|points|estimated minutes|tags|speaker notes|suggested visual|discussion prompt|instructor notes|course faq|faq|key terms?|review questions?|practice activities|concept connections|summary|assignment brief|lesson plan|slide deck|study guide)$/i;
+const STRUCTURAL_PREFIX_PATTERN =
+  /^(?:overview|objectives?|materials?|outline|agenda|activity|activities|closing activity|purpose|prompt|deliverables?|grading criteria|rubric|criteria|criterion|exemplary|proficient|developing|beginning|question|answer|sample answer|explanation|scoring guidance|rubric hints|intended use|objective aligned|blooms? level|difficulty|points|estimated minutes|tags|speaker notes|suggested visual|discussion prompt|instructor notes|course faq|faq|key terms?|review questions?|practice activities|concept connections|summary|calibration check|bias check|source check|student transparency|post-score review|post score review|revision prompt|scorer calibration use|student-facing use|student facing use|grade policy connection|accessibility and udl|teacher notes|assessment cadence)\s*:?\s*/i;
+const STRUCTURAL_REFERENCE_PATTERN = /\b(?:doi\b|et al\.?|https?:\/\/|isbn\b|retrieved from)\b/i;
 
 // Internal mask tokens survive word tokenization as plain words; evidence
 // rendering maps them back to readable placeholders.
@@ -179,7 +184,8 @@ export function computeTexture(docs = [], { slotValues = [] } = {}) {
             : [groupDocs[j].shingles, groupDocs[i].shingles];
         let intersection = 0;
         for (const shingle of small) if (large.has(shingle)) intersection += 1;
-        pairSum += small.size > 0 ? intersection / small.size : 0;
+        const union = groupDocs[i].shingles.size + groupDocs[j].shingles.size - intersection;
+        pairSum += union > 0 ? intersection / union : 0;
         pairCount += 1;
       }
     }
@@ -278,9 +284,27 @@ export function textureDocsFromFiles(files = []) {
     .map((file) => ({
       id: file.path,
       feature: file.featureId,
-      text: Array.isArray(file.paragraphs) && file.paragraphs.length > 0 ? file.paragraphs.join('\n') : file.text || '',
+      text: normalizeTextureText(
+        Array.isArray(file.paragraphs) && file.paragraphs.length > 0 ? file.paragraphs.join('\n') : file.text || '',
+      ),
     }))
     .filter((doc) => doc.text.trim().length > 0);
+}
+
+export function normalizeTextureText(text) {
+  return String(text || '')
+    .split(/\n+/)
+    .map((line) => {
+      let cleaned = line.replace(/\s+/g, ' ').trim();
+      for (let index = 0; index < 3; index += 1) {
+        const next = cleaned.replace(STRUCTURAL_PREFIX_PATTERN, '').trim();
+        if (next === cleaned) break;
+        cleaned = next;
+      }
+      return cleaned;
+    })
+    .filter((line) => line && !STRUCTURAL_HEADING_PATTERN.test(line) && !STRUCTURAL_REFERENCE_PATTERN.test(line))
+    .join('\n');
 }
 
 /**
