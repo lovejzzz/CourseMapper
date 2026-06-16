@@ -5,11 +5,24 @@ import {
   repairWorkspaceReadiness,
 } from './deliverableReadiness';
 import { buildPackageRepairQueue, evaluateClassroomReadiness } from './classroomReadiness';
-import { generateCourseHealthReport } from './pedagogicalValidator';
-import { normalizeReadinessIssue, normalizeReadinessIssues } from './readinessIssueSchema';
 import { auditDeliverableContentQuality } from './contentQualityChecks';
 import { repairDeliverableContentQuality } from './contentQualityRepair';
+import { generateCourseHealthReport } from './pedagogicalValidator';
 import { repairMisappliedObservationProtocols } from './observationProtocols';
+import { normalizeReadinessIssue, normalizeReadinessIssues } from './readinessIssueSchema';
+
+const FULL_PACKAGE_QUALITY_FEATURES = [
+  'courseMap',
+  'syllabus',
+  'lessonPlans',
+  'slideDecks',
+  'assignments',
+  'rubrics',
+  'discussions',
+  'quizBank',
+  'studyGuides',
+  'courseFaq',
+];
 
 function featureLabel(featureId) {
   return READINESS_FEATURE_LABELS[featureId] || (featureId?.startsWith('custom_') ? 'Custom Deliverable' : featureId);
@@ -296,14 +309,31 @@ export function buildEnrichmentCoverageIssues(enrichmentOutcome) {
  */
 export function buildQualityGateIssues(quality) {
   if (quality?.status !== 'graded') return [];
-  const p0 = Number(quality?.findingCounts?.p0) || 0;
+  const p0Findings = Array.isArray(quality?.findings)
+    ? quality.findings.filter((finding) => finding?.severity === 'P0')
+    : null;
+  const p0 = p0Findings ? p0Findings.length : Number(quality?.findingCounts?.p0) || 0;
   if (p0 <= 0) return [];
+  const featureIds = Array.isArray(quality?.featureIds) ? quality.featureIds.filter(Boolean) : null;
+  const isFullPackage =
+    featureIds && FULL_PACKAGE_QUALITY_FEATURES.every((featureId) => featureIds.includes(featureId));
+  const blockingP0Findings = p0Findings
+    ? p0Findings.filter((finding) => {
+        const isScopeSensitiveDensityProbe =
+          !isFullPackage &&
+          finding?.dimension === 'discipline' &&
+          /\bterm density is low\b/i.test(String(finding?.detail || ''));
+        return !isScopeSensitiveDensityProbe;
+      })
+    : null;
+  const blockingP0 = blockingP0Findings ? blockingP0Findings.length : p0;
+  if (blockingP0 <= 0) return [];
   return [
     normalizeReadinessIssue({
       severity: 'blocker',
       featureId: 'courseMap',
       label: 'Quality grade',
-      message: `Package quality grader found ${p0} P0 finding${p0 === 1 ? '' : 's'} (score ${quality.score}/100, grade ${quality.grade}) — review the quality report before downloading`,
+      message: `Package quality grader found ${blockingP0} blocking P0 finding${blockingP0 === 1 ? '' : 's'} (score ${quality.score}/100, grade ${quality.grade}) — review the quality report before downloading`,
       source: 'qualityGate',
       retryable: false,
       autoFixable: false,

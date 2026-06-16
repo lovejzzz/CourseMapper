@@ -73,6 +73,7 @@ export async function gradePackageAtFinalize({
     if (quality.status !== 'graded') return quality;
     return {
       ...quality,
+      featureIds: Array.isArray(featureIds) ? [...featureIds] : null,
       // Structured extras for the badge modal (rendered as a summary view —
       // the chat markdown renderer lives in the ChatPanel chunk and is too
       // heavy to pull into the export panel).

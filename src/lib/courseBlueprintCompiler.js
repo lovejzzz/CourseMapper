@@ -11350,6 +11350,9 @@ function assignmentDeliverablesForLesson({ lesson = {}, assessment = {}, submiss
     `One-sentence revision log explaining what changed before submission.`,
     `Short self-check naming the weakest evidence link and the edit made to strengthen it.`,
     `Final note identifying the feedback, limitation, or criterion that shaped the last revision.`,
+    `Submission note explaining which rubric signal or source detail changed the final draft.`,
+    `Brief revision trace naming the evidence, peer comment, or criterion students acted on.`,
+    `Final self-review line showing what was clarified, narrowed, or corrected before upload.`,
   ]);
   return [firstLine, evidenceLine, revisionLine];
 }
@@ -14298,6 +14301,9 @@ function compileAssignments(blueprint) {
             'Use enough detail for each scoring criterion, and defer to any local length requirement.',
             'Write to the depth needed for the rubric rather than a fixed word count unless the instructor supplies one.',
             'Include enough evidence for every criterion while following the instructor-provided length target.',
+            'Use the space needed to make the claim, evidence, limitation, and revision decision inspectable.',
+            'Prioritize complete evidence and reasoning over word count; apply any course-specific length rule last.',
+            'Write enough for a scorer to verify each criterion, then trim repetition before submission.',
           ]),
           format: submissionProfile.expectedFormat,
           reviewProtocol: `For ${stripLessonPrefix(lesson.title)}, ${submissionProfile.reviewProtocol}.`,
@@ -15132,12 +15138,12 @@ function compileStudyGuides(blueprint) {
                       {
                         question: `For ${specificity.week}, explain why this ${specificity.concept} claim is true and what evidence supports it: “${stripTerminalPunctuation(lesson.enrichment.kernel.facts[0])}.”`,
                         bloomsLevel: 'Analyze',
-                        hint: `Use ${lesson.keyConcepts.slice(0, 2).join(' and ') || 'the lesson concepts'} in your explanation, and name one observation that backs the claim.`,
+                        hint: `Use ${lesson.keyConcepts.slice(0, 2).join(' and ') || 'the lesson concepts'} in your explanation. What would strong work add? Name one observation that backs the claim and connect it to the method decision.`,
                       },
                     ]
                   : [
                       {
-                        question: `What would strong ${specificity.week} work on ${studyArtifact} need to show about ${specificity.concept}?`,
+                        question: `What would strong work for ${specificity.week} on ${studyArtifact} need to show about ${specificity.concept}?`,
                         bloomsLevel: 'Evaluate',
                         hint: `${lesson.successCriteria.join(' ')} Artifact genre check: ${lesson.artifactGenre?.qualityFocus || 'evidence specificity and revision quality'}.`,
                       },
@@ -15605,6 +15611,9 @@ function buildEssayQuestion({ lesson, index, bloom, objective, concept, lens, pl
         `High-scoring essays connect ${concept} to multiple ${lens.evidenceNoun} examples, defend the ${lens.decisionNoun}, and state what the evidence cannot prove.`,
         `Look for a clear ${concept} claim, two inspectable evidence moves, a defensible ${lens.decisionNoun}, and one honest boundary on the recommendation.`,
         `The strongest work turns ${lens.evidenceNoun} into a reasoned ${lens.decisionNoun}, then explains the tradeoff or uncertainty the decision still carries.`,
+        `Score highest when the response uses ${concept} to compare evidence, choose a justified ${lens.decisionNoun}, and name the remaining uncertainty.`,
+        `A strong essay makes the ${concept} reasoning visible: source detail, interpretation, decision consequence, and one bounded claim.`,
+        `Look for synthesis across ${lens.evidenceNoun}: the answer should weigh evidence, defend the decision, and identify what needs confirmation.`,
       ]),
       sampleAnswer: lessonVariant(lesson, [
         `A strong response for ${lesson.title} would identify how ${concept} changes the artifact, cite evidence from ${lesson.throughlineCase?.evidencePacket || 'the lesson activity or readings'}, and propose a next step that is feasible for ${artifact}. It would also name a ${lesson.title} limitation so the recommendation is not overstated.`,
@@ -17553,6 +17562,9 @@ function buildDiscussionCriteriaSet(lesson) {
       `Builds on a classmate's claim by adding evidence, testing a warrant, or sharpening the ${concept} limit.`,
       `Challenges or develops one peer idea with a source detail rather than a general agreement.`,
       `Moves the exchange forward by asking how the evidence changes the ${concept} decision.`,
+      `Uses a peer comment as a test case for whether the ${concept} evidence is strong enough.`,
+      `Names what a classmate's evidence proves, what it leaves uncertain, and how the claim should change.`,
+      `Turns one reply into a revision move by linking the peer evidence back to ${lesson.studentArtifact}.`,
     ]),
     `Names one limitation, ethical concern, or revision step that would improve ${lesson.studentArtifact}.`,
   ];
@@ -18582,6 +18594,9 @@ function buildLessonPlanOutline(blueprint, lesson, { depth = 'flat' } = {}) {
             `Students mark one prior source detail and explain how it could support today's ${concept} decision.`,
             `Students write a quick evidence note: what from earlier work might change the next move in ${artifact}?`,
             `Students choose one remembered example, name the evidence it contains, and predict how it will matter today.`,
+            `Students revisit one prior claim, identify the evidence behind it, and decide whether it still applies to ${concept}.`,
+            `Students select an earlier course detail and explain how it could strengthen or complicate today's work on ${artifact}.`,
+            `Students jot one remembered example, one missing detail, and one question that should guide the ${concept} lesson.`,
           ]),
       instructorNotes: kernelMisconception
         ? `Reveal the correction only after the vote: ${stripTerminalPunctuation(kernelMisconception.correction || `in fact, ${kernelMisconception.definition}`)}. Connect the discussion to ${lesson.outcomes[0]}.`

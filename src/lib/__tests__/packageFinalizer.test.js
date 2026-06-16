@@ -1,6 +1,10 @@
 import { describe, expect, it } from 'vitest';
 import { buildCourseBlueprint, compileBlueprintDeliverable } from '../courseBlueprintCompiler';
-import { evaluateStrictPackageReadiness, runDeterministicPackageFinalizer } from '../packageFinalizer';
+import {
+  applyQualityToFinalizerResult,
+  evaluateStrictPackageReadiness,
+  runDeterministicPackageFinalizer,
+} from '../packageFinalizer';
 
 function makeCourseMap(lessonCount = 2) {
   return {
@@ -785,6 +789,50 @@ describe('packageFinalizer', () => {
     expect(result.readiness.blockers.filter((issue) => issue.featureId === 'rubrics')).toEqual([]);
     expect(result.readiness.warnings.map((issue) => issue.source)).toContain('validationReview');
     expect(result.retryActions.filter((action) => action.featureId === 'rubrics')).toEqual([]);
+  });
+
+  it('does not turn scope-sensitive term-density P0s into blockers for partial exports', () => {
+    const baseResult = {
+      readiness: { status: 'ready', isBlocked: false, blockers: [], warnings: [], issues: [] },
+    };
+    const densityFinding = {
+      severity: 'P0',
+      dimension: 'discipline',
+      file: 'package',
+      detail: 'psych term density is low (0/40 distinct discipline terms present)',
+      evidence: '(none)',
+    };
+    const partial = applyQualityToFinalizerResult(baseResult, {
+      status: 'graded',
+      score: 74,
+      grade: 'C',
+      findingCounts: { p0: 1, p1: 0, p2: 0 },
+      featureIds: ['courseMap', 'rubrics'],
+      findings: [densityFinding],
+    });
+    const full = applyQualityToFinalizerResult(baseResult, {
+      status: 'graded',
+      score: 74,
+      grade: 'C',
+      findingCounts: { p0: 1, p1: 0, p2: 0 },
+      featureIds: [
+        'courseMap',
+        'syllabus',
+        'lessonPlans',
+        'slideDecks',
+        'assignments',
+        'rubrics',
+        'discussions',
+        'quizBank',
+        'studyGuides',
+        'courseFaq',
+      ],
+      findings: [densityFinding],
+    });
+
+    expect(partial.readiness.blockers).toEqual([]);
+    expect(full.readiness.blockers).toHaveLength(1);
+    expect(full.readiness.blockers[0].message).toContain('blocking P0 finding');
   });
 
   it('returns exact retry actions for localized weak sections', () => {
