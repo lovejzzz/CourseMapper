@@ -1555,11 +1555,13 @@ function lessonTeachingMoves(blueprint, lesson = {}) {
   const lessonTitle = stripLessonPrefix(lesson.title || 'this lesson');
   const concept = lesson.keyConcepts?.[0] || lessonTitle;
   const artifact = stripTerminalPunctuation(lesson.studentArtifact || 'student artifact');
+  const basePracticeMove = stripTerminalPunctuation(moves.practiceMove);
+  const basePracticeClause = lowercaseClauseLead(basePracticeMove);
   const practiceVariants = [
-    `${stripTerminalPunctuation(moves.practiceMove)}, anchored in ${concept}, before students revise ${artifact}.`,
-    `After naming ${concept} evidence, students compare one support choice with a peer and decide what ${artifact} should change.`,
-    `Use a quick peer audit of ${concept}: which evidence supports the decision, which detail is weak, and what revision belongs in ${artifact}?`,
-    `Move from individual evidence marking into paired critique, with ${artifact} as the place students record the ${concept} decision.`,
+    `${basePracticeMove}, anchored in ${concept}, before students revise ${artifact}.`,
+    `${basePracticeMove}; students then compare one support choice with a peer and decide what ${artifact} should change.`,
+    `Use a quick peer audit after students ${basePracticeClause}: which evidence supports the decision, which detail is weak, and what revision belongs in ${artifact}?`,
+    `Move from ${basePracticeClause} into paired critique, with ${artifact} as the place students record the ${concept} decision.`,
   ];
   const feedbackVariants = [
     `${stripTerminalPunctuation(moves.feedbackMove)} tied to ${artifact}.`,
@@ -18641,7 +18643,7 @@ function buildLessonPlanOutline(blueprint, lesson, { depth = 'flat' } = {}) {
         ? `Teams take a position on the lesson's live question — “${stripTerminalPunctuation(kernelDiscussion.prompt)}” — and defend it with evidence${kernelCitation ? ` from ${kernelCitation}` : ` about ${concept}`}.`
         : lessonVariant(lesson, [
             `Teams apply ${concept} to a new scenario, compare options, and use this routine: ${stripTerminalPunctuation(cleanText(modality.evidenceRoutine)).replace(/^For [^,]{2,70},\s*/i, '')}.`,
-            `Teams test ${concept} in a fresh case, choose the strongest option, and document how the evidence routine changed their decision: ${stripTerminalPunctuation(cleanText(modality.evidenceRoutine)).replace(/^For [^,]{2,70},\s*/i, '')}.`,
+            `Teams test ${concept} in a fresh case, choose the strongest option, and document how the evidence changed their decision: ${stripTerminalPunctuation(cleanText(modality.evidenceRoutine)).replace(/^For [^,]{2,70},\s*/i, '')}.`,
             `Small groups transfer ${concept} to a different situation, rank the options, and cite the evidence move that made the ranking credible.`,
             `Teams work a parallel case for ${concept}, compare the consequences of two choices, and prepare one evidence-backed report-out.`,
           ]),
