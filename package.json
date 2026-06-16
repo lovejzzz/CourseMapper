@@ -26,6 +26,8 @@
     "audit:release-history": "node scripts/auditReleaseHistory.mjs",
     "audit:pipeline": "node scripts/hybridPipelineAudit.mjs",
     "audit:gold": "node scripts/goldSampleQualityAudit.mjs",
+    "audit:gold:smoke": "node scripts/goldSampleQualityAudit.mjs --sample gold-research-methods-short-5,gold-ai-course-design-8,gold-community-health-semester-14",
+    "audit:deep-quality": "node scripts/deepProofQualityGate.mjs",
     "audit:self": "node scripts/internalSelfImprovementAudit.mjs",
     "audit:self:rounds": "node scripts/internalSelfImprovementAudit.mjs --rounds 5",
     "audit:self:100": "node scripts/internalSelfImprovementAudit.mjs --rounds 100",

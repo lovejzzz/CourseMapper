@@ -1,0 +1,241 @@
+#!/usr/bin/env node
+import { spawn } from 'node:child_process';
+import fs from 'node:fs/promises';
+import path from 'node:path';
+import process from 'node:process';
+
+const ROOT = process.cwd();
+const DEFAULT_OUTPUT_DIR = path.join(ROOT, 'verification-output', 'deep-proof-quality-gate');
+
+const QUALITY_GATES = [
+  {
+    label: 'Blueprint quality matrix',
+    command: 'npm',
+    args: ['run', 'test:blueprint:quality'],
+  },
+  {
+    label: 'Deliverable quality audit',
+    command: 'npm',
+    args: ['run', 'audit:deliverables'],
+  },
+  {
+    label: 'Gold sample quality audit',
+    command: 'npm',
+    args: ['run', 'audit:gold'],
+    reports: [
+      'verification-output/gold-sample-quality-audit/latest.md',
+      'verification-output/gold-sample-quality-audit/latest.json',
+    ],
+  },
+  {
+    label: 'Internal expert-style audit',
+    command: 'npm',
+    args: ['run', 'audit:expert'],
+    reports: [
+      'verification-output/expert-review-quality-audit/latest.md',
+      'verification-output/expert-review-quality-audit/latest.json',
+    ],
+  },
+  {
+    label: 'Optional proof packet build',
+    command: 'npm',
+    args: ['run', 'audit:expert:packet'],
+    reports: [
+      'verification-output/external-quality-proof-packet/latest.md',
+      'verification-output/external-quality-proof-packet/latest.json',
+    ],
+  },
+];
+
+function parseArgs(argv) {
+  const args = {
+    mode: process.env.DEEP_PROOF_QUALITY_MODE || 'strict',
+    outputDir: DEFAULT_OUTPUT_DIR,
+  };
+  for (let i = 0; i < argv.length; i += 1) {
+    const arg = argv[i];
+    if (arg === '--mode') args.mode = argv[++i] || args.mode;
+    else if (arg === '--output') args.outputDir = path.resolve(argv[++i] || args.outputDir);
+    else if (arg === '--help' || arg === '-h') args.help = true;
+  }
+  if (!['strict', 'advisory'].includes(args.mode)) {
+    throw new Error(`Unsupported --mode "${args.mode}". Expected "strict" or "advisory".`);
+  }
+  return args;
+}
+
+function formatDuration(ms) {
+  const seconds = Math.max(0, Math.round(Number(ms || 0) / 1000));
+  const minutes = Math.floor(seconds / 60);
+  const remaining = seconds % 60;
+  return minutes > 0 ? `${minutes}m ${remaining}s` : `${remaining}s`;
+}
+
+function escapeGithubCommandValue(value) {
+  return String(value).replaceAll('%', '%25').replaceAll('\r', '%0D').replaceAll('\n', '%0A');
+}
+
+function emitWarning(message) {
+  console.warn(message);
+  if (process.env.GITHUB_ACTIONS === 'true') {
+    console.log(`::warning title=Deep proof advisory::${escapeGithubCommandValue(message)}`);
+  }
+}
+
+async function fileExists(filePath) {
+  try {
+    await fs.access(filePath);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+async function existingReports(reports = []) {
+  const rows = [];
+  for (const report of reports) {
+    const absolutePath = path.resolve(ROOT, report);
+    if (await fileExists(absolutePath)) {
+      rows.push(path.relative(ROOT, absolutePath));
+    }
+  }
+  return rows;
+}
+
+function runGate(gate) {
+  return new Promise((resolve) => {
+    const startedAt = Date.now();
+    console.log(`\n[deep-proof:quality] start ${gate.label}`);
+    const child = spawn(gate.command, gate.args, {
+      cwd: ROOT,
+      env: process.env,
+      stdio: 'inherit',
+    });
+
+    child.on('error', (error) => {
+      resolve({
+        ...gate,
+        status: 'fail',
+        exitCode: 1,
+        error: error.message,
+        durationMs: Date.now() - startedAt,
+      });
+    });
+
+    child.on('close', (code, signal) => {
+      const durationMs = Date.now() - startedAt;
+      const exitCode = code ?? 1;
+      const status = exitCode === 0 ? 'pass' : 'fail';
+      console.log(`[deep-proof:quality] ${status} ${gate.label} elapsed=${formatDuration(durationMs)}`);
+      resolve({
+        ...gate,
+        status,
+        exitCode,
+        signal,
+        durationMs,
+      });
+    });
+  });
+}
+
+function renderMarkdown(payload) {
+  const gateRows = payload.gates.map(
+    (gate) =>
+      `| ${gate.label} | ${gate.status} | ${gate.exitCode} | ${formatDuration(gate.durationMs)} | ${
+        gate.existingReports.length > 0 ? gate.existingReports.join('<br>') : ''
+      } |`,
+  );
+  const failedRows = payload.gates
+    .filter((gate) => gate.status !== 'pass')
+    .map((gate) => `- ${gate.label}: exit ${gate.exitCode}${gate.signal ? `, signal ${gate.signal}` : ''}`);
+
+  return [
+    '# Deep Proof Quality Gate',
+    '',
+    `Generated: ${payload.meta.generatedAt}`,
+    `Mode: ${payload.meta.mode}`,
+    `Status: ${payload.summary.status}`,
+    `Failed gates: ${payload.summary.failedCount}`,
+    '',
+    'Schedule policy: advisory mode records educational-quality regressions as reports and warnings. Strict mode is used for manual pre-release checks and release branches.',
+    '',
+    '## Gates',
+    '',
+    '| Gate | Status | Exit Code | Duration | Reports |',
+    '| --- | --- | ---: | ---: | --- |',
+    ...gateRows,
+    '',
+    '## Failures',
+    '',
+    ...(failedRows.length > 0 ? failedRows : ['- None.']),
+    '',
+  ].join('\n');
+}
+
+async function writeReport(payload, outputDir) {
+  await fs.mkdir(outputDir, { recursive: true });
+  const jsonPath = path.join(outputDir, 'latest.json');
+  const markdownPath = path.join(outputDir, 'latest.md');
+  await fs.writeFile(jsonPath, `${JSON.stringify(payload, null, 2)}\n`);
+  await fs.writeFile(markdownPath, `${renderMarkdown(payload)}\n`);
+  return { jsonPath, markdownPath };
+}
+
+async function main() {
+  const args = parseArgs(process.argv.slice(2));
+  if (args.help) {
+    console.log('Usage: node scripts/deepProofQualityGate.mjs [--mode strict|advisory] [--output DIR]');
+    return;
+  }
+
+  const startedAt = Date.now();
+  const results = [];
+  for (const gate of QUALITY_GATES) {
+    const result = await runGate(gate);
+    result.existingReports = await existingReports(gate.reports);
+    results.push(result);
+  }
+
+  const failed = results.filter((result) => result.status !== 'pass');
+  const payload = {
+    meta: {
+      generatedAt: new Date().toISOString(),
+      mode: args.mode,
+      elapsedMs: Date.now() - startedAt,
+    },
+    summary: {
+      status: failed.length > 0 ? 'fail' : 'pass',
+      gateCount: results.length,
+      failedCount: failed.length,
+      advisory: args.mode === 'advisory',
+    },
+    gates: results.map((result) => ({
+      label: result.label,
+      command: [result.command, ...result.args].join(' '),
+      status: result.status,
+      exitCode: result.exitCode,
+      signal: result.signal || null,
+      durationMs: result.durationMs,
+      existingReports: result.existingReports || [],
+      error: result.error || null,
+    })),
+  };
+
+  const paths = await writeReport(payload, args.outputDir);
+  console.log(`\nDeep proof quality gate: ${payload.summary.status}`);
+  console.log(`Mode: ${args.mode}`);
+  console.log(`Report: ${paths.markdownPath}`);
+
+  if (failed.length > 0 && args.mode === 'advisory') {
+    emitWarning(
+      `Educational quality advisory found ${failed.length} failing gate(s); reports were saved without failing the scheduled workflow.`,
+    );
+  } else if (failed.length > 0) {
+    process.exitCode = 1;
+  }
+}
+
+main().catch((error) => {
+  console.error(error);
+  process.exitCode = 1;
+});

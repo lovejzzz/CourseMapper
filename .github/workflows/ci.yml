@@ -46,6 +46,7 @@ jobs:
           npm run test:blueprint:quality:fast
           npm run audit:deliverables
           npm run audit:pipeline
+          npm run audit:gold:smoke
 
       - name: Build
         run: npm run build

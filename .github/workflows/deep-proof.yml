@@ -1,10 +1,16 @@
 name: Deep proof gates
 
-# Deep proof is the heavy, slow battery (gold audit + full e2e + audits, ~15-25
-# min). It is NOT a per-commit gate on main: routine commits are covered by the
-# ~2-3 min "Fast verification" workflow plus the full battery run locally before
-# every push. Deep proof runs nightly (catch within a day), on every release/**
-# branch (so releases are fully gated), and on demand via workflow_dispatch.
+# Deep proof is the heavy battery. It is NOT a per-commit gate on main: routine
+# commits are covered by Fast verification. Deep proof runs nightly, on every
+# release/** branch, and on demand via workflow_dispatch.
+#
+# Policy:
+# - App/runtime gates stay strict everywhere: broken build/export/download,
+#   failing E2E, rules failures, or package-integrity failures should make the
+#   workflow red.
+# - Educational-quality gates are strict for workflow_dispatch and release/**
+#   pushes, but advisory for scheduled runs. Nightly quality regressions upload
+#   reports and warnings without making GitHub look broken.
 on:
   workflow_dispatch:
   schedule:
@@ -78,8 +84,8 @@ jobs:
           echo "reason=$reason" >> "$GITHUB_OUTPUT"
           echo "Deep proof decision: $run_deep ($reason)"
 
-  verify-deep:
-    name: Deep proof gates
+  verify-app:
+    name: Deep proof app/runtime gates
     runs-on: ubuntu-latest
     timeout-minutes: 75
     needs: detect-scope
@@ -107,26 +113,66 @@ jobs:
       - name: Install Playwright browser
         run: npx playwright install --with-deps chromium
 
-      - name: Blueprint quality matrix
-        run: npm run test:blueprint:quality
-
-      - name: Deliverable quality audit
-        run: npm run audit:deliverables
+      - name: Build
+        run: npm run build
 
       - name: Hybrid pipeline audit
         run: npm run audit:pipeline
-
-      - name: Gold sample quality audit
-        run: npm run audit:gold
-
-      - name: Internal expert-style audit
-        run: npm run audit:expert
-
-      - name: Optional proof packet build
-        run: npm run audit:expert:packet
 
       - name: E2E tests
         run: npm run test:e2e
 
       - name: Firebase rules tests
         run: npm run test:rules
+
+      - name: Bundle budgets
+        run: npm run bundle:check
+
+      - name: Upload app proof reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: deep-proof-app-reports
+          path: |
+            verification-output/hybrid-pipeline-audit/latest.*
+            test-results/**
+            playwright-report/**
+          if-no-files-found: ignore
+
+  quality-intelligence:
+    name: Deep proof quality intelligence
+    runs-on: ubuntu-latest
+    timeout-minutes: 75
+    needs: detect-scope
+    if: needs.detect-scope.outputs.run_deep == 'true'
+
+    steps:
+      - name: Scope reason
+        run: echo "${{ needs.detect-scope.outputs.reason }}"
+
+      - uses: actions/checkout@v6
+
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Educational quality gates
+        env:
+          DEEP_PROOF_QUALITY_MODE: ${{ github.event_name == 'schedule' && 'advisory' || 'strict' }}
+        run: npm run audit:deep-quality -- --mode "$DEEP_PROOF_QUALITY_MODE"
+
+      - name: Upload quality reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: deep-proof-quality-reports
+          path: |
+            verification-output/deep-proof-quality-gate/**
+            verification-output/gold-sample-quality-audit/latest.*
+            verification-output/expert-review-quality-audit/latest.*
+            verification-output/external-quality-proof-packet/latest.*
+          if-no-files-found: ignore
