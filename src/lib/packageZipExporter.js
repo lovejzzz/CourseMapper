@@ -515,8 +515,9 @@ export async function buildCourseMaterialsZip({
   // manifest serialized WITHOUT its quality block, then quality is injected
   // before zip assembly. The grader ignores manifest.quality and skips
   // QUALITY_REPORT.md by contract, so a downloaded package regrades to the
-  // same score. Grading is bounded (10s default) and never fails the export:
-  // any timeout/error becomes quality { status: 'not-graded', reason }.
+  // same score. Grading is bounded (10s default); timeout/error becomes
+  // quality { status: 'not-graded', reason }. Actual graded P0s are handled
+  // by the finalizer quality gate before the export panel downloads the ZIP.
   let qualityBlock = null;
   let qualityResult = null;
   let qualityReportMarkdown = null;

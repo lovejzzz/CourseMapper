@@ -16,7 +16,7 @@
  *       downloaded zip reproduces the embedded score).
  *   (3) Seeded P0 — a discipline P0 (Mandarin-titled course with zero CJK)
  *       lands in manifest.quality.findingCounts AND surfaces as a
- *       finalizer readiness warning through applyQualityToFinalizerResult.
+ *       finalizer readiness blocker through applyQualityToFinalizerResult.
  *   (4) Timeout path — quality { status: 'not-graded', reason } while the
  *       zip stays complete.
  *   (5) Export verifier count regression net — QUALITY_REPORT.md adds no
@@ -264,7 +264,7 @@ describe('A5(2) — healthy package ships its own audit', () => {
 });
 
 describe('A5(3) — seeded P0 reaches the manifest and the readiness channel', () => {
-  it('a Mandarin-titled package with zero CJK carries the discipline P0 and the finalizer warning', async () => {
+  it('a Mandarin-titled package with zero CJK carries the discipline P0 and blocks readiness', async () => {
     // The in-zip course identity comes from the manifest courseName — naming
     // the geology-content fixture as a Mandarin course makes the language
     // probe fire deterministically (zero CJK/pinyin in its own materials).
@@ -279,8 +279,8 @@ describe('A5(3) — seeded P0 reaches the manifest and the readiness channel', (
     );
     expect(manifest.quality.findingCounts.p0).toBeGreaterThanOrEqual(1);
 
-    // The finalizer integration seam AppFlow applies after grading: the P0
-    // becomes a readiness WARNING (source qualityGate), never a blocker.
+    // The finalizer integration seam AppFlow applies after grading: a P0 is
+    // no longer a soft warning because the package is not safe to hand off.
     const { fixture } = result;
     const finalizerResult = runDeterministicPackageFinalizer({
       courseMap: fixture.courseMap,
@@ -290,12 +290,12 @@ describe('A5(3) — seeded P0 reaches the manifest and the readiness channel', (
     });
     const withQuality = applyQualityToFinalizerResult(finalizerResult, result.quality);
     expect(withQuality.quality).toEqual(result.quality);
-    const warning = withQuality.readiness.warnings.find((issue) => issue.source === 'qualityGate');
-    expect(warning, JSON.stringify(withQuality.readiness.warnings)).toBeTruthy();
-    expect(warning.severity).toBe('warning');
-    expect(warning.message).toMatch(/P0 finding/);
-    expect(warning.message).toMatch(/QUALITY_REPORT\.md/);
-    expect(withQuality.readiness.blockers).toEqual(finalizerResult.readiness.blockers);
+    const blocker = withQuality.readiness.blockers.find((issue) => issue.source === 'qualityGate');
+    expect(blocker, JSON.stringify(withQuality.readiness.blockers)).toBeTruthy();
+    expect(blocker.severity).toBe('blocker');
+    expect(blocker.message).toMatch(/P0 finding/);
+    expect(blocker.message).toMatch(/quality report/i);
+    expect(withQuality.readiness.status).toBe('blocked');
 
     // A clean grade adds nothing to the channel.
     const clean = applyQualityToFinalizerResult(finalizerResult, {

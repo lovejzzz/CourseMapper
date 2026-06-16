@@ -14,13 +14,36 @@
  * shadowing) get their own profiles when their disciplines join the genome.
  */
 
-const SKY_OBSERVATION_RE =
-  /night[\s-]?sky|sky[\s-]?watch|observation log|observing log|planetarium|telescope|stargaz|naked[\s-]?eye observ|astronom/i;
+const SKY_CONTEXT_RE =
+  /\b(?:astronom(?:y|ical)?|night[\s-]?sky|sky[\s-]?watch|celestial|planetarium|telescope|stargaz(?:e|ing)?|naked[\s-]?eye|moon|lunar|constellation|star\s+chart|stars?|solar system|galax(?:y|ies)|cosmolog(?:y|ical)?)\b/i;
+const OBSERVING_INTENT_RE =
+  /\b(?:observ(?:e|ing|ation)|log(?:s|ging)?|field\s+note|sky\s+chart|planetarium|telescope|stargaz(?:e|ing)?|naked[\s-]?eye)\b/i;
+const SKY_PROTOCOL_LEAK_RE =
+  /\b(?:Stellarium|planetarium|night[\s-]?sky|naked[\s-]?eye|light[\s-]?pollution|limiting magnitude|telescope|binoculars|dark adaptation|red light|sky conditions|star chart|celestial|constellation|altitude-in-fists)\b/i;
+const LESSON_PLAN_CONTAINER_KEYS = ['lessonPlans', 'plans', 'lessons'];
 
 function cleanText(value) {
   return String(value ?? '')
     .replace(/\s+/g, ' ')
     .trim();
+}
+
+function objectHasOwn(object, key) {
+  return Object.prototype.hasOwnProperty.call(object, key);
+}
+
+function protocolText(value) {
+  if (value === null || value === undefined) return '';
+  if (typeof value === 'string') return cleanText(value);
+  try {
+    return cleanText(JSON.stringify(value));
+  } catch {
+    return cleanText(value);
+  }
+}
+
+function isLeakedSkyProtocol(value) {
+  return SKY_PROTOCOL_LEAK_RE.test(protocolText(value));
 }
 
 /** Does this course's own language promise sky observation work? */
@@ -32,11 +55,19 @@ export function detectSkyObservationCourse({ courseName = '', lessons = [] } = {
       lesson?.activityPattern,
       lesson?.studentArtifact,
       ...(lesson?.readings || []),
+      ...(lesson?.sections || []).flatMap((section) => [
+        section?.topicSection,
+        section?.learningObjectives,
+        section?.weeklyAssessments,
+        section?.asyncActivities,
+        section?.syncActivities,
+        section?.supportingResources,
+      ]),
     ]),
   ]
     .map(cleanText)
     .join(' ');
-  return SKY_OBSERVATION_RE.test(text);
+  return SKY_CONTEXT_RE.test(text) && OBSERVING_INTENT_RE.test(text);
 }
 
 // The log fields every entry records — real observing-log practice.
@@ -112,4 +143,58 @@ export function buildObservationProtocol({ courseName = '', lessons = [], lesson
     cloudyAlternative: CLOUDY_ALTERNATIVE,
     observingBasics: OBSERVING_BASICS,
   };
+}
+
+function repairLessonPlanObservationProtocol(plan, stats) {
+  if (!plan || typeof plan !== 'object' || Array.isArray(plan)) return plan;
+  if (!objectHasOwn(plan, 'observationProtocol') || !isLeakedSkyProtocol(plan.observationProtocol)) return plan;
+  const { observationProtocol: _removedProtocol, ...nextPlan } = plan;
+  stats.removedCount += 1;
+  return nextPlan;
+}
+
+function repairLessonPlanArray(plans, stats) {
+  let changed = false;
+  const repaired = plans.map((plan) => {
+    const nextPlan = repairLessonPlanObservationProtocol(plan, stats);
+    if (nextPlan !== plan) changed = true;
+    return nextPlan;
+  });
+  return changed ? repaired : plans;
+}
+
+/**
+ * Remove stale astronomy observing protocols from non-sky lesson-plan data.
+ * This is a deterministic legacy repair for packages generated before the
+ * detector required both sky context and observing intent.
+ */
+export function repairMisappliedObservationProtocols({ courseName = '', lessons = [], data = null } = {}) {
+  if (!data || typeof data !== 'object') return { data, changed: false, removedCount: 0 };
+  if (detectSkyObservationCourse({ courseName, lessons })) return { data, changed: false, removedCount: 0 };
+
+  const stats = { removedCount: 0 };
+  if (Array.isArray(data)) {
+    const repairedPlans = repairLessonPlanArray(data, stats);
+    return { data: repairedPlans, changed: repairedPlans !== data, removedCount: stats.removedCount };
+  }
+
+  let changed = false;
+  let nextData = data;
+
+  for (const key of LESSON_PLAN_CONTAINER_KEYS) {
+    if (!Array.isArray(data?.[key])) continue;
+    const repairedPlans = repairLessonPlanArray(data[key], stats);
+    if (repairedPlans === data[key]) continue;
+    if (nextData === data) nextData = { ...data };
+    nextData[key] = repairedPlans;
+    changed = true;
+  }
+
+  const repairedRoot = repairLessonPlanObservationProtocol(nextData, stats);
+  if (repairedRoot !== nextData) {
+    nextData = repairedRoot;
+    changed = true;
+  }
+
+  return { data: nextData, changed, removedCount: stats.removedCount };
 }

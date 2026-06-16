@@ -12,8 +12,9 @@
  * assertions replace the Crucible's console-log scan (excluded checks are
  * named in IN_APP_EXCLUDED_CHECKS on the grader).
  *
- * Contract: NEVER throws and never blocks the package — assembly or grading
- * failure/timeout returns { status: 'not-graded', reason } instead.
+ * Contract: NEVER throws. Assembly or grading failure/timeout returns
+ * { status: 'not-graded', reason }; graded P0 findings are converted to
+ * readiness blockers by packageFinalizer.applyQualityToFinalizerResult.
  *
  * This module is dynamically imported from AppFlow so the grader + patterns
  * stay a lazy chunk loaded only when finalize-grading runs (WS-A A4).

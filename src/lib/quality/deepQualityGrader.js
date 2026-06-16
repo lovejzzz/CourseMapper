@@ -2383,6 +2383,17 @@ const ASTRO_VOCAB = [
   'cosmology',
 ];
 
+const ASTRO_OBSERVING_CONTAMINATION_TERMS = [
+  { label: 'naked-eye observing', re: /\bnaked[-\s]?eye observing\b/i },
+  { label: 'light-pollution estimate', re: /\blight[-\s]?pollution estimate\b/i },
+  { label: 'limiting magnitude', re: /\blimiting magnitude\b/i },
+  { label: 'sky conditions', re: /\bsky conditions\b/i },
+  { label: 'telescope', re: /\btelescope\b/i },
+  { label: 'Stellarium', re: /\bStellarium\b/i },
+  { label: 'dark adaptation', re: /\bdark adaptation\b/i },
+  { label: 'altitude-in-fists', re: /\bone fist at arm[’']s length\b/i },
+];
+
 function inferDisciplineProbe(course) {
   // A course's expectGenome discipline (set in courses.mjs) takes precedence so
   // the probe always matches the genome the round expects.
@@ -2408,7 +2419,11 @@ function inferDisciplineProbe(course) {
   if (/psycholog/.test(text) || course?.id === 'psych-101') return 'psych';
   if (/nursing|nurse/.test(text) || course?.id === 'nursing-fundamentals') return 'nursing';
   if (/nutrition|dietetic/.test(text) || course?.id === 'nutrition-101') return 'nutrition';
-  if (/astronom|astrophysic/.test(text) || course?.id === 'astro-101') return 'astro';
+  if (
+    /astronom|astrophysic|cosmolog|celestial|telescope|night sky|planetary|galax/.test(text) ||
+    course?.id === 'astro-101'
+  )
+    return 'astro';
   return null;
 }
 
@@ -2431,9 +2446,39 @@ const GENOME_DENSITY_PROBES = {
   astro: ASTRO_VOCAB,
 };
 
+function quoteAroundMatch(text, regex, limit = 200) {
+  const clean = String(text || '')
+    .replace(/\s+/g, ' ')
+    .trim();
+  const match = regex.exec(clean);
+  if (!match) return quote(clean, limit);
+  const start = Math.max(0, match.index - 80);
+  return clean.slice(start, start + limit).trim();
+}
+
+function checkForeignDomainContamination(findings, { files }, probe) {
+  if (probe === 'astro') return;
+  for (const file of files.filter((entry) => entry.featureId && entry.text)) {
+    const hits = ASTRO_OBSERVING_CONTAMINATION_TERMS.filter((term) => term.re.test(file.text));
+    const headerHit = /\bOBSERVATION PROTOCOL THIS WEEK\b/i.test(file.text);
+    if (hits.length < 2 && !(headerHit && hits.length >= 1)) continue;
+    findings.add({
+      severity: 'P0',
+      dimension: 'discipline',
+      file: file.path,
+      detail: `foreign astronomy observation protocol appears in ${probe || 'a non-astronomy'} package (${hits
+        .map((hit) => hit.label)
+        .join(', ')})`,
+      evidence: quoteAroundMatch(file.text, hits[0]?.re || /\bOBSERVATION PROTOCOL THIS WEEK\b/i),
+    });
+    return;
+  }
+}
+
 function checkDiscipline(findings, { files }, course) {
   if (probesSuppressed(course)) return;
   const probe = inferDisciplineProbe(course);
+  checkForeignDomainContamination(findings, { files }, probe);
   if (!probe) return;
 
   // The six new genome disciplines: a term-density probe over the whole
@@ -2927,7 +2972,7 @@ export async function grade({
   const totalWeight = Object.values(DIMENSION_WEIGHTS).reduce((sum, weight) => sum + weight, 0);
   const weighted =
     DIMENSIONS.reduce((sum, dimension) => sum + scores[dimension] * DIMENSION_WEIGHTS[dimension], 0) / totalWeight;
-  const overallScore = Math.round(weighted);
+  let overallScore = Math.round(weighted);
 
   const stats = {
     fileCount: pkg.files.length,
@@ -2946,6 +2991,9 @@ export async function grade({
     // v0.14.5 (A5): the manifest readings registry size.
     readingsCount: Array.isArray(pkg.manifest?.readings) ? pkg.manifest.readings.length : 0,
   };
+  // A package with any P0 is not A-quality, even if the weighted dimensions
+  // remain numerically high. P0 means instructor handoff is unsafe.
+  if (stats.p0 > 0) overallScore = Math.min(overallScore, 74);
 
   return {
     scores,

@@ -1548,10 +1548,10 @@ export default function AppFlow({ startupAction = null, onStartupHandled, onRetu
         const unresolvedRetryCount = result.status === 'needs_retry' ? result.retryActions.length : 0;
         const exportFailures = exportVerification?.failed || 0;
         const exportWarnings = exportVerification?.warningCount || 0;
-        const blockers = result.readiness.blockers.length + exportFailures;
-        const reviewWarningCount = result.readiness.warnings.length + unresolvedRetryCount + exportWarnings;
-        const finalStatus = blockers > 0 ? 'blocked' : 'ready';
-        const warnings = finalStatus === 'ready' ? 0 : reviewWarningCount;
+        let blockers = result.readiness.blockers.length + exportFailures;
+        let reviewWarningCount = result.readiness.warnings.length + unresolvedRetryCount + exportWarnings;
+        let finalStatus = blockers > 0 ? 'blocked' : 'ready';
+        let warnings = finalStatus === 'ready' ? 0 : reviewWarningCount;
         const retryText = retryCount > 0 ? `Retried ${retryCount} weak area${retryCount === 1 ? '' : 's'}. ` : '';
         const skippedRetryText =
           unresolvedRetryCount > 0 && !canRetryWeakSpots
@@ -1577,7 +1577,7 @@ export default function AppFlow({ startupAction = null, onStartupHandled, onRetu
             : exportWarnings > 0
               ? `Export verification found ${exportWarnings} warning${exportWarnings === 1 ? '' : 's'}. `
               : '';
-        const finalizerMessage =
+        let finalizerMessage =
           finalStatus === 'ready'
             ? 'All required files passed export checks and the package is ready to download.'
             : String(result.message || '').replace(/^Auto-fixed \d+ safe issues?\. /, '');
@@ -1590,7 +1590,7 @@ export default function AppFlow({ startupAction = null, onStartupHandled, onRetu
         const compilerSummary = summarizeCompilerSavings(receiptBudget, {
           labelForFeature: getReceiptFeatureLabel,
         });
-        const receipt = buildQualityReceipt({
+        let receipt = buildQualityReceipt({
           result,
           exportVerification,
           repairsApplied: totalRepairsApplied,
@@ -1601,7 +1601,7 @@ export default function AppFlow({ startupAction = null, onStartupHandled, onRetu
           apiSpendSummary,
           compilerSummary,
         });
-        const receiptWithSpend = {
+        let receiptWithSpend = {
           ...receipt,
           ...(apiSpendSummary ? { apiSpendSummary } : {}),
           ...(apiFeatureSpendSummary.length > 0 ? { apiFeatureSpendSummary } : {}),
@@ -1675,9 +1675,39 @@ export default function AppFlow({ startupAction = null, onStartupHandled, onRetu
             packageQuality = { status: 'not-graded', reason: err?.message || 'grading unavailable' };
           }
         }
-        // A3: P0 findings push a warning through the readiness channel
-        // (mirrors the enrichment-coverage integration in the finalizer).
+        // P0 quality findings update the same readiness object the export
+        // panel consumes; recompute the visible package receipt after grading.
         result = applyQualityToFinalizerResult(result, packageQuality);
+        blockers = (result.readiness?.blockers?.length || 0) + exportFailures;
+        reviewWarningCount = (result.readiness?.warnings?.length || 0) + unresolvedRetryCount + exportWarnings;
+        finalStatus = blockers > 0 ? 'blocked' : 'ready';
+        warnings = finalStatus === 'ready' ? 0 : reviewWarningCount;
+        finalizerMessage =
+          finalStatus === 'ready'
+            ? 'All required files passed export checks and the package is ready to download.'
+            : String(
+                result.message ||
+                  result.readiness?.blockers?.[0]?.message ||
+                  result.readiness?.warnings?.[0]?.message ||
+                  '',
+              ).replace(/^Auto-fixed \d+ safe issues?\. /, '');
+        receipt = buildQualityReceipt({
+          result,
+          exportVerification,
+          repairsApplied: totalRepairsApplied,
+          retryCount,
+          selectedFeatureIds: featureIds,
+          courseMap: result.courseMap || courseMapRef.current,
+          includeWarnings: finalStatus !== 'ready',
+          apiSpendSummary,
+          compilerSummary,
+        });
+        receiptWithSpend = {
+          ...receipt,
+          ...(apiSpendSummary ? { apiSpendSummary } : {}),
+          ...(apiFeatureSpendSummary.length > 0 ? { apiFeatureSpendSummary } : {}),
+          ...(compilerSummary ? { compilerSummary } : {}),
+        };
         tracePackageFinish(finishRunId, 'quality_grade_done', {
           status: packageQuality?.status,
           score: packageQuality?.score ?? null,

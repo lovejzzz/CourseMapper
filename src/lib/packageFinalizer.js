@@ -9,6 +9,7 @@ import { generateCourseHealthReport } from './pedagogicalValidator';
 import { normalizeReadinessIssue, normalizeReadinessIssues } from './readinessIssueSchema';
 import { auditDeliverableContentQuality } from './contentQualityChecks';
 import { repairDeliverableContentQuality } from './contentQualityRepair';
+import { repairMisappliedObservationProtocols } from './observationProtocols';
 
 function featureLabel(featureId) {
   return READINESS_FEATURE_LABELS[featureId] || (featureId?.startsWith('custom_') ? 'Custom Deliverable' : featureId);
@@ -232,8 +233,26 @@ function applyDeterministicRepairs({
     (featureId) => featureId !== 'courseMap',
   );
   for (const featureId of contentFeatureIds) {
-    const entry = nextDeliverables?.[featureId];
+    let entry = nextDeliverables?.[featureId];
     if (entry?.status !== 'done' || !entry.data) continue;
+    if (featureId === 'lessonPlans') {
+      const protocolRepair = repairMisappliedObservationProtocols({
+        courseName: nextCourseMap?.courseName,
+        lessons: selectedCourseMapLessons(nextCourseMap, lessonFilter),
+        data: entry.data,
+      });
+      if (protocolRepair.changed) {
+        if (nextDeliverables === deliverables) nextDeliverables = { ...deliverables };
+        entry = { ...entry, data: protocolRepair.data };
+        nextDeliverables[featureId] = entry;
+        repairs.push({
+          featureId,
+          label: featureLabel(featureId),
+          changes: [`removed ${protocolRepair.removedCount} misapplied sky-observation protocol(s)`],
+          message: `${featureLabel(featureId)} repaired: removed ${protocolRepair.removedCount} misapplied sky-observation protocol(s) from non-sky lesson plan(s)`,
+        });
+      }
+    }
     const contentRepair = repairDeliverableContentQuality(featureId, entry.data);
     if (!contentRepair.changed) continue;
     if (nextDeliverables === deliverables) nextDeliverables = { ...deliverables };
@@ -270,12 +289,10 @@ export function buildEnrichmentCoverageIssues(enrichmentOutcome) {
 }
 
 /**
- * v0.14.3 WS-A A3: P0 findings from the finalize-time quality grade surface
- * through the same readiness/warnings channel as enrichment coverage —
- * they should be impossible (the gates run earlier), which is exactly why
- * showing them is cheap honesty. Warning severity, never a blocker, never
- * retried (the grader reads frozen compiled output; no retry pass can
- * change what it measures).
+ * P0 findings from the finalize-time quality grade surface through readiness
+ * as blockers. They mean the package is structurally exportable but not safe
+ * to hand to an instructor; a retry pass cannot repair them because the grader
+ * reads frozen compiled output.
  */
 export function buildQualityGateIssues(quality) {
   if (quality?.status !== 'graded') return [];
@@ -283,10 +300,10 @@ export function buildQualityGateIssues(quality) {
   if (p0 <= 0) return [];
   return [
     normalizeReadinessIssue({
-      severity: 'warning',
+      severity: 'blocker',
       featureId: 'courseMap',
       label: 'Quality grade',
-      message: `Package quality grader found ${p0} P0 finding${p0 === 1 ? '' : 's'} (score ${quality.score}/100, grade ${quality.grade}) — see QUALITY_REPORT.md in the download`,
+      message: `Package quality grader found ${p0} P0 finding${p0 === 1 ? '' : 's'} (score ${quality.score}/100, grade ${quality.grade}) — review the quality report before downloading`,
       source: 'qualityGate',
       retryable: false,
       autoFixable: false,
