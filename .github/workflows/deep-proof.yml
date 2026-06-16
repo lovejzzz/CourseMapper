@@ -29,7 +29,7 @@ jobs:
       reason: ${{ steps.scope.outputs.reason }}
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
         with:
           fetch-depth: 0
 
@@ -89,11 +89,11 @@ jobs:
       - name: Scope reason
         run: echo "${{ needs.detect-scope.outputs.reason }}"
 
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v6
         with:
-          node-version: 20
+          node-version: 22
           cache: npm
 
       - uses: actions/setup-java@v4
