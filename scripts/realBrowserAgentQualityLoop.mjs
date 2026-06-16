@@ -313,14 +313,48 @@ function visibleResponseText({ lastAssistant = '', panelText = '' } = {}) {
     .trim();
 }
 
+const NUMBER_WORDS = new Map(
+  [
+    'zero',
+    'one',
+    'two',
+    'three',
+    'four',
+    'five',
+    'six',
+    'seven',
+    'eight',
+    'nine',
+    'ten',
+    'eleven',
+    'twelve',
+    'thirteen',
+    'fourteen',
+    'fifteen',
+    'sixteen',
+    'seventeen',
+    'eighteen',
+    'nineteen',
+    'twenty',
+  ].map((word, value) => [String(value), word]),
+);
+
+function responseIncludesRequiredTerm(responseText, term) {
+  const expected = String(term).toLowerCase();
+  const lower = String(responseText || '').toLowerCase();
+  if (lower.includes(expected)) return true;
+  const numberWord = NUMBER_WORDS.get(expected);
+  if (!numberWord) return false;
+  return new RegExp(`\\b${numberWord}\\b`, 'i').test(responseText);
+}
+
 export function scoreResponseQuality(task = {}, evidence = {}) {
   const responseText = visibleResponseText(evidence);
   const issues = [];
-  const lower = responseText.toLowerCase();
 
   if (task.responseMustInclude?.length) {
     for (const term of task.responseMustInclude) {
-      if (!lower.includes(String(term).toLowerCase())) issues.push(`response missing "${term}"`);
+      if (!responseIncludesRequiredTerm(responseText, term)) issues.push(`response missing "${term}"`);
     }
   }
   if (task.responseMustAvoid?.length) {

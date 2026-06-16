@@ -67,6 +67,16 @@ describe('realBrowserAgentQualityLoop helpers', () => {
     );
     expect(scopedReceipt).toMatchObject({ ok: true, score: 100 });
 
+    const numberWordCount = scoreResponseQuality(
+      { expectReadOnly: true, responseMustInclude: ['3'] },
+      {
+        stateOk: true,
+        changed: false,
+        lastAssistant: 'Three lesson plans are ready.',
+      },
+    );
+    expect(numberWordCount).toMatchObject({ ok: true, score: 100 });
+
     const unnecessaryQuestion = scoreResponseQuality(
       { expectMutation: true },
       {
