@@ -1213,8 +1213,8 @@ function normalizeEnrichmentTeachingMoves(value = {}) {
 function buildDefaultEnrichmentTeachingMoves({ lens }) {
   return {
     openingMove: `Open with a short ${lens.exampleNoun} and ask students to name the ${lens.evidenceNoun} they can inspect.`,
-    practiceMove: `Move students from naming inspectable ${lens.evidenceNoun} into a brief peer check on the ${lens.decisionNoun}.`,
-    feedbackMove: `Give feedback by pointing to one visible ${lens.evidenceNoun} strength and one artifact revision move.`,
+    practiceMove: `Have students test one inspectable ${lens.evidenceNoun} choice with a peer before deciding what the ${lens.decisionNoun} needs next.`,
+    feedbackMove: `Give feedback by naming the strongest ${lens.evidenceNoun} move and the next artifact revision choice.`,
     assessmentMove: `Use the ${lens.decisionNoun} as the assessment throughline before students submit their artifact.`,
     reviewMove: `Before handoff, confirm local examples, source permissions, and scoring expectations for the ${lens.domain} context.`,
   };
@@ -1555,6 +1555,17 @@ function lessonTeachingMoves(blueprint, lesson = {}) {
   const lessonTitle = stripLessonPrefix(lesson.title || 'this lesson');
   const concept = lesson.keyConcepts?.[0] || lessonTitle;
   const artifact = stripTerminalPunctuation(lesson.studentArtifact || 'student artifact');
+  const practiceVariants = [
+    `${stripTerminalPunctuation(moves.practiceMove)}, anchored in ${concept}, before students revise ${artifact}.`,
+    `After naming ${concept} evidence, students compare one support choice with a peer and decide what ${artifact} should change.`,
+    `Use a quick peer audit of ${concept}: which evidence supports the decision, which detail is weak, and what revision belongs in ${artifact}?`,
+    `Move from individual evidence marking into paired critique, with ${artifact} as the place students record the ${concept} decision.`,
+  ];
+  const feedbackVariants = [
+    `${stripTerminalPunctuation(moves.feedbackMove)} tied to ${artifact}.`,
+    `Feedback names the strongest ${concept} evidence move first, then one targeted revision for ${artifact}.`,
+    `Use feedback to separate a solid ${concept} detail from the next reasoning gap in ${artifact}.`,
+  ];
   // v0.12.1: no "For ${lessonTitle}," prefix — every consumer already sits in
   // a lesson context, and the prefix produced "Practice with X: For X, …"
   // chains plus a mid-sentence period (the base moves end with one).
@@ -1563,8 +1574,8 @@ function lessonTeachingMoves(blueprint, lesson = {}) {
     // The concept anchor keeps each lesson's move distinct — courses with a
     // single course-wide artifact would otherwise repeat one identical
     // sentence across every lesson (boilerplate gate).
-    practiceMove: `${stripTerminalPunctuation(moves.practiceMove)}, anchored in ${concept}, before students revise ${artifact}.`,
-    feedbackMove: `${stripTerminalPunctuation(moves.feedbackMove)} tied to ${artifact}.`,
+    practiceMove: practiceVariants[lessonRotationIndex(lesson, 1) % practiceVariants.length],
+    feedbackMove: feedbackVariants[lessonRotationIndex(lesson, 2) % feedbackVariants.length],
     assessmentMove: `${stripTerminalPunctuation(moves.assessmentMove)} using ${artifact}.`,
     reviewMove: `${stripTerminalPunctuation(moves.reviewMove)} before publishing ${artifact}.`,
   };
@@ -3837,6 +3848,15 @@ function buildDifficultyProfile({ originalIndex, bloomsLevel, hasAssessment, con
   };
 }
 
+function lessonStubFromTitle(title, artifact = '') {
+  const lessonNumberMatch = cleanText(title).match(/(?:lesson|week)\s*(\d+)/i);
+  return {
+    title,
+    studentArtifact: artifact,
+    lessonNumber: lessonNumberMatch ? Number(lessonNumberMatch[1]) : 1,
+  };
+}
+
 function buildEvidencePlan({ title, concepts, resources, activities, artifact }) {
   const concept = concepts[0] || stripLessonPrefix(title) || 'the lesson focus';
   const secondary = concepts[1] || concept;
@@ -3844,9 +3864,15 @@ function buildEvidencePlan({ title, concepts, resources, activities, artifact })
     resources[0] || activities[0] || `${stripLessonPrefix(title)} course materials`,
     `${stripLessonPrefix(title)} materials`,
   );
+  const lessonStub = lessonStubFromTitle(title, artifact);
   return {
     sourceCue,
-    evidenceRequirement: `Use a concrete detail from ${sourceCue} to explain ${concept}.`,
+    evidenceRequirement: lessonVariant(lessonStub, [
+      `Use a concrete detail from ${sourceCue} to explain ${concept}.`,
+      `Point to one source detail in ${sourceCue} and explain what it proves about ${concept}.`,
+      `Select evidence from ${sourceCue}, then state how it changes the ${concept} decision.`,
+      `Anchor the ${concept} explanation in ${sourceCue} with a specific observation, example, data point, or case detail.`,
+    ]),
     limitationCue: `Name one limitation, assumption, or boundary condition before applying ${secondary}.`,
     artifactConnection: `Evidence should change a visible choice in ${stripTerminalPunctuation(artifact)}.`,
   };
@@ -4118,7 +4144,12 @@ function attachThroughlineCaseToLesson(lesson, context) {
   const evidencePlan = {
     ...(lesson.evidencePlan || {}),
     sourceCue,
-    evidenceRequirement: `Use a concrete detail from ${sourceCue} to explain ${concept} for ${context.clientName}.`,
+    evidenceRequirement: lessonVariant(lesson, [
+      `Use a concrete detail from ${sourceCue} to explain ${concept} for ${context.clientName}.`,
+      `Ground the ${concept} explanation in ${sourceCue}, then name the decision it supports for ${context.clientName}.`,
+      `Choose one source detail from ${sourceCue} and show how it changes the ${concept} recommendation for ${context.clientName}.`,
+      `Use ${sourceCue} as the evidence base: identify the relevant ${concept} clue, limit, and next decision for ${context.clientName}.`,
+    ]),
     limitationCue:
       lesson.evidencePlan?.limitationCue ||
       `Name one limitation, assumption, or boundary condition before applying ${concept}.`,
@@ -4158,19 +4189,36 @@ function buildMisconceptionMap({ title, concepts, artifact }) {
   const concept = concepts[0] || stripLessonPrefix(title) || 'the lesson focus';
   const secondary = concepts[1] || concept;
   const shortTitle = stripLessonPrefix(title);
+  const lessonStub = lessonStubFromTitle(title, artifact);
+  const seed = Array.from(cleanText(shortTitle)).reduce((sum, ch) => sum + ch.charCodeAt(0), 0);
   return [
     {
-      misconception: `${concept} is only a definition to memorize.`,
-      correction: `Students should use ${concept} to make, revise, or justify a choice in ${stripTerminalPunctuation(artifact)}.`,
+      misconception: lessonVariant(lessonStub, [
+        `${concept} is only a definition to memorize.`,
+        `${sentenceCase(concept)} can be handled by recalling the term.`,
+        `Knowing the ${concept} label is enough to complete the task.`,
+        `${sentenceCase(concept)} matters only as vocabulary, not as evidence for a decision.`,
+      ]),
+      correction: lessonVariant(lessonStub, [
+        `Students should use ${concept} to make, revise, or justify a choice in ${stripTerminalPunctuation(artifact)}.`,
+        `Students need to show how ${concept} changes the evidence trail, limitation, or next move in ${stripTerminalPunctuation(artifact)}.`,
+        `${sentenceCase(concept)} should function as a reasoning tool: it helps students decide what ${stripTerminalPunctuation(artifact)} can defend.`,
+        `A strong response turns ${concept} into an inspectable decision about ${stripTerminalPunctuation(artifact)}, not a vocabulary label.`,
+      ]),
       check: `Ask students to point to the exact evidence that makes their ${concept} claim credible.`,
     },
     {
-      misconception: `One example is enough to prove the ${shortTitle} claim.`,
+      misconception: [
+        `One example is enough to prove the ${shortTitle} claim.`,
+        `${shortTitle} can be defended from the first example that comes to mind.`,
+        `A single detail settles the ${shortTitle} interpretation.`,
+        `If one source seems convincing, the ${shortTitle} decision is finished.`,
+      ][seed % 4],
       correction: [
         `Students should compare ${shortTitle} evidence, name a limitation, and explain why ${secondary} changes the decision.`,
         `Strong ${shortTitle} answers weigh more than one piece of evidence and say where ${secondary} would bend the conclusion.`,
         `Students should test the ${shortTitle} claim against a second source and state how ${secondary} shifts the decision.`,
-      ][Array.from(cleanText(shortTitle)).reduce((sum, ch) => sum + ch.charCodeAt(0), 0) % 3],
+      ][seed % 3],
       check: `Ask what would change their ${secondary} answer if the evidence source or context changed.`,
     },
   ];
@@ -4193,8 +4241,14 @@ function buildReadinessSupportPlan({ title, concepts, artifact, evidencePlan }) 
   const concept = concepts[0] || stripLessonPrefix(title) || 'the lesson focus';
   const artifactName = stripTerminalPunctuation(artifact);
   const sourceCue = evidencePlan?.sourceCue || `${stripLessonPrefix(title)} course materials`;
+  const lessonStub = lessonStubFromTitle(title, artifact);
   return {
-    diagnosticPrompt: `Before the main task, ask students to explain ${concept} using one concrete detail from ${sourceCue}.`,
+    diagnosticPrompt: lessonVariant(lessonStub, [
+      `Before the main task, ask students to explain ${concept} using one concrete detail from ${sourceCue}.`,
+      `Open with a quick ${concept} check: students choose one ${sourceCue} detail and say what it supports.`,
+      `Before drafting, have students mark a ${sourceCue} clue and connect it to the ${concept} decision.`,
+      `Use a two-minute readiness prompt: what does ${sourceCue} prove, limit, or complicate about ${concept}?`,
+    ]),
     readinessEvidence: `Students are ready when they can cite inspectable evidence, explain why it matters, and connect it to ${artifactName}.`,
     supportMove: `If students cannot cite evidence for ${concept}, give them a worked sentence frame and have them annotate one detail from ${sourceCue} before drafting ${artifactName}.`,
     extensionMove: `If students are ready, ask them to compare two possible evidence choices and justify which one makes ${artifactName} more defensible.`,
@@ -4238,12 +4292,23 @@ function buildFeedbackCycle({ title, concepts, artifact, evidencePlan }) {
   const concept = concepts[0] || stripLessonPrefix(title) || 'the lesson focus';
   const artifactName = stripTerminalPunctuation(artifact);
   const sourceCue = evidencePlan?.sourceCue || `${stripLessonPrefix(title)} course materials`;
+  const lessonNumberMatch = cleanText(title).match(/(?:lesson|week)\s*(\d+)/i);
+  const lessonStub = {
+    title,
+    studentArtifact: artifactName,
+    lessonNumber: lessonNumberMatch ? Number(lessonNumberMatch[1]) : 1,
+  };
   return {
     formativeEvidence: `Collect one annotated ${artifactName} line or checkpoint response showing how ${concept} evidence from ${stripTerminalPunctuation(sourceCue)} supports the decision.`,
     feedbackMethod: `Give criterion-level feedback that names the strongest evidence move, the weakest reasoning link, and one revision priority for ${artifactName}.`,
     studentRevisionAction: `Students revise ${artifactName} by replacing a general ${concept} claim with evidence-backed ${concept} reasoning, one limitation, and one next decision.`,
     nextUse: `Carry the revised ${concept} evidence move into the next source-based artifact, discussion, or synthesis task.`,
-    closureCheck: `Before moving on from ${stripLessonPrefix(title)}, students submit a brief note naming what feedback changed and what evidence still needs review.`,
+    closureCheck: lessonVariant(lessonStub, [
+      `Before moving on from ${stripLessonPrefix(title)}, students submit a brief note naming what feedback changed and what evidence still needs review.`,
+      `At the end of ${stripLessonPrefix(title)}, students mark what feedback changed in ${artifactName} and name the evidence question they will revisit.`,
+      `Close ${stripLessonPrefix(title)} with a two-sentence revision log: what feedback changed, which source detail now supports the decision, and what still feels uncertain.`,
+      `Students finish ${stripLessonPrefix(title)} by annotating one revision choice, explaining what feedback changed, and flagging the evidence link that needs another look.`,
+    ]),
   };
 }
 
@@ -5013,9 +5078,10 @@ function buildCourseModalityProfile({ courseName, lessons }) {
     ])
     .join(' ')}`.toLowerCase();
   const countPattern = (pattern) => (text.match(pattern) || []).length;
-  const clinicalCoreScore = countPattern(
-    /\b(clinical|patient|healthcare|health care|interpreter|discharge|symptom|medication|dosage)\b/g,
-  );
+  const explicitClinicalCoreScore = countPattern(/\b(clinical|patient|healthcare|health care|medical)\b/g);
+  const contextualClinicalTermScore =
+    explicitClinicalCoreScore > 0 ? countPattern(/\b(interpreter|discharge|symptom|medication|dosage)\b/g) : 0;
+  const clinicalCoreScore = explicitClinicalCoreScore + contextualClinicalTermScore;
   const clinicalSimulationScore =
     clinicalCoreScore > 0
       ? countPattern(/\b(simulation|role[-\s]?play|encounter|oral performance|teach[-\s]?back|triage)\b/g)
@@ -7053,7 +7119,12 @@ function buildArtifactGenreDecode(lesson = {}, profile = {}, modalityDecode = {}
     qualityFocus: `${details.qualityFocus} for ${artifact}`,
     reviewProtocol: `${details.reviewProtocol} for ${stripLessonPrefix(lesson.title)}.`,
     commonFailure: details.commonFailure,
-    revisionMove: `Revise ${artifact} by strengthening one ${concept} evidence link, naming what feedback changed, and using this feedback routine: ${feedbackRoutine}.`,
+    revisionMove: lessonVariant(lesson, [
+      `Revise ${artifact} by strengthening one ${concept} evidence link, naming what feedback changed, and using this feedback routine: ${feedbackRoutine}.`,
+      `After feedback, return to ${artifact}, name what feedback changed, and make the weakest ${concept} evidence link inspectable through this routine: ${feedbackRoutine}.`,
+      `Use ${feedbackRoutine} to revise ${artifact}; the revision note should state what feedback changed and which ${concept} claim now has better support.`,
+      `For ${artifact}, convert feedback into one visible ${concept} revision: identify what feedback changed, then point to the evidence link that improved.`,
+    ]),
     modalityFit: `This ${genre} should be reviewed inside the ${profile.primaryMode || 'course'} pattern, not as a generic submission.`,
   };
 }
@@ -11188,6 +11259,33 @@ function assignmentChecklistResourceLabel({ submissionProfile = {}, lesson = {},
   return `${artifactLabel} checklist for ${lessonFocus}: evidence, reasoning, format, revision.`;
 }
 
+function assignmentDeliverablesForLesson({ lesson = {}, assessment = {}, submissionProfile = {}, lens = {} } = {}) {
+  const assessmentTitle = stripTerminalPunctuation(assessment.title || 'the assignment');
+  const artifact = stripTerminalPunctuation(submissionProfile.artifact || assessment.artifact || assessmentTitle);
+  const type = cleanText(submissionProfile.assignmentType, 'applied artifact').toLowerCase();
+  const evidenceNoun = sentenceCase(lens.evidenceNoun || 'source evidence');
+  const relatedLesson = assessment.relatedLessons?.[0] || lesson.title || 'the lesson materials';
+  const firstLine = lessonVariant(lesson, [
+    `Completed ${artifact} as ${assignmentTypeWithArticle(type)} with clear headings.`,
+    `Final ${artifact} in ${type} format, organized so the evidence and decision are easy to locate.`,
+    `${artifact} submitted in the expected ${type} structure with labeled sections for the main task.`,
+    `Finished ${artifact} package: response, evidence trail, and revision note arranged for review.`,
+  ]);
+  const evidenceLine = lessonVariant(lesson, [
+    `${evidenceNoun} or citation notes tied to ${relatedLesson} course materials.`,
+    `Source notes that identify the ${relatedLesson} evidence used in the response.`,
+    `Brief evidence log naming the reading, activity, case, data, or course note that supports ${assessmentTitle}.`,
+    `Citation or artifact notes showing where the main claim gets its support.`,
+  ]);
+  const revisionLine = lessonVariant(lesson, [
+    `Brief reflection naming one revision decision for ${assessmentTitle}.`,
+    `One-sentence revision log explaining what changed before submission.`,
+    `Short self-check naming the weakest evidence link and the edit made to strengthen it.`,
+    `Final note identifying the feedback, limitation, or criterion that shaped the last revision.`,
+  ]);
+  return [firstLine, evidenceLine, revisionLine];
+}
+
 function lessonSourceGrounding(lesson, extras = {}) {
   return {
     lessonNumber: lesson?.lessonNumber || null,
@@ -12236,8 +12334,18 @@ function buildCriterionPerformanceBand({ assessment, lesson, criterion, planEntr
 
   if (priority === 'feedback-informed revision') {
     return {
-      exemplary: `Shows a concrete feedback-informed change to ${artifact}, explains why the change improves ${lens.evidenceNoun} or ${concept} reasoning, and names the remaining limitation.`,
-      proficient: `Identifies a relevant revision to ${artifact} and explains how feedback improved one important ${lens.evidenceNoun} or reasoning move.`,
+      exemplary: lessonVariant(lesson, [
+        `Shows a concrete feedback-informed change to ${artifact}, explains why the change improves ${lens.evidenceNoun} or ${concept} reasoning, and names the remaining limitation.`,
+        `Uses feedback to revise a visible part of ${artifact}; the submission explains the stronger ${concept} evidence link and the limit that still remains.`,
+        `Documents the revision trail in ${artifact}: what feedback changed, which ${lens.evidenceNoun} got stronger, and why the decision is now more defensible.`,
+        `Turns feedback into an inspectable ${artifact} improvement by strengthening ${concept} reasoning and naming the next unresolved evidence question.`,
+      ]),
+      proficient: lessonVariant(lesson, [
+        `Identifies a relevant revision to ${artifact} and explains how feedback improved one important ${lens.evidenceNoun} or reasoning move.`,
+        `Applies feedback to ${artifact} and gives a mostly clear explanation of how the revision improves ${concept} evidence or reasoning.`,
+        `Names the feedback used, makes a visible revision in ${artifact}, and connects the change to the main ${lens.evidenceNoun} move.`,
+        `Shows that feedback shaped ${artifact}, though the explanation of the improved ${concept} reasoning may need one sharper detail.`,
+      ]),
       developing: `Refers to feedback or revision but does not make the change, rationale, or connection to ${artifact} fully visible.`,
       beginning: `Submits ${artifact} with little evidence that feedback was reviewed, applied, or used to improve the criterion.`,
       performanceBandEvidence: {
@@ -12253,9 +12361,19 @@ function buildCriterionPerformanceBand({ assessment, lesson, criterion, planEntr
   if (priority === 'professional communication and format fit') {
     return {
       exemplary: `Organizes ${artifact} in the expected ${lesson?.artifactGenre?.label || lens.domain} format so the ${concept} claim, ${lens.evidenceNoun}, limitation, and next action are easy to locate.`,
-      proficient: `Uses a clear structure for ${artifact} and communicates the main ${lens.evidenceNoun} for ${concept} with only minor gaps in format, headings, or audience fit.`,
+      proficient: lessonVariant(lesson, [
+        `Uses a clear structure for ${artifact} and communicates the main ${lens.evidenceNoun} for ${concept} with only minor gaps in format, headings, or audience fit.`,
+        `Presents ${artifact} in an organized format; the ${concept} evidence is findable, though one heading, transition, or audience cue may need tightening.`,
+        `Makes the ${lens.evidenceNoun} for ${concept} understandable in ${artifact}, with small format or reader-guidance gaps left to polish.`,
+        `Keeps ${artifact} readable and task-focused while leaving a minor organization, heading, or audience-fit issue to revise.`,
+      ]),
       developing: `Includes useful ${concept} content, but organization, format, or audience language makes the ${lens.evidenceNoun} harder to follow in ${artifact}.`,
-      beginning: `Presents ${artifact} in a form that obscures the required ${lens.evidenceNoun}, decision, or submission expectations.`,
+      beginning: lessonVariant(lesson, [
+        `Presents ${artifact} in a form that obscures the required ${lens.evidenceNoun}, decision, or submission expectations.`,
+        `Makes ${artifact} hard to interpret because the evidence, audience, or format expectations are not visible enough.`,
+        `Submits ${artifact} with organization or format choices that hide the main ${concept} claim and supporting evidence.`,
+        `Leaves the reader unsure how ${artifact} is organized, what evidence matters, or what decision the work is making.`,
+      ]),
       performanceBandEvidence: {
         priority,
         evidenceSignal,
@@ -12294,7 +12412,12 @@ function buildAssessmentAnchorExamples(lesson, criteria, criterionEvidenceMap, v
     criterionEvidenceMap?.[0]?.partialSignal ||
     `Partial evidence mentions ${concept} or ${artifact} but leaves the reasoning implicit.`;
   return {
-    strongSample: `Strong ${artifact} anchor: cites a concrete detail from ${sourceCue}, explains how it changes the ${concept} decision, names one limitation, and states the revision made before submission.`,
+    strongSample: lessonVariant(lesson, [
+      `Strong ${artifact} anchor: cites a concrete detail from ${sourceCue}, explains how it changes the ${concept} decision, names one limitation, and states the revision made before submission.`,
+      `Strong ${artifact} anchor: points to ${sourceCue}, explains the ${concept} evidence move, identifies a limit, and makes the revision visible.`,
+      `Strong ${artifact} anchor: uses ${sourceCue} to support the ${concept} decision, shows why the evidence matters, and records the final improvement.`,
+      `Strong ${artifact} anchor: grounds the claim in ${sourceCue}, separates evidence from assumption, and names the feedback-informed edit.`,
+    ]),
     partialSample: `Partial ${artifact} anchor: summarizes ${concept}, mentions ${sourceCue} generally, but does not make the evidence link, limitation, or revision decision inspectable.`,
     criterionFocus: primaryCriterion,
     strongSignal,
@@ -14022,7 +14145,12 @@ function compileAssignments(blueprint) {
         },
         overview: lesson.enrichment?.assignmentCore?.taskDescription
           ? `${lesson.enrichment.assignmentCore.taskDescription} ${assessmentArtifact} is worth ${assessment.weight}. Genre-specific quality focus: ${submissionProfile.qualityFocus}.`
-          : `${assessmentArtifact} is a ${assessment.roleLabel || 'course assessment'} worth ${assessment.weight}; it asks students to turn ${assessment.relatedLessons[0]} concepts into a concrete ${submissionProfile.assignmentType.toLowerCase()}. The task is designed to show how students use evidence for ${assessmentTitle}, make decisions, and prepare for later work. Genre-specific quality focus: ${submissionProfile.qualityFocus}.`,
+          : lessonVariant(lesson, [
+              `${assessmentArtifact} is a ${assessment.roleLabel || 'course assessment'} worth ${assessment.weight}; it asks students to turn ${assessment.relatedLessons[0]} concepts into a concrete ${submissionProfile.assignmentType.toLowerCase()}. The task is designed to show how students use evidence for ${assessmentTitle}, make decisions, and prepare for later work. Genre-specific quality focus: ${submissionProfile.qualityFocus}.`,
+              `${assessmentArtifact} carries ${assessment.weight} and asks students to make the ${assessment.relatedLessons[0]} evidence visible in ${assignmentTypeWithArticle(submissionProfile.assignmentType)}. The important work is the reasoning path: which evidence matters, what decision follows, and how feedback changes the next draft. Genre-specific quality focus: ${submissionProfile.qualityFocus}.`,
+              `In ${assessmentArtifact}, students use ${assessment.relatedLessons[0]} to produce ${assignmentTypeWithArticle(submissionProfile.assignmentType)} worth ${assessment.weight}. A strong submission shows the evidence trail, names the decision it supports, and leaves a revision trace for later work. Genre-specific quality focus: ${submissionProfile.qualityFocus}.`,
+              `${assessmentArtifact} is the Week ${assessment.lessonNumbers[0]} evidence product (${assessment.weight}). Students should use the assignment format to connect source details, a defensible decision, and one feedback-informed improvement. Genre-specific quality focus: ${submissionProfile.qualityFocus}.`,
+            ]),
         ...(lesson.enrichment?.assignmentCore ? { enrichmentSource: 'lesson-content-enrichment' } : {}),
         gradingWeightProvenance: compactWeightProvenance(assessment.weightProvenance),
         objectives: assessment.objectives,
@@ -14055,13 +14183,7 @@ function compileAssignments(blueprint) {
           submissionPlatform: 'Official course site',
           latePolicy: `For ${assessmentTitle}, follow the course late work policy and contact the instructor before the deadline when needed.`,
         },
-        deliverables: [
-          `Completed ${submissionProfile.artifact} as ${assignmentTypeWithArticle(
-            submissionProfile.assignmentType,
-          )} with clear headings.`,
-          `${sentenceCase(lens.evidenceNoun)} or citation notes tied to ${assessment.relatedLessons[0]} course materials.`,
-          `Brief reflection naming one revision decision for ${assessmentTitle}.`,
-        ],
+        deliverables: assignmentDeliverablesForLesson({ lesson, assessment, submissionProfile, lens }),
         scaffoldingMilestones: [
           {
             milestone: 'Prerequisite readiness check',
@@ -15250,6 +15372,24 @@ function buildShortAnswerQuestion({ lesson, index, bloom, objective, concept, le
   const artifact = stripTerminalPunctuation(lesson.studentArtifact);
   const sourceCue = lesson.throughlineCase?.evidencePacket || `${lesson.title} evidence`;
   const lessonFocus = stripLessonPrefix(lesson.title);
+  const answerGuidance = lessonVariant(lesson, [
+    `${concept} should guide the evidence students select and the decision they justify in ${artifact}. A strong ${lesson.title} answer names a specific detail from ${sourceCue}, explains why it fits, and states how the evidence changes the next step.`,
+    `A complete ${lesson.title} response uses ${concept} to choose evidence from ${sourceCue}, explains the evidence boundary, and names the decision it supports in ${artifact}.`,
+    `Strong work connects ${concept} to a source detail from ${sourceCue}, then explains what the detail proves, limits, or changes for ${artifact}.`,
+    `The response should treat ${concept} as a reasoning move: select evidence from ${sourceCue}, explain its fit, and state the implication for ${artifact}.`,
+  ]);
+  const explanation = lessonVariant(lesson, [
+    `A complete response links ${concept}, ${artifact}, and a concrete source detail instead of only defining the term.`,
+    `Credit depends on using ${concept} to interpret evidence for ${artifact}, not on restating vocabulary.`,
+    `The answer should make the evidence-to-decision link visible: what evidence was used, why it matters, and how ${artifact} changes.`,
+    `This item checks whether students can move from ${concept} recall into evidence-backed reasoning for ${artifact}.`,
+  ]);
+  const scoringGuidance = lessonVariant(lesson, [
+    `Full credit requires accurate use of ${concept}, one concrete evidence source, and a decision implication. Partial credit is appropriate when the answer names ${concept} but omits the evidence or the implication. Flag answers that summarize ${stripLessonPrefix(lesson.title)} without applying it.`,
+    `Award full credit when the response uses ${concept} accurately, cites a source detail, and explains the effect on ${artifact}. Give partial credit for accurate concept language without enough evidence or decision logic.`,
+    `Full-credit responses name the evidence, explain how ${concept} works, and state what changes for ${artifact}. Responses that only summarize ${lessonFocus} need revision or partial credit.`,
+    `Score for concept accuracy, evidence grounding, and decision use: the response should show what ${sourceCue} adds to ${artifact}, not only mention ${concept}.`,
+  ]);
   return withQuizPlan(
     {
       id: quizQuestionId(lesson, index),
@@ -15260,11 +15400,11 @@ function buildShortAnswerQuestion({ lesson, index, bloom, objective, concept, le
       points: 4,
       objectiveAligned: objective,
       intendedUse: `Formative written check after ${lesson.title}; use responses to identify review needs before ${artifact}.`,
-      question: `In 2-3 sentences, explain how ${concept} should shape ${artifact} and name one ${lens.evidenceNoun} source from ${sourceCue} students should use.`,
-      answer: `${concept} should guide the evidence students select and the decision they justify in ${artifact}. A strong ${lesson.title} answer names a specific detail from ${sourceCue}, explains why it fits, and states how the evidence changes the next step.`,
+      question: `In 2-3 sentences, explain how ${concept} should shape ${artifact} and name one source or evidence detail from ${sourceCue} students should use.`,
+      answer: answerGuidance,
       sampleAnswer: `For ${lessonFocus}, I would use ${concept} to choose evidence from ${sourceCue} that directly supports ${artifact}. I would cite the exact source detail that shows what that evidence changes about ${artifact} and the ${lens.decisionNoun}.`,
-      explanation: `A complete response links ${concept}, ${artifact}, and a concrete ${lens.evidenceNoun} source instead of only defining the term.`,
-      scoringGuidance: `Full credit requires accurate use of ${concept}, one concrete evidence source, and a decision implication. Partial credit is appropriate when the answer names ${concept} but omits the evidence or the implication. Flag answers that summarize ${stripLessonPrefix(lesson.title)} without applying it.`,
+      explanation,
+      scoringGuidance,
       tags: quizTags(lesson, 'short_answer', bloom, 'formative check'),
     },
     plan,
@@ -15277,6 +15417,18 @@ function buildEssayQuestion({ lesson, index, bloom, objective, concept, lens, pl
     lesson.throughlineCase?.lessonCaseName ||
     [lens.exampleNoun, concept].filter(Boolean).map(stripTerminalPunctuation).join(' focused on ');
   const clientCue = lesson.throughlineCase?.clientName || 'the course audience';
+  const promptLead = lessonVariant(lesson, [
+    `${bloom === 'Create' ? 'Create' : 'Evaluate'} a defensible next step for ${artifact} in the ${scenario} for ${clientCue}.`,
+    `Evaluate the next move for ${artifact} in the ${scenario}, making the evidence usable for ${clientCue}.`,
+    `Create an evidence-backed ${artifact} recommendation for ${clientCue} using the ${scenario}.`,
+    `Analyze the ${scenario} to decide what ${artifact} should do next for ${clientCue}.`,
+  ]);
+  const explanation = lessonVariant(lesson, [
+    `The essay is scored for synthesis: students must turn ${concept} and evidence into a defensible ${lens.decisionNoun}, not merely list lesson facts.`,
+    `Strong essay work uses ${concept} to make a decision, support it with evidence, and explain the limit on the claim.`,
+    `This essay tests whether students can convert lesson evidence into a reasoned ${lens.decisionNoun} for ${artifact}.`,
+    `The response should synthesize ${concept}, evidence, decision logic, and limitation language rather than catalogue terms.`,
+  ]);
   return withQuizPlan(
     {
       id: quizQuestionId(lesson, index),
@@ -15287,10 +15439,10 @@ function buildEssayQuestion({ lesson, index, bloom, objective, concept, lens, pl
       points: 8,
       objectiveAligned: objective,
       intendedUse: `Summative or exam-prep synthesis for ${lesson.title}; score with the rubric hints before students revise related work.`,
-      question: `${bloom === 'Create' ? 'Create' : 'Evaluate'} a defensible next step for ${artifact} in the ${scenario} for ${clientCue}. In 2-3 organized paragraphs, use ${concept}, cite lesson evidence, and explain one limitation.`,
+      question: `${promptLead} In 2-3 organized paragraphs, use ${concept}, cite lesson evidence, and explain one limitation.`,
       rubricHints: `Strong responses define ${concept}, use at least two pieces of ${lens.evidenceNoun}, justify a ${lens.decisionNoun}, and acknowledge a limitation or risk.`,
       sampleAnswer: `A strong response for ${lesson.title} would identify how ${concept} changes the artifact, cite evidence from ${lesson.throughlineCase?.evidencePacket || 'the lesson activity or readings'}, and propose a next step that is feasible for ${artifact}. It would also name a ${lesson.title} limitation so the recommendation is not overstated.`,
-      explanation: `The essay is scored for synthesis: students must turn ${concept} and evidence into a defensible ${lens.decisionNoun}, not merely list lesson facts.`,
+      explanation,
       scoringGuidance: `Full credit for ${lesson.title} requires concept accuracy, evidence use, a justified next step, and a limitation. Partial credit is appropriate when the response has ${concept} evidence but weak decision logic. Flag responses that ignore ${artifact}.`,
       tags: quizTags(lesson, 'essay', bloom, 'exam synthesis'),
     },
@@ -15341,7 +15493,12 @@ export function buildQuizAtomsForLesson(lesson, blueprint, options = {}) {
       concept,
       use: quizPlan[1].use,
       prompt: `A student is preparing ${artifact}. Which action best applies ${concept} from ${lessonFocus}?`,
-      correct: `Use ${concept} to select a concrete example, connect it to the objective, and revise the artifact before submission.`,
+      correct: lessonVariant(lesson, [
+        `Use ${concept} to select a concrete example, connect it to the objective, and revise the artifact before submission.`,
+        `Choose evidence that shows ${concept} in action, explain why it fits the objective, and revise ${artifact}.`,
+        `Apply ${concept} by testing one source detail against the objective before editing ${artifact}.`,
+        `Connect ${concept} to an inspectable example, then use the feedback or criterion to improve ${artifact}.`,
+      ]),
       plan: quizPlan[1],
     }),
     buildMultipleChoiceQuestion({
@@ -16543,7 +16700,12 @@ function slideTypeFocus(type, lesson, lens) {
       };
     case 'summary':
       return {
-        opening: `Treat the ${concept} self-check for ${artifact} as a quick readiness check, not as a formality before dismissal.`,
+        opening: lessonVariant(lesson, [
+          `Treat the ${concept} self-check for ${artifact} as a quick readiness check, not as a formality before dismissal.`,
+          `Use the ${concept} self-check to decide what still needs evidence before students leave ${displayTitle}.`,
+          `Frame the final check as a transfer decision: what can students now carry into ${artifact}?`,
+          `Make the closing self-check concrete by asking which ${concept} evidence is now ready for ${artifact}.`,
+        ]),
         evidence: `Ask students to name which ${lens.evidenceNoun} now feels strongest for ${artifact}.`,
         misconception: `If they can only repeat vocabulary, prompt for the specific ${artifact} revision or next step they can now justify.`,
       };
@@ -16562,7 +16724,7 @@ function slideTypeFocus(type, lesson, lens) {
   }
 }
 
-function slideNoteAnchor({ type, anchor, concept, artifact, displayTitle }) {
+function slideNoteAnchor({ type, anchor, concept, artifact, displayTitle, lesson }) {
   switch (type) {
     case 'title':
       return `Open the working session by naming the product students are building: ${artifact}. Use "${anchor}" to connect the topic to the decisions they will make today.`;
@@ -16573,7 +16735,12 @@ function slideNoteAnchor({ type, anchor, concept, artifact, displayTitle }) {
     case 'bridge':
       return `Use "${anchor}" as the continuity cue between prior work and today's ${concept} decision.`;
     case 'keyTerm':
-      return `Put "${anchor}" into a sentence students could write in their own notes before showing a formal definition.`;
+      return lessonVariant(lesson, [
+        `Put "${anchor}" into a sentence students could write in their own notes before showing a formal definition.`,
+        `Ask students to explain "${anchor}" in plain language before comparing it with the course definition.`,
+        `Have students connect "${anchor}" to one artifact decision before naming the formal term.`,
+        `Use "${anchor}" as a note-making prompt: what evidence would make this term useful in ${artifact}?`,
+      ]);
     case 'example':
       return `Treat "${anchor}" as the ${concept} detail to inspect, then ask what it reveals about ${artifact} and what it does not prove.`;
     case 'activity':
@@ -16581,7 +16748,12 @@ function slideNoteAnchor({ type, anchor, concept, artifact, displayTitle }) {
     case 'discussion':
       return `Start the discussion from a concrete contrast in "${anchor}" so the exchange does not drift into general opinion.`;
     case 'summary':
-      return `Use "${anchor}" as a quick oral or written check for ${concept} readiness before students leave ${displayTitle}.`;
+      return lessonVariant(lesson, [
+        `Use "${anchor}" as a quick oral or written check for ${concept} readiness before students leave ${displayTitle}.`,
+        `Turn "${anchor}" into a one-minute readiness check: what evidence can students now explain about ${concept}?`,
+        `Ask students to use "${anchor}" to name the ${concept} move they can carry into ${artifact}.`,
+        `Close the slide by having students connect "${anchor}" to one evidence-backed next step for ${artifact}.`,
+      ]);
     case 'closing':
       return `Close with the handoff: students should know exactly what to revise, prepare, or submit for ${artifact}.`;
     default:
@@ -16640,7 +16812,7 @@ function slideNotes({ lesson, title, type, bullets, nextCue, lens }) {
           .join(' ')}`
       : '';
   return [
-    `${focus.opening} ${slideNoteAnchor({ type, anchor, concept, artifact, displayTitle })}`,
+    `${focus.opening} ${slideNoteAnchor({ type, anchor, concept, artifact, displayTitle, lesson })}`,
     focus.evidence,
     `${focus.misconception} ${slideNoteCriterionCue(type, criterion)}`,
     activitySequence,
@@ -17154,7 +17326,13 @@ function buildDiscussionGuidelinesForFormat(lesson, protocol) {
     return `For ${lessonFocus}, post one evidence-based response by Wednesday 11:59 PM and two substantive replies by Sunday 11:59 PM. Your initial post should be about 175-225 words, cite at least one lesson source, and take a clear position on ${lesson.studentArtifact}. A substantive reply extends or challenges a peer's evidence, reasoning, or limitation statement about ${concept} rather than simply agreeing. Use this ${protocol.artifactGenre} protocol for ${lessonFocus}: ${protocol.participationPattern}. Discussion credit depends on timeliness, evidence use, ${protocol.reviewFocus}, and the quality of peer engagement around ${lesson.title}.`;
   }
 
-  return `For ${lessonFocus}, come prepared with one brief ${concept} evidence note before class, speak or post at least twice during the ${format}, and respond directly to one peer by building on or challenging their evidence for ${lesson.studentArtifact}. Use this ${protocol.artifactGenre} protocol for ${lessonFocus}: ${protocol.participationPattern}. Reference a course concept, case detail, or reading when you contribute, and connect at least one comment to ${lesson.studentArtifact}. If you need an alternative participation mode, use the instructor-approved written or chat response option during the same activity window for ${lesson.title}. Participation is judged by evidence use, reasoning, peer response quality, ${protocol.reviewFocus}, and whether you name a limitation or revision move tied to ${concept}.`;
+  const contributionCue = lessonVariant(lesson, [
+    `Reference a course concept, case detail, or reading when you contribute, and connect at least one comment to ${lesson.studentArtifact}.`,
+    `Bring one evidence-backed ${concept} claim into the exchange, then ask a peer to test its support or limitation.`,
+    `Use one reading, activity note, example, or artifact detail to make your contribution inspectable.`,
+    `Before the discussion closes, connect one comment to ${lesson.studentArtifact} and identify the evidence that made it stronger.`,
+  ]);
+  return `For ${lessonFocus}, come prepared with one brief ${concept} evidence note before class, speak or post at least twice during the ${format}, and respond directly to one peer by building on or challenging their evidence for ${lesson.studentArtifact}. Use this ${protocol.artifactGenre} protocol for ${lessonFocus}: ${protocol.participationPattern}. ${contributionCue} If you need an alternative participation mode, use the instructor-approved written or chat response option during the same activity window for ${lesson.title}. Participation is judged by evidence use, reasoning, peer response quality, ${protocol.reviewFocus}, and whether you name a limitation or revision move tied to ${concept}.`;
 }
 
 /**
@@ -17660,11 +17838,28 @@ function buildSlideDeckIrForLesson(blueprint, lesson, index) {
     {
       type: 'discussion',
       title: `Which ${modality.mode} evidence choice holds up?`,
-      bullets: [
-        `Compare two evidence choices for ${artifact}.`,
-        `Vote on the stronger choice and explain why.`,
-        modality.feedbackRoutine,
-      ],
+      bullets: lessonVariant(lesson, [
+        [
+          `Compare two evidence choices for ${artifact}.`,
+          `Vote on the stronger choice and explain why.`,
+          modality.feedbackRoutine,
+        ],
+        [
+          `Test the strongest ${concept} evidence claim for ${artifact}.`,
+          `Name what makes the weaker choice less defensible.`,
+          modality.feedbackRoutine,
+        ],
+        [
+          `Rank two possible ${artifact} revisions by evidence quality.`,
+          `Defend the ranking with one source detail and one limitation.`,
+          modality.feedbackRoutine,
+        ],
+        [
+          `Choose the ${concept} move that should survive into ${artifact}.`,
+          `Explain which evidence, risk, or assumption changed the choice.`,
+          modality.feedbackRoutine,
+        ],
+      ]),
       minutes: 8,
       bloom: 'Evaluate',
       objective: objectiveTwo,
@@ -17946,7 +18141,12 @@ function compileCourseFaq(blueprint, config = {}) {
     }),
     (lesson) => ({
       q: `How does ${stripLessonPrefix(lesson.title)} connect to graded work?`,
-      an: `${lesson.title} prepares you for ${stripTerminalPunctuation(lesson.studentArtifact)}. Use the ${stripTerminalPunctuation(lesson.keyConcepts?.[0] || stripLessonPrefix(lesson.title))} success criteria as a checklist before submitting or discussing your work.`,
+      an: lessonVariant(lesson, [
+        `${lesson.title} prepares you for ${stripTerminalPunctuation(lesson.studentArtifact)}. Use the ${stripTerminalPunctuation(lesson.keyConcepts?.[0] || stripLessonPrefix(lesson.title))} success criteria as a checklist before submitting or discussing your work.`,
+        `${lesson.title} feeds directly into ${stripTerminalPunctuation(lesson.studentArtifact)}. Before you submit or speak in class, check whether your evidence actually proves the ${stripTerminalPunctuation(lesson.keyConcepts?.[0] || stripLessonPrefix(lesson.title))} decision.`,
+        `Treat ${lesson.title} as preparation for ${stripTerminalPunctuation(lesson.studentArtifact)}: match one source detail to the success criteria, then revise the part of the work that still sounds general.`,
+        `The graded-work connection is ${stripTerminalPunctuation(lesson.studentArtifact)}. Use ${stripTerminalPunctuation(lesson.keyConcepts?.[0] || stripLessonPrefix(lesson.title))} to decide which evidence, limitation, and revision note belong in the submission.`,
+      ]),
       ca: 'Assignment Clarification',
       rc: ['success criteria checklist', ...lesson.keyConcepts.slice(0, 2)],
       df: 'Intermediate',
@@ -17960,7 +18160,12 @@ function compileCourseFaq(blueprint, config = {}) {
     }),
     (lesson) => ({
       q: `Where should I ask questions about ${stripLessonPrefix(lesson.title)}?`,
-      an: `Use the official course communication channel, office hours, peer discussion spaces, and ${lesson.title} support resources. Bring a specific question about ${stripTerminalPunctuation(lesson.keyConcepts?.[0] || stripLessonPrefix(lesson.title))}, one ${lens.evidenceNoun} point, or a draft section when asking for help.`,
+      an: lessonVariant(lesson, [
+        `Use the official course communication channel, office hours, peer discussion spaces, and ${lesson.title} support resources. Bring a specific question about ${stripTerminalPunctuation(lesson.keyConcepts?.[0] || stripLessonPrefix(lesson.title))}, one ${lens.evidenceNoun} point, or a draft section when asking for help.`,
+        `Start with the course communication channel or office hours. To get useful help on ${lesson.title}, bring the exact ${stripTerminalPunctuation(lesson.keyConcepts?.[0] || stripLessonPrefix(lesson.title))} claim, evidence detail, or assignment step that is stuck.`,
+        `Ask in the official channel, during office hours, or in approved peer spaces. A strong question names ${lesson.title}, the evidence you tried, and what part of ${stripTerminalPunctuation(lesson.studentArtifact)} still needs feedback.`,
+        `Use instructor-approved support spaces for ${lesson.title}. Bring a short note showing the concept, evidence source, and revision choice you want checked.`,
+      ]),
       ca: 'Course Logistics',
       rc: [`${lesson.title} support`, 'office hours', 'course communication'],
       df: 'Basic',
@@ -18122,12 +18327,22 @@ function buildLessonPlanOutline(blueprint, lesson, { depth = 'flat' } = {}) {
         ? `Work the example step by step on the board: ${stripTerminalPunctuation(kernelWorkedExample.problem)}.`
         : kernelFact
           ? `Introduce ${concept} from its anchor fact — “${stripTerminalPunctuation(kernelFact)}” — and build the explanation students will reuse in ${artifact}.`
-          : `Introduce ${concept} with a concise worked example that shows how ${lens.learnerRole}s ${phrase.evidenceMove}.`,
+          : lessonVariant(lesson, [
+              `Introduce ${concept} with a concise worked example that shows how ${lens.learnerRole}s ${phrase.evidenceMove}.`,
+              `Model ${concept} through one concrete case, pausing where students must decide which ${lens.evidenceNoun} matters.`,
+              `Walk through a short ${lens.exampleNoun} and ask students to explain why the evidence supports ${artifact}.`,
+              `Use one visible example to separate ${concept} vocabulary from the evidence move students need later.`,
+            ]),
       instructorNotes: kernelWorkedExample
         ? `Solution path: ${kernelWorkedExample.steps.join(' → ')}. Result: ${kernelWorkedExample.result}. Have students annotate each step, then assign one variation with different numbers.`
         : `Keep the model concrete, point to ${evidencePlan?.sourceCue || 'one source cue'}, and show one line of reasoning students should reuse in ${artifact}.`,
       instructorRole: `Model thinking aloud and annotate the exemplar for ${concept}.`,
-      grouping: 'Instructor model with guided notes',
+      grouping: lessonVariant(lesson, [
+        'Instructor model with guided notes',
+        'Think-aloud demonstration with annotated notes',
+        'Mini-lesson with prediction pauses',
+        'Instructor walkthrough followed by quick notation',
+      ]),
       bloomsLevel: 'Understand',
     },
     {
@@ -18139,7 +18354,12 @@ function buildLessonPlanOutline(blueprint, lesson, { depth = 'flat' } = {}) {
         : `${sentenceCase(stripTerminalPunctuation(modality.signaturePractice))}. Students identify which evidence, assumptions, and constraints matter most for ${stripLessonPrefix(lesson.title)}.`,
       instructorNotes: `${stripTerminalPunctuation(modality.instructorMove)}; press for ${artifact} evidence about ${concept}. Watch for this misconception: ${misconception?.misconception || `students may use ${concept} without evidence`}.`,
       instructorRole: `Coach ${modalityEvidenceRoutineLabel(modality.mode)} and press for specificity in ${artifact}.`,
-      grouping: 'Pairs with instructor check-ins',
+      grouping: lessonVariant(lesson, [
+        'Pairs with instructor check-ins',
+        'Partner analysis with rotating checkpoints',
+        'Two-person evidence check with instructor coaching',
+        'Paired reasoning round before whole-class sampling',
+      ]),
       bloomsLevel: 'Analyze',
     },
     {
@@ -18159,7 +18379,12 @@ function buildLessonPlanOutline(blueprint, lesson, { depth = 'flat' } = {}) {
           }A claim counts only when it uses ${kernelTermA?.term || concept} precisely. ${modality.artifactCheck}`
         : `Require each group to cite at least one reading, example, or class note about ${concept} before they report out. ${modality.artifactCheck}`,
       instructorRole: `Moderate the ${stripLessonPrefix(lesson.title)} tradeoff discussion and calibrate ${artifact} against ${modality.studentProduct}.`,
-      grouping: 'Small groups then share-out',
+      grouping: lessonVariant(lesson, [
+        'Small groups then share-out',
+        'Triads compare claims before a whole-class sample',
+        'Table teams report one evidence-backed decision',
+        'Groups rotate roles before reporting the strongest case',
+      ]),
       bloomsLevel: 'Evaluate',
     },
     {
@@ -18177,7 +18402,12 @@ function buildLessonPlanOutline(blueprint, lesson, { depth = 'flat' } = {}) {
           ? `Conference against the kernel bar for ${artifact}: redirect drafts drifting toward “${stripTerminalPunctuation(kernelMisconception.misconception)}” to the correction — ${stripTerminalPunctuation(kernelMisconception.correction || `in fact, ${kernelMisconception.definition}`)}. ${modality.artifactCheck}`
           : `Conference with students who need support on ${artifact}; redirect them to the exact ${concept} criterion and this modality check: ${modality.artifactCheck}`,
       instructorRole: `Provide targeted feedback on ${artifact} and confirm readiness for submission.`,
-      grouping: 'Independent work with spot coaching',
+      grouping: lessonVariant(lesson, [
+        'Independent work with spot coaching',
+        'Solo drafting with targeted conferences',
+        'Individual artifact sprint plus instructor checkpoints',
+        'Quiet build time with quick evidence audits',
+      ]),
       bloomsLevel: lesson.bloomsLevel,
     },
     {
@@ -18193,7 +18423,12 @@ function buildLessonPlanOutline(blueprint, lesson, { depth = 'flat' } = {}) {
           ? `A secure ticket restates the correction in the student’s own words${kernelCitation ? ` and can point to ${kernelCitation}` : ''}; sort tickets into secure, partial, and reteach piles to set the next lesson’s warm-up for ${concept}.`
           : `${stripTerminalPunctuation(modality.feedbackRoutine)}; ground the debrief in ${artifact} evidence about ${concept}. Use exit-ticket responses to decide whether the next lesson should review ${concept} before extending it.`,
       instructorRole: `Synthesize patterns from ${stripLessonPrefix(lesson.title)} and set up the next lesson.`,
-      grouping: 'Whole class plus individual exit ticket',
+      grouping: lessonVariant(lesson, [
+        'Whole class plus individual exit ticket',
+        'Whole-class synthesis followed by private exit note',
+        'Fast debrief, then individual transfer check',
+        'Class pattern summary with one written next-step ticket',
+      ]),
       bloomsLevel: 'Evaluate',
     },
   ];

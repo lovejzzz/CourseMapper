@@ -5968,7 +5968,7 @@ describe('courseBlueprintCompiler', () => {
     expect(reflection.weekly_reflection[0].sourceGrounding).toMatchObject({
       confidence: 'high',
       compiledPattern: 'reflection-check-in',
-      evidenceRequirement: expect.stringContaining('Use a concrete detail'),
+      evidenceRequirement: expect.stringMatching(/Policy Topic 2.*Case packet 2|Case packet 2.*Policy Topic 2/),
     });
     expect(reflection.weekly_reflection.map((item) => item.checkInQuestion).join(' ')).toContain(
       'public policy analysis work',

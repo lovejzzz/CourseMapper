@@ -31,7 +31,7 @@ import path from 'node:path';
 import JSZip from 'jszip';
 
 import { computeTexture, maskSlots, buildTextureAdvisories } from '../src/lib/quality/textureMetric.js';
-import { compileBlueprintDeliverables } from '../src/lib/courseBlueprintCompiler';
+import { buildCourseBlueprint, compileBlueprintDeliverables } from '../src/lib/courseBlueprintCompiler';
 import {
   buildBlueprintFromGraph,
   deriveCourseGraphFromCourseMap,
@@ -253,6 +253,64 @@ function geologyCourseMap() {
     })),
   };
 }
+
+function geologyTextureRegressionMap() {
+  const topics = [
+    ['Minerals', 'mineral identification'],
+    ['Igneous Rocks', 'igneous textures'],
+    ['Sedimentary Rocks', 'sedimentary environments'],
+    ['Metamorphic Rocks', 'metamorphic grade'],
+    ['Plate Tectonics', 'plate boundary evidence'],
+    ['Earthquakes', 'seismic risk interpretation'],
+    ['Volcanoes', 'eruption hazard evidence'],
+    ['Groundwater', 'aquifer flow decisions'],
+  ];
+  return {
+    courseName: 'Physical Geology',
+    semester: 'Fall 2026',
+    lessons: topics.map(([title, concept], index) => ({
+      title: `Lesson ${index + 1}: ${title}`,
+      sections: [
+        {
+          topicSection: `${index + 1}.1: ${title}`,
+          learningGoals: `Build field-ready understanding of ${concept}.`,
+          learningObjectives: `Analyze ${concept} using field evidence.\nEvaluate how ${concept} changes a local decision.`,
+          weeklyAssessments: `${title} checkpoint with evidence, interpretation, and revision note.`,
+          asyncActivities: `Read the assigned chapter on ${title.toLowerCase()} and annotate one example.`,
+          syncActivities: `Workshop ${concept} with peer evidence checks and instructor debrief.`,
+          supportingResources: `OpenStax geology chapter on ${title.toLowerCase()}; field photo set ${index + 1}`,
+        },
+      ],
+    })),
+  };
+}
+
+function countPhrase(haystack, phrase) {
+  const escaped = phrase.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  return haystack.match(new RegExp(escaped, 'g'))?.length || 0;
+}
+
+describe('D1(2b) — compiler prose texture regression guard', () => {
+  it('keeps known stock phrases from becoming package-wide stamps again', () => {
+    const blueprint = buildCourseBlueprint(geologyTextureRegressionMap());
+    expect(blueprint.courseModalityProfile?.primaryMode).not.toBe('clinical-simulation');
+    const compiled = compileBlueprintDeliverables(blueprint, [
+      'lessonPlans',
+      'slideDecks',
+      'assignments',
+      'rubrics',
+      'courseFaq',
+    ]);
+    const text = JSON.stringify(compiled).toLowerCase();
+
+    expect(countPhrase(text, 'brief peer check on the professional decision')).toBe(0);
+    expect(countPhrase(text, 'checklist before submitting or discussing your work')).toBeLessThanOrEqual(2);
+    expect(countPhrase(text, 'checkpoint response with clear headings')).toBeLessThanOrEqual(2);
+    expect(countPhrase(text, 'one example is enough to prove')).toBeLessThanOrEqual(2);
+    expect(countPhrase(text, 'concise worked example that shows how')).toBeLessThanOrEqual(2);
+    expect(countPhrase(text, 'independent work with spot coaching')).toBeLessThanOrEqual(2);
+  });
+});
 
 function healthyConsoleLog() {
   const digest = buildRunDigest({
