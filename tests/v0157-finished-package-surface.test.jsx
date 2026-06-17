@@ -1,8 +1,8 @@
 /**
  * @vitest-environment happy-dom
  *
- * v0.15.7 - Finished Package Surface: a ready workspace opens as a handoff,
- * not another audit table.
+ * v0.15.7 - Finished Package Surface: the package summary is available as a
+ * compact handoff component, but it must not replace the Course Map tab.
  */
 import React from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
@@ -42,7 +42,7 @@ const COURSE_MAP = {
 };
 
 describe('v0.15.7 finished package surface', () => {
-  it('renders a finished-package handoff instead of the dense course-map preview', () => {
+  it('renders a compact finished-package summary without taking over export', () => {
     const html = renderToStaticMarkup(
       <FinishedPackageOverview
         courseMap={COURSE_MAP}
@@ -74,15 +74,16 @@ describe('v0.15.7 finished package surface', () => {
     expect(html).not.toContain('Course Map Preview');
   });
 
-  it('keeps the dense course map and artifact tabs one click away', () => {
+  it('keeps the Course Map tab as the centered preview even when the package is ready', () => {
     const appFlow = read('src/AppFlow.jsx');
 
-    expect(appFlow).toContain('showFinishedPackageOverview');
-    expect(appFlow).toContain('courseMapDetailOpen');
-    expect(appFlow).toContain('ribbonModel={showFinishedPackageOverview ? null : buildRibbonModel}');
-    expect(appFlow).toContain('onEditCourseMap={setCourseMapDetailOpen}');
+    expect(appFlow).not.toContain('showFinishedPackageOverview');
+    expect(appFlow).not.toContain('courseMapDetailOpen');
+    expect(appFlow).not.toContain('FinishedPackageOverview');
+    expect(appFlow).toContain('ribbonModel={buildRibbonModel}');
+    expect(appFlow).toContain("activeTab === 'courseMap'");
+    expect(appFlow).toContain('<CourseMapPreview');
     expect(appFlow).toContain('coursemapper:request-zip-download');
-    expect(appFlow).toContain('onOpenFeature={setActiveTab}');
 
     const exportPanel = read('src/components/ExportSidePanel.jsx');
     expect(exportPanel).toContain('const headerOwnsZipCta = false');

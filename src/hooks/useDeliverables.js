@@ -2004,14 +2004,22 @@ export default function useDeliverables({
         // allows (cached weekly, degrades to nothing, never blocks).
         let genomeResourceCount = 0;
         let openReadingCount = 0;
+        let sourceFinderCount = 0;
         try {
           const knowledge = await import('../lib/knowledge');
           genomeResourceCount = knowledge.attachGenomeResources(courseGraph);
           openReadingCount = await knowledge.attachOpenReadings(courseGraph);
-          const coverage = knowledge.knowledgeCoverage(courseGraph);
-          if (coverage && genomeResourceCount + openReadingCount > 0) {
+          let coverage = knowledge.knowledgeCoverage(courseGraph);
+          if (knowledge.shouldRunSourceFinder?.(coverage)) {
+            const sourceMiniShard = await knowledge.findCourseSources(courseGraph, { maxTopics: 8, limitPerTopic: 3 });
+            sourceFinderCount = knowledge.attachSourceFinderResources(courseGraph, sourceMiniShard, {
+              maxSourcesPerTopic: 1,
+            });
+            coverage = knowledge.knowledgeCoverage(courseGraph);
+          }
+          if (coverage && genomeResourceCount + openReadingCount + sourceFinderCount > 0) {
             appendLog(
-              `✓ Reading lists attached: ${genomeResourceCount} cited textbook section${genomeResourceCount === 1 ? '' : 's'} + ${openReadingCount} open reading${openReadingCount === 1 ? '' : 's'} across ${coverage.sessionsWithResources} lesson${coverage.sessionsWithResources === 1 ? '' : 's'}`,
+              `✓ Reading lists attached: ${genomeResourceCount} cited textbook section${genomeResourceCount === 1 ? '' : 's'} + ${openReadingCount} open reading${openReadingCount === 1 ? '' : 's'}${sourceFinderCount > 0 ? ` + ${sourceFinderCount} source-finder citation${sourceFinderCount === 1 ? '' : 's'}` : ''} across ${coverage.sessionsWithResources} lesson${coverage.sessionsWithResources === 1 ? '' : 's'}`,
               'done',
             );
             recordGenerationApiCallEvent({

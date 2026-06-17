@@ -11,9 +11,21 @@ export {
   searchScholarlyReadings,
   searchEducationResearch,
   searchBookMetadata,
+  searchCrossrefWorks,
+  searchWikipediaPages,
+  searchLibraryOfCongress,
+  searchInternetArchiveTexts,
+  oerCommonsSearchLink,
   checkRetractions,
   isoWeekStamp,
 } from './providers.js';
 export { attachGenomeResources, attachOpenReadings, knowledgeCoverage } from './readingListEngine.js';
+export {
+  SOURCE_FINDER_ORIGIN,
+  attachSourceFinderResources,
+  findCourseSources,
+  shouldRunSourceFinder,
+  sourceTopicsFromCourse,
+} from './sourceFinder.js';
 export { PEDAGOGY_EVIDENCE, evidenceForMove, buildMethodsStatement } from './pedagogyEvidence.js';
 export { buildCompetencyMap, competencyStandardsUrls } from './competencyMap.js';

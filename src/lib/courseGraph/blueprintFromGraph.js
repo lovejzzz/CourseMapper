@@ -114,7 +114,13 @@ export function attachEnrichmentToGraph(graph, enrichment) {
 // 'syllabus'-origin resources are NOT included: they already render in
 // supportingResources, and passing them would make the graph path diverge
 // from the map path (golden equivalence).
-const KNOWLEDGE_BACKBONE_ORIGINS = new Set(['genome', 'genome-prerequisite', 'openalex', 'openlibrary']);
+const KNOWLEDGE_BACKBONE_ORIGINS = new Set([
+  'genome',
+  'genome-prerequisite',
+  'openalex',
+  'openlibrary',
+  'source-finder',
+]);
 
 /** Compile a course blueprint from the graph (render + enrichment overlay). */
 export function buildBlueprintFromGraph(graph, options = {}) {

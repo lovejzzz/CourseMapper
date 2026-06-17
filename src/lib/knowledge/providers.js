@@ -4,7 +4,8 @@
  *
  * One contract over the keyless, CORS-friendly open-knowledge APIs the
  * browser may call at run time: OpenAlex (scholarly works), ERIC (education
- * research), Open Library (book metadata). Build-time-only systems
+ * research), Open Library (book metadata), Crossref, Wikipedia, Library of
+ * Congress, and Internet Archive metadata. Build-time-only systems
  * (OpenStax full text, CORE) live in the foundry, never here.
  *
  * Hard rules (docs/V0.13.5_OPEN_KNOWLEDGE_BACKBONE_ROADMAP.md P0):
@@ -240,6 +241,151 @@ export async function searchBookMetadata(query, { limit = 3, signal } = {}) {
   } catch {
     return [];
   }
+}
+
+function firstArrayValue(value) {
+  return Array.isArray(value) ? value.find((entry) => cleanText(entry)) : value;
+}
+
+function yearFromDateParts(...partsList) {
+  for (const parts of partsList) {
+    const year = Array.isArray(parts?.['date-parts']?.[0]) ? Number(parts['date-parts'][0][0]) : null;
+    if (Number.isFinite(year) && year > 0) return year;
+  }
+  return null;
+}
+
+/**
+ * Crossref: broad DOI metadata for peer-reviewed/course readings. Returns []
+ * on any failure.
+ */
+export async function searchCrossrefWorks(query, { limit = 3, signal } = {}) {
+  const q = cleanText(query);
+  if (!q) return [];
+  try {
+    const url =
+      `https://api.crossref.org/works?query.bibliographic=${encodeURIComponent(q)}` +
+      `&rows=${limit}&mailto=${OPENALEX_MAILTO}`;
+    const json = await cachedFetchJson(`crossref:${q}:${limit}`, url, { signal });
+    return (json?.message?.items || []).map((item) => {
+      const doi = cleanText(item.DOI);
+      return {
+        provider: 'crossref',
+        kind: cleanText(item.type) || 'scholarly work',
+        title: cleanText(firstArrayValue(item.title)),
+        authors: formatAuthorList(
+          (item.author || []).map((author) => cleanText(`${author.given || ''} ${author.family || ''}`)),
+          (item.author || []).length,
+        ),
+        year: yearFromDateParts(item.published, item['published-print'], item['published-online'], item.created),
+        abstract: cleanText(item.abstract).slice(0, 400),
+        url: cleanText(item.URL) || (doi ? `https://doi.org/${doi}` : ''),
+        doi: doi || null,
+        license: cleanText(item.license?.[0]?.URL) || 'Crossref public metadata',
+        attribution: 'Crossref public metadata',
+      };
+    });
+  } catch {
+    return [];
+  }
+}
+
+/**
+ * Wikipedia: concise encyclopedia pages for background knowledge. Returns []
+ * on any failure or rate limit.
+ */
+export async function searchWikipediaPages(query, { limit = 2, signal } = {}) {
+  const q = cleanText(query);
+  if (!q) return [];
+  try {
+    const url =
+      `https://en.wikipedia.org/w/api.php?action=query&generator=search&gsrsearch=${encodeURIComponent(q)}` +
+      `&gsrlimit=${limit}&prop=extracts|info&exintro=1&explaintext=1&inprop=url&format=json&origin=*`;
+    const json = await cachedFetchJson(`wikipedia:${q}:${limit}`, url, { signal });
+    const pages = Object.values(json?.query?.pages || {});
+    return pages.map((page) => ({
+      provider: 'wikipedia',
+      kind: 'encyclopedia background',
+      title: cleanText(page.title),
+      authors: 'Wikipedia contributors',
+      year: null,
+      abstract: cleanText(page.extract).slice(0, 400),
+      url: cleanText(page.fullurl),
+      license: 'CC BY-SA 4.0',
+      attribution: 'Wikipedia contributors',
+    }));
+  } catch {
+    return [];
+  }
+}
+
+/**
+ * Library of Congress: primary-source/catalog metadata. Returns [] on any
+ * failure.
+ */
+export async function searchLibraryOfCongress(query, { limit = 2, signal } = {}) {
+  const q = cleanText(query);
+  if (!q) return [];
+  try {
+    const url = `https://www.loc.gov/search/?fo=json&q=${encodeURIComponent(q)}&c=${limit}`;
+    const json = await cachedFetchJson(`loc:${q}:${limit}`, url, { signal });
+    return (json?.results || []).map((item) => ({
+      provider: 'loc',
+      kind: 'primary source metadata',
+      title: cleanText(item.title),
+      authors: Array.isArray(item.contributor)
+        ? formatAuthorList(item.contributor, item.contributor.length)
+        : cleanText(item.contributor || item.creator),
+      year: Number(cleanText(item.date).match(/\b(1[5-9]\d{2}|20\d{2})\b/)?.[0]) || null,
+      abstract: cleanText(firstArrayValue(item.description || item.notes)).slice(0, 400),
+      url: cleanText(item.url || item.item?.url),
+      license: cleanText(item.rights) || 'Library of Congress public metadata; rights vary',
+      attribution: 'Library of Congress',
+    }));
+  } catch {
+    return [];
+  }
+}
+
+/**
+ * Internet Archive: public text metadata. Returns [] on any failure.
+ */
+export async function searchInternetArchiveTexts(query, { limit = 2, signal } = {}) {
+  const q = cleanText(query);
+  if (!q) return [];
+  try {
+    const search = `${q} AND mediatype:texts`;
+    const url =
+      `https://archive.org/advancedsearch.php?q=${encodeURIComponent(search)}` +
+      `&fl[]=identifier&fl[]=title&fl[]=creator&fl[]=year&fl[]=description&fl[]=licenseurl&rows=${limit}&output=json`;
+    const json = await cachedFetchJson(`internetarchive:${q}:${limit}`, url, { signal });
+    return (json?.response?.docs || []).map((doc) => ({
+      provider: 'internetarchive',
+      kind: 'open archive text',
+      title: cleanText(doc.title),
+      authors: Array.isArray(doc.creator) ? formatAuthorList(doc.creator, doc.creator.length) : cleanText(doc.creator),
+      year: Number(cleanText(doc.year).match(/\b(1[5-9]\d{2}|20\d{2})\b/)?.[0]) || null,
+      abstract: cleanText(Array.isArray(doc.description) ? doc.description[0] : doc.description).slice(0, 400),
+      url: doc.identifier ? `https://archive.org/details/${encodeURIComponent(doc.identifier)}` : '',
+      license: cleanText(doc.licenseurl) || 'Internet Archive public metadata; item rights vary',
+      attribution: 'Internet Archive',
+    }));
+  } catch {
+    return [];
+  }
+}
+
+export function oerCommonsSearchLink(query) {
+  const q = cleanText(query);
+  if (!q) return null;
+  return {
+    provider: 'oercommons',
+    kind: 'oer search',
+    title: `OER Commons search: ${q}`,
+    url: `https://oercommons.org/search?f.search=${encodeURIComponent(q)}`,
+    license: 'OER Commons search results; item licenses vary',
+    attribution: 'OER Commons',
+  };
 }
 
 /** Check works for retraction by DOI/OpenAlex id. Returns [] on failure. */
