@@ -1938,13 +1938,18 @@ export default function useDeliverables({
           });
           if (resolution.ok) {
             courseGraph = courseGraphLib.attachEnrichmentToGraph(resolution.graph, enrichmentForGraph);
+            const recoveredResourceDetail = resolution.resourceRecovery?.recoveredCount
+              ? ` · recovered ${resolution.resourceRecovery.recoveredCount} resource placeholder${
+                  resolution.resourceRecovery.recoveredCount === 1 ? '' : 's'
+                }`
+              : '';
             recordGenerationApiCallEvent({
               type: 'pipelineDecision',
               stage: 'nativeAuthoring',
               label: 'Native graph authoring',
               detail: `assembled ${resolution.graph.sessions.length} sessions onto Pass A entity ids · Pass B authored ${
                 Object.keys(blueprintEnrichment?.nativeAuthored || {}).length
-              } lesson(s) · ${(resolution.graph.readings || []).length} registry readings`,
+              } lesson(s) · ${(resolution.graph.readings || []).length} registry readings${recoveredResourceDetail}`,
             });
           } else {
             recordGenerationApiCallEvent({

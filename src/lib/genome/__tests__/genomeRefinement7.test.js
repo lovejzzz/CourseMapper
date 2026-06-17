@@ -58,9 +58,11 @@ describe('iteration 7 — genome spans deployed disciplines', () => {
     // Calculus I course that linked only 5/15); v0.15 F3: lang joined — the
     // FIRST shard the genome taught itself (the Beginning Korean extraction
     // contributed through the commons round-trip); v0.15.5 adds physics for
-    // the live Electricity and Magnetism miss.
+    // the live Electricity and Magnetism miss; v0.15.6 adds anatomy for the
+    // live Anatomy and Physiology miss.
     expect(disciplines).toEqual(
       new Set([
+        'anatomy',
         'astro',
         'econ',
         'stats',

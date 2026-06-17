@@ -604,7 +604,7 @@ function QualityReportModal({ quality, onClose }) {
             <div data-testid="quality-texture-row">
               <p className="text-xs font-semibold text-slate-500 mb-1.5">
                 Texture {quality.texture.score}/100
-                <span className="ml-1.5 font-medium text-slate-400">advisory — weight 0 in the grade</span>
+                <span className="ml-1.5 font-medium text-slate-400">style and repetition, counted lightly</span>
               </p>
               <div className="grid grid-cols-3 gap-1">
                 {['sameness', 'openers', 'tails'].map((subKey) => (
@@ -1216,6 +1216,8 @@ export default function ExportSidePanel({
     allReadyCount === 0 ||
     !courseMap ||
     (selectedLessons !== null && selectedLessons.length === 0);
+  const headerOwnsZipCta =
+    scope === 'all' && isPackageReady(packageQualityPass) && !activeHasReadinessIssues && !zipPendingReadiness;
 
   // v0.14.7 WS-F1: the workspace header's Download ZIP routes HERE — one
   // export executor. The ref keeps the listener bound once while reading the
@@ -1420,29 +1422,31 @@ export default function ExportSidePanel({
               </div>
             )}
 
-            <div>
-              <p className="text-xs font-semibold text-slate-500 mb-1.5">Package ZIP</p>
-              <button
-                data-testid="export-download-zip"
-                onClick={() => doExport('zip')}
-                disabled={zipDownloadDisabled}
-                className="tactile flex w-full items-center justify-center gap-2 rounded-lg bg-slate-950 py-2.5 text-xs font-bold text-white shadow-sm transition-colors hover:bg-slate-800 disabled:cursor-not-allowed disabled:bg-slate-200 disabled:text-slate-400 dark:bg-white dark:text-slate-950 dark:hover:bg-slate-200 dark:disabled:bg-slate-800 dark:disabled:text-slate-500"
-              >
-                {busy === 'zip' ? (
-                  <Spin />
-                ) : (
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"
-                    />
-                  </svg>
-                )}
-                {zipButtonLabel}
-              </button>
-            </div>
+            {!headerOwnsZipCta && (
+              <div>
+                <p className="text-xs font-semibold text-slate-500 mb-1.5">Package ZIP</p>
+                <button
+                  data-testid="export-download-zip"
+                  onClick={() => doExport('zip')}
+                  disabled={zipDownloadDisabled}
+                  className="tactile flex w-full items-center justify-center gap-2 rounded-lg bg-slate-950 py-2.5 text-xs font-bold text-white shadow-sm transition-colors hover:bg-slate-800 disabled:cursor-not-allowed disabled:bg-slate-200 disabled:text-slate-400 dark:bg-white dark:text-slate-950 dark:hover:bg-slate-200 dark:disabled:bg-slate-800 dark:disabled:text-slate-500"
+                >
+                  {busy === 'zip' ? (
+                    <Spin />
+                  ) : (
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"
+                      />
+                    </svg>
+                  )}
+                  {zipButtonLabel}
+                </button>
+              </div>
+            )}
 
             {/* v0.14.7.1: Save .coursemapper moved to the header's one More
                 menu — the panel keeps export verbs only. */}

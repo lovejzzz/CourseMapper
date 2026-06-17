@@ -35,16 +35,16 @@
  * Composite = weighted mean over the MEASURABLE sub-scores (weights
  * renormalized when a signal has no eligible data; a package of single-doc
  * features has no cross-document signal). No signal at all → score 100 with
- * measured: false — advisory, never punitive on unmeasurable input.
+ * measured: false, so unmeasurable input is not penalized.
  *
  * Worst-evidence examples (the actual repeated shingle strings, max 5) ride
- * along so the advisory findings can quote the template verbatim.
+ * along so reports can quote the template verbatim.
  *
  * Calibration (tests/v0147-texture-metric.test.js): a 10-doc slot-varied
  * template set must score ≥20 points below the same facts written with
  * varied structures, and per-doc DISTINCT real reading anchors must outrank
- * identical generic anchors. Calibrate before gating (the v0.14.3 trap) —
- * this dimension ships at weight 0.
+ * identical generic anchors. The grader gives the metric a small weight and
+ * turns low texture into an actionable finding.
  */
 
 export const TEXTURE_VERSION = '1.0.0';
@@ -308,10 +308,9 @@ export function normalizeTextureText(text) {
 }
 
 /**
- * P2-STYLE advisory findings for the texture result. These are NEVER pushed
- * into the grader's findings list — texture is weight 0 and must not change
- * any existing score, severity count, or report line — they ride in
- * result.texture.advisories as a separate advisory list.
+ * Backwards-compatible P2-style advisory records for the texture result.
+ * The grader creates the score-bearing finding itself; these remain separate
+ * under result.texture.advisories for older report surfaces.
  */
 export function buildTextureAdvisories(texture) {
   if (!texture || !texture.measured) return [];

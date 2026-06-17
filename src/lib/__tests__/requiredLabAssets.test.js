@@ -107,4 +107,37 @@ describe('collectRequiredLabAssets', () => {
       expect.arrayContaining(['specimen-kit', 'lab-safety', 'observation-tools']),
     );
   });
+
+  it('uses anatomy and physiology lab assets instead of geology field-lab assets', () => {
+    const requirements = collectRequiredLabAssets({
+      courseMap: {
+        courseName: 'Human Anatomy and Physiology I',
+        description:
+          '15-week undergraduate course with model and microscope labs, lab practicals, tissue types, integumentary, skeletal, muscular, nervous, sensory physiology, homeostasis, and feedback regulation.',
+        lessons: [
+          {
+            title: 'Lesson 2: Tissue types',
+            sections: [
+              {
+                topicSection: '2.1 epithelial tissue',
+                learningObjectives: 'Identify epithelial tissue on microscope slides.',
+                weeklyAssessments: 'Lab practical with histology images.',
+              },
+            ],
+          },
+        ],
+      },
+    });
+
+    expect(requirements.map((item) => item.id)).toEqual(
+      expect.arrayContaining([
+        'anatomical-model-set',
+        'histology-slide-set',
+        'anatomy-lab-manual',
+        'specimen-model-policy',
+      ]),
+    );
+    const text = JSON.stringify(requirements).toLowerCase();
+    expect(text).not.toMatch(/rock|mineral|streak plate|hand lens|field notebook/);
+  });
 });

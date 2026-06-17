@@ -574,9 +574,8 @@ export async function buildCourseMaterialsZip({
           findingCounts: { p0: qualityResult.stats.p0, p1: qualityResult.stats.p1, p2: qualityResult.stats.p2 },
           dimensions: qualityResult.scores,
           gradedAt: new Date().toISOString(),
-          // v0.14.9 B2: the advisory texture meter rides the manifest (and
-          // the in-app Seal) — score + sub-scores only; weight 0 in the
-          // grade, never a gate.
+          // v0.15.6: the score-bearing texture meter rides the manifest
+          // and the in-app Seal; the full evidence stays in QUALITY_REPORT.md.
           ...(qualityResult.texture && Number.isFinite(qualityResult.texture.score)
             ? {
                 texture: {

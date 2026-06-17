@@ -275,6 +275,32 @@ async function safeText(locator) {
   }
 }
 
+async function getZipAction(page) {
+  const sidePanelZip = page.getByTestId('export-download-zip');
+  if (
+    (await sidePanelZip.count()) > 0 &&
+    (await sidePanelZip
+      .first()
+      .isVisible()
+      .catch(() => false))
+  ) {
+    return sidePanelZip.first();
+  }
+
+  const headerZip = page.getByTestId('primary-cta').filter({ hasText: /Download ZIP/i });
+  if (
+    (await headerZip.count()) > 0 &&
+    (await headerZip
+      .first()
+      .isVisible()
+      .catch(() => false))
+  ) {
+    return headerZip.first();
+  }
+
+  return sidePanelZip.first();
+}
+
 async function waitForExportIdle(page, timeoutMs = 240_000) {
   await page.waitForFunction(
     () => {
@@ -334,7 +360,8 @@ async function ensurePackageReady(page) {
 
   for (let attempt = 0; attempt < 3; attempt += 1) {
     const status = await safeText(page.getByTestId('readiness-status'));
-    const zipLabel = await safeText(page.getByTestId('export-download-zip'));
+    const zipButton = await getZipAction(page);
+    const zipLabel = await safeText(zipButton);
     if (/Ready to download|Ready/i.test(status) && /Download ZIP/i.test(zipLabel)) return;
 
     const inlineFinish = page.getByTestId('readiness-finish-package');
@@ -351,7 +378,7 @@ async function ensurePackageReady(page) {
     }
 
     if (/Finish package/i.test(zipLabel)) {
-      await page.getByTestId('export-download-zip').click();
+      await zipButton.click();
       await waitForExportIdle(page);
       continue;
     }
@@ -364,7 +391,7 @@ async function ensurePackageReady(page) {
 }
 
 async function downloadZip(page, destinationPath) {
-  const zipButton = page.getByTestId('export-download-zip');
+  const zipButton = await getZipAction(page);
   await expect(zipButton).toContainText(/Download ZIP/, { timeout: 30_000 });
   const [download] = await Promise.all([page.waitForEvent('download', { timeout: 120_000 }), zipButton.click()]);
   const failure = await download.failure();

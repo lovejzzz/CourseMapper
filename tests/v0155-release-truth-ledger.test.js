@@ -4,9 +4,9 @@ import { describe, expect, it } from 'vitest';
 import { APP_VERSION, CURRENT_RELEASE, CURRENT_RELEASE_CHANGELOG } from '../src/lib/releaseManifest';
 import { LATEST_RELEASE } from '../src/lib/latestRelease';
 
-describe('v0.15.5 release truth ledger', () => {
+describe('current release truth ledger', () => {
   it('keeps current release surfaces on the same manifest version', () => {
-    expect(APP_VERSION).toBe('0.15.5');
+    expect(APP_VERSION).toBe('0.15.6');
     expect(CURRENT_RELEASE.version).toBe(APP_VERSION);
     expect(CURRENT_RELEASE_CHANGELOG.version).toBe(APP_VERSION);
     expect(LATEST_RELEASE.version).toBe(APP_VERSION);
@@ -19,7 +19,9 @@ describe('v0.15.5 release truth ledger', () => {
     const contract = JSON.parse(fs.readFileSync(CURRENT_RELEASE.proof.contract, 'utf8'));
     expect(contract.version).toBe(APP_VERSION);
     expect(contract.claims).toHaveLength(CURRENT_RELEASE.highlights.length);
-    expect(contract.claims.map((claim) => claim.changelogHighlightIndex)).toEqual([0, 1, 2, 3, 4, 5]);
+    expect(contract.claims.map((claim) => claim.changelogHighlightIndex)).toEqual(
+      CURRENT_RELEASE.highlights.map((_, index) => index),
+    );
   });
 
   it('passes the release-history audit script', () => {

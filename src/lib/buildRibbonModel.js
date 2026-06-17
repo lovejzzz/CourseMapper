@@ -74,10 +74,15 @@ export function parseGenomeLinkerDetail(detail = '') {
 }
 
 // buildJudgmentStageEvent strings → a short chip label (or null to omit).
-export function parseJudgmentDetail(detail = '') {
+export function parseJudgmentDetail(detail = '', genome = null) {
   const text = String(detail);
   if (!text || /^not evaluated/.test(text)) return null;
-  if (/^no gaps/.test(text)) return 'Judgment clean';
+  if (/^no gaps/.test(text)) {
+    const linked = Number(genome?.linked) || 0;
+    const total = Number(genome?.total) || 0;
+    if (total > 0 && (linked < 2 || linked / total < 0.4)) return 'Limited knowledge check';
+    return 'Judgment clean';
+  }
   const gaps = text.match(/(\d+) prerequisite gap/);
   const outOfOrder = text.match(/(\d+) out-of-order/);
   const parts = [];
@@ -104,13 +109,20 @@ function buildPipelineChips(budget) {
       chips.push({ id: 'genome', label: `Genome ${genome.linked}/${genome.total}`, emphasis: genome.linked > 0 });
     }
   }
-  const judgment = parseJudgmentDetail(budget?.pipeline?.judgment);
-  if (judgment) chips.push({ id: 'judgment', label: judgment, emphasis: false });
+  const judgment = parseJudgmentDetail(budget?.pipeline?.judgment, genome);
+  if (judgment) {
+    chips.push({
+      id: 'judgment',
+      label: judgment,
+      emphasis: false,
+      ...(judgment.startsWith('Limited') ? { muted: true } : {}),
+    });
+  }
   const outcome = budget?.enrichmentOutcome;
   const enriched = Number(outcome?.enrichedLessons) || 0;
   const requested = Number(outcome?.requestedLessons) || 0;
   if (enriched > 0 || requested > 0) {
-    chips.push({ id: 'coverage', label: `Coverage ${enriched}/${requested || enriched}`, emphasis: false });
+    chips.push({ id: 'coverage', label: `Materials ${enriched}/${requested || enriched}`, emphasis: false });
   }
   return chips;
 }

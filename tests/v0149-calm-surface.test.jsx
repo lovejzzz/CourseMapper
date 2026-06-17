@@ -30,7 +30,7 @@ const GRADED_WITH_TEXTURE = {
 };
 
 describe('B2 — the two-number Seal', () => {
-  it('renders Quality and Texture side by side, texture in advisory slate', () => {
+  it('renders Quality and Texture side by side, texture in slate', () => {
     const html = renderToStaticMarkup(
       <WorkspaceQualityChip packageQualityPass={GRADED_WITH_TEXTURE} onOpenReport={() => {}} />,
     );
@@ -39,9 +39,10 @@ describe('B2 — the two-number Seal', () => {
     expect(html).toContain('data-testid="workspace-texture-meter"');
     // The meter is slate — never the chip's emerald/amber health tone.
     expect(html).toContain('text-slate-500');
-    // Advisory framing reaches the tooltip and the accessible name.
-    expect(html).toContain('ADVISORY');
-    expect(html).toContain('weight 0 in the grade');
+    // Score-bearing framing reaches the tooltip and the accessible name.
+    expect(html).toContain('counted lightly in the grade');
+    expect(html).not.toContain('ADVISORY');
+    expect(html).not.toContain('weight 0 in the grade');
   });
 
   it('texture never changes the health tone — a P0 package stays amber with its meter', () => {
@@ -87,6 +88,8 @@ describe('B2 — the two-number Seal', () => {
     const panel = read('src/components/ExportSidePanel.jsx');
     expect(panel).toContain('quality-texture-row');
     expect(panel).toContain("['sameness', 'openers', 'tails']");
+    expect(panel).toContain('style and repetition, counted lightly');
+    expect(panel).toContain('headerOwnsZipCta');
   });
 });
 

@@ -98,6 +98,9 @@ function hasLanguageCourseSignal(identityText, text) {
 const WET_LAB_SIGNAL =
   /\b(wet lab|lab safety|bench lab|bench experiment\w*|laboratory methods?|titration|spectroscop\w+|chromatograph\w+|microscop\w+|chemical synthesis|organic synthesis|reagent|specimen|dissect\w+|assay|recrystalliz\w+|pipette|beaker|streak plate|hand lens|field notebook|(?:rock|mineral|biological|chemical)\s+samples?|sample kit)\b/i;
 
+const ANATOMY_PHYSIOLOGY_SIGNAL =
+  /\b(?:anatomy|physiology|a&p|histology|tissue types?|integumentary|skeletal system|muscular system|nervous system|sensory physiology|homeostasis|feedback regulation|microscope labs?|lab practicals?|anatomical models?)\b/i;
+
 /**
  * Which asset genre this course belongs to. Exported so tests (and the
  * report) can verify WHICH branch fired, not just what came out.
@@ -109,8 +112,38 @@ export function classifyCourseAssetGenre({ courseMap }) {
   const identityText = courseIdentityText(courseMap);
   if (hasDataScienceCourseSignal(identityText, text)) return 'data-science';
   if (hasLanguageCourseSignal(identityText, text)) return 'language';
+  if (ANATOMY_PHYSIOLOGY_SIGNAL.test(`${identityText} ${text}`)) return 'anatomy-physiology';
   if (WET_LAB_SIGNAL.test(text)) return 'wet-lab';
   return 'general';
+}
+
+function collectAnatomyPhysiologyAssets() {
+  return [
+    {
+      id: 'anatomical-model-set',
+      label: 'Anatomical model set',
+      formats: ['physical', '3d', '.pdf'],
+      note: 'Name the torso, skeletal, muscular, joint, or organ models students use for labeling and lab practical preparation.',
+    },
+    {
+      id: 'histology-slide-set',
+      label: 'Microscope slide and histology image set',
+      formats: ['physical', '.jpg', '.png', '.pdf'],
+      note: 'Provide the prepared slides, approved image atlas, or LMS image set used for tissue identification and microscope labs.',
+    },
+    {
+      id: 'anatomy-lab-manual',
+      label: 'Anatomy and physiology lab manual or procedure worksheets',
+      formats: ['.docx', '.pdf'],
+      note: 'Attach the per-lab procedures, labeling sheets, and practical-review worksheets students complete.',
+    },
+    {
+      id: 'specimen-model-policy',
+      label: 'Lab safety and specimen/model handling policy',
+      formats: ['.pdf'],
+      note: 'State microscope handling, model care, specimen/image-use rules, cleanup, and any institution-specific safety requirements.',
+    },
+  ];
 }
 
 function collectWetLabAssets(text) {
@@ -221,6 +254,8 @@ export function collectRequiredLabAssets({ courseMap }) {
   switch (classifyCourseAssetGenre({ courseMap })) {
     case 'data-science':
       return collectDataScienceAssets(text);
+    case 'anatomy-physiology':
+      return collectAnatomyPhysiologyAssets(text);
     case 'wet-lab':
       return collectWetLabAssets(text);
     case 'language':

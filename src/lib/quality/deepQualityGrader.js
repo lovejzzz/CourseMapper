@@ -70,7 +70,7 @@ import {
   matchesKnownOffender,
   blacklistYieldsToTopicalOverlap as offenderYieldsToTopicalOverlap,
 } from './artifactDefectPatterns.js';
-// V0.14.7 WS-D D1: the advisory texture metric (weight 0).
+// V0.14.7 WS-D D1 introduced the texture metric; v0.15.6 makes it score-bearing.
 import { computeTexture, textureDocsFromFiles, buildTextureAdvisories, TEXTURE_VERSION } from './textureMetric.js';
 
 // v0.14.3 WS-A A3: the grader version stamped into manifest.quality. Bump on
@@ -87,22 +87,16 @@ import { computeTexture, textureDocsFromFiles, buildTextureAdvisories, TEXTURE_V
 // visuals, so stored Crucible rounds stay quiet; armed packages take a P2
 // per enriched deck (kernel-derived slides present) that renders zero
 // native visuals.
-// 1.3.0 — V0.14.7 WS-D (D1): 'texture' joins as an ADVISORY dimension at
-// WEIGHT 0 (templated-ness made measurable: slot-masked cross-document
-// shingle sameness, sentence-opener variety, template-tail frequency —
-// textureMetric.js). Weight 0 + a separate advisory list (never the
-// findings list) means no existing dimension score, severity count,
-// deduction, or overall grade changes — it only ADDS the texture row to
-// the report's dimension table and result.texture to the grade object.
+// 1.3.0 — V0.14.7 WS-D (D1): 'texture' joined as an advisory dimension.
 // 1.4.0 — v0.15.4: required-asset genre plausibility, generic lesson artifact
 // leaks, and unevaluated knowledge-judgment honesty for structured STEM.
-export const GRADER_VERSION = '1.4.0';
+// 1.5.0 — v0.15.6: texture counts lightly, template-phrase repetition joins
+// findings, and A&P required assets reject geology/chemistry field-lab nouns.
+export const GRADER_VERSION = '1.5.0';
 
 // ── Dimension weights & letter bands (documented in the module header) ──────
-// texture (V0.14.7 WS-D D1) is ADVISORY: weight 0 keeps the overall score
-// byte-identical to grader 1.2.0; its score comes from textureMetric.js, not
-// from findings deductions, and its advisories live in result.texture (never
-// the findings list). Calibrate before any weight > 0 (the v0.14.3 trap).
+// texture now has a small score-bearing weight. It should be able to pull a
+// heavily templated package below 100/A without overpowering substantive gates.
 export const DIMENSION_WEIGHTS = {
   identity: 20,
   substance: 20,
@@ -112,7 +106,7 @@ export const DIMENSION_WEIGHTS = {
   consistency: 10,
   structure: 10,
   format: 5,
-  texture: 0,
+  texture: 10,
 };
 const SEVERITY_PENALTY = { P0: 25, P1: 8, P2: 3 };
 const DIMENSIONS = Object.keys(DIMENSION_WEIGHTS);
@@ -547,6 +541,7 @@ function checkStructure(findings, { files, manifest }, course) {
   if (requiredAsset) {
     const md = requiredAsset.text;
     const dsGenre = isDataScienceCourse(course);
+    const anatomyGenre = isAnatomyPhysiologyCourse(course, manifest);
     if (!dsGenre && /\.parquet\b|\bmodel cards?\b|\.ipynb\b/i.test(md)) {
       const match = /(.{0,40}(?:\.parquet|model cards?|\.ipynb).{0,40})/i.exec(md);
       findings.add({
@@ -556,6 +551,19 @@ function checkStructure(findings, { files, manifest }, course) {
         detail:
           'Required Assets list cites data-science assets (.parquet / model card / .ipynb) for a non-data-science course',
         evidence: match ? match[1] : 'data-science asset noun',
+      });
+    }
+    if (anatomyGenre && ANATOMY_WRONG_REQUIRED_ASSET_RE.test(md)) {
+      const match =
+        /(.{0,60}(?:rock|mineral|chemical samples?|streak plates?|hand lenses?|field notebook|field activities).{0,60})/i.exec(
+          md,
+        );
+      findings.add({
+        severity: 'P1',
+        dimension: 'structure',
+        file: requiredAsset.path,
+        detail: 'Required Assets list cites geology/chemistry field-lab materials for an anatomy and physiology course',
+        evidence: match ? match[1] : 'wrong-discipline lab asset noun',
       });
     }
     if (!isWetLabCourse(course, manifest) && WET_LAB_REQUIRED_ASSET_RE.test(md)) {
@@ -591,8 +599,17 @@ function isWetLabCourse(course, manifest) {
   return /\b(geology|chemistry|biology|microbiology|anatomy|physiology|wet lab|laboratory)\b/.test(text);
 }
 
+function isAnatomyPhysiologyCourse(course, manifest) {
+  const text = `${course?.title || ''} ${course?.id || ''} ${manifest?.courseName || ''}`.toLowerCase();
+  return /\b(?:anatomy|physiology|a&p|histology|integumentary|skeletal system|muscular system|nervous system|sensory physiology)\b/.test(
+    text,
+  );
+}
+
 const WET_LAB_REQUIRED_ASSET_RE =
   /\b(specimen|sample kit|rock, mineral|biological, or chemical samples|goggles|gloves|hand lenses?|streak plates?|field notebook|lab safety|bench|field activities)\b/i;
+const ANATOMY_WRONG_REQUIRED_ASSET_RE =
+  /\b(rock|mineral|chemical samples?|streak plates?|hand lenses?|field notebook|field activities)\b/i;
 
 // IDENTITY — the assessment registry (v0.14.1 Phase 3).
 function checkIdentity(findings, { files, manifest }, _course) {
@@ -2754,6 +2771,27 @@ const NATIVE_VISUAL_SHAPE = /name="cmViz(?:Hub|Spoke|Conn|Chart|Table|Matrix)/;
 // "enriched deck" signal readable from rendered XML alone.
 const ENRICHED_DECK_TITLE_PATTERNS = [/^Worked example: /i, /^Common pitfalls in /i, /^How Experts Think/i];
 
+const PACKAGE_TEMPLATE_PHRASES = [
+  { label: '"Lesson N application check"', pattern: /\bLesson\s+\d+\s+application check\b/gi, threshold: 3 },
+  { label: '"Week N covering"', pattern: /\bWeek\s+\d+\s+covering\b/gi, threshold: 6 },
+  {
+    label: '"Instructor notes and selected readings"',
+    pattern: /\bInstructor notes and selected readings\b/gi,
+    threshold: 4,
+  },
+  {
+    label: '"Course LMS and standard document tools"',
+    pattern: /\bCourse LMS and standard document tools\b/gi,
+    threshold: 4,
+  },
+  {
+    label: '"Build a working understanding"',
+    pattern: /\bBuild a working understanding of\b/gi,
+    threshold: 4,
+  },
+  { label: '"Short formative check covering"', pattern: /\bShort formative check covering\b/gi, threshold: 4 },
+];
+
 function checkDeckVisuals(findings, { files }) {
   const decks = files.filter((file) => file.featureId === 'slideDecks' && file.kind === 'pptx');
   if (!decks.some((deck) => VISUAL_LAYER_MARKER.test(deck.rawXml || ''))) return;
@@ -2893,6 +2931,31 @@ function checkFormat(findings, { files }) {
       });
     }
   }
+  const packageText = files.map((file) => file.text || '').join('\n');
+  for (const phrase of PACKAGE_TEMPLATE_PHRASES) {
+    const matches = packageText.match(phrase.pattern) || [];
+    if (matches.length > phrase.threshold) {
+      findings.add({
+        severity: 'P2',
+        dimension: 'format',
+        file: 'package',
+        detail: `${phrase.label} repeats ${matches.length} times across exported artifacts`,
+        evidence: matches[0],
+      });
+    }
+  }
+}
+
+function checkTextureFindings(findings, texture) {
+  if (!texture?.measured || !Number.isFinite(texture.score) || texture.score >= 90) return;
+  const topEvidence = Array.isArray(texture.evidence) && texture.evidence.length > 0 ? texture.evidence[0] : null;
+  findings.add({
+    severity: 'P2',
+    dimension: 'texture',
+    file: topEvidence?.feature ? `${topEvidence.feature} artifacts` : 'package',
+    detail: `Texture score ${texture.score}/100 indicates repeated prose patterns across deliverables`,
+    evidence: topEvidence?.shingle || 'low texture score',
+  });
 }
 
 // ════════════════════════════════════════════════════════════════════════════
@@ -2941,16 +3004,16 @@ export async function grade({
   // silent for packages exported before the visual layer existed.
   checkDeckVisuals(findings, pkg);
 
-  // V0.14.7 WS-D D1 — texture, the advisory dimension (weight 0). Known slot
-  // values (course title + registry titles) are masked so slot variation
-  // alone earns no texture credit; its advisories stay OUT of the findings
-  // list so no severity count, deduction, or report line changes.
+  // V0.15.6 — texture is score-bearing. Known slot values (course title +
+  // registry titles) are masked so slot variation alone earns no texture
+  // credit; low texture also becomes a finding before dimension scoring.
   const textureSlotValues = [
     course?.title,
     ...(Array.isArray(pkg.manifest?.assessments) ? pkg.manifest.assessments.map((entry) => entry?.title) : []),
     ...(Array.isArray(pkg.manifest?.readings) ? pkg.manifest.readings.map((entry) => entry?.title) : []),
   ].filter(Boolean);
   const texture = computeTexture(textureDocsFromFiles(pkg.files), { slotValues: textureSlotValues });
+  checkTextureFindings(findings, texture);
 
   // Score each dimension.
   const scores = {};
@@ -2964,8 +3027,8 @@ export async function grade({
     scores[dimension] = score;
     grades[dimension] = letterGrade(score);
   }
-  // texture's score comes from the metric, never from findings deductions
-  // (and at weight 0 it contributes nothing to the weighted overall below).
+  // texture's score comes from the metric and contributes through its light
+  // dimension weight; the finding above exists to make the report actionable.
   scores.texture = texture.score;
   grades.texture = letterGrade(texture.score);
 
@@ -3001,9 +3064,8 @@ export async function grade({
     overall: { score: overallScore, grade: letterGrade(overallScore) },
     findings: findings.list,
     stats,
-    // V0.14.7 WS-D D1: the advisory texture block — sub-scores, worst
-    // repeated-shingle evidence, and P2-STYLE advisories in a SEPARATE list
-    // (they never join findings and never subtract points).
+    // Texture block — sub-scores, worst repeated-shingle evidence, and
+    // backwards-compatible advisories beside the score-bearing finding.
     texture: {
       version: TEXTURE_VERSION,
       score: texture.score,

@@ -231,6 +231,32 @@ async function safeText(locator) {
   }
 }
 
+async function getZipAction(page) {
+  const sidePanelZip = page.getByTestId('export-download-zip');
+  if (
+    (await sidePanelZip.count()) > 0 &&
+    (await sidePanelZip
+      .first()
+      .isVisible()
+      .catch(() => false))
+  ) {
+    return sidePanelZip.first();
+  }
+
+  const headerZip = page.getByTestId('primary-cta').filter({ hasText: /Download ZIP/i });
+  if (
+    (await headerZip.count()) > 0 &&
+    (await headerZip
+      .first()
+      .isVisible()
+      .catch(() => false))
+  ) {
+    return headerZip.first();
+  }
+
+  return sidePanelZip.first();
+}
+
 // Borrowed from scripts/liveBrowserQualityLoop.mjs (waitForExportIdle).
 async function waitForExportIdle(page, timeoutMs) {
   await page.waitForFunction(
@@ -280,7 +306,8 @@ async function ensurePackageReady(page, remaining) {
 
   for (let attempt = 0; attempt < 3; attempt += 1) {
     const status = await safeText(page.getByTestId('readiness-status'));
-    const zipLabel = await safeText(page.getByTestId('export-download-zip'));
+    const zipButton = await getZipAction(page);
+    const zipLabel = await safeText(zipButton);
     if (/Ready to download|Ready/i.test(status) && /Download ZIP/i.test(zipLabel)) return;
 
     const inlineFinish = page.getByTestId('readiness-finish-package');
@@ -297,7 +324,7 @@ async function ensurePackageReady(page, remaining) {
     }
 
     if (/Finish package/i.test(zipLabel)) {
-      await page.getByTestId('export-download-zip').click();
+      await zipButton.click();
       await waitForExportIdle(page, remaining(240_000));
       continue;
     }
@@ -311,7 +338,7 @@ async function ensurePackageReady(page, remaining) {
 
 // Borrowed from scripts/liveBrowserQualityLoop.mjs (downloadZip).
 async function downloadZip(page, destinationPath, remaining) {
-  const zipButton = page.getByTestId('export-download-zip');
+  const zipButton = await getZipAction(page);
   await expect(zipButton).toContainText(/Download ZIP/, { timeout: remaining(30_000) });
   const [download] = await Promise.all([
     page.waitForEvent('download', { timeout: remaining(120_000) }),

@@ -71,10 +71,9 @@ export default function WorkspaceQualityChip({ packageQualityPass, onOpenReport 
   const tone = healthy
     ? 'border-emerald-200 bg-emerald-50 text-emerald-700'
     : 'border-amber-200 bg-amber-50 text-amber-700';
-  // v0.14.9 B2: the two-number Seal. One perfect number can hide a 5/10 —
-  // the calibrated texture meter (advisory, weight 0 in the grade) renders
-  // beside the grade in slate: it's a meter, not a grade, and it never
-  // changes the chip's health tone or any gate.
+  // v0.15.6: the two-number Seal stays visible, but texture now counts
+  // lightly in the grade so a heavily templated package cannot still wear
+  // "100/A" with no findings.
   const textureScore = Number.isFinite(quality.texture?.score) ? quality.texture.score : null;
   return (
     <button
@@ -84,13 +83,13 @@ export default function WorkspaceQualityChip({ packageQualityPass, onOpenReport 
       aria-label={`Package quality: ${quality.score} out of 100, grade ${quality.grade}, ${issues} issue${
         issues === 1 ? '' : 's'
       }${p0 > 0 ? ` including ${p0} critical` : ''}${
-        textureScore !== null ? `, texture ${textureScore} out of 100 (advisory)` : ''
+        textureScore !== null ? `, texture ${textureScore} out of 100` : ''
       } — open the quality report`}
       title={`Deterministic package grade ${quality.score}/100 (${quality.grade}) · ${issues} issue${
         issues === 1 ? '' : 's'
       }${
         textureScore !== null
-          ? ` · Texture ${textureScore}/100 — an ADVISORY style meter (repetition, openers, tails); weight 0 in the grade`
+          ? ` · Texture ${textureScore}/100 — style and repetition meter; counted lightly in the grade`
           : ''
       } — click for the full report (also shipped as QUALITY_REPORT.md in the ZIP)`}
       className={`${CHIP_BASE} ${tone} tactile transition-colors hover:brightness-95`}

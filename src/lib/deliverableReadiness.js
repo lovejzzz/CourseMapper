@@ -347,9 +347,9 @@ function getCourseMapFallbackValue(key, courseMap, lesson, section, lessonIndex)
   const pick = (variants) => variants[variantIndex % variants.length];
   const fieldFallbacks = {
     learningGoals: pick([
-      `Build a working understanding of ${topic} and connect it to the course outcomes.`,
-      `Develop fluency with ${topic} and link it to the course outcomes.`,
-      `Strengthen command of ${topic} and relate it to the course outcomes.`,
+      `Use ${topic} to explain a course problem and prepare evidence for the next assessment.`,
+      `Trace how ${topic} changes what students can observe, label, calculate, or decide.`,
+      `Develop an evidence-backed account of ${topic} for course applications.`,
     ]),
     topicSection: topic,
     learningObjectives: pick([
@@ -359,9 +359,9 @@ function getCourseMapFallbackValue(key, courseMap, lesson, section, lessonIndex)
       `Analyze an example using ${topic} and name one limitation or open question.`,
     ]),
     weeklyAssessments: pick([
-      `Low-stakes check for understanding aligned to ${topic}.`,
-      `Short formative check covering ${topic}.`,
-      `Brief practice check tied to ${topic}.`,
+      `Quick evidence check: apply ${topic} to a new example.`,
+      `Exit ticket using ${topic} to justify one course-relevant decision.`,
+      `Practice response that names the evidence needed for ${topic}.`,
     ]),
     asyncActivities: pick([
       `Review assigned materials and prepare notes on ${topic}.`,
@@ -373,14 +373,22 @@ function getCourseMapFallbackValue(key, courseMap, lesson, section, lessonIndex)
       `Work through examples of ${topic} together and practice applying them.`,
       `Compare examples of ${topic} in class and rehearse the key moves.`,
     ]),
-    technologyNeeded: 'Course LMS and standard document tools.',
-    presentationFormat: 'Brief instructor framing, guided practice, and discussion.',
-    supportingResources: pick([
-      `Assigned readings, instructor notes, and course examples related to ${topic}.`,
-      `Instructor notes and selected readings on ${topic}.`,
-      `Course readings and worked examples covering ${topic}.`,
+    technologyNeeded: pick([
+      'Course LMS, shared files, and any discipline-specific tools named by the instructor.',
+      'LMS access plus the document, slide, lab, or analysis tool required for this lesson.',
+      'Course platform, instructor-provided files, and the classroom tool used for the lesson activity.',
     ]),
-    evaluateDesign: 'Activities, resources, and assessments align to the stated goals and objectives.',
+    presentationFormat: pick([
+      'Instructor framing, guided student work, and a short synthesis.',
+      'Brief setup, worked example or demonstration, then student application.',
+      'Opening question, structured practice, and closing evidence check.',
+    ]),
+    supportingResources: pick([
+      `Instructor-approved readings, examples, or lab materials for ${topic}.`,
+      `Course materials students need to prepare and show evidence about ${topic}.`,
+      `Worked examples, readings, or activity sheets aligned to ${topic}.`,
+    ]),
+    evaluateDesign: `Check that the ${topic} activity, resource, and assessment ask students to produce the same evidence of learning.`,
   };
   return fieldFallbacks[key] || `Instructor-confirmed material for ${topic}.`;
 }

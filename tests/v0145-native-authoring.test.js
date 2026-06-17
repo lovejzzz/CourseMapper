@@ -43,6 +43,7 @@ import {
   parseNativePassBResponse,
   parseNativeSkeletonResponse,
   readAuthoringMode,
+  recoverMissingSkeletonResources,
   resolveNativeAssembly,
   saveAuthoringMode,
   stashNativeSkeleton,
@@ -240,7 +241,7 @@ describe('Pass A skeleton contract (B1)', () => {
     expect(skeleton.sessions.map((session) => session.id)).toEqual(['s1', 's2', 's3']);
   });
 
-  it('synthesizes one weighted application check per session when Pass A omits assessments', () => {
+  it('synthesizes one weighted assessment per session when Pass A omits assessments', () => {
     const skeleton = parseNativeSkeletonResponse(
       JSON.stringify({
         course: { name: 'Introductory Physics II', term: 'FA26' },
@@ -263,9 +264,9 @@ describe('Pass A skeleton contract (B1)', () => {
 
     const wireMap = buildNativeWireMap(skeleton);
     expect(wireMap.lessons.map((lesson) => lesson.sections[0].weeklyAssessments?.[0])).toEqual([
-      'Lesson 1 application check: Electric charge (34%)',
-      'Lesson 2 application check: Electric fields (33%)',
-      "Lesson 3 application check: Gauss's law (33%)",
+      'Lesson 1 evidence check: Electric charge (34%)',
+      'Lesson 2 applied problem: Electric fields (33%)',
+      "Lesson 3 practice brief: Gauss's law (33%)",
     ]);
   });
 
@@ -696,9 +697,9 @@ describe('Pass A recurring-cadence contract (defect 1, contract side)', () => {
 // "Instructor-provided course materials" placeholder. Three seams die here:
 //  - contract: skeleton.resources (verbatim titles + the RULE 4-style
 //    cadence-expansion discipline) in NATIVE_SKELETON_SYSTEM_PROMPT;
-//  - lint: brief names resources + skeleton transcribed none →
-//    resolveNativeAssembly resolves to the SAME loud fellBack path as the
-//    degenerate-skeleton gate (reason 'missing-resources (…)');
+//  - recovery: brief names resources + skeleton transcribed none →
+//    resolveNativeAssembly keeps the native graph but creates explicit
+//    instructor-confirmation resource placeholders;
 //  - assembly: transcribed resources ride the wire map's supportingResources
 //    cells → syllabus-origin graph.resources → every derived map render.
 
@@ -751,16 +752,20 @@ describe('Pass A resource transcription (v0.14.7 WS-B1)', () => {
     expect(makeSkeletonFixture().sourceNamesResources).toBeUndefined();
   });
 
-  it('lint: brief names resources + skeleton transcribed none → the loud fellBack with the named reason', () => {
+  it('recovery: brief names resources + skeleton transcribed none → native graph with confirmation placeholders', () => {
     const skeleton = makeSkeletonFixture({ sourceText: RESOURCE_BRIEF });
+    const recovery = recoverMissingSkeletonResources(skeleton);
+    expect(recovery.recoveredCount).toBe(15);
+    expect(recovery.skeleton.resources[0].title).toBe('Assigned resource to confirm: Topic 1 Fundamentals');
+
     const resolution = resolveNativeAssembly({ skeleton, passBBySession: makePassBFixture() });
-    expect(resolution.ok).toBe(false);
-    expect(resolution.code).toBe('missing-resources');
-    expect(resolution.reason).toBe('missing-resources (brief names resources, skeleton has none)');
-    // Same fallback contract as the degenerate gate: the ASSEMBLED render
-    // rides into the prose repair, Pass B authorship intact.
-    expect(resolution.fallbackMap.lessons).toHaveLength(15);
-    expect(JSON.stringify(resolution.fallbackMap.lessons[6])).toContain('Analyze concept 7 alpha');
+    expect(resolution.ok).toBe(true);
+    expect(resolution.resourceRecovery).toEqual({ code: 'missing-resources-recovered', recoveredCount: 15 });
+    expect(resolution.graph.authoredBy).toBe('native');
+    expect(resolution.graph.resources).toHaveLength(15);
+    expect(JSON.stringify(resolution.courseMap.lessons[6])).toContain(
+      'Assigned resource to confirm: Topic 7 Fundamentals',
+    );
   });
 
   it('lint: a skeleton WITH transcribed resources passes', () => {

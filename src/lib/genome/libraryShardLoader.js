@@ -197,6 +197,10 @@ export function inferCourseDisciplines(courseMap) {
     ['psych', /\bpsycholog|cognition|behavior|neuroscience|educational psych|learning theor|child development/],
     // v0.13.5: nursing (A&P 2e + Microbiology) and nutrition (UH OER) shards.
     ['nursing', /\bnursing|patient care|clinical|vital signs|infection control|pathophysiolog|microbiolog|immunolog/],
+    [
+      'anatomy',
+      /\banatomy|\bphysiology\b|\ba&p\b|\bhistolog|integumentary|skeletal system|muscular system|nervous system|sensory physiology|homeostasis|feedback regulation|lab practicals?|microscope labs?/,
+    ],
     ['nutrition', /\bnutrition|dietetic|macronutrient|micronutrient|dietary|food science|\bdiet\b/],
     ['bio', /\bbiolog|cell|genetic|ecolog|evolution|organism|physiolog|anatomy|homeostasis/],
     ['stats', /\bstatistic|probability|regression|inference|data analysis|hypothesis test/],

@@ -3419,15 +3419,15 @@ export default function AppFlow({ startupAction = null, onStartupHandled, onRetu
                   <p className="text-[11px] text-slate-400 mb-5 leading-relaxed">
                     {user
                       ? newProjectError
-                        ? 'My Projects sync did not finish. Your workspace is still open, and you can download a backup before starting over.'
-                        : 'We will save a compact CourseMapper project to My Projects before starting over. If saving fails, your workspace will stay open.'
+                        ? 'My Projects sync did not finish. Your workspace is still open; download a backup before starting over.'
+                        : 'We will save a compact project to My Projects before starting over. If saving fails, your workspace stays open.'
                       : 'You are not signed in, so this browser autosave is the only in-app copy. Download a .coursemapper backup if you want to keep it.'}
                   </p>
                   <div className="mb-4 rounded-xl bg-slate-50/80 border border-slate-100 px-3 py-2 text-[10px] text-slate-500 leading-relaxed">
                     {user
                       ? newProjectError
-                        ? 'Backup recommended: download a .coursemapper file or continue without My Projects sync.'
-                        : 'Autosave: full browser backup plus compact My Projects sync.'
+                        ? 'Backup recommended: download a .coursemapper file or continue without sync.'
+                        : 'Autosave: browser backup plus My Projects sync.'
                       : 'Autosave: local browser backup only. It is cleared when you start over.'}
                   </div>
                   {newProjectError && (
@@ -3463,10 +3463,10 @@ export default function AppFlow({ startupAction = null, onStartupHandled, onRetu
                     >
                       {isStartingNewProject ? (
                         <span className="inline-flex items-center gap-1.5">
-                          <Spinner /> Saving...
+                          <Spinner /> Saving
                         </span>
                       ) : newProjectCloudSaveFailed || newProjectError ? (
-                        'Start without cloud save'
+                        'Start without sync'
                       ) : (
                         'Start New Project'
                       )}

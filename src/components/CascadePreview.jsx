@@ -64,7 +64,7 @@ export default function CascadePreview({ fieldKey, featureId, position, delivera
       style={{ left: clampedX, top: clampedY, width: TOOLTIP_W }}
     >
       <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2">
-        {fieldKey ? `Editing "${label}" will affect:` : `Editing ${label} cascades to:`}
+        {fieldKey ? `Also updates "${label}" in:` : `Also updates ${label} in:`}
       </p>
       <div className="flex flex-wrap gap-1.5">
         {affected.map((id) => {

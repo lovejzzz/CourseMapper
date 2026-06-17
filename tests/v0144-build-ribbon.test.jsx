@@ -304,7 +304,7 @@ describe('B1 — buildRibbonModel selector', () => {
     expect(model.pipelineChips).toEqual([
       { id: 'genome', label: 'Genome 6/13', emphasis: true },
       { id: 'judgment', label: 'Judgment clean', emphasis: false },
-      { id: 'coverage', label: 'Coverage 13/13', emphasis: false },
+      { id: 'coverage', label: 'Materials 13/13', emphasis: false },
     ]);
     expect(model.spendDisplay).toBe('$0.13');
     const elapsed = Number((model.elapsedDisplay.match(/^Ready in (\d+)s$/) || [])[1]);
@@ -369,6 +369,9 @@ describe('B1 — buildRibbonModel selector', () => {
     });
     expect(parseGenomeLinkerDetail('ran')).toBeNull();
     expect(parseJudgmentDetail('no gaps across 22 linked concepts')).toBe('Judgment clean');
+    expect(parseJudgmentDetail('no gaps across 1 linked concepts', { linked: 1, total: 15 })).toBe(
+      'Limited knowledge check',
+    );
     expect(parseJudgmentDetail('not evaluated (0 genome-linked lessons)')).toBeNull();
     expect(parseJudgmentDetail('')).toBeNull();
   });
@@ -418,7 +421,7 @@ describe('B1 — BuildRibbon render', () => {
     );
     expect(html).toContain('Genome 6/13');
     expect(html).toContain('Judgment clean');
-    expect(html).toContain('Coverage 13/13');
+    expect(html).toContain('Materials 13/13');
     expect(html).toMatch(/Ready in \d+s/);
     expect(html).not.toContain('animate-pulse');
     // Five stage checks (one per step) — the genome chip is indigo-tinted.

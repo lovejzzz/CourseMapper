@@ -1,8 +1,16 @@
 {
-  "version": "2026-06-13",
+  "version": "2026-06-17",
   "generator": "curriculumos-foundry-v1",
-  "conceptCount": 238,
+  "conceptCount": 250,
   "shards": [
+    {
+      "id": "anatomy-intro",
+      "discipline": "anatomy",
+      "level": "intro",
+      "path": "anatomy-intro.json",
+      "conceptCount": 12,
+      "hash": "bd4ddecb051add00"
+    },
     {
       "id": "astro-intro",
       "discipline": "astro",
@@ -105,7 +113,7 @@
       "level": "intro",
       "path": "physics-intro.json",
       "conceptCount": 13,
-      "hash": "4d9c48642a00fb3b"
+      "hash": "e835894a631f7007"
     },
     {
       "id": "psych-intro",

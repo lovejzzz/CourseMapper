@@ -1,1 +1,1 @@
-export { APP_VERSION } from './releaseManifest.js';
+export const APP_VERSION = '0.15.6';

@@ -81,9 +81,8 @@ export async function gradePackageAtFinalize({
       findings: result.qualityResult?.findings || [],
       findingCount: result.qualityResult?.stats?.findingCount ?? 0,
       fileCount: result.qualityResult?.stats?.fileCount ?? null,
-      // v0.14.9 B2: the FULL advisory texture block (sub-scores + worst-tail
-      // evidence) for the Seal and the report modal's texture row — the
-      // manifest carries the slim summary, the modal shows the evidence.
+      // Full texture block (sub-scores + worst-tail evidence) for the Seal and
+      // report modal. The manifest carries the slim summary.
       texture: result.qualityResult?.texture || quality.texture || null,
     };
   } catch (err) {

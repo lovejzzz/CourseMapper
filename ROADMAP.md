@@ -4,6 +4,26 @@
 
 CourseMapper is moving toward a "consider it done" course-production agent. The user should describe the course, choose scope/materials, and receive a finished draft package. The agent owns generation, QA, repair, alignment, and export readiness. Human involvement should be final approval only, not QA labor.
 
+## v0.15.6 - Classroom Truth
+
+Goal: make the package and UI truth surfaces stricter after the Human Anatomy
+and Physiology I audit. A ready package should not hide weak source coverage,
+wrong discipline assets, repeated prose, or duplicate download confidence.
+
+Full plan: `docs/V0.15.6_CLASSROOM_TRUTH_ROADMAP.md`
+
+1. Add source-backed A&P genome coverage and route anatomy/physiology prompts
+   into it.
+2. Recover missing native-authoring resources instead of falling back to prose.
+3. Give A&P course packages anatomy-appropriate required assets and make the
+   grader flag geology/chemistry field-kit leaks.
+4. Make texture score-bearing and report repeated template stems as quality
+   findings.
+5. Calm the ready UI by labeling limited knowledge checks honestly, separating
+   material coverage from knowledge coverage, hiding duplicate ZIP CTAs, and
+   simplifying dependency wording.
+6. Preserve release truth with a v0.15.6 contract and current-roadmap audit.
+
 ## v0.15.10 - Source-Verified Professor Adoption Judge
 
 Goal: make the professor-adoption engine prove that its benchmark cases are
@@ -80,10 +100,10 @@ Full plan: `docs/V0.15.8_PROFESSOR_ADOPTION_ENGINE_ROADMAP.md`
 6. Keep release claims honest: public-source professor-adoption benchmarked,
    not professor-approved or externally validated.
 
-## v0.15.6 - The Self-Improving Ruler
+## Future - The Self-Improving Ruler
 
 Goal: build CourseMapper's own quality-discovery loop for a no-human-reviewer
-world. v0.15.5 made release history honest; v0.15.6 should make the project
+world. v0.15.5 made release history honest; this carried-forward roadmap should make the project
 better at finding its own next real defect through adversarial course
 scenarios, synthetic faculty review roles, evidence-backed findings, repair
 candidates, and before/after proof.

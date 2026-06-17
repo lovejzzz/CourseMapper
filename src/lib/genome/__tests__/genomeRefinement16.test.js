@@ -129,7 +129,16 @@ describe('iteration 16b — the alias-collision lint (foundry guardrail)', () =>
     // against (iter 15's "p-value" ⊆ "percent daily value", caught and fixed
     // before shipping). Whitelist that one same-concept pair; any NEW
     // collision still fails the test.
-    const ALLOWED = new Set(['bio/homeostasis<->nursing/homeostasis', 'nursing/homeostasis<->bio/homeostasis']);
+    const ALLOWED = new Set([
+      'bio/homeostasis<->nursing/homeostasis',
+      'nursing/homeostasis<->bio/homeostasis',
+      'anatomy/homeostasis-feedback<->bio/homeostasis',
+      'bio/homeostasis<->anatomy/homeostasis-feedback',
+      'anatomy/homeostasis-feedback<->nursing/homeostasis',
+      'nursing/homeostasis<->anatomy/homeostasis-feedback',
+      'anatomy/levels-of-organization<->nursing/levels-of-organization',
+      'nursing/levels-of-organization<->anatomy/levels-of-organization',
+    ]);
     const unexpected = findAliasCollisions(kernels).filter((c) => !ALLOWED.has(`${c.of}<->${c.containedIn}`));
     expect(unexpected).toEqual([]);
   });

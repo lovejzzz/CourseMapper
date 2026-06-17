@@ -4,7 +4,7 @@
  * The advisory judge has been scoring packages 5–6/10 for "too templated";
  * texture was never a scored dimension, so the refine loop never applied
  * pressure there. This suite proves the new deterministic texture metric
- * (src/lib/quality/textureMetric.js) and its weight-0 wiring into the deep
+ * (src/lib/quality/textureMetric.js) and its light-weight wiring into the deep
  * quality grader:
  *
  *   (1) Synthetic calibration — ten slot-varied stamps of one sentence
@@ -14,15 +14,14 @@
  *       ("Anchor your post in Antigone…") must outrank the same docs with
  *       one identical generic anchor line; the generic template tail is
  *       quoted verbatim in the evidence.
- *   (3) Weight-0 invariance — on the same healthy geology fixture package
+ *   (3) Scored wiring — on the same healthy geology fixture package
  *       the existing gate tests pin (≥85 overall, zero P0s), texture appears
- *       in scores/grades at weight 0 while the overall score recomputed
- *       WITHOUT texture is byte-identical, no finding carries the texture
- *       dimension, and severity counts are untouched by texture advisories.
+ *       in scores/grades with a small weight and low texture becomes a real
+ *       finding while legacy advisories remain separate.
  *   (4) Report rendering — the texture row appears in the dimension table
- *       with weight 0 and the overall weight sum stays 110.
+ *       with weight 10 and the overall weight sum is 120.
  *
- * Calibrate before gating (the v0.14.3 trap): texture ships advisory-only.
+ * Calibrated before gating (the v0.14.3 trap): texture is now lightly scored.
  */
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import fs from 'node:fs';
@@ -448,8 +447,8 @@ describe('D1(3)+(4) — weight-0 invariance and the report row on a real package
     if (healthyDir) fs.rmSync(healthyDir, { recursive: true, force: true });
   });
 
-  it('keeps every pre-texture weight and pins texture at WEIGHT 0', () => {
-    expect(GRADER_VERSION).toBe('1.4.0');
+  it('keeps every pre-texture weight and gives texture a small score-bearing weight', () => {
+    expect(GRADER_VERSION).toBe('1.5.0');
     expect(DIMENSION_WEIGHTS).toEqual({
       identity: 20,
       substance: 20,
@@ -459,29 +458,27 @@ describe('D1(3)+(4) — weight-0 invariance and the report row on a real package
       consistency: 10,
       structure: 10,
       format: 5,
-      texture: 0,
+      texture: 10,
     });
   });
 
-  it('matches the existing gate expectations and is byte-identical without texture', () => {
+  it('matches the existing gate expectations and includes texture in the weighted overall', () => {
     // The exact pins crucible-grader-proof asserts on this fixture.
     expect(result.findings.filter((finding) => finding.severity === 'P0')).toEqual([]);
     expect(result.overall.score, JSON.stringify(result.scores)).toBeGreaterThanOrEqual(85);
     expect(result.scores.identity).toBeGreaterThanOrEqual(85);
     expect(result.scores.substance).toBe(100);
 
-    // Recompute the overall WITHOUT the texture dimension: at weight 0 the
-    // result must be byte-identical — texture can never move the needle.
-    const legacy = Object.entries(DIMENSION_WEIGHTS).filter(([dimension]) => dimension !== 'texture');
-    const totalWeight = legacy.reduce((sum, [, weight]) => sum + weight, 0);
-    expect(totalWeight).toBe(110);
+    const entries = Object.entries(DIMENSION_WEIGHTS);
+    const totalWeight = entries.reduce((sum, [, weight]) => sum + weight, 0);
+    expect(totalWeight).toBe(120);
     const recomputed = Math.round(
-      legacy.reduce((sum, [dimension, weight]) => sum + result.scores[dimension] * weight, 0) / totalWeight,
+      entries.reduce((sum, [dimension, weight]) => sum + result.scores[dimension] * weight, 0) / totalWeight,
     );
     expect(result.overall.score).toBe(recomputed);
   });
 
-  it('scores texture from the metric, never from findings, and counts no advisory in p0/p1/p2', () => {
+  it('scores texture from the metric and reports low texture as a finding while keeping advisories separate', () => {
     expect(typeof result.scores.texture).toBe('number');
     expect(result.scores.texture).toBeGreaterThanOrEqual(0);
     expect(result.scores.texture).toBeLessThanOrEqual(100);
@@ -490,10 +487,14 @@ describe('D1(3)+(4) — weight-0 invariance and the report row on a real package
     expect(result.texture.measured).toBe(true);
     expect(Object.keys(result.texture.subScores).sort()).toEqual(['openers', 'sameness', 'tails']);
 
-    // The hard requirement: texture NEVER reaches the findings list, so it
-    // can never subtract points or shift a severity count.
-    expect(result.findings.filter((finding) => finding.dimension === 'texture')).toEqual([]);
-    expect(result.stats.byDimension.texture).toBe(0);
+    const textureFindings = result.findings.filter((finding) => finding.dimension === 'texture');
+    expect(result.stats.byDimension.texture).toBe(textureFindings.length);
+    if (result.scores.texture < 90) {
+      expect(textureFindings.length).toBeGreaterThanOrEqual(1);
+      expect(textureFindings[0].detail).toContain(`Texture score ${result.scores.texture}/100`);
+    } else {
+      expect(textureFindings).toEqual([]);
+    }
     const severities = { p0: 'P0', p1: 'P1', p2: 'P2' };
     for (const [key, severity] of Object.entries(severities)) {
       expect(result.stats[key]).toBe(result.findings.filter((finding) => finding.severity === severity).length);
@@ -506,15 +507,13 @@ describe('D1(3)+(4) — weight-0 invariance and the report row on a real package
     expect(result.texture.evidence.length).toBeLessThanOrEqual(5);
   });
 
-  it('renders the texture row in the dimension table at weight 0, sum unchanged', () => {
+  it('renders the texture row in the dimension table with score-bearing weight', () => {
     const md = renderReportMarkdown(result, { courseTitle: 'Physical Geology' });
     // Existing rows and header are untouched…
     expect(md).toContain('| Dimension | Weight | Score | Grade |');
     expect(md).toContain('| identity | 20 |');
     expect(md).toContain('| format | 5 |');
-    // …the texture row is ADDED with weight 0…
-    expect(md).toContain(`| texture | 0 | ${result.scores.texture} | ${result.grades.texture} |`);
-    // …and the overall weight sum stays 110 (texture contributes nothing).
-    expect(md).toContain(`| **overall** | 110 | **${result.overall.score}** | **${result.overall.grade}** |`);
+    expect(md).toContain(`| texture | 10 | ${result.scores.texture} | ${result.grades.texture} |`);
+    expect(md).toContain(`| **overall** | 120 | **${result.overall.score}** | **${result.overall.grade}** |`);
   });
 });

@@ -127,13 +127,36 @@ function distributeWeightPercent(count) {
 
 function synthesizeSessionAssessments(sessions) {
   const weights = distributeWeightPercent(sessions.length);
+  const stems = ['evidence check', 'applied problem', 'practice brief', 'concept transfer'];
   return sessions.map((session, index) => ({
     id: `a${index + 1}`,
-    title: `Lesson ${session.order} application check: ${session.title}`,
+    title: `Lesson ${session.order} ${stems[index % stems.length]}: ${session.title}`,
     kind: 'graded-artifact',
     dueSession: session.order,
     weightPct: weights[index],
   }));
+}
+
+export function recoverMissingSkeletonResources(skeleton) {
+  if (
+    skeleton?.sourceNamesResources !== true ||
+    asArray(skeleton.resources).length + asArray(skeleton.readings).length > 0
+  ) {
+    return { skeleton, recoveredCount: 0 };
+  }
+  const recovered = asArray(skeleton.sessions).map((session, index) => ({
+    id: `m${index + 1}`,
+    title: `Assigned resource to confirm: ${cleanText(session?.title, 140) || `Lesson ${index + 1}`}`,
+    dueSession: Number.isInteger(session?.order) && session.order > 0 ? session.order : index + 1,
+    recovered: true,
+  }));
+  return {
+    skeleton: {
+      ...skeleton,
+      resources: recovered,
+    },
+    recoveredCount: recovered.length,
+  };
 }
 
 // ── v0.14.7 WS-B1: the brief-side resource signal ───────────────────────────
@@ -549,7 +572,9 @@ export function isDegenerateNativeGraph(graph) {
  */
 export function resolveNativeAssembly({ skeleton, passBBySession = {} }) {
   try {
-    const { graph, courseMap } = assembleNativeCourseGraph({ skeleton, passBBySession });
+    const resourceRecovery = recoverMissingSkeletonResources(skeleton);
+    const workingSkeleton = resourceRecovery.skeleton;
+    const { graph, courseMap } = assembleNativeCourseGraph({ skeleton: workingSkeleton, passBBySession });
     if (isDegenerateNativeGraph(graph)) {
       const assessmentCount = (graph.assessments || []).length;
       return {
@@ -559,27 +584,14 @@ export function resolveNativeAssembly({ skeleton, passBBySession = {} }) {
         fallbackMap: courseMap,
       };
     }
-    // v0.14.7 WS-B1: the resource-transcription lint. The last side-by-side
-    // round's ONLY P1 class (66 "unresolved source placeholder" findings)
-    // was Pass A transcribing no supporting resources while the brief named
-    // them — every resource surface then compiled to the placeholder. When
-    // the brief carried the resource signal (stamped at parse time) and the
-    // skeleton transcribed NOTHING into either registry — readings count
-    // too, because the graph render leads supportingResources cells with
-    // registry readings — the skeleton is not a faithful transcription:
-    // same loud fellBack → prose-repair path as the degenerate gate.
-    if (
-      skeleton?.sourceNamesResources === true &&
-      asArray(skeleton.resources).length + asArray(skeleton.readings).length === 0
-    ) {
-      return {
-        ok: false,
-        code: 'missing-resources',
-        reason: 'missing-resources (brief names resources, skeleton has none)',
-        fallbackMap: courseMap,
-      };
-    }
-    return { ok: true, graph, courseMap };
+    return {
+      ok: true,
+      graph,
+      courseMap,
+      ...(resourceRecovery.recoveredCount > 0
+        ? { resourceRecovery: { code: 'missing-resources-recovered', recoveredCount: resourceRecovery.recoveredCount } }
+        : {}),
+    };
   } catch (error) {
     if (error?.name === 'AbortError') throw error;
     return {

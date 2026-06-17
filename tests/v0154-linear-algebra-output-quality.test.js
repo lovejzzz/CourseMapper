@@ -122,3 +122,90 @@ describe('v0.15.4 Linear Algebra output quality regressions', () => {
     );
   });
 });
+
+describe('v0.15.6 anatomy and texture quality regressions', () => {
+  it('flags geology field-lab assets when an anatomy package asks for them', async () => {
+    const result = await grade({
+      fileProvider: createMemoryFileProvider({
+        'PACKAGE_MANIFEST.json': JSON.stringify({
+          courseName: 'Human Anatomy and Physiology I',
+          lessonScope: 'all',
+          assessments: [],
+          files: [],
+          readiness: { status: 'ready', blockers: 0 },
+        }),
+        'Required Assets/Human Anatomy and Physiology I - Required Lab Assets.md': [
+          '# Required Assets',
+          '- Specimen or sample kit with rock, mineral, biological, or chemical samples',
+          '- Hand lenses and observation tools',
+          '- Field or lab notebook template',
+          '- Streak plates for observations',
+        ].join('\n'),
+      }),
+      course: { id: 'human-anatomy-physiology-i', title: 'Human Anatomy and Physiology I', featureIds: [] },
+    });
+
+    expect(result.findings).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          severity: 'P1',
+          dimension: 'structure',
+          detail: expect.stringMatching(/geology\/chemistry field-lab materials/i),
+        }),
+      ]),
+    );
+    expect(result.overall.score).toBeLessThan(100);
+  });
+
+  it('turns repeated template phrases and low texture into actionable findings', async () => {
+    const repeated = [
+      '# Lesson Plan',
+      'Lesson 1 application check: tissue types.',
+      'Lesson 2 application check: epithelial tissue.',
+      'Lesson 3 application check: connective tissue.',
+      'Lesson 4 application check: integumentary system.',
+      'Lesson 5 application check: skeletal system.',
+      'Instructor notes and selected readings on tissue types.',
+      'Instructor notes and selected readings on epithelial tissue.',
+      'Instructor notes and selected readings on connective tissue.',
+      'Instructor notes and selected readings on integumentary system.',
+      'Instructor notes and selected readings on skeletal system.',
+    ].join('\n');
+    const result = await grade({
+      fileProvider: createMemoryFileProvider({
+        'PACKAGE_MANIFEST.json': JSON.stringify({
+          courseName: 'Human Anatomy and Physiology I',
+          lessonScope: 'all',
+          assessments: [],
+          files: [],
+          readiness: { status: 'ready', blockers: 0 },
+        }),
+        'Lesson Plans/Lesson 01.md': repeated,
+        'Lesson Plans/Lesson 02.md': repeated,
+        'Lesson Plans/Lesson 03.md': repeated,
+        'Lesson Plans/Lesson 04.md': repeated,
+      }),
+      course: {
+        id: 'human-anatomy-physiology-i',
+        title: 'Human Anatomy and Physiology I',
+        featureIds: ['lessonPlans'],
+      },
+    });
+
+    expect(result.findings).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          severity: 'P2',
+          dimension: 'format',
+          detail: expect.stringMatching(/Lesson N application check.*repeats/i),
+        }),
+        expect.objectContaining({
+          severity: 'P2',
+          dimension: 'texture',
+          detail: expect.stringMatching(/Texture score \d+\/100/i),
+        }),
+      ]),
+    );
+    expect(result.overall.score).toBeLessThan(100);
+  });
+});

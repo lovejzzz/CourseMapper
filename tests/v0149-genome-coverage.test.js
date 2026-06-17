@@ -124,6 +124,24 @@ const PHYSICS_E_AND_M_COURSE = buildCourse('Introductory Physics II: Electricity
   ['Electromagnetic Synthesis', 'electric field magnetic field induction Maxwell equations electromagnetic waves'],
 ]);
 
+const ANATOMY_PHYSIOLOGY_COURSE = buildCourse('Human Anatomy and Physiology I', [
+  ['Introduction to Anatomy and Physiology', 'anatomy and physiology levels of structural organization'],
+  ['Homeostasis', 'homeostasis feedback regulation negative feedback physiological set point control'],
+  ['Tissue Types', 'histology tissue types epithelial connective muscle nervous'],
+  ['Epithelial Tissue', 'epithelial tissue body surfaces internal cavities glands'],
+  ['Connective Tissue', 'connective tissue protection support integration binds organs'],
+  ['Integumentary System', 'integumentary system skin layers epidermis dermis'],
+  ['Skeletal System', 'skeletal system bone functions cartilage support movement protection'],
+  ['Synovial Joints', 'synovial joints joint cavity articular cartilage ligaments mobility'],
+  ['Muscle Tissue', 'muscle tissue skeletal cardiac smooth muscle contractility'],
+  ['Nervous Tissue', 'nervous tissue neurons neuroglia action potentials'],
+  ['Sensory Physiology', 'sensory physiology sensory receptors perception special senses'],
+  ['Endocrine Signaling', 'endocrine system hormones target cells hormone receptors'],
+  ['Lab Practical Preparation', 'microscope labs histology images anatomical models lab practicals'],
+  ['Structure Function Review', 'structure function organization homeostasis tissue systems'],
+  ['Final Integration', 'homeostasis skeletal muscular nervous endocrine sensory physiology'],
+]);
+
 function linkCourse(course) {
   const library = genomeLibrary();
   const lessonIndices = course.lessons.map((_, index) => index);
@@ -192,6 +210,33 @@ describe('A2b — the physics shard covers introductory electricity and magnetis
   it('an Electricity and Magnetism survey infers physics and links 10+/15 lessons', () => {
     expect(inferCourseDisciplines(PHYSICS_E_AND_M_COURSE)).toContain('physics');
     const linked = linkCourse(PHYSICS_E_AND_M_COURSE);
+    const resolved = linked.telemetry.resolvedFromGenome + linked.telemetry.resolvedFromCache;
+    expect(resolved).toBeGreaterThanOrEqual(10);
+    expect(linked.telemetry.conceptHits).toBeGreaterThanOrEqual(10);
+  });
+});
+
+describe('A2c — the anatomy shard covers Anatomy and Physiology I', () => {
+  it('ships the A&P I backbone used by the live anatomy course', () => {
+    const shard = JSON.parse(readFileSync(join(process.cwd(), 'public/genome/anatomy-intro.json'), 'utf8'));
+    expect(shard.kernels).toHaveLength(12);
+    expect(shard.kernels.map((kernel) => kernel.id)).toEqual(
+      expect.arrayContaining([
+        'anatomy/homeostasis-feedback',
+        'anatomy/tissue-types',
+        'anatomy/integumentary-skin-layers',
+        'anatomy/skeletal-system-functions',
+        'anatomy/muscle-tissue-types',
+        'anatomy/nervous-tissue',
+        'anatomy/sensory-perception',
+        'anatomy/endocrine-hormone-signaling',
+      ]),
+    );
+  });
+
+  it('an Anatomy and Physiology I course infers anatomy and links 10+/15 lessons', () => {
+    expect(inferCourseDisciplines(ANATOMY_PHYSIOLOGY_COURSE)).toContain('anatomy');
+    const linked = linkCourse(ANATOMY_PHYSIOLOGY_COURSE);
     const resolved = linked.telemetry.resolvedFromGenome + linked.telemetry.resolvedFromCache;
     expect(resolved).toBeGreaterThanOrEqual(10);
     expect(linked.telemetry.conceptHits).toBeGreaterThanOrEqual(10);

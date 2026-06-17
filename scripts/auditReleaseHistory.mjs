@@ -315,8 +315,14 @@ async function main() {
 
   const appVersionSource = await readText('src/lib/appVersion.js');
   assert(
-    appVersionSource.includes("from './releaseManifest.js'"),
-    'appVersion.js must re-export from releaseManifest.js',
+    appVersionSource.includes('APP_VERSION') && appVersionSource.includes(APP_VERSION),
+    'appVersion.js must define the current APP_VERSION',
+    failures,
+  );
+  const releaseManifestSource = await readText('src/lib/releaseManifest.js');
+  assert(
+    releaseManifestSource.includes("from './appVersion.js'"),
+    'releaseManifest.js must derive its version from appVersion.js',
     failures,
   );
   const latestReleaseSource = await readText('src/lib/latestRelease.js');
@@ -345,7 +351,17 @@ async function main() {
     assert(!pattern.test(source), `${file} still contains stale default wording: ${pattern}`, failures);
   }
 
-  const roadmap = await readText('docs/V0.15.5_TRUTH_LEDGER_ROADMAP.md');
+  const currentRoadmapPath = CURRENT_RELEASE.proof?.roadmap;
+  const currentRoadmap = currentRoadmapPath ? await readText(currentRoadmapPath) : '';
+  for (const phrase of [CURRENT_RELEASE.version, 'Goal', 'Lane', 'Release Boundary']) {
+    assert(
+      currentRoadmap.includes(phrase),
+      `${currentRoadmapPath} missing current roadmap section: ${phrase}`,
+      failures,
+    );
+  }
+
+  const truthLedgerRoadmap = await readText('docs/V0.15.5_TRUTH_LEDGER_ROADMAP.md');
   for (const phrase of [
     'Current Release Manifest',
     'Release Contract Ledger',
@@ -353,7 +369,7 @@ async function main() {
     'Comment Truth',
     'Remote Proof Ritual',
   ]) {
-    assert(roadmap.includes(phrase), `v0.15.5 roadmap missing section: ${phrase}`, failures);
+    assert(truthLedgerRoadmap.includes(phrase), `v0.15.5 roadmap missing section: ${phrase}`, failures);
   }
 
   if (failures.length > 0) {
