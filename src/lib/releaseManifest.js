@@ -3,24 +3,24 @@ import { APP_VERSION } from './appVersion.js';
 export const CURRENT_RELEASE = {
   version: APP_VERSION,
   date: 'June 17, 2026',
-  title: 'Classroom Truth: coverage, texture, and ready states get stricter',
-  landingTitle: 'Classroom Truth: source coverage and quality signals are honest',
+  title: 'Finished Package Surface: ready means handoff, not audit work',
+  landingTitle: 'Finished Package Surface: a calmer ready workspace',
   highlights: [
-    'Anatomy and Physiology I now has a source-anchored anatomy genome shard, so the linker can cover real A&P lessons instead of calling one weak concept match clean.',
-    'Native authoring recovers missing skeleton resources instead of falling back to prose when Pass A names resources but the skeleton omits them.',
-    'Required Assets now classifies A&P as an anatomy lab course with models, histology slides, lab manuals, and specimen/model policy; the grader flags geology or chemistry field kits in A&P packages.',
-    'Texture is score-bearing: repeated package templates and low texture now create findings, so 100/A cannot hide same-pattern prose.',
-    'Ready-state UI is calmer and more truthful: weak knowledge coverage says "Limited knowledge check", material coverage is not confused with learning coverage, duplicate ZIP CTAs are hidden, and dependency tooltips use plainer wording.',
-    'Genome builds are reproducible again: anatomy and physics foundry sources validate cleanly and rebuild the shipped shards from explicit source files.',
+    'Ready Course Map now opens to a finished-package overview instead of the dense editable table, with Edit course map one click away.',
+    'The overview centralizes lesson count, material readiness, quality/texture, safe repairs, export checks, material shortcuts, and Download ZIP into one handoff surface.',
+    'The agent panel enters compact ready mode: project-brief strip, working-set panel, opener buttons, and old queue cards are hidden while the package receipt and chat input remain available.',
+    'Finished-package material cards jump directly to generated artifact tabs, while the Course Map card opens the editable map only when requested.',
+    'The v0.15.7 release contract and tests pin the overwhelmed-ready-state fix separately from v0.15.6 backend/grader truth work.',
+    'Browser smoke remains part of the proof path so the download handoff is exercised in a real workspace before the release is trusted.',
   ],
   landingHighlights: [
-    'A&P course packages now receive real anatomy knowledge coverage and anatomy-appropriate required assets.',
-    'The quality grade now counts visible repetition lightly instead of treating texture as a side note.',
-    'The ready/download surface has fewer competing signals and labels limited evidence honestly.',
+    'A ready workspace now starts with the finished package and its download action.',
+    'The dense course map and artifact tabs stay available, but they no longer dominate the handoff.',
+    'The assistant column quiets down to a receipt when there is nothing blocking export.',
   ],
   proof: {
-    contract: 'release-contracts/v0.15.6.json',
-    roadmap: 'docs/V0.15.6_CLASSROOM_TRUTH_ROADMAP.md',
+    contract: 'release-contracts/v0.15.7.json',
+    roadmap: 'docs/V0.15.7_FINISHED_PACKAGE_SURFACE_ROADMAP.md',
     auditCommand: 'npm run audit:release-history',
   },
 };
@@ -35,6 +35,19 @@ export const CURRENT_RELEASE_CHANGELOG = {
 };
 
 export const HISTORICAL_RELEASE_CHANGELOGS = [
+  {
+    version: '0.15.6',
+    date: 'June 17, 2026',
+    title: 'Classroom Truth: coverage, texture, and ready states get stricter',
+    highlights: [
+      'Anatomy and Physiology I now has a source-anchored anatomy genome shard, so the linker can cover real A&P lessons instead of calling one weak concept match clean.',
+      'Native authoring recovers missing skeleton resources instead of falling back to prose when Pass A names resources but the skeleton omits them.',
+      'Required Assets now classifies A&P as an anatomy lab course with models, histology slides, lab manuals, and specimen/model policy; the grader flags geology or chemistry field kits in A&P packages.',
+      'Texture is score-bearing: repeated package templates and low texture now create findings, so 100/A cannot hide same-pattern prose.',
+      'Ready-state UI is calmer and more truthful: weak knowledge coverage says "Limited knowledge check", material coverage is not confused with learning coverage, duplicate ZIP CTAs are hidden, and dependency tooltips use plainer wording.',
+      'Genome builds are reproducible again: anatomy and physics foundry sources validate cleanly and rebuild the shipped shards from explicit source files.',
+    ],
+  },
   {
     version: '0.15.5',
     date: 'June 14, 2026',

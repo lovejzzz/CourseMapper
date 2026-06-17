@@ -1306,6 +1306,7 @@ test.describe('Static Pages', () => {
     await page.goto('/#/changelog');
     await page.waitForTimeout(1000);
     const body = await page.locator('body').textContent();
+    expect(body).toContain('0.15.7');
     expect(body).toContain('0.15.6');
     expect(body).toContain('0.15.5');
     expect(body).toContain('0.15.4');

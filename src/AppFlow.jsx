@@ -7,7 +7,6 @@ import Landing from './screens/Landing';
 import AppLogo from './components/AppLogo';
 import DarkModeToggle from './components/DarkModeToggle';
 import PackageTrustStrip from './components/PackageTrustStrip';
-import WorkspaceQualityChip from './components/WorkspaceQualityChip';
 import BuildRibbon, { TabReadyTick } from './components/BuildRibbon';
 import PrimaryCta from './components/PrimaryCta';
 import UserMenu from './components/UserMenu';
@@ -16,6 +15,8 @@ import UserMenu from './components/UserMenu';
 const Config = lazy(() => import('./screens/Config'));
 const FeatureSelect = lazy(() => import('./screens/FeatureSelect'));
 const CourseMapPreview = lazy(() => import('./components/CourseMapPreview'));
+const FinishedPackageOverview = lazy(() => import('./components/FinishedPackageOverview'));
+const WorkspaceQualityChip = lazy(() => import('./components/WorkspaceQualityChip'));
 const ChatPanel = lazy(() => import('./components/chat/ChatPanel'));
 const ResizeHandle = lazy(() => import('./components/chat/ResizeHandle'));
 const DeliverableView = lazy(() => import('./components/DeliverableView'));
@@ -626,6 +627,7 @@ export default function AppFlow({ startupAction = null, onStartupHandled, onRetu
   // ── Core Course Map State ──
   const [chatHistory, setChatHistory] = useState([]);
   const [mobileWorkspaceView, setMobileWorkspaceView] = useState('content');
+  const [courseMapDetailOpen, setCourseMapDetailOpen] = useState(false);
 
   // ── Workspace tab ──
   // (activeTab, showAddDeliverable, showCustomBuilder, tab drag,
@@ -635,6 +637,10 @@ export default function AppFlow({ startupAction = null, onStartupHandled, onRetu
   useEffect(() => {
     if (screen === 'workspace') setMobileWorkspaceView('content');
   }, [screen, activeTab]);
+
+  useEffect(() => {
+    if (activeTab !== 'courseMap') setCourseMapDetailOpen(false);
+  }, [activeTab]);
 
   const focusCourseMapTarget = useCallback(
     (targetOrIssue) => {
@@ -2752,6 +2758,9 @@ export default function AppFlow({ startupAction = null, onStartupHandled, onRetu
     // v0.14.7 WS-G3: an executing sync owns the ribbon narrative.
     sync: { isSyncing: smartSync.isSyncing, pendingCount: smartSync.pendingSyncCount },
   });
+  const packageReady = packageQualityPass?.status === 'ready';
+  const showFinishedPackageOverview =
+    activeTab === 'courseMap' && packageReady && !courseMapDetailOpen && !gen.isStreaming;
   const workspaceCourseTitle =
     String(courseMap?.courseName || '').trim() ||
     String(promptText || '')
@@ -2887,13 +2896,15 @@ export default function AppFlow({ startupAction = null, onStartupHandled, onRetu
                     opens the findings modal hosted by ExportSidePanel; on
                     mobile the export view is brought forward first so the
                     modal's subtree is visible. */}
-                <WorkspaceQualityChip
-                  packageQualityPass={packageQualityPass}
-                  onOpenReport={() => {
-                    setMobileWorkspaceView('export');
-                    setQualityReportOpen(true);
-                  }}
-                />
+                <Suspense fallback={null}>
+                  <WorkspaceQualityChip
+                    packageQualityPass={packageQualityPass}
+                    onOpenReport={() => {
+                      setMobileWorkspaceView('export');
+                      setQualityReportOpen(true);
+                    }}
+                  />
+                </Suspense>
               </div>
 
               <div className="flex min-w-0 flex-wrap items-center gap-2">
@@ -2910,7 +2921,7 @@ export default function AppFlow({ startupAction = null, onStartupHandled, onRetu
                     pre-generation. The header's ONE disclosure is the
                     workspace More below — no second menu here. */}
                 <PrimaryCta
-                  ribbonModel={buildRibbonModel}
+                  ribbonModel={showFinishedPackageOverview ? null : buildRibbonModel}
                   reviewCount={outstandingReview.counts.headline}
                   canDownload={packageQualityPass?.status === 'ready'}
                   onDownload={() => window.dispatchEvent(new CustomEvent('coursemapper:request-zip-download'))}
@@ -3111,6 +3122,7 @@ export default function AppFlow({ startupAction = null, onStartupHandled, onRetu
                       onClick={() => {
                         if (suppressTabClickRef.current) return;
                         setActiveTab(feature.id);
+                        if (feature.id === 'courseMap') setCourseMapDetailOpen(false);
                         // Clear unseen badge when user clicks the tab
                         if (hasUnseen) {
                           setUnseenChanges((prev) => {
@@ -3675,6 +3687,7 @@ export default function AppFlow({ startupAction = null, onStartupHandled, onRetu
                   uid={user?.uid || null}
                   onApiCallEvent={recordApiCallEvent}
                   onOpenReviewQueue={handleOpenReviewQueueFromObservation}
+                  compactReadyMode={packageReady}
                 />
               </ErrorBoundary>
             </div>
@@ -3709,7 +3722,17 @@ export default function AppFlow({ startupAction = null, onStartupHandled, onRetu
                       </div>
                     </div>
                   )}
-                  {courseMap || gen.isStreaming ? (
+                  {showFinishedPackageOverview ? (
+                    <FinishedPackageOverview
+                      courseMap={courseMap}
+                      selectedFeatures={selectedFeatures}
+                      deliverables={deliv.deliverables}
+                      packageQualityPass={packageQualityPass}
+                      onEditCourseMap={setCourseMapDetailOpen}
+                      onOpenQualityReport={setQualityReportOpen}
+                      onOpenFeature={setActiveTab}
+                    />
+                  ) : courseMap || gen.isStreaming ? (
                     <div className="w-full animate-spring-up">
                       <ErrorBoundary>
                         <CourseMapPreview

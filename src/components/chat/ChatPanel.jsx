@@ -1126,6 +1126,7 @@ export default function ChatPanel({
   onApiCallEvent,
   // v0.14.4 WS-C1: the observation card routes into the unified review queue
   onOpenReviewQueue,
+  compactReadyMode = false,
 }) {
   const [workspaceModelConfigOpen, setWorkspaceModelConfigOpen] = useState(false);
   const openWorkspaceModelConfig = useCallback(() => {
@@ -1410,6 +1411,9 @@ export default function ChatPanel({
     isDelivGenerating ||
     finishStatus === 'running'
   );
+  const compactReady = Boolean(
+    compactReadyMode && isPackageReady(packageQualityPass) && !chat.isStreaming && !showProgressHeader,
+  );
 
   // Extract latest agent progress for the fixed status area (not in chat scroll)
   const latestAgentProgress = useMemo(() => {
@@ -1424,6 +1428,7 @@ export default function ChatPanel({
     isAgentMode && !chat.isAgentProviderReady
       ? { label: 'Configure', tone: 'amber', detail: 'Provider/key required' }
       : deriveAgentStatus(latestAgentProgress, chat.isStreaming, isAgentMode, chat.agentDryRun, isGeneratingWorkspace);
+  const headerAgentStatus = compactReady ? { label: 'Ready', tone: 'emerald', detail: 'Ready to export' } : agentStatus;
   const landingContextSummary = useMemo(() => summarizeLandingAgentContext(chat.messages), [chat.messages]);
   const landingContextDetail = useMemo(
     () => formatLandingContextDetail(landingContextSummary),
@@ -1435,13 +1440,17 @@ export default function ChatPanel({
   );
   const displayedMessages = useMemo(() => {
     const packageReceiptMessage = buildPackageReceiptMessage(packageReceiptSummary, packageQualityPass);
-    if (!packageReceiptMessage) return chat.messages;
-    const alreadyRendered = chat.messages.some(
+    const alreadyRendered = packageReceiptMessage
+      ? chat.messages.some((message) => message?.role === 'packageSummary' && message.id === packageReceiptMessage.id)
+      : false;
+    const messagesWithReceipt =
+      packageReceiptMessage && !alreadyRendered ? [...chat.messages, packageReceiptMessage] : chat.messages;
+    if (!compactReady) return messagesWithReceipt;
+    if (!packageReceiptMessage) return [];
+    return messagesWithReceipt.filter(
       (message) => message?.role === 'packageSummary' && message.id === packageReceiptMessage.id,
     );
-    if (alreadyRendered) return chat.messages;
-    return [...chat.messages, packageReceiptMessage];
-  }, [chat.messages, packageQualityPass, packageReceiptSummary]);
+  }, [chat.messages, compactReady, packageQualityPass, packageReceiptSummary]);
   const [directPlanActionRunning, setDirectPlanActionRunning] = React.useState(false);
   const staleDeliverableCount = deliverables
     ? Object.values(deliverables).filter((entry) => entry?.stale === true).length
@@ -2543,7 +2552,11 @@ export default function ChatPanel({
   });
   const workspaceModelTone = MODEL_CONFIG_TONES[workspaceModelStatus.tone] || MODEL_CONFIG_TONES.idle;
   const showWorkspaceModelRecovery =
-    showsAgentIdentity && workspaceModelStatus.blocked && !workspaceModelConfigOpen && !chat.isStreaming;
+    showsAgentIdentity &&
+    workspaceModelStatus.blocked &&
+    !workspaceModelConfigOpen &&
+    !chat.isStreaming &&
+    !compactReady;
 
   return (
     <div
@@ -2583,11 +2596,11 @@ export default function ChatPanel({
               {showsAgentIdentity ? 'Agent' : 'Assistant'}
             </h2>
             <span
-              className={`max-w-[150px] truncate rounded-full border px-2 py-0.5 text-[10px] font-semibold ${STATUS_TONES[agentStatus.tone]}`}
+              className={`max-w-[150px] truncate rounded-full border px-2 py-0.5 text-[10px] font-semibold ${STATUS_TONES[headerAgentStatus.tone]}`}
             >
-              {agentStatus.label}
+              {headerAgentStatus.label}
             </span>
-            {showsAgentIdentity && (
+            {showsAgentIdentity && !compactReady && (
               <button
                 type="button"
                 data-testid="workspace-model-config-trigger"
@@ -2600,7 +2613,11 @@ export default function ChatPanel({
             )}
           </div>
           <p className="text-[10px] text-slate-500 -mt-0.5 truncate">
-            {showsAgentIdentity ? activeTabLabel(activeTab) : agentStatus.detail}
+            {compactReady
+              ? headerAgentStatus.detail
+              : showsAgentIdentity
+                ? activeTabLabel(activeTab)
+                : headerAgentStatus.detail}
           </p>
         </div>
         {chat.isStreaming && (
@@ -2681,7 +2698,7 @@ export default function ChatPanel({
         </div>
       )}
 
-      {showsAgentIdentity && landingContextDetail && (
+      {showsAgentIdentity && landingContextDetail && !compactReady && (
         <div
           data-testid="agent-context-strip"
           className="flex min-h-[34px] flex-shrink-0 items-center gap-2 border-b border-slate-200/40 bg-slate-50/55 px-3.5 py-1.5 text-[11px]"
@@ -2693,7 +2710,7 @@ export default function ChatPanel({
         </div>
       )}
 
-      {showsAgentIdentity && (
+      {showsAgentIdentity && !compactReady && (
         <AgentWorkingSetPanel
           courseMap={courseMap}
           activeTab={activeTab}
@@ -2790,6 +2807,7 @@ export default function ChatPanel({
         isGenerating={!!(currentStep && currentStep !== 'done')}
         isDelivGenerating={!!isDelivGenerating}
         workspacePlanActionCapabilities={workspacePlanActionCapabilities}
+        quietReadyMode={compactReady}
       />
 
       {/* ── Chat Input ── */}

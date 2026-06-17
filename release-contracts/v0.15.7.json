@@ -1,0 +1,138 @@
+{
+  "version": "0.15.7",
+  "date": "June 17, 2026",
+  "title": "Finished Package Surface: ready means handoff, not audit work",
+  "status": "verified-current",
+  "proofSummary": {
+    "local": [
+      "npx vitest run tests/v0157-finished-package-surface.test.jsx tests/v0149-calm-surface.test.jsx tests/v0155-release-truth-ledger.test.js",
+      "npm run audit:release-history",
+      "npm run lint",
+      "npm run format:check",
+      "npm run build",
+      "npm run bundle:check",
+      "npm run test",
+      "npm run quality:browser:smoke -- --skip-git-gate"
+    ],
+    "ciFast": {
+      "status": "pending-push",
+      "note": "Fast verification is claimed only after v0.15.7 is pushed and the GitHub Actions run is attached."
+    },
+    "deploy": {
+      "status": "pending-push",
+      "note": "Pages deploy is not claimed until the pushed release completes its deploy run."
+    },
+    "ciDeep": {
+      "status": "pending",
+      "note": "Deep proof remains release-branch or manual pre-release proof. This UI release does not claim remote deep-proof success."
+    },
+    "liveProvider": {
+      "status": "not-applicable",
+      "note": "No live-provider prompt, model-routing, or generation-quality behavior is claimed by this release."
+    },
+    "manualHuman": {
+      "status": "not-applicable",
+      "note": "The release responds to user-provided UI evidence, but it does not claim external instructor review."
+    }
+  },
+  "claims": [
+    {
+      "id": "v0157-finished-overview-default",
+      "status": "verified-current",
+      "changelogHighlightIndex": 0,
+      "summary": "Ready Course Map opens to a finished-package overview instead of the dense editable course-map table, with the table one click away.",
+      "anchors": [
+        "src/AppFlow.jsx",
+        "src/components/FinishedPackageOverview.jsx",
+        "tests/v0157-finished-package-surface.test.jsx"
+      ],
+      "proofCommands": ["npx vitest run tests/v0157-finished-package-surface.test.jsx"],
+      "proofScopes": ["unit", "compiled-output"]
+    },
+    {
+      "id": "v0157-handoff-facts-and-download",
+      "status": "verified-current",
+      "changelogHighlightIndex": 1,
+      "summary": "The finished overview groups readiness facts, quality/texture, repairs, export checks, material shortcuts, and Download ZIP in one handoff surface.",
+      "anchors": [
+        "src/components/FinishedPackageOverview.jsx",
+        "src/AppFlow.jsx",
+        "tests/v0157-finished-package-surface.test.jsx"
+      ],
+      "proofCommands": [
+        "npx vitest run tests/v0157-finished-package-surface.test.jsx",
+        "npm run quality:browser:smoke -- --skip-git-gate"
+      ],
+      "proofScopes": ["unit", "browser-smoke"]
+    },
+    {
+      "id": "v0157-compact-ready-agent",
+      "status": "verified-current",
+      "changelogHighlightIndex": 2,
+      "summary": "Compact ready mode turns the assistant column into a receipt and chat input instead of a second queue of context, starters, and optional cards.",
+      "anchors": [
+        "src/components/chat/ChatPanel.jsx",
+        "src/components/chat/MessageList.jsx",
+        "src/AppFlow.jsx",
+        "tests/v0157-finished-package-surface.test.jsx"
+      ],
+      "proofCommands": ["npx vitest run tests/v0157-finished-package-surface.test.jsx"],
+      "proofScopes": ["unit", "compiled-output"]
+    },
+    {
+      "id": "v0157-material-navigation",
+      "status": "verified-current",
+      "changelogHighlightIndex": 3,
+      "summary": "Finished-package material cards route to artifact tabs, while the Course Map card routes back into the editable course map only when requested.",
+      "anchors": [
+        "src/AppFlow.jsx",
+        "src/components/FinishedPackageOverview.jsx",
+        "src/lib/featureCatalog.js",
+        "tests/v0157-finished-package-surface.test.jsx"
+      ],
+      "proofCommands": ["npx vitest run tests/v0157-finished-package-surface.test.jsx"],
+      "proofScopes": ["unit", "compiled-output"]
+    },
+    {
+      "id": "v0157-release-boundary",
+      "status": "verified-current",
+      "changelogHighlightIndex": 4,
+      "summary": "The current release manifest, roadmap, and contract make the overwhelmed ready-state fix a separate v0.15.7 claim from v0.15.6 quality truth.",
+      "anchors": [
+        "src/lib/releaseManifest.js",
+        "tests/v0155-release-truth-ledger.test.js",
+        "docs/V0.15.7_FINISHED_PACKAGE_SURFACE_ROADMAP.md",
+        "release-contracts/v0.15.7.json"
+      ],
+      "proofCommands": ["npx vitest run tests/v0155-release-truth-ledger.test.js", "npm run audit:release-history"],
+      "proofScopes": ["unit", "static-audit", "doc"]
+    },
+    {
+      "id": "v0157-browser-smoke-proof",
+      "status": "verified-current",
+      "changelogHighlightIndex": 5,
+      "summary": "The real-browser smoke loop remains in the release proof path so the ready/download handoff is tested in a workspace.",
+      "anchors": [
+        "scripts/liveBrowserQualityLoop.mjs",
+        "release-contracts/v0.15.7.json",
+        "docs/V0.15.7_FINISHED_PACKAGE_SURFACE_ROADMAP.md"
+      ],
+      "proofCommands": ["npm run quality:browser:smoke -- --skip-git-gate"],
+      "proofScopes": ["browser-smoke", "doc"]
+    }
+  ],
+  "carryForward": [
+    {
+      "id": "professor-adoption-expansion",
+      "status": "carry-forward",
+      "source": "docs/V0.15.7_PROFESSOR_ADOPTION_BENCHMARK_ROADMAP.md",
+      "next": "docs/V0.15.8_PROFESSOR_ADOPTION_ENGINE_ROADMAP.md"
+    },
+    {
+      "id": "source-verified-professor-judge",
+      "status": "carry-forward",
+      "source": "docs/V0.15.10_SOURCE_VERIFIED_PROFESSOR_ADOPTION_ROADMAP.md",
+      "next": "future source-verified benchmark release"
+    }
+  ]
+}

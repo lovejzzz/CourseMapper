@@ -4,6 +4,26 @@
 
 CourseMapper is moving toward a "consider it done" course-production agent. The user should describe the course, choose scope/materials, and receive a finished draft package. The agent owns generation, QA, repair, alignment, and export readiness. Human involvement should be final approval only, not QA labor.
 
+## v0.15.7 - Finished Package Surface
+
+Goal: make the successful workspace feel finished instead of overwhelming. A
+ready package should open as a clean handoff for download, inspection, or light
+revision, not as a dense editable table plus a second assistant-side queue.
+
+Full plan: `docs/V0.15.7_FINISHED_PACKAGE_SURFACE_ROADMAP.md`
+
+1. Open ready Course Map to a finished-package overview instead of the dense
+   editable preview.
+2. Put lesson count, material readiness, quality/texture, repairs, export
+   checks, material shortcuts, and Download ZIP in one handoff surface.
+3. Keep the dense map available through an explicit Edit course map action.
+4. Let material cards open artifact tabs directly while the Course Map card
+   opens the editable table.
+5. Add compact ready mode to the agent panel so it shows the package receipt and
+   chat input without the project-brief strip, working-set panel, opener
+   buttons, or old queue cards.
+6. Preserve release truth with a v0.15.7 contract and browser-smoke proof path.
+
 ## v0.15.6 - Classroom Truth
 
 Goal: make the package and UI truth surfaces stricter after the Human Anatomy

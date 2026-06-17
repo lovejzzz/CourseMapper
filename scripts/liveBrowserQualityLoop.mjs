@@ -276,6 +276,17 @@ async function safeText(locator) {
 }
 
 async function getZipAction(page) {
+  const finishedOverviewZip = page.getByTestId('finished-overview-download-zip');
+  if (
+    (await finishedOverviewZip.count()) > 0 &&
+    (await finishedOverviewZip
+      .first()
+      .isVisible()
+      .catch(() => false))
+  ) {
+    return finishedOverviewZip.first();
+  }
+
   const sidePanelZip = page.getByTestId('export-download-zip');
   if (
     (await sidePanelZip.count()) > 0 &&
