@@ -752,20 +752,24 @@ describe('Pass A resource transcription (v0.14.7 WS-B1)', () => {
     expect(makeSkeletonFixture().sourceNamesResources).toBeUndefined();
   });
 
-  it('recovery: brief names resources + skeleton transcribed none → native graph with confirmation placeholders', () => {
+  it('recovery: brief names resources + skeleton transcribed none → review-only diagnostics, not export text', () => {
     const skeleton = makeSkeletonFixture({ sourceText: RESOURCE_BRIEF });
     const recovery = recoverMissingSkeletonResources(skeleton);
     expect(recovery.recoveredCount).toBe(15);
-    expect(recovery.skeleton.resources[0].title).toBe('Assigned resource to confirm: Topic 1 Fundamentals');
+    expect(recovery.skeleton.resources[0]).toMatchObject({
+      title: 'Course source materials for Topic 1 Fundamentals',
+      reviewOnly: true,
+      recovered: true,
+    });
 
     const resolution = resolveNativeAssembly({ skeleton, passBBySession: makePassBFixture() });
     expect(resolution.ok).toBe(true);
     expect(resolution.resourceRecovery).toEqual({ code: 'missing-resources-recovered', recoveredCount: 15 });
     expect(resolution.graph.authoredBy).toBe('native');
-    expect(resolution.graph.resources).toHaveLength(15);
-    expect(JSON.stringify(resolution.courseMap.lessons[6])).toContain(
-      'Assigned resource to confirm: Topic 7 Fundamentals',
-    );
+    expect(resolution.graph.resources).toHaveLength(0);
+    const serialized = JSON.stringify(resolution.courseMap);
+    expect(serialized).not.toContain('Assigned resource to confirm');
+    expect(serialized).not.toContain('Course source materials for Topic');
   });
 
   it('lint: a skeleton WITH transcribed resources passes', () => {

@@ -99,15 +99,17 @@ describe('v0.15.7 finished package surface', () => {
     expect(browserHarness).not.toContain("page.getByTestId('finished-overview-download-zip')");
   });
 
-  it('uses compact ready mode so the agent column becomes a receipt, not a second queue', () => {
+  it('keeps compact ready mode conversational instead of replacing the chat with a receipt', () => {
     const chatPanel = read('src/components/chat/ChatPanel.jsx');
     const messageList = read('src/components/chat/MessageList.jsx');
 
     expect(chatPanel).toContain('compactReadyMode = false');
     expect(chatPanel).toContain('const compactReady = Boolean');
-    expect(chatPanel).toContain('!compactReady && (');
-    expect(chatPanel).toContain('quietReadyMode={compactReady}');
-    expect(chatPanel).toContain("message?.role === 'packageSummary'");
+    expect(chatPanel).toContain('return packageReceiptMessage && !alreadyRendered');
+    expect(chatPanel).toContain('landingContextDetail && (');
+    expect(chatPanel).toContain('quietReadyMode={false}');
+    expect(chatPanel).not.toContain('quietReadyMode={compactReady}');
+    expect(chatPanel).not.toContain('return messagesWithReceipt.filter');
 
     expect(messageList).toContain('quietReadyMode = false');
     expect(messageList).toContain('{!quietReadyMode && (');

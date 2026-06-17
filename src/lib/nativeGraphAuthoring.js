@@ -146,9 +146,10 @@ export function recoverMissingSkeletonResources(skeleton) {
   }
   const recovered = asArray(skeleton.sessions).map((session, index) => ({
     id: `m${index + 1}`,
-    title: `Assigned resource to confirm: ${cleanText(session?.title, 140) || `Lesson ${index + 1}`}`,
+    title: `Course source materials for ${cleanText(session?.title, 140) || `Lesson ${index + 1}`}`,
     dueSession: Number.isInteger(session?.order) && session.order > 0 ? session.order : index + 1,
     recovered: true,
+    reviewOnly: true,
   }));
   return {
     skeleton: {
@@ -346,12 +347,13 @@ export function buildNativeWireMap(skeleton, passBBySession = {}) {
     const sessionReadings = skeleton.readings.filter((entry) => entry.dueSession === session.order);
     // v0.14.7 WS-B1: transcribed supporting materials ride the first
     // section's supportingResources cell (same first-section convention as
-    // assessments/readings). deriveCourseGraphFromCourseMap mints them as
-    // syllabus-origin Resource entities; the graph render writes them back
-    // into every derived map's supportingResources cells, so the compiler's
-    // resource surface is never empty when the source named materials — the
-    // "Instructor-provided course materials" placeholder class dies here.
-    const sessionResources = asArray(skeleton.resources).filter((entry) => entry.dueSession === session.order);
+    // assessments/readings). Recovery markers are diagnostic only: when Pass A
+    // failed to transcribe the named materials, leaking invented resource
+    // titles into every exported artifact is worse than leaving the compiler's
+    // honest class-notes fallback in place.
+    const sessionResources = asArray(skeleton.resources).filter(
+      (entry) => entry.dueSession === session.order && entry.reviewOnly !== true,
+    );
 
     const sections = sectionTitles.map((title, sectionIndex) => ({
       topicSection: `${session.order}.${sectionIndex + 1}: ${title}`,

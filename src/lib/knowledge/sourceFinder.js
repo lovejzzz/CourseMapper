@@ -21,7 +21,7 @@ import {
 
 export const SOURCE_FINDER_ORIGIN = 'source-finder';
 
-const SOURCE_FINDER_VERSION = 'source-finder-v1';
+const SOURCE_FINDER_VERSION = 'source-finder-v2';
 const CACHE_PREFIX = 'cm-source-finder:';
 const SNIPPET_LIMIT = 320;
 const DEFAULT_MAX_TOPICS = 8;
@@ -120,6 +120,92 @@ function termsFromText(value) {
   return cleanText(value)
     .toLowerCase()
     .match(/[a-z][a-z0-9-]{3,}/g);
+}
+
+const LOW_SIGNAL_QUERY_TERMS = new Set([
+  'able',
+  'apply',
+  'basic',
+  'course',
+  'explain',
+  'ideas',
+  'introduction',
+  'key',
+  'lesson',
+  'main',
+  'students',
+  'understand',
+  'will',
+]);
+
+const TOPICAL_MISMATCH_GATES = [
+  {
+    applies: /\bfunctions?\b/i,
+    reject: /\b(?:special functions?|mathematical physics|bessel|legendre|hypergeometric)\b/i,
+    unlessSource: /\b(?:domain|codomain|mapping|bijection|injection|surjection|composition|sets?)\b/i,
+  },
+  {
+    applies: /\btrees?\b/i,
+    reject:
+      /\b(?:decision trees?|random(?:ized)? trees?|random forests?|machine learning|classification|regression)\b/i,
+    unlessTopic: /\b(?:machine learning|data science|classification|regression|random forest|decision tree)\b/i,
+  },
+  {
+    applies: /\brecurrence(?:\s+relations?)?\b/i,
+    reject: /\b(?:brownian|stochastic|riemannian|manifold|non-?explosion|diffusion process)\b/i,
+    unlessTopic: /\b(?:probability|stochastic|brownian|diffusion|random process)\b/i,
+  },
+  {
+    applies: /\b(?:logic|proofs?)\b/i,
+    reject: /\b(?:neutrosophic|paraconsistent|many-valued|fuzzy logic)\b/i,
+    unlessTopic: /\b(?:neutrosophic|paraconsistent|many-valued|fuzzy)\b/i,
+  },
+  {
+    applies: /\bsets?\b/i,
+    reject: /\b(?:efficient sets?|multi-?objective|pareto|optimization)\b/i,
+    unlessTopic: /\b(?:optimization|operations research|pareto|multi-?objective)\b/i,
+  },
+  {
+    applies: /\bgraph(?:\s+theory|s)?\b/i,
+    reject: /\b(?:spectral graph|graph wavelets?|signal processing|fourier)\b/i,
+    unlessTopic: /\b(?:spectral|laplacian|signal processing|fourier)\b/i,
+  },
+];
+
+function topicContext(topic) {
+  return cleanText(`${topic?.courseName || ''} ${topic?.topic || ''} ${topic?.query || ''}`).toLowerCase();
+}
+
+function sourceContext(source) {
+  return cleanText(`${source?.title || ''} ${source?.snippet || ''}`).toLowerCase();
+}
+
+function meaningfulQueryTerms(topic) {
+  return (termsFromText(`${topic?.topic || ''} ${topic?.query || ''}`) || []).filter(
+    (term) => !LOW_SIGNAL_QUERY_TERMS.has(term),
+  );
+}
+
+function sourcePassesTopicalFit(source, topic) {
+  const topicText = topicContext(topic);
+  const sourceText = sourceContext(source);
+  if (!sourceText) return false;
+
+  for (const gate of TOPICAL_MISMATCH_GATES) {
+    const rescuedByTopic = gate.unlessTopic?.test(topicText) || false;
+    const rescuedBySource = gate.unlessSource?.test(sourceText) || false;
+    if (gate.applies.test(topicText) && gate.reject.test(sourceText) && !rescuedByTopic && !rescuedBySource) {
+      return false;
+    }
+  }
+
+  if (/^(openalex|crossref|eric)$/.test(source.provider)) {
+    const haystack = new Set(termsFromText(sourceText) || []);
+    const hits = meaningfulQueryTerms(topic).filter((term) => haystack.has(term));
+    if (hits.length === 0) return false;
+  }
+
+  return true;
 }
 
 function sourceTopicsFromGraph(graph, { maxTopics = DEFAULT_MAX_TOPICS } = {}) {
@@ -250,6 +336,7 @@ function dedupeAndRankSources(rawSources, topic, limit) {
   for (const raw of rawSources) {
     const source = normalizeSource(raw, topic);
     if (!source) continue;
+    if (!sourcePassesTopicalFit(source, topic)) continue;
     const key = source.url.toLowerCase() || source.title.toLowerCase();
     const scored = { ...source, score: scoreSource(source, topic) };
     const existing = byKey.get(key);

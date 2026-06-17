@@ -97,7 +97,7 @@ describe('source finder mini-shard', () => {
     });
 
     expect(first.temporary).toBe(true);
-    expect(first.id).toContain('source-finder-v1');
+    expect(first.id).toContain('source-finder-v2');
     expect(first.stats).toMatchObject({ topics: 2, topicsWithSources: 2, sources: 4, cacheHits: 0 });
     expect(second.stats.cacheHits).toBe(2);
     expect(providers.searchScholarlyReadings).toHaveBeenCalledTimes(2);
@@ -105,6 +105,64 @@ describe('source finder mini-shard', () => {
     expect(first.topics[0].sources[0].snippet.length).toBeLessThanOrEqual(320);
     expect(first.topics[0].sources[0]).not.toHaveProperty('abstract');
     expect(first.topics[0].searchLinks[0].provider).toBe('oercommons');
+  });
+
+  it('rejects academic title traps that match the word but not the classroom topic', async () => {
+    const graph = createEmptyCourseGraph({ courseName: 'Discrete Mathematics' });
+    graph.sessions = [
+      {
+        id: 's1',
+        number: 1,
+        title: 'Lesson 1: Functions',
+        sections: [{ topic: '1.1: functions, domain, codomain, and composition' }],
+      },
+      {
+        id: 's2',
+        number: 2,
+        title: 'Lesson 2: Trees',
+        sections: [{ topic: '2.1: trees in graph theory' }],
+      },
+    ];
+
+    const miniShard = await findCourseSources(graph, {
+      storage: memoryStorage(),
+      maxTopics: 2,
+      limitPerTopic: 2,
+      minUsefulSources: 1,
+      providers: {
+        searchScholarlyReadings: vi.fn(async (query) => {
+          if (query.includes('functions')) {
+            return [
+              source('openalex', 'Special Functions of Mathematical Physics', {
+                abstract:
+                  'A graduate mathematical physics treatment of special functions, Bessel functions, and Legendre functions.',
+              }),
+              source('openalex', 'Functions in discrete mathematics: domain, codomain, and composition', {
+                abstract:
+                  'An introductory treatment of functions as mappings between sets, with domain, codomain, range, and composition.',
+              }),
+            ];
+          }
+          return [
+            source('openalex', 'Extremely randomized trees', {
+              abstract: 'A machine learning method for classification and regression using randomized decision trees.',
+            }),
+            source('openalex', 'Trees in graph theory: paths, roots, leaves, and spanning trees', {
+              abstract:
+                'An introductory graph theory treatment of trees, paths, roots, leaves, spanning trees, and connected acyclic graphs.',
+            }),
+          ];
+        }),
+        searchCrossrefWorks: vi.fn(async () => []),
+        searchWikipediaPages: vi.fn(async () => []),
+      },
+    });
+
+    const titles = miniShard.topics.flatMap((topic) => topic.sources.map((item) => item.title));
+    expect(titles).toContain('Functions in discrete mathematics: domain, codomain, and composition');
+    expect(titles).toContain('Trees in graph theory: paths, roots, leaves, and spanning trees');
+    expect(titles).not.toContain('Special Functions of Mathematical Physics');
+    expect(titles).not.toContain('Extremely randomized trees');
   });
 
   it('attaches top mini-shard sources as graph resources that render into the course map', async () => {

@@ -1939,7 +1939,7 @@ export default function useDeliverables({
           if (resolution.ok) {
             courseGraph = courseGraphLib.attachEnrichmentToGraph(resolution.graph, enrichmentForGraph);
             const recoveredResourceDetail = resolution.resourceRecovery?.recoveredCount
-              ? ` · recovered ${resolution.resourceRecovery.recoveredCount} resource placeholder${
+              ? ` · recorded ${resolution.resourceRecovery.recoveredCount} missing resource signal${
                   resolution.resourceRecovery.recoveredCount === 1 ? '' : 's'
                 }`
               : '';

@@ -353,6 +353,61 @@ describe('ChatPanel agent command strip', () => {
     });
   });
 
+  it('keeps the initial brief and assistant replies visible in compact ready mode', () => {
+    chatRouterMock.messages = [
+      {
+        role: 'user',
+        source: 'landing-context',
+        meta: {
+          source: 'landing-context',
+          hasPrompt: true,
+          fileCount: 1,
+          fileNames: ['discrete-outline.pdf'],
+          hiddenFileCount: 0,
+        },
+        text: [
+          'Here is what I am starting with.',
+          '',
+          'Starting request:',
+          'Build a 15-lesson Discrete Mathematics course.',
+          '',
+          'Uploaded materials:',
+          '- discrete-outline.pdf',
+        ].join('\n'),
+      },
+      { id: 'assistant-ack', role: 'assistant', text: 'Got it. I will build and check the package.' },
+    ];
+
+    root = renderChatPanel(container, {
+      compactReadyMode: true,
+      currentStep: 'done',
+      activeTab: 'courseMap',
+      packageQualityPass: {
+        status: 'ready',
+        message: 'Ready to download.',
+        blockers: 0,
+        warnings: 0,
+        repairsApplied: 2,
+        receipt: { checkedSections: '10/10', lessonCount: 15, exportChecked: 10 },
+      },
+    });
+
+    expect(container.querySelector('[data-testid="agent-context-strip"]')?.textContent).toContain(
+      'Starting request + discrete-outline.pdf',
+    );
+    expect(messageListMock.props.quietReadyMode).toBe(false);
+    expect(messageListMock.props.messages).toHaveLength(3);
+    expect(messageListMock.props.messages[0]).toMatchObject({ role: 'user', source: 'landing-context' });
+    expect(messageListMock.props.messages[1]).toMatchObject({
+      role: 'assistant',
+      text: expect.stringContaining('Got it'),
+    });
+    expect(messageListMock.props.messages[2]).toMatchObject({
+      role: 'packageSummary',
+      summary: expect.objectContaining({ ready: true, lessonCount: 15 }),
+    });
+  });
+
   it('passes pending chat sync suggestions into the progress header', async () => {
     chatRouterMock.messages = [
       {

@@ -1443,14 +1443,8 @@ export default function ChatPanel({
     const alreadyRendered = packageReceiptMessage
       ? chat.messages.some((message) => message?.role === 'packageSummary' && message.id === packageReceiptMessage.id)
       : false;
-    const messagesWithReceipt =
-      packageReceiptMessage && !alreadyRendered ? [...chat.messages, packageReceiptMessage] : chat.messages;
-    if (!compactReady) return messagesWithReceipt;
-    if (!packageReceiptMessage) return [];
-    return messagesWithReceipt.filter(
-      (message) => message?.role === 'packageSummary' && message.id === packageReceiptMessage.id,
-    );
-  }, [chat.messages, compactReady, packageQualityPass, packageReceiptSummary]);
+    return packageReceiptMessage && !alreadyRendered ? [...chat.messages, packageReceiptMessage] : chat.messages;
+  }, [chat.messages, packageQualityPass, packageReceiptSummary]);
   const [directPlanActionRunning, setDirectPlanActionRunning] = React.useState(false);
   const staleDeliverableCount = deliverables
     ? Object.values(deliverables).filter((entry) => entry?.stale === true).length
@@ -2698,7 +2692,7 @@ export default function ChatPanel({
         </div>
       )}
 
-      {showsAgentIdentity && landingContextDetail && !compactReady && (
+      {showsAgentIdentity && landingContextDetail && (
         <div
           data-testid="agent-context-strip"
           className="flex min-h-[34px] flex-shrink-0 items-center gap-2 border-b border-slate-200/40 bg-slate-50/55 px-3.5 py-1.5 text-[11px]"
@@ -2807,7 +2801,7 @@ export default function ChatPanel({
         isGenerating={!!(currentStep && currentStep !== 'done')}
         isDelivGenerating={!!isDelivGenerating}
         workspacePlanActionCapabilities={workspacePlanActionCapabilities}
-        quietReadyMode={compactReady}
+        quietReadyMode={false}
       />
 
       {/* ── Chat Input ── */}
