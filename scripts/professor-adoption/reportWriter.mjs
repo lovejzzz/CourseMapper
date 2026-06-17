@@ -55,6 +55,33 @@ function renderFindingLines(results = []) {
   return findings.length > 0 ? findings : ['- No professor-adoption findings.'];
 }
 
+function renderVerdictRows(verdict = {}) {
+  const dimensions = verdict.dimensions || {};
+  const rows = [
+    ['Tier', verdict.tierLabel || verdict.tier || 'unknown'],
+    ['Status', verdict.status || 'unknown'],
+    ['Confidence', verdict.confidence || 'unknown'],
+    ['Source coverage', dimensions.sourceStandardCoverage?.evidence || 'not attached'],
+    [
+      'Professor adoption',
+      `status=${dimensions.professorAdoption?.status || 'unknown'}, cases=${dimensions.professorAdoption?.caseCount || 0}`,
+    ],
+    ['Caps', String((verdict.caps || []).length)],
+    ['Blocking reasons', String((verdict.blockingReasons || []).length)],
+  ];
+  return rows.map(([label, value]) => `| ${safeCell(label)} | ${safeCell(value)} |`);
+}
+
+function renderVerdictCapLines(verdict = {}) {
+  const caps = verdict.caps || [];
+  const blockers = verdict.blockingReasons || [];
+  const rows = [
+    ...blockers.map((item) => `- BLOCKER ${safeCell(item.id)}: ${safeCell(item.reason)}`),
+    ...caps.map((item) => `- CAP ${safeCell(item.id)} → ${safeCell(item.tierCap)}: ${safeCell(item.reason)}`),
+  ];
+  return rows.length > 0 ? rows : ['- None.'];
+}
+
 function renderCountRows(rows = []) {
   return rows.length > 0 ? rows.map((row) => `| ${safeCell(row.id)} | ${row.count} |`) : ['| none | 0 |'];
 }
@@ -108,6 +135,17 @@ export function renderProfessorAdoptionMarkdown(payload = {}) {
     `P3 findings: ${summary.findingCounts?.P3 || 0}`,
     '',
     'Note: This benchmark uses public professor/course artifacts as adoption pressure. It does not claim professor approval, endorsement, or external validation.',
+    'Advisory policy: non-P0 professor-adoption gaps produce verdict caps and repair actions without failing normal automation; use `--strict` for manual hard gates.',
+    '',
+    '## Adoption Verdict',
+    '',
+    table(['| Field | Value |', '| --- | --- |', ...renderVerdictRows(payload.adoptionVerdict || {})]),
+    '',
+    'Minimum-gate policy: caps and P0 blockers determine the maximum tier before headline averages are considered.',
+    '',
+    '### Verdict Caps and Blockers',
+    '',
+    ...renderVerdictCapLines(payload.adoptionVerdict || {}),
     '',
     '## Autonomous Decision',
     '',

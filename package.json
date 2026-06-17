@@ -37,6 +37,7 @@
     "audit:professor-adoption:100": "node scripts/professorAdoptionAudit.mjs --profile full --rounds 100",
     "audit:professor-adoption:sources": "node scripts/professorAdoptionSourceAudit.mjs --profile full",
     "audit:professor-adoption:sources:smoke": "node scripts/professorAdoptionSourceAudit.mjs --profile smoke",
+    "audit:adoption-verdict": "node scripts/adoptionVerdictAudit.mjs",
     "audit:blueprint:quality-sample": "node scripts/blueprintQualitySampleAudit.mjs",
     "audit:v085:sweep": "node scripts/v085QualitySweep.mjs",
     "audit:v0855:sweep": "node scripts/v085QualitySweep.mjs --release-label v0.8.55 --count 34 --output-dir verification-output/v0.8.55-quality-sweep --no-progress",

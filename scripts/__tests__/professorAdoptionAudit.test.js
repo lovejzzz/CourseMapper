@@ -1,8 +1,15 @@
+import fs from 'node:fs/promises';
+import os from 'node:os';
+import path from 'node:path';
+
+import JSZip from 'jszip';
 import { describe, expect, it } from 'vitest';
 
+import { buildAdoptionVerdictAudit } from '../adoptionVerdictAudit.mjs';
 import { buildProfessorAdoptionDecision } from '../professor-adoption/decision.mjs';
+import { buildAdoptionVerdict } from '../professor-adoption/adoptionVerdict.mjs';
 import { buildProfessorAdoptionCoverage } from '../professor-adoption/coverage.mjs';
-import { buildProfessorAdoptionLedger } from '../professor-adoption/reportWriter.mjs';
+import { buildProfessorAdoptionLedger, renderProfessorAdoptionMarkdown } from '../professor-adoption/reportWriter.mjs';
 import { scoreProfessorAdoptionCase } from '../professor-adoption/scorer.mjs';
 import { verifyProfessorAdoptionSource } from '../professor-adoption/sourceVerifier.mjs';
 import {
@@ -43,6 +50,69 @@ describe('professor adoption audit contracts', () => {
       ]),
     );
     expect(coverage.strategy.recommendation).toMatch(/source verification/i);
+  });
+
+  it('caps structured STEM packages below adoption-ready when no genome or substitute source standard is attached', () => {
+    const verdict = buildAdoptionVerdict({
+      packageManifest: {
+        courseName: 'Operating Systems',
+        quality: { status: 'graded', score: 100, grade: 'A', findingCounts: { p0: 0, p1: 0, p2: 0 } },
+        pipeline: {
+          genomeLinker: '0 genome + 0 cached of 14 lessons (0 concepts, 0 citations, 0 bridges)',
+        },
+        gates: { exportStatus: 'passed', exportChecked: 38, exportFailed: 0, exportWarnings: 0 },
+      },
+      assessmentRegistry: [
+        { id: 'A1', title: 'Weekly lab', kind: 'graded-artifact', dueSession: 1, weightPct: 40 },
+        { id: 'A2', title: 'Final exam', kind: 'exam', dueSession: 14, weightPct: 60 },
+      ],
+      professorAdoptionSummary: { status: 'pass', caseCount: 3, minimumScore: 100, findingCounts: {} },
+      sourceCoverage: {
+        status: 'pass',
+        caseCount: 3,
+        substituteForGenome: false,
+        evidence: '3 smoke public-source cases only',
+      },
+    });
+
+    expect(verdict.status).toBe('capped');
+    expect(verdict.tier).toBe('classroom-ready-draft');
+    expect(verdict.caps).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ id: 'no-knowledge-backbone-or-source-standard' }),
+        expect.objectContaining({ id: 'source-standard-coverage-missing' }),
+      ]),
+    );
+    expect(verdict.minimumGatePolicy.usesMinimumGates).toBe(true);
+  });
+
+  it('lets a clean package reach adoption-ready when the 30-case source-standard substitute passes', () => {
+    const verdict = buildAdoptionVerdict({
+      packageManifest: {
+        courseName: 'Operating Systems',
+        quality: { status: 'graded', score: 100, grade: 'A', findingCounts: { p0: 0, p1: 0, p2: 0 } },
+        pipeline: {
+          genomeLinker: '0 genome + 0 cached of 14 lessons (0 concepts, 0 citations, 0 bridges)',
+        },
+        gates: { exportStatus: 'passed', exportChecked: 38, exportFailed: 0, exportWarnings: 0 },
+      },
+      assessmentRegistry: [
+        { id: 'A1', title: 'Weekly lab', kind: 'graded-artifact', dueSession: 1, weightPct: 40 },
+        { id: 'A2', title: 'Final exam', kind: 'exam', dueSession: 14, weightPct: 60 },
+      ],
+      professorAdoptionSummary: { status: 'pass', caseCount: 30, minimumScore: 100, findingCounts: {} },
+      sourceCoverage: {
+        status: 'pass',
+        caseCount: 30,
+        substituteForGenome: true,
+        evidence: '30 public-source benchmark cases passed',
+      },
+    });
+
+    expect(verdict.status).toBe('capped');
+    expect(verdict.tier).toBe('adoption-ready');
+    expect(verdict.caps.map((cap) => cap.id)).toEqual(['external-proof-missing']);
+    expect(verdict.dimensions.sourceStandardCoverage.passes).toBe(true);
   });
 
   it('verifies MIT OCW source provenance from official data.json metadata', async () => {
@@ -226,5 +296,83 @@ describe('professor adoption audit contracts', () => {
     });
     expect(ledgerRow.acceptanceCriteria).toHaveLength(1);
     expect(ledgerRow.proofCommands).toHaveLength(1);
+  });
+
+  it('renders the adoption verdict in the public-source benchmark report', () => {
+    const payload = {
+      meta: { generatedAt: '2026-06-17T00:00:00.000Z', profile: 'full', roundsRequested: 30 },
+      summary: {
+        status: 'pass',
+        caseCount: 30,
+        passedCaseCount: 30,
+        repairRequiredCaseCount: 0,
+        blockedCaseCount: 0,
+        averageScore: 100,
+        minimumScore: 100,
+        findingCount: 0,
+        findingCounts: { P0: 0, P1: 0, P2: 0, P3: 0 },
+      },
+      coverage: buildProfessorAdoptionCoverage(PROFESSOR_ADOPTION_MANIFESTS),
+      autonomousDecision: buildProfessorAdoptionDecision({
+        profile: 'full',
+        summary: { status: 'pass', caseCount: 30 },
+        results: [],
+      }),
+      adoptionVerdict: buildAdoptionVerdict({
+        professorAdoptionSummary: { status: 'pass', caseCount: 30, minimumScore: 100, findingCounts: {} },
+        sourceCoverage: { status: 'pass', caseCount: 30, substituteForGenome: true },
+        requirePackageEvidence: false,
+      }),
+      manifests: [],
+      results: [],
+    };
+    const markdown = renderProfessorAdoptionMarkdown(payload);
+
+    expect(markdown).toContain('## Adoption Verdict');
+    expect(markdown).toContain('Adoption-Ready');
+    expect(markdown).toContain('Minimum-gate policy');
+  });
+
+  it('builds a machine-readable adoption verdict from a final package ZIP and professor report', async () => {
+    const tmp = await fs.mkdtemp(path.join(os.tmpdir(), 'cm-adoption-verdict-'));
+    const zipPath = path.join(tmp, 'Operating Systems - Course Materials.zip');
+    const professorReportPath = path.join(tmp, 'professor-report.json');
+    const outputDir = path.join(tmp, 'out');
+    const zip = new JSZip();
+    zip.file(
+      'PACKAGE_MANIFEST.json',
+      JSON.stringify({
+        courseName: 'Operating Systems',
+        quality: { status: 'graded', score: 100, grade: 'A', findingCounts: { p0: 0, p1: 0, p2: 0 } },
+        pipeline: {
+          genomeLinker: '0 genome + 0 cached of 14 lessons (0 concepts, 0 citations, 0 bridges)',
+        },
+        gates: { exportStatus: 'passed', exportChecked: 38, exportFailed: 0, exportWarnings: 0 },
+        assessments: [
+          { id: 'A1', title: 'Systems lab', kind: 'graded-artifact', dueSession: 6, weightPct: 50 },
+          { id: 'A2', title: 'Final exam', kind: 'exam', dueSession: 14, weightPct: 50 },
+        ],
+      }),
+    );
+    zip.file('QUALITY_REPORT.md', '# Report\n\n**Overall: 100/100 (A)** · 0 findings (0 P0 · 0 P1 · 0 P2)');
+    await fs.writeFile(zipPath, await zip.generateAsync({ type: 'nodebuffer' }));
+    await fs.writeFile(
+      professorReportPath,
+      JSON.stringify({
+        summary: { status: 'pass', caseCount: 30, minimumScore: 100, findingCounts: { P0: 0, P1: 0, P2: 0 } },
+        results: [],
+      }),
+    );
+
+    const { payload, jsonPath, markdownPath } = await buildAdoptionVerdictAudit({
+      zipPath,
+      professorReportPath,
+      outputDir,
+    });
+
+    expect(payload.verdict.tier).toBe('adoption-ready');
+    expect(payload.verdict.dimensions.sourceStandardCoverage.passes).toBe(true);
+    expect(await fs.readFile(jsonPath, 'utf8')).toContain('"tier": "adoption-ready"');
+    expect(await fs.readFile(markdownPath, 'utf8')).toContain('Adoption Verdict Audit');
   });
 });

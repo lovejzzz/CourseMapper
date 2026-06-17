@@ -16,6 +16,7 @@ import {
   validateProfessorAdoptionManifest,
 } from './professor-adoption/sourceManifests.mjs';
 import { buildProfessorAdoptionCoverage } from './professor-adoption/coverage.mjs';
+import { buildAdoptionVerdict } from './professor-adoption/adoptionVerdict.mjs';
 import { writeProfessorAdoptionReport } from './professor-adoption/reportWriter.mjs';
 
 const ROOT = process.cwd();
@@ -79,6 +80,7 @@ function parseArgs(argv) {
     caseIds: [],
     rounds: null,
     allowRepairRequired: false,
+    strict: false,
   };
   for (let index = 0; index < argv.length; index += 1) {
     const arg = argv[index];
@@ -97,6 +99,8 @@ function parseArgs(argv) {
       args.rounds = rounds;
     } else if (arg === '--allow-repair-required') {
       args.allowRepairRequired = true;
+    } else if (arg === '--strict') {
+      args.strict = true;
     }
   }
   if (!['smoke', 'full'].includes(args.profile)) throw new Error('--profile must be smoke or full');
@@ -244,6 +248,13 @@ export async function buildProfessorAdoptionAudit(options = {}) {
     }),
   );
   const summary = summarizeProfessorAdoptionResults(results);
+  const sourceCoverage = {
+    status: summary.status,
+    caseCount: summary.caseCount,
+    source: 'public-source professor-adoption benchmark',
+    substituteForGenome: summary.caseCount >= 30,
+    evidence: `${summary.caseCount} public-source professor-adoption case(s), status=${summary.status}, minimumScore=${summary.minimumScore}`,
+  };
   const payload = {
     meta: {
       generatedAt: new Date().toISOString(),
@@ -255,6 +266,12 @@ export async function buildProfessorAdoptionAudit(options = {}) {
     },
     summary,
     coverage: buildProfessorAdoptionCoverage(manifests),
+    adoptionVerdict: buildAdoptionVerdict({
+      professorAdoptionSummary: summary,
+      professorAdoptionResults: results,
+      sourceCoverage,
+      requirePackageEvidence: false,
+    }),
     manifests,
     results,
   };
@@ -278,7 +295,15 @@ async function main() {
     console.log(`Next action: ${payload.autonomousDecision.nextAction}`);
     console.log(`Report: ${paths.markdownPath}`);
     console.log(`Ledger: ${paths.ledgerPath}`);
-    if (payload.summary.status !== 'pass' && !args.allowRepairRequired) process.exitCode = 1;
+    const p0Count = Number(payload.summary.findingCounts?.P0 || 0);
+    const hasP0Failure = p0Count > 0 || payload.summary.blockedCaseCount > 0;
+    if (!args.allowRepairRequired && hasP0Failure) {
+      process.exitCode = 1;
+    } else if (!args.allowRepairRequired && args.strict && payload.summary.status !== 'pass') {
+      process.exitCode = 1;
+    } else if (payload.summary.status !== 'pass') {
+      console.warn('Professor adoption audit is advisory for non-P0 findings; rerun with --strict to fail on repairs.');
+    }
   } finally {
     await closeHybridPipelineAuditRuntime();
   }
