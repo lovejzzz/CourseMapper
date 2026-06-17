@@ -1,7 +1,7 @@
 /**
  * @vitest-environment happy-dom
  *
- * v0.15.7 — Finished Package Surface: a ready workspace opens as a handoff,
+ * v0.15.7 - Finished Package Surface: a ready workspace opens as a handoff,
  * not another audit table.
  */
 import React from 'react';
@@ -53,7 +53,6 @@ describe('v0.15.7 finished package surface', () => {
           slideDecks: { status: 'done', data: [{ lesson: 1 }, { lesson: 2 }] },
         }}
         packageQualityPass={READY_PASS}
-        onDownloadZip={() => {}}
         onEditCourseMap={() => {}}
         onOpenFeature={() => {}}
         onOpenQualityReport={() => {}}
@@ -68,7 +67,8 @@ describe('v0.15.7 finished package surface', () => {
     expect(html).toContain('Texture 89');
     expect(html).toContain('2 safe repairs');
     expect(html).toContain('10 exports checked');
-    expect(html).toContain('data-testid="finished-overview-download-zip"');
+    expect(html).not.toContain('data-testid="finished-overview-download-zip"');
+    expect(html).not.toContain('Download ZIP');
     expect(html).toContain('data-testid="finished-overview-edit-map"');
     expect(html).toContain('data-testid="finished-overview-material"');
     expect(html).not.toContain('Course Map Preview');
@@ -84,12 +84,18 @@ describe('v0.15.7 finished package surface', () => {
     expect(appFlow).toContain('coursemapper:request-zip-download');
     expect(appFlow).toContain('onOpenFeature={setActiveTab}');
 
+    const exportPanel = read('src/components/ExportSidePanel.jsx');
+    expect(exportPanel).toContain('const headerOwnsZipCta = false');
+    expect(exportPanel).toContain('data-testid="export-download-zip"');
+
     const overview = read('src/components/FinishedPackageOverview.jsx');
+    expect(overview).not.toContain('finished-overview-download-zip');
     expect(overview).toContain('onEditCourseMap?.(true)');
     expect(overview).toContain("row.id === 'courseMap' ? onEditCourseMap?.(true) : onOpenFeature?.(row.id)");
 
     const browserHarness = read('scripts/liveBrowserQualityLoop.mjs');
-    expect(browserHarness).toContain("page.getByTestId('finished-overview-download-zip')");
+    expect(browserHarness).toContain("page.getByTestId('export-download-zip')");
+    expect(browserHarness).not.toContain("page.getByTestId('finished-overview-download-zip')");
   });
 
   it('uses compact ready mode so the agent column becomes a receipt, not a second queue', () => {

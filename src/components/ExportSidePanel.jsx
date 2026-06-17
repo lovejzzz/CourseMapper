@@ -1216,8 +1216,10 @@ export default function ExportSidePanel({
     allReadyCount === 0 ||
     !courseMap ||
     (selectedLessons !== null && selectedLessons.length === 0);
-  const headerOwnsZipCta =
-    scope === 'all' && isPackageReady(packageQualityPass) && !activeHasReadinessIssues && !zipPendingReadiness;
+  // Export ownership stays in the side panel. The header/overview can still
+  // request a ZIP through the event bridge, but they should not hide this
+  // canonical package action.
+  const headerOwnsZipCta = false;
 
   // v0.14.7 WS-F1: the workspace header's Download ZIP routes HERE — one
   // export executor. The ref keeps the listener bound once while reading the

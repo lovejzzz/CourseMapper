@@ -208,4 +208,42 @@ describe('v0.15.6 anatomy and texture quality regressions', () => {
     );
     expect(result.overall.score).toBeLessThan(100);
   });
+
+  it('grades generic lab/STEM fallback language as a history discipline defect', async () => {
+    const result = await grade({
+      fileProvider: createMemoryFileProvider({
+        'PACKAGE_MANIFEST.json': JSON.stringify({
+          courseName: 'Western Civilization to 1500',
+          lessonScope: 'all',
+          assessments: [],
+          files: [],
+          readiness: { status: 'ready', blockers: 0 },
+        }),
+        'Course Map/Western Civilization to 1500 - Course Map.md': [
+          '# Course Map',
+          'Lesson 1: Mesopotamia and Egypt',
+          'Trace how Egypt changes what students can observe, label, calculate, or decide.',
+          'Apply the main concepts from Greek civilization to a course task or example.',
+          'Explain the key ideas in Roman Republic and apply them in course activities.',
+          'Course LMS, shared files, and any discipline-specific tools named by the instructor.',
+          'Instructor-approved readings, examples, or lab materials for Byzantine Empire.',
+          'Check that the Renaissance activity, resource, and assessment ask students to produce the same evidence of learning.',
+          'Check that the Reformation activity, resource, and assessment ask students to produce the same evidence of learning.',
+          'Check that the Crusades activity, resource, and assessment ask students to produce the same evidence of learning.',
+        ].join('\n'),
+      }),
+      course: { id: 'western-civ-to-1500', title: 'Western Civilization to 1500', featureIds: ['courseMap'] },
+    });
+
+    expect(result.findings).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          severity: 'P1',
+          dimension: 'discipline',
+          detail: expect.stringMatching(/generic history fallback appears/i),
+        }),
+      ]),
+    );
+    expect(result.overall.score).toBeLessThan(100);
+  });
 });

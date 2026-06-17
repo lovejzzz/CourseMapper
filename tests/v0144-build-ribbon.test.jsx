@@ -372,6 +372,11 @@ describe('B1 — buildRibbonModel selector', () => {
     expect(parseJudgmentDetail('no gaps across 1 linked concepts', { linked: 1, total: 15 })).toBe(
       'Limited knowledge check',
     );
+    expect(
+      parseJudgmentDetail(
+        'limited knowledge check (1 linked concept across 1 genome-linked lesson; too little coverage for a clean judgment)',
+      ),
+    ).toBe('Limited knowledge check');
     expect(parseJudgmentDetail('not evaluated (0 genome-linked lessons)')).toBeNull();
     expect(parseJudgmentDetail('')).toBeNull();
   });

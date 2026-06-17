@@ -2463,6 +2463,29 @@ const GENOME_DENSITY_PROBES = {
   astro: ASTRO_VOCAB,
 };
 
+const HISTORY_FALLBACK_LANGUAGE_RE =
+  /\b(?:observe, label, calculate, or decide|lab materials|discipline-specific tools|course task or example|course activities|evidence of learning)\b/gi;
+const HISTORY_COURSE_RE =
+  /\b(?:western civilization|world history|u\.?s\.? history|ancient|medieval|renaissance|reformation|civilization|mesopotamia|egypt|greece|rome|byzantine|islamic|crusade)\b/i;
+
+function checkHistoryFallbackLanguage(findings, { files }, course) {
+  const title = `${course?.id || ''} ${course?.title || ''}`.toLowerCase();
+  if (!HISTORY_COURSE_RE.test(title)) return;
+  const matches =
+    files
+      .flatMap((file) => [file.text, ...(file.cellTexts || file.cells || [])])
+      .join('\n')
+      .match(HISTORY_FALLBACK_LANGUAGE_RE) || [];
+  if (matches.length < 3) return;
+  findings.add({
+    severity: 'P1',
+    dimension: 'discipline',
+    file: 'Course Map',
+    detail: `generic history fallback appears ${matches.length} times`,
+    evidence: quote(matches[0]),
+  });
+}
+
 function quoteAroundMatch(text, regex, limit = 200) {
   const clean = String(text || '')
     .replace(/\s+/g, ' ')
@@ -2496,6 +2519,7 @@ function checkDiscipline(findings, { files }, course) {
   if (probesSuppressed(course)) return;
   const probe = inferDisciplineProbe(course);
   checkForeignDomainContamination(findings, { files }, probe);
+  checkHistoryFallbackLanguage(findings, { files }, course);
   if (!probe) return;
 
   // The six new genome disciplines: a term-density probe over the whole

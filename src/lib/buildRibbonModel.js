@@ -77,6 +77,7 @@ export function parseGenomeLinkerDetail(detail = '') {
 export function parseJudgmentDetail(detail = '', genome = null) {
   const text = String(detail);
   if (!text || /^not evaluated/.test(text)) return null;
+  if (/^limited knowledge check/i.test(text)) return 'Limited knowledge check';
   if (/^no gaps/.test(text)) {
     const linked = Number(genome?.linked) || 0;
     const total = Number(genome?.total) || 0;

@@ -11,19 +11,6 @@ function CheckIcon() {
   );
 }
 
-function DownloadIcon() {
-  return (
-    <svg className="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-      <path
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        strokeWidth={2}
-        d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"
-      />
-    </svg>
-  );
-}
-
 function EditIcon() {
   return (
     <svg className="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
@@ -54,16 +41,11 @@ function getFeatureCount(featureId, deliverables) {
   return 0;
 }
 
-function requestPackageZipDownload() {
-  window.dispatchEvent(new CustomEvent('coursemapper:request-zip-download'));
-}
-
 export default function FinishedPackageOverview({
   courseMap,
   selectedFeatures = [],
   deliverables = {},
   packageQualityPass,
-  onDownloadZip,
   onEditCourseMap,
   onOpenFeature,
   onOpenQualityReport,
@@ -129,15 +111,6 @@ export default function FinishedPackageOverview({
           </div>
         </div>
         <div className="flex flex-wrap gap-2">
-          <button
-            type="button"
-            data-testid="finished-overview-download-zip"
-            onClick={onDownloadZip || requestPackageZipDownload}
-            className="tactile inline-flex items-center gap-2 rounded-lg bg-slate-950 px-4 py-2 text-xs font-bold text-white shadow-sm hover:bg-slate-800"
-          >
-            <DownloadIcon />
-            Download ZIP
-          </button>
           <button
             type="button"
             data-testid="finished-overview-edit-map"

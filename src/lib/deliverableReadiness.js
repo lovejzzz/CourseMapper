@@ -336,6 +336,76 @@ function getCourseMapTopic(courseMap, lesson, section, lessonIndex) {
   return raw || `Lesson ${lessonIndex + 1}`;
 }
 
+const HISTORY_COURSE_MAP_RE =
+  /\b(?:western civilization|civilization|world history|history|historical|ancient|medieval|middle ages|renaissance|reformation|mesopotamia|egypt|egyptian|greece|greek|rome|roman|byzantine|islamic|crusade|feudal|charlemagne|carolingian|empire|kingdom|primary[- ]source|source analysis)\b/i;
+
+const GENERIC_COURSE_MAP_FALLBACK_RE =
+  /\b(?:observe, label, calculate, or decide|course task or example|course activities|evidence of learning|lab materials|discipline-specific tools)\b/i;
+
+function inferCourseMapFallbackProfile(courseMap, lesson, section) {
+  const sections = Array.isArray(lesson?.sections) && lesson.sections.length > 0 ? lesson.sections : [section || {}];
+  const context = [
+    courseMap?.courseName,
+    lesson?.title,
+    section?.topicSection,
+    section?.learningGoals,
+    section?.learningObjectives,
+    section?.weeklyAssessments,
+    ...sections.flatMap((item) => [item?.topicSection, item?.learningGoals, item?.learningObjectives]),
+  ]
+    .map(text)
+    .join(' ');
+  return HISTORY_COURSE_MAP_RE.test(context) ? 'history' : 'general';
+}
+
+function getHistoryCourseMapFallbacks(topic, pick) {
+  return {
+    learningGoals: pick([
+      `Use ${topic} to explain change over time, continuity, and historical causation with course evidence.`,
+      `Compare ${topic} across political, social, cultural, or religious contexts using source evidence.`,
+      `Build an evidence-backed interpretation of ${topic} for a Western civilization survey question.`,
+    ]),
+    topicSection: topic,
+    learningObjectives: pick([
+      `Interpret ${topic} using chronology, context, and at least one relevant primary or secondary source.`,
+      `Connect ${topic} to broader patterns in Western civilization before 1500.`,
+      `Explain competing historical interpretations of ${topic} and identify evidence that supports them.`,
+      `Analyze a source or map for ${topic} and state what it shows about the period.`,
+    ]),
+    weeklyAssessments: pick([
+      `Source-analysis check: use evidence from ${topic} to support one historical claim.`,
+      `Timeline or map exit ticket connecting ${topic} to a broader course pattern.`,
+      `Short historical argument naming the evidence needed to interpret ${topic}.`,
+    ]),
+    asyncActivities: pick([
+      `Annotate the assigned reading or source excerpt for claims, context, and evidence about ${topic}.`,
+      `Prepare a brief chronology, map note, or source note for ${topic}.`,
+      `Review the assigned background reading and write one evidence question about ${topic}.`,
+    ]),
+    syncActivities: pick([
+      `Compare source evidence and historical interpretations of ${topic} in discussion.`,
+      `Work through a map, timeline, or source excerpt to situate ${topic}.`,
+      `Debate how evidence for ${topic} changes a historical explanation.`,
+    ]),
+    technologyNeeded: pick([
+      'Course LMS, slide deck, digital reader, and map or timeline tool used for the lesson.',
+      'LMS access plus assigned source excerpts, historical maps, and note-taking tools.',
+      'Course platform, instructor-provided readings, and shared discussion workspace.',
+    ]),
+    presentationFormat: pick([
+      'Historical question, source/context mini-lecture, evidence discussion, and synthesis.',
+      'Map or chronology setup, guided source analysis, and short interpretive check.',
+      'Opening historical problem, document work, comparison, and closing claim.',
+    ]),
+    supportingResources: pick([
+      `Primary-source excerpt, historical map or timeline, and instructor-approved reading for ${topic}.`,
+      `Course reader selection, visual source, map, or chronology handout aligned to ${topic}.`,
+      `Source-analysis guide and background reading for ${topic}.`,
+    ]),
+    evaluateDesign: `Check that the ${topic} activity, source, and assessment ask students to support a historical claim with evidence.`,
+  };
+}
+
 function getCourseMapFallbackValue(key, courseMap, lesson, section, lessonIndex) {
   const topic = getCourseMapTopic(courseMap, lesson, section, lessonIndex);
   // Rotate filler stems by section position so repaired sparse maps do not
@@ -345,52 +415,75 @@ function getCourseMapFallbackValue(key, courseMap, lesson, section, lessonIndex)
   const sectionIndex = Math.max(0, sections.indexOf(section));
   const variantIndex = (Number(lessonIndex) || 0) + sectionIndex;
   const pick = (variants) => variants[variantIndex % variants.length];
-  const fieldFallbacks = {
-    learningGoals: pick([
-      `Use ${topic} to explain a course problem and prepare evidence for the next assessment.`,
-      `Trace how ${topic} changes what students can observe, label, calculate, or decide.`,
-      `Develop an evidence-backed account of ${topic} for course applications.`,
-    ]),
-    topicSection: topic,
-    learningObjectives: pick([
-      `Explain the key ideas in ${topic} and apply them in course activities.`,
-      `Apply the main concepts from ${topic} to a course task or example.`,
-      `Connect ${topic} to the week's work and explain one supporting evidence source.`,
-      `Analyze an example using ${topic} and name one limitation or open question.`,
-    ]),
-    weeklyAssessments: pick([
-      `Quick evidence check: apply ${topic} to a new example.`,
-      `Exit ticket using ${topic} to justify one course-relevant decision.`,
-      `Practice response that names the evidence needed for ${topic}.`,
-    ]),
-    asyncActivities: pick([
-      `Review assigned materials and prepare notes on ${topic}.`,
-      `Read the assigned materials and write a short note on ${topic}.`,
-      `Study the assigned materials and mark questions about ${topic}.`,
-    ]),
-    syncActivities: pick([
-      `Discuss examples and practice applying ${topic}.`,
-      `Work through examples of ${topic} together and practice applying them.`,
-      `Compare examples of ${topic} in class and rehearse the key moves.`,
-    ]),
-    technologyNeeded: pick([
-      'Course LMS, shared files, and any discipline-specific tools named by the instructor.',
-      'LMS access plus the document, slide, lab, or analysis tool required for this lesson.',
-      'Course platform, instructor-provided files, and the classroom tool used for the lesson activity.',
-    ]),
-    presentationFormat: pick([
-      'Instructor framing, guided student work, and a short synthesis.',
-      'Brief setup, worked example or demonstration, then student application.',
-      'Opening question, structured practice, and closing evidence check.',
-    ]),
-    supportingResources: pick([
-      `Instructor-approved readings, examples, or lab materials for ${topic}.`,
-      `Course materials students need to prepare and show evidence about ${topic}.`,
-      `Worked examples, readings, or activity sheets aligned to ${topic}.`,
-    ]),
-    evaluateDesign: `Check that the ${topic} activity, resource, and assessment ask students to produce the same evidence of learning.`,
-  };
+  const fieldFallbacks =
+    inferCourseMapFallbackProfile(courseMap, lesson, section) === 'history'
+      ? getHistoryCourseMapFallbacks(topic, pick)
+      : {
+          learningGoals: pick([
+            `Use ${topic} to explain a course problem and prepare evidence for the next assessment.`,
+            `Trace how ${topic} changes what students can observe, label, calculate, or decide.`,
+            `Develop an evidence-backed account of ${topic} for course applications.`,
+          ]),
+          topicSection: topic,
+          learningObjectives: pick([
+            `Explain the key ideas in ${topic} and apply them in course activities.`,
+            `Apply the main concepts from ${topic} to a course task or example.`,
+            `Connect ${topic} to the week's work and explain one supporting evidence source.`,
+            `Analyze an example using ${topic} and name one limitation or open question.`,
+          ]),
+          weeklyAssessments: pick([
+            `Quick evidence check: apply ${topic} to a new example.`,
+            `Exit ticket using ${topic} to justify one course-relevant decision.`,
+            `Practice response that names the evidence needed for ${topic}.`,
+          ]),
+          asyncActivities: pick([
+            `Review assigned materials and prepare notes on ${topic}.`,
+            `Read the assigned materials and write a short note on ${topic}.`,
+            `Study the assigned materials and mark questions about ${topic}.`,
+          ]),
+          syncActivities: pick([
+            `Discuss examples and practice applying ${topic}.`,
+            `Work through examples of ${topic} together and practice applying them.`,
+            `Compare examples of ${topic} in class and rehearse the key moves.`,
+          ]),
+          technologyNeeded: pick([
+            'Course LMS, shared files, and any discipline-specific tools named by the instructor.',
+            'LMS access plus the document, slide, lab, or analysis tool required for this lesson.',
+            'Course platform, instructor-provided files, and the classroom tool used for the lesson activity.',
+          ]),
+          presentationFormat: pick([
+            'Instructor framing, guided student work, and a short synthesis.',
+            'Brief setup, worked example or demonstration, then student application.',
+            'Opening question, structured practice, and closing evidence check.',
+          ]),
+          supportingResources: pick([
+            `Instructor-approved readings, examples, or lab materials for ${topic}.`,
+            `Course materials students need to prepare and show evidence about ${topic}.`,
+            `Worked examples, readings, or activity sheets aligned to ${topic}.`,
+          ]),
+          evaluateDesign: `Check that the ${topic} activity, resource, and assessment ask students to produce the same evidence of learning.`,
+        };
   return fieldFallbacks[key] || `Instructor-confirmed material for ${topic}.`;
+}
+
+function isShortCourseMapListCell(value) {
+  const parts = text(value)
+    .split(/\n|;/)
+    .map((part) => part.trim())
+    .filter(Boolean);
+  if (parts.length < 2 || parts.length > 6) return false;
+  return parts.every((part) => {
+    const words = part.split(/\s+/).filter(Boolean);
+    return words.length <= 6 && !/[.?!:]$/.test(part);
+  });
+}
+
+function needsCourseMapSemanticRepair(key, value, courseMap, lesson, section) {
+  if (inferCourseMapFallbackProfile(courseMap, lesson, section) !== 'history') return false;
+  const raw = text(value);
+  if (!raw) return false;
+  if (GENERIC_COURSE_MAP_FALLBACK_RE.test(raw)) return true;
+  return key === 'weeklyAssessments' && isShortCourseMapListCell(raw);
 }
 
 function stripCourseMapListPrefix(value) {
@@ -559,6 +652,22 @@ export function repairCourseMapReadiness({ courseMap, columns = [], lessonFilter
         // content "repairs" per run — consumers can filter on the suffix.
         repairedFields.push(
           `Lesson ${lessonIndex + 1}, Section ${sectionIndex + 1} ${columnLabel(columns, key)} (formatting)`,
+        );
+        sectionsChanged = true;
+        changed = true;
+      }
+      // Sparse history maps can be "complete" but still carry generic
+      // cross-discipline fallback text from an older repair pass. Treat that
+      // as a semantic repair so history exports stop mentioning lab materials
+      // or STEM-style observation verbs.
+      for (const key of columnsToNormalize) {
+        if (!needsCourseMapSemanticRepair(key, nextSection?.[key], courseMap, nextLesson, nextSection)) continue;
+        nextSection = {
+          ...nextSection,
+          [key]: getCourseMapFallbackValue(key, courseMap, nextLesson, nextSection, lessonIndex),
+        };
+        repairedFields.push(
+          `Lesson ${lessonIndex + 1}, Section ${sectionIndex + 1} ${columnLabel(columns, key)} (semantic)`,
         );
         sectionsChanged = true;
         changed = true;

@@ -267,6 +267,17 @@ describe('judgment stage event in all three states (P2.4)', () => {
     expect(event.detail).toBe('no gaps across 9 linked concepts');
   });
 
+  it('does not call a one-concept knowledge check clean', () => {
+    const event = buildJudgmentStageEvent({
+      judgment: { missing: 0, outOfOrder: 0, bridgeable: 0, assumedBackground: 0, primersBuilt: 0 },
+      linkedConceptCount: 1,
+      genomeLinkedLessons: 1,
+    });
+    expect(event.detail).toBe(
+      'limited knowledge check (1 linked concept across 1 genome-linked lesson; too little coverage for a clean judgment)',
+    );
+  });
+
   it('reports not-evaluated when the linker found nothing', () => {
     const event = buildJudgmentStageEvent({ judgment: null, linkedConceptCount: 0, genomeLinkedLessons: 0 });
     expect(event.detail).toBe('not evaluated (0 genome-linked lessons)');

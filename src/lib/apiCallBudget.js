@@ -402,6 +402,12 @@ export function buildJudgmentStageEvent({ judgment = null, linkedConceptCount = 
     };
   }
   if (genomeLinkedLessons > 0 && linkedConceptCount > 0) {
+    if (genomeLinkedLessons < 2 || linkedConceptCount < 2) {
+      return {
+        ...base,
+        detail: `limited knowledge check (${linkedConceptCount} linked concept${linkedConceptCount === 1 ? '' : 's'} across ${genomeLinkedLessons} genome-linked lesson${genomeLinkedLessons === 1 ? '' : 's'}; too little coverage for a clean judgment)`,
+      };
+    }
     return {
       ...base,
       detail: `no gaps across ${linkedConceptCount} linked concept${linkedConceptCount === 1 ? '' : 's'}`,

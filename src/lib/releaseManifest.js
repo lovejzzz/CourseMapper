@@ -7,14 +7,14 @@ export const CURRENT_RELEASE = {
   landingTitle: 'Finished Package Surface: a calmer ready workspace',
   highlights: [
     'Ready Course Map now opens to a finished-package overview instead of the dense editable table, with Edit course map one click away.',
-    'The overview centralizes lesson count, material readiness, quality/texture, safe repairs, export checks, material shortcuts, and Download ZIP into one handoff surface.',
+    'The overview summarizes lesson count, material readiness, quality/texture, safe repairs, export checks, and material shortcuts while the side panel remains the single package export surface.',
     'The agent panel enters compact ready mode: project-brief strip, working-set panel, opener buttons, and old queue cards are hidden while the package receipt and chat input remain available.',
     'Finished-package material cards jump directly to generated artifact tabs, while the Course Map card opens the editable map only when requested.',
     'The v0.15.7 release contract and tests pin the overwhelmed-ready-state fix separately from v0.15.6 backend/grader truth work.',
     'Browser smoke remains part of the proof path so the download handoff is exercised in a real workspace before the release is trusted.',
   ],
   landingHighlights: [
-    'A ready workspace now starts with the finished package and its download action.',
+    'A ready workspace now starts with the finished package summary while export stays in the side panel.',
     'The dense course map and artifact tabs stay available, but they no longer dominate the handoff.',
     'The assistant column quiets down to a receipt when there is nothing blocking export.',
   ],

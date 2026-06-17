@@ -50,12 +50,13 @@
       "proofScopes": ["unit", "compiled-output"]
     },
     {
-      "id": "v0157-handoff-facts-and-download",
+      "id": "v0157-handoff-facts-and-side-panel-download",
       "status": "verified-current",
       "changelogHighlightIndex": 1,
-      "summary": "The finished overview groups readiness facts, quality/texture, repairs, export checks, material shortcuts, and Download ZIP in one handoff surface.",
+      "summary": "The finished overview groups readiness facts, quality/texture, repairs, export checks, and material shortcuts while the side panel remains the single package export surface.",
       "anchors": [
         "src/components/FinishedPackageOverview.jsx",
+        "src/components/ExportSidePanel.jsx",
         "src/AppFlow.jsx",
         "tests/v0157-finished-package-surface.test.jsx"
       ],

@@ -560,6 +560,52 @@ describe('repairCourseMapReadiness', () => {
     expect(second.supportingResources).toMatch(/dimension/i);
     expect(second.learningObjectives).not.toMatch(/bases/i);
   });
+
+  it('uses history-specific repairs instead of generic lab/STEM fallback prose', () => {
+    const result = repairCourseMapReadiness({
+      courseMap: {
+        courseName: 'Western Civilization to 1500',
+        lessons: [
+          {
+            title: 'Lesson 15: Renaissance and Reformation',
+            sections: [
+              {
+                topicSection: '15.1: Renaissance city-states',
+                learningGoals: 'TBD',
+                learningObjectives: '',
+                weeklyAssessments: '',
+                technologyNeeded: '',
+                supportingResources: '',
+              },
+              {
+                topicSection: '15.2: Reformation debates',
+                learningGoals:
+                  'Trace how Reformation debates changes what students can observe, label, calculate, or decide.',
+                learningObjectives: 'Apply the main concepts from Reformation debates to a course task or example.',
+                weeklyAssessments: 'primary-source analyses\nmap exercises\nexams\nresearch essay',
+                technologyNeeded:
+                  'Course LMS, shared files, and any discipline-specific tools named by the instructor.',
+                supportingResources:
+                  'Instructor-approved readings, examples, or lab materials for Reformation debates.',
+                evaluateDesign:
+                  'Check that the Reformation debates activity, resource, and assessment ask students to produce the same evidence of learning.',
+              },
+            ],
+          },
+        ],
+      },
+    });
+
+    expect(result.changed).toBe(true);
+    expect(result.repairedFields.join(' ')).toMatch(/\(semantic\)/);
+
+    const repaired = JSON.stringify(result.courseMap);
+    expect(repaired).not.toMatch(/observe, label, calculate, or decide/i);
+    expect(repaired).not.toMatch(/lab materials/i);
+    expect(repaired).not.toMatch(/discipline-specific tools/i);
+    expect(repaired).not.toMatch(/course task or example/i);
+    expect(repaired).toMatch(/historical|primary-source|source|map|timeline/i);
+  });
 });
 
 describe('repairWorkspaceReadiness', () => {
