@@ -115,7 +115,7 @@ describe('1.10 (finalizer part) — projectName internal vocabulary is replaced 
     finalizeCompiledDeliverableLanguage('syllabus', data, blueprint);
 
     expect(JSON.stringify(data)).not.toContain('Lab Evidence Thread');
-    expect(data.syllabus.overview).toContain('lesson evidence thread');
+    expect(data.syllabus.overview).toContain('lesson materials');
   });
 });
 

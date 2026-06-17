@@ -114,6 +114,28 @@ function extractJsonObject(text) {
 
 const SKELETON_ASSESSMENT_KINDS = new Set(['graded-artifact', 'in-class', 'exam', 'oral']);
 
+function distributeWeightPercent(count) {
+  const safeCount = Math.max(1, count);
+  const base = Math.floor(100 / safeCount);
+  let remainder = 100 - base * safeCount;
+  return Array.from({ length: safeCount }, () => {
+    const value = base + (remainder > 0 ? 1 : 0);
+    remainder -= remainder > 0 ? 1 : 0;
+    return value;
+  });
+}
+
+function synthesizeSessionAssessments(sessions) {
+  const weights = distributeWeightPercent(sessions.length);
+  return sessions.map((session, index) => ({
+    id: `a${index + 1}`,
+    title: `Lesson ${session.order} application check: ${session.title}`,
+    kind: 'graded-artifact',
+    dueSession: session.order,
+    weightPct: weights[index],
+  }));
+}
+
 // ── v0.14.7 WS-B1: the brief-side resource signal ───────────────────────────
 // The prose path's supportingResources handling speaks a concrete-materials
 // vocabulary: the column contract names "readings, articles, videos, textbook
@@ -200,7 +222,7 @@ export function parseNativeSkeletonResponse(text, { expectedLessons = null, sour
     return Math.max(1, Math.min(sessions.length, Math.round(due)));
   };
 
-  const assessments = asArray(parsed.assessments)
+  const parsedAssessments = asArray(parsed.assessments)
     .map((entry, index) => {
       const title = cleanText(entry?.title, 200);
       if (!title) return null;
@@ -214,6 +236,7 @@ export function parseNativeSkeletonResponse(text, { expectedLessons = null, sour
       };
     })
     .filter(Boolean);
+  const assessments = parsedAssessments.length > 0 ? parsedAssessments : synthesizeSessionAssessments(sessions);
 
   const readings = asArray(parsed.readings)
     .map((entry, index) => {

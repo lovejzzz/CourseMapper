@@ -240,6 +240,35 @@ describe('Pass A skeleton contract (B1)', () => {
     expect(skeleton.sessions.map((session) => session.id)).toEqual(['s1', 's2', 's3']);
   });
 
+  it('synthesizes one weighted application check per session when Pass A omits assessments', () => {
+    const skeleton = parseNativeSkeletonResponse(
+      JSON.stringify({
+        course: { name: 'Introductory Physics II', term: 'FA26' },
+        sessions: [
+          { order: 1, title: 'Electric charge' },
+          { order: 2, title: 'Electric fields' },
+          { order: 3, title: "Gauss's law" },
+        ],
+      }),
+    );
+
+    expect(skeleton.assessments).toHaveLength(3);
+    expect(skeleton.assessments.map((assessment) => assessment.dueSession)).toEqual([1, 2, 3]);
+    expect(skeleton.assessments.map((assessment) => assessment.kind)).toEqual([
+      'graded-artifact',
+      'graded-artifact',
+      'graded-artifact',
+    ]);
+    expect(skeleton.assessments.reduce((sum, assessment) => sum + assessment.weightPct, 0)).toBe(100);
+
+    const wireMap = buildNativeWireMap(skeleton);
+    expect(wireMap.lessons.map((lesson) => lesson.sections[0].weeklyAssessments?.[0])).toEqual([
+      'Lesson 1 application check: Electric charge (34%)',
+      'Lesson 2 application check: Electric fields (33%)',
+      "Lesson 3 application check: Gauss's law (33%)",
+    ]);
+  });
+
   it('tolerates code fences and surrounding prose', () => {
     const fenced = '```json\n' + SKELETON_RESPONSE + '\n```\nDone.';
     expect(parseNativeSkeletonResponse(fenced).sessions).toHaveLength(3);

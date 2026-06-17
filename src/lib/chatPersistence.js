@@ -8,6 +8,63 @@ import { sanitizeMessagesForPersistence } from './messageSanitizer';
 
 const STORAGE_KEY = 'coursemapper-conversations';
 const MAX_CONVERSATIONS = 50;
+const QUOTA_RETRY_CONVERSATIONS = 20;
+const COMPACT_MESSAGE_LIMIT = 80;
+const HARD_COMPACT_MESSAGE_LIMIT = 30;
+const COMPACT_TEXT_CHARS = 4000;
+const HARD_COMPACT_TEXT_CHARS = 1200;
+
+function isQuotaError(error) {
+  return (
+    error?.name === 'QuotaExceededError' ||
+    error?.name === 'NS_ERROR_DOM_QUOTA_REACHED' ||
+    error?.code === 22 ||
+    error?.code === 1014 ||
+    /quota/i.test(String(error?.message || ''))
+  );
+}
+
+function compactValue(value, maxChars) {
+  if (typeof value === 'string') {
+    return value.length > maxChars ? `${value.slice(0, maxChars)}... [truncated]` : value;
+  }
+  if (Array.isArray(value)) return value.map((entry) => compactValue(entry, maxChars));
+  if (value && typeof value === 'object') {
+    return Object.fromEntries(Object.entries(value).map(([key, entry]) => [key, compactValue(entry, maxChars)]));
+  }
+  return value;
+}
+
+function compactMessagesForStorage(messages, { limit = COMPACT_MESSAGE_LIMIT, maxChars = COMPACT_TEXT_CHARS } = {}) {
+  const list = Array.isArray(messages) ? messages : [];
+  const trimmed = list.slice(-limit);
+  const firstUser = list.find((message) => message?.role === 'user');
+  if (firstUser && !trimmed.includes(firstUser)) trimmed.unshift(firstUser);
+  while (trimmed.length > limit) trimmed.splice(1, 1);
+  return trimmed.map((message) => compactValue(message, maxChars));
+}
+
+function pruneConversationStorage(conversations, keepCount, activeId) {
+  const sorted = [...conversations].sort((a, b) => new Date(b.updatedAt) - new Date(a.updatedAt));
+  const kept = [];
+  const removed = [];
+
+  for (const conversation of sorted) {
+    if (conversation.id === activeId || kept.length < keepCount) kept.push(conversation);
+    else removed.push(conversation);
+  }
+
+  for (const conversation of removed) {
+    localStorage.removeItem(`${STORAGE_KEY}:${conversation.id}`);
+  }
+
+  return kept;
+}
+
+function writeConversationStorage(conversations, id, messages) {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(conversations));
+  localStorage.setItem(`${STORAGE_KEY}:${id}`, JSON.stringify(messages));
+}
 
 /**
  * Get all saved conversations, sorted by most recent.
@@ -62,9 +119,28 @@ export function saveConversation(id, messages, title) {
       localStorage.removeItem(`${STORAGE_KEY}:${removed.id}`);
     }
 
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(conversations));
-    // Store messages separately to keep index lightweight
-    localStorage.setItem(`${STORAGE_KEY}:${id}`, JSON.stringify(safeMessages));
+    // Store messages separately to keep index lightweight.
+    try {
+      writeConversationStorage(conversations, id, safeMessages);
+    } catch (error) {
+      if (!isQuotaError(error)) throw error;
+
+      const prunedConversations = pruneConversationStorage(conversations, QUOTA_RETRY_CONVERSATIONS, id);
+      try {
+        writeConversationStorage(prunedConversations, id, compactMessagesForStorage(safeMessages));
+      } catch (retryError) {
+        if (!isQuotaError(retryError)) throw retryError;
+        const hardPrunedConversations = pruneConversationStorage(prunedConversations, 1, id);
+        writeConversationStorage(
+          hardPrunedConversations,
+          id,
+          compactMessagesForStorage(safeMessages, {
+            limit: HARD_COMPACT_MESSAGE_LIMIT,
+            maxChars: HARD_COMPACT_TEXT_CHARS,
+          }),
+        );
+      }
+    }
 
     return entry;
   } catch (err) {

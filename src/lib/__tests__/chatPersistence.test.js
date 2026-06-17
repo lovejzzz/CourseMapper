@@ -146,6 +146,46 @@ describe('saveConversation + loadConversation', () => {
     expect(convs.find((c) => c.id === 'test-3').messageCount).toBe(2);
   });
 
+  it('recovers from localStorage quota by pruning old conversations and compacting messages', () => {
+    for (let index = 0; index < 25; index += 1) {
+      saveConversation(`old-${index}`, [{ role: 'user', text: `Old conversation ${index}` }], `Old ${index}`);
+    }
+
+    const defaultSetItem = localStorage.setItem.getMockImplementation();
+    const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    let threwQuota = false;
+    localStorage.setItem.mockImplementation((key, value) => {
+      if (!threwQuota && key === 'coursemapper-conversations:active') {
+        threwQuota = true;
+        const error = new Error('quota exceeded');
+        error.name = 'QuotaExceededError';
+        throw error;
+      }
+      return defaultSetItem(key, value);
+    });
+
+    try {
+      const messages = Array.from({ length: 120 }, (_, index) => ({
+        role: index % 2 === 0 ? 'user' : 'assistant',
+        text: `Message ${index} ${'x'.repeat(5000)}`,
+      }));
+
+      const entry = saveConversation('active', messages, 'Active');
+      const stored = JSON.parse(localStorage.getItem('coursemapper-conversations:active'));
+
+      expect(entry.id).toBe('active');
+      expect(threwQuota).toBe(true);
+      expect(warnSpy).not.toHaveBeenCalled();
+      expect(listConversations()).toHaveLength(20);
+      expect(localStorage.getItem('coursemapper-conversations:old-0')).toBeNull();
+      expect(stored.length).toBeLessThanOrEqual(80);
+      expect(JSON.stringify(stored)).toContain('[truncated]');
+    } finally {
+      localStorage.setItem.mockImplementation(defaultSetItem);
+      warnSpy.mockRestore();
+    }
+  });
+
   it('returns null for non-existent conversation', () => {
     expect(loadConversation('nonexistent')).toBeNull();
   });

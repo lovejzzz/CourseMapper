@@ -778,6 +778,18 @@ function hasProofSeminarEvidence(text = '') {
   return hasProofDomain && hasProofPractice;
 }
 
+function hasPhysicsProblemEvidence(text = '') {
+  const hasPhysicsDomain =
+    /\b(physics|electromagnetism|electricity|electrostatics?|magnetism|electric circuits?|dc circuits?|gauss(?:'s)? law|faraday(?:'s)? law|maxwell(?:'s)? equations?|capacitance|inductance|ohm(?:'s)? law|electric field|magnetic field|electric potential)\b/.test(
+      text,
+    );
+  const hasProblemPractice =
+    /\b(charge|field|force|flux|potential|voltage|current|circuit|resistor|capacitor|magnetic|induction|right[-\s]?hand rule|kirchhoff|equation|calculation|worked example|vector|problem set)\b/.test(
+      text,
+    );
+  return hasPhysicsDomain && hasProblemPractice;
+}
+
 function inferDisciplineLens(courseName, concepts = []) {
   const text = `${courseName} ${concepts.join(' ')}`.toLowerCase();
   if (hasProofSeminarEvidence(text)) {
@@ -796,6 +808,15 @@ function inferDisciplineLens(courseName, concepts = []) {
       decisionNoun: 'design-verification decision',
       learnerRole: 'engineering designer',
       exampleNoun: 'prototype test scenario',
+    };
+  }
+  if (hasPhysicsProblemEvidence(text)) {
+    return {
+      domain: 'introductory physics problem solving',
+      evidenceNoun: 'worked-example evidence',
+      decisionNoun: 'solution-strategy decision',
+      learnerRole: 'physics problem solver',
+      exampleNoun: 'field, circuit, or induction scenario',
     };
   }
   if (hasStatisticsInferenceEvidence(text)) {
@@ -1525,15 +1546,29 @@ function buildCompilerDecisionMatrix(lessons = []) {
 
 function lessonPhrase(blueprint, lesson) {
   const lens = blueprintLens(blueprint);
-  return (
-    blueprint?.enrichment?.lessonPhrases?.[lesson.id] || {
-      context: compactList(lesson.keyConcepts, stripLessonPrefix(lesson.title), 3),
-      evidenceMove: `use ${lens.evidenceNoun || 'source evidence'} about ${
-        lesson.keyConcepts[0] || stripLessonPrefix(lesson.title)
-      }`,
-      decisionMove: `explain the ${lens.decisionNoun || 'decision'} for ${stripLessonPrefix(lesson.title)}`,
-    }
-  );
+  const fallback = {
+    context: compactList(lesson.keyConcepts, stripLessonPrefix(lesson.title), 3),
+    evidenceMove: `use ${lens.evidenceNoun || 'source evidence'} about ${
+      lesson.keyConcepts[0] || stripLessonPrefix(lesson.title)
+    }`,
+    decisionMove: `explain the ${lens.decisionNoun || 'decision'} for ${stripLessonPrefix(lesson.title)}`,
+  };
+  const provided = blueprint?.enrichment?.lessonPhrases?.[lesson.id];
+  const phrase = provided && typeof provided === 'object' ? provided : fallback;
+  const scrub = (value, fallbackValue) =>
+    cleanText(value, fallbackValue)
+      .replace(/\bfield patterns?\b/gi, lens.evidenceNoun || 'source evidence')
+      .replace(/\blesson evidence thread\b/gi, 'lesson materials')
+      .replace(/\bWeek N covering\b/gi, 'weekly practice on')
+      .replace(/\bWeek\s+(\d+)\s+covering\b/gi, 'Week $1 practice on')
+      .replace(/\bGenre-specific quality focus:?\s*/gi, '')
+      .trim();
+  return {
+    ...phrase,
+    context: scrub(phrase.context, fallback.context),
+    evidenceMove: scrub(phrase.evidenceMove, fallback.evidenceMove),
+    decisionMove: scrub(phrase.decisionMove, fallback.decisionMove),
+  };
 }
 
 function blueprintLens(blueprint) {
@@ -12536,7 +12571,7 @@ function buildAssessmentAnchorExamples(lesson, criteria, criterionEvidenceMap, v
     scoringRationale: `Score the strong anchor higher because the evidence is inspectable, tied to ${primaryCriterion}, and aligned with ${validityEvidence?.targetConstruct || `${artifact} performance evidence`}.`,
     revisionPrompt: `Revise the partial ${artifact} anchor by making the ${primaryCriterion} evidence from ${sourceCue} inspectable, naming one limitation, and stating what changed before submission.`,
     scorerCalibrationUse: `Before grading, scorers compare the strong and partial ${artifact} anchors, point to the exact evidence difference, and reconcile disagreements before scoring student work.`,
-    studentFacingUse: `Compare the strong and partial ${artifact} anchor examples before you submit, and self-check your ${concept} evidence, reasoning, limitation, and revision quality against them.`,
+    studentFacingUse: `Review the strong and partial ${artifact} samples before you submit, then self-check your ${concept} evidence, reasoning, limitation, and revision quality.`,
     instructorAnchorShare: `Share the strong/partial ${artifact} anchor contrast before students submit so they can self-check evidence, reasoning, limitation, and revision quality.`,
   };
 }
@@ -14255,12 +14290,12 @@ function compileAssignments(blueprint) {
           revisionNeeded: `${assessmentTitle} needs stronger evidence for ${assessment.relatedLessons[0]}, clearer reasoning, or a closer connection to the listed criteria.`,
         },
         overview: lesson.enrichment?.assignmentCore?.taskDescription
-          ? `${lesson.enrichment.assignmentCore.taskDescription} ${assessmentArtifact} is worth ${assessment.weight}. Genre-specific quality focus: ${submissionProfile.qualityFocus}.`
+          ? `${lesson.enrichment.assignmentCore.taskDescription} ${assessmentArtifact} is worth ${assessment.weight}. Quality target: ${submissionProfile.qualityFocus}.`
           : lessonVariant(lesson, [
-              `${assessmentArtifact} is a ${assessment.roleLabel || 'course assessment'} worth ${assessment.weight}; it asks students to turn ${assessment.relatedLessons[0]} concepts into a concrete ${submissionProfile.assignmentType.toLowerCase()}. The task is designed to show how students use evidence for ${assessmentTitle}, make decisions, and prepare for later work. Genre-specific quality focus: ${submissionProfile.qualityFocus}.`,
-              `${assessmentArtifact} carries ${assessment.weight} and asks students to make the ${assessment.relatedLessons[0]} evidence visible in ${assignmentTypeWithArticle(submissionProfile.assignmentType)}. The important work is the reasoning path: which evidence matters, what decision follows, and how feedback changes the next draft. Genre-specific quality focus: ${submissionProfile.qualityFocus}.`,
-              `In ${assessmentArtifact}, students use ${assessment.relatedLessons[0]} to produce ${assignmentTypeWithArticle(submissionProfile.assignmentType)} worth ${assessment.weight}. A strong submission shows the evidence trail, names the decision it supports, and leaves a revision trace for later work. Genre-specific quality focus: ${submissionProfile.qualityFocus}.`,
-              `${assessmentArtifact} is the Week ${assessment.lessonNumbers[0]} evidence product (${assessment.weight}). Students should use the assignment format to connect source details, a defensible decision, and one feedback-informed improvement. Genre-specific quality focus: ${submissionProfile.qualityFocus}.`,
+              `${assessmentArtifact} is a ${assessment.roleLabel || 'course assessment'} worth ${assessment.weight}; it asks students to turn ${assessment.relatedLessons[0]} concepts into a concrete ${submissionProfile.assignmentType.toLowerCase()}. The task is designed to show how students use evidence for ${assessmentTitle}, make decisions, and prepare for later work. Target the following qualities: ${submissionProfile.qualityFocus}.`,
+              `${assessmentArtifact} carries ${assessment.weight} and asks students to make the ${assessment.relatedLessons[0]} evidence visible in ${assignmentTypeWithArticle(submissionProfile.assignmentType)}. The important work is the reasoning path: which evidence matters, what decision follows, and how feedback changes the next draft. Use ${submissionProfile.qualityFocus} as the review lens.`,
+              `In ${assessmentArtifact}, students use ${assessment.relatedLessons[0]} to produce ${assignmentTypeWithArticle(submissionProfile.assignmentType)} worth ${assessment.weight}. A strong submission shows the evidence trail, names the decision it supports, and leaves a revision trace for later work. Prioritize ${submissionProfile.qualityFocus}.`,
+              `${assessmentArtifact} is the Week ${assessment.lessonNumbers[0]} evidence product (${assessment.weight}). Students should use the assignment format to connect source details, a defensible decision, and one feedback-informed improvement. Review for ${submissionProfile.qualityFocus}.`,
             ]),
         ...(lesson.enrichment?.assignmentCore ? { enrichmentSource: 'lesson-content-enrichment' } : {}),
         gradingWeightProvenance: compactWeightProvenance(assessment.weightProvenance),
@@ -15076,7 +15111,7 @@ function compileStudyGuides(blueprint) {
           lesson.prerequisitePlan?.prerequisiteEvidence ||
             `Prerequisite readiness should be checked before students prepare ${studyArtifact}.`,
           assessment.anchorExampleSet?.studentFacingUse ||
-            `Compare strong and partial anchor examples before preparing ${studyArtifact}.`,
+            `Review strong and partial samples before preparing ${studyArtifact}.`,
           `${specificity.week} prepares students to meet the ${specificity.concept} criterion for ${specificity.artifact}: ${lesson.successCriteria[0]}`,
         ],
         ...(lesson.enrichment?.workedExample ? { workedExample: lesson.enrichment.workedExample } : {}),
@@ -16386,7 +16421,7 @@ function compileQuizBank(blueprint, config = {}) {
         questionPlan: questions.map((question) => question.quizPlan),
       },
       objectiveEvidenceChecklist: objectiveEvidenceChecklist(lesson.objectiveEvidencePlan),
-      formativeFeedbackNote: `For ${lesson.title}, administer these questions after students practice ${compactList(lesson.keyConcepts, 'the lesson concepts', 3)}. ${lesson.prerequisitePlan?.diagnosticCheck || 'Check prerequisite understanding before scoring readiness.'} ${assessment.anchorExampleSet?.scorerCalibrationUse || 'Compare responses against strong and partial anchor examples before scoring.'} ${lesson.learningTransferPlan?.spacedPracticeCue || 'Use the results as spaced retrieval before the next artifact.'} Review missed items within one class session, allow screen-reader-friendly text formats or extended time as needed, and ask students to use results to revise ${lesson.studentArtifact}. Estimated completion time is ${totalMinutes} minutes.${preference ? ` Instructor preference: ${preferenceDisplayPhrase(preference)}.` : ''}`,
+      formativeFeedbackNote: `For ${lesson.title}, administer these questions after students practice ${compactList(lesson.keyConcepts, 'the lesson concepts', 3)}. ${lesson.prerequisitePlan?.diagnosticCheck || 'Check prerequisite understanding before scoring readiness.'} ${assessment.anchorExampleSet?.scorerCalibrationUse || 'Compare responses against calibrated samples before scoring.'} ${lesson.learningTransferPlan?.spacedPracticeCue || 'Use the results as spaced retrieval before the next artifact.'} Review missed items within one class session, allow screen-reader-friendly text formats or extended time as needed, and ask students to use results to revise ${lesson.studentArtifact}. Estimated completion time is ${totalMinutes} minutes.${preference ? ` Instructor preference: ${preferenceDisplayPhrase(preference)}.` : ''}`,
       questions,
       assessmentBlueprint: `${lesson.title} covers ${lesson.outcomes.join('; ')} with a source-grounded quiz plan for ${compactList(lesson.keyConcepts, stripLessonPrefix(lesson.title), 3)} and ${stripTerminalPunctuation(lesson.studentArtifact)}: ${questions.map((question) => `${question.quizPlan.role} -> ${question.bloomsLevel}`).join('; ')}. ${lesson.learningTransferPlan?.transferTask || `Students transfer quiz evidence into ${lesson.studentArtifact}.`} Results indicate which parts of ${lesson.studentArtifact} need reteaching or feedback.${preference ? ` Instructor preference: ${preferenceDisplayPhrase(preference)}.` : ''}`,
       tags: unique(['quiz bank', lesson.title, ...lesson.keyConcepts, lesson.studentArtifact], 8),
@@ -19081,7 +19116,7 @@ function compileLessonPlans(blueprint, options = {}) {
             `Teach ${stripLessonPrefix(lesson.title)} as evidence-backed ${concept} decision practice for ${artifact}.`,
           gradingCalibration:
             assessment.calibrationPlan?.studentTransparency ||
-            `Share criteria and anchor examples before students submit ${artifact}.`,
+            `Share criteria and calibrated samples before students submit ${artifact}.`,
           criterionEvidencePrompt:
             assessment.criterionEvidenceMap?.[0]?.evidenceNeeded ||
             `Ask students to point to criterion-specific evidence before submitting ${artifact}.`,

@@ -413,6 +413,7 @@ export function buildBlueprintEnrichmentPrompt(courseMap, options = {}) {
     'Build one compact enrichment object for the deterministic CourseMapper compiler.',
     'Use only the source course-map facts below. Keep each phrase short enough to reuse inside compiled materials.',
     'Avoid generic phrases like "course evidence" unless the source summary gives a more specific discipline term.',
+    'Do not use internal scaffolding phrases such as "field pattern", "Week N covering", "lesson evidence thread", or "genre-specific quality focus"; name the concrete concept or student task instead.',
     'Include exactly one lessonPhrases entry for every lesson id in the source summary; do not omit lessons or invent lesson ids.',
     'Include all five teachingMoves keys, grounded in the same course-map facts, so the compiler can reuse teaching decisions across artifacts.',
     'Return JSON matching this shape:',

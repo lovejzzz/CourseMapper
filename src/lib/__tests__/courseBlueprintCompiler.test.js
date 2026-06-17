@@ -3344,8 +3344,52 @@ describe('courseBlueprintCompiler', () => {
       scorerCalibrationUse: expect.stringContaining('compare the strong and partial Policy memo checkpoint 1 anchors'),
       // v0.8.61: studentFacingUse speaks to the student directly instead of
       // describing an instructor move.
-      studentFacingUse: expect.stringContaining('strong and partial Policy memo checkpoint 1 anchor examples'),
+      studentFacingUse: expect.stringContaining('strong and partial Policy memo checkpoint 1 samples'),
     });
+  });
+
+  it('scrubs reusable scaffold phrases from physics compiled deliverables', () => {
+    const blueprint = buildCourseBlueprint(
+      {
+        courseName: 'Introductory Physics II: Electricity and Magnetism',
+        semester: 'Fall 2026',
+        lessons: [
+          {
+            title: 'Lesson 1: Electric Fields and Gauss Law',
+            sections: [
+              {
+                topicSection: 'Electric field lines; flux; Gaussian surface',
+                learningObjectives: 'Apply electric field and flux concepts to solve symmetry problems.',
+                learningGoals: 'Connect electric field representations to quantitative physics problem solving.',
+                weeklyAssessments: 'Electric field problem set',
+                asyncActivities: 'Review worked examples on electric fields and flux.',
+                syncActivities: 'Solve Gaussian-surface examples in groups.',
+                supportingResources: 'OpenStax University Physics Volume 2, Ch. 5-6',
+              },
+            ],
+          },
+        ],
+      },
+      {
+        enrichment: {
+          lessonPhrases: {
+            'lesson-1': {
+              context: 'Week N covering field pattern',
+              evidenceMove: 'use field pattern in the lesson evidence thread',
+              decisionMove: 'Genre-specific quality focus: explain the field pattern',
+            },
+          },
+        },
+      },
+    );
+
+    const compiled = compileBlueprintDeliverables(blueprint, ['assignments', 'studyGuides']);
+    const text = JSON.stringify(compiled);
+
+    expect(blueprint.enrichment.lens.domain).toBe('introductory physics problem solving');
+    expect(text).toContain('worked-example evidence');
+    expect(text).not.toMatch(/field pattern|Week N covering|lesson evidence thread|Genre-specific quality focus/i);
+    expect(text).not.toMatch(/anchor examples before/i);
   });
 
   it('uses source-text cognitive demand when synthesizing sparse assessment anchors', () => {

@@ -106,6 +106,24 @@ const WORLD_LIT_COURSE = buildCourse('Introduction to World Literature', [
   ['Writing About Literature', 'literary argument close reading evidence'],
 ]);
 
+const PHYSICS_E_AND_M_COURSE = buildCourse('Introductory Physics II: Electricity and Magnetism', [
+  ['Electric Charge', 'electric charge conservation of charge positive and negative charge'],
+  ['Electric Fields', 'electric field field lines force per unit charge test charge'],
+  ["Gauss's Law", 'Gauss law electric flux Gaussian surface enclosed charge symmetry'],
+  ['Electric Potential', 'electric potential voltage potential difference potential energy per unit charge'],
+  ['Capacitance', 'capacitance capacitor parallel plate charge potential difference'],
+  ['Electric Current', 'electric current charge flow rate current and resistance'],
+  ["Resistance and Ohm's Law", 'resistance Ohm law voltage current resistance ohmic conductor'],
+  ['DC Circuits', 'DC circuits series parallel Kirchhoff junction loop resistor network'],
+  ['Magnetic Fields', 'magnetic field magnetism field lines compass charged particle'],
+  ['Magnetic Force', 'magnetic force Lorentz force right hand rule charge velocity field'],
+  ["Faraday's Law", 'Faraday law electromagnetic induction magnetic flux induced emf'],
+  ['Inductance', 'inductance inductor magnetic field energy current change'],
+  ["Maxwell's Equations", 'Maxwell equations displacement current electromagnetic waves electric magnetic fields'],
+  ['RC Circuit Transients', 'capacitor resistance current voltage circuit time constant'],
+  ['Electromagnetic Synthesis', 'electric field magnetic field induction Maxwell equations electromagnetic waves'],
+]);
+
 function linkCourse(course) {
   const library = genomeLibrary();
   const lessonIndices = course.lessons.map((_, index) => index);
@@ -152,6 +170,31 @@ describe('A2 — the literature shard deepens from 2 to 30+ concepts', () => {
     const linked = linkCourse(WORLD_LIT_COURSE);
     const resolved = linked.telemetry.resolvedFromGenome + linked.telemetry.resolvedFromCache;
     expect(resolved).toBeGreaterThanOrEqual(8);
+  });
+});
+
+describe('A2b — the physics shard covers introductory electricity and magnetism', () => {
+  it('ships the E&M concept family used by the live Physics II course', () => {
+    const shard = JSON.parse(readFileSync(join(process.cwd(), 'public/genome/physics-intro.json'), 'utf8'));
+    expect(shard.kernels).toHaveLength(13);
+    expect(shard.kernels.map((kernel) => kernel.id)).toEqual(
+      expect.arrayContaining([
+        'physics/electric-charge',
+        'physics/electric-field',
+        'physics/electric-potential',
+        'physics/dc-circuits',
+        'physics/faradays-law',
+        'physics/maxwell-equations',
+      ]),
+    );
+  });
+
+  it('an Electricity and Magnetism survey infers physics and links 10+/15 lessons', () => {
+    expect(inferCourseDisciplines(PHYSICS_E_AND_M_COURSE)).toContain('physics');
+    const linked = linkCourse(PHYSICS_E_AND_M_COURSE);
+    const resolved = linked.telemetry.resolvedFromGenome + linked.telemetry.resolvedFromCache;
+    expect(resolved).toBeGreaterThanOrEqual(10);
+    expect(linked.telemetry.conceptHits).toBeGreaterThanOrEqual(10);
   });
 });
 

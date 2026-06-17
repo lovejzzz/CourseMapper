@@ -211,6 +211,10 @@ export function inferCourseDisciplines(courseMap) {
       /\bcalculus|\bderivativ|\bantiderivativ|\bdifferentiation\b|\b(?:definite|indefinite) integral|\bintegrals\b|\blimit laws?\b|\blimits? of (?:a )?function|\bmathematic|\bprecalculus|\btrigonometr|\blinear algebra/,
     ],
     ['chem', /\bchemistr|molecul|reaction|stoichiometr|equilibrium/],
+    [
+      'physics',
+      /\bphysics\b|\belectromagnetism\b|\belectric(?:ity|al)?\b|\belectric (?:field|charge|potential|current)\b|\bmagnet(?:ism|ic)?\b|\bmagnetic field\b|\bgauss(?:'s)? law\b|\bfaraday(?:'s)? law\b|\bmaxwell(?:'s)? equations?\b|\bcapacitance\b|\binductance\b|\bohm(?:'s)? law\b|\bdc circuits?\b|\bvoltage\b|\bresistance\b/,
+    ],
     // v0.14.9 A1: tightened with the deepened US-history shard. The old
     // pattern (`\bhistory|historical|\bwar\b|revolution`) tripped on art
     // history surveys, literature courses reading historical novels ("War

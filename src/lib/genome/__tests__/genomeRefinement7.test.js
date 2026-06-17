@@ -46,7 +46,7 @@ function bridgeFor(lessons) {
   });
 }
 
-describe('iteration 7 — genome spans 6 disciplines', () => {
+describe('iteration 7 — genome spans deployed disciplines', () => {
   it('the manifest carries the expanded genome', () => {
     const manifest = JSON.parse(readFileSync(join(process.cwd(), 'public/genome/manifest.json'), 'utf8'));
     expect(manifest.conceptCount).toBeGreaterThanOrEqual(18);
@@ -57,7 +57,8 @@ describe('iteration 7 — genome spans 6 disciplines', () => {
     // V0.14.7 WS-E E1: math joined (OpenStax Calculus Volume 1 — the live
     // Calculus I course that linked only 5/15); v0.15 F3: lang joined — the
     // FIRST shard the genome taught itself (the Beginning Korean extraction
-    // contributed through the commons round-trip).
+    // contributed through the commons round-trip); v0.15.5 adds physics for
+    // the live Electricity and Magnetism miss.
     expect(disciplines).toEqual(
       new Set([
         'astro',
@@ -74,6 +75,7 @@ describe('iteration 7 — genome spans 6 disciplines', () => {
         'geo',
         'math',
         'lang',
+        'physics',
       ]),
     );
   });

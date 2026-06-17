@@ -1,7 +1,7 @@
 {
   "version": "2026-06-13",
   "generator": "curriculumos-foundry-v1",
-  "conceptCount": 225,
+  "conceptCount": 238,
   "shards": [
     {
       "id": "astro-intro",
@@ -100,6 +100,14 @@
       "hash": "67c1f491bc581e8e"
     },
     {
+      "id": "physics-intro",
+      "discipline": "physics",
+      "level": "intro",
+      "path": "physics-intro.json",
+      "conceptCount": 13,
+      "hash": "4d9c48642a00fb3b"
+    },
+    {
       "id": "psych-intro",
       "discipline": "psych",
       "level": "intro",
@@ -145,6 +153,10 @@
     "opengeology:introduction-to-geology": {
       "displayTitle": "An Introduction to Geology",
       "sourceUrl": "https://opengeology.org/textbook/"
+    },
+    "openstax:university-physics-volume-2": {
+      "displayTitle": "University Physics Volume 2",
+      "sourceUrl": "https://openstax.org/details/books/university-physics-volume-2"
     }
   }
 }

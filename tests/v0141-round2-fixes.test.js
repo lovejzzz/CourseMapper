@@ -1263,7 +1263,7 @@ describe('round-3 polish 3 — study guides stop chanting the lesson title', () 
           ],
           conceptConnections: [
             `${TITLE} connects to the assessment artifact: Reading Response and Close-Reading Check.`,
-            `Compare the strong and partial Week 4 check anchor examples before you submit, and self-check your ${TOPIC} evidence, reasoning, limitation, and revision quality against them.`,
+            `Review the strong and partial Week 4 check samples before you submit, then self-check your ${TOPIC} evidence, reasoning, limitation, and revision quality.`,
             `The lesson prepares students to meet this success criterion: Uses ${TOPIC} terminology precisely and in context.`,
           ],
           reviewQuestions: [
