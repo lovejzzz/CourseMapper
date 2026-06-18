@@ -145,7 +145,7 @@ test.describe('Landing to Agent continuity', () => {
       'Starting request + starter-notebook-outline.txt + 1 source note',
     );
     await expect(agentPanel.getByTestId('agent-working-materials')).toContainText('2 lessons');
-    await expect(agentPanel.getByTestId('agent-working-materials')).toContainText('ready');
+    await expect(agentPanel.getByTestId('agent-working-materials')).toContainText('No generated materials yet');
 
     const landingContextCard = agentPanel.getByTestId('landing-context-card');
     await expect(landingContextCard).toContainText('Starting brief', { timeout: 30000 });
