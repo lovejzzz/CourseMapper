@@ -3,7 +3,7 @@
 AI-powered instructional design platform running on **CurriculumOS** — a deterministic course compiler linked to a **Curriculum Genome** of source-anchored, citable concept knowledge — with an embedded teaching assistant agent. Upload your syllabus and generate a structured Course Map, lesson plans, slide decks, rubrics, quizzes, assignments, discussion prompts, study guides, and a polished syllabus — all pedagogically aligned, validated, and fully editable. Then use the AI agent to revise, validate, research, and visualize your curriculum through natural conversation.
 
 **Live:** [https://edutool.dev](https://edutool.dev)
-**Current release:** v0.13.0
+**Current release:** v0.15.7
 
 ---
 
@@ -22,6 +22,56 @@ Course Mapper is a **purpose-built instructional design tool**, not a general ch
 9. **Privacy-first.** Static BYOK app by default. There is no Course Mapper backend server; project data is stored in your browser unless you explicitly sign in for Firebase cloud sync or export to Google Drive. API keys go directly to providers.
 
 > **What Course Mapper does NOT claim:** It does not fact-check content or verify citations. It does not replace instructor expertise. It is a drafting and productivity tool — it generates the scaffold, the instructor refines it.
+
+---
+
+## Current Pipeline (v0.15.7)
+
+The product ribbon and the code share one pipeline vocabulary: **Map -> Enrich -> Compile -> Verify -> Grade**. `src/lib/pipelineMachine.js` is the phase authority; UI surfaces should render from that machine instead of re-deriving state from raw generation/finalizer flags.
+
+### 1. Intake and Workspace Context
+
+- The user supplies a starting request, optional files, selected deliverables, lesson scope, model/provider settings, and per-deliverable configuration.
+- Files are parsed client-side where possible, then relevant text is sent directly from the browser to the selected AI provider. There is no Course Mapper application backend in the default BYOK path.
+- The carried landing context becomes part of the agent conversation so the workspace keeps the initial prompt and uploaded-material context visible after generation.
+
+### 2. Map
+
+- The first course-building stage creates course structure: course title, lessons/sessions, sections, assessment signals, readings/resources, and the visible Course Map.
+- The standard path uses lean course-map atoms that the compiler can render into stable instructor-facing prose.
+- The native graph-authoring path is guarded: Pass A asks for a typed skeleton of sessions, assessments, readings, and resources; Pass B authors lesson content onto that skeleton. Any failed or degenerate native assembly falls back loudly to the prose path instead of shipping a silent broken graph.
+- The Course Graph remains the source of truth. The visible Course Map is a deterministic render of graph entities and alignment edges.
+
+### 3. Enrich
+
+- The Curriculum Genome linker and local kernel cache run before paid enrichment. Genome hits compile with source-cited knowledge at zero AI cost.
+- Blueprint enrichment adds lesson-specific knowledge only when requested and safe; otherwise the compiler stays deterministic.
+- The Open Knowledge Backbone attaches cited textbook/open-reading resources when available. Source Finder is the newest low-cost fallback: when genome/open-resource coverage is weak, it queries keyless public metadata providers, caches by course/topic/week, keeps compact citations, and rejects common classroom-fit traps such as advanced off-topic matches.
+- Enrichment decisions are recorded in the generation ledger, run digest, and package manifest so a package can say whether it was deterministic, genome-backed, source-finder supplemented, or model-enriched.
+
+### 4. Compile
+
+- The Course Graph is projected into a compact blueprint, then the deterministic compiler builds selected deliverables: Syllabus, Lesson Plans, Slide Decks, Assignment Briefs, Rubrics, Discussion Prompts, Quiz & Exam Bank, Study Guides, Course FAQ, and supported custom deliverable families.
+- Common custom families such as lab reports, case briefs, policy memo checkpoints, observation checklists, self-assessments, capstone progress reports, and problem-set worksheets compile without extra provider calls when their definition matches a supported pattern.
+- Optional voice-pass rewriting is flag-gated and fallback-first. It can polish high-read connective prose, but it cannot block a package or replace verified substance.
+
+### 5. Verify
+
+- The package finalizer runs deterministic readiness checks, classroom-readiness checks, pedagogical validation, safe repairs, and bounded weak-spot retries.
+- Retry is cost-controlled: the finalizer reserves a small call budget, avoids repeated no-progress attempts, and skips broad retry actions when they would exceed the budget.
+- Export verification happens before a package is marked ready. Course Map XLSX/PDF, deliverable DOCX/PDF/CSV, slide PPTX/PDF/CSV, and ZIP-package paths are generated in memory and inspected for empty output, internal proof language, Office XML leaks, accessibility/repetition warnings, and package integrity.
+
+### 6. Grade and Export
+
+- A run digest and cost report are generated at finish time: provider calls, hidden reasoning-token usage where available, compiler savings, enrichment decisions, repairs, retries, export checks, and package status.
+- The deep-quality grader runs over the same in-memory package used for ZIP export. A P0 quality finding becomes a readiness blocker; grading timeouts record `not-graded` without corrupting the export.
+- When the final state is clean, the right-side Export panel owns download: `Ready to download`, quality stamp, lesson scope, and `Download ZIP`. If blockers remain, the Review queue and agent receipt explain what needs attention.
+
+### CI and Quality Policy
+
+- **Fast verification** is the normal push gate. It runs formatting, lint, release-history audit, unit/closed-loop tests, blueprint fast quality, deliverable audit, pipeline audit, gold smoke, production build, and bundle budgets.
+- **Deep proof** is the heavy battery for release branches, manual pre-release checks, and nightly runs. App/runtime failures stay strict. Educational-quality regressions are strict for release/manual runs and advisory for scheduled nightly reports.
+- Browser quality remains part of release proof: local or CI browser checks catch UI/export/download defects that unit tests cannot see.
 
 ---
 
@@ -105,11 +155,11 @@ Pick which deliverables to generate. Course structure (the Course Graph, with it
 
 ### Step 4: Configure & Generate
 
-Fine-tune each deliverable (session length, question count, speaker notes level, etc.), set a lesson scope if you only need certain lessons, and click **Generate**. Watch everything build in real time.
+Fine-tune each deliverable (session length, question count, speaker notes level, etc.), set a lesson scope if you only need certain lessons, and click **Generate**. The workspace now moves through the visible **Map -> Enrich -> Compile -> Verify -> Grade** pipeline: first the course structure is built, then optional knowledge enrichment and source support are attached, deliverables compile, export/readiness checks run, and the package receives a quality grade when grading is available.
 
 ### Step 5: Edit, Revise, Export
 
-Click any text to edit inline. Use the Agent side panel for AI-assisted changes. Export individual deliverables from the right-side Export panel, or use Export All → Download ZIP for everything at once.
+Click any text to edit inline. Use the Agent side panel for AI-assisted changes, package review, and safe targeted repairs. Export individual deliverables from the right-side Export panel, or use **Package -> Download ZIP** after the package is marked ready.
 
 ---
 
@@ -374,35 +424,49 @@ The `dist/` folder can be served by any static file host. The entire app is clie
 ### Testing
 
 ```bash
-npm run lint              # ESLint baseline; warnings track existing cleanup debt
-npm run format            # Prettier write mode
-npm run format:check      # Prettier check mode
-npm run test:offline      # unit + integration — no network, always safe
-npm run test:rules        # Firestore security rules through the Firebase emulator
-npm run test:e2e          # Playwright end-to-end suite
-npm run audit:pipeline    # deterministic compiler regression gate
-npm run audit:gold        # internal gold-sample classroom-quality gate
-npm run audit:self        # internal self-improvement gate with adversarial fixtures
-npm run audit:expert      # internal provisional expert-style harness; supports optional fixtures
-npm run audit:expert:preflight # optional readiness checklist for completed external proof fixtures
-npm run audit:expert:external # optional external-proof gate; requires external review + edit evidence
-npm run audit:expert:packet # optional reviewer packet for collecting external proof
-npm run audit:agent:openai # 20-scenario live OpenAI agent probe suite (needs OPENAI_API_KEY)
-npm run audit:agent       # live agent suite (needs ANTHROPIC_API_KEY)
-npm run audit:deliverables # live deliverable-quality audit (needs ANTHROPIC_API_KEY)
+npm run format:check              # Prettier check mode
+npm run lint                      # ESLint quiet gate
+npm test                          # unit + closed-loop tests, excluding browser specs
+npm run build                     # production Vite build
+npm run bundle:check              # bundle budget gate
+npm run test:e2e                  # Playwright end-to-end suite
+npm run test:rules                # Firestore security rules through the Firebase emulator
+npm run audit:release-history     # changelog/release-history consistency
+npm run audit:pipeline            # deterministic compiler and hybrid pipeline regression gate
+npm run test:blueprint:quality:fast # three-sample blueprint quality smoke used by Fast verification
+npm run audit:deliverables        # deterministic deliverable quality audit
+npm run audit:gold:smoke          # three-sample classroom-quality smoke used by Fast verification
+npm run audit:gold                # full internal gold-sample classroom-quality gate
+npm run audit:deep-quality        # deep quality battery wrapper; strict or advisory mode
+npm run audit:self                # internal self-improvement gate with adversarial fixtures
+npm run audit:professor-adoption:smoke # professor-adoption smoke judge
+npm run audit:expert              # internal provisional expert-style harness; supports optional fixtures
+npm run audit:expert:preflight    # optional readiness checklist for completed external proof fixtures
+npm run audit:expert:external     # optional external-proof gate; requires external review + edit evidence
+npm run audit:expert:packet       # optional reviewer packet for collecting external proof
+npm run quality:browser:smoke     # browser generate/finish/export smoke
+npm run quality:agent:browser:smoke # real-browser agent quality smoke
+npm run audit:agent:openai        # private live OpenAI agent probe suite (needs OPENAI_API_KEY)
+npm run audit:agent               # live multi-agent suite (provider keys required)
 ```
+
+Normal pushes to `main` are guarded by **Fast verification** in `.github/workflows/ci.yml`: format, lint, release-history audit, unit/closed-loop tests, blueprint fast quality, deliverable audit, pipeline audit, gold smoke, build, and bundle budgets.
+
+`audit:deep-quality` runs the educational-quality battery used by **Deep proof**: blueprint quality matrix, deliverable quality audit, full gold audit, internal expert-style audit, and proof-packet build. In `.github/workflows/deep-proof.yml`, Deep proof runs on `release/**`, manual dispatch, and nightly schedule. Release/manual quality is strict; nightly educational quality is advisory unless app/runtime gates fail.
 
 `audit:gold` compares compiled packages against curated classroom-quality expectations, source-to-output fidelity, explicit teaching-intent traces, course-modality fit, modality-specific teaching-pattern decoding, and enrichment impact. The enrichment matrix checks whether compact blueprint enrichment creates measurable course-specific lift over the deterministic compiler without lowering quality, source fidelity, teaching intent, modality fit, or blueprint fidelity.
 
 `audit:self` is the internal self-improvement gate that replaces external audit as a blocker. It runs adversarial internal fixtures through the deterministic compiler, validators, publishability checks, and review-boundary checks. Passing it means internally self-audited for controlled pilots, not externally certified.
 
-`audit:agent:openai` is the private live agent smoke gate. It runs 20 practical instructor scenarios, while the offline closed-loop suite adds the v0.8.3 restored-project recovery, receipt, safety, and finish-package scenario bank.
+`quality:browser:smoke` and `quality:agent:browser:smoke` are the browser proof surfaces for UI/export/download and agent behavior. They catch layout, download, recovery, and side-panel defects that pure unit tests cannot see.
+
+`audit:agent:openai` is the private live agent smoke gate. It runs practical instructor scenarios, while the offline closed-loop suite adds restored-project recovery, receipt, safety, and finish-package scenario coverage.
 
 v0.8.4 adds compiler-output contract coverage for lean/restored blueprints plus 10 prompt-style and lesson-scope scenarios that verify derived proof receipts, compiled feature coverage, and no model fallback for compiler-owned custom families.
 
 `audit:expert:packet` builds a reviewer packet from the compiled gold samples, including original source course-map files, course-modality evidence, modality-specific teaching routines, lesson evidence, artifact excerpts, full-package reviewed-artifact lists, scorecard dimensions, and fixture templates that can be filled by external reviewers.
 
-`audit:deliverables` drives the real production prompts (`src/lib/prompts/*`) through Anthropic against a fixed ML-course fixture and scores the output on schema fidelity, prompt-rule adherence (Bloom's distribution, slide sequence, speaker-note format, etc.), and content specificity. Run after any change to the prompts, `FEATURE_OUTPUT_BUDGETS`, or `FEATURE_CHUNK_SIZES` in `src/lib/parallelGenerator.js`. Expect ~12 minutes wall time and a handful of Sonnet calls per run.
+`audit:deliverables` is the deterministic deliverable-quality audit used by Fast verification. Run it after compiler, deliverable schema, finalizer, or export-quality changes.
 
 `audit:expert` defaults to internal provisional fixtures. External proof remains optional and separate from internal self-improvement readiness. To collect optional external evidence later, run it with proof-eligible reviewer or instructor-edit fixtures:
 
@@ -421,7 +485,7 @@ See [External Quality Proof Intake](docs/EXTERNAL_QUALITY_PROOF.md) for the fixt
 
 ### Deployment
 
-Hosted on GitHub Pages via GitHub Actions. Every push to `main` triggers a build and deploy.
+Hosted on GitHub Pages via GitHub Actions. Every push to `main` runs Fast verification; a successful Fast verification triggers the GitHub Pages deploy workflow.
 
 For controlled pilots, serve `dist/` from Firebase Hosting or an equivalent static host that applies the security headers in `firebase.json`. GitHub Pages does not provide the CSP/header controls needed for the stricter pilot posture. See [Deployment Security](docs/DEPLOYMENT_SECURITY.md).
 
