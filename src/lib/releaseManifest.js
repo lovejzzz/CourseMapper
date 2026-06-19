@@ -3,23 +3,23 @@ import { APP_VERSION } from './appVersion.js';
 export const CURRENT_RELEASE = {
   version: APP_VERSION,
   date: 'June 19, 2026',
-  title: 'CourseIR Repair Boundary: synthetic fixes stop counting as direct authoring',
-  landingTitle: 'CourseIR Repair Boundary',
+  title: 'CourseIR Activity Genome: learner work becomes validated atoms',
+  landingTitle: 'CourseIR Activity Genome',
   highlights: [
-    'Direct provider CourseIR acceptance now fails when the returned CourseIR needed deterministic structural repair before validation, so one broad assessment for many lessons no longer masquerades as a fully authored curriculum brain.',
-    'Compiler repair remains available for explicit CourseIR inputs: under-assessed structures can still expand to lesson-level assessments before deterministic rendering, with `repairedBeforeCompile` proof intact.',
-    'The direct-authoring acceptance result now carries `repairedBeforeAcceptance`, making the fallback reason auditable instead of hiding a synthetic fix behind an accepted direct path.',
-    'Regression coverage pins the boundary: repaired broad-assessment CourseIR is rejected for direct provider authoring while the same CourseIR still compiles with zero provider calls after repair.',
-    'This narrows the path toward the real CurriculumV1 source of truth: models must author dense atoms themselves, while compiler repair is an explicit safety net before DOCX/PPTX output.',
+    'CourseIR lessons now carry first-class `outcomes[]` and `activities[]` atoms, each linked to concept ids and assessment ids before a lesson can count as complete.',
+    'Compiler repair can still synthesize missing outcome/activity atoms for explicit CourseIR input before deterministic rendering, but the repair is recorded as `added-lesson-outcomes` / `added-lesson-activities` proof.',
+    'Direct provider CourseIR acceptance now rejects prose-derived or repaired learner-work structure instead of letting native/objective/activity prose masquerade as a better curriculum brain.',
+    'CourseIR projection uses authored activity atoms first when building course-map and enrichment surfaces, with deterministic derivation only supplementing or repairing older inputs.',
+    'Native authoring remains compatible with the stricter CourseIR contract, so the current path keeps working while the direct CourseIR path gets a sharper quality boundary.',
   ],
   landingHighlights: [
-    'Repaired CourseIR no longer counts as accepted direct authoring.',
-    'Compiler repair still runs before deterministic rendering.',
-    'Fallback evidence names structural repair explicitly.',
+    'Outcomes and activities are now CourseIR atoms.',
+    'Learner work links to concepts and assessments.',
+    'Prose-derived activity repair no longer counts as accepted direct authoring.',
   ],
   proof: {
-    contract: 'release-contracts/v0.15.18.json',
-    roadmap: 'docs/V0.15.18_COURSEIR_REPAIR_BOUNDARY_ROADMAP.md',
+    contract: 'release-contracts/v0.15.19.json',
+    roadmap: 'docs/V0.15.19_COURSEIR_ACTIVITY_GENOME_ROADMAP.md',
     auditCommand: 'npm run audit:release-history',
   },
 };
@@ -34,6 +34,18 @@ export const CURRENT_RELEASE_CHANGELOG = {
 };
 
 export const HISTORICAL_RELEASE_CHANGELOGS = [
+  {
+    version: '0.15.18',
+    date: 'June 19, 2026',
+    title: 'CourseIR Repair Boundary: synthetic fixes stop counting as direct authoring',
+    highlights: [
+      'Direct provider CourseIR acceptance now fails when the returned CourseIR needed deterministic structural repair before validation, so one broad assessment for many lessons no longer masquerades as a fully authored curriculum brain.',
+      'Compiler repair remains available for explicit CourseIR inputs: under-assessed structures can still expand to lesson-level assessments before deterministic rendering, with `repairedBeforeCompile` proof intact.',
+      'The direct-authoring acceptance result now carries `repairedBeforeAcceptance`, making the fallback reason auditable instead of hiding a synthetic fix behind an accepted direct path.',
+      'Regression coverage pins the boundary: repaired broad-assessment CourseIR is rejected for direct provider authoring while the same CourseIR still compiles with zero provider calls after repair.',
+      'This narrows the path toward the real CurriculumV1 source of truth: models must author dense atoms themselves, while compiler repair is an explicit safety net before DOCX/PPTX output.',
+    ],
+  },
   {
     version: '0.15.17',
     date: 'June 19, 2026',

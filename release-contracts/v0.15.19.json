@@ -1,0 +1,102 @@
+{
+  "version": "0.15.19",
+  "date": "June 19, 2026",
+  "title": "CourseIR Activity Genome: learner work becomes validated atoms",
+  "status": "verified-current",
+  "proofSummary": {
+    "local": [
+      "npm test -- src/lib/__tests__/courseIR.test.js",
+      "npm test -- tests/v0145-native-authoring.test.js",
+      "npm run format:check",
+      "npm run lint",
+      "npm run build",
+      "npm run bundle:check",
+      "npm run test:e2e",
+      "npm test",
+      "npm run audit:constitution",
+      "npm run audit:gold:smoke",
+      "npm run audit:release-history"
+    ],
+    "ciFast": {
+      "status": "pending-push",
+      "note": "Fast verification is claimed only after v0.15.19 is pushed and the GitHub Actions run is attached."
+    },
+    "deploy": {
+      "status": "pending-push",
+      "note": "Pages deploy is not claimed until the pushed release completes its deploy run."
+    },
+    "ciDeep": {
+      "status": "not-used",
+      "note": "This is a CourseIR contract and projection patch with focused regression, full unit, constitution, and gold smoke proof."
+    },
+    "liveProvider": {
+      "status": "not-applicable",
+      "note": "No fresh live provider generation is claimed for this contract patch."
+    },
+    "manualHuman": {
+      "status": "not-applicable",
+      "note": "No external instructor review or approval is claimed by this release."
+    }
+  },
+  "claims": [
+    {
+      "id": "v01519-outcome-activity-atoms",
+      "status": "verified-current",
+      "changelogHighlightIndex": 0,
+      "summary": "CourseIR lessons now normalize and validate first-class outcome and activity atoms with concept and assessment links.",
+      "anchors": ["src/lib/courseIR.js", "src/lib/__tests__/courseIR.test.js"],
+      "proofCommands": ["npm test -- src/lib/__tests__/courseIR.test.js"],
+      "proofScopes": ["unit"]
+    },
+    {
+      "id": "v01519-activity-repair-boundary",
+      "status": "verified-current",
+      "changelogHighlightIndex": 1,
+      "summary": "Compiler repair can synthesize missing outcome/activity atoms for explicit CourseIR input while recording the repair.",
+      "anchors": ["src/lib/courseIR.js", "src/lib/__tests__/courseIR.test.js"],
+      "proofCommands": ["npm test -- src/lib/__tests__/courseIR.test.js"],
+      "proofScopes": ["unit", "compiled-output"]
+    },
+    {
+      "id": "v01519-direct-authoring-rejects-prose-activity",
+      "status": "verified-current",
+      "changelogHighlightIndex": 2,
+      "summary": "Direct provider CourseIR acceptance rejects prose-derived repaired outcome/activity structure instead of counting it as accepted authoring.",
+      "anchors": ["src/lib/courseIR.js", "src/lib/__tests__/courseIR.test.js"],
+      "proofCommands": ["npm test -- src/lib/__tests__/courseIR.test.js"],
+      "proofScopes": ["unit"]
+    },
+    {
+      "id": "v01519-projection-uses-authored-activities",
+      "status": "verified-current",
+      "changelogHighlightIndex": 3,
+      "summary": "CourseIR projection feeds authored activity atoms into course-map and enrichment surfaces before deterministic fallback derivation.",
+      "anchors": ["src/lib/courseIR.js", "src/lib/__tests__/courseIR.test.js"],
+      "proofCommands": ["npm test -- src/lib/__tests__/courseIR.test.js"],
+      "proofScopes": ["unit", "compiled-output"]
+    },
+    {
+      "id": "v01519-native-contract-regression",
+      "status": "verified-current",
+      "changelogHighlightIndex": 4,
+      "summary": "Native authoring remains compatible with the stricter CourseIR outcome/activity contract.",
+      "anchors": ["tests/v0145-native-authoring.test.js"],
+      "proofCommands": ["npm test -- tests/v0145-native-authoring.test.js"],
+      "proofScopes": ["unit"]
+    }
+  ],
+  "carryForward": [
+    {
+      "id": "live-direct-courseir-quality-proof",
+      "status": "carry-forward",
+      "source": "docs/V0.15.19_COURSEIR_ACTIVITY_GENOME_ROADMAP.md",
+      "next": "Run side-by-side EduTool.dev ZIP/log audits comparing accepted direct CourseIR against native skeleton/prose fallback on the same course briefs."
+    },
+    {
+      "id": "complete-courseir-curriculum-chain",
+      "status": "carry-forward",
+      "source": "docs/V0.15.19_COURSEIR_ACTIVITY_GENOME_ROADMAP.md",
+      "next": "Make rubric dimensions, source citations, and feedback loops first-class enough for compiler proof across the full curriculum chain."
+    }
+  ]
+}

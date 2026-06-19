@@ -12,7 +12,7 @@ import { estimateTokens, getModelLimit } from './tokenEstimator.js';
 
 export const COURSE_IR_VERSION = 'courseir.v1';
 export const COURSE_IR_SCHEMA_NAME = 'course_ir_v1';
-export const COURSE_IR_SYSTEM_PROMPT = `You are CourseMapper's CurriculumV1 authoring engine. Return one compact CourseIR JSON object only: no markdown, no commentary, no final deliverable prose. Encode the curriculum brain as semantic atoms with stable ids, source/provenance status, concept prerequisites, lesson objectives, activities, assessments, examples, misconceptions, constraints, and artifact intent links.`;
+export const COURSE_IR_SYSTEM_PROMPT = `You are CourseMapper's CurriculumV1 authoring engine. Return one compact CourseIR JSON object only: no markdown, no commentary, no final deliverable prose. Encode the curriculum brain as semantic atoms with stable ids, source/provenance status, concept prerequisites, lesson objectives, outcome atoms, activity atoms, assessments, examples, misconceptions, constraints, and artifact intent links. Every lesson outcome and activity must link to concept ids and assessment ids.`;
 
 const KNOWN_FEATURE_IDS = [
   'syllabus',
@@ -27,6 +27,7 @@ const KNOWN_FEATURE_IDS = [
 ];
 
 const VALID_ASSESSMENT_KINDS = new Set(['graded-artifact', 'in-class', 'exam', 'oral']);
+const VALID_ACTIVITY_MODES = new Set(['async', 'sync', 'practice', 'assessment-prep']);
 const SOURCE_STATUSES = new Set(['source-provided', 'standard-domain-knowledge', 'model-authored', 'assumption']);
 const BLOCKING_SEVERITIES = new Set(['blocker']);
 const DEFAULT_RUBRIC_DIMENSIONS = ['accuracy', 'evidence use', 'transfer'];
@@ -206,16 +207,91 @@ function normalizeAssessment(rawAssessment, index) {
   };
 }
 
+function normalizeOutcome(rawOutcome, lessonId, index, defaultConceptIds = [], defaultAssessmentIds = []) {
+  const outcome = typeof rawOutcome === 'object' && rawOutcome !== null ? rawOutcome : { statement: rawOutcome };
+  const statement = cleanText(
+    outcome.statement || outcome.objective || outcome.outcome || outcome.text || outcome.description,
+    220,
+  );
+  const performanceVerb = cleanText(
+    outcome.performanceVerb || outcome.verb || statement.split(/\s+/)[0] || '',
+    40,
+  ).replace(/[^\w-].*$/, '');
+  return {
+    id: normalizeId(outcome.id, `${lessonId}-O`, index),
+    statement,
+    performanceVerb,
+    conceptIds: uniqueStrings(outcome.conceptIds || outcome.concepts || defaultConceptIds, 16),
+    assessmentIds: uniqueStrings(outcome.assessmentIds || outcome.assessments || defaultAssessmentIds, 16),
+    sourceRefs: uniqueStrings(outcome.sourceRefs || outcome.refs || [], 16),
+  };
+}
+
+function activityInput(entry, mode) {
+  if (entry && typeof entry === 'object') return { ...entry, mode: entry.mode || mode };
+  return { learnerAction: entry, mode };
+}
+
+function normalizeActivity(rawActivity, lessonId, index, defaultConceptIds = [], defaultAssessmentIds = []) {
+  const activity =
+    typeof rawActivity === 'object' && rawActivity !== null ? rawActivity : { learnerAction: rawActivity };
+  const mode = VALID_ACTIVITY_MODES.has(activity.mode) ? activity.mode : 'practice';
+  const learnerAction = cleanText(
+    activity.learnerAction || activity.action || activity.text || activity.description || activity.title,
+    260,
+  );
+  const title = cleanText(activity.title || activity.name || learnerAction.split(/[:;.]/)[0], 100);
+  return {
+    id: normalizeId(activity.id, `${lessonId}-ACT`, index),
+    mode,
+    title,
+    learnerAction,
+    evidence: cleanText(activity.evidence || activity.output || activity.deliverable || activity.successCriteria, 220),
+    conceptIds: uniqueStrings(activity.conceptIds || activity.concepts || defaultConceptIds, 16),
+    assessmentIds: uniqueStrings(activity.assessmentIds || activity.assessments || defaultAssessmentIds, 16),
+    sourceRefs: uniqueStrings(activity.sourceRefs || activity.refs || [], 16),
+  };
+}
+
+function formatActivityLine(activity) {
+  const action = cleanText(activity?.learnerAction || activity?.title, 220);
+  if (!action) return '';
+  const evidence = cleanText(activity?.evidence, 160);
+  return evidence ? `${action}; evidence: ${evidence}` : action;
+}
+
 function normalizeLesson(rawLesson, index) {
   const id = normalizeId(rawLesson?.id, 'L', index);
   const topic = cleanText(rawLesson?.topic || rawLesson?.title || `Lesson ${index + 1}`, 160);
+  const conceptIds = uniqueStrings(rawLesson?.conceptIds || rawLesson?.concepts || [], 24);
+  const assessmentIds = uniqueStrings(rawLesson?.assessmentIds || rawLesson?.assessments || [], 12);
+  const outcomes = asArray(rawLesson?.outcomes || rawLesson?.learningOutcomes)
+    .map((entry, outcomeIndex) => normalizeOutcome(entry, id, outcomeIndex, conceptIds, assessmentIds))
+    .filter((entry) => entry.statement);
+  const objectives = uniqueStrings(
+    [
+      ...asArray(rawLesson?.objectives || rawLesson?.learningObjectives),
+      ...outcomes.map((outcome) => outcome.statement),
+    ],
+    8,
+  );
+  const rawActivities = [
+    ...asArray(rawLesson?.activities || rawLesson?.activityAtoms),
+    ...asArray(rawLesson?.async || rawLesson?.asyncActivities).map((entry) => activityInput(entry, 'async')),
+    ...asArray(rawLesson?.sync || rawLesson?.syncActivities).map((entry) => activityInput(entry, 'sync')),
+  ];
+  const activities = rawActivities
+    .map((entry, activityIndex) => normalizeActivity(entry, id, activityIndex, conceptIds, assessmentIds))
+    .filter((entry) => entry.learnerAction);
   return {
     id,
     title: cleanText(rawLesson?.title || `Lesson ${index + 1}: ${topic}`, 180),
     topic,
-    conceptIds: uniqueStrings(rawLesson?.conceptIds || rawLesson?.concepts || [], 24),
+    conceptIds,
     prerequisiteConceptIds: uniqueStrings(rawLesson?.prerequisiteConceptIds || rawLesson?.prerequisiteIds || [], 12),
-    objectives: uniqueStrings(rawLesson?.objectives || rawLesson?.learningObjectives || [], 8),
+    objectives,
+    outcomes,
+    activities,
     prerequisiteChecks: uniqueStrings(rawLesson?.prerequisiteChecks || rawLesson?.prerequisites || [], 6),
     constraints: asArray(rawLesson?.constraints)
       .map((entry, constraintIndex) => normalizeConstraint(entry, constraintIndex, id))
@@ -230,7 +306,7 @@ function normalizeLesson(rawLesson, index) {
       .map(normalizeMisconception)
       .filter((entry) => entry.claim),
     practiceItems: uniqueStrings(rawLesson?.practiceItems || rawLesson?.practice || [], 8),
-    assessmentIds: uniqueStrings(rawLesson?.assessmentIds || rawLesson?.assessments || [], 12),
+    assessmentIds,
     quizItems: asArray(rawLesson?.quizItems || rawLesson?.mc)
       .map(normalizeQuizItem)
       .filter((item) => item.question),
@@ -435,6 +511,16 @@ export function validateCourseIR(rawIR = {}) {
         repairPath: `${path}.objectives`,
       });
     }
+    if (lesson.outcomes.length === 0) {
+      push('blocker', 'missing-lesson-outcomes', `${path}.outcomes`, 'Lesson needs first-class outcome atoms.', {
+        repairPath: `${path}.outcomes`,
+      });
+    }
+    if (lesson.activities.length === 0) {
+      push('blocker', 'missing-lesson-activities', `${path}.activities`, 'Lesson needs first-class activity atoms.', {
+        repairPath: `${path}.activities`,
+      });
+    }
     if (lesson.conceptIds.length === 0) {
       push('blocker', 'missing-lesson-concepts', `${path}.conceptIds`, 'Lesson needs concept coverage.', {
         repairPath: `${path}.conceptIds`,
@@ -458,6 +544,90 @@ export function validateCourseIR(rawIR = {}) {
           `${path}.prerequisiteConceptIds`,
           `Lesson references missing prerequisite concept ${conceptId}.`,
         );
+      }
+    }
+    for (const [outcomeIndex, outcome] of lesson.outcomes.entries()) {
+      const outcomePath = `${path}.outcomes[${outcomeIndex}]`;
+      if (outcome.conceptIds.length === 0) {
+        push('blocker', 'missing-outcome-concepts', `${outcomePath}.conceptIds`, 'Outcome must link to concepts.', {
+          repairPath: `${outcomePath}.conceptIds`,
+        });
+      }
+      for (const conceptId of outcome.conceptIds) {
+        if (!conceptIds.has(conceptId)) {
+          push(
+            'blocker',
+            'dangling-outcome-concept',
+            `${outcomePath}.conceptIds`,
+            `Outcome references missing concept ${conceptId}.`,
+          );
+        }
+      }
+      for (const assessmentId of outcome.assessmentIds) {
+        if (!assessmentIds.has(assessmentId)) {
+          push(
+            'blocker',
+            'dangling-outcome-assessment',
+            `${outcomePath}.assessmentIds`,
+            `Outcome references missing assessment ${assessmentId}.`,
+          );
+        }
+      }
+    }
+    for (const [activityIndex, activity] of lesson.activities.entries()) {
+      const activityPath = `${path}.activities[${activityIndex}]`;
+      if (activity.conceptIds.length === 0) {
+        push(
+          'blocker',
+          'missing-activity-concepts',
+          `${activityPath}.conceptIds`,
+          'Activity must link to genome/source concepts.',
+          {
+            repairPath: `${activityPath}.conceptIds`,
+          },
+        );
+      }
+      if (activity.assessmentIds.length === 0) {
+        push(
+          'warning',
+          'missing-activity-assessments',
+          `${activityPath}.assessmentIds`,
+          'Activity should link to the assessment it prepares.',
+          {
+            repairPath: `${activityPath}.assessmentIds`,
+          },
+        );
+      }
+      if (!activity.evidence) {
+        push(
+          'warning',
+          'missing-activity-evidence',
+          `${activityPath}.evidence`,
+          'Activity should name its evidence output.',
+          {
+            repairPath: `${activityPath}.evidence`,
+          },
+        );
+      }
+      for (const conceptId of activity.conceptIds) {
+        if (!conceptIds.has(conceptId)) {
+          push(
+            'blocker',
+            'dangling-activity-concept',
+            `${activityPath}.conceptIds`,
+            `Activity references missing concept ${conceptId}.`,
+          );
+        }
+      }
+      for (const assessmentId of activity.assessmentIds) {
+        if (!assessmentIds.has(assessmentId)) {
+          push(
+            'blocker',
+            'dangling-activity-assessment',
+            `${activityPath}.assessmentIds`,
+            `Activity references missing assessment ${assessmentId}.`,
+          );
+        }
       }
     }
     if (lesson.constraints.length === 0) {
@@ -578,6 +748,8 @@ export function validateCourseIR(rawIR = {}) {
       ir.lessons.reduce((sum, lesson) => sum + lesson.factualAnchors.length, 0) +
       ir.concepts.reduce((sum, concept) => sum + concept.factualAnchors.length, 0),
     workedExamples: ir.lessons.reduce((sum, lesson) => sum + lesson.workedExamples.length, 0),
+    outcomes: ir.lessons.reduce((sum, lesson) => sum + lesson.outcomes.length, 0),
+    activities: ir.lessons.reduce((sum, lesson) => sum + lesson.activities.length, 0),
     misconceptionCorrectives:
       ir.lessons.reduce((sum, lesson) => sum + lesson.misconceptions.filter((entry) => entry.correction).length, 0) +
       ir.concepts.reduce((sum, concept) => sum + concept.misconceptions.filter((entry) => entry.correction).length, 0),
@@ -697,6 +869,59 @@ function repairedLessonConstraint(lesson, index) {
     sourceRefs: [],
     severity: 'requirement',
   };
+}
+
+function repairedLessonOutcomes(lesson) {
+  const sourceStatements =
+    lesson.objectives.length > 0
+      ? lesson.objectives
+      : [`Apply ${cleanText(lesson.topic || lesson.title || 'the lesson concept', 120)} with evidence.`];
+  return sourceStatements.map((statement, index) => ({
+    id: `${lesson.id}-O${index + 1}`,
+    statement,
+    performanceVerb: statement.split(/\s+/)[0] || 'Apply',
+    conceptIds: lesson.conceptIds,
+    assessmentIds: lesson.assessmentIds,
+    sourceRefs: [],
+  }));
+}
+
+function repairedLessonActivities(ir, lesson) {
+  const concepts = conceptByIdMap(ir);
+  const linkedConcepts = lesson.conceptIds.map((id) => concepts.get(id)).filter(Boolean);
+  const constraints = constraintsForLesson(ir, lesson);
+  const { asyncActivities, syncActivities } = lessonActivitiesFromIR(
+    {
+      ...lesson,
+      activities: [],
+    },
+    linkedConcepts,
+    constraints,
+  );
+  const topic = cleanText(lesson.topic || lesson.title || 'lesson concept', 120);
+  const evidenceTarget = lesson.assessmentIds[0] || 'lesson assessment';
+  return [
+    ...asyncActivities.map((learnerAction, index) => ({
+      id: `${lesson.id}-ACT${index + 1}`,
+      mode: 'async',
+      title: learnerAction.split(/[:;.]/)[0] || `Prepare ${topic}`,
+      learnerAction,
+      evidence: `Prepared notes for ${evidenceTarget}.`,
+      conceptIds: lesson.conceptIds,
+      assessmentIds: lesson.assessmentIds,
+      sourceRefs: [],
+    })),
+    ...syncActivities.map((learnerAction, index) => ({
+      id: `${lesson.id}-ACT${asyncActivities.length + index + 1}`,
+      mode: 'sync',
+      title: learnerAction.split(/[:;.]/)[0] || `Practice ${topic}`,
+      learnerAction,
+      evidence: `Class artifact or explanation for ${evidenceTarget}.`,
+      conceptIds: lesson.conceptIds,
+      assessmentIds: lesson.assessmentIds,
+      sourceRefs: [],
+    })),
+  ].slice(0, 4);
 }
 
 export function repairCourseIRStructure(rawIR = {}) {
@@ -831,6 +1056,40 @@ export function repairCourseIRStructure(rawIR = {}) {
     changed = true;
   }
 
+  if (ir.lessons.some((lesson) => lesson.outcomes.length === 0)) {
+    const missingOutcomeLessonCount = ir.lessons.filter((lesson) => lesson.outcomes.length === 0).length;
+    ir = normalizeCourseIR({
+      ...ir,
+      lessons: ir.lessons.map((lesson) =>
+        lesson.outcomes.length > 0
+          ? lesson
+          : {
+              ...lesson,
+              outcomes: repairedLessonOutcomes(lesson),
+            },
+      ),
+    });
+    repairs.push({ code: 'added-lesson-outcomes', count: missingOutcomeLessonCount });
+    changed = true;
+  }
+
+  if (ir.lessons.some((lesson) => lesson.activities.length === 0)) {
+    const missingActivityLessonCount = ir.lessons.filter((lesson) => lesson.activities.length === 0).length;
+    ir = normalizeCourseIR({
+      ...ir,
+      lessons: ir.lessons.map((lesson) =>
+        lesson.activities.length > 0
+          ? lesson
+          : {
+              ...lesson,
+              activities: repairedLessonActivities(ir, lesson),
+            },
+      ),
+    });
+    repairs.push({ code: 'added-lesson-activities', count: missingActivityLessonCount });
+    changed = true;
+  }
+
   return { changed, ir, repairs };
 }
 
@@ -879,6 +1138,8 @@ export function buildCourseIRCoverageLedger(rawIR = {}) {
         conceptIds: linkedConcepts.map((concept) => concept.id),
         prerequisiteConceptIds: lesson.prerequisiteConceptIds,
         assessmentIds: [...new Set(assessments.map((assessment) => assessment.id))],
+        outcomeCount: lesson.outcomes.length,
+        activityCount: lesson.activities.length,
         factualAnchorCount: lessonFactCount,
         workedExampleCount: lesson.workedExamples.length,
         misconceptionCount,
@@ -887,6 +1148,8 @@ export function buildCourseIRCoverageLedger(rawIR = {}) {
           linkedConcepts.length > 0 &&
           assessments.length > 0 &&
           lesson.objectives.length > 0 &&
+          lesson.outcomes.length > 0 &&
+          lesson.activities.length > 0 &&
           lessonFactCount > 0 &&
           lesson.workedExamples.length > 0 &&
           constraints.length > 0,
@@ -905,23 +1168,38 @@ function lessonActivitiesFromIR(lesson, concepts, constraints = []) {
   const terms = concepts.map((concept) => concept.term).filter(Boolean);
   const misconception = lesson.misconceptions[0] || concepts.flatMap((concept) => concept.misconceptions || [])[0];
   const workedExample = lesson.workedExamples[0];
+  const derivedAsyncActivities = [
+    ...lesson.prerequisiteChecks.map((check) => `Read and annotate prerequisite check: ${check}`),
+    ...lesson.prerequisiteConceptIds.map((id) => `Preview prerequisite concept ${id}`),
+    ...lesson.practiceItems.slice(0, 2).map((item) => `Prepare practice response: ${item}`),
+    terms.length > 0 ? `Preview key terms: ${terms.slice(0, 4).join(', ')}` : '',
+  ];
+  const derivedSyncActivities = [
+    workedExample ? `Work through ${workedExample.skill || workedExample.setup} with visible solution steps` : '',
+    misconception?.claim ? `Misconception check: ${misconception.claim}` : '',
+    ...constraints.slice(0, 2).map((constraint) => `Constraint check: ${constraint.text}`),
+    ...lesson.practiceItems.slice(2, 4).map((item) => `Peer practice: ${item}`),
+  ];
+  const explicitAsyncActivities = lesson.activities
+    .filter((activity) => activity.mode === 'async' || activity.mode === 'assessment-prep')
+    .map(formatActivityLine);
+  const explicitSyncActivities = lesson.activities
+    .filter((activity) => activity.mode === 'sync' || activity.mode === 'practice')
+    .map(formatActivityLine);
+  const unassignedActivities = lesson.activities
+    .filter(
+      (activity) =>
+        !explicitAsyncActivities.includes(formatActivityLine(activity)) &&
+        !explicitSyncActivities.includes(formatActivityLine(activity)),
+    )
+    .map(formatActivityLine);
   return {
     asyncActivities: uniqueStrings(
-      [
-        ...lesson.prerequisiteChecks.map((check) => `Read and annotate prerequisite check: ${check}`),
-        ...lesson.prerequisiteConceptIds.map((id) => `Preview prerequisite concept ${id}`),
-        ...lesson.practiceItems.slice(0, 2).map((item) => `Prepare practice response: ${item}`),
-        terms.length > 0 ? `Preview key terms: ${terms.slice(0, 4).join(', ')}` : '',
-      ],
+      [...explicitAsyncActivities, ...unassignedActivities.slice(0, 1), ...derivedAsyncActivities],
       4,
     ),
     syncActivities: uniqueStrings(
-      [
-        workedExample ? `Work through ${workedExample.skill || workedExample.setup} with visible solution steps` : '',
-        misconception?.claim ? `Misconception check: ${misconception.claim}` : '',
-        ...constraints.slice(0, 2).map((constraint) => `Constraint check: ${constraint.text}`),
-        ...lesson.practiceItems.slice(2, 4).map((item) => `Peer practice: ${item}`),
-      ],
+      [...explicitSyncActivities, ...unassignedActivities.slice(1), ...derivedSyncActivities],
       4,
     ),
   };
@@ -945,6 +1223,10 @@ export function courseIRToCourseMap(rawIR = {}) {
       const constraints = constraintsForLesson(ir, lesson);
       const prerequisiteTerms = lesson.prerequisiteConceptIds.map((id) => concepts.get(id)?.term || id).filter(Boolean);
       const { asyncActivities, syncActivities } = lessonActivitiesFromIR(lesson, linkedConcepts, constraints);
+      const learningObjectives = uniqueStrings(
+        [...lesson.outcomes.map((outcome) => outcome.statement), ...lesson.objectives],
+        8,
+      );
       return {
         title: lesson.title || `Lesson ${index + 1}: ${lesson.topic}`,
         sections: [
@@ -957,7 +1239,7 @@ export function courseIRToCourseMap(rawIR = {}) {
               ],
               3,
             ).join('; '),
-            learningObjectives: lesson.objectives.join('; '),
+            learningObjectives: learningObjectives.join('; '),
             weeklyAssessments: uniqueStrings(assessments.map(buildAssessmentCell), 5).join('; '),
             asyncActivities: asyncActivities.join('; '),
             syncActivities: syncActivities.join('; '),
@@ -1043,6 +1325,8 @@ function lessonKernelFromIR(ir, lesson) {
     )
     .filter(Boolean);
   const assessment = (ir.assessments || []).find((entry) => entry.lessonIds.includes(lesson.id));
+  const activityLines = lesson.activities.map(formatActivityLine).filter(Boolean);
+  const outcomeStatements = lesson.outcomes.map((outcome) => outcome.statement).filter(Boolean);
   const workedExample = lesson.workedExamples[0]
     ? {
         problem: lesson.workedExamples[0].setup,
@@ -1061,6 +1345,7 @@ function lessonKernelFromIR(ir, lesson) {
         [
           assessment?.title,
           lesson.workedExamples[0]?.setup,
+          ...activityLines,
           ...lesson.practiceItems,
           ...prerequisiteTerms.map((term) => `prerequisite: ${term}`),
           ...constraints.map((constraint) => `constraint: ${constraint.text}`),
@@ -1081,8 +1366,14 @@ function lessonKernelFromIR(ir, lesson) {
       taskDescription:
         assessment?.prompt || assessment?.title || `Apply ${lesson.topic} to a concrete course artifact.`,
       parameters: uniqueStrings(
-        [...(assessment?.rubricDimensions || []), ...lesson.objectives, ...constraints.map((entry) => entry.text)],
-        7,
+        [
+          ...(assessment?.rubricDimensions || []),
+          ...outcomeStatements,
+          ...lesson.objectives,
+          ...constraints.map((entry) => entry.text),
+          ...activityLines,
+        ],
+        9,
       ),
     },
     mc: [...lesson.quizItems, ...generatedMc].slice(0, 8),
@@ -1216,13 +1507,44 @@ export function buildCourseIRFromCourseMap(courseMap = {}) {
     const section = asArray(lesson.sections)[0] || {};
     const conceptId = `C${index + 1}`;
     const assessmentId = `A${index + 1}`;
+    const objectives = uniqueStrings(String(section.learningObjectives || '').split(/;|\n/), 6);
+    const topic = cleanText(section.topicSection || lesson.title || `Lesson ${index + 1}`, 160);
+    const asyncActivities = uniqueStrings(String(section.asyncActivities || '').split(/;|\n/), 4);
+    const syncActivities = uniqueStrings(String(section.syncActivities || '').split(/;|\n/), 4);
     return {
       id: `L${index + 1}`,
       title: cleanText(lesson.title || `Lesson ${index + 1}`, 180),
-      topic: cleanText(section.topicSection || lesson.title || `Lesson ${index + 1}`, 160),
+      topic,
       conceptIds: [conceptId],
       prerequisiteConceptIds: index > 0 ? [`C${index}`] : [],
-      objectives: uniqueStrings(String(section.learningObjectives || '').split(/;|\n/), 6),
+      objectives,
+      outcomes: objectives.map((statement, outcomeIndex) => ({
+        id: `L${index + 1}-O${outcomeIndex + 1}`,
+        statement,
+        performanceVerb: statement.split(/\s+/)[0] || 'Apply',
+        conceptIds: [conceptId],
+        assessmentIds: [assessmentId],
+      })),
+      activities: [
+        ...asyncActivities.map((learnerAction, activityIndex) => ({
+          id: `L${index + 1}-ACT${activityIndex + 1}`,
+          mode: 'async',
+          title: learnerAction.split(/[:;.]/)[0] || `Prepare ${topic}`,
+          learnerAction,
+          evidence: `Preparation notes for ${assessmentId}.`,
+          conceptIds: [conceptId],
+          assessmentIds: [assessmentId],
+        })),
+        ...syncActivities.map((learnerAction, activityIndex) => ({
+          id: `L${index + 1}-ACT${asyncActivities.length + activityIndex + 1}`,
+          mode: 'sync',
+          title: learnerAction.split(/[:;.]/)[0] || `Practice ${topic}`,
+          learnerAction,
+          evidence: `Class artifact or explanation for ${assessmentId}.`,
+          conceptIds: [conceptId],
+          assessmentIds: [assessmentId],
+        })),
+      ],
       prerequisiteChecks:
         index > 0
           ? [
@@ -1322,7 +1644,7 @@ export function buildCourseIRPromptPayload({
   return {
     task: 'courseir-v1',
     instruction:
-      'Return compact CourseIR JSON only. Write semantic atoms, not final deliverable prose. Preserve source facts, mark assumptions, and link every lesson to concepts, prerequisite concepts, constraints, and assessments.',
+      'Return compact CourseIR JSON only. Write semantic atoms, not final deliverable prose. Preserve source facts, mark assumptions, and link every lesson to concepts, prerequisite concepts, constraints, outcomes, activities, and assessments. Each lesson needs outcomes[] objects and activities[] objects; activities must name learnerAction, evidence, mode, conceptIds, and assessmentIds.',
     selectedFeatureIds,
     sourcePacket: {
       courseName: courseMap?.courseName || '',
@@ -1428,6 +1750,8 @@ export function assessCourseIRDirectAuthoring(validation, { expectedLessons = nu
   if (lessonCount === 0) blockers.push('no-lessons');
   if (completeLessons < lessonCount) blockers.push(`coverage ${completeLessons}/${lessonCount}`);
   if ((validation?.stats?.assessments || 0) < lessonCount) blockers.push('under-assessed');
+  if ((validation?.stats?.outcomes || 0) < lessonCount) blockers.push('thin-outcomes');
+  if ((validation?.stats?.activities || 0) < lessonCount * 2) blockers.push('thin-activities');
   if ((validation?.stats?.factualAnchors || 0) < lessonCount) blockers.push('thin-facts');
   if ((validation?.stats?.workedExamples || 0) < lessonCount) blockers.push('thin-examples');
   if ((validation?.stats?.misconceptionCorrectives || 0) < lessonCount) blockers.push('thin-misconceptions');
@@ -1512,7 +1836,55 @@ export const COURSE_IR_RESPONSE_SCHEMA = {
     sourceLedger: { type: 'array', items: { type: 'object', additionalProperties: true } },
     constraints: { type: 'array', items: { type: 'object', additionalProperties: true } },
     concepts: { type: 'array', items: { type: 'object', additionalProperties: true } },
-    lessons: { type: 'array', items: { type: 'object', additionalProperties: true } },
+    lessons: {
+      type: 'array',
+      items: {
+        type: 'object',
+        additionalProperties: true,
+        required: ['id', 'topic', 'conceptIds', 'outcomes', 'activities', 'assessmentIds'],
+        properties: {
+          id: { type: 'string' },
+          title: { type: 'string' },
+          topic: { type: 'string' },
+          conceptIds: { type: 'array', items: { type: 'string' } },
+          prerequisiteConceptIds: { type: 'array', items: { type: 'string' } },
+          objectives: { type: 'array', items: { type: 'string' } },
+          outcomes: {
+            type: 'array',
+            items: {
+              type: 'object',
+              additionalProperties: true,
+              required: ['statement', 'conceptIds', 'assessmentIds'],
+              properties: {
+                id: { type: 'string' },
+                statement: { type: 'string' },
+                performanceVerb: { type: 'string' },
+                conceptIds: { type: 'array', items: { type: 'string' } },
+                assessmentIds: { type: 'array', items: { type: 'string' } },
+              },
+            },
+          },
+          activities: {
+            type: 'array',
+            items: {
+              type: 'object',
+              additionalProperties: true,
+              required: ['mode', 'learnerAction', 'evidence', 'conceptIds', 'assessmentIds'],
+              properties: {
+                id: { type: 'string' },
+                mode: { type: 'string', enum: [...VALID_ACTIVITY_MODES] },
+                title: { type: 'string' },
+                learnerAction: { type: 'string' },
+                evidence: { type: 'string' },
+                conceptIds: { type: 'array', items: { type: 'string' } },
+                assessmentIds: { type: 'array', items: { type: 'string' } },
+              },
+            },
+          },
+          assessmentIds: { type: 'array', items: { type: 'string' } },
+        },
+      },
+    },
     assessments: { type: 'array', items: { type: 'object', additionalProperties: true } },
     artifactIntents: { type: 'array', items: { type: 'object', additionalProperties: true } },
     handoffNotes: { type: 'array', items: { type: 'object', additionalProperties: true } },

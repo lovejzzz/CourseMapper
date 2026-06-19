@@ -133,6 +133,43 @@ function makeCalculusIR() {
           'Interpret a limit from a table, graph, and symbolic expression.',
           'Distinguish a function value from approach behavior near a point.',
         ],
+        outcomes: [
+          {
+            id: 'L1-O1',
+            statement: 'Interpret a limit from a table, graph, and symbolic expression.',
+            performanceVerb: 'Interpret',
+            conceptIds: ['C1'],
+            assessmentIds: ['A1'],
+          },
+          {
+            id: 'L1-O2',
+            statement: 'Distinguish a function value from approach behavior near a point.',
+            performanceVerb: 'Distinguish',
+            conceptIds: ['C1'],
+            assessmentIds: ['A1'],
+          },
+        ],
+        activities: [
+          {
+            id: 'L1-ACT1',
+            mode: 'async',
+            title: 'Annotate limit evidence',
+            learnerAction: 'Annotate one table, graph, and symbolic expression for the same target input.',
+            evidence: 'Prepared evidence notes separating approach behavior from function value.',
+            conceptIds: ['C1'],
+            assessmentIds: ['A1'],
+          },
+          {
+            id: 'L1-ACT2',
+            mode: 'sync',
+            title: 'Defend a removable-discontinuity limit',
+            learnerAction:
+              'Compare peer justifications for a removable-discontinuity limit and revise one explanation.',
+            evidence: 'Revised explanation citing two representations.',
+            conceptIds: ['C1'],
+            assessmentIds: ['A1'],
+          },
+        ],
         prerequisiteChecks: ['Evaluate function values from a graph and table.'],
         constraints: [
           {
@@ -207,6 +244,42 @@ function makeCalculusIR() {
         objectives: [
           'Use the difference quotient to define derivative at a point.',
           'Interpret derivative values as tangent slope and instantaneous rate.',
+        ],
+        outcomes: [
+          {
+            id: 'L2-O1',
+            statement: 'Use the difference quotient to define derivative at a point.',
+            performanceVerb: 'Use',
+            conceptIds: ['C1', 'C2'],
+            assessmentIds: ['A2'],
+          },
+          {
+            id: 'L2-O2',
+            statement: 'Interpret derivative values as tangent slope and instantaneous rate.',
+            performanceVerb: 'Interpret',
+            conceptIds: ['C2'],
+            assessmentIds: ['A2'],
+          },
+        ],
+        activities: [
+          {
+            id: 'L2-ACT1',
+            mode: 'async',
+            title: 'Prepare difference-quotient steps',
+            learnerAction: 'Write each algebraic move in one difference quotient before class.',
+            evidence: 'Annotated step list showing h remains nonzero before the limit.',
+            conceptIds: ['C1', 'C2'],
+            assessmentIds: ['A2'],
+          },
+          {
+            id: 'L2-ACT2',
+            mode: 'sync',
+            title: 'Test tangent-slope interpretations',
+            learnerAction: 'Use graph and algebra evidence to defend one tangent-slope interpretation.',
+            evidence: 'Class explanation connecting derivative value to tangent slope.',
+            conceptIds: ['C2'],
+            assessmentIds: ['A2'],
+          },
         ],
         prerequisiteChecks: ['Explain one-sided and two-sided limit agreement.'],
         constraints: [
@@ -358,6 +431,8 @@ describe('CourseIR v1', () => {
       concepts: 2,
       assessments: 2,
       workedExamples: 2,
+      outcomes: 4,
+      activities: 4,
       sourceLedgerRows: 2,
       constraints: 3,
       prerequisiteLinks: 2,
@@ -440,6 +515,54 @@ describe('CourseIR v1', () => {
     });
     expect(compiled.courseIRProof.repairs).toEqual(
       expect.arrayContaining([expect.objectContaining({ code: 'added-course-constraints' })]),
+    );
+  });
+
+  it('repairs missing outcome and activity atoms before compile', () => {
+    const broken = {
+      ...makeCalculusIR(),
+      lessons: makeCalculusIR().lessons.map((lesson) => ({
+        ...lesson,
+        outcomes: [],
+        activities: [],
+      })),
+    };
+
+    const validation = validateCourseIR(broken);
+    expect(validation.valid).toBe(false);
+    expect(validation.issues.map((entry) => entry.code)).toEqual(
+      expect.arrayContaining(['missing-lesson-outcomes', 'missing-lesson-activities']),
+    );
+
+    const repair = repairCourseIRStructure(broken);
+    const repairedValidation = validateCourseIR(repair.ir);
+    expect(repair.changed).toBe(true);
+    expect(repair.repairs).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ code: 'added-lesson-outcomes', count: 2 }),
+        expect.objectContaining({ code: 'added-lesson-activities', count: 2 }),
+      ]),
+    );
+    expect(repairedValidation.valid).toBe(true);
+    expect(repairedValidation.stats).toMatchObject({
+      outcomes: 4,
+      activities: 8,
+    });
+    expect(repairedValidation.coverage.lessons.every((lesson) => lesson.outcomeCount > 0)).toBe(true);
+    expect(repairedValidation.coverage.lessons.every((lesson) => lesson.activityCount > 0)).toBe(true);
+
+    const compiled = compileCourseIR(broken, { featureIds: ['syllabus'] });
+    expect(compiled.courseIRProof).toMatchObject({
+      valid: true,
+      repairedBeforeCompile: true,
+      graphValid: true,
+      providerCallsDuringCompile: 0,
+    });
+    expect(compiled.courseIRProof.repairs).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ code: 'added-lesson-outcomes' }),
+        expect.objectContaining({ code: 'added-lesson-activities' }),
+      ]),
     );
   });
 
@@ -690,6 +813,33 @@ describe('CourseIR v1', () => {
       graphValid: true,
       providerCallsDuringCompile: 0,
     });
+  });
+
+  it('rejects prose-derived outcomes and activities as direct provider authoring', () => {
+    const proseOnly = {
+      ...makeCalculusIR(),
+      lessons: makeCalculusIR().lessons.map((lesson) => ({
+        ...lesson,
+        outcomes: [],
+        activities: [],
+      })),
+    };
+    const parsed = parseCourseIRResponse(JSON.stringify(proseOnly), { expectedLessons: 2 });
+
+    expect(parsed.validation.valid).toBe(true);
+    expect(parsed.repair.changed).toBe(true);
+    expect(parsed.repair.repairs).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ code: 'added-lesson-outcomes' }),
+        expect.objectContaining({ code: 'added-lesson-activities' }),
+      ]),
+    );
+    expect(parsed.acceptance).toMatchObject({
+      accepted: false,
+      repairedBeforeAcceptance: true,
+    });
+    expect(parsed.acceptance.reason).toContain('repaired-structure');
+    expect(parsed.acceptance.reason).toContain('added-lesson-activities');
   });
 
   it('rejects thin direct CourseIR even when structural validation can pass', () => {
