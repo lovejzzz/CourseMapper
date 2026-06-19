@@ -334,6 +334,34 @@ export function scanText(patterns, text, { evidenceChars = 160 } = {}) {
   return hits;
 }
 
+const PROMPT_ARTIFACT_TOPIC_SOURCE =
+  'evidence-rich lesson plans|lesson plans|slide decks|assignment briefs|rubrics|discussion prompts|quizzes|quiz bank|study guides|course faq|worked examples|misconceptions|instructor handoff notes';
+const PROMPT_ARTIFACT_TOPIC_RE = new RegExp(`\\b(${PROMPT_ARTIFACT_TOPIC_SOURCE})\\b`, 'i');
+const NUMBERED_PROMPT_ARTIFACT_TOPIC_RE = new RegExp(
+  `\\b\\d+(?:\\.\\d+)+\\s*:\\s*(${PROMPT_ARTIFACT_TOPIC_SOURCE})\\b`,
+  'i',
+);
+const PROMPT_ARTIFACT_FOCUS_RE = /\b(?:focus(?:es)? on|checks? on|key concept|source artifacts?)\b/i;
+const INSTRUCTIONAL_DESIGN_COURSE_RE =
+  /\b(?:instructional design|course design|curriculum design|assessment design|teacher education|teaching methods|pedagogy|education)\b/i;
+
+export function isInstructionalDesignPackage(course, manifest) {
+  return INSTRUCTIONAL_DESIGN_COURSE_RE.test(
+    `${course?.id || ''} ${course?.title || ''} ${manifest?.courseName || ''}`,
+  );
+}
+
+export function findPromptArtifactContamination(line) {
+  const value = String(line || '')
+    .replace(/\s+/g, ' ')
+    .trim();
+  if (!value) return null;
+  const match =
+    value.match(NUMBERED_PROMPT_ARTIFACT_TOPIC_RE) ||
+    (PROMPT_ARTIFACT_FOCUS_RE.test(value) ? value.match(PROMPT_ARTIFACT_TOPIC_RE) : null);
+  return match ? { evidence: value, label: String(match[1] || '').toLowerCase() } : null;
+}
+
 // ── Known-offender citation blacklist (single source of truth) ──────────────
 // The v0.14 four-course audit's most credibility-damaging defect class: the
 // most-cited paper in a field attached as a weekly student reading for a bare

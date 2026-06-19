@@ -88,6 +88,32 @@ const FAQ_CATEGORIES = new Set([
   'Assessment Prep',
 ]);
 
+const PROMPT_ARTIFACT_TOPIC_LABELS = [
+  'evidence-rich lesson plans',
+  'lesson plans',
+  'slide decks',
+  'assignment briefs',
+  'rubrics',
+  'discussion prompts',
+  'quizzes',
+  'quiz bank',
+  'study guides',
+  'course faq',
+  'worked examples',
+  'misconceptions',
+  'instructor handoff notes',
+];
+
+const PROMPT_ARTIFACT_TOPIC_SET = new Set(PROMPT_ARTIFACT_TOPIC_LABELS);
+const NUMBERED_PROMPT_ARTIFACT_TOPIC_RE = new RegExp(
+  `\\b\\d+(?:\\.\\d+)+\\s*:\\s*(?:${PROMPT_ARTIFACT_TOPIC_LABELS.map((label) =>
+    label.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'),
+  ).join('|')})\\b`,
+  'i',
+);
+const INSTRUCTIONAL_DESIGN_COURSE_RE =
+  /\b(?:instructional design|course design|curriculum design|assessment design|teacher education|teaching methods|pedagogy|education)\b/i;
+
 function labelFor(featureId) {
   return READINESS_FEATURE_LABELS[featureId] || (featureId?.startsWith('custom_') ? 'Custom Deliverable' : featureId);
 }
@@ -276,23 +302,69 @@ function titleCandidateFromCourseMapTopic(value) {
     candidate = commaParts.slice(-5).join(', ');
   }
   return text(candidate.replace(/^(?:studio\s+seminar|clinical\s+placement|field\s+application)\s*[:.-]?\s*/i, ''))
+    .replace(/^(?:lesson|week|module|unit|session)\s*\d{1,3}\s*[:.-]?\s*/i, '')
+    .replace(/^\d+(?:\.\d+)*\s*[:.)-]\s*/i, '')
     .replace(/^(?:and\s+)+/i, '')
     .replace(/\s+/g, ' ')
     .trim();
 }
 
-function isWeakCourseMapTopic(value) {
+function isInstructionalDesignCourse(courseMap) {
+  const context = [
+    courseMap?.courseName,
+    ...(Array.isArray(courseMap?.lessons) ? courseMap.lessons.map((lesson) => lesson?.title) : []),
+  ]
+    .map(text)
+    .join(' ');
+  return INSTRUCTIONAL_DESIGN_COURSE_RE.test(context);
+}
+
+function normalizePromptArtifactTopic(value) {
+  return text(value)
+    .replace(/^(?:lesson|week|module|unit|session)\s*\d{1,3}\s*[:.-]?\s*/i, '')
+    .replace(/^\d+(?:\.\d+)*\s*[:.)-]\s*/i, '')
+    .replace(/[^\w& -]+/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim()
+    .toLowerCase();
+}
+
+function isPromptArtifactTopic(value, courseMap) {
+  if (isInstructionalDesignCourse(courseMap)) return false;
+  return PROMPT_ARTIFACT_TOPIC_SET.has(normalizePromptArtifactTopic(value));
+}
+
+function needsPromptArtifactCourseMapRepair(key, value, courseMap) {
+  if (isInstructionalDesignCourse(courseMap)) return false;
+  const raw = text(value);
+  if (!raw) return false;
+  if (key === 'topicSection' && isPromptArtifactTopic(raw, courseMap)) return true;
+  if (NUMBERED_PROMPT_ARTIFACT_TOPIC_RE.test(raw)) return true;
+  if (key === 'supportingResources') {
+    const lines = raw
+      .split(/\n|;|\||\u2022/)
+      .map((line) => normalizePromptArtifactTopic(line))
+      .filter(Boolean);
+    const artifactLines = lines.filter((line) => PROMPT_ARTIFACT_TOPIC_SET.has(line)).length;
+    if (artifactLines >= 3) return true;
+  }
+  return false;
+}
+
+function isWeakCourseMapTopic(value, courseMap) {
   const candidate = text(value);
   if (!candidate || findPublishabilityPlaceholders(candidate, { limit: 1 }).length > 0) return true;
+  if (isPromptArtifactTopic(candidate, courseMap) || NUMBERED_PROMPT_ARTIFACT_TOPIC_RE.test(candidate)) return true;
+  if (GENERIC_COURSE_MAP_FALLBACK_RE.test(candidate)) return true;
   return /^(?:none|n\/a|not applicable|lesson|week|topic|block|clinical|community|health|studio|seminar|placement)$/i.test(
     candidate,
   );
 }
 
-function pickCourseMapTopic(candidates = []) {
+function pickCourseMapTopic(candidates = [], courseMap) {
   return candidates
     .map(titleCandidateFromCourseMapTopic)
-    .filter((candidate) => !isWeakCourseMapTopic(candidate))
+    .filter((candidate) => !isWeakCourseMapTopic(candidate, courseMap))
     .map((candidate, index) => {
       const wordLength = candidate.split(/\s+/).filter(Boolean).length;
       const punctuationPenalty = /[,;]/.test(candidate) ? 4 : 0;
@@ -327,12 +399,12 @@ function getCourseMapTopic(courseMap, lesson, section, lessonIndex) {
   const titleCandidates = courseMapTopicList(lesson?.title);
   const courseCandidates = courseMapTopicList(courseMap?.courseName);
   const raw =
-    pickCourseMapTopic(sectionTopicCandidates) ||
-    pickCourseMapTopic(sectionSupportingCandidates) ||
-    pickCourseMapTopic(siblingTopicCandidates) ||
-    pickCourseMapTopic(siblingSupportingCandidates) ||
-    pickCourseMapTopic(titleCandidates) ||
-    pickCourseMapTopic(courseCandidates);
+    pickCourseMapTopic(sectionTopicCandidates, courseMap) ||
+    pickCourseMapTopic(sectionSupportingCandidates, courseMap) ||
+    pickCourseMapTopic(siblingTopicCandidates, courseMap) ||
+    pickCourseMapTopic(siblingSupportingCandidates, courseMap) ||
+    pickCourseMapTopic(titleCandidates, courseMap) ||
+    pickCourseMapTopic(courseCandidates, courseMap);
   return raw || `Lesson ${lessonIndex + 1}`;
 }
 
@@ -340,7 +412,7 @@ const HISTORY_COURSE_MAP_RE =
   /\b(?:western civilization|civilization|world history|history|historical|ancient|medieval|middle ages|renaissance|reformation|mesopotamia|egypt|egyptian|greece|greek|rome|roman|byzantine|islamic|crusade|feudal|charlemagne|carolingian|empire|kingdom|primary[- ]source|source analysis)\b/i;
 
 const GENERIC_COURSE_MAP_FALLBACK_RE =
-  /\b(?:observe, label, calculate, or decide|course task or example|course activities|evidence of learning|lab materials|discipline-specific tools)\b/i;
+  /\b(?:course problem|next assessment|observe, label, calculate, or decide|course task or example|course activities|evidence of learning|lab materials|discipline-specific tools)\b/i;
 
 function inferCourseMapFallbackProfile(courseMap, lesson, section) {
   const sections = Array.isArray(lesson?.sections) && lesson.sections.length > 0 ? lesson.sections : [section || {}];
@@ -668,6 +740,21 @@ export function repairCourseMapReadiness({ courseMap, columns = [], lessonFilter
         };
         repairedFields.push(
           `Lesson ${lessonIndex + 1}, Section ${sectionIndex + 1} ${columnLabel(columns, key)} (semantic)`,
+        );
+        sectionsChanged = true;
+        changed = true;
+      }
+      // Prompt requests often list artifact genres ("lesson plans, slide
+      // decks, rubrics..."). If fallback authoring mistakes those labels for
+      // content, replace the cell from the real lesson topic before compile.
+      for (const key of columnsToNormalize) {
+        if (!needsPromptArtifactCourseMapRepair(key, nextSection?.[key], courseMap)) continue;
+        nextSection = {
+          ...nextSection,
+          [key]: getCourseMapFallbackValue(key, courseMap, nextLesson, nextSection, lessonIndex),
+        };
+        repairedFields.push(
+          `Lesson ${lessonIndex + 1}, Section ${sectionIndex + 1} ${columnLabel(columns, key)} (prompt artifact)`,
         );
         sectionsChanged = true;
         changed = true;

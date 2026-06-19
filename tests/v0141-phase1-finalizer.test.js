@@ -344,3 +344,67 @@ describe('1.15 — JSON corruption never reaches a course-map cell', () => {
     expect(result.repairedFields).toContain('Lesson 1, Section 1 Learning Objectives (corruption)');
   });
 });
+
+describe('1.16 — prompt artifact labels never become course-map concepts', () => {
+  it('repairs deliverable-request nouns back to the lesson topic before compilation', () => {
+    const contaminatedMap = {
+      courseName: 'Introduction to Environmental Science: Climate, Ecology, and Sustainability',
+      lessons: [
+        {
+          title: 'Lesson 1: Ecosystems',
+          sections: [
+            {
+              topicSection: '1.1: ecosystems',
+              learningGoals: 'Use 1.1: ecosystems to explain ecosystem boundaries.',
+              learningObjectives: 'Explain ecosystem components and interactions.',
+              weeklyAssessments: 'Quick evidence check: apply 1.1: ecosystems to a new example.',
+              supportingResources: [
+                'evidence-rich lesson plans',
+                'slide decks',
+                'assignment briefs',
+                'rubrics',
+                'discussion prompts',
+                'quizzes',
+                'study guides',
+                'course FAQ',
+              ].join('\n'),
+            },
+            {
+              topicSection: '1.2: evidence-rich lesson plans',
+              learningGoals:
+                'Trace how 1.2: evidence-rich lesson plans changes what students can observe, label, calculate, or decide.',
+              learningObjectives:
+                'Explain the key ideas in 1.2: evidence-rich lesson plans and apply them in course activities.',
+              weeklyAssessments: 'Quick evidence check: apply 1.2: evidence-rich lesson plans to a new example.',
+              supportingResources:
+                'Instructor-approved readings, examples, or lab materials for 1.2: evidence-rich lesson plans.',
+            },
+            {
+              topicSection: '1.3: slide decks',
+              learningGoals: 'Develop an evidence-backed account of 1.3: slide decks for course applications.',
+              learningObjectives: 'Explain the key ideas in 1.3: slide decks and apply them in course activities.',
+              weeklyAssessments: 'Quick evidence check: apply 1.3: slide decks to a new example.',
+              supportingResources: 'Instructor-approved readings, examples, or lab materials for 1.3: slide decks.',
+            },
+          ],
+        },
+      ],
+    };
+
+    const result = repairCourseMapReadiness({ courseMap: contaminatedMap });
+    const repairedText = JSON.stringify(result.courseMap);
+
+    expect(result.repairedFields).toEqual(
+      expect.arrayContaining([
+        'Lesson 1, Section 1 Supporting Resources (prompt artifact)',
+        'Lesson 1, Section 2 Topic Section (prompt artifact)',
+        'Lesson 1, Section 2 Learning Goals (prompt artifact)',
+        'Lesson 1, Section 3 Topic Section (prompt artifact)',
+      ]),
+    );
+    expect(result.courseMap.lessons[0].sections[1].topicSection).toBe('ecosystems');
+    expect(result.courseMap.lessons[0].sections[2].topicSection).toBe('ecosystems');
+    expect(repairedText).not.toMatch(/\b\d+\.\d+:\s*(?:evidence-rich lesson plans|slide decks)\b/i);
+    expect(repairedText).not.toContain('course FAQ\\nworked examples');
+  });
+});

@@ -445,3 +445,84 @@ describe('v0.15.6 anatomy and texture quality regressions', () => {
     expect(result.overall.score).toBeLessThan(100);
   });
 });
+
+describe('v0.15.11 prompt-artifact contamination regressions', () => {
+  it('blocks packages that use requested deliverable labels as lesson concepts', async () => {
+    const result = await grade({
+      fileProvider: createMemoryFileProvider({
+        'PACKAGE_MANIFEST.json': JSON.stringify({
+          courseName: 'Introduction to Environmental Science: Climate, Ecology, and Sustainability',
+          lessonScope: 'all',
+          assessments: [],
+          files: [],
+          readiness: { status: 'ready', blockers: 0 },
+        }),
+        'Course Map/Introduction to Environmental Science - Course Map.md': [
+          '# Course Map',
+          'Lesson 1: Ecosystems',
+          '1.1: ecosystems',
+          'Supporting resources: evidence-rich lesson plans; slide decks; assignment briefs; rubrics; discussion prompts',
+          '1.2: evidence-rich lesson plans',
+          '1.3: slide decks',
+          'Lesson 5: Environmental justice',
+          '5.2: course FAQ',
+        ].join('\n'),
+        'Study Guides/Lesson 01 - Ecosystems - Study Guides.md': [
+          '# Lesson 1: Ecosystems',
+          'Use this guide to prepare for week 1 checks on ecosystems, evidence-rich lesson plans, slide decks and later assessments.',
+          'Concept summary: Lesson 1 focuses on evidence-rich lesson plans, slide decks.',
+        ].join('\n'),
+      }),
+      course: {
+        id: 'environmental-science',
+        title: 'Introduction to Environmental Science: Climate, Ecology, and Sustainability',
+        featureIds: ['courseMap', 'studyGuides'],
+      },
+    });
+
+    expect(result.findings).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          severity: 'P0',
+          dimension: 'substance',
+          detail: expect.stringMatching(/prompt artifact labels used as lesson concepts/i),
+        }),
+      ]),
+    );
+    expect(result.overall.score).toBeLessThanOrEqual(74);
+  });
+
+  it('does not flag instructional-design courses that explicitly teach those artifact genres', async () => {
+    const result = await grade({
+      fileProvider: createMemoryFileProvider({
+        'PACKAGE_MANIFEST.json': JSON.stringify({
+          courseName: 'Instructional Design Studio: Assessment and Course Artifacts',
+          lessonScope: 'all',
+          assessments: [],
+          files: [],
+          readiness: { status: 'ready', blockers: 0 },
+        }),
+        'Course Map/Instructional Design Studio - Course Map.md': [
+          '# Course Map',
+          'Lesson 1: Rubrics and Assignment Briefs',
+          '1.1: rubrics',
+          '1.2: assignment briefs',
+          'Students compare rubric criteria with assignment briefs.',
+        ].join('\n'),
+      }),
+      course: {
+        id: 'instructional-design-studio',
+        title: 'Instructional Design Studio: Assessment and Course Artifacts',
+        featureIds: ['courseMap'],
+      },
+    });
+
+    expect(result.findings).not.toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          detail: expect.stringMatching(/prompt artifact labels/i),
+        }),
+      ]),
+    );
+  });
+});

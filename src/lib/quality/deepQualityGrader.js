@@ -68,6 +68,8 @@ import {
   isTruncatedBulletLine,
   scanText,
   matchesKnownOffender,
+  findPromptArtifactContamination,
+  isInstructionalDesignPackage,
   blacklistYieldsToTopicalOverlap as offenderYieldsToTopicalOverlap,
 } from './artifactDefectPatterns.js';
 // V0.14.7 WS-D D1 introduced the texture metric; v0.15.6 makes it score-bearing.
@@ -94,7 +96,9 @@ import { computeTexture, textureDocsFromFiles, buildTextureAdvisories, TEXTURE_V
 // findings, and A&P required assets reject geology/chemistry field-lab nouns.
 // 1.6.0 — v0.15.8: run-digest caveats (partial enrichment/template fallback
 // and map-assessment artifact coverage) become scored package findings.
-export const GRADER_VERSION = '1.6.0';
+// 1.7.0 — v0.15.11: prompt artifact labels used as lesson concepts become
+// scored package findings.
+export const GRADER_VERSION = '1.7.0';
 
 // ── Dimension weights & letter bands (documented in the module header) ──────
 // texture now has a small score-bearing weight. It should be able to pull a
@@ -432,6 +436,32 @@ function quote(text, limit = 200) {
     .replace(/\s+/g, ' ')
     .trim()
     .slice(0, limit);
+}
+
+function checkPromptArtifactContamination(findings, { files, manifest }, course) {
+  if (isInstructionalDesignPackage(course, manifest)) return;
+  const hits = [];
+  for (const file of files) {
+    const units = formatScanUnits(file);
+    for (const unit of units) {
+      const hit = findPromptArtifactContamination(unit);
+      if (!hit) continue;
+      hits.push({ file, ...hit });
+      if (hits.length >= 80) break;
+    }
+    if (hits.length >= 80) break;
+  }
+  if (hits.length === 0) return;
+  const evidenceHit = hits.find((entry) => entry.file.featureId === 'courseMap') || hits[0];
+  const courseMapHitCount = hits.filter((entry) => entry.file.featureId === 'courseMap').length;
+  const severe = courseMapHitCount >= 2 || hits.length >= 3;
+  findings.add({
+    severity: severe ? 'P0' : 'P1',
+    dimension: 'substance',
+    file: evidenceHit.file.path || 'package',
+    detail: 'prompt artifact labels used as lesson concepts',
+    evidence: evidenceHit.evidence,
+  });
 }
 
 // Normalize a title to tokens for subset matching (mirrors packageFinalizer).
@@ -3120,6 +3150,7 @@ export async function grade({
   checkGenomeBar(findings, pkg, course, consoleLogText, honesty);
   checkUnevaluatedCourseJudgment(findings, pkg, course, consoleLogText, honesty);
   checkCitations(findings, pkg, course);
+  checkPromptArtifactContamination(findings, pkg, course);
   checkSubstance(findings, pkg, course);
   checkDiscipline(findings, pkg, course);
   checkFormat(findings, pkg);

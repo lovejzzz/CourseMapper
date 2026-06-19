@@ -3,23 +3,23 @@ import { APP_VERSION } from './appVersion.js';
 export const CURRENT_RELEASE = {
   version: APP_VERSION,
   date: 'June 19, 2026',
-  title: 'CourseIR Architecture: one canonical course brain before compilation',
-  landingTitle: 'CourseIR Architecture',
+  title: 'Prompt Artifact Firewall: requested deliverables stop becoming lesson concepts',
+  landingTitle: 'Prompt Artifact Firewall',
   highlights: [
-    'CourseIR v1 now normalizes and validates a dense course source of truth with source-ledger, concept, lesson, assessment, repair-path, and coverage-ledger checks.',
-    'The dense prompt contract asks providers for semantic atoms instead of final artifact prose: lesson kernels, concept graph, factual anchors, examples, and assessment blueprints.',
-    'The model-capacity planner chooses one whole-course IR call when safe, or the fewest sharded IR calls when output caps, reserve, reliability, or cost require it.',
-    'The CurriculumOS compiler facade accepts CourseIR and deterministically renders selected package artifacts through the existing CourseGraph/blueprint path with zero provider calls.',
-    'CourseIR proof metadata can ride into package assembly, while the default product flip still waits for flagged 5-, 8-, and 15-lesson quality/cost comparisons.',
+    'A live EduTool.dev environmental-science run exposed prompt artifact contamination: “lesson plans,” “slide decks,” “assignment briefs,” and related requested deliverables became course-map topics while the package still reported 99/A.',
+    'Course-map readiness repair now treats prompt artifact labels as invalid topic candidates for normal disciplinary courses and rewrites contaminated cells from the real lesson topic before compilation.',
+    'The Crucible grader now scores prompt artifact contamination as a package defect, with multi-label course-map contamination becoming a P0 so a polished ZIP cannot hide unusable lesson concepts behind an A badge.',
+    'Regression coverage pins both layers: the repair test proves contaminated environmental-science sections return to ecosystems, and the grader test proves the old ZIP shape regrades as unsafe instead of clean.',
+    'The release keeps the CourseIR one-call architecture as carry-forward work; this patch narrows the current shipped path while CourseIR remains behind proof gates.',
   ],
   landingHighlights: [
-    'CourseIR v1 schema, validation, and coverage ledger are implemented.',
-    'Model-capacity planning chooses one-call or fewest-call sharding per provider.',
-    'CurriculumOS can compile selected artifacts from CourseIR deterministically.',
+    'Prompt artifact labels are no longer accepted as normal course topics.',
+    'Package grading now blocks multi-label artifact contamination.',
+    'The live EduTool audit result is recorded as a release-driver defect.',
   ],
   proof: {
-    contract: 'release-contracts/v0.15.10.json',
-    roadmap: 'docs/V0.15.10_COURSEIR_ARCHITECTURE_ROADMAP.md',
+    contract: 'release-contracts/v0.15.11.json',
+    roadmap: 'docs/V0.15.11_PROMPT_ARTIFACT_FIREWALL_ROADMAP.md',
     auditCommand: 'npm run audit:release-history',
   },
 };
@@ -34,6 +34,18 @@ export const CURRENT_RELEASE_CHANGELOG = {
 };
 
 export const HISTORICAL_RELEASE_CHANGELOGS = [
+  {
+    version: '0.15.10',
+    date: 'June 19, 2026',
+    title: 'CourseIR Architecture: one canonical course brain before compilation',
+    highlights: [
+      'CourseIR v1 now normalizes and validates a dense course source of truth with source-ledger, concept, lesson, assessment, repair-path, and coverage-ledger checks.',
+      'The dense prompt contract asks providers for semantic atoms instead of final artifact prose: lesson kernels, concept graph, factual anchors, examples, and assessment blueprints.',
+      'The model-capacity planner chooses one whole-course IR call when safe, or the fewest sharded IR calls when output caps, reserve, reliability, or cost require it.',
+      'The CurriculumOS compiler facade accepts CourseIR and deterministically renders selected package artifacts through the existing CourseGraph/blueprint path with zero provider calls.',
+      'CourseIR proof metadata can ride into package assembly, while the default product flip still waits for flagged 5-, 8-, and 15-lesson quality/cost comparisons.',
+    ],
+  },
   {
     version: '0.15.9',
     date: 'June 19, 2026',

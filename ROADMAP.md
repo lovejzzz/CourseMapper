@@ -4,6 +4,27 @@
 
 CourseMapper is moving toward a "consider it done" course-production agent. The user should describe the course, choose scope/materials, and receive a finished draft package. The agent owns generation, QA, repair, alignment, and export readiness. Human involvement should be final approval only, not QA labor.
 
+## v0.15.11 - Prompt Artifact Firewall
+
+Goal: make requested deliverable labels stay artifact instructions, not course
+concepts. A live EduTool.dev Environmental Science package turned “lesson
+plans,” “slide decks,” “assignment briefs,” and related output requests into
+lesson topics while still reporting 99/A; this release repairs that class
+before compile and makes the grader block it when it survives export.
+
+Full plan: `docs/V0.15.11_PROMPT_ARTIFACT_FIREWALL_ROADMAP.md`
+
+1. Treat prompt artifact labels as invalid course-map topic candidates for
+   normal disciplinary courses.
+2. Repair contaminated topic, goal, objective, assessment, resource, and design
+   cells from the real lesson topic before package compilation.
+3. Preserve legitimate instructional-design courses where artifact genres are
+   real course content.
+4. Add a Crucible package finding for prompt artifact contamination, with
+   multi-label Course Map leakage scored as P0.
+5. Keep the broader CourseIR one-call architecture as carry-forward until live
+   side-by-side quality and cost proof justifies a default flip.
+
 ## v0.15.7 - Finished Package Surface
 
 Goal: make the successful workspace feel finished instead of overwhelming. A

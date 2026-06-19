@@ -1,0 +1,125 @@
+{
+  "version": "0.15.11",
+  "date": "June 19, 2026",
+  "title": "Prompt Artifact Firewall: requested deliverables stop becoming lesson concepts",
+  "status": "verified-current",
+  "proofSummary": {
+    "local": [
+      "npm test -- tests/v0141-phase1-finalizer.test.js tests/v0154-linear-algebra-output-quality.test.js",
+      "npm test",
+      "npm run format:check",
+      "npm run lint",
+      "npm run build",
+      "npm run bundle:check",
+      "npm run audit:release-history",
+      "npm run audit:gold",
+      "npx playwright test tests/coursemapper.spec.js -g \"changelog page has version entries\""
+    ],
+    "ciFast": {
+      "status": "pending-push",
+      "note": "Fast verification is claimed only after v0.15.11 is pushed and the GitHub Actions run is attached."
+    },
+    "deploy": {
+      "status": "pending-push",
+      "note": "Pages deploy is not claimed until the pushed release completes its deploy run."
+    },
+    "ciDeep": {
+      "status": "pending",
+      "note": "Deep proof remains release-branch or manual pre-release proof. This narrow audit-driven patch does not claim remote deep-proof success."
+    },
+    "liveProvider": {
+      "status": "not-current",
+      "note": "The live EduTool.dev provider run exposed the v0.15.10 defect. v0.15.11 does not claim a post-fix deployed live-provider generation before Pages deploy."
+    },
+    "manualHuman": {
+      "status": "not-applicable",
+      "note": "No external instructor review or approval is claimed by this release."
+    }
+  },
+  "claims": [
+    {
+      "id": "v01511-live-audit-artifact-contamination",
+      "status": "verified-current",
+      "changelogHighlightIndex": 0,
+      "summary": "The release is driven by a live EduTool.dev environmental-science package where requested deliverable labels became lesson concepts while the package still reported 99/A.",
+      "anchors": [
+        "docs/V0.15.11_PROMPT_ARTIFACT_FIREWALL_ROADMAP.md",
+        "tests/v0154-linear-algebra-output-quality.test.js",
+        "src/lib/releaseManifest.js"
+      ],
+      "proofCommands": [
+        "npm test -- tests/v0154-linear-algebra-output-quality.test.js",
+        "npm run audit:release-history"
+      ],
+      "proofScopes": ["unit", "static-audit"]
+    },
+    {
+      "id": "v01511-course-map-repair-firewall",
+      "status": "verified-current",
+      "changelogHighlightIndex": 1,
+      "summary": "Course-map readiness repair rejects prompt artifact labels as topic candidates for normal disciplinary courses and rewrites contaminated cells from the real lesson topic.",
+      "anchors": [
+        "src/lib/deliverableReadiness.js",
+        "tests/v0141-phase1-finalizer.test.js",
+        "docs/V0.15.11_PROMPT_ARTIFACT_FIREWALL_ROADMAP.md"
+      ],
+      "proofCommands": ["npm test -- tests/v0141-phase1-finalizer.test.js", "npm run audit:release-history"],
+      "proofScopes": ["unit", "static-audit"]
+    },
+    {
+      "id": "v01511-grader-artifact-contamination-p0",
+      "status": "verified-current",
+      "changelogHighlightIndex": 2,
+      "summary": "The Crucible grader scores prompt artifact contamination as a package defect, escalating multi-label Course Map contamination to P0.",
+      "anchors": [
+        "src/lib/quality/deepQualityGrader.js",
+        "tests/v0154-linear-algebra-output-quality.test.js",
+        "docs/V0.15.11_PROMPT_ARTIFACT_FIREWALL_ROADMAP.md"
+      ],
+      "proofCommands": [
+        "npm test -- tests/v0154-linear-algebra-output-quality.test.js",
+        "npm run audit:gold",
+        "npm run audit:release-history"
+      ],
+      "proofScopes": ["unit", "gold-audit", "static-audit"]
+    },
+    {
+      "id": "v01511-regression-proof-two-layer",
+      "status": "verified-current",
+      "changelogHighlightIndex": 3,
+      "summary": "Regression coverage pins both the repair layer and the package-grader layer, including the instructional-design false-positive guard.",
+      "anchors": [
+        "tests/v0141-phase1-finalizer.test.js",
+        "tests/v0154-linear-algebra-output-quality.test.js",
+        "src/lib/deliverableReadiness.js",
+        "src/lib/quality/deepQualityGrader.js"
+      ],
+      "proofCommands": [
+        "npm test -- tests/v0141-phase1-finalizer.test.js tests/v0154-linear-algebra-output-quality.test.js",
+        "npm test"
+      ],
+      "proofScopes": ["unit"]
+    },
+    {
+      "id": "v01511-courseir-carry-forward-boundary",
+      "status": "verified-current",
+      "changelogHighlightIndex": 4,
+      "summary": "The release boundary keeps the CourseIR one-call architecture behind its existing live side-by-side proof gates while this patch hardens the shipped path.",
+      "anchors": [
+        "docs/V0.15.11_PROMPT_ARTIFACT_FIREWALL_ROADMAP.md",
+        "docs/V0.15.10_COURSEIR_ARCHITECTURE_ROADMAP.md",
+        "src/lib/releaseManifest.js"
+      ],
+      "proofCommands": ["npm run audit:release-history"],
+      "proofScopes": ["doc", "static-audit"]
+    }
+  ],
+  "carryForward": [
+    {
+      "id": "courseir-default-live-proof",
+      "status": "carry-forward",
+      "source": "docs/V0.15.10_COURSEIR_ARCHITECTURE_ROADMAP.md",
+      "next": "Run deployed side-by-side 5-, 8-, and 15-lesson CourseIR comparisons before making CourseIR generation the default."
+    }
+  ]
+}
