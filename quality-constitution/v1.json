@@ -1,0 +1,77 @@
+{
+  "version": "1.0.0",
+  "name": "Teacher-Ready Package Constitution",
+  "status": "active",
+  "doc": "docs/TEACHER_READY_PACKAGE_CONSTITUTION.md",
+  "fastGateCommand": "npm run audit:constitution",
+  "broadRegressionCommand": "npm run audit:gold",
+  "policy": {
+    "routineReleaseGate": "Use audit:constitution for fixed, fast compiler and package-safety proof.",
+    "broadRegression": "Use audit:gold for scheduled broad regression, large compiler or generator changes, release-candidate hardening, or constitution-level changes.",
+    "liveGeneration": "Use live EduTool.dev generations to discover new defects, not to re-prove every commit."
+  },
+  "principles": [
+    {
+      "id": "C1",
+      "name": "Course Identity Coherence",
+      "severity": "blocker",
+      "obligation": "The package preserves one clear course identity across manifest, artifacts, quality report, and handoff surfaces.",
+      "evidence": ["manifest.courseName", "artifact text", "QUALITY_REPORT.md"]
+    },
+    {
+      "id": "C2",
+      "name": "Complete Package Structure",
+      "severity": "blocker",
+      "obligation": "Requested features, manifest file rows, root audit files, and exported files agree.",
+      "evidence": ["PACKAGE_MANIFEST.json", "QUALITY_REPORT.md", "manifest.files", "fixture.files"]
+    },
+    {
+      "id": "C3",
+      "name": "Assessment Coverage",
+      "severity": "blocker",
+      "obligation": "Course-map assessments resolve to downstream artifacts or an explicit in-class-only caveat.",
+      "evidence": ["manifest.assessments", "QUALITY_REPORT.md", "digest.gates.flaggedChecks"]
+    },
+    {
+      "id": "C4",
+      "name": "Source And Caveat Honesty",
+      "severity": "blocker",
+      "obligation": "Digest caveats that affect instructor trust are disclosed in the manifest or quality report.",
+      "evidence": ["digest.pipeline", "digest.gates", "PACKAGE_MANIFEST.json", "QUALITY_REPORT.md"]
+    },
+    {
+      "id": "C5",
+      "name": "Discipline And Modality Fit",
+      "severity": "blocker",
+      "obligation": "Assets, examples, activities, and safety language fit the declared course discipline and modality.",
+      "evidence": ["manifest.courseName", "Required Assets", "artifact text"]
+    },
+    {
+      "id": "C6",
+      "name": "Artifact Substance",
+      "severity": "blocker",
+      "obligation": "Artifacts are instructor-usable drafts, not title-only files, placeholders, or repeated generic shells.",
+      "evidence": ["artifact text", "manifest.files"]
+    },
+    {
+      "id": "C7",
+      "name": "Clear Handoff",
+      "severity": "blocker",
+      "obligation": "Final handoff surfaces make grade, findings, caveats, and next review actions legible.",
+      "evidence": ["QUALITY_REPORT.md", "manifest.quality", "manifest.readiness"]
+    }
+  ],
+  "fixturePolicy": {
+    "minimumFixtures": 3,
+    "maximumRoutineFixtures": 5,
+    "fixtureDirectory": "quality-constitution/fixtures",
+    "requiredFixtureKinds": ["clean-pass", "digest-caveat", "assessment-gap", "discipline-fit", "handoff-substance"]
+  },
+  "fixtures": [
+    "teacher-ready-stem-pass",
+    "native-fallback-hidden",
+    "assessment-artifact-gap",
+    "wrong-discipline-assets",
+    "green-handoff-thin-artifacts"
+  ]
+}

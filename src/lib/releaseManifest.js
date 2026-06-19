@@ -3,23 +3,23 @@ import { APP_VERSION } from './appVersion.js';
 export const CURRENT_RELEASE = {
   version: APP_VERSION,
   date: 'June 19, 2026',
-  title: 'Native Fallback Audit Truth: digest caveats reach generated packages',
-  landingTitle: 'Native Fallback Audit Truth',
+  title: 'Teacher-Ready Constitution: package quality gets a fast standard',
+  landingTitle: 'Teacher-Ready Constitution',
   highlights: [
-    'A live EduTool.dev Microeconomics package exposed a report-truth gap: the run digest recorded a native-authoring prose fallback, but the shipped package report only showed the assessment-coverage observation.',
-    'The deep package grader now converts digest `pipeline.nativeAuthoring` prose fallbacks into scored P2 honesty findings, including the evidence string from the run digest.',
-    'When the package manifest omits that native-authoring fallback, the quality report names the missing disclosure explicitly instead of letting the ZIP look cleaner than the run that created it.',
-    'Regression coverage now builds a package with a digest-only native fallback and regrades the downloaded-ZIP path, proving the report surfaces the caveat and the manifest omission.',
-    'The release keeps the CourseIR one-call compiler architecture as carry-forward work; this patch improves the current audit/report layer without changing provider-call routing.',
+    'The Teacher-Ready Package Constitution now defines seven non-negotiable obligations for generated packages: identity coherence, complete structure, assessment coverage, caveat honesty, discipline fit, artifact substance, and clear handoff.',
+    'A machine-readable `quality-constitution/v1.json` contract names `npm run audit:constitution` as the fast package-safety release gate while keeping `npm run audit:gold` for scheduled broad regression and large compiler/generator changes.',
+    'Five canonical fixtures now probe distinct structural risks: a clean package, hidden digest caveat, missing assessment artifact, wrong-discipline assets, and a green handoff with thin artifacts.',
+    'The deterministic constitution audit evaluates those fixtures without provider calls and writes both JSON and Markdown reports under `verification-output/constitution-audit/`.',
+    'Focused Vitest coverage pins the npm script wiring, contract policy, fixture set, and report output so narrow quality releases no longer need the full 40-sample gold corpus as default proof.',
   ],
   landingHighlights: [
-    'Native-authoring fallback caveats now reach package grading.',
-    'Digest-only fallback evidence is preserved in QUALITY_REPORT.md.',
-    'The live Microeconomics audit result is recorded as a report-truth fix.',
+    'Teacher-ready package quality now has a compact constitution.',
+    'A fast deterministic audit gate checks the constitutional fixtures.',
+    'The 40-sample gold corpus remains broad regression, not routine proof.',
   ],
   proof: {
-    contract: 'release-contracts/v0.15.13.json',
-    roadmap: 'docs/V0.15.13_NATIVE_FALLBACK_AUDIT_TRUTH_ROADMAP.md',
+    contract: 'release-contracts/v0.15.14.json',
+    roadmap: 'docs/V0.15.14_TEACHER_READY_CONSTITUTION_ROADMAP.md',
     auditCommand: 'npm run audit:release-history',
   },
 };
@@ -34,6 +34,18 @@ export const CURRENT_RELEASE_CHANGELOG = {
 };
 
 export const HISTORICAL_RELEASE_CHANGELOGS = [
+  {
+    version: '0.15.13',
+    date: 'June 19, 2026',
+    title: 'Native Fallback Audit Truth: digest caveats reach generated packages',
+    highlights: [
+      'A live EduTool.dev Microeconomics package exposed a report-truth gap: the run digest recorded a native-authoring prose fallback, but the shipped package report only showed the assessment-coverage observation.',
+      'The deep package grader now converts digest `pipeline.nativeAuthoring` prose fallbacks into scored P2 honesty findings, including the evidence string from the run digest.',
+      'When the package manifest omits that native-authoring fallback, the quality report names the missing disclosure explicitly instead of letting the ZIP look cleaner than the run that created it.',
+      'Regression coverage now builds a package with a digest-only native fallback and regrades the downloaded-ZIP path, proving the report surfaces the caveat and the manifest omission.',
+      'The release keeps the CourseIR one-call compiler architecture as carry-forward work; this patch improves the current audit/report layer without changing provider-call routing.',
+    ],
+  },
   {
     version: '0.15.12',
     date: 'June 19, 2026',

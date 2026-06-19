@@ -1,0 +1,70 @@
+{
+  "id": "assessment-artifact-gap",
+  "kind": "assessment-gap",
+  "title": "Course-map assessment disappears before export",
+  "purpose": "Proves assessments must resolve to downstream artifacts or an explicit caveat.",
+  "expected": {
+    "status": "fail",
+    "violations": ["C3"]
+  },
+  "package": {
+    "courseTitle": "Environmental Policy Analysis",
+    "featureIds": ["lessonPlans", "assignments", "quizBank"],
+    "manifest": {
+      "courseName": "Environmental Policy Analysis",
+      "readiness": {
+        "status": "ready",
+        "blockers": 0,
+        "warnings": 0
+      },
+      "quality": {
+        "score": 94,
+        "grade": "A",
+        "findingCounts": {
+          "p0": 0,
+          "p1": 0,
+          "p2": 0
+        }
+      },
+      "pipeline": {
+        "enrichment": "ran (3/3)",
+        "nativeAuthoring": "structured native authoring complete",
+        "knowledgeBackbone": "3/3 lessons genome-linked",
+        "judgment": "no gaps"
+      },
+      "assessments": [
+        {
+          "id": "A1",
+          "title": "Policy tradeoff brief",
+          "artifact": "Assignment Briefs/Lesson 2 - Policy Tradeoff Brief.docx"
+        }
+      ],
+      "files": [
+        {
+          "path": "Lesson Plans/Lesson 1 - Regulatory Tools.docx",
+          "featureId": "lessonPlans"
+        },
+        {
+          "path": "Quiz & Exam Bank/Lesson 3 - Cost Benefit Quiz.docx",
+          "featureId": "quizBank"
+        }
+      ]
+    },
+    "digest": {
+      "pipeline": {
+        "enrichment": "ran (3/3)",
+        "nativeAuthoring": "structured native authoring complete"
+      },
+      "gates": {
+        "exportStatus": "passed",
+        "exportFailed": 0,
+        "flaggedChecks": []
+      }
+    },
+    "qualityReport": "# Quality Report\n\nOverall: 94/100 (A)\n\n## Findings\n\nNone.",
+    "files": {
+      "Lesson Plans/Lesson 1 - Regulatory Tools.docx": "This lesson compares command-and-control regulation, market incentives, and information disclosure. Students map each tool to a pollution problem, discuss administrative feasibility, and complete a quick check explaining which tool best fits a local air-quality scenario.",
+      "Quiz & Exam Bank/Lesson 3 - Cost Benefit Quiz.docx": "The quiz asks students to interpret cost-benefit tables, identify distributional limits, and explain why monetized benefits do not settle every public decision. Each item includes a correct answer and short rationale."
+    }
+  }
+}

@@ -1,0 +1,75 @@
+{
+  "id": "native-fallback-hidden",
+  "kind": "digest-caveat",
+  "title": "Digest native fallback hidden from report",
+  "purpose": "Proves digest caveats must reach the manifest or quality report.",
+  "expected": {
+    "status": "fail",
+    "violations": ["C4"]
+  },
+  "package": {
+    "courseTitle": "Introduction to Microeconomics",
+    "featureIds": ["lessonPlans", "assignments", "quizBank"],
+    "manifest": {
+      "courseName": "Introduction to Microeconomics",
+      "readiness": {
+        "status": "ready",
+        "blockers": 0,
+        "warnings": 0
+      },
+      "quality": {
+        "score": 99,
+        "grade": "A",
+        "findingCounts": {
+          "p0": 0,
+          "p1": 0,
+          "p2": 0
+        }
+      },
+      "pipeline": {
+        "enrichment": "ran (3/3)",
+        "knowledgeBackbone": "3/3 lessons genome-linked with open resources",
+        "judgment": "no gaps"
+      },
+      "assessments": [
+        {
+          "id": "A1",
+          "title": "Demand elasticity memo",
+          "artifact": "Assignment Briefs/Lesson 1 - Demand Elasticity Memo.docx"
+        }
+      ],
+      "files": [
+        {
+          "path": "Lesson Plans/Lesson 1 - Demand Elasticity.docx",
+          "featureId": "lessonPlans"
+        },
+        {
+          "path": "Assignment Briefs/Lesson 1 - Demand Elasticity Memo.docx",
+          "featureId": "assignments"
+        },
+        {
+          "path": "Quiz & Exam Bank/Lesson 2 - Market Equilibrium Quiz.docx",
+          "featureId": "quizBank"
+        }
+      ]
+    },
+    "digest": {
+      "pipeline": {
+        "enrichment": "ran (3/3)",
+        "nativeAuthoring": "fell back to prose: degenerate-skeleton (1 assessment for 8 lessons)",
+        "knowledgeBackbone": "3/3 lessons genome-linked with open resources"
+      },
+      "gates": {
+        "exportStatus": "passed",
+        "exportFailed": 0,
+        "flaggedChecks": []
+      }
+    },
+    "qualityReport": "# Quality Report\n\nOverall: 99/100 (A)\n\n## Findings\n\nNone.",
+    "files": {
+      "Lesson Plans/Lesson 1 - Demand Elasticity.docx": "The lesson plan teaches price elasticity of demand through market examples, learner predictions, and a guided interpretation of revenue effects. Students compare elastic and inelastic goods, explain why sensitivity changes by context, and close with a formative question about a transit fare change.",
+      "Assignment Briefs/Lesson 1 - Demand Elasticity Memo.docx": "Students write a memo advising whether a campus store should raise prices. They calculate elasticity from a small table, interpret the result, explain uncertainty, and recommend an action with evidence and limitations.",
+      "Quiz & Exam Bank/Lesson 2 - Market Equilibrium Quiz.docx": "The quiz bank asks students to identify shifts in supply and demand, calculate new equilibrium, and explain why a price ceiling creates shortage pressure. Each item includes an answer and rationale."
+    }
+  }
+}

@@ -1,0 +1,102 @@
+{
+  "id": "teacher-ready-stem-pass",
+  "kind": "clean-pass",
+  "title": "Clean teacher-ready statistics package",
+  "purpose": "Proves the constitution allows a complete, caveat-free, instructor-usable package.",
+  "expected": {
+    "status": "pass",
+    "violations": []
+  },
+  "package": {
+    "courseTitle": "Applied Statistics for Public Policy",
+    "featureIds": ["lessonPlans", "assignments", "rubrics", "quizBank", "slideDecks", "studyGuides"],
+    "manifest": {
+      "courseName": "Applied Statistics for Public Policy",
+      "readiness": {
+        "status": "ready",
+        "blockers": 0,
+        "warnings": 0
+      },
+      "quality": {
+        "score": 96,
+        "grade": "A",
+        "findingCounts": {
+          "p0": 0,
+          "p1": 0,
+          "p2": 0
+        }
+      },
+      "pipeline": {
+        "enrichment": "ran (3/3)",
+        "nativeAuthoring": "structured native authoring complete",
+        "knowledgeBackbone": "3/3 lessons genome-linked with open resources",
+        "judgment": "no prerequisite gaps",
+        "exportVerification": "passed"
+      },
+      "assessments": [
+        {
+          "id": "A1",
+          "title": "Policy data memo",
+          "artifact": "Assignment Briefs/Lesson 1 - Policy Data Memo.docx"
+        },
+        {
+          "id": "Q1",
+          "title": "Inference quiz",
+          "artifact": "Quiz & Exam Bank/Lesson 2 - Inference Quiz.docx"
+        }
+      ],
+      "files": [
+        {
+          "path": "Lesson Plans/Lesson 1 - Sampling Bias.docx",
+          "featureId": "lessonPlans"
+        },
+        {
+          "path": "Assignment Briefs/Lesson 1 - Policy Data Memo.docx",
+          "featureId": "assignments"
+        },
+        {
+          "path": "Rubrics/Lesson 1 - Policy Data Memo Rubric.docx",
+          "featureId": "rubrics"
+        },
+        {
+          "path": "Quiz & Exam Bank/Lesson 2 - Inference Quiz.docx",
+          "featureId": "quizBank"
+        },
+        {
+          "path": "Slide Decks/Lesson 2 - Confidence Intervals.pptx",
+          "featureId": "slideDecks"
+        },
+        {
+          "path": "Study Guides/Lesson 3 - Regression Decisions.docx",
+          "featureId": "studyGuides"
+        },
+        {
+          "path": "Required Assets/Required Assets.md",
+          "featureId": "requiredAssets"
+        }
+      ]
+    },
+    "digest": {
+      "pipeline": {
+        "enrichment": "ran (3/3)",
+        "nativeAuthoring": "structured native authoring complete",
+        "knowledgeBackbone": "3/3 lessons genome-linked with open resources"
+      },
+      "gates": {
+        "exportStatus": "passed",
+        "exportFailed": 0,
+        "flaggedChecks": []
+      }
+    },
+    "qualityReport": "# Quality Report\n\nOverall: 96/100 (A)\n\n## Findings\n\nNone. Package is ready for instructor review.",
+    "files": {
+      "Lesson Plans/Lesson 1 - Sampling Bias.docx": "This lesson plan helps instructors teach sampling bias in public policy polling. It includes a timed opening poll critique, a worked example comparing convenience and stratified samples, a group analysis of a city survey, and a formative exit question asking students to name one sampling threat and one mitigation.",
+      "Assignment Briefs/Lesson 1 - Policy Data Memo.docx": "Students write a two-page policy data memo explaining whether a survey result should guide a public decision. The brief requires a claim, evidence from the supplied dataset, discussion of sampling limits, and a recommendation. Submission criteria include clarity, statistical reasoning, uncertainty language, and ethical use of evidence.",
+      "Rubrics/Lesson 1 - Policy Data Memo Rubric.docx": "The rubric scores evidence selection, statistical reasoning, explanation of bias, policy recommendation quality, and writing clarity. Each criterion has four performance levels with concrete instructor language for feedback and revision planning.",
+      "Quiz & Exam Bank/Lesson 2 - Inference Quiz.docx": "The quiz bank contains confidence interval interpretation items, multiple-choice distractors tied to common misconceptions, and short-answer prompts asking students to explain uncertainty in plain language. Each item includes the correct answer and a rationale for instructor review.",
+      "Slide Decks/Lesson 2 - Confidence Intervals.pptx": "The slide deck introduces confidence intervals through a public-health estimate, shows a visual interval comparison, includes speaker notes with instructor questions, and closes with a quick interpretation check connected to policy communication.",
+      "Study Guides/Lesson 3 - Regression Decisions.docx": "The study guide defines predictor, outcome, residual, confounding, and model fit. It gives students a worked example, self-check questions, and a decision checklist for deciding whether a regression claim is appropriate for policy use.",
+      "Required Assets/Required Assets.md": "Required assets are a spreadsheet dataset, calculator or spreadsheet software, printed policy memo template, and short public report excerpts. No physical lab or field equipment is required."
+    }
+  }
+}

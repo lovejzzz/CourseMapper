@@ -1,0 +1,75 @@
+{
+  "id": "green-handoff-thin-artifacts",
+  "kind": "handoff-substance",
+  "title": "Green grade hides thin artifacts and findings",
+  "purpose": "Proves strong handoff claims cannot hide title-only artifacts or known findings.",
+  "expected": {
+    "status": "fail",
+    "violations": ["C6", "C7"]
+  },
+  "package": {
+    "courseTitle": "Clinical Reasoning for Nursing Practice",
+    "featureIds": ["lessonPlans", "assignments", "rubrics"],
+    "manifest": {
+      "courseName": "Clinical Reasoning for Nursing Practice",
+      "readiness": {
+        "status": "ready",
+        "blockers": 0,
+        "warnings": 1
+      },
+      "quality": {
+        "score": 99,
+        "grade": "A",
+        "findingCounts": {
+          "p0": 0,
+          "p1": 0,
+          "p2": 1
+        }
+      },
+      "pipeline": {
+        "enrichment": "ran (3/3)",
+        "nativeAuthoring": "structured native authoring complete",
+        "knowledgeBackbone": "3/3 lessons genome-linked",
+        "judgment": "1 review warning"
+      },
+      "assessments": [
+        {
+          "id": "S1",
+          "title": "Clinical prioritization simulation",
+          "artifact": "Assignment Briefs/Lesson 1 - Clinical Prioritization Simulation.docx"
+        }
+      ],
+      "files": [
+        {
+          "path": "Lesson Plans/Lesson 1 - Clinical Prioritization.docx",
+          "featureId": "lessonPlans"
+        },
+        {
+          "path": "Assignment Briefs/Lesson 1 - Clinical Prioritization Simulation.docx",
+          "featureId": "assignments"
+        },
+        {
+          "path": "Rubrics/Lesson 1 - Clinical Prioritization Rubric.docx",
+          "featureId": "rubrics"
+        }
+      ]
+    },
+    "digest": {
+      "pipeline": {
+        "enrichment": "ran (3/3)",
+        "nativeAuthoring": "structured native authoring complete"
+      },
+      "gates": {
+        "exportStatus": "passed",
+        "exportFailed": 0,
+        "flaggedChecks": []
+      }
+    },
+    "qualityReport": "# Quality Report\n\nOverall: 99/100 (A)\n\n## Findings\n\nNone.",
+    "files": {
+      "Lesson Plans/Lesson 1 - Clinical Prioritization.docx": "Lesson 1: Clinical Prioritization",
+      "Assignment Briefs/Lesson 1 - Clinical Prioritization Simulation.docx": "Assignment brief placeholder. Add scenario later.",
+      "Rubrics/Lesson 1 - Clinical Prioritization Rubric.docx": "Rubric title only."
+    }
+  }
+}

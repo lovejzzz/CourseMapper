@@ -1,0 +1,80 @@
+{
+  "id": "wrong-discipline-assets",
+  "kind": "discipline-fit",
+  "title": "Non-lab course receives wet-lab assets",
+  "purpose": "Proves required assets must fit the declared discipline and modality.",
+  "expected": {
+    "status": "fail",
+    "violations": ["C5"]
+  },
+  "package": {
+    "courseTitle": "Calculus I: Limits and Derivatives",
+    "featureIds": ["lessonPlans", "assignments", "studyGuides"],
+    "manifest": {
+      "courseName": "Calculus I: Limits and Derivatives",
+      "readiness": {
+        "status": "ready",
+        "blockers": 0,
+        "warnings": 0
+      },
+      "quality": {
+        "score": 95,
+        "grade": "A",
+        "findingCounts": {
+          "p0": 0,
+          "p1": 0,
+          "p2": 0
+        }
+      },
+      "pipeline": {
+        "enrichment": "ran (3/3)",
+        "nativeAuthoring": "structured native authoring complete",
+        "knowledgeBackbone": "3/3 lessons genome-linked",
+        "judgment": "no gaps"
+      },
+      "assessments": [
+        {
+          "id": "P1",
+          "title": "Limit computation problem set",
+          "artifact": "Assignment Briefs/Lesson 1 - Limit Computation Problem Set.docx"
+        }
+      ],
+      "files": [
+        {
+          "path": "Lesson Plans/Lesson 1 - Limits.docx",
+          "featureId": "lessonPlans"
+        },
+        {
+          "path": "Assignment Briefs/Lesson 1 - Limit Computation Problem Set.docx",
+          "featureId": "assignments"
+        },
+        {
+          "path": "Study Guides/Lesson 2 - Derivative Rules.docx",
+          "featureId": "studyGuides"
+        },
+        {
+          "path": "Required Assets/Required Assets.md",
+          "featureId": "requiredAssets"
+        }
+      ]
+    },
+    "digest": {
+      "pipeline": {
+        "enrichment": "ran (3/3)",
+        "nativeAuthoring": "structured native authoring complete"
+      },
+      "gates": {
+        "exportStatus": "passed",
+        "exportFailed": 0,
+        "flaggedChecks": []
+      }
+    },
+    "qualityReport": "# Quality Report\n\nOverall: 95/100 (A)\n\n## Findings\n\nNone.",
+    "files": {
+      "Lesson Plans/Lesson 1 - Limits.docx": "The lesson plan introduces limits through tables, graphs, and algebraic reasoning. Students compare one-sided limits, explain discontinuity, and work through examples that connect numerical evidence to symbolic simplification.",
+      "Assignment Briefs/Lesson 1 - Limit Computation Problem Set.docx": "Students complete a problem set with graphical, numerical, and algebraic limit questions. They must show reasoning, identify assumptions, and explain one error correction in writing.",
+      "Study Guides/Lesson 2 - Derivative Rules.docx": "The study guide summarizes power, product, quotient, and chain rules with worked examples. It includes self-check problems and a decision tree for selecting the correct derivative rule.",
+      "Required Assets/Required Assets.md": "Required assets include safety goggles, specimen trays, streak plates, chemical samples, hand lenses, and a field notebook for outdoor laboratory activities."
+    }
+  }
+}
