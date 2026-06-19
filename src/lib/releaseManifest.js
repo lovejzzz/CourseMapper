@@ -3,24 +3,22 @@ import { APP_VERSION } from './appVersion.js';
 export const CURRENT_RELEASE = {
   version: APP_VERSION,
   date: 'June 19, 2026',
-  title: 'EduTool Audit Truth: generated packages stop looking cleaner than they are',
-  landingTitle: 'EduTool Audit Truth: stricter package handoff',
+  title: 'Provider Call Rightsizing: the course package stops paying for avoidable batches',
+  landingTitle: 'Provider Call Rightsizing',
   highlights: [
-    'Package quality now scores run-digest caveats from real EduTool exports, including partial enrichment/template fallback and course-map assessment coverage gaps.',
-    'Saved DevTools logs are scoped to the current run digest before honesty checks, so stale rows from earlier generations cannot create false genome-count P1s.',
-    'The finished-package overview surfaces P0/P1 quality caveats beside the grade with a compact review chip that opens the detailed quality report.',
-    'Assignment Brief DOCX exports render an explicit handoff note for lessons with no standalone submitted assignment instead of shipping a title-only file.',
-    'The grader now flags title-only assignment briefs as substantive P1 package defects, using the live Introduction to CS Lesson 14 failure shape as regression coverage.',
-    'Slide decks collapse course-title echo chains in title bullets and speaker notes, preventing "course: course" repetition in first-lesson decks.',
+    'Native Pass B now batches by real model output capacity: long-output structured models such as GPT-5.4 mini can author a 15-lesson course in one enrichment call instead of four fixed 4-lesson calls.',
+    'Native recovery stops after a no-progress retry, so the pipeline no longer spends a second blind call on the same missing lesson set before falling back honestly to structural templates.',
+    'The voice pass now sends the selected eight-surface set in one fixed 4k-output call instead of splitting the default pass into two provider calls.',
+    'GPT-5.4/GPT-5.5 context metadata now reflects current model limits, and model-limit lookup prefers the most specific model prefix before broad GPT-family fallbacks.',
   ],
   landingHighlights: [
-    'Quality scores now count hidden run caveats from the generation digest.',
-    'Ready packages call out serious caveats next to the grade instead of burying them.',
-    'Assignment and slide exports avoid two defects found in the live EduTool ZIP audit.',
+    'Long-output models get one native content-authoring batch for normal 15-lesson courses.',
+    'No-progress recovery retries stop instead of repeating the same failed spend.',
+    'Voice and model-limit metadata now match the new call budget.',
   ],
   proof: {
-    contract: 'release-contracts/v0.15.8.json',
-    roadmap: 'docs/V0.15.8_EDUTOOL_AUDIT_TRUTH_ROADMAP.md',
+    contract: 'release-contracts/v0.15.9.json',
+    roadmap: 'docs/V0.15.9_PROVIDER_CALL_RIGHTSIZING_ROADMAP.md',
     auditCommand: 'npm run audit:release-history',
   },
 };
@@ -35,6 +33,19 @@ export const CURRENT_RELEASE_CHANGELOG = {
 };
 
 export const HISTORICAL_RELEASE_CHANGELOGS = [
+  {
+    version: '0.15.8',
+    date: 'June 19, 2026',
+    title: 'EduTool Audit Truth: generated packages stop looking cleaner than they are',
+    highlights: [
+      'Package quality now scores run-digest caveats from real EduTool exports, including partial enrichment/template fallback and course-map assessment coverage gaps.',
+      'Saved DevTools logs are scoped to the current run digest before honesty checks, so stale rows from earlier generations cannot create false genome-count P1s.',
+      'The finished-package overview surfaces P0/P1 quality caveats beside the grade with a compact review chip that opens the detailed quality report.',
+      'Assignment Brief DOCX exports render an explicit handoff note for lessons with no standalone submitted assignment instead of shipping a title-only file.',
+      'The grader now flags title-only assignment briefs as substantive P1 package defects, using the live Introduction to CS Lesson 14 failure shape as regression coverage.',
+      'Slide decks collapse course-title echo chains in title bullets and speaker notes, preventing "course: course" repetition in first-lesson decks.',
+    ],
+  },
   {
     version: '0.15.7',
     date: 'June 17, 2026',

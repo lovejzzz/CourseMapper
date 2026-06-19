@@ -139,7 +139,7 @@ describe('flag off — the default path never voices anything', () => {
     // cap is FIXED per batch (v1 inherited the ambient budget — truncation
     // read as 38 silent 'no rewrite returned' fallbacks in the failed round).
     expect(source).toContain('kernels: blueprintEnrichment?.lessonContent');
-    expect(source).toContain('maxOutputTokens: 2600');
+    expect(source).toContain('maxOutputTokens: 4000');
   });
 });
 
@@ -221,8 +221,8 @@ describe('buildVoicePrompt — rotated directives, never-rename, JSON contract',
     expect(prompt.systemPrompt.toLowerCase()).toContain('kernel');
   });
 
-  it('caps a batch at the (small) batch size — truncation killed v1 batches', () => {
-    expect(VOICE_BATCH_SIZE).toBeLessThanOrEqual(6);
+  it('caps a batch at the selected-surface maximum', () => {
+    expect(VOICE_BATCH_SIZE).toBeLessThanOrEqual(VOICE_MAX_SURFACES);
     const prompt = buildVoicePrompt(surfaces, {});
     expect(prompt.surfaceIds.length).toBeLessThanOrEqual(VOICE_BATCH_SIZE);
   });
@@ -352,9 +352,9 @@ describe('applyVoiceResults — voiced surfaces apply, failures keep compiled te
 // ── Orchestration: budget, errors, openers, the texture self-check ─────────
 describe('runVoicePass — honest budgets and the v2 variety/texture gates', () => {
   it('stops at the budget, voices the paid batch, and reports the rest as fallbacks', async () => {
-    const { courseMap, deliverables } = compiledFixture(5);
-    const allSurfaces = selectVoiceSurfaces({ deliverables, courseMap });
-    expect(allSurfaces.length).toBe(VOICE_MAX_SURFACES); // 5 lessons × ≤2, capped at 8
+    const { courseMap, deliverables } = compiledFixture(8);
+    const allSurfaces = selectVoiceSurfaces({ deliverables, courseMap, maxSurfaces: VOICE_MAX_SURFACES + 4 });
+    expect(allSurfaces.length).toBeGreaterThan(VOICE_BATCH_SIZE);
     const surfaceById = new Map(allSurfaces.map((surface) => [surface.surfaceId, surface]));
 
     let calls = 0;
@@ -381,6 +381,7 @@ describe('runVoicePass — honest budgets and the v2 variety/texture gates', () 
       courseMap,
       callModel,
       budgetUsd: 0.05,
+      maxSurfaces: VOICE_MAX_SURFACES + 4,
       onEvent: (event) => events.push(event.type),
     });
 

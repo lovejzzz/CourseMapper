@@ -27,6 +27,10 @@ const MODEL_LIMITS = {
   'gpt-5-nano': 128000,
   'gpt-5.1': 200000,
   'gpt-5.2': 200000,
+  'gpt-5.4-mini': 400000,
+  'gpt-5.4-nano': 400000,
+  'gpt-5.4': 1050000,
+  'gpt-5.5': 1050000,
   'gpt-4.1': 200000,
   'gpt-4.1-mini': 200000,
   'gpt-4.1-nano': 128000,
@@ -70,7 +74,7 @@ export function getModelLimit(modelId) {
   if (MODEL_LIMITS[modelId]) return MODEL_LIMITS[modelId];
 
   // Partial match (model IDs often have date suffixes like gpt-4o-2024-08-06)
-  for (const [key, limit] of Object.entries(MODEL_LIMITS)) {
+  for (const [key, limit] of Object.entries(MODEL_LIMITS).sort((a, b) => b[0].length - a[0].length)) {
     if (modelId.startsWith(key) || modelId.includes(key)) {
       return limit;
     }
@@ -78,6 +82,8 @@ export function getModelLimit(modelId) {
 
   // Heuristic based on provider patterns
   if (modelId.includes('claude')) return 200000;
+  if (modelId.startsWith('gpt-5.4-mini') || modelId.startsWith('gpt-5.4-nano')) return 400000;
+  if (modelId.startsWith('gpt-5.4') || modelId.startsWith('gpt-5.5')) return 1050000;
   if (modelId.startsWith('gpt-5') || modelId.startsWith('gpt-4.1')) return 200000;
   if (modelId.includes('gpt-4o') || modelId.includes('gpt-4-turbo')) return 128000;
   if (modelId.match(/^o\d/)) return 200000;

@@ -65,10 +65,10 @@ const VOICE_SURFACE_KINDS = [
   { featureId: 'studyGuides', arrayKey: 'studyGuides', field: 'summary', slot: 'summary' },
 ];
 
-// v2: small batches — v1's 12-surface batches at 60-140 words each invited
-// output-cap truncation (the likely bulk of the 38 'no rewrite returned'
-// fallbacks). 5 × ~120 words ≈ 800 output tokens: comfortable everywhere.
-export const VOICE_BATCH_SIZE = 5;
+// v2.1: one selected set per call. v1 failed at 12 broad surfaces with an
+// ambient cap; v2 selection already caps the entire pass at eight focused
+// surfaces, and the integration now gives that one batch a fixed 4k cap.
+export const VOICE_BATCH_SIZE = 8;
 // v2: asymmetric selection cap — uneven emphasis is the point; voicing all
 // 52 surfaces in one register was its own template.
 export const VOICE_MAX_SURFACES = 8;

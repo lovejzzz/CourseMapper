@@ -33,10 +33,11 @@ export function enrichmentPreferenceOverride() {
 
 // Human caption for the resolved state, shown under the control.
 export function describeEnrichmentResolution(pref, planDefault) {
-  if (pref === 'on') return 'Always runs — adds real subject matter to compiled deliverables (~1 call per 4 lessons).';
+  if (pref === 'on')
+    return 'Always runs — adds real subject matter to compiled deliverables (adaptive batching on long-output models).';
   if (pref === 'off') return 'Off — deliverables compile from templates only (mail-merge risk).';
   if (planDefault === 'adaptive') {
-    return 'Adaptive — runs when the course map has enough source signal (~1 call per 4 lessons).';
+    return 'Adaptive — runs when the course map has enough source signal (batch size follows model output capacity).';
   }
   if (!planDefault) return 'Off for this model — it cannot follow the structured enrichment contract.';
   return 'Follows the generation plan for this model.';

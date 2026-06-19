@@ -24,6 +24,8 @@ describe('getModelLimit', () => {
   it('returns limits for GPT-5+ models', () => {
     expect(getModelLimit('gpt-5')).toBe(200000);
     expect(getModelLimit('gpt-5.2')).toBe(200000);
+    expect(getModelLimit('gpt-5.4')).toBe(1050000);
+    expect(getModelLimit('gpt-5.4-mini')).toBe(400000);
     expect(getModelLimit('gpt-4.1')).toBe(200000);
     expect(getModelLimit('gpt-4.1-mini')).toBe(200000);
   });
@@ -40,6 +42,8 @@ describe('getModelLimit', () => {
 
   it('matches partial model IDs with date suffixes', () => {
     expect(getModelLimit('gpt-4o-2024-08-06')).toBe(128000);
+    expect(getModelLimit('gpt-5.4-mini-2026-03-18')).toBe(400000);
+    expect(getModelLimit('gpt-5.4-2026-03-12')).toBe(1050000);
   });
 });
 

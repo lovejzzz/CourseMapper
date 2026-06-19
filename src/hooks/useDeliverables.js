@@ -73,6 +73,7 @@ import { buildApiCostPlan, isNonRetryableFailureClass } from '../lib/apiCostCont
 import { buildJudgmentStageEvent, formatEnrichmentOutcomeLabel } from '../lib/apiCallBudget';
 import { classifyError } from '../lib/failureClassification';
 import { traceLog } from '../lib/traceLog';
+import { getAdaptiveNativePassBBatchSize, getNativePassBOutputTokenBudget } from '../lib/adaptiveProviderBatching';
 
 const PROVIDER_CALL_EVENT_TYPES = new Set([
   'deliverableChunkCall',
@@ -593,13 +594,24 @@ export default function useDeliverables({
         includeCourseMap: false,
         includeRepairRetryReserve: costMode !== 'finalizerRetry',
       });
-      // v0.9.11 P4: the kernel stage makes one call per 4 lessons (course-level
-      // block absorbed into chunk #1); legacy course-level-only enrichment is 1.
+      // v0.9.11 P4 used 4-lesson kernel batches. Long-output native authoring
+      // models can safely carry the full Pass B contract in one call, so the
+      // plan now mirrors the actual adaptive batcher instead of over-quoting
+      // provider calls for GPT-5.4-mini-class models.
       const enrichmentLessonCount = Array.isArray(scopeIndices) ? scopeIndices.length : lessonCount;
+      const plannedNativePassBBatchSize =
+        readAuthoringMode() === 'native' && costMode !== 'finalizerRetry' && !Array.isArray(scopeIndices)
+          ? getAdaptiveNativePassBBatchSize({
+              lessonCount: enrichmentLessonCount,
+              maxOutputTokens,
+              generationPlan,
+              modelCapabilities,
+            })
+          : 4;
       const plannedEnrichmentCalls = !blueprintEnrichmentRequested
         ? 0
         : generationOptions.lessonContentEnrichment !== false
-          ? Math.max(1, Math.ceil(enrichmentLessonCount / 4))
+          ? Math.max(1, Math.ceil(enrichmentLessonCount / Math.max(1, plannedNativePassBBatchSize)))
           : 1;
       const costPlan = blueprintEnrichmentRequested
         ? {
@@ -1209,7 +1221,12 @@ export default function useDeliverables({
                 .filter((lessonId) => lessonContent[lessonId] && !partialOverlays[lessonId]),
             );
             let absorbedCourseLevel = null;
-            const chunkSize = 4;
+            const chunkSize = getAdaptiveNativePassBBatchSize({
+              lessonCount: allLessonIndices.length,
+              maxOutputTokens,
+              generationPlan,
+              modelCapabilities,
+            });
             const batches = [];
             for (let start = 0; start < allLessonIndices.length; start += chunkSize) {
               batches.push(allLessonIndices.slice(start, start + chunkSize));
@@ -1236,11 +1253,17 @@ export default function useDeliverables({
                 featureId: 'blueprintEnrichment',
               });
               const result = await streamProvider(provider, apiKey, modelId, prompt.systemPrompt, prompt.userPrompt, {
-                maxOutputTokens: Math.max(enrichmentMaxOutputTokens, 1300 * chunk.length, 2600),
                 modelCapabilities,
                 generationPlan,
                 featureId: 'blueprintEnrichment',
                 task: 'blueprintEnrichment',
+                maxOutputTokens: getNativePassBOutputTokenBudget({
+                  lessonCount: chunk.length,
+                  maxOutputTokens,
+                  generationPlan,
+                  modelCapabilities,
+                  baseCap: enrichmentMaxOutputTokens,
+                }),
                 allowProviderFallback: maxProviderCalls === null || getRemainingProviderCalls() > 0,
                 onApiCallEvent: recordGenerationApiCallEvent,
                 signal: controller.signal,
@@ -1301,11 +1324,21 @@ export default function useDeliverables({
             const listMissingAuthoredIndices = () =>
               allLessonIndices.filter((lessonIdx) => !nativeAuthored[lessonIdOf(lessonIdx)]);
             let nativeRecoveryCalls = 0;
+            let previousRecoverySignature = '';
             while (
               nativeRecoveryCalls < 2 &&
               (listMissingKernelIndices().length > 0 || listMissingAuthoredIndices().length > 0) &&
               hasProviderCallBudget()
             ) {
+              const beforeSignature = JSON.stringify({
+                kernel: listMissingKernelIndices(),
+                authored: listMissingAuthoredIndices(),
+              });
+              if (beforeSignature === previousRecoverySignature) {
+                appendLog('⚠ Native Pass B recovery: no progress', 'warn');
+                break;
+              }
+              previousRecoverySignature = beforeSignature;
               const kernelChunk = listMissingKernelIndices().slice(0, chunkSize);
               const authoredChunk = listMissingAuthoredIndices()
                 .filter((lessonIdx) => !kernelChunk.includes(lessonIdx))
@@ -1321,6 +1354,14 @@ export default function useDeliverables({
               } catch (recoveryErr) {
                 if (recoveryErr?.name === 'AbortError') throw recoveryErr;
                 appendLog(`⚠ Native Pass B recovery failed: ${recoveryErr.message || 'model error'}`, 'warn');
+              }
+              const afterSignature = JSON.stringify({
+                kernel: listMissingKernelIndices(),
+                authored: listMissingAuthoredIndices(),
+              });
+              if (afterSignature === beforeSignature) {
+                appendLog('⚠ Native Pass B recovery made no progress; templates kept', 'warn');
+                break;
               }
             }
 
@@ -2194,12 +2235,10 @@ export default function useDeliverables({
               const callModel = async (prompt) => {
                 let usage = null;
                 const result = await streamProvider(provider, apiKey, modelId, prompt.systemPrompt, prompt.userPrompt, {
-                  // Voice v2: a FIXED cap sized to the 5-surface batches
-                  // (~800 words + JSON overhead). v1 inherited the ambient
-                  // deliverable budget — 12-surface batches truncated, and
-                  // truncation read as 38 silent 'no rewrite returned'
-                  // fallbacks in the failed proof round.
-                  maxOutputTokens: 2600,
+                  // Voice v2.1: the selected set is capped at eight surfaces,
+                  // so one call with a larger fixed cap avoids paying prompt
+                  // overhead twice without returning to v1's 12-surface risk.
+                  maxOutputTokens: 4000,
                   modelCapabilities,
                   featureId: 'voicePass',
                   task: 'voicePass',
@@ -5019,7 +5058,7 @@ export default function useDeliverables({
         const callModel = async (prompt) => {
           let usage = null;
           const result = await streamProvider(provider, apiKey, modelId, prompt.systemPrompt, prompt.userPrompt, {
-            maxOutputTokens: 2600,
+            maxOutputTokens: 4000,
             modelCapabilities,
             featureId: 'voicePass',
             task: 'voicePass',
