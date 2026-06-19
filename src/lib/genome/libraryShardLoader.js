@@ -197,7 +197,7 @@ export function inferCourseDisciplines(courseMap) {
     ['psych', /\bpsycholog|cognition|behavior|neuroscience|educational psych|learning theor|child development/],
     [
       'research-methods',
-      /\bresearch methods?\b|\bmethodolog(?:y|ies)\b|\bstudy design\b|\boperational definition\b|\boperationalization\b|\binformed consent\b|\binstitutional review board\b|\bIRB\b|\bindependent variable\b|\bdependent variable\b|\bquantitative research\b|\bqualitative research\b|\bmixed methods\b/,
+      /\bresearch methods?\b|\bresearch ethics\b|\bhuman subjects?\b|\bparticipant protections?\b|\bmethodolog(?:y|ies)\b|\bstudy design\b|\boperational definition\b|\boperationalization\b|\binformed consent\b|\binstitutional review board\b|\bIRB\b|\bindependent variable\b|\bdependent variable\b|\bquantitative research\b|\bqualitative research\b|\bmixed methods\b/,
     ],
     // v0.13.5: nursing (A&P 2e + Microbiology) and nutrition (UH OER) shards.
     ['nursing', /\bnursing|patient care|clinical|vital signs|infection control|pathophysiolog|microbiolog|immunolog/],

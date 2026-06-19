@@ -65,6 +65,52 @@ function cleanText(value, max = 300) {
     .slice(0, max);
 }
 
+const MODALITY_ONLY_SECTION_TITLES = new Set([
+  'activity',
+  'activities',
+  'class activity',
+  'class session',
+  'discussion',
+  'discussions',
+  'guided practice',
+  'in-class activity',
+  'lab',
+  'lab session',
+  'labs',
+  'laboratories',
+  'laboratory',
+  'laboratory session',
+  'lecture',
+  'lecture lab',
+  'lecture/lab',
+  'lectures',
+  'practice',
+  'practicum',
+  'recitation',
+  'recitations',
+  'seminar',
+  'seminars',
+  'workshop',
+  'workshops',
+]);
+
+function isModalityOnlySectionTitle(value) {
+  const normalized = cleanText(value, 120)
+    .toLowerCase()
+    .replace(/^[\d\s.:-]+/, '')
+    .replace(/\s*\/\s*/g, '/')
+    .replace(/[.:;,-]+$/g, '')
+    .trim();
+  return MODALITY_ONLY_SECTION_TITLES.has(normalized);
+}
+
+function cleanSectionTitles(value) {
+  return asArray(value)
+    .map((title) => cleanText(title, 120))
+    .filter((title) => title && !isModalityOnlySectionTitle(title))
+    .slice(0, 5);
+}
+
 function asArray(value) {
   return Array.isArray(value) ? value : [];
 }
@@ -197,10 +243,7 @@ export function parseNativeSkeletonResponse(text, { expectedLessons = null, sour
     .map((entry, index) => ({
       order: Number.isInteger(entry?.order) && entry.order > 0 ? entry.order : index + 1,
       title: cleanText(entry?.title, 160),
-      sectionTitles: asArray(entry?.sectionTitles)
-        .map((title) => cleanText(title, 120))
-        .filter(Boolean)
-        .slice(0, 5),
+      sectionTitles: cleanSectionTitles(entry?.sectionTitles),
       sourceIndex: index,
     }))
     .sort((a, b) => a.order - b.order || a.sourceIndex - b.sourceIndex)

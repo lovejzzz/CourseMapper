@@ -150,6 +150,60 @@ const RESEARCH_METHODS_COURSE = buildCourse('Introduction to Research Methods', 
   ['Research Ethics', 'informed consent institutional review board voluntary participation'],
 ]);
 
+const INTRO_PSYCH_AUDIT_COURSE = {
+  courseName: 'Introduction to Psychology',
+  lessons: [
+    {
+      title: 'Lesson 1: Learning',
+      sections: [
+        {
+          topicSection: '1.1: learning',
+          learningObjectives: 'Explain learning from evidence.',
+          weeklyAssessments: 'Lesson 1 evidence check.',
+          asyncActivities: 'Review assigned materials.',
+          syncActivities: 'Analyze a learning scenario.',
+        },
+      ],
+    },
+    {
+      title: 'Lesson 2: Memory',
+      sections: [
+        {
+          topicSection: '2.1: memory',
+          learningObjectives: 'Explain memory from evidence.',
+          weeklyAssessments: 'Lesson 2 applied problem.',
+          asyncActivities: 'Review assigned materials.',
+          syncActivities: 'Analyze a memory scenario.',
+        },
+      ],
+    },
+    {
+      title: 'Lesson 3: Cognitive Bias',
+      sections: [
+        {
+          topicSection: '3.1: cognitive bias',
+          learningObjectives: 'Connect cognitive bias to decision evidence.',
+          weeklyAssessments: 'Lesson 3 practice brief.',
+          asyncActivities: 'Review assigned materials.',
+          syncActivities: 'Analyze a decision scenario.',
+        },
+      ],
+    },
+    {
+      title: 'Lesson 4: Research Ethics',
+      sections: [
+        {
+          topicSection: '4.1: research ethics',
+          learningObjectives: 'Analyze participant protection and consent.',
+          weeklyAssessments: 'Lesson 4 concept transfer.',
+          asyncActivities: 'Review assigned materials.',
+          syncActivities: 'Analyze a human-subjects scenario.',
+        },
+      ],
+    },
+  ],
+};
+
 function linkCourse(course) {
   const library = genomeLibrary();
   const lessonIndices = course.lessons.map((_, index) => index);
@@ -272,6 +326,21 @@ describe('A2d — the research-methods shard covers the methods backbone', () =>
     const resolved = linked.telemetry.resolvedFromGenome + linked.telemetry.resolvedFromCache;
     expect(resolved).toBeGreaterThanOrEqual(5);
     expect(linked.telemetry.conceptHits).toBeGreaterThanOrEqual(5);
+  });
+});
+
+describe('A2e — intro psychology audits link broad lesson topics to anchored kernels', () => {
+  it('infers psychology plus research-methods for the live Intro Psych topic mix', () => {
+    expect(inferCourseDisciplines(INTRO_PSYCH_AUDIT_COURSE)).toEqual(
+      expect.arrayContaining(['psych', 'research-methods']),
+    );
+  });
+
+  it('links learning, memory, cognitive bias, and research ethics instead of reporting 0/4', () => {
+    const linked = linkCourse(INTRO_PSYCH_AUDIT_COURSE);
+    const resolved = linked.telemetry.resolvedFromGenome + linked.telemetry.resolvedFromCache;
+    expect(resolved).toBeGreaterThanOrEqual(4);
+    expect(linked.telemetry.conceptHits).toBeGreaterThanOrEqual(4);
   });
 });
 

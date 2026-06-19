@@ -1,5 +1,5 @@
 {
-  "version": "2026-06-17",
+  "version": "2026-06-19",
   "generator": "curriculumos-foundry-v1",
   "conceptCount": 255,
   "shards": [
@@ -121,7 +121,7 @@
       "level": "intro",
       "path": "psych-intro.json",
       "conceptCount": 12,
-      "hash": "cf3b266b4ba1876a"
+      "hash": "6a05974f9249be2f"
     },
     {
       "id": "research-methods-intro",
@@ -129,7 +129,7 @@
       "level": "intro",
       "path": "research-methods-intro.json",
       "conceptCount": 5,
-      "hash": "6ad01f01187e6ba7"
+      "hash": "55f8b7220f82158c"
     },
     {
       "id": "stats-intro",

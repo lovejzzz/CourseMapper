@@ -98,7 +98,7 @@ function main() {
 
   const shards = [];
   for (const [key, kernels] of shardGroups) {
-    const [discipline] = key.split('-');
+    const discipline = kernels[0]?.discipline || key.replace(/-[^-]+$/, '');
     const index = buildConceptIndex(kernels);
     const shardBody = {
       id: key,

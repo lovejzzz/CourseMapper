@@ -3,23 +3,23 @@ import { APP_VERSION } from './appVersion.js';
 export const CURRENT_RELEASE = {
   version: APP_VERSION,
   date: 'June 19, 2026',
-  title: 'CourseIR Source Trace: curriculum atoms become genome-linked',
-  landingTitle: 'CourseIR Source Trace',
+  title: 'EduTool Audit Tightening: modality labels stop becoming concepts',
+  landingTitle: 'EduTool Audit Tightening',
   highlights: [
-    'CourseIR lesson outcomes, learner activities, and rubric criteria now require `sourceRefs` that resolve to the source ledger before the object counts as a valid curriculum brain.',
-    'Compiler repair can restore missing or dangling atom source refs for explicit CourseIR input before deterministic rendering, recording `added-atom-source-refs` proof instead of hiding the repair.',
-    'Direct provider CourseIR acceptance now rejects source-ref repair, so native authoring cannot fall back to unlinked prose while claiming direct structured authorship.',
-    'CourseIR validation stats now count source-linked outcomes, activities, and rubric criteria, giving graders and package reports a concrete traceability signal.',
-    'Legacy course-map normalization now emits source-linked outcomes, activities, factual anchors, and rubric criteria against the normalized source ledger.',
+    'A live EduTool.dev Intro Psychology ZIP/log audit now has a saved evidence report tying the release to real package output instead of synthetic inspection alone.',
+    'Native Pass A now treats section titles as subject-matter topics only and drops modality-only labels such as lecture, lab, workshop, discussion, seminar, and recitation before they become Course Map rows.',
+    'The psychology genome now links broad Intro Psych lesson titles such as learning, memory, and cognitive bias to existing anchored OpenStax kernels without lowering the resolver threshold globally.',
+    'The research-methods shard is restored as a foundry-owned manifest shard, so research ethics and informed-consent lessons can load and link through the same hash-pinned genome path as other disciplines.',
+    'Focused regressions pin the exact audited Intro Psych topic mix, proving it infers psychology plus research-methods and no longer reports a 0/4 genome-link run for those broad lessons.',
   ],
   landingHighlights: [
-    'Curriculum atoms now carry source refs.',
-    'Repair is explicit proof, not accepted authorship.',
-    'Course-map normalization keeps trace links intact.',
+    'Lecture/lab labels no longer become topics.',
+    'Intro Psych broad topics link to anchored kernels.',
+    'Research-methods is back in the genome manifest.',
   ],
   proof: {
-    contract: 'release-contracts/v0.15.21.json',
-    roadmap: 'docs/V0.15.21_COURSEIR_SOURCE_TRACE_ROADMAP.md',
+    contract: 'release-contracts/v0.15.22.json',
+    roadmap: 'docs/V0.15.22_EDUTOOL_AUDIT_TIGHTENING_ROADMAP.md',
     auditCommand: 'npm run audit:release-history',
   },
 };
@@ -34,6 +34,18 @@ export const CURRENT_RELEASE_CHANGELOG = {
 };
 
 export const HISTORICAL_RELEASE_CHANGELOGS = [
+  {
+    version: '0.15.21',
+    date: 'June 19, 2026',
+    title: 'CourseIR Source Trace: curriculum atoms become genome-linked',
+    highlights: [
+      'CourseIR lesson outcomes, learner activities, and rubric criteria now require `sourceRefs` that resolve to the source ledger before the object counts as a valid curriculum brain.',
+      'Compiler repair can restore missing or dangling atom source refs for explicit CourseIR input before deterministic rendering, recording `added-atom-source-refs` proof instead of hiding the repair.',
+      'Direct provider CourseIR acceptance now rejects source-ref repair, so native authoring cannot fall back to unlinked prose while claiming direct structured authorship.',
+      'CourseIR validation stats now count source-linked outcomes, activities, and rubric criteria, giving graders and package reports a concrete traceability signal.',
+      'Legacy course-map normalization now emits source-linked outcomes, activities, factual anchors, and rubric criteria against the normalized source ledger.',
+    ],
+  },
   {
     version: '0.15.20',
     date: 'June 19, 2026',

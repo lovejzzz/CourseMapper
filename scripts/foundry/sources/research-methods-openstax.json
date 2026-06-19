@@ -1,0 +1,426 @@
+{
+  "_comment": "v0.15.22 research-methods shard source - OpenStax Psychology 2e (CC BY 4.0), Chapter 2 research methods concepts. Restores the foundry source for the previously orphaned public research-methods-intro shard so manifest generation can load it.",
+  "sourceSnapshots": {
+    "openstax:psychology-2e#2.1": "A hypothesis is a testable prediction about how the world will behave if our idea is correct. As specific hypotheses are tested, theories are modified and refined. A hypothesis is useful because it bridges the gap between the realm of ideas and the real world.",
+    "openstax:psychology-2e#2-key-terms": "Operational definition is a description of what actions and operations will be used to measure the dependent variables and manipulate the independent variables.",
+    "openstax:psychology-2e#2.3": "An operational definition is a precise description of our variables. Operational definitions allow allowing others to understand exactly how and what a researcher measures. An independent variable is manipulated or controlled by the experimenter. In an experiment, the independent variable is the only important difference between the experimental and control groups. A dependent variable is what the researcher measures to see how much effect the independent variable had. A confounding variable means some other factor, a confounding variable, is actually causing the systematic movement in our variables of interest.",
+    "openstax:psychology-2e#2-summary": "Correlations do not tell us anything about causation. In fact, the only way to demonstrate causation is by conducting an experiment.",
+    "openstax:psychology-2e#2.4": "An informed consent form provides a written description of what participants can expect during the experiment. It explains that their involvement is completely voluntary and can be discontinued without penalty at any time. An institution's IRB requires several components in any experiment it approves."
+  },
+  "kernels": [
+    {
+      "id": "research-methods/hypothesis",
+      "rev": 1,
+      "term": "Research hypothesis",
+      "aliases": ["testable prediction", "if-then prediction"],
+      "tags": ["research design", "scientific reasoning"],
+      "level": "intro",
+      "difficulty": 2,
+      "bloomCeiling": "Analyze",
+      "definition": {
+        "text": "A hypothesis is a testable prediction that connects a research idea to observable evidence.",
+        "anchor": {
+          "src": "openstax:psychology-2e#2.1",
+          "loc": "2.1",
+          "quote": "A hypothesis is a testable prediction about how the world will behave if our idea is correct"
+        },
+        "tier": 2
+      },
+      "facts": [
+        {
+          "text": "A strong hypothesis is specific enough that evidence could support or challenge it.",
+          "anchor": {
+            "src": "openstax:psychology-2e#2.1",
+            "loc": "2.1",
+            "quote": "As specific hypotheses are tested, theories are modified and refined"
+          },
+          "tier": 2
+        },
+        {
+          "text": "A hypothesis bridges abstract theory and the real-world observations that can test it.",
+          "anchor": {
+            "src": "openstax:psychology-2e#2.1",
+            "loc": "2.1",
+            "quote": "it bridges the gap between the realm of ideas and the real world"
+          },
+          "tier": 2
+        }
+      ],
+      "misconceptions": [
+        {
+          "text": "Students treat a hypothesis as a broad topic or preference rather than a testable prediction.",
+          "corrective": "Ask what observable result would count as evidence against the prediction.",
+          "tier": 1
+        }
+      ],
+      "examples": [
+        {
+          "text": "If retrieval practice improves retention, then students who use weekly practice quizzes should remember more concepts two weeks later.",
+          "domain": "education research"
+        }
+      ],
+      "mcBank": [
+        {
+          "stem": "Which statement is a research hypothesis?",
+          "options": [
+            "If feedback is immediate, then revision quality will improve",
+            "Feedback is important in writing courses",
+            "Revision quality matters to instructors",
+            "Students should receive feedback"
+          ],
+          "answerIndex": 0,
+          "explanationFactRef": 0,
+          "rationaleRefs": [0]
+        }
+      ],
+      "edges": {
+        "recommends": ["research-methods/operational-definition"],
+        "instanceOf": [
+          {
+            "archetype": "epistemic/evidence-vs-claim",
+            "confidence": 0.9,
+            "verified": true,
+            "mapping": {
+              "claim": "the predicted relationship in the hypothesis",
+              "evidence": "observable results that could support or challenge the prediction"
+            }
+          }
+        ]
+      },
+      "attribution": ["OpenStax Psychology 2e, 2.1 Why Is Research Important?"]
+    },
+    {
+      "id": "research-methods/operational-definition",
+      "rev": 1,
+      "term": "Operational definition",
+      "aliases": ["operationalization", "measure definition", "variable measurement"],
+      "tags": ["measurement", "constructs"],
+      "level": "intro",
+      "difficulty": 3,
+      "bloomCeiling": "Evaluate",
+      "definition": {
+        "text": "An operational definition specifies the concrete actions or measures used to observe a variable.",
+        "anchor": {
+          "src": "openstax:psychology-2e#2-key-terms",
+          "loc": "2 Key Terms",
+          "quote": "description of what actions and operations will be used to measure the dependent variables and manipulate the independent variables"
+        },
+        "tier": 2
+      },
+      "facts": [
+        {
+          "text": "Operational definitions let other researchers understand exactly what was measured and how.",
+          "anchor": {
+            "src": "openstax:psychology-2e#2.3",
+            "loc": "2.3",
+            "quote": "allowing others to understand exactly how and what a researcher measures"
+          },
+          "tier": 2
+        },
+        {
+          "text": "A precise operational definition separates the abstract variable from the measurement procedure.",
+          "anchor": {
+            "src": "openstax:psychology-2e#2.3",
+            "loc": "2.3",
+            "quote": "An operational definition is a precise description of our variables"
+          },
+          "tier": 2
+        }
+      ],
+      "misconceptions": [
+        {
+          "text": "Students equate the construct itself with the measure chosen for it.",
+          "corrective": "Name the construct first, then ask what the chosen operation captures and what it misses.",
+          "tier": 1
+        }
+      ],
+      "examples": [
+        {
+          "text": "Defining study engagement as minutes spent on practice quizzes is an operationalization, not the whole construct of engagement.",
+          "domain": "course evaluation"
+        }
+      ],
+      "mcBank": [
+        {
+          "stem": "A researcher defines stress as a participant's score on a validated stress scale. This is an example of",
+          "options": [
+            "an operational definition",
+            "a confounding variable",
+            "a random assignment rule",
+            "a causal claim"
+          ],
+          "answerIndex": 0,
+          "explanationFactRef": 1,
+          "rationaleRefs": [0]
+        }
+      ],
+      "edges": {
+        "requires": ["research-methods/hypothesis"],
+        "instanceOf": [
+          {
+            "archetype": "epistemic/operationalization",
+            "confidence": 0.9,
+            "verified": true,
+            "mapping": {
+              "construct": "the abstract variable being studied",
+              "measure": "the concrete action, instrument, or score used to observe it",
+              "what the measure captures": "the part of the construct visible through the chosen method",
+              "what it misses": "construct meaning not captured by that measurement choice"
+            }
+          }
+        ]
+      },
+      "attribution": ["OpenStax Psychology 2e, 2.3 Analyzing Findings"]
+    },
+    {
+      "id": "research-methods/independent-dependent-variables",
+      "rev": 1,
+      "term": "Independent and dependent variables",
+      "aliases": [
+        "independent variable",
+        "dependent variable",
+        "IV and DV",
+        "experimental variable",
+        "measured outcome"
+      ],
+      "tags": ["experimental design", "variables"],
+      "level": "intro",
+      "difficulty": 2,
+      "bloomCeiling": "Apply",
+      "definition": {
+        "text": "In an experiment, the independent variable is manipulated or controlled, while the dependent variable is measured as the outcome.",
+        "anchor": {
+          "src": "openstax:psychology-2e#2.3",
+          "loc": "2.3",
+          "quote": "An independent variable is manipulated or controlled by the experimenter"
+        },
+        "tier": 2
+      },
+      "facts": [
+        {
+          "text": "A clean experiment keeps the independent variable as the important planned difference between groups.",
+          "anchor": {
+            "src": "openstax:psychology-2e#2.3",
+            "loc": "2.3",
+            "quote": "the independent variable is the only important difference between the experimental and control groups"
+          },
+          "tier": 2
+        },
+        {
+          "text": "A dependent variable is the measured outcome used to estimate the effect of the independent variable.",
+          "anchor": {
+            "src": "openstax:psychology-2e#2.3",
+            "loc": "2.3",
+            "quote": "A dependent variable is what the researcher measures to see how much effect the independent variable had"
+          },
+          "tier": 2
+        }
+      ],
+      "misconceptions": [
+        {
+          "text": "Students often swap the independent and dependent variables because both are named variables.",
+          "corrective": "Ask what the researcher changes first; then ask what changes in response.",
+          "tier": 1
+        }
+      ],
+      "examples": [
+        {
+          "text": "If one group receives immediate feedback and another delayed feedback, feedback timing is the independent variable and revision score is the dependent variable.",
+          "domain": "learning research"
+        }
+      ],
+      "mcBank": [
+        {
+          "stem": "In a study where one group receives immediate feedback and another receives delayed feedback, feedback timing is the",
+          "options": ["independent variable", "dependent variable", "confounding variable", "sampling frame"],
+          "answerIndex": 0,
+          "explanationFactRef": 0,
+          "rationaleRefs": [0]
+        }
+      ],
+      "edges": {
+        "requires": ["research-methods/operational-definition"],
+        "instanceOf": [
+          {
+            "archetype": "epistemic/operationalization",
+            "confidence": 0.9,
+            "verified": true,
+            "mapping": {
+              "construct": "the causal relationship under study",
+              "measure": "the independent-variable condition and dependent-variable outcome",
+              "what the measure captures": "the observed effect of the manipulation on the outcome",
+              "what it misses": "other differences between groups that the design did not control"
+            }
+          }
+        ]
+      },
+      "attribution": ["OpenStax Psychology 2e, 2.3 Analyzing Findings"]
+    },
+    {
+      "id": "research-methods/correlation-causation",
+      "rev": 1,
+      "term": "Correlation versus causation",
+      "aliases": ["correlation does not imply causation", "causal inference"],
+      "tags": ["causality", "research design"],
+      "level": "intro",
+      "difficulty": 3,
+      "bloomCeiling": "Evaluate",
+      "definition": {
+        "text": "Correlation shows that variables move together, but it does not by itself demonstrate that one variable caused the other.",
+        "anchor": {
+          "src": "openstax:psychology-2e#2-summary",
+          "loc": "2 Summary",
+          "quote": "Correlations do not tell us anything about causation"
+        },
+        "tier": 2
+      },
+      "facts": [
+        {
+          "text": "Experiments are the research design that can demonstrate causation when their controls are sound.",
+          "anchor": {
+            "src": "openstax:psychology-2e#2-summary",
+            "loc": "2 Summary",
+            "quote": "the only way to demonstrate causation is by conducting an experiment"
+          },
+          "tier": 2
+        },
+        {
+          "text": "A confounding variable is an outside factor that may actually cause the systematic movement in the variables of interest.",
+          "anchor": {
+            "src": "openstax:psychology-2e#2.3",
+            "loc": "2.3",
+            "quote": "some other factor, a confounding variable, is actually causing the systematic movement in our variables of interest"
+          },
+          "tier": 2
+        }
+      ],
+      "misconceptions": [
+        {
+          "text": "Students infer cause from association without checking direction or third-variable explanations.",
+          "corrective": "Generate a reverse-causation story and a confounder before making a causal claim.",
+          "tier": 1
+        }
+      ],
+      "examples": [
+        {
+          "text": "Students who attend more review sessions may score higher because motivated students both attend and study more.",
+          "domain": "course analytics"
+        }
+      ],
+      "mcBank": [
+        {
+          "stem": "A study finds that students who attend optional review sessions earn higher exam scores. What is the best caution?",
+          "options": [
+            "Attendance may be correlated with motivation rather than causing the score difference",
+            "The review sessions definitely caused the score difference",
+            "The two variables cannot be related",
+            "The dependent variable must be attendance"
+          ],
+          "answerIndex": 0,
+          "explanationFactRef": 1,
+          "rationaleRefs": [0]
+        }
+      ],
+      "edges": {
+        "requires": ["research-methods/independent-dependent-variables"],
+        "instanceOf": [
+          {
+            "archetype": "epistemic/causation-vs-correlation",
+            "confidence": 0.92,
+            "verified": true,
+            "mapping": {
+              "association": "the observed correlation",
+              "proposed cause": "the variable being treated as causal",
+              "proposed effect": "the outcome variable",
+              "alternative explanation": "a confounding variable or design limitation"
+            }
+          }
+        ]
+      },
+      "attribution": ["OpenStax Psychology 2e, Chapter 2 Summary"]
+    },
+    {
+      "id": "research-methods/informed-consent",
+      "rev": 1,
+      "term": "Informed consent and IRB review",
+      "aliases": ["informed consent", "participant consent", "voluntary participation", "research ethics"],
+      "tags": ["ethics", "human subjects", "participant protection"],
+      "level": "intro",
+      "difficulty": 2,
+      "bloomCeiling": "Apply",
+      "definition": {
+        "text": "Informed consent gives participants a written account of what to expect and makes voluntary participation explicit before data collection begins.",
+        "anchor": {
+          "src": "openstax:psychology-2e#2.4",
+          "loc": "2.4",
+          "quote": "An informed consent form provides a written description of what participants can expect during the experiment"
+        },
+        "tier": 2
+      },
+      "facts": [
+        {
+          "text": "Participants must know that involvement is voluntary and can be discontinued without penalty.",
+          "anchor": {
+            "src": "openstax:psychology-2e#2.4",
+            "loc": "2.4",
+            "quote": "their involvement is completely voluntary and can be discontinued without penalty at any time"
+          },
+          "tier": 2
+        },
+        {
+          "text": "An institutional review board requires several components before approving an experiment.",
+          "anchor": {
+            "src": "openstax:psychology-2e#2.4",
+            "loc": "2.4",
+            "quote": "An institution's IRB requires several components in any experiment it approves"
+          },
+          "tier": 2
+        }
+      ],
+      "misconceptions": [
+        {
+          "text": "Students treat informed consent as a signature form rather than an ongoing ethical protection.",
+          "corrective": "Check whether participants understand the procedure, know the risks, and can withdraw without penalty.",
+          "tier": 1
+        }
+      ],
+      "examples": [
+        {
+          "text": "A survey invitation states the study purpose, expected time, risks, confidentiality limits, and withdrawal rights before the participant begins.",
+          "domain": "human subjects research"
+        }
+      ],
+      "mcBank": [
+        {
+          "stem": "Which consent statement best protects research participants?",
+          "options": [
+            "You may stop participating at any time without penalty",
+            "You must finish once you begin",
+            "Your instructor will know whether you participated",
+            "The study has no purpose to disclose"
+          ],
+          "answerIndex": 0,
+          "explanationFactRef": 0,
+          "rationaleRefs": [0]
+        }
+      ],
+      "edges": {
+        "recommends": ["research-methods/hypothesis"],
+        "instanceOf": [
+          {
+            "archetype": "interpretive/source-criticism",
+            "confidence": 0.75,
+            "verified": true,
+            "mapping": {
+              "source": "participant data",
+              "maker and context": "the research procedure and consent context",
+              "intended audience": "researchers and participants",
+              "what it can support": "claims gathered under ethical participation conditions"
+            }
+          }
+        ]
+      },
+      "attribution": ["OpenStax Psychology 2e, 2.4 Ethics"]
+    }
+  ]
+}

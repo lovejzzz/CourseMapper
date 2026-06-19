@@ -207,6 +207,8 @@ describe('Pass A skeleton contract (B1)', () => {
     expect(NATIVE_SKELETON_SYSTEM_PROMPT).toMatch(/VERBATIM/);
     expect(NATIVE_SKELETON_SYSTEM_PROMPT).toMatch(/never invent/i);
     expect(NATIVE_SKELETON_SYSTEM_PROMPT).toMatch(/"sessions"/);
+    expect(NATIVE_SKELETON_SYSTEM_PROMPT).toMatch(/subject-matter subtopics only/i);
+    expect(NATIVE_SKELETON_SYSTEM_PROMPT).toMatch(/Never use delivery modes/i);
   });
 
   it('parses a well-formed skeleton: ids, order, clamped dueSession, kind validation', () => {
@@ -224,6 +226,26 @@ describe('Pass A skeleton contract (B1)', () => {
     expect(skeleton.assessments[2].kind).toBeUndefined();
     expect(skeleton.assessments[2].dueSession).toBe(3);
     expect(skeleton.readings[0]).toMatchObject({ title: 'OpenStax Ch. 4: Igneous Rocks', dueSession: 3 });
+  });
+
+  it('drops modality-only section titles before they become course-map topics', () => {
+    const skeleton = parseNativeSkeletonResponse(
+      JSON.stringify({
+        course: { name: 'Introduction to Psychology', term: 'FA26' },
+        sessions: [
+          { order: 1, title: 'Learning', sectionTitles: ['learning', 'lecture', 'lab'] },
+          { order: 2, title: 'Memory', sectionTitles: ['Lecture/Lab'] },
+        ],
+      }),
+    );
+
+    expect(skeleton.sessions[0].sectionTitles).toEqual(['learning']);
+    expect(skeleton.sessions[1].sectionTitles).toEqual([]);
+
+    const wireMap = buildNativeWireMap(skeleton);
+    expect(wireMap.lessons[0].sections.map((section) => section.topicSection)).toEqual(['1.1: learning']);
+    expect(wireMap.lessons[1].sections.map((section) => section.topicSection)).toEqual(['2.1: Memory']);
+    expect(JSON.stringify(wireMap)).not.toMatch(/\b(?:lecture|lab)\b/i);
   });
 
   it('re-normalizes duplicate/gapped session orders to 1..N', () => {

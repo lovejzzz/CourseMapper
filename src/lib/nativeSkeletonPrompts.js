@@ -8,7 +8,7 @@ Return ONLY one valid JSON object, no markdown and no commentary, in exactly thi
 {
   "course": { "name": "Official course title", "term": "FA26 or TBD", "goals": ["short course-level goal phrases"] },
   "sessions": [
-    { "id": "s1", "order": 1, "title": "Lesson title as the source presents it", "sectionTitles": ["2-4 short topic titles for this session"] }
+    { "id": "s1", "order": 1, "title": "Lesson title as the source presents it", "sectionTitles": ["2-4 short subject-matter topic titles for this session"] }
   ],
   "assessments": [
     { "id": "a1", "title": "Assessment title VERBATIM as named in the source", "kind": "graded-artifact|in-class|exam|oral", "dueSession": 3, "weightPct": 20 }
@@ -27,7 +27,8 @@ RULES:
 3. dueSession is the 1-based session number the item belongs to. When the source gives no week, attach it to the most plausible session from context.
 4. RECURRING ASSESSMENTS: when the source states a recurring cadence ("weekly autograded quizzes", "weekly labs", "weekly reading responses"), expand it into one assessments[] entry PER SESSION it applies to — title each "<cadence artifact>: <that session's topic>" (e.g. "Autograded quiz: while loops") with the cadence's kind. Expanding a stated cadence is transcription of the assessment PLAN, not invention; one-off named titles stay verbatim under rule 2. The full assessments[] array must cover the whole plan: most courses carry at least one entry per teaching session, so if your array has fewer entries than sessions, re-read the source for a stated cadence before returning.
 5. SUPPORTING RESOURCES: "resources" carries the per-session supporting materials the source names (handouts, worksheets, lab sheets, kits, datasets, starter code, slides, study guides) — assigned works/readings stay in "readings", never duplicated here. One-off named materials stay verbatim under rule 2. When the source states a recurring materials cadence ("weekly lab handouts", "weekly labs using hand-specimen kits"), expand it into one resources[] entry PER SESSION it applies to — title each "<cadence material>: <that session's topic>" (e.g. "Lab handout: mineral identification") — the same discipline as rule 4: expanding a stated cadence is transcription of the materials PLAN, not invention. Omit "resources" entries (or the array) entirely when the source names no supporting materials.
-6. Keep it compact: short strings, no prose sentences, no explanations.`;
+6. sectionTitles are subject-matter subtopics only. Never use delivery modes or schedule labels such as "lecture", "lab", "laboratory", "workshop", "discussion", "seminar", or "recitation" as section titles by themselves; if the source gives only the session topic plus a lecture/lab format, omit sectionTitles or repeat the session topic.
+7. Keep it compact: short strings, no prose sentences, no explanations.`;
 
 /**
  * Pass A user prompt. MUST contain the word "JSON" (the v0.13.1 json_object
