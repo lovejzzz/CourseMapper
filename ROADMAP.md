@@ -4,6 +4,27 @@
 
 CourseMapper is moving toward a "consider it done" course-production agent. The user should describe the course, choose scope/materials, and receive a finished draft package. The agent owns generation, QA, repair, alignment, and export readiness. Human involvement should be final approval only, not QA labor.
 
+## v0.15.13 - Native Fallback Audit Truth
+
+Goal: make generated package reports disclose native-authoring fallback caveats
+when the run digest proves the generation fell back to prose. A live
+EduTool.dev Microeconomics package recorded `nativeAuthoring: fell back to
+prose: degenerate-skeleton (1 assessment for 8 lessons)` in the digest, but the
+ZIP's manifest/report only surfaced the assessment-coverage observation.
+
+Full plan: `docs/V0.15.13_NATIVE_FALLBACK_AUDIT_TRUTH_ROADMAP.md`
+
+1. Promote digest `pipeline.nativeAuthoring` prose fallbacks into scored
+   package honesty findings.
+2. Distinguish disclosed fallbacks from manifest/report omissions so auditors
+   can see whether the package is honest about the run that created it.
+3. Add regression coverage that builds a digest-only native fallback package
+   and regrades the downloaded-ZIP path.
+4. Bump the grader version so package manifests identify the stricter honesty
+   check.
+5. Keep CourseIR one-call generation as carry-forward architecture work; this
+   release fixes current report truth, not provider-call routing.
+
 ## v0.15.12 - Prompt Artifact Precision
 
 Goal: keep the prompt-artifact firewall strict where requested deliverables

@@ -3,23 +3,23 @@ import { APP_VERSION } from './appVersion.js';
 export const CURRENT_RELEASE = {
   version: APP_VERSION,
   date: 'June 19, 2026',
-  title: 'Prompt Artifact Precision: worked examples stop false-positive grading',
-  landingTitle: 'Prompt Artifact Precision',
+  title: 'Native Fallback Audit Truth: digest caveats reach generated packages',
+  landingTitle: 'Native Fallback Audit Truth',
   highlights: [
-    'A live EduTool.dev astronomy run proved the v0.15.11 Course Map firewall held, but also exposed an overbroad grader P1 when “worked examples” appeared as an ordinary supporting resource.',
-    'Prompt artifact detection now keeps “worked examples” suspicious as a numbered lesson topic while allowing normal FAQ and resource phrasing such as worked examples, readings, or activity sheets.',
-    'The stricter P0 behavior remains intact for multi-label Course Map leakage, so requested deliverables still cannot masquerade as lesson concepts.',
-    'Regression coverage now includes the exact astronomy false-positive shape alongside the environmental-science contamination blocker and instructional-design exemption.',
-    'The release keeps the CourseIR one-call architecture as carry-forward work; this patch tunes the shipped grader without changing the generation architecture.',
+    'A live EduTool.dev Microeconomics package exposed a report-truth gap: the run digest recorded a native-authoring prose fallback, but the shipped package report only showed the assessment-coverage observation.',
+    'The deep package grader now converts digest `pipeline.nativeAuthoring` prose fallbacks into scored P2 honesty findings, including the evidence string from the run digest.',
+    'When the package manifest omits that native-authoring fallback, the quality report names the missing disclosure explicitly instead of letting the ZIP look cleaner than the run that created it.',
+    'Regression coverage now builds a package with a digest-only native fallback and regrades the downloaded-ZIP path, proving the report surfaces the caveat and the manifest omission.',
+    'The release keeps the CourseIR one-call compiler architecture as carry-forward work; this patch improves the current audit/report layer without changing provider-call routing.',
   ],
   landingHighlights: [
-    'Worked examples are allowed as legitimate supporting resources.',
-    'Numbered prompt artifact topics still fail package grading.',
-    'The live Astronomy audit result is recorded as a grader-precision fix.',
+    'Native-authoring fallback caveats now reach package grading.',
+    'Digest-only fallback evidence is preserved in QUALITY_REPORT.md.',
+    'The live Microeconomics audit result is recorded as a report-truth fix.',
   ],
   proof: {
-    contract: 'release-contracts/v0.15.12.json',
-    roadmap: 'docs/V0.15.12_PROMPT_ARTIFACT_PRECISION_ROADMAP.md',
+    contract: 'release-contracts/v0.15.13.json',
+    roadmap: 'docs/V0.15.13_NATIVE_FALLBACK_AUDIT_TRUTH_ROADMAP.md',
     auditCommand: 'npm run audit:release-history',
   },
 };
@@ -34,6 +34,18 @@ export const CURRENT_RELEASE_CHANGELOG = {
 };
 
 export const HISTORICAL_RELEASE_CHANGELOGS = [
+  {
+    version: '0.15.12',
+    date: 'June 19, 2026',
+    title: 'Prompt Artifact Precision: worked examples stop false-positive grading',
+    highlights: [
+      'A live EduTool.dev astronomy run proved the v0.15.11 Course Map firewall held, but also exposed an overbroad grader P1 when “worked examples” appeared as an ordinary supporting resource.',
+      'Prompt artifact detection now keeps “worked examples” suspicious as a numbered lesson topic while allowing normal FAQ and resource phrasing such as worked examples, readings, or activity sheets.',
+      'The stricter P0 behavior remains intact for multi-label Course Map leakage, so requested deliverables still cannot masquerade as lesson concepts.',
+      'Regression coverage now includes the exact astronomy false-positive shape alongside the environmental-science contamination blocker and instructional-design exemption.',
+      'The release keeps the CourseIR one-call architecture as carry-forward work; this patch tunes the shipped grader without changing the generation architecture.',
+    ],
+  },
   {
     version: '0.15.11',
     date: 'June 19, 2026',

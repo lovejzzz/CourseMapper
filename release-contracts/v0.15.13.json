@@ -1,0 +1,114 @@
+{
+  "version": "0.15.13",
+  "date": "June 19, 2026",
+  "title": "Native Fallback Audit Truth: digest caveats reach generated packages",
+  "status": "verified-current",
+  "proofSummary": {
+    "local": [
+      "npm test -- tests/v0143-quality-badge.test.js",
+      "npm test",
+      "npm run format:check",
+      "npm run lint",
+      "npm run build",
+      "npm run bundle:check",
+      "npm run audit:release-history",
+      "npm run audit:gold",
+      "npx playwright test tests/coursemapper.spec.js -g \"changelog page has version entries\""
+    ],
+    "ciFast": {
+      "status": "pending-push",
+      "note": "Fast verification is claimed only after v0.15.13 is pushed and the GitHub Actions run is attached."
+    },
+    "deploy": {
+      "status": "pending-push",
+      "note": "Pages deploy is not claimed until the pushed release completes its deploy run."
+    },
+    "ciDeep": {
+      "status": "pending",
+      "note": "Deep proof remains release-branch or manual pre-release proof. This narrow audit-driven patch does not claim remote deep-proof success."
+    },
+    "liveProvider": {
+      "status": "local-only",
+      "note": "A live EduTool.dev Microeconomics package exposed the report-truth defect through a downloaded ZIP and current Chrome DevTools digest. v0.15.13 does not claim a post-fix deployed live-provider rerun before Pages deploy."
+    },
+    "manualHuman": {
+      "status": "not-applicable",
+      "note": "No external instructor review or approval is claimed by this release."
+    }
+  },
+  "claims": [
+    {
+      "id": "v01513-live-audit-native-fallback-gap",
+      "status": "verified-current",
+      "changelogHighlightIndex": 0,
+      "summary": "The release is driven by a live EduTool.dev Microeconomics package where the run digest recorded native-authoring prose fallback but the package report only showed the assessment-coverage observation.",
+      "anchors": [
+        "docs/V0.15.13_NATIVE_FALLBACK_AUDIT_TRUTH_ROADMAP.md",
+        "src/lib/quality/deepQualityGrader.js",
+        "tests/v0143-quality-badge.test.js"
+      ],
+      "proofCommands": ["npm test -- tests/v0143-quality-badge.test.js", "npm run audit:release-history"],
+      "proofScopes": ["unit", "static-audit"]
+    },
+    {
+      "id": "v01513-native-authoring-fallback-finding",
+      "status": "verified-current",
+      "changelogHighlightIndex": 1,
+      "summary": "The deep package grader converts digest pipeline.nativeAuthoring prose fallbacks into P2 honesty findings with digest evidence.",
+      "anchors": [
+        "src/lib/quality/deepQualityGrader.js",
+        "tests/v0143-quality-badge.test.js",
+        "docs/V0.15.13_NATIVE_FALLBACK_AUDIT_TRUTH_ROADMAP.md"
+      ],
+      "proofCommands": ["npm test -- tests/v0143-quality-badge.test.js"],
+      "proofScopes": ["unit"]
+    },
+    {
+      "id": "v01513-manifest-omission-called-out",
+      "status": "verified-current",
+      "changelogHighlightIndex": 2,
+      "summary": "When PACKAGE_MANIFEST.json omits a native-authoring fallback that is present in the digest, the quality report names that missing disclosure explicitly.",
+      "anchors": [
+        "src/lib/quality/deepQualityGrader.js",
+        "tests/v0143-quality-badge.test.js",
+        "docs/V0.15.13_NATIVE_FALLBACK_AUDIT_TRUTH_ROADMAP.md"
+      ],
+      "proofCommands": ["npm test -- tests/v0143-quality-badge.test.js"],
+      "proofScopes": ["unit", "compiled-output"]
+    },
+    {
+      "id": "v01513-downloaded-zip-regression",
+      "status": "verified-current",
+      "changelogHighlightIndex": 3,
+      "summary": "Regression coverage builds a package with a digest-only native fallback, checks QUALITY_REPORT.md, and regrades the ZIP path to prove the fallback caveat survives export.",
+      "anchors": [
+        "tests/v0143-quality-badge.test.js",
+        "src/lib/packageZipExporter.js",
+        "src/lib/quality/deepQualityGrader.js"
+      ],
+      "proofCommands": ["npm test -- tests/v0143-quality-badge.test.js", "npm test"],
+      "proofScopes": ["unit", "compiled-output"]
+    },
+    {
+      "id": "v01513-courseir-carry-forward-boundary",
+      "status": "verified-current",
+      "changelogHighlightIndex": 4,
+      "summary": "The release boundary keeps CourseIR one-call compiler work behind its existing live side-by-side proof gates while this patch improves the current report-truth layer.",
+      "anchors": [
+        "docs/V0.15.13_NATIVE_FALLBACK_AUDIT_TRUTH_ROADMAP.md",
+        "docs/V0.15.10_COURSEIR_ARCHITECTURE_ROADMAP.md",
+        "src/lib/releaseManifest.js"
+      ],
+      "proofCommands": ["npm run audit:release-history"],
+      "proofScopes": ["doc", "static-audit"]
+    }
+  ],
+  "carryForward": [
+    {
+      "id": "courseir-default-live-proof",
+      "status": "carry-forward",
+      "source": "docs/V0.15.10_COURSEIR_ARCHITECTURE_ROADMAP.md",
+      "next": "Run deployed side-by-side 5-, 8-, and 15-lesson CourseIR comparisons before making CourseIR generation the default."
+    }
+  ]
+}

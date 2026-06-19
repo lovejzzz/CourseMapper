@@ -100,7 +100,9 @@ import { computeTexture, textureDocsFromFiles, buildTextureAdvisories, TEXTURE_V
 // scored package findings.
 // 1.7.1 — v0.15.12: "worked examples" remains suspicious as a numbered
 // lesson topic but no longer creates false positives as a supporting resource.
-export const GRADER_VERSION = '1.7.1';
+// 1.7.2 — v0.15.13: digest-only native authoring prose fallback becomes an
+// honesty finding when the package manifest/report would otherwise look clean.
+export const GRADER_VERSION = '1.7.2';
 
 // ── Dimension weights & letter bands (documented in the module header) ──────
 // texture now has a small score-bearing weight. It should be able to pull a
@@ -1129,7 +1131,7 @@ function checkHonesty(findings, { manifest }, consoleLogText, digest) {
     });
   }
 
-  addDigestCaveatFindings(findings, digest?.gates?.flaggedChecks || []);
+  addDigestCaveatFindings(findings, [digest?.pipeline?.nativeAuthoring].concat(digest?.gates?.flaggedChecks || []));
 
   // Unexplained console errors/warnings (allowlist dev noise).
   const ALLOWLIST =
@@ -1219,13 +1221,12 @@ export const IN_APP_EXCLUDED_CHECKS = [
 export function honestyFromDigest(budget = null, digest = null) {
   const pipeline = { ...(digest?.pipeline || {}), ...(budget?.pipeline || {}) };
   return {
-    mode: 'digest',
     genomeLinker: String(pipeline.genomeLinker || ''),
     knowledgeBackbone: String(pipeline.knowledgeBackbone || ''),
     judgment: pipeline.judgment ? String(pipeline.judgment) : '',
     exportStatus: digest?.gates?.exportStatus ?? null,
     exportFailed: Number.isFinite(digest?.gates?.exportFailed) ? digest.gates.exportFailed : null,
-    flaggedChecks: Array.isArray(digest?.gates?.flaggedChecks) ? digest.gates.flaggedChecks : [],
+    flaggedChecks: [pipeline.nativeAuthoring].concat(digest?.gates?.flaggedChecks || []),
   };
 }
 
@@ -1241,8 +1242,15 @@ function parsePartialCoverage(message) {
 function addDigestCaveatFindings(findings, flaggedChecks = []) {
   const seen = new Set();
   for (const check of flaggedChecks || []) {
-    const message = String(check?.message || '').trim();
-    if (!message) continue;
+    const message = check?.message || check || '';
+    if (/prose/.test(message)) {
+      findings.add({
+        severity: 'P2',
+        dimension: 'honesty',
+        detail: 'native fallback missing manifest',
+        evidence: message,
+      });
+    }
     if (/compiled without enrichment|mail-merge risk/i.test(message)) {
       const key = 'compiled-without-enrichment';
       if (seen.has(key)) continue;
@@ -3146,7 +3154,7 @@ export async function grade({
   checkConsistency(findings, pkg);
   // Honesty source: the Crucible passes console text; the in-app finalize
   // path passes honestyFromDigest(budget, digest) (v0.14.3 WS-A A2).
-  if (honesty && honesty.mode === 'digest') checkHonestyFromDigest(findings, pkg, honesty);
+  if (honesty) checkHonestyFromDigest(findings, pkg, honesty);
   else checkHonesty(findings, pkg, consoleLogText, digest);
   // V0.14.3 WS-B2: the genome bar (genome-expecting courses only).
   checkGenomeBar(findings, pkg, course, consoleLogText, honesty);

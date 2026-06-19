@@ -261,6 +261,37 @@ describe('A5(2) — healthy package ships its own audit', () => {
     expect(regrade.overall.score).toBe(result.quality.score);
     expect(regrade.findings.filter((finding) => /quality_report/i.test(finding.file))).toEqual([]);
   }, 120000);
+
+  it('QUALITY_REPORT surfaces digest-only native authoring fallback caveats', async () => {
+    const digest = healthyDigest();
+    digest.pipeline = {
+      ...(digest.pipeline || {}),
+      nativeAuthoring: 'fell back to prose: degenerate-skeleton (1 assessment for 8 lessons)',
+    };
+    const result = await buildPackage({ quality: { budget: healthyBudget(), digest } });
+
+    expect(result.quality?.status).toBe('graded');
+    expect(result.quality.findingCounts.p2).toBeGreaterThanOrEqual(1);
+
+    const zip = await JSZip.loadAsync(await result.blob.arrayBuffer());
+    const manifest = JSON.parse(await zip.file('PACKAGE_MANIFEST.json').async('string'));
+    const report = await zip.file('QUALITY_REPORT.md').async('string');
+    expect(manifest.pipeline.nativeAuthoring).toBeUndefined();
+    expect(report).toContain('**[honesty] native fallback missing manifest**');
+    expect(report).toContain('degenerate-skeleton (1 assessment for 8 lessons)');
+
+    const regrade = await grade({
+      fileProvider: createMemoryFileProvider(await fileMapFromZip(result.blob)),
+      consoleLogText: healthyConsoleLog(),
+      digest,
+      course: GEO_COURSE,
+    });
+    expect(
+      regrade.findings.some(
+        (finding) => finding.dimension === 'honesty' && finding.detail === 'native fallback missing manifest',
+      ),
+    ).toBe(true);
+  }, 120000);
 });
 
 describe('A5(3) — seeded P0 reaches the manifest and the readiness channel', () => {
