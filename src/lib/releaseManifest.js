@@ -3,23 +3,23 @@ import { APP_VERSION } from './appVersion.js';
 export const CURRENT_RELEASE = {
   version: APP_VERSION,
   date: 'June 19, 2026',
-  title: 'Prompt Artifact Firewall: requested deliverables stop becoming lesson concepts',
-  landingTitle: 'Prompt Artifact Firewall',
+  title: 'Prompt Artifact Precision: worked examples stop false-positive grading',
+  landingTitle: 'Prompt Artifact Precision',
   highlights: [
-    'A live EduTool.dev environmental-science run exposed prompt artifact contamination: “lesson plans,” “slide decks,” “assignment briefs,” and related requested deliverables became course-map topics while the package still reported 99/A.',
-    'Course-map readiness repair now treats prompt artifact labels as invalid topic candidates for normal disciplinary courses and rewrites contaminated cells from the real lesson topic before compilation.',
-    'The Crucible grader now scores prompt artifact contamination as a package defect, with multi-label course-map contamination becoming a P0 so a polished ZIP cannot hide unusable lesson concepts behind an A badge.',
-    'Regression coverage pins both layers: the repair test proves contaminated environmental-science sections return to ecosystems, and the grader test proves the old ZIP shape regrades as unsafe instead of clean.',
-    'The release keeps the CourseIR one-call architecture as carry-forward work; this patch narrows the current shipped path while CourseIR remains behind proof gates.',
+    'A live EduTool.dev astronomy run proved the v0.15.11 Course Map firewall held, but also exposed an overbroad grader P1 when “worked examples” appeared as an ordinary supporting resource.',
+    'Prompt artifact detection now keeps “worked examples” suspicious as a numbered lesson topic while allowing normal FAQ and resource phrasing such as worked examples, readings, or activity sheets.',
+    'The stricter P0 behavior remains intact for multi-label Course Map leakage, so requested deliverables still cannot masquerade as lesson concepts.',
+    'Regression coverage now includes the exact astronomy false-positive shape alongside the environmental-science contamination blocker and instructional-design exemption.',
+    'The release keeps the CourseIR one-call architecture as carry-forward work; this patch tunes the shipped grader without changing the generation architecture.',
   ],
   landingHighlights: [
-    'Prompt artifact labels are no longer accepted as normal course topics.',
-    'Package grading now blocks multi-label artifact contamination.',
-    'The live EduTool audit result is recorded as a release-driver defect.',
+    'Worked examples are allowed as legitimate supporting resources.',
+    'Numbered prompt artifact topics still fail package grading.',
+    'The live Astronomy audit result is recorded as a grader-precision fix.',
   ],
   proof: {
-    contract: 'release-contracts/v0.15.11.json',
-    roadmap: 'docs/V0.15.11_PROMPT_ARTIFACT_FIREWALL_ROADMAP.md',
+    contract: 'release-contracts/v0.15.12.json',
+    roadmap: 'docs/V0.15.12_PROMPT_ARTIFACT_PRECISION_ROADMAP.md',
     auditCommand: 'npm run audit:release-history',
   },
 };
@@ -34,6 +34,18 @@ export const CURRENT_RELEASE_CHANGELOG = {
 };
 
 export const HISTORICAL_RELEASE_CHANGELOGS = [
+  {
+    version: '0.15.11',
+    date: 'June 19, 2026',
+    title: 'Prompt Artifact Firewall: requested deliverables stop becoming lesson concepts',
+    highlights: [
+      'A live EduTool.dev environmental-science run exposed prompt artifact contamination: “lesson plans,” “slide decks,” “assignment briefs,” and related requested deliverables became course-map topics while the package still reported 99/A.',
+      'Course-map readiness repair now treats prompt artifact labels as invalid topic candidates for normal disciplinary courses and rewrites contaminated cells from the real lesson topic before compilation.',
+      'The Crucible grader now scores prompt artifact contamination as a package defect, with multi-label course-map contamination becoming a P0 so a polished ZIP cannot hide unusable lesson concepts behind an A badge.',
+      'Regression coverage pins both layers: the repair test proves contaminated environmental-science sections return to ecosystems, and the grader test proves the old ZIP shape regrades as unsafe instead of clean.',
+      'The release keeps the CourseIR one-call architecture as carry-forward work; this patch narrows the current shipped path while CourseIR remains behind proof gates.',
+    ],
+  },
   {
     version: '0.15.10',
     date: 'June 19, 2026',

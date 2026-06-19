@@ -525,4 +525,36 @@ describe('v0.15.11 prompt-artifact contamination regressions', () => {
       ]),
     );
   });
+
+  it('does not flag worked examples when they are supporting resources, not lesson concepts', async () => {
+    const result = await grade({
+      fileProvider: createMemoryFileProvider({
+        'PACKAGE_MANIFEST.json': JSON.stringify({
+          courseName: 'Introductory Astronomy: Stars, Planets, and the Observable Universe',
+          lessonScope: 'all',
+          assessments: [],
+          files: [],
+          readiness: { status: 'ready', blockers: 0 },
+        }),
+        'Course FAQ/Lesson 03 - Solar system formation - Course FAQ.md': [
+          '# Course FAQ',
+          'Q1. What should I focus on for Lesson 3: Solar system formation?',
+          'Focus on Solar system formation, how temperature differences shaped planet types, accretion outcomes for rocky, then connect those ideas to Practice response that names the evidence needed for solar system formation. Strong work uses Worked examples, readings, or activity sheets aligned to Solar system formation.',
+        ].join('\n'),
+      }),
+      course: {
+        id: 'introductory-astronomy',
+        title: 'Introductory Astronomy: Stars, Planets, and the Observable Universe',
+        featureIds: ['courseFaq'],
+      },
+    });
+
+    expect(result.findings).not.toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          detail: expect.stringMatching(/prompt artifact labels/i),
+        }),
+      ]),
+    );
+  });
 });

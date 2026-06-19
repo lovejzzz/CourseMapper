@@ -336,7 +336,9 @@ export function scanText(patterns, text, { evidenceChars = 160 } = {}) {
 
 const PROMPT_ARTIFACT_TOPIC_SOURCE =
   'evidence-rich lesson plans|lesson plans|slide decks|assignment briefs|rubrics|discussion prompts|quizzes|quiz bank|study guides|course faq|worked examples|misconceptions|instructor handoff notes';
-const PROMPT_ARTIFACT_TOPIC_RE = new RegExp(`\\b(${PROMPT_ARTIFACT_TOPIC_SOURCE})\\b`, 'i');
+const PROMPT_ARTIFACT_FOCUS_TOPIC_SOURCE =
+  'evidence-rich lesson plans|lesson plans|slide decks|assignment briefs|rubrics|discussion prompts|quizzes|quiz bank|study guides|course faq|misconceptions|instructor handoff notes';
+const PROMPT_ARTIFACT_FOCUS_TOPIC_RE = new RegExp(`\\b(${PROMPT_ARTIFACT_FOCUS_TOPIC_SOURCE})\\b`, 'i');
 const NUMBERED_PROMPT_ARTIFACT_TOPIC_RE = new RegExp(
   `\\b\\d+(?:\\.\\d+)+\\s*:\\s*(${PROMPT_ARTIFACT_TOPIC_SOURCE})\\b`,
   'i',
@@ -358,7 +360,7 @@ export function findPromptArtifactContamination(line) {
   if (!value) return null;
   const match =
     value.match(NUMBERED_PROMPT_ARTIFACT_TOPIC_RE) ||
-    (PROMPT_ARTIFACT_FOCUS_RE.test(value) ? value.match(PROMPT_ARTIFACT_TOPIC_RE) : null);
+    (PROMPT_ARTIFACT_FOCUS_RE.test(value) ? value.match(PROMPT_ARTIFACT_FOCUS_TOPIC_RE) : null);
   return match ? { evidence: value, label: String(match[1] || '').toLowerCase() } : null;
 }
 

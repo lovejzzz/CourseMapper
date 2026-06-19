@@ -98,7 +98,9 @@ import { computeTexture, textureDocsFromFiles, buildTextureAdvisories, TEXTURE_V
 // and map-assessment artifact coverage) become scored package findings.
 // 1.7.0 — v0.15.11: prompt artifact labels used as lesson concepts become
 // scored package findings.
-export const GRADER_VERSION = '1.7.0';
+// 1.7.1 — v0.15.12: "worked examples" remains suspicious as a numbered
+// lesson topic but no longer creates false positives as a supporting resource.
+export const GRADER_VERSION = '1.7.1';
 
 // ── Dimension weights & letter bands (documented in the module header) ──────
 // texture now has a small score-bearing weight. It should be able to pull a

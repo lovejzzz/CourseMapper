@@ -4,6 +4,23 @@
 
 CourseMapper is moving toward a "consider it done" course-production agent. The user should describe the course, choose scope/materials, and receive a finished draft package. The agent owns generation, QA, repair, alignment, and export readiness. Human involvement should be final approval only, not QA labor.
 
+## v0.15.12 - Prompt Artifact Precision
+
+Goal: keep the prompt-artifact firewall strict where requested deliverables
+become lesson concepts, but stop penalizing legitimate "worked examples" as a
+normal supporting resource. A live EduTool.dev Astronomy package showed the
+Course Map repair held, while the package grader still raised a P1 for a FAQ
+sentence that used worked examples as study support rather than as a topic.
+
+Full plan: `docs/V0.15.12_PROMPT_ARTIFACT_PRECISION_ROADMAP.md`
+
+1. Keep `worked examples` suspicious when it appears as a numbered lesson topic.
+2. Do not treat ordinary FAQ/supporting-resource references to worked examples
+   as prompt artifact contamination.
+3. Preserve the stricter P0 behavior for multi-label Course Map leakage.
+4. Add an Astronomy regression using the live false-positive shape.
+5. Keep CourseIR one-call architecture behind its live side-by-side proof gate.
+
 ## v0.15.11 - Prompt Artifact Firewall
 
 Goal: make requested deliverable labels stay artifact instructions, not course
