@@ -1,0 +1,92 @@
+{
+  "version": "0.15.10",
+  "date": "June 19, 2026",
+  "title": "CourseIR Architecture: one canonical course brain before compilation",
+  "status": "verified-current",
+  "proofSummary": {
+    "local": [
+      "npm test -- tests/v0155-release-truth-ledger.test.js",
+      "npx playwright test tests/coursemapper.spec.js -g \"changelog page has version entries\"",
+      "npm run audit:release-history",
+      "npm run format:check",
+      "npm run lint",
+      "npm run build",
+      "npm run bundle:check"
+    ],
+    "ciFast": {
+      "status": "pending-push",
+      "note": "Fast verification is claimed only after v0.15.10 is pushed and the GitHub Actions run is attached."
+    },
+    "deploy": {
+      "status": "pending-push",
+      "note": "Pages deploy is not claimed until the pushed release completes its deploy run."
+    },
+    "ciDeep": {
+      "status": "pending",
+      "note": "Deep proof remains release-branch or manual pre-release proof. This architecture-roadmap release does not claim remote deep-proof success."
+    },
+    "liveProvider": {
+      "status": "not-used",
+      "note": "No fresh live provider generation is claimed. This release defines the next CourseIR architecture and proof plan."
+    },
+    "manualHuman": {
+      "status": "not-applicable",
+      "note": "No external instructor review or approval is claimed by this release."
+    }
+  },
+  "claims": [
+    {
+      "id": "v01510-courseir-first-architecture",
+      "status": "verified-current",
+      "changelogHighlightIndex": 0,
+      "summary": "The roadmap commits the next architecture lane to CourseIR-first generation: a dense validated course source of truth before deterministic package compilation.",
+      "anchors": ["docs/V0.15.10_COURSEIR_ARCHITECTURE_ROADMAP.md", "src/lib/releaseManifest.js"],
+      "proofCommands": ["npm run audit:release-history"],
+      "proofScopes": ["doc", "static-audit"]
+    },
+    {
+      "id": "v01510-semantic-atoms-not-prose-blob",
+      "status": "verified-current",
+      "changelogHighlightIndex": 1,
+      "summary": "The design rejects one giant final-prose response and instead specifies compact semantic atoms for the model to return.",
+      "anchors": ["docs/V0.15.10_COURSEIR_ARCHITECTURE_ROADMAP.md", "src/lib/releaseManifest.js"],
+      "proofCommands": ["npm run audit:release-history"],
+      "proofScopes": ["doc", "static-audit"]
+    },
+    {
+      "id": "v01510-model-capacity-planning-roadmap",
+      "status": "verified-current",
+      "changelogHighlightIndex": 2,
+      "summary": "The roadmap defines model-capacity planning by input context, output cap, reliability reserve, and cost, choosing whole-course IR or fewest-call sharding per model.",
+      "anchors": ["docs/V0.15.10_COURSEIR_ARCHITECTURE_ROADMAP.md", "src/lib/releaseManifest.js"],
+      "proofCommands": ["npm run audit:release-history"],
+      "proofScopes": ["doc", "static-audit"]
+    },
+    {
+      "id": "v01510-compiler-validation-contract",
+      "status": "verified-current",
+      "changelogHighlightIndex": 3,
+      "summary": "The compiler contract requires deterministic artifact expansion from CourseIR, schema validation, coverage checks, and path-scoped repair instead of blind regeneration.",
+      "anchors": ["docs/V0.15.10_COURSEIR_ARCHITECTURE_ROADMAP.md", "src/lib/releaseManifest.js"],
+      "proofCommands": ["npm run audit:release-history"],
+      "proofScopes": ["doc", "static-audit"]
+    },
+    {
+      "id": "v01510-courseir-proof-ladder",
+      "status": "verified-current",
+      "changelogHighlightIndex": 4,
+      "summary": "The roadmap defines the CourseIR proof ladder before implementation: flagged 5-, 8-, and 15-lesson side-by-side audits comparing calls, cost, grader findings, digest caveats, and export parity.",
+      "anchors": ["docs/V0.15.10_COURSEIR_ARCHITECTURE_ROADMAP.md", "src/lib/releaseManifest.js"],
+      "proofCommands": ["npm run audit:release-history"],
+      "proofScopes": ["doc", "static-audit"]
+    }
+  ],
+  "carryForward": [
+    {
+      "id": "courseir-implementation-slice",
+      "status": "carry-forward",
+      "source": "docs/V0.15.10_COURSEIR_ARCHITECTURE_ROADMAP.md",
+      "next": "Implement the first flagged CourseIR vertical slice: schema, capacity planner, one generation path, one compiler adapter, and side-by-side proof."
+    }
+  ]
+}

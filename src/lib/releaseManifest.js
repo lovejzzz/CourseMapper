@@ -3,22 +3,23 @@ import { APP_VERSION } from './appVersion.js';
 export const CURRENT_RELEASE = {
   version: APP_VERSION,
   date: 'June 19, 2026',
-  title: 'Provider Call Rightsizing: the course package stops paying for avoidable batches',
-  landingTitle: 'Provider Call Rightsizing',
+  title: 'CourseIR Architecture: one canonical course brain before compilation',
+  landingTitle: 'CourseIR Architecture',
   highlights: [
-    'Native Pass B now batches by real model output capacity: long-output structured models such as GPT-5.4 mini can author a 15-lesson course in one enrichment call instead of four fixed 4-lesson calls.',
-    'Native recovery stops after a no-progress retry, so the pipeline no longer spends a second blind call on the same missing lesson set before falling back honestly to structural templates.',
-    'The voice pass now sends the selected eight-surface set in one fixed 4k-output call instead of splitting the default pass into two provider calls.',
-    'GPT-5.4/GPT-5.5 context metadata now reflects current model limits, and model-limit lookup prefers the most specific model prefix before broad GPT-family fallbacks.',
+    'The next architecture lane is CourseIR-first: one dense, validated course source before deterministic package compilation.',
+    'The design rejects one giant final-prose blob and asks the model for compact semantic atoms: lesson kernels, concept graph, factual anchors, examples, and assessment blueprints.',
+    'The model-capacity plan chooses one whole-course IR call when safe, or the fewest sharded IR calls when output caps, reserve, reliability, or cost require it.',
+    'The compiler contract is explicit: final ZIP materials decode from CourseIR through deterministic adapters, schema checks, coverage checks, and path-scoped repairs.',
+    'The proof ladder is set before implementation: flagged 5-, 8-, and 15-lesson comparisons of calls, cost, deep-grade findings, digest caveats, export parity.',
   ],
   landingHighlights: [
-    'Long-output models get one native content-authoring batch for normal 15-lesson courses.',
-    'No-progress recovery retries stop instead of repeating the same failed spend.',
-    'Voice and model-limit metadata now match the new call budget.',
+    'One canonical CourseIR before package compilation.',
+    'Model-capacity planning chooses one-call or fewest-call sharding per provider.',
+    'Implementation proof is defined before the feature flag flips.',
   ],
   proof: {
-    contract: 'release-contracts/v0.15.9.json',
-    roadmap: 'docs/V0.15.9_PROVIDER_CALL_RIGHTSIZING_ROADMAP.md',
+    contract: 'release-contracts/v0.15.10.json',
+    roadmap: 'docs/V0.15.10_COURSEIR_ARCHITECTURE_ROADMAP.md',
     auditCommand: 'npm run audit:release-history',
   },
 };
@@ -33,6 +34,17 @@ export const CURRENT_RELEASE_CHANGELOG = {
 };
 
 export const HISTORICAL_RELEASE_CHANGELOGS = [
+  {
+    version: '0.15.9',
+    date: 'June 19, 2026',
+    title: 'Provider Call Rightsizing: the course package stops paying for avoidable batches',
+    highlights: [
+      'Native Pass B now batches by real model output capacity, so long-output structured models can author a normal 15-lesson course in one enrichment call.',
+      'Native recovery stops after a no-progress retry instead of spending again on the same missing lesson set.',
+      'The voice pass sends the selected eight-surface set in one fixed 4k-output call.',
+      'GPT-5.4/GPT-5.5 context metadata is current, and model-limit lookup prefers the most specific model prefix.',
+    ],
+  },
   {
     version: '0.15.8',
     date: 'June 19, 2026',
