@@ -2,25 +2,25 @@ import { APP_VERSION } from './appVersion.js';
 
 export const CURRENT_RELEASE = {
   version: APP_VERSION,
-  date: 'June 17, 2026',
-  title: 'Finished Package Surface: ready means handoff, not audit work',
-  landingTitle: 'Finished Package Surface: a calmer ready workspace',
+  date: 'June 19, 2026',
+  title: 'EduTool Audit Truth: generated packages stop looking cleaner than they are',
+  landingTitle: 'EduTool Audit Truth: stricter package handoff',
   highlights: [
-    'Ready Course Map now opens to a finished-package overview instead of the dense editable table, with Edit course map one click away.',
-    'The overview summarizes lesson count, material readiness, quality/texture, safe repairs, export checks, and material shortcuts while the side panel remains the single package export surface.',
-    'The agent panel enters compact ready mode: project-brief strip, working-set panel, opener buttons, and old queue cards are hidden while the package receipt and chat input remain available.',
-    'Finished-package material cards jump directly to generated artifact tabs, while the Course Map card opens the editable map only when requested.',
-    'The v0.15.7 release contract and tests pin the overwhelmed-ready-state fix separately from v0.15.6 backend/grader truth work.',
-    'Browser smoke remains part of the proof path so the download handoff is exercised in a real workspace before the release is trusted.',
+    'Package quality now scores run-digest caveats from real EduTool exports, including partial enrichment/template fallback and course-map assessment coverage gaps.',
+    'Saved DevTools logs are scoped to the current run digest before honesty checks, so stale rows from earlier generations cannot create false genome-count P1s.',
+    'The finished-package overview surfaces P0/P1 quality caveats beside the grade with a compact review chip that opens the detailed quality report.',
+    'Assignment Brief DOCX exports render an explicit handoff note for lessons with no standalone submitted assignment instead of shipping a title-only file.',
+    'The grader now flags title-only assignment briefs as substantive P1 package defects, using the live Introduction to CS Lesson 14 failure shape as regression coverage.',
+    'Slide decks collapse course-title echo chains in title bullets and speaker notes, preventing "course: course" repetition in first-lesson decks.',
   ],
   landingHighlights: [
-    'A ready workspace now starts with the finished package summary while export stays in the side panel.',
-    'The dense course map and artifact tabs stay available, but they no longer dominate the handoff.',
-    'The assistant column quiets down to a receipt when there is nothing blocking export.',
+    'Quality scores now count hidden run caveats from the generation digest.',
+    'Ready packages call out serious caveats next to the grade instead of burying them.',
+    'Assignment and slide exports avoid two defects found in the live EduTool ZIP audit.',
   ],
   proof: {
-    contract: 'release-contracts/v0.15.7.json',
-    roadmap: 'docs/V0.15.7_FINISHED_PACKAGE_SURFACE_ROADMAP.md',
+    contract: 'release-contracts/v0.15.8.json',
+    roadmap: 'docs/V0.15.8_EDUTOOL_AUDIT_TRUTH_ROADMAP.md',
     auditCommand: 'npm run audit:release-history',
   },
 };
@@ -35,6 +35,19 @@ export const CURRENT_RELEASE_CHANGELOG = {
 };
 
 export const HISTORICAL_RELEASE_CHANGELOGS = [
+  {
+    version: '0.15.7',
+    date: 'June 17, 2026',
+    title: 'Finished Package Surface: ready means handoff, not audit work',
+    highlights: [
+      'Ready Course Map now opens to a finished-package overview instead of the dense editable table, with Edit course map one click away.',
+      'The overview summarizes lesson count, material readiness, quality/texture, safe repairs, export checks, and material shortcuts while the side panel remains the single package export surface.',
+      'The agent panel enters compact ready mode: project-brief strip, working-set panel, opener buttons, and old queue cards are hidden while the package receipt and chat input remain available.',
+      'Finished-package material cards jump directly to generated artifact tabs, while the Course Map card opens the editable map only when requested.',
+      'The v0.15.7 release contract and tests pin the overwhelmed-ready-state fix separately from v0.15.6 backend/grader truth work.',
+      'Browser smoke remains part of the proof path so the download handoff is exercised in a real workspace before the release is trusted.',
+    ],
+  },
   {
     version: '0.15.6',
     date: 'June 17, 2026',

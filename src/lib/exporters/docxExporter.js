@@ -69,6 +69,21 @@ function formatSourceArtifact(artifact) {
     .join(' — ');
 }
 
+function inferLessonFromExportTitle(title) {
+  const match = /\bLesson\s+0*(\d{1,3})\s+-\s+(.+)$/i.exec(String(title || ''));
+  if (!match) return { lessonNumber: null, lessonTitle: '' };
+  const lessonTitle = match[2]
+    .replace(
+      /\s+-\s*(?:Lesson Plans?|Assignment Briefs?|Rubrics?|Quiz & Exam Bank|Study Guides?|Slide Decks?|Discussion Prompts?|Course FAQ)$/i,
+      '',
+    )
+    .trim();
+  return {
+    lessonNumber: Number(match[1]),
+    lessonTitle,
+  };
+}
+
 /**
  * Shared DOCX content builder — used by both exportDeliverableDocx and buildDeliverableDocxBlob.
  * Generates comprehensive content matching ALL fields shown in the UI.
@@ -253,6 +268,7 @@ export function _buildDocxContentShared(featureId, data, children, docx) {
   } = docx;
 
   const theme = activeTheme();
+  const exportTitle = docx.exportTitle || '';
 
   const makeHeading = (text) =>
     new Paragraph({
@@ -839,7 +855,30 @@ export function _buildDocxContentShared(featureId, data, children, docx) {
     // ─── ASSIGNMENTS ────────────────────────────────────────────
     case 'assignments': {
       const expanded = expandKeys('assignments', data);
-      for (const a of expanded.assignments || []) {
+      const assignments = expanded.assignments || [];
+      if (assignments.length === 0) {
+        const lesson = inferLessonFromExportTitle(exportTitle);
+        const lessonRef = lesson.lessonNumber ? `Course Map L${lesson.lessonNumber}` : 'Course Map';
+        children.push(makeHeading('No standalone assignment brief scheduled'));
+        children.push(makeMeta(['Handoff note', lessonRef, lesson.lessonTitle].filter(Boolean).join('  ·  ')));
+        children.push(
+          makeBold('Status', 'No submitted assignment brief was generated for this lesson in the current package.'),
+        );
+        children.push(
+          makeBold(
+            'Instructor handoff',
+            'Use the lesson plan for in-class activities and the quiz or exam bank for exams. If the Course Map promised a dedicated submitted artifact, add or regenerate that assignment before publishing.',
+          ),
+        );
+        children.push(makeSubHeading('Review Checklist'));
+        [
+          `Confirm ${lessonRef} does not require a standalone student submission.`,
+          'If students submit work for this lesson, create an assignment brief with criteria, evidence requirements, and due-window details.',
+          'Keep this note with the package so an empty DOCX is never mistaken for a finished assignment.',
+        ].forEach((item) => children.push(makeBullet(item)));
+        break;
+      }
+      for (const a of assignments) {
         children.push(makeHeading(a.title || 'Assignment'));
         const aMeta = [
           a.assignmentType,
@@ -1422,7 +1461,7 @@ export async function exportDeliverableDocx(featureId, data, courseName) {
   const children = buildDocxTitleChildren(docx, courseName, label);
 
   // Build content using shared helper
-  _buildDocxContentShared(featureId, data, children, { ...docx, THIN_BORDER });
+  _buildDocxContentShared(featureId, data, children, { ...docx, THIN_BORDER, exportTitle: courseName });
 
   const doc = buildDocxDocument(docx, children, { courseName, label, landscape: featureId === 'rubrics' });
 

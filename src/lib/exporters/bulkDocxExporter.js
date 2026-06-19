@@ -48,7 +48,7 @@ export async function buildDeliverableDocxBlob(featureId, data, courseName) {
   });
 
   // Build content using shared helper
-  _buildDocxContentShared(featureId, data, children, { ...docx, THIN_BORDER });
+  _buildDocxContentShared(featureId, data, children, { ...docx, THIN_BORDER, exportTitle: courseName });
 
   // v0.12.1: rubrics render landscape so the 6-column matrix gets usable
   // column widths (portrait crushed 280-char level cells into 1.1in columns).

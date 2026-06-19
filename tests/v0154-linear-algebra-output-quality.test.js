@@ -3,7 +3,7 @@ import { describe, expect, it } from 'vitest';
 import { compileBlueprintDeliverables } from '../src/lib/courseBlueprintCompiler.js';
 import { buildBlueprintFromGraph, deriveCourseGraphFromCourseMap } from '../src/lib/courseGraph/index.js';
 import { createMemoryFileProvider } from '../src/lib/quality/fileProviders.js';
-import { grade } from './lib/deepQualityGrader.js';
+import { grade, honestyFromDigest } from './lib/deepQualityGrader.js';
 
 function linearAlgebraCourseMap() {
   return {
@@ -117,6 +117,204 @@ describe('v0.15.4 Linear Algebra output quality regressions', () => {
           severity: 'P2',
           dimension: 'honesty',
           detail: expect.stringMatching(/judgment was not evaluated/i),
+        }),
+      ]),
+    );
+  });
+
+  it('scores in-app run digest caveats that the exported package already admits', async () => {
+    const digest = {
+      pipeline: {
+        genomeLinker: '5 genome + 0 cached of 15 lessons (5 concepts, 6 citations, 0 bridges)',
+        knowledgeBackbone: '5/15 lessons genome-linked · 23 open resources',
+        judgment: '2 prerequisite gaps (2 bridgeable with cited primers, 0 assumed background) · 2 primers built',
+      },
+      gates: {
+        exportStatus: 'passed',
+        exportFailed: 0,
+        flaggedChecks: [
+          {
+            featureId: 'content',
+            status: 'info',
+            message: 'partial enrichment (12/15) — lessons 13, 14, 15 fell back to template',
+          },
+          {
+            featureId: 'alignment',
+            status: 'info',
+            message: '25 additional map assessments have no dedicated artifact (in-class activities)',
+          },
+        ],
+      },
+    };
+    const result = await grade({
+      fileProvider: createMemoryFileProvider({
+        'PACKAGE_MANIFEST.json': JSON.stringify({
+          courseName: 'Calculus I - Limits and Derivatives',
+          lessonScope: 'all',
+          assessments: [],
+          files: [],
+          readiness: { status: 'ready', blockers: 0 },
+          pipeline: {
+            enrichment: 'ran (12/15 — lessons 13, 14, 15 fell back to template)',
+            genomeLinker: '5 genome + 0 cached of 15 lessons (5 concepts, 6 citations, 0 bridges)',
+            judgment: '2 prerequisite gaps (2 bridgeable with cited primers, 0 assumed background) · 2 primers built',
+          },
+        }),
+      }),
+      honesty: honestyFromDigest(null, digest),
+      course: { id: 'calculus-i', title: 'Calculus I - Limits and Derivatives', featureIds: [] },
+    });
+
+    expect(result.overall.score).toBeLessThan(99);
+    expect(result.findings).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          severity: 'P1',
+          dimension: 'substance',
+          detail: expect.stringMatching(/partial enrichment left 3 of 15 lessons/i),
+        }),
+        expect.objectContaining({
+          severity: 'P2',
+          dimension: 'identity',
+          detail: expect.stringMatching(/25 course-map assessments/i),
+        }),
+      ]),
+    );
+  });
+
+  it('scopes console honesty checks to the current digest when DevTools includes prior runs', async () => {
+    const currentDigest = {
+      runId: 'run-new',
+      finishRunId: 'finish-new',
+      pipeline: {
+        genomeLinker: '4 genome + 0 cached of 15 lessons (4 concepts, 4 citations, 0 bridges)',
+        knowledgeBackbone: '4/15 lessons genome-linked · 22 open resources',
+        judgment: '4 prerequisite gaps (4 bridgeable with cited primers, 0 assumed background) · 4 primers built',
+      },
+      gates: {
+        exportStatus: 'passed',
+        exportFailed: 0,
+        flaggedChecks: [
+          {
+            featureId: 'content',
+            status: 'info',
+            message: 'partial enrichment (11/15) — lessons 9, 10, 11, 12 fell back to template',
+          },
+        ],
+      },
+    };
+    const result = await grade({
+      fileProvider: createMemoryFileProvider({
+        'PACKAGE_MANIFEST.json': JSON.stringify({
+          courseName: 'Introduction to Computer Science with Python',
+          lessonScope: 'all',
+          assessments: [],
+          files: [],
+          readiness: { status: 'ready', blockers: 0 },
+          pipeline: {
+            enrichment: 'ran (11/15 — lessons 9, 10, 11, 12 fell back to template)',
+            genomeLinker: '4 genome + 0 cached of 15 lessons (4 concepts, 4 citations, 0 bridges)',
+            judgment: '4 prerequisite gaps (4 bridgeable with cited primers, 0 assumed background) · 4 primers built',
+          },
+        }),
+      }),
+      consoleLogText: [
+        '[CM][API] genomeLink {"detail":"5 genome + 0 cached of 15 lessons (5 concepts, 6 citations, 0 bridges)"}',
+        '[CM][DIGEST] {"runId":"run-old","finishRunId":"finish-old","pipeline":{"genomeLinker":"5 genome + 0 cached of 15 lessons","knowledgeBackbone":"5/15 lessons genome-linked"}}',
+        '[CM][API] genomeLink {"detail":"4 genome + 0 cached of 15 lessons (4 concepts, 4 citations, 0 bridges)"}',
+        `[CM][DIGEST] ${JSON.stringify(currentDigest)}`,
+      ].join('\n'),
+      digest: currentDigest,
+      course: {
+        id: 'intro-cs-python',
+        title: 'Introduction to Computer Science with Python',
+        featureIds: [],
+      },
+    });
+
+    expect(result.findings).not.toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          severity: 'P1',
+          dimension: 'honesty',
+          detail: expect.stringMatching(/genome-linked count disagrees/i),
+        }),
+      ]),
+    );
+    expect(result.findings).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          severity: 'P1',
+          dimension: 'substance',
+          detail: expect.stringMatching(/partial enrichment left 4 of 15 lessons/i),
+        }),
+      ]),
+    );
+  });
+
+  it('flags title-only assignment briefs as substantive package defects', async () => {
+    const result = await grade({
+      fileProvider: createMemoryFileProvider({
+        'PACKAGE_MANIFEST.json': JSON.stringify({
+          courseName: 'Introduction to Computer Science with Python',
+          lessonScope: 'all',
+          assessments: [],
+          files: [],
+          readiness: { status: 'ready', blockers: 0 },
+        }),
+        'Assignment Briefs/Lesson 14 - Midterm and project work - Assignment Briefs.md':
+          'ASSIGNMENT BRIEFS Introduction to Computer Science with Python - Lesson 14 - Midterm and project work',
+      }),
+      course: {
+        id: 'intro-cs-python',
+        title: 'Introduction to Computer Science with Python',
+        featureIds: ['assignments'],
+      },
+    });
+
+    expect(result.findings).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          severity: 'P1',
+          dimension: 'substance',
+          detail: expect.stringMatching(/assignment brief has no substantive/i),
+        }),
+      ]),
+    );
+  });
+
+  it('ignores Chrome extension content-script errors when auditing console logs', async () => {
+    const result = await grade({
+      fileProvider: createMemoryFileProvider({
+        'PACKAGE_MANIFEST.json': JSON.stringify({
+          courseName: 'Calculus I - Limits and Derivatives',
+          lessonScope: 'all',
+          assessments: [],
+          files: [],
+          readiness: { status: 'ready', blockers: 0 },
+          pipeline: {
+            enrichment: 'ran (15/15)',
+            genomeLinker: '5 genome + 0 cached of 15 lessons',
+            judgment: 'no gaps across 5 linked concepts',
+          },
+        }),
+      }),
+      consoleLogText: [
+        "(index):1 Error handling response: TypeError: Cannot read properties of undefined (reading 'config')",
+        '    at chrome-extension://pcjdfmihalemjjomplpfbdnicngfnopn/js/content.js:1:777',
+        "(index):1 Unchecked runtime.lastError: Uncaught TypeError: Cannot read properties of null (reading 'privUrl')",
+      ].join('\n'),
+      digest: {
+        gates: { exportStatus: 'passed', exportFailed: 0, flaggedChecks: [] },
+      },
+      course: { id: 'calculus-i', title: 'Calculus I - Limits and Derivatives', featureIds: [] },
+    });
+
+    expect(result.findings).not.toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          dimension: 'honesty',
+          detail: expect.stringMatching(/unexplained console error/i),
         }),
       ]),
     );

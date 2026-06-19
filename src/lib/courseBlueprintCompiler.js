@@ -17057,7 +17057,7 @@ function slideNoteTransition({ type, nextCue, lens, concept, artifact }) {
 }
 
 function slideNotes({ lesson, title, type, bullets, nextCue, lens }) {
-  const anchor = bullets[0] || title;
+  const anchor = collapseRepeatedSlideLead(bullets[0] || title);
   const focus = slideTypeFocus(type, lesson, lens);
   const concept = primarySlideConcept(lesson);
   const artifact = slideArtifact(lesson);
@@ -17121,6 +17121,17 @@ function punctuatePassthroughBullets(bullets) {
   });
 }
 
+function collapseRepeatedSlideLead(text) {
+  const value = cleanText(text);
+  const match = /^([^:]{4,80}):\s+(.+)$/.exec(value);
+  if (!match) return value;
+  const lead = cleanText(match[1]).toLowerCase();
+  const tail = cleanText(match[2]);
+  const tailLower = tail.toLowerCase();
+  if (tailLower === lead || tailLower.startsWith(`${lead},`) || tailLower.startsWith(`${lead}:`)) return tail;
+  return value;
+}
+
 // Round-3 polish: true when the bullet's first word(s) repeat the concept's
 // last word(s) (case-insensitive, 1-3 words) — the "Creating and Accessing
 // Lists" → "Lists adapts…" echo class. Word-sequence equality only, so a
@@ -17155,9 +17166,11 @@ function compactSlideDisplayBullet(slide, bullet, index, lesson) {
   const fallback = type === 'activity' ? 'Complete the practice step' : 'Use source evidence';
   const concept = primarySlideConcept(lesson);
   const artifact = slideArtifact(lesson);
-  const compact = conciseClause(bullet, fallback, maxLength, { ellipsis: true })
-    .replace(/^students?\s+/i, '')
-    .replace(/^use\s+/i, 'Use ');
+  const compact = collapseRepeatedSlideLead(
+    conciseClause(bullet, fallback, maxLength, { ellipsis: true })
+      .replace(/^students?\s+/i, '')
+      .replace(/^use\s+/i, 'Use '),
+  );
   // v0.12.1: never prepend the concept when the bullet already names it —
   // activity slides used to render "Practice: Constructivism: Constructivism
   // adapts…" because the cue was unconditional for that slide type.
@@ -17964,6 +17977,7 @@ function buildSlideDeckIrForLesson(blueprint, lesson, index) {
   const teachingMoves = lessonTeachingMoves(blueprint, lesson);
   const preference = featurePreference(blueprint, 'slideDecks');
   const phrase = slideDeckPhrase(blueprint, lesson);
+  const titleContext = collapseRepeatedSlideLead(`${blueprint.courseName}: ${phrase.context}`);
   const previous = blueprint.lessons[index - 1];
   const next = blueprint.lessons[index + 1];
   const assessment =
@@ -17999,7 +18013,7 @@ function buildSlideDeckIrForLesson(blueprint, lesson, index) {
     {
       type: 'title',
       title: displayTitle,
-      bullets: [`${blueprint.courseName}: ${phrase.context}`, `Today students improve: ${artifact}`],
+      bullets: [titleContext, `Today students improve: ${artifact}`],
       minutes: 1,
       bloom: null,
       objective: null,

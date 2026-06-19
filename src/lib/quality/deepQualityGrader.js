@@ -92,7 +92,9 @@ import { computeTexture, textureDocsFromFiles, buildTextureAdvisories, TEXTURE_V
 // leaks, and unevaluated knowledge-judgment honesty for structured STEM.
 // 1.5.0 — v0.15.6: texture counts lightly, template-phrase repetition joins
 // findings, and A&P required assets reject geology/chemistry field-lab nouns.
-export const GRADER_VERSION = '1.5.0';
+// 1.6.0 — v0.15.8: run-digest caveats (partial enrichment/template fallback
+// and map-assessment artifact coverage) become scored package findings.
+export const GRADER_VERSION = '1.6.0';
 
 // ── Dimension weights & letter bands (documented in the module header) ──────
 // texture now has a small score-bearing weight. It should be able to pull a
@@ -701,6 +703,19 @@ function checkIdentity(findings, { files, manifest }, _course) {
   }
 
   // (c) briefs carry "Course Map L<N>" stamps.
+  for (const file of files.filter((file) => file.featureId === 'assignments' && ['docx', 'text'].includes(file.kind))) {
+    const wordCount = contentTokens(file.text).length;
+    const isExplicitNoBriefNote = /No standalone assignment brief scheduled/i.test(file.text);
+    if (!isExplicitNoBriefNote && wordCount < 35) {
+      findings.add({
+        severity: 'P1',
+        dimension: 'substance',
+        file: file.path,
+        detail: 'assignment brief has no substantive student-facing body',
+        evidence: quote(file.text, 160),
+      });
+    }
+  }
   for (const file of files.filter((file) => file.featureId === 'assignments' && file.kind === 'docx')) {
     if (!/Course Map\s+L?\d+/i.test(file.text) && !/Course Map row\s+\d+/i.test(file.text)) {
       findings.add({
@@ -1004,12 +1019,25 @@ function normalizeLessonTitle(title) {
 }
 
 // HONESTY — console + manifest cross-checks.
-function checkHonesty(findings, { manifest }, consoleLogText, digest) {
+function scopeConsoleLogToDigest(consoleLogText, digest) {
   const log = String(consoleLogText || '');
+  const id = digest?.finishRunId || digest?.runId;
+  if (!log || !id) return log;
+  const at = log.lastIndexOf(String(id));
+  const start = at >= 0 ? log.lastIndexOf('\n', at) + 1 : 0;
+  return at >= 0 ? log.slice(start) : log;
+}
+
+function checkHonesty(findings, { manifest }, consoleLogText, digest) {
+  const log = scopeConsoleLogToDigest(consoleLogText, digest);
+  const digestPipeline = digest?.pipeline || {};
 
   // genomeLinker counts consistent across the three surfaces.
-  const linkerLineCount = firstNumber(log, /([0-9]+)\s+genome\s*\+\s*[0-9]+\s+cached/i);
-  const backboneLineCount = firstNumber(log, /([0-9]+)\/[0-9]+\s+lessons genome-linked/i);
+  const linkerLineCount = firstNumber(digestPipeline.genomeLinker || log, /([0-9]+)\s+genome\s*\+\s*[0-9]+\s+cached/i);
+  const backboneLineCount = firstNumber(
+    digestPipeline.knowledgeBackbone || log,
+    /([0-9]+)\/[0-9]+\s+lessons genome-linked/i,
+  );
   const manifestLinker = manifest?.pipeline?.genomeLinker || '';
   const manifestLinkerCount = firstNumber(manifestLinker, /([0-9]+)\s+genome/i);
   const seen = [linkerLineCount, backboneLineCount, manifestLinkerCount].filter((value) => value != null);
@@ -1027,7 +1055,10 @@ function checkHonesty(findings, { manifest }, consoleLogText, digest) {
   const enrichment = String(manifest?.pipeline?.enrichment || '');
   const partial = /\(\s*(\d+)\s*\/\s*(\d+)/.exec(enrichment);
   if (partial && partial[1] !== partial[2]) {
-    const fellBack = /fell back|fall back|template/i.test(enrichment) || /partial enrichment/i.test(log);
+    const fellBack =
+      /fell back|fall back|template/i.test(enrichment) ||
+      /partial enrichment/i.test(log) ||
+      (digest?.gates?.flaggedChecks || []).some((check) => /partial enrichment/i.test(String(check?.message || '')));
     if (!fellBack) {
       findings.add({
         severity: 'P1',
@@ -1041,7 +1072,8 @@ function checkHonesty(findings, { manifest }, consoleLogText, digest) {
 
   // Judgment line present (any of its three states).
   const judgmentManifest = manifest?.pipeline?.judgment;
-  const judgmentInLog = /Course judgment|prerequisite gap|no gaps across|not evaluated \(0 genome/i.test(log);
+  const judgmentInLog =
+    digestPipeline.judgment || /Course judgment|prerequisite gap|no gaps across|not evaluated \(0 genome/i.test(log);
   if (!judgmentManifest && !judgmentInLog) {
     findings.add({
       severity: 'P1',
@@ -1065,9 +1097,11 @@ function checkHonesty(findings, { manifest }, consoleLogText, digest) {
     });
   }
 
+  addDigestCaveatFindings(findings, digest?.gates?.flaggedChecks || []);
+
   // Unexplained console errors/warnings (allowlist dev noise).
   const ALLOWLIST =
-    /DALL-E|GPT Image|Imagen|image generation|vite|HMR|sourcemap|Download the React DevTools|punycode|ExperimentalWarning|localstorage-file/i;
+    /DALL-E|GPT Image|Imagen|image generation|vite|HMR|sourcemap|Download the React DevTools|punycode|ExperimentalWarning|localstorage-file|chrome-extension:\/\/|runtime\.lastError|Error handling response: TypeError: Cannot read properties of undefined \(reading 'config'\)/i;
   // Round-3 polish: browser network noise says nothing about the app — QUIC
   // protocol flaps, connection changes, and failed favicon/static-asset loads
   // are environment artifacts of the headless run. Kept surgical: only the
@@ -1163,6 +1197,69 @@ export function honestyFromDigest(budget = null, digest = null) {
   };
 }
 
+function parsePartialCoverage(message) {
+  const match = /partial enrichment\s*\(\s*(\d+)\s*\/\s*(\d+)\s*\)/i.exec(String(message || ''));
+  if (!match) return null;
+  const enriched = Number(match[1]);
+  const requested = Number(match[2]);
+  if (!Number.isFinite(enriched) || !Number.isFinite(requested) || requested <= 0) return null;
+  return { enriched, requested, missing: Math.max(0, requested - enriched), coverage: enriched / requested };
+}
+
+function addDigestCaveatFindings(findings, flaggedChecks = []) {
+  const seen = new Set();
+  for (const check of flaggedChecks || []) {
+    const message = String(check?.message || '').trim();
+    if (!message) continue;
+    if (/compiled without enrichment|mail-merge risk/i.test(message)) {
+      const key = 'compiled-without-enrichment';
+      if (seen.has(key)) continue;
+      seen.add(key);
+      findings.add({
+        severity: 'P1',
+        dimension: 'substance',
+        file: 'run digest',
+        detail: 'deliverables compiled without enrichment, creating mail-merge content risk',
+        evidence: message,
+      });
+      continue;
+    }
+
+    const partial = parsePartialCoverage(message);
+    if (partial) {
+      const key = `partial-enrichment:${partial.enriched}/${partial.requested}`;
+      if (seen.has(key)) continue;
+      seen.add(key);
+      findings.add({
+        severity: partial.coverage < 0.85 || partial.missing >= 3 ? 'P1' : 'P2',
+        dimension: 'substance',
+        file: 'run digest',
+        detail: `partial enrichment left ${partial.missing} of ${partial.requested} lesson${
+          partial.requested === 1 ? '' : 's'
+        } on template fallback`,
+        evidence: message,
+      });
+      continue;
+    }
+
+    const uncoveredAssessments = /(\d+)\s+additional map assessments have no dedicated artifact/i.exec(message);
+    if (uncoveredAssessments) {
+      const key = 'additional-map-assessments';
+      if (seen.has(key)) continue;
+      seen.add(key);
+      findings.add({
+        severity: 'P2',
+        dimension: 'identity',
+        file: 'run digest',
+        detail: `${uncoveredAssessments[1]} course-map assessment${
+          uncoveredAssessments[1] === '1' ? '' : 's'
+        } are only covered as in-class lesson-plan activities, not dedicated artifacts`,
+        evidence: message,
+      });
+    }
+  }
+}
+
 // HONESTY (in-app mode) — the same assertions as checkHonesty, sourced from
 // budget/digest objects instead of console text.
 function checkHonestyFromDigest(findings, { manifest }, honesty) {
@@ -1228,6 +1325,8 @@ function checkHonestyFromDigest(findings, { manifest }, honesty) {
       evidence: quote(JSON.stringify({ status: honesty.exportStatus, failed: honesty.exportFailed }), 160),
     });
   }
+
+  addDigestCaveatFindings(findings, honesty.flaggedChecks || []);
 
   // Console-noise scan + mass-repair-fill scan: console-only, excluded here —
   // see IN_APP_EXCLUDED_CHECKS for the documented reasons.

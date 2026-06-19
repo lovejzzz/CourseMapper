@@ -41,6 +41,23 @@ function getFeatureCount(featureId, deliverables) {
   return 0;
 }
 
+function summarizeQualityCaveats(quality) {
+  if (!quality || quality.status !== 'graded') return [];
+  const findings = Array.isArray(quality.findings) ? quality.findings : [];
+  const caveats = findings.filter((finding) => finding?.severity === 'P0' || finding?.severity === 'P1');
+  if (caveats.length > 0) return caveats.slice(0, 2);
+  const counts = quality.findingCounts || {};
+  const count = Number(counts.p0 || 0) + Number(counts.p1 || 0);
+  return count > 0
+    ? [
+        {
+          severity: counts.p0 ? 'P0' : 'P1',
+          detail: `${count} higher-priority quality ${count === 1 ? 'finding' : 'findings'}`,
+        },
+      ]
+    : [];
+}
+
 export default function FinishedPackageOverview({
   courseMap,
   selectedFeatures = [],
@@ -62,6 +79,7 @@ export default function FinishedPackageOverview({
   const grade = packageQualityPass?.quality?.grade || 'A';
   const score = packageQualityPass?.quality?.score;
   const texture = packageQualityPass?.quality?.texture?.score;
+  const qualityCaveats = summarizeQualityCaveats(packageQualityPass?.quality);
   const repairsApplied = Number(packageQualityPass?.repairsApplied || packageQualityPass?.receipt?.autoFixedCount || 0);
   const exportChecked = Number(packageQualityPass?.receipt?.exportChecked || 0);
 
@@ -97,6 +115,17 @@ export default function FinishedPackageOverview({
               <span className="rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-slate-600">
                 Texture {texture}
               </span>
+            )}
+            {qualityCaveats.length > 0 && (
+              <button
+                type="button"
+                data-testid="finished-overview-quality-caveats"
+                onClick={() => onOpenQualityReport?.(true)}
+                title={qualityCaveats.map((finding) => `${finding.severity}: ${finding.detail}`).join(' · ')}
+                className="tactile rounded-full border border-amber-200 bg-amber-50 px-3 py-1 text-amber-800"
+              >
+                Review {qualityCaveats.length} quality {qualityCaveats.length === 1 ? 'caveat' : 'caveats'}
+              </button>
             )}
             {repairsApplied > 0 && (
               <span className="rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-slate-600">

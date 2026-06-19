@@ -60,7 +60,10 @@ const lazyChunkBudgets = [
   // forbiddenInitialChunks below.
   // 2026-06-12 (v0.14.7 WS-D1): +texture dimension (textureMetric.js) —
   // measured 49.4 raw / 17.7 gzip; raw budget raised 48 → 54, gzip held.
-  { prefix: 'deepQualityGrader-', rawKiB: 54, gzipKiB: 18 },
+  // 2026-06-19 (v0.15.8): +digest caveat scoring and title-only assignment
+  // detection from live EduTool ZIP audits; this remains a lazy finalize/ZIP
+  // chunk and does not affect the landing path.
+  { prefix: 'deepQualityGrader-', rawKiB: 54, gzipKiB: 19 },
   // The finalize-time grading seam AppFlow lazy-imports (assembles the file
   // map via packageZipExporter and returns the badge data; measured at
   // 1.1 KiB raw / 0.6 gzip).

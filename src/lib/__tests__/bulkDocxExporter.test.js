@@ -78,6 +78,21 @@ describe('buildDeliverableDocxBlob', () => {
     expect(xml).not.toContain('• Review the generated DOCX.');
   });
 
+  it('renders a handoff note instead of a title-only DOCX for empty assignment slices', async () => {
+    const blob = await buildDeliverableDocxBlob(
+      'assignments',
+      { assignments: [] },
+      'Introduction to Computer Science with Python - Lesson 14 - Midterm and project work',
+    );
+
+    const xml = await docxDocumentXml(blob);
+
+    expect(xml).toContain('No standalone assignment brief scheduled');
+    expect(xml).toContain('Course Map L14');
+    expect(xml).toContain('No submitted assignment brief was generated');
+    expect(xml).toContain('add or regenerate that assignment before publishing');
+  });
+
   // v0.12.1 P3: quiz exports split into a distributable question paper and a
   // page-broken answer key; option letters never double; internal enum ids
   // never print; tables are percentage-width (the fixed 9360dxa tables

@@ -1395,6 +1395,34 @@ describe('round-3 polish 4 — "X: X" echo chains are gone from labels and prime
     }
   });
 
+  it('course-title lesson openings do not render "course: course" echoes in slides or notes', () => {
+    const blueprint = buildCourseBlueprint({
+      courseName: 'Introduction to Computer Science with Python',
+      lessons: [
+        {
+          title: 'Lesson 1: Introduction to Computer Science with Python',
+          sections: [
+            {
+              topicSection: 'Introduction to Computer Science with Python, variables and types, control flow',
+              learningObjectives: 'Identify common Python variable types.\nTrace control flow through conditionals.',
+              weeklyAssessments: 'Autograded assignments: variables and types',
+              asyncActivities: 'Read the Introduction to Computer Science source packet.',
+              syncActivities: 'Test one inspectable code behavior.',
+              supportingResources: 'Introduction to Computer Science source packet',
+            },
+          ],
+        },
+      ],
+    });
+    const decks = compileBlueprintDeliverable('slideDecks', blueprint);
+    const text = JSON.stringify(decks.decks[0]);
+
+    expect(text).not.toMatch(
+      /Introduction to Computer Science with Python:\s*Introduction to Computer Science with Python/i,
+    );
+    expect(ECHO_RE.test(text), text).toBe(false);
+  });
+
   it('prerequisite primer citations drop the term label when the definition already leads with it', () => {
     const graph = {
       course: { name: 'World Literature' },

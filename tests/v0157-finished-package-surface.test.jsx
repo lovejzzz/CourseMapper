@@ -74,6 +74,44 @@ describe('v0.15.7 finished package surface', () => {
     expect(html).not.toContain('Course Map Preview');
   });
 
+  it('surfaces higher-priority quality caveats beside the package grade', () => {
+    const html = renderToStaticMarkup(
+      <FinishedPackageOverview
+        courseMap={COURSE_MAP}
+        selectedFeatures={['courseMap', 'syllabus']}
+        deliverables={{
+          syllabus: { status: 'done', data: { title: 'Syllabus' } },
+        }}
+        packageQualityPass={{
+          ...READY_PASS,
+          quality: {
+            ...READY_PASS.quality,
+            score: 98,
+            findingCounts: { p0: 0, p1: 1, p2: 1 },
+            findings: [
+              {
+                severity: 'P1',
+                detail: 'partial enrichment left 3 lessons on template fallback',
+              },
+              {
+                severity: 'P2',
+                detail: 'texture pattern repeats across slide decks',
+              },
+            ],
+          },
+        }}
+        onEditCourseMap={() => {}}
+        onOpenFeature={() => {}}
+        onOpenQualityReport={() => {}}
+      />,
+    );
+
+    expect(html).toContain('Quality 98');
+    expect(html).toContain('data-testid="finished-overview-quality-caveats"');
+    expect(html).toContain('Review 1 quality caveat');
+    expect(html).toContain('partial enrichment left 3 lessons');
+  });
+
   it('keeps the Course Map tab as the centered preview even when the package is ready', () => {
     const appFlow = read('src/AppFlow.jsx');
 
