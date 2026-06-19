@@ -237,6 +237,13 @@ function buildManifestCourseIRProof(courseGraph) {
     proof.assessmentCount = Array.isArray(courseGraph.courseIR.assessmentIds)
       ? courseGraph.courseIR.assessmentIds.length
       : 0;
+    if (courseGraph.courseIR.nativeAssembly) {
+      proof.nativeAssembly = {
+        source: courseGraph.courseIR.nativeAssembly.source || '',
+        projectedThrough: courseGraph.courseIR.nativeAssembly.projectedThrough || '',
+        editedAfterProjection: Boolean(courseGraph.courseIR.nativeAssembly.editedAfterProjection),
+      };
+    }
   }
   if (courseGraph.nativeRepair) {
     proof.nativeRepair = {

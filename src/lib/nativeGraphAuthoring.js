@@ -16,12 +16,10 @@
  *    lessons ride Pass B batches as CONTENT-SOURCED entries (goal/outcomes/
  *    activities only — the structural authorship the prose map call used to
  *    buy); their kernel content is never re-authored or displaced.
- *  - Assembly: skeleton + Pass B payloads → a canonical wire course map →
- *    deriveCourseGraphFromCourseMap → a CourseGraph matching the EXISTING
- *    schema exactly (registry ids/kinds/weights and the render↔derive
- *    round-trip stability come by construction). The graph carries
- *    authoredBy: 'native'; the rest of the pipeline (enrichment attach,
- *    knowledge backbone, render, compile) is byte-for-byte the prose path.
+ *  - Assembly: skeleton + Pass B payloads → a canonical wire course map. The
+ *    raw assembler still proves registry ids/kinds/weights and render↔derive
+ *    stability, but the compile-stage resolver validates that map as CourseIR
+ *    and projects the graph from CurriculumV1 before downstream compile.
  *
  * Session-id mapping: skeleton ids are 's1'…'sN' (order). Pass B wire ids
  * are the kernel contract's 'lesson-N' where N === the session's order, so
@@ -31,9 +29,9 @@
  * B4 — matchEntityIds: stable-id matching on re-derivation after edits.
  * Sessions match by (order, normalized title); assessments/readings by
  * (dueSession, normalized title); matched entities keep their old ids, new
- * entities keep fresh ones. Wired into the re-derive path ONLY for
- * native-authored graphs (graph.authoredBy === 'native') — the prose path
- * keeps today's behavior, zero regression surface.
+ * entities keep fresh ones. Wired into the re-derive path for raw native graphs
+ * and CurriculumV1-projected native graphs; the prose path keeps today's
+ * behavior.
  */
 
 import { buildLessonKernelPrompt, parseLessonKernelResponse } from './blueprintEnrichmentPass';
@@ -42,7 +40,8 @@ import { buildLessonKernelPrompt, parseLessonKernelResponse } from './blueprintE
 import { deriveCourseGraphFromCourseMap } from './courseGraph/deriveFromCourseMap.js';
 import { renderCourseMapFromGraph } from './courseGraph/renderCourseMap.js';
 import { validateCourseGraph } from './courseGraph/schema.js';
-import { buildCourseIRFromCourseMap, validateCourseIR } from './courseIR.js';
+import { attachEnrichmentToGraph } from './courseGraph/blueprintFromGraph.js';
+import { buildCourseIRFromCourseMap, courseIRToCourseGraph, validateCourseIR } from './courseIR.js';
 import { repairNativeFallbackWithCurriculumV1 } from './curriculumV1Repair.js';
 import { NATIVE_PASS_B_AUTHORING_ADDITION } from './prompts';
 
@@ -99,6 +98,20 @@ function cleanText(value, max = 300) {
 
 function asArray(value) {
   return Array.isArray(value) ? value : [];
+}
+
+function uniqueStrings(values = [], limit = Infinity) {
+  const seen = new Set();
+  const result = [];
+  for (const value of values) {
+    const text = cleanText(value, 500);
+    const key = text.toLowerCase();
+    if (!text || seen.has(key)) continue;
+    seen.add(key);
+    result.push(text);
+    if (result.length >= limit) break;
+  }
+  return result;
 }
 
 /** Tolerant outer-object JSON extraction (code fences / surrounding prose). */
@@ -541,18 +554,119 @@ export function assembleNativeCourseGraph({ skeleton, passBBySession = {} }) {
   return { graph, courseMap: renderCourseMapFromGraph(graph) };
 }
 
-function attachCourseIRProof(graph, courseMap) {
-  if (!graph || graph.courseIR) return null;
-  const validation = validateCourseIR(buildCourseIRFromCourseMap(courseMap));
-  if (!validation.valid) return validation;
-  graph.courseIR = {
-    version: validation.ir.version,
-    lessonIds: validation.ir.lessons.map((lesson) => lesson.id),
-    conceptIds: validation.ir.concepts.map((concept) => concept.id),
-    assessmentIds: validation.ir.assessments.map((assessment) => assessment.id),
-    stats: validation.stats,
+function cellAtoms(value, { preserveString = false } = {}) {
+  if (Array.isArray(value)) {
+    return value.map((atom) => cleanText(atom, 500).replace(/^\d+[.)]\s+/, '')).filter(Boolean);
+  }
+  if (typeof value === 'string') {
+    const text = cleanText(value, 1000);
+    if (!text) return [];
+    if (preserveString) return [text];
+    return text
+      .split(/;|\n/)
+      .map((atom) => cleanText(atom, 500).replace(/^\d+[.)]\s+/, ''))
+      .filter(Boolean);
+  }
+  return [];
+}
+
+function mergeCellAtoms(...values) {
+  return uniqueStrings(
+    values.flatMap((value) => cellAtoms(value)),
+    10,
+  );
+}
+
+function mergeNativeSourceSurfaces(projectedCourseMap, nativeCourseMap) {
+  const projectedLessons = asArray(projectedCourseMap?.lessons);
+  const nativeLessons = asArray(nativeCourseMap?.lessons);
+  return {
+    ...projectedCourseMap,
+    lessons: projectedLessons.map((lesson, lessonIndex) => {
+      const nativeLesson = nativeLessons[lessonIndex] || {};
+      const nativeSections = asArray(nativeLesson.sections);
+      return {
+        ...lesson,
+        sections: asArray(lesson.sections).map((section, sectionIndex) => {
+          const nativeSection = nativeSections[sectionIndex] || {};
+          const sectionRest = { ...section };
+          delete sectionRest.supportingResources;
+          delete sectionRest.readings;
+          const readings = cellAtoms(nativeSection.readings, { preserveString: true });
+          const supportingResources = mergeCellAtoms(nativeSection.supportingResources);
+          return {
+            ...sectionRest,
+            ...(readings.length > 0 ? { readings } : {}),
+            ...(supportingResources.length > 0 ? { supportingResources } : {}),
+          };
+        }),
+      };
+    }),
   };
-  return validation;
+}
+
+function projectNativeCourseMapThroughCourseIR(courseMap) {
+  const courseIR = buildCourseIRFromCourseMap(courseMap);
+  const validation = validateCourseIR(courseIR);
+  if (!validation.valid) {
+    return {
+      ok: false,
+      code: 'curriculumv1-invalid-native-assembly',
+      validation,
+      courseIR: validation.ir,
+      reason: `CurriculumV1 validation failed before compile: ${validation.issues
+        .filter((issue) => issue.severity === 'blocker')
+        .slice(0, 3)
+        .map((issue) => issue.code)
+        .join(', ')}`,
+    };
+  }
+
+  const projection = courseIRToCourseGraph(validation.ir);
+  const projectedCourseMap = mergeNativeSourceSurfaces(projection.courseMap, courseMap);
+  const graph = attachEnrichmentToGraph(
+    deriveCourseGraphFromCourseMap(projectedCourseMap),
+    projection.enrichmentOverlay,
+  );
+  graph.authoredBy = 'courseir-v1';
+  graph.courseIR = {
+    ...(projection.graph.courseIR || {}),
+    stats: validation.stats,
+    nativeAssembly: {
+      source: 'native-wire-map',
+      projectedThrough: 'curriculumv1',
+    },
+  };
+
+  const graphValidation = validateCourseGraph(graph);
+  if (!graphValidation.valid) {
+    return {
+      ok: false,
+      code: 'curriculumv1-graph-invalid-native-assembly',
+      validation,
+      graphValidation,
+      courseIR: validation.ir,
+      courseMap: projectedCourseMap,
+      graph,
+      reason: `CurriculumV1 graph validation failed before compile: ${graphValidation.issues
+        .slice(0, 3)
+        .map((issue) => issue.code)
+        .join(', ')}`,
+    };
+  }
+
+  return {
+    ok: true,
+    graph,
+    courseMap: renderCourseMapFromGraph(graph),
+    courseIR: validation.ir,
+    courseIRValidation: validation,
+    nativeCourseIR: {
+      code: 'validated-native-courseir',
+      source: 'curriculumv1',
+      stats: validation.stats,
+    },
+  };
 }
 
 function repairDegenerateNativeGraphWithCourseIR({ courseMap, reason }) {
@@ -622,29 +736,27 @@ export function resolveNativeAssembly({ skeleton, passBBySession = {} }) {
         fallbackMap: courseMap,
       };
     }
-    const courseIRValidation = attachCourseIRProof(graph, courseMap);
-    if (courseIRValidation && !courseIRValidation.valid) {
+    const sourceTruth = projectNativeCourseMapThroughCourseIR(courseMap);
+    if (!sourceTruth.ok) {
       const repaired = repairDegenerateNativeGraphWithCourseIR({
         courseMap,
-        reason: 'curriculumv1-invalid-native-assembly',
+        reason: sourceTruth.code || 'curriculumv1-invalid-native-assembly',
       });
       if (repaired) return repaired;
       return {
         ok: false,
-        code: 'curriculumv1-invalid-native-assembly',
-        reason: `CurriculumV1 validation failed before compile: ${courseIRValidation.issues
-          .filter((issue) => issue.severity === 'blocker')
-          .slice(0, 3)
-          .map((issue) => issue.code)
-          .join(', ')}`,
+        code: sourceTruth.code || 'curriculumv1-invalid-native-assembly',
+        reason: sourceTruth.reason || 'CurriculumV1 validation failed before compile.',
         fallbackMap: courseMap,
       };
     }
     return {
       ok: true,
-      graph,
-      courseMap,
-      ...(courseIRValidation ? { courseIRValidation } : {}),
+      graph: sourceTruth.graph,
+      courseMap: sourceTruth.courseMap,
+      courseIR: sourceTruth.courseIR,
+      courseIRValidation: sourceTruth.courseIRValidation,
+      nativeCourseIR: sourceTruth.nativeCourseIR,
       ...(resourceRecovery.recoveredCount > 0
         ? { resourceRecovery: { code: 'missing-resources-recovered', recoveredCount: resourceRecovery.recoveredCount } }
         : {}),

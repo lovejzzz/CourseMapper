@@ -868,14 +868,31 @@ export default function AppFlow({ startupAction = null, onStartupHandled, onRetu
         deriveCourseGraphFromCourseMap(courseMap),
         courseGraphRef.current.enrichmentOverlay,
       );
-      // v0.14.5 WS-B (B4): native-authored graphs keep stable entity ids
-      // across re-derivation — sessions match by (order, normalized title),
-      // assessments/readings by (dueSession, normalized title); new entities
-      // get fresh ids. ONLY for authoredBy 'native' graphs; the prose path
-      // keeps today's behavior (zero regression surface).
+      // v0.14.5 WS-B (B4), extended for CurriculumV1-native graphs: native
+      // entity ids stay stable across re-derivation. Sessions match by (order,
+      // normalized title), assessments/readings by (dueSession, normalized
+      // title); new entities get fresh ids. The prose path keeps today's
+      // behavior.
+      const nativeCourseIRAssembly = courseGraphRef.current.courseIR?.nativeAssembly || null;
+      const keepStableEntityIds =
+        courseGraphRef.current.authoredBy === 'native' || nativeCourseIRAssembly?.projectedThrough === 'curriculumv1';
       setCourseGraph(
-        courseGraphRef.current.authoredBy === 'native'
-          ? matchEntityIds(courseGraphRef.current, { ...rederived, authoredBy: 'native' })
+        keepStableEntityIds
+          ? matchEntityIds(courseGraphRef.current, {
+              ...rederived,
+              authoredBy: courseGraphRef.current.authoredBy,
+              ...(courseGraphRef.current.courseIR
+                ? {
+                    courseIR: {
+                      ...courseGraphRef.current.courseIR,
+                      nativeAssembly: {
+                        ...nativeCourseIRAssembly,
+                        editedAfterProjection: true,
+                      },
+                    },
+                  }
+                : {}),
+            })
           : rederived,
       );
     } catch {

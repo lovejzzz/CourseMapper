@@ -1882,8 +1882,9 @@ export default function useDeliverables({
           }
         }
         // The skeleton render is intentionally thin pre-Pass-B; the readiness
-        // repair would template-fill it. The native path re-renders the map
-        // from the assembled graph instead, so repair is prose-path-only.
+        // repair would template-fill it. The native path now validates the
+        // assembled map through CurriculumV1, so this early map repair remains
+        // prose-path-only.
         const courseMapRepair = nativeSkeleton
           ? { courseMap, changed: false, repairedFields: [] }
           : repairCourseMapReadiness({
@@ -1943,16 +1944,14 @@ export default function useDeliverables({
             'progress',
           );
         }
-        // v0.13: the COURSE GRAPH is the source of truth. The repaired map +
-        // enrichment derive into typed entities; the map consumers see from
-        // here on is a render of the graph, and the blueprint compiles FROM
-        // the graph (golden-equivalence-gated against the legacy path in
-        // tests/course-graph-golden.test.js).
+        // v0.13: the COURSE GRAPH is the source of truth for the existing
+        // compiler. The map consumers see from here on is a render of the graph,
+        // and the blueprint compiles FROM the graph (golden-equivalence-gated
+        // against the legacy path in tests/course-graph-golden.test.js).
         //
-        // v0.14.5 WS-B: on the native path the graph is ASSEMBLED from the
-        // Pass A skeleton + Pass B authorship instead of derived from map
-        // prose — same schema, same downstream, authoredBy: 'native' for B4
-        // id stability. Assembly failures fall back to the derive LOUDLY.
+        // CurriculumV1: native assembly now validates a CourseIR brain and
+        // projects the graph from it before compile. Assembly failures still
+        // fall back to the prose path loudly.
         const courseGraphLib = await import('../lib/courseGraph');
         // Pass B's nativeAuthored block is assembly input, not overlay data —
         // strip it so the stored enrichmentOverlay keeps the standard shape.
@@ -1987,14 +1986,27 @@ export default function useDeliverables({
             const nativeRepairDetail = nativeRepair
               ? ` · CurriculumV1 repaired ${nativeRepair.stats?.lessons || resolution.graph.sessions.length} lessons / ${nativeRepair.stats?.assessments || resolution.graph.assessments.length} assessments`
               : '';
+            const nativeCourseIR = resolution.nativeCourseIR || null;
+            const nativeCourseIRDetail = nativeCourseIR
+              ? ` · CurriculumV1 source ${nativeCourseIR.stats?.lessons || resolution.graph.sessions.length} lessons`
+              : '';
             recordGenerationApiCallEvent({
               type: 'pipelineDecision',
               stage: 'nativeAuthoring',
               label: 'Native graph authoring',
               detail: `assembled ${resolution.graph.sessions.length} sessions onto Pass A entity ids · Pass B authored ${
                 Object.keys(blueprintEnrichment?.nativeAuthored || {}).length
-              } lesson(s) · ${(resolution.graph.readings || []).length} registry readings${recoveredResourceDetail}${nativeRepairDetail}`,
+              } lesson(s) · ${(resolution.graph.readings || []).length} registry readings${recoveredResourceDetail}${nativeCourseIRDetail}${nativeRepairDetail}`,
             });
+            if (nativeCourseIR) {
+              appendLog(
+                `✓ Native authoring projected through CurriculumV1 (${nativeCourseIR.stats?.lessons || resolution.graph.sessions.length} lessons)`,
+                'done',
+              );
+              traceGeneration(generationRunId, 'native_c1_source_truth', {
+                stats: nativeCourseIR.stats || null,
+              });
+            }
             if (nativeRepair) {
               appendLog(
                 `✓ Native authoring repaired via CurriculumV1 (${nativeRepair.stats?.lessons || resolution.graph.sessions.length} lessons, ${nativeRepair.stats?.assessments || resolution.graph.assessments.length} assessments)`,

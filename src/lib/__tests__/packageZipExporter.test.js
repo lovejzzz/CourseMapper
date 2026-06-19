@@ -154,6 +154,10 @@ describe('packageZipExporter', () => {
           lessonIds: ['L1', 'L2'],
           conceptIds: ['C1', 'C2', 'C3'],
           assessmentIds: ['A1', 'A2'],
+          nativeAssembly: {
+            source: 'native-wire-map',
+            projectedThrough: 'curriculumv1',
+          },
         },
         nativeRepair: {
           code: 'degenerate-skeleton-repaired',
@@ -173,6 +177,11 @@ describe('packageZipExporter', () => {
       lessonCount: 2,
       conceptCount: 3,
       assessmentCount: 2,
+      nativeAssembly: {
+        source: 'native-wire-map',
+        projectedThrough: 'curriculumv1',
+        editedAfterProjection: false,
+      },
       nativeRepair: {
         code: 'degenerate-skeleton-repaired',
         source: 'curriculumv1',

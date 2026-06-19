@@ -3,23 +3,23 @@ import { APP_VERSION } from './appVersion.js';
 export const CURRENT_RELEASE = {
   version: APP_VERSION,
   date: 'June 19, 2026',
-  title: 'CurriculumV1 Native Repair: sparse native plans stop falling back',
-  landingTitle: 'CurriculumV1 Native Repair',
+  title: 'CurriculumV1 Source Truth: healthy native plans compile from the brain',
+  landingTitle: 'CurriculumV1 Source Truth',
   highlights: [
-    'CurriculumV1 now carries more of the course brain: constraints, prerequisite concept links, source ledger repair, lesson concept repair, and under-assessed course repair are validated before graph compilation.',
-    'Native assembly no longer treats the common one-assessment skeleton as an automatic prose fallback. Recoverable sparse native graphs repair through CurriculumV1 first, return a CourseIR-backed graph, and log the repair explicitly.',
-    'Downloaded package manifests now carry slim CourseIR/native-repair proof metadata, so exported ZIPs can disclose whether a package came from a repaired curriculum graph instead of hiding the recovery path.',
-    'The genome gained an introductory research-methods shard and coverage tests, improving the grounding layer for hypothesis, variables, operational definitions, causation, and informed-consent courses.',
-    'The proof is broad because this touches compiler architecture: targeted native/CourseIR/package/genome tests, full unit suite, constitution audit, build, bundle budget, and all 40 gold samples pass locally.',
+    'Healthy native assembly now validates the Pass A/Pass B wire map as CourseIR and projects the compile graph from CurriculumV1 before any deliverable compiler runs.',
+    'Native source surfaces stay honest during that projection: real instructor readings remain readings, real resources remain resources, and CourseIR support notes no longer inflate the resource registry.',
+    'The run digest/log trail now marks healthy native generation as a CurriculumV1 source graph, while repaired sparse plans keep their explicit CurriculumV1 repair disclosure.',
+    'Downloaded package manifests now include `courseIR.nativeAssembly` proof for healthy native CourseIR projection, including whether later map edits occurred after projection.',
+    'Course-map edits on CurriculumV1-projected native graphs keep stable native entity ids, preserving the B4 re-derive behavior while the graph remains marked as CourseIR-authored.',
   ],
   landingHighlights: [
-    'Sparse native plans repair through CurriculumV1 before prose fallback.',
-    'CourseIR proof metadata reaches exported package manifests.',
-    'Research-methods courses now get deterministic genome grounding.',
+    'Healthy native plans compile from a validated CourseIR brain.',
+    'Readings/resources stay honest through CurriculumV1 projection.',
+    'ZIP manifests disclose healthy native CourseIR projection proof.',
   ],
   proof: {
-    contract: 'release-contracts/v0.15.15.json',
-    roadmap: 'docs/V0.15.15_CURRICULUMV1_NATIVE_REPAIR_ROADMAP.md',
+    contract: 'release-contracts/v0.15.16.json',
+    roadmap: 'docs/V0.15.16_CURRICULUMV1_SOURCE_TRUTH_ROADMAP.md',
     auditCommand: 'npm run audit:release-history',
   },
 };
@@ -34,6 +34,18 @@ export const CURRENT_RELEASE_CHANGELOG = {
 };
 
 export const HISTORICAL_RELEASE_CHANGELOGS = [
+  {
+    version: '0.15.15',
+    date: 'June 19, 2026',
+    title: 'CurriculumV1 Native Repair: sparse native plans stop falling back',
+    highlights: [
+      'CurriculumV1 now carries more of the course brain: constraints, prerequisite concept links, source ledger repair, lesson concept repair, and under-assessed course repair are validated before graph compilation.',
+      'Native assembly no longer treats the common one-assessment skeleton as an automatic prose fallback. Recoverable sparse native graphs repair through CurriculumV1 first, return a CourseIR-backed graph, and log the repair explicitly.',
+      'Downloaded package manifests now carry slim CourseIR/native-repair proof metadata, so exported ZIPs can disclose whether a package came from a repaired curriculum graph instead of hiding the recovery path.',
+      'The genome gained an introductory research-methods shard and coverage tests, improving the grounding layer for hypothesis, variables, operational definitions, causation, and informed-consent courses.',
+      'The proof is broad because this touches compiler architecture: targeted native/CourseIR/package/genome tests, full unit suite, constitution audit, build, bundle budget, and all 40 gold samples pass locally.',
+    ],
+  },
   {
     version: '0.15.14',
     date: 'June 19, 2026',

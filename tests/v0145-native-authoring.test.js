@@ -598,14 +598,22 @@ describe('degenerate-skeleton gate (defect 1 → CurriculumV1 repair)', () => {
     expect(resolution.graph.outcomes.some((outcome) => outcome.text.startsWith('Analyze concept 7 alpha'))).toBe(true);
   });
 
-  it('a healthy skeleton resolves ok with the assembled graph', () => {
+  it('a healthy skeleton resolves ok through the CourseIR source-of-truth projection', () => {
     const resolution = resolveNativeAssembly({ skeleton: makeSkeletonFixture(), passBBySession: makePassBFixture() });
     expect(resolution.ok).toBe(true);
-    expect(resolution.graph.authoredBy).toBe('native');
+    expect(resolution.graph.authoredBy).toBe('courseir-v1');
     expect(resolution.graph.sessions).toHaveLength(15);
     expect(resolution.courseIRValidation.valid).toBe(true);
+    expect(resolution.nativeCourseIR).toMatchObject({
+      code: 'validated-native-courseir',
+      source: 'curriculumv1',
+    });
     expect(resolution.graph.courseIR).toMatchObject({
       version: 'courseir.v1',
+      nativeAssembly: {
+        source: 'native-wire-map',
+        projectedThrough: 'curriculumv1',
+      },
     });
   });
 
@@ -809,7 +817,8 @@ describe('Pass A resource transcription (v0.14.7 WS-B1)', () => {
     const resolution = resolveNativeAssembly({ skeleton, passBBySession: makePassBFixture() });
     expect(resolution.ok).toBe(true);
     expect(resolution.resourceRecovery).toEqual({ code: 'missing-resources-recovered', recoveredCount: 15 });
-    expect(resolution.graph.authoredBy).toBe('native');
+    expect(resolution.graph.authoredBy).toBe('courseir-v1');
+    expect(resolution.graph.courseIR.nativeAssembly.projectedThrough).toBe('curriculumv1');
     expect(resolution.graph.resources).toHaveLength(0);
     const serialized = JSON.stringify(resolution.courseMap);
     expect(serialized).not.toContain('Assigned resource to confirm');
@@ -827,7 +836,9 @@ describe('Pass A resource transcription (v0.14.7 WS-B1)', () => {
     });
     const resolution = resolveNativeAssembly({ skeleton, passBBySession: makePassBFixture() });
     expect(resolution.ok).toBe(true);
-    expect(resolution.graph.authoredBy).toBe('native');
+    expect(resolution.graph.authoredBy).toBe('courseir-v1');
+    expect(resolution.graph.courseIR.nativeAssembly.projectedThrough).toBe('curriculumv1');
+    expect(JSON.stringify(resolution.courseMap)).toContain('Lab handout: topic 1');
   });
 
   it('lint: registry readings alone satisfy the resource surface (the render leads cells with them)', () => {
@@ -836,7 +847,11 @@ describe('Pass A resource transcription (v0.14.7 WS-B1)', () => {
       readings: [{ id: 'r1', title: 'Gilgamesh, Tablets I–IV', dueSession: 2 }],
     });
     expect(skeleton.sourceNamesResources).toBe(true);
-    expect(resolveNativeAssembly({ skeleton, passBBySession: makePassBFixture() }).ok).toBe(true);
+    const resolution = resolveNativeAssembly({ skeleton, passBBySession: makePassBFixture() });
+    expect(resolution.ok).toBe(true);
+    expect(resolution.graph.authoredBy).toBe('courseir-v1');
+    expect(resolution.graph.readings.map((reading) => reading.title)).toContain('Gilgamesh, Tablets I–IV');
+    expect(resolution.graph.resources.map((resource) => resource.citation)).not.toContain('Gilgamesh, Tablets I–IV');
   });
 
   it('lint: brief naming NO resources + empty skeleton resources passes (no false positive)', () => {
