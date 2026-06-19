@@ -6,16 +6,16 @@ export const CURRENT_RELEASE = {
   title: 'CourseIR Architecture: one canonical course brain before compilation',
   landingTitle: 'CourseIR Architecture',
   highlights: [
-    'The next architecture lane is CourseIR-first: one dense, validated course source before deterministic package compilation.',
-    'The design rejects one giant final-prose blob and asks the model for compact semantic atoms: lesson kernels, concept graph, factual anchors, examples, and assessment blueprints.',
-    'The model-capacity plan chooses one whole-course IR call when safe, or the fewest sharded IR calls when output caps, reserve, reliability, or cost require it.',
-    'The compiler contract is explicit: final ZIP materials decode from CourseIR through deterministic adapters, schema checks, coverage checks, and path-scoped repairs.',
-    'The proof ladder is set before implementation: flagged 5-, 8-, and 15-lesson comparisons of calls, cost, deep-grade findings, digest caveats, export parity.',
+    'CourseIR v1 now normalizes and validates a dense course source of truth with source-ledger, concept, lesson, assessment, repair-path, and coverage-ledger checks.',
+    'The dense prompt contract asks providers for semantic atoms instead of final artifact prose: lesson kernels, concept graph, factual anchors, examples, and assessment blueprints.',
+    'The model-capacity planner chooses one whole-course IR call when safe, or the fewest sharded IR calls when output caps, reserve, reliability, or cost require it.',
+    'The CurriculumOS compiler facade accepts CourseIR and deterministically renders selected package artifacts through the existing CourseGraph/blueprint path with zero provider calls.',
+    'CourseIR proof metadata can ride into package assembly, while the default product flip still waits for flagged 5-, 8-, and 15-lesson quality/cost comparisons.',
   ],
   landingHighlights: [
-    'One canonical CourseIR before package compilation.',
+    'CourseIR v1 schema, validation, and coverage ledger are implemented.',
     'Model-capacity planning chooses one-call or fewest-call sharding per provider.',
-    'Implementation proof is defined before the feature flag flips.',
+    'CurriculumOS can compile selected artifacts from CourseIR deterministically.',
   ],
   proof: {
     contract: 'release-contracts/v0.15.10.json',

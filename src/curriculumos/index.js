@@ -3,7 +3,7 @@
  *
  * "The website was never the product — it's the first client of the
  * product." This module is the wall that makes that true in code: the
- * compiler, the genome, the on-miss extraction, and the quality grader are
+ * compiler, CourseIR, the genome, the on-miss extraction, and the quality grader are
  * reachable through FOUR verbs, with all IO injected. Nothing in this
  * dependency graph may import React, a hook, a component, or browser-only
  * state — `npm run curriculumos:proof` compiles and grades a full course
@@ -12,8 +12,8 @@
  * regressing silently.
  *
  * The four verbs:
- *   compileCourse({ courseMap, featureIds, configMap, enrichmentOverlay })
- *     → { blueprint, deliverables }                 (pure, deterministic)
+ *   compileCourse({ courseMap | courseIR, featureIds, configMap, enrichmentOverlay })
+ *     → { blueprint, deliverables, ...proof }       (pure, deterministic)
  *   linkGenome({ courseMap, library, lessonIndices })
  *     → runGenomeLinker result                      (pure over the library)
  *   extractOnMiss({ ... })                          (flag-gated; model +
@@ -39,14 +39,39 @@ import { runGenomeLinker } from '../lib/genome/runGenomeLinker';
 import { inferCourseDisciplines } from '../lib/genome/libraryShardLoader';
 import { runOnMissGenomeExtraction } from '../lib/knowledge/genomeExtraction';
 import { buildCourseMaterialsZip } from '../lib/packageZipExporter';
+import {
+  buildCourseIRFromCourseMap,
+  buildCourseIRPromptPayload,
+  compileCourseIR,
+  planCourseIRGeneration,
+  validateCourseIR,
+} from '../lib/courseIR';
 
-export { createKernelLibrary, inferCourseDisciplines, getBlueprintCompiledFeatures };
+export {
+  buildCourseIRFromCourseMap,
+  buildCourseIRPromptPayload,
+  createKernelLibrary,
+  inferCourseDisciplines,
+  getBlueprintCompiledFeatures,
+  planCourseIRGeneration,
+  validateCourseIR,
+};
 
 /**
  * Compile a course map (optionally enriched) into the full deliverable set.
  * Pure and deterministic — the same inputs always produce the same package.
  */
-export function compileCourse({ courseMap, featureIds, configMap = {}, enrichmentOverlay = null } = {}) {
+export function compileCourse({
+  courseMap,
+  courseIR = null,
+  featureIds,
+  configMap = {},
+  enrichmentOverlay = null,
+} = {}) {
+  if (courseIR && typeof courseIR === 'object') {
+    return compileCourseIR(courseIR, { featureIds, configMap });
+  }
+
   const compiledFeatureIds = getBlueprintCompiledFeatures(
     Array.isArray(featureIds) && featureIds.length > 0
       ? featureIds
@@ -96,6 +121,9 @@ export async function gradePackage({
   courseName = '',
   budget = null,
   digest = null,
+  pipelineState = null,
+  courseGraph = null,
+  quality = undefined,
   timeoutMs = 30000,
 } = {}) {
   const result = await buildCourseMaterialsZip({
@@ -104,8 +132,10 @@ export async function gradePackage({
     featureIds,
     columns,
     courseName: courseName || courseMap?.courseName,
+    pipelineState,
+    courseGraph,
     assembleOnly: true,
-    quality: { budget, digest, timeoutMs },
+    quality: quality === undefined ? { budget, digest, timeoutMs } : quality,
   });
   return { quality: result.quality || null, qualityResult: result.qualityResult || null, files: result.files || [] };
 }

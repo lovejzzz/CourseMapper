@@ -5,7 +5,10 @@
   "status": "verified-current",
   "proofSummary": {
     "local": [
-      "npm test -- tests/v0155-release-truth-ledger.test.js",
+      "npm test -- src/lib/__tests__/courseIR.test.js tests/v0155-release-truth-ledger.test.js",
+      "npm run curriculumos:proof",
+      "npm run audit:deliverables",
+      "npm run audit:gold",
       "npx playwright test tests/coursemapper.spec.js -g \"changelog page has version entries\"",
       "npm run audit:release-history",
       "npm run format:check",
@@ -23,11 +26,11 @@
     },
     "ciDeep": {
       "status": "pending",
-      "note": "Deep proof remains release-branch or manual pre-release proof. This architecture-roadmap release does not claim remote deep-proof success."
+      "note": "Deep proof remains release-branch or manual pre-release proof. This CourseIR vertical-slice release does not claim remote deep-proof success."
     },
     "liveProvider": {
       "status": "not-used",
-      "note": "No fresh live provider generation is claimed. This release defines the next CourseIR architecture and proof plan."
+      "note": "No fresh live provider generation is claimed. This release ships the local CourseIR compiler slice but does not flip EduTool.dev to CourseIR generation."
     },
     "manualHuman": {
       "status": "not-applicable",
@@ -39,54 +42,85 @@
       "id": "v01510-courseir-first-architecture",
       "status": "verified-current",
       "changelogHighlightIndex": 0,
-      "summary": "The roadmap commits the next architecture lane to CourseIR-first generation: a dense validated course source of truth before deterministic package compilation.",
-      "anchors": ["docs/V0.15.10_COURSEIR_ARCHITECTURE_ROADMAP.md", "src/lib/releaseManifest.js"],
-      "proofCommands": ["npm run audit:release-history"],
-      "proofScopes": ["doc", "static-audit"]
+      "summary": "CourseIR v1 normalizes and validates a dense course source with source-ledger, concept, lesson, assessment, repair-path, and coverage-ledger checks.",
+      "anchors": [
+        "src/lib/courseIR.js",
+        "src/lib/__tests__/courseIR.test.js",
+        "docs/V0.15.10_COURSEIR_ARCHITECTURE_ROADMAP.md",
+        "src/lib/releaseManifest.js"
+      ],
+      "proofCommands": ["npm test -- src/lib/__tests__/courseIR.test.js", "npm run audit:release-history"],
+      "proofScopes": ["unit", "static-audit"]
     },
     {
       "id": "v01510-semantic-atoms-not-prose-blob",
       "status": "verified-current",
       "changelogHighlightIndex": 1,
-      "summary": "The design rejects one giant final-prose response and instead specifies compact semantic atoms for the model to return.",
-      "anchors": ["docs/V0.15.10_COURSEIR_ARCHITECTURE_ROADMAP.md", "src/lib/releaseManifest.js"],
-      "proofCommands": ["npm run audit:release-history"],
-      "proofScopes": ["doc", "static-audit"]
+      "summary": "The structured-output prompt contract asks providers for compact semantic atoms instead of final artifact prose.",
+      "anchors": [
+        "src/lib/courseIR.js",
+        "src/lib/__tests__/courseIR.test.js",
+        "docs/V0.15.10_COURSEIR_ARCHITECTURE_ROADMAP.md",
+        "src/lib/releaseManifest.js"
+      ],
+      "proofCommands": ["npm test -- src/lib/__tests__/courseIR.test.js", "npm run audit:release-history"],
+      "proofScopes": ["unit", "static-audit"]
     },
     {
       "id": "v01510-model-capacity-planning-roadmap",
       "status": "verified-current",
       "changelogHighlightIndex": 2,
-      "summary": "The roadmap defines model-capacity planning by input context, output cap, reliability reserve, and cost, choosing whole-course IR or fewest-call sharding per model.",
-      "anchors": ["docs/V0.15.10_COURSEIR_ARCHITECTURE_ROADMAP.md", "src/lib/releaseManifest.js"],
-      "proofCommands": ["npm run audit:release-history"],
-      "proofScopes": ["doc", "static-audit"]
+      "summary": "The CourseIR planner chooses whole-course IR, lesson-block IR, global-plus-block IR, or fallback from model context and output capacity.",
+      "anchors": [
+        "src/lib/courseIR.js",
+        "src/lib/__tests__/courseIR.test.js",
+        "docs/V0.15.10_COURSEIR_ARCHITECTURE_ROADMAP.md",
+        "src/lib/releaseManifest.js"
+      ],
+      "proofCommands": ["npm test -- src/lib/__tests__/courseIR.test.js", "npm run audit:release-history"],
+      "proofScopes": ["unit", "static-audit"]
     },
     {
       "id": "v01510-compiler-validation-contract",
       "status": "verified-current",
       "changelogHighlightIndex": 3,
-      "summary": "The compiler contract requires deterministic artifact expansion from CourseIR, schema validation, coverage checks, and path-scoped repair instead of blind regeneration.",
-      "anchors": ["docs/V0.15.10_COURSEIR_ARCHITECTURE_ROADMAP.md", "src/lib/releaseManifest.js"],
-      "proofCommands": ["npm run audit:release-history"],
-      "proofScopes": ["doc", "static-audit"]
+      "summary": "CurriculumOS accepts CourseIR and compiles selected artifacts deterministically through the existing CourseGraph/blueprint compiler with zero provider calls during compile.",
+      "anchors": [
+        "src/lib/courseIR.js",
+        "src/curriculumos/index.js",
+        "src/lib/__tests__/courseIR.test.js",
+        "docs/V0.15.10_COURSEIR_ARCHITECTURE_ROADMAP.md",
+        "src/lib/releaseManifest.js"
+      ],
+      "proofCommands": [
+        "npm test -- src/lib/__tests__/courseIR.test.js",
+        "npm run curriculumos:proof",
+        "npm run audit:release-history"
+      ],
+      "proofScopes": ["unit", "compiled-output", "static-audit"]
     },
     {
       "id": "v01510-courseir-proof-ladder",
       "status": "verified-current",
       "changelogHighlightIndex": 4,
-      "summary": "The roadmap defines the CourseIR proof ladder before implementation: flagged 5-, 8-, and 15-lesson side-by-side audits comparing calls, cost, grader findings, digest caveats, and export parity.",
-      "anchors": ["docs/V0.15.10_COURSEIR_ARCHITECTURE_ROADMAP.md", "src/lib/releaseManifest.js"],
-      "proofCommands": ["npm run audit:release-history"],
-      "proofScopes": ["doc", "static-audit"]
+      "summary": "CourseIR proof metadata records validation, coverage completeness, repair paths, and deterministic compile status for package assembly; default rollout still waits for side-by-side live quality and cost proof.",
+      "anchors": [
+        "src/lib/courseIR.js",
+        "src/curriculumos/index.js",
+        "src/lib/__tests__/courseIR.test.js",
+        "docs/V0.15.10_COURSEIR_ARCHITECTURE_ROADMAP.md",
+        "src/lib/releaseManifest.js"
+      ],
+      "proofCommands": ["npm test -- src/lib/__tests__/courseIR.test.js", "npm run audit:release-history"],
+      "proofScopes": ["unit", "static-audit"]
     }
   ],
   "carryForward": [
     {
-      "id": "courseir-implementation-slice",
+      "id": "courseir-flagged-live-proof",
       "status": "carry-forward",
       "source": "docs/V0.15.10_COURSEIR_ARCHITECTURE_ROADMAP.md",
-      "next": "Implement the first flagged CourseIR vertical slice: schema, capacity planner, one generation path, one compiler adapter, and side-by-side proof."
+      "next": "Implement the flagged EduTool.dev CourseIR generation path and attach 5-, 8-, and 15-lesson side-by-side quality/cost proof before making CourseIR the default."
     }
   ]
 }
