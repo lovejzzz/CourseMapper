@@ -18,13 +18,14 @@ import {
 
 const FEATURE_IDS = ['syllabus', 'lessonPlans', 'quizBank'];
 
-function makeRubricCriteria(assessmentId, labels, conceptIds, outcomeIds) {
+function makeRubricCriteria(assessmentId, labels, conceptIds, outcomeIds, sourceRefs = ['SL2']) {
   return labels.map((label, index) => ({
     id: `${assessmentId}-R${index + 1}`,
     label,
     description: `Evaluate ${label} with lesson evidence.`,
     conceptIds,
     outcomeIds,
+    sourceRefs,
     performanceLevels: [
       { level: 'Exceeds', description: `Precise and transferable ${label}.`, points: 4 },
       { level: 'Meets', description: `Accurate and sufficient ${label}.`, points: 3 },
@@ -155,6 +156,7 @@ function makeCalculusIR() {
             performanceVerb: 'Interpret',
             conceptIds: ['C1'],
             assessmentIds: ['A1'],
+            sourceRefs: ['SL2'],
           },
           {
             id: 'L1-O2',
@@ -162,6 +164,7 @@ function makeCalculusIR() {
             performanceVerb: 'Distinguish',
             conceptIds: ['C1'],
             assessmentIds: ['A1'],
+            sourceRefs: ['SL2'],
           },
         ],
         activities: [
@@ -173,6 +176,7 @@ function makeCalculusIR() {
             evidence: 'Prepared evidence notes separating approach behavior from function value.',
             conceptIds: ['C1'],
             assessmentIds: ['A1'],
+            sourceRefs: ['SL2'],
           },
           {
             id: 'L1-ACT2',
@@ -183,6 +187,7 @@ function makeCalculusIR() {
             evidence: 'Revised explanation citing two representations.',
             conceptIds: ['C1'],
             assessmentIds: ['A1'],
+            sourceRefs: ['SL2'],
           },
         ],
         prerequisiteChecks: ['Evaluate function values from a graph and table.'],
@@ -267,6 +272,7 @@ function makeCalculusIR() {
             performanceVerb: 'Use',
             conceptIds: ['C1', 'C2'],
             assessmentIds: ['A2'],
+            sourceRefs: ['SL2'],
           },
           {
             id: 'L2-O2',
@@ -274,6 +280,7 @@ function makeCalculusIR() {
             performanceVerb: 'Interpret',
             conceptIds: ['C2'],
             assessmentIds: ['A2'],
+            sourceRefs: ['SL2'],
           },
         ],
         activities: [
@@ -285,6 +292,7 @@ function makeCalculusIR() {
             evidence: 'Annotated step list showing h remains nonzero before the limit.',
             conceptIds: ['C1', 'C2'],
             assessmentIds: ['A2'],
+            sourceRefs: ['SL2'],
           },
           {
             id: 'L2-ACT2',
@@ -294,6 +302,7 @@ function makeCalculusIR() {
             evidence: 'Class explanation connecting derivative value to tangent slope.',
             conceptIds: ['C2'],
             assessmentIds: ['A2'],
+            sourceRefs: ['SL2'],
           },
         ],
         prerequisiteChecks: ['Explain one-sided and two-sided limit agreement.'],
@@ -463,6 +472,9 @@ describe('CourseIR v1', () => {
       rubricCriteria: 6,
       rubricCriteriaWithLevels: 6,
       rubricOutcomeLinks: 12,
+      sourceLinkedOutcomes: 4,
+      sourceLinkedActivities: 4,
+      sourceLinkedRubricCriteria: 6,
       sourceLedgerRows: 2,
       constraints: 3,
       prerequisiteLinks: 2,
@@ -632,6 +644,125 @@ describe('CourseIR v1', () => {
       expect.arrayContaining([expect.objectContaining({ code: 'added-assessment-rubric-criteria' })]),
     );
     expect(compiled.deliverables.rubrics).toBeTruthy();
+  });
+
+  it('repairs missing atom source refs before compile', () => {
+    const broken = {
+      ...makeCalculusIR(),
+      lessons: makeCalculusIR().lessons.map((lesson) => ({
+        ...lesson,
+        outcomes: lesson.outcomes.map((outcome) => ({ ...outcome, sourceRefs: [] })),
+        activities: lesson.activities.map((activity) => ({ ...activity, sourceRefs: [] })),
+      })),
+      assessments: makeCalculusIR().assessments.map((assessment) => ({
+        ...assessment,
+        rubricCriteria: assessment.rubricCriteria.map((criterion) => ({ ...criterion, sourceRefs: [] })),
+      })),
+    };
+
+    const validation = validateCourseIR(broken);
+    expect(validation.valid).toBe(false);
+    expect(validation.issues.map((entry) => entry.code)).toEqual(
+      expect.arrayContaining([
+        'missing-outcome-source-refs',
+        'missing-activity-source-refs',
+        'missing-rubric-source-refs',
+      ]),
+    );
+
+    const repair = repairCourseIRStructure(broken);
+    const repairedValidation = validateCourseIR(repair.ir);
+    expect(repair.changed).toBe(true);
+    expect(repair.repairs).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          code: 'added-atom-source-refs',
+          outcomes: 4,
+          activities: 4,
+          rubricCriteria: 6,
+        }),
+      ]),
+    );
+    expect(repairedValidation.valid).toBe(true);
+    expect(repairedValidation.stats).toMatchObject({
+      sourceLinkedOutcomes: 4,
+      sourceLinkedActivities: 4,
+      sourceLinkedRubricCriteria: 6,
+    });
+
+    const compiled = compileCourseIR(broken, { featureIds: ['syllabus'] });
+    expect(compiled.courseIRProof).toMatchObject({
+      valid: true,
+      repairedBeforeCompile: true,
+      providerCallsDuringCompile: 0,
+    });
+    expect(compiled.courseIRProof.repairs).toEqual(
+      expect.arrayContaining([expect.objectContaining({ code: 'added-atom-source-refs' })]),
+    );
+  });
+
+  it('rejects repaired atom source refs as direct provider authoring', () => {
+    const unlinked = {
+      ...makeCalculusIR(),
+      lessons: makeCalculusIR().lessons.map((lesson) => ({
+        ...lesson,
+        outcomes: lesson.outcomes.map((outcome) => ({ ...outcome, sourceRefs: [] })),
+        activities: lesson.activities.map((activity) => ({ ...activity, sourceRefs: [] })),
+      })),
+      assessments: makeCalculusIR().assessments.map((assessment) => ({
+        ...assessment,
+        rubricCriteria: assessment.rubricCriteria.map((criterion) => ({ ...criterion, sourceRefs: [] })),
+      })),
+    };
+
+    const parsed = parseCourseIRResponse(JSON.stringify(unlinked), { expectedLessons: 2 });
+
+    expect(parsed.validation.valid).toBe(true);
+    expect(parsed.repair.changed).toBe(true);
+    expect(parsed.repair.repairs).toEqual(
+      expect.arrayContaining([expect.objectContaining({ code: 'added-atom-source-refs' })]),
+    );
+    expect(parsed.acceptance).toMatchObject({
+      accepted: false,
+      repairedBeforeAcceptance: true,
+    });
+    expect(parsed.acceptance.reason).toContain('repaired-structure');
+    expect(parsed.acceptance.reason).toContain('added-atom-source-refs');
+  });
+
+  it('repairs dangling atom source refs before compile', () => {
+    const broken = {
+      ...makeCalculusIR(),
+      lessons: makeCalculusIR().lessons.map((lesson) => ({
+        ...lesson,
+        outcomes: lesson.outcomes.map((outcome) => ({ ...outcome, sourceRefs: ['SL404'] })),
+        activities: lesson.activities.map((activity) => ({ ...activity, sourceRefs: ['SL404'] })),
+      })),
+      assessments: makeCalculusIR().assessments.map((assessment) => ({
+        ...assessment,
+        rubricCriteria: assessment.rubricCriteria.map((criterion) => ({ ...criterion, sourceRefs: ['SL404'] })),
+      })),
+    };
+
+    const validation = validateCourseIR(broken);
+    expect(validation.valid).toBe(false);
+    expect(validation.issues.map((entry) => entry.code)).toEqual(
+      expect.arrayContaining([
+        'dangling-outcome-source-ref',
+        'dangling-activity-source-ref',
+        'dangling-rubric-source-ref',
+      ]),
+    );
+
+    const repair = repairCourseIRStructure(broken);
+    const repairedValidation = validateCourseIR(repair.ir);
+    expect(repair.changed).toBe(true);
+    expect(repairedValidation.valid).toBe(true);
+    expect(repairedValidation.stats).toMatchObject({
+      sourceLinkedOutcomes: 4,
+      sourceLinkedActivities: 4,
+      sourceLinkedRubricCriteria: 6,
+    });
   });
 
   it('rejects one broad assessment for four lessons and repairs it before compile', () => {

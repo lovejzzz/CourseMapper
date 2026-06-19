@@ -12,7 +12,7 @@ import { estimateTokens, getModelLimit } from './tokenEstimator.js';
 
 export const COURSE_IR_VERSION = 'courseir.v1';
 export const COURSE_IR_SCHEMA_NAME = 'course_ir_v1';
-export const COURSE_IR_SYSTEM_PROMPT = `You are CourseMapper's CurriculumV1 authoring engine. Return one compact CourseIR JSON object only: no markdown, no commentary, no final deliverable prose. Encode the curriculum brain as semantic atoms with stable ids, source/provenance status, concept prerequisites, lesson objectives, outcome atoms, activity atoms, assessments, rubric criteria, examples, misconceptions, constraints, and artifact intent links. Every lesson outcome and activity must link to concept ids and assessment ids; every rubric criterion must link to concepts, outcomes, and performance levels.`;
+export const COURSE_IR_SYSTEM_PROMPT = `You are CourseMapper's CurriculumV1 authoring engine. Return one compact CourseIR JSON object only: no markdown, no commentary, no final deliverable prose. Encode the curriculum brain as semantic atoms with stable ids, source/provenance status, concept prerequisites, lesson objectives, outcome atoms, activity atoms, assessments, rubric criteria, examples, misconceptions, constraints, and artifact intent links. Every lesson outcome and activity must link to concept ids, assessment ids, and sourceRefs; every rubric criterion must link to concepts, outcomes, performance levels, and sourceRefs.`;
 
 const KNOWN_FEATURE_IDS = [
   'syllabus',
@@ -553,7 +553,28 @@ export function validateCourseIR(rawIR = {}) {
   const lessonIds = new Set();
   const assessmentIds = new Set(ir.assessments.map((assessment) => assessment.id));
   const outcomeIds = new Set(ir.lessons.flatMap((lesson) => lesson.outcomes.map((outcome) => outcome.id)));
+  const sourceLedgerIds = new Set(ir.sourceLedger.map((entry) => entry.id));
   const assessmentLessonRefs = new Map(ir.lessons.map((lesson) => [lesson.id, 0]));
+  const validateSourceRefs = (sourceRefs, path, label, codePrefix) => {
+    if (sourceRefs.length === 0) {
+      push('blocker', `missing-${codePrefix}-source-refs`, `${path}.sourceRefs`, `${label} needs source references.`, {
+        repairPath: `${path}.sourceRefs`,
+      });
+    }
+    for (const sourceRef of sourceRefs) {
+      if (!sourceLedgerIds.has(sourceRef)) {
+        push(
+          'blocker',
+          `dangling-${codePrefix}-source-ref`,
+          `${path}.sourceRefs`,
+          `${label} references missing source ledger row ${sourceRef}.`,
+          {
+            repairPath: `${path}.sourceRefs`,
+          },
+        );
+      }
+    }
+  };
 
   for (const [index, lesson] of ir.lessons.entries()) {
     const path = `lessons[${index}]`;
@@ -603,6 +624,7 @@ export function validateCourseIR(rawIR = {}) {
     }
     for (const [outcomeIndex, outcome] of lesson.outcomes.entries()) {
       const outcomePath = `${path}.outcomes[${outcomeIndex}]`;
+      validateSourceRefs(outcome.sourceRefs, outcomePath, 'Outcome', 'outcome');
       if (outcome.conceptIds.length === 0) {
         push('blocker', 'missing-outcome-concepts', `${outcomePath}.conceptIds`, 'Outcome must link to concepts.', {
           repairPath: `${outcomePath}.conceptIds`,
@@ -631,6 +653,7 @@ export function validateCourseIR(rawIR = {}) {
     }
     for (const [activityIndex, activity] of lesson.activities.entries()) {
       const activityPath = `${path}.activities[${activityIndex}]`;
+      validateSourceRefs(activity.sourceRefs, activityPath, 'Activity', 'activity');
       if (activity.conceptIds.length === 0) {
         push(
           'blocker',
@@ -760,6 +783,7 @@ export function validateCourseIR(rawIR = {}) {
     }
     for (const [criterionIndex, criterion] of assessment.rubricCriteria.entries()) {
       const criterionPath = `${path}.rubricCriteria[${criterionIndex}]`;
+      validateSourceRefs(criterion.sourceRefs, criterionPath, 'Rubric criterion', 'rubric');
       if (criterion.conceptIds.length === 0) {
         push(
           'blocker',
@@ -876,6 +900,19 @@ export function validateCourseIR(rawIR = {}) {
       (sum, assessment) =>
         sum +
         assessment.rubricCriteria.reduce((criterionSum, criterion) => criterionSum + criterion.outcomeIds.length, 0),
+      0,
+    ),
+    sourceLinkedOutcomes: ir.lessons.reduce(
+      (sum, lesson) => sum + lesson.outcomes.filter((outcome) => outcome.sourceRefs.length > 0).length,
+      0,
+    ),
+    sourceLinkedActivities: ir.lessons.reduce(
+      (sum, lesson) => sum + lesson.activities.filter((activity) => activity.sourceRefs.length > 0).length,
+      0,
+    ),
+    sourceLinkedRubricCriteria: ir.assessments.reduce(
+      (sum, assessment) =>
+        sum + assessment.rubricCriteria.filter((criterion) => criterion.sourceRefs.length > 0).length,
       0,
     ),
     misconceptionCorrectives:
@@ -1046,6 +1083,60 @@ function repairedAssessmentRubricCriteria(ir, assessment) {
     performanceLevels:
       criterion.performanceLevels.length >= 2 ? criterion.performanceLevels : repairedRubricLevels(criterion.label),
   }));
+}
+
+function validSourceRefs(ir, sourceRefs = []) {
+  const sourceIds = new Set((ir.sourceLedger || []).map((entry) => entry.id));
+  return uniqueStrings(
+    sourceRefs.filter((sourceRef) => sourceIds.has(sourceRef)),
+    16,
+  );
+}
+
+function fallbackSourceRefsForLesson(ir, lesson) {
+  const concepts = conceptByIdMap(ir);
+  const linkedConcepts = lesson.conceptIds.map((id) => concepts.get(id)).filter(Boolean);
+  const candidateRefs = [
+    ...lesson.factualAnchors.flatMap((anchor) => anchor.sourceRefs),
+    ...constraintsForLesson(ir, lesson).flatMap((constraint) => constraint.sourceRefs || []),
+    ...linkedConcepts.flatMap((concept) => concept.factualAnchors.flatMap((anchor) => anchor.sourceRefs)),
+  ];
+  const validRefs = validSourceRefs(ir, candidateRefs);
+  if (validRefs.length > 0) return validRefs;
+  return ir.sourceLedger[0]?.id ? [ir.sourceLedger[0].id] : [];
+}
+
+function fallbackSourceRefsForAssessment(ir, assessment) {
+  const linkedLessons = ir.lessons.filter((lesson) => assessment.lessonIds.includes(lesson.id));
+  const validRefs = validSourceRefs(
+    ir,
+    linkedLessons.flatMap((lesson) => fallbackSourceRefsForLesson(ir, lesson)),
+  );
+  if (validRefs.length > 0) return validRefs;
+  return ir.sourceLedger[0]?.id ? [ir.sourceLedger[0].id] : [];
+}
+
+function sourceRefsNeedRepair(ir, refs = []) {
+  const validRefs = validSourceRefs(ir, refs);
+  return refs.length === 0 || validRefs.length !== refs.length;
+}
+
+function repairedAtomSourceRefs(ir, refs, fallbackRefs) {
+  const validRefs = validSourceRefs(ir, refs);
+  return validRefs.length > 0 ? validRefs : uniqueStrings(fallbackRefs, 16);
+}
+
+function needsAtomSourceRepair(ir) {
+  return (
+    ir.lessons.some(
+      (lesson) =>
+        lesson.outcomes.some((outcome) => sourceRefsNeedRepair(ir, outcome.sourceRefs)) ||
+        lesson.activities.some((activity) => sourceRefsNeedRepair(ir, activity.sourceRefs)),
+    ) ||
+    ir.assessments.some((assessment) =>
+      assessment.rubricCriteria.some((criterion) => sourceRefsNeedRepair(ir, criterion.sourceRefs)),
+    )
+  );
 }
 
 function repairedCourseConstraint() {
@@ -1318,6 +1409,57 @@ export function repairCourseIRStructure(rawIR = {}) {
       })),
     });
     repairs.push({ code: 'added-assessment-rubric-criteria', count: repairedAssessmentCount });
+    changed = true;
+  }
+
+  if (needsAtomSourceRepair(ir)) {
+    const repairedOutcomeCount = ir.lessons.reduce(
+      (sum, lesson) => sum + lesson.outcomes.filter((outcome) => sourceRefsNeedRepair(ir, outcome.sourceRefs)).length,
+      0,
+    );
+    const repairedActivityCount = ir.lessons.reduce(
+      (sum, lesson) =>
+        sum + lesson.activities.filter((activity) => sourceRefsNeedRepair(ir, activity.sourceRefs)).length,
+      0,
+    );
+    const repairedRubricCount = ir.assessments.reduce(
+      (sum, assessment) =>
+        sum + assessment.rubricCriteria.filter((criterion) => sourceRefsNeedRepair(ir, criterion.sourceRefs)).length,
+      0,
+    );
+    ir = normalizeCourseIR({
+      ...ir,
+      lessons: ir.lessons.map((lesson) => {
+        const fallbackRefs = fallbackSourceRefsForLesson(ir, lesson);
+        return {
+          ...lesson,
+          outcomes: lesson.outcomes.map((outcome) => ({
+            ...outcome,
+            sourceRefs: repairedAtomSourceRefs(ir, outcome.sourceRefs, fallbackRefs),
+          })),
+          activities: lesson.activities.map((activity) => ({
+            ...activity,
+            sourceRefs: repairedAtomSourceRefs(ir, activity.sourceRefs, fallbackRefs),
+          })),
+        };
+      }),
+      assessments: ir.assessments.map((assessment) => {
+        const fallbackRefs = fallbackSourceRefsForAssessment(ir, assessment);
+        return {
+          ...assessment,
+          rubricCriteria: assessment.rubricCriteria.map((criterion) => ({
+            ...criterion,
+            sourceRefs: repairedAtomSourceRefs(ir, criterion.sourceRefs, fallbackRefs),
+          })),
+        };
+      }),
+    });
+    repairs.push({
+      code: 'added-atom-source-refs',
+      outcomes: repairedOutcomeCount,
+      activities: repairedActivityCount,
+      rubricCriteria: repairedRubricCount,
+    });
     changed = true;
   }
 
@@ -1760,6 +1902,7 @@ export function buildCourseIRFromCourseMap(courseMap = {}) {
         performanceVerb: statement.split(/\s+/)[0] || 'Apply',
         conceptIds: [conceptId],
         assessmentIds: [assessmentId],
+        sourceRefs: ['SL1'],
       })),
       activities: [
         ...asyncActivities.map((learnerAction, activityIndex) => ({
@@ -1770,6 +1913,7 @@ export function buildCourseIRFromCourseMap(courseMap = {}) {
           evidence: `Preparation notes for ${assessmentId}.`,
           conceptIds: [conceptId],
           assessmentIds: [assessmentId],
+          sourceRefs: ['SL1'],
         })),
         ...syncActivities.map((learnerAction, activityIndex) => ({
           id: `L${index + 1}-ACT${asyncActivities.length + activityIndex + 1}`,
@@ -1779,6 +1923,7 @@ export function buildCourseIRFromCourseMap(courseMap = {}) {
           evidence: `Class artifact or explanation for ${assessmentId}.`,
           conceptIds: [conceptId],
           assessmentIds: [assessmentId],
+          sourceRefs: ['SL1'],
         })),
       ],
       prerequisiteChecks:
@@ -1798,7 +1943,7 @@ export function buildCourseIRFromCourseMap(courseMap = {}) {
       factualAnchors: uniqueStrings(
         String(section.supportingResources || section.learningGoals || '').split(/;|\n/),
         4,
-      ).map((claim) => ({ claim, status: 'source-provided', sourceRefs: [`lesson-${index + 1}`], risk: 'low' })),
+      ).map((claim) => ({ claim, status: 'source-provided', sourceRefs: ['SL1'], risk: 'low' })),
       workedExamples: [
         {
           id: `L${index + 1}-E1`,
@@ -1864,6 +2009,7 @@ export function buildCourseIRFromCourseMap(courseMap = {}) {
         conceptIds: lesson.conceptIds,
         outcomeIds: lesson.outcomes.map((outcome) => outcome.id),
         performanceLevels: repairedRubricLevels(dimension),
+        sourceRefs: ['SL1'],
       })),
       provenance: 'course-map',
     })),
@@ -1888,7 +2034,7 @@ export function buildCourseIRPromptPayload({
   return {
     task: 'courseir-v1',
     instruction:
-      'Return compact CourseIR JSON only. Write semantic atoms, not final deliverable prose. Preserve source facts, mark assumptions, and link every lesson to concepts, prerequisite concepts, constraints, outcomes, activities, assessments, and rubric criteria. Each lesson needs outcomes[] objects and activities[] objects; activities must name learnerAction, evidence, mode, conceptIds, and assessmentIds. Each assessment needs rubricCriteria[] objects with label, description, conceptIds, outcomeIds, and performanceLevels.',
+      'Return compact CourseIR JSON only. Write semantic atoms, not final deliverable prose. Preserve source facts, mark assumptions, and link every lesson to concepts, prerequisite concepts, constraints, outcomes, activities, assessments, rubric criteria, and source ledger rows. Each lesson needs outcomes[] objects and activities[] objects; activities must name learnerAction, evidence, mode, conceptIds, assessmentIds, and sourceRefs. Each assessment needs rubricCriteria[] objects with label, description, conceptIds, outcomeIds, performanceLevels, and sourceRefs.',
     selectedFeatureIds,
     sourcePacket: {
       courseName: courseMap?.courseName || '',
@@ -2004,6 +2150,15 @@ export function assessCourseIRDirectAuthoring(validation, { expectedLessons = nu
   if ((validation?.stats?.rubricOutcomeLinks || 0) < (validation?.stats?.rubricCriteria || 0)) {
     blockers.push('unlinked-rubrics');
   }
+  if ((validation?.stats?.sourceLinkedOutcomes || 0) < (validation?.stats?.outcomes || 0)) {
+    blockers.push('unlinked-outcome-sources');
+  }
+  if ((validation?.stats?.sourceLinkedActivities || 0) < (validation?.stats?.activities || 0)) {
+    blockers.push('unlinked-activity-sources');
+  }
+  if ((validation?.stats?.sourceLinkedRubricCriteria || 0) < (validation?.stats?.rubricCriteria || 0)) {
+    blockers.push('unlinked-rubric-sources');
+  }
   if ((validation?.stats?.factualAnchors || 0) < lessonCount) blockers.push('thin-facts');
   if ((validation?.stats?.workedExamples || 0) < lessonCount) blockers.push('thin-examples');
   if ((validation?.stats?.misconceptionCorrectives || 0) < lessonCount) blockers.push('thin-misconceptions');
@@ -2106,13 +2261,14 @@ export const COURSE_IR_RESPONSE_SCHEMA = {
             items: {
               type: 'object',
               additionalProperties: true,
-              required: ['statement', 'conceptIds', 'assessmentIds'],
+              required: ['statement', 'conceptIds', 'assessmentIds', 'sourceRefs'],
               properties: {
                 id: { type: 'string' },
                 statement: { type: 'string' },
                 performanceVerb: { type: 'string' },
                 conceptIds: { type: 'array', items: { type: 'string' } },
                 assessmentIds: { type: 'array', items: { type: 'string' } },
+                sourceRefs: { type: 'array', items: { type: 'string' } },
               },
             },
           },
@@ -2121,7 +2277,7 @@ export const COURSE_IR_RESPONSE_SCHEMA = {
             items: {
               type: 'object',
               additionalProperties: true,
-              required: ['mode', 'learnerAction', 'evidence', 'conceptIds', 'assessmentIds'],
+              required: ['mode', 'learnerAction', 'evidence', 'conceptIds', 'assessmentIds', 'sourceRefs'],
               properties: {
                 id: { type: 'string' },
                 mode: { type: 'string', enum: [...VALID_ACTIVITY_MODES] },
@@ -2130,6 +2286,7 @@ export const COURSE_IR_RESPONSE_SCHEMA = {
                 evidence: { type: 'string' },
                 conceptIds: { type: 'array', items: { type: 'string' } },
                 assessmentIds: { type: 'array', items: { type: 'string' } },
+                sourceRefs: { type: 'array', items: { type: 'string' } },
               },
             },
           },
@@ -2155,13 +2312,14 @@ export const COURSE_IR_RESPONSE_SCHEMA = {
             items: {
               type: 'object',
               additionalProperties: true,
-              required: ['label', 'description', 'conceptIds', 'outcomeIds', 'performanceLevels'],
+              required: ['label', 'description', 'conceptIds', 'outcomeIds', 'performanceLevels', 'sourceRefs'],
               properties: {
                 id: { type: 'string' },
                 label: { type: 'string' },
                 description: { type: 'string' },
                 conceptIds: { type: 'array', items: { type: 'string' } },
                 outcomeIds: { type: 'array', items: { type: 'string' } },
+                sourceRefs: { type: 'array', items: { type: 'string' } },
                 performanceLevels: {
                   type: 'array',
                   items: {

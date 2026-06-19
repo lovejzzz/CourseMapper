@@ -3,23 +3,23 @@ import { APP_VERSION } from './appVersion.js';
 export const CURRENT_RELEASE = {
   version: APP_VERSION,
   date: 'June 19, 2026',
-  title: 'CourseIR Rubric Atoms: assessment criteria become validated brain structure',
-  landingTitle: 'CourseIR Rubric Atoms',
+  title: 'CourseIR Source Trace: curriculum atoms become genome-linked',
+  landingTitle: 'CourseIR Source Trace',
   highlights: [
-    'CourseIR assessments now carry first-class `rubricCriteria[]` atoms with descriptions, concept links, outcome links, and performance levels before an assessment can count as fully structured.',
-    'Compiler repair can synthesize missing rubric criteria for explicit CourseIR input before deterministic rendering, recording `added-assessment-rubric-criteria` proof instead of hiding the repair.',
-    'Direct provider CourseIR acceptance now rejects repaired or level-less rubric structure, so bare rubric strings no longer masquerade as a complete curriculum brain.',
-    'CourseIR projection feeds rubric criteria into enrichment surfaces and the lesson completeness ledger now counts assessment rubric coverage.',
-    'Native authoring remains compatible with the stricter CourseIR rubric contract, preserving the current path while direct CourseIR gets a sharper assessment-quality boundary.',
+    'CourseIR lesson outcomes, learner activities, and rubric criteria now require `sourceRefs` that resolve to the source ledger before the object counts as a valid curriculum brain.',
+    'Compiler repair can restore missing or dangling atom source refs for explicit CourseIR input before deterministic rendering, recording `added-atom-source-refs` proof instead of hiding the repair.',
+    'Direct provider CourseIR acceptance now rejects source-ref repair, so native authoring cannot fall back to unlinked prose while claiming direct structured authorship.',
+    'CourseIR validation stats now count source-linked outcomes, activities, and rubric criteria, giving graders and package reports a concrete traceability signal.',
+    'Legacy course-map normalization now emits source-linked outcomes, activities, factual anchors, and rubric criteria against the normalized source ledger.',
   ],
   landingHighlights: [
-    'Rubric criteria are now CourseIR atoms.',
-    'Criteria link to concepts, outcomes, and levels.',
-    'Repaired rubric strings no longer count as accepted direct authoring.',
+    'Curriculum atoms now carry source refs.',
+    'Repair is explicit proof, not accepted authorship.',
+    'Course-map normalization keeps trace links intact.',
   ],
   proof: {
-    contract: 'release-contracts/v0.15.20.json',
-    roadmap: 'docs/V0.15.20_COURSEIR_RUBRIC_ATOMS_ROADMAP.md',
+    contract: 'release-contracts/v0.15.21.json',
+    roadmap: 'docs/V0.15.21_COURSEIR_SOURCE_TRACE_ROADMAP.md',
     auditCommand: 'npm run audit:release-history',
   },
 };
@@ -34,6 +34,18 @@ export const CURRENT_RELEASE_CHANGELOG = {
 };
 
 export const HISTORICAL_RELEASE_CHANGELOGS = [
+  {
+    version: '0.15.20',
+    date: 'June 19, 2026',
+    title: 'CourseIR Rubric Atoms: assessment criteria become validated brain structure',
+    highlights: [
+      'CourseIR assessments now carry first-class `rubricCriteria[]` atoms with descriptions, concept links, outcome links, and performance levels before an assessment can count as fully structured.',
+      'Compiler repair can synthesize missing rubric criteria for explicit CourseIR input before deterministic rendering, recording `added-assessment-rubric-criteria` proof instead of hiding the repair.',
+      'Direct provider CourseIR acceptance now rejects repaired or level-less rubric structure, so bare rubric strings no longer masquerade as a complete curriculum brain.',
+      'CourseIR projection feeds rubric criteria into enrichment surfaces and the lesson completeness ledger now counts assessment rubric coverage.',
+      'Native authoring remains compatible with the stricter CourseIR rubric contract, preserving the current path while direct CourseIR gets a sharper assessment-quality boundary.',
+    ],
+  },
   {
     version: '0.15.19',
     date: 'June 19, 2026',

@@ -1,0 +1,108 @@
+{
+  "version": "0.15.21",
+  "date": "June 19, 2026",
+  "title": "CourseIR Source Trace: curriculum atoms become genome-linked",
+  "status": "verified-current",
+  "proofSummary": {
+    "local": [
+      "npm test -- src/lib/__tests__/courseIR.test.js",
+      "npm test -- tests/v0145-native-authoring.test.js",
+      "npm run format:check",
+      "npm run lint",
+      "npm run build",
+      "npm run bundle:check",
+      "npm run test:e2e",
+      "npm test",
+      "npm run audit:constitution",
+      "npm run audit:gold:smoke",
+      "npm run audit:release-history"
+    ],
+    "ciFast": {
+      "status": "pending-push",
+      "note": "Fast verification is claimed only after v0.15.21 is pushed and the GitHub Actions run is attached."
+    },
+    "deploy": {
+      "status": "pending-push",
+      "note": "Pages deploy is not claimed until the pushed release completes its deploy run."
+    },
+    "ciDeep": {
+      "status": "not-used",
+      "note": "This is a CourseIR traceability contract patch with focused regression, full unit, constitution, browser, and gold smoke proof."
+    },
+    "liveProvider": {
+      "status": "not-applicable",
+      "note": "No fresh live provider generation is claimed for this contract patch."
+    },
+    "manualHuman": {
+      "status": "not-applicable",
+      "note": "No external instructor review or approval is claimed by this release."
+    }
+  },
+  "claims": [
+    {
+      "id": "v01521-source-linked-atoms",
+      "status": "verified-current",
+      "changelogHighlightIndex": 0,
+      "summary": "CourseIR outcomes, activities, and rubric criteria now require source refs that resolve to the source ledger.",
+      "anchors": ["src/lib/courseIR.js", "src/lib/__tests__/courseIR.test.js"],
+      "proofCommands": ["npm test -- src/lib/__tests__/courseIR.test.js"],
+      "proofScopes": ["unit"]
+    },
+    {
+      "id": "v01521-source-ref-repair-proof",
+      "status": "verified-current",
+      "changelogHighlightIndex": 1,
+      "summary": "Compiler repair restores missing or dangling atom source refs and records added-atom-source-refs proof.",
+      "anchors": ["src/lib/courseIR.js", "src/lib/__tests__/courseIR.test.js"],
+      "proofCommands": ["npm test -- src/lib/__tests__/courseIR.test.js"],
+      "proofScopes": ["unit", "compiled-output"]
+    },
+    {
+      "id": "v01521-direct-authoring-rejects-source-repair",
+      "status": "verified-current",
+      "changelogHighlightIndex": 2,
+      "summary": "Direct provider CourseIR acceptance rejects source-ref repair instead of claiming accepted structured authorship.",
+      "anchors": ["src/lib/courseIR.js", "src/lib/__tests__/courseIR.test.js"],
+      "proofCommands": [
+        "npm test -- src/lib/__tests__/courseIR.test.js",
+        "npm test -- tests/v0145-native-authoring.test.js"
+      ],
+      "proofScopes": ["unit"]
+    },
+    {
+      "id": "v01521-traceability-stats",
+      "status": "verified-current",
+      "changelogHighlightIndex": 3,
+      "summary": "CourseIR validation stats now count source-linked outcomes, activities, and rubric criteria.",
+      "anchors": ["src/lib/courseIR.js", "src/lib/__tests__/courseIR.test.js"],
+      "proofCommands": ["npm test -- src/lib/__tests__/courseIR.test.js"],
+      "proofScopes": ["unit"]
+    },
+    {
+      "id": "v01521-course-map-normalization-source-links",
+      "status": "verified-current",
+      "changelogHighlightIndex": 4,
+      "summary": "Legacy course-map normalization emits source-linked CourseIR outcomes, activities, factual anchors, and rubric criteria.",
+      "anchors": ["src/lib/courseIR.js", "src/lib/__tests__/courseIR.test.js"],
+      "proofCommands": [
+        "npm test -- src/lib/__tests__/courseIR.test.js",
+        "npm test -- tests/v0145-native-authoring.test.js"
+      ],
+      "proofScopes": ["unit", "compiled-output"]
+    }
+  ],
+  "carryForward": [
+    {
+      "id": "first-class-courseir-citations-and-feedback",
+      "status": "carry-forward",
+      "source": "docs/V0.15.21_COURSEIR_SOURCE_TRACE_ROADMAP.md",
+      "next": "Make citations and feedback loops first-class CourseIR atoms so the compiler can prove the full source-to-feedback chain."
+    },
+    {
+      "id": "live-direct-courseir-quality-proof",
+      "status": "carry-forward",
+      "source": "docs/V0.15.21_COURSEIR_SOURCE_TRACE_ROADMAP.md",
+      "next": "Run side-by-side EduTool.dev ZIP/log audits comparing accepted direct CourseIR against native skeleton/prose fallback on the same course briefs."
+    }
+  ]
+}
