@@ -128,12 +128,10 @@ describe('iteration 10b — causation-vs-correlation bridges stats and economics
         ],
       },
     ]);
-    const bridge = linked.bridges.find((b) => b.archetype === 'epistemic/causation-vs-correlation');
-    expect(bridge).toBeTruthy();
-    expect([bridge.fromConcept.id, bridge.toConcept.id].sort()).toEqual([
-      'econ/natural-experiment',
-      'stats/observational-study',
-    ]);
+    const pairs = linked.bridges
+      .filter((b) => b.archetype === 'epistemic/causation-vs-correlation')
+      .map((bridge) => [bridge.fromConcept.id, bridge.toConcept.id].sort().join('|'));
+    expect(pairs).toContain('econ/natural-experiment|stats/observational-study');
   });
 
   it('the genome spans at least 20 concepts and 10 archetypes', () => {

@@ -30,7 +30,7 @@ import { renderCourseMapFromGraph } from '../src/lib/courseGraph/renderCourseMap
 import { validateCourseGraph } from '../src/lib/courseGraph/schema.js';
 import { buildBlueprintFromGraph } from '../src/lib/courseGraph/blueprintFromGraph.js';
 import { compactBlueprintForStorage, compileBlueprintDeliverables } from '../src/lib/courseBlueprintCompiler';
-import { repairCourseMapReadiness } from '../src/lib/deliverableReadiness';
+import { repairNativeFallbackWithCurriculumV1 } from '../src/lib/curriculumV1Repair';
 import {
   AUTHORING_MODE_STORAGE_KEY,
   NativeAuthoringError,
@@ -461,10 +461,9 @@ describe('native assembly → CourseGraph', () => {
 //  2. SILENT HANG: the degenerate 1-assessment blueprint hit the compiler's
 //     semantic-contract gate (assessmentCoverage blockers) which THROWS —
 //     and nothing caught it. The throw is pinned below; the fix routes
-//     degenerate skeletons through resolveNativeAssembly's loud fellBack →
-//     prose-repair path BEFORE compile, plus the generateAll belt that
-//     marks features errored instead of letting a compiler throw kill the
-//     run.
+//     degenerate skeletons through resolveNativeAssembly's CurriculumV1
+//     repair BEFORE compile, plus the generateAll belt that marks features
+//     errored instead of letting a compiler throw kill the run.
 
 function makeSkeletonFixture({
   sessionCount = 15,
@@ -566,7 +565,7 @@ describe('assembly carries every assessment atom (defect 1 — hypothesis (a) fa
   });
 });
 
-describe('degenerate-skeleton gate (defect 1 → the loud fallback)', () => {
+describe('degenerate-skeleton gate (defect 1 → CurriculumV1 repair)', () => {
   it('isDegenerateNativeGraph: assessments < sessions is degenerate; >= is healthy', () => {
     expect(isDegenerateNativeGraph({ sessions: Array(15).fill({}), assessments: [{}] })).toBe(true);
     expect(isDegenerateNativeGraph({ sessions: Array(3).fill({}), assessments: [{}, {}] })).toBe(true);
@@ -575,18 +574,28 @@ describe('degenerate-skeleton gate (defect 1 → the loud fallback)', () => {
     expect(isDegenerateNativeGraph(null)).toBe(false);
   });
 
-  it('1 assessment for 15 lessons → fellBack resolution with the exact live reason string', () => {
+  it('1 assessment for 15 lessons → CourseIR-repaired resolution before compile', () => {
     const skeleton = makeSkeletonFixture({
       assessments: [{ id: 'a1', title: 'Final project integrating the full semester', dueSession: 15 }],
     });
     const resolution = resolveNativeAssembly({ skeleton, passBBySession: makePassBFixture() });
-    expect(resolution.ok).toBe(false);
-    expect(resolution.code).toBe('degenerate-skeleton');
-    expect(resolution.reason).toBe('degenerate-skeleton (1 assessment for 15 lessons)');
-    // The fallback map is the ASSEMBLED render — Pass B authorship rides
-    // into the prose repair instead of template-filling a bare skeleton.
-    expect(resolution.fallbackMap.lessons).toHaveLength(15);
-    expect(JSON.stringify(resolution.fallbackMap.lessons[6])).toContain('Analyze concept 7 alpha');
+    expect(resolution.ok).toBe(true);
+    expect(resolution.repaired).toBe(true);
+    expect(resolution.repairReason).toBe('degenerate-skeleton (1 assessment for 15 lessons)');
+    expect(resolution.graph.authoredBy).toBe('courseir-v1');
+    expect(resolution.graph.nativeRepair).toMatchObject({
+      code: 'degenerate-skeleton-repaired',
+      source: 'curriculumv1',
+    });
+    expect(resolution.courseIRValidation.valid).toBe(true);
+    expect(resolution.courseIRValidation.stats).toMatchObject({
+      lessons: 15,
+      concepts: 15,
+      assessments: 15,
+      sourceLedgerRows: 1,
+    });
+    expect(isDegenerateNativeGraph(resolution.graph)).toBe(false);
+    expect(resolution.graph.outcomes.some((outcome) => outcome.text.startsWith('Analyze concept 7 alpha'))).toBe(true);
   });
 
   it('a healthy skeleton resolves ok with the assembled graph', () => {
@@ -594,6 +603,10 @@ describe('degenerate-skeleton gate (defect 1 → the loud fallback)', () => {
     expect(resolution.ok).toBe(true);
     expect(resolution.graph.authoredBy).toBe('native');
     expect(resolution.graph.sessions).toHaveLength(15);
+    expect(resolution.courseIRValidation.valid).toBe(true);
+    expect(resolution.graph.courseIR).toMatchObject({
+      version: 'courseir.v1',
+    });
   });
 
   it('an assembly throw resolves to a fellBack result — it never propagates', () => {
@@ -604,42 +617,73 @@ describe('degenerate-skeleton gate (defect 1 → the loud fallback)', () => {
     expect(typeof resolution.reason).toBe('string');
   });
 
-  it('caller seam: fellBack event is loud in the budget and the prose fallback compiles cleanly', () => {
-    // The hook flow at the function seam (no React): resolve → on !ok emit
-    // nativeAuthoringFellBack → readiness-repair the fallback map → derive →
-    // compile. Mirrors useDeliverables.runBlueprintCompiler's native branch.
+  it('caller seam: repaired native resolution is visible in the budget and compiles cleanly', () => {
+    // The hook flow at the function seam (no React): resolve → on ok emit a
+    // nativeAuthoring pipeline decision → compile. Recoverable degenerate
+    // assessment structure no longer enters the prose fallback path.
     const skeleton = makeSkeletonFixture({
       assessments: [{ id: 'a1', title: 'Final project integrating the full semester', dueSession: 15 }],
     });
     const resolution = resolveNativeAssembly({ skeleton, passBBySession: makePassBFixture() });
-    expect(resolution.ok).toBe(false);
+    expect(resolution.ok).toBe(true);
 
     let budget = createApiCallBudget();
     budget = applyApiCallBudgetEvent(budget, {
-      type: 'nativeAuthoringFellBack',
-      label: 'Native authoring fell back to prose',
-      detail: resolution.reason,
+      type: 'pipelineDecision',
+      stage: 'nativeAuthoring',
+      label: 'Native graph authoring',
+      detail: `assembled ${resolution.graph.sessions.length} sessions · CurriculumV1 repaired ${resolution.nativeRepair.stats.lessons} lessons / ${resolution.nativeRepair.stats.assessments} assessments`,
     });
-    expect(budget.pipeline.nativeAuthoring).toContain('degenerate-skeleton (1 assessment for 15 lessons)');
-
-    const repair = repairCourseMapReadiness({ courseMap: resolution.fallbackMap, columns: [], lessonFilter: null });
-    expect(repair.changed).toBe(true);
-    const fallbackGraph = deriveCourseGraphFromCourseMap(repair.courseMap);
-    expect(isDegenerateNativeGraph(fallbackGraph)).toBe(false);
-    expect(fallbackGraph.assessments.length).toBeGreaterThanOrEqual(15);
-    // Pass B authorship survived the fallback (repair may add punctuation).
-    expect(fallbackGraph.outcomes.some((outcome) => outcome.text.startsWith('Analyze concept 7 alpha'))).toBe(true);
+    expect(budget.pipeline.nativeAuthoring).toContain('CurriculumV1 repaired');
+    expect(budget.recentEvents.some((event) => event.type === 'nativeAuthoringFellBack')).toBe(false);
+    expect(isDegenerateNativeGraph(resolution.graph)).toBe(false);
 
     // The compile gate the live runs died on now passes — invoked exactly
-    // once with the fallback blueprint, returns instead of throwing.
+    // once with the repaired CourseIR graph, returns instead of throwing.
     const compileCalls = [];
     const compile = (blueprint, features, options) => {
       compileCalls.push(blueprint);
       return compileBlueprintDeliverables(blueprint, features, options);
     };
-    const blueprint = compactBlueprintForStorage(buildBlueprintFromGraph(fallbackGraph, {}));
+    const blueprint = compactBlueprintForStorage(buildBlueprintFromGraph(resolution.graph, {}));
     const compiled = compile(blueprint, ['syllabus', 'assignments', 'rubrics'], { configMap: {} });
     expect(compileCalls).toHaveLength(1);
+    expect(Object.keys(compiled)).toEqual(['syllabus', 'assignments', 'rubrics']);
+  });
+
+  it('CurriculumV1 helper can still convert a raw degenerate assembly map into a valid compiler graph', () => {
+    const skeleton = makeSkeletonFixture({
+      assessments: [{ id: 'a1', title: 'Final project integrating the full semester', dueSession: 15 }],
+    });
+    const raw = assembleNativeCourseGraph({ skeleton, passBBySession: makePassBFixture() });
+    expect(isDegenerateNativeGraph(raw.graph)).toBe(true);
+
+    const repair = repairNativeFallbackWithCurriculumV1({
+      fallbackMap: raw.courseMap,
+      columns: [],
+      lessonFilter: null,
+    });
+    expect(repair.ok).toBe(true);
+    expect(repair.validation.valid).toBe(true);
+    expect(repair.validation.stats).toMatchObject({
+      lessons: 15,
+      concepts: 15,
+      assessments: 15,
+      sourceLedgerRows: 1,
+    });
+    expect(repair.graph.authoredBy).toBe('courseir-v1');
+    expect(repair.graph.nativeRepair).toMatchObject({
+      code: 'degenerate-skeleton-repaired',
+      source: 'curriculumv1',
+    });
+    expect(validateCourseGraph(repair.graph).valid).toBe(true);
+    expect(isDegenerateNativeGraph(repair.graph)).toBe(false);
+    expect(repair.graph.outcomes.some((outcome) => outcome.text.startsWith('Analyze concept 7 alpha'))).toBe(true);
+
+    const blueprint = compactBlueprintForStorage(buildBlueprintFromGraph(repair.graph, {}));
+    const compiled = compileBlueprintDeliverables(blueprint, ['syllabus', 'assignments', 'rubrics'], {
+      configMap: {},
+    });
     expect(Object.keys(compiled)).toEqual(['syllabus', 'assignments', 'rubrics']);
   });
 });
@@ -804,14 +848,18 @@ describe('Pass A resource transcription (v0.14.7 WS-B1)', () => {
     expect(resolveNativeAssembly({ skeleton: unstamped, passBBySession: makePassBFixture() }).ok).toBe(true);
   });
 
-  it('the degenerate-skeleton gate still wins over the resource lint', () => {
+  it('CourseIR repair resolves degenerate assessment coverage before resource lint can force prose fallback', () => {
     const skeleton = makeSkeletonFixture({
       sourceText: RESOURCE_BRIEF,
       assessments: [{ id: 'a1', title: 'Final project integrating the full semester', dueSession: 15 }],
     });
     const resolution = resolveNativeAssembly({ skeleton, passBBySession: makePassBFixture() });
-    expect(resolution.ok).toBe(false);
-    expect(resolution.code).toBe('degenerate-skeleton');
+    expect(resolution.ok).toBe(true);
+    expect(resolution.graph.nativeRepair).toMatchObject({
+      code: 'degenerate-skeleton-repaired',
+      source: 'curriculumv1',
+    });
+    expect(isDegenerateNativeGraph(resolution.graph)).toBe(false);
   });
 
   it('assembly carries resources into graph.resources and the derived map supportingResources cells', () => {

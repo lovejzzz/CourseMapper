@@ -1,0 +1,123 @@
+{
+  "version": "0.15.15",
+  "date": "June 19, 2026",
+  "title": "CurriculumV1 Native Repair: sparse native plans stop falling back",
+  "status": "verified-current",
+  "proofSummary": {
+    "local": [
+      "npm run format:check",
+      "npm test -- src/lib/__tests__/courseIR.test.js src/lib/__tests__/packageZipExporter.test.js tests/v0145-native-authoring.test.js tests/v0149-genome-coverage.test.js",
+      "npm run lint",
+      "npm run build",
+      "npm run bundle:check",
+      "npm test",
+      "npm run audit:constitution",
+      "npm run audit:gold",
+      "npm run audit:release-history"
+    ],
+    "ciFast": {
+      "status": "pending-push",
+      "note": "Fast verification is claimed only after v0.15.15 is pushed and the GitHub Actions run is attached."
+    },
+    "deploy": {
+      "status": "pending-push",
+      "note": "Pages deploy is not claimed until the pushed release completes its deploy run."
+    },
+    "ciDeep": {
+      "status": "pending",
+      "note": "Deep proof remains release-branch or manual pre-release proof. This patch uses the local 40-sample gold audit as broad compiler regression proof."
+    },
+    "liveProvider": {
+      "status": "not-applicable",
+      "note": "This release does not claim a fresh live EduTool.dev provider generation; live ZIP/log audits remain the discovery loop for future defects."
+    },
+    "manualHuman": {
+      "status": "not-applicable",
+      "note": "No external instructor review or approval is claimed by this release."
+    }
+  },
+  "claims": [
+    {
+      "id": "v01515-courseir-curriculum-brain",
+      "status": "verified-current",
+      "changelogHighlightIndex": 0,
+      "summary": "CourseIR v1 now validates and repairs constraints, prerequisite links, source ledger gaps, lesson concepts, and under-assessed courses before graph compilation.",
+      "anchors": ["src/lib/courseIR.js", "src/lib/__tests__/courseIR.test.js"],
+      "proofCommands": ["npm test -- src/lib/__tests__/courseIR.test.js", "npm run audit:gold"],
+      "proofScopes": ["unit", "gold-audit", "course-graph"]
+    },
+    {
+      "id": "v01515-native-curriculumv1-repair",
+      "status": "verified-current",
+      "changelogHighlightIndex": 1,
+      "summary": "Recoverable sparse native assembly repairs through CurriculumV1 and returns a CourseIR-backed graph instead of immediately falling back to prose.",
+      "anchors": [
+        "src/lib/nativeGraphAuthoring.js",
+        "src/lib/curriculumV1Repair.js",
+        "src/hooks/useDeliverables.js",
+        "tests/v0145-native-authoring.test.js"
+      ],
+      "proofCommands": ["npm test -- tests/v0145-native-authoring.test.js", "npm run audit:gold"],
+      "proofScopes": ["unit", "gold-audit", "compiled-output"]
+    },
+    {
+      "id": "v01515-exported-repair-proof",
+      "status": "verified-current",
+      "changelogHighlightIndex": 2,
+      "summary": "Package manifests now include slim CourseIR and native-repair proof fields so downloaded ZIPs can disclose repaired curriculum graphs.",
+      "anchors": ["src/lib/packageZipExporter.js", "src/lib/__tests__/packageZipExporter.test.js"],
+      "proofCommands": ["npm test -- src/lib/__tests__/packageZipExporter.test.js", "npm run audit:gold"],
+      "proofScopes": ["unit", "compiled-output", "gold-audit"]
+    },
+    {
+      "id": "v01515-research-methods-genome",
+      "status": "verified-current",
+      "changelogHighlightIndex": 3,
+      "summary": "The research-methods genome shard adds grounded introductory concepts and loader coverage so relevant courses can link deterministic kernels.",
+      "anchors": [
+        "public/genome/research-methods-intro.json",
+        "public/genome/manifest.json",
+        "src/lib/genome/libraryShardLoader.js",
+        "tests/v0149-genome-coverage.test.js"
+      ],
+      "proofCommands": ["npm test -- tests/v0149-genome-coverage.test.js", "npm run audit:gold"],
+      "proofScopes": ["unit", "gold-audit", "compiled-output"]
+    },
+    {
+      "id": "v01515-broad-local-proof",
+      "status": "verified-current",
+      "changelogHighlightIndex": 4,
+      "summary": "The release uses broad local proof because it changes compiler behavior: focused tests, full unit suite, constitution audit, build, bundle check, and 40 gold samples.",
+      "anchors": [
+        "package.json",
+        "release-contracts/v0.15.15.json",
+        "docs/V0.15.15_CURRICULUMV1_NATIVE_REPAIR_ROADMAP.md"
+      ],
+      "proofCommands": [
+        "npm run format:check",
+        "npm run lint",
+        "npm run build",
+        "npm run bundle:check",
+        "npm test",
+        "npm run audit:constitution",
+        "npm run audit:gold",
+        "npm run audit:release-history"
+      ],
+      "proofScopes": ["format", "lint", "build", "unit", "static-audit", "gold-audit"]
+    }
+  ],
+  "carryForward": [
+    {
+      "id": "courseir-one-call-default-flip",
+      "status": "carry-forward",
+      "source": "docs/V0.15.15_CURRICULUMV1_NATIVE_REPAIR_ROADMAP.md",
+      "next": "Route providers to dense CourseIR in one call when model limits make it safe, then compile all artifacts from the validated IR instead of prose."
+    },
+    {
+      "id": "native-repair-resource-preservation",
+      "status": "carry-forward",
+      "source": "src/lib/curriculumV1Repair.js",
+      "next": "Add preservation tests for optional readings and resources through CurriculumV1 repair before broadening repaired native cases."
+    }
+  ]
+}

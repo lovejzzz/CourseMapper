@@ -28,6 +28,7 @@ const KNOWN_FEATURE_IDS = [
 const VALID_ASSESSMENT_KINDS = new Set(['graded-artifact', 'in-class', 'exam', 'oral']);
 const SOURCE_STATUSES = new Set(['source-provided', 'standard-domain-knowledge', 'model-authored', 'assumption']);
 const BLOCKING_SEVERITIES = new Set(['blocker']);
+const DEFAULT_RUBRIC_DIMENSIONS = ['accuracy', 'evidence use', 'transfer'];
 
 export class CourseIRValidationError extends Error {
   constructor(issues = []) {
@@ -91,6 +92,25 @@ function normalizeAnchor(anchor, fallbackStatus = 'model-authored') {
     status,
     sourceRefs: uniqueStrings(anchor?.sourceRefs || anchor?.sources || [], 6),
     risk: cleanText(anchor?.risk || (status === 'assumption' ? 'medium' : 'low'), 40),
+  };
+}
+
+function normalizeConstraint(entry, index, defaultScope = 'course') {
+  if (typeof entry === 'string') {
+    return {
+      id: normalizeId('', 'K', index),
+      scope: defaultScope,
+      text: cleanText(entry, 260),
+      sourceRefs: [],
+      severity: 'requirement',
+    };
+  }
+  return {
+    id: normalizeId(entry?.id, 'K', index),
+    scope: cleanText(entry?.scope || defaultScope, 120),
+    text: cleanText(entry?.text || entry?.constraint || entry?.requirement || entry?.note, 260),
+    sourceRefs: uniqueStrings(entry?.sourceRefs || entry?.sources || [], 6),
+    severity: cleanText(entry?.severity || entry?.kind || 'requirement', 40),
   };
 }
 
@@ -181,8 +201,12 @@ function normalizeLesson(rawLesson, index) {
     title: cleanText(rawLesson?.title || `Lesson ${index + 1}: ${topic}`, 180),
     topic,
     conceptIds: uniqueStrings(rawLesson?.conceptIds || rawLesson?.concepts || [], 24),
+    prerequisiteConceptIds: uniqueStrings(rawLesson?.prerequisiteConceptIds || rawLesson?.prerequisiteIds || [], 12),
     objectives: uniqueStrings(rawLesson?.objectives || rawLesson?.learningObjectives || [], 8),
     prerequisiteChecks: uniqueStrings(rawLesson?.prerequisiteChecks || rawLesson?.prerequisites || [], 6),
+    constraints: asArray(rawLesson?.constraints)
+      .map((entry, constraintIndex) => normalizeConstraint(entry, constraintIndex, id))
+      .filter((entry) => entry.text),
     factualAnchors: asArray(rawLesson?.factualAnchors || rawLesson?.facts)
       .map((anchor) => normalizeAnchor(anchor))
       .filter((anchor) => anchor.claim),
@@ -274,6 +298,9 @@ export function normalizeCourseIR(rawIR = {}) {
         evidence: cleanText(entry?.evidence || entry?.note || entry?.source, 280),
       }))
       .filter((entry) => entry.scope),
+    constraints: asArray(rawIR.constraints || course.constraints)
+      .map((entry, index) => normalizeConstraint(entry, index, 'course'))
+      .filter((entry) => entry.text),
     concepts,
     lessons,
     assessments,
@@ -308,6 +335,24 @@ export function validateCourseIR(rawIR = {}) {
   if (ir.sourceLedger.length === 0) {
     push('blocker', 'missing-source-ledger', 'sourceLedger', 'CourseIR needs source/provenance rows.');
   }
+  if (ir.constraints.length === 0) {
+    push('warning', 'missing-course-constraints', 'constraints', 'CourseIR should carry course-level constraints.', {
+      repairPath: 'constraints',
+    });
+  }
+  if (ir.lessons.length > 1 && ir.assessments.length < ir.lessons.length) {
+    push(
+      'blocker',
+      'under-assessed-course',
+      'assessments',
+      `CourseIR needs lesson-level assessment structure (${ir.assessments.length} assessment${
+        ir.assessments.length === 1 ? '' : 's'
+      } for ${ir.lessons.length} lessons).`,
+      {
+        repairPath: 'assessments',
+      },
+    );
+  }
 
   const conceptIds = new Set();
   for (const [index, concept] of ir.concepts.entries()) {
@@ -322,6 +367,45 @@ export function validateCourseIR(rawIR = {}) {
       });
     }
   }
+
+  const prerequisiteAdjacency = new Map(ir.concepts.map((concept) => [concept.id, concept.prerequisiteIds]));
+  for (const [index, concept] of ir.concepts.entries()) {
+    const path = `concepts[${index}].prerequisiteIds`;
+    for (const prerequisiteId of concept.prerequisiteIds) {
+      if (prerequisiteId === concept.id) {
+        push('blocker', 'self-concept-prerequisite', path, `Concept ${concept.id} cannot require itself.`);
+      } else if (!conceptIds.has(prerequisiteId)) {
+        push(
+          'blocker',
+          'dangling-concept-prerequisite',
+          path,
+          `Concept ${concept.id} references missing prerequisite concept ${prerequisiteId}.`,
+        );
+      }
+    }
+  }
+
+  const visiting = new Set();
+  const visited = new Set();
+  const cycleReported = new Set();
+  const visitPrerequisite = (conceptId, path = []) => {
+    if (visiting.has(conceptId)) {
+      const cycle = [...path.slice(path.indexOf(conceptId)), conceptId].join(' -> ');
+      if (!cycleReported.has(cycle)) {
+        cycleReported.add(cycle);
+        push('blocker', 'cyclic-concept-prerequisite', 'concepts.prerequisiteIds', `Prerequisite cycle: ${cycle}.`);
+      }
+      return;
+    }
+    if (visited.has(conceptId)) return;
+    visiting.add(conceptId);
+    for (const prerequisiteId of prerequisiteAdjacency.get(conceptId) || []) {
+      if (conceptIds.has(prerequisiteId)) visitPrerequisite(prerequisiteId, [...path, conceptId]);
+    }
+    visiting.delete(conceptId);
+    visited.add(conceptId);
+  };
+  for (const conceptId of conceptIds) visitPrerequisite(conceptId);
 
   const lessonIds = new Set();
   const assessmentIds = new Set(ir.assessments.map((assessment) => assessment.id));
@@ -352,6 +436,21 @@ export function validateCourseIR(rawIR = {}) {
           `Lesson references missing concept ${conceptId}.`,
         );
       }
+    }
+    for (const conceptId of lesson.prerequisiteConceptIds) {
+      if (!conceptIds.has(conceptId)) {
+        push(
+          'blocker',
+          'dangling-lesson-prerequisite',
+          `${path}.prerequisiteConceptIds`,
+          `Lesson references missing prerequisite concept ${conceptId}.`,
+        );
+      }
+    }
+    if (lesson.constraints.length === 0) {
+      push('warning', 'missing-lesson-constraints', `${path}.constraints`, 'Lesson has no constraint atoms.', {
+        repairPath: `${path}.constraints`,
+      });
     }
     if (lesson.factualAnchors.length === 0) {
       push('warning', 'thin-lesson-facts', `${path}.factualAnchors`, 'Lesson has no lesson-specific factual anchors.', {
@@ -471,6 +570,10 @@ export function validateCourseIR(rawIR = {}) {
       ir.concepts.reduce((sum, concept) => sum + concept.misconceptions.filter((entry) => entry.correction).length, 0),
     artifactIntents: ir.artifactIntents.length,
     sourceLedgerRows: ir.sourceLedger.length,
+    constraints: ir.constraints.length + ir.lessons.reduce((sum, lesson) => sum + lesson.constraints.length, 0),
+    prerequisiteLinks:
+      ir.concepts.reduce((sum, concept) => sum + concept.prerequisiteIds.length, 0) +
+      ir.lessons.reduce((sum, lesson) => sum + lesson.prerequisiteConceptIds.length, 0),
   };
   const coverage = buildCourseIRCoverageLedger(ir);
   const repairPaths = issues.map((entry) => entry.repairPath).filter(Boolean);
@@ -482,6 +585,240 @@ export function validateCourseIR(rawIR = {}) {
     coverage,
     repairPaths: [...new Set(repairPaths)],
   };
+}
+
+function nextAssessmentId(usedIds, ordinal) {
+  let candidate = `A${ordinal}`;
+  while (usedIds.has(candidate)) {
+    ordinal += 1;
+    candidate = `A${ordinal}`;
+  }
+  usedIds.add(candidate);
+  return candidate;
+}
+
+function nextConceptId(usedIds, ordinal) {
+  let candidate = `C${ordinal}`;
+  while (usedIds.has(candidate)) {
+    ordinal += 1;
+    candidate = `C${ordinal}`;
+  }
+  usedIds.add(candidate);
+  return candidate;
+}
+
+function lessonConceptFromTopic(lesson, index, id, sourceRef = 'SL1') {
+  const topic = cleanText(lesson.topic || lesson.title || `Lesson ${index + 1}`, 140);
+  return {
+    id,
+    term: topic,
+    definition: `Core concept for ${topic}.`,
+    prerequisiteIds: [],
+    factualAnchors:
+      lesson.factualAnchors.length > 0
+        ? lesson.factualAnchors
+        : [
+            {
+              claim: `Students need evidence for ${topic}.`,
+              status: 'assumption',
+              sourceRefs: [sourceRef],
+              risk: 'medium',
+            },
+          ],
+    misconceptions: lesson.misconceptions,
+    vocabulary: [],
+    sourceTier: 'courseir-repair',
+  };
+}
+
+function assessmentTemplateForLesson(ir, lesson) {
+  return (
+    ir.assessments.find((assessment) => assessment.lessonIds.length === 1 && assessment.lessonIds[0] === lesson.id) ||
+    ir.assessments.find((assessment) => assessment.lessonIds.includes(lesson.id)) ||
+    ir.assessments[0] ||
+    {}
+  );
+}
+
+function lessonAssessmentFromTemplate(template, lesson, index, id) {
+  const topic = cleanText(lesson.topic || lesson.title || `Lesson ${index + 1}`, 140);
+  const templateIsLessonSpecific = template?.lessonIds?.length === 1 && template.lessonIds[0] === lesson.id;
+  const title = templateIsLessonSpecific
+    ? cleanText(template.title || `${topic} check`, 160)
+    : cleanText(`${topic} check`, 160);
+  const prompt = templateIsLessonSpecific
+    ? cleanText(template.prompt || `Demonstrate ${topic} with evidence.`, 260)
+    : cleanText(
+        template?.prompt ? `${template.prompt} Focus the evidence on ${topic}.` : `Demonstrate ${topic} with evidence.`,
+        260,
+      );
+  return {
+    ...template,
+    id,
+    title,
+    kind: VALID_ASSESSMENT_KINDS.has(template?.kind) ? template.kind : 'graded-artifact',
+    lessonIds: [lesson.id],
+    coverageConceptIds: lesson.conceptIds,
+    prompt,
+    rubricDimensions: uniqueStrings([...asArray(template?.rubricDimensions), ...DEFAULT_RUBRIC_DIMENSIONS], 5),
+    provenance: cleanText(template?.provenance || 'courseir-repair', 80),
+  };
+}
+
+function repairedCourseConstraint() {
+  return {
+    id: 'K1',
+    scope: 'course',
+    text: 'Confirm local timing, modality, accessibility, source permissions, and grading policy before publishing.',
+    sourceRefs: [],
+    severity: 'review',
+  };
+}
+
+function repairedLessonConstraint(lesson, index) {
+  const topic = cleanText(lesson.topic || lesson.title || `Lesson ${index + 1}`, 140);
+  return {
+    id: `K-L${index + 1}`,
+    scope: lesson.id,
+    text: `Keep ${topic} aligned to the stated objective, lesson-level assessment, and available class time.`,
+    sourceRefs: [],
+    severity: 'requirement',
+  };
+}
+
+export function repairCourseIRStructure(rawIR = {}) {
+  let ir = normalizeCourseIR(rawIR);
+  const repairs = [];
+  let changed = false;
+
+  if (ir.sourceLedger.length === 0 && ir.lessons.length > 0) {
+    ir = normalizeCourseIR({
+      ...ir,
+      sourceLedger: [
+        {
+          id: 'SL1',
+          scope: 'course',
+          status: 'assumption',
+          evidence: 'No source ledger was supplied; repaired package requires instructor source review.',
+        },
+      ],
+      handoffNotes: [
+        ...ir.handoffNotes,
+        {
+          id: 'HN1',
+          scope: 'sourceLedger',
+          severity: 'review',
+          note: 'CourseIR source ledger was missing and was repaired as an instructor-review assumption.',
+        },
+      ],
+    });
+    repairs.push({ code: 'added-assumption-source-ledger', before: 0, after: ir.sourceLedger.length });
+    changed = true;
+  }
+
+  if (ir.constraints.length === 0 && ir.lessons.length > 0) {
+    ir = normalizeCourseIR({
+      ...ir,
+      constraints: [repairedCourseConstraint()],
+      handoffNotes: [
+        ...ir.handoffNotes,
+        {
+          id: 'HN-constraints',
+          scope: 'constraints',
+          severity: 'review',
+          note: 'CourseIR constraints were missing and were repaired as instructor-review publication constraints.',
+        },
+      ],
+    });
+    repairs.push({ code: 'added-course-constraints', before: 0, after: ir.constraints.length });
+    changed = true;
+  }
+
+  if (ir.lessons.some((lesson) => lesson.constraints.length === 0)) {
+    const missingConstraintLessonCount = ir.lessons.filter((lesson) => lesson.constraints.length === 0).length;
+    ir = normalizeCourseIR({
+      ...ir,
+      lessons: ir.lessons.map((lesson, index) =>
+        lesson.constraints.length > 0
+          ? lesson
+          : {
+              ...lesson,
+              constraints: [repairedLessonConstraint(lesson, index)],
+            },
+      ),
+    });
+    repairs.push({ code: 'added-lesson-constraints', count: missingConstraintLessonCount });
+    changed = true;
+  }
+
+  if (ir.lessons.some((lesson) => lesson.conceptIds.length === 0)) {
+    const usedConceptIds = new Set(ir.concepts.map((concept) => concept.id));
+    const nextConcepts = [...ir.concepts];
+    const sourceRef = ir.sourceLedger[0]?.id || 'SL1';
+    const missingConceptLessonCount = ir.lessons.filter((lesson) => lesson.conceptIds.length === 0).length;
+    const nextLessons = ir.lessons.map((lesson, index) => {
+      if (lesson.conceptIds.length > 0) return lesson;
+      const conceptId = nextConceptId(usedConceptIds, index + 1);
+      nextConcepts.push(lessonConceptFromTopic(lesson, index, conceptId, sourceRef));
+      return {
+        ...lesson,
+        conceptIds: [conceptId],
+      };
+    });
+    ir = normalizeCourseIR({
+      ...ir,
+      concepts: nextConcepts,
+      lessons: nextLessons,
+    });
+    repairs.push({
+      code: 'added-lesson-concepts',
+      count: missingConceptLessonCount,
+    });
+    changed = true;
+  }
+
+  if (ir.lessons.length > 1 && ir.assessments.length < ir.lessons.length) {
+    const usedAssessmentIds = new Set();
+    const nextLessons = [];
+    const nextAssessments = [];
+    for (const [index, lesson] of ir.lessons.entries()) {
+      const template = assessmentTemplateForLesson(ir, lesson);
+      const existingLessonSpecific =
+        template?.id && template.lessonIds?.length === 1 && template.lessonIds[0] === lesson.id;
+      const id =
+        existingLessonSpecific && !usedAssessmentIds.has(template.id)
+          ? template.id
+          : nextAssessmentId(usedAssessmentIds, index + 1);
+      usedAssessmentIds.add(id);
+      nextAssessments.push(lessonAssessmentFromTemplate(template, lesson, index, id));
+      nextLessons.push({
+        ...lesson,
+        assessmentIds: [id],
+      });
+    }
+
+    const assessmentIds = nextAssessments.map((assessment) => assessment.id);
+    const nextArtifactIntents = ir.artifactIntents.map((intent) => ({
+      ...intent,
+      requiredRefs: uniqueStrings([...intent.requiredRefs, ...assessmentIds], 200),
+    }));
+
+    const assessmentCountBefore = ir.assessments.length;
+    ir = normalizeCourseIR({
+      ...ir,
+      lessons: nextLessons,
+      assessments: nextAssessments,
+      artifactIntents: nextArtifactIntents,
+    });
+    repairs.push({
+      code: 'expanded-lesson-assessments',
+      before: assessmentCountBefore,
+      after: ir.assessments.length,
+    });
+    changed = true;
+  }
+
+  return { changed, ir, repairs };
 }
 
 function conceptByIdMap(ir) {
@@ -497,6 +834,13 @@ function assessmentByLessonIdMap(ir) {
     }
   }
   return map;
+}
+
+function constraintsForLesson(ir, lesson) {
+  return [
+    ...(ir.constraints || []).filter((constraint) => constraint.scope === 'course' || constraint.scope === lesson.id),
+    ...(lesson.constraints || []),
+  ];
 }
 
 export function buildCourseIRCoverageLedger(rawIR = {}) {
@@ -515,20 +859,24 @@ export function buildCourseIRCoverageLedger(rawIR = {}) {
         lesson.factualAnchors.length + linkedConcepts.reduce((sum, concept) => sum + concept.factualAnchors.length, 0);
       const misconceptionCount =
         lesson.misconceptions.length + linkedConcepts.reduce((sum, concept) => sum + concept.misconceptions.length, 0);
+      const constraints = constraintsForLesson(ir, lesson);
       return {
         lessonId: lesson.id,
         title: lesson.title,
         conceptIds: linkedConcepts.map((concept) => concept.id),
+        prerequisiteConceptIds: lesson.prerequisiteConceptIds,
         assessmentIds: [...new Set(assessments.map((assessment) => assessment.id))],
         factualAnchorCount: lessonFactCount,
         workedExampleCount: lesson.workedExamples.length,
         misconceptionCount,
+        constraintCount: constraints.length,
         complete:
           linkedConcepts.length > 0 &&
           assessments.length > 0 &&
           lesson.objectives.length > 0 &&
           lessonFactCount > 0 &&
-          lesson.workedExamples.length > 0,
+          lesson.workedExamples.length > 0 &&
+          constraints.length > 0,
       };
     }),
   };
@@ -540,7 +888,7 @@ function buildAssessmentCell(assessment) {
   return title;
 }
 
-function lessonActivitiesFromIR(lesson, concepts) {
+function lessonActivitiesFromIR(lesson, concepts, constraints = []) {
   const terms = concepts.map((concept) => concept.term).filter(Boolean);
   const misconception = lesson.misconceptions[0] || concepts.flatMap((concept) => concept.misconceptions || [])[0];
   const workedExample = lesson.workedExamples[0];
@@ -548,6 +896,7 @@ function lessonActivitiesFromIR(lesson, concepts) {
     asyncActivities: uniqueStrings(
       [
         ...lesson.prerequisiteChecks.map((check) => `Read and annotate prerequisite check: ${check}`),
+        ...lesson.prerequisiteConceptIds.map((id) => `Preview prerequisite concept ${id}`),
         ...lesson.practiceItems.slice(0, 2).map((item) => `Prepare practice response: ${item}`),
         terms.length > 0 ? `Preview key terms: ${terms.slice(0, 4).join(', ')}` : '',
       ],
@@ -557,6 +906,7 @@ function lessonActivitiesFromIR(lesson, concepts) {
       [
         workedExample ? `Work through ${workedExample.skill || workedExample.setup} with visible solution steps` : '',
         misconception?.claim ? `Misconception check: ${misconception.claim}` : '',
+        ...constraints.slice(0, 2).map((constraint) => `Constraint check: ${constraint.text}`),
         ...lesson.practiceItems.slice(2, 4).map((item) => `Peer practice: ${item}`),
       ],
       4,
@@ -579,7 +929,9 @@ export function courseIRToCourseMap(rawIR = {}) {
         ...lesson.assessmentIds.map((id) => ir.assessments.find((assessment) => assessment.id === id)).filter(Boolean),
       ];
       const anchors = [...lesson.factualAnchors, ...linkedConcepts.flatMap((concept) => concept.factualAnchors)];
-      const { asyncActivities, syncActivities } = lessonActivitiesFromIR(lesson, linkedConcepts);
+      const constraints = constraintsForLesson(ir, lesson);
+      const prerequisiteTerms = lesson.prerequisiteConceptIds.map((id) => concepts.get(id)?.term || id).filter(Boolean);
+      const { asyncActivities, syncActivities } = lessonActivitiesFromIR(lesson, linkedConcepts, constraints);
       return {
         title: lesson.title || `Lesson ${index + 1}: ${lesson.topic}`,
         sections: [
@@ -598,6 +950,8 @@ export function courseIRToCourseMap(rawIR = {}) {
             syncActivities: syncActivities.join('; '),
             supportingResources: uniqueStrings(
               [
+                ...prerequisiteTerms.map((term) => `Prerequisite concept: ${term}`),
+                ...constraints.map((constraint) => `Constraint: ${constraint.text}`),
                 ...anchors.map((anchor) => anchor.claim),
                 ...lesson.workedExamples.map((example) => example.setup),
                 ...ir.handoffNotes
@@ -632,8 +986,17 @@ function buildDefaultQuizItem({ term, definition, misconception, correction }) {
 function lessonKernelFromIR(ir, lesson) {
   const concepts = conceptByIdMap(ir);
   const linkedConcepts = lesson.conceptIds.map((id) => concepts.get(id)).filter(Boolean);
+  const prerequisiteTerms = lesson.prerequisiteConceptIds.map((id) => concepts.get(id)?.term || id).filter(Boolean);
+  const constraints = constraintsForLesson(ir, lesson);
   const conceptFacts = linkedConcepts.flatMap((concept) => concept.factualAnchors.map((anchor) => anchor.claim));
-  const facts = uniqueStrings([...lesson.factualAnchors.map((anchor) => anchor.claim), ...conceptFacts], 8);
+  const facts = uniqueStrings(
+    [
+      ...lesson.factualAnchors.map((anchor) => anchor.claim),
+      ...conceptFacts,
+      ...constraints.map((constraint) => `Constraint: ${constraint.text}`),
+    ],
+    8,
+  );
   const lessonMisconception =
     lesson.misconceptions[0] || linkedConcepts.flatMap((concept) => concept.misconceptions)[0] || null;
   const keyTerms = linkedConcepts
@@ -681,9 +1044,16 @@ function lessonKernelFromIR(ir, lesson) {
       setup:
         facts[0] ||
         `Students apply ${lesson.topic} to a realistic course task and explain the evidence behind their decision.`,
-      materials: uniqueStrings([assessment?.title, lesson.workedExamples[0]?.setup, ...lesson.practiceItems], 3).join(
-        '; ',
-      ),
+      materials: uniqueStrings(
+        [
+          assessment?.title,
+          lesson.workedExamples[0]?.setup,
+          ...lesson.practiceItems,
+          ...prerequisiteTerms.map((term) => `prerequisite: ${term}`),
+          ...constraints.map((constraint) => `constraint: ${constraint.text}`),
+        ],
+        5,
+      ).join('; '),
     },
     discussionPrompt: {
       prompt: lessonMisconception?.claim
@@ -697,7 +1067,10 @@ function lessonKernelFromIR(ir, lesson) {
     assignmentCore: {
       taskDescription:
         assessment?.prompt || assessment?.title || `Apply ${lesson.topic} to a concrete course artifact.`,
-      parameters: uniqueStrings([...(assessment?.rubricDimensions || []), ...lesson.objectives], 5),
+      parameters: uniqueStrings(
+        [...(assessment?.rubricDimensions || []), ...lesson.objectives, ...constraints.map((entry) => entry.text)],
+        7,
+      ),
     },
     mc: [...lesson.quizItems, ...generatedMc].slice(0, 8),
     ...(workedExample ? { workedExample } : {}),
@@ -784,7 +1157,9 @@ export function buildCourseIRPipelineState(validation, extra = {}) {
 }
 
 export function compileCourseIR(rawIR = {}, { featureIds, configMap = {}, allowInvalid = false } = {}) {
-  const validation = validateCourseIR(rawIR);
+  const initialValidation = validateCourseIR(rawIR);
+  const repair = repairCourseIRStructure(initialValidation.ir);
+  const validation = repair.changed ? validateCourseIR(repair.ir) : initialValidation;
   if (!validation.valid && !allowInvalid) {
     throw new CourseIRValidationError(validation.issues);
   }
@@ -805,6 +1180,9 @@ export function compileCourseIR(rawIR = {}, { featureIds, configMap = {}, allowI
     graphValid: graphValidation.valid,
     deterministicCompile: true,
     providerCallsDuringCompile: 0,
+    repairedBeforeCompile: repair.changed,
+    repairs: repair.repairs,
+    initialIssueCodes: repair.changed ? initialValidation.issues.map((entry) => entry.code) : [],
   });
   return {
     ir,
@@ -830,7 +1208,22 @@ export function buildCourseIRFromCourseMap(courseMap = {}) {
       title: cleanText(lesson.title || `Lesson ${index + 1}`, 180),
       topic: cleanText(section.topicSection || lesson.title || `Lesson ${index + 1}`, 160),
       conceptIds: [conceptId],
+      prerequisiteConceptIds: index > 0 ? [`C${index}`] : [],
       objectives: uniqueStrings(String(section.learningObjectives || '').split(/;|\n/), 6),
+      prerequisiteChecks:
+        index > 0
+          ? [
+              `Confirm students can use ${cleanText(asArray(courseMap.lessons?.[index - 1]?.sections)[0]?.topicSection || courseMap.lessons?.[index - 1]?.title || `Lesson ${index}`, 120)} before ${cleanText(section.topicSection || lesson.title || `Lesson ${index + 1}`, 120)}.`,
+            ]
+          : [],
+      constraints: [
+        {
+          id: `K-L${index + 1}`,
+          scope: `L${index + 1}`,
+          text: `Keep ${cleanText(section.topicSection || lesson.title || `Lesson ${index + 1}`, 120)} aligned to its assessment, activity, and available course time.`,
+          severity: 'requirement',
+        },
+      ],
       factualAnchors: uniqueStrings(
         String(section.supportingResources || section.learningGoals || '').split(/;|\n/),
         4,
@@ -865,10 +1258,19 @@ export function buildCourseIRFromCourseMap(courseMap = {}) {
       sourceProvenance: 'Normalized from existing CourseMapper course map.',
     },
     sourceLedger: [{ id: 'SL1', scope: 'course', status: 'source-provided', evidence: 'Existing course map fields.' }],
+    constraints: [
+      {
+        id: 'K1',
+        scope: 'course',
+        text: 'Confirm local timing, modality, accessibility, source permissions, and grading policy before publishing.',
+        severity: 'review',
+      },
+    ],
     concepts: lessons.map((lesson, index) => ({
       id: `C${index + 1}`,
       term: lesson.topic,
       definition: lesson.objectives[0] || `Core concept for ${lesson.topic}.`,
+      prerequisiteIds: index > 0 ? [`C${index}`] : [],
       factualAnchors: lesson.factualAnchors,
       misconceptions: lesson.misconceptions,
     })),
@@ -905,7 +1307,7 @@ export function buildCourseIRPromptPayload({
   return {
     task: 'courseir-v1',
     instruction:
-      'Return compact CourseIR JSON only. Write semantic atoms, not final deliverable prose. Preserve source facts, mark assumptions, and link every lesson to concepts and assessments.',
+      'Return compact CourseIR JSON only. Write semantic atoms, not final deliverable prose. Preserve source facts, mark assumptions, and link every lesson to concepts, prerequisite concepts, constraints, and assessments.',
     selectedFeatureIds,
     sourcePacket: {
       courseName: courseMap?.courseName || '',
@@ -999,7 +1401,16 @@ export function planCourseIRGeneration({
 export const COURSE_IR_RESPONSE_SCHEMA = {
   type: 'object',
   additionalProperties: false,
-  required: ['version', 'course', 'sourceLedger', 'concepts', 'lessons', 'assessments', 'artifactIntents'],
+  required: [
+    'version',
+    'course',
+    'sourceLedger',
+    'constraints',
+    'concepts',
+    'lessons',
+    'assessments',
+    'artifactIntents',
+  ],
   properties: {
     version: { type: 'string', enum: [COURSE_IR_VERSION] },
     course: {
@@ -1017,6 +1428,7 @@ export const COURSE_IR_RESPONSE_SCHEMA = {
       },
     },
     sourceLedger: { type: 'array', items: { type: 'object', additionalProperties: true } },
+    constraints: { type: 'array', items: { type: 'object', additionalProperties: true } },
     concepts: { type: 'array', items: { type: 'object', additionalProperties: true } },
     lessons: { type: 'array', items: { type: 'object', additionalProperties: true } },
     assessments: { type: 'array', items: { type: 'object', additionalProperties: true } },

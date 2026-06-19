@@ -136,6 +136,53 @@ describe('packageZipExporter', () => {
     expect(buildSlideDeckPptxBlob).toHaveBeenCalledTimes(2);
   });
 
+  it('includes slim CourseIR and native-repair proof in the package manifest', async () => {
+    const result = await buildCourseMaterialsZip({
+      courseMap: makeCourseMap('CourseIR Export Proof'),
+      deliverables: {
+        lessonPlans: {
+          status: 'done',
+          data: {
+            lessonPlans: [{ lessonTitle: 'Lesson 1: Export Reliability', objectives: ['Verify exports.'] }],
+          },
+        },
+      },
+      featureIds: ['courseMap', 'lessonPlans'],
+      courseGraph: {
+        courseIR: {
+          version: 'courseir.v1',
+          lessonIds: ['L1', 'L2'],
+          conceptIds: ['C1', 'C2', 'C3'],
+          assessmentIds: ['A1', 'A2'],
+        },
+        nativeRepair: {
+          code: 'degenerate-skeleton-repaired',
+          source: 'curriculumv1',
+          courseIRVersion: 'courseir.v1',
+          stats: { lessons: 2, concepts: 3, assessments: 2, constraints: 3 },
+          readinessRepairedFieldCount: 4,
+        },
+      },
+    });
+
+    const zip = await JSZip.loadAsync(await result.blob.arrayBuffer());
+    const manifest = JSON.parse(await zip.file('PACKAGE_MANIFEST.json').async('string'));
+
+    expect(manifest.courseIR).toEqual({
+      version: 'courseir.v1',
+      lessonCount: 2,
+      conceptCount: 3,
+      assessmentCount: 2,
+      nativeRepair: {
+        code: 'degenerate-skeleton-repaired',
+        source: 'curriculumv1',
+        courseIRVersion: 'courseir.v1',
+        stats: { lessons: 2, concepts: 3, assessments: 2, constraints: 3 },
+        readinessRepairedFieldCount: 4,
+      },
+    });
+  });
+
   it('uses custom deliverable names in ZIP paths and manifest labels', async () => {
     const result = await buildCourseMaterialsZip({
       courseMap: makeCourseMap(),

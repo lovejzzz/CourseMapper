@@ -59,7 +59,8 @@ describe('iteration 7 — genome spans deployed disciplines', () => {
     // FIRST shard the genome taught itself (the Beginning Korean extraction
     // contributed through the commons round-trip); v0.15.5 adds physics for
     // the live Electricity and Magnetism miss; v0.15.6 adds anatomy for the
-    // live Anatomy and Physiology miss.
+    // live Anatomy and Physiology miss; v0.15.14+ adds research-methods for
+    // common methods courses.
     expect(disciplines).toEqual(
       new Set([
         'anatomy',
@@ -78,6 +79,7 @@ describe('iteration 7 — genome spans deployed disciplines', () => {
         'math',
         'lang',
         'physics',
+        'research-methods',
       ]),
     );
   });

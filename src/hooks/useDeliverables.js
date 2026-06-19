@@ -1964,12 +1964,11 @@ export default function useDeliverables({
             : blueprintEnrichment;
         lastEnrichmentOverlayRef.current = enrichmentForGraph || lastEnrichmentOverlayRef.current;
         let courseGraph = null;
-        // v0.14.5 hotfix (round 2026-06-12T04-52): the assembly gate is the
-        // pure resolveNativeAssembly seam — a degenerate skeleton (fewer
-        // assessments than lessons; the live round shipped 1 for 15) or an
-        // assembly throw resolves to a LOUD fellBack + the prose-repair
-        // path below, never a graph the compiler's contract gate will
-        // reject with an uncaught throw (the silent ten-minute hang).
+        // v0.14.5 hotfix, then CurriculumV1 repair: the assembly gate is the
+        // pure resolveNativeAssembly seam. A recoverable degenerate skeleton
+        // (the live round shipped 1 assessment for 15 lessons) is repaired
+        // before compile; unrecoverable assembly failures still fall back
+        // loudly instead of reaching the compiler as an uncaught throw.
         let nativeFallbackMap = null;
         if (nativeSkeleton) {
           const { resolveNativeAssembly } = await import('../lib/nativeGraphAuthoring');
@@ -1984,14 +1983,29 @@ export default function useDeliverables({
                   resolution.resourceRecovery.recoveredCount === 1 ? '' : 's'
                 }`
               : '';
+            const nativeRepair = resolution.nativeRepair || resolution.graph?.nativeRepair || null;
+            const nativeRepairDetail = nativeRepair
+              ? ` · CurriculumV1 repaired ${nativeRepair.stats?.lessons || resolution.graph.sessions.length} lessons / ${nativeRepair.stats?.assessments || resolution.graph.assessments.length} assessments`
+              : '';
             recordGenerationApiCallEvent({
               type: 'pipelineDecision',
               stage: 'nativeAuthoring',
               label: 'Native graph authoring',
               detail: `assembled ${resolution.graph.sessions.length} sessions onto Pass A entity ids · Pass B authored ${
                 Object.keys(blueprintEnrichment?.nativeAuthored || {}).length
-              } lesson(s) · ${(resolution.graph.readings || []).length} registry readings${recoveredResourceDetail}`,
+              } lesson(s) · ${(resolution.graph.readings || []).length} registry readings${recoveredResourceDetail}${nativeRepairDetail}`,
             });
+            if (nativeRepair) {
+              appendLog(
+                `✓ Native authoring repaired via CurriculumV1 (${nativeRepair.stats?.lessons || resolution.graph.sessions.length} lessons, ${nativeRepair.stats?.assessments || resolution.graph.assessments.length} assessments)`,
+                'done',
+              );
+              traceGeneration(generationRunId, 'native_c1_repaired', {
+                reason: resolution.repairReason || nativeRepair.code,
+                stats: nativeRepair.stats || null,
+                repairedFieldCount: nativeRepair.readinessRepairedFieldCount || 0,
+              });
+            }
           } else {
             recordGenerationApiCallEvent({
               type: 'nativeAuthoringFellBack',

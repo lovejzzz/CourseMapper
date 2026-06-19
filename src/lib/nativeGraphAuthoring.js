@@ -42,6 +42,8 @@ import { buildLessonKernelPrompt, parseLessonKernelResponse } from './blueprintE
 import { deriveCourseGraphFromCourseMap } from './courseGraph/deriveFromCourseMap.js';
 import { renderCourseMapFromGraph } from './courseGraph/renderCourseMap.js';
 import { validateCourseGraph } from './courseGraph/schema.js';
+import { buildCourseIRFromCourseMap, validateCourseIR } from './courseIR.js';
+import { repairNativeFallbackWithCurriculumV1 } from './curriculumV1Repair.js';
 import { NATIVE_PASS_B_AUTHORING_ADDITION } from './prompts';
 
 // ── B3: the authoring-mode flag ─────────────────────────────────────────────
@@ -539,18 +541,51 @@ export function assembleNativeCourseGraph({ skeleton, passBBySession = {} }) {
   return { graph, courseMap: renderCourseMapFromGraph(graph) };
 }
 
+function attachCourseIRProof(graph, courseMap) {
+  if (!graph || graph.courseIR) return null;
+  const validation = validateCourseIR(buildCourseIRFromCourseMap(courseMap));
+  if (!validation.valid) return validation;
+  graph.courseIR = {
+    version: validation.ir.version,
+    lessonIds: validation.ir.lessons.map((lesson) => lesson.id),
+    conceptIds: validation.ir.concepts.map((concept) => concept.id),
+    assessmentIds: validation.ir.assessments.map((assessment) => assessment.id),
+    stats: validation.stats,
+  };
+  return validation;
+}
+
+function repairDegenerateNativeGraphWithCourseIR({ courseMap, reason }) {
+  const repair = repairNativeFallbackWithCurriculumV1({
+    fallbackMap: courseMap,
+    columns: [],
+    lessonFilter: null,
+  });
+  if (!repair.ok) return null;
+  return {
+    ok: true,
+    graph: repair.graph,
+    courseMap: repair.courseMap,
+    courseIR: repair.courseIR,
+    courseIRValidation: repair.validation,
+    nativeRepair: repair.graph.nativeRepair,
+    repaired: true,
+    repairReason: reason,
+  };
+}
+
 // ── Degenerate-skeleton gate + the compile-stage fallback seam ──────────────
 // v0.14.5 hotfix (round 2026-06-12T04-52 live-only failure): Pass A obeyed
 // HARD TRACEABILITY and transcribed ONE named assessment for a 15-lesson
 // course; assembly faithfully carried the degenerate registry into the
 // graph, and the compiler's semantic contract then BLOCKED compilation
 // (assessmentCoverage blockers) with a throw nothing caught — a silent
-// ten-minute hang instead of the loud prose fallback. Two rules die here:
+// ten-minute hang instead of a recoverable native repair. Two rules die here:
 //  - a skeleton whose assembled registry carries fewer assessments than
 //    sessions is NOT a usable assessment plan (the prose path authors 2-4
 //    atoms per lesson; the contract gate requires per-lesson coverage);
-//  - every native failure between assembly and compile must resolve to the
-//    SAME loud fellBack → prose-repair path the earlier stages use.
+//  - recoverable native failures between assembly and compile are repaired
+//    through CurriculumV1 before any prose fallback is allowed.
 
 /** True when an assembled native graph cannot satisfy the compiler's
  *  per-lesson assessment coverage contract (assessments < sessions). */
@@ -564,13 +599,11 @@ export function isDegenerateNativeGraph(graph) {
  * The compile-stage decision seam (pure, unit-testable): assemble the
  * skeleton + Pass B authorship and gate the result.
  *
- * @returns {{ ok: true, graph, courseMap }} healthy assembly, OR
+ * @returns {{ ok: true, graph, courseMap }} healthy or CourseIR-repaired
+ *   assembly, OR
  *   {{ ok: false, code, reason, fallbackMap }} — the caller MUST emit
  *   'nativeAuthoringFellBack' with `reason` and compile through the prose
- *   path. `fallbackMap` (when present) is the assembled render, which
- *   carries Pass B's authored outcomes/activities — the prose readiness
- *   repair fills the missing assessment cells on top of it instead of
- *   template-filling a bare skeleton.
+ *   path only after CurriculumV1 repair cannot recover the graph.
  */
 export function resolveNativeAssembly({ skeleton, passBBySession = {} }) {
   try {
@@ -579,10 +612,31 @@ export function resolveNativeAssembly({ skeleton, passBBySession = {} }) {
     const { graph, courseMap } = assembleNativeCourseGraph({ skeleton: workingSkeleton, passBBySession });
     if (isDegenerateNativeGraph(graph)) {
       const assessmentCount = (graph.assessments || []).length;
+      const reason = `degenerate-skeleton (${assessmentCount} assessment${assessmentCount === 1 ? '' : 's'} for ${graph.sessions.length} lessons)`;
+      const repaired = repairDegenerateNativeGraphWithCourseIR({ courseMap, reason });
+      if (repaired) return repaired;
       return {
         ok: false,
         code: 'degenerate-skeleton',
-        reason: `degenerate-skeleton (${assessmentCount} assessment${assessmentCount === 1 ? '' : 's'} for ${graph.sessions.length} lessons)`,
+        reason,
+        fallbackMap: courseMap,
+      };
+    }
+    const courseIRValidation = attachCourseIRProof(graph, courseMap);
+    if (courseIRValidation && !courseIRValidation.valid) {
+      const repaired = repairDegenerateNativeGraphWithCourseIR({
+        courseMap,
+        reason: 'curriculumv1-invalid-native-assembly',
+      });
+      if (repaired) return repaired;
+      return {
+        ok: false,
+        code: 'curriculumv1-invalid-native-assembly',
+        reason: `CurriculumV1 validation failed before compile: ${courseIRValidation.issues
+          .filter((issue) => issue.severity === 'blocker')
+          .slice(0, 3)
+          .map((issue) => issue.code)
+          .join(', ')}`,
         fallbackMap: courseMap,
       };
     }
@@ -590,6 +644,7 @@ export function resolveNativeAssembly({ skeleton, passBBySession = {} }) {
       ok: true,
       graph,
       courseMap,
+      ...(courseIRValidation ? { courseIRValidation } : {}),
       ...(resourceRecovery.recoveredCount > 0
         ? { resourceRecovery: { code: 'missing-resources-recovered', recoveredCount: resourceRecovery.recoveredCount } }
         : {}),

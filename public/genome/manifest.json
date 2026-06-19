@@ -1,7 +1,7 @@
 {
   "version": "2026-06-17",
   "generator": "curriculumos-foundry-v1",
-  "conceptCount": 250,
+  "conceptCount": 255,
   "shards": [
     {
       "id": "anatomy-intro",
@@ -122,6 +122,14 @@
       "path": "psych-intro.json",
       "conceptCount": 12,
       "hash": "cf3b266b4ba1876a"
+    },
+    {
+      "id": "research-methods-intro",
+      "discipline": "research-methods",
+      "level": "intro",
+      "path": "research-methods-intro.json",
+      "conceptCount": 5,
+      "hash": "6ad01f01187e6ba7"
     },
     {
       "id": "stats-intro",

@@ -142,6 +142,14 @@ const ANATOMY_PHYSIOLOGY_COURSE = buildCourse('Human Anatomy and Physiology I', 
   ['Final Integration', 'homeostasis skeletal muscular nervous endocrine sensory physiology'],
 ]);
 
+const RESEARCH_METHODS_COURSE = buildCourse('Introduction to Research Methods', [
+  ['Research Questions and Hypotheses', 'hypothesis testable prediction research hypothesis'],
+  ['Operational Definitions', 'operational definition operationalization variable measurement'],
+  ['Variables and Study Design', 'independent variable dependent variable experimental design'],
+  ['Correlation and Causation', 'correlation causation confounding variable causal inference'],
+  ['Research Ethics', 'informed consent institutional review board voluntary participation'],
+]);
+
 function linkCourse(course) {
   const library = genomeLibrary();
   const lessonIndices = course.lessons.map((_, index) => index);
@@ -240,6 +248,30 @@ describe('A2c — the anatomy shard covers Anatomy and Physiology I', () => {
     const resolved = linked.telemetry.resolvedFromGenome + linked.telemetry.resolvedFromCache;
     expect(resolved).toBeGreaterThanOrEqual(10);
     expect(linked.telemetry.conceptHits).toBeGreaterThanOrEqual(10);
+  });
+});
+
+describe('A2d — the research-methods shard covers the methods backbone', () => {
+  it('ships high-signal methods concepts for common Research Methods courses', () => {
+    const shard = JSON.parse(readFileSync(join(process.cwd(), 'public/genome/research-methods-intro.json'), 'utf8'));
+    expect(shard.kernels).toHaveLength(5);
+    expect(shard.kernels.map((kernel) => kernel.id)).toEqual(
+      expect.arrayContaining([
+        'research-methods/hypothesis',
+        'research-methods/operational-definition',
+        'research-methods/independent-dependent-variables',
+        'research-methods/correlation-causation',
+        'research-methods/informed-consent',
+      ]),
+    );
+  });
+
+  it('a Research Methods course infers the shard and links all five fixture lessons', () => {
+    expect(inferCourseDisciplines(RESEARCH_METHODS_COURSE)).toContain('research-methods');
+    const linked = linkCourse(RESEARCH_METHODS_COURSE);
+    const resolved = linked.telemetry.resolvedFromGenome + linked.telemetry.resolvedFromCache;
+    expect(resolved).toBeGreaterThanOrEqual(5);
+    expect(linked.telemetry.conceptHits).toBeGreaterThanOrEqual(5);
   });
 });
 

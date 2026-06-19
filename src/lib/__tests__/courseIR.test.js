@@ -8,6 +8,7 @@ import {
   courseIRToCourseMap,
   courseIRToEnrichmentOverlay,
   planCourseIRGeneration,
+  repairCourseIRStructure,
   validateCourseIR,
 } from '../courseIR';
 
@@ -37,6 +38,15 @@ function makeCalculusIR() {
         scope: 'concepts',
         status: 'standard-domain-knowledge',
         evidence: 'Standard Calculus I definitions and procedures.',
+      },
+    ],
+    constraints: [
+      {
+        id: 'K1',
+        scope: 'course',
+        text: 'Use graph, table, and symbolic evidence before introducing derivative shortcut rules.',
+        severity: 'requirement',
+        sourceRefs: ['SL1'],
       },
     ],
     concepts: [
@@ -120,6 +130,14 @@ function makeCalculusIR() {
           'Distinguish a function value from approach behavior near a point.',
         ],
         prerequisiteChecks: ['Evaluate function values from a graph and table.'],
+        constraints: [
+          {
+            id: 'K-L1',
+            scope: 'L1',
+            text: 'Require students to justify limits from at least two representations.',
+            severity: 'requirement',
+          },
+        ],
         factualAnchors: [
           {
             claim: 'A graph can show a limit even when the function has a hole at the target input.',
@@ -181,11 +199,20 @@ function makeCalculusIR() {
         title: 'Lesson 2: Derivatives as Limits',
         topic: 'Derivatives as limits of average rates',
         conceptIds: ['C1', 'C2'],
+        prerequisiteConceptIds: ['C1'],
         objectives: [
           'Use the difference quotient to define derivative at a point.',
           'Interpret derivative values as tangent slope and instantaneous rate.',
         ],
         prerequisiteChecks: ['Explain one-sided and two-sided limit agreement.'],
+        constraints: [
+          {
+            id: 'K-L2',
+            scope: 'L2',
+            text: 'Do not use derivative shortcut rules before students explain the limit definition.',
+            severity: 'requirement',
+          },
+        ],
         factualAnchors: [
           {
             claim:
@@ -280,6 +307,43 @@ function makeCalculusIR() {
   };
 }
 
+function makeBroadAssessmentIR() {
+  const courseMap = {
+    courseName: 'Four Lesson Research Methods Course',
+    semester: '4 weeks',
+    lessons: Array.from({ length: 4 }, (_, index) => ({
+      title: `Lesson ${index + 1}: Research Topic ${index + 1}`,
+      sections: [
+        {
+          topicSection: `Research Topic ${index + 1}`,
+          learningObjectives: `Analyze research decision ${index + 1}; Apply evidence standard ${index + 1}`,
+          weeklyAssessments: `Topic ${index + 1} method memo`,
+          asyncActivities: `Read and annotate method example ${index + 1}`,
+          syncActivities: `Workshop research scenario ${index + 1}`,
+          supportingResources: `Instructor source packet ${index + 1}`,
+        },
+      ],
+    })),
+  };
+  const ir = buildCourseIRFromCourseMap(courseMap);
+  const broadAssessment = {
+    ...ir.assessments[0],
+    id: 'A1',
+    title: 'One portfolio integrating all four lessons',
+    lessonIds: ir.lessons.map((lesson) => lesson.id),
+    coverageConceptIds: ir.concepts.map((concept) => concept.id),
+    prompt: 'Submit one portfolio that integrates the full course.',
+  };
+  return {
+    ...ir,
+    lessons: ir.lessons.map((lesson) => ({
+      ...lesson,
+      assessmentIds: ['A1'],
+    })),
+    assessments: [broadAssessment],
+  };
+}
+
 describe('CourseIR v1', () => {
   it('validates semantic atoms and builds a complete coverage ledger', () => {
     const validation = validateCourseIR(makeCalculusIR());
@@ -291,6 +355,8 @@ describe('CourseIR v1', () => {
       assessments: 2,
       workedExamples: 2,
       sourceLedgerRows: 2,
+      constraints: 3,
+      prerequisiteLinks: 2,
     });
     expect(validation.coverage.lessons).toHaveLength(2);
     expect(validation.coverage.lessons.every((lesson) => lesson.complete)).toBe(true);
@@ -314,6 +380,152 @@ describe('CourseIR v1', () => {
     expect(validation.repairPaths).toEqual(expect.arrayContaining(['lessons.L1.assessmentIds']));
   });
 
+  it('rejects dangling prerequisite links before compile', () => {
+    const broken = makeCalculusIR();
+    broken.concepts[1] = {
+      ...broken.concepts[1],
+      prerequisiteIds: ['C404'],
+    };
+    broken.lessons[1] = {
+      ...broken.lessons[1],
+      prerequisiteConceptIds: ['C404'],
+    };
+
+    const validation = validateCourseIR(broken);
+
+    expect(validation.valid).toBe(false);
+    expect(validation.issues.map((entry) => entry.code)).toEqual(
+      expect.arrayContaining(['dangling-concept-prerequisite', 'dangling-lesson-prerequisite']),
+    );
+    expect(() => compileCourseIR(broken, { featureIds: ['syllabus'] })).toThrow(/prerequisite concept C404/);
+  });
+
+  it('repairs missing constraint atoms before compile', () => {
+    const broken = {
+      ...makeCalculusIR(),
+      constraints: [],
+      lessons: makeCalculusIR().lessons.map((lesson) => ({
+        ...lesson,
+        constraints: [],
+      })),
+    };
+
+    const validation = validateCourseIR(broken);
+    expect(validation.valid).toBe(true);
+    expect(validation.issues.map((entry) => entry.code)).toEqual(
+      expect.arrayContaining(['missing-course-constraints', 'missing-lesson-constraints']),
+    );
+
+    const repair = repairCourseIRStructure(broken);
+    const repairedValidation = validateCourseIR(repair.ir);
+    expect(repair.changed).toBe(true);
+    expect(repair.repairs).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ code: 'added-course-constraints', before: 0, after: 1 }),
+        expect.objectContaining({ code: 'added-lesson-constraints', count: 2 }),
+      ]),
+    );
+    expect(repairedValidation.stats.constraints).toBe(3);
+    expect(repairedValidation.coverage.lessons.every((lesson) => lesson.constraintCount > 0)).toBe(true);
+
+    const compiled = compileCourseIR(broken, { featureIds: ['syllabus'] });
+    expect(compiled.courseIRProof).toMatchObject({
+      valid: true,
+      repairedBeforeCompile: true,
+      graphValid: true,
+    });
+    expect(compiled.courseIRProof.repairs).toEqual(
+      expect.arrayContaining([expect.objectContaining({ code: 'added-course-constraints' })]),
+    );
+  });
+
+  it('rejects one broad assessment for four lessons and repairs it before compile', () => {
+    const broad = makeBroadAssessmentIR();
+    const validation = validateCourseIR(broad);
+
+    expect(validation.valid).toBe(false);
+    expect(validation.issues.map((entry) => entry.code)).toContain('under-assessed-course');
+    expect(validation.repairPaths).toContain('assessments');
+
+    const repair = repairCourseIRStructure(broad);
+    const repairedValidation = validateCourseIR(repair.ir);
+    expect(repair.changed).toBe(true);
+    expect(repair.repairs).toContainEqual(
+      expect.objectContaining({
+        code: 'expanded-lesson-assessments',
+        before: 1,
+        after: 4,
+      }),
+    );
+    expect(repairedValidation.valid).toBe(true);
+    expect(repairedValidation.stats.assessments).toBe(4);
+    expect(new Set(repair.ir.lessons.flatMap((lesson) => lesson.assessmentIds)).size).toBe(4);
+
+    const compiled = compileCourseIR(broad, { featureIds: ['syllabus', 'quizBank'] });
+    expect(compiled.courseIRProof).toMatchObject({
+      valid: true,
+      repairedBeforeCompile: true,
+      graphValid: true,
+      providerCallsDuringCompile: 0,
+    });
+    expect(compiled.courseIRProof.repairs).toContainEqual(
+      expect.objectContaining({ code: 'expanded-lesson-assessments' }),
+    );
+    expect(compiled.graph.assessments).toHaveLength(4);
+    expect(compiled.deliverables.syllabus).toBeTruthy();
+    expect(compiled.deliverables.quizBank).toBeTruthy();
+  });
+
+  it('repairs missing source ledger and lesson concept coverage before compile', () => {
+    const base = makeCalculusIR();
+    const broken = {
+      ...base,
+      sourceLedger: [],
+      lessons: base.lessons.map((lesson, index) =>
+        index === 0
+          ? {
+              ...lesson,
+              conceptIds: [],
+            }
+          : lesson,
+      ),
+    };
+
+    const validation = validateCourseIR(broken);
+    expect(validation.valid).toBe(false);
+    expect(validation.issues.map((entry) => entry.code)).toEqual(
+      expect.arrayContaining(['missing-source-ledger', 'missing-lesson-concepts']),
+    );
+
+    const repair = repairCourseIRStructure(broken);
+    const repairedValidation = validateCourseIR(repair.ir);
+    expect(repair.changed).toBe(true);
+    expect(repair.repairs).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ code: 'added-assumption-source-ledger', before: 0, after: 1 }),
+        expect.objectContaining({ code: 'added-lesson-concepts', count: 1 }),
+      ]),
+    );
+    expect(repair.ir.sourceLedger[0]).toMatchObject({
+      status: 'assumption',
+      scope: 'course',
+    });
+    expect(repair.ir.handoffNotes[0].scope).toBe('sourceLedger');
+    expect(repair.ir.lessons[0].conceptIds).toHaveLength(1);
+    expect(repairedValidation.valid).toBe(true);
+
+    const compiled = compileCourseIR(broken, { featureIds: ['syllabus'] });
+    expect(compiled.courseIRProof).toMatchObject({
+      valid: true,
+      repairedBeforeCompile: true,
+      graphValid: true,
+    });
+    expect(compiled.courseIRProof.initialIssueCodes).toEqual(
+      expect.arrayContaining(['missing-source-ledger', 'missing-lesson-concepts']),
+    );
+    expect(compiled.deliverables.syllabus).toBeTruthy();
+  });
+
   it('projects CourseIR into the existing course map and enrichment surfaces', () => {
     const ir = makeCalculusIR();
     const courseMap = courseIRToCourseMap(ir);
@@ -322,7 +534,14 @@ describe('CourseIR v1', () => {
     expect(courseMap.courseName).toBe('Calculus I - Limits and Derivatives');
     expect(courseMap.lessons).toHaveLength(2);
     expect(courseMap.lessons[0].sections[0].weeklyAssessments).toContain('Limit Evidence Check');
+    expect(courseMap.lessons[1].sections[0].supportingResources).toContain('Prerequisite concept: Limit');
+    expect(courseMap.lessons[1].sections[0].supportingResources).toContain(
+      'Constraint: Do not use derivative shortcut rules',
+    );
     expect(overlay.source).toBe('courseir-v1');
+    expect(overlay.lessonContent['lesson-2'].assignmentCore.parameters).toEqual(
+      expect.arrayContaining(['Do not use derivative shortcut rules before students explain the limit definition.']),
+    );
     expect(overlay.lessonContent['lesson-1'].keyTerms[0]).toMatchObject({
       term: 'two-sided limit',
       correction: expect.stringContaining('removable hole'),
@@ -413,7 +632,15 @@ describe('CourseIR v1', () => {
     expect(payload.task).toBe('courseir-v1');
     expect(payload.instruction).toContain('semantic atoms');
     expect(payload.outputContract.required).toEqual(
-      expect.arrayContaining(['version', 'course', 'sourceLedger', 'concepts', 'lessons', 'assessments']),
+      expect.arrayContaining([
+        'version',
+        'course',
+        'sourceLedger',
+        'constraints',
+        'concepts',
+        'lessons',
+        'assessments',
+      ]),
     );
     expect(payload.sourcePacket.lessons).toHaveLength(2);
   });

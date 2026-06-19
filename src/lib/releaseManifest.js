@@ -3,23 +3,23 @@ import { APP_VERSION } from './appVersion.js';
 export const CURRENT_RELEASE = {
   version: APP_VERSION,
   date: 'June 19, 2026',
-  title: 'Teacher-Ready Constitution: package quality gets a fast standard',
-  landingTitle: 'Teacher-Ready Constitution',
+  title: 'CurriculumV1 Native Repair: sparse native plans stop falling back',
+  landingTitle: 'CurriculumV1 Native Repair',
   highlights: [
-    'The Teacher-Ready Package Constitution now defines seven non-negotiable obligations for generated packages: identity coherence, complete structure, assessment coverage, caveat honesty, discipline fit, artifact substance, and clear handoff.',
-    'A machine-readable `quality-constitution/v1.json` contract names `npm run audit:constitution` as the fast package-safety release gate while keeping `npm run audit:gold` for scheduled broad regression and large compiler/generator changes.',
-    'Five canonical fixtures now probe distinct structural risks: a clean package, hidden digest caveat, missing assessment artifact, wrong-discipline assets, and a green handoff with thin artifacts.',
-    'The deterministic constitution audit evaluates those fixtures without provider calls and writes both JSON and Markdown reports under `verification-output/constitution-audit/`.',
-    'Focused Vitest coverage pins the npm script wiring, contract policy, fixture set, and report output so narrow quality releases no longer need the full 40-sample gold corpus as default proof.',
+    'CurriculumV1 now carries more of the course brain: constraints, prerequisite concept links, source ledger repair, lesson concept repair, and under-assessed course repair are validated before graph compilation.',
+    'Native assembly no longer treats the common one-assessment skeleton as an automatic prose fallback. Recoverable sparse native graphs repair through CurriculumV1 first, return a CourseIR-backed graph, and log the repair explicitly.',
+    'Downloaded package manifests now carry slim CourseIR/native-repair proof metadata, so exported ZIPs can disclose whether a package came from a repaired curriculum graph instead of hiding the recovery path.',
+    'The genome gained an introductory research-methods shard and coverage tests, improving the grounding layer for hypothesis, variables, operational definitions, causation, and informed-consent courses.',
+    'The proof is broad because this touches compiler architecture: targeted native/CourseIR/package/genome tests, full unit suite, constitution audit, build, bundle budget, and all 40 gold samples pass locally.',
   ],
   landingHighlights: [
-    'Teacher-ready package quality now has a compact constitution.',
-    'A fast deterministic audit gate checks the constitutional fixtures.',
-    'The 40-sample gold corpus remains broad regression, not routine proof.',
+    'Sparse native plans repair through CurriculumV1 before prose fallback.',
+    'CourseIR proof metadata reaches exported package manifests.',
+    'Research-methods courses now get deterministic genome grounding.',
   ],
   proof: {
-    contract: 'release-contracts/v0.15.14.json',
-    roadmap: 'docs/V0.15.14_TEACHER_READY_CONSTITUTION_ROADMAP.md',
+    contract: 'release-contracts/v0.15.15.json',
+    roadmap: 'docs/V0.15.15_CURRICULUMV1_NATIVE_REPAIR_ROADMAP.md',
     auditCommand: 'npm run audit:release-history',
   },
 };
@@ -34,6 +34,18 @@ export const CURRENT_RELEASE_CHANGELOG = {
 };
 
 export const HISTORICAL_RELEASE_CHANGELOGS = [
+  {
+    version: '0.15.14',
+    date: 'June 19, 2026',
+    title: 'Teacher-Ready Constitution: package quality gets a fast standard',
+    highlights: [
+      'The Teacher-Ready Package Constitution now defines seven non-negotiable obligations for generated packages: identity coherence, complete structure, assessment coverage, caveat honesty, discipline fit, artifact substance, and clear handoff.',
+      'A machine-readable `quality-constitution/v1.json` contract names `npm run audit:constitution` as the fast package-safety release gate while keeping `npm run audit:gold` for scheduled broad regression and large compiler/generator changes.',
+      'Five canonical fixtures now probe distinct structural risks: a clean package, hidden digest caveat, missing assessment artifact, wrong-discipline assets, and a green handoff with thin artifacts.',
+      'The deterministic constitution audit evaluates those fixtures without provider calls and writes both JSON and Markdown reports under `verification-output/constitution-audit/`.',
+      'Focused Vitest coverage pins the npm script wiring, contract policy, fixture set, and report output so narrow quality releases no longer need the full 40-sample gold corpus as default proof.',
+    ],
+  },
   {
     version: '0.15.13',
     date: 'June 19, 2026',

@@ -227,6 +227,29 @@ function buildManifestReadings(registry) {
   return entries.length > 0 ? entries : null;
 }
 
+function buildManifestCourseIRProof(courseGraph) {
+  if (!courseGraph?.courseIR && !courseGraph?.nativeRepair) return null;
+  const proof = {};
+  if (courseGraph.courseIR) {
+    proof.version = courseGraph.courseIR.version || '';
+    proof.lessonCount = Array.isArray(courseGraph.courseIR.lessonIds) ? courseGraph.courseIR.lessonIds.length : 0;
+    proof.conceptCount = Array.isArray(courseGraph.courseIR.conceptIds) ? courseGraph.courseIR.conceptIds.length : 0;
+    proof.assessmentCount = Array.isArray(courseGraph.courseIR.assessmentIds)
+      ? courseGraph.courseIR.assessmentIds.length
+      : 0;
+  }
+  if (courseGraph.nativeRepair) {
+    proof.nativeRepair = {
+      code: courseGraph.nativeRepair.code || '',
+      source: courseGraph.nativeRepair.source || '',
+      courseIRVersion: courseGraph.nativeRepair.courseIRVersion || '',
+      stats: courseGraph.nativeRepair.stats || null,
+      readinessRepairedFieldCount: Number(courseGraph.nativeRepair.readinessRepairedFieldCount) || 0,
+    };
+  }
+  return proof;
+}
+
 function buildManifest({
   courseName,
   lessonFilter,
@@ -237,8 +260,10 @@ function buildManifest({
   pipelineState = null,
   assessments = null,
   readings = null,
+  courseGraph = null,
   voicePass = null,
 }) {
+  const courseIR = buildManifestCourseIRProof(courseGraph);
   return {
     courseName,
     generatedAt: new Date().toISOString(),
@@ -270,6 +295,7 @@ function buildManifest({
     ...(assessments && assessments.length > 0 ? { assessments } : {}),
     // v0.14.5 (A5): the readings registry with provenance tags.
     ...(readings && readings.length > 0 ? { readings } : {}),
+    ...(courseIR ? { courseIR } : {}),
     requestedFeatures: requestedFeatureIds.map((featureId) => ({
       featureId: publicFeatureId(featureId),
       label: resolveFeatureLabel(featureId),
@@ -504,6 +530,7 @@ export async function buildCourseMaterialsZip({
     pipelineState,
     assessments: buildManifestAssessments({ registry: assessmentRegistry, files }),
     readings: buildManifestReadings(readingsRegistry),
+    courseGraph,
     // v0.14.7 WS-D4: callers may pass the outcome on pipelineState; otherwise
     // the generation run's single-run stash discloses it (cleared each compile).
     voicePass: pipelineState?.voicePass || peekVoicePassOutcome(),
