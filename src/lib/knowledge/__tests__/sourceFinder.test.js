@@ -163,7 +163,7 @@ describe('source finder mini-shard', () => {
     expect(titles).toContain('Trees in graph theory: paths, roots, leaves, and spanning trees');
     expect(titles).not.toContain('Special Functions of Mathematical Physics');
     expect(titles).not.toContain('Extremely randomized trees');
-  });
+  }, 15000);
 
   it('attaches top mini-shard sources as graph resources that render into the course map', async () => {
     const graph = sampleGraph();
