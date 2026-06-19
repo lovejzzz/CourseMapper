@@ -1414,11 +1414,15 @@ export function planCourseIRGeneration({
   };
 }
 
-export function assessCourseIRDirectAuthoring(validation, { expectedLessons = null } = {}) {
+export function assessCourseIRDirectAuthoring(validation, { expectedLessons = null, repair = null } = {}) {
   const lessonCount = validation?.stats?.lessons || 0;
   const completeLessons = (validation?.coverage?.lessons || []).filter((lesson) => lesson.complete).length;
   const expected = Number.isInteger(expectedLessons) && expectedLessons > 0 ? expectedLessons : 0;
   const blockers = [];
+  if (repair?.changed) {
+    const repairCodes = (repair.repairs || []).map((entry) => entry.code).filter(Boolean);
+    blockers.push(`repaired-structure${repairCodes.length ? ` ${repairCodes.join(',')}` : ''}`);
+  }
   if (!validation?.valid) blockers.push('validation-blockers');
   if (expected > 0 && lessonCount < expected) blockers.push(`lesson-count ${lessonCount}/${expected}`);
   if (lessonCount === 0) blockers.push('no-lessons');
@@ -1433,6 +1437,7 @@ export function assessCourseIRDirectAuthoring(validation, { expectedLessons = nu
     reason: blockers.length === 0 ? 'accepted' : blockers.join('; '),
     lessonCount,
     completeLessons,
+    repairedBeforeAcceptance: Boolean(repair?.changed),
   };
 }
 
@@ -1451,7 +1456,7 @@ export function parseCourseIRResponse(text, { expectedLessons = null } = {}) {
     ir: validation.ir,
     validation,
     repair,
-    acceptance: assessCourseIRDirectAuthoring(validation, { expectedLessons }),
+    acceptance: assessCourseIRDirectAuthoring(validation, { expectedLessons, repair }),
   };
 }
 

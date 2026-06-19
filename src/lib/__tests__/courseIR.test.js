@@ -663,6 +663,35 @@ describe('CourseIR v1', () => {
     expect(parsed.repair.changed).toBe(false);
   });
 
+  it('rejects repaired structure as direct provider authoring even though compiler repair can render it', () => {
+    const broad = makeBroadAssessmentIR();
+    const parsed = parseCourseIRResponse(JSON.stringify(broad), { expectedLessons: 4 });
+
+    expect(parsed.validation.valid).toBe(true);
+    expect(parsed.repair.changed).toBe(true);
+    expect(parsed.repair.repairs).toContainEqual(
+      expect.objectContaining({
+        code: 'expanded-lesson-assessments',
+        before: 1,
+        after: 4,
+      }),
+    );
+    expect(parsed.acceptance).toMatchObject({
+      accepted: false,
+      repairedBeforeAcceptance: true,
+    });
+    expect(parsed.acceptance.reason).toContain('repaired-structure');
+    expect(parsed.acceptance.reason).toContain('expanded-lesson-assessments');
+
+    const compiled = compileCourseIR(broad, { featureIds: ['syllabus'] });
+    expect(compiled.courseIRProof).toMatchObject({
+      valid: true,
+      repairedBeforeCompile: true,
+      graphValid: true,
+      providerCallsDuringCompile: 0,
+    });
+  });
+
   it('rejects thin direct CourseIR even when structural validation can pass', () => {
     const thin = {
       ...makeCalculusIR(),

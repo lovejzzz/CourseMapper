@@ -3,23 +3,23 @@ import { APP_VERSION } from './appVersion.js';
 export const CURRENT_RELEASE = {
   version: APP_VERSION,
   date: 'June 19, 2026',
-  title: 'CourseIR Direct Authoring: whole-course brain can own the compile',
-  landingTitle: 'CourseIR Direct Authoring',
+  title: 'CourseIR Repair Boundary: synthetic fixes stop counting as direct authoring',
+  landingTitle: 'CourseIR Repair Boundary',
   highlights: [
-    'Direct CourseIR authoring now runs before native skeleton authoring when native mode is active and the selected model has enough context/output capacity for one whole-course CurriculumV1 object.',
-    'Thin CourseIR is rejected even when structural JSON validation passes: accepted direct CourseIR must cover lessons with concepts, assessments, factual anchors, worked examples, constraints, and misconception correctives.',
-    'Accepted CourseIR crosses from generation to deliverables as a single-use, course-keyed source object and compiles through CurriculumV1 projection without native Pass B provider calls.',
-    'Downloaded package manifests can now disclose `courseIR.directAuthoring` proof separately from `courseIR.nativeAssembly` repair/projection proof.',
-    'The release roadmap names the quality boundary clearly: genome-linked content is important, but the better curriculum brain is the dense validated CourseIR object plus compiler expansion, not a shallow giant-call JSON blob.',
+    'Direct provider CourseIR acceptance now fails when the returned CourseIR needed deterministic structural repair before validation, so one broad assessment for many lessons no longer masquerades as a fully authored curriculum brain.',
+    'Compiler repair remains available for explicit CourseIR inputs: under-assessed structures can still expand to lesson-level assessments before deterministic rendering, with `repairedBeforeCompile` proof intact.',
+    'The direct-authoring acceptance result now carries `repairedBeforeAcceptance`, making the fallback reason auditable instead of hiding a synthetic fix behind an accepted direct path.',
+    'Regression coverage pins the boundary: repaired broad-assessment CourseIR is rejected for direct provider authoring while the same CourseIR still compiles with zero provider calls after repair.',
+    'This narrows the path toward the real CurriculumV1 source of truth: models must author dense atoms themselves, while compiler repair is an explicit safety net before DOCX/PPTX output.',
   ],
   landingHighlights: [
-    'Large-output models can author one accepted CourseIR brain before compile.',
-    'Thin CourseIR falls back loudly instead of shipping quietly.',
-    'ZIP manifests disclose direct CourseIR authoring proof.',
+    'Repaired CourseIR no longer counts as accepted direct authoring.',
+    'Compiler repair still runs before deterministic rendering.',
+    'Fallback evidence names structural repair explicitly.',
   ],
   proof: {
-    contract: 'release-contracts/v0.15.17.json',
-    roadmap: 'docs/V0.15.17_COURSEIR_DIRECT_AUTHORING_ROADMAP.md',
+    contract: 'release-contracts/v0.15.18.json',
+    roadmap: 'docs/V0.15.18_COURSEIR_REPAIR_BOUNDARY_ROADMAP.md',
     auditCommand: 'npm run audit:release-history',
   },
 };
@@ -34,6 +34,18 @@ export const CURRENT_RELEASE_CHANGELOG = {
 };
 
 export const HISTORICAL_RELEASE_CHANGELOGS = [
+  {
+    version: '0.15.17',
+    date: 'June 19, 2026',
+    title: 'CourseIR Direct Authoring: whole-course brain can own the compile',
+    highlights: [
+      'Direct CourseIR authoring now runs before native skeleton authoring when native mode is active and the selected model has enough context/output capacity for one whole-course CurriculumV1 object.',
+      'Thin CourseIR is rejected even when structural JSON validation passes: accepted direct CourseIR must cover lessons with concepts, assessments, factual anchors, worked examples, constraints, and misconception correctives.',
+      'Accepted CourseIR crosses from generation to deliverables as a single-use, course-keyed source object and compiles through CurriculumV1 projection without native Pass B provider calls.',
+      'Downloaded package manifests can now disclose `courseIR.directAuthoring` proof separately from `courseIR.nativeAssembly` repair/projection proof.',
+      'The release roadmap names the quality boundary clearly: genome-linked content is important, but the better curriculum brain is the dense validated CourseIR object plus compiler expansion, not a shallow giant-call JSON blob.',
+    ],
+  },
   {
     version: '0.15.16',
     date: 'June 19, 2026',
