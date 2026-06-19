@@ -1,0 +1,102 @@
+{
+  "version": "0.15.20",
+  "date": "June 19, 2026",
+  "title": "CourseIR Rubric Atoms: assessment criteria become validated brain structure",
+  "status": "verified-current",
+  "proofSummary": {
+    "local": [
+      "npm test -- src/lib/__tests__/courseIR.test.js",
+      "npm test -- tests/v0145-native-authoring.test.js",
+      "npm run format:check",
+      "npm run lint",
+      "npm run build",
+      "npm run bundle:check",
+      "npm run test:e2e",
+      "npm test",
+      "npm run audit:constitution",
+      "npm run audit:gold:smoke",
+      "npm run audit:release-history"
+    ],
+    "ciFast": {
+      "status": "pending-push",
+      "note": "Fast verification is claimed only after v0.15.20 is pushed and the GitHub Actions run is attached."
+    },
+    "deploy": {
+      "status": "pending-push",
+      "note": "Pages deploy is not claimed until the pushed release completes its deploy run."
+    },
+    "ciDeep": {
+      "status": "not-used",
+      "note": "This is a CourseIR assessment-contract patch with focused regression, full unit, constitution, browser, and gold smoke proof."
+    },
+    "liveProvider": {
+      "status": "not-applicable",
+      "note": "No fresh live provider generation is claimed for this contract patch."
+    },
+    "manualHuman": {
+      "status": "not-applicable",
+      "note": "No external instructor review or approval is claimed by this release."
+    }
+  },
+  "claims": [
+    {
+      "id": "v01520-rubric-atoms",
+      "status": "verified-current",
+      "changelogHighlightIndex": 0,
+      "summary": "CourseIR assessments now normalize and validate first-class rubric criteria with concept links, outcome links, and performance levels.",
+      "anchors": ["src/lib/courseIR.js", "src/lib/__tests__/courseIR.test.js"],
+      "proofCommands": ["npm test -- src/lib/__tests__/courseIR.test.js"],
+      "proofScopes": ["unit"]
+    },
+    {
+      "id": "v01520-rubric-repair-boundary",
+      "status": "verified-current",
+      "changelogHighlightIndex": 1,
+      "summary": "Compiler repair can synthesize missing rubric criteria for explicit CourseIR input while recording the repair.",
+      "anchors": ["src/lib/courseIR.js", "src/lib/__tests__/courseIR.test.js"],
+      "proofCommands": ["npm test -- src/lib/__tests__/courseIR.test.js"],
+      "proofScopes": ["unit", "compiled-output"]
+    },
+    {
+      "id": "v01520-direct-authoring-rejects-repaired-rubrics",
+      "status": "verified-current",
+      "changelogHighlightIndex": 2,
+      "summary": "Direct provider CourseIR acceptance rejects repaired or level-less rubric criteria instead of counting them as accepted direct authoring.",
+      "anchors": ["src/lib/courseIR.js", "src/lib/__tests__/courseIR.test.js"],
+      "proofCommands": ["npm test -- src/lib/__tests__/courseIR.test.js"],
+      "proofScopes": ["unit"]
+    },
+    {
+      "id": "v01520-rubric-projection",
+      "status": "verified-current",
+      "changelogHighlightIndex": 3,
+      "summary": "CourseIR projection feeds rubric criteria into enrichment surfaces and counts rubric coverage in the lesson completeness ledger.",
+      "anchors": ["src/lib/courseIR.js", "src/lib/__tests__/courseIR.test.js"],
+      "proofCommands": ["npm test -- src/lib/__tests__/courseIR.test.js"],
+      "proofScopes": ["unit", "compiled-output"]
+    },
+    {
+      "id": "v01520-native-contract-regression",
+      "status": "verified-current",
+      "changelogHighlightIndex": 4,
+      "summary": "Native authoring remains compatible with the stricter CourseIR rubric contract.",
+      "anchors": ["tests/v0145-native-authoring.test.js"],
+      "proofCommands": ["npm test -- tests/v0145-native-authoring.test.js"],
+      "proofScopes": ["unit"]
+    }
+  ],
+  "carryForward": [
+    {
+      "id": "complete-courseir-source-feedback-chain",
+      "status": "carry-forward",
+      "source": "docs/V0.15.20_COURSEIR_RUBRIC_ATOMS_ROADMAP.md",
+      "next": "Make source citations and feedback loops first-class CourseIR atoms so the compiler can prove the full curriculum chain."
+    },
+    {
+      "id": "live-direct-courseir-quality-proof",
+      "status": "carry-forward",
+      "source": "docs/V0.15.20_COURSEIR_RUBRIC_ATOMS_ROADMAP.md",
+      "next": "Run side-by-side EduTool.dev ZIP/log audits comparing accepted direct CourseIR against native skeleton/prose fallback on the same course briefs."
+    }
+  ]
+}

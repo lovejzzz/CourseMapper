@@ -12,7 +12,7 @@ import { estimateTokens, getModelLimit } from './tokenEstimator.js';
 
 export const COURSE_IR_VERSION = 'courseir.v1';
 export const COURSE_IR_SCHEMA_NAME = 'course_ir_v1';
-export const COURSE_IR_SYSTEM_PROMPT = `You are CourseMapper's CurriculumV1 authoring engine. Return one compact CourseIR JSON object only: no markdown, no commentary, no final deliverable prose. Encode the curriculum brain as semantic atoms with stable ids, source/provenance status, concept prerequisites, lesson objectives, outcome atoms, activity atoms, assessments, examples, misconceptions, constraints, and artifact intent links. Every lesson outcome and activity must link to concept ids and assessment ids.`;
+export const COURSE_IR_SYSTEM_PROMPT = `You are CourseMapper's CurriculumV1 authoring engine. Return one compact CourseIR JSON object only: no markdown, no commentary, no final deliverable prose. Encode the curriculum brain as semantic atoms with stable ids, source/provenance status, concept prerequisites, lesson objectives, outcome atoms, activity atoms, assessments, rubric criteria, examples, misconceptions, constraints, and artifact intent links. Every lesson outcome and activity must link to concept ids and assessment ids; every rubric criterion must link to concepts, outcomes, and performance levels.`;
 
 const KNOWN_FEATURE_IDS = [
   'syllabus',
@@ -194,6 +194,18 @@ function normalizeConcept(rawConcept, index) {
 function normalizeAssessment(rawAssessment, index) {
   const id = normalizeId(rawAssessment?.id, 'A', index);
   const kind = VALID_ASSESSMENT_KINDS.has(rawAssessment?.kind) ? rawAssessment.kind : 'graded-artifact';
+  const rubricDimensions = uniqueStrings(rawAssessment?.rubricDimensions || rawAssessment?.dimensions || [], 8);
+  const rawRubricCriteria = asArray(rawAssessment?.rubricCriteria || rawAssessment?.rubric || rawAssessment?.criteria);
+  const rubricCriteria = rawRubricCriteria
+    .map((criterion, criterionIndex) =>
+      normalizeRubricCriterion(
+        criterion,
+        id,
+        criterionIndex,
+        uniqueStrings(rawAssessment?.coverageConceptIds || rawAssessment?.conceptIds || [], 32),
+      ),
+    )
+    .filter((criterion) => criterion.label);
   return {
     id,
     title: cleanText(rawAssessment?.title || rawAssessment?.name || `Assessment ${index + 1}`, 160),
@@ -201,9 +213,44 @@ function normalizeAssessment(rawAssessment, index) {
     lessonIds: uniqueStrings(rawAssessment?.lessonIds || rawAssessment?.lessons || [], 32),
     coverageConceptIds: uniqueStrings(rawAssessment?.coverageConceptIds || rawAssessment?.conceptIds || [], 32),
     prompt: cleanText(rawAssessment?.prompt || rawAssessment?.task || rawAssessment?.description, 360),
-    rubricDimensions: uniqueStrings(rawAssessment?.rubricDimensions || rawAssessment?.criteria || [], 8),
+    rubricDimensions: uniqueStrings([...rubricDimensions, ...rubricCriteria.map((criterion) => criterion.label)], 8),
+    rubricCriteria,
     weightPct: Number.isFinite(Number(rawAssessment?.weightPct)) ? Number(rawAssessment.weightPct) : null,
     provenance: cleanText(rawAssessment?.provenance || rawAssessment?.source || 'courseir', 80),
+  };
+}
+
+function normalizeRubricLevel(rawLevel, index) {
+  if (typeof rawLevel === 'string') {
+    return {
+      level: cleanText(rawLevel.split(/:|-/)[0] || `Level ${index + 1}`, 80),
+      description: cleanText(rawLevel, 240),
+      points: null,
+    };
+  }
+  return {
+    level: cleanText(rawLevel?.level || rawLevel?.label || rawLevel?.name || `Level ${index + 1}`, 80),
+    description: cleanText(rawLevel?.description || rawLevel?.descriptor || rawLevel?.text, 240),
+    points: Number.isFinite(Number(rawLevel?.points)) ? Number(rawLevel.points) : null,
+  };
+}
+
+function normalizeRubricCriterion(rawCriterion, assessmentId, index, defaultConceptIds = [], defaultOutcomeIds = []) {
+  const criterion = typeof rawCriterion === 'object' && rawCriterion !== null ? rawCriterion : { label: rawCriterion };
+  const label = cleanText(
+    criterion.label || criterion.name || criterion.dimension || criterion.criterion || criterion.text,
+    120,
+  );
+  return {
+    id: normalizeId(criterion.id, `${assessmentId}-R`, index),
+    label,
+    description: cleanText(criterion.description || criterion.lookFor || criterion.evidence || label, 260),
+    conceptIds: uniqueStrings(criterion.conceptIds || criterion.concepts || defaultConceptIds, 32),
+    outcomeIds: uniqueStrings(criterion.outcomeIds || criterion.outcomes || defaultOutcomeIds, 32),
+    performanceLevels: asArray(criterion.performanceLevels || criterion.levels || criterion.descriptors)
+      .map(normalizeRubricLevel)
+      .filter((level) => level.level || level.description),
+    sourceRefs: uniqueStrings(criterion.sourceRefs || criterion.refs || [], 16),
   };
 }
 
@@ -258,6 +305,13 @@ function formatActivityLine(activity) {
   if (!action) return '';
   const evidence = cleanText(activity?.evidence, 160);
   return evidence ? `${action}; evidence: ${evidence}` : action;
+}
+
+function formatRubricCriterion(criterion) {
+  const label = cleanText(criterion?.label, 120);
+  const description = cleanText(criterion?.description, 180);
+  if (!label) return '';
+  return description && description.toLowerCase() !== label.toLowerCase() ? `${label}: ${description}` : label;
 }
 
 function normalizeLesson(rawLesson, index) {
@@ -498,6 +552,7 @@ export function validateCourseIR(rawIR = {}) {
 
   const lessonIds = new Set();
   const assessmentIds = new Set(ir.assessments.map((assessment) => assessment.id));
+  const outcomeIds = new Set(ir.lessons.flatMap((lesson) => lesson.outcomes.map((outcome) => outcome.id)));
   const assessmentLessonRefs = new Map(ir.lessons.map((lesson) => [lesson.id, 0]));
 
   for (const [index, lesson] of ir.lessons.entries()) {
@@ -698,6 +753,67 @@ export function validateCourseIR(rawIR = {}) {
         );
       }
     }
+    if (assessment.rubricCriteria.length === 0) {
+      push('blocker', 'missing-rubric-criteria', `${path}.rubricCriteria`, 'Assessment needs rubric criteria atoms.', {
+        repairPath: `${path}.rubricCriteria`,
+      });
+    }
+    for (const [criterionIndex, criterion] of assessment.rubricCriteria.entries()) {
+      const criterionPath = `${path}.rubricCriteria[${criterionIndex}]`;
+      if (criterion.conceptIds.length === 0) {
+        push(
+          'blocker',
+          'missing-rubric-concepts',
+          `${criterionPath}.conceptIds`,
+          'Rubric criterion must link to assessed concepts.',
+          {
+            repairPath: `${criterionPath}.conceptIds`,
+          },
+        );
+      }
+      if (criterion.outcomeIds.length === 0) {
+        push(
+          'warning',
+          'missing-rubric-outcomes',
+          `${criterionPath}.outcomeIds`,
+          'Rubric criterion should link to learning outcomes.',
+          {
+            repairPath: `${criterionPath}.outcomeIds`,
+          },
+        );
+      }
+      if (criterion.performanceLevels.length < 2) {
+        push(
+          'blocker',
+          'missing-rubric-levels',
+          `${criterionPath}.performanceLevels`,
+          'Rubric criterion needs at least two performance levels.',
+          {
+            repairPath: `${criterionPath}.performanceLevels`,
+          },
+        );
+      }
+      for (const conceptId of criterion.conceptIds) {
+        if (!conceptIds.has(conceptId)) {
+          push(
+            'blocker',
+            'dangling-rubric-concept',
+            `${criterionPath}.conceptIds`,
+            `Rubric criterion references missing concept ${conceptId}.`,
+          );
+        }
+      }
+      for (const outcomeId of criterion.outcomeIds) {
+        if (!outcomeIds.has(outcomeId)) {
+          push(
+            'blocker',
+            'dangling-rubric-outcome',
+            `${criterionPath}.outcomeIds`,
+            `Rubric criterion references missing outcome ${outcomeId}.`,
+          );
+        }
+      }
+    }
   }
 
   for (const [lessonId, count] of assessmentLessonRefs.entries()) {
@@ -750,6 +866,18 @@ export function validateCourseIR(rawIR = {}) {
     workedExamples: ir.lessons.reduce((sum, lesson) => sum + lesson.workedExamples.length, 0),
     outcomes: ir.lessons.reduce((sum, lesson) => sum + lesson.outcomes.length, 0),
     activities: ir.lessons.reduce((sum, lesson) => sum + lesson.activities.length, 0),
+    rubricCriteria: ir.assessments.reduce((sum, assessment) => sum + assessment.rubricCriteria.length, 0),
+    rubricCriteriaWithLevels: ir.assessments.reduce(
+      (sum, assessment) =>
+        sum + assessment.rubricCriteria.filter((criterion) => criterion.performanceLevels.length >= 2).length,
+      0,
+    ),
+    rubricOutcomeLinks: ir.assessments.reduce(
+      (sum, assessment) =>
+        sum +
+        assessment.rubricCriteria.reduce((criterionSum, criterion) => criterionSum + criterion.outcomeIds.length, 0),
+      0,
+    ),
     misconceptionCorrectives:
       ir.lessons.reduce((sum, lesson) => sum + lesson.misconceptions.filter((entry) => entry.correction).length, 0) +
       ir.concepts.reduce((sum, concept) => sum + concept.misconceptions.filter((entry) => entry.correction).length, 0),
@@ -846,8 +974,78 @@ function lessonAssessmentFromTemplate(template, lesson, index, id) {
     coverageConceptIds: lesson.conceptIds,
     prompt,
     rubricDimensions: uniqueStrings([...asArray(template?.rubricDimensions), ...DEFAULT_RUBRIC_DIMENSIONS], 5),
+    rubricCriteria: templateIsLessonSpecific ? asArray(template?.rubricCriteria) : [],
     provenance: cleanText(template?.provenance || 'courseir-repair', 80),
   };
+}
+
+function outcomesForAssessment(ir, assessment) {
+  const linkedLessons = ir.lessons.filter((lesson) => assessment.lessonIds.includes(lesson.id));
+  const explicitlyLinked = linkedLessons.flatMap((lesson) =>
+    lesson.outcomes.filter((outcome) => outcome.assessmentIds.includes(assessment.id)),
+  );
+  const fallback = linkedLessons.flatMap((lesson) => lesson.outcomes);
+  return explicitlyLinked.length > 0 ? explicitlyLinked : fallback;
+}
+
+function conceptIdsForAssessment(ir, assessment) {
+  const linkedLessons = ir.lessons.filter((lesson) => assessment.lessonIds.includes(lesson.id));
+  return uniqueStrings([...assessment.coverageConceptIds, ...linkedLessons.flatMap((lesson) => lesson.conceptIds)], 32);
+}
+
+function repairedRubricLevels(criterionLabel) {
+  const label = cleanText(criterionLabel || 'criterion', 80).toLowerCase();
+  return [
+    {
+      level: 'Exceeds',
+      description: `Uses precise evidence and reasoning for ${label}.`,
+      points: 4,
+    },
+    {
+      level: 'Meets',
+      description: `Shows accurate, sufficient work for ${label}.`,
+      points: 3,
+    },
+    {
+      level: 'Developing',
+      description: `Shows partial or inconsistent evidence for ${label}.`,
+      points: 2,
+    },
+    {
+      level: 'Needs revision',
+      description: `Does not yet provide usable evidence for ${label}.`,
+      points: 1,
+    },
+  ];
+}
+
+function repairedAssessmentRubricCriteria(ir, assessment) {
+  const conceptIds = conceptIdsForAssessment(ir, assessment);
+  const outcomeIds = outcomesForAssessment(ir, assessment).map((outcome) => outcome.id);
+  const sourceCriteria =
+    assessment.rubricCriteria.length > 0
+      ? assessment.rubricCriteria
+      : uniqueStrings(
+          assessment.rubricDimensions.length > 0 ? assessment.rubricDimensions : DEFAULT_RUBRIC_DIMENSIONS,
+          5,
+        ).map((dimension, index) => ({
+          id: `${assessment.id}-R${index + 1}`,
+          label: dimension,
+          description: `Evaluate ${dimension} in ${assessment.title}.`,
+          conceptIds,
+          outcomeIds,
+          performanceLevels: [],
+          sourceRefs: [],
+        }));
+  return sourceCriteria.map((criterion, index) => ({
+    ...criterion,
+    id: criterion.id || `${assessment.id}-R${index + 1}`,
+    description: criterion.description || `Evaluate ${criterion.label} in ${assessment.title}.`,
+    conceptIds: criterion.conceptIds.length > 0 ? criterion.conceptIds : conceptIds,
+    outcomeIds: criterion.outcomeIds.length > 0 ? criterion.outcomeIds : outcomeIds,
+    performanceLevels:
+      criterion.performanceLevels.length >= 2 ? criterion.performanceLevels : repairedRubricLevels(criterion.label),
+  }));
 }
 
 function repairedCourseConstraint() {
@@ -1090,6 +1288,39 @@ export function repairCourseIRStructure(rawIR = {}) {
     changed = true;
   }
 
+  if (
+    ir.assessments.some(
+      (assessment) =>
+        assessment.rubricCriteria.length === 0 ||
+        assessment.rubricCriteria.some(
+          (criterion) =>
+            criterion.conceptIds.length === 0 ||
+            criterion.outcomeIds.length === 0 ||
+            criterion.performanceLevels.length < 2,
+        ),
+    )
+  ) {
+    const repairedAssessmentCount = ir.assessments.filter(
+      (assessment) =>
+        assessment.rubricCriteria.length === 0 ||
+        assessment.rubricCriteria.some(
+          (criterion) =>
+            criterion.conceptIds.length === 0 ||
+            criterion.outcomeIds.length === 0 ||
+            criterion.performanceLevels.length < 2,
+        ),
+    ).length;
+    ir = normalizeCourseIR({
+      ...ir,
+      assessments: ir.assessments.map((assessment) => ({
+        ...assessment,
+        rubricCriteria: repairedAssessmentRubricCriteria(ir, assessment),
+      })),
+    });
+    repairs.push({ code: 'added-assessment-rubric-criteria', count: repairedAssessmentCount });
+    changed = true;
+  }
+
   return { changed, ir, repairs };
 }
 
@@ -1127,6 +1358,7 @@ export function buildCourseIRCoverageLedger(rawIR = {}) {
         ...assessmentsByLessonId.get(lesson.id),
         ...lesson.assessmentIds.map((id) => ir.assessments.find((assessment) => assessment.id === id)).filter(Boolean),
       ];
+      const rubricCriteriaCount = assessments.reduce((sum, assessment) => sum + assessment.rubricCriteria.length, 0);
       const lessonFactCount =
         lesson.factualAnchors.length + linkedConcepts.reduce((sum, concept) => sum + concept.factualAnchors.length, 0);
       const misconceptionCount =
@@ -1140,6 +1372,7 @@ export function buildCourseIRCoverageLedger(rawIR = {}) {
         assessmentIds: [...new Set(assessments.map((assessment) => assessment.id))],
         outcomeCount: lesson.outcomes.length,
         activityCount: lesson.activities.length,
+        rubricCriteriaCount,
         factualAnchorCount: lessonFactCount,
         workedExampleCount: lesson.workedExamples.length,
         misconceptionCount,
@@ -1150,6 +1383,7 @@ export function buildCourseIRCoverageLedger(rawIR = {}) {
           lesson.objectives.length > 0 &&
           lesson.outcomes.length > 0 &&
           lesson.activities.length > 0 &&
+          rubricCriteriaCount >= assessments.length &&
           lessonFactCount > 0 &&
           lesson.workedExamples.length > 0 &&
           constraints.length > 0,
@@ -1327,6 +1561,7 @@ function lessonKernelFromIR(ir, lesson) {
   const assessment = (ir.assessments || []).find((entry) => entry.lessonIds.includes(lesson.id));
   const activityLines = lesson.activities.map(formatActivityLine).filter(Boolean);
   const outcomeStatements = lesson.outcomes.map((outcome) => outcome.statement).filter(Boolean);
+  const rubricLines = (assessment?.rubricCriteria || []).map(formatRubricCriterion).filter(Boolean);
   const workedExample = lesson.workedExamples[0]
     ? {
         problem: lesson.workedExamples[0].setup,
@@ -1368,12 +1603,13 @@ function lessonKernelFromIR(ir, lesson) {
       parameters: uniqueStrings(
         [
           ...(assessment?.rubricDimensions || []),
+          ...rubricLines,
           ...outcomeStatements,
           ...lesson.objectives,
           ...constraints.map((entry) => entry.text),
           ...activityLines,
         ],
-        9,
+        12,
       ),
     },
     mc: [...lesson.quizItems, ...generatedMc].slice(0, 8),
@@ -1621,6 +1857,14 @@ export function buildCourseIRFromCourseMap(courseMap = {}) {
       coverageConceptIds: lesson.conceptIds,
       prompt: cleanText(asArray(courseMap.lessons?.[index]?.sections)[0]?.weeklyAssessments || '', 260),
       rubricDimensions: ['accuracy', 'evidence use', 'transfer'],
+      rubricCriteria: DEFAULT_RUBRIC_DIMENSIONS.map((dimension, criterionIndex) => ({
+        id: `A${index + 1}-R${criterionIndex + 1}`,
+        label: dimension,
+        description: `Evaluate ${dimension} in ${lesson.topic}.`,
+        conceptIds: lesson.conceptIds,
+        outcomeIds: lesson.outcomes.map((outcome) => outcome.id),
+        performanceLevels: repairedRubricLevels(dimension),
+      })),
       provenance: 'course-map',
     })),
     artifactIntents: KNOWN_FEATURE_IDS.map((featureId, index) => ({
@@ -1644,7 +1888,7 @@ export function buildCourseIRPromptPayload({
   return {
     task: 'courseir-v1',
     instruction:
-      'Return compact CourseIR JSON only. Write semantic atoms, not final deliverable prose. Preserve source facts, mark assumptions, and link every lesson to concepts, prerequisite concepts, constraints, outcomes, activities, and assessments. Each lesson needs outcomes[] objects and activities[] objects; activities must name learnerAction, evidence, mode, conceptIds, and assessmentIds.',
+      'Return compact CourseIR JSON only. Write semantic atoms, not final deliverable prose. Preserve source facts, mark assumptions, and link every lesson to concepts, prerequisite concepts, constraints, outcomes, activities, assessments, and rubric criteria. Each lesson needs outcomes[] objects and activities[] objects; activities must name learnerAction, evidence, mode, conceptIds, and assessmentIds. Each assessment needs rubricCriteria[] objects with label, description, conceptIds, outcomeIds, and performanceLevels.',
     selectedFeatureIds,
     sourcePacket: {
       courseName: courseMap?.courseName || '',
@@ -1738,6 +1982,7 @@ export function planCourseIRGeneration({
 
 export function assessCourseIRDirectAuthoring(validation, { expectedLessons = null, repair = null } = {}) {
   const lessonCount = validation?.stats?.lessons || 0;
+  const assessmentCount = validation?.stats?.assessments || 0;
   const completeLessons = (validation?.coverage?.lessons || []).filter((lesson) => lesson.complete).length;
   const expected = Number.isInteger(expectedLessons) && expectedLessons > 0 ? expectedLessons : 0;
   const blockers = [];
@@ -1749,9 +1994,16 @@ export function assessCourseIRDirectAuthoring(validation, { expectedLessons = nu
   if (expected > 0 && lessonCount < expected) blockers.push(`lesson-count ${lessonCount}/${expected}`);
   if (lessonCount === 0) blockers.push('no-lessons');
   if (completeLessons < lessonCount) blockers.push(`coverage ${completeLessons}/${lessonCount}`);
-  if ((validation?.stats?.assessments || 0) < lessonCount) blockers.push('under-assessed');
+  if (assessmentCount < lessonCount) blockers.push('under-assessed');
   if ((validation?.stats?.outcomes || 0) < lessonCount) blockers.push('thin-outcomes');
   if ((validation?.stats?.activities || 0) < lessonCount * 2) blockers.push('thin-activities');
+  if ((validation?.stats?.rubricCriteria || 0) < assessmentCount * 2) blockers.push('thin-rubrics');
+  if ((validation?.stats?.rubricCriteriaWithLevels || 0) < (validation?.stats?.rubricCriteria || 0)) {
+    blockers.push('thin-rubric-levels');
+  }
+  if ((validation?.stats?.rubricOutcomeLinks || 0) < (validation?.stats?.rubricCriteria || 0)) {
+    blockers.push('unlinked-rubrics');
+  }
   if ((validation?.stats?.factualAnchors || 0) < lessonCount) blockers.push('thin-facts');
   if ((validation?.stats?.workedExamples || 0) < lessonCount) blockers.push('thin-examples');
   if ((validation?.stats?.misconceptionCorrectives || 0) < lessonCount) blockers.push('thin-misconceptions');
@@ -1885,7 +2137,50 @@ export const COURSE_IR_RESPONSE_SCHEMA = {
         },
       },
     },
-    assessments: { type: 'array', items: { type: 'object', additionalProperties: true } },
+    assessments: {
+      type: 'array',
+      items: {
+        type: 'object',
+        additionalProperties: true,
+        required: ['id', 'title', 'lessonIds', 'coverageConceptIds', 'prompt', 'rubricCriteria'],
+        properties: {
+          id: { type: 'string' },
+          title: { type: 'string' },
+          kind: { type: 'string' },
+          lessonIds: { type: 'array', items: { type: 'string' } },
+          coverageConceptIds: { type: 'array', items: { type: 'string' } },
+          prompt: { type: 'string' },
+          rubricCriteria: {
+            type: 'array',
+            items: {
+              type: 'object',
+              additionalProperties: true,
+              required: ['label', 'description', 'conceptIds', 'outcomeIds', 'performanceLevels'],
+              properties: {
+                id: { type: 'string' },
+                label: { type: 'string' },
+                description: { type: 'string' },
+                conceptIds: { type: 'array', items: { type: 'string' } },
+                outcomeIds: { type: 'array', items: { type: 'string' } },
+                performanceLevels: {
+                  type: 'array',
+                  items: {
+                    type: 'object',
+                    additionalProperties: true,
+                    required: ['level', 'description'],
+                    properties: {
+                      level: { type: 'string' },
+                      description: { type: 'string' },
+                      points: { type: ['number', 'null'] },
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    },
     artifactIntents: { type: 'array', items: { type: 'object', additionalProperties: true } },
     handoffNotes: { type: 'array', items: { type: 'object', additionalProperties: true } },
     qualityHints: { type: 'array', items: { type: 'string' } },

@@ -3,23 +3,23 @@ import { APP_VERSION } from './appVersion.js';
 export const CURRENT_RELEASE = {
   version: APP_VERSION,
   date: 'June 19, 2026',
-  title: 'CourseIR Activity Genome: learner work becomes validated atoms',
-  landingTitle: 'CourseIR Activity Genome',
+  title: 'CourseIR Rubric Atoms: assessment criteria become validated brain structure',
+  landingTitle: 'CourseIR Rubric Atoms',
   highlights: [
-    'CourseIR lessons now carry first-class `outcomes[]` and `activities[]` atoms, each linked to concept ids and assessment ids before a lesson can count as complete.',
-    'Compiler repair can still synthesize missing outcome/activity atoms for explicit CourseIR input before deterministic rendering, but the repair is recorded as `added-lesson-outcomes` / `added-lesson-activities` proof.',
-    'Direct provider CourseIR acceptance now rejects prose-derived or repaired learner-work structure instead of letting native/objective/activity prose masquerade as a better curriculum brain.',
-    'CourseIR projection uses authored activity atoms first when building course-map and enrichment surfaces, with deterministic derivation only supplementing or repairing older inputs.',
-    'Native authoring remains compatible with the stricter CourseIR contract, so the current path keeps working while the direct CourseIR path gets a sharper quality boundary.',
+    'CourseIR assessments now carry first-class `rubricCriteria[]` atoms with descriptions, concept links, outcome links, and performance levels before an assessment can count as fully structured.',
+    'Compiler repair can synthesize missing rubric criteria for explicit CourseIR input before deterministic rendering, recording `added-assessment-rubric-criteria` proof instead of hiding the repair.',
+    'Direct provider CourseIR acceptance now rejects repaired or level-less rubric structure, so bare rubric strings no longer masquerade as a complete curriculum brain.',
+    'CourseIR projection feeds rubric criteria into enrichment surfaces and the lesson completeness ledger now counts assessment rubric coverage.',
+    'Native authoring remains compatible with the stricter CourseIR rubric contract, preserving the current path while direct CourseIR gets a sharper assessment-quality boundary.',
   ],
   landingHighlights: [
-    'Outcomes and activities are now CourseIR atoms.',
-    'Learner work links to concepts and assessments.',
-    'Prose-derived activity repair no longer counts as accepted direct authoring.',
+    'Rubric criteria are now CourseIR atoms.',
+    'Criteria link to concepts, outcomes, and levels.',
+    'Repaired rubric strings no longer count as accepted direct authoring.',
   ],
   proof: {
-    contract: 'release-contracts/v0.15.19.json',
-    roadmap: 'docs/V0.15.19_COURSEIR_ACTIVITY_GENOME_ROADMAP.md',
+    contract: 'release-contracts/v0.15.20.json',
+    roadmap: 'docs/V0.15.20_COURSEIR_RUBRIC_ATOMS_ROADMAP.md',
     auditCommand: 'npm run audit:release-history',
   },
 };
@@ -34,6 +34,18 @@ export const CURRENT_RELEASE_CHANGELOG = {
 };
 
 export const HISTORICAL_RELEASE_CHANGELOGS = [
+  {
+    version: '0.15.19',
+    date: 'June 19, 2026',
+    title: 'CourseIR Activity Genome: learner work becomes validated atoms',
+    highlights: [
+      'CourseIR lessons now carry first-class `outcomes[]` and `activities[]` atoms, each linked to concept ids and assessment ids before a lesson can count as complete.',
+      'Compiler repair can still synthesize missing outcome/activity atoms for explicit CourseIR input before deterministic rendering, but the repair is recorded as `added-lesson-outcomes` / `added-lesson-activities` proof.',
+      'Direct provider CourseIR acceptance now rejects prose-derived or repaired learner-work structure instead of letting native/objective/activity prose masquerade as a better curriculum brain.',
+      'CourseIR projection uses authored activity atoms first when building course-map and enrichment surfaces, with deterministic derivation only supplementing or repairing older inputs.',
+      'Native authoring remains compatible with the stricter CourseIR contract, so the current path keeps working while the direct CourseIR path gets a sharper quality boundary.',
+    ],
+  },
   {
     version: '0.15.18',
     date: 'June 19, 2026',

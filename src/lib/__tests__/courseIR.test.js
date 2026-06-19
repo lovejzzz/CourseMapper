@@ -18,6 +18,21 @@ import {
 
 const FEATURE_IDS = ['syllabus', 'lessonPlans', 'quizBank'];
 
+function makeRubricCriteria(assessmentId, labels, conceptIds, outcomeIds) {
+  return labels.map((label, index) => ({
+    id: `${assessmentId}-R${index + 1}`,
+    label,
+    description: `Evaluate ${label} with lesson evidence.`,
+    conceptIds,
+    outcomeIds,
+    performanceLevels: [
+      { level: 'Exceeds', description: `Precise and transferable ${label}.`, points: 4 },
+      { level: 'Meets', description: `Accurate and sufficient ${label}.`, points: 3 },
+      { level: 'Developing', description: `Partial or inconsistent ${label}.`, points: 2 },
+    ],
+  }));
+}
+
 function makeCalculusIR() {
   return {
     version: COURSE_IR_VERSION,
@@ -359,6 +374,12 @@ function makeCalculusIR() {
         coverageConceptIds: ['C1'],
         prompt: 'Analyze one table, one graph, and one symbolic expression to decide whether each limit exists.',
         rubricDimensions: ['approach-behavior evidence', 'function-value distinction', 'clear explanation'],
+        rubricCriteria: makeRubricCriteria(
+          'A1',
+          ['approach-behavior evidence', 'function-value distinction', 'clear explanation'],
+          ['C1'],
+          ['L1-O1', 'L1-O2'],
+        ),
         weightPct: 10,
         provenance: 'courseir',
       },
@@ -370,6 +391,12 @@ function makeCalculusIR() {
         coverageConceptIds: ['C1', 'C2'],
         prompt: 'Compute one derivative from the limit definition and explain each limiting step.',
         rubricDimensions: ['difference quotient setup', 'valid algebra', 'rate interpretation'],
+        rubricCriteria: makeRubricCriteria(
+          'A2',
+          ['difference quotient setup', 'valid algebra', 'rate interpretation'],
+          ['C1', 'C2'],
+          ['L2-O1', 'L2-O2'],
+        ),
         weightPct: 15,
         provenance: 'courseir',
       },
@@ -433,6 +460,9 @@ describe('CourseIR v1', () => {
       workedExamples: 2,
       outcomes: 4,
       activities: 4,
+      rubricCriteria: 6,
+      rubricCriteriaWithLevels: 6,
+      rubricOutcomeLinks: 12,
       sourceLedgerRows: 2,
       constraints: 3,
       prerequisiteLinks: 2,
@@ -566,6 +596,44 @@ describe('CourseIR v1', () => {
     );
   });
 
+  it('repairs missing rubric criteria atoms before compile', () => {
+    const broken = {
+      ...makeCalculusIR(),
+      assessments: makeCalculusIR().assessments.map((assessment) => ({
+        ...assessment,
+        rubricCriteria: [],
+      })),
+    };
+
+    const validation = validateCourseIR(broken);
+    expect(validation.valid).toBe(false);
+    expect(validation.issues.map((entry) => entry.code)).toContain('missing-rubric-criteria');
+
+    const repair = repairCourseIRStructure(broken);
+    const repairedValidation = validateCourseIR(repair.ir);
+    expect(repair.changed).toBe(true);
+    expect(repair.repairs).toEqual(
+      expect.arrayContaining([expect.objectContaining({ code: 'added-assessment-rubric-criteria', count: 2 })]),
+    );
+    expect(repairedValidation.valid).toBe(true);
+    expect(repairedValidation.stats).toMatchObject({
+      rubricCriteria: 6,
+      rubricCriteriaWithLevels: 6,
+    });
+    expect(repairedValidation.coverage.lessons.every((lesson) => lesson.rubricCriteriaCount >= 1)).toBe(true);
+
+    const compiled = compileCourseIR(broken, { featureIds: ['rubrics'] });
+    expect(compiled.courseIRProof).toMatchObject({
+      valid: true,
+      repairedBeforeCompile: true,
+      providerCallsDuringCompile: 0,
+    });
+    expect(compiled.courseIRProof.repairs).toEqual(
+      expect.arrayContaining([expect.objectContaining({ code: 'added-assessment-rubric-criteria' })]),
+    );
+    expect(compiled.deliverables.rubrics).toBeTruthy();
+  });
+
   it('rejects one broad assessment for four lessons and repairs it before compile', () => {
     const broad = makeBroadAssessmentIR();
     const validation = validateCourseIR(broad);
@@ -586,6 +654,7 @@ describe('CourseIR v1', () => {
     );
     expect(repairedValidation.valid).toBe(true);
     expect(repairedValidation.stats.assessments).toBe(4);
+    expect(repairedValidation.stats.rubricCriteria).toBeGreaterThanOrEqual(8);
     expect(new Set(repair.ir.lessons.flatMap((lesson) => lesson.assessmentIds)).size).toBe(4);
 
     const compiled = compileCourseIR(broad, { featureIds: ['syllabus', 'quizBank'] });
@@ -840,6 +909,36 @@ describe('CourseIR v1', () => {
     });
     expect(parsed.acceptance.reason).toContain('repaired-structure');
     expect(parsed.acceptance.reason).toContain('added-lesson-activities');
+  });
+
+  it('rejects repaired rubric criteria as direct provider authoring', () => {
+    const thinRubric = {
+      ...makeCalculusIR(),
+      assessments: makeCalculusIR().assessments.map((assessment) => ({
+        ...assessment,
+        rubricCriteria: assessment.rubricDimensions.map((label, index) => ({
+          id: `${assessment.id}-R${index + 1}`,
+          label,
+          description: label,
+          conceptIds: assessment.coverageConceptIds,
+          outcomeIds: [],
+          performanceLevels: [],
+        })),
+      })),
+    };
+    const parsed = parseCourseIRResponse(JSON.stringify(thinRubric), { expectedLessons: 2 });
+
+    expect(parsed.validation.valid).toBe(true);
+    expect(parsed.repair.changed).toBe(true);
+    expect(parsed.repair.repairs).toEqual(
+      expect.arrayContaining([expect.objectContaining({ code: 'added-assessment-rubric-criteria' })]),
+    );
+    expect(parsed.acceptance).toMatchObject({
+      accepted: false,
+      repairedBeforeAcceptance: true,
+    });
+    expect(parsed.acceptance.reason).toContain('repaired-structure');
+    expect(parsed.acceptance.reason).toContain('added-assessment-rubric-criteria');
   });
 
   it('rejects thin direct CourseIR even when structural validation can pass', () => {
