@@ -2,13 +2,17 @@ import { describe, expect, it } from 'vitest';
 import { compileCourse, gradePackage } from '../../curriculumos/index';
 import {
   COURSE_IR_VERSION,
+  assessCourseIRDirectAuthoring,
   buildCourseIRFromCourseMap,
   buildCourseIRPromptPayload,
   compileCourseIR,
   courseIRToCourseMap,
   courseIRToEnrichmentOverlay,
+  parseCourseIRResponse,
   planCourseIRGeneration,
   repairCourseIRStructure,
+  stashCourseIR,
+  takeCourseIR,
   validateCourseIR,
 } from '../courseIR';
 
@@ -643,5 +647,49 @@ describe('CourseIR v1', () => {
       ]),
     );
     expect(payload.sourcePacket.lessons).toHaveLength(2);
+  });
+
+  it('parses and accepts dense direct CourseIR responses', () => {
+    const parsed = parseCourseIRResponse(`\n\`\`\`json\n${JSON.stringify(makeCalculusIR())}\n\`\`\`\n`, {
+      expectedLessons: 2,
+    });
+
+    expect(parsed.validation.valid).toBe(true);
+    expect(parsed.acceptance).toMatchObject({
+      accepted: true,
+      lessonCount: 2,
+      completeLessons: 2,
+    });
+    expect(parsed.repair.changed).toBe(false);
+  });
+
+  it('rejects thin direct CourseIR even when structural validation can pass', () => {
+    const thin = {
+      ...makeCalculusIR(),
+      lessons: makeCalculusIR().lessons.map((lesson) => ({
+        ...lesson,
+        workedExamples: [],
+      })),
+    };
+    const validation = validateCourseIR(thin);
+    const acceptance = assessCourseIRDirectAuthoring(validation, { expectedLessons: 2 });
+
+    expect(validation.valid).toBe(true);
+    expect(acceptance.accepted).toBe(false);
+    expect(acceptance.reason).toContain('thin-examples');
+  });
+
+  it('hands direct CourseIR across generation and deliverables once, keyed to the rendered map', () => {
+    const ir = makeCalculusIR();
+    const courseMap = courseIRToCourseMap(ir);
+
+    stashCourseIR(ir);
+    expect(takeCourseIR({ courseName: 'Different Course', lessons: courseMap.lessons })).toBeNull();
+    stashCourseIR(ir);
+    expect(takeCourseIR(courseMap)).toMatchObject({
+      version: COURSE_IR_VERSION,
+      course: { title: 'Calculus I - Limits and Derivatives' },
+    });
+    expect(takeCourseIR(courseMap)).toBeNull();
   });
 });

@@ -12,6 +12,7 @@ const PROVIDER_CALL_COUNTERS = [
   'creditCheckCalls',
   'capabilityProbeCalls',
   'courseMapCalls',
+  'courseIRCalls',
   // v0.14.5 WS-B: the native Pass A skeleton call — replaces the course-map
   // call on the native authoring path; a real provider call, so it counts
   // toward cost control like every other counter here.
@@ -60,6 +61,7 @@ export function createApiCallBudget(overrides = {}) {
     creditCheckCalls: overrides.creditCheckCalls || 0,
     capabilityProbeCalls: overrides.capabilityProbeCalls || 0,
     courseMapCalls: overrides.courseMapCalls || 0,
+    courseIRCalls: overrides.courseIRCalls || 0,
     // v0.14.5 WS-B: listed in this constructor EXPLICITLY — every event
     // rebuilds the budget through here, and any field not listed is silently
     // dropped by the next event (the v0.13.1 enrichmentOutcome trap).
@@ -130,6 +132,8 @@ function counterForType(type) {
       return 'capabilityProbeCalls';
     case 'courseMapCall':
       return 'courseMapCalls';
+    case 'courseIRCall':
+      return 'courseIRCalls';
     case 'nativeSkeletonCall':
       return 'nativeSkeletonCalls';
     case 'deliverableChunkCall':
@@ -304,6 +308,9 @@ export function applyApiCallBudgetEvent(currentBudget, event = {}) {
   }
   if (event.type === 'courseMapCall') {
     next.pipeline = { ...next.pipeline, courseMap: event.detail || 'ran' };
+  }
+  if (event.type === 'courseIRCall') {
+    next.pipeline = { ...next.pipeline, courseMap: event.detail || 'direct CourseIR authoring' };
   }
   // v0.14.5 WS-B: Pass A REPLACES the course-map call on the native path —
   // the digest's "course map" pipeline line says so instead of going silent.

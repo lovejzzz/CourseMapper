@@ -32,6 +32,7 @@ describe('apiCallBudget', () => {
   it('counts actual provider attempts across the expanded schema', () => {
     let budget = createApiCallBudget();
     budget = applyApiCallBudgetEvent(budget, { type: 'courseMapCall' });
+    budget = applyApiCallBudgetEvent(budget, { type: 'courseIRCall' });
     budget = applyApiCallBudgetEvent(budget, { type: 'deliverableChunkCall', count: 3 });
     budget = applyApiCallBudgetEvent(budget, { type: 'blueprintEnrichmentCall' });
     budget = applyApiCallBudgetEvent(budget, { type: 'repairRetryCall' });
@@ -42,6 +43,7 @@ describe('apiCallBudget', () => {
 
     expect(budget).toMatchObject({
       courseMapCalls: 1,
+      courseIRCalls: 1,
       deliverableChunkCalls: 3,
       blueprintEnrichmentCalls: 1,
       repairRetryCalls: 1,
@@ -51,7 +53,7 @@ describe('apiCallBudget', () => {
       agentLoopCalls: 1,
       imageGenerationCalls: 2,
     });
-    expect(getApiCallBudgetTotal(budget)).toBe(11);
+    expect(getApiCallBudgetTotal(budget)).toBe(12);
   });
 
   it('drains model setup calls into the next generation run', () => {

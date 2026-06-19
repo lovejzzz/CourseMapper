@@ -12,6 +12,7 @@ import { estimateTokens, getModelLimit } from './tokenEstimator.js';
 
 export const COURSE_IR_VERSION = 'courseir.v1';
 export const COURSE_IR_SCHEMA_NAME = 'course_ir_v1';
+export const COURSE_IR_SYSTEM_PROMPT = `You are CourseMapper's CurriculumV1 authoring engine. Return one compact CourseIR JSON object only: no markdown, no commentary, no final deliverable prose. Encode the curriculum brain as semantic atoms with stable ids, source/provenance status, concept prerequisites, lesson objectives, activities, assessments, examples, misconceptions, constraints, and artifact intent links.`;
 
 const KNOWN_FEATURE_IDS = [
   'syllabus',
@@ -74,6 +75,18 @@ function uniqueStrings(values = [], limit = Infinity) {
     if (result.length >= limit) break;
   }
   return result;
+}
+
+function extractJsonObject(text) {
+  const raw = String(text || '').trim();
+  const start = raw.indexOf('{');
+  const end = raw.lastIndexOf('}');
+  if (start < 0 || end <= start) return null;
+  try {
+    return JSON.parse(raw.slice(start, end + 1));
+  } catch {
+    return null;
+  }
 }
 
 function normalizeId(value, fallbackPrefix, index) {
@@ -1303,6 +1316,8 @@ export function buildCourseIRPromptPayload({
   courseMap,
   sourceText = '',
   selectedFeatureIds = KNOWN_FEATURE_IDS,
+  expectedLessons = null,
+  sourceTextCharLimit = 24000,
 } = {}) {
   return {
     task: 'courseir-v1',
@@ -1323,7 +1338,8 @@ export function buildCourseIRPromptPayload({
           syncActivities: cleanText(section?.syncActivities, 600),
         })),
       })),
-      sourceText: cleanText(sourceText, 8000),
+      sourceText: cleanText(sourceText, sourceTextCharLimit),
+      expectedLessons: Number.isInteger(expectedLessons) && expectedLessons > 0 ? expectedLessons : null,
     },
     outputContract: COURSE_IR_RESPONSE_SCHEMA,
   };
@@ -1347,7 +1363,7 @@ export function planCourseIRGeneration({
     0,
     Number(expectedLessons) || (Array.isArray(courseMap?.lessons) ? courseMap.lessons.length : 0),
   );
-  const payload = buildCourseIRPromptPayload({ courseMap, sourceText });
+  const payload = buildCourseIRPromptPayload({ courseMap, sourceText, expectedLessons: lessonCount || null });
   const estimatedInputTokens = estimateTokens(JSON.stringify(payload.sourcePacket));
   const contextLimit =
     modelCapabilities?.limits?.contextWindow || modelCapabilities?.contextWindow || getModelLimit(modelId);
@@ -1396,6 +1412,67 @@ export function planCourseIRGeneration({
     wholeCourseFits,
     reserves: { inputReserveTokens, outputReserveTokens },
   };
+}
+
+export function assessCourseIRDirectAuthoring(validation, { expectedLessons = null } = {}) {
+  const lessonCount = validation?.stats?.lessons || 0;
+  const completeLessons = (validation?.coverage?.lessons || []).filter((lesson) => lesson.complete).length;
+  const expected = Number.isInteger(expectedLessons) && expectedLessons > 0 ? expectedLessons : 0;
+  const blockers = [];
+  if (!validation?.valid) blockers.push('validation-blockers');
+  if (expected > 0 && lessonCount < expected) blockers.push(`lesson-count ${lessonCount}/${expected}`);
+  if (lessonCount === 0) blockers.push('no-lessons');
+  if (completeLessons < lessonCount) blockers.push(`coverage ${completeLessons}/${lessonCount}`);
+  if ((validation?.stats?.assessments || 0) < lessonCount) blockers.push('under-assessed');
+  if ((validation?.stats?.factualAnchors || 0) < lessonCount) blockers.push('thin-facts');
+  if ((validation?.stats?.workedExamples || 0) < lessonCount) blockers.push('thin-examples');
+  if ((validation?.stats?.misconceptionCorrectives || 0) < lessonCount) blockers.push('thin-misconceptions');
+  if ((validation?.stats?.constraints || 0) < lessonCount + 1) blockers.push('thin-constraints');
+  return {
+    accepted: blockers.length === 0,
+    reason: blockers.length === 0 ? 'accepted' : blockers.join('; '),
+    lessonCount,
+    completeLessons,
+  };
+}
+
+export function parseCourseIRResponse(text, { expectedLessons = null } = {}) {
+  const parsed = extractJsonObject(text);
+  if (!parsed) {
+    throw new CourseIRValidationError([
+      issue('blocker', 'courseir-unparseable', 'response', 'Provider returned no parseable CourseIR JSON object.'),
+    ]);
+  }
+  const initialValidation = validateCourseIR(parsed);
+  const repair = repairCourseIRStructure(initialValidation.ir);
+  const validation = repair.changed ? validateCourseIR(repair.ir) : initialValidation;
+  if (!validation.valid) throw new CourseIRValidationError(validation.issues);
+  return {
+    ir: validation.ir,
+    validation,
+    repair,
+    acceptance: assessCourseIRDirectAuthoring(validation, { expectedLessons }),
+  };
+}
+
+let stashedCourseIR = null;
+
+export function stashCourseIR(courseIR) {
+  stashedCourseIR = courseIR || null;
+}
+
+export function takeCourseIR(courseMap) {
+  const courseIR = stashedCourseIR;
+  stashedCourseIR = null;
+  if (!courseIR) return null;
+  const ir = normalizeCourseIR(courseIR);
+  if (
+    cleanText(courseMap?.courseName).toLowerCase() !== cleanText(ir.course?.title).toLowerCase() ||
+    (courseMap?.lessons || []).length !== ir.lessons.length
+  ) {
+    return null;
+  }
+  return ir;
 }
 
 export const COURSE_IR_RESPONSE_SCHEMA = {

@@ -6,16 +6,8 @@ import {
   buildUserPrompt,
   EXAMINE_SYSTEM_PROMPT,
   buildExamineUserPrompt,
-  NATIVE_SKELETON_SYSTEM_PROMPT,
-  buildNativeSkeletonUserPrompt,
 } from '../lib/prompts';
-import {
-  NativeAuthoringError,
-  buildNativeWireMap,
-  parseNativeSkeletonResponse,
-  readAuthoringMode,
-  stashNativeSkeleton,
-} from '../lib/nativeGraphAuthoring';
+import { readAuthoringMode } from '../lib/authoringMode';
 import { checkTokenLimit, truncateToFit } from '../lib/tokenEstimator';
 import { detectExpectedLessons } from '../lib/detectLessons';
 import useStreamReader from './useStreamReader';
@@ -940,119 +932,56 @@ Generate lessons ${actual + 1} through ${expectedCount} now as JSON:`;
           await new Promise((r) => setTimeout(r, 400));
           setProgressStep('generating');
 
-          // ── v0.14.5 WS-B (B1): native graph authoring — Pass A, flag-gated.
-          // 'coursemapper-authoring-mode' = 'native' replaces the prose
-          // course-map call with ONE low-reasoning typed-skeleton call; Pass B
-          // (useDeliverables) authors content onto the skeleton's session ids.
-          // Gated to full-course runs on structured-output (lean-capable)
-          // models, never on a degraded plan. ANY failure falls back to the
-          // prose path below LOUDLY ('nativeAuthoringFellBack') — never silent.
-          if (
+          // ── v0.15.17: CourseIR direct authoring — the intended one-call
+          // CurriculumV1 path. It runs only when the model/output planner says
+          // a whole-course IR object fits; thin or malformed CourseIR falls
+          // through to the existing native skeleton/prose fallback loudly.
+          const nativeAuthoringRequested =
             readAuthoringMode() === 'native' &&
             !scopeIndices &&
             leanCourseMap &&
             !generationPlan?.planDegraded &&
-            !isReconstruct
-          ) {
-            try {
-              const skeletonSource = tokenCheck.fits ? combinedText : truncateToFit(combinedText, modelId).text;
-              const skeletonUserPrompt = buildNativeSkeletonUserPrompt(skeletonSource, {
-                expectedLessons: detected?.expected || null,
-                confidence: detected?.confidence || null,
-              });
-              fullTextRef.current = '';
-              recordApiCallEvent({
-                type: 'nativeSkeletonCall',
-                label: 'Native graph authoring — Pass A skeleton',
-                detail: `${currentModelName} · typed skeleton (sessions, assessments, readings, resources)`,
-              });
-              const skeletonResult = await streamProvider(
+            !isReconstruct;
+          if (nativeAuthoringRequested) {
+            const { runNativeAuthoring } = await import('../lib/courseIRAuthoringRuntime');
+            const nativeMap = await runNativeAuthoring(
+              [
+                tokenCheck.fits ? combinedText : truncateToFit(combinedText, modelId).text,
                 provider,
                 apiKey,
                 modelId,
-                NATIVE_SKELETON_SYSTEM_PROMPT,
-                skeletonUserPrompt,
-                {
-                  maxOutputTokens: generationPlan?.courseMapOutputTokens || maxOutputTokens,
-                  modelCapabilities,
-                  generationPlan,
-                  // No taskEffortMap entry for 'nativeSkeleton' → the map's
-                  // default tier ('low') — Pass A's low-reasoning contract.
-                  task: 'nativeSkeleton',
-                  onApiCallEvent: recordApiCallEvent,
-                  onChunk: (text, count) => {
-                    fullTextRef.current = text;
-                    updateGenerationProgress(text, count);
-                  },
-                },
-              );
-              const skeleton = parseNativeSkeletonResponse(skeletonResult?.fullText || '', {
-                expectedLessons: detected?.confidence === 'high' ? detected?.expected || null : null,
-                // v0.14.7 WS-B1: stamp the brief-side resource signal so the
-                // compile-stage missing-resources lint (resolveNativeAssembly)
-                // can hold Pass A to the transcription contract.
-                sourceText: skeletonSource,
-              });
-              const nativeMap = buildNativeWireMap(skeleton);
-              // Hand the skeleton to the deliverables stage (Pass B + assembly).
-              stashNativeSkeleton(skeleton);
-              workingModelRef.current = { provider, apiKey, modelId };
-              setCourseMap(nativeMap);
-              courseMapRef.current = nativeMap;
-              setIsStreaming(false);
-              setStreamDetail('');
-              stoppedTextRef.current = '';
-              stoppedPromptRef.current = null;
-              pushVersion(nativeMap, 'Initial generation (native graph authoring)');
-              addLog(
+                maxOutputTokens,
+                modelCapabilities,
+                generationPlan,
                 currentModelName,
-                `Pass A skeleton: ${skeleton.sessions.length} sessions, ${skeleton.assessments.length} assessments, ${skeleton.readings.length} named readings, ${(skeleton.resources || []).length} resources`,
-                'success',
-              );
-              setCompletenessInfo({
-                expected: detected?.expected || skeleton.sessions.length,
-                actual: skeleton.sessions.length,
-                confidence: detected?.confidence || 'high',
-                status: detected?.expected && skeleton.sessions.length < detected.expected ? 'incomplete' : 'complete',
-              });
-              // The examine pass would only flag the (intentionally) thin
-              // skeleton cells Pass B is about to author — skip it explicitly.
-              setOldCourseMap(null);
-              setExamChanges([]);
-              setPendingExamPatches(null);
-              recordApiCallEvent({
-                type: 'skippedExamine',
-                label: 'Skipped course-map review',
-                detail: 'native authoring — Pass B authors lesson content next',
-              });
-              setStreamProgress(100);
-              setProgressStep('done');
-              setStatus('done');
-              setUserEdits([]);
-              try {
-                localStorage.removeItem(STREAM_SAVE_KEY);
-              } catch {}
-              return nativeMap;
-            } catch (nativeErr) {
-              if (nativeErr?.name === 'AbortError') throw nativeErr;
-              const reason =
-                nativeErr instanceof NativeAuthoringError
-                  ? `${nativeErr.code}: ${nativeErr.message}`
-                  : nativeErr?.message || 'unknown error';
-              stashNativeSkeleton(null);
-              recordApiCallEvent({
-                type: 'nativeAuthoringFellBack',
-                label: 'Native authoring fell back to prose',
-                detail: reason,
-              });
-              addLog(
-                currentModelName,
-                `Native graph authoring failed (${reason}) — falling back to the prose course-map path`,
-                'warning',
-              );
-              setIsStreaming(true);
-              setStreamProgress(0);
-            }
+                streamProvider,
+                recordApiCallEvent,
+                updateGenerationProgress,
+                fullTextRef,
+                detected,
+                STREAM_SAVE_KEY,
+              ],
+              [
+                workingModelRef,
+                setCourseMap,
+                courseMapRef,
+                setIsStreaming,
+                setStreamDetail,
+                stoppedTextRef,
+                stoppedPromptRef,
+                pushVersion,
+                addLog,
+                setCompletenessInfo,
+                setOldCourseMap,
+                setExamChanges,
+                setPendingExamPatches,
+                setStreamProgress,
+                setProgressStep,
+                setStatus,
+                setUserEdits,
+              ],
+            );
+            if (nativeMap) return nativeMap;
           }
 
           fullTextRef.current = '';

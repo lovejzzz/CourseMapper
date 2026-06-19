@@ -44,38 +44,7 @@ import { attachEnrichmentToGraph } from './courseGraph/blueprintFromGraph.js';
 import { buildCourseIRFromCourseMap, courseIRToCourseGraph, validateCourseIR } from './courseIR.js';
 import { repairNativeFallbackWithCurriculumV1 } from './curriculumV1Repair.js';
 import { NATIVE_PASS_B_AUTHORING_ADDITION } from './prompts';
-
-// ── B3: the authoring-mode flag ─────────────────────────────────────────────
-// localStorage/dev setting, same channel discipline as enrichmentPreference:
-// read where generation starts, no UI. 'native' is the default; 'prose' is
-// the explicit compatibility fallback.
-export const AUTHORING_MODE_STORAGE_KEY = 'coursemapper-authoring-mode';
-
-export function readAuthoringMode() {
-  // v0.15.1 F1 — THE FLIP, cashed June 12, 2026 at the user's direction
-  // (different-day letter waived; the rule's purpose is met by the trail):
-  //   day 1 (v0.14.7): native met the bar (100/A, 0 P1, −22% cost);
-  //   day 2 AM (v0.14.9 C1): FAILED on mandarin (93 placeholder P1s) —
-  //     root-caused to the no-readings fallback, fixed, validated same day;
-  //   day 2 PM (v0.15.1): all three courses 100/A · 0 P1 · −35% avg cost ·
-  //     ~2× faster, and mandarin's native arm out-judged its prose twin.
-  // Prose stays the LOUD fallback: an explicit 'prose' opt-out wins, and
-  // every native fellBack reason still discloses itself in the digest.
-  try {
-    return localStorage.getItem(AUTHORING_MODE_STORAGE_KEY) === 'prose' ? 'prose' : 'native';
-  } catch {
-    return 'native';
-  }
-}
-
-export function saveAuthoringMode(mode) {
-  try {
-    if (mode === 'prose') localStorage.setItem(AUTHORING_MODE_STORAGE_KEY, 'prose');
-    else localStorage.removeItem(AUTHORING_MODE_STORAGE_KEY);
-  } catch {
-    /* storage unavailable — the default ('native') applies */
-  }
-}
+export { AUTHORING_MODE_STORAGE_KEY, readAuthoringMode, saveAuthoringMode } from './authoringMode.js';
 
 // ── Typed failure: the degraded-plan guard ──────────────────────────────────
 // A malformed skeleton must fail LOUDLY and fall back to the prose path —

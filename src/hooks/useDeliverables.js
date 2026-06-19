@@ -1,7 +1,5 @@
 import { useState, useCallback, useMemo, useRef, useContext, useEffect } from 'react';
 import useStreamReader from './useStreamReader';
-import { getDeliverablePrompt } from '../lib/deliverablePrompts';
-import { getDeliverableResponseSchema } from '../lib/deliverableSchemas';
 import { getArrayKey } from '../lib/syncDependencies';
 import {
   PER_ASSESSMENT_REGEN_FEATURES,
@@ -68,12 +66,11 @@ import {
 } from '../lib/deliverablePostProcess';
 import { repairCourseMapReadiness } from '../lib/deliverableReadiness';
 import { enrichmentPreferenceOverride } from '../lib/enrichmentPreference';
-import { readAuthoringMode, takeNativeSkeleton } from '../lib/nativeGraphAuthoring';
+import { readAuthoringMode } from '../lib/authoringMode';
 import { buildApiCostPlan, isNonRetryableFailureClass } from '../lib/apiCostControl';
 import { buildJudgmentStageEvent, formatEnrichmentOutcomeLabel } from '../lib/apiCallBudget';
 import { classifyError } from '../lib/failureClassification';
 import { traceLog } from '../lib/traceLog';
-import { getAdaptiveNativePassBBatchSize, getNativePassBOutputTokenBudget } from '../lib/adaptiveProviderBatching';
 
 const PROVIDER_CALL_EVENT_TYPES = new Set([
   'deliverableChunkCall',
@@ -91,6 +88,16 @@ const PROVIDER_CALL_EVENT_TYPES = new Set([
 function getProviderCallEventCount(event = {}) {
   if (!PROVIDER_CALL_EVENT_TYPES.has(event.type)) return 0;
   return Number.isFinite(event.count) ? Math.max(0, event.count) : 1;
+}
+
+async function getDeliverablePrompt(...args) {
+  const prompts = await import('../lib/deliverablePrompts');
+  return prompts.getDeliverablePrompt(...args);
+}
+
+async function getDeliverableResponseSchema(featureId) {
+  const schemas = await import('../lib/deliverableSchemas');
+  return schemas.getDeliverableResponseSchema(featureId);
 }
 
 async function loadInstructorPreferenceProfile() {
@@ -599,15 +606,18 @@ export default function useDeliverables({
       // plan now mirrors the actual adaptive batcher instead of over-quoting
       // provider calls for GPT-5.4-mini-class models.
       const enrichmentLessonCount = Array.isArray(scopeIndices) ? scopeIndices.length : lessonCount;
-      const plannedNativePassBBatchSize =
+      const nativeBatchingPlan =
         readAuthoringMode() === 'native' && costMode !== 'finalizerRetry' && !Array.isArray(scopeIndices)
-          ? getAdaptiveNativePassBBatchSize({
-              lessonCount: enrichmentLessonCount,
-              maxOutputTokens,
-              generationPlan,
-              modelCapabilities,
-            })
-          : 4;
+          ? await import('../lib/adaptiveProviderBatching')
+          : null;
+      const plannedNativePassBBatchSize = nativeBatchingPlan
+        ? nativeBatchingPlan.getAdaptiveNativePassBBatchSize({
+            lessonCount: enrichmentLessonCount,
+            maxOutputTokens,
+            generationPlan,
+            modelCapabilities,
+          })
+        : 4;
       const plannedEnrichmentCalls = !blueprintEnrichmentRequested
         ? 0
         : generationOptions.lessonContentEnrichment !== false
@@ -1205,7 +1215,12 @@ export default function useDeliverables({
             const [
               { buildNativePassBPrompt, parseNativePassBResponse },
               { buildBlueprintEnrichmentPayload, normalizeAbsorbedCourseLevel },
-            ] = await Promise.all([import('../lib/nativeGraphAuthoring'), import('../lib/blueprintEnrichmentPass')]);
+              nativeBatching,
+            ] = await Promise.all([
+              import('../lib/nativeGraphAuthoring'),
+              import('../lib/blueprintEnrichmentPass'),
+              import('../lib/adaptiveProviderBatching'),
+            ]);
             const lessonContent = { ...(genomeLink?.lessonContent || {}) };
             const partialOverlays = genomeLink?.partialOverlays || {};
             const genomeTelemetry = genomeLink?.telemetry || null;
@@ -1221,7 +1236,7 @@ export default function useDeliverables({
                 .filter((lessonId) => lessonContent[lessonId] && !partialOverlays[lessonId]),
             );
             let absorbedCourseLevel = null;
-            const chunkSize = getAdaptiveNativePassBBatchSize({
+            const chunkSize = nativeBatching.getAdaptiveNativePassBBatchSize({
               lessonCount: allLessonIndices.length,
               maxOutputTokens,
               generationPlan,
@@ -1257,7 +1272,7 @@ export default function useDeliverables({
                 generationPlan,
                 featureId: 'blueprintEnrichment',
                 task: 'blueprintEnrichment',
-                maxOutputTokens: getNativePassBOutputTokenBudget({
+                maxOutputTokens: nativeBatching.getNativePassBOutputTokenBudget({
                   lessonCount: chunk.length,
                   maxOutputTokens,
                   generationPlan,
@@ -1861,8 +1876,17 @@ export default function useDeliverables({
         // still an UN-authored skeleton with no stash is a real fallback —
         // and that one is loud, never silent.
         const authoringNative = readAuthoringMode() === 'native' && costMode !== 'finalizerRetry';
-        const nativeSkeleton = authoringNative ? takeNativeSkeleton(courseMap) : null;
-        if (authoringNative && !nativeSkeleton) {
+        let directCourseIRResult = null;
+        if (authoringNative) {
+          const { takeDirectCourseIRCompileState } = await import('../lib/courseIRAuthoringRuntime');
+          directCourseIRResult = takeDirectCourseIRCompileState(courseMap, [recordGenerationApiCallEvent, appendLog]);
+        }
+        const directCourseIR = directCourseIRResult?.courseIR || null;
+        const nativeSkeleton =
+          authoringNative && !directCourseIR
+            ? (await import('../lib/nativeGraphAuthoring')).takeNativeSkeleton(courseMap)
+            : null;
+        if (authoringNative && !directCourseIR && !nativeSkeleton) {
           const mapLooksUnauthored = !(courseMap.lessons || []).some((lesson) =>
             (lesson?.sections || []).some((section) => {
               const objectives = section?.learningObjectives;
@@ -1885,13 +1909,14 @@ export default function useDeliverables({
         // repair would template-fill it. The native path now validates the
         // assembled map through CurriculumV1, so this early map repair remains
         // prose-path-only.
-        const courseMapRepair = nativeSkeleton
-          ? { courseMap, changed: false, repairedFields: [] }
-          : repairCourseMapReadiness({
-              courseMap,
-              columns,
-              lessonFilter: scopeIndices,
-            });
+        const courseMapRepair =
+          nativeSkeleton || directCourseIR
+            ? { courseMap, changed: false, repairedFields: [] }
+            : repairCourseMapReadiness({
+                courseMap,
+                columns,
+                lessonFilter: scopeIndices,
+              });
         const blueprintCourseMap = courseMapRepair.courseMap || courseMap;
         if (courseMapRepair.changed) {
           appendLog(
@@ -1909,7 +1934,15 @@ export default function useDeliverables({
             repairedFields: courseMapRepair.repairedFields,
           });
         }
-        const blueprintEnrichment = await runBlueprintEnrichment(blueprintCourseMap, nativeSkeleton);
+        let directCourseIRState = null;
+        let blueprintEnrichment = null;
+        if (directCourseIRResult?.state) {
+          directCourseIRState = directCourseIRResult.state;
+          blueprintEnrichment = directCourseIRResult.blueprintEnrichment;
+        }
+        if (!directCourseIRState) {
+          blueprintEnrichment = await runBlueprintEnrichment(blueprintCourseMap, nativeSkeleton);
+        }
         // v0.12.1: structured outcome for the run digest's content-risk
         // gate — string parsing of `detail` is too fragile to gate on.
         // v0.14.1 P2.2: the outcome carries per-lesson coverage (requested +
@@ -1969,7 +2002,19 @@ export default function useDeliverables({
         // before compile; unrecoverable assembly failures still fall back
         // loudly instead of reaching the compiler as an uncaught throw.
         let nativeFallbackMap = null;
-        if (nativeSkeleton) {
+        if (directCourseIRState) {
+          courseGraph = directCourseIRState.graph;
+          recordGenerationApiCallEvent({
+            type: 'pipelineDecision',
+            stage: 'courseIRAuthoring',
+            label: 'CourseIR',
+            detail: `compiled ${directCourseIRState.validation.stats.lessons}/${directCourseIRState.validation.stats.concepts}/${directCourseIRState.validation.stats.assessments}`,
+          });
+          appendLog(`✓ CourseIR compiled (${directCourseIRState.validation.stats.lessons} lessons)`, 'done');
+          traceGeneration(generationRunId, 'courseir_direct_source_truth', {
+            stats: directCourseIRState.validation.stats,
+          });
+        } else if (nativeSkeleton) {
           const { resolveNativeAssembly } = await import('../lib/nativeGraphAuthoring');
           const resolution = resolveNativeAssembly({
             skeleton: nativeSkeleton,
@@ -2458,7 +2503,7 @@ export default function useDeliverables({
             styleExemplar = JSON.stringify(firstItem, null, 2).slice(0, 1200);
           }
         }
-        const prompts = getDeliverablePrompt(
+        const prompts = await getDeliverablePrompt(
           featureId,
           courseMap,
           chunkScope,
@@ -2488,7 +2533,7 @@ export default function useDeliverables({
           let lastParseTime = 0;
           let lastProgressLogChars = 0;
           const initialRetryLimit = getStreamRetryLimit(generationPlan, 'initial');
-          const responseSchema = getDeliverableResponseSchema(featureId);
+          const responseSchema = await getDeliverableResponseSchema(featureId);
           const outputBudget = getFeatureOutputBudget(featureId, maxOutputTokens, generationPlan);
 
           if (!hasProviderCallBudget()) {
@@ -2892,7 +2937,7 @@ export default function useDeliverables({
               blockers: validation.blockers,
             });
 
-            const prompts = getDeliverablePrompt(
+            const prompts = await getDeliverablePrompt(
               fid,
               courseMap,
               null,
@@ -2939,7 +2984,7 @@ export default function useDeliverables({
                 generationPlan,
                 featureId: fid,
                 task: 'repair',
-                schema: getDeliverableResponseSchema(fid),
+                schema: await getDeliverableResponseSchema(fid),
                 allowProviderFallback: maxProviderCalls === null || getRemainingProviderCalls() > 0,
                 onApiCallEvent: recordGenerationApiCallEvent,
                 onChunk: (t) => {
@@ -3480,7 +3525,7 @@ export default function useDeliverables({
                 appendLog(`Retrying ${retryLabel}...`, 'progress');
 
                 const config = getGenerationConfig(fid);
-                const prompts = getDeliverablePrompt(
+                const prompts = await getDeliverablePrompt(
                   fid,
                   courseMap,
                   retryScope,
@@ -3540,7 +3585,7 @@ export default function useDeliverables({
                       generationPlan,
                       featureId: fid,
                       task: 'repair',
-                      schema: getDeliverableResponseSchema(fid),
+                      schema: await getDeliverableResponseSchema(fid),
                       allowProviderFallback: maxProviderCalls === null || getRemainingProviderCalls() > 0,
                       onApiCallEvent: recordGenerationApiCallEvent,
                       onChunk: (t) => {
@@ -3708,7 +3753,7 @@ export default function useDeliverables({
                       retryEditContext = `Regenerate the rubric/assignment for the assessment associated with: "${lesson.title}". Do not change other assessments.`;
                     }
                   }
-                  const prompts = getDeliverablePrompt(
+                  const prompts = await getDeliverablePrompt(
                     fid,
                     courseMap,
                     [idx],
@@ -3762,7 +3807,7 @@ export default function useDeliverables({
                         generationPlan,
                         featureId: fid,
                         task: 'repair',
-                        schema: getDeliverableResponseSchema(fid),
+                        schema: await getDeliverableResponseSchema(fid),
                         allowProviderFallback: maxProviderCalls === null || getRemainingProviderCalls() > 0,
                         onApiCallEvent: recordGenerationApiCallEvent,
                         onChunk: (t) => {
@@ -4716,7 +4761,7 @@ export default function useDeliverables({
         }
 
         const regenConfig = getGenerationConfig(featureId);
-        const prompts = getDeliverablePrompt(
+        const prompts = await getDeliverablePrompt(
           featureId,
           courseMap,
           [lessonIndex],
@@ -4789,7 +4834,7 @@ export default function useDeliverables({
           generationPlan,
           featureId,
           task: 'repair',
-          schema: getDeliverableResponseSchema(featureId),
+          schema: await getDeliverableResponseSchema(featureId),
           allowProviderFallback: maxProviderCalls === null || getRemainingProviderCalls() > 0,
           onApiCallEvent: recordRegenerationApiCallEvent,
           onChunk: (accumulatedText) => {

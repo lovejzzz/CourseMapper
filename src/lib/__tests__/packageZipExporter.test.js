@@ -192,6 +192,49 @@ describe('packageZipExporter', () => {
     });
   });
 
+  it('includes direct CourseIR authoring proof in the package manifest', async () => {
+    const result = await buildCourseMaterialsZip({
+      courseMap: makeCourseMap('Direct CourseIR Export Proof'),
+      deliverables: {
+        lessonPlans: {
+          status: 'done',
+          data: {
+            lessonPlans: [{ lessonTitle: 'Lesson 1: Source Truth', objectives: ['Compile from CourseIR.'] }],
+          },
+        },
+      },
+      featureIds: ['courseMap', 'lessonPlans'],
+      courseGraph: {
+        courseIR: {
+          version: 'courseir.v1',
+          lessonIds: ['L1'],
+          conceptIds: ['C1', 'C2'],
+          assessmentIds: ['A1'],
+          directAuthoring: {
+            source: 'provider-courseir',
+            projectedThrough: 'curriculumv1',
+            accepted: true,
+          },
+        },
+      },
+    });
+
+    const zip = await JSZip.loadAsync(await result.blob.arrayBuffer());
+    const manifest = JSON.parse(await zip.file('PACKAGE_MANIFEST.json').async('string'));
+
+    expect(manifest.courseIR).toEqual({
+      version: 'courseir.v1',
+      lessonCount: 1,
+      conceptCount: 2,
+      assessmentCount: 1,
+      directAuthoring: {
+        source: 'provider-courseir',
+        projectedThrough: 'curriculumv1',
+        accepted: true,
+      },
+    });
+  });
+
   it('uses custom deliverable names in ZIP paths and manifest labels', async () => {
     const result = await buildCourseMaterialsZip({
       courseMap: makeCourseMap(),

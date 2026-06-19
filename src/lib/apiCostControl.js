@@ -5,6 +5,7 @@ const PROVIDER_CALL_COUNTERS = [
   'creditCheckCalls',
   'capabilityProbeCalls',
   'courseMapCalls',
+  'courseIRCalls',
   'deliverableChunkCalls',
   'repairRetryCalls',
   'streamRetryCalls',

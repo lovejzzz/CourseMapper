@@ -3,23 +3,23 @@ import { APP_VERSION } from './appVersion.js';
 export const CURRENT_RELEASE = {
   version: APP_VERSION,
   date: 'June 19, 2026',
-  title: 'CurriculumV1 Source Truth: healthy native plans compile from the brain',
-  landingTitle: 'CurriculumV1 Source Truth',
+  title: 'CourseIR Direct Authoring: whole-course brain can own the compile',
+  landingTitle: 'CourseIR Direct Authoring',
   highlights: [
-    'Healthy native assembly now validates the Pass A/Pass B wire map as CourseIR and projects the compile graph from CurriculumV1 before any deliverable compiler runs.',
-    'Native source surfaces stay honest during that projection: real instructor readings remain readings, real resources remain resources, and CourseIR support notes no longer inflate the resource registry.',
-    'The run digest/log trail now marks healthy native generation as a CurriculumV1 source graph, while repaired sparse plans keep their explicit CurriculumV1 repair disclosure.',
-    'Downloaded package manifests now include `courseIR.nativeAssembly` proof for healthy native CourseIR projection, including whether later map edits occurred after projection.',
-    'Course-map edits on CurriculumV1-projected native graphs keep stable native entity ids, preserving the B4 re-derive behavior while the graph remains marked as CourseIR-authored.',
+    'Direct CourseIR authoring now runs before native skeleton authoring when native mode is active and the selected model has enough context/output capacity for one whole-course CurriculumV1 object.',
+    'Thin CourseIR is rejected even when structural JSON validation passes: accepted direct CourseIR must cover lessons with concepts, assessments, factual anchors, worked examples, constraints, and misconception correctives.',
+    'Accepted CourseIR crosses from generation to deliverables as a single-use, course-keyed source object and compiles through CurriculumV1 projection without native Pass B provider calls.',
+    'Downloaded package manifests can now disclose `courseIR.directAuthoring` proof separately from `courseIR.nativeAssembly` repair/projection proof.',
+    'The release roadmap names the quality boundary clearly: genome-linked content is important, but the better curriculum brain is the dense validated CourseIR object plus compiler expansion, not a shallow giant-call JSON blob.',
   ],
   landingHighlights: [
-    'Healthy native plans compile from a validated CourseIR brain.',
-    'Readings/resources stay honest through CurriculumV1 projection.',
-    'ZIP manifests disclose healthy native CourseIR projection proof.',
+    'Large-output models can author one accepted CourseIR brain before compile.',
+    'Thin CourseIR falls back loudly instead of shipping quietly.',
+    'ZIP manifests disclose direct CourseIR authoring proof.',
   ],
   proof: {
-    contract: 'release-contracts/v0.15.16.json',
-    roadmap: 'docs/V0.15.16_CURRICULUMV1_SOURCE_TRUTH_ROADMAP.md',
+    contract: 'release-contracts/v0.15.17.json',
+    roadmap: 'docs/V0.15.17_COURSEIR_DIRECT_AUTHORING_ROADMAP.md',
     auditCommand: 'npm run audit:release-history',
   },
 };
@@ -34,6 +34,18 @@ export const CURRENT_RELEASE_CHANGELOG = {
 };
 
 export const HISTORICAL_RELEASE_CHANGELOGS = [
+  {
+    version: '0.15.16',
+    date: 'June 19, 2026',
+    title: 'CurriculumV1 Source Truth: healthy native plans compile from the brain',
+    highlights: [
+      'Healthy native assembly now validates the Pass A/Pass B wire map as CourseIR and projects the compile graph from CurriculumV1 before any deliverable compiler runs.',
+      'Native source surfaces stay honest during that projection: real instructor readings remain readings, real resources remain resources, and CourseIR support notes no longer inflate the resource registry.',
+      'The run digest/log trail now marks healthy native generation as a CurriculumV1 source graph, while repaired sparse plans keep their explicit CurriculumV1 repair disclosure.',
+      'Downloaded package manifests now include `courseIR.nativeAssembly` proof for healthy native CourseIR projection, including whether later map edits occurred after projection.',
+      'Course-map edits on CurriculumV1-projected native graphs keep stable native entity ids, preserving the B4 re-derive behavior while the graph remains marked as CourseIR-authored.',
+    ],
+  },
   {
     version: '0.15.15',
     date: 'June 19, 2026',

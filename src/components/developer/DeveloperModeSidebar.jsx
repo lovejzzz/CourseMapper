@@ -85,6 +85,7 @@ function ApiCallBudgetCard({ budget }) {
     ['Credit checks', budget.creditCheckCalls || 0],
     ['Capability probes', budget.capabilityProbeCalls || 0],
     ['Course map', budget.courseMapCalls || 0],
+    ['CourseIR', budget.courseIRCalls || 0],
     ['Deliverable chunks', budget.deliverableChunkCalls || 0],
     ['Blueprint enrichment', budget.blueprintEnrichmentCalls || 0],
     ['Repair/retry', budget.repairRetryCalls || 0],

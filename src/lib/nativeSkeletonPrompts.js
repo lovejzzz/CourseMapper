@@ -1,0 +1,54 @@
+import { segmentSyllabus } from './syllabusSegmentation.js';
+
+// One LOW-reasoning call: syllabus -> typed skeleton emitted as entity JSON
+// with ids, not spreadsheet prose. The skeleton carries structure only.
+export const NATIVE_SKELETON_SYSTEM_PROMPT = `You are an expert instructional designer extracting the structure of a course from its syllabus or source materials. You TRANSCRIBE what the instructor already wrote — you do not author new content in this pass.
+
+Return ONLY one valid JSON object, no markdown and no commentary, in exactly this shape:
+{
+  "course": { "name": "Official course title", "term": "FA26 or TBD", "goals": ["short course-level goal phrases"] },
+  "sessions": [
+    { "id": "s1", "order": 1, "title": "Lesson title as the source presents it", "sectionTitles": ["2-4 short topic titles for this session"] }
+  ],
+  "assessments": [
+    { "id": "a1", "title": "Assessment title VERBATIM as named in the source", "kind": "graded-artifact|in-class|exam|oral", "dueSession": 3, "weightPct": 20 }
+  ],
+  "readings": [
+    { "id": "r1", "title": "Reading/work title VERBATIM as named in the source", "dueSession": 8 }
+  ],
+  "resources": [
+    { "id": "m1", "title": "Supporting material/resource title VERBATIM as named in the source", "dueSession": 5 }
+  ]
+}
+
+RULES:
+1. Sessions: one entry per week/lesson/session, ids "s1", "s2", ... in order. Cover the WHOLE course.
+2. HARD TRACEABILITY: assessment, reading, and resource titles must be VERBATIM from the source — never invent, never normalize, never shorten a title. Omit "readings" entries (or the array) entirely when the source names no specific works. kind and weightPct only when the source supports them; omit otherwise.
+3. dueSession is the 1-based session number the item belongs to. When the source gives no week, attach it to the most plausible session from context.
+4. RECURRING ASSESSMENTS: when the source states a recurring cadence ("weekly autograded quizzes", "weekly labs", "weekly reading responses"), expand it into one assessments[] entry PER SESSION it applies to — title each "<cadence artifact>: <that session's topic>" (e.g. "Autograded quiz: while loops") with the cadence's kind. Expanding a stated cadence is transcription of the assessment PLAN, not invention; one-off named titles stay verbatim under rule 2. The full assessments[] array must cover the whole plan: most courses carry at least one entry per teaching session, so if your array has fewer entries than sessions, re-read the source for a stated cadence before returning.
+5. SUPPORTING RESOURCES: "resources" carries the per-session supporting materials the source names (handouts, worksheets, lab sheets, kits, datasets, starter code, slides, study guides) — assigned works/readings stay in "readings", never duplicated here. One-off named materials stay verbatim under rule 2. When the source states a recurring materials cadence ("weekly lab handouts", "weekly labs using hand-specimen kits"), expand it into one resources[] entry PER SESSION it applies to — title each "<cadence material>: <that session's topic>" (e.g. "Lab handout: mineral identification") — the same discipline as rule 4: expanding a stated cadence is transcription of the materials PLAN, not invention. Omit "resources" entries (or the array) entirely when the source names no supporting materials.
+6. Keep it compact: short strings, no prose sentences, no explanations.`;
+
+/**
+ * Pass A user prompt. MUST contain the word "JSON" (the v0.13.1 json_object
+ * rule: OpenAI's json_object response format requires it in an INPUT message;
+ * the system prompt maps to `instructions`, which the guard does not scan).
+ */
+export function buildNativeSkeletonUserPrompt(syllabusText, { expectedLessons = null, confidence = null } = {}) {
+  const countLine =
+    expectedLessons && confidence === 'high'
+      ? `The course has exactly ${expectedLessons} sessions — return exactly that many entries in "sessions".`
+      : expectedLessons
+        ? `The course appears to have around ${expectedLessons} sessions; transcribe the actual structure (count weekly sessions, not modules).`
+        : 'Auto-detect the number of sessions from the source structure.';
+  return [
+    'Extract the typed course skeleton from the following source materials.',
+    countLine,
+    'If the text contains "--- SEGMENT N ---" markers, each segment corresponds to one session.',
+    '',
+    'SOURCE MATERIALS:',
+    segmentSyllabus(syllabusText),
+    '',
+    'Return ONLY the skeleton JSON object now:',
+  ].join('\n');
+}

@@ -244,6 +244,13 @@ function buildManifestCourseIRProof(courseGraph) {
         editedAfterProjection: Boolean(courseGraph.courseIR.nativeAssembly.editedAfterProjection),
       };
     }
+    if (courseGraph.courseIR.directAuthoring) {
+      proof.directAuthoring = {
+        source: courseGraph.courseIR.directAuthoring.source || '',
+        projectedThrough: courseGraph.courseIR.directAuthoring.projectedThrough || '',
+        accepted: Boolean(courseGraph.courseIR.directAuthoring.accepted),
+      };
+    }
   }
   if (courseGraph.nativeRepair) {
     proof.nativeRepair = {
