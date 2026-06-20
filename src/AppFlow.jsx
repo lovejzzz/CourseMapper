@@ -826,6 +826,7 @@ export default function AppFlow({ startupAction = null, onStartupHandled, onRetu
   // attached) — adopt it as the project's source of truth.
   const handleCourseGraph = useCallback((graph) => {
     if (!graph || !validateCourseGraph(graph).valid) return;
+    courseGraphRef.current = graph;
     setCourseGraph(graph);
   }, []);
   // v0.13.1: every restore path (local session, cloud project, .coursemapper

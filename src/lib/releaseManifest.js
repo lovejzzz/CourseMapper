@@ -3,23 +3,23 @@ import { APP_VERSION } from './appVersion.js';
 export const CURRENT_RELEASE = {
   version: APP_VERSION,
   date: 'June 20, 2026',
-  title: 'Assessment Echo Guard: syllabus and policy checks stop blocking AI governance exports',
-  landingTitle: 'Assessment Echo Guard',
+  title: 'Knowledge Resource Handoff: source-backed graph survives export',
+  landingTitle: 'Knowledge Resource Handoff',
   highlights: [
-    'A fresh deployed v0.15.32 EduTool.dev AI Governance audit reached 99/A but blocked export on a syllabus model-card heuristic and exposed `Assessment: 1. Assessment` echoes in syllabus fields.',
-    'Assessment registry titles are de-duplicated before they feed student artifacts, assessment anchors, grading provenance, syllabus schedules, and important dates.',
-    'Embedded weight-evidence snippets strip repeated numbered assessment titles instead of preserving raw `Title: 1. Title` chains.',
-    'The non-ML lab-assets validator still blocks Jupyter/IPYNB/starter-notebook leakage, but no longer blocks model-card language for explicit AI governance/model-documentation courses.',
-    'Targeted compiler and pedagogical-validator regressions pin the AI Governance and Policy Memo failure classes.',
+    'A fresh deployed v0.15.33 EduTool.dev AI Governance audit exported successfully, but the ZIP regraded at 98/A because the package lost source-ledger proof while the console digest reported 7 retrieved open resources.',
+    'AppFlow now adopts generated CourseGraphs synchronously before the knowledge-backbone display-map repair can trigger stale graph re-derivation.',
+    'Native stable-id re-derivation now preserves matched verified resource metadata such as provider, URL, license, origin, source-finder shard, and reading-list decisions instead of degrading citations into generic syllabus rows.',
+    'A focused regression proves an OpenAlex resource survives render -> derive -> match with its source metadata and section resourceRefs intact.',
+    'The quality bar stays honest: packages still receive a source-proof finding when no trusted source rows or sourceRef coverage reach the ZIP.',
   ],
   landingHighlights: [
-    'Syllabus assessment echoes are removed.',
-    'AI governance model-card language is allowed.',
-    'Notebook asset leakage still blocks.',
+    'Retrieved sources survive export.',
+    'Source metadata stays trusted.',
+    'Missing proof still fails honestly.',
   ],
   proof: {
-    contract: 'release-contracts/v0.15.33.json',
-    roadmap: 'docs/V0.15.33_ASSESSMENT_ECHO_GUARD_ROADMAP.md',
+    contract: 'release-contracts/v0.15.34.json',
+    roadmap: 'docs/V0.15.34_KNOWLEDGE_RESOURCE_HANDOFF_ROADMAP.md',
     auditCommand: 'npm run audit:release-history',
   },
 };
@@ -34,6 +34,18 @@ export const CURRENT_RELEASE_CHANGELOG = {
 };
 
 export const HISTORICAL_RELEASE_CHANGELOGS = [
+  {
+    version: '0.15.33',
+    date: 'June 20, 2026',
+    title: 'Assessment Echo Guard: syllabus and policy checks stop blocking AI governance exports',
+    highlights: [
+      'A fresh deployed v0.15.32 EduTool.dev AI Governance audit reached 99/A but blocked export on a syllabus model-card heuristic and exposed `Assessment: 1. Assessment` echoes in syllabus fields.',
+      'Assessment registry titles are de-duplicated before they feed student artifacts, assessment anchors, grading provenance, syllabus schedules, and important dates.',
+      'Embedded weight-evidence snippets strip repeated numbered assessment titles instead of preserving raw `Title: 1. Title` chains.',
+      'The non-ML lab-assets validator still blocks Jupyter/IPYNB/starter-notebook leakage, but no longer blocks model-card language for explicit AI governance/model-documentation courses.',
+      'Targeted compiler and pedagogical-validator regressions pin the AI Governance and Policy Memo failure classes.',
+    ],
+  },
   {
     version: '0.15.32',
     date: 'June 20, 2026',

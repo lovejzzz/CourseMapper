@@ -828,6 +828,87 @@ function remapId(remap, id) {
   return remap.get(id) || id;
 }
 
+function normalizedResourceKey(resource = {}) {
+  const text = cleanText(resource.url || resource.doi || resource.citation || resource.title);
+  const url = text.match(/https?:\/\/[^\s),;\]]+/i)?.[0]?.replace(/[.,;:]+$/g, '');
+  if (url) return url.toLowerCase();
+  const doi = text.match(/(?:doi:\s*|doi\.org\/)?(10\.\d{4,9}\/[-._;()/:A-Z0-9]+)/i)?.[1];
+  if (doi) return doi.toLowerCase();
+  return cleanText(resource.citation || resource.title || resource.url || resource.doi)
+    .toLowerCase()
+    .replace(/^\d+[.)]\s+/, '')
+    .replace(/\s+/g, ' ');
+}
+
+function mergeRefs(...values) {
+  const refs = [];
+  const seen = new Set();
+  for (const value of values.flat()) {
+    if (value === undefined || value === null || value === '') continue;
+    const key = String(value);
+    if (seen.has(key)) continue;
+    seen.add(key);
+    refs.push(value);
+  }
+  return refs;
+}
+
+function preserveResourceMetadata(oldGraph, graph) {
+  const oldResources = oldGraph?.resources || [];
+  if (!oldResources.length || !Array.isArray(graph?.resources)) return new Map();
+
+  const oldByKey = new Map();
+  for (const resource of oldResources) {
+    const key = normalizedResourceKey(resource);
+    if (key && !oldByKey.has(key)) oldByKey.set(key, resource);
+  }
+
+  const resourceRemap = new Map();
+  const seenIds = new Set((graph.resources || []).map((resource) => resource.id).filter(Boolean));
+  const matchedOldIds = new Set();
+  graph.resources = graph.resources.map((resource) => {
+    const match = oldByKey.get(normalizedResourceKey(resource));
+    if (!match) return resource;
+    matchedOldIds.add(match.id);
+    if (match.id && resource.id && match.id !== resource.id) resourceRemap.set(resource.id, match.id);
+    seenIds.delete(resource.id);
+    seenIds.add(match.id);
+    return {
+      ...resource,
+      ...match,
+      id: match.id || resource.id,
+      sessionRefs: mergeRefs(match.sessionRefs || [], resource.sessionRefs || []),
+    };
+  });
+
+  for (const resource of oldResources) {
+    if (matchedOldIds.has(resource.id)) continue;
+    if ((resource.sessionRefs || []).length > 0) continue;
+    if (!resource.id || seenIds.has(resource.id)) continue;
+    graph.resources.push(JSON.parse(JSON.stringify(resource)));
+    seenIds.add(resource.id);
+  }
+
+  if (resourceRemap.size > 0) {
+    for (const session of graph.sessions || []) {
+      for (const section of session.sections || []) {
+        if (Array.isArray(section.resourceRefs)) {
+          section.resourceRefs = section.resourceRefs.map((id) => remapId(resourceRemap, id));
+        }
+      }
+    }
+  }
+
+  if (oldGraph.sourceFinderMiniShard && !graph.sourceFinderMiniShard) {
+    graph.sourceFinderMiniShard = JSON.parse(JSON.stringify(oldGraph.sourceFinderMiniShard));
+  }
+  if (Array.isArray(oldGraph.readingListDecisions) && !Array.isArray(graph.readingListDecisions)) {
+    graph.readingListDecisions = JSON.parse(JSON.stringify(oldGraph.readingListDecisions));
+  }
+
+  return resourceRemap;
+}
+
 /**
  * matchEntityIds(oldGraph, newGraph) — pure. Returns a NEW graph (deep
  * clone of newGraph) whose session/assessment/reading ids are inherited
@@ -890,6 +971,8 @@ export function matchEntityIds(oldGraph, newGraph) {
       }
     }
   }
+
+  preserveResourceMetadata(oldGraph, graph);
 
   if (oldGraph.authoredBy && !graph.authoredBy) graph.authoredBy = oldGraph.authoredBy;
   return graph;

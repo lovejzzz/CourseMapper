@@ -4,6 +4,23 @@
 
 CourseMapper is moving toward a "consider it done" course-production agent. The user should describe the course, choose scope/materials, and receive a finished draft package. The agent owns generation, QA, repair, alignment, and export readiness. Human involvement should be final approval only, not QA labor.
 
+## v0.15.34 - Knowledge Resource Handoff
+
+Goal: fix the fresh deployed v0.15.33 AI Governance audit finding without
+weakening the source-proof bar. The package exported, but the ZIP regraded
+98/A because source-backed proof vanished: the console digest reported 7
+retrieved open resources while `PACKAGE_MANIFEST.json` exported no
+`sourceLedger`, no sourceRef coverage, and no `SOURCE_REPORT.md`.
+
+Full plan: `docs/V0.15.34_KNOWLEDGE_RESOURCE_HANDOFF_ROADMAP.md`
+
+1. Adopt generated CourseGraphs synchronously in AppFlow before the repaired
+   display map can trigger a stale render/derive sync.
+2. Preserve verified resource metadata through native stable-id matching so
+   URL, provider, license, origin, and source-finder context survive export.
+3. Pin the render -> derive -> match failure class with a focused OpenAlex
+   resource regression.
+
 ## v0.15.33 - Assessment Echo Guard
 
 Goal: fix the fresh deployed v0.15.32 AI Governance audit finding without
