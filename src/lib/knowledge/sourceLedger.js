@@ -286,14 +286,42 @@ function conceptLinksForResource(graph, resourceId) {
   return normalizeConceptLinks(links);
 }
 
+function conceptLinksForSourceFinderTopic(graph, topic = {}) {
+  const sessions = graph?.sessions || [];
+  const conceptsById = new Map((graph?.concepts || []).map((concept) => [concept.id, concept]));
+  const session = sessions.find(
+    (entry) =>
+      (topic.sessionId && entry.id === topic.sessionId) ||
+      (Number.isInteger(topic.lessonNumber) && entry.number === topic.lessonNumber),
+  );
+  if (!session) return normalizeConceptLinks(topic.topic ? [{ label: topic.topic }] : []);
+  const links = [];
+  for (const section of session.sections || []) {
+    for (const conceptId of section.conceptRefs || []) {
+      const concept = conceptsById.get(conceptId);
+      links.push({ id: conceptId, label: concept?.term || section.topic || topic.topic || '' });
+    }
+  }
+  if (links.length === 0 && topic.topic) links.push({ label: topic.topic });
+  return normalizeConceptLinks(links);
+}
+
+function sourceIdentityKeys(source = {}) {
+  const strongKeys = [
+    source.doi ? `doi:${source.doi}` : '',
+    source.url ? `url:${source.url}` : '',
+    source.id ? `id:${source.id}` : '',
+  ]
+    .filter(Boolean)
+    .map((value) => value.toLowerCase());
+  if (strongKeys.length > 0) return strongKeys;
+  return source.title ? [`title:${source.title}`.toLowerCase()] : [];
+}
+
 function appendUnique(rows, source) {
   if (!source?.id && !source?.title) return;
-  const key = `${source.id || ''}|${source.doi || ''}|${source.url || ''}|${source.title || ''}`.toLowerCase();
-  if (
-    rows.some(
-      (entry) => `${entry.id || ''}|${entry.doi || ''}|${entry.url || ''}|${entry.title || ''}`.toLowerCase() === key,
-    )
-  ) {
+  const keys = sourceIdentityKeys(source);
+  if (rows.some((entry) => sourceIdentityKeys(entry).some((key) => keys.includes(key)))) {
     return;
   }
   rows.push(source);
@@ -367,6 +395,32 @@ export function buildSourceLedgerFromCourseGraph(courseGraph, { checkedAt = '' }
         { fallbackId: reading.id, checkedAt },
       ),
     );
+  }
+
+  for (const [topicIndex, topic] of (courseGraph.sourceFinderMiniShard?.topics || []).entries()) {
+    if (!topic || typeof topic !== 'object') continue;
+    for (const [sourceIndex, source] of (topic.sources || []).slice(0, 1).entries()) {
+      if (!source || typeof source !== 'object') continue;
+      appendUnique(
+        rows,
+        normalizeTrustedSource(
+          {
+            ...source,
+            id: source.sourceRefId || source.id || `sf-${topicIndex + 1}-${sourceIndex + 1}`,
+            provider: source.provider || 'source-finder',
+            sourceType: source.kind || 'source-finder source',
+            status: 'source-provided',
+            scope: topic.sessionId || topic.lessonNumber ? `lesson-${topic.lessonNumber || topic.sessionId}` : 'course',
+            evidence: source.snippet || source.abstract || source.evidence || topic.topic,
+          },
+          {
+            fallbackId: `sf-${topicIndex + 1}-${sourceIndex + 1}`,
+            checkedAt,
+            conceptLinks: conceptLinksForSourceFinderTopic(courseGraph, topic),
+          },
+        ),
+      );
+    }
   }
 
   if (rows.length === 0 && reviewRows.length === 0) return null;

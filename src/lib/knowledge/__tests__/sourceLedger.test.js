@@ -240,4 +240,54 @@ describe('trusted source ledger', () => {
     expect(report).toContain('kr1');
     expect(report).toContain('outcomes: 1/1 with sourceRefs');
   });
+
+  it('recovers concept-linked source rows from a source-finder mini-shard when resource cells are sparse', () => {
+    const ledger = buildSourceLedgerFromCourseGraph(
+      {
+        concepts: [{ id: 'c1', term: 'Gene expression' }],
+        sessions: [
+          {
+            id: 's1',
+            number: 1,
+            sections: [{ id: 'sec1', topic: 'Gene expression', conceptRefs: ['c1'], resourceRefs: [] }],
+          },
+        ],
+        resources: [],
+        sourceFinderMiniShard: {
+          topics: [
+            {
+              sessionId: 's1',
+              lessonNumber: 1,
+              topic: 'gene expression regulation',
+              sources: [
+                {
+                  provider: 'openalex',
+                  kind: 'peer-reviewed reading',
+                  title: 'Gene Expression Regulation in Society Courses',
+                  authors: 'A. Scholar',
+                  year: 2024,
+                  url: 'https://openalex.org/W999',
+                  license: 'cc-by',
+                  snippet: 'Connects gene expression regulation to introductory genetics instruction.',
+                },
+              ],
+            },
+          ],
+        },
+      },
+      { checkedAt: '2026-06-20T00:00:00.000Z' },
+    );
+
+    expect(ledger.rows).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          id: 'sf-1-1',
+          provider: 'openalex',
+          url: 'https://openalex.org/W999',
+          conceptLinks: [{ id: 'c1', label: 'Gene expression' }],
+          trustLevel: 'academic-metadata',
+        }),
+      ]),
+    );
+  });
 });

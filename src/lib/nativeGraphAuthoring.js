@@ -840,6 +840,49 @@ function normalizedResourceKey(resource = {}) {
     .replace(/\s+/g, ' ');
 }
 
+const SOURCE_BACKED_RESOURCE_ORIGINS = new Set([
+  'genome',
+  'genome-prerequisite',
+  'openalex',
+  'openlibrary',
+  'openstax',
+  'source-finder',
+]);
+
+function isSourceBackedResource(resource = {}) {
+  const origin = cleanText(resource.origin).toLowerCase();
+  const provider = cleanText(resource.provider).toLowerCase();
+  return SOURCE_BACKED_RESOURCE_ORIGINS.has(origin) || SOURCE_BACKED_RESOURCE_ORIGINS.has(provider);
+}
+
+function uniqueResourceId(preferredId, seenIds) {
+  const base = cleanText(preferredId) || 'resource';
+  if (!seenIds.has(base)) return base;
+  let ordinal = 1;
+  let candidate = `${base}-preserved`;
+  while (seenIds.has(candidate)) {
+    ordinal += 1;
+    candidate = `${base}-preserved-${ordinal}`;
+  }
+  return candidate;
+}
+
+function sessionMatchesRef(session = {}, ref) {
+  const key = String(ref ?? '');
+  return key && (key === String(session.id ?? '') || key === String(session.number ?? ''));
+}
+
+function linkResourceToSessions(graph, resourceId, sessionRefs = []) {
+  if (!resourceId || !Array.isArray(sessionRefs) || sessionRefs.length === 0) return;
+  for (const session of graph.sessions || []) {
+    if (!sessionRefs.some((ref) => sessionMatchesRef(session, ref))) continue;
+    const section = (session.sections || [])[0];
+    if (!section) continue;
+    if (!Array.isArray(section.resourceRefs)) section.resourceRefs = [];
+    if (!section.resourceRefs.includes(resourceId)) section.resourceRefs.push(resourceId);
+  }
+}
+
 function mergeRefs(...values) {
   const refs = [];
   const seen = new Set();
@@ -883,10 +926,14 @@ function preserveResourceMetadata(oldGraph, graph) {
 
   for (const resource of oldResources) {
     if (matchedOldIds.has(resource.id)) continue;
-    if ((resource.sessionRefs || []).length > 0) continue;
-    if (!resource.id || seenIds.has(resource.id)) continue;
-    graph.resources.push(JSON.parse(JSON.stringify(resource)));
-    seenIds.add(resource.id);
+    const sessionRefs = resource.sessionRefs || [];
+    const shouldPreserveUnmatched = sessionRefs.length === 0 || isSourceBackedResource(resource);
+    if (!shouldPreserveUnmatched) continue;
+    const preserved = JSON.parse(JSON.stringify(resource));
+    preserved.id = uniqueResourceId(preserved.id, seenIds);
+    graph.resources.push(preserved);
+    seenIds.add(preserved.id);
+    linkResourceToSessions(graph, preserved.id, sessionRefs);
   }
 
   if (resourceRemap.size > 0) {

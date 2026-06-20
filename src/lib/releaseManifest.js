@@ -3,22 +3,22 @@ import { APP_VERSION } from './appVersion.js';
 export const CURRENT_RELEASE = {
   version: APP_VERSION,
   date: 'June 20, 2026',
-  title: 'Source Thinness Gate: sourceRef coverage can no longer hide one-row proof',
-  landingTitle: 'Source Thinness Gate',
+  title: 'Source Ledger Bridge: retrieved sources survive native re-derivation',
+  landingTitle: 'Source Ledger Bridge',
   highlights: [
-    'A fresh deployed v0.15.34 EduTool.dev AI Governance audit proved source reports now ship, but the ZIP regraded at 98/A once the grader caught 56 sourceRef-covered atoms relying on one thin OpenLibrary metadata row.',
-    'The source-ledger grader now treats complete-looking sourceRef coverage as insufficient when many atoms rest on one thin, review-required bibliography row.',
-    'The ZIP audit helper no longer treats AI-governance model-card/model-documentation policy language as missing data-science lab assets unless actual notebook/IPYNB or local lab-asset evidence is present.',
-    'The release keeps the 100/100 target honest: the audited v0.15.34 package is progress, not complete research-brain quality, and still regrades below 100 because source proof is thin.',
+    'Two fresh deployed v0.15.35 EduTool.dev audits regraded at 96/A and 98/A because retrieved OpenAlex/source-finder resources were visible in the run digest but the exported source ledger still collapsed to one ambiguous OpenLibrary row.',
+    'Native stable-id re-derivation now preserves unmatched source-backed resources, including session-linked OpenAlex and source-finder rows, instead of dropping them when a later map repair rewrites the visible resource cell.',
+    'The source ledger can now recover concept-linked academic rows directly from the source-finder mini-shard when graph resource cells are sparse, so export proof does not depend on a fragile rendered citation surviving every UI pass.',
+    'The source-thinness gate stays armed: this release bridges retrieved rows into the bibliography proof, but it does not weaken the grader or claim that every CurriculumV1 atom is semantically source-relevant yet.',
   ],
   landingHighlights: [
-    'Thin source proof is now visible.',
-    'AI governance model-card language audits cleanly.',
-    'The research bar stays honest.',
+    'Retrieved sources survive re-derivation.',
+    'Source-finder rows recover into the ledger.',
+    'The source-thinness gate stays honest.',
   ],
   proof: {
-    contract: 'release-contracts/v0.15.35.json',
-    roadmap: 'docs/V0.15.35_SOURCE_THINNESS_GATE_ROADMAP.md',
+    contract: 'release-contracts/v0.15.36.json',
+    roadmap: 'docs/V0.15.36_SOURCE_LEDGER_BRIDGE_ROADMAP.md',
     auditCommand: 'npm run audit:release-history',
   },
 };
@@ -33,6 +33,17 @@ export const CURRENT_RELEASE_CHANGELOG = {
 };
 
 export const HISTORICAL_RELEASE_CHANGELOGS = [
+  {
+    version: '0.15.35',
+    date: 'June 20, 2026',
+    title: 'Source Thinness Gate: sourceRef coverage can no longer hide one-row proof',
+    highlights: [
+      'A fresh deployed v0.15.34 EduTool.dev AI Governance audit proved source reports now ship, but the ZIP regraded at 98/A once the grader caught 56 sourceRef-covered atoms relying on one thin OpenLibrary metadata row.',
+      'The source-ledger grader now treats complete-looking sourceRef coverage as insufficient when many atoms rest on one thin, review-required bibliography row.',
+      'The ZIP audit helper no longer treats AI-governance model-card/model-documentation policy language as missing data-science lab assets unless actual notebook/IPYNB or local lab-asset evidence is present.',
+      'The release keeps the 100/100 target honest: the audited v0.15.34 package is progress, not complete research-brain quality, and still regrades below 100 because source proof is thin.',
+    ],
+  },
   {
     version: '0.15.34',
     date: 'June 20, 2026',

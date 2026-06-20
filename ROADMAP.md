@@ -4,6 +4,25 @@
 
 CourseMapper is moving toward a "consider it done" course-production agent. The user should describe the course, choose scope/materials, and receive a finished draft package. The agent owns generation, QA, repair, alignment, and export readiness. Human involvement should be final approval only, not QA labor.
 
+## v0.15.36 - Source Ledger Bridge
+
+Goal: fix the repeated v0.15.35 audit finding where the run digest reported
+8-9 retrieved OpenAlex/OpenLibrary/source-finder resources, but exported ZIPs
+still carried only one trusted OpenLibrary row plus a CourseIR review row. The
+small slice is not a full research planner; it makes the retrieved source set
+survive native re-derivation and recover into `SOURCE_REPORT.md`.
+
+Full plan: `docs/V0.15.36_SOURCE_LEDGER_BRIDGE_ROADMAP.md`
+
+1. Preserve unmatched source-backed resources when native stable-id
+   re-derivation follows a map repair or display rewrite.
+2. Relink preserved session-backed resources to the matching session section so
+   source-ledger rows get concept links instead of floating as orphan citations.
+3. Recover academic/OER rows from `sourceFinderMiniShard` when resource cells
+   are sparse, using provider, URL, license, snippet, and concept context.
+4. Keep source-thinness and review-row findings intact; the bridge improves the
+   evidence path without inflating scores or weakening the grader.
+
 ## v0.15.35 - Source Thinness Gate
 
 Goal: fix the fresh deployed v0.15.34 AI Governance audit finding without

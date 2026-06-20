@@ -55,4 +55,43 @@ describe('nativeGraphAuthoring matchEntityIds', () => {
     });
     expect(matched.sessions[0].sections[0].resourceRefs).toContain('kr1');
   });
+
+  it('preserves unmatched source-backed resources when a later map repair drops the rendered citation', () => {
+    const oldGraph = deriveCourseGraphFromCourseMap(sourceBackedMap());
+    const session = oldGraph.sessions[0];
+    const section = session.sections[0];
+    oldGraph.resources.push({
+      id: 'sf1',
+      citation: 'OpenAlex (2024). Governance of genetics data. OpenAlex: https://openalex.org/W999 (open access)',
+      kind: 'source',
+      sessionRefs: [session.id],
+      origin: 'source-finder',
+      provider: 'openalex',
+      url: 'https://openalex.org/W999',
+      license: 'open access',
+      attribution: 'OpenAlex (CC0 metadata)',
+    });
+    section.resourceRefs = ['sf1'];
+    oldGraph.authoredBy = 'native';
+
+    const repairedMap = renderCourseMapFromGraph(oldGraph, { assessmentReferences: true });
+    repairedMap.lessons[0].sections[0].supportingResources = 'Instructor worksheet for model documentation.';
+    const rederived = deriveCourseGraphFromCourseMap(repairedMap);
+    const matched = matchEntityIds(oldGraph, rederived);
+
+    expect(matched.resources).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          id: 'sf1',
+          origin: 'source-finder',
+          provider: 'openalex',
+          url: 'https://openalex.org/W999',
+        }),
+      ]),
+    );
+    expect(matched.resources).not.toEqual(
+      expect.arrayContaining([expect.objectContaining({ citation: 'Instructor placeholder' })]),
+    );
+    expect(matched.sessions[0].sections[0].resourceRefs).toContain('sf1');
+  });
 });
