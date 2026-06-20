@@ -236,6 +236,22 @@ describe('v0.14.1 phase 1 batch A compiler fixes', () => {
     }
   });
 
+  it('1.3 final export pass punctuates long authored slide bullets', () => {
+    const blueprint = buildCourseBlueprint(hydrologyCourseMap());
+    blueprint.lessons[0].enrichment = {
+      slideContent: [
+        {
+          title: 'EXAMPLE',
+          bullets: ['Claims about group differences often overstate what genetic data can show'],
+        },
+      ],
+    };
+
+    const compiled = compileBlueprintDeliverable('slideDecks', blueprint, COMPILE_OPTIONS);
+    const exampleSlide = compiled.decks[0].slides.find((slide) => slide.title === 'EXAMPLE');
+    expect(exampleSlide?.bullets[0]).toBe('Claims about group differences often overstate what genetic data can show.');
+  });
+
   it('1.4 syllabus SLOs span at least five distinct lessons of a 14-lesson course', () => {
     const blueprint = buildCourseBlueprint(fourteenLessonCourseMap());
     const compiled = compileBlueprintDeliverable('syllabus', blueprint, COMPILE_OPTIONS);

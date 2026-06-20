@@ -4,6 +4,26 @@
 
 CourseMapper is moving toward a "consider it done" course-production agent. The user should describe the course, choose scope/materials, and receive a finished draft package. The agent owns generation, QA, repair, alignment, and export readiness. Human involvement should be final approval only, not QA labor.
 
+## v0.15.40 - Source Relevance and Slide Polish Guard
+
+Goal: fix the fresh deployed v0.15.39 Genetics and Society ZIP audit P1 and
+source-relevance miss without weakening quality grading. The package regraded
+at 98/A with export verified, but a long authored slide bullet lost terminal
+punctuation, and Wikipedia `Driving under the influence` entered the source
+ledger for genetics concepts.
+
+Full plan: `docs/V0.15.40_SOURCE_RELEVANCE_AND_SLIDE_POLISH_ROADMAP.md`
+
+1. Run a final export punctuation pass over compiled slide bullets so long
+   authored clauses cannot ship as bare lowercase tails.
+2. Preserve short slide labels and relationship-arrow concept-map pairs as
+   intentionally unpunctuated display text.
+3. Extend the genetics/genomics discipline-anchor gate to background providers
+   such as Wikipedia, not only academic metadata providers.
+4. Pin the live failures with focused compiler and source-finder regressions.
+5. Keep carry-forward debt explicit: source-license ambiguity and the broader
+   CurriculumV1 research compiler remain separate quality targets.
+
 ## v0.15.39 - Course FAQ Evidence Firewall
 
 Goal: fix the fresh deployed v0.15.38 Genetics and Society ZIP audit P1 without

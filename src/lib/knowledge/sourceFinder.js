@@ -175,7 +175,8 @@ const TOPICAL_MISMATCH_GATES = [
 const DISCIPLINE_ANCHOR_GATES = [
   {
     applies: /\b(?:genetics?|genes?|genom(?:e|es|ic|ics)|dna|crispr|inheritance|heredity|traits?|ancestry)\b/i,
-    source: /\b(?:genetics?|genes?|genom(?:e|es|ic|ics)|dna|crispr|inheritance|heredity|traits?|ancestry)\b/i,
+    source:
+      /\b(?:genetics?|genes?|genom(?:e|es|ic|ics)|dna|crispr|cas9|inheritance|heredity|traits?|ancestry|alleles?|chromosomes?|heritability)\b/i,
   },
 ];
 
@@ -194,7 +195,6 @@ function meaningfulQueryTerms(topic) {
 }
 
 function sourcePassesDisciplineAnchor(source, topic) {
-  if (!/^(openalex|crossref|eric)$/.test(source.provider)) return true;
   const topicText = topicContext(topic);
   const sourceText = sourceContext(source);
   for (const gate of DISCIPLINE_ANCHOR_GATES) {

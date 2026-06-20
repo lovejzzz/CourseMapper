@@ -3,23 +3,22 @@ import { APP_VERSION } from './appVersion.js';
 export const CURRENT_RELEASE = {
   version: APP_VERSION,
   date: 'June 20, 2026',
-  title: 'Course FAQ Evidence Firewall: compact artifact lists stop becoming source evidence',
-  landingTitle: 'Course FAQ Evidence Firewall',
+  title: 'Source Relevance and Slide Polish Guard: generic background sources stop entering genetics packages',
+  landingTitle: 'Source Relevance Guard',
   highlights: [
-    'A fresh deployed v0.15.38 Genetics and Society ZIP audit improved to Quality 97/A with export verified, but still exposed a real P1: compact resource-label prose such as “slide decks 2. quiz bank 3” survived into Course FAQ evidence and anchor examples.',
-    'The Course Map repair pass now preserves array and numbered-list boundaries when checking supporting resources, so compact artifact-resource lists are repaired before they can become lesson evidence.',
-    'The blueprint compiler no longer elects prompt artifact labels or compact artifact-label runs as throughline evidence packets for normal disciplinary courses.',
-    'Course FAQ rendering now uses a safe lesson/source evidence cue for focus answers, material-review answers, and anchor contrasts when stale metadata still contains artifact labels.',
-    'Regression coverage pins the exported v0.15.38 failure shape without weakening the quality grader or hiding the remaining source-license and source-ledger findings.',
+    'A fresh deployed v0.15.39 Genetics and Society ZIP audit regraded at 98/A with export verified, but still exposed a real slide-deck P1 and a semantically wrong source row: Wikipedia “Driving under the influence” was attached to genetics concepts.',
+    'Slide deck compilation now runs one final export pass over every slide bullet, so long authored bullets keep terminal punctuation while short labels and relationship-arrow concept pairs stay intentionally bare.',
+    'The source-finder discipline-anchor gate now applies to background providers such as Wikipedia in genetics/genomics contexts, so generic environment/testing/background rows cannot win by matching broad query words alone.',
+    'Focused regression coverage pins both live failure shapes without weakening the quality grader or hiding the remaining source-license review findings.',
   ],
   landingHighlights: [
-    'Compact artifact-label resource lists are repaired.',
-    'Course FAQ evidence cues are sanitized.',
+    'Generic background sources are filtered in genetics packages.',
+    'Long authored slide bullets keep sentence punctuation.',
     'The source-quality bar stays strict.',
   ],
   proof: {
-    contract: 'release-contracts/v0.15.39.json',
-    roadmap: 'docs/V0.15.39_COURSE_FAQ_EVIDENCE_FIREWALL_ROADMAP.md',
+    contract: 'release-contracts/v0.15.40.json',
+    roadmap: 'docs/V0.15.40_SOURCE_RELEVANCE_AND_SLIDE_POLISH_ROADMAP.md',
     auditCommand: 'npm run audit:release-history',
   },
 };
@@ -34,6 +33,18 @@ export const CURRENT_RELEASE_CHANGELOG = {
 };
 
 export const HISTORICAL_RELEASE_CHANGELOGS = [
+  {
+    version: '0.15.39',
+    date: 'June 20, 2026',
+    title: 'Course FAQ Evidence Firewall: compact artifact lists stop becoming source evidence',
+    highlights: [
+      'A fresh deployed v0.15.38 Genetics and Society ZIP audit improved to Quality 97/A with export verified, but still exposed a real P1: compact resource-label prose such as “slide decks 2. quiz bank 3” survived into Course FAQ evidence and anchor examples.',
+      'The Course Map repair pass now preserves array and numbered-list boundaries when checking supporting resources, so compact artifact-resource lists are repaired before they can become lesson evidence.',
+      'The blueprint compiler no longer elects prompt artifact labels or compact artifact-label runs as throughline evidence packets for normal disciplinary courses.',
+      'Course FAQ rendering now uses a safe lesson/source evidence cue for focus answers, material-review answers, and anchor contrasts when stale metadata still contains artifact labels.',
+      'Regression coverage pins the exported v0.15.38 failure shape without weakening the quality grader or hiding the remaining source-license and source-ledger findings.',
+    ],
+  },
   {
     version: '0.15.38',
     date: 'June 20, 2026',

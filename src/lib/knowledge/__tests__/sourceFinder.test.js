@@ -221,6 +221,41 @@ describe('source finder mini-shard', () => {
     expect(titles).not.toContain('Geotechnical investigation and testing');
   }, 15000);
 
+  it('rejects generic Wikipedia background pages for genetics topics when they lack a genetics anchor', async () => {
+    const graph = createEmptyCourseGraph({ courseName: 'Genetics and Society' });
+    graph.sessions = [
+      {
+        id: 's1',
+        number: 1,
+        title: 'Lesson 1: Gene-environment interaction',
+        sections: [{ topic: '1.1: environmental influence, trait variation, nature and nurture' }],
+      },
+    ];
+
+    const miniShard = await findCourseSources(graph, {
+      storage: memoryStorage(),
+      maxTopics: 1,
+      limitPerTopic: 2,
+      minUsefulSources: 1,
+      providers: {
+        searchScholarlyReadings: vi.fn(async () => []),
+        searchCrossrefWorks: vi.fn(async () => []),
+        searchWikipediaPages: vi.fn(async () => [
+          source('wikipedia', 'Driving under the influence', {
+            abstract: 'A page about alcohol use, driving behavior, legal risk, and environmental influence.',
+          }),
+          source('wikipedia', 'Gene-environment interaction', {
+            abstract: 'A genetics overview of how genes, environments, heritability, and trait variation interact.',
+          }),
+        ]),
+      },
+    });
+
+    const titles = miniShard.topics.flatMap((topic) => topic.sources.map((item) => item.title));
+    expect(titles).toContain('Gene-environment interaction');
+    expect(titles).not.toContain('Driving under the influence');
+  }, 15000);
+
   it('attaches top mini-shard sources as graph resources that render into the course map', async () => {
     const graph = sampleGraph();
     const miniShard = await findCourseSources(graph, {

@@ -17279,6 +17279,13 @@ function punctuatePassthroughBullets(bullets) {
   });
 }
 
+function finalizeSlideBulletsForExport(slide) {
+  return {
+    ...slide,
+    bullets: punctuatePassthroughBullets(slide.bullets),
+  };
+}
+
 function collapseRepeatedSlideLead(text) {
   const value = cleanText(text);
   const match = /^([^:]{4,80}):\s+(.+)$/.exec(value);
@@ -18598,11 +18605,12 @@ function compileSlideDecks(blueprint) {
           enrichmentSource: 'archetype-bridge',
         });
       }
+      const finalizedSlides = slides.map(finalizeSlideBulletsForExport);
       return {
         lessonTitle: deck.lessonTitle,
-        totalSlides: slides.length,
-        learningObjectives: unique(slides.map((slide) => slide.objectiveLink).filter(Boolean), 5),
-        slides,
+        totalSlides: finalizedSlides.length,
+        learningObjectives: unique(finalizedSlides.map((slide) => slide.objectiveLink).filter(Boolean), 5),
+        slides: finalizedSlides,
         slideDeckSequenceGuide: deck.sequenceGuide,
         slideTimingFit: deck.sequenceGuide?.slideTimingFit || null,
         sourceGrounding: deck.sourceGrounding,
