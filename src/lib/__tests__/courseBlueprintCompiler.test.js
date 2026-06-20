@@ -2421,6 +2421,7 @@ describe('courseBlueprintCompiler', () => {
     expect(countAssignmentsWith(/AI use when it contributes to the submission. Do not invent authors/i)).toBeLessThan(
       4,
     );
+    expect(countAssignmentsWith(/\bIntegrity for the Week \d+ transfer means/i)).toBe(0);
     expect(
       countDiscussionsWith(
         /alternative participation mode, use the instructor-approved written or chat response option/i,

@@ -84,4 +84,38 @@ describe('source-ledger quality checks', () => {
       ]),
     );
   });
+
+  it('flags CourseIR review rows without treating them as trusted bibliography rows', async () => {
+    const result = await grade({
+      fileProvider: createMemoryFileProvider({
+        'PACKAGE_MANIFEST.json': JSON.stringify({
+          courseName: 'CourseIR Review Source Proof',
+          lessonScope: 'all',
+          requestedFeatures: [],
+          readiness: { status: 'ready', blockers: 0, warnings: 0, checkedSections: null },
+          sourceReviewRows: [
+            {
+              id: 'SL1',
+              title: 'Existing course map fields.',
+              provider: 'courseir',
+              accessStatus: 'no-url-or-doi',
+              licenseAmbiguous: true,
+            },
+          ],
+          sourceReport: {
+            path: 'SOURCE_REPORT.md',
+            sourceCount: 0,
+            sourceReviewCount: 1,
+          },
+          files: [],
+        }),
+        'SOURCE_REPORT.md': '# Source Report\n\n## Source Review Notes\n- SL1: Existing course map fields.\n',
+      }),
+      course: { title: 'CourseIR Review Source Proof', featureIds: [] },
+    });
+
+    const details = result.findings.map((finding) => finding.detail);
+    expect(details).toContain('source review row SL1 is not trusted bibliography proof');
+    expect(details).not.toContain('source ledger row SL1 has ambiguous or missing license');
+  });
 });

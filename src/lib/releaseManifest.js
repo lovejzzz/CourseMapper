@@ -3,23 +3,23 @@ import { APP_VERSION } from './appVersion.js';
 export const CURRENT_RELEASE = {
   version: APP_VERSION,
   date: 'June 20, 2026',
-  title: 'ZIP Source Graph Handoff: downloaded proof matches the badge',
-  landingTitle: 'ZIP Source Graph Handoff',
+  title: 'Source Review Truth: fallback rows stop posing as bibliography',
+  landingTitle: 'Source Review Truth',
   highlights: [
-    'A fresh deployed v0.15.29 EduTool.dev Sociology audit proved fake fallback source rows were gone, but exposed a new truth mismatch: the live badge graded graph-backed source proof while the downloaded ZIP lost that graph.',
-    'The workspace export panel now receives the live CourseGraph from AppFlow and passes it into `downloadCourseMaterialsZip`, so header and side-panel downloads assemble the same source-ledger package the finish grade evaluated.',
-    '`SOURCE_REPORT.md`, `sourceLedger`, `sourceLedgerSummary`, and CourseIR/sourceRef proof no longer disappear only on the final ZIP download path.',
-    'Focused regression coverage pins the one-verb header ZIP route so it keeps using the export panel guards while preserving graph-backed source proof.',
-    'The quality bar stays honest: packages without real exported source proof still receive the source-proof P1 instead of a fake or stale green badge.',
+    'A fresh deployed v0.15.30 EduTool.dev Sociology audit regraded the ZIP at 99/A with two real P2s: CourseIR fallback `SL1` was exported as ambiguous bibliography proof, and one assignment rendered `Academic Integrity: Integrity...`.',
+    'Finish-package results now carry the current CourseGraph back to the export panel, and ZIP downloads use that finish graph instead of a potentially stale prop.',
+    'CourseIR fallback rows without URL/DOI/license proof are quarantined into `sourceReviewRows` and `SOURCE_REPORT.md` review notes instead of polluting `sourceLedger` as trusted bibliography.',
+    'The deep grader still flags review-only source rows; the fix changes the evidence class, not the standard.',
+    'Assignment academic-integrity prose no longer begins with `Integrity for...`, removing the deterministic `X: X` echo exposed in the audited Research Methods assignment brief.',
   ],
   landingHighlights: [
-    'ZIP downloads keep CourseGraph proof.',
-    'Badge and package source checks align.',
-    'Missing proof stays visible.',
+    'Fallback source rows become review notes.',
+    'ZIP downloads use the finish graph.',
+    'Academic Integrity echoes are removed.',
   ],
   proof: {
-    contract: 'release-contracts/v0.15.30.json',
-    roadmap: 'docs/V0.15.30_ZIP_SOURCE_GRAPH_HANDOFF_ROADMAP.md',
+    contract: 'release-contracts/v0.15.31.json',
+    roadmap: 'docs/V0.15.31_SOURCE_REVIEW_TRUTH_ROADMAP.md',
     auditCommand: 'npm run audit:release-history',
   },
 };
@@ -34,6 +34,18 @@ export const CURRENT_RELEASE_CHANGELOG = {
 };
 
 export const HISTORICAL_RELEASE_CHANGELOGS = [
+  {
+    version: '0.15.30',
+    date: 'June 20, 2026',
+    title: 'ZIP Source Graph Handoff: downloaded proof matches the badge',
+    highlights: [
+      'A fresh deployed v0.15.29 EduTool.dev Sociology audit proved fake fallback source rows were gone, but exposed a new truth mismatch: the live badge graded graph-backed source proof while the downloaded ZIP lost that graph.',
+      'The workspace export panel now receives the live CourseGraph from AppFlow and passes it into `downloadCourseMaterialsZip`, so header and side-panel downloads assemble the same source-ledger package the finish grade evaluated.',
+      '`SOURCE_REPORT.md`, `sourceLedger`, `sourceLedgerSummary`, and CourseIR/sourceRef proof no longer disappear only on the final ZIP download path.',
+      'Focused regression coverage pins the one-verb header ZIP route so it keeps using the export panel guards while preserving graph-backed source proof.',
+      'The quality bar stays honest: packages without real exported source proof still receive the source-proof P1 instead of a fake or stale green badge.',
+    ],
+  },
   {
     version: '0.15.29',
     date: 'June 20, 2026',

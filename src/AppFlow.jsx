@@ -1787,6 +1787,7 @@ export default function AppFlow({ startupAction = null, onStartupHandled, onRetu
           warnings,
           blockers,
           receipt: receiptWithSpend,
+          courseGraph: courseGraphRef.current || null,
           ...(apiSpendSummary ? { apiSpendSummary } : {}),
           ...(apiFeatureSpendSummary.length > 0 ? { apiFeatureSpendSummary } : {}),
           ...(compilerSummary ? { compilerSummary } : {}),

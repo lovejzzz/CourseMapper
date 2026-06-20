@@ -959,6 +959,7 @@ export default function ExportSidePanel({
     const exportScope = pendingExport?.scope || scope;
     let exportCourseMap = courseMap;
     let exportDeliverables = deliverables || {};
+    let exportCourseGraph = courseGraph;
     let exportReadiness = getReadinessSnapshot({ exportCourseMap, exportDeliverables, exportScope });
     let repairsApplied = pendingExport?.repairsApplied || 0;
     let finishOutcome = null;
@@ -988,6 +989,7 @@ export default function ExportSidePanel({
           repairsApplied += finishResult.repairsApplied || 0;
           exportCourseMap = finishResult.courseMap || exportCourseMap;
           exportDeliverables = finishResult.deliverables || exportDeliverables;
+          exportCourseGraph = finishResult.courseGraph || exportCourseGraph;
           exportReadiness =
             finishResult.readiness || getReadinessSnapshot({ exportCourseMap, exportDeliverables, exportScope });
           exportReadiness = mergeFinalizerRetryIssues(exportReadiness, finishResult);
@@ -1069,7 +1071,7 @@ export default function ExportSidePanel({
             slideTheme,
             readiness: downloadReadiness,
             featureIds: getExportFeatureIds(exportScope),
-            courseGraph,
+            courseGraph: exportCourseGraph,
             pipelineState: typeof getPipelineState === 'function' ? getPipelineState() : null,
             // v0.14.3 WS-A: the ZIP grades itself before assembly — budget +
             // digest feed the in-app honesty checks (manifest.quality +

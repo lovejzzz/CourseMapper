@@ -282,7 +282,9 @@ function sourceLedgerRowKey(row = {}) {
 
 function mergeSourceLedgerBundles(...bundles) {
   const rows = [];
+  const reviewRows = [];
   const seen = new Set();
+  const reviewSeen = new Set();
   for (const bundle of bundles) {
     for (const row of bundle?.rows || []) {
       const key = sourceLedgerRowKey(row);
@@ -290,9 +292,22 @@ function mergeSourceLedgerBundles(...bundles) {
       seen.add(key);
       rows.push(row);
     }
+    for (const row of bundle?.reviewRows || []) {
+      const key = sourceLedgerRowKey(row);
+      if (!key.trim() || reviewSeen.has(key)) continue;
+      reviewSeen.add(key);
+      reviewRows.push(row);
+    }
   }
-  if (rows.length === 0) return null;
-  return { rows, summary: summarizeSourceLedgerRows(rows) };
+  if (rows.length === 0 && reviewRows.length === 0) return null;
+  return {
+    rows,
+    ...(reviewRows.length > 0 ? { reviewRows } : {}),
+    summary: {
+      ...summarizeSourceLedgerRows(rows),
+      ...(reviewRows.length > 0 ? { reviewRequiredCount: reviewRows.length } : {}),
+    },
+  };
 }
 
 function pipelineExpectsSourceLedgerProof(pipelineState) {
@@ -320,6 +335,7 @@ function buildManifest({
   generatedAt = new Date().toISOString(),
   sourceLedger = null,
   sourceLedgerSummary = null,
+  sourceReviewRows = null,
   sourceReport = null,
   sourceRefCoverage = null,
   voicePass = null,
@@ -359,6 +375,7 @@ function buildManifest({
     ...(readings && readings.length > 0 ? { readings } : {}),
     ...(Array.isArray(sourceLedger) && sourceLedger.length > 0 ? { sourceLedger } : {}),
     ...(sourceLedgerSummary ? { sourceLedgerSummary } : {}),
+    ...(Array.isArray(sourceReviewRows) && sourceReviewRows.length > 0 ? { sourceReviewRows } : {}),
     ...(sourceReport ? { sourceReport } : {}),
     ...(courseIR ? { courseIR } : {}),
     requestedFeatures: requestedFeatureIds.map((featureId) => ({
@@ -628,6 +645,7 @@ export async function buildCourseMaterialsZip({
     sourceReport = {
       path: sourceReportPath,
       sourceCount: sourceLedgerBundle?.rows?.length || 0,
+      ...(sourceLedgerBundle?.reviewRows?.length ? { sourceReviewCount: sourceLedgerBundle.reviewRows.length } : {}),
       sourceRefCoverage,
     };
   }
@@ -645,6 +663,7 @@ export async function buildCourseMaterialsZip({
     generatedAt,
     sourceLedger: sourceLedgerBundle?.rows || null,
     sourceLedgerSummary: sourceLedgerBundle?.summary || null,
+    sourceReviewRows: sourceLedgerBundle?.reviewRows || null,
     sourceReport,
     sourceRefCoverage,
     // v0.14.7 WS-D4: callers may pass the outcome on pipelineState; otherwise

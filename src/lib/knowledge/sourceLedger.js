@@ -299,23 +299,37 @@ function appendUnique(rows, source) {
   rows.push(source);
 }
 
+function isCourseIRReviewOnlySource(source = {}) {
+  if (cleanText(source.provider, 80).toLowerCase() !== 'courseir') return false;
+  if (isSourceAccessible(source)) return false;
+  const status = cleanText(source.status, 80).toLowerCase();
+  const text = [source.title, source.evidence, source.scope].map((value) => cleanText(value, 240)).join(' ');
+  return (
+    source.licenseAmbiguous ||
+    status === 'assumption' ||
+    status === 'model-authored' ||
+    /\b(?:existing course map fields|no source ledger|instructor source review|repaired package requires review)\b/i.test(
+      text,
+    )
+  );
+}
+
 export function buildSourceLedgerFromCourseGraph(courseGraph, { checkedAt = '' } = {}) {
   if (!courseGraph || typeof courseGraph !== 'object') return null;
   const rows = [];
+  const reviewRows = [];
   const courseIRRows = Array.isArray(courseGraph.courseIR?.sourceLedger) ? courseGraph.courseIR.sourceLedger : [];
-  courseIRRows.forEach((entry, index) =>
-    appendUnique(
-      rows,
-      normalizeTrustedSource(
-        {
-          provider: entry.provider || 'courseir',
-          sourceType: entry.sourceType || 'courseir-ledger-row',
-          ...entry,
-        },
-        { fallbackId: `SL${index + 1}`, checkedAt },
-      ),
-    ),
-  );
+  courseIRRows.forEach((entry, index) => {
+    const normalized = normalizeTrustedSource(
+      {
+        provider: entry.provider || 'courseir',
+        sourceType: entry.sourceType || 'courseir-ledger-row',
+        ...entry,
+      },
+      { fallbackId: `SL${index + 1}`, checkedAt },
+    );
+    appendUnique(isCourseIRReviewOnlySource(normalized) ? reviewRows : rows, normalized);
+  });
 
   for (const resource of courseGraph.resources || []) {
     if (!resource || typeof resource !== 'object') continue;
@@ -355,10 +369,14 @@ export function buildSourceLedgerFromCourseGraph(courseGraph, { checkedAt = '' }
     );
   }
 
-  if (rows.length === 0) return null;
+  if (rows.length === 0 && reviewRows.length === 0) return null;
   return {
     rows,
-    summary: summarizeSourceLedgerRows(rows),
+    ...(reviewRows.length > 0 ? { reviewRows } : {}),
+    summary: {
+      ...summarizeSourceLedgerRows(rows),
+      ...(reviewRows.length > 0 ? { reviewRequiredCount: reviewRows.length } : {}),
+    },
   };
 }
 
@@ -368,7 +386,8 @@ export function buildSourceReportMarkdown({
   sourceRefCoverage = null,
 } = {}) {
   const rows = sourceLedger?.rows || [];
-  if (rows.length === 0 && !sourceRefCoverage) return '';
+  const reviewRows = sourceLedger?.reviewRows || [];
+  if (rows.length === 0 && reviewRows.length === 0 && !sourceRefCoverage) return '';
   const lines = [`# Source Report — ${cleanText(courseName, 180) || 'Course'}`, ''];
   lines.push('## Research Policy');
   lines.push(
@@ -390,6 +409,23 @@ export function buildSourceReportMarkdown({
       if (row.conceptLinks?.length > 0) {
         lines.push(`  - concepts=${row.conceptLinks.map((link) => link.label || link.id).join(', ')}`);
       }
+    }
+    lines.push('');
+  }
+  if (reviewRows.length > 0) {
+    lines.push('## Source Review Notes');
+    for (const row of reviewRows) {
+      lines.push(`- ${row.id}: ${row.title || row.evidence || 'CourseIR source row requires review'}`);
+      const details = [
+        row.provider ? `provider=${row.provider}` : '',
+        row.status ? `status=${row.status}` : '',
+        row.license ? `license=${row.license}` : 'license=missing',
+        row.url ? `url=${row.url}` : row.doi ? `doi=${row.doi}` : 'access=missing-url-or-doi',
+        row.checkedAt ? `checkedAt=${row.checkedAt}` : '',
+        'trustedBibliography=false',
+      ].filter(Boolean);
+      if (details.length > 0) lines.push(`  - ${details.join('; ')}`);
+      if (row.evidence && row.evidence !== row.title) lines.push(`  - evidence=${row.evidence}`);
     }
     lines.push('');
   }

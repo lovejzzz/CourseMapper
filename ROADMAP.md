@@ -4,6 +4,25 @@
 
 CourseMapper is moving toward a "consider it done" course-production agent. The user should describe the course, choose scope/materials, and receive a finished draft package. The agent owns generation, QA, repair, alignment, and export readiness. Human involvement should be final approval only, not QA labor.
 
+## v0.15.31 - Source Review Truth
+
+Goal: fix the deployed v0.15.30 Sociology audit findings without weakening the
+quality bar. The ZIP and local regrade agreed at 99/A, but the remaining P2
+source finding showed CourseIR fallback `SL1: Existing course map fields.` was
+being exported as bibliography proof, while the format finding showed an
+assignment phrase rendered as `Academic Integrity: Integrity...`.
+
+Full plan: `docs/V0.15.31_SOURCE_REVIEW_TRUTH_ROADMAP.md`
+
+1. Carry the current finish-pass `courseGraph` into ZIP download assembly.
+2. Move review-only CourseIR fallback rows into `sourceReviewRows` and
+   `SOURCE_REPORT.md` review notes instead of trusted `sourceLedger` rows.
+3. Keep review-only source rows visible to the grader as P2 citation debt.
+4. Remove the deterministic assignment wording that creates the `X: X`
+   academic-integrity echo.
+5. Pin all of this with focused source-ledger, ZIP-export, grader, one-verb,
+   and compiler-text regressions.
+
 ## v0.15.30 - ZIP Source Graph Handoff
 
 Goal: fix the deployed v0.15.29 source-proof handoff mismatch exposed by a

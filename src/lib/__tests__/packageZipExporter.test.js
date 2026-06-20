@@ -374,6 +374,68 @@ describe('packageZipExporter', () => {
     expect(sourceReport).not.toContain('Worked examples, readings, or activity sheets');
   });
 
+  it('keeps CourseIR fallback rows out of trusted sourceLedger proof', async () => {
+    const result = await buildCourseMaterialsZip({
+      courseMap: makeCourseMap('CourseIR Review Source Proof'),
+      deliverables: {
+        lessonPlans: {
+          status: 'done',
+          data: {
+            lessonPlans: [{ lessonTitle: 'Lesson 1: Source Review', objectives: ['Review source proof.'] }],
+          },
+        },
+      },
+      featureIds: ['courseMap', 'lessonPlans'],
+      courseGraph: {
+        sessions: [],
+        resources: [],
+        readings: [],
+        courseIR: {
+          version: 'courseir.v1',
+          lessonIds: ['L1'],
+          conceptIds: ['C1'],
+          assessmentIds: ['A1'],
+          sourceLedger: [
+            {
+              id: 'SL1',
+              scope: 'course',
+              status: 'source-provided',
+              evidence: 'Existing course map fields.',
+              provider: 'courseir',
+            },
+          ],
+          sourceRefCoverage: {
+            categories: {
+              outcomes: { total: 1, withRefs: 1, missing: 0, danglingRefs: 0, missingIds: [] },
+            },
+            totals: { total: 1, withRefs: 1, missing: 0, danglingRefs: 0 },
+          },
+        },
+      },
+      quality: false,
+    });
+
+    const zip = await JSZip.loadAsync(await result.blob.arrayBuffer());
+    const manifest = JSON.parse(await zip.file('PACKAGE_MANIFEST.json').async('string'));
+    const sourceReport = await zip.file('SOURCE_REPORT.md').async('string');
+
+    expect(manifest.sourceLedger).toBeUndefined();
+    expect(manifest.sourceReviewRows).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          id: 'SL1',
+          provider: 'courseir',
+          accessStatus: 'no-url-or-doi',
+        }),
+      ]),
+    );
+    expect(manifest.sourceLedgerSummary).toMatchObject({ sourceCount: 0, reviewRequiredCount: 1 });
+    expect(manifest.sourceReport).toMatchObject({ path: 'SOURCE_REPORT.md', sourceCount: 0, sourceReviewCount: 1 });
+    expect(sourceReport).toContain('Source Review Notes');
+    expect(sourceReport).toContain('trustedBibliography=false');
+    expect(sourceReport).not.toContain('## Source Ledger');
+  });
+
   it('uses custom deliverable names in ZIP paths and manifest labels', async () => {
     const result = await buildCourseMaterialsZip({
       courseMap: makeCourseMap(),

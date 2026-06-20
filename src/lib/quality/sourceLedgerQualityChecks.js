@@ -2,6 +2,10 @@ function rows(manifest) {
   return Array.isArray(manifest?.sourceLedger) ? manifest.sourceLedger : [];
 }
 
+function reviewRows(manifest) {
+  return Array.isArray(manifest?.sourceReviewRows) ? manifest.sourceReviewRows : [];
+}
+
 function hasRef(row) {
   return /^https?:\/\//i.test(String(row?.url || '')) || /\S/.test(String(row?.doi || ''));
 }
@@ -21,7 +25,10 @@ function ambiguousLicense(row) {
 
 export function hasSourceLedgerProof(manifest) {
   return Boolean(
-    rows(manifest).length || manifest?.courseIR?.sourceRefCoverage || manifest?.sourceReport?.sourceRefCoverage,
+    rows(manifest).length ||
+    reviewRows(manifest).length ||
+    manifest?.courseIR?.sourceRefCoverage ||
+    manifest?.sourceReport?.sourceRefCoverage,
   );
 }
 
@@ -43,10 +50,11 @@ export function shouldCheckSourceLedger(manifest) {
 
 export function checkSourceLedger(findings, { files, manifest }) {
   const ledger = rows(manifest);
+  const review = reviewRows(manifest);
   const coverage = manifest?.courseIR?.sourceRefCoverage || manifest?.sourceReport?.sourceRefCoverage || null;
   const reportPath = manifest?.sourceReport?.path || 'SOURCE_REPORT.md';
 
-  if (ledger.length === 0 && !coverage) {
+  if (ledger.length === 0 && review.length === 0 && !coverage) {
     findings.add({
       severity: 'P1',
       dimension: 'honesty',
@@ -107,6 +115,17 @@ export function checkSourceLedger(findings, { files, manifest }) {
         evidence: row?.license || row?.title || row?.evidence || id,
       });
     }
+  }
+
+  for (const row of review) {
+    const id = String(row?.id || '').trim();
+    findings.add({
+      severity: 'P2',
+      dimension: 'citations',
+      file: 'PACKAGE_MANIFEST.json',
+      detail: `source review row ${id || '(missing id)'} is not trusted bibliography proof`,
+      evidence: row?.title || row?.evidence || JSON.stringify(row).slice(0, 120),
+    });
   }
 
   for (const [category, proof] of Object.entries(coverage?.categories || {})) {

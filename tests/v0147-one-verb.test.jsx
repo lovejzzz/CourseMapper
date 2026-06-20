@@ -168,8 +168,11 @@ describe('F1/F2 — source wiring (the header has ONE verb; the paths exist)', (
     // The header route must download the same source-proof package the finish
     // grade saw; dropping courseGraph makes SOURCE_REPORT.md disappear.
     expect(read('src/AppFlow.jsx')).toContain('courseGraph={courseGraph}');
+    expect(read('src/AppFlow.jsx')).toContain('courseGraph: courseGraphRef.current || null');
     expect(panel).toContain('courseGraph = null');
-    expect(panel).toContain('courseGraph,');
+    expect(panel).toContain('let exportCourseGraph = courseGraph');
+    expect(panel).toContain('exportCourseGraph = finishResult.courseGraph || exportCourseGraph');
+    expect(panel).toContain('courseGraph: exportCourseGraph');
   });
 
   it('Landing carries the quick-start affordance, gated on prompt + stored API key', () => {

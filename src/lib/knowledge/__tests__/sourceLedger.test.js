@@ -139,6 +139,43 @@ describe('trusted source ledger', () => {
     expect(ledger).toBeNull();
   });
 
+  it('quarantines CourseIR assumption rows as review notes instead of bibliography', () => {
+    const ledger = buildSourceLedgerFromCourseGraph(
+      {
+        courseIR: {
+          sourceLedger: [
+            {
+              id: 'SL1',
+              scope: 'course',
+              status: 'source-provided',
+              evidence: 'Existing course map fields.',
+              provider: 'courseir',
+            },
+          ],
+        },
+      },
+      { checkedAt: '2026-06-20T00:00:00.000Z' },
+    );
+
+    expect(ledger.rows).toHaveLength(0);
+    expect(ledger.reviewRows).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          id: 'SL1',
+          provider: 'courseir',
+          accessStatus: 'no-url-or-doi',
+          licenseAmbiguous: true,
+        }),
+      ]),
+    );
+    expect(ledger.summary).toMatchObject({ sourceCount: 0, reviewRequiredCount: 1 });
+
+    const report = buildSourceReportMarkdown({ courseName: 'Sociology', sourceLedger: ledger });
+    expect(report).toContain('Source Review Notes');
+    expect(report).toContain('trustedBibliography=false');
+    expect(report).not.toContain('## Source Ledger');
+  });
+
   it('builds a graph ledger and human source report from CourseGraph resources', () => {
     const checkedAt = '2026-06-20T00:00:00.000Z';
     const graph = {
