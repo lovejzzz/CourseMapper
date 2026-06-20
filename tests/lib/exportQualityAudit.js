@@ -109,19 +109,34 @@ function checkInternalProofLanguage(issues, fileName, text) {
 function hasDataScienceAssetReference(text) {
   const value = String(text || '');
   if (/\b(jupyter|ipynb)\b/i.test(value)) return true;
+  const governanceModelCardContext =
+    /\b(?:ai governance|data ethics|model documentation|model-card documentation|policy memo|privacy law|public-sector procurement|risk management frameworks?)\b/i.test(
+      value,
+    );
   if (
     /\bmodel cards?\b/i.test(value) &&
+    !governanceModelCardContext &&
     /\b(machine learning|predictive|validation|fairness|bias|threshold)\b/i.test(value)
   ) {
     return true;
   }
 
   const hasLabAssetNoun = /\b(notebooks?|datasets?|data sets?|dataframes?)\b/i.test(value);
-  const hasDataScienceContext =
-    /\b(applied machine learning|machine learning|data science|predictive model|model validation|train[-\s]?test|cross[-\s]?validation|confusion matrix|precision|recall|threshold|bias audit|classification|regression)\b/i.test(
-      value,
-    );
-  return hasLabAssetNoun && hasDataScienceContext;
+  if (!hasLabAssetNoun) return false;
+  const assetPattern = /\b(notebooks?|datasets?|data sets?|dataframes?)\b/gi;
+  let match = assetPattern.exec(value);
+  while (match) {
+    const window = value.slice(Math.max(0, match.index - 160), Math.min(value.length, match.index + 220));
+    if (
+      /\b(applied machine learning|machine learning|data science|predictive model|model validation|train[-\s]?test|cross[-\s]?validation|confusion matrix|precision|recall|threshold|bias audit|classification|regression)\b/i.test(
+        window,
+      )
+    ) {
+      return true;
+    }
+    match = assetPattern.exec(value);
+  }
+  return false;
 }
 
 function hasBundledLabAsset(names) {

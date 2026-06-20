@@ -196,6 +196,21 @@ describe('auditCourseMaterialsZip', () => {
     expect(audit.issues).toEqual([]);
   });
 
+  it('does not treat AI-governance model-card documentation as a missing lab asset by itself', async () => {
+    const outerZip = new JSZip();
+    outerZip.file(
+      'Study Guides/Lesson 02 - Model Documentation - Study Guides.docx',
+      await buildDocxBuffer(
+        'Compare model-card documentation, privacy law basics, algorithmic bias evidence, and public-sector procurement review in an AI governance policy memo.',
+      ),
+    );
+
+    const zipPath = await writeTempZip('coursemapper-export-quality-audit-ai-governance-model-card.zip', outerZip);
+    const audit = await auditCourseMaterialsZip(zipPath);
+
+    expect(audit.issues).toEqual([]);
+  });
+
   it('accepts data-science packages with an explicit required lab-assets marker', async () => {
     const outerZip = new JSZip();
     outerZip.file(

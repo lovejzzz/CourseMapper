@@ -3,23 +3,22 @@ import { APP_VERSION } from './appVersion.js';
 export const CURRENT_RELEASE = {
   version: APP_VERSION,
   date: 'June 20, 2026',
-  title: 'Knowledge Resource Handoff: source-backed graph survives export',
-  landingTitle: 'Knowledge Resource Handoff',
+  title: 'Source Thinness Gate: sourceRef coverage can no longer hide one-row proof',
+  landingTitle: 'Source Thinness Gate',
   highlights: [
-    'A fresh deployed v0.15.33 EduTool.dev AI Governance audit exported successfully, but the ZIP regraded at 98/A because the package lost source-ledger proof while the console digest reported 7 retrieved open resources.',
-    'AppFlow now adopts generated CourseGraphs synchronously before the knowledge-backbone display-map repair can trigger stale graph re-derivation.',
-    'Native stable-id re-derivation now preserves matched verified resource metadata such as provider, URL, license, origin, source-finder shard, and reading-list decisions instead of degrading citations into generic syllabus rows.',
-    'A focused regression proves an OpenAlex resource survives render -> derive -> match with its source metadata and section resourceRefs intact.',
-    'The quality bar stays honest: packages still receive a source-proof finding when no trusted source rows or sourceRef coverage reach the ZIP.',
+    'A fresh deployed v0.15.34 EduTool.dev AI Governance audit proved source reports now ship, but the ZIP regraded at 98/A once the grader caught 56 sourceRef-covered atoms relying on one thin OpenLibrary metadata row.',
+    'The source-ledger grader now treats complete-looking sourceRef coverage as insufficient when many atoms rest on one thin, review-required bibliography row.',
+    'The ZIP audit helper no longer treats AI-governance model-card/model-documentation policy language as missing data-science lab assets unless actual notebook/IPYNB or local lab-asset evidence is present.',
+    'The release keeps the 100/100 target honest: the audited v0.15.34 package is progress, not complete research-brain quality, and still regrades below 100 because source proof is thin.',
   ],
   landingHighlights: [
-    'Retrieved sources survive export.',
-    'Source metadata stays trusted.',
-    'Missing proof still fails honestly.',
+    'Thin source proof is now visible.',
+    'AI governance model-card language audits cleanly.',
+    'The research bar stays honest.',
   ],
   proof: {
-    contract: 'release-contracts/v0.15.34.json',
-    roadmap: 'docs/V0.15.34_KNOWLEDGE_RESOURCE_HANDOFF_ROADMAP.md',
+    contract: 'release-contracts/v0.15.35.json',
+    roadmap: 'docs/V0.15.35_SOURCE_THINNESS_GATE_ROADMAP.md',
     auditCommand: 'npm run audit:release-history',
   },
 };
@@ -34,6 +33,18 @@ export const CURRENT_RELEASE_CHANGELOG = {
 };
 
 export const HISTORICAL_RELEASE_CHANGELOGS = [
+  {
+    version: '0.15.34',
+    date: 'June 20, 2026',
+    title: 'Knowledge Resource Handoff: source-backed graph survives export',
+    highlights: [
+      'A fresh deployed v0.15.33 EduTool.dev AI Governance audit exported successfully, but the ZIP regraded at 98/A because the package lost source-ledger proof while the console digest reported 7 retrieved open resources.',
+      'AppFlow now adopts generated CourseGraphs synchronously before the knowledge-backbone display-map repair can trigger stale graph re-derivation.',
+      'Native stable-id re-derivation now preserves matched verified resource metadata such as provider, URL, license, origin, source-finder shard, and reading-list decisions instead of degrading citations into generic syllabus rows.',
+      'A focused regression proves an OpenAlex resource survives render -> derive -> match with its source metadata and section resourceRefs intact.',
+      'The quality bar stays honest: packages still receive a source-proof finding when no trusted source rows or sourceRef coverage reach the ZIP.',
+    ],
+  },
   {
     version: '0.15.33',
     date: 'June 20, 2026',

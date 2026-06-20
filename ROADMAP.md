@@ -4,6 +4,26 @@
 
 CourseMapper is moving toward a "consider it done" course-production agent. The user should describe the course, choose scope/materials, and receive a finished draft package. The agent owns generation, QA, repair, alignment, and export readiness. Human involvement should be final approval only, not QA labor.
 
+## v0.15.35 - Source Thinness Gate
+
+Goal: fix the fresh deployed v0.15.34 AI Governance audit finding without
+pretending the research architecture is complete. v0.15.34 made real progress:
+the ZIP now includes `SOURCE_REPORT.md`, `sourceLedger`, and sourceRef coverage.
+The remaining truth gap is that the package reported complete sourceRef
+coverage while 56 atoms relied on one ambiguous OpenLibrary metadata row and a
+review-only CourseIR fallback row.
+
+Full plan: `docs/V0.15.35_SOURCE_THINNESS_GATE_ROADMAP.md`
+
+1. Treat complete-looking sourceRef coverage as insufficient when many atoms
+   rest on one thin, review-required bibliography row.
+2. Keep `SOURCE_REPORT.md` review debt visible: ambiguous OpenLibrary metadata
+   and CourseIR fallback rows remain findings instead of bibliography proof.
+3. Stop the local ZIP helper from re-flagging legitimate AI-governance
+   model-card/model-documentation language as missing data-science lab assets.
+4. Pin the fresh AI Governance failure class with focused grader and export
+   audit regressions.
+
 ## v0.15.34 - Knowledge Resource Handoff
 
 Goal: fix the fresh deployed v0.15.33 AI Governance audit finding without

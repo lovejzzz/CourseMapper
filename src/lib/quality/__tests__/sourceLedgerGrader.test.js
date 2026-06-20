@@ -118,4 +118,67 @@ describe('source-ledger quality checks', () => {
     expect(details).toContain('source review row SL1 is not trusted bibliography proof');
     expect(details).not.toContain('source ledger row SL1 has ambiguous or missing license');
   });
+
+  it('flags sourceRef coverage that looks complete but rests on one thin source row', async () => {
+    const result = await grade({
+      fileProvider: createMemoryFileProvider({
+        'PACKAGE_MANIFEST.json': JSON.stringify({
+          courseName: 'AI Governance Source Thinness',
+          lessonScope: 'all',
+          requestedFeatures: [],
+          readiness: { status: 'ready', blockers: 0, warnings: 0, checkedSections: null },
+          pipeline: {
+            knowledgeBackbone:
+              '0/4 lessons genome-linked · 9 open resources (openalex: 4, openlibrary: 1, source-finder: 4)',
+            nativeAuthoring: 'assembled 4 sessions · CurriculumV1 source 4 lessons',
+          },
+          sourceLedger: [
+            {
+              id: 'kr5',
+              title: 'Seven AI Laws The Future of Mankind',
+              provider: 'openlibrary',
+              url: 'https://openlibrary.org/works/OL45142895W',
+              license: 'Open Library public metadata',
+              licenseAmbiguous: true,
+            },
+          ],
+          sourceReviewRows: [
+            {
+              id: 'SL1',
+              title: 'Existing course map fields.',
+              provider: 'courseir',
+              accessStatus: 'no-url-or-doi',
+              licenseAmbiguous: true,
+            },
+          ],
+          courseIR: {
+            sourceRefCoverage: {
+              totals: { total: 56, withRefs: 56, missing: 0, danglingRefs: 0 },
+              categories: {
+                outcomes: { total: 8, withRefs: 8, missing: 0, danglingRefs: 0 },
+                activities: { total: 14, withRefs: 14, missing: 0, danglingRefs: 0 },
+                factualClaims: { total: 14, withRefs: 14, missing: 0, danglingRefs: 0 },
+              },
+            },
+          },
+          sourceReport: {
+            path: 'SOURCE_REPORT.md',
+            sourceCount: 1,
+            sourceReviewCount: 1,
+          },
+          files: [],
+        }),
+        'SOURCE_REPORT.md': '# Source Report\n\n## Source Ledger\n- kr5: Seven AI Laws The Future of Mankind\n',
+      }),
+      course: { title: 'AI Governance Source Thinness', featureIds: [] },
+    });
+
+    const details = result.findings.map((finding) => finding.detail);
+    expect(details).toEqual(
+      expect.arrayContaining([
+        'pipeline reported 9 open resource(s) but the package exported 2 source proof row(s)',
+        'sourceRef coverage is too thin: 56 atom(s) rely on 1 trusted source row(s)',
+      ]),
+    );
+  });
 });

@@ -23,6 +23,34 @@ function ambiguousLicense(row) {
   );
 }
 
+function sourceCoverageTotal(coverage) {
+  if (!coverage || typeof coverage !== 'object') return 0;
+  const explicit = Number(coverage?.totals?.total);
+  if (Number.isFinite(explicit) && explicit > 0) return explicit;
+  return Object.values(coverage?.categories || {}).reduce((sum, proof) => sum + (Number(proof?.total) || 0), 0);
+}
+
+function parseReportedOpenResourceCount(manifest) {
+  const pipeline = manifest?.pipeline;
+  if (!pipeline || typeof pipeline !== 'object') return null;
+  const text = Object.values(pipeline)
+    .map((value) => (typeof value === 'string' ? value : JSON.stringify(value || '')))
+    .join(' ');
+  const match = text.match(/\b(\d+)\s+open resources?\b/i);
+  return match ? Number(match[1]) : null;
+}
+
+function isThinTrustedRow(row) {
+  const provider = String(row?.provider || '').toLowerCase();
+  return (
+    ambiguousLicense(row) ||
+    provider === 'openlibrary' ||
+    provider === 'courseir' ||
+    provider === 'instructor' ||
+    provider === 'instructor-provided'
+  );
+}
+
 export function hasSourceLedgerProof(manifest) {
   return Boolean(
     rows(manifest).length ||
@@ -53,6 +81,9 @@ export function checkSourceLedger(findings, { files, manifest }) {
   const review = reviewRows(manifest);
   const coverage = manifest?.courseIR?.sourceRefCoverage || manifest?.sourceReport?.sourceRefCoverage || null;
   const reportPath = manifest?.sourceReport?.path || 'SOURCE_REPORT.md';
+  const reportedOpenResources = parseReportedOpenResourceCount(manifest);
+  const exportedSourceRows = ledger.length + review.length;
+  const coverageTotal = sourceCoverageTotal(coverage);
 
   if (ledger.length === 0 && review.length === 0 && !coverage) {
     findings.add({
@@ -125,6 +156,30 @@ export function checkSourceLedger(findings, { files, manifest }) {
       file: 'PACKAGE_MANIFEST.json',
       detail: `source review row ${id || '(missing id)'} is not trusted bibliography proof`,
       evidence: row?.title || row?.evidence || JSON.stringify(row).slice(0, 120),
+    });
+  }
+
+  if (Number.isFinite(reportedOpenResources) && reportedOpenResources > exportedSourceRows) {
+    findings.add({
+      severity: 'P1',
+      dimension: 'honesty',
+      file: 'PACKAGE_MANIFEST.json',
+      detail: `pipeline reported ${reportedOpenResources} open resource(s) but the package exported ${exportedSourceRows} source proof row(s)`,
+      evidence: JSON.stringify(manifest?.pipeline || {}).slice(0, 200),
+    });
+  }
+
+  if (coverageTotal >= 12 && ledger.length <= 1 && ledger.every(isThinTrustedRow)) {
+    findings.add({
+      severity: 'P1',
+      dimension: 'citations',
+      file: 'PACKAGE_MANIFEST.json',
+      detail: `sourceRef coverage is too thin: ${coverageTotal} atom(s) rely on ${ledger.length} trusted source row(s)`,
+      evidence: JSON.stringify({
+        sourceLedgerRows: ledger.length,
+        coverageTotal,
+        providers: ledger.map((row) => row.provider).filter(Boolean),
+      }).slice(0, 200),
     });
   }
 
