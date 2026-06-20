@@ -771,6 +771,15 @@ function isDataScienceCourse(courseMap) {
   return strong || datasetWithModeling;
 }
 
+function isModelGovernanceCourse(courseMap) {
+  const text = textify(courseMap).toLowerCase();
+  return (
+    /\b(ai governance|artificial intelligence governance|data ethics|algorithmic accountability|algorithmic bias|model documentation|model cards?|risk management frameworks?|ai procurement|public-sector procurement|vendor claims)\b/.test(
+      text,
+    ) && /\b(ai|algorithmic|model|governance|data ethics|risk management|procurement)\b/.test(text)
+  );
+}
+
 function validateCourseMapSemanticQuality(courseMap) {
   const findings = [];
   const lessons = courseMap?.lessons || [];
@@ -911,14 +920,18 @@ function validateDomainSemanticQuality(courseMap, deliverables) {
     });
   }
 
-  if (/\b(?:jupyter|ipynb|model card|starter notebook)\b/i.test(text)) {
+  const hardNotebookAssetPattern = /\b(?:jupyter|ipynb|starter notebook)\b/i;
+  const modelCardPattern = /\bmodel[-\s]cards?\b/i;
+  const unsupportedModelCard = modelCardPattern.test(text) && !isModelGovernanceCourse(courseMap);
+  if (hardNotebookAssetPattern.test(text) || unsupportedModelCard) {
+    const assetPattern = hardNotebookAssetPattern.test(text) ? hardNotebookAssetPattern : modelCardPattern;
     findings.push({
       id: 'semantic-nonml-lab-assets',
       severity: 'error',
       category: 'semanticQuality',
       message: 'Non-data-science package references notebook/model-card lab assets',
       lessonIndex: null,
-      featureId: affectedFeatureFor(/\b(?:jupyter|ipynb|model card|starter notebook)\b/i),
+      featureId: affectedFeatureFor(assetPattern),
       suggestedPrompt:
         'Remove notebook, model-card, and data-lab requirements unless the course source explicitly asks for them.',
     });

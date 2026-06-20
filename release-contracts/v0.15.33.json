@@ -1,0 +1,117 @@
+{
+  "version": "0.15.33",
+  "date": "June 20, 2026",
+  "title": "Assessment Echo Guard: syllabus and policy checks stop blocking AI governance exports",
+  "status": "verified-current",
+  "proofSummary": {
+    "local": [
+      "npx vitest run src/lib/__tests__/courseBlueprintCompiler.test.js src/lib/__tests__/pedagogicalValidator.test.js tests/v0155-release-truth-ledger.test.js",
+      "npm run format:check",
+      "npm run lint",
+      "npm test",
+      "npm run audit:gold:smoke",
+      "npm run build",
+      "npm run bundle:check",
+      "npm run audit:release-history",
+      "npm run test:e2e"
+    ],
+    "ciFast": {
+      "status": "pending-push",
+      "note": "Fast verification is claimed only after v0.15.33 is pushed and the GitHub Actions run is attached."
+    },
+    "deploy": {
+      "status": "pending-push",
+      "note": "Pages deploy is not claimed until the pushed release completes its deploy run."
+    },
+    "ciDeep": {
+      "status": "local-only",
+      "note": "This is a narrow deterministic compiler/export-policy patch, so focused regressions plus audit:gold:smoke are the release gate."
+    },
+    "liveProvider": {
+      "status": "local-only",
+      "note": "The release is based on a fresh deployed v0.15.32 EduTool.dev AI Governance audit saved under verification-output/edutool-audit-loop/20260620T130411Z. No ZIP regrade was possible because export was blocked before download."
+    },
+    "manualHuman": {
+      "status": "not-applicable",
+      "note": "No external instructor approval is claimed by this release."
+    }
+  },
+  "claims": [
+    {
+      "id": "v01533-live-ai-governance-blocked-audit",
+      "status": "verified-current",
+      "changelogHighlightIndex": 0,
+      "summary": "A fresh deployed v0.15.32 EduTool.dev AI Governance audit reached 99/A but blocked export on a syllabus model-card heuristic and exposed Assessment: 1. Assessment echoes in syllabus fields.",
+      "anchors": [
+        "docs/V0.15.33_ASSESSMENT_ECHO_GUARD_ROADMAP.md",
+        "src/lib/courseBlueprintCompiler.js",
+        "src/lib/pedagogicalValidator.js"
+      ],
+      "proofCommands": [
+        "Manual EduTool.dev console/visible-text audit saved under verification-output/edutool-audit-loop/20260620T130411Z/"
+      ],
+      "proofScopes": ["live-provider", "compiled-output", "static-audit"]
+    },
+    {
+      "id": "v01533-assessment-title-dedupe-before-syllabus",
+      "status": "verified-current",
+      "changelogHighlightIndex": 1,
+      "summary": "Assessment registry titles are de-duplicated before they feed student artifacts, assessment anchors, grading provenance, syllabus schedules, and important dates.",
+      "anchors": ["src/lib/courseBlueprintCompiler.js", "src/lib/__tests__/courseBlueprintCompiler.test.js"],
+      "proofCommands": ["npx vitest run src/lib/__tests__/courseBlueprintCompiler.test.js"],
+      "proofScopes": ["unit", "compiled-output"]
+    },
+    {
+      "id": "v01533-weight-evidence-echo-strip",
+      "status": "verified-current",
+      "changelogHighlightIndex": 2,
+      "summary": "Embedded weight-evidence snippets strip repeated numbered assessment titles instead of preserving raw Title: 1. Title chains.",
+      "anchors": ["src/lib/courseBlueprintCompiler.js", "src/lib/__tests__/courseBlueprintCompiler.test.js"],
+      "proofCommands": ["npx vitest run src/lib/__tests__/courseBlueprintCompiler.test.js"],
+      "proofScopes": ["unit", "compiled-output"]
+    },
+    {
+      "id": "v01533-ai-governance-model-card-policy",
+      "status": "verified-current",
+      "changelogHighlightIndex": 3,
+      "summary": "The non-ML lab-assets validator still blocks Jupyter/IPYNB/starter-notebook leakage, but no longer blocks model-card language for explicit AI governance/model-documentation courses.",
+      "anchors": ["src/lib/pedagogicalValidator.js", "src/lib/__tests__/pedagogicalValidator.test.js"],
+      "proofCommands": ["npx vitest run src/lib/__tests__/pedagogicalValidator.test.js"],
+      "proofScopes": ["unit", "static-audit"]
+    },
+    {
+      "id": "v01533-focused-regressions",
+      "status": "verified-current",
+      "changelogHighlightIndex": 4,
+      "summary": "Targeted compiler and pedagogical-validator regressions pin the AI Governance and Policy Memo failure classes.",
+      "anchors": [
+        "src/lib/__tests__/courseBlueprintCompiler.test.js",
+        "src/lib/__tests__/pedagogicalValidator.test.js"
+      ],
+      "proofCommands": [
+        "npx vitest run src/lib/__tests__/courseBlueprintCompiler.test.js src/lib/__tests__/pedagogicalValidator.test.js"
+      ],
+      "proofScopes": ["unit", "compiled-output", "static-audit"]
+    }
+  ],
+  "carryForward": [
+    {
+      "id": "research-session-planner",
+      "status": "carry-forward",
+      "source": "docs/V0.15.27_RESEARCH_SOURCE_LEDGER_ROADMAP.md",
+      "next": "Build a real ResearchSession planner that researches course concepts once, caches a trusted ledger, and compiles many deliverables without browsing per artifact."
+    },
+    {
+      "id": "courseir-resource-bridge",
+      "status": "carry-forward",
+      "source": "docs/V0.15.31_SOURCE_REVIEW_TRUTH_ROADMAP.md",
+      "next": "Bridge CourseIR atom sourceRefs directly to retrieved lesson resources so future packages can replace review-only fallback rows with trusted source rows."
+    },
+    {
+      "id": "slide-deck-repeated-phrase-texture",
+      "status": "carry-forward",
+      "source": "docs/V0.15.33_ASSESSMENT_ECHO_GUARD_ROADMAP.md",
+      "next": "Investigate the slide-deck repeated-phrase warning separately from the export-blocking assessment echo and AI-governance model-card policy fix."
+    }
+  ]
+}

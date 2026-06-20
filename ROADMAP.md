@@ -4,6 +4,27 @@
 
 CourseMapper is moving toward a "consider it done" course-production agent. The user should describe the course, choose scope/materials, and receive a finished draft package. The agent owns generation, QA, repair, alignment, and export readiness. Human involvement should be final approval only, not QA labor.
 
+## v0.15.33 - Assessment Echo Guard
+
+Goal: fix the fresh deployed v0.15.32 AI Governance audit finding without
+weakening the quality bar. The live package reached 99/A but could not export:
+the syllabus policy check treated valid model-card language as notebook/model
+lab leakage, while the syllabus rendered deterministic assessment echoes such
+as `Lesson 2 applied problem: Model documentation (25%): 1. Lesson 2 applied
+problem: Model documentation (25%)`.
+
+Full plan: `docs/V0.15.33_ASSESSMENT_ECHO_GUARD_ROADMAP.md`
+
+1. De-duplicate numbered assessment-title echoes before they enter student
+   artifacts, assessment anchors, grading provenance, syllabus schedules, and
+   important dates.
+2. Strip repeated numbered assessment titles from embedded weight-evidence
+   snippets so provenance does not preserve `Title: 1. Title` chains.
+3. Keep the notebook/Jupyter/IPYNB leakage blocker intact, but allow model-card
+   language for explicit AI governance and model-documentation courses.
+4. Pin the AI Governance / Policy Memo failure class with focused compiler and
+   pedagogical-validator regressions.
+
 ## v0.15.32 - Slide Note Echo Guard
 
 Goal: fix the fresh deployed v0.15.31 Environmental Justice audit finding

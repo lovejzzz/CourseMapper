@@ -767,6 +767,37 @@ describe('validateSemanticContentQuality', () => {
 
     expect(findings.map((finding) => finding.id)).not.toContain('semantic-nonml-lab-assets');
   });
+
+  it('allows AI governance model-documentation packages to reference model cards without notebook assets', () => {
+    const courseMap = {
+      courseName: 'AI Governance and Data Ethics',
+      lessons: [
+        {
+          title: 'Lesson 2: Model documentation and risk management frameworks',
+          sections: [
+            {
+              learningObjectives: 'Describe the purpose of model documentation in AI governance.',
+              topicSection: 'model documentation; risk management frameworks; public-sector procurement',
+            },
+          ],
+        },
+      ],
+    };
+    const deliverables = {
+      syllabus: doneDeliv({
+        courseRequirements: [
+          {
+            description:
+              'Use a model card to explain intended use, limitations, risk controls, and public-sector accountability.',
+          },
+        ],
+      }),
+    };
+
+    const findings = validateSemanticContentQuality(courseMap, deliverables);
+
+    expect(findings.map((finding) => finding.id)).not.toContain('semantic-nonml-lab-assets');
+  });
 });
 
 // ── generateCourseHealthReport ──────────────────────────────────────────────

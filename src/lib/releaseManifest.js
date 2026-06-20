@@ -3,23 +3,23 @@ import { APP_VERSION } from './appVersion.js';
 export const CURRENT_RELEASE = {
   version: APP_VERSION,
   date: 'June 20, 2026',
-  title: 'Slide Note Echo Guard: course-title prefixes stop leaking into deck text',
-  landingTitle: 'Slide Note Echo Guard',
+  title: 'Assessment Echo Guard: syllabus and policy checks stop blocking AI governance exports',
+  landingTitle: 'Assessment Echo Guard',
   highlights: [
-    'A fresh deployed v0.15.31 EduTool.dev Environmental Justice audit regraded the ZIP at 99/A with two P2s: source-review rows stayed honest review debt, and a Policy memo slide deck rendered a deterministic `X: X` echo.',
-    'Title-slide context now uses the lesson concept phrase instead of `courseName: phrase`, removing `Course: Topic` echoes from visible title slides.',
-    'Numbered assessment echoes such as `Assessment: 1. Assessment` are de-duplicated before becoming slide artifacts.',
-    'Title-slide speaker-note anchors strip long course-name prefixes before quoted `Use "..."` guidance.',
-    'An Environmental Justice / Policy memo regression pins the exported slide surface, including titles, bullets, visuals, visual plans, and speaker notes.',
+    'A fresh deployed v0.15.32 EduTool.dev AI Governance audit reached 99/A but blocked export on a syllabus model-card heuristic and exposed `Assessment: 1. Assessment` echoes in syllabus fields.',
+    'Assessment registry titles are de-duplicated before they feed student artifacts, assessment anchors, grading provenance, syllabus schedules, and important dates.',
+    'Embedded weight-evidence snippets strip repeated numbered assessment titles instead of preserving raw `Title: 1. Title` chains.',
+    'The non-ML lab-assets validator still blocks Jupyter/IPYNB/starter-notebook leakage, but no longer blocks model-card language for explicit AI governance/model-documentation courses.',
+    'Targeted compiler and pedagogical-validator regressions pin the AI Governance and Policy Memo failure classes.',
   ],
   landingHighlights: [
-    'Course-title echoes leave slide decks.',
-    'Assessment labels de-duplicate in notes.',
-    'Environmental Justice regression is pinned.',
+    'Syllabus assessment echoes are removed.',
+    'AI governance model-card language is allowed.',
+    'Notebook asset leakage still blocks.',
   ],
   proof: {
-    contract: 'release-contracts/v0.15.32.json',
-    roadmap: 'docs/V0.15.32_SLIDE_NOTE_ECHO_GUARD_ROADMAP.md',
+    contract: 'release-contracts/v0.15.33.json',
+    roadmap: 'docs/V0.15.33_ASSESSMENT_ECHO_GUARD_ROADMAP.md',
     auditCommand: 'npm run audit:release-history',
   },
 };
@@ -34,6 +34,18 @@ export const CURRENT_RELEASE_CHANGELOG = {
 };
 
 export const HISTORICAL_RELEASE_CHANGELOGS = [
+  {
+    version: '0.15.32',
+    date: 'June 20, 2026',
+    title: 'Slide Note Echo Guard: course-title prefixes stop leaking into deck text',
+    highlights: [
+      'A fresh deployed v0.15.31 EduTool.dev Environmental Justice audit regraded the ZIP at 99/A with two P2s: source-review rows stayed honest review debt, and a Policy memo slide deck rendered a deterministic `X: X` echo.',
+      'Title-slide context now uses the lesson concept phrase instead of `courseName: phrase`, removing `Course: Topic` echoes from visible title slides.',
+      'Numbered assessment echoes such as `Assessment: 1. Assessment` are de-duplicated before becoming slide artifacts.',
+      'Title-slide speaker-note anchors strip long course-name prefixes before quoted `Use "..."` guidance.',
+      'An Environmental Justice / Policy memo regression pins the exported slide surface, including titles, bullets, visuals, visual plans, and speaker notes.',
+    ],
+  },
   {
     version: '0.15.31',
     date: 'June 20, 2026',

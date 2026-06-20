@@ -6231,7 +6231,7 @@ describe('courseBlueprintCompiler', () => {
     };
 
     const blueprint = buildCourseBlueprint(courseMap);
-    const compiled = compileBlueprintDeliverables(blueprint, ['slideDecks']);
+    const compiled = compileBlueprintDeliverables(blueprint, ['slideDecks', 'syllabus']);
     const deck = compiled.slideDecks.decks.find((item) => /Policy memo methods/i.test(item.lessonTitle));
     const deckText = deck.slides
       .map((slide) =>
@@ -6251,6 +6251,17 @@ describe('courseBlueprintCompiler', () => {
     expect(deckText).toContain('Policy memo methods');
     expect(deckText).not.toMatch(/Environmental Justice and Climate Policy:\s+Policy memo methods/i);
     expect(deckText).not.toMatch(
+      /Lesson 4 concept transfer: Policy memo methods \(25%\):\s*1\.\s*Lesson 4 concept transfer/i,
+    );
+    const visibleSyllabusText = JSON.stringify({
+      courseRequirements: compiled.syllabus.syllabus.courseRequirements,
+      outcomeAlignmentMatrix: compiled.syllabus.syllabus.outcomeAlignmentMatrix,
+      assessmentCalendar: compiled.syllabus.syllabus.assessmentCalendar,
+      weeklySchedule: compiled.syllabus.syllabus.weeklySchedule,
+      importantDates: compiled.syllabus.syllabus.importantDates,
+    });
+    expect(visibleSyllabusText).toContain('Policy memo methods');
+    expect(visibleSyllabusText).not.toMatch(
       /Lesson 4 concept transfer: Policy memo methods \(25%\):\s*1\.\s*Lesson 4 concept transfer/i,
     );
   });

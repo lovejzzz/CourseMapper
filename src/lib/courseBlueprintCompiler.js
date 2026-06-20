@@ -11868,7 +11868,7 @@ function sourceWeightEvidenceTextForLesson(lesson = {}) {
     assessmentField?.compiledValue,
     lesson.sourceEvidenceTrace?.sourceRowLabel,
   ]
-    .map((value) => cleanText(value))
+    .map((value) => removeNumberedAssessmentEchoes(cleanText(value)))
     .filter(Boolean)
     .join(' ');
 }
@@ -11958,7 +11958,7 @@ function buildAssessmentWeightPlan(lessons = [], roleDescriptors = []) {
       source,
       sourceStatus,
       reviewRequired,
-      sourceEvidence: explicit?.evidence || '',
+      sourceEvidence: removeNumberedAssessmentEchoes(explicit?.evidence || ''),
       rationale:
         source === 'course-map-explicit'
           ? `Weight ${weights[index] || 0}% came from source assessment text.`
@@ -12622,7 +12622,7 @@ function normalizeAssessmentRegistry(registry) {
     )
     .map((entry, index) => ({
       id: cleanText(entry.id) || `A${entry.dueSession}.${index + 1}`,
-      title: cleanText(entry.title),
+      title: dedupeNumberedAssessmentEcho(cleanText(entry.title)),
       kind: REGISTRY_ASSESSMENT_KINDS.has(entry.kind) ? entry.kind : 'graded-artifact',
       dueSession: entry.dueSession,
       weightPct: Number.isFinite(entry.weightPct) ? entry.weightPct : null,
@@ -12680,7 +12680,7 @@ function registryStudentArtifactTitle(registry, lessonNumber) {
   const gradeable = forLesson.filter((entry) => entry.kind !== 'in-class');
   const pool = gradeable.length > 0 ? gradeable : forLesson;
   const ranked = [...pool].sort((a, b) => (b.weightPct ?? -1) - (a.weightPct ?? -1));
-  return ranked[0].title;
+  return dedupeNumberedAssessmentEcho(ranked[0].title);
 }
 
 // Speaking-performance criteria for kind 'oral' — parameterized from the
@@ -12795,15 +12795,17 @@ function buildRegistryAssessmentAnchors(lessons, registry) {
     const lesson = lessonByNumber.get(entry.dueSession);
     const lessonIndex = lessonIndexByNumber.get(entry.dueSession) || 0;
     const weightPercent = weights[position] || 0;
-    const normalizedEntry = { ...entry, weightPct: weightPercent };
+    const normalizedEntry = { ...entry, title: dedupeNumberedAssessmentEcho(entry.title), weightPct: weightPercent };
     const roleDescriptor =
-      entry.kind === 'exam'
+      normalizedEntry.kind === 'exam'
         ? registryExamRoleDescriptor(lesson, normalizedEntry)
-        : entry.kind === 'oral'
+        : normalizedEntry.kind === 'oral'
           ? registryOralRoleDescriptor(lesson, normalizedEntry)
           : lessonRoleDescriptors[lessonIndex];
     const criteria =
-      entry.kind === 'oral' ? buildSpeakingAssessmentCriteria(lesson, entry.title) : buildAssessmentCriteria(lesson);
+      normalizedEntry.kind === 'oral'
+        ? buildSpeakingAssessmentCriteria(lesson, normalizedEntry.title)
+        : buildAssessmentCriteria(lesson);
     const validityEvidence = buildAssessmentValidityEvidence(lesson);
     const criterionEvidenceMap = buildCriterionEvidenceMap(lesson, criteria, validityEvidence);
     const criterionWeightPlan = buildCriterionWeightPlan(lesson, criteria, criterionEvidenceMap, 100);
@@ -12816,11 +12818,13 @@ function buildRegistryAssessmentAnchors(lessons, registry) {
     const assessment = {
       id: entry.id,
       registryId: entry.id,
-      kind: entry.kind,
-      // Identity rule (3.2a): the registry title VERBATIM — no fusion, no
-      // re-labeling. The map cell and the brief now read identically.
-      title: entry.title,
-      artifact: entry.title,
+      kind: normalizedEntry.kind,
+      // Identity rule (3.2a): the normalized registry title owns the row — no
+      // fusion, no re-labeling. v0.15.33 strips deterministic "Title: 1.
+      // Title" echoes before this point so the same identity does not
+      // duplicate across syllabus, briefs, rubrics, and package receipts.
+      title: normalizedEntry.title,
+      artifact: normalizedEntry.title,
       lessonNumbers: [lesson.lessonNumber],
       dueSession: entry.dueSession,
       relatedLessons: [lesson.title],
@@ -12892,8 +12896,10 @@ function buildAssessmentAnchors(lessons, registry = null) {
     const weightProvenanceRow = weightPlan.rows[index] || {};
     const assessment = {
       id: `assessment-${index + 1}`,
-      title: cleanText(lesson.studentArtifact, `${stripLessonPrefix(lesson.title)} applied assessment`),
-      artifact: cleanText(lesson.studentArtifact, 'Applied source-based artifact'),
+      title: dedupeNumberedAssessmentEcho(
+        cleanText(lesson.studentArtifact, `${stripLessonPrefix(lesson.title)} applied assessment`),
+      ),
+      artifact: dedupeNumberedAssessmentEcho(cleanText(lesson.studentArtifact, 'Applied source-based artifact')),
       lessonNumbers: [lesson.lessonNumber],
       relatedLessons: [lesson.title],
       weight: `${weightPercent}%`,
@@ -16570,13 +16576,21 @@ function slideArtifact(lesson) {
 }
 
 function dedupeNumberedAssessmentEcho(value) {
-  const text = cleanText(value);
+  const text = removeNumberedAssessmentEchoes(value);
   const match = /^(.{8,140}?)\s*:\s*\d+\.\s*(.+)$/.exec(text);
   if (!match) return text;
   const lead = stripTerminalPunctuation(match[1]);
   const tail = stripTerminalPunctuation(match[2]);
   if (lead && tail && lead.toLowerCase() === tail.toLowerCase()) return lead;
   return text;
+}
+
+function removeNumberedAssessmentEchoes(value) {
+  return cleanText(value)
+    .replace(/\b(Lesson\s+\d+\s+[^.;\n]{8,160}?\(\d{1,3}%\)):\s*\d+\.\s*\1(?=$|[\s,.;:])/gi, '$1')
+    .replace(/\b([^.;\n]{8,160}?\(\d{1,3}%\)):\s*\d+\.\s*\1(?=$|[\s,.;:])/gi, '$1')
+    .replace(/\s{2,}/g, ' ')
+    .trim();
 }
 
 function slideSourceCue(lesson) {
