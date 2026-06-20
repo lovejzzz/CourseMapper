@@ -330,7 +330,7 @@ describe('packageZipExporter', () => {
       topicSection: 'Socialization',
       learningObjectives: 'Explain how agents of socialization shape identity.',
       supportingResources:
-        'OpenStax Introduction to Sociology 3e, Socialization, https://openstax.org/books/introduction-sociology-3e/pages/5-introduction-to-socialization, CC BY 4.0',
+        'course map; syllabus; lesson plans; slide decks; assignment briefs; rubrics; discussion prompts; quiz and exam bank; study guides; course FAQ; Worked examples, readings, or activity sheets aligned to institutions.; OpenStax Introduction to Sociology 3e, Socialization, https://openstax.org/books/introduction-sociology-3e/pages/5-introduction-to-socialization, CC BY 4.0',
     };
 
     const result = await buildCourseMaterialsZip({
@@ -369,6 +369,9 @@ describe('packageZipExporter', () => {
     expect(manifest.sourceLedgerSummary).toMatchObject({ sourceCount: 1, accessibleCount: 1 });
     expect(manifest.sourceReport).toMatchObject({ path: 'SOURCE_REPORT.md', sourceCount: 1 });
     expect(sourceReport).toContain('OpenStax Introduction to Sociology 3e');
+    expect(sourceReport).not.toContain('course map');
+    expect(sourceReport).not.toContain('lesson plans');
+    expect(sourceReport).not.toContain('Worked examples, readings, or activity sheets');
   });
 
   it('uses custom deliverable names in ZIP paths and manifest labels', async () => {

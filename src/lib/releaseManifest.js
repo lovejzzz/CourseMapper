@@ -3,23 +3,23 @@ import { APP_VERSION } from './appVersion.js';
 export const CURRENT_RELEASE = {
   version: APP_VERSION,
   date: 'June 20, 2026',
-  title: 'Source Proof Export Truth: ZIP receipts match the run',
-  landingTitle: 'Source Proof Export Truth',
+  title: 'Source Ledger Fallback Guard: fake receipts stop shipping',
+  landingTitle: 'Source Ledger Fallback Guard',
   highlights: [
-    'A fresh deployed v0.15.27 EduTool.dev Sociology audit exposed a real proof mismatch: the browser finalizer reported source-truth quality at 87/B while the downloaded ZIP regraded at 99/A because source receipts were missing.',
-    'Source-backed exports now recover source-ledger rows from deterministic Course Map supporting-resource and reading cells when the live CourseGraph handoff is sparse.',
-    'The source normalizer now extracts embedded URLs, DOI values, provider hints, and Creative Commons/open-access license labels from rendered resource text instead of dropping those receipts.',
-    'Package export merges CourseIR/CourseGraph rows with Course Map fallback rows before writing `SOURCE_REPORT.md`, `sourceLedger`, and `sourceLedgerSummary`.',
-    'The deep grader now arms source-ledger checks from pipeline evidence as well as exported proof, so source-backed packages with no receipts receive a P1 honesty finding instead of a clean score.',
+    'A fresh deployed v0.15.28 EduTool.dev Sociology audit proved source reports now ship, but also exposed polluted proof: `SOURCE_REPORT.md` listed package labels and generic placeholders as source rows.',
+    'Course Map and syllabus resource fallbacks now pass through a source-candidate guard before they can become normalized source-ledger rows.',
+    'Package labels such as course map, lesson plans, slide decks, rubrics, study guides, and generic placeholder resource sentences are rejected instead of exported as fake citations.',
+    'Real fallback receipts still survive when they carry source evidence such as OpenStax/OpenAlex/Open Library/ERIC hints, URL, DOI, Creative Commons/open-access license text, or recognizable academic/OER source signals.',
+    'The quality bar stays honest: absent source proof remains a source-proof problem, while focused source-ledger and ZIP-export regressions pin the audited Sociology failure class.',
   ],
   landingHighlights: [
-    'Source-backed ZIPs export receipts.',
-    'Sparse graph handoffs recover map sources.',
-    'Missing source proof is a P1 finding.',
+    'Fake source fallback rows are filtered.',
+    'Real embedded source receipts still export.',
+    'Missing proof stays honest.',
   ],
   proof: {
-    contract: 'release-contracts/v0.15.28.json',
-    roadmap: 'docs/V0.15.28_SOURCE_PROOF_EXPORT_TRUTH_ROADMAP.md',
+    contract: 'release-contracts/v0.15.29.json',
+    roadmap: 'docs/V0.15.29_SOURCE_LEDGER_FALLBACK_GUARD_ROADMAP.md',
     auditCommand: 'npm run audit:release-history',
   },
 };
@@ -34,6 +34,18 @@ export const CURRENT_RELEASE_CHANGELOG = {
 };
 
 export const HISTORICAL_RELEASE_CHANGELOGS = [
+  {
+    version: '0.15.28',
+    date: 'June 20, 2026',
+    title: 'Source Proof Export Truth: ZIP receipts match the run',
+    highlights: [
+      'A fresh deployed v0.15.27 EduTool.dev Sociology audit exposed a real proof mismatch: the browser finalizer reported source-truth quality at 87/B while the downloaded ZIP regraded at 99/A because source receipts were missing.',
+      'Source-backed exports now recover source-ledger rows from deterministic Course Map supporting-resource and reading cells when the live CourseGraph handoff is sparse.',
+      'The source normalizer now extracts embedded URLs, DOI values, provider hints, and Creative Commons/open-access license labels from rendered resource text instead of dropping those receipts.',
+      'Package export merges CourseIR/CourseGraph rows with Course Map fallback rows before writing `SOURCE_REPORT.md`, `sourceLedger`, and `sourceLedgerSummary`.',
+      'The deep grader now arms source-ledger checks from pipeline evidence as well as exported proof, so source-backed packages with no receipts receive a P1 honesty finding instead of a clean score.',
+    ],
+  },
   {
     version: '0.15.27',
     date: 'June 20, 2026',

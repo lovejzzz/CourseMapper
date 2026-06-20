@@ -14,8 +14,15 @@ const TRUSTED_PROVIDERS = new Set([
 const ACADEMIC_PROVIDERS = new Set(['openalex', 'eric']);
 const OER_PROVIDERS = new Set(['openstax', 'genome', 'genome-prerequisite']);
 const METADATA_ONLY_PROVIDERS = new Set(['openlibrary']);
+const GENERIC_RESOURCE_PROVIDERS = new Set(['', 'course-resource', 'course-map', 'resource', 'syllabus']);
 const AMBIGUOUS_LICENSE_RE =
   /^(?:|unknown|open access|open license|public metadata|open library public metadata|crossref public metadata|instructor review required|review required|varies|mixed|metadata only)$/i;
+const SOURCE_SIGNAL_RE =
+  /\b(?:openstax|openalex|open library|openlibrary|eric|doi|creative commons|cc\s+by|open access|textbook|chapter|article|journal|book|reader|press|publication|volume|vol\.|edition|ed\.|et al\.?|isbn|issn)\b|https?:\/\//i;
+const NON_SOURCE_RESOURCE_RE =
+  /^(?:course\s*map|syllabus|lesson\s*plans?|slide\s*decks?|assignment\s*briefs?|rubrics?|discussion\s*prompts?|quiz\s*(?:and|&)\s*exam\s*bank|study\s*guides?|course\s*faq)$/i;
+const PLACEHOLDER_RESOURCE_RE =
+  /\b(?:course materials students need|worked examples,\s*readings,\s*or activity sheets|instructor-approved readings,\s*examples,\s*or lab materials|assigned materials|class notes and assigned materials|lms access|shared files|discipline-specific tools|required for this lesson|document,\s*slide,\s*lab,\s*or analysis tool|local examples need instructor confirmation|local source list pending)\b/i;
 
 function cleanText(value, maxLength = 500) {
   const text = String(value ?? '')
@@ -150,6 +157,22 @@ function inferProviderFromText(value) {
   if (text.includes('openlibrary.org') || /\bopen library\b/.test(text)) return 'openlibrary';
   if (text.includes('eric.ed.gov') || /\beric\b/.test(text)) return 'eric';
   return '';
+}
+
+function isGenericResourceProvider(provider) {
+  return GENERIC_RESOURCE_PROVIDERS.has(cleanText(provider, 80).toLowerCase());
+}
+
+function isSourceLikeResource(resource = {}, provider = '') {
+  if (!isGenericResourceProvider(provider)) return true;
+  const text = [resource.url, resource.sourceUrl, resource.doi, resource.title, resource.citation, resource.evidence]
+    .filter(Boolean)
+    .join(' ');
+  const cleaned = cleanText(text, 1000);
+  if (!cleaned) return false;
+  if (NON_SOURCE_RESOURCE_RE.test(cleaned)) return false;
+  if (PLACEHOLDER_RESOURCE_RE.test(cleaned)) return false;
+  return SOURCE_SIGNAL_RE.test(cleaned);
 }
 
 export function sourceCitationLabel(source = {}) {
@@ -297,6 +320,7 @@ export function buildSourceLedgerFromCourseGraph(courseGraph, { checkedAt = '' }
   for (const resource of courseGraph.resources || []) {
     if (!resource || typeof resource !== 'object') continue;
     const provider = resource.provider || resource.origin || 'course-resource';
+    if (!isSourceLikeResource(resource, provider)) continue;
     appendUnique(
       rows,
       normalizeTrustedSource(

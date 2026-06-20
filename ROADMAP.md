@@ -4,6 +4,25 @@
 
 CourseMapper is moving toward a "consider it done" course-production agent. The user should describe the course, choose scope/materials, and receive a finished draft package. The agent owns generation, QA, repair, alignment, and export readiness. Human involvement should be final approval only, not QA labor.
 
+## v0.15.29 - Source Ledger Fallback Guard
+
+Goal: fix the deployed v0.15.28 source-ledger pollution exposed by a fresh
+EduTool.dev Sociology ZIP/log audit. The ZIP now exported `SOURCE_REPORT.md`,
+but the fallback ledger filled it with package labels and generic placeholder
+resource text such as `course map`, `lesson plans`, and `Worked examples,
+readings, or activity sheets...` as if they were citations.
+
+Full plan: `docs/V0.15.29_SOURCE_LEDGER_FALLBACK_GUARD_ROADMAP.md`
+
+1. Treat Course Map / syllabus resource fallback rows as candidates, not proof.
+2. Drop package labels and placeholder resource sentences before source-ledger
+   normalization.
+3. Preserve real source-like fallback rows with provider, URL, DOI, license, or
+   recognizable academic/OER source signals.
+4. Keep the grader honest: absent source proof remains a source-proof problem
+   instead of becoming fabricated citation rows.
+5. Pin the audited failure class in source-ledger and ZIP-export regressions.
+
 ## v0.15.28 - Source Proof Export Truth
 
 Goal: fix the deployed v0.15.27 source-ledger proof gap exposed by a fresh

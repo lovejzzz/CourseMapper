@@ -83,6 +83,62 @@ describe('trusted source ledger', () => {
     });
   });
 
+  it('does not promote package labels or placeholder course-map resources into source rows', () => {
+    const ledger = buildSourceLedgerFromCourseGraph(
+      {
+        sessions: [
+          {
+            id: 's1',
+            number: 1,
+            sections: [{ topic: 'Institutions', resourceRefs: ['r1', 'r2', 'r3', 'r4'] }],
+          },
+        ],
+        resources: [
+          { id: 'r1', origin: 'syllabus', citation: 'course map', sessionRefs: [1] },
+          { id: 'r2', origin: 'syllabus', citation: 'lesson plans', sessionRefs: [1] },
+          {
+            id: 'r3',
+            origin: 'syllabus',
+            citation: 'Worked examples, readings, or activity sheets aligned to institutions.',
+            sessionRefs: [1],
+          },
+          {
+            id: 'r4',
+            origin: 'syllabus',
+            citation:
+              'OpenStax Introduction to Sociology 3e, Social Institutions, https://openstax.org/books/introduction-sociology-3e/pages/4-introduction-to-society-and-social-interaction, CC BY 4.0',
+            sessionRefs: [1],
+          },
+        ],
+      },
+      { checkedAt: '2026-06-20T00:00:00.000Z' },
+    );
+
+    expect(ledger.rows).toHaveLength(1);
+    expect(ledger.rows[0]).toMatchObject({
+      id: 'r4',
+      provider: 'openstax',
+      accessStatus: 'reference-present',
+    });
+  });
+
+  it('returns no source ledger when fallback resources are only non-source placeholders', () => {
+    const ledger = buildSourceLedgerFromCourseGraph({
+      sessions: [{ id: 's1', number: 1, sections: [{ topic: 'Inequality', resourceRefs: ['r1', 'r2'] }] }],
+      resources: [
+        { id: 'r1', origin: 'syllabus', citation: 'study guides', sessionRefs: [1] },
+        {
+          id: 'r2',
+          origin: 'syllabus',
+          citation: 'Course materials students need to prepare and show evidence about inequality.',
+          sessionRefs: [1],
+        },
+      ],
+    });
+
+    expect(ledger).toBeNull();
+  });
+
   it('builds a graph ledger and human source report from CourseGraph resources', () => {
     const checkedAt = '2026-06-20T00:00:00.000Z';
     const graph = {
