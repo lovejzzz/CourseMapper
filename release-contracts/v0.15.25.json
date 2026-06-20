@@ -54,10 +54,7 @@
       "status": "verified-current",
       "changelogHighlightIndex": 1,
       "summary": "The v0.15.24 audit narrowed the remaining texture loss to repeated stock compiler phrases in slide decks, lesson plans, study guides, and Course FAQ while export, retries, findings, and voice-surface texture were clean.",
-      "anchors": [
-        "docs/V0.15.25_COMPILER_TEXTURE_PASS_2_ROADMAP.md",
-        "verification-output/edutool-audit-loop/20260620T053310Z/report.md"
-      ],
+      "anchors": ["docs/V0.15.25_COMPILER_TEXTURE_PASS_2_ROADMAP.md"],
       "proofCommands": [
         "Manual EduTool.dev ZIP/log audit saved under verification-output/edutool-audit-loop/20260620T053310Z/"
       ],
@@ -86,11 +83,7 @@
       "status": "verified-current",
       "changelogHighlightIndex": 4,
       "summary": "The release changes compiler phrasing only; it does not weaken texture scoring, hide the 99/100 evidence, or claim live 100/100 before a post-deploy rerun.",
-      "anchors": [
-        "src/lib/courseBlueprintCompiler.js",
-        "docs/V0.15.25_COMPILER_TEXTURE_PASS_2_ROADMAP.md",
-        "verification-output/edutool-audit-loop/20260620T053310Z/report.md"
-      ],
+      "anchors": ["src/lib/courseBlueprintCompiler.js", "docs/V0.15.25_COMPILER_TEXTURE_PASS_2_ROADMAP.md"],
       "proofCommands": ["npx vitest run src/lib/__tests__/courseBlueprintCompiler.test.js"],
       "proofScopes": ["unit", "doc"]
     }
