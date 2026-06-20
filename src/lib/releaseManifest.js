@@ -3,23 +3,23 @@ import { APP_VERSION } from './appVersion.js';
 export const CURRENT_RELEASE = {
   version: APP_VERSION,
   date: 'June 20, 2026',
-  title: 'Compiler Texture Pass 2: support-surface tails stop repeating',
-  landingTitle: 'Compiler Texture Pass 2',
+  title: 'Compiler Texture Pass 3: policy and participation tails stop repeating',
+  landingTitle: 'Compiler Texture Pass 3',
   highlights: [
-    'A fresh deployed EduTool.dev Intro Psychology ZIP/log audit on v0.15.24 proved the first compiler-texture fix shipped, but the package still regraded 99/A because whole-package texture stayed at 93/100.',
-    'The new evidence was narrower and deterministic: slide decks, lesson plans, study guides, and Course FAQ reused stock compiler support-surface phrases while export, retries, findings, and voice-surface texture were clean.',
-    'The compiler now varies the slide-deck example-misconception note, deep kernel conference note, study-guide kernel-fact hint, and checkpoint-response quality-focus phrase across lessons.',
-    'Focused regression coverage now checks all four audited surfaces against the exact repeated shingles from the v0.15.24 downloaded package instead of only the first slide/lesson-plan texture tails.',
+    'A fresh deployed EduTool.dev Intro Psychology ZIP/log audit on v0.15.25 proved Pass 2 shipped, but the live UI and packaged QUALITY_REPORT still reported 99/A because texture stayed at 93/100.',
+    'The remaining evidence was deterministic compiler prose in slide agenda notes, assignment integrity policy, and discussion participation-access language, not export failure or provider retry drift.',
+    'The compiler now varies assignment integrity statements, agenda slide evidence/misconception/criterion cues, and discussion alternative-participation wording across lessons.',
+    'Focused regression coverage now checks assignment briefs and discussion prompts against the exact v0.15.25 repeated shingles alongside the prior slide, lesson-plan, study-guide, and FAQ surfaces.',
     'The release keeps the quality bar honest: no grader weakening, no score inflation, and no live 100/100 claim until the next deployed EduTool.dev audit proves it.',
   ],
   landingHighlights: [
-    'Support-surface compiler tails vary across lessons.',
-    'The v0.15.24 ZIP texture evidence is regression-tested.',
+    'Assignment and discussion policy tails vary across lessons.',
+    'The v0.15.25 ZIP texture evidence is regression-tested.',
     'The 100/100 claim still waits for fresh live proof.',
   ],
   proof: {
-    contract: 'release-contracts/v0.15.25.json',
-    roadmap: 'docs/V0.15.25_COMPILER_TEXTURE_PASS_2_ROADMAP.md',
+    contract: 'release-contracts/v0.15.26.json',
+    roadmap: 'docs/V0.15.26_COMPILER_TEXTURE_PASS_3_ROADMAP.md',
     auditCommand: 'npm run audit:release-history',
   },
 };
@@ -34,6 +34,18 @@ export const CURRENT_RELEASE_CHANGELOG = {
 };
 
 export const HISTORICAL_RELEASE_CHANGELOGS = [
+  {
+    version: '0.15.25',
+    date: 'June 20, 2026',
+    title: 'Compiler Texture Pass 2: support-surface tails stop repeating',
+    highlights: [
+      'A fresh deployed EduTool.dev Intro Psychology ZIP/log audit on v0.15.24 proved the first compiler-texture fix shipped, but the package still regraded 99/A because whole-package texture stayed at 93/100.',
+      'The new evidence was narrower and deterministic: slide decks, lesson plans, study guides, and Course FAQ reused stock compiler support-surface phrases while export, retries, findings, and voice-surface texture were clean.',
+      'The compiler now varies the slide-deck example-misconception note, deep kernel conference note, study-guide kernel-fact hint, and checkpoint-response quality-focus phrase across lessons.',
+      'Focused regression coverage now checks all four audited surfaces against the exact repeated shingles from the v0.15.24 downloaded package instead of only the first slide/lesson-plan texture tails.',
+      'The release keeps the quality bar honest: no grader weakening, no score inflation, and no live 100/100 claim until the next deployed EduTool.dev audit proves it.',
+    ],
+  },
   {
     version: '0.15.24',
     date: 'June 20, 2026',

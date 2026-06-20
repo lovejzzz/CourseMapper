@@ -14447,9 +14447,12 @@ function compileAssignments(blueprint) {
           assessment.anchorExampleSet?.revisionPrompt || '',
         ].filter(Boolean),
         citationAndSourceUse: lesson.sourceUsePlan || null,
-        academicIntegrityStatement:
-          `Submitted work must represent the student or team effort. Cite outside sources or approved tools, and disclose course-specific AI use when it contributes to the submission. ` +
-          `${lesson.sourceUsePlan?.noInventedSources || 'Do not invent source details; mark missing citation details for instructor review.'}`,
+        academicIntegrityStatement: lessonVariant(lesson, [
+          `Submitted work must represent the student or team effort. Cite outside sources or approved tools, and disclose course-specific AI use when it contributes to the submission. ${lesson.sourceUsePlan?.noInventedSources || 'Do not invent source details; mark missing citation details for instructor review.'}`,
+          `Make authorship and source use visible in ${assessmentTitle}: name outside sources, identify any approved tool support, and keep the final reasoning accountable to the student or team. ${lesson.sourceUsePlan?.noInventedSources || 'Do not invent source details; mark missing citation details for instructor review.'}`,
+          `For ${assessmentTitle}, separate student/team reasoning from outside help. Cite sources, disclose approved AI or tool use when it shaped the work, and leave uncertain citation details for instructor review. ${lesson.sourceUsePlan?.noInventedSources || 'Do not invent source details; mark missing citation details for instructor review.'}`,
+          `Integrity for ${assessmentTitle} means the submitted decision, evidence trail, and revision choices are the student's or team's own work. Credit outside sources and approved tools clearly. ${lesson.sourceUsePlan?.noInventedSources || 'Do not invent source details; mark missing citation details for instructor review.'}`,
+        ]),
         accessibilityAndUDL:
           lesson.accessibilityPlan?.accommodationReviewCue ||
           `For ${assessmentTitle}, use accessible document structure, descriptive headings, readable contrast, and captions or alt text for media.`,
@@ -16920,8 +16923,18 @@ function slideTypeFocus(type, lesson, lens) {
     case 'agenda':
       return {
         opening: `Walk through the lesson flow so students can see where ${concept}, practice, and feedback each appear in ${displayTitle}.`,
-        evidence: `Point to the work block where students test ${secondary} against live ${lens.evidenceNoun} for ${artifact}.`,
-        misconception: `Clarify that preparation, practice, and debrief all support ${artifact} rather than disconnected tasks.`,
+        evidence: lessonVariant(lesson, [
+          `Point to the work block where students test ${secondary} against live ${lens.evidenceNoun} for ${artifact}.`,
+          `Show the moment when ${secondary} moves from explanation into inspectable ${lens.evidenceNoun} for ${artifact}.`,
+          `Name the checkpoint where students compare ${secondary} with the ${lens.evidenceNoun} they will use in ${artifact}.`,
+          `Preview the handoff from ${secondary} practice to the evidence decision students must make for ${artifact}.`,
+        ]),
+        misconception: lessonVariant(lesson, [
+          `Clarify that preparation, practice, and debrief all support ${artifact} rather than disconnected tasks.`,
+          `Make the throughline explicit: each agenda step gives students evidence, feedback, or a revision move for ${artifact}.`,
+          `Prevent students from treating the agenda as separate activities by naming how each step changes ${artifact}.`,
+          `Connect the preparation, practice, and debrief sequence to the final ${artifact} decision students need to defend.`,
+        ]),
       };
     case 'objectives':
       return {
@@ -17067,10 +17080,9 @@ function slideNoteAnchor({ type, anchor, concept, artifact, displayTitle, lesson
   }
 }
 
-function slideNoteCriterionCue(type, criterion) {
+function slideNoteCriterionCue(type, criterion, lesson = {}) {
   const cues = {
     title: `Keep the success test visible from the start: ${criterion}`,
-    agenda: `Use the agenda to show when students will practice this criterion: ${criterion}`,
     objectives: `Make the criterion measurable in student language: ${criterion}`,
     bridge: `Ask which prior move already supports the criterion and which part still needs work: ${criterion}`,
     keyTerm: `Check that students can use the term to meet this criterion: ${criterion}`,
@@ -17080,6 +17092,14 @@ function slideNoteCriterionCue(type, criterion) {
     summary: `Have students self-rate readiness against this criterion: ${criterion}`,
     closing: `Make the after-class task point directly back to this criterion: ${criterion}`,
   };
+  if (type === 'agenda') {
+    return lessonVariant(lesson, [
+      `Use the agenda to show when students will practice this criterion: ${criterion}`,
+      `Make the agenda accountable to this criterion: ${criterion}`,
+      `Point out which lesson segment gives students evidence for this criterion: ${criterion}`,
+      `Use the sequence of activities to show how this criterion will become visible: ${criterion}`,
+    ]);
+  }
   return cues[type] || `Tie the explanation back to this criterion: ${criterion}`;
 }
 
@@ -17120,7 +17140,7 @@ function slideNotes({ lesson, title, type, bullets, nextCue, lens }) {
   return [
     `${focus.opening} ${slideNoteAnchor({ type, anchor, concept, artifact, displayTitle, lesson })}`,
     focus.evidence,
-    `${focus.misconception} ${slideNoteCriterionCue(type, criterion)}`,
+    `${focus.misconception} ${slideNoteCriterionCue(type, criterion, lesson)}`,
     activitySequence,
     slideNoteTransition({ type, nextCue, lens, concept, artifact }),
   ]
@@ -17679,7 +17699,13 @@ function buildDiscussionGuidelinesForFormat(lesson, protocol) {
     `Use one reading, activity note, example, or artifact detail to make your contribution inspectable.`,
     `Before the discussion closes, connect one comment to ${lesson.studentArtifact} and identify the evidence that made it stronger.`,
   ]);
-  return `For ${lessonFocus}, come prepared with one brief ${concept} evidence note before class, speak or post at least twice during the ${format}, and respond directly to one peer by building on or challenging their evidence for ${lesson.studentArtifact}. Use this ${protocol.artifactGenre} protocol for ${lessonFocus}: ${protocol.participationPattern}. ${contributionCue} If you need an alternative participation mode, use the instructor-approved written or chat response option during the same activity window for ${lesson.title}. Participation is judged by evidence use, reasoning, peer response quality, ${protocol.reviewFocus}, and whether you name a limitation or revision move tied to ${concept}.`;
+  const participationAccessCue = lessonVariant(lesson, [
+    `If you need an alternative participation mode, use the instructor-approved written or chat response option during the same activity window for ${lesson.title}.`,
+    `Students using an approved alternate mode can post or submit the same evidence move in writing during the activity window for ${lesson.title}.`,
+    `When speaking is not the accessible option, use the approved chat or written pathway and make the ${concept} evidence visible before the activity closes.`,
+    `An approved written response, chat contribution, or equivalent participation path should address the same peer evidence task for ${lessonFocus}.`,
+  ]);
+  return `For ${lessonFocus}, come prepared with one brief ${concept} evidence note before class, speak or post at least twice during the ${format}, and respond directly to one peer by building on or challenging their evidence for ${lesson.studentArtifact}. Use this ${protocol.artifactGenre} protocol for ${lessonFocus}: ${protocol.participationPattern}. ${contributionCue} ${participationAccessCue} Participation is judged by evidence use, reasoning, peer response quality, ${protocol.reviewFocus}, and whether you name a limitation or revision move tied to ${concept}.`;
 }
 
 /**

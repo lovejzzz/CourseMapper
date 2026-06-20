@@ -4,6 +4,29 @@
 
 CourseMapper is moving toward a "consider it done" course-production agent. The user should describe the course, choose scope/materials, and receive a finished draft package. The agent owns generation, QA, repair, alignment, and export readiness. Human involvement should be final approval only, not QA labor.
 
+## v0.15.26 - Compiler Texture Pass 3
+
+Goal: finish the next deterministic texture layer exposed by a fresh deployed
+v0.15.25 EduTool.dev ZIP/log audit. The package still exported cleanly with no
+P0/P1/P2 findings and only 5 provider calls, but the UI and packaged
+QUALITY_REPORT still reported 99/A with texture 93/100. The remaining repeated
+shingles came from compiler-owned slide agenda notes, assignment integrity
+policy, and discussion participation-access language.
+
+Full plan: `docs/V0.15.26_COMPILER_TEXTURE_PASS_3_ROADMAP.md`
+
+1. Vary assignment academic-integrity policy language while preserving source
+   citation, AI/tool disclosure, and no-invented-source requirements.
+2. Vary agenda slide evidence, misconception, and criterion-cue language so
+   every deck does not stamp the same support-task sentence chain.
+3. Vary discussion alternative-participation language without weakening
+   accessibility or equivalent-participation expectations.
+4. Expand the Psychology lecture/exam texture regression to include assignment
+   briefs and discussion prompts alongside the prior slide/lesson/guide/FAQ
+   surfaces.
+5. Keep the release honest: no grader weakening and no live 100/100 claim until
+   a post-deploy EduTool.dev audit proves it.
+
 ## v0.15.25 - Compiler Texture Pass 2
 
 Goal: finish the next deterministic texture layer exposed by a fresh deployed

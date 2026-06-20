@@ -2345,7 +2345,7 @@ describe('courseBlueprintCompiler', () => {
 
     const compiled = compileBlueprintDeliverables(
       blueprint,
-      ['lessonPlans', 'slideDecks', 'studyGuides', 'courseFaq'],
+      ['lessonPlans', 'slideDecks', 'assignments', 'discussions', 'studyGuides', 'courseFaq'],
       {
         configMap: { lessonPlans: { depth: 'deep' } },
         enforceCompilerContract: false,
@@ -2370,10 +2370,32 @@ describe('courseBlueprintCompiler', () => {
     const faqTexts = compiled.courseFaq.faqs.map((faq) =>
       (faq.qs || []).map((item) => `${item.q || ''} ${item.an || ''}`).join(' '),
     );
+    const assignmentTexts = compiled.assignments.assignments.map((assignment) =>
+      [
+        assignment.summary,
+        assignment.academicIntegrityStatement,
+        ...(assignment.milestones || []).map((milestone) =>
+          [milestone.milestone, milestone.description, milestone.feedback, ...(milestone.uploadChecklist || [])].join(
+            ' ',
+          ),
+        ),
+      ].join(' '),
+    );
+    const discussionTexts = compiled.discussions.discussions.map((discussion) =>
+      [
+        discussion.prompt,
+        discussion.guidelines,
+        discussion.facilitationGuide?.openingMove,
+        discussion.facilitationGuide?.evidencePush,
+        discussion.facilitationGuide?.closureMove,
+      ].join(' '),
+    );
     const countDecksWith = (pattern) => deckTexts.filter((text) => pattern.test(text)).length;
     const countPlansWith = (pattern) => planTexts.filter((text) => pattern.test(text)).length;
     const countStudyGuidesWith = (pattern) => studyGuideTexts.filter((text) => pattern.test(text)).length;
     const countFaqsWith = (pattern) => faqTexts.filter((text) => pattern.test(text)).length;
+    const countAssignmentsWith = (pattern) => assignmentTexts.filter((text) => pattern.test(text)).length;
+    const countDiscussionsWith = (pattern) => discussionTexts.filter((text) => pattern.test(text)).length;
 
     expect(countDecksWith(/with a peer before deciding what/i)).toBe(0);
     expect(
@@ -2392,10 +2414,24 @@ describe('courseBlueprintCompiler', () => {
     expect(
       countFaqsWith(/concept accuracy, retrieval strength, explanation quality, and readiness for the next artifact/i),
     ).toBeLessThan(4);
+    expect(
+      countDecksWith(/against live .* evidence for .*Clarify that preparation, practice, and debrief/i),
+    ).toBeLessThan(4);
+    expect(countDecksWith(/all support .* rather than disconnected tasks. Use the agenda/i)).toBeLessThan(4);
+    expect(countAssignmentsWith(/AI use when it contributes to the submission. Do not invent authors/i)).toBeLessThan(
+      4,
+    );
+    expect(
+      countDiscussionsWith(
+        /alternative participation mode, use the instructor-approved written or chat response option/i,
+      ),
+    ).toBeLessThan(4);
 
     const texture = computeTexture([
       ...deckTexts.map((text, index) => ({ id: `deck-${index}`, feature: 'slideDecks', text })),
       ...planTexts.map((text, index) => ({ id: `plan-${index}`, feature: 'lessonPlans', text })),
+      ...assignmentTexts.map((text, index) => ({ id: `assignment-${index}`, feature: 'assignments', text })),
+      ...discussionTexts.map((text, index) => ({ id: `discussion-${index}`, feature: 'discussions', text })),
       ...studyGuideTexts.map((text, index) => ({ id: `guide-${index}`, feature: 'studyGuides', text })),
       ...faqTexts.map((text, index) => ({ id: `faq-${index}`, feature: 'courseFaq', text })),
     ]);
@@ -2405,6 +2441,12 @@ describe('courseBlueprintCompiler', () => {
     expect(evidence).not.toMatch(/backs the claim and connect it to/i);
     expect(evidence).not.toMatch(/readiness for the next artifact/i);
     expect(evidence).not.toMatch(/redirect drafts drifting/i);
+    expect(evidence).not.toMatch(/against live .* evidence for .* clarify that/i);
+    expect(evidence).not.toMatch(/ai use when it contributes to the submission do not invent authors/i);
+    expect(evidence).not.toMatch(/all support .* rather than disconnected tasks use the agenda/i);
+    expect(evidence).not.toMatch(
+      /alternative participation mode use the instructor-approved written or chat response/i,
+    );
   });
 
   it('decodes capstone project milestones with sponsor constraints and defense readiness', () => {
