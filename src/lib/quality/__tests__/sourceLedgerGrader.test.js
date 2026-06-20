@@ -3,6 +3,35 @@ import { grade } from '../deepQualityGrader.js';
 import { createMemoryFileProvider } from '../fileProviders.js';
 
 describe('source-ledger quality checks', () => {
+  it('flags source-backed pipeline packages that omit exported source proof', async () => {
+    const result = await grade({
+      fileProvider: createMemoryFileProvider({
+        'PACKAGE_MANIFEST.json': JSON.stringify({
+          courseName: 'Sociology Missing Source Proof',
+          lessonScope: 'all',
+          requestedFeatures: [],
+          readiness: { status: 'ready', blockers: 0, warnings: 0, checkedSections: null },
+          pipeline: {
+            genomeLinker: '1 genome + 0 cached of 4 lessons (1 concepts, 1 citations, 0 bridges)',
+            judgment: 'limited knowledge check (1 linked concept across 1 genome-linked lesson)',
+          },
+          files: [],
+        }),
+      }),
+      course: { title: 'Sociology Missing Source Proof', featureIds: [] },
+    });
+
+    expect(result.findings).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          severity: 'P1',
+          dimension: 'honesty',
+          detail: 'source-backed pipeline did not export sourceLedger, sourceRef coverage, or SOURCE_REPORT.md proof',
+        }),
+      ]),
+    );
+  });
+
   it('flags incomplete source refs, inaccessible sources, and ambiguous licenses from manifest proof', async () => {
     const result = await grade({
       fileProvider: createMemoryFileProvider({

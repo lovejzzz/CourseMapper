@@ -3143,13 +3143,11 @@ export async function grade({
   // on manifest.readings; expectReadings courses also fail on an absent
   // registry.
   checkReadings(findings, pkg, course);
-  if (
-    (Array.isArray(pkg.manifest?.sourceLedger) && pkg.manifest.sourceLedger.length > 0) ||
-    pkg.manifest?.courseIR?.sourceRefCoverage ||
-    pkg.manifest?.sourceReport?.sourceRefCoverage
-  ) {
-    const { checkSourceLedger } = await import('./sourceLedgerQualityChecks.js');
-    checkSourceLedger(findings, pkg);
+  {
+    const { checkSourceLedger, shouldCheckSourceLedger } = await import('./sourceLedgerQualityChecks.js');
+    if (shouldCheckSourceLedger(pkg.manifest)) {
+      checkSourceLedger(findings, pkg);
+    }
   }
   checkConsistency(findings, pkg);
   // Honesty source: the Crucible passes console text; the in-app finalize

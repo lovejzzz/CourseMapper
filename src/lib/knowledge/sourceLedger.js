@@ -38,6 +38,27 @@ function cleanUrl(value) {
   return '';
 }
 
+function extractUrl(value) {
+  const text = cleanText(value, 1000);
+  const match = text.match(/https?:\/\/[^\s),;\]]+/i);
+  return match ? match[0].replace(/[.,;:]+$/g, '') : '';
+}
+
+function extractDoi(value) {
+  const text = cleanText(value, 1000);
+  const match = text.match(/(?:doi:\s*|doi\.org\/)?(10\.\d{4,9}\/[-._;()/:A-Z0-9]+)/i);
+  return match ? match[1] : '';
+}
+
+function extractLicense(value) {
+  const text = cleanText(value, 1000);
+  const cc = text.match(/\bCC\s+BY(?:-[A-Z]+)*(?:\s+\d\.\d)?\b/i);
+  if (cc) return cc[0].replace(/\s+/g, ' ').toUpperCase();
+  if (/\bpublic domain\b/i.test(text)) return 'public domain';
+  if (/\bopen access\b/i.test(text)) return 'open access';
+  return '';
+}
+
 function normalizeDoi(value) {
   const text = cleanText(value, 220)
     .replace(/^https?:\/\/(?:dx\.)?doi\.org\//i, '')
@@ -85,7 +106,15 @@ function sourceStatus(entry) {
 }
 
 function sourceProvider(entry, fallback = 'courseir') {
-  return cleanText(entry?.provider || entry?.origin || entry?.sourceProvider || fallback, 80).toLowerCase();
+  const direct = cleanText(entry?.provider || entry?.origin || entry?.sourceProvider || '', 80).toLowerCase();
+  const sourceText = [entry?.url, entry?.sourceUrl, entry?.title, entry?.citation, entry?.evidence, entry?.scope]
+    .filter(Boolean)
+    .join(' ');
+  const inferred = inferProviderFromText(sourceText);
+  if (!direct || ['course-resource', 'course-map', 'resource', 'syllabus'].includes(direct)) {
+    return inferred || direct || fallback;
+  }
+  return direct;
 }
 
 function sourceType(entry) {
@@ -113,6 +142,16 @@ export function providerTrustLevel(provider) {
   return 'review-required';
 }
 
+function inferProviderFromText(value) {
+  const text = cleanText(value, 1000).toLowerCase();
+  if (!text) return '';
+  if (text.includes('openstax.org') || /\bopenstax\b/.test(text)) return 'openstax';
+  if (text.includes('openalex.org') || /\bopenalex\b/.test(text)) return 'openalex';
+  if (text.includes('openlibrary.org') || /\bopen library\b/.test(text)) return 'openlibrary';
+  if (text.includes('eric.ed.gov') || /\beric\b/.test(text)) return 'eric';
+  return '';
+}
+
 export function sourceCitationLabel(source = {}) {
   const title = cleanText(source.title || source.citation || source.evidence || source.id, 220);
   const authors = normalizeAuthors(source.authors).slice(0, 3).join(', ');
@@ -124,10 +163,13 @@ export function sourceCitationLabel(source = {}) {
 
 export function normalizeTrustedSource(entry = {}, { fallbackId = '', checkedAt = '', conceptLinks = [] } = {}) {
   const provider = sourceProvider(entry);
-  const doi = normalizeDoi(entry.doi);
-  const url = cleanUrl(entry.url || entry.sourceUrl || (doi ? `https://doi.org/${doi}` : ''));
+  const sourceText = [entry.url, entry.sourceUrl, entry.doi, entry.citation, entry.evidence, entry.title]
+    .filter(Boolean)
+    .join(' ');
+  const doi = normalizeDoi(entry.doi || extractDoi(sourceText));
+  const url = cleanUrl(entry.url || entry.sourceUrl) || extractUrl(sourceText) || (doi ? `https://doi.org/${doi}` : '');
   const title = cleanText(entry.title || entry.displayTitle || entry.citation || entry.evidence || entry.scope, 260);
-  const license = cleanText(entry.license || entry.rights || entry.licenseUrl || '', 180);
+  const license = cleanText(entry.license || entry.rights || entry.licenseUrl || extractLicense(sourceText), 180);
   const source = {
     id: sourceId(entry, fallbackId, 0),
     title,
@@ -148,6 +190,17 @@ export function normalizeTrustedSource(entry = {}, { fallbackId = '', checkedAt 
   source.citation = sourceCitationLabel(source);
   source.licenseAmbiguous = isLicenseAmbiguous(source.license);
   return source;
+}
+
+export function summarizeSourceLedgerRows(rows = []) {
+  const ledgerRows = Array.isArray(rows) ? rows : [];
+  return {
+    sourceCount: ledgerRows.length,
+    trustedCount: ledgerRows.filter((row) => TRUSTED_PROVIDERS.has(row.provider)).length,
+    accessibleCount: ledgerRows.filter(isSourceAccessible).length,
+    licenseAmbiguousCount: ledgerRows.filter((row) => row.licenseAmbiguous).length,
+    providers: [...new Set(ledgerRows.map((row) => row.provider).filter(Boolean))].sort(),
+  };
 }
 
 export function sourceLedgerFromOpenAlex(result = {}, options = {}) {
@@ -281,13 +334,7 @@ export function buildSourceLedgerFromCourseGraph(courseGraph, { checkedAt = '' }
   if (rows.length === 0) return null;
   return {
     rows,
-    summary: {
-      sourceCount: rows.length,
-      trustedCount: rows.filter((row) => TRUSTED_PROVIDERS.has(row.provider)).length,
-      accessibleCount: rows.filter(isSourceAccessible).length,
-      licenseAmbiguousCount: rows.filter((row) => row.licenseAmbiguous).length,
-      providers: [...new Set(rows.map((row) => row.provider).filter(Boolean))].sort(),
-    },
+    summary: summarizeSourceLedgerRows(rows),
   };
 }
 

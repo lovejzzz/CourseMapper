@@ -324,6 +324,53 @@ describe('packageZipExporter', () => {
     expect(sourceReport).toContain('outcomes: 1/1 with sourceRefs');
   });
 
+  it('recovers source report proof from rendered course-map resources when the export graph is sparse', async () => {
+    const courseMap = makeCourseMap('Sociology Source Fallback');
+    courseMap.lessons[0].sections[0] = {
+      topicSection: 'Socialization',
+      learningObjectives: 'Explain how agents of socialization shape identity.',
+      supportingResources:
+        'OpenStax Introduction to Sociology 3e, Socialization, https://openstax.org/books/introduction-sociology-3e/pages/5-introduction-to-socialization, CC BY 4.0',
+    };
+
+    const result = await buildCourseMaterialsZip({
+      courseMap,
+      deliverables: {
+        lessonPlans: {
+          status: 'done',
+          data: {
+            lessonPlans: [{ lessonTitle: 'Lesson 1: Socialization', objectives: ['Explain socialization.'] }],
+          },
+        },
+      },
+      featureIds: ['courseMap', 'lessonPlans'],
+      courseGraph: { sessions: [], resources: [], readings: [] },
+      pipelineState: {
+        genomeLinker: '1 genome + 0 cached of 4 lessons (1 concepts, 1 citations, 0 bridges)',
+        judgment: 'limited knowledge check (1 linked concept across 1 genome-linked lesson)',
+      },
+      quality: false,
+    });
+
+    const zip = await JSZip.loadAsync(await result.blob.arrayBuffer());
+    const manifest = JSON.parse(await zip.file('PACKAGE_MANIFEST.json').async('string'));
+    const sourceReport = await zip.file('SOURCE_REPORT.md').async('string');
+
+    expect(manifest.sourceLedger).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          provider: 'openstax',
+          url: 'https://openstax.org/books/introduction-sociology-3e/pages/5-introduction-to-socialization',
+          license: 'CC BY 4.0',
+          accessStatus: 'reference-present',
+        }),
+      ]),
+    );
+    expect(manifest.sourceLedgerSummary).toMatchObject({ sourceCount: 1, accessibleCount: 1 });
+    expect(manifest.sourceReport).toMatchObject({ path: 'SOURCE_REPORT.md', sourceCount: 1 });
+    expect(sourceReport).toContain('OpenStax Introduction to Sociology 3e');
+  });
+
   it('uses custom deliverable names in ZIP paths and manifest labels', async () => {
     const result = await buildCourseMaterialsZip({
       courseMap: makeCourseMap(),

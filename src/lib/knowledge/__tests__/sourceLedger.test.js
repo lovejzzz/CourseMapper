@@ -56,6 +56,33 @@ describe('trusted source ledger', () => {
     });
   });
 
+  it('recovers source references embedded in rendered resource text', () => {
+    const ledger = buildSourceLedgerFromCourseGraph(
+      {
+        sessions: [{ id: 's1', number: 1, sections: [{ topic: 'Socialization', resourceRefs: ['r1'] }] }],
+        resources: [
+          {
+            id: 'r1',
+            origin: 'syllabus',
+            citation:
+              'OpenStax Introduction to Sociology 3e, Socialization, https://openstax.org/books/introduction-sociology-3e/pages/5-introduction-to-socialization, CC BY 4.0',
+            sessionRefs: [1],
+          },
+        ],
+      },
+      { checkedAt: '2026-06-20T00:00:00.000Z' },
+    );
+
+    expect(ledger.rows[0]).toMatchObject({
+      id: 'r1',
+      provider: 'openstax',
+      url: 'https://openstax.org/books/introduction-sociology-3e/pages/5-introduction-to-socialization',
+      license: 'CC BY 4.0',
+      accessStatus: 'reference-present',
+      trustLevel: 'open-educational-resource',
+    });
+  });
+
   it('builds a graph ledger and human source report from CourseGraph resources', () => {
     const checkedAt = '2026-06-20T00:00:00.000Z';
     const graph = {

@@ -1,7 +1,11 @@
 import { buildReadinessReport, scopeCourseMapToLessons, scopeDeliverableDataToLessons } from './deliverableReadiness';
 import { assertOfficeExportHasNoInternalText } from './exportTextInspector';
 import { resolveFeatureLabel } from './exporters/exporterUtils.js';
-import { buildSourceLedgerFromCourseGraph, buildSourceReportMarkdown } from './knowledge/sourceLedger.js';
+import {
+  buildSourceLedgerFromCourseGraph,
+  buildSourceReportMarkdown,
+  summarizeSourceLedgerRows,
+} from './knowledge/sourceLedger.js';
 import { safeImport } from './safeImport';
 import { peekVoicePassOutcome } from './voicePass.js';
 
@@ -228,10 +232,10 @@ function buildManifestReadings(registry) {
   return entries.length > 0 ? entries : null;
 }
 
-function buildManifestCourseIRProof(courseGraph) {
-  if (!courseGraph?.courseIR && !courseGraph?.nativeRepair) return null;
+function buildManifestCourseIRProof(courseGraph, { sourceRefCoverage = null } = {}) {
+  if (!courseGraph?.courseIR && !courseGraph?.nativeRepair && !sourceRefCoverage) return null;
   const proof = {};
-  if (courseGraph.courseIR) {
+  if (courseGraph?.courseIR) {
     proof.version = courseGraph.courseIR.version || '';
     proof.lessonCount = Array.isArray(courseGraph.courseIR.lessonIds) ? courseGraph.courseIR.lessonIds.length : 0;
     proof.conceptCount = Array.isArray(courseGraph.courseIR.conceptIds) ? courseGraph.courseIR.conceptIds.length : 0;
@@ -259,7 +263,7 @@ function buildManifestCourseIRProof(courseGraph) {
       };
     }
   }
-  if (courseGraph.nativeRepair) {
+  if (courseGraph?.nativeRepair) {
     proof.nativeRepair = {
       code: courseGraph.nativeRepair.code || '',
       source: courseGraph.nativeRepair.source || '',
@@ -268,7 +272,38 @@ function buildManifestCourseIRProof(courseGraph) {
       readinessRepairedFieldCount: Number(courseGraph.nativeRepair.readinessRepairedFieldCount) || 0,
     };
   }
+  if (!proof.sourceRefCoverage && sourceRefCoverage) proof.sourceRefCoverage = sourceRefCoverage;
   return proof;
+}
+
+function sourceLedgerRowKey(row = {}) {
+  return `${row.id || ''}|${row.doi || ''}|${row.url || ''}|${row.title || row.evidence || ''}`.toLowerCase();
+}
+
+function mergeSourceLedgerBundles(...bundles) {
+  const rows = [];
+  const seen = new Set();
+  for (const bundle of bundles) {
+    for (const row of bundle?.rows || []) {
+      const key = sourceLedgerRowKey(row);
+      if (!key.trim() || seen.has(key)) continue;
+      seen.add(key);
+      rows.push(row);
+    }
+  }
+  if (rows.length === 0) return null;
+  return { rows, summary: summarizeSourceLedgerRows(rows) };
+}
+
+function pipelineExpectsSourceLedgerProof(pipelineState) {
+  if (!pipelineState || typeof pipelineState !== 'object') return false;
+  const text = Object.values(pipelineState)
+    .map((value) => (typeof value === 'string' ? value : JSON.stringify(value || '')))
+    .join(' ')
+    .toLowerCase();
+  return /\b(?:genome|openalex|openlibrary|openstax|source-finder|source ledger|sourceref|source ref|knowledgebackbone|citation|limited knowledge check|native authoring|courseir)\b/.test(
+    text,
+  );
 }
 
 function buildManifest({
@@ -286,9 +321,10 @@ function buildManifest({
   sourceLedger = null,
   sourceLedgerSummary = null,
   sourceReport = null,
+  sourceRefCoverage = null,
   voicePass = null,
 }) {
-  const courseIR = buildManifestCourseIRProof(courseGraph);
+  const courseIR = buildManifestCourseIRProof(courseGraph, { sourceRefCoverage });
   return {
     courseName,
     generatedAt,
@@ -534,6 +570,21 @@ export async function buildCourseMaterialsZip({
 
   const generatedAt = new Date().toISOString();
 
+  let derivedCourseGraph = null;
+  let attemptedCourseGraphDerive = false;
+  async function getDerivedCourseGraph() {
+    if (attemptedCourseGraphDerive) return derivedCourseGraph;
+    attemptedCourseGraphDerive = true;
+    if (!courseMap?.lessons) return null;
+    try {
+      const { deriveCourseGraphFromCourseMap } = await safeImport(() => import('./courseGraph/deriveFromCourseMap.js'));
+      derivedCourseGraph = deriveCourseGraphFromCourseMap(courseMap);
+    } catch {
+      derivedCourseGraph = null;
+    }
+    return derivedCourseGraph;
+  }
+
   // v0.14.1 (3.3d): the registry rides the manifest. The caller's graph is
   // authoritative; without one (legacy callers) the registry derives from
   // the course map — deterministic and identical to what generation built.
@@ -541,17 +592,20 @@ export async function buildCourseMaterialsZip({
   // v0.14.5 (A5): the readings registry rides the manifest the same way.
   let readingsRegistry = Array.isArray(courseGraph?.readings) ? courseGraph.readings : null;
   if ((!assessmentRegistry || !readingsRegistry) && courseMap?.lessons) {
-    try {
-      const { deriveCourseGraphFromCourseMap } = await safeImport(() => import('./courseGraph/deriveFromCourseMap.js'));
-      const derivedGraph = deriveCourseGraphFromCourseMap(courseMap);
-      if (!assessmentRegistry) assessmentRegistry = derivedGraph?.assessments || null;
-      if (!readingsRegistry) readingsRegistry = derivedGraph?.readings || null;
-    } catch {
-      assessmentRegistry = assessmentRegistry || null;
-      readingsRegistry = readingsRegistry || null;
-    }
+    const derivedGraph = await getDerivedCourseGraph();
+    if (!assessmentRegistry) assessmentRegistry = derivedGraph?.assessments || null;
+    if (!readingsRegistry) readingsRegistry = derivedGraph?.readings || null;
   }
-  const sourceLedgerBundle = buildSourceLedgerFromCourseGraph(courseGraph, { checkedAt: generatedAt });
+  const sourceProofExpected =
+    pipelineExpectsSourceLedgerProof(pipelineState) ||
+    Boolean(courseGraph?.courseIR) ||
+    (Array.isArray(courseGraph?.resources) && courseGraph.resources.length > 0) ||
+    (Array.isArray(courseGraph?.readings) && courseGraph.readings.length > 0);
+  const fallbackCourseGraph = sourceProofExpected ? await getDerivedCourseGraph() : null;
+  const sourceLedgerBundle = mergeSourceLedgerBundles(
+    buildSourceLedgerFromCourseGraph(courseGraph, { checkedAt: generatedAt }),
+    buildSourceLedgerFromCourseGraph(fallbackCourseGraph, { checkedAt: generatedAt }),
+  );
   const sourceRefCoverage =
     courseGraph?.courseIR?.sourceRefCoverage || pipelineState?.courseIR?.sourceRefCoverage || null;
   const sourceReportMarkdown = buildSourceReportMarkdown({
@@ -592,6 +646,7 @@ export async function buildCourseMaterialsZip({
     sourceLedger: sourceLedgerBundle?.rows || null,
     sourceLedgerSummary: sourceLedgerBundle?.summary || null,
     sourceReport,
+    sourceRefCoverage,
     // v0.14.7 WS-D4: callers may pass the outcome on pipelineState; otherwise
     // the generation run's single-run stash discloses it (cleared each compile).
     voicePass: pipelineState?.voicePass || peekVoicePassOutcome(),

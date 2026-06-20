@@ -25,17 +25,44 @@ export function hasSourceLedgerProof(manifest) {
   );
 }
 
+export function expectsSourceLedgerProof(manifest) {
+  const pipeline = manifest?.pipeline;
+  if (!pipeline || typeof pipeline !== 'object') return false;
+  const text = Object.values(pipeline)
+    .map((value) => (typeof value === 'string' ? value : JSON.stringify(value || '')))
+    .join(' ')
+    .toLowerCase();
+  return /\b(?:genome|openalex|openlibrary|openstax|source-finder|source ledger|sourceref|source ref|knowledgebackbone|citation|limited knowledge check|native authoring|courseir)\b/.test(
+    text,
+  );
+}
+
+export function shouldCheckSourceLedger(manifest) {
+  return hasSourceLedgerProof(manifest) || expectsSourceLedgerProof(manifest);
+}
+
 export function checkSourceLedger(findings, { files, manifest }) {
   const ledger = rows(manifest);
   const coverage = manifest?.courseIR?.sourceRefCoverage || manifest?.sourceReport?.sourceRefCoverage || null;
   const reportPath = manifest?.sourceReport?.path || 'SOURCE_REPORT.md';
+
+  if (ledger.length === 0 && !coverage) {
+    findings.add({
+      severity: 'P1',
+      dimension: 'honesty',
+      file: 'PACKAGE_MANIFEST.json',
+      detail: 'source-backed pipeline did not export sourceLedger, sourceRef coverage, or SOURCE_REPORT.md proof',
+      evidence: JSON.stringify(manifest?.pipeline || {}).slice(0, 200),
+    });
+    return;
+  }
 
   if (!files.some((file) => file.path === reportPath)) {
     findings.add({
       severity: 'P1',
       dimension: 'structure',
       file: reportPath,
-      detail: 'source ledger is present but the package does not include the declared source report',
+      detail: 'source ledger proof is present but the package does not include the declared source report',
       evidence: reportPath,
     });
   }

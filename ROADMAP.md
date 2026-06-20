@@ -4,6 +4,26 @@
 
 CourseMapper is moving toward a "consider it done" course-production agent. The user should describe the course, choose scope/materials, and receive a finished draft package. The agent owns generation, QA, repair, alignment, and export readiness. Human involvement should be final approval only, not QA labor.
 
+## v0.15.28 - Source Proof Export Truth
+
+Goal: fix the deployed v0.15.27 source-ledger proof gap exposed by a fresh
+EduTool.dev Sociology ZIP/log audit. The browser finalizer reported 87/B with
+source-truth issues, but the downloaded ZIP regraded at 99/A because exported
+package proof omitted the source ledger and source report.
+
+Full plan: `docs/V0.15.28_SOURCE_PROOF_EXPORT_TRUTH_ROADMAP.md`
+
+1. Recover source-ledger rows from rendered Course Map resources when the
+   source-backed export graph is sparse.
+2. Extract embedded URL, DOI, provider, and license hints from resource text
+   instead of dropping those receipts.
+3. Merge CourseIR/CourseGraph rows with deterministic Course Map fallback rows
+   before writing package proof.
+4. Export `SOURCE_REPORT.md`, `sourceLedger`, and `sourceLedgerSummary` for
+   source-backed runs instead of allowing empty source proof.
+5. Arm source-ledger grader checks from pipeline evidence so missing proof is a
+   P1 honesty finding, not a clean package.
+
 ## v0.15.27 - Research Source Ledger
 
 Goal: move the academic research layer from loose citation strings toward a

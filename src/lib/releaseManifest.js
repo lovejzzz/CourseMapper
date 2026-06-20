@@ -3,23 +3,23 @@ import { APP_VERSION } from './appVersion.js';
 export const CURRENT_RELEASE = {
   version: APP_VERSION,
   date: 'June 20, 2026',
-  title: 'Research Source Ledger: curriculum atoms cite trusted source rows',
-  landingTitle: 'Research Source Ledger',
+  title: 'Source Proof Export Truth: ZIP receipts match the run',
+  landingTitle: 'Source Proof Export Truth',
   highlights: [
-    'CourseIR source ledger rows now normalize title, authors, URL/DOI, license, provider, concept links, checkedAt, access status, trust level, and license-review flags instead of carrying only loose provenance text.',
-    'CurriculumV1 now treats worked examples and assessment prompts as sourceRef-bearing atoms alongside outcomes, activities, factual anchors, and rubric criteria; missing or dangling refs repair before compile and reject direct-provider acceptance.',
-    'CourseIR projection now feeds source-ledger labels into supporting resources, records atom-level sourceRef coverage on the graph and pipeline proof, and keeps deterministic compile provider calls at zero.',
-    'Downloaded packages now include `sourceLedger`, `sourceLedgerSummary`, `courseIR.sourceRefCoverage`, and a root `SOURCE_REPORT.md` bibliography/coverage receipt.',
-    'The deep grader now self-arms on source-ledger proof and flags fake or incomplete source rows, missing sourceRefs, dangling sourceRefs, inaccessible source rows, unsupported factual claims, and ambiguous licenses without weakening existing quality gates.',
+    'A fresh deployed v0.15.27 EduTool.dev Sociology audit exposed a real proof mismatch: the browser finalizer reported source-truth quality at 87/B while the downloaded ZIP regraded at 99/A because source receipts were missing.',
+    'Source-backed exports now recover source-ledger rows from deterministic Course Map supporting-resource and reading cells when the live CourseGraph handoff is sparse.',
+    'The source normalizer now extracts embedded URLs, DOI values, provider hints, and Creative Commons/open-access license labels from rendered resource text instead of dropping those receipts.',
+    'Package export merges CourseIR/CourseGraph rows with Course Map fallback rows before writing `SOURCE_REPORT.md`, `sourceLedger`, and `sourceLedgerSummary`.',
+    'The deep grader now arms source-ledger checks from pipeline evidence as well as exported proof, so source-backed packages with no receipts receive a P1 honesty finding instead of a clean score.',
   ],
   landingHighlights: [
-    'Source rows are normalized and exported.',
-    'CourseIR atoms carry sourceRef coverage proof.',
-    'The grader now polices source-ledger defects.',
+    'Source-backed ZIPs export receipts.',
+    'Sparse graph handoffs recover map sources.',
+    'Missing source proof is a P1 finding.',
   ],
   proof: {
-    contract: 'release-contracts/v0.15.27.json',
-    roadmap: 'docs/V0.15.27_RESEARCH_SOURCE_LEDGER_ROADMAP.md',
+    contract: 'release-contracts/v0.15.28.json',
+    roadmap: 'docs/V0.15.28_SOURCE_PROOF_EXPORT_TRUTH_ROADMAP.md',
     auditCommand: 'npm run audit:release-history',
   },
 };
@@ -34,6 +34,18 @@ export const CURRENT_RELEASE_CHANGELOG = {
 };
 
 export const HISTORICAL_RELEASE_CHANGELOGS = [
+  {
+    version: '0.15.27',
+    date: 'June 20, 2026',
+    title: 'Research Source Ledger: curriculum atoms cite trusted source rows',
+    highlights: [
+      'CourseIR source ledger rows now normalize title, authors, URL/DOI, license, provider, concept links, checkedAt, access status, trust level, and license-review flags instead of carrying only loose provenance text.',
+      'CurriculumV1 now treats worked examples and assessment prompts as sourceRef-bearing atoms alongside outcomes, activities, factual anchors, and rubric criteria; missing or dangling refs repair before compile and reject direct-provider acceptance.',
+      'CourseIR projection now feeds source-ledger labels into supporting resources, records atom-level sourceRef coverage on the graph and pipeline proof, and keeps deterministic compile provider calls at zero.',
+      'Downloaded packages now include `sourceLedger`, `sourceLedgerSummary`, `courseIR.sourceRefCoverage`, and a root `SOURCE_REPORT.md` bibliography/coverage receipt.',
+      'The deep grader now self-arms on source-ledger proof and flags fake or incomplete source rows, missing sourceRefs, dangling sourceRefs, inaccessible source rows, unsupported factual claims, and ambiguous licenses without weakening existing quality gates.',
+    ],
+  },
   {
     version: '0.15.26',
     date: 'June 20, 2026',
