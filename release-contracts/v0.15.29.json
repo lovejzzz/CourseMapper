@@ -44,7 +44,7 @@
       "summary": "A fresh deployed v0.15.28 EduTool.dev Sociology audit proved source reports now ship, but exposed polluted proof where SOURCE_REPORT.md listed package labels and generic placeholders as source rows.",
       "anchors": [
         "docs/V0.15.29_SOURCE_LEDGER_FALLBACK_GUARD_ROADMAP.md",
-        "verification-output/edutool-audit-loop/20260620T090410Z/local-regrade-report.md"
+        "src/lib/knowledge/__tests__/sourceLedger.test.js"
       ],
       "proofCommands": [
         "npx vitest run src/lib/knowledge/__tests__/sourceLedger.test.js src/lib/quality/__tests__/sourceLedgerGrader.test.js src/lib/__tests__/packageZipExporter.test.js"
