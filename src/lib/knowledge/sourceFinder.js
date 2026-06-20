@@ -172,6 +172,13 @@ const TOPICAL_MISMATCH_GATES = [
   },
 ];
 
+const DISCIPLINE_ANCHOR_GATES = [
+  {
+    applies: /\b(?:genetics?|genes?|genom(?:e|es|ic|ics)|dna|crispr|inheritance|heredity|traits?|ancestry)\b/i,
+    source: /\b(?:genetics?|genes?|genom(?:e|es|ic|ics)|dna|crispr|inheritance|heredity|traits?|ancestry)\b/i,
+  },
+];
+
 function topicContext(topic) {
   return cleanText(`${topic?.courseName || ''} ${topic?.topic || ''} ${topic?.query || ''}`).toLowerCase();
 }
@@ -186,10 +193,22 @@ function meaningfulQueryTerms(topic) {
   );
 }
 
+function sourcePassesDisciplineAnchor(source, topic) {
+  if (!/^(openalex|crossref|eric)$/.test(source.provider)) return true;
+  const topicText = topicContext(topic);
+  const sourceText = sourceContext(source);
+  for (const gate of DISCIPLINE_ANCHOR_GATES) {
+    if (gate.applies.test(topicText) && !gate.source.test(sourceText)) return false;
+  }
+  return true;
+}
+
 function sourcePassesTopicalFit(source, topic) {
   const topicText = topicContext(topic);
   const sourceText = sourceContext(source);
   if (!sourceText) return false;
+
+  if (!sourcePassesDisciplineAnchor(source, topic)) return false;
 
   for (const gate of TOPICAL_MISMATCH_GATES) {
     const rescuedByTopic = gate.unlessTopic?.test(topicText) || false;

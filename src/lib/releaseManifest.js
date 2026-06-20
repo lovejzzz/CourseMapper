@@ -3,22 +3,22 @@ import { APP_VERSION } from './appVersion.js';
 export const CURRENT_RELEASE = {
   version: APP_VERSION,
   date: 'June 20, 2026',
-  title: 'Source Ledger Bridge: retrieved sources survive native re-derivation',
-  landingTitle: 'Source Ledger Bridge',
+  title: 'Source Finder Relevance Gate: generic Crossref hits stop masquerading as genetics sources',
+  landingTitle: 'Source Finder Relevance Gate',
   highlights: [
-    'Two fresh deployed v0.15.35 EduTool.dev audits regraded at 96/A and 98/A because retrieved OpenAlex/source-finder resources were visible in the run digest but the exported source ledger still collapsed to one ambiguous OpenLibrary row.',
-    'Native stable-id re-derivation now preserves unmatched source-backed resources, including session-linked OpenAlex and source-finder rows, instead of dropping them when a later map repair rewrites the visible resource cell.',
-    'The source ledger can now recover concept-linked academic rows directly from the source-finder mini-shard when graph resource cells are sparse, so export proof does not depend on a fragile rendered citation surviving every UI pass.',
-    'The source-thinness gate stays armed: this release bridges retrieved rows into the bibliography proof, but it does not weaken the grader or claim that every CurriculumV1 atom is semantically source-relevant yet.',
+    'A fresh deployed v0.15.36 Genetics and Society audit proved the source-ledger bridge worked: the ZIP now carried five source rows and local regrade removed the previous source-thinness P1.',
+    'The same audit exposed the next real defect: broad Crossref metadata hits such as building-environment standards and geotechnical-testing standards could attach to genetics lessons by matching only generic words like “environment” or “testing.”',
+    'Source-finder relevance now requires academic metadata hits for genetics/genomics courses to carry a genetics anchor in the source itself, so generic Crossref/OpenAlex/ERIC rows cannot win by one shared generic term.',
+    'Focused regression coverage recreates the exact failure shape and proves genetics-specific Crossref rows survive while generic environment/testing traps are rejected.',
   ],
   landingHighlights: [
-    'Retrieved sources survive re-derivation.',
-    'Source-finder rows recover into the ledger.',
-    'The source-thinness gate stays honest.',
+    'Generic Crossref traps are rejected.',
+    'Genetics-specific sources still attach.',
+    'The source quality bar stays honest.',
   ],
   proof: {
-    contract: 'release-contracts/v0.15.36.json',
-    roadmap: 'docs/V0.15.36_SOURCE_LEDGER_BRIDGE_ROADMAP.md',
+    contract: 'release-contracts/v0.15.37.json',
+    roadmap: 'docs/V0.15.37_SOURCE_FINDER_RELEVANCE_GATE_ROADMAP.md',
     auditCommand: 'npm run audit:release-history',
   },
 };
@@ -33,6 +33,17 @@ export const CURRENT_RELEASE_CHANGELOG = {
 };
 
 export const HISTORICAL_RELEASE_CHANGELOGS = [
+  {
+    version: '0.15.36',
+    date: 'June 20, 2026',
+    title: 'Source Ledger Bridge: retrieved sources survive native re-derivation',
+    highlights: [
+      'Two fresh deployed v0.15.35 EduTool.dev audits regraded at 96/A and 98/A because retrieved OpenAlex/source-finder resources were visible in the run digest but the exported source ledger still collapsed to one ambiguous OpenLibrary row.',
+      'Native stable-id re-derivation now preserves unmatched source-backed resources, including session-linked OpenAlex and source-finder rows, instead of dropping them when a later map repair rewrites the visible resource cell.',
+      'The source ledger can now recover concept-linked academic rows directly from the source-finder mini-shard when graph resource cells are sparse, so export proof does not depend on a fragile rendered citation surviving every UI pass.',
+      'The source-thinness gate stays armed: this release bridges retrieved rows into the bibliography proof, but it does not weaken the grader or claim that every CurriculumV1 atom is semantically source-relevant yet.',
+    ],
+  },
   {
     version: '0.15.35',
     date: 'June 20, 2026',

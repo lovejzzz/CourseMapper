@@ -4,6 +4,29 @@
 
 CourseMapper is moving toward a "consider it done" course-production agent. The user should describe the course, choose scope/materials, and receive a finished draft package. The agent owns generation, QA, repair, alignment, and export readiness. Human involvement should be final approval only, not QA labor.
 
+## v0.15.37 - Source Finder Relevance Gate
+
+Goal: fix the fresh deployed v0.15.36 Genetics and Society audit finding
+without weakening the source-ledger bridge. v0.15.36 made real progress: the
+downloaded ZIP now exported five source rows and local regrade removed the
+previous source-thinness P1. The remaining defect is retrieval relevance:
+generic Crossref metadata rows for building-environment and geotechnical-testing
+standards were allowed into a genetics package because they matched only broad
+words such as `environment` and `testing`.
+
+Full plan: `docs/V0.15.37_SOURCE_FINDER_RELEVANCE_GATE_ROADMAP.md`
+
+1. Add a discipline-anchor gate for academic metadata providers in genetics
+   contexts, requiring retrieved academic rows to carry genetics/genomics source
+   language before they can attach.
+2. Keep source-finder fallback useful by applying the stricter anchor only to
+   academic metadata providers such as OpenAlex, Crossref, and ERIC, not to all
+   source types.
+3. Pin the audited failure shape with a regression that rejects generic
+   environment/testing Crossref rows while preserving genetics-specific rows.
+4. Keep grader findings honest: this patch improves retrieval relevance, but it
+   does not hide license ambiguity or review-only source debt.
+
 ## v0.15.36 - Source Ledger Bridge
 
 Goal: fix the repeated v0.15.35 audit finding where the run digest reported

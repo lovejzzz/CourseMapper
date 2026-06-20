@@ -165,6 +165,62 @@ describe('source finder mini-shard', () => {
     expect(titles).not.toContain('Extremely randomized trees');
   }, 15000);
 
+  it('rejects generic Crossref hits for genetics topics when they lack a genetics anchor', async () => {
+    const graph = createEmptyCourseGraph({ courseName: 'Genetics and Society' });
+    graph.sessions = [
+      {
+        id: 's1',
+        number: 1,
+        title: 'Lesson 1: Gene-environment interaction',
+        sections: [{ topic: '1.1: gene-environment interaction, risk and variation, complex traits' }],
+      },
+      {
+        id: 's2',
+        number: 2,
+        title: 'Lesson 2: Genetic testing and privacy',
+        sections: [{ topic: '2.1: genetic testing, privacy, and data use' }],
+      },
+    ];
+
+    const miniShard = await findCourseSources(graph, {
+      storage: memoryStorage(),
+      maxTopics: 2,
+      limitPerTopic: 2,
+      minUsefulSources: 1,
+      providers: {
+        searchScholarlyReadings: vi.fn(async () => []),
+        searchCrossrefWorks: vi.fn(async (query) => {
+          if (query.includes('gene-environment')) {
+            return [
+              source('crossref', 'Building environment design. Indoor environment', {
+                abstract: 'A standard about indoor environment design and visual environment planning.',
+              }),
+              source('crossref', 'Gene-environment interaction and complex genetic traits', {
+                abstract:
+                  'A genetics article about gene-environment interaction, genetic variation, and complex traits.',
+              }),
+            ];
+          }
+          return [
+            source('crossref', 'Geotechnical investigation and testing', {
+              abstract: 'A standard about geotechnical structures, site testing, and engineering investigation.',
+            }),
+            source('crossref', 'Privacy in genetic testing and genomic data use', {
+              abstract: 'A genetics policy article about genetic testing, privacy, genomic data, and data use.',
+            }),
+          ];
+        }),
+        searchWikipediaPages: vi.fn(async () => []),
+      },
+    });
+
+    const titles = miniShard.topics.flatMap((topic) => topic.sources.map((item) => item.title));
+    expect(titles).toContain('Gene-environment interaction and complex genetic traits');
+    expect(titles).toContain('Privacy in genetic testing and genomic data use');
+    expect(titles).not.toContain('Building environment design. Indoor environment');
+    expect(titles).not.toContain('Geotechnical investigation and testing');
+  }, 15000);
+
   it('attaches top mini-shard sources as graph resources that render into the course map', async () => {
     const graph = sampleGraph();
     const miniShard = await findCourseSources(graph, {
