@@ -156,6 +156,14 @@ describe('3.1 — registry schema (derive)', () => {
     expect(lessonSeven[3].kind).toBe('in-class');
     expect(classifyAssessmentKind('Final Oral Performance')).toBe('oral');
     expect(classifyAssessmentKind('Final Exam: comprehensive assessment')).toBe('exam');
+    expect(classifyAssessmentKind('Lesson 1 evidence check: Learning (25%)')).toBe('graded-artifact');
+    expect(classifyAssessmentKind('Quick evidence check: apply conditioning to a new example.')).toBe('in-class');
+    expect(classifyAssessmentKind('Exit ticket using encoding to justify one course-relevant decision.')).toBe(
+      'in-class',
+    );
+    expect(classifyAssessmentKind('Practice response that names the evidence needed for decision making.')).toBe(
+      'in-class',
+    );
   });
 
   it('v0.14.1 round 2: exam kind requires the exam noun as the operative head (live CS Round-2 atoms)', () => {

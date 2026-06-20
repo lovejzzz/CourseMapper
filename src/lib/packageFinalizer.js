@@ -506,10 +506,11 @@ function assessmentResolvesDownstream(assessment, candidates) {
  * makes the drift impossible by construction, this gate detects it the day
  * it regresses: every graph assessment must resolve to a downstream artifact.
  * Unresolved high-stakes titles become warnings (message names the
- * assessment and lesson); the rest fold into ONE info-level aggregate so
- * legitimately brief-less in-class checks do not drown the user. Info issues
- * are NOT merged into readiness (the schema would coerce them to warnings) —
- * they surface through the finalizer result and the run digest.
+ * assessment and lesson); zero-weight in-class checks are satisfied by lesson
+ * plans and do not require standalone artifacts. Remaining low-stakes unknowns
+ * fold into ONE info-level aggregate. Info issues are NOT merged into readiness
+ * (the schema would coerce them to warnings) — they surface through the
+ * finalizer result and the run digest.
  * Graph-optional: legacy projects without a course graph return [] quietly,
  * as does a package with no assessment-bearing artifact to reconcile against.
  */
@@ -526,6 +527,7 @@ export function buildAssessmentReconciliationIssues({ courseGraph, blueprint, de
     if (!title) continue;
     if (assessmentResolvesDownstream(assessment, candidates)) continue;
     const dueSession = Number.isInteger(assessment?.dueSession) ? assessment.dueSession : null;
+    if (assessment?.kind === 'in-class') continue;
     if (HIGH_STAKES_ASSESSMENT_RE.test(title)) {
       issues.push(
         normalizeReadinessIssue({

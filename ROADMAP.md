@@ -4,6 +4,26 @@
 
 CourseMapper is moving toward a "consider it done" course-production agent. The user should describe the course, choose scope/materials, and receive a finished draft package. The agent owns generation, QA, repair, alignment, and export readiness. Human involvement should be final approval only, not QA labor.
 
+## v0.15.23 - Assessment Reconciliation
+
+Goal: let honest 100/100 packages pass when the only unmatched Course Map rows
+are zero-weight in-class checks that belong in lesson plans, not standalone
+assignment/quiz/rubric files. A fresh EduTool.dev Intro Psychology package
+regraded 99/A only because quick evidence checks, exit tickets, and practice
+responses were counted as missing exported artifacts.
+
+Full plan: `docs/V0.15.23_ASSESSMENT_RECONCILIATION_ROADMAP.md`
+
+1. Classify formative evidence checks as `in-class` unless they carry an
+   explicit grade percentage.
+2. Preserve explicit percentage-weighted evidence checks as graded artifacts.
+3. Skip true in-class entries in assessment reconciliation because lesson plans
+   satisfy them.
+4. Keep real missing exams, finals, portfolios, assignments, and unknown
+   low-stakes promises visible through existing warnings/info findings.
+5. Re-run the EduTool.dev audit after deploy to confirm the same package shape
+   can reach 100/100 without hiding caveats.
+
 ## v0.15.13 - Native Fallback Audit Truth
 
 Goal: make generated package reports disclose native-authoring fallback caveats

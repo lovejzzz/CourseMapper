@@ -178,6 +178,32 @@ describe('buildAssessmentReconciliationIssues — resolved courses (P2.5)', () =
     expect(buildAssessmentReconciliationIssues({ courseGraph: graph, blueprint })).toEqual([]);
   });
 
+  it('does not require standalone artifacts for in-class formative checks', () => {
+    const graph = graphWithAssessments([
+      { title: 'Lesson 1 evidence check: Learning (25%)', dueSession: 1, kind: 'graded-artifact' },
+      {
+        title: 'Quick evidence check: apply conditioning to a new example.',
+        dueSession: 1,
+        kind: 'in-class',
+      },
+      {
+        title: 'Exit ticket using encoding to justify one course-relevant decision.',
+        dueSession: 1,
+        kind: 'in-class',
+      },
+      {
+        title: 'Practice response that names the evidence needed for decision making.',
+        dueSession: 1,
+        kind: 'in-class',
+      },
+    ]);
+    const blueprint = {
+      assessments: [{ title: 'Lesson 1 evidence check: Learning', lessonNumbers: [1] }],
+    };
+
+    expect(buildAssessmentReconciliationIssues({ courseGraph: graph, blueprint })).toEqual([]);
+  });
+
   it('does not resolve across lessons — a same-titled brief in another week does not count', () => {
     const graph = graphWithAssessments([{ title: 'Midterm Exam: units one through five', dueSession: 7 }]);
     const blueprint = {

@@ -3,23 +3,23 @@ import { APP_VERSION } from './appVersion.js';
 export const CURRENT_RELEASE = {
   version: APP_VERSION,
   date: 'June 19, 2026',
-  title: 'EduTool Audit Tightening: modality labels stop becoming concepts',
-  landingTitle: 'EduTool Audit Tightening',
+  title: 'Assessment Reconciliation: in-class checks stop blocking perfect packages',
+  landingTitle: 'Assessment Reconciliation',
   highlights: [
-    'A live EduTool.dev Intro Psychology ZIP/log audit now has a saved evidence report tying the release to real package output instead of synthetic inspection alone.',
-    'Native Pass A now treats section titles as subject-matter topics only and drops modality-only labels such as lecture, lab, workshop, discussion, seminar, and recitation before they become Course Map rows.',
-    'The psychology genome now links broad Intro Psych lesson titles such as learning, memory, and cognitive bias to existing anchored OpenStax kernels without lowering the resolver threshold globally.',
-    'The research-methods shard is restored as a foundry-owned manifest shard, so research ethics and informed-consent lessons can load and link through the same hash-pinned genome path as other disciplines.',
-    'Focused regressions pin the exact audited Intro Psych topic mix, proving it infers psychology plus research-methods and no longer reports a 0/4 genome-link run for those broad lessons.',
+    'A fresh deployed EduTool.dev Intro Psychology ZIP/log audit on v0.15.22 produced a complete package at 99/A only because eight classroom checks were treated as missing standalone artifacts.',
+    'The assessment registry now classifies quick evidence checks, exit tickets, and practice responses as zero-weight in-class checks, while explicit percentage-weighted evidence checks remain graded artifacts.',
+    'The package finalizer no longer emits an assessment-reconciliation caveat for true in-class checks, because those are satisfied by lesson plans rather than assignment, quiz, or rubric files.',
+    'Missing formal artifacts still stay visible: high-stakes exam/final/portfolio language continues to become a warning, and low-stakes unknown assessment promises still produce the digest info line.',
+    'Focused regressions pin the exact audited Psychology shape so the next generated package can reach 100/100 when its only uncovered rows are in-class activities.',
   ],
   landingHighlights: [
-    'Lecture/lab labels no longer become topics.',
-    'Intro Psych broad topics link to anchored kernels.',
-    'Research-methods is back in the genome manifest.',
+    'In-class checks no longer count as missing artifacts.',
+    'Weighted evidence checks still stay graded.',
+    'Real missing exams and assignments still warn.',
   ],
   proof: {
-    contract: 'release-contracts/v0.15.22.json',
-    roadmap: 'docs/V0.15.22_EDUTOOL_AUDIT_TIGHTENING_ROADMAP.md',
+    contract: 'release-contracts/v0.15.23.json',
+    roadmap: 'docs/V0.15.23_ASSESSMENT_RECONCILIATION_ROADMAP.md',
     auditCommand: 'npm run audit:release-history',
   },
 };
@@ -34,6 +34,18 @@ export const CURRENT_RELEASE_CHANGELOG = {
 };
 
 export const HISTORICAL_RELEASE_CHANGELOGS = [
+  {
+    version: '0.15.22',
+    date: 'June 19, 2026',
+    title: 'EduTool Audit Tightening: modality labels stop becoming concepts',
+    highlights: [
+      'A live EduTool.dev Intro Psychology ZIP/log audit now has a saved evidence report tying the release to real package output instead of synthetic inspection alone.',
+      'Native Pass A now treats section titles as subject-matter topics only and drops modality-only labels such as lecture, lab, workshop, discussion, seminar, and recitation before they become Course Map rows.',
+      'The psychology genome now links broad Intro Psych lesson titles such as learning, memory, and cognitive bias to existing anchored OpenStax kernels without lowering the resolver threshold globally.',
+      'The research-methods shard is restored as a foundry-owned manifest shard, so research ethics and informed-consent lessons can load and link through the same hash-pinned genome path as other disciplines.',
+      'Focused regressions pin the exact audited Intro Psych topic mix, proving it infers psychology plus research-methods and no longer reports a 0/4 genome-link run for those broad lessons.',
+    ],
+  },
   {
     version: '0.15.21',
     date: 'June 19, 2026',

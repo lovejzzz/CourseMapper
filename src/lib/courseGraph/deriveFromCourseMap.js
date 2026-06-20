@@ -43,12 +43,12 @@ const BLOOM_VERB_RE =
 // (compiledLanguageFinalizer.js) but classify INTENT, not reference nouns:
 // order matters — exam beats oral ("Final Exam" is an exam, "Final Oral
 // Performance" is an oral), and explicit in-class activity words beat the
-// graded-artifact default.
+// graded-artifact default unless the title carries an explicit grade weight.
 const ASSESSMENT_KIND_RULES = [
   ['oral', /\b(oral|speaking|presentation|performance)\b/i],
   [
     'in-class',
-    /\b(role[\s-]?play|drill|poll|exit ticket|warm[\s-]?up|sketch|pair work|think[\s-]?pair|gallery walk|map activity|in[\s-]?class|participation|cold call|discussion(?!\s+post))\b/i,
+    /\b(role[\s-]?play|drill|poll|exit ticket|warm[\s-]?up|sketch|pair work|think[\s-]?pair|gallery walk|map activity|in[\s-]?class|participation|cold call|discussion(?!\s+post)|quick evidence check|evidence check|practice response)\b/i,
   ],
   [
     'graded-artifact',
@@ -89,8 +89,11 @@ export function classifyAssessmentKind(title) {
   }
   if (EXAM_HEAD_RE.test(text)) return 'exam';
   const bareMidtermOrFinal = BARE_MIDTERM_FINAL_RE.test(text);
+  const explicitPercent = parseExplicitPercent(text) !== null;
   for (const [kind, pattern] of ASSESSMENT_KIND_RULES) {
-    if (pattern.test(text)) return kind;
+    if (pattern.test(text)) {
+      return kind === 'in-class' && explicitPercent ? 'graded-artifact' : kind;
+    }
   }
   // "Midterm" / "Final" with no other artifact noun: the word IS the exam.
   if (bareMidtermOrFinal) return 'exam';
