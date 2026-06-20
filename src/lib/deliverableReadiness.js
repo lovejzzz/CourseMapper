@@ -88,6 +88,10 @@ const FAQ_CATEGORIES = new Set([
   'Assessment Prep',
 ]);
 
+function escapeRegexLiteral(value) {
+  return String(value || '').replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
 const PROMPT_ARTIFACT_TOPIC_LABELS = [
   'evidence-rich lesson plans',
   'lesson plans',
@@ -109,9 +113,7 @@ const PROMPT_ARTIFACT_RESOURCE_SET = new Set(
   PROMPT_ARTIFACT_TOPIC_LABELS.filter((label) => label !== 'worked examples'),
 );
 const NUMBERED_PROMPT_ARTIFACT_TOPIC_RE = new RegExp(
-  `\\b\\d+(?:\\.\\d+)+\\s*:\\s*(?:${PROMPT_ARTIFACT_TOPIC_LABELS.map((label) =>
-    label.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'),
-  ).join('|')})\\b`,
+  `\\b\\d+(?:\\.\\d+)+\\s*:\\s*(?:${PROMPT_ARTIFACT_TOPIC_LABELS.map(escapeRegexLiteral).join('|')})\\b`,
   'i',
 );
 const INSTRUCTIONAL_DESIGN_COURSE_RE =
@@ -332,6 +334,25 @@ function normalizePromptArtifactTopic(value) {
     .toLowerCase();
 }
 
+function splitPromptArtifactResourceLines(value) {
+  if (Array.isArray(value)) return value.flatMap(splitPromptArtifactResourceLines);
+  return text(value)
+    .split(/\n|;|\||\u2022|(?=\b\d+\s*[.)]\s*)/)
+    .map((line) => normalizePromptArtifactTopic(line))
+    .filter(Boolean);
+}
+
+function countEmbeddedPromptArtifactResourceLabels(value) {
+  const normalized = normalizePromptArtifactTopic(value);
+  if (!normalized) return 0;
+  let count = 0;
+  for (const label of PROMPT_ARTIFACT_RESOURCE_SET) {
+    const pattern = new RegExp(`(?:^|\\b)${escapeRegexLiteral(label)}(?:\\b|$)`, 'i');
+    if (pattern.test(normalized)) count += 1;
+  }
+  return count;
+}
+
 function isPromptArtifactTopic(value, courseMap) {
   if (isInstructionalDesignCourse(courseMap)) return false;
   return PROMPT_ARTIFACT_TOPIC_SET.has(normalizePromptArtifactTopic(value));
@@ -344,13 +365,11 @@ function needsPromptArtifactCourseMapRepair(key, value, courseMap) {
   if (key === 'topicSection' && isPromptArtifactTopic(raw, courseMap)) return true;
   if (NUMBERED_PROMPT_ARTIFACT_TOPIC_RE.test(raw)) return true;
   if (key === 'supportingResources') {
-    const lines = raw
-      .split(/\n|;|\||\u2022/)
-      .map((line) => normalizePromptArtifactTopic(line))
-      .filter(Boolean);
+    const lines = splitPromptArtifactResourceLines(value);
     if (lines.some((line) => PROMPT_ARTIFACT_RESOURCE_SET.has(line))) return true;
     const artifactLines = lines.filter((line) => PROMPT_ARTIFACT_TOPIC_SET.has(line)).length;
     if (artifactLines >= 3) return true;
+    if (countEmbeddedPromptArtifactResourceLabels(raw) >= 2) return true;
   }
   return false;
 }

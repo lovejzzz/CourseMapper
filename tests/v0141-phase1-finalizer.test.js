@@ -455,4 +455,54 @@ describe('1.16 — prompt artifact labels never become course-map concepts', () 
     expect(faqText).not.toMatch(/Strong work uses slide decks/i);
     expect(faqText).not.toMatch(/\bslide decks\b/i);
   });
+
+  it('keeps compact numbered artifact-resource lists out of compiled Course FAQ answers', () => {
+    const courseMap = {
+      courseName: 'Genetics and Society',
+      lessons: [
+        {
+          title: 'Lesson 1: DNA and inheritance basics',
+          sections: [
+            {
+              topicSection: '1.1: DNA and inheritance basics',
+              learningGoals: 'Use DNA and inheritance basics to explain inheritance evidence.',
+              learningObjectives: 'Explain DNA and inheritance basics and apply them in course activities.',
+              weeklyAssessments: 'Lesson 1 evidence check: DNA and inheritance basics (25%)',
+              asyncActivities: 'Review assigned materials and prepare notes on DNA.',
+              syncActivities: 'Discuss examples and practice applying DNA.',
+              supportingResources: 'slide decks 2. quiz bank 3. study guides',
+              evaluateDesign: 'Check that the DNA activity, resource, and assessment ask students to produce evidence.',
+            },
+          ],
+        },
+      ],
+    };
+
+    const repaired = repairCourseMapReadiness({ courseMap }).courseMap;
+    const blueprint = buildCourseBlueprint(repaired);
+    blueprint.lessons[0].throughlineCase.evidencePacket = 'slide decks 2. quiz bank 3. study guides';
+    blueprint.lessons[0].evidencePlan = {
+      ...(blueprint.lessons[0].evidencePlan || {}),
+      sourceCue: 'slide decks 2. quiz bank 3. study guides',
+    };
+    blueprint.lessons[0].assessmentAnchorExamples = {
+      ...(blueprint.lessons[0].assessmentAnchorExamples || {}),
+      strongSample:
+        'Strong Week 1 check anchor: cites a concrete detail from slide decks 2. quiz bank 3., explains how it changes the DNA decision, names one limitation, and states the revision made before submission.',
+    };
+
+    const compiled = compileBlueprintDeliverables(blueprint, ['courseFaq'], {
+      configMap: { courseFaq: { questionsPerLesson: 7 } },
+    });
+    const faqText = compiled.courseFaq.faqs
+      .flatMap((faq) => faq.qs || [])
+      .map((item) => `${item.q || ''} ${item.an || ''}`)
+      .join(' ');
+
+    expect(repaired.lessons[0].sections[0].supportingResources).not.toMatch(
+      /\b(?:slide decks|quiz bank|study guides)\b/i,
+    );
+    expect(faqText).not.toMatch(/\b(?:slide decks|quiz bank|study guides)\b/i);
+    expect(faqText).toMatch(/DNA and inheritance basics source evidence|source evidence/i);
+  });
 });

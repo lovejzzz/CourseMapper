@@ -1,0 +1,103 @@
+{
+  "version": "0.15.39",
+  "date": "June 20, 2026",
+  "title": "Course FAQ Evidence Firewall: compact artifact lists stop becoming source evidence",
+  "status": "verified-current",
+  "proofSummary": {
+    "local": [
+      "npm test -- tests/v0141-phase1-finalizer.test.js",
+      "npm test -- tests/v0155-release-truth-ledger.test.js",
+      "npm run format:check",
+      "npm run lint",
+      "npm test",
+      "npm run audit:gold:smoke",
+      "npm run build",
+      "npm run bundle:check",
+      "npm run audit:release-history",
+      "browser verification"
+    ],
+    "ciFast": {
+      "status": "pending-push",
+      "note": "Fast verification is claimed only after v0.15.39 is pushed and the GitHub Actions run is attached."
+    },
+    "deploy": {
+      "status": "pending-push",
+      "note": "Pages deploy is not claimed until the pushed release completes its deploy run."
+    },
+    "ciDeep": {
+      "status": "local-only",
+      "note": "This is a narrow Course Map repair/compiler regression patch, so focused regression coverage plus audit:gold:smoke are the release gate."
+    },
+    "liveProvider": {
+      "status": "local-only",
+      "note": "The release is based on a fresh deployed v0.15.38 EduTool.dev Genetics and Society ZIP audit saved under verification-output/edutool-audit-loop/20260620T210413Z/."
+    },
+    "manualHuman": {
+      "status": "not-applicable",
+      "note": "No external instructor approval is claimed by this release."
+    }
+  },
+  "claims": [
+    {
+      "id": "v01539-live-compact-artifact-list-p1",
+      "status": "verified-current",
+      "changelogHighlightIndex": 0,
+      "summary": "A fresh deployed v0.15.38 Genetics and Society ZIP audit improved to 97/A with export verified, but still found Course FAQ evidence text using the compact artifact-list phrase slide decks 2. quiz bank 3.",
+      "anchors": ["docs/V0.15.39_COURSE_FAQ_EVIDENCE_FIREWALL_ROADMAP.md", "release-contracts/v0.15.39.json"],
+      "proofCommands": [
+        "Manual EduTool.dev ZIP/log audit summarized in docs/V0.15.39_COURSE_FAQ_EVIDENCE_FIREWALL_ROADMAP.md from verification-output/edutool-audit-loop/20260620T210413Z/"
+      ],
+      "proofScopes": ["live-provider", "browser-live", "static-audit"]
+    },
+    {
+      "id": "v01539-compact-resource-list-repair",
+      "status": "verified-current",
+      "changelogHighlightIndex": 1,
+      "summary": "Course Map readiness repair now preserves array and numbered-list boundaries when checking supporting resources, so compact artifact-resource lists are repaired before they can become lesson evidence.",
+      "anchors": ["src/lib/deliverableReadiness.js", "tests/v0141-phase1-finalizer.test.js"],
+      "proofCommands": ["npm test -- tests/v0141-phase1-finalizer.test.js"],
+      "proofScopes": ["unit", "compiled-output"]
+    },
+    {
+      "id": "v01539-throughline-evidence-rejects-artifacts",
+      "status": "verified-current",
+      "changelogHighlightIndex": 2,
+      "summary": "The blueprint compiler no longer elects prompt artifact labels or compact artifact-label runs as throughline evidence packets for normal disciplinary courses.",
+      "anchors": ["src/lib/courseBlueprintCompiler.js", "tests/v0141-phase1-finalizer.test.js"],
+      "proofCommands": ["npm test -- tests/v0141-phase1-finalizer.test.js"],
+      "proofScopes": ["unit", "compiled-output"]
+    },
+    {
+      "id": "v01539-course-faq-safe-evidence-cue",
+      "status": "verified-current",
+      "changelogHighlightIndex": 3,
+      "summary": "Course FAQ rendering now uses a safe lesson/source evidence cue for focus answers, material-review answers, and anchor contrasts when stale metadata still contains artifact labels.",
+      "anchors": ["src/lib/courseBlueprintCompiler.js", "tests/v0141-phase1-finalizer.test.js"],
+      "proofCommands": ["npm test -- tests/v0141-phase1-finalizer.test.js"],
+      "proofScopes": ["unit", "compiled-output"]
+    },
+    {
+      "id": "v01539-quality-bar-unchanged",
+      "status": "verified-current",
+      "changelogHighlightIndex": 4,
+      "summary": "Regression coverage pins the exported v0.15.38 failure shape while leaving source-license and source-ledger findings as carry-forward quality debt instead of weakening the grader.",
+      "anchors": ["tests/v0141-phase1-finalizer.test.js", "docs/V0.15.39_COURSE_FAQ_EVIDENCE_FIREWALL_ROADMAP.md"],
+      "proofCommands": ["npm test -- tests/v0141-phase1-finalizer.test.js", "npm run audit:release-history"],
+      "proofScopes": ["unit", "static-audit"]
+    }
+  ],
+  "carryForward": [
+    {
+      "id": "source-license-policy",
+      "status": "carry-forward",
+      "source": "docs/V0.15.39_COURSE_FAQ_EVIDENCE_FIREWALL_ROADMAP.md",
+      "next": "Resolve ambiguous OpenLibrary/Crossref license P2 findings through source-license policy work instead of hiding them in the grader."
+    },
+    {
+      "id": "source-ledger-concept-linking",
+      "status": "carry-forward",
+      "source": "docs/V0.15.39_COURSE_FAQ_EVIDENCE_FIREWALL_ROADMAP.md",
+      "next": "Continue ResearchSession/source-ledger bridge and concept-linking work so native source truth matches exported source reports."
+    }
+  ]
+}

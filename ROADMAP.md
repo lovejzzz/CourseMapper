@@ -4,6 +4,28 @@
 
 CourseMapper is moving toward a "consider it done" course-production agent. The user should describe the course, choose scope/materials, and receive a finished draft package. The agent owns generation, QA, repair, alignment, and export readiness. Human involvement should be final approval only, not QA labor.
 
+## v0.15.39 - Course FAQ Evidence Firewall
+
+Goal: fix the fresh deployed v0.15.38 Genetics and Society ZIP audit P1 without
+weakening quality grading. v0.15.38 removed the earlier P0 and exported a ready
+package at 97/A, but compact artifact-resource prose such as
+`slide decks 2. quiz bank 3` still survived into Course FAQ evidence and anchor
+examples.
+
+Full plan: `docs/V0.15.39_COURSE_FAQ_EVIDENCE_FIREWALL_ROADMAP.md`
+
+1. Preserve array and numbered-list boundaries while checking
+   `supportingResources`, so compact artifact-resource lists are repaired before
+   blueprint compilation.
+2. Prevent prompt artifact labels from being elected as throughline evidence
+   packets.
+3. Sanitize Course FAQ focus answers, material-review answers, and anchor
+   contrasts so stale artifact-label metadata falls back to safe lesson/source
+   evidence.
+4. Pin the exported v0.15.38 failure shape with focused regression coverage.
+5. Keep carry-forward debt explicit: source-license ambiguity and source-ledger
+   concept-linking remain separate quality targets.
+
 ## v0.15.38 - Artifact Resource Firewall
 
 Goal: fix the fresh deployed v0.15.37 Genetics and Society audit P0 without

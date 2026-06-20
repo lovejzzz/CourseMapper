@@ -3,23 +3,23 @@ import { APP_VERSION } from './appVersion.js';
 export const CURRENT_RELEASE = {
   version: APP_VERSION,
   date: 'June 20, 2026',
-  title: 'Artifact Resource Firewall: deliverable labels stop leaking into Course FAQ concepts',
-  landingTitle: 'Artifact Resource Firewall',
+  title: 'Course FAQ Evidence Firewall: compact artifact lists stop becoming source evidence',
+  landingTitle: 'Course FAQ Evidence Firewall',
   highlights: [
-    'A fresh deployed v0.15.37 Genetics and Society audit exposed a real P0: single deliverable labels such as “slide decks” survived as supporting resources and then appeared in Course FAQ answers as if they were lesson concepts.',
-    'The Course Map repair pass now treats exact single supporting-resource cells that are requested deliverable labels as prompt-artifact contamination for non-instructional-design courses.',
-    'The repair keeps the v0.15.12 precision exception for legitimate “worked examples” resources while blocking labels like slide decks, quiz bank, study guides, and course FAQ.',
-    'Regression coverage now proves the repaired Course FAQ no longer says “Strong work uses slide decks” for the live Genetics failure shape.',
-    'The emitted run digest now waits for finalize-time quality grading, so a package blocked by quality P0s no longer logs a misleading ready `[CM][DIGEST]`.',
+    'A fresh deployed v0.15.38 Genetics and Society ZIP audit improved to Quality 97/A with export verified, but still exposed a real P1: compact resource-label prose such as “slide decks 2. quiz bank 3” survived into Course FAQ evidence and anchor examples.',
+    'The Course Map repair pass now preserves array and numbered-list boundaries when checking supporting resources, so compact artifact-resource lists are repaired before they can become lesson evidence.',
+    'The blueprint compiler no longer elects prompt artifact labels or compact artifact-label runs as throughline evidence packets for normal disciplinary courses.',
+    'Course FAQ rendering now uses a safe lesson/source evidence cue for focus answers, material-review answers, and anchor contrasts when stale metadata still contains artifact labels.',
+    'Regression coverage pins the exported v0.15.38 failure shape without weakening the quality grader or hiding the remaining source-license and source-ledger findings.',
   ],
   landingHighlights: [
-    'Single artifact-label resources are repaired.',
-    'Course FAQ no longer treats deliverables as concepts.',
-    'The quality bar stays strict.',
+    'Compact artifact-label resource lists are repaired.',
+    'Course FAQ evidence cues are sanitized.',
+    'The source-quality bar stays strict.',
   ],
   proof: {
-    contract: 'release-contracts/v0.15.38.json',
-    roadmap: 'docs/V0.15.38_ARTIFACT_RESOURCE_FIREWALL_ROADMAP.md',
+    contract: 'release-contracts/v0.15.39.json',
+    roadmap: 'docs/V0.15.39_COURSE_FAQ_EVIDENCE_FIREWALL_ROADMAP.md',
     auditCommand: 'npm run audit:release-history',
   },
 };
@@ -34,6 +34,18 @@ export const CURRENT_RELEASE_CHANGELOG = {
 };
 
 export const HISTORICAL_RELEASE_CHANGELOGS = [
+  {
+    version: '0.15.38',
+    date: 'June 20, 2026',
+    title: 'Artifact Resource Firewall: deliverable labels stop leaking into Course FAQ concepts',
+    highlights: [
+      'A fresh deployed v0.15.37 Genetics and Society audit exposed a real P0: single deliverable labels such as “slide decks” survived as supporting resources and then appeared in Course FAQ answers as if they were lesson concepts.',
+      'The Course Map repair pass now treats exact single supporting-resource cells that are requested deliverable labels as prompt-artifact contamination for non-instructional-design courses.',
+      'The repair keeps the v0.15.12 precision exception for legitimate “worked examples” resources while blocking labels like slide decks, quiz bank, study guides, and course FAQ.',
+      'Regression coverage now proves the repaired Course FAQ no longer says “Strong work uses slide decks” for the live Genetics failure shape.',
+      'The emitted run digest now waits for finalize-time quality grading, so a package blocked by quality P0s no longer logs a misleading ready `[CM][DIGEST]`.',
+    ],
+  },
   {
     version: '0.15.37',
     date: 'June 20, 2026',
