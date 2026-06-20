@@ -1,0 +1,98 @@
+{
+  "version": "0.15.41",
+  "date": "June 20, 2026",
+  "title": "Source Proof Fallback: source-backed exports cannot go silent",
+  "status": "verified-current",
+  "proofSummary": {
+    "local": [
+      "npx vitest run src/lib/__tests__/packageZipExporter.test.js",
+      "npm test -- tests/v0155-release-truth-ledger.test.js",
+      "npm run format:check",
+      "npm run lint",
+      "npm test",
+      "npm run audit:gold:smoke",
+      "npm run build",
+      "npm run bundle:check",
+      "npm run audit:release-history",
+      "browser verification"
+    ],
+    "ciFast": {
+      "status": "pending-push",
+      "note": "Fast verification is claimed only after v0.15.41 is pushed and the GitHub Actions run is attached."
+    },
+    "deploy": {
+      "status": "pending-push",
+      "note": "Pages deploy is not claimed until the pushed release completes its deploy run."
+    },
+    "ciDeep": {
+      "status": "local-only",
+      "note": "This is a narrow export/source-proof truth patch, so focused exporter coverage plus audit:gold:smoke are the release gate."
+    },
+    "liveProvider": {
+      "status": "local-only",
+      "note": "The release is based on a fresh deployed v0.15.40 EduTool.dev Genetics and Society ZIP audit saved under verification-output/edutool-audit-loop/20260620T230414Z/."
+    },
+    "manualHuman": {
+      "status": "not-applicable",
+      "note": "No external instructor approval is claimed by this release."
+    }
+  },
+  "claims": [
+    {
+      "id": "v01541-live-genetics-source-proof-p1",
+      "status": "verified-current",
+      "changelogHighlightIndex": 0,
+      "summary": "A fresh deployed v0.15.40 Genetics and Society ZIP audit regraded at 99/A with export verified, but proved the source-backed run omitted sourceLedger, sourceRef coverage, and SOURCE_REPORT.md from the ZIP.",
+      "anchors": ["docs/V0.15.41_SOURCE_PROOF_FALLBACK_ROADMAP.md", "release-contracts/v0.15.41.json"],
+      "proofCommands": [
+        "Manual EduTool.dev ZIP/log audit summarized in docs/V0.15.41_SOURCE_PROOF_FALLBACK_ROADMAP.md from verification-output/edutool-audit-loop/20260620T230414Z/"
+      ],
+      "proofScopes": ["live-provider", "browser-live", "static-audit"]
+    },
+    {
+      "id": "v01541-courseir-source-proof-fallback",
+      "status": "verified-current",
+      "changelogHighlightIndex": 1,
+      "summary": "Package export derives a CourseIR source-proof fallback only when source-backed pipeline state expects proof and the exported graph has no source rows.",
+      "anchors": ["src/lib/packageZipExporter.js", "src/lib/__tests__/packageZipExporter.test.js"],
+      "proofCommands": ["npx vitest run src/lib/__tests__/packageZipExporter.test.js"],
+      "proofScopes": ["unit", "compiled-output"]
+    },
+    {
+      "id": "v01541-review-proof-not-trusted-ledger",
+      "status": "verified-current",
+      "changelogHighlightIndex": 2,
+      "summary": "The fallback writes URL/DOI/license-free CourseIR rows as sourceReviewRows and SOURCE_REPORT.md review notes instead of trusted sourceLedger bibliography.",
+      "anchors": ["src/lib/packageZipExporter.js", "src/lib/__tests__/packageZipExporter.test.js"],
+      "proofCommands": ["npx vitest run src/lib/__tests__/packageZipExporter.test.js"],
+      "proofScopes": ["unit", "course-graph"]
+    },
+    {
+      "id": "v01541-source-quality-bar-unchanged",
+      "status": "verified-current",
+      "changelogHighlightIndex": 3,
+      "summary": "Focused exporter regression coverage recreates the missing-ledger failure without weakening source-thinness, review-row, or fake-citation grader checks.",
+      "anchors": [
+        "src/lib/__tests__/packageZipExporter.test.js",
+        "src/lib/quality/sourceLedgerQualityChecks.js",
+        "docs/V0.15.41_SOURCE_PROOF_FALLBACK_ROADMAP.md"
+      ],
+      "proofCommands": ["npx vitest run src/lib/__tests__/packageZipExporter.test.js", "npm run audit:release-history"],
+      "proofScopes": ["unit", "static-audit"]
+    }
+  ],
+  "carryForward": [
+    {
+      "id": "trusted-source-ledger-architecture",
+      "status": "carry-forward",
+      "source": "docs/V0.15.41_SOURCE_PROOF_FALLBACK_ROADMAP.md",
+      "next": "Implement the broader research-once source ledger so retrieved academic/OER rows become concept-linked trusted source proof for CurriculumV1 atoms."
+    },
+    {
+      "id": "source-license-policy",
+      "status": "carry-forward",
+      "source": "docs/V0.15.41_SOURCE_PROOF_FALLBACK_ROADMAP.md",
+      "next": "Resolve ambiguous OpenLibrary/Crossref/license review debt without weakening the grader."
+    }
+  ]
+}

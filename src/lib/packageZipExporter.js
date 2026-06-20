@@ -262,6 +262,13 @@ function buildManifestCourseIRProof(courseGraph, { sourceRefCoverage = null } = 
         accepted: Boolean(courseGraph.courseIR.directAuthoring.accepted),
       };
     }
+    if (courseGraph.courseIR.sourceProofFallback) {
+      proof.sourceProofFallback = {
+        source: courseGraph.courseIR.sourceProofFallback.source || '',
+        projectedThrough: courseGraph.courseIR.sourceProofFallback.projectedThrough || '',
+        reason: courseGraph.courseIR.sourceProofFallback.reason || '',
+      };
+    }
   }
   if (courseGraph?.nativeRepair) {
     proof.nativeRepair = {
@@ -308,6 +315,39 @@ function mergeSourceLedgerBundles(...bundles) {
       ...(reviewRows.length > 0 ? { reviewRequiredCount: reviewRows.length } : {}),
     },
   };
+}
+
+function hasSourceLedgerRows(bundle) {
+  return Boolean((bundle?.rows || []).length || (bundle?.reviewRows || []).length);
+}
+
+async function buildCourseIRSourceProofFallback(courseMap) {
+  if (!courseMap?.lessons) return null;
+  try {
+    const { buildCourseIRFromCourseMap, courseIRToCourseGraph, validateCourseIR } = await safeImport(
+      () => import('./courseIR.js'),
+    );
+    const courseIR = buildCourseIRFromCourseMap(courseMap);
+    const validation = validateCourseIR(courseIR);
+    const projection = courseIRToCourseGraph(validation.ir || courseIR);
+    return {
+      graph: {
+        ...projection.graph,
+        courseIR: {
+          ...(projection.graph?.courseIR || {}),
+          stats: validation.stats || null,
+          sourceProofFallback: {
+            source: 'export-course-map',
+            projectedThrough: 'curriculumv1',
+            reason: 'source-backed pipeline proof was missing from the export graph',
+          },
+        },
+      },
+      sourceRefCoverage: projection.graph?.courseIR?.sourceRefCoverage || null,
+    };
+  } catch {
+    return null;
+  }
 }
 
 function pipelineExpectsSourceLedgerProof(pipelineState) {
@@ -613,18 +653,37 @@ export async function buildCourseMaterialsZip({
     if (!assessmentRegistry) assessmentRegistry = derivedGraph?.assessments || null;
     if (!readingsRegistry) readingsRegistry = derivedGraph?.readings || null;
   }
+  const pipelineSourceProofExpected = pipelineExpectsSourceLedgerProof(pipelineState);
   const sourceProofExpected =
-    pipelineExpectsSourceLedgerProof(pipelineState) ||
+    pipelineSourceProofExpected ||
     Boolean(courseGraph?.courseIR) ||
     (Array.isArray(courseGraph?.resources) && courseGraph.resources.length > 0) ||
     (Array.isArray(courseGraph?.readings) && courseGraph.readings.length > 0);
   const fallbackCourseGraph = sourceProofExpected ? await getDerivedCourseGraph() : null;
-  const sourceLedgerBundle = mergeSourceLedgerBundles(
+  let sourceLedgerBundle = mergeSourceLedgerBundles(
     buildSourceLedgerFromCourseGraph(courseGraph, { checkedAt: generatedAt }),
     buildSourceLedgerFromCourseGraph(fallbackCourseGraph, { checkedAt: generatedAt }),
   );
-  const sourceRefCoverage =
+  let sourceRefCoverage =
     courseGraph?.courseIR?.sourceRefCoverage || pipelineState?.courseIR?.sourceRefCoverage || null;
+  let sourceManifestGraph = courseGraph;
+  if (pipelineSourceProofExpected && !hasSourceLedgerRows(sourceLedgerBundle)) {
+    const courseIRFallback = await buildCourseIRSourceProofFallback(courseMap);
+    if (courseIRFallback?.graph) {
+      sourceLedgerBundle = mergeSourceLedgerBundles(
+        sourceLedgerBundle,
+        buildSourceLedgerFromCourseGraph(courseIRFallback.graph, { checkedAt: generatedAt }),
+      );
+      sourceRefCoverage = sourceRefCoverage || courseIRFallback.sourceRefCoverage || null;
+      sourceManifestGraph = {
+        ...(courseGraph || fallbackCourseGraph || courseIRFallback.graph),
+        courseIR: {
+          ...(courseGraph?.courseIR || fallbackCourseGraph?.courseIR || {}),
+          ...(courseIRFallback.graph.courseIR || {}),
+        },
+      };
+    }
+  }
   const sourceReportMarkdown = buildSourceReportMarkdown({
     courseName: safeCourseName,
     sourceLedger: sourceLedgerBundle,
@@ -659,7 +718,7 @@ export async function buildCourseMaterialsZip({
     pipelineState,
     assessments: buildManifestAssessments({ registry: assessmentRegistry, files }),
     readings: buildManifestReadings(readingsRegistry),
-    courseGraph,
+    courseGraph: sourceManifestGraph,
     generatedAt,
     sourceLedger: sourceLedgerBundle?.rows || null,
     sourceLedgerSummary: sourceLedgerBundle?.summary || null,

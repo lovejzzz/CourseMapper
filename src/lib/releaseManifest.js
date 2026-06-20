@@ -3,22 +3,22 @@ import { APP_VERSION } from './appVersion.js';
 export const CURRENT_RELEASE = {
   version: APP_VERSION,
   date: 'June 20, 2026',
-  title: 'Source Relevance and Slide Polish Guard: generic background sources stop entering genetics packages',
-  landingTitle: 'Source Relevance Guard',
+  title: 'Source Proof Fallback: source-backed exports cannot go silent',
+  landingTitle: 'Source Proof Fallback',
   highlights: [
-    'A fresh deployed v0.15.39 Genetics and Society ZIP audit regraded at 98/A with export verified, but still exposed a real slide-deck P1 and a semantically wrong source row: Wikipedia “Driving under the influence” was attached to genetics concepts.',
-    'Slide deck compilation now runs one final export pass over every slide bullet, so long authored bullets keep terminal punctuation while short labels and relationship-arrow concept pairs stay intentionally bare.',
-    'The source-finder discipline-anchor gate now applies to background providers such as Wikipedia in genetics/genomics contexts, so generic environment/testing/background rows cannot win by matching broad query words alone.',
-    'Focused regression coverage pins both live failure shapes without weakening the quality grader or hiding the remaining source-license review findings.',
+    'A fresh deployed v0.15.40 Genetics and Society ZIP audit regraded at 99/A with export verified, but proved a source-proof handoff regression: the digest reported CurriculumV1 repair plus five open resources while the ZIP omitted `sourceLedger`, sourceRef coverage, and `SOURCE_REPORT.md`.',
+    'Package export now falls back to a CourseIR-derived source-proof graph only when source-backed pipeline state expects proof and the export graph has no source rows, so the ZIP ships an explicit review receipt instead of going silent.',
+    'The fallback is intentionally not trusted bibliography: URL/DOI/license-free CourseIR rows are quarantined as `sourceReviewRows`, while `SOURCE_REPORT.md` explains the review status and atom sourceRef coverage.',
+    'Focused exporter regression coverage recreates the live missing-ledger shape without weakening source-thinness, review-row, or fake-citation grader checks.',
   ],
   landingHighlights: [
-    'Generic background sources are filtered in genetics packages.',
-    'Long authored slide bullets keep sentence punctuation.',
+    'Source-backed exports always include a source proof report.',
+    'Review-only CourseIR proof stays visibly quarantined.',
     'The source-quality bar stays strict.',
   ],
   proof: {
-    contract: 'release-contracts/v0.15.40.json',
-    roadmap: 'docs/V0.15.40_SOURCE_RELEVANCE_AND_SLIDE_POLISH_ROADMAP.md',
+    contract: 'release-contracts/v0.15.41.json',
+    roadmap: 'docs/V0.15.41_SOURCE_PROOF_FALLBACK_ROADMAP.md',
     auditCommand: 'npm run audit:release-history',
   },
 };
@@ -33,6 +33,17 @@ export const CURRENT_RELEASE_CHANGELOG = {
 };
 
 export const HISTORICAL_RELEASE_CHANGELOGS = [
+  {
+    version: '0.15.40',
+    date: 'June 20, 2026',
+    title: 'Source Relevance and Slide Polish Guard: generic background sources stop entering genetics packages',
+    highlights: [
+      'A fresh deployed v0.15.39 Genetics and Society ZIP audit regraded at 98/A with export verified, but still exposed a real slide-deck P1 and a semantically wrong source row: Wikipedia “Driving under the influence” was attached to genetics concepts.',
+      'Slide deck compilation now runs one final export pass over every slide bullet, so long authored bullets keep terminal punctuation while short labels and relationship-arrow concept pairs stay intentionally bare.',
+      'The source-finder discipline-anchor gate now applies to background providers such as Wikipedia in genetics/genomics contexts, so generic environment/testing/background rows cannot win by matching broad query words alone.',
+      'Focused regression coverage pins both live failure shapes without weakening the quality grader or hiding the remaining source-license review findings.',
+    ],
+  },
   {
     version: '0.15.39',
     date: 'June 20, 2026',

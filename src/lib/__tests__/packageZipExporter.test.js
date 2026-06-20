@@ -374,6 +374,51 @@ describe('packageZipExporter', () => {
     expect(sourceReport).not.toContain('Worked examples, readings, or activity sheets');
   });
 
+  it('exports CourseIR review proof when source-backed pipeline state loses its graph ledger', async () => {
+    const result = await buildCourseMaterialsZip({
+      courseMap: makeCourseMap('Genetics Source Proof Fallback'),
+      deliverables: {
+        lessonPlans: {
+          status: 'done',
+          data: {
+            lessonPlans: [{ lessonTitle: 'Lesson 1: Export Reliability', objectives: ['Verify source proof.'] }],
+          },
+        },
+      },
+      featureIds: ['courseMap', 'lessonPlans'],
+      courseGraph: { sessions: [], resources: [], readings: [] },
+      pipelineState: {
+        enrichment: 'ran (4 lessons enriched)',
+        genomeLinker: '0 genome + 0 cached of 4 lessons (0 concepts, 0 citations, 0 bridges)',
+        nativeAuthoring: 'CurriculumV1 repaired 4 lessons / 4 assessments',
+        knowledgeBackbone: '0/4 lessons genome-linked · 5 open resources (openlibrary: 1, source-finder: 4)',
+      },
+      quality: false,
+    });
+
+    const zip = await JSZip.loadAsync(await result.blob.arrayBuffer());
+    const manifest = JSON.parse(await zip.file('PACKAGE_MANIFEST.json').async('string'));
+    const sourceReport = await zip.file('SOURCE_REPORT.md').async('string');
+
+    expect(manifest.sourceLedger).toBeUndefined();
+    expect(manifest.sourceReviewRows).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          provider: 'courseir',
+          accessStatus: 'no-url-or-doi',
+        }),
+      ]),
+    );
+    expect(manifest.sourceReport).toMatchObject({ path: 'SOURCE_REPORT.md', sourceCount: 0, sourceReviewCount: 1 });
+    expect(manifest.courseIR.sourceRefCoverage.totals.total).toBeGreaterThan(0);
+    expect(manifest.courseIR.sourceProofFallback).toMatchObject({
+      source: 'export-course-map',
+      projectedThrough: 'curriculumv1',
+    });
+    expect(sourceReport).toContain('Source Review Notes');
+    expect(sourceReport).toContain('SourceRef Coverage');
+  });
+
   it('keeps CourseIR fallback rows out of trusted sourceLedger proof', async () => {
     const result = await buildCourseMaterialsZip({
       courseMap: makeCourseMap('CourseIR Review Source Proof'),
