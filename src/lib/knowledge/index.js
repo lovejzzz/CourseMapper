@@ -27,5 +27,17 @@ export {
   shouldRunSourceFinder,
   sourceTopicsFromCourse,
 } from './sourceFinder.js';
+export {
+  buildSourceLedgerFromCourseGraph,
+  buildSourceReportMarkdown,
+  isLicenseAmbiguous,
+  isSourceAccessible,
+  normalizeTrustedSource,
+  providerTrustLevel,
+  sourceCitationLabel,
+  sourceLedgerFromOpenAlex,
+  sourceLedgerFromOpenLibrary,
+  sourceLedgerFromOpenStax,
+} from './sourceLedger.js';
 export { PEDAGOGY_EVIDENCE, evidenceForMove, buildMethodsStatement } from './pedagogyEvidence.js';
 export { buildCompetencyMap, competencyStandardsUrls } from './competencyMap.js';

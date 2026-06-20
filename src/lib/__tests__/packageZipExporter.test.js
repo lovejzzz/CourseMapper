@@ -235,6 +235,95 @@ describe('packageZipExporter', () => {
     });
   });
 
+  it('exports a normalized source ledger and source report when CourseIR sourceRefs are present', async () => {
+    const result = await buildCourseMaterialsZip({
+      courseMap: makeCourseMap('Source Ledger Export Proof'),
+      deliverables: {
+        lessonPlans: {
+          status: 'done',
+          data: {
+            lessonPlans: [{ lessonTitle: 'Lesson 1: Source Truth', objectives: ['Trace sources.'] }],
+          },
+        },
+      },
+      featureIds: ['courseMap', 'lessonPlans'],
+      courseGraph: {
+        concepts: [{ id: 'c1', term: 'Limits' }],
+        sessions: [
+          {
+            id: 's1',
+            number: 1,
+            sections: [{ id: 'sec1', topic: 'Limits', conceptRefs: ['c1'], resourceRefs: ['kr1'] }],
+          },
+        ],
+        resources: [
+          {
+            id: 'kr1',
+            citation: 'OpenStax Calculus Volume 1 §2.2',
+            origin: 'genome',
+            kind: 'textbook section',
+            url: 'https://openstax.org/books/calculus-volume-1/pages/2-2-the-limit-of-a-function',
+            license: 'CC BY-NC-SA 4.0',
+            attribution: 'OpenStax, Rice University',
+            sessionRefs: ['s1'],
+          },
+        ],
+        readings: [],
+        courseIR: {
+          version: 'courseir.v1',
+          lessonIds: ['L1'],
+          conceptIds: ['C1'],
+          assessmentIds: ['A1'],
+          sourceLedger: [
+            {
+              id: 'SL1',
+              scope: 'concepts',
+              status: 'source-provided',
+              title: 'Calculus Volume 1',
+              authors: ['OpenStax'],
+              url: 'https://openstax.org/books/calculus-volume-1',
+              license: 'CC BY-NC-SA 4.0',
+              provider: 'openstax',
+              evidence: 'Limits chapter.',
+              conceptLinks: [{ id: 'C1', label: 'Limit' }],
+            },
+          ],
+          sourceRefCoverage: {
+            categories: {
+              outcomes: { total: 1, withRefs: 1, missing: 0, danglingRefs: 0, missingIds: [] },
+            },
+            totals: { total: 1, withRefs: 1, missing: 0, danglingRefs: 0 },
+          },
+        },
+      },
+    });
+
+    const zip = await JSZip.loadAsync(await result.blob.arrayBuffer());
+    const manifest = JSON.parse(await zip.file('PACKAGE_MANIFEST.json').async('string'));
+    const sourceReport = await zip.file('SOURCE_REPORT.md').async('string');
+
+    expect(manifest.sourceLedger).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          id: 'SL1',
+          provider: 'openstax',
+          license: 'CC BY-NC-SA 4.0',
+          accessStatus: 'reference-present',
+        }),
+        expect.objectContaining({
+          id: 'kr1',
+          provider: 'genome',
+          conceptLinks: [{ id: 'c1', label: 'Limits' }],
+        }),
+      ]),
+    );
+    expect(manifest.sourceLedgerSummary).toMatchObject({ sourceCount: 2, accessibleCount: 2 });
+    expect(manifest.sourceReport).toMatchObject({ path: 'SOURCE_REPORT.md', sourceCount: 2 });
+    expect(manifest.courseIR.sourceRefCoverage.categories.outcomes).toMatchObject({ total: 1, withRefs: 1 });
+    expect(sourceReport).toContain('Source Ledger');
+    expect(sourceReport).toContain('outcomes: 1/1 with sourceRefs');
+  });
+
   it('uses custom deliverable names in ZIP paths and manifest labels', async () => {
     const result = await buildCourseMaterialsZip({
       courseMap: makeCourseMap(),

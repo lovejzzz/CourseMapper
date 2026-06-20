@@ -9,10 +9,11 @@ import { buildQuizItemPlan } from './blueprintEnrichmentPass.js';
 import { projectKernelToSurfaces } from './kernelProjection.js';
 import { resolveProviderMaxOutputTokens } from './adaptiveProviderBatching.js';
 import { estimateTokens, getModelLimit } from './tokenEstimator.js';
+import { normalizeTrustedSource, sourceCitationLabel } from './knowledge/sourceLedger.js';
 
 export const COURSE_IR_VERSION = 'courseir.v1';
 export const COURSE_IR_SCHEMA_NAME = 'course_ir_v1';
-export const COURSE_IR_SYSTEM_PROMPT = `You are CourseMapper's CurriculumV1 authoring engine. Return one compact CourseIR JSON object only: no markdown, no commentary, no final deliverable prose. Encode the curriculum brain as semantic atoms with stable ids, source/provenance status, concept prerequisites, lesson objectives, outcome atoms, activity atoms, assessments, rubric criteria, examples, misconceptions, constraints, and artifact intent links. Every lesson outcome and activity must link to concept ids, assessment ids, and sourceRefs; every rubric criterion must link to concepts, outcomes, performance levels, and sourceRefs.`;
+export const COURSE_IR_SYSTEM_PROMPT = `You are CourseMapper's CurriculumV1 authoring engine. Return one compact CourseIR JSON object only: no markdown, no commentary, no final deliverable prose. Encode the curriculum brain as semantic atoms with stable ids, source/provenance status, a trusted sourceLedger, concept prerequisites, lesson objectives, outcome atoms, activity atoms, assessments, rubric criteria, examples, misconceptions, constraints, and artifact intent links. SourceLedger rows should name title, authors, URL or DOI, license, provider, conceptLinks, and checkedAt when known. Every lesson outcome, activity, worked example, assessment, and rubric criterion must link to sourceRefs instead of inventing citations.`;
 
 const KNOWN_FEATURE_IDS = [
   'syllabus',
@@ -138,7 +139,14 @@ function normalizeMisconception(entry) {
 
 function normalizeWorkedExample(entry, lessonId, index) {
   if (typeof entry === 'string') {
-    return { id: `${lessonId}-E${index + 1}`, skill: '', setup: cleanText(entry), solutionSteps: [], result: '' };
+    return {
+      id: `${lessonId}-E${index + 1}`,
+      skill: '',
+      setup: cleanText(entry),
+      solutionSteps: [],
+      result: '',
+      sourceRefs: [],
+    };
   }
   return {
     id: normalizeId(entry?.id, `${lessonId}-E`, index),
@@ -146,6 +154,7 @@ function normalizeWorkedExample(entry, lessonId, index) {
     setup: cleanText(entry?.setup || entry?.problem, 260),
     solutionSteps: uniqueStrings(entry?.solutionSteps || entry?.steps || [], 8),
     result: cleanText(entry?.result || entry?.answer, 180),
+    sourceRefs: uniqueStrings(entry?.sourceRefs || entry?.refs || [], 16),
   };
 }
 
@@ -206,6 +215,13 @@ function normalizeAssessment(rawAssessment, index) {
       ),
     )
     .filter((criterion) => criterion.label);
+  const sourceRefs = uniqueStrings(
+    [
+      ...asArray(rawAssessment?.sourceRefs || rawAssessment?.refs),
+      ...rubricCriteria.flatMap((criterion) => criterion.sourceRefs),
+    ],
+    16,
+  );
   return {
     id,
     title: cleanText(rawAssessment?.title || rawAssessment?.name || `Assessment ${index + 1}`, 160),
@@ -215,6 +231,7 @@ function normalizeAssessment(rawAssessment, index) {
     prompt: cleanText(rawAssessment?.prompt || rawAssessment?.task || rawAssessment?.description, 360),
     rubricDimensions: uniqueStrings([...rubricDimensions, ...rubricCriteria.map((criterion) => criterion.label)], 8),
     rubricCriteria,
+    sourceRefs,
     weightPct: Number.isFinite(Number(rawAssessment?.weightPct)) ? Number(rawAssessment.weightPct) : null,
     provenance: cleanText(rawAssessment?.provenance || rawAssessment?.source || 'courseir', 80),
   };
@@ -434,12 +451,24 @@ export function normalizeCourseIR(rawIR = {}) {
       sourceProvenance: cleanText(course.sourceProvenance || course.provenance, 240),
     },
     sourceLedger: asArray(rawIR.sourceLedger)
-      .map((entry, index) => ({
-        id: normalizeId(entry?.id, 'SL', index),
-        scope: cleanText(entry?.scope || entry?.path || 'course', 120),
-        status: SOURCE_STATUSES.has(entry?.status) ? entry.status : 'model-authored',
-        evidence: cleanText(entry?.evidence || entry?.note || entry?.source, 280),
-      }))
+      .map((entry, index) => {
+        const normalized = normalizeTrustedSource(
+          {
+            provider: 'courseir',
+            sourceType: 'courseir-ledger-row',
+            ...entry,
+            status: SOURCE_STATUSES.has(entry?.status) ? entry.status : 'model-authored',
+          },
+          { fallbackId: normalizeId(entry?.id, 'SL', index) },
+        );
+        return {
+          ...normalized,
+          id: normalizeId(normalized.id, 'SL', index),
+          scope: cleanText(normalized.scope || entry?.scope || entry?.path || 'course', 120),
+          status: SOURCE_STATUSES.has(normalized.status) ? normalized.status : 'model-authored',
+          evidence: cleanText(normalized.evidence || entry?.evidence || entry?.note || entry?.source, 360),
+        };
+      })
       .filter((entry) => entry.scope),
     constraints: asArray(rawIR.constraints || course.constraints)
       .map((entry, index) => normalizeConstraint(entry, index, 'course'))
@@ -723,6 +752,14 @@ export function validateCourseIR(rawIR = {}) {
         repairPath: `${path}.workedExamples`,
       });
     }
+    for (const [exampleIndex, example] of lesson.workedExamples.entries()) {
+      validateSourceRefs(
+        example.sourceRefs || [],
+        `${path}.workedExamples[${exampleIndex}]`,
+        'Worked example',
+        'example',
+      );
+    }
     if (lesson.misconceptions.length === 0) {
       push('warning', 'missing-misconception', `${path}.misconceptions`, 'Lesson has no misconception corrective.', {
         repairPath: `${path}.misconceptions`,
@@ -743,6 +780,7 @@ export function validateCourseIR(rawIR = {}) {
   for (const [index, assessment] of ir.assessments.entries()) {
     const path = `assessments[${index}]`;
     if (!assessment.title) push('blocker', 'missing-assessment-title', `${path}.title`, 'Assessment needs a title.');
+    validateSourceRefs(assessment.sourceRefs || [], path, 'Assessment', 'assessment');
     if (assessment.lessonIds.length === 0) {
       push(
         'blocker',
@@ -915,6 +953,11 @@ export function validateCourseIR(rawIR = {}) {
         sum + assessment.rubricCriteria.filter((criterion) => criterion.sourceRefs.length > 0).length,
       0,
     ),
+    sourceLinkedWorkedExamples: ir.lessons.reduce(
+      (sum, lesson) => sum + lesson.workedExamples.filter((example) => example.sourceRefs?.length > 0).length,
+      0,
+    ),
+    sourceLinkedAssessments: ir.assessments.filter((assessment) => assessment.sourceRefs?.length > 0).length,
     misconceptionCorrectives:
       ir.lessons.reduce((sum, lesson) => sum + lesson.misconceptions.filter((entry) => entry.correction).length, 0) +
       ir.concepts.reduce((sum, concept) => sum + concept.misconceptions.filter((entry) => entry.correction).length, 0),
@@ -1131,10 +1174,13 @@ function needsAtomSourceRepair(ir) {
     ir.lessons.some(
       (lesson) =>
         lesson.outcomes.some((outcome) => sourceRefsNeedRepair(ir, outcome.sourceRefs)) ||
-        lesson.activities.some((activity) => sourceRefsNeedRepair(ir, activity.sourceRefs)),
+        lesson.activities.some((activity) => sourceRefsNeedRepair(ir, activity.sourceRefs)) ||
+        lesson.workedExamples.some((example) => sourceRefsNeedRepair(ir, example.sourceRefs || [])),
     ) ||
-    ir.assessments.some((assessment) =>
-      assessment.rubricCriteria.some((criterion) => sourceRefsNeedRepair(ir, criterion.sourceRefs)),
+    ir.assessments.some(
+      (assessment) =>
+        sourceRefsNeedRepair(ir, assessment.sourceRefs || []) ||
+        assessment.rubricCriteria.some((criterion) => sourceRefsNeedRepair(ir, criterion.sourceRefs)),
     )
   );
 }
@@ -1422,6 +1468,14 @@ export function repairCourseIRStructure(rawIR = {}) {
         sum + lesson.activities.filter((activity) => sourceRefsNeedRepair(ir, activity.sourceRefs)).length,
       0,
     );
+    const repairedExampleCount = ir.lessons.reduce(
+      (sum, lesson) =>
+        sum + lesson.workedExamples.filter((example) => sourceRefsNeedRepair(ir, example.sourceRefs || [])).length,
+      0,
+    );
+    const repairedAssessmentSourceCount = ir.assessments.filter((assessment) =>
+      sourceRefsNeedRepair(ir, assessment.sourceRefs || []),
+    ).length;
     const repairedRubricCount = ir.assessments.reduce(
       (sum, assessment) =>
         sum + assessment.rubricCriteria.filter((criterion) => sourceRefsNeedRepair(ir, criterion.sourceRefs)).length,
@@ -1441,12 +1495,17 @@ export function repairCourseIRStructure(rawIR = {}) {
             ...activity,
             sourceRefs: repairedAtomSourceRefs(ir, activity.sourceRefs, fallbackRefs),
           })),
+          workedExamples: lesson.workedExamples.map((example) => ({
+            ...example,
+            sourceRefs: repairedAtomSourceRefs(ir, example.sourceRefs || [], fallbackRefs),
+          })),
         };
       }),
       assessments: ir.assessments.map((assessment) => {
         const fallbackRefs = fallbackSourceRefsForAssessment(ir, assessment);
         return {
           ...assessment,
+          sourceRefs: repairedAtomSourceRefs(ir, assessment.sourceRefs || [], fallbackRefs),
           rubricCriteria: assessment.rubricCriteria.map((criterion) => ({
             ...criterion,
             sourceRefs: repairedAtomSourceRefs(ir, criterion.sourceRefs, fallbackRefs),
@@ -1458,6 +1517,8 @@ export function repairCourseIRStructure(rawIR = {}) {
       code: 'added-atom-source-refs',
       outcomes: repairedOutcomeCount,
       activities: repairedActivityCount,
+      workedExamples: repairedExampleCount,
+      assessments: repairedAssessmentSourceCount,
       rubricCriteria: repairedRubricCount,
     });
     changed = true;
@@ -1486,6 +1547,38 @@ function constraintsForLesson(ir, lesson) {
     ...(ir.constraints || []).filter((constraint) => constraint.scope === 'course' || constraint.scope === lesson.id),
     ...(lesson.constraints || []),
   ];
+}
+
+function sourceLedgerById(ir) {
+  return new Map((ir.sourceLedger || []).map((entry) => [entry.id, entry]));
+}
+
+function sourceRefsForLesson(ir, lesson, assessments = []) {
+  return uniqueStrings(
+    [
+      ...lesson.outcomes.flatMap((outcome) => outcome.sourceRefs || []),
+      ...lesson.activities.flatMap((activity) => activity.sourceRefs || []),
+      ...lesson.workedExamples.flatMap((example) => example.sourceRefs || []),
+      ...lesson.factualAnchors.flatMap((anchor) => anchor.sourceRefs || []),
+      ...constraintsForLesson(ir, lesson).flatMap((constraint) => constraint.sourceRefs || []),
+      ...assessments.flatMap((assessment) => assessment.sourceRefs || []),
+      ...assessments.flatMap((assessment) =>
+        assessment.rubricCriteria.flatMap((criterion) => criterion.sourceRefs || []),
+      ),
+    ],
+    12,
+  );
+}
+
+function sourceLabelsForRefs(ir, sourceRefs = []) {
+  const ledger = sourceLedgerById(ir);
+  return uniqueStrings(
+    sourceRefs
+      .map((sourceRef) => ledger.get(sourceRef))
+      .filter(Boolean)
+      .map((source) => sourceCitationLabel(source)),
+    6,
+  );
 }
 
 export function buildCourseIRCoverageLedger(rawIR = {}) {
@@ -1531,6 +1624,83 @@ export function buildCourseIRCoverageLedger(rawIR = {}) {
           constraints.length > 0,
       };
     }),
+  };
+}
+
+function sourceRefCategory(items, sourceIds) {
+  const missingIds = [];
+  let withRefs = 0;
+  let danglingRefs = 0;
+  for (const item of items) {
+    const refs = uniqueStrings(item?.sourceRefs || [], 16);
+    if (refs.length === 0) {
+      missingIds.push(item?.id || item?.label || item?.claim || 'unnamed');
+      continue;
+    }
+    const validRefs = refs.filter((ref) => sourceIds.has(ref));
+    if (validRefs.length > 0) withRefs += 1;
+    if (validRefs.length !== refs.length) danglingRefs += refs.length - validRefs.length;
+  }
+  return {
+    total: items.length,
+    withRefs,
+    missing: Math.max(0, items.length - withRefs),
+    danglingRefs,
+    missingIds: missingIds.slice(0, 20),
+  };
+}
+
+export function buildCourseIRSourceRefCoverage(rawIR = {}) {
+  const ir = rawIR.version === COURSE_IR_VERSION ? rawIR : normalizeCourseIR(rawIR);
+  const sourceIds = new Set((ir.sourceLedger || []).map((entry) => entry.id));
+  const factualClaims = [
+    ...ir.concepts.flatMap((concept) =>
+      concept.factualAnchors.map((anchor, index) => ({
+        id: `${concept.id}-fact-${index + 1}`,
+        ...anchor,
+      })),
+    ),
+    ...ir.lessons.flatMap((lesson) =>
+      lesson.factualAnchors.map((anchor, index) => ({
+        id: `${lesson.id}-fact-${index + 1}`,
+        ...anchor,
+      })),
+    ),
+  ];
+  const categories = {
+    outcomes: sourceRefCategory(
+      ir.lessons.flatMap((lesson) => lesson.outcomes),
+      sourceIds,
+    ),
+    activities: sourceRefCategory(
+      ir.lessons.flatMap((lesson) => lesson.activities),
+      sourceIds,
+    ),
+    examples: sourceRefCategory(
+      ir.lessons.flatMap((lesson) => lesson.workedExamples),
+      sourceIds,
+    ),
+    assessments: sourceRefCategory(ir.assessments, sourceIds),
+    rubricCriteria: sourceRefCategory(
+      ir.assessments.flatMap((assessment) => assessment.rubricCriteria),
+      sourceIds,
+    ),
+    factualClaims: sourceRefCategory(factualClaims, sourceIds),
+  };
+  const totals = Object.values(categories).reduce(
+    (sum, category) => ({
+      total: sum.total + category.total,
+      withRefs: sum.withRefs + category.withRefs,
+      missing: sum.missing + category.missing,
+      danglingRefs: sum.danglingRefs + category.danglingRefs,
+    }),
+    { total: 0, withRefs: 0, missing: 0, danglingRefs: 0 },
+  );
+  return {
+    version: COURSE_IR_VERSION,
+    sourceLedgerRows: ir.sourceLedger.length,
+    totals,
+    categories,
   };
 }
 
@@ -1621,6 +1791,7 @@ export function courseIRToCourseMap(rawIR = {}) {
             syncActivities: syncActivities.join('; '),
             supportingResources: uniqueStrings(
               [
+                ...sourceLabelsForRefs(ir, sourceRefsForLesson(ir, lesson, assessments)),
                 ...prerequisiteTerms.map((term) => `Prerequisite concept: ${term}`),
                 ...constraints.map((constraint) => `Constraint: ${constraint.text}`),
                 ...anchors.map((anchor) => anchor.claim),
@@ -1810,6 +1981,8 @@ export function courseIRToCourseGraph(rawIR = {}) {
     lessonIds: ir.lessons.map((lesson) => lesson.id),
     conceptIds: ir.concepts.map((concept) => concept.id),
     assessmentIds: ir.assessments.map((assessment) => assessment.id),
+    sourceLedger: ir.sourceLedger,
+    sourceRefCoverage: buildCourseIRSourceRefCoverage(ir),
   };
   return { ir, courseMap, graph, enrichmentOverlay };
 }
@@ -1833,6 +2006,7 @@ export function buildCourseIRPipelineState(validation, extra = {}) {
       },
       repairPaths: validation?.repairPaths || [],
       coverage: validation?.coverage || null,
+      sourceRefCoverage: validation?.ir ? buildCourseIRSourceRefCoverage(validation.ir) : null,
       ...extra,
     },
   };
@@ -1938,6 +2112,7 @@ export function buildCourseIRFromCourseMap(courseMap = {}) {
           scope: `L${index + 1}`,
           text: `Keep ${cleanText(section.topicSection || lesson.title || `Lesson ${index + 1}`, 120)} aligned to its assessment, activity, and available course time.`,
           severity: 'requirement',
+          sourceRefs: ['SL1'],
         },
       ],
       factualAnchors: uniqueStrings(
@@ -1954,6 +2129,7 @@ export function buildCourseIRFromCourseMap(courseMap = {}) {
             4,
           ),
           result: cleanText(section.weeklyAssessments || 'Completed evidence-based response.', 160),
+          sourceRefs: ['SL1'],
         },
       ].filter((entry) => entry.setup),
       misconceptions: [
@@ -2002,6 +2178,7 @@ export function buildCourseIRFromCourseMap(courseMap = {}) {
       coverageConceptIds: lesson.conceptIds,
       prompt: cleanText(asArray(courseMap.lessons?.[index]?.sections)[0]?.weeklyAssessments || '', 260),
       rubricDimensions: ['accuracy', 'evidence use', 'transfer'],
+      sourceRefs: ['SL1'],
       rubricCriteria: DEFAULT_RUBRIC_DIMENSIONS.map((dimension, criterionIndex) => ({
         id: `A${index + 1}-R${criterionIndex + 1}`,
         label: dimension,
@@ -2034,7 +2211,7 @@ export function buildCourseIRPromptPayload({
   return {
     task: 'courseir-v1',
     instruction:
-      'Return compact CourseIR JSON only. Write semantic atoms, not final deliverable prose. Preserve source facts, mark assumptions, and link every lesson to concepts, prerequisite concepts, constraints, outcomes, activities, assessments, rubric criteria, and source ledger rows. Each lesson needs outcomes[] objects and activities[] objects; activities must name learnerAction, evidence, mode, conceptIds, assessmentIds, and sourceRefs. Each assessment needs rubricCriteria[] objects with label, description, conceptIds, outcomeIds, performanceLevels, and sourceRefs.',
+      'Return compact CourseIR JSON only. Write semantic atoms, not final deliverable prose. Preserve source facts, mark assumptions, and link every lesson to concepts, prerequisite concepts, constraints, outcomes, worked examples, activities, assessments, rubric criteria, and source ledger rows. SourceLedger rows should include title, authors, URL or DOI, license, provider, conceptLinks, and checkedAt when known. Each lesson needs outcomes[] objects and activities[] objects; activities must name learnerAction, evidence, mode, conceptIds, assessmentIds, and sourceRefs. Each worked example and assessment also needs sourceRefs. Each assessment needs rubricCriteria[] objects with label, description, conceptIds, outcomeIds, performanceLevels, and sourceRefs.',
     selectedFeatureIds,
     sourcePacket: {
       courseName: courseMap?.courseName || '',
@@ -2159,6 +2336,12 @@ export function assessCourseIRDirectAuthoring(validation, { expectedLessons = nu
   if ((validation?.stats?.sourceLinkedRubricCriteria || 0) < (validation?.stats?.rubricCriteria || 0)) {
     blockers.push('unlinked-rubric-sources');
   }
+  if ((validation?.stats?.sourceLinkedWorkedExamples || 0) < (validation?.stats?.workedExamples || 0)) {
+    blockers.push('unlinked-example-sources');
+  }
+  if ((validation?.stats?.sourceLinkedAssessments || 0) < (validation?.stats?.assessments || 0)) {
+    blockers.push('unlinked-assessment-sources');
+  }
   if ((validation?.stats?.factualAnchors || 0) < lessonCount) blockers.push('thin-facts');
   if ((validation?.stats?.workedExamples || 0) < lessonCount) blockers.push('thin-examples');
   if ((validation?.stats?.misconceptionCorrectives || 0) < lessonCount) blockers.push('thin-misconceptions');
@@ -2240,7 +2423,28 @@ export const COURSE_IR_RESPONSE_SCHEMA = {
         sourceProvenance: { type: 'string' },
       },
     },
-    sourceLedger: { type: 'array', items: { type: 'object', additionalProperties: true } },
+    sourceLedger: {
+      type: 'array',
+      items: {
+        type: 'object',
+        additionalProperties: true,
+        required: ['id', 'scope', 'status', 'evidence'],
+        properties: {
+          id: { type: 'string' },
+          scope: { type: 'string' },
+          status: { type: 'string' },
+          evidence: { type: 'string' },
+          title: { type: 'string' },
+          authors: { type: 'array', items: { type: 'string' } },
+          url: { type: 'string' },
+          doi: { type: 'string' },
+          license: { type: 'string' },
+          provider: { type: 'string' },
+          conceptLinks: { type: 'array', items: { type: 'object', additionalProperties: true } },
+          checkedAt: { type: 'string' },
+        },
+      },
+    },
     constraints: { type: 'array', items: { type: 'object', additionalProperties: true } },
     concepts: { type: 'array', items: { type: 'object', additionalProperties: true } },
     lessons: {
@@ -2290,6 +2494,22 @@ export const COURSE_IR_RESPONSE_SCHEMA = {
               },
             },
           },
+          workedExamples: {
+            type: 'array',
+            items: {
+              type: 'object',
+              additionalProperties: true,
+              required: ['setup', 'sourceRefs'],
+              properties: {
+                id: { type: 'string' },
+                skill: { type: 'string' },
+                setup: { type: 'string' },
+                solutionSteps: { type: 'array', items: { type: 'string' } },
+                result: { type: 'string' },
+                sourceRefs: { type: 'array', items: { type: 'string' } },
+              },
+            },
+          },
           assessmentIds: { type: 'array', items: { type: 'string' } },
         },
       },
@@ -2299,7 +2519,7 @@ export const COURSE_IR_RESPONSE_SCHEMA = {
       items: {
         type: 'object',
         additionalProperties: true,
-        required: ['id', 'title', 'lessonIds', 'coverageConceptIds', 'prompt', 'rubricCriteria'],
+        required: ['id', 'title', 'lessonIds', 'coverageConceptIds', 'prompt', 'sourceRefs', 'rubricCriteria'],
         properties: {
           id: { type: 'string' },
           title: { type: 'string' },
@@ -2307,6 +2527,7 @@ export const COURSE_IR_RESPONSE_SCHEMA = {
           lessonIds: { type: 'array', items: { type: 'string' } },
           coverageConceptIds: { type: 'array', items: { type: 'string' } },
           prompt: { type: 'string' },
+          sourceRefs: { type: 'array', items: { type: 'string' } },
           rubricCriteria: {
             type: 'array',
             items: {

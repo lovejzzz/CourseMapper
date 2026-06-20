@@ -1,6 +1,7 @@
 import { buildReadinessReport, scopeCourseMapToLessons, scopeDeliverableDataToLessons } from './deliverableReadiness';
 import { assertOfficeExportHasNoInternalText } from './exportTextInspector';
 import { resolveFeatureLabel } from './exporters/exporterUtils.js';
+import { buildSourceLedgerFromCourseGraph, buildSourceReportMarkdown } from './knowledge/sourceLedger.js';
 import { safeImport } from './safeImport';
 import { peekVoicePassOutcome } from './voicePass.js';
 
@@ -237,6 +238,12 @@ function buildManifestCourseIRProof(courseGraph) {
     proof.assessmentCount = Array.isArray(courseGraph.courseIR.assessmentIds)
       ? courseGraph.courseIR.assessmentIds.length
       : 0;
+    if (Array.isArray(courseGraph.courseIR.sourceLedger)) {
+      proof.sourceLedgerRows = courseGraph.courseIR.sourceLedger.length;
+    }
+    if (courseGraph.courseIR.sourceRefCoverage) {
+      proof.sourceRefCoverage = courseGraph.courseIR.sourceRefCoverage;
+    }
     if (courseGraph.courseIR.nativeAssembly) {
       proof.nativeAssembly = {
         source: courseGraph.courseIR.nativeAssembly.source || '',
@@ -275,12 +282,16 @@ function buildManifest({
   assessments = null,
   readings = null,
   courseGraph = null,
+  generatedAt = new Date().toISOString(),
+  sourceLedger = null,
+  sourceLedgerSummary = null,
+  sourceReport = null,
   voicePass = null,
 }) {
   const courseIR = buildManifestCourseIRProof(courseGraph);
   return {
     courseName,
-    generatedAt: new Date().toISOString(),
+    generatedAt,
     lessonScope: Array.isArray(lessonFilter) ? lessonFilter.map((index) => index + 1) : 'all',
     // v0.12.1: how the content was produced (enrichment / genome linker /
     // plan health) so downloaded packages are auditable without console logs.
@@ -310,6 +321,9 @@ function buildManifest({
     ...(assessments && assessments.length > 0 ? { assessments } : {}),
     // v0.14.5 (A5): the readings registry with provenance tags.
     ...(readings && readings.length > 0 ? { readings } : {}),
+    ...(Array.isArray(sourceLedger) && sourceLedger.length > 0 ? { sourceLedger } : {}),
+    ...(sourceLedgerSummary ? { sourceLedgerSummary } : {}),
+    ...(sourceReport ? { sourceReport } : {}),
     ...(courseIR ? { courseIR } : {}),
     requestedFeatures: requestedFeatureIds.map((featureId) => ({
       featureId: publicFeatureId(featureId),
@@ -518,6 +532,8 @@ export async function buildCourseMaterialsZip({
 
   if (failures.length > 0) throw new PackageZipExportError(failures);
 
+  const generatedAt = new Date().toISOString();
+
   // v0.14.1 (3.3d): the registry rides the manifest. The caller's graph is
   // authoritative; without one (legacy callers) the registry derives from
   // the course map — deterministic and identical to what generation built.
@@ -535,6 +551,32 @@ export async function buildCourseMaterialsZip({
       readingsRegistry = readingsRegistry || null;
     }
   }
+  const sourceLedgerBundle = buildSourceLedgerFromCourseGraph(courseGraph, { checkedAt: generatedAt });
+  const sourceRefCoverage =
+    courseGraph?.courseIR?.sourceRefCoverage || pipelineState?.courseIR?.sourceRefCoverage || null;
+  const sourceReportMarkdown = buildSourceReportMarkdown({
+    courseName: safeCourseName,
+    sourceLedger: sourceLedgerBundle,
+    sourceRefCoverage,
+  });
+  let sourceReport = null;
+  if (sourceReportMarkdown) {
+    const sourceReportPath = 'SOURCE_REPORT.md';
+    zip.file(sourceReportPath, sourceReportMarkdown);
+    fileContents[sourceReportPath] = sourceReportMarkdown;
+    files.push({
+      path: sourceReportPath,
+      featureId: 'sourceReport',
+      label: 'Source Report',
+      format: 'md',
+      size: getExportPartSize(sourceReportMarkdown),
+    });
+    sourceReport = {
+      path: sourceReportPath,
+      sourceCount: sourceLedgerBundle?.rows?.length || 0,
+      sourceRefCoverage,
+    };
+  }
   const manifest = buildManifest({
     courseName: safeCourseName,
     lessonFilter,
@@ -546,6 +588,10 @@ export async function buildCourseMaterialsZip({
     assessments: buildManifestAssessments({ registry: assessmentRegistry, files }),
     readings: buildManifestReadings(readingsRegistry),
     courseGraph,
+    generatedAt,
+    sourceLedger: sourceLedgerBundle?.rows || null,
+    sourceLedgerSummary: sourceLedgerBundle?.summary || null,
+    sourceReport,
     // v0.14.7 WS-D4: callers may pass the outcome on pipelineState; otherwise
     // the generation run's single-run stash discloses it (cleared each compile).
     voicePass: pipelineState?.voicePass || peekVoicePassOutcome(),

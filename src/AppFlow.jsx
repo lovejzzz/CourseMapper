@@ -2990,7 +2990,7 @@ export default function AppFlow({ startupAction = null, onStartupHandled, onRetu
                             type="button"
                             data-testid="workspace-menu-contribute-kernels"
                             onClick={() => downloadContribution({ appVersion: APP_VERSION })}
-                            title="Download extracted concept kernels as a foundry source file."
+                            title="Download kernels."
                             className="flex w-full items-center gap-2 rounded-md px-3 py-2 text-left text-xs font-semibold text-slate-700 hover:bg-slate-50"
                           >
                             Contribute {extractedKernelCount} extracted kernel{extractedKernelCount === 1 ? '' : 's'}

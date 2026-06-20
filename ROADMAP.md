@@ -4,6 +4,29 @@
 
 CourseMapper is moving toward a "consider it done" course-production agent. The user should describe the course, choose scope/materials, and receive a finished draft package. The agent owns generation, QA, repair, alignment, and export readiness. Human involvement should be final approval only, not QA labor.
 
+## v0.15.27 - Research Source Ledger
+
+Goal: move the academic research layer from loose citation strings toward a
+source-grounded compile architecture. CourseMapper should research once, create
+a trusted ledger, link CurriculumV1/CourseIR atoms to ledger rows, and compile
+materials from those refs rather than inventing source details during export.
+
+Full plan: `docs/V0.15.27_RESEARCH_SOURCE_LEDGER_ROADMAP.md`
+
+1. Normalize academic/OER source rows with title, authors, URL/DOI, license,
+   provider, concept links, checkedAt, access status, trust level, and
+   license-review flags.
+2. Extend CourseIR sourceRefs from outcomes, activities, and rubric criteria
+   to worked examples and assessment prompts, with coverage proof on the graph
+   and pipeline state.
+3. Compile CourseIR supporting resources from source ledger rows instead of
+   inventing citations or leaving source refs invisible.
+4. Export `sourceLedger`, `sourceLedgerSummary`, `courseIR.sourceRefCoverage`,
+   and `SOURCE_REPORT.md` in downloaded packages.
+5. Add source-ledger grader checks for fake/incomplete citations, missing or
+   dangling sourceRefs, inaccessible source rows, unsupported factual claims,
+   and ambiguous licenses.
+
 ## v0.15.26 - Compiler Texture Pass 3
 
 Goal: finish the next deterministic texture layer exposed by a fresh deployed

@@ -3,23 +3,23 @@ import { APP_VERSION } from './appVersion.js';
 export const CURRENT_RELEASE = {
   version: APP_VERSION,
   date: 'June 20, 2026',
-  title: 'Compiler Texture Pass 3: policy and participation tails stop repeating',
-  landingTitle: 'Compiler Texture Pass 3',
+  title: 'Research Source Ledger: curriculum atoms cite trusted source rows',
+  landingTitle: 'Research Source Ledger',
   highlights: [
-    'A fresh deployed EduTool.dev Intro Psychology ZIP/log audit on v0.15.25 proved Pass 2 shipped, but the live UI and packaged QUALITY_REPORT still reported 99/A because texture stayed at 93/100.',
-    'The remaining evidence was deterministic compiler prose in slide agenda notes, assignment integrity policy, and discussion participation-access language, not export failure or provider retry drift.',
-    'The compiler now varies assignment integrity statements, agenda slide evidence/misconception/criterion cues, and discussion alternative-participation wording across lessons.',
-    'Focused regression coverage now checks assignment briefs and discussion prompts against the exact v0.15.25 repeated shingles alongside the prior slide, lesson-plan, study-guide, and FAQ surfaces.',
-    'The release keeps the quality bar honest: no grader weakening, no score inflation, and no live 100/100 claim until the next deployed EduTool.dev audit proves it.',
+    'CourseIR source ledger rows now normalize title, authors, URL/DOI, license, provider, concept links, checkedAt, access status, trust level, and license-review flags instead of carrying only loose provenance text.',
+    'CurriculumV1 now treats worked examples and assessment prompts as sourceRef-bearing atoms alongside outcomes, activities, factual anchors, and rubric criteria; missing or dangling refs repair before compile and reject direct-provider acceptance.',
+    'CourseIR projection now feeds source-ledger labels into supporting resources, records atom-level sourceRef coverage on the graph and pipeline proof, and keeps deterministic compile provider calls at zero.',
+    'Downloaded packages now include `sourceLedger`, `sourceLedgerSummary`, `courseIR.sourceRefCoverage`, and a root `SOURCE_REPORT.md` bibliography/coverage receipt.',
+    'The deep grader now self-arms on source-ledger proof and flags fake or incomplete source rows, missing sourceRefs, dangling sourceRefs, inaccessible source rows, unsupported factual claims, and ambiguous licenses without weakening existing quality gates.',
   ],
   landingHighlights: [
-    'Assignment and discussion policy tails vary across lessons.',
-    'The v0.15.25 ZIP texture evidence is regression-tested.',
-    'The 100/100 claim still waits for fresh live proof.',
+    'Source rows are normalized and exported.',
+    'CourseIR atoms carry sourceRef coverage proof.',
+    'The grader now polices source-ledger defects.',
   ],
   proof: {
-    contract: 'release-contracts/v0.15.26.json',
-    roadmap: 'docs/V0.15.26_COMPILER_TEXTURE_PASS_3_ROADMAP.md',
+    contract: 'release-contracts/v0.15.27.json',
+    roadmap: 'docs/V0.15.27_RESEARCH_SOURCE_LEDGER_ROADMAP.md',
     auditCommand: 'npm run audit:release-history',
   },
 };
@@ -34,6 +34,18 @@ export const CURRENT_RELEASE_CHANGELOG = {
 };
 
 export const HISTORICAL_RELEASE_CHANGELOGS = [
+  {
+    version: '0.15.26',
+    date: 'June 20, 2026',
+    title: 'Compiler Texture Pass 3: policy and participation tails stop repeating',
+    highlights: [
+      'A fresh deployed EduTool.dev Intro Psychology ZIP/log audit on v0.15.25 proved Pass 2 shipped, but the live UI and packaged QUALITY_REPORT still reported 99/A because texture stayed at 93/100.',
+      'The remaining evidence was deterministic compiler prose in slide agenda notes, assignment integrity policy, and discussion participation-access language, not export failure or provider retry drift.',
+      'The compiler now varies assignment integrity statements, agenda slide evidence/misconception/criterion cues, and discussion alternative-participation wording across lessons.',
+      'Focused regression coverage now checks assignment briefs and discussion prompts against the exact v0.15.25 repeated shingles alongside the prior slide, lesson-plan, study-guide, and FAQ surfaces.',
+      'The release keeps the quality bar honest: no grader weakening, no score inflation, and no live 100/100 claim until the next deployed EduTool.dev audit proves it.',
+    ],
+  },
   {
     version: '0.15.25',
     date: 'June 20, 2026',

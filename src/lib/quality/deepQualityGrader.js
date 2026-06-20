@@ -307,12 +307,7 @@ function lessonNumberFromName(name) {
  */
 export async function extractPackage(fileProvider) {
   if (!fileProvider || typeof fileProvider.list !== 'function') {
-    throw new Error(
-      'extractPackage requires a FileProvider ({ list, readBinary, readText }). ' +
-        'Node callers: createFsFileProvider(dir) from src/lib/quality/fsFileProvider.node.js ' +
-        '(or import grade from tests/lib/deepQualityGrader.js, which wires it). ' +
-        'Browser callers: createMemoryFileProvider(fileMap).',
-    );
+    throw new Error('extractPackage requires FileProvider.');
   }
   const files = [];
   let manifest = null;
@@ -3137,10 +3132,7 @@ export async function grade({
     // The browser-safe core never touches node:fs. The tests/lib shim (and
     // through it the Crucible) wraps grade() to wire createFsFileProvider for
     // the legacy extractedDir signature.
-    throw new Error(
-      'grade({ extractedDir }) requires the Node fs provider — import grade from ' +
-        'tests/lib/deepQualityGrader.js (the shim wires createFsFileProvider), or pass fileProvider.',
-    );
+    throw new Error('grade({ extractedDir }) needs shim or fileProvider.');
   }
   const pkg = await extractPackage(fileProvider);
   const findings = createFindings();
@@ -3151,6 +3143,14 @@ export async function grade({
   // on manifest.readings; expectReadings courses also fail on an absent
   // registry.
   checkReadings(findings, pkg, course);
+  if (
+    (Array.isArray(pkg.manifest?.sourceLedger) && pkg.manifest.sourceLedger.length > 0) ||
+    pkg.manifest?.courseIR?.sourceRefCoverage ||
+    pkg.manifest?.sourceReport?.sourceRefCoverage
+  ) {
+    const { checkSourceLedger } = await import('./sourceLedgerQualityChecks.js');
+    checkSourceLedger(findings, pkg);
+  }
   checkConsistency(findings, pkg);
   // Honesty source: the Crucible passes console text; the in-app finalize
   // path passes honestyFromDigest(budget, digest) (v0.14.3 WS-A A2).

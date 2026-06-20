@@ -227,6 +227,7 @@ function makeCalculusIR() {
               'Evaluate x + 2 at x = 2.',
             ],
             result: 'The limit is 4.',
+            sourceRefs: ['SL2'],
           },
         ],
         misconceptions: [
@@ -345,6 +346,7 @@ function makeCalculusIR() {
               'Take the limit of 6 + h as h approaches zero.',
             ],
             result: 'The derivative at x=3 is 6.',
+            sourceRefs: ['SL2'],
           },
         ],
         misconceptions: [
@@ -383,6 +385,7 @@ function makeCalculusIR() {
         coverageConceptIds: ['C1'],
         prompt: 'Analyze one table, one graph, and one symbolic expression to decide whether each limit exists.',
         rubricDimensions: ['approach-behavior evidence', 'function-value distinction', 'clear explanation'],
+        sourceRefs: ['SL2'],
         rubricCriteria: makeRubricCriteria(
           'A1',
           ['approach-behavior evidence', 'function-value distinction', 'clear explanation'],
@@ -400,6 +403,7 @@ function makeCalculusIR() {
         coverageConceptIds: ['C1', 'C2'],
         prompt: 'Compute one derivative from the limit definition and explain each limiting step.',
         rubricDimensions: ['difference quotient setup', 'valid algebra', 'rate interpretation'],
+        sourceRefs: ['SL2'],
         rubricCriteria: makeRubricCriteria(
           'A2',
           ['difference quotient setup', 'valid algebra', 'rate interpretation'],

@@ -1,0 +1,114 @@
+{
+  "version": "0.15.27",
+  "date": "June 20, 2026",
+  "title": "Research Source Ledger: curriculum atoms cite trusted source rows",
+  "status": "verified-current",
+  "proofSummary": {
+    "local": [
+      "npx vitest run src/lib/knowledge/__tests__/sourceLedger.test.js src/lib/quality/__tests__/sourceLedgerGrader.test.js",
+      "npx vitest run src/lib/__tests__/courseIR.test.js src/lib/__tests__/packageZipExporter.test.js",
+      "npm run format:check",
+      "npm run lint",
+      "npm run audit:release-history",
+      "npm test",
+      "npm run build",
+      "npm run bundle:check",
+      "npm run test:e2e"
+    ],
+    "ciFast": {
+      "status": "pending-push",
+      "note": "Fast verification is claimed only after v0.15.27 is pushed and the GitHub Actions run is attached."
+    },
+    "deploy": {
+      "status": "pending-push",
+      "note": "Pages deploy is not claimed until the pushed release completes its deploy run."
+    },
+    "ciDeep": {
+      "status": "not-used",
+      "note": "This is a source-ledger contract/export/grader slice. Full audit:gold is reserved for broad compiler/generator architecture changes."
+    },
+    "liveProvider": {
+      "status": "local-only",
+      "note": "No fresh provider generation is claimed. This release ships local research-ledger architecture and package proof."
+    },
+    "manualHuman": {
+      "status": "not-applicable",
+      "note": "No external instructor review or approval is claimed by this release."
+    }
+  },
+  "claims": [
+    {
+      "id": "v01527-current-research-audit",
+      "status": "verified-current",
+      "changelogHighlightIndex": 0,
+      "summary": "The current research/source pipeline was audited across genome linking, OpenAlex/OpenLibrary/OpenStax handling, source ledger shape, CourseIR sourceRefs, package proof, QUALITY_REPORT, and grader checks.",
+      "anchors": ["docs/V0.15.27_RESEARCH_SOURCE_LEDGER_ROADMAP.md"],
+      "proofCommands": ["Static audit recorded in docs/V0.15.27_RESEARCH_SOURCE_LEDGER_ROADMAP.md"],
+      "proofScopes": ["static-audit", "doc"]
+    },
+    {
+      "id": "v01527-source-ledger-normalizer",
+      "status": "verified-current",
+      "changelogHighlightIndex": 1,
+      "summary": "A trusted source-ledger normalizer now produces academic/OER rows with title, authors, URL/DOI, license, provider, concept links, checkedAt, access status, trust level, citation label, and license ambiguity flags.",
+      "anchors": ["src/lib/knowledge/sourceLedger.js", "src/lib/knowledge/__tests__/sourceLedger.test.js"],
+      "proofCommands": [
+        "npx vitest run src/lib/knowledge/__tests__/sourceLedger.test.js src/lib/quality/__tests__/sourceLedgerGrader.test.js"
+      ],
+      "proofScopes": ["unit", "static-audit"]
+    },
+    {
+      "id": "v01527-courseir-source-ref-coverage",
+      "status": "verified-current",
+      "changelogHighlightIndex": 2,
+      "summary": "CourseIR now treats worked examples and assessment prompts as sourceRef-bearing atoms, records atom sourceRef coverage, and feeds source-ledger labels into supporting resources before deterministic compile.",
+      "anchors": ["src/lib/courseIR.js", "src/lib/__tests__/courseIR.test.js"],
+      "proofCommands": [
+        "npx vitest run src/lib/__tests__/courseIR.test.js src/lib/__tests__/packageZipExporter.test.js"
+      ],
+      "proofScopes": ["unit", "compiled-output"]
+    },
+    {
+      "id": "v01527-package-source-report",
+      "status": "verified-current",
+      "changelogHighlightIndex": 3,
+      "summary": "Downloaded packages now export sourceLedger, sourceLedgerSummary, CourseIR sourceRef coverage, and SOURCE_REPORT.md as bibliography/source receipts.",
+      "anchors": ["src/lib/packageZipExporter.js", "src/lib/__tests__/packageZipExporter.test.js"],
+      "proofCommands": [
+        "npx vitest run src/lib/__tests__/courseIR.test.js src/lib/__tests__/packageZipExporter.test.js"
+      ],
+      "proofScopes": ["unit", "compiled-output"]
+    },
+    {
+      "id": "v01527-grader-source-ledger-checks",
+      "status": "verified-current",
+      "changelogHighlightIndex": 4,
+      "summary": "The deep grader now checks exported source-ledger proof for fake or incomplete citation rows, missing or dangling sourceRefs, inaccessible source rows, unsupported factual claims, and ambiguous licenses.",
+      "anchors": ["src/lib/quality/deepQualityGrader.js", "src/lib/quality/__tests__/sourceLedgerGrader.test.js"],
+      "proofCommands": [
+        "npx vitest run src/lib/knowledge/__tests__/sourceLedger.test.js src/lib/quality/__tests__/sourceLedgerGrader.test.js"
+      ],
+      "proofScopes": ["unit", "compiled-output"]
+    }
+  ],
+  "carryForward": [
+    {
+      "id": "research-session-planner",
+      "status": "carry-forward",
+      "source": "docs/V0.15.27_RESEARCH_SOURCE_LEDGER_ROADMAP.md",
+      "next": "Build a real ResearchSession planner that researches course concepts once, caches a trusted ledger, and compiles many deliverables without browsing per artifact."
+    },
+    {
+      "id": "source-entailment-checks",
+      "status": "carry-forward",
+      "source": "docs/V0.15.27_RESEARCH_SOURCE_LEDGER_ROADMAP.md",
+      "next": "Add semantic claim support checks for high-risk factual anchors using cached snippets or quote anchors."
+    },
+    {
+      "id": "legacy-openstax-license-audit",
+      "status": "carry-forward",
+      "source": "docs/V0.15.27_RESEARCH_SOURCE_LEDGER_ROADMAP.md",
+      "next": "Run a focused OpenStax license audit before changing historical CC BY 4.0 assumptions in genome resource rendering and tests."
+    }
+  ]
+}
