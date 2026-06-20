@@ -15,6 +15,7 @@ import { evaluateClassroomReadiness } from '../classroomReadiness';
 import { validateDeliverableGeneration } from '../deliverablePostProcess';
 import { deliverableToCsvRows } from '../exporters/csvExporter';
 import { buildInstructorPreferenceProfile } from '../instructorPreferenceProfile';
+import { computeTexture } from '../quality/textureMetric';
 import { DEFAULT_AUDIT_PROJECTS, MESSY_IMPORT_STRESS_PROJECT } from '../../../scripts/hybridPipelineAudit.mjs';
 
 let customDeliverables = {};
@@ -1033,6 +1034,50 @@ const makeLectureExamCourseMap = () => ({
     },
   ],
 });
+
+const makeFourLessonLectureExamCourseMap = () => {
+  const base = makeLectureExamCourseMap();
+  return {
+    ...base,
+    lessons: [
+      ...base.lessons,
+      {
+        title: 'Week 3: Learning and Conditioning',
+        sections: [
+          {
+            topicSection: 'Classical conditioning, operant conditioning, reinforcement, extinction, generalization',
+            learningObjectives: 'Explain conditioning principles and apply them to a concept-check scenario.',
+            learningGoals: 'Students use retrieval practice to diagnose learning misconceptions.',
+            weeklyAssessments:
+              'Conditioning concept check with scenario answer, misconception diagnosis, and corrected explanation.',
+            asyncActivities: 'Review lecture examples and complete a retrieval log on reinforcement and extinction.',
+            syncActivities: 'Clicker-question sequence with wrong-answer diagnosis and exam-style transfer.',
+            supportingResources: 'Conditioning lecture notes; practice item bank; exam blueprint',
+            evaluateDesign:
+              'Score scenario accuracy, misconception repair, confidence calibration, and transfer explanation.',
+          },
+        ],
+      },
+      {
+        title: 'Week 4: Memory and Bias',
+        sections: [
+          {
+            topicSection: 'Working memory, long-term memory, retrieval cues, confirmation bias, availability heuristic',
+            learningObjectives: 'Compare memory processes and bias patterns in exam-style judgment questions.',
+            learningGoals: 'Students connect memory and bias concepts to corrected explanations.',
+            weeklyAssessments:
+              'Memory and bias practice quiz with confidence rating, wrong-answer sort, and study-guide update.',
+            asyncActivities: 'Read lecture notes and answer retrieval prompts on memory and cognitive bias.',
+            syncActivities: 'Worked lecture example with concept-check polling and corrected explanation rehearsal.',
+            supportingResources: 'Memory lecture notes; bias examples; study guide template; exam blueprint',
+            evaluateDesign:
+              'Score concept discrimination, corrected explanation, study-guide quality, and transfer readiness.',
+          },
+        ],
+      },
+    ],
+  };
+};
 
 const makeCapstoneProjectCourseMap = () => ({
   courseName: 'Product Innovation Capstone',
@@ -2268,6 +2313,65 @@ describe('courseBlueprintCompiler', () => {
         reviewFocus: expect.stringContaining('exam-transfer readiness'),
       }),
     });
+  });
+
+  it('varies lecture-exam slide and lesson-plan texture instead of repeating compiler tails', () => {
+    const blueprint = buildCourseBlueprint(makeFourLessonLectureExamCourseMap(), {
+      enrichment: {
+        source: 'test-lecture-exam-texture-enrichment',
+        lens: {
+          domain: 'introductory psychology lecture',
+          evidenceNoun: 'concept-check evidence',
+          decisionNoun: 'exam-readiness decision',
+          learnerRole: 'conceptual learner',
+          exampleNoun: 'lecture concept example',
+        },
+      },
+    });
+    blueprint.lessons.forEach((lesson, index) => {
+      lesson.enrichment = {
+        ...(lesson.enrichment || {}),
+        keyTerms: [
+          {
+            term: lesson.keyConcepts[0] || `concept ${index + 1}`,
+            definition: `A usable definition for ${lesson.title}.`,
+            misconception: `Students may treat ${lesson.keyConcepts[0] || 'the concept'} as memorized vocabulary only.`,
+            correction: `The concept has to explain a specific answer choice or exam transfer move.`,
+          },
+        ],
+        conceptProvenance: { citations: [`OpenStax Psychology chapter ${index + 1}`] },
+      };
+    });
+
+    const compiled = compileBlueprintDeliverables(blueprint, ['lessonPlans', 'slideDecks'], {
+      configMap: { lessonPlans: { depth: 'deep' } },
+      enforceCompilerContract: false,
+    });
+    const deckTexts = compiled.slideDecks.decks.map((deck) =>
+      deck.slides
+        .map((slide) => `${slide.title || ''} ${(slide.bullets || []).join(' ')} ${slide.notes || ''}`)
+        .join(' '),
+    );
+    const planTexts = compiled.lessonPlans.lessonPlans.map((plan) =>
+      plan.outline.map((item) => `${item.description || ''} ${item.instructorNotes || ''}`).join(' '),
+    );
+    const countDecksWith = (pattern) => deckTexts.filter((text) => pattern.test(text)).length;
+    const countPlansWith = (pattern) => planTexts.filter((text) => pattern.test(text)).length;
+
+    expect(countDecksWith(/with a peer before deciding what/i)).toBe(0);
+    expect(
+      countDecksWith(/retrieval-to-exam practice cycle where students answer, explain, diagnose, and correct/i),
+    ).toBe(0);
+    expect(
+      countDecksWith(/Give students a short work window to revise .* with a partner before the debrief/i),
+    ).toBeLessThan(4);
+    expect(countDecksWith(/what it reveals about .* and what it does not prove/i)).toBeLessThan(4);
+    expect(countPlansWith(/A secure ticket restates the correction in the student.s own words/i)).toBeLessThan(4);
+
+    const texture = computeTexture(
+      deckTexts.map((text, index) => ({ id: `deck-${index}`, feature: 'slideDecks', text })),
+    );
+    expect(texture.evidence.map((item) => item.shingle).join('\n')).not.toMatch(/retrieval-to-exam practice cycle/i);
   });
 
   it('decodes capstone project milestones with sponsor constraints and defense readiness', () => {

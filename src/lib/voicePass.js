@@ -526,7 +526,7 @@ export async function runVoicePass({
   emit({
     type: 'voicePassDone',
     detail: `voiced ${voiced.length} surface(s), ${fallbacks.length} fallback(s) (~$${spentUsd.toFixed(3)})${
-      selfCheck ? ` — texture ${selfCheck.pre}→${selfCheck.post} (${selfCheck.verdict})` : ''
+      selfCheck ? ` — voice-surface texture ${selfCheck.pre}→${selfCheck.post} (${selfCheck.verdict})` : ''
     }${exhausted ? ' — budget exhausted' : ''}`,
   });
   return { deliverables: current, voiced, fallbacks, spentUsd, exhausted, selfCheck };

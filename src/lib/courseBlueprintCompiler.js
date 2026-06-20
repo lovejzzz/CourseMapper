@@ -1592,12 +1592,20 @@ function lessonTeachingMoves(blueprint, lesson = {}) {
   const artifact = stripTerminalPunctuation(lesson.studentArtifact || 'student artifact');
   const basePracticeMove = stripTerminalPunctuation(moves.practiceMove);
   const basePracticeClause = lowercaseClauseLead(basePracticeMove);
-  const practiceVariants = [
-    `${basePracticeMove}, anchored in ${concept}, before students revise ${artifact}.`,
-    `${basePracticeMove}; students then compare one support choice with a peer and decide what ${artifact} should change.`,
-    `Use a quick peer audit after students ${basePracticeClause}: which evidence supports the decision, which detail is weak, and what revision belongs in ${artifact}?`,
-    `Move from ${basePracticeClause} into paired critique, with ${artifact} as the place students record the ${concept} decision.`,
-  ];
+  const defaultPracticeMove = /\btest one inspectable\b.+\bwith a peer\b.+\bneeds next\b/i.test(basePracticeMove);
+  const practiceVariants = defaultPracticeMove
+    ? [
+        `Pairs inspect one ${concept} evidence choice, then name the decision it changes in ${artifact}.`,
+        `Students compare two support options for ${concept}, reject the weaker one, and record the next ${artifact} revision.`,
+        `Run a quick peer audit: which evidence is inspectable, which claim overreaches, and what should change in ${artifact}?`,
+        `Move from individual evidence marking into paired critique, with ${artifact} as the place students record the ${concept} decision.`,
+      ]
+    : [
+        `${basePracticeMove}, anchored in ${concept}, before students revise ${artifact}.`,
+        `${basePracticeMove}; students then compare one support choice with a peer and decide what ${artifact} should change.`,
+        `Use a quick peer audit after students ${basePracticeClause}: which evidence supports the decision, which detail is weak, and what revision belongs in ${artifact}?`,
+        `Move from ${basePracticeClause} into paired critique, with ${artifact} as the place students record the ${concept} decision.`,
+      ];
   const feedbackVariants = [
     `${stripTerminalPunctuation(moves.feedbackMove)} tied to ${artifact}.`,
     `Feedback names the strongest ${concept} evidence move first, then one targeted revision for ${artifact}.`,
@@ -6222,6 +6230,18 @@ function contextualizeModalityRoutine(kind, base, { lesson = {}, concept = '', a
   if (!routine) return '';
   const title = stripLessonPrefix(lesson.title) || `Lesson ${lesson.lessonNumber || 1}`;
   const secondary = alternateLessonConcept(lesson, concept);
+  if (
+    kind === 'signaturePractice' &&
+    /\bretrieval-to-exam practice cycle\b/i.test(routine) &&
+    /\banswer\b.+\bexplain\b.+\bdiagnose\b.+\bcorrect\b/i.test(routine)
+  ) {
+    routine = lessonVariant(lesson, [
+      'answer a concept-check item, justify the answer, diagnose the misconception pattern, and rewrite the explanation for exam use',
+      'move from a confidence-marked response into rationale writing, wrong-answer analysis, correction, and exam transfer',
+      'turn one practice question into answer, evidence note, misconception diagnosis, corrected explanation, and transfer prompt',
+      'compare two concept-check responses, identify the fragile reasoning, repair it, and carry the fix into exam practice',
+    ]);
+  }
   if (kind === 'feedbackRoutine' && /quick exit ticket/i.test(routine)) {
     routine = lessonVariant(lesson, [
       'use whole-class synthesis and an exit ticket to target the next revision',
@@ -16927,7 +16947,12 @@ function slideTypeFocus(type, lesson, lens) {
       };
     case 'activity':
       return {
-        opening: `Give students a short work window to revise ${artifact} with a partner before the debrief.`,
+        opening: lessonVariant(lesson, [
+          `Give students a short work window to revise ${artifact} with a partner before the debrief.`,
+          `Open the activity with paired mark-up: each student points to the ${concept} evidence that should change ${artifact}.`,
+          `Set a brief pair checkpoint where students choose one evidence move to keep, cut, or revise in ${artifact}.`,
+          `Start with quiet revision, then have partners compare which ${concept} detail makes ${artifact} stronger.`,
+        ]),
         evidence: `Circulate for whether pairs can point to one concrete ${lens.evidenceNoun} move and one ${concept} revision choice in ${artifact}.`,
         misconception: lessonVariant(lesson, [
           `When groups stay abstract, require them to annotate the exact sentence, note, or claim they would change in ${artifact}.`,
@@ -16991,7 +17016,12 @@ function slideNoteAnchor({ type, anchor, concept, artifact, displayTitle, lesson
         `Use "${anchor}" as a note-making prompt: what evidence would make this term useful in ${artifact}?`,
       ]);
     case 'example':
-      return `Treat "${anchor}" as the ${concept} detail to inspect, then ask what it reveals about ${artifact} and what it does not prove.`;
+      return lessonVariant(lesson, [
+        `Treat "${anchor}" as the ${concept} detail to inspect, then ask what it reveals about ${artifact} and what it does not prove.`,
+        `Use "${anchor}" as an evidence boundary: what can students infer for ${artifact}, and where would the claim overreach?`,
+        `Have students test "${anchor}" against ${artifact}: which part supports the decision, and which part needs another source?`,
+        `Frame "${anchor}" as a partial clue, then ask students to name both the useful evidence and the remaining uncertainty for ${artifact}.`,
+      ]);
     case 'activity':
       return lessonVariant(lesson, [
         `Set up the activity with a visible output: each pair must leave a marked revision, not just a conversation about ${concept}.`,
@@ -18760,7 +18790,12 @@ function buildLessonPlanOutline(blueprint, lesson, { depth = 'flat' } = {}) {
           : `Students share one revision they made to ${artifact}, one question they still have about ${concept}, and one way today’s ${modality.mode} work prepares them for the next artifact.`,
       instructorNotes:
         deep && kernelMisconception
-          ? `A secure ticket restates the correction in the student’s own words${kernelCitation ? ` and can point to ${kernelCitation}` : ''}; sort tickets into secure, partial, and reteach piles to set the next lesson’s warm-up for ${concept}.`
+          ? lessonVariant(lesson, [
+              `A secure ticket restates the correction in the student’s own words${kernelCitation ? ` and can point to ${kernelCitation}` : ''}; sort tickets into secure, partial, and reteach piles to set the next lesson’s warm-up for ${concept}.`,
+              `Read tickets for whether students can explain the correction without copying the model${kernelCitation ? ` while naming ${kernelCitation}` : ''}; use the partial group to plan the next ${concept} warm-up.`,
+              `Sort closure notes by correction quality: secure responses explain the failed idea, partial responses need one more ${concept} example, and weak responses trigger reteaching.`,
+              `Use the exit tickets as misconception evidence: keep examples that show the correction clearly, flag partial reasoning, and choose the next ${concept} retrieval prompt from the pattern.`,
+            ])
           : `${stripTerminalPunctuation(modality.feedbackRoutine)}; ground the debrief in ${artifact} evidence about ${concept}. Use exit-ticket responses to decide whether the next lesson should review ${concept} before extending it.`,
       instructorRole: `Synthesize patterns from ${stripLessonPrefix(lesson.title)} and set up the next lesson.`,
       grouping: lessonVariant(lesson, [

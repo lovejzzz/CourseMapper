@@ -300,6 +300,7 @@ function buildManifest({
                   selfCheck: String(voicePass.selfCheck),
                   texturePre: Number(voicePass.texturePre) || null,
                   texturePost: Number(voicePass.texturePost) || null,
+                  textureScope: String(voicePass.textureScope || 'voice-surfaces'),
                 }
               : {}),
           },

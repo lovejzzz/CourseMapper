@@ -4,6 +4,27 @@
 
 CourseMapper is moving toward a "consider it done" course-production agent. The user should describe the course, choose scope/materials, and receive a finished draft package. The agent owns generation, QA, repair, alignment, and export readiness. Human involvement should be final approval only, not QA labor.
 
+## v0.15.24 - Compiler Texture
+
+Goal: remove deterministic compiler prose tails that kept the fresh post-fix
+Intro Psychology package at 99/A after all P0/P1/P2 findings were gone. The
+v0.15.23 EduTool.dev audit showed clean ZIP structure and no assessment
+reconciliation caveat, but texture stayed at 93/100 because slide decks and
+lesson plans reused the same teaching-move sentences across all four lessons.
+
+Full plan: `docs/V0.15.24_COMPILER_TEXTURE_ROADMAP.md`
+
+1. Vary the default peer-evidence practice move before it propagates into
+   slide-deck agenda/activity surfaces.
+2. Vary lecture/exam retrieval-cycle language across lessons so the same
+   answer/explain/diagnose/correct tail does not stamp every deck.
+3. Rotate activity, example, and misconception-closure speaker-note anchors
+   while preserving classroom intent and genome-linked correction substance.
+4. Label voice-pass texture self-checks as scoped to voice surfaces, not the
+   whole package.
+5. Pin the audited four-lesson Psychology lecture/exam texture shape in focused
+   regression coverage.
+
 ## v0.15.23 - Assessment Reconciliation
 
 Goal: let honest 100/100 packages pass when the only unmatched Course Map rows

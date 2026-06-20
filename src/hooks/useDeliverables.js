@@ -2382,7 +2382,7 @@ export default function useDeliverables({
               appendLog(
                 `✓ Voice pass: ${voiceResult.voiced.length} surfaces voiced, ${voiceResult.fallbacks.length} fallbacks ($${voiceResult.spentUsd.toFixed(3)})${
                   voiceResult.selfCheck
-                    ? ` — texture ${voiceResult.selfCheck.pre}→${voiceResult.selfCheck.post} (${voiceResult.selfCheck.verdict})`
+                    ? ` — voice-surface texture ${voiceResult.selfCheck.pre}→${voiceResult.selfCheck.post} (${voiceResult.selfCheck.verdict})`
                     : ''
                 }`,
                 voiceResult.selfCheck?.verdict === 'reverted' ? 'warn' : 'done',
