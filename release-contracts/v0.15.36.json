@@ -41,14 +41,10 @@
       "id": "v01536-live-source-bridge-audits",
       "status": "verified-current",
       "changelogHighlightIndex": 0,
-      "summary": "Two fresh deployed v0.15.35 EduTool.dev audits showed retrieved OpenAlex/source-finder resources in the digest while the exported source ledger collapsed to one ambiguous OpenLibrary row.",
-      "anchors": [
-        "docs/V0.15.36_SOURCE_LEDGER_BRIDGE_ROADMAP.md",
-        "verification-output/edutool-audit-loop/20260620T160412Z/report.md",
-        "verification-output/edutool-audit-loop/20260620T170412Z/report.md"
-      ],
+      "summary": "Two fresh deployed v0.15.35 EduTool.dev audits showed retrieved OpenAlex/source-finder resources in the digest while the exported source ledger collapsed to one ambiguous OpenLibrary row; the tracked roadmap records that evidence so CI can verify the release from a clean checkout.",
+      "anchors": ["docs/V0.15.36_SOURCE_LEDGER_BRIDGE_ROADMAP.md"],
       "proofCommands": [
-        "Manual EduTool.dev ZIP/log audits saved under verification-output/edutool-audit-loop/20260620T160412Z/ and verification-output/edutool-audit-loop/20260620T170412Z/"
+        "Manual EduTool.dev ZIP/log audits summarized in docs/V0.15.36_SOURCE_LEDGER_BRIDGE_ROADMAP.md from local verification-output/edutool-audit-loop/20260620T160412Z/ and 20260620T170412Z/"
       ],
       "proofScopes": ["live-provider", "static-audit", "course-graph"]
     },
