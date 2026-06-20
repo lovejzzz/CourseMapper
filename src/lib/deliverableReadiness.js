@@ -105,6 +105,9 @@ const PROMPT_ARTIFACT_TOPIC_LABELS = [
 ];
 
 const PROMPT_ARTIFACT_TOPIC_SET = new Set(PROMPT_ARTIFACT_TOPIC_LABELS);
+const PROMPT_ARTIFACT_RESOURCE_SET = new Set(
+  PROMPT_ARTIFACT_TOPIC_LABELS.filter((label) => label !== 'worked examples'),
+);
 const NUMBERED_PROMPT_ARTIFACT_TOPIC_RE = new RegExp(
   `\\b\\d+(?:\\.\\d+)+\\s*:\\s*(?:${PROMPT_ARTIFACT_TOPIC_LABELS.map((label) =>
     label.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'),
@@ -345,6 +348,7 @@ function needsPromptArtifactCourseMapRepair(key, value, courseMap) {
       .split(/\n|;|\||\u2022/)
       .map((line) => normalizePromptArtifactTopic(line))
       .filter(Boolean);
+    if (lines.some((line) => PROMPT_ARTIFACT_RESOURCE_SET.has(line))) return true;
     const artifactLines = lines.filter((line) => PROMPT_ARTIFACT_TOPIC_SET.has(line)).length;
     if (artifactLines >= 3) return true;
   }

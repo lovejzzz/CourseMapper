@@ -90,6 +90,48 @@ describe('runDigest', () => {
     expect(text).toMatch(/cost:/);
   });
 
+  it('surfaces finalize-time quality P0s in the digest gate trail', () => {
+    const digest = buildRunDigest({
+      budget: budgetWithCourseMapCall('gpt-5.4-mini'),
+      exportVerification: { status: 'passed', checked: 38, failed: 0, warningCount: 0, checks: [] },
+      finish: {
+        finalStatus: 'blocked',
+        blockers: 1,
+        warnings: 3,
+        repairsApplied: 1,
+        retryCallCount: 0,
+        quality: {
+          status: 'graded',
+          score: 74,
+          grade: 'C',
+          findingCounts: { p0: 1, p1: 0, p2: 3 },
+          findings: [
+            {
+              severity: 'P0',
+              file: 'Course FAQ/Lesson 01.docx',
+              detail: 'prompt artifact labels used as lesson concepts',
+            },
+          ],
+        },
+      },
+      generation: { provider: 'openai', lessonCount: 4, featureIds: ['courseFaq'] },
+    });
+
+    expect(digest.gates.finalStatus).toBe('blocked');
+    expect(digest.gates.qualityStatus).toBe('graded');
+    expect(digest.gates.qualityP0).toBe(1);
+    expect(digest.gates.flaggedChecks[0]).toMatchObject({
+      featureId: 'quality',
+      status: 'failed',
+    });
+    expect(digest.gates.flaggedChecks[0].message).toContain('quality grade 74/100 (C)');
+    expect(digest.gates.flaggedChecks[0].message).toContain('prompt artifact labels');
+    const text = formatRunDigest(digest);
+    expect(text).toContain('gates: blocked');
+    expect(text).toContain('quality 74/100 C');
+    expect(text).toContain('[failed] quality');
+  });
+
   it('renders a digest with no model calls without throwing', () => {
     const digest = buildRunDigest({ budget: createApiCallBudget({ runId: 'empty' }) });
     expect(digest.cost.accuracy).toBe('no model calls');

@@ -3,22 +3,23 @@ import { APP_VERSION } from './appVersion.js';
 export const CURRENT_RELEASE = {
   version: APP_VERSION,
   date: 'June 20, 2026',
-  title: 'Source Finder Relevance Gate: generic Crossref hits stop masquerading as genetics sources',
-  landingTitle: 'Source Finder Relevance Gate',
+  title: 'Artifact Resource Firewall: deliverable labels stop leaking into Course FAQ concepts',
+  landingTitle: 'Artifact Resource Firewall',
   highlights: [
-    'A fresh deployed v0.15.36 Genetics and Society audit proved the source-ledger bridge worked: the ZIP now carried five source rows and local regrade removed the previous source-thinness P1.',
-    'The same audit exposed the next real defect: broad Crossref metadata hits such as building-environment standards and geotechnical-testing standards could attach to genetics lessons by matching only generic words like “environment” or “testing.”',
-    'Source-finder relevance now requires academic metadata hits for genetics/genomics courses to carry a genetics anchor in the source itself, so generic Crossref/OpenAlex/ERIC rows cannot win by one shared generic term.',
-    'Focused regression coverage recreates the exact failure shape and proves genetics-specific Crossref rows survive while generic environment/testing traps are rejected.',
+    'A fresh deployed v0.15.37 Genetics and Society audit exposed a real P0: single deliverable labels such as “slide decks” survived as supporting resources and then appeared in Course FAQ answers as if they were lesson concepts.',
+    'The Course Map repair pass now treats exact single supporting-resource cells that are requested deliverable labels as prompt-artifact contamination for non-instructional-design courses.',
+    'The repair keeps the v0.15.12 precision exception for legitimate “worked examples” resources while blocking labels like slide decks, quiz bank, study guides, and course FAQ.',
+    'Regression coverage now proves the repaired Course FAQ no longer says “Strong work uses slide decks” for the live Genetics failure shape.',
+    'The emitted run digest now waits for finalize-time quality grading, so a package blocked by quality P0s no longer logs a misleading ready `[CM][DIGEST]`.',
   ],
   landingHighlights: [
-    'Generic Crossref traps are rejected.',
-    'Genetics-specific sources still attach.',
-    'The source quality bar stays honest.',
+    'Single artifact-label resources are repaired.',
+    'Course FAQ no longer treats deliverables as concepts.',
+    'The quality bar stays strict.',
   ],
   proof: {
-    contract: 'release-contracts/v0.15.37.json',
-    roadmap: 'docs/V0.15.37_SOURCE_FINDER_RELEVANCE_GATE_ROADMAP.md',
+    contract: 'release-contracts/v0.15.38.json',
+    roadmap: 'docs/V0.15.38_ARTIFACT_RESOURCE_FIREWALL_ROADMAP.md',
     auditCommand: 'npm run audit:release-history',
   },
 };
@@ -33,6 +34,17 @@ export const CURRENT_RELEASE_CHANGELOG = {
 };
 
 export const HISTORICAL_RELEASE_CHANGELOGS = [
+  {
+    version: '0.15.37',
+    date: 'June 20, 2026',
+    title: 'Source Finder Relevance Gate: generic Crossref hits stop masquerading as genetics sources',
+    highlights: [
+      'A fresh deployed v0.15.36 Genetics and Society audit proved the source-ledger bridge worked: the ZIP now carried five source rows and local regrade removed the previous source-thinness P1.',
+      'The same audit exposed the next real defect: broad Crossref metadata hits such as building-environment standards and geotechnical-testing standards could attach to genetics lessons by matching only generic words like “environment” or “testing.”',
+      'Source-finder relevance now requires academic metadata hits for genetics/genomics courses to carry a genetics anchor in the source itself, so generic Crossref/OpenAlex/ERIC rows cannot win by one shared generic term.',
+      'Focused regression coverage recreates the exact failure shape and proves genetics-specific Crossref rows survive while generic environment/testing traps are rejected.',
+    ],
+  },
   {
     version: '0.15.36',
     date: 'June 20, 2026',

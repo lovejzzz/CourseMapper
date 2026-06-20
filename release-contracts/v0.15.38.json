@@ -1,0 +1,103 @@
+{
+  "version": "0.15.38",
+  "date": "June 20, 2026",
+  "title": "Artifact Resource Firewall: deliverable labels stop leaking into Course FAQ concepts",
+  "status": "verified-current",
+  "proofSummary": {
+    "local": [
+      "npm test -- tests/v0141-phase1-finalizer.test.js",
+      "npm test -- src/lib/__tests__/runDigest.test.js",
+      "npm run format:check",
+      "npm run lint",
+      "npm test",
+      "npm run audit:gold:smoke",
+      "npm run build",
+      "npm run bundle:check",
+      "npm run audit:release-history",
+      "browser verification"
+    ],
+    "ciFast": {
+      "status": "pending-push",
+      "note": "Fast verification is claimed only after v0.15.38 is pushed and the GitHub Actions run is attached."
+    },
+    "deploy": {
+      "status": "pending-push",
+      "note": "Pages deploy is not claimed until the pushed release completes its deploy run."
+    },
+    "ciDeep": {
+      "status": "local-only",
+      "note": "This is a narrow Course Map repair/compiler regression patch, so focused regression coverage plus audit:gold:smoke are the release gate."
+    },
+    "liveProvider": {
+      "status": "local-only",
+      "note": "The release is based on a fresh deployed v0.15.37 EduTool.dev Genetics and Society audit saved under verification-output/edutool-audit-loop/20260620T200413Z/. The app blocked ZIP download after the quality P0, so the evidence is the captured console logs and quality-report UI rather than a new ZIP."
+    },
+    "manualHuman": {
+      "status": "not-applicable",
+      "note": "No external instructor approval is claimed by this release."
+    }
+  },
+  "claims": [
+    {
+      "id": "v01538-live-artifact-resource-p0",
+      "status": "verified-current",
+      "changelogHighlightIndex": 0,
+      "summary": "A fresh deployed v0.15.37 Genetics and Society audit produced Quality 74/C with a P0 because a single supporting resource label, slide decks, appeared in Course FAQ answers as lesson evidence.",
+      "anchors": ["docs/V0.15.38_ARTIFACT_RESOURCE_FIREWALL_ROADMAP.md", "release-contracts/v0.15.38.json"],
+      "proofCommands": [
+        "Manual EduTool.dev console/UI audit summarized in docs/V0.15.38_ARTIFACT_RESOURCE_FIREWALL_ROADMAP.md from verification-output/edutool-audit-loop/20260620T200413Z/"
+      ],
+      "proofScopes": ["live-provider", "browser-live", "static-audit"]
+    },
+    {
+      "id": "v01538-single-resource-artifact-repair",
+      "status": "verified-current",
+      "changelogHighlightIndex": 1,
+      "summary": "Course Map readiness repair now treats exact single supporting-resource cells that are requested deliverable labels as prompt-artifact contamination for normal disciplinary courses.",
+      "anchors": ["src/lib/deliverableReadiness.js", "tests/v0141-phase1-finalizer.test.js"],
+      "proofCommands": ["npm test -- tests/v0141-phase1-finalizer.test.js"],
+      "proofScopes": ["unit", "compiled-output"]
+    },
+    {
+      "id": "v01538-worked-examples-precision",
+      "status": "verified-current",
+      "changelogHighlightIndex": 2,
+      "summary": "The repair excludes worked examples from the exact single-resource artifact set, preserving the v0.15.12 precision fix for legitimate worked-example support resources.",
+      "anchors": ["src/lib/deliverableReadiness.js", "docs/V0.15.38_ARTIFACT_RESOURCE_FIREWALL_ROADMAP.md"],
+      "proofCommands": ["npm test -- tests/v0141-phase1-finalizer.test.js"],
+      "proofScopes": ["unit", "static-audit"]
+    },
+    {
+      "id": "v01538-course-faq-no-slide-decks",
+      "status": "verified-current",
+      "changelogHighlightIndex": 3,
+      "summary": "A focused compiler regression proves repaired Genetics Course FAQ text no longer says Strong work uses slide decks or carries the leaked slide decks label.",
+      "anchors": ["tests/v0141-phase1-finalizer.test.js", "src/lib/courseBlueprintCompiler.js"],
+      "proofCommands": ["npm test -- tests/v0141-phase1-finalizer.test.js"],
+      "proofScopes": ["unit", "compiled-output"]
+    },
+    {
+      "id": "v01538-digest-quality-truth",
+      "status": "verified-current",
+      "changelogHighlightIndex": 4,
+      "summary": "The finalize flow now emits the run digest after quality grading has been merged, and the digest records finalize-time quality P0s as failed quality checks instead of leaving a misleading ready audit record.",
+      "anchors": ["src/AppFlow.jsx", "src/lib/runDigest.js", "src/lib/__tests__/runDigest.test.js"],
+      "proofCommands": ["npm test -- src/lib/__tests__/runDigest.test.js"],
+      "proofScopes": ["unit", "browser-live", "static-audit"]
+    }
+  ],
+  "carryForward": [
+    {
+      "id": "source-ledger-coverage",
+      "status": "carry-forward",
+      "source": "docs/V0.15.38_ARTIFACT_RESOURCE_FIREWALL_ROADMAP.md",
+      "next": "The fresh run still showed genome 0/4 and one source-ledger row in native_c1_source_truth; continue source-ledger bridge and concept-linking work."
+    },
+    {
+      "id": "source-license-policy",
+      "status": "carry-forward",
+      "source": "docs/V0.15.38_ARTIFACT_RESOURCE_FIREWALL_ROADMAP.md",
+      "next": "Resolve ambiguous source-license P2 findings through the source-license policy work instead of hiding them in the grader."
+    }
+  ]
+}

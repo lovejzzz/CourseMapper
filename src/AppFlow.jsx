@@ -1633,41 +1633,44 @@ export default function AppFlow({ startupAction = null, onStartupHandled, onRetu
         // v0.10.1: the RUN DIGEST — one structured diagnostic per finish,
         // built for auditing real runs (decisions + reasons, honest costs,
         // actual gate messages). Lazy import keeps it out of this chunk.
-        // v0.14.3 WS-A: built BEFORE the final state set so the quality
-        // grader can read it as its in-app honesty source.
+        // v0.15.38: build a preliminary digest for the quality grader's
+        // honesty source, but emit the console digest only AFTER the quality
+        // gate has been merged so `[CM][DIGEST]` matches the visible finish.
         let runDigest = null;
+        let buildCurrentRunDigest = null;
+        let emitRunDigestForFinish = null;
         try {
-          const { buildRunDigest, formatRunDigest } = await import('./lib/runDigest');
-          runDigest = buildRunDigest({
-            budget: apiCallBudgetRef.current || {},
-            exportVerification,
-            finish: {
-              finalStatus,
-              blockers,
-              warnings,
-              repairsApplied: totalRepairsApplied,
-              retryCallCount,
-              finishRunId,
-              // v0.14.1 P2.5: map↔deliverable reconciliation findings reach
-              // the digest's flagged checks (incl. the info-level aggregate
-              // that stays out of the readiness warning count).
-              assessmentReconciliationIssues: result.assessmentReconciliationIssues || [],
-            },
-            generation: {
-              provider: result.provider || '',
-              lessonCount: Array.isArray((result.courseMap || courseMapRef.current)?.lessons)
-                ? (result.courseMap || courseMapRef.current).lessons.length
-                : null,
-              featureIds,
-            },
-          });
-          console.info(`[CM][RUN DIGEST]\n${formatRunDigest(runDigest)}`);
-          console.info(`[CM][DIGEST] ${JSON.stringify(runDigest)}`);
+          const { buildRunDigest, emitRunDigest } = await import('./lib/runDigest');
+          emitRunDigestForFinish = emitRunDigest;
+          buildCurrentRunDigest = (quality = null) =>
+            buildRunDigest({
+              budget: apiCallBudgetRef.current || {},
+              exportVerification,
+              finish: {
+                finalStatus,
+                blockers,
+                warnings,
+                repairsApplied: totalRepairsApplied,
+                retryCallCount,
+                finishRunId,
+                quality,
+                // v0.14.1 P2.5: map↔deliverable reconciliation findings reach
+                // the digest's flagged checks (incl. the info-level aggregate
+                // that stays out of the readiness warning count).
+                assessmentReconciliationIssues: result.assessmentReconciliationIssues || [],
+              },
+              generation: {
+                provider: result.provider || '',
+                lessonCount: Array.isArray((result.courseMap || courseMapRef.current)?.lessons)
+                  ? (result.courseMap || courseMapRef.current).lessons.length
+                  : null,
+                featureIds,
+              },
+            });
+          runDigest = buildCurrentRunDigest();
         } catch {
           /* digest is diagnostics-only — never block the finish on it */
         }
-        lastRunDigestRef.current = runDigest;
-        setLastRunDigest(runDigest);
 
         // v0.14.3 WS-A A2: after export_verify passes, the package grades
         // itself — deterministic deep-quality grade over the same in-memory
@@ -1735,6 +1738,16 @@ export default function AppFlow({ startupAction = null, onStartupHandled, onRetu
           p0: packageQuality?.findingCounts?.p0 ?? null,
           reason: packageQuality?.reason || '',
         });
+        try {
+          if (buildCurrentRunDigest && emitRunDigestForFinish) {
+            runDigest = buildCurrentRunDigest(packageQuality);
+            emitRunDigestForFinish(runDigest);
+          }
+        } catch {
+          /* digest is diagnostics-only — never block the finish on it */
+        }
+        lastRunDigestRef.current = runDigest;
+        setLastRunDigest(runDigest);
 
         setPackageQualityPass({
           status: finalStatus,

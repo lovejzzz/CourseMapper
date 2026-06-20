@@ -36,6 +36,12 @@ function pricingAccuracy(ledger = []) {
 export function buildRunDigest({ budget = {}, exportVerification = null, finish = {}, generation = {} } = {}) {
   const ledger = Array.isArray(budget.usageLedger) ? budget.usageLedger : [];
   const costReport = buildGenerationCostReport(budget);
+  const quality = finish.quality || null;
+  const qualityCounts = quality?.findingCounts || {};
+  const qualityP0 = Number(qualityCounts.p0) || 0;
+  const qualityP1 = Number(qualityCounts.p1) || 0;
+  const qualityP2 = Number(qualityCounts.p2) || 0;
+  const qualityFindings = Array.isArray(quality?.findings) ? quality.findings : [];
   const checks = Array.isArray(exportVerification?.checks) ? exportVerification.checks : [];
   const flaggedChecks = checks
     .filter((check) => check.status !== 'passed')
@@ -94,6 +100,24 @@ export function buildRunDigest({ budget = {}, exportVerification = null, finish 
     status: issue.severity === 'blocker' ? 'failed' : issue.severity === 'warning' ? 'warning' : 'info',
     message: String(issue.message || '').slice(0, 200),
   }));
+  const qualityChecks = [];
+  if (quality?.status === 'graded' && qualityP0 + qualityP1 + qualityP2 > 0) {
+    const firstFinding = qualityFindings.find((finding) => finding?.severity === 'P0') || qualityFindings[0] || {};
+    const findingText = String(firstFinding.detail || firstFinding.evidence || firstFinding.file || '').trim();
+    qualityChecks.push({
+      featureId: 'quality',
+      status: qualityP0 > 0 ? 'failed' : 'warning',
+      message:
+        `quality grade ${quality.score}/100 (${quality.grade}) — ${qualityP0} P0, ${qualityP1} P1, ${qualityP2} P2` +
+        (findingText ? `; ${findingText.slice(0, 140)}` : ''),
+    });
+  } else if (quality?.status && quality.status !== 'graded') {
+    qualityChecks.push({
+      featureId: 'quality',
+      status: 'warning',
+      message: `quality not graded${quality.reason ? ` — ${String(quality.reason).slice(0, 160)}` : ''}`,
+    });
+  }
 
   return {
     digestVersion: 1,
@@ -131,9 +155,15 @@ export function buildRunDigest({ budget = {}, exportVerification = null, finish 
       exportChecked: exportVerification?.checked ?? 0,
       exportFailed: exportVerification?.failed ?? 0,
       exportWarnings: exportVerification?.warningCount ?? 0,
+      qualityStatus: quality?.status || '',
+      qualityScore: quality?.score ?? null,
+      qualityGrade: quality?.grade || '',
+      qualityP0,
+      qualityP1,
+      qualityP2,
       compiledWithoutEnrichment,
       enrichmentCoverage,
-      flaggedChecks: [...coverageChecks, ...reconciliationChecks, ...flaggedChecks],
+      flaggedChecks: [...qualityChecks, ...coverageChecks, ...reconciliationChecks, ...flaggedChecks],
     },
   };
 }
@@ -183,11 +213,24 @@ export function formatRunDigest(digest) {
       `  ${task.task}: ${task.calls} call${task.calls === 1 ? '' : 's'}, ${task.inputTokens} in / ${task.outputTokens} out (${task.reasoningOutputTokens} reasoning), ${task.costKnown ? formatUsd(task.costUsd) : 'cost unknown'}`,
     );
   }
+  const qualityText = digest.gates.qualityStatus
+    ? ` · quality ${
+        digest.gates.qualityStatus === 'graded'
+          ? `${digest.gates.qualityScore}/100 ${digest.gates.qualityGrade}`
+          : digest.gates.qualityStatus
+      }`
+    : '';
   lines.push(
-    `gates: ${digest.gates.finalStatus} · export ${digest.gates.exportStatus} (${digest.gates.exportChecked} files, ${digest.gates.exportFailed} failed, ${digest.gates.exportWarnings} warnings) · ${digest.gates.repairsApplied} repairs · ${digest.gates.retryCallCount} retry calls`,
+    `gates: ${digest.gates.finalStatus} · export ${digest.gates.exportStatus} (${digest.gates.exportChecked} files, ${digest.gates.exportFailed} failed, ${digest.gates.exportWarnings} warnings)${qualityText} · ${digest.gates.repairsApplied} repairs · ${digest.gates.retryCallCount} retry calls`,
   );
   for (const check of digest.gates.flaggedChecks) {
     lines.push(`  [${check.status}] ${check.featureId}: ${check.message}`);
   }
   return lines.join('\n');
+}
+
+export function emitRunDigest(digest) {
+  if (!digest) return;
+  console.info(`[CM][RUN DIGEST]\n${formatRunDigest(digest)}`);
+  console.info(`[CM][DIGEST] ${JSON.stringify(digest)}`);
 }

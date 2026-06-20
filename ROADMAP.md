@@ -4,6 +4,27 @@
 
 CourseMapper is moving toward a "consider it done" course-production agent. The user should describe the course, choose scope/materials, and receive a finished draft package. The agent owns generation, QA, repair, alignment, and export readiness. Human involvement should be final approval only, not QA labor.
 
+## v0.15.38 - Artifact Resource Firewall
+
+Goal: fix the fresh deployed v0.15.37 Genetics and Society audit P0 without
+weakening the grader. The package reached export verification, but local quality
+blocked at 74/C because a single supporting-resource cell equal to a requested
+deliverable label (`slide decks`) survived into the compiled Course FAQ as if it
+were a lesson concept.
+
+Full plan: `docs/V0.15.38_ARTIFACT_RESOURCE_FIREWALL_ROADMAP.md`
+
+1. Treat exact single supporting-resource cells that are requested deliverable
+   labels as prompt-artifact contamination in normal disciplinary courses.
+2. Preserve the v0.15.12 precision exception for legitimate `worked examples`
+   resources.
+3. Pin the live failure shape with regression coverage that repairs the Course
+   Map cell and proves Course FAQ no longer says `Strong work uses slide decks`.
+4. Rebuild the emitted run digest after finalize-time quality grading, so the
+   audit trail reports the same blocked/ready state as the finished-package UI.
+5. Keep carry-forward debt explicit: source-ledger rows remain thin in this run
+   and license ambiguity remains a separate source-policy issue.
+
 ## v0.15.37 - Source Finder Relevance Gate
 
 Goal: fix the fresh deployed v0.15.36 Genetics and Society audit finding

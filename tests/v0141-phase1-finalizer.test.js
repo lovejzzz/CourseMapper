@@ -14,6 +14,7 @@
 import { describe, expect, it } from 'vitest';
 
 import { finalizeCompiledDeliverableLanguage } from '../src/lib/compiledLanguageFinalizer';
+import { buildCourseBlueprint, compileBlueprintDeliverables } from '../src/lib/courseBlueprintCompiler';
 import { deriveCompilerOwnedColumns, expandLeanCourseMap, expandLeanSectionField } from '../src/lib/leanCourseMap';
 import { repairCourseMapReadiness } from '../src/lib/deliverableReadiness';
 import { deriveCourseGraphFromCourseMap } from '../src/lib/courseGraph';
@@ -386,6 +387,13 @@ describe('1.16 — prompt artifact labels never become course-map concepts', () 
               weeklyAssessments: 'Quick evidence check: apply 1.3: slide decks to a new example.',
               supportingResources: 'Instructor-approved readings, examples, or lab materials for 1.3: slide decks.',
             },
+            {
+              topicSection: '1.4: ecological succession',
+              learningGoals: 'Use ecological succession to explain ecosystem recovery.',
+              learningObjectives: 'Explain ecological succession and apply it to course evidence.',
+              weeklyAssessments: 'Quick evidence check: apply ecological succession to a new example.',
+              supportingResources: 'slide decks',
+            },
           ],
         },
       ],
@@ -400,11 +408,51 @@ describe('1.16 — prompt artifact labels never become course-map concepts', () 
         'Lesson 1, Section 2 Topic Section (prompt artifact)',
         'Lesson 1, Section 2 Learning Goals (prompt artifact)',
         'Lesson 1, Section 3 Topic Section (prompt artifact)',
+        'Lesson 1, Section 4 Supporting Resources (prompt artifact)',
       ]),
     );
     expect(result.courseMap.lessons[0].sections[1].topicSection).toBe('ecosystems');
     expect(result.courseMap.lessons[0].sections[2].topicSection).toBe('ecosystems');
+    expect(result.courseMap.lessons[0].sections[3].supportingResources).toMatch(/ecological succession/i);
+    expect(result.courseMap.lessons[0].sections[3].supportingResources).not.toBe('slide decks');
     expect(repairedText).not.toMatch(/\b\d+\.\d+:\s*(?:evidence-rich lesson plans|slide decks)\b/i);
     expect(repairedText).not.toContain('course FAQ\\nworked examples');
+  });
+
+  it('keeps repaired single artifact-resource labels out of compiled Course FAQ answers', () => {
+    const courseMap = {
+      courseName: 'Genetics and Society',
+      lessons: [
+        {
+          title: 'Lesson 1: DNA and inheritance basics',
+          sections: [
+            {
+              topicSection: '1.1: DNA',
+              learningGoals: 'Use DNA to explain a course problem and prepare evidence for the next assessment.',
+              learningObjectives: 'Explain the key ideas in DNA and apply them in course activities.',
+              weeklyAssessments: 'Lesson 1 evidence check: DNA and inheritance basics (25%)',
+              asyncActivities: 'Review assigned materials and prepare notes on DNA.',
+              syncActivities: 'Discuss examples and practice applying DNA.',
+              supportingResources: 'slide decks',
+              evaluateDesign: 'Check that the DNA activity, resource, and assessment ask students to produce evidence.',
+            },
+          ],
+        },
+      ],
+    };
+
+    const repaired = repairCourseMapReadiness({ courseMap }).courseMap;
+    const blueprint = buildCourseBlueprint(repaired);
+    const compiled = compileBlueprintDeliverables(blueprint, ['courseFaq'], {
+      configMap: { courseFaq: { questionsPerLesson: 5 } },
+    });
+    const faqText = compiled.courseFaq.faqs
+      .flatMap((faq) => faq.qs || [])
+      .map((item) => `${item.q || ''} ${item.an || ''}`)
+      .join(' ');
+
+    expect(repaired.lessons[0].sections[0].supportingResources).not.toBe('slide decks');
+    expect(faqText).not.toMatch(/Strong work uses slide decks/i);
+    expect(faqText).not.toMatch(/\bslide decks\b/i);
   });
 });
