@@ -3,23 +3,23 @@ import { APP_VERSION } from './appVersion.js';
 export const CURRENT_RELEASE = {
   version: APP_VERSION,
   date: 'June 20, 2026',
-  title: 'Source Ledger Fallback Guard: fake receipts stop shipping',
-  landingTitle: 'Source Ledger Fallback Guard',
+  title: 'ZIP Source Graph Handoff: downloaded proof matches the badge',
+  landingTitle: 'ZIP Source Graph Handoff',
   highlights: [
-    'A fresh deployed v0.15.28 EduTool.dev Sociology audit proved source reports now ship, but also exposed polluted proof: `SOURCE_REPORT.md` listed package labels and generic placeholders as source rows.',
-    'Course Map and syllabus resource fallbacks now pass through a source-candidate guard before they can become normalized source-ledger rows.',
-    'Package labels such as course map, lesson plans, slide decks, rubrics, study guides, and generic placeholder resource sentences are rejected instead of exported as fake citations.',
-    'Real fallback receipts still survive when they carry source evidence such as OpenStax/OpenAlex/Open Library/ERIC hints, URL, DOI, Creative Commons/open-access license text, or recognizable academic/OER source signals.',
-    'The quality bar stays honest: absent source proof remains a source-proof problem, while focused source-ledger and ZIP-export regressions pin the audited Sociology failure class.',
+    'A fresh deployed v0.15.29 EduTool.dev Sociology audit proved fake fallback source rows were gone, but exposed a new truth mismatch: the live badge graded graph-backed source proof while the downloaded ZIP lost that graph.',
+    'The workspace export panel now receives the live CourseGraph from AppFlow and passes it into `downloadCourseMaterialsZip`, so header and side-panel downloads assemble the same source-ledger package the finish grade evaluated.',
+    '`SOURCE_REPORT.md`, `sourceLedger`, `sourceLedgerSummary`, and CourseIR/sourceRef proof no longer disappear only on the final ZIP download path.',
+    'Focused regression coverage pins the one-verb header ZIP route so it keeps using the export panel guards while preserving graph-backed source proof.',
+    'The quality bar stays honest: packages without real exported source proof still receive the source-proof P1 instead of a fake or stale green badge.',
   ],
   landingHighlights: [
-    'Fake source fallback rows are filtered.',
-    'Real embedded source receipts still export.',
-    'Missing proof stays honest.',
+    'ZIP downloads keep CourseGraph proof.',
+    'Badge and package source checks align.',
+    'Missing proof stays visible.',
   ],
   proof: {
-    contract: 'release-contracts/v0.15.29.json',
-    roadmap: 'docs/V0.15.29_SOURCE_LEDGER_FALLBACK_GUARD_ROADMAP.md',
+    contract: 'release-contracts/v0.15.30.json',
+    roadmap: 'docs/V0.15.30_ZIP_SOURCE_GRAPH_HANDOFF_ROADMAP.md',
     auditCommand: 'npm run audit:release-history',
   },
 };
@@ -34,6 +34,18 @@ export const CURRENT_RELEASE_CHANGELOG = {
 };
 
 export const HISTORICAL_RELEASE_CHANGELOGS = [
+  {
+    version: '0.15.29',
+    date: 'June 20, 2026',
+    title: 'Source Ledger Fallback Guard: fake receipts stop shipping',
+    highlights: [
+      'A fresh deployed v0.15.28 EduTool.dev Sociology audit proved source reports now ship, but also exposed polluted proof: `SOURCE_REPORT.md` listed package labels and generic placeholders as source rows.',
+      'Course Map and syllabus resource fallbacks now pass through a source-candidate guard before they can become normalized source-ledger rows.',
+      'Package labels such as course map, lesson plans, slide decks, rubrics, study guides, and generic placeholder resource sentences are rejected instead of exported as fake citations.',
+      'Real fallback receipts still survive when they carry source evidence such as OpenStax/OpenAlex/Open Library/ERIC hints, URL, DOI, Creative Commons/open-access license text, or recognizable academic/OER source signals.',
+      'The quality bar stays honest: absent source proof remains a source-proof problem, while focused source-ledger and ZIP-export regressions pin the audited Sociology failure class.',
+    ],
+  },
   {
     version: '0.15.28',
     date: 'June 20, 2026',

@@ -4,6 +4,25 @@
 
 CourseMapper is moving toward a "consider it done" course-production agent. The user should describe the course, choose scope/materials, and receive a finished draft package. The agent owns generation, QA, repair, alignment, and export readiness. Human involvement should be final approval only, not QA labor.
 
+## v0.15.30 - ZIP Source Graph Handoff
+
+Goal: fix the deployed v0.15.29 source-proof handoff mismatch exposed by a
+fresh EduTool.dev Sociology ZIP/log audit. The live finish badge graded with
+the graph-backed source context, but the final ZIP download path dropped
+`courseGraph`, so the exported package lost `SOURCE_REPORT.md`,
+`sourceLedger`, and source-ref proof and regraded worse than the visible badge.
+
+Full plan: `docs/V0.15.30_ZIP_SOURCE_GRAPH_HANDOFF_ROADMAP.md`
+
+1. Thread the live `courseGraph` from AppFlow into the canonical export panel.
+2. Pass that graph to `downloadCourseMaterialsZip` for all package ZIP
+   downloads, including the header one-verb CTA event path.
+3. Keep the finish badge and downloaded ZIP grading the same package evidence.
+4. Pin the route with focused regression coverage so source proof cannot vanish
+   only at download time.
+5. Keep missing source proof honest: no fabricated receipts, no score
+   inflation, and no hidden stale badge.
+
 ## v0.15.29 - Source Ledger Fallback Guard
 
 Goal: fix the deployed v0.15.28 source-ledger pollution exposed by a fresh

@@ -687,6 +687,7 @@ export default function ExportSidePanel({
   onFinishPackage,
   canFinishPackage = false,
   packageQualityPass,
+  courseGraph = null,
   // v0.14.4 WS-B2: the findings modal can be driven by the workspace header
   // chip — when the parent passes an open-state handler the modal runs in
   // controlled mode; otherwise the panel keeps its own local state.
@@ -1068,6 +1069,7 @@ export default function ExportSidePanel({
             slideTheme,
             readiness: downloadReadiness,
             featureIds: getExportFeatureIds(exportScope),
+            courseGraph,
             pipelineState: typeof getPipelineState === 'function' ? getPipelineState() : null,
             // v0.14.3 WS-A: the ZIP grades itself before assembly — budget +
             // digest feed the in-app honesty checks (manifest.quality +

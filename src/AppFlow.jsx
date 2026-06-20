@@ -108,6 +108,8 @@ import {
 import { matchEntityIds } from './lib/nativeGraphAuthoring';
 import { knowledgeCoverage } from './lib/knowledge';
 
+const PACKAGE_READY_MESSAGE = 'All required files passed export checks and the package is ready to download.';
+
 function summarizeReceiptIssue(issue) {
   if (!issue) return null;
   return {
@@ -1596,7 +1598,7 @@ export default function AppFlow({ startupAction = null, onStartupHandled, onRetu
               : '';
         let finalizerMessage =
           finalStatus === 'ready'
-            ? 'All required files passed export checks and the package is ready to download.'
+            ? PACKAGE_READY_MESSAGE
             : String(result.message || '').replace(/^Auto-fixed \d+ safe issues?\. /, '');
         const receiptBudget = apiCallBudgetRef.current || {};
         const apiSpendSummary = summarizeApiUsageBudget(receiptBudget);
@@ -1701,7 +1703,7 @@ export default function AppFlow({ startupAction = null, onStartupHandled, onRetu
         warnings = finalStatus === 'ready' ? 0 : reviewWarningCount;
         finalizerMessage =
           finalStatus === 'ready'
-            ? 'All required files passed export checks and the package is ready to download.'
+            ? PACKAGE_READY_MESSAGE
             : String(
                 result.message ||
                   result.readiness?.blockers?.[0]?.message ||
@@ -3917,6 +3919,7 @@ export default function AppFlow({ startupAction = null, onStartupHandled, onRetu
                   onFinishPackage={handleFinishPackageFromExport}
                   canFinishPackage={canRunPackageFinalizer}
                   packageQualityPass={packageQualityPass}
+                  courseGraph={courseGraph}
                   qualityModalOpen={qualityReportOpen}
                   onQualityModalOpenChange={setQualityReportOpen}
                   isPackageGenerationRunning={isPackageGenerationRunning}

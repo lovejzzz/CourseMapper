@@ -165,6 +165,11 @@ describe('F1/F2 — source wiring (the header has ONE verb; the paths exist)', (
     expect(panel).toContain('const zipDownloadDisabled =');
     expect(panel).toContain('disabled={zipDownloadDisabled}');
     expect(panel).toContain('if (zipDownloadDisabled) return;');
+    // The header route must download the same source-proof package the finish
+    // grade saw; dropping courseGraph makes SOURCE_REPORT.md disappear.
+    expect(read('src/AppFlow.jsx')).toContain('courseGraph={courseGraph}');
+    expect(panel).toContain('courseGraph = null');
+    expect(panel).toContain('courseGraph,');
   });
 
   it('Landing carries the quick-start affordance, gated on prompt + stored API key', () => {
