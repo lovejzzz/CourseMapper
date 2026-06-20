@@ -16564,8 +16564,19 @@ function slideArtifact(lesson) {
   const parts = cleanText(lesson?.studentArtifact)
     .split(/\s*;\s*/)
     .map(stripTerminalPunctuation)
+    .map(dedupeNumberedAssessmentEcho)
     .filter((part) => part && !/\b(TBD|to be determined)\b/i.test(part));
   return parts[0] || `${primarySlideConcept(lesson)} artifact`;
+}
+
+function dedupeNumberedAssessmentEcho(value) {
+  const text = cleanText(value);
+  const match = /^(.{8,140}?)\s*:\s*\d+\.\s*(.+)$/.exec(text);
+  if (!match) return text;
+  const lead = stripTerminalPunctuation(match[1]);
+  const tail = stripTerminalPunctuation(match[2]);
+  if (lead && tail && lead.toLowerCase() === tail.toLowerCase()) return lead;
+  return text;
 }
 
 function slideSourceCue(lesson) {
@@ -17029,28 +17040,29 @@ function slideTypeFocus(type, lesson, lens) {
 }
 
 function slideNoteAnchor({ type, anchor, concept, artifact, displayTitle, lesson }) {
+  const safeAnchor = slideNoteAnchorText(anchor, type, lesson);
   switch (type) {
     case 'title':
-      return `Open the working session by naming the product students are building: ${artifact}. Use "${anchor}" to connect the topic to the decisions they will make today.`;
+      return `Open the working session by naming the product students are building: ${artifact}. Use "${safeAnchor}" to connect the topic to the decisions they will make today.`;
     case 'agenda':
       return `Keep the pacing visible and point to the first ${concept} checkpoint: ${anchor}. Students should know when they will listen, practice, compare, and revise ${artifact}.`;
     case 'objectives':
       return `Turn "${anchor}" into an observable performance target; ask students what evidence would prove they can do it.`;
     case 'bridge':
-      return `Use "${anchor}" as the continuity cue between prior work and today's ${concept} decision.`;
+      return `Use "${safeAnchor}" as the continuity cue between prior work and today's ${concept} decision.`;
     case 'keyTerm':
       return lessonVariant(lesson, [
-        `Put "${anchor}" into a sentence students could write in their own notes before showing a formal definition.`,
-        `Ask students to explain "${anchor}" in plain language before comparing it with the course definition.`,
-        `Have students connect "${anchor}" to one artifact decision before naming the formal term.`,
-        `Use "${anchor}" as a note-making prompt: what evidence would make this term useful in ${artifact}?`,
+        `Put "${safeAnchor}" into a sentence students could write in their own notes before showing a formal definition.`,
+        `Ask students to explain "${safeAnchor}" in plain language before comparing it with the course definition.`,
+        `Have students connect "${safeAnchor}" to one artifact decision before naming the formal term.`,
+        `Use "${safeAnchor}" as a note-making prompt: what evidence would make this term useful in ${artifact}?`,
       ]);
     case 'example':
       return lessonVariant(lesson, [
-        `Treat "${anchor}" as the ${concept} detail to inspect, then ask what it reveals about ${artifact} and what it does not prove.`,
-        `Use "${anchor}" as an evidence boundary: what can students infer for ${artifact}, and where would the claim overreach?`,
-        `Have students test "${anchor}" against ${artifact}: which part supports the decision, and which part needs another source?`,
-        `Frame "${anchor}" as a partial clue, then ask students to name both the useful evidence and the remaining uncertainty for ${artifact}.`,
+        `Treat "${safeAnchor}" as the ${concept} detail to inspect, then ask what it reveals about ${artifact} and what it does not prove.`,
+        `Use "${safeAnchor}" as an evidence boundary: what can students infer for ${artifact}, and where would the claim overreach?`,
+        `Have students test "${safeAnchor}" against ${artifact}: which part supports the decision, and which part needs another source?`,
+        `Frame "${safeAnchor}" as a partial clue, then ask students to name both the useful evidence and the remaining uncertainty for ${artifact}.`,
       ]);
     case 'activity':
       return lessonVariant(lesson, [
@@ -17060,24 +17072,39 @@ function slideNoteAnchor({ type, anchor, concept, artifact, displayTitle, lesson
         `Ask each group to leave behind a concrete ${concept} improvement, such as a revised sentence, reordered evidence, or noted limitation.`,
       ]);
     case 'discussion':
-      return `Start the discussion from a concrete contrast in "${anchor}" so the exchange does not drift into general opinion.`;
+      return `Start the discussion from a concrete contrast in "${safeAnchor}" so the exchange does not drift into general opinion.`;
     case 'summary':
       return lessonVariant(lesson, [
-        `Use "${anchor}" as a quick oral or written check for ${concept} readiness before students leave ${displayTitle}.`,
-        `Turn "${anchor}" into a one-minute readiness check: what evidence can students now explain about ${concept}?`,
-        `Ask students to use "${anchor}" to name the ${concept} move they can carry into ${artifact}.`,
-        `Close the slide by having students connect "${anchor}" to one evidence-backed next step for ${artifact}.`,
+        `Use "${safeAnchor}" as a quick oral or written check for ${concept} readiness before students leave ${displayTitle}.`,
+        `Turn "${safeAnchor}" into a one-minute readiness check: what evidence can students now explain about ${concept}?`,
+        `Ask students to use "${safeAnchor}" to name the ${concept} move they can carry into ${artifact}.`,
+        `Close the slide by having students connect "${safeAnchor}" to one evidence-backed next step for ${artifact}.`,
       ]);
     case 'closing':
       return `Close with the handoff: students should know exactly what to revise, prepare, or submit for ${artifact}.`;
     default:
       return lessonVariant(lesson, [
-        `Use "${anchor}" as the claim students need to test with evidence, not as a label to repeat.`,
-        `Treat "${anchor}" as a reasoning prompt: what evidence would make the claim usable for ${artifact}?`,
-        `Ask students to translate "${anchor}" into a decision they can defend with evidence.`,
-        `Frame "${anchor}" as something to verify, qualify, or revise before it becomes part of ${artifact}.`,
+        `Use "${safeAnchor}" as the claim students need to test with evidence, not as a label to repeat.`,
+        `Treat "${safeAnchor}" as a reasoning prompt: what evidence would make the claim usable for ${artifact}?`,
+        `Ask students to translate "${safeAnchor}" into a decision they can defend with evidence.`,
+        `Frame "${safeAnchor}" as something to verify, qualify, or revise before it becomes part of ${artifact}.`,
       ]);
   }
+}
+
+function slideNoteAnchorText(anchor, type, lesson) {
+  const value = cleanText(anchor);
+  if (type !== 'title') return value;
+  const match = /^([^:]{12,90}):\s+(.+)$/.exec(value);
+  if (!match) return value;
+  const lead = cleanText(match[1]);
+  const tail = cleanText(match[2]);
+  const leadWordCount = lead.split(/\s+/).filter(Boolean).length;
+  const tailWordCount = tail.split(/\s+/).filter(Boolean).length;
+  if (leadWordCount >= 3 && tailWordCount >= 3 && !lead.toLowerCase().startsWith('lesson ')) {
+    return tail;
+  }
+  return value;
 }
 
 function slideNoteCriterionCue(type, criterion, lesson = {}) {
@@ -18050,7 +18077,7 @@ function buildSlideDeckIrForLesson(blueprint, lesson, index) {
   const teachingMoves = lessonTeachingMoves(blueprint, lesson);
   const preference = featurePreference(blueprint, 'slideDecks');
   const phrase = slideDeckPhrase(blueprint, lesson);
-  const titleContext = collapseRepeatedSlideLead(`${blueprint.courseName}: ${phrase.context}`);
+  const titleContext = collapseRepeatedSlideLead(phrase.context);
   const previous = blueprint.lessons[index - 1];
   const next = blueprint.lessons[index + 1];
   const assessment =

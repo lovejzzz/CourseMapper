@@ -3,23 +3,23 @@ import { APP_VERSION } from './appVersion.js';
 export const CURRENT_RELEASE = {
   version: APP_VERSION,
   date: 'June 20, 2026',
-  title: 'Source Review Truth: fallback rows stop posing as bibliography',
-  landingTitle: 'Source Review Truth',
+  title: 'Slide Note Echo Guard: course-title prefixes stop leaking into deck text',
+  landingTitle: 'Slide Note Echo Guard',
   highlights: [
-    'A fresh deployed v0.15.30 EduTool.dev Sociology audit regraded the ZIP at 99/A with two real P2s: CourseIR fallback `SL1` was exported as ambiguous bibliography proof, and one assignment rendered `Academic Integrity: Integrity...`.',
-    'Finish-package results now carry the current CourseGraph back to the export panel, and ZIP downloads use that finish graph instead of a potentially stale prop.',
-    'CourseIR fallback rows without URL/DOI/license proof are quarantined into `sourceReviewRows` and `SOURCE_REPORT.md` review notes instead of polluting `sourceLedger` as trusted bibliography.',
-    'The deep grader still flags review-only source rows; the fix changes the evidence class, not the standard.',
-    'Assignment academic-integrity prose no longer begins with `Integrity for...`, removing the deterministic `X: X` echo exposed in the audited Research Methods assignment brief.',
+    'A fresh deployed v0.15.31 EduTool.dev Environmental Justice audit regraded the ZIP at 99/A with two P2s: source-review rows stayed honest review debt, and a Policy memo slide deck rendered a deterministic `X: X` echo.',
+    'Title-slide context now uses the lesson concept phrase instead of `courseName: phrase`, removing `Course: Topic` echoes from visible title slides.',
+    'Numbered assessment echoes such as `Assessment: 1. Assessment` are de-duplicated before becoming slide artifacts.',
+    'Title-slide speaker-note anchors strip long course-name prefixes before quoted `Use "..."` guidance.',
+    'An Environmental Justice / Policy memo regression pins the exported slide surface, including titles, bullets, visuals, visual plans, and speaker notes.',
   ],
   landingHighlights: [
-    'Fallback source rows become review notes.',
-    'ZIP downloads use the finish graph.',
-    'Academic Integrity echoes are removed.',
+    'Course-title echoes leave slide decks.',
+    'Assessment labels de-duplicate in notes.',
+    'Environmental Justice regression is pinned.',
   ],
   proof: {
-    contract: 'release-contracts/v0.15.31.json',
-    roadmap: 'docs/V0.15.31_SOURCE_REVIEW_TRUTH_ROADMAP.md',
+    contract: 'release-contracts/v0.15.32.json',
+    roadmap: 'docs/V0.15.32_SLIDE_NOTE_ECHO_GUARD_ROADMAP.md',
     auditCommand: 'npm run audit:release-history',
   },
 };
@@ -34,6 +34,18 @@ export const CURRENT_RELEASE_CHANGELOG = {
 };
 
 export const HISTORICAL_RELEASE_CHANGELOGS = [
+  {
+    version: '0.15.31',
+    date: 'June 20, 2026',
+    title: 'Source Review Truth: fallback rows stop posing as bibliography',
+    highlights: [
+      'A fresh deployed v0.15.30 EduTool.dev Sociology audit regraded the ZIP at 99/A with two real P2s: CourseIR fallback `SL1` was exported as ambiguous bibliography proof, and one assignment rendered `Academic Integrity: Integrity...`.',
+      'Finish-package results now carry the current CourseGraph back to the export panel, and ZIP downloads use that finish graph instead of a potentially stale prop.',
+      'CourseIR fallback rows without URL/DOI/license proof are quarantined into `sourceReviewRows` and `SOURCE_REPORT.md` review notes instead of polluting `sourceLedger` as trusted bibliography.',
+      'The deep grader still flags review-only source rows; the fix changes the evidence class, not the standard.',
+      'Assignment academic-integrity prose no longer begins with `Integrity for...`, removing the deterministic `X: X` echo exposed in the audited Research Methods assignment brief.',
+    ],
+  },
   {
     version: '0.15.30',
     date: 'June 20, 2026',

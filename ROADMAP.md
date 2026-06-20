@@ -4,6 +4,25 @@
 
 CourseMapper is moving toward a "consider it done" course-production agent. The user should describe the course, choose scope/materials, and receive a finished draft package. The agent owns generation, QA, repair, alignment, and export readiness. Human involvement should be final approval only, not QA labor.
 
+## v0.15.32 - Slide Note Echo Guard
+
+Goal: fix the fresh deployed v0.15.31 Environmental Justice audit finding
+without weakening the grader. The ZIP and local regrade agreed at 99/A because
+one slide deck carried an `X: X` echo in title-slide text/speaker notes:
+`Environmental Justice and Climate Policy: Policy memo methods...`, alongside a
+numbered assessment echo in the artifact label.
+
+Full plan: `docs/V0.15.32_SLIDE_NOTE_ECHO_GUARD_ROADMAP.md`
+
+1. Keep title-slide context focused on lesson concepts instead of prefixing it
+   with the course title.
+2. De-duplicate numbered assessment echoes before using assessment titles as
+   slide artifacts.
+3. Sanitize title-slide speaker-note anchors so course-name prefixes do not
+   create `Course: Topic` echo chains.
+4. Pin the Environmental Justice / Policy memo shape with a compiler
+   regression over exported slide titles, bullets, visuals, and notes.
+
 ## v0.15.31 - Source Review Truth
 
 Goal: fix the deployed v0.15.30 Sociology audit findings without weakening the

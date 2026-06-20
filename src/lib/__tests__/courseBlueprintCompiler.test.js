@@ -6161,6 +6161,100 @@ describe('courseBlueprintCompiler', () => {
     expect(compiled.slideDecks.decks[0].slides[1].bullets.join(' ')).toContain('Practice with');
   });
 
+  it('keeps course-prefixed title anchors and numbered assessment echoes out of slide decks', () => {
+    const courseMap = {
+      courseName: 'Environmental Justice and Climate Policy',
+      semester: 'Fall 2026',
+      lessons: [
+        {
+          title: 'Lesson 1: Climate vulnerability and environmental justice',
+          sections: [
+            {
+              topicSection: 'climate vulnerability; environmental racism; policy context',
+              learningObjectives: 'Analyze climate vulnerability evidence; explain environmental racism.',
+              learningGoals: 'Connect environmental justice concepts to policy decisions.',
+              weeklyAssessments: 'Lesson 1 evidence check: Climate vulnerability and environmental justice (25%)',
+              asyncActivities: 'Review climate vulnerability source packet.',
+              syncActivities: 'Seminar evidence mapping.',
+              supportingResources: 'Climate vulnerability source packet',
+              evaluateDesign: 'Check evidence use and policy reasoning.',
+            },
+          ],
+        },
+        {
+          title: 'Lesson 2: Regulatory policy',
+          sections: [
+            {
+              topicSection: 'regulatory policy; governance tools; implementation',
+              learningObjectives: 'Compare governance tools; evaluate implementation constraints.',
+              learningGoals: 'Use regulatory policy evidence to justify decisions.',
+              weeklyAssessments: 'Lesson 2 applied problem: Regulatory policy (25%)',
+              asyncActivities: 'Read regulatory policy source packet.',
+              syncActivities: 'Policy lab.',
+              supportingResources: 'Regulatory policy source packet',
+              evaluateDesign: 'Score policy reasoning.',
+            },
+          ],
+        },
+        {
+          title: 'Lesson 3: Community health evidence',
+          sections: [
+            {
+              topicSection: 'community health evidence; data sources; equity impacts',
+              learningObjectives: 'Interpret health evidence; explain equity implications.',
+              learningGoals: 'Connect data evidence to environmental justice analysis.',
+              weeklyAssessments: 'Lesson 3 practice brief: Community health evidence (25%)',
+              asyncActivities: 'Annotate health evidence source packet.',
+              syncActivities: 'Evidence interpretation workshop.',
+              supportingResources: 'Community health evidence source packet',
+              evaluateDesign: 'Score evidence interpretation.',
+            },
+          ],
+        },
+        {
+          title: 'Lesson 4: Policy memo methods',
+          sections: [
+            {
+              topicSection: 'policy memo methods; brief writing; course synthesis',
+              learningObjectives: 'Write an actionable recommendation; synthesize climate and justice evidence.',
+              learningGoals: 'Use policy memo methods to make evidence-backed recommendations.',
+              weeklyAssessments:
+                'Lesson 4 concept transfer: Policy memo methods (25%): 1. Lesson 4 concept transfer: Policy memo methods (25%)',
+              asyncActivities: 'Review policy memo source packet.',
+              syncActivities: 'Memo recommendation clinic.',
+              supportingResources: 'Policy memo methods source packet',
+              evaluateDesign: 'Score recommendation, evidence trail, and feasibility.',
+            },
+          ],
+        },
+      ],
+    };
+
+    const blueprint = buildCourseBlueprint(courseMap);
+    const compiled = compileBlueprintDeliverables(blueprint, ['slideDecks']);
+    const deck = compiled.slideDecks.decks.find((item) => /Policy memo methods/i.test(item.lessonTitle));
+    const deckText = deck.slides
+      .map((slide) =>
+        [
+          slide.title,
+          ...(slide.bullets || []),
+          slide.notes,
+          slide.visual?.description,
+          slide.visual?.altText,
+          JSON.stringify(slide.visual?.visualPlan || {}),
+        ]
+          .filter(Boolean)
+          .join(' '),
+      )
+      .join('\n');
+
+    expect(deckText).toContain('Policy memo methods');
+    expect(deckText).not.toMatch(/Environmental Justice and Climate Policy:\s+Policy memo methods/i);
+    expect(deckText).not.toMatch(
+      /Lesson 4 concept transfer: Policy memo methods \(25%\):\s*1\.\s*Lesson 4 concept transfer/i,
+    );
+  });
+
   it('compiles predictable weekly reflection custom deliverables from the blueprint', () => {
     customDeliverables = {
       custom_weeklyReflection: {
