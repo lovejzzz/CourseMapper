@@ -84,7 +84,8 @@
       "summary": "The release keeps the 100/100 target honest: the audited v0.15.34 package is progress, not complete research-brain quality, and still regrades below 100 because source proof is thin.",
       "anchors": [
         "docs/V0.15.35_SOURCE_THINNESS_GATE_ROADMAP.md",
-        "verification-output/edutool-audit-loop/20260620T150412Z/local-regrade-report.md"
+        "src/lib/quality/sourceLedgerQualityChecks.js",
+        "src/lib/quality/__tests__/sourceLedgerGrader.test.js"
       ],
       "proofCommands": ["node --input-type=module <local regrade command recorded in the audit report>"],
       "proofScopes": ["live-provider", "static-audit"]
