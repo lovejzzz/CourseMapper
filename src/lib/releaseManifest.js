@@ -3,23 +3,23 @@ import { APP_VERSION } from './appVersion.js';
 export const CURRENT_RELEASE = {
   version: APP_VERSION,
   date: 'June 20, 2026',
-  title: 'Compiler Texture: repeated teaching tails stop costing package quality',
-  landingTitle: 'Compiler Texture',
+  title: 'Compiler Texture Pass 2: support-surface tails stop repeating',
+  landingTitle: 'Compiler Texture Pass 2',
   highlights: [
-    'A fresh deployed EduTool.dev Intro Psychology ZIP/log audit on v0.15.23 confirmed the in-class assessment fix worked: no P0/P1/P2 findings, clean ZIP structure, and the remaining 99/A came only from texture 93 repeated compiler prose.',
-    'The compiler now varies the default peer-evidence practice move and lecture-exam retrieval cycle across lessons, preventing long shared tails from stamping every slide deck.',
-    'Slide speaker notes and deep misconception exit-ticket notes now rotate the audited activity/example/closure anchors while preserving the same classroom intent and genome-linked correction substance.',
-    'Voice-pass disclosure now says voice-surface texture, and the manifest records `textureScope: "voice-surfaces"`, so a scoped rewrite self-check no longer implies whole-package texture was repaired.',
-    'Focused regression coverage pins the audited four-lesson Psychology lecture/exam shape and rejects the repeated tails that appeared in the v0.15.23 downloaded ZIP evidence.',
+    'A fresh deployed EduTool.dev Intro Psychology ZIP/log audit on v0.15.24 proved the first compiler-texture fix shipped, but the package still regraded 99/A because whole-package texture stayed at 93/100.',
+    'The new evidence was narrower and deterministic: slide decks, lesson plans, study guides, and Course FAQ reused stock compiler support-surface phrases while export, retries, findings, and voice-surface texture were clean.',
+    'The compiler now varies the slide-deck example-misconception note, deep kernel conference note, study-guide kernel-fact hint, and checkpoint-response quality-focus phrase across lessons.',
+    'Focused regression coverage now checks all four audited surfaces against the exact repeated shingles from the v0.15.24 downloaded package instead of only the first slide/lesson-plan texture tails.',
+    'The release keeps the quality bar honest: no grader weakening, no score inflation, and no live 100/100 claim until the next deployed EduTool.dev audit proves it.',
   ],
   landingHighlights: [
-    'Compiler prose varies across repeated lessons.',
-    'Voice-pass texture claims are scoped honestly.',
-    'The audited Psychology texture tail is regression-tested.',
+    'Support-surface compiler tails vary across lessons.',
+    'The v0.15.24 ZIP texture evidence is regression-tested.',
+    'The 100/100 claim still waits for fresh live proof.',
   ],
   proof: {
-    contract: 'release-contracts/v0.15.24.json',
-    roadmap: 'docs/V0.15.24_COMPILER_TEXTURE_ROADMAP.md',
+    contract: 'release-contracts/v0.15.25.json',
+    roadmap: 'docs/V0.15.25_COMPILER_TEXTURE_PASS_2_ROADMAP.md',
     auditCommand: 'npm run audit:release-history',
   },
 };
@@ -34,6 +34,18 @@ export const CURRENT_RELEASE_CHANGELOG = {
 };
 
 export const HISTORICAL_RELEASE_CHANGELOGS = [
+  {
+    version: '0.15.24',
+    date: 'June 20, 2026',
+    title: 'Compiler Texture: repeated teaching tails stop costing package quality',
+    highlights: [
+      'A fresh deployed EduTool.dev Intro Psychology ZIP/log audit on v0.15.23 confirmed the in-class assessment fix worked: no P0/P1/P2 findings, clean ZIP structure, and the remaining 99/A came only from texture 93 repeated compiler prose.',
+      'The compiler now varies the default peer-evidence practice move and lecture-exam retrieval cycle across lessons, preventing long shared tails from stamping every slide deck.',
+      'Slide speaker notes and deep misconception exit-ticket notes now rotate the audited activity/example/closure anchors while preserving the same classroom intent and genome-linked correction substance.',
+      'Voice-pass disclosure now says voice-surface texture, and the manifest records `textureScope: "voice-surfaces"`, so a scoped rewrite self-check no longer implies whole-package texture was repaired.',
+      'Focused regression coverage pins the audited four-lesson Psychology lecture/exam shape and rejects the repeated tails that appeared in the v0.15.23 downloaded ZIP evidence.',
+    ],
+  },
   {
     version: '0.15.23',
     date: 'June 19, 2026',

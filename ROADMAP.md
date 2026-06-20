@@ -4,6 +4,27 @@
 
 CourseMapper is moving toward a "consider it done" course-production agent. The user should describe the course, choose scope/materials, and receive a finished draft package. The agent owns generation, QA, repair, alignment, and export readiness. Human involvement should be final approval only, not QA labor.
 
+## v0.15.25 - Compiler Texture Pass 2
+
+Goal: finish the next deterministic texture layer exposed by a fresh deployed
+v0.15.24 EduTool.dev ZIP/log audit. The package still regraded 99/A with no
+P0/P1/P2 findings, clean export, no retry calls, and voice-surface texture
+98->100, but whole-package texture stayed at 93/100 because slide decks,
+lesson plans, study guides, and Course FAQ reused stock compiler phrasing.
+
+Full plan: `docs/V0.15.25_COMPILER_TEXTURE_PASS_2_ROADMAP.md`
+
+1. Vary slide-deck example-misconception notes when students jump from example
+   to recommendation too early.
+2. Vary deep lesson-plan misconception conference notes instead of stamping the
+   same kernel-bar wording across every lesson.
+3. Vary study-guide kernel-fact hints so the observation/method-decision prompt
+   stays student-useful without repeating the same tail.
+4. Vary checkpoint-response quality-focus language before it is reused by FAQ
+   and other support surfaces.
+5. Pin the exact v0.15.24 live audit evidence in focused compiler regression
+   coverage before rerunning the live deployed audit.
+
 ## v0.15.24 - Compiler Texture
 
 Goal: remove deterministic compiler prose tails that kept the fresh post-fix

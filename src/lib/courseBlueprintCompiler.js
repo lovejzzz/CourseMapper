@@ -7239,7 +7239,14 @@ function buildArtifactGenreDecode(lesson = {}, profile = {}, modalityDecode = {}
             `${artifact} quality depends on precise concept use, source-grounded reasoning, and feedback-informed improvement`,
             `review ${artifact} for source evidence, decision clarity, limitation language, and revision follow-through`,
           ])
-        : `${details.qualityFocus} for ${artifact}`,
+        : genre === 'checkpoint-response'
+          ? lessonVariant(lesson, [
+              `concept accuracy, retrieval strength, explanation quality, and readiness for the next artifact in ${artifact}`,
+              `accurate ${concept} use, corrected reasoning, transfer readiness, and a clear next-study move for ${artifact}`,
+              `${artifact} should show the selected answer, why it holds, what misconception was avoided, and what students should practice next`,
+              `review ${artifact} for defensible reasoning, misconception repair, and evidence that students can transfer the concept forward`,
+            ])
+          : `${details.qualityFocus} for ${artifact}`,
     reviewProtocol: `${details.reviewProtocol} for ${stripLessonPrefix(lesson.title)}.`,
     commonFailure: details.commonFailure,
     revisionMove: lessonVariant(lesson, [
@@ -15193,7 +15200,12 @@ function compileStudyGuides(blueprint) {
                       {
                         question: `For ${specificity.week}, explain why this ${specificity.concept} claim is true and what evidence supports it: “${stripTerminalPunctuation(lesson.enrichment.kernel.facts[0])}.”`,
                         bloomsLevel: 'Analyze',
-                        hint: `Use ${lesson.keyConcepts.slice(0, 2).join(' and ') || 'the lesson concepts'} in your explanation. What would strong work add? Name one observation that backs the claim and connect it to the method decision.`,
+                        hint: lessonVariant(lesson, [
+                          `Use ${lesson.keyConcepts.slice(0, 2).join(' and ') || 'the lesson concepts'} in your explanation. Add one observable detail that supports the claim and explain how it changes the method decision.`,
+                          `Use ${lesson.keyConcepts.slice(0, 2).join(' and ') || 'the lesson concepts'} to test the claim. Point to the evidence students can inspect and name the decision it should affect.`,
+                          `Ground the answer in ${lesson.keyConcepts.slice(0, 2).join(' and ') || 'the lesson concepts'}: identify the source detail, explain the reasoning, and state the next method move.`,
+                          `Connect the claim to one concrete observation from the lesson. Then explain what the observation lets you decide, revise, or rule out.`,
+                        ]),
                       },
                     ]
                   : [
@@ -16943,7 +16955,12 @@ function slideTypeFocus(type, lesson, lens) {
           `Frame the scenario as a decision point where ${concept} changes what counts as usable evidence.`,
         ]),
         evidence: `Pause on the example long enough for students to identify which detail counts as usable ${lens.evidenceNoun} for ${artifact}.`,
-        misconception: `If students jump to recommendations about ${artifact} too early, bring them back to what the ${concept} example actually shows.`,
+        misconception: lessonVariant(lesson, [
+          `If students jump to recommendations about ${artifact} too early, bring them back to what the ${concept} example actually shows.`,
+          `When students rush from example to advice, ask which ${concept} detail is visible and which claim still needs support.`,
+          `If the example becomes a shortcut to a recommendation, pause on the evidence: what did students observe, and what remains uncertain for ${artifact}?`,
+          `When students overextend the scenario, separate the observed ${concept} clue from the recommendation they want to make about ${artifact}.`,
+        ]),
       };
     case 'activity':
       return {
@@ -18505,7 +18522,20 @@ function compileCourseFaq(blueprint, config = {}) {
     }),
     (lesson) => ({
       q: `What does strong work on ${stripLessonPrefix(lesson.title)} look like?`,
-      an: `Strong work on ${lesson.title}: ${joinCriteriaSentence(lesson.successCriteria)} It should be specific enough that another reader can see how ${lesson.throughlineCase?.projectName || lesson.title} evidence about ${lesson.keyConcepts[0] || stripLessonPrefix(lesson.title)} supports the decision. For this ${lesson.artifactGenre?.label || lesson.artifactGenre?.genre || 'artifact'}, also check: ${lesson.artifactGenre?.qualityFocus || 'evidence specificity and revision quality'}. Anchor contrast: ${stripTerminalPunctuation(lesson.assessmentAnchorExamples?.strongSample || 'compare strong and partial evidence examples before submitting')}.`,
+      an: (() => {
+        const qualityCue = lessonVariant(lesson, [
+          lesson.artifactGenre?.qualityFocus || 'evidence specificity and revision quality',
+          'accurate concept use, visible reasoning, misconception correction, and readiness for the next artifact',
+          'a defensible answer, a clear explanation, a corrected weak spot, and a next-step study move',
+          'specific evidence, sound reasoning, corrected confusion, and transfer to the next course task',
+        ]);
+        return lessonVariant(lesson, [
+          `Strong work on ${lesson.title}: ${joinCriteriaSentence(lesson.successCriteria)} It should be specific enough that another reader can see how ${lesson.throughlineCase?.projectName || lesson.title} evidence about ${lesson.keyConcepts[0] || stripLessonPrefix(lesson.title)} supports the decision. For this ${lesson.artifactGenre?.label || lesson.artifactGenre?.genre || 'artifact'}, also check: ${qualityCue}. Anchor contrast: ${stripTerminalPunctuation(lesson.assessmentAnchorExamples?.strongSample || 'compare strong and partial evidence examples before submitting')}.`,
+          `Strong ${lesson.title} work proves the decision, not just the topic: ${joinCriteriaSentence(lesson.successCriteria)} The reader should be able to trace the ${lesson.keyConcepts[0] || stripLessonPrefix(lesson.title)} evidence, the reasoning step, and the revision choice. For this ${lesson.artifactGenre?.label || lesson.artifactGenre?.genre || 'artifact'}, check for ${qualityCue}. Use the anchor contrast to spot what separates complete from partial evidence: ${stripTerminalPunctuation(lesson.assessmentAnchorExamples?.strongSample || 'compare strong and partial evidence examples before submitting')}.`,
+          `A strong answer for ${lesson.title} shows the criteria in action: ${joinCriteriaSentence(lesson.successCriteria)} It names the ${lesson.keyConcepts[0] || stripLessonPrefix(lesson.title)} evidence, explains the method or decision it supports, and makes the artifact-specific quality move visible. For this ${lesson.artifactGenre?.label || lesson.artifactGenre?.genre || 'artifact'}, review whether the work shows ${qualityCue}. The anchor sample should help you compare strong and partial reasoning: ${stripTerminalPunctuation(lesson.assessmentAnchorExamples?.strongSample || 'compare strong and partial evidence examples before submitting')}.`,
+          `For ${lesson.title}, strong work makes the evidence trail inspectable: ${joinCriteriaSentence(lesson.successCriteria)} The submission should show where ${lesson.keyConcepts[0] || stripLessonPrefix(lesson.title)} appears, why that evidence matters, and what decision follows. Check the ${lesson.artifactGenre?.label || lesson.artifactGenre?.genre || 'artifact'} standard for ${qualityCue}. Then compare against the anchor contrast before submitting: ${stripTerminalPunctuation(lesson.assessmentAnchorExamples?.strongSample || 'compare strong and partial evidence examples before submitting')}.`,
+        ]);
+      })(),
       ca: 'Assessment Prep',
       rc: ['rubric criteria', 'anchor examples', ...lesson.keyConcepts.slice(0, 2)],
       df: 'Intermediate',
@@ -18769,7 +18799,12 @@ function buildLessonPlanOutline(blueprint, lesson, { depth = 'flat' } = {}) {
             : `Students draft ${artifact} while using the lesson success criteria, feedback prompts, and exemplar moves as a checklist.`,
       instructorNotes:
         deep && kernelMisconception
-          ? `Conference against the kernel bar for ${artifact}: redirect drafts drifting toward “${stripTerminalPunctuation(kernelMisconception.misconception)}” to the correction — ${stripTerminalPunctuation(kernelMisconception.correction || `in fact, ${kernelMisconception.definition}`)}. ${modality.artifactCheck}`
+          ? lessonVariant(lesson, [
+              `Conference against the kernel bar for ${artifact}: redirect drafts drifting toward “${stripTerminalPunctuation(kernelMisconception.misconception)}” to the correction — ${stripTerminalPunctuation(kernelMisconception.correction || `in fact, ${kernelMisconception.definition}`)}. ${modality.artifactCheck}`,
+              `Use conferences to catch drafts that still assume “${stripTerminalPunctuation(kernelMisconception.misconception)}”; have students revise one line so it reflects ${stripTerminalPunctuation(kernelMisconception.correction || `in fact, ${kernelMisconception.definition}`)}. ${modality.artifactCheck}`,
+              `During spot coaching, ask students to point to the sentence in ${artifact} where the misconception disappears. The corrected idea should read as ${stripTerminalPunctuation(kernelMisconception.correction || `in fact, ${kernelMisconception.definition}`)}. ${modality.artifactCheck}`,
+              `When a draft repeats the tempting idea — “${stripTerminalPunctuation(kernelMisconception.misconception)}” — require one evidence-backed correction before the student moves on: ${stripTerminalPunctuation(kernelMisconception.correction || `in fact, ${kernelMisconception.definition}`)}. ${modality.artifactCheck}`,
+            ])
           : `Conference with students who need support on ${artifact}; redirect them to the exact ${concept} criterion and this modality check: ${modality.artifactCheck}`,
       instructorRole: `Provide targeted feedback on ${artifact} and confirm readiness for submission.`,
       grouping: lessonVariant(lesson, [

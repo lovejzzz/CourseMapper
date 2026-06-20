@@ -1,0 +1,112 @@
+{
+  "version": "0.15.25",
+  "date": "June 20, 2026",
+  "title": "Compiler Texture Pass 2: support-surface tails stop repeating",
+  "status": "verified-current",
+  "proofSummary": {
+    "local": [
+      "npx vitest run src/lib/__tests__/courseBlueprintCompiler.test.js",
+      "npx vitest run src/lib/__tests__/courseBlueprintCompiler.test.js tests/v0155-release-truth-ledger.test.js",
+      "npm run format:check",
+      "npm run lint",
+      "npm run audit:release-history",
+      "npm test",
+      "npm run build",
+      "npm run bundle:check",
+      "npm run audit:gold:smoke",
+      "npm run test:e2e"
+    ],
+    "ciFast": {
+      "status": "pending-push",
+      "note": "Fast verification is claimed only after v0.15.25 is pushed and the GitHub Actions run is attached."
+    },
+    "deploy": {
+      "status": "pending-push",
+      "note": "Pages deploy is not claimed until the pushed release completes its deploy run."
+    },
+    "ciDeep": {
+      "status": "not-used",
+      "note": "This is a narrow compiler-texture patch. Full audit:gold is reserved for broad compiler/generator architecture changes."
+    },
+    "liveProvider": {
+      "status": "local-only",
+      "note": "The release is motivated by a fresh deployed v0.15.24 EduTool.dev ZIP/log audit saved under ignored verification-output/edutool-audit-loop/20260620T053310Z/."
+    },
+    "manualHuman": {
+      "status": "not-applicable",
+      "note": "No external instructor review or approval is claimed by this release."
+    }
+  },
+  "claims": [
+    {
+      "id": "v01525-live-texture-evidence",
+      "status": "verified-current",
+      "changelogHighlightIndex": 0,
+      "summary": "A fresh v0.15.24 EduTool.dev Intro Psychology ZIP/log audit stayed at 99/A only because whole-package texture remained 93/100 despite clean export, no retries, no findings, and voice-surface texture 98->100.",
+      "anchors": ["docs/V0.15.25_COMPILER_TEXTURE_PASS_2_ROADMAP.md"],
+      "proofCommands": [
+        "Manual EduTool.dev ZIP/log audit saved under verification-output/edutool-audit-loop/20260620T053310Z/"
+      ],
+      "proofScopes": ["browser-live", "live-provider", "doc"]
+    },
+    {
+      "id": "v01525-support-surface-evidence",
+      "status": "verified-current",
+      "changelogHighlightIndex": 1,
+      "summary": "The v0.15.24 audit narrowed the remaining texture loss to repeated stock compiler phrases in slide decks, lesson plans, study guides, and Course FAQ while export, retries, findings, and voice-surface texture were clean.",
+      "anchors": [
+        "docs/V0.15.25_COMPILER_TEXTURE_PASS_2_ROADMAP.md",
+        "verification-output/edutool-audit-loop/20260620T053310Z/report.md"
+      ],
+      "proofCommands": [
+        "Manual EduTool.dev ZIP/log audit saved under verification-output/edutool-audit-loop/20260620T053310Z/"
+      ],
+      "proofScopes": ["browser-live", "live-provider", "doc"]
+    },
+    {
+      "id": "v01525-support-surface-variation",
+      "status": "verified-current",
+      "changelogHighlightIndex": 2,
+      "summary": "The compiler now varies the slide-deck example-misconception note, deep lesson-plan kernel conference note, study-guide kernel-fact hint, and checkpoint-response quality-focus phrase.",
+      "anchors": ["src/lib/courseBlueprintCompiler.js"],
+      "proofCommands": ["npx vitest run src/lib/__tests__/courseBlueprintCompiler.test.js"],
+      "proofScopes": ["unit", "compiled-output"]
+    },
+    {
+      "id": "v01525-psychology-texture-regression-expanded",
+      "status": "verified-current",
+      "changelogHighlightIndex": 3,
+      "summary": "Regression coverage now checks the exact repeated shingles from the v0.15.24 downloaded package across slide decks, lesson plans, study guides, and Course FAQ.",
+      "anchors": ["src/lib/__tests__/courseBlueprintCompiler.test.js"],
+      "proofCommands": ["npx vitest run src/lib/__tests__/courseBlueprintCompiler.test.js"],
+      "proofScopes": ["unit", "compiled-output"]
+    },
+    {
+      "id": "v01525-no-score-inflation",
+      "status": "verified-current",
+      "changelogHighlightIndex": 4,
+      "summary": "The release changes compiler phrasing only; it does not weaken texture scoring, hide the 99/100 evidence, or claim live 100/100 before a post-deploy rerun.",
+      "anchors": [
+        "src/lib/courseBlueprintCompiler.js",
+        "docs/V0.15.25_COMPILER_TEXTURE_PASS_2_ROADMAP.md",
+        "verification-output/edutool-audit-loop/20260620T053310Z/report.md"
+      ],
+      "proofCommands": ["npx vitest run src/lib/__tests__/courseBlueprintCompiler.test.js"],
+      "proofScopes": ["unit", "doc"]
+    }
+  ],
+  "carryForward": [
+    {
+      "id": "post-deploy-live-100-proof",
+      "status": "carry-forward",
+      "source": "docs/V0.15.25_COMPILER_TEXTURE_PASS_2_ROADMAP.md",
+      "next": "After Pages deploy, run the EduTool.dev audit loop again and confirm whether the same Psychology prompt reaches 100/100 with no digest caveat and texture at 100."
+    },
+    {
+      "id": "whole-package-texture-repair-pass",
+      "status": "carry-forward",
+      "source": "docs/V0.15.25_COMPILER_TEXTURE_PASS_2_ROADMAP.md",
+      "next": "If deterministic compiler variation still leaves whole-package texture below 100, evaluate a targeted whole-package texture repair pass rather than weakening the grader."
+    }
+  ]
+}

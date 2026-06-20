@@ -2343,10 +2343,14 @@ describe('courseBlueprintCompiler', () => {
       };
     });
 
-    const compiled = compileBlueprintDeliverables(blueprint, ['lessonPlans', 'slideDecks'], {
-      configMap: { lessonPlans: { depth: 'deep' } },
-      enforceCompilerContract: false,
-    });
+    const compiled = compileBlueprintDeliverables(
+      blueprint,
+      ['lessonPlans', 'slideDecks', 'studyGuides', 'courseFaq'],
+      {
+        configMap: { lessonPlans: { depth: 'deep' } },
+        enforceCompilerContract: false,
+      },
+    );
     const deckTexts = compiled.slideDecks.decks.map((deck) =>
       deck.slides
         .map((slide) => `${slide.title || ''} ${(slide.bullets || []).join(' ')} ${slide.notes || ''}`)
@@ -2355,8 +2359,21 @@ describe('courseBlueprintCompiler', () => {
     const planTexts = compiled.lessonPlans.lessonPlans.map((plan) =>
       plan.outline.map((item) => `${item.description || ''} ${item.instructorNotes || ''}`).join(' '),
     );
+    const studyGuideTexts = compiled.studyGuides.studyGuides.map((guide) =>
+      [
+        guide.summary,
+        ...(guide.reviewQuestions || []).map((item) => `${item.question || ''} ${item.hint || ''}`),
+        ...(guide.practiceActivities || []),
+        guide.examPrep?.reviewStrategy,
+      ].join(' '),
+    );
+    const faqTexts = compiled.courseFaq.faqs.map((faq) =>
+      (faq.qs || []).map((item) => `${item.q || ''} ${item.an || ''}`).join(' '),
+    );
     const countDecksWith = (pattern) => deckTexts.filter((text) => pattern.test(text)).length;
     const countPlansWith = (pattern) => planTexts.filter((text) => pattern.test(text)).length;
+    const countStudyGuidesWith = (pattern) => studyGuideTexts.filter((text) => pattern.test(text)).length;
+    const countFaqsWith = (pattern) => faqTexts.filter((text) => pattern.test(text)).length;
 
     expect(countDecksWith(/with a peer before deciding what/i)).toBe(0);
     expect(
@@ -2366,12 +2383,28 @@ describe('courseBlueprintCompiler', () => {
       countDecksWith(/Give students a short work window to revise .* with a partner before the debrief/i),
     ).toBeLessThan(4);
     expect(countDecksWith(/what it reveals about .* and what it does not prove/i)).toBeLessThan(4);
+    expect(countDecksWith(/too early, bring them back to what the .* example actually shows/i)).toBeLessThan(4);
     expect(countPlansWith(/A secure ticket restates the correction in the student.s own words/i)).toBeLessThan(4);
+    expect(countPlansWith(/Conference against the kernel bar for .* redirect drafts drifting toward/i)).toBeLessThan(4);
+    expect(
+      countStudyGuidesWith(/Name one observation that backs the claim and connect it to the method decision/i),
+    ).toBe(0);
+    expect(
+      countFaqsWith(/concept accuracy, retrieval strength, explanation quality, and readiness for the next artifact/i),
+    ).toBeLessThan(4);
 
-    const texture = computeTexture(
-      deckTexts.map((text, index) => ({ id: `deck-${index}`, feature: 'slideDecks', text })),
-    );
-    expect(texture.evidence.map((item) => item.shingle).join('\n')).not.toMatch(/retrieval-to-exam practice cycle/i);
+    const texture = computeTexture([
+      ...deckTexts.map((text, index) => ({ id: `deck-${index}`, feature: 'slideDecks', text })),
+      ...planTexts.map((text, index) => ({ id: `plan-${index}`, feature: 'lessonPlans', text })),
+      ...studyGuideTexts.map((text, index) => ({ id: `guide-${index}`, feature: 'studyGuides', text })),
+      ...faqTexts.map((text, index) => ({ id: `faq-${index}`, feature: 'courseFaq', text })),
+    ]);
+    const evidence = texture.evidence.map((item) => item.shingle).join('\n');
+    expect(evidence).not.toMatch(/retrieval-to-exam practice cycle/i);
+    expect(evidence).not.toMatch(/too early bring them back/i);
+    expect(evidence).not.toMatch(/backs the claim and connect it to/i);
+    expect(evidence).not.toMatch(/readiness for the next artifact/i);
+    expect(evidence).not.toMatch(/redirect drafts drifting/i);
   });
 
   it('decodes capstone project milestones with sponsor constraints and defense readiness', () => {
