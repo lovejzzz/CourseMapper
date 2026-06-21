@@ -181,4 +181,81 @@ describe('source-ledger quality checks', () => {
       ]),
     );
   });
+
+  it('flags complete atom coverage that is not wired to the exported trusted ledger rows', async () => {
+    const result = await grade({
+      fileProvider: createMemoryFileProvider({
+        'PACKAGE_MANIFEST.json': JSON.stringify({
+          courseName: 'Genetics and Society',
+          lessonScope: 'all',
+          requestedFeatures: [],
+          readiness: { status: 'ready', blockers: 0, warnings: 0, checkedSections: null },
+          pipeline: {
+            knowledgeBackbone:
+              '0/4 lessons genome-linked · 9 cited open resources (openalex: 4, openlibrary: 1, source-finder: 4)',
+            nativeAuthoring: 'assembled 4 sessions · CurriculumV1 source 4 lessons',
+          },
+          sourceLedger: [
+            {
+              id: 'kr2',
+              title: 'Current Challenges and New Opportunities for Gene-Environment Interaction Studies',
+              provider: 'openalex',
+              url: 'https://academic.oup.com/aje/article-pdf/186/7/753/24330718/kwx227.pdf',
+              license: 'public-domain',
+            },
+            {
+              id: 'kr4',
+              title: 'The CRISPR tool kit for genome editing and beyond',
+              provider: 'openalex',
+              url: 'https://www.nature.com/articles/s41467-018-04252-2.pdf',
+              license: 'cc-by',
+            },
+            {
+              id: 'sf1',
+              title: 'Wikipedia contributors. DNA.',
+              provider: 'wikipedia',
+              url: 'https://en.wikipedia.org/wiki/DNA',
+              license: 'CC BY-SA 4.0',
+            },
+          ],
+          sourceReviewRows: [
+            {
+              id: 'SL1',
+              title: 'Existing course map fields.',
+              provider: 'courseir',
+              accessStatus: 'no-url-or-doi',
+              licenseAmbiguous: true,
+            },
+          ],
+          courseIR: {
+            sourceRefCoverage: {
+              sourceLedgerRows: 1,
+              totals: { total: 55, withRefs: 55, missing: 0, danglingRefs: 0 },
+              categories: {
+                outcomes: { total: 9, withRefs: 9, missing: 0, danglingRefs: 0 },
+                activities: { total: 14, withRefs: 14, missing: 0, danglingRefs: 0 },
+                examples: { total: 4, withRefs: 4, missing: 0, danglingRefs: 0 },
+                assessments: { total: 4, withRefs: 4, missing: 0, danglingRefs: 0 },
+                rubricCriteria: { total: 12, withRefs: 12, missing: 0, danglingRefs: 0 },
+                factualClaims: { total: 12, withRefs: 12, missing: 0, danglingRefs: 0 },
+              },
+            },
+          },
+          sourceReport: {
+            path: 'SOURCE_REPORT.md',
+            sourceCount: 3,
+            sourceReviewCount: 1,
+          },
+          files: [],
+        }),
+        'SOURCE_REPORT.md': '# Source Report\n\n## Source Ledger\n- kr2: Gene-environment interaction\n',
+      }),
+      course: { title: 'Genetics and Society', featureIds: [] },
+    });
+
+    const details = result.findings.map((finding) => finding.detail);
+    expect(details).toContain(
+      'sourceRef coverage is not wired to trusted source ledger rows: 55 atom(s) report coverage through 1 CourseIR source row(s) while 3 exported source row(s) exist',
+    );
+  });
 });

@@ -30,6 +30,11 @@ function sourceCoverageTotal(coverage) {
   return Object.values(coverage?.categories || {}).reduce((sum, proof) => sum + (Number(proof?.total) || 0), 0);
 }
 
+function sourceCoverageLedgerRows(coverage) {
+  const explicit = Number(coverage?.sourceLedgerRows);
+  return Number.isFinite(explicit) && explicit >= 0 ? explicit : null;
+}
+
 function parseReportedOpenResourceCount(manifest) {
   const pipeline = manifest?.pipeline;
   if (!pipeline || typeof pipeline !== 'object') return null;
@@ -84,6 +89,7 @@ export function checkSourceLedger(findings, { files, manifest }) {
   const reportedOpenResources = parseReportedOpenResourceCount(manifest);
   const exportedSourceRows = ledger.length + review.length;
   const coverageTotal = sourceCoverageTotal(coverage);
+  const coverageLedgerRows = sourceCoverageLedgerRows(coverage);
 
   if (ledger.length === 0 && review.length === 0 && !coverage) {
     findings.add({
@@ -179,6 +185,27 @@ export function checkSourceLedger(findings, { files, manifest }) {
         sourceLedgerRows: ledger.length,
         coverageTotal,
         providers: ledger.map((row) => row.provider).filter(Boolean),
+      }).slice(0, 200),
+    });
+  }
+
+  if (
+    coverageTotal >= 12 &&
+    ledger.length > 1 &&
+    Number.isFinite(coverageLedgerRows) &&
+    coverageLedgerRows <= 1 &&
+    review.length > 0
+  ) {
+    findings.add({
+      severity: 'P1',
+      dimension: 'citations',
+      file: 'PACKAGE_MANIFEST.json',
+      detail: `sourceRef coverage is not wired to trusted source ledger rows: ${coverageTotal} atom(s) report coverage through ${coverageLedgerRows} CourseIR source row(s) while ${ledger.length} exported source row(s) exist`,
+      evidence: JSON.stringify({
+        sourceLedgerRows: ledger.length,
+        courseIrSourceLedgerRows: coverageLedgerRows,
+        sourceReviewRows: review.length,
+        coverageTotal,
       }).slice(0, 200),
     });
   }

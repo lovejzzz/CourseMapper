@@ -3,22 +3,22 @@ import { APP_VERSION } from './appVersion.js';
 export const CURRENT_RELEASE = {
   version: APP_VERSION,
   date: 'June 20, 2026',
-  title: 'Source Proof Fallback: source-backed exports cannot go silent',
-  landingTitle: 'Source Proof Fallback',
+  title: 'Atom SourceRef Truth Gate: complete coverage must wire to trusted rows',
+  landingTitle: 'Atom SourceRef Truth Gate',
   highlights: [
-    'A fresh deployed v0.15.40 Genetics and Society ZIP audit regraded at 99/A with export verified, but proved a source-proof handoff regression: the digest reported CurriculumV1 repair plus five open resources while the ZIP omitted `sourceLedger`, sourceRef coverage, and `SOURCE_REPORT.md`.',
-    'Package export now falls back to a CourseIR-derived source-proof graph only when source-backed pipeline state expects proof and the export graph has no source rows, so the ZIP ships an explicit review receipt instead of going silent.',
-    'The fallback is intentionally not trusted bibliography: URL/DOI/license-free CourseIR rows are quarantined as `sourceReviewRows`, while `SOURCE_REPORT.md` explains the review status and atom sourceRef coverage.',
-    'Focused exporter regression coverage recreates the live missing-ledger shape without weakening source-thinness, review-row, or fake-citation grader checks.',
+    'A fresh deployed v0.15.41 Genetics and Society ZIP audit proved the silent source-report defect was fixed: `SOURCE_REPORT.md` shipped with nine source rows, one review-only row, and 55/55 sourceRef coverage.',
+    'The same audit exposed the next truth gap: atom-level CourseIR coverage still reported 55 atoms through one CourseIR source row while the trusted external source ledger sat beside it.',
+    'The source-ledger grader now flags complete-looking atom sourceRef coverage as P1 when it is not wired to the exported trusted source rows, keeping review-only fallback proof visible.',
+    'Focused regression coverage recreates the live v0.15.41 shape without changing retrieval, source scoring, or license policy.',
   ],
   landingHighlights: [
-    'Source-backed exports always include a source proof report.',
-    'Review-only CourseIR proof stays visibly quarantined.',
-    'The source-quality bar stays strict.',
+    'Complete sourceRef coverage must connect to trusted rows.',
+    'Review-only CourseIR fallback stays visibly lower-trust.',
+    'The source-quality score no longer hides atom wiring gaps.',
   ],
   proof: {
-    contract: 'release-contracts/v0.15.41.json',
-    roadmap: 'docs/V0.15.41_SOURCE_PROOF_FALLBACK_ROADMAP.md',
+    contract: 'release-contracts/v0.15.42.json',
+    roadmap: 'docs/V0.15.42_ATOM_SOURCEREF_TRUTH_GATE_ROADMAP.md',
     auditCommand: 'npm run audit:release-history',
   },
 };
@@ -33,6 +33,17 @@ export const CURRENT_RELEASE_CHANGELOG = {
 };
 
 export const HISTORICAL_RELEASE_CHANGELOGS = [
+  {
+    version: '0.15.41',
+    date: 'June 20, 2026',
+    title: 'Source Proof Fallback: source-backed exports cannot go silent',
+    highlights: [
+      'A fresh deployed v0.15.40 Genetics and Society ZIP audit regraded at 99/A with export verified, but proved a source-proof handoff regression: the digest reported CurriculumV1 repair plus five open resources while the ZIP omitted `sourceLedger`, sourceRef coverage, and `SOURCE_REPORT.md`.',
+      'Package export now falls back to a CourseIR-derived source-proof graph only when source-backed pipeline state expects proof and the export graph has no source rows, so the ZIP ships an explicit review receipt instead of going silent.',
+      'The fallback is intentionally not trusted bibliography: URL/DOI/license-free CourseIR rows are quarantined as `sourceReviewRows`, while `SOURCE_REPORT.md` explains the review status and atom sourceRef coverage.',
+      'Focused exporter regression coverage recreates the live missing-ledger shape without weakening source-thinness, review-row, or fake-citation grader checks.',
+    ],
+  },
   {
     version: '0.15.40',
     date: 'June 20, 2026',
