@@ -3,22 +3,22 @@ import { APP_VERSION } from './appVersion.js';
 export const CURRENT_RELEASE = {
   version: APP_VERSION,
   date: 'June 20, 2026',
-  title: 'Trusted SourceRef Bridge: CourseIR coverage follows concept-linked source rows',
-  landingTitle: 'Trusted SourceRef Bridge',
+  title: 'License-Safe Source Selection: ambiguous metadata stops winning by default',
+  landingTitle: 'License-Safe Source Selection',
   highlights: [
-    'A fresh deployed v0.15.42 Genetics and Society ZIP audit regraded at 97/A and exposed the real source bridge defect: 50 atom sourceRefs reported coverage through one CourseIR row while nine trusted source rows were exported beside it.',
-    'Package export now bridges complete CourseIR sourceRef coverage to the trusted concept-linked source ledger rows when the old CourseIR row is only review fallback proof.',
-    '`PACKAGE_MANIFEST.json` now discloses `courseIR.sourceRefBridge` with trusted row count, concept-linked row count, and replaced review-row count instead of silently rewriting source proof.',
-    'Focused exporter and source-ledger grader regressions recreate the live v0.15.42 shape without changing retrieval, source scoring, or ambiguous-license policy.',
+    'A fresh deployed v0.15.43 Genetics and Society ZIP audit regraded at 98/A and proved the trusted sourceRef bridge worked: 49/49 CourseIR atoms resolved to nine trusted source rows with no P1 findings.',
+    'The same audit isolated the remaining score loss to four P2 license ambiguities, so retrieval now prefers explicit reuse licenses instead of letting generic “open access” metadata win by default.',
+    'OpenAlex normalization now reads best-available OA location license and URL metadata before falling back to primary-location/open-access fields, matching the provider surface instead of guessing.',
+    'Unsolicited OpenLibrary course-book metadata no longer becomes trusted bibliography proof; instructor-named registry books are still enriched without creating a separate license-ambiguous source row.',
   ],
   landingHighlights: [
-    'Complete sourceRef coverage now follows trusted source rows.',
-    'Graph-projected source proof is disclosed in the manifest.',
-    'License ambiguity remains visible instead of being papered over.',
+    'Explicit reuse licenses are preferred during source selection.',
+    'OpenAlex best-OA metadata is preserved in trusted rows.',
+    'Metadata-only book lookups stay out of trusted proof.',
   ],
   proof: {
-    contract: 'release-contracts/v0.15.43.json',
-    roadmap: 'docs/V0.15.43_TRUSTED_SOURCEREF_BRIDGE_ROADMAP.md',
+    contract: 'release-contracts/v0.15.44.json',
+    roadmap: 'docs/V0.15.44_LICENSE_SAFE_SOURCE_SELECTION_ROADMAP.md',
     auditCommand: 'npm run audit:release-history',
   },
 };
@@ -33,6 +33,17 @@ export const CURRENT_RELEASE_CHANGELOG = {
 };
 
 export const HISTORICAL_RELEASE_CHANGELOGS = [
+  {
+    version: '0.15.43',
+    date: 'June 20, 2026',
+    title: 'Trusted SourceRef Bridge: CourseIR coverage follows concept-linked source rows',
+    highlights: [
+      'A fresh deployed v0.15.42 Genetics and Society ZIP audit regraded at 97/A and exposed the real source bridge defect: 50 atom sourceRefs reported coverage through one CourseIR row while nine trusted source rows were exported beside it.',
+      'Package export now bridges complete CourseIR sourceRef coverage to the trusted concept-linked source ledger rows when the old CourseIR row is only review fallback proof.',
+      '`PACKAGE_MANIFEST.json` now discloses `courseIR.sourceRefBridge` with trusted row count, concept-linked row count, and replaced review-row count instead of silently rewriting source proof.',
+      'Focused exporter and source-ledger grader regressions recreate the live v0.15.42 shape without changing retrieval, source scoring, or ambiguous-license policy.',
+    ],
+  },
   {
     version: '0.15.42',
     date: 'June 20, 2026',

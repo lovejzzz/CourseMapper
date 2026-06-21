@@ -406,7 +406,7 @@ describe('A4 retrieval demotion — instructor slots are never displaced', () =>
     expect(graph.resources.filter((resource) => resource.origin === 'openlibrary')).toHaveLength(0);
   });
 
-  it('empty slots still retrieve — existing behavior pinned', async () => {
+  it('empty slots still retrieve without promoting generic OpenLibrary metadata as a trusted source', async () => {
     const graph = deriveCourseGraphFromCourseMap(repairedWorldLitMap({ lesson8Readings: null }));
     const providers = {
       searchScholarlyReadings: vi.fn(async (query) => [passingWorkFor(query)]),
@@ -416,9 +416,8 @@ describe('A4 retrieval demotion — instructor slots are never displaced', () =>
     };
     const attached = await attachOpenReadings(graph, { providers });
     expect(providers.searchScholarlyReadings).toHaveBeenCalledTimes(8);
-    // Without a registry book, the course-level book lookup stays in place.
-    expect(providers.searchBookMetadata).toHaveBeenCalledWith('World Literature', expect.anything());
-    expect(graph.resources.filter((resource) => resource.origin === 'openlibrary')).toHaveLength(1);
+    expect(providers.searchBookMetadata).not.toHaveBeenCalled();
+    expect(graph.resources.filter((resource) => resource.origin === 'openlibrary')).toHaveLength(0);
     expect(attached).toBeGreaterThan(0);
     expect((graph.readingListDecisions || []).filter((d) => d.type === 'slot-filled-by-instructor-reading')).toEqual(
       [],

@@ -256,6 +256,53 @@ describe('source finder mini-shard', () => {
     expect(titles).not.toContain('Driving under the influence');
   }, 15000);
 
+  it('prefers explicit reuse licenses and searches secondary providers when primary hits are license-ambiguous', async () => {
+    const graph = createEmptyCourseGraph({ courseName: 'Genetics and Society' });
+    graph.sessions = [
+      {
+        id: 's1',
+        number: 1,
+        title: 'Lesson 1: DNA',
+        sections: [{ topic: '1.1: DNA inheritance and genes' }],
+      },
+    ];
+
+    const miniShard = await findCourseSources(graph, {
+      storage: memoryStorage(),
+      maxTopics: 1,
+      limitPerTopic: 1,
+      minUsefulSources: 1,
+      providers: {
+        searchScholarlyReadings: vi.fn(async () => [
+          {
+            provider: 'openalex',
+            kind: 'peer-reviewed reading',
+            title: 'DNA inheritance and genes review',
+            authors: 'A. Scholar',
+            year: 2024,
+            url: 'https://example.org/openalex/dna-inheritance',
+            license: 'open access',
+            attribution: 'OpenAlex',
+            abstract: 'A genetics article about DNA, inheritance, genes, chromosomes, and traits.',
+          },
+        ]),
+        searchCrossrefWorks: vi.fn(async () => []),
+        searchWikipediaPages: vi.fn(async () => [
+          source('wikipedia', 'DNA', {
+            abstract: 'A genetics overview of DNA, inheritance, genes, chromosomes, and traits.',
+          }),
+        ]),
+      },
+    });
+
+    expect(miniShard.topics[0].sources).toHaveLength(1);
+    expect(miniShard.topics[0].sources[0]).toMatchObject({
+      provider: 'wikipedia',
+      title: 'DNA',
+      license: 'CC BY-SA 4.0',
+    });
+  }, 15000);
+
   it('attaches top mini-shard sources as graph resources that render into the course map', async () => {
     const graph = sampleGraph();
     const miniShard = await findCourseSources(graph, {

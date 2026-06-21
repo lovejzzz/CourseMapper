@@ -154,28 +154,36 @@ export async function searchScholarlyReadings(query, { limit = 3, signal, anchor
     const url =
       `https://api.openalex.org/works?search=${encodeURIComponent(search)}` +
       `&filter=is_oa:true,is_retracted:false&per_page=${limit}` +
-      `&select=id,display_name,authorships,publication_year,cited_by_count,doi,primary_location,open_access,abstract_inverted_index,primary_topic,topics` +
+      `&select=id,display_name,authorships,publication_year,cited_by_count,doi,primary_location,best_oa_location,open_access,abstract_inverted_index,primary_topic,topics` +
       `&mailto=${OPENALEX_MAILTO}`;
     const json = await cachedFetchJson(`openalex:${search}:${limit}`, url, { signal });
-    return (json.results || []).map((work) => ({
-      provider: 'openalex',
-      kind: 'peer-reviewed reading',
-      title: cleanText(work.display_name),
-      authors: formatAuthorList(
-        (work.authorships || []).map((authorship) => authorship.author?.display_name),
-        (work.authorships || []).length,
-      ),
-      year: work.publication_year || null,
-      citedBy: work.cited_by_count || 0,
-      abstract: abstractFromInvertedIndex(work.abstract_inverted_index),
-      primaryTopic: normalizeOpenAlexTopic(work.primary_topic),
-      topics: (Array.isArray(work.topics) ? work.topics : []).map(normalizeOpenAlexTopic).filter(Boolean).slice(0, 3),
-      url:
-        work.open_access?.oa_url ||
-        (work.doi ? `https://doi.org/${work.doi.replace(/^https?:\/\/doi\.org\//, '')}` : work.id),
-      license: work.primary_location?.license || 'open access',
-      attribution: 'OpenAlex (CC0 metadata)',
-    }));
+    return (json.results || []).map((work) => {
+      const bestOaLocation = work.best_oa_location || {};
+      const primaryLocation = work.primary_location || {};
+      return {
+        provider: 'openalex',
+        kind: 'peer-reviewed reading',
+        title: cleanText(work.display_name),
+        authors: formatAuthorList(
+          (work.authorships || []).map((authorship) => authorship.author?.display_name),
+          (work.authorships || []).length,
+        ),
+        year: work.publication_year || null,
+        citedBy: work.cited_by_count || 0,
+        abstract: abstractFromInvertedIndex(work.abstract_inverted_index),
+        primaryTopic: normalizeOpenAlexTopic(work.primary_topic),
+        topics: (Array.isArray(work.topics) ? work.topics : []).map(normalizeOpenAlexTopic).filter(Boolean).slice(0, 3),
+        url:
+          bestOaLocation.pdf_url ||
+          bestOaLocation.landing_page_url ||
+          work.open_access?.oa_url ||
+          primaryLocation.pdf_url ||
+          primaryLocation.landing_page_url ||
+          (work.doi ? `https://doi.org/${work.doi.replace(/^https?:\/\/doi\.org\//, '')}` : work.id),
+        license: bestOaLocation.license || primaryLocation.license || 'open access',
+        attribution: 'OpenAlex (CC0 metadata)',
+      };
+    });
   } catch {
     return [];
   }

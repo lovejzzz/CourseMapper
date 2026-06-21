@@ -21,6 +21,7 @@
  */
 
 import { searchScholarlyReadings, searchBookMetadata } from './providers.js';
+import { isLicenseAmbiguous } from './sourceLedger.js';
 // V0.14.1 round-2: the same discipline inference the genome linker uses maps
 // the course onto an OpenAlex field/domain allowlist (no import cycle —
 // libraryShardLoader imports nothing from knowledge/).
@@ -744,6 +745,10 @@ function formatScholarlyCitation(work) {
   return `${authors}${year}. ${work.title}. Open-access via ${work.url} (${work.license})`;
 }
 
+function hasExplicitReuseLicense(work) {
+  return !isLicenseAmbiguous(work?.license);
+}
+
 /**
  * Runtime pass: one open-access peer-reviewed reading per session (OpenAlex)
  * and course-level book metadata (Open Library). All fetches run through the
@@ -864,6 +869,7 @@ export async function attachOpenReadings(graph, { providers = {}, signal, maxSes
       .filter((entry) => entry.pass)
       .sort(
         (a, b) =>
+          Number(hasExplicitReuseLicense(b.work)) - Number(hasExplicitReuseLicense(a.work)) ||
           b.score.hits - a.score.hits ||
           Number(b.score.phraseHit) - Number(a.score.phraseHit) ||
           (b.work.citedBy || 0) - (a.work.citedBy || 0),
@@ -935,32 +941,10 @@ export async function attachOpenReadings(graph, { providers = {}, signal, maxSes
     return attached;
   }
 
-  // Course-level book metadata for the syllabus Required Texts / appendix —
-  // a graph-level resource (no section ref; the trust surface renders it).
-  try {
-    const books = await fetchBooks(cleanText(graph.course?.name), { limit: 1, signal });
-    const book = (books || [])[0];
-    if (book?.title) {
-      const citation = `${book.authors || 'Various'}${book.year ? ` (${book.year})` : ''}. ${book.title}.${
-        book.publisher ? ` ${book.publisher}.` : ''
-      }${book.isbn ? ` ISBN ${book.isbn}.` : ''} ${book.url}`;
-      if (!seen.has(citation.toLowerCase())) {
-        graph.resources.push({
-          id: nextId(),
-          citation,
-          kind: 'book',
-          sessionRefs: [],
-          origin: 'openlibrary',
-          url: book.url,
-          license: book.license || 'Open Library public metadata',
-          attribution: book.attribution || 'Open Library, Internet Archive',
-        });
-        attached += 1;
-      }
-    }
-  } catch {
-    /* book metadata is optional */
-  }
+  // Course-level OpenLibrary metadata is intentionally not promoted into a
+  // trusted graph resource. It identifies books, but it does not prove reuse
+  // rights for the material. Instructor-named registry books are still enriched
+  // above without creating a separate trusted bibliography row.
   return attached;
 }
 

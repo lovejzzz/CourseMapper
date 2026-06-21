@@ -25,7 +25,8 @@ const OPENALEX_FIXTURE = {
       publication_year: 2006,
       cited_by_count: 4521,
       doi: 'https://doi.org/10.1111/j.1467-9280.2006.01693.x',
-      primary_location: { license: 'cc-by' },
+      primary_location: { license: 'open access', landing_page_url: 'https://example.org/primary' },
+      best_oa_location: { license: 'cc-by', pdf_url: 'https://example.org/best-oa.pdf' },
       open_access: { oa_url: 'https://example.org/oa.pdf' },
       abstract_inverted_index: { Testing: [0], improves: [1], retention: [2] },
     },
@@ -85,7 +86,7 @@ describe('knowledge providers (P0)', () => {
     const works = await searchScholarlyReadings('retrieval practice');
     expect(works).toHaveLength(1);
     expect(works[0].title).toBe('Test-enhanced learning in the classroom');
-    expect(works[0].url).toBe('https://example.org/oa.pdf');
+    expect(works[0].url).toBe('https://example.org/best-oa.pdf');
     expect(works[0].license).toBe('cc-by');
     expect(works[0].attribution).toContain('OpenAlex');
     expect(works[0].abstract).toContain('Testing improves retention');
@@ -93,6 +94,7 @@ describe('knowledge providers (P0)', () => {
     const url = fetch.mock.calls[0][0];
     expect(url).toContain('mailto=');
     expect(url).toContain('is_retracted:false');
+    expect(url).toContain('best_oa_location');
   });
 
   it('parses ERIC docs and degrades to [] on HTTP failure', async () => {
@@ -192,10 +194,18 @@ describe('reading-list engine (P2)', () => {
     expect(map.lessons[0].sections[0].supportingResources).toContain('CC BY 4.0');
   });
 
-  it('attaches one open reading per session + course book via injected providers', async () => {
+  it('attaches one explicit-license open reading per session without promoting metadata-only books', async () => {
     const graph = genomeLinkedGraph();
     const providers = {
       searchScholarlyReadings: vi.fn(async (query) => [
+        {
+          title: `Generic open-access study of ${query}`,
+          authors: 'A. Researcher',
+          year: 2020,
+          url: 'https://doi.org/10.9999/generic',
+          license: 'open access',
+          attribution: 'OpenAlex (CC0 metadata)',
+        },
         {
           title: `Open study of ${query}`,
           authors: 'A. Researcher',
@@ -217,13 +227,13 @@ describe('reading-list engine (P2)', () => {
       ]),
     };
     const attached = await attachOpenReadings(graph, { providers });
-    expect(attached).toBe(3); // 2 lesson readings + 1 book
+    expect(attached).toBe(2);
     expect(providers.searchScholarlyReadings).toHaveBeenCalledWith('celestial sphere', expect.anything());
     const openalex = graph.resources.filter((resource) => resource.origin === 'openalex');
     expect(openalex).toHaveLength(2);
-    const book = graph.resources.find((resource) => resource.origin === 'openlibrary');
-    expect(book.kind).toBe('book');
-    expect(book.citation).toContain('ISBN 9781938168284');
+    expect(openalex.every((resource) => resource.license === 'cc-by')).toBe(true);
+    expect(graph.resources.filter((resource) => resource.origin === 'openlibrary')).toHaveLength(0);
+    expect(providers.searchBookMetadata).not.toHaveBeenCalled();
   });
 
   it('degrades to zero attachments when providers fail — compile never blocks', async () => {

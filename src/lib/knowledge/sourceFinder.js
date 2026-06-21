@@ -18,6 +18,7 @@ import {
   searchScholarlyReadings,
   searchWikipediaPages,
 } from './providers.js';
+import { isLicenseAmbiguous } from './sourceLedger.js';
 
 export const SOURCE_FINDER_ORIGIN = 'source-finder';
 
@@ -347,7 +348,8 @@ function scoreSource(source, topic) {
   let hits = 0;
   for (const term of queryTerms) if (haystack.has(term)) hits += 1;
   const providerScore = PROVIDER_PRIORITY[source.provider] || 30;
-  return providerScore + hits * 8 + (source.snippet ? 3 : 0) + (source.year ? 1 : 0);
+  const licenseScore = isLicenseAmbiguous(source.license) ? -28 : 28;
+  return providerScore + licenseScore + hits * 8 + (source.snippet ? 3 : 0) + (source.year ? 1 : 0);
 }
 
 function dedupeAndRankSources(rawSources, topic, limit) {
@@ -381,7 +383,7 @@ async function retrieveTopicSources(topic, options = {}) {
   }
 
   let sources = dedupeAndRankSources(rawSources, topic, limitPerTopic);
-  if (sources.length < minUsefulSources) {
+  if (sources.length < minUsefulSources || !sources.some((source) => !isLicenseAmbiguous(source.license))) {
     const secondary = await Promise.allSettled(
       plan.secondary.map(async (name) => callProvider(name, fns[name], topic, { courseName, signal })),
     );
