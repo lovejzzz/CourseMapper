@@ -3,22 +3,22 @@ import { APP_VERSION } from './appVersion.js';
 export const CURRENT_RELEASE = {
   version: APP_VERSION,
   date: 'June 20, 2026',
-  title: 'Atom SourceRef Truth Gate: complete coverage must wire to trusted rows',
-  landingTitle: 'Atom SourceRef Truth Gate',
+  title: 'Trusted SourceRef Bridge: CourseIR coverage follows concept-linked source rows',
+  landingTitle: 'Trusted SourceRef Bridge',
   highlights: [
-    'A fresh deployed v0.15.41 Genetics and Society ZIP audit proved the silent source-report defect was fixed: `SOURCE_REPORT.md` shipped with nine source rows, one review-only row, and 55/55 sourceRef coverage.',
-    'The same audit exposed the next truth gap: atom-level CourseIR coverage still reported 55 atoms through one CourseIR source row while the trusted external source ledger sat beside it.',
-    'The source-ledger grader now flags complete-looking atom sourceRef coverage as P1 when it is not wired to the exported trusted source rows, keeping review-only fallback proof visible.',
-    'Focused regression coverage recreates the live v0.15.41 shape without changing retrieval, source scoring, or license policy.',
+    'A fresh deployed v0.15.42 Genetics and Society ZIP audit regraded at 97/A and exposed the real source bridge defect: 50 atom sourceRefs reported coverage through one CourseIR row while nine trusted source rows were exported beside it.',
+    'Package export now bridges complete CourseIR sourceRef coverage to the trusted concept-linked source ledger rows when the old CourseIR row is only review fallback proof.',
+    '`PACKAGE_MANIFEST.json` now discloses `courseIR.sourceRefBridge` with trusted row count, concept-linked row count, and replaced review-row count instead of silently rewriting source proof.',
+    'Focused exporter and source-ledger grader regressions recreate the live v0.15.42 shape without changing retrieval, source scoring, or ambiguous-license policy.',
   ],
   landingHighlights: [
-    'Complete sourceRef coverage must connect to trusted rows.',
-    'Review-only CourseIR fallback stays visibly lower-trust.',
-    'The source-quality score no longer hides atom wiring gaps.',
+    'Complete sourceRef coverage now follows trusted source rows.',
+    'Graph-projected source proof is disclosed in the manifest.',
+    'License ambiguity remains visible instead of being papered over.',
   ],
   proof: {
-    contract: 'release-contracts/v0.15.42.json',
-    roadmap: 'docs/V0.15.42_ATOM_SOURCEREF_TRUTH_GATE_ROADMAP.md',
+    contract: 'release-contracts/v0.15.43.json',
+    roadmap: 'docs/V0.15.43_TRUSTED_SOURCEREF_BRIDGE_ROADMAP.md',
     auditCommand: 'npm run audit:release-history',
   },
 };
@@ -33,6 +33,17 @@ export const CURRENT_RELEASE_CHANGELOG = {
 };
 
 export const HISTORICAL_RELEASE_CHANGELOGS = [
+  {
+    version: '0.15.42',
+    date: 'June 20, 2026',
+    title: 'Atom SourceRef Truth Gate: complete coverage must wire to trusted rows',
+    highlights: [
+      'A fresh deployed v0.15.41 Genetics and Society ZIP audit proved the silent source-report defect was fixed: `SOURCE_REPORT.md` shipped with nine source rows, one review-only row, and 55/55 sourceRef coverage.',
+      'The same audit exposed the next truth gap: atom-level CourseIR coverage still reported 55 atoms through one CourseIR source row while the trusted external source ledger sat beside it.',
+      'The source-ledger grader now flags complete-looking atom sourceRef coverage as P1 when it is not wired to the exported trusted source rows, keeping review-only fallback proof visible.',
+      'Focused regression coverage recreates the live v0.15.41 shape without changing retrieval, source scoring, or license policy.',
+    ],
+  },
   {
     version: '0.15.41',
     date: 'June 20, 2026',

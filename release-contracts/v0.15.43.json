@@ -1,0 +1,101 @@
+{
+  "version": "0.15.43",
+  "date": "June 20, 2026",
+  "title": "Trusted SourceRef Bridge: CourseIR coverage follows concept-linked source rows",
+  "status": "verified-current",
+  "proofSummary": {
+    "local": [
+      "npm test -- src/lib/__tests__/packageZipExporter.test.js",
+      "npm test -- src/lib/quality/__tests__/sourceLedgerGrader.test.js",
+      "npm run format:check",
+      "npm run lint",
+      "npm test",
+      "npm run audit:gold:smoke",
+      "npm run build",
+      "npm run bundle:check",
+      "npm run audit:release-history",
+      "browser verification"
+    ],
+    "ciFast": {
+      "status": "pending-push",
+      "note": "Fast verification is claimed only after v0.15.43 is pushed and the GitHub Actions run is attached."
+    },
+    "deploy": {
+      "status": "pending-push",
+      "note": "Pages deploy is not claimed until the pushed release completes its deploy run."
+    },
+    "ciDeep": {
+      "status": "local-only",
+      "note": "This is a narrow source-proof export bridge patch, so focused exporter/grader coverage plus audit:gold:smoke are the release gate."
+    },
+    "liveProvider": {
+      "status": "local-only",
+      "note": "The release is based on a fresh deployed v0.15.42 EduTool.dev Genetics and Society ZIP audit saved under verification-output/edutool-audit-loop/20260621T010414Z/."
+    },
+    "manualHuman": {
+      "status": "not-applicable",
+      "note": "No external instructor approval is claimed by this release."
+    }
+  },
+  "claims": [
+    {
+      "id": "v01543-live-genetics-source-bridge-defect",
+      "status": "verified-current",
+      "changelogHighlightIndex": 0,
+      "summary": "A fresh deployed v0.15.42 Genetics and Society ZIP audit regraded at 97/A and showed 50 atom sourceRefs covered through one CourseIR row while nine trusted source rows were exported beside it.",
+      "anchors": ["docs/V0.15.43_TRUSTED_SOURCEREF_BRIDGE_ROADMAP.md"],
+      "proofCommands": [
+        "Manual EduTool.dev ZIP/log audit summarized in docs/V0.15.43_TRUSTED_SOURCEREF_BRIDGE_ROADMAP.md from verification-output/edutool-audit-loop/20260621T010414Z/"
+      ],
+      "proofScopes": ["live-provider", "browser-live", "static-audit"]
+    },
+    {
+      "id": "v01543-trusted-source-ref-bridge",
+      "status": "verified-current",
+      "changelogHighlightIndex": 1,
+      "summary": "Package export bridges complete CourseIR sourceRef coverage to trusted concept-linked source ledger rows when the old CourseIR row is only review fallback proof.",
+      "anchors": ["src/lib/packageZipExporter.js", "src/lib/__tests__/packageZipExporter.test.js"],
+      "proofCommands": ["npm test -- src/lib/__tests__/packageZipExporter.test.js"],
+      "proofScopes": ["unit", "course-graph", "static-audit"]
+    },
+    {
+      "id": "v01543-source-ref-bridge-disclosure",
+      "status": "verified-current",
+      "changelogHighlightIndex": 2,
+      "summary": "The manifest discloses courseIR.sourceRefBridge with trusted row count, concept-linked row count, and replaced review-row count.",
+      "anchors": ["src/lib/packageZipExporter.js", "src/lib/__tests__/packageZipExporter.test.js"],
+      "proofCommands": ["npm test -- src/lib/__tests__/packageZipExporter.test.js"],
+      "proofScopes": ["unit", "static-audit"]
+    },
+    {
+      "id": "v01543-no-license-policy-weakening",
+      "status": "verified-current",
+      "changelogHighlightIndex": 3,
+      "summary": "The patch does not invent licenses, change source scoring, weaken ambiguous-license findings, or lower the source-ledger grader.",
+      "anchors": [
+        "src/lib/packageZipExporter.js",
+        "src/lib/quality/sourceLedgerQualityChecks.js",
+        "src/lib/quality/__tests__/sourceLedgerGrader.test.js"
+      ],
+      "proofCommands": [
+        "npm test -- src/lib/quality/__tests__/sourceLedgerGrader.test.js",
+        "npm run audit:release-history"
+      ],
+      "proofScopes": ["unit", "static-audit"]
+    }
+  ],
+  "carryForward": [
+    {
+      "id": "semantic-atom-source-relevance",
+      "status": "carry-forward",
+      "source": "docs/V0.15.43_TRUSTED_SOURCEREF_BRIDGE_ROADMAP.md",
+      "next": "Move beyond concept-linked graph projection by writing trusted source row ids into the full CurriculumV1/CourseIR atom graph before compilation."
+    },
+    {
+      "id": "source-license-policy",
+      "status": "carry-forward",
+      "source": "docs/V0.15.43_TRUSTED_SOURCEREF_BRIDGE_ROADMAP.md",
+      "next": "Resolve ambiguous OpenAlex/OpenLibrary/license review debt without weakening the grader or inventing licenses."
+    }
+  ]
+}

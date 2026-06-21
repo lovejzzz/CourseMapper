@@ -248,6 +248,14 @@ function buildManifestCourseIRProof(courseGraph, { sourceRefCoverage = null } = 
     if (courseGraph.courseIR.sourceRefCoverage) {
       proof.sourceRefCoverage = courseGraph.courseIR.sourceRefCoverage;
     }
+    if (courseGraph.courseIR.sourceRefBridge) {
+      proof.sourceRefBridge = {
+        source: courseGraph.courseIR.sourceRefBridge.source || '',
+        trustedRows: Number(courseGraph.courseIR.sourceRefBridge.trustedRows) || 0,
+        conceptLinkedRows: Number(courseGraph.courseIR.sourceRefBridge.conceptLinkedRows) || 0,
+        replacedReviewRows: Number(courseGraph.courseIR.sourceRefBridge.replacedReviewRows) || 0,
+      };
+    }
     if (courseGraph.courseIR.nativeAssembly) {
       proof.nativeAssembly = {
         source: courseGraph.courseIR.nativeAssembly.source || '',
@@ -319,6 +327,80 @@ function mergeSourceLedgerBundles(...bundles) {
 
 function hasSourceLedgerRows(bundle) {
   return Boolean((bundle?.rows || []).length || (bundle?.reviewRows || []).length);
+}
+
+function sourceCoverageTotal(coverage) {
+  const explicit = Number(coverage?.totals?.total);
+  if (Number.isFinite(explicit) && explicit > 0) return explicit;
+  return Object.values(coverage?.categories || {}).reduce((sum, category) => sum + (Number(category?.total) || 0), 0);
+}
+
+function sourceCoverageLedgerRows(coverage) {
+  const explicit = Number(coverage?.sourceLedgerRows);
+  return Number.isFinite(explicit) && explicit >= 0 ? explicit : null;
+}
+
+function bridgeCourseIRSourceProofToTrustedLedger(courseGraph, sourceLedgerBundle, sourceRefCoverage) {
+  const trustedRows = sourceLedgerBundle?.rows || [];
+  const reviewRows = sourceLedgerBundle?.reviewRows || [];
+  const coverageTotal = sourceCoverageTotal(sourceRefCoverage);
+  const coverageLedgerRows = sourceCoverageLedgerRows(sourceRefCoverage);
+  const coverageMissing = Number(sourceRefCoverage?.totals?.missing) || 0;
+  const coverageDanglingRefs = Number(sourceRefCoverage?.totals?.danglingRefs) || 0;
+  if (!courseGraph?.courseIR || trustedRows.length <= 1 || coverageTotal <= 0 || coverageLedgerRows === null) {
+    return {
+      courseGraph,
+      sourceLedgerBundle,
+      sourceRefCoverage,
+      bridged: false,
+    };
+  }
+  if (coverageLedgerRows > 1 || reviewRows.length === 0 || coverageMissing > 0 || coverageDanglingRefs > 0) {
+    return {
+      courseGraph,
+      sourceLedgerBundle,
+      sourceRefCoverage,
+      bridged: false,
+    };
+  }
+  const conceptLinkedRows = trustedRows.filter((row) => (row?.conceptLinks || []).length > 0);
+  if (conceptLinkedRows.length === 0) {
+    return {
+      courseGraph,
+      sourceLedgerBundle,
+      sourceRefCoverage,
+      bridged: false,
+    };
+  }
+
+  const nextCoverage = {
+    ...sourceRefCoverage,
+    sourceLedgerRows: trustedRows.length,
+    bridge: {
+      source: 'coursegraph-concept-linked-ledger',
+      trustedRows: trustedRows.length,
+      conceptLinkedRows: conceptLinkedRows.length,
+      replacedReviewRows: reviewRows.length,
+    },
+  };
+  const nextCourseGraph = {
+    ...(courseGraph || {}),
+    courseIR: {
+      ...(courseGraph.courseIR || {}),
+      sourceLedger: trustedRows,
+      sourceRefCoverage: nextCoverage,
+      sourceRefBridge: nextCoverage.bridge,
+    },
+  };
+  return {
+    courseGraph: nextCourseGraph,
+    sourceLedgerBundle: {
+      rows: trustedRows,
+      summary: summarizeSourceLedgerRows(trustedRows),
+    },
+    sourceRefCoverage: nextCoverage,
+    bridged: true,
+  };
 }
 
 async function buildCourseIRSourceProofFallback(courseMap) {
@@ -684,6 +766,14 @@ export async function buildCourseMaterialsZip({
       };
     }
   }
+  const bridgedSourceProof = bridgeCourseIRSourceProofToTrustedLedger(
+    sourceManifestGraph,
+    sourceLedgerBundle,
+    sourceRefCoverage,
+  );
+  sourceManifestGraph = bridgedSourceProof.courseGraph;
+  sourceLedgerBundle = bridgedSourceProof.sourceLedgerBundle;
+  sourceRefCoverage = bridgedSourceProof.sourceRefCoverage;
   const sourceReportMarkdown = buildSourceReportMarkdown({
     courseName: safeCourseName,
     sourceLedger: sourceLedgerBundle,

@@ -324,6 +324,121 @@ describe('packageZipExporter', () => {
     expect(sourceReport).toContain('outcomes: 1/1 with sourceRefs');
   });
 
+  it('bridges complete CourseIR sourceRef coverage to trusted concept-linked ledger rows', async () => {
+    const result = await buildCourseMaterialsZip({
+      courseMap: makeCourseMap('Trusted SourceRef Bridge'),
+      deliverables: {
+        lessonPlans: {
+          status: 'done',
+          data: {
+            lessonPlans: [{ lessonTitle: 'Lesson 1: Genetics Source Truth', objectives: ['Trace sources.'] }],
+          },
+        },
+      },
+      featureIds: ['courseMap', 'lessonPlans'],
+      courseGraph: {
+        concepts: [
+          { id: 'c1', term: 'DNA' },
+          { id: 'c2', term: 'Genetic testing' },
+          { id: 'c3', term: 'CRISPR' },
+        ],
+        sessions: [
+          {
+            id: 's1',
+            number: 1,
+            sections: [
+              { id: 'sec1', topic: 'DNA', conceptRefs: ['c1'], resourceRefs: ['kr1'] },
+              { id: 'sec2', topic: 'Testing', conceptRefs: ['c2'], resourceRefs: ['kr2'] },
+              { id: 'sec3', topic: 'Editing', conceptRefs: ['c3'], resourceRefs: ['sf1'] },
+            ],
+          },
+        ],
+        resources: [
+          {
+            id: 'kr1',
+            title: 'DNA structure and inheritance',
+            origin: 'openalex',
+            kind: 'article',
+            url: 'https://openalex.org/W1',
+            license: 'cc-by',
+            sessionRefs: ['s1'],
+          },
+          {
+            id: 'kr2',
+            title: 'Genetic testing and privacy',
+            origin: 'openalex',
+            kind: 'article',
+            url: 'https://openalex.org/W2',
+            license: 'public-domain',
+            sessionRefs: ['s1'],
+          },
+          {
+            id: 'sf1',
+            title: 'CRISPR genome editing review',
+            origin: 'source-finder',
+            kind: 'source-finder source',
+            url: 'https://example.edu/crispr-review',
+            license: 'cc-by',
+            sessionRefs: ['s1'],
+          },
+        ],
+        readings: [],
+        courseIR: {
+          version: 'courseir.v1',
+          lessonIds: ['L1'],
+          conceptIds: ['C1', 'C2', 'C3'],
+          assessmentIds: ['A1'],
+          sourceLedger: [
+            {
+              id: 'SL1',
+              scope: 'course',
+              status: 'source-provided',
+              evidence: 'Existing course map fields.',
+              provider: 'courseir',
+            },
+          ],
+          sourceRefCoverage: {
+            sourceLedgerRows: 1,
+            categories: {
+              outcomes: { total: 3, withRefs: 3, missing: 0, danglingRefs: 0, missingIds: [] },
+              activities: { total: 3, withRefs: 3, missing: 0, danglingRefs: 0, missingIds: [] },
+              examples: { total: 1, withRefs: 1, missing: 0, danglingRefs: 0, missingIds: [] },
+              assessments: { total: 1, withRefs: 1, missing: 0, danglingRefs: 0, missingIds: [] },
+              rubricCriteria: { total: 2, withRefs: 2, missing: 0, danglingRefs: 0, missingIds: [] },
+              factualClaims: { total: 2, withRefs: 2, missing: 0, danglingRefs: 0, missingIds: [] },
+            },
+            totals: { total: 12, withRefs: 12, missing: 0, danglingRefs: 0 },
+          },
+        },
+      },
+      quality: false,
+    });
+
+    const zip = await JSZip.loadAsync(await result.blob.arrayBuffer());
+    const manifest = JSON.parse(await zip.file('PACKAGE_MANIFEST.json').async('string'));
+    const sourceReport = await zip.file('SOURCE_REPORT.md').async('string');
+
+    expect(manifest.sourceLedger).toHaveLength(3);
+    expect(manifest.sourceReviewRows).toBeUndefined();
+    expect(manifest.sourceReport).toMatchObject({ path: 'SOURCE_REPORT.md', sourceCount: 3 });
+    expect(manifest.sourceReport.sourceReviewCount).toBeUndefined();
+    expect(manifest.courseIR).toMatchObject({
+      sourceLedgerRows: 3,
+      sourceRefBridge: {
+        source: 'coursegraph-concept-linked-ledger',
+        trustedRows: 3,
+        conceptLinkedRows: 3,
+        replacedReviewRows: 1,
+      },
+    });
+    expect(manifest.courseIR.sourceRefCoverage).toMatchObject({
+      sourceLedgerRows: 3,
+      totals: { total: 12, withRefs: 12, missing: 0, danglingRefs: 0 },
+    });
+    expect(sourceReport).toContain('Source Ledger');
+    expect(sourceReport).not.toContain('Source Review Notes');
+  });
+
   it('recovers source report proof from rendered course-map resources when the export graph is sparse', async () => {
     const courseMap = makeCourseMap('Sociology Source Fallback');
     courseMap.lessons[0].sections[0] = {
