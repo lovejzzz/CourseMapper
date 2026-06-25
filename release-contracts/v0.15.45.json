@@ -1,0 +1,100 @@
+{
+  "version": "0.15.45",
+  "date": "June 25, 2026",
+  "title": "Package Review Surface: caveated downloads stop looking clean",
+  "status": "verified-current",
+  "proofSummary": {
+    "local": [
+      "npx vitest run src/components/__tests__/ExportSidePanel.readiness.test.jsx",
+      "npm run format:check",
+      "npm run lint",
+      "npm test",
+      "npm run audit:gold:smoke",
+      "npm run build",
+      "npm run bundle:check",
+      "npm run audit:release-history",
+      "browser verification"
+    ],
+    "ciFast": {
+      "status": "pending-push",
+      "note": "Fast verification is claimed only after v0.15.45 is pushed and the GitHub Actions run is attached."
+    },
+    "deploy": {
+      "status": "pending-push",
+      "note": "Pages deploy is not claimed until the pushed release completes its deploy run."
+    },
+    "ciDeep": {
+      "status": "local-only",
+      "note": "This is a narrow package-readiness UI truth patch, so focused readiness coverage plus audit:gold:smoke are the release gate."
+    },
+    "liveProvider": {
+      "status": "local-only",
+      "note": "The release is based on the user-provided deployed v0.15.44 Project Management ZIP/log audit saved under verification-output/edutool-audit-loop/20260625T144230Z/."
+    },
+    "manualHuman": {
+      "status": "not-applicable",
+      "note": "No external instructor approval is claimed by this release."
+    }
+  },
+  "claims": [
+    {
+      "id": "v01545-live-project-management-review-evidence",
+      "status": "verified-current",
+      "changelogHighlightIndex": 0,
+      "summary": "A real v0.15.44 Project Management package regraded at 96/A with P1/P2 findings and one export warning while the old package card still looked green ready.",
+      "anchors": ["docs/V0.15.45_PACKAGE_REVIEW_SURFACE_ROADMAP.md", "src/components/ExportSidePanel.jsx"],
+      "proofCommands": [
+        "Manual ZIP/log audit summarized in docs/V0.15.45_PACKAGE_REVIEW_SURFACE_ROADMAP.md from verification-output/edutool-audit-loop/20260625T144230Z/"
+      ],
+      "proofScopes": ["live-provider", "browser-live", "static-audit"]
+    },
+    {
+      "id": "v01545-export-warning-receipt-messages",
+      "status": "verified-current",
+      "changelogHighlightIndex": 1,
+      "summary": "Finish-package receipts now keep the first concrete export warning message needed by the package side panel.",
+      "anchors": [
+        "src/AppFlow.jsx",
+        "src/components/ExportSidePanel.jsx",
+        "src/components/__tests__/ExportSidePanel.readiness.test.jsx"
+      ],
+      "proofCommands": ["npx vitest run src/components/__tests__/ExportSidePanel.readiness.test.jsx"],
+      "proofScopes": ["unit", "compiled-output"]
+    },
+    {
+      "id": "v01545-amber-review-before-download",
+      "status": "verified-current",
+      "changelogHighlightIndex": 2,
+      "summary": "The package card now uses amber review state when non-blocking quality, texture, score, or export caveats remain while keeping download available.",
+      "anchors": ["src/components/ExportSidePanel.jsx", "src/components/__tests__/ExportSidePanel.readiness.test.jsx"],
+      "proofCommands": [
+        "npx vitest run src/components/__tests__/ExportSidePanel.readiness.test.jsx",
+        "browser verification"
+      ],
+      "proofScopes": ["unit", "browser-live"]
+    },
+    {
+      "id": "v01545-readiness-regression-caveated-package",
+      "status": "verified-current",
+      "changelogHighlightIndex": 3,
+      "summary": "A regression test recreates the failed live shape so a downloadable 96/A package with 3 P1, 1 P2, texture 92, and one export warning cannot render as clean ready.",
+      "anchors": ["src/components/__tests__/ExportSidePanel.readiness.test.jsx"],
+      "proofCommands": ["npx vitest run src/components/__tests__/ExportSidePanel.readiness.test.jsx"],
+      "proofScopes": ["unit"]
+    }
+  ],
+  "carryForward": [
+    {
+      "id": "project-management-source-ledger-quality",
+      "status": "carry-forward",
+      "source": "docs/V0.15.45_PACKAGE_REVIEW_SURFACE_ROADMAP.md",
+      "next": "Fix the source-ledger/research bridge and prompt-artifact content leakage that kept the Project Management package at 96/A."
+    },
+    {
+      "id": "course-map-stage-checkmark-semantics",
+      "status": "carry-forward",
+      "source": "docs/V0.15.45_PACKAGE_REVIEW_SURFACE_ROADMAP.md",
+      "next": "Refine in-progress stage checkmarks so a draft Course Map cannot look complete while enrichment/compile steps are still running."
+    }
+  ]
+}

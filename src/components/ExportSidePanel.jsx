@@ -307,18 +307,105 @@ function getDownloadReadiness(readiness) {
   };
 }
 
-function ReadinessPanel({ readiness, onIssueClick, quality = null, onOpenQuality = null, finishSummary = '' }) {
+function plural(count, singular, pluralValue = `${singular}s`) {
+  return `${count} ${count === 1 ? singular : pluralValue}`;
+}
+
+function severityCount(count, label) {
+  return `${count} ${label}`;
+}
+
+function buildQualityReviewIssue(quality) {
+  if (quality?.status !== 'graded') return null;
+  const counts = quality.findingCounts || {};
+  const p0 = Number(counts.p0) || 0;
+  const p1 = Number(counts.p1) || 0;
+  const p2 = Number(counts.p2) || 0;
+  const findingCount = p0 + p1 + p2;
+  const score = Number(quality.score);
+  const textureScore = Number(quality.texture?.score);
+  const scoreNeedsReview = Number.isFinite(score) && score < 100;
+  const textureNeedsReview = Number.isFinite(textureScore) && textureScore < 100;
+  if (findingCount === 0 && !scoreNeedsReview && !textureNeedsReview) return null;
+
+  const parts = [];
+  if (p0 > 0) parts.push(severityCount(p0, 'P0'));
+  if (p1 > 0) parts.push(severityCount(p1, 'P1'));
+  if (p2 > 0) parts.push(severityCount(p2, 'P2'));
+  if (findingCount === 0 && scoreNeedsReview) parts.push(`quality ${score}/100`);
+  if (textureNeedsReview) parts.push(`texture ${textureScore}/100`);
+
+  return {
+    label: 'Quality',
+    message: `${parts.join(' · ')} remain; open the quality report before publishing.`,
+    count: findingCount || 1,
+    severity: p0 > 0 ? 'blocker' : 'warning',
+  };
+}
+
+function buildExportWarningIssues(packageReceipt) {
+  if (packageReceipt?.exportWarning) {
+    return [
+      {
+        label: 'Export warning',
+        message: packageReceipt.exportWarning,
+        severity: 'warning',
+      },
+    ];
+  }
+  const warnings = Array.isArray(packageReceipt?.exportWarnings) ? packageReceipt.exportWarnings : [];
+  if (warnings.length > 0) {
+    return warnings.slice(0, 3).map((warning) => ({
+      label: warning.label || FEATURE_LABELS[warning.featureId] || 'Export warning',
+      message: warning.message || 'Export verification found a warning.',
+      severity: 'warning',
+    }));
+  }
+  const warningCount = Number(packageReceipt?.exportWarningCount) || 0;
+  if (warningCount <= 0) return [];
+  return [
+    {
+      label: 'Export warning',
+      message: `${plural(warningCount, 'warning')} found; review the package report before publishing.`,
+      severity: 'warning',
+    },
+  ];
+}
+
+function summarizeReviewMeta({ qualityIssue, exportIssues }) {
+  const parts = [];
+  if (qualityIssue) parts.push(plural(qualityIssue.count, 'quality issue'));
+  if (exportIssues.length > 0) parts.push(plural(exportIssues.length, 'export warning'));
+  return parts.join(' · ');
+}
+
+function ReadinessPanel({
+  readiness,
+  onIssueClick,
+  quality = null,
+  onOpenQuality = null,
+  finishSummary = '',
+  packageReceipt = null,
+}) {
   if (!readiness || readiness.featureCount === 0) return null;
 
-  const isBlocked = readiness.blockers.length > 0;
-  const hasWarnings = readiness.warnings.length > 0;
-  const issuesToShow = isBlocked ? readiness.blockers.slice(0, 3) : readiness.warnings.slice(0, 3);
+  const qualityIssue = buildQualityReviewIssue(quality);
+  const exportIssues = buildExportWarningIssues(packageReceipt);
+  const packageReviewIssues = [qualityIssue, ...exportIssues].filter(Boolean);
+  const isBlocked = readiness.blockers.length > 0 || qualityIssue?.severity === 'blocker';
+  const hasWarnings = readiness.warnings.length > 0 || packageReviewIssues.length > 0;
+  const issuesToShow = isBlocked
+    ? [...readiness.blockers, ...(qualityIssue?.severity === 'blocker' ? [qualityIssue] : [])].slice(0, 3)
+    : [...readiness.warnings, ...packageReviewIssues].slice(0, 3);
+  const hasPackageOnlyReview = packageReviewIssues.length > 0 && readiness.warnings.length === 0;
   const helperText =
     issuesToShow.length === 0
       ? summarizeReadiness(readiness)
       : isBlocked
         ? 'Finish package fixes safe items and stops for decisions.'
-        : 'Finish package retries safe fixes before export.';
+        : hasPackageOnlyReview
+          ? 'Download is available, but review these caveats before publishing.'
+          : 'Finish package retries safe fixes before export.';
   const canNavigate = (issue) => typeof onIssueClick === 'function' && issue?.target;
   const tone = isBlocked
     ? {
@@ -331,8 +418,10 @@ function ReadinessPanel({ readiness, onIssueClick, quality = null, onOpenQuality
       ? {
           wrap: 'border-amber-100 bg-amber-50/70 text-amber-700',
           icon: 'bg-amber-100 text-amber-600',
-          title: 'Finish package',
-          meta: `${readiness.warnings.length} issue${readiness.warnings.length === 1 ? '' : 's'} to fix`,
+          title: 'Review before download',
+          meta:
+            summarizeReviewMeta({ qualityIssue, exportIssues }) ||
+            `${readiness.warnings.length} issue${readiness.warnings.length === 1 ? '' : 's'} to fix`,
         }
       : {
           wrap: 'border-emerald-100 bg-emerald-50/70 text-emerald-700',
@@ -357,7 +446,7 @@ function ReadinessPanel({ readiness, onIssueClick, quality = null, onOpenQuality
             <span className="text-xs font-semibold opacity-70">{tone.meta}</span>
             {/* v0.14.4 WS-B2: the download card carries the compact grade
                 stamp; the full chip lives in the workspace header. */}
-            {!isBlocked && !hasWarnings && <QualityStamp quality={quality} onOpen={onOpenQuality} />}
+            {!isBlocked && <QualityStamp quality={quality} onOpen={onOpenQuality} />}
           </div>
           {/* v0.14.6 calm pass: when everything is green the ✓ + meta already
               say it — restating "All selected materials passed…" was noise. */}
@@ -1337,6 +1426,7 @@ export default function ExportSidePanel({
             quality={packageQualityPass?.quality || null}
             onOpenQuality={() => setQualityModalOpen(true)}
             finishSummary={finishSummary}
+            packageReceipt={packageQualityPass?.receipt || null}
           />
         )}
 

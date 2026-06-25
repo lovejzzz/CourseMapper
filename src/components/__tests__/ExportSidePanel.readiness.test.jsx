@@ -29,16 +29,37 @@ const courseMapWithObjectiveStem = {
   ],
 };
 
+const cleanCourseMap = {
+  courseName: 'Review Surface Course',
+  lessons: [
+    {
+      title: 'Lesson 1: Export Readiness',
+      sections: [
+        {
+          learningGoals: 'Evaluate readiness before export.',
+          topicSection: 'Readiness checks',
+          learningObjectives: 'Explain export readiness blockers.',
+          weeklyAssessments: 'Readiness checkpoint',
+          asyncActivities: 'Review the export notes.',
+          syncActivities: 'Discuss blocker repair options.',
+        },
+      ],
+    },
+  ],
+};
+
 function ExportPanelHarness({
   isPackageGenerationRunning = false,
   onAutoRepairReadiness = vi.fn(),
   preferPackageScope = false,
+  courseMapInput = courseMapWithObjectiveStem,
+  packageQualityPass = { status: 'idle', message: '' },
 }) {
   const { courseMap, setCourseMap, setSelectedFeatures, setColumns } = useCourse();
   const [ready, setReady] = useState(false);
 
   useEffect(() => {
-    setCourseMap(courseMapWithObjectiveStem);
+    setCourseMap(courseMapInput);
     setSelectedFeatures(['courseMap']);
     setColumns([
       { key: 'learningGoals', label: 'Learning Goals', enabled: true },
@@ -49,7 +70,7 @@ function ExportPanelHarness({
       { key: 'syncActivities', label: 'Sync Activities', enabled: true },
     ]);
     setReady(true);
-  }, [setColumns, setCourseMap, setSelectedFeatures]);
+  }, [courseMapInput, setColumns, setCourseMap, setSelectedFeatures]);
 
   if (!ready || !courseMap) return null;
 
@@ -64,7 +85,7 @@ function ExportPanelHarness({
       onAutoRepairReadiness={onAutoRepairReadiness}
       onFinishPackage={vi.fn()}
       canFinishPackage={false}
-      packageQualityPass={{ status: 'idle', message: '' }}
+      packageQualityPass={packageQualityPass}
       isPackageGenerationRunning={isPackageGenerationRunning}
       preferPackageScope={preferPackageScope}
     />
@@ -137,5 +158,38 @@ describe('ExportSidePanel readiness repair timing', () => {
       selectedFeatureIds: ['courseMap'],
       lessonFilter: null,
     });
+  });
+
+  it('uses amber review state when a downloadable package has quality and export caveats', async () => {
+    await renderPanel({
+      courseMapInput: cleanCourseMap,
+      preferPackageScope: true,
+      packageQualityPass: {
+        status: 'ready',
+        blockers: 0,
+        warnings: 0,
+        repairsApplied: 0,
+        receipt: {
+          exportWarningCount: 1,
+          exportWarning: 'PPTX export generated, but rendered text repeats one phrase 22 times.',
+        },
+        quality: {
+          status: 'graded',
+          score: 96,
+          grade: 'A',
+          findingCounts: { p0: 0, p1: 3, p2: 1 },
+          texture: { score: 92 },
+        },
+      },
+    });
+
+    const panel = container.querySelector('[data-testid="readiness-panel"]');
+    expect(panel?.textContent).toContain('Review before download');
+    expect(panel?.textContent).toContain('4 quality issues');
+    expect(panel?.textContent).toContain('1 export warning');
+    expect(panel?.textContent).toContain('3 P1 · 1 P2');
+    expect(panel?.textContent).toContain('PPTX export generated');
+    expect(container.querySelector('[data-testid="quality-stamp"]')?.textContent).toContain('96 · A');
+    expect(container.querySelector('[data-testid="export-download-zip"]')?.disabled).toBe(false);
   });
 });

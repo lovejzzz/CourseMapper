@@ -2,23 +2,23 @@ import { APP_VERSION } from './appVersion.js';
 
 export const CURRENT_RELEASE = {
   version: APP_VERSION,
-  date: 'June 20, 2026',
-  title: 'License-Safe Source Selection: ambiguous metadata stops winning by default',
-  landingTitle: 'License-Safe Source Selection',
+  date: 'June 25, 2026',
+  title: 'Package Review Surface: caveated downloads stop looking clean',
+  landingTitle: 'Package Review Surface',
   highlights: [
-    'A fresh deployed v0.15.43 Genetics and Society ZIP audit regraded at 98/A and proved the trusted sourceRef bridge worked: 49/49 CourseIR atoms resolved to nine trusted source rows with no P1 findings.',
-    'The same audit isolated the remaining score loss to four P2 license ambiguities, so retrieval now prefers explicit reuse licenses instead of letting generic “open access” metadata win by default.',
-    'OpenAlex normalization now reads best-available OA location license and URL metadata before falling back to primary-location/open-access fields, matching the provider surface instead of guessing.',
-    'Unsolicited OpenLibrary course-book metadata no longer becomes trusted bibliography proof; instructor-named registry books are still enriched without creating a separate license-ambiguous source row.',
+    'A fresh deployed v0.15.44 Project Management ZIP/log audit regraded at 96/A with three P1 findings, one P2 finding, and one PPTX export warning; the old UI still presented the package as green ready.',
+    'Finish-package receipts now preserve the first concrete export warning message, so the side panel can name the slide/deck problem instead of hiding it behind a count.',
+    'Download remains available for non-blocking caveats, but the package card now switches to an amber “Review before download” state whenever quality findings, score loss, texture loss, or export warnings remain.',
+    'Focused readiness coverage pins the mixed state that failed live: a downloadable 96/A package with 3 P1, 1 P2, texture 92, and a slide-deck export warning no longer looks complete.',
   ],
   landingHighlights: [
-    'Explicit reuse licenses are preferred during source selection.',
-    'OpenAlex best-OA metadata is preserved in trusted rows.',
-    'Metadata-only book lookups stay out of trusted proof.',
+    'Caveated packages show review status before download.',
+    'Export warning messages survive into the UI receipt.',
+    'Quality and texture losses stay visible on the package card.',
   ],
   proof: {
-    contract: 'release-contracts/v0.15.44.json',
-    roadmap: 'docs/V0.15.44_LICENSE_SAFE_SOURCE_SELECTION_ROADMAP.md',
+    contract: 'release-contracts/v0.15.45.json',
+    roadmap: 'docs/V0.15.45_PACKAGE_REVIEW_SURFACE_ROADMAP.md',
     auditCommand: 'npm run audit:release-history',
   },
 };
@@ -33,6 +33,17 @@ export const CURRENT_RELEASE_CHANGELOG = {
 };
 
 export const HISTORICAL_RELEASE_CHANGELOGS = [
+  {
+    version: '0.15.44',
+    date: 'June 20, 2026',
+    title: 'License-Safe Source Selection: ambiguous metadata stops winning by default',
+    highlights: [
+      'A fresh deployed v0.15.43 Genetics and Society ZIP audit regraded at 98/A and proved the trusted sourceRef bridge worked: 49/49 CourseIR atoms resolved to nine trusted source rows with no P1 findings.',
+      'The same audit isolated the remaining score loss to four P2 license ambiguities, so retrieval now prefers explicit reuse licenses instead of letting generic “open access” metadata win by default.',
+      'OpenAlex normalization now reads best-available OA location license and URL metadata before falling back to primary-location/open-access fields, matching the provider surface instead of guessing.',
+      'Unsolicited OpenLibrary course-book metadata no longer becomes trusted bibliography proof; instructor-named registry books are still enriched without creating a separate license-ambiguous source row.',
+    ],
+  },
   {
     version: '0.15.43',
     date: 'June 20, 2026',

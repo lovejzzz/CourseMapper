@@ -165,6 +165,7 @@ function buildQualityReceipt({
   const readiness = result?.readiness || {};
   const blockers = Array.isArray(readiness.blockers) ? readiness.blockers : [];
   const warnings = Array.isArray(readiness.warnings) ? readiness.warnings : [];
+  const exportWarning = (exportVerification?.checks || []).find((check) => check.status === 'warning');
   const topIssues = [...blockers, ...(includeWarnings ? warnings : [])]
     .map(summarizeReceiptIssue)
     .filter(Boolean)
@@ -173,7 +174,6 @@ function buildQualityReceipt({
   const repairSummary = summarizeRepairEvidence(result?.repairs || []);
   const humanDecisionCount = blockers.length + (includeWarnings ? warnings.length : 0);
   return {
-    checkedItems: ['Readiness', 'classroom fit', 'content validation', 'export files'],
     checkedSections: checkedFeatureCount > 0 ? `${checkedFeatureCount}/${checkedFeatureCount}` : '',
     lessonCount: courseMap?.lessons?.length || 0,
     autoFixedCount: repairsApplied,
@@ -182,6 +182,7 @@ function buildQualityReceipt({
     exportChecked: exportVerification?.checked || 0,
     exportFailed: exportVerification?.failed || 0,
     exportWarningCount: exportVerification?.warningCount || 0,
+    exportWarning: exportWarning?.message || '',
     repairSummary,
     trustBoundary: buildPackageTrustBoundarySummary({
       lessonCount: courseMap?.lessons?.length || 0,
