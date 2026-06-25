@@ -57,13 +57,27 @@ function extractDoi(value) {
   return match ? match[1] : '';
 }
 
-function extractLicense(value) {
+function normalizeLicense(value, { preserveUnknown = false } = {}) {
   const text = cleanText(value, 1000);
-  const cc = text.match(/\bCC\s+BY(?:-[A-Z]+)*(?:\s+\d\.\d)?\b/i);
-  if (cc) return cc[0].replace(/\s+/g, ' ').toUpperCase();
+  const cc = text.match(/\bCC[-_\s]+BY(?:[-_\s]+(?:NC|ND|SA))*(?:[-_\s]+\d(?:\.\d)?)?\b/i);
+  if (cc) {
+    const raw = cc[0]
+      .replace(/_/g, '-')
+      .replace(/\s*-\s*/g, '-')
+      .replace(/\s+/g, ' ')
+      .trim()
+      .toUpperCase();
+    const flags = [...raw.matchAll(/\b(?:NC|ND|SA)\b/g)].map((match) => match[0]);
+    const version = raw.match(/\b\d(?:\.\d)?\b/)?.[0] || '';
+    return `CC BY${flags.length ? `-${flags.join('-')}` : ''}${version ? ` ${version}` : ''}`;
+  }
   if (/\bpublic domain\b/i.test(text)) return 'public domain';
   if (/\bopen access\b/i.test(text)) return 'open access';
-  return '';
+  return preserveUnknown ? cleanText(value, 180) : '';
+}
+
+function extractLicense(value) {
+  return normalizeLicense(value);
 }
 
 function normalizeDoi(value) {
@@ -192,7 +206,10 @@ export function normalizeTrustedSource(entry = {}, { fallbackId = '', checkedAt 
   const doi = normalizeDoi(entry.doi || extractDoi(sourceText));
   const url = cleanUrl(entry.url || entry.sourceUrl) || extractUrl(sourceText) || (doi ? `https://doi.org/${doi}` : '');
   const title = cleanText(entry.title || entry.displayTitle || entry.citation || entry.evidence || entry.scope, 260);
-  const license = cleanText(entry.license || entry.rights || entry.licenseUrl || extractLicense(sourceText), 180);
+  const explicitLicense = cleanText(entry.license || entry.rights || entry.licenseUrl, 180);
+  const license = explicitLicense
+    ? normalizeLicense(explicitLicense, { preserveUnknown: true })
+    : extractLicense(sourceText);
   const source = {
     id: sourceId(entry, fallbackId, 0),
     title,

@@ -39,6 +39,7 @@ describe('trusted source ledger', () => {
     expect(openAlex).toMatchObject({
       provider: 'openalex',
       doi: '10.1000/calculus',
+      license: 'CC BY',
       accessStatus: 'reference-present',
       trustLevel: 'academic-metadata',
       licenseAmbiguous: false,
@@ -81,6 +82,33 @@ describe('trusted source ledger', () => {
       accessStatus: 'reference-present',
       trustLevel: 'open-educational-resource',
     });
+  });
+
+  it('normalizes hyphenated Creative Commons licenses recovered from source text', () => {
+    const ledger = buildSourceLedgerFromCourseGraph({
+      sessions: [{ id: 's1', number: 1, sections: [{ topic: 'Scope definition', resourceRefs: ['r1', 'r2'] }] }],
+      resources: [
+        {
+          id: 'r1',
+          origin: 'syllabus',
+          citation: 'OpenAlex - Scope Management, DOI: 10.1002/example (cc-by)',
+          sessionRefs: [1],
+        },
+        {
+          id: 'r2',
+          origin: 'syllabus',
+          citation: 'OpenStax Example, https://openstax.org/books/example, CC BY-NC-SA 4.0',
+          sessionRefs: [1],
+        },
+      ],
+    });
+
+    expect(ledger.rows).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ id: 'r1', license: 'CC BY', licenseAmbiguous: false }),
+        expect.objectContaining({ id: 'r2', license: 'CC BY-NC-SA 4.0', licenseAmbiguous: false }),
+      ]),
+    );
   });
 
   it('does not promote package labels or placeholder course-map resources into source rows', () => {

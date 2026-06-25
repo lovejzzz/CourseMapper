@@ -3,22 +3,22 @@ import { APP_VERSION } from './appVersion.js';
 export const CURRENT_RELEASE = {
   version: APP_VERSION,
   date: 'June 25, 2026',
-  title: 'Course Map Tab Truth: draft maps stop wearing ready checks',
-  landingTitle: 'Course Map Tab Truth',
+  title: 'Source Ledger Recovery: syllabus sources bridge CourseIR proof',
+  landingTitle: 'Source Ledger Recovery',
   highlights: [
-    'A live EduTool.dev Project Management screenshot exposed a phase-truth bug: the Course Map tab showed a green ready check while enrichment was still running and the visible map still had unfinished cells.',
-    'The Course Map tab ready tick now requires the build ribbon grade step to be done and the package quality pass to be ready.',
-    'Focused ribbon/tab coverage pins the exact predicate so future tab-status cleanups cannot regress to “map streamed” equals “map complete.”',
-    'The release keeps v0.15.45’s package-review surface intact: caveated packages can be downloadable, but they still show amber review state instead of clean green readiness.',
+    'A fresh Project Management ZIP/log audit showed the real 96/A quality loss: the run retrieved 19 open resources, but the ZIP exported zero trusted source rows and fell back to one CourseIR review row.',
+    'Package export now recovers concrete URL/DOI source rows from structured syllabus weekly readings when graph proof is sparse, attaches them to the matching lesson concepts, and lets complete CourseIR sourceRef coverage bridge to those trusted rows.',
+    'Course FAQ rendering now treats “Existing course map fields” and related source-review placeholders as unsafe evidence cues, and no longer emits internal “rubric criteria” / “anchor examples” labels as related lesson concepts.',
+    'The recorded browser-quality loop now asserts that Course Map cannot show a ready tick while the build ribbon is unfinished, and that caveated packages use amber “Review before download” state instead of clean green readiness.',
   ],
   landingHighlights: [
-    'Course Map tabs stop showing ready checks during active builds.',
-    'Tab readiness follows the same ribbon grade/package phase truth.',
-    'Caveated package review state remains visible before download.',
+    'Syllabus weekly readings can recover trusted source-ledger rows.',
+    'Course FAQ answers stop leaking source-review placeholders.',
+    'Recorded browser workflow checks tab truth and caveated package color.',
   ],
   proof: {
-    contract: 'release-contracts/v0.15.46.json',
-    roadmap: 'docs/V0.15.46_COURSE_MAP_TAB_TRUTH_ROADMAP.md',
+    contract: 'release-contracts/v0.15.47.json',
+    roadmap: 'docs/V0.15.47_SOURCE_LEDGER_RECOVERY_ROADMAP.md',
     auditCommand: 'npm run audit:release-history',
   },
 };
@@ -33,6 +33,17 @@ export const CURRENT_RELEASE_CHANGELOG = {
 };
 
 export const HISTORICAL_RELEASE_CHANGELOGS = [
+  {
+    version: '0.15.46',
+    date: 'June 25, 2026',
+    title: 'Course Map Tab Truth: draft maps stop wearing ready checks',
+    highlights: [
+      'A live EduTool.dev Project Management screenshot exposed a phase-truth bug: the Course Map tab showed a green ready check while enrichment was still running and the visible map still had unfinished cells.',
+      'The Course Map tab ready tick now requires the build ribbon grade step to be done and the package quality pass to be ready.',
+      'Focused ribbon/tab coverage pins the exact predicate so future tab-status cleanups cannot regress to “map streamed” equals “map complete.”',
+      'The release keeps v0.15.45’s package-review surface intact: caveated packages can be downloadable, but they still show amber review state instead of clean green readiness.',
+    ],
+  },
   {
     version: '0.15.45',
     date: 'June 25, 2026',

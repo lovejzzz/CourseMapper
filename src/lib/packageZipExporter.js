@@ -443,6 +443,90 @@ function pipelineExpectsSourceLedgerProof(pipelineState) {
   );
 }
 
+function cleanSourceText(value, maxLength = 1200) {
+  const text = String(value ?? '')
+    .replace(/<[^>]+>/g, ' ')
+    .replace(/&nbsp;/g, ' ')
+    .replace(/&amp;/g, '&')
+    .replace(/\s+/g, ' ')
+    .trim();
+  if (!text) return '';
+  return text.length > maxLength
+    ? text
+        .slice(0, maxLength)
+        .replace(/\s+\S*$/, '')
+        .trim()
+    : text;
+}
+
+function unwrapSyllabusDeliverable(deliverables) {
+  const data = deliverables?.syllabus?.data;
+  if (!data || typeof data !== 'object') return null;
+  return data.syllabus && typeof data.syllabus === 'object' ? data.syllabus : data;
+}
+
+function weekNumberFromScheduleRow(row) {
+  const explicit = Number(row?.weekNumber || row?.lessonNumber);
+  if (Number.isInteger(explicit) && explicit > 0) return explicit;
+  const match = cleanSourceText(row?.week || row?.dates || '', 80).match(/\b(?:week|lesson)\s*(\d+)\b/i);
+  return match ? Number(match[1]) : null;
+}
+
+const WEEKLY_SOURCE_SIGNAL_RE =
+  /\b(?:openalex|openstax|open library|openlibrary|eric|crossref|wikipedia|doi|open-access via|cc\s+by|https?:\/\/)\b/i;
+const WEEKLY_SOURCE_PLACEHOLDER_RE =
+  /^(?:existing course map fields?|course materials students need|worked examples,\s*readings,\s*or activity sheets|instructor-approved readings,\s*examples,\s*or lab materials|constraint:|prerequisite concept:|map:|classify:|build:|solve:|draw:|estimate:|brainstorm:|compare:|inspect:|list:|integrate:)/i;
+
+function splitWeeklySourceEntries(value) {
+  const text = cleanSourceText(value, 8000);
+  if (!text) return [];
+  return text
+    .split(/\s*;\s*/)
+    .map((entry) => cleanSourceText(entry, 1400))
+    .filter((entry) => entry && WEEKLY_SOURCE_SIGNAL_RE.test(entry) && !WEEKLY_SOURCE_PLACEHOLDER_RE.test(entry));
+}
+
+function addResourceToLesson(graph, resource, lessonNumber) {
+  if (!graph || !resource?.id) return;
+  if (!Array.isArray(graph.resources)) graph.resources = [];
+  graph.resources.push(resource);
+  const session = (graph.sessions || []).find((entry) => entry?.number === lessonNumber);
+  const section = session?.sections?.[0];
+  if (!section) return;
+  if (!Array.isArray(section.resourceRefs)) section.resourceRefs = [];
+  if (!section.resourceRefs.includes(resource.id)) section.resourceRefs.push(resource.id);
+}
+
+function buildSourceLedgerFromSyllabusSchedule(courseGraph, deliverables, { checkedAt = '' } = {}) {
+  const syllabus = unwrapSyllabusDeliverable(deliverables);
+  const schedule = Array.isArray(syllabus?.weeklySchedule) ? syllabus.weeklySchedule : [];
+  if (schedule.length === 0) return null;
+  const graph = JSON.parse(JSON.stringify(courseGraph || { sessions: [], resources: [] }));
+  if (!Array.isArray(graph.resources)) graph.resources = [];
+  let count = 0;
+  for (const row of schedule) {
+    const lessonNumber = weekNumberFromScheduleRow(row);
+    if (!lessonNumber) continue;
+    for (const entry of splitWeeklySourceEntries(row?.readings)) {
+      count += 1;
+      addResourceToLesson(
+        graph,
+        {
+          id: `syllabus-src-${lessonNumber}-${count}`,
+          citation: entry,
+          title: entry,
+          origin: 'syllabus',
+          kind: 'weekly reading',
+          sessionRefs: [lessonNumber],
+        },
+        lessonNumber,
+      );
+    }
+  }
+  if (count === 0) return null;
+  return buildSourceLedgerFromCourseGraph(graph, { checkedAt });
+}
+
 function buildManifest({
   courseName,
   lessonFilter,
@@ -745,6 +829,7 @@ export async function buildCourseMaterialsZip({
   let sourceLedgerBundle = mergeSourceLedgerBundles(
     buildSourceLedgerFromCourseGraph(courseGraph, { checkedAt: generatedAt }),
     buildSourceLedgerFromCourseGraph(fallbackCourseGraph, { checkedAt: generatedAt }),
+    buildSourceLedgerFromSyllabusSchedule(fallbackCourseGraph || courseGraph, deliverables, { checkedAt: generatedAt }),
   );
   let sourceRefCoverage =
     courseGraph?.courseIR?.sourceRefCoverage || pipelineState?.courseIR?.sourceRefCoverage || null;

@@ -1,5 +1,4 @@
 #!/usr/bin/env node
-import { chromium, expect } from '@playwright/test';
 import { spawn } from 'node:child_process';
 import { execFile } from 'node:child_process';
 import fs from 'node:fs/promises';
@@ -8,7 +7,6 @@ import os from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { promisify } from 'node:util';
-import { auditCourseMaterialsZip } from '../tests/lib/exportQualityAudit.js';
 
 const execFileAsync = promisify(execFile);
 const scriptDir = path.dirname(fileURLToPath(import.meta.url));
@@ -26,6 +24,11 @@ const expectedZipFolders = [
   'Study Guides',
   'Course FAQ',
 ];
+
+async function loadChromium() {
+  const { chromium } = await import('@playwright/test');
+  return chromium;
+}
 
 const coursePool = [
   {
@@ -275,6 +278,16 @@ async function safeText(locator) {
   }
 }
 
+async function waitForLocatorEnabled(locator, { timeout = 30_000, label = 'locator' } = {}) {
+  const startedAt = Date.now();
+  await locator.waitFor({ state: 'visible', timeout });
+  while (Date.now() - startedAt < timeout) {
+    if (await locator.isEnabled().catch(() => false)) return;
+    await new Promise((resolve) => setTimeout(resolve, 200));
+  }
+  throw new Error(`${label} was not enabled after ${Math.round(timeout / 1000)}s`);
+}
+
 async function getZipAction(page) {
   const sidePanelZip = page.getByTestId('export-download-zip');
   if (
@@ -299,6 +312,16 @@ async function getZipAction(page) {
   }
 
   return sidePanelZip.first();
+}
+
+export function isDownloadablePackageState(status, zipLabel) {
+  if (!/Download ZIP/i.test(String(zipLabel || ''))) return false;
+  const normalizedStatus = String(status || '');
+  return (
+    /\bReady to download\b/i.test(normalizedStatus) ||
+    /\bReview before download\b/i.test(normalizedStatus) ||
+    /^\s*Ready\s*$/i.test(normalizedStatus)
+  );
 }
 
 async function waitForExportIdle(page, timeoutMs = 240_000) {
@@ -353,6 +376,65 @@ export async function waitForReadinessPanel(page, timeoutMs = 600_000) {
   }
 }
 
+function numericLabelScore(text, label) {
+  const match = String(text || '').match(new RegExp(`\\b${label}\\s+(\\d{1,3})\\b`, 'i'));
+  return match ? Number(match[1]) : null;
+}
+
+async function withRecordedWorkflowTimeout(label, timeoutMs, task) {
+  let timeoutId;
+  try {
+    return await Promise.race([
+      task(),
+      new Promise((_, reject) => {
+        timeoutId = setTimeout(() => {
+          reject(new Error(`${label} timed out after ${Math.round(timeoutMs / 1000)}s`));
+        }, timeoutMs);
+      }),
+    ]);
+  } finally {
+    clearTimeout(timeoutId);
+  }
+}
+
+export async function assertNoCourseMapTickWhileBuildUnfinished(page) {
+  const ribbonText = await safeText(page.getByTestId('build-ribbon'));
+  if (!ribbonText || /\bReady in\b/i.test(ribbonText)) {
+    return { checked: false, reason: ribbonText ? 'build-ready' : 'no-build-ribbon' };
+  }
+
+  const courseMapTab =
+    typeof page.getByRole === 'function'
+      ? page.getByRole('button', { name: /\bCourse Map\b/i }).first()
+      : page.locator('button:has-text("Course Map")').first();
+  const tickCount = await courseMapTab
+    .locator('[data-testid="tab-ready-tick"]')
+    .count()
+    .catch(() => 0);
+  if (tickCount > 0) {
+    throw new Error(`Course Map tab showed a ready check while the build was unfinished.\n${ribbonText}`);
+  }
+  return { checked: true, reason: 'build-unfinished' };
+}
+
+export async function assertCaveatedPackageCardUsesReviewState(page) {
+  const panelText = await safeText(page.getByTestId('export-side-panel'));
+  const readinessStatus = await safeText(page.getByTestId('readiness-status'));
+  const combined = `${readinessStatus}\n${panelText}`;
+  const qualityScore = numericLabelScore(combined, 'Quality');
+  const textureScore = numericLabelScore(combined, 'Texture');
+  const hasCaveat =
+    (Number.isFinite(qualityScore) && qualityScore < 100) ||
+    (Number.isFinite(textureScore) && textureScore < 100) ||
+    /\b(?:export warnings?|P[12]|Review before download)\b/i.test(combined);
+
+  if (!hasCaveat) return { checked: false, reason: 'no-caveat' };
+  if (!/Review before download/i.test(combined) || /Ready to download/i.test(readinessStatus)) {
+    throw new Error(`Caveated package card must be amber review state, not green ready state.\n${combined}`);
+  }
+  return { checked: true, reason: 'caveated-review-state' };
+}
+
 async function ensurePackageReady(page) {
   await waitForExportSidePanel(page);
   await page.getByTestId('export-scope-all').click();
@@ -362,7 +444,7 @@ async function ensurePackageReady(page) {
     const status = await safeText(page.getByTestId('readiness-status'));
     const zipButton = await getZipAction(page);
     const zipLabel = await safeText(zipButton);
-    if (/Ready to download|Ready/i.test(status) && /Download ZIP/i.test(zipLabel)) return;
+    if (isDownloadablePackageState(status, zipLabel)) return;
 
     const inlineFinish = page.getByTestId('readiness-finish-package');
     if (
@@ -392,7 +474,11 @@ async function ensurePackageReady(page) {
 
 async function downloadZip(page, destinationPath) {
   const zipButton = await getZipAction(page);
-  await expect(zipButton).toContainText(/Download ZIP/, { timeout: 30_000 });
+  await zipButton.waitFor({ state: 'visible', timeout: 30_000 });
+  const zipLabel = await zipButton.innerText({ timeout: 30_000 });
+  if (!/Download ZIP/i.test(zipLabel)) {
+    throw new Error(`Package ZIP action was not ready to download: ${zipLabel}`);
+  }
   const [download] = await Promise.all([page.waitForEvent('download', { timeout: 120_000 }), zipButton.click()]);
   const failure = await download.failure();
   if (failure) throw new Error(failure);
@@ -456,11 +542,11 @@ async function runCourse({ browser, baseUrl, course, index, runDir, apiKey, mode
 
     await page.goto(baseUrl, { waitUntil: 'domcontentloaded' });
     await writeProgress('validating-provider');
-    await expect(page.getByText('Connected').first()).toBeVisible({ timeout: 120_000 });
+    await page.getByText('Connected').first().waitFor({ state: 'visible', timeout: 120_000 });
     await writeProgress('provider-connected');
     await page.getByLabel('Describe your course').fill(course.prompt);
     const landingContinue = page.getByRole('button', { name: /^(Continue|Adjust setup)$/ }).last();
-    await expect(landingContinue).toBeEnabled({ timeout: 10_000 });
+    await waitForLocatorEnabled(landingContinue, { timeout: 10_000, label: 'landing continue button' });
     await landingContinue.click();
 
     await writeProgress('selecting-package-contents');
@@ -479,20 +565,25 @@ async function runCourse({ browser, baseUrl, course, index, runDir, apiKey, mode
 
     await writeProgress('configuring-generation');
     const generateWorkspace = page.getByRole('button', { name: /Generate workspace/i }).last();
-    await expect(generateWorkspace).toBeEnabled({ timeout: 60_000 });
+    await waitForLocatorEnabled(generateWorkspace, { timeout: 60_000, label: 'generate workspace button' });
     await generateWorkspace.click();
 
     await writeProgress('generating-workspace');
     await page.getByTestId('workspace-shell').waitFor({ timeout: 600_000 });
+    await assertNoCourseMapTickWhileBuildUnfinished(page);
     await writeProgress('workspace-ready');
     await waitForExportSidePanel(page);
     await writeProgress('finalizing-package');
-    await ensurePackageReady(page);
+    await withRecordedWorkflowTimeout('Package finalizer/export verification', 180_000, async () => {
+      await ensurePackageReady(page);
+      await assertCaveatedPackageCardUsesReviewState(page);
+    });
 
     await writeProgress('downloading-zip');
     const zipPath = path.join(courseDir, `${courseSlug || 'course'}-package.zip`);
     const download = await downloadZip(page, zipPath);
     await writeProgress('auditing-zip', { zipPath });
+    const { auditCourseMaterialsZip } = await import('../tests/lib/exportQualityAudit.js');
     const audit = await auditCourseMaterialsZip(zipPath, {
       expectedFolders: expectedZipFolders,
       minSpeakerNoteWords: 20,
@@ -647,7 +738,7 @@ async function main() {
     const apiKey = await readApiKey(apiEnvPath);
     const port = await findFreePort(Number(args.port || 5173));
     server = await startDevServer({ port, logPath: path.join(runDir, 'vite.log') });
-    browser = await chromium.launch({ headless: !headed });
+    browser = await (await loadChromium()).launch({ headless: !headed });
 
     for (let index = 0; index < selectedCourses.length; index += 1) {
       const result = await runCourse({

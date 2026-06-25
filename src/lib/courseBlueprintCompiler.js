@@ -421,11 +421,14 @@ const PROMPT_ARTIFACT_EVIDENCE_LABELS = [
   'quiz bank',
   'study guides',
   'course faq',
+  'existing course map fields',
   'worked examples',
   'misconceptions',
   'instructor handoff notes',
 ];
 const PROMPT_ARTIFACT_EVIDENCE_SET = new Set(PROMPT_ARTIFACT_EVIDENCE_LABELS);
+const INTERNAL_SOURCE_PLACEHOLDER_RE =
+  /\b(?:existing course map fields?|source review rows?|instructor source review|repaired package requires review|no source ledger)\b/i;
 
 function escapeRegexLiteral(value) {
   return String(value || '').replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
@@ -455,6 +458,7 @@ function countPromptArtifactEvidenceLabels(value) {
 function isPromptArtifactEvidenceCue(value) {
   const normalized = normalizePromptArtifactEvidenceCue(value);
   if (!normalized) return false;
+  if (INTERNAL_SOURCE_PLACEHOLDER_RE.test(normalized)) return true;
   if (PROMPT_ARTIFACT_EVIDENCE_SET.has(normalized)) return true;
   return countPromptArtifactEvidenceLabels(normalized) >= 2;
 }
@@ -18702,7 +18706,7 @@ function compileCourseFaq(blueprint, config = {}) {
         ]);
       })(),
       ca: 'Assessment Prep',
-      rc: ['rubric criteria', 'anchor examples', ...lesson.keyConcepts.slice(0, 2)],
+      rc: ['success criteria checklist', ...lesson.keyConcepts.slice(0, 2)],
       df: 'Intermediate',
     }),
     (lesson) => ({

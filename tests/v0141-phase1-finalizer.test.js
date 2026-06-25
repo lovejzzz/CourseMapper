@@ -505,4 +505,55 @@ describe('1.16 — prompt artifact labels never become course-map concepts', () 
     expect(faqText).not.toMatch(/\b(?:slide decks|quiz bank|study guides)\b/i);
     expect(faqText).toMatch(/DNA and inheritance basics source evidence|source evidence/i);
   });
+
+  it('keeps CourseIR source-review placeholders out of compiled Course FAQ answers and related concepts', () => {
+    const courseMap = {
+      courseName: 'Project Management',
+      lessons: [
+        {
+          title: 'Lesson 4: Scheduling and the critical path',
+          sections: [
+            {
+              topicSection: '4.1: Activity sequencing',
+              learningGoals: 'Use activity sequencing to reason about schedule decisions.',
+              learningObjectives: 'Sequence project activities logically.',
+              weeklyAssessments: 'Scenario quizzes',
+              asyncActivities: 'Review the activity sequencing materials.',
+              syncActivities: 'Solve network sequencing cases.',
+              supportingResources: 'Existing course map fields.',
+              evaluateDesign: 'Check sequencing decisions against the project schedule.',
+            },
+          ],
+        },
+      ],
+    };
+
+    const blueprint = buildCourseBlueprint(courseMap);
+    blueprint.lessons[0].evidencePlan = {
+      ...(blueprint.lessons[0].evidencePlan || {}),
+      sourceCue: 'Existing course map fields',
+    };
+    blueprint.lessons[0].throughlineCase = {
+      ...(blueprint.lessons[0].throughlineCase || {}),
+      evidencePacket: 'Existing course map fields',
+    };
+    blueprint.lessons[0].assessmentAnchorExamples = {
+      ...(blueprint.lessons[0].assessmentAnchorExamples || {}),
+      strongSample:
+        'Strong scenario quizzes anchor: grounds the claim in Existing course map fields, separates evidence from assumption, and names the feedback-informed edit.',
+    };
+
+    const compiled = compileBlueprintDeliverables(blueprint, ['courseFaq'], {
+      configMap: { courseFaq: { questionsPerLesson: 5 } },
+    });
+    const faqText = compiled.courseFaq.faqs
+      .flatMap((faq) => faq.qs || [])
+      .map((item) => `${item.q || ''} ${item.an || ''} ${(item.rc || []).join(' ')}`)
+      .join(' ');
+
+    expect(faqText).not.toMatch(/Existing course map fields/i);
+    expect(faqText).not.toMatch(/\banchor examples\b/i);
+    expect(faqText).not.toMatch(/\brubric criteria\b/i);
+    expect(faqText).toMatch(/Scheduling and the critical path source evidence|source evidence/i);
+  });
 });

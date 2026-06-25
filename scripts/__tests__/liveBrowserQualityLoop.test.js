@@ -4,7 +4,42 @@ import path from 'node:path';
 
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
-import { prepareRunDirectory, waitForExportSidePanel, waitForReadinessPanel } from '../liveBrowserQualityLoop.mjs';
+import {
+  assertCaveatedPackageCardUsesReviewState,
+  assertNoCourseMapTickWhileBuildUnfinished,
+  isDownloadablePackageState,
+  prepareRunDirectory,
+  waitForExportSidePanel,
+  waitForReadinessPanel,
+} from '../liveBrowserQualityLoop.mjs';
+
+function textLocator(text) {
+  return {
+    count: vi.fn().mockResolvedValue(1),
+    first: vi.fn(() => ({
+      innerText: vi.fn().mockResolvedValue(text),
+    })),
+  };
+}
+
+function emptyLocator() {
+  return {
+    count: vi.fn().mockResolvedValue(0),
+    first: vi.fn(() => ({
+      innerText: vi.fn().mockResolvedValue(''),
+    })),
+  };
+}
+
+function courseMapTabLocator(tickCount) {
+  return {
+    first: vi.fn(() => ({
+      locator: vi.fn(() => ({
+        count: vi.fn().mockResolvedValue(tickCount),
+      })),
+    })),
+  };
+}
 
 describe('prepareRunDirectory', () => {
   afterEach(() => {
@@ -65,12 +100,6 @@ describe('waitForExportSidePanel', () => {
   });
 
   it('includes current workspace state when the export panel never appears', async () => {
-    const textLocator = (text) => ({
-      count: vi.fn().mockResolvedValue(1),
-      first: vi.fn(() => ({
-        innerText: vi.fn().mockResolvedValue(text),
-      })),
-    });
     const locators = {
       'export-side-panel': {
         waitFor: vi.fn().mockRejectedValue(new Error('Timeout waiting for export-side-panel')),
@@ -83,6 +112,61 @@ describe('waitForExportSidePanel', () => {
     };
 
     await expect(waitForExportSidePanel(page, 1_000)).rejects.toThrow(/Finishing package[\s\S]*Course Map Preview/);
+  });
+});
+
+describe('recorded workflow assertions', () => {
+  it('treats caveated review packages with a ZIP action as downloadable', () => {
+    expect(isDownloadablePackageState('Review before download', 'Download ZIP')).toBe(true);
+    expect(isDownloadablePackageState('Ready to download', 'Download ZIP')).toBe(true);
+    expect(isDownloadablePackageState('Not ready', 'Download ZIP')).toBe(false);
+    expect(isDownloadablePackageState('Review before download', 'Finish package')).toBe(false);
+  });
+
+  it('fails when Course Map shows a ready tick while the build ribbon is unfinished', async () => {
+    const page = {
+      getByTestId: vi.fn((testId) =>
+        testId === 'build-ribbon' ? textLocator('Map Enriching lessons 1-12') : emptyLocator(),
+      ),
+      locator: vi.fn(() => courseMapTabLocator(1)),
+    };
+
+    await expect(assertNoCourseMapTickWhileBuildUnfinished(page)).rejects.toThrow(/ready check/);
+  });
+
+  it('passes when unfinished build has no Course Map ready tick', async () => {
+    const page = {
+      getByTestId: vi.fn((testId) =>
+        testId === 'build-ribbon' ? textLocator('Map Enriching lessons 1-12') : emptyLocator(),
+      ),
+      locator: vi.fn(() => courseMapTabLocator(0)),
+    };
+
+    await expect(assertNoCourseMapTickWhileBuildUnfinished(page)).resolves.toMatchObject({ checked: true });
+  });
+
+  it('fails when a caveated package card presents green ready state', async () => {
+    const page = {
+      getByTestId: vi.fn((testId) => {
+        if (testId === 'export-side-panel') return textLocator('Quality 96 Texture 92 1 export warning');
+        if (testId === 'readiness-status') return textLocator('Ready to download');
+        return emptyLocator();
+      }),
+    };
+
+    await expect(assertCaveatedPackageCardUsesReviewState(page)).rejects.toThrow(/amber review state/);
+  });
+
+  it('passes when a caveated package card presents amber review state', async () => {
+    const page = {
+      getByTestId: vi.fn((testId) => {
+        if (testId === 'export-side-panel') return textLocator('Review before download Quality 96 Texture 92');
+        if (testId === 'readiness-status') return textLocator('Review before download');
+        return emptyLocator();
+      }),
+    };
+
+    await expect(assertCaveatedPackageCardUsesReviewState(page)).resolves.toMatchObject({ checked: true });
   });
 });
 

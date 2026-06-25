@@ -439,6 +439,126 @@ describe('packageZipExporter', () => {
     expect(sourceReport).not.toContain('Source Review Notes');
   });
 
+  it('bridges CourseIR sourceRef coverage to source rows recovered from syllabus weekly readings', async () => {
+    const courseMap = makeCourseMap('Project Management Source Recovery');
+    courseMap.lessons[0].sections[0].topicSection = 'Project life cycle';
+    courseMap.lessons[1].sections[0].topicSection = 'Scope definition';
+
+    const result = await buildCourseMaterialsZip({
+      courseMap,
+      deliverables: {
+        syllabus: {
+          status: 'done',
+          data: {
+            syllabus: {
+              courseTitle: 'Project Management Source Recovery',
+              weeklySchedule: [
+                {
+                  week: 'Week 1',
+                  topic: 'Project life cycle',
+                  readings:
+                    'Existing course map fields.; Xun Xu, Ling Ma, Lieyun Ding (2014). A Framework for BIM-Enabled Life-Cycle Information Management of Construction Project. OpenAlex: https://doi.org/10.5772/58445 (cc-by); Instructor-approved readings for Project life cycle.',
+                  assignments: 'Project charter',
+                },
+                {
+                  week: 'Week 2',
+                  topic: 'Scope definition',
+                  readings:
+                    'Course materials students need to prepare.; Mai Pham, Andrijana Rajic, Judy Greig et al. (2014). A scoping review of scoping reviews. OpenAlex: https://doi.org/10.1002/jrsm.1123 (cc-by)',
+                  assignments: 'Scope memo',
+                },
+              ],
+            },
+          },
+        },
+        lessonPlans: {
+          status: 'done',
+          data: {
+            lessonPlans: [{ lessonTitle: 'Lesson 1: Project life cycle', objectives: ['Trace source proof.'] }],
+          },
+        },
+      },
+      featureIds: ['courseMap', 'syllabus', 'lessonPlans'],
+      courseGraph: {
+        sessions: [],
+        resources: [],
+        readings: [],
+        courseIR: {
+          version: 'courseir.v1',
+          lessonIds: ['L1', 'L2'],
+          conceptIds: ['C1', 'C2'],
+          assessmentIds: ['A1'],
+          sourceLedger: [
+            {
+              id: 'SL1',
+              scope: 'course',
+              status: 'source-provided',
+              evidence: 'Existing course map fields.',
+              provider: 'courseir',
+            },
+          ],
+          sourceRefCoverage: {
+            sourceLedgerRows: 1,
+            categories: {
+              outcomes: { total: 2, withRefs: 2, missing: 0, danglingRefs: 0, missingIds: [] },
+              activities: { total: 4, withRefs: 4, missing: 0, danglingRefs: 0, missingIds: [] },
+              examples: { total: 2, withRefs: 2, missing: 0, danglingRefs: 0, missingIds: [] },
+              assessments: { total: 2, withRefs: 2, missing: 0, danglingRefs: 0, missingIds: [] },
+              rubricCriteria: { total: 6, withRefs: 6, missing: 0, danglingRefs: 0, missingIds: [] },
+              factualClaims: { total: 4, withRefs: 4, missing: 0, danglingRefs: 0, missingIds: [] },
+            },
+            totals: { total: 20, withRefs: 20, missing: 0, danglingRefs: 0 },
+          },
+        },
+      },
+      pipelineState: {
+        knowledgeBackbone: '0/2 lessons genome-linked · 2 open resources (openalex: 2)',
+        nativeAuthoring: 'assembled 2 sessions · CurriculumV1 repaired 2 lessons / 1 assessments',
+      },
+      quality: false,
+    });
+
+    const zip = await JSZip.loadAsync(await result.blob.arrayBuffer());
+    const manifest = JSON.parse(await zip.file('PACKAGE_MANIFEST.json').async('string'));
+    const sourceReport = await zip.file('SOURCE_REPORT.md').async('string');
+
+    expect(manifest.sourceLedger).toHaveLength(2);
+    expect(manifest.sourceReviewRows).toBeUndefined();
+    expect(manifest.sourceLedger).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          provider: 'openalex',
+          doi: '10.5772/58445',
+          license: 'CC BY',
+          accessStatus: 'reference-present',
+          conceptLinks: expect.arrayContaining([expect.objectContaining({ label: 'Project life cycle' })]),
+        }),
+        expect.objectContaining({
+          provider: 'openalex',
+          doi: '10.1002/jrsm.1123',
+          license: 'CC BY',
+          accessStatus: 'reference-present',
+          conceptLinks: expect.arrayContaining([expect.objectContaining({ label: 'Scope definition' })]),
+        }),
+      ]),
+    );
+    expect(manifest.courseIR).toMatchObject({
+      sourceLedgerRows: 2,
+      sourceRefBridge: {
+        source: 'coursegraph-concept-linked-ledger',
+        trustedRows: 2,
+        conceptLinkedRows: 2,
+        replacedReviewRows: 1,
+      },
+    });
+    expect(manifest.courseIR.sourceRefCoverage).toMatchObject({
+      sourceLedgerRows: 2,
+      totals: { total: 20, withRefs: 20, missing: 0, danglingRefs: 0 },
+    });
+    expect(sourceReport).toContain('A Framework for BIM-Enabled Life-Cycle Information Management');
+    expect(sourceReport).not.toContain('Existing course map fields');
+  });
+
   it('recovers source report proof from rendered course-map resources when the export graph is sparse', async () => {
     const courseMap = makeCourseMap('Sociology Source Fallback');
     courseMap.lessons[0].sections[0] = {
