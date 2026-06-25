@@ -3,22 +3,22 @@ import { APP_VERSION } from './appVersion.js';
 export const CURRENT_RELEASE = {
   version: APP_VERSION,
   date: 'June 25, 2026',
-  title: 'Package Review Surface: caveated downloads stop looking clean',
-  landingTitle: 'Package Review Surface',
+  title: 'Course Map Tab Truth: draft maps stop wearing ready checks',
+  landingTitle: 'Course Map Tab Truth',
   highlights: [
-    'A fresh deployed v0.15.44 Project Management ZIP/log audit regraded at 96/A with three P1 findings, one P2 finding, and one PPTX export warning; the old UI still presented the package as green ready.',
-    'Finish-package receipts now preserve the first concrete export warning message, so the side panel can name the slide/deck problem instead of hiding it behind a count.',
-    'Download remains available for non-blocking caveats, but the package card now switches to an amber “Review before download” state whenever quality findings, score loss, texture loss, or export warnings remain.',
-    'Focused readiness coverage pins the mixed state that failed live: a downloadable 96/A package with 3 P1, 1 P2, texture 92, and a slide-deck export warning no longer looks complete.',
+    'A live EduTool.dev Project Management screenshot exposed a phase-truth bug: the Course Map tab showed a green ready check while enrichment was still running and the visible map still had unfinished cells.',
+    'The Course Map tab ready tick now requires the build ribbon grade step to be done and the package quality pass to be ready.',
+    'Focused ribbon/tab coverage pins the exact predicate so future tab-status cleanups cannot regress to “map streamed” equals “map complete.”',
+    'The release keeps v0.15.45’s package-review surface intact: caveated packages can be downloadable, but they still show amber review state instead of clean green readiness.',
   ],
   landingHighlights: [
-    'Caveated packages show review status before download.',
-    'Export warning messages survive into the UI receipt.',
-    'Quality and texture losses stay visible on the package card.',
+    'Course Map tabs stop showing ready checks during active builds.',
+    'Tab readiness follows the same ribbon grade/package phase truth.',
+    'Caveated package review state remains visible before download.',
   ],
   proof: {
-    contract: 'release-contracts/v0.15.45.json',
-    roadmap: 'docs/V0.15.45_PACKAGE_REVIEW_SURFACE_ROADMAP.md',
+    contract: 'release-contracts/v0.15.46.json',
+    roadmap: 'docs/V0.15.46_COURSE_MAP_TAB_TRUTH_ROADMAP.md',
     auditCommand: 'npm run audit:release-history',
   },
 };
@@ -33,6 +33,17 @@ export const CURRENT_RELEASE_CHANGELOG = {
 };
 
 export const HISTORICAL_RELEASE_CHANGELOGS = [
+  {
+    version: '0.15.45',
+    date: 'June 25, 2026',
+    title: 'Package Review Surface: caveated downloads stop looking clean',
+    highlights: [
+      'A fresh deployed v0.15.44 Project Management ZIP/log audit regraded at 96/A with three P1 findings, one P2 finding, and one PPTX export warning; the old UI still presented the package as green ready.',
+      'Finish-package receipts now preserve the first concrete export warning message, so the side panel can name the slide/deck problem instead of hiding it behind a count.',
+      'Download remains available for non-blocking caveats, but the package card now switches to an amber “Review before download” state whenever quality findings, score loss, texture loss, or export warnings remain.',
+      'Focused readiness coverage pins the mixed state that failed live: a downloadable 96/A package with 3 P1, 1 P2, texture 92, and a slide-deck export warning no longer looks complete.',
+    ],
+  },
   {
     version: '0.15.44',
     date: 'June 20, 2026',

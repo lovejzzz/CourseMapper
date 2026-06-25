@@ -3096,7 +3096,7 @@ export default function AppFlow({ startupAction = null, onStartupHandled, onRetu
                 const delivState = deliv.deliverables[feature.id];
                 const isDone = delivState?.status === 'done';
                 const isError = delivState?.status === 'error';
-                const isCourseMapDone = feature.id === 'courseMap' && gen.progressStep === 'done';
+                const isCourseMapDone = feature.id === 'courseMap' && packageReady && buildRibbonModel?.done?.grade;
 
                 // Cascade sync badges
                 const hasUnseen = unseenChanges.has(feature.id);
