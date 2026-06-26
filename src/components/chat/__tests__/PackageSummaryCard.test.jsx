@@ -117,4 +117,35 @@ describe('PackageSummaryCard', () => {
     expect(html).not.toContain('Assessment weights');
     expect(html).not.toContain('Confirm the official grading weight.');
   });
+
+  it('shows caveated downloadable packages as review before download', () => {
+    const html = renderToStaticMarkup(
+      <PackageSummaryCard
+        summary={{
+          confidence: 'Good with assumptions',
+          tone: 'assumptions',
+          ready: false,
+          downloadable: true,
+          nextAction: 'Download is available, but review these caveats before publishing.',
+          repairsApplied: 0,
+          blockerCount: 0,
+          warningCount: 3,
+          exportChecked: 12,
+          exportFailed: 0,
+          exportWarningCount: 1,
+          topIssues: [
+            { severity: 'warning', label: 'Quality', message: '2 P1 · texture 93/100 remain.' },
+            { severity: 'warning', label: 'Export warning', message: 'PPTX repeated phrase warning.' },
+          ],
+        }}
+      />,
+    );
+
+    expect(html).toContain('Review before download');
+    expect(html).toContain('Review');
+    expect(html).toContain('3 items to review');
+    expect(html).toContain('1 export warning');
+    expect(html).not.toContain('Ready to download');
+    expect(html).not.toContain('Done');
+  });
 });

@@ -54,6 +54,7 @@ import { grade, honestyFromDigest, GRADER_VERSION, IN_APP_EXCLUDED_CHECKS } from
 import { createMemoryFileProvider } from '../src/lib/quality/fileProviders.js';
 import WorkspaceQualityChip from '../src/components/WorkspaceQualityChip.jsx';
 import { QualityStamp } from '../src/components/ExportSidePanel.jsx';
+import { getPackageTrustStatus } from '../src/lib/packageTrustStatus.js';
 
 beforeAll(() => {
   // pptx text-fit pass measures with OffscreenCanvas — stub for node env.
@@ -394,7 +395,7 @@ describe('B2 — WorkspaceQualityChip header states', () => {
     expect(html).toContain('aria-label="Package quality: grading in progress"');
   });
 
-  it('renders the emerald graded chip for A/B with zero P0s, as a ≥32px button', () => {
+  it('renders the emerald graded chip only for a clean 100/100 package, as a ≥32px button', () => {
     const html = render({ status: 'ready', quality: gradedQuality() });
     expect(html).toContain('workspace-quality-chip');
     expect(html).toContain('Quality 100 · A');
@@ -404,7 +405,17 @@ describe('B2 — WorkspaceQualityChip header states', () => {
     expect(html).toContain('aria-label="Package quality: 100 out of 100, grade A, 0 issues — open the quality report"');
   });
 
-  it('turns amber when a P0 lands or the grade drops to C/D', () => {
+  it('turns amber when the grade has findings, score loss, or texture loss', () => {
+    const caveatedA = render({
+      status: 'ready',
+      quality: gradedQuality({ score: 97, grade: 'A', findingCounts: { p0: 0, p1: 2, p2: 0 }, texture: { score: 93 } }),
+      receipt: { exportWarningCount: 1 },
+    });
+    expect(caveatedA).toContain('amber');
+    expect(caveatedA).not.toContain('emerald');
+    expect(caveatedA).toContain('Quality 97');
+    expect(caveatedA).toContain('Texture 93');
+
     const withP0 = render({
       status: 'ready',
       quality: gradedQuality({ score: 88, grade: 'B', findingCounts: { p0: 1, p1: 0, p2: 2 } }),
@@ -448,6 +459,48 @@ describe('B2 — ExportSidePanel compact download-card stamp', () => {
     expect(render(gradedQuality({ score: 70, grade: 'C' }))).toContain('amber');
     expect(render({ status: 'not-graded', reason: 'timeout' })).toBe('');
     expect(render(null)).toBe('');
+  });
+});
+
+describe('V0.15.49 — shared package trust status spine', () => {
+  it('marks a downloadable 97/100 package with P1, texture loss, and export warnings as review, not clean', () => {
+    const status = getPackageTrustStatus({
+      packageQualityPass: {
+        status: 'ready',
+        warnings: 0,
+        blockers: 0,
+        quality: gradedQuality({
+          score: 97,
+          grade: 'A',
+          findingCounts: { p0: 0, p1: 2, p2: 0 },
+          texture: { score: 93 },
+        }),
+        receipt: { exportWarningCount: 1 },
+      },
+    });
+
+    expect(status.clean).toBe(false);
+    expect(status.review).toBe(true);
+    expect(status.canDownload).toBe(true);
+    expect(status.toneKey).toBe('assumptions');
+    expect(status.reviewMeta).toContain('quality issue');
+    expect(status.reviewMeta).toContain('export warning');
+  });
+
+  it('keeps only a perfect graded package in clean green state', () => {
+    const status = getPackageTrustStatus({
+      packageQualityPass: {
+        status: 'ready',
+        warnings: 0,
+        blockers: 0,
+        quality: gradedQuality({ texture: { score: 100 } }),
+        receipt: { exportWarningCount: 0, exportFailed: 0 },
+      },
+    });
+
+    expect(status.clean).toBe(true);
+    expect(status.review).toBe(false);
+    expect(status.toneKey).toBe('excellent');
   });
 });
 

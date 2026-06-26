@@ -13,11 +13,12 @@ import {
   waitForReadinessPanel,
 } from '../liveBrowserQualityLoop.mjs';
 
-function textLocator(text) {
+function textLocator(text, attrs = {}) {
   return {
     count: vi.fn().mockResolvedValue(1),
     first: vi.fn(() => ({
       innerText: vi.fn().mockResolvedValue(text),
+      getAttribute: vi.fn((name) => Promise.resolve(attrs[name] || '')),
     })),
   };
 }
@@ -162,11 +163,34 @@ describe('recorded workflow assertions', () => {
       getByTestId: vi.fn((testId) => {
         if (testId === 'export-side-panel') return textLocator('Review before download Quality 96 Texture 92');
         if (testId === 'readiness-status') return textLocator('Review before download');
+        if (testId === 'workspace-quality-chip') return textLocator('Quality 96 · Texture 92', { class: 'amber' });
+        if (testId === 'package-summary-card') return textLocator('Review before download', { class: 'amber' });
         return emptyLocator();
       }),
     };
 
     await expect(assertCaveatedPackageCardUsesReviewState(page)).resolves.toMatchObject({ checked: true });
+  });
+
+  it('fails when a caveated package keeps any trust surface green', async () => {
+    const page = {
+      getByTestId: vi.fn((testId) => {
+        if (testId === 'export-side-panel') return textLocator('Review before download Quality 97 Texture 93');
+        if (testId === 'readiness-status') return textLocator('Review before download');
+        if (testId === 'workspace-quality-chip')
+          return textLocator('Quality 97 · Texture 93', { class: 'border-emerald-200 bg-emerald-50' });
+        if (testId === 'package-summary-card')
+          return textLocator('Ready to download Done', { class: 'border-emerald-200 bg-emerald-50' });
+        if (testId === 'agent-working-target') return textLocator('Ready to export');
+        if (testId === 'agent-working-package-status') return textLocator('Ready');
+        if (testId === 'progress-phase-label') return textLocator('Ready to download');
+        return emptyLocator();
+      }),
+    };
+
+    await expect(assertCaveatedPackageCardUsesReviewState(page)).rejects.toThrow(
+      /workspace quality chip class|package summary card/,
+    );
   });
 });
 

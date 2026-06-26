@@ -24,6 +24,7 @@ function cleanReadyPackage() {
       exportWarningCount: 0,
     },
     quality: {
+      status: 'graded',
       score: 100,
       grade: 'A',
       findingCounts: { p0: 0, p1: 0, p2: 0 },

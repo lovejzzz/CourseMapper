@@ -1,0 +1,109 @@
+{
+  "version": "0.15.49",
+  "date": "June 26, 2026",
+  "title": "Trust Status Spine: caveated packages stop leaking green ready state",
+  "status": "verified-current",
+  "proofSummary": {
+    "local": [
+      "npm test -- tests/v0143-quality-badge.test.js src/components/chat/__tests__/ProgressHeader.test.jsx src/components/chat/__tests__/PackageSummaryCard.test.jsx scripts/__tests__/liveBrowserQualityLoop.test.js tests/agent-v0858-red-team.test.jsx",
+      "npm run format:check",
+      "npm run lint",
+      "npm test",
+      "npm run audit:gold:smoke",
+      "npm run build",
+      "npm run bundle:check",
+      "npm run audit:release-history",
+      "npx playwright test tests/package-trust-strip.spec.js tests/agent-no-key.spec.js --grep \"shows stale and failed|runs natural local audit\""
+    ],
+    "ciFast": {
+      "status": "pending-push",
+      "note": "Fast verification is claimed only after v0.15.49 is pushed and the GitHub Actions run is attached."
+    },
+    "deploy": {
+      "status": "pending-push",
+      "note": "Pages deploy is not claimed until the pushed release completes its deploy run."
+    },
+    "ciDeep": {
+      "status": "local-only",
+      "note": "This is a narrow UI trust-state and recorded-workflow release, so focused regressions plus audit:gold:smoke are the release gate."
+    },
+    "liveProvider": {
+      "status": "pending",
+      "note": "A fresh EduTool.dev ZIP/log audit is required after v0.15.49 deploys; the release is motivated by the v0.15.47 Project Management ZIP/log audit saved under verification-output/edutool-audit-loop/20260625T211628Z/."
+    },
+    "manualHuman": {
+      "status": "not-applicable",
+      "note": "No external instructor approval is claimed by this release."
+    }
+  },
+  "claims": [
+    {
+      "id": "v01549-live-cross-surface-trust-evidence",
+      "status": "verified-current",
+      "changelogHighlightIndex": 0,
+      "summary": "The Project Management audit showed a caveated 97/100 package where the export card was amber but header and agent surfaces still implied clean readiness.",
+      "anchors": ["docs/V0.15.49_TRUST_STATUS_SPINE_ROADMAP.md"],
+      "proofCommands": ["Manual artifact/browser evidence summarized in docs/V0.15.49_TRUST_STATUS_SPINE_ROADMAP.md"],
+      "proofScopes": ["live-provider", "browser-live", "static-audit"]
+    },
+    {
+      "id": "v01549-shared-package-trust-helper",
+      "status": "verified-current",
+      "changelogHighlightIndex": 1,
+      "summary": "A shared package trust helper now returns clean/review/blocked/running/not-graded state from quality, receipt, source/genome caveats, and readiness evidence.",
+      "anchors": ["src/lib/packageTrustStatus.js", "tests/v0143-quality-badge.test.js"],
+      "proofCommands": ["npm test -- tests/v0143-quality-badge.test.js"],
+      "proofScopes": ["unit", "static-audit"]
+    },
+    {
+      "id": "v01549-green-means-clean-ui-surfaces",
+      "status": "verified-current",
+      "changelogHighlightIndex": 2,
+      "summary": "Workspace quality chip, export stamp, package summary, digest card, agent working set, progress header, and direct finish messages use the shared helper so green means clean.",
+      "anchors": [
+        "src/components/WorkspaceQualityChip.jsx",
+        "src/components/ExportSidePanel.jsx",
+        "src/components/chat/PackageSummaryCard.jsx",
+        "src/components/chat/DigestCard.jsx",
+        "src/components/chat/AgentWorkingSetPanel.jsx",
+        "src/components/chat/ProgressHeader.jsx",
+        "src/components/chat/ChatPanel.jsx",
+        "src/AppFlow.jsx"
+      ],
+      "proofCommands": [
+        "npm test -- tests/v0143-quality-badge.test.js src/components/chat/__tests__/ProgressHeader.test.jsx src/components/chat/__tests__/PackageSummaryCard.test.jsx tests/agent-v0858-red-team.test.jsx",
+        "npx playwright test tests/package-trust-strip.spec.js tests/agent-no-key.spec.js --grep \"shows stale and failed|runs natural local audit\""
+      ],
+      "proofScopes": ["unit", "browser-smoke", "static-audit"]
+    },
+    {
+      "id": "v01549-recorded-workflow-green-leak-assertions",
+      "status": "verified-current",
+      "changelogHighlightIndex": 3,
+      "summary": "The recorded browser workflow now checks header, package summary, agent, and progress surfaces for green-ready leaks when a package has quality, texture, or export caveats.",
+      "anchors": ["scripts/liveBrowserQualityLoop.mjs", "scripts/__tests__/liveBrowserQualityLoop.test.js"],
+      "proofCommands": ["npm test -- scripts/__tests__/liveBrowserQualityLoop.test.js"],
+      "proofScopes": ["unit", "browser-smoke"]
+    }
+  ],
+  "carryForward": [
+    {
+      "id": "v01549-fresh-deployed-output-audit",
+      "status": "carry-forward",
+      "source": "docs/V0.15.49_TRUST_STATUS_SPINE_ROADMAP.md",
+      "next": "After v0.15.49 deploys, run a fresh EduTool.dev ZIP/log audit and confirm all trust surfaces stay aligned."
+    },
+    {
+      "id": "project-management-study-guide-kernel-coverage",
+      "status": "carry-forward",
+      "source": "docs/V0.15.48_COURSE_FAQ_PREREQUISITE_FIREWALL_ROADMAP.md",
+      "next": "After deploy and fresh audit, target the remaining Lesson 10 study-guide kernel-coverage P1 if it reproduces."
+    },
+    {
+      "id": "project-management-pptx-repeated-phrase",
+      "status": "carry-forward",
+      "source": "docs/V0.15.48_COURSE_FAQ_PREREQUISITE_FIREWALL_ROADMAP.md",
+      "next": "After deploy and fresh audit, target the repeated PPTX phrase warning if it reproduces."
+    }
+  ]
+}

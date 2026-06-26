@@ -278,6 +278,15 @@ async function safeText(locator) {
   }
 }
 
+async function safeAttribute(locator, name) {
+  try {
+    if ((await locator.count()) === 0) return '';
+    return (await locator.first().getAttribute(name, { timeout: 2_000 })) || '';
+  } catch {
+    return '';
+  }
+}
+
 async function waitForLocatorEnabled(locator, { timeout = 30_000, label = 'locator' } = {}) {
   const startedAt = Date.now();
   await locator.waitFor({ state: 'visible', timeout });
@@ -418,9 +427,20 @@ export async function assertNoCourseMapTickWhileBuildUnfinished(page) {
 }
 
 export async function assertCaveatedPackageCardUsesReviewState(page) {
-  const panelText = await safeText(page.getByTestId('export-side-panel'));
-  const readinessStatus = await safeText(page.getByTestId('readiness-status'));
-  const combined = `${readinessStatus}\n${panelText}`;
+  const surfaces = {
+    exportPanel: await safeText(page.getByTestId('export-side-panel')),
+    readinessStatus: await safeText(page.getByTestId('readiness-status')),
+    workspaceQualityChip: await safeText(page.getByTestId('workspace-quality-chip')),
+    packageSummaryCard: await safeText(page.getByTestId('package-summary-card')),
+    agentWorkingTarget: await safeText(page.getByTestId('agent-working-target')),
+    agentWorkingPackageStatus: await safeText(page.getByTestId('agent-working-package-status')),
+    progressPhaseLabel: await safeText(page.getByTestId('progress-phase-label')),
+  };
+  const workspaceQualityClass = await safeAttribute(page.getByTestId('workspace-quality-chip'), 'class');
+  const packageSummaryClass = await safeAttribute(page.getByTestId('package-summary-card'), 'class');
+  const combined = Object.entries(surfaces)
+    .map(([label, text]) => `${label}: ${text}`)
+    .join('\n');
   const qualityScore = numericLabelScore(combined, 'Quality');
   const textureScore = numericLabelScore(combined, 'Texture');
   const hasCaveat =
@@ -429,8 +449,23 @@ export async function assertCaveatedPackageCardUsesReviewState(page) {
     /\b(?:export warnings?|P[12]|Review before download)\b/i.test(combined);
 
   if (!hasCaveat) return { checked: false, reason: 'no-caveat' };
-  if (!/Review before download/i.test(combined) || /Ready to download/i.test(readinessStatus)) {
-    throw new Error(`Caveated package card must be amber review state, not green ready state.\n${combined}`);
+  const leaks = [];
+  if (
+    !/Review before download/i.test(surfaces.readinessStatus) ||
+    /Ready to download/i.test(surfaces.readinessStatus)
+  ) {
+    leaks.push('readiness status');
+  }
+  if (/\bReady to download\b|\bDone\b/i.test(surfaces.packageSummaryCard)) leaks.push('package summary card');
+  if (/\bReady to export\b/i.test(surfaces.agentWorkingTarget)) leaks.push('agent working target');
+  if (/^Ready$/i.test(surfaces.agentWorkingPackageStatus)) leaks.push('agent working package status');
+  if (/Ready to download/i.test(surfaces.progressPhaseLabel)) leaks.push('progress phase label');
+  if (/\bemerald\b/.test(workspaceQualityClass)) leaks.push('workspace quality chip class');
+  if (/\bemerald\b/.test(packageSummaryClass)) leaks.push('package summary card class');
+  if (leaks.length > 0) {
+    throw new Error(
+      `Caveated package card must be amber review state, not green ready state (${leaks.join(', ')}).\n${combined}`,
+    );
   }
   return { checked: true, reason: 'caveated-review-state' };
 }

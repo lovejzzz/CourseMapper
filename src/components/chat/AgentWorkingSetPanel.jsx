@@ -4,6 +4,7 @@ import { resolveLabel } from './constants';
 import { getWorkspacePlanActionKey } from './WorkspacePlanCard';
 import { AGENT_SOURCE_CONTEXT_ROLE, getAgentSourceContextSummary } from '../../lib/agentSourceContext';
 import { summarizeLandingAgentContext } from '../../lib/landingAgentContext';
+import { getPackageTrustStatus } from '../../lib/packageTrustStatus';
 
 const MUTED_TONE = 'border-slate-200 bg-white/70 text-slate-600';
 const GOOD_TONE = 'border-emerald-200 bg-emerald-50 text-emerald-700';
@@ -46,15 +47,14 @@ function buildScopeLabel(lessonScope, lessonCount) {
 
 function buildPackageStatus(packageQualityPass) {
   const status = String(finishStatusOf(packageQualityPass)).toLowerCase().replace('idle', '');
-  const blockers = compactCount(packageQualityPass?.blockers);
-  const warnings = compactCount(packageQualityPass?.warnings);
+  const trustStatus = getPackageTrustStatus({ packageQualityPass });
 
   if (status === 'running' && packageQualityPass?.phase === 'generation')
     return { label: 'Building', tone: MUTED_TONE };
   if (status === 'running') return { label: 'Finishing', tone: WARN_TONE };
-  if (status === 'ready') return { label: 'Ready', tone: GOOD_TONE };
-  if (status === 'blocked' || blockers > 0) return { label: 'Needs attention', tone: BAD_TONE };
-  if (status === 'warnings' || warnings > 0) return { label: 'Review notes', tone: WARN_TONE };
+  if (trustStatus.clean) return { label: 'Ready', tone: GOOD_TONE };
+  if (trustStatus.blocked) return { label: 'Needs attention', tone: BAD_TONE };
+  if (trustStatus.review) return { label: 'Review notes', tone: WARN_TONE };
   return { label: 'Not checked', tone: MUTED_TONE };
 }
 
@@ -304,7 +304,10 @@ export default function AgentWorkingSetPanel(props) {
     summary.staleFeatureCount ? `${summary.staleFeatureCount} will sync when needed` : null,
   ].filter(Boolean);
   const latestActivity = summary.activityStatus.activities[0];
-  const needsAttention = summary.packageStatus.label === 'Needs attention' || summary.failedFeatureCount > 0;
+  const needsAttention =
+    summary.packageStatus.label === 'Needs attention' ||
+    summary.packageStatus.label === 'Review notes' ||
+    summary.failedFeatureCount > 0;
   const localOnly = summary.toolStateLabel !== 'AI connected';
   const headline =
     summary.packageStatus.label === 'Building'

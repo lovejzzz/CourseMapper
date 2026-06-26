@@ -1802,6 +1802,7 @@ export default function AppFlow({ startupAction = null, onStartupHandled, onRetu
           warnings,
           blockers,
           receipt: receiptWithSpend,
+          quality: packageQuality,
           courseGraph: courseGraphRef.current || null,
           ...(apiSpendSummary ? { apiSpendSummary } : {}),
           ...(apiFeatureSpendSummary.length > 0 ? { apiFeatureSpendSummary } : {}),

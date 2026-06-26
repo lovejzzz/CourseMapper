@@ -193,4 +193,34 @@ describe('v0.8.58 agent safety invariants', () => {
     expect(html).not.toContain('toolName');
     expect(html).not.toContain('Package needs review');
   });
+
+  it('does not call a caveated downloadable package ready to export', () => {
+    const props = {
+      courseMap: baseCourseMap(),
+      activeTab: 'courseMap',
+      deliverables: baseDeliverables(),
+      selectedFeatures: ['courseMap', 'lessonPlans'],
+      packageQualityPass: {
+        status: 'ready',
+        blockers: 0,
+        warnings: 0,
+        quality: {
+          status: 'graded',
+          score: 97,
+          grade: 'A',
+          findingCounts: { p0: 0, p1: 2, p2: 0 },
+          texture: { score: 93 },
+        },
+        receipt: { exportWarningCount: 1 },
+      },
+    };
+    const summary = buildAgentWorkingSetSummary(props);
+    const html = renderToStaticMarkup(<AgentWorkingSetPanel {...props} />);
+
+    expect(summary.packageStatus.label).toBe('Review notes');
+    expect(html).toContain('Review before export');
+    expect(html).toContain('Review notes');
+    expect(html).toContain('amber');
+    expect(html).not.toContain('Ready to export');
+  });
 });

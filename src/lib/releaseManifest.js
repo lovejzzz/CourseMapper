@@ -3,22 +3,22 @@ import { APP_VERSION } from './appVersion.js';
 export const CURRENT_RELEASE = {
   version: APP_VERSION,
   date: 'June 26, 2026',
-  title: 'Course FAQ Prerequisite Firewall: CourseIR labels stop leaking into answers',
-  landingTitle: 'Course FAQ Prerequisite Firewall',
+  title: 'Trust Status Spine: caveated packages stop leaking green ready state',
+  landingTitle: 'Trust Status Spine',
   highlights: [
-    'The v0.15.47 Project Management ZIP/log audit still regraded at 97/A and exposed a deterministic Course FAQ leak: "Prerequisite concept" CourseIR labels were presented as student-facing evidence cues.',
-    'Course FAQ evidence-cue selection now treats CourseIR prerequisite labels as unsafe internal source placeholders, so focus answers and anchor contrasts fall back to safe lesson source evidence.',
-    'A focused regression recreates the live "scheduling lab 2. scenario quizzes / Prerequisite concept" shape and proves the compiled FAQ no longer contains the internal prerequisite label.',
-    'The local verifier blocker was environmental: node_modules had been left incomplete. Rebuilding dependencies restored bounded Vitest execution before this product patch landed.',
+    'The v0.15.47 Project Management ZIP/log audit exposed a cross-surface trust mismatch: the export card correctly showed amber review state while the header and agent surfaces still implied clean green readiness for a 97/100 package.',
+    'A shared package-trust helper now owns clean, review, blocked, running, and not-graded decisions across package UI surfaces.',
+    'Green package status now requires a clean package: 100/100 quality, no P0/P1/P2 findings, no texture loss, no export warnings, and no known source/genome caveats.',
+    'The recorded browser workflow now scans the export card, header chip, package summary, agent working set, and progress label so caveated packages cannot quietly regress to green ready language.',
   ],
   landingHighlights: [
-    'Course FAQ answers reject internal prerequisite source labels.',
-    'Live Project Management prerequisite leakage is regression-tested.',
-    'Local Vitest verification is unblocked after dependency repair.',
+    'One shared trust model drives package status surfaces.',
+    'Caveated packages stay downloadable but render amber review state.',
+    'Browser workflow assertions catch green-ready leaks across the page.',
   ],
   proof: {
-    contract: 'release-contracts/v0.15.48.json',
-    roadmap: 'docs/V0.15.48_COURSE_FAQ_PREREQUISITE_FIREWALL_ROADMAP.md',
+    contract: 'release-contracts/v0.15.49.json',
+    roadmap: 'docs/V0.15.49_TRUST_STATUS_SPINE_ROADMAP.md',
     auditCommand: 'npm run audit:release-history',
   },
 };
@@ -33,6 +33,17 @@ export const CURRENT_RELEASE_CHANGELOG = {
 };
 
 export const HISTORICAL_RELEASE_CHANGELOGS = [
+  {
+    version: '0.15.48',
+    date: 'June 26, 2026',
+    title: 'Course FAQ Prerequisite Firewall: CourseIR labels stop leaking into answers',
+    highlights: [
+      'The v0.15.47 Project Management ZIP/log audit still regraded at 97/A and exposed a deterministic Course FAQ leak: "Prerequisite concept" CourseIR labels were presented as student-facing evidence cues.',
+      'Course FAQ evidence-cue selection now treats CourseIR prerequisite labels as unsafe internal source placeholders, so focus answers and anchor contrasts fall back to safe lesson source evidence.',
+      'A focused regression recreates the live "scheduling lab 2. scenario quizzes / Prerequisite concept" shape and proves the compiled FAQ no longer contains the internal prerequisite label.',
+      'The local verifier blocker was environmental: node_modules had been left incomplete. Rebuilding dependencies restored bounded Vitest execution before this product patch landed.',
+    ],
+  },
   {
     version: '0.15.47',
     date: 'June 25, 2026',

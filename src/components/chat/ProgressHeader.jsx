@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { resolveLabel, STEPS } from './constants';
 import { isFinishPassRunning } from '../../lib/packagePassPhase';
+import { getPackageTrustStatus } from '../../lib/packageTrustStatus';
 
 /**
  * ProgressHeader — Compact collapsible progress bar at the top of the chat panel.
@@ -45,7 +46,7 @@ export function getProgressPhaseLabel({
   if (isPackageQualityRunning) return 'Finishing package...';
   if (isDone && hasDelivErrors) return 'Finish failed sections';
   if (hasPackageQualityBlockers) return 'Finish package';
-  if (hasPackageQualityWarnings) return 'Finish package';
+  if (hasPackageQualityWarnings) return 'Review before download';
   if (isDone && hasPendingSyncWork) return 'Sync needed';
   if (everythingDone) return 'Ready to download';
   if (isDone && isDelivGenerating) return `Deliverables ${delivDoneCount}/${delivRowCount}`;
@@ -110,8 +111,9 @@ export default function ProgressHeader({
   const isPackageQualityRunning = isFinishPassRunning(packageQualityPass);
   const isGenerationUmbrellaRunning =
     packageQualityPass?.status === 'running' && packageQualityPass?.phase === 'generation';
-  const hasPackageQualityBlockers = packageQualityPass?.status === 'blocked' || packageQualityPass?.blockers > 0;
-  const hasPackageQualityWarnings = packageQualityPass?.warnings > 0;
+  const packageTrustStatus = getPackageTrustStatus({ packageQualityPass });
+  const hasPackageQualityBlockers = packageTrustStatus.blocked;
+  const hasPackageQualityWarnings = packageTrustStatus.review;
   const hasPackageQualityIssues = hasPackageQualityBlockers || hasPackageQualityWarnings;
   const pendingSyncWorkCount = getPendingSyncWorkCount({ deliverables, pendingSyncCount });
   const hasPendingSyncWork = pendingSyncWorkCount > 0;

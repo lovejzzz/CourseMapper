@@ -113,4 +113,16 @@ describe('ProgressHeader progress helpers', () => {
 
     expect(label).toBe('Sync needed');
   });
+
+  it('routes caveated package completion to review before download', () => {
+    const label = getProgressPhaseLabel({
+      isDone: true,
+      hasPackageQualityWarnings: true,
+      everythingDone: false,
+      delivDoneCount: 1,
+      delivRowCount: 1,
+    });
+
+    expect(label).toBe('Review before download');
+  });
 });

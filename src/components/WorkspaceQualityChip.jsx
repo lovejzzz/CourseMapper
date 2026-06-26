@@ -16,12 +16,11 @@
  */
 
 import { finishStatusOf } from '../lib/pipelineMachine';
+import { countQualityFindings, getPackageTrustStatus } from '../lib/packageTrustStatus';
 
 // Same grade result shape ExportSidePanel's report modal consumes.
 function issueCount(quality) {
-  if (Number.isFinite(quality?.findingCount)) return quality.findingCount;
-  const counts = quality?.findingCounts || {};
-  return (counts.p0 || 0) + (counts.p1 || 0) + (counts.p2 || 0);
+  return countQualityFindings(quality);
 }
 
 // ≥32px click/read target (min-h) while keeping the trust-chip visual scale.
@@ -67,8 +66,8 @@ export default function WorkspaceQualityChip({ packageQualityPass, onOpenReport 
 
   const p0 = quality.findingCounts?.p0 || 0;
   const issues = issueCount(quality);
-  const healthy = (quality.grade === 'A' || quality.grade === 'B') && p0 === 0;
-  const tone = healthy
+  const trustStatus = getPackageTrustStatus({ packageQualityPass });
+  const tone = trustStatus.clean
     ? 'border-emerald-200 bg-emerald-50 text-emerald-700'
     : 'border-amber-200 bg-amber-50 text-amber-700';
   // v0.15.6: the two-number Seal stays visible, but texture now counts

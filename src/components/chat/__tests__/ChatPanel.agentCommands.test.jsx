@@ -319,6 +319,13 @@ describe('ChatPanel agent command strip', () => {
         blockers: 0,
         warnings: 0,
         repairsApplied: 0,
+        quality: {
+          status: 'graded',
+          score: 100,
+          grade: 'A',
+          findingCounts: { p0: 0, p1: 0, p2: 0 },
+          texture: { score: 100 },
+        },
         receipt: {
           checkedItems: ['No issues to fix', 'Classroom checks passed', 'Exports verified'],
           checkedSections: '10/10',
@@ -388,6 +395,13 @@ describe('ChatPanel agent command strip', () => {
         blockers: 0,
         warnings: 0,
         repairsApplied: 2,
+        quality: {
+          status: 'graded',
+          score: 100,
+          grade: 'A',
+          findingCounts: { p0: 0, p1: 0, p2: 0 },
+          texture: { score: 100 },
+        },
         receipt: { checkedSections: '10/10', lessonCount: 15, exportChecked: 10 },
       },
     });
@@ -436,6 +450,13 @@ describe('ChatPanel agent command strip', () => {
         message: 'Ready to download.',
         blockers: 0,
         warnings: 0,
+        quality: {
+          status: 'graded',
+          score: 100,
+          grade: 'A',
+          findingCounts: { p0: 0, p1: 0, p2: 0 },
+          texture: { score: 100 },
+        },
         receipt: { checkedSections: '10/10', lessonCount: 5 },
       },
     });
@@ -690,8 +711,8 @@ describe('ChatPanel agent command strip', () => {
       expect.objectContaining({
         role: 'agentReceipt',
         receipt: expect.objectContaining({
-          title: 'Package finished',
-          status: 'done',
+          title: 'Finish needs review',
+          status: 'review',
           target: 'Package',
           stateDiffs: [
             expect.objectContaining({
@@ -703,11 +724,15 @@ describe('ChatPanel agent command strip', () => {
           ],
         }),
       }),
-      { role: 'assistant', text: 'Package is ready. Safe checks passed and the export panel is ready.' },
+      {
+        role: 'assistant',
+        text: 'Review notes: 1 item. Download is available, but check the receipt before publishing.',
+      },
       expect.objectContaining({
         role: 'packageSummary',
         summary: expect.objectContaining({
-          ready: true,
+          ready: false,
+          downloadable: true,
           lessonCount: 1,
           trustBoundary: expect.objectContaining({ items: expect.any(Array) }),
         }),
@@ -732,7 +757,7 @@ describe('ChatPanel agent command strip', () => {
             }),
           ],
         }),
-        expect.objectContaining({ tool: 'finalize_package', status: 'done' }),
+        expect.objectContaining({ tool: 'finalize_package', status: 'partial' }),
       ],
     });
     expect(chatRouterMock.send).not.toHaveBeenCalled();
@@ -773,13 +798,17 @@ describe('ChatPanel agent command strip', () => {
     expect(chatRouterMock.addLocalMessages).toHaveBeenCalledWith([
       expect.objectContaining({
         role: 'agentReceipt',
-        receipt: expect.objectContaining({ title: 'Package finished', status: 'done', target: 'Package' }),
+        receipt: expect.objectContaining({ title: 'Finish needs review', status: 'review', target: 'Package' }),
       }),
-      { role: 'assistant', text: 'Package is ready. Safe checks passed and the export panel is ready.' },
+      {
+        role: 'assistant',
+        text: 'Review notes: 1 item. Download is available, but check the receipt before publishing.',
+      },
       expect.objectContaining({
         role: 'packageSummary',
         summary: expect.objectContaining({
-          ready: true,
+          ready: false,
+          downloadable: true,
           lessonCount: 1,
           trustBoundary: expect.objectContaining({ items: expect.any(Array) }),
         }),
@@ -1275,13 +1304,17 @@ describe('ChatPanel agent command strip', () => {
     expect(chatRouterMock.addLocalMessages).toHaveBeenCalledWith([
       expect.objectContaining({
         role: 'agentReceipt',
-        receipt: expect.objectContaining({ title: 'Package finished', status: 'done', target: 'Package' }),
+        receipt: expect.objectContaining({ title: 'Finish needs review', status: 'review', target: 'Package' }),
       }),
-      { role: 'assistant', text: 'Package is ready. Safe checks passed and the export panel is ready.' },
+      {
+        role: 'assistant',
+        text: 'Review notes: 1 item. Download is available, but check the receipt before publishing.',
+      },
       expect.objectContaining({
         role: 'packageSummary',
         summary: expect.objectContaining({
-          ready: true,
+          ready: false,
+          downloadable: true,
           lessonCount: 1,
           trustBoundary: expect.objectContaining({ items: expect.any(Array) }),
         }),

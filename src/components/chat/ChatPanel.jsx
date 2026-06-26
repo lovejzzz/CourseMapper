@@ -13,6 +13,7 @@ import { buildPostGenerationDigest } from '../../lib/agentDigest';
 import { classifyFinalizePackageStepStatus, normalizePackageSummary } from '../../lib/packageFinalizerSummary';
 import { finishStatusOf, isFinishPassActive, isPackageReady } from '../../lib/pipelineMachine';
 import { summarizeLandingAgentContext } from '../../lib/landingAgentContext';
+import { getPackageTrustStatus } from '../../lib/packageTrustStatus';
 import { useAIConfig } from '../../contexts/AIConfigContext';
 
 const ProgressHeader = lazy(() => import('./ProgressHeader'));
@@ -68,20 +69,22 @@ function buildPackageReceiptSummary(packageQualityPass, courseMap, selectedFeatu
   const finishStatus = finishStatusOf(packageQualityPass);
   if (finishStatus === 'running' || finishStatus === 'idle') return null;
   const receipt = packageQualityPass.receipt || {};
-  const blockerCount = Number(packageQualityPass.blockers || 0);
-  const warningCount = Number(packageQualityPass.warnings || 0);
-  const ready = isPackageReady(packageQualityPass) && blockerCount === 0 && warningCount === 0;
-  const tone = ready ? 'excellent' : blockerCount > 0 ? 'blocked' : 'assumptions';
+  const trustStatus = getPackageTrustStatus({ packageQualityPass });
+  const blockerCount = trustStatus.blockerCount;
+  const warningCount = trustStatus.warningCount;
+  const ready = isPackageReady(packageQualityPass) && trustStatus.clean;
+  const tone = trustStatus.toneKey === 'neutral' ? 'assumptions' : trustStatus.toneKey;
   const checkedFeatureCount = Array.isArray(selectedFeatures) ? selectedFeatures.length : 0;
   return {
     confidence: ready ? 'Excellent' : blockerCount > 0 ? 'Needs attention' : 'Good with assumptions',
     tone,
     ready,
+    downloadable: trustStatus.canDownload,
     nextAction: ready
       ? 'Safe checks passed and the package is ready to download.'
       : blockerCount > 0
         ? 'Finish package handled safe fixes. The remaining issue needs attention before download.'
-        : 'Safe fixes are complete. The remaining item needs instructor judgment.',
+        : 'Download is available, but review these caveats before publishing.',
     repairsApplied: packageQualityPass.repairsApplied || receipt.autoFixedCount || 0,
     blockerCount,
     warningCount,
@@ -101,7 +104,7 @@ function buildPackageReceiptSummary(packageQualityPass, courseMap, selectedFeatu
     trustBoundary: receipt.trustBoundary || null,
     repairSummary: receipt.repairSummary || 'none',
     reviewRecommendation: receipt.reviewRecommendation || '',
-    topIssues: ready ? [] : receipt.topIssues || [],
+    topIssues: ready ? [] : trustStatus.reviewIssues.length > 0 ? trustStatus.reviewIssues : receipt.topIssues || [],
   };
 }
 
@@ -160,6 +163,7 @@ function buildPackageFinishSummaryMessage(result = {}, courseMap, selectedFeatur
       reviewRecommendation: normalized.reviewRecommendation,
       topIssues: normalized.topIssues,
     },
+    quality: result.quality || null,
   };
   return buildPackageReceiptMessage(
     buildPackageReceiptSummary(packageQualityPass, result.courseMap || courseMap, selectedFeatures),
@@ -175,19 +179,35 @@ function getWorkspacePlanIntent(action) {
 
 function summarizeDirectPackageFinish(result) {
   const status = result?.packageQualityStatus || result?.status || '';
+  const normalized = normalizePackageSummary(result || {});
   const readiness = result?.readiness || {};
   const blockerCount = Number(readiness.blockers?.length ?? readiness.blockerCount ?? result?.blockers ?? 0);
   const warningCount = Number(readiness.warnings?.length ?? readiness.warningCount ?? result?.warnings ?? 0);
-  if (status === 'ready' || (blockerCount === 0 && warningCount === 0 && result)) {
+  const trustStatus = getPackageTrustStatus({
+    packageQualityPass: {
+      status: status || (normalized.ready ? 'ready' : 'blocked'),
+      blockers: blockerCount || normalized.blockerCount,
+      warnings: warningCount || normalized.warningCount,
+      receipt: result?.receipt || {
+        exportFailed: normalized.exportFailed,
+        exportWarningCount: normalized.exportWarningCount,
+        topIssues: normalized.topIssues,
+      },
+      quality: result?.quality || null,
+    },
+  });
+  if ((status === 'ready' || (blockerCount === 0 && warningCount === 0 && result)) && trustStatus.clean) {
     return 'Package is ready. Safe checks passed and the export panel is ready.';
   }
-  if (blockerCount > 0) {
-    return `Decision needed: ${blockerCount} blocker${
-      blockerCount === 1 ? '' : 's'
+  if (trustStatus.blocked) {
+    return `Decision needed: ${trustStatus.blockerCount} blocker${
+      trustStatus.blockerCount === 1 ? '' : 's'
     }. Check the receipt before downloading.`;
   }
-  if (warningCount > 0) {
-    return `Review notes: ${warningCount} item${warningCount === 1 ? '' : 's'}. Check the receipt before downloading.`;
+  if (trustStatus.review) {
+    return `Review notes: ${trustStatus.warningCount || 1} item${
+      (trustStatus.warningCount || 1) === 1 ? '' : 's'
+    }. Download is available, but check the receipt before publishing.`;
   }
   return 'Package pass complete. Check the export panel for the latest status.';
 }
@@ -546,7 +566,6 @@ function extractSummaryIssues(summary = {}) {
 }
 
 function packageReceiptStatus(summary = {}) {
-  if (summary.ready || summary.status === 'ready' || summary.packageQualityStatus === 'ready') return 'done';
   const blockerCount =
     Number(summary.blockerCount || 0) + Number(summary.classroomBlockerCount || 0) + Number(summary.exportFailed || 0);
   const reviewCount =
@@ -558,6 +577,9 @@ function packageReceiptStatus(summary = {}) {
   if (summary.tone === 'blocked' || blockerCount > 0) {
     return 'blocked';
   }
+  if (summary.ready === true) return 'done';
+  if (summary.tone === 'assumptions' || reviewCount > 0) return 'review';
+  if (summary.status === 'ready' || summary.packageQualityStatus === 'ready') return 'done';
   if (reviewCount === 0 && summary.tone !== 'assumptions') return 'done';
   return 'review';
 }
@@ -584,10 +606,11 @@ function buildPackageAuditReceipt(summary = {}) {
 
 function buildPackageFinishReceipt(result = {}) {
   const summary = normalizePackageSummary(result);
-  const status =
-    result?.packageQualityStatus === 'ready' || result?.status === 'ready' || result?.ready === true
-      ? 'done'
-      : packageReceiptStatus(summary);
+  const status = packageReceiptStatus({
+    ...summary,
+    ready: result?.ready === true && packageReceiptStatus(summary) === 'done',
+    packageQualityStatus: result?.packageQualityStatus || result?.status,
+  });
   const repairsApplied = Number(summary.repairsApplied || 0);
   return buildAgentReceiptMessage({
     title: status === 'done' ? 'Package finished' : 'Finish needs review',
@@ -859,29 +882,35 @@ function buildPackageAuditProgressSteps(summary = {}) {
 function buildPackageFinishProgressSteps(result = {}) {
   const summary = normalizePackageSummary(result);
   const repairIssueCount = Number(summary.repairsFailed || 0);
-  const hasFinishIssues =
-    Number(summary.blockerCount || 0) +
-      Number(summary.warningCount || 0) +
-      Number(summary.classroomBlockerCount || 0) +
-      Number(summary.classroomWarningCount || 0) +
-      Number(summary.validationErrorCount || 0) +
-      Number(summary.validationWarningCount || 0) +
-      Number(summary.exportFailed || 0) +
-      Number(summary.exportWarningCount || 0) >
-    0;
-  const finalStatus =
-    (result?.packageQualityStatus === 'ready' || result?.status === 'ready') && !hasFinishIssues
-      ? 'done'
-      : classifyFinalizePackageStepStatus(result);
+  const trustStatus = getPackageTrustStatus({
+    packageQualityPass: {
+      status: result?.packageQualityStatus || result?.status || (summary.ready ? 'ready' : 'blocked'),
+      blockers: summary.blockerCount,
+      warnings: summary.warningCount,
+      receipt: result?.receipt || {
+        exportFailed: summary.exportFailed,
+        exportWarningCount: summary.exportWarningCount,
+        topIssues: summary.topIssues,
+      },
+      quality: result?.quality || null,
+    },
+  });
+  const finalStatus = trustStatus.clean
+    ? 'done'
+    : trustStatus.blocked
+      ? 'error'
+      : trustStatus.review
+        ? 'partial'
+        : classifyFinalizePackageStepStatus(result);
   const finishSummary =
     finalStatus === 'done'
       ? 'Safe checks passed'
       : finalStatus === 'error'
-        ? `${summary.blockerCount || summary.exportFailed || 1} blocker${
-            (summary.blockerCount || summary.exportFailed || 1) === 1 ? '' : 's'
+        ? `${trustStatus.blockerCount || summary.exportFailed || 1} blocker${
+            (trustStatus.blockerCount || summary.exportFailed || 1) === 1 ? '' : 's'
           } still need review`
-        : `${summary.warningCount || summary.exportWarningCount || 1} review item${
-            (summary.warningCount || summary.exportWarningCount || 1) === 1 ? '' : 's'
+        : `${trustStatus.warningCount || summary.exportWarningCount || 1} review item${
+            (trustStatus.warningCount || summary.exportWarningCount || 1) === 1 ? '' : 's'
           } found`;
   return [
     buildDirectAgentStep('repair_package_readiness', 'Repair safe blockers', {

@@ -49,7 +49,11 @@ export default function PackageSummaryCard({ summary, embedded = false }) {
   if (!summary) return null;
 
   const tone = TONES[summary.tone] || TONES.assumptions;
-  const outcomeTitle = summary.ready ? 'Ready to download' : 'Review before export';
+  const outcomeTitle = summary.ready
+    ? 'Ready to download'
+    : summary.downloadable
+      ? 'Review before download'
+      : 'Review before export';
   const badgeText = summary.ready ? 'Done' : summary.tone === 'blocked' ? 'Action needed' : 'Review';
   const repairText =
     summary.repairsApplied > 0

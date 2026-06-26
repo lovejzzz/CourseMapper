@@ -1,5 +1,6 @@
 import React from 'react';
 import NoticeBanner from '../NoticeBanner';
+import { getPackageTrustStatus } from '../../lib/packageTrustStatus';
 
 /**
  * DigestCard — the TA's post-generation observations (v0.9.2).
@@ -15,18 +16,7 @@ import NoticeBanner from '../NoticeBanner';
  * panel's notice) — one attention component, not two.
  */
 function isCleanReadyPackage(packageQualityPass) {
-  if (!packageQualityPass || packageQualityPass.status !== 'ready') return false;
-  const blockerCount = Number(packageQualityPass.blockers || 0);
-  const warningCount = Number(packageQualityPass.warnings || 0);
-  const receipt = packageQualityPass.receipt || {};
-  const exportFailed = Number(receipt.exportFailed || 0);
-  const exportWarnings = Number(receipt.exportWarningCount || 0);
-  const quality = packageQualityPass.quality || {};
-  const qualityFindings = quality.findingCounts || {};
-  const qualityIssues =
-    Number(qualityFindings.p0 || 0) + Number(qualityFindings.p1 || 0) + Number(qualityFindings.p2 || 0);
-  const qualityClean = !quality.score || (Number(quality.score) >= 100 && qualityIssues === 0);
-  return blockerCount === 0 && warningCount === 0 && exportFailed === 0 && exportWarnings === 0 && qualityClean;
+  return getPackageTrustStatus({ packageQualityPass }).clean;
 }
 
 export default function DigestCard({ digest, onPrompt, onDismiss, status, onOpenInQueue, packageQualityPass = null }) {
