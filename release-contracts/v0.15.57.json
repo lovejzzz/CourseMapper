@@ -41,10 +41,7 @@
       "status": "verified-current",
       "changelogHighlightIndex": 0,
       "summary": "Fresh Project Management ZIP/log evidence showed a 74/C package because prompt artifact labels reached Study Guides and Course FAQ-style lesson language as concepts.",
-      "anchors": [
-        "docs/V0.15.57_STUDY_GUIDE_ARTIFACT_FIREWALL_ROADMAP.md",
-        "verification-output/edutool-audit-loop/20260626T140255Z/report.md"
-      ],
+      "anchors": ["docs/V0.15.57_STUDY_GUIDE_ARTIFACT_FIREWALL_ROADMAP.md", "src/lib/courseBlueprintCompiler.js"],
       "proofCommands": ["npx vitest run tests/v0141-phase1-finalizer.test.js"],
       "proofScopes": ["browser-live", "compiled-output", "doc"]
     },
