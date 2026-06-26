@@ -3,22 +3,22 @@ import { APP_VERSION } from './appVersion.js';
 export const CURRENT_RELEASE = {
   version: APP_VERSION,
   date: 'June 26, 2026',
-  title: 'Crossref License Parser: final source row keeps its rights URL',
-  landingTitle: 'Crossref License Parser',
+  title: 'Course FAQ Artifact Firewall: prompt-label leakage stops reaching exports',
+  landingTitle: 'Course FAQ Artifact Firewall',
   highlights: [
-    'The post-push v0.15.54 browser ZIP audit improved the Startup Finance package to 99/A with one remaining P2: a Crossref syllabus row carried a specific Elsevier rights URL, but the source normalizer still exported `license=missing`.',
-    'Rendered source text now recovers rights/license URLs such as publisher terms or TDM license links when no Creative Commons label is present.',
-    "DOI URLs with parenthesized suffixes now normalize through the parsed DOI instead of keeping the text URL extractor's truncated URL.",
-    'Focused source-ledger regressions pin the exact live Crossref/Elsevier shape while keeping generic `open access` ambiguous unless concrete rights metadata is present.',
+    'A fresh deployed v0.15.55 Project Management ZIP/log audit regraded at 74/C with a P0 because compact prompt/assessment artifact runs such as "scenario quizzes 2. rubric-driven assignments 3. final capstone presentation" reached student-facing Course FAQ and study-guide language.',
+    'Course FAQ compilation now treats compact numbered artifact runs and internal source placeholders as unsafe, replacing them with lesson-specific assessment and source-evidence phrases before export.',
+    'Course FAQ repair now strips trailing objective punctuation before adding its own sentence break, removing the double-period P2 shape seen in the downloaded QUALITY_REPORT.md.',
+    'Focused compiler and post-processing regressions pin both live failure shapes without weakening quality grading or hiding the remaining partial-enrichment blocker.',
   ],
   landingHighlights: [
-    'Crossref rights URLs become source-ledger license proof.',
-    'DOI links with parentheses stop truncating.',
-    'Generic open-access rows still require review.',
+    'Compact artifact lists stay out of Course FAQ answers.',
+    'Internal source placeholders fall back to source-evidence language.',
+    'Fallback FAQ repairs stop double punctuation.',
   ],
   proof: {
-    contract: 'release-contracts/v0.15.55.json',
-    roadmap: 'docs/V0.15.55_CROSSREF_LICENSE_PARSER_ROADMAP.md',
+    contract: 'release-contracts/v0.15.56.json',
+    roadmap: 'docs/V0.15.56_COURSE_FAQ_ARTIFACT_FIREWALL_ROADMAP.md',
     auditCommand: 'npm run audit:release-history',
   },
 };
@@ -33,6 +33,17 @@ export const CURRENT_RELEASE_CHANGELOG = {
 };
 
 export const HISTORICAL_RELEASE_CHANGELOGS = [
+  {
+    version: '0.15.55',
+    date: 'June 26, 2026',
+    title: 'Crossref License Parser: final source row keeps its rights URL',
+    highlights: [
+      'The post-push v0.15.54 browser ZIP audit improved the Startup Finance package to 99/A with one remaining P2: a Crossref syllabus row carried a specific Elsevier rights URL, but the source normalizer still exported `license=missing`.',
+      'Rendered source text now recovers rights/license URLs such as publisher terms or TDM license links when no Creative Commons label is present.',
+      "DOI URLs with parenthesized suffixes now normalize through the parsed DOI instead of keeping the text URL extractor's truncated URL.",
+      'Focused source-ledger regressions pin the exact live Crossref/Elsevier shape while keeping generic `open access` ambiguous unless concrete rights metadata is present.',
+    ],
+  },
   {
     version: '0.15.54',
     date: 'June 26, 2026',

@@ -238,6 +238,67 @@ describe('Course FAQ post-processing', () => {
     expect(result.data.faqs[1].qs[0].an).toContain('Sampling and Measurement');
   });
 
+  it('does not double-punctuate repaired FAQ objective answers', () => {
+    const data = {
+      faqs: [
+        {
+          lt: 'Lesson 1: Project Charter',
+          qs: [{ q: 'Where do I start?', an: 'Review the objective.', ca: 'Course Logistics' }],
+        },
+        {
+          lt: 'Lesson 2: Scope Management',
+          qs: [{ q: 'Where do I start?', an: 'Review the objective.', ca: 'Course Logistics' }],
+        },
+        {
+          lt: 'Lesson 3: Work Breakdown Structures',
+          qs: [{ q: 'Where do I start?', an: 'Review the objective.', ca: 'Course Logistics' }],
+        },
+      ],
+    };
+    const courseMap = {
+      lessons: [
+        {
+          title: 'Lesson 1: Project Charter',
+          sections: [
+            {
+              topicSection: 'Project charter',
+              learningObjectives: 'Explain the key ideas in project charter and apply them in course activities.',
+              weeklyAssessments: 'Project charter checkpoint.',
+            },
+          ],
+        },
+        {
+          title: 'Lesson 2: Scope Management',
+          sections: [
+            {
+              topicSection: 'Scope control',
+              learningObjectives: 'Explain the key ideas in scope management and apply them in course activities.',
+              weeklyAssessments: 'Scope note.',
+            },
+          ],
+        },
+        {
+          title: 'Lesson 3: Work Breakdown Structures',
+          sections: [
+            {
+              topicSection: 'Work breakdown structures',
+              learningObjectives:
+                'Explain the key ideas in work breakdown structures and apply them in course activities.',
+              weeklyAssessments: 'WBS draft.',
+            },
+          ],
+        },
+      ],
+    };
+
+    const result = normalizeCourseFaqQuestionVariety(data, courseMap);
+    const repairedText = result.data.faqs.map((lesson) => lesson.qs[0].an).join(' ');
+
+    expect(result.rewrittenQuestions).toBe(3);
+    expect(repairedText).not.toMatch(/\.\./);
+    expect(repairedText).toContain('course activities. Bring one specific question');
+  });
+
   it('builds a valid course-map fallback FAQ when model output is unusable', () => {
     const fallback = buildFallbackCourseFaq(faqCourseMap);
 

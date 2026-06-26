@@ -272,6 +272,12 @@ function compactText(value, fallback = '', maxLength = 220) {
   return clipped || text.slice(0, maxLength).trim();
 }
 
+function stripTerminalPunctuation(value) {
+  return String(value || '')
+    .replace(/[.!?]+$/g, '')
+    .trim();
+}
+
 function cleanListItem(value) {
   return String(value || '')
     .replace(/^\s*(?:[-*]|\d{1,2}[.)])\s*/, '')
@@ -481,7 +487,7 @@ function buildFaqQuestionRepair({ question, courseLesson, lessonTitle, lessonInd
   const templates = {
     'Course Logistics': {
       q: `What should I review first for ${shortTitle}?`,
-      an: `Start with ${topic}, then compare your notes to the lesson objective: ${objective}. Bring one specific question about the topic or assessment to class, office hours, or a study group.`,
+      an: `Start with ${topic}, then compare your notes to the lesson objective: ${stripTerminalPunctuation(objective)}. Bring one specific question about the topic or assessment to class, office hours, or a study group.`,
     },
     'Assignment Clarification': {
       q: `What does strong work on ${assessmentLabel} look like?`,

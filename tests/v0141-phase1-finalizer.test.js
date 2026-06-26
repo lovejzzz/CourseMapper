@@ -606,4 +606,54 @@ describe('1.16 — prompt artifact labels never become course-map concepts', () 
     expect(faqText).not.toMatch(/Strong work uses Prerequisite/i);
     expect(faqText).toMatch(/Scheduling source evidence|source evidence/i);
   });
+
+  it('keeps compact assessment-artifact runs out of compiled Course FAQ focus answers', () => {
+    const courseMap = {
+      courseName: 'Project Management',
+      lessons: [
+        {
+          title: 'Lesson 1: Project Management',
+          sections: [
+            {
+              topicSection: 'Project charter',
+              learningGoals: 'Use project charter evidence to reason about project management decisions.',
+              learningObjectives: 'Explain project charter purpose and apply it in a course activity.',
+              weeklyAssessments: 'Project charter checkpoint.',
+              asyncActivities: 'Read project charter guidance and annotate one example.',
+              syncActivities: 'Discuss examples and practice applying charter purpose.',
+              supportingResources:
+                'Wikipedia contributors. Project charter. Wikipedia: https://en.wikipedia.org/wiki/Project_charter',
+              evaluateDesign: 'Check project charter decisions against source evidence.',
+            },
+          ],
+        },
+      ],
+    };
+    const blueprint = buildCourseBlueprint(courseMap);
+    blueprint.lessons[0].studentArtifact =
+      'scenario quizzes 2. rubric-driven assignments 3. final capstone presentation';
+    blueprint.lessons[0].evidencePlan = {
+      ...(blueprint.lessons[0].evidencePlan || {}),
+      sourceCue: 'Instructor-approved readings, examples, or lab materials for project charter.',
+    };
+    blueprint.lessons[0].throughlineCase = {
+      ...(blueprint.lessons[0].throughlineCase || {}),
+      projectName: 'Project Management',
+      evidencePacket: 'Instructor-approved readings, examples, or lab materials for project charter.',
+    };
+
+    const compiled = compileBlueprintDeliverables(blueprint, ['courseFaq'], {
+      configMap: { courseFaq: { questionsPerLesson: 5 } },
+    });
+    const faqText = compiled.courseFaq.faqs
+      .flatMap((faq) => faq.qs || [])
+      .map((item) => `${item.q || ''} ${item.an || ''} ${(item.rc || []).join(' ')}`)
+      .join(' ');
+
+    expect(faqText).not.toMatch(/scenario quizzes\s+2\./i);
+    expect(faqText).not.toMatch(/rubric-driven assignments\s+3\./i);
+    expect(faqText).not.toMatch(/Instructor-approved readings/i);
+    expect(faqText).toMatch(/Project Management assessment/i);
+    expect(faqText).toMatch(/Project Management source evidence|project charter/i);
+  });
 });

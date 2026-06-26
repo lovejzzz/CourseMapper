@@ -4,6 +4,25 @@
 
 CourseMapper is moving toward a "consider it done" course-production agent. The user should describe the course, choose scope/materials, and receive a finished draft package. The agent owns generation, QA, repair, alignment, and export readiness. Human involvement should be final approval only, not QA labor.
 
+## v0.15.56 - Course FAQ Artifact Firewall
+
+Goal: address the fresh v0.15.55 Project Management package that regraded
+74/C because compact prompt/assessment artifact runs and source placeholders
+reached student-facing Course FAQ and study-guide language. This release fixes
+the Course FAQ compiler/export leakage slice and the double-period repair
+shape while carrying forward partial enrichment and study-guide coverage work.
+
+Full plan: `docs/V0.15.56_COURSE_FAQ_ARTIFACT_FIREWALL_ROADMAP.md`
+
+1. Treat compact numbered artifact runs as unsafe Course FAQ phrases.
+2. Replace internal source placeholders with lesson-specific source-evidence
+   fallback language before Course FAQ export.
+3. Keep raw prompt/source artifact labels out of FAQ answers and retrieval
+   chips.
+4. Strip objective punctuation before fallback FAQ repair sentence joins.
+5. Carry forward the remaining quality targets: partial enrichment fallback,
+   study-guide prompt-artifact leakage, and source/research bridge fidelity.
+
 ## v0.15.55 - Crossref License Parser
 
 Goal: remove the remaining v0.15.54 99/100 source-ledger parser loss. The
