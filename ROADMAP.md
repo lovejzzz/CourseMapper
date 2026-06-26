@@ -4,6 +4,26 @@
 
 CourseMapper is moving toward a "consider it done" course-production agent. The user should describe the course, choose scope/materials, and receive a finished draft package. The agent owns generation, QA, repair, alignment, and export readiness. Human involvement should be final approval only, not QA labor.
 
+## v0.15.54 - Source Ledger Merge
+
+Goal: reduce the fresh v0.15.53 97/100 source-ledger loss without weakening
+the grader. The browser package was downloadable and honest, but weaker
+syllabus-derived rows duplicated stronger DOI/URL rows and created avoidable
+missing-license P2 findings.
+
+Full plan: `docs/V0.15.54_SOURCE_LEDGER_MERGE_ROADMAP.md`
+
+1. Deduplicate source-ledger bundles by stable source identity, especially DOI
+   and URL, not row id alone.
+2. Prefer the row with stronger access, provider, and explicit license proof
+   when duplicate identities collide.
+3. Preserve concept links from weaker duplicates so lesson placement evidence
+   is not lost during merge.
+4. Keep the source-ledger grader strict: generic `open access` remains
+   ambiguous unless provider metadata supplies a real license.
+5. Carry forward the remaining quality targets: explicit license retrieval for
+   genuinely ambiguous rows, then prompt-artifact leakage.
+
 ## v0.15.53 - Ready Notes Workflow
 
 Goal: fix the automation and agent-receipt gaps exposed by the v0.15.52

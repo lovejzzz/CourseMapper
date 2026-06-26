@@ -559,6 +559,78 @@ describe('packageZipExporter', () => {
     expect(sourceReport).not.toContain('Existing course map fields');
   });
 
+  it('dedupes weaker syllabus source rows when a trusted DOI source already exists', async () => {
+    const courseMap = makeCourseMap('Source Duplicate Merge');
+    courseMap.lessons[0].sections[0].topicSection = 'Fundraising stages';
+
+    const result = await buildCourseMaterialsZip({
+      courseMap,
+      deliverables: {
+        syllabus: {
+          status: 'done',
+          data: {
+            syllabus: {
+              courseTitle: 'Source Duplicate Merge',
+              weeklySchedule: [
+                {
+                  week: 'Week 1',
+                  topic: 'Fundraising stages',
+                  readings:
+                    'Susan Kay-Williams (2000). The five stages of fundraising. Crossref: https://doi.org/10.1002/nvsm.115 (http://onlinelibrary.wiley.com/termsAndConditions#vor)',
+                  assignments: 'Funding memo',
+                },
+              ],
+            },
+          },
+        },
+      },
+      featureIds: ['courseMap', 'syllabus'],
+      courseGraph: {
+        concepts: [{ id: 'c1', term: 'Fundraising stages' }],
+        sessions: [
+          {
+            id: 's1',
+            number: 1,
+            sections: [{ id: 'sec1', topic: 'Fundraising stages', conceptRefs: ['c1'], resourceRefs: ['sf2'] }],
+          },
+        ],
+        resources: [
+          {
+            id: 'sf2',
+            title: 'The five stages of fundraising: a framework for the development of fundraising',
+            origin: 'source-finder',
+            kind: 'scholarly work',
+            url: 'https://doi.org/10.1002/nvsm.115',
+            doi: '10.1002/nvsm.115',
+            license: 'http://onlinelibrary.wiley.com/termsAndConditions#vor',
+            sessionRefs: ['s1'],
+          },
+        ],
+        readings: [],
+      },
+      pipelineState: {
+        knowledgeBackbone: '1 open resource (source-finder: 1)',
+      },
+      quality: false,
+    });
+
+    const zip = await JSZip.loadAsync(await result.blob.arrayBuffer());
+    const manifest = JSON.parse(await zip.file('PACKAGE_MANIFEST.json').async('string'));
+    const sourceReport = await zip.file('SOURCE_REPORT.md').async('string');
+
+    expect(manifest.sourceLedger).toHaveLength(1);
+    expect(manifest.sourceLedger[0]).toMatchObject({
+      id: 'sf2',
+      doi: '10.1002/nvsm.115',
+      provider: 'source-finder',
+      license: 'http://onlinelibrary.wiley.com/termsAndConditions#vor',
+      accessStatus: 'reference-present',
+      conceptLinks: expect.arrayContaining([expect.objectContaining({ label: 'Fundraising stages' })]),
+    });
+    expect(sourceReport).toContain('sf2:');
+    expect(sourceReport).not.toContain('syllabus-src-');
+  });
+
   it('recovers source report proof from rendered course-map resources when the export graph is sparse', async () => {
     const courseMap = makeCourseMap('Sociology Source Fallback');
     courseMap.lessons[0].sections[0] = {

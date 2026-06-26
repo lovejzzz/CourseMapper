@@ -4,6 +4,7 @@ import { resolveFeatureLabel } from './exporters/exporterUtils.js';
 import {
   buildSourceLedgerFromCourseGraph,
   buildSourceReportMarkdown,
+  isLicenseAmbiguous,
   summarizeSourceLedgerRows,
 } from './knowledge/sourceLedger.js';
 import { safeImport } from './safeImport';
@@ -296,23 +297,89 @@ function sourceLedgerRowKey(row = {}) {
   return `${row.id || ''}|${row.doi || ''}|${row.url || ''}|${row.title || row.evidence || ''}`.toLowerCase();
 }
 
+function normalizeSourceIdentity(value = '') {
+  return cleanSourceText(value, 600)
+    .replace(/^https?:\/\/(?:dx\.)?doi\.org\//i, 'doi:')
+    .replace(/[?#].*$/g, '')
+    .replace(/\/+$/g, '')
+    .toLowerCase();
+}
+
+function sourceLedgerIdentityKeys(row = {}) {
+  const strongKeys = [
+    row.doi ? `doi:${normalizeSourceIdentity(row.doi).replace(/^doi:/, '')}` : '',
+    row.url ? `url:${normalizeSourceIdentity(row.url)}` : '',
+  ].filter(Boolean);
+  if (strongKeys.length > 0) return strongKeys;
+  const title = normalizeSourceIdentity(row.title || row.citation || row.evidence || '');
+  return title ? [`title:${title}`] : [];
+}
+
+function sourceLedgerRowStrength(row = {}) {
+  const provider = cleanSourceText(row.provider, 80).toLowerCase();
+  const license = cleanSourceText(row.license, 180);
+  return (
+    (row.url || row.doi ? 24 : 0) +
+    (license && !isLicenseAmbiguous(license) ? 24 : license ? 4 : 0) +
+    (provider && !['syllabus', 'course-resource', 'course-map', 'resource'].includes(provider) ? 10 : 0) +
+    (Array.isArray(row.conceptLinks) && row.conceptLinks.length > 0 ? 6 : 0) +
+    (!/^syllabus-src-/i.test(cleanSourceText(row.id, 120)) ? 2 : 0)
+  );
+}
+
+function mergeConceptLinks(...rows) {
+  const seen = new Set();
+  const links = [];
+  for (const row of rows) {
+    for (const link of row?.conceptLinks || []) {
+      const id = cleanSourceText(link?.id || '', 120);
+      const label = cleanSourceText(link?.label || '', 160);
+      const key = `${id}|${label}`.toLowerCase();
+      if ((!id && !label) || seen.has(key)) continue;
+      seen.add(key);
+      links.push({ ...(id ? { id } : {}), ...(label ? { label } : {}) });
+    }
+  }
+  return links;
+}
+
+function mergeSourceLedgerRows(existing, incoming) {
+  const [stronger, weaker] =
+    sourceLedgerRowStrength(incoming) > sourceLedgerRowStrength(existing) ? [incoming, existing] : [existing, incoming];
+  const conceptLinks = mergeConceptLinks(stronger, weaker);
+  return {
+    ...stronger,
+    ...(conceptLinks.length > 0 ? { conceptLinks } : {}),
+  };
+}
+
+function appendMergedSourceRow(rows, keyIndex, row) {
+  const identityKeys = sourceLedgerIdentityKeys(row);
+  const existingIndex = identityKeys.map((key) => keyIndex.get(key)).find((index) => Number.isInteger(index));
+  if (Number.isInteger(existingIndex)) {
+    rows[existingIndex] = mergeSourceLedgerRows(rows[existingIndex], row);
+    for (const key of sourceLedgerIdentityKeys(rows[existingIndex])) keyIndex.set(key, existingIndex);
+    return;
+  }
+  const fallbackKey = sourceLedgerRowKey(row);
+  if (!fallbackKey.trim()) return;
+  const nextIndex = rows.length;
+  rows.push(row);
+  const keys = identityKeys.length > 0 ? identityKeys : [fallbackKey];
+  for (const key of keys) keyIndex.set(key, nextIndex);
+}
+
 function mergeSourceLedgerBundles(...bundles) {
   const rows = [];
   const reviewRows = [];
-  const seen = new Set();
-  const reviewSeen = new Set();
+  const rowKeyIndex = new Map();
+  const reviewKeyIndex = new Map();
   for (const bundle of bundles) {
     for (const row of bundle?.rows || []) {
-      const key = sourceLedgerRowKey(row);
-      if (!key.trim() || seen.has(key)) continue;
-      seen.add(key);
-      rows.push(row);
+      appendMergedSourceRow(rows, rowKeyIndex, row);
     }
     for (const row of bundle?.reviewRows || []) {
-      const key = sourceLedgerRowKey(row);
-      if (!key.trim() || reviewSeen.has(key)) continue;
-      reviewSeen.add(key);
-      reviewRows.push(row);
+      appendMergedSourceRow(reviewRows, reviewKeyIndex, row);
     }
   }
   if (rows.length === 0 && reviewRows.length === 0) return null;

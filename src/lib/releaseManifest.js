@@ -3,22 +3,22 @@ import { APP_VERSION } from './appVersion.js';
 export const CURRENT_RELEASE = {
   version: APP_VERSION,
   date: 'June 26, 2026',
-  title: 'Ready Notes Workflow: downloadable caveats stop failing automation',
-  landingTitle: 'Ready Notes Workflow',
+  title: 'Source Ledger Merge: duplicate syllabus rows stop costing quality',
+  landingTitle: 'Source Ledger Merge',
   highlights: [
-    'The recorded browser smoke was still treating the new amber "Ready with notes" state as not downloadable, even when the ZIP button was visible and the package had only non-blocking caveats.',
-    'The workflow assertion now accepts "Ready with notes" as a downloadable amber state while still failing any caveated package that leaks green "Ready to download" or "Done" status.',
-    'Agent package receipts now include selected failed custom deliverables by name, so a mixed package says "Terminal Failure Pack failed to generate" instead of hiding the blocker behind a generic count.',
-    'Export and agent E2E coverage now pins the v0.15.52 UI contract: caveated packages stay calm and amber, raw issue detail stays collapsed, and downloads remain available when there are no blockers.',
+    'A fresh v0.15.53 browser ZIP audit downloaded successfully but regraded at 97/A because weaker syllabus-derived source rows duplicated trusted DOI/URL rows and introduced extra missing-license P2 findings.',
+    'Source-ledger bundle merging now dedupes by stable source identity, including DOI and URL, instead of treating different row ids as separate bibliography proof.',
+    'When duplicate rows collide, CourseMapper keeps the stronger source row with explicit access/license/provider evidence while preserving concept links from the weaker row.',
+    'Focused exporter coverage recreates the live syllabus/source duplicate shape without weakening the source-ledger grader or hiding genuinely ambiguous provider licenses.',
   ],
   landingHighlights: [
-    'Recorded workflow accepts amber downloadable notes.',
-    'Caveated packages still cannot look green.',
-    'Failed custom deliverables are named in the agent receipt.',
+    'Duplicate syllabus source rows merge into trusted DOI/URL proof.',
+    'Better license/provider evidence wins without weakening grading.',
+    'Concept links survive source-row dedupe.',
   ],
   proof: {
-    contract: 'release-contracts/v0.15.53.json',
-    roadmap: 'docs/V0.15.53_READY_NOTES_WORKFLOW_ROADMAP.md',
+    contract: 'release-contracts/v0.15.54.json',
+    roadmap: 'docs/V0.15.54_SOURCE_LEDGER_MERGE_ROADMAP.md',
     auditCommand: 'npm run audit:release-history',
   },
 };
@@ -33,6 +33,17 @@ export const CURRENT_RELEASE_CHANGELOG = {
 };
 
 export const HISTORICAL_RELEASE_CHANGELOGS = [
+  {
+    version: '0.15.53',
+    date: 'June 26, 2026',
+    title: 'Ready Notes Workflow: downloadable caveats stop failing automation',
+    highlights: [
+      'The recorded browser smoke was still treating the new amber "Ready with notes" state as not downloadable, even when the ZIP button was visible and the package had only non-blocking caveats.',
+      'The workflow assertion now accepts "Ready with notes" as a downloadable amber state while still failing any caveated package that leaks green "Ready to download" or "Done" status.',
+      'Agent package receipts now include selected failed custom deliverables by name, so a mixed package says "Terminal Failure Pack failed to generate" instead of hiding the blocker behind a generic count.',
+      'Export and agent E2E coverage now pins the v0.15.52 UI contract: caveated packages stay calm and amber, raw issue detail stays collapsed, and downloads remain available when there are no blockers.',
+    ],
+  },
   {
     version: '0.15.52',
     date: 'June 26, 2026',
