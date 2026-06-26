@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { deriveCourseGraphFromCourseMap } from '../courseGraph/deriveFromCourseMap.js';
 import { renderCourseMapFromGraph } from '../courseGraph/renderCourseMap.js';
-import { matchEntityIds } from '../nativeGraphAuthoring.js';
+import { matchEntityIds, preserveSourceProof } from '../nativeGraphAuthoring.js';
 
 function sourceBackedMap() {
   return {
@@ -93,5 +93,62 @@ describe('nativeGraphAuthoring matchEntityIds', () => {
       expect.arrayContaining([expect.objectContaining({ citation: 'Instructor placeholder' })]),
     );
     expect(matched.sessions[0].sections[0].resourceRefs).toContain('sf1');
+  });
+
+  it('preserves source-finder proof for prose graph re-derivations after map repairs', () => {
+    const oldGraph = deriveCourseGraphFromCourseMap(sourceBackedMap());
+    const session = oldGraph.sessions[0];
+    const section = session.sections[0];
+    oldGraph.sourceFinderMiniShard = {
+      version: 'source-finder-v2',
+      topics: [
+        {
+          sessionId: session.id,
+          lessonNumber: 1,
+          topic: 'Model documentation',
+          conceptRefs: ['c1'],
+          sources: [
+            {
+              id: 'https://openalex.org/W999',
+              provider: 'openalex',
+              title: 'Governance of model documentation',
+              url: 'https://openalex.org/W999',
+              license: 'cc-by',
+            },
+          ],
+        },
+      ],
+    };
+    oldGraph.resources.push({
+      id: 'sf1',
+      citation: 'OpenAlex (2024). Governance of model documentation. OpenAlex: https://openalex.org/W999 (cc-by)',
+      kind: 'source',
+      sessionRefs: [session.id],
+      origin: 'source-finder',
+      provider: 'openalex',
+      url: 'https://openalex.org/W999',
+      license: 'cc-by',
+      attribution: 'OpenAlex (CC0 metadata)',
+    });
+    section.resourceRefs = ['sf1'];
+
+    const repairedMap = renderCourseMapFromGraph(oldGraph, { assessmentReferences: true });
+    repairedMap.lessons[0].sections[0].supportingResources = 'Instructor worksheet for model documentation.';
+    const rederived = deriveCourseGraphFromCourseMap(repairedMap);
+    const preserved = preserveSourceProof(oldGraph, rederived);
+
+    expect(preserved.resources).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          id: 'sf1',
+          origin: 'source-finder',
+          provider: 'openalex',
+          url: 'https://openalex.org/W999',
+          license: 'cc-by',
+        }),
+      ]),
+    );
+    expect(preserved.sourceFinderMiniShard).toEqual(oldGraph.sourceFinderMiniShard);
+    expect(preserved.sessions[0].sections[0].resourceRefs).toContain('sf1');
   });
 });

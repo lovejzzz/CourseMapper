@@ -3,22 +3,22 @@ import { APP_VERSION } from './appVersion.js';
 export const CURRENT_RELEASE = {
   version: APP_VERSION,
   date: 'June 26, 2026',
-  title: 'Source Finder Research Bridge: retrieved sources become concept-linked ledger rows',
-  landingTitle: 'Source Finder Research Bridge',
+  title: 'Source Proof Repair Persistence: source-finder rows survive map repairs',
+  landingTitle: 'Source Proof Repair Persistence',
   highlights: [
-    'The Project Management audit evidence showed the research bridge still had a concrete quality gap: OpenAlex/source-finder retrieval could find sources while the exported source ledger stayed thin or off-discipline.',
-    'Source-finder now preserves DOI, topic, author, year, license, and title metadata through graph attachment so OpenAlex/Crossref evidence can become trusted source-ledger rows instead of losing identity on export.',
-    'Source-ledger concept linking now follows CourseGraph teaching edges as well as section conceptRefs, so attached source-finder resources become concept-linked bibliography proof across both graph shapes.',
-    'Project Management source retrieval now rejects off-discipline medical readings unless the course/topic is actually healthcare-facing, preventing cardiovascular papers from satisfying risk/scope/project topics.',
+    'The fresh v0.15.59 Project Management ZIP/log audit improved to 98/A, but still proved a source bridge gap: the digest saw 3 source-finder resources while the exported source ledger collapsed to syllabus/Open Library rows.',
+    'Course map repair re-derivation now preserves source-backed resources and source-finder mini-shards for prose/fallback graphs, not only native-authored graphs.',
+    'Source-finder/OpenAlex rows therefore survive safe package repairs and remain available for package ZIP source-ledger assembly instead of being replaced by weaker syllabus-derived proof.',
+    'Focused graph, package-export, source-ledger, and Study Guide firewall regressions pin the repair path without weakening source grading or hiding remaining texture/native-fallback caveats.',
   ],
   landingHighlights: [
-    'Retrieved OpenAlex/source-finder rows keep DOI/license proof.',
-    'Source ledger rows link through CourseGraph teaching edges.',
-    'Project Management rejects off-discipline medical readings.',
+    'Source-finder rows survive map repair re-derivation.',
+    'OpenAlex proof remains available for ZIP source ledgers.',
+    'Focused source/export regressions stay strict.',
   ],
   proof: {
-    contract: 'release-contracts/v0.15.59.json',
-    roadmap: 'docs/V0.15.59_SOURCE_FINDER_RESEARCH_BRIDGE_ROADMAP.md',
+    contract: 'release-contracts/v0.15.60.json',
+    roadmap: 'docs/V0.15.60_SOURCE_PROOF_REPAIR_PERSISTENCE_ROADMAP.md',
     auditCommand: 'npm run audit:release-history',
   },
 };
@@ -33,6 +33,17 @@ export const CURRENT_RELEASE_CHANGELOG = {
 };
 
 export const HISTORICAL_RELEASE_CHANGELOGS = [
+  {
+    version: '0.15.59',
+    date: 'June 26, 2026',
+    title: 'Source Finder Research Bridge: retrieved sources become concept-linked ledger rows',
+    highlights: [
+      'The Project Management audit evidence showed the research bridge still had a concrete quality gap: OpenAlex/source-finder retrieval could find sources while the exported source ledger stayed thin or off-discipline.',
+      'Source-finder now preserves DOI, topic, author, year, license, and title metadata through graph attachment so OpenAlex/Crossref evidence can become trusted source-ledger rows instead of losing identity on export.',
+      'Source-ledger concept linking now follows CourseGraph teaching edges as well as section conceptRefs, so attached source-finder resources become concept-linked bibliography proof across both graph shapes.',
+      'Project Management source retrieval now rejects off-discipline medical readings unless the course/topic is actually healthcare-facing, preventing cardiovascular papers from satisfying risk/scope/project topics.',
+    ],
+  },
   {
     version: '0.15.58',
     date: 'June 26, 2026',

@@ -105,7 +105,7 @@ import {
   renderCourseMapFromGraph,
   validateCourseGraph,
 } from './lib/courseGraph';
-import { matchEntityIds } from './lib/nativeGraphAuthoring';
+import { matchEntityIds, preserveSourceProof } from './lib/nativeGraphAuthoring';
 import { knowledgeCoverage } from './lib/knowledge';
 
 const PACKAGE_READY_MESSAGE = 'All required files passed export checks and the package is ready to download.';
@@ -897,7 +897,7 @@ export default function AppFlow({ startupAction = null, onStartupHandled, onRetu
                   }
                 : {}),
             })
-          : rederived,
+          : preserveSourceProof(courseGraphRef.current, rederived),
       );
     } catch {
       /* graph consistency is best-effort — the map remains usable */

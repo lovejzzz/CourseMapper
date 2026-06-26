@@ -4,6 +4,26 @@
 
 CourseMapper is moving toward a "consider it done" course-production agent. The user should describe the course, choose scope/materials, and receive a finished draft package. The agent owns generation, QA, repair, alignment, and export readiness. Human involvement should be final approval only, not QA labor.
 
+## v0.15.60 - Source Proof Repair Persistence
+
+Goal: address the fresh v0.15.59 Project Management audit gap where the run
+digest reported `3 open resources (source-finder: 3)` but the exported source
+ledger only contained weaker syllabus/Open Library rows after safe package
+repairs.
+
+Full plan: `docs/V0.15.60_SOURCE_PROOF_REPAIR_PERSISTENCE_ROADMAP.md`
+
+1. Preserve source-backed resources, source-finder mini-shards, and reading
+   decisions when AppFlow re-derives a prose/fallback graph after map repair.
+2. Keep source-finder/OpenAlex rows available for package source-ledger
+   assembly instead of degrading to syllabus-derived proof.
+3. Pin the repair path with a regression where rendered source text disappears
+   but the retrieved source-finder row remains linked to the lesson.
+4. Re-run package-export, source-ledger, source-ledger grader, and Study Guide
+   artifact-firewall checks without weakening source quality standards.
+5. Carry forward fresh deployed ZIP/log audit, native-fallback repair, and
+   deterministic texture cleanup.
+
 ## v0.15.59 - Source Finder Research Bridge
 
 Goal: address the real Project Management audit gap where OpenAlex/source-finder

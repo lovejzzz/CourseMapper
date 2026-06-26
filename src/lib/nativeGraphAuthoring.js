@@ -956,6 +956,13 @@ function preserveResourceMetadata(oldGraph, graph) {
   return resourceRemap;
 }
 
+export function preserveSourceProof(oldGraph, newGraph) {
+  if (!oldGraph || !newGraph) return newGraph;
+  const graph = JSON.parse(JSON.stringify(newGraph));
+  preserveResourceMetadata(oldGraph, graph);
+  return graph;
+}
+
 /**
  * matchEntityIds(oldGraph, newGraph) — pure. Returns a NEW graph (deep
  * clone of newGraph) whose session/assessment/reading ids are inherited

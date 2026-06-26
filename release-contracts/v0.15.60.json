@@ -1,0 +1,125 @@
+{
+  "version": "0.15.60",
+  "date": "June 26, 2026",
+  "title": "Source Proof Repair Persistence: source-finder rows survive map repairs",
+  "status": "verified-current",
+  "proofSummary": {
+    "local": [
+      "PATH=\"/Users/tianxing/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/bin:$PATH\" npm exec -- vitest run src/lib/__tests__/nativeGraphAuthoring.test.js",
+      "PATH=\"/Users/tianxing/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/bin:$PATH\" npm exec -- vitest run src/lib/__tests__/packageZipExporter.test.js src/lib/knowledge/__tests__/sourceLedger.test.js src/lib/quality/__tests__/sourceLedgerGrader.test.js",
+      "PATH=\"/Users/tianxing/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/bin:$PATH\" npm exec -- vitest run tests/v0141-phase1-finalizer.test.js -t \"Study Guides and shared lesson metadata\"",
+      "npm run format:check",
+      "npm run lint",
+      "npm test",
+      "npm run build",
+      "npm run bundle:check",
+      "npm run audit:release-history"
+    ],
+    "ciFast": {
+      "status": "pending-push",
+      "note": "Fast verification is claimed only after v0.15.60 is pushed and the GitHub Actions run is attached."
+    },
+    "deploy": {
+      "status": "pending-push",
+      "note": "Pages deploy is not claimed until the pushed release completes its deploy run."
+    },
+    "ciDeep": {
+      "status": "local-only",
+      "note": "This is a narrow source-proof persistence repair; focused regressions plus normal local gates are the release bar."
+    },
+    "liveProvider": {
+      "status": "local-only",
+      "note": "The release is driven by v0.15.59 Project Management ZIP/log evidence; another provider audit is required after deploy."
+    },
+    "manualHuman": {
+      "status": "not-applicable",
+      "note": "No external instructor approval is claimed by this release."
+    }
+  },
+  "claims": [
+    {
+      "id": "v01560-live-source-proof-loss-evidence",
+      "status": "verified-current",
+      "changelogHighlightIndex": 0,
+      "summary": "Fresh v0.15.59 Project Management audit evidence showed source-finder resources in the digest while exported source proof collapsed to syllabus/Open Library rows.",
+      "anchors": [
+        "docs/V0.15.60_SOURCE_PROOF_REPAIR_PERSISTENCE_ROADMAP.md",
+        "verification-output/edutool-audit-loop/20260626T192908Z/latest-digest.json",
+        "verification-output/edutool-audit-loop/20260626T192908Z/unzipped/SOURCE_REPORT.md"
+      ],
+      "proofCommands": [
+        "PATH=\"/Users/tianxing/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/bin:$PATH\" npm exec -- vitest run src/lib/__tests__/nativeGraphAuthoring.test.js"
+      ],
+      "proofScopes": ["browser-live", "doc", "unit"]
+    },
+    {
+      "id": "v01560-prose-rederive-preserves-source-proof",
+      "status": "verified-current",
+      "changelogHighlightIndex": 1,
+      "summary": "Prose/fallback graph re-derivation now preserves source-backed resources and source-finder mini-shards without changing non-native entity-id behavior.",
+      "anchors": [
+        "src/AppFlow.jsx",
+        "src/lib/nativeGraphAuthoring.js",
+        "src/lib/__tests__/nativeGraphAuthoring.test.js"
+      ],
+      "proofCommands": [
+        "PATH=\"/Users/tianxing/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/bin:$PATH\" npm exec -- vitest run src/lib/__tests__/nativeGraphAuthoring.test.js"
+      ],
+      "proofScopes": ["unit", "static-audit"]
+    },
+    {
+      "id": "v01560-source-finder-rows-survive-safe-repairs",
+      "status": "verified-current",
+      "changelogHighlightIndex": 2,
+      "summary": "Source-finder/OpenAlex rows stay available for ZIP source-ledger assembly after safe course-map repairs.",
+      "anchors": [
+        "src/AppFlow.jsx",
+        "src/lib/nativeGraphAuthoring.js",
+        "src/lib/__tests__/packageZipExporter.test.js",
+        "src/lib/knowledge/__tests__/sourceLedger.test.js"
+      ],
+      "proofCommands": [
+        "PATH=\"/Users/tianxing/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/bin:$PATH\" npm exec -- vitest run src/lib/__tests__/packageZipExporter.test.js src/lib/knowledge/__tests__/sourceLedger.test.js src/lib/quality/__tests__/sourceLedgerGrader.test.js"
+      ],
+      "proofScopes": ["unit", "compiled-output"]
+    },
+    {
+      "id": "v01560-focused-regressions-remain-strict",
+      "status": "verified-current",
+      "changelogHighlightIndex": 3,
+      "summary": "Focused graph, package-export, source-ledger, source-ledger grader, and Study Guide firewall regressions pin the fix without weakening grading.",
+      "anchors": [
+        "src/lib/__tests__/nativeGraphAuthoring.test.js",
+        "src/lib/__tests__/packageZipExporter.test.js",
+        "src/lib/knowledge/__tests__/sourceLedger.test.js",
+        "src/lib/quality/__tests__/sourceLedgerGrader.test.js",
+        "tests/v0141-phase1-finalizer.test.js"
+      ],
+      "proofCommands": [
+        "PATH=\"/Users/tianxing/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/bin:$PATH\" npm exec -- vitest run src/lib/__tests__/nativeGraphAuthoring.test.js",
+        "PATH=\"/Users/tianxing/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/bin:$PATH\" npm exec -- vitest run tests/v0141-phase1-finalizer.test.js -t \"Study Guides and shared lesson metadata\""
+      ],
+      "proofScopes": ["unit", "static-audit"]
+    }
+  ],
+  "carryForward": [
+    {
+      "id": "fresh-v01560-edutool-zip-log-audit",
+      "status": "carry-forward",
+      "source": "docs/V0.15.60_SOURCE_PROOF_REPAIR_PERSISTENCE_ROADMAP.md",
+      "next": "After deploy, run a fresh EduTool.dev ZIP/log audit and verify source-finder/OpenAlex rows appear in the exported source ledger when the digest reports retrieved source-finder resources."
+    },
+    {
+      "id": "native-authoring-fallback",
+      "status": "carry-forward",
+      "source": "docs/V0.15.60_SOURCE_PROOF_REPAIR_PERSISTENCE_ROADMAP.md",
+      "next": "Repair or retry native skeleton authoring when Pass A has no titled sessions."
+    },
+    {
+      "id": "texture-post-processing",
+      "status": "carry-forward",
+      "source": "docs/V0.15.60_SOURCE_PROOF_REPAIR_PERSISTENCE_ROADMAP.md",
+      "next": "Improve deterministic variation and repeated-opener cleanup for package-wide texture above 90/100."
+    }
+  ]
+}
