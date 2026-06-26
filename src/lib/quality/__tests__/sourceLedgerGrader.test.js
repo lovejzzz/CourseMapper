@@ -177,8 +177,77 @@ describe('source-ledger quality checks', () => {
     expect(details).toEqual(
       expect.arrayContaining([
         'pipeline reported 9 open resource(s) but the package exported 2 source proof row(s)',
-        'sourceRef coverage is too thin: 56 atom(s) rely on 0 trusted source row(s)',
+        'sourceRef coverage is too thin: 56 atom(s) rely on 0 trusted concept-linked source row(s)',
       ]),
+    );
+  });
+
+  it('does not count trusted-but-unlinked source rows as atom sourceRef proof', async () => {
+    const result = await grade({
+      fileProvider: createMemoryFileProvider({
+        'PACKAGE_MANIFEST.json': JSON.stringify({
+          courseName: 'Project Management Unlinked Source Proof',
+          lessonScope: 'all',
+          requestedFeatures: [],
+          readiness: { status: 'ready', blockers: 0, warnings: 0, checkedSections: null },
+          sourceLedger: [
+            {
+              id: 'sf1',
+              title: 'Project charter and stakeholder governance',
+              provider: 'openalex',
+              url: 'https://openalex.org/W-linked',
+              license: 'cc-by',
+              conceptLinks: [{ id: 'c1', label: 'Project charter' }],
+            },
+            {
+              id: 'sf2',
+              title: 'Project management overview without lesson linkage',
+              provider: 'openalex',
+              url: 'https://openalex.org/W-unlinked',
+              license: 'cc-by',
+            },
+          ],
+          sourceReviewRows: [
+            {
+              id: 'SL1',
+              title: 'Existing course map fields.',
+              provider: 'courseir',
+              accessStatus: 'no-url-or-doi',
+              licenseAmbiguous: true,
+            },
+          ],
+          courseIR: {
+            sourceRefCoverage: {
+              sourceLedgerRows: 1,
+              totals: { total: 24, withRefs: 24, missing: 0, danglingRefs: 0 },
+              categories: {
+                outcomes: { total: 8, withRefs: 8, missing: 0, danglingRefs: 0 },
+                factualClaims: { total: 8, withRefs: 8, missing: 0, danglingRefs: 0 },
+                rubricCriteria: { total: 8, withRefs: 8, missing: 0, danglingRefs: 0 },
+              },
+            },
+          },
+          sourceReport: {
+            path: 'SOURCE_REPORT.md',
+            sourceCount: 2,
+            sourceReviewCount: 1,
+          },
+          files: [],
+        }),
+        'SOURCE_REPORT.md': '# Source Report\n\n## Source Ledger\n- sf1: Project charter\n- sf2: Overview\n',
+      }),
+      course: { title: 'Project Management Unlinked Source Proof', featureIds: [] },
+    });
+
+    const details = result.findings.map((finding) => finding.detail);
+    expect(details).toEqual(
+      expect.arrayContaining([
+        'source ledger row sf2 is trusted metadata but is not concept-linked',
+        'sourceRef coverage is too thin: 24 atom(s) rely on 1 trusted concept-linked source row(s)',
+      ]),
+    );
+    expect(details).not.toContain(
+      'sourceRef coverage is not wired to trusted source ledger rows: 24 atom(s) report coverage through 1 CourseIR source row(s) while 2 trusted exported source row(s) exist',
     );
   });
 
@@ -202,6 +271,7 @@ describe('source-ledger quality checks', () => {
               provider: 'openalex',
               url: 'https://academic.oup.com/aje/article-pdf/186/7/753/24330718/kwx227.pdf',
               license: 'public-domain',
+              conceptLinks: [{ id: 'c1', label: 'Gene-environment interaction' }],
             },
             {
               id: 'kr4',
@@ -209,6 +279,7 @@ describe('source-ledger quality checks', () => {
               provider: 'openalex',
               url: 'https://www.nature.com/articles/s41467-018-04252-2.pdf',
               license: 'cc-by',
+              conceptLinks: [{ id: 'c2', label: 'CRISPR' }],
             },
             {
               id: 'sf1',
@@ -216,6 +287,7 @@ describe('source-ledger quality checks', () => {
               provider: 'wikipedia',
               url: 'https://en.wikipedia.org/wiki/DNA',
               license: 'CC BY-SA 4.0',
+              conceptLinks: [{ id: 'c3', label: 'DNA' }],
             },
           ],
           sourceReviewRows: [
@@ -255,7 +327,7 @@ describe('source-ledger quality checks', () => {
 
     const details = result.findings.map((finding) => finding.detail);
     expect(details).toContain(
-      'sourceRef coverage is not wired to trusted source ledger rows: 55 atom(s) report coverage through 1 CourseIR source row(s) while 3 trusted exported source row(s) exist',
+      'sourceRef coverage is not wired to trusted concept-linked source ledger rows: 55 atom(s) report coverage through 1 CourseIR source row(s) while 3 trusted concept-linked exported source row(s) exist',
     );
   });
 });

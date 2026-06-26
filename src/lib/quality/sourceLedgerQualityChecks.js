@@ -46,6 +46,16 @@ function isTrustedBibliographyRow(row) {
   );
 }
 
+function hasConceptLinks(row) {
+  return (
+    Array.isArray(row?.conceptLinks) && row.conceptLinks.some((link) => String(link?.id || link?.label || link).trim())
+  );
+}
+
+function isTrustedConceptLinkedBibliographyRow(row) {
+  return isTrustedBibliographyRow(row) && hasConceptLinks(row);
+}
+
 function sourceCoverageTotal(coverage) {
   if (!coverage || typeof coverage !== 'object') return 0;
   const explicit = Number(coverage?.totals?.total);
@@ -103,6 +113,7 @@ export function checkSourceLedger(findings, { files, manifest }) {
   const coverageTotal = sourceCoverageTotal(coverage);
   const coverageLedgerRows = sourceCoverageLedgerRows(coverage);
   const trustedBibliographyRows = ledger.filter(isTrustedBibliographyRow);
+  const trustedConceptLinkedBibliographyRows = ledger.filter(isTrustedConceptLinkedBibliographyRow);
 
   if (ledger.length === 0 && review.length === 0 && !coverage) {
     findings.add({
@@ -165,6 +176,15 @@ export function checkSourceLedger(findings, { files, manifest }) {
         evidence: row?.license || row?.title || row?.evidence || id,
       });
     }
+    if (coverageTotal >= 12 && isTrustedBibliographyRow(row) && !hasConceptLinks(row)) {
+      findings.add({
+        severity: 'P2',
+        dimension: 'citations',
+        file: 'PACKAGE_MANIFEST.json',
+        detail: `source ledger row ${id || '(missing id)'} is trusted metadata but is not concept-linked`,
+        evidence: row?.title || row?.evidence || id,
+      });
+    }
   }
 
   for (const row of review) {
@@ -188,15 +208,16 @@ export function checkSourceLedger(findings, { files, manifest }) {
     });
   }
 
-  if (coverageTotal >= 12 && trustedBibliographyRows.length <= 1) {
+  if (coverageTotal >= 12 && trustedConceptLinkedBibliographyRows.length <= 1) {
     findings.add({
       severity: 'P1',
       dimension: 'citations',
       file: 'PACKAGE_MANIFEST.json',
-      detail: `sourceRef coverage is too thin: ${coverageTotal} atom(s) rely on ${trustedBibliographyRows.length} trusted source row(s)`,
+      detail: `sourceRef coverage is too thin: ${coverageTotal} atom(s) rely on ${trustedConceptLinkedBibliographyRows.length} trusted concept-linked source row(s)`,
       evidence: JSON.stringify({
         sourceLedgerRows: ledger.length,
         trustedSourceLedgerRows: trustedBibliographyRows.length,
+        trustedConceptLinkedSourceLedgerRows: trustedConceptLinkedBibliographyRows.length,
         coverageTotal,
         providers: ledger.map((row) => row.provider).filter(Boolean),
       }).slice(0, 200),
@@ -205,7 +226,7 @@ export function checkSourceLedger(findings, { files, manifest }) {
 
   if (
     coverageTotal >= 12 &&
-    trustedBibliographyRows.length > 1 &&
+    trustedConceptLinkedBibliographyRows.length > 1 &&
     Number.isFinite(coverageLedgerRows) &&
     coverageLedgerRows <= 1 &&
     review.length > 0
@@ -214,10 +235,11 @@ export function checkSourceLedger(findings, { files, manifest }) {
       severity: 'P1',
       dimension: 'citations',
       file: 'PACKAGE_MANIFEST.json',
-      detail: `sourceRef coverage is not wired to trusted source ledger rows: ${coverageTotal} atom(s) report coverage through ${coverageLedgerRows} CourseIR source row(s) while ${trustedBibliographyRows.length} trusted exported source row(s) exist`,
+      detail: `sourceRef coverage is not wired to trusted concept-linked source ledger rows: ${coverageTotal} atom(s) report coverage through ${coverageLedgerRows} CourseIR source row(s) while ${trustedConceptLinkedBibliographyRows.length} trusted concept-linked exported source row(s) exist`,
       evidence: JSON.stringify({
         sourceLedgerRows: ledger.length,
         trustedSourceLedgerRows: trustedBibliographyRows.length,
+        trustedConceptLinkedSourceLedgerRows: trustedConceptLinkedBibliographyRows.length,
         courseIrSourceLedgerRows: coverageLedgerRows,
         sourceReviewRows: review.length,
         coverageTotal,

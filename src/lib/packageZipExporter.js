@@ -5,6 +5,7 @@ import {
   buildSourceLedgerFromCourseGraph,
   buildSourceReportMarkdown,
   isLicenseAmbiguous,
+  isTrustedConceptLinkedSourceLedgerRow,
   isTrustedSourceLedgerRow,
   summarizeSourceLedgerRows,
 } from './knowledge/sourceLedger.js';
@@ -411,12 +412,18 @@ function sourceCoverageLedgerRows(coverage) {
 
 function bridgeCourseIRSourceProofToTrustedLedger(courseGraph, sourceLedgerBundle, sourceRefCoverage) {
   const trustedRows = (sourceLedgerBundle?.rows || []).filter(isTrustedSourceLedgerRow);
+  const trustedConceptLinkedRows = trustedRows.filter(isTrustedConceptLinkedSourceLedgerRow);
   const reviewRows = sourceLedgerBundle?.reviewRows || [];
   const coverageTotal = sourceCoverageTotal(sourceRefCoverage);
   const coverageLedgerRows = sourceCoverageLedgerRows(sourceRefCoverage);
   const coverageMissing = Number(sourceRefCoverage?.totals?.missing) || 0;
   const coverageDanglingRefs = Number(sourceRefCoverage?.totals?.danglingRefs) || 0;
-  if (!courseGraph?.courseIR || trustedRows.length <= 1 || coverageTotal <= 0 || coverageLedgerRows === null) {
+  if (
+    !courseGraph?.courseIR ||
+    trustedConceptLinkedRows.length <= 1 ||
+    coverageTotal <= 0 ||
+    coverageLedgerRows === null
+  ) {
     return {
       courseGraph,
       sourceLedgerBundle,
@@ -432,23 +439,14 @@ function bridgeCourseIRSourceProofToTrustedLedger(courseGraph, sourceLedgerBundl
       bridged: false,
     };
   }
-  const conceptLinkedRows = trustedRows.filter((row) => (row?.conceptLinks || []).length > 0);
-  if (conceptLinkedRows.length === 0) {
-    return {
-      courseGraph,
-      sourceLedgerBundle,
-      sourceRefCoverage,
-      bridged: false,
-    };
-  }
-
   const nextCoverage = {
     ...sourceRefCoverage,
-    sourceLedgerRows: trustedRows.length,
+    sourceLedgerRows: trustedConceptLinkedRows.length,
     bridge: {
       source: 'coursegraph-concept-linked-ledger',
-      trustedRows: trustedRows.length,
-      conceptLinkedRows: conceptLinkedRows.length,
+      trustedRows: trustedConceptLinkedRows.length,
+      candidateTrustedRows: trustedRows.length,
+      conceptLinkedRows: trustedConceptLinkedRows.length,
       replacedReviewRows: reviewRows.length,
     },
   };
@@ -456,7 +454,7 @@ function bridgeCourseIRSourceProofToTrustedLedger(courseGraph, sourceLedgerBundl
     ...(courseGraph || {}),
     courseIR: {
       ...(courseGraph.courseIR || {}),
-      sourceLedger: trustedRows,
+      sourceLedger: trustedConceptLinkedRows,
       sourceRefCoverage: nextCoverage,
       sourceRefBridge: nextCoverage.bridge,
     },

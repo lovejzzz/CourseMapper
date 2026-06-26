@@ -400,6 +400,8 @@ describe('trusted source ledger', () => {
     expect(ledger.summary).toMatchObject({
       sourceCount: 2,
       trustedCount: 1,
+      conceptLinkedCount: 2,
+      trustedConceptLinkedCount: 1,
       accessibleCount: 2,
       licenseAmbiguousCount: 1,
     });

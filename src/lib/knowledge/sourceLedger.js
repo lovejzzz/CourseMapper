@@ -269,11 +269,21 @@ export function isTrustedSourceLedgerRow(row = {}) {
   return isSourceAccessible(row) && !isLicenseAmbiguous(row?.license);
 }
 
+export function isConceptLinkedSourceLedgerRow(row = {}) {
+  return normalizeConceptLinks(row?.conceptLinks || []).length > 0;
+}
+
+export function isTrustedConceptLinkedSourceLedgerRow(row = {}) {
+  return isTrustedSourceLedgerRow(row) && isConceptLinkedSourceLedgerRow(row);
+}
+
 export function summarizeSourceLedgerRows(rows = []) {
   const ledgerRows = Array.isArray(rows) ? rows : [];
   return {
     sourceCount: ledgerRows.length,
     trustedCount: ledgerRows.filter(isTrustedSourceLedgerRow).length,
+    conceptLinkedCount: ledgerRows.filter(isConceptLinkedSourceLedgerRow).length,
+    trustedConceptLinkedCount: ledgerRows.filter(isTrustedConceptLinkedSourceLedgerRow).length,
     accessibleCount: ledgerRows.filter(isSourceAccessible).length,
     licenseAmbiguousCount: ledgerRows.filter((row) => row.licenseAmbiguous).length,
     providers: [...new Set(ledgerRows.map((row) => row.provider).filter(Boolean))].sort(),

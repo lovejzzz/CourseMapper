@@ -439,6 +439,96 @@ describe('packageZipExporter', () => {
     expect(sourceReport).not.toContain('Source Review Notes');
   });
 
+  it('does not inflate CourseIR sourceRef coverage with trusted but unlinked source rows', async () => {
+    const result = await buildCourseMaterialsZip({
+      courseMap: makeCourseMap('Trusted Unlinked SourceRef Bridge'),
+      deliverables: {
+        lessonPlans: {
+          status: 'done',
+          data: {
+            lessonPlans: [{ lessonTitle: 'Lesson 1: Project Sources', objectives: ['Trace source alignment.'] }],
+          },
+        },
+      },
+      featureIds: ['courseMap', 'lessonPlans'],
+      courseGraph: {
+        concepts: [{ id: 'c1', term: 'Project charter' }],
+        sessions: [
+          {
+            id: 's1',
+            number: 1,
+            sections: [{ id: 'sec1', topic: 'Project charter', conceptRefs: ['c1'], resourceRefs: ['kr1'] }],
+          },
+        ],
+        resources: [
+          {
+            id: 'kr1',
+            title: 'Project charter design evidence',
+            origin: 'openalex',
+            kind: 'article',
+            url: 'https://openalex.org/W-linked',
+            license: 'cc-by',
+            sessionRefs: ['s1'],
+          },
+          {
+            id: 'kr2',
+            title: 'Project management metadata with no lesson link',
+            origin: 'openalex',
+            kind: 'article',
+            url: 'https://openalex.org/W-unlinked',
+            license: 'cc-by',
+          },
+        ],
+        readings: [],
+        courseIR: {
+          version: 'courseir.v1',
+          lessonIds: ['L1'],
+          conceptIds: ['C1'],
+          assessmentIds: ['A1'],
+          sourceLedger: [
+            {
+              id: 'SL1',
+              scope: 'course',
+              status: 'source-provided',
+              evidence: 'Existing course map fields.',
+              provider: 'courseir',
+            },
+          ],
+          sourceRefCoverage: {
+            sourceLedgerRows: 1,
+            categories: {
+              outcomes: { total: 4, withRefs: 4, missing: 0, danglingRefs: 0, missingIds: [] },
+              activities: { total: 4, withRefs: 4, missing: 0, danglingRefs: 0, missingIds: [] },
+              factualClaims: { total: 4, withRefs: 4, missing: 0, danglingRefs: 0, missingIds: [] },
+            },
+            totals: { total: 12, withRefs: 12, missing: 0, danglingRefs: 0 },
+          },
+        },
+      },
+      quality: false,
+    });
+
+    const zip = await JSZip.loadAsync(await result.blob.arrayBuffer());
+    const manifest = JSON.parse(await zip.file('PACKAGE_MANIFEST.json').async('string'));
+    const sourceReport = await zip.file('SOURCE_REPORT.md').async('string');
+
+    expect(manifest.sourceLedger).toHaveLength(2);
+    expect(manifest.sourceLedgerSummary).toMatchObject({
+      sourceCount: 2,
+      trustedCount: 2,
+      conceptLinkedCount: 1,
+      trustedConceptLinkedCount: 1,
+      reviewRequiredCount: 1,
+    });
+    expect(manifest.courseIR.sourceRefBridge).toBeUndefined();
+    expect(manifest.courseIR.sourceRefCoverage).toMatchObject({
+      sourceLedgerRows: 1,
+      totals: { total: 12, withRefs: 12, missing: 0, danglingRefs: 0 },
+    });
+    expect(sourceReport).toContain('Project management metadata with no lesson link');
+    expect(sourceReport).toContain('Source Review Notes');
+  });
+
   it('bridges CourseIR sourceRef coverage to source rows recovered from syllabus weekly readings', async () => {
     const courseMap = makeCourseMap('Project Management Source Recovery');
     courseMap.lessons[0].sections[0].topicSection = 'Project life cycle';

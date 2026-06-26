@@ -3,22 +3,22 @@ import { APP_VERSION } from './appVersion.js';
 export const CURRENT_RELEASE = {
   version: APP_VERSION,
   date: 'June 26, 2026',
-  title: 'Trusted SourceRef Bridge: metadata rows stop replacing review proof',
-  landingTitle: 'Trusted SourceRef Bridge',
+  title: 'Concept-Linked SourceRef Proof: generic source rows stop inflating coverage',
+  landingTitle: 'Concept-Linked SourceRef Proof',
   highlights: [
-    'The sourceRef bridge now uses the same strict trusted-row predicate as source-ledger summaries and the deep quality grader.',
-    'CourseIR coverage can only bridge from review-only SL1 proof to exported rows when more than one accessible, non-ambiguous, trust-eligible source row exists.',
-    'Metadata-only Open Library/Crossref rows stay exported for review, but they no longer replace CourseIR review proof or inflate sourceRef coverage.',
-    'A package-export regression pins the failure mode where two retrieved metadata rows must keep Source Review Notes visible until trusted concept-linked proof exists.',
+    'The sourceRef bridge now counts only trusted source rows that are linked to course concepts, not generic accessible bibliography metadata.',
+    'CourseIR atom coverage can only replace review-only proof when multiple trusted, concept-linked exported source rows exist.',
+    'Source-ledger summaries now expose concept-linked and trusted-concept-linked counts so report, export, and grader evidence use the same accounting.',
+    'A package-export and deep-grader regression pins the live failure mode where an unlinked OpenAlex row must stay review-visible without inflating coverage.',
   ],
   landingHighlights: [
-    'Bridge rows must be truly trusted.',
-    'Metadata-only proof stays review-visible.',
-    'SourceRef coverage stays honest.',
+    'Source proof must be concept-linked.',
+    'Generic source metadata stays review-visible.',
+    'Coverage counts stay honest.',
   ],
   proof: {
-    contract: 'release-contracts/v0.15.65.json',
-    roadmap: 'docs/V0.15.65_TRUSTED_SOURCEREF_BRIDGE_ROADMAP.md',
+    contract: 'release-contracts/v0.15.66.json',
+    roadmap: 'docs/V0.15.66_CONCEPT_LINKED_SOURCEREF_PROOF_ROADMAP.md',
     auditCommand: 'npm run audit:release-history',
   },
 };
@@ -33,6 +33,17 @@ export const CURRENT_RELEASE_CHANGELOG = {
 };
 
 export const HISTORICAL_RELEASE_CHANGELOGS = [
+  {
+    version: '0.15.65',
+    date: 'June 26, 2026',
+    title: 'Trusted SourceRef Bridge: metadata rows stop replacing review proof',
+    highlights: [
+      'The sourceRef bridge now uses the same strict trusted-row predicate as source-ledger summaries and the deep quality grader.',
+      'CourseIR coverage can only bridge from review-only SL1 proof to exported rows when more than one accessible, non-ambiguous, trust-eligible source row exists.',
+      'Metadata-only Open Library/Crossref rows stay exported for review, but they no longer replace CourseIR review proof or inflate sourceRef coverage.',
+      'A package-export regression pins the failure mode where two retrieved metadata rows must keep Source Review Notes visible until trusted concept-linked proof exists.',
+    ],
+  },
   {
     version: '0.15.64',
     date: 'June 26, 2026',
