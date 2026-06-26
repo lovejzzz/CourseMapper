@@ -42,8 +42,8 @@
       "changelogHighlightIndex": 0,
       "summary": "Fresh v0.15.62 Project Management audit evidence showed a 96/A package where the Course Map could still expose generic Session labels despite full enrichment.",
       "anchors": [
-        "verification-output/edutool-audit-loop/20260626T215016Z/report.md",
-        "docs/V0.15.63_COURSE_MAP_KERNEL_FOCUS_ROADMAP.md"
+        "docs/V0.15.63_COURSE_MAP_KERNEL_FOCUS_ROADMAP.md",
+        "src/lib/courseGraph/__tests__/courseGraph.test.js"
       ],
       "proofCommands": ["npx vitest run src/lib/courseGraph/__tests__/courseGraph.test.js"],
       "proofScopes": ["doc", "unit", "compiled-output"]
@@ -72,8 +72,9 @@
       "changelogHighlightIndex": 3,
       "summary": "The repair changes rendered Course Map output only; source-ledger, texture, and deep quality checks remain strict and continue to report remaining 96/100 losses.",
       "anchors": [
-        "verification-output/edutool-audit-loop/20260626T215016Z/local-regrade.json",
-        "src/lib/courseGraph/renderCourseMap.js"
+        "docs/V0.15.63_COURSE_MAP_KERNEL_FOCUS_ROADMAP.md",
+        "src/lib/courseGraph/renderCourseMap.js",
+        "release-contracts/v0.15.63.json"
       ],
       "proofCommands": ["npm run audit:release-history", "npm run audit:gold:smoke"],
       "proofScopes": ["static-audit", "unit"]
@@ -89,19 +90,19 @@
     {
       "id": "trusted-source-ledger-bridge",
       "status": "carry-forward",
-      "source": "verification-output/edutool-audit-loop/20260626T215016Z/report.md",
+      "source": "docs/V0.15.63_COURSE_MAP_KERNEL_FOCUS_ROADMAP.md",
       "next": "Repair source/research bridge behavior so retrieved sources become trusted, concept-linked source ledger rows."
     },
     {
       "id": "slide-deck-substance",
       "status": "carry-forward",
-      "source": "verification-output/edutool-audit-loop/20260626T215016Z/report.md",
+      "source": "docs/V0.15.63_COURSE_MAP_KERNEL_FOCUS_ROADMAP.md",
       "next": "Improve slide-deck substance so enriched lesson kernels produce enough content-bearing slides."
     },
     {
       "id": "texture-variation",
       "status": "carry-forward",
-      "source": "verification-output/edutool-audit-loop/20260626T215016Z/report.md",
+      "source": "docs/V0.15.63_COURSE_MAP_KERNEL_FOCUS_ROADMAP.md",
       "next": "Continue deterministic texture variation/post-processing until texture reaches 100."
     }
   ]
