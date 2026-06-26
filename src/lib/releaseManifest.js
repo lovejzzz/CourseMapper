@@ -3,22 +3,22 @@ import { APP_VERSION } from './appVersion.js';
 export const CURRENT_RELEASE = {
   version: APP_VERSION,
   date: 'June 26, 2026',
-  title: 'Source License Trust Gate: metadata-only readings stop becoming trusted sources',
-  landingTitle: 'Source License Trust Gate',
+  title: 'Course Map Kernel Focus: enriched maps stop saying Session N',
+  landingTitle: 'Course Map Kernel Focus',
   highlights: [
-    'The latest Project Management ZIP/log audit still regraded at 98/A and named citation losses where source-ledger rows carried ambiguous public-metadata licenses instead of explicit reuse rights.',
-    'Source-finder ranking now treats an explicit reusable license as a hard ordering rule before provider score, so metadata-only OpenAlex/Crossref hits cannot beat a clear-license source.',
-    'Open reading attachment now records a no-reusable-license decision when all relevant candidates are metadata-only, instead of promoting those hits into trusted course resources and source-ledger rows.',
-    'The source-ledger ambiguity classifier and quality checker now agree on provider public-metadata wording, with focused regressions pinning the behavior without weakening source standards.',
+    'The fresh v0.15.62 Project Management ZIP/log audit regraded at 96/A and proved a product truth gap: enrichment covered all lessons, but the Course Map could still expose generic "Session N" labels.',
+    'CourseGraph map rendering now uses enrichment kernel focus terms when a session title, topic label, or map cell is still generic, so preview/export/blueprint compilation inherit the real lesson focus.',
+    'Manual Course Map overrides still win verbatim; the repair only touches compiler-owned generic session placeholders that have stronger kernel evidence available.',
+    'A focused CourseGraph regression pins the live unfinished-map shape without weakening the source-ledger, texture, or quality graders that still hold the package below 100/100.',
   ],
   landingHighlights: [
-    'Metadata-only readings no longer become trusted sources.',
-    'Clear reusable licenses outrank provider prestige.',
-    'Source quality checks stay strict and aligned.',
+    'Generic Course Map sessions inherit real lesson focus.',
+    'Instructor map edits stay authoritative.',
+    'Quality caveats remain visible and strict.',
   ],
   proof: {
-    contract: 'release-contracts/v0.15.62.json',
-    roadmap: 'docs/V0.15.62_SOURCE_LICENSE_TRUST_GATE_ROADMAP.md',
+    contract: 'release-contracts/v0.15.63.json',
+    roadmap: 'docs/V0.15.63_COURSE_MAP_KERNEL_FOCUS_ROADMAP.md',
     auditCommand: 'npm run audit:release-history',
   },
 };
@@ -33,6 +33,17 @@ export const CURRENT_RELEASE_CHANGELOG = {
 };
 
 export const HISTORICAL_RELEASE_CHANGELOGS = [
+  {
+    version: '0.15.62',
+    date: 'June 26, 2026',
+    title: 'Source License Trust Gate: metadata-only readings stop becoming trusted sources',
+    highlights: [
+      'The latest Project Management ZIP/log audit still regraded at 98/A and named citation losses where source-ledger rows carried ambiguous public-metadata licenses instead of explicit reuse rights.',
+      'Source-finder ranking now treats an explicit reusable license as a hard ordering rule before provider score, so metadata-only OpenAlex/Crossref hits cannot beat a clear-license source.',
+      'Open reading attachment now records a no-reusable-license decision when all relevant candidates are metadata-only, instead of promoting those hits into trusted course resources and source-ledger rows.',
+      'The source-ledger ambiguity classifier and quality checker now agree on provider public-metadata wording, with focused regressions pinning the behavior without weakening source standards.',
+    ],
+  },
   {
     version: '0.15.61',
     date: 'June 26, 2026',

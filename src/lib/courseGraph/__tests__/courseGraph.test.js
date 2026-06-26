@@ -98,6 +98,43 @@ describe('courseGraph (v0.13 P0)', () => {
     expect(rendered.lessons[0].sections[0].learningObjectives).toBe('Instructor wrote this exact text.');
   });
 
+  it('uses enriched kernel focus instead of generic Session labels in rendered maps', () => {
+    const graph = deriveCourseGraphFromCourseMap({
+      courseName: 'Project Management',
+      lessons: [
+        {
+          title: 'Lesson 1: Session 1',
+          sections: [
+            {
+              topicSection: '1.1: Session 1',
+              learningGoals: 'Use Session 1 to explain a course problem.',
+              learningObjectives: 'Explain how Session 1 changes project decisions.',
+              weeklyAssessments: 'Session 1 evidence check.',
+              asyncActivities: 'Review assigned materials and prepare notes on Session 1.',
+              syncActivities: 'Discuss examples and practice applying Session 1.',
+            },
+          ],
+        },
+      ],
+    });
+    graph.enrichmentOverlay = {
+      lessonContent: {
+        'lesson-1': {
+          keyTerms: [{ term: 'Project charter' }, { term: 'Stakeholder analysis' }, { term: 'Scope baseline' }],
+        },
+      },
+    };
+
+    const rendered = renderCourseMapFromGraph(graph);
+
+    expect(rendered.lessons[0].title).toBe('Lesson 1: Project charter, Stakeholder analysis, and Scope baseline');
+    expect(rendered.lessons[0].sections[0].topicSection).toBe(
+      '1.1: Project charter, Stakeholder analysis, and Scope baseline',
+    );
+    expect(rendered.lessons[0].sections[0].learningObjectives).toContain('Project charter');
+    expect(rendered.lessons[0].sections[0].learningObjectives).not.toContain('Session 1');
+  });
+
   it('lints alignment structurally — unassessed outcomes, premature assessments, weights', () => {
     const graph = deriveCourseGraphFromCourseMap(fixtureMap());
     // The derived fixture is aligned: every section's assessments assess its

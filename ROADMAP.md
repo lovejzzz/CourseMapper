@@ -4,6 +4,25 @@
 
 CourseMapper is moving toward a "consider it done" course-production agent. The user should describe the course, choose scope/materials, and receive a finished draft package. The agent owns generation, QA, repair, alignment, and export readiness. Human involvement should be final approval only, not QA labor.
 
+## v0.15.63 - Course Map Kernel Focus
+
+Goal: address the fresh v0.15.62 Project Management audit evidence where the
+package regraded at `96/A`, enrichment covered all lessons, but the visible and
+exported Course Map could still read as generic "Session N" work instead of
+the lesson kernels the model had already produced.
+
+Full plan: `docs/V0.15.63_COURSE_MAP_KERNEL_FOCUS_ROADMAP.md`
+
+1. Use enrichment kernel titles, key terms, or slide titles as the render-time
+   focus when a CourseGraph session title is still generic.
+2. Replace generic "Session N" topic labels and map-cell references with that
+   focus before preview/export/blueprint compilation.
+3. Preserve manual map overrides verbatim so instructor edits remain the
+   strongest source of truth.
+4. Pin the live failure shape with a focused CourseGraph render regression.
+5. Carry forward source-ledger bridge, slide-deck depth, and deterministic
+   texture cleanup until fresh deployed ZIP/log evidence reaches 100/100.
+
 ## v0.15.62 - Source License Trust Gate
 
 Goal: address the latest Project Management package citation evidence where a

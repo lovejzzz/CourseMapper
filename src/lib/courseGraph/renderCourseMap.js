@@ -14,8 +14,108 @@
 
 import { expandLeanSectionField } from '../leanCourseMap.js';
 
+function cleanText(value) {
+  return String(value ?? '')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
 function withLabel(label, text) {
   return label ? `${label}. ${text}` : text;
+}
+
+function stripLessonPrefix(value) {
+  return cleanText(value).replace(/^(?:lesson|week)\s*\d+\s*[:.-]\s*/i, '');
+}
+
+function stripSectionPrefix(value) {
+  return cleanText(value).replace(/^\d+(?:\.\d+)*\s*[:.)-]\s*/, '');
+}
+
+function isGenericSessionPhrase(value, session) {
+  const text = stripSectionPrefix(stripLessonPrefix(value)).toLowerCase();
+  if (!text) return true;
+  const number = Number(session?.number) || 0;
+  const generic = [
+    number > 0 ? `session ${number}` : '',
+    number > 0 ? `topic ${number}` : '',
+    number > 0 ? `lesson ${number}` : '',
+    'session',
+    'topic',
+    'lesson',
+  ].filter(Boolean);
+  return generic.includes(text);
+}
+
+function payloadTermText(term) {
+  if (typeof term === 'string') return cleanText(term);
+  return cleanText(term?.term || term?.label || term?.name || term?.title || term?.t);
+}
+
+function titleCaseFocus(value) {
+  const text = cleanText(value);
+  if (!text) return '';
+  return text.charAt(0).toUpperCase() + text.slice(1);
+}
+
+function joinFocusTerms(terms) {
+  const unique = [];
+  const seen = new Set();
+  for (const term of terms.map(payloadTermText)) {
+    if (!term || /^session\s+\d+$/i.test(term)) continue;
+    const key = term.toLowerCase();
+    if (seen.has(key)) continue;
+    seen.add(key);
+    unique.push(term);
+    if (unique.length >= 3) break;
+  }
+  if (unique.length === 0) return '';
+  if (unique.length === 1) return titleCaseFocus(unique[0]);
+  if (unique.length === 2) return `${titleCaseFocus(unique[0])} and ${unique[1]}`;
+  return `${titleCaseFocus(unique[0])}, ${unique[1]}, and ${unique[2]}`;
+}
+
+function lessonContentForSession(graph, session) {
+  const content = graph?.enrichmentOverlay?.lessonContent;
+  if (!content || typeof content !== 'object') return null;
+  const byNumber = Number.isInteger(session?.number) ? content[`lesson-${session.number}`] : null;
+  return byNumber || content?.[session?.id] || null;
+}
+
+function lessonFocusFromKernel(graph, session) {
+  const payload = lessonContentForSession(graph, session);
+  if (!payload || typeof payload !== 'object') return '';
+  const explicit = cleanText(payload.title || payload.topic || payload.focus || payload.kernel?.topic);
+  if (explicit && !isGenericSessionPhrase(explicit, session)) return titleCaseFocus(stripLessonPrefix(explicit));
+  const terms = joinFocusTerms(payload.keyTerms || payload.kt || []);
+  if (terms) return terms;
+  const slideTitle = cleanText((payload.slideContent || payload.slides || [])[0]?.title);
+  if (slideTitle && !isGenericSessionPhrase(slideTitle, session)) {
+    return titleCaseFocus(stripLessonPrefix(slideTitle).replace(/[.!?]\s*$/, ''));
+  }
+  return '';
+}
+
+function replaceGenericSessionReferences(value, session, focus) {
+  if (!focus || typeof value !== 'string') return value;
+  const number = Number(session?.number) || 0;
+  if (number <= 0) return value;
+  return value.replace(new RegExp(`\\bSession\\s*${number}\\b`, 'gi'), focus);
+}
+
+function renderTopicWithKernelFocus(value, session, focus) {
+  if (!focus || !isGenericSessionPhrase(value, session)) return replaceGenericSessionReferences(value, session, focus);
+  const text = cleanText(value);
+  const prefix = text.match(/^(\d+(?:\.\d+)*\s*[:.)-]\s*)/)?.[1] || '';
+  return `${prefix}${focus}`;
+}
+
+function renderSessionTitle(graph, session) {
+  const focus = lessonFocusFromKernel(graph, session);
+  if (focus && isGenericSessionPhrase(session?.title, session)) {
+    return `Lesson ${session?.number || ''}: ${focus}`.replace(/\s+:/, ':').trim();
+  }
+  return session.title;
 }
 
 // v0.14.1 (3.3a): the deliverable reference each graded registry entry
@@ -33,11 +133,12 @@ function assessmentReferenceSuffix(assessment) {
   return '';
 }
 
-function renderSection(graph, section, options = {}) {
+function renderSection(graph, session, section, options = {}) {
   const outcomesById = new Map(graph.outcomes.map((outcome) => [outcome.id, outcome]));
   const assessmentsById = new Map(graph.assessments.map((assessment) => [assessment.id, assessment]));
   const resourcesById = new Map(graph.resources.map((resource) => [resource.id, resource]));
   const readingsById = new Map((graph.readings || []).map((reading) => [reading.id, reading]));
+  const focus = lessonFocusFromKernel(graph, session);
 
   const objectiveAtoms = (section.objectiveRefs || [])
     .map((id) => outcomesById.get(id))
@@ -79,7 +180,7 @@ function renderSection(graph, section, options = {}) {
       : resourceAtoms;
 
   const rendered = {
-    topicSection: section.topic || '',
+    topicSection: renderTopicWithKernelFocus(section.topic || '', session, focus),
     learningGoals: expandLeanSectionField('learningGoals', section.goals || []),
     learningObjectives: expandLeanSectionField('learningObjectives', objectiveAtoms),
     weeklyAssessments: expandLeanSectionField('weeklyAssessments', assessmentAtoms),
@@ -89,6 +190,13 @@ function renderSection(graph, section, options = {}) {
     ...(readingTitles.length > 0 ? { readings: readingTitles } : {}),
     ...(section.extras && typeof section.extras === 'object' ? section.extras : {}),
   };
+
+  if (focus) {
+    for (const [key, value] of Object.entries(rendered)) {
+      if (key === 'readings') continue;
+      if (typeof value === 'string') rendered[key] = replaceGenericSessionReferences(value, session, focus);
+    }
+  }
 
   // Manual override layer: rendered verbatim, flagged by readiness — the
   // write-back editor stores free-text edits here when parsing would lose
@@ -123,8 +231,8 @@ export function renderCourseMapFromGraph(graph, options = {}) {
     ...(graph.course?.description ? { courseDescription: graph.course.description } : {}),
     ...(graph.course?.meta && typeof graph.course.meta === 'object' ? graph.course.meta : {}),
     lessons: sessions.map((session) => ({
-      title: session.title,
-      sections: (session.sections || []).map((section) => renderSection(graph, section, options)),
+      title: renderSessionTitle(graph, session),
+      sections: (session.sections || []).map((section) => renderSection(graph, session, section, options)),
     })),
   };
 }
