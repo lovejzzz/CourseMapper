@@ -4,6 +4,26 @@
 
 CourseMapper is moving toward a "consider it done" course-production agent. The user should describe the course, choose scope/materials, and receive a finished draft package. The agent owns generation, QA, repair, alignment, and export readiness. Human involvement should be final approval only, not QA labor.
 
+## v0.15.61 - Project Management Texture Variation
+
+Goal: address the latest Project Management package texture evidence where a
+98/A ZIP still measured texture at `90/100` because compiler-owned phrases
+stamped across slide decks, discussions, rubrics, and quiz-bank answers.
+
+Full plan: `docs/V0.15.61_PROJECT_MANAGEMENT_TEXTURE_VARIATION_ROADMAP.md`
+
+1. Rotate capstone milestone-practice language before it appears in modality,
+   slide, and activity surfaces.
+2. Rotate parameter-derived rubric bands, objective slide notes, enriched
+   discussion tension frames, and kernel-projected short-answer limitation
+   language.
+3. Add a 12-lesson Project Management regression that caps the exact phrase
+   families from the latest audit.
+4. Keep texture, source, and quality graders strict; this release changes
+   compiler output, not scoring thresholds.
+5. Carry forward fresh deployed ZIP/log audit, native-fallback repair, and
+   source-finder/OpenAlex trusted-ledger validation.
+
 ## v0.15.60 - Source Proof Repair Persistence
 
 Goal: address the fresh v0.15.59 Project Management audit gap where the run

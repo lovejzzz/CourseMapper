@@ -6404,6 +6404,18 @@ function contextualizeModalityRoutine(kind, base, { lesson = {}, concept = '', a
       'compare two concept-check responses, identify the fragile reasoning, repair it, and carry the fix into exam practice',
     ]);
   }
+  if (
+    kind === 'signaturePractice' &&
+    /\bmilestone design review\b/i.test(routine) &&
+    /\bsponsor constraints\b/i.test(routine)
+  ) {
+    routine = lessonVariant(lesson, [
+      'hold a milestone review where teams connect sponsor constraints to evidence, risks, and the next deliverable',
+      'run a sponsor-constraint check in which teams defend the evidence, risk, and handoff behind the milestone',
+      'stage a milestone critique that asks teams to justify what evidence supports the next project decision',
+      'compare milestone options against sponsor constraints, risk evidence, and the deliverable that comes next',
+    ]);
+  }
   if (kind === 'feedbackRoutine' && /quick exit ticket/i.test(routine)) {
     routine = lessonVariant(lesson, [
       'use whole-class synthesis and an exit ticket to target the next revision',
@@ -14807,6 +14819,12 @@ function buildParameterCriterionRow({ parameter, ordinal, weight, assessment, le
   const evidenceSignal = `The brief requires: "${verbatim}". Look for visible evidence in ${artifact} that this parameter is satisfied, accurate, and integrated with the surrounding work.`;
   const calibrationUse = `Before scoring, ask whether two scorers point to the same place in ${artifact} where "${shortForm}" is satisfied.`;
   const feedbackUse = `If the parameter is unmet, quote it verbatim — "${shortForm}" — and name the smallest revision to ${artifact} that satisfies it.`;
+  const exemplary = lessonVariant(lesson, [
+    `Meets the brief parameter — "${verbatim}" — fully and accurately in ${artifact}; a scorer can point to where it is satisfied and how it strengthens the work.`,
+    `Satisfies the brief parameter — "${verbatim}" — with visible, accurate evidence in ${artifact} and a clear connection to the work's quality.`,
+    `Fulfills "${verbatim}" in ${artifact} so another scorer can locate the evidence and explain why it improves the submission.`,
+    `Addresses "${verbatim}" completely in ${artifact}, with enough specificity for the criterion to be verified without inference.`,
+  ]);
   return {
     criterion,
     briefParameter: verbatim,
@@ -14824,7 +14842,7 @@ function buildParameterCriterionRow({ parameter, ordinal, weight, assessment, le
     evidenceSignal,
     calibrationUse,
     feedbackUse,
-    exemplary: `Meets the brief parameter — "${verbatim}" — fully and accurately in ${artifact}; a scorer can point to where it is satisfied and how it strengthens the work.`,
+    exemplary,
     proficient: `Satisfies "${shortForm}" with only minor lapses in completeness, accuracy, or integration with the rest of ${artifact}.`,
     developing: `Addresses "${shortForm}" partially — attempted but incomplete, inaccurate, or disconnected from the surrounding work in ${artifact}.`,
     beginning: `Does not satisfy "${shortForm}" in the submitted ${artifact}.`,
@@ -17348,7 +17366,12 @@ function slideNoteAnchor({ type, anchor, concept, artifact, displayTitle, lesson
         Number(lesson?.lessonNumber) || 0,
       )}.`;
     case 'objectives':
-      return `Turn "${anchor}" into an observable performance target; ask students what evidence would prove they can do it.`;
+      return lessonVariant(lesson, [
+        `Turn "${anchor}" into an observable performance target; ask students what evidence would prove they can do it.`,
+        `Translate "${anchor}" into a visible action and have students name the evidence that would demonstrate it.`,
+        `Use "${anchor}" as a performance check: what would students produce, point to, or explain if they had mastered it?`,
+        `Make "${anchor}" inspectable by asking which student evidence would show the objective in practice.`,
+      ]);
     case 'bridge':
       return `Use "${safeAnchor}" as the continuity cue between prior work and today's ${concept} decision.`;
     case 'keyTerm':
@@ -18335,7 +18358,12 @@ function compileDiscussions(blueprint) {
         prerequisitePlan: lesson.prerequisitePlan,
         anchorExampleSet: assessment.anchorExampleSet || null,
         context: lesson.enrichment?.discussionPrompt?.tension
-          ? `${lesson.enrichment.discussionPrompt.tension} ${lesson.title} asks students to take and defend a position with source evidence.`
+          ? `${lesson.enrichment.discussionPrompt.tension} ${lessonVariant(lesson, [
+              `${lesson.title} asks students to take and defend a position with source evidence.`,
+              `${lesson.title} turns that tension into an evidence-backed position students must defend.`,
+              `${lesson.title} uses the tension to make students weigh evidence before choosing a stance.`,
+              `${lesson.title} asks students to test competing claims and state what the source evidence supports.`,
+            ])}`
           : `${lesson.title} asks students to work with ${phrase.context}. The discussion should test how students ${phrase.evidenceMove} and whether they can ${stripTerminalPunctuation(phrase.decisionMove).toLowerCase()} before they finalize ${lesson.studentArtifact}.`,
         prompt,
         ...(lesson.enrichment?.discussionPrompt?.positions?.length > 0

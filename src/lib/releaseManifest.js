@@ -3,22 +3,22 @@ import { APP_VERSION } from './appVersion.js';
 export const CURRENT_RELEASE = {
   version: APP_VERSION,
   date: 'June 26, 2026',
-  title: 'Source Proof Repair Persistence: source-finder rows survive map repairs',
-  landingTitle: 'Source Proof Repair Persistence',
+  title: 'Project Management Texture Variation: repeated compiler stamps rotate by lesson',
+  landingTitle: 'Project Management Texture Variation',
   highlights: [
-    'The fresh v0.15.59 Project Management ZIP/log audit improved to 98/A, but still proved a source bridge gap: the digest saw 3 source-finder resources while the exported source ledger collapsed to syllabus/Open Library rows.',
-    'Course map repair re-derivation now preserves source-backed resources and source-finder mini-shards for prose/fallback graphs, not only native-authored graphs.',
-    'Source-finder/OpenAlex rows therefore survive safe package repairs and remain available for package ZIP source-ledger assembly instead of being replaced by weaker syllabus-derived proof.',
-    'Focused graph, package-export, source-ledger, and Study Guide firewall regressions pin the repair path without weakening source grading or hiding remaining texture/native-fallback caveats.',
+    'The latest v0.15.59 Project Management ZIP/log audit reached 98/A but still measured texture at 90 because repeated compiler phrases stamped across slide decks, discussions, rubrics, and quiz-bank answers.',
+    'Capstone milestone-practice language now rotates before it enters lesson modality, slide, and activity surfaces, so Project Management decks no longer repeat the same sponsor-constraint milestone phrase across every lesson.',
+    'Rubric parameter bands, objective slide notes, enriched discussion tension framing, and kernel-projected short-answer limitations now use deterministic lesson-indexed variants instead of one package-wide sentence.',
+    'Focused texture regressions recreate the Project Management package shape and cap the exact repeated phrases without weakening the texture grader, source grader, or quality thresholds.',
   ],
   landingHighlights: [
-    'Source-finder rows survive map repair re-derivation.',
-    'OpenAlex proof remains available for ZIP source ledgers.',
-    'Focused source/export regressions stay strict.',
+    'Project Management texture stamps rotate by lesson.',
+    'Rubric, slide, discussion, and quiz frames vary deterministically.',
+    'Focused texture regressions keep the grader strict.',
   ],
   proof: {
-    contract: 'release-contracts/v0.15.60.json',
-    roadmap: 'docs/V0.15.60_SOURCE_PROOF_REPAIR_PERSISTENCE_ROADMAP.md',
+    contract: 'release-contracts/v0.15.61.json',
+    roadmap: 'docs/V0.15.61_PROJECT_MANAGEMENT_TEXTURE_VARIATION_ROADMAP.md',
     auditCommand: 'npm run audit:release-history',
   },
 };
@@ -33,6 +33,17 @@ export const CURRENT_RELEASE_CHANGELOG = {
 };
 
 export const HISTORICAL_RELEASE_CHANGELOGS = [
+  {
+    version: '0.15.60',
+    date: 'June 26, 2026',
+    title: 'Source Proof Repair Persistence: source-finder rows survive map repairs',
+    highlights: [
+      'The fresh v0.15.59 Project Management ZIP/log audit improved to 98/A, but still proved a source bridge gap: the digest saw 3 source-finder resources while the exported source ledger collapsed to syllabus/Open Library rows.',
+      'Course map repair re-derivation now preserves source-backed resources and source-finder mini-shards for prose/fallback graphs, not only native-authored graphs.',
+      'Source-finder/OpenAlex rows therefore survive safe package repairs and remain available for package ZIP source-ledger assembly instead of being replaced by weaker syllabus-derived proof.',
+      'Focused graph, package-export, source-ledger, and Study Guide firewall regressions pin the repair path without weakening source grading or hiding remaining texture/native-fallback caveats.',
+    ],
+  },
   {
     version: '0.15.59',
     date: 'June 26, 2026',

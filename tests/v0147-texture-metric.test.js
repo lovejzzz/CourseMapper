@@ -318,9 +318,48 @@ function geologyTextureRegressionMap() {
   };
 }
 
+function projectManagementTextureRegressionMap() {
+  const topics = [
+    'Project charter',
+    'Stakeholder analysis',
+    'Scope definition',
+    'Work breakdown structure',
+    'Schedule baseline',
+    'Critical path',
+    'Cost baseline',
+    'Risk register',
+    'Communication plan',
+    'Change control',
+    'Agile integration',
+    'Closeout presentation',
+  ];
+  return {
+    courseName: 'Project Management',
+    semester: 'Fall 2026',
+    lessons: topics.map((title, index) => ({
+      title: `Lesson ${index + 1}: ${title}`,
+      sections: [
+        {
+          topicSection: `${index + 1}.1: ${title}`,
+          learningGoals: `Build project management skill for ${title.toLowerCase()} with sponsor constraints and milestone evidence.`,
+          learningObjectives: `Analyze sponsor constraints using project evidence.\nDefend the next project milestone decision.`,
+          weeklyAssessments: `${title} milestone brief with project charter evidence and risk review.`,
+          asyncActivities: `Review assigned project documents and annotate sponsor constraints for ${title.toLowerCase()}.`,
+          syncActivities: `Run project team review of milestone evidence, risks, and next deliverables for ${title.toLowerCase()}.`,
+          supportingResources: `Project charter; PMBOK-style project management notes; sponsor brief ${index + 1}`,
+        },
+      ],
+    })),
+  };
+}
+
 function countPhrase(haystack, phrase) {
   const escaped = phrase.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
   return haystack.match(new RegExp(escaped, 'g'))?.length || 0;
+}
+
+function countNormalizedPhrase(haystack, phrase) {
+  return countPhrase(normalizeTextureText(haystack), normalizeTextureText(phrase));
 }
 
 describe('D1(2b) — compiler prose texture regression guard', () => {
@@ -332,6 +371,8 @@ describe('D1(2b) — compiler prose texture regression guard', () => {
       'slideDecks',
       'assignments',
       'rubrics',
+      'discussions',
+      'quizBank',
       'courseFaq',
     ]);
     const text = JSON.stringify(compiled).toLowerCase();
@@ -355,6 +396,44 @@ describe('D1(2b) — compiler prose texture regression guard', () => {
     expect(countPhrase(text, 'a next step that is feasible')).toBeLessThanOrEqual(2);
     expect(countPhrase(text, 'extending, questioning, or refining')).toBeLessThanOrEqual(2);
     expect(countPhrase(text, 'apply the lesson concepts to a new scenario')).toBeLessThanOrEqual(2);
+    expect(
+      countNormalizedPhrase(text, 'a scorer can point to where it is satisfied and how it strengthens the work'),
+    ).toBeLessThanOrEqual(2);
+    expect(
+      countNormalizedPhrase(text, 'turn into an observable performance target ask students what evidence would prove'),
+    ).toBeLessThanOrEqual(2);
+    expect(
+      countNormalizedPhrase(text, 'a strong answer also names one limitation or alternative reading'),
+    ).toBeLessThanOrEqual(2);
+  });
+
+  it('varies the latest Project Management package-wide texture stamps', () => {
+    const blueprint = buildCourseBlueprint(projectManagementTextureRegressionMap());
+    expect(blueprint.courseModalityProfile?.primaryMode).toBe('capstone-project');
+    const compiled = compileBlueprintDeliverables(blueprint, [
+      'lessonPlans',
+      'slideDecks',
+      'rubrics',
+      'discussions',
+      'quizBank',
+    ]);
+    const text = JSON.stringify(compiled).toLowerCase();
+
+    expect(
+      countNormalizedPhrase(
+        text,
+        'a milestone design review where students connect sponsor constraints evidence risks and next deliverables',
+      ),
+    ).toBe(0);
+    expect(countNormalizedPhrase(text, 'sponsor constraints evidence risks and next deliverables')).toBeLessThanOrEqual(
+      3,
+    );
+    expect(
+      countNormalizedPhrase(text, 'a scorer can point to where it is satisfied and how it strengthens the work'),
+    ).toBeLessThanOrEqual(3);
+    expect(
+      countNormalizedPhrase(text, 'a strong answer also names one limitation or alternative reading'),
+    ).toBeLessThanOrEqual(3);
   });
 });
 

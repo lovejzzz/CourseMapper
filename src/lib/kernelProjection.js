@@ -236,7 +236,7 @@ function definitionAsClause(term) {
  * projections. Every field is optional; the output stays grammatical with
  * no doubled periods for arbitrary inputs.
  */
-export function composeScenarioAnswer(scenario, term, fact, { position = '', counterpoint = '' } = {}) {
+export function composeScenarioAnswer(scenario, term, fact, { position = '', counterpoint = '', seed = 0 } = {}) {
   const sentences = [];
   const positionClause = stripTerminalPeriod(position);
   if (positionClause) sentences.push(ensureSentence(`A defensible position: ${positionClause}`));
@@ -276,7 +276,12 @@ export function composeScenarioAnswer(scenario, term, fact, { position = '', cou
       ? ensureSentence(
           `A strong answer also engages the opposing view — ${lowercaseLead(counterClause)} — and explains why the evidence weighs against it`,
         )
-      : 'A strong answer also names one limitation or alternative reading of the evidence.',
+      : projectionVariant(seed, [
+          'A strong answer also names one limitation or alternative reading of the evidence.',
+          'A complete answer also marks what the evidence does not prove.',
+          'Strong responses add one boundary, tradeoff, or competing interpretation.',
+          'The best answer keeps the claim honest by naming a plausible limit.',
+        ]),
   );
   return sentences
     .filter(Boolean)
@@ -307,7 +312,7 @@ function buildShortAnswerItem(kernel, index) {
     distractorRationales: [],
     // v0.14.1 (1.5): the model answer engages the scenario instead of gluing
     // anchor-fact + definition.
-    answer: composeScenarioAnswer(kernel?.scenario, term, fact),
+    answer: composeScenarioAnswer(kernel?.scenario, term, fact, { seed: index }),
     explanation: '',
     scoringGuidance,
   };
