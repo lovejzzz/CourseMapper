@@ -334,7 +334,8 @@ function normalizeConceptCandidates(values, { title = '', limit = 8 } = {}) {
           !isObjectiveLikeConcept(value) &&
           !isOverlongConceptCandidate(value) &&
           !isOverbroadLessonTitleConcept(value, title) &&
-          !isEvidencePacketLikeConcept(value),
+          !isEvidencePacketLikeConcept(value) &&
+          !isUnsafeLessonConceptPhrase(value),
       ),
     limit * 2,
   );
@@ -387,10 +388,11 @@ function compactList(values, fallback = 'source evidence', limit = 3) {
 function compactSourceCue(value, fallback = 'assigned source materials', maxWords = 6) {
   const text = stripTerminalPunctuation(cleanText(value, fallback));
   if (!text) return fallback;
+  if (isPromptArtifactEvidenceCue(text) || isCompactNumberedArtifactList(text)) return fallback;
   const clauses = text
     .split(/\s*(?:[;|\n,]|\/)\s*/g)
     .map((part) => stripTerminalPunctuation(cleanText(part)))
-    .filter(Boolean);
+    .filter((part) => part && !isPromptArtifactEvidenceCue(part) && !isCompactNumberedArtifactList(part));
   const boundedClause = clauses.find((part) => {
     const count = wordCount(part);
     return count >= 3 && count <= maxWords;
@@ -463,7 +465,7 @@ function isPromptArtifactEvidenceCue(value) {
   return countPromptArtifactEvidenceLabels(normalized) >= 2;
 }
 
-function isCompactNumberedCourseFaqArtifactList(value) {
+function isCompactNumberedArtifactList(value) {
   const text = cleanText(value);
   if (!text) return false;
   const numberedMarkers = text.match(/\s\d{1,2}[.)]\s+/g) || [];
@@ -488,8 +490,26 @@ function isCompactNumberedCourseFaqArtifactList(value) {
   return artifactishTerms.filter((term) => new RegExp(`\\b${term}\\b`, 'i').test(normalized)).length >= 2;
 }
 
+function isPromptArtifactConceptLabel(value) {
+  const normalized = normalizePromptArtifactEvidenceCue(value);
+  if (!normalized) return false;
+  return /^(?:scenario\s+)?quizzes?$|^(?:rubric[-\s]?driven\s+)?assignments?$|^rubrics?$|^assignment briefs?$|^(?:final\s+)?capstone presentations?$|^capstone presentations?$|^slide decks?$|^lesson plans?$|^discussion prompts?$|^study guides?$|^course faq$|^worked examples?$|^misconceptions?$/i.test(
+    normalized,
+  );
+}
+
+function isUnsafeLessonConceptPhrase(value) {
+  return (
+    isPromptArtifactEvidenceCue(value) || isPromptArtifactConceptLabel(value) || isCompactNumberedArtifactList(value)
+  );
+}
+
+function isUnsafeLessonArtifactPhrase(value) {
+  return isPromptArtifactEvidenceCue(value) || isCompactNumberedArtifactList(value);
+}
+
 function isUnsafeCourseFaqPhrase(value) {
-  return isPromptArtifactEvidenceCue(value) || isCompactNumberedCourseFaqArtifactList(value);
+  return isUnsafeLessonConceptPhrase(value) || isUnsafeLessonArtifactPhrase(value);
 }
 
 const DANGLING_TAIL_RE =
@@ -1628,23 +1648,25 @@ function buildCompilerDecisionMatrix(lessons = []) {
 
 function lessonPhrase(blueprint, lesson) {
   const lens = blueprintLens(blueprint);
+  const safeConcepts = safeLessonConcepts(lesson, { limit: 4 });
+  const primaryConcept = safeLessonPrimaryConcept(lesson);
   const fallback = {
-    context: compactList(lesson.keyConcepts, stripLessonPrefix(lesson.title), 3),
-    evidenceMove: `use ${lens.evidenceNoun || 'source evidence'} about ${
-      lesson.keyConcepts[0] || stripLessonPrefix(lesson.title)
-    }`,
+    context: compactList(safeConcepts, stripLessonPrefix(lesson.title), 3),
+    evidenceMove: `use ${lens.evidenceNoun || 'source evidence'} about ${primaryConcept}`,
     decisionMove: `explain the ${lens.decisionNoun || 'decision'} for ${stripLessonPrefix(lesson.title)}`,
   };
   const provided = blueprint?.enrichment?.lessonPhrases?.[lesson.id];
   const phrase = provided && typeof provided === 'object' ? provided : fallback;
-  const scrub = (value, fallbackValue) =>
-    cleanText(value, fallbackValue)
+  const scrub = (value, fallbackValue) => {
+    const text = cleanText(value, fallbackValue)
       .replace(/\bfield patterns?\b/gi, lens.evidenceNoun || 'source evidence')
       .replace(/\blesson evidence thread\b/gi, 'lesson materials')
       .replace(/\bWeek N covering\b/gi, 'weekly practice on')
       .replace(/\bWeek\s+(\d+)\s+covering\b/gi, 'Week $1 practice on')
       .replace(/\bGenre-specific quality focus:?\s*/gi, '')
       .trim();
+    return isUnsafeLessonConceptPhrase(text) || isUnsafeLessonArtifactPhrase(text) ? fallbackValue : text;
+  };
   return {
     ...phrase,
     context: scrub(phrase.context, fallback.context),
@@ -4051,9 +4073,15 @@ function assessmentTaskLabel(value, fallback = 'Weekly artifact') {
 }
 
 function buildStudentArtifactLabel(assessmentText, title, fallback) {
+  if (isUnsafeLessonArtifactPhrase(assessmentText)) return fallback || `${stripLessonPrefix(title)} artifact`;
   const parts = meaningfulEntries(splitList(assessmentText)).slice(0, 2);
   if (parts.length === 0) return fallback || `${stripLessonPrefix(title)} artifact`;
-  const labels = parts.map((part) => assessmentTaskLabel(part, `${stripLessonPrefix(title)} artifact`));
+  const labels = parts
+    .map((part) =>
+      isUnsafeLessonArtifactPhrase(part) ? '' : assessmentTaskLabel(part, `${stripLessonPrefix(title)} artifact`),
+    )
+    .filter(Boolean);
+  if (labels.length === 0) return fallback || `${stripLessonPrefix(title)} artifact`;
   if (labels.length === 1) return labels[0];
   // v0.14.3 C1: the C2 matrix FALSIFIED the original dead-branch hypothesis
   // (lesson-level fusion still ran on the registry path), so the registry
@@ -4482,12 +4510,12 @@ function buildFeedbackCycle({ title, concepts, artifact, evidencePlan }) {
 }
 
 function buildPrerequisitePlan({ lesson, previous }) {
-  const concept = lesson.keyConcepts[0] || stripLessonPrefix(lesson.title) || 'the lesson focus';
-  const artifactName = stripTerminalPunctuation(lesson.studentArtifact);
-  const previousConcept = previous?.keyConcepts?.[0] || 'prior course experience';
-  const previousArtifact = stripTerminalPunctuation(previous?.studentArtifact || 'prior course work');
+  const concept = safeLessonPrimaryConcept(lesson);
+  const artifactName = safeLessonArtifact(lesson);
+  const previousConcept = previous ? safeLessonPrimaryConcept(previous) : 'prior course experience';
+  const previousArtifact = previous ? safeLessonArtifact(previous, 'work') : 'prior course work';
   const assumedKnowledge = previous
-    ? unique([previousConcept, ...(previous.keyConcepts || []).slice(1, 3)], 3)
+    ? unique([previousConcept, ...safeLessonConcepts(previous, { limit: 3 }).slice(1, 3)], 3)
     : unique(
         [
           `Baseline vocabulary or lived example for ${concept}`,
@@ -4518,11 +4546,11 @@ function buildPrerequisitePlan({ lesson, previous }) {
 }
 
 function buildLearningTransferPlan({ lesson, previous, next }) {
-  const concept = lesson.keyConcepts[0] || stripLessonPrefix(lesson.title) || 'the lesson focus';
-  const artifactName = stripTerminalPunctuation(lesson.studentArtifact);
-  const previousConcept = previous?.keyConcepts?.[0] || 'prior source evidence';
-  const nextTarget = next?.studentArtifact || 'the final course synthesis';
-  const nextConcept = next?.keyConcepts?.[0] || 'the next course decision';
+  const concept = safeLessonPrimaryConcept(lesson);
+  const artifactName = safeLessonArtifact(lesson);
+  const previousConcept = previous ? safeLessonPrimaryConcept(previous) : 'prior source evidence';
+  const nextTarget = next ? safeLessonArtifact(next, 'synthesis') : 'the final course synthesis';
+  const nextConcept = next ? safeLessonPrimaryConcept(next) : 'the next course decision';
   return {
     retrievalCue: previous
       ? `Start by asking students to retrieve ${previousConcept} and explain one way it changes today's ${concept} decision.`
@@ -4543,10 +4571,10 @@ function buildLearningTransferPlan({ lesson, previous, next }) {
 }
 
 function buildTeachingIntent({ lesson, previous, next }) {
-  const concept = lesson.keyConcepts[0] || stripLessonPrefix(lesson.title) || 'the lesson focus';
-  const artifactName = stripTerminalPunctuation(lesson.studentArtifact);
-  const previousConcept = previous?.keyConcepts?.[0] || 'prior source evidence';
-  const nextTarget = next?.studentArtifact || 'the next synthesis artifact';
+  const concept = safeLessonPrimaryConcept(lesson);
+  const artifactName = safeLessonArtifact(lesson);
+  const previousConcept = previous ? safeLessonPrimaryConcept(previous) : 'prior source evidence';
+  const nextTarget = next ? safeLessonArtifact(next, 'synthesis artifact') : 'the next synthesis artifact';
   return {
     version: 1,
     teachingGoal: `${stripLessonPrefix(lesson.title)} moves students from ${previousConcept} into evidence-backed ${concept} decisions for ${artifactName}.`,
@@ -4577,7 +4605,7 @@ function buildTeachingIntent({ lesson, previous, next }) {
 
 function primaryConceptForLesson(lesson = {}) {
   return (
-    normalizeConceptCandidates(lesson.keyConcepts || [], { title: lesson.title, limit: 1 })[0] ||
+    safeLessonConcepts(lesson, { limit: 1 })[0] ||
     normalizeConceptCandidates(lesson.outcomes || [], { title: lesson.title, limit: 1 })[0] ||
     wordsFromConcepts([lesson.outcomes?.join(' '), lesson.title], 3).find((word) => !isWeakConcept(word)) ||
     'the lesson focus'
@@ -4590,15 +4618,38 @@ function genericLessonPhrase(value) {
 
 function lessonFocusFallback(lesson = {}) {
   const titleFocus = stripTerminalPunctuation(stripLessonPrefix(lesson?.title || ''));
-  if (titleFocus && !genericLessonPhrase(titleFocus) && !isWeakConcept(titleFocus)) return titleFocus;
+  if (
+    titleFocus &&
+    !genericLessonPhrase(titleFocus) &&
+    !isWeakConcept(titleFocus) &&
+    !isUnsafeLessonConceptPhrase(titleFocus)
+  ) {
+    return titleFocus;
+  }
   const concept = normalizeConceptCandidates(lesson?.keyConcepts || [], { title: lesson?.title, limit: 1 })[0];
   if (concept && !genericLessonPhrase(concept)) return concept;
   const week = Number.isFinite(Number(lesson?.lessonNumber)) ? `Week ${lesson.lessonNumber}` : 'weekly';
   return `${week} focus`;
 }
 
+function safeLessonConcepts(lesson = {}, { limit = 8 } = {}) {
+  const concepts = normalizeConceptCandidates(lesson?.keyConcepts || [], { title: lesson?.title, limit }).filter(
+    (concept) => !isUnsafeLessonConceptPhrase(concept),
+  );
+  if (concepts.length > 0) return concepts.slice(0, limit);
+  const outcomeConcepts = normalizeConceptCandidates(lesson?.outcomes || [], { title: lesson?.title, limit }).filter(
+    (concept) => !isUnsafeLessonConceptPhrase(concept),
+  );
+  if (outcomeConcepts.length > 0) return outcomeConcepts.slice(0, limit);
+  return [lessonFocusFallback(lesson)].filter(Boolean).slice(0, limit);
+}
+
+function safeLessonPrimaryConcept(lesson = {}) {
+  return safeLessonConcepts(lesson, { limit: 1 })[0] || lessonFocusFallback(lesson) || 'the lesson focus';
+}
+
 function lessonDisplayConcept(lesson = {}) {
-  const concept = primaryConceptForLesson(lesson);
+  const concept = safeLessonPrimaryConcept(lesson);
   return genericLessonPhrase(concept) ? lessonFocusFallback(lesson) : concept;
 }
 
@@ -4606,12 +4657,38 @@ function lessonDisplayArtifact(value, lesson = {}) {
   const focus = lessonFocusFallback(lesson);
   const fallback = `${focus} artifact`;
   let artifact = stripTerminalPunctuation(cleanText(value, fallback));
-  if (!artifact || genericLessonPhrase(artifact)) return fallback;
+  if (!artifact || genericLessonPhrase(artifact) || isUnsafeLessonArtifactPhrase(artifact)) return fallback;
   artifact = artifact
     .replace(/:\s*(?:this|the)\s+lesson(?:\s+(?:focus|artifact|work|assessment))?\b/gi, `: ${focus}`)
     .replace(/\b(?:this|the)\s+lesson\s+(?:artifact|work|assessment)\b/gi, `${focus} artifact`)
     .replace(/\b(?:this|the)\s+lesson\b/gi, focus);
   return stripTerminalPunctuation(artifact) || fallback;
+}
+
+function safeLessonArtifact(lesson = {}, fallbackKind = 'artifact') {
+  const focus = lessonFocusFallback(lesson);
+  const fallback = `${focus} ${fallbackKind}`;
+  return lessonDisplayArtifact(lesson?.studentArtifact || fallback, lesson) || fallback;
+}
+
+function safeLessonEvidenceCue(lesson = {}, lens = null) {
+  const fallbackFocus = stripLessonPrefix(lesson?.title) || lessonFocusFallback(lesson) || 'lesson';
+  const fallback = `${fallbackFocus} source evidence`;
+  const candidates = [
+    lesson?.throughlineCase?.evidencePacket,
+    lesson?.evidencePlan?.sourceCue,
+    ...(Array.isArray(lesson?.readings) ? lesson.readings : []),
+    ...(Array.isArray(lesson?.resources) ? lesson.resources : []),
+    lens?.evidenceNoun,
+    fallback,
+  ];
+  return (
+    candidates
+      .map((candidate) => stripTerminalPunctuation(cleanText(candidate)))
+      .find(
+        (candidate) => candidate && !isUnsafeLessonConceptPhrase(candidate) && !isUnsafeLessonArtifactPhrase(candidate),
+      ) || fallback
+  );
 }
 
 function buildConceptDependencyGraph({ lessons = [], assessments = [] }) {
@@ -5041,7 +5118,9 @@ function titleCandidateFromTopic(value) {
 }
 
 function titleFallbackFromTopics(topics = []) {
-  const candidates = topics.map(titleCandidateFromTopic).filter((topic) => topic && !isWeakConcept(topic));
+  const candidates = topics
+    .map(titleCandidateFromTopic)
+    .filter((topic) => topic && !isWeakConcept(topic) && !isUnsafeLessonConceptPhrase(topic));
   if (candidates.length === 0) return '';
   return candidates
     .map((candidate, index) => {
@@ -10543,14 +10622,16 @@ function deriveRoutineFieldsForLesson(lesson = {}, index = 0) {
     activities,
     bloomsLevel: lesson.bloomsLevel || 'Apply',
   });
+  const syntheticArtifact = buildSyntheticArtifactLabel({
+    title,
+    concepts: safeConcepts,
+    bloomsLevel: lesson.bloomsLevel || 'Apply',
+    synthesizedAssessment,
+  });
   const artifact =
-    lesson.studentArtifact ||
-    buildSyntheticArtifactLabel({
-      title,
-      concepts: safeConcepts,
-      bloomsLevel: lesson.bloomsLevel || 'Apply',
-      synthesizedAssessment,
-    });
+    lesson.studentArtifact && !isUnsafeLessonArtifactPhrase(lesson.studentArtifact)
+      ? lesson.studentArtifact
+      : syntheticArtifact;
   const bloomInference =
     lesson.bloomInference?.level && lesson.bloomInference.source
       ? lesson.bloomInference
@@ -11502,37 +11583,128 @@ function assignmentDeliverablesForLesson({ lesson = {}, assessment = {}, submiss
   return [firstLine, evidenceLine, revisionLine];
 }
 
+const PROMPT_ARTIFACT_DISPLAY_PATTERN =
+  '\\b(?:scenario\\s+quizzes?|rubric[-\\s]?driven\\s+assignments?|final\\s+capstone\\s+presentations?|capstone\\s+presentations?|evidence-rich\\s+lesson\\s+plans?|slide\\s+decks?|assignment\\s+briefs?|discussion\\s+prompts?|quiz\\s+bank|study\\s+guides?|course\\s+faq|worked\\s+examples?|misconceptions?)\\b';
+const PROMPT_ARTIFACT_DISPLAY_RE = new RegExp(PROMPT_ARTIFACT_DISPLAY_PATTERN, 'i');
+
+function safeGroundingText(value, fallback = '') {
+  const text = cleanText(value);
+  if (!text) return fallback;
+  if (isUnsafeLessonConceptPhrase(text) || isUnsafeLessonArtifactPhrase(text)) return fallback;
+  return text
+    .replace(new RegExp(PROMPT_ARTIFACT_DISPLAY_PATTERN, 'gi'), fallback)
+    .replace(INTERNAL_SOURCE_PLACEHOLDER_RE, fallback)
+    .replace(/\s{2,}/g, ' ')
+    .trim();
+}
+
+function safeSourceTraceFieldFallback(field = {}, lesson = {}) {
+  const fieldName = cleanText(field.field).toLowerCase();
+  if (/lesson identity/.test(fieldName)) return lesson?.title || '';
+  if (/topic|concept/.test(fieldName)) return safeLessonPrimaryConcept(lesson);
+  if (/assessment|artifact/.test(fieldName)) return safeLessonArtifact(lesson);
+  if (/reading|resource/.test(fieldName)) return safeLessonEvidenceCue(lesson);
+  if (/objective/.test(fieldName))
+    return normalizeObjectiveText(lesson?.outcomes?.[0] || '') || safeLessonPrimaryConcept(lesson);
+  return safeLessonPrimaryConcept(lesson);
+}
+
+function safeSourceEvidenceTraceForDeliverable(trace = null, lesson = {}) {
+  if (!trace || typeof trace !== 'object') return null;
+  const safeTitle = lesson?.title || '';
+  const safeTrace = clonePlain(trace);
+  safeTrace.lessonTitle = safeGroundingText(safeTrace.lessonTitle, safeTitle);
+  safeTrace.sourceRowLabel = safeGroundingText(safeTrace.sourceRowLabel, safeTitle);
+  safeTrace.preservedSignals = asArray(safeTrace.preservedSignals)
+    .map((signal) => safeGroundingText(signal, ''))
+    .filter(Boolean);
+  safeTrace.sourceFields = asArray(safeTrace.sourceFields).map((field) => {
+    const fallback = safeSourceTraceFieldFallback(field, lesson);
+    return {
+      ...field,
+      rawText: safeGroundingText(field.rawText, fallback),
+      compiledValue: safeGroundingText(field.compiledValue, fallback),
+    };
+  });
+  safeTrace.sectionCoverage = asArray(safeTrace.sectionCoverage).map((section) => {
+    const sectionLabel = safeGroundingText(section.sectionLabel, safeLessonPrimaryConcept(lesson));
+    return {
+      ...section,
+      sectionLabel,
+      rawText: safeGroundingText(section.rawText, sectionLabel),
+      preservedSignals: asArray(section.preservedSignals)
+        .map((signal) => safeGroundingText(signal, ''))
+        .filter(Boolean),
+    };
+  });
+  return safeTrace;
+}
+
+function safeSourceAnchorsForDeliverable(anchors = [], lesson = {}) {
+  return asArray(anchors).map((anchor) => {
+    const fallback = safeSourceTraceFieldFallback({ field: anchor?.field }, lesson);
+    return {
+      ...anchor,
+      anchor: safeGroundingText(anchor?.anchor, fallback),
+    };
+  });
+}
+
+function safeGroundingValueForDeliverable(value, lesson = {}, fallback = safeLessonPrimaryConcept(lesson)) {
+  if (typeof value === 'string') return safeGroundingText(value, fallback);
+  if (Array.isArray(value)) return value.map((item) => safeGroundingValueForDeliverable(item, lesson, fallback));
+  if (!value || typeof value !== 'object') return value;
+  const text = JSON.stringify(value);
+  if (!PROMPT_ARTIFACT_DISPLAY_RE.test(text) && !INTERNAL_SOURCE_PLACEHOLDER_RE.test(text)) return value;
+  return Object.fromEntries(
+    Object.entries(value).map(([key, child]) => {
+      const keyFallback = /artifact|assessment|submission|product/i.test(key)
+        ? safeLessonArtifact(lesson)
+        : /source|reading|resource|citation|evidence/i.test(key)
+          ? safeLessonEvidenceCue(lesson)
+          : fallback;
+      return [key, safeGroundingValueForDeliverable(child, lesson, keyFallback)];
+    }),
+  );
+}
+
 function lessonSourceGrounding(lesson, extras = {}) {
   return {
     lessonNumber: lesson?.lessonNumber || null,
     lessonTitle: lesson?.title || '',
     confidence: lesson?.confidence?.level || 'medium',
-    sourceAnchors: clonePlain(lesson?.sourceAnchors || []),
-    sourceEvidenceTrace: clonePlain(lesson?.sourceEvidenceTrace || null),
-    sourceRisk: clonePlain(lesson?.sourceRisk || null),
-    compilerDecision: clonePlain(lesson?.compilerDecision || null),
+    sourceAnchors: safeSourceAnchorsForDeliverable(lesson?.sourceAnchors || [], lesson),
+    sourceEvidenceTrace: safeSourceEvidenceTraceForDeliverable(lesson?.sourceEvidenceTrace || null, lesson),
+    sourceRisk: safeGroundingValueForDeliverable(clonePlain(lesson?.sourceRisk || null), lesson),
+    compilerDecision: safeGroundingValueForDeliverable(clonePlain(lesson?.compilerDecision || null), lesson),
     localReviewNeeded: clonePlain(lesson?.missingSignals || []),
-    evidencePlan: clonePlain(lesson?.evidencePlan || null),
-    sourceUsePlan: clonePlain(lesson?.sourceUsePlan || null),
-    throughlineCase: clonePlain(lesson?.throughlineCase || null),
-    classSessionPlan: clonePlain(lesson?.classSessionPlan || null),
+    evidencePlan: safeGroundingValueForDeliverable(clonePlain(lesson?.evidencePlan || null), lesson),
+    sourceUsePlan: safeGroundingValueForDeliverable(clonePlain(lesson?.sourceUsePlan || null), lesson),
+    throughlineCase: safeGroundingValueForDeliverable(clonePlain(lesson?.throughlineCase || null), lesson),
+    classSessionPlan: safeGroundingValueForDeliverable(clonePlain(lesson?.classSessionPlan || null), lesson),
     misconceptionFocus: lesson?.misconceptionMap?.[0]?.misconception || '',
-    modelContrast: clonePlain(lesson?.modelContrast || null),
-    readinessSupport: clonePlain(lesson?.readinessSupport || null),
-    prerequisitePlan: clonePlain(lesson?.prerequisitePlan || null),
-    conceptDependencyPlan: clonePlain(lesson?.conceptDependencyPlan || null),
-    practiceProgressionPlan: clonePlain(lesson?.practiceProgressionPlan || null),
-    objectiveEvidencePlan: clonePlain(lesson?.objectiveEvidencePlan || null),
-    masteryEvidencePlan: clonePlain(lesson?.masteryEvidencePlan || null),
-    evidenceResponsePlan: clonePlain(lesson?.evidenceResponsePlan || null),
-    instructionalRationale: clonePlain(lesson?.instructionalRationale || null),
-    accessibilityPlan: clonePlain(lesson?.accessibilityPlan || null),
-    feedbackCycle: clonePlain(lesson?.feedbackCycle || null),
-    learningTransferPlan: clonePlain(lesson?.learningTransferPlan || null),
-    teachingIntent: clonePlain(lesson?.teachingIntent || null),
+    modelContrast: safeGroundingValueForDeliverable(clonePlain(lesson?.modelContrast || null), lesson),
+    readinessSupport: safeGroundingValueForDeliverable(clonePlain(lesson?.readinessSupport || null), lesson),
+    prerequisitePlan: safeGroundingValueForDeliverable(clonePlain(lesson?.prerequisitePlan || null), lesson),
+    conceptDependencyPlan: safeGroundingValueForDeliverable(clonePlain(lesson?.conceptDependencyPlan || null), lesson),
+    practiceProgressionPlan: safeGroundingValueForDeliverable(
+      clonePlain(lesson?.practiceProgressionPlan || null),
+      lesson,
+    ),
+    objectiveEvidencePlan: safeGroundingValueForDeliverable(clonePlain(lesson?.objectiveEvidencePlan || null), lesson),
+    masteryEvidencePlan: safeGroundingValueForDeliverable(clonePlain(lesson?.masteryEvidencePlan || null), lesson),
+    evidenceResponsePlan: safeGroundingValueForDeliverable(clonePlain(lesson?.evidenceResponsePlan || null), lesson),
+    instructionalRationale: safeGroundingValueForDeliverable(
+      clonePlain(lesson?.instructionalRationale || null),
+      lesson,
+    ),
+    accessibilityPlan: safeGroundingValueForDeliverable(clonePlain(lesson?.accessibilityPlan || null), lesson),
+    feedbackCycle: safeGroundingValueForDeliverable(clonePlain(lesson?.feedbackCycle || null), lesson),
+    learningTransferPlan: safeGroundingValueForDeliverable(clonePlain(lesson?.learningTransferPlan || null), lesson),
+    teachingIntent: safeGroundingValueForDeliverable(clonePlain(lesson?.teachingIntent || null), lesson),
     workloadEstimate: compactWorkloadEstimate(lesson?.workloadEstimate || {}),
     difficultyProfile: clonePlain(lesson?.difficultyProfile || null),
-    artifactConnection: lesson?.studentArtifact || '',
+    artifactConnection: safeLessonArtifact(lesson),
     successCriteria: clonePlain(lesson?.successCriteria || []),
     feedbackUse: lesson?.feedbackCycle?.nextUse || lesson?.feedbackMoment || '',
     bloomInference: clonePlain(lesson?.bloomInference || null),
@@ -11554,7 +11726,7 @@ function lessonLocalReviewAction(lesson) {
       '',
   );
   const lessonTitle = stripLessonPrefix(lesson?.title || 'this lesson');
-  const artifact = stripTerminalPunctuation(lesson?.studentArtifact || 'the lesson artifact');
+  const artifact = safeLessonArtifact(lesson);
   const fallback = lesson?.compilerDecision?.reviewRequired
     ? `Confirm source evidence, assessment details, and local constraints for ${lessonTitle} before publishing.`
     : `Spot-check official dates, policies, source permissions, local examples, and ${artifact} expectations for ${lessonTitle} before publishing.`;
@@ -11589,8 +11761,8 @@ function buildLessonLearnerContextCue(profile = {}, lesson = {}) {
   const role = profile.learnerRole || 'course learner';
   const evidenceNoun = profile.evidenceNoun || 'source evidence';
   const decisionNoun = profile.decisionNoun || 'course decision';
-  const concept = lesson?.keyConcepts?.[0] || stripLessonPrefix(lesson?.title) || 'the lesson focus';
-  const artifact = stripTerminalPunctuation(lesson?.studentArtifact || 'the lesson artifact');
+  const concept = safeLessonPrimaryConcept(lesson);
+  const artifact = safeLessonArtifact(lesson);
   const support =
     lesson?.readinessSupport?.supportMove ||
     profile.supportAssumptions?.[0] ||
@@ -11622,13 +11794,20 @@ function extractLessonBlueprint(lesson, originalIndex, assessmentRegistry = null
   const topicEntries = meaningfulEntries(splitList(topicText));
   const hasTopics = topicEntries.length > 0;
   const topics = normalizeConceptCandidates(topicEntries.length > 0 ? topicEntries : goalEntries, { title, limit: 8 });
-  const topicTitleFallback = titleFallbackFromTopics(topicEntries.length > 0 ? topicEntries : topics);
-  if (isWeakConcept(stripLessonPrefix(title)) && topicTitleFallback) {
+  const topicTitleFallback = titleFallbackFromTopics(
+    unique([...(topicEntries.length > 0 ? topicEntries : topics), ...objectives], 10),
+  );
+  if (
+    (isWeakConcept(stripLessonPrefix(title)) || isUnsafeLessonConceptPhrase(stripLessonPrefix(title))) &&
+    topicTitleFallback
+  ) {
     title = `Lesson ${lessonNumber}: ${topicTitleFallback}`;
   }
   const rawTitleConcept = stripLessonPrefix(title);
   const titleConcepts =
-    isWeakConcept(rawTitleConcept) || isOverbroadLessonTitleConcept(rawTitleConcept, title)
+    isWeakConcept(rawTitleConcept) ||
+    isUnsafeLessonConceptPhrase(rawTitleConcept) ||
+    isOverbroadLessonTitleConcept(rawTitleConcept, title)
       ? wordsFromConcepts([rawTitleConcept], 4)
       : unique([rawTitleConcept].concat(wordsFromConcepts([rawTitleConcept], 4)), 4);
   // v0.14.5 (A2): instructor-named registry readings LEAD the lesson's
@@ -11706,9 +11885,10 @@ function extractLessonBlueprint(lesson, originalIndex, assessmentRegistry = null
   // verbatim) holds at the lesson level too. Fusion remains for legacy
   // no-registry compiles only.
   const registryArtifactTitle = registryStudentArtifactTitle(assessmentRegistry, lessonNumber);
-  const studentArtifact =
+  const rawStudentArtifact =
     registryArtifactTitle ||
     (hasAssessment ? buildStudentArtifactLabel(assessmentText, title, synthesizedArtifact) : synthesizedArtifact);
+  const studentArtifact = isUnsafeLessonArtifactPhrase(rawStudentArtifact) ? synthesizedArtifact : rawStudentArtifact;
   const confidence = buildLessonConfidence({
     hasTitle,
     hasObjectives,
@@ -12074,8 +12254,8 @@ function assessmentMilestoneIndexes(count) {
 }
 
 function buildAssessmentRoleDescriptor({ lesson, index, lessonCount }) {
-  const concept = lesson.keyConcepts?.[0] || stripLessonPrefix(lesson.title) || 'the lesson focus';
-  const artifact = stripTerminalPunctuation(lesson.studentArtifact || 'the weekly artifact');
+  const concept = safeLessonPrimaryConcept(lesson);
+  const artifact = safeLessonArtifact(lesson, 'weekly artifact');
   const milestoneIndexes = assessmentMilestoneIndexes(lessonCount);
   if (lessonCount <= 1 || index === lessonCount - 1) {
     return {
@@ -12272,8 +12452,8 @@ function buildAssessmentArchitecture({ lessons, assessments }) {
 }
 
 function buildAssessmentCriteria(lesson) {
-  const concept = lesson.keyConcepts[0] || stripLessonPrefix(lesson.title);
-  const artifact = stripTerminalPunctuation(lesson.studentArtifact);
+  const concept = safeLessonPrimaryConcept(lesson);
+  const artifact = safeLessonArtifact(lesson);
   const seed = Array.from(cleanText(`${lesson.title} ${concept} ${artifact}`)).reduce(
     (sum, char) => sum + char.charCodeAt(0),
     0,
@@ -12298,11 +12478,10 @@ function buildAssessmentCriteria(lesson) {
 }
 
 function buildAssessmentValidityEvidence(lesson) {
-  const concept = lesson.keyConcepts[0] || stripLessonPrefix(lesson.title);
-  const artifact = stripTerminalPunctuation(lesson.studentArtifact);
+  const concept = safeLessonPrimaryConcept(lesson);
+  const artifact = safeLessonArtifact(lesson);
   const title = stripLessonPrefix(lesson.title);
-  const sourceCue =
-    lesson.evidencePlan?.sourceCue || lesson.readings?.[0] || `${stripLessonPrefix(lesson.title)} materials`;
+  const sourceCue = safeLessonEvidenceCue(lesson);
   return {
     targetConstruct: `${artifact} shows whether students can use ${concept} evidence to make a defensible course decision.`,
     authenticPerformance: `The task asks students to produce ${artifact}, not only recall vocabulary, so performance evidence comes from applied reasoning in ${stripLessonPrefix(lesson.title)}.`,
@@ -12312,8 +12491,8 @@ function buildAssessmentValidityEvidence(lesson) {
 }
 
 function buildAssessmentCalibrationPlan(lesson, validityEvidence) {
-  const concept = lesson.keyConcepts[0] || stripLessonPrefix(lesson.title);
-  const artifact = stripTerminalPunctuation(lesson.studentArtifact);
+  const concept = safeLessonPrimaryConcept(lesson);
+  const artifact = safeLessonArtifact(lesson);
   return {
     anchorComparison:
       lesson.modelContrast?.contrastQuestion ||
@@ -12330,10 +12509,9 @@ function buildAssessmentCalibrationPlan(lesson, validityEvidence) {
 }
 
 function buildCriterionEvidenceMap(lesson, criteria, validityEvidence) {
-  const concept = lesson.keyConcepts[0] || stripLessonPrefix(lesson.title);
-  const artifact = stripTerminalPunctuation(lesson.studentArtifact);
-  const sourceCue =
-    lesson.evidencePlan?.sourceCue || lesson.readings?.[0] || `${stripLessonPrefix(lesson.title)} materials`;
+  const concept = safeLessonPrimaryConcept(lesson);
+  const artifact = safeLessonArtifact(lesson);
+  const sourceCue = safeLessonEvidenceCue(lesson);
   return criteria.map((criterion, index) => ({
     criterion,
     evidenceNeeded: lessonVariant(lesson, [
@@ -12358,8 +12536,8 @@ function buildCriterionEvidenceMap(lesson, criteria, validityEvidence) {
 }
 
 function buildCriterionCalibrationQuestion({ lesson = {}, criterion = '', index = 0, validityEvidence = {} }) {
-  const concept = lesson.keyConcepts?.[0] || stripLessonPrefix(lesson.title) || 'the lesson focus';
-  const artifact = stripTerminalPunctuation(lesson.studentArtifact || 'the lesson artifact');
+  const concept = safeLessonPrimaryConcept(lesson);
+  const artifact = safeLessonArtifact(lesson);
   const criterionLabel = cleanText(criterion, `criterion ${index + 1}`);
   const baseCheck =
     validityEvidence?.calibrationCheck ||
@@ -12380,10 +12558,9 @@ function buildCriterionCalibrationQuestion({ lesson = {}, criterion = '', index 
 }
 
 function buildCriterionFeedbackMove({ lesson = {}, criterion = '', index = 0 }) {
-  const concept = lesson.keyConcepts?.[0] || stripLessonPrefix(lesson.title) || 'the lesson focus';
-  const artifact = stripTerminalPunctuation(lesson.studentArtifact || 'the lesson artifact');
-  const sourceCue =
-    lesson.evidencePlan?.sourceCue || lesson.readings?.[0] || `${stripLessonPrefix(lesson.title)} materials`;
+  const concept = safeLessonPrimaryConcept(lesson);
+  const artifact = safeLessonArtifact(lesson);
+  const sourceCue = safeLessonEvidenceCue(lesson);
   const criterionLabel = cleanText(criterion, `criterion ${index + 1}`);
   if (index === 0 || /\b(accuracy|evidence|source)\b/i.test(criterionLabel)) {
     return `Revise ${artifact} by tying the ${concept} evidence for "${criterionLabel}" to ${sourceCue}, one limitation, and the visible decision.`;
@@ -12401,8 +12578,8 @@ function buildCriterionFeedbackMove({ lesson = {}, criterion = '', index = 0 }) 
 }
 
 function criterionWeightDescriptor({ criterion, index, lesson, evidenceEntry }) {
-  const concept = lesson.keyConcepts[0] || stripLessonPrefix(lesson.title);
-  const artifact = stripTerminalPunctuation(lesson.studentArtifact);
+  const concept = safeLessonPrimaryConcept(lesson);
+  const artifact = safeLessonArtifact(lesson);
   const lower = cleanText(criterion).toLowerCase();
   if (index === 0) {
     return {
@@ -15012,7 +15189,7 @@ function dataScienceTermGuide(term, lesson = {}) {
 }
 
 function studyGuideTermsForLesson(lesson = {}) {
-  const terms = normalizeConceptCandidates(lesson.keyConcepts || [], { title: lesson.title, limit: 8 });
+  const terms = safeLessonConcepts(lesson, { limit: 8 });
   const titleWords = new Set(
     stripLessonPrefix(lesson.title || '')
       .toLowerCase()
@@ -15033,10 +15210,10 @@ function studyGuideTermsForLesson(lesson = {}) {
 function generalTermGuide(term, lesson = {}, lens = {}, termIndex = 0) {
   const cleanTerm = cleanText(term, 'lesson concept');
   const lessonTitle = stripLessonPrefix(lesson.title || 'this lesson');
-  const artifact = stripTerminalPunctuation(lesson.studentArtifact || 'the lesson artifact');
+  const artifact = safeLessonArtifact(lesson);
   const evidenceNoun = lens.evidenceNoun || 'source evidence';
   const decisionNoun = lens.decisionNoun || 'course decision';
-  const sourceCue = lesson.evidencePlan?.sourceCue || 'the assigned materials';
+  const sourceCue = safeLessonEvidenceCue(lesson, lens);
   const patterns = [
     {
       definition: `${cleanTerm} names the evidence focus students use when deciding what counts as support for ${artifact}.`,
@@ -15139,12 +15316,14 @@ function compileStudyGuides(blueprint) {
       const phrase = lessonPhrase(blueprint, lesson);
       const isDataScience = isDataScienceLabLesson(blueprint, lesson);
       const datasetName = lesson.throughlineCase?.datasetName || 'the course dataset';
-      const casePacket = lesson.throughlineCase?.evidencePacket || `${stripLessonPrefix(lesson.title)} lab packet`;
-      const primaryConcept = primaryConceptForLesson(lesson);
+      const safeConcepts = safeLessonConcepts(lesson, { limit: 8 });
+      const conceptList = safeConcepts.slice(0, 3).join(', ') || stripLessonPrefix(lesson.title);
+      const conceptPair = safeConcepts.slice(0, 2).join(' and ') || 'the lesson concepts';
+      const casePacket = safeLessonEvidenceCue(lesson, lens);
+      const primaryConcept = safeLessonPrimaryConcept(lesson);
       const specificity = lessonSpecificityAnchor(lesson);
       const studyArtifact = specificity.artifact;
-      const lessonSourceCue =
-        lesson.evidencePlan?.sourceCue || lesson.throughlineCase?.evidencePacket || 'the lesson evidence';
+      const lessonSourceCue = safeLessonEvidenceCue(lesson, lens);
       const keyTerms = studyGuideTermsForLesson(lesson);
       const dataScienceEvidenceCue =
         'validation metrics, model-performance evidence, data-quality checks, threshold tradeoffs, and fairness or limitation evidence';
@@ -15184,8 +15363,8 @@ function compileStudyGuides(blueprint) {
             : ''
         }`,
         summary: isDataScience
-          ? `${lesson.title} focuses on ${lesson.keyConcepts.slice(0, 3).join(', ')}. Students should inspect ${datasetName}, read notebook outputs, use ${dataScienceEvidenceCue}, and explain how the evidence changes the modeling decision.`
-          : `${lesson.title} focuses on ${lesson.keyConcepts.slice(0, 3).join(', ')}. Students should connect those ideas to the weekly activity pattern, ${phrase.evidenceMove}, and ${phrase.decisionMove}.`,
+          ? `${lesson.title} focuses on ${conceptList}. Students should inspect ${datasetName}, read notebook outputs, use ${dataScienceEvidenceCue}, and explain how the evidence changes the modeling decision.`
+          : `${lesson.title} focuses on ${conceptList}. Students should connect those ideas to the weekly activity pattern, ${phrase.evidenceMove}, and ${phrase.decisionMove}.`,
         sourceGrounding: lessonSourceGrounding(lesson, {
           anchorExampleSet: assessment.anchorExampleSet,
           learnerContextProfile: blueprint.learnerContextProfile,
@@ -15293,9 +15472,9 @@ function compileStudyGuides(blueprint) {
                         question: `For ${specificity.week}, explain why this ${specificity.concept} claim is true and what evidence supports it: “${stripTerminalPunctuation(lesson.enrichment.kernel.facts[0])}.”`,
                         bloomsLevel: 'Analyze',
                         hint: lessonVariant(lesson, [
-                          `Use ${lesson.keyConcepts.slice(0, 2).join(' and ') || 'the lesson concepts'} in your explanation. Add one observable detail that supports the claim and explain how it changes the method decision.`,
-                          `Use ${lesson.keyConcepts.slice(0, 2).join(' and ') || 'the lesson concepts'} to test the claim. Point to the evidence students can inspect and name the decision it should affect.`,
-                          `Ground the answer in ${lesson.keyConcepts.slice(0, 2).join(' and ') || 'the lesson concepts'}: identify the source detail, explain the reasoning, and state the next method move.`,
+                          `Use ${conceptPair} in your explanation. Add one observable detail that supports the claim and explain how it changes the method decision.`,
+                          `Use ${conceptPair} to test the claim. Point to the evidence students can inspect and name the decision it should affect.`,
+                          `Ground the answer in ${conceptPair}: identify the source detail, explain the reasoning, and state the next method move.`,
                           `Connect the claim to one concrete observation from the lesson. Then explain what the observation lets you decide, revise, or rule out.`,
                         ]),
                       },
@@ -15341,11 +15520,11 @@ function compileStudyGuides(blueprint) {
                   `Compare ${specificity.artifact} with the first success criterion, then rewrite the weakest evidence sentence.`,
                 ]),
                 lesson.learningTransferPlan?.spacedPracticeCue ||
-                  `Revisit ${lesson.keyConcepts[0] || stripLessonPrefix(lesson.title)} before the next assessment and write one ${specificity.week} correction for ${specificity.artifact}.`,
+                  `Revisit ${primaryConcept} before the next assessment and write one ${specificity.week} correction for ${specificity.artifact}.`,
               ]),
         ],
         examPrep: {
-          keyTopicsToKnow: lesson.keyConcepts.slice(0, 5),
+          keyTopicsToKnow: safeConcepts.slice(0, 5),
           timeline: `Review ${lesson.title} notes after Week ${lesson.lessonNumber}, then revisit before the next assessment.`,
           commonErrors: isDataScience
             ? `Avoid treating accuracy as enough, ignoring false-positive/false-negative costs, skipping data-quality checks, or submitting ${studyArtifact} without a limitation note.`
@@ -15357,10 +15536,10 @@ function compileStudyGuides(blueprint) {
                 'Sketch',
                 'Annotate',
                 'Compare',
-              ])} one ${specificity.week} explanation of ${lesson.keyConcepts[0] || 'concept'}, one ${lens.evidenceNoun} source, and one implication for ${specificity.artifact}.`,
+              ])} one ${specificity.week} explanation of ${primaryConcept}, one ${lens.evidenceNoun} source, and one implication for ${specificity.artifact}.`,
         },
         studentResources: `Use ${specificity.week} ${lesson.title} readings, instructor notes, office hours, peer discussion, and the rubric criteria for ${specificity.artifact}.`,
-        tags: unique(['study guide', lesson.title, ...lesson.keyConcepts], 10),
+        tags: unique(['study guide', lesson.title, ...safeConcepts], 10),
       };
     }),
   };

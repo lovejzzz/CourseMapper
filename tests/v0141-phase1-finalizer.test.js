@@ -653,7 +653,60 @@ describe('1.16 — prompt artifact labels never become course-map concepts', () 
     expect(faqText).not.toMatch(/scenario quizzes\s+2\./i);
     expect(faqText).not.toMatch(/rubric-driven assignments\s+3\./i);
     expect(faqText).not.toMatch(/Instructor-approved readings/i);
-    expect(faqText).toMatch(/Project Management assessment/i);
+    expect(faqText).toMatch(/Week 1 project|Project Management assessment/i);
     expect(faqText).toMatch(/Project Management source evidence|project charter/i);
+  });
+
+  it('keeps prompt artifact labels out of compiled Study Guides and shared lesson metadata', () => {
+    const courseMap = {
+      courseName: 'Project Management',
+      lessons: [
+        {
+          title: 'Lesson 3: Scenario quizzes',
+          sections: [
+            {
+              topicSection: 'Project scenarios',
+              learningGoals: 'Use project scenario evidence to choose defensible project actions.',
+              learningObjectives: 'Select appropriate project actions and explain the evidence for the choice.',
+              weeklyAssessments: 'scenario quizzes 2. rubric-driven assignments 3. final capstone presentation',
+              asyncActivities: 'Review project scenario notes and mark the decision evidence.',
+              syncActivities: 'Compare scenario choices and justify the selected project action.',
+              supportingResources: 'Instructor-approved readings, examples, or lab materials for project scenarios.',
+              evaluateDesign: 'Check whether project actions are justified with source evidence.',
+            },
+          ],
+        },
+      ],
+    };
+
+    const blueprint = buildCourseBlueprint(courseMap);
+    blueprint.lessons[0].keyConcepts = [
+      'Scenario quizzes',
+      'rubric-driven assignments',
+      'final capstone presentation',
+      'project scenarios',
+      'project actions',
+    ];
+    blueprint.lessons[0].studentArtifact =
+      'scenario quizzes 2. rubric-driven assignments 3. final capstone presentation';
+    blueprint.lessons[0].evidencePlan = {
+      ...(blueprint.lessons[0].evidencePlan || {}),
+      sourceCue: 'Instructor-approved readings, examples, or lab materials for project scenarios.',
+    };
+    blueprint.lessons[0].throughlineCase = {
+      ...(blueprint.lessons[0].throughlineCase || {}),
+      evidencePacket: 'Instructor-approved readings, examples, or lab materials for project scenarios.',
+    };
+
+    const compiled = compileBlueprintDeliverables(blueprint, ['studyGuides']);
+    const guideText = JSON.stringify(compiled.studyGuides.studyGuides[0]);
+
+    expect(blueprint.lessons[0].title).toMatch(/Project scenarios|Select appropriate project actions/i);
+    expect(guideText).not.toMatch(/scenario quizzes/i);
+    expect(guideText).not.toMatch(/rubric-driven assignments/i);
+    expect(guideText).not.toMatch(/final capstone presentation/i);
+    expect(guideText).not.toMatch(/Instructor-approved readings/i);
+    expect(guideText).toMatch(/project scenarios|project actions/i);
+    expect(guideText).toMatch(/source evidence/i);
   });
 });

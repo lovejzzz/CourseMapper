@@ -1,0 +1,108 @@
+{
+  "version": "0.15.57",
+  "date": "June 26, 2026",
+  "title": "Study Guide Artifact Firewall: prompt-label leakage stops at shared lesson helpers",
+  "status": "verified-current",
+  "proofSummary": {
+    "local": [
+      "npx vitest run tests/v0141-phase1-finalizer.test.js",
+      "npx vitest run tests/v0143-compiler-diet.test.js",
+      "npm run format:check",
+      "npm run lint",
+      "npm test",
+      "npm run build",
+      "npm run bundle:check",
+      "npm run audit:release-history"
+    ],
+    "ciFast": {
+      "status": "pending-push",
+      "note": "Fast verification is claimed only after v0.15.57 is pushed and the GitHub Actions run is attached."
+    },
+    "deploy": {
+      "status": "pending-push",
+      "note": "Pages deploy is not claimed until the pushed release completes its deploy run."
+    },
+    "ciDeep": {
+      "status": "local-only",
+      "note": "This is a narrow compiler/export truth repair; focused regressions plus normal local gates are the release bar."
+    },
+    "liveProvider": {
+      "status": "local-only",
+      "note": "The release is driven by fresh v0.15.50 Project Management ZIP/log evidence; another provider audit is required after deploy."
+    },
+    "manualHuman": {
+      "status": "not-applicable",
+      "note": "No external instructor approval is claimed by this release."
+    }
+  },
+  "claims": [
+    {
+      "id": "v01557-live-study-guide-p0-evidence",
+      "status": "verified-current",
+      "changelogHighlightIndex": 0,
+      "summary": "Fresh Project Management ZIP/log evidence showed a 74/C package because prompt artifact labels reached Study Guides and Course FAQ-style lesson language as concepts.",
+      "anchors": [
+        "docs/V0.15.57_STUDY_GUIDE_ARTIFACT_FIREWALL_ROADMAP.md",
+        "verification-output/edutool-audit-loop/20260626T140255Z/report.md"
+      ],
+      "proofCommands": ["npx vitest run tests/v0141-phase1-finalizer.test.js"],
+      "proofScopes": ["browser-live", "compiled-output", "doc"]
+    },
+    {
+      "id": "v01557-shared-lesson-firewall",
+      "status": "verified-current",
+      "changelogHighlightIndex": 1,
+      "summary": "Shared lesson concept, artifact, source-cue, prerequisite, transfer, teaching-intent, and assessment metadata helpers reject prompt artifact labels and internal source placeholders.",
+      "anchors": ["src/lib/courseBlueprintCompiler.js", "tests/v0141-phase1-finalizer.test.js"],
+      "proofCommands": [
+        "npx vitest run tests/v0141-phase1-finalizer.test.js",
+        "npx vitest run tests/v0143-compiler-diet.test.js"
+      ],
+      "proofScopes": ["unit", "compiled-output"]
+    },
+    {
+      "id": "v01557-study-guide-safe-compile",
+      "status": "verified-current",
+      "changelogHighlightIndex": 2,
+      "summary": "Study Guide compilation now uses sanitized concepts, artifacts, source cues, key terms, exam-prep tags, and source-grounding display metadata instead of raw CourseIR labels.",
+      "anchors": ["src/lib/courseBlueprintCompiler.js", "tests/v0141-phase1-finalizer.test.js"],
+      "proofCommands": ["npx vitest run tests/v0141-phase1-finalizer.test.js"],
+      "proofScopes": ["unit", "compiled-output"]
+    },
+    {
+      "id": "v01557-quality-boundary-stays-strict",
+      "status": "verified-current",
+      "changelogHighlightIndex": 3,
+      "summary": "The release keeps the strict grader and documents source/research bridging, enrichment coverage, and texture as carry-forward quality targets.",
+      "anchors": ["docs/V0.15.57_STUDY_GUIDE_ARTIFACT_FIREWALL_ROADMAP.md", "release-contracts/v0.15.57.json"],
+      "proofCommands": ["npm run audit:release-history"],
+      "proofScopes": ["static-audit", "doc"]
+    }
+  ],
+  "carryForward": [
+    {
+      "id": "strict-enrichment-coverage",
+      "status": "carry-forward",
+      "source": "docs/V0.15.57_STUDY_GUIDE_ARTIFACT_FIREWALL_ROADMAP.md",
+      "next": "Retry or block earlier with clear repair when enrichment covers only a subset of the requested lessons."
+    },
+    {
+      "id": "trusted-source-ledger-bridge",
+      "status": "carry-forward",
+      "source": "docs/V0.15.57_STUDY_GUIDE_ARTIFACT_FIREWALL_ROADMAP.md",
+      "next": "Bridge retrieved source-finder/OpenAlex resources into trusted concept-linked source ledger rows and reject off-discipline readings before export."
+    },
+    {
+      "id": "texture-post-processing",
+      "status": "carry-forward",
+      "source": "docs/V0.15.57_STUDY_GUIDE_ARTIFACT_FIREWALL_ROADMAP.md",
+      "next": "Improve deterministic variation and repeated-phrase cleanup for Study Guides and slide decks."
+    },
+    {
+      "id": "fresh-v01557-edutool-zip-log-audit",
+      "status": "carry-forward",
+      "source": "docs/V0.15.57_STUDY_GUIDE_ARTIFACT_FIREWALL_ROADMAP.md",
+      "next": "Run a fresh EduTool.dev ZIP/log audit after v0.15.57 deploys and compare regrade score, source ledger, texture, digest caveats, and export warnings."
+    }
+  ]
+}

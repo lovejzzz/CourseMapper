@@ -3,22 +3,22 @@ import { APP_VERSION } from './appVersion.js';
 export const CURRENT_RELEASE = {
   version: APP_VERSION,
   date: 'June 26, 2026',
-  title: 'Course FAQ Artifact Firewall: prompt-label leakage stops reaching exports',
-  landingTitle: 'Course FAQ Artifact Firewall',
+  title: 'Study Guide Artifact Firewall: prompt-label leakage stops at shared lesson helpers',
+  landingTitle: 'Study Guide Artifact Firewall',
   highlights: [
-    'A fresh deployed v0.15.55 Project Management ZIP/log audit regraded at 74/C with a P0 because compact prompt/assessment artifact runs such as "scenario quizzes 2. rubric-driven assignments 3. final capstone presentation" reached student-facing Course FAQ and study-guide language.',
-    'Course FAQ compilation now treats compact numbered artifact runs and internal source placeholders as unsafe, replacing them with lesson-specific assessment and source-evidence phrases before export.',
-    'Course FAQ repair now strips trailing objective punctuation before adding its own sentence break, removing the double-period P2 shape seen in the downloaded QUALITY_REPORT.md.',
-    'Focused compiler and post-processing regressions pin both live failure shapes without weakening quality grading or hiding the remaining partial-enrichment blocker.',
+    'The fresh Project Management ZIP/log audit regraded at 74/C because prompt artifact labels such as "scenario quizzes" reached Study Guides and Course FAQ-style lesson language as concepts.',
+    'Shared lesson concept, artifact, source-cue, prerequisite, transfer, teaching-intent, and assessment metadata helpers now reject prompt artifact labels, compact numbered artifact runs, and internal source placeholders.',
+    'Study Guide compilation now uses sanitized lesson concepts, artifacts, source cues, key terms, exam-prep tags, and source-grounding display metadata instead of raw CourseIR labels.',
+    'Focused regressions pin the audited Study Guide leak shape while full local gates pass; source/research bridging, enrichment retry strictness, and texture hardening remain the next quality targets.',
   ],
   landingHighlights: [
-    'Compact artifact lists stay out of Course FAQ answers.',
-    'Internal source placeholders fall back to source-evidence language.',
-    'Fallback FAQ repairs stop double punctuation.',
+    'Prompt artifact labels stay out of Study Guides.',
+    'Shared lesson helpers sanitize concepts, artifacts, and source cues.',
+    'Source-grounding display metadata hides internal placeholders.',
   ],
   proof: {
-    contract: 'release-contracts/v0.15.56.json',
-    roadmap: 'docs/V0.15.56_COURSE_FAQ_ARTIFACT_FIREWALL_ROADMAP.md',
+    contract: 'release-contracts/v0.15.57.json',
+    roadmap: 'docs/V0.15.57_STUDY_GUIDE_ARTIFACT_FIREWALL_ROADMAP.md',
     auditCommand: 'npm run audit:release-history',
   },
 };
@@ -33,6 +33,17 @@ export const CURRENT_RELEASE_CHANGELOG = {
 };
 
 export const HISTORICAL_RELEASE_CHANGELOGS = [
+  {
+    version: '0.15.56',
+    date: 'June 26, 2026',
+    title: 'Course FAQ Artifact Firewall: prompt-label leakage stops reaching exports',
+    highlights: [
+      'A fresh deployed v0.15.55 Project Management ZIP/log audit regraded at 74/C with a P0 because compact prompt/assessment artifact runs such as "scenario quizzes 2. rubric-driven assignments 3. final capstone presentation" reached student-facing Course FAQ and study-guide language.',
+      'Course FAQ compilation now treats compact numbered artifact runs and internal source placeholders as unsafe, replacing them with lesson-specific assessment and source-evidence phrases before export.',
+      'Course FAQ repair now strips trailing objective punctuation before adding its own sentence break, removing the double-period P2 shape seen in the downloaded QUALITY_REPORT.md.',
+      'Focused compiler and post-processing regressions pin both live failure shapes without weakening quality grading or hiding the remaining partial-enrichment blocker.',
+    ],
+  },
   {
     version: '0.15.55',
     date: 'June 26, 2026',

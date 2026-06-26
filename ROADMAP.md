@@ -4,6 +4,30 @@
 
 CourseMapper is moving toward a "consider it done" course-production agent. The user should describe the course, choose scope/materials, and receive a finished draft package. The agent owns generation, QA, repair, alignment, and export readiness. Human involvement should be final approval only, not QA labor.
 
+## v0.15.57 - Study Guide Artifact Firewall
+
+Goal: address the fresh v0.15.50 Project Management package that regraded
+74/C because prompt artifact labels such as "scenario quizzes" reached Study
+Guides and Course FAQ-style lesson language as concepts. This release extends
+the artifact-label firewall into Study Guides and shared lesson
+concept/artifact/source-cue helpers while keeping source/research and texture
+quality targets explicit.
+
+Full plan: `docs/V0.15.57_STUDY_GUIDE_ARTIFACT_FIREWALL_ROADMAP.md`
+
+1. Treat prompt artifact labels, compact numbered artifact runs, and internal
+   source placeholders as unsafe lesson concepts/artifacts before shared helper
+   selection.
+2. Sanitize lesson titles, primary concepts, student artifacts, source cues,
+   prerequisite plans, transfer plans, teaching intent, and assessment metadata
+   through shared safe helpers.
+3. Compile Study Guides from safe concepts, artifacts, source cues, key terms,
+   tags, and exam-prep lists instead of raw CourseIR labels.
+4. Scrub source-grounding display metadata so agent/audit surfaces do not echo
+   internal prompt artifacts or placeholder source labels.
+5. Carry forward the remaining quality targets: stricter enrichment coverage,
+   trusted source-ledger/research bridging, and deterministic texture cleanup.
+
 ## v0.15.56 - Course FAQ Artifact Firewall
 
 Goal: address the fresh v0.15.55 Project Management package that regraded
