@@ -4,6 +4,25 @@
 
 CourseMapper is moving toward a "consider it done" course-production agent. The user should describe the course, choose scope/materials, and receive a finished draft package. The agent owns generation, QA, repair, alignment, and export readiness. Human involvement should be final approval only, not QA labor.
 
+## v0.15.55 - Crossref License Parser
+
+Goal: remove the remaining v0.15.54 99/100 source-ledger parser loss. The
+fresh browser package carried a concrete Crossref/publisher rights URL in
+rendered source text, but the exported ledger still showed `license=missing`
+and a truncated DOI URL.
+
+Full plan: `docs/V0.15.55_CROSSREF_LICENSE_PARSER_ROADMAP.md`
+
+1. Recover rights/license URLs from rendered source citations when no Creative
+   Commons or public-domain label is present.
+2. Normalize DOI URLs through parsed DOI values so parenthesized DOI suffixes
+   do not get truncated by generic URL extraction.
+3. Keep generic `open access` ambiguous unless concrete rights metadata exists.
+4. Pin the live Crossref/Elsevier source-row shape with focused
+   source-ledger tests.
+5. After deploy, run another fresh ZIP/log audit and continue with source
+   relevance and prompt-artifact leakage.
+
 ## v0.15.54 - Source Ledger Merge
 
 Goal: reduce the fresh v0.15.53 97/100 source-ledger loss without weakening

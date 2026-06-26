@@ -111,6 +111,31 @@ describe('trusted source ledger', () => {
     );
   });
 
+  it('recovers Crossref license URLs and full DOI URLs from rendered source text', () => {
+    const ledger = buildSourceLedgerFromCourseGraph({
+      sessions: [{ id: 's1', number: 1, sections: [{ topic: 'Runway', resourceRefs: ['r1'] }] }],
+      resources: [
+        {
+          id: 'r1',
+          origin: 'syllabus',
+          citation:
+            'Masanao Aoki (1987). No unit root conditions for bivariate series when a component univariate series has a unit root. Crossref: https://doi.org/10.1016/0165-1765(87)90086-3 (https://www.elsevier.com/tdm/userlicense/1.0/)',
+          sessionRefs: [1],
+        },
+      ],
+    });
+
+    expect(ledger.rows[0]).toMatchObject({
+      id: 'r1',
+      provider: 'syllabus',
+      doi: '10.1016/0165-1765(87)90086-3',
+      url: 'https://doi.org/10.1016/0165-1765(87)90086-3',
+      license: 'https://www.elsevier.com/tdm/userlicense/1.0/',
+      licenseAmbiguous: false,
+      accessStatus: 'reference-present',
+    });
+  });
+
   it('does not promote package labels or placeholder course-map resources into source rows', () => {
     const ledger = buildSourceLedgerFromCourseGraph(
       {

@@ -3,22 +3,22 @@ import { APP_VERSION } from './appVersion.js';
 export const CURRENT_RELEASE = {
   version: APP_VERSION,
   date: 'June 26, 2026',
-  title: 'Source Ledger Merge: duplicate syllabus rows stop costing quality',
-  landingTitle: 'Source Ledger Merge',
+  title: 'Crossref License Parser: final source row keeps its rights URL',
+  landingTitle: 'Crossref License Parser',
   highlights: [
-    'A fresh v0.15.53 browser ZIP audit downloaded successfully but regraded at 97/A because weaker syllabus-derived source rows duplicated trusted DOI/URL rows and introduced extra missing-license P2 findings.',
-    'Source-ledger bundle merging now dedupes by stable source identity, including DOI and URL, instead of treating different row ids as separate bibliography proof.',
-    'When duplicate rows collide, CourseMapper keeps the stronger source row with explicit access/license/provider evidence while preserving concept links from the weaker row.',
-    'Focused exporter coverage recreates the live syllabus/source duplicate shape without weakening the source-ledger grader or hiding genuinely ambiguous provider licenses.',
+    'The post-push v0.15.54 browser ZIP audit improved the Startup Finance package to 99/A with one remaining P2: a Crossref syllabus row carried a specific Elsevier rights URL, but the source normalizer still exported `license=missing`.',
+    'Rendered source text now recovers rights/license URLs such as publisher terms or TDM license links when no Creative Commons label is present.',
+    "DOI URLs with parenthesized suffixes now normalize through the parsed DOI instead of keeping the text URL extractor's truncated URL.",
+    'Focused source-ledger regressions pin the exact live Crossref/Elsevier shape while keeping generic `open access` ambiguous unless concrete rights metadata is present.',
   ],
   landingHighlights: [
-    'Duplicate syllabus source rows merge into trusted DOI/URL proof.',
-    'Better license/provider evidence wins without weakening grading.',
-    'Concept links survive source-row dedupe.',
+    'Crossref rights URLs become source-ledger license proof.',
+    'DOI links with parentheses stop truncating.',
+    'Generic open-access rows still require review.',
   ],
   proof: {
-    contract: 'release-contracts/v0.15.54.json',
-    roadmap: 'docs/V0.15.54_SOURCE_LEDGER_MERGE_ROADMAP.md',
+    contract: 'release-contracts/v0.15.55.json',
+    roadmap: 'docs/V0.15.55_CROSSREF_LICENSE_PARSER_ROADMAP.md',
     auditCommand: 'npm run audit:release-history',
   },
 };
@@ -33,6 +33,17 @@ export const CURRENT_RELEASE_CHANGELOG = {
 };
 
 export const HISTORICAL_RELEASE_CHANGELOGS = [
+  {
+    version: '0.15.54',
+    date: 'June 26, 2026',
+    title: 'Source Ledger Merge: duplicate syllabus rows stop costing quality',
+    highlights: [
+      'A fresh v0.15.53 browser ZIP audit downloaded successfully but regraded at 97/A because weaker syllabus-derived source rows duplicated trusted DOI/URL rows and introduced extra missing-license P2 findings.',
+      'Source-ledger bundle merging now dedupes by stable source identity, including DOI and URL, instead of treating different row ids as separate bibliography proof.',
+      'When duplicate rows collide, CourseMapper keeps the stronger source row with explicit access/license/provider evidence while preserving concept links from the weaker row.',
+      'Focused exporter coverage recreates the live syllabus/source duplicate shape without weakening the source-ledger grader or hiding genuinely ambiguous provider licenses.',
+    ],
+  },
   {
     version: '0.15.53',
     date: 'June 26, 2026',

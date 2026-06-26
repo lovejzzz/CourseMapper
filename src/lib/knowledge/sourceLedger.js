@@ -51,6 +51,20 @@ function extractUrl(value) {
   return match ? match[0].replace(/[.,;:]+$/g, '') : '';
 }
 
+function extractLicenseUrl(value) {
+  const text = cleanText(value, 1000);
+  const matches = [...text.matchAll(/https?:\/\/[^\s),;\]]+/gi)]
+    .map((match) => match[0].replace(/[.,;:]+$/g, ''))
+    .filter(Boolean);
+  return (
+    matches.find(
+      (url) =>
+        !/doi\.org\//i.test(url) &&
+        /\b(?:license|licence|terms|rights|copyright|creative-commons|creativecommons|tdm)\b/i.test(url),
+    ) || ''
+  );
+}
+
 function extractDoi(value) {
   const text = cleanText(value, 1000);
   const match = text.match(/(?:doi:\s*|doi\.org\/)?(10\.\d{4,9}\/[-._;()/:A-Z0-9]+)/i);
@@ -77,7 +91,9 @@ function normalizeLicense(value, { preserveUnknown = false } = {}) {
 }
 
 function extractLicense(value) {
-  return normalizeLicense(value);
+  const normalized = normalizeLicense(value);
+  if (normalized && !isLicenseAmbiguous(normalized)) return normalized;
+  return extractLicenseUrl(value) || normalized;
 }
 
 function normalizeDoi(value) {
@@ -204,7 +220,11 @@ export function normalizeTrustedSource(entry = {}, { fallbackId = '', checkedAt 
     .filter(Boolean)
     .join(' ');
   const doi = normalizeDoi(entry.doi || extractDoi(sourceText));
-  const url = cleanUrl(entry.url || entry.sourceUrl) || extractUrl(sourceText) || (doi ? `https://doi.org/${doi}` : '');
+  const extractedUrl = cleanUrl(entry.url || entry.sourceUrl) || extractUrl(sourceText);
+  const url =
+    doi && /^https?:\/\/(?:dx\.)?doi\.org\//i.test(extractedUrl || '')
+      ? `https://doi.org/${doi}`
+      : extractedUrl || (doi ? `https://doi.org/${doi}` : '');
   const title = cleanText(entry.title || entry.displayTitle || entry.citation || entry.evidence || entry.scope, 260);
   const explicitLicense = cleanText(entry.license || entry.rights || entry.licenseUrl, 180);
   const license = explicitLicense
