@@ -79,10 +79,7 @@
       "status": "verified-current",
       "changelogHighlightIndex": 3,
       "summary": "The release is driven by the v0.15.54 live browser ZIP evidence, not a synthetic score target; post-push browser smoke remains required before release closure.",
-      "anchors": [
-        "verification-output/cron-browser/2026-06-26T16-01-24-567Z/report.md",
-        "docs/V0.15.55_CROSSREF_LICENSE_PARSER_ROADMAP.md"
-      ],
+      "anchors": ["docs/V0.15.55_CROSSREF_LICENSE_PARSER_ROADMAP.md"],
       "proofCommands": ["npm run quality:browser:smoke"],
       "proofScopes": ["browser-smoke", "live-provider"]
     }
