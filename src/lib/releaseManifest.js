@@ -3,22 +3,22 @@ import { APP_VERSION } from './appVersion.js';
 export const CURRENT_RELEASE = {
   version: APP_VERSION,
   date: 'June 26, 2026',
-  title: 'Enrichment Coverage Blocker: partial lesson kernels stop exporting as clean',
-  landingTitle: 'Enrichment Coverage Blocker',
+  title: 'Source Finder Research Bridge: retrieved sources become concept-linked ledger rows',
+  landingTitle: 'Source Finder Research Bridge',
   highlights: [
-    'The latest Project Management ZIP evidence still regraded at 74/C and named a real coverage defect: partial enrichment (9/12) left lessons 6, 7, and 8 on template fallback.',
-    'The package finalizer now blocks post-recovery partial enrichment instead of letting it ride as a clean export caveat, with the blocker naming the missing lessons and repair expectation.',
-    'The run digest now marks partial enrichment as a failed content gate rather than downgrading it to info when a finish state says ready.',
-    'Focused finalizer/digest regressions pin the live 9/12 shape without weakening the quality grader; fresh deployed audit, source/research bridging, and texture cleanup remain next.',
+    'The Project Management audit evidence showed the research bridge still had a concrete quality gap: OpenAlex/source-finder retrieval could find sources while the exported source ledger stayed thin or off-discipline.',
+    'Source-finder now preserves DOI, topic, author, year, license, and title metadata through graph attachment so OpenAlex/Crossref evidence can become trusted source-ledger rows instead of losing identity on export.',
+    'Source-ledger concept linking now follows CourseGraph teaching edges as well as section conceptRefs, so attached source-finder resources become concept-linked bibliography proof across both graph shapes.',
+    'Project Management source retrieval now rejects off-discipline medical readings unless the course/topic is actually healthcare-facing, preventing cardiovascular papers from satisfying risk/scope/project topics.',
   ],
   landingHighlights: [
-    'Partial enrichment blocks clean package export.',
-    'Missing lesson numbers are named in the repair state.',
-    'Run digests fail partial coverage honestly.',
+    'Retrieved OpenAlex/source-finder rows keep DOI/license proof.',
+    'Source ledger rows link through CourseGraph teaching edges.',
+    'Project Management rejects off-discipline medical readings.',
   ],
   proof: {
-    contract: 'release-contracts/v0.15.58.json',
-    roadmap: 'docs/V0.15.58_ENRICHMENT_COVERAGE_BLOCKER_ROADMAP.md',
+    contract: 'release-contracts/v0.15.59.json',
+    roadmap: 'docs/V0.15.59_SOURCE_FINDER_RESEARCH_BRIDGE_ROADMAP.md',
     auditCommand: 'npm run audit:release-history',
   },
 };
@@ -33,6 +33,17 @@ export const CURRENT_RELEASE_CHANGELOG = {
 };
 
 export const HISTORICAL_RELEASE_CHANGELOGS = [
+  {
+    version: '0.15.58',
+    date: 'June 26, 2026',
+    title: 'Enrichment Coverage Blocker: partial lesson kernels stop exporting as clean',
+    highlights: [
+      'The latest Project Management ZIP evidence still regraded at 74/C and named a real coverage defect: partial enrichment (9/12) left lessons 6, 7, and 8 on template fallback.',
+      'The package finalizer now blocks post-recovery partial enrichment instead of letting it ride as a clean export caveat, with the blocker naming the missing lessons and repair expectation.',
+      'The run digest now marks partial enrichment as a failed content gate rather than downgrading it to info when a finish state says ready.',
+      'Focused finalizer/digest regressions pin the live 9/12 shape without weakening the quality grader; fresh deployed audit, source/research bridging, and texture cleanup remain next.',
+    ],
+  },
   {
     version: '0.15.57',
     date: 'June 26, 2026',

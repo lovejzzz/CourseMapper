@@ -306,17 +306,25 @@ export function sourceLedgerFromOpenStax(anchor = {}, options = {}) {
 function conceptLinksForResource(graph, resourceId) {
   const sessions = graph?.sessions || [];
   const conceptsById = new Map((graph?.concepts || []).map((concept) => [concept.id, concept]));
+  const resource = (graph?.resources || []).find((item) => item?.id === resourceId);
   const links = [];
   for (const session of sessions) {
-    const sessionMatches = (graph?.resources || [])
-      .find((resource) => resource?.id === resourceId)
-      ?.sessionRefs?.some((ref) => ref === session.id || ref === session.number);
+    const sessionMatches = resource?.sessionRefs?.some((ref) => ref === session.id || ref === session.number);
+    let linkedToSession = Boolean(sessionMatches);
     for (const section of session.sections || []) {
       const sectionMatches = (section.resourceRefs || []).includes(resourceId);
+      linkedToSession = linkedToSession || sectionMatches;
       if (!sessionMatches && !sectionMatches) continue;
       for (const conceptId of section.conceptRefs || []) {
         const concept = conceptsById.get(conceptId);
         links.push({ id: conceptId, label: concept?.term || section.topic || '' });
+      }
+    }
+    if (linkedToSession) {
+      for (const edge of graph?.edges?.teaches || []) {
+        if (edge?.from !== session.id && edge?.from !== session.number) continue;
+        const concept = conceptsById.get(edge.to);
+        links.push({ id: edge.to, label: concept?.term || '' });
       }
     }
   }
@@ -338,6 +346,11 @@ function conceptLinksForSourceFinderTopic(graph, topic = {}) {
       const concept = conceptsById.get(conceptId);
       links.push({ id: conceptId, label: concept?.term || section.topic || topic.topic || '' });
     }
+  }
+  for (const edge of graph?.edges?.teaches || []) {
+    if (edge?.from !== session.id && edge?.from !== session.number) continue;
+    const concept = conceptsById.get(edge.to);
+    links.push({ id: edge.to, label: concept?.term || topic.topic || '' });
   }
   if (links.length === 0 && topic.topic) links.push({ label: topic.topic });
   return normalizeConceptLinks(links);

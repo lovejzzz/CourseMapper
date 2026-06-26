@@ -4,6 +4,24 @@
 
 CourseMapper is moving toward a "consider it done" course-production agent. The user should describe the course, choose scope/materials, and receive a finished draft package. The agent owns generation, QA, repair, alignment, and export readiness. Human involvement should be final approval only, not QA labor.
 
+## v0.15.59 - Source Finder Research Bridge
+
+Goal: address the real Project Management audit gap where OpenAlex/source-finder
+retrieval found sources, but exported source proof could stay thin,
+off-discipline, or detached from concept-linked source ledger rows.
+
+Full plan: `docs/V0.15.59_SOURCE_FINDER_RESEARCH_BRIDGE_ROADMAP.md`
+
+1. Preserve OpenAlex/Crossref DOI, topic, author, year, title, and license
+   metadata through source-finder normalization and graph attachment.
+2. Link attached source-finder resources to taught CourseGraph concepts through
+   `edges.teaches` as well as section `conceptRefs`.
+3. Reject off-discipline medical readings for Project Management courses unless
+   the course/topic is explicitly healthcare-facing.
+4. Pin the source bridge with focused source-finder, source-ledger, source
+   quality, and package-export regressions.
+5. Carry forward fresh deployed ZIP/log audit and deterministic texture cleanup.
+
 ## v0.15.58 - Enrichment Coverage Blocker
 
 Goal: address the latest Project Management package evidence that still

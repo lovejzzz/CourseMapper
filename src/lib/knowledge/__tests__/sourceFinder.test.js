@@ -2,6 +2,7 @@ import { describe, expect, it, vi } from 'vitest';
 
 import { createEmptyCourseGraph } from '../../courseGraph/schema.js';
 import { renderCourseMapFromGraph } from '../../courseGraph/renderCourseMap.js';
+import { buildSourceLedgerFromCourseGraph } from '../sourceLedger.js';
 import {
   attachSourceFinderResources,
   findCourseSources,
@@ -52,8 +53,11 @@ function source(provider, title, extra = {}) {
     authors: provider === 'wikipedia' ? 'Wikipedia contributors' : 'A. Scholar',
     year: 2024,
     url: `https://example.org/${provider}/${encodeURIComponent(title)}`,
+    doi: extra.doi || null,
     license: provider === 'wikipedia' ? 'CC BY-SA 4.0' : 'cc-by',
     attribution: provider,
+    primaryTopic: extra.primaryTopic || null,
+    topics: extra.topics || [],
     abstract:
       extra.abstract ||
       `${title} explains motion, force, velocity, acceleration, and mechanics with examples. `.repeat(12),
@@ -256,6 +260,47 @@ describe('source finder mini-shard', () => {
     expect(titles).not.toContain('Driving under the influence');
   }, 15000);
 
+  it('rejects off-discipline medical readings for project management topics', async () => {
+    const graph = createEmptyCourseGraph({ courseName: 'Project Management' });
+    graph.sessions = [
+      {
+        id: 's1',
+        number: 1,
+        title: 'Lesson 1: Risk register',
+        sections: [{ topic: '1.1: risk register and project controls' }],
+      },
+    ];
+
+    const miniShard = await findCourseSources(graph, {
+      storage: memoryStorage(),
+      maxTopics: 1,
+      limitPerTopic: 2,
+      minUsefulSources: 1,
+      providers: {
+        searchScholarlyReadings: vi.fn(async () => [
+          source('openalex', 'Global Burden of Cardiovascular Diseases and Risk Factors, 1990-2019', {
+            abstract:
+              'A cardiology and public health article about cardiovascular disease, clinical risk factors, patient outcomes, and mortality.',
+            doi: '10.1016/j.jacc.2020.11.010',
+            primaryTopic: { name: 'Cardiology', field: 'Medicine', domain: 'Health sciences' },
+          }),
+          source('openalex', 'Risk management in software projects: registers, controls, and stakeholder review', {
+            abstract:
+              'A project management article about risk registers, project controls, stakeholder review, and software project governance.',
+            doi: '10.1000/project-risk',
+            primaryTopic: { name: 'Project management', field: 'Management', domain: 'Social sciences' },
+          }),
+        ]),
+        searchCrossrefWorks: vi.fn(async () => []),
+        searchWikipediaPages: vi.fn(async () => []),
+      },
+    });
+
+    const titles = miniShard.topics.flatMap((topic) => topic.sources.map((item) => item.title));
+    expect(titles).toContain('Risk management in software projects: registers, controls, and stakeholder review');
+    expect(titles).not.toContain('Global Burden of Cardiovascular Diseases and Risk Factors, 1990-2019');
+  }, 15000);
+
   it('prefers explicit reuse licenses and searches secondary providers when primary hits are license-ambiguous', async () => {
     const graph = createEmptyCourseGraph({ courseName: 'Genetics and Society' });
     graph.sessions = [
@@ -327,6 +372,48 @@ describe('source finder mini-shard', () => {
     const map = renderCourseMapFromGraph(graph);
     expect(map.lessons[0].sections[0].supportingResources).toContain('Open study of displacement velocity');
   });
+
+  it('preserves source-finder DOI metadata through attached resources into concept-linked source ledger rows', async () => {
+    const graph = sampleGraph();
+    const miniShard = await findCourseSources(graph, {
+      storage: memoryStorage(),
+      maxTopics: 1,
+      limitPerTopic: 1,
+      minUsefulSources: 1,
+      providers: {
+        searchScholarlyReadings: vi.fn(async (query) => [
+          source('openalex', `Project-based mechanics lab evidence for ${query}`, {
+            doi: '10.1000/mechanics-lab',
+            abstract:
+              'A physics education article about mechanics, motion, velocity, acceleration, and project-based laboratory evidence.',
+            primaryTopic: { name: 'Physics education', field: 'Education', domain: 'Social sciences' },
+          }),
+        ]),
+        searchCrossrefWorks: vi.fn(async () => []),
+        searchWikipediaPages: vi.fn(async () => []),
+      },
+    });
+
+    attachSourceFinderResources(graph, miniShard);
+    const ledger = buildSourceLedgerFromCourseGraph(graph, { checkedAt: '2026-06-26T00:00:00.000Z' });
+
+    expect(graph.resources[0]).toMatchObject({
+      origin: 'source-finder',
+      doi: '10.1000/mechanics-lab',
+      title: expect.stringContaining('Project-based mechanics lab evidence'),
+    });
+    expect(ledger.rows).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          provider: 'openalex',
+          doi: '10.1000/mechanics-lab',
+          license: 'CC BY',
+          conceptLinks: [{ id: 'c1', label: 'velocity' }],
+          trustLevel: 'academic-metadata',
+        }),
+      ]),
+    );
+  }, 15000);
 
   it('runs only when backbone coverage is weak', () => {
     expect(

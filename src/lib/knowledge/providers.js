@@ -170,6 +170,7 @@ export async function searchScholarlyReadings(query, { limit = 3, signal, anchor
         ),
         year: work.publication_year || null,
         citedBy: work.cited_by_count || 0,
+        doi: cleanText(work.doi).replace(/^https?:\/\/doi\.org\//i, '') || null,
         abstract: abstractFromInvertedIndex(work.abstract_inverted_index),
         primaryTopic: normalizeOpenAlexTopic(work.primary_topic),
         topics: (Array.isArray(work.topics) ? work.topics : []).map(normalizeOpenAlexTopic).filter(Boolean).slice(0, 3),

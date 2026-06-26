@@ -175,6 +175,13 @@ const TOPICAL_MISMATCH_GATES = [
 
 const DISCIPLINE_ANCHOR_GATES = [
   {
+    applies:
+      /\b(?:project\s+management|pmbok|project\s+charter|scope\s+management|work\s+breakdown|critical\s+path|risk\s+register|stakeholder\s+analysis|project\s+scheduling|project\s+life\s+cycle)\b/i,
+    source:
+      /\b(?:project\s+management|project\s+manager|pmbok|project\s+charter|scope\s+management|work\s+breakdown|critical\s+path|risk\s+register|stakeholder\s+analysis|project\s+scheduling|project\s+life\s+cycle|agile|scrum|kanban|operations\s+management|supply\s+chain\s+management|portfolio\s+management|construction\s+project|software\s+project)\b/i,
+    unlessTopic: /\b(?:healthcare|clinical|medical|public\s+health|hospital|nursing|patient)\b/i,
+  },
+  {
     applies: /\b(?:genetics?|genes?|genom(?:e|es|ic|ics)|dna|crispr|inheritance|heredity|traits?|ancestry)\b/i,
     source:
       /\b(?:genetics?|genes?|genom(?:e|es|ic|ics)|dna|crispr|cas9|inheritance|heredity|traits?|ancestry|alleles?|chromosomes?|heritability)\b/i,
@@ -186,7 +193,11 @@ function topicContext(topic) {
 }
 
 function sourceContext(source) {
-  return cleanText(`${source?.title || ''} ${source?.snippet || ''}`).toLowerCase();
+  return cleanText(
+    `${source?.title || ''} ${source?.snippet || ''} ${source?.primaryTopic?.name || ''} ${
+      source?.primaryTopic?.field || ''
+    } ${source?.primaryTopic?.domain || ''} ${(source?.topics || []).map((topic) => topic?.name || '').join(' ')}`,
+  ).toLowerCase();
 }
 
 function meaningfulQueryTerms(topic) {
@@ -199,6 +210,7 @@ function sourcePassesDisciplineAnchor(source, topic) {
   const topicText = topicContext(topic);
   const sourceText = sourceContext(source);
   for (const gate of DISCIPLINE_ANCHOR_GATES) {
+    if (gate.applies.test(topicText) && gate.unlessTopic?.test(topicText)) continue;
     if (gate.applies.test(topicText) && !gate.source.test(sourceText)) return false;
   }
   return true;
@@ -335,9 +347,12 @@ function normalizeSource(raw, topic) {
     authors: cleanText(raw.authors),
     year: Number.isFinite(Number(raw.year)) ? Number(raw.year) : null,
     url,
+    doi: cleanText(raw.doi),
     license: cleanText(raw.license || 'public metadata; source rights may vary'),
     attribution: cleanText(raw.attribution || PROVIDER_LABELS[raw.provider] || raw.provider || 'Open source metadata'),
     snippet: compactSnippet(raw.snippet || raw.abstract || raw.description || raw.summary),
+    primaryTopic: raw.primaryTopic || null,
+    topics: Array.isArray(raw.topics) ? raw.topics.slice(0, 3) : [],
     query: topic.query,
   };
 }
@@ -514,10 +529,16 @@ export function attachSourceFinderResources(graph, miniShard, { maxSourcesPerTop
         sessionRefs: session.id ? [session.id] : [],
         origin: SOURCE_FINDER_ORIGIN,
         provider: source.provider,
+        title: source.title,
+        authors: source.authors,
+        year: source.year,
         url: source.url,
+        doi: source.doi,
         license: source.license,
         attribution: source.attribution,
         snippet: source.snippet,
+        primaryTopic: source.primaryTopic,
+        topics: source.topics,
         sourceFinderTopic: topic.topic,
       };
       graph.resources.push(resource);
