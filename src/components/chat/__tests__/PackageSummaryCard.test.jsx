@@ -126,7 +126,7 @@ describe('PackageSummaryCard', () => {
           tone: 'assumptions',
           ready: false,
           downloadable: true,
-          nextAction: 'Download is available, but review these caveats before publishing.',
+          nextAction: 'Download is ready. Review notes are saved for the instructor before publishing.',
           repairsApplied: 0,
           blockerCount: 0,
           warningCount: 3,
@@ -134,18 +134,21 @@ describe('PackageSummaryCard', () => {
           exportFailed: 0,
           exportWarningCount: 1,
           topIssues: [
-            { severity: 'warning', label: 'Quality', message: '2 P1 · texture 93/100 remain.' },
-            { severity: 'warning', label: 'Export warning', message: 'PPTX repeated phrase warning.' },
+            { severity: 'warning', label: 'Package notes', message: 'Generated content needs instructor review.' },
+            { severity: 'warning', label: 'Export check', message: 'One exported file needs a visual scan.' },
           ],
         }}
       />,
     );
 
-    expect(html).toContain('Review before download');
-    expect(html).toContain('Review');
-    expect(html).toContain('3 items to review');
-    expect(html).toContain('1 export warning');
+    expect(html).toContain('Ready with notes');
+    expect(html).toContain('Review notes');
+    expect(html).toContain('3 review notes');
+    expect(html).toContain('1 export note');
+    expect(html).toContain('Download is ready. Review notes are saved');
     expect(html).not.toContain('Ready to download');
     expect(html).not.toContain('Done');
+    expect(html).not.toContain('Generated content needs instructor review.');
+    expect(html).not.toContain('One exported file needs a visual scan.');
   });
 });

@@ -9,10 +9,6 @@ function plural(count, singular, pluralValue = `${singular}s`) {
   return `${count} ${count === 1 ? singular : pluralValue}`;
 }
 
-function severityCount(count, label) {
-  return `${count} ${label}`;
-}
-
 export function countQualityFindings(quality) {
   if (Number.isFinite(quality?.findingCount)) return compactCount(quality.findingCount);
   const counts = quality?.findingCounts || {};
@@ -23,8 +19,6 @@ export function buildQualityReviewIssue(quality) {
   if (quality?.status !== 'graded') return null;
   const counts = quality.findingCounts || {};
   const p0 = compactCount(counts.p0);
-  const p1 = compactCount(counts.p1);
-  const p2 = compactCount(counts.p2);
   const findingCount = countQualityFindings(quality);
   const score = Number(quality.score);
   const textureScore = Number(quality.texture?.score);
@@ -32,16 +26,12 @@ export function buildQualityReviewIssue(quality) {
   const textureNeedsReview = Number.isFinite(textureScore) && textureScore < 100;
   if (findingCount === 0 && !scoreNeedsReview && !textureNeedsReview) return null;
 
-  const parts = [];
-  if (p0 > 0) parts.push(severityCount(p0, 'P0'));
-  if (p1 > 0) parts.push(severityCount(p1, 'P1'));
-  if (p2 > 0) parts.push(severityCount(p2, 'P2'));
-  if (scoreNeedsReview) parts.push(`quality ${score}/100`);
-  if (textureNeedsReview) parts.push(`texture ${textureScore}/100`);
-
   return {
-    label: 'Quality',
-    message: `${parts.join(' · ')} remain; open the quality report before publishing.`,
+    label: 'Package notes',
+    message:
+      p0 > 0
+        ? 'One content issue needs a fix before this package is ready to share.'
+        : 'Some generated content should get a quick instructor review before publishing.',
     count: Math.max(1, findingCount || Number(scoreNeedsReview) + Number(textureNeedsReview)),
     severity: p0 > 0 ? 'blocker' : 'warning',
   };
@@ -51,8 +41,9 @@ export function buildExportWarningIssues(packageReceipt, featureLabels = {}) {
   if (packageReceipt?.exportWarning) {
     return [
       {
-        label: 'Export warning',
-        message: packageReceipt.exportWarning,
+        label: 'Export check',
+        message: 'One exported file needs a quick visual scan before publishing.',
+        detail: packageReceipt.exportWarning,
         severity: 'warning',
       },
     ];
@@ -60,8 +51,9 @@ export function buildExportWarningIssues(packageReceipt, featureLabels = {}) {
   const warnings = Array.isArray(packageReceipt?.exportWarnings) ? packageReceipt.exportWarnings : [];
   if (warnings.length > 0) {
     return warnings.slice(0, 3).map((warning) => ({
-      label: warning.label || featureLabels[warning.featureId] || 'Export warning',
-      message: warning.message || 'Export verification found a warning.',
+      label: warning.label || featureLabels[warning.featureId] || 'Export check',
+      message: 'One exported file needs a quick visual scan before publishing.',
+      detail: warning.message || '',
       severity: 'warning',
     }));
   }
@@ -69,8 +61,8 @@ export function buildExportWarningIssues(packageReceipt, featureLabels = {}) {
   if (warningCount <= 0) return [];
   return [
     {
-      label: 'Export warning',
-      message: `${plural(warningCount, 'warning')} found; review the package report before publishing.`,
+      label: 'Export check',
+      message: `${plural(warningCount, 'export note')} saved for review before publishing.`,
       severity: 'warning',
     },
   ];
@@ -90,7 +82,7 @@ function buildSourceLedgerIssues(packageReceipt) {
     if (count > 0) {
       issues.push({
         label,
-        message: `${plural(count, 'caveat')} found; review the package report before publishing.`,
+        message: `${plural(count, 'source note')} saved for instructor confirmation.`,
         severity: 'warning',
       });
     }
@@ -98,17 +90,22 @@ function buildSourceLedgerIssues(packageReceipt) {
   const caveats = Array.isArray(packageReceipt?.digestCaveats) ? packageReceipt.digestCaveats : [];
   caveats.slice(0, 3).forEach((caveat) => {
     const label = caveat?.label || caveat?.type || 'Digest caveat';
-    const message = caveat?.message || caveat?.detail || 'The run digest reported a caveat.';
-    issues.push({ label, message, severity: 'warning' });
+    const message = caveat?.message || caveat?.detail || '';
+    issues.push({
+      label,
+      message: 'A package note was saved for instructor confirmation.',
+      detail: message,
+      severity: 'warning',
+    });
   });
   return issues;
 }
 
 export function summarizePackageReviewMeta({ qualityIssue = null, exportIssues = [], sourceIssues = [] } = {}) {
   const parts = [];
-  if (qualityIssue) parts.push(plural(qualityIssue.count, 'quality issue'));
-  if (exportIssues.length > 0) parts.push(plural(exportIssues.length, 'export warning'));
-  if (sourceIssues.length > 0) parts.push(plural(sourceIssues.length, 'source caveat'));
+  if (qualityIssue) parts.push(plural(qualityIssue.count, 'content note'));
+  if (exportIssues.length > 0) parts.push(plural(exportIssues.length, 'export note'));
+  if (sourceIssues.length > 0) parts.push(plural(sourceIssues.length, 'source note'));
   return parts.join(' · ');
 }
 
@@ -116,8 +113,8 @@ function buildQualityProofIssue(packageQuality, finishStatus) {
   if (finishStatus !== 'ready') return null;
   if (packageQuality?.status === 'graded') return null;
   return {
-    label: 'Quality evidence',
-    message: 'No completed quality grade is attached; review the package before publishing.',
+    label: 'Package check',
+    message: 'A final quality check is still pending; review the package before publishing.',
     count: 1,
     severity: 'warning',
   };

@@ -84,7 +84,7 @@ function buildPackageReceiptSummary(packageQualityPass, courseMap, selectedFeatu
       ? 'Safe checks passed and the package is ready to download.'
       : blockerCount > 0
         ? 'Finish package handled safe fixes. The remaining issue needs attention before download.'
-        : 'Download is available, but review these caveats before publishing.',
+        : 'Download is ready. Review notes are saved for the instructor before publishing.',
     repairsApplied: packageQualityPass.repairsApplied || receipt.autoFixedCount || 0,
     blockerCount,
     warningCount,
@@ -205,9 +205,7 @@ function summarizeDirectPackageFinish(result) {
     }. Check the receipt before downloading.`;
   }
   if (trustStatus.review) {
-    return `Review notes: ${trustStatus.warningCount || 1} item${
-      (trustStatus.warningCount || 1) === 1 ? '' : 's'
-    }. Download is available, but check the receipt before publishing.`;
+    return 'Ready with notes. Download is available, and the package report keeps the remaining review notes.';
   }
   return 'Package pass complete. Check the export panel for the latest status.';
 }

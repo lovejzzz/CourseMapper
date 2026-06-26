@@ -483,8 +483,8 @@ describe('V0.15.49 — shared package trust status spine', () => {
     expect(status.review).toBe(true);
     expect(status.canDownload).toBe(true);
     expect(status.toneKey).toBe('assumptions');
-    expect(status.reviewMeta).toContain('quality issue');
-    expect(status.reviewMeta).toContain('export warning');
+    expect(status.reviewMeta).toContain('content note');
+    expect(status.reviewMeta).toContain('export note');
   });
 
   it('keeps only a perfect graded package in clean green state', () => {

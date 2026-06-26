@@ -46,7 +46,7 @@ export function getProgressPhaseLabel({
   if (isPackageQualityRunning) return 'Finishing package...';
   if (isDone && hasDelivErrors) return 'Finish failed sections';
   if (hasPackageQualityBlockers) return 'Finish package';
-  if (hasPackageQualityWarnings) return 'Review before download';
+  if (hasPackageQualityWarnings) return 'Ready with notes';
   if (isDone && hasPendingSyncWork) return 'Sync needed';
   if (everythingDone) return 'Ready to download';
   if (isDone && isDelivGenerating) return `Deliverables ${delivDoneCount}/${delivRowCount}`;

@@ -258,7 +258,7 @@ test.describe('Agent command entry points', () => {
     await expect(
       agentPanel
         .getByTestId('chat-message-assistant')
-        .filter({ hasText: /Package is ready|Decision needed|Review notes|Package pass complete/ })
+        .filter({ hasText: /Package is ready|Ready with notes|Decision needed|Review notes|Package pass complete/ })
         .last(),
     ).toBeVisible({ timeout: 10000 });
     expect(agentRequests.length).toBe(0);

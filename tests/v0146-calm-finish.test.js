@@ -13,6 +13,8 @@ import { describe, expect, it } from 'vitest';
 
 import { compileBlueprintDeliverables } from '../src/lib/courseBlueprintCompiler';
 import { buildBlueprintFromGraph, deriveCourseGraphFromCourseMap } from '../src/lib/courseGraph';
+import { buildSlideDeckPptxBlob } from '../src/lib/exporters/pptxExporter';
+import { auditOfficeBlobRepetition } from '../src/lib/exportRenderedTextAudit';
 
 // 15-lesson Calculus-like course whose final lesson carries a comprehensive
 // final exam — the live shape that produced the 15× repetition warning.
@@ -231,5 +233,61 @@ describe('v0.14.7.1 — long lesson titles stay under the mention budget in brie
   it('capped mentions read as prose ("this lesson"), not as holes', () => {
     const briefBodies = JSON.stringify(compiled.assignments.assignments);
     expect(briefBodies.toLowerCase()).toContain('this lesson');
+  });
+});
+
+describe('v0.15.52 — slide speaker notes shorten repeated long artifact names before PPTX audit', () => {
+  function projectManagementCourseMap() {
+    return {
+      courseName: 'Project Management',
+      semester: 'Fall 2026',
+      lessons: Array.from({ length: 12 }, (_, index) => {
+        const lessonNumber = index + 1;
+        const focus = [
+          'Project charter',
+          'Scope definition',
+          'Work breakdown structures',
+          'Schedule planning',
+          'Risk response planning',
+          'Stakeholder communication',
+          'Resource planning',
+          'Quality assurance',
+          'Procurement decisions',
+          'Predictive planning',
+          'Project monitoring',
+          'Closure review',
+        ][index];
+        return {
+          title: `Lesson ${lessonNumber}: ${focus}`,
+          sections: [
+            {
+              topicSection: `${lessonNumber}.1: ${focus}`,
+              learningGoals: `1. Apply ${focus.toLowerCase()} to a realistic project decision.`,
+              learningObjectives: `Explain the ${focus.toLowerCase()} evidence.\nJustify one project choice with tradeoff evidence.`,
+              weeklyAssessments: 'Exit ticket using predictive planning to justify one approach comparison',
+              asyncActivities: `Review assigned materials and prepare notes on ${focus.toLowerCase()}.`,
+              syncActivities: `Discuss examples and practice applying ${focus.toLowerCase()}.`,
+              supportingResources: 'Project Management Body of Knowledge excerpt',
+            },
+          ],
+        };
+      }),
+    };
+  }
+
+  it('does not stamp the long exit-ticket artifact phrase into rendered PPTX notes', async () => {
+    const graph = deriveCourseGraphFromCourseMap(projectManagementCourseMap());
+    const blueprint = buildBlueprintFromGraph(graph);
+    const compiled = compileBlueprintDeliverables(blueprint, ['slideDecks']);
+    const notes = JSON.stringify(
+      compiled.slideDecks.decks.flatMap((deck) => deck.slides.map((slide) => slide.notes || '')),
+    );
+
+    expect(notes).toContain('the Week 10 artifact');
+    expect((notes.match(/exit ticket using predictive planning to justify one/gi) || []).length).toBeLessThan(12);
+
+    const blob = await buildSlideDeckPptxBlob(compiled.slideDecks, 'Project Management', 0);
+    const finding = await auditOfficeBlobRepetition(blob, 'pptx');
+    expect(finding, finding && `flagged "${finding.sample}" x${finding.count}`).toBeNull();
   });
 });

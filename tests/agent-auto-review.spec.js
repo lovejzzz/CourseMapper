@@ -196,7 +196,9 @@ test.describe('Agent auto-review', () => {
     await expect(page.getByTestId('workspace-shell')).toBeVisible({ timeout: 10000 });
     const agentPanel = page.getByTestId('workspace-agent-panel');
     const packageSummary = agentPanel.getByTestId('package-summary-card').last();
-    await expect(packageSummary.getByText(/Ready to download|Needs your decision|Review before export/)).toBeVisible({
+    await expect(
+      packageSummary.getByText(/Ready to download|Ready with notes|Needs your decision|Review before export/),
+    ).toBeVisible({
       timeout: 30000,
     });
     await expect(packageSummary.getByText(/Done|Needs you|Review/)).toBeVisible();

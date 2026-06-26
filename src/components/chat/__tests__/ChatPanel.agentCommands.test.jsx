@@ -726,7 +726,7 @@ describe('ChatPanel agent command strip', () => {
       }),
       {
         role: 'assistant',
-        text: 'Review notes: 1 item. Download is available, but check the receipt before publishing.',
+        text: 'Ready with notes. Download is available, and the package report keeps the remaining review notes.',
       },
       expect.objectContaining({
         role: 'packageSummary',
@@ -802,7 +802,7 @@ describe('ChatPanel agent command strip', () => {
       }),
       {
         role: 'assistant',
-        text: 'Review notes: 1 item. Download is available, but check the receipt before publishing.',
+        text: 'Ready with notes. Download is available, and the package report keeps the remaining review notes.',
       },
       expect.objectContaining({
         role: 'packageSummary',
@@ -1308,7 +1308,7 @@ describe('ChatPanel agent command strip', () => {
       }),
       {
         role: 'assistant',
-        text: 'Review notes: 1 item. Download is available, but check the receipt before publishing.',
+        text: 'Ready with notes. Download is available, and the package report keeps the remaining review notes.',
       },
       expect.objectContaining({
         role: 'packageSummary',

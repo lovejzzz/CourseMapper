@@ -217,9 +217,9 @@ describe('v0.8.58 agent safety invariants', () => {
     const summary = buildAgentWorkingSetSummary(props);
     const html = renderToStaticMarkup(<AgentWorkingSetPanel {...props} />);
 
-    expect(summary.packageStatus.label).toBe('Review notes');
-    expect(html).toContain('Review before export');
-    expect(html).toContain('Review notes');
+    expect(summary.packageStatus.label).toBe('Notes');
+    expect(html).toContain('Ready with notes');
+    expect(html).toContain('Notes');
     expect(html).toContain('amber');
     expect(html).not.toContain('Ready to export');
   });

@@ -54,7 +54,7 @@ function buildPackageStatus(packageQualityPass) {
   if (status === 'running') return { label: 'Finishing', tone: WARN_TONE };
   if (trustStatus.clean) return { label: 'Ready', tone: GOOD_TONE };
   if (trustStatus.blocked) return { label: 'Needs attention', tone: BAD_TONE };
-  if (trustStatus.review) return { label: 'Review notes', tone: WARN_TONE };
+  if (trustStatus.review) return { label: 'Notes', tone: WARN_TONE, readyWithNotes: true };
   return { label: 'Not checked', tone: MUTED_TONE };
 }
 
@@ -304,23 +304,23 @@ export default function AgentWorkingSetPanel(props) {
     summary.staleFeatureCount ? `${summary.staleFeatureCount} will sync when needed` : null,
   ].filter(Boolean);
   const latestActivity = summary.activityStatus.activities[0];
-  const needsAttention =
-    summary.packageStatus.label === 'Needs attention' ||
-    summary.packageStatus.label === 'Review notes' ||
-    summary.failedFeatureCount > 0;
+  const readyWithNotes = Boolean(summary.packageStatus.readyWithNotes);
+  const needsAttention = summary.packageStatus.label === 'Needs attention' || summary.failedFeatureCount > 0;
   const localOnly = summary.toolStateLabel !== 'AI connected';
   const headline =
     summary.packageStatus.label === 'Building'
       ? 'Building package'
       : summary.packageStatus.label === 'Finishing'
         ? 'Finishing package'
-        : needsAttention
-          ? 'Review before export'
-          : summary.packageStatus.label === 'Ready'
-            ? 'Ready to export'
-            : localOnly
-              ? 'Workspace open'
-              : 'Workspace ready';
+        : readyWithNotes
+          ? 'Ready with notes'
+          : needsAttention
+            ? 'Review before export'
+            : summary.packageStatus.label === 'Ready'
+              ? 'Ready to export'
+              : localOnly
+                ? 'Workspace open'
+                : 'Workspace ready';
   const supportLine = [
     summary.scopeLabel,
     quietMaterialParts.length > 0 ? quietMaterialParts.join(', ') : 'No generated materials yet',

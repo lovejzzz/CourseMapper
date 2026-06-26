@@ -1,5 +1,5 @@
 import { COLUMN_EXTRACTORS } from './prompts/promptUtils';
-import { finalizeCompiledDeliverableLanguage } from './compiledLanguageFinalizer';
+import { finalizeCompiledDeliverableLanguage, shortArtifactReference } from './compiledLanguageFinalizer';
 import { getChunkCount } from './parallelGenerator';
 import { getCustomDeliverable } from './customDeliverableLibrary';
 import { buildObservationProtocol } from './observationProtocols';
@@ -16629,6 +16629,24 @@ function slideArtifact(lesson) {
   return parts[0] || `${primarySlideConcept(lesson)} artifact`;
 }
 
+function escapeRegExpCompiler(value) {
+  return String(value || '').replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
+function noteArtifactReference(lesson) {
+  return shortArtifactReference(slideArtifact(lesson), Number(lesson?.lessonNumber) || 0);
+}
+
+function compressSlideNoteArtifactReferences(note, lesson) {
+  const artifact = slideArtifact(lesson);
+  const words = cleanText(artifact).split(/\s+/).filter(Boolean);
+  if (typeof note !== 'string' || words.length < 5) return note;
+  const shortRef = noteArtifactReference(lesson);
+  const artifactPattern = escapeRegExpCompiler(artifact);
+  const regex = new RegExp(`\\b(?:(?:the|a|an|your|their|this|that)\\s+)?${artifactPattern}(?![A-Za-z0-9])`, 'gi');
+  return note.replace(regex, shortRef);
+}
+
 function dedupeNumberedAssessmentEcho(value) {
   const text = removeNumberedAssessmentEchoes(value);
   const match = /^(.{8,140}?)\s*:\s*\d+\.\s*(.+)$/.exec(text);
@@ -16989,7 +17007,8 @@ function slideTypeFocus(type, lesson, lens) {
   const concept = primarySlideConcept(lesson);
   const secondary = secondarySlideConcept(lesson, concept);
   const displayTitle = slideLessonTitle(lesson);
-  const artifact = slideArtifact(lesson);
+  const artifact = noteArtifactReference(lesson);
+  const numberedArtifact = shortArtifactReference(slideArtifact(lesson), Number(lesson?.lessonNumber) || 0);
   const source = slideSourceCue(lesson);
   const successCriterion = slideSuccessCriterion(lesson);
   switch (type) {
@@ -16997,7 +17016,7 @@ function slideTypeFocus(type, lesson, lens) {
       return {
         opening: `Frame ${displayTitle} as a working session on ${slideConceptList(lesson)}, with ${artifact} as the visible product.`,
         evidence: `Preview the ${lens.evidenceNoun} from ${source} that students will inspect before they revise ${artifact}.`,
-        misconception: `Set the expectation that students will leave with one concrete move they can use in ${artifact}.`,
+        misconception: `Set the expectation that ${displayTitle} ends with one concrete ${concept} move students can use in ${artifact}.`,
       };
     case 'agenda':
       return {
@@ -17018,7 +17037,7 @@ function slideTypeFocus(type, lesson, lens) {
     case 'objectives':
       return {
         opening: `Translate the objectives into actions students should demonstrate by the end of ${displayTitle}.`,
-        evidence: `Tie each objective to the evidence move students need for ${artifact}.`,
+        evidence: `Tie each ${concept} objective in ${displayTitle} to the evidence move students need for ${numberedArtifact}.`,
         misconception: `If students treat the objectives as vocabulary only, restate them as decisions they must justify in ${artifact}.`,
       };
     case 'bridge':
@@ -17111,9 +17130,15 @@ function slideNoteAnchor({ type, anchor, concept, artifact, displayTitle, lesson
   const safeAnchor = slideNoteAnchorText(anchor, type, lesson);
   switch (type) {
     case 'title':
-      return `Open the working session by naming the product students are building: ${artifact}. Use "${safeAnchor}" to connect the topic to the decisions they will make today.`;
+      return `Start the ${displayTitle} working session by connecting ${safeAnchor} to ${shortArtifactReference(
+        slideArtifact(lesson),
+        Number(lesson?.lessonNumber) || 0,
+      )}. Students should be able to name the ${concept} decision the product will capture.`;
     case 'agenda':
-      return `Keep the pacing visible and point to the first ${concept} checkpoint: ${anchor}. Students should know when they will listen, practice, compare, and revise ${artifact}.`;
+      return `Keep the ${displayTitle} pacing visible and point to the first ${concept} checkpoint: ${anchor}. Students should know how the listen, practice, compare, and revise sequence changes ${shortArtifactReference(
+        slideArtifact(lesson),
+        Number(lesson?.lessonNumber) || 0,
+      )}.`;
     case 'objectives':
       return `Turn "${anchor}" into an observable performance target; ask students what evidence would prove they can do it.`;
     case 'bridge':
@@ -17222,7 +17247,7 @@ function slideNotes({ lesson, title, type, bullets, nextCue, lens }) {
   const anchor = collapseRepeatedSlideLead(bullets[0] || title);
   const focus = slideTypeFocus(type, lesson, lens);
   const concept = primarySlideConcept(lesson);
-  const artifact = slideArtifact(lesson);
+  const artifact = noteArtifactReference(lesson);
   const displayTitle = slideLessonTitle(lesson);
   const criterion = slideSuccessCriterion(lesson);
   const activitySequence =
@@ -17232,7 +17257,7 @@ function slideNotes({ lesson, title, type, bullets, nextCue, lens }) {
           .filter(Boolean)
           .join(' ')}`
       : '';
-  return [
+  const note = [
     `${focus.opening} ${slideNoteAnchor({ type, anchor, concept, artifact, displayTitle, lesson })}`,
     focus.evidence,
     `${focus.misconception} ${slideNoteCriterionCue(type, criterion, lesson)}`,
@@ -17241,6 +17266,7 @@ function slideNotes({ lesson, title, type, bullets, nextCue, lens }) {
   ]
     .filter(Boolean)
     .join(' ');
+  return compressSlideNoteArtifactReferences(note, lesson);
 }
 
 // v0.14.1 (5.2d): slide style used to strip terminal punctuation from EVERY
@@ -18249,7 +18275,7 @@ function buildSlideDeckIrForLesson(blueprint, lesson, index) {
       title: `What counts as ${concept}?`,
       bullets: [
         lessonVariant(lesson, [
-          `${concept}: a decision tool for ${artifact}.`,
+          `${concept}: a practical lens for ${artifact}.`,
           `${concept}: evidence students must use, not just define.`,
           `${concept}: the reasoning move behind ${artifact}.`,
           `${concept}: a way to test which evidence belongs in ${artifact}.`,

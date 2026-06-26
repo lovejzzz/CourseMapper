@@ -321,6 +321,7 @@ function ReadinessPanel({
   finishSummary = '',
   packageReceipt = null,
 }) {
+  const [detailsOpen, setDetailsOpen] = useState(false);
   if (!readiness || readiness.featureCount === 0) return null;
 
   const trustStatus = getPackageTrustStatus({
@@ -344,8 +345,9 @@ function ReadinessPanel({
       : isBlocked
         ? 'Finish package fixes safe items and stops for decisions.'
         : hasPackageOnlyReview
-          ? 'Download is available, but review these caveats before publishing.'
-          : 'Finish package retries safe fixes before export.';
+          ? 'Download is ready. Review notes are saved for the instructor before publishing.'
+          : 'I handled safe fixes. Review the remaining notes before publishing.';
+  const showIssueDetails = isBlocked || detailsOpen;
   const canNavigate = (issue) => typeof onIssueClick === 'function' && issue?.target;
   const tone = isBlocked
     ? {
@@ -358,10 +360,8 @@ function ReadinessPanel({
       ? {
           wrap: 'border-amber-100 bg-amber-50/70 text-amber-700',
           icon: 'bg-amber-100 text-amber-600',
-          title: 'Review before download',
-          meta:
-            trustStatus.reviewMeta ||
-            `${readiness.warnings.length} issue${readiness.warnings.length === 1 ? '' : 's'} to fix`,
+          title: hasPackageOnlyReview ? 'Ready with notes' : 'Review recommended',
+          meta: hasPackageOnlyReview ? 'Download available' : trustStatus.reviewMeta || 'Review notes saved',
         }
       : {
           wrap: 'border-emerald-100 bg-emerald-50/70 text-emerald-700',
@@ -399,7 +399,17 @@ function ReadinessPanel({
               {finishSummary}
             </p>
           )}
-          {issuesToShow.length > 0 && (
+          {!isBlocked && issuesToShow.length > 0 && (
+            <button
+              type="button"
+              onClick={() => setDetailsOpen((value) => !value)}
+              className="mt-1 rounded-md px-1.5 py-0.5 text-xs font-bold opacity-80 transition-colors hover:bg-white/60 hover:opacity-100"
+              aria-expanded={detailsOpen}
+            >
+              {detailsOpen ? 'Hide notes' : 'Show notes'}
+            </button>
+          )}
+          {showIssueDetails && issuesToShow.length > 0 && (
             <ul className="mt-1.5 space-y-1">
               {issuesToShow.map((issue, index) => (
                 <li

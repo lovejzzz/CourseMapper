@@ -3,22 +3,22 @@ import { APP_VERSION } from './appVersion.js';
 export const CURRENT_RELEASE = {
   version: APP_VERSION,
   date: 'June 26, 2026',
-  title: 'Quality Timeout Truth: finalize grading matches ZIP regrade evidence',
-  landingTitle: 'Quality Timeout Truth',
+  title: 'Clean Export Notes: downloadable caveats stop overwhelming users',
+  landingTitle: 'Clean Export Notes',
   highlights: [
-    'A fresh deployed v0.15.50 Project Management ZIP/log audit confirmed the physical ZIP download now works, but exposed a new truth mismatch: the browser digest said quality was not graded while the ZIP regraded 74/C.',
-    'Finalize grading and ZIP self-grading now share a 30-second quality timeout, giving the existing deep grader enough room to finish on real 12-lesson packages instead of falling into premature not-graded state.',
-    'The fix does not weaken quality standards: the same local grader still reports the package at 74/C with prompt-artifact leakage, source/citation defects, and a PPTX repeated-phrase warning.',
-    'Focused regression coverage pins the finalizer timeout handoff so future package-finalizer changes keep using the shared ZIP-quality bound.',
+    'The v0.15.51 Project Management browser audit showed a technically honest but noisy finish state: the export card and agent panel surfaced raw warning text instead of a clean downloadable package handoff.',
+    'Downloadable packages with non-blocking caveats now present as "Ready with notes," keep the amber review state, hide raw issue detail behind a notes toggle, and avoid exposing internal P1/P2/export wording as the main user experience.',
+    'The package trust helper still preserves the review evidence for instructors and reports; clean green readiness remains reserved for packages with no quality, texture, source, or export caveats.',
+    'Slide deck speaker notes now shorten repeated long assessment artifact names without creating a new readiness-warning boilerplate sentence or the old PPTX repeated-phrase export warning.',
   ],
   landingHighlights: [
-    'Finalize grading gets the same timeout budget as ZIP self-grading.',
-    'Not-graded package caveats stop masking regradable 74/C evidence.',
-    'The v0.15.50 download fix is confirmed on a fresh ZIP/log audit.',
+    'Downloadable caveated packages show calm "Ready with notes" copy.',
+    'Raw warning detail moves behind instructor review notes.',
+    'PPTX speaker notes stop stamping the long artifact phrase.',
   ],
   proof: {
-    contract: 'release-contracts/v0.15.51.json',
-    roadmap: 'docs/V0.15.51_QUALITY_TIMEOUT_TRUTH_ROADMAP.md',
+    contract: 'release-contracts/v0.15.52.json',
+    roadmap: 'docs/V0.15.52_CLEAN_EXPORT_NOTES_ROADMAP.md',
     auditCommand: 'npm run audit:release-history',
   },
 };
@@ -33,6 +33,17 @@ export const CURRENT_RELEASE_CHANGELOG = {
 };
 
 export const HISTORICAL_RELEASE_CHANGELOGS = [
+  {
+    version: '0.15.51',
+    date: 'June 26, 2026',
+    title: 'Quality Timeout Truth: finalize grading matches ZIP regrade evidence',
+    highlights: [
+      'A fresh deployed v0.15.50 Project Management ZIP/log audit confirmed the physical ZIP download now works, but exposed a new truth mismatch: the browser digest said quality was not graded while the ZIP regraded 74/C.',
+      'Finalize grading and ZIP self-grading now share a 30-second quality timeout, giving the existing deep grader enough room to finish on real 12-lesson packages instead of falling into premature not-graded state.',
+      'The fix does not weaken quality standards: the same local grader still reports the package at 74/C with prompt-artifact leakage, source/citation defects, and a PPTX repeated-phrase warning.',
+      'Focused regression coverage pins the finalizer timeout handoff so future package-finalizer changes keep using the shared ZIP-quality bound.',
+    ],
+  },
   {
     version: '0.15.50',
     date: 'June 26, 2026',

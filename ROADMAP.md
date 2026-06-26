@@ -4,6 +4,27 @@
 
 CourseMapper is moving toward a "consider it done" course-production agent. The user should describe the course, choose scope/materials, and receive a finished draft package. The agent owns generation, QA, repair, alignment, and export readiness. Human involvement should be final approval only, not QA labor.
 
+## v0.15.52 - Clean Export Notes
+
+Goal: fix the v0.15.51 Project Management finish experience where a
+downloadable but caveated package showed too much raw warning text in the
+export card and agent panel. The user should see a clean downloadable handoff
+with review notes, while known deterministic export defects are fixed before
+they appear as user-facing caveats.
+
+Full plan: `docs/V0.15.52_CLEAN_EXPORT_NOTES_ROADMAP.md`
+
+1. Keep amber review truth for caveated downloadable packages, but label the
+   state as `Ready with notes` instead of leading with raw warning copy.
+2. Hide non-blocking issue details behind notes toggles in the export card and
+   package summary while keeping blockers visible.
+3. Preserve instructor/report evidence for quality, source, texture, and export
+   caveats without turning the main UI into a defect log.
+4. Fix the deterministic PPTX repeated-phrase warning by shortening repeated
+   long artifact names in speaker notes.
+5. Carry forward the real remaining quality targets: source-ledger/research
+   bridge and prompt-artifact leakage.
+
 ## v0.15.51 - Quality Timeout Truth
 
 Goal: fix the fresh v0.15.50 ZIP/log audit mismatch where the browser digest

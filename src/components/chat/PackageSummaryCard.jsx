@@ -52,9 +52,9 @@ export default function PackageSummaryCard({ summary, embedded = false }) {
   const outcomeTitle = summary.ready
     ? 'Ready to download'
     : summary.downloadable
-      ? 'Review before download'
+      ? 'Ready with notes'
       : 'Review before export';
-  const badgeText = summary.ready ? 'Done' : summary.tone === 'blocked' ? 'Action needed' : 'Review';
+  const badgeText = summary.ready ? 'Done' : summary.tone === 'blocked' ? 'Action needed' : 'Review notes';
   const repairText =
     summary.repairsApplied > 0
       ? `${summary.repairsApplied} safe repair${summary.repairsApplied === 1 ? '' : 's'} applied`
@@ -63,14 +63,14 @@ export default function PackageSummaryCard({ summary, embedded = false }) {
     summary.blockerCount > 0
       ? `${summary.blockerCount} issue${summary.blockerCount === 1 ? '' : 's'} to fix`
       : summary.warningCount > 0
-        ? `${summary.warningCount} item${summary.warningCount === 1 ? '' : 's'} to review`
+        ? `${summary.warningCount} review note${summary.warningCount === 1 ? '' : 's'}`
         : 'No issues to fix';
   const exportText =
     summary.exportChecked > 0
       ? summary.exportFailed > 0
         ? `${summary.exportFailed} export issue${summary.exportFailed === 1 ? '' : 's'}`
         : summary.exportWarningCount > 0
-          ? `${summary.exportWarningCount} export warning${summary.exportWarningCount === 1 ? '' : 's'}`
+          ? `${summary.exportWarningCount} export note${summary.exportWarningCount === 1 ? '' : 's'}`
           : 'Exports verified'
       : null;
   const classroomText =
@@ -91,7 +91,9 @@ export default function PackageSummaryCard({ summary, embedded = false }) {
     : [];
   const statusText = summary.ready
     ? `${summary.checkedSections || 'All selected'} materials checked — download anytime.`
-    : summary.nextAction || 'Review the items below before export.';
+    : summary.downloadable
+      ? 'Download is ready. Review notes are saved for the instructor before publishing.'
+      : summary.nextAction || 'Review the items below before export.';
   const reviewText = summary.ready
     ? 'Before class, confirm dates, policies, and official readings.'
     : reviewRecommendation;
@@ -148,7 +150,7 @@ export default function PackageSummaryCard({ summary, embedded = false }) {
                 className="tactile mt-2 rounded-md px-1.5 py-0.5 text-[10px] font-semibold text-slate-500 hover:bg-white/70 hover:text-slate-700"
                 aria-expanded={expanded}
               >
-                {expanded ? 'Hide details' : 'Details'}
+                {expanded ? 'Hide notes' : summary.ready ? 'Details' : 'Show notes'}
               </button>
             )}
             {expanded && detailChips.length > 0 && (
@@ -187,7 +189,7 @@ export default function PackageSummaryCard({ summary, embedded = false }) {
         {showTopIssues && summary.topIssues?.length > 0 && (
           <div className="mt-2 border-t border-white/70 pt-2">
             <p className="mb-1 text-[10px] font-semibold uppercase tracking-[0.08em] text-slate-500">
-              {summary.tone === 'blocked' ? 'Needs attention' : 'Human judgment'}
+              {summary.tone === 'blocked' ? 'Needs attention' : 'Saved notes'}
             </p>
             <div className="space-y-1">
               {summary.topIssues.map((issue, index) => (

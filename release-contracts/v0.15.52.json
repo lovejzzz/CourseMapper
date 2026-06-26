@@ -1,0 +1,112 @@
+{
+  "version": "0.15.52",
+  "date": "June 26, 2026",
+  "title": "Clean Export Notes: downloadable caveats stop overwhelming users",
+  "status": "verified-current",
+  "proofSummary": {
+    "local": [
+      "npx vitest run tests/v0147-texture-metric.test.js tests/v0146-calm-finish.test.js src/lib/__tests__/courseBlueprintCompiler.test.js scripts/__tests__/hybridPipelineAudit.test.js -t \"compiler prose texture|slide speaker notes|keeps messy-import slide sequencing|hybrid pipeline audit\"",
+      "npx vitest run src/components/__tests__/ExportSidePanel.readiness.test.jsx src/components/chat/__tests__/PackageSummaryCard.test.jsx src/components/chat/__tests__/ProgressHeader.test.jsx src/components/chat/__tests__/AgentWorkingSetPanel.test.jsx tests/agent-v0858-red-team.test.jsx src/components/chat/__tests__/ChatPanel.agentCommands.test.jsx tests/v0143-quality-badge.test.js",
+      "npm test",
+      "npm run lint",
+      "npm run format:check",
+      "npm run build",
+      "npm run bundle:check",
+      "npm run audit:release-history"
+    ],
+    "ciFast": {
+      "status": "pending-push",
+      "note": "Fast verification is claimed only after v0.15.52 is pushed and the GitHub Actions run is attached."
+    },
+    "deploy": {
+      "status": "pending-push",
+      "note": "Pages deploy is not claimed until the pushed release completes its deploy run."
+    },
+    "ciDeep": {
+      "status": "local-only",
+      "note": "This is a narrow export UI and deterministic PPTX phrase patch, so focused regression plus normal local gates are the release bar."
+    },
+    "liveProvider": {
+      "status": "local-only",
+      "note": "Fresh EduTool.dev ZIP/log audit should resume after v0.15.52 deploys, focused on source-ledger/research bridge and prompt-artifact leakage."
+    },
+    "manualHuman": {
+      "status": "not-applicable",
+      "note": "No external instructor approval is claimed by this release."
+    }
+  },
+  "claims": [
+    {
+      "id": "v01552-clean-export-notes-ui",
+      "status": "verified-current",
+      "changelogHighlightIndex": 0,
+      "summary": "The v0.15.51 Project Management finish state showed too much raw warning copy in the export card and agent panel.",
+      "anchors": ["docs/V0.15.52_CLEAN_EXPORT_NOTES_ROADMAP.md"],
+      "proofCommands": ["Manual browser evidence summarized in docs/V0.15.52_CLEAN_EXPORT_NOTES_ROADMAP.md"],
+      "proofScopes": ["browser-live", "static-audit"]
+    },
+    {
+      "id": "v01552-ready-with-notes-surfaces",
+      "status": "verified-current",
+      "changelogHighlightIndex": 1,
+      "summary": "Downloadable packages with non-blocking caveats now use calm Ready with notes copy and keep details behind review-note toggles.",
+      "anchors": [
+        "src/lib/packageTrustStatus.js",
+        "src/components/ExportSidePanel.jsx",
+        "src/components/chat/PackageSummaryCard.jsx",
+        "src/components/chat/AgentWorkingSetPanel.jsx",
+        "src/components/chat/ProgressHeader.jsx"
+      ],
+      "proofCommands": [
+        "npx vitest run src/components/__tests__/ExportSidePanel.readiness.test.jsx src/components/chat/__tests__/PackageSummaryCard.test.jsx src/components/chat/__tests__/ProgressHeader.test.jsx src/components/chat/__tests__/AgentWorkingSetPanel.test.jsx tests/agent-v0858-red-team.test.jsx src/components/chat/__tests__/ChatPanel.agentCommands.test.jsx tests/v0143-quality-badge.test.js"
+      ],
+      "proofScopes": ["unit", "static-audit"]
+    },
+    {
+      "id": "v01552-trust-standards-preserved",
+      "status": "verified-current",
+      "changelogHighlightIndex": 2,
+      "summary": "Amber review truth and report evidence remain intact; clean green readiness is still reserved for packages without quality, texture, source, or export caveats.",
+      "anchors": ["src/lib/packageTrustStatus.js", "tests/agent-v0858-red-team.test.jsx"],
+      "proofCommands": [
+        "npx vitest run src/components/__tests__/ExportSidePanel.readiness.test.jsx src/components/chat/__tests__/PackageSummaryCard.test.jsx tests/agent-v0858-red-team.test.jsx tests/v0143-quality-badge.test.js"
+      ],
+      "proofScopes": ["unit", "static-audit"]
+    },
+    {
+      "id": "v01552-pptx-speaker-note-phrase-guard",
+      "status": "verified-current",
+      "changelogHighlightIndex": 3,
+      "summary": "Slide speaker notes shorten repeated long assessment artifact names without creating a new texture or readiness warning.",
+      "anchors": [
+        "src/lib/courseBlueprintCompiler.js",
+        "tests/v0146-calm-finish.test.js",
+        "tests/v0147-texture-metric.test.js"
+      ],
+      "proofCommands": [
+        "npx vitest run tests/v0147-texture-metric.test.js tests/v0146-calm-finish.test.js src/lib/__tests__/courseBlueprintCompiler.test.js scripts/__tests__/hybridPipelineAudit.test.js -t \"compiler prose texture|slide speaker notes|keeps messy-import slide sequencing|hybrid pipeline audit\""
+      ],
+      "proofScopes": ["unit"]
+    }
+  ],
+  "carryForward": [
+    {
+      "id": "project-management-source-ledger-research-bridge-loss",
+      "status": "carry-forward",
+      "source": "docs/V0.15.52_CLEAN_EXPORT_NOTES_ROADMAP.md",
+      "next": "Bridge retrieved OpenAlex/source-finder resources into trusted concept-linked source ledger rows and reject off-discipline readings."
+    },
+    {
+      "id": "project-management-prompt-artifact-quality-loss",
+      "status": "carry-forward",
+      "source": "docs/V0.15.52_CLEAN_EXPORT_NOTES_ROADMAP.md",
+      "next": "Fix Course FAQ / study-guide prompt-artifact leakage without weakening the quality grader."
+    },
+    {
+      "id": "fresh-v01552-edutool-zip-log-audit",
+      "status": "carry-forward",
+      "source": "docs/V0.15.52_CLEAN_EXPORT_NOTES_ROADMAP.md",
+      "next": "After v0.15.52 deploys, run a fresh EduTool.dev ZIP/log audit before claiming package-quality improvement."
+    }
+  ]
+}
