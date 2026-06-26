@@ -2,23 +2,23 @@ import { APP_VERSION } from './appVersion.js';
 
 export const CURRENT_RELEASE = {
   version: APP_VERSION,
-  date: 'June 25, 2026',
-  title: 'Source Ledger Recovery: syllabus sources bridge CourseIR proof',
-  landingTitle: 'Source Ledger Recovery',
+  date: 'June 26, 2026',
+  title: 'Course FAQ Prerequisite Firewall: CourseIR labels stop leaking into answers',
+  landingTitle: 'Course FAQ Prerequisite Firewall',
   highlights: [
-    'A fresh Project Management ZIP/log audit showed the real 96/A quality loss: the run retrieved 19 open resources, but the ZIP exported zero trusted source rows and fell back to one CourseIR review row.',
-    'Package export now recovers concrete URL/DOI source rows from structured syllabus weekly readings when graph proof is sparse, attaches them to the matching lesson concepts, and lets complete CourseIR sourceRef coverage bridge to those trusted rows.',
-    'Course FAQ rendering now treats “Existing course map fields” and related source-review placeholders as unsafe evidence cues, and no longer emits internal “rubric criteria” / “anchor examples” labels as related lesson concepts.',
-    'The recorded browser-quality loop now asserts that Course Map cannot show a ready tick while the build ribbon is unfinished, and that caveated packages use amber “Review before download” state instead of clean green readiness.',
+    'The v0.15.47 Project Management ZIP/log audit still regraded at 97/A and exposed a deterministic Course FAQ leak: "Prerequisite concept" CourseIR labels were presented as student-facing evidence cues.',
+    'Course FAQ evidence-cue selection now treats CourseIR prerequisite labels as unsafe internal source placeholders, so focus answers and anchor contrasts fall back to safe lesson source evidence.',
+    'A focused regression recreates the live "scheduling lab 2. scenario quizzes / Prerequisite concept" shape and proves the compiled FAQ no longer contains the internal prerequisite label.',
+    'The local verifier blocker was environmental: node_modules had been left incomplete. Rebuilding dependencies restored bounded Vitest execution before this product patch landed.',
   ],
   landingHighlights: [
-    'Syllabus weekly readings can recover trusted source-ledger rows.',
-    'Course FAQ answers stop leaking source-review placeholders.',
-    'Recorded browser workflow checks tab truth and caveated package color.',
+    'Course FAQ answers reject internal prerequisite source labels.',
+    'Live Project Management prerequisite leakage is regression-tested.',
+    'Local Vitest verification is unblocked after dependency repair.',
   ],
   proof: {
-    contract: 'release-contracts/v0.15.47.json',
-    roadmap: 'docs/V0.15.47_SOURCE_LEDGER_RECOVERY_ROADMAP.md',
+    contract: 'release-contracts/v0.15.48.json',
+    roadmap: 'docs/V0.15.48_COURSE_FAQ_PREREQUISITE_FIREWALL_ROADMAP.md',
     auditCommand: 'npm run audit:release-history',
   },
 };
@@ -33,6 +33,17 @@ export const CURRENT_RELEASE_CHANGELOG = {
 };
 
 export const HISTORICAL_RELEASE_CHANGELOGS = [
+  {
+    version: '0.15.47',
+    date: 'June 25, 2026',
+    title: 'Source Ledger Recovery: syllabus sources bridge CourseIR proof',
+    highlights: [
+      'A fresh Project Management ZIP/log audit showed the real 96/A quality loss: the run retrieved 19 open resources, but the ZIP exported zero trusted source rows and fell back to one CourseIR review row.',
+      'Package export now recovers concrete URL/DOI source rows from structured syllabus weekly readings when graph proof is sparse, attaches them to the matching lesson concepts, and lets complete CourseIR sourceRef coverage bridge to those trusted rows.',
+      'Course FAQ rendering now treats "Existing course map fields" and related source-review placeholders as unsafe evidence cues, and no longer emits internal "rubric criteria" / "anchor examples" labels as related lesson concepts.',
+      'The recorded browser-quality loop now asserts that Course Map cannot show a ready tick while the build ribbon is unfinished, and that caveated packages use amber "Review before download" state instead of clean green readiness.',
+    ],
+  },
   {
     version: '0.15.46',
     date: 'June 25, 2026',

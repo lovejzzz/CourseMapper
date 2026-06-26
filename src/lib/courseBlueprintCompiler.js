@@ -428,7 +428,7 @@ const PROMPT_ARTIFACT_EVIDENCE_LABELS = [
 ];
 const PROMPT_ARTIFACT_EVIDENCE_SET = new Set(PROMPT_ARTIFACT_EVIDENCE_LABELS);
 const INTERNAL_SOURCE_PLACEHOLDER_RE =
-  /\b(?:existing course map fields?|source review rows?|instructor source review|repaired package requires review|no source ledger)\b/i;
+  /\b(?:existing course map fields?|source review rows?|instructor source review|repaired package requires review|no source ledger|prerequisite concept)\b/i;
 
 function escapeRegexLiteral(value) {
   return String(value || '').replace(/[.*+?^${}()|[\]\\]/g, '\\$&');

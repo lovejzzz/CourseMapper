@@ -1,0 +1,95 @@
+{
+  "version": "0.15.48",
+  "date": "June 26, 2026",
+  "title": "Course FAQ Prerequisite Firewall: CourseIR labels stop leaking into answers",
+  "status": "verified-current",
+  "proofSummary": {
+    "local": [
+      "npx vitest run tests/v0141-phase1-finalizer.test.js src/lib/__tests__/courseIR.test.js",
+      "npm run format:check",
+      "npm run lint",
+      "npm test",
+      "npm run audit:gold:smoke",
+      "npm run build",
+      "npm run bundle:check",
+      "npm run audit:release-history"
+    ],
+    "ciFast": {
+      "status": "pending-push",
+      "note": "Fast verification is claimed only after v0.15.48 is pushed and the GitHub Actions run is attached."
+    },
+    "deploy": {
+      "status": "pending-push",
+      "note": "Pages deploy is not claimed until the pushed release completes its deploy run."
+    },
+    "ciDeep": {
+      "status": "local-only",
+      "note": "This is a narrow Course FAQ compiler firewall patch, so focused regressions plus audit:gold:smoke are the release gate."
+    },
+    "liveProvider": {
+      "status": "local-only",
+      "note": "The release is based on the deployed v0.15.47 Project Management ZIP/log audit saved under verification-output/edutool-audit-loop/20260625T211628Z/."
+    },
+    "manualHuman": {
+      "status": "not-applicable",
+      "note": "No external instructor approval is claimed by this release."
+    }
+  },
+  "claims": [
+    {
+      "id": "v01548-live-prerequisite-label-evidence",
+      "status": "verified-current",
+      "changelogHighlightIndex": 0,
+      "summary": "The Project Management audit showed Course FAQ text using an internal CourseIR prerequisite label as if it were student-facing evidence.",
+      "anchors": ["docs/V0.15.48_COURSE_FAQ_PREREQUISITE_FIREWALL_ROADMAP.md"],
+      "proofCommands": [
+        "Manual artifact audit summarized in docs/V0.15.48_COURSE_FAQ_PREREQUISITE_FIREWALL_ROADMAP.md"
+      ],
+      "proofScopes": ["live-provider", "static-audit"]
+    },
+    {
+      "id": "v01548-prerequisite-evidence-cue-firewall",
+      "status": "verified-current",
+      "changelogHighlightIndex": 1,
+      "summary": "Course FAQ evidence-cue selection now rejects CourseIR prerequisite labels and falls back to safe lesson source evidence.",
+      "anchors": ["src/lib/courseBlueprintCompiler.js", "tests/v0141-phase1-finalizer.test.js"],
+      "proofCommands": ["npx vitest run tests/v0141-phase1-finalizer.test.js"],
+      "proofScopes": ["unit", "static-audit"]
+    },
+    {
+      "id": "v01548-project-management-regression",
+      "status": "verified-current",
+      "changelogHighlightIndex": 2,
+      "summary": "A focused regression recreates the scheduling/prerequisite-label Course FAQ leak from the Project Management audit.",
+      "anchors": ["tests/v0141-phase1-finalizer.test.js"],
+      "proofCommands": ["npx vitest run tests/v0141-phase1-finalizer.test.js -t \"prerequisite labels\""],
+      "proofScopes": ["unit"]
+    },
+    {
+      "id": "v01548-local-verifier-unblocked",
+      "status": "verified-current",
+      "changelogHighlightIndex": 3,
+      "summary": "The local Vitest blocker was traced to an incomplete dependency install; rebuilding node_modules restored bounded Vitest exits.",
+      "anchors": ["docs/V0.15.48_COURSE_FAQ_PREREQUISITE_FIREWALL_ROADMAP.md"],
+      "proofCommands": [
+        "npm ci",
+        "node node_modules/vitest/vitest.mjs run tests/no-such-file.test.js --passWithNoTests --reporter=dot"
+      ],
+      "proofScopes": ["build", "static-audit"]
+    }
+  ],
+  "carryForward": [
+    {
+      "id": "project-management-study-guide-kernel-coverage",
+      "status": "carry-forward",
+      "source": "docs/V0.15.48_COURSE_FAQ_PREREQUISITE_FIREWALL_ROADMAP.md",
+      "next": "After deploy and fresh audit, target the remaining Lesson 10 study-guide kernel-coverage P1 if it reproduces."
+    },
+    {
+      "id": "project-management-pptx-repeated-phrase",
+      "status": "carry-forward",
+      "source": "docs/V0.15.48_COURSE_FAQ_PREREQUISITE_FIREWALL_ROADMAP.md",
+      "next": "After deploy and fresh audit, target the repeated PPTX phrase warning if it reproduces."
+    }
+  ]
+}

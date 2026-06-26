@@ -556,4 +556,54 @@ describe('1.16 — prompt artifact labels never become course-map concepts', () 
     expect(faqText).not.toMatch(/\brubric criteria\b/i);
     expect(faqText).toMatch(/Scheduling and the critical path source evidence|source evidence/i);
   });
+
+  it('keeps CourseIR prerequisite labels out of compiled Course FAQ evidence cues', () => {
+    const courseMap = {
+      courseName: 'Project Management',
+      lessons: [
+        {
+          title: 'Lesson 3: Scheduling',
+          sections: [
+            {
+              topicSection: '3.1: Scheduling',
+              learningGoals: 'Use scheduling evidence to reason about project timelines.',
+              learningObjectives: 'Build a schedule and explain dependency decisions.',
+              weeklyAssessments: 'Scheduling lab 2. scenario quizzes',
+              asyncActivities: 'Review scheduling notes and dependency examples.',
+              syncActivities: 'Practice scheduling cases with peer feedback.',
+              supportingResources: 'Prerequisite concept: 2.1: Requirements; scheduling lab 2. scenario quizzes',
+              evaluateDesign: 'Check scheduling decisions against scenario evidence.',
+            },
+          ],
+        },
+      ],
+    };
+
+    const blueprint = buildCourseBlueprint(courseMap);
+    const unsafeCue = 'Prerequisite concept: 2.1: Requirements; scheduling lab 2. scenario quizzes';
+    blueprint.lessons[0].evidencePlan = {
+      ...(blueprint.lessons[0].evidencePlan || {}),
+      sourceCue: unsafeCue,
+    };
+    blueprint.lessons[0].throughlineCase = {
+      ...(blueprint.lessons[0].throughlineCase || {}),
+      evidencePacket: unsafeCue,
+    };
+    blueprint.lessons[0].assessmentAnchorExamples = {
+      ...(blueprint.lessons[0].assessmentAnchorExamples || {}),
+      strongSample: `Strong work uses ${unsafeCue}, explains how it changes the scheduling decision, and names one limitation.`,
+    };
+
+    const compiled = compileBlueprintDeliverables(blueprint, ['courseFaq'], {
+      configMap: { courseFaq: { questionsPerLesson: 5 } },
+    });
+    const faqText = compiled.courseFaq.faqs
+      .flatMap((faq) => faq.qs || [])
+      .map((item) => `${item.q || ''} ${item.an || ''} ${(item.rc || []).join(' ')}`)
+      .join(' ');
+
+    expect(faqText).not.toMatch(/Prerequisite concept/i);
+    expect(faqText).not.toMatch(/Strong work uses Prerequisite/i);
+    expect(faqText).toMatch(/Scheduling source evidence|source evidence/i);
+  });
 });
