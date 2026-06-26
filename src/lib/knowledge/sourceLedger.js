@@ -11,9 +11,17 @@ const TRUSTED_PROVIDERS = new Set([
   'source-finder',
 ]);
 
-const ACADEMIC_PROVIDERS = new Set(['openalex', 'eric']);
+const ACADEMIC_PROVIDERS = new Set(['openalex', 'eric', 'crossref']);
 const OER_PROVIDERS = new Set(['openstax', 'genome', 'genome-prerequisite']);
 const METADATA_ONLY_PROVIDERS = new Set(['openlibrary']);
+const LICENSED_BACKGROUND_PROVIDERS = new Set(['wikipedia']);
+const REVIEW_ONLY_PROVIDERS = new Set(['courseir', 'instructor', 'instructor-provided', 'openlibrary']);
+const TRUST_ELIGIBLE_PROVIDERS = new Set([
+  ...TRUSTED_PROVIDERS,
+  ...ACADEMIC_PROVIDERS,
+  ...OER_PROVIDERS,
+  ...LICENSED_BACKGROUND_PROVIDERS,
+]);
 const GENERIC_RESOURCE_PROVIDERS = new Set(['', 'course-resource', 'course-map', 'resource', 'syllabus']);
 const AMBIGUOUS_LICENSE_RE =
   /^(?:|unknown|open access|open license|(?:[\w.-]+\s+)*public metadata|instructor review required|review required|varies|mixed|metadata only)$/i;
@@ -174,6 +182,7 @@ export function providerTrustLevel(provider) {
   const key = cleanText(provider, 80).toLowerCase();
   if (ACADEMIC_PROVIDERS.has(key)) return 'academic-metadata';
   if (OER_PROVIDERS.has(key)) return 'open-educational-resource';
+  if (LICENSED_BACKGROUND_PROVIDERS.has(key)) return 'licensed-background-source';
   if (METADATA_ONLY_PROVIDERS.has(key)) return 'bibliographic-metadata';
   if (TRUSTED_PROVIDERS.has(key)) return 'trusted-metadata';
   return 'review-required';
@@ -186,6 +195,8 @@ function inferProviderFromText(value) {
   if (text.includes('openalex.org') || /\bopenalex\b/.test(text)) return 'openalex';
   if (text.includes('openlibrary.org') || /\bopen library\b/.test(text)) return 'openlibrary';
   if (text.includes('eric.ed.gov') || /\beric\b/.test(text)) return 'eric';
+  if (text.includes('wikipedia.org') || /\bwikipedia\b/.test(text)) return 'wikipedia';
+  if (text.includes('crossref.org') || /\bcrossref\b/.test(text)) return 'crossref';
   return '';
 }
 
@@ -252,11 +263,17 @@ export function normalizeTrustedSource(entry = {}, { fallbackId = '', checkedAt 
   return source;
 }
 
+export function isTrustedSourceLedgerRow(row = {}) {
+  const provider = cleanText(row?.provider, 80).toLowerCase();
+  if (!TRUST_ELIGIBLE_PROVIDERS.has(provider) || REVIEW_ONLY_PROVIDERS.has(provider)) return false;
+  return isSourceAccessible(row) && !isLicenseAmbiguous(row?.license);
+}
+
 export function summarizeSourceLedgerRows(rows = []) {
   const ledgerRows = Array.isArray(rows) ? rows : [];
   return {
     sourceCount: ledgerRows.length,
-    trustedCount: ledgerRows.filter((row) => TRUSTED_PROVIDERS.has(row.provider)).length,
+    trustedCount: ledgerRows.filter(isTrustedSourceLedgerRow).length,
     accessibleCount: ledgerRows.filter(isSourceAccessible).length,
     licenseAmbiguousCount: ledgerRows.filter((row) => row.licenseAmbiguous).length,
     providers: [...new Set(ledgerRows.map((row) => row.provider).filter(Boolean))].sort(),

@@ -3,22 +3,22 @@ import { APP_VERSION } from './appVersion.js';
 export const CURRENT_RELEASE = {
   version: APP_VERSION,
   date: 'June 26, 2026',
-  title: 'Course Map Kernel Focus: enriched maps stop saying Session N',
-  landingTitle: 'Course Map Kernel Focus',
+  title: 'Source Ledger Trust Accounting: licensed source-finder rows count honestly',
+  landingTitle: 'Source Ledger Trust Accounting',
   highlights: [
-    'The fresh v0.15.62 Project Management ZIP/log audit regraded at 96/A and proved a product truth gap: enrichment covered all lessons, but the Course Map could still expose generic "Session N" labels.',
-    'CourseGraph map rendering now uses enrichment kernel focus terms when a session title, topic label, or map cell is still generic, so preview/export/blueprint compilation inherit the real lesson focus.',
-    'Manual Course Map overrides still win verbatim; the repair only touches compiler-owned generic session placeholders that have stronger kernel evidence available.',
-    'A focused CourseGraph regression pins the live unfinished-map shape without weakening the source-ledger, texture, or quality graders that still hold the package below 100/100.',
+    'The latest measured Project Management ZIP still sits at 96/A, with source proof as a real CourseMapper-side quality loss rather than a model-only issue.',
+    'Source-ledger summaries now count trusted rows only when the row is accessible, has a non-ambiguous license, and comes from a trust-eligible provider.',
+    'Source-finder evidence from licensed Wikipedia background pages and Crossref DOI records now preserves provider identity instead of collapsing into generic syllabus proof.',
+    'The source-ledger grader now reports zero trusted rows for review-only or public-metadata-only proof while still allowing licensed, concept-linked source-finder rows to satisfy source coverage.',
   ],
   landingHighlights: [
-    'Generic Course Map sessions inherit real lesson focus.',
-    'Instructor map edits stay authoritative.',
-    'Quality caveats remain visible and strict.',
+    'Trusted source counts require accessible licensed rows.',
+    'Source-finder provider identity survives export.',
+    'Review-only source proof stays visible.',
   ],
   proof: {
-    contract: 'release-contracts/v0.15.63.json',
-    roadmap: 'docs/V0.15.63_COURSE_MAP_KERNEL_FOCUS_ROADMAP.md',
+    contract: 'release-contracts/v0.15.64.json',
+    roadmap: 'docs/V0.15.64_SOURCE_LEDGER_TRUST_ACCOUNTING_ROADMAP.md',
     auditCommand: 'npm run audit:release-history',
   },
 };
@@ -33,6 +33,17 @@ export const CURRENT_RELEASE_CHANGELOG = {
 };
 
 export const HISTORICAL_RELEASE_CHANGELOGS = [
+  {
+    version: '0.15.63',
+    date: 'June 26, 2026',
+    title: 'Course Map Kernel Focus: enriched maps stop saying Session N',
+    highlights: [
+      'The fresh v0.15.62 Project Management ZIP/log audit regraded at 96/A and proved a product truth gap: enrichment covered all lessons, but the Course Map could still expose generic "Session N" labels.',
+      'CourseGraph map rendering now uses enrichment kernel focus terms when a session title, topic label, or map cell is still generic, so preview/export/blueprint compilation inherit the real lesson focus.',
+      'Manual Course Map overrides still win verbatim; the repair only touches compiler-owned generic session placeholders that have stronger kernel evidence available.',
+      'A focused CourseGraph regression pins the live unfinished-map shape without weakening the source-ledger, texture, or quality graders that still hold the package below 100/100.',
+    ],
+  },
   {
     version: '0.15.62',
     date: 'June 26, 2026',

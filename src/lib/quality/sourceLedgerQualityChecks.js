@@ -10,6 +10,19 @@ function hasRef(row) {
   return /^https?:\/\//i.test(String(row?.url || '')) || /\S/.test(String(row?.doi || ''));
 }
 
+const TRUST_ELIGIBLE_PROVIDERS = new Set([
+  'genome',
+  'genome-prerequisite',
+  'openalex',
+  'openstax',
+  'eric',
+  'source-finder',
+  'crossref',
+  'wikipedia',
+]);
+
+const REVIEW_ONLY_PROVIDERS = new Set(['courseir', 'instructor', 'instructor-provided', 'openlibrary']);
+
 function ambiguousLicense(row) {
   const license = String(row?.license || '')
     .trim()
@@ -20,6 +33,16 @@ function ambiguousLicense(row) {
     /^(open access|open license|unknown|(?:[\w.-]+\s+)*public metadata|metadata only|instructor review required|review required|varies|mixed)$/.test(
       license,
     )
+  );
+}
+
+function isTrustedBibliographyRow(row) {
+  const provider = String(row?.provider || '').toLowerCase();
+  return (
+    TRUST_ELIGIBLE_PROVIDERS.has(provider) &&
+    !REVIEW_ONLY_PROVIDERS.has(provider) &&
+    hasRef(row) &&
+    !ambiguousLicense(row)
   );
 }
 
@@ -43,17 +66,6 @@ function parseReportedOpenResourceCount(manifest) {
     .join(' ');
   const match = text.match(/\b(\d+)\s+open resources?\b/i);
   return match ? Number(match[1]) : null;
-}
-
-function isThinTrustedRow(row) {
-  const provider = String(row?.provider || '').toLowerCase();
-  return (
-    ambiguousLicense(row) ||
-    provider === 'openlibrary' ||
-    provider === 'courseir' ||
-    provider === 'instructor' ||
-    provider === 'instructor-provided'
-  );
 }
 
 export function hasSourceLedgerProof(manifest) {
@@ -90,6 +102,7 @@ export function checkSourceLedger(findings, { files, manifest }) {
   const exportedSourceRows = ledger.length + review.length;
   const coverageTotal = sourceCoverageTotal(coverage);
   const coverageLedgerRows = sourceCoverageLedgerRows(coverage);
+  const trustedBibliographyRows = ledger.filter(isTrustedBibliographyRow);
 
   if (ledger.length === 0 && review.length === 0 && !coverage) {
     findings.add({
@@ -175,14 +188,15 @@ export function checkSourceLedger(findings, { files, manifest }) {
     });
   }
 
-  if (coverageTotal >= 12 && ledger.length <= 1 && ledger.every(isThinTrustedRow)) {
+  if (coverageTotal >= 12 && trustedBibliographyRows.length <= 1) {
     findings.add({
       severity: 'P1',
       dimension: 'citations',
       file: 'PACKAGE_MANIFEST.json',
-      detail: `sourceRef coverage is too thin: ${coverageTotal} atom(s) rely on ${ledger.length} trusted source row(s)`,
+      detail: `sourceRef coverage is too thin: ${coverageTotal} atom(s) rely on ${trustedBibliographyRows.length} trusted source row(s)`,
       evidence: JSON.stringify({
         sourceLedgerRows: ledger.length,
+        trustedSourceLedgerRows: trustedBibliographyRows.length,
         coverageTotal,
         providers: ledger.map((row) => row.provider).filter(Boolean),
       }).slice(0, 200),
@@ -191,7 +205,7 @@ export function checkSourceLedger(findings, { files, manifest }) {
 
   if (
     coverageTotal >= 12 &&
-    ledger.length > 1 &&
+    trustedBibliographyRows.length > 1 &&
     Number.isFinite(coverageLedgerRows) &&
     coverageLedgerRows <= 1 &&
     review.length > 0
@@ -200,9 +214,10 @@ export function checkSourceLedger(findings, { files, manifest }) {
       severity: 'P1',
       dimension: 'citations',
       file: 'PACKAGE_MANIFEST.json',
-      detail: `sourceRef coverage is not wired to trusted source ledger rows: ${coverageTotal} atom(s) report coverage through ${coverageLedgerRows} CourseIR source row(s) while ${ledger.length} exported source row(s) exist`,
+      detail: `sourceRef coverage is not wired to trusted source ledger rows: ${coverageTotal} atom(s) report coverage through ${coverageLedgerRows} CourseIR source row(s) while ${trustedBibliographyRows.length} trusted exported source row(s) exist`,
       evidence: JSON.stringify({
         sourceLedgerRows: ledger.length,
+        trustedSourceLedgerRows: trustedBibliographyRows.length,
         courseIrSourceLedgerRows: coverageLedgerRows,
         sourceReviewRows: review.length,
         coverageTotal,

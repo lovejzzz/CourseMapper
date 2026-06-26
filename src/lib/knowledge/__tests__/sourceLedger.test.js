@@ -127,7 +127,7 @@ describe('trusted source ledger', () => {
 
     expect(ledger.rows[0]).toMatchObject({
       id: 'r1',
-      provider: 'syllabus',
+      provider: 'crossref',
       doi: '10.1016/0165-1765(87)90086-3',
       url: 'https://doi.org/10.1016/0165-1765(87)90086-3',
       license: 'https://www.elsevier.com/tdm/userlicense/1.0/',
@@ -342,5 +342,77 @@ describe('trusted source ledger', () => {
         }),
       ]),
     );
+  });
+
+  it('counts only accessible non-ambiguous source-finder rows as trusted bibliography', () => {
+    const ledger = buildSourceLedgerFromCourseGraph(
+      {
+        concepts: [{ id: 'c1', term: 'Project charter' }],
+        sessions: [
+          {
+            id: 's1',
+            number: 1,
+            sections: [{ id: 'sec1', topic: 'Project charter', conceptRefs: ['c1'], resourceRefs: [] }],
+          },
+        ],
+        resources: [],
+        sourceFinderMiniShard: {
+          topics: [
+            {
+              sessionId: 's1',
+              lessonNumber: 1,
+              topic: 'project charter',
+              sources: [
+                {
+                  provider: 'wikipedia',
+                  kind: 'encyclopedia background',
+                  title: 'Project charter',
+                  authors: 'Wikipedia contributors',
+                  url: 'https://en.wikipedia.org/wiki/Project_charter',
+                  license: 'CC BY-SA 4.0',
+                  snippet: 'A project charter formally authorizes project work.',
+                },
+              ],
+            },
+            {
+              sessionId: 's1',
+              lessonNumber: 1,
+              topic: 'project scheduling',
+              sources: [
+                {
+                  provider: 'crossref',
+                  kind: 'scholarly work',
+                  title: 'Project Scheduling with DOI Metadata',
+                  doi: '10.1000/project-schedule',
+                  url: 'https://doi.org/10.1000/project-schedule',
+                  license: 'Crossref public metadata',
+                  snippet: 'Bibliographic metadata for a project scheduling source.',
+                },
+              ],
+            },
+          ],
+        },
+      },
+      { checkedAt: '2026-06-26T00:00:00.000Z' },
+    );
+
+    expect(ledger.rows).toHaveLength(2);
+    expect(ledger.summary).toMatchObject({
+      sourceCount: 2,
+      trustedCount: 1,
+      accessibleCount: 2,
+      licenseAmbiguousCount: 1,
+    });
+    expect(ledger.rows[0]).toMatchObject({
+      provider: 'wikipedia',
+      trustLevel: 'licensed-background-source',
+      licenseAmbiguous: false,
+      conceptLinks: [{ id: 'c1', label: 'Project charter' }],
+    });
+    expect(ledger.rows[1]).toMatchObject({
+      provider: 'crossref',
+      trustLevel: 'academic-metadata',
+      licenseAmbiguous: true,
+    });
   });
 });

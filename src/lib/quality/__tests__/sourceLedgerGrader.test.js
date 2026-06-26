@@ -177,7 +177,7 @@ describe('source-ledger quality checks', () => {
     expect(details).toEqual(
       expect.arrayContaining([
         'pipeline reported 9 open resource(s) but the package exported 2 source proof row(s)',
-        'sourceRef coverage is too thin: 56 atom(s) rely on 1 trusted source row(s)',
+        'sourceRef coverage is too thin: 56 atom(s) rely on 0 trusted source row(s)',
       ]),
     );
   });
@@ -255,7 +255,7 @@ describe('source-ledger quality checks', () => {
 
     const details = result.findings.map((finding) => finding.detail);
     expect(details).toContain(
-      'sourceRef coverage is not wired to trusted source ledger rows: 55 atom(s) report coverage through 1 CourseIR source row(s) while 3 exported source row(s) exist',
+      'sourceRef coverage is not wired to trusted source ledger rows: 55 atom(s) report coverage through 1 CourseIR source row(s) while 3 trusted exported source row(s) exist',
     );
   });
 });
