@@ -4,6 +4,23 @@
 
 CourseMapper is moving toward a "consider it done" course-production agent. The user should describe the course, choose scope/materials, and receive a finished draft package. The agent owns generation, QA, repair, alignment, and export readiness. Human involvement should be final approval only, not QA labor.
 
+## v0.15.58 - Enrichment Coverage Blocker
+
+Goal: address the latest Project Management package evidence that still
+regraded 74/C and reported `partial enrichment (9/12)` with lessons 6, 7, and
+8 on template fallback. A partial-enrichment package should not export as clean
+or hide behind an info caveat.
+
+Full plan: `docs/V0.15.58_ENRICHMENT_COVERAGE_BLOCKER_ROADMAP.md`
+
+1. Convert post-recovery partial enrichment into a package readiness blocker.
+2. Name the exact `enriched/requested` count and missing lesson numbers in the
+   repair message.
+3. Mark partial enrichment as a failed content gate in the run digest.
+4. Pin the live `9/12` shape with focused finalizer and digest regressions.
+5. Carry forward fresh deployed ZIP/log audit, source/research bridge work, and
+   deterministic texture cleanup.
+
 ## v0.15.57 - Study Guide Artifact Firewall
 
 Goal: address the fresh v0.15.50 Project Management package that regraded

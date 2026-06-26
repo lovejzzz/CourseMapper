@@ -287,18 +287,33 @@ function applyDeterministicRepairs({
   };
 }
 
-/**
- * Partial enrichment coverage is a diagnostic quality signal, not a
- * download safety failure. The finish pass still records it, but export-ready
- * packages should not get trapped behind a false "needs attention" blocker
- * after deterministic compilation, grade, and ZIP verification have passed.
- */
 export function buildEnrichmentCoverageIssues(enrichmentOutcome) {
   if (!enrichmentOutcome || enrichmentOutcome.modelStage !== 'ran') return [];
   const requested = Number(enrichmentOutcome.requestedLessons) || 0;
   const enriched = Number(enrichmentOutcome.enrichedLessons) || 0;
   if (requested <= 0 || enriched >= requested) return [];
-  return [];
+  const missingLessons = Array.isArray(enrichmentOutcome.missingLessons)
+    ? enrichmentOutcome.missingLessons
+        .filter((lesson) => Number.isFinite(Number(lesson)))
+        .map((lesson) => Number(lesson))
+    : [];
+  const missingCount = Math.max(0, requested - enriched);
+  const lessonText =
+    missingLessons.length > 0
+      ? `lesson${missingLessons.length === 1 ? '' : 's'} ${missingLessons.join(', ')}`
+      : `${missingCount} lesson${missingCount === 1 ? '' : 's'}`;
+  return [
+    normalizeReadinessIssue({
+      severity: 'blocker',
+      featureId: 'courseMap',
+      label: 'Enrichment coverage',
+      message: `Enrichment covered ${enriched}/${requested} lessons; ${lessonText} fell back to template. Retry or repair enrichment before exporting a clean package.`,
+      source: 'enrichmentCoverage',
+      retryable: false,
+      autoFixable: false,
+      requiresInstructorDecision: false,
+    }),
+  ];
 }
 
 /**

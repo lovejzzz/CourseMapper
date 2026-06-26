@@ -319,7 +319,7 @@ describe('run digest partial-enrichment gate (P2.2)', () => {
     return budget;
   }
 
-  it('flags partial coverage with the lesson numbers and exposes the fraction', () => {
+  it('fails partial coverage with the lesson numbers and exposes the fraction', () => {
     const digest = buildRunDigest({
       budget: budgetWithOutcome({
         modelStage: 'ran',
@@ -331,14 +331,14 @@ describe('run digest partial-enrichment gate (P2.2)', () => {
     expect(digest.gates.enrichmentCoverage).toBeCloseTo(12 / 14, 5);
     const partial = digest.gates.flaggedChecks.find((check) => check.message.includes('partial enrichment'));
     expect(partial).toBeTruthy();
-    expect(partial.status).toBe('warning');
+    expect(partial.status).toBe('failed');
     expect(partial.message).toBe('partial enrichment (12/14) — lessons 13, 14 fell back to template');
     expect(formatRunDigest(digest)).toContain('partial enrichment (12/14)');
     // The pipeline line carries the same coverage string.
     expect(digest.pipeline.enrichmentModelStage).toContain('ran (12/14 — lessons 13, 14 fell back to template)');
   });
 
-  it('keeps partial coverage as info once the finish pass is ready', () => {
+  it('keeps partial coverage failed even if the caller passes a ready finish state', () => {
     const digest = buildRunDigest({
       budget: budgetWithOutcome({
         modelStage: 'ran',
@@ -351,7 +351,7 @@ describe('run digest partial-enrichment gate (P2.2)', () => {
     const partial = digest.gates.flaggedChecks.find((check) => check.message.includes('partial enrichment'));
     expect(partial).toMatchObject({
       featureId: 'content',
-      status: 'info',
+      status: 'failed',
       message: 'partial enrichment (4/7) — lessons 5, 6, 7 fell back to template',
     });
   });
@@ -383,34 +383,51 @@ describe('run digest partial-enrichment gate (P2.2)', () => {
 // ── 2.2 Finalizer warning surface ──
 
 describe('finalizer enrichment-coverage issues (P2.2)', () => {
-  it('does not turn partial coverage into a readiness warning', () => {
-    expect(
-      buildEnrichmentCoverageIssues({
-        modelStage: 'ran',
-        enrichedLessons: 12,
-        requestedLessons: 14,
-        missingLessons: [13, 14],
+  it('turns partial coverage into a package blocker with missing lesson numbers', () => {
+    const issues = buildEnrichmentCoverageIssues({
+      modelStage: 'ran',
+      enrichedLessons: 12,
+      requestedLessons: 14,
+      missingLessons: [13, 14],
+    });
+    expect(issues).toEqual([
+      expect.objectContaining({
+        severity: 'blocker',
+        featureId: 'courseMap',
+        label: 'Enrichment coverage',
+        source: 'enrichmentCoverage',
+        retryable: false,
+        autoFixable: false,
+        requiresInstructorDecision: false,
+        message:
+          'Enrichment covered 12/14 lessons; lessons 13, 14 fell back to template. Retry or repair enrichment before exporting a clean package.',
       }),
-    ).toEqual([]);
+    ]);
   });
 
-  it('does not block download below 60% coverage', () => {
+  it('blocks all remaining post-recovery partial coverage, including the 9/12 live-audit shape', () => {
     expect(
       buildEnrichmentCoverageIssues({
         modelStage: 'ran',
-        enrichedLessons: 5,
-        requestedLessons: 14,
-        missingLessons: [6, 7, 8, 9, 10, 11, 12, 13, 14],
+        enrichedLessons: 9,
+        requestedLessons: 12,
+        missingLessons: [6, 7, 8],
+      })[0],
+    ).toEqual(
+      expect.objectContaining({
+        severity: 'blocker',
+        message:
+          'Enrichment covered 9/12 lessons; lessons 6, 7, 8 fell back to template. Retry or repair enrichment before exporting a clean package.',
       }),
-    ).toEqual([]);
+    );
     expect(
       buildEnrichmentCoverageIssues({
         modelStage: 'ran',
         enrichedLessons: 4,
         requestedLessons: 7,
         missingLessons: [5, 6, 7],
-      }),
-    ).toEqual([]);
+      })[0],
+    ).toEqual(expect.objectContaining({ severity: 'blocker' }));
   });
 
   it('emits nothing at full coverage or when the model stage did not run', () => {
@@ -423,13 +440,14 @@ describe('finalizer enrichment-coverage issues (P2.2)', () => {
 });
 
 describe('finalizer download status with partial coverage', () => {
-  it('keeps export readiness clear for the live 4/7 coverage shape', () => {
+  it('blocks export readiness for the live 4/7 coverage shape', () => {
     const issues = buildEnrichmentCoverageIssues({
       modelStage: 'ran',
       enrichedLessons: 4,
       requestedLessons: 7,
       missingLessons: [5, 6, 7],
     });
-    expect(issues).toEqual([]);
+    expect(issues).toHaveLength(1);
+    expect(issues[0]).toEqual(expect.objectContaining({ severity: 'blocker', source: 'enrichmentCoverage' }));
   });
 });

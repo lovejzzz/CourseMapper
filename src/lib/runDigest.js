@@ -63,8 +63,10 @@ export function buildRunDigest({ budget = {}, exportVerification = null, finish 
     compiledFeatureCount > 0 &&
     (!enrichmentOutcome || (enrichmentOutcome.modelStage !== 'ran' && (enrichmentOutcome.enrichedLessons || 0) === 0));
   // v0.14.1 P2.2: the zero-enrichment gate generalizes to a coverage
-  // fraction. The v0.14 audit shipped Geology at 12/14 ("ran" looked green)
-  // — partial coverage now flags at warning with the lesson numbers.
+  // fraction. The v0.14 audit shipped Geology at 12/14 ("ran" looked green);
+  // v0.15.58 tightens that again because a 9/12 live package still exported
+  // with template fallback. Any post-recovery partial coverage is a failed
+  // content gate, not an informational caveat.
   const requestedLessons = Number(enrichmentOutcome?.requestedLessons) || 0;
   const enrichedLessons = Number(enrichmentOutcome?.enrichedLessons) || 0;
   const missingLessons = Array.isArray(enrichmentOutcome?.missingLessons) ? enrichmentOutcome.missingLessons : [];
@@ -82,7 +84,7 @@ export function buildRunDigest({ budget = {}, exportVerification = null, finish 
   if (partialEnrichment) {
     coverageChecks.push({
       featureId: 'content',
-      status: finish.finalStatus === 'ready' ? 'info' : 'warning',
+      status: 'failed',
       message: `partial enrichment (${enrichedLessons}/${requestedLessons})${
         missingLessons.length > 0
           ? ` — lesson${missingLessons.length === 1 ? '' : 's'} ${missingLessons.join(', ')} fell back to template`

@@ -3,22 +3,22 @@ import { APP_VERSION } from './appVersion.js';
 export const CURRENT_RELEASE = {
   version: APP_VERSION,
   date: 'June 26, 2026',
-  title: 'Study Guide Artifact Firewall: prompt-label leakage stops at shared lesson helpers',
-  landingTitle: 'Study Guide Artifact Firewall',
+  title: 'Enrichment Coverage Blocker: partial lesson kernels stop exporting as clean',
+  landingTitle: 'Enrichment Coverage Blocker',
   highlights: [
-    'The fresh Project Management ZIP/log audit regraded at 74/C because prompt artifact labels such as "scenario quizzes" reached Study Guides and Course FAQ-style lesson language as concepts.',
-    'Shared lesson concept, artifact, source-cue, prerequisite, transfer, teaching-intent, and assessment metadata helpers now reject prompt artifact labels, compact numbered artifact runs, and internal source placeholders.',
-    'Study Guide compilation now uses sanitized lesson concepts, artifacts, source cues, key terms, exam-prep tags, and source-grounding display metadata instead of raw CourseIR labels.',
-    'Focused regressions pin the audited Study Guide leak shape while full local gates pass; source/research bridging, enrichment retry strictness, and texture hardening remain the next quality targets.',
+    'The latest Project Management ZIP evidence still regraded at 74/C and named a real coverage defect: partial enrichment (9/12) left lessons 6, 7, and 8 on template fallback.',
+    'The package finalizer now blocks post-recovery partial enrichment instead of letting it ride as a clean export caveat, with the blocker naming the missing lessons and repair expectation.',
+    'The run digest now marks partial enrichment as a failed content gate rather than downgrading it to info when a finish state says ready.',
+    'Focused finalizer/digest regressions pin the live 9/12 shape without weakening the quality grader; fresh deployed audit, source/research bridging, and texture cleanup remain next.',
   ],
   landingHighlights: [
-    'Prompt artifact labels stay out of Study Guides.',
-    'Shared lesson helpers sanitize concepts, artifacts, and source cues.',
-    'Source-grounding display metadata hides internal placeholders.',
+    'Partial enrichment blocks clean package export.',
+    'Missing lesson numbers are named in the repair state.',
+    'Run digests fail partial coverage honestly.',
   ],
   proof: {
-    contract: 'release-contracts/v0.15.57.json',
-    roadmap: 'docs/V0.15.57_STUDY_GUIDE_ARTIFACT_FIREWALL_ROADMAP.md',
+    contract: 'release-contracts/v0.15.58.json',
+    roadmap: 'docs/V0.15.58_ENRICHMENT_COVERAGE_BLOCKER_ROADMAP.md',
     auditCommand: 'npm run audit:release-history',
   },
 };
@@ -33,6 +33,17 @@ export const CURRENT_RELEASE_CHANGELOG = {
 };
 
 export const HISTORICAL_RELEASE_CHANGELOGS = [
+  {
+    version: '0.15.57',
+    date: 'June 26, 2026',
+    title: 'Study Guide Artifact Firewall: prompt-label leakage stops at shared lesson helpers',
+    highlights: [
+      'The fresh Project Management ZIP/log audit regraded at 74/C because prompt artifact labels such as "scenario quizzes" reached Study Guides and Course FAQ-style lesson language as concepts.',
+      'Shared lesson concept, artifact, source-cue, prerequisite, transfer, teaching-intent, and assessment metadata helpers now reject prompt artifact labels, compact numbered artifact runs, and internal source placeholders.',
+      'Study Guide compilation now uses sanitized lesson concepts, artifacts, source cues, key terms, exam-prep tags, and source-grounding display metadata instead of raw CourseIR labels.',
+      'Focused regressions pin the audited Study Guide leak shape while full local gates pass; source/research bridging, enrichment retry strictness, and texture hardening remain the next quality targets.',
+    ],
+  },
   {
     version: '0.15.56',
     date: 'June 26, 2026',

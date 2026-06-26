@@ -135,7 +135,7 @@ describe('v0.15.4 Linear Algebra output quality regressions', () => {
         flaggedChecks: [
           {
             featureId: 'content',
-            status: 'info',
+            status: 'failed',
             message: 'partial enrichment (12/15) — lessons 13, 14, 15 fell back to template',
           },
           {
@@ -197,7 +197,7 @@ describe('v0.15.4 Linear Algebra output quality regressions', () => {
         flaggedChecks: [
           {
             featureId: 'content',
-            status: 'info',
+            status: 'failed',
             message: 'partial enrichment (11/15) — lessons 9, 10, 11, 12 fell back to template',
           },
         ],

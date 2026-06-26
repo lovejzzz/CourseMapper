@@ -79,6 +79,36 @@ function makeIntroPsychCourseMap(lessonCount = 15) {
 }
 
 describe('packageFinalizer', () => {
+  it('blocks package readiness when enrichment coverage is partial after recovery', () => {
+    const result = runDeterministicPackageFinalizer({
+      courseMap: makeCourseMap(12),
+      selectedFeatures: ['courseMap'],
+      includeClassroomReadiness: false,
+      includePedagogicalValidation: false,
+      retryWarnings: false,
+      enrichmentOutcome: {
+        modelStage: 'ran',
+        enrichedLessons: 9,
+        requestedLessons: 12,
+        missingLessons: [6, 7, 8],
+      },
+    });
+
+    expect(result.status).toBe('blocked');
+    expect(result.readiness.isBlocked).toBe(true);
+    expect(result.readiness.blockers).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          source: 'enrichmentCoverage',
+          severity: 'blocker',
+          requiresInstructorDecision: false,
+          message:
+            'Enrichment covered 9/12 lessons; lessons 6, 7, 8 fell back to template. Retry or repair enrichment before exporting a clean package.',
+        }),
+      ]),
+    );
+  });
+
   it('can include classroom-readiness warnings in strict export readiness', () => {
     const repeated =
       'Students will participate in a generic discussion and complete a short reflection that connects to the topic.';
