@@ -42,10 +42,7 @@
       "status": "verified-current",
       "changelogHighlightIndex": 0,
       "summary": "The release keeps the latest 96/A Project Management evidence visible and treats source proof loss as a CourseMapper bridge/accounting issue, not a model-only issue.",
-      "anchors": [
-        "docs/V0.15.64_SOURCE_LEDGER_TRUST_ACCOUNTING_ROADMAP.md",
-        "release-contracts/v0.15.64.json"
-      ],
+      "anchors": ["docs/V0.15.64_SOURCE_LEDGER_TRUST_ACCOUNTING_ROADMAP.md", "release-contracts/v0.15.64.json"],
       "proofCommands": ["npm run audit:release-history"],
       "proofScopes": ["doc", "static-audit"]
     },
