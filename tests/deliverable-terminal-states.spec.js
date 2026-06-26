@@ -164,7 +164,7 @@ test.describe('All-deliverables terminal states', () => {
 
     await expect(packageSummary.getByText('Review before export')).toBeVisible({ timeout: 30000 });
     await expect(packageSummary).toContainText('1 issue to fix');
-    await expect(packageSummary).toContainText('Custom Deliverable failed to generate');
+    await expect(packageSummary).toContainText('Terminal Failure Pack failed to generate');
     await expect(ideButton).toBeEnabled({ timeout: 5000 });
 
     await page.getByRole('button', { name: new RegExp(`^${CUSTOM_FAILURE_NAME}`) }).click();

@@ -201,7 +201,7 @@ test.describe('Agent auto-review', () => {
     ).toBeVisible({
       timeout: 30000,
     });
-    await expect(packageSummary.getByText(/Done|Needs you|Review/)).toBeVisible();
+    await expect(packageSummary.getByText(/^(Done|Action needed|Review notes)$/)).toBeVisible();
 
     // The final pass now runs through deterministic finalization, not through
     // a hidden user-authored chat turn or agent tool-call request.

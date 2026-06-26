@@ -63,14 +63,45 @@ function summarizePackageQuality(readiness, repairsApplied = 0) {
   return `${repairText}Workspace is ready to download.`;
 }
 
-function buildPackageReceiptSummary(packageQualityPass, courseMap, selectedFeatures = []) {
+function getSelectedFailedDeliverableIssues(deliverables = {}, selectedFeatures = []) {
+  if (!deliverables || typeof deliverables !== 'object') return [];
+  const selected = Array.isArray(selectedFeatures) && selectedFeatures.length > 0 ? selectedFeatures : [];
+  return selected
+    .filter((featureId) => featureId && featureId !== 'courseMap')
+    .map((featureId) => {
+      const entry = deliverables?.[featureId];
+      if (!entry) return null;
+      const status = String(entry.status || '').toLowerCase();
+      if (status !== 'error' && status !== 'failed' && !entry.error) return null;
+      const label = resolveLabel(featureId) || 'Material';
+      return {
+        severity: 'error',
+        label,
+        message: `${label} failed to generate.`,
+      };
+    })
+    .filter(Boolean);
+}
+
+function dedupePackageIssues(issues = []) {
+  const seen = new Set();
+  return issues.filter((issue) => {
+    const key = `${issue?.severity || ''}:${issue?.label || ''}:${issue?.message || ''}`;
+    if (!issue?.label || !issue?.message || seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
+}
+
+function buildPackageReceiptSummary(packageQualityPass, courseMap, selectedFeatures = [], deliverables = {}) {
   // v0.15.3 C2: phase questions go through the machine's selectors —
   // finishStatusOf(null) is 'idle', which covers the missing-pass case.
   const finishStatus = finishStatusOf(packageQualityPass);
   if (finishStatus === 'running' || finishStatus === 'idle') return null;
   const receipt = packageQualityPass.receipt || {};
   const trustStatus = getPackageTrustStatus({ packageQualityPass });
-  const blockerCount = trustStatus.blockerCount;
+  const failedDeliverableIssues = getSelectedFailedDeliverableIssues(deliverables, selectedFeatures);
+  const blockerCount = Math.max(trustStatus.blockerCount, failedDeliverableIssues.length);
   const warningCount = trustStatus.warningCount;
   const ready = isPackageReady(packageQualityPass) && trustStatus.clean;
   const tone = trustStatus.toneKey === 'neutral' ? 'assumptions' : trustStatus.toneKey;
@@ -104,7 +135,12 @@ function buildPackageReceiptSummary(packageQualityPass, courseMap, selectedFeatu
     trustBoundary: receipt.trustBoundary || null,
     repairSummary: receipt.repairSummary || 'none',
     reviewRecommendation: receipt.reviewRecommendation || '',
-    topIssues: ready ? [] : trustStatus.reviewIssues.length > 0 ? trustStatus.reviewIssues : receipt.topIssues || [],
+    topIssues: ready
+      ? []
+      : dedupePackageIssues([
+          ...failedDeliverableIssues,
+          ...(trustStatus.reviewIssues.length > 0 ? trustStatus.reviewIssues : receipt.topIssues || []),
+        ]),
   };
 }
 
@@ -166,7 +202,12 @@ function buildPackageFinishSummaryMessage(result = {}, courseMap, selectedFeatur
     quality: result.quality || null,
   };
   return buildPackageReceiptMessage(
-    buildPackageReceiptSummary(packageQualityPass, result.courseMap || courseMap, selectedFeatures),
+    buildPackageReceiptSummary(
+      packageQualityPass,
+      result.courseMap || courseMap,
+      selectedFeatures,
+      result.deliverables || {},
+    ),
     packageQualityPass,
   );
 }
@@ -1462,8 +1503,8 @@ export default function ChatPanel({
     [landingContextSummary],
   );
   const packageReceiptSummary = useMemo(
-    () => buildPackageReceiptSummary(packageQualityPass, courseMap, selectedFeatures),
-    [courseMap, packageQualityPass, selectedFeatures],
+    () => buildPackageReceiptSummary(packageQualityPass, courseMap, selectedFeatures, deliverables),
+    [courseMap, deliverables, packageQualityPass, selectedFeatures],
   );
   const displayedMessages = useMemo(() => {
     const packageReceiptMessage = buildPackageReceiptMessage(packageReceiptSummary, packageQualityPass);

@@ -4,6 +4,26 @@
 
 CourseMapper is moving toward a "consider it done" course-production agent. The user should describe the course, choose scope/materials, and receive a finished draft package. The agent owns generation, QA, repair, alignment, and export readiness. Human involvement should be final approval only, not QA labor.
 
+## v0.15.53 - Ready Notes Workflow
+
+Goal: fix the automation and agent-receipt gaps exposed by the v0.15.52
+browser round. A package with non-blocking caveats can be downloadable and
+amber at the same time; the recorded workflow should treat that as valid while
+still failing any caveated package that looks clean green.
+
+Full plan: `docs/V0.15.53_READY_NOTES_WORKFLOW_ROADMAP.md`
+
+1. Accept `Ready with notes` as a downloadable recorded-workflow state when
+   the ZIP action is available.
+2. Keep the caveated-package assertion strict: no `Ready to download`, `Done`,
+   or emerald styling for quality/texture/export caveats.
+3. Preserve selected failed custom deliverables by name in the agent package
+   receipt, not only as a generic blocker count.
+4. Update browser E2E contracts so the export panel stays calm and amber while
+   still proving ZIP/CSV/DOCX/PPTX downloads work.
+5. Keep the real quality targets carried forward: source-ledger/research
+   bridge first, then prompt-artifact leakage.
+
 ## v0.15.52 - Clean Export Notes
 
 Goal: fix the v0.15.51 Project Management finish experience where a

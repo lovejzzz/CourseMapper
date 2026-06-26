@@ -3,22 +3,22 @@ import { APP_VERSION } from './appVersion.js';
 export const CURRENT_RELEASE = {
   version: APP_VERSION,
   date: 'June 26, 2026',
-  title: 'Clean Export Notes: downloadable caveats stop overwhelming users',
-  landingTitle: 'Clean Export Notes',
+  title: 'Ready Notes Workflow: downloadable caveats stop failing automation',
+  landingTitle: 'Ready Notes Workflow',
   highlights: [
-    'The v0.15.51 Project Management browser audit showed a technically honest but noisy finish state: the export card and agent panel surfaced raw warning text instead of a clean downloadable package handoff.',
-    'Downloadable packages with non-blocking caveats now present as "Ready with notes," keep the amber review state, hide raw issue detail behind a notes toggle, and avoid exposing internal P1/P2/export wording as the main user experience.',
-    'The package trust helper still preserves the review evidence for instructors and reports; clean green readiness remains reserved for packages with no quality, texture, source, or export caveats.',
-    'Slide deck speaker notes now shorten repeated long assessment artifact names without creating a new readiness-warning boilerplate sentence or the old PPTX repeated-phrase export warning.',
+    'The recorded browser smoke was still treating the new amber "Ready with notes" state as not downloadable, even when the ZIP button was visible and the package had only non-blocking caveats.',
+    'The workflow assertion now accepts "Ready with notes" as a downloadable amber state while still failing any caveated package that leaks green "Ready to download" or "Done" status.',
+    'Agent package receipts now include selected failed custom deliverables by name, so a mixed package says "Terminal Failure Pack failed to generate" instead of hiding the blocker behind a generic count.',
+    'Export and agent E2E coverage now pins the v0.15.52 UI contract: caveated packages stay calm and amber, raw issue detail stays collapsed, and downloads remain available when there are no blockers.',
   ],
   landingHighlights: [
-    'Downloadable caveated packages show calm "Ready with notes" copy.',
-    'Raw warning detail moves behind instructor review notes.',
-    'PPTX speaker notes stop stamping the long artifact phrase.',
+    'Recorded workflow accepts amber downloadable notes.',
+    'Caveated packages still cannot look green.',
+    'Failed custom deliverables are named in the agent receipt.',
   ],
   proof: {
-    contract: 'release-contracts/v0.15.52.json',
-    roadmap: 'docs/V0.15.52_CLEAN_EXPORT_NOTES_ROADMAP.md',
+    contract: 'release-contracts/v0.15.53.json',
+    roadmap: 'docs/V0.15.53_READY_NOTES_WORKFLOW_ROADMAP.md',
     auditCommand: 'npm run audit:release-history',
   },
 };
@@ -33,6 +33,17 @@ export const CURRENT_RELEASE_CHANGELOG = {
 };
 
 export const HISTORICAL_RELEASE_CHANGELOGS = [
+  {
+    version: '0.15.52',
+    date: 'June 26, 2026',
+    title: 'Clean Export Notes: downloadable caveats stop overwhelming users',
+    highlights: [
+      'The v0.15.51 Project Management browser audit showed a technically honest but noisy finish state: the export card and agent panel surfaced raw warning text instead of a clean downloadable package handoff.',
+      'Downloadable packages with non-blocking caveats now present as "Ready with notes," keep the amber review state, hide raw issue detail behind a notes toggle, and avoid exposing internal P1/P2/export wording as the main user experience.',
+      'The package trust helper still preserves the review evidence for instructors and reports; clean green readiness remains reserved for packages with no quality, texture, source, or export caveats.',
+      'Slide deck speaker notes now shorten repeated long assessment artifact names without creating a new readiness-warning boilerplate sentence or the old PPTX repeated-phrase export warning.',
+    ],
+  },
   {
     version: '0.15.51',
     date: 'June 26, 2026',

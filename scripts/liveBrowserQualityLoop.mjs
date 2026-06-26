@@ -329,6 +329,7 @@ export function isDownloadablePackageState(status, zipLabel) {
   return (
     /\bReady to download\b/i.test(normalizedStatus) ||
     /\bReview before download\b/i.test(normalizedStatus) ||
+    /\bReady with notes\b/i.test(normalizedStatus) ||
     /^\s*Ready\s*$/i.test(normalizedStatus)
   );
 }
@@ -446,12 +447,12 @@ export async function assertCaveatedPackageCardUsesReviewState(page) {
   const hasCaveat =
     (Number.isFinite(qualityScore) && qualityScore < 100) ||
     (Number.isFinite(textureScore) && textureScore < 100) ||
-    /\b(?:export warnings?|P[12]|Review before download)\b/i.test(combined);
+    /\b(?:export warnings?|P[12]|Review before download|Ready with notes)\b/i.test(combined);
 
   if (!hasCaveat) return { checked: false, reason: 'no-caveat' };
   const leaks = [];
   if (
-    !/Review before download/i.test(surfaces.readinessStatus) ||
+    !/\b(?:Review before download|Ready with notes)\b/i.test(surfaces.readinessStatus) ||
     /Ready to download/i.test(surfaces.readinessStatus)
   ) {
     leaks.push('readiness status');

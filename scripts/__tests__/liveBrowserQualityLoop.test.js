@@ -119,6 +119,7 @@ describe('waitForExportSidePanel', () => {
 describe('recorded workflow assertions', () => {
   it('treats caveated review packages with a ZIP action as downloadable', () => {
     expect(isDownloadablePackageState('Review before download', 'Download ZIP')).toBe(true);
+    expect(isDownloadablePackageState('Ready with notes', 'Download ZIP')).toBe(true);
     expect(isDownloadablePackageState('Ready to download', 'Download ZIP')).toBe(true);
     expect(isDownloadablePackageState('Not ready', 'Download ZIP')).toBe(false);
     expect(isDownloadablePackageState('Review before download', 'Finish package')).toBe(false);
@@ -161,10 +162,10 @@ describe('recorded workflow assertions', () => {
   it('passes when a caveated package card presents amber review state', async () => {
     const page = {
       getByTestId: vi.fn((testId) => {
-        if (testId === 'export-side-panel') return textLocator('Review before download Quality 96 Texture 92');
-        if (testId === 'readiness-status') return textLocator('Review before download');
+        if (testId === 'export-side-panel') return textLocator('Ready with notes Quality 96 Texture 92');
+        if (testId === 'readiness-status') return textLocator('Ready with notes');
         if (testId === 'workspace-quality-chip') return textLocator('Quality 96 · Texture 92', { class: 'amber' });
-        if (testId === 'package-summary-card') return textLocator('Review before download', { class: 'amber' });
+        if (testId === 'package-summary-card') return textLocator('Ready with notes Review notes', { class: 'amber' });
         return emptyLocator();
       }),
     };

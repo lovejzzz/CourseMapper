@@ -1370,7 +1370,7 @@ test.describe('Export smoke', () => {
     });
 
     await page.getByTestId('export-scope-all').click();
-    await expect(page.getByTestId('readiness-status')).toContainText('Ready to download');
+    await expect(page.getByTestId('readiness-status')).toContainText('Ready with notes');
     await expect(page.getByTestId('readiness-panel')).not.toContainText('fewer than 5 questions');
 
     await expectDownload(page, () => page.getByTestId('export-download-zip').click(), {
@@ -1415,7 +1415,7 @@ test.describe('Export smoke', () => {
     });
 
     await page.getByTestId('export-scope-all').click();
-    await expect(page.getByTestId('readiness-status')).toContainText('Ready to download');
+    await expect(page.getByTestId('readiness-status')).toContainText('Ready with notes');
     await expect(page.getByTestId('readiness-panel')).not.toContainText('Rubrics are missing assessed lesson');
 
     const zipDownload = await expectDownload(page, () => page.getByTestId('export-download-zip').click(), {
@@ -1454,7 +1454,7 @@ test.describe('Export smoke', () => {
     });
 
     await page.getByTestId('export-scope-all').click();
-    await expect(page.getByTestId('readiness-status')).toContainText('Ready to download');
+    await expect(page.getByTestId('readiness-status')).toContainText('Ready with notes');
     await expect(page.getByTestId('readiness-panel')).not.toContainText('Rubrics readability');
 
     const zipDownload = await expectDownload(page, () => page.getByTestId('export-download-zip').click(), {
@@ -1506,7 +1506,7 @@ test.describe('Export smoke', () => {
     });
 
     await page.getByTestId('export-scope-all').click();
-    await expect(page.getByTestId('readiness-status')).toContainText('Ready to download');
+    await expect(page.getByTestId('readiness-status')).toContainText('Ready with notes');
 
     const zipDownload = await expectDownload(page, () => page.getByTestId('export-download-zip').click(), {
       extension: 'zip',
@@ -1654,7 +1654,7 @@ test.describe('Export smoke', () => {
     });
 
     await page.getByTestId('export-scope-all').click();
-    await expect(page.getByTestId('readiness-status')).toContainText('Ready to download');
+    await expect(page.getByTestId('readiness-status')).toContainText('Ready with notes');
     await expect(page.getByTestId('readiness-panel')).not.toContainText('missing instructor guidance');
     await expectDownload(page, () => page.getByTestId('export-download-zip').click(), {
       extension: 'zip',
@@ -1706,7 +1706,7 @@ test.describe('Export smoke', () => {
     });
 
     await switchWorkspaceTab(page, 'Course FAQ');
-    await expect(page.getByTestId('readiness-status')).toContainText('Ready to download');
+    await expect(page.getByTestId('readiness-status')).toContainText('Ready with notes');
     await expectDownload(page, () => page.getByTestId('export-format-csv').click(), {
       extension: 'csv',
       nameIncludes: 'Export Smoke Course',
@@ -1846,7 +1846,7 @@ test.describe('Export smoke', () => {
     });
 
     await page.getByTestId('export-scope-all').click();
-    await expect(page.getByTestId('readiness-status')).toContainText('Ready to download');
+    await expect(page.getByTestId('readiness-status')).toContainText('Ready with notes');
     await expect(page.getByTestId('readiness-panel')).not.toContainText('[Instructor name]');
     await expect(page.getByTestId('readiness-panel')).not.toContainText('[Verify time]');
 
@@ -1896,7 +1896,7 @@ test.describe('Export smoke', () => {
     });
 
     await page.getByTestId('export-scope-all').click();
-    await expect(page.getByTestId('readiness-status')).toContainText('Ready to download');
+    await expect(page.getByTestId('readiness-status')).toContainText('Ready with notes');
     await expect(page.getByTestId('readiness-panel')).not.toContainText('objective stem');
     await expect(page.getByTestId('readiness-panel')).not.toContainText('Students will be able to');
 
@@ -1938,7 +1938,7 @@ test.describe('Export smoke', () => {
     });
 
     await page.getByTestId('export-scope-all').click();
-    await expect(page.getByTestId('readiness-status')).toContainText('Ready to download');
+    await expect(page.getByTestId('readiness-status')).toContainText('Ready with notes');
     await expect(page.getByTestId('readiness-panel')).not.toContainText('placeholder content');
 
     const zipDownload = await expectDownload(page, () => page.getByTestId('export-download-zip').click(), {
