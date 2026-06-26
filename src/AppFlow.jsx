@@ -1675,7 +1675,7 @@ export default function AppFlow({ startupAction = null, onStartupHandled, onRetu
 
         // v0.14.3 WS-A A2: after export_verify passes, the package grades
         // itself — deterministic deep-quality grade over the same in-memory
-        // file map the ZIP download assembles. Lazy chunk, 10s timeout,
+        // file map the ZIP download assembles. Lazy chunk, bounded timeout,
         // non-blocking: any failure becomes quality { status: 'not-graded' }.
         let packageQuality = null;
         if ((exportVerification?.failed || 0) > 0) {

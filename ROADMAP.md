@@ -4,6 +4,24 @@
 
 CourseMapper is moving toward a "consider it done" course-production agent. The user should describe the course, choose scope/materials, and receive a finished draft package. The agent owns generation, QA, repair, alignment, and export readiness. Human involvement should be final approval only, not QA labor.
 
+## v0.15.51 - Quality Timeout Truth
+
+Goal: fix the fresh v0.15.50 ZIP/log audit mismatch where the browser digest
+reported `quality not graded` after a 10s timeout, while the downloaded ZIP and
+local regrade produced a concrete 74/C package report.
+
+Full plan: `docs/V0.15.51_QUALITY_TIMEOUT_TRUTH_ROADMAP.md`
+
+1. Share one package-quality timeout between finalize grading and ZIP
+   self-grading.
+2. Give full 12-lesson packages enough bounded time to produce their honest
+   quality score.
+3. Keep true timeouts visible as `not-graded` review caveats instead of hiding
+   them.
+4. Pin the finalizer timeout handoff with focused regression coverage.
+5. Carry forward the real 74/C content defects: prompt-artifact leakage,
+   source-ledger/research bridge weakness, and PPTX repeated text.
+
 ## v0.15.50 - Reviewed ZIP Download Handoff
 
 Goal: fix the deployed v0.15.49 Project Management download loop without

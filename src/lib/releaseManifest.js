@@ -3,22 +3,22 @@ import { APP_VERSION } from './appVersion.js';
 export const CURRENT_RELEASE = {
   version: APP_VERSION,
   date: 'June 26, 2026',
-  title: 'Reviewed ZIP Download Handoff: finished packages download their audit evidence',
-  landingTitle: 'Reviewed ZIP Download Handoff',
+  title: 'Quality Timeout Truth: finalize grading matches ZIP regrade evidence',
+  landingTitle: 'Quality Timeout Truth',
   highlights: [
-    'The deployed v0.15.49 Project Management console log showed every Download ZIP click starting another finish/export verification pass instead of saving the ZIP.',
-    'The export panel now treats a terminal package receipt, including a blocked quality receipt with report evidence, as the handoff to ZIP download instead of rerunning finish forever.',
-    'Structural readiness blockers still trigger finish/review flow, while blocked or caveated package quality remains visible in the trust card and bundled QUALITY_REPORT.md.',
-    'A focused ExportSidePanel regression pins the 74/C terminal-quality-blocker shape: the visible Download ZIP button calls the ZIP exporter and does not call onFinishPackage again.',
+    'A fresh deployed v0.15.50 Project Management ZIP/log audit confirmed the physical ZIP download now works, but exposed a new truth mismatch: the browser digest said quality was not graded while the ZIP regraded 74/C.',
+    'Finalize grading and ZIP self-grading now share a 30-second quality timeout, giving the existing deep grader enough room to finish on real 12-lesson packages instead of falling into premature not-graded state.',
+    'The fix does not weaken quality standards: the same local grader still reports the package at 74/C with prompt-artifact leakage, source/citation defects, and a PPTX repeated-phrase warning.',
+    'Focused regression coverage pins the finalizer timeout handoff so future package-finalizer changes keep using the shared ZIP-quality bound.',
   ],
   landingHighlights: [
-    'Finished reviewed packages can actually download.',
-    'Quality blockers stay visible instead of being hidden as green ready.',
-    'The ZIP path no longer loops through finish after a terminal receipt.',
+    'Finalize grading gets the same timeout budget as ZIP self-grading.',
+    'Not-graded package caveats stop masking regradable 74/C evidence.',
+    'The v0.15.50 download fix is confirmed on a fresh ZIP/log audit.',
   ],
   proof: {
-    contract: 'release-contracts/v0.15.50.json',
-    roadmap: 'docs/V0.15.50_REVIEWED_ZIP_DOWNLOAD_ROADMAP.md',
+    contract: 'release-contracts/v0.15.51.json',
+    roadmap: 'docs/V0.15.51_QUALITY_TIMEOUT_TRUTH_ROADMAP.md',
     auditCommand: 'npm run audit:release-history',
   },
 };
@@ -33,6 +33,17 @@ export const CURRENT_RELEASE_CHANGELOG = {
 };
 
 export const HISTORICAL_RELEASE_CHANGELOGS = [
+  {
+    version: '0.15.50',
+    date: 'June 26, 2026',
+    title: 'Reviewed ZIP Download Handoff: finished packages download their audit evidence',
+    highlights: [
+      'The deployed v0.15.49 Project Management console log showed every Download ZIP click starting another finish/export verification pass instead of saving the ZIP.',
+      'The export panel now treats a terminal package receipt, including a blocked quality receipt with report evidence, as the handoff to ZIP download instead of rerunning finish forever.',
+      'Structural readiness blockers still trigger finish/review flow, while blocked or caveated package quality remains visible in the trust card and bundled QUALITY_REPORT.md.',
+      'A focused ExportSidePanel regression pins the 74/C terminal-quality-blocker shape: the visible Download ZIP button calls the ZIP exporter and does not call onFinishPackage again.',
+    ],
+  },
   {
     version: '0.15.49',
     date: 'June 26, 2026',

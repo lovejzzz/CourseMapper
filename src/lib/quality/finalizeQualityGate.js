@@ -20,7 +20,9 @@
  * stay a lazy chunk loaded only when finalize-grading runs (WS-A A4).
  */
 
-import { buildCourseMaterialsZip } from '../packageZipExporter.js';
+import { buildCourseMaterialsZip, DEFAULT_PACKAGE_QUALITY_TIMEOUT_MS } from '../packageZipExporter.js';
+
+export const PACKAGE_FINALIZE_QUALITY_TIMEOUT_MS = DEFAULT_PACKAGE_QUALITY_TIMEOUT_MS;
 
 export async function gradePackageAtFinalize({
   courseMap,
@@ -34,7 +36,7 @@ export async function gradePackageAtFinalize({
   budget = null,
   digest = null,
   courseId = '',
-  timeoutMs = 10000,
+  timeoutMs = PACKAGE_FINALIZE_QUALITY_TIMEOUT_MS,
 } = {}) {
   try {
     // The timeout bounds the WHOLE assemble+grade pass (file building plus

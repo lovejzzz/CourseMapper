@@ -10,6 +10,7 @@ import { safeImport } from './safeImport';
 import { peekVoicePassOutcome } from './voicePass.js';
 
 const MIN_EXPORT_BYTES = 128;
+export const DEFAULT_PACKAGE_QUALITY_TIMEOUT_MS = 30000;
 const SPLIT_BY_LESSON_FEATURES = new Set([
   'lessonPlans',
   'slideDecks',
@@ -911,7 +912,8 @@ export async function buildCourseMaterialsZip({
   // manifest serialized WITHOUT its quality block, then quality is injected
   // before zip assembly. The grader ignores manifest.quality and skips
   // QUALITY_REPORT.md by contract, so a downloaded package regrades to the
-  // same score. Grading is bounded (10s default); timeout/error becomes
+  // same score. Grading is bounded by DEFAULT_PACKAGE_QUALITY_TIMEOUT_MS;
+  // timeout/error becomes
   // quality { status: 'not-graded', reason }. Actual graded P0s are handled
   // by the finalizer quality gate before the export panel downloads the ZIP.
   let qualityBlock = null;
@@ -919,7 +921,9 @@ export async function buildCourseMaterialsZip({
   let qualityReportMarkdown = null;
   if (quality !== false) {
     const qualityOptions = quality && typeof quality === 'object' ? quality : {};
-    const timeoutMs = Number.isFinite(qualityOptions.timeoutMs) ? qualityOptions.timeoutMs : 10000;
+    const timeoutMs = Number.isFinite(qualityOptions.timeoutMs)
+      ? qualityOptions.timeoutMs
+      : DEFAULT_PACKAGE_QUALITY_TIMEOUT_MS;
     try {
       // Lazy: the grader + defect patterns are their own chunk, loaded only
       // when finalize-grading runs (bundle discipline, WS-A A4).
