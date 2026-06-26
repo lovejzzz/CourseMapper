@@ -3,22 +3,22 @@ import { APP_VERSION } from './appVersion.js';
 export const CURRENT_RELEASE = {
   version: APP_VERSION,
   date: 'June 26, 2026',
-  title: 'Project Management Texture Variation: repeated compiler stamps rotate by lesson',
-  landingTitle: 'Project Management Texture Variation',
+  title: 'Source License Trust Gate: metadata-only readings stop becoming trusted sources',
+  landingTitle: 'Source License Trust Gate',
   highlights: [
-    'The latest v0.15.59 Project Management ZIP/log audit reached 98/A but still measured texture at 90 because repeated compiler phrases stamped across slide decks, discussions, rubrics, and quiz-bank answers.',
-    'Capstone milestone-practice language now rotates before it enters lesson modality, slide, and activity surfaces, so Project Management decks no longer repeat the same sponsor-constraint milestone phrase across every lesson.',
-    'Rubric parameter bands, objective slide notes, enriched discussion tension framing, and kernel-projected short-answer limitations now use deterministic lesson-indexed variants instead of one package-wide sentence.',
-    'Focused texture regressions recreate the Project Management package shape and cap the exact repeated phrases without weakening the texture grader, source grader, or quality thresholds.',
+    'The latest Project Management ZIP/log audit still regraded at 98/A and named citation losses where source-ledger rows carried ambiguous public-metadata licenses instead of explicit reuse rights.',
+    'Source-finder ranking now treats an explicit reusable license as a hard ordering rule before provider score, so metadata-only OpenAlex/Crossref hits cannot beat a clear-license source.',
+    'Open reading attachment now records a no-reusable-license decision when all relevant candidates are metadata-only, instead of promoting those hits into trusted course resources and source-ledger rows.',
+    'The source-ledger ambiguity classifier and quality checker now agree on provider public-metadata wording, with focused regressions pinning the behavior without weakening source standards.',
   ],
   landingHighlights: [
-    'Project Management texture stamps rotate by lesson.',
-    'Rubric, slide, discussion, and quiz frames vary deterministically.',
-    'Focused texture regressions keep the grader strict.',
+    'Metadata-only readings no longer become trusted sources.',
+    'Clear reusable licenses outrank provider prestige.',
+    'Source quality checks stay strict and aligned.',
   ],
   proof: {
-    contract: 'release-contracts/v0.15.61.json',
-    roadmap: 'docs/V0.15.61_PROJECT_MANAGEMENT_TEXTURE_VARIATION_ROADMAP.md',
+    contract: 'release-contracts/v0.15.62.json',
+    roadmap: 'docs/V0.15.62_SOURCE_LICENSE_TRUST_GATE_ROADMAP.md',
     auditCommand: 'npm run audit:release-history',
   },
 };
@@ -33,6 +33,17 @@ export const CURRENT_RELEASE_CHANGELOG = {
 };
 
 export const HISTORICAL_RELEASE_CHANGELOGS = [
+  {
+    version: '0.15.61',
+    date: 'June 26, 2026',
+    title: 'Project Management Texture Variation: repeated compiler stamps rotate by lesson',
+    highlights: [
+      'The latest v0.15.59 Project Management ZIP/log audit reached 98/A but still measured texture at 90 because repeated compiler phrases stamped across slide decks, discussions, rubrics, and quiz-bank answers.',
+      'Capstone milestone-practice language now rotates before it enters lesson modality, slide, and activity surfaces, so Project Management decks no longer repeat the same sponsor-constraint milestone phrase across every lesson.',
+      'Rubric parameter bands, objective slide notes, enriched discussion tension framing, and kernel-projected short-answer limitations now use deterministic lesson-indexed variants instead of one package-wide sentence.',
+      'Focused texture regressions recreate the Project Management package shape and cap the exact repeated phrases without weakening the texture grader, source grader, or quality thresholds.',
+    ],
+  },
   {
     version: '0.15.60',
     date: 'June 26, 2026',

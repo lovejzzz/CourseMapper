@@ -103,7 +103,7 @@ const SCHEHERAZADE_WORK = {
   url: 'https://www.cambridge.org/core/services/aop-cambridge-core/content/view/scheherazade.pdf',
   citedBy: 60,
   authors: 'Wen-chin Ouyang',
-  license: 'open access',
+  license: 'cc-by',
   primaryTopic: {
     name: 'World Literatures and Comparative Criticism',
     field: 'Arts and Humanities',
@@ -131,7 +131,7 @@ const MEDIATION_WORK = {
   url: 'https://example.org/mediator.pdf',
   citedBy: 40,
   authors: 'A. Translator',
-  license: 'open access',
+  license: 'cc-by',
 };
 
 function worldLitGraph({ number, sessionTitle, conceptTerms }) {

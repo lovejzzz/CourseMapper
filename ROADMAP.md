@@ -4,6 +4,25 @@
 
 CourseMapper is moving toward a "consider it done" course-production agent. The user should describe the course, choose scope/materials, and receive a finished draft package. The agent owns generation, QA, repair, alignment, and export readiness. Human involvement should be final approval only, not QA labor.
 
+## v0.15.62 - Source License Trust Gate
+
+Goal: address the latest Project Management package citation evidence where a
+98/A ZIP still lost points because exported source-ledger rows carried
+ambiguous public-metadata licenses instead of explicit reusable-license proof.
+
+Full plan: `docs/V0.15.62_SOURCE_LICENSE_TRUST_GATE_ROADMAP.md`
+
+1. Treat explicit reusable licenses as a hard source-finder ranking priority,
+   ahead of provider prestige and topical score.
+2. Refuse to attach metadata-only OpenAlex/Crossref readings as trusted course
+   resources when no clear reusable-license candidate is available.
+3. Record a visible reading-list decision for rejected metadata-only candidates
+   so the app can explain the gap without presenting weak proof as done.
+4. Keep source-ledger and quality-check ambiguity rules aligned for all
+   provider public-metadata wording.
+5. Carry forward fresh deployed ZIP/log audit, native-authoring fallback repair,
+   and remaining texture verification.
+
 ## v0.15.61 - Project Management Texture Variation
 
 Goal: address the latest Project Management package texture evidence where a

@@ -379,7 +379,12 @@ function dedupeAndRankSources(rawSources, topic, limit) {
     if (!existing || scored.score > existing.score) byKey.set(key, scored);
   }
   return [...byKey.values()]
-    .sort((a, b) => b.score - a.score || a.title.localeCompare(b.title))
+    .sort(
+      (a, b) =>
+        Number(!isLicenseAmbiguous(b.license)) - Number(!isLicenseAmbiguous(a.license)) ||
+        b.score - a.score ||
+        a.title.localeCompare(b.title),
+    )
     .slice(0, limit)
     .map(({ score, ...source }) => source);
 }

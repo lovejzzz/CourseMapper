@@ -17,7 +17,7 @@ function ambiguousLicense(row) {
   return (
     row?.licenseAmbiguous === true ||
     !license ||
-    /^(open access|open license|unknown|public metadata|open library public metadata|metadata only|instructor review required|review required|varies|mixed)$/.test(
+    /^(open access|open license|unknown|(?:[\w.-]+\s+)*public metadata|metadata only|instructor review required|review required|varies|mixed)$/.test(
       license,
     )
   );

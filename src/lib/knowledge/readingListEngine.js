@@ -899,7 +899,22 @@ export async function attachOpenReadings(graph, { providers = {}, signal, maxSes
       });
       continue;
     }
-    const work = passing[0].work;
+    const licensedPassing = passing.filter((entry) => hasExplicitReuseLicense(entry.work));
+    if (licensedPassing.length === 0) {
+      decisions.push({
+        type: 'no-reusable-license-reading',
+        lesson: session.number ?? null,
+        sessionId: session.id ?? null,
+        rejected: candidates.length,
+        candidates: candidates.slice(0, 4).map((work) => work.title),
+        licenses: candidates.slice(0, 4).map((work) => cleanText(work.license || 'missing')),
+        message: `no reusable-license open reading found for L${session.number ?? '?'} (rejected ${candidates.length} metadata-only candidate${
+          candidates.length === 1 ? '' : 's'
+        })`,
+      });
+      continue;
+    }
+    const work = licensedPassing[0].work;
     const citation = formatScholarlyCitation(work);
     if (seen.has(citation.toLowerCase())) continue;
     seen.add(citation.toLowerCase());

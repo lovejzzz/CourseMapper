@@ -16,7 +16,7 @@ const OER_PROVIDERS = new Set(['openstax', 'genome', 'genome-prerequisite']);
 const METADATA_ONLY_PROVIDERS = new Set(['openlibrary']);
 const GENERIC_RESOURCE_PROVIDERS = new Set(['', 'course-resource', 'course-map', 'resource', 'syllabus']);
 const AMBIGUOUS_LICENSE_RE =
-  /^(?:|unknown|open access|open license|public metadata|open library public metadata|crossref public metadata|instructor review required|review required|varies|mixed|metadata only)$/i;
+  /^(?:|unknown|open access|open license|(?:[\w.-]+\s+)*public metadata|instructor review required|review required|varies|mixed|metadata only)$/i;
 const SOURCE_SIGNAL_RE =
   /\b(?:openstax|openalex|open library|openlibrary|eric|doi|creative commons|cc\s+by|open access|textbook|chapter|article|journal|book|reader|press|publication|volume|vol\.|edition|ed\.|et al\.?|isbn|issn)\b|https?:\/\//i;
 const NON_SOURCE_RESOURCE_RE =

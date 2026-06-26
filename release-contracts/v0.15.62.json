@@ -1,0 +1,109 @@
+{
+  "version": "0.15.62",
+  "date": "June 26, 2026",
+  "title": "Source License Trust Gate: metadata-only readings stop becoming trusted sources",
+  "status": "verified-current",
+  "proofSummary": {
+    "local": [
+      "npm test -- src/lib/knowledge/__tests__/sourceFinder.test.js src/lib/knowledge/__tests__/knowledgeBackbone.test.js",
+      "npm run format:check",
+      "npm run lint",
+      "npm test",
+      "npm run build",
+      "npm run bundle:check",
+      "npm run audit:release-history",
+      "npm run audit:gold:smoke"
+    ],
+    "ciFast": {
+      "status": "pending-push",
+      "note": "Fast verification is claimed only after v0.15.62 is pushed and the GitHub Actions run is attached."
+    },
+    "deploy": {
+      "status": "pending-push",
+      "note": "Pages deploy is not claimed until the pushed release completes its deploy run."
+    },
+    "ciDeep": {
+      "status": "local-only",
+      "note": "This is a narrow source-license trust repair; focused regressions plus normal local gates and gold smoke are the release bar."
+    },
+    "liveProvider": {
+      "status": "local-only",
+      "note": "The release is driven by Project Management ZIP/log evidence from the latest completed audit; another provider audit is required after deploy."
+    },
+    "manualHuman": {
+      "status": "not-applicable",
+      "note": "No external instructor approval is claimed by this release."
+    }
+  },
+  "claims": [
+    {
+      "id": "v01562-live-source-license-loss-evidence",
+      "status": "verified-current",
+      "changelogHighlightIndex": 0,
+      "summary": "Fresh Project Management audit evidence showed a 98/A package with citation losses from ambiguous public-metadata licenses in source-ledger rows.",
+      "anchors": ["docs/V0.15.62_SOURCE_LICENSE_TRUST_GATE_ROADMAP.md", "src/lib/quality/sourceLedgerQualityChecks.js"],
+      "proofCommands": [
+        "npm test -- src/lib/knowledge/__tests__/sourceFinder.test.js src/lib/knowledge/__tests__/knowledgeBackbone.test.js"
+      ],
+      "proofScopes": ["doc", "unit", "static-audit"]
+    },
+    {
+      "id": "v01562-explicit-license-source-ranking",
+      "status": "verified-current",
+      "changelogHighlightIndex": 1,
+      "summary": "Source-finder ranking treats explicit reusable licenses as a hard ordering rule before provider score or topical score.",
+      "anchors": ["src/lib/knowledge/sourceFinder.js", "src/lib/knowledge/__tests__/sourceFinder.test.js"],
+      "proofCommands": [
+        "npm test -- src/lib/knowledge/__tests__/sourceFinder.test.js -t \"ranks explicit-license sources above stronger metadata-only academic hits\""
+      ],
+      "proofScopes": ["unit", "course-graph"]
+    },
+    {
+      "id": "v01562-metadata-only-reading-attachment-blocked",
+      "status": "verified-current",
+      "changelogHighlightIndex": 2,
+      "summary": "Open reading attachment records a no-reusable-license decision and attaches nothing when every relevant candidate is metadata-only.",
+      "anchors": ["src/lib/knowledge/readingListEngine.js", "src/lib/knowledge/__tests__/knowledgeBackbone.test.js"],
+      "proofCommands": [
+        "npm test -- src/lib/knowledge/__tests__/knowledgeBackbone.test.js -t \"records a decision instead of trusting metadata-only open readings\""
+      ],
+      "proofScopes": ["unit", "course-graph"]
+    },
+    {
+      "id": "v01562-source-license-ambiguity-rules-aligned",
+      "status": "verified-current",
+      "changelogHighlightIndex": 3,
+      "summary": "Source-ledger product code and source quality checks classify provider public-metadata wording consistently.",
+      "anchors": [
+        "src/lib/knowledge/sourceLedger.js",
+        "src/lib/quality/sourceLedgerQualityChecks.js",
+        "src/lib/knowledge/__tests__/sourceFinder.test.js",
+        "src/lib/knowledge/__tests__/knowledgeBackbone.test.js"
+      ],
+      "proofCommands": [
+        "npm test -- src/lib/knowledge/__tests__/sourceFinder.test.js src/lib/knowledge/__tests__/knowledgeBackbone.test.js"
+      ],
+      "proofScopes": ["unit", "static-audit", "course-graph"]
+    }
+  ],
+  "carryForward": [
+    {
+      "id": "fresh-v01562-edutool-zip-log-audit",
+      "status": "carry-forward",
+      "source": "docs/V0.15.62_SOURCE_LICENSE_TRUST_GATE_ROADMAP.md",
+      "next": "After deploy, run a fresh EduTool.dev ZIP/log audit and verify source-ledger license caveats are reduced or gone."
+    },
+    {
+      "id": "native-authoring-fallback",
+      "status": "carry-forward",
+      "source": "docs/V0.15.62_SOURCE_LICENSE_TRUST_GATE_ROADMAP.md",
+      "next": "Repair or retry native skeleton authoring when Pass A has no titled sessions."
+    },
+    {
+      "id": "texture-verification",
+      "status": "carry-forward",
+      "source": "docs/V0.15.62_SOURCE_LICENSE_TRUST_GATE_ROADMAP.md",
+      "next": "Continue deterministic texture verification against the latest Project Management package shape."
+    }
+  ]
+}

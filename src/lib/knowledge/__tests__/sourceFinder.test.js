@@ -54,7 +54,7 @@ function source(provider, title, extra = {}) {
     year: 2024,
     url: `https://example.org/${provider}/${encodeURIComponent(title)}`,
     doi: extra.doi || null,
-    license: provider === 'wikipedia' ? 'CC BY-SA 4.0' : 'cc-by',
+    license: extra.license || (provider === 'wikipedia' ? 'CC BY-SA 4.0' : 'cc-by'),
     attribution: provider,
     primaryTopic: extra.primaryTopic || null,
     topics: extra.topics || [],
@@ -344,6 +344,52 @@ describe('source finder mini-shard', () => {
     expect(miniShard.topics[0].sources[0]).toMatchObject({
       provider: 'wikipedia',
       title: 'DNA',
+      license: 'CC BY-SA 4.0',
+    });
+  }, 15000);
+
+  it('ranks explicit-license sources above stronger metadata-only academic hits', async () => {
+    const graph = createEmptyCourseGraph({ courseName: 'Project Management' });
+    graph.sessions = [
+      {
+        id: 's1',
+        number: 1,
+        title: 'Lesson 1: Scope management',
+        sections: [{ topic: '1.1: scope management, project charter, requirements, and stakeholder review' }],
+      },
+    ];
+
+    const miniShard = await findCourseSources(graph, {
+      storage: memoryStorage(),
+      maxTopics: 1,
+      limitPerTopic: 1,
+      minUsefulSources: 1,
+      providers: {
+        searchScholarlyReadings: vi.fn(async () => [
+          source('openalex', 'Project scope management charter requirements and stakeholder review', {
+            license: 'OpenAlex public metadata',
+            abstract:
+              'Project scope management project charter requirements stakeholder review scope baseline and change control evidence.',
+            primaryTopic: {
+              name: 'Project management',
+              field: 'Business, Management and Accounting',
+              domain: 'Social Sciences',
+            },
+          }),
+        ]),
+        searchCrossrefWorks: vi.fn(async () => []),
+        searchWikipediaPages: vi.fn(async () => [
+          source('wikipedia', 'Project management', {
+            abstract: 'Project management scope, requirements, schedules, stakeholders, and controls.',
+          }),
+        ]),
+      },
+    });
+
+    expect(miniShard.topics[0].sources).toHaveLength(1);
+    expect(miniShard.topics[0].sources[0]).toMatchObject({
+      provider: 'wikipedia',
+      title: 'Project management',
       license: 'CC BY-SA 4.0',
     });
   }, 15000);

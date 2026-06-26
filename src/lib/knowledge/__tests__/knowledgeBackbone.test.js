@@ -236,6 +236,39 @@ describe('reading-list engine (P2)', () => {
     expect(providers.searchBookMetadata).not.toHaveBeenCalled();
   });
 
+  it('records a decision instead of trusting metadata-only open readings', async () => {
+    const graph = genomeLinkedGraph();
+    const providers = {
+      searchScholarlyReadings: vi.fn(async (query) => [
+        {
+          title: `${query} source evidence and classroom application`,
+          authors: 'A. Researcher',
+          year: 2023,
+          url: 'https://doi.org/10.9999/metadata-only',
+          license: 'Crossref public metadata',
+          attribution: 'Crossref public metadata',
+          abstract: `${query} source evidence and classroom application for astronomy learning.`,
+        },
+      ]),
+      searchBookMetadata: vi.fn(async () => []),
+    };
+
+    const attached = await attachOpenReadings(graph, { providers, maxSessions: 1 });
+
+    expect(attached).toBe(0);
+    expect(graph.resources).toHaveLength(0);
+    expect(graph.readingListDecisions).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          type: 'no-reusable-license-reading',
+          lesson: 1,
+          rejected: 1,
+          licenses: ['Crossref public metadata'],
+        }),
+      ]),
+    );
+  });
+
   it('degrades to zero attachments when providers fail — compile never blocks', async () => {
     const graph = genomeLinkedGraph();
     const providers = {

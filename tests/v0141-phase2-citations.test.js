@@ -69,7 +69,7 @@ const HORTON_WORK = {
   url: 'https://doi.org/10.1130/0016-7606(1945)56[275:EDOSAT]2.0.CO;2',
   citedBy: 9000,
   authors: 'R. E. Horton',
-  license: 'open access',
+  license: 'cc-by',
 };
 
 function geologyGraph({ sessionTitle, conceptTerms, courseName }) {
