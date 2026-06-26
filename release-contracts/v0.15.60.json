@@ -44,8 +44,8 @@
       "summary": "Fresh v0.15.59 Project Management audit evidence showed source-finder resources in the digest while exported source proof collapsed to syllabus/Open Library rows.",
       "anchors": [
         "docs/V0.15.60_SOURCE_PROOF_REPAIR_PERSISTENCE_ROADMAP.md",
-        "verification-output/edutool-audit-loop/20260626T192908Z/latest-digest.json",
-        "verification-output/edutool-audit-loop/20260626T192908Z/unzipped/SOURCE_REPORT.md"
+        "src/AppFlow.jsx",
+        "src/lib/nativeGraphAuthoring.js"
       ],
       "proofCommands": [
         "PATH=\"/Users/tianxing/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/bin:$PATH\" npm exec -- vitest run src/lib/__tests__/nativeGraphAuthoring.test.js"
