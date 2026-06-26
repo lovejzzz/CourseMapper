@@ -42,7 +42,8 @@
       "summary": "Project Management audit evidence showed retrieved OpenAlex/source-finder resources while exported source-ledger proof stayed thin or off-discipline.",
       "anchors": [
         "docs/V0.15.59_SOURCE_FINDER_RESEARCH_BRIDGE_ROADMAP.md",
-        "verification-output/edutool-audit-loop/20260626T140255Z/report.md"
+        "src/lib/knowledge/sourceFinder.js",
+        "src/lib/knowledge/sourceLedger.js"
       ],
       "proofCommands": [
         "PATH=\"/Users/tianxing/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/bin:$PATH\" npm exec -- vitest run src/lib/knowledge/__tests__/sourceFinder.test.js src/lib/quality/__tests__/sourceLedgerGrader.test.js"
