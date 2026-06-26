@@ -4,6 +4,25 @@
 
 CourseMapper is moving toward a "consider it done" course-production agent. The user should describe the course, choose scope/materials, and receive a finished draft package. The agent owns generation, QA, repair, alignment, and export readiness. Human involvement should be final approval only, not QA labor.
 
+## v0.15.50 - Reviewed ZIP Download Handoff
+
+Goal: fix the deployed v0.15.49 Project Management download loop without
+weakening package-quality truth. The package finished and graded at 74/C with a
+terminal blocker receipt, but each visible `Download ZIP` click started another
+finish/export verification pass instead of saving the audited ZIP.
+
+Full plan: `docs/V0.15.50_REVIEWED_ZIP_DOWNLOAD_ROADMAP.md`
+
+1. Treat terminal package receipts as the handoff to ZIP download when
+   structural readiness has no blockers.
+2. Keep structural blockers on the finish/review path.
+3. Keep P0/P1/P2 findings, export warnings, and review state visible in the
+   trust card and bundled reports.
+4. Pin the blocked 74/C reviewed-package shape with focused ExportSidePanel
+   coverage.
+5. Resume fresh EduTool.dev ZIP/log audit only after this deployed download
+   fix is live.
+
 ## v0.15.40 - Source Relevance and Slide Polish Guard
 
 Goal: fix the fresh deployed v0.15.39 Genetics and Society ZIP audit P1 and

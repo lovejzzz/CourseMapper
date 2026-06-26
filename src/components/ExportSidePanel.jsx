@@ -5,7 +5,7 @@ import { summarizeReadiness } from '../lib/deliverableReadiness';
 import { evaluateStrictPackageReadiness } from '../lib/packageFinalizer';
 import { normalizeReadinessIssue } from '../lib/readinessIssueSchema';
 import ReviewQueue from './ReviewQueue';
-import { isFinishPassActive, isPackageReady } from '../lib/pipelineMachine';
+import { isFinishPassActive, isPackageBlocked, isPackageReady } from '../lib/pipelineMachine';
 import NoticeBanner from './NoticeBanner';
 import {
   exportDeliverableCsv,
@@ -306,6 +306,11 @@ function getDownloadReadiness(readiness) {
     warnings: [],
     issues: [],
   };
+}
+
+function hasFinishedPackageReceipt(packageQualityPass) {
+  if (isPackageReady(packageQualityPass)) return true;
+  return isPackageBlocked(packageQualityPass) && Boolean(packageQualityPass?.quality || packageQualityPass?.receipt);
 }
 
 function ReadinessPanel({
@@ -987,7 +992,14 @@ export default function ExportSidePanel({
     let repairsApplied = pendingExport?.repairsApplied || 0;
     let finishOutcome = null;
 
-    if (exportScope === 'all' && typeof onFinishPackage === 'function') {
+    const shouldFinishPackageBeforeExport =
+      exportScope === 'all' &&
+      typeof onFinishPackage === 'function' &&
+      (Boolean(pendingExport) ||
+        !hasFinishedPackageReceipt(packageQualityPass) ||
+        hasBlockingReadinessIssues(exportReadiness));
+
+    if (shouldFinishPackageBeforeExport) {
       setPendingReadinessExport(null);
       setLastError('');
       setLastOk('');

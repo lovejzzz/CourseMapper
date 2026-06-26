@@ -3,22 +3,22 @@ import { APP_VERSION } from './appVersion.js';
 export const CURRENT_RELEASE = {
   version: APP_VERSION,
   date: 'June 26, 2026',
-  title: 'Trust Status Spine: caveated packages stop leaking green ready state',
-  landingTitle: 'Trust Status Spine',
+  title: 'Reviewed ZIP Download Handoff: finished packages download their audit evidence',
+  landingTitle: 'Reviewed ZIP Download Handoff',
   highlights: [
-    'The v0.15.47 Project Management ZIP/log audit exposed a cross-surface trust mismatch: the export card correctly showed amber review state while the header and agent surfaces still implied clean green readiness for a 97/100 package.',
-    'A shared package-trust helper now owns clean, review, blocked, running, and not-graded decisions across package UI surfaces.',
-    'Green package status now requires a clean package: 100/100 quality, no P0/P1/P2 findings, no texture loss, no export warnings, and no known source/genome caveats.',
-    'The recorded browser workflow now scans the export card, header chip, package summary, agent working set, and progress label so caveated packages cannot quietly regress to green ready language.',
+    'The deployed v0.15.49 Project Management console log showed every Download ZIP click starting another finish/export verification pass instead of saving the ZIP.',
+    'The export panel now treats a terminal package receipt, including a blocked quality receipt with report evidence, as the handoff to ZIP download instead of rerunning finish forever.',
+    'Structural readiness blockers still trigger finish/review flow, while blocked or caveated package quality remains visible in the trust card and bundled QUALITY_REPORT.md.',
+    'A focused ExportSidePanel regression pins the 74/C terminal-quality-blocker shape: the visible Download ZIP button calls the ZIP exporter and does not call onFinishPackage again.',
   ],
   landingHighlights: [
-    'One shared trust model drives package status surfaces.',
-    'Caveated packages stay downloadable but render amber review state.',
-    'Browser workflow assertions catch green-ready leaks across the page.',
+    'Finished reviewed packages can actually download.',
+    'Quality blockers stay visible instead of being hidden as green ready.',
+    'The ZIP path no longer loops through finish after a terminal receipt.',
   ],
   proof: {
-    contract: 'release-contracts/v0.15.49.json',
-    roadmap: 'docs/V0.15.49_TRUST_STATUS_SPINE_ROADMAP.md',
+    contract: 'release-contracts/v0.15.50.json',
+    roadmap: 'docs/V0.15.50_REVIEWED_ZIP_DOWNLOAD_ROADMAP.md',
     auditCommand: 'npm run audit:release-history',
   },
 };
@@ -33,6 +33,17 @@ export const CURRENT_RELEASE_CHANGELOG = {
 };
 
 export const HISTORICAL_RELEASE_CHANGELOGS = [
+  {
+    version: '0.15.49',
+    date: 'June 26, 2026',
+    title: 'Trust Status Spine: caveated packages stop leaking green ready state',
+    highlights: [
+      'The v0.15.47 Project Management ZIP/log audit exposed a cross-surface trust mismatch: the export card correctly showed amber review state while the header and agent surfaces still implied clean green readiness for a 97/100 package.',
+      'A shared package-trust helper now owns clean, review, blocked, running, and not-graded decisions across package UI surfaces.',
+      'Green package status now requires a clean package: 100/100 quality, no P0/P1/P2 findings, no texture loss, no export warnings, and no known source/genome caveats.',
+      'The recorded browser workflow now scans the export card, header chip, package summary, agent working set, and progress label so caveated packages cannot quietly regress to green ready language.',
+    ],
+  },
   {
     version: '0.15.48',
     date: 'June 26, 2026',

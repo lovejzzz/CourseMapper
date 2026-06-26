@@ -1,0 +1,89 @@
+{
+  "version": "0.15.50",
+  "date": "June 26, 2026",
+  "title": "Reviewed ZIP Download Handoff: finished packages download their audit evidence",
+  "status": "verified-current",
+  "proofSummary": {
+    "local": [
+      "npx vitest run src/components/__tests__/ExportSidePanel.readiness.test.jsx",
+      "npm test",
+      "npm run lint",
+      "npm run format:check",
+      "npm run build",
+      "npm run bundle:check",
+      "npm run audit:release-history"
+    ],
+    "ciFast": {
+      "status": "pending-push",
+      "note": "Fast verification is claimed only after v0.15.50 is pushed and the GitHub Actions run is attached."
+    },
+    "deploy": {
+      "status": "pending-push",
+      "note": "Pages deploy is not claimed until the pushed release completes its deploy run."
+    },
+    "ciDeep": {
+      "status": "local-only",
+      "note": "This is a narrow export-panel state-machine patch, so focused regression plus normal local gates are the release bar."
+    },
+    "liveProvider": {
+      "status": "local-only",
+      "note": "The release is based on the deployed v0.15.49 Project Management ZIP/log evidence saved at /Users/tianxing/Downloads/edutool.dev-1782480197137.log."
+    },
+    "manualHuman": {
+      "status": "not-applicable",
+      "note": "No external instructor approval is claimed by this release."
+    }
+  },
+  "claims": [
+    {
+      "id": "v01550-live-download-loop-evidence",
+      "status": "verified-current",
+      "changelogHighlightIndex": 0,
+      "summary": "The deployed v0.15.49 console log showed repeated export-sourced finish passes after Download ZIP clicks, with no ZIP-save exception.",
+      "anchors": ["docs/V0.15.50_REVIEWED_ZIP_DOWNLOAD_ROADMAP.md"],
+      "proofCommands": ["Manual browser/log evidence summarized in docs/V0.15.50_REVIEWED_ZIP_DOWNLOAD_ROADMAP.md"],
+      "proofScopes": ["live-provider", "browser-live", "static-audit"]
+    },
+    {
+      "id": "v01550-terminal-receipt-download-handoff",
+      "status": "verified-current",
+      "changelogHighlightIndex": 1,
+      "summary": "ExportSidePanel now treats a terminal finished package receipt as the handoff to ZIP download rather than rerunning finish.",
+      "anchors": ["src/components/ExportSidePanel.jsx"],
+      "proofCommands": ["npx vitest run src/components/__tests__/ExportSidePanel.readiness.test.jsx"],
+      "proofScopes": ["unit", "static-audit"]
+    },
+    {
+      "id": "v01550-structural-blockers-still-stop-export",
+      "status": "verified-current",
+      "changelogHighlightIndex": 2,
+      "summary": "The new guard only bypasses finish when structural readiness has no blockers; quality blockers remain visible through package trust and bundled reports.",
+      "anchors": ["src/components/ExportSidePanel.jsx", "docs/V0.15.50_REVIEWED_ZIP_DOWNLOAD_ROADMAP.md"],
+      "proofCommands": ["npx vitest run src/components/__tests__/ExportSidePanel.readiness.test.jsx"],
+      "proofScopes": ["unit", "static-audit"]
+    },
+    {
+      "id": "v01550-reviewed-download-regression",
+      "status": "verified-current",
+      "changelogHighlightIndex": 3,
+      "summary": "A focused regression recreates the terminal 74/C quality-blocker receipt and proves Download ZIP calls the ZIP exporter instead of onFinishPackage.",
+      "anchors": ["src/components/__tests__/ExportSidePanel.readiness.test.jsx"],
+      "proofCommands": ["npx vitest run src/components/__tests__/ExportSidePanel.readiness.test.jsx"],
+      "proofScopes": ["unit"]
+    }
+  ],
+  "carryForward": [
+    {
+      "id": "v01550-fresh-deployed-download-audit",
+      "status": "carry-forward",
+      "source": "docs/V0.15.50_REVIEWED_ZIP_DOWNLOAD_ROADMAP.md",
+      "next": "After v0.15.50 deploys, run a fresh EduTool.dev ZIP/log audit and confirm the ZIP downloads before auditing its contents."
+    },
+    {
+      "id": "project-management-prompt-artifact-quality-loss",
+      "status": "carry-forward",
+      "source": "docs/V0.15.50_REVIEWED_ZIP_DOWNLOAD_ROADMAP.md",
+      "next": "Target the 74/C content defects after the ZIP handoff is confirmed on the deployed site."
+    }
+  ]
+}

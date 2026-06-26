@@ -7,6 +7,14 @@ import { createRoot } from 'react-dom/client';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import ExportSidePanel from '../ExportSidePanel.jsx';
 import { CourseProvider, useCourse } from '../../contexts/CourseContext.jsx';
+import { downloadCourseMaterialsZip } from '../../lib/packageZipExporter.js';
+
+vi.mock('../../lib/packageZipExporter.js', () => ({
+  downloadCourseMaterialsZip: vi.fn(async () => ({
+    fileName: 'Review Surface Course - Course Materials.zip',
+    files: ['PACKAGE_MANIFEST.json', 'QUALITY_REPORT.md'],
+  })),
+}));
 
 globalThis.IS_REACT_ACT_ENVIRONMENT = true;
 
@@ -51,6 +59,8 @@ const cleanCourseMap = {
 function ExportPanelHarness({
   isPackageGenerationRunning = false,
   onAutoRepairReadiness = vi.fn(),
+  onFinishPackage = vi.fn(),
+  canFinishPackage = false,
   preferPackageScope = false,
   courseMapInput = courseMapWithObjectiveStem,
   packageQualityPass = { status: 'idle', message: '' },
@@ -83,8 +93,8 @@ function ExportPanelHarness({
       onSaveProject={vi.fn()}
       onReadinessIssueClick={vi.fn()}
       onAutoRepairReadiness={onAutoRepairReadiness}
-      onFinishPackage={vi.fn()}
-      canFinishPackage={false}
+      onFinishPackage={onFinishPackage}
+      canFinishPackage={canFinishPackage}
       packageQualityPass={packageQualityPass}
       isPackageGenerationRunning={isPackageGenerationRunning}
       preferPackageScope={preferPackageScope}
@@ -191,5 +201,60 @@ describe('ExportSidePanel readiness repair timing', () => {
     expect(panel?.textContent).toContain('PPTX export generated');
     expect(container.querySelector('[data-testid="quality-stamp"]')?.textContent).toContain('96 · A');
     expect(container.querySelector('[data-testid="export-download-zip"]')?.disabled).toBe(false);
+  });
+
+  it('downloads a reviewed package without rerunning finish after a terminal quality blocker receipt', async () => {
+    const onFinishPackage = vi.fn(async () => {
+      throw new Error('finish should not rerun for a terminal reviewed package');
+    });
+
+    await renderPanel({
+      courseMapInput: cleanCourseMap,
+      onFinishPackage,
+      canFinishPackage: true,
+      packageQualityPass: {
+        status: 'blocked',
+        blockers: 1,
+        warnings: 0,
+        repairsApplied: 0,
+        receipt: {
+          exportWarningCount: 0,
+          finalStatus: 'blocked',
+        },
+        quality: {
+          status: 'graded',
+          score: 74,
+          grade: 'C',
+          findingCounts: { p0: 1, p1: 1, p2: 0 },
+          findings: [
+            {
+              priority: 'P0',
+              message: 'Prompt artifact labels used as lesson concepts.',
+            },
+          ],
+          texture: { score: 92 },
+        },
+      },
+    });
+
+    await act(async () => {
+      container
+        .querySelector('[data-testid="export-scope-all"]')
+        ?.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+    });
+    await act(async () => {});
+
+    const zipButton = container.querySelector('[data-testid="export-download-zip"]');
+    expect(zipButton?.textContent).toContain('Download ZIP');
+    expect(zipButton?.disabled).toBe(false);
+
+    await act(async () => {
+      zipButton.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+    });
+    await act(async () => {});
+
+    expect(onFinishPackage).not.toHaveBeenCalled();
+    expect(downloadCourseMaterialsZip).toHaveBeenCalledTimes(1);
+    expect(downloadCourseMaterialsZip.mock.calls[0][0].quality).toEqual({});
   });
 });
