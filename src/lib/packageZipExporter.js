@@ -5,6 +5,7 @@ import {
   buildSourceLedgerFromCourseGraph,
   buildSourceReportMarkdown,
   isLicenseAmbiguous,
+  isTrustedSourceLedgerRow,
   summarizeSourceLedgerRows,
 } from './knowledge/sourceLedger.js';
 import { safeImport } from './safeImport';
@@ -409,7 +410,7 @@ function sourceCoverageLedgerRows(coverage) {
 }
 
 function bridgeCourseIRSourceProofToTrustedLedger(courseGraph, sourceLedgerBundle, sourceRefCoverage) {
-  const trustedRows = sourceLedgerBundle?.rows || [];
+  const trustedRows = (sourceLedgerBundle?.rows || []).filter(isTrustedSourceLedgerRow);
   const reviewRows = sourceLedgerBundle?.reviewRows || [];
   const coverageTotal = sourceCoverageTotal(sourceRefCoverage);
   const coverageLedgerRows = sourceCoverageLedgerRows(sourceRefCoverage);

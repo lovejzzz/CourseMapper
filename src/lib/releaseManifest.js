@@ -3,22 +3,22 @@ import { APP_VERSION } from './appVersion.js';
 export const CURRENT_RELEASE = {
   version: APP_VERSION,
   date: 'June 26, 2026',
-  title: 'Source Ledger Trust Accounting: licensed source-finder rows count honestly',
-  landingTitle: 'Source Ledger Trust Accounting',
+  title: 'Trusted SourceRef Bridge: metadata rows stop replacing review proof',
+  landingTitle: 'Trusted SourceRef Bridge',
   highlights: [
-    'The latest measured Project Management ZIP still sits at 96/A, with source proof as a real CourseMapper-side quality loss rather than a model-only issue.',
-    'Source-ledger summaries now count trusted rows only when the row is accessible, has a non-ambiguous license, and comes from a trust-eligible provider.',
-    'Source-finder evidence from licensed Wikipedia background pages and Crossref DOI records now preserves provider identity instead of collapsing into generic syllabus proof.',
-    'The source-ledger grader now reports zero trusted rows for review-only or public-metadata-only proof while still allowing licensed, concept-linked source-finder rows to satisfy source coverage.',
+    'The sourceRef bridge now uses the same strict trusted-row predicate as source-ledger summaries and the deep quality grader.',
+    'CourseIR coverage can only bridge from review-only SL1 proof to exported rows when more than one accessible, non-ambiguous, trust-eligible source row exists.',
+    'Metadata-only Open Library/Crossref rows stay exported for review, but they no longer replace CourseIR review proof or inflate sourceRef coverage.',
+    'A package-export regression pins the failure mode where two retrieved metadata rows must keep Source Review Notes visible until trusted concept-linked proof exists.',
   ],
   landingHighlights: [
-    'Trusted source counts require accessible licensed rows.',
-    'Source-finder provider identity survives export.',
-    'Review-only source proof stays visible.',
+    'Bridge rows must be truly trusted.',
+    'Metadata-only proof stays review-visible.',
+    'SourceRef coverage stays honest.',
   ],
   proof: {
-    contract: 'release-contracts/v0.15.64.json',
-    roadmap: 'docs/V0.15.64_SOURCE_LEDGER_TRUST_ACCOUNTING_ROADMAP.md',
+    contract: 'release-contracts/v0.15.65.json',
+    roadmap: 'docs/V0.15.65_TRUSTED_SOURCEREF_BRIDGE_ROADMAP.md',
     auditCommand: 'npm run audit:release-history',
   },
 };
@@ -33,6 +33,17 @@ export const CURRENT_RELEASE_CHANGELOG = {
 };
 
 export const HISTORICAL_RELEASE_CHANGELOGS = [
+  {
+    version: '0.15.64',
+    date: 'June 26, 2026',
+    title: 'Source Ledger Trust Accounting: licensed source-finder rows count honestly',
+    highlights: [
+      'The latest measured Project Management ZIP still sits at 96/A, with source proof as a real CourseMapper-side quality loss rather than a model-only issue.',
+      'Source-ledger summaries now count trusted rows only when the row is accessible, has a non-ambiguous license, and comes from a trust-eligible provider.',
+      'Source-finder evidence from licensed Wikipedia background pages and Crossref DOI records now preserves provider identity instead of collapsing into generic syllabus proof.',
+      'The source-ledger grader now reports zero trusted rows for review-only or public-metadata-only proof while still allowing licensed, concept-linked source-finder rows to satisfy source coverage.',
+    ],
+  },
   {
     version: '0.15.63',
     date: 'June 26, 2026',

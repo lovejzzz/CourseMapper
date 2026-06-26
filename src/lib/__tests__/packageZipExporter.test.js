@@ -559,6 +559,109 @@ describe('packageZipExporter', () => {
     expect(sourceReport).not.toContain('Existing course map fields');
   });
 
+  it('does not bridge CourseIR sourceRef coverage to metadata-only source rows', async () => {
+    const result = await buildCourseMaterialsZip({
+      courseMap: makeCourseMap('Metadata Only Source Bridge'),
+      deliverables: {
+        lessonPlans: {
+          status: 'done',
+          data: {
+            lessonPlans: [{ lessonTitle: 'Lesson 1: Source Trust', objectives: ['Separate metadata from proof.'] }],
+          },
+        },
+      },
+      featureIds: ['courseMap', 'lessonPlans'],
+      courseGraph: {
+        concepts: [{ id: 'c1', term: 'Source trust' }],
+        sessions: [
+          {
+            id: 's1',
+            number: 1,
+            sections: [{ id: 'sec1', topic: 'Source trust', conceptRefs: ['c1'], resourceRefs: ['ol1', 'cr1'] }],
+          },
+        ],
+        resources: [
+          {
+            id: 'ol1',
+            title: 'Metadata-only project source',
+            origin: 'openlibrary',
+            kind: 'book metadata',
+            url: 'https://openlibrary.org/works/OL1',
+            license: 'Open Library public metadata',
+            sessionRefs: ['s1'],
+          },
+          {
+            id: 'cr1',
+            title: 'Crossref metadata-only source',
+            origin: 'crossref',
+            kind: 'scholarly work',
+            url: 'https://doi.org/10.1000/metadata-only',
+            doi: '10.1000/metadata-only',
+            license: 'Crossref public metadata',
+            sessionRefs: ['s1'],
+          },
+        ],
+        readings: [],
+        courseIR: {
+          version: 'courseir.v1',
+          lessonIds: ['L1'],
+          conceptIds: ['C1'],
+          assessmentIds: ['A1'],
+          sourceLedger: [
+            {
+              id: 'SL1',
+              scope: 'course',
+              status: 'source-provided',
+              evidence: 'Existing course map fields.',
+              provider: 'courseir',
+            },
+          ],
+          sourceRefCoverage: {
+            sourceLedgerRows: 1,
+            categories: {
+              outcomes: { total: 4, withRefs: 4, missing: 0, danglingRefs: 0, missingIds: [] },
+              activities: { total: 4, withRefs: 4, missing: 0, danglingRefs: 0, missingIds: [] },
+              factualClaims: { total: 4, withRefs: 4, missing: 0, danglingRefs: 0, missingIds: [] },
+            },
+            totals: { total: 12, withRefs: 12, missing: 0, danglingRefs: 0 },
+          },
+        },
+      },
+      pipelineState: {
+        knowledgeBackbone: '0/1 lessons genome-linked · 2 open resources (openlibrary: 1, crossref: 1)',
+      },
+      quality: false,
+    });
+
+    const zip = await JSZip.loadAsync(await result.blob.arrayBuffer());
+    const manifest = JSON.parse(await zip.file('PACKAGE_MANIFEST.json').async('string'));
+    const sourceReport = await zip.file('SOURCE_REPORT.md').async('string');
+
+    expect(manifest.sourceLedger).toHaveLength(2);
+    expect(manifest.sourceLedgerSummary).toMatchObject({
+      sourceCount: 2,
+      trustedCount: 0,
+      licenseAmbiguousCount: 2,
+      reviewRequiredCount: 1,
+    });
+    expect(manifest.sourceReviewRows).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          id: 'SL1',
+          provider: 'courseir',
+          accessStatus: 'no-url-or-doi',
+        }),
+      ]),
+    );
+    expect(manifest.courseIR.sourceRefBridge).toBeUndefined();
+    expect(manifest.courseIR.sourceRefCoverage).toMatchObject({
+      sourceLedgerRows: 1,
+      totals: { total: 12, withRefs: 12, missing: 0, danglingRefs: 0 },
+    });
+    expect(sourceReport).toContain('Source Review Notes');
+    expect(sourceReport).toContain('Crossref metadata-only source');
+  });
+
   it('dedupes weaker syllabus source rows when a trusted DOI source already exists', async () => {
     const courseMap = makeCourseMap('Source Duplicate Merge');
     courseMap.lessons[0].sections[0].topicSection = 'Fundraising stages';
