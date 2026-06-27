@@ -32,10 +32,7 @@
       "status": "verified-current",
       "changelogHighlightIndex": 0,
       "summary": "The release is grounded in the v0.15.75 Project Management ZIP/log audit that showed two native enrichment recovery calls while the readable digest incorrectly reported zero retry calls.",
-      "anchors": [
-        "docs/V0.15.77_RUN_DIGEST_RETRY_TRUTH_ROADMAP.md",
-        "verification-output/edutool-audit-loop/20260627T-v01575-fresh/report.md"
-      ],
+      "anchors": ["docs/V0.15.77_RUN_DIGEST_RETRY_TRUTH_ROADMAP.md", "src/lib/__tests__/runDigest.test.js"],
       "proofCommands": ["npm test -- --run src/lib/__tests__/runDigest.test.js"],
       "proofScopes": ["doc", "static-audit"]
     },
