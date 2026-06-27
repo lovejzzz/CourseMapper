@@ -529,6 +529,58 @@ describe('1.16 — prompt artifact labels never become course-map concepts', () 
     expect(repairedText).not.toMatch(/needed for Develop an evidence-backed account/i);
   });
 
+  it('repairs native skeleton Session N labels before Project Management export', () => {
+    const courseMap = {
+      courseName: 'Project Management',
+      lessons: [
+        {
+          title: 'Lesson 1: Session 1',
+          sections: [
+            {
+              topicSection: '1.1: Session 1',
+              learningGoals: 'Use Session 1 to explain a course problem and prepare evidence for the next assessment.',
+              learningObjectives: 'Explain the key ideas in Session 1 and apply them in course activities.',
+              weeklyAssessments: 'Quick evidence check: apply Session 1 to a new example.',
+            },
+          ],
+        },
+        {
+          title: 'Lesson 2: Session 2',
+          sections: [
+            {
+              topicSection: '2.1: Session 2',
+              learningGoals: 'Use Session 2 to explain a course problem and prepare evidence for the next assessment.',
+              learningObjectives: 'Explain the key ideas in Session 2 and apply them in course activities.',
+              weeklyAssessments: 'project charter',
+            },
+          ],
+        },
+        {
+          title: 'Lesson 3: Session 3',
+          sections: [
+            {
+              topicSection: '3.1: Session 3',
+              learningGoals: 'Trace how Session 3 changes what students can observe, label, calculate, or decide.',
+              learningObjectives: 'Apply the main concepts from Session 3 to a course task or example.',
+              weeklyAssessments: 'scheduling lab',
+            },
+          ],
+        },
+      ],
+    };
+
+    const repaired = repairCourseMapReadiness({ courseMap }).courseMap;
+    const repairedText = JSON.stringify(repaired);
+
+    expect(repaired.lessons[0].title).toBe('Lesson 1: Project Management');
+    expect(repaired.lessons[0].sections[0].topicSection).toBe('Project Management');
+    expect(repaired.lessons[1].title).toBe('Lesson 2: project charter');
+    expect(repaired.lessons[1].sections[0].topicSection).toBe('project charter');
+    expect(repaired.lessons[2].title).toBe('Lesson 3: scheduling lab');
+    expect(repaired.lessons[2].sections[0].topicSection).toBe('scheduling lab');
+    expect(repairedText).not.toMatch(/\bSession\s+\d+\b/i);
+  });
+
   it('keeps repaired single artifact-resource labels out of compiled Course FAQ answers', () => {
     const courseMap = {
       courseName: 'Genetics and Society',

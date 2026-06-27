@@ -1,0 +1,105 @@
+{
+  "version": "0.15.79",
+  "date": "June 27, 2026",
+  "title": "Native Session Topic Repair: generic Session labels stop shipping",
+  "status": "verified-current",
+  "proofSummary": {
+    "local": [
+      "npx vitest run tests/v0141-phase1-finalizer.test.js",
+      "npx vitest run tests/v0145-native-authoring.test.js",
+      "fresh v0.15.78 ZIP/log audit at verification-output/edutool-audit-loop/20260627T084021Z-v01578-fresh"
+    ],
+    "ciFast": {
+      "status": "pending-push",
+      "note": "Fast verification is claimed only after v0.15.79 is pushed and the GitHub Actions run is attached."
+    },
+    "deploy": {
+      "status": "pending-push",
+      "note": "Pages deploy is not claimed until the pushed release completes its deploy run."
+    },
+    "ciDeep": {
+      "status": "local-only",
+      "note": "This is a narrow course-map repair patch; focused finalizer/native-authoring regressions plus normal local gates are the release bar."
+    },
+    "liveProvider": {
+      "status": "local-only",
+      "note": "The release is based on a fresh deployed v0.15.78 Project Management ZIP/log audit. A fresh v0.15.79 package audit is required after deploy to verify the repair against provider output."
+    },
+    "manualHuman": {
+      "status": "not-applicable",
+      "note": "No external instructor approval is claimed by this release."
+    }
+  },
+  "claims": [
+    {
+      "id": "v01579-quality-evidence-boundary",
+      "status": "verified-current",
+      "changelogHighlightIndex": 0,
+      "summary": "The release is grounded in a fresh deployed v0.15.78 Project Management ZIP/log audit that regraded at 95/A and exported generic Session labels after CourseIR direct authoring fell back.",
+      "anchors": [
+        "docs/V0.15.79_NATIVE_SESSION_TOPIC_REPAIR_ROADMAP.md",
+        "verification-output/edutool-audit-loop/20260627T084021Z-v01578-fresh/report.md"
+      ],
+      "proofCommands": [
+        "local regrade captured in verification-output/edutool-audit-loop/20260627T084021Z-v01578-fresh/local-regrade.json"
+      ],
+      "proofScopes": ["live-provider", "browser-live", "doc"]
+    },
+    {
+      "id": "v01579-generic-session-topic-repair",
+      "status": "verified-current",
+      "changelogHighlightIndex": 1,
+      "summary": "Course-map readiness repair now rejects Session N, Topic N, and bare numbered lesson labels as generated topic candidates before compilation/export.",
+      "anchors": ["src/lib/deliverableReadiness.js", "tests/v0141-phase1-finalizer.test.js"],
+      "proofCommands": ["npx vitest run tests/v0141-phase1-finalizer.test.js"],
+      "proofScopes": ["unit"]
+    },
+    {
+      "id": "v01579-project-management-regression",
+      "status": "verified-current",
+      "changelogHighlightIndex": 2,
+      "summary": "A Project Management regression recreates the native recovery failure shape and proves concrete anchors survive while generic Session labels are removed.",
+      "anchors": ["tests/v0141-phase1-finalizer.test.js", "tests/v0145-native-authoring.test.js"],
+      "proofCommands": [
+        "npx vitest run tests/v0141-phase1-finalizer.test.js",
+        "npx vitest run tests/v0145-native-authoring.test.js"
+      ],
+      "proofScopes": ["unit", "course-graph"]
+    },
+    {
+      "id": "v01579-no-clean-quality-claim",
+      "status": "verified-current",
+      "changelogHighlightIndex": 3,
+      "summary": "The release notes carry forward source-ledger, slide-deck, texture, and local-storage findings instead of claiming a clean 100/100 package.",
+      "anchors": ["src/lib/releaseManifest.js", "docs/V0.15.79_NATIVE_SESSION_TOPIC_REPAIR_ROADMAP.md"],
+      "proofCommands": ["npm run audit:release-history"],
+      "proofScopes": ["doc", "static-audit"]
+    }
+  ],
+  "carryForward": [
+    {
+      "id": "source-ledger-trusted-rows",
+      "status": "carry-forward",
+      "source": "verification-output/edutool-audit-loop/20260627T084021Z-v01578-fresh/report.md",
+      "next": "Preserve or recover trusted concept-linked source rows when native CourseIR fallback only exports review metadata."
+    },
+    {
+      "id": "slide-deck-content-bearing-slides",
+      "status": "carry-forward",
+      "source": "verification-output/edutool-audit-loop/20260627T084021Z-v01578-fresh/report.md",
+      "next": "Ensure enriched decks expose at least five content-bearing slides per deck instead of visually rich but text-thin output."
+    },
+    {
+      "id": "texture-repetition",
+      "status": "carry-forward",
+      "source": "verification-output/edutool-audit-loop/20260627T084021Z-v01578-fresh/report.md",
+      "next": "Reduce repeated support-answer and deck phrasing so texture can reach 100/100 without hiding the finding."
+    },
+    {
+      "id": "local-storage-quota",
+      "status": "carry-forward",
+      "source": "verification-output/edutool-audit-loop/20260627T084021Z-v01578-fresh/chrome-devtools-log.json",
+      "next": "Prune or rotate saved conversation state so new runs do not surface Local save failed / QuotaExceeded warnings."
+    }
+  ]
+}

@@ -420,11 +420,39 @@ function needsPromptArtifactCourseMapRepair(key, value, courseMap) {
 function isWeakCourseMapTopic(value, courseMap) {
   const candidate = text(value);
   if (!candidate || findPublishabilityPlaceholders(candidate, { limit: 1 }).length > 0) return true;
+  if (isGenericNumberedCourseMapTopic(candidate)) return true;
   if (isPromptArtifactTopic(candidate, courseMap) || NUMBERED_PROMPT_ARTIFACT_TOPIC_RE.test(candidate)) return true;
   if (hasEmbeddedPromptArtifactTopic(candidate)) return true;
   if (GENERIC_COURSE_MAP_FALLBACK_RE.test(candidate)) return true;
   return /^(?:none|n\/a|not applicable|lesson|week|topic|block|clinical|community|health|studio|seminar|placement)$/i.test(
     candidate,
+  );
+}
+
+function genericTopicText(value) {
+  return text(value)
+    .replace(/^(?:lesson|week|module|unit)\s*\d{1,3}\s*[:.-]?\s*/i, '')
+    .replace(/^\d+(?:\.\d+)*\s*[:.)-]\s*/i, '')
+    .replace(/[.?!;:]+$/g, '')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+function isGenericNumberedCourseMapTopic(value) {
+  const candidate = genericTopicText(value);
+  return /^(?:session|topic|lesson)(?:\s+\d{1,3})?$/i.test(candidate);
+}
+
+function hasGenericNumberedCourseMapReference(value, lessonIndex) {
+  const raw = text(value);
+  if (!raw) return false;
+  const lessonNumber = Number(lessonIndex) + 1;
+  if (/\b(?:session|topic)\s+\d{1,3}\b/i.test(raw)) return true;
+  if (!Number.isInteger(lessonNumber) || lessonNumber <= 0) {
+    return isGenericNumberedCourseMapTopic(raw);
+  }
+  return (
+    new RegExp(`\\b(?:session|topic)\\s*${lessonNumber}\\b`, 'i').test(raw) || isGenericNumberedCourseMapTopic(raw)
   );
 }
 
@@ -735,7 +763,7 @@ export function repairCourseMapReadiness({ courseMap, columns = [], lessonFilter
     if (!lessonIndices.includes(lessonIndex)) return lesson;
     let nextLesson = lesson;
 
-    if (needsCourseMapFieldRepair(lesson?.title)) {
+    if (needsCourseMapFieldRepair(lesson?.title) || isGenericNumberedCourseMapTopic(lesson?.title)) {
       const titleTopic = getCourseMapTopic(courseMap, lesson, asArray(lesson?.sections)[0], lessonIndex);
       nextLesson = {
         ...nextLesson,
@@ -807,6 +835,21 @@ export function repairCourseMapReadiness({ courseMap, columns = [], lessonFilter
         };
         repairedFields.push(
           `Lesson ${lessonIndex + 1}, Section ${sectionIndex + 1} ${columnLabel(columns, key)} (semantic)`,
+        );
+        sectionsChanged = true;
+        changed = true;
+      }
+      // Native skeleton recovery can produce complete-looking cells whose
+      // only "topic" is Session N / Topic N. Replace those before they become
+      // exported file names, lesson concepts, or source-finder topics.
+      for (const key of columnsToNormalize) {
+        if (!hasGenericNumberedCourseMapReference(nextSection?.[key], lessonIndex)) continue;
+        nextSection = {
+          ...nextSection,
+          [key]: getCourseMapFallbackValue(key, courseMap, nextLesson, nextSection, lessonIndex),
+        };
+        repairedFields.push(
+          `Lesson ${lessonIndex + 1}, Section ${sectionIndex + 1} ${columnLabel(columns, key)} (generic session)`,
         );
         sectionsChanged = true;
         changed = true;

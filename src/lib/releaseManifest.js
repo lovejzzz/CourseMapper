@@ -3,22 +3,22 @@ import { APP_VERSION } from './appVersion.js';
 export const CURRENT_RELEASE = {
   version: APP_VERSION,
   date: 'June 27, 2026',
-  title: 'Texture Caveat Truth: repeated prose warnings stop becoming native fallback P2s',
-  landingTitle: 'Texture Caveat Truth',
+  title: 'Native Session Topic Repair: generic Session labels stop shipping',
+  landingTitle: 'Native Session Topic Repair',
   highlights: [
-    'A fresh deployed v0.15.77 Project Management ZIP/log audit reached ready export with 12/12 materials, no P1s, on-discipline sources, and local regrade at 99/A with only the scored texture P2 remaining after a false native-fallback P2 was removed.',
-    'The deep quality grader no longer treats a texture warning that says "repeated prose patterns" as a native-authoring fallback; only explicit native fallback signals such as "fell back to prose" trigger that honesty finding.',
-    'A focused package-quality regression recreates the live texture warning and proves it does not masquerade as native fallback while the existing native fallback regression still fires.',
-    'This release does not claim a clean 100/100 package; the fresh audit still showed texture 83/100, concentrated in repeated Course FAQ language, so deterministic texture variation remains the next quality target.',
+    'A fresh deployed v0.15.78 Project Management ZIP/log audit regraded at 95/A and proved native skeleton recovery could still ship generic "Session N" lesson titles, course-map concepts, and exported filenames after direct CourseIR authoring fell back.',
+    'Course-map readiness repair now treats "Session N", "Topic N", and bare numbered lesson labels as weak generated topics, so native repair replaces them from real available anchors before blueprint compilation and ZIP export.',
+    'A focused Project Management regression recreates the v0.15.78 failure shape and proves the repaired map removes generic Session labels while preserving concrete anchors such as project charter and scheduling lab.',
+    'This release does not claim a clean 100/100 package; the same audit still showed source-ledger thinness, thin content-bearing deck slides, texture repetition, and a local-storage quota warning that remain separate quality targets.',
   ],
   landingHighlights: [
-    'Texture warnings stay texture warnings.',
-    'Native fallback caveats stay strict.',
-    '99/100 evidence stays honest.',
+    'Generic Session labels are repaired before export.',
+    'Native recovery keeps concrete lesson anchors.',
+    '95/100 evidence stays honest.',
   ],
   proof: {
-    contract: 'release-contracts/v0.15.78.json',
-    roadmap: 'docs/V0.15.78_TEXTURE_CAVEAT_TRUTH_ROADMAP.md',
+    contract: 'release-contracts/v0.15.79.json',
+    roadmap: 'docs/V0.15.79_NATIVE_SESSION_TOPIC_REPAIR_ROADMAP.md',
     auditCommand: 'npm run audit:release-history',
   },
 };
@@ -33,6 +33,17 @@ export const CURRENT_RELEASE_CHANGELOG = {
 };
 
 export const HISTORICAL_RELEASE_CHANGELOGS = [
+  {
+    version: '0.15.78',
+    date: 'June 27, 2026',
+    title: 'Texture Caveat Truth: repeated prose warnings stop becoming native fallback P2s',
+    highlights: [
+      'A fresh deployed v0.15.77 Project Management ZIP/log audit reached ready export with 12/12 materials, no P1s, on-discipline sources, and local regrade at 99/A with only the scored texture P2 remaining after a false native-fallback P2 was removed.',
+      'The deep quality grader no longer treats a texture warning that says "repeated prose patterns" as a native-authoring fallback; only explicit native fallback signals such as "fell back to prose" trigger that honesty finding.',
+      'A focused package-quality regression recreates the live texture warning and proves it does not masquerade as native fallback while the existing native fallback regression still fires.',
+      'This release does not claim a clean 100/100 package; the fresh audit still showed texture 83/100, concentrated in repeated Course FAQ language, so deterministic texture variation remains the next quality target.',
+    ],
+  },
   {
     version: '0.15.77',
     date: 'June 27, 2026',
