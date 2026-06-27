@@ -36,10 +36,7 @@
       "status": "verified-current",
       "changelogHighlightIndex": 0,
       "summary": "The release is grounded in a fresh deployed v0.15.78 Project Management ZIP/log audit that regraded at 95/A and exported generic Session labels after CourseIR direct authoring fell back.",
-      "anchors": [
-        "docs/V0.15.79_NATIVE_SESSION_TOPIC_REPAIR_ROADMAP.md",
-        "verification-output/edutool-audit-loop/20260627T084021Z-v01578-fresh/report.md"
-      ],
+      "anchors": ["docs/V0.15.79_NATIVE_SESSION_TOPIC_REPAIR_ROADMAP.md", "tests/v0141-phase1-finalizer.test.js"],
       "proofCommands": [
         "local regrade captured in verification-output/edutool-audit-loop/20260627T084021Z-v01578-fresh/local-regrade.json"
       ],
