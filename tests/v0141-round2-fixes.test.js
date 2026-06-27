@@ -160,6 +160,21 @@ const SUSTAINABLE_PROJECT_MANAGEMENT_WORK = {
   },
 };
 
+const AUDIT_QUALITY_WORK = {
+  title: 'What do we know about audit quality?',
+  abstract:
+    'Reviews audit quality, auditor independence, audit firm incentives, financial reporting, and accounting standards.',
+  url: 'https://repub.eur.nl/pub/94446/MAB-special-issue-What-do-we-know-about-audit-quality-September-2016.pdf',
+  citedBy: 300,
+  authors: 'Jere R. Francis',
+  license: 'public-domain',
+  primaryTopic: {
+    name: 'Auditing and Financial Reporting',
+    field: 'Business, Management and Accounting',
+    domain: 'Social Sciences',
+  },
+};
+
 function worldLitGraph({ number, sessionTitle, conceptTerms }) {
   return {
     course: { name: 'World Literature' },
@@ -306,6 +321,22 @@ describe('fix 1 — OpenAlex topic gate rejects off-discipline papers regardless
     expect(graph.resources[0].citation).toContain('Sustainable Project Management');
     expect(graph.resources[0].citation).not.toContain('Diabetes');
     expect(graph.readingListDecisions || []).toHaveLength(0);
+  });
+
+  it('rejects accounting audit-quality false friends for Project Management risk lessons', async () => {
+    const graph = {
+      course: { name: 'Project Management' },
+      sessions: [{ id: 's1', number: 6, title: 'Lesson 6: risk register', sections: [{ topic: 'x' }] }],
+      concepts: [{ id: 'c1', term: 'risk register and mitigation planning' }],
+      edges: { teaches: [{ from: 's1', to: 'c1' }] },
+      resources: [],
+    };
+    const providers = stubReadings([AUDIT_QUALITY_WORK, SUSTAINABLE_PROJECT_MANAGEMENT_WORK]);
+    const attached = await attachOpenReadings(graph, { providers });
+    expect(attached).toBe(1);
+    expect(graph.resources).toHaveLength(1);
+    expect(graph.resources[0].citation).toContain('Sustainable Project Management');
+    expect(graph.resources[0].citation).not.toContain('audit quality');
   });
 
   it('provider surfaces primary_topic/topics from the works payload and requests them in the select', async () => {

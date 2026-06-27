@@ -3,22 +3,22 @@ import { APP_VERSION } from './appVersion.js';
 export const CURRENT_RELEASE = {
   version: APP_VERSION,
   date: 'June 27, 2026',
-  title: 'Course Title Skeleton Repair: Project Management maps stop collapsing',
-  landingTitle: 'Course Title Skeleton Repair',
+  title: 'Project Source False-Friend Gate: accounting audit papers stop counting as project proof',
+  landingTitle: 'Project Source False-Friend Gate',
   highlights: [
-    'A fresh deployed v0.15.82 Project Management ZIP/log audit regraded at 99/A with no P0/P1s, on-discipline sources, no generic Week/Session labels, no stale visual-arts kernels, and no local-save quota warning; the remaining scored loss was texture 86/100.',
-    'The same audit exposed a still-real CourseMapper defect: every Course Map lesson title and topic cell collapsed to the course title "Project Management", which made complete-looking exports too generic even though the old Week N bug was gone.',
-    'Course-map readiness now treats repeated course-title-only lesson titles and topic cells as weak skeletons, then repairs them from concrete assessment anchors such as project charter and scheduling lab or from a Project Management progression sequence before export.',
-    'Project Management fallback copy now uses project-specific artifact, stakeholder, constraint, and decision language, and sentence-shaped support fields cannot be reused as Course Map topics. This release does not claim a clean 100/100 package; a fresh deployed v0.15.83 audit is required.',
+    'A fresh deployed v0.15.83 Project Management ZIP/log audit looked clean in the app at 100/A with texture 95, but the stricter local regrade exposed one trusted source-ledger P1: an accounting "audit quality" paper was linked to a risk-register concept.',
+    'Project Management OpenAlex attachment now applies a false-friend gate, rejecting accounting audit-quality and financial-reporting papers unless the source text has an actual project-management anchor.',
+    'The source-ledger grader now flags trusted concept-linked Project Management rows that are off-discipline false friends, so report truth catches the same source mistake even if it reaches export.',
+    'The v0.15.83 audit also verified the recent Course Map repairs: no generic Week/Session labels, no stale visual-arts kernels, amber review-with-notes export state, and no local-save quota warning. This release does not claim a clean 100/100 package; a fresh deployed v0.15.84 audit is required.',
   ],
   landingHighlights: [
-    'Repeated course-title-only maps stay repair-needed.',
-    'Project Management maps repair from real anchors.',
-    'Sentence-shaped support prose cannot become topics.',
+    'Accounting audit papers stay out of project proof.',
+    'Trusted ledger rows get source-topic defense.',
+    'v0.15.83 evidence regrades honestly at 99/A.',
   ],
   proof: {
-    contract: 'release-contracts/v0.15.83.json',
-    roadmap: 'docs/V0.15.83_COURSE_TITLE_SKELETON_REPAIR_ROADMAP.md',
+    contract: 'release-contracts/v0.15.84.json',
+    roadmap: 'docs/V0.15.84_PROJECT_SOURCE_FALSE_FRIEND_GATE_ROADMAP.md',
     auditCommand: 'npm run audit:release-history',
   },
 };
@@ -33,6 +33,17 @@ export const CURRENT_RELEASE_CHANGELOG = {
 };
 
 export const HISTORICAL_RELEASE_CHANGELOGS = [
+  {
+    version: '0.15.83',
+    date: 'June 27, 2026',
+    title: 'Course Title Skeleton Repair: Project Management maps stop collapsing',
+    highlights: [
+      'A fresh deployed v0.15.82 Project Management ZIP/log audit regraded at 99/A with no P0/P1s, on-discipline sources, no generic Week/Session labels, no stale visual-arts kernels, and no local-save quota warning; the remaining scored loss was texture 86/100.',
+      'The same audit exposed a still-real CourseMapper defect: every Course Map lesson title and topic cell collapsed to the course title "Project Management", which made complete-looking exports too generic even though the old Week N bug was gone.',
+      'Course-map readiness now treats repeated course-title-only lesson titles and topic cells as weak skeletons, then repairs them from concrete assessment anchors such as project charter and scheduling lab or from a Project Management progression sequence before export.',
+      'Project Management fallback copy now uses project-specific artifact, stakeholder, constraint, and decision language, and sentence-shaped support fields cannot be reused as Course Map topics. This release does not claim a clean 100/100 package; a fresh deployed v0.15.83 audit is required.',
+    ],
+  },
   {
     version: '0.15.82',
     date: 'June 27, 2026',

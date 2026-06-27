@@ -600,6 +600,35 @@ export function topicGateVerdict(work, allowedTopics) {
     : 'off-discipline';
 }
 
+const PROJECT_MANAGEMENT_SOURCE_ANCHOR_RE =
+  /\b(?:project\s+management|project\s+manager|pmbok|project\s+charter|scope\s+management|work\s+breakdown|critical\s+path|risk\s+register|project\s+risk|project\s+controls|project\s+scheduling|earned\s+value|agile|scrum|kanban|project\s+governance|project\s+life\s+cycle|resource\s+planning|procurement\s+management|deliverable\s+acceptance|portfolio\s+management|construction\s+project|software\s+project)\b/i;
+
+const PROJECT_MANAGEMENT_FALSE_FRIEND_RE =
+  /\b(?:audit\s+quality|auditor\s+independence|audit\s+firm|financial\s+reporting|financial\s+statements?|earnings\s+management|external\s+audit|internal\s+audit|accounting\s+audit)\b/i;
+
+function isProjectManagementGraph(graph) {
+  const disciplines = inferCourseDisciplines({
+    courseName: cleanText(graph?.course?.name),
+    lessons: (graph?.sessions || []).map((session) => ({ title: cleanText(session?.title) })),
+  });
+  return disciplines.includes('project-management');
+}
+
+function workSearchText(work) {
+  return cleanText(
+    `${work?.title || ''} ${work?.abstract || ''} ${work?.primaryTopic?.name || ''} ${
+      work?.primaryTopic?.field || ''
+    } ${work?.primaryTopic?.domain || ''} ${(work?.topics || []).map((topic) => topic?.name || '').join(' ')}`,
+  );
+}
+
+function passesProjectManagementFalseFriendGate(work, graph) {
+  if (!isProjectManagementGraph(graph)) return true;
+  const text = workSearchText(work);
+  if (PROJECT_MANAGEMENT_SOURCE_ANCHOR_RE.test(text)) return true;
+  return !PROJECT_MANAGEMENT_FALSE_FRIEND_RE.test(text);
+}
+
 /** Lowercase, glue apostrophes, punctuation → space; returns a normalized string. */
 function normalizeForMatch(text) {
   return cleanText(text)
@@ -847,6 +876,10 @@ export async function attachOpenReadings(graph, { providers = {}, signal, maxSes
       // yield rule the grader uses (generic words + the discipline's own name
       // are ignored — a sampling lesson's only tie to cancer-statistics is
       // the generic "statistics", so it never yields).
+      if (!passesProjectManagementFalseFriendGate(work, graph)) {
+        rejectedOffDiscipline += 1;
+        return { work, score: scoreReadingRelevance(work, terms), pass: false };
+      }
       const offender = matchesKnownOffender(work?.title);
       if (
         offender &&

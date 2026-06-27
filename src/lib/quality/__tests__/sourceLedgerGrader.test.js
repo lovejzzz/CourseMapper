@@ -251,6 +251,46 @@ describe('source-ledger quality checks', () => {
     );
   });
 
+  it('flags accounting audit-quality rows trusted for Project Management concepts', async () => {
+    const result = await grade({
+      fileProvider: createMemoryFileProvider({
+        'PACKAGE_MANIFEST.json': JSON.stringify({
+          courseName: 'Project Management',
+          lessonScope: 'all',
+          requestedFeatures: [],
+          readiness: { status: 'ready', blockers: 0, warnings: 0, checkedSections: null },
+          sourceLedger: [
+            {
+              id: 'kr1',
+              title: 'Jere R. Francis (2004). What do we know about audit quality?',
+              provider: 'openalex',
+              url: 'https://repub.eur.nl/pub/94446/MAB-special-issue-What-do-we-know-about-audit-quality-September-2016.pdf',
+              license: 'public-domain',
+              conceptLinks: [{ id: 'c6', label: 'risk register and mitigation planning' }],
+            },
+          ],
+          sourceReport: {
+            path: 'SOURCE_REPORT.md',
+            sourceCount: 1,
+          },
+          files: [],
+        }),
+        'SOURCE_REPORT.md': '# Source Report\n\n## Source Ledger\n- kr1: What do we know about audit quality?\n',
+      }),
+      course: { title: 'Project Management', featureIds: [] },
+    });
+
+    expect(result.findings).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          severity: 'P1',
+          dimension: 'citations',
+          detail: 'source ledger row kr1 is off-discipline for Project Management',
+        }),
+      ]),
+    );
+  });
+
   it('flags complete atom coverage that is not wired to the exported trusted ledger rows', async () => {
     const result = await grade({
       fileProvider: createMemoryFileProvider({

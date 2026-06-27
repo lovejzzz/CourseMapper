@@ -1,0 +1,202 @@
+{
+  "scores": {
+    "identity": 100,
+    "substance": 100,
+    "citations": 92,
+    "honesty": 100,
+    "discipline": 100,
+    "consistency": 100,
+    "structure": 100,
+    "format": 100,
+    "texture": 95
+  },
+  "grades": {
+    "identity": "A",
+    "substance": "A",
+    "citations": "A",
+    "honesty": "A",
+    "discipline": "A",
+    "consistency": "A",
+    "structure": "A",
+    "format": "A",
+    "texture": "A"
+  },
+  "overall": {
+    "score": 99,
+    "grade": "A"
+  },
+  "findings": [
+    {
+      "id": "F001",
+      "severity": "P1",
+      "dimension": "citations",
+      "file": "PACKAGE_MANIFEST.json",
+      "detail": "source ledger row kr1 is off-discipline for Project Management",
+      "evidence": "Jere R. Francis (2004). What do we know about audit quality?. Open-access via https://repub.eur.nl/pub/94446/MAB-special-issue-What-do-we-know-about-audit-quality-September-2016.pdf (public-domain)"
+    }
+  ],
+  "stats": {
+    "fileCount": 99,
+    "findingCount": 1,
+    "p0": 0,
+    "p1": 1,
+    "p2": 0,
+    "byDimension": {
+      "identity": 0,
+      "substance": 0,
+      "citations": 1,
+      "honesty": 0,
+      "discipline": 0,
+      "consistency": 0,
+      "structure": 0,
+      "format": 0,
+      "texture": 0
+    },
+    "hasManifest": true,
+    "registryCount": 12,
+    "readingsCount": 0
+  },
+  "texture": {
+    "version": "1.0.0",
+    "score": 95,
+    "grade": "A",
+    "measured": true,
+    "subScores": {
+      "sameness": 96,
+      "openers": 86,
+      "tails": 100
+    },
+    "evidence": [
+      {
+        "shingle": "analyze a stakeholder or field evidence case before making an implementation decision",
+        "feature": "slideDecks",
+        "docCount": 12,
+        "docTotal": 12
+      },
+      {
+        "shingle": "analyze what this evidence shows and justify your conclusion q [n] multiple",
+        "feature": "quizBank",
+        "docCount": 12,
+        "docTotal": 12
+      },
+      {
+        "shingle": "and justify your conclusion q [n] multiple choice [n] pts [n] min",
+        "feature": "quizBank",
+        "docCount": 12,
+        "docTotal": 12
+      },
+      {
+        "shingle": "and the final claim work together concept recall without evidence stays below",
+        "feature": "quizBank",
+        "docCount": 12,
+        "docTotal": 12
+      },
+      {
+        "shingle": "and use the assigned evidence rather than general opinion summative or exam-prep",
+        "feature": "quizBank",
+        "docCount": 12,
+        "docTotal": 12
+      }
+    ],
+    "groups": [
+      {
+        "feature": "assignments",
+        "docCount": 12,
+        "avgOverlap": 0.057999999999999996,
+        "tailCount": 50,
+        "tailDensity": 0.006999999999999999
+      },
+      {
+        "feature": "courseFaq",
+        "docCount": 12,
+        "avgOverlap": 0.024,
+        "tailCount": 13,
+        "tailDensity": 0.003
+      },
+      {
+        "feature": "discussions",
+        "docCount": 12,
+        "avgOverlap": 0.048,
+        "tailCount": 38,
+        "tailDensity": 0.006
+      },
+      {
+        "feature": "lessonPlans",
+        "docCount": 12,
+        "avgOverlap": 0.051,
+        "tailCount": 68,
+        "tailDensity": 0.006999999999999999
+      },
+      {
+        "feature": "quizBank",
+        "docCount": 12,
+        "avgOverlap": 0.022000000000000002,
+        "tailCount": 26,
+        "tailDensity": 0.003
+      },
+      {
+        "feature": "rubrics",
+        "docCount": 12,
+        "avgOverlap": 0.027000000000000003,
+        "tailCount": 26,
+        "tailDensity": 0.004
+      },
+      {
+        "feature": "slideDecks",
+        "docCount": 12,
+        "avgOverlap": 0.044000000000000004,
+        "tailCount": 161,
+        "tailDensity": 0.006999999999999999
+      },
+      {
+        "feature": "studyGuides",
+        "docCount": 12,
+        "avgOverlap": 0.019,
+        "tailCount": 9,
+        "tailDensity": 0.001
+      }
+    ],
+    "advisories": [
+      {
+        "severity": "P2",
+        "dimension": "texture",
+        "advisory": true,
+        "file": "",
+        "detail": "advisory: template tail shared by 12/12 slideDecks documents (roadmap WS-D D1)",
+        "evidence": "analyze a stakeholder or field evidence case before making an implementation decision"
+      },
+      {
+        "severity": "P2",
+        "dimension": "texture",
+        "advisory": true,
+        "file": "",
+        "detail": "advisory: template tail shared by 12/12 quizBank documents (roadmap WS-D D1)",
+        "evidence": "analyze what this evidence shows and justify your conclusion q [n] multiple"
+      },
+      {
+        "severity": "P2",
+        "dimension": "texture",
+        "advisory": true,
+        "file": "",
+        "detail": "advisory: template tail shared by 12/12 quizBank documents (roadmap WS-D D1)",
+        "evidence": "and justify your conclusion q [n] multiple choice [n] pts [n] min"
+      },
+      {
+        "severity": "P2",
+        "dimension": "texture",
+        "advisory": true,
+        "file": "",
+        "detail": "advisory: template tail shared by 12/12 quizBank documents (roadmap WS-D D1)",
+        "evidence": "and the final claim work together concept recall without evidence stays below"
+      },
+      {
+        "severity": "P2",
+        "dimension": "texture",
+        "advisory": true,
+        "file": "",
+        "detail": "advisory: template tail shared by 12/12 quizBank documents (roadmap WS-D D1)",
+        "evidence": "and use the assigned evidence rather than general opinion summative or exam-prep"
+      }
+    ]
+  }
+}

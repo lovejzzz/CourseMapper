@@ -23,6 +23,13 @@ const TRUST_ELIGIBLE_PROVIDERS = new Set([
 
 const REVIEW_ONLY_PROVIDERS = new Set(['courseir', 'instructor', 'instructor-provided', 'openlibrary']);
 
+const PROJECT_MANAGEMENT_COURSE_RE =
+  /\b(?:project\s+management|project\s+manager|pmbok|project\s+charter|scope\s+management|work\s+breakdown|critical\s+path|risk\s+register|stakeholder\s+analysis|project\s+scheduling|project\s+life\s+cycle)\b/i;
+const PROJECT_MANAGEMENT_SOURCE_ANCHOR_RE =
+  /\b(?:project\s+management|project\s+manager|pmbok|project\s+charter|scope\s+management|work\s+breakdown|critical\s+path|risk\s+register|project\s+risk|project\s+controls|project\s+scheduling|earned\s+value|agile|scrum|kanban|project\s+governance|project\s+life\s+cycle|resource\s+planning|procurement\s+management|deliverable\s+acceptance|portfolio\s+management|construction\s+project|software\s+project)\b/i;
+const PROJECT_MANAGEMENT_FALSE_FRIEND_RE =
+  /\b(?:audit\s+quality|auditor\s+independence|audit\s+firm|financial\s+reporting|financial\s+statements?|earnings\s+management|external\s+audit|internal\s+audit|accounting\s+audit)\b/i;
+
 function ambiguousLicense(row) {
   const license = String(row?.license || '')
     .trim()
@@ -54,6 +61,30 @@ function hasConceptLinks(row) {
 
 function isTrustedConceptLinkedBibliographyRow(row) {
   return isTrustedBibliographyRow(row) && hasConceptLinks(row);
+}
+
+function isProjectManagementManifest(manifest) {
+  const courseText = [
+    manifest?.courseName,
+    manifest?.title,
+    manifest?.packageTitle,
+    manifest?.pipeline?.knowledgeBackbone,
+    manifest?.pipeline?.courseGraph,
+  ]
+    .filter(Boolean)
+    .join(' ');
+  return PROJECT_MANAGEMENT_COURSE_RE.test(courseText);
+}
+
+function rowSearchText(row) {
+  return [row?.title, row?.citation, row?.evidence, row?.sourceType, row?.scope].filter(Boolean).join(' ');
+}
+
+function isProjectManagementFalseFriendSource(row, manifest) {
+  if (!isProjectManagementManifest(manifest)) return false;
+  const text = rowSearchText(row);
+  if (!PROJECT_MANAGEMENT_FALSE_FRIEND_RE.test(text)) return false;
+  return !PROJECT_MANAGEMENT_SOURCE_ANCHOR_RE.test(text);
 }
 
 function sourceCoverageTotal(coverage) {
@@ -183,6 +214,15 @@ export function checkSourceLedger(findings, { files, manifest }) {
         file: 'PACKAGE_MANIFEST.json',
         detail: `source ledger row ${id || '(missing id)'} is trusted metadata but is not concept-linked`,
         evidence: row?.title || row?.evidence || id,
+      });
+    }
+    if (isTrustedConceptLinkedBibliographyRow(row) && isProjectManagementFalseFriendSource(row, manifest)) {
+      findings.add({
+        severity: 'P1',
+        dimension: 'citations',
+        file: 'PACKAGE_MANIFEST.json',
+        detail: `source ledger row ${id || '(missing id)'} is off-discipline for Project Management`,
+        evidence: row?.title || row?.citation || row?.evidence || id,
       });
     }
   }
