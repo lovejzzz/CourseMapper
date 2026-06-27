@@ -1,0 +1,87 @@
+{
+  "version": "0.15.75",
+  "date": "June 27, 2026",
+  "title": "Embedded Artifact Label Firewall: sentence-shaped prompt labels stop becoming concepts",
+  "status": "verified-current",
+  "proofSummary": {
+    "local": ["npm test -- tests/v0141-phase1-finalizer.test.js"],
+    "ciFast": {
+      "status": "pending-push",
+      "note": "Fast verification is claimed only after v0.15.75 is pushed and the GitHub Actions run is attached."
+    },
+    "deploy": {
+      "status": "pending-push",
+      "note": "Pages deploy is not claimed until the pushed release completes its deploy run."
+    },
+    "ciDeep": {
+      "status": "local-only",
+      "note": "This is a bounded artifact-label firewall patch; focused regressions plus normal local gates are the release bar."
+    },
+    "liveProvider": {
+      "status": "local-only",
+      "note": "A fresh deployed ZIP/log audit remains required after deploy to prove the real package score."
+    },
+    "manualHuman": {
+      "status": "not-applicable",
+      "note": "No external instructor approval is claimed by this release."
+    }
+  },
+  "claims": [
+    {
+      "id": "v01575-quality-evidence-boundary",
+      "status": "verified-current",
+      "changelogHighlightIndex": 0,
+      "summary": "The release is grounded in a fresh deployed v0.15.74 Project Management ZIP/log audit that regraded at 74/C with prompt artifact leakage as the highest-severity product defect.",
+      "anchors": ["docs/V0.15.75_EMBEDDED_ARTIFACT_LABEL_FIREWALL_ROADMAP.md"],
+      "proofCommands": ["npm test -- tests/v0141-phase1-finalizer.test.js"],
+      "proofScopes": ["doc", "static-audit"]
+    },
+    {
+      "id": "v01575-embedded-course-map-artifact-repair",
+      "status": "verified-current",
+      "changelogHighlightIndex": 1,
+      "summary": "Course-map readiness repair now catches embedded prompt artifact labels in sentence-shaped goals, objectives, assessments, activities, resources, and evaluate-design fields.",
+      "anchors": ["src/lib/deliverableReadiness.js", "tests/v0141-phase1-finalizer.test.js"],
+      "proofCommands": ["npm test -- tests/v0141-phase1-finalizer.test.js"],
+      "proofScopes": ["unit", "compiled-output"]
+    },
+    {
+      "id": "v01575-compiler-grounding-artifact-firewall",
+      "status": "verified-current",
+      "changelogHighlightIndex": 2,
+      "summary": "Compiler grounding sanitization now treats Course Map, Syllabus, Lesson Objectives, and Quiz & Exam Bank labels as unsafe lesson concepts for normal disciplinary courses.",
+      "anchors": ["src/lib/courseBlueprintCompiler.js", "tests/v0141-phase1-finalizer.test.js"],
+      "proofCommands": ["npm test -- tests/v0141-phase1-finalizer.test.js"],
+      "proofScopes": ["unit", "compiled-output"]
+    },
+    {
+      "id": "v01575-strict-grader-vocabulary",
+      "status": "verified-current",
+      "changelogHighlightIndex": 3,
+      "summary": "The artifact contamination detector recognizes the expanded prompt-label vocabulary instead of narrowing or hiding quality findings.",
+      "anchors": ["src/lib/quality/artifactDefectPatterns.js"],
+      "proofCommands": ["npm test -- tests/v0141-phase1-finalizer.test.js"],
+      "proofScopes": ["unit", "static-audit"]
+    }
+  ],
+  "carryForward": [
+    {
+      "id": "fresh-v01575-edutool-zip-log-audit",
+      "status": "carry-forward",
+      "source": "docs/V0.15.75_EMBEDDED_ARTIFACT_LABEL_FIREWALL_ROADMAP.md",
+      "next": "After deploy, run a fresh EduTool.dev ZIP/log audit and verify score, texture, enrichment coverage, artifact-label leakage, source ledger, and export UI truth."
+    },
+    {
+      "id": "full-enrichment-repair",
+      "status": "carry-forward",
+      "source": "docs/V0.15.75_EMBEDDED_ARTIFACT_LABEL_FIREWALL_ROADMAP.md",
+      "next": "Continue improving recovery so partial enrichment repairs all missing lessons before export whenever provider output allows it."
+    },
+    {
+      "id": "texture-format-export-ui-cleanup",
+      "status": "carry-forward",
+      "source": "docs/V0.15.75_EMBEDDED_ARTIFACT_LABEL_FIREWALL_ROADMAP.md",
+      "next": "Continue deterministic texture, double-period formatting, PPTX echo, and export-panel clarity from exported evidence."
+    }
+  ]
+}

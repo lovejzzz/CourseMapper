@@ -413,8 +413,12 @@ function compactFallbackEvidencePacket(title, lessonNumber) {
 }
 
 const PROMPT_ARTIFACT_EVIDENCE_LABELS = [
+  'course map',
+  'syllabus',
   'evidence-rich lesson plans',
   'lesson plans',
+  'lesson objectives',
+  'learning objectives',
   'slide decks',
   'assignment briefs',
   'assignments',
@@ -505,7 +509,7 @@ function isCompactNumberedArtifactList(value) {
 function isPromptArtifactConceptLabel(value) {
   const normalized = normalizePromptArtifactEvidenceCue(value);
   if (!normalized) return false;
-  return /^(?:scenario\s+)?quizzes?$|^(?:rubric[-\s]?driven\s+)?assignments?$|^rubrics?$|^assignment briefs?$|^(?:quiz\s+(?:and|&)\s+exam\s+bank|quiz bank)$|^(?:final\s+)?capstone presentations?$|^(?:final\s+)?capstone presentation$|^slide decks?$|^lesson plans?$|^discussion prompts?$|^study guides?$|^course faq$|^worked examples?$|^misconceptions?$/i.test(
+  return /^(?:course map|syllabus|lesson objectives?|learning objectives?)$|^(?:scenario\s+)?quizzes?$|^(?:rubric[-\s]?driven\s+)?assignments?$|^rubrics?$|^assignment briefs?$|^(?:quiz\s+(?:and|&)\s+exam\s+bank|quiz bank)$|^(?:final\s+)?capstone presentations?$|^(?:final\s+)?capstone presentation$|^slide decks?$|^lesson plans?$|^discussion prompts?$|^study guides?$|^course faq$|^worked examples?$|^misconceptions?$/i.test(
     normalized,
   );
 }
@@ -11616,7 +11620,7 @@ function assignmentDeliverablesForLesson({ lesson = {}, assessment = {}, submiss
 }
 
 const PROMPT_ARTIFACT_DISPLAY_PATTERN =
-  '\\b(?:scenario\\s+quizzes?|rubric[-\\s]?driven\\s+assignments?|final\\s+capstone\\s+presentations?|capstone\\s+presentations?|evidence-rich\\s+lesson\\s+plans?|slide\\s+decks?|assignment\\s+briefs?|discussion\\s+prompts?|quiz\\s+bank|study\\s+guides?|course\\s+faq|worked\\s+examples?|misconceptions?)\\b';
+  '\\b(?:course\\s+map|syllabus|lesson\\s+objectives?|learning\\s+objectives?|scenario\\s+quizzes?|rubric[-\\s]?driven\\s+assignments?|final\\s+capstone\\s+presentations?|capstone\\s+presentations?|evidence-rich\\s+lesson\\s+plans?|lesson\\s+plans?|slide\\s+decks?|assignment\\s+briefs?|discussion\\s+prompts?|quiz\\s+(?:and|&)\\s+exam\\s+bank|quiz\\s+bank|study\\s+guides?|course\\s+faq|worked\\s+examples?|misconceptions?)\\b';
 const PROMPT_ARTIFACT_DISPLAY_RE = new RegExp(PROMPT_ARTIFACT_DISPLAY_PATTERN, 'i');
 
 function safeGroundingText(value, fallback = '') {

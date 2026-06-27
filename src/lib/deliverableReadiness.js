@@ -93,16 +93,29 @@ function escapeRegexLiteral(value) {
 }
 
 const PROMPT_ARTIFACT_TOPIC_LABELS = [
+  'course map',
+  'syllabus',
   'evidence-rich lesson plans',
   'lesson plans',
+  'lesson objectives',
+  'learning objectives',
   'slide decks',
   'assignment briefs',
+  'assignments',
+  'rubric-driven assignments',
   'rubrics',
   'discussion prompts',
+  'scenario quizzes',
   'quizzes',
+  'quiz and exam bank',
+  'quiz & exam bank',
   'quiz bank',
   'study guides',
   'course faq',
+  'final capstone presentation',
+  'final capstone presentations',
+  'capstone presentation',
+  'capstone presentations',
   'worked examples',
   'misconceptions',
   'instructor handoff notes',
@@ -118,6 +131,21 @@ const NUMBERED_PROMPT_ARTIFACT_TOPIC_RE = new RegExp(
 );
 const INSTRUCTIONAL_DESIGN_COURSE_RE =
   /\b(?:instructional design|course design|curriculum design|assessment design|teacher education|teaching methods|pedagogy|education)\b/i;
+const PROMPT_ARTIFACT_EMBEDDED_COURSE_MAP_KEYS = new Set([
+  'learningGoals',
+  'learningObjectives',
+  'weeklyAssessments',
+  'asyncActivities',
+  'syncActivities',
+  'supportingResources',
+  'evaluateDesign',
+]);
+const PROMPT_ARTIFACT_EMBEDDED_CONTEXT_RE =
+  /\b(?:trace how|describe how|explain how|organize|relationship between|focus(?:es)? on|connect|apply|review|prepare notes?|key ideas?|course activities?|course-relevant decision|exit ticket|evidence check|source evidence|student-facing|teach(?:ing)?|learn(?:ing)?)\b/i;
+const PROMPT_ARTIFACT_GENERIC_CONTEXT_RE =
+  /\b(?:content|concepts?|lessons?|objectives?|assessments?|activities|materials?|readings?|resources?|examples?)\b/i;
+const COURSE_MAP_REGISTRY_REFERENCE_SUFFIX_RE =
+  /\s*(?:→|->)\s*(?:course\s+map|syllabus|lesson\s+plans|slide\s+decks|assignment\s+briefs|rubrics|discussion\s+prompts|quiz\s*(?:&|and)\s*exam\s*bank|study\s+guides|course\s+faq)(?:\s*\/\s*lesson\s*\d{1,2})?\b[^\n]*/gi;
 
 function labelFor(featureId) {
   return READINESS_FEATURE_LABELS[featureId] || (featureId?.startsWith('custom_') ? 'Custom Deliverable' : featureId);
@@ -353,6 +381,19 @@ function countEmbeddedPromptArtifactResourceLabels(value) {
   return count;
 }
 
+function stripCourseMapRegistryReferenceSuffix(value) {
+  return text(value).replace(COURSE_MAP_REGISTRY_REFERENCE_SUFFIX_RE, '').trim();
+}
+
+function hasEmbeddedPromptArtifactTopic(value) {
+  const raw = stripCourseMapRegistryReferenceSuffix(value);
+  if (!raw) return false;
+  const labelCount = countEmbeddedPromptArtifactResourceLabels(raw);
+  if (labelCount >= 2) return true;
+  if (labelCount === 0) return false;
+  return PROMPT_ARTIFACT_EMBEDDED_CONTEXT_RE.test(raw) || PROMPT_ARTIFACT_GENERIC_CONTEXT_RE.test(raw);
+}
+
 function isPromptArtifactTopic(value, courseMap) {
   if (isInstructionalDesignCourse(courseMap)) return false;
   return PROMPT_ARTIFACT_TOPIC_SET.has(normalizePromptArtifactTopic(value));
@@ -364,6 +405,7 @@ function needsPromptArtifactCourseMapRepair(key, value, courseMap) {
   if (!raw) return false;
   if (key === 'topicSection' && isPromptArtifactTopic(raw, courseMap)) return true;
   if (NUMBERED_PROMPT_ARTIFACT_TOPIC_RE.test(raw)) return true;
+  if (PROMPT_ARTIFACT_EMBEDDED_COURSE_MAP_KEYS.has(key) && hasEmbeddedPromptArtifactTopic(raw)) return true;
   if (key === 'supportingResources') {
     const lines = splitPromptArtifactResourceLines(value);
     if (lines.some((line) => PROMPT_ARTIFACT_RESOURCE_SET.has(line))) return true;
@@ -378,6 +420,7 @@ function isWeakCourseMapTopic(value, courseMap) {
   const candidate = text(value);
   if (!candidate || findPublishabilityPlaceholders(candidate, { limit: 1 }).length > 0) return true;
   if (isPromptArtifactTopic(candidate, courseMap) || NUMBERED_PROMPT_ARTIFACT_TOPIC_RE.test(candidate)) return true;
+  if (hasEmbeddedPromptArtifactTopic(candidate)) return true;
   if (GENERIC_COURSE_MAP_FALLBACK_RE.test(candidate)) return true;
   return /^(?:none|n\/a|not applicable|lesson|week|topic|block|clinical|community|health|studio|seminar|placement)$/i.test(
     candidate,

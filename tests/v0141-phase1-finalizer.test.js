@@ -419,6 +419,89 @@ describe('1.16 — prompt artifact labels never become course-map concepts', () 
     expect(repairedText).not.toContain('course FAQ\\nworked examples');
   });
 
+  it('repairs sentence-shaped Project Management artifact labels before Course FAQ and Study Guide compilation', () => {
+    const contaminatedMap = {
+      courseName: 'Project Management',
+      lessons: [
+        {
+          title: 'Lesson 1: Project charter',
+          sections: [
+            {
+              topicSection: '1.1: course map',
+              learningGoals: 'Trace how course map changes what students can observe or decide.',
+              learningObjectives: 'Describe how lesson plans organize project management content.',
+              weeklyAssessments:
+                'Exit ticket using Describe how lesson plans organize project management content to justify one course-relevant decision.',
+              asyncActivities: 'Review assigned materials and prepare notes on syllabus.',
+              syncActivities:
+                'Focus on Project Management, the relationship between slide decks, lesson objectives, then connect those ideas to practice.',
+              supportingResources: 'quiz and exam bank',
+              evaluateDesign: 'Check that lesson objectives and slide decks align to the assessment.',
+            },
+            {
+              topicSection: '1.2: project charter',
+              learningGoals: 'Use project charter evidence to reason about stakeholder decisions.',
+              learningObjectives: 'Explain project charter purpose and apply it in a course activity.',
+              weeklyAssessments: 'Project charter evidence check.',
+              asyncActivities: 'Read project charter guidance and annotate one example.',
+              syncActivities: 'Discuss examples and practice applying charter purpose.',
+              supportingResources:
+                'Wikipedia contributors. Project charter. Wikipedia: https://en.wikipedia.org/wiki/Project_charter',
+              evaluateDesign: 'Check project charter decisions against source evidence.',
+            },
+          ],
+        },
+      ],
+    };
+
+    const repairedResult = repairCourseMapReadiness({ courseMap: contaminatedMap });
+    const repairedText = JSON.stringify(repairedResult.courseMap);
+
+    expect(repairedResult.repairedFields).toEqual(
+      expect.arrayContaining([
+        'Lesson 1, Section 1 Topic Section (prompt artifact)',
+        'Lesson 1, Section 1 Learning Goals (prompt artifact)',
+        'Lesson 1, Section 1 Learning Objectives (prompt artifact)',
+        'Lesson 1, Section 1 Weekly Assessments (prompt artifact)',
+        'Lesson 1, Section 1 Async Activities (prompt artifact)',
+        'Lesson 1, Section 1 Sync Activities (prompt artifact)',
+        'Lesson 1, Section 1 Supporting Resources (prompt artifact)',
+        'Lesson 1, Section 1 Evaluate Design (prompt artifact)',
+      ]),
+    );
+    expect(repairedText).toMatch(/project charter/i);
+    expect(repairedText).not.toMatch(
+      /\b(?:course map|syllabus|lesson plans|lesson objectives|slide decks|quiz and exam bank)\b/i,
+    );
+
+    const blueprint = buildCourseBlueprint(repairedResult.courseMap);
+    const compiled = compileBlueprintDeliverables(blueprint, ['courseFaq', 'studyGuides'], {
+      configMap: { courseFaq: { questionsPerLesson: 5 } },
+    });
+    const faqText = compiled.courseFaq.faqs
+      .flatMap((faq) => faq.qs || [])
+      .map((item) => `${item.q || ''} ${item.an || ''} ${(item.rc || []).join(' ')}`)
+      .join(' ');
+    const guideText = [
+      compiled.studyGuides.studyGuides[0].examScope,
+      compiled.studyGuides.studyGuides[0].summary,
+      ...(compiled.studyGuides.studyGuides[0].keyTerms || []).map((term) =>
+        [term.term, term.definition, term.example].join(' '),
+      ),
+      ...(compiled.studyGuides.studyGuides[0].reviewQuestions || []).map((item) =>
+        [item.question, item.hint].join(' '),
+      ),
+      ...(compiled.studyGuides.studyGuides[0].practiceActivities || []),
+      compiled.studyGuides.studyGuides[0].examPrep?.reviewStrategy,
+    ].join(' ');
+    const studentFacingText = `${faqText} ${guideText}`;
+
+    expect(studentFacingText).not.toMatch(
+      /\b(?:course map|syllabus|lesson plans|lesson objectives|slide decks|quiz and exam bank)\b/i,
+    );
+    expect(studentFacingText).toMatch(/project charter|Project Management source evidence|source evidence/i);
+  });
+
   it('keeps repaired single artifact-resource labels out of compiled Course FAQ answers', () => {
     const courseMap = {
       courseName: 'Genetics and Society',

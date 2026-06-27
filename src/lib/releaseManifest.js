@@ -3,22 +3,22 @@ import { APP_VERSION } from './appVersion.js';
 export const CURRENT_RELEASE = {
   version: APP_VERSION,
   date: 'June 27, 2026',
-  title: 'Source-Finder Multi-Row Bridge: trusted retrieved sources stop collapsing',
-  landingTitle: 'Source-Finder Multi-Row Bridge',
+  title: 'Embedded Artifact Label Firewall: sentence-shaped prompt labels stop becoming concepts',
+  landingTitle: 'Embedded Artifact Label Firewall',
   highlights: [
-    'The latest completed ZIP/log evidence is still below the 100/100 target, so this release does not claim a clean package before a fresh v0.15.74 audit.',
-    'Source-finder mini-shard recovery now preserves up to two trusted, concept-linked rows from one retrieved topic instead of collapsing each topic to one row.',
-    'Open Library public metadata remains review-only when stronger OpenAlex/Crossref rows are available; the trusted-source grader standards stay unchanged.',
-    'A focused source-ledger regression proves recovered OpenAlex and Crossref rows both count as trusted concept-linked proof while metadata-only rows do not.',
+    'A fresh deployed v0.15.74 Project Management ZIP/log audit regraded at 74/C, with prompt artifact labels in lesson concepts as the highest-severity P0 defect; this release does not claim a clean package before a fresh v0.15.75 audit.',
+    'Course-map readiness repair now catches embedded prompt artifact labels inside sentence-shaped goals, objectives, assessments, activities, resources, and evaluate-design cells instead of only bare labels.',
+    'Compiler grounding now treats Course Map, Syllabus, Lesson Objectives, and Quiz & Exam Bank labels as unsafe lesson concepts for normal disciplinary courses, so stale shared metadata cannot reintroduce them into Course FAQ or Study Guide output.',
+    'The artifact contamination detector recognizes the expanded prompt-label vocabulary, keeping the grader strict rather than hiding or downgrading the finding.',
   ],
   landingHighlights: [
-    'Retrieved trusted sources survive export.',
-    'Metadata-only rows stay review-only.',
-    'Source counts stay strict.',
+    'Embedded prompt labels are repaired before compile.',
+    'Course FAQ and Study Guides keep real concepts.',
+    'The grader stays strict about artifact leakage.',
   ],
   proof: {
-    contract: 'release-contracts/v0.15.74.json',
-    roadmap: 'docs/V0.15.74_SOURCE_FINDER_MULTI_ROW_BRIDGE_ROADMAP.md',
+    contract: 'release-contracts/v0.15.75.json',
+    roadmap: 'docs/V0.15.75_EMBEDDED_ARTIFACT_LABEL_FIREWALL_ROADMAP.md',
     auditCommand: 'npm run audit:release-history',
   },
 };
@@ -33,6 +33,17 @@ export const CURRENT_RELEASE_CHANGELOG = {
 };
 
 export const HISTORICAL_RELEASE_CHANGELOGS = [
+  {
+    version: '0.15.74',
+    date: 'June 27, 2026',
+    title: 'Source-Finder Multi-Row Bridge: trusted retrieved sources stop collapsing',
+    highlights: [
+      'The latest completed ZIP/log evidence is still below the 100/100 target, so this release does not claim a clean package before a fresh v0.15.74 audit.',
+      'Source-finder mini-shard recovery now preserves up to two trusted, concept-linked rows from one retrieved topic instead of collapsing each topic to one row.',
+      'Open Library public metadata remains review-only when stronger OpenAlex/Crossref rows are available; the trusted-source grader standards stay unchanged.',
+      'A focused source-ledger regression proves recovered OpenAlex and Crossref rows both count as trusted concept-linked proof while metadata-only rows do not.',
+    ],
+  },
   {
     version: '0.15.73',
     date: 'June 27, 2026',
