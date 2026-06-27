@@ -35,10 +35,7 @@
       "status": "verified-current",
       "changelogHighlightIndex": 0,
       "summary": "The release is grounded in a fresh deployed v0.15.79 Project Management ZIP/log audit whose exported report reached 99/A with texture as the only scored remaining package loss.",
-      "anchors": [
-        "docs/V0.15.80_COURSE_FAQ_TEXTURE_REPAIR_ROADMAP.md",
-        "verification-output/edutool-audit-loop/20260627T093324Z-v01579-fresh/local-regrade-current-run.json"
-      ],
+      "anchors": ["docs/V0.15.80_COURSE_FAQ_TEXTURE_REPAIR_ROADMAP.md", "release-contracts/v0.15.80.json"],
       "proofCommands": [
         "local regrade captured in verification-output/edutool-audit-loop/20260627T093324Z-v01579-fresh/local-regrade-current-run.json"
       ],
