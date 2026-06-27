@@ -3,22 +3,22 @@ import { APP_VERSION } from './appVersion.js';
 export const CURRENT_RELEASE = {
   version: APP_VERSION,
   date: 'June 27, 2026',
-  title: 'Enrichment-First Voice Gate: partial lesson coverage blocks optional polish',
-  landingTitle: 'Enrichment-First Voice Gate',
+  title: 'Source-Finder Multi-Row Bridge: trusted retrieved sources stop collapsing',
+  landingTitle: 'Source-Finder Multi-Row Bridge',
   highlights: [
-    'The latest completed ZIP/log evidence is still v0.15.71 at 95/A, so this release does not claim a clean 100/100 package before a fresh v0.15.73 audit.',
-    'Optional voice polish now defers whenever enrichment coverage is partial, so a package with template-fallback lessons keeps attention on repair instead of spending a model call on texture.',
-    'The enrichment digest line remains the exact coverage-gap evidence, making the quality loss explainable from logs instead of only from the exported grader.',
-    'Focused enrichment and voice-pass regressions pin the policy that lesson coverage is higher priority than texture polish.',
+    'The latest completed ZIP/log evidence is still below the 100/100 target, so this release does not claim a clean package before a fresh v0.15.74 audit.',
+    'Source-finder mini-shard recovery now preserves up to two trusted, concept-linked rows from one retrieved topic instead of collapsing each topic to one row.',
+    'Open Library public metadata remains review-only when stronger OpenAlex/Crossref rows are available; the trusted-source grader standards stay unchanged.',
+    'A focused source-ledger regression proves recovered OpenAlex and Crossref rows both count as trusted concept-linked proof while metadata-only rows do not.',
   ],
   landingHighlights: [
-    'Partial enrichment blocks optional polish.',
-    'Digest logs explain the coverage gap.',
-    'Texture waits for complete lesson kernels.',
+    'Retrieved trusted sources survive export.',
+    'Metadata-only rows stay review-only.',
+    'Source counts stay strict.',
   ],
   proof: {
-    contract: 'release-contracts/v0.15.73.json',
-    roadmap: 'docs/V0.15.73_ENRICHMENT_FIRST_VOICE_GATE_ROADMAP.md',
+    contract: 'release-contracts/v0.15.74.json',
+    roadmap: 'docs/V0.15.74_SOURCE_FINDER_MULTI_ROW_BRIDGE_ROADMAP.md',
     auditCommand: 'npm run audit:release-history',
   },
 };
@@ -33,6 +33,17 @@ export const CURRENT_RELEASE_CHANGELOG = {
 };
 
 export const HISTORICAL_RELEASE_CHANGELOGS = [
+  {
+    version: '0.15.73',
+    date: 'June 27, 2026',
+    title: 'Enrichment-First Voice Gate: partial lesson coverage blocks optional polish',
+    highlights: [
+      'The latest completed ZIP/log evidence is still v0.15.71 at 95/A, so this release does not claim a clean 100/100 package before a fresh v0.15.73 audit.',
+      'Optional voice polish now defers whenever enrichment coverage is partial, so a package with template-fallback lessons keeps attention on repair instead of spending a model call on texture.',
+      'The enrichment digest line remains the exact coverage-gap evidence, making the quality loss explainable from logs instead of only from the exported grader.',
+      'Focused enrichment and voice-pass regressions pin the policy that lesson coverage is higher priority than texture polish.',
+    ],
+  },
   {
     version: '0.15.72',
     date: 'June 27, 2026',

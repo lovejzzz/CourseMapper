@@ -411,6 +411,91 @@ describe('trusted source ledger', () => {
     });
   });
 
+  it('bridges multiple trusted concept-linked source-finder rows from one topic', () => {
+    const ledger = buildSourceLedgerFromCourseGraph(
+      {
+        concepts: [{ id: 'c1', term: 'Critical path method' }],
+        sessions: [
+          {
+            id: 's1',
+            number: 1,
+            sections: [
+              {
+                id: 'sec1',
+                topic: 'Critical path method',
+                conceptRefs: ['c1'],
+                resourceRefs: [],
+              },
+            ],
+          },
+        ],
+        resources: [],
+        sourceFinderMiniShard: {
+          topics: [
+            {
+              sessionId: 's1',
+              lessonNumber: 1,
+              topic: 'critical path project scheduling',
+              sources: [
+                {
+                  provider: 'openlibrary',
+                  kind: 'book metadata',
+                  title: 'Critical Path Project Management',
+                  url: 'https://openlibrary.org/works/OL111W',
+                  license: 'Open Library public metadata',
+                  snippet: 'Bibliographic metadata for a critical path book.',
+                },
+                {
+                  provider: 'openalex',
+                  kind: 'peer-reviewed reading',
+                  title: 'Critical Path Scheduling in Project Controls',
+                  doi: '10.1000/critical-path-openalex',
+                  url: 'https://doi.org/10.1000/critical-path-openalex',
+                  license: 'CC BY 4.0',
+                  snippet: 'Critical path scheduling evidence for project control decisions.',
+                },
+                {
+                  provider: 'crossref',
+                  kind: 'scholarly work',
+                  title: 'Network Scheduling and Critical Path Method',
+                  doi: '10.1000/critical-path-crossref',
+                  url: 'https://doi.org/10.1000/critical-path-crossref',
+                  license: 'https://www.elsevier.com/tdm/userlicense/1.0/',
+                  snippet: 'Critical path network scheduling for project management.',
+                },
+              ],
+            },
+          ],
+        },
+      },
+      { checkedAt: '2026-06-27T00:00:00.000Z' },
+    );
+
+    expect(ledger.rows).toHaveLength(2);
+    expect(ledger.rows.map((row) => row.provider)).toEqual(['openalex', 'crossref']);
+    expect(ledger.rows).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          provider: 'openalex',
+          licenseAmbiguous: false,
+          conceptLinks: [{ id: 'c1', label: 'Critical path method' }],
+        }),
+        expect.objectContaining({
+          provider: 'crossref',
+          licenseAmbiguous: false,
+          conceptLinks: [{ id: 'c1', label: 'Critical path method' }],
+        }),
+      ]),
+    );
+    expect(ledger.summary).toMatchObject({
+      sourceCount: 2,
+      trustedCount: 2,
+      conceptLinkedCount: 2,
+      trustedConceptLinkedCount: 2,
+      licenseAmbiguousCount: 0,
+    });
+  });
+
   it('counts only accessible non-ambiguous source-finder rows as trusted bibliography', () => {
     const ledger = buildSourceLedgerFromCourseGraph(
       {

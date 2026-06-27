@@ -31,6 +31,7 @@ const NON_SOURCE_RESOURCE_RE =
   /^(?:course\s*map|syllabus|lesson\s*plans?|slide\s*decks?|assignment\s*briefs?|rubrics?|discussion\s*prompts?|quiz\s*(?:and|&)\s*exam\s*bank|study\s*guides?|course\s*faq)$/i;
 const PLACEHOLDER_RESOURCE_RE =
   /\b(?:course materials students need|worked examples,\s*readings,\s*or activity sheets|instructor-approved readings,\s*examples,\s*or lab materials|assigned materials|class notes and assigned materials|lms access|shared files|discipline-specific tools|required for this lesson|document,\s*slide,\s*lab,\s*or analysis tool|local examples need instructor confirmation|local source list pending)\b/i;
+const SOURCE_FINDER_TRUSTED_ROWS_PER_TOPIC = 2;
 
 function cleanText(value, maxLength = 500) {
   const text = String(value ?? '')
@@ -440,6 +441,34 @@ function rankedSourceFinderTopicSources(topic = {}) {
     .sort((left, right) => right.score - left.score || left.index - right.index);
 }
 
+function normalizeSourceFinderTopicSource(courseGraph, topic, source, topicIndex, sourceIndex, checkedAt) {
+  return normalizeTrustedSource(
+    {
+      ...source,
+      id: source.sourceRefId || source.id || `sf-${topicIndex + 1}-${sourceIndex + 1}`,
+      provider: source.provider || 'source-finder',
+      sourceType: source.kind || 'source-finder source',
+      status: 'source-provided',
+      scope: topic.sessionId || topic.lessonNumber ? `lesson-${topic.lessonNumber || topic.sessionId}` : 'course',
+      evidence: source.snippet || source.abstract || source.evidence || topic.topic,
+    },
+    {
+      fallbackId: `sf-${topicIndex + 1}-${sourceIndex + 1}`,
+      checkedAt,
+      conceptLinks: conceptLinksForSourceFinderTopic(courseGraph, topic),
+    },
+  );
+}
+
+function sourceFinderTopicLedgerSources(courseGraph, topic, topicIndex, checkedAt) {
+  const candidates = rankedSourceFinderTopicSources(topic).map(({ source }, sourceIndex) =>
+    normalizeSourceFinderTopicSource(courseGraph, topic, source, topicIndex, sourceIndex, checkedAt),
+  );
+  const trustedConceptLinked = candidates.filter(isTrustedConceptLinkedSourceLedgerRow);
+  if (trustedConceptLinked.length > 0) return trustedConceptLinked.slice(0, SOURCE_FINDER_TRUSTED_ROWS_PER_TOPIC);
+  return candidates.slice(0, 1);
+}
+
 export function buildSourceLedgerFromCourseGraph(courseGraph, { checkedAt = '' } = {}) {
   if (!courseGraph || typeof courseGraph !== 'object') return null;
   const rows = [];
@@ -497,27 +526,8 @@ export function buildSourceLedgerFromCourseGraph(courseGraph, { checkedAt = '' }
 
   for (const [topicIndex, topic] of (courseGraph.sourceFinderMiniShard?.topics || []).entries()) {
     if (!topic || typeof topic !== 'object') continue;
-    for (const [sourceIndex, { source }] of rankedSourceFinderTopicSources(topic).slice(0, 1).entries()) {
-      if (!source || typeof source !== 'object') continue;
-      appendUnique(
-        rows,
-        normalizeTrustedSource(
-          {
-            ...source,
-            id: source.sourceRefId || source.id || `sf-${topicIndex + 1}-${sourceIndex + 1}`,
-            provider: source.provider || 'source-finder',
-            sourceType: source.kind || 'source-finder source',
-            status: 'source-provided',
-            scope: topic.sessionId || topic.lessonNumber ? `lesson-${topic.lessonNumber || topic.sessionId}` : 'course',
-            evidence: source.snippet || source.abstract || source.evidence || topic.topic,
-          },
-          {
-            fallbackId: `sf-${topicIndex + 1}-${sourceIndex + 1}`,
-            checkedAt,
-            conceptLinks: conceptLinksForSourceFinderTopic(courseGraph, topic),
-          },
-        ),
-      );
+    for (const source of sourceFinderTopicLedgerSources(courseGraph, topic, topicIndex, checkedAt)) {
+      appendUnique(rows, source);
     }
   }
 
