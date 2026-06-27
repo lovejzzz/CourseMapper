@@ -1,0 +1,81 @@
+{
+  "version": "0.15.71",
+  "date": "June 27, 2026",
+  "title": "Source Candidate Preference: trusted source-finder rows beat metadata-only rows",
+  "status": "verified-current",
+  "proofSummary": {
+    "local": ["npm test -- src/lib/knowledge/__tests__/sourceLedger.test.js"],
+    "ciFast": {
+      "status": "pending-push",
+      "note": "Fast verification is claimed only after v0.15.71 is pushed and the GitHub Actions run is attached."
+    },
+    "deploy": {
+      "status": "pending-push",
+      "note": "Pages deploy is not claimed until the pushed release completes its deploy run."
+    },
+    "ciDeep": {
+      "status": "local-only",
+      "note": "This is a bounded source-ledger selection patch; focused regression plus normal local gates are the release bar."
+    },
+    "liveProvider": {
+      "status": "local-only",
+      "note": "A fresh deployed ZIP/log audit remains required after deploy to prove the real package score."
+    },
+    "manualHuman": {
+      "status": "not-applicable",
+      "note": "No external instructor approval is claimed by this release."
+    }
+  },
+  "claims": [
+    {
+      "id": "v01571-quality-evidence-boundary",
+      "status": "verified-current",
+      "changelogHighlightIndex": 0,
+      "summary": "The release does not claim 100/100; it targets a source-license score loss visible in the latest full ZIP/log evidence.",
+      "anchors": ["docs/V0.15.71_SOURCE_CANDIDATE_PREFERENCE_ROADMAP.md"],
+      "proofCommands": ["npm test -- src/lib/knowledge/__tests__/sourceLedger.test.js"],
+      "proofScopes": ["doc", "static-audit"]
+    },
+    {
+      "id": "v01571-source-finder-ranking",
+      "status": "verified-current",
+      "changelogHighlightIndex": 1,
+      "summary": "Source-finder ledger assembly ranks topic candidates so accessible, non-ambiguous, trust-eligible sources beat first-position metadata-only rows.",
+      "anchors": ["src/lib/knowledge/sourceLedger.js", "src/lib/knowledge/__tests__/sourceLedger.test.js"],
+      "proofCommands": ["npm test -- src/lib/knowledge/__tests__/sourceLedger.test.js"],
+      "proofScopes": ["unit", "course-graph"]
+    },
+    {
+      "id": "v01571-openlibrary-remains-review-only",
+      "status": "verified-current",
+      "changelogHighlightIndex": 2,
+      "summary": "Open Library public metadata remains review-only; the patch prefers stronger candidates instead of promoting ambiguous metadata.",
+      "anchors": ["src/lib/knowledge/sourceLedger.js", "src/lib/knowledge/__tests__/sourceLedger.test.js"],
+      "proofCommands": ["npm test -- src/lib/knowledge/__tests__/sourceLedger.test.js"],
+      "proofScopes": ["unit", "static-audit"]
+    },
+    {
+      "id": "v01571-regression",
+      "status": "verified-current",
+      "changelogHighlightIndex": 3,
+      "summary": "The regression proves an Open Library first / OpenAlex second topic exports trusted, concept-linked OpenAlex evidence.",
+      "anchors": ["src/lib/knowledge/__tests__/sourceLedger.test.js"],
+      "proofCommands": ["npm test -- src/lib/knowledge/__tests__/sourceLedger.test.js"],
+      "proofScopes": ["unit", "course-graph"]
+    }
+  ],
+  "carryForward": [
+    {
+      "id": "fresh-v01571-edutool-zip-log-audit",
+      "status": "carry-forward",
+      "source": "docs/V0.15.71_SOURCE_CANDIDATE_PREFERENCE_ROADMAP.md",
+      "next": "After deploy, run a fresh EduTool.dev ZIP/log audit and verify whether the source-ledger score loss improves on real output."
+    },
+    {
+      "id": "strict-enrichment-coverage",
+      "status": "carry-forward",
+      "source": "docs/V0.15.71_SOURCE_CANDIDATE_PREFERENCE_ROADMAP.md",
+      "next": "If a run enriches fewer than all lessons, it must retry within bounded repair budget or remain visibly caveated/blocked."
+    }
+  ]
+}

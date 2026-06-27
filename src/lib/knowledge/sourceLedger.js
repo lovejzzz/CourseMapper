@@ -419,6 +419,27 @@ function isCourseIRReviewOnlySource(source = {}) {
   );
 }
 
+function sourceFinderLedgerCandidateScore(source = {}) {
+  const provider = cleanText(source.provider || source.origin || '', 80).toLowerCase();
+  let score = 0;
+  if (isSourceAccessible(source)) score += 30;
+  if (source?.doi) score += 8;
+  if (!isLicenseAmbiguous(source?.license)) score += 30;
+  if (TRUST_ELIGIBLE_PROVIDERS.has(provider) && !REVIEW_ONLY_PROVIDERS.has(provider)) score += 30;
+  if (ACADEMIC_PROVIDERS.has(provider)) score += 12;
+  if (OER_PROVIDERS.has(provider)) score += 10;
+  if (LICENSED_BACKGROUND_PROVIDERS.has(provider)) score += 8;
+  if (METADATA_ONLY_PROVIDERS.has(provider) || REVIEW_ONLY_PROVIDERS.has(provider)) score -= 20;
+  return score;
+}
+
+function rankedSourceFinderTopicSources(topic = {}) {
+  return (Array.isArray(topic.sources) ? topic.sources : [])
+    .filter((source) => source && typeof source === 'object')
+    .map((source, index) => ({ source, index, score: sourceFinderLedgerCandidateScore(source) }))
+    .sort((left, right) => right.score - left.score || left.index - right.index);
+}
+
 export function buildSourceLedgerFromCourseGraph(courseGraph, { checkedAt = '' } = {}) {
   if (!courseGraph || typeof courseGraph !== 'object') return null;
   const rows = [];
@@ -476,7 +497,7 @@ export function buildSourceLedgerFromCourseGraph(courseGraph, { checkedAt = '' }
 
   for (const [topicIndex, topic] of (courseGraph.sourceFinderMiniShard?.topics || []).entries()) {
     if (!topic || typeof topic !== 'object') continue;
-    for (const [sourceIndex, source] of (topic.sources || []).slice(0, 1).entries()) {
+    for (const [sourceIndex, { source }] of rankedSourceFinderTopicSources(topic).slice(0, 1).entries()) {
       if (!source || typeof source !== 'object') continue;
       appendUnique(
         rows,

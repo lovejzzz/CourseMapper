@@ -2,23 +2,23 @@ import { APP_VERSION } from './appVersion.js';
 
 export const CURRENT_RELEASE = {
   version: APP_VERSION,
-  date: 'June 26, 2026',
-  title: 'Shared Artifact Firewall: prompt placeholders stop leaking across compiled outputs',
-  landingTitle: 'Shared Artifact Firewall',
+  date: 'June 27, 2026',
+  title: 'Source Candidate Preference: trusted source-finder rows beat metadata-only rows',
+  landingTitle: 'Source Candidate Preference',
   highlights: [
-    'The latest Project Management quality evidence still does not justify a 100/100 claim, but it narrowed the next safe product slice to prompt/source placeholder leakage in compiled artifacts.',
-    'Shared lesson concept and artifact helpers now cover Study Guides, discussions, quiz-bank metadata, and compiled custom reflection/reading-response outputs instead of only Course FAQ-style copy.',
-    'Source-grounding extras and discussion source-artifact locators now pass through the same safe evidence-cue boundary, so placeholder phrases such as instructor-approved reading boilerplate do not reappear after sanitization.',
-    'A focused compiler regression proves the guarded prompt labels stay out of the compiled output while preserving real Project Management concepts and source-evidence language.',
+    'The latest full Project Management ZIP/log evidence remains below the 100/100 target, with source-license caveats as a real CourseMapper-side loss rather than a model-only issue.',
+    'Source-finder ledger assembly now ranks candidates inside each retrieved topic before exporting one row, so accessible, non-ambiguous, trust-eligible sources win over first-position metadata-only rows.',
+    'Open Library remains review-only metadata; the fix does not promote ambiguous public metadata or weaken the trusted-source grader.',
+    'A focused source-ledger regression recreates an Open Library first / OpenAlex second topic and proves the exported row is trusted, concept-linked OpenAlex evidence.',
   ],
   landingHighlights: [
-    'Prompt labels stay out of compiled artifacts.',
-    'Source placeholders use safe evidence cues.',
-    'Project Management concepts remain intact.',
+    'Trusted source candidates are preferred.',
+    'Metadata-only rows stay review-only.',
+    'Concept-linked source proof is preserved.',
   ],
   proof: {
-    contract: 'release-contracts/v0.15.70.json',
-    roadmap: 'docs/V0.15.70_SHARED_ARTIFACT_FIREWALL_ROADMAP.md',
+    contract: 'release-contracts/v0.15.71.json',
+    roadmap: 'docs/V0.15.71_SOURCE_CANDIDATE_PREFERENCE_ROADMAP.md',
     auditCommand: 'npm run audit:release-history',
   },
 };
@@ -33,6 +33,17 @@ export const CURRENT_RELEASE_CHANGELOG = {
 };
 
 export const HISTORICAL_RELEASE_CHANGELOGS = [
+  {
+    version: '0.15.70',
+    date: 'June 26, 2026',
+    title: 'Shared Artifact Firewall: prompt placeholders stop leaking across compiled outputs',
+    highlights: [
+      'The latest Project Management quality evidence still does not justify a 100/100 claim, but it narrowed the next safe product slice to prompt/source placeholder leakage in compiled artifacts.',
+      'Shared lesson concept and artifact helpers now cover Study Guides, discussions, quiz-bank metadata, and compiled custom reflection/reading-response outputs instead of only Course FAQ-style copy.',
+      'Source-grounding extras and discussion source-artifact locators now pass through the same safe evidence-cue boundary, so placeholder phrases such as instructor-approved reading boilerplate do not reappear after sanitization.',
+      'A focused compiler regression proves the guarded prompt labels stay out of the compiled output while preserving real Project Management concepts and source-evidence language.',
+    ],
+  },
   {
     version: '0.15.69',
     date: 'June 26, 2026',

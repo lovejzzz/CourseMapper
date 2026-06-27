@@ -344,6 +344,73 @@ describe('trusted source ledger', () => {
     );
   });
 
+  it('prefers trustworthy source-finder candidates over first metadata-only rows', () => {
+    const ledger = buildSourceLedgerFromCourseGraph(
+      {
+        concepts: [{ id: 'c1', term: 'Earned value management' }],
+        sessions: [
+          {
+            id: 's1',
+            number: 1,
+            sections: [
+              {
+                id: 'sec1',
+                topic: 'Earned value management',
+                conceptRefs: ['c1'],
+                resourceRefs: [],
+              },
+            ],
+          },
+        ],
+        resources: [],
+        sourceFinderMiniShard: {
+          topics: [
+            {
+              sessionId: 's1',
+              lessonNumber: 1,
+              topic: 'earned value',
+              sources: [
+                {
+                  provider: 'openlibrary',
+                  kind: 'book metadata',
+                  title: 'Earned Value Project Management',
+                  url: 'https://openlibrary.org/works/OL3289640W',
+                  license: 'Open Library public metadata',
+                  snippet: 'Bibliographic metadata for an earned value book.',
+                },
+                {
+                  provider: 'openalex',
+                  kind: 'peer-reviewed reading',
+                  title: 'Earned Value Management in Project Controls',
+                  doi: '10.1000/evm-controls',
+                  url: 'https://doi.org/10.1000/evm-controls',
+                  license: 'cc-by',
+                  snippet: 'Connects earned value management to schedule and cost control decisions.',
+                },
+              ],
+            },
+          ],
+        },
+      },
+      { checkedAt: '2026-06-27T00:00:00.000Z' },
+    );
+
+    expect(ledger.rows).toHaveLength(1);
+    expect(ledger.rows[0]).toMatchObject({
+      provider: 'openalex',
+      title: 'Earned Value Management in Project Controls',
+      trustLevel: 'academic-metadata',
+      licenseAmbiguous: false,
+      conceptLinks: [{ id: 'c1', label: 'Earned value management' }],
+    });
+    expect(ledger.summary).toMatchObject({
+      sourceCount: 1,
+      trustedCount: 1,
+      trustedConceptLinkedCount: 1,
+      licenseAmbiguousCount: 0,
+    });
+  });
+
   it('counts only accessible non-ambiguous source-finder rows as trusted bibliography', () => {
     const ledger = buildSourceLedgerFromCourseGraph(
       {
