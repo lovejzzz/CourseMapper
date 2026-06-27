@@ -1,0 +1,94 @@
+{
+  "version": "0.15.81",
+  "date": "June 27, 2026",
+  "title": "Compiler Texture Rotation: repeated discussion and slide tails stop shipping",
+  "status": "verified-current",
+  "proofSummary": {
+    "local": [
+      "node ./node_modules/vitest/vitest.mjs run src/lib/__tests__/courseBlueprintCompiler.test.js --testNamePattern \"varies lecture-exam slide and lesson-plan texture\"",
+      "fresh v0.15.80 ZIP/log audit at verification-output/edutool-audit-loop/20260627T103404Z-v01580-fresh"
+    ],
+    "ciFast": {
+      "status": "pending-push",
+      "note": "Fast verification is claimed only after v0.15.81 is pushed and the GitHub Actions run is attached."
+    },
+    "deploy": {
+      "status": "pending-push",
+      "note": "Pages deploy is not claimed until the pushed release completes its deploy run."
+    },
+    "ciDeep": {
+      "status": "local-only",
+      "note": "This is a narrow deterministic compiler texture patch; focused regression plus normal local gates are the release bar."
+    },
+    "liveProvider": {
+      "status": "local-only",
+      "note": "The release is based on a fresh deployed v0.15.80 Project Management ZIP/log audit. A fresh v0.15.81 package audit is required after deploy to verify the repair against provider output."
+    },
+    "manualHuman": {
+      "status": "not-applicable",
+      "note": "No external instructor approval is claimed by this release."
+    }
+  },
+  "claims": [
+    {
+      "id": "v01581-quality-evidence-boundary",
+      "status": "verified-current",
+      "changelogHighlightIndex": 0,
+      "summary": "The release is grounded in a fresh deployed v0.15.80 Project Management ZIP/log audit whose exported report and local regrade reached 99/A with texture as the only scored remaining package loss.",
+      "anchors": [
+        "verification-output/edutool-audit-loop/20260627T103404Z-v01580-fresh/report.md",
+        "docs/V0.15.81_COMPILER_TEXTURE_ROTATION_ROADMAP.md",
+        "release-contracts/v0.15.81.json"
+      ],
+      "proofCommands": [
+        "local regrade captured in verification-output/edutool-audit-loop/20260627T103404Z-v01580-fresh/local-regrade-current-run.json"
+      ],
+      "proofScopes": ["live-provider", "browser-live", "doc"]
+    },
+    {
+      "id": "v01581-discussion-texture-rotation",
+      "status": "verified-current",
+      "changelogHighlightIndex": 1,
+      "summary": "Discussion follow-up probes and participation review language rotate deterministic lesson-specific alternatives instead of repeating one challenge/limitation scaffold.",
+      "anchors": ["src/lib/courseBlueprintCompiler.js", "src/lib/__tests__/courseBlueprintCompiler.test.js"],
+      "proofCommands": [
+        "node ./node_modules/vitest/vitest.mjs run src/lib/__tests__/courseBlueprintCompiler.test.js --testNamePattern \"varies lecture-exam slide and lesson-plan texture\""
+      ],
+      "proofScopes": ["unit", "compiled-output"]
+    },
+    {
+      "id": "v01581-slide-plan-texture-rotation",
+      "status": "verified-current",
+      "changelogHighlightIndex": 2,
+      "summary": "Slide Deck bridge/title notes and Lesson Plan warm-up/guided-analysis text rotate the exact v0.15.80 repeated shingles before export.",
+      "anchors": ["src/lib/courseBlueprintCompiler.js", "src/lib/__tests__/courseBlueprintCompiler.test.js"],
+      "proofCommands": [
+        "node ./node_modules/vitest/vitest.mjs run src/lib/__tests__/courseBlueprintCompiler.test.js --testNamePattern \"varies lecture-exam slide and lesson-plan texture\""
+      ],
+      "proofScopes": ["unit", "compiled-output"]
+    },
+    {
+      "id": "v01581-no-clean-quality-claim",
+      "status": "verified-current",
+      "changelogHighlightIndex": 3,
+      "summary": "The release carries forward the need for a fresh v0.15.81 deployed audit and does not claim the direct CourseIR fallback is fixed.",
+      "anchors": ["src/lib/releaseManifest.js", "docs/V0.15.81_COMPILER_TEXTURE_ROTATION_ROADMAP.md"],
+      "proofCommands": ["npm run audit:release-history"],
+      "proofScopes": ["doc", "static-audit"]
+    }
+  ],
+  "carryForward": [
+    {
+      "id": "fresh-v01581-provider-audit",
+      "status": "carry-forward",
+      "source": "verification-output/edutool-audit-loop/20260627T103404Z-v01580-fresh/report.md",
+      "next": "After deploy, run a fresh v0.15.81 EduTool.dev ZIP/log audit to verify provider output, export, texture, and UI caveats end to end."
+    },
+    {
+      "id": "courseir-invalid-assessment-reference",
+      "status": "carry-forward",
+      "source": "verification-output/edutool-audit-loop/20260627T103404Z-v01580-fresh/edutool.dev-current-run-cm-console.log",
+      "next": "Repair direct CourseIR acceptance or deterministic pre-validation so missing provider assessment ids such as `a_sched_lab` do not force fallback."
+    }
+  ]
+}

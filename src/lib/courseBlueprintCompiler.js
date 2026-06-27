@@ -17311,9 +17311,24 @@ function slideTypeFocus(type, lesson, lens) {
       };
     case 'bridge':
       return {
-        opening: `Connect the prior lesson to today's ${concept} decision so the course arc feels cumulative.`,
-        evidence: `Name what prior ${lens.evidenceNoun} still matters for ${artifact} and what new evidence students need to add today.`,
-        misconception: `Prevent compartmentalized thinking by showing how today's ${concept} revision changes the ongoing ${artifact} sequence.`,
+        opening: lessonVariant(lesson, [
+          `Connect the prior lesson to today's ${concept} decision so the course arc feels cumulative.`,
+          `Open the bridge by asking which earlier ${lens.evidenceNoun} still changes the ${artifact} decision.`,
+          `Use the carry-forward moment to show how the next ${concept} choice builds on prior work.`,
+          `Frame the bridge as a quick check on what students can already use before revising ${artifact}.`,
+        ]),
+        evidence: lessonVariant(lesson, [
+          `Name what prior ${lens.evidenceNoun} still matters for ${artifact} and what new evidence students need to add today.`,
+          `Ask students to identify the old evidence worth keeping and the fresh detail needed for ${artifact}.`,
+          `Surface one prior source detail, then have students decide what additional evidence would strengthen ${artifact}.`,
+          `Point to the earlier evidence that still holds and the new ${concept} cue students should test next.`,
+        ]),
+        misconception: lessonVariant(lesson, [
+          `Prevent compartmentalized thinking by showing how today's ${concept} revision changes the ongoing ${artifact} sequence.`,
+          `Make the sequence visible: prior evidence should change how students handle today's ${artifact} step.`,
+          `If students treat lessons as isolated, ask which earlier move now has to be revised or defended.`,
+          `Show continuity by naming the earlier decision that today's ${concept} work must confirm, qualify, or repair.`,
+        ]),
       };
     case 'keyTerm':
       return {
@@ -17402,7 +17417,12 @@ function slideNoteAnchor({ type, anchor, concept, artifact, displayTitle, lesson
       return `Start the ${displayTitle} working session by connecting ${safeAnchor} to ${shortArtifactReference(
         slideArtifact(lesson),
         Number(lesson?.lessonNumber) || 0,
-      )}. Students should be able to name the ${concept} decision the product will capture.`;
+      )}. ${lessonVariant(lesson, [
+        `Students should be able to name the ${concept} decision the product will capture.`,
+        `Ask students to point to the ${concept} evidence that will guide the next artifact move.`,
+        `By the transition, students should state which ${concept} choice their work will test.`,
+        `Have students identify the ${concept} decision they will defend before the first practice step.`,
+      ])}`;
     case 'agenda':
       return `Keep the ${displayTitle} pacing visible and point to the first ${concept} checkpoint: ${anchor}. Students should know how the listen, practice, compare, and revise sequence changes ${shortArtifactReference(
         slideArtifact(lesson),
@@ -18025,7 +18045,12 @@ function buildDiscussionFollowUps(lesson, phrase) {
   const artifact = safeLessonArtifact(lesson);
   return [
     `What evidence from ${lesson.title} most strongly supports your position on ${concept}?`,
-    `Which alternative reading of the same evidence about ${concept} would challenge your claim, and why might another student prefer it for ${artifact}?`,
+    lessonVariant(lesson, [
+      `Which alternative reading of the same evidence about ${concept} would challenge your claim, and why might another student prefer it for ${artifact}?`,
+      `What source detail could weaken your ${concept} interpretation, and how would that change the next ${artifact} move?`,
+      `Which peer claim would force you to qualify your evidence about ${concept} before revising ${artifact}?`,
+      `Where could another student reasonably read the evidence differently, and what would that mean for ${artifact}?`,
+    ]),
     `If the ${concept} evidence changed, what part of ${artifact} would you revise first?`,
     `Where is the strongest limitation, risk, or ethical concern in your current reasoning about ${artifact}?`,
     lessonVariant(lesson, [
@@ -18124,7 +18149,13 @@ function buildDiscussionGuidelinesForFormat(lesson, protocol) {
     `extend one peer contribution with a source detail, limitation, or revision move`,
     `ask one evidence-focused follow-up that helps a peer strengthen their ${artifact}`,
   ]);
-  return `For ${lessonFocus}, come prepared with one brief ${concept} evidence note before class, speak or post at least twice during the ${format}, and ${peerResponseCue}. Use this ${protocol.artifactGenre} protocol for ${lessonFocus}: ${protocol.participationPattern}. ${contributionCue} ${participationAccessCue} Participation is judged by evidence use, reasoning, peer response quality, ${protocol.reviewFocus}, and whether you name a limitation or revision move tied to ${concept}.`;
+  const reviewCue = lessonVariant(lesson, [
+    `Participation is judged by evidence use, reasoning, peer response quality, ${protocol.reviewFocus}, and whether you name a limitation or revision move tied to ${concept}.`,
+    `Your contribution should make the evidence visible, respond to a peer, and name one ${concept} uncertainty worth testing.`,
+    `Credit depends on using specific evidence, explaining the reasoning, and turning one peer exchange into a next step for ${artifact}.`,
+    `A strong response cites a source detail, tests a classmate's claim, and closes with one improvement to carry into ${artifact}.`,
+  ]);
+  return `For ${lessonFocus}, come prepared with one brief ${concept} evidence note before class, speak or post at least twice during the ${format}, and ${peerResponseCue}. Use this ${protocol.artifactGenre} protocol for ${lessonFocus}: ${protocol.participationPattern}. ${contributionCue} ${participationAccessCue} ${reviewCue}`;
 }
 
 /**
@@ -19270,8 +19301,18 @@ function buildLessonPlanOutline(blueprint, lesson, { depth = 'flat' } = {}) {
       activity: 'Guided analysis',
       type: sentenceCase(modality.mode.replace(/-/g, ' ')),
       description: kernelScenario?.setup
-        ? `${stripTerminalPunctuation(kernelScenario.setup)}. Students identify which evidence, assumptions, and constraints matter most.`
-        : `${sentenceCase(stripTerminalPunctuation(modality.signaturePractice))}. Students identify which evidence, assumptions, and constraints matter most for ${stripLessonPrefix(lesson.title)}.`,
+        ? `${stripTerminalPunctuation(kernelScenario.setup)}. ${lessonVariant(lesson, [
+            'Students identify which evidence, assumptions, and constraints matter most.',
+            'Students separate observed evidence from assumptions before choosing a defensible next step.',
+            'Students mark the constraint that matters first, then explain which evidence supports that choice.',
+            `Students test the scenario evidence against the decision they will later defend in ${artifact}.`,
+          ])}`
+        : `${sentenceCase(stripTerminalPunctuation(modality.signaturePractice))}. ${lessonVariant(lesson, [
+            `Students identify which evidence, assumptions, and constraints matter most for ${stripLessonPrefix(lesson.title)}.`,
+            `Students distinguish the strongest evidence from assumptions before making the ${concept} move.`,
+            `Students choose the constraint that matters first and name the evidence behind that choice.`,
+            `Students test the available evidence against the next ${artifact} decision.`,
+          ])}`,
       instructorNotes: `${stripTerminalPunctuation(modality.instructorMove)}; press for ${artifact} evidence about ${concept}. Watch for this misconception: ${misconception?.misconception || `students may use ${concept} without evidence`}.`,
       instructorRole: `Coach ${modalityEvidenceRoutineLabel(modality.mode)} and press for specificity in ${artifact}.`,
       grouping: lessonVariant(lesson, [
@@ -19529,7 +19570,12 @@ function compileLessonPlans(blueprint, options = {}) {
             lesson.prerequisitePlan?.diagnosticCheck ||
             lesson.learningTransferPlan?.retrievalCue ||
             `What evidence best helps you ${stripTerminalPunctuation(phrase.decisionMove)}?`,
-          purpose: `Activate prior knowledge and focus students on the central ${concept} decision.`,
+          purpose: lessonVariant(lesson, [
+            `Activate prior knowledge and focus students on the central ${concept} decision.`,
+            `Surface prior evidence students can reuse before the ${concept} work becomes more specific.`,
+            `Move students from remembered examples into one inspectable ${concept} evidence choice.`,
+            `Set up the lesson by naming what students already know and what the ${artifact} decision still needs.`,
+          ]),
           facilitation: lessonVariant(lesson, [
             `${teachingMoves.openingMove} Then name the quality cue students should carry into ${artifact}.`,
             `Start from one inspectable example, ask students which evidence they can trust, then name the quality cue for ${artifact}.`,

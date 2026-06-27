@@ -2385,6 +2385,8 @@ describe('courseBlueprintCompiler', () => {
       [
         discussion.prompt,
         discussion.guidelines,
+        ...(discussion.followUpProbes || []),
+        ...(discussion.evaluationCriteria || []),
         discussion.facilitationGuide?.openingMove,
         discussion.facilitationGuide?.evidencePush,
         discussion.facilitationGuide?.closureMove,
@@ -2427,6 +2429,18 @@ describe('courseBlueprintCompiler', () => {
         /alternative participation mode, use the instructor-approved written or chat response option/i,
       ),
     ).toBeLessThan(4);
+    expect(
+      countDiscussionsWith(/Which alternative reading of the same evidence about .* would challenge your claim/i),
+    ).toBeLessThan(4);
+    expect(countDiscussionsWith(/whether you name a limitation or revision move tied to/i)).toBeLessThan(4);
+    expect(countDecksWith(/Students should be able to name the .* decision the product will capture/i)).toBeLessThan(4);
+    expect(
+      countDecksWith(/Prevent compartmentalized thinking by showing how today.s .* revision changes/i),
+    ).toBeLessThan(4);
+    expect(countPlansWith(/Students identify which evidence, assumptions, and constraints matter most/i)).toBeLessThan(
+      4,
+    );
+    expect(countPlansWith(/Activate prior knowledge and focus students on the central .* decision/i)).toBeLessThan(4);
 
     const texture = computeTexture([
       ...deckTexts.map((text, index) => ({ id: `deck-${index}`, feature: 'slideDecks', text })),
@@ -2448,6 +2462,12 @@ describe('courseBlueprintCompiler', () => {
     expect(evidence).not.toMatch(
       /alternative participation mode use the instructor-approved written or chat response/i,
     );
+    expect(evidence).not.toMatch(/alternative reading of the same evidence/i);
+    expect(evidence).not.toMatch(/limitation or revision move tied to/i);
+    expect(evidence).not.toMatch(/decision the product will capture/i);
+    expect(evidence).not.toMatch(/prevent compartmentalized thinking/i);
+    expect(evidence).not.toMatch(/students identify which evidence assumptions and constraints matter most/i);
+    expect(evidence).not.toMatch(/activate prior knowledge and focus students/i);
   });
 
   it('decodes capstone project milestones with sponsor constraints and defense readiness', () => {

@@ -3,22 +3,22 @@ import { APP_VERSION } from './appVersion.js';
 export const CURRENT_RELEASE = {
   version: APP_VERSION,
   date: 'June 27, 2026',
-  title: 'Course FAQ Texture Repair: support answers stop repeating',
-  landingTitle: 'Course FAQ Texture Repair',
+  title: 'Compiler Texture Rotation: repeated discussion and slide tails stop shipping',
+  landingTitle: 'Compiler Texture Rotation',
   highlights: [
-    'A fresh deployed v0.15.79 Project Management ZIP/log audit reached 99/A in the exported quality report, with the remaining scored loss concentrated in repeated Course FAQ support-answer shingles.',
-    'Course FAQ post-processing now detects repeated checklist, prepared-response, concrete-evidence, and office-hours answer patterns even when the FAQ questions themselves are unique.',
-    'Repaired FAQ answers now rotate deterministic lesson/topic/assessment-specific guidance so support language stays student-facing without repeating the same scaffold across every lesson.',
-    'This release does not claim a clean 100/100 package; a fresh deployed v0.15.80 audit is still required, and the current-run local-storage quota warning remains a separate runtime target.',
+    'A fresh deployed v0.15.80 Project Management ZIP/log audit regraded at 99/A with the only scored loss still texture: 86/100, now concentrated in repeated Discussion Prompt, Slide Deck, and Lesson Plan compiler tails.',
+    'Discussion follow-up probes and participation review language now rotate deterministic lesson-specific alternatives instead of repeating the same challenge/limitation phrasing across every lesson.',
+    'Slide bridge/title speaker notes and Lesson Plan warm-up/guided-analysis text now rotate the exact live shingles that appeared in all 12 Project Management lessons.',
+    'This release does not claim a clean 100/100 package; a fresh deployed v0.15.81 audit is still required, and the same run exposed a separate direct CourseIR fallback from an invalid `a_sched_lab` assessment reference.',
   ],
   landingHighlights: [
-    'Repeated FAQ support answers are repaired before export.',
-    'Lesson-specific FAQ guidance replaces canned scaffolds.',
-    '99/100 evidence stays honest.',
+    'Repeated compiler tails are rotated before export.',
+    'Discussion, slide, and lesson-plan texture get targeted cleanup.',
+    '99/100 evidence stays honest until the next deployed audit.',
   ],
   proof: {
-    contract: 'release-contracts/v0.15.80.json',
-    roadmap: 'docs/V0.15.80_COURSE_FAQ_TEXTURE_REPAIR_ROADMAP.md',
+    contract: 'release-contracts/v0.15.81.json',
+    roadmap: 'docs/V0.15.81_COMPILER_TEXTURE_ROTATION_ROADMAP.md',
     auditCommand: 'npm run audit:release-history',
   },
 };
@@ -33,6 +33,17 @@ export const CURRENT_RELEASE_CHANGELOG = {
 };
 
 export const HISTORICAL_RELEASE_CHANGELOGS = [
+  {
+    version: '0.15.80',
+    date: 'June 27, 2026',
+    title: 'Course FAQ Texture Repair: support answers stop repeating',
+    highlights: [
+      'A fresh deployed v0.15.79 Project Management ZIP/log audit reached 99/A in the exported quality report, with the remaining scored loss concentrated in repeated Course FAQ support-answer shingles.',
+      'Course FAQ post-processing now detects repeated checklist, prepared-response, concrete-evidence, and office-hours answer patterns even when the FAQ questions themselves are unique.',
+      'Repaired FAQ answers now rotate deterministic lesson/topic/assessment-specific guidance so support language stays student-facing without repeating the same scaffold across every lesson.',
+      'This release does not claim a clean 100/100 package; a fresh deployed v0.15.80 audit is still required, and the current-run local-storage quota warning remains a separate runtime target.',
+    ],
+  },
   {
     version: '0.15.79',
     date: 'June 27, 2026',
