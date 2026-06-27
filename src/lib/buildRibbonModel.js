@@ -103,27 +103,31 @@ function buildPipelineChips(budget) {
       chips.push({
         id: 'genome',
         label: `No knowledge shard yet · ${genome.uncovered.join(', ')}`,
-        emphasis: false,
         muted: true,
       });
     } else {
-      chips.push({ id: 'genome', label: `Genome ${genome.linked}/${genome.total}`, emphasis: genome.linked > 0 });
+      const chip = { id: 'genome', label: `Genome ${genome.linked}/${genome.total}` };
+      if (genome.linked > 0) chip.emphasis = true;
+      chips.push(chip);
     }
   }
   const judgment = parseJudgmentDetail(budget?.pipeline?.judgment, genome);
   if (judgment) {
-    chips.push({
-      id: 'judgment',
-      label: judgment,
-      emphasis: false,
-      ...(judgment.startsWith('Limited') ? { muted: true } : {}),
-    });
+    const chip = { id: 'judgment', label: judgment };
+    if (judgment.startsWith('Limited')) chip.muted = true;
+    chips.push(chip);
   }
   const outcome = budget?.enrichmentOutcome;
   const enriched = Number(outcome?.enrichedLessons) || 0;
   const requested = Number(outcome?.requestedLessons) || 0;
   if (enriched > 0 || requested > 0) {
-    chips.push({ id: 'coverage', label: `Materials ${enriched}/${requested || enriched}`, emphasis: false });
+    const isPartial = requested > 0 && enriched < requested && outcome?.modelStage === 'ran';
+    const chip = {
+      id: 'coverage',
+      label: `Materials ${enriched}/${requested || enriched}${isPartial ? ' · repair needed' : ''}`,
+    };
+    if (isPartial) chip.warn = true;
+    chips.push(chip);
   }
   return chips;
 }
@@ -195,6 +199,7 @@ export function buildBuildRibbonModel({
 
   const done = pipeline.done;
   const steps = deriveStepStatuses(pipeline);
+  const allPipelineChips = buildPipelineChips(budget);
 
   const costUsd = budget.tokenUsage?.costUsd || 0;
   const spendDisplay = costUsd > 0 ? formatUsd(costUsd) : '';
@@ -213,6 +218,6 @@ export function buildBuildRibbonModel({
     elapsedDisplay,
     steps,
     done,
-    pipelineChips: stage === 'ready' ? buildPipelineChips(budget) : [],
+    pipelineChips: stage === 'ready' ? allPipelineChips : allPipelineChips.filter((chip) => chip.warn),
   };
 }

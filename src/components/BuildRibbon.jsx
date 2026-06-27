@@ -112,22 +112,23 @@ export default function BuildRibbon({ model }) {
           already summarizes — on phones they pushed the page wide (658px at
           a 375px viewport), so they render from md up. */}
       <div className="hidden flex-shrink-0 items-center gap-1.5 md:flex">
-        {model.stage === 'ready' &&
-          model.pipelineChips.map((chip) => (
-            <span
-              key={chip.id}
-              data-testid={`ribbon-chip-${chip.id}`}
-              className={`rounded-full border px-2 py-0.5 text-[12px] font-semibold ${
-                chip.muted
-                  ? 'border-slate-200/70 bg-transparent text-slate-400 dark:border-slate-700 dark:text-slate-500'
+        {model.pipelineChips.map((chip) => (
+          <span
+            key={chip.id}
+            data-testid={`ribbon-chip-${chip.id}`}
+            className={`ribbon-chip ${
+              chip.warn
+                ? 'ribbon-chip-warning'
+                : chip.muted
+                  ? 'ribbon-chip-muted'
                   : chip.emphasis
-                    ? 'border-indigo-200 bg-indigo-50 text-indigo-700 dark:border-indigo-500/40 dark:bg-indigo-500/10 dark:text-indigo-300'
-                    : 'border-slate-200 bg-slate-50 text-slate-600 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-300'
-              }`}
-            >
-              {chip.label}
-            </span>
-          ))}
+                    ? 'ribbon-chip-emphasis'
+                    : 'ribbon-chip-neutral'
+            }`}
+          >
+            {chip.label}
+          </span>
+        ))}
         {model.elapsedDisplay && (
           <span data-testid="ribbon-elapsed" className="text-[12px] font-medium text-slate-400 dark:text-slate-500">
             {model.elapsedDisplay}

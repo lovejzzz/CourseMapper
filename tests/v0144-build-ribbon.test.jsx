@@ -262,6 +262,37 @@ describe('B1 — buildRibbonModel selector', () => {
     expect(model.steps.map((step) => step.status)).toEqual(['done', 'done', 'active', 'pending', 'pending']);
   });
 
+  it('compile stage: partial enrichment names the repair before finish blocks export', () => {
+    const partialCompileEvents = [
+      {
+        ...COMPILE_EVENTS[0],
+        detail: 'ran (9/12 — lessons 6, 7, 8 fell back to template)',
+        outcome: { modelStage: 'ran', enrichedLessons: 9, requestedLessons: 12, missingLessons: [6, 7, 8] },
+      },
+      COMPILE_EVENTS[1],
+    ];
+    const budget = applyEvents(createApiCallBudget(), [
+      { type: 'reset', runId: 'run-ribbon-partial' },
+      ...MAP_EVENTS,
+      ENRICH_CHUNK_EVENT,
+      ...partialCompileEvents,
+    ]);
+    const model = buildBuildRibbonModel({
+      budget,
+      generation: DONE_GENERATION,
+      deliverables: { isGenerating: true, doneCount: 3, totalCount: 9 },
+      packageQualityPass: { status: 'idle' },
+    });
+
+    expect(model.stage).toBe('compile');
+    expect(model.stageLabel).toBe('Compiling deliverables · 3/9 ready');
+    expect(model.pipelineChips.find((chip) => chip.id === 'coverage')).toEqual({
+      id: 'coverage',
+      label: 'Materials 9/12 · repair needed',
+      warn: true,
+    });
+  });
+
   it('verify stage while the finish pass runs — grade still pending', () => {
     const budget = applyEvents(createApiCallBudget(), [
       { type: 'reset', runId: 'run-ribbon-1' },
@@ -303,8 +334,8 @@ describe('B1 — buildRibbonModel selector', () => {
     expect(model.steps.every((step) => step.status === 'done')).toBe(true);
     expect(model.pipelineChips).toEqual([
       { id: 'genome', label: 'Genome 6/13', emphasis: true },
-      { id: 'judgment', label: 'Judgment clean', emphasis: false },
-      { id: 'coverage', label: 'Materials 13/13', emphasis: false },
+      { id: 'judgment', label: 'Judgment clean' },
+      { id: 'coverage', label: 'Materials 13/13' },
     ]);
     expect(model.spendDisplay).toBe('$0.13');
     const elapsed = Number((model.elapsedDisplay.match(/^Ready in (\d+)s$/) || [])[1]);
@@ -432,7 +463,35 @@ describe('B1 — BuildRibbon render', () => {
     // Five stage checks (one per step) — the genome chip is indigo-tinted.
     expect(html.match(/M5 13l4 4L19 7/g)?.length).toBe(5);
     expect(html).toContain('data-testid="ribbon-chip-genome"');
-    expect(html.split('data-testid="ribbon-chip-genome"')[1].split('>')[0]).toContain('indigo');
+    expect(html.split('data-testid="ribbon-chip-genome"')[1].split('>')[0]).toContain('ribbon-chip-emphasis');
+  });
+
+  it('compile state: partial-enrichment chip renders amber before final export review', () => {
+    const partialCompileEvents = [
+      {
+        ...COMPILE_EVENTS[0],
+        detail: 'ran (9/12 — lessons 6, 7, 8 fell back to template)',
+        outcome: { modelStage: 'ran', enrichedLessons: 9, requestedLessons: 12, missingLessons: [6, 7, 8] },
+      },
+      COMPILE_EVENTS[1],
+    ];
+    const budget = applyEvents(createApiCallBudget(), [
+      { type: 'reset', runId: 'run-ribbon-partial' },
+      ...MAP_EVENTS,
+      ENRICH_CHUNK_EVENT,
+      ...partialCompileEvents,
+    ]);
+    const html = renderRibbon(
+      buildBuildRibbonModel({
+        budget,
+        generation: DONE_GENERATION,
+        deliverables: { isGenerating: true, doneCount: 3, totalCount: 9 },
+        packageQualityPass: { status: 'idle' },
+      }),
+    );
+
+    expect(html).toContain('Materials 9/12 · repair needed');
+    expect(html.split('data-testid="ribbon-chip-coverage"')[1].split('>')[0]).toContain('ribbon-chip-warning');
   });
 });
 

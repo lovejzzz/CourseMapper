@@ -1091,6 +1091,61 @@ body {
   height: min(72vh, calc(100vh - 180px));
 }
 
+.ribbon-chip {
+  border-radius: 9999px;
+  border-width: 1px;
+  padding: 0.125rem 0.5rem;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.ribbon-chip-warning {
+  border-color: rgb(253 230 138);
+  background: rgb(255 251 235);
+  color: rgb(180 83 9);
+}
+
+.dark .ribbon-chip-warning {
+  border-color: rgb(251 191 36 / 0.5);
+  background: rgb(251 191 36 / 0.1);
+  color: rgb(253 230 138);
+}
+
+.ribbon-chip-muted {
+  border-color: rgb(226 232 240 / 0.7);
+  background: transparent;
+  color: rgb(148 163 184);
+}
+
+.ribbon-chip-emphasis {
+  border-color: rgb(199 210 254);
+  background: rgb(238 242 255);
+  color: rgb(67 56 202);
+}
+
+.ribbon-chip-neutral {
+  border-color: rgb(226 232 240);
+  background: rgb(248 250 252);
+  color: rgb(71 85 105);
+}
+
+.dark .ribbon-chip-muted {
+  border-color: rgb(51 65 85);
+  color: rgb(100 116 139);
+}
+
+.dark .ribbon-chip-emphasis {
+  border-color: rgb(99 102 241 / 0.4);
+  background: rgb(99 102 241 / 0.1);
+  color: rgb(165 180 252);
+}
+
+.dark .ribbon-chip-neutral {
+  border-color: rgb(71 85 105);
+  background: rgb(30 41 59);
+  color: rgb(203 213 225);
+}
+
 @media (max-width: 1023px) {
   .workspace-shell {
     min-height: auto !important;

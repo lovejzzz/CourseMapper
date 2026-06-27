@@ -3,22 +3,22 @@ import { APP_VERSION } from './appVersion.js';
 export const CURRENT_RELEASE = {
   version: APP_VERSION,
   date: 'June 26, 2026',
-  title: 'Partial Enrichment Export Truth: template fallback blocks ZIP manifests',
-  landingTitle: 'Partial Enrichment Export Truth',
+  title: 'Partial Enrichment Ribbon Truth: incomplete enrichment turns amber before export',
+  landingTitle: 'Partial Enrichment Ribbon Truth',
   highlights: [
-    'The fresh v0.15.66 Project Management ZIP/log audit improved source proof to 7 concept-linked source rows and 3 trusted concept-linked rows, but still exported a manifest that claimed readiness was clean while enrichment fell back on lesson 3.',
-    'ZIP assembly now merges partial-enrichment pipeline evidence into the exported readiness object before writing READINESS_REPORT.txt and PACKAGE_MANIFEST.json.',
-    'A package with enrichment such as 11/12 lessons now exports readiness status blocked, one blocker, and the clear repair message instead of hiding the caveat behind ready/blockers=0 manifest claims.',
-    'A focused package-export regression pins the live mismatch without weakening the grader, source standards, or downloadable review-note workflow.',
+    'The v0.15.66 Project Management audit proved partial enrichment is a real quality loss, not a harmless progress count: even after recovery, only 11/12 lessons enriched and the package had to block clean export.',
+    'The build ribbon now treats partial enrichment as a repair-needed state as soon as the enrichment outcome lands, so compile-stage UI shows the coverage problem before the finish/export gate blocks.',
+    'The materials chip now turns amber for incomplete coverage, for example `Materials 9/12 · repair needed`, instead of rendering a neutral coverage badge that can read like success.',
+    'Focused ribbon regressions pin the live 9/12 shape without changing model spend, weakening the finalizer blocker, or hiding source/texture findings still needed for 100/100.',
   ],
   landingHighlights: [
-    'Partial enrichment stays visible.',
-    'Manifest readiness matches the digest.',
-    'Clean export claims stay honest.',
+    'Partial enrichment turns amber early.',
+    'Coverage warnings appear before export.',
+    'Coverage chips no longer look clean.',
   ],
   proof: {
-    contract: 'release-contracts/v0.15.67.json',
-    roadmap: 'docs/V0.15.67_PARTIAL_ENRICHMENT_EXPORT_TRUTH_ROADMAP.md',
+    contract: 'release-contracts/v0.15.68.json',
+    roadmap: 'docs/V0.15.68_PARTIAL_ENRICHMENT_RIBBON_TRUTH_ROADMAP.md',
     auditCommand: 'npm run audit:release-history',
   },
 };
@@ -33,6 +33,17 @@ export const CURRENT_RELEASE_CHANGELOG = {
 };
 
 export const HISTORICAL_RELEASE_CHANGELOGS = [
+  {
+    version: '0.15.67',
+    date: 'June 26, 2026',
+    title: 'Partial Enrichment Export Truth: template fallback blocks ZIP manifests',
+    highlights: [
+      'The fresh v0.15.66 Project Management ZIP/log audit improved source proof to 7 concept-linked source rows and 3 trusted concept-linked rows, but still exported a manifest that claimed readiness was clean while enrichment fell back on lesson 3.',
+      'ZIP assembly now merges partial-enrichment pipeline evidence into the exported readiness object before writing READINESS_REPORT.txt and PACKAGE_MANIFEST.json.',
+      'A package with enrichment such as 11/12 lessons now exports readiness status blocked, one blocker, and the clear repair message instead of hiding the caveat behind ready/blockers=0 manifest claims.',
+      'A focused package-export regression pins the live mismatch without weakening the grader, source standards, or downloadable review-note workflow.',
+    ],
+  },
   {
     version: '0.15.66',
     date: 'June 26, 2026',

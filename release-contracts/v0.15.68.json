@@ -1,0 +1,100 @@
+{
+  "version": "0.15.68",
+  "date": "June 26, 2026",
+  "title": "Partial Enrichment Ribbon Truth: incomplete enrichment turns amber before export",
+  "status": "verified-current",
+  "proofSummary": {
+    "local": [
+      "npm test -- tests/v0144-build-ribbon.test.jsx tests/v0147-pipeline-machine.test.js",
+      "npm run format:check",
+      "npm run lint",
+      "npm test",
+      "npm run build",
+      "npm run bundle:check",
+      "npm run audit:release-history",
+      "npm run audit:gold:smoke"
+    ],
+    "ciFast": {
+      "status": "pending-push",
+      "note": "Fast verification is claimed only after v0.15.68 is pushed and the GitHub Actions run is attached."
+    },
+    "deploy": {
+      "status": "pending-push",
+      "note": "Pages deploy is not claimed until the pushed release completes its deploy run."
+    },
+    "ciDeep": {
+      "status": "local-only",
+      "note": "This is a narrow pipeline UI truth repair; focused ribbon coverage plus normal local gates and gold smoke are the release bar."
+    },
+    "liveProvider": {
+      "status": "local-only",
+      "note": "The fix is driven by the fresh v0.15.66 ZIP/log audit at verification-output/edutool-audit-loop/20260626T235926Z and the v0.15.67 export-truth follow-up; a new v0.15.68 audit is required after deploy."
+    },
+    "manualHuman": {
+      "status": "not-applicable",
+      "note": "No external instructor approval is claimed by this release."
+    }
+  },
+  "claims": [
+    {
+      "id": "v01568-fresh-artifact-evidence",
+      "status": "verified-current",
+      "changelogHighlightIndex": 0,
+      "summary": "The release is based on fresh artifact evidence showing partial enrichment remains a real quality loss even after source proof improved.",
+      "anchors": ["docs/V0.15.68_PARTIAL_ENRICHMENT_RIBBON_TRUTH_ROADMAP.md", "tests/v0144-build-ribbon.test.jsx"],
+      "proofCommands": ["npm test -- tests/v0144-build-ribbon.test.jsx tests/v0147-pipeline-machine.test.js"],
+      "proofScopes": ["live-provider", "unit", "doc"]
+    },
+    {
+      "id": "v01568-pre-ready-coverage-warning",
+      "status": "verified-current",
+      "changelogHighlightIndex": 1,
+      "summary": "The build ribbon surfaces partial enrichment as a warning chip while deliverables are still compiling, before finish/export review.",
+      "anchors": ["src/lib/buildRibbonModel.js", "tests/v0144-build-ribbon.test.jsx"],
+      "proofCommands": ["npm test -- tests/v0144-build-ribbon.test.jsx tests/v0147-pipeline-machine.test.js"],
+      "proofScopes": ["unit", "compiled-output"]
+    },
+    {
+      "id": "v01568-amber-materials-chip",
+      "status": "verified-current",
+      "changelogHighlightIndex": 2,
+      "summary": "Partial material coverage now renders as an amber repair-needed chip instead of a neutral coverage badge.",
+      "anchors": ["src/lib/buildRibbonModel.js", "src/components/BuildRibbon.jsx", "tests/v0144-build-ribbon.test.jsx"],
+      "proofCommands": ["npm test -- tests/v0144-build-ribbon.test.jsx tests/v0147-pipeline-machine.test.js"],
+      "proofScopes": ["unit", "compiled-output"]
+    },
+    {
+      "id": "v01568-no-quality-inflation",
+      "status": "verified-current",
+      "changelogHighlightIndex": 3,
+      "summary": "The patch does not change model spend, finalizer blockers, source standards, or texture grading; it only makes partial enrichment visible earlier.",
+      "anchors": [
+        "src/lib/buildRibbonModel.js",
+        "src/components/BuildRibbon.jsx",
+        "docs/V0.15.68_PARTIAL_ENRICHMENT_RIBBON_TRUTH_ROADMAP.md"
+      ],
+      "proofCommands": ["npm test -- tests/v0144-build-ribbon.test.jsx tests/v0147-pipeline-machine.test.js"],
+      "proofScopes": ["unit", "doc"]
+    }
+  ],
+  "carryForward": [
+    {
+      "id": "fresh-v01568-edutool-zip-log-audit",
+      "status": "carry-forward",
+      "source": "docs/V0.15.68_PARTIAL_ENRICHMENT_RIBBON_TRUTH_ROADMAP.md",
+      "next": "After deploy, run a fresh EduTool.dev ZIP/log audit and verify partial enrichment is amber in the ribbon, blocked at finish/export, and preserved in PACKAGE_MANIFEST.json and READINESS_REPORT.txt."
+    },
+    {
+      "id": "remaining-source-texture-quality-losses",
+      "status": "carry-forward",
+      "source": "docs/V0.15.68_PARTIAL_ENRICHMENT_RIBBON_TRUTH_ROADMAP.md",
+      "next": "Continue reducing ambiguous source licenses, enrichment fallback, slide echo formatting, and texture score 90."
+    },
+    {
+      "id": "trusted-concept-linked-source-rows",
+      "status": "carry-forward",
+      "source": "docs/V0.15.68_PARTIAL_ENRICHMENT_RIBBON_TRUTH_ROADMAP.md",
+      "next": "Keep source/research bridge work moving until source-finder/OpenAlex resources reliably become trusted concept-linked source-ledger rows."
+    }
+  ]
+}
