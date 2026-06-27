@@ -90,6 +90,47 @@ describe('runDigest', () => {
     expect(text).toMatch(/cost:/);
   });
 
+  it('counts generation-stage repair retries in the digest gate summary', () => {
+    let budget = createApiCallBudget({ runId: 'run-repair-retry' });
+    budget = applyApiCallBudgetEvent(budget, {
+      type: 'repairRetryCall',
+      label: 'Author lesson batch (native recovery 1/2)',
+      featureId: 'blueprintEnrichment',
+    });
+    budget = applyApiCallBudgetEvent(budget, {
+      type: 'repairRetryCall',
+      label: 'Author lesson batch (native recovery 2/2)',
+      featureId: 'blueprintEnrichment',
+    });
+    budget = applyApiCallBudgetEvent(budget, {
+      type: 'pipelineDecision',
+      stage: 'enrichmentModelStage',
+      detail: 'ran (11/12 — lesson 1 fell back to template) (linker: ran)',
+      outcome: {
+        modelStage: 'ran',
+        enrichedLessons: 11,
+        requestedLessons: 12,
+        missingLessons: [1],
+      },
+    });
+
+    const digest = buildRunDigest({
+      budget,
+      exportVerification: { status: 'passed', checked: 38, failed: 0, warningCount: 0, checks: [] },
+      finish: { finalStatus: 'blocked', blockers: 1, warnings: 0, repairsApplied: 6, retryCallCount: 0 },
+      generation: { provider: 'openai', lessonCount: 12, featureIds: ['studyGuides'] },
+    });
+
+    expect(digest.gates.retryCallCount).toBe(2);
+    expect(digest.gates.repairRetryCallCount).toBe(2);
+    expect(digest.gates.finishRetryCallCount).toBe(0);
+    const partial = digest.gates.flaggedChecks.find((check) => check.message.includes('partial enrichment'));
+    expect(partial.message).toBe(
+      'partial enrichment (11/12) — lesson 1 fell back to template after 2 repair/retry calls',
+    );
+    expect(formatRunDigest(digest)).toContain('6 repairs · 2 retry calls (2 repair-stage)');
+  });
+
   it('surfaces finalize-time quality P0s in the digest gate trail', () => {
     const digest = buildRunDigest({
       budget: budgetWithCourseMapCall('gpt-5.4-mini'),

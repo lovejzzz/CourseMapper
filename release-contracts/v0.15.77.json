@@ -1,0 +1,90 @@
+{
+  "version": "0.15.77",
+  "date": "June 27, 2026",
+  "title": "Run Digest Retry Truth: partial enrichment shows repair attempts",
+  "status": "verified-current",
+  "proofSummary": {
+    "local": ["npm test -- --run src/lib/__tests__/runDigest.test.js"],
+    "ciFast": {
+      "status": "pending-push",
+      "note": "Fast verification is claimed only after v0.15.77 is pushed and the GitHub Actions run is attached."
+    },
+    "deploy": {
+      "status": "pending-push",
+      "note": "Pages deploy is not claimed until the pushed release completes its deploy run."
+    },
+    "ciDeep": {
+      "status": "local-only",
+      "note": "This is a narrow run-digest/report-truth patch; focused digest regression plus normal local gates are the release bar."
+    },
+    "liveProvider": {
+      "status": "local-only",
+      "note": "A fresh deployed ZIP/log audit remains required after deploy to prove package quality."
+    },
+    "manualHuman": {
+      "status": "not-applicable",
+      "note": "No external instructor approval is claimed by this release."
+    }
+  },
+  "claims": [
+    {
+      "id": "v01577-quality-evidence-boundary",
+      "status": "verified-current",
+      "changelogHighlightIndex": 0,
+      "summary": "The release is grounded in the v0.15.75 Project Management ZIP/log audit that showed two native enrichment recovery calls while the readable digest incorrectly reported zero retry calls.",
+      "anchors": [
+        "docs/V0.15.77_RUN_DIGEST_RETRY_TRUTH_ROADMAP.md",
+        "verification-output/edutool-audit-loop/20260627T-v01575-fresh/report.md"
+      ],
+      "proofCommands": ["npm test -- --run src/lib/__tests__/runDigest.test.js"],
+      "proofScopes": ["doc", "static-audit"]
+    },
+    {
+      "id": "v01577-repair-retry-counts",
+      "status": "verified-current",
+      "changelogHighlightIndex": 1,
+      "summary": "Run digests now derive retryCallCount from recorded repair-stage retry calls when those are present, while preserving finish-stage retry counts separately.",
+      "anchors": ["src/lib/runDigest.js", "src/lib/__tests__/runDigest.test.js"],
+      "proofCommands": ["npm test -- --run src/lib/__tests__/runDigest.test.js"],
+      "proofScopes": ["unit"]
+    },
+    {
+      "id": "v01577-partial-enrichment-retry-context",
+      "status": "verified-current",
+      "changelogHighlightIndex": 2,
+      "summary": "Partial-enrichment flagged checks now say when the fallback remained after repair/retry calls, so reviewers can distinguish no-retry regressions from retried-but-unsuccessful model output.",
+      "anchors": ["src/lib/runDigest.js", "src/lib/__tests__/runDigest.test.js"],
+      "proofCommands": ["npm test -- --run src/lib/__tests__/runDigest.test.js"],
+      "proofScopes": ["unit", "static-audit"]
+    },
+    {
+      "id": "v01577-no-clean-quality-claim",
+      "status": "verified-current",
+      "changelogHighlightIndex": 3,
+      "summary": "The release notes explicitly carry forward the need for a fresh deployed audit and do not claim a clean 100/100 package.",
+      "anchors": ["src/lib/releaseManifest.js", "docs/V0.15.77_RUN_DIGEST_RETRY_TRUTH_ROADMAP.md"],
+      "proofCommands": ["npm run audit:release-history"],
+      "proofScopes": ["doc", "static-audit"]
+    }
+  ],
+  "carryForward": [
+    {
+      "id": "fresh-v01577-edutool-zip-log-audit",
+      "status": "carry-forward",
+      "source": "docs/V0.15.77_RUN_DIGEST_RETRY_TRUTH_ROADMAP.md",
+      "next": "After deploy, run a fresh EduTool.dev ZIP/log audit and verify quality score, texture, enrichment coverage, source relevance, package card state, and export UI truth."
+    },
+    {
+      "id": "partial-enrichment-repair",
+      "status": "carry-forward",
+      "source": "docs/V0.15.77_RUN_DIGEST_RETRY_TRUTH_ROADMAP.md",
+      "next": "If the next audit still shows partial enrichment after recorded repair retries, improve the kernel recovery path or block earlier with a clearer repair state."
+    },
+    {
+      "id": "source-relevance-proof",
+      "status": "carry-forward",
+      "source": "docs/V0.15.76_PROJECT_MANAGEMENT_SOURCE_GATE_ROADMAP.md",
+      "next": "Verify whether v0.15.76 Project Management source-topic gating removed off-discipline trusted readings."
+    }
+  ]
+}

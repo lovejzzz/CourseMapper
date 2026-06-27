@@ -3,22 +3,22 @@ import { APP_VERSION } from './appVersion.js';
 export const CURRENT_RELEASE = {
   version: APP_VERSION,
   date: 'June 27, 2026',
-  title: 'Project Management Source Gate: off-discipline readings stop entering trusted proof',
-  landingTitle: 'Project Management Source Gate',
+  title: 'Run Digest Retry Truth: partial enrichment shows repair attempts',
+  landingTitle: 'Run Digest Retry Truth',
   highlights: [
-    'A fresh deployed v0.15.75 Project Management ZIP/log audit regraded at 97/A, with source relevance, one partial-enrichment fallback, and small text defects still below the 100/100 target; this release does not claim a clean package before a fresh v0.15.76 audit.',
-    'Project Management now maps to business, decision-science, engineering, and social-science OpenAlex topics, so off-discipline medical projection papers cannot enter trusted reading proof just because they are well cited.',
-    'Course-map readiness now treats generated fallback stems such as quick evidence checks and course-application boilerplate as weak topic candidates, preventing sentence-shaped repair prose from becoming the next course-map topic.',
-    'The shared language finalizer collapses exact X:X echo chains and strips terminal punctuation from fallback topics, closing the double-period and repeated-label defects reproduced in the v0.15.75 package.',
+    'A v0.15.75 ZIP/log audit regraded at 97/A and proved the package stayed partial after two native enrichment recovery calls; this release fixes the digest/report truth so the remaining fallback is not misread as "no retries happened."',
+    'Run digests now count repair-stage retry calls from the API budget alongside finish-stage retry counts, so generation-time recovery attempts show in the gate summary.',
+    'Partial-enrichment flagged checks now say when template fallback remains after repair/retry calls, making the quality loss explainable from the digest without digging through DevTools logs.',
+    'This release does not claim a clean 100/100 package; the next deployed audit still must prove v0.15.77 quality, texture, source relevance, and enrichment coverage.',
   ],
   landingHighlights: [
-    'Project Management sources stay on-discipline.',
-    'Fallback prose no longer becomes a topic.',
-    'Echo-chain and punctuation seams are cleaned.',
+    'Repair retries show in the digest.',
+    'Partial enrichment explains retry history.',
+    'Quality claims stay evidence-bound.',
   ],
   proof: {
-    contract: 'release-contracts/v0.15.76.json',
-    roadmap: 'docs/V0.15.76_PROJECT_MANAGEMENT_SOURCE_GATE_ROADMAP.md',
+    contract: 'release-contracts/v0.15.77.json',
+    roadmap: 'docs/V0.15.77_RUN_DIGEST_RETRY_TRUTH_ROADMAP.md',
     auditCommand: 'npm run audit:release-history',
   },
 };
@@ -33,6 +33,17 @@ export const CURRENT_RELEASE_CHANGELOG = {
 };
 
 export const HISTORICAL_RELEASE_CHANGELOGS = [
+  {
+    version: '0.15.76',
+    date: 'June 27, 2026',
+    title: 'Project Management Source Gate: off-discipline readings stop entering trusted proof',
+    highlights: [
+      'A fresh deployed v0.15.75 Project Management ZIP/log audit regraded at 97/A, with source relevance, one partial-enrichment fallback, and small text defects still below the 100/100 target; this release does not claim a clean package before a fresh v0.15.76 audit.',
+      'Project Management now maps to business, decision-science, engineering, and social-science OpenAlex topics, so off-discipline medical projection papers cannot enter trusted reading proof just because they are well cited.',
+      'Course-map readiness now treats generated fallback stems such as quick evidence checks and course-application boilerplate as weak topic candidates, preventing sentence-shaped repair prose from becoming the next course-map topic.',
+      'The shared language finalizer collapses exact X:X echo chains and strips terminal punctuation from fallback topics, closing the double-period and repeated-label defects reproduced in the v0.15.75 package.',
+    ],
+  },
   {
     version: '0.15.75',
     date: 'June 27, 2026',

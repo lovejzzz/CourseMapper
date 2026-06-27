@@ -37,6 +37,9 @@ export function buildRunDigest({ budget = {}, exportVerification = null, finish 
   const ledger = Array.isArray(budget.usageLedger) ? budget.usageLedger : [];
   const costReport = buildGenerationCostReport(budget);
   const quality = finish.quality || null;
+  const repairRetryCallCount = Number(budget.repairRetryCalls || 0);
+  const finishRetryCallCount = Number(finish.retryCallCount ?? 0) || 0;
+  const retryCallCount = Math.max(repairRetryCallCount, finishRetryCallCount);
   const qualityCounts = quality?.findingCounts || {};
   const qualityP0 = Number(qualityCounts.p0) || 0;
   const qualityP1 = Number(qualityCounts.p1) || 0;
@@ -82,6 +85,10 @@ export function buildRunDigest({ budget = {}, exportVerification = null, finish 
     });
   }
   if (partialEnrichment) {
+    const retrySuffix =
+      repairRetryCallCount > 0
+        ? ` after ${repairRetryCallCount} repair/retry call${repairRetryCallCount === 1 ? '' : 's'}`
+        : '';
     coverageChecks.push({
       featureId: 'content',
       status: 'failed',
@@ -89,7 +96,7 @@ export function buildRunDigest({ budget = {}, exportVerification = null, finish 
         missingLessons.length > 0
           ? ` — lesson${missingLessons.length === 1 ? '' : 's'} ${missingLessons.join(', ')} fell back to template`
           : ''
-      }`,
+      }${retrySuffix}`,
     });
   }
   // v0.14.1 P2.5: map↔deliverable reconciliation findings ride the flagged
@@ -152,7 +159,9 @@ export function buildRunDigest({ budget = {}, exportVerification = null, finish 
       blockers: finish.blockers ?? 0,
       warnings: finish.warnings ?? 0,
       repairsApplied: finish.repairsApplied ?? 0,
-      retryCallCount: finish.retryCallCount ?? 0,
+      retryCallCount,
+      repairRetryCallCount,
+      finishRetryCallCount,
       exportStatus: exportVerification?.status || '',
       exportChecked: exportVerification?.checked ?? 0,
       exportFailed: exportVerification?.failed ?? 0,
@@ -190,6 +199,21 @@ function pipelineLines(pipeline = {}) {
 export function formatRunDigest(digest) {
   if (!digest) return '';
   const lines = [];
+  const retryCallCount = Number(digest.gates?.retryCallCount || 0);
+  const repairRetryCallCount = Number(digest.gates?.repairRetryCallCount || 0);
+  const finishRetryCallCount = Number(digest.gates?.finishRetryCallCount || 0);
+  const retryBreakdown =
+    repairRetryCallCount > 0 || finishRetryCallCount > 0
+      ? [
+          repairRetryCallCount > 0 ? `${repairRetryCallCount} repair-stage` : '',
+          finishRetryCallCount > 0 ? `${finishRetryCallCount} finish-stage` : '',
+        ]
+          .filter(Boolean)
+          .join(', ')
+      : '';
+  const retryText = `${retryCallCount} retry call${retryCallCount === 1 ? '' : 's'}${
+    retryBreakdown ? ` (${retryBreakdown})` : ''
+  }`;
   lines.push(
     `RUN DIGEST v${digest.digestVersion} — CourseMapper ${digest.appVersion} — ${digest.runId}` +
       (digest.elapsedMs ? ` (${Math.round(digest.elapsedMs / 1000)}s)` : ''),
@@ -223,7 +247,7 @@ export function formatRunDigest(digest) {
       }`
     : '';
   lines.push(
-    `gates: ${digest.gates.finalStatus} · export ${digest.gates.exportStatus} (${digest.gates.exportChecked} files, ${digest.gates.exportFailed} failed, ${digest.gates.exportWarnings} warnings)${qualityText} · ${digest.gates.repairsApplied} repairs · ${digest.gates.retryCallCount} retry calls`,
+    `gates: ${digest.gates.finalStatus} · export ${digest.gates.exportStatus} (${digest.gates.exportChecked} files, ${digest.gates.exportFailed} failed, ${digest.gates.exportWarnings} warnings)${qualityText} · ${digest.gates.repairsApplied} repairs · ${retryText}`,
   );
   for (const check of digest.gates.flaggedChecks) {
     lines.push(`  [${check.status}] ${check.featureId}: ${check.message}`);
