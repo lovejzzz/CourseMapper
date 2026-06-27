@@ -594,6 +594,69 @@ function buildSourceLedgerFromSyllabusSchedule(courseGraph, deliverables, { chec
   return buildSourceLedgerFromCourseGraph(graph, { checkedAt });
 }
 
+function partialEnrichmentIssueFromText(text) {
+  const match = String(text || '').match(
+    /\bran\s*\(\s*(\d+)\s*\/\s*(\d+)(?:\s*[—-]\s*((?:lesson|lessons)\s+[^)]*?)\s+fell back to template)?/i,
+  );
+  if (!match) return null;
+  const enriched = Number(match[1]);
+  const requested = Number(match[2]);
+  if (!Number.isFinite(enriched) || !Number.isFinite(requested) || requested <= 0 || enriched >= requested) return null;
+  const missingCount = Math.max(0, requested - enriched);
+  const lessonText = match[3]?.trim() || `${missingCount} lesson${missingCount === 1 ? '' : 's'}`;
+  return {
+    severity: 'blocker',
+    featureId: 'courseMap',
+    label: 'Enrichment coverage',
+    message: `Enrichment covered ${enriched}/${requested} lessons; ${lessonText} fell back to template. Retry or repair enrichment before exporting a clean package.`,
+    source: 'enrichmentCoverage',
+    retryable: false,
+    autoFixable: false,
+    requiresInstructorDecision: false,
+  };
+}
+
+function partialEnrichmentIssueFromPipeline(pipelineState, qualityDigest = null) {
+  const candidates = [
+    pipelineState?.enrichment,
+    pipelineState?.enrichmentModelStage,
+    pipelineState?.pipeline?.enrichment,
+    pipelineState?.pipeline?.enrichmentModelStage,
+    qualityDigest?.pipeline?.enrichmentModelStage,
+    ...(Array.isArray(qualityDigest?.gates?.flaggedChecks)
+      ? qualityDigest.gates.flaggedChecks.map((check) => check?.message)
+      : []),
+  ];
+  for (const candidate of candidates) {
+    const issue = partialEnrichmentIssueFromText(candidate);
+    if (issue) return issue;
+  }
+  return null;
+}
+
+function mergeReadinessIssue(readiness, issue) {
+  if (!issue) return readiness;
+  const base = readiness || { status: 'ready', blockers: [], warnings: [], issues: [] };
+  const hasIssue = (base.issues || []).some(
+    (entry) => entry?.source === issue.source && entry?.message === issue.message,
+  );
+  const issues = hasIssue ? [...(base.issues || [])] : [...(base.issues || []), issue];
+  const blockers = issues.filter((entry) => entry?.severity === 'blocker');
+  const warnings = issues.filter((entry) => entry?.severity === 'warning');
+  return {
+    ...base,
+    status: blockers.length > 0 ? 'blocked' : warnings.length > 0 ? 'warnings' : base.status || 'ready',
+    isBlocked: blockers.length > 0,
+    blockers,
+    warnings,
+    issues,
+  };
+}
+
+function buildEffectiveReadiness(readiness, pipelineState, qualityDigest = null) {
+  return mergeReadinessIssue(readiness, partialEnrichmentIssueFromPipeline(pipelineState, qualityDigest));
+}
+
 function buildManifest({
   courseName,
   lessonFilter,
@@ -697,14 +760,16 @@ export async function buildCourseMaterialsZip({
   const lessonIndices = getLessonIndicesForZip(courseMap, lessonFilter);
   const files = [];
   const failures = [];
+  const qualityOptions = quality && typeof quality === 'object' ? quality : {};
+  const effectiveReadiness = buildEffectiveReadiness(readiness, pipelineState, qualityOptions.digest || null);
   // v0.14.3 A1/A2: the in-memory file map (path → string | ArrayBuffer) the
   // grader reads through createMemoryFileProvider — the same bytes the zip
   // receives, captured at assembly time.
   const fileContents = {};
 
-  if (readiness?.issues?.length > 0) {
+  if (effectiveReadiness?.issues?.length > 0) {
     const reportPath = 'READINESS_REPORT.txt';
-    const report = buildReadinessReport(readiness, { courseName: safeCourseName });
+    const report = buildReadinessReport(effectiveReadiness, { courseName: safeCourseName });
     zip.file(reportPath, report);
     fileContents[reportPath] = report;
     files.push({ path: reportPath, featureId: 'readiness', format: 'txt', size: getExportPartSize(report) });
@@ -953,7 +1018,7 @@ export async function buildCourseMaterialsZip({
   const manifest = buildManifest({
     courseName: safeCourseName,
     lessonFilter,
-    readiness,
+    readiness: effectiveReadiness,
     files,
     requestedFeatureIds,
     requiredAssets,
@@ -986,7 +1051,6 @@ export async function buildCourseMaterialsZip({
   let qualityResult = null;
   let qualityReportMarkdown = null;
   if (quality !== false) {
-    const qualityOptions = quality && typeof quality === 'object' ? quality : {};
     const timeoutMs = Number.isFinite(qualityOptions.timeoutMs)
       ? qualityOptions.timeoutMs
       : DEFAULT_PACKAGE_QUALITY_TIMEOUT_MS;

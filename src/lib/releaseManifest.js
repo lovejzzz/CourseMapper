@@ -3,22 +3,22 @@ import { APP_VERSION } from './appVersion.js';
 export const CURRENT_RELEASE = {
   version: APP_VERSION,
   date: 'June 26, 2026',
-  title: 'Concept-Linked SourceRef Proof: generic source rows stop inflating coverage',
-  landingTitle: 'Concept-Linked SourceRef Proof',
+  title: 'Partial Enrichment Export Truth: template fallback blocks ZIP manifests',
+  landingTitle: 'Partial Enrichment Export Truth',
   highlights: [
-    'The sourceRef bridge now counts only trusted source rows that are linked to course concepts, not generic accessible bibliography metadata.',
-    'CourseIR atom coverage can only replace review-only proof when multiple trusted, concept-linked exported source rows exist.',
-    'Source-ledger summaries now expose concept-linked and trusted-concept-linked counts so report, export, and grader evidence use the same accounting.',
-    'A package-export and deep-grader regression pins the live failure mode where an unlinked OpenAlex row must stay review-visible without inflating coverage.',
+    'The fresh v0.15.66 Project Management ZIP/log audit improved source proof to 7 concept-linked source rows and 3 trusted concept-linked rows, but still exported a manifest that claimed readiness was clean while enrichment fell back on lesson 3.',
+    'ZIP assembly now merges partial-enrichment pipeline evidence into the exported readiness object before writing READINESS_REPORT.txt and PACKAGE_MANIFEST.json.',
+    'A package with enrichment such as 11/12 lessons now exports readiness status blocked, one blocker, and the clear repair message instead of hiding the caveat behind ready/blockers=0 manifest claims.',
+    'A focused package-export regression pins the live mismatch without weakening the grader, source standards, or downloadable review-note workflow.',
   ],
   landingHighlights: [
-    'Source proof must be concept-linked.',
-    'Generic source metadata stays review-visible.',
-    'Coverage counts stay honest.',
+    'Partial enrichment stays visible.',
+    'Manifest readiness matches the digest.',
+    'Clean export claims stay honest.',
   ],
   proof: {
-    contract: 'release-contracts/v0.15.66.json',
-    roadmap: 'docs/V0.15.66_CONCEPT_LINKED_SOURCEREF_PROOF_ROADMAP.md',
+    contract: 'release-contracts/v0.15.67.json',
+    roadmap: 'docs/V0.15.67_PARTIAL_ENRICHMENT_EXPORT_TRUTH_ROADMAP.md',
     auditCommand: 'npm run audit:release-history',
   },
 };
@@ -33,6 +33,17 @@ export const CURRENT_RELEASE_CHANGELOG = {
 };
 
 export const HISTORICAL_RELEASE_CHANGELOGS = [
+  {
+    version: '0.15.66',
+    date: 'June 26, 2026',
+    title: 'Concept-Linked SourceRef Proof: generic source rows stop inflating coverage',
+    highlights: [
+      'The sourceRef bridge now counts only trusted source rows that are linked to course concepts, not generic accessible bibliography metadata.',
+      'CourseIR atom coverage can only replace review-only proof when multiple trusted, concept-linked exported source rows exist.',
+      'Source-ledger summaries now expose concept-linked and trusted-concept-linked counts so report, export, and grader evidence use the same accounting.',
+      'A package-export and deep-grader regression pins the live failure mode where an unlinked OpenAlex row must stay review-visible without inflating coverage.',
+    ],
+  },
   {
     version: '0.15.65',
     date: 'June 26, 2026',

@@ -136,6 +136,50 @@ describe('packageZipExporter', () => {
     expect(buildSlideDeckPptxBlob).toHaveBeenCalledTimes(2);
   });
 
+  it('keeps partial enrichment blockers in the exported manifest and readiness report', async () => {
+    const result = await buildCourseMaterialsZip({
+      courseMap: makeCourseMap('Partial Enrichment Proof'),
+      deliverables: {
+        lessonPlans: {
+          status: 'done',
+          data: {
+            lessonPlans: [
+              { lessonTitle: 'Lesson 1: Export Reliability', objectives: ['Verify exports.'] },
+              { lessonTitle: 'Lesson 2: Portable Course Materials', objectives: ['Package files.'] },
+            ],
+          },
+        },
+      },
+      featureIds: ['courseMap', 'lessonPlans'],
+      readiness: {
+        status: 'ready',
+        blockers: [],
+        warnings: [],
+        issues: [],
+        featureCount: 2,
+        doneFeatureCount: 2,
+      },
+      pipelineState: {
+        enrichment: 'ran (11/12 — lesson 3 fell back to template)',
+      },
+      quality: false,
+    });
+
+    const zip = await JSZip.loadAsync(await result.blob.arrayBuffer());
+    const manifest = JSON.parse(await zip.file('PACKAGE_MANIFEST.json').async('string'));
+    const readinessReport = await zip.file('READINESS_REPORT.txt').async('string');
+
+    expect(manifest.readiness).toEqual({
+      status: 'blocked',
+      blockers: 1,
+      warnings: 0,
+      checkedSections: '2/2',
+    });
+    expect(readinessReport).toContain(
+      'Enrichment covered 11/12 lessons; lesson 3 fell back to template. Retry or repair enrichment before exporting a clean package.',
+    );
+  });
+
   it('includes slim CourseIR and native-repair proof in the package manifest', async () => {
     const result = await buildCourseMaterialsZip({
       courseMap: makeCourseMap('CourseIR Export Proof'),

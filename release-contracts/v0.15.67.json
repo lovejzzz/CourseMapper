@@ -1,0 +1,99 @@
+{
+  "version": "0.15.67",
+  "date": "June 26, 2026",
+  "title": "Partial Enrichment Export Truth: template fallback blocks ZIP manifests",
+  "status": "verified-current",
+  "proofSummary": {
+    "local": [
+      "npm test -- src/lib/__tests__/packageZipExporter.test.js",
+      "npm run format:check",
+      "npm run lint",
+      "npm test",
+      "npm run build",
+      "npm run bundle:check",
+      "npm run audit:release-history",
+      "npm run audit:gold:smoke"
+    ],
+    "ciFast": {
+      "status": "pending-push",
+      "note": "Fast verification is claimed only after v0.15.67 is pushed and the GitHub Actions run is attached."
+    },
+    "deploy": {
+      "status": "pending-push",
+      "note": "Pages deploy is not claimed until the pushed release completes its deploy run."
+    },
+    "ciDeep": {
+      "status": "local-only",
+      "note": "This is a narrow package-export truth repair; focused package coverage plus normal local gates and gold smoke are the release bar."
+    },
+    "liveProvider": {
+      "status": "local-only",
+      "note": "The fix is driven by the fresh v0.15.66 ZIP/log audit at verification-output/edutool-audit-loop/20260626T235926Z; a new v0.15.67 audit is required after deploy."
+    },
+    "manualHuman": {
+      "status": "not-applicable",
+      "note": "No external instructor approval is claimed by this release."
+    }
+  },
+  "claims": [
+    {
+      "id": "v01567-fresh-artifact-evidence",
+      "status": "verified-current",
+      "changelogHighlightIndex": 0,
+      "summary": "The release is based on fresh v0.15.66 artifact evidence showing source proof improvement plus a manifest/readiness mismatch for partial enrichment.",
+      "anchors": [
+        "docs/V0.15.67_PARTIAL_ENRICHMENT_EXPORT_TRUTH_ROADMAP.md",
+        "src/lib/__tests__/packageZipExporter.test.js"
+      ],
+      "proofCommands": ["npm test -- src/lib/__tests__/packageZipExporter.test.js"],
+      "proofScopes": ["live-provider", "doc"]
+    },
+    {
+      "id": "v01567-effective-readiness-in-zip-assembly",
+      "status": "verified-current",
+      "changelogHighlightIndex": 1,
+      "summary": "ZIP assembly merges partial-enrichment pipeline evidence into effective readiness before writing package reports and manifest claims.",
+      "anchors": ["src/lib/packageZipExporter.js"],
+      "proofCommands": ["npm test -- src/lib/__tests__/packageZipExporter.test.js"],
+      "proofScopes": ["unit", "compiled-output"]
+    },
+    {
+      "id": "v01567-partial-enrichment-blocked-manifest",
+      "status": "verified-current",
+      "changelogHighlightIndex": 2,
+      "summary": "A package with 11/12 enrichment now exports blocked manifest readiness and the repair message instead of readiness ready with zero blockers.",
+      "anchors": ["src/lib/__tests__/packageZipExporter.test.js", "src/lib/packageZipExporter.js"],
+      "proofCommands": ["npm test -- src/lib/__tests__/packageZipExporter.test.js"],
+      "proofScopes": ["unit", "compiled-output"]
+    },
+    {
+      "id": "v01567-no-grader-weakening",
+      "status": "verified-current",
+      "changelogHighlightIndex": 3,
+      "summary": "The fix preserves grader/source standards and the downloadable review-note workflow while making durable ZIP evidence honest.",
+      "anchors": ["src/lib/packageZipExporter.js", "docs/V0.15.67_PARTIAL_ENRICHMENT_EXPORT_TRUTH_ROADMAP.md"],
+      "proofCommands": ["npm test -- src/lib/__tests__/packageZipExporter.test.js", "npm run audit:release-history"],
+      "proofScopes": ["unit", "doc"]
+    }
+  ],
+  "carryForward": [
+    {
+      "id": "fresh-v01567-edutool-zip-log-audit",
+      "status": "carry-forward",
+      "source": "docs/V0.15.67_PARTIAL_ENRICHMENT_EXPORT_TRUTH_ROADMAP.md",
+      "next": "After deploy, run a fresh EduTool.dev ZIP/log audit and verify partial-enrichment blockers remain visible in PACKAGE_MANIFEST.json and READINESS_REPORT.txt."
+    },
+    {
+      "id": "remaining-v01566-quality-losses",
+      "status": "carry-forward",
+      "source": "docs/V0.15.67_PARTIAL_ENRICHMENT_EXPORT_TRUTH_ROADMAP.md",
+      "next": "Continue reducing ambiguous Open Library source licenses, Lesson 3 enrichment fallback, slide echo formatting, and texture score 90."
+    },
+    {
+      "id": "source-texture-100-target",
+      "status": "carry-forward",
+      "source": "docs/V0.15.67_PARTIAL_ENRICHMENT_EXPORT_TRUTH_ROADMAP.md",
+      "next": "Keep source/research and texture work moving until a fresh package honestly regrades 100/100 with no hidden caveats."
+    }
+  ]
+}
