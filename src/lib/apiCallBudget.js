@@ -50,6 +50,51 @@ function normalizeFeatureIds(value) {
   return [];
 }
 
+function enrichmentOutcomeRank(outcome = null) {
+  if (!outcome) return -1;
+  const stage = String(outcome.modelStage || '').toLowerCase();
+  const enrichedLessons = Number(outcome.enrichedLessons) || 0;
+  const requestedLessons = Number(outcome.requestedLessons) || 0;
+  const coverage = requestedLessons > 0 ? Math.min(1, Math.max(0, enrichedLessons / requestedLessons)) : 0;
+  if (stage === 'ran') return 300 + coverage;
+  if (enrichedLessons > 0) return 200 + Math.min(1, enrichedLessons / Math.max(1, requestedLessons || enrichedLessons));
+  if (stage && stage !== 'none') return 100;
+  return 0;
+}
+
+function preferEnrichmentOutcome(previous = null, incoming = null) {
+  if (!previous) return incoming;
+  if (!incoming) return previous;
+  const previousRank = enrichmentOutcomeRank(previous);
+  const incomingRank = enrichmentOutcomeRank(incoming);
+  if (incomingRank > previousRank) return incoming;
+  if (incomingRank < previousRank) return previous;
+  const previousHasCoverage = Number(previous.requestedLessons) > 0;
+  const incomingHasCoverage = Number(incoming.requestedLessons) > 0;
+  if (incomingHasCoverage && !previousHasCoverage) return incoming;
+  return incoming;
+}
+
+function compilerSourceRank(source = '') {
+  switch (source) {
+    case 'enriched-blueprint':
+      return 3;
+    case 'blueprint-sync':
+      return 2;
+    case 'blueprint':
+    case 'deterministic-blueprint':
+      return 1;
+    default:
+      return source ? 1 : 0;
+  }
+}
+
+function preferCompilerSource(previous = '', incoming = '') {
+  if (!previous) return incoming || '';
+  if (!incoming) return previous;
+  return compilerSourceRank(incoming) >= compilerSourceRank(previous) ? incoming : previous;
+}
+
 export function createApiCallBudget(overrides = {}) {
   const now = Date.now();
   const streamRetryCalls = overrides.streamRetryCalls ?? overrides.retriedCalls ?? 0;
@@ -330,12 +375,19 @@ export function applyApiCallBudgetEvent(currentBudget, event = {}) {
     next.pipeline = { ...next.pipeline, nativeAuthoring: `fell back to prose: ${event.detail || 'unknown reason'}` };
   }
   if (event.type === 'pipelineDecision') {
-    next.pipeline = { ...next.pipeline, [event.stage || 'stage']: event.detail || '' };
+    const stage = event.stage || 'stage';
+    let shouldRecordPipelineDecision = true;
     // v0.12.1: the enrichment stage also reports a structured outcome so the
     // run digest can flag compiled-without-enrichment packages without
     // parsing the human-readable detail string.
     if (event.stage === 'enrichmentModelStage' && event.outcome) {
-      next.enrichmentOutcome = { ...event.outcome };
+      const preferredOutcome = preferEnrichmentOutcome(next.enrichmentOutcome || null, event.outcome);
+      const incomingWon = preferredOutcome === event.outcome;
+      next.enrichmentOutcome = { ...preferredOutcome };
+      shouldRecordPipelineDecision = incomingWon || !next.pipeline?.[stage];
+    }
+    if (shouldRecordPipelineDecision) {
+      next.pipeline = { ...next.pipeline, [stage]: event.detail || '' };
     }
   }
   if (usage) {
@@ -362,7 +414,7 @@ export function applyApiCallBudgetEvent(currentBudget, event = {}) {
     const savedProviderCalls = Number.isFinite(event.savedProviderCalls) ? event.savedProviderCalls : 0;
     next.compilerSavings = {
       ...previous,
-      source: event.compilerSource || previous.source || 'blueprint',
+      source: preferCompilerSource(previous.source || '', event.compilerSource || '') || 'blueprint',
       featureIds: [...featureIds],
       compiledFeatureCount: featureIds.size || previous.compiledFeatureCount || 0,
       savedProviderCalls: (Number(previous.savedProviderCalls) || 0) + Math.max(0, savedProviderCalls),

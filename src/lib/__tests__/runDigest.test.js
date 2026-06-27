@@ -228,4 +228,77 @@ describe('runDigest', () => {
     expect(genomeDigest.gates.compiledWithoutEnrichment).toBe(false);
     expect(genomeDigest.gates.flaggedChecks).toHaveLength(0);
   });
+
+  it('does not let finalizer retry compiles erase the primary enriched compiler truth', () => {
+    let budget = createApiCallBudget({ runId: 'run-finalizer-retry-truth' });
+    budget = applyApiCallBudgetEvent(budget, {
+      type: 'pipelineDecision',
+      stage: 'enrichmentModelStage',
+      detail: 'ran (12 lessons enriched) (linker: ran)',
+      outcome: { modelStage: 'ran', enrichedLessons: 12, requestedLessons: 12, missingLessons: [] },
+    });
+    budget = applyApiCallBudgetEvent(budget, {
+      type: 'compiledDeliverable',
+      label: 'Enriched blueprint compiler',
+      featureIds: [
+        'syllabus',
+        'lessonPlans',
+        'slideDecks',
+        'assignments',
+        'rubrics',
+        'discussions',
+        'quizBank',
+        'studyGuides',
+        'courseFaq',
+      ],
+      savedProviderCalls: 17,
+      compilerSource: 'enriched-blueprint',
+    });
+
+    // v0.15.86 live run: finish-stage retries for assignments/rubrics compiled
+    // individual fallback deliverables and emitted deterministic enrichment
+    // decisions. Those retry-local events must not rewrite the package-wide
+    // enrichment/compiled-source summary into a false mail-merge warning.
+    budget = applyApiCallBudgetEvent(budget, {
+      type: 'pipelineDecision',
+      stage: 'enrichmentModelStage',
+      detail: 'deterministic compile only (no enrichment object)',
+      outcome: { modelStage: 'none', enrichedLessons: 0 },
+    });
+    budget = applyApiCallBudgetEvent(budget, {
+      type: 'compiledDeliverable',
+      label: 'Blueprint compiler',
+      featureIds: ['assignments'],
+      savedProviderCalls: 2,
+      compilerSource: 'blueprint',
+    });
+    budget = applyApiCallBudgetEvent(budget, {
+      type: 'pipelineDecision',
+      stage: 'enrichmentModelStage',
+      detail: 'deterministic compile only (no enrichment object)',
+      outcome: { modelStage: 'none', enrichedLessons: 0 },
+    });
+    budget = applyApiCallBudgetEvent(budget, {
+      type: 'compiledDeliverable',
+      label: 'Blueprint compiler',
+      featureIds: ['rubrics'],
+      savedProviderCalls: 1,
+      compilerSource: 'blueprint',
+    });
+
+    const digest = buildRunDigest({
+      budget,
+      finish: { finalStatus: 'ready', retryCallCount: 3 },
+      exportVerification: { status: 'passed', checked: 38, failed: 0, warningCount: 0, checks: [] },
+      generation: { provider: 'openai', lessonCount: 12, featureIds: ['courseFaq'] },
+    });
+
+    expect(digest.pipeline.enrichmentModelStage).toBe('ran (12 lessons enriched) (linker: ran)');
+    expect(digest.compilerSavings.source).toBe('enriched-blueprint');
+    expect(digest.compilerSavings.compiledFeatureCount).toBe(9);
+    expect(digest.compilerSavings.savedProviderCalls).toBe(20);
+    expect(digest.gates.compiledWithoutEnrichment).toBe(false);
+    expect(digest.gates.enrichmentCoverage).toBe(1);
+    expect(digest.gates.flaggedChecks.some((check) => /mail-merge risk/i.test(check.message))).toBe(false);
+  });
 });

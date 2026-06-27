@@ -4,6 +4,26 @@
 
 CourseMapper is moving toward a "consider it done" course-production agent. The user should describe the course, choose scope/materials, and receive a finished draft package. The agent owns generation, QA, repair, alignment, and export readiness. Human involvement should be final approval only, not QA labor.
 
+## v0.15.87 - Finalizer Retry Digest Truth
+
+Goal: fix the fresh v0.15.86 User Experience Design Studio audit evidence where
+the package really ran blueprint enrichment and compiled from `enriched-blueprint`,
+but finish-stage retry compiles later rewrote the digest as deterministic
+mail-merge output.
+
+Full plan: `docs/V0.15.87_FINALIZER_RETRY_DIGEST_TRUTH_ROADMAP.md`
+
+1. Preserve the strongest enrichment outcome across later retry-stage events.
+2. Preserve `enriched-blueprint` compiler source when deterministic retries add
+   individual missing deliverables.
+3. Keep the compiled-without-enrichment warning for truly deterministic
+   packages.
+4. Record the v0.15.86 ZIP/log audit result: UX false-friend quarantine works,
+   but citation proof, texture, local-save quota, and Agent note duplication
+   remain open.
+5. Require a fresh deployed v0.15.87 ZIP/log audit before claiming provider-side
+   verification of the fixed digest.
+
 ## v0.15.63 - Course Map Kernel Focus
 
 Goal: address the fresh v0.15.62 Project Management audit evidence where the

@@ -3,22 +3,22 @@ import { APP_VERSION } from './appVersion.js';
 export const CURRENT_RELEASE = {
   version: APP_VERSION,
   date: 'June 27, 2026',
-  title: 'UX Source Relevance Gate: false-friend rows move to review',
-  landingTitle: 'UX Source Relevance Gate',
+  title: 'Finalizer Retry Digest Truth: enriched packages stop looking deterministic',
+  landingTitle: 'Finalizer Retry Digest Truth',
   highlights: [
-    'A fresh deployed v0.15.85 User Experience Design Studio ZIP/log audit proved the new API/compiler traces are readable, but the package still regraded at 88/B after strict source checks because weak UX false-friend rows were trusted as citation proof.',
-    'User Experience source-ledger trust now requires UX/design anchors or concept-specific source anchors before knowledge-resource or source-finder rows become trusted concept-linked proof.',
-    'Weak UX rows such as metaverse hype, process-control workshop, film/book/persona-series pages, aircraft design process, and generic interface/prototype papers now route to source review notes instead of trusted sourceLedger rows.',
-    'The deep quality grader mirrors the production UX relevance gate, so any exported trusted false-friend source rows are scored as citation defects rather than silently counted as proof.',
+    'A fresh deployed v0.15.86 User Experience Design Studio ZIP/log audit verified the UX source quarantine in real provider output: weak rows such as Iwerks Studio, Flight test, and Website wireframe landed in source review notes instead of trusted sourceLedger proof.',
+    'The same run exposed a report-truth bug: the main generation made a blueprintEnrichment provider call and compiled 9 deliverables from enriched-blueprint, but finalizer retries for Assignments/Rubrics overwrote the digest to deterministic compile only.',
+    'API budget merging now preserves the strongest package-wide enrichment outcome and compiler source, so retry-local deterministic compiles cannot create a false compiled-without-enrichment mail-merge warning.',
+    'This release does not claim 100/100: the corrected v0.15.86 artifact projects to 96/A, with citation proof, texture, agent-note duplication, and local-save quota warnings still carried forward.',
   ],
   landingHighlights: [
-    'UX sources need design relevance.',
-    'False friends become review notes.',
-    'The grader catches trusted weak rows.',
+    'Retry diagnostics preserve enrichment truth.',
+    'False mail-merge warnings stop.',
+    'UX quarantine is verified in provider output.',
   ],
   proof: {
-    contract: 'release-contracts/v0.15.86.json',
-    roadmap: 'docs/V0.15.86_UX_SOURCE_RELEVANCE_GATE_ROADMAP.md',
+    contract: 'release-contracts/v0.15.87.json',
+    roadmap: 'docs/V0.15.87_FINALIZER_RETRY_DIGEST_TRUTH_ROADMAP.md',
     auditCommand: 'npm run audit:release-history',
   },
 };
@@ -33,6 +33,17 @@ export const CURRENT_RELEASE_CHANGELOG = {
 };
 
 export const HISTORICAL_RELEASE_CHANGELOGS = [
+  {
+    version: '0.15.86',
+    date: 'June 27, 2026',
+    title: 'UX Source Relevance Gate: false-friend rows move to review',
+    highlights: [
+      'A fresh deployed v0.15.85 User Experience Design Studio ZIP/log audit proved the new API/compiler traces are readable, but the package still regraded at 88/B after strict source checks because weak UX false-friend rows were trusted as citation proof.',
+      'User Experience source-ledger trust now requires UX/design anchors or concept-specific source anchors before knowledge-resource or source-finder rows become trusted concept-linked proof.',
+      'Weak UX rows such as metaverse hype, process-control workshop, film/book/persona-series pages, aircraft design process, and generic interface/prototype papers now route to source review notes instead of trusted sourceLedger rows.',
+      'The deep quality grader mirrors the production UX relevance gate, so any exported trusted false-friend source rows are scored as citation defects rather than silently counted as proof.',
+    ],
+  },
   {
     version: '0.15.85',
     date: 'June 27, 2026',
