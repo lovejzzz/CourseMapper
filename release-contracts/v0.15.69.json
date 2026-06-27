@@ -42,10 +42,7 @@
       "status": "verified-current",
       "changelogHighlightIndex": 0,
       "summary": "The release is based on the latest full ZIP/log audit showing 97/A quality, texture 90, partial enrichment, and zero retry-call evidence.",
-      "anchors": [
-        "verification-output/edutool-audit-loop/20260626T235926Z/report.md",
-        "docs/V0.15.69_ENRICHMENT_RECOVERY_TEXTURE_ROADMAP.md"
-      ],
+      "anchors": ["docs/V0.15.69_ENRICHMENT_RECOVERY_TEXTURE_ROADMAP.md"],
       "proofCommands": [
         "npm test -- tests/v0147-texture-metric.test.js tests/v0147-parallel-enrichment.test.js src/lib/__tests__/apiCostControl.test.js"
       ],
