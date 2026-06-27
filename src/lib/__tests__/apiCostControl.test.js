@@ -24,6 +24,23 @@ describe('apiCostControl', () => {
     expect(plan.hardCallLimit).toBeGreaterThan(plan.softCallLimit);
   });
 
+  it('reserves blueprint enrichment repair calls before texture polish can spend the budget', () => {
+    const plan = buildApiCostPlan({
+      source: 'generation',
+      featureIds: [],
+      lessonCount: 12,
+      blueprintEnrichmentCalls: 3,
+      blueprintEnrichmentRecoveryReserve: 2,
+      includeRepairRetryReserve: false,
+    });
+
+    expect(plan.deliverableChunkCalls).toBe(0);
+    expect(plan.blueprintEnrichmentCalls).toBe(3);
+    expect(plan.blueprintEnrichmentRecoveryReserve).toBe(2);
+    expect(plan.plannedCalls).toBe(5);
+    expect(plan.reservedCalls).toBe(5);
+  });
+
   it('can reserve only finalizer retry calls without replaying full generation cost', () => {
     const plan = buildApiCostPlan({
       source: 'finalizer:export',
@@ -65,6 +82,19 @@ describe('apiCostControl', () => {
     expect(control.status).toBe('over_hard_limit');
     expect(control.shouldStopRetries).toBe(true);
     expect(control.remainingBeforeHardLimit).toBe(0);
+  });
+
+  it('counts native, enrichment, and voice calls against the hard limit', () => {
+    const control = evaluateApiCostControl({
+      nativeSkeletonCalls: 1,
+      blueprintEnrichmentCalls: 3,
+      voicePassCalls: 1,
+      costPlan: { plannedCalls: 4, softCallLimit: 4, hardCallLimit: 5 },
+    });
+
+    expect(control.totalProviderCalls).toBe(5);
+    expect(control.status).toBe('over_hard_limit');
+    expect(control.shouldStopRetries).toBe(true);
   });
 
   it('flags failure spikes before runaway repair loops', () => {

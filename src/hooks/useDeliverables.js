@@ -592,15 +592,6 @@ export default function useDeliverables({
 
       // ── 1. Create chunk plan ──
       const tasks = createChunkPlan(toGenerate, lessonCount, scopeIndices, generationPlan);
-      const baseCostPlan = buildApiCostPlan({
-        source: costMode,
-        featureIds: toGenerate,
-        lessonCount,
-        lessonFilter: scopeIndices,
-        generationPlan,
-        includeCourseMap: false,
-        includeRepairRetryReserve: costMode !== 'finalizerRetry',
-      });
       // v0.9.11 P4 used 4-lesson kernel batches. Long-output native authoring
       // models can safely carry the full Pass B contract in one call, so the
       // plan now mirrors the actual adaptive batcher instead of over-quoting
@@ -623,15 +614,21 @@ export default function useDeliverables({
         : generationOptions.lessonContentEnrichment !== false
           ? Math.max(1, Math.ceil(enrichmentLessonCount / Math.max(1, plannedNativePassBBatchSize)))
           : 1;
-      const costPlan = blueprintEnrichmentRequested
-        ? {
-            ...baseCostPlan,
-            blueprintEnrichmentCalls: plannedEnrichmentCalls,
-            plannedCalls: baseCostPlan.plannedCalls + plannedEnrichmentCalls,
-            softCallLimit: baseCostPlan.softCallLimit + plannedEnrichmentCalls,
-            hardCallLimit: baseCostPlan.hardCallLimit + plannedEnrichmentCalls,
-          }
-        : baseCostPlan;
+      const plannedEnrichmentRecoveryReserve =
+        blueprintEnrichmentRequested && generationOptions.lessonContentEnrichment !== false && enrichmentLessonCount > 1
+          ? 2
+          : 0;
+      const costPlan = buildApiCostPlan({
+        source: costMode,
+        featureIds: toGenerate,
+        lessonCount,
+        lessonFilter: scopeIndices,
+        generationPlan,
+        includeCourseMap: false,
+        includeRepairRetryReserve: costMode !== 'finalizerRetry',
+        blueprintEnrichmentCalls: plannedEnrichmentCalls,
+        blueprintEnrichmentRecoveryReserve: plannedEnrichmentRecoveryReserve,
+      });
       const cappedCostPlan =
         maxProviderCalls === null
           ? costPlan
@@ -654,9 +651,11 @@ export default function useDeliverables({
           label: 'Deliverable call plan',
           detail: `${cappedCostPlan.deliverableChunkCalls} generation call${
             cappedCostPlan.deliverableChunkCalls === 1 ? '' : 's'
-          }${blueprintEnrichmentRequested ? ` + ${plannedEnrichmentCalls} blueprint enrichment call${plannedEnrichmentCalls === 1 ? '' : 's'}` : ''} + ${
-            cappedCostPlan.repairRetryReserve
-          } repair reserve${
+          }${blueprintEnrichmentRequested ? ` + ${plannedEnrichmentCalls} blueprint enrichment call${plannedEnrichmentCalls === 1 ? '' : 's'}` : ''}${
+            plannedEnrichmentRecoveryReserve > 0
+              ? ` + ${plannedEnrichmentRecoveryReserve} enrichment repair reserve`
+              : ''
+          } + ${cappedCostPlan.repairRetryReserve} repair reserve${
             compiledSavings > 0 ? `; blueprint compiler saves about ${compiledSavings} generation call(s)` : ''
           }`,
           costPlan: cappedCostPlan,
@@ -1262,10 +1261,11 @@ export default function useDeliverables({
                 contentSourcedLessonIds,
               });
               recordGenerationApiCallEvent({
-                type: 'blueprintEnrichmentCall',
+                type: recoveryLabel ? 'repairRetryCall' : 'blueprintEnrichmentCall',
                 label: recoveryLabel || 'Author lesson batch (native Pass B)',
                 detail: `Lessons ${chunk.map((lessonIdx) => lessonIdx + 1).join(', ')} — ${prompt.approxInputTokens} input tokens estimated`,
                 featureId: 'blueprintEnrichment',
+                task: 'blueprintEnrichment',
               });
               const result = await streamProvider(provider, apiKey, modelId, prompt.systemPrompt, prompt.userPrompt, {
                 modelCapabilities,
@@ -1704,7 +1704,7 @@ export default function useDeliverables({
                 : '',
             ].filter(Boolean);
             recordGenerationApiCallEvent({
-              type: 'blueprintEnrichmentCall',
+              type: 'repairRetryCall',
               label:
                 missingChunk.length > 0
                   ? 'Enrich lesson kernels (recovery)'

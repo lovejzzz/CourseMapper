@@ -120,4 +120,15 @@ describe('WS-A (2) — the rewritten loop keeps its contract (source pins)', () 
     const recoveryBlock = afterLoop.split('enrichmentRecoveryCalls < 2')[1].slice(0, 4000);
     expect(recoveryBlock).not.toContain('Promise.all');
   });
+
+  it('reserves enrichment recovery calls and counts recovery as retry budget', () => {
+    expect(hookSource).toContain('const plannedEnrichmentRecoveryReserve =');
+    expect(hookSource).toContain('blueprintEnrichmentRecoveryReserve: plannedEnrichmentRecoveryReserve');
+    expect(hookSource).toContain('enrichment repair reserve');
+    expect(hookSource).toContain("type: recoveryLabel ? 'repairRetryCall' : 'blueprintEnrichmentCall'");
+    const recoverySource = hookSource
+      .split('let enrichmentRecoveryCalls = 0;')[1]
+      .split('if (Object.keys(partialOverlays)')[0];
+    expect(recoverySource).toContain("type: 'repairRetryCall'");
+  });
 });

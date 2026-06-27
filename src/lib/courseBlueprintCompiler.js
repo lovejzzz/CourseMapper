@@ -4565,8 +4565,18 @@ function buildLearningTransferPlan({ lesson, previous, next }) {
     cumulativeConnection: next
       ? `${artifactName} prepares students for ${stripTerminalPunctuation(nextTarget)} by making ${nextConcept} easier to justify with evidence.`
       : `${artifactName} closes the course arc by helping students synthesize evidence, feedback, and revision into a final transfer explanation.`,
-    metacognitivePrompt: `Ask students which ${concept} move they can reuse, which context would change it, and what evidence would make the transfer stronger.`,
-    studentMetacognitivePrompt: `Which ${concept} move can you reuse, what context would change it, and what evidence would make the transfer stronger?`,
+    metacognitivePrompt: lessonVariant(lesson, [
+      `Ask students which ${concept} move they can reuse, which context would change it, and what evidence would make the transfer stronger.`,
+      `Have students name the ${concept} move worth carrying forward, then identify the condition that would make them revise it.`,
+      `Ask students to choose one reusable ${concept} strategy and explain what new evidence would strengthen or limit the transfer.`,
+      `Close by having students compare contexts: where does the ${concept} move still work, and what proof would make it stronger?`,
+    ]),
+    studentMetacognitivePrompt: lessonVariant(lesson, [
+      `Which ${concept} move can you reuse, what context would change it, and what evidence would make the transfer stronger?`,
+      `What ${concept} strategy can you carry forward, and what new condition would make you adjust it?`,
+      `Which part of today's ${concept} work transfers best, and what evidence would make that transfer more convincing?`,
+      `Where could you reuse this ${concept} move next, and what proof would tell you it still fits?`,
+    ]),
   };
 }
 
@@ -17441,7 +17451,12 @@ function slideNoteCriterionCue(type, criterion, lesson = {}) {
     activity: `During circulation, look for evidence that pairs are improving this criterion: ${criterion}`,
     discussion: `Use the criterion to decide which argument is strongest: ${criterion}`,
     summary: `Have students self-rate readiness against this criterion: ${criterion}`,
-    closing: `Make the after-class task point directly back to this criterion: ${criterion}`,
+    closing: lessonVariant(lesson, [
+      `Make the after-class task point directly back to this criterion: ${criterion}`,
+      `Tie the follow-up task to the same success test: ${criterion}`,
+      `Use the closing handoff to name how students will keep practicing this criterion: ${criterion}`,
+      `Frame the after-class work as one more chance to meet this criterion: ${criterion}`,
+    ]),
   };
   if (type === 'agenda') {
     return lessonVariant(lesson, [
@@ -18064,7 +18079,13 @@ function buildDiscussionGuidelinesForFormat(lesson, protocol) {
     `When speaking is not the accessible option, use the approved chat or written pathway and make the ${concept} evidence visible before the activity closes.`,
     `An approved written response, chat contribution, or equivalent participation path should address the same peer evidence task for ${lessonFocus}.`,
   ]);
-  return `For ${lessonFocus}, come prepared with one brief ${concept} evidence note before class, speak or post at least twice during the ${format}, and respond directly to one peer by building on or challenging their evidence for ${lesson.studentArtifact}. Use this ${protocol.artifactGenre} protocol for ${lessonFocus}: ${protocol.participationPattern}. ${contributionCue} ${participationAccessCue} Participation is judged by evidence use, reasoning, peer response quality, ${protocol.reviewFocus}, and whether you name a limitation or revision move tied to ${concept}.`;
+  const peerResponseCue = lessonVariant(lesson, [
+    `respond directly to one peer by building on or challenging their evidence for ${lesson.studentArtifact}`,
+    `reply to one classmate by testing the evidence behind their ${concept} claim`,
+    `extend one peer contribution with a source detail, limitation, or revision move`,
+    `ask one evidence-focused follow-up that helps a peer strengthen their ${lesson.studentArtifact}`,
+  ]);
+  return `For ${lessonFocus}, come prepared with one brief ${concept} evidence note before class, speak or post at least twice during the ${format}, and ${peerResponseCue}. Use this ${protocol.artifactGenre} protocol for ${lessonFocus}: ${protocol.participationPattern}. ${contributionCue} ${participationAccessCue} Participation is judged by evidence use, reasoning, peer response quality, ${protocol.reviewFocus}, and whether you name a limitation or revision move tied to ${concept}.`;
 }
 
 /**
@@ -19145,15 +19166,22 @@ function buildLessonPlanOutline(blueprint, lesson, { depth = 'flat' } = {}) {
   return [
     {
       time: formatDuration(warmUp),
-      activity: lessonVariant(lesson, [
-        'Warm-up retrieval and framing',
-        'Opening evidence check',
-        'Prior-knowledge launch',
-        'Retrieval and decision setup',
-      ]),
+      activity: kernelMisconception
+        ? 'Misconception poll'
+        : lessonVariant(lesson, [
+            'Warm-up retrieval and framing',
+            'Opening evidence check',
+            'Prior-knowledge launch',
+            'Retrieval and decision setup',
+          ]),
       type: 'Warm-up',
       description: kernelMisconception
-        ? `Misconception poll: display “${stripTerminalPunctuation(kernelMisconception.misconception)}” and have students vote true or false, then defend the vote with one observation or example.`
+        ? lessonVariant(lesson, [
+            `Misconception poll: display “${stripTerminalPunctuation(kernelMisconception.misconception)}” and have students vote true or false, then defend the vote with one observation or example.`,
+            `Start with a misconception check on “${stripTerminalPunctuation(kernelMisconception.misconception)}”; students choose a side and cite one detail that supports or challenges it.`,
+            `Post “${stripTerminalPunctuation(kernelMisconception.misconception)}” as a quick claim test; students mark agree, revise, or reject and explain the evidence.`,
+            `Use “${stripTerminalPunctuation(kernelMisconception.misconception)}” as the launch prompt; students predict what would prove or disprove it before the lesson evidence arrives.`,
+          ])
         : lessonVariant(lesson, [
             `Students respond to a short prompt that asks them to ${phrase.decisionMove} using prior source evidence before the day's lesson work begins.`,
             `Students mark one prior source detail and explain how it could support today's ${concept} decision.`,
@@ -19277,7 +19305,12 @@ function buildLessonPlanOutline(blueprint, lesson, { depth = 'flat' } = {}) {
       type: 'Closure',
       description:
         deep && kernelMisconception
-          ? `Exit ticket: revisit the warm-up vote — students explain in their own words why “${stripTerminalPunctuation(kernelMisconception.misconception)}” fails, citing one piece of evidence from today’s work on ${artifact}.`
+          ? lessonVariant(lesson, [
+              `Exit ticket: revisit the warm-up vote — students explain in their own words why “${stripTerminalPunctuation(kernelMisconception.misconception)}” fails, citing one piece of evidence from today’s work on ${artifact}.`,
+              `Exit ticket: students rewrite “${stripTerminalPunctuation(kernelMisconception.misconception)}” as a corrected claim and attach one evidence note from today's ${artifact} work.`,
+              `Exit ticket: students name the evidence that changed their view of “${stripTerminalPunctuation(kernelMisconception.misconception)}” and connect it to the next ${artifact} move.`,
+              `Exit ticket: students explain what the warm-up claim missed, then cite the lesson evidence that makes the correction useful for ${artifact}.`,
+            ])
           : `Students share one revision they made to ${artifact}, one question they still have about ${concept}, and one way today’s ${modality.mode} work prepares them for the next artifact.`,
       instructorNotes:
         deep && kernelMisconception

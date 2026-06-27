@@ -416,6 +416,7 @@ describe('D1(2b) — compiler prose texture regression guard', () => {
       'rubrics',
       'discussions',
       'quizBank',
+      'studyGuides',
     ]);
     const text = JSON.stringify(compiled).toLowerCase();
 
@@ -434,6 +435,19 @@ describe('D1(2b) — compiler prose texture regression guard', () => {
     expect(
       countNormalizedPhrase(text, 'a strong answer also names one limitation or alternative reading'),
     ).toBeLessThanOrEqual(3);
+    expect(
+      countNormalizedPhrase(text, 'make the after-class task point directly back to this criterion'),
+    ).toBeLessThanOrEqual(4);
+    expect(
+      countNormalizedPhrase(text, 'respond directly to one peer by building on or challenging their evidence'),
+    ).toBeLessThanOrEqual(4);
+    expect(countNormalizedPhrase(text, 'what evidence would make the transfer stronger')).toBeLessThanOrEqual(4);
+    expect(
+      countNormalizedPhrase(text, 'have students vote true or false then defend the vote with'),
+    ).toBeLessThanOrEqual(4);
+    expect(
+      countNormalizedPhrase(text, 'exit ticket revisit the warm-up vote students explain in their own words'),
+    ).toBeLessThanOrEqual(4);
   });
 });
 

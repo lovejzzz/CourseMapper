@@ -6,7 +6,10 @@ const PROVIDER_CALL_COUNTERS = [
   'capabilityProbeCalls',
   'courseMapCalls',
   'courseIRCalls',
+  'nativeSkeletonCalls',
   'deliverableChunkCalls',
+  'blueprintEnrichmentCalls',
+  'voicePassCalls',
   'repairRetryCalls',
   'streamRetryCalls',
   'providerFallbackCalls',
@@ -55,6 +58,8 @@ export function buildApiCostPlan({
   includeCourseMap = false,
   includeDeliverableChunks = true,
   includeRepairRetryReserve = true,
+  blueprintEnrichmentCalls = 0,
+  blueprintEnrichmentRecoveryReserve = 0,
   finalizerRetryCallBudget = 0,
 } = {}) {
   const selectedFeatures = [
@@ -76,9 +81,17 @@ export function buildApiCostPlan({
         0,
       )
     : 0;
+  const enrichmentCalls = Math.max(0, Number(blueprintEnrichmentCalls) || 0);
+  const enrichmentRecoveryReserve = Math.max(0, Number(blueprintEnrichmentRecoveryReserve) || 0);
   const finalizerRetryReserve = Math.max(0, Number(finalizerRetryCallBudget) || 0);
-  const plannedCalls = initialCourseMapCalls + deliverableChunkCalls + repairRetryReserve + finalizerRetryReserve;
-  const normalCalls = initialCourseMapCalls + deliverableChunkCalls;
+  const plannedCalls =
+    initialCourseMapCalls +
+    deliverableChunkCalls +
+    enrichmentCalls +
+    enrichmentRecoveryReserve +
+    repairRetryReserve +
+    finalizerRetryReserve;
+  const normalCalls = initialCourseMapCalls + deliverableChunkCalls + enrichmentCalls;
   const softCallLimit = plannedCalls + Math.max(3, Math.ceil(normalCalls * 0.25));
   const hardCallLimit = plannedCalls + Math.max(6, Math.ceil(normalCalls * 0.75));
 
@@ -88,6 +101,8 @@ export function buildApiCostPlan({
     lessonCount: scopedLessonCount,
     initialCourseMapCalls,
     deliverableChunkCalls,
+    blueprintEnrichmentCalls: enrichmentCalls,
+    blueprintEnrichmentRecoveryReserve: enrichmentRecoveryReserve,
     repairRetryReserve,
     finalizerRetryReserve,
     reservedCalls: plannedCalls,

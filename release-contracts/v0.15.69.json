@@ -1,0 +1,106 @@
+{
+  "version": "0.15.69",
+  "date": "June 26, 2026",
+  "title": "Enrichment Recovery Reserve: missing lesson kernels get repair budget",
+  "status": "verified-current",
+  "proofSummary": {
+    "local": [
+      "npm test -- tests/v0147-texture-metric.test.js tests/v0147-parallel-enrichment.test.js src/lib/__tests__/apiCostControl.test.js",
+      "npm test -- tests/v0155-release-truth-ledger.test.js",
+      "npm run format:check",
+      "npm run lint",
+      "npm test",
+      "npm run build",
+      "npm run bundle:check",
+      "npm run audit:release-history",
+      "npm run audit:gold:smoke"
+    ],
+    "ciFast": {
+      "status": "pending-push",
+      "note": "Fast verification is claimed only after v0.15.69 is pushed and the GitHub Actions run is attached."
+    },
+    "deploy": {
+      "status": "pending-push",
+      "note": "Pages deploy is not claimed until the pushed release completes its deploy run."
+    },
+    "ciDeep": {
+      "status": "local-only",
+      "note": "This is a bounded enrichment-budget and deterministic-texture patch; focused regressions plus normal local gates and gold smoke are the release bar."
+    },
+    "liveProvider": {
+      "status": "local-only",
+      "note": "The fix is driven by the fresh v0.15.66 ZIP/log audit at verification-output/edutool-audit-loop/20260626T235926Z; a fresh v0.15.69 deployed audit remains required after deploy."
+    },
+    "manualHuman": {
+      "status": "not-applicable",
+      "note": "No external instructor approval is claimed by this release."
+    }
+  },
+  "claims": [
+    {
+      "id": "v01569-artifact-quality-evidence",
+      "status": "verified-current",
+      "changelogHighlightIndex": 0,
+      "summary": "The release is based on the latest full ZIP/log audit showing 97/A quality, texture 90, partial enrichment, and zero retry-call evidence.",
+      "anchors": [
+        "verification-output/edutool-audit-loop/20260626T235926Z/report.md",
+        "docs/V0.15.69_ENRICHMENT_RECOVERY_TEXTURE_ROADMAP.md"
+      ],
+      "proofCommands": [
+        "npm test -- tests/v0147-texture-metric.test.js tests/v0147-parallel-enrichment.test.js src/lib/__tests__/apiCostControl.test.js"
+      ],
+      "proofScopes": ["live-provider", "unit", "doc"]
+    },
+    {
+      "id": "v01569-enrichment-recovery-reserve",
+      "status": "verified-current",
+      "changelogHighlightIndex": 1,
+      "summary": "The generation cost plan reserves two enrichment-recovery calls when lesson-content enrichment is active.",
+      "anchors": [
+        "src/hooks/useDeliverables.js",
+        "src/lib/apiCostControl.js",
+        "src/lib/__tests__/apiCostControl.test.js"
+      ],
+      "proofCommands": ["npm test -- tests/v0147-parallel-enrichment.test.js src/lib/__tests__/apiCostControl.test.js"],
+      "proofScopes": ["unit", "compiled-output"]
+    },
+    {
+      "id": "v01569-retry-evidence",
+      "status": "verified-current",
+      "changelogHighlightIndex": 2,
+      "summary": "Native Pass B and lesson-kernel recovery calls emit repairRetryCall events so retryCallCount can prove recovery attempts.",
+      "anchors": ["src/hooks/useDeliverables.js", "tests/v0147-parallel-enrichment.test.js"],
+      "proofCommands": ["npm test -- tests/v0147-parallel-enrichment.test.js"],
+      "proofScopes": ["unit", "static-audit"]
+    },
+    {
+      "id": "v01569-project-management-texture",
+      "status": "verified-current",
+      "changelogHighlightIndex": 3,
+      "summary": "Project Management compiler output varies the exact repeated texture stems from the latest audit across study guides, lesson plans, slide notes, and discussions.",
+      "anchors": ["src/lib/courseBlueprintCompiler.js", "tests/v0147-texture-metric.test.js"],
+      "proofCommands": ["npm test -- tests/v0147-texture-metric.test.js"],
+      "proofScopes": ["unit", "compiled-output"]
+    }
+  ],
+  "carryForward": [
+    {
+      "id": "fresh-v01569-edutool-zip-log-audit",
+      "status": "carry-forward",
+      "source": "docs/V0.15.69_ENRICHMENT_RECOVERY_TEXTURE_ROADMAP.md",
+      "next": "After deploy, run a fresh EduTool.dev ZIP/log audit and verify partial enrichment is retried or blocked with clear repair evidence."
+    },
+    {
+      "id": "trusted-concept-linked-source-rows",
+      "status": "carry-forward",
+      "source": "docs/V0.15.69_ENRICHMENT_RECOVERY_TEXTURE_ROADMAP.md",
+      "next": "Keep source/research bridge work moving until source-finder/OpenAlex/Crossref/Wikipedia resources reliably become trusted concept-linked source-ledger rows."
+    },
+    {
+      "id": "artifact-label-firewall",
+      "status": "carry-forward",
+      "source": "docs/V0.15.69_ENRICHMENT_RECOVERY_TEXTURE_ROADMAP.md",
+      "next": "Continue Study Guide and shared lesson concept/artifact firewall work when fresh evidence reproduces prompt-artifact leakage."
+    }
+  ]
+}

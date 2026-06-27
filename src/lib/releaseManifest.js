@@ -3,22 +3,22 @@ import { APP_VERSION } from './appVersion.js';
 export const CURRENT_RELEASE = {
   version: APP_VERSION,
   date: 'June 26, 2026',
-  title: 'Partial Enrichment Ribbon Truth: incomplete enrichment turns amber before export',
-  landingTitle: 'Partial Enrichment Ribbon Truth',
+  title: 'Enrichment Recovery Reserve: missing lesson kernels get repair budget',
+  landingTitle: 'Enrichment Recovery Reserve',
   highlights: [
-    'The v0.15.66 Project Management audit proved partial enrichment is a real quality loss, not a harmless progress count: even after recovery, only 11/12 lessons enriched and the package had to block clean export.',
-    'The build ribbon now treats partial enrichment as a repair-needed state as soon as the enrichment outcome lands, so compile-stage UI shows the coverage problem before the finish/export gate blocks.',
-    'The materials chip now turns amber for incomplete coverage, for example `Materials 9/12 · repair needed`, instead of rendering a neutral coverage badge that can read like success.',
-    'Focused ribbon regressions pin the live 9/12 shape without changing model spend, weakening the finalizer blocker, or hiding source/texture findings still needed for 100/100.',
+    'The latest Project Management ZIP/log audit regraded at 97/A but still showed partial enrichment as a real score loss: one lesson fell back to template and no retry call was recorded.',
+    'The generation plan now reserves two enrichment-recovery calls whenever lesson-content enrichment is active, so a 9/12 or 11/12 kernel pass has budget to repair before polish spends the remaining calls.',
+    'Native Pass B and lesson-kernel recovery calls now count as retry calls in the digest instead of blending into ordinary enrichment, making retry evidence honest for package audits.',
+    'Deterministic Project Management texture now varies the audited repeated study-guide, lesson-plan, slide-note, and discussion stems instead of stamping the same phrase across all 12 lessons.',
   ],
   landingHighlights: [
-    'Partial enrichment turns amber early.',
-    'Coverage warnings appear before export.',
-    'Coverage chips no longer look clean.',
+    'Missing enrichment gets repair budget.',
+    'Kernel recovery shows as retry evidence.',
+    'Project Management texture varies more.',
   ],
   proof: {
-    contract: 'release-contracts/v0.15.68.json',
-    roadmap: 'docs/V0.15.68_PARTIAL_ENRICHMENT_RIBBON_TRUTH_ROADMAP.md',
+    contract: 'release-contracts/v0.15.69.json',
+    roadmap: 'docs/V0.15.69_ENRICHMENT_RECOVERY_TEXTURE_ROADMAP.md',
     auditCommand: 'npm run audit:release-history',
   },
 };
@@ -33,6 +33,17 @@ export const CURRENT_RELEASE_CHANGELOG = {
 };
 
 export const HISTORICAL_RELEASE_CHANGELOGS = [
+  {
+    version: '0.15.68',
+    date: 'June 26, 2026',
+    title: 'Partial Enrichment Ribbon Truth: incomplete enrichment turns amber before export',
+    highlights: [
+      'The v0.15.66 Project Management audit proved partial enrichment is a real quality loss, not a harmless progress count: even after recovery, only 11/12 lessons enriched and the package had to block clean export.',
+      'The build ribbon now treats partial enrichment as a repair-needed state as soon as the enrichment outcome lands, so compile-stage UI shows the coverage problem before the finish/export gate blocks.',
+      'The materials chip now turns amber for incomplete coverage, for example `Materials 9/12 · repair needed`, instead of rendering a neutral coverage badge that can read like success.',
+      'Focused ribbon regressions pin the live 9/12 shape without changing model spend, weakening the finalizer blocker, or hiding source/texture findings still needed for 100/100.',
+    ],
+  },
   {
     version: '0.15.67',
     date: 'June 26, 2026',
