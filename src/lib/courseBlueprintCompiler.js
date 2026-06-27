@@ -417,12 +417,18 @@ const PROMPT_ARTIFACT_EVIDENCE_LABELS = [
   'lesson plans',
   'slide decks',
   'assignment briefs',
+  'assignments',
+  'rubric-driven assignments',
   'rubrics',
   'discussion prompts',
+  'scenario quizzes',
   'quizzes',
+  'quiz and exam bank',
   'quiz bank',
   'study guides',
   'course faq',
+  'final capstone presentation',
+  'capstone presentation',
   'existing course map fields',
   'worked examples',
   'misconceptions',
@@ -482,6 +488,12 @@ function isCompactNumberedArtifactList(value) {
     'presentation',
     'presentations',
     'capstone',
+    'prompt',
+    'prompts',
+    'guide',
+    'guides',
+    'bank',
+    'faq',
     'brief',
     'briefs',
     'deck',
@@ -493,7 +505,7 @@ function isCompactNumberedArtifactList(value) {
 function isPromptArtifactConceptLabel(value) {
   const normalized = normalizePromptArtifactEvidenceCue(value);
   if (!normalized) return false;
-  return /^(?:scenario\s+)?quizzes?$|^(?:rubric[-\s]?driven\s+)?assignments?$|^rubrics?$|^assignment briefs?$|^(?:final\s+)?capstone presentations?$|^capstone presentations?$|^slide decks?$|^lesson plans?$|^discussion prompts?$|^study guides?$|^course faq$|^worked examples?$|^misconceptions?$/i.test(
+  return /^(?:scenario\s+)?quizzes?$|^(?:rubric[-\s]?driven\s+)?assignments?$|^rubrics?$|^assignment briefs?$|^(?:quiz\s+(?:and|&)\s+exam\s+bank|quiz bank)$|^(?:final\s+)?capstone presentations?$|^(?:final\s+)?capstone presentation$|^slide decks?$|^lesson plans?$|^discussion prompts?$|^study guides?$|^course faq$|^worked examples?$|^misconceptions?$/i.test(
     normalized,
   );
 }
@@ -15342,6 +15354,12 @@ function buildDialoguePractice(lesson) {
   };
 }
 
+function safeStudyGuideCheckTitle(entry = {}, lesson = {}) {
+  const title = stripTerminalPunctuation(cleanText(entry.title || entry.label || entry.kind || ''));
+  if (title && !isUnsafeLessonConceptPhrase(title) && !isUnsafeLessonArtifactPhrase(title)) return title;
+  return `${safeLessonPrimaryConcept(lesson)} evidence check`;
+}
+
 function compileStudyGuides(blueprint) {
   const lens = blueprintLens(blueprint);
   return {
@@ -15393,7 +15411,9 @@ function compileStudyGuides(blueprint) {
         lessonTitle: lesson.title,
         examScope: `Use this guide to prepare for Week ${lesson.lessonNumber} checks on ${phrase.context} and later assessments.${
           inClassChecks.length > 0
-            ? ` In-class checks this week: ${inClassChecks.map((entry) => stripTerminalPunctuation(entry.title)).join('; ')}.`
+            ? ` In-class checks this week: ${inClassChecks
+                .map((entry) => safeStudyGuideCheckTitle(entry, lesson))
+                .join('; ')}.`
             : ''
         }`,
         summary: isDataScience

@@ -3097,7 +3097,14 @@ export default function AppFlow({ startupAction = null, onStartupHandled, onRetu
                 const delivState = deliv.deliverables[feature.id];
                 const isDone = delivState?.status === 'done';
                 const isError = delivState?.status === 'error';
-                const isCourseMapDone = feature.id === 'courseMap' && packageReady && buildRibbonModel?.done?.grade;
+                const hasRepairNeededCoverage = buildRibbonModel?.pipelineChips?.some(
+                  (chip) => chip?.id === 'coverage' && chip?.warn,
+                );
+                const isCourseMapDone =
+                  feature.id === 'courseMap' &&
+                  packageReady &&
+                  buildRibbonModel?.stage === 'ready' &&
+                  !hasRepairNeededCoverage;
 
                 // Cascade sync badges
                 const hasUnseen = unseenChanges.has(feature.id);

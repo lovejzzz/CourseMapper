@@ -683,12 +683,29 @@ describe('1.16 — prompt artifact labels never become course-map concepts', () 
     blueprint.lessons[0].keyConcepts = [
       'Scenario quizzes',
       'rubric-driven assignments',
+      'rubric-driven assignments 2. discussion prompts',
+      'quiz and exam bank, final capstone presentation',
       'final capstone presentation',
       'project scenarios',
       'project actions',
     ];
     blueprint.lessons[0].studentArtifact =
       'scenario quizzes 2. rubric-driven assignments 3. final capstone presentation';
+    blueprint.assessmentRegistry = [
+      ...(blueprint.assessmentRegistry || []),
+      {
+        id: 'live-review',
+        dueSession: 3,
+        kind: 'in-class',
+        title: 'rubric-driven assignments 2. discussion prompts',
+      },
+      {
+        id: 'capstone-bank-review',
+        dueSession: 3,
+        kind: 'in-class',
+        title: 'quiz and exam bank, final capstone presentation',
+      },
+    ];
     blueprint.lessons[0].enrichment = {
       keyTerms: [
         {
@@ -734,6 +751,21 @@ describe('1.16 — prompt artifact labels never become course-map concepts', () 
     );
     const compiledText = JSON.stringify(compiled);
     const guideText = JSON.stringify(compiled.studyGuides.studyGuides[0]);
+    const guideStudentText = [
+      compiled.studyGuides.studyGuides[0].examScope,
+      compiled.studyGuides.studyGuides[0].summary,
+      ...(compiled.studyGuides.studyGuides[0].keyTerms || []).map((term) =>
+        [term.term, term.definition, term.example].join(' '),
+      ),
+      ...(compiled.studyGuides.studyGuides[0].commonMisconceptions || []).map((item) =>
+        [item.misconception, item.correction].join(' '),
+      ),
+      ...(compiled.studyGuides.studyGuides[0].reviewQuestions || []).map((item) =>
+        [item.question, item.hint].join(' '),
+      ),
+      ...(compiled.studyGuides.studyGuides[0].practiceActivities || []),
+      compiled.studyGuides.studyGuides[0].examPrep?.reviewStrategy,
+    ].join(' ');
 
     expect(blueprint.lessons[0].title).toMatch(/Project scenarios|Select appropriate project actions/i);
     expect(compiledText).not.toMatch(/scenario quizzes/i);
@@ -741,6 +773,10 @@ describe('1.16 — prompt artifact labels never become course-map concepts', () 
     expect(compiledText).not.toMatch(/final capstone presentation/i);
     expect(compiledText).not.toMatch(/Instructor-approved readings/i);
     expect(compiledText).not.toMatch(/\bStudy Guides\b/);
+    expect(guideStudentText).not.toMatch(/discussion prompts/i);
+    expect(guideStudentText).not.toMatch(/quiz and exam bank/i);
+    expect(guideStudentText).not.toMatch(/rubric-driven assignments/i);
+    expect(guideStudentText).not.toMatch(/final capstone presentation/i);
     expect(guideText).toMatch(/project scenarios|project actions/i);
     expect(guideText).toMatch(/source evidence/i);
     expect(compiledText).toMatch(/Project scenario evidence|project scenarios|project actions/i);

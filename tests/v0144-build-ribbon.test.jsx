@@ -515,7 +515,8 @@ describe('B3 — per-tab ready ticks replace the rainbow dots', () => {
     const source = readSource('src/AppFlow.jsx');
     expect(source).toContain('<TabReadyTick');
     expect(source).toContain('<BuildRibbon model={buildRibbonModel}');
-    expect(source).toContain('buildRibbonModel?.done?.grade');
+    expect(source).toContain("buildRibbonModel?.stage === 'ready'");
+    expect(source).toContain("chip?.id === 'coverage' && chip?.warn");
     expect(source).toContain('packageReady');
     // The rainbow dot block's unique tint branch and the tab-bar counter text.
     expect(source).not.toContain("staleConf?.level === 'medium'");

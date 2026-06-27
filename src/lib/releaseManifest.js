@@ -3,22 +3,22 @@ import { APP_VERSION } from './appVersion.js';
 export const CURRENT_RELEASE = {
   version: APP_VERSION,
   date: 'June 27, 2026',
-  title: 'Source Candidate Preference: trusted source-finder rows beat metadata-only rows',
-  landingTitle: 'Source Candidate Preference',
+  title: 'Study Guide and Map Readiness Firewall: prompt artifacts and premature ticks stop leaking',
+  landingTitle: 'Study Guide and Map Readiness Firewall',
   highlights: [
-    'The latest full Project Management ZIP/log evidence remains below the 100/100 target, with source-license caveats as a real CourseMapper-side loss rather than a model-only issue.',
-    'Source-finder ledger assembly now ranks candidates inside each retrieved topic before exporting one row, so accessible, non-ambiguous, trust-eligible sources win over first-position metadata-only rows.',
-    'Open Library remains review-only metadata; the fix does not promote ambiguous public metadata or weaken the trusted-source grader.',
-    'A focused source-ledger regression recreates an Open Library first / OpenAlex second topic and proves the exported row is trusted, concept-linked OpenAlex evidence.',
+    'A fresh deployed v0.15.71 Project Management ZIP/log audit scored 95/A, with partial enrichment and Study Guide prompt-artifact leakage as real blockers rather than a clean 100/100 package.',
+    'Study Guide exam-scope check titles now pass through the shared artifact firewall, so combined prompt labels such as quiz banks, discussion prompts, and capstone-presentation requests cannot become student-facing weekly checks.',
+    'The prompt-artifact detector now recognizes compact combined labels from the live package shape, including rubric-driven assignments plus discussion prompts and quiz/exam-bank plus capstone-presentation phrasing.',
+    'The Course Map tab ready tick now stays off while the coverage chip is amber, so a download-available but repair-needed package no longer presents the unfinished map as complete.',
   ],
   landingHighlights: [
-    'Trusted source candidates are preferred.',
-    'Metadata-only rows stay review-only.',
-    'Concept-linked source proof is preserved.',
+    'Combined prompt labels stay out of Study Guides.',
+    'Repair-needed maps stay unticked.',
+    'Quality blockers remain visible.',
   ],
   proof: {
-    contract: 'release-contracts/v0.15.71.json',
-    roadmap: 'docs/V0.15.71_SOURCE_CANDIDATE_PREFERENCE_ROADMAP.md',
+    contract: 'release-contracts/v0.15.72.json',
+    roadmap: 'docs/V0.15.72_STUDY_GUIDE_CHECK_FIREWALL_ROADMAP.md',
     auditCommand: 'npm run audit:release-history',
   },
 };
@@ -33,6 +33,17 @@ export const CURRENT_RELEASE_CHANGELOG = {
 };
 
 export const HISTORICAL_RELEASE_CHANGELOGS = [
+  {
+    version: '0.15.71',
+    date: 'June 27, 2026',
+    title: 'Source Candidate Preference: trusted source-finder rows beat metadata-only rows',
+    highlights: [
+      'The latest full Project Management ZIP/log evidence remains below the 100/100 target, with source-license caveats as a real CourseMapper-side loss rather than a model-only issue.',
+      'Source-finder ledger assembly now ranks candidates inside each retrieved topic before exporting one row, so accessible, non-ambiguous, trust-eligible sources win over first-position metadata-only rows.',
+      'Open Library remains review-only metadata; the fix does not promote ambiguous public metadata or weaken the trusted-source grader.',
+      'A focused source-ledger regression recreates an Open Library first / OpenAlex second topic and proves the exported row is trusted, concept-linked OpenAlex evidence.',
+    ],
+  },
   {
     version: '0.15.70',
     date: 'June 26, 2026',
