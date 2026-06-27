@@ -439,8 +439,12 @@ function genericTopicText(value) {
 }
 
 function isGenericNumberedCourseMapTopic(value) {
+  const raw = text(value)
+    .replace(/^\d+(?:\.\d+)*\s*[:.)-]\s*/i, '')
+    .trim();
+  if (/^(?:session|topic|lesson|week)(?:\s+\d{1,3})?$/i.test(raw)) return true;
   const candidate = genericTopicText(value);
-  return /^(?:session|topic|lesson)(?:\s+\d{1,3})?$/i.test(candidate);
+  return /^(?:session|topic|lesson|week)(?:\s+\d{1,3})?$/i.test(candidate);
 }
 
 function hasGenericNumberedCourseMapReference(value, lessonIndex) {
@@ -448,6 +452,17 @@ function hasGenericNumberedCourseMapReference(value, lessonIndex) {
   if (!raw) return false;
   const lessonNumber = Number(lessonIndex) + 1;
   if (/\b(?:session|topic)\s+\d{1,3}\b/i.test(raw)) return true;
+  const genericWeekOnlyRe = Number.isInteger(lessonNumber)
+    ? new RegExp(`^\\s*(?:\\d+(?:\\.\\d+)*\\s*[:.)-]\\s*)?(?:lesson\\s*)?week\\s*${lessonNumber}\\s*$`, 'i')
+    : /^\s*(?:\d+(?:\.\d+)*\s*[:.)-]\s*)?(?:lesson\s*)?week\s*\d{1,3}\s*$/i;
+  if (genericWeekOnlyRe.test(raw)) return true;
+  if (Number.isInteger(lessonNumber) && lessonNumber > 0) {
+    const weakWeekRe = new RegExp(
+      `\\b(?:key ideas|main concepts|assigned materials|examples?|course task|course activities|course problem|supporting evidence|new example|evidence needed)\\b[^.\\n]{0,80}\\bweek\\s*${lessonNumber}\\b`,
+      'i',
+    );
+    if (weakWeekRe.test(raw)) return true;
+  }
   if (!Number.isInteger(lessonNumber) || lessonNumber <= 0) {
     return isGenericNumberedCourseMapTopic(raw);
   }

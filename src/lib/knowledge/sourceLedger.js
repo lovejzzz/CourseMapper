@@ -465,8 +465,16 @@ function sourceFinderTopicLedgerSources(courseGraph, topic, topicIndex, checkedA
     normalizeSourceFinderTopicSource(courseGraph, topic, source, topicIndex, sourceIndex, checkedAt),
   );
   const trustedConceptLinked = candidates.filter(isTrustedConceptLinkedSourceLedgerRow);
-  if (trustedConceptLinked.length > 0) return trustedConceptLinked.slice(0, SOURCE_FINDER_TRUSTED_ROWS_PER_TOPIC);
-  return candidates.slice(0, 1);
+  if (trustedConceptLinked.length > 0) {
+    return {
+      rows: trustedConceptLinked.slice(0, SOURCE_FINDER_TRUSTED_ROWS_PER_TOPIC),
+      reviewRows: [],
+    };
+  }
+  return {
+    rows: [],
+    reviewRows: candidates.slice(0, 1),
+  };
 }
 
 export function buildSourceLedgerFromCourseGraph(courseGraph, { checkedAt = '' } = {}) {
@@ -526,8 +534,12 @@ export function buildSourceLedgerFromCourseGraph(courseGraph, { checkedAt = '' }
 
   for (const [topicIndex, topic] of (courseGraph.sourceFinderMiniShard?.topics || []).entries()) {
     if (!topic || typeof topic !== 'object') continue;
-    for (const source of sourceFinderTopicLedgerSources(courseGraph, topic, topicIndex, checkedAt)) {
+    const topicSources = sourceFinderTopicLedgerSources(courseGraph, topic, topicIndex, checkedAt);
+    for (const source of topicSources.rows || []) {
       appendUnique(rows, source);
+    }
+    for (const source of topicSources.reviewRows || []) {
+      appendUnique(reviewRows, source);
     }
   }
 

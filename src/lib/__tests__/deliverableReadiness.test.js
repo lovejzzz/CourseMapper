@@ -561,6 +561,34 @@ describe('repairCourseMapReadiness', () => {
     expect(second.learningObjectives).not.toMatch(/bases/i);
   });
 
+  it('repairs generic Week N lesson labels before they become package topics', () => {
+    const result = repairCourseMapReadiness({
+      courseMap: {
+        courseName: 'Project Management',
+        lessons: [
+          {
+            title: 'Week 1',
+            sections: [
+              {
+                topicSection: '1.1: Week 1',
+                learningGoals: 'Use Week 1 to explain a course problem and prepare evidence.',
+                learningObjectives:
+                  'Explain the purpose of project management. Differentiate projects from operations.',
+                weeklyAssessments: 'project charter',
+              },
+            ],
+          },
+        ],
+      },
+    });
+
+    expect(result.changed).toBe(true);
+    expect(result.repairedFields.join(' ')).toMatch(/generic session|Lesson 1 title/);
+    expect(result.courseMap.lessons[0].title).not.toMatch(/^Week 1$/i);
+    expect(result.courseMap.lessons[0].sections[0].topicSection).not.toMatch(/^1\.1:\s*Week 1$/i);
+    expect(JSON.stringify(result.courseMap)).toMatch(/project management/i);
+  });
+
   it('uses history-specific repairs instead of generic lab/STEM fallback prose', () => {
     const result = repairCourseMapReadiness({
       courseMap: {

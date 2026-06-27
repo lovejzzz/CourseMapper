@@ -1,0 +1,102 @@
+{
+  "version": "0.15.82",
+  "date": "June 27, 2026",
+  "title": "Generic Week Cache Guard: stale cross-course kernels stop shipping",
+  "status": "verified-current",
+  "proofSummary": {
+    "local": [
+      "npx vitest run src/lib/__tests__/deliverableReadiness.test.js src/lib/genome/__tests__/runGenomeLinker.test.js src/lib/genome/__tests__/genomeRefinement2.test.js src/lib/knowledge/__tests__/sourceLedger.test.js src/lib/__tests__/packageZipExporter.test.js",
+      "fresh v0.15.81 ZIP/log audit at verification-output/edutool-audit-loop/20260627T112717Z-v01581-fresh"
+    ],
+    "ciFast": {
+      "status": "pending-push",
+      "note": "Fast verification is claimed only after v0.15.82 is pushed and the GitHub Actions run is attached."
+    },
+    "deploy": {
+      "status": "pending-push",
+      "note": "Pages deploy is not claimed until the pushed release completes its deploy run."
+    },
+    "ciDeep": {
+      "status": "local-only",
+      "note": "This is a narrow compiler/cache/source-truth patch; focused regression plus normal local gates are the release bar."
+    },
+    "liveProvider": {
+      "status": "local-only",
+      "note": "The release is based on a fresh deployed v0.15.81 Project Management ZIP/log audit. A fresh v0.15.82 package audit is required after deploy to verify the repair against provider output."
+    },
+    "manualHuman": {
+      "status": "not-applicable",
+      "note": "No external instructor approval is claimed by this release."
+    }
+  },
+  "claims": [
+    {
+      "id": "v01582-quality-evidence-boundary",
+      "status": "verified-current",
+      "changelogHighlightIndex": 0,
+      "summary": "The release is grounded in a fresh deployed v0.15.81 Project Management ZIP/log audit whose exported report and local regrade reached 97/A with generic Week labels, stale off-topic visual-arts content, metadata-only source proof, and texture repetition still below target.",
+      "anchors": [
+        "verification-output/edutool-audit-loop/20260627T112717Z-v01581-fresh/report.md",
+        "docs/V0.15.82_GENERIC_WEEK_CACHE_GUARD_ROADMAP.md",
+        "release-contracts/v0.15.82.json"
+      ],
+      "proofCommands": [
+        "local regrade captured in verification-output/edutool-audit-loop/20260627T112717Z-v01581-fresh/local-regrade-current-run.md"
+      ],
+      "proofScopes": ["live-provider", "browser-live", "doc"]
+    },
+    {
+      "id": "v01582-week-placeholder-readiness",
+      "status": "verified-current",
+      "changelogHighlightIndex": 1,
+      "summary": "Course-map readiness now treats Week N lesson titles, topics, and weak weekly cells as generic placeholders that require repair before completion.",
+      "anchors": ["src/lib/deliverableReadiness.js", "src/lib/__tests__/deliverableReadiness.test.js"],
+      "proofCommands": ["npx vitest run src/lib/__tests__/deliverableReadiness.test.js"],
+      "proofScopes": ["unit", "static-audit"]
+    },
+    {
+      "id": "v01582-weak-kernel-cache-guard",
+      "status": "verified-current",
+      "changelogHighlightIndex": 2,
+      "summary": "Lesson-kernel cache reads and writes now reject lessons whose only identity is generic numbered wording or too weak to be course-specific.",
+      "anchors": [
+        "src/lib/genome/lessonKernelCache.js",
+        "src/lib/genome/__tests__/runGenomeLinker.test.js",
+        "src/lib/genome/__tests__/genomeRefinement2.test.js"
+      ],
+      "proofCommands": [
+        "npx vitest run src/lib/genome/__tests__/runGenomeLinker.test.js src/lib/genome/__tests__/genomeRefinement2.test.js"
+      ],
+      "proofScopes": ["unit", "course-graph"]
+    },
+    {
+      "id": "v01582-source-finder-review-quarantine",
+      "status": "verified-current",
+      "changelogHighlightIndex": 3,
+      "summary": "Source-finder fallbacks with only metadata-only or review-only evidence export as source review rows and SOURCE_REPORT notes rather than trusted sourceLedger bibliography proof.",
+      "anchors": [
+        "src/lib/knowledge/sourceLedger.js",
+        "src/lib/knowledge/__tests__/sourceLedger.test.js",
+        "src/lib/__tests__/packageZipExporter.test.js"
+      ],
+      "proofCommands": [
+        "npx vitest run src/lib/knowledge/__tests__/sourceLedger.test.js src/lib/__tests__/packageZipExporter.test.js"
+      ],
+      "proofScopes": ["unit", "compiled-output"]
+    }
+  ],
+  "carryForward": [
+    {
+      "id": "fresh-v01582-provider-audit",
+      "status": "carry-forward",
+      "source": "verification-output/edutool-audit-loop/20260627T112717Z-v01581-fresh/report.md",
+      "next": "After deploy, run a fresh v0.15.82 EduTool.dev ZIP/log audit to verify provider output, export, texture, source review handling, and UI caveats end to end."
+    },
+    {
+      "id": "local-storage-quota-warning",
+      "status": "carry-forward",
+      "source": "verification-output/edutool-audit-loop/20260627T112717Z-v01581-fresh/edutool.dev-current-run-console.log",
+      "next": "If QuotaExceededError reproduces in current-run app logs, add bounded local-save pruning or compression before another product-quality release."
+    }
+  ]
+}

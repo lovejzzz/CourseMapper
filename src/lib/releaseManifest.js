@@ -3,22 +3,22 @@ import { APP_VERSION } from './appVersion.js';
 export const CURRENT_RELEASE = {
   version: APP_VERSION,
   date: 'June 27, 2026',
-  title: 'Compiler Texture Rotation: repeated discussion and slide tails stop shipping',
-  landingTitle: 'Compiler Texture Rotation',
+  title: 'Generic Week Cache Guard: stale cross-course kernels stop shipping',
+  landingTitle: 'Generic Week Cache Guard',
   highlights: [
-    'A fresh deployed v0.15.80 Project Management ZIP/log audit regraded at 99/A with the only scored loss still texture: 86/100, now concentrated in repeated Discussion Prompt, Slide Deck, and Lesson Plan compiler tails.',
-    'Discussion follow-up probes and participation review language now rotate deterministic lesson-specific alternatives instead of repeating the same challenge/limitation phrasing across every lesson.',
-    'Slide bridge/title speaker notes and Lesson Plan warm-up/guided-analysis text now rotate the exact live shingles that appeared in all 12 Project Management lessons.',
-    'This release does not claim a clean 100/100 package; a fresh deployed v0.15.81 audit is still required, and the same run exposed a separate direct CourseIR fallback from an invalid `a_sched_lab` assessment reference.',
+    'A fresh deployed v0.15.81 Project Management ZIP/log audit regraded at 97/A and exposed generic "Week N" Course Map content plus stale off-topic visual-arts kernels inside a Project Management package.',
+    'Course-map readiness now treats "Week N" titles, topics, and weak weekly cells as generic placeholders, so repair keeps working instead of approving an unfinished map.',
+    'Lesson-kernel cache reads and writes now refuse weak generic lesson identities, preventing cached kernels from one course domain from being reused in another course just because both were labeled "Week N".',
+    'Source-finder fallbacks with only metadata-only or review-only evidence now export as review notes rather than trusted sourceLedger rows. This release does not claim a clean 100/100 package; a fresh deployed v0.15.82 audit is required.',
   ],
   landingHighlights: [
-    'Repeated compiler tails are rotated before export.',
-    'Discussion, slide, and lesson-plan texture get targeted cleanup.',
-    '99/100 evidence stays honest until the next deployed audit.',
+    'Generic Week placeholders stay repair-needed.',
+    'Weak lesson identities no longer poison the kernel cache.',
+    'Metadata-only sources stay visible as review notes.',
   ],
   proof: {
-    contract: 'release-contracts/v0.15.81.json',
-    roadmap: 'docs/V0.15.81_COMPILER_TEXTURE_ROTATION_ROADMAP.md',
+    contract: 'release-contracts/v0.15.82.json',
+    roadmap: 'docs/V0.15.82_GENERIC_WEEK_CACHE_GUARD_ROADMAP.md',
     auditCommand: 'npm run audit:release-history',
   },
 };
@@ -33,6 +33,17 @@ export const CURRENT_RELEASE_CHANGELOG = {
 };
 
 export const HISTORICAL_RELEASE_CHANGELOGS = [
+  {
+    version: '0.15.81',
+    date: 'June 27, 2026',
+    title: 'Compiler Texture Rotation: repeated discussion and slide tails stop shipping',
+    highlights: [
+      'A fresh deployed v0.15.80 Project Management ZIP/log audit regraded at 99/A with the only scored loss still texture: 86/100, now concentrated in repeated Discussion Prompt, Slide Deck, and Lesson Plan compiler tails.',
+      'Discussion follow-up probes and participation review language now rotate deterministic lesson-specific alternatives instead of repeating the same challenge/limitation phrasing across every lesson.',
+      'Slide bridge/title speaker notes and Lesson Plan warm-up/guided-analysis text now rotate the exact live shingles that appeared in all 12 Project Management lessons.',
+      'This release does not claim a clean 100/100 package; a fresh deployed v0.15.81 audit is still required, and the same run exposed a separate direct CourseIR fallback from an invalid `a_sched_lab` assessment reference.',
+    ],
+  },
   {
     version: '0.15.80',
     date: 'June 27, 2026',

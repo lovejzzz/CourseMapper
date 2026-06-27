@@ -548,14 +548,16 @@ describe('trusted source ledger', () => {
       { checkedAt: '2026-06-26T00:00:00.000Z' },
     );
 
-    expect(ledger.rows).toHaveLength(2);
+    expect(ledger.rows).toHaveLength(1);
+    expect(ledger.reviewRows).toHaveLength(1);
     expect(ledger.summary).toMatchObject({
-      sourceCount: 2,
+      sourceCount: 1,
       trustedCount: 1,
-      conceptLinkedCount: 2,
+      conceptLinkedCount: 1,
       trustedConceptLinkedCount: 1,
-      accessibleCount: 2,
-      licenseAmbiguousCount: 1,
+      accessibleCount: 1,
+      licenseAmbiguousCount: 0,
+      reviewRequiredCount: 1,
     });
     expect(ledger.rows[0]).toMatchObject({
       provider: 'wikipedia',
@@ -563,10 +565,62 @@ describe('trusted source ledger', () => {
       licenseAmbiguous: false,
       conceptLinks: [{ id: 'c1', label: 'Project charter' }],
     });
-    expect(ledger.rows[1]).toMatchObject({
+    expect(ledger.reviewRows[0]).toMatchObject({
       provider: 'crossref',
       trustLevel: 'academic-metadata',
       licenseAmbiguous: true,
     });
+  });
+
+  it('quarantines metadata-only source-finder fallbacks as review notes', () => {
+    const ledger = buildSourceLedgerFromCourseGraph(
+      {
+        concepts: [{ id: 'c1', term: 'Project charter' }],
+        sessions: [
+          {
+            id: 's1',
+            number: 1,
+            sections: [{ id: 'sec1', topic: 'Project charter', conceptRefs: ['c1'], resourceRefs: [] }],
+          },
+        ],
+        resources: [],
+        sourceFinderMiniShard: {
+          topics: [
+            {
+              sessionId: 's1',
+              lessonNumber: 1,
+              topic: 'project charter',
+              sources: [
+                {
+                  provider: 'openlibrary',
+                  kind: 'book metadata',
+                  title: 'Project Management Metadata',
+                  url: 'https://openlibrary.org/works/OL3429343W',
+                  license: 'Open Library public metadata',
+                  snippet: 'Bibliographic metadata for a project management title.',
+                },
+              ],
+            },
+          ],
+        },
+      },
+      { checkedAt: '2026-06-27T00:00:00.000Z' },
+    );
+
+    expect(ledger.rows).toHaveLength(0);
+    expect(ledger.reviewRows).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          provider: 'openlibrary',
+          licenseAmbiguous: true,
+          conceptLinks: [{ id: 'c1', label: 'Project charter' }],
+        }),
+      ]),
+    );
+    expect(ledger.summary).toMatchObject({ sourceCount: 0, trustedCount: 0, reviewRequiredCount: 1 });
+    const report = buildSourceReportMarkdown({ courseName: 'Project Management', sourceLedger: ledger });
+    expect(report).toContain('Source Review Notes');
+    expect(report).toContain('trustedBibliography=false');
+    expect(report).not.toContain('## Source Ledger');
   });
 });

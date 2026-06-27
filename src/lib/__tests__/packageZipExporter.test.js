@@ -1025,6 +1025,76 @@ describe('packageZipExporter', () => {
     expect(sourceReport).not.toContain('## Source Ledger');
   });
 
+  it('exports metadata-only source-finder fallbacks as source review rows', async () => {
+    const result = await buildCourseMaterialsZip({
+      courseMap: makeCourseMap('Metadata Source Finder Review'),
+      deliverables: {
+        lessonPlans: {
+          status: 'done',
+          data: {
+            lessonPlans: [{ lessonTitle: 'Lesson 1: Project Charter', objectives: ['Explain source trust.'] }],
+          },
+        },
+      },
+      featureIds: ['courseMap', 'lessonPlans'],
+      courseGraph: {
+        concepts: [{ id: 'c1', term: 'Project charter' }],
+        sessions: [
+          {
+            id: 's1',
+            number: 1,
+            sections: [{ id: 'sec1', topic: 'Project charter', conceptRefs: ['c1'], resourceRefs: [] }],
+          },
+        ],
+        resources: [],
+        readings: [],
+        sourceFinderMiniShard: {
+          topics: [
+            {
+              sessionId: 's1',
+              lessonNumber: 1,
+              topic: 'project charter',
+              sources: [
+                {
+                  provider: 'openlibrary',
+                  kind: 'book metadata',
+                  title: 'Project Management Metadata',
+                  url: 'https://openlibrary.org/works/OL3429343W',
+                  license: 'Open Library public metadata',
+                  snippet: 'Bibliographic metadata for a project management title.',
+                },
+              ],
+            },
+          ],
+        },
+      },
+      pipelineState: {
+        knowledgeBackbone: '0/1 lessons genome-linked · 1 open resource (openlibrary: 1)',
+      },
+      quality: false,
+    });
+
+    const zip = await JSZip.loadAsync(await result.blob.arrayBuffer());
+    const manifest = JSON.parse(await zip.file('PACKAGE_MANIFEST.json').async('string'));
+    const sourceReport = await zip.file('SOURCE_REPORT.md').async('string');
+
+    expect(manifest.sourceLedger).toBeUndefined();
+    expect(manifest.sourceReviewRows).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          provider: 'openlibrary',
+          licenseAmbiguous: true,
+          conceptLinks: [{ id: 'c1', label: 'Project charter' }],
+        }),
+      ]),
+    );
+    expect(manifest.sourceLedgerSummary).toMatchObject({ sourceCount: 0, trustedCount: 0, reviewRequiredCount: 1 });
+    expect(manifest.sourceReport).toMatchObject({ path: 'SOURCE_REPORT.md', sourceCount: 0, sourceReviewCount: 1 });
+    expect(sourceReport).toContain('Source Review Notes');
+    expect(sourceReport).toContain('trustedBibliography=false');
+    expect(sourceReport).not.toContain('## Source Ledger');
+  });
+
   it('uses custom deliverable names in ZIP paths and manifest labels', async () => {
     const result = await buildCourseMaterialsZip({
       courseMap: makeCourseMap(),

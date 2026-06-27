@@ -16,6 +16,29 @@
 
 const CACHE_KEY = 'coursemapper-lesson-kernels';
 const MAX_ENTRIES = 400;
+const WEAK_CACHE_WORDS = new Set([
+  'activity',
+  'activities',
+  'apply',
+  'assigned',
+  'course',
+  'example',
+  'examples',
+  'evidence',
+  'ideas',
+  'key',
+  'lesson',
+  'main',
+  'materials',
+  'notes',
+  'objective',
+  'practice',
+  'response',
+  'students',
+  'task',
+  'week',
+  'work',
+]);
 
 function getStore(injected) {
   if (injected) return injected;
@@ -32,6 +55,44 @@ function cleanText(value) {
     .replace(/\s+/g, ' ')
     .trim()
     .toLowerCase();
+}
+
+function stripNumberedLabel(value) {
+  return cleanText(value)
+    .replace(/^(?:lesson|week|module|unit|session|topic)\s*\d+\s*[:.\-–—]?\s*/i, '')
+    .replace(/^\d+(?:\.\d+)*\s*[:.)-]\s*/, '')
+    .trim();
+}
+
+function isGenericNumberedLabel(value) {
+  const raw = cleanText(value).replace(/^\d+(?:\.\d+)*\s*[:.)-]\s*/, '');
+  return /^(?:lesson|week|module|unit|session|topic)(?:\s+\d{1,3})?$/i.test(raw);
+}
+
+function meaningfulWords(value) {
+  return cleanText(value)
+    .replace(/[^a-z0-9\s-]/g, ' ')
+    .split(/\s+/)
+    .map((word) => word.trim())
+    .filter((word) => word.length > 3 && !WEAK_CACHE_WORDS.has(word));
+}
+
+export function isLessonKernelCacheable(lesson) {
+  const sections = Array.isArray(lesson?.sections) ? lesson.sections : [];
+  const titleRemainder = stripNumberedLabel(lesson?.title);
+  const topics = sections.map((entry) => entry?.topicSection || entry?.topic).filter(Boolean);
+  const topicRemainders = topics.map(stripNumberedLabel).filter(Boolean);
+  const titleIsGeneric = isGenericNumberedLabel(lesson?.title) || !titleRemainder;
+  const topicsAreGeneric =
+    topics.length > 0 && topicRemainders.every((topic) => isGenericNumberedLabel(topic) || !topic);
+  if (titleIsGeneric && (topics.length === 0 || topicsAreGeneric)) return false;
+
+  const basisText = [
+    titleRemainder,
+    ...topicRemainders,
+    ...sections.flatMap((entry) => [entry?.learningObjectives, entry?.learningGoals, entry?.weeklyAssessments]),
+  ].join(' ');
+  return meaningfulWords(basisText).length >= 2;
 }
 
 /** Stable, fast string hash (djb2) — fingerprints are not security-sensitive. */
@@ -85,17 +146,19 @@ export function createLessonKernelCache({ storage } = {}) {
 
   return {
     get(lesson) {
+      if (!isLessonKernelCacheable(lesson)) return null;
       const map = readAll();
       const entry = map[fingerprintLesson(lesson)];
       return entry?.payload || null;
     },
     set(lesson, payload) {
-      if (!payload) return;
+      if (!payload || !isLessonKernelCacheable(lesson)) return;
       const map = readAll();
       map[fingerprintLesson(lesson)] = { payload, at: Date.now() };
       writeAll(map);
     },
     has(lesson) {
+      if (!isLessonKernelCacheable(lesson)) return false;
       return Boolean(readAll()[fingerprintLesson(lesson)]);
     },
   };

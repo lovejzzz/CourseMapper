@@ -247,7 +247,10 @@ describe('iteration 2 — lessonKernelCache eviction', () => {
     const cache = createLessonKernelCache({ storage });
     for (let index = 0; index < 405; index += 1) {
       cache.set(
-        { title: `Lesson ${index}: Topic ${index}`, sections: [{ learningObjectives: `Objective ${index}` }] },
+        {
+          title: `Lesson ${index}: Economics Topic ${index}`,
+          sections: [{ learningObjectives: `Analyze market signal ${index}.` }],
+        },
         { keyTerms: [{ term: `Term ${index}` }], quizItems: [] },
       );
     }
@@ -256,8 +259,8 @@ describe('iteration 2 — lessonKernelCache eviction', () => {
     expect(count).toBeLessThanOrEqual(400);
     // The newest entry must have survived eviction.
     const newest = cache.get({
-      title: 'Lesson 404: Topic 404',
-      sections: [{ learningObjectives: 'Objective 404' }],
+      title: 'Lesson 404: Economics Topic 404',
+      sections: [{ learningObjectives: 'Analyze market signal 404.' }],
     });
     expect(newest?.keyTerms?.[0]?.term).toBe('Term 404');
   });

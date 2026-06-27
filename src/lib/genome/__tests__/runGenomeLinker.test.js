@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { runGenomeLinker } from '../runGenomeLinker.js';
 import { createKernelLibrary } from '../kernelLibrary.js';
-import { createLessonKernelCache, fingerprintLesson } from '../lessonKernelCache.js';
+import { createLessonKernelCache, fingerprintLesson, isLessonKernelCacheable } from '../lessonKernelCache.js';
 import { buildQuizItemPlan } from '../../blueprintEnrichmentPass.js';
 
 const ELASTICITY = {
@@ -132,5 +132,24 @@ describe('lessonKernelCache', () => {
     cache.set(lesson, { quizItems: [], keyTerms: [{ term: 'Market clearing' }] });
     const reopened = createLessonKernelCache({ storage });
     expect(reopened.get(lesson).keyTerms[0].term).toBe('Market clearing');
+  });
+
+  it('does not cache generic Week N lessons that can collide across courses', () => {
+    const storage = memoryStorage();
+    const cache = createLessonKernelCache({ storage });
+    const lesson = {
+      title: 'Week 7',
+      sections: [
+        {
+          topicSection: '7.1: Week 7',
+          learningObjectives: 'Explain the key ideas in Week 7 and apply them in course activities.',
+        },
+      ],
+    };
+
+    expect(isLessonKernelCacheable(lesson)).toBe(false);
+    cache.set(lesson, { quizItems: [], keyTerms: [{ term: 'Contour' }] });
+    expect(cache.get(lesson)).toBeNull();
+    expect(cache.has(lesson)).toBe(false);
   });
 });
