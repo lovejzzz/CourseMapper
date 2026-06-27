@@ -691,4 +691,75 @@ describe('trusted source ledger', () => {
     );
     expect(ledger.summary).toMatchObject({ sourceCount: 1, trustedConceptLinkedCount: 1, reviewRequiredCount: 1 });
   });
+
+  it('quarantines weak UX knowledge resources before they become trusted ledger rows', () => {
+    const ledger = buildSourceLedgerFromCourseGraph(
+      {
+        course: { name: 'User Experience Design Studio' },
+        concepts: [
+          { id: 'c1', term: 'personas' },
+          { id: 'c2', term: 'journey maps' },
+          { id: 'c3', term: 'design questions' },
+        ],
+        sessions: [
+          {
+            id: 's1',
+            number: 3,
+            title: 'Research insights and problem framing',
+            sections: [
+              { id: 'sec1', topic: 'personas', conceptRefs: ['c1', 'c2', 'c3'], resourceRefs: ['bad', 'good'] },
+            ],
+          },
+        ],
+        resources: [
+          {
+            id: 'bad',
+            provider: 'openalex',
+            title:
+              'Metaverse beyond the hype: Multidisciplinary perspectives on emerging challenges, opportunities, and agenda for research, practice and policy',
+            doi: '10.1016/j.ijinfomgt.2022.102542',
+            license: 'CC BY-NC-ND',
+            url: 'https://doi.org/10.1016/j.ijinfomgt.2022.102542',
+          },
+          {
+            id: 'good',
+            provider: 'openalex',
+            title:
+              'Optimizing the digital customer journey with personas for individualized user interface adaptations',
+            doi: '10.1002/cb.1964',
+            license: 'CC BY-NC-ND',
+            url: 'https://onlinelibrary.wiley.com/doi/pdfdirect/10.1002/cb.1964',
+          },
+        ],
+        sourceFinderMiniShard: {
+          topics: [
+            {
+              sessionId: 's1',
+              lessonNumber: 3,
+              topic: 'personas',
+              sources: [
+                {
+                  provider: 'wikipedia',
+                  kind: 'background source',
+                  title: 'Persona (series)',
+                  url: 'https://en.wikipedia.org/wiki/Persona_(series)',
+                  license: 'CC BY-SA 4.0',
+                  snippet: 'Persona is a role-playing video game series.',
+                },
+              ],
+            },
+          ],
+        },
+      },
+      { checkedAt: '2026-06-27T00:00:00.000Z' },
+    );
+
+    expect(ledger.rows.map((row) => row.title)).toEqual([
+      'Optimizing the digital customer journey with personas for individualized user interface adaptations',
+    ]);
+    expect(ledger.reviewRows.map((row) => row.title)).toEqual(
+      expect.arrayContaining([expect.stringContaining('Metaverse beyond the hype'), 'Persona (series)']),
+    );
+    expect(ledger.summary).toMatchObject({ sourceCount: 1, trustedConceptLinkedCount: 1, reviewRequiredCount: 2 });
+  });
 });

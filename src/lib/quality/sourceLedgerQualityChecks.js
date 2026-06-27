@@ -32,9 +32,53 @@ const PROJECT_MANAGEMENT_FALSE_FRIEND_RE =
 const USER_EXPERIENCE_COURSE_RE =
   /\b(?:user\s+experience|ux\b|human[-\s]?centered\s+design|interaction\s+design|interface\s+design|usability|design\s+studio)\b/i;
 const USER_EXPERIENCE_SOURCE_ANCHOR_RE =
-  /\b(?:user\s+experience|ux\b|human[-\s]?centered\s+design|user\s+interface|interface\s+design|usability|design\s+research|user\s+research|personas?\b(?!\s*5)|journey\s+maps?|customer\s+journey|information\s+architecture|wirefram|prototype|interaction\s+design|accessibility|inclusive\s+design|design\s+handoff|design\s+studio|co[-\s]?design|service\s+design|material\s+experience|design\s+patterns?|screen\s+flows?|navigation|portfolio\s+case\s+study|critique\s+session)\b/i;
+  /\b(?:user\s+experience|ux\b|human[-\s]?centered\s+design|user\s+interfaces?|interface\s+design|usability|design\s+research|user\s+research|personas?\b(?!\s*5)|journey\s+maps?|customer\s+journey|information\s+architecture|wirefram|prototype|interaction\s+design|accessibility|inclusive\s+design|design\s+handoff|design\s+studio|co[-\s]?design|service\s+design|material\s+experience|design\s+patterns?|screen\s+flows?|navigation|portfolio\s+case\s+study|critique\s+session)\b/i;
 const USER_EXPERIENCE_FALSE_FRIEND_RE =
-  /\b(?:positive\s+feedback|negative\s+feedback|climate\s+change\s+feedbacks?|persona\s+5|shoe\s+production\s+facilities|blocplan|systematic\s+layout\s+planning|layout\s+of\s+shoe\s+production|layout\s+editor\s+configuration|metaverse\s+beyond\s+the\s+hype|patterns\s+2\.0)\b/i;
+  /(?:\bpositive\s+feedback\b|\bnegative\s+feedback\b|\bclimate\s+change\s+feedbacks?\b|\bpersona\s+5\b|\bpersona\s+\(series\)|\bbrief\s+interviews\s+with\s+hideous\s+men\b|\baircraft\s+design\s+process\b|\bprocess\s+design\s+and\s+process\s+control\b|\bifac\s+workshop\b|\bshoe\s+production\s+facilities\b|\bblocplan\b|\bsystematic\s+layout\s+planning\b|\blayout\s+of\s+shoe\s+production\b|\blayout\s+editor\s+configuration\b|\bmetaverse\s+beyond\s+the\s+hype\b|\bpatterns\s+2\.0\b|\blead[-\s]?user\s+theory\b|\bcommercially\s+attractive\s+user\s+innovations\b|\bweb\s+gis\s+in\s+practice\b|\bmicrosoft\s+kinect\b|\bintralogistics\s+processes\b)/i;
+const USER_EXPERIENCE_TOPIC_ANCHORS = [
+  {
+    concept: /\b(?:design\s+process|critique\s+sessions?|design\s+journals?|studio\s+workflow)\b/i,
+    source:
+      /\b(?:material\s+driven\s+design|design\s+process|design\s+studio|critique|design\s+journals?|studio\s+workflow|service\s+design|co[-\s]?design)\b/i,
+  },
+  {
+    concept: /\b(?:interviews?|observations?|synthesis)\b/i,
+    source:
+      /\b(?:user\s+research|user\s+interviews?|research\s+interviews?|qualitative\s+interviews?|contextual\s+inquiry|observational\s+research|affinity\s+mapping|thematic\s+synthesis)\b/i,
+  },
+  {
+    concept: /\b(?:personas?|journey\s+maps?|design\s+questions?)\b/i,
+    source:
+      /\b(?:personas?\b(?!\s*(?:series|5))|journey\s+maps?|customer\s+journey|user\s+needs?|design\s+questions?)\b/i,
+  },
+  {
+    concept: /\b(?:information\s+architecture|sketches|low[-\s]?fidelity\s+layouts?)\b/i,
+    source: /\b(?:information\s+architecture|wirefram|low[-\s]?fidelity|sketch(?:es|ing)?|sitemap|content\s+model)\b/i,
+  },
+  {
+    concept: /\b(?:navigation|components?|screen\s+flow)\b/i,
+    source:
+      /\b(?:navigation|screen\s+flow|user\s+interface|interaction\s+design|mobile\s+screens?|interface\s+adaptation|design\s+patterns?)\b/i,
+  },
+  {
+    concept: /\b(?:clickable\s+prototypes?|tool\s+workflows?|iteration)\b/i,
+    source:
+      /\b(?:clickable\s+prototypes?|functional\s+prototypes?|prototyp|tool\s+workflow|iteration|usability\s+testing)\b/i,
+  },
+  {
+    concept: /\b(?:test\s+plans?|task\s+scenarios?|findings)\b/i,
+    source: /\b(?:usability\s+test(?:ing)?|test\s+plans?|task\s+scenarios?|research\s+findings?)\b/i,
+  },
+  {
+    concept: /\b(?:inclusive\s+design|evaluation|remediation|accessibility)\b/i,
+    source: /\b(?:inclusive\s+design|accessibility|evaluation|remediation|transformative\s+services?)\b/i,
+  },
+  {
+    concept: /\b(?:process\s+narrative|visuals|case\s+study\s+structure|studio\s+work|refinement|review)\b/i,
+    source:
+      /\b(?:design\s+studio|studio\s+practice|portfolio\s+case\s+stud(?:y|ies)|case\s+study\s+structure|critique|visuals?|refinement|review)\b/i,
+  },
+];
 
 function ambiguousLicense(row) {
   const license = String(row?.license || '')
@@ -99,6 +143,13 @@ function rowSearchText(row) {
   return [row?.title, row?.citation, row?.evidence, row?.sourceType, row?.scope].filter(Boolean).join(' ');
 }
 
+function rowConceptText(row) {
+  return (Array.isArray(row?.conceptLinks) ? row.conceptLinks : [])
+    .map((link) => (typeof link === 'string' ? link : link?.label || link?.id || ''))
+    .filter(Boolean)
+    .join(' ');
+}
+
 function isProjectManagementFalseFriendSource(row, manifest) {
   if (!isProjectManagementManifest(manifest)) return false;
   const text = rowSearchText(row);
@@ -106,11 +157,17 @@ function isProjectManagementFalseFriendSource(row, manifest) {
   return !PROJECT_MANAGEMENT_SOURCE_ANCHOR_RE.test(text);
 }
 
-function isUserExperienceFalseFriendSource(row, manifest) {
+function hasUserExperienceTopicAnchor(row) {
+  const conceptText = rowConceptText(row);
+  const text = rowSearchText(row);
+  return USER_EXPERIENCE_TOPIC_ANCHORS.some(({ concept, source }) => concept.test(conceptText) && source.test(text));
+}
+
+function isUserExperienceWeakSource(row, manifest) {
   if (!isUserExperienceManifest(manifest)) return false;
   const text = rowSearchText(row);
-  if (!USER_EXPERIENCE_FALSE_FRIEND_RE.test(text)) return false;
-  return !USER_EXPERIENCE_SOURCE_ANCHOR_RE.test(text);
+  if (USER_EXPERIENCE_FALSE_FRIEND_RE.test(text)) return true;
+  return !USER_EXPERIENCE_SOURCE_ANCHOR_RE.test(text) && !hasUserExperienceTopicAnchor(row);
 }
 
 function sourceCoverageTotal(coverage) {
@@ -251,7 +308,7 @@ export function checkSourceLedger(findings, { files, manifest }) {
         evidence: row?.title || row?.citation || row?.evidence || id,
       });
     }
-    if (isTrustedConceptLinkedBibliographyRow(row) && isUserExperienceFalseFriendSource(row, manifest)) {
+    if (isTrustedConceptLinkedBibliographyRow(row) && isUserExperienceWeakSource(row, manifest)) {
       findings.add({
         severity: 'P1',
         dimension: 'citations',

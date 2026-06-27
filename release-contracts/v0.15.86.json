@@ -1,0 +1,98 @@
+{
+  "version": "0.15.86",
+  "date": "June 27, 2026",
+  "title": "UX Source Relevance Gate: false-friend rows move to review",
+  "status": "verified-current",
+  "proofSummary": {
+    "local": [
+      "npm test -- src/lib/knowledge/__tests__/sourceLedger.test.js src/lib/quality/__tests__/sourceLedgerGrader.test.js",
+      "npm run format:check",
+      "npm run lint",
+      "npm test",
+      "npm run build",
+      "npm run bundle:check",
+      "npm run audit:release-history",
+      "npm run audit:gold:smoke"
+    ],
+    "ciFast": {
+      "status": "pending-push",
+      "note": "Fast verification is claimed only after v0.15.86 is pushed and the GitHub Actions run is attached."
+    },
+    "deploy": {
+      "status": "pending-push",
+      "note": "Pages deploy is not claimed until the pushed release completes its deploy run."
+    },
+    "ciDeep": {
+      "status": "local-only",
+      "note": "This is a narrow source-trust and grader-truth release; focused regressions plus normal gates are the release bar."
+    },
+    "liveProvider": {
+      "status": "local-only",
+      "note": "The release is based on the fresh deployed v0.15.85 User Experience Design Studio ZIP/log audit, whose patched local regrade is 88/B with trusted UX false-friend source rows. A fresh deployed v0.15.86 package audit is required to verify quarantine in provider output."
+    },
+    "manualHuman": {
+      "status": "not-applicable",
+      "note": "No external instructor approval is claimed by this release."
+    }
+  },
+  "claims": [
+    {
+      "id": "v01586-fresh-v01585-trace-evidence",
+      "status": "verified-current",
+      "changelogHighlightIndex": 0,
+      "summary": "The fresh v0.15.85 UX ZIP/log audit proves the new saved logs explain provider requests, responses, repair retries, compiler work, digest state, and the remaining source-trust failure.",
+      "anchors": [
+        "docs/V0.15.86_UX_SOURCE_RELEVANCE_GATE_ROADMAP.md",
+        "verification-output/edutool-audit-loop/20260627T160000Z-v01585-ux-fresh/report.md",
+        "verification-output/edutool-audit-loop/20260627T160000Z-v01585-ux-fresh/local-regrade.md"
+      ],
+      "proofCommands": ["npm run audit:release-history"],
+      "proofScopes": ["live-provider", "static-audit"]
+    },
+    {
+      "id": "v01586-ux-source-anchor-trust",
+      "status": "verified-current",
+      "changelogHighlightIndex": 1,
+      "summary": "User Experience source rows now need UX/design or concept-specific source anchors before becoming trusted concept-linked proof.",
+      "anchors": ["src/lib/knowledge/sourceLedger.js", "src/lib/knowledge/__tests__/sourceLedger.test.js"],
+      "proofCommands": ["npm test -- src/lib/knowledge/__tests__/sourceLedger.test.js"],
+      "proofScopes": ["unit", "static-audit"]
+    },
+    {
+      "id": "v01586-ux-false-friend-quarantine",
+      "status": "verified-current",
+      "changelogHighlightIndex": 2,
+      "summary": "Weak UX false friends from source-finder and knowledge-resource inputs route to source review notes instead of trusted sourceLedger rows.",
+      "anchors": ["src/lib/knowledge/sourceLedger.js", "src/lib/knowledge/__tests__/sourceLedger.test.js"],
+      "proofCommands": ["npm test -- src/lib/knowledge/__tests__/sourceLedger.test.js"],
+      "proofScopes": ["unit", "static-audit"]
+    },
+    {
+      "id": "v01586-ux-grader-source-truth",
+      "status": "verified-current",
+      "changelogHighlightIndex": 3,
+      "summary": "The deep quality grader mirrors the production UX source relevance gate and flags exported trusted false-friend rows as citation defects.",
+      "anchors": [
+        "src/lib/quality/sourceLedgerQualityChecks.js",
+        "src/lib/quality/__tests__/sourceLedgerGrader.test.js",
+        "verification-output/edutool-audit-loop/20260627T160000Z-v01585-ux-fresh/local-regrade.md"
+      ],
+      "proofCommands": ["npm test -- src/lib/quality/__tests__/sourceLedgerGrader.test.js"],
+      "proofScopes": ["unit", "static-audit"]
+    }
+  ],
+  "carryForward": [
+    {
+      "id": "fresh-v01586-provider-audit",
+      "status": "carry-forward",
+      "source": "docs/V0.15.86_UX_SOURCE_RELEVANCE_GATE_ROADMAP.md",
+      "next": "After deploy, run a fresh v0.15.86 EduTool.dev ZIP/log audit and confirm UX false-friend rows are absent from trusted sourceLedger proof or appear only as source review notes."
+    },
+    {
+      "id": "partial-enrichment-recovery",
+      "status": "carry-forward",
+      "source": "verification-output/edutool-audit-loop/20260627T160000Z-v01585-ux-fresh/local-regrade.md",
+      "next": "Lesson 1 still fell back after two repair/retry calls, so enrichment recovery remains the next quality target after source trust is verified."
+    }
+  ]
+}

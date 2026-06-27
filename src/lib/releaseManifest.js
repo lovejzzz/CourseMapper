@@ -3,22 +3,22 @@ import { APP_VERSION } from './appVersion.js';
 export const CURRENT_RELEASE = {
   version: APP_VERSION,
   date: 'June 27, 2026',
-  title: 'Generation Trace Audit: API calls and compiler stages become inspectable',
-  landingTitle: 'Generation Trace Audit',
+  title: 'UX Source Relevance Gate: false-friend rows move to review',
+  landingTitle: 'UX Source Relevance Gate',
   highlights: [
-    'Generation console evidence is now audit-ready by default: `[CM][API]` rows include run id, stage, provider/model, feature, counters, call plan, token/cost summary, retry/failure metadata, and compiler savings without exposing prompts or API keys.',
-    'Provider calls now emit explicit request-start and response-complete trace rows with attempt number, schema presence, max output budget, approximate input tokens, response characters, and stream chunk count, making retry and fallback behavior visible from saved logs.',
-    'The blueprint compiler now logs a real plan/start/compiled sequence before and after local compilation, including feature ids, config feature ids, item counts, duration, enrichment source, and avoided provider-call count.',
-    'The v0.15.84 User Experience Design Studio audit follow-up is bundled: the export card stays simple with notes delegated to the Agent panel, old local conversation payloads are cleared on quota pressure, and UX source-finder false friends are quarantined or graded as citation defects instead of trusted proof.',
+    'A fresh deployed v0.15.85 User Experience Design Studio ZIP/log audit proved the new API/compiler traces are readable, but the package still regraded at 88/B after strict source checks because weak UX false-friend rows were trusted as citation proof.',
+    'User Experience source-ledger trust now requires UX/design anchors or concept-specific source anchors before knowledge-resource or source-finder rows become trusted concept-linked proof.',
+    'Weak UX rows such as metaverse hype, process-control workshop, film/book/persona-series pages, aircraft design process, and generic interface/prototype papers now route to source review notes instead of trusted sourceLedger rows.',
+    'The deep quality grader mirrors the production UX relevance gate, so any exported trusted false-friend source rows are scored as citation defects rather than silently counted as proof.',
   ],
   landingHighlights: [
-    'API calls explain what happened.',
-    'Compiler stages show plan and output shape.',
-    'Export notes stay out of the simple card.',
+    'UX sources need design relevance.',
+    'False friends become review notes.',
+    'The grader catches trusted weak rows.',
   ],
   proof: {
-    contract: 'release-contracts/v0.15.85.json',
-    roadmap: 'docs/V0.15.85_GENERATION_TRACE_AUDIT_ROADMAP.md',
+    contract: 'release-contracts/v0.15.86.json',
+    roadmap: 'docs/V0.15.86_UX_SOURCE_RELEVANCE_GATE_ROADMAP.md',
     auditCommand: 'npm run audit:release-history',
   },
 };
@@ -33,6 +33,17 @@ export const CURRENT_RELEASE_CHANGELOG = {
 };
 
 export const HISTORICAL_RELEASE_CHANGELOGS = [
+  {
+    version: '0.15.85',
+    date: 'June 27, 2026',
+    title: 'Generation Trace Audit: API calls and compiler stages become inspectable',
+    highlights: [
+      'Generation console evidence is now audit-ready by default: `[CM][API]` rows include run id, stage, provider/model, feature, counters, call plan, token/cost summary, retry/failure metadata, and compiler savings without exposing prompts or API keys.',
+      'Provider calls now emit explicit request-start and response-complete trace rows with attempt number, schema presence, max output budget, approximate input tokens, response characters, and stream chunk count, making retry and fallback behavior visible from saved logs.',
+      'The blueprint compiler now logs a real plan/start/compiled sequence before and after local compilation, including feature ids, config feature ids, item counts, duration, enrichment source, and avoided provider-call count.',
+      'The v0.15.84 User Experience Design Studio audit follow-up is bundled: the export card stays simple with notes delegated to the Agent panel, old local conversation payloads are cleared on quota pressure, and UX source-finder false friends are quarantined or graded as citation defects instead of trusted proof.',
+    ],
+  },
   {
     version: '0.15.84',
     date: 'June 27, 2026',

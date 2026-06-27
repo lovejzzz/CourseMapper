@@ -34,9 +34,53 @@ const PLACEHOLDER_RESOURCE_RE =
 const USER_EXPERIENCE_COURSE_RE =
   /\b(?:user\s+experience|ux\b|human[-\s]?centered\s+design|interaction\s+design|interface\s+design|usability|design\s+studio)\b/i;
 const USER_EXPERIENCE_SOURCE_ANCHOR_RE =
-  /\b(?:user\s+experience|ux\b|human[-\s]?centered\s+design|user\s+interface|interface\s+design|usability|design\s+research|user\s+research|personas?\b(?!\s*5)|journey\s+maps?|customer\s+journey|information\s+architecture|wirefram|prototype|interaction\s+design|accessibility|inclusive\s+design|design\s+handoff|design\s+studio|co[-\s]?design|service\s+design|material\s+experience|design\s+patterns?|screen\s+flows?|navigation|portfolio\s+case\s+study|critique\s+session)\b/i;
+  /\b(?:user\s+experience|ux\b|human[-\s]?centered\s+design|user\s+interfaces?|interface\s+design|usability|design\s+research|user\s+research|personas?\b(?!\s*5)|journey\s+maps?|customer\s+journey|information\s+architecture|wirefram|prototype|interaction\s+design|accessibility|inclusive\s+design|design\s+handoff|design\s+studio|co[-\s]?design|service\s+design|material\s+experience|design\s+patterns?|screen\s+flows?|navigation|portfolio\s+case\s+study|critique\s+session)\b/i;
 const USER_EXPERIENCE_FALSE_FRIEND_RE =
-  /\b(?:positive\s+feedback|negative\s+feedback|climate\s+change\s+feedbacks?|persona\s+5|shoe\s+production\s+facilities|blocplan|systematic\s+layout\s+planning|layout\s+of\s+shoe\s+production|layout\s+editor\s+configuration|metaverse\s+beyond\s+the\s+hype|patterns\s+2\.0)\b/i;
+  /(?:\bpositive\s+feedback\b|\bnegative\s+feedback\b|\bclimate\s+change\s+feedbacks?\b|\bpersona\s+5\b|\bpersona\s+\(series\)|\bbrief\s+interviews\s+with\s+hideous\s+men\b|\baircraft\s+design\s+process\b|\bprocess\s+design\s+and\s+process\s+control\b|\bifac\s+workshop\b|\bshoe\s+production\s+facilities\b|\bblocplan\b|\bsystematic\s+layout\s+planning\b|\blayout\s+of\s+shoe\s+production\b|\blayout\s+editor\s+configuration\b|\bmetaverse\s+beyond\s+the\s+hype\b|\bpatterns\s+2\.0\b|\blead[-\s]?user\s+theory\b|\bcommercially\s+attractive\s+user\s+innovations\b|\bweb\s+gis\s+in\s+practice\b|\bmicrosoft\s+kinect\b|\bintralogistics\s+processes\b)/i;
+const USER_EXPERIENCE_TOPIC_ANCHORS = [
+  {
+    concept: /\b(?:design\s+process|critique\s+sessions?|design\s+journals?|studio\s+workflow)\b/i,
+    source:
+      /\b(?:material\s+driven\s+design|design\s+process|design\s+studio|critique|design\s+journals?|studio\s+workflow|service\s+design|co[-\s]?design)\b/i,
+  },
+  {
+    concept: /\b(?:interviews?|observations?|synthesis)\b/i,
+    source:
+      /\b(?:user\s+research|user\s+interviews?|research\s+interviews?|qualitative\s+interviews?|contextual\s+inquiry|observational\s+research|affinity\s+mapping|thematic\s+synthesis)\b/i,
+  },
+  {
+    concept: /\b(?:personas?|journey\s+maps?|design\s+questions?)\b/i,
+    source:
+      /\b(?:personas?\b(?!\s*(?:series|5))|journey\s+maps?|customer\s+journey|user\s+needs?|design\s+questions?)\b/i,
+  },
+  {
+    concept: /\b(?:information\s+architecture|sketches|low[-\s]?fidelity\s+layouts?)\b/i,
+    source: /\b(?:information\s+architecture|wirefram|low[-\s]?fidelity|sketch(?:es|ing)?|sitemap|content\s+model)\b/i,
+  },
+  {
+    concept: /\b(?:navigation|components?|screen\s+flow)\b/i,
+    source:
+      /\b(?:navigation|screen\s+flow|user\s+interface|interaction\s+design|mobile\s+screens?|interface\s+adaptation|design\s+patterns?)\b/i,
+  },
+  {
+    concept: /\b(?:clickable\s+prototypes?|tool\s+workflows?|iteration)\b/i,
+    source:
+      /\b(?:clickable\s+prototypes?|functional\s+prototypes?|prototyp|tool\s+workflow|iteration|usability\s+testing)\b/i,
+  },
+  {
+    concept: /\b(?:test\s+plans?|task\s+scenarios?|findings)\b/i,
+    source: /\b(?:usability\s+test(?:ing)?|test\s+plans?|task\s+scenarios?|research\s+findings?)\b/i,
+  },
+  {
+    concept: /\b(?:inclusive\s+design|evaluation|remediation|accessibility)\b/i,
+    source: /\b(?:inclusive\s+design|accessibility|evaluation|remediation|transformative\s+services?)\b/i,
+  },
+  {
+    concept: /\b(?:process\s+narrative|visuals|case\s+study\s+structure|studio\s+work|refinement|review)\b/i,
+    source:
+      /\b(?:design\s+studio|studio\s+practice|portfolio\s+case\s+stud(?:y|ies)|case\s+study\s+structure|critique|visuals?|refinement|review)\b/i,
+  },
+];
 const SOURCE_FINDER_TRUSTED_ROWS_PER_TOPIC = 2;
 
 function cleanText(value, maxLength = 500) {
@@ -420,11 +464,34 @@ function sourceSearchText(source = {}) {
     .join(' ');
 }
 
-function isUserExperienceFalseFriendSource(source, courseGraph) {
+function sourceConceptText(source = {}) {
+  return (Array.isArray(source?.conceptLinks) ? source.conceptLinks : [])
+    .map((link) => (typeof link === 'string' ? link : link?.label || link?.id || ''))
+    .filter(Boolean)
+    .join(' ');
+}
+
+function hasUserExperienceTopicAnchor(source = {}) {
+  const conceptText = sourceConceptText(source);
+  const text = sourceSearchText(source);
+  return USER_EXPERIENCE_TOPIC_ANCHORS.some(({ concept, source: sourcePattern }) => {
+    return concept.test(conceptText) && sourcePattern.test(text);
+  });
+}
+
+function isUserExperienceWeakSource(source, courseGraph) {
   if (!USER_EXPERIENCE_COURSE_RE.test(courseText(courseGraph))) return false;
   const text = sourceSearchText(source);
-  if (!USER_EXPERIENCE_FALSE_FRIEND_RE.test(text)) return false;
-  return !USER_EXPERIENCE_SOURCE_ANCHOR_RE.test(text);
+  if (USER_EXPERIENCE_FALSE_FRIEND_RE.test(text)) return true;
+  return !USER_EXPERIENCE_SOURCE_ANCHOR_RE.test(text) && !hasUserExperienceTopicAnchor(source);
+}
+
+function appendCourseAwareSource(rows, reviewRows, source, courseGraph) {
+  if (isTrustedConceptLinkedSourceLedgerRow(source) && isUserExperienceWeakSource(source, courseGraph)) {
+    appendUnique(reviewRows, source);
+    return;
+  }
+  appendUnique(rows, source);
 }
 
 function appendUnique(rows, source) {
@@ -496,11 +563,10 @@ function sourceFinderTopicLedgerSources(courseGraph, topic, topicIndex, checkedA
     normalizeSourceFinderTopicSource(courseGraph, topic, source, topicIndex, sourceIndex, checkedAt),
   );
   const falseFriendRows = candidates.filter(
-    (source) => isTrustedConceptLinkedSourceLedgerRow(source) && isUserExperienceFalseFriendSource(source, courseGraph),
+    (source) => isTrustedConceptLinkedSourceLedgerRow(source) && isUserExperienceWeakSource(source, courseGraph),
   );
   const trustedConceptLinked = candidates.filter(
-    (source) =>
-      isTrustedConceptLinkedSourceLedgerRow(source) && !isUserExperienceFalseFriendSource(source, courseGraph),
+    (source) => isTrustedConceptLinkedSourceLedgerRow(source) && !isUserExperienceWeakSource(source, courseGraph),
   );
   if (trustedConceptLinked.length > 0) {
     return {
@@ -528,15 +594,17 @@ export function buildSourceLedgerFromCourseGraph(courseGraph, { checkedAt = '' }
       },
       { fallbackId: `SL${index + 1}`, checkedAt },
     );
-    appendUnique(isCourseIRReviewOnlySource(normalized) ? reviewRows : rows, normalized);
+    if (isCourseIRReviewOnlySource(normalized)) appendUnique(reviewRows, normalized);
+    else appendCourseAwareSource(rows, reviewRows, normalized, courseGraph);
   });
 
   for (const resource of courseGraph.resources || []) {
     if (!resource || typeof resource !== 'object') continue;
     const provider = resource.provider || resource.origin || 'course-resource';
     if (!isSourceLikeResource(resource, provider)) continue;
-    appendUnique(
+    appendCourseAwareSource(
       rows,
+      reviewRows,
       normalizeTrustedSource(
         {
           ...resource,
@@ -548,6 +616,7 @@ export function buildSourceLedgerFromCourseGraph(courseGraph, { checkedAt = '' }
         },
         { fallbackId: resource.id, checkedAt, conceptLinks: conceptLinksForResource(courseGraph, resource.id) },
       ),
+      courseGraph,
     );
   }
 

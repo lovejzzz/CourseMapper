@@ -308,14 +308,35 @@ describe('source-ledger quality checks', () => {
               license: 'CC BY-SA 4.0',
               conceptLinks: [{ id: 'c4', label: 'project feedback' }],
             },
+            {
+              id: 'kr2',
+              title:
+                'Yogesh K. Dwivedi, Laurie Hughes, Abdullah M. Baabdullah et al. (2022). Metaverse beyond the hype: Multidisciplinary perspectives on emerging challenges, opportunities, and agenda for research, practice and policy.',
+              provider: 'openalex',
+              url: 'https://doi.org/10.1016/j.ijinfomgt.2022.102542',
+              doi: '10.1016/j.ijinfomgt.2022.102542',
+              license: 'CC BY-NC-ND',
+              conceptLinks: [{ id: 'c7', label: 'personas' }],
+            },
+            {
+              id: 'sf3',
+              title:
+                'Optimizing the digital customer journey—Improving user experience by exploiting emotions, personas and situations for individualized user interface adaptations',
+              provider: 'openalex',
+              url: 'https://onlinelibrary.wiley.com/doi/pdfdirect/10.1002/cb.1964',
+              doi: '10.1002/cb.1964',
+              license: 'CC BY-NC-ND',
+              conceptLinks: [{ id: 'c7', label: 'personas' }],
+            },
           ],
           sourceReport: {
             path: 'SOURCE_REPORT.md',
-            sourceCount: 1,
+            sourceCount: 3,
           },
           files: [],
         }),
-        'SOURCE_REPORT.md': '# Source Report\n\n## Source Ledger\n- sf2: Positive feedback\n',
+        'SOURCE_REPORT.md':
+          '# Source Report\n\n## Source Ledger\n- sf2: Positive feedback\n- kr2: Metaverse beyond the hype\n- sf3: Optimizing the digital customer journey\n',
       }),
       course: { title: 'User Experience Design Studio', featureIds: [] },
     });
@@ -326,6 +347,18 @@ describe('source-ledger quality checks', () => {
           severity: 'P1',
           dimension: 'citations',
           detail: 'source ledger row sf2 is off-discipline for User Experience Design Studio',
+        }),
+        expect.objectContaining({
+          severity: 'P1',
+          dimension: 'citations',
+          detail: 'source ledger row kr2 is off-discipline for User Experience Design Studio',
+        }),
+      ]),
+    );
+    expect(result.findings).not.toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          detail: 'source ledger row sf3 is off-discipline for User Experience Design Studio',
         }),
       ]),
     );
