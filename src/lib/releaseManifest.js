@@ -3,22 +3,22 @@ import { APP_VERSION } from './appVersion.js';
 export const CURRENT_RELEASE = {
   version: APP_VERSION,
   date: 'June 27, 2026',
-  title: 'Native Session Topic Repair: generic Session labels stop shipping',
-  landingTitle: 'Native Session Topic Repair',
+  title: 'Course FAQ Texture Repair: support answers stop repeating',
+  landingTitle: 'Course FAQ Texture Repair',
   highlights: [
-    'A fresh deployed v0.15.78 Project Management ZIP/log audit regraded at 95/A and proved native skeleton recovery could still ship generic "Session N" lesson titles, course-map concepts, and exported filenames after direct CourseIR authoring fell back.',
-    'Course-map readiness repair now treats "Session N", "Topic N", and bare numbered lesson labels as weak generated topics, so native repair replaces them from real available anchors before blueprint compilation and ZIP export.',
-    'A focused Project Management regression recreates the v0.15.78 failure shape and proves the repaired map removes generic Session labels while preserving concrete anchors such as project charter and scheduling lab.',
-    'This release does not claim a clean 100/100 package; the same audit still showed source-ledger thinness, thin content-bearing deck slides, texture repetition, and a local-storage quota warning that remain separate quality targets.',
+    'A fresh deployed v0.15.79 Project Management ZIP/log audit reached 99/A in the exported quality report, with the remaining scored loss concentrated in repeated Course FAQ support-answer shingles.',
+    'Course FAQ post-processing now detects repeated checklist, prepared-response, concrete-evidence, and office-hours answer patterns even when the FAQ questions themselves are unique.',
+    'Repaired FAQ answers now rotate deterministic lesson/topic/assessment-specific guidance so support language stays student-facing without repeating the same scaffold across every lesson.',
+    'This release does not claim a clean 100/100 package; a fresh deployed v0.15.80 audit is still required, and the current-run local-storage quota warning remains a separate runtime target.',
   ],
   landingHighlights: [
-    'Generic Session labels are repaired before export.',
-    'Native recovery keeps concrete lesson anchors.',
-    '95/100 evidence stays honest.',
+    'Repeated FAQ support answers are repaired before export.',
+    'Lesson-specific FAQ guidance replaces canned scaffolds.',
+    '99/100 evidence stays honest.',
   ],
   proof: {
-    contract: 'release-contracts/v0.15.79.json',
-    roadmap: 'docs/V0.15.79_NATIVE_SESSION_TOPIC_REPAIR_ROADMAP.md',
+    contract: 'release-contracts/v0.15.80.json',
+    roadmap: 'docs/V0.15.80_COURSE_FAQ_TEXTURE_REPAIR_ROADMAP.md',
     auditCommand: 'npm run audit:release-history',
   },
 };
@@ -33,6 +33,17 @@ export const CURRENT_RELEASE_CHANGELOG = {
 };
 
 export const HISTORICAL_RELEASE_CHANGELOGS = [
+  {
+    version: '0.15.79',
+    date: 'June 27, 2026',
+    title: 'Native Session Topic Repair: generic Session labels stop shipping',
+    highlights: [
+      'A fresh deployed v0.15.78 Project Management ZIP/log audit regraded at 95/A and proved native skeleton recovery could still ship generic "Session N" lesson titles, course-map concepts, and exported filenames after direct CourseIR authoring fell back.',
+      'Course-map readiness repair now treats "Session N", "Topic N", and bare numbered lesson labels as weak generated topics, so native repair replaces them from real available anchors before blueprint compilation and ZIP export.',
+      'A focused Project Management regression recreates the v0.15.78 failure shape and proves the repaired map removes generic Session labels while preserving concrete anchors such as project charter and scheduling lab.',
+      'This release does not claim a clean 100/100 package; the same audit still showed source-ledger thinness, thin content-bearing deck slides, texture repetition, and a local-storage quota warning that remain separate quality targets.',
+    ],
+  },
   {
     version: '0.15.78',
     date: 'June 27, 2026',

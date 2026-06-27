@@ -238,6 +238,73 @@ describe('Course FAQ post-processing', () => {
     expect(result.data.faqs[1].qs[0].an).toContain('Sampling and Measurement');
   });
 
+  it('rewrites repeated support-answer shingles even when FAQ questions differ', () => {
+    const data = {
+      faqs: [
+        {
+          lt: 'Lesson 1: Project Charter',
+          qs: [
+            {
+              q: 'How do I get ready for the project charter scenario quiz?',
+              an: 'Use scenario quiz as a checklist. A prepared response names the relevant Project Management concept, applies it to the required case or task, and explains why the evidence supports the answer.',
+              ca: 'Assessment Prep',
+            },
+            {
+              q: 'Where should I ask for project charter help?',
+              an: 'Bring one specific question about the topic or assessment to class, office hours, or a study group.',
+              ca: 'Course Logistics',
+            },
+          ],
+        },
+        {
+          lt: 'Lesson 2: Scope Planning',
+          qs: [
+            {
+              q: 'How do I know whether the scope planning assignment is strong enough?',
+              an: 'Strong work answers the prompt directly, uses Scope Planning vocabulary accurately, and connects each claim to a concrete piece of lesson evidence.',
+              ca: 'Assignment Clarification',
+            },
+          ],
+        },
+      ],
+    };
+    const courseMap = {
+      lessons: [
+        {
+          title: 'Lesson 1: Project Charter',
+          sections: [
+            {
+              topicSection: 'Project charter purpose',
+              learningObjectives: 'Students explain charter assumptions and stakeholder evidence.',
+              weeklyAssessments: 'Scenario quiz: diagnose a project charter.',
+            },
+          ],
+        },
+        {
+          title: 'Lesson 2: Scope Planning',
+          sections: [
+            {
+              topicSection: 'Scope boundaries',
+              learningObjectives: 'Students distinguish included work from out-of-scope requests.',
+              weeklyAssessments: 'Scope-change memo.',
+            },
+          ],
+        },
+      ],
+    };
+
+    const result = normalizeCourseFaqQuestionVariety(data, courseMap);
+    const repairedAnswers = result.data.faqs.flatMap((lesson) => lesson.qs.map((question) => question.an));
+    const repairedText = repairedAnswers.join(' ');
+
+    expect(result.rewrittenQuestions).toBe(3);
+    expect(new Set(repairedAnswers).size).toBe(3);
+    expect(repairedText).not.toMatch(/prepared response names the relevant/i);
+    expect(repairedText).not.toMatch(/concrete piece of lesson evidence/i);
+    expect(repairedText).not.toMatch(/class, office hours, or a study group/i);
+    expect(repairedText).not.toMatch(/as a checklist/i);
+  });
+
   it('does not double-punctuate repaired FAQ objective answers', () => {
     const data = {
       faqs: [
@@ -296,7 +363,7 @@ describe('Course FAQ post-processing', () => {
 
     expect(result.rewrittenQuestions).toBe(3);
     expect(repairedText).not.toMatch(/\.\./);
-    expect(repairedText).toContain('course activities. Bring one specific question');
+    expect(repairedText).toContain('course activities. Write one question');
   });
 
   it('builds a valid course-map fallback FAQ when model output is unusable', () => {

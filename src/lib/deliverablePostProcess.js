@@ -468,7 +468,25 @@ function getFaqQuestionCategory(question = {}) {
   return question.category || question.ca || inferFaqCategory(question);
 }
 
-function buildFaqQuestionRepair({ question, courseLesson, lessonTitle, lessonIndex }) {
+const FAQ_TEXTURE_REPEAT_PATTERNS = [
+  /\bprepared response names the relevant\b/i,
+  /\bconcrete piece of lesson evidence\b/i,
+  /\bclass, office hours, or a study group\b/i,
+  /\bas a checklist\b/i,
+];
+
+function hasRepeatedFaqTextureAnswer(value) {
+  const text = String(value || '');
+  return FAQ_TEXTURE_REPEAT_PATTERNS.some((pattern) => pattern.test(text));
+}
+
+function pickFaqRepairTemplate(templates, lessonIndex = 0, questionIndex = 0) {
+  if (!Array.isArray(templates) || templates.length === 0) return null;
+  const index = Math.abs((lessonIndex * 5 + questionIndex * 2) % templates.length);
+  return templates[index];
+}
+
+function buildFaqQuestionRepair({ question, courseLesson, lessonTitle, lessonIndex, questionIndex = 0 }) {
   const shortTitle = stripLessonPrefix(lessonTitle) || `Lesson ${lessonIndex + 1}`;
   const topic = compactText(getLessonField(courseLesson, 'topicSection'), shortTitle, 90);
   const assessmentText = getLessonField(courseLesson, 'weeklyAssessments');
@@ -485,28 +503,78 @@ function buildFaqQuestionRepair({ question, courseLesson, lessonTitle, lessonInd
   );
   const category = getFaqQuestionCategory(question);
   const templates = {
-    'Course Logistics': {
-      q: `What should I review first for ${shortTitle}?`,
-      an: `Start with ${topic}, then compare your notes to the lesson objective: ${stripTerminalPunctuation(objective)}. Bring one specific question about the topic or assessment to class, office hours, or a study group.`,
-    },
-    'Assignment Clarification': {
-      q: `What does strong work on ${assessmentLabel} look like?`,
-      an: `Strong work answers the prompt directly, uses ${shortTitle} vocabulary accurately, and connects each claim to a concrete piece of lesson evidence. Before submitting, check that the final artifact matches the posted directions and rubric language.`,
-    },
-    'Concept Explanation': {
-      q: `What is the main confusion to avoid about ${topic}?`,
-      an: `Do not stop at a definition. Explain how ${topic} works in the lesson context, then use one example or data point to show why the distinction matters.`,
-    },
-    'Technical Help': {
-      q: `What should I do if the ${shortTitle} file, tool, or workflow step does not work?`,
-      an: `Write down the exact step that failed, the input you used, and what result you expected. Then retry the step with the course example before asking for help, so the instructor can see where the workflow broke.`,
-    },
-    'Assessment Prep': {
-      q: `How should I prepare for ${assessmentLabel} in ${shortTitle}?`,
-      an: `Use ${assessmentLabel} as a checklist. A prepared response names the relevant ${shortTitle} concept, applies it to the required case or task, and explains why the evidence supports the answer.`,
-    },
+    'Course Logistics': [
+      {
+        q: `What should I review first for ${shortTitle}?`,
+        an: `Start with ${topic}, then compare your notes to: ${stripTerminalPunctuation(objective)}. Write one question that asks where the idea appears in ${assessmentLabel} or in the lesson activity.`,
+      },
+      {
+        q: `What is the fastest way to get oriented for ${shortTitle}?`,
+        an: `Skim the directions for ${assessmentLabel}, underline the action it asks you to take, and match that action to one ${topic} term before class.`,
+      },
+      {
+        q: `Where should I look when ${shortTitle} feels unclear?`,
+        an: `Use the lesson materials to locate a definition of ${topic}, then pair it with one required move from ${stripTerminalPunctuation(objective)}. Bring that pair to the next check-in.`,
+      },
+    ],
+    'Assignment Clarification': [
+      {
+        q: `What does strong work on ${assessmentLabel} look like?`,
+        an: `State the decision first, cite one detail from ${assessment}, and explain how ${topic} changes the recommendation or next step.`,
+      },
+      {
+        q: `How can I tell whether ${assessmentLabel} is ready to submit?`,
+        an: `A ready response for ${shortTitle} shows the claim, the course term that controls the answer, and the evidence that would let another reader follow your reasoning.`,
+      },
+      {
+        q: `What should I revise before submitting ${assessmentLabel}?`,
+        an: `For ${shortTitle}, replace broad summary with one ${topic} term, one example from the assigned work, and one consequence for the project or case decision.`,
+      },
+    ],
+    'Concept Explanation': [
+      {
+        q: `What is the main confusion to avoid about ${topic}?`,
+        an: `Do not stop at a definition. Explain how ${topic} works in the lesson context, then use one example or data point to show why the distinction matters.`,
+      },
+      {
+        q: `How should I explain ${topic} in my own words?`,
+        an: `Define the term briefly, connect it to ${shortTitle}, and name the decision or tradeoff that changes when the term is applied correctly.`,
+      },
+      {
+        q: `Why does ${topic} matter in this lesson?`,
+        an: `${topic} matters because it turns the lesson from recall into judgment: students must connect the idea to ${assessmentLabel} and defend a course-specific choice.`,
+      },
+    ],
+    'Technical Help': [
+      {
+        q: `What should I do if the ${shortTitle} file, tool, or workflow step does not work?`,
+        an: `Write down the exact step that failed, the input you used, and what result you expected. Then retry the step with the course example before asking for help, so the instructor can see where the workflow broke.`,
+      },
+      {
+        q: `How should I report a blocker during ${shortTitle}?`,
+        an: `Share the platform, the command or screen you used, and the last successful step. Include how the blocker affects ${assessmentLabel} so support can focus on the right task.`,
+      },
+      {
+        q: `What should I check before asking for technical help on ${shortTitle}?`,
+        an: `Confirm the file version, the required tool, and the prompt or data you entered. If the issue remains, send the exact error plus the ${topic} task you were trying to complete.`,
+      },
+    ],
+    'Assessment Prep': [
+      {
+        q: `What evidence should I have ready for ${assessmentLabel}?`,
+        an: `Bring one claim, one example from ${shortTitle}, and one explanation of how ${topic} supports or limits that claim.`,
+      },
+      {
+        q: `How should I prepare for ${assessmentLabel} in ${shortTitle}?`,
+        an: `Read ${assessmentLabel} for the action verb, list one ${topic} fact you can use, and draft the sentence that connects the fact to the required decision.`,
+      },
+      {
+        q: `How do I check readiness for ${assessmentLabel}?`,
+        an: `You are ready when you can identify the task, choose evidence from ${assessment}, and explain the reasoning link without relying on general project-management language.`,
+      },
+    ],
   };
-  return templates[category] || templates['Concept Explanation'];
+  return pickFaqRepairTemplate(templates[category] || templates['Concept Explanation'], lessonIndex, questionIndex);
 }
 
 export function normalizeCourseFaqQuestionVariety(data, courseMap = null) {
@@ -552,12 +620,13 @@ export function normalizeCourseFaqQuestionVariety(data, courseMap = null) {
         normalizedAnswer &&
         answerCounts.get(normalizedAnswer) > 2 &&
         /\bstrong work should answer the prompt directly\b/i.test(String(currentAnswer || ''));
+      const repeatedTextureAnswer = hasRepeatedFaqTextureAnswer(currentAnswer);
       const genericPrep = /^how should i prepare for the assessment in this lesson\??$/i.test(
         String(currentQuestion || '').trim(),
       );
-      if (!repeated && !genericPrep && !repeatedBoilerplateAnswer) return question;
+      if (!repeated && !genericPrep && !repeatedBoilerplateAnswer && !repeatedTextureAnswer) return question;
 
-      const repair = buildFaqQuestionRepair({ question, courseLesson, lessonTitle, lessonIndex });
+      const repair = buildFaqQuestionRepair({ question, courseLesson, lessonTitle, lessonIndex, questionIndex });
       rewrittenQuestions++;
       changed = true;
       const nextQuestion = {
