@@ -3,22 +3,22 @@ import { APP_VERSION } from './appVersion.js';
 export const CURRENT_RELEASE = {
   version: APP_VERSION,
   date: 'June 27, 2026',
-  title: 'Study Guide and Map Readiness Firewall: prompt artifacts and premature ticks stop leaking',
-  landingTitle: 'Study Guide and Map Readiness Firewall',
+  title: 'Enrichment-First Voice Gate: partial lesson coverage blocks optional polish',
+  landingTitle: 'Enrichment-First Voice Gate',
   highlights: [
-    'A fresh deployed v0.15.71 Project Management ZIP/log audit scored 95/A, with partial enrichment and Study Guide prompt-artifact leakage as real blockers rather than a clean 100/100 package.',
-    'Study Guide exam-scope check titles now pass through the shared artifact firewall, so combined prompt labels such as quiz banks, discussion prompts, and capstone-presentation requests cannot become student-facing weekly checks.',
-    'The prompt-artifact detector now recognizes compact combined labels from the live package shape, including rubric-driven assignments plus discussion prompts and quiz/exam-bank plus capstone-presentation phrasing.',
-    'The Course Map tab ready tick now stays off while the coverage chip is amber, so a download-available but repair-needed package no longer presents the unfinished map as complete.',
+    'The latest completed ZIP/log evidence is still v0.15.71 at 95/A, so this release does not claim a clean 100/100 package before a fresh v0.15.73 audit.',
+    'Optional voice polish now defers whenever enrichment coverage is partial, so a package with template-fallback lessons keeps attention on repair instead of spending a model call on texture.',
+    'The run digest records the skipped voice pass with the exact enrichment coverage gap, making the quality loss explainable from logs instead of only from the exported grader.',
+    'Focused enrichment and voice-pass regressions pin the policy that lesson coverage is higher priority than texture polish.',
   ],
   landingHighlights: [
-    'Combined prompt labels stay out of Study Guides.',
-    'Repair-needed maps stay unticked.',
-    'Quality blockers remain visible.',
+    'Partial enrichment blocks optional polish.',
+    'Digest logs explain the coverage gap.',
+    'Texture waits for complete lesson kernels.',
   ],
   proof: {
-    contract: 'release-contracts/v0.15.72.json',
-    roadmap: 'docs/V0.15.72_STUDY_GUIDE_CHECK_FIREWALL_ROADMAP.md',
+    contract: 'release-contracts/v0.15.73.json',
+    roadmap: 'docs/V0.15.73_ENRICHMENT_FIRST_VOICE_GATE_ROADMAP.md',
     auditCommand: 'npm run audit:release-history',
   },
 };
@@ -33,6 +33,17 @@ export const CURRENT_RELEASE_CHANGELOG = {
 };
 
 export const HISTORICAL_RELEASE_CHANGELOGS = [
+  {
+    version: '0.15.72',
+    date: 'June 27, 2026',
+    title: 'Study Guide and Map Readiness Firewall: prompt artifacts and premature ticks stop leaking',
+    highlights: [
+      'A fresh deployed v0.15.71 Project Management ZIP/log audit scored 95/A, with partial enrichment and Study Guide prompt-artifact leakage as real blockers rather than a clean 100/100 package.',
+      'Study Guide exam-scope check titles now pass through the shared artifact firewall, so combined prompt labels such as quiz banks, discussion prompts, and capstone-presentation requests cannot become student-facing weekly checks.',
+      'The prompt-artifact detector now recognizes compact combined labels from the live package shape, including rubric-driven assignments plus discussion prompts and quiz/exam-bank plus capstone-presentation phrasing.',
+      'The Course Map tab ready tick now stays off while the coverage chip is amber, so a download-available but repair-needed package no longer presents the unfinished map as complete.',
+    ],
+  },
   {
     version: '0.15.71',
     date: 'June 27, 2026',

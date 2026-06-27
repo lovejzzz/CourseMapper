@@ -138,7 +138,7 @@ describe('flag off — the default path never voices anything', () => {
     // v2 integration upgrades: kernels ride the grounding, and the output
     // cap is FIXED per batch (v1 inherited the ambient budget — truncation
     // read as 38 silent 'no rewrite returned' fallbacks in the failed round).
-    expect(source).toContain('kernels: blueprintEnrichment?.lessonContent');
+    expect(source).toMatch(/kernels:\s*blueprintEnrichment\?\.lessonContent/);
     expect(source).toContain('maxOutputTokens: 4000');
   });
 });

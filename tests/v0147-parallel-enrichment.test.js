@@ -131,4 +131,14 @@ describe('WS-A (2) — the rewritten loop keeps its contract (source pins)', () 
       .split('if (Object.keys(partialOverlays)')[0];
     expect(recoverySource).toContain("type: 'repairRetryCall'");
   });
+
+  it('defers optional voice polish when enrichment coverage is still partial', () => {
+    expect(hookSource).toContain('const enrichmentCoverageGap = getEnrichmentCoverageGap(enrichmentOutcome);');
+    const voiceSource = hookSource.split('const voicePassLib = await import')[1] || '';
+    expect(voiceSource).toContain('if (enrichmentCoverageGap)');
+    expect(voiceSource).toContain('repair lesson enrichment before texture polish');
+    expect(voiceSource.indexOf('if (enrichmentCoverageGap)')).toBeLessThan(
+      voiceSource.indexOf('voicePassLib.runVoicePass({'),
+    );
+  });
 });
