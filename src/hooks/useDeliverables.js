@@ -2201,15 +2201,37 @@ export default function useDeliverables({
             blueprintCompiledFeatureIds.map((featureId) => [featureId, getGenerationConfig(featureId)]),
           ),
         );
-        const compiled = compileBlueprintDeliverables(blueprint, blueprintCompiledFeatureIds, {
-          configMap: compilerConfigMap,
-        });
         const compiledSavings = estimateBlueprintCompilerSavings(
           blueprintCompiledFeatureIds,
           lessonCount,
           generationPlan,
           scopeIndices,
         );
+        const compilerSource = blueprintEnrichment ? 'enriched-blueprint' : 'blueprint';
+        traceGeneration(generationRunId, 'blueprint_compiler_start', {
+          featureIds: blueprintCompiledFeatureIds,
+          lessonCount,
+          savedProviderCalls: compiledSavings,
+          compilerSource,
+          enrichmentSource: blueprintEnrichment?.source || null,
+          configFeatureIds: Object.keys(compilerConfigMap || {}),
+          instructorPreferenceSignals: instructorPreferenceProfile?.signalCount || 0,
+        });
+        recordApiCallEvent({
+          type: 'compilerPlan',
+          stage: 'blueprint-compiler',
+          label: blueprintEnrichment ? 'Enriched blueprint compiler plan' : 'Blueprint compiler plan',
+          detail: `${blueprintCompiledFeatureIds.length} deliverable${
+            blueprintCompiledFeatureIds.length === 1 ? '' : 's'
+          } will compile locally; about ${compiledSavings} provider call${compiledSavings === 1 ? '' : 's'} avoided`,
+          featureIds: blueprintCompiledFeatureIds,
+          compiledFeatureCount: blueprintCompiledFeatureIds.length,
+          savedProviderCalls: compiledSavings,
+          compilerSource,
+        });
+        const compiled = compileBlueprintDeliverables(blueprint, blueprintCompiledFeatureIds, {
+          configMap: compilerConfigMap,
+        });
         recordApiCallEvent({
           type: 'compiledDeliverable',
           label: blueprintEnrichment ? 'Enriched blueprint compiler' : 'Blueprint compiler',
@@ -2218,14 +2240,18 @@ export default function useDeliverables({
           }; saved about ${compiledSavings} generation call${compiledSavings === 1 ? '' : 's'}`,
           featureIds: blueprintCompiledFeatureIds,
           savedProviderCalls: compiledSavings,
-          compilerSource: blueprintEnrichment ? 'enriched-blueprint' : 'blueprint',
+          compiledFeatureCount: blueprintCompiledFeatureIds.length,
+          compilerSource,
         });
-        traceGeneration(generationRunId, 'blueprint_compiler_start', {
+        traceGeneration(generationRunId, 'blueprint_compiler_compiled', {
           featureIds: blueprintCompiledFeatureIds,
-          lessonCount,
-          savedProviderCalls: compiledSavings,
-          enrichmentSource: blueprintEnrichment?.source || null,
-          instructorPreferenceSignals: instructorPreferenceProfile?.signalCount || 0,
+          durationMs: Date.now() - compiledStart,
+          itemCounts: Object.fromEntries(
+            blueprintCompiledFeatureIds.map((featureId) => [
+              featureId,
+              getDeliverableItemCount(featureId, compiled[featureId]),
+            ]),
+          ),
         });
 
         for (const fid of blueprintCompiledFeatureIds) {

@@ -31,6 +31,12 @@ const NON_SOURCE_RESOURCE_RE =
   /^(?:course\s*map|syllabus|lesson\s*plans?|slide\s*decks?|assignment\s*briefs?|rubrics?|discussion\s*prompts?|quiz\s*(?:and|&)\s*exam\s*bank|study\s*guides?|course\s*faq)$/i;
 const PLACEHOLDER_RESOURCE_RE =
   /\b(?:course materials students need|worked examples,\s*readings,\s*or activity sheets|instructor-approved readings,\s*examples,\s*or lab materials|assigned materials|class notes and assigned materials|lms access|shared files|discipline-specific tools|required for this lesson|document,\s*slide,\s*lab,\s*or analysis tool|local examples need instructor confirmation|local source list pending)\b/i;
+const USER_EXPERIENCE_COURSE_RE =
+  /\b(?:user\s+experience|ux\b|human[-\s]?centered\s+design|interaction\s+design|interface\s+design|usability|design\s+studio)\b/i;
+const USER_EXPERIENCE_SOURCE_ANCHOR_RE =
+  /\b(?:user\s+experience|ux\b|human[-\s]?centered\s+design|user\s+interface|interface\s+design|usability|design\s+research|user\s+research|personas?\b(?!\s*5)|journey\s+maps?|customer\s+journey|information\s+architecture|wirefram|prototype|interaction\s+design|accessibility|inclusive\s+design|design\s+handoff|design\s+studio|co[-\s]?design|service\s+design|material\s+experience|design\s+patterns?|screen\s+flows?|navigation|portfolio\s+case\s+study|critique\s+session)\b/i;
+const USER_EXPERIENCE_FALSE_FRIEND_RE =
+  /\b(?:positive\s+feedback|negative\s+feedback|climate\s+change\s+feedbacks?|persona\s+5|shoe\s+production\s+facilities|blocplan|systematic\s+layout\s+planning|layout\s+of\s+shoe\s+production|layout\s+editor\s+configuration|metaverse\s+beyond\s+the\s+hype|patterns\s+2\.0)\b/i;
 const SOURCE_FINDER_TRUSTED_ROWS_PER_TOPIC = 2;
 
 function cleanText(value, maxLength = 500) {
@@ -396,6 +402,31 @@ function sourceIdentityKeys(source = {}) {
   return source.title ? [`title:${source.title}`.toLowerCase()] : [];
 }
 
+function courseText(courseGraph = {}) {
+  return [
+    courseGraph?.course?.name,
+    courseGraph?.course?.title,
+    courseGraph?.courseName,
+    courseGraph?.title,
+    ...(courseGraph?.sessions || []).map((session) => session?.title || ''),
+  ]
+    .filter(Boolean)
+    .join(' ');
+}
+
+function sourceSearchText(source = {}) {
+  return [source?.title, source?.citation, source?.evidence, source?.abstract, source?.snippet, source?.sourceType]
+    .filter(Boolean)
+    .join(' ');
+}
+
+function isUserExperienceFalseFriendSource(source, courseGraph) {
+  if (!USER_EXPERIENCE_COURSE_RE.test(courseText(courseGraph))) return false;
+  const text = sourceSearchText(source);
+  if (!USER_EXPERIENCE_FALSE_FRIEND_RE.test(text)) return false;
+  return !USER_EXPERIENCE_SOURCE_ANCHOR_RE.test(text);
+}
+
 function appendUnique(rows, source) {
   if (!source?.id && !source?.title) return;
   const keys = sourceIdentityKeys(source);
@@ -464,16 +495,22 @@ function sourceFinderTopicLedgerSources(courseGraph, topic, topicIndex, checkedA
   const candidates = rankedSourceFinderTopicSources(topic).map(({ source }, sourceIndex) =>
     normalizeSourceFinderTopicSource(courseGraph, topic, source, topicIndex, sourceIndex, checkedAt),
   );
-  const trustedConceptLinked = candidates.filter(isTrustedConceptLinkedSourceLedgerRow);
+  const falseFriendRows = candidates.filter(
+    (source) => isTrustedConceptLinkedSourceLedgerRow(source) && isUserExperienceFalseFriendSource(source, courseGraph),
+  );
+  const trustedConceptLinked = candidates.filter(
+    (source) =>
+      isTrustedConceptLinkedSourceLedgerRow(source) && !isUserExperienceFalseFriendSource(source, courseGraph),
+  );
   if (trustedConceptLinked.length > 0) {
     return {
       rows: trustedConceptLinked.slice(0, SOURCE_FINDER_TRUSTED_ROWS_PER_TOPIC),
-      reviewRows: [],
+      reviewRows: falseFriendRows,
     };
   }
   return {
     rows: [],
-    reviewRows: candidates.slice(0, 1),
+    reviewRows: falseFriendRows.length > 0 ? falseFriendRows.slice(0, 1) : candidates.slice(0, 1),
   };
 }
 

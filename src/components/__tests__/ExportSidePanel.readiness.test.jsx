@@ -195,9 +195,10 @@ describe('ExportSidePanel readiness repair timing', () => {
 
     const panel = container.querySelector('[data-testid="readiness-panel"]');
     expect(panel?.textContent).toContain('Ready with notes');
-    expect(panel?.textContent).toContain('Download available');
-    expect(panel?.textContent).toContain('Download is ready. Review notes are saved');
-    expect(panel?.textContent).toContain('Show notes');
+    expect(panel?.textContent).toContain('Notes in Agent');
+    expect(panel?.textContent).not.toContain('Download available');
+    expect(panel?.textContent).not.toContain('Download is ready. Review notes are saved');
+    expect(panel?.textContent).not.toContain('Show notes');
     expect(panel?.textContent).not.toContain('4 quality issues');
     expect(panel?.textContent).not.toContain('1 export warning');
     expect(panel?.textContent).not.toContain('3 P1 · 1 P2');

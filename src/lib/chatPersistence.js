@@ -61,6 +61,23 @@ function pruneConversationStorage(conversations, keepCount, activeId) {
   return kept;
 }
 
+function removeConversationPayloadsExcept(activeId) {
+  if (
+    typeof localStorage === 'undefined' ||
+    typeof localStorage.length !== 'number' ||
+    typeof localStorage.key !== 'function'
+  ) {
+    return;
+  }
+  const keepKey = `${STORAGE_KEY}:${activeId}`;
+  const keys = [];
+  for (let index = 0; index < localStorage.length; index += 1) {
+    const key = localStorage.key(index);
+    if (key?.startsWith(`${STORAGE_KEY}:`) && key !== keepKey) keys.push(key);
+  }
+  for (const key of keys) localStorage.removeItem(key);
+}
+
 function writeConversationStorage(conversations, id, messages) {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(conversations));
   localStorage.setItem(`${STORAGE_KEY}:${id}`, JSON.stringify(messages));
@@ -131,14 +148,17 @@ export function saveConversation(id, messages, title) {
       } catch (retryError) {
         if (!isQuotaError(retryError)) throw retryError;
         const hardPrunedConversations = pruneConversationStorage(prunedConversations, 1, id);
-        writeConversationStorage(
-          hardPrunedConversations,
-          id,
-          compactMessagesForStorage(safeMessages, {
-            limit: HARD_COMPACT_MESSAGE_LIMIT,
-            maxChars: HARD_COMPACT_TEXT_CHARS,
-          }),
-        );
+        const hardCompactedMessages = compactMessagesForStorage(safeMessages, {
+          limit: HARD_COMPACT_MESSAGE_LIMIT,
+          maxChars: HARD_COMPACT_TEXT_CHARS,
+        });
+        try {
+          writeConversationStorage(hardPrunedConversations, id, hardCompactedMessages);
+        } catch (hardRetryError) {
+          if (!isQuotaError(hardRetryError)) throw hardRetryError;
+          removeConversationPayloadsExcept(id);
+          writeConversationStorage([entry], id, hardCompactedMessages);
+        }
       }
     }
 

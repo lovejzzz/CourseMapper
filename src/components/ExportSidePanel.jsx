@@ -337,17 +337,12 @@ function ReadinessPanel({
   const hasWarnings = readiness.warnings.length > 0 || trustStatus.review || packageReviewIssues.length > 0;
   const issuesToShow = isBlocked
     ? [...readiness.blockers, ...(qualityIssue?.severity === 'blocker' ? [qualityIssue] : [])].slice(0, 3)
-    : [...readiness.warnings, ...packageReviewIssues].slice(0, 3);
+    : [];
   const hasPackageOnlyReview = packageReviewIssues.length > 0 && readiness.warnings.length === 0;
-  const helperText =
-    issuesToShow.length === 0
-      ? summarizeReadiness(readiness)
-      : isBlocked
-        ? 'Finish package fixes safe items and stops for decisions.'
-        : hasPackageOnlyReview
-          ? 'Download is ready. Review notes are saved for the instructor before publishing.'
-          : 'I handled safe fixes. Review the remaining notes before publishing.';
-  const showIssueDetails = isBlocked || detailsOpen;
+  const helperText = isBlocked
+    ? 'Finish package fixes safe items and stops for decisions.'
+    : summarizeReadiness(readiness);
+  const showIssueDetails = isBlocked && issuesToShow.length > 0;
   const canNavigate = (issue) => typeof onIssueClick === 'function' && issue?.target;
   const tone = isBlocked
     ? {
@@ -361,7 +356,7 @@ function ReadinessPanel({
           wrap: 'border-amber-100 bg-amber-50/70 text-amber-700',
           icon: 'bg-amber-100 text-amber-600',
           title: hasPackageOnlyReview ? 'Ready with notes' : 'Review recommended',
-          meta: hasPackageOnlyReview ? 'Download available' : trustStatus.reviewMeta || 'Review notes saved',
+          meta: 'Notes in Agent',
         }
       : {
           wrap: 'border-emerald-100 bg-emerald-50/70 text-emerald-700',
@@ -390,7 +385,7 @@ function ReadinessPanel({
           </div>
           {/* v0.14.6 calm pass: when everything is green the ✓ + meta already
               say it — restating "All selected materials passed…" was noise. */}
-          {(isBlocked || hasWarnings) && <p className="mt-0.5 text-xs leading-snug opacity-80">{helperText}</p>}
+          {isBlocked && <p className="mt-0.5 text-xs leading-snug opacity-80">{helperText}</p>}
           {/* v0.14.4 WS-B3: the repairs/warnings receipt folded into the
               download card's detail line — the only place this info lives
               now that the in-panel stage narration is gone. */}
@@ -398,16 +393,6 @@ function ReadinessPanel({
             <p data-testid="readiness-finish-summary" className="mt-0.5 text-xs leading-snug opacity-70">
               {finishSummary}
             </p>
-          )}
-          {!isBlocked && issuesToShow.length > 0 && (
-            <button
-              type="button"
-              onClick={() => setDetailsOpen((value) => !value)}
-              className="mt-1 rounded-md px-1.5 py-0.5 text-xs font-bold opacity-80 transition-colors hover:bg-white/60 hover:opacity-100"
-              aria-expanded={detailsOpen}
-            >
-              {detailsOpen ? 'Hide notes' : 'Show notes'}
-            </button>
           )}
           {showIssueDetails && issuesToShow.length > 0 && (
             <ul className="mt-1.5 space-y-1">

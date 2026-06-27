@@ -291,6 +291,46 @@ describe('source-ledger quality checks', () => {
     );
   });
 
+  it('flags UX false-friend rows trusted for design-studio concepts', async () => {
+    const result = await grade({
+      fileProvider: createMemoryFileProvider({
+        'PACKAGE_MANIFEST.json': JSON.stringify({
+          courseName: 'User Experience Design Studio',
+          lessonScope: 'all',
+          requestedFeatures: [],
+          readiness: { status: 'ready', blockers: 0, warnings: 0, checkedSections: null },
+          sourceLedger: [
+            {
+              id: 'sf2',
+              title: 'Positive feedback',
+              provider: 'wikipedia',
+              url: 'https://en.wikipedia.org/wiki/Positive_feedback',
+              license: 'CC BY-SA 4.0',
+              conceptLinks: [{ id: 'c4', label: 'project feedback' }],
+            },
+          ],
+          sourceReport: {
+            path: 'SOURCE_REPORT.md',
+            sourceCount: 1,
+          },
+          files: [],
+        }),
+        'SOURCE_REPORT.md': '# Source Report\n\n## Source Ledger\n- sf2: Positive feedback\n',
+      }),
+      course: { title: 'User Experience Design Studio', featureIds: [] },
+    });
+
+    expect(result.findings).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          severity: 'P1',
+          dimension: 'citations',
+          detail: 'source ledger row sf2 is off-discipline for User Experience Design Studio',
+        }),
+      ]),
+    );
+  });
+
   it('flags complete atom coverage that is not wired to the exported trusted ledger rows', async () => {
     const result = await grade({
       fileProvider: createMemoryFileProvider({

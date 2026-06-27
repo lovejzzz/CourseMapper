@@ -623,4 +623,72 @@ describe('trusted source ledger', () => {
     expect(report).toContain('trustedBibliography=false');
     expect(report).not.toContain('## Source Ledger');
   });
+
+  it('quarantines UX source-finder false friends as review notes', () => {
+    const ledger = buildSourceLedgerFromCourseGraph(
+      {
+        course: { name: 'User Experience Design Studio' },
+        concepts: [{ id: 'c1', term: 'project feedback' }],
+        sessions: [
+          {
+            id: 's1',
+            number: 2,
+            title: 'Critique session',
+            sections: [{ id: 'sec1', topic: 'project feedback', conceptRefs: ['c1'], resourceRefs: [] }],
+          },
+        ],
+        resources: [],
+        sourceFinderMiniShard: {
+          topics: [
+            {
+              sessionId: 's1',
+              lessonNumber: 2,
+              topic: 'project feedback',
+              sources: [
+                {
+                  provider: 'wikipedia',
+                  kind: 'background source',
+                  title: 'Positive feedback',
+                  url: 'https://en.wikipedia.org/wiki/Positive_feedback',
+                  license: 'CC BY-SA 4.0',
+                  snippet: 'Positive feedback is a system process that amplifies change.',
+                },
+                {
+                  provider: 'openalex',
+                  kind: 'journal article',
+                  title: 'Understanding Collaborative Practices and Tools of Professional UX Practitioners',
+                  url: 'https://dl.acm.org/doi/pdf/10.1145/3544548.3581273',
+                  doi: '10.1145/3544548.3581273',
+                  license: 'CC BY',
+                  snippet: 'Study of user experience practitioners, design handoff, critique, and collaboration.',
+                },
+              ],
+            },
+          ],
+        },
+      },
+      { checkedAt: '2026-06-27T00:00:00.000Z' },
+    );
+
+    expect(ledger.rows).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          provider: 'openalex',
+          title: expect.stringContaining('UX Practitioners'),
+          conceptLinks: [{ id: 'c1', label: 'project feedback' }],
+        }),
+      ]),
+    );
+    expect(ledger.rows.map((row) => row.title)).not.toContain('Positive feedback');
+    expect(ledger.reviewRows).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          provider: 'wikipedia',
+          title: 'Positive feedback',
+          conceptLinks: [{ id: 'c1', label: 'project feedback' }],
+        }),
+      ]),
+    );
+    expect(ledger.summary).toMatchObject({ sourceCount: 1, trustedConceptLinkedCount: 1, reviewRequiredCount: 1 });
+  });
 });

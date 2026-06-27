@@ -29,6 +29,12 @@ const PROJECT_MANAGEMENT_SOURCE_ANCHOR_RE =
   /\b(?:project\s+management|project\s+manager|pmbok|project\s+charter|scope\s+management|work\s+breakdown|critical\s+path|risk\s+register|project\s+risk|project\s+controls|project\s+scheduling|earned\s+value|agile|scrum|kanban|project\s+governance|project\s+life\s+cycle|resource\s+planning|procurement\s+management|deliverable\s+acceptance|portfolio\s+management|construction\s+project|software\s+project)\b/i;
 const PROJECT_MANAGEMENT_FALSE_FRIEND_RE =
   /\b(?:audit\s+quality|auditor\s+independence|audit\s+firm|financial\s+reporting|financial\s+statements?|earnings\s+management|external\s+audit|internal\s+audit|accounting\s+audit)\b/i;
+const USER_EXPERIENCE_COURSE_RE =
+  /\b(?:user\s+experience|ux\b|human[-\s]?centered\s+design|interaction\s+design|interface\s+design|usability|design\s+studio)\b/i;
+const USER_EXPERIENCE_SOURCE_ANCHOR_RE =
+  /\b(?:user\s+experience|ux\b|human[-\s]?centered\s+design|user\s+interface|interface\s+design|usability|design\s+research|user\s+research|personas?\b(?!\s*5)|journey\s+maps?|customer\s+journey|information\s+architecture|wirefram|prototype|interaction\s+design|accessibility|inclusive\s+design|design\s+handoff|design\s+studio|co[-\s]?design|service\s+design|material\s+experience|design\s+patterns?|screen\s+flows?|navigation|portfolio\s+case\s+study|critique\s+session)\b/i;
+const USER_EXPERIENCE_FALSE_FRIEND_RE =
+  /\b(?:positive\s+feedback|negative\s+feedback|climate\s+change\s+feedbacks?|persona\s+5|shoe\s+production\s+facilities|blocplan|systematic\s+layout\s+planning|layout\s+of\s+shoe\s+production|layout\s+editor\s+configuration|metaverse\s+beyond\s+the\s+hype|patterns\s+2\.0)\b/i;
 
 function ambiguousLicense(row) {
   const license = String(row?.license || '')
@@ -76,6 +82,19 @@ function isProjectManagementManifest(manifest) {
   return PROJECT_MANAGEMENT_COURSE_RE.test(courseText);
 }
 
+function isUserExperienceManifest(manifest) {
+  const courseText = [
+    manifest?.courseName,
+    manifest?.title,
+    manifest?.packageTitle,
+    manifest?.pipeline?.knowledgeBackbone,
+    manifest?.pipeline?.courseGraph,
+  ]
+    .filter(Boolean)
+    .join(' ');
+  return USER_EXPERIENCE_COURSE_RE.test(courseText);
+}
+
 function rowSearchText(row) {
   return [row?.title, row?.citation, row?.evidence, row?.sourceType, row?.scope].filter(Boolean).join(' ');
 }
@@ -85,6 +104,13 @@ function isProjectManagementFalseFriendSource(row, manifest) {
   const text = rowSearchText(row);
   if (!PROJECT_MANAGEMENT_FALSE_FRIEND_RE.test(text)) return false;
   return !PROJECT_MANAGEMENT_SOURCE_ANCHOR_RE.test(text);
+}
+
+function isUserExperienceFalseFriendSource(row, manifest) {
+  if (!isUserExperienceManifest(manifest)) return false;
+  const text = rowSearchText(row);
+  if (!USER_EXPERIENCE_FALSE_FRIEND_RE.test(text)) return false;
+  return !USER_EXPERIENCE_SOURCE_ANCHOR_RE.test(text);
 }
 
 function sourceCoverageTotal(coverage) {
@@ -222,6 +248,15 @@ export function checkSourceLedger(findings, { files, manifest }) {
         dimension: 'citations',
         file: 'PACKAGE_MANIFEST.json',
         detail: `source ledger row ${id || '(missing id)'} is off-discipline for Project Management`,
+        evidence: row?.title || row?.citation || row?.evidence || id,
+      });
+    }
+    if (isTrustedConceptLinkedBibliographyRow(row) && isUserExperienceFalseFriendSource(row, manifest)) {
+      findings.add({
+        severity: 'P1',
+        dimension: 'citations',
+        file: 'PACKAGE_MANIFEST.json',
+        detail: `source ledger row ${id || '(missing id)'} is off-discipline for User Experience Design Studio`,
         evidence: row?.title || row?.citation || row?.evidence || id,
       });
     }

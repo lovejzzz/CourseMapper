@@ -14,6 +14,10 @@ const localStorageMock = (() => {
     removeItem: vi.fn((key) => {
       delete store[key];
     }),
+    key: vi.fn((index) => Object.keys(store)[index] || null),
+    get length() {
+      return Object.keys(store).length;
+    },
     clear: vi.fn(() => {
       store = {};
     }),
@@ -180,6 +184,47 @@ describe('saveConversation + loadConversation', () => {
       expect(localStorage.getItem('coursemapper-conversations:old-0')).toBeNull();
       expect(stored.length).toBeLessThanOrEqual(80);
       expect(JSON.stringify(stored)).toContain('[truncated]');
+    } finally {
+      localStorage.setItem.mockImplementation(defaultSetItem);
+      warnSpy.mockRestore();
+    }
+  });
+
+  it('clears orphaned conversation payloads when hard compaction still hits quota', () => {
+    localStorage.setItem(
+      'coursemapper-conversations',
+      JSON.stringify([{ id: 'orphan', title: 'Old orphan', createdAt: '2026-01-01', updatedAt: '2026-01-01' }]),
+    );
+    localStorage.setItem(
+      'coursemapper-conversations:orphan',
+      JSON.stringify([{ role: 'user', text: 'x'.repeat(5000) }]),
+    );
+
+    const defaultSetItem = localStorage.setItem.getMockImplementation();
+    const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    localStorage.setItem.mockImplementation((key, value) => {
+      if (key === 'coursemapper-conversations:active' && localStorage.getItem('coursemapper-conversations:orphan')) {
+        const error = new Error('quota exceeded');
+        error.name = 'QuotaExceededError';
+        throw error;
+      }
+      return defaultSetItem(key, value);
+    });
+
+    try {
+      const messages = Array.from({ length: 120 }, (_, index) => ({
+        role: index % 2 === 0 ? 'user' : 'assistant',
+        text: `Message ${index} ${'x'.repeat(5000)}`,
+      }));
+
+      const entry = saveConversation('active', messages, 'Active');
+      const stored = JSON.parse(localStorage.getItem('coursemapper-conversations:active'));
+
+      expect(entry.id).toBe('active');
+      expect(warnSpy).not.toHaveBeenCalled();
+      expect(localStorage.getItem('coursemapper-conversations:orphan')).toBeNull();
+      expect(listConversations()).toEqual([expect.objectContaining({ id: 'active' })]);
+      expect(stored.length).toBeLessThanOrEqual(30);
     } finally {
       localStorage.setItem.mockImplementation(defaultSetItem);
       warnSpy.mockRestore();

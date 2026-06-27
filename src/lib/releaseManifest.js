@@ -3,22 +3,22 @@ import { APP_VERSION } from './appVersion.js';
 export const CURRENT_RELEASE = {
   version: APP_VERSION,
   date: 'June 27, 2026',
-  title: 'Project Source False-Friend Gate: accounting audit papers stop counting as project proof',
-  landingTitle: 'Project Source False-Friend Gate',
+  title: 'Generation Trace Audit: API calls and compiler stages become inspectable',
+  landingTitle: 'Generation Trace Audit',
   highlights: [
-    'A fresh deployed v0.15.83 Project Management ZIP/log audit looked clean in the app at 100/A with texture 95, but the stricter local regrade exposed one trusted source-ledger P1: an accounting "audit quality" paper was linked to a risk-register concept.',
-    'Project Management OpenAlex attachment now applies a false-friend gate, rejecting accounting audit-quality and financial-reporting papers unless the source text has an actual project-management anchor.',
-    'The source-ledger grader now flags trusted concept-linked Project Management rows that are off-discipline false friends, so report truth catches the same source mistake even if it reaches export.',
-    'The v0.15.83 audit also verified the recent Course Map repairs: no generic Week/Session labels, no stale visual-arts kernels, amber review-with-notes export state, and no local-save quota warning. This release does not claim a clean 100/100 package; a fresh deployed v0.15.84 audit is required.',
+    'Generation console evidence is now audit-ready by default: `[CM][API]` rows include run id, stage, provider/model, feature, counters, call plan, token/cost summary, retry/failure metadata, and compiler savings without exposing prompts or API keys.',
+    'Provider calls now emit explicit request-start and response-complete trace rows with attempt number, schema presence, max output budget, approximate input tokens, response characters, and stream chunk count, making retry and fallback behavior visible from saved logs.',
+    'The blueprint compiler now logs a real plan/start/compiled sequence before and after local compilation, including feature ids, config feature ids, item counts, duration, enrichment source, and avoided provider-call count.',
+    'The v0.15.84 User Experience Design Studio audit follow-up is bundled: the export card stays simple with notes delegated to the Agent panel, old local conversation payloads are cleared on quota pressure, and UX source-finder false friends are quarantined or graded as citation defects instead of trusted proof.',
   ],
   landingHighlights: [
-    'Accounting audit papers stay out of project proof.',
-    'Trusted ledger rows get source-topic defense.',
-    'v0.15.83 evidence regrades honestly at 99/A.',
+    'API calls explain what happened.',
+    'Compiler stages show plan and output shape.',
+    'Export notes stay out of the simple card.',
   ],
   proof: {
-    contract: 'release-contracts/v0.15.84.json',
-    roadmap: 'docs/V0.15.84_PROJECT_SOURCE_FALSE_FRIEND_GATE_ROADMAP.md',
+    contract: 'release-contracts/v0.15.85.json',
+    roadmap: 'docs/V0.15.85_GENERATION_TRACE_AUDIT_ROADMAP.md',
     auditCommand: 'npm run audit:release-history',
   },
 };
@@ -33,6 +33,17 @@ export const CURRENT_RELEASE_CHANGELOG = {
 };
 
 export const HISTORICAL_RELEASE_CHANGELOGS = [
+  {
+    version: '0.15.84',
+    date: 'June 27, 2026',
+    title: 'Project Source False-Friend Gate: accounting audit papers stop counting as project proof',
+    highlights: [
+      'A fresh deployed v0.15.83 Project Management ZIP/log audit looked clean in the app at 100/A with texture 95, but the stricter local regrade exposed one trusted source-ledger P1: an accounting "audit quality" paper was linked to a risk-register concept.',
+      'Project Management OpenAlex attachment now applies a false-friend gate, rejecting accounting audit-quality and financial-reporting papers unless the source text has an actual project-management anchor.',
+      'The source-ledger grader now flags trusted concept-linked Project Management rows that are off-discipline false friends, so report truth catches the same source mistake even if it reaches export.',
+      'The v0.15.83 audit also verified the recent Course Map repairs: no generic Week/Session labels, no stale visual-arts kernels, amber review-with-notes export state, and no local-save quota warning. This release does not claim a clean 100/100 package; a fresh deployed v0.15.84 audit is required.',
+    ],
+  },
   {
     version: '0.15.83',
     date: 'June 27, 2026',

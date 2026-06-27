@@ -50,6 +50,10 @@ function extractGoogleText(data) {
   return data?.candidates?.[0]?.content?.parts?.map((part) => part.text || '').join('') || '';
 }
 
+function estimateCharsAsTokens(...values) {
+  return Math.round(values.reduce((sum, value) => sum + String(value || '').length, 0) / 4);
+}
+
 /**
  * Shared SSE stream reader with auto-retry and exponential backoff.
  * Streams directly from the selected provider in the static BYOK build.
@@ -188,6 +192,15 @@ export default function useStreamReader() {
       });
       if (usageEvent) recordApiCallEvent(usageEvent);
     };
+    const buildProviderTraceBase = () => ({
+      provider,
+      modelId,
+      featureId: featureId || task || '',
+      task: task || featureId || '',
+      maxOutputTokens: Number(maxOutputTokens) || undefined,
+      approxInputTokens: estimateCharsAsTokens(systemPrompt, userPrompt),
+      hasSchema: Boolean(schema),
+    });
 
     // WebLLM: run locally in browser, no network needed
     if (provider === 'webllm') {
@@ -246,7 +259,8 @@ export default function useStreamReader() {
         type: 'providerFallbackCall',
         label: 'Google non-streaming fallback',
         detail: modelId,
-        featureId: featureId || task,
+        stage: 'provider-fallback',
+        ...buildProviderTraceBase(),
       });
       const response = await fetch(googleGenerateUrlFromStreamUrl(url), {
         method: 'POST',
@@ -270,7 +284,8 @@ export default function useStreamReader() {
           type: 'failedCall',
           label: 'Google non-streaming fallback failed',
           detail: error.message,
-          featureId: featureId || task,
+          stage: 'provider-fallback',
+          ...buildProviderTraceBase(),
           ...failureEventFields(error, { provider, modelId }),
         });
         error.apiCallBudgetRecorded = true;
@@ -280,6 +295,15 @@ export default function useStreamReader() {
       if (!text) throw new Error('Google fallback returned an empty response.');
       fullText = existingText + text;
       if (onChunk) onChunk(fullText, 1);
+      recordApiCallEvent({
+        type: 'providerResponseDone',
+        label: 'Google fallback response',
+        detail: `${text.length} chars`,
+        stage: 'provider-response',
+        ...buildProviderTraceBase(),
+        outputChars: text.length,
+        streamChunkCount: 1,
+      });
       recordUsage(normalizeApiUsage(data.usageMetadata || {}), text, 'Google fallback usage');
       return { fullText };
     };
@@ -296,6 +320,15 @@ export default function useStreamReader() {
       }
 
       try {
+        recordApiCallEvent({
+          type: 'providerRequestStart',
+          label: 'Provider request start',
+          detail: `${task || featureId || 'generation'} attempt ${attempt + 1}/${maxRetries + 1}`,
+          stage: 'provider-request',
+          ...buildProviderTraceBase(),
+          attempt: attempt + 1,
+          maxRetries,
+        });
         const response = await fetch(url, {
           method: 'POST',
           headers,
@@ -317,7 +350,10 @@ export default function useStreamReader() {
               type: 'providerFallbackCall',
               label: 'Retry without temperature',
               detail: modelId,
-              featureId: featureId || task,
+              stage: 'provider-fallback',
+              ...buildProviderTraceBase(),
+              attempt: attempt + 1,
+              maxRetries,
             });
             ({ url, headers, body, parseChunk } = buildProviderTextRequest({
               provider,
@@ -348,7 +384,10 @@ export default function useStreamReader() {
             type: 'failedCall',
             label: 'Provider API error',
             detail: error.message,
-            featureId: featureId || task,
+            stage: 'provider-response',
+            ...buildProviderTraceBase(),
+            attempt: attempt + 1,
+            maxRetries,
             ...failureEventFields(error, { provider, modelId }),
           });
           error.apiCallBudgetRecorded = true;
@@ -396,7 +435,19 @@ export default function useStreamReader() {
           if (done) break;
         }
 
-        recordUsage(reportedUsage, fullText.slice(String(existingText || '').length), 'API usage');
+        const outputText = fullText.slice(String(existingText || '').length);
+        recordApiCallEvent({
+          type: 'providerResponseDone',
+          label: 'Provider response complete',
+          detail: `${chunkCount} stream chunk${chunkCount === 1 ? '' : 's'}, ${outputText.length} chars`,
+          stage: 'provider-response',
+          ...buildProviderTraceBase(),
+          attempt: attempt + 1,
+          maxRetries,
+          outputChars: outputText.length,
+          streamChunkCount: chunkCount,
+        });
+        recordUsage(reportedUsage, outputText, 'API usage');
         return { fullText };
       } catch (err) {
         if (err.name === 'AbortError') throw err;
@@ -430,7 +481,8 @@ export default function useStreamReader() {
             type: 'retrySuppressed',
             label: 'Retry suppressed',
             detail: classifiedError.userMessage || classifiedError.message,
-            featureId: featureId || task,
+            stage: 'stream-retry',
+            ...buildProviderTraceBase(),
             attempt: attempt + 1,
             maxRetries,
             ...failureEventFields(classifiedError, { provider, modelId }),

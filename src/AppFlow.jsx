@@ -72,12 +72,7 @@ import {
   repairWorkspaceReadiness,
 } from './lib/deliverableReadiness';
 import { evaluateClassroomReadiness } from './lib/classroomReadiness';
-import {
-  applyApiCallBudgetEvent,
-  createApiCallBudget,
-  formatEnrichmentOutcomeLabel,
-  getApiCallBudgetTotal,
-} from './lib/apiCallBudget';
+import { applyApiCallBudgetEvent, createApiCallBudget, formatEnrichmentOutcomeLabel } from './lib/apiCallBudget';
 import { buildBuildRibbonModel } from './lib/buildRibbonModel';
 import useReviewQueueOwner from './hooks/useReviewQueueOwner';
 import useTabDrag from './hooks/useTabDrag';
@@ -237,74 +232,34 @@ function isVerboseTraceEnabled() {
   }
 }
 
+let apiTraceSummaryModulePromise = null;
+
+function loadApiTraceSummaryModule() {
+  if (!apiTraceSummaryModulePromise) apiTraceSummaryModulePromise = import('./lib/apiTraceSummary');
+  return apiTraceSummaryModulePromise;
+}
+
 function traceApiCallBudget(event = {}, budget = {}) {
   // v0.10.1: default to one readable line per event — the cumulative-state
   // blob on every event made real logs unreadable and buried the signal.
   // `localStorage['coursemapper-trace'] = 'verbose'` restores the full dump.
-  if (!isVerboseTraceEnabled()) {
-    traceLog(`[CM][API] ${event.type || 'event'}`, {
-      label: event.label || '',
-      detail: event.detail || '',
-      featureId: event.featureId || '',
-      calls: getApiCallBudgetTotal(budget),
-      spendUsd: budget.tokenUsage?.costUsd ? Number(budget.tokenUsage.costUsd.toFixed(4)) : 0,
-      ...(event.failureClass ? { failureClass: event.failureClass, statusCode: event.statusCode } : {}),
+  const level = event.failureClass || event.type === 'failedCall' ? 'warn' : 'info';
+  const verbose = isVerboseTraceEnabled();
+  loadApiTraceSummaryModule()
+    .then(({ buildApiTraceSummary }) => {
+      traceLog(`[CM][API] ${event.type || 'event'}`, buildApiTraceSummary(event, budget, { verbose }), level);
+    })
+    .catch(() => {
+      traceLog(
+        `[CM][API] ${event.type || 'event'}`,
+        {
+          label: event.label || '',
+          detail: event.detail || '',
+          featureId: event.featureId || '',
+        },
+        level,
+      );
     });
-    return;
-  }
-  const counters = {
-    modelDiscovery: budget.modelDiscoveryCalls || 0,
-    creditCheck: budget.creditCheckCalls || 0,
-    capabilityProbe: budget.capabilityProbeCalls || 0,
-    courseMap: budget.courseMapCalls || 0,
-    deliverableChunk: budget.deliverableChunkCalls || 0,
-    repairRetry: budget.repairRetryCalls || 0,
-    streamRetry: budget.streamRetryCalls || 0,
-    providerFallback: budget.providerFallbackCalls || 0,
-    agentLoop: budget.agentLoopCalls || 0,
-    imageGeneration: budget.imageGenerationCalls || 0,
-    failed: budget.failedCalls || 0,
-  };
-  traceLog(`[CM][API] ${event.type || 'event'}`, {
-    at: new Date().toISOString(),
-    runId: budget.runId,
-    label: event.label || '',
-    detail: event.detail || '',
-    featureId: event.featureId || '',
-    count: Number.isFinite(event.count) ? event.count : 1,
-    failureClass: event.failureClass || '',
-    statusCode: event.statusCode || '',
-    retryable: event.retryable,
-    userMessage: event.userMessage || '',
-    provider: event.provider || '',
-    modelId: event.modelId || '',
-    usage: budget.tokenUsage
-      ? {
-          inputTokens: budget.tokenUsage.inputTokens || 0,
-          outputTokens: budget.tokenUsage.outputTokens || 0,
-          reasoningOutputTokens: budget.tokenUsage.reasoningOutputTokens || 0,
-          cachedInputTokens: budget.tokenUsage.cachedInputTokens || 0,
-          totalTokens: budget.tokenUsage.totalTokens || 0,
-          costUsd: budget.tokenUsage.costUsd || 0,
-          costKnownCallCount: budget.tokenUsage.costKnownCallCount || 0,
-          costUnknownCallCount: budget.tokenUsage.costUnknownCallCount || 0,
-          costEstimatedCallCount: budget.tokenUsage.costEstimatedCallCount || 0,
-          estimatedCallCount: budget.tokenUsage.estimatedCallCount || 0,
-          reportedCallCount: budget.tokenUsage.reportedCallCount || 0,
-        }
-      : null,
-    totalProviderCalls: getApiCallBudgetTotal(budget),
-    costControl: budget.costControl || null,
-    costPlan: budget.costPlan
-      ? {
-          source: budget.costPlan.source,
-          plannedNewCalls: budget.costPlan.plannedNewCalls,
-          plannedCalls: budget.costPlan.plannedCalls,
-          hardCallLimit: budget.costPlan.hardCallLimit,
-        }
-      : null,
-    counters,
-  });
 }
 
 function createPackageFinishRunId() {

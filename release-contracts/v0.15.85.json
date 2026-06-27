@@ -1,0 +1,100 @@
+{
+  "version": "0.15.85",
+  "date": "June 27, 2026",
+  "title": "Generation Trace Audit: API calls and compiler stages become inspectable",
+  "status": "verified-current",
+  "proofSummary": {
+    "local": [
+      "npm test -- src/lib/__tests__/apiTraceSummary.test.js src/lib/knowledge/__tests__/sourceLedger.test.js src/lib/quality/__tests__/sourceLedgerGrader.test.js src/lib/__tests__/chatPersistence.test.js src/components/__tests__/ExportSidePanel.readiness.test.jsx",
+      "npm run format:check",
+      "npm run lint",
+      "npm test",
+      "npm run build",
+      "npm run bundle:check",
+      "npm run audit:release-history",
+      "npm run audit:gold:smoke"
+    ],
+    "ciFast": {
+      "status": "pending-push",
+      "note": "Fast verification is claimed only after v0.15.85 is pushed and the GitHub Actions run is attached."
+    },
+    "deploy": {
+      "status": "pending-push",
+      "note": "Pages deploy is not claimed until the pushed release completes its deploy run."
+    },
+    "ciDeep": {
+      "status": "local-only",
+      "note": "This is a narrow observability/runtime/report-truth release; focused regressions plus normal gates are the release bar."
+    },
+    "liveProvider": {
+      "status": "local-only",
+      "note": "The release is based on local implementation proof and the v0.15.84 User Experience Design Studio ZIP/log audit, whose patched local regrade is 93/A with six P1 source-ledger false-friend findings. A fresh deployed v0.15.85 package audit is required to verify the new trace rows and source quarantine in provider logs."
+    },
+    "manualHuman": {
+      "status": "not-applicable",
+      "note": "No external instructor approval is claimed by this release."
+    }
+  },
+  "claims": [
+    {
+      "id": "v01585-api-trace-summary",
+      "status": "verified-current",
+      "changelogHighlightIndex": 0,
+      "summary": "Default API trace rows now carry run id, stage, provider/model, feature, counters, cost plan, usage summary, failure metadata, and compiler savings without prompt or key material.",
+      "anchors": ["src/lib/apiTraceSummary.js", "src/AppFlow.jsx", "src/lib/__tests__/apiTraceSummary.test.js"],
+      "proofCommands": ["npm test -- src/lib/__tests__/apiTraceSummary.test.js"],
+      "proofScopes": ["unit", "static-audit"]
+    },
+    {
+      "id": "v01585-provider-request-response-trace",
+      "status": "verified-current",
+      "changelogHighlightIndex": 1,
+      "summary": "Provider streaming now emits request-start and response-complete process events with attempt, schema, token-budget, response-size, and stream-chunk metrics.",
+      "anchors": ["src/hooks/useStreamReader.js", "src/lib/apiTraceSummary.js"],
+      "proofCommands": ["npm test -- src/lib/__tests__/apiTraceSummary.test.js", "npm run lint"],
+      "proofScopes": ["unit", "static-audit"]
+    },
+    {
+      "id": "v01585-blueprint-compiler-trace",
+      "status": "verified-current",
+      "changelogHighlightIndex": 2,
+      "summary": "Blueprint compiler logs now show plan/start/compiled order, config feature ids, compile duration, item counts, enrichment source, and avoided provider-call count.",
+      "anchors": ["src/hooks/useDeliverables.js", "src/lib/apiTraceSummary.js"],
+      "proofCommands": ["npm run lint", "npm run format:check"],
+      "proofScopes": ["static-audit"]
+    },
+    {
+      "id": "v01585-ux-audit-followup",
+      "status": "verified-current",
+      "changelogHighlightIndex": 3,
+      "summary": "The v0.15.84 UX Design audit follow-up keeps export notes simple, recovers from local conversation quota pressure, and quarantines UX source-finder false friends.",
+      "anchors": [
+        "src/components/ExportSidePanel.jsx",
+        "src/lib/chatPersistence.js",
+        "src/lib/knowledge/sourceLedger.js",
+        "src/lib/quality/sourceLedgerQualityChecks.js",
+        "docs/V0.15.85_GENERATION_TRACE_AUDIT_ROADMAP.md",
+        "verification-output/edutool-audit-loop/20260627T143736Z-v01584-ux-design/report.md",
+        "verification-output/edutool-audit-loop/20260627T143736Z-v01584-ux-design/local-regrade.md"
+      ],
+      "proofCommands": [
+        "npm test -- src/lib/knowledge/__tests__/sourceLedger.test.js src/lib/quality/__tests__/sourceLedgerGrader.test.js src/lib/__tests__/chatPersistence.test.js src/components/__tests__/ExportSidePanel.readiness.test.jsx"
+      ],
+      "proofScopes": ["unit", "static-audit", "live-provider"]
+    }
+  ],
+  "carryForward": [
+    {
+      "id": "fresh-v01585-provider-audit",
+      "status": "carry-forward",
+      "source": "docs/V0.15.85_GENERATION_TRACE_AUDIT_ROADMAP.md",
+      "next": "After deploy, run a fresh v0.15.85 EduTool.dev ZIP/log audit and confirm ordinary saved console logs include provider request/response and compiler trace rows."
+    },
+    {
+      "id": "quality-100-target",
+      "status": "carry-forward",
+      "source": "verification-output/edutool-audit-loop/20260627T143736Z-v01584-ux-design/local-regrade.md",
+      "next": "The supplied v0.15.84 UX package exported 99/A but patched local regrade is 93/A with six P1 source false-friend findings and texture 93, so fresh v0.15.85 evidence must verify source quarantine first."
+    }
+  ]
+}
