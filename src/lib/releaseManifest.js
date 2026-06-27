@@ -3,22 +3,22 @@ import { APP_VERSION } from './appVersion.js';
 export const CURRENT_RELEASE = {
   version: APP_VERSION,
   date: 'June 27, 2026',
-  title: 'Embedded Artifact Label Firewall: sentence-shaped prompt labels stop becoming concepts',
-  landingTitle: 'Embedded Artifact Label Firewall',
+  title: 'Project Management Source Gate: off-discipline readings stop entering trusted proof',
+  landingTitle: 'Project Management Source Gate',
   highlights: [
-    'A fresh deployed v0.15.74 Project Management ZIP/log audit regraded at 74/C, with prompt artifact labels in lesson concepts as the highest-severity P0 defect; this release does not claim a clean package before a fresh v0.15.75 audit.',
-    'Course-map readiness repair now catches embedded prompt artifact labels inside sentence-shaped goals, objectives, assessments, activities, resources, and evaluate-design cells instead of only bare labels.',
-    'Compiler grounding now treats Course Map, Syllabus, Lesson Objectives, and Quiz & Exam Bank labels as unsafe lesson concepts for normal disciplinary courses, so stale shared metadata cannot reintroduce them into Course FAQ or Study Guide output.',
-    'The artifact contamination detector recognizes the expanded prompt-label vocabulary, keeping the grader strict rather than hiding or downgrading the finding.',
+    'A fresh deployed v0.15.75 Project Management ZIP/log audit regraded at 97/A, with source relevance, one partial-enrichment fallback, and small text defects still below the 100/100 target; this release does not claim a clean package before a fresh v0.15.76 audit.',
+    'Project Management now maps to business, decision-science, engineering, and social-science OpenAlex topics, so off-discipline medical projection papers cannot enter trusted reading proof just because they are well cited.',
+    'Course-map readiness now treats generated fallback stems such as quick evidence checks and course-application boilerplate as weak topic candidates, preventing sentence-shaped repair prose from becoming the next course-map topic.',
+    'The shared language finalizer collapses exact X:X echo chains and strips terminal punctuation from fallback topics, closing the double-period and repeated-label defects reproduced in the v0.15.75 package.',
   ],
   landingHighlights: [
-    'Embedded prompt labels are repaired before compile.',
-    'Course FAQ and Study Guides keep real concepts.',
-    'The grader stays strict about artifact leakage.',
+    'Project Management sources stay on-discipline.',
+    'Fallback prose no longer becomes a topic.',
+    'Echo-chain and punctuation seams are cleaned.',
   ],
   proof: {
-    contract: 'release-contracts/v0.15.75.json',
-    roadmap: 'docs/V0.15.75_EMBEDDED_ARTIFACT_LABEL_FIREWALL_ROADMAP.md',
+    contract: 'release-contracts/v0.15.76.json',
+    roadmap: 'docs/V0.15.76_PROJECT_MANAGEMENT_SOURCE_GATE_ROADMAP.md',
     auditCommand: 'npm run audit:release-history',
   },
 };
@@ -33,6 +33,17 @@ export const CURRENT_RELEASE_CHANGELOG = {
 };
 
 export const HISTORICAL_RELEASE_CHANGELOGS = [
+  {
+    version: '0.15.75',
+    date: 'June 27, 2026',
+    title: 'Embedded Artifact Label Firewall: sentence-shaped prompt labels stop becoming concepts',
+    highlights: [
+      'A fresh deployed v0.15.74 Project Management ZIP/log audit regraded at 74/C, with prompt artifact labels in lesson concepts as the highest-severity P0 defect; this release does not claim a clean package before a fresh v0.15.75 audit.',
+      'Course-map readiness repair now catches embedded prompt artifact labels inside sentence-shaped goals, objectives, assessments, activities, resources, and evaluate-design cells instead of only bare labels.',
+      'Compiler grounding now treats Course Map, Syllabus, Lesson Objectives, and Quiz & Exam Bank labels as unsafe lesson concepts for normal disciplinary courses, so stale shared metadata cannot reintroduce them into Course FAQ or Study Guide output.',
+      'The artifact contamination detector recognizes the expanded prompt-label vocabulary, keeping the grader strict rather than hiding or downgrading the finding.',
+    ],
+  },
   {
     version: '0.15.74',
     date: 'June 27, 2026',

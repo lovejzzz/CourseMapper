@@ -192,6 +192,10 @@ export function inferCourseDisciplines(courseMap) {
     .toLowerCase();
   const map = [
     ['econ', /\beconom|microecon|macroecon|market|supply|demand|inflation|wage|monetary|fiscal/],
+    [
+      'project-management',
+      /\bproject management\b|\bproject charter\b|\bstakeholder management\b|\bscope management\b|\brisk management\b|\bwork breakdown structure\b|\bcritical path\b|\bgantt\b|\bagile project\b|\bscrum\b|\bproject schedule\b|\bproject lifecycle\b|\bproject life cycle\b/,
+    ],
     // v0.13.3: the astronomy shard (OpenStax Astronomy 2e foundry run).
     ['astro', /\bastronom|night sky|celestial|planetar|telescope|stargaz|cosmolog|galax|solar system/],
     ['psych', /\bpsycholog|cognition|behavior|neuroscience|educational psych|learning theor|child development/],

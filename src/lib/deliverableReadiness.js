@@ -338,6 +338,7 @@ function titleCandidateFromCourseMapTopic(value) {
     .replace(/^(?:lesson|week|module|unit|session)\s*\d{1,3}\s*[:.-]?\s*/i, '')
     .replace(/^\d+(?:\.\d+)*\s*[:.)-]\s*/i, '')
     .replace(/^(?:and\s+)+/i, '')
+    .replace(/[.?!;:]+$/g, '')
     .replace(/\s+/g, ' ')
     .trim();
 }
@@ -478,7 +479,7 @@ const HISTORY_COURSE_MAP_RE =
   /\b(?:western civilization|civilization|world history|history|historical|ancient|medieval|middle ages|renaissance|reformation|mesopotamia|egypt|egyptian|greece|greek|rome|roman|byzantine|islamic|crusade|feudal|charlemagne|carolingian|empire|kingdom|primary[- ]source|source analysis)\b/i;
 
 const GENERIC_COURSE_MAP_FALLBACK_RE =
-  /\b(?:course problem|next assessment|observe, label, calculate, or decide|course task or example|course activities|evidence of learning|lab materials|discipline-specific tools)\b/i;
+  /\b(?:course problem|course applications|next assessment|quick evidence check|exit ticket using|practice response|review assigned materials|prepare notes|new example|observe, label, calculate, or decide|course task or example|course activities|evidence of learning|lab materials|discipline-specific tools)\b/i;
 
 function inferCourseMapFallbackProfile(courseMap, lesson, section) {
   const sections = Array.isArray(lesson?.sections) && lesson.sections.length > 0 ? lesson.sections : [section || {}];

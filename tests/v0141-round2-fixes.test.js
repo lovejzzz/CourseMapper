@@ -134,6 +134,32 @@ const MEDIATION_WORK = {
   license: 'cc-by',
 };
 
+const PROJECT_DIABETES_WORK = {
+  title: 'Projecting the Future Diabetes Population Size and Related Costs for the U.S.',
+  abstract:
+    'A health economics projection of diabetes population size, cost burden, and clinical management needs in the United States.',
+  url: 'https://diabetesjournals.org/care/article-pdf/32/12/2225/602618/zdc01209002225.pdf',
+  citedBy: 700,
+  authors: 'Elbert S. Huang, Anirban Basu, Michael J. O’Grady et al.',
+  license: 'cc-by-nc-nd',
+  primaryTopic: { name: 'Diabetes', field: 'Medicine', domain: 'Health Sciences' },
+};
+
+const SUSTAINABLE_PROJECT_MANAGEMENT_WORK = {
+  title: 'Sustainable Project Management: A Conceptualization-Oriented Review and a Framework Proposal',
+  abstract:
+    'Reviews project management competencies, stakeholder responsibilities, scheduling decisions, and project governance for sustainable projects.',
+  url: 'https://www.mdpi.com/2071-1050/11/9/2664/pdf',
+  citedBy: 600,
+  authors: 'Stefano Armenia, Rosa Maria Dangelico, Fabio Nonino et al.',
+  license: 'cc-by',
+  primaryTopic: {
+    name: 'Project Management',
+    field: 'Business, Management and Accounting',
+    domain: 'Social Sciences',
+  },
+};
+
 function worldLitGraph({ number, sessionTitle, conceptTerms }) {
   return {
     course: { name: 'World Literature' },
@@ -256,6 +282,30 @@ describe('fix 1 — OpenAlex topic gate rejects off-discipline papers regardless
     const attached = await attachOpenReadings(graph, { providers });
     expect(attached).toBe(1);
     expect(graph.resources[0].citation).toContain('cultural mediator');
+  });
+
+  it('maps project management onto business/decision-sciences topics and rejects medical projection hits', async () => {
+    const graph = {
+      course: { name: 'Project Management' },
+      sessions: [{ id: 's1', number: 1, title: 'Lesson 1: project charter', sections: [{ topic: 'x' }] }],
+      concepts: [{ id: 'c1', term: 'project charter' }],
+      edges: { teaches: [{ from: 's1', to: 'c1' }] },
+      resources: [],
+    };
+    const allowed = allowedTopicNamesForCourse(graph);
+    expect(allowed).toBeTruthy();
+    expect(allowed.fields.has('business, management and accounting')).toBe(true);
+    expect(allowed.fields.has('decision sciences')).toBe(true);
+    expect(topicGateVerdict(PROJECT_DIABETES_WORK, allowed)).toBe('off-discipline');
+    expect(topicGateVerdict(SUSTAINABLE_PROJECT_MANAGEMENT_WORK, allowed)).toBe('on-discipline');
+
+    const providers = stubReadings([PROJECT_DIABETES_WORK, SUSTAINABLE_PROJECT_MANAGEMENT_WORK]);
+    const attached = await attachOpenReadings(graph, { providers });
+    expect(attached).toBe(1);
+    expect(graph.resources).toHaveLength(1);
+    expect(graph.resources[0].citation).toContain('Sustainable Project Management');
+    expect(graph.resources[0].citation).not.toContain('Diabetes');
+    expect(graph.readingListDecisions || []).toHaveLength(0);
   });
 
   it('provider surfaces primary_topic/topics from the works payload and requests them in the select', async () => {

@@ -276,10 +276,19 @@ describe('compiledLanguageFinalizer', () => {
   });
 
   it('repairs article agreement and double periods at template seams', () => {
-    const data = { items: [{ note: 'Explains a Energy decision about the work.. Next step follows.' }] };
+    const data = {
+      items: [
+        {
+          note:
+            'Explains a Energy decision about the work.. Next step follows. ' +
+            'Define project management: Define project management before selecting evidence.',
+        },
+      ],
+    };
     finalizeCompiledDeliverableLanguage('assignments', data, { lessons: [] });
     expect(data.items[0].note).toContain('an Energy decision');
     expect(data.items[0].note).not.toContain('..');
+    expect(data.items[0].note).not.toContain('Define project management: Define project management');
   });
 
   it('leaves multiple-choice answer letters alone', () => {

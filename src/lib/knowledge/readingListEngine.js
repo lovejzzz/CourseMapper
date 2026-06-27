@@ -487,6 +487,9 @@ export const OPENALEX_DISCIPLINE_TOPIC_ALLOWLIST = {
       'Decision Sciences',
     ],
   },
+  'project-management': {
+    fields: ['Business, Management and Accounting', 'Decision Sciences', 'Engineering', 'Social Sciences'],
+  },
   // v0.14.3 (FP-3): biostatistics / epidemiology cite the medical studies they
   // analyze (STROBE, observational-study reporting), so Medicine/Health
   // Sciences are on-discipline for an intro-stats course.

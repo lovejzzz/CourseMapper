@@ -183,6 +183,8 @@ function fixMechanicalSeams(value) {
   text = text.replace(/^\s*[:;,–—]\s+/, '');
   // Stitched double periods: "evidence move in X.." and "X. . Next".
   text = text.replace(/([A-Za-z0-9)'"’”])\.\s*\.(?!\.)/g, '$1.');
+  // Exact echo chains from low-information labels: "X: X" / "X: For X".
+  text = text.replace(/\b([A-Z][\w &'-]{3,50}):\s+(?:For\s+)?\1\b/gi, '$1');
   // Space before punctuation.
   text = text.replace(/[ \t]+([.,;:!?])(?=\s|$)/g, '$1');
   // Doubled connectives produced by reference replacement ("the the Week 2 check").

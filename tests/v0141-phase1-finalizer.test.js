@@ -502,6 +502,33 @@ describe('1.16 — prompt artifact labels never become course-map concepts', () 
     expect(studentFacingText).toMatch(/project charter|Project Management source evidence|source evidence/i);
   });
 
+  it('does not use sentence-shaped fallback prose as the topic for repaired Project Management cells', () => {
+    const courseMap = {
+      courseName: 'Project Management',
+      lessons: [
+        {
+          title: 'Lesson 1: Project charter',
+          sections: [
+            {
+              topicSection: 'course map',
+              learningGoals: 'Develop an evidence-backed account of Project Management for course applications.',
+              learningObjectives: 'lesson plans',
+              weeklyAssessments: '',
+            },
+          ],
+        },
+      ],
+    };
+
+    const repaired = repairCourseMapReadiness({ courseMap }).courseMap;
+    const repairedText = JSON.stringify(repaired);
+
+    expect(repaired.lessons[0].sections[0].topicSection).toBe('Project charter');
+    expect(repaired.lessons[0].sections[0].weeklyAssessments).toContain('Project charter');
+    expect(repairedText).not.toContain('course applications..');
+    expect(repairedText).not.toMatch(/needed for Develop an evidence-backed account/i);
+  });
+
   it('keeps repaired single artifact-resource labels out of compiled Course FAQ answers', () => {
     const courseMap = {
       courseName: 'Genetics and Society',
