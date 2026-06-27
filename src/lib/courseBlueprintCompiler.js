@@ -593,14 +593,12 @@ function customPracticeContext(blueprint, lens) {
 
 function alternateLessonConcept(lesson, primary) {
   const generic = new Set(['clinical', 'community', 'health', 'studio', 'lesson', 'topic', 'block']);
-  return (
-    lesson.keyConcepts.find((concept) => {
-      const normalized = cleanText(concept).toLowerCase();
-      return normalized && normalized !== cleanText(primary).toLowerCase() && !generic.has(normalized);
-    }) ||
-    lesson.keyConcepts.find((concept) => cleanText(concept).toLowerCase() !== cleanText(primary).toLowerCase()) ||
-    primary
-  );
+  const primaryKey = cleanText(primary).toLowerCase();
+  const safeConcepts = safeLessonConcepts(lesson, { limit: 8 }).filter((concept) => {
+    const normalized = cleanText(concept).toLowerCase();
+    return normalized && normalized !== primaryKey;
+  });
+  return safeConcepts.find((concept) => !generic.has(cleanText(concept).toLowerCase())) || safeConcepts[0] || primary;
 }
 
 function hasCreativeProductionEvidence(text = '') {
@@ -11691,6 +11689,7 @@ function safeGroundingValueForDeliverable(value, lesson = {}, fallback = safeLes
 }
 
 function lessonSourceGrounding(lesson, extras = {}) {
+  const safeExtras = safeGroundingValueForDeliverable(clonePlain(extras), lesson, safeLessonPrimaryConcept(lesson));
   return {
     lessonNumber: lesson?.lessonNumber || null,
     lessonTitle: lesson?.title || '',
@@ -11735,7 +11734,7 @@ function lessonSourceGrounding(lesson, extras = {}) {
     modalityDecode: clonePlain(lesson?.modalityDecode || null),
     artifactGenre: clonePlain(lesson?.artifactGenre || null),
     reviewActionability: buildLessonReviewActionability(lesson),
-    ...extras,
+    ...safeExtras,
   };
 }
 
@@ -13570,10 +13569,10 @@ function compileCustomReflectionDeliverable(featureId, blueprint, options = {}) 
   const arrayKey = slugifyCustomArrayKey(deliverableName);
   const lens = blueprintLens(blueprint);
   const items = blueprint.lessons.map((lesson) => {
-    const focus = lesson.keyConcepts[0] || stripLessonPrefix(lesson.title) || 'the lesson focus';
+    const focus = safeLessonPrimaryConcept(lesson);
     const alternate = alternateLessonConcept(lesson, focus);
     const phrase = lessonPhrase(blueprint, lesson);
-    const artifact = stripTerminalPunctuation(lesson.studentArtifact || 'the lesson artifact');
+    const artifact = safeLessonArtifact(lesson);
     const contextCue = conciseClause(phrase.context, stripLessonPrefix(lesson.title), 110);
     const activityCue = conciseClause(lesson.activityPattern, `${stripLessonPrefix(lesson.title)} activity`, 110);
     const successCue = conciseClause(lesson.successCriteria, 'the lesson success criteria', 120);
@@ -13625,10 +13624,11 @@ function compileCustomReadingResponseDeliverable(featureId, blueprint, options =
   const arrayKey = slugifyCustomArrayKey(deliverableName);
   const lens = blueprintLens(blueprint);
   const items = blueprint.lessons.map((lesson) => {
-    const focus = lesson.keyConcepts[0] || stripLessonPrefix(lesson.title) || 'the lesson focus';
+    const focus = safeLessonPrimaryConcept(lesson);
     const alternate = alternateLessonConcept(lesson, focus);
     const phrase = lessonPhrase(blueprint, lesson);
-    const reading = lesson.readings[0] || 'Assigned lesson materials';
+    const reading = safeLessonEvidenceCue(lesson, lens);
+    const artifact = safeLessonArtifact(lesson);
 
     return {
       lessonTitle: lesson.title,
@@ -13642,20 +13642,20 @@ function compileCustomReadingResponseDeliverable(featureId, blueprint, options =
         evidenceRequirement: lesson.evidencePlan?.evidenceRequirement || '',
         learnerContextProfile: blueprint.learnerContextProfile,
       }),
-      responsePrompt: `Write a focused response explaining how ${focus} from ${reading} changes your approach to ${stripTerminalPunctuation(lesson.studentArtifact)} in ${lesson.title}. Reference ${phrase.context} and make one clear ${lens.decisionNoun}.`,
+      responsePrompt: `Write a focused response explaining how ${focus} from ${reading} changes your approach to ${artifact} in ${lesson.title}. Reference ${phrase.context} and make one clear ${lens.decisionNoun}.`,
       quoteOrDetailRequirement: `Use one concrete detail, quote, or example from ${reading} and explain why it matters for ${alternate} in ${lesson.title}.`,
-      connectionPrompt: `Connect the reading to this week's practice by naming how it should shape ${stripTerminalPunctuation(lesson.studentArtifact)} before the next class session.`,
+      connectionPrompt: `Connect the reading to this week's practice by naming how it should shape ${artifact} before the next class session.`,
       submissionChecklist: [
         `Name the reading focus for ${lesson.title}.`,
         `Use one specific piece of ${lens.evidenceNoun} from the reading or lesson materials.`,
-        `Explain one decision, implication, or revision move for ${lesson.studentArtifact}.`,
+        `Explain one decision, implication, or revision move for ${artifact}.`,
       ],
       successCriteria: [
         `${deliverableName} uses an actual reading detail instead of generic summary.`,
-        `${deliverableName} connects the reading to ${lesson.studentArtifact} or the weekly practice task.`,
+        `${deliverableName} connects the reading to ${artifact} or the weekly practice task.`,
         `${deliverableName} ends with a concrete implication, next step, or question for class discussion.`,
       ],
-      instructorReviewFocus: `Look for whether the student cites ${reading}, connects ${focus} to ${lesson.studentArtifact}, and makes a usable ${lens.decisionNoun} for the next checkpoint.`,
+      instructorReviewFocus: `Look for whether the student cites ${reading}, connects ${focus} to ${artifact}, and makes a usable ${lens.decisionNoun} for the next checkpoint.`,
     };
   });
 
@@ -15295,10 +15295,15 @@ function displayKeyTermName(term) {
 function enrichedKeyTermsForLesson(lesson, { fallback }) {
   const enriched = lesson?.enrichment?.keyTerms;
   if (!Array.isArray(enriched) || enriched.length === 0) return fallback();
+  const safeEnriched = enriched.filter((term) => {
+    const display = displayKeyTermName(term);
+    return display && !isUnsafeLessonConceptPhrase(display) && !isUnsafeLessonArtifactPhrase(display);
+  });
+  if (safeEnriched.length === 0) return fallback();
   // CurriculumOS V1: a genome-linked term carries a source citation; surface it
   // so the study guide can render "Source: …". Compiler-only terms have none.
   const linked = lesson?.enrichment?.conceptProvenance?.source === 'genome-linked';
-  return enriched.map((term) => ({
+  return safeEnriched.map((term) => ({
     term: displayKeyTermName(term),
     // v0.14.5 (F1): keep the STRUCTURED script/romanization pair alongside the
     // display form so package-time consumers (the generated pronunciation
@@ -15356,6 +15361,7 @@ function compileStudyGuides(blueprint) {
       const dataScienceEvidenceCue =
         'validation metrics, model-performance evidence, data-quality checks, threshold tradeoffs, and fairness or limitation evidence';
       const enrichedMisconceptions = (lesson.enrichment?.keyTerms || [])
+        .filter((term) => !isUnsafeLessonConceptPhrase(displayKeyTermName(term)))
         .filter((term) => term.misconception)
         .slice(0, 3)
         .map((term) => ({
@@ -16523,7 +16529,7 @@ function buildReviewWeekQuizAtoms(lesson, blueprint, options = {}) {
   const covered = options.covered || [];
   const usedStems = options.usedStems instanceof Set ? options.usedStems : new Set();
   const reviewFocus = stripLessonPrefix(lesson.title);
-  const reviewArtifact = stripTerminalPunctuation(lesson.studentArtifact);
+  const reviewArtifact = safeLessonArtifact(lesson);
   const sampled = sampleLessonsAcrossRange(covered, 4);
   const quizPlan = buildQuizQuestionPlan({ lesson, assessment: options.assessment || {}, targetCount: 6 });
   const planFor = (slot, sourceLesson) => ({
@@ -16547,10 +16553,10 @@ function buildReviewWeekQuizAtoms(lesson, blueprint, options = {}) {
   // ordinal makes the four letters consecutive — varied for every lesson
   // count by construction.
   const mcFor = (sourceLesson, slot, ordinal) => {
-    const concept = primaryConceptForLesson(sourceLesson);
+    const concept = safeLessonPrimaryConcept(sourceLesson);
     const sourceFocus = stripLessonPrefix(sourceLesson.title);
-    const sourceCue = sourceLesson.evidencePlan?.sourceCue || 'the assigned course materials';
-    const hybrid = { ...sourceLesson, lessonNumber: lesson.lessonNumber, studentArtifact: lesson.studentArtifact };
+    const sourceCue = safeLessonEvidenceCue(sourceLesson, lens);
+    const hybrid = { ...sourceLesson, lessonNumber: lesson.lessonNumber, studentArtifact: reviewArtifact };
     const prompts = [
       `While preparing for ${reviewFocus}, which check shows ${concept} from ${sourceFocus} is still ready to use?`,
       `A study group revisits ${sourceFocus} during ${reviewFocus}. Which move uses ${concept} correctly?`,
@@ -16580,14 +16586,13 @@ function buildReviewWeekQuizAtoms(lesson, blueprint, options = {}) {
   const mcSources = [sampled[0], sampled[1 % sampled.length], sampled[2 % sampled.length], sampled[3 % sampled.length]];
   const pairA = sampled[Math.min(1, sampled.length - 1)];
   const pairB = sampled[Math.max(0, sampled.length - 2)];
-  const conceptA = primaryConceptForLesson(pairA);
+  const conceptA = safeLessonPrimaryConcept(pairA);
   // Single-source review weeks contrast the lesson's primary concept with its
   // secondary one instead of comparing a concept against itself.
   const conceptB =
     pairB !== pairA
-      ? primaryConceptForLesson(pairB)
-      : normalizeConceptCandidates((pairA.keyConcepts || []).slice(1), { title: pairA.title, limit: 1 })[0] ||
-        primaryConceptForLesson(pairA);
+      ? safeLessonPrimaryConcept(pairB)
+      : alternateLessonConcept(pairA, conceptA) || safeLessonPrimaryConcept(pairA);
   const span = `${stripLessonPrefix(covered[0].title)} through ${stripLessonPrefix(covered[covered.length - 1].title)}`;
   const atoms = [
     mcFor(mcSources[0], 0, 0),
@@ -16718,6 +16723,10 @@ function compileQuizBank(blueprint, config = {}) {
     questions.forEach((question) => usedStems.add(question.question));
     const totalPoints = questions.reduce((sum, question) => sum + Number(question.points || 0), 0);
     const totalMinutes = questions.reduce((sum, question) => sum + Number(question.estimatedMinutes || 0), 0);
+    const safeConcepts = safeLessonConcepts(lesson, { limit: 4 });
+    const artifact = safeLessonArtifact(lesson);
+    const transferTask =
+      lesson.learningTransferPlan?.transferTask || `Students transfer quiz evidence into ${artifact}.`;
     return {
       lessonTitle: lesson.title,
       totalQuestions: questions.length,
@@ -16752,10 +16761,10 @@ function compileQuizBank(blueprint, config = {}) {
         questionPlan: questions.map((question) => question.quizPlan),
       },
       objectiveEvidenceChecklist: objectiveEvidenceChecklist(lesson.objectiveEvidencePlan),
-      formativeFeedbackNote: `For ${lesson.title}, administer these questions after students practice ${compactList(lesson.keyConcepts, 'the lesson concepts', 3)}. ${lesson.prerequisitePlan?.diagnosticCheck || 'Check prerequisite understanding before scoring readiness.'} ${assessment.anchorExampleSet?.scorerCalibrationUse || 'Compare responses against calibrated samples before scoring.'} ${lesson.learningTransferPlan?.spacedPracticeCue || 'Use the results as spaced retrieval before the next artifact.'} Review missed items within one class session, allow screen-reader-friendly text formats or extended time as needed, and ask students to use results to revise ${lesson.studentArtifact}. Estimated completion time is ${totalMinutes} minutes.${preference ? ` Instructor preference: ${preferenceDisplayPhrase(preference)}.` : ''}`,
+      formativeFeedbackNote: `For ${lesson.title}, administer these questions after students practice ${compactList(safeConcepts, 'the lesson concepts', 3)}. ${lesson.prerequisitePlan?.diagnosticCheck || 'Check prerequisite understanding before scoring readiness.'} ${assessment.anchorExampleSet?.scorerCalibrationUse || 'Compare responses against calibrated samples before scoring.'} ${lesson.learningTransferPlan?.spacedPracticeCue || 'Use the results as spaced retrieval before the next artifact.'} Review missed items within one class session, allow screen-reader-friendly text formats or extended time as needed, and ask students to use results to revise ${artifact}. Estimated completion time is ${totalMinutes} minutes.${preference ? ` Instructor preference: ${preferenceDisplayPhrase(preference)}.` : ''}`,
       questions,
-      assessmentBlueprint: `${lesson.title} covers ${lesson.outcomes.join('; ')} with a source-grounded quiz plan for ${compactList(lesson.keyConcepts, stripLessonPrefix(lesson.title), 3)} and ${stripTerminalPunctuation(lesson.studentArtifact)}: ${questions.map((question) => `${question.quizPlan.role} -> ${question.bloomsLevel}`).join('; ')}. ${lesson.learningTransferPlan?.transferTask || `Students transfer quiz evidence into ${lesson.studentArtifact}.`} Results indicate which parts of ${lesson.studentArtifact} need reteaching or feedback.${preference ? ` Instructor preference: ${preferenceDisplayPhrase(preference)}.` : ''}`,
-      tags: unique(['quiz bank', lesson.title, ...lesson.keyConcepts, lesson.studentArtifact], 8),
+      assessmentBlueprint: `${lesson.title} covers ${lesson.outcomes.join('; ')} with a source-grounded quiz plan for ${compactList(safeConcepts, stripLessonPrefix(lesson.title), 3)} and ${artifact}: ${questions.map((question) => `${question.quizPlan.role} -> ${question.bloomsLevel}`).join('; ')}. ${transferTask} Results indicate which parts of ${artifact} need reteaching or feedback.${preference ? ` Instructor preference: ${preferenceDisplayPhrase(preference)}.` : ''}`,
+      tags: unique(['quiz bank', lesson.title, ...safeConcepts, artifact], 8),
     };
   });
 
@@ -17658,8 +17667,8 @@ function discussionDurationForFormat(format) {
 function buildDiscussionProtocol({ lesson = {}, blueprint = {}, phrase = {}, lens = {} }) {
   const mode = lesson.modalityDecode?.mode || blueprint.courseModalityProfile?.primaryMode || 'weekly-applied-seminar';
   const genre = lesson.artifactGenre?.genre || 'applied-artifact';
-  const artifact = stripTerminalPunctuation(lesson.studentArtifact || 'the lesson artifact');
-  const concept = lesson.keyConcepts?.[0] || stripLessonPrefix(lesson.title) || 'the lesson focus';
+  const artifact = safeLessonArtifact(lesson);
+  const concept = safeLessonPrimaryConcept(lesson);
   const evidenceMove = phrase.evidenceMove || `use ${lens.evidenceNoun || 'source evidence'} to test ${concept}`;
   const decisionMove = stripTerminalPunctuation(
     phrase.decisionMove || `make a defensible ${lens.decisionNoun || 'course decision'} for ${artifact}`,
@@ -17963,34 +17972,37 @@ function buildDiscussionProtocol({ lesson = {}, blueprint = {}, phrase = {}, len
 }
 
 function buildDiscussionArtifactSet(lesson, phrase) {
-  const concept = lesson.keyConcepts[0] || stripLessonPrefix(lesson.title);
+  const concept = safeLessonPrimaryConcept(lesson);
+  const artifact = safeLessonArtifact(lesson);
+  const sourceCue = safeLessonEvidenceCue(lesson);
   return [
     {
       title: `${stripLessonPrefix(lesson.title)} Reading Notes`,
-      locator: lesson.readings.slice(0, 2).join('; '),
+      locator: sourceCue,
       use: `Pull one concrete claim or data point that clarifies ${concept} in the main prompt.`,
     },
     {
       title: `${stripLessonPrefix(lesson.title)} Assessment Brief`,
-      locator: cleanText(lesson.studentArtifact, `${stripLessonPrefix(lesson.title)} weekly artifact`),
+      locator: artifact,
       use: `Use this artifact expectation to test whether the proposed decision would hold up in assessed work and ${phrase.decisionMove}.`,
     },
   ];
 }
 
 function buildDiscussionPrompt(lesson, phrase, lens) {
-  const concept = lesson.keyConcepts[0] || stripLessonPrefix(lesson.title);
-  const secondary = lesson.keyConcepts[1] || concept;
-  return `Which ${concept} choice should students defend in ${lesson.studentArtifact}, and how does ${secondary} strengthen or complicate that decision?`;
+  const concept = safeLessonPrimaryConcept(lesson);
+  const secondary = alternateLessonConcept(lesson, concept);
+  const artifact = safeLessonArtifact(lesson);
+  return `Which ${concept} choice should students defend in ${artifact}, and how does ${secondary} strengthen or complicate that decision?`;
 }
 
 function buildDiscussionFollowUps(lesson, phrase) {
-  const concept = lesson.keyConcepts[0] || stripLessonPrefix(lesson.title);
-  const artifact = stripTerminalPunctuation(lesson.studentArtifact);
+  const concept = safeLessonPrimaryConcept(lesson);
+  const artifact = safeLessonArtifact(lesson);
   return [
     `What evidence from ${lesson.title} most strongly supports your position on ${concept}?`,
     `Which alternative reading of the same evidence about ${concept} would challenge your claim, and why might another student prefer it for ${artifact}?`,
-    `If the ${concept} evidence changed, what part of ${lesson.studentArtifact} would you revise first?`,
+    `If the ${concept} evidence changed, what part of ${artifact} would you revise first?`,
     `Where is the strongest limitation, risk, or ethical concern in your current reasoning about ${artifact}?`,
     lessonVariant(lesson, [
       `How does this discussion help students ${stripTerminalPunctuation(phrase.decisionMove).toLowerCase()}?`,
@@ -18003,8 +18015,8 @@ function buildDiscussionFollowUps(lesson, phrase) {
 
 function buildDiscussionFacilitationTips(lesson, protocol) {
   const format = protocol.format;
-  const concept = lesson.keyConcepts[0] || stripLessonPrefix(lesson.title);
-  const artifact = stripTerminalPunctuation(lesson.studentArtifact);
+  const concept = safeLessonPrimaryConcept(lesson);
+  const artifact = safeLessonArtifact(lesson);
   return {
     opening: `Launch with two minutes of silent note-making on which ${concept} evidence source seems strongest for ${artifact}, then name the protocol: ${protocol.participationPattern}.`,
     ifStalls: lessonVariant(lesson, [
@@ -18032,20 +18044,22 @@ function buildDiscussionFacilitationTips(lesson, protocol) {
 }
 
 function buildDiscussionResponseStems(lesson) {
-  const concept = lesson.keyConcepts[0] || stripLessonPrefix(lesson.title);
+  const concept = safeLessonPrimaryConcept(lesson);
+  const artifact = safeLessonArtifact(lesson);
   return [
     `The evidence I find most convincing for ${concept} is...`,
     `I agree with that conclusion about ${concept} only if the evidence also shows...`,
-    `A limitation in this reasoning about ${lesson.studentArtifact} is...`,
-    `If I were revising ${lesson.studentArtifact} after this ${concept} discussion, I would change...`,
+    `A limitation in this reasoning about ${artifact} is...`,
+    `If I were revising ${artifact} after this ${concept} discussion, I would change...`,
   ];
 }
 
 function buildDiscussionCriteriaSet(lesson) {
-  const concept = lesson.keyConcepts[0] || stripLessonPrefix(lesson.title);
+  const concept = safeLessonPrimaryConcept(lesson);
+  const artifact = safeLessonArtifact(lesson);
   return [
     `Uses specific evidence from ${lesson.title} instead of unsupported opinion.`,
-    `Explains the reasoning behind the claim and connects it to ${lesson.studentArtifact}.`,
+    `Explains the reasoning behind the claim and connects it to ${artifact}.`,
     lessonVariant(lesson, [
       `Responds to a peer by extending, questioning, or refining the evidence used about ${concept}.`,
       `Builds on a classmate's claim by adding evidence, testing a warrant, or sharpening the ${concept} limit.`,
@@ -18053,25 +18067,26 @@ function buildDiscussionCriteriaSet(lesson) {
       `Moves the exchange forward by asking how the evidence changes the ${concept} decision.`,
       `Uses a peer comment as a test case for whether the ${concept} evidence is strong enough.`,
       `Names what a classmate's evidence proves, what it leaves uncertain, and how the claim should change.`,
-      `Turns one reply into a revision move by linking the peer evidence back to ${lesson.studentArtifact}.`,
+      `Turns one reply into a revision move by linking the peer evidence back to ${artifact}.`,
     ]),
-    `Names one limitation, ethical concern, or revision step that would improve ${lesson.studentArtifact}.`,
+    `Names one limitation, ethical concern, or revision step that would improve ${artifact}.`,
   ];
 }
 
 function buildDiscussionGuidelinesForFormat(lesson, protocol) {
   const format = protocol.format;
-  const concept = lesson.keyConcepts[0] || stripLessonPrefix(lesson.title);
+  const concept = safeLessonPrimaryConcept(lesson);
+  const artifact = safeLessonArtifact(lesson);
   const lessonFocus = stripLessonPrefix(lesson.title);
   if (format === 'Asynchronous Online') {
-    return `For ${lessonFocus}, post one evidence-based response by Wednesday 11:59 PM and two substantive replies by Sunday 11:59 PM. Your initial post should be about 175-225 words, cite at least one lesson source, and take a clear position on ${lesson.studentArtifact}. A substantive reply extends or challenges a peer's evidence, reasoning, or limitation statement about ${concept} rather than simply agreeing. Use this ${protocol.artifactGenre} protocol for ${lessonFocus}: ${protocol.participationPattern}. Discussion credit depends on timeliness, evidence use, ${protocol.reviewFocus}, and the quality of peer engagement around ${lesson.title}.`;
+    return `For ${lessonFocus}, post one evidence-based response by Wednesday 11:59 PM and two substantive replies by Sunday 11:59 PM. Your initial post should be about 175-225 words, cite at least one lesson source, and take a clear position on ${artifact}. A substantive reply extends or challenges a peer's evidence, reasoning, or limitation statement about ${concept} rather than simply agreeing. Use this ${protocol.artifactGenre} protocol for ${lessonFocus}: ${protocol.participationPattern}. Discussion credit depends on timeliness, evidence use, ${protocol.reviewFocus}, and the quality of peer engagement around ${lesson.title}.`;
   }
 
   const contributionCue = lessonVariant(lesson, [
-    `Reference a course concept, case detail, or reading when you contribute, and connect at least one comment to ${lesson.studentArtifact}.`,
+    `Reference a course concept, case detail, or reading when you contribute, and connect at least one comment to ${artifact}.`,
     `Bring one evidence-backed ${concept} claim into the exchange, then ask a peer to test its support or limitation.`,
     `Use one reading, activity note, example, or artifact detail to make your contribution inspectable.`,
-    `Before the discussion closes, connect one comment to ${lesson.studentArtifact} and identify the evidence that made it stronger.`,
+    `Before the discussion closes, connect one comment to ${artifact} and identify the evidence that made it stronger.`,
   ]);
   const participationAccessCue = lessonVariant(lesson, [
     `If you need an alternative participation mode, use the instructor-approved written or chat response option during the same activity window for ${lesson.title}.`,
@@ -18080,10 +18095,10 @@ function buildDiscussionGuidelinesForFormat(lesson, protocol) {
     `An approved written response, chat contribution, or equivalent participation path should address the same peer evidence task for ${lessonFocus}.`,
   ]);
   const peerResponseCue = lessonVariant(lesson, [
-    `respond directly to one peer by building on or challenging their evidence for ${lesson.studentArtifact}`,
+    `respond directly to one peer by building on or challenging their evidence for ${artifact}`,
     `reply to one classmate by testing the evidence behind their ${concept} claim`,
     `extend one peer contribution with a source detail, limitation, or revision move`,
-    `ask one evidence-focused follow-up that helps a peer strengthen their ${lesson.studentArtifact}`,
+    `ask one evidence-focused follow-up that helps a peer strengthen their ${artifact}`,
   ]);
   return `For ${lessonFocus}, come prepared with one brief ${concept} evidence note before class, speak or post at least twice during the ${format}, and ${peerResponseCue}. Use this ${protocol.artifactGenre} protocol for ${lessonFocus}: ${protocol.participationPattern}. ${contributionCue} ${participationAccessCue} Participation is judged by evidence use, reasoning, peer response quality, ${protocol.reviewFocus}, and whether you name a limitation or revision move tied to ${concept}.`;
 }
@@ -18347,6 +18362,8 @@ function compileDiscussions(blueprint) {
         ? `${stripTerminalPunctuation(basePrompt)}${/[?]$/.test(cleanText(basePrompt)) ? '?' : '.'} Anchor your post in ${anchorReadingTitle}.`
         : basePrompt;
       const specificity = lessonSpecificityAnchor(lesson);
+      const safeConcepts = safeLessonConcepts(lesson, { limit: 4 });
+      const artifact = safeLessonArtifact(lesson);
       const equityProtocol = cleanText(lesson.accessibilityPlan?.participationProtocol);
       const equityConsiderations = equityProtocol
         ? `${stripTerminalPunctuation(equityProtocol)} For ${specificity.week}, ask students to cite ${specificity.concept} evidence before they revise ${specificity.artifact}.`
@@ -18385,7 +18402,7 @@ function compileDiscussions(blueprint) {
               `${lesson.title} uses the tension to make students weigh evidence before choosing a stance.`,
               `${lesson.title} asks students to test competing claims and state what the source evidence supports.`,
             ])}`
-          : `${lesson.title} asks students to work with ${phrase.context}. The discussion should test how students ${phrase.evidenceMove} and whether they can ${stripTerminalPunctuation(phrase.decisionMove).toLowerCase()} before they finalize ${lesson.studentArtifact}.`,
+          : `${lesson.title} asks students to work with ${phrase.context}. The discussion should test how students ${phrase.evidenceMove} and whether they can ${stripTerminalPunctuation(phrase.decisionMove).toLowerCase()} before they finalize ${artifact}.`,
         prompt,
         ...(lesson.enrichment?.discussionPrompt?.positions?.length > 0
           ? {
@@ -18393,7 +18410,7 @@ function compileDiscussions(blueprint) {
               enrichmentSource: 'lesson-content-enrichment',
             }
           : {}),
-        evidenceRequirement: `Use at least one ${lens.evidenceNoun} source from ${lesson.title} and one concrete detail from ${lesson.studentArtifact} or its success criteria.`,
+        evidenceRequirement: `Use at least one ${lens.evidenceNoun} source from ${lesson.title} and one concrete detail from ${artifact} or its success criteria.`,
         sourceArtifacts: buildDiscussionArtifactSet(lesson, phrase),
         followUpProbes: buildDiscussionFollowUps(lesson, phrase),
         facilitationTips: buildDiscussionFacilitationTips(lesson, discussionProtocol),
@@ -18406,10 +18423,10 @@ function compileDiscussions(blueprint) {
           `Begin by checking prerequisite knowledge for ${stripLessonPrefix(lesson.title)} before discussion.`,
         anchorExamplePrompt:
           assessment.anchorExampleSet?.revisionPrompt ||
-          `Compare a strong and partial ${lesson.studentArtifact} response before discussion closes.`,
+          `Compare a strong and partial ${artifact} response before discussion closes.`,
         equityConsiderations,
         guidelines: `${buildDiscussionGuidelinesForFormat(lesson, discussionProtocol)}${preference ? ` Instructor preference: ${preferenceDisplayPhrase(preference)}.` : ''}`,
-        tags: unique(['discussion', format, lesson.bloomsLevel, ...lesson.keyConcepts.slice(0, 4)], 8),
+        tags: unique(['discussion', format, lesson.bloomsLevel, ...safeConcepts], 8),
       };
     }),
   };

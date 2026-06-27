@@ -3,22 +3,22 @@ import { APP_VERSION } from './appVersion.js';
 export const CURRENT_RELEASE = {
   version: APP_VERSION,
   date: 'June 26, 2026',
-  title: 'Enrichment Recovery Reserve: missing lesson kernels get repair budget',
-  landingTitle: 'Enrichment Recovery Reserve',
+  title: 'Shared Artifact Firewall: prompt placeholders stop leaking across compiled outputs',
+  landingTitle: 'Shared Artifact Firewall',
   highlights: [
-    'The latest Project Management ZIP/log audit regraded at 97/A but still showed partial enrichment as a real score loss: one lesson fell back to template and no retry call was recorded.',
-    'The generation plan now reserves two enrichment-recovery calls whenever lesson-content enrichment is active, so a 9/12 or 11/12 kernel pass has budget to repair before polish spends the remaining calls.',
-    'Native Pass B and lesson-kernel recovery calls now count as retry calls in the digest instead of blending into ordinary enrichment, making retry evidence honest for package audits.',
-    'Deterministic Project Management texture now varies the audited repeated study-guide, lesson-plan, slide-note, and discussion stems instead of stamping the same phrase across all 12 lessons.',
+    'The latest Project Management quality evidence still does not justify a 100/100 claim, but it narrowed the next safe product slice to prompt/source placeholder leakage in compiled artifacts.',
+    'Shared lesson concept and artifact helpers now cover Study Guides, discussions, quiz-bank metadata, and compiled custom reflection/reading-response outputs instead of only Course FAQ-style copy.',
+    'Source-grounding extras and discussion source-artifact locators now pass through the same safe evidence-cue boundary, so placeholder phrases such as instructor-approved reading boilerplate do not reappear after sanitization.',
+    'A focused compiler regression proves the guarded prompt labels stay out of the compiled output while preserving real Project Management concepts and source-evidence language.',
   ],
   landingHighlights: [
-    'Missing enrichment gets repair budget.',
-    'Kernel recovery shows as retry evidence.',
-    'Project Management texture varies more.',
+    'Prompt labels stay out of compiled artifacts.',
+    'Source placeholders use safe evidence cues.',
+    'Project Management concepts remain intact.',
   ],
   proof: {
-    contract: 'release-contracts/v0.15.69.json',
-    roadmap: 'docs/V0.15.69_ENRICHMENT_RECOVERY_TEXTURE_ROADMAP.md',
+    contract: 'release-contracts/v0.15.70.json',
+    roadmap: 'docs/V0.15.70_SHARED_ARTIFACT_FIREWALL_ROADMAP.md',
     auditCommand: 'npm run audit:release-history',
   },
 };
@@ -33,6 +33,17 @@ export const CURRENT_RELEASE_CHANGELOG = {
 };
 
 export const HISTORICAL_RELEASE_CHANGELOGS = [
+  {
+    version: '0.15.69',
+    date: 'June 26, 2026',
+    title: 'Enrichment Recovery Reserve: missing lesson kernels get repair budget',
+    highlights: [
+      'The latest Project Management ZIP/log audit regraded at 97/A but still showed partial enrichment as a real score loss: one lesson fell back to template and no retry call was recorded.',
+      'The generation plan now reserves two enrichment-recovery calls whenever lesson-content enrichment is active, so a 9/12 or 11/12 kernel pass has budget to repair before polish spends the remaining calls.',
+      'Native Pass B and lesson-kernel recovery calls now count as retry calls in the digest instead of blending into ordinary enrichment, making retry evidence honest for package audits.',
+      'Deterministic Project Management texture now varies the audited repeated study-guide, lesson-plan, slide-note, and discussion stems instead of stamping the same phrase across all 12 lessons.',
+    ],
+  },
   {
     version: '0.15.68',
     date: 'June 26, 2026',

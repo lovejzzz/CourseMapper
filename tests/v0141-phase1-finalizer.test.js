@@ -689,6 +689,22 @@ describe('1.16 — prompt artifact labels never become course-map concepts', () 
     ];
     blueprint.lessons[0].studentArtifact =
       'scenario quizzes 2. rubric-driven assignments 3. final capstone presentation';
+    blueprint.lessons[0].enrichment = {
+      keyTerms: [
+        {
+          term: 'Study Guides',
+          definition: 'Internal deliverable label that must not become a study-guide term.',
+          example: 'Do not teach this as content.',
+          misconception: 'Study guides are the lesson concept.',
+          correction: 'Project scenarios are the lesson concept.',
+        },
+        {
+          term: 'Project scenario evidence',
+          definition: 'Evidence students use to justify a project action in a scenario.',
+          example: 'A project manager cites schedule risk before selecting an action.',
+        },
+      ],
+    };
     blueprint.lessons[0].evidencePlan = {
       ...(blueprint.lessons[0].evidencePlan || {}),
       sourceCue: 'Instructor-approved readings, examples, or lab materials for project scenarios.',
@@ -698,15 +714,35 @@ describe('1.16 — prompt artifact labels never become course-map concepts', () 
       evidencePacket: 'Instructor-approved readings, examples, or lab materials for project scenarios.',
     };
 
-    const compiled = compileBlueprintDeliverables(blueprint, ['studyGuides']);
+    const customDeliverables = {
+      custom_weeklyReflection: {
+        name: 'Weekly Reflection Journal',
+        description: 'Each week students write one reflection for the lesson.',
+        userPromptTemplate: 'For each lesson, ask for a brief reflection check-in.',
+      },
+      custom_readingResponse: {
+        name: 'Reading Response Log',
+        description: 'Each week students write one reading response for the lesson.',
+        userPromptTemplate: 'For each lesson, ask for a response to the assigned reading.',
+      },
+    };
+
+    const compiled = compileBlueprintDeliverables(
+      blueprint,
+      ['studyGuides', 'discussions', 'quizBank', 'custom_weeklyReflection', 'custom_readingResponse'],
+      { customDeliverables },
+    );
+    const compiledText = JSON.stringify(compiled);
     const guideText = JSON.stringify(compiled.studyGuides.studyGuides[0]);
 
     expect(blueprint.lessons[0].title).toMatch(/Project scenarios|Select appropriate project actions/i);
-    expect(guideText).not.toMatch(/scenario quizzes/i);
-    expect(guideText).not.toMatch(/rubric-driven assignments/i);
-    expect(guideText).not.toMatch(/final capstone presentation/i);
-    expect(guideText).not.toMatch(/Instructor-approved readings/i);
+    expect(compiledText).not.toMatch(/scenario quizzes/i);
+    expect(compiledText).not.toMatch(/rubric-driven assignments/i);
+    expect(compiledText).not.toMatch(/final capstone presentation/i);
+    expect(compiledText).not.toMatch(/Instructor-approved readings/i);
+    expect(compiledText).not.toMatch(/\bStudy Guides\b/);
     expect(guideText).toMatch(/project scenarios|project actions/i);
     expect(guideText).toMatch(/source evidence/i);
+    expect(compiledText).toMatch(/Project scenario evidence|project scenarios|project actions/i);
   });
 });
