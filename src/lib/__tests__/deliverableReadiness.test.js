@@ -589,6 +589,42 @@ describe('repairCourseMapReadiness', () => {
     expect(JSON.stringify(result.courseMap)).toMatch(/project management/i);
   });
 
+  it('repairs repeated course-title-only Project Management map skeletons', () => {
+    const result = repairCourseMapReadiness({
+      courseMap: {
+        courseName: 'Project Management',
+        lessons: [1, 2, 3, 4].map((lessonNumber) => ({
+          title: `Lesson ${lessonNumber}: Project Management`,
+          sections: [
+            {
+              topicSection: `${lessonNumber}.1: Project Management`,
+              learningGoals:
+                'Use Project Management to explain a course problem and prepare evidence for the next assessment.',
+              learningObjectives: 'Explain the key ideas in Project Management and apply them in course activities.',
+              weeklyAssessments:
+                lessonNumber === 2
+                  ? 'project charter'
+                  : lessonNumber === 4
+                    ? 'scheduling lab'
+                    : 'Quick evidence check: apply Project Management to a new example.',
+            },
+          ],
+        })),
+      },
+    });
+
+    const repairedText = JSON.stringify(result.courseMap);
+
+    expect(result.changed).toBe(true);
+    expect(result.courseMap.lessons[0].title).toBe('Lesson 1: project life cycle and charter purpose');
+    expect(result.courseMap.lessons[0].sections[0].topicSection).toBe('project life cycle and charter purpose');
+    expect(result.courseMap.lessons[1].title).toBe('Lesson 2: project charter');
+    expect(result.courseMap.lessons[3].title).toBe('Lesson 4: scheduling lab');
+    expect(repairedText).not.toMatch(/Lesson \d+: Project Management/i);
+    expect(repairedText).not.toMatch(/\d+\.1: Project Management/i);
+    expect(repairedText).not.toMatch(/course problem and prepare evidence/i);
+  });
+
   it('uses history-specific repairs instead of generic lab/STEM fallback prose', () => {
     const result = repairCourseMapReadiness({
       courseMap: {

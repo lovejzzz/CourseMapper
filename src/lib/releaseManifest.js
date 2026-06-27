@@ -3,22 +3,22 @@ import { APP_VERSION } from './appVersion.js';
 export const CURRENT_RELEASE = {
   version: APP_VERSION,
   date: 'June 27, 2026',
-  title: 'Generic Week Cache Guard: stale cross-course kernels stop shipping',
-  landingTitle: 'Generic Week Cache Guard',
+  title: 'Course Title Skeleton Repair: Project Management maps stop collapsing',
+  landingTitle: 'Course Title Skeleton Repair',
   highlights: [
-    'A fresh deployed v0.15.81 Project Management ZIP/log audit regraded at 97/A and exposed generic "Week N" Course Map content plus stale off-topic visual-arts kernels inside a Project Management package.',
-    'Course-map readiness now treats "Week N" titles, topics, and weak weekly cells as generic placeholders, so repair keeps working instead of approving an unfinished map.',
-    'Lesson-kernel cache reads and writes now refuse weak generic lesson identities, preventing cached kernels from one course domain from being reused in another course just because both were labeled "Week N".',
-    'Source-finder fallbacks with only metadata-only or review-only evidence now export as review notes rather than trusted sourceLedger rows. This release does not claim a clean 100/100 package; a fresh deployed v0.15.82 audit is required.',
+    'A fresh deployed v0.15.82 Project Management ZIP/log audit regraded at 99/A with no P0/P1s, on-discipline sources, no generic Week/Session labels, no stale visual-arts kernels, and no local-save quota warning; the remaining scored loss was texture 86/100.',
+    'The same audit exposed a still-real CourseMapper defect: every Course Map lesson title and topic cell collapsed to the course title "Project Management", which made complete-looking exports too generic even though the old Week N bug was gone.',
+    'Course-map readiness now treats repeated course-title-only lesson titles and topic cells as weak skeletons, then repairs them from concrete assessment anchors such as project charter and scheduling lab or from a Project Management progression sequence before export.',
+    'Project Management fallback copy now uses project-specific artifact, stakeholder, constraint, and decision language, and sentence-shaped support fields cannot be reused as Course Map topics. This release does not claim a clean 100/100 package; a fresh deployed v0.15.83 audit is required.',
   ],
   landingHighlights: [
-    'Generic Week placeholders stay repair-needed.',
-    'Weak lesson identities no longer poison the kernel cache.',
-    'Metadata-only sources stay visible as review notes.',
+    'Repeated course-title-only maps stay repair-needed.',
+    'Project Management maps repair from real anchors.',
+    'Sentence-shaped support prose cannot become topics.',
   ],
   proof: {
-    contract: 'release-contracts/v0.15.82.json',
-    roadmap: 'docs/V0.15.82_GENERIC_WEEK_CACHE_GUARD_ROADMAP.md',
+    contract: 'release-contracts/v0.15.83.json',
+    roadmap: 'docs/V0.15.83_COURSE_TITLE_SKELETON_REPAIR_ROADMAP.md',
     auditCommand: 'npm run audit:release-history',
   },
 };
@@ -33,6 +33,17 @@ export const CURRENT_RELEASE_CHANGELOG = {
 };
 
 export const HISTORICAL_RELEASE_CHANGELOGS = [
+  {
+    version: '0.15.82',
+    date: 'June 27, 2026',
+    title: 'Generic Week Cache Guard: stale cross-course kernels stop shipping',
+    highlights: [
+      'A fresh deployed v0.15.81 Project Management ZIP/log audit regraded at 97/A and exposed generic "Week N" Course Map content plus stale off-topic visual-arts kernels inside a Project Management package.',
+      'Course-map readiness now treats "Week N" titles, topics, and weak weekly cells as generic placeholders, so repair keeps working instead of approving an unfinished map.',
+      'Lesson-kernel cache reads and writes now refuse weak generic lesson identities, preventing cached kernels from one course domain from being reused in another course just because both were labeled "Week N".',
+      'Source-finder fallbacks with only metadata-only or review-only evidence now export as review notes rather than trusted sourceLedger rows. This release does not claim a clean 100/100 package; a fresh deployed v0.15.82 audit is required.',
+    ],
+  },
   {
     version: '0.15.81',
     date: 'June 27, 2026',

@@ -146,6 +146,22 @@ const PROMPT_ARTIFACT_GENERIC_CONTEXT_RE =
   /\b(?:content|concepts?|lessons?|objectives?|assessments?|activities|materials?|readings?|resources?|examples?)\b/i;
 const COURSE_MAP_REGISTRY_REFERENCE_SUFFIX_RE =
   /\s*(?:→|->)\s*(?:course\s+map|syllabus|lesson\s+plans|slide\s+decks|assignment\s+briefs|rubrics|discussion\s+prompts|quiz\s*(?:&|and)\s*exam\s*bank|study\s+guides|course\s+faq)(?:\s*\/\s*lesson\s*\d{1,2})?\b[^\n]*/gi;
+const PROJECT_MANAGEMENT_COURSE_RE =
+  /\bproject management\b|\bproject charter\b|\bstakeholder management\b|\bscope management\b|\brisk management\b|\bwork breakdown structure\b|\bcritical path\b|\bgantt\b|\bagile project\b|\bscrum\b|\bproject schedule\b|\bproject lifecycle\b|\bproject life cycle\b/i;
+const PROJECT_MANAGEMENT_TOPIC_SEQUENCE = [
+  'project life cycle and charter purpose',
+  'stakeholder roles and sponsor needs',
+  'scope management and requirements',
+  'work breakdown structure and scheduling',
+  'budgeting and earned value',
+  'risk register and mitigation planning',
+  'quality standards and deliverable acceptance',
+  'resource planning and team roles',
+  'stakeholder communication and reporting',
+  'procurement and vendor decisions',
+  'agile planning and retrospectives',
+  'project closure and stakeholder presentation',
+];
 
 function labelFor(featureId) {
   return READINESS_FEATURE_LABELS[featureId] || (featureId?.startsWith('custom_') ? 'Custom Deliverable' : featureId);
@@ -400,6 +416,38 @@ function isPromptArtifactTopic(value, courseMap) {
   return PROMPT_ARTIFACT_TOPIC_SET.has(normalizePromptArtifactTopic(value));
 }
 
+function normalizeCourseMapTopicIdentity(value) {
+  return genericTopicText(value).toLowerCase();
+}
+
+function isCourseTitleOnlyTopic(value, courseMap) {
+  const courseTitle = normalizeCourseMapTopicIdentity(courseMap?.courseName);
+  if (!courseTitle) return false;
+  return normalizeCourseMapTopicIdentity(value) === courseTitle;
+}
+
+function repeatedCourseTitleOnlyTopicCount(courseMap) {
+  const lessons = asArray(courseMap?.lessons);
+  if (lessons.length < 3) return 0;
+  return lessons.reduce((count, lesson) => {
+    const titleCount = isCourseTitleOnlyTopic(lesson?.title, courseMap) ? 1 : 0;
+    const sectionCount = asArray(lesson?.sections).filter((section) =>
+      isCourseTitleOnlyTopic(section?.topicSection || section?.topic, courseMap),
+    ).length;
+    return count + titleCount + sectionCount;
+  }, 0);
+}
+
+function hasRepeatedCourseTitleOnlyTopics(courseMap) {
+  const lessons = asArray(courseMap?.lessons);
+  if (lessons.length < 3) return false;
+  return repeatedCourseTitleOnlyTopicCount(courseMap) >= Math.min(lessons.length, 4);
+}
+
+function needsCourseTitleOnlyTopicRepair(value, courseMap) {
+  return hasRepeatedCourseTitleOnlyTopics(courseMap) && isCourseTitleOnlyTopic(value, courseMap);
+}
+
 function needsPromptArtifactCourseMapRepair(key, value, courseMap) {
   if (isInstructionalDesignCourse(courseMap)) return false;
   const raw = text(value);
@@ -424,6 +472,8 @@ function isWeakCourseMapTopic(value, courseMap) {
   if (isPromptArtifactTopic(candidate, courseMap) || NUMBERED_PROMPT_ARTIFACT_TOPIC_RE.test(candidate)) return true;
   if (hasEmbeddedPromptArtifactTopic(candidate)) return true;
   if (GENERIC_COURSE_MAP_FALLBACK_RE.test(candidate)) return true;
+  if (needsCourseTitleOnlyTopicRepair(candidate, courseMap)) return true;
+  if (isSentenceShapedCourseMapTopic(candidate)) return true;
   return /^(?:none|n\/a|not applicable|lesson|week|topic|block|clinical|community|health|studio|seminar|placement)$/i.test(
     candidate,
   );
@@ -445,6 +495,19 @@ function isGenericNumberedCourseMapTopic(value) {
   if (/^(?:session|topic|lesson|week)(?:\s+\d{1,3})?$/i.test(raw)) return true;
   const candidate = genericTopicText(value);
   return /^(?:session|topic|lesson|week)(?:\s+\d{1,3})?$/i.test(candidate);
+}
+
+function isSentenceShapedCourseMapTopic(value) {
+  const candidate = genericTopicText(value);
+  if (!candidate) return false;
+  const words = candidate.split(/\s+/).filter(Boolean);
+  if (words.length > 10) return true;
+  return (
+    words.length > 6 &&
+    /^(?:use|build|prepare|apply|interpret|create|critique|evaluate|review|compare|work\s+through|facilitate|discuss|analyze|connect|explain|trace|develop)\b/i.test(
+      candidate,
+    )
+  );
 }
 
 function hasGenericNumberedCourseMapReference(value, lessonIndex) {
@@ -515,7 +578,28 @@ function getCourseMapTopic(courseMap, lesson, section, lessonIndex) {
     pickCourseMapTopic(siblingSupportingCandidates, courseMap) ||
     pickCourseMapTopic(titleCandidates, courseMap) ||
     pickCourseMapTopic(courseCandidates, courseMap);
-  return raw || `Lesson ${lessonIndex + 1}`;
+  return raw || getCourseMapProgressionTopic(courseMap, lessonIndex) || `Lesson ${lessonIndex + 1}`;
+}
+
+function getCourseMapProgressionTopic(courseMap, lessonIndex) {
+  const context = [
+    courseMap?.courseName,
+    ...asArray(courseMap?.lessons).flatMap((lesson) => [
+      lesson?.title,
+      ...asArray(lesson?.sections).flatMap((section) => [
+        section?.topicSection,
+        section?.learningGoals,
+        section?.learningObjectives,
+        section?.weeklyAssessments,
+      ]),
+    ]),
+  ]
+    .map(text)
+    .join(' ');
+  if (PROJECT_MANAGEMENT_COURSE_RE.test(context)) {
+    return PROJECT_MANAGEMENT_TOPIC_SEQUENCE[lessonIndex % PROJECT_MANAGEMENT_TOPIC_SEQUENCE.length];
+  }
+  return '';
 }
 
 const HISTORY_COURSE_MAP_RE =
@@ -537,7 +621,13 @@ function inferCourseMapFallbackProfile(courseMap, lesson, section) {
   ]
     .map(text)
     .join(' ');
+  if (PROJECT_MANAGEMENT_COURSE_RE.test(context)) return 'project-management';
   return HISTORY_COURSE_MAP_RE.test(context) ? 'history' : 'general';
+}
+
+function displayCourseMapTopic(topic) {
+  const value = text(topic);
+  return value ? `${value.slice(0, 1).toUpperCase()}${value.slice(1)}` : 'Project decision';
 }
 
 function getHistoryCourseMapFallbacks(topic, pick) {
@@ -588,6 +678,55 @@ function getHistoryCourseMapFallbacks(topic, pick) {
   };
 }
 
+function getProjectManagementCourseMapFallbacks(topic, pick) {
+  const displayTopic = displayCourseMapTopic(topic);
+  return {
+    learningGoals: pick([
+      `Use ${topic} to connect stakeholder needs, constraints, and project evidence to an implementation decision.`,
+      `Build ${topic} evidence that separates scope, timing, cost, risk, and communication tradeoffs.`,
+      `Prepare a project-management artifact for ${topic} that justifies the next team or sponsor decision.`,
+    ]),
+    topicSection: topic,
+    learningObjectives: pick([
+      `Apply ${topic} vocabulary to a project scenario and defend the chosen next action.`,
+      `Interpret ${topic} evidence, identify the affected stakeholders, and explain the project tradeoff.`,
+      `Create or critique a ${topic} artifact using scope, schedule, risk, or acceptance criteria.`,
+      `Evaluate a ${topic} decision and name the assumption that would change the recommendation.`,
+    ]),
+    weeklyAssessments: pick([
+      `${displayTopic} evidence check: choose the project decision the evidence supports.`,
+      `${displayTopic} mini-brief with one stakeholder, one constraint, and one recommended action.`,
+      `${displayTopic} scenario response that links the artifact to scope, schedule, risk, or quality evidence.`,
+    ]),
+    asyncActivities: pick([
+      `Review the project scenario and annotate evidence that affects ${topic}.`,
+      `Prepare a short ${topic} note naming the stakeholder, constraint, and decision point.`,
+      `Compare a sample artifact with the ${topic} criteria before class.`,
+    ]),
+    syncActivities: pick([
+      `Work through a ${topic} project case and decide which evidence changes the plan.`,
+      `Facilitate a sponsor-team discussion that tests the ${topic} recommendation.`,
+      `Critique project evidence in pairs, then revise the ${topic} decision.`,
+    ]),
+    technologyNeeded: pick([
+      'Course LMS, shared project files, spreadsheet or scheduling tool, and team notes workspace.',
+      'LMS access plus the project brief, decision log, and planning template for the lesson.',
+      'Course platform, project artifact template, and collaboration space for team review.',
+    ]),
+    presentationFormat: pick([
+      'Project scenario setup, worked decision example, team application, and sponsor-facing synthesis.',
+      'Brief concept framing, artifact walkthrough, stakeholder tradeoff discussion, and evidence check.',
+      'Opening project constraint, structured team practice, and closing decision memo.',
+    ]),
+    supportingResources: pick([
+      `${displayTopic} template, sponsor brief, and project evidence checklist.`,
+      `Sample project artifact, decision-log guide, and ${topic} rubric criteria.`,
+      `Project scenario packet, planning worksheet, and ${topic} example for comparison.`,
+    ]),
+    evaluateDesign: `Check that the ${topic} activity, artifact, and assessment ask students to justify the same project decision with evidence.`,
+  };
+}
+
 function getCourseMapFallbackValue(key, courseMap, lesson, section, lessonIndex) {
   const topic = getCourseMapTopic(courseMap, lesson, section, lessonIndex);
   // Rotate filler stems by section position so repaired sparse maps do not
@@ -597,54 +736,57 @@ function getCourseMapFallbackValue(key, courseMap, lesson, section, lessonIndex)
   const sectionIndex = Math.max(0, sections.indexOf(section));
   const variantIndex = (Number(lessonIndex) || 0) + sectionIndex;
   const pick = (variants) => variants[variantIndex % variants.length];
+  const profile = inferCourseMapFallbackProfile(courseMap, lesson, section);
   const fieldFallbacks =
-    inferCourseMapFallbackProfile(courseMap, lesson, section) === 'history'
+    profile === 'history'
       ? getHistoryCourseMapFallbacks(topic, pick)
-      : {
-          learningGoals: pick([
-            `Use ${topic} to explain a course problem and prepare evidence for the next assessment.`,
-            `Trace how ${topic} changes what students can observe, label, calculate, or decide.`,
-            `Develop an evidence-backed account of ${topic} for course applications.`,
-          ]),
-          topicSection: topic,
-          learningObjectives: pick([
-            `Explain the key ideas in ${topic} and apply them in course activities.`,
-            `Apply the main concepts from ${topic} to a course task or example.`,
-            `Connect ${topic} to the week's work and explain one supporting evidence source.`,
-            `Analyze an example using ${topic} and name one limitation or open question.`,
-          ]),
-          weeklyAssessments: pick([
-            `Quick evidence check: apply ${topic} to a new example.`,
-            `Exit ticket using ${topic} to justify one course-relevant decision.`,
-            `Practice response that names the evidence needed for ${topic}.`,
-          ]),
-          asyncActivities: pick([
-            `Review assigned materials and prepare notes on ${topic}.`,
-            `Read the assigned materials and write a short note on ${topic}.`,
-            `Study the assigned materials and mark questions about ${topic}.`,
-          ]),
-          syncActivities: pick([
-            `Discuss examples and practice applying ${topic}.`,
-            `Work through examples of ${topic} together and practice applying them.`,
-            `Compare examples of ${topic} in class and rehearse the key moves.`,
-          ]),
-          technologyNeeded: pick([
-            'Course LMS, shared files, and any discipline-specific tools named by the instructor.',
-            'LMS access plus the document, slide, lab, or analysis tool required for this lesson.',
-            'Course platform, instructor-provided files, and the classroom tool used for the lesson activity.',
-          ]),
-          presentationFormat: pick([
-            'Instructor framing, guided student work, and a short synthesis.',
-            'Brief setup, worked example or demonstration, then student application.',
-            'Opening question, structured practice, and closing evidence check.',
-          ]),
-          supportingResources: pick([
-            `Instructor-approved readings, examples, or lab materials for ${topic}.`,
-            `Course materials students need to prepare and show evidence about ${topic}.`,
-            `Worked examples, readings, or activity sheets aligned to ${topic}.`,
-          ]),
-          evaluateDesign: `Check that the ${topic} activity, resource, and assessment ask students to produce the same evidence of learning.`,
-        };
+      : profile === 'project-management'
+        ? getProjectManagementCourseMapFallbacks(topic, pick)
+        : {
+            learningGoals: pick([
+              `Use ${topic} to explain a course problem and prepare evidence for the next assessment.`,
+              `Trace how ${topic} changes what students can observe, label, calculate, or decide.`,
+              `Develop an evidence-backed account of ${topic} for course applications.`,
+            ]),
+            topicSection: topic,
+            learningObjectives: pick([
+              `Explain the key ideas in ${topic} and apply them in course activities.`,
+              `Apply the main concepts from ${topic} to a course task or example.`,
+              `Connect ${topic} to the week's work and explain one supporting evidence source.`,
+              `Analyze an example using ${topic} and name one limitation or open question.`,
+            ]),
+            weeklyAssessments: pick([
+              `Quick evidence check: apply ${topic} to a new example.`,
+              `Exit ticket using ${topic} to justify one course-relevant decision.`,
+              `Practice response that names the evidence needed for ${topic}.`,
+            ]),
+            asyncActivities: pick([
+              `Review assigned materials and prepare notes on ${topic}.`,
+              `Read the assigned materials and write a short note on ${topic}.`,
+              `Study the assigned materials and mark questions about ${topic}.`,
+            ]),
+            syncActivities: pick([
+              `Discuss examples and practice applying ${topic}.`,
+              `Work through examples of ${topic} together and practice applying them.`,
+              `Compare examples of ${topic} in class and rehearse the key moves.`,
+            ]),
+            technologyNeeded: pick([
+              'Course LMS, shared files, and any discipline-specific tools named by the instructor.',
+              'LMS access plus the document, slide, lab, or analysis tool required for this lesson.',
+              'Course platform, instructor-provided files, and the classroom tool used for the lesson activity.',
+            ]),
+            presentationFormat: pick([
+              'Instructor framing, guided student work, and a short synthesis.',
+              'Brief setup, worked example or demonstration, then student application.',
+              'Opening question, structured practice, and closing evidence check.',
+            ]),
+            supportingResources: pick([
+              `Instructor-approved readings, examples, or lab materials for ${topic}.`,
+              `Course materials students need to prepare and show evidence about ${topic}.`,
+              `Worked examples, readings, or activity sheets aligned to ${topic}.`,
+            ]),
+            evaluateDesign: `Check that the ${topic} activity, resource, and assessment ask students to produce the same evidence of learning.`,
+          };
   return fieldFallbacks[key] || `Instructor-confirmed material for ${topic}.`;
 }
 
@@ -661,11 +803,15 @@ function isShortCourseMapListCell(value) {
 }
 
 function needsCourseMapSemanticRepair(key, value, courseMap, lesson, section) {
-  if (inferCourseMapFallbackProfile(courseMap, lesson, section) !== 'history') return false;
   const raw = text(value);
   if (!raw) return false;
-  if (GENERIC_COURSE_MAP_FALLBACK_RE.test(raw)) return true;
-  return key === 'weeklyAssessments' && isShortCourseMapListCell(raw);
+  if (needsCourseTitleOnlyTopicRepair(raw, courseMap)) return true;
+  const profile = inferCourseMapFallbackProfile(courseMap, lesson, section);
+  if (profile === 'history') {
+    if (GENERIC_COURSE_MAP_FALLBACK_RE.test(raw)) return true;
+    return key === 'weeklyAssessments' && isShortCourseMapListCell(raw);
+  }
+  return hasRepeatedCourseTitleOnlyTopics(courseMap) && GENERIC_COURSE_MAP_FALLBACK_RE.test(raw);
 }
 
 function stripCourseMapListPrefix(value) {
@@ -778,7 +924,11 @@ export function repairCourseMapReadiness({ courseMap, columns = [], lessonFilter
     if (!lessonIndices.includes(lessonIndex)) return lesson;
     let nextLesson = lesson;
 
-    if (needsCourseMapFieldRepair(lesson?.title) || isGenericNumberedCourseMapTopic(lesson?.title)) {
+    if (
+      needsCourseMapFieldRepair(lesson?.title) ||
+      isGenericNumberedCourseMapTopic(lesson?.title) ||
+      needsCourseTitleOnlyTopicRepair(lesson?.title, courseMap)
+    ) {
       const titleTopic = getCourseMapTopic(courseMap, lesson, asArray(lesson?.sections)[0], lessonIndex);
       nextLesson = {
         ...nextLesson,
