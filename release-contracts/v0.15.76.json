@@ -34,10 +34,7 @@
       "status": "verified-current",
       "changelogHighlightIndex": 0,
       "summary": "The release is grounded in a fresh deployed v0.15.75 Project Management ZIP/log audit that regraded at 97/A and stays honest that the package is not yet a clean 100/100.",
-      "anchors": [
-        "docs/V0.15.76_PROJECT_MANAGEMENT_SOURCE_GATE_ROADMAP.md",
-        "verification-output/edutool-audit-loop/20260627T-v01575-fresh/local-regrade.json"
-      ],
+      "anchors": ["docs/V0.15.76_PROJECT_MANAGEMENT_SOURCE_GATE_ROADMAP.md"],
       "proofCommands": [
         "npm test -- --run tests/v0141-round2-fixes.test.js tests/v0141-phase1-finalizer.test.js src/lib/__tests__/contentQualityChecks.test.js"
       ],
