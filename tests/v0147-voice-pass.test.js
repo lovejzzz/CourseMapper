@@ -123,14 +123,17 @@ describe('flag off — the default path never voices anything', () => {
 
   it('the integration invokes runVoicePass only behind the flag + enrichment guard (source scan)', () => {
     const source = readFileSync(path.join(repoRoot, 'src/hooks/useDeliverables.js'), 'utf8');
-    const guard = "voicePassLib.readVoicePassMode() === 'on' && blueprintEnrichmentRequested";
-    expect(source).toContain(guard);
+    const guardIndex = source.indexOf("voicePassLib.readVoicePassMode() === 'on'");
+    expect(guardIndex).toBeGreaterThan(-1);
+    expect(source.indexOf('blueprintEnrichmentRequested', guardIndex)).toBeGreaterThan(guardIndex);
+    expect(source.indexOf('enrichmentModelAvailable', guardIndex)).toBeGreaterThan(guardIndex);
+    expect(source.indexOf('!enrichmentOutcome.missingLessons?.length', guardIndex)).toBeGreaterThan(guardIndex);
     const callMatches = source.match(/\.runVoicePass\(/g) || [];
     // v0.14.9 C2: TWO call sites — the in-pipeline pass (behind the guard
     // above) and runVoicePassPostHoc, the same-generation A/B hook, which
     // gates itself on readVoicePassMode() !== 'on' before anything else.
     expect(callMatches).toHaveLength(2);
-    expect(source.indexOf(guard)).toBeLessThan(source.indexOf('.runVoicePass('));
+    expect(guardIndex).toBeLessThan(source.indexOf('.runVoicePass('));
     expect(source).toContain(
       "if (voicePassLib.readVoicePassMode() !== 'on') return { ran: false, reason: 'voice flag off' };",
     );

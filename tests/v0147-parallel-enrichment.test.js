@@ -133,11 +133,9 @@ describe('WS-A (2) — the rewritten loop keeps its contract (source pins)', () 
   });
 
   it('defers optional voice polish when enrichment coverage is still partial', () => {
-    expect(hookSource).toContain('const enrichmentCoverageGap = getEnrichmentCoverageGap(enrichmentOutcome);');
     const voiceSource = hookSource.split('const voicePassLib = await import')[1] || '';
-    expect(voiceSource).toContain('if (enrichmentCoverageGap)');
-    expect(voiceSource).toContain('repair lesson enrichment before texture polish');
-    expect(voiceSource.indexOf('if (enrichmentCoverageGap)')).toBeLessThan(
+    expect(voiceSource).toContain('enrichmentOutcome.missingLessons?.length');
+    expect(voiceSource.indexOf('enrichmentOutcome.missingLessons?.length')).toBeLessThan(
       voiceSource.indexOf('voicePassLib.runVoicePass({'),
     );
   });

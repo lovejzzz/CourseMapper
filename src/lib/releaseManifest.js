@@ -8,7 +8,7 @@ export const CURRENT_RELEASE = {
   highlights: [
     'The latest completed ZIP/log evidence is still v0.15.71 at 95/A, so this release does not claim a clean 100/100 package before a fresh v0.15.73 audit.',
     'Optional voice polish now defers whenever enrichment coverage is partial, so a package with template-fallback lessons keeps attention on repair instead of spending a model call on texture.',
-    'The run digest records the skipped voice pass with the exact enrichment coverage gap, making the quality loss explainable from logs instead of only from the exported grader.',
+    'The enrichment digest line remains the exact coverage-gap evidence, making the quality loss explainable from logs instead of only from the exported grader.',
     'Focused enrichment and voice-pass regressions pin the policy that lesson coverage is higher priority than texture polish.',
   ],
   landingHighlights: [

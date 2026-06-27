@@ -53,7 +53,7 @@
       "id": "v01573-coverage-gap-digest",
       "status": "verified-current",
       "changelogHighlightIndex": 2,
-      "summary": "The generation pipeline records a voice-pass skip decision with the exact enrichment coverage gap.",
+      "summary": "The generation pipeline defers voice polish while the enrichment stage remains the exact coverage-gap line.",
       "anchors": ["src/hooks/useDeliverables.js", "tests/v0147-parallel-enrichment.test.js"],
       "proofCommands": ["npm test -- tests/v0147-parallel-enrichment.test.js"],
       "proofScopes": ["unit", "static-audit"]

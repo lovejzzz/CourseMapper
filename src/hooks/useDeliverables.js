@@ -90,30 +90,6 @@ function getProviderCallEventCount(event = {}) {
   return Number.isFinite(event.count) ? Math.max(0, event.count) : 1;
 }
 
-function getEnrichmentCoverageGap(outcome = {}) {
-  const requested = Number(outcome.requestedLessons) || 0;
-  const enriched = Number(outcome.enrichedLessons) || 0;
-  const missingLessons = Array.isArray(outcome.missingLessons)
-    ? outcome.missingLessons.map((lesson) => Number(lesson)).filter((lesson) => Number.isFinite(lesson) && lesson > 0)
-    : [];
-  if (requested <= 0) return null;
-  if (enriched >= requested && missingLessons.length === 0) return null;
-  return {
-    requested,
-    enriched: Math.max(0, Math.min(enriched, requested)),
-    missingLessons,
-  };
-}
-
-function formatEnrichmentCoverageGap(gap) {
-  if (!gap) return '';
-  const missingDetail =
-    gap.missingLessons.length > 0
-      ? `lesson${gap.missingLessons.length === 1 ? '' : 's'} ${gap.missingLessons.join(', ')}`
-      : `${Math.max(0, gap.requested - gap.enriched)} lesson${gap.requested - gap.enriched === 1 ? '' : 's'}`;
-  return `enrichment covered ${gap.enriched}/${gap.requested} lessons; ${missingDetail} still need repair`;
-}
-
 async function getDeliverablePrompt(...args) {
   const prompts = await import('../lib/deliverablePrompts');
   return prompts.getDeliverablePrompt(...args);
@@ -1985,7 +1961,6 @@ export default function useDeliverables({
               }
             : {}),
         };
-        const enrichmentCoverageGap = getEnrichmentCoverageGap(enrichmentOutcome);
         recordGenerationApiCallEvent({
           type: 'pipelineDecision',
           stage: 'enrichmentModelStage',
@@ -2323,127 +2298,111 @@ export default function useDeliverables({
           // D4 single-run disclosure stash: cleared every compile so a
           // toggled-off run never inherits a stale "voice pass ran" claim.
           voicePassLib.clearVoicePassOutcome();
-          if (voicePassLib.readVoicePassMode() === 'on' && blueprintEnrichmentRequested && enrichmentModelAvailable) {
-            if (enrichmentCoverageGap) {
-              const gapDetail = formatEnrichmentCoverageGap(enrichmentCoverageGap);
-              recordGenerationApiCallEvent({
-                type: 'pipelineDecision',
-                stage: 'voicePass',
-                label: 'Voice pass',
-                detail: `skipped: ${gapDetail}; repair lesson enrichment before texture polish`,
-              });
-              appendLog(`Voice pass deferred: ${gapDetail}.`, 'progress');
-            } else {
-              const voiceAbortKey = 'voicePass';
-              const controller = new AbortController();
-              abortMapRef.current.set(voiceAbortKey, controller);
-              try {
-                const callModel = async (prompt) => {
-                  let usage = null;
-                  const result = await streamProvider(
-                    provider,
-                    apiKey,
-                    modelId,
-                    prompt.systemPrompt,
-                    prompt.userPrompt,
-                    {
-                      // Voice v2.1: the selected set is capped at eight surfaces,
-                      // so one call with a larger fixed cap avoids paying prompt
-                      // overhead twice without returning to v1's 12-surface risk.
-                      maxOutputTokens: 4000,
-                      modelCapabilities,
+          if (
+            voicePassLib.readVoicePassMode() === 'on' &&
+            blueprintEnrichmentRequested &&
+            enrichmentModelAvailable &&
+            !enrichmentOutcome.missingLessons?.length
+          ) {
+            const voiceAbortKey = 'voicePass';
+            const controller = new AbortController();
+            abortMapRef.current.set(voiceAbortKey, controller);
+            try {
+              const callModel = async (prompt) => {
+                let usage = null;
+                const result = await streamProvider(provider, apiKey, modelId, prompt.systemPrompt, prompt.userPrompt, {
+                  // Voice v2.1: the selected set is capped at eight surfaces,
+                  // so one call with a larger fixed cap avoids paying prompt
+                  // overhead twice without returning to v1's 12-surface risk.
+                  maxOutputTokens: 4000,
+                  modelCapabilities,
+                  featureId: 'voicePass',
+                  task: 'voicePass',
+                  onApiCallEvent: (event) => {
+                    // Capture the per-call cost for runVoicePass's budget
+                    // ledger while still forwarding every event to the
+                    // generation budget.
+                    if (event?.type === 'apiUsage' && Number.isFinite(event.costUsd)) {
+                      usage = { costUsd: event.costUsd };
+                    }
+                    recordGenerationApiCallEvent(event);
+                  },
+                  signal: controller.signal,
+                });
+                return { fullText: result?.fullText || '', usage };
+              };
+              // Voice only the features this run actually dispatched as done
+              // (validation-rejected features keep their error state).
+              const compiledForVoice = Object.fromEntries(
+                blueprintCompiledFeatureIds
+                  .filter((fid) => completedFeatureIds.has(fid))
+                  .map((fid) => [fid, compiled[fid]]),
+              );
+              const voiceResult = await voicePassLib.runVoicePass({
+                deliverables: compiledForVoice,
+                courseMap: blueprintCourseMap,
+                // Voice v2: kernels are the verified substance the rewrites
+                // may commit to (style without substance was v1's padding).
+                kernels: blueprintEnrichment?.lessonContent || lastEnrichmentOverlayRef.current?.lessonContent || null,
+                callModel,
+                onEvent: (event) => {
+                  if (event?.type === 'voicePassCall') {
+                    recordGenerationApiCallEvent({
+                      type: 'voicePassCall',
+                      label: 'Voice pass call',
+                      detail: typeof event.detail === 'string' ? event.detail : '',
                       featureId: 'voicePass',
                       task: 'voicePass',
-                      onApiCallEvent: (event) => {
-                        // Capture the per-call cost for runVoicePass's budget
-                        // ledger while still forwarding every event to the
-                        // generation budget.
-                        if (event?.type === 'apiUsage' && Number.isFinite(event.costUsd)) {
-                          usage = { costUsd: event.costUsd };
-                        }
-                        recordGenerationApiCallEvent(event);
-                      },
-                      signal: controller.signal,
-                    },
-                  );
-                  return { fullText: result?.fullText || '', usage };
-                };
-                // Voice only the features this run actually dispatched as done
-                // (validation-rejected features keep their error state).
-                const compiledForVoice = Object.fromEntries(
-                  blueprintCompiledFeatureIds
-                    .filter((fid) => completedFeatureIds.has(fid))
-                    .map((fid) => [fid, compiled[fid]]),
-                );
-                const voiceResult = await voicePassLib.runVoicePass({
-                  deliverables: compiledForVoice,
-                  courseMap: blueprintCourseMap,
-                  // Voice v2: kernels are the verified substance the rewrites
-                  // may commit to (style without substance was v1's padding).
-                  kernels:
-                    blueprintEnrichment?.lessonContent || lastEnrichmentOverlayRef.current?.lessonContent || null,
-                  callModel,
-                  onEvent: (event) => {
-                    if (event?.type === 'voicePassCall') {
-                      recordGenerationApiCallEvent({
-                        type: 'voicePassCall',
-                        label: 'Voice pass call',
-                        detail: typeof event.detail === 'string' ? event.detail : '',
-                        featureId: 'voicePass',
-                        task: 'voicePass',
-                      });
-                    } else if (event?.type === 'voicePassDone') {
-                      recordGenerationApiCallEvent({
-                        type: 'pipelineDecision',
-                        stage: 'voicePass',
-                        label: 'Voice pass',
-                        detail: typeof event.detail === 'string' ? event.detail : '',
-                      });
-                    }
-                  },
-                });
-                const voicedFeatureIds = new Set(
-                  voiceResult.voiced.map((surfaceId) => String(surfaceId).split(':')[0]),
-                );
-                for (const fid of voicedFeatureIds) {
-                  if (voiceResult.deliverables[fid]) markFeatureDone(fid, voiceResult.deliverables[fid]);
-                }
-                voicePassLib.recordVoicePassOutcome({
-                  enabled: true,
-                  voicedCount: voiceResult.voiced.length,
-                  fallbackCount: voiceResult.fallbacks.length,
-                  spentUsd: voiceResult.spentUsd,
-                  exhausted: voiceResult.exhausted,
-                  // Voice v2: the texture self-check verdict ships in the
-                  // manifest — our own rewrites get gated, not just graded.
-                  ...(voiceResult.selfCheck
-                    ? {
-                        texturePre: voiceResult.selfCheck.pre,
-                        texturePost: voiceResult.selfCheck.post,
-                        selfCheck: voiceResult.selfCheck.verdict,
-                      }
-                    : {}),
-                });
-                appendLog(
-                  `✓ Voice pass: ${voiceResult.voiced.length} surfaces voiced, ${voiceResult.fallbacks.length} fallbacks ($${voiceResult.spentUsd.toFixed(3)})${
-                    voiceResult.selfCheck
-                      ? ` — voice-surface texture ${voiceResult.selfCheck.pre}→${voiceResult.selfCheck.post} (${voiceResult.selfCheck.verdict})`
-                      : ''
-                  }`,
-                  voiceResult.selfCheck?.verdict === 'reverted' ? 'warn' : 'done',
-                );
-                if (voiceResult.exhausted) {
-                  appendLog('⚠ Voice pass budget exhausted mid-run — remaining surfaces keep compiled text', 'warn');
-                }
-                traceGeneration(generationRunId, 'voice_pass_done', {
-                  voicedCount: voiceResult.voiced.length,
-                  fallbackCount: voiceResult.fallbacks.length,
-                  spentUsd: voiceResult.spentUsd,
-                  exhausted: voiceResult.exhausted,
-                });
-              } finally {
-                abortMapRef.current.delete(voiceAbortKey);
+                    });
+                  } else if (event?.type === 'voicePassDone') {
+                    recordGenerationApiCallEvent({
+                      type: 'pipelineDecision',
+                      stage: 'voicePass',
+                      label: 'Voice pass',
+                      detail: typeof event.detail === 'string' ? event.detail : '',
+                    });
+                  }
+                },
+              });
+              const voicedFeatureIds = new Set(voiceResult.voiced.map((surfaceId) => String(surfaceId).split(':')[0]));
+              for (const fid of voicedFeatureIds) {
+                if (voiceResult.deliverables[fid]) markFeatureDone(fid, voiceResult.deliverables[fid]);
               }
+              voicePassLib.recordVoicePassOutcome({
+                enabled: true,
+                voicedCount: voiceResult.voiced.length,
+                fallbackCount: voiceResult.fallbacks.length,
+                spentUsd: voiceResult.spentUsd,
+                exhausted: voiceResult.exhausted,
+                // Voice v2: the texture self-check verdict ships in the
+                // manifest — our own rewrites get gated, not just graded.
+                ...(voiceResult.selfCheck
+                  ? {
+                      texturePre: voiceResult.selfCheck.pre,
+                      texturePost: voiceResult.selfCheck.post,
+                      selfCheck: voiceResult.selfCheck.verdict,
+                    }
+                  : {}),
+              });
+              appendLog(
+                `✓ Voice pass: ${voiceResult.voiced.length} surfaces voiced, ${voiceResult.fallbacks.length} fallbacks ($${voiceResult.spentUsd.toFixed(3)})${
+                  voiceResult.selfCheck
+                    ? ` — voice-surface texture ${voiceResult.selfCheck.pre}→${voiceResult.selfCheck.post} (${voiceResult.selfCheck.verdict})`
+                    : ''
+                }`,
+                voiceResult.selfCheck?.verdict === 'reverted' ? 'warn' : 'done',
+              );
+              if (voiceResult.exhausted) {
+                appendLog('⚠ Voice pass budget exhausted mid-run — remaining surfaces keep compiled text', 'warn');
+              }
+              traceGeneration(generationRunId, 'voice_pass_done', {
+                voicedCount: voiceResult.voiced.length,
+                fallbackCount: voiceResult.fallbacks.length,
+                spentUsd: voiceResult.spentUsd,
+                exhausted: voiceResult.exhausted,
+              });
+            } finally {
+              abortMapRef.current.delete(voiceAbortKey);
             }
           }
         } catch (voiceErr) {
