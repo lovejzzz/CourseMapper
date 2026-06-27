@@ -34,10 +34,7 @@
       "status": "verified-current",
       "changelogHighlightIndex": 0,
       "summary": "The release does not claim 100/100; it targets two deterministic issues from the fresh v0.15.71 95/A ZIP/log audit.",
-      "anchors": [
-        "verification-output/edutool-audit-loop/20260627T024234Z/report.md",
-        "docs/V0.15.72_STUDY_GUIDE_CHECK_FIREWALL_ROADMAP.md"
-      ],
+      "anchors": ["docs/V0.15.72_STUDY_GUIDE_CHECK_FIREWALL_ROADMAP.md"],
       "proofCommands": [
         "npm test -- tests/v0141-phase1-finalizer.test.js tests/v0144-build-ribbon.test.jsx tests/v0155-release-truth-ledger.test.js"
       ],
@@ -81,13 +78,13 @@
     {
       "id": "strict-enrichment-retry",
       "status": "carry-forward",
-      "source": "verification-output/edutool-audit-loop/20260627T024234Z/report.md",
+      "source": "docs/V0.15.72_STUDY_GUIDE_CHECK_FIREWALL_ROADMAP.md",
       "next": "Partial enrichment must spend bounded retry budget or stop before exporting a blocked review package."
     },
     {
       "id": "source-texture-export-cleanup",
       "status": "carry-forward",
-      "source": "verification-output/edutool-audit-loop/20260627T024234Z/report.md",
+      "source": "docs/V0.15.72_STUDY_GUIDE_CHECK_FIREWALL_ROADMAP.md",
       "next": "Continue source relevance/license, deterministic texture, PPTX echo, and double-period cleanup from exported evidence."
     }
   ]
