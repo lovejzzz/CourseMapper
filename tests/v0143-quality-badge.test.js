@@ -293,6 +293,34 @@ describe('A5(2) — healthy package ships its own audit', () => {
       ),
     ).toBe(true);
   }, 120000);
+
+  it('texture repeated-prose warnings do not masquerade as native authoring fallback', async () => {
+    const digest = healthyDigest();
+    digest.gates = {
+      ...(digest.gates || {}),
+      flaggedChecks: [
+        {
+          featureId: 'quality',
+          status: 'warning',
+          message:
+            'quality grade 99/100 (A) — 0 P0, 0 P1, 1 P2; Texture score 83/100 indicates repeated prose patterns across deliverables',
+        },
+      ],
+    };
+    const result = await buildPackage({ quality: false });
+
+    const regrade = await grade({
+      fileProvider: createMemoryFileProvider(await fileMapFromZip(result.blob)),
+      honesty: honestyFromDigest(healthyBudget(), digest),
+      course: GEO_COURSE,
+    });
+
+    expect(
+      regrade.findings.some(
+        (finding) => finding.dimension === 'honesty' && finding.detail === 'native fallback missing manifest',
+      ),
+    ).toBe(false);
+  }, 120000);
 });
 
 describe('A5(3) — seeded P0 reaches the manifest and the readiness channel', () => {

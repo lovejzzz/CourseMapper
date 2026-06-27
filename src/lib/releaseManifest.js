@@ -3,22 +3,22 @@ import { APP_VERSION } from './appVersion.js';
 export const CURRENT_RELEASE = {
   version: APP_VERSION,
   date: 'June 27, 2026',
-  title: 'Run Digest Retry Truth: partial enrichment shows repair attempts',
-  landingTitle: 'Run Digest Retry Truth',
+  title: 'Texture Caveat Truth: repeated prose warnings stop becoming native fallback P2s',
+  landingTitle: 'Texture Caveat Truth',
   highlights: [
-    'A v0.15.75 ZIP/log audit regraded at 97/A and proved the package stayed partial after two native enrichment recovery calls; this release fixes the digest/report truth so the remaining fallback is not misread as "no retries happened."',
-    'Run digests now count repair-stage retry calls from the API budget alongside finish-stage retry counts, so generation-time recovery attempts show in the gate summary.',
-    'Partial-enrichment flagged checks now say when template fallback remains after repair/retry calls, making the quality loss explainable from the digest without digging through DevTools logs.',
-    'This release does not claim a clean 100/100 package; the next deployed audit still must prove v0.15.77 quality, texture, source relevance, and enrichment coverage.',
+    'A fresh deployed v0.15.77 Project Management ZIP/log audit reached ready export with 12/12 materials, no P1s, on-discipline sources, and local regrade at 99/A with only the scored texture P2 remaining after a false native-fallback P2 was removed.',
+    'The deep quality grader no longer treats a texture warning that says "repeated prose patterns" as a native-authoring fallback; only explicit native fallback signals such as "fell back to prose" trigger that honesty finding.',
+    'A focused package-quality regression recreates the live texture warning and proves it does not masquerade as native fallback while the existing native fallback regression still fires.',
+    'This release does not claim a clean 100/100 package; the fresh audit still showed texture 83/100, concentrated in repeated Course FAQ language, so deterministic texture variation remains the next quality target.',
   ],
   landingHighlights: [
-    'Repair retries show in the digest.',
-    'Partial enrichment explains retry history.',
-    'Quality claims stay evidence-bound.',
+    'Texture warnings stay texture warnings.',
+    'Native fallback caveats stay strict.',
+    '99/100 evidence stays honest.',
   ],
   proof: {
-    contract: 'release-contracts/v0.15.77.json',
-    roadmap: 'docs/V0.15.77_RUN_DIGEST_RETRY_TRUTH_ROADMAP.md',
+    contract: 'release-contracts/v0.15.78.json',
+    roadmap: 'docs/V0.15.78_TEXTURE_CAVEAT_TRUTH_ROADMAP.md',
     auditCommand: 'npm run audit:release-history',
   },
 };
@@ -33,6 +33,17 @@ export const CURRENT_RELEASE_CHANGELOG = {
 };
 
 export const HISTORICAL_RELEASE_CHANGELOGS = [
+  {
+    version: '0.15.77',
+    date: 'June 27, 2026',
+    title: 'Run Digest Retry Truth: partial enrichment shows repair attempts',
+    highlights: [
+      'A v0.15.75 ZIP/log audit regraded at 97/A and proved the package stayed partial after two native enrichment recovery calls; this release fixes the digest/report truth so the remaining fallback is not misread as "no retries happened."',
+      'Run digests now count repair-stage retry calls from the API budget alongside finish-stage retry counts, so generation-time recovery attempts show in the gate summary.',
+      'Partial-enrichment flagged checks now say when template fallback remains after repair/retry calls, making the quality loss explainable from the digest without digging through DevTools logs.',
+      'This release does not claim a clean 100/100 package; the next deployed audit still must prove v0.15.77 quality, texture, source relevance, and enrichment coverage.',
+    ],
+  },
   {
     version: '0.15.76',
     date: 'June 27, 2026',

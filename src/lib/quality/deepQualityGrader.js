@@ -1238,7 +1238,7 @@ function addDigestCaveatFindings(findings, flaggedChecks = []) {
   const seen = new Set();
   for (const check of flaggedChecks || []) {
     const message = check?.message || check || '';
-    if (/prose/.test(message)) {
+    if (/fell back to prose|nativeAuthoringFellBack|degenerate-skeleton|native authoring.*fell back/i.test(message)) {
       findings.add({
         severity: 'P2',
         dimension: 'honesty',
