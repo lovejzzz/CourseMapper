@@ -79,7 +79,7 @@ const USER_EXPERIENCE_TOPIC_ANCHORS = [
   {
     concept: /\b(?:process\s+narrative|visuals|case\s+study\s+structure|studio\s+work|refinement|review)\b/i,
     source:
-      /\b(?:design\s+studio|studio\s+practice|portfolio\s+case\s+stud(?:y|ies)|case\s+study\s+structure|critique|visuals?|refinement|review)\b/i,
+      /\b(?:design\s+studio|studio\s+practice|portfolio\s+case\s+stud(?:y|ies)|case\s+study\s+structure|critique|visuals?|refinement|design\s+review|work[-\s]?in[-\s]?progress\s+review|portfolio\s+review)\b/i,
   },
 ];
 const SOURCE_FINDER_TRUSTED_ROWS_PER_TOPIC = 2;

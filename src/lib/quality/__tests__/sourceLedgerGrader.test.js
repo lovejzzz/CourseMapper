@@ -717,6 +717,71 @@ describe('source-ledger quality checks', () => {
     );
   });
 
+  it('flags health gamification reviews linked to UX critique concepts as off-discipline source proof', async () => {
+    const result = await grade({
+      fileProvider: createMemoryFileProvider({
+        'PACKAGE_MANIFEST.json': JSON.stringify({
+          courseName: 'User Experience Design Studio',
+          lessonScope: 'all',
+          requestedFeatures: [],
+          readiness: { status: 'ready', blockers: 0, warnings: 0, checkedSections: null },
+          sourceLedger: [
+            {
+              id: 'sf-health-gamification',
+              title: 'Gamification for health and wellbeing: A systematic review of the literature',
+              provider: 'openalex',
+              url: 'https://doi.org/10.1016/j.invent.2016.10.002',
+              doi: '10.1016/j.invent.2016.10.002',
+              license: 'CC BY',
+              evidence:
+                'Compared to persuasive technology and health games, gamification motivates behaviour change for health and wellbeing.',
+              conceptLinks: [
+                { id: 'c7', label: 'concept review' },
+                { id: 'c8', label: 'peer feedback' },
+                { id: 'c9', label: 'iteration' },
+              ],
+            },
+            {
+              id: 'sf-ux-collaboration',
+              title: 'Understanding Collaborative Practices and Tools of Professional UX Practitioners',
+              provider: 'openalex',
+              url: 'https://dl.acm.org/doi/pdf/10.1145/3544548.3581273',
+              doi: '10.1145/3544548.3581273',
+              license: 'CC BY',
+              evidence: 'User experience practitioners use critique, peer feedback, and collaboration tools.',
+              conceptLinks: [{ id: 'c7', label: 'concept review' }],
+            },
+          ],
+          sourceReport: {
+            path: 'SOURCE_REPORT.md',
+            sourceCount: 2,
+          },
+          files: [],
+        }),
+        'SOURCE_REPORT.md':
+          '# Source Report\n\n## Source Ledger\n- sf-health-gamification: Gamification for health and wellbeing\n- sf-ux-collaboration: Understanding Collaborative Practices and Tools of Professional UX Practitioners\n',
+      }),
+      course: { title: 'User Experience Design Studio', featureIds: [] },
+    });
+
+    expect(result.findings).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          severity: 'P1',
+          dimension: 'citations',
+          detail: 'source ledger row sf-health-gamification is off-discipline for User Experience Design Studio',
+        }),
+      ]),
+    );
+    expect(result.findings).not.toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          detail: 'source ledger row sf-ux-collaboration is off-discipline for User Experience Design Studio',
+        }),
+      ]),
+    );
+  });
+
   it('flags complete atom coverage that is not wired to the exported trusted ledger rows', async () => {
     const result = await grade({
       fileProvider: createMemoryFileProvider({

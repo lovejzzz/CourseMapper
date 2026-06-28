@@ -768,6 +768,70 @@ describe('trusted source ledger', () => {
     expect(ledger.summary.reviewRequiredCount || 0).toBe(0);
   });
 
+  it('drops health gamification reviews from UX critique source proof', () => {
+    const ledger = buildSourceLedgerFromCourseGraph(
+      {
+        course: { name: 'User Experience Design Studio' },
+        concepts: [
+          { id: 'c7', term: 'concept review' },
+          { id: 'c8', term: 'peer feedback' },
+          { id: 'c9', term: 'iteration' },
+        ],
+        sessions: [
+          {
+            id: 's3',
+            number: 3,
+            title: 'Critique session',
+            sections: [
+              {
+                id: 'sec3',
+                topic: 'concept review',
+                conceptRefs: ['c7', 'c8', 'c9'],
+                resourceRefs: ['sf-health-gamification', 'sf-ux-collaboration'],
+              },
+            ],
+          },
+        ],
+        resources: [
+          {
+            id: 'sf-health-gamification',
+            origin: 'source-finder',
+            provider: 'openalex',
+            kind: 'journal article',
+            title: 'Gamification for health and wellbeing: A systematic review of the literature',
+            url: 'https://doi.org/10.1016/j.invent.2016.10.002',
+            doi: '10.1016/j.invent.2016.10.002',
+            license: 'CC BY',
+            snippet:
+              'Compared to traditional persuasive technology and health games, gamification is used for motivating behaviour change for health and wellbeing.',
+            sessionRefs: ['s3'],
+          },
+          {
+            id: 'sf-ux-collaboration',
+            origin: 'source-finder',
+            provider: 'openalex',
+            kind: 'journal article',
+            title: 'Understanding Collaborative Practices and Tools of Professional UX Practitioners',
+            url: 'https://dl.acm.org/doi/pdf/10.1145/3544548.3581273',
+            doi: '10.1145/3544548.3581273',
+            license: 'CC BY',
+            snippet: 'Study of user experience practitioners, design handoff, critique, and collaboration.',
+            sessionRefs: ['s3'],
+          },
+        ],
+      },
+      { checkedAt: '2026-06-28T00:00:00.000Z' },
+    );
+
+    expect(ledger.rows.map((row) => row.title)).toContain(
+      'Understanding Collaborative Practices and Tools of Professional UX Practitioners',
+    );
+    expect(ledger.rows.map((row) => row.title)).not.toContain(
+      'Gamification for health and wellbeing: A systematic review of the literature',
+    );
+    expect(ledger.reviewRows || []).toHaveLength(0);
+  });
+
   it('drops source-finder bycatch review rows from the v0.15.93 UX audit shape', () => {
     const ledger = buildSourceLedgerFromCourseGraph(
       {

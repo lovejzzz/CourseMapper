@@ -3,24 +3,24 @@ import { APP_VERSION } from './appVersion.js';
 export const CURRENT_RELEASE = {
   version: APP_VERSION,
   date: 'June 28, 2026',
-  title: 'UX Source Review Truth and Texture Tail Rotation',
-  landingTitle: 'UX Source Review Truth',
+  title: 'UX Source Gate: review-word false friends stop reaching trusted proof',
+  landingTitle: 'UX Source Gate',
   highlights: [
-    'A fresh deployed v0.15.102 User Experience Design Studio ZIP/log audit exported Quality 98 and Texture 94: the only scored findings were four sourceReviewRows that SOURCE_REPORT.md had already quarantined as not trusted bibliography proof.',
-    'The source-ledger grader now keeps quarantined source-review rows advisory only when the package also has multiple trusted, licensed, URL/DOI-backed, concept-linked bibliography rows; thin trusted ledgers still score review-only rows as citation debt.',
-    'The captured v0.15.102 ZIP now locally regrades at 100/A with zero findings under the stricter current rule, while still preserving the Texture 94 strict-clean caveat.',
-    'Slide Deck notes now rotate the audited criterion-bridge, closing-transition, and homework-handoff scaffolds instead of stamping the same note family across all 12 UX lessons.',
-    'Discussion Prompt guidelines now rotate the audited in-class participation frame that repeated "speak or post at least twice" across every lesson; a fresh deployed v0.15.103 ZIP/log audit is still required before claiming strict-clean provider output.',
+    'A fresh deployed v0.15.103 User Experience Design Studio ZIP/log audit exported Quality 99 and Texture 95, but still carried a P1: a health gamification systematic review was trusted as a UX critique/peer-feedback reading.',
+    'The current local regrade of that same artifact is intentionally stricter at 97/A: it also flags the trusted source-ledger rows behind the clinical-methods reading and the AI black-box review false friend instead of hiding them behind the syllabus citation finding.',
+    'UX source trust no longer treats bare "review" as a valid source anchor for concept-review/studio-work topics; sources now need explicit UX/design/critique/studio anchors such as design review, work-in-progress review, portfolio review, or real user-experience vocabulary.',
+    'Source-finder now rejects the audited health-gamification systematic-review shape before it reaches the mini-shard cache, while the source-ledger export drops the same false friend instead of presenting it as trusted concept-linked proof.',
+    'The grader mirror now flags any exported health-gamification review linked to UX critique concepts as off-discipline proof; Texture 95 remains a strict-clean carry-forward target until a fresh deployed v0.15.104 ZIP/log audit proves the full package clean.',
   ],
   landingHighlights: [
-    'Quarantined weak sources no longer count as citation failures when real trusted linked sources cover the package.',
-    'Thin source ledgers still fail review-only proof.',
-    'Slide Deck note tails rotate by lesson.',
-    'Discussion participation scaffolds avoid the audited all-lesson repeat.',
+    'Bare review-word matches no longer trust wrong-field UX sources.',
+    'Health gamification reviews are rejected for UX critique slots.',
+    'Source-finder and source-ledger gates now agree.',
+    'The grader mirrors the stricter source truth.',
   ],
   proof: {
-    contract: 'release-contracts/v0.15.103.json',
-    roadmap: 'docs/V0.15.103_UX_SOURCE_REVIEW_TEXTURE_TAIL_ROADMAP.md',
+    contract: 'release-contracts/v0.15.104.json',
+    roadmap: 'docs/V0.15.104_UX_REVIEW_WORD_SOURCE_GATE_ROADMAP.md',
     auditCommand: 'npm run audit:release-history',
   },
 };
@@ -35,6 +35,18 @@ export const CURRENT_RELEASE_CHANGELOG = {
 };
 
 export const HISTORICAL_RELEASE_CHANGELOGS = [
+  {
+    version: '0.15.103',
+    date: 'June 28, 2026',
+    title: 'UX Source Review Truth and Texture Tail Rotation',
+    highlights: [
+      'A fresh deployed v0.15.102 User Experience Design Studio ZIP/log audit exported Quality 98 and Texture 94: the only scored findings were four sourceReviewRows that SOURCE_REPORT.md had already quarantined as not trusted bibliography proof.',
+      'The source-ledger grader now keeps quarantined source-review rows advisory only when the package also has multiple trusted, licensed, URL/DOI-backed, concept-linked bibliography rows; thin trusted ledgers still score review-only rows as citation debt.',
+      'The captured v0.15.102 ZIP now locally regrades at 100/A with zero findings under the stricter current rule, while still preserving the Texture 94 strict-clean caveat.',
+      'Slide Deck notes now rotate the audited criterion-bridge, closing-transition, and homework-handoff scaffolds instead of stamping the same note family across all 12 UX lessons.',
+      'Discussion Prompt guidelines now rotate the audited in-class participation frame that repeated "speak or post at least twice" across every lesson; a fresh deployed v0.15.103 ZIP/log audit is still required before claiming strict-clean provider output.',
+    ],
+  },
   {
     version: '0.15.102',
     date: 'June 28, 2026',

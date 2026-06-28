@@ -569,6 +569,55 @@ describe('source finder mini-shard', () => {
     expect(ledger.reviewRows || []).toHaveLength(0);
   });
 
+  it('rejects health gamification reviews for UX critique topics before caching sources', async () => {
+    const graph = createEmptyCourseGraph({ courseName: 'User Experience Design Studio' });
+    graph.sessions = [
+      {
+        id: 's3',
+        number: 3,
+        title: 'Lesson 3: Critique session',
+        sections: [{ topic: '3.1: concept review, peer feedback, and iteration' }],
+      },
+    ];
+    graph.concepts = [
+      { id: 'c7', term: 'concept review' },
+      { id: 'c8', term: 'peer feedback' },
+      { id: 'c9', term: 'iteration' },
+    ];
+    graph.edges.teaches = [
+      { from: 's3', to: 'c7' },
+      { from: 's3', to: 'c8' },
+      { from: 's3', to: 'c9' },
+    ];
+
+    const miniShard = await findCourseSources(graph, {
+      storage: memoryStorage(),
+      maxTopics: 1,
+      limitPerTopic: 2,
+      minUsefulSources: 1,
+      providers: {
+        searchScholarlyReadings: vi.fn(async () => [
+          source('openalex', 'Gamification for health and wellbeing: A systematic review of the literature', {
+            doi: '10.1016/j.invent.2016.10.002',
+            abstract:
+              'Compared to persuasive technology and health games, gamification is used for motivating behaviour change for health and wellbeing.',
+          }),
+          source('openalex', 'Understanding Collaborative Practices and Tools of Professional UX Practitioners', {
+            doi: '10.1145/3544548.3581273',
+            abstract:
+              'User experience practitioners use critique, peer feedback, design handoff, and collaboration tools in studio work.',
+          }),
+        ]),
+        searchCrossrefWorks: vi.fn(async () => []),
+        searchWikipediaPages: vi.fn(async () => []),
+      },
+    });
+
+    expect(miniShard.topics[0].sources.map((item) => item.title)).toEqual([
+      'Understanding Collaborative Practices and Tools of Professional UX Practitioners',
+    ]);
+  }, 15000);
+
   it('rejects v0.15.97 UX false friends during retrieval before they reach the mini-shard cache', async () => {
     const graph = createEmptyCourseGraph({ courseName: 'User Experience Design Studio' });
     graph.sessions = [
