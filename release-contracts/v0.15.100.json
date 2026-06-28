@@ -1,0 +1,115 @@
+{
+  "version": "0.15.100",
+  "date": "June 28, 2026",
+  "title": "UX Assignment Texture: critique scaffolds stop repeating across briefs",
+  "status": "verified-current",
+  "proofSummary": {
+    "local": [
+      "npx vitest run src/lib/__tests__/courseBlueprintCompiler.test.js -t \"UX assignment critique|article-led discussion\"",
+      "npx vitest run src/lib/__tests__/courseBlueprintCompiler.test.js"
+    ],
+    "ciFast": {
+      "status": "pending-push",
+      "note": "Fast verification is claimed only after v0.15.100 is pushed and the GitHub Actions run is attached."
+    },
+    "deploy": {
+      "status": "pending-push",
+      "note": "Pages deploy is not claimed until the pushed v0.15.100 release completes its deploy run."
+    },
+    "ciDeep": {
+      "status": "local-only",
+      "note": "This is a narrow compiler texture release; targeted regression plus normal gates are the release bar."
+    },
+    "liveProvider": {
+      "status": "local-only",
+      "note": "The release is based on a fresh deployed v0.15.99 ZIP/log audit that regraded 99/A with texture 89. A fresh deployed v0.15.100 audit is still required before claiming clean provider output."
+    },
+    "manualHuman": {
+      "status": "not-applicable",
+      "note": "No external instructor approval is claimed by this release."
+    }
+  },
+  "claims": [
+    {
+      "id": "v015100-live-v01599-texture-evidence",
+      "status": "verified-current",
+      "changelogHighlightIndex": 0,
+      "summary": "The release is grounded in the fresh deployed v0.15.99 UX ZIP/log audit, which regraded at 99/A with only texture below 100.",
+      "anchors": [
+        "verification-output/edutool-audit-loop/20260628T124549Z-v01599-ux-fresh/report.md",
+        "verification-output/edutool-audit-loop/20260628T124549Z-v01599-ux-fresh/local-regrade.json",
+        "docs/V0.15.100_ASSIGNMENT_TEXTURE_ROADMAP.md"
+      ],
+      "proofCommands": [
+        "npx vitest run src/lib/__tests__/courseBlueprintCompiler.test.js -t \"UX assignment critique|article-led discussion\""
+      ],
+      "proofScopes": ["live-provider", "static-audit", "unit"]
+    },
+    {
+      "id": "v015100-critique-review-protocol-variation",
+      "status": "verified-current",
+      "changelogHighlightIndex": 1,
+      "summary": "Assignment Brief compilation rewrites the generic before/after critique protocol into lesson-varied, artifact-specific review language.",
+      "anchors": ["src/lib/courseBlueprintCompiler.js", "src/lib/__tests__/courseBlueprintCompiler.test.js"],
+      "proofCommands": [
+        "npx vitest run src/lib/__tests__/courseBlueprintCompiler.test.js -t \"UX assignment critique|article-led discussion\""
+      ],
+      "proofScopes": ["unit", "compiled-output"]
+    },
+    {
+      "id": "v015100-assignment-instruction-variation",
+      "status": "verified-current",
+      "changelogHighlightIndex": 2,
+      "summary": "The repeated material-review, evidence-selection, and limitation-check assignment instruction leads now rotate by lesson without changing identity or grading semantics.",
+      "anchors": ["src/lib/courseBlueprintCompiler.js", "src/lib/__tests__/courseBlueprintCompiler.test.js"],
+      "proofCommands": [
+        "npx vitest run src/lib/__tests__/courseBlueprintCompiler.test.js -t \"UX assignment critique|article-led discussion\""
+      ],
+      "proofScopes": ["unit", "compiled-output"]
+    },
+    {
+      "id": "v015100-ux-texture-regression",
+      "status": "verified-current",
+      "changelogHighlightIndex": 3,
+      "summary": "The regression recreates the twelve-lesson UX design-studio failure shape and blocks the repeated before/after critique shingle and repeated instruction leads.",
+      "anchors": ["src/lib/__tests__/courseBlueprintCompiler.test.js"],
+      "proofCommands": [
+        "npx vitest run src/lib/__tests__/courseBlueprintCompiler.test.js -t \"UX assignment critique|article-led discussion\""
+      ],
+      "proofScopes": ["unit", "compiled-output"]
+    },
+    {
+      "id": "v015100-no-grader-weakening",
+      "status": "verified-current",
+      "changelogHighlightIndex": 4,
+      "summary": "The release targets the compiler output and does not weaken the texture grader or claim clean provider output before a fresh deployed audit.",
+      "anchors": [
+        "docs/V0.15.100_ASSIGNMENT_TEXTURE_ROADMAP.md",
+        "release-contracts/v0.15.100.json",
+        "src/lib/quality/textureMetric.js"
+      ],
+      "proofCommands": ["npm run audit:release-history"],
+      "proofScopes": ["static-audit", "doc"]
+    }
+  ],
+  "carryForward": [
+    {
+      "id": "fresh-v015100-provider-audit",
+      "status": "carry-forward",
+      "source": "docs/V0.15.100_ASSIGNMENT_TEXTURE_ROADMAP.md",
+      "next": "After deploy, run a fresh v0.15.100 UX ZIP/log audit and verify whether Assignment Brief texture reaches 100 in real provider output."
+    },
+    {
+      "id": "cross-domain-robustness",
+      "status": "carry-forward",
+      "source": "verification-output/edutool-audit-loop/20260628T124549Z-v01599-ux-fresh/report.md",
+      "next": "Continue validating Project Management and UX outputs so source truth, texture, report truth, and exported surfaces stay aligned across domains."
+    },
+    {
+      "id": "provider-output-proof",
+      "status": "carry-forward",
+      "source": "release-contracts/v0.15.100.json",
+      "next": "Do not claim a clean 100/100 quality state until a fresh deployed ZIP/log audit and local regrade prove it."
+    }
+  ]
+}

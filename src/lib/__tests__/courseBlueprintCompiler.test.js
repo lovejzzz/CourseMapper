@@ -2376,6 +2376,94 @@ describe('courseBlueprintCompiler', () => {
     expect(text).not.toMatch(/\bthe the logic/i);
   });
 
+  it('varies UX assignment critique instructions instead of repeating the before-after scaffold', () => {
+    const topics = [
+      ['Design studio introduction', 'design journals'],
+      ['User research interviews', 'interview plan'],
+      ['Personas', 'persona brief'],
+      ['Journey mapping', 'journey map'],
+      ['Information architecture', 'site map'],
+      ['Wireframing', 'wireframe critique'],
+      ['Prototyping', 'prototype rationale'],
+      ['Usability testing', 'test plan'],
+      ['Accessibility review', 'accessibility notes'],
+      ['A/B testing', 'experiment summary'],
+      ['Portfolio case study', 'case study draft'],
+      ['Final UX design presentation', 'presentation deck'],
+    ];
+    const blueprint = buildCourseBlueprint(
+      {
+        courseName: 'User Experience Design Studio',
+        semester: 'Fall 2026',
+        lessons: topics.map(([topic, artifact], index) => ({
+          title: `Lesson ${index + 1}: ${topic}`,
+          sections: [
+            {
+              topicSection: topic,
+              learningGoals: `Use ${topic} evidence to improve a UX design artifact.`,
+              learningObjectives: `Explain ${topic} and apply it to a UX design decision.`,
+              weeklyAssessments: artifact,
+              asyncActivities: `Review assigned UX examples and prepare critique notes on ${topic}.`,
+              syncActivities: `Studio critique and practice applying ${topic}.`,
+              supportingResources: 'UX example packet; critique protocol; design artifact template',
+              evaluateDesign: `Score evidence, reasoning, limitation, and revision quality for ${artifact}.`,
+            },
+          ],
+        })),
+      },
+      {
+        enrichment: {
+          source: 'test-ux-assignment-texture',
+          lens: {
+            domain: 'UX design studio',
+            evidenceNoun: 'research evidence',
+            decisionNoun: 'design decision',
+            learnerRole: 'studio designer',
+            exampleNoun: 'critique case',
+          },
+        },
+      },
+    );
+
+    blueprint.lessons.forEach((lesson) => {
+      const focus = lesson.title.replace(/^Lesson \d+:\s*/, '');
+      lesson.artifactGenre = {
+        ...(lesson.artifactGenre || {}),
+        genre: 'design-prototype',
+        label: 'Prototype design artifact',
+        reviewProtocol: `compare the before/after artifact, inspect critique evidence, and require one named next iteration for ${focus}`,
+      };
+      lesson.evidencePlan = {
+        ...(lesson.evidencePlan || {}),
+        limitationCue: `Name one limitation, assumption, or boundary condition before applying ${focus}`,
+      };
+    });
+
+    const compiled = compileBlueprintDeliverables(blueprint, ['assignments'], {
+      enforceCompilerContract: false,
+    });
+    const assignmentTexts = compiled.assignments.assignments.map((assignment) =>
+      [
+        assignment.expectedSubmissionFormat,
+        ...(assignment.instructions || []),
+        assignment.formatRequirements?.reviewProtocol,
+      ].join(' '),
+    );
+    const countDocumentsWith = (pattern) => assignmentTexts.filter((text) => pattern.test(text)).length;
+    const texture = computeTexture(
+      assignmentTexts.map((text, index) => ({ id: `assignment-${index}`, feature: 'assignments', text })),
+    );
+    const evidence = texture.evidence.map((item) => item.shingle).join('\n');
+
+    expect(assignmentTexts.join(' ')).not.toMatch(/compare the before\/after artifact/i);
+    expect(countDocumentsWith(/review the materials for .* identify the central problem or decision/i)).toBeLessThan(4);
+    expect(countDocumentsWith(/select specific research evidence from course readings/i)).toBeLessThan(4);
+    expect(countDocumentsWith(/name one limitation, assumption, or boundary condition before applying/i)).toBeLessThan(
+      4,
+    );
+    expect(evidence).not.toMatch(/after artifact inspect critique evidence and require/i);
+  });
+
   it('varies lecture-exam slide and lesson-plan texture instead of repeating compiler tails', () => {
     const blueprint = buildCourseBlueprint(makeFourLessonLectureExamCourseMap(), {
       enrichment: {

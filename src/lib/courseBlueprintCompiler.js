@@ -11581,6 +11581,84 @@ function buildAssignmentSubmissionProfile({ lesson = {}, assessment = {}, lens =
   };
 }
 
+const GENERIC_ASSIGNMENT_CRITIQUE_REVIEW_RE =
+  /\bcompare\s+the\s+before\/after\s+artifact\b.*\binspect\s+critique\s+evidence\b.*\brequire\s+one\s+named\s+next\s+iteration\b/i;
+
+function assignmentReviewProtocolForLesson({ lesson = {}, assessment = {}, submissionProfile = {} } = {}) {
+  const protocol = cleanText(submissionProfile.reviewProtocol);
+  if (!protocol) return '';
+  if (!GENERIC_ASSIGNMENT_CRITIQUE_REVIEW_RE.test(protocol)) return protocol;
+  const artifact = stripTerminalPunctuation(submissionProfile.artifact || assessment.artifact || assessment.title);
+  const focus = stripLessonPrefix(lesson.title || assessment.relatedLessons?.[0] || assessment.title);
+  return lessonVariant(lesson, [
+    `Compare the first and revised ${artifact}; cite critique evidence and name the next ${focus} iteration step`,
+    `Annotate what changed in ${artifact}, point to the critique evidence, and state the next revision move for ${focus}`,
+    `Use critique notes to explain one before-and-after change in ${artifact} and the next design choice`,
+    `Show the starting version, revised choice, and critique evidence that drive the next ${focus} iteration`,
+    `Mark one visible change in ${artifact}, connect it to critique evidence, and name the next test or revision`,
+    `Use the before-and-after comparison to justify one ${artifact} improvement and the next critique question`,
+  ]);
+}
+
+function assignmentMaterialReviewInstruction({ lesson = {}, assessment = {} } = {}) {
+  const title = stripLessonPrefix(lesson.title || assessment.relatedLessons?.[0] || assessment.title);
+  const artifact = stripTerminalPunctuation(assessment.artifact || assessment.title || 'the assignment');
+  return lessonVariant(lesson, [
+    `Review the materials for ${title} and identify the central problem or decision.`,
+    `Revisit the ${title} materials and name the decision ${artifact} needs to make visible.`,
+    `Use the ${title} notes, examples, and activities to frame the problem ${artifact} will address.`,
+    `Scan the ${title} resources and mark the evidence that should shape the assignment decision.`,
+    `Start from the ${title} materials, then choose the problem, user need, or claim the artifact must resolve.`,
+    `Before drafting ${artifact}, connect the lesson materials to one decision the submission must defend.`,
+  ]);
+}
+
+function assignmentEvidenceSelectionInstruction({ lesson = {}, assessment = {}, lens = {} } = {}) {
+  const evidenceNoun = cleanText(lens.evidenceNoun, 'source evidence').toLowerCase();
+  const title = stripTerminalPunctuation(assessment.title || 'the assignment');
+  const focus = stripLessonPrefix(lesson.title || assessment.relatedLessons?.[0] || title);
+  return lessonVariant(lesson, [
+    `Select specific ${evidenceNoun} from course readings, activities, or discussion notes for ${title}.`,
+    `Choose the reading, activity, critique note, or course example that gives ${title} its strongest evidence.`,
+    `Identify one inspectable source detail and one class activity detail that can support ${title}.`,
+    `Gather the ${focus} evidence students can quote, annotate, observe, or point to in ${title}.`,
+    `Use course materials to name the evidence, example, or feedback signal that ${title} will rely on.`,
+    `Anchor ${title} in concrete course evidence rather than a general topic summary.`,
+  ]);
+}
+
+function assignmentLimitationInstruction({ lesson = {}, assessment = {} } = {}) {
+  const title = stripTerminalPunctuation(assessment.title || 'the assignment');
+  const cue = cleanText(lesson.evidencePlan?.limitationCue);
+  if (cue) {
+    const clause = stripTerminalPunctuation(cue);
+    const genericLimit = clause.match(
+      /^name\s+one\s+limitation,\s*assumption,\s*or\s*boundary\s*condition\s+before\s+applying\s+(.+)$/i,
+    );
+    if (genericLimit) {
+      const focus = cleanText(genericLimit[1], stripLessonPrefix(lesson.title || title));
+      return lessonVariant(lesson, [
+        `State the limitation that matters before applying ${focus}, then revisit it while finalizing ${title}.`,
+        `Identify the assumption behind ${focus} and check whether ${title} depends on it.`,
+        `Add a boundary condition for ${focus} so ${title} does not overclaim its evidence.`,
+        `Before submitting ${title}, mark the caveat that keeps the ${focus} decision honest.`,
+      ]);
+    }
+    return lessonVariant(lesson, [
+      `${clause}, then revisit it when finalizing ${title}.`,
+      `Use this boundary check before submission: ${lowercaseClauseLead(clause)}. Revisit it while finalizing ${title}.`,
+      `Before submitting ${title}, test the draft against this limit: ${lowercaseClauseLead(clause)}.`,
+      `Mark where the draft handles this limitation: ${lowercaseClauseLead(clause)}.`,
+    ]);
+  }
+  return lessonVariant(lesson, [
+    `Name one limitation before finalizing ${title}.`,
+    `State one assumption the submission depends on before turning in ${title}.`,
+    `Add one boundary condition that keeps ${title} from overclaiming.`,
+    `Check where ${title} needs a limit, caveat, or exception before submission.`,
+  ]);
+}
+
 function assignmentChecklistResourceLabel({ submissionProfile = {}, lesson = {}, assessment = {} } = {}) {
   const artifactLabel = cleanText(
     submissionProfile.artifactGenreLabel || submissionProfile.assignmentType || 'Assignment',
@@ -14513,7 +14591,15 @@ function compileAssignments(blueprint) {
         blueprint.lessons.find((item) => item.lessonNumber === assessment.lessonNumbers?.[0]) ||
         blueprint.lessons[index] ||
         {};
-      const submissionProfile = buildAssignmentSubmissionProfile({ lesson, assessment, lens });
+      const baseSubmissionProfile = buildAssignmentSubmissionProfile({ lesson, assessment, lens });
+      const submissionProfile = {
+        ...baseSubmissionProfile,
+        reviewProtocol: assignmentReviewProtocolForLesson({
+          lesson,
+          assessment,
+          submissionProfile: baseSubmissionProfile,
+        }),
+      };
       const assessmentTitle = stripTerminalPunctuation(assessment.title);
       const assessmentArtifact = stripTerminalPunctuation(
         assessment.artifact || submissionProfile.artifact || assessment.title,
@@ -14643,13 +14729,11 @@ function compileAssignments(blueprint) {
           ...(lesson.enrichment?.assignmentCore?.parameters?.length > 0
             ? [`Work within these parameters: ${lesson.enrichment.assignmentCore.parameters.join('; ')}.`]
             : []),
-          `Review the materials for ${assessment.relatedLessons.join(', ')} and identify the central problem or decision.`,
-          `Select specific ${lens.evidenceNoun} from course readings, activities, or discussion notes for ${assessmentTitle}.`,
+          assignmentMaterialReviewInstruction({ lesson, assessment }),
+          assignmentEvidenceSelectionInstruction({ lesson, assessment, lens }),
           lesson.sourceUsePlan?.studentAttributionMove ||
             `Name the reading, activity, or course note used before explaining the evidence for ${assessmentTitle}.`,
-          lesson.evidencePlan?.limitationCue
-            ? `${stripTerminalPunctuation(lesson.evidencePlan.limitationCue)}, then revisit it when finalizing ${assessmentTitle}.`
-            : `Name one limitation before finalizing ${assessmentTitle}.`,
+          assignmentLimitationInstruction({ lesson, assessment }),
           `For ${stripLessonPrefix(lesson.title)}, ${submissionProfile.reviewProtocol}.`,
           assessment.anchorExampleSet?.studentFacingUse ||
             `Compare a strong and partial sample before finalizing ${assessmentTitle}.`,

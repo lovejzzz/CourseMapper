@@ -3,24 +3,24 @@ import { APP_VERSION } from './appVersion.js';
 export const CURRENT_RELEASE = {
   version: APP_VERSION,
   date: 'June 28, 2026',
-  title: 'Discussion Grammar Seam: article-led concepts stop exporting malformed prompts',
-  landingTitle: 'Discussion Grammar Seam',
+  title: 'UX Assignment Texture: critique scaffolds stop repeating across briefs',
+  landingTitle: 'UX Assignment Texture',
   highlights: [
-    'The fresh deployed v0.15.97 User Experience Design Studio audit carried a real P2 in Lesson 10 discussion prompts: "name one the logic of A/B testing uncertainty worth testing."',
-    'Discussion compiler text no longer uses lesson concepts as brittle noun modifiers in peer and review directions; it now writes "claim about X," "discussion of X," "evidence for X," and "uncertainty in X" for article-led concepts.',
-    'A regression recreates the ten-lesson UX/A-B testing shape so Lesson 10 now exports "name one uncertainty in the logic of A/B testing worth testing" and blocks the old malformed variants.',
-    'This is a format-truth cleanup that removes the known P2 after v0.15.98 source-truth hardening; it does not claim that source quarantine, texture, or provider output are clean.',
-    'The next deployed ZIP/log audit must verify both v0.15.98 source false-friend quarantine and the v0.15.99 discussion grammar repair in real provider output.',
+    'A fresh deployed v0.15.99 User Experience Design Studio ZIP/log audit regraded honestly at 99/A: every structural/source/honesty dimension was 100, but texture stayed 89 with one P2 from repeated Assignment Brief prose.',
+    'Assignment Brief compilation now varies the generic UX before/after critique review protocol instead of stamping "compare the before/after artifact, inspect critique evidence, and require one named next iteration" across all 12 lessons.',
+    'The fixed assignment instruction frames for reviewing materials, selecting evidence, and naming limitations now rotate by lesson while preserving the same assessment identity, source-use intent, and rubric alignment.',
+    'A regression recreates the twelve-lesson UX design-studio shape and blocks the repeated before/after critique shingle plus the repeated materials/evidence/limitation instruction leads.',
+    'This release targets the only scored v0.15.99 loss without weakening the texture grader; a fresh deployed v0.15.100 ZIP/log audit is still required before claiming clean 100/100 provider output.',
   ],
   landingHighlights: [
-    'Article-led lesson concepts no longer produce malformed discussion text.',
-    'The exact A/B testing P2 is covered by a regression.',
-    'The release removes one proven format debt item without hiding source or texture debt.',
-    'Fresh v0.15.99 provider proof remains required.',
+    'Assignment Briefs vary UX critique instructions across lessons.',
+    'The v0.15.99 texture P2 has a focused compiler regression.',
+    'Source, honesty, and format standards remain unchanged.',
+    'Fresh v0.15.100 provider proof remains required.',
   ],
   proof: {
-    contract: 'release-contracts/v0.15.99.json',
-    roadmap: 'docs/V0.15.99_DISCUSSION_GRAMMAR_SEAM_ROADMAP.md',
+    contract: 'release-contracts/v0.15.100.json',
+    roadmap: 'docs/V0.15.100_ASSIGNMENT_TEXTURE_ROADMAP.md',
     auditCommand: 'npm run audit:release-history',
   },
 };
@@ -35,6 +35,18 @@ export const CURRENT_RELEASE_CHANGELOG = {
 };
 
 export const HISTORICAL_RELEASE_CHANGELOGS = [
+  {
+    version: '0.15.99',
+    date: 'June 28, 2026',
+    title: 'Discussion Grammar Seam: article-led concepts stop exporting malformed prompts',
+    highlights: [
+      'The fresh deployed v0.15.97 User Experience Design Studio audit carried a real P2 in Lesson 10 discussion prompts: "name one the logic of A/B testing uncertainty worth testing."',
+      'Discussion compiler text no longer uses lesson concepts as brittle noun modifiers in peer and review directions; it now writes "claim about X," "discussion of X," "evidence for X," and "uncertainty in X" for article-led concepts.',
+      'A regression recreates the ten-lesson UX/A-B testing shape so Lesson 10 now exports "name one uncertainty in the logic of A/B testing worth testing" and blocks the old malformed variants.',
+      'This is a format-truth cleanup that removes the known P2 after v0.15.98 source-truth hardening; it does not claim that source quarantine, texture, or provider output are clean.',
+      'A fresh deployed v0.15.99 audit then proved source, honesty, discipline, structure, and format were clean; the remaining loss moved to texture 89 in Assignment Briefs.',
+    ],
+  },
   {
     version: '0.15.98',
     date: 'June 28, 2026',
