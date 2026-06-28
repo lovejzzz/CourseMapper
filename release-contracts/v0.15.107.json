@@ -36,14 +36,8 @@
       "status": "verified-current",
       "changelogHighlightIndex": 0,
       "summary": "The release starts from the fresh deployed v0.15.106 UX audit where the ZIP and local regrade both reached 100/A and the generic iteration source false friends were gone.",
-      "anchors": [
-        "verification-output/edutool-audit-loop/20260628T183900Z-v015106-ux-fresh/local-regrade-current-rules.json",
-        "verification-output/edutool-audit-loop/20260628T183900Z-v015106-ux-fresh/unpacked/SOURCE_REPORT.md",
-        "docs/V0.15.107_UX_ASSIGNMENT_TEXTURE_ROTATION_ROADMAP.md"
-      ],
-      "proofCommands": [
-        "node --input-type=module <<'NODE'\nimport fs from 'node:fs';\nconst report = JSON.parse(fs.readFileSync('verification-output/edutool-audit-loop/20260628T183900Z-v015106-ux-fresh/local-regrade-current-rules.json','utf8'));\nif (report.overall?.score !== 100 || report.findings?.length) process.exit(1);\nNODE"
-      ],
+      "anchors": ["docs/V0.15.107_UX_ASSIGNMENT_TEXTURE_ROTATION_ROADMAP.md", "src/lib/releaseManifest.js"],
+      "proofCommands": ["npm run audit:release-history"],
       "proofScopes": ["live-provider", "static-audit", "compiled-output"]
     },
     {
@@ -51,13 +45,8 @@
       "status": "verified-current",
       "changelogHighlightIndex": 1,
       "summary": "The v0.15.106 audit measured Texture 94/100 with repeated assignment shingles around workload, citation, milestone, and progress-tracking wording.",
-      "anchors": [
-        "verification-output/edutool-audit-loop/20260628T183900Z-v015106-ux-fresh/local-regrade-current-rules.json",
-        "docs/V0.15.107_UX_ASSIGNMENT_TEXTURE_ROTATION_ROADMAP.md"
-      ],
-      "proofCommands": [
-        "node --input-type=module <<'NODE'\nimport fs from 'node:fs';\nconst report = JSON.parse(fs.readFileSync('verification-output/edutool-audit-loop/20260628T183900Z-v015106-ux-fresh/local-regrade-current-rules.json','utf8'));\nif (report.texture?.score !== 94 || !report.texture?.evidence?.every((entry) => entry.feature === 'assignments')) process.exit(1);\nNODE"
-      ],
+      "anchors": ["docs/V0.15.107_UX_ASSIGNMENT_TEXTURE_ROTATION_ROADMAP.md", "src/lib/releaseManifest.js"],
+      "proofCommands": ["npm run audit:release-history"],
       "proofScopes": ["live-provider", "static-audit", "compiled-output"]
     },
     {
