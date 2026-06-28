@@ -1,0 +1,111 @@
+{
+  "version": "0.15.95",
+  "date": "June 28, 2026",
+  "title": "Trusted Source Review Cleanup: metadata-only and false-friend rows stop shipping",
+  "status": "verified-current",
+  "proofSummary": {
+    "local": [
+      "npm test -- --run src/lib/knowledge/__tests__/sourceLedger.test.js src/lib/knowledge/__tests__/sourceFinder.test.js src/lib/quality/__tests__/sourceLedgerGrader.test.js src/lib/__tests__/packageZipExporter.test.js"
+    ],
+    "ciFast": {
+      "status": "pending-push",
+      "note": "Fast verification is claimed only after v0.15.95 is pushed and the GitHub Actions run is attached."
+    },
+    "deploy": {
+      "status": "pending-push",
+      "note": "Pages deploy is not claimed until the pushed v0.15.95 release completes its deploy run."
+    },
+    "ciDeep": {
+      "status": "local-only",
+      "note": "This is a narrow source-trust filtering release; targeted regressions plus normal gates are the release bar."
+    },
+    "liveProvider": {
+      "status": "local-only",
+      "note": "The release is based on a fresh deployed v0.15.94 ZIP/log audit. A fresh deployed v0.15.95 ZIP/log audit is still required before claiming provider package quality improvement."
+    },
+    "manualHuman": {
+      "status": "not-applicable",
+      "note": "No external instructor approval is claimed by this release."
+    }
+  },
+  "claims": [
+    {
+      "id": "v01595-live-v01594-source-evidence",
+      "status": "verified-current",
+      "changelogHighlightIndex": 0,
+      "summary": "The release is grounded in a fresh deployed v0.15.94 UX ZIP/log audit that regraded 97/A and exposed remaining metadata-only and false-friend source debt.",
+      "anchors": [
+        "verification-output/edutool-audit-loop/20260628T092923Z-v01594-ux-fresh/local-regrade.md",
+        "verification-output/edutool-audit-loop/20260628T092923Z-v01594-ux-fresh/report.md",
+        "docs/V0.15.95_TRUSTED_SOURCE_REVIEW_CLEANUP_ROADMAP.md"
+      ],
+      "proofCommands": [
+        "npm test -- --run src/lib/knowledge/__tests__/sourceLedger.test.js src/lib/knowledge/__tests__/sourceFinder.test.js src/lib/quality/__tests__/sourceLedgerGrader.test.js src/lib/__tests__/packageZipExporter.test.js"
+      ],
+      "proofScopes": ["live-provider", "static-audit", "unit"]
+    },
+    {
+      "id": "v01595-source-finder-trusted-before-attachment",
+      "status": "verified-current",
+      "changelogHighlightIndex": 1,
+      "summary": "Source-finder candidates must have URL/DOI proof, a non-ambiguous license, and domain-appropriate source text before attachment.",
+      "anchors": ["src/lib/knowledge/sourceFinder.js", "src/lib/knowledge/__tests__/sourceFinder.test.js"],
+      "proofCommands": ["npm test -- --run src/lib/knowledge/__tests__/sourceFinder.test.js"],
+      "proofScopes": ["unit", "compiled-output"]
+    },
+    {
+      "id": "v01595-source-finder-review-debt-dropped",
+      "status": "verified-current",
+      "changelogHighlightIndex": 2,
+      "summary": "Metadata-only source-finder fallbacks are dropped instead of exported as sourceReviewRows.",
+      "anchors": [
+        "src/lib/knowledge/sourceLedger.js",
+        "src/lib/knowledge/__tests__/sourceLedger.test.js",
+        "src/lib/__tests__/packageZipExporter.test.js"
+      ],
+      "proofCommands": [
+        "npm test -- --run src/lib/knowledge/__tests__/sourceLedger.test.js src/lib/__tests__/packageZipExporter.test.js"
+      ],
+      "proofScopes": ["unit", "compiled-output"]
+    },
+    {
+      "id": "v01595-ux-prototype-and-mechatronics-false-friends",
+      "status": "verified-current",
+      "changelogHighlightIndex": 3,
+      "summary": "UX source filtering and grading reject prototype-programming and mechatronics/manufacturing false friends.",
+      "anchors": [
+        "src/lib/knowledge/sourceLedger.js",
+        "src/lib/quality/sourceLedgerQualityChecks.js",
+        "src/lib/knowledge/__tests__/sourceLedger.test.js",
+        "src/lib/quality/__tests__/sourceLedgerGrader.test.js"
+      ],
+      "proofCommands": [
+        "npm test -- --run src/lib/knowledge/__tests__/sourceLedger.test.js src/lib/quality/__tests__/sourceLedgerGrader.test.js"
+      ],
+      "proofScopes": ["unit", "compiled-output", "static-audit"]
+    },
+    {
+      "id": "v01595-no-clean-quality-claim",
+      "status": "verified-current",
+      "changelogHighlightIndex": 4,
+      "summary": "The release explicitly carries forward partial-enrichment and clean-provider-audit requirements instead of claiming 100/100.",
+      "anchors": ["docs/V0.15.95_TRUSTED_SOURCE_REVIEW_CLEANUP_ROADMAP.md", "release-contracts/v0.15.95.json"],
+      "proofCommands": ["npm run audit:release-history"],
+      "proofScopes": ["static-audit", "doc"]
+    }
+  ],
+  "carryForward": [
+    {
+      "id": "fresh-v01595-provider-audit",
+      "status": "carry-forward",
+      "source": "docs/V0.15.95_TRUSTED_SOURCE_REVIEW_CLEANUP_ROADMAP.md",
+      "next": "After deploy, run a fresh v0.15.95 UX ZIP/log audit and verify metadata-only source-finder rows, generated-syllabus mechatronics rows, and prototype-programming false friends no longer ship."
+    },
+    {
+      "id": "partial-enrichment-template-fallback",
+      "status": "carry-forward",
+      "source": "verification-output/edutool-audit-loop/20260628T092923Z-v01594-ux-fresh/report.md",
+      "next": "Investigate lesson 1 template fallback after repair/retry if it reproduces in the fresh v0.15.95 audit."
+    }
+  ]
+}

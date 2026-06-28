@@ -530,7 +530,10 @@ function sourceFinderCandidateForReview(source = {}, topic = {}) {
 function attachableTopicSources(graph, miniShard, topic) {
   const courseContext = sourceFinderCourseContext(graph, miniShard);
   return (topic.sources || []).filter(
-    (source) => !isUserExperienceWeakSource(sourceFinderCandidateForReview(source, topic), courseContext),
+    (source) =>
+      (source?.url || source?.doi) &&
+      !isLicenseAmbiguous(source?.license) &&
+      !isUserExperienceWeakSource(sourceFinderCandidateForReview(source, topic), courseContext),
   );
 }
 

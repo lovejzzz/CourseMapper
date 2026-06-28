@@ -894,6 +894,57 @@ describe('packageZipExporter', () => {
     expect(sourceReport).not.toContain('syllabus-src-');
   });
 
+  it('drops generated syllabus public-metadata false friends instead of exporting review notes', async () => {
+    const courseMap = makeCourseMap('User Experience Design Studio');
+    courseMap.lessons[0].sections[0].topicSection = 'Design journals';
+
+    const result = await buildCourseMaterialsZip({
+      courseMap,
+      deliverables: {
+        syllabus: {
+          status: 'done',
+          data: {
+            syllabus: {
+              courseTitle: 'User Experience Design Studio',
+              weeklySchedule: [
+                {
+                  week: 'Week 1',
+                  topic: 'Design journals',
+                  readings:
+                    'Crossref public metadata (2022). Journals of Mechatronics Machine Design and Manufacturing. Crossref: https://doi.org/10.46610/jmmdm (Crossref public metadata)',
+                  assignments: 'Design journal reflection',
+                },
+              ],
+            },
+          },
+        },
+      },
+      featureIds: ['courseMap', 'syllabus'],
+      courseGraph: {
+        course: { name: 'User Experience Design Studio' },
+        concepts: [{ id: 'c1', term: 'Design journals' }],
+        sessions: [
+          {
+            id: 's1',
+            number: 1,
+            sections: [{ id: 'sec1', topic: 'Design journals', conceptRefs: ['c1'], resourceRefs: [] }],
+          },
+        ],
+        resources: [],
+        readings: [],
+      },
+      quality: false,
+    });
+
+    const zip = await JSZip.loadAsync(await result.blob.arrayBuffer());
+    const manifest = JSON.parse(await zip.file('PACKAGE_MANIFEST.json').async('string'));
+
+    expect(manifest.sourceLedger).toBeUndefined();
+    expect(manifest.sourceReviewRows).toBeUndefined();
+    expect(manifest.sourceReport).toBeUndefined();
+    expect(zip.file('SOURCE_REPORT.md')).toBeNull();
+  });
+
   it('recovers source report proof from rendered course-map resources when the export graph is sparse', async () => {
     const courseMap = makeCourseMap('Sociology Source Fallback');
     courseMap.lessons[0].sections[0] = {
@@ -1051,7 +1102,7 @@ describe('packageZipExporter', () => {
     expect(sourceReport).not.toContain('## Source Ledger');
   });
 
-  it('exports metadata-only source-finder fallbacks as source review rows', async () => {
+  it('omits metadata-only source-finder fallbacks instead of exporting review rows', async () => {
     const result = await buildCourseMaterialsZip({
       courseMap: makeCourseMap('Metadata Source Finder Review'),
       deliverables: {
@@ -1108,17 +1159,20 @@ describe('packageZipExporter', () => {
     expect(manifest.sourceReviewRows).toEqual(
       expect.arrayContaining([
         expect.objectContaining({
-          provider: 'openlibrary',
-          licenseAmbiguous: true,
-          conceptLinks: [{ id: 'c1', label: 'Project charter' }],
+          id: 'SL1',
+          provider: 'courseir',
+          accessStatus: 'no-url-or-doi',
         }),
       ]),
     );
-    expect(manifest.sourceLedgerSummary).toMatchObject({ sourceCount: 0, trustedCount: 0, reviewRequiredCount: 1 });
+    expect(manifest.sourceReviewRows).not.toEqual(
+      expect.arrayContaining([expect.objectContaining({ provider: 'openlibrary' })]),
+    );
+    expect(manifest.sourceLedgerSummary).toMatchObject({ sourceCount: 0, reviewRequiredCount: 1 });
     expect(manifest.sourceReport).toMatchObject({ path: 'SOURCE_REPORT.md', sourceCount: 0, sourceReviewCount: 1 });
     expect(sourceReport).toContain('Source Review Notes');
-    expect(sourceReport).toContain('trustedBibliography=false');
-    expect(sourceReport).not.toContain('## Source Ledger');
+    expect(sourceReport).toContain('Existing course map fields');
+    expect(sourceReport).not.toContain('Project Management Metadata');
   });
 
   it('uses custom deliverable names in ZIP paths and manifest labels', async () => {

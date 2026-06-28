@@ -1,0 +1,226 @@
+{
+  "scores": {
+    "identity": 100,
+    "substance": 100,
+    "citations": 94,
+    "honesty": 97,
+    "discipline": 100,
+    "consistency": 100,
+    "structure": 92,
+    "format": 100,
+    "texture": 90
+  },
+  "grades": {
+    "identity": "A",
+    "substance": "A",
+    "citations": "A",
+    "honesty": "A",
+    "discipline": "A",
+    "consistency": "A",
+    "structure": "A",
+    "format": "A",
+    "texture": "A"
+  },
+  "overall": {
+    "score": 97,
+    "grade": "A"
+  },
+  "findings": [
+    {
+      "id": "F001",
+      "severity": "P1",
+      "dimension": "structure",
+      "file": "PACKAGE_MANIFEST.json",
+      "detail": "package readiness reports 1 blocker(s) (status \"blocked\")",
+      "evidence": "{\"status\":\"blocked\",\"blockers\":1,\"warnings\":0,\"checkedSections\":\"10/10\"}"
+    },
+    {
+      "id": "F002",
+      "severity": "P2",
+      "dimension": "citations",
+      "file": "PACKAGE_MANIFEST.json",
+      "detail": "source review row sf3 is not trusted bibliography proof",
+      "evidence": "Personas"
+    },
+    {
+      "id": "F003",
+      "severity": "P2",
+      "dimension": "citations",
+      "file": "PACKAGE_MANIFEST.json",
+      "detail": "source review row syllabus-src-1-1 is not trusted bibliography proof",
+      "evidence": "Crossref public metadata (2022). Journals of Mechatronics Machine Design and Manufacturing. Crossref: https://doi.org/10.46610/jmmdm (Crossref public metadata)"
+    },
+    {
+      "id": "F004",
+      "severity": "P2",
+      "dimension": "honesty",
+      "file": "console",
+      "detail": "unexplained console error/warning not on the dev-noise allowlist",
+      "evidence": "[failed] content: partial enrichment (11/12) — lesson 1 fell back to template after 1 repair/retry call"
+    }
+  ],
+  "stats": {
+    "fileCount": 100,
+    "findingCount": 4,
+    "p0": 0,
+    "p1": 1,
+    "p2": 3,
+    "byDimension": {
+      "identity": 0,
+      "substance": 0,
+      "citations": 2,
+      "honesty": 1,
+      "discipline": 0,
+      "consistency": 0,
+      "structure": 1,
+      "format": 0,
+      "texture": 0
+    },
+    "hasManifest": true,
+    "registryCount": 12,
+    "readingsCount": 0
+  },
+  "texture": {
+    "version": "1.0.0",
+    "score": 90,
+    "grade": "A",
+    "measured": true,
+    "subScores": {
+      "sameness": 88,
+      "openers": 87,
+      "tails": 99
+    },
+    "evidence": [
+      {
+        "shingle": "a design-build-test cycle where students translate requirements into a prototype measure performance",
+        "feature": "slideDecks",
+        "docCount": 12,
+        "docTotal": 12
+      },
+      {
+        "shingle": "artifact expectation to test whether the proposed decision would hold up in",
+        "feature": "discussions",
+        "docCount": 12,
+        "docTotal": 12
+      },
+      {
+        "shingle": "as vocabulary only restate them as decisions they must justify in the",
+        "feature": "slideDecks",
+        "docCount": 12,
+        "docTotal": 12
+      },
+      {
+        "shingle": "ask students to name which research evidence now feels strongest for the",
+        "feature": "slideDecks",
+        "docCount": 12,
+        "docTotal": 12
+      },
+      {
+        "shingle": "ask which prior move already supports the criterion and which part still",
+        "feature": "slideDecks",
+        "docCount": 12,
+        "docTotal": 12
+      }
+    ],
+    "groups": [
+      {
+        "feature": "assignments",
+        "docCount": 12,
+        "avgOverlap": 0.665,
+        "tailCount": 91,
+        "tailDensity": 0.073
+      },
+      {
+        "feature": "courseFaq",
+        "docCount": 12,
+        "avgOverlap": 0.032,
+        "tailCount": 18,
+        "tailDensity": 0.004
+      },
+      {
+        "feature": "discussions",
+        "docCount": 12,
+        "avgOverlap": 0.084,
+        "tailCount": 52,
+        "tailDensity": 0.01
+      },
+      {
+        "feature": "lessonPlans",
+        "docCount": 12,
+        "avgOverlap": 0.052000000000000005,
+        "tailCount": 60,
+        "tailDensity": 0.006
+      },
+      {
+        "feature": "quizBank",
+        "docCount": 12,
+        "avgOverlap": 0.022000000000000002,
+        "tailCount": 32,
+        "tailDensity": 0.003
+      },
+      {
+        "feature": "rubrics",
+        "docCount": 10,
+        "avgOverlap": 0.006999999999999999,
+        "tailCount": 0,
+        "tailDensity": 0
+      },
+      {
+        "feature": "slideDecks",
+        "docCount": 12,
+        "avgOverlap": 0.057999999999999996,
+        "tailCount": 156,
+        "tailDensity": 0.006999999999999999
+      },
+      {
+        "feature": "studyGuides",
+        "docCount": 12,
+        "avgOverlap": 0.02,
+        "tailCount": 5,
+        "tailDensity": 0.001
+      }
+    ],
+    "advisories": [
+      {
+        "severity": "P2",
+        "dimension": "texture",
+        "advisory": true,
+        "file": "",
+        "detail": "advisory: template tail shared by 12/12 slideDecks documents (roadmap WS-D D1)",
+        "evidence": "a design-build-test cycle where students translate requirements into a prototype measure performance"
+      },
+      {
+        "severity": "P2",
+        "dimension": "texture",
+        "advisory": true,
+        "file": "",
+        "detail": "advisory: template tail shared by 12/12 discussions documents (roadmap WS-D D1)",
+        "evidence": "artifact expectation to test whether the proposed decision would hold up in"
+      },
+      {
+        "severity": "P2",
+        "dimension": "texture",
+        "advisory": true,
+        "file": "",
+        "detail": "advisory: template tail shared by 12/12 slideDecks documents (roadmap WS-D D1)",
+        "evidence": "as vocabulary only restate them as decisions they must justify in the"
+      },
+      {
+        "severity": "P2",
+        "dimension": "texture",
+        "advisory": true,
+        "file": "",
+        "detail": "advisory: template tail shared by 12/12 slideDecks documents (roadmap WS-D D1)",
+        "evidence": "ask students to name which research evidence now feels strongest for the"
+      },
+      {
+        "severity": "P2",
+        "dimension": "texture",
+        "advisory": true,
+        "file": "",
+        "detail": "advisory: template tail shared by 12/12 slideDecks documents (roadmap WS-D D1)",
+        "evidence": "ask which prior move already supports the criterion and which part still"
+      }
+    ]
+  }
+}

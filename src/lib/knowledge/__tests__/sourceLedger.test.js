@@ -597,7 +597,7 @@ describe('trusted source ledger', () => {
     );
 
     expect(ledger.rows).toHaveLength(1);
-    expect(ledger.reviewRows).toHaveLength(1);
+    expect(ledger.reviewRows || []).toHaveLength(0);
     expect(ledger.summary).toMatchObject({
       sourceCount: 1,
       trustedCount: 1,
@@ -605,7 +605,6 @@ describe('trusted source ledger', () => {
       trustedConceptLinkedCount: 1,
       accessibleCount: 1,
       licenseAmbiguousCount: 0,
-      reviewRequiredCount: 1,
     });
     expect(ledger.rows[0]).toMatchObject({
       provider: 'wikipedia',
@@ -613,14 +612,10 @@ describe('trusted source ledger', () => {
       licenseAmbiguous: false,
       conceptLinks: [{ id: 'c1', label: 'Project charter' }],
     });
-    expect(ledger.reviewRows[0]).toMatchObject({
-      provider: 'crossref',
-      trustLevel: 'academic-metadata',
-      licenseAmbiguous: true,
-    });
+    expect(ledger.summary.reviewRequiredCount || 0).toBe(0);
   });
 
-  it('quarantines metadata-only source-finder fallbacks as review notes', () => {
+  it('drops metadata-only source-finder fallbacks instead of exporting review debt', () => {
     const ledger = buildSourceLedgerFromCourseGraph(
       {
         concepts: [{ id: 'c1', term: 'Project charter' }],
@@ -655,21 +650,9 @@ describe('trusted source ledger', () => {
       { checkedAt: '2026-06-27T00:00:00.000Z' },
     );
 
-    expect(ledger.rows).toHaveLength(0);
-    expect(ledger.reviewRows).toEqual(
-      expect.arrayContaining([
-        expect.objectContaining({
-          provider: 'openlibrary',
-          licenseAmbiguous: true,
-          conceptLinks: [{ id: 'c1', label: 'Project charter' }],
-        }),
-      ]),
-    );
-    expect(ledger.summary).toMatchObject({ sourceCount: 0, trustedCount: 0, reviewRequiredCount: 1 });
+    expect(ledger).toBeNull();
     const report = buildSourceReportMarkdown({ courseName: 'Project Management', sourceLedger: ledger });
-    expect(report).toContain('Source Review Notes');
-    expect(report).toContain('trustedBibliography=false');
-    expect(report).not.toContain('## Source Ledger');
+    expect(report).toBe('');
   });
 
   it('drops unused UX source-finder false friends when trusted topic sources exist', () => {
@@ -824,6 +807,30 @@ describe('trusted source ledger', () => {
             sessionRefs: ['s1'],
           },
           {
+            id: 'sf-prototype-programming',
+            origin: 'source-finder',
+            provider: 'wikipedia',
+            kind: 'encyclopedia background',
+            title: 'Prototype-based programming',
+            url: 'https://en.wikipedia.org/wiki/Prototype-based_programming',
+            license: 'CC BY-SA 4.0',
+            snippet:
+              'Prototype-based programming is a style of object-oriented programming in which behavior reuse uses existing objects as prototypes.',
+            sessionRefs: ['s8'],
+          },
+          {
+            id: 'sf-personas-metadata',
+            origin: 'source-finder',
+            provider: 'crossref',
+            kind: 'book-chapter',
+            title: 'Personas',
+            url: 'https://doi.org/10.2307/j.ctvm7bc5k.4',
+            doi: '10.2307/j.ctvm7bc5k.4',
+            license: 'Crossref public metadata',
+            snippet: 'Crossref public metadata for a persona chapter.',
+            sessionRefs: ['s1'],
+          },
+          {
             id: 'sf2',
             origin: 'source-finder',
             provider: 'wikipedia',
@@ -841,6 +848,8 @@ describe('trusted source ledger', () => {
 
     expect(ledger.rows.map((row) => row.title)).toContain('A/B testing');
     expect(ledger.rows.map((row) => row.title)).not.toContain('List of Studio Ghibli works');
+    expect(ledger.rows.map((row) => row.title)).not.toContain('Prototype-based programming');
+    expect(ledger.rows.map((row) => row.title)).not.toContain('Personas');
     expect(ledger.reviewRows || []).toHaveLength(0);
     expect(ledger.summary).toMatchObject({ sourceCount: 1, trustedConceptLinkedCount: 1 });
     expect(ledger.summary.reviewRequiredCount || 0).toBe(0);
@@ -902,6 +911,40 @@ describe('trusted source ledger', () => {
       trustedConceptLinkedCount: 1,
       licenseAmbiguousCount: 0,
     });
+  });
+
+  it('drops generated syllabus public-metadata false friends from UX source review rows', () => {
+    const ledger = buildSourceLedgerFromCourseGraph(
+      {
+        course: { name: 'User Experience Design Studio' },
+        concepts: [{ id: 'c1', term: 'Design journals' }],
+        sessions: [
+          {
+            id: 's1',
+            number: 1,
+            sections: [
+              { id: 'sec1', topic: 'Design journals', conceptRefs: ['c1'], resourceRefs: ['syllabus-src-1-1'] },
+            ],
+          },
+        ],
+        resources: [
+          {
+            id: 'syllabus-src-1-1',
+            origin: 'syllabus',
+            kind: 'weekly reading',
+            title:
+              'Crossref public metadata (2022). Journals of Mechatronics Machine Design and Manufacturing. Crossref: https://doi.org/10.46610/jmmdm (Crossref public metadata)',
+            url: 'https://doi.org/10.46610/jmmdm',
+            doi: '10.46610/jmmdm',
+            license: 'Crossref public metadata',
+            sessionRefs: [1],
+          },
+        ],
+      },
+      { checkedAt: '2026-06-28T00:00:00.000Z' },
+    );
+
+    expect(ledger).toBeNull();
   });
 
   it('quarantines weak UX knowledge resources before they become trusted ledger rows', () => {

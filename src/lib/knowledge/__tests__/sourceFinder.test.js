@@ -499,6 +499,24 @@ describe('source finder mini-shard', () => {
             {
               provider: 'wikipedia',
               kind: 'encyclopedia background',
+              title: 'Prototype-based programming',
+              url: 'https://en.wikipedia.org/wiki/Prototype-based_programming',
+              license: 'CC BY-SA 4.0',
+              snippet:
+                'Prototype-based programming is a style of object-oriented programming in which behavior reuse uses existing objects as prototypes.',
+            },
+            {
+              provider: 'crossref',
+              kind: 'book-chapter',
+              title: 'Personas',
+              url: 'https://doi.org/10.2307/j.ctvm7bc5k.4',
+              doi: '10.2307/j.ctvm7bc5k.4',
+              license: 'Crossref public metadata',
+              snippet: 'Crossref public metadata for a persona chapter.',
+            },
+            {
+              provider: 'wikipedia',
+              kind: 'encyclopedia background',
               title: 'A/B testing',
               url: 'https://en.wikipedia.org/wiki/A/B_testing',
               license: 'CC BY-SA 4.0',
