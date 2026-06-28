@@ -1,0 +1,110 @@
+{
+  "version": "0.15.102",
+  "date": "June 28, 2026",
+  "title": "UX Texture Frames: lesson-plan, discussion, and slide scaffolds rotate by lesson",
+  "status": "verified-current",
+  "proofSummary": {
+    "local": [
+      "npx vitest run src/lib/__tests__/courseBlueprintCompiler.test.js --testNamePattern=\"varies UX lesson-plan|scrubs stale notebook|varies UX assignment\"",
+      "npx vitest run src/lib/__tests__/courseBlueprintCompiler.test.js"
+    ],
+    "ciFast": {
+      "status": "pending-push",
+      "note": "Fast verification is claimed only after v0.15.102 is pushed and the GitHub Actions run is attached."
+    },
+    "deploy": {
+      "status": "pending-push",
+      "note": "Pages deploy is not claimed until the pushed v0.15.102 release completes its deploy run."
+    },
+    "ciDeep": {
+      "status": "local-only",
+      "note": "This is a narrow compiler texture release; targeted regression plus normal gates are the release bar."
+    },
+    "liveProvider": {
+      "status": "local-only",
+      "note": "The release is based on a fresh deployed v0.15.101 ZIP/log audit that regraded 100/A with Texture 94. A fresh deployed v0.15.102 audit is still required before claiming strict-clean provider output."
+    },
+    "manualHuman": {
+      "status": "not-applicable",
+      "note": "No external instructor approval is claimed by this release."
+    }
+  },
+  "claims": [
+    {
+      "id": "v015102-live-v015101-texture-evidence",
+      "status": "verified-current",
+      "changelogHighlightIndex": 0,
+      "summary": "The release is grounded in the fresh deployed v0.15.101 UX ZIP/log audit, which regraded at 100/A with no findings but still measured Texture 94/100.",
+      "anchors": [
+        "verification-output/edutool-audit-loop/20260628T143000Z-v015101-ux-fresh/report.md",
+        "verification-output/edutool-audit-loop/20260628T143000Z-v015101-ux-fresh/local-regrade.json",
+        "docs/V0.15.102_UX_TEXTURE_FRAME_VARIATION_ROADMAP.md"
+      ],
+      "proofCommands": [
+        "npx vitest run src/lib/__tests__/courseBlueprintCompiler.test.js --testNamePattern=\"varies UX lesson-plan\""
+      ],
+      "proofScopes": ["live-provider", "static-audit", "unit"]
+    },
+    {
+      "id": "v015102-lesson-plan-reasoning-frame-variation",
+      "status": "verified-current",
+      "changelogHighlightIndex": 1,
+      "summary": "Lesson-plan model notes vary the line-of-reasoning reuse frame by lesson instead of repeating one instructor-note scaffold.",
+      "anchors": ["src/lib/courseBlueprintCompiler.js", "src/lib/__tests__/courseBlueprintCompiler.test.js"],
+      "proofCommands": [
+        "npx vitest run src/lib/__tests__/courseBlueprintCompiler.test.js --testNamePattern=\"varies UX lesson-plan\""
+      ],
+      "proofScopes": ["unit", "compiled-output"]
+    },
+    {
+      "id": "v015102-discussion-artifact-frame-variation",
+      "status": "verified-current",
+      "changelogHighlightIndex": 2,
+      "summary": "Discussion prompt artifact-review rows vary the assessed-work stress-test frame without changing assessment alignment.",
+      "anchors": ["src/lib/courseBlueprintCompiler.js", "src/lib/__tests__/courseBlueprintCompiler.test.js"],
+      "proofCommands": [
+        "npx vitest run src/lib/__tests__/courseBlueprintCompiler.test.js --testNamePattern=\"varies UX lesson-plan\""
+      ],
+      "proofScopes": ["unit", "compiled-output"]
+    },
+    {
+      "id": "v015102-slide-deck-frame-variation",
+      "status": "verified-current",
+      "changelogHighlightIndex": 3,
+      "summary": "Slide Deck objective, common-pitfall, and summary notes vary the audited vocabulary-only, true/false, and strongest-evidence scaffolds.",
+      "anchors": ["src/lib/courseBlueprintCompiler.js", "src/lib/__tests__/courseBlueprintCompiler.test.js"],
+      "proofCommands": [
+        "npx vitest run src/lib/__tests__/courseBlueprintCompiler.test.js --testNamePattern=\"varies UX lesson-plan\""
+      ],
+      "proofScopes": ["unit", "compiled-output"]
+    },
+    {
+      "id": "v015102-no-grader-source-report-weakening",
+      "status": "verified-current",
+      "changelogHighlightIndex": 4,
+      "summary": "The release changes compiler phrasing only and does not weaken source retrieval, report truth, package UI, or quality grading.",
+      "anchors": [
+        "docs/V0.15.102_UX_TEXTURE_FRAME_VARIATION_ROADMAP.md",
+        "release-contracts/v0.15.102.json",
+        "src/lib/quality/textureMetric.js",
+        "src/lib/quality/deepQualityGrader.js"
+      ],
+      "proofCommands": ["npm run audit:release-history"],
+      "proofScopes": ["static-audit", "doc"]
+    }
+  ],
+  "carryForward": [
+    {
+      "id": "fresh-v015102-provider-audit",
+      "status": "carry-forward",
+      "source": "docs/V0.15.102_UX_TEXTURE_FRAME_VARIATION_ROADMAP.md",
+      "next": "After deploy, run a fresh v0.15.102 UX ZIP/log audit and verify the public score remains 100/A while texture reaches strict clean or produces no hidden repeated-scaffold caveat."
+    },
+    {
+      "id": "cross-domain-strict-clean",
+      "status": "carry-forward",
+      "source": "verification-output/edutool-audit-loop/20260628T143000Z-v015101-ux-fresh/report.md",
+      "next": "Continue validating Project Management and UX outputs so source truth, texture, report truth, and exported surfaces stay aligned across domains."
+    }
+  ]
+}

@@ -3,24 +3,24 @@ import { APP_VERSION } from './appVersion.js';
 export const CURRENT_RELEASE = {
   version: APP_VERSION,
   date: 'June 28, 2026',
-  title: 'UX Format and Domain Guard: sections and lab-asset leaks stop blocking export',
-  landingTitle: 'UX Format and Domain Guard',
+  title: 'UX Texture Frames: lesson-plan, discussion, and slide scaffolds rotate by lesson',
+  landingTitle: 'UX Texture Frames',
   highlights: [
-    'A fresh deployed v0.15.100 User Experience Design Studio browser run reached Quality 99 and Texture 94, but the package gate blocked ZIP export because Slide Decks still carried non-data notebook/model-card lab language.',
-    'Assignment Brief and rubric rendering now rewrites numeric "sections" parameters such as "3-5 sections" into student-facing "3-5 labeled parts," keeping the strict cover-meta grader unchanged.',
-    'Slide Deck IR and compiled Slide Deck output now scrub stale Jupyter, IPYNB, starter-notebook, data-science-notebook, and unsupported model-card language from non-data courses while preserving legitimate data-science and AI-governance usage.',
-    'Lesson-plan material lists now vary by lesson focus and artifact instead of repeating the same agenda/handout/shared-notes/submission-template shingle across every lesson.',
-    'This release fixes CourseMapper-side compiler output defects found by v0.15.100; a fresh deployed v0.15.101 ZIP/log audit is still required before claiming clean 100/100 provider output.',
+    'A fresh deployed v0.15.101 User Experience Design Studio ZIP/log audit now regraded at 100/A with zero findings, clean export verification, and clean source proof, but strict-clean still measured Texture 94/100.',
+    'Lesson-plan model notes now rotate the "show one line of reasoning students should reuse" frame by lesson instead of stamping the same instructor note across all 12 lessons.',
+    'Discussion prompt review artifacts now vary the "proposed decision would hold up in assessed work" frame while preserving the assessment-brief stress-test intent.',
+    'Slide Deck notes now rotate the audited vocabulary-only, true/false pitfall, and strongest-evidence closing frames so common objective, misconception, and summary slides do not share the same scaffold.',
+    'A focused twelve-lesson UX regression blocks the exact v0.15.101 texture shingles without changing source retrieval, report truth, or grader thresholds; a fresh deployed v0.15.102 ZIP/log audit is still required to prove provider-output texture reaches strict clean.',
   ],
   landingHighlights: [
-    'Assignment parameters avoid generic "N sections" cover meta.',
-    'Non-data Slide Decks scrub stale notebook/model-card artifacts.',
-    'Lesson Plan materials vary by lesson and artifact.',
-    'Fresh v0.15.101 provider proof remains required.',
+    'Current UX proof is 100/A but texture still needs strict-clean proof.',
+    'Lesson Plan model notes vary by lesson.',
+    'Discussion artifact-review frames rotate deterministically.',
+    'Slide Deck objective, pitfall, and closing notes avoid audited scaffolds.',
   ],
   proof: {
-    contract: 'release-contracts/v0.15.101.json',
-    roadmap: 'docs/V0.15.101_UX_FORMAT_TEXTURE_DOMAIN_GUARD_ROADMAP.md',
+    contract: 'release-contracts/v0.15.102.json',
+    roadmap: 'docs/V0.15.102_UX_TEXTURE_FRAME_VARIATION_ROADMAP.md',
     auditCommand: 'npm run audit:release-history',
   },
 };
@@ -35,6 +35,18 @@ export const CURRENT_RELEASE_CHANGELOG = {
 };
 
 export const HISTORICAL_RELEASE_CHANGELOGS = [
+  {
+    version: '0.15.101',
+    date: 'June 28, 2026',
+    title: 'UX Format and Domain Guard: sections and lab-asset leaks stop blocking export',
+    highlights: [
+      'A fresh deployed v0.15.100 User Experience Design Studio browser run reached Quality 99 and Texture 94, but the package gate blocked ZIP export because Slide Decks still carried non-data notebook/model-card lab language.',
+      'Assignment Brief and rubric rendering now rewrites numeric "sections" parameters such as "3-5 sections" into student-facing "3-5 labeled parts," keeping the strict cover-meta grader unchanged.',
+      'Slide Deck IR and compiled Slide Deck output now scrub stale Jupyter, IPYNB, starter-notebook, data-science-notebook, and unsupported model-card language from non-data courses while preserving legitimate data-science and AI-governance usage.',
+      'Lesson-plan material lists now vary by lesson focus and artifact instead of repeating the same agenda/handout/shared-notes/submission-template shingle across every lesson.',
+      'A fresh deployed v0.15.101 ZIP/log audit then proved exported/local 100/A with clean sources and no findings, while Texture 94/100 remained the strict-clean carry-forward target.',
+    ],
+  },
   {
     version: '0.15.100',
     date: 'June 28, 2026',

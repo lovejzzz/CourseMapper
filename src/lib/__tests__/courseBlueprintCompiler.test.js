@@ -2536,6 +2536,128 @@ describe('courseBlueprintCompiler', () => {
     expect(findings.map((finding) => finding.id)).not.toContain('semantic-nonml-lab-assets');
   });
 
+  it('varies UX lesson-plan, discussion, and slide texture frames from the v0.15.101 audit', () => {
+    const topics = [
+      ['Course overview', 'course overview evidence note'],
+      ['Design journals', 'design journal critique'],
+      ['User research interviews', 'interview plan'],
+      ['Personas', 'persona brief'],
+      ['Journey mapping', 'journey map'],
+      ['Information architecture', 'site map'],
+      ['Wireframing', 'wireframe critique'],
+      ['Prototyping', 'prototype rationale'],
+      ['Usability testing', 'test plan'],
+      ['Accessibility reviews', 'accessibility notes'],
+      ['Design systems', 'design-system review'],
+      ['Portfolio case studies', 'case study draft'],
+    ];
+    const blueprint = buildCourseBlueprint(
+      {
+        courseName: 'User Experience Design Studio',
+        semester: 'Fall 2026',
+        lessons: topics.map(([topic, artifact], index) => ({
+          title: `Lesson ${index + 1}: ${topic}`,
+          sections: [
+            {
+              topicSection: `${topic}; ${artifact}; critique evidence`,
+              learningGoals: `Use ${topic} evidence to improve a UX design artifact.`,
+              learningObjectives: `Explain ${topic} and apply it to a UX design decision.`,
+              weeklyAssessments: artifact,
+              asyncActivities: `Review assigned UX examples and prepare critique notes on ${topic}.`,
+              syncActivities: `Studio critique and practice applying ${topic}.`,
+              supportingResources: 'UX example packet; critique protocol; design artifact template',
+              evaluateDesign: `Score evidence, reasoning, limitation, and revision quality for ${artifact}.`,
+            },
+          ],
+        })),
+      },
+      {
+        enrichment: {
+          source: 'test-ux-v015101-texture',
+          lens: {
+            domain: 'UX design studio',
+            evidenceNoun: 'research evidence',
+            decisionNoun: 'design decision',
+            learnerRole: 'studio designer',
+            exampleNoun: 'critique case',
+          },
+        },
+      },
+    );
+    blueprint.lessons.forEach((lesson, index) => {
+      const focus = lesson.title.replace(/^Lesson \d+:\s*/, '');
+      lesson.evidencePlan = {
+        ...(lesson.evidencePlan || {}),
+        sourceCue: `UX research packet for ${focus}`,
+      };
+      lesson.artifactGenre = {
+        ...(lesson.artifactGenre || {}),
+        genre: 'design-prototype',
+        label: 'Prototype design artifact',
+      };
+      lesson.enrichment = {
+        ...(lesson.enrichment || {}),
+        keyTerms: [
+          {
+            term: lesson.keyConcepts?.[0] || focus,
+            definition: `${focus} turns observed user evidence into a defensible design move.`,
+            misconception: `Students may treat ${focus} as a label instead of evidence for the design choice.`,
+            correction: `The ${focus} evidence must justify one visible change in the artifact.`,
+          },
+          {
+            term: lesson.keyConcepts?.[1] || `${focus} evidence`,
+            definition: `${focus} evidence names what users did, said, or could not complete.`,
+            misconception: `Students may rely on preference language without linking it to ${focus} evidence.`,
+            correction: `A credible critique ties preference language to a user action or accessibility cue.`,
+          },
+        ],
+        conceptProvenance: { citations: [`UX research packet ${index + 1}`] },
+      };
+    });
+
+    const compiled = compileBlueprintDeliverables(blueprint, ['lessonPlans', 'slideDecks', 'discussions'], {
+      configMap: { lessonPlans: { depth: 'deep' } },
+      enforceCompilerContract: false,
+    });
+    const planTexts = compiled.lessonPlans.lessonPlans.map((plan) =>
+      plan.outline.map((item) => `${item.description || ''} ${item.instructorNotes || ''}`).join(' '),
+    );
+    const deckTexts = compiled.slideDecks.decks.map((deck) =>
+      deck.slides
+        .map((slide) => `${slide.title || ''} ${(slide.bullets || []).join(' ')} ${slide.notes || ''}`)
+        .join(' '),
+    );
+    const discussionTexts = compiled.discussions.discussions.map((discussion) =>
+      [
+        discussion.prompt,
+        discussion.guidelines,
+        ...(discussion.artifactsToReview || []).map((artifact) => `${artifact.title || ''} ${artifact.use || ''}`),
+        ...(discussion.followUpProbes || []),
+        ...(discussion.evaluationCriteria || []),
+      ].join(' '),
+    );
+    const allTexts = [
+      ...planTexts.map((text, index) => ({ id: `plan-${index}`, feature: 'lessonPlans', text })),
+      ...deckTexts.map((text, index) => ({ id: `deck-${index}`, feature: 'slideDecks', text })),
+      ...discussionTexts.map((text, index) => ({ id: `discussion-${index}`, feature: 'discussions', text })),
+    ];
+    const countDocsWith = (texts, pattern) => texts.filter((text) => pattern.test(text)).length;
+
+    expect(countDocsWith(planTexts, /show one line of reasoning students should reuse/i)).toBe(0);
+    expect(countDocsWith(discussionTexts, /proposed decision would hold up in assessed work/i)).toBe(0);
+    expect(countDocsWith(deckTexts, /quick true\/false vote before revealing the corrective/i)).toBe(0);
+    expect(countDocsWith(deckTexts, /objectives as vocabulary only, restate them as decisions/i)).toBe(0);
+    expect(countDocsWith(deckTexts, /now feels strongest for/i)).toBe(0);
+
+    const texture = computeTexture(allTexts);
+    const evidence = texture.evidence.map((item) => item.shingle).join('\n');
+    expect(evidence).not.toMatch(/show one line of reasoning students should reuse/i);
+    expect(evidence).not.toMatch(/proposed decision would hold up/i);
+    expect(evidence).not.toMatch(/quick true false vote before revealing the corrective/i);
+    expect(evidence).not.toMatch(/objectives as vocabulary only restate them as decisions/i);
+    expect(evidence).not.toMatch(/now feels strongest for/i);
+  });
+
   it('varies lecture-exam slide and lesson-plan texture instead of repeating compiler tails', () => {
     const blueprint = buildCourseBlueprint(makeFourLessonLectureExamCourseMap(), {
       enrichment: {

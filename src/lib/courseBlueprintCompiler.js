@@ -17484,7 +17484,12 @@ function slideTypeFocus(type, lesson, lens) {
       return {
         opening: `Translate the objectives into actions students should demonstrate by the end of ${displayTitle}.`,
         evidence: `Tie each ${concept} objective in ${displayTitle} to the evidence move students need for ${numberedArtifact}.`,
-        misconception: `If students treat the objectives as vocabulary only, restate them as decisions they must justify in ${artifact}.`,
+        misconception: lessonVariant(lesson, [
+          `If students treat the objectives as vocabulary only, turn each one into a decision they must defend in ${artifact}.`,
+          `When objectives sound like terms to memorize, ask what choice the evidence should help justify in ${artifact}.`,
+          `Prevent objective-list recitation by translating each target into an evidence-backed move for ${artifact}.`,
+          `If students stop at definitions, push them to name the ${concept} decision their ${artifact} work must support.`,
+        ]),
       };
     case 'bridge':
       return {
@@ -17564,7 +17569,12 @@ function slideTypeFocus(type, lesson, lens) {
           `Frame the final check as a transfer decision: what can students now carry into ${artifact}?`,
           `Make the closing self-check concrete by asking which ${concept} evidence is now ready for ${artifact}.`,
         ]),
-        evidence: `Ask students to name which ${lens.evidenceNoun} now feels strongest for ${artifact}.`,
+        evidence: lessonVariant(lesson, [
+          `Ask students to choose the ${lens.evidenceNoun} they would trust first in ${artifact}.`,
+          `Have students mark the ${lens.evidenceNoun} that most changes their next ${artifact} move.`,
+          `Prompt students to identify the evidence cue they can now defend inside ${artifact}.`,
+          `Close by having students name the strongest support they will carry into ${artifact}.`,
+        ]),
         misconception: `If they can only repeat vocabulary, prompt for the specific ${artifact} revision or next step they can now justify.`,
       };
     case 'closing':
@@ -18205,7 +18215,12 @@ function buildDiscussionArtifactSet(lesson, phrase) {
     {
       title: `${stripLessonPrefix(lesson.title)} Assessment Brief`,
       locator: artifact,
-      use: `Use this artifact expectation to test whether the proposed decision would hold up in assessed work and ${phrase.decisionMove}.`,
+      use: lessonVariant(lesson, [
+        `Compare the prompt with the ${artifact} requirements so students can check whether the decision survives scoring and ${phrase.decisionMove}.`,
+        `Use the artifact criteria as a stress test before students ${phrase.decisionMove}.`,
+        `Have students trace the decision against the assessed artifact so the discussion leads into ${phrase.decisionMove}.`,
+        `Treat the artifact brief as the proof target: the decision should be defensible enough to ${phrase.decisionMove}.`,
+      ]),
     },
   ];
 }
@@ -18513,7 +18528,12 @@ function applyCommonPitfallsSlide(slides, lesson, { concept, objective }) {
     type: 'content',
     title: `Common pitfalls in ${stripTerminalPunctuation(concept)}`,
     bullets,
-    notes: `Run each tempting claim as a quick true/false vote before revealing the corrective. ${pairs
+    notes: `${lessonVariant(lesson, [
+      'Start with a vote on each tempting claim, then reveal and discuss the correction.',
+      'Have students mark each misconception as plausible or not before showing the correction.',
+      'Use each tempting claim as a prediction check; students commit first, then compare with the corrective.',
+      'Ask teams to accept, revise, or reject each claim before the correction appears.',
+    ])} ${pairs
       .map(
         (pair) => `${ensureSentenceCompiler(pair.misconception)} In fact: ${ensureSentenceCompiler(pair.corrective)}`,
       )
@@ -19488,7 +19508,12 @@ function buildLessonPlanOutline(blueprint, lesson, { depth = 'flat' } = {}) {
             ]),
       instructorNotes: kernelWorkedExample
         ? `Solution path: ${kernelWorkedExample.steps.join(' → ')}. Result: ${kernelWorkedExample.result}. Have students annotate each step, then assign one variation with different numbers.`
-        : `Keep the model concrete, point to ${evidencePlan?.sourceCue || 'one source cue'}, and show one line of reasoning students should reuse in ${artifact}.`,
+        : lessonVariant(lesson, [
+            `Keep the model concrete: point to ${evidencePlan?.sourceCue || 'one source cue'}, then model the reasoning move students will transfer into ${artifact}.`,
+            `Use ${evidencePlan?.sourceCue || 'one source cue'} as the worked anchor and name the inference students should carry into ${artifact}.`,
+            `Tie the example to ${evidencePlan?.sourceCue || 'one source cue'} and ask students to write the reasoning move in ${artifact} language.`,
+            `Make ${evidencePlan?.sourceCue || 'one source cue'} visible, then mark the inference students can reuse when drafting ${artifact}.`,
+          ]),
       instructorRole: `Model thinking aloud and annotate the exemplar for ${concept}.`,
       grouping: lessonVariant(lesson, [
         'Instructor model with guided notes',
