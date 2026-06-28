@@ -132,6 +132,16 @@ describe('WS-A (2) — the rewritten loop keeps its contract (source pins)', () 
     expect(recoverySource).toContain("type: 'repairRetryCall'");
   });
 
+  it('native Pass B recovery can spend the second reserved call after a no-progress retry', () => {
+    const nativeRecoverySource = hookSource
+      .split('let nativeRecoveryCalls = 0;')[1]
+      .split('// v0.14.1 P4.5: fold genome partials back in')[0];
+
+    expect(nativeRecoverySource).toContain('recoveryAttempt: nativeRecoveryCalls');
+    expect(nativeRecoverySource).toContain('retrying once with stricter kernel instructions');
+    expect(nativeRecoverySource).not.toContain('let previousRecoverySignature');
+  });
+
   it('defers optional voice polish when enrichment coverage is still partial', () => {
     const voiceSource = hookSource.split('const voicePassLib = await import')[1] || '';
     expect(voiceSource).toContain('enrichmentOutcome.missingLessons?.length');

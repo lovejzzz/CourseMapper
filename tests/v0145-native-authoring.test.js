@@ -350,6 +350,19 @@ describe('Pass B contract (B2)', () => {
     expect(prompt.lessons.map((lesson) => lesson.lessonId)).toEqual(['lesson-1', 'lesson-2']);
   });
 
+  it('hardens recovery prompts so missing kernels are not answered with short acknowledgements', () => {
+    const prompt = buildNativePassBPrompt(wireMap, [0], {
+      recoveryAttempt: 1,
+      expectedLessonIds: ['lesson-1'],
+    });
+
+    expect(prompt.userPrompt).toContain('RECOVERY RETRY 1');
+    expect(prompt.userPrompt).toContain('Return only strict JSON for these lesson ids: lesson-1');
+    expect(prompt.userPrompt).toContain('include complete kernel atoms');
+    expect(prompt.userPrompt).toContain('Do not summarize this request');
+    expect(prompt.recoveryAttempt).toBe(1);
+  });
+
   it('parses kernels through the existing linters and rejects out-of-chunk ids', () => {
     const prompt = buildNativePassBPrompt(wireMap, [0, 1], { contentSourcedLessonIds: ['lesson-2'] });
     const parsed = parseNativePassBResponse(passBResponse(), {

@@ -1250,7 +1250,7 @@ export default function useDeliverables({
               'progress',
             );
 
-            const runPassBBatch = async (chunk, { includeCourseLevel, recoveryLabel = null }) => {
+            const runPassBBatch = async (chunk, { includeCourseLevel, recoveryLabel = null, recoveryAttempt = 0 }) => {
               const expectedLessonIds = chunk.map(lessonIdOf);
               const contentSourcedLessonIds = recoveryLabel
                 ? expectedLessonIds.filter((lessonId) => Boolean(lessonContent[lessonId]))
@@ -1259,6 +1259,8 @@ export default function useDeliverables({
                 questionsPerLesson: getGenerationConfig('quizBank')?.questionsPerLesson,
                 includeCourseLevel,
                 contentSourcedLessonIds,
+                recoveryAttempt,
+                expectedLessonIds,
               });
               recordGenerationApiCallEvent({
                 type: recoveryLabel ? 'repairRetryCall' : 'blueprintEnrichmentCall',
@@ -1339,7 +1341,6 @@ export default function useDeliverables({
             const listMissingAuthoredIndices = () =>
               allLessonIndices.filter((lessonIdx) => !nativeAuthored[lessonIdOf(lessonIdx)]);
             let nativeRecoveryCalls = 0;
-            let previousRecoverySignature = '';
             while (
               nativeRecoveryCalls < 2 &&
               (listMissingKernelIndices().length > 0 || listMissingAuthoredIndices().length > 0) &&
@@ -1349,11 +1350,6 @@ export default function useDeliverables({
                 kernel: listMissingKernelIndices(),
                 authored: listMissingAuthoredIndices(),
               });
-              if (beforeSignature === previousRecoverySignature) {
-                appendLog('⚠ Native Pass B recovery: no progress', 'warn');
-                break;
-              }
-              previousRecoverySignature = beforeSignature;
               const kernelChunk = listMissingKernelIndices().slice(0, chunkSize);
               const authoredChunk = listMissingAuthoredIndices()
                 .filter((lessonIdx) => !kernelChunk.includes(lessonIdx))
@@ -1365,6 +1361,7 @@ export default function useDeliverables({
                 await runPassBBatch(retryChunk, {
                   includeCourseLevel: false,
                   recoveryLabel: `Author lesson batch (native recovery ${nativeRecoveryCalls}/2)`,
+                  recoveryAttempt: nativeRecoveryCalls,
                 });
               } catch (recoveryErr) {
                 if (recoveryErr?.name === 'AbortError') throw recoveryErr;
@@ -1375,8 +1372,14 @@ export default function useDeliverables({
                 authored: listMissingAuthoredIndices(),
               });
               if (afterSignature === beforeSignature) {
-                appendLog('⚠ Native Pass B recovery made no progress; templates kept', 'warn');
-                break;
+                if (nativeRecoveryCalls >= 2 || !hasProviderCallBudget()) {
+                  appendLog('⚠ Native Pass B recovery made no progress; templates kept', 'warn');
+                  break;
+                }
+                appendLog(
+                  '⚠ Native Pass B recovery made no progress; retrying once with stricter kernel instructions',
+                  'warn',
+                );
               }
             }
 

@@ -3,24 +3,24 @@ import { APP_VERSION } from './appVersion.js';
 export const CURRENT_RELEASE = {
   version: APP_VERSION,
   date: 'June 28, 2026',
-  title: 'PPTX Visual Notes Cleanup: raw prompt labels stop shipping',
-  landingTitle: 'PPTX Visual Notes Cleanup',
+  title: 'Native Recovery Retry Hardening: partial enrichment gets a second chance',
+  landingTitle: 'Native Recovery Retry Hardening',
   highlights: [
-    'A fresh deployed v0.15.107 User Experience Design Studio ZIP/log audit exported 74/C because PPTX speaker notes still shipped raw visual-planning labels such as "SUGGESTED VISUAL" and "ALT TEXT".',
-    'Slide Deck PPTX exports now keep instructor visual guidance and accessibility descriptions in speaker notes without raw prompt-like marker labels.',
-    'The deep package grader now treats raw PPTX visual-planning note labels as a direct P0 while allowing legitimate UX course deliverables such as portfolio-ready capstone presentations.',
-    'Focused regressions prove clean PPTX notes, raw-label P0 grading, and the capstone-presentation false-positive fix without weakening the prompt-artifact firewall.',
-    'This release keeps the target honest: v0.15.108 does not claim strict-clean provider output until a fresh deployed ZIP/log audit proves the new export and grader behavior in real generated materials.',
+    'A fresh deployed v0.15.108 User Experience Design Studio ZIP/log audit proved the PPTX visual-note label fix in real output: the package rose from 74/C to 98/A with no P0 findings and no export warnings.',
+    'The same audit still blocked clean export because native Pass B recovery left lesson 1 on template fallback after one repair retry returned only 548 characters.',
+    'Native Pass B recovery prompts now explicitly demand complete lesson kernels, authoring fields, and strict JSON for the missing lesson ids instead of allowing short acknowledgements.',
+    'The native recovery loop now spends the second reserved recovery call when the first retry makes no progress, so a transient under-answer can be repaired before the package is marked partial.',
+    'This release keeps the target honest: v0.15.109 does not claim strict-clean provider output until a fresh deployed ZIP/log audit proves full enrichment coverage and clean readiness in real generated materials.',
   ],
   landingHighlights: [
-    'PPTX speaker notes no longer use raw prompt labels.',
-    'The grader fails old raw visual-note scaffolding directly.',
-    'UX capstone presentations are no longer mistaken for internal artifact labels.',
-    'Fresh v0.15.108 provider output is still required for strict-clean proof.',
+    'Fresh v0.15.108 output proved the raw PPTX-note blocker is gone.',
+    'Native recovery now asks for complete missing lesson kernels.',
+    'A no-progress recovery retry can use the second reserved call.',
+    'Fresh v0.15.109 output is still required for strict-clean proof.',
   ],
   proof: {
-    contract: 'release-contracts/v0.15.108.json',
-    roadmap: 'docs/V0.15.108_PPTX_VISUAL_NOTES_CLEANUP_ROADMAP.md',
+    contract: 'release-contracts/v0.15.109.json',
+    roadmap: 'docs/V0.15.109_NATIVE_RECOVERY_RETRY_HARDENING_ROADMAP.md',
     auditCommand: 'npm run audit:release-history',
   },
 };
@@ -35,6 +35,18 @@ export const CURRENT_RELEASE_CHANGELOG = {
 };
 
 export const HISTORICAL_RELEASE_CHANGELOGS = [
+  {
+    version: '0.15.108',
+    date: 'June 28, 2026',
+    title: 'PPTX Visual Notes Cleanup: raw prompt labels stop shipping',
+    highlights: [
+      'A fresh deployed v0.15.107 User Experience Design Studio ZIP/log audit exported 74/C because PPTX speaker notes still shipped raw visual-planning labels such as "SUGGESTED VISUAL" and "ALT TEXT".',
+      'Slide Deck PPTX exports now keep instructor visual guidance and accessibility descriptions in speaker notes without raw prompt-like marker labels.',
+      'The deep package grader now treats raw PPTX visual-planning note labels as a direct P0 while allowing legitimate UX course deliverables such as portfolio-ready capstone presentations.',
+      'Focused regressions prove clean PPTX notes, raw-label P0 grading, and the capstone-presentation false-positive fix without weakening the prompt-artifact firewall.',
+      'This release kept the target honest: v0.15.108 did not claim strict-clean provider output until a fresh deployed ZIP/log audit proved the new export and grader behavior in real generated materials.',
+    ],
+  },
   {
     version: '0.15.107',
     date: 'June 28, 2026',

@@ -454,18 +454,34 @@ export function buildNativePassBPrompt(wireMap, lessonIndices, options = {}) {
     includeCourseLevel: options.includeCourseLevel === true,
   });
   const contentSourced = asArray(options.contentSourcedLessonIds).filter(Boolean);
+  const recoveryAttempt = Number(options.recoveryAttempt || 0);
+  const expectedLessonIds = asArray(options.expectedLessonIds).filter(Boolean);
+  const recoveryLessonIds =
+    expectedLessonIds.length > 0 ? expectedLessonIds : base.lessons.map((lesson) => lesson.lessonId);
+  const recoveryLines =
+    recoveryAttempt > 0
+      ? [
+          `RECOVERY RETRY ${recoveryAttempt}: the previous Pass B response missed required lesson kernels.`,
+          `Return only strict JSON for these lesson ids: ${recoveryLessonIds.join(', ')}.`,
+          'For each listed lesson, include complete kernel atoms: 5-8 facts, at least 4 keyTerms with definitions/examples/misconceptions/corrections, one scenario, one discussionPrompt, one assignmentCore, 3 slideContent entries, and the exact requested mc item count.',
+          'Also include native authoring fields for each listed lesson: goal, 2-4 outcomes, 1-2 async activities, and 1-2 sync activities.',
+          'Do not summarize this request, apologize, or return a partial acknowledgement. Missing kernel atoms make the lesson fall back to template.',
+        ]
+      : [];
   const systemPrompt = [base.systemPrompt, NATIVE_PASS_B_AUTHORING_ADDITION].join('\n');
   const userPrompt = [
     base.userPrompt,
     ...(contentSourced.length > 0
       ? [`CONTENT-SOURCED lessons (goal/outcomes/async/sync ONLY): ${contentSourced.join(', ')}`]
       : []),
+    ...recoveryLines,
   ].join('\n');
   return {
     ...base,
     systemPrompt,
     userPrompt,
     contentSourcedLessonIds: contentSourced,
+    recoveryAttempt,
     approxInputTokens: Math.ceil((systemPrompt.length + userPrompt.length) / 4),
   };
 }
