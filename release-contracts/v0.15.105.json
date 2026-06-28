@@ -1,0 +1,88 @@
+{
+  "version": "0.15.105",
+  "date": "June 28, 2026",
+  "title": "UX Texture Tail Rotation: assignment, rubric, and lesson-plan scaffolds vary by lesson",
+  "status": "verified-current",
+  "proofSummary": {
+    "local": [
+      "npx vitest run tests/v015105-ux-texture-tail-rotation.test.js",
+      "npx vitest run tests/v015105-ux-texture-tail-rotation.test.js tests/v0155-release-truth-ledger.test.js",
+      "npm run audit:release-history"
+    ],
+    "ciFast": {
+      "status": "pending-push",
+      "note": "Fast verification is claimed only after v0.15.105 is pushed and the GitHub Actions run is attached."
+    },
+    "deploy": {
+      "status": "pending-push",
+      "note": "Pages deploy is not claimed until the pushed v0.15.105 release completes its deploy run."
+    },
+    "ciDeep": {
+      "status": "local-only",
+      "note": "This is a narrow compiler texture release; targeted regression plus normal gates are the release bar."
+    },
+    "liveProvider": {
+      "status": "local-only",
+      "note": "The release is based on a fresh deployed v0.15.104 ZIP/log audit. A fresh deployed v0.15.105 audit is still required before claiming strict-clean provider output."
+    },
+    "manualHuman": {
+      "status": "not-applicable",
+      "note": "No external instructor approval is claimed by this release."
+    }
+  },
+  "claims": [
+    {
+      "id": "v015105-live-v015104-texture-evidence",
+      "status": "verified-current",
+      "changelogHighlightIndex": 0,
+      "summary": "The release targets the fresh deployed v0.15.104 UX audit where source/export/report truth was clean and the remaining score loss was Texture 92.",
+      "anchors": ["docs/V0.15.105_UX_TEXTURE_TAIL_ROTATION_ROADMAP.md", "src/lib/releaseManifest.js"],
+      "proofCommands": ["npx vitest run tests/v015105-ux-texture-tail-rotation.test.js"],
+      "proofScopes": ["compiled-output", "static-audit", "unit"]
+    },
+    {
+      "id": "v015105-assignment-resource-packets-rotate",
+      "status": "verified-current",
+      "changelogHighlightIndex": 1,
+      "summary": "Assignment Brief support resources rotate six lesson-specific packet shapes instead of repeating the same notes/readings, rubric, checklist, and office-hours tail.",
+      "anchors": ["src/lib/courseBlueprintCompiler.js", "tests/v015105-ux-texture-tail-rotation.test.js"],
+      "proofCommands": ["npx vitest run tests/v015105-ux-texture-tail-rotation.test.js"],
+      "proofScopes": ["compiled-output", "unit"]
+    },
+    {
+      "id": "v015105-rubric-parameter-bands-rotate",
+      "status": "verified-current",
+      "changelogHighlightIndex": 2,
+      "summary": "Parameter-derived Rubric rows rotate evidence signals, calibration prompts, feedback moves, and performance bands without changing brief fidelity criteria or weights.",
+      "anchors": ["src/lib/courseBlueprintCompiler.js", "tests/v015105-ux-texture-tail-rotation.test.js"],
+      "proofCommands": ["npx vitest run tests/v015105-ux-texture-tail-rotation.test.js"],
+      "proofScopes": ["compiled-output", "unit"]
+    },
+    {
+      "id": "v015105-rubric-direction-preference-texture",
+      "status": "verified-current",
+      "changelogHighlightIndex": 3,
+      "summary": "Rubric task directions and instructor-preference notes vary their evidence-standard and feedback-emphasis frames while preserving criteria, weights, and source boundaries.",
+      "anchors": ["src/lib/courseBlueprintCompiler.js", "tests/v015105-ux-texture-tail-rotation.test.js"],
+      "proofCommands": ["npx vitest run tests/v015105-ux-texture-tail-rotation.test.js"],
+      "proofScopes": ["compiled-output", "unit"]
+    },
+    {
+      "id": "v015105-lesson-plan-kernel-transfer-rotates",
+      "status": "verified-current",
+      "changelogHighlightIndex": 4,
+      "summary": "Lesson Plan mini-lessons with authored kernel facts rotate the anchor-fact transfer sentence instead of repeating the same reuse frame across the course.",
+      "anchors": ["src/lib/courseBlueprintCompiler.js", "tests/v015105-ux-texture-tail-rotation.test.js"],
+      "proofCommands": ["npx vitest run tests/v015105-ux-texture-tail-rotation.test.js"],
+      "proofScopes": ["compiled-output", "unit"]
+    }
+  ],
+  "carryForward": [
+    {
+      "id": "fresh-v015105-provider-audit",
+      "status": "carry-forward",
+      "source": "docs/V0.15.105_UX_TEXTURE_TAIL_ROTATION_ROADMAP.md",
+      "next": "After deploy, run a fresh v0.15.105 UX ZIP/log audit and verify whether real provider output reaches strict-clean 100/100 and Texture 100."
+    }
+  ]
+}

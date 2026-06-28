@@ -11753,7 +11753,62 @@ function assignmentChecklistResourceLabel({ submissionProfile = {}, lesson = {},
     'this lesson',
     42,
   );
-  return `${artifactLabel} checklist for ${lessonFocus}: evidence, reasoning, format, revision.`;
+  const artifactLower = artifactLabel.toLowerCase();
+  return lessonVariant(lesson, [
+    `${artifactLabel} checklist for ${lessonFocus}: evidence, reasoning, format, revision.`,
+    `${lessonFocus} ${artifactLower} review sheet: source detail, decision, format, revision.`,
+    `${artifactLabel} planning guide for ${lessonFocus}: claim, evidence, audience, feedback.`,
+    `${lessonFocus} submission self-check: evidence trail, criterion fit, format, revision.`,
+    `${artifactLabel} readiness card for ${lessonFocus}: source use, reasoning, limitation, edit.`,
+    `${lessonFocus} evidence tracker for ${artifactLower}: support, decision, polish, next step.`,
+  ]);
+}
+
+function assignmentSupportResourcesForLesson({ lesson = {}, assessment = {}, submissionProfile = {} } = {}) {
+  const lessonLabel = assessment.relatedLessons?.[0] || lesson.title || 'Lesson materials';
+  const assessmentTitle = stripTerminalPunctuation(assessment.title || 'the assessment');
+  const artifactLabel = stripTerminalPunctuation(
+    submissionProfile.artifact || submissionProfile.assignmentType || assessment.artifact || assessmentTitle,
+  );
+  const checklist = assignmentChecklistResourceLabel({ submissionProfile, lesson, assessment });
+  return lessonVariant(lesson, [
+    [
+      `${lessonLabel} notes and assigned examples`,
+      `Rubric criteria for ${assessmentTitle}`,
+      checklist,
+      'Course message thread for clarification',
+    ],
+    [
+      `${lessonLabel} source packet or activity notes`,
+      checklist,
+      `Scoring categories for ${assessmentTitle}`,
+      'Instructor or peer feedback record',
+    ],
+    [
+      `${artifactLabel} evidence notes from ${lessonLabel}`,
+      `Review criteria for ${assessmentTitle}`,
+      'Revision log or critique notes',
+      checklist,
+    ],
+    [
+      `${lessonLabel} examples, critique notes, or studio/lab artifacts`,
+      checklist,
+      `Weighting guide for ${assessmentTitle}`,
+      'Course-site submission guidance',
+    ],
+    [
+      `Source details and class activity notes for ${lessonLabel}`,
+      `Rubric evidence map for ${assessmentTitle}`,
+      checklist,
+      'Feedback channel or consultation notes',
+    ],
+    [
+      `${lessonLabel} annotated materials`,
+      `${artifactLabel} format guide`,
+      `Criterion notes for ${assessmentTitle}`,
+      checklist,
+    ],
+  ]);
 }
 
 function assignmentDeliverablesForLesson({ lesson = {}, assessment = {}, submissionProfile = {}, lens = {} } = {}) {
@@ -14903,12 +14958,7 @@ function compileAssignments(blueprint) {
         ],
         gradingCriteria: assessment.criteria,
         weightedGradingCriteria: assessment.criterionWeightPlan || [],
-        supportResources: [
-          `${assessment.relatedLessons[0]} notes and assigned readings`,
-          `Rubric criteria for ${assessmentTitle}`,
-          assignmentChecklistResourceLabel({ submissionProfile, lesson, assessment }),
-          'Office hours or course communication channel',
-        ],
+        supportResources: assignmentSupportResourcesForLesson({ lesson, assessment, submissionProfile }),
         progressTracking: `Use the ${assessmentTitle} milestone checklist, rubric criteria, ${submissionProfile.assignmentType.toLowerCase()} format, and ${submissionProfile.workload.outOfClassEstimate} to monitor readiness before submission for ${assessment.relatedLessons[0]}.`,
         assessmentCadence: assessment.cadence,
         assessmentPurpose: assessment.studentFacingPurpose,
@@ -15016,9 +15066,24 @@ function buildParameterCriterionRow({ parameter, ordinal, weight, assessment, le
   const shortForm = conciseClause(verbatim, verbatim, 90, { ellipsis: true });
   const criterion = parameterCriterionName(parameter, ordinal);
   const priority = `brief parameter ${ordinal} fidelity`;
-  const evidenceSignal = `The brief requires: "${verbatim}". Look for visible evidence in ${artifact} that this parameter is satisfied, accurate, and integrated with the surrounding work.`;
-  const calibrationUse = `Before scoring, ask whether two scorers point to the same place in ${artifact} where "${shortForm}" is satisfied.`;
-  const feedbackUse = `If the parameter is unmet, quote it verbatim — "${shortForm}" — and name the smallest revision to ${artifact} that satisfies it.`;
+  const evidenceSignal = lessonVariant(lesson, [
+    `The brief requires: "${verbatim}". Look for visible evidence in ${artifact} that this parameter is satisfied, accurate, and integrated with the surrounding work.`,
+    `Use the brief line "${verbatim}" as the evidence target; the scorer should be able to locate where ${artifact} fulfills it and why it matters.`,
+    `For "${verbatim}", check whether ${artifact} shows the required element directly instead of implying it through a general discussion.`,
+    `Treat "${verbatim}" as a task-specific scoring promise: identify the part of ${artifact} that meets it and the evidence that supports it.`,
+  ]);
+  const calibrationUse = lessonVariant(lesson, [
+    `Before scoring, ask whether two scorers point to the same place in ${artifact} where "${shortForm}" is satisfied.`,
+    `During norming, have scorers mark the exact ${artifact} evidence that satisfies "${shortForm}" before assigning points.`,
+    `Use a sample ${artifact} to test whether scorers can verify "${shortForm}" from the submission rather than from intention.`,
+    `Calibrate by naming the line, section, or artifact choice that proves "${shortForm}" has been met.`,
+  ]);
+  const feedbackUse = lessonVariant(lesson, [
+    `If the parameter is unmet, quote it verbatim — "${shortForm}" — and name the smallest revision to ${artifact} that satisfies it.`,
+    `When "${shortForm}" is missing, return feedback that points to the gap and names one concrete ${artifact} edit.`,
+    `For partial work, cite "${shortForm}" and ask for the evidence, section, or design choice that would make it verifiable.`,
+    `If students miss "${shortForm}", direct them to add the visible proof, not just a restatement of the parameter.`,
+  ]);
   const exemplary = lessonVariant(lesson, [
     `Meets the brief parameter — "${verbatim}" — fully and accurately in ${artifact}; a scorer can point to where it is satisfied and how it strengthens the work.`,
     `Satisfies the brief parameter — "${verbatim}" — with visible, accurate evidence in ${artifact} and a clear connection to the work's quality.`,
@@ -15043,9 +15108,24 @@ function buildParameterCriterionRow({ parameter, ordinal, weight, assessment, le
     calibrationUse,
     feedbackUse,
     exemplary,
-    proficient: `Satisfies "${shortForm}" with only minor lapses in completeness, accuracy, or integration with the rest of ${artifact}.`,
-    developing: `Addresses "${shortForm}" partially — attempted but incomplete, inaccurate, or disconnected from the surrounding work in ${artifact}.`,
-    beginning: `Does not satisfy "${shortForm}" in the submitted ${artifact}.`,
+    proficient: lessonVariant(lesson, [
+      `Satisfies "${shortForm}" with only minor lapses in completeness, accuracy, or integration with the rest of ${artifact}.`,
+      `Meets "${shortForm}" in ${artifact}; one detail may need more precision, but the required evidence is visible.`,
+      `Handles "${shortForm}" well enough for scoring, with a small gap in completeness, accuracy, or connection to the artifact decision.`,
+      `Shows where "${shortForm}" is satisfied and leaves only a narrow clarification or evidence-detail issue to revise.`,
+    ]),
+    developing: lessonVariant(lesson, [
+      `Addresses "${shortForm}" partially — attempted but incomplete, inaccurate, or disconnected from the surrounding work in ${artifact}.`,
+      `Attempts "${shortForm}" but leaves the proof, accuracy, or artifact connection too thin for full credit.`,
+      `Mentions the parameter without making enough of the required evidence visible in ${artifact}.`,
+      `Shows some work toward "${shortForm}", yet the scorer still has to infer a key requirement or connection.`,
+    ]),
+    beginning: lessonVariant(lesson, [
+      `Does not satisfy "${shortForm}" in the submitted ${artifact}.`,
+      `Omits "${shortForm}" or replaces it with unrelated ${artifact} content.`,
+      `Leaves no inspectable evidence that "${shortForm}" was attempted in the submission.`,
+      `Submits ${artifact} without the required parameter proof for "${shortForm}".`,
+    ]),
     performanceBandEvidence: {
       priority,
       evidenceSignal,
@@ -15054,6 +15134,33 @@ function buildParameterCriterionRow({ parameter, ordinal, weight, assessment, le
       revisionTarget: feedbackUse,
     },
   };
+}
+
+function rubricTaskDirectionsForLesson({ assessment = {}, lesson = {} } = {}) {
+  const artifact = assessment.artifact || 'the submitted work';
+  const lessonScope = (assessment.relatedLessons || []).join(', ') || lesson.title || 'the related lesson';
+  const artifactGenre = lesson?.artifactGenre?.label || lesson?.artifactGenre?.genre || 'the named artifact genre';
+  const evidenceStandard =
+    lesson?.artifactGenre?.evidenceStandard ||
+    lesson?.artifactGenre?.evidenceRequirement ||
+    'criterion-specific evidence tied to the assigned artifact';
+  return lessonVariant(lesson, [
+    `Score the ${artifact} for ${lessonScope} using the criteria below. Treat it as ${artifactGenre} and look for this evidence standard: ${evidenceStandard}.`,
+    `Use the criteria below to score ${artifact} for ${lessonScope}. First confirm the work fits ${artifactGenre}, then verify the expected evidence: ${evidenceStandard}.`,
+    `Evaluate ${artifact} against the ${lessonScope} criteria. The scoring focus is ${artifactGenre} work with evidence that meets this standard: ${evidenceStandard}.`,
+    `For ${lessonScope}, score ${artifact} by locating the artifact evidence, matching it to each criterion, and checking this standard: ${evidenceStandard}.`,
+  ]);
+}
+
+function rubricInstructorPreferenceNote(preference, lesson = {}) {
+  if (!preference) return '';
+  const phrase = preferenceDisplayPhrase(preference);
+  return lessonVariant(lesson, [
+    `Instructor preference: ${phrase}.`,
+    `Instructor review priority: ${phrase}.`,
+    `Feedback emphasis for this rubric: ${phrase}.`,
+    `Instructor-facing scoring cue: ${phrase}.`,
+  ]);
 }
 
 // The two most defensible generic criteria to keep beside parameter-derived
@@ -15290,8 +15397,8 @@ function compileRubrics(blueprint) {
         artifactGenreCommonFailure: lesson?.artifactGenre?.commonFailure || '',
         courseModalityProfile: blueprint.courseModalityProfile,
         learnerContextCue: lessonLearnerContextCue(blueprint, lesson),
-        taskDirections: `Score the ${assessment.artifact} for ${assessment.relatedLessons.join(', ')} using the criteria below. Treat it as ${lesson?.artifactGenre?.label || lesson?.artifactGenre?.genre || 'the named artifact genre'} and look for this evidence standard: ${lesson?.artifactGenre?.evidenceStandard || lesson?.artifactGenre?.evidenceRequirement || 'criterion-specific evidence tied to the assigned artifact'}.`,
-        instructorFacilitationNote: `Share the ${assessment.title} rubric before students draft, then use criterion-level feedback for ${assessment.artifact} revision guidance. Prerequisite check: ${lesson?.prerequisitePlan?.diagnosticCheck || `confirm students can connect prior knowledge to ${assessment.artifact}.`} Calibration check: ${assessment.calibrationPlan?.scorerNorming || validityEvidence.calibrationCheck || `review whether ${assessment.artifact} evidence matches the intended learning target before scoring`} ${facilitationBiasCheck} ${sourceCheck}${preference ? ` Instructor preference: ${preferenceDisplayPhrase(preference)}.` : ''}`,
+        taskDirections: rubricTaskDirectionsForLesson({ assessment, lesson }),
+        instructorFacilitationNote: `Share the ${assessment.title} rubric before students draft, then use criterion-level feedback for ${assessment.artifact} revision guidance. Prerequisite check: ${lesson?.prerequisitePlan?.diagnosticCheck || `confirm students can connect prior knowledge to ${assessment.artifact}.`} Calibration check: ${assessment.calibrationPlan?.scorerNorming || validityEvidence.calibrationCheck || `review whether ${assessment.artifact} evidence matches the intended learning target before scoring`} ${facilitationBiasCheck} ${sourceCheck}${preference ? ` ${rubricInstructorPreferenceNote(preference, lesson)}` : ''}`,
         calibrationProtocol: assessment.calibrationPlan,
         accessibilityAndUDL:
           `${lesson?.accessibilityPlan?.expression || `For ${assessment.title}, allow equivalent accessible formats when students demonstrate the same ${lens.evidenceNoun}, reasoning, and communication criteria.`} ${lesson?.accessibilityPlan?.accommodationReviewCue || ''}`.trim(),
@@ -19573,7 +19680,14 @@ function buildLessonPlanOutline(blueprint, lesson, { depth = 'flat' } = {}) {
       description: kernelWorkedExample
         ? `Work the example step by step on the board: ${stripTerminalPunctuation(kernelWorkedExample.problem)}.`
         : kernelFact
-          ? `Introduce ${concept} from its anchor fact — “${stripTerminalPunctuation(kernelFact)}” — and build the explanation students will reuse in ${artifact}.`
+          ? lessonVariant(lesson, [
+              `Introduce ${concept} from its anchor fact — “${stripTerminalPunctuation(kernelFact)}” — and build the explanation students will reuse in ${artifact}.`,
+              `Start with the anchor fact “${stripTerminalPunctuation(kernelFact)},” then model how students can turn it into a defensible ${artifact} move.`,
+              `Use “${stripTerminalPunctuation(kernelFact)}” as the evidence anchor; students annotate the reasoning step before applying it in ${artifact}.`,
+              `Frame ${concept} through the fact “${stripTerminalPunctuation(kernelFact)},” then show where the evidence changes a choice in ${artifact}.`,
+              `Name the anchor fact — “${stripTerminalPunctuation(kernelFact)}” — and demonstrate the transfer move students should adapt for ${artifact}.`,
+              `Work from “${stripTerminalPunctuation(kernelFact)}” to a concise model explanation, pausing where students must choose evidence for ${artifact}.`,
+            ])
           : lessonVariant(lesson, [
               `Introduce ${concept} with a concise worked example that shows how ${lens.learnerRole}s ${phrase.evidenceMove}.`,
               `Model ${concept} through one concrete case, pausing where students must decide which ${lens.evidenceNoun} matters.`,

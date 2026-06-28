@@ -3,24 +3,24 @@ import { APP_VERSION } from './appVersion.js';
 export const CURRENT_RELEASE = {
   version: APP_VERSION,
   date: 'June 28, 2026',
-  title: 'UX Source Gate: review-word false friends stop reaching trusted proof',
-  landingTitle: 'UX Source Gate',
+  title: 'UX Texture Tail Rotation: assignment, rubric, and lesson-plan scaffolds vary by lesson',
+  landingTitle: 'UX Texture Tail Rotation',
   highlights: [
-    'A fresh deployed v0.15.103 User Experience Design Studio ZIP/log audit exported Quality 99 and Texture 95, but still carried a P1: a health gamification systematic review was trusted as a UX critique/peer-feedback reading.',
-    'The current local regrade of that same artifact is intentionally stricter at 97/A: it also flags the trusted source-ledger rows behind the clinical-methods reading and the AI black-box review false friend instead of hiding them behind the syllabus citation finding.',
-    'UX source trust no longer treats bare "review" as a valid source anchor for concept-review/studio-work topics; sources now need explicit UX/design/critique/studio anchors such as design review, work-in-progress review, portfolio review, or real user-experience vocabulary.',
-    'Source-finder now rejects the audited health-gamification systematic-review shape before it reaches the mini-shard cache, while the source-ledger export drops the same false friend instead of presenting it as trusted concept-linked proof.',
-    'The grader mirror now flags any exported health-gamification review linked to UX critique concepts as off-discipline proof; Texture 95 remains a strict-clean carry-forward target until a fresh deployed v0.15.104 ZIP/log audit proves the full package clean.',
+    'A fresh deployed v0.15.104 User Experience Design Studio ZIP/log audit exported Quality 99 with no P0/P1/P2 findings, clean export/source truth, and the remaining scored loss concentrated in Texture 92.',
+    'Assignment Brief support resources now rotate six lesson-specific packet shapes instead of stamping the same notes/readings, rubric, checklist, and office-hours tail across all 12 lessons.',
+    'Parameter-derived Rubric rows now rotate evidence signals, calibration prompts, feedback moves, and performance bands so brief fidelity criteria do not repeat the same "rest of the assessment" scaffold.',
+    'Rubric task directions and instructor-preference notes now vary their evidence-standard and feedback-emphasis frames while preserving the same criteria, weights, and source boundaries.',
+    'Lesson Plan mini-lessons with authored kernel facts now rotate the anchor-fact transfer sentence instead of repeating the same "build the explanation students will reuse" frame across the course.',
   ],
   landingHighlights: [
-    'Bare review-word matches no longer trust wrong-field UX sources.',
-    'Health gamification reviews are rejected for UX critique slots.',
-    'Source-finder and source-ledger gates now agree.',
-    'The grader mirrors the stricter source truth.',
+    'The latest live loss is texture, not source truth.',
+    'Assignment resource packets vary by lesson.',
+    'Rubric parameter bands avoid 12-week stamps.',
+    'Kernel-fact lesson plans rotate their transfer frame.',
   ],
   proof: {
-    contract: 'release-contracts/v0.15.104.json',
-    roadmap: 'docs/V0.15.104_UX_REVIEW_WORD_SOURCE_GATE_ROADMAP.md',
+    contract: 'release-contracts/v0.15.105.json',
+    roadmap: 'docs/V0.15.105_UX_TEXTURE_TAIL_ROTATION_ROADMAP.md',
     auditCommand: 'npm run audit:release-history',
   },
 };
@@ -35,6 +35,18 @@ export const CURRENT_RELEASE_CHANGELOG = {
 };
 
 export const HISTORICAL_RELEASE_CHANGELOGS = [
+  {
+    version: '0.15.104',
+    date: 'June 28, 2026',
+    title: 'UX Source Gate: review-word false friends stop reaching trusted proof',
+    highlights: [
+      'A fresh deployed v0.15.103 User Experience Design Studio ZIP/log audit exported Quality 99 and Texture 95, but still carried a P1: a health gamification systematic review was trusted as a UX critique/peer-feedback reading.',
+      'The current local regrade of that same artifact is intentionally stricter at 97/A: it also flags the trusted source-ledger rows behind the clinical-methods reading and the AI black-box review false friend instead of hiding them behind the syllabus citation finding.',
+      'UX source trust no longer treats bare "review" as a valid source anchor for concept-review/studio-work topics; sources now need explicit UX/design/critique/studio anchors such as design review, work-in-progress review, portfolio review, or real user-experience vocabulary.',
+      'Source-finder now rejects the audited health-gamification systematic-review shape before it reaches the mini-shard cache, while the source-ledger export drops the same false friend instead of presenting it as trusted concept-linked proof.',
+      'The grader mirror now flags any exported health-gamification review linked to UX critique concepts as off-discipline proof; Texture 95 remains a strict-clean carry-forward target until a fresh deployed v0.15.104 ZIP/log audit proves the full package clean.',
+    ],
+  },
   {
     version: '0.15.103',
     date: 'June 28, 2026',
