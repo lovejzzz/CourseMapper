@@ -37,9 +37,9 @@
       "changelogHighlightIndex": 0,
       "summary": "The release is grounded in the fresh deployed v0.15.102 UX ZIP/log audit, which exported Quality 98 and Texture 94 because quarantined sourceReviewRows were still counted as citation P2s.",
       "anchors": [
-        "verification-output/edutool-audit-loop/20260628T154611Z-v015102-ux-fresh/report.md",
         "docs/V0.15.103_UX_SOURCE_REVIEW_TEXTURE_TAIL_ROADMAP.md",
-        "src/lib/releaseManifest.js"
+        "src/lib/releaseManifest.js",
+        "src/lib/quality/__tests__/sourceLedgerGrader.test.js"
       ],
       "proofCommands": [
         "node --input-type=module - <<'NODE' ... local regrade of verification-output/edutool-audit-loop/20260628T154611Z-v015102-ux-fresh/unpacked ... NODE"
@@ -64,8 +64,9 @@
       "changelogHighlightIndex": 2,
       "summary": "The captured v0.15.102 package locally regrades at 100/A with zero findings under the current source-review rule while retaining Texture 94 as a strict-clean caveat.",
       "anchors": [
-        "verification-output/edutool-audit-loop/20260628T154611Z-v015102-ux-fresh/local-regrade-current-rules.json",
-        "verification-output/edutool-audit-loop/20260628T154611Z-v015102-ux-fresh/report.md"
+        "docs/V0.15.103_UX_SOURCE_REVIEW_TEXTURE_TAIL_ROADMAP.md",
+        "src/lib/quality/sourceLedgerQualityChecks.js",
+        "src/lib/quality/__tests__/sourceLedgerGrader.test.js"
       ],
       "proofCommands": [
         "node --input-type=module - <<'NODE' ... local regrade of verification-output/edutool-audit-loop/20260628T154611Z-v015102-ux-fresh/unpacked ... NODE"
@@ -105,7 +106,7 @@
     {
       "id": "strict-clean-texture",
       "status": "carry-forward",
-      "source": "verification-output/edutool-audit-loop/20260628T154611Z-v015102-ux-fresh/report.md",
+      "source": "docs/V0.15.103_UX_SOURCE_REVIEW_TEXTURE_TAIL_ROADMAP.md",
       "next": "Continue improving deterministic texture until fresh provider packages have no hidden repeated-scaffold caveat."
     }
   ]
