@@ -185,8 +185,9 @@ function normalizeConceptLinks(value) {
   const seen = new Set();
   const links = [];
   for (const item of items) {
-    const id = cleanText(item?.id || item?.conceptId || item, 120);
-    const label = cleanText(item?.label || item?.term || item?.title || '', 160);
+    const isObject = item && typeof item === 'object';
+    const id = cleanText(isObject ? item.id || item.conceptId || '' : item, 120);
+    const label = cleanText(isObject ? item.label || item.term || item.title || '' : '', 160);
     const key = `${id}|${label}`.toLowerCase();
     if ((!id && !label) || seen.has(key)) continue;
     seen.add(key);
@@ -381,21 +382,40 @@ export function sourceLedgerFromOpenStax(anchor = {}, options = {}) {
   );
 }
 
+function conceptLinkForRef(conceptRef, section, conceptsById) {
+  const conceptId =
+    typeof conceptRef === 'string' ? conceptRef : cleanText(conceptRef?.id || conceptRef?.conceptId || '', 120);
+  const conceptLabel =
+    typeof conceptRef === 'string'
+      ? ''
+      : cleanText(conceptRef?.label || conceptRef?.term || conceptRef?.title || '', 160);
+  const concept = conceptsById.get(conceptId);
+  return { id: conceptId, label: concept?.term || conceptLabel || section?.topic || '' };
+}
+
 function conceptLinksForResource(graph, resourceId) {
   const sessions = graph?.sessions || [];
   const conceptsById = new Map((graph?.concepts || []).map((concept) => [concept.id, concept]));
   const resource = (graph?.resources || []).find((item) => item?.id === resourceId);
   const links = [];
   for (const session of sessions) {
+    const linksBeforeSession = links.length;
+    const fallbackSectionLabels = [];
     const sessionMatches = resource?.sessionRefs?.some((ref) => ref === session.id || ref === session.number);
     let linkedToSession = Boolean(sessionMatches);
     for (const section of session.sections || []) {
       const sectionMatches = (section.resourceRefs || []).includes(resourceId);
       linkedToSession = linkedToSession || sectionMatches;
       if (!sessionMatches && !sectionMatches) continue;
-      for (const conceptId of section.conceptRefs || []) {
-        const concept = conceptsById.get(conceptId);
-        links.push({ id: conceptId, label: concept?.term || section.topic || '' });
+      if (
+        sectionMatches &&
+        (!Array.isArray(section.conceptRefs) || section.conceptRefs.length === 0) &&
+        section.topic
+      ) {
+        fallbackSectionLabels.push(section.topic);
+      }
+      for (const conceptRef of section.conceptRefs || []) {
+        links.push(conceptLinkForRef(conceptRef, section, conceptsById));
       }
     }
     if (linkedToSession) {
@@ -404,6 +424,9 @@ function conceptLinksForResource(graph, resourceId) {
         const concept = conceptsById.get(edge.to);
         links.push({ id: edge.to, label: concept?.term || '' });
       }
+    }
+    if (linkedToSession && links.length === linksBeforeSession) {
+      for (const label of fallbackSectionLabels) links.push({ label });
     }
   }
   return normalizeConceptLinks(links);
@@ -420,9 +443,9 @@ function conceptLinksForSourceFinderTopic(graph, topic = {}) {
   if (!session) return normalizeConceptLinks(topic.topic ? [{ label: topic.topic }] : []);
   const links = [];
   for (const section of session.sections || []) {
-    for (const conceptId of section.conceptRefs || []) {
-      const concept = conceptsById.get(conceptId);
-      links.push({ id: conceptId, label: concept?.term || section.topic || topic.topic || '' });
+    for (const conceptRef of section.conceptRefs || []) {
+      const link = conceptLinkForRef(conceptRef, section, conceptsById);
+      links.push({ ...link, label: link.label || topic.topic || '' });
     }
   }
   for (const edge of graph?.edges?.teaches || []) {
@@ -486,7 +509,15 @@ function isUserExperienceWeakSource(source, courseGraph) {
   return !USER_EXPERIENCE_SOURCE_ANCHOR_RE.test(text) && !hasUserExperienceTopicAnchor(source);
 }
 
+function requiresSourceReview(source = {}) {
+  return !isTrustedConceptLinkedSourceLedgerRow(source);
+}
+
 function appendCourseAwareSource(rows, reviewRows, source, courseGraph) {
+  if (requiresSourceReview(source)) {
+    appendUnique(reviewRows, source);
+    return;
+  }
   if (isTrustedConceptLinkedSourceLedgerRow(source) && isUserExperienceWeakSource(source, courseGraph)) {
     appendUnique(reviewRows, source);
     return;
@@ -622,8 +653,9 @@ export function buildSourceLedgerFromCourseGraph(courseGraph, { checkedAt = '' }
 
   for (const reading of courseGraph.readings || []) {
     if (!reading || typeof reading !== 'object') continue;
-    appendUnique(
+    appendCourseAwareSource(
       rows,
+      reviewRows,
       normalizeTrustedSource(
         {
           ...reading,
@@ -635,6 +667,7 @@ export function buildSourceLedgerFromCourseGraph(courseGraph, { checkedAt = '' }
         },
         { fallbackId: reading.id, checkedAt },
       ),
+      courseGraph,
     );
   }
 

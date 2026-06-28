@@ -380,7 +380,11 @@ function mergeSourceLedgerBundles(...bundles) {
     for (const row of bundle?.rows || []) {
       appendMergedSourceRow(rows, rowKeyIndex, row);
     }
+  }
+  for (const bundle of bundles) {
     for (const row of bundle?.reviewRows || []) {
+      const identityKeys = sourceLedgerIdentityKeys(row);
+      if (identityKeys.some((key) => rowKeyIndex.has(key))) continue;
       appendMergedSourceRow(reviewRows, reviewKeyIndex, row);
     }
   }

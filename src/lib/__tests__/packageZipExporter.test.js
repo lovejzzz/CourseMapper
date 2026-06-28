@@ -556,14 +556,30 @@ describe('packageZipExporter', () => {
     const manifest = JSON.parse(await zip.file('PACKAGE_MANIFEST.json').async('string'));
     const sourceReport = await zip.file('SOURCE_REPORT.md').async('string');
 
-    expect(manifest.sourceLedger).toHaveLength(2);
+    expect(manifest.sourceLedger).toHaveLength(1);
     expect(manifest.sourceLedgerSummary).toMatchObject({
-      sourceCount: 2,
-      trustedCount: 2,
+      sourceCount: 1,
+      trustedCount: 1,
       conceptLinkedCount: 1,
       trustedConceptLinkedCount: 1,
-      reviewRequiredCount: 1,
+      reviewRequiredCount: 2,
     });
+    expect(manifest.sourceReviewRows).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          id: 'SL1',
+          provider: 'courseir',
+          accessStatus: 'no-url-or-doi',
+        }),
+        expect.objectContaining({
+          id: 'kr2',
+          provider: 'openalex',
+          accessStatus: 'reference-present',
+          licenseAmbiguous: false,
+          conceptLinks: [],
+        }),
+      ]),
+    );
     expect(manifest.courseIR.sourceRefBridge).toBeUndefined();
     expect(manifest.courseIR.sourceRefCoverage).toMatchObject({
       sourceLedgerRows: 1,
@@ -771,12 +787,12 @@ describe('packageZipExporter', () => {
     const manifest = JSON.parse(await zip.file('PACKAGE_MANIFEST.json').async('string'));
     const sourceReport = await zip.file('SOURCE_REPORT.md').async('string');
 
-    expect(manifest.sourceLedger).toHaveLength(2);
+    expect(manifest.sourceLedger).toBeUndefined();
     expect(manifest.sourceLedgerSummary).toMatchObject({
-      sourceCount: 2,
+      sourceCount: 0,
       trustedCount: 0,
-      licenseAmbiguousCount: 2,
-      reviewRequiredCount: 1,
+      licenseAmbiguousCount: 0,
+      reviewRequiredCount: 3,
     });
     expect(manifest.sourceReviewRows).toEqual(
       expect.arrayContaining([
@@ -784,6 +800,16 @@ describe('packageZipExporter', () => {
           id: 'SL1',
           provider: 'courseir',
           accessStatus: 'no-url-or-doi',
+        }),
+        expect.objectContaining({
+          id: 'ol1',
+          provider: 'openlibrary',
+          licenseAmbiguous: true,
+        }),
+        expect.objectContaining({
+          id: 'cr1',
+          provider: 'crossref',
+          licenseAmbiguous: true,
         }),
       ]),
     );

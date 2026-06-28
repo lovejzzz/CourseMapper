@@ -2,19 +2,23 @@ import { APP_VERSION } from './appVersion.js';
 
 export const CURRENT_RELEASE = {
   version: APP_VERSION,
-  date: 'June 27, 2026',
-  title: 'Header Action Cleanup: the workspace top row stops acting like a junk drawer',
-  landingTitle: 'Header Action Cleanup',
+  date: 'June 28, 2026',
+  title: 'Source Proof Hardening: trusted rows must be licensed and linked',
+  landingTitle: 'Source Proof Hardening',
   highlights: [
-    'The header overflow is now a Project menu for project/file actions only: Save .coursemapper, New Project, and optional kernel contribution. Package finishing, Add Materials, and undo/redo no longer live in the top-row drawer.',
-    'The custom agent tools pill hides when there are zero tools and no sync error, removing a dead 0-count control from the Agent header while still surfacing sync failures.',
-    'Agent review observations now deduplicate inside each digest and the message list renders only the latest digest card, so repeated Worth a look notes from older package states do not stack.',
-    'This release is UI-surface cleanup, not a new quality claim: fresh deployed v0.15.88 browser/ZIP evidence is still required before claiming provider-side quality improvement.',
+    'Trusted sourceLedger proof now requires the row to be accessible, license-safe, trust-eligible, and concept-linked; missing-license, review-only, metadata-only, or unlinked rows stay visible as sourceReviewRows instead of counting as bibliography proof.',
+    'Source resources linked to a lesson section now inherit the section topic when no explicit concept id is available, so valid source text can still become concept-linked instead of falling into an unlinked gray area.',
+    'Package source-ledger merging now prefers trusted rows across the full package before adding review rows, preventing a weaker syllabus/review copy of the same DOI from cluttering SOURCE_REPORT.md after a stronger trusted source is present.',
+    'This release does not claim a clean 100/100 package: a fresh deployed v0.15.89 ZIP/log audit is still required to measure citation-score impact across Project Management and UX-style source-heavy courses.',
   ],
-  landingHighlights: ['Project menu is project-only.', 'Empty tools pill hides.', 'Agent notes dedupe.'],
+  landingHighlights: [
+    'Trusted rows require license proof.',
+    'Review rows stay visible.',
+    'Duplicate source notes collapse.',
+  ],
   proof: {
-    contract: 'release-contracts/v0.15.88.json',
-    roadmap: 'docs/V0.15.88_HEADER_ACTION_CLEANUP_ROADMAP.md',
+    contract: 'release-contracts/v0.15.89.json',
+    roadmap: 'docs/V0.15.89_SOURCE_PROOF_HARDENING_ROADMAP.md',
     auditCommand: 'npm run audit:release-history',
   },
 };
@@ -29,6 +33,17 @@ export const CURRENT_RELEASE_CHANGELOG = {
 };
 
 export const HISTORICAL_RELEASE_CHANGELOGS = [
+  {
+    version: '0.15.88',
+    date: 'June 27, 2026',
+    title: 'Header Action Cleanup: the workspace top row stops acting like a junk drawer',
+    highlights: [
+      'The header overflow is now a Project menu for project/file actions only: Save .coursemapper, New Project, and optional kernel contribution. Package finishing, Add Materials, and undo/redo no longer live in the top-row drawer.',
+      'The custom agent tools pill hides when there are zero tools and no sync error, removing a dead 0-count control from the Agent header while still surfacing sync failures.',
+      'Agent review observations now deduplicate inside each digest and the message list renders only the latest digest card, so repeated Worth a look notes from older package states do not stack.',
+      'This release is UI-surface cleanup, not a new quality claim: fresh deployed v0.15.88 browser/ZIP evidence is still required before claiming provider-side quality improvement.',
+    ],
+  },
   {
     version: '0.15.87',
     date: 'June 27, 2026',

@@ -136,6 +136,42 @@ describe('trusted source ledger', () => {
     });
   });
 
+  it('quarantines accessible source resources when license proof is missing', () => {
+    const ledger = buildSourceLedgerFromCourseGraph({
+      concepts: [{ id: 'c1', term: 'studio critique' }],
+      sessions: [
+        {
+          id: 's1',
+          number: 1,
+          sections: [{ topic: 'studio critique', conceptRefs: ['c1'], resourceRefs: ['r1'] }],
+        },
+      ],
+      resources: [
+        {
+          id: 'r1',
+          origin: 'syllabus',
+          title: 'Guiding Principles for the UX Practitioner',
+          url: 'https://example.edu/ux-practitioner',
+          citation: 'Guiding Principles for the UX Practitioner',
+          sessionRefs: [1],
+        },
+      ],
+    });
+
+    expect(ledger.rows).toHaveLength(0);
+    expect(ledger.reviewRows).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          id: 'r1',
+          accessStatus: 'reference-present',
+          licenseAmbiguous: true,
+          conceptLinks: [{ id: 'c1', label: 'studio critique' }],
+        }),
+      ]),
+    );
+    expect(ledger.summary).toMatchObject({ sourceCount: 0, trustedCount: 0, reviewRequiredCount: 1 });
+  });
+
   it('does not promote package labels or placeholder course-map resources into source rows', () => {
     const ledger = buildSourceLedgerFromCourseGraph(
       {
@@ -270,16 +306,26 @@ describe('trusted source ledger', () => {
 
     const ledger = buildSourceLedgerFromCourseGraph(graph, { checkedAt });
     expect(ledger.summary).toMatchObject({
-      sourceCount: 2,
+      sourceCount: 1,
       accessibleCount: 1,
-      licenseAmbiguousCount: 1,
+      licenseAmbiguousCount: 0,
+      reviewRequiredCount: 1,
     });
-    expect(ledger.rows[1]).toMatchObject({
+    expect(ledger.rows[0]).toMatchObject({
       id: 'kr1',
       provider: 'genome',
       conceptLinks: [{ id: 'c1', label: 'Limits' }],
       checkedAt,
     });
+    expect(ledger.reviewRows).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          id: 'SL1',
+          provider: 'instructor',
+          licenseAmbiguous: true,
+        }),
+      ]),
+    );
     const report = buildSourceReportMarkdown({
       courseName: 'Calculus I',
       sourceLedger: ledger,
@@ -290,7 +336,9 @@ describe('trusted source ledger', () => {
       },
     });
     expect(report).toContain('Source Ledger');
+    expect(report).toContain('Source Review Notes');
     expect(report).toContain('kr1');
+    expect(report).toContain('trustedBibliography=false');
     expect(report).toContain('outcomes: 1/1 with sourceRefs');
   });
 
