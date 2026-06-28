@@ -1,0 +1,59 @@
+{
+  "overall": {
+    "score": 99,
+    "grade": "A"
+  },
+  "scores": {
+    "identity": 100,
+    "substance": 100,
+    "citations": 100,
+    "honesty": 100,
+    "discipline": 100,
+    "consistency": 100,
+    "structure": 100,
+    "format": 100,
+    "texture": 89
+  },
+  "grades": {
+    "identity": "A",
+    "substance": "A",
+    "citations": "A",
+    "honesty": "A",
+    "discipline": "A",
+    "consistency": "A",
+    "structure": "A",
+    "format": "A",
+    "texture": "B"
+  },
+  "stats": {
+    "fileCount": 99,
+    "findingCount": 1,
+    "p0": 0,
+    "p1": 0,
+    "p2": 1,
+    "byDimension": {
+      "identity": 0,
+      "substance": 0,
+      "citations": 0,
+      "honesty": 0,
+      "discipline": 0,
+      "consistency": 0,
+      "structure": 0,
+      "format": 0,
+      "texture": 1
+    },
+    "hasManifest": true,
+    "registryCount": 36,
+    "readingsCount": 0
+  },
+  "findings": [
+    {
+      "id": "F001",
+      "severity": "P2",
+      "dimension": "texture",
+      "file": "assignments artifacts",
+      "detail": "Texture score 89/100 indicates repeated prose patterns across deliverables",
+      "evidence": "after artifact inspect critique evidence and require one named next iteration for"
+    }
+  ]
+}
