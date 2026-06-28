@@ -86,6 +86,37 @@ describe('pptxExporter', () => {
     expect(slideNames(zip)).toHaveLength(4);
   });
 
+  it('punctuates example-slide key takeaway callouts in rendered PPTX XML', async () => {
+    const blob = await buildSlideDeckPptxBlob(
+      {
+        decks: [
+          {
+            lessonTitle: 'Lesson 5: Information architecture',
+            slides: [
+              {
+                title: 'EXAMPLE user flow',
+                type: 'example',
+                bullets: [
+                  'Browse events → select an event → reserve a spot → receive confirmation',
+                  'Poor labeling makes even well-organized content hard to use',
+                ],
+                notes: 'Use this example to compare structure and labeling choices.',
+              },
+            ],
+          },
+        ],
+      },
+      'User Experience Design Studio',
+      0,
+    );
+
+    const zip = await loadPptxZip(blob);
+    const xml = await zip.file('ppt/slides/slide1.xml').async('string');
+
+    expect(xml).toContain('Key Takeaway: Poor labeling makes even well-organized content hard to use.');
+    expect(xml).not.toContain('Key Takeaway: Poor labeling makes even well-organized content hard to use<');
+  });
+
   describe('per-course accent palette (v0.12.1)', () => {
     it('is deterministic — same course name always maps to the same family', () => {
       const a = accentFamilyForCourse('Introduction to Microeconomics');

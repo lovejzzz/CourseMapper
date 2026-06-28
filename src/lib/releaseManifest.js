@@ -3,22 +3,24 @@ import { APP_VERSION } from './appVersion.js';
 export const CURRENT_RELEASE = {
   version: APP_VERSION,
   date: 'June 28, 2026',
-  title: 'UX Source Relevance Broadening: prototype and studio false friends stop passing',
-  landingTitle: 'UX Source Relevance',
+  title: 'UX Sketch False-Friend and PPTX Punctuation: hidden quality debt scores honestly',
+  landingTitle: 'UX Source Truth',
   highlights: [
-    'A fresh deployed v0.15.90 User Experience Design Studio ZIP/log audit displayed 100/100, but SOURCE_REPORT.md still trusted National Design Studio, Le Mans Prototype, and an architecture-studio paper as UX concept proof.',
-    'UX source-ledger filtering now quarantines those prototype/studio false friends into sourceReviewRows instead of trusted sourceLedger proof while preserving legitimate UX/design research rows.',
-    'The local deep quality grader mirrors the broader UX relevance gate, so the same v0.15.90 artifact now projects to 97/A with three P1 citation findings instead of silently passing as clean.',
-    'This release does not claim clean 100/100 quality: a fresh deployed v0.15.91 ZIP/log audit is still required, and the latest measured texture remains 94/100.',
+    'A fresh deployed v0.15.91 User Experience Design Studio ZIP/log audit generated 99/A with texture 94, but the trusted source ledger still accepted "List of In Living Color sketches" as UX sketching proof and one PPTX key-takeaway callout ended on a bare content word.',
+    'UX source-ledger filtering now quarantines sketch-comedy and television-sketch false friends into sourceReviewRows instead of trusted sourceLedger proof while preserving legitimate UX sketching, wireframing, and information-architecture sources.',
+    'The local deep quality grader mirrors the new sketch false-friend gate, so the same v0.15.91 artifact now regrades at 98/A with the hidden citation P1 surfaced instead of silently passing as a source-clean 99.',
+    'PPTX example-slide key-takeaway callouts now receive terminal punctuation at export time, closing the exact format P1 reproduced in Lesson 05 - Information architecture.',
+    'This release does not claim clean 100/100 quality: a fresh deployed v0.15.92 ZIP/log audit is still required, and the latest measured texture remains 94/100.',
   ],
   landingHighlights: [
-    'Studio/prototype false friends move to review.',
-    'Hidden citation caveats score honestly.',
+    'Sketch false friends move to review.',
+    'Hidden citation debt scores honestly.',
+    'PPTX takeaway punctuation is enforced.',
     'Fresh provider proof remains required.',
   ],
   proof: {
-    contract: 'release-contracts/v0.15.91.json',
-    roadmap: 'docs/V0.15.91_UX_SOURCE_RELEVANCE_BROADENING_ROADMAP.md',
+    contract: 'release-contracts/v0.15.92.json',
+    roadmap: 'docs/V0.15.92_UX_SKETCH_SOURCE_AND_PPTX_PUNCTUATION_ROADMAP.md',
     auditCommand: 'npm run audit:release-history',
   },
 };
@@ -33,6 +35,17 @@ export const CURRENT_RELEASE_CHANGELOG = {
 };
 
 export const HISTORICAL_RELEASE_CHANGELOGS = [
+  {
+    version: '0.15.91',
+    date: 'June 28, 2026',
+    title: 'UX Source Relevance Broadening: prototype and studio false friends stop passing',
+    highlights: [
+      'A fresh deployed v0.15.90 User Experience Design Studio ZIP/log audit displayed 100/100, but SOURCE_REPORT.md still trusted National Design Studio, Le Mans Prototype, and an architecture-studio paper as UX concept proof.',
+      'UX source-ledger filtering now quarantines those prototype/studio false friends into sourceReviewRows instead of trusted sourceLedger proof while preserving legitimate UX/design research rows.',
+      'The local deep quality grader mirrors the broader UX relevance gate, so the same v0.15.90 artifact now projects to 97/A with three P1 citation findings instead of silently passing as clean.',
+      'This release does not claim clean 100/100 quality: a fresh deployed v0.15.91 ZIP/log audit is still required, and the latest measured texture remains 94/100.',
+    ],
+  },
   {
     version: '0.15.90',
     date: 'June 28, 2026',

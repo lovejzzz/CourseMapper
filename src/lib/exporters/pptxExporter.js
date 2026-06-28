@@ -337,6 +337,12 @@ function spokePhrase(bullet, maxLen = NATIVE_VISUAL_LIMITS.spokeLabel) {
   return clause.length >= 12 && clause.length <= maxLen ? clause : null;
 }
 
+function ensureTerminalPunctuation(text) {
+  const clean = String(text || '').trim();
+  if (!clean || /[.!?…;:]$/.test(clean)) return clean;
+  return `${clean}.`;
+}
+
 /**
  * Decide whether this slide's visual descriptor can be rendered natively
  * from the data it already carries. Returns a render plan or null.
@@ -1301,7 +1307,7 @@ async function buildSlideForDeck(pptx, deck, theme, slideIndex, totalSlides, opt
     if (s.bullets?.length > 0) {
       const lastIdx = s.bullets.length - 1;
       const mainBullets = s.bullets.slice(0, lastIdx);
-      const takeaway = s.bullets[lastIdx];
+      const takeaway = ensureTerminalPunctuation(s.bullets[lastIdx]);
 
       if (mainBullets.length > 0) {
         const bulletText = mainBullets.map((b) => ({

@@ -1,0 +1,112 @@
+{
+  "version": "0.15.92",
+  "date": "June 28, 2026",
+  "title": "UX Sketch False-Friend and PPTX Punctuation: hidden quality debt scores honestly",
+  "status": "verified-current",
+  "proofSummary": {
+    "local": [
+      "npm test -- --run src/lib/knowledge/__tests__/sourceLedger.test.js src/lib/quality/__tests__/sourceLedgerGrader.test.js src/lib/__tests__/pptxExporter.test.js",
+      "node --input-type=module - <<'NODE' ... regrade verification-output/edutool-audit-loop/20260628T070346Z-v01591-ux-fresh/unzipped ... NODE"
+    ],
+    "ciFast": {
+      "status": "pending-push",
+      "note": "Fast verification is claimed only after v0.15.92 is pushed and the GitHub Actions run is attached."
+    },
+    "deploy": {
+      "status": "pending-push",
+      "note": "Pages deploy is not claimed until the pushed v0.15.92 release completes its deploy run."
+    },
+    "ciDeep": {
+      "status": "local-only",
+      "note": "This is a narrow source relevance, grader-truth, and PPTX export-format release; targeted regressions plus normal gates are the release bar."
+    },
+    "liveProvider": {
+      "status": "local-only",
+      "note": "The release is based on the fresh deployed v0.15.91 ZIP/log audit and local projection. A fresh deployed v0.15.92 ZIP/log audit is still required before claiming provider package quality improvement."
+    },
+    "manualHuman": {
+      "status": "not-applicable",
+      "note": "No external instructor approval is claimed by this release."
+    }
+  },
+  "claims": [
+    {
+      "id": "v01592-live-v01591-source-and-format-evidence",
+      "status": "verified-current",
+      "changelogHighlightIndex": 0,
+      "summary": "The release is grounded in a fresh deployed v0.15.91 UX ZIP/log audit where a trusted sourceLedger row was a sketch false friend and a PPTX key-takeaway callout caused the only visible P1.",
+      "anchors": [
+        "docs/V0.15.92_UX_SKETCH_SOURCE_AND_PPTX_PUNCTUATION_ROADMAP.md",
+        "verification-output/edutool-audit-loop/20260628T070346Z-v01591-ux-fresh/local-regrade-after-v01592-patch.json"
+      ],
+      "proofCommands": [
+        "npm test -- --run src/lib/knowledge/__tests__/sourceLedger.test.js src/lib/quality/__tests__/sourceLedgerGrader.test.js src/lib/__tests__/pptxExporter.test.js"
+      ],
+      "proofScopes": ["live-provider", "static-audit", "unit"]
+    },
+    {
+      "id": "v01592-export-quarantines-sketch-false-friends",
+      "status": "verified-current",
+      "changelogHighlightIndex": 1,
+      "summary": "UX source-ledger export now quarantines In Living Color, sketch-comedy, comedy-sketch, and television-sketch false friends into source review notes instead of trusted bibliography proof.",
+      "anchors": [
+        "src/lib/knowledge/sourceLedger.js",
+        "src/lib/knowledge/__tests__/sourceLedger.test.js",
+        "docs/V0.15.92_UX_SKETCH_SOURCE_AND_PPTX_PUNCTUATION_ROADMAP.md"
+      ],
+      "proofCommands": [
+        "npm test -- --run src/lib/knowledge/__tests__/sourceLedger.test.js src/lib/quality/__tests__/sourceLedgerGrader.test.js"
+      ],
+      "proofScopes": ["unit", "compiled-output"]
+    },
+    {
+      "id": "v01592-grader-surfaces-sketch-source-caveat",
+      "status": "verified-current",
+      "changelogHighlightIndex": 2,
+      "summary": "The local deep quality grader now flags the captured v0.15.91 sketch false-friend row as a P1 citation finding, projecting the same package to 98/A instead of a false source-clean 99.",
+      "anchors": [
+        "src/lib/quality/sourceLedgerQualityChecks.js",
+        "src/lib/quality/__tests__/sourceLedgerGrader.test.js",
+        "verification-output/edutool-audit-loop/20260628T070346Z-v01591-ux-fresh/local-regrade-after-v01592-patch.json"
+      ],
+      "proofCommands": ["npm test -- --run src/lib/quality/__tests__/sourceLedgerGrader.test.js"],
+      "proofScopes": ["unit", "static-audit", "compiled-output"]
+    },
+    {
+      "id": "v01592-pptx-key-takeaway-punctuation",
+      "status": "verified-current",
+      "changelogHighlightIndex": 3,
+      "summary": "PPTX example-slide key-takeaway callouts receive terminal punctuation in rendered slide XML.",
+      "anchors": [
+        "src/lib/exporters/pptxExporter.js",
+        "src/lib/__tests__/pptxExporter.test.js",
+        "docs/V0.15.92_UX_SKETCH_SOURCE_AND_PPTX_PUNCTUATION_ROADMAP.md"
+      ],
+      "proofCommands": ["npm test -- --run src/lib/__tests__/pptxExporter.test.js"],
+      "proofScopes": ["unit", "compiled-output"]
+    },
+    {
+      "id": "v01592-no-clean-quality-claim",
+      "status": "verified-current",
+      "changelogHighlightIndex": 4,
+      "summary": "The release explicitly carries forward fresh deployed v0.15.92 ZIP/log validation and texture cleanup before claiming clean 100/100 provider output.",
+      "anchors": ["docs/V0.15.92_UX_SKETCH_SOURCE_AND_PPTX_PUNCTUATION_ROADMAP.md", "release-contracts/v0.15.92.json"],
+      "proofCommands": ["npm run audit:release-history"],
+      "proofScopes": ["static-audit", "doc"]
+    }
+  ],
+  "carryForward": [
+    {
+      "id": "fresh-v01592-provider-audit",
+      "status": "carry-forward",
+      "source": "docs/V0.15.92_UX_SKETCH_SOURCE_AND_PPTX_PUNCTUATION_ROADMAP.md",
+      "next": "After deploy, run a fresh v0.15.92 UX ZIP/log audit and verify SOURCE_REPORT.md, manifest sourceLedger/sourceReviewRows, local deep regrade, texture, PPTX rendered text, and browser warning logs."
+    },
+    {
+      "id": "texture-below-perfect",
+      "status": "carry-forward",
+      "source": "docs/V0.15.92_UX_SKETCH_SOURCE_AND_PPTX_PUNCTUATION_ROADMAP.md",
+      "next": "The latest v0.15.91 UX run measured texture at 94/100; continue deterministic variation cleanup after source trust and PPTX formatting are verified."
+    }
+  ]
+}

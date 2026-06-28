@@ -728,6 +728,14 @@ describe('trusted source ledger', () => {
                   snippet: 'A Le Mans Prototype is a sports prototype race car class.',
                 },
                 {
+                  provider: 'wikipedia',
+                  kind: 'background source',
+                  title: 'List of In Living Color sketches',
+                  url: 'https://en.wikipedia.org/wiki/List_of_In_Living_Color_sketches',
+                  license: 'CC BY-SA 4.0',
+                  snippet: 'This is a list of sketches on In Living Color.',
+                },
+                {
                   provider: 'openalex',
                   kind: 'journal article',
                   title:
@@ -768,6 +776,7 @@ describe('trusted source ledger', () => {
     );
     expect(ledger.rows.map((row) => row.title)).not.toContain('National Design Studio');
     expect(ledger.rows.map((row) => row.title)).not.toContain('Le Mans Prototype');
+    expect(ledger.rows.map((row) => row.title)).not.toContain('List of In Living Color sketches');
     expect(ledger.rows.map((row) => row.title)).not.toContain(
       'Collaborative learning in architectural education: Benefits of combining conventional studio, virtual design studio and live projects',
     );
@@ -794,6 +803,11 @@ describe('trusted source ledger', () => {
           conceptLinks: [{ id: 'c1', label: 'project feedback' }],
         }),
         expect.objectContaining({
+          provider: 'wikipedia',
+          title: 'List of In Living Color sketches',
+          conceptLinks: [{ id: 'c1', label: 'project feedback' }],
+        }),
+        expect.objectContaining({
           provider: 'openalex',
           title:
             'Collaborative learning in architectural education: Benefits of combining conventional studio, virtual design studio and live projects',
@@ -801,7 +815,7 @@ describe('trusted source ledger', () => {
         }),
       ]),
     );
-    expect(ledger.summary).toMatchObject({ sourceCount: 1, trustedConceptLinkedCount: 1, reviewRequiredCount: 5 });
+    expect(ledger.summary).toMatchObject({ sourceCount: 1, trustedConceptLinkedCount: 1, reviewRequiredCount: 6 });
   });
 
   it('quarantines weak UX knowledge resources before they become trusted ledger rows', () => {

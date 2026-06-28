@@ -365,6 +365,18 @@ describe('source-ledger quality checks', () => {
               ],
             },
             {
+              id: 'sf-6-3',
+              title: 'List of In Living Color sketches',
+              provider: 'wikipedia',
+              url: 'https://en.wikipedia.org/wiki/List_of_In_Living_Color_sketches',
+              license: 'CC BY-SA 4.0',
+              conceptLinks: [
+                { id: 'c16', label: 'sketches' },
+                { id: 'c17', label: 'low-fidelity layouts' },
+                { id: 'c18', label: 'screen structure' },
+              ],
+            },
+            {
               id: 'sf3',
               title:
                 'Optimizing the digital customer journey—Improving user experience by exploiting emotions, personas and situations for individualized user interface adaptations',
@@ -377,12 +389,12 @@ describe('source-ledger quality checks', () => {
           ],
           sourceReport: {
             path: 'SOURCE_REPORT.md',
-            sourceCount: 7,
+            sourceCount: 8,
           },
           files: [],
         }),
         'SOURCE_REPORT.md':
-          '# Source Report\n\n## Source Ledger\n- sf2: Positive feedback\n- kr2: Metaverse beyond the hype\n- sf1: The Green Studio Handbook\n- kr7: Collaborative learning in architectural education\n- sf-2-2: National Design Studio\n- sf-6-2: Le Mans Prototype\n- sf3: Optimizing the digital customer journey\n',
+          '# Source Report\n\n## Source Ledger\n- sf2: Positive feedback\n- kr2: Metaverse beyond the hype\n- sf1: The Green Studio Handbook\n- kr7: Collaborative learning in architectural education\n- sf-2-2: National Design Studio\n- sf-6-2: Le Mans Prototype\n- sf-6-3: List of In Living Color sketches\n- sf3: Optimizing the digital customer journey\n',
       }),
       course: { title: 'User Experience Design Studio', featureIds: [] },
     });
@@ -418,6 +430,11 @@ describe('source-ledger quality checks', () => {
           severity: 'P1',
           dimension: 'citations',
           detail: 'source ledger row sf-6-2 is off-discipline for User Experience Design Studio',
+        }),
+        expect.objectContaining({
+          severity: 'P1',
+          dimension: 'citations',
+          detail: 'source ledger row sf-6-3 is off-discipline for User Experience Design Studio',
         }),
       ]),
     );
