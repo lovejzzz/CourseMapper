@@ -238,6 +238,76 @@ describe('source-ledger quality checks', () => {
     );
   });
 
+  it('flags bare refinement false friends in UX source-ledger proof', async () => {
+    const result = await grade({
+      fileProvider: createMemoryFileProvider({
+        'PACKAGE_MANIFEST.json': JSON.stringify({
+          courseName: 'User Experience Design Studio',
+          lessonScope: 'all',
+          requestedFeatures: [],
+          readiness: { status: 'ready', blockers: 0, warnings: 0, checkedSections: null },
+          sourceLedger: [
+            {
+              id: 'sf5',
+              title: 'Relating Data Refinement and Failures-Divergences Refinement',
+              provider: 'crossref',
+              url: 'https://doi.org/10.1007/978-3-319-92711-4_10',
+              doi: '10.1007/978-3-319-92711-4_10',
+              license: 'http://www.springer.com/tdm',
+              conceptLinks: [{ id: 'c1', label: 'refinement' }],
+            },
+            {
+              id: 'sf-8-2',
+              title: 'Vehicle refinement: purpose and targets',
+              provider: 'crossref',
+              url: 'https://doi.org/10.1016/b978-075066129-4/50003-1',
+              doi: '10.1016/b978-075066129-4/50003-1',
+              license: 'https://www.elsevier.com/tdm/userlicense/1.0/',
+              conceptLinks: [{ id: 'c2', label: 'critique response' }],
+            },
+            {
+              id: 'sf-good',
+              title: 'Iterative design',
+              provider: 'wikipedia',
+              url: 'https://en.wikipedia.org/wiki/Iterative_design',
+              license: 'CC BY-SA 4.0',
+              conceptLinks: [{ id: 'c3', label: 'implementation' }],
+            },
+          ],
+          sourceReport: {
+            path: 'SOURCE_REPORT.md',
+            sourceCount: 3,
+          },
+          files: [],
+        }),
+        'SOURCE_REPORT.md': [
+          '# Source Report',
+          '',
+          '## Source Ledger',
+          '- sf5: Relating Data Refinement and Failures-Divergences Refinement',
+          '- sf-8-2: Vehicle refinement: purpose and targets',
+          '- sf-good: Iterative design',
+        ].join('\n'),
+      }),
+      course: { title: 'User Experience Design Studio', featureIds: [] },
+    });
+
+    expect(result.findings).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          severity: 'P1',
+          dimension: 'citations',
+          detail: 'source ledger row sf5 is off-discipline for User Experience Design Studio',
+        }),
+        expect.objectContaining({
+          severity: 'P1',
+          dimension: 'citations',
+          detail: 'source ledger row sf-8-2 is off-discipline for User Experience Design Studio',
+        }),
+      ]),
+    );
+  });
+
   it('flags sourceRef coverage that looks complete but rests on one thin source row', async () => {
     const result = await grade({
       fileProvider: createMemoryFileProvider({

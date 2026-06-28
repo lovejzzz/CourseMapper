@@ -768,6 +768,75 @@ describe('trusted source ledger', () => {
     expect(ledger.summary.reviewRequiredCount || 0).toBe(0);
   });
 
+  it('drops bare refinement false friends from UX source proof', () => {
+    const ledger = buildSourceLedgerFromCourseGraph(
+      {
+        course: { name: 'User Experience Design Studio' },
+        concepts: [
+          { id: 'c1', term: 'refinement' },
+          { id: 'c2', term: 'critique response' },
+          { id: 'c3', term: 'implementation' },
+        ],
+        sessions: [
+          {
+            id: 's8',
+            number: 8,
+            title: 'Design iteration',
+            sections: [{ id: 'sec8', topic: 'refinement', conceptRefs: ['c1', 'c2', 'c3'], resourceRefs: [] }],
+          },
+        ],
+        resources: [],
+        sourceFinderMiniShard: {
+          topics: [
+            {
+              sessionId: 's8',
+              lessonNumber: 8,
+              topic: 'refinement, critique response, implementation',
+              sources: [
+                {
+                  provider: 'crossref',
+                  kind: 'chapter',
+                  title: 'Relating Data Refinement and Failures-Divergences Refinement',
+                  url: 'https://doi.org/10.1007/978-3-319-92711-4_10',
+                  doi: '10.1007/978-3-319-92711-4_10',
+                  license: 'http://www.springer.com/tdm',
+                  snippet: 'Formal methods chapter about data refinement and failures-divergences refinement.',
+                },
+                {
+                  provider: 'crossref',
+                  kind: 'chapter',
+                  title: 'Vehicle refinement: purpose and targets',
+                  url: 'https://doi.org/10.1016/b978-075066129-4/50003-1',
+                  doi: '10.1016/b978-075066129-4/50003-1',
+                  license: 'https://www.elsevier.com/tdm/userlicense/1.0/',
+                  snippet: 'Automotive engineering chapter about vehicle refinement targets.',
+                },
+                {
+                  provider: 'wikipedia',
+                  kind: 'encyclopedia background',
+                  title: 'Iterative design',
+                  url: 'https://en.wikipedia.org/wiki/Iterative_design',
+                  license: 'CC BY-SA 4.0',
+                  snippet:
+                    'Iterative design is a design methodology based on prototyping, testing, analysis, and refinement.',
+                },
+              ],
+            },
+          ],
+        },
+      },
+      { checkedAt: '2026-06-28T00:00:00.000Z' },
+    );
+
+    expect(ledger.rows.map((row) => row.title)).toEqual(['Iterative design']);
+    expect(ledger.rows.map((row) => row.title)).not.toContain(
+      'Relating Data Refinement and Failures-Divergences Refinement',
+    );
+    expect(ledger.rows.map((row) => row.title)).not.toContain('Vehicle refinement: purpose and targets');
+    expect(ledger.reviewRows || []).toHaveLength(0);
+    expect(ledger.summary).toMatchObject({ sourceCount: 1, trustedConceptLinkedCount: 1 });
+  });
+
   it('drops health gamification reviews from UX critique source proof', () => {
     const ledger = buildSourceLedgerFromCourseGraph(
       {

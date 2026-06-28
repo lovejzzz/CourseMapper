@@ -3,24 +3,24 @@ import { APP_VERSION } from './appVersion.js';
 export const CURRENT_RELEASE = {
   version: APP_VERSION,
   date: 'June 28, 2026',
-  title: 'Compiler Texture Tail Variation: clean score gets closer to clean texture',
-  landingTitle: 'Compiler Texture Tail Variation',
+  title: 'UX Refinement Source Gate: bare refinement false friends stop passing',
+  landingTitle: 'UX Refinement Source Gate',
   highlights: [
-    'A fresh deployed v0.15.109 User Experience Design Studio ZIP/log audit reached an honest 100/A with no P0/P1/P2 findings, full 12/12 enrichment, clean export verification, and clean source-ledger/sourceRef proof.',
-    'The same audit still measured Texture 94/100 and exposed deterministic compiler tails repeated across all 12 lessons in slide visual descriptors, discussions, rubrics, lesson plans, and assignments.',
-    'Assessment anchor examples now rotate partial-anchor language, student self-check instructions, and instructor anchor-sharing cues by lesson instead of stamping one repeated evidence/revision tail.',
-    'Discussion evidence requirements, lesson-plan closing activities, and slide visual descriptors now vary their wording while preserving the same source-use, evidence, and revision expectations.',
-    'This release keeps the target honest: v0.15.110 does not claim strict-clean provider output until a fresh deployed ZIP/log audit proves Texture reaches 100 and genome/source caveats are resolved.',
+    'A fresh deployed v0.15.110 User Experience Design Studio ZIP/log audit visibly exported 100/A, but stricter source audit found two off-discipline trusted Crossref rows: data refinement/formal-methods and vehicle refinement.',
+    'UX source retrieval and source-ledger export now require contextual design, prototype, studio, interface, interaction, portfolio, or user-experience anchors for refinement and critique concepts instead of trusting bare word matches.',
+    'Known UX refinement false friends such as data refinement, failures-divergences refinement, vehicle refinement, automotive engineering, and critique-and-struggle metadata are rejected or quarantined before trusted proof.',
+    'The deep source-ledger grader now mirrors the production source gate, so the captured v0.15.110 package regrades as 98/A with P1 citation findings instead of a false clean 100.',
+    'This release keeps the target honest: v0.15.111 does not claim strict-clean provider output until a fresh deployed ZIP/log audit proves false-friend source rows stay out and texture reaches the strict target.',
   ],
   landingHighlights: [
-    'Fresh v0.15.109 output reached honest 100/A.',
-    'Texture still exposed repeated compiler tails.',
-    'Anchor, discussion, lesson-plan, and slide descriptor language now varies.',
-    'Fresh v0.15.110 output is still required for strict-clean proof.',
+    'Fresh v0.15.110 output exposed UX false-friend sources behind a visible 100.',
+    'Bare refinement no longer counts as UX source relevance.',
+    'Source-finder, ledger export, and grader now agree on the failure.',
+    'Fresh v0.15.111 output is still required for strict-clean proof.',
   ],
   proof: {
-    contract: 'release-contracts/v0.15.110.json',
-    roadmap: 'docs/V0.15.110_COMPILER_TEXTURE_TAIL_VARIATION_ROADMAP.md',
+    contract: 'release-contracts/v0.15.111.json',
+    roadmap: 'docs/V0.15.111_UX_REFINEMENT_SOURCE_GATE_ROADMAP.md',
     auditCommand: 'npm run audit:release-history',
   },
 };
@@ -35,6 +35,18 @@ export const CURRENT_RELEASE_CHANGELOG = {
 };
 
 export const HISTORICAL_RELEASE_CHANGELOGS = [
+  {
+    version: '0.15.110',
+    date: 'June 28, 2026',
+    title: 'Compiler Texture Tail Variation: clean score gets closer to clean texture',
+    highlights: [
+      'A fresh deployed v0.15.109 User Experience Design Studio ZIP/log audit reached an honest 100/A with no P0/P1/P2 findings, full 12/12 enrichment, clean export verification, and clean source-ledger/sourceRef proof.',
+      'The same audit still measured Texture 94/100 and exposed deterministic compiler tails repeated across all 12 lessons in slide visual descriptors, discussions, rubrics, lesson plans, and assignments.',
+      'Assessment anchor examples now rotate partial-anchor language, student self-check instructions, and instructor anchor-sharing cues by lesson instead of stamping one repeated evidence/revision tail.',
+      'Discussion evidence requirements, lesson-plan closing activities, and slide visual descriptors now vary their wording while preserving the same source-use, evidence, and revision expectations.',
+      'This release kept the target honest: v0.15.110 did not claim strict-clean provider output until a fresh deployed ZIP/log audit proved Texture reaches 100 and genome/source caveats are resolved.',
+    ],
+  },
   {
     version: '0.15.109',
     date: 'June 28, 2026',

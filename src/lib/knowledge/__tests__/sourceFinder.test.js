@@ -665,6 +665,70 @@ describe('source finder mini-shard', () => {
     expect(miniShard.topics[0].sources.map((item) => item.title)).toEqual(['Iterative design']);
   }, 15000);
 
+  it('rejects bare refinement false friends for UX refinement topics before caching sources', async () => {
+    const graph = createEmptyCourseGraph({ courseName: 'User Experience Design Studio' });
+    graph.sessions = [
+      {
+        id: 's8',
+        number: 8,
+        title: 'Lesson 8: Design iteration',
+        sections: [{ topic: '8.1: refinement, critique response, and implementation' }],
+      },
+    ];
+    graph.concepts = [
+      { id: 'c1', term: 'refinement' },
+      { id: 'c2', term: 'critique response' },
+      { id: 'c3', term: 'implementation' },
+    ];
+    graph.edges.teaches = [
+      { from: 's8', to: 'c1' },
+      { from: 's8', to: 'c2' },
+      { from: 's8', to: 'c3' },
+    ];
+    const badRefinementSources = [
+      source('crossref', 'Relating Data Refinement and Failures-Divergences Refinement', {
+        doi: '10.1007/978-3-319-92711-4_10',
+        license: 'http://www.springer.com/tdm',
+        abstract: 'Formal methods chapter about data refinement and failures-divergences refinement.',
+      }),
+      source('crossref', 'Vehicle refinement: purpose and targets', {
+        doi: '10.1016/b978-075066129-4/50003-1',
+        license: 'https://www.elsevier.com/tdm/userlicense/1.0/',
+        abstract: 'Automotive engineering chapter about vehicle refinement targets.',
+      }),
+    ];
+    const goodUxSources = [
+      source('wikipedia', 'Iterative design', {
+        abstract: 'Iterative design is a design methodology based on prototyping, testing, analysis, and refinement.',
+      }),
+    ];
+
+    const miniShard = await findCourseSources(graph, {
+      storage: memoryStorage(),
+      maxTopics: 1,
+      limitPerTopic: 3,
+      minUsefulSources: 1,
+      providers: {
+        openalex: vi.fn(async () => []),
+        searchScholarlyReadings: vi.fn(async () => []),
+        crossref: vi.fn(async () => badRefinementSources),
+        searchCrossrefWorks: vi.fn(async () => badRefinementSources),
+        eric: vi.fn(async () => []),
+        searchEducationResearch: vi.fn(async () => []),
+        wikipedia: vi.fn(async () => goodUxSources),
+        searchWikipediaPages: vi.fn(async () => goodUxSources),
+        loc: vi.fn(async () => []),
+        searchLibraryOfCongress: vi.fn(async () => []),
+        internetarchive: vi.fn(async () => []),
+        searchInternetArchiveTexts: vi.fn(async () => []),
+        openlibrary: vi.fn(async () => []),
+        searchBookMetadata: vi.fn(async () => []),
+      },
+    });
+
+    expect(miniShard.topics[0].sources.map((item) => item.title)).toEqual(['Iterative design']);
+  }, 15000);
+
   it('rejects v0.15.97 UX false friends during retrieval before they reach the mini-shard cache', async () => {
     const graph = createEmptyCourseGraph({ courseName: 'User Experience Design Studio' });
     graph.sessions = [
