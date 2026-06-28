@@ -13126,15 +13126,30 @@ function buildAssessmentAnchorExamples(lesson, criteria, criterionEvidenceMap, v
       `Strong ${artifact} anchor: uses ${sourceCue} to support the ${concept} decision, shows why the evidence matters, and records the final improvement.`,
       `Strong ${artifact} anchor: grounds the claim in ${sourceCue}, separates evidence from assumption, and names the feedback-informed edit.`,
     ]),
-    partialSample: `Partial ${artifact} anchor: summarizes ${concept}, mentions ${sourceCue} generally, but does not make the evidence link, limitation, or revision decision inspectable.`,
+    partialSample: lessonVariant(lesson, [
+      `Partial ${artifact} anchor: summarizes ${concept}, mentions ${sourceCue} generally, but does not make the evidence link, limitation, or revision decision inspectable.`,
+      `Partial ${artifact} anchor: names ${concept} and gestures toward ${sourceCue}, yet the scorer cannot see which source detail should change the work.`,
+      `Partial ${artifact} anchor: uses the right topic language, but the source boundary, limitation, and next revision remain too broad to verify.`,
+      `Partial ${artifact} anchor: points to ${sourceCue} without showing the exact evidence difference that would make the stronger sample defensible.`,
+    ]),
     criterionFocus: primaryCriterion,
     strongSignal,
     partialSignal,
     scoringRationale: `Score the strong anchor higher because the evidence is inspectable, tied to ${primaryCriterion}, and aligned with ${validityEvidence?.targetConstruct || `${artifact} performance evidence`}.`,
     revisionPrompt: `Revise the partial ${artifact} anchor by making the ${primaryCriterion} evidence from ${sourceCue} inspectable, naming one limitation, and stating what changed before submission.`,
     scorerCalibrationUse: `Before grading, scorers compare the strong and partial ${artifact} anchors, point to the exact evidence difference, and reconcile disagreements before scoring student work.`,
-    studentFacingUse: `Review the strong and partial ${artifact} samples before you submit, then self-check your ${concept} evidence, reasoning, limitation, and revision quality.`,
-    instructorAnchorShare: `Share the strong/partial ${artifact} anchor contrast before students submit so they can self-check evidence, reasoning, limitation, and revision quality.`,
+    studentFacingUse: lessonVariant(lesson, [
+      `Review the strong and partial ${artifact} samples before you submit, then self-check your ${concept} evidence, reasoning, limitation, and revision quality.`,
+      `Before submitting ${artifact}, compare the two anchors and mark where your ${concept} evidence, boundary, and revision choice are visible.`,
+      `Use the anchor contrast to audit your ${artifact}: name the source detail, explain the ${concept} decision, and revise any unsupported claim.`,
+      `Check your ${artifact} against the stronger anchor by finding the evidence, limitation, reasoning link, and improvement that a scorer can inspect.`,
+    ]),
+    instructorAnchorShare: lessonVariant(lesson, [
+      `Share the strong/partial ${artifact} anchor contrast before students submit so they can self-check evidence, reasoning, limitation, and revision quality.`,
+      `Show both ${artifact} anchors before drafting ends, then ask students to identify the source detail and revision move that separate them.`,
+      `Use the anchor pair as a calibration stop: students name the stronger evidence path before they revise ${artifact}.`,
+      `Display the two ${artifact} anchors during feedback so students can locate the evidence gap, limitation, and next edit in their own work.`,
+    ]),
   };
 }
 
@@ -17569,9 +17584,24 @@ function slideVisual(lesson, slide) {
       evidenceUse: `Connect ${modality.signaturePractice || 'practice'} to the revision evidence for ${artifact}.`,
     },
     discussion: {
-      kind: 'decision matrix',
-      purpose: `Compare competing ${concept} evidence choices for ${artifact} before students commit to a revision.`,
-      evidenceUse: `Use ${concept} evidence to choose the stronger ${artifact} move.`,
+      kind: lessonVariant(lesson, [
+        'decision matrix',
+        'evidence comparison grid',
+        'critique tradeoff map',
+        'choice rationale table',
+      ]),
+      purpose: lessonVariant(lesson, [
+        `Compare competing ${concept} evidence choices for ${artifact} before students commit to a revision.`,
+        `Help students weigh which ${concept} evidence should drive the next ${artifact} decision.`,
+        `Make the ${concept} tradeoff visible before students defend a revision path for ${artifact}.`,
+        `Separate stronger and weaker ${concept} evidence so the ${artifact} revision has a clear rationale.`,
+      ]),
+      evidenceUse: lessonVariant(lesson, [
+        `Use ${concept} evidence to choose the stronger ${artifact} move.`,
+        `Trace which source detail makes one ${artifact} choice more defensible than another.`,
+        `Connect the strongest ${concept} evidence to the revision students should keep.`,
+        `Ask students to justify the ${artifact} move with the evidence they can actually cite.`,
+      ]),
     },
     summary: {
       kind: 'readiness checklist',
@@ -17599,7 +17629,12 @@ function slideVisual(lesson, slide) {
     studentAction: slide.activity
       ? `Students use the visual during ${slide.activity} to revise or defend ${artifact}.`
       : `Students use the visual to decide what evidence changes ${artifact}.`,
-    accessibilityCheck: `Alt text names the visual purpose, ${concept} evidence source, and ${artifact} connection without relying on color alone.`,
+    accessibilityCheck: lessonVariant(lesson, [
+      `Alt text names the visual purpose, ${concept} evidence source, and ${artifact} connection without relying on color alone.`,
+      `Accessible description states what the visual compares, which ${concept} evidence matters, and how it informs ${artifact}.`,
+      `Nonvisual readers get the comparison target, the source evidence cue, and the ${artifact} decision the visual supports.`,
+      `Accessibility notes identify the visual structure, the ${concept} evidence path, and the revision choice tied to ${artifact}.`,
+    ]),
   };
   const visualEvidence = conciseClause(
     selected.evidenceUse,
@@ -18867,6 +18902,7 @@ function compileDiscussions(blueprint) {
         : basePrompt;
       const specificity = lessonSpecificityAnchor(lesson);
       const safeConcepts = safeLessonConcepts(lesson, { limit: 4 });
+      const concept = safeConcepts[0] || stripLessonPrefix(lesson.title);
       const artifact = safeLessonArtifact(lesson);
       const equityProtocol = cleanText(lesson.accessibilityPlan?.participationProtocol);
       const equityConsiderations = equityProtocol
@@ -18914,7 +18950,12 @@ function compileDiscussions(blueprint) {
               enrichmentSource: 'lesson-content-enrichment',
             }
           : {}),
-        evidenceRequirement: `Use at least one ${lens.evidenceNoun} source from ${lesson.title} and one concrete detail from ${artifact} or its success criteria.`,
+        evidenceRequirement: lessonVariant(lesson, [
+          `Use at least one ${lens.evidenceNoun} source from ${lesson.title} and one concrete detail from ${artifact} or its success criteria.`,
+          `Cite one ${lens.evidenceNoun} source from ${lesson.title}, then connect a specific ${artifact} criterion or draft detail to the claim.`,
+          `Ground the response in ${lesson.title} source evidence and point to the part of ${artifact} that the evidence should change.`,
+          `Bring one source-backed ${concept} detail into the discussion and explain how it would strengthen, limit, or revise ${artifact}.`,
+        ]),
         sourceArtifacts: buildDiscussionArtifactSet(lesson, phrase),
         followUpProbes: buildDiscussionFollowUps(lesson, phrase),
         facilitationTips: buildDiscussionFacilitationTips(lesson, discussionProtocol),
@@ -20144,7 +20185,12 @@ function compileLessonPlans(blueprint, options = {}) {
             lesson.feedbackCycle?.nextUse ||
             `Bring your submitted work forward so the next lesson can build on today’s ${concept} reasoning.`,
         },
-        closingActivity: `Close by having students name one strong evidence move from today and one revision they still need before ${artifact} is fully ready.`,
+        closingActivity: lessonVariant(lesson, [
+          `Close by having students name one strong evidence move from today and one revision they still need before ${artifact} is fully ready.`,
+          `End with a two-part exit check: the evidence move students trust now, and the ${artifact} edit that still needs attention.`,
+          `Have students mark the strongest source-backed decision from class and write the next revision they will make to ${artifact}.`,
+          `Close the session by asking which evidence claim is ready for ${artifact} and which unsupported part needs one more revision.`,
+        ]),
         tags: unique(['lesson-plan', lesson.title, concept, lens.domain, ...lesson.keyConcepts], 10),
         readyToTeachSupport: {
           localReviewAction: lessonLocalReviewAction(lesson),

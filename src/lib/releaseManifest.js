@@ -3,24 +3,24 @@ import { APP_VERSION } from './appVersion.js';
 export const CURRENT_RELEASE = {
   version: APP_VERSION,
   date: 'June 28, 2026',
-  title: 'Native Recovery Retry Hardening: partial enrichment gets a second chance',
-  landingTitle: 'Native Recovery Retry Hardening',
+  title: 'Compiler Texture Tail Variation: clean score gets closer to clean texture',
+  landingTitle: 'Compiler Texture Tail Variation',
   highlights: [
-    'A fresh deployed v0.15.108 User Experience Design Studio ZIP/log audit proved the PPTX visual-note label fix in real output: the package rose from 74/C to 98/A with no P0 findings and no export warnings.',
-    'The same audit still blocked clean export because native Pass B recovery left lesson 1 on template fallback after one repair retry returned only 548 characters.',
-    'Native Pass B recovery prompts now explicitly demand complete lesson kernels, authoring fields, and strict JSON for the missing lesson ids instead of allowing short acknowledgements.',
-    'The native recovery loop now spends the second reserved recovery call when the first retry makes no progress, so a transient under-answer can be repaired before the package is marked partial.',
-    'This release keeps the target honest: v0.15.109 does not claim strict-clean provider output until a fresh deployed ZIP/log audit proves full enrichment coverage and clean readiness in real generated materials.',
+    'A fresh deployed v0.15.109 User Experience Design Studio ZIP/log audit reached an honest 100/A with no P0/P1/P2 findings, full 12/12 enrichment, clean export verification, and clean source-ledger/sourceRef proof.',
+    'The same audit still measured Texture 94/100 and exposed deterministic compiler tails repeated across all 12 lessons in slide visual descriptors, discussions, rubrics, lesson plans, and assignments.',
+    'Assessment anchor examples now rotate partial-anchor language, student self-check instructions, and instructor anchor-sharing cues by lesson instead of stamping one repeated evidence/revision tail.',
+    'Discussion evidence requirements, lesson-plan closing activities, and slide visual descriptors now vary their wording while preserving the same source-use, evidence, and revision expectations.',
+    'This release keeps the target honest: v0.15.110 does not claim strict-clean provider output until a fresh deployed ZIP/log audit proves Texture reaches 100 and genome/source caveats are resolved.',
   ],
   landingHighlights: [
-    'Fresh v0.15.108 output proved the raw PPTX-note blocker is gone.',
-    'Native recovery now asks for complete missing lesson kernels.',
-    'A no-progress recovery retry can use the second reserved call.',
-    'Fresh v0.15.109 output is still required for strict-clean proof.',
+    'Fresh v0.15.109 output reached honest 100/A.',
+    'Texture still exposed repeated compiler tails.',
+    'Anchor, discussion, lesson-plan, and slide descriptor language now varies.',
+    'Fresh v0.15.110 output is still required for strict-clean proof.',
   ],
   proof: {
-    contract: 'release-contracts/v0.15.109.json',
-    roadmap: 'docs/V0.15.109_NATIVE_RECOVERY_RETRY_HARDENING_ROADMAP.md',
+    contract: 'release-contracts/v0.15.110.json',
+    roadmap: 'docs/V0.15.110_COMPILER_TEXTURE_TAIL_VARIATION_ROADMAP.md',
     auditCommand: 'npm run audit:release-history',
   },
 };
@@ -35,6 +35,18 @@ export const CURRENT_RELEASE_CHANGELOG = {
 };
 
 export const HISTORICAL_RELEASE_CHANGELOGS = [
+  {
+    version: '0.15.109',
+    date: 'June 28, 2026',
+    title: 'Native Recovery Retry Hardening: partial enrichment gets a second chance',
+    highlights: [
+      'A fresh deployed v0.15.108 User Experience Design Studio ZIP/log audit proved the PPTX visual-note label fix in real output: the package rose from 74/C to 98/A with no P0 findings and no export warnings.',
+      'The same audit still blocked clean export because native Pass B recovery left lesson 1 on template fallback after one repair retry returned only 548 characters.',
+      'Native Pass B recovery prompts now explicitly demand complete lesson kernels, authoring fields, and strict JSON for the missing lesson ids instead of allowing short acknowledgements.',
+      'The native recovery loop now spends the second reserved recovery call when the first retry makes no progress, so a transient under-answer can be repaired before the package is marked partial.',
+      'This release kept the target honest: v0.15.109 did not claim strict-clean provider output until a fresh deployed ZIP/log audit proved full enrichment coverage and clean readiness in real generated materials.',
+    ],
+  },
   {
     version: '0.15.108',
     date: 'June 28, 2026',

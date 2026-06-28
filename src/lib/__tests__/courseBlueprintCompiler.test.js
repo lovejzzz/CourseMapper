@@ -2799,6 +2799,8 @@ describe('courseBlueprintCompiler', () => {
     expect(countPlansWith(/Course site agenda and lesson handout/i)).toBe(0);
     expect(countDecksWith(/practice workflow/i)).toBeLessThan(4);
     expect(countDecksWith(/what check would catch it/i)).toBeLessThan(4);
+    expect(countDiscussionsWith(/one concrete detail from .* or its success criteria/i)).toBeLessThan(4);
+    expect(countPlansWith(/one revision they still need before/i)).toBeLessThan(4);
 
     const texture = computeTexture([
       ...deckTexts.map((text, index) => ({ id: `deck-${index}`, feature: 'slideDecks', text })),
@@ -2835,6 +2837,11 @@ describe('courseBlueprintCompiler', () => {
     );
     expect(evidence).not.toMatch(/practice workflow practice workflow/i);
     expect(evidence).not.toMatch(/what check would catch it/i);
+    expect(evidence).not.toMatch(/accessibility description decision matrix for which lecture exam evidence choice/i);
+    expect(evidence).not.toMatch(/and one concrete detail from the week .* assessment or its success/i);
+    expect(evidence).not.toMatch(/and one partial week .* assessment sample the stronger sample should cite/i);
+    expect(evidence).not.toMatch(/and one revision they still need before the week .* assessment is/i);
+    expect(evidence).not.toMatch(/and partial week .* assessment samples before you submit then self check/i);
   });
 
   it('decodes capstone project milestones with sponsor constraints and defense readiness', () => {
