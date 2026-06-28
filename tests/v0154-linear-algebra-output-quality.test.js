@@ -1,9 +1,23 @@
 import { describe, expect, it } from 'vitest';
+import JSZip from 'jszip';
 
 import { compileBlueprintDeliverables } from '../src/lib/courseBlueprintCompiler.js';
 import { buildBlueprintFromGraph, deriveCourseGraphFromCourseMap } from '../src/lib/courseGraph/index.js';
 import { createMemoryFileProvider } from '../src/lib/quality/fileProviders.js';
 import { grade, honestyFromDigest } from './lib/deepQualityGrader.js';
+
+async function pptxWithNotes(notesText) {
+  const zip = new JSZip();
+  zip.file(
+    'ppt/slides/slide1.xml',
+    '<p:sld><p:cSld><p:spTree><a:p><a:r><a:t>Lesson slide</a:t></a:r></a:p></p:spTree></p:cSld></p:sld>',
+  );
+  zip.file(
+    'ppt/notesSlides/notesSlide1.xml',
+    `<p:notes><p:cSld><p:spTree><a:p><a:r><a:t>${notesText}</a:t></a:r></a:p></p:spTree></p:cSld></p:notes>`,
+  );
+  return zip.generateAsync({ type: 'uint8array' });
+}
 
 function linearAlgebraCourseMap() {
   return {
@@ -553,6 +567,71 @@ describe('v0.15.11 prompt-artifact contamination regressions', () => {
       expect.arrayContaining([
         expect.objectContaining({
           detail: expect.stringMatching(/prompt artifact labels/i),
+        }),
+      ]),
+    );
+  });
+
+  it('does not flag legitimate UX capstone presentations as prompt-artifact labels', async () => {
+    const result = await grade({
+      fileProvider: createMemoryFileProvider({
+        'PACKAGE_MANIFEST.json': JSON.stringify({
+          courseName: 'User Experience Design Studio',
+          lessonScope: 'all',
+          assessments: [],
+          files: [],
+          readiness: { status: 'ready', blockers: 0 },
+        }),
+        'Course FAQ/Lesson 12 - Portfolio-ready capstone presentation - Course FAQ.md': [
+          '# Course FAQ',
+          'Q1. What should I focus on for Lesson 12: Portfolio-ready capstone presentation?',
+          'Focus on Portfolio-ready capstone presentation, final presentation, and coherent portfolio evidence.',
+          'Strong work explains which usability findings changed the capstone presentation and why.',
+        ].join('\n'),
+      }),
+      course: {
+        id: 'ux-design-studio',
+        title: 'User Experience Design Studio',
+        featureIds: ['courseFaq'],
+      },
+    });
+
+    expect(result.findings).not.toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          detail: expect.stringMatching(/prompt artifact labels/i),
+        }),
+      ]),
+    );
+  });
+
+  it('flags raw PPTX visual-planning labels as exported scaffolding', async () => {
+    const result = await grade({
+      fileProvider: createMemoryFileProvider({
+        'PACKAGE_MANIFEST.json': JSON.stringify({
+          courseName: 'User Experience Design Studio',
+          lessonScope: 'all',
+          assessments: [],
+          files: [],
+          readiness: { status: 'ready', blockers: 0 },
+        }),
+        'Slide Decks/Lesson 12 - Portfolio-ready capstone presentation - Slide Decks.pptx': await pptxWithNotes(
+          'SUGGESTED VISUAL (learning-thread timeline): Trace the evidence thread. ALT TEXT: Timeline for the capstone presentation.',
+        ),
+      }),
+      course: {
+        id: 'ux-design-studio',
+        title: 'User Experience Design Studio',
+        featureIds: ['slideDecks'],
+      },
+    });
+
+    expect(result.findings).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          severity: 'P0',
+          dimension: 'format',
+          detail: expect.stringMatching(/raw PPTX visual-note labels/i),
         }),
       ]),
     );

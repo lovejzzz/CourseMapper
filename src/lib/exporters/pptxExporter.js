@@ -243,10 +243,10 @@ function addProgressDots(pptx, slide, theme, slideIndex, totalSlides, isDark) {
 // render real PPTX objects from the slide's own bullets: evidence-table-like
 // kinds become a native table (content slides), decision matrices become a
 // 2-column option grid (discussion slides), and concept maps become a
-// hub-and-spoke shape group (key-concept slides). The SUGGESTED VISUAL block
-// stays in the speaker notes as alt-text either way. Rendering only happens
-// when the data fits — short strings, enough bullets — otherwise the slide
-// keeps its existing text layout.
+// hub-and-spoke shape group (key-concept slides). Clean visual guidance stays
+// in the speaker notes either way. Rendering only happens when the data fits
+// — short strings, enough bullets — otherwise the slide keeps its existing
+// text layout.
 
 const NATIVE_VISUAL_LIMITS = {
   tableLead: 220, // max chars for the lead assertion kept as text
@@ -463,7 +463,7 @@ function addEvidenceTable(pptx, slide, theme, plan, visKind, tracker) {
   // the old single colspan header (the uppercased visKind) shipped an hMerge
   // continuation that read as an EMPTY cell — the header now names the two
   // columns, so every emitted cell carries content. The visKind label stays
-  // visible in the speaker notes' SUGGESTED VISUAL block.
+  // visible in the speaker notes' visual guidance block.
   const headerRow = [
     { text: 'CLAIM', options: { ...headerOptions } },
     { text: 'EVIDENCE', options: { ...headerOptions } },
@@ -2037,19 +2037,22 @@ async function buildSlideForDeck(pptx, deck, theme, slideIndex, totalSlides, opt
     console.warn(`[CM] Slide ${slideIndex + 1} (${slideType}) validation:`, warnings);
   }
 
-  // Speaker notes — prepend a "Suggested visual" block (with alt text) when
+  // Speaker notes — prepend a visual guidance block when
   // the slide carries a visual hint. This keeps the cue visible in the
   // PPT's Notes Page view even if the instructor never looks at the slide.
   // The block stays even when the visual was rendered natively above — it
-  // doubles as alt-text for the rendered table/shape group.
+  // doubles as accessibility guidance for the rendered table/shape group.
   const rawNotes = s.notes || s.speakerNotes || '';
   const baseNotes =
     countSpeakerNoteWords(rawNotes) >= 20
       ? rawNotes
       : [rawNotes, buildFallbackSpeakerNotes(deck, s, slideIndex, totalSlides)].filter(Boolean).join('\n\n');
-  const augmentedNotes = hasVisual
-    ? `SUGGESTED VISUAL (${visKind}): ${visDesc}${visAlt ? `\nALT TEXT: ${visAlt}` : ''}${baseNotes ? `\n\n---\n\n${baseNotes}` : ''}`
-    : baseNotes;
+  const visualGuidance = hasVisual
+    ? [`Visual guidance (${visKind}): ${visDesc}`, visAlt ? `Accessibility description: ${visAlt}` : '']
+        .filter(Boolean)
+        .join('\n')
+    : '';
+  const augmentedNotes = visualGuidance ? `${visualGuidance}${baseNotes ? `\n\n---\n\n${baseNotes}` : ''}` : baseNotes;
   if (augmentedNotes) slide.addNotes(augmentedNotes);
 
   // Generated visual images render on the slide; visual *suggestions* live in

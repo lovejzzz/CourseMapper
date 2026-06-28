@@ -102,7 +102,10 @@ import { computeTexture, textureDocsFromFiles, buildTextureAdvisories, TEXTURE_V
 // lesson topic but no longer creates false positives as a supporting resource.
 // 1.7.2 — v0.15.13: digest-only native authoring prose fallback becomes an
 // honesty finding when the package manifest/report would otherwise look clean.
-export const GRADER_VERSION = '1.7.2';
+// 1.7.3 — v0.15.108: legitimate capstone-presentation course deliverables no
+// longer trip the prompt-artifact detector; explicit final-capstone prompt
+// labels remain guarded; raw PPTX visual-planning note labels are a direct P0.
+export const GRADER_VERSION = '1.7.3';
 
 // ── Dimension weights & letter bands (documented in the module header) ──────
 // texture now has a small score-bearing weight. It should be able to pull a

@@ -18,7 +18,7 @@
  * Keeps the exporter untouched — tests the contract of the public API,
  * not internals. Adding a new slide type or tweaking a coord won't break
  * the test as long as the contract (dashed placeholder on content/example/
- * keyTerm + SUGGESTED VISUAL notes line) holds.
+ * keyTerm + clean visual-guidance notes line) holds.
  */
 
 import { describe, it, expect, beforeAll } from 'vitest';
@@ -241,8 +241,9 @@ const FIXTURE = {
 
 // Distinctive marker strings from our exporter code — if these change, the
 // test fails loudly and someone has to re-verify the feature intentionally.
-const NOTES_MARKER = 'SUGGESTED VISUAL';
-const ALT_MARKER = 'ALT TEXT';
+const NOTES_MARKER = 'Visual guidance';
+const ALT_MARKER = 'Accessibility description';
+const RAW_NOTES_MARKERS = ['SUGGESTED VISUAL', 'ALT TEXT'];
 const DASHED_LINE_XML = /prstDash\s+val\s*=\s*"dash"/;
 
 let slideXmls;
@@ -306,23 +307,26 @@ describe('PPTX export — visual placeholders', () => {
     expect(slideXmls[4]).not.toMatch(DASHED_LINE_XML);
   });
 
-  it('content slide notes include the SUGGESTED VISUAL block with alt text', () => {
+  it('content slide notes include clean visual guidance with accessibility text', () => {
     // Notes XML at the same index as the slide
     expect(notesXmls[1]).toContain(NOTES_MARKER);
     expect(notesXmls[1]).toContain(ALT_MARKER);
+    for (const marker of RAW_NOTES_MARKERS) {
+      expect(notesXmls[1]).not.toContain(marker);
+    }
     // And the kind + description show through the XML escaping
     expect(notesXmls[1]).toContain('diagram');
     expect(notesXmls[1]).toContain('labeled data');
   });
 
-  it('title slide notes STILL include the SUGGESTED VISUAL block', () => {
+  it('title slide notes still include clean visual guidance', () => {
     // Even though the on-slide placeholder is exempt, the notes-page block
     // is always added — accessibility metadata should surface regardless.
     expect(notesXmls[0]).toContain(NOTES_MARKER);
     expect(notesXmls[0]).toContain('graduation cap');
   });
 
-  it('slide without a visual does NOT pollute notes with a SUGGESTED VISUAL block', () => {
+  it('slide without a visual does NOT add visual guidance', () => {
     expect(notesXmls[2]).not.toContain(NOTES_MARKER);
     // Baseline notes should still be present unaltered.
     expect(notesXmls[2]).toContain('Remind about cadence');
@@ -330,9 +334,9 @@ describe('PPTX export — visual placeholders', () => {
 
   it('existing speaker notes are preserved alongside the visual block', () => {
     // Content slide's original note "Define the core setup." must still
-    // appear after our prepended SUGGESTED VISUAL block.
+    // appear after our prepended visual guidance block.
     expect(notesXmls[1]).toContain('Define the core setup');
-    // And the order: SUGGESTED VISUAL should come before the original note.
+    // And the order: visual guidance should come before the original note.
     const visualIdx = notesXmls[1].indexOf(NOTES_MARKER);
     const baseIdx = notesXmls[1].indexOf('Define the core setup');
     expect(visualIdx).toBeGreaterThanOrEqual(0);
@@ -345,12 +349,13 @@ describe('PPTX export — visual placeholders', () => {
     // in pptxgen.es.js — shapes stored as _type: text, altText never
     // written to XML). Setting altText on an addShape call is a no-op.
     //
-    // Our code compensates by prepending "ALT TEXT: …" into the speaker
-    // notes for every slide with a visual hint — assistive tech reading
-    // the notes page gets the description, even though the shape itself
-    // lacks a descr attribute. This assertion pins that fallback.
+    // Our code compensates by prepending a clean accessibility description
+    // into the speaker notes for every slide with a visual hint — assistive
+    // tech reading the notes page gets the description, even though the shape
+    // itself lacks a descr attribute. This assertion pins that fallback.
     const notes = notesXmls[1];
-    expect(notes).toContain('ALT TEXT');
+    expect(notes).toContain(ALT_MARKER);
+    expect(notes).not.toContain('ALT TEXT');
     // Distinctive phrase from our fixture's altText string — proves the
     // altText value reached the exported PPTX, not just the marker label.
     expect(notes).toContain('four-step horizontal flow');

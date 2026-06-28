@@ -3,24 +3,24 @@ import { APP_VERSION } from './appVersion.js';
 export const CURRENT_RELEASE = {
   version: APP_VERSION,
   date: 'June 28, 2026',
-  title: 'UX Assignment Texture Rotation: workload, citation, and milestone scaffolds vary',
-  landingTitle: 'UX Assignment Texture Rotation',
+  title: 'PPTX Visual Notes Cleanup: raw prompt labels stop shipping',
+  landingTitle: 'PPTX Visual Notes Cleanup',
   highlights: [
-    'A fresh deployed v0.15.106 User Experience Design Studio ZIP/log audit exported and locally regraded at 100/A with no P0/P1/P2 findings, proving the generic iteration false-friend source rows were gone from real provider output.',
-    'The same audit still measured Texture 94/100: the remaining repeated shingles were concentrated in Assignment Brief workload, citation-style, milestone, and progress-tracking scaffolds stamped across all 12 lessons.',
-    'Assignment Brief compilation now rotates out-of-class workload wording, fallback expected-format language, citation directions, readiness/evidence milestone labels, milestone timing, evidence-check descriptions, and progress-tracking sentences by lesson.',
-    'A focused compiler regression keeps the first legacy milestone label for compatibility while proving assignment workload, citation, milestone, and progress-tracking text no longer stay identical across generated lessons.',
-    'This release keeps the target honest: v0.15.107 does not claim strict-clean provider output until a fresh deployed ZIP/log audit proves the new assignment texture rotation in real generated materials.',
+    'A fresh deployed v0.15.107 User Experience Design Studio ZIP/log audit exported 74/C because PPTX speaker notes still shipped raw visual-planning labels such as "SUGGESTED VISUAL" and "ALT TEXT".',
+    'Slide Deck PPTX exports now keep instructor visual guidance and accessibility descriptions in speaker notes without raw prompt-like marker labels.',
+    'The deep package grader now treats raw PPTX visual-planning note labels as a direct P0 while allowing legitimate UX course deliverables such as portfolio-ready capstone presentations.',
+    'Focused regressions prove clean PPTX notes, raw-label P0 grading, and the capstone-presentation false-positive fix without weakening the prompt-artifact firewall.',
+    'This release keeps the target honest: v0.15.108 does not claim strict-clean provider output until a fresh deployed ZIP/log audit proves the new export and grader behavior in real generated materials.',
   ],
   landingHighlights: [
-    'The v0.15.106 source fix verified cleanly in a real ZIP/log audit.',
-    'Assignment Brief scaffolds now vary by lesson.',
-    'The focused regression guards the repeated workload/citation/milestone shape.',
-    'Fresh v0.15.107 provider output is still required for strict-clean proof.',
+    'PPTX speaker notes no longer use raw prompt labels.',
+    'The grader fails old raw visual-note scaffolding directly.',
+    'UX capstone presentations are no longer mistaken for internal artifact labels.',
+    'Fresh v0.15.108 provider output is still required for strict-clean proof.',
   ],
   proof: {
-    contract: 'release-contracts/v0.15.107.json',
-    roadmap: 'docs/V0.15.107_UX_ASSIGNMENT_TEXTURE_ROTATION_ROADMAP.md',
+    contract: 'release-contracts/v0.15.108.json',
+    roadmap: 'docs/V0.15.108_PPTX_VISUAL_NOTES_CLEANUP_ROADMAP.md',
     auditCommand: 'npm run audit:release-history',
   },
 };
@@ -35,6 +35,18 @@ export const CURRENT_RELEASE_CHANGELOG = {
 };
 
 export const HISTORICAL_RELEASE_CHANGELOGS = [
+  {
+    version: '0.15.107',
+    date: 'June 28, 2026',
+    title: 'UX Assignment Texture Rotation: workload, citation, and milestone scaffolds vary',
+    highlights: [
+      'A fresh deployed v0.15.106 User Experience Design Studio ZIP/log audit exported and locally regraded at 100/A with no P0/P1/P2 findings, proving the generic iteration false-friend source rows were gone from real provider output.',
+      'The same audit still measured Texture 94/100: the remaining repeated shingles were concentrated in Assignment Brief workload, citation-style, milestone, and progress-tracking scaffolds stamped across all 12 lessons.',
+      'Assignment Brief compilation now rotates out-of-class workload wording, fallback expected-format language, citation directions, readiness/evidence milestone labels, milestone timing, evidence-check descriptions, and progress-tracking sentences by lesson.',
+      'A focused compiler regression keeps the first legacy milestone label for compatibility while proving assignment workload, citation, milestone, and progress-tracking text no longer stay identical across generated lessons.',
+      'This release kept the target honest: v0.15.107 did not claim strict-clean provider output until a fresh deployed ZIP/log audit proved the new assignment texture rotation in real generated materials.',
+    ],
+  },
   {
     version: '0.15.106',
     date: 'June 28, 2026',

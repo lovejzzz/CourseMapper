@@ -81,6 +81,13 @@ export const ARTIFACT_PATTERNS = [
     severity: 'P1',
     roadmap: 'v0.12.1',
   },
+  {
+    regex: /\b(?:SUGGESTED VISUAL|ALT TEXT)\b/,
+    label: 'raw PPTX visual-note labels',
+    name: 'raw-pptx-visual-note-labels',
+    severity: 'P0',
+    roadmap: 'v0.15.108',
+  },
   // Echo chains only — "Practice with X: For X" / "X: X". A plain
   // ": For Week 1 quiz, …" is legitimate English and must not trip the gate.
   {
@@ -335,9 +342,9 @@ export function scanText(patterns, text, { evidenceChars = 160 } = {}) {
 }
 
 const PROMPT_ARTIFACT_TOPIC_SOURCE =
-  'course map|syllabus|evidence-rich lesson plans|lesson plans|lesson objectives|learning objectives|slide decks|assignment briefs|assignments|rubric-driven assignments|rubrics|discussion prompts|scenario quizzes|quizzes|quiz and exam bank|quiz & exam bank|quiz bank|study guides|course faq|final capstone presentations|final capstone presentation|capstone presentations|capstone presentation|worked examples|misconceptions|instructor handoff notes';
+  'course map|syllabus|evidence-rich lesson plans|lesson plans|lesson objectives|learning objectives|slide decks|assignment briefs|assignments|rubric-driven assignments|rubrics|discussion prompts|scenario quizzes|quizzes|quiz and exam bank|quiz & exam bank|quiz bank|study guides|course faq|final capstone presentations|final capstone presentation|worked examples|misconceptions|instructor handoff notes';
 const PROMPT_ARTIFACT_FOCUS_TOPIC_SOURCE =
-  'course map|syllabus|evidence-rich lesson plans|lesson plans|lesson objectives|learning objectives|slide decks|assignment briefs|assignments|rubric-driven assignments|rubrics|discussion prompts|scenario quizzes|quizzes|quiz and exam bank|quiz & exam bank|quiz bank|study guides|course faq|final capstone presentations|final capstone presentation|capstone presentations|capstone presentation|misconceptions|instructor handoff notes';
+  'course map|syllabus|evidence-rich lesson plans|lesson plans|lesson objectives|learning objectives|slide decks|assignment briefs|assignments|rubric-driven assignments|rubrics|discussion prompts|scenario quizzes|quizzes|quiz and exam bank|quiz & exam bank|quiz bank|study guides|course faq|final capstone presentations|final capstone presentation|misconceptions|instructor handoff notes';
 const PROMPT_ARTIFACT_FOCUS_TOPIC_RE = new RegExp(`\\b(${PROMPT_ARTIFACT_FOCUS_TOPIC_SOURCE})\\b`, 'i');
 const NUMBERED_PROMPT_ARTIFACT_TOPIC_RE = new RegExp(
   `\\b\\d+(?:\\.\\d+)+\\s*:\\s*(${PROMPT_ARTIFACT_TOPIC_SOURCE})\\b`,
