@@ -3,23 +3,24 @@ import { APP_VERSION } from './appVersion.js';
 export const CURRENT_RELEASE = {
   version: APP_VERSION,
   date: 'June 28, 2026',
-  title: 'UX Iteration Source Gate: generic iteration pages stop passing',
-  landingTitle: 'UX Iteration Source Gate',
+  title: 'UX Assignment Texture Rotation: workload, citation, and milestone scaffolds vary',
+  landingTitle: 'UX Assignment Texture Rotation',
   highlights: [
-    'A fresh deployed v0.15.105 User Experience Design Studio ZIP/log audit exported Quality 100 with no P0/P1/P2 findings, but the strict audit still found trusted UX source rows for generic Fixed-point iteration and Iteration pages.',
-    'UX source topic anchors now require iteration evidence to carry design, prototype, usability, studio, critique, feedback, interface, interaction, or user-experience context instead of matching bare "iteration."',
-    'Source-finder retrieval, source-ledger export, and the local deep quality grader now agree: generic math/process iteration pages are rejected or scored as off-discipline while actual UX iteration sources such as Iterative design remain eligible.',
-    'The v0.15.105 evidence report is recorded as nominally 100/A but not strict-clean because Texture stayed at 94 and source relevance still needed this deterministic false-friend guard.',
+    'A fresh deployed v0.15.106 User Experience Design Studio ZIP/log audit exported and locally regraded at 100/A with no P0/P1/P2 findings, proving the generic iteration false-friend source rows were gone from real provider output.',
+    'The same audit still measured Texture 94/100: the remaining repeated shingles were concentrated in Assignment Brief workload, citation-style, milestone, and progress-tracking scaffolds stamped across all 12 lessons.',
+    'Assignment Brief compilation now rotates out-of-class workload wording, fallback expected-format language, citation directions, readiness/evidence milestone labels, milestone timing, evidence-check descriptions, and progress-tracking sentences by lesson.',
+    'A focused compiler regression keeps the first legacy milestone label for compatibility while proving assignment workload, citation, milestone, and progress-tracking text no longer stay identical across generated lessons.',
+    'This release keeps the target honest: v0.15.107 does not claim strict-clean provider output until a fresh deployed ZIP/log audit proves the new assignment texture rotation in real generated materials.',
   ],
   landingHighlights: [
-    'Generic iteration pages no longer count as UX proof.',
-    'Retrieval, export, and grader source rules stay aligned.',
-    'Real UX iteration sources still pass.',
-    'The v0.15.105 nominal 100/A caveat is documented.',
+    'The v0.15.106 source fix verified cleanly in a real ZIP/log audit.',
+    'Assignment Brief scaffolds now vary by lesson.',
+    'The focused regression guards the repeated workload/citation/milestone shape.',
+    'Fresh v0.15.107 provider output is still required for strict-clean proof.',
   ],
   proof: {
-    contract: 'release-contracts/v0.15.106.json',
-    roadmap: 'docs/V0.15.106_UX_ITERATION_SOURCE_GATE_ROADMAP.md',
+    contract: 'release-contracts/v0.15.107.json',
+    roadmap: 'docs/V0.15.107_UX_ASSIGNMENT_TEXTURE_ROTATION_ROADMAP.md',
     auditCommand: 'npm run audit:release-history',
   },
 };
@@ -34,6 +35,17 @@ export const CURRENT_RELEASE_CHANGELOG = {
 };
 
 export const HISTORICAL_RELEASE_CHANGELOGS = [
+  {
+    version: '0.15.106',
+    date: 'June 28, 2026',
+    title: 'UX Iteration Source Gate: generic iteration pages stop passing',
+    highlights: [
+      'A fresh deployed v0.15.105 User Experience Design Studio ZIP/log audit exported Quality 100 with no P0/P1/P2 findings, but the strict audit still found trusted UX source rows for generic Fixed-point iteration and Iteration pages.',
+      'UX source topic anchors now require iteration evidence to carry design, prototype, usability, studio, critique, feedback, interface, interaction, or user-experience context instead of matching bare "iteration."',
+      'Source-finder retrieval, source-ledger export, and the local deep quality grader now agree: generic math/process iteration pages are rejected or scored as off-discipline while actual UX iteration sources such as Iterative design remain eligible.',
+      'The v0.15.105 evidence report is recorded as nominally 100/A but not strict-clean because Texture stayed at 94 and source relevance still needed this deterministic false-friend guard.',
+    ],
+  },
   {
     version: '0.15.105',
     date: 'June 28, 2026',

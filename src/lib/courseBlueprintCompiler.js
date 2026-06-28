@@ -11608,11 +11608,20 @@ function buildAssignmentWorkloadProfile(lesson = {}) {
   const outOfClass = compact.outOfClassMinutes;
   const outsideLabel = hoursLabelFromMinutes(outOfClass);
   const classLabel = hoursLabelFromMinutes(compact.inClassMinutes);
+  const beforeClass = compact.beforeClassMinutes;
+  const afterClass = compact.afterClassMinutes;
   return {
     ...compact,
     studentFacingEstimate: compact.studentFacingEstimate,
     outOfClassEstimate: outsideLabel
-      ? `${outsideLabel} outside class (${compact.beforeClassMinutes} min prep, ${compact.afterClassMinutes} min revision/submission)`
+      ? lessonVariant(lesson, [
+          `${outsideLabel} outside class (${beforeClass} min prep, ${afterClass} min revision/submission)`,
+          `Plan ${outsideLabel} beyond class: ${beforeClass} min preparation and ${afterClass} min final revision/upload`,
+          `Reserve ${outsideLabel} after class sessions, including ${beforeClass} min setup and ${afterClass} min submit-ready revision`,
+          `${outsideLabel} independent work: ${beforeClass} min source review plus ${afterClass} min polish and submission`,
+          `Expect ${outsideLabel} outside the meeting block; use ${beforeClass} min to prepare and ${afterClass} min to revise`,
+          `${outsideLabel} student work beyond class, split between ${beforeClass} min advance review and ${afterClass} min final edit`,
+        ])
       : 'Out-of-class workload should be confirmed locally',
     classSupportedPractice: classLabel
       ? `${classLabel} of class-supported practice`
@@ -11629,7 +11638,14 @@ function buildAssignmentSubmissionProfile({ lesson = {}, assessment = {}, lens =
   const lessonTitle = stripLessonPrefix(lesson.title || assessment.relatedLessons?.[0] || assessment.title);
   const expectedFormat =
     artifactGenre.outputFormat ||
-    `${artifact}: course-specific applied artifact with evidence, decision logic, and revision trace`;
+    `${artifact}: ${lessonVariant(lesson, [
+      'course-specific applied artifact with evidence, decision logic, and revision trace',
+      'applied submission that names the evidence, explains the decision, and records the revision move',
+      'discipline-specific artifact showing source detail, reasoning path, and feedback-informed revision',
+      'focused course artifact with inspectable evidence, a defensible choice, and a final improvement note',
+      'student work product that connects evidence, judgment, limitation, and one revision decision',
+      'applied artifact organized around evidence use, decision rationale, and documented next-step revision',
+    ])}`;
   const evidenceRequirement =
     artifactGenre.evidenceRequirement ||
     `For ${artifact}, require specific ${lens.evidenceNoun || 'source evidence'}, a visible decision, and one revision note.`;
@@ -14903,15 +14919,36 @@ function compileAssignments(blueprint) {
           format: submissionProfile.expectedFormat,
           reviewProtocol: `For ${stripLessonPrefix(lesson.title)}, ${submissionProfile.reviewProtocol}.`,
           workloadFit: submissionProfile.workload.outOfClassEstimate,
-          citationStyle: `Use the citation style specified for ${assessmentTitle} or the course assignment prompt.`,
+          citationStyle: lessonVariant(lesson, [
+            `Use the citation style specified for ${assessmentTitle} or the course assignment prompt.`,
+            `Follow the citation convention named in the ${assessmentTitle} directions or local course guide.`,
+            `Apply the course citation format for ${assessmentTitle}; ask for review if a source detail is incomplete.`,
+            `Credit sources using the required course style for ${assessmentTitle} and keep uncertain details marked.`,
+            `Use the instructor's citation rule for ${assessmentTitle}, including any tool or source-use disclosure.`,
+            `Match the local citation expectations for ${assessmentTitle} before uploading the final file.`,
+          ]),
           submissionPlatform: 'Official course site',
           latePolicy: `For ${assessmentTitle}, follow the course late work policy and contact the instructor before the deadline when needed.`,
         },
         deliverables: assignmentDeliverablesForLesson({ lesson, assessment, submissionProfile, lens }),
         scaffoldingMilestones: [
           {
-            milestone: 'Prerequisite readiness check',
-            dueDate: `Before Week ${assessment.lessonNumbers[0]} work begins`,
+            milestone: lessonVariant(lesson, [
+              'Prerequisite readiness check',
+              'Starting evidence check',
+              'Entry concept check',
+              'Draft-readiness scan',
+              'Baseline evidence check',
+              'Launch preparation check',
+            ]),
+            dueDate: lessonVariant(lesson, [
+              `Before Week ${assessment.lessonNumbers[0]} work begins`,
+              `Before opening the Week ${assessment.lessonNumbers[0]} draft`,
+              `At the start of Week ${assessment.lessonNumbers[0]} assignment work`,
+              `Before Week ${assessment.lessonNumbers[0]} evidence selection`,
+              `Ahead of the Week ${assessment.lessonNumbers[0]} work session`,
+              `Before students begin the Week ${assessment.lessonNumbers[0]} artifact`,
+            ]),
             description:
               lesson.prerequisitePlan?.prerequisiteEvidence ||
               `Confirm prerequisite knowledge needed for ${assessmentTitle}.`,
@@ -14924,9 +14961,30 @@ function compileAssignments(blueprint) {
             ],
           },
           {
-            milestone: 'Evidence checkpoint',
-            dueDate: `Before Week ${assessment.lessonNumbers[0]} submission`,
-            description: `Identify the concept, ${lens.evidenceNoun}, and decision ${assessmentTitle} will address.`,
+            milestone: lessonVariant(lesson, [
+              'Evidence checkpoint',
+              'Source-use checkpoint',
+              'Decision evidence checkpoint',
+              'Claim-and-evidence review',
+              'Draft evidence conference',
+              'Support and limitation check',
+            ]),
+            dueDate: lessonVariant(lesson, [
+              `Before Week ${assessment.lessonNumbers[0]} submission`,
+              `Midway through Week ${assessment.lessonNumbers[0]} drafting`,
+              `Before the Week ${assessment.lessonNumbers[0]} final pass`,
+              `After initial Week ${assessment.lessonNumbers[0]} evidence selection`,
+              `Before uploading the Week ${assessment.lessonNumbers[0]} artifact`,
+              `During the Week ${assessment.lessonNumbers[0]} revision window`,
+            ]),
+            description: lessonVariant(lesson, [
+              `Identify the concept, ${lens.evidenceNoun}, and decision ${assessmentTitle} will address.`,
+              `Name the source detail, claim, and decision path that ${assessmentTitle} will make visible.`,
+              `Check that ${assessmentTitle} has one inspectable evidence cue and one defensible action or judgment.`,
+              `Connect the lesson concept to the support, limitation, and decision the submission will show.`,
+              `Mark the evidence students will use and the criterion it should help a reader verify.`,
+              `Confirm that the draft links concept, support, and revision target before final polishing.`,
+            ]),
             feedback:
               assessment.feedbackCycle?.feedbackMethod ||
               `Use instructor, peer, or self-review feedback to focus ${assessmentArtifact}.`,
@@ -14959,7 +15017,14 @@ function compileAssignments(blueprint) {
         gradingCriteria: assessment.criteria,
         weightedGradingCriteria: assessment.criterionWeightPlan || [],
         supportResources: assignmentSupportResourcesForLesson({ lesson, assessment, submissionProfile }),
-        progressTracking: `Use the ${assessmentTitle} milestone checklist, rubric criteria, ${submissionProfile.assignmentType.toLowerCase()} format, and ${submissionProfile.workload.outOfClassEstimate} to monitor readiness before submission for ${assessment.relatedLessons[0]}.`,
+        progressTracking: lessonVariant(lesson, [
+          `Use the ${assessmentTitle} milestone checklist, rubric criteria, ${submissionProfile.assignmentType.toLowerCase()} format, and ${submissionProfile.workload.outOfClassEstimate} to monitor readiness before submission for ${assessment.relatedLessons[0]}.`,
+          `Track ${assessmentTitle} with the rubric, the ${submissionProfile.assignmentType.toLowerCase()} format, and the workload estimate so the evidence is ready for ${assessment.relatedLessons[0]}.`,
+          `Before uploading ${assessmentTitle}, compare the draft against the milestone notes, criterion weights, and time plan for ${assessment.relatedLessons[0]}.`,
+          `Use the checklist, rubric language, and ${submissionProfile.workload.outOfClassEstimate} plan to decide whether ${assessmentTitle} is ready for review.`,
+          `Monitor ${assessmentTitle} by checking evidence completeness, format fit, and revision status against ${assessment.relatedLessons[0]}.`,
+          `Keep the ${assessmentTitle} work plan visible: evidence chosen, criteria checked, workload managed, and final revision completed.`,
+        ]),
         assessmentCadence: assessment.cadence,
         assessmentPurpose: assessment.studentFacingPurpose,
         assessmentRoleRationale: assessment.roleRationale,

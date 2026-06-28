@@ -4967,6 +4967,19 @@ describe('courseBlueprintCompiler', () => {
     expect(compiled.assignments.assignments[0].readinessSupport.supportMove).toContain('sentence frame');
     expect(compiled.assignments.assignments[0].prerequisitePlan.diagnosticCheck).toContain('define Policy Topic 1');
     expect(compiled.assignments.assignments[0].scaffoldingMilestones[0].milestone).toBe('Prerequisite readiness check');
+    expect(
+      new Set(compiled.assignments.assignments.map((assignment) => assignment.workloadEstimate.outOfClassEstimate))
+        .size,
+    ).toBeGreaterThan(1);
+    expect(
+      new Set(compiled.assignments.assignments.map((assignment) => assignment.formatRequirements.citationStyle)).size,
+    ).toBeGreaterThan(1);
+    expect(
+      new Set(compiled.assignments.assignments.map((assignment) => assignment.scaffoldingMilestones[0].milestone)).size,
+    ).toBeGreaterThan(1);
+    expect(
+      new Set(compiled.assignments.assignments.map((assignment) => assignment.progressTracking)).size,
+    ).toBeGreaterThan(1);
     expect(compiled.assignments.assignments[0].instructionalRationale.assessmentRationale).toContain(
       'appropriate performance evidence',
     );
