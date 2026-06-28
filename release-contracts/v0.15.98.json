@@ -36,7 +36,7 @@
       "summary": "The release is grounded in a fresh deployed v0.15.97 UX ZIP/log audit that exported 99/A but trusted six title-only UX false friends as source proof.",
       "anchors": [
         "verification-output/edutool-audit-loop/20260628T112811Z-v01597-ux-fresh/local-regrade-after-v01598-projected.md",
-        "verification-output/edutool-audit-loop/20260628T112811Z-v01597-ux-fresh/extracted/SOURCE_REPORT.md",
+        "verification-output/edutool-audit-loop/20260628T112811Z-v01597-ux-fresh/report.md",
         "docs/V0.15.98_UX_SOURCE_FALSE_FRIEND_EXPANSION_ROADMAP.md"
       ],
       "proofCommands": [
