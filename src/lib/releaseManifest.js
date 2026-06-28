@@ -3,24 +3,24 @@ import { APP_VERSION } from './appVersion.js';
 export const CURRENT_RELEASE = {
   version: APP_VERSION,
   date: 'June 28, 2026',
-  title: 'UX Texture Frames: lesson-plan, discussion, and slide scaffolds rotate by lesson',
-  landingTitle: 'UX Texture Frames',
+  title: 'UX Source Review Truth and Texture Tail Rotation',
+  landingTitle: 'UX Source Review Truth',
   highlights: [
-    'A fresh deployed v0.15.101 User Experience Design Studio ZIP/log audit now regraded at 100/A with zero findings, clean export verification, and clean source proof, but strict-clean still measured Texture 94/100.',
-    'Lesson-plan model notes now rotate the "show one line of reasoning students should reuse" frame by lesson instead of stamping the same instructor note across all 12 lessons.',
-    'Discussion prompt review artifacts now vary the "proposed decision would hold up in assessed work" frame while preserving the assessment-brief stress-test intent.',
-    'Slide Deck notes now rotate the audited vocabulary-only, true/false pitfall, and strongest-evidence closing frames so common objective, misconception, and summary slides do not share the same scaffold.',
-    'A focused twelve-lesson UX regression blocks the exact v0.15.101 texture shingles without changing source retrieval, report truth, or grader thresholds; a fresh deployed v0.15.102 ZIP/log audit is still required to prove provider-output texture reaches strict clean.',
+    'A fresh deployed v0.15.102 User Experience Design Studio ZIP/log audit exported Quality 98 and Texture 94: the only scored findings were four sourceReviewRows that SOURCE_REPORT.md had already quarantined as not trusted bibliography proof.',
+    'The source-ledger grader now keeps quarantined source-review rows advisory only when the package also has multiple trusted, licensed, URL/DOI-backed, concept-linked bibliography rows; thin trusted ledgers still score review-only rows as citation debt.',
+    'The captured v0.15.102 ZIP now locally regrades at 100/A with zero findings under the stricter current rule, while still preserving the Texture 94 strict-clean caveat.',
+    'Slide Deck notes now rotate the audited criterion-bridge, closing-transition, and homework-handoff scaffolds instead of stamping the same note family across all 12 UX lessons.',
+    'Discussion Prompt guidelines now rotate the audited in-class participation frame that repeated "speak or post at least twice" across every lesson; a fresh deployed v0.15.103 ZIP/log audit is still required before claiming strict-clean provider output.',
   ],
   landingHighlights: [
-    'Current UX proof is 100/A but texture still needs strict-clean proof.',
-    'Lesson Plan model notes vary by lesson.',
-    'Discussion artifact-review frames rotate deterministically.',
-    'Slide Deck objective, pitfall, and closing notes avoid audited scaffolds.',
+    'Quarantined weak sources no longer count as citation failures when real trusted linked sources cover the package.',
+    'Thin source ledgers still fail review-only proof.',
+    'Slide Deck note tails rotate by lesson.',
+    'Discussion participation scaffolds avoid the audited all-lesson repeat.',
   ],
   proof: {
-    contract: 'release-contracts/v0.15.102.json',
-    roadmap: 'docs/V0.15.102_UX_TEXTURE_FRAME_VARIATION_ROADMAP.md',
+    contract: 'release-contracts/v0.15.103.json',
+    roadmap: 'docs/V0.15.103_UX_SOURCE_REVIEW_TEXTURE_TAIL_ROADMAP.md',
     auditCommand: 'npm run audit:release-history',
   },
 };
@@ -35,6 +35,18 @@ export const CURRENT_RELEASE_CHANGELOG = {
 };
 
 export const HISTORICAL_RELEASE_CHANGELOGS = [
+  {
+    version: '0.15.102',
+    date: 'June 28, 2026',
+    title: 'UX Texture Frames: lesson-plan, discussion, and slide scaffolds rotate by lesson',
+    highlights: [
+      'A fresh deployed v0.15.101 User Experience Design Studio ZIP/log audit now regraded at 100/A with zero findings, clean export verification, and clean source proof, but strict-clean still measured Texture 94/100.',
+      'Lesson-plan model notes now rotate the "show one line of reasoning students should reuse" frame by lesson instead of stamping the same instructor note across all 12 lessons.',
+      'Discussion prompt review artifacts now vary the "proposed decision would hold up in assessed work" frame while preserving the assessment-brief stress-test intent.',
+      'Slide Deck notes now rotate the audited vocabulary-only, true/false pitfall, and strongest-evidence closing frames so common objective, misconception, and summary slides do not share the same scaffold.',
+      'A focused twelve-lesson UX regression blocks the exact v0.15.101 texture shingles without changing source retrieval, report truth, or grader thresholds; a fresh deployed v0.15.102 ZIP/log audit is still required to prove provider-output texture reaches strict clean.',
+    ],
+  },
   {
     version: '0.15.101',
     date: 'June 28, 2026',

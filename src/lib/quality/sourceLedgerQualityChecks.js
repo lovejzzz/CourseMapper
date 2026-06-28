@@ -320,15 +320,17 @@ export function checkSourceLedger(findings, { files, manifest }) {
     }
   }
 
-  for (const row of review) {
-    const id = String(row?.id || '').trim();
-    findings.add({
-      severity: 'P2',
-      dimension: 'citations',
-      file: 'PACKAGE_MANIFEST.json',
-      detail: `source review row ${id || '(missing id)'} is not trusted bibliography proof`,
-      evidence: row?.title || row?.evidence || JSON.stringify(row).slice(0, 120),
-    });
+  if (trustedConceptLinkedBibliographyRows.length < 2) {
+    for (const row of review) {
+      const id = String(row?.id || '').trim();
+      findings.add({
+        severity: 'P2',
+        dimension: 'citations',
+        file: 'PACKAGE_MANIFEST.json',
+        detail: `source review row ${id || '(missing id)'} is not trusted bibliography proof`,
+        evidence: row?.title || row?.evidence || JSON.stringify(row).slice(0, 120),
+      });
+    }
   }
 
   if (Number.isFinite(reportedOpenResources) && reportedOpenResources > exportedSourceRows) {

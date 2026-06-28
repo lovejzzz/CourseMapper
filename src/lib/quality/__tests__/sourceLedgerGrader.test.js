@@ -119,6 +119,125 @@ describe('source-ledger quality checks', () => {
     expect(details).not.toContain('source ledger row SL1 has ambiguous or missing license');
   });
 
+  it('keeps quarantined review rows advisory when trusted concept-linked source rows cover the bibliography', async () => {
+    const result = await grade({
+      fileProvider: createMemoryFileProvider({
+        'PACKAGE_MANIFEST.json': JSON.stringify({
+          courseName: 'User Experience Design Studio',
+          lessonScope: 'all',
+          requestedFeatures: [],
+          readiness: { status: 'ready', blockers: 0, warnings: 0, checkedSections: null },
+          sourceLedger: [
+            {
+              id: 'kr1',
+              title: 'Re-examining Whether, Why, and How Human-AI Interaction Is Uniquely Difficult to Design',
+              provider: 'openalex',
+              url: 'https://dl.acm.org/doi/pdf/10.1145/3313831.3376301',
+              doi: '10.1145/3313831.3376301',
+              license: 'CC BY',
+              conceptLinks: [{ id: 'c1', label: 'interaction design' }],
+            },
+            {
+              id: 'sf1',
+              title: 'Inclusive design',
+              provider: 'wikipedia',
+              url: 'https://en.wikipedia.org/wiki/Inclusive_design',
+              license: 'CC BY-SA 4.0',
+              conceptLinks: [{ id: 'c2', label: 'accessibility' }],
+            },
+          ],
+          sourceReviewRows: [
+            {
+              id: 'kr2',
+              title: 'Characterising and measuring user experiences in digital games',
+              provider: 'openalex',
+              status: 'source-provided',
+              url: 'https://pure.tue.nl/ws/files/2944578/Metis215134.pdf',
+              license: 'other-oa',
+              trustedBibliography: false,
+            },
+          ],
+          sourceReport: {
+            path: 'SOURCE_REPORT.md',
+            sourceCount: 2,
+            sourceReviewCount: 1,
+          },
+          files: [],
+        }),
+        'SOURCE_REPORT.md': [
+          '# Source Report',
+          '',
+          '## Source Ledger',
+          '- kr1: Re-examining Whether, Why, and How Human-AI Interaction Is Uniquely Difficult to Design',
+          '- sf1: Inclusive design',
+          '',
+          '## Source Review Notes',
+          '- kr2: Characterising and measuring user experiences in digital games',
+        ].join('\n'),
+      }),
+      course: { title: 'User Experience Design Studio', featureIds: [] },
+    });
+
+    const details = result.findings.map((finding) => finding.detail);
+    expect(details).not.toContain('source review row kr2 is not trusted bibliography proof');
+    expect(details).not.toContain('source ledger row kr2 has ambiguous or missing license');
+  });
+
+  it('still scores review-only rows when the trusted concept-linked bibliography is too thin', async () => {
+    const result = await grade({
+      fileProvider: createMemoryFileProvider({
+        'PACKAGE_MANIFEST.json': JSON.stringify({
+          courseName: 'Thin UX Source Ledger',
+          lessonScope: 'all',
+          requestedFeatures: [],
+          readiness: { status: 'ready', blockers: 0, warnings: 0, checkedSections: null },
+          sourceLedger: [
+            {
+              id: 'kr1',
+              title: 'Re-examining Whether, Why, and How Human-AI Interaction Is Uniquely Difficult to Design',
+              provider: 'openalex',
+              url: 'https://dl.acm.org/doi/pdf/10.1145/3313831.3376301',
+              doi: '10.1145/3313831.3376301',
+              license: 'CC BY',
+              conceptLinks: [{ id: 'c1', label: 'interaction design' }],
+            },
+          ],
+          sourceReviewRows: [
+            {
+              id: 'kr2',
+              title: 'Characterising and measuring user experiences in digital games',
+              provider: 'openalex',
+              status: 'source-provided',
+              url: 'https://pure.tue.nl/ws/files/2944578/Metis215134.pdf',
+              license: 'other-oa',
+              trustedBibliography: false,
+            },
+          ],
+          sourceReport: {
+            path: 'SOURCE_REPORT.md',
+            sourceCount: 1,
+            sourceReviewCount: 1,
+          },
+          files: [],
+        }),
+        'SOURCE_REPORT.md': [
+          '# Source Report',
+          '',
+          '## Source Ledger',
+          '- kr1: Re-examining Whether, Why, and How Human-AI Interaction Is Uniquely Difficult to Design',
+          '',
+          '## Source Review Notes',
+          '- kr2: Characterising and measuring user experiences in digital games',
+        ].join('\n'),
+      }),
+      course: { title: 'Thin UX Source Ledger', featureIds: [] },
+    });
+
+    expect(result.findings.map((finding) => finding.detail)).toContain(
+      'source review row kr2 is not trusted bibliography proof',
+    );
+  });
+
   it('flags sourceRef coverage that looks complete but rests on one thin source row', async () => {
     const result = await grade({
       fileProvider: createMemoryFileProvider({

@@ -17579,9 +17579,24 @@ function slideTypeFocus(type, lesson, lens) {
       };
     case 'closing':
       return {
-        opening: `End by naming the exact follow-through students should complete after ${displayTitle}.`,
-        evidence: `Remind them which note, example, or feedback move should carry forward into ${artifact}.`,
-        misconception: `Avoid vague homework language; specify that the next step is to improve ${artifact} with today's evidence and feedback.`,
+        opening: lessonVariant(lesson, [
+          `End by naming the exact follow-through students should complete after ${displayTitle}.`,
+          `Close ${displayTitle} by naming the first action students should take before the next meeting.`,
+          `Make the final minute operational: students leave knowing what to revise, prepare, or submit for ${artifact}.`,
+          `Use the closing handoff to turn today's work into one concrete next move for ${artifact}.`,
+        ]),
+        evidence: lessonVariant(lesson, [
+          `Remind them which note, example, or feedback move should carry forward into ${artifact}.`,
+          `Point back to the evidence cue students should reuse when they continue ${artifact}.`,
+          `Name the class note or critique detail that should shape the next ${artifact} revision.`,
+          `Have students mark the evidence or feedback item they will bring into the next ${artifact} step.`,
+        ]),
+        misconception: lessonVariant(lesson, [
+          `Replace broad homework reminders with a named ${artifact} improvement tied to today's evidence and feedback.`,
+          `If the follow-up sounds generic, restate it as one visible ${artifact} change students can make with today's evidence.`,
+          `Prevent vague after-class work by naming the evidence, feedback, or example students should apply to ${artifact}.`,
+          `Make the outside task inspectable: students should know which ${artifact} piece to improve and why it matters.`,
+        ]),
       };
     default:
       return {
@@ -17683,14 +17698,54 @@ function slideNoteAnchorText(anchor, type, lesson) {
 
 function slideNoteCriterionCue(type, criterion, lesson = {}) {
   const cues = {
-    title: `Keep the success test visible from the start: ${criterion}`,
-    objectives: `Make the criterion measurable in student language: ${criterion}`,
-    bridge: `Ask which prior move already supports the criterion and which part still needs work: ${criterion}`,
-    keyTerm: `Check that students can use the term to meet this criterion: ${criterion}`,
-    example: `Score the example against the criterion before moving on: ${criterion}`,
-    activity: `During circulation, look for evidence that pairs are improving this criterion: ${criterion}`,
-    discussion: `Use the criterion to decide which argument is strongest: ${criterion}`,
-    summary: `Have students self-rate readiness against this criterion: ${criterion}`,
+    title: lessonVariant(lesson, [
+      `Keep the success test visible from the start: ${criterion}`,
+      `Name the success test before students begin the lesson work: ${criterion}`,
+      `Use the opening slide to make the target observable: ${criterion}`,
+      `Preview how students will know the work is successful: ${criterion}`,
+    ]),
+    objectives: lessonVariant(lesson, [
+      `Make the criterion measurable in student language: ${criterion}`,
+      `Translate the criterion into a student-facing check: ${criterion}`,
+      `Turn the objective into evidence students can point to: ${criterion}`,
+      `Ask students what finished work would show this criterion: ${criterion}`,
+    ]),
+    bridge: lessonVariant(lesson, [
+      `Ask which earlier move already helps this criterion and which part still needs revision: ${criterion}`,
+      `Have students identify the prior evidence that supports this criterion and the gap that remains: ${criterion}`,
+      `Use the bridge to separate what students can reuse from what they still need to strengthen: ${criterion}`,
+      `Connect the prior lesson to this criterion by naming the carried-forward evidence and the unfinished piece: ${criterion}`,
+    ]),
+    keyTerm: lessonVariant(lesson, [
+      `Check that students can use the term to meet this criterion: ${criterion}`,
+      `Ask students to apply the term in a way that makes this criterion visible: ${criterion}`,
+      `Use the term as evidence for the success test, not as a definition alone: ${criterion}`,
+      `Have students explain how the term changes their work on this criterion: ${criterion}`,
+    ]),
+    example: lessonVariant(lesson, [
+      `Score the example against the criterion before moving on: ${criterion}`,
+      `Use the example to test what counts as convincing evidence for this criterion: ${criterion}`,
+      `Have students mark where the example satisfies or misses this criterion: ${criterion}`,
+      `Ask which part of the example would earn credit under this criterion: ${criterion}`,
+    ]),
+    activity: lessonVariant(lesson, [
+      `During circulation, look for evidence that pairs are improving this criterion: ${criterion}`,
+      `While students work, listen for the evidence move tied to this criterion: ${criterion}`,
+      `Use check-ins to confirm pairs can point to a visible improvement for this criterion: ${criterion}`,
+      `Circulate for concrete work products that make this criterion easier to judge: ${criterion}`,
+    ]),
+    discussion: lessonVariant(lesson, [
+      `Use the criterion to decide which argument is strongest: ${criterion}`,
+      `Ask which comment gives the best evidence for this criterion: ${criterion}`,
+      `Have students compare replies by how well they satisfy this criterion: ${criterion}`,
+      `Use the exchange to test which claim makes this criterion most visible: ${criterion}`,
+    ]),
+    summary: lessonVariant(lesson, [
+      `Have students self-rate readiness against this criterion: ${criterion}`,
+      `Close by asking students to name their strongest evidence for this criterion: ${criterion}`,
+      `Use a quick exit check to see whether students can prove this criterion: ${criterion}`,
+      `Ask students which part of their work now shows this criterion most clearly: ${criterion}`,
+    ]),
     closing: lessonVariant(lesson, [
       `Make the after-class task point directly back to this criterion: ${criterion}`,
       `Tie the follow-up task to the same success test: ${criterion}`,
@@ -17706,10 +17761,18 @@ function slideNoteCriterionCue(type, criterion, lesson = {}) {
       `Use the sequence of activities to show how this criterion will become visible: ${criterion}`,
     ]);
   }
-  return cues[type] || `Tie the explanation back to this criterion: ${criterion}`;
+  return (
+    cues[type] ||
+    lessonVariant(lesson, [
+      `Tie the explanation back to this criterion: ${criterion}`,
+      `Make the explanation accountable to this success test: ${criterion}`,
+      `Ask what evidence would let students judge this criterion: ${criterion}`,
+      `Use the slide to connect the claim with this criterion: ${criterion}`,
+    ])
+  );
 }
 
-function slideNoteTransition({ type, nextCue, lens, concept, artifact }) {
+function slideNoteTransition({ type, nextCue, lens, concept, artifact, lesson }) {
   if (nextCue) {
     const transitions = {
       title: `Then move into "${nextCue}" by asking what students need to notice first about ${concept}.`,
@@ -17726,7 +17789,12 @@ function slideNoteTransition({ type, nextCue, lens, concept, artifact }) {
     };
     return transitions[type] || `Move next to "${nextCue}" by naming how it changes the ${lens.decisionNoun}.`;
   }
-  return `End by asking how this point changes the ${lens.decisionNoun} students will make for ${artifact}.`;
+  return lessonVariant(lesson, [
+    `End by asking how this point changes the ${lens.decisionNoun} students will make for ${artifact}.`,
+    `Close by having students name the ${lens.decisionNoun} this point should change in ${artifact}.`,
+    `Finish with a quick check: what part of ${artifact} should look different because of this point?`,
+    `Use the last prompt to connect this point with the next evidence-backed choice in ${artifact}.`,
+  ]);
 }
 
 function slideNotes({ lesson, title, type, bullets, nextCue, lens }) {
@@ -17748,7 +17816,7 @@ function slideNotes({ lesson, title, type, bullets, nextCue, lens }) {
     focus.evidence,
     `${focus.misconception} ${slideNoteCriterionCue(type, criterion, lesson)}`,
     activitySequence,
-    slideNoteTransition({ type, nextCue, lens, concept, artifact }),
+    slideNoteTransition({ type, nextCue, lens, concept, artifact, lesson }),
   ]
     .filter(Boolean)
     .join(' ');
@@ -18347,7 +18415,13 @@ function buildDiscussionGuidelinesForFormat(lesson, protocol) {
     `Credit depends on using specific evidence, explaining the reasoning, and turning one peer exchange into a next step for ${artifact}.`,
     `A strong response cites a source detail, tests a classmate's claim, and closes with one improvement to carry into ${artifact}.`,
   ]);
-  return `For ${lessonFocus}, come prepared with one brief ${concept} evidence note before class, speak or post at least twice during the ${format}, and ${peerResponseCue}. Use this ${protocol.artifactGenre} protocol for ${lessonFocus}: ${protocol.participationPattern}. ${contributionCue} ${participationAccessCue} ${reviewCue}`;
+  const preparationCue = lessonVariant(lesson, [
+    `For ${lessonFocus}, bring one brief ${concept} evidence note to class, contribute at least twice during the ${format}, and ${peerResponseCue}.`,
+    `Before the ${format}, identify one ${concept} detail worth testing, then make two evidence-based contributions and ${peerResponseCue}.`,
+    `Arrive ready to cite one ${concept} example, use the ${format} for two substantive contributions, and ${peerResponseCue}.`,
+    `During ${lessonFocus}, use one prepared ${concept} evidence note, make two visible contributions in the ${format}, and ${peerResponseCue}.`,
+  ]);
+  return `${preparationCue} Use this ${protocol.artifactGenre} protocol for ${lessonFocus}: ${protocol.participationPattern}. ${contributionCue} ${participationAccessCue} ${reviewCue}`;
 }
 
 /**

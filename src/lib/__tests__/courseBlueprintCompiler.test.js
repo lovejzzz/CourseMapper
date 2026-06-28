@@ -2648,6 +2648,10 @@ describe('courseBlueprintCompiler', () => {
     expect(countDocsWith(deckTexts, /quick true\/false vote before revealing the corrective/i)).toBe(0);
     expect(countDocsWith(deckTexts, /objectives as vocabulary only, restate them as decisions/i)).toBe(0);
     expect(countDocsWith(deckTexts, /now feels strongest for/i)).toBe(0);
+    expect(countDocsWith(deckTexts, /ask which prior move already supports the criterion/i)).toBe(0);
+    expect(countDocsWith(deckTexts, /avoid vague homework language/i)).toBe(0);
+    expect(countDocsWith(discussionTexts, /speak or post at least twice/i)).toBe(0);
+    expect(countDocsWith(deckTexts, /changes the design decision students will make/i)).toBeLessThan(4);
 
     const texture = computeTexture(allTexts);
     const evidence = texture.evidence.map((item) => item.shingle).join('\n');
@@ -2656,6 +2660,10 @@ describe('courseBlueprintCompiler', () => {
     expect(evidence).not.toMatch(/quick true false vote before revealing the corrective/i);
     expect(evidence).not.toMatch(/objectives as vocabulary only restate them as decisions/i);
     expect(evidence).not.toMatch(/now feels strongest for/i);
+    expect(evidence).not.toMatch(/prior move already supports the criterion/i);
+    expect(evidence).not.toMatch(/vague homework language/i);
+    expect(evidence).not.toMatch(/speak or post at least twice/i);
+    expect(evidence).not.toMatch(/changes the design decision students will make/i);
   });
 
   it('varies lecture-exam slide and lesson-plan texture instead of repeating compiler tails', () => {
