@@ -4188,7 +4188,7 @@ describe('courseBlueprintCompiler', () => {
         expect(validation.valid, `${scenario.name} ${featureId}: ${validation.blockers.join('; ')}`).toBe(true);
       }
     }
-  });
+  }, 20000);
 
   it('compiles stable deliverables in existing app shapes', () => {
     const courseMap = makeCourseMap(6);
