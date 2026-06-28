@@ -1,0 +1,108 @@
+{
+  "version": "0.15.99",
+  "date": "June 28, 2026",
+  "title": "Discussion Grammar Seam: article-led concepts stop exporting malformed prompts",
+  "status": "verified-current",
+  "proofSummary": {
+    "local": [
+      "npm test -- --run src/lib/__tests__/courseBlueprintCompiler.test.js -t \"article-led discussion concepts\""
+    ],
+    "ciFast": {
+      "status": "pending-push",
+      "note": "Fast verification is claimed only after v0.15.99 is pushed and the GitHub Actions run is attached."
+    },
+    "deploy": {
+      "status": "pending-push",
+      "note": "Pages deploy is not claimed until the pushed v0.15.99 release completes its deploy run."
+    },
+    "ciDeep": {
+      "status": "local-only",
+      "note": "This is a narrow compiler text release; targeted regression plus normal gates are the release bar."
+    },
+    "liveProvider": {
+      "status": "local-only",
+      "note": "The release is based on a fresh deployed v0.15.97 ZIP/log audit. A fresh deployed v0.15.99 ZIP/log audit is still required before claiming provider package quality improvement."
+    },
+    "manualHuman": {
+      "status": "not-applicable",
+      "note": "No external instructor approval is claimed by this release."
+    }
+  },
+  "claims": [
+    {
+      "id": "v01599-live-v01597-format-evidence",
+      "status": "verified-current",
+      "changelogHighlightIndex": 0,
+      "summary": "The release is grounded in the fresh deployed v0.15.97 UX ZIP/log audit and its projected v0.15.98 regrade, which found the exact malformed Lesson 10 discussion text.",
+      "anchors": [
+        "verification-output/edutool-audit-loop/20260628T112811Z-v01597-ux-fresh/local-regrade-after-v01598-projected.md",
+        "verification-output/edutool-audit-loop/20260628T112811Z-v01597-ux-fresh/report.md",
+        "docs/V0.15.99_DISCUSSION_GRAMMAR_SEAM_ROADMAP.md"
+      ],
+      "proofCommands": [
+        "npm test -- --run src/lib/__tests__/courseBlueprintCompiler.test.js -t \"article-led discussion concepts\""
+      ],
+      "proofScopes": ["live-provider", "static-audit", "unit"]
+    },
+    {
+      "id": "v01599-discussion-template-phrasing",
+      "status": "verified-current",
+      "changelogHighlightIndex": 1,
+      "summary": "Discussion compiler text now avoids brittle concept-as-noun-modifier slots for article-led concepts.",
+      "anchors": ["src/lib/courseBlueprintCompiler.js", "src/lib/__tests__/courseBlueprintCompiler.test.js"],
+      "proofCommands": [
+        "npm test -- --run src/lib/__tests__/courseBlueprintCompiler.test.js -t \"article-led discussion concepts\""
+      ],
+      "proofScopes": ["unit", "compiled-output"]
+    },
+    {
+      "id": "v01599-ab-testing-regression",
+      "status": "verified-current",
+      "changelogHighlightIndex": 2,
+      "summary": "The regression recreates a ten-lesson UX/A-B testing course and verifies Lesson 10 exports the corrected uncertainty phrasing while blocking the old malformed variants.",
+      "anchors": ["src/lib/__tests__/courseBlueprintCompiler.test.js"],
+      "proofCommands": [
+        "npm test -- --run src/lib/__tests__/courseBlueprintCompiler.test.js -t \"article-led discussion concepts\""
+      ],
+      "proofScopes": ["unit", "compiled-output"]
+    },
+    {
+      "id": "v01599-no-source-or-quality-inflation",
+      "status": "verified-current",
+      "changelogHighlightIndex": 3,
+      "summary": "The release is scoped to one known format debt item after v0.15.98 source-truth hardening and does not claim source, texture, or provider output are clean.",
+      "anchors": ["docs/V0.15.99_DISCUSSION_GRAMMAR_SEAM_ROADMAP.md", "release-contracts/v0.15.99.json"],
+      "proofCommands": ["npm run audit:release-history"],
+      "proofScopes": ["static-audit", "doc"]
+    },
+    {
+      "id": "v01599-fresh-provider-carry-forward",
+      "status": "verified-current",
+      "changelogHighlightIndex": 4,
+      "summary": "The release records that the next deployed audit must verify source quarantine and grammar repair in real provider output before quality improvement is claimed.",
+      "anchors": ["docs/V0.15.99_DISCUSSION_GRAMMAR_SEAM_ROADMAP.md", "release-contracts/v0.15.99.json"],
+      "proofCommands": ["npm run audit:release-history"],
+      "proofScopes": ["static-audit", "doc"]
+    }
+  ],
+  "carryForward": [
+    {
+      "id": "fresh-v01599-provider-audit",
+      "status": "carry-forward",
+      "source": "docs/V0.15.99_DISCUSSION_GRAMMAR_SEAM_ROADMAP.md",
+      "next": "After deploy, run a fresh v0.15.99 UX ZIP/log audit and verify the expanded v0.15.98 false-friend rows no longer ship as trusted sourceLedger proof."
+    },
+    {
+      "id": "texture-90",
+      "status": "carry-forward",
+      "source": "verification-output/edutool-audit-loop/20260628T112811Z-v01597-ux-fresh/local-regrade-after-v01598-projected.md",
+      "next": "If source truth and discussion grammar pass in the fresh audit, investigate remaining texture 90 repeated-shingle loss."
+    },
+    {
+      "id": "provider-output-proof",
+      "status": "carry-forward",
+      "source": "release-contracts/v0.15.99.json",
+      "next": "Do not claim a 100/100 quality improvement until a fresh deployed ZIP/log audit and local regrade prove it."
+    }
+  ]
+}

@@ -3,24 +3,24 @@ import { APP_VERSION } from './appVersion.js';
 export const CURRENT_RELEASE = {
   version: APP_VERSION,
   date: 'June 28, 2026',
-  title: 'UX Source False-Friend Expansion: title-only bycatch stops scoring clean',
-  landingTitle: 'UX Source False-Friend Expansion',
+  title: 'Discussion Grammar Seam: article-led concepts stop exporting malformed prompts',
+  landingTitle: 'Discussion Grammar Seam',
   highlights: [
-    'A fresh deployed v0.15.97 User Experience Design Studio ZIP/log audit exported 99/A, but SOURCE_REPORT.md still trusted six title-only UX false friends: Tim Minchin public persona, Sketches of Spain, One Prototype Three Prototype Five Prototype Seven Prototype, Le poeme critique, Critique of Pure Reason, and Prototype (Star Trek: Voyager).',
-    'UX source filtering now rejects those celebrity-persona, jazz-album, electronics-prototype, poetry/philosophy-critique, and television-episode rows even when they are real, licensed, and concept-linked.',
-    'Source-finder ranking applies the same UX weak-source check before new candidates enter the mini-shard cache, while source-ledger assembly still protects older cached mini-shards.',
-    'The local deep quality grader mirrors the expanded source-sense rule: the captured v0.15.97 ZIP now projects to 93/A with six P1 citation findings instead of silently passing as source-clean 99/A.',
-    'This release still does not claim clean 100/100 provider output: a fresh deployed v0.15.98 ZIP/log audit must verify the expanded quarantine, then texture 90 and the remaining format P2 stay as the next quality targets.',
+    'The fresh deployed v0.15.97 User Experience Design Studio audit carried a real P2 in Lesson 10 discussion prompts: "name one the logic of A/B testing uncertainty worth testing."',
+    'Discussion compiler text no longer uses lesson concepts as brittle noun modifiers in peer and review directions; it now writes "claim about X," "discussion of X," "evidence for X," and "uncertainty in X" for article-led concepts.',
+    'A regression recreates the ten-lesson UX/A-B testing shape so Lesson 10 now exports "name one uncertainty in the logic of A/B testing worth testing" and blocks the old malformed variants.',
+    'This is a format-truth cleanup that removes the known P2 after v0.15.98 source-truth hardening; it does not claim that source quarantine, texture, or provider output are clean.',
+    'The next deployed ZIP/log audit must verify both v0.15.98 source false-friend quarantine and the v0.15.99 discussion grammar repair in real provider output.',
   ],
   landingHighlights: [
-    'Known UX title-only false friends are rejected.',
-    'Source-finder cache intake and ledger export share the same source-sense gate.',
-    'The grader now scores the captured v0.15.97 hidden citation debt.',
-    'Fresh v0.15.98 provider proof remains required.',
+    'Article-led lesson concepts no longer produce malformed discussion text.',
+    'The exact A/B testing P2 is covered by a regression.',
+    'The release removes one proven format debt item without hiding source or texture debt.',
+    'Fresh v0.15.99 provider proof remains required.',
   ],
   proof: {
-    contract: 'release-contracts/v0.15.98.json',
-    roadmap: 'docs/V0.15.98_UX_SOURCE_FALSE_FRIEND_EXPANSION_ROADMAP.md',
+    contract: 'release-contracts/v0.15.99.json',
+    roadmap: 'docs/V0.15.99_DISCUSSION_GRAMMAR_SEAM_ROADMAP.md',
     auditCommand: 'npm run audit:release-history',
   },
 };
@@ -35,6 +35,18 @@ export const CURRENT_RELEASE_CHANGELOG = {
 };
 
 export const HISTORICAL_RELEASE_CHANGELOGS = [
+  {
+    version: '0.15.98',
+    date: 'June 28, 2026',
+    title: 'UX Source False-Friend Expansion: title-only bycatch stops scoring clean',
+    highlights: [
+      'A fresh deployed v0.15.97 User Experience Design Studio ZIP/log audit exported 99/A, but SOURCE_REPORT.md still trusted six title-only UX false friends: Tim Minchin public persona, Sketches of Spain, One Prototype Three Prototype Five Prototype Seven Prototype, Le poeme critique, Critique of Pure Reason, and Prototype (Star Trek: Voyager).',
+      'UX source filtering now rejects those celebrity-persona, jazz-album, electronics-prototype, poetry/philosophy-critique, and television-episode rows even when they are real, licensed, and concept-linked.',
+      'Source-finder ranking applies the same UX weak-source check before new candidates enter the mini-shard cache, while source-ledger assembly still protects older cached mini-shards.',
+      'The local deep quality grader mirrors the expanded source-sense rule: the captured v0.15.97 ZIP now projects to 93/A with six P1 citation findings instead of silently passing as source-clean 99/A.',
+      'This release did not claim clean 100/100 provider output: a fresh deployed v0.15.98 or later ZIP/log audit must verify the expanded quarantine before source quality is considered proven.',
+    ],
+  },
   {
     version: '0.15.97',
     date: 'June 28, 2026',

@@ -18110,7 +18110,7 @@ function buildDiscussionResponseStems(lesson) {
     `The evidence I find most convincing for ${concept} is...`,
     `I agree with that conclusion about ${concept} only if the evidence also shows...`,
     `A limitation in this reasoning about ${artifact} is...`,
-    `If I were revising ${artifact} after this ${concept} discussion, I would change...`,
+    `If I were revising ${artifact} after this discussion of ${concept}, I would change...`,
   ];
 }
 
@@ -18122,10 +18122,10 @@ function buildDiscussionCriteriaSet(lesson) {
     `Explains the reasoning behind the claim and connects it to ${artifact}.`,
     lessonVariant(lesson, [
       `Responds to a peer by extending, questioning, or refining the evidence used about ${concept}.`,
-      `Builds on a classmate's claim by adding evidence, testing a warrant, or sharpening the ${concept} limit.`,
+      `Builds on a classmate's claim by adding evidence, testing a warrant, or sharpening the limit in ${concept}.`,
       `Challenges or develops one peer idea with a source detail rather than a general agreement.`,
-      `Moves the exchange forward by asking how the evidence changes the ${concept} decision.`,
-      `Uses a peer comment as a test case for whether the ${concept} evidence is strong enough.`,
+      `Moves the exchange forward by asking how the evidence changes the decision about ${concept}.`,
+      `Uses a peer comment as a test case for whether the evidence for ${concept} is strong enough.`,
       `Names what a classmate's evidence proves, what it leaves uncertain, and how the claim should change.`,
       `Turns one reply into a revision move by linking the peer evidence back to ${artifact}.`,
     ]),
@@ -18144,25 +18144,25 @@ function buildDiscussionGuidelinesForFormat(lesson, protocol) {
 
   const contributionCue = lessonVariant(lesson, [
     `Reference a course concept, case detail, or reading when you contribute, and connect at least one comment to ${artifact}.`,
-    `Bring one evidence-backed ${concept} claim into the exchange, then ask a peer to test its support or limitation.`,
+    `Bring one evidence-backed claim about ${concept} into the exchange, then ask a peer to test its support or limitation.`,
     `Use one reading, activity note, example, or artifact detail to make your contribution inspectable.`,
     `Before the discussion closes, connect one comment to ${artifact} and identify the evidence that made it stronger.`,
   ]);
   const participationAccessCue = lessonVariant(lesson, [
     `If you need an alternative participation mode, use the instructor-approved written or chat response option during the same activity window for ${lesson.title}.`,
     `Students using an approved alternate mode can post or submit the same evidence move in writing during the activity window for ${lesson.title}.`,
-    `When speaking is not the accessible option, use the approved chat or written pathway and make the ${concept} evidence visible before the activity closes.`,
+    `When speaking is not the accessible option, use the approved chat or written pathway and make the evidence for ${concept} visible before the activity closes.`,
     `An approved written response, chat contribution, or equivalent participation path should address the same peer evidence task for ${lessonFocus}.`,
   ]);
   const peerResponseCue = lessonVariant(lesson, [
     `respond directly to one peer by building on or challenging their evidence for ${artifact}`,
-    `reply to one classmate by testing the evidence behind their ${concept} claim`,
+    `reply to one classmate by testing the evidence behind their claim about ${concept}`,
     `extend one peer contribution with a source detail, limitation, or revision move`,
     `ask one evidence-focused follow-up that helps a peer strengthen their ${artifact}`,
   ]);
   const reviewCue = lessonVariant(lesson, [
     `Participation is judged by evidence use, reasoning, peer response quality, ${protocol.reviewFocus}, and whether you name a limitation or revision move tied to ${concept}.`,
-    `Your contribution should make the evidence visible, respond to a peer, and name one ${concept} uncertainty worth testing.`,
+    `Your contribution should make the evidence visible, respond to a peer, and name one uncertainty in ${concept} worth testing.`,
     `Credit depends on using specific evidence, explaining the reasoning, and turning one peer exchange into a next step for ${artifact}.`,
     `A strong response cites a source detail, tests a classmate's claim, and closes with one improvement to carry into ${artifact}.`,
   ]);

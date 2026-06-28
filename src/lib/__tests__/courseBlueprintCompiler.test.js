@@ -2315,6 +2315,67 @@ describe('courseBlueprintCompiler', () => {
     });
   });
 
+  it('keeps article-led discussion concepts grammatical in peer and review text', () => {
+    const courseMap = {
+      courseName: 'User Experience Design Studio',
+      semester: 'Fall 2026',
+      lessons: Array.from({ length: 10 }, (_, index) => {
+        const lessonNumber = index + 1;
+        const isTargetLesson = lessonNumber === 10;
+        const topic = isTargetLesson ? 'the logic of A/B testing' : `UX research concept ${lessonNumber}`;
+        return {
+          title: isTargetLesson ? 'Lesson 10: A/B testing' : `Lesson ${lessonNumber}: UX Studio Topic ${lessonNumber}`,
+          sections: [
+            {
+              topicSection: topic,
+              learningObjectives: `Explain the key ideas in ${topic} and apply them in a design decision.`,
+              learningGoals: `Use ${topic} to improve a UX artifact.`,
+              weeklyAssessments: isTargetLesson
+                ? 'A/B testing uncertainty note'
+                : `UX artifact critique ${lessonNumber}`,
+              asyncActivities: `Review assigned materials and prepare notes on ${topic}.`,
+              syncActivities: `Discuss examples and practice applying ${topic}.`,
+              supportingResources: `Design journal; critique notes; ${topic} example`,
+              evaluateDesign: `Score evidence use, design reasoning, and revision quality for ${topic}.`,
+            },
+          ],
+        };
+      }),
+    };
+    const blueprint = buildCourseBlueprint(courseMap, {
+      enrichment: {
+        source: 'test-ux-discussion-grammar',
+        lens: {
+          domain: 'interaction design studio',
+          evidenceNoun: 'prototype evidence',
+          decisionNoun: 'design decision',
+          learnerRole: 'studio designer',
+          exampleNoun: 'studio critique case',
+        },
+      },
+    });
+    blueprint.lessons[9].keyConcepts = ['the logic of A/B testing'];
+    blueprint.lessons[9].studentArtifact = 'A/B testing uncertainty note';
+
+    const compiled = compileBlueprintDeliverables(blueprint, ['discussions'], {
+      enforceCompilerContract: false,
+    });
+    const targetDiscussion = compiled.discussions.discussions[9];
+    const text = [
+      targetDiscussion.guidelines,
+      ...(targetDiscussion.responseStems || []),
+      ...(targetDiscussion.evaluationCriteria || []),
+    ].join(' ');
+
+    expect(text).toContain('claim about the logic of A/B testing');
+    expect(text).toContain('name one uncertainty in the logic of A/B testing worth testing');
+    expect(text).not.toMatch(/\bname one the logic/i);
+    expect(text).not.toMatch(/\btheir the logic/i);
+    expect(text).not.toMatch(/\bevidence-backed the logic/i);
+    expect(text).not.toMatch(/\bthis the logic/i);
+    expect(text).not.toMatch(/\bthe the logic/i);
+  });
+
   it('varies lecture-exam slide and lesson-plan texture instead of repeating compiler tails', () => {
     const blueprint = buildCourseBlueprint(makeFourLessonLectureExamCourseMap(), {
       enrichment: {
