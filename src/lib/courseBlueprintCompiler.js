@@ -380,6 +380,90 @@ function stripTerminalPunctuation(value) {
   return cleanText(value).replace(/[.!?]+$/g, '');
 }
 
+function sanitizeAssignmentParameterForStudent(value) {
+  return stripTerminalPunctuation(value)
+    .replace(/\b(\d+)\s*(?:-|–|—|\bto\b)\s*(\d+)\s+sections\b/gi, '$1-$2 labeled parts')
+    .replace(/\b(\d+)\s+sections\b/gi, '$1 labeled parts')
+    .replace(
+      /\bsections?\s+(?:of|for)\s+the\s+(?:brief|submission|artifact|report|portfolio)\b/gi,
+      'parts of the submission',
+    )
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+function assignmentCoreParametersForStudent(lesson) {
+  return (lesson?.enrichment?.assignmentCore?.parameters || [])
+    .map((parameter) => sanitizeAssignmentParameterForStudent(parameter))
+    .filter(Boolean);
+}
+
+function blueprintDomainText(blueprint = {}) {
+  return cleanText(
+    [
+      blueprint.courseName,
+      blueprint.enrichment?.lens?.domain,
+      blueprint.enrichment?.lens?.evidenceNoun,
+      blueprint.enrichment?.lens?.decisionNoun,
+      blueprint.courseModalityProfile?.primaryMode,
+      ...(blueprint.courseConcepts || []),
+    ].join(' '),
+  ).toLowerCase();
+}
+
+function isDataScienceBlueprint(blueprint = {}) {
+  const text = blueprintDomainText(blueprint);
+  return (
+    blueprint.courseModalityProfile?.primaryMode === 'data-science-lab' ||
+    /\b(applied machine learning|machine learning|data science|data analytics|predictive modeling|classification model|regression model|model validation|train[-\s]?test|cross[-\s]?validation|confusion matrix|jupyter|ipynb|dataframe|sklearn|scikit)\b/.test(
+      text,
+    ) ||
+    (/\b(dataset|data set)\b/.test(text) &&
+      /\b(model|prediction|classification|regression|validation|notebook|python|dataframe|machine learning|data science)\b/.test(
+        text,
+      ))
+  );
+}
+
+function allowsModelCardLanguage(blueprint = {}) {
+  const text = blueprintDomainText(blueprint);
+  return (
+    isDataScienceBlueprint(blueprint) ||
+    (/\b(ai governance|artificial intelligence governance|data ethics|algorithmic accountability|algorithmic bias|model documentation|model cards?|risk management frameworks?|ai procurement|public-sector procurement|vendor claims)\b/.test(
+      text,
+    ) &&
+      /\b(ai|algorithmic|model|governance|data ethics|risk management|procurement)\b/.test(text))
+  );
+}
+
+function scrubNonDataSlideAssetText(value, blueprint) {
+  if (isDataScienceBlueprint(blueprint)) return value;
+  let text = String(value);
+  text = text
+    .replace(/\bdata[-\s]?science notebook\b/gi, 'applied artifact')
+    .replace(/\bdata-science-notebook\b/gi, 'applied-artifact')
+    .replace(/\bstarter notebooks?\b/gi, 'starter worksheets')
+    .replace(/\bJupyter notebooks?\b/gi, 'course workspaces')
+    .replace(/\bJupyter\b/gi, 'course workspace')
+    .replace(/\bIPYNB\b/gi, 'course worksheet');
+  if (!allowsModelCardLanguage(blueprint)) {
+    text = text.replace(/\bmodel[-\s]cards\b/gi, 'review notes').replace(/\bmodel[-\s]card\b/gi, 'review note');
+  }
+  return text;
+}
+
+function scrubNonDataSlideAssets(value, blueprint) {
+  if (isDataScienceBlueprint(blueprint)) return value;
+  if (typeof value === 'string') return scrubNonDataSlideAssetText(value, blueprint);
+  if (Array.isArray(value)) return value.map((item) => scrubNonDataSlideAssets(item, blueprint));
+  if (value && typeof value === 'object') {
+    return Object.fromEntries(
+      Object.entries(value).map(([key, entry]) => [key, scrubNonDataSlideAssets(entry, blueprint)]),
+    );
+  }
+  return value;
+}
+
 function compactList(values, fallback = 'source evidence', limit = 3) {
   const items = unique(values, limit);
   return items.length > 0 ? items.join(', ') : fallback;
@@ -14604,6 +14688,7 @@ function compileAssignments(blueprint) {
       const assessmentArtifact = stripTerminalPunctuation(
         assessment.artifact || submissionProfile.artifact || assessment.title,
       );
+      const assignmentParameters = assignmentCoreParametersForStudent(lesson);
       const feedbackPriority = preference
         ? `${assessment.feedbackUse} Instructor preference: ${preferenceDisplayPhrase(preference)}.`
         : assessment.feedbackUse;
@@ -14726,8 +14811,8 @@ function compileAssignments(blueprint) {
         instructions: [
           lesson.prerequisitePlan?.studentReadinessCheck ||
             `Confirm you can connect prerequisite knowledge to ${assessmentTitle} before drafting.`,
-          ...(lesson.enrichment?.assignmentCore?.parameters?.length > 0
-            ? [`Work within these parameters: ${lesson.enrichment.assignmentCore.parameters.join('; ')}.`]
+          ...(assignmentParameters.length > 0
+            ? [`Work within these parameters: ${assignmentParameters.join('; ')}.`]
             : []),
           assignmentMaterialReviewInstruction({ lesson, assessment }),
           assignmentEvidenceSelectionInstruction({ lesson, assessment, lens }),
@@ -15071,10 +15156,7 @@ function compileRubrics(blueprint) {
       // lesson, the same source compileAssignments renders as "Work within
       // these parameters: …") become the leading rubric criteria. A brief
       // with no parameters keeps today's rubric verbatim.
-      const briefParameters = (lesson?.enrichment?.assignmentCore?.parameters || [])
-        .map((parameter) => cleanText(parameter))
-        .filter(Boolean)
-        .slice(0, 3);
+      const briefParameters = assignmentCoreParametersForStudent(lesson).slice(0, 3);
       let criteria;
       let effectiveWeightPlan = criterionWeightPlan;
       if (briefParameters.length > 0) {
@@ -18860,7 +18942,7 @@ function buildSlideDeckIrForLesson(blueprint, lesson, index) {
     status: slideMinutes <= classSessionPlan.sessionMinutes ? 'fits-session-with-activity-time' : 'needs-timing-review',
   };
 
-  return {
+  const irDeck = {
     id: lesson.id,
     lessonTitle: displayTitle,
     tags: unique(['slide deck', displayTitle, ...slideConceptCandidates(lesson), lens.domain], 8),
@@ -18910,6 +18992,7 @@ function buildSlideDeckIrForLesson(blueprint, lesson, index) {
     }),
     slides,
   };
+  return scrubNonDataSlideAssets(irDeck, blueprint);
 }
 
 export function buildSlideDeckIntermediateRepresentation(blueprint) {
@@ -19066,7 +19149,7 @@ function compileSlideDecks(blueprint) {
         });
       }
       const finalizedSlides = slides.map(finalizeSlideBulletsForExport);
-      return {
+      const compiledDeck = {
         lessonTitle: deck.lessonTitle,
         totalSlides: finalizedSlides.length,
         learningObjectives: unique(finalizedSlides.map((slide) => slide.objectiveLink).filter(Boolean), 5),
@@ -19078,6 +19161,7 @@ function compileSlideDecks(blueprint) {
         anchorExampleSet: deck.sequenceGuide?.anchorExampleSet || null,
         tags: deck.tags,
       };
+      return scrubNonDataSlideAssets(compiledDeck, blueprint);
     }),
   };
 }
@@ -19285,12 +19369,29 @@ function formatDuration(minutes) {
 }
 
 function buildLessonPlanMaterials(lesson) {
+  const focus = stripLessonPrefix(lesson?.title) || 'lesson focus';
+  const artifact = stripTerminalPunctuation(lesson?.studentArtifact || 'weekly artifact');
   return unique(
     [
       ...lesson.readings,
-      'Course site agenda and lesson handout',
-      'Shared notes or collaboration document',
-      'Submission template for the weekly artifact',
+      lessonVariant(lesson, [
+        `${focus} agenda and instructor handout`,
+        `Class plan plus ${focus} reference sheet`,
+        `${focus} preparation brief and activity directions`,
+        `Instructor notes and example materials for ${focus}`,
+      ]),
+      lessonVariant(lesson, [
+        `Shared critique notes for ${focus}`,
+        `${focus} collaboration notes document`,
+        `Peer review workspace for ${artifact}`,
+        `Group evidence log for ${focus}`,
+      ]),
+      lessonVariant(lesson, [
+        `${artifact} submission checklist`,
+        `Course-site upload guide for ${artifact}`,
+        `${artifact} evidence template`,
+        `Final review checklist for ${artifact}`,
+      ]),
     ],
     6,
   );

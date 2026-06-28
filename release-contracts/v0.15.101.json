@@ -1,0 +1,111 @@
+{
+  "version": "0.15.101",
+  "date": "June 28, 2026",
+  "title": "UX Format and Domain Guard: sections and lab-asset leaks stop blocking export",
+  "status": "verified-current",
+  "proofSummary": {
+    "local": [
+      "npx vitest run src/lib/__tests__/courseBlueprintCompiler.test.js -t \"UX assignment critique|stale notebook|lecture-exam slide\"",
+      "npx vitest run src/lib/__tests__/courseBlueprintCompiler.test.js"
+    ],
+    "ciFast": {
+      "status": "pending-push",
+      "note": "Fast verification is claimed only after v0.15.101 is pushed and the GitHub Actions run is attached."
+    },
+    "deploy": {
+      "status": "pending-push",
+      "note": "Pages deploy is not claimed until the pushed v0.15.101 release completes its deploy run."
+    },
+    "ciDeep": {
+      "status": "local-only",
+      "note": "This is a narrow compiler-output release; targeted regression plus normal gates are the release bar."
+    },
+    "liveProvider": {
+      "status": "local-only",
+      "note": "The release is based on a fresh deployed v0.15.100 browser audit that reached 99/A but was blocked before ZIP export. A fresh deployed v0.15.101 ZIP/log audit is still required before claiming clean provider output."
+    },
+    "manualHuman": {
+      "status": "not-applicable",
+      "note": "No external instructor approval is claimed by this release."
+    }
+  },
+  "claims": [
+    {
+      "id": "v015101-live-v015100-browser-evidence",
+      "status": "verified-current",
+      "changelogHighlightIndex": 0,
+      "summary": "The release is grounded in the fresh deployed v0.15.100 UX browser run, which showed Quality 99, Texture 94, one format P2, and a slide-deck domain blocker before ZIP export.",
+      "anchors": [
+        "verification-output/edutool-audit-loop/20260628T133900Z-v015100-ux-fresh/report.md",
+        "docs/V0.15.101_UX_FORMAT_TEXTURE_DOMAIN_GUARD_ROADMAP.md"
+      ],
+      "proofCommands": [
+        "npx vitest run src/lib/__tests__/courseBlueprintCompiler.test.js -t \"UX assignment critique|stale notebook|lecture-exam slide\""
+      ],
+      "proofScopes": ["live-provider", "static-audit", "unit"]
+    },
+    {
+      "id": "v015101-assignment-section-parameter-sanitizer",
+      "status": "verified-current",
+      "changelogHighlightIndex": 1,
+      "summary": "Assignment Brief and rubric rendering rewrite numeric 'sections' parameters into student-facing 'labeled parts' without weakening the grader's cover-meta rule.",
+      "anchors": ["src/lib/courseBlueprintCompiler.js", "src/lib/__tests__/courseBlueprintCompiler.test.js"],
+      "proofCommands": [
+        "npx vitest run src/lib/__tests__/courseBlueprintCompiler.test.js -t \"UX assignment critique\""
+      ],
+      "proofScopes": ["unit", "compiled-output"]
+    },
+    {
+      "id": "v015101-nondata-slide-lab-asset-scrub",
+      "status": "verified-current",
+      "changelogHighlightIndex": 2,
+      "summary": "Non-data slide-deck IR and compiled slide-deck output scrub stale notebook/model-card terms while preserving data-science and AI-governance courses.",
+      "anchors": ["src/lib/courseBlueprintCompiler.js", "src/lib/__tests__/courseBlueprintCompiler.test.js"],
+      "proofCommands": ["npx vitest run src/lib/__tests__/courseBlueprintCompiler.test.js -t \"stale notebook\""],
+      "proofScopes": ["unit", "compiled-output", "static-audit"]
+    },
+    {
+      "id": "v015101-lesson-plan-material-texture",
+      "status": "verified-current",
+      "changelogHighlightIndex": 3,
+      "summary": "Lesson-plan material lists now vary by lesson focus and artifact instead of repeating the same agenda/handout/shared-notes/submission-template shingle.",
+      "anchors": ["src/lib/courseBlueprintCompiler.js", "src/lib/__tests__/courseBlueprintCompiler.test.js"],
+      "proofCommands": ["npx vitest run src/lib/__tests__/courseBlueprintCompiler.test.js -t \"lecture-exam slide\""],
+      "proofScopes": ["unit", "compiled-output"]
+    },
+    {
+      "id": "v015101-no-grader-validator-weakening",
+      "status": "verified-current",
+      "changelogHighlightIndex": 4,
+      "summary": "The release targets compiler output and leaves the strict quality grader plus semantic validator unchanged.",
+      "anchors": [
+        "docs/V0.15.101_UX_FORMAT_TEXTURE_DOMAIN_GUARD_ROADMAP.md",
+        "release-contracts/v0.15.101.json",
+        "src/lib/quality/artifactDefectPatterns.js",
+        "src/lib/pedagogicalValidator.js"
+      ],
+      "proofCommands": ["npm run audit:release-history"],
+      "proofScopes": ["static-audit", "doc"]
+    }
+  ],
+  "carryForward": [
+    {
+      "id": "fresh-v015101-provider-audit",
+      "status": "carry-forward",
+      "source": "docs/V0.15.101_UX_FORMAT_TEXTURE_DOMAIN_GUARD_ROADMAP.md",
+      "next": "After deploy, run a fresh v0.15.101 UX ZIP/log audit and verify export unblocks, no non-data slide lab assets remain, the assignment 'N sections' finding is gone, and lesson-plan texture improves."
+    },
+    {
+      "id": "cross-domain-robustness",
+      "status": "carry-forward",
+      "source": "verification-output/edutool-audit-loop/20260628T133900Z-v015100-ux-fresh/report.md",
+      "next": "Continue validating Project Management and UX outputs so source truth, texture, report truth, and exported surfaces stay aligned across domains."
+    },
+    {
+      "id": "provider-output-proof",
+      "status": "carry-forward",
+      "source": "release-contracts/v0.15.101.json",
+      "next": "Do not claim a clean 100/100 quality state until a fresh deployed ZIP/log audit and local regrade prove it."
+    }
+  ]
+}

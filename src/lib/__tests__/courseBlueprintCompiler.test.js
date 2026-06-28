@@ -15,6 +15,7 @@ import { evaluateClassroomReadiness } from '../classroomReadiness';
 import { validateDeliverableGeneration } from '../deliverablePostProcess';
 import { deliverableToCsvRows } from '../exporters/csvExporter';
 import { buildInstructorPreferenceProfile } from '../instructorPreferenceProfile';
+import { validateSemanticContentQuality } from '../pedagogicalValidator';
 import { computeTexture } from '../quality/textureMetric';
 import { DEFAULT_AUDIT_PROJECTS, MESSY_IMPORT_STRESS_PROJECT } from '../../../scripts/hybridPipelineAudit.mjs';
 
@@ -2437,6 +2438,15 @@ describe('courseBlueprintCompiler', () => {
         ...(lesson.evidencePlan || {}),
         limitationCue: `Name one limitation, assumption, or boundary condition before applying ${focus}`,
       };
+      if (lesson.lessonNumber === 11) {
+        lesson.enrichment = {
+          ...(lesson.enrichment || {}),
+          assignmentCore: {
+            taskDescription: 'Build a portfolio-ready case study from the project story and critique evidence.',
+            parameters: ['1 project story', '3-5 sections', 'Use concise captions', 'Include process and outcome'],
+          },
+        };
+      }
     });
 
     const compiled = compileBlueprintDeliverables(blueprint, ['assignments'], {
@@ -2456,12 +2466,74 @@ describe('courseBlueprintCompiler', () => {
     const evidence = texture.evidence.map((item) => item.shingle).join('\n');
 
     expect(assignmentTexts.join(' ')).not.toMatch(/compare the before\/after artifact/i);
+    expect(assignmentTexts.join(' ')).not.toMatch(/\b\d+(?:-\d+)? sections\b/i);
+    expect(assignmentTexts.join(' ')).toMatch(/\b3-5 labeled parts\b/i);
     expect(countDocumentsWith(/review the materials for .* identify the central problem or decision/i)).toBeLessThan(4);
     expect(countDocumentsWith(/select specific research evidence from course readings/i)).toBeLessThan(4);
     expect(countDocumentsWith(/name one limitation, assumption, or boundary condition before applying/i)).toBeLessThan(
       4,
     );
     expect(evidence).not.toMatch(/after artifact inspect critique evidence and require/i);
+  });
+
+  it('scrubs stale notebook and model-card slide metadata from non-data UX courses', () => {
+    const courseMap = {
+      courseName: 'User Experience Design Studio',
+      semester: 'Fall 2026',
+      lessons: [
+        {
+          title: 'Lesson 1: Design systems',
+          sections: [
+            {
+              topicSection: 'Design systems, component states, critique evidence',
+              learningGoals: 'Use design-system evidence to improve a UX artifact.',
+              learningObjectives: 'Analyze component consistency and justify one design-system revision.',
+              weeklyAssessments: 'Design-system critique note',
+              asyncActivities: 'Review assigned UX examples and annotate design-system evidence.',
+              syncActivities: 'Studio critique comparing component states and accessibility choices.',
+              supportingResources: 'Design-system examples; critique protocol; component-state checklist',
+              evaluateDesign: 'Score evidence, accessibility reasoning, limitation, and revision quality.',
+            },
+          ],
+        },
+      ],
+    };
+    const blueprint = buildCourseBlueprint(courseMap, {
+      enrichment: {
+        source: 'test-ux-slide-domain-scrub',
+        lens: {
+          domain: 'UX design studio',
+          evidenceNoun: 'critique evidence',
+          decisionNoun: 'design-system decision',
+          learnerRole: 'studio designer',
+          exampleNoun: 'component critique',
+        },
+      },
+    });
+    blueprint.lessons[0].artifactGenre = {
+      genre: 'data-science-notebook',
+      label: 'Data science notebook',
+      reviewProtocol: 'inspect the Jupyter notebook, starter notebook, and model-card limitation before revision',
+      commonFailure: 'The model card does not justify the notebook output.',
+      revisionMove: 'Update the model-card note and rerun the IPYNB evidence check.',
+    };
+    blueprint.lessons[0].outcomes = [
+      'Inspect the Jupyter notebook and model-card evidence before revising the design-system critique note.',
+    ];
+
+    const ir = buildSlideDeckIntermediateRepresentation(blueprint);
+    const irText = JSON.stringify(ir);
+    const compiled = compileBlueprintDeliverables(blueprint, ['slideDecks'], {
+      enforceCompilerContract: false,
+    });
+    const compiledText = JSON.stringify(compiled.slideDecks);
+    const findings = validateSemanticContentQuality(courseMap, compiled);
+
+    expect(blueprint.courseModalityProfile.primaryMode).toBe('studio-lab');
+    expect(irText).not.toMatch(/\b(?:Jupyter|IPYNB|starter notebook|model[-\s]card|data-science-notebook)\b/i);
+    expect(irText).toMatch(/\breview note\b/i);
+    expect(compiledText).not.toMatch(/\b(?:Jupyter|IPYNB|starter notebook|model[-\s]card|data-science-notebook)\b/i);
+    expect(findings.map((finding) => finding.id)).not.toContain('semantic-nonml-lab-assets');
   });
 
   it('varies lecture-exam slide and lesson-plan texture instead of repeating compiler tails', () => {
@@ -2594,6 +2666,7 @@ describe('courseBlueprintCompiler', () => {
     expect(countPlansWith(/Independent artifact sprint/i)).toBeLessThan(4);
     expect(countPlansWith(/Debrief and exit ticket/i)).toBeLessThan(4);
     expect(countPlansWith(/take a position on the lesson.s live question/i)).toBeLessThan(4);
+    expect(countPlansWith(/Course site agenda and lesson handout/i)).toBe(0);
     expect(countDecksWith(/practice workflow/i)).toBeLessThan(4);
     expect(countDecksWith(/what check would catch it/i)).toBeLessThan(4);
 
@@ -2627,6 +2700,9 @@ describe('courseBlueprintCompiler', () => {
     expect(evidence).not.toMatch(/independent artifact sprint/i);
     expect(evidence).not.toMatch(/debrief and exit ticket/i);
     expect(evidence).not.toMatch(/take a position on the lesson.s live question/i);
+    expect(evidence).not.toMatch(
+      /agenda and lesson handout shared notes or collaboration document submission template/i,
+    );
     expect(evidence).not.toMatch(/practice workflow practice workflow/i);
     expect(evidence).not.toMatch(/what check would catch it/i);
   });

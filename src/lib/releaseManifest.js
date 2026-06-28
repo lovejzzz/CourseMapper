@@ -3,24 +3,24 @@ import { APP_VERSION } from './appVersion.js';
 export const CURRENT_RELEASE = {
   version: APP_VERSION,
   date: 'June 28, 2026',
-  title: 'UX Assignment Texture: critique scaffolds stop repeating across briefs',
-  landingTitle: 'UX Assignment Texture',
+  title: 'UX Format and Domain Guard: sections and lab-asset leaks stop blocking export',
+  landingTitle: 'UX Format and Domain Guard',
   highlights: [
-    'A fresh deployed v0.15.99 User Experience Design Studio ZIP/log audit regraded honestly at 99/A: every structural/source/honesty dimension was 100, but texture stayed 89 with one P2 from repeated Assignment Brief prose.',
-    'Assignment Brief compilation now varies the generic UX before/after critique review protocol instead of stamping "compare the before/after artifact, inspect critique evidence, and require one named next iteration" across all 12 lessons.',
-    'The fixed assignment instruction frames for reviewing materials, selecting evidence, and naming limitations now rotate by lesson while preserving the same assessment identity, source-use intent, and rubric alignment.',
-    'A regression recreates the twelve-lesson UX design-studio shape and blocks the repeated before/after critique shingle plus the repeated materials/evidence/limitation instruction leads.',
-    'This release targets the only scored v0.15.99 loss without weakening the texture grader; a fresh deployed v0.15.100 ZIP/log audit is still required before claiming clean 100/100 provider output.',
+    'A fresh deployed v0.15.100 User Experience Design Studio browser run reached Quality 99 and Texture 94, but the package gate blocked ZIP export because Slide Decks still carried non-data notebook/model-card lab language.',
+    'Assignment Brief and rubric rendering now rewrites numeric "sections" parameters such as "3-5 sections" into student-facing "3-5 labeled parts," keeping the strict cover-meta grader unchanged.',
+    'Slide Deck IR and compiled Slide Deck output now scrub stale Jupyter, IPYNB, starter-notebook, data-science-notebook, and unsupported model-card language from non-data courses while preserving legitimate data-science and AI-governance usage.',
+    'Lesson-plan material lists now vary by lesson focus and artifact instead of repeating the same agenda/handout/shared-notes/submission-template shingle across every lesson.',
+    'This release fixes CourseMapper-side compiler output defects found by v0.15.100; a fresh deployed v0.15.101 ZIP/log audit is still required before claiming clean 100/100 provider output.',
   ],
   landingHighlights: [
-    'Assignment Briefs vary UX critique instructions across lessons.',
-    'The v0.15.99 texture P2 has a focused compiler regression.',
-    'Source, honesty, and format standards remain unchanged.',
-    'Fresh v0.15.100 provider proof remains required.',
+    'Assignment parameters avoid generic "N sections" cover meta.',
+    'Non-data Slide Decks scrub stale notebook/model-card artifacts.',
+    'Lesson Plan materials vary by lesson and artifact.',
+    'Fresh v0.15.101 provider proof remains required.',
   ],
   proof: {
-    contract: 'release-contracts/v0.15.100.json',
-    roadmap: 'docs/V0.15.100_ASSIGNMENT_TEXTURE_ROADMAP.md',
+    contract: 'release-contracts/v0.15.101.json',
+    roadmap: 'docs/V0.15.101_UX_FORMAT_TEXTURE_DOMAIN_GUARD_ROADMAP.md',
     auditCommand: 'npm run audit:release-history',
   },
 };
@@ -35,6 +35,18 @@ export const CURRENT_RELEASE_CHANGELOG = {
 };
 
 export const HISTORICAL_RELEASE_CHANGELOGS = [
+  {
+    version: '0.15.100',
+    date: 'June 28, 2026',
+    title: 'UX Assignment Texture: critique scaffolds stop repeating across briefs',
+    highlights: [
+      'A fresh deployed v0.15.99 User Experience Design Studio ZIP/log audit regraded honestly at 99/A: every structural/source/honesty dimension was 100, but texture stayed 89 with one P2 from repeated Assignment Brief prose.',
+      'Assignment Brief compilation now varies the generic UX before/after critique review protocol instead of stamping "compare the before/after artifact, inspect critique evidence, and require one named next iteration" across all 12 lessons.',
+      'The fixed assignment instruction frames for reviewing materials, selecting evidence, and naming limitations now rotate by lesson while preserving the same assessment identity, source-use intent, and rubric alignment.',
+      'A regression recreates the twelve-lesson UX design-studio shape and blocks the repeated before/after critique shingle plus the repeated materials/evidence/limitation instruction leads.',
+      'A fresh deployed v0.15.100 browser run improved texture to 94 but exposed a remaining assignment "N sections" P2, repeated Lesson Plan material shingles, and a non-data Slide Deck notebook/model-card package blocker.',
+    ],
+  },
   {
     version: '0.15.99',
     date: 'June 28, 2026',
