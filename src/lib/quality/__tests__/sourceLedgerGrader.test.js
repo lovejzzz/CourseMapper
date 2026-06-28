@@ -319,6 +319,15 @@ describe('source-ledger quality checks', () => {
               conceptLinks: [{ id: 'c7', label: 'personas' }],
             },
             {
+              id: 'sf1',
+              title: 'The Green Studio Handbook: Environmental Strategies for Schematic Design',
+              provider: 'openalex',
+              url: 'https://www.arcc-journal.org/index.php/arccjournal/article/download/47/46',
+              doi: '10.17831/enq:arcc.v4i2.47',
+              license: 'CC BY-NC-SA',
+              conceptLinks: [{ id: 'c9', label: 'critique sessions' }],
+            },
+            {
               id: 'sf3',
               title:
                 'Optimizing the digital customer journey—Improving user experience by exploiting emotions, personas and situations for individualized user interface adaptations',
@@ -331,12 +340,12 @@ describe('source-ledger quality checks', () => {
           ],
           sourceReport: {
             path: 'SOURCE_REPORT.md',
-            sourceCount: 3,
+            sourceCount: 4,
           },
           files: [],
         }),
         'SOURCE_REPORT.md':
-          '# Source Report\n\n## Source Ledger\n- sf2: Positive feedback\n- kr2: Metaverse beyond the hype\n- sf3: Optimizing the digital customer journey\n',
+          '# Source Report\n\n## Source Ledger\n- sf2: Positive feedback\n- kr2: Metaverse beyond the hype\n- sf1: The Green Studio Handbook\n- sf3: Optimizing the digital customer journey\n',
       }),
       course: { title: 'User Experience Design Studio', featureIds: [] },
     });
@@ -352,6 +361,11 @@ describe('source-ledger quality checks', () => {
           severity: 'P1',
           dimension: 'citations',
           detail: 'source ledger row kr2 is off-discipline for User Experience Design Studio',
+        }),
+        expect.objectContaining({
+          severity: 'P1',
+          dimension: 'citations',
+          detail: 'source ledger row sf1 is off-discipline for User Experience Design Studio',
         }),
       ]),
     );

@@ -704,6 +704,16 @@ describe('trusted source ledger', () => {
                 {
                   provider: 'openalex',
                   kind: 'journal article',
+                  title: 'The Green Studio Handbook: Environmental Strategies for Schematic Design',
+                  url: 'https://www.arcc-journal.org/index.php/arccjournal/article/download/47/46',
+                  doi: '10.17831/enq:arcc.v4i2.47',
+                  license: 'CC BY-NC-SA',
+                  snippet:
+                    'Environmental strategies for schematic design covers daylight, airflow, and green building decisions.',
+                },
+                {
+                  provider: 'openalex',
+                  kind: 'journal article',
                   title: 'Understanding Collaborative Practices and Tools of Professional UX Practitioners',
                   url: 'https://dl.acm.org/doi/pdf/10.1145/3544548.3581273',
                   doi: '10.1145/3544548.3581273',
@@ -728,6 +738,9 @@ describe('trusted source ledger', () => {
       ]),
     );
     expect(ledger.rows.map((row) => row.title)).not.toContain('Positive feedback');
+    expect(ledger.rows.map((row) => row.title)).not.toContain(
+      'The Green Studio Handbook: Environmental Strategies for Schematic Design',
+    );
     expect(ledger.reviewRows).toEqual(
       expect.arrayContaining([
         expect.objectContaining({
@@ -735,9 +748,14 @@ describe('trusted source ledger', () => {
           title: 'Positive feedback',
           conceptLinks: [{ id: 'c1', label: 'project feedback' }],
         }),
+        expect.objectContaining({
+          provider: 'openalex',
+          title: 'The Green Studio Handbook: Environmental Strategies for Schematic Design',
+          conceptLinks: [{ id: 'c1', label: 'project feedback' }],
+        }),
       ]),
     );
-    expect(ledger.summary).toMatchObject({ sourceCount: 1, trustedConceptLinkedCount: 1, reviewRequiredCount: 1 });
+    expect(ledger.summary).toMatchObject({ sourceCount: 1, trustedConceptLinkedCount: 1, reviewRequiredCount: 2 });
   });
 
   it('quarantines weak UX knowledge resources before they become trusted ledger rows', () => {

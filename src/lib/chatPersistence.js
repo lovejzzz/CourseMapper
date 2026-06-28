@@ -11,8 +11,10 @@ const MAX_CONVERSATIONS = 50;
 const QUOTA_RETRY_CONVERSATIONS = 20;
 const COMPACT_MESSAGE_LIMIT = 80;
 const HARD_COMPACT_MESSAGE_LIMIT = 30;
+const MINIMAL_COMPACT_MESSAGE_LIMIT = 6;
 const COMPACT_TEXT_CHARS = 4000;
 const HARD_COMPACT_TEXT_CHARS = 1200;
+const MINIMAL_COMPACT_TEXT_CHARS = 320;
 
 function isQuotaError(error) {
   return (
@@ -78,8 +80,16 @@ function removeConversationPayloadsExcept(activeId) {
   for (const key of keys) localStorage.removeItem(key);
 }
 
-function writeConversationStorage(conversations, id, messages) {
+function removeConversationPayload(id) {
+  localStorage.removeItem(`${STORAGE_KEY}:${id}`);
+}
+
+function writeConversationIndex(conversations) {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(conversations));
+}
+
+function writeConversationStorage(conversations, id, messages) {
+  writeConversationIndex(conversations);
   localStorage.setItem(`${STORAGE_KEY}:${id}`, JSON.stringify(messages));
 }
 
@@ -157,7 +167,18 @@ export function saveConversation(id, messages, title) {
         } catch (hardRetryError) {
           if (!isQuotaError(hardRetryError)) throw hardRetryError;
           removeConversationPayloadsExcept(id);
-          writeConversationStorage([entry], id, hardCompactedMessages);
+          removeConversationPayload(id);
+          const minimalCompactedMessages = compactMessagesForStorage(safeMessages, {
+            limit: MINIMAL_COMPACT_MESSAGE_LIMIT,
+            maxChars: MINIMAL_COMPACT_TEXT_CHARS,
+          });
+          try {
+            writeConversationStorage([entry], id, minimalCompactedMessages);
+          } catch (minimalRetryError) {
+            if (!isQuotaError(minimalRetryError)) throw minimalRetryError;
+            removeConversationPayload(id);
+            writeConversationIndex([entry]);
+          }
         }
       }
     }

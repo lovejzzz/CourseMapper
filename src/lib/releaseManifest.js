@@ -3,22 +3,22 @@ import { APP_VERSION } from './appVersion.js';
 export const CURRENT_RELEASE = {
   version: APP_VERSION,
   date: 'June 28, 2026',
-  title: 'Source Proof Hardening: trusted rows must be licensed and linked',
-  landingTitle: 'Source Proof Hardening',
+  title: 'UX Source Quarantine and Quota Fallback: hidden caveats stop passing quietly',
+  landingTitle: 'UX Source Quarantine',
   highlights: [
-    'Trusted sourceLedger proof now requires the row to be accessible, license-safe, trust-eligible, and concept-linked; missing-license, review-only, metadata-only, or unlinked rows stay visible as sourceReviewRows instead of counting as bibliography proof.',
-    'Source resources linked to a lesson section now inherit the section topic when no explicit concept id is available, so valid source text can still become concept-linked instead of falling into an unlinked gray area.',
-    'Package source-ledger merging now prefers trusted rows across the full package before adding review rows, preventing a weaker syllabus/review copy of the same DOI from cluttering SOURCE_REPORT.md after a stronger trusted source is present.',
-    'This release does not claim a clean 100/100 package: a fresh deployed v0.15.89 ZIP/log audit is still required to measure citation-score impact across Project Management and UX-style source-heavy courses.',
+    'The v0.15.89 User Experience Design Studio ZIP/log audit reached a nominal 100/100, but SOURCE_REPORT.md still trusted an environmental architecture "Green Studio Handbook" row as UX critique/design-journal proof; that false friend is now quarantined into sourceReviewRows.',
+    'The source-ledger grader mirrors the new UX quarantine rule, so the same v0.15.89 artifact now projects to 99/A with a P1 citation finding instead of silently passing as clean.',
+    'Conversation persistence now degrades to a tiny payload and then an index-only save when localStorage quota is exhausted, preserving the workspace list without emitting app-bundle QuotaExceeded warnings during long audit runs.',
+    'This release does not claim clean 100/100 quality: a fresh deployed v0.15.90 ZIP/log audit is still required to prove the UX source quarantine, quota fallback, and texture behavior in real provider output.',
   ],
   landingHighlights: [
-    'Trusted rows require license proof.',
-    'Review rows stay visible.',
-    'Duplicate source notes collapse.',
+    'UX false-friend sources move to review.',
+    'Hidden citation caveats score honestly.',
+    'Quota pressure keeps the workspace usable.',
   ],
   proof: {
-    contract: 'release-contracts/v0.15.89.json',
-    roadmap: 'docs/V0.15.89_SOURCE_PROOF_HARDENING_ROADMAP.md',
+    contract: 'release-contracts/v0.15.90.json',
+    roadmap: 'docs/V0.15.90_UX_SOURCE_QUARANTINE_QUOTA_ROADMAP.md',
     auditCommand: 'npm run audit:release-history',
   },
 };
@@ -33,6 +33,17 @@ export const CURRENT_RELEASE_CHANGELOG = {
 };
 
 export const HISTORICAL_RELEASE_CHANGELOGS = [
+  {
+    version: '0.15.89',
+    date: 'June 28, 2026',
+    title: 'Source Proof Hardening: trusted rows must be licensed and linked',
+    highlights: [
+      'Trusted sourceLedger proof now requires the row to be accessible, license-safe, trust-eligible, and concept-linked; missing-license, review-only, metadata-only, or unlinked rows stay visible as sourceReviewRows instead of counting as bibliography proof.',
+      'Source resources linked to a lesson section now inherit the section topic when no explicit concept id is available, so valid source text can still become concept-linked instead of falling into an unlinked gray area.',
+      'Package source-ledger merging now prefers trusted rows across the full package before adding review rows, preventing a weaker syllabus/review copy of the same DOI from cluttering SOURCE_REPORT.md after a stronger trusted source is present.',
+      'This release does not claim a clean 100/100 package: a fresh deployed v0.15.89 ZIP/log audit is still required to measure citation-score impact across Project Management and UX-style source-heavy courses.',
+    ],
+  },
   {
     version: '0.15.88',
     date: 'June 27, 2026',

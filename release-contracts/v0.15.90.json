@@ -1,0 +1,104 @@
+{
+  "version": "0.15.90",
+  "date": "June 28, 2026",
+  "title": "UX Source Quarantine and Quota Fallback: hidden caveats stop passing quietly",
+  "status": "verified-current",
+  "proofSummary": {
+    "local": [
+      "npm test -- src/lib/knowledge/__tests__/sourceLedger.test.js src/lib/quality/__tests__/sourceLedgerGrader.test.js src/lib/__tests__/chatPersistence.test.js",
+      "npm run format:check",
+      "npm run lint",
+      "npm test",
+      "npm run build",
+      "npm run bundle:check",
+      "npm run audit:release-history",
+      "npm run audit:gold:smoke"
+    ],
+    "ciFast": {
+      "status": "pending-push",
+      "note": "Fast verification is claimed only after v0.15.90 is pushed and the GitHub Actions run is attached."
+    },
+    "deploy": {
+      "status": "pending-push",
+      "note": "Pages deploy is not claimed until the pushed v0.15.90 release completes its deploy run."
+    },
+    "ciDeep": {
+      "status": "local-only",
+      "note": "This is a narrow source quarantine, grader truth, and runtime fallback release; targeted regressions plus normal gates are the release bar."
+    },
+    "liveProvider": {
+      "status": "local-only",
+      "note": "The release is based on the fresh deployed v0.15.89 ZIP/log audit and local projection. A fresh deployed v0.15.90 ZIP/log audit is still required before claiming provider package quality improvement."
+    },
+    "manualHuman": {
+      "status": "not-applicable",
+      "note": "No external instructor approval is claimed by this release."
+    }
+  },
+  "claims": [
+    {
+      "id": "v01590-ux-green-studio-quarantine",
+      "status": "verified-current",
+      "changelogHighlightIndex": 0,
+      "summary": "UX/design-studio source filtering now quarantines the environmental architecture Green Studio false friend from trusted sourceLedger proof while preserving legitimate UX sources.",
+      "anchors": [
+        "src/lib/knowledge/sourceLedger.js",
+        "src/lib/knowledge/__tests__/sourceLedger.test.js",
+        "docs/V0.15.90_UX_SOURCE_QUARANTINE_QUOTA_ROADMAP.md"
+      ],
+      "proofCommands": [
+        "npm test -- src/lib/knowledge/__tests__/sourceLedger.test.js src/lib/quality/__tests__/sourceLedgerGrader.test.js src/lib/__tests__/chatPersistence.test.js"
+      ],
+      "proofScopes": ["unit", "live-provider"]
+    },
+    {
+      "id": "v01590-grader-catches-hidden-ux-source-caveat",
+      "status": "verified-current",
+      "changelogHighlightIndex": 1,
+      "summary": "The local deep quality grader now flags the v0.15.89 Green Studio trusted row as a P1 citation defect, projecting the previously nominal 100/100 UX package to 99/A.",
+      "anchors": [
+        "src/lib/quality/sourceLedgerQualityChecks.js",
+        "src/lib/quality/__tests__/sourceLedgerGrader.test.js",
+        "docs/V0.15.90_UX_SOURCE_QUARANTINE_QUOTA_ROADMAP.md"
+      ],
+      "proofCommands": [
+        "npm test -- src/lib/knowledge/__tests__/sourceLedger.test.js src/lib/quality/__tests__/sourceLedgerGrader.test.js src/lib/__tests__/chatPersistence.test.js"
+      ],
+      "proofScopes": ["unit", "static-audit", "compiled-output"]
+    },
+    {
+      "id": "v01590-chat-quota-index-only-fallback",
+      "status": "verified-current",
+      "changelogHighlightIndex": 2,
+      "summary": "Conversation persistence now falls back from compact payloads to an index-only save when active payload storage still exceeds quota, avoiding noisy current-run QuotaExceededError warnings.",
+      "anchors": ["src/lib/chatPersistence.js", "src/lib/__tests__/chatPersistence.test.js"],
+      "proofCommands": [
+        "npm test -- src/lib/knowledge/__tests__/sourceLedger.test.js src/lib/quality/__tests__/sourceLedgerGrader.test.js src/lib/__tests__/chatPersistence.test.js"
+      ],
+      "proofScopes": ["unit"]
+    },
+    {
+      "id": "v01590-no-clean-quality-claim",
+      "status": "verified-current",
+      "changelogHighlightIndex": 3,
+      "summary": "The release explicitly carries forward fresh deployed v0.15.90 ZIP/log validation before claiming clean 100/100 provider output.",
+      "anchors": ["docs/V0.15.90_UX_SOURCE_QUARANTINE_QUOTA_ROADMAP.md", "release-contracts/v0.15.90.json"],
+      "proofCommands": ["npm run audit:release-history"],
+      "proofScopes": ["static-audit", "doc"]
+    }
+  ],
+  "carryForward": [
+    {
+      "id": "fresh-v01590-provider-audit",
+      "status": "carry-forward",
+      "source": "docs/V0.15.90_UX_SOURCE_QUARANTINE_QUOTA_ROADMAP.md",
+      "next": "After deploy, run a fresh v0.15.90 UX ZIP/log audit and verify SOURCE_REPORT.md, manifest sourceLedger/sourceReviewRows, local deep regrade, texture, and browser warning logs."
+    },
+    {
+      "id": "texture-below-perfect",
+      "status": "carry-forward",
+      "source": "verification-output/edutool-audit-loop/20260628T055030Z-v01589-ux-fresh/local-regrade.json",
+      "next": "The v0.15.89 UX run measured texture at 94/100 with repeated lesson-plan scaffolds; continue deterministic variation cleanup after source and runtime truth are verified."
+    }
+  ]
+}

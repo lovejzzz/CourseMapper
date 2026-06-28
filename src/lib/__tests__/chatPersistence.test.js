@@ -231,6 +231,37 @@ describe('saveConversation + loadConversation', () => {
     }
   });
 
+  it('keeps the conversation index when the active payload still cannot fit', () => {
+    const defaultSetItem = localStorage.setItem.getMockImplementation();
+    const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    localStorage.setItem.mockImplementation((key, value) => {
+      if (key === 'coursemapper-conversations:active') {
+        const error = new Error('quota exceeded');
+        error.name = 'QuotaExceededError';
+        throw error;
+      }
+      return defaultSetItem(key, value);
+    });
+
+    try {
+      const messages = Array.from({ length: 120 }, (_, index) => ({
+        role: index % 2 === 0 ? 'user' : 'assistant',
+        text: `Message ${index} ${'x'.repeat(5000)}`,
+      }));
+
+      const entry = saveConversation('active', messages, 'Active');
+
+      expect(entry.id).toBe('active');
+      expect(warnSpy).not.toHaveBeenCalled();
+      expect(listConversations()).toEqual([expect.objectContaining({ id: 'active', title: 'Active' })]);
+      expect(localStorage.getItem('coursemapper-conversations:active')).toBeNull();
+      expect(loadConversation('active')).toBeNull();
+    } finally {
+      localStorage.setItem.mockImplementation(defaultSetItem);
+      warnSpy.mockRestore();
+    }
+  });
+
   it('returns null for non-existent conversation', () => {
     expect(loadConversation('nonexistent')).toBeNull();
   });
