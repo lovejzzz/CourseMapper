@@ -1,0 +1,98 @@
+{
+  "version": "0.15.94",
+  "date": "June 28, 2026",
+  "title": "Source-Finder Bycatch Cleanup: rejected UX candidates stop becoming open resources",
+  "status": "verified-current",
+  "proofSummary": {
+    "local": [
+      "npm test -- --run src/lib/knowledge/__tests__/sourceLedger.test.js src/lib/knowledge/__tests__/sourceFinder.test.js src/lib/quality/__tests__/sourceLedgerGrader.test.js"
+    ],
+    "ciFast": {
+      "status": "pending-push",
+      "note": "Fast verification is claimed only after v0.15.94 is pushed and the GitHub Actions run is attached."
+    },
+    "deploy": {
+      "status": "pending-push",
+      "note": "Pages deploy is not claimed until the pushed v0.15.94 release completes its deploy run."
+    },
+    "ciDeep": {
+      "status": "local-only",
+      "note": "This is a narrow source-finder filtering release; targeted source regressions plus normal gates are the release bar."
+    },
+    "liveProvider": {
+      "status": "local-only",
+      "note": "The release is based on the fresh deployed v0.15.93 ZIP/log audit and local targeted proof. A fresh deployed v0.15.94 ZIP/log audit is still required before claiming provider package quality improvement."
+    },
+    "manualHuman": {
+      "status": "not-applicable",
+      "note": "No external instructor approval is claimed by this release."
+    }
+  },
+  "claims": [
+    {
+      "id": "v01594-live-v01593-source-bycatch-evidence",
+      "status": "verified-current",
+      "changelogHighlightIndex": 0,
+      "summary": "The release is grounded in a fresh deployed v0.15.93 UX ZIP/log audit that regraded 97/A with six citation review-row caveats.",
+      "anchors": [
+        "verification-output/edutool-audit-loop/20260628T084023Z-v01593-ux-fresh/local-regrade.json",
+        "verification-output/edutool-audit-loop/20260628T084023Z-v01593-ux-fresh/report.md",
+        "docs/V0.15.94_SOURCE_FINDER_BYCATCH_CLEANUP_ROADMAP.md"
+      ],
+      "proofCommands": [
+        "npm test -- --run src/lib/knowledge/__tests__/sourceLedger.test.js src/lib/knowledge/__tests__/sourceFinder.test.js src/lib/quality/__tests__/sourceLedgerGrader.test.js"
+      ],
+      "proofScopes": ["live-provider", "static-audit", "unit"]
+    },
+    {
+      "id": "v01594-source-finder-bycatch-not-attached",
+      "status": "verified-current",
+      "changelogHighlightIndex": 1,
+      "summary": "Source-finder attachment applies the UX weak-source gate before adding resources, so first-result bycatch does not inflate open-resource counts.",
+      "anchors": ["src/lib/knowledge/sourceFinder.js", "src/lib/knowledge/__tests__/sourceFinder.test.js"],
+      "proofCommands": ["npm test -- --run src/lib/knowledge/__tests__/sourceFinder.test.js"],
+      "proofScopes": ["unit", "compiled-output"]
+    },
+    {
+      "id": "v01594-source-finder-bycatch-not-review-debt",
+      "status": "verified-current",
+      "changelogHighlightIndex": 2,
+      "summary": "Weak source-finder candidates are discarded instead of exported as sourceReviewRows, while real missing-proof review rows remain visible.",
+      "anchors": ["src/lib/knowledge/sourceLedger.js", "src/lib/knowledge/__tests__/sourceLedger.test.js"],
+      "proofCommands": ["npm test -- --run src/lib/knowledge/__tests__/sourceLedger.test.js"],
+      "proofScopes": ["unit", "compiled-output"]
+    },
+    {
+      "id": "v01594-hyphenated-user-experience-and-ab-testing-anchors",
+      "status": "verified-current",
+      "changelogHighlightIndex": 3,
+      "summary": "Hyphenated user-experience text and A/B testing references now satisfy the UX source relevance gate when concept-linked.",
+      "anchors": [
+        "src/lib/knowledge/sourceLedger.js",
+        "src/lib/quality/sourceLedgerQualityChecks.js",
+        "src/lib/knowledge/__tests__/sourceLedger.test.js"
+      ],
+      "proofCommands": [
+        "npm test -- --run src/lib/knowledge/__tests__/sourceLedger.test.js src/lib/quality/__tests__/sourceLedgerGrader.test.js"
+      ],
+      "proofScopes": ["unit", "compiled-output"]
+    },
+    {
+      "id": "v01594-no-clean-quality-claim",
+      "status": "verified-current",
+      "changelogHighlightIndex": 4,
+      "summary": "The release explicitly requires a fresh deployed v0.15.94 ZIP/log audit before claiming clean provider output.",
+      "anchors": ["docs/V0.15.94_SOURCE_FINDER_BYCATCH_CLEANUP_ROADMAP.md", "release-contracts/v0.15.94.json"],
+      "proofCommands": ["npm run audit:release-history"],
+      "proofScopes": ["static-audit", "doc"]
+    }
+  ],
+  "carryForward": [
+    {
+      "id": "fresh-v01594-provider-audit",
+      "status": "carry-forward",
+      "source": "docs/V0.15.94_SOURCE_FINDER_BYCATCH_CLEANUP_ROADMAP.md",
+      "next": "After deploy, run a fresh v0.15.94 UX ZIP/log audit and verify no source-finder bycatch ships as sourceReviewRows or open-resource proof, and that valid A/B testing evidence remains trusted when concept-linked."
+    }
+  ]
+}

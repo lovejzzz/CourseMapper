@@ -18,7 +18,7 @@ import {
   searchScholarlyReadings,
   searchWikipediaPages,
 } from './providers.js';
-import { isLicenseAmbiguous } from './sourceLedger.js';
+import { isLicenseAmbiguous, isUserExperienceWeakSource } from './sourceLedger.js';
 
 export const SOURCE_FINDER_ORIGIN = 'source-finder';
 
@@ -508,6 +508,32 @@ function sourceCitation(source) {
   return `${authors}${year}. ${source.title}. ${provider}: ${source.url}${licenseTail}`;
 }
 
+function sourceFinderCourseContext(graph, miniShard) {
+  return {
+    course: { name: miniShard?.courseName || graph?.course?.name || graph?.courseName || graph?.title || '' },
+    courseName: miniShard?.courseName || graph?.course?.name || graph?.courseName || graph?.title || '',
+    sessions: graph?.sessions || [],
+  };
+}
+
+function sourceFinderCandidateForReview(source = {}, topic = {}) {
+  return {
+    ...source,
+    id: source.sourceRefId || source.id || '',
+    origin: SOURCE_FINDER_ORIGIN,
+    sourceType: source.kind || 'source-finder source',
+    evidence: source.snippet || source.abstract || source.evidence || topic.topic,
+    conceptLinks: topic.topic ? [{ label: topic.topic }] : [],
+  };
+}
+
+function attachableTopicSources(graph, miniShard, topic) {
+  const courseContext = sourceFinderCourseContext(graph, miniShard);
+  return (topic.sources || []).filter(
+    (source) => !isUserExperienceWeakSource(sourceFinderCandidateForReview(source, topic), courseContext),
+  );
+}
+
 export function attachSourceFinderResources(graph, miniShard, { maxSourcesPerTopic = 1 } = {}) {
   if (!graph || typeof graph !== 'object' || !Array.isArray(graph.resources)) return 0;
   if (!miniShard || !Array.isArray(miniShard.topics)) return 0;
@@ -524,7 +550,7 @@ export function attachSourceFinderResources(graph, miniShard, { maxSourcesPerTop
     if (!session) continue;
     const section = (session.sections || [])[0];
     if (!section) continue;
-    for (const source of (topic.sources || []).slice(0, maxSourcesPerTopic)) {
+    for (const source of attachableTopicSources(graph, miniShard, topic).slice(0, maxSourcesPerTopic)) {
       const citation = sourceCitation(source);
       if (!citation || seen.has(citation.toLowerCase())) continue;
       const resource = {

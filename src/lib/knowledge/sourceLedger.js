@@ -34,9 +34,9 @@ const PLACEHOLDER_RESOURCE_RE =
 const USER_EXPERIENCE_COURSE_RE =
   /\b(?:user\s+experience|ux\b|human[-\s]?centered\s+design|interaction\s+design|interface\s+design|usability|design\s+studio)\b/i;
 const USER_EXPERIENCE_SOURCE_ANCHOR_RE =
-  /\b(?:user\s+experience|ux\b|human[-\s]?centered\s+design|human[-\s]?computer\s+interaction|human[-\s]?ai\s+interaction|hci\b|hai\b|user\s+interfaces?|interface\s+design|usability|design\s+research|user\s+research|personas?\b(?!\s*5)|journey\s+maps?|customer\s+journey|information\s+architecture|wirefram|prototype|interaction\s+design|accessibility|inclusive\s+design|design\s+handoff|design\s+studio|co[-\s]?design|service\s+design|material\s+experience|design\s+patterns?|screen\s+flows?|navigation|portfolio\s+case\s+study|critique\s+session)\b/i;
+  /\b(?:user[-\s]+experience|ux\b|human[-\s]?centered\s+design|human[-\s]?computer\s+interaction|human[-\s]?ai\s+interaction|hci\b|hai\b|user\s+interfaces?|interface\s+design|usability|design\s+research|user\s+research|personas?\b(?!\s*5)|journey\s+maps?|customer\s+journey|information\s+architecture|wirefram|prototype|interaction\s+design|accessibility|inclusive\s+design|design\s+handoff|design\s+studio|co[-\s]?design|service\s+design|material\s+experience|design\s+patterns?|screen\s+flows?|navigation|portfolio\s+case\s+study|critique\s+session|a\/b\s+test(?:ing)?)\b/i;
 const USER_EXPERIENCE_FALSE_FRIEND_RE =
-  /(?:\bpositive\s+feedback\b|\bnegative\s+feedback\b|\bclimate\s+change\s+feedbacks?\b|\bpersona\s+5\b|\bpersona\s+\(series\)|\bbrief\s+interviews\s+with\s+hideous\s+men\b|\baircraft\s+design\s+process\b|\bprocess\s+design\s+and\s+process\s+control\b|\bifac\s+workshop\b|\bshoe\s+production\s+facilities\b|\bblocplan\b|\bsystematic\s+layout\s+planning\b|\blayout\s+of\s+shoe\s+production\b|\blayout\s+editor\s+configuration\b|\bmetaverse\s+beyond\s+the\s+hype\b|\bpatterns\s+2\.0\b|\blead[-\s]?user\s+theory\b|\bcommercially\s+attractive\s+user\s+innovations\b|\bweb\s+gis\s+in\s+practice\b|\bmicrosoft\s+kinect\b|\bintralogistics\s+processes\b|\bgreen\s+studio\s+handbook\b|\benvironmental\s+strategies\s+for\s+schematic\s+design\b|\bnational\s+design\s+studio\b|\ble\s+mans\s+prototype\b|\bin\s+living\s+color\s+sketches\b|\bsketch\s+comedy\b|\bcomedy\s+sketch(?:es)?\b|\btelevision\s+sketch(?:es)?\b|\barchitectural\s+education\b|\bcollaborative\s+learning\s+in\s+architectur(?:e|al)\b)/i;
+  /(?:\bstudio\s+ghibli\b|\bspiritual\s+practice\b|\bstrategic\s+planning\b|\bchuck\s+swindoll\b|\bpre[-\s]?service\s+teachers?\b|\bteacher\s+education\b|\bpositive\s+feedback\b|\bnegative\s+feedback\b|\bclimate\s+change\s+feedbacks?\b|\bpersona\s+5\b|\bpersona\s+\(series\)|\bbrief\s+interviews\s+with\s+hideous\s+men\b|\baircraft\s+design\s+process\b|\bprocess\s+design\s+and\s+process\s+control\b|\bifac\s+workshop\b|\bshoe\s+production\s+facilities\b|\bblocplan\b|\bsystematic\s+layout\s+planning\b|\blayout\s+of\s+shoe\s+production\b|\blayout\s+editor\s+configuration\b|\bmetaverse\s+beyond\s+the\s+hype\b|\bpatterns\s+2\.0\b|\blead[-\s]?user\s+theory\b|\bcommercially\s+attractive\s+user\s+innovations\b|\bweb\s+gis\s+in\s+practice\b|\bmicrosoft\s+kinect\b|\bintralogistics\s+processes\b|\bgreen\s+studio\s+handbook\b|\benvironmental\s+strategies\s+for\s+schematic\s+design\b|\bnational\s+design\s+studio\b|\ble\s+mans\s+prototype\b|\bin\s+living\s+color\s+sketches\b|\bsketch\s+comedy\b|\bcomedy\s+sketch(?:es)?\b|\btelevision\s+sketch(?:es)?\b|\barchitectural\s+education\b|\bcollaborative\s+learning\s+in\s+architectur(?:e|al)\b)/i;
 const USER_EXPERIENCE_TOPIC_ANCHORS = [
   {
     concept: /\b(?:design\s+process|critique\s+sessions?|design\s+journals?|studio\s+workflow)\b/i,
@@ -69,7 +69,8 @@ const USER_EXPERIENCE_TOPIC_ANCHORS = [
   },
   {
     concept: /\b(?:test\s+plans?|task\s+scenarios?|findings)\b/i,
-    source: /\b(?:usability\s+test(?:ing)?|test\s+plans?|task\s+scenarios?|research\s+findings?)\b/i,
+    source:
+      /\b(?:usability\s+test(?:ing)?|a\/b\s+test(?:ing)?|split\s+test(?:ing)?|test\s+plans?|task\s+scenarios?|research\s+findings?)\b/i,
   },
   {
     concept: /\b(?:inclusive\s+design|evaluation|remediation|accessibility)\b/i,
@@ -305,6 +306,7 @@ export function normalizeTrustedSource(entry = {}, { fallbackId = '', checkedAt 
     sourceType: sourceType(entry),
     scope: cleanText(entry.scope || entry.path || 'course', 140),
     status: sourceStatus(entry),
+    origin: cleanText(entry.origin || entry.sourceOrigin || '', 80),
     evidence: cleanText(entry.evidence || entry.note || entry.snippet || entry.abstract || '', 360),
     conceptLinks: normalizeConceptLinks([...(conceptLinks || []), ...(entry.conceptLinks || [])]),
     checkedAt: cleanText(entry.checkedAt || checkedAt, 80),
@@ -503,11 +505,18 @@ function hasUserExperienceTopicAnchor(source = {}) {
   });
 }
 
-function isUserExperienceWeakSource(source, courseGraph) {
+export function isUserExperienceWeakSource(source, courseGraph) {
   if (!USER_EXPERIENCE_COURSE_RE.test(courseText(courseGraph))) return false;
   const text = sourceSearchText(source);
   if (USER_EXPERIENCE_FALSE_FRIEND_RE.test(text)) return true;
   return !USER_EXPERIENCE_SOURCE_ANCHOR_RE.test(text) && !hasUserExperienceTopicAnchor(source);
+}
+
+function isSourceFinderCandidate(source = {}) {
+  return (
+    cleanText(source?.origin || source?.sourceOrigin, 80).toLowerCase() === 'source-finder' ||
+    /^sf(?:-|\d)/i.test(cleanText(source?.id, 80))
+  );
 }
 
 function requiresSourceReview(source = {}) {
@@ -515,6 +524,9 @@ function requiresSourceReview(source = {}) {
 }
 
 function appendCourseAwareSource(rows, reviewRows, source, courseGraph) {
+  if (isSourceFinderCandidate(source) && isUserExperienceWeakSource(source, courseGraph)) {
+    return;
+  }
   if (requiresSourceReview(source)) {
     appendUnique(reviewRows, source);
     return;
@@ -576,6 +588,7 @@ function normalizeSourceFinderTopicSource(courseGraph, topic, source, topicIndex
     {
       ...source,
       id: source.sourceRefId || source.id || `sf-${topicIndex + 1}-${sourceIndex + 1}`,
+      origin: 'source-finder',
       provider: source.provider || 'source-finder',
       sourceType: source.kind || 'source-finder source',
       status: 'source-provided',
@@ -597,6 +610,7 @@ function sourceFinderTopicLedgerSources(courseGraph, topic, topicIndex, checkedA
   const falseFriendRows = candidates.filter(
     (source) => isTrustedConceptLinkedSourceLedgerRow(source) && isUserExperienceWeakSource(source, courseGraph),
   );
+  const reviewCandidates = candidates.filter((source) => !isUserExperienceWeakSource(source, courseGraph));
   const trustedConceptLinked = candidates.filter(
     (source) => isTrustedConceptLinkedSourceLedgerRow(source) && !isUserExperienceWeakSource(source, courseGraph),
   );
@@ -608,7 +622,7 @@ function sourceFinderTopicLedgerSources(courseGraph, topic, topicIndex, checkedA
   }
   return {
     rows: [],
-    reviewRows: falseFriendRows.length > 0 ? falseFriendRows.slice(0, 1) : candidates.slice(0, 1),
+    reviewRows: falseFriendRows.length > 0 ? [] : reviewCandidates.slice(0, 1),
   };
 }
 

@@ -785,6 +785,67 @@ describe('trusted source ledger', () => {
     expect(ledger.summary.reviewRequiredCount || 0).toBe(0);
   });
 
+  it('drops source-finder bycatch review rows from the v0.15.93 UX audit shape', () => {
+    const ledger = buildSourceLedgerFromCourseGraph(
+      {
+        course: { name: 'User Experience Design Studio' },
+        concepts: [
+          { id: 'c1', term: 'studio process' },
+          { id: 'c2', term: 'critique sessions' },
+          { id: 'c3', term: 'design journals' },
+          { id: 'c4', term: 'test planning' },
+          { id: 'c5', term: 'task design' },
+          { id: 'c6', term: 'results' },
+        ],
+        sessions: [
+          {
+            id: 's1',
+            number: 1,
+            title: 'Course overview',
+            sections: [{ id: 'sec1', topic: 'studio process', conceptRefs: ['c1', 'c2', 'c3'], resourceRefs: [] }],
+          },
+          {
+            id: 's8',
+            number: 8,
+            title: 'Usability testing',
+            sections: [{ id: 'sec8', topic: 'test planning', conceptRefs: ['c4', 'c5', 'c6'], resourceRefs: [] }],
+          },
+        ],
+        resources: [
+          {
+            id: 'sf1',
+            origin: 'source-finder',
+            provider: 'wikipedia',
+            kind: 'encyclopedia background',
+            title: 'List of Studio Ghibli works',
+            url: 'https://en.wikipedia.org/wiki/List_of_Studio_Ghibli_works',
+            license: 'CC BY-SA 4.0',
+            snippet: 'This is a list of works by the Japanese animation studio Studio Ghibli.',
+            sessionRefs: ['s1'],
+          },
+          {
+            id: 'sf2',
+            origin: 'source-finder',
+            provider: 'wikipedia',
+            kind: 'encyclopedia background',
+            title: 'A/B testing',
+            url: 'https://en.wikipedia.org/wiki/A/B_testing',
+            license: 'CC BY-SA 4.0',
+            snippet: 'A/B testing is a user-experience research method for comparing interface variants.',
+            sessionRefs: ['s8'],
+          },
+        ],
+      },
+      { checkedAt: '2026-06-28T00:00:00.000Z' },
+    );
+
+    expect(ledger.rows.map((row) => row.title)).toContain('A/B testing');
+    expect(ledger.rows.map((row) => row.title)).not.toContain('List of Studio Ghibli works');
+    expect(ledger.reviewRows || []).toHaveLength(0);
+    expect(ledger.summary).toMatchObject({ sourceCount: 1, trustedConceptLinkedCount: 1 });
+    expect(ledger.summary.reviewRequiredCount || 0).toBe(0);
+  });
+
   it('promotes DOI-backed licensed syllabus readings instead of exporting them as review notes', () => {
     const ledger = buildSourceLedgerFromCourseGraph(
       {
@@ -908,9 +969,7 @@ describe('trusted source ledger', () => {
     expect(ledger.rows.map((row) => row.title)).toEqual([
       'Optimizing the digital customer journey with personas for individualized user interface adaptations',
     ]);
-    expect(ledger.reviewRows.map((row) => row.title)).toEqual(
-      expect.arrayContaining([expect.stringContaining('Metaverse beyond the hype'), 'Persona (series)']),
-    );
-    expect(ledger.summary).toMatchObject({ sourceCount: 1, trustedConceptLinkedCount: 1, reviewRequiredCount: 2 });
+    expect(ledger.reviewRows.map((row) => row.title)).toEqual([expect.stringContaining('Metaverse beyond the hype')]);
+    expect(ledger.summary).toMatchObject({ sourceCount: 1, trustedConceptLinkedCount: 1, reviewRequiredCount: 1 });
   });
 });

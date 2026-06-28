@@ -461,6 +461,61 @@ describe('source finder mini-shard', () => {
     );
   }, 15000);
 
+  it('attaches UX source-finder candidates after dropping first-result bycatch', () => {
+    const graph = createEmptyCourseGraph({ courseName: 'User Experience Design Studio' });
+    graph.sessions = [
+      {
+        id: 's1',
+        number: 1,
+        title: 'Lesson 1: Usability testing',
+        sections: [{ topic: 'test planning and task design' }],
+      },
+    ];
+    graph.concepts = [
+      { id: 'c1', term: 'test planning' },
+      { id: 'c2', term: 'task design' },
+    ];
+    graph.edges.teaches = [
+      { from: 's1', to: 'c1' },
+      { from: 's1', to: 'c2' },
+    ];
+
+    attachSourceFinderResources(graph, {
+      courseName: 'User Experience Design Studio',
+      topics: [
+        {
+          sessionId: 's1',
+          lessonNumber: 1,
+          topic: 'test planning',
+          sources: [
+            {
+              provider: 'wikipedia',
+              kind: 'encyclopedia background',
+              title: 'List of Studio Ghibli works',
+              url: 'https://en.wikipedia.org/wiki/List_of_Studio_Ghibli_works',
+              license: 'CC BY-SA 4.0',
+              snippet: 'This is a list of works by the Japanese animation studio Studio Ghibli.',
+            },
+            {
+              provider: 'wikipedia',
+              kind: 'encyclopedia background',
+              title: 'A/B testing',
+              url: 'https://en.wikipedia.org/wiki/A/B_testing',
+              license: 'CC BY-SA 4.0',
+              snippet: 'A/B testing is a user-experience research method for comparing interface variants.',
+            },
+          ],
+        },
+      ],
+    });
+
+    const ledger = buildSourceLedgerFromCourseGraph(graph, { checkedAt: '2026-06-28T00:00:00.000Z' });
+
+    expect(graph.resources.map((resource) => resource.title)).toEqual(['A/B testing']);
+    expect(ledger.rows.map((row) => row.title)).toEqual(['A/B testing']);
+    expect(ledger.reviewRows || []).toHaveLength(0);
+  });
+
   it('runs only when backbone coverage is weak', () => {
     expect(
       shouldRunSourceFinder({

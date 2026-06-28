@@ -3,24 +3,24 @@ import { APP_VERSION } from './appVersion.js';
 export const CURRENT_RELEASE = {
   version: APP_VERSION,
   date: 'June 28, 2026',
-  title: 'Source Review and Texture Cleanup: known rejects stop shipping as package caveats',
-  landingTitle: 'Source Review Cleanup',
+  title: 'Source-Finder Bycatch Cleanup: rejected UX candidates stop becoming open resources',
+  landingTitle: 'Source-Finder Bycatch Cleanup',
   highlights: [
-    'A fresh deployed v0.15.92 User Experience Design Studio ZIP/log audit regraded at 96/A: citation score fell to 70 because ten exported sourceReviewRows were not trusted proof, and texture stayed at 91 from repeated lesson-plan and slide-deck tails.',
-    'Source-finder topics now drop unused rejected candidates from exported sourceReviewRows once trusted concept-linked rows already cover the topic, while still preserving review rows when no trusted source exists.',
-    'DOI-backed, CC-licensed UX/HCI syllabus readings such as the Qian Yang human-AI interaction article now normalize as trusted concept-linked proof instead of instructor review notes.',
-    'Lesson-plan and slide-deck compiler templates now rotate the exact repeated tails found in the v0.15.92 texture evidence, including not-only-topic-recall checks, independent/debrief labels, activity visual labels, and common-pitfall closing prompts.',
-    'This release does not claim clean 100/100 quality: a fresh deployed v0.15.93 ZIP/log audit is still required to prove the exported package has no citation caveats and improved texture.',
+    'A fresh deployed v0.15.93 User Experience Design Studio ZIP/log audit regraded at 97/A: all six remaining findings were citation P2s from sourceReviewRows, while texture improved to 94.',
+    'Source-finder attachment now applies the UX relevance gate before adding resources, so first-result bycatch such as Studio Ghibli, spiritual practice, strategic planning, Chuck Swindoll, and teacher-feedback papers stop inflating the open-resource count.',
+    'Source-ledger export now discards weak source-finder bycatch instead of presenting it as instructor review debt, while preserving real review rows for missing license/proof or non-source-finder weak resources.',
+    'Hyphenated user-experience source text and A/B testing now count as legitimate UX anchors when concept-linked, preventing valid usability-testing references from being quarantined as weak.',
+    'This release still does not claim clean 100/100 provider output: a fresh deployed v0.15.94 ZIP/log audit must verify that no sourceReviewRows or source-count mismatches remain.',
   ],
   landingHighlights: [
-    'Rejected source candidates stop cluttering export notes.',
-    'Licensed HCI DOI readings become trusted proof.',
-    'Repeated compiler tails rotate by lesson.',
-    'Fresh v0.15.93 provider proof remains required.',
+    'Source-finder bycatch stops counting as open resources.',
+    'False-friend UX candidates no longer become review clutter.',
+    'A/B testing is accepted as UX evidence when linked.',
+    'Fresh v0.15.94 provider proof remains required.',
   ],
   proof: {
-    contract: 'release-contracts/v0.15.93.json',
-    roadmap: 'docs/V0.15.93_SOURCE_REVIEW_AND_TEXTURE_CLEANUP_ROADMAP.md',
+    contract: 'release-contracts/v0.15.94.json',
+    roadmap: 'docs/V0.15.94_SOURCE_FINDER_BYCATCH_CLEANUP_ROADMAP.md',
     auditCommand: 'npm run audit:release-history',
   },
 };
@@ -35,6 +35,18 @@ export const CURRENT_RELEASE_CHANGELOG = {
 };
 
 export const HISTORICAL_RELEASE_CHANGELOGS = [
+  {
+    version: '0.15.93',
+    date: 'June 28, 2026',
+    title: 'Source Review and Texture Cleanup: known rejects stop shipping as package caveats',
+    highlights: [
+      'A fresh deployed v0.15.92 User Experience Design Studio ZIP/log audit regraded at 96/A: citation score fell to 70 because ten exported sourceReviewRows were not trusted proof, and texture stayed at 91 from repeated lesson-plan and slide-deck tails.',
+      'Source-finder topics now drop unused rejected candidates from exported sourceReviewRows once trusted concept-linked rows already cover the topic, while still preserving review rows when no trusted source exists.',
+      'DOI-backed, CC-licensed UX/HCI syllabus readings such as the Qian Yang human-AI interaction article now normalize as trusted concept-linked proof instead of instructor review notes.',
+      'Lesson-plan and slide-deck compiler templates now rotate the exact repeated tails found in the v0.15.92 texture evidence, including not-only-topic-recall checks, independent/debrief labels, activity visual labels, and common-pitfall closing prompts.',
+      'A fresh deployed v0.15.93 ZIP/log audit improved to 97/A with texture 94, but still found six sourceReviewRows from source-finder bycatch, so no clean 100/100 claim was made.',
+    ],
+  },
   {
     version: '0.15.92',
     date: 'June 28, 2026',
