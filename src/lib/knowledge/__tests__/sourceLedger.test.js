@@ -1065,4 +1065,150 @@ describe('trusted source ledger', () => {
     expect(ledger.reviewRows.map((row) => row.title)).toEqual([expect.stringContaining('Metaverse beyond the hype')]);
     expect(ledger.summary).toMatchObject({ sourceCount: 1, trustedConceptLinkedCount: 1, reviewRequiredCount: 1 });
   });
+
+  it('drops v0.15.97 UX false-friend sources even when they are licensed and concept-linked', () => {
+    const graph = {
+      course: { name: 'User Experience Design Studio' },
+      concepts: [
+        { id: 'c1', term: 'critique' },
+        { id: 'c2', term: 'personas' },
+        { id: 'c3', term: 'sketches' },
+        { id: 'c4', term: 'prototypes' },
+      ],
+      sessions: [
+        { id: 's1', number: 1, title: 'Lesson 1: Critique', sections: [{ conceptRefs: ['c1'] }] },
+        { id: 's2', number: 2, title: 'Lesson 2: Personas', sections: [{ conceptRefs: ['c2'] }] },
+        { id: 's3', number: 3, title: 'Lesson 3: Sketches', sections: [{ conceptRefs: ['c3'] }] },
+        { id: 's4', number: 4, title: 'Lesson 4: Prototypes', sections: [{ conceptRefs: ['c4'] }] },
+      ],
+      edges: {
+        teaches: [
+          { from: 's1', to: 'c1' },
+          { from: 's2', to: 'c2' },
+          { from: 's3', to: 'c3' },
+          { from: 's4', to: 'c4' },
+        ],
+      },
+      resources: [],
+      sourceFinderMiniShard: {
+        topics: [
+          {
+            sessionId: 's1',
+            lessonNumber: 1,
+            topic: 'critique',
+            sources: [
+              {
+                provider: 'crossref',
+                kind: 'book-chapter',
+                title: 'Le poème, critique de la critique',
+                doi: '10.4000/books.pur.28695',
+                url: 'https://doi.org/10.4000/books.pur.28695',
+                license: 'https://www.openedition.org/12554',
+                snippet: 'critique',
+              },
+              {
+                provider: 'wikipedia',
+                kind: 'encyclopedia background',
+                title: 'Critique of Pure Reason',
+                url: 'https://en.wikipedia.org/wiki/Critique_of_Pure_Reason',
+                license: 'CC BY-SA 4.0',
+                snippet: 'A book by Immanuel Kant about metaphysics.',
+              },
+            ],
+          },
+          {
+            sessionId: 's2',
+            lessonNumber: 2,
+            topic: 'persona creation',
+            sources: [
+              {
+                provider: 'crossref',
+                kind: 'journal-article',
+                title: "A network of enterprise's study of Tim Minchin and the creation of a creative public persona",
+                doi: '10.21153/psj2026vol12no1art2272',
+                url: 'https://doi.org/10.21153/psj2026vol12no1art2272',
+                license: 'https://creativecommons.org/licenses/by-nc/4.0',
+                snippet: 'A celebrity public persona case study about Tim Minchin and creative work.',
+              },
+              {
+                provider: 'crossref',
+                kind: 'journal-article',
+                title: 'Why Are Personas the Way They Are?',
+                doi: '10.21153/psj2025vol11noart2002',
+                url: 'https://doi.org/10.21153/psj2025vol11noart2002',
+                license: 'https://creativecommons.org/licenses/by-nc/4.0',
+                snippet: 'User personas are well-established in user-centered design and persona creation.',
+              },
+            ],
+          },
+          {
+            sessionId: 's3',
+            lessonNumber: 3,
+            topic: 'sketches',
+            sources: [
+              {
+                provider: 'wikipedia',
+                kind: 'encyclopedia background',
+                title: 'Sketches of Spain',
+                url: 'https://en.wikipedia.org/wiki/Sketches_of_Spain',
+                license: 'CC BY-SA 4.0',
+                snippet: 'A studio album by jazz musician Miles Davis.',
+              },
+              {
+                provider: 'crossref',
+                kind: 'book-chapter',
+                title: 'Information Architecture and Wireframe Sketching',
+                doi: '10.1000/ux-sketching',
+                url: 'https://doi.org/10.1000/ux-sketching',
+                license: 'CC BY',
+                snippet: 'Wireframe sketching and information architecture for user interface design.',
+              },
+            ],
+          },
+          {
+            sessionId: 's4',
+            lessonNumber: 4,
+            topic: 'prototype',
+            sources: [
+              {
+                provider: 'crossref',
+                kind: 'journal-article',
+                title: 'One Prototype Three Prototype Five Prototype Seven Prototype',
+                doi: '10.1109/mdt.1986.295018',
+                url: 'https://doi.org/10.1109/mdt.1986.295018',
+                license: 'https://ieeexplore.ieee.org/Xplorehelp/downloads/license-information/IEEE.html',
+                snippet: '',
+              },
+              {
+                provider: 'wikipedia',
+                kind: 'encyclopedia background',
+                title: 'Prototype (Star Trek: Voyager)',
+                url: 'https://en.wikipedia.org/wiki/Prototype_(Star_Trek:_Voyager)',
+                license: 'CC BY-SA 4.0',
+                snippet: 'A science fiction television series episode.',
+              },
+              {
+                provider: 'crossref',
+                kind: 'book-chapter',
+                title: 'Functional Prototypes for Usability Testing',
+                doi: '10.1000/ux-prototypes',
+                url: 'https://doi.org/10.1000/ux-prototypes',
+                license: 'CC BY',
+                snippet: 'Clickable prototypes and usability testing for interaction design iteration.',
+              },
+            ],
+          },
+        ],
+      },
+    };
+
+    const ledger = buildSourceLedgerFromCourseGraph(graph, { checkedAt: '2026-06-28T00:00:00.000Z' });
+
+    expect(ledger.rows.map((row) => row.title)).toEqual([
+      'Why Are Personas the Way They Are?',
+      'Information Architecture and Wireframe Sketching',
+      'Functional Prototypes for Usability Testing',
+    ]);
+    expect(ledger.reviewRows || []).toHaveLength(0);
+  });
 });

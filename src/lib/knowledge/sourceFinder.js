@@ -369,10 +369,16 @@ function scoreSource(source, topic) {
 
 function dedupeAndRankSources(rawSources, topic, limit) {
   const byKey = new Map();
+  const courseContext = {
+    course: { name: topic.courseName || '' },
+    courseName: topic.courseName || '',
+    sessions: [{ title: `Lesson ${topic.lessonNumber || ''}: ${topic.topic || topic.query || ''}` }],
+  };
   for (const raw of rawSources) {
     const source = normalizeSource(raw, topic);
     if (!source) continue;
     if (!sourcePassesTopicalFit(source, topic)) continue;
+    if (isUserExperienceWeakSource(sourceFinderCandidateForReview(source, topic), courseContext)) continue;
     const key = source.url.toLowerCase() || source.title.toLowerCase();
     const scored = { ...source, score: scoreSource(source, topic) };
     const existing = byKey.get(key);

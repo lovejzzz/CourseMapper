@@ -3,24 +3,24 @@ import { APP_VERSION } from './appVersion.js';
 export const CURRENT_RELEASE = {
   version: APP_VERSION,
   date: 'June 28, 2026',
-  title: 'UX Persona Source Sense Gate: game-series false friends stop passing',
-  landingTitle: 'UX Persona Source Sense Gate',
+  title: 'UX Source False-Friend Expansion: title-only bycatch stops scoring clean',
+  landingTitle: 'UX Source False-Friend Expansion',
   highlights: [
-    'A fresh deployed v0.15.96 User Experience Design Studio ZIP/log audit exported 99/A, proving the Mercator and Prototype video-game rows were gone, but SOURCE_REPORT.md still trusted Persona 4 Revival and Revelations: Persona as UX persona evidence.',
-    'UX source filtering now rejects Persona game-series rows, including Persona numbered titles, Revelations: Persona, Megami Tensei/Atlus/P-Studio evidence, and role-playing video-game snippets.',
-    'The local deep quality grader mirrors that source-sense rule so valid-but-wrong persona game rows become citation findings instead of hidden 99/A debt.',
-    'The v0.15.96 audit evidence records the visible 99/Texture 90 state, the current-run digest, and the projected 97/A regrade under these stricter checks.',
-    'This release still does not claim clean 100/100 provider output: a fresh deployed v0.15.97 ZIP/log audit must verify persona false friends are gone, then texture 90 remains the next likely target.',
+    'A fresh deployed v0.15.97 User Experience Design Studio ZIP/log audit exported 99/A, but SOURCE_REPORT.md still trusted six title-only UX false friends: Tim Minchin public persona, Sketches of Spain, One Prototype Three Prototype Five Prototype Seven Prototype, Le poeme critique, Critique of Pure Reason, and Prototype (Star Trek: Voyager).',
+    'UX source filtering now rejects those celebrity-persona, jazz-album, electronics-prototype, poetry/philosophy-critique, and television-episode rows even when they are real, licensed, and concept-linked.',
+    'Source-finder ranking applies the same UX weak-source check before new candidates enter the mini-shard cache, while source-ledger assembly still protects older cached mini-shards.',
+    'The local deep quality grader mirrors the expanded source-sense rule: the captured v0.15.97 ZIP now projects to 93/A with six P1 citation findings instead of silently passing as source-clean 99/A.',
+    'This release still does not claim clean 100/100 provider output: a fresh deployed v0.15.98 ZIP/log audit must verify the expanded quarantine, then texture 90 and the remaining format P2 stay as the next quality targets.',
   ],
   landingHighlights: [
-    'Persona game-series false friends are rejected.',
-    'Source filtering and grading stay in sync.',
-    'Fresh v0.15.96 evidence regrades to 97/A under the stricter rule.',
-    'Fresh v0.15.97 provider proof remains required.',
+    'Known UX title-only false friends are rejected.',
+    'Source-finder cache intake and ledger export share the same source-sense gate.',
+    'The grader now scores the captured v0.15.97 hidden citation debt.',
+    'Fresh v0.15.98 provider proof remains required.',
   ],
   proof: {
-    contract: 'release-contracts/v0.15.97.json',
-    roadmap: 'docs/V0.15.97_UX_PERSONA_SOURCE_SENSE_GATE_ROADMAP.md',
+    contract: 'release-contracts/v0.15.98.json',
+    roadmap: 'docs/V0.15.98_UX_SOURCE_FALSE_FRIEND_EXPANSION_ROADMAP.md',
     auditCommand: 'npm run audit:release-history',
   },
 };
@@ -35,6 +35,18 @@ export const CURRENT_RELEASE_CHANGELOG = {
 };
 
 export const HISTORICAL_RELEASE_CHANGELOGS = [
+  {
+    version: '0.15.97',
+    date: 'June 28, 2026',
+    title: 'UX Persona Source Sense Gate: game-series false friends stop passing',
+    highlights: [
+      'A fresh deployed v0.15.96 User Experience Design Studio ZIP/log audit exported 99/A, proving the Mercator and Prototype video-game rows were gone, but SOURCE_REPORT.md still trusted Persona 4 Revival and Revelations: Persona as UX persona evidence.',
+      'UX source filtering rejects Persona game-series rows, including Persona numbered titles, Revelations: Persona, Megami Tensei/Atlus/P-Studio evidence, and role-playing video-game snippets.',
+      'The local deep quality grader mirrors that source-sense rule so valid-but-wrong persona game rows become citation findings instead of hidden 99/A debt.',
+      'The v0.15.96 audit evidence records the visible 99/Texture 90 state, the current-run digest, and the projected 97/A regrade under these stricter checks.',
+      'A fresh deployed v0.15.97 audit proved the persona-game rows were gone but exposed six more title-only UX false friends, so no clean 100/100 claim was made.',
+    ],
+  },
   {
     version: '0.15.96',
     date: 'June 28, 2026',

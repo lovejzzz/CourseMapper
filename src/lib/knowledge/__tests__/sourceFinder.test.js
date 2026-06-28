@@ -569,6 +569,94 @@ describe('source finder mini-shard', () => {
     expect(ledger.reviewRows || []).toHaveLength(0);
   });
 
+  it('rejects v0.15.97 UX false friends during retrieval before they reach the mini-shard cache', async () => {
+    const graph = createEmptyCourseGraph({ courseName: 'User Experience Design Studio' });
+    graph.sessions = [
+      {
+        id: 's1',
+        number: 1,
+        title: 'Lesson 1: Persona creation',
+        sections: [{ topic: '1.1: persona creation and user needs' }],
+      },
+      {
+        id: 's2',
+        number: 2,
+        title: 'Lesson 2: Sketching and prototypes',
+        sections: [{ topic: '2.1: wireframe sketches and clickable prototypes' }],
+      },
+    ];
+    graph.concepts = [
+      { id: 'c1', term: 'persona creation' },
+      { id: 'c2', term: 'wireframe sketches' },
+    ];
+    graph.edges.teaches = [
+      { from: 's1', to: 'c1' },
+      { from: 's2', to: 'c2' },
+    ];
+
+    const miniShard = await findCourseSources(graph, {
+      storage: memoryStorage(),
+      maxTopics: 2,
+      limitPerTopic: 3,
+      minUsefulSources: 1,
+      providers: {
+        searchScholarlyReadings: vi.fn(async (query) => {
+          if (query.includes('persona')) {
+            return [
+              source(
+                'crossref',
+                "A network of enterprise's study of Tim Minchin and the creation of a creative public persona",
+                {
+                  abstract: 'A celebrity public persona case study about Tim Minchin and creative work.',
+                  doi: '10.21153/psj2026vol12no1art2272',
+                  license: 'https://creativecommons.org/licenses/by-nc/4.0',
+                },
+              ),
+              source('crossref', 'Why Are Personas the Way They Are?', {
+                abstract: 'User personas are well-established in user-centered design and persona creation.',
+                doi: '10.21153/psj2025vol11noart2002',
+                license: 'https://creativecommons.org/licenses/by-nc/4.0',
+              }),
+            ];
+          }
+          return [
+            source('crossref', 'One Prototype Three Prototype Five Prototype Seven Prototype', {
+              abstract: '',
+              doi: '10.1109/mdt.1986.295018',
+              license: 'https://ieeexplore.ieee.org/Xplorehelp/downloads/license-information/IEEE.html',
+            }),
+            source('crossref', 'Functional Prototypes for Usability Testing', {
+              abstract: 'Clickable prototypes and usability testing for interaction design iteration.',
+              doi: '10.1000/ux-prototypes',
+              license: 'CC BY',
+            }),
+          ];
+        }),
+        searchCrossrefWorks: vi.fn(async () => []),
+        searchWikipediaPages: vi.fn(async (query) => {
+          if (query.includes('persona')) {
+            return [
+              source('wikipedia', 'Critique of Pure Reason', {
+                abstract: 'A book by Immanuel Kant about metaphysics.',
+              }),
+            ];
+          }
+          return [
+            source('wikipedia', 'Sketches of Spain', {
+              abstract: 'A studio album by jazz musician Miles Davis.',
+            }),
+            source('wikipedia', 'Prototype (Star Trek: Voyager)', {
+              abstract: 'A science fiction television series episode.',
+            }),
+          ];
+        }),
+      },
+    });
+
+    const titles = miniShard.topics.flatMap((topic) => topic.sources.map((item) => item.title));
+    expect(titles).toEqual(['Why Are Personas the Way They Are?', 'Functional Prototypes for Usability Testing']);
+  }, 15000);
+
   it('runs only when backbone coverage is weak', () => {
     expect(
       shouldRunSourceFinder({
