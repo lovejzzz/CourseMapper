@@ -843,6 +843,29 @@ describe('trusted source ledger', () => {
             sessionRefs: ['s1'],
           },
           {
+            id: 'sf-persona-4-revival',
+            origin: 'source-finder',
+            provider: 'wikipedia',
+            kind: 'encyclopedia background',
+            title: 'Persona 4 Revival',
+            url: 'https://en.wikipedia.org/wiki/Persona_4_Revival',
+            license: 'CC BY-SA 4.0',
+            snippet:
+              'Persona 4 Revival is an upcoming role-playing video game developed by P-Studio and published by Atlus.',
+            sessionRefs: ['s1'],
+          },
+          {
+            id: 'sf-revelations-persona',
+            origin: 'source-finder',
+            provider: 'wikipedia',
+            kind: 'encyclopedia background',
+            title: 'Revelations: Persona',
+            url: 'https://en.wikipedia.org/wiki/Revelations:_Persona',
+            license: 'CC BY-SA 4.0',
+            snippet: 'Revelations: Persona is a 1996 role-playing video game and part of the Megami Tensei franchise.',
+            sessionRefs: ['s1'],
+          },
+          {
             id: 'sf-prototype-video-game',
             origin: 'source-finder',
             provider: 'wikipedia',
@@ -874,6 +897,8 @@ describe('trusted source ledger', () => {
     expect(ledger.rows.map((row) => row.title)).not.toContain('Prototype-based programming');
     expect(ledger.rows.map((row) => row.title)).not.toContain('Personas');
     expect(ledger.rows.map((row) => row.title)).not.toContain('Mercator projection');
+    expect(ledger.rows.map((row) => row.title)).not.toContain('Persona 4 Revival');
+    expect(ledger.rows.map((row) => row.title)).not.toContain('Revelations: Persona');
     expect(ledger.rows.map((row) => row.title)).not.toContain('Prototype (video game)');
     expect(ledger.reviewRows || []).toHaveLength(0);
     expect(ledger.summary).toMatchObject({ sourceCount: 1, trustedConceptLinkedCount: 1 });

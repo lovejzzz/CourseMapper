@@ -1,0 +1,646 @@
+{
+  "buttons": [
+    {
+      "disabled": false,
+      "text": "Quality 99\n· Texture 90"
+    },
+    {
+      "disabled": false,
+      "text": "Download ZIP"
+    },
+    {
+      "disabled": false,
+      "text": "Switch to dark mode"
+    },
+    {
+      "disabled": false,
+      "text": "Tian Xing"
+    },
+    {
+      "disabled": false,
+      "text": "Course Map"
+    },
+    {
+      "disabled": false,
+      "text": "Syllabus"
+    },
+    {
+      "disabled": false,
+      "text": "Lesson Plans"
+    },
+    {
+      "disabled": false,
+      "text": "Slide Decks"
+    },
+    {
+      "disabled": false,
+      "text": "Assignment Briefs"
+    },
+    {
+      "disabled": false,
+      "text": "Rubrics"
+    },
+    {
+      "disabled": false,
+      "text": "Discussion Prompts"
+    },
+    {
+      "disabled": false,
+      "text": "Quiz & Exam Bank"
+    },
+    {
+      "disabled": false,
+      "text": "Study Guides"
+    },
+    {
+      "disabled": false,
+      "text": "Course FAQ"
+    },
+    {
+      "disabled": false,
+      "text": "Add"
+    },
+    {
+      "disabled": false,
+      "text": "Open dependency map"
+    },
+    {
+      "disabled": false,
+      "text": "Course Map"
+    },
+    {
+      "disabled": false,
+      "text": "Agent"
+    },
+    {
+      "disabled": false,
+      "text": "Export"
+    },
+    {
+      "disabled": false,
+      "text": "Finish package"
+    },
+    {
+      "disabled": false,
+      "text": "Review Lesson 6: Wireframing for gaps"
+    },
+    {
+      "disabled": false,
+      "text": "Copy to clipboard"
+    },
+    {
+      "disabled": false,
+      "text": "Regenerate response"
+    },
+    {
+      "disabled": false,
+      "text": "Good response"
+    },
+    {
+      "disabled": false,
+      "text": "Poor response"
+    },
+    {
+      "disabled": false,
+      "text": "Dismiss"
+    },
+    {
+      "disabled": false,
+      "text": "Lesson 1's first objective (\"Explain the key ideas in design journals and apply them in course acti…\") has no clear echo in its assessments.\nReview"
+    },
+    {
+      "disabled": false,
+      "text": "Show notes"
+    },
+    {
+      "disabled": true,
+      "text": "Send message"
+    },
+    {
+      "disabled": false,
+      "text": "Attach files"
+    },
+    {
+      "disabled": false,
+      "text": "Undo"
+    },
+    {
+      "disabled": false,
+      "text": "Comfortable"
+    },
+    {
+      "disabled": false,
+      "text": "Compact"
+    },
+    {
+      "disabled": false,
+      "text": "Collapse lesson 1"
+    },
+    {
+      "disabled": false,
+      "text": "Move lesson down"
+    },
+    {
+      "disabled": false,
+      "text": "Delete lesson"
+    },
+    {
+      "disabled": false,
+      "text": "Add section below"
+    },
+    {
+      "disabled": false,
+      "text": "Delete this section"
+    },
+    {
+      "disabled": false,
+      "text": "Add section below"
+    },
+    {
+      "disabled": false,
+      "text": "Delete this section"
+    },
+    {
+      "disabled": false,
+      "text": "Add section below"
+    },
+    {
+      "disabled": false,
+      "text": "Delete this section"
+    },
+    {
+      "disabled": false,
+      "text": "Collapse lesson 2"
+    },
+    {
+      "disabled": false,
+      "text": "Move lesson up"
+    },
+    {
+      "disabled": false,
+      "text": "Move lesson down"
+    },
+    {
+      "disabled": false,
+      "text": "Delete lesson"
+    },
+    {
+      "disabled": false,
+      "text": "Add section below"
+    },
+    {
+      "disabled": false,
+      "text": "Delete this section"
+    },
+    {
+      "disabled": false,
+      "text": "Add section below"
+    },
+    {
+      "disabled": false,
+      "text": "Delete this section"
+    },
+    {
+      "disabled": false,
+      "text": "Add section below"
+    },
+    {
+      "disabled": false,
+      "text": "Delete this section"
+    },
+    {
+      "disabled": false,
+      "text": "Collapse lesson 3"
+    },
+    {
+      "disabled": false,
+      "text": "Move lesson up"
+    },
+    {
+      "disabled": false,
+      "text": "Move lesson down"
+    },
+    {
+      "disabled": false,
+      "text": "Delete lesson"
+    },
+    {
+      "disabled": false,
+      "text": "Add section below"
+    },
+    {
+      "disabled": false,
+      "text": "Delete this section"
+    },
+    {
+      "disabled": false,
+      "text": "Add section below"
+    },
+    {
+      "disabled": false,
+      "text": "Delete this section"
+    },
+    {
+      "disabled": false,
+      "text": "Add section below"
+    },
+    {
+      "disabled": false,
+      "text": "Delete this section"
+    },
+    {
+      "disabled": false,
+      "text": "Collapse lesson 4"
+    },
+    {
+      "disabled": false,
+      "text": "Move lesson up"
+    },
+    {
+      "disabled": false,
+      "text": "Move lesson down"
+    },
+    {
+      "disabled": false,
+      "text": "Delete lesson"
+    },
+    {
+      "disabled": false,
+      "text": "Add section below"
+    },
+    {
+      "disabled": false,
+      "text": "Delete this section"
+    },
+    {
+      "disabled": false,
+      "text": "Add section below"
+    },
+    {
+      "disabled": false,
+      "text": "Delete this section"
+    },
+    {
+      "disabled": false,
+      "text": "Add section below"
+    },
+    {
+      "disabled": false,
+      "text": "Delete this section"
+    },
+    {
+      "disabled": false,
+      "text": "Collapse lesson 5"
+    },
+    {
+      "disabled": false,
+      "text": "Move lesson up"
+    },
+    {
+      "disabled": false,
+      "text": "Move lesson down"
+    },
+    {
+      "disabled": false,
+      "text": "Delete lesson"
+    },
+    {
+      "disabled": false,
+      "text": "Add section below"
+    },
+    {
+      "disabled": false,
+      "text": "Delete this section"
+    },
+    {
+      "disabled": false,
+      "text": "Add section below"
+    },
+    {
+      "disabled": false,
+      "text": "Delete this section"
+    },
+    {
+      "disabled": false,
+      "text": "Add section below"
+    },
+    {
+      "disabled": false,
+      "text": "Delete this section"
+    },
+    {
+      "disabled": false,
+      "text": "Collapse lesson 6"
+    },
+    {
+      "disabled": false,
+      "text": "Move lesson up"
+    },
+    {
+      "disabled": false,
+      "text": "Move lesson down"
+    },
+    {
+      "disabled": false,
+      "text": "Delete lesson"
+    },
+    {
+      "disabled": false,
+      "text": "Add section below"
+    },
+    {
+      "disabled": false,
+      "text": "Delete this section"
+    },
+    {
+      "disabled": false,
+      "text": "Add section below"
+    },
+    {
+      "disabled": false,
+      "text": "Delete this section"
+    },
+    {
+      "disabled": false,
+      "text": "Add section below"
+    },
+    {
+      "disabled": false,
+      "text": "Delete this section"
+    },
+    {
+      "disabled": false,
+      "text": "Collapse lesson 7"
+    },
+    {
+      "disabled": false,
+      "text": "Move lesson up"
+    },
+    {
+      "disabled": false,
+      "text": "Move lesson down"
+    },
+    {
+      "disabled": false,
+      "text": "Delete lesson"
+    },
+    {
+      "disabled": false,
+      "text": "Add section below"
+    },
+    {
+      "disabled": false,
+      "text": "Delete this section"
+    },
+    {
+      "disabled": false,
+      "text": "Add section below"
+    },
+    {
+      "disabled": false,
+      "text": "Delete this section"
+    },
+    {
+      "disabled": false,
+      "text": "Add section below"
+    },
+    {
+      "disabled": false,
+      "text": "Delete this section"
+    },
+    {
+      "disabled": false,
+      "text": "Collapse lesson 8"
+    },
+    {
+      "disabled": false,
+      "text": "Move lesson up"
+    },
+    {
+      "disabled": false,
+      "text": "Move lesson down"
+    },
+    {
+      "disabled": false,
+      "text": "Delete lesson"
+    },
+    {
+      "disabled": false,
+      "text": "Add section below"
+    },
+    {
+      "disabled": false,
+      "text": "Delete this section"
+    },
+    {
+      "disabled": false,
+      "text": "Add section below"
+    },
+    {
+      "disabled": false,
+      "text": "Delete this section"
+    },
+    {
+      "disabled": false,
+      "text": "Add section below"
+    },
+    {
+      "disabled": false,
+      "text": "Delete this section"
+    },
+    {
+      "disabled": false,
+      "text": "Collapse lesson 9"
+    },
+    {
+      "disabled": false,
+      "text": "Move lesson up"
+    },
+    {
+      "disabled": false,
+      "text": "Move lesson down"
+    },
+    {
+      "disabled": false,
+      "text": "Delete lesson"
+    },
+    {
+      "disabled": false,
+      "text": "Add section below"
+    },
+    {
+      "disabled": false,
+      "text": "Delete this section"
+    },
+    {
+      "disabled": false,
+      "text": "Add section below"
+    },
+    {
+      "disabled": false,
+      "text": "Delete this section"
+    },
+    {
+      "disabled": false,
+      "text": "Add section below"
+    },
+    {
+      "disabled": false,
+      "text": "Delete this section"
+    },
+    {
+      "disabled": false,
+      "text": "Collapse lesson 10"
+    },
+    {
+      "disabled": false,
+      "text": "Move lesson up"
+    },
+    {
+      "disabled": false,
+      "text": "Move lesson down"
+    },
+    {
+      "disabled": false,
+      "text": "Delete lesson"
+    },
+    {
+      "disabled": false,
+      "text": "Add section below"
+    },
+    {
+      "disabled": false,
+      "text": "Delete this section"
+    },
+    {
+      "disabled": false,
+      "text": "Add section below"
+    },
+    {
+      "disabled": false,
+      "text": "Delete this section"
+    },
+    {
+      "disabled": false,
+      "text": "Add section below"
+    },
+    {
+      "disabled": false,
+      "text": "Delete this section"
+    },
+    {
+      "disabled": false,
+      "text": "Collapse lesson 11"
+    },
+    {
+      "disabled": false,
+      "text": "Move lesson up"
+    },
+    {
+      "disabled": false,
+      "text": "Move lesson down"
+    },
+    {
+      "disabled": false,
+      "text": "Delete lesson"
+    },
+    {
+      "disabled": false,
+      "text": "Add section below"
+    },
+    {
+      "disabled": false,
+      "text": "Delete this section"
+    },
+    {
+      "disabled": false,
+      "text": "Add section below"
+    },
+    {
+      "disabled": false,
+      "text": "Delete this section"
+    },
+    {
+      "disabled": false,
+      "text": "Add section below"
+    },
+    {
+      "disabled": false,
+      "text": "Delete this section"
+    },
+    {
+      "disabled": false,
+      "text": "Collapse lesson 12"
+    },
+    {
+      "disabled": false,
+      "text": "Move lesson up"
+    },
+    {
+      "disabled": false,
+      "text": "Delete lesson"
+    },
+    {
+      "disabled": false,
+      "text": "final UX design presentation"
+    },
+    {
+      "disabled": false,
+      "text": "Add section below"
+    },
+    {
+      "disabled": false,
+      "text": "Delete this section"
+    },
+    {
+      "disabled": false,
+      "text": "Add section below"
+    },
+    {
+      "disabled": false,
+      "text": "Delete this section"
+    },
+    {
+      "disabled": false,
+      "text": "Add section below"
+    },
+    {
+      "disabled": false,
+      "text": "Delete this section"
+    },
+    {
+      "disabled": false,
+      "text": "Add Lesson"
+    },
+    {
+      "disabled": false,
+      "text": "This tab"
+    },
+    {
+      "disabled": false,
+      "text": "Package"
+    },
+    {
+      "disabled": false,
+      "text": "99 · A"
+    },
+    {
+      "disabled": false,
+      "text": "All 12 lessons · Edit"
+    },
+    {
+      "disabled": false,
+      "text": "Download ZIP"
+    }
+  ],
+  "cost": "$0.14",
+  "genome": "Genome 0/12",
+  "hasDownloadZip": true,
+  "hasReadyWithNotes": true,
+  "materials": "Materials 12/12",
+  "quality": "Quality 99\n· Texture 90",
+  "readyIn": "Ready in 207s",
+  "textSample": "Workspace\n\nUser Experience Design Studio\n12 lessons\n·\ngpt-5.4-mini\nQuality 99\n· Texture 90\nAutosaved to My Projects\nDownload ZIP\nTian Xing\nProject\nMap\nEnrich\nCompile\nVerify\nGrade\n\nGenome 0/12\nMaterials 12/12\nReady in 207s\n$0.14\nCourse Map\nSyllabus\nLesson Plans\nSlide Decks\nAssignment Briefs\nRubrics\nDiscussion Prompts\nQuiz & Exam Bank\nStudy Guides\nCourse FAQ\nAdd\nAgent\nReady\n\nReady to export\n\nProject brief\nStarting request\n\nI am still using your starting brief. I can finish, fix, and verify your course materials.\n\nFinish package\nReview Lesson 6: Wireframing for gaps\nStarting brief\n\nUser Experience Design Studio, 12-week project-based undergraduate course with critique sessions, design journals, user research interviews, personas, journey mapping, information architecture, wireframing, prototyping, usability testing, accessibility revi...\n\nGot it. I will keep using that starting request while we build, check, and revise the course package.\n\nWorth a look — 1 observation\n\nDismiss\nLesson 1's first objective (\"Explain the key ideas in design journals and apply them in course acti…\") has no clear echo in its assessments.\nReview\n\nReady with notes\n\nReview notes\n\nDownload is ready. Review notes are saved for the instructor before publishing.\n\n11 safe repairs applied\n2 review notes\nShow notes\nUndo\nCourse Map Preview\nComfortable\nCompact\nSection\n\tLearning goals\n\tTopic/section\n\tLearning objectives\n\tWeekly assessments\n\tAsynchronous activities\n\tSynchronous activities\n\tTechnology needed\n\tPresentation format\n\tSupporting resources\n\tEvaluate design\n\t\n\nLesson 1: Course introduction\n3 sections · 3 assessments\n\n1.1\tUse design journals to explain a course problem and prepare evidence for the next assessment.\tdesign journals\tExplain the key ideas in design journals and apply them in course activities.\t\nQuick evidence check: apply design journals to a new example.\n\tReview assigned materials and prepare notes on design journals.\tDiscuss examples and practice applying design journals.\tCourse LMS, shared files, and any discipline-specific tools named by the instructor.\tInstructor framing, guided student work, and a short synthesis.\tInstructor-approved readings, examples, or lab materials for design journals.\tCheck that the design journals activity, resource, and assessment ask students to produce the same evidence of learning.\t\n\n1.2\tTrace how design journals changes what students can observe, label, calculate, or decide.\tdesign journals\tCheck that the design journals activity, resource, and assessment ask students to produce the same evidence of learning.\t\n\n1.3\tDevelop an evidence-backed account of design journals for course applications.\t1.3: design journals\tCheck that the design journals activity, resource, and assessment ask students to produce the same evidence of learning.\t\n\n\nLesson 2: User research interviews\n3 sections · 3 assessments\n\n2.1\tTrace how interview planning changes what students can observe, label, calculate, or decide.\t2.1: interview planning\tApply the main concepts from interview planning to a course task or example.\t\nExit ticket using interview planning to justify one course-relevant decision.\n\tRead the assigned materials and write a short note on interview planning.\tWork through examples of interview planning together and practice applying them.\tLMS access plus the document, slide, lab, or analysis tool required for this lesson.\tBrief setup, worked example or demonstration, then student application.\tCourse materials students need to prepare and show evidence about interview planning.\tCheck that the interview planning activity, resource, and assessment ask students to produce the same evidence of learning.\t\n\n2.2\tDevelop an evidence-backed account of interview synthesis for course applications.\t2.2: interview synthesis\tApply the main concepts from interview synthesis to a course task or example.\t\nExit ticket using interview synthesis to justify one course-relevant decision.\n\tRead the assigned materials and write a short note on interview synthesis.\tWork through examples of interview synthesis together and practice applying them.\tCourse materials students need to prepare and show evidence about interview synthesis.\tCheck that the interview synthesis activity, resource, and assessment ask students to produce the same evidence of learning.\t\n\n2.3\tUse critique to explain a course problem and prepare evidence for the next assessment.\t2.3: critique\tApply the main concepts from critique to a course task or example.\t\nExit ticket using critique to justify one course-relevant decision.\n\tRead the assigned materials and write a short note on critique.\tWork through examples of critique together and practice applying them.\tCourse materials students need to prepare and show evidence about critique.\tCheck that the critique activity, resource, and assessment ask students to produce the same evidence of learning.\t\n\n\nLesson 3: Personas\n3 sections · 3 assessments\n\n3.1\tDevelop an evidence-backed account of persona development for course applications.\t3.1: persona development\tConnect persona development to the week's work and explain one supporting evidence source.\t\nPractice response that names the evidence needed for persona development.\n\tStudy the assigned materials and mark questions about persona development.\tCompare examples of persona development in class and rehearse the key moves.\tCourse platform, instructor-provided files, and the classroom tool used for the lesson activity.\tOpening question, structured practice, and closing evidence check.\tWorked examples, readings, or activity sheets aligned to persona development.\tCheck that the persona development activity, resource, and assessment ask students to produce the same evidence of learning.\t\n\n3.2\tUse user needs to explain a course problem and prepare evidence for the next assessment.\t3.2: user needs\tConnect user needs to the week's work and explain one supporting evidence source.\t\nPractice response that names the evidence needed for user needs.\n\tStudy the assigne",
+  "title": "Course Mapper",
+  "url": "https://edutool.dev/?codexAudit=20260628-v01596-ux-fresh-1782643218781"
+}

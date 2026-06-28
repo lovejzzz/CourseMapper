@@ -526,6 +526,24 @@ describe('source finder mini-shard', () => {
             {
               provider: 'wikipedia',
               kind: 'encyclopedia background',
+              title: 'Persona 4 Revival',
+              url: 'https://en.wikipedia.org/wiki/Persona_4_Revival',
+              license: 'CC BY-SA 4.0',
+              snippet:
+                'Persona 4 Revival is an upcoming role-playing video game developed by P-Studio and published by Atlus.',
+            },
+            {
+              provider: 'wikipedia',
+              kind: 'encyclopedia background',
+              title: 'Revelations: Persona',
+              url: 'https://en.wikipedia.org/wiki/Revelations:_Persona',
+              license: 'CC BY-SA 4.0',
+              snippet:
+                'Revelations: Persona is a 1996 role-playing video game and part of the Megami Tensei franchise.',
+            },
+            {
+              provider: 'wikipedia',
+              kind: 'encyclopedia background',
               title: 'Prototype (video game)',
               url: 'https://en.wikipedia.org/wiki/Prototype_(video_game)',
               license: 'CC BY-SA 4.0',

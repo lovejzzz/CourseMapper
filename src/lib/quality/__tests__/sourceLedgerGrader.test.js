@@ -401,6 +401,22 @@ describe('source-ledger quality checks', () => {
               conceptLinks: [{ id: 'c2', label: 'critique sessions' }],
             },
             {
+              id: 'sf-3-3',
+              title: 'Persona 4 Revival',
+              provider: 'wikipedia',
+              url: 'https://en.wikipedia.org/wiki/Persona_4_Revival',
+              license: 'CC BY-SA 4.0',
+              conceptLinks: [{ id: 'c7', label: 'personas' }],
+            },
+            {
+              id: 'sf-3-4',
+              title: 'Revelations: Persona',
+              provider: 'wikipedia',
+              url: 'https://en.wikipedia.org/wiki/Revelations:_Persona',
+              license: 'CC BY-SA 4.0',
+              conceptLinks: [{ id: 'c7', label: 'personas' }],
+            },
+            {
               id: 'sf3',
               title:
                 'Optimizing the digital customer journey—Improving user experience by exploiting emotions, personas and situations for individualized user interface adaptations',
@@ -418,7 +434,7 @@ describe('source-ledger quality checks', () => {
           files: [],
         }),
         'SOURCE_REPORT.md':
-          '# Source Report\n\n## Source Ledger\n- sf2: Positive feedback\n- kr2: Metaverse beyond the hype\n- sf1: The Green Studio Handbook\n- kr7: Collaborative learning in architectural education\n- sf-2-2: National Design Studio\n- sf-6-2: Le Mans Prototype\n- sf-6-3: List of In Living Color sketches\n- sf-7-2: Prototype-based programming\n- sf-7-3: Prototype (video game)\n- sf-1-2: Mercator projection\n- sf3: Optimizing the digital customer journey\n',
+          '# Source Report\n\n## Source Ledger\n- sf2: Positive feedback\n- kr2: Metaverse beyond the hype\n- sf1: The Green Studio Handbook\n- kr7: Collaborative learning in architectural education\n- sf-2-2: National Design Studio\n- sf-6-2: Le Mans Prototype\n- sf-6-3: List of In Living Color sketches\n- sf-7-2: Prototype-based programming\n- sf-7-3: Prototype (video game)\n- sf-1-2: Mercator projection\n- sf-3-3: Persona 4 Revival\n- sf-3-4: Revelations: Persona\n- sf3: Optimizing the digital customer journey\n',
       }),
       course: { title: 'User Experience Design Studio', featureIds: [] },
     });
@@ -474,6 +490,16 @@ describe('source-ledger quality checks', () => {
           severity: 'P1',
           dimension: 'citations',
           detail: 'source ledger row sf-1-2 is off-discipline for User Experience Design Studio',
+        }),
+        expect.objectContaining({
+          severity: 'P1',
+          dimension: 'citations',
+          detail: 'source ledger row sf-3-3 is off-discipline for User Experience Design Studio',
+        }),
+        expect.objectContaining({
+          severity: 'P1',
+          dimension: 'citations',
+          detail: 'source ledger row sf-3-4 is off-discipline for User Experience Design Studio',
         }),
       ]),
     );

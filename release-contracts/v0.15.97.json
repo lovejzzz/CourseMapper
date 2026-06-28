@@ -1,0 +1,112 @@
+{
+  "version": "0.15.97",
+  "date": "June 28, 2026",
+  "title": "UX Persona Source Sense Gate: game-series false friends stop passing",
+  "status": "verified-current",
+  "proofSummary": {
+    "local": [
+      "npm test -- --run src/lib/knowledge/__tests__/sourceLedger.test.js src/lib/knowledge/__tests__/sourceFinder.test.js src/lib/quality/__tests__/sourceLedgerGrader.test.js"
+    ],
+    "ciFast": {
+      "status": "pending-push",
+      "note": "Fast verification is claimed only after v0.15.97 is pushed and the GitHub Actions run is attached."
+    },
+    "deploy": {
+      "status": "pending-push",
+      "note": "Pages deploy is not claimed until the pushed v0.15.97 release completes its deploy run."
+    },
+    "ciDeep": {
+      "status": "local-only",
+      "note": "This is a narrow source-sense filtering release; targeted regressions plus normal gates are the release bar."
+    },
+    "liveProvider": {
+      "status": "local-only",
+      "note": "The release is based on a fresh deployed v0.15.96 ZIP/log audit. A fresh deployed v0.15.97 ZIP/log audit is still required before claiming provider package quality improvement."
+    },
+    "manualHuman": {
+      "status": "not-applicable",
+      "note": "No external instructor approval is claimed by this release."
+    }
+  },
+  "claims": [
+    {
+      "id": "v01597-live-v01596-persona-evidence",
+      "status": "verified-current",
+      "changelogHighlightIndex": 0,
+      "summary": "The release is grounded in a fresh deployed v0.15.96 UX ZIP/log audit that exported 99/A but trusted Persona 4 Revival and Revelations: Persona as UX persona source proof.",
+      "anchors": [
+        "verification-output/edutool-audit-loop/20260628T105645Z-v01596-ux-fresh/local-regrade-after-v01597-projected.md",
+        "verification-output/edutool-audit-loop/20260628T105645Z-v01596-ux-fresh/report.md",
+        "docs/V0.15.97_UX_PERSONA_SOURCE_SENSE_GATE_ROADMAP.md"
+      ],
+      "proofCommands": [
+        "npm test -- --run src/lib/knowledge/__tests__/sourceLedger.test.js src/lib/knowledge/__tests__/sourceFinder.test.js src/lib/quality/__tests__/sourceLedgerGrader.test.js"
+      ],
+      "proofScopes": ["live-provider", "static-audit", "unit"]
+    },
+    {
+      "id": "v01597-persona-game-series-filter",
+      "status": "verified-current",
+      "changelogHighlightIndex": 1,
+      "summary": "UX source filtering rejects Persona game-series rows and role-playing video-game snippets as persona-development source proof.",
+      "anchors": [
+        "src/lib/knowledge/sourceLedger.js",
+        "src/lib/knowledge/__tests__/sourceFinder.test.js",
+        "src/lib/knowledge/__tests__/sourceLedger.test.js"
+      ],
+      "proofCommands": [
+        "npm test -- --run src/lib/knowledge/__tests__/sourceLedger.test.js src/lib/knowledge/__tests__/sourceFinder.test.js"
+      ],
+      "proofScopes": ["unit", "compiled-output", "static-audit"]
+    },
+    {
+      "id": "v01597-grader-persona-parity",
+      "status": "verified-current",
+      "changelogHighlightIndex": 2,
+      "summary": "The deep quality grader mirrors the Persona game-series source-sense rule and scores the captured v0.15.96 rows as citation findings.",
+      "anchors": [
+        "src/lib/quality/sourceLedgerQualityChecks.js",
+        "src/lib/quality/__tests__/sourceLedgerGrader.test.js",
+        "verification-output/edutool-audit-loop/20260628T105645Z-v01596-ux-fresh/local-regrade-after-v01597-projected.md"
+      ],
+      "proofCommands": ["npm test -- --run src/lib/quality/__tests__/sourceLedgerGrader.test.js"],
+      "proofScopes": ["unit", "static-audit", "static-audit"]
+    },
+    {
+      "id": "v01597-current-run-audit-evidence",
+      "status": "verified-current",
+      "changelogHighlightIndex": 3,
+      "summary": "The v0.15.96 audit evidence records the visible 99/Texture 90 result, current-run digest, source report, and projected 97/A regrade.",
+      "anchors": [
+        "verification-output/edutool-audit-loop/20260628T105645Z-v01596-ux-fresh/visible-summary.json",
+        "verification-output/edutool-audit-loop/20260628T105645Z-v01596-ux-fresh/edutool.dev-current.log",
+        "verification-output/edutool-audit-loop/20260628T105645Z-v01596-ux-fresh/report.md"
+      ],
+      "proofCommands": ["npm run audit:release-history"],
+      "proofScopes": ["static-audit", "doc"]
+    },
+    {
+      "id": "v01597-no-clean-quality-claim",
+      "status": "verified-current",
+      "changelogHighlightIndex": 4,
+      "summary": "The release explicitly requires fresh v0.15.97 provider proof and carries texture 90 forward instead of claiming 100/100.",
+      "anchors": ["docs/V0.15.97_UX_PERSONA_SOURCE_SENSE_GATE_ROADMAP.md", "release-contracts/v0.15.97.json"],
+      "proofCommands": ["npm run audit:release-history"],
+      "proofScopes": ["static-audit", "doc"]
+    }
+  ],
+  "carryForward": [
+    {
+      "id": "fresh-v01597-provider-audit",
+      "status": "carry-forward",
+      "source": "docs/V0.15.97_UX_PERSONA_SOURCE_SENSE_GATE_ROADMAP.md",
+      "next": "After deploy, run a fresh v0.15.97 UX ZIP/log audit and verify Persona game-series rows no longer ship as trusted sourceLedger proof."
+    },
+    {
+      "id": "texture-90",
+      "status": "carry-forward",
+      "source": "verification-output/edutool-audit-loop/20260628T105645Z-v01596-ux-fresh/report.md",
+      "next": "If source truth passes in the fresh v0.15.97 audit, investigate remaining texture 90 repeated-shingle loss."
+    }
+  ]
+}

@@ -3,24 +3,24 @@ import { APP_VERSION } from './appVersion.js';
 export const CURRENT_RELEASE = {
   version: APP_VERSION,
   date: 'June 28, 2026',
-  title: 'UX Source Sense Gate: projection and video-game false friends stop passing',
-  landingTitle: 'UX Source Sense Gate',
+  title: 'UX Persona Source Sense Gate: game-series false friends stop passing',
+  landingTitle: 'UX Persona Source Sense Gate',
   highlights: [
-    'A fresh deployed v0.15.95 User Experience Design Studio ZIP/log audit exported 99/A with no visible findings, but SOURCE_REPORT.md still trusted Mercator projection and Prototype (video game) as UX course proof.',
-    'UX source filtering now rejects map-projection and Mercator false friends even when the source text contains broad words such as navigation.',
-    'UX source filtering now rejects Prototype video-game false friends even when the source title contains prototype.',
-    'The audit evidence now keeps a current-run-only console log because the claimed Chrome tab retained older run rows; local regrade truth uses that isolated log.',
-    'This release still does not claim clean 100/100 provider output: texture remains 90 and a fresh deployed v0.15.96 ZIP/log audit must verify the source-sense gate in real output.',
+    'A fresh deployed v0.15.96 User Experience Design Studio ZIP/log audit exported 99/A, proving the Mercator and Prototype video-game rows were gone, but SOURCE_REPORT.md still trusted Persona 4 Revival and Revelations: Persona as UX persona evidence.',
+    'UX source filtering now rejects Persona game-series rows, including Persona numbered titles, Revelations: Persona, Megami Tensei/Atlus/P-Studio evidence, and role-playing video-game snippets.',
+    'The local deep quality grader mirrors that source-sense rule so valid-but-wrong persona game rows become citation findings instead of hidden 99/A debt.',
+    'The v0.15.96 audit evidence records the visible 99/Texture 90 state, the current-run digest, and the projected 97/A regrade under these stricter checks.',
+    'This release still does not claim clean 100/100 provider output: a fresh deployed v0.15.97 ZIP/log audit must verify persona false friends are gone, then texture 90 remains the next likely target.',
   ],
   landingHighlights: [
-    'Map-projection false friends are rejected.',
-    'Prototype video-game false friends are rejected.',
-    'Current-run log isolation keeps audit truth clean.',
-    'Fresh v0.15.96 provider proof remains required.',
+    'Persona game-series false friends are rejected.',
+    'Source filtering and grading stay in sync.',
+    'Fresh v0.15.96 evidence regrades to 97/A under the stricter rule.',
+    'Fresh v0.15.97 provider proof remains required.',
   ],
   proof: {
-    contract: 'release-contracts/v0.15.96.json',
-    roadmap: 'docs/V0.15.96_UX_SOURCE_SENSE_GATE_ROADMAP.md',
+    contract: 'release-contracts/v0.15.97.json',
+    roadmap: 'docs/V0.15.97_UX_PERSONA_SOURCE_SENSE_GATE_ROADMAP.md',
     auditCommand: 'npm run audit:release-history',
   },
 };
@@ -35,6 +35,18 @@ export const CURRENT_RELEASE_CHANGELOG = {
 };
 
 export const HISTORICAL_RELEASE_CHANGELOGS = [
+  {
+    version: '0.15.96',
+    date: 'June 28, 2026',
+    title: 'UX Source Sense Gate: projection and video-game false friends stop passing',
+    highlights: [
+      'A fresh deployed v0.15.95 User Experience Design Studio ZIP/log audit exported 99/A with no visible findings, but SOURCE_REPORT.md still trusted Mercator projection and Prototype (video game) as UX course proof.',
+      'UX source filtering rejects map-projection and Mercator false friends even when the source text contains broad words such as navigation.',
+      'UX source filtering rejects Prototype video-game false friends even when the source title contains prototype.',
+      'The audit evidence keeps a current-run-only console log because the claimed Chrome tab retained older run rows; local regrade truth uses that isolated log.',
+      'A fresh deployed v0.15.96 audit removed those two false friends but exposed Persona 4 Revival and Revelations: Persona as hidden UX citation debt; no clean 100/100 claim was made.',
+    ],
+  },
   {
     version: '0.15.95',
     date: 'June 28, 2026',
