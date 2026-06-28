@@ -517,6 +517,23 @@ describe('source finder mini-shard', () => {
             {
               provider: 'wikipedia',
               kind: 'encyclopedia background',
+              title: 'Mercator projection',
+              url: 'https://en.wikipedia.org/wiki/Mercator_projection',
+              license: 'CC BY-SA 4.0',
+              snippet:
+                'The Mercator projection is a conformal cylindrical map projection used for navigation and rhumb lines.',
+            },
+            {
+              provider: 'wikipedia',
+              kind: 'encyclopedia background',
+              title: 'Prototype (video game)',
+              url: 'https://en.wikipedia.org/wiki/Prototype_(video_game)',
+              license: 'CC BY-SA 4.0',
+              snippet: 'Prototype is a 2009 action-adventure video game developed by Radical Entertainment.',
+            },
+            {
+              provider: 'wikipedia',
+              kind: 'encyclopedia background',
               title: 'A/B testing',
               url: 'https://en.wikipedia.org/wiki/A/B_testing',
               license: 'CC BY-SA 4.0',

@@ -3,24 +3,24 @@ import { APP_VERSION } from './appVersion.js';
 export const CURRENT_RELEASE = {
   version: APP_VERSION,
   date: 'June 28, 2026',
-  title: 'Trusted Source Review Cleanup: metadata-only and false-friend rows stop shipping',
-  landingTitle: 'Trusted Source Review Cleanup',
+  title: 'UX Source Sense Gate: projection and video-game false friends stop passing',
+  landingTitle: 'UX Source Sense Gate',
   highlights: [
-    'A fresh deployed v0.15.94 User Experience Design Studio ZIP/log audit regraded at 97/A, but still shipped two metadata-only sourceReviewRows and one hidden trusted source false friend: Prototype-based programming as UX prototyping proof.',
-    'Source-finder attachment now requires linkable proof, a non-ambiguous license, and domain-appropriate text before candidates become graph resources or source-ledger candidates.',
-    'Metadata-only source-finder fallbacks such as Crossref public metadata Personas now drop instead of exporting as instructor review debt.',
-    'UX source filtering and the local grader now reject prototype-programming and mechatronics/manufacturing false friends, including generated-syllabus public metadata rows.',
-    'This release still does not claim clean 100/100 provider output: the v0.15.94 run also had a partial-enrichment blocker, so a fresh deployed v0.15.95 ZIP/log audit remains required.',
+    'A fresh deployed v0.15.95 User Experience Design Studio ZIP/log audit exported 99/A with no visible findings, but SOURCE_REPORT.md still trusted Mercator projection and Prototype (video game) as UX course proof.',
+    'UX source filtering now rejects map-projection and Mercator false friends even when the source text contains broad words such as navigation.',
+    'UX source filtering now rejects Prototype video-game false friends even when the source title contains prototype.',
+    'The audit evidence now keeps a current-run-only console log because the claimed Chrome tab retained older run rows; local regrade truth uses that isolated log.',
+    'This release still does not claim clean 100/100 provider output: texture remains 90 and a fresh deployed v0.15.96 ZIP/log audit must verify the source-sense gate in real output.',
   ],
   landingHighlights: [
-    'Source-finder rows must be trusted before attachment.',
-    'Metadata-only fallbacks stop exporting as source notes.',
-    'UX prototype and mechatronics false friends are rejected.',
-    'Fresh v0.15.95 provider proof remains required.',
+    'Map-projection false friends are rejected.',
+    'Prototype video-game false friends are rejected.',
+    'Current-run log isolation keeps audit truth clean.',
+    'Fresh v0.15.96 provider proof remains required.',
   ],
   proof: {
-    contract: 'release-contracts/v0.15.95.json',
-    roadmap: 'docs/V0.15.95_TRUSTED_SOURCE_REVIEW_CLEANUP_ROADMAP.md',
+    contract: 'release-contracts/v0.15.96.json',
+    roadmap: 'docs/V0.15.96_UX_SOURCE_SENSE_GATE_ROADMAP.md',
     auditCommand: 'npm run audit:release-history',
   },
 };
@@ -35,6 +35,18 @@ export const CURRENT_RELEASE_CHANGELOG = {
 };
 
 export const HISTORICAL_RELEASE_CHANGELOGS = [
+  {
+    version: '0.15.95',
+    date: 'June 28, 2026',
+    title: 'Trusted Source Review Cleanup: metadata-only and false-friend rows stop shipping',
+    highlights: [
+      'A fresh deployed v0.15.94 User Experience Design Studio ZIP/log audit regraded at 97/A, but still shipped two metadata-only sourceReviewRows and one hidden trusted source false friend: Prototype-based programming as UX prototyping proof.',
+      'Source-finder attachment requires linkable proof, a non-ambiguous license, and domain-appropriate text before candidates become graph resources or source-ledger candidates.',
+      'Metadata-only source-finder fallbacks such as Crossref public metadata Personas now drop instead of exporting as instructor review debt.',
+      'UX source filtering and the local grader reject prototype-programming and mechatronics/manufacturing false friends, including generated-syllabus public metadata rows.',
+      'A fresh deployed v0.15.95 audit improved to exported 99/A with no sourceReviewRows, but still trusted Mercator projection and Prototype (video game) as UX proof; no clean 100/100 claim was made.',
+    ],
+  },
   {
     version: '0.15.94',
     date: 'June 28, 2026',

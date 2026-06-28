@@ -831,6 +831,29 @@ describe('trusted source ledger', () => {
             sessionRefs: ['s1'],
           },
           {
+            id: 'sf-mercator',
+            origin: 'source-finder',
+            provider: 'wikipedia',
+            kind: 'encyclopedia background',
+            title: 'Mercator projection',
+            url: 'https://en.wikipedia.org/wiki/Mercator_projection',
+            license: 'CC BY-SA 4.0',
+            snippet:
+              'The Mercator projection is a conformal cylindrical map projection used for navigation and rhumb lines.',
+            sessionRefs: ['s1'],
+          },
+          {
+            id: 'sf-prototype-video-game',
+            origin: 'source-finder',
+            provider: 'wikipedia',
+            kind: 'encyclopedia background',
+            title: 'Prototype (video game)',
+            url: 'https://en.wikipedia.org/wiki/Prototype_(video_game)',
+            license: 'CC BY-SA 4.0',
+            snippet: 'Prototype is a 2009 action-adventure video game developed by Radical Entertainment.',
+            sessionRefs: ['s8'],
+          },
+          {
             id: 'sf2',
             origin: 'source-finder',
             provider: 'wikipedia',
@@ -850,6 +873,8 @@ describe('trusted source ledger', () => {
     expect(ledger.rows.map((row) => row.title)).not.toContain('List of Studio Ghibli works');
     expect(ledger.rows.map((row) => row.title)).not.toContain('Prototype-based programming');
     expect(ledger.rows.map((row) => row.title)).not.toContain('Personas');
+    expect(ledger.rows.map((row) => row.title)).not.toContain('Mercator projection');
+    expect(ledger.rows.map((row) => row.title)).not.toContain('Prototype (video game)');
     expect(ledger.reviewRows || []).toHaveLength(0);
     expect(ledger.summary).toMatchObject({ sourceCount: 1, trustedConceptLinkedCount: 1 });
     expect(ledger.summary.reviewRequiredCount || 0).toBe(0);

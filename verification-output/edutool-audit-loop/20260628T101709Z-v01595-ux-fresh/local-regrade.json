@@ -1,0 +1,202 @@
+{
+  "scores": {
+    "identity": 100,
+    "substance": 100,
+    "citations": 100,
+    "honesty": 97,
+    "discipline": 100,
+    "consistency": 100,
+    "structure": 100,
+    "format": 100,
+    "texture": 90
+  },
+  "grades": {
+    "identity": "A",
+    "substance": "A",
+    "citations": "A",
+    "honesty": "A",
+    "discipline": "A",
+    "consistency": "A",
+    "structure": "A",
+    "format": "A",
+    "texture": "A"
+  },
+  "overall": {
+    "score": 99,
+    "grade": "A"
+  },
+  "findings": [
+    {
+      "id": "F001",
+      "severity": "P2",
+      "dimension": "honesty",
+      "file": "console",
+      "detail": "unexplained console error/warning not on the dev-noise allowlist",
+      "evidence": "[failed] content: partial enrichment (11/12) — lesson 1 fell back to template after 1 repair/retry call"
+    }
+  ],
+  "stats": {
+    "fileCount": 99,
+    "findingCount": 1,
+    "p0": 0,
+    "p1": 0,
+    "p2": 1,
+    "byDimension": {
+      "identity": 0,
+      "substance": 0,
+      "citations": 0,
+      "honesty": 1,
+      "discipline": 0,
+      "consistency": 0,
+      "structure": 0,
+      "format": 0,
+      "texture": 0
+    },
+    "hasManifest": true,
+    "registryCount": 37,
+    "readingsCount": 0
+  },
+  "texture": {
+    "version": "1.0.0",
+    "score": 90,
+    "grade": "A",
+    "measured": true,
+    "subScores": {
+      "sameness": 86,
+      "openers": 90,
+      "tails": 96
+    },
+    "evidence": [
+      {
+        "shingle": "after artifact inspect critique evidence and require one named next iteration for",
+        "feature": "assignments",
+        "docCount": 12,
+        "docTotal": 12
+      },
+      {
+        "shingle": "agenda and lesson handout shared notes or collaboration document submission template for",
+        "feature": "lessonPlans",
+        "docCount": 12,
+        "docTotal": 12
+      },
+      {
+        "shingle": "an official source instructor preference feedback tied to specific rubric criteria and",
+        "feature": "rubrics",
+        "docCount": 12,
+        "docTotal": 12
+      },
+      {
+        "shingle": "and identify the central problem or decision [n] select specific user evidence",
+        "feature": "assignments",
+        "docCount": 12,
+        "docTotal": 12
+      },
+      {
+        "shingle": "and lesson handout shared notes or collaboration document submission template for the",
+        "feature": "lessonPlans",
+        "docCount": 12,
+        "docTotal": 12
+      }
+    ],
+    "groups": [
+      {
+        "feature": "assignments",
+        "docCount": 12,
+        "avgOverlap": 0.187,
+        "tailCount": 247,
+        "tailDensity": 0.05
+      },
+      {
+        "feature": "courseFaq",
+        "docCount": 12,
+        "avgOverlap": 0.134,
+        "tailCount": 72,
+        "tailDensity": 0.03
+      },
+      {
+        "feature": "discussions",
+        "docCount": 12,
+        "avgOverlap": 0.23,
+        "tailCount": 193,
+        "tailDensity": 0.071
+      },
+      {
+        "feature": "lessonPlans",
+        "docCount": 12,
+        "avgOverlap": 0.106,
+        "tailCount": 131,
+        "tailDensity": 0.02
+      },
+      {
+        "feature": "quizBank",
+        "docCount": 12,
+        "avgOverlap": 0.037000000000000005,
+        "tailCount": 63,
+        "tailDensity": 0.006999999999999999
+      },
+      {
+        "feature": "rubrics",
+        "docCount": 12,
+        "avgOverlap": 0.157,
+        "tailCount": 190,
+        "tailDensity": 0.042
+      },
+      {
+        "feature": "slideDecks",
+        "docCount": 12,
+        "avgOverlap": 0.155,
+        "tailCount": 599,
+        "tailDensity": 0.042
+      },
+      {
+        "feature": "studyGuides",
+        "docCount": 12,
+        "avgOverlap": 0.09,
+        "tailCount": 104,
+        "tailDensity": 0.023
+      }
+    ],
+    "advisories": [
+      {
+        "severity": "P2",
+        "dimension": "texture",
+        "advisory": true,
+        "file": "",
+        "detail": "advisory: template tail shared by 12/12 assignments documents (roadmap WS-D D1)",
+        "evidence": "after artifact inspect critique evidence and require one named next iteration for"
+      },
+      {
+        "severity": "P2",
+        "dimension": "texture",
+        "advisory": true,
+        "file": "",
+        "detail": "advisory: template tail shared by 12/12 lessonPlans documents (roadmap WS-D D1)",
+        "evidence": "agenda and lesson handout shared notes or collaboration document submission template for"
+      },
+      {
+        "severity": "P2",
+        "dimension": "texture",
+        "advisory": true,
+        "file": "",
+        "detail": "advisory: template tail shared by 12/12 rubrics documents (roadmap WS-D D1)",
+        "evidence": "an official source instructor preference feedback tied to specific rubric criteria and"
+      },
+      {
+        "severity": "P2",
+        "dimension": "texture",
+        "advisory": true,
+        "file": "",
+        "detail": "advisory: template tail shared by 12/12 assignments documents (roadmap WS-D D1)",
+        "evidence": "and identify the central problem or decision [n] select specific user evidence"
+      },
+      {
+        "severity": "P2",
+        "dimension": "texture",
+        "advisory": true,
+        "file": "",
+        "detail": "advisory: template tail shared by 12/12 lessonPlans documents (roadmap WS-D D1)",
+        "evidence": "and lesson handout shared notes or collaboration document submission template for the"
+      }
+    ]
+  }
+}
