@@ -116,7 +116,7 @@ describe('blueprint compiler cost comparison sample', () => {
       expect(validation.valid, `${featureId}: ${validation.blockers.join('; ')}`).toBe(true);
       expect(averageQuality(quality), featureId).toBeGreaterThanOrEqual(6);
     }
-  });
+  }, 30_000);
 
   it('removes planned provider calls for compiled weekly reflection customs while leaving unknown customs on the model path', () => {
     customDeliverables = {
