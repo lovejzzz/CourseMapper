@@ -712,6 +712,31 @@ describe('trusted source ledger', () => {
                     'Environmental strategies for schematic design covers daylight, airflow, and green building decisions.',
                 },
                 {
+                  provider: 'wikipedia',
+                  kind: 'background source',
+                  title: 'National Design Studio',
+                  url: 'https://en.wikipedia.org/wiki/National_Design_Studio',
+                  license: 'CC BY-SA 4.0',
+                  snippet: 'The National Design Studio is an agency of the White House Office.',
+                },
+                {
+                  provider: 'wikipedia',
+                  kind: 'background source',
+                  title: 'Le Mans Prototype',
+                  url: 'https://en.wikipedia.org/wiki/Le_Mans_Prototype',
+                  license: 'CC BY-SA 4.0',
+                  snippet: 'A Le Mans Prototype is a sports prototype race car class.',
+                },
+                {
+                  provider: 'openalex',
+                  kind: 'journal article',
+                  title:
+                    'Collaborative learning in architectural education: Benefits of combining conventional studio, virtual design studio and live projects',
+                  url: 'https://pureadmin.qub.ac.uk/ws/files/164352510/BLIND_REVIEW_Collaborative_Distance_learning_in_Architecture_final_submission_.pdf',
+                  license: 'other-oa',
+                  snippet: 'Architectural education studio projects and distance learning in architecture.',
+                },
+                {
                   provider: 'openalex',
                   kind: 'journal article',
                   title: 'Understanding Collaborative Practices and Tools of Professional UX Practitioners',
@@ -741,6 +766,11 @@ describe('trusted source ledger', () => {
     expect(ledger.rows.map((row) => row.title)).not.toContain(
       'The Green Studio Handbook: Environmental Strategies for Schematic Design',
     );
+    expect(ledger.rows.map((row) => row.title)).not.toContain('National Design Studio');
+    expect(ledger.rows.map((row) => row.title)).not.toContain('Le Mans Prototype');
+    expect(ledger.rows.map((row) => row.title)).not.toContain(
+      'Collaborative learning in architectural education: Benefits of combining conventional studio, virtual design studio and live projects',
+    );
     expect(ledger.reviewRows).toEqual(
       expect.arrayContaining([
         expect.objectContaining({
@@ -753,9 +783,25 @@ describe('trusted source ledger', () => {
           title: 'The Green Studio Handbook: Environmental Strategies for Schematic Design',
           conceptLinks: [{ id: 'c1', label: 'project feedback' }],
         }),
+        expect.objectContaining({
+          provider: 'wikipedia',
+          title: 'National Design Studio',
+          conceptLinks: [{ id: 'c1', label: 'project feedback' }],
+        }),
+        expect.objectContaining({
+          provider: 'wikipedia',
+          title: 'Le Mans Prototype',
+          conceptLinks: [{ id: 'c1', label: 'project feedback' }],
+        }),
+        expect.objectContaining({
+          provider: 'openalex',
+          title:
+            'Collaborative learning in architectural education: Benefits of combining conventional studio, virtual design studio and live projects',
+          conceptLinks: [{ id: 'c1', label: 'project feedback' }],
+        }),
       ]),
     );
-    expect(ledger.summary).toMatchObject({ sourceCount: 1, trustedConceptLinkedCount: 1, reviewRequiredCount: 2 });
+    expect(ledger.summary).toMatchObject({ sourceCount: 1, trustedConceptLinkedCount: 1, reviewRequiredCount: 5 });
   });
 
   it('quarantines weak UX knowledge resources before they become trusted ledger rows', () => {

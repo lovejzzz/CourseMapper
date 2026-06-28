@@ -328,6 +328,43 @@ describe('source-ledger quality checks', () => {
               conceptLinks: [{ id: 'c9', label: 'critique sessions' }],
             },
             {
+              id: 'kr7',
+              title:
+                'Collaborative learning in architectural education: Benefits of combining conventional studio, virtual design studio and live projects',
+              provider: 'openalex',
+              url: 'https://pureadmin.qub.ac.uk/ws/files/164352510/BLIND_REVIEW_Collaborative_Distance_learning_in_Architecture_final_submission_.pdf',
+              license: 'other-oa',
+              conceptLinks: [
+                { id: 'c30', label: 'project work' },
+                { id: 'c31', label: 'revision' },
+                { id: 'c32', label: 'preparation' },
+              ],
+            },
+            {
+              id: 'sf-2-2',
+              title: 'National Design Studio',
+              provider: 'wikipedia',
+              url: 'https://en.wikipedia.org/wiki/National_Design_Studio',
+              license: 'CC BY-SA 4.0',
+              conceptLinks: [
+                { id: 'c4', label: 'studio critique' },
+                { id: 'c5', label: 'peer feedback' },
+                { id: 'c6', label: 'iteration' },
+              ],
+            },
+            {
+              id: 'sf-6-2',
+              title: 'Le Mans Prototype',
+              provider: 'wikipedia',
+              url: 'https://en.wikipedia.org/wiki/Le_Mans_Prototype',
+              license: 'CC BY-SA 4.0',
+              conceptLinks: [
+                { id: 'c16', label: 'prototypes' },
+                { id: 'c17', label: 'interaction' },
+                { id: 'c6', label: 'iteration' },
+              ],
+            },
+            {
               id: 'sf3',
               title:
                 'Optimizing the digital customer journey—Improving user experience by exploiting emotions, personas and situations for individualized user interface adaptations',
@@ -340,12 +377,12 @@ describe('source-ledger quality checks', () => {
           ],
           sourceReport: {
             path: 'SOURCE_REPORT.md',
-            sourceCount: 4,
+            sourceCount: 7,
           },
           files: [],
         }),
         'SOURCE_REPORT.md':
-          '# Source Report\n\n## Source Ledger\n- sf2: Positive feedback\n- kr2: Metaverse beyond the hype\n- sf1: The Green Studio Handbook\n- sf3: Optimizing the digital customer journey\n',
+          '# Source Report\n\n## Source Ledger\n- sf2: Positive feedback\n- kr2: Metaverse beyond the hype\n- sf1: The Green Studio Handbook\n- kr7: Collaborative learning in architectural education\n- sf-2-2: National Design Studio\n- sf-6-2: Le Mans Prototype\n- sf3: Optimizing the digital customer journey\n',
       }),
       course: { title: 'User Experience Design Studio', featureIds: [] },
     });
@@ -366,6 +403,21 @@ describe('source-ledger quality checks', () => {
           severity: 'P1',
           dimension: 'citations',
           detail: 'source ledger row sf1 is off-discipline for User Experience Design Studio',
+        }),
+        expect.objectContaining({
+          severity: 'P1',
+          dimension: 'citations',
+          detail: 'source ledger row kr7 is off-discipline for User Experience Design Studio',
+        }),
+        expect.objectContaining({
+          severity: 'P1',
+          dimension: 'citations',
+          detail: 'source ledger row sf-2-2 is off-discipline for User Experience Design Studio',
+        }),
+        expect.objectContaining({
+          severity: 'P1',
+          dimension: 'citations',
+          detail: 'source ledger row sf-6-2 is off-discipline for User Experience Design Studio',
         }),
       ]),
     );

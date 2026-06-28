@@ -1,0 +1,107 @@
+{
+  "version": "0.15.91",
+  "date": "June 28, 2026",
+  "title": "UX Source Relevance Broadening: prototype and studio false friends stop passing",
+  "status": "verified-current",
+  "proofSummary": {
+    "local": [
+      "npm test -- src/lib/knowledge/__tests__/sourceLedger.test.js src/lib/quality/__tests__/sourceLedgerGrader.test.js tests/v0155-release-truth-ledger.test.js",
+      "npm run format:check",
+      "npm run lint",
+      "npm test",
+      "npm run build",
+      "npm run bundle:check",
+      "npm run audit:release-history",
+      "npm run audit:gold:smoke"
+    ],
+    "ciFast": {
+      "status": "pending-push",
+      "note": "Fast verification is claimed only after v0.15.91 is pushed and the GitHub Actions run is attached."
+    },
+    "deploy": {
+      "status": "pending-push",
+      "note": "Pages deploy is not claimed until the pushed v0.15.91 release completes its deploy run."
+    },
+    "ciDeep": {
+      "status": "local-only",
+      "note": "This is a narrow source relevance and grader-truth release; targeted regressions plus normal gates are the release bar."
+    },
+    "liveProvider": {
+      "status": "local-only",
+      "note": "The release is based on the fresh deployed v0.15.90 ZIP/log audit and local projection. A fresh deployed v0.15.91 ZIP/log audit is still required before claiming provider package quality improvement."
+    },
+    "manualHuman": {
+      "status": "not-applicable",
+      "note": "No external instructor approval is claimed by this release."
+    }
+  },
+  "claims": [
+    {
+      "id": "v01591-live-v01590-source-evidence",
+      "status": "verified-current",
+      "changelogHighlightIndex": 0,
+      "summary": "The release is grounded in a fresh deployed v0.15.90 UX ZIP/log audit where three trusted sourceLedger rows were off-topic despite a displayed 100/100 score.",
+      "anchors": [
+        "docs/V0.15.91_UX_SOURCE_RELEVANCE_BROADENING_ROADMAP.md",
+        "src/lib/quality/__tests__/sourceLedgerGrader.test.js"
+      ],
+      "proofCommands": [
+        "npm test -- src/lib/knowledge/__tests__/sourceLedger.test.js src/lib/quality/__tests__/sourceLedgerGrader.test.js tests/v0155-release-truth-ledger.test.js"
+      ],
+      "proofScopes": ["live-provider", "static-audit", "unit"]
+    },
+    {
+      "id": "v01591-export-quarantines-studio-prototype-false-friends",
+      "status": "verified-current",
+      "changelogHighlightIndex": 1,
+      "summary": "UX source-ledger export now quarantines National Design Studio, Le Mans Prototype, and architecture-studio false friends into source review notes instead of trusted bibliography proof.",
+      "anchors": [
+        "src/lib/knowledge/sourceLedger.js",
+        "src/lib/knowledge/__tests__/sourceLedger.test.js",
+        "docs/V0.15.91_UX_SOURCE_RELEVANCE_BROADENING_ROADMAP.md"
+      ],
+      "proofCommands": [
+        "npm test -- src/lib/knowledge/__tests__/sourceLedger.test.js src/lib/quality/__tests__/sourceLedgerGrader.test.js tests/v0155-release-truth-ledger.test.js"
+      ],
+      "proofScopes": ["unit", "compiled-output"]
+    },
+    {
+      "id": "v01591-grader-projects-hidden-caveat",
+      "status": "verified-current",
+      "changelogHighlightIndex": 2,
+      "summary": "The local deep quality grader now flags the captured v0.15.90 false-friend rows as three P1 citation findings, projecting the same package to 97/A instead of a false clean 100.",
+      "anchors": [
+        "src/lib/quality/sourceLedgerQualityChecks.js",
+        "src/lib/quality/__tests__/sourceLedgerGrader.test.js",
+        "docs/V0.15.91_UX_SOURCE_RELEVANCE_BROADENING_ROADMAP.md"
+      ],
+      "proofCommands": [
+        "npm test -- src/lib/knowledge/__tests__/sourceLedger.test.js src/lib/quality/__tests__/sourceLedgerGrader.test.js tests/v0155-release-truth-ledger.test.js"
+      ],
+      "proofScopes": ["unit", "static-audit", "compiled-output"]
+    },
+    {
+      "id": "v01591-no-clean-quality-claim",
+      "status": "verified-current",
+      "changelogHighlightIndex": 3,
+      "summary": "The release explicitly carries forward fresh deployed v0.15.91 ZIP/log validation and texture cleanup before claiming clean 100/100 provider output.",
+      "anchors": ["docs/V0.15.91_UX_SOURCE_RELEVANCE_BROADENING_ROADMAP.md", "release-contracts/v0.15.91.json"],
+      "proofCommands": ["npm run audit:release-history"],
+      "proofScopes": ["static-audit", "doc"]
+    }
+  ],
+  "carryForward": [
+    {
+      "id": "fresh-v01591-provider-audit",
+      "status": "carry-forward",
+      "source": "docs/V0.15.91_UX_SOURCE_RELEVANCE_BROADENING_ROADMAP.md",
+      "next": "After deploy, run a fresh v0.15.91 UX ZIP/log audit and verify SOURCE_REPORT.md, manifest sourceLedger/sourceReviewRows, local deep regrade, texture, and browser warning logs."
+    },
+    {
+      "id": "texture-below-perfect",
+      "status": "carry-forward",
+      "source": "docs/V0.15.91_UX_SOURCE_RELEVANCE_BROADENING_ROADMAP.md",
+      "next": "The latest v0.15.90 UX run measured texture at 94/100; continue deterministic variation cleanup after source trust is verified."
+    }
+  ]
+}

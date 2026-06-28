@@ -3,22 +3,22 @@ import { APP_VERSION } from './appVersion.js';
 export const CURRENT_RELEASE = {
   version: APP_VERSION,
   date: 'June 28, 2026',
-  title: 'UX Source Quarantine and Quota Fallback: hidden caveats stop passing quietly',
-  landingTitle: 'UX Source Quarantine',
+  title: 'UX Source Relevance Broadening: prototype and studio false friends stop passing',
+  landingTitle: 'UX Source Relevance',
   highlights: [
-    'The v0.15.89 User Experience Design Studio ZIP/log audit reached a nominal 100/100, but SOURCE_REPORT.md still trusted an environmental architecture "Green Studio Handbook" row as UX critique/design-journal proof; that false friend is now quarantined into sourceReviewRows.',
-    'The source-ledger grader mirrors the new UX quarantine rule, so the same v0.15.89 artifact now projects to 99/A with a P1 citation finding instead of silently passing as clean.',
-    'Conversation persistence now degrades to a tiny payload and then an index-only save when localStorage quota is exhausted, preserving the workspace list without emitting app-bundle QuotaExceeded warnings during long audit runs.',
-    'This release does not claim clean 100/100 quality: a fresh deployed v0.15.90 ZIP/log audit is still required to prove the UX source quarantine, quota fallback, and texture behavior in real provider output.',
+    'A fresh deployed v0.15.90 User Experience Design Studio ZIP/log audit displayed 100/100, but SOURCE_REPORT.md still trusted National Design Studio, Le Mans Prototype, and an architecture-studio paper as UX concept proof.',
+    'UX source-ledger filtering now quarantines those prototype/studio false friends into sourceReviewRows instead of trusted sourceLedger proof while preserving legitimate UX/design research rows.',
+    'The local deep quality grader mirrors the broader UX relevance gate, so the same v0.15.90 artifact now projects to 97/A with three P1 citation findings instead of silently passing as clean.',
+    'This release does not claim clean 100/100 quality: a fresh deployed v0.15.91 ZIP/log audit is still required, and the latest measured texture remains 94/100.',
   ],
   landingHighlights: [
-    'UX false-friend sources move to review.',
+    'Studio/prototype false friends move to review.',
     'Hidden citation caveats score honestly.',
-    'Quota pressure keeps the workspace usable.',
+    'Fresh provider proof remains required.',
   ],
   proof: {
-    contract: 'release-contracts/v0.15.90.json',
-    roadmap: 'docs/V0.15.90_UX_SOURCE_QUARANTINE_QUOTA_ROADMAP.md',
+    contract: 'release-contracts/v0.15.91.json',
+    roadmap: 'docs/V0.15.91_UX_SOURCE_RELEVANCE_BROADENING_ROADMAP.md',
     auditCommand: 'npm run audit:release-history',
   },
 };
@@ -33,6 +33,17 @@ export const CURRENT_RELEASE_CHANGELOG = {
 };
 
 export const HISTORICAL_RELEASE_CHANGELOGS = [
+  {
+    version: '0.15.90',
+    date: 'June 28, 2026',
+    title: 'UX Source Quarantine and Quota Fallback: hidden caveats stop passing quietly',
+    highlights: [
+      'The v0.15.89 User Experience Design Studio ZIP/log audit reached a nominal 100/100, but SOURCE_REPORT.md still trusted an environmental architecture "Green Studio Handbook" row as UX critique/design-journal proof; that false friend is now quarantined into sourceReviewRows.',
+      'The source-ledger grader mirrors the new UX quarantine rule, so the same v0.15.89 artifact now projects to 99/A with a P1 citation finding instead of silently passing as clean.',
+      'Conversation persistence now degrades to a tiny payload and then an index-only save when localStorage quota is exhausted, preserving the workspace list without emitting app-bundle QuotaExceeded warnings during long audit runs.',
+      'This release does not claim clean 100/100 quality: a fresh deployed v0.15.90 ZIP/log audit is still required to prove the UX source quarantine, quota fallback, and texture behavior in real provider output.',
+    ],
+  },
   {
     version: '0.15.89',
     date: 'June 28, 2026',
