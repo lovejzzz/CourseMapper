@@ -3,24 +3,23 @@ import { APP_VERSION } from './appVersion.js';
 export const CURRENT_RELEASE = {
   version: APP_VERSION,
   date: 'June 28, 2026',
-  title: 'UX Texture Tail Rotation: assignment, rubric, and lesson-plan scaffolds vary by lesson',
-  landingTitle: 'UX Texture Tail Rotation',
+  title: 'UX Iteration Source Gate: generic iteration pages stop passing',
+  landingTitle: 'UX Iteration Source Gate',
   highlights: [
-    'A fresh deployed v0.15.104 User Experience Design Studio ZIP/log audit exported Quality 99 with no P0/P1/P2 findings, clean export/source truth, and the remaining scored loss concentrated in Texture 92.',
-    'Assignment Brief support resources now rotate six lesson-specific packet shapes instead of stamping the same notes/readings, rubric, checklist, and office-hours tail across all 12 lessons.',
-    'Parameter-derived Rubric rows now rotate evidence signals, calibration prompts, feedback moves, and performance bands so brief fidelity criteria do not repeat the same "rest of the assessment" scaffold.',
-    'Rubric task directions and instructor-preference notes now vary their evidence-standard and feedback-emphasis frames while preserving the same criteria, weights, and source boundaries.',
-    'Lesson Plan mini-lessons with authored kernel facts now rotate the anchor-fact transfer sentence instead of repeating the same "build the explanation students will reuse" frame across the course.',
+    'A fresh deployed v0.15.105 User Experience Design Studio ZIP/log audit exported Quality 100 with no P0/P1/P2 findings, but the strict audit still found trusted UX source rows for generic Fixed-point iteration and Iteration pages.',
+    'UX source topic anchors now require iteration evidence to carry design, prototype, usability, studio, critique, feedback, interface, interaction, or user-experience context instead of matching bare "iteration."',
+    'Source-finder retrieval, source-ledger export, and the local deep quality grader now agree: generic math/process iteration pages are rejected or scored as off-discipline while actual UX iteration sources such as Iterative design remain eligible.',
+    'The v0.15.105 evidence report is recorded as nominally 100/A but not strict-clean because Texture stayed at 94 and source relevance still needed this deterministic false-friend guard.',
   ],
   landingHighlights: [
-    'The latest live loss is texture, not source truth.',
-    'Assignment resource packets vary by lesson.',
-    'Rubric parameter bands avoid 12-week stamps.',
-    'Kernel-fact lesson plans rotate their transfer frame.',
+    'Generic iteration pages no longer count as UX proof.',
+    'Retrieval, export, and grader source rules stay aligned.',
+    'Real UX iteration sources still pass.',
+    'The v0.15.105 nominal 100/A caveat is documented.',
   ],
   proof: {
-    contract: 'release-contracts/v0.15.105.json',
-    roadmap: 'docs/V0.15.105_UX_TEXTURE_TAIL_ROTATION_ROADMAP.md',
+    contract: 'release-contracts/v0.15.106.json',
+    roadmap: 'docs/V0.15.106_UX_ITERATION_SOURCE_GATE_ROADMAP.md',
     auditCommand: 'npm run audit:release-history',
   },
 };
@@ -35,6 +34,18 @@ export const CURRENT_RELEASE_CHANGELOG = {
 };
 
 export const HISTORICAL_RELEASE_CHANGELOGS = [
+  {
+    version: '0.15.105',
+    date: 'June 28, 2026',
+    title: 'UX Texture Tail Rotation: assignment, rubric, and lesson-plan scaffolds vary by lesson',
+    highlights: [
+      'A fresh deployed v0.15.104 User Experience Design Studio ZIP/log audit exported Quality 99 with no P0/P1/P2 findings, clean export/source truth, and the remaining scored loss concentrated in Texture 92.',
+      'Assignment Brief support resources now rotate six lesson-specific packet shapes instead of stamping the same notes/readings, rubric, checklist, and office-hours tail across all 12 lessons.',
+      'Parameter-derived Rubric rows now rotate evidence signals, calibration prompts, feedback moves, and performance bands so brief fidelity criteria do not repeat the same "rest of the assessment" scaffold.',
+      'Rubric task directions and instructor-preference notes now vary their evidence-standard and feedback-emphasis frames while preserving the same criteria, weights, and source boundaries.',
+      'Lesson Plan mini-lessons with authored kernel facts now rotate the anchor-fact transfer sentence instead of repeating the same "build the explanation students will reuse" frame across the course.',
+    ],
+  },
   {
     version: '0.15.104',
     date: 'June 28, 2026',

@@ -618,6 +618,53 @@ describe('source finder mini-shard', () => {
     ]);
   }, 15000);
 
+  it('rejects generic iteration pages for UX iteration topics before caching sources', async () => {
+    const graph = createEmptyCourseGraph({ courseName: 'User Experience Design Studio' });
+    graph.sessions = [
+      {
+        id: 's7',
+        number: 7,
+        title: 'Lesson 7: Design iteration',
+        sections: [{ topic: '7.1: design iteration, peer critique, and revision planning' }],
+      },
+    ];
+    graph.concepts = [
+      { id: 'c19', term: 'design iteration' },
+      { id: 'c20', term: 'peer critique' },
+      { id: 'c21', term: 'revision planning' },
+    ];
+    graph.edges.teaches = [
+      { from: 's7', to: 'c19' },
+      { from: 's7', to: 'c20' },
+      { from: 's7', to: 'c21' },
+    ];
+
+    const miniShard = await findCourseSources(graph, {
+      storage: memoryStorage(),
+      maxTopics: 1,
+      limitPerTopic: 3,
+      minUsefulSources: 1,
+      providers: {
+        searchScholarlyReadings: vi.fn(async () => []),
+        searchCrossrefWorks: vi.fn(async () => []),
+        searchWikipediaPages: vi.fn(async () => [
+          source('wikipedia', 'Fixed-point iteration', {
+            abstract: 'In mathematics, fixed-point iteration is a method of computing fixed points of functions.',
+          }),
+          source('wikipedia', 'Iteration', {
+            abstract: 'Iteration is the repetition of a process in order to generate a sequence of outcomes.',
+          }),
+          source('wikipedia', 'Iterative design', {
+            abstract:
+              'Iterative design is a design methodology based on prototyping, testing, analysis, and refinement.',
+          }),
+        ]),
+      },
+    });
+
+    expect(miniShard.topics[0].sources.map((item) => item.title)).toEqual(['Iterative design']);
+  }, 15000);
+
   it('rejects v0.15.97 UX false friends during retrieval before they reach the mini-shard cache', async () => {
     const graph = createEmptyCourseGraph({ courseName: 'User Experience Design Studio' });
     graph.sessions = [

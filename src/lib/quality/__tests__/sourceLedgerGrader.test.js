@@ -504,6 +504,30 @@ describe('source-ledger quality checks', () => {
               conceptLinks: [{ id: 'c16', label: 'prototypes' }],
             },
             {
+              id: 'sf-fixed-point-iteration',
+              title: 'Fixed-point iteration',
+              provider: 'wikipedia',
+              url: 'https://en.wikipedia.org/wiki/Fixed-point_iteration',
+              license: 'CC BY-SA 4.0',
+              evidence: 'A mathematics page about computing fixed points of functions.',
+              conceptLinks: [
+                { id: 'c19', label: 'design iteration' },
+                { id: 'c20', label: 'peer critique' },
+              ],
+            },
+            {
+              id: 'sf-generic-iteration',
+              title: 'Iteration',
+              provider: 'wikipedia',
+              url: 'https://en.wikipedia.org/wiki/Iteration',
+              license: 'CC BY-SA 4.0',
+              evidence: 'The repetition of a process in order to generate a sequence of outcomes.',
+              conceptLinks: [
+                { id: 'c19', label: 'design iteration' },
+                { id: 'c21', label: 'revision planning' },
+              ],
+            },
+            {
               id: 'sf-7-3',
               title: 'Prototype (video game)',
               provider: 'wikipedia',
@@ -655,6 +679,16 @@ describe('source-ledger quality checks', () => {
           severity: 'P1',
           dimension: 'citations',
           detail: 'source ledger row sf-7-2 is off-discipline for User Experience Design Studio',
+        }),
+        expect.objectContaining({
+          severity: 'P1',
+          dimension: 'citations',
+          detail: 'source ledger row sf-fixed-point-iteration is off-discipline for User Experience Design Studio',
+        }),
+        expect.objectContaining({
+          severity: 'P1',
+          dimension: 'citations',
+          detail: 'source ledger row sf-generic-iteration is off-discipline for User Experience Design Studio',
         }),
         expect.objectContaining({
           severity: 'P1',

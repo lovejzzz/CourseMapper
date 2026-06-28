@@ -63,7 +63,7 @@ const USER_EXPERIENCE_TOPIC_ANCHORS = [
   {
     concept: /\b(?:clickable\s+prototypes?|tool\s+workflows?|iteration)\b/i,
     source:
-      /\b(?:clickable\s+prototypes?|functional\s+prototypes?|prototyp|tool\s+workflow|iteration|usability\s+testing)\b/i,
+      /\b(?:clickable\s+prototypes?|functional\s+prototypes?|prototyp|tool\s+workflow|usability\s+testing|(?:design|prototype|usability|critique|feedback|studio|ux|user[-\s]?experience|interface|interaction)[-\s]+iterat(?:ion|ive)|iterat(?:ion|ive)[-\s]+(?:design|prototype|usability|critique|feedback|studio|ux|user[-\s]?experience|interface|interaction))\b/i,
   },
   {
     concept: /\b(?:test\s+plans?|task\s+scenarios?|findings)\b/i,

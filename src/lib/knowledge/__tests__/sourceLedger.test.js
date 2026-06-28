@@ -1061,6 +1061,76 @@ describe('trusted source ledger', () => {
     expect(ledger).toBeNull();
   });
 
+  it('drops generic iteration background pages from UX source-finder trusted proof', () => {
+    const ledger = buildSourceLedgerFromCourseGraph(
+      {
+        course: { name: 'User Experience Design Studio' },
+        concepts: [
+          { id: 'c1', term: 'design iteration' },
+          { id: 'c2', term: 'peer critique' },
+          { id: 'c3', term: 'revision planning' },
+        ],
+        sessions: [
+          {
+            id: 's1',
+            number: 7,
+            title: 'Lesson 7: Design iteration',
+            sections: [{ id: 'sec1', topic: 'design iteration', conceptRefs: ['c1', 'c2', 'c3'] }],
+          },
+        ],
+        edges: {
+          teaches: [
+            { from: 's1', to: 'c1' },
+            { from: 's1', to: 'c2' },
+            { from: 's1', to: 'c3' },
+          ],
+        },
+        resources: [],
+        sourceFinderMiniShard: {
+          topics: [
+            {
+              sessionId: 's1',
+              lessonNumber: 7,
+              topic: 'design iteration',
+              sources: [
+                {
+                  provider: 'wikipedia',
+                  kind: 'encyclopedia background',
+                  title: 'Fixed-point iteration',
+                  url: 'https://en.wikipedia.org/wiki/Fixed-point_iteration',
+                  license: 'CC BY-SA 4.0',
+                  snippet: 'In mathematics, fixed-point iteration is a method of computing fixed points of functions.',
+                },
+                {
+                  provider: 'wikipedia',
+                  kind: 'encyclopedia background',
+                  title: 'Iteration',
+                  url: 'https://en.wikipedia.org/wiki/Iteration',
+                  license: 'CC BY-SA 4.0',
+                  snippet: 'Iteration is the repetition of a process in order to generate a sequence of outcomes.',
+                },
+                {
+                  provider: 'wikipedia',
+                  kind: 'encyclopedia background',
+                  title: 'Iterative design',
+                  url: 'https://en.wikipedia.org/wiki/Iterative_design',
+                  license: 'CC BY-SA 4.0',
+                  snippet:
+                    'Iterative design is a design methodology based on prototyping, testing, analysis, and refinement.',
+                },
+              ],
+            },
+          ],
+        },
+      },
+      { checkedAt: '2026-06-28T00:00:00.000Z' },
+    );
+
+    expect(ledger.rows.map((row) => row.title)).toEqual(['Iterative design']);
+    expect(ledger.reviewRows || []).toHaveLength(0);
+    expect(ledger.summary).toMatchObject({ sourceCount: 1, trustedConceptLinkedCount: 1 });
+  });
+
   it('quarantines weak UX knowledge resources before they become trusted ledger rows', () => {
     const ledger = buildSourceLedgerFromCourseGraph(
       {
