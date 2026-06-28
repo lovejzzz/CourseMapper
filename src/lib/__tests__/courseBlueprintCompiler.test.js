@@ -4987,6 +4987,10 @@ describe('courseBlueprintCompiler', () => {
     expect(
       new Set(compiled.assignments.assignments.map((assignment) => assignment.progressTracking)).size,
     ).toBeGreaterThan(1);
+    expect(
+      new Set(compiled.assignments.assignments.map((assignment) => assignment.citationAndSourceUse.noInventedSources))
+        .size,
+    ).toBeGreaterThan(1);
     expect(compiled.assignments.assignments[0].instructionalRationale.assessmentRationale).toContain(
       'appropriate performance evidence',
     );
@@ -5284,6 +5288,13 @@ describe('courseBlueprintCompiler', () => {
     expect(compiled.studyGuides.studyGuides[0].teachingIntent.studentRevisionMove).toContain(
       'evidence-backed Policy Topic 1 reasoning',
     );
+    expect(
+      new Set(
+        compiled.studyGuides.studyGuides.map(
+          (guide) => guide.reviewQuestions.find((question) => question.bloomsLevel === 'Apply')?.question || '',
+        ),
+      ).size,
+    ).toBeGreaterThan(1);
     expect(compiled.studyGuides.studyGuides[0].commonMisconceptions[0].misconception).toContain(
       'definition to memorize',
     );

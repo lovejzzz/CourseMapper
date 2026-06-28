@@ -156,6 +156,29 @@ function escapeRegExp(value) {
   return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 }
 
+function sanitizeStudentFacingParameterClause(value) {
+  return String(value || '')
+    .replace(/[.!?]+$/g, '')
+    .trim()
+    .replace(/^use brief written explanations$/i, 'write brief explanations')
+    .replace(/^include at least (\d+) misconceptions$/i, 'address at least $1 common misunderstandings')
+    .replace(/^focus on (.+)$/i, 'connect $1 to the submitted evidence')
+    .replace(/^support answers with reasons$/i, 'justify each answer with a reason')
+    .replace(/^include process and outcome$/i, 'show both process and outcome')
+    .replace(/\s+/g, ' ');
+}
+
+function repairPromptParameterScaffolds(value) {
+  return String(value || '').replace(/\bWork within these parameters:\s*([^.!?]*)([.!?]?)/gi, (_, body) => {
+    const requirements = body
+      .split(/\s*;\s*/)
+      .map((part) => sanitizeStudentFacingParameterClause(part))
+      .filter(Boolean);
+    if (requirements.length === 0) return 'Follow the submission requirements.';
+    return `Submission requirements: ${requirements.join('; ')}.`;
+  });
+}
+
 const A_TO_AN_EXCEPTION_RE =
   /^(?:one(?:s|-)?|once|uni[a-z]*|usab[a-z]*|usag[a-z]*|use[a-z]*|usual[a-z]*|euro[a-z]*|ufo[a-z]*|utens[a-z]*)$/i;
 
@@ -165,7 +188,7 @@ const A_TO_AN_EXCEPTION_RE =
 const SHORT_CODE_WORD_RE = /^(?:a|an|and|or|not|in|is|if|as|for|on|at|to|by|of|do|no|the|all|any)$/i;
 
 function fixMechanicalSeams(value) {
-  let text = value;
+  let text = repairPromptParameterScaffolds(value);
   // v0.14.1 (5.1): markdown code spans render their backticks verbatim in
   // Office text ("`{'name': 'Ava', 'age': 19}` maps labels to data" shipped
   // on slides in the OUTPUT-V014 audit) — enriched key-term examples carry

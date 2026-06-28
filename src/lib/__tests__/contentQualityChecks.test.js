@@ -7,6 +7,7 @@ import {
 } from '../exportRenderedTextAudit.js';
 import { buildDeliverableDocxBlob } from '../exporters/bulkDocxExporter.js';
 import { finalizeCompiledDeliverableLanguage, shortArtifactReference } from '../compiledLanguageFinalizer.js';
+import { findPromptArtifactContamination } from '../quality/artifactDefectPatterns.js';
 
 // Defect fixtures lifted verbatim from the June 2026 four-course v0.8.6
 // export audit — these are the exact failure shapes the checks must catch.
@@ -289,6 +290,29 @@ describe('compiledLanguageFinalizer', () => {
     expect(data.items[0].note).toContain('an Energy decision');
     expect(data.items[0].note).not.toContain('..');
     expect(data.items[0].note).not.toContain('Define project management: Define project management');
+  });
+
+  it('repairs assignment parameter scaffolds before prompt-artifact grading', () => {
+    const data = {
+      assignments: [
+        {
+          instructions: [
+            'Work within these parameters: Use brief written explanations; Include at least 2 misconceptions; Focus on concepts and application; Support answers with reasons.',
+          ],
+        },
+      ],
+    };
+
+    finalizeCompiledDeliverableLanguage('assignments', data, { lessons: [] });
+
+    const text = data.assignments[0].instructions.join(' ');
+    expect(text).toContain('Submission requirements:');
+    expect(text).toContain('write brief explanations');
+    expect(text).toContain('address at least 2 common misunderstandings');
+    expect(text).toContain('connect concepts and application to the submitted evidence');
+    expect(text).toContain('justify each answer with a reason');
+    expect(text).not.toMatch(/Work within these parameters|Focus on concepts|misconceptions/i);
+    expect(findPromptArtifactContamination(text)).toBeNull();
   });
 
   it('leaves multiple-choice answer letters alone', () => {

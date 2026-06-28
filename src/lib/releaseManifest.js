@@ -3,24 +3,24 @@ import { APP_VERSION } from './appVersion.js';
 export const CURRENT_RELEASE = {
   version: APP_VERSION,
   date: 'June 28, 2026',
-  title: 'UX Refinement Source Gate: bare refinement false friends stop passing',
-  landingTitle: 'UX Refinement Source Gate',
+  title: 'Assignment Parameter Texture: prompt scaffolds stop shipping',
+  landingTitle: 'Assignment Parameter Texture',
   highlights: [
-    'A fresh deployed v0.15.110 User Experience Design Studio ZIP/log audit visibly exported 100/A, but stricter source audit found two off-discipline trusted Crossref rows: data refinement/formal-methods and vehicle refinement.',
-    'UX source retrieval and source-ledger export now require contextual design, prototype, studio, interface, interaction, portfolio, or user-experience anchors for refinement and critique concepts instead of trusting bare word matches.',
-    'Known UX refinement false friends such as data refinement, failures-divergences refinement, vehicle refinement, automotive engineering, and critique-and-struggle metadata are rejected or quarantined before trusted proof.',
-    'The deep source-ledger grader now mirrors the production source gate, so the captured v0.15.110 package regrades as 98/A with P1 citation findings instead of a false clean 100.',
-    'This release keeps the target honest: v0.15.111 does not claim strict-clean provider output until a fresh deployed ZIP/log audit proves false-friend source rows stay out and texture reaches the strict target.',
+    'A fresh deployed v0.15.111 User Experience Design Studio ZIP/log audit exported Quality 98 and Texture 95; the remaining scored P1 was an Assignment Brief sentence that leaked the internal "Work within these parameters" scaffold.',
+    'Assignment parameter clauses now render as student-facing submission requirements, with prompt-shaped phrases such as "misconceptions," "Focus on," and "Support answers with reasons" rewritten before they can become course concepts.',
+    'The shared compiled-language finalizer now repairs stale/generated "Work within these parameters" sentences before export, and a focused regression proves the exact v0.15.111 failure shape no longer triggers prompt-artifact grading.',
+    'Study-guide transfer questions, slide objective openings, discussion redirect language, and no-invented-source cautions now rotate by lesson to reduce the repeated shingles measured in the v0.15.111 texture evidence.',
+    'This release keeps the target honest: v0.15.112 does not claim strict-clean provider output until a fresh deployed ZIP/log audit proves the prompt-scaffold P1 is gone and texture reaches the strict target.',
   ],
   landingHighlights: [
-    'Fresh v0.15.110 output exposed UX false-friend sources behind a visible 100.',
-    'Bare refinement no longer counts as UX source relevance.',
-    'Source-finder, ledger export, and grader now agree on the failure.',
-    'Fresh v0.15.111 output is still required for strict-clean proof.',
+    'Fresh v0.15.111 output exposed one prompt-scaffold P1 behind a near-clean package.',
+    'Assignment parameters now read as student requirements, not internal prompts.',
+    'Texture tails from study guides, slides, discussions, and source cautions now rotate.',
+    'Fresh v0.15.112 output is still required for strict-clean proof.',
   ],
   proof: {
-    contract: 'release-contracts/v0.15.111.json',
-    roadmap: 'docs/V0.15.111_UX_REFINEMENT_SOURCE_GATE_ROADMAP.md',
+    contract: 'release-contracts/v0.15.112.json',
+    roadmap: 'docs/V0.15.112_ASSIGNMENT_PARAMETER_TEXTURE_ROADMAP.md',
     auditCommand: 'npm run audit:release-history',
   },
 };
@@ -35,6 +35,18 @@ export const CURRENT_RELEASE_CHANGELOG = {
 };
 
 export const HISTORICAL_RELEASE_CHANGELOGS = [
+  {
+    version: '0.15.111',
+    date: 'June 28, 2026',
+    title: 'UX Refinement Source Gate: bare refinement false friends stop passing',
+    highlights: [
+      'A fresh deployed v0.15.110 User Experience Design Studio ZIP/log audit visibly exported 100/A, but stricter source audit found two off-discipline trusted Crossref rows: data refinement/formal-methods and vehicle refinement.',
+      'UX source retrieval and source-ledger export now require contextual design, prototype, studio, interface, interaction, portfolio, or user-experience anchors for refinement and critique concepts instead of trusting bare word matches.',
+      'Known UX refinement false friends such as data refinement, failures-divergences refinement, vehicle refinement, automotive engineering, and critique-and-struggle metadata are rejected or quarantined before trusted proof.',
+      'The deep source-ledger grader now mirrors the production source gate, so the captured v0.15.110 package regrades as 98/A with P1 citation findings instead of a false clean 100.',
+      'This release kept the target honest: v0.15.111 did not claim strict-clean provider output until a fresh deployed ZIP/log audit proved false-friend source rows stay out and texture reaches the strict target.',
+    ],
+  },
   {
     version: '0.15.110',
     date: 'June 28, 2026',

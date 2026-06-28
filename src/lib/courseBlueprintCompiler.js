@@ -388,6 +388,11 @@ function sanitizeAssignmentParameterForStudent(value) {
       /\bsections?\s+(?:of|for)\s+the\s+(?:brief|submission|artifact|report|portfolio)\b/gi,
       'parts of the submission',
     )
+    .replace(/^use brief written explanations$/i, 'write brief explanations')
+    .replace(/^include at least (\d+) misconceptions$/i, 'address at least $1 common misunderstandings')
+    .replace(/^focus on (.+)$/i, 'connect $1 to the submitted evidence')
+    .replace(/^support answers with reasons$/i, 'justify each answer with a reason')
+    .replace(/^include process and outcome$/i, 'show both process and outcome')
     .replace(/\s+/g, ' ')
     .trim();
 }
@@ -4434,7 +4439,12 @@ function attachThroughlineCaseToLesson(lesson, context) {
       `Before making the ${artifact} recommendation, point to the ${context.projectName} evidence source that supports the ${concept} claim.`,
       `Label the source behind the ${concept} evidence before explaining what it changes in ${artifact}.`,
     ]),
-    noInventedSources: `Do not invent authors, URLs, page numbers, studies, legal authority, or real agency data when citing ${concept} sources from ${sourceCue}. Treat the ${concept} throughline case as classroom practice evidence unless the instructor replaces it with an official source.`,
+    noInventedSources: lessonVariant(lesson, [
+      `Do not invent authors, URLs, page numbers, studies, legal authority, or real agency data when citing ${concept} sources from ${sourceCue}. Treat the ${concept} throughline case as classroom practice evidence unless the instructor replaces it with an official source.`,
+      `When using ${sourceCue}, keep source details honest: do not invent authors, URLs, pages, studies, legal authority, or agency data that the class materials do not provide. The ${concept} case is practice evidence until the instructor supplies the official source.`,
+      `Cite only source details that actually appear in ${sourceCue} or the assigned materials for ${concept}. If an instructor has not supplied an official source, mark the throughline case as classroom practice rather than published evidence.`,
+      `Use ${sourceCue} as a classroom source case for ${concept}, not as invented outside research. Do not invent missing authors, URLs, pages, studies, legal authority, or agency facts; mark them for instructor replacement.`,
+    ]),
     sourceEvaluationPrompt: `Ask what ${sourceCue} can support for ${context.clientName}, what it cannot prove, and what local evidence would be needed before publication.`,
     localReplacementCue: `Before publishing ${artifact}, replace or supplement ${sourceCue} with the official local reading, case, dataset, policy document, or agency guidance required by the instructor.`,
     copyrightReviewCue:
@@ -14898,7 +14908,7 @@ function compileAssignments(blueprint) {
           lesson.prerequisitePlan?.studentReadinessCheck ||
             `Confirm you can connect prerequisite knowledge to ${assessmentTitle} before drafting.`,
           ...(assignmentParameters.length > 0
-            ? [`Work within these parameters: ${assignmentParameters.join('; ')}.`]
+            ? [`Meet these submission requirements: ${assignmentParameters.join('; ')}.`]
             : []),
           assignmentMaterialReviewInstruction({ lesson, assessment }),
           assignmentEvidenceSelectionInstruction({ lesson, assessment, lens }),
@@ -15339,10 +15349,9 @@ function compileRubrics(blueprint) {
           performanceBandEvidence: performanceBand.performanceBandEvidence,
         };
       };
-      // v0.14.3 D2: the brief's structured parameters (this assessment's
-      // lesson, the same source compileAssignments renders as "Work within
-      // these parameters: …") become the leading rubric criteria. A brief
-      // with no parameters keeps today's rubric verbatim.
+      // v0.14.3 D2: the brief's structured student requirements become the
+      // leading rubric criteria. A brief with no parameters keeps today's
+      // rubric verbatim.
       const briefParameters = assignmentCoreParametersForStudent(lesson).slice(0, 3);
       let criteria;
       let effectiveWeightPlan = criterionWeightPlan;
@@ -15908,8 +15917,18 @@ function compileStudyGuides(blueprint) {
                   question: lesson.learningTransferPlan?.studentMetacognitivePrompt
                     ? `${stripTerminalPunctuation(
                         lesson.learningTransferPlan.studentMetacognitivePrompt,
-                      )} For ${specificity.week}, apply the answer to the next ${specificity.artifact} revision.`
-                    : `How does feedback from ${lesson.title} improve the next ${specificity.artifact} revision?`,
+                      )} ${lessonVariant(lesson, [
+                        `For ${specificity.week}, apply your answer to one concrete ${specificity.artifact} revision.`,
+                        `Use that answer to choose the next ${specificity.artifact} evidence change for ${specificity.week}.`,
+                        `Turn the answer into a specific ${specificity.week} update for ${specificity.artifact}.`,
+                        `Decide which ${specificity.artifact} detail should change next and explain why.`,
+                      ])}`
+                    : lessonVariant(lesson, [
+                        `How does feedback from ${lesson.title} improve the next ${specificity.artifact} revision?`,
+                        `Which feedback detail from ${lesson.title} should change ${specificity.artifact} first?`,
+                        `What revision decision follows from the ${lesson.title} feedback?`,
+                        `How should the next ${specificity.artifact} draft respond to the ${lesson.title} feedback?`,
+                      ]),
                   bloomsLevel: 'Apply',
                   hint: lesson.learningTransferPlan?.transferTask || lesson.feedbackMoment,
                 },
@@ -17689,7 +17708,12 @@ function slideTypeFocus(type, lesson, lens) {
       };
     case 'objectives':
       return {
-        opening: `Translate the objectives into actions students should demonstrate by the end of ${displayTitle}.`,
+        opening: lessonVariant(lesson, [
+          `Translate the objectives into actions students should demonstrate by the end of ${displayTitle}.`,
+          `Open ${displayTitle} by turning each objective into a visible student action.`,
+          `Frame the objectives as concrete moves students should show before the lesson closes.`,
+          `Make the objectives observable: name what students will produce, explain, or revise by the end of ${displayTitle}.`,
+        ]),
         evidence: `Tie each ${concept} objective in ${displayTitle} to the evidence move students need for ${numberedArtifact}.`,
         misconception: lessonVariant(lesson, [
           `If students treat the objectives as vocabulary only, turn each one into a decision they must defend in ${artifact}.`,
@@ -17766,7 +17790,12 @@ function slideTypeFocus(type, lesson, lens) {
       return {
         opening: `Use the discussion to compare competing interpretations before students lock in their next ${artifact} move.`,
         evidence: `Push students to cite specific ${lens.evidenceNoun} instead of general impressions when they defend a ${concept} choice in ${artifact}.`,
-        misconception: `If the conversation turns into opinion-sharing, redirect to ${artifact} and ask what ${concept} evidence would change the decision.`,
+        misconception: lessonVariant(lesson, [
+          `If the conversation turns into opinion-sharing, redirect to ${artifact} and ask what ${concept} evidence would change the decision.`,
+          `When discussion becomes personal preference, ask students which ${concept} detail would make them revise ${artifact}.`,
+          `If claims drift away from evidence, bring the group back to the ${artifact} decision and the ${concept} support it needs.`,
+          `When students trade opinions, require one source-backed ${concept} reason before anyone recommends a change to ${artifact}.`,
+        ]),
       };
     case 'summary':
       return {
