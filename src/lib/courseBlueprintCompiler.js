@@ -6549,7 +6549,12 @@ function buildLessonModalityDecode(profile = {}, lesson = {}) {
       contextualizeModalityRoutine('instructorMove', pattern.instructorMove, { lesson, concept, artifact, mode }) ||
       `model one ${concept} decision, then coach students as they revise ${artifact}`,
     studentProduct: contextualizeModalityProduct(pattern.studentProduct, { lesson, concept, artifact }),
-    artifactCheck: `Confirm ${artifact} shows ${concept} through ${modalityEvidenceRoutineLabel(mode)}, not only topic recall.`,
+    artifactCheck: lessonVariant(lesson, [
+      `Confirm ${artifact} shows ${concept} through ${modalityEvidenceRoutineLabel(mode)}, not only topic recall.`,
+      `Ask students to point to the ${concept} evidence inside ${artifact}; a topic label by itself is not enough.`,
+      `Treat recall as a starting point only: ${artifact} needs an observable ${concept} move from ${modalityEvidenceRoutineLabel(mode)}.`,
+      `Before accepting ${artifact}, check that students used ${concept} evidence from ${modalityEvidenceRoutineLabel(mode)} rather than naming the topic.`,
+    ]),
     localReviewQuestion: `Confirm the local setting supports this ${mode} practice pattern before publishing ${stripLessonPrefix(lesson.title)}.`,
   };
 }
@@ -17215,7 +17220,13 @@ function slideVisual(lesson, slide) {
       evidenceUse: `Annotate the ${source} detail that supports or complicates ${artifact}.`,
     },
     activity: {
-      kind: 'practice workflow',
+      kind: lessonVariant(lesson, [
+        'practice workflow',
+        'application sequence',
+        'studio task flow',
+        'evidence walkthrough',
+        'revision workflow',
+      ]),
       purpose: `Show the ${concept} practice steps students follow during ${modality.mode || 'practice'}.`,
       evidenceUse: `Connect ${modality.signaturePractice || 'practice'} to the revision evidence for ${artifact}.`,
     },
@@ -18326,6 +18337,12 @@ function applyCommonPitfallsSlide(slides, lesson, { concept, objective }) {
   const exampleIndex = slides.findIndex((slide) => slide.type === 'example');
   const activityIndex = slides.findIndex((slide) => slide.type === 'activity');
   const insertAt = exampleIndex >= 0 ? exampleIndex + 1 : activityIndex >= 0 ? activityIndex : slides.length - 2;
+  const closePrompt = lessonVariant(lesson, [
+    'Close by asking students which pitfall they are most likely to make and what check would catch it.',
+    'End with each student naming one pitfall they will watch for and the evidence cue that would reveal it.',
+    'Have students choose the tempting claim that fits their draft and write the correction check beside it.',
+    'Finish by asking teams to turn one pitfall into a self-check they can apply before submitting.',
+  ]);
   slides.splice(insertAt, 0, {
     type: 'content',
     title: `Common pitfalls in ${stripTerminalPunctuation(concept)}`,
@@ -18334,7 +18351,7 @@ function applyCommonPitfallsSlide(slides, lesson, { concept, objective }) {
       .map(
         (pair) => `${ensureSentenceCompiler(pair.misconception)} In fact: ${ensureSentenceCompiler(pair.corrective)}`,
       )
-      .join(' ')} Close by asking students which pitfall they are most likely to make and what check would catch it.`,
+      .join(' ')} ${closePrompt}`,
     minutes: 4,
     bloom: 'Understand',
     objective: objective || null,
@@ -19325,12 +19342,22 @@ function buildLessonPlanOutline(blueprint, lesson, { depth = 'flat' } = {}) {
     },
     {
       time: formatDuration(collaborative),
-      activity: 'Collaborative application',
+      activity: lessonVariant(lesson, [
+        'Collaborative application',
+        'Evidence-backed team decision',
+        'Small-group transfer case',
+        'Peer comparison round',
+      ]),
       type: 'Discussion',
       // v0.12.1: strip a leading "For <lesson>," from the routine variant —
       // after "use this routine:" it produced an "X … : For X," echo.
       description: kernelDiscussion
-        ? `Teams take a position on the lesson's live question — “${stripTerminalPunctuation(kernelDiscussion.prompt)}” — and defend it with evidence${kernelCitation ? ` from ${kernelCitation}` : ` about ${concept}`}.`
+        ? lessonVariant(lesson, [
+            `Teams take a position on the lesson's live question — “${stripTerminalPunctuation(kernelDiscussion.prompt)}” — and defend it with evidence${kernelCitation ? ` from ${kernelCitation}` : ` about ${concept}`}.`,
+            `Small groups choose a side on “${stripTerminalPunctuation(kernelDiscussion.prompt)}” and support the choice with evidence${kernelCitation ? ` from ${kernelCitation}` : ` about ${concept}`}.`,
+            `Pairs frame one claim about “${stripTerminalPunctuation(kernelDiscussion.prompt)},” then test whether their evidence is strong enough${kernelCitation ? ` against ${kernelCitation}` : ` for ${concept}`}.`,
+            `Groups prepare a brief answer to “${stripTerminalPunctuation(kernelDiscussion.prompt)}” and name the evidence that would change their view.`,
+          ])
         : lessonVariant(lesson, [
             `Teams apply ${concept} to a new scenario, compare options, and use this routine: ${stripTerminalPunctuation(cleanText(modality.evidenceRoutine)).replace(/^For [^,]{2,70},\s*/i, '')}.`,
             `Teams test ${concept} in a fresh case, choose the strongest option, and document how the evidence changed their decision: ${stripTerminalPunctuation(cleanText(modality.evidenceRoutine)).replace(/^For [^,]{2,70},\s*/i, '')}.`,
@@ -19355,7 +19382,13 @@ function buildLessonPlanOutline(blueprint, lesson, { depth = 'flat' } = {}) {
     },
     {
       time: formatDuration(independent),
-      activity: 'Independent artifact sprint',
+      activity: lessonVariant(lesson, [
+        'Independent artifact sprint',
+        'Studio build checkpoint',
+        'Individual evidence draft',
+        'Artifact revision block',
+        'Solo transfer work',
+      ]),
       type: 'Workshop',
       description:
         deep && kernelWorkedExample
@@ -19383,7 +19416,12 @@ function buildLessonPlanOutline(blueprint, lesson, { depth = 'flat' } = {}) {
     },
     {
       time: formatDuration(debrief),
-      activity: 'Debrief and exit ticket',
+      activity: lessonVariant(lesson, [
+        'Debrief and exit ticket',
+        'Closure evidence check',
+        'Exit reflection and transfer',
+        'Pattern summary and next step',
+      ]),
       type: 'Closure',
       description:
         deep && kernelMisconception

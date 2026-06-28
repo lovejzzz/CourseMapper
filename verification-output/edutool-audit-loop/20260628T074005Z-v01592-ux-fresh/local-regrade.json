@@ -1,0 +1,274 @@
+{
+  "scores": {
+    "identity": 100,
+    "substance": 100,
+    "citations": 70,
+    "honesty": 100,
+    "discipline": 100,
+    "consistency": 100,
+    "structure": 100,
+    "format": 100,
+    "texture": 91
+  },
+  "grades": {
+    "identity": "A",
+    "substance": "A",
+    "citations": "C",
+    "honesty": "A",
+    "discipline": "A",
+    "consistency": "A",
+    "structure": "A",
+    "format": "A",
+    "texture": "A"
+  },
+  "overall": {
+    "score": 96,
+    "grade": "A"
+  },
+  "findings": [
+    {
+      "id": "F001",
+      "severity": "P2",
+      "dimension": "citations",
+      "file": "PACKAGE_MANIFEST.json",
+      "detail": "source review row sf1 is not trusted bibliography proof",
+      "evidence": "Data visualization in society"
+    },
+    {
+      "id": "F002",
+      "severity": "P2",
+      "dimension": "citations",
+      "file": "PACKAGE_MANIFEST.json",
+      "detail": "source review row sf2 is not trusted bibliography proof",
+      "evidence": "Critical thinking"
+    },
+    {
+      "id": "F003",
+      "severity": "P2",
+      "dimension": "citations",
+      "file": "PACKAGE_MANIFEST.json",
+      "detail": "source review row sf3 is not trusted bibliography proof",
+      "evidence": "Qualitative research"
+    },
+    {
+      "id": "F004",
+      "severity": "P2",
+      "dimension": "citations",
+      "file": "PACKAGE_MANIFEST.json",
+      "detail": "source review row sf5 is not trusted bibliography proof",
+      "evidence": "Reinforcement learning from human feedback"
+    },
+    {
+      "id": "F005",
+      "severity": "P2",
+      "dimension": "citations",
+      "file": "PACKAGE_MANIFEST.json",
+      "detail": "source review row sf8 is not trusted bibliography proof",
+      "evidence": "Enhancing Thermodynamics Understanding: Promoting Revision of Science Explanations Through Peer Critique"
+    },
+    {
+      "id": "F006",
+      "severity": "P2",
+      "dimension": "citations",
+      "file": "PACKAGE_MANIFEST.json",
+      "detail": "source review row sf-1-1 is not trusted bibliography proof",
+      "evidence": "Design Studio Method Overview"
+    },
+    {
+      "id": "F007",
+      "severity": "P2",
+      "dimension": "citations",
+      "file": "PACKAGE_MANIFEST.json",
+      "detail": "source review row sf-4-3 is not trusted bibliography proof",
+      "evidence": "Website wireframe"
+    },
+    {
+      "id": "F008",
+      "severity": "P2",
+      "dimension": "citations",
+      "file": "PACKAGE_MANIFEST.json",
+      "detail": "source review row sf-6-2 is not trusted bibliography proof",
+      "evidence": "Sally–Anne test"
+    },
+    {
+      "id": "F009",
+      "severity": "P2",
+      "dimension": "citations",
+      "file": "PACKAGE_MANIFEST.json",
+      "detail": "source review row sf-6-3 is not trusted bibliography proof",
+      "evidence": "COVID-19 testing"
+    },
+    {
+      "id": "F010",
+      "severity": "P2",
+      "dimension": "citations",
+      "file": "PACKAGE_MANIFEST.json",
+      "detail": "source review row syllabus-src-1-1 is not trusted bibliography proof",
+      "evidence": "Qian Yang, Aaron Steinfeld, Carolyn Penstein Rosé et al. (2020). Re-examining Whether, Why, and How Human-AI Interaction Is Uniquely Difficult to Design. Open-access via https://dl.acm.org/doi/pdf/10."
+    }
+  ],
+  "stats": {
+    "fileCount": 99,
+    "findingCount": 10,
+    "p0": 0,
+    "p1": 0,
+    "p2": 10,
+    "byDimension": {
+      "identity": 0,
+      "substance": 0,
+      "citations": 10,
+      "honesty": 0,
+      "discipline": 0,
+      "consistency": 0,
+      "structure": 0,
+      "format": 0,
+      "texture": 0
+    },
+    "hasManifest": true,
+    "registryCount": 36,
+    "readingsCount": 0
+  },
+  "texture": {
+    "version": "1.0.0",
+    "score": 91,
+    "grade": "A",
+    "measured": true,
+    "subScores": {
+      "sameness": 89,
+      "openers": 86,
+      "tails": 99
+    },
+    "evidence": [
+      {
+        "shingle": "and critique evidence not only topic recall [n] minutes debrief and exit",
+        "feature": "lessonPlans",
+        "docCount": 12,
+        "docTotal": 12
+      },
+      {
+        "shingle": "and critique evidence not only topic recall [n] minutes independent artifact sprint",
+        "feature": "lessonPlans",
+        "docCount": 12,
+        "docTotal": 12
+      },
+      {
+        "shingle": "and what check would catch it [n] practice workflow practice workflow [slot]",
+        "feature": "slideDecks",
+        "docCount": 12,
+        "docTotal": 12
+      },
+      {
+        "shingle": "application discussion bloom [slot] take a position on the lesson's live question",
+        "feature": "lessonPlans",
+        "docCount": 12,
+        "docTotal": 12
+      },
+      {
+        "shingle": "are most likely to make and what check would catch it [n]",
+        "feature": "slideDecks",
+        "docCount": 12,
+        "docTotal": 12
+      }
+    ],
+    "groups": [
+      {
+        "feature": "assignments",
+        "docCount": 12,
+        "avgOverlap": 0.5479999999999999,
+        "tailCount": 91,
+        "tailDensity": 0.043
+      },
+      {
+        "feature": "courseFaq",
+        "docCount": 12,
+        "avgOverlap": 0.039,
+        "tailCount": 18,
+        "tailDensity": 0.005
+      },
+      {
+        "feature": "discussions",
+        "docCount": 12,
+        "avgOverlap": 0.07200000000000001,
+        "tailCount": 41,
+        "tailDensity": 0.008
+      },
+      {
+        "feature": "lessonPlans",
+        "docCount": 12,
+        "avgOverlap": 0.069,
+        "tailCount": 86,
+        "tailDensity": 0.01
+      },
+      {
+        "feature": "quizBank",
+        "docCount": 12,
+        "avgOverlap": 0.02,
+        "tailCount": 29,
+        "tailDensity": 0.003
+      },
+      {
+        "feature": "rubrics",
+        "docCount": 10,
+        "avgOverlap": 0.009000000000000001,
+        "tailCount": 4,
+        "tailDensity": 0.001
+      },
+      {
+        "feature": "slideDecks",
+        "docCount": 12,
+        "avgOverlap": 0.062,
+        "tailCount": 135,
+        "tailDensity": 0.006
+      },
+      {
+        "feature": "studyGuides",
+        "docCount": 12,
+        "avgOverlap": 0.02,
+        "tailCount": 5,
+        "tailDensity": 0.001
+      }
+    ],
+    "advisories": [
+      {
+        "severity": "P2",
+        "dimension": "texture",
+        "advisory": true,
+        "file": "",
+        "detail": "advisory: template tail shared by 12/12 lessonPlans documents (roadmap WS-D D1)",
+        "evidence": "and critique evidence not only topic recall [n] minutes debrief and exit"
+      },
+      {
+        "severity": "P2",
+        "dimension": "texture",
+        "advisory": true,
+        "file": "",
+        "detail": "advisory: template tail shared by 12/12 lessonPlans documents (roadmap WS-D D1)",
+        "evidence": "and critique evidence not only topic recall [n] minutes independent artifact sprint"
+      },
+      {
+        "severity": "P2",
+        "dimension": "texture",
+        "advisory": true,
+        "file": "",
+        "detail": "advisory: template tail shared by 12/12 slideDecks documents (roadmap WS-D D1)",
+        "evidence": "and what check would catch it [n] practice workflow practice workflow [slot]"
+      },
+      {
+        "severity": "P2",
+        "dimension": "texture",
+        "advisory": true,
+        "file": "",
+        "detail": "advisory: template tail shared by 12/12 lessonPlans documents (roadmap WS-D D1)",
+        "evidence": "application discussion bloom [slot] take a position on the lesson's live question"
+      },
+      {
+        "severity": "P2",
+        "dimension": "texture",
+        "advisory": true,
+        "file": "",
+        "detail": "advisory: template tail shared by 12/12 slideDecks documents (roadmap WS-D D1)",
+        "evidence": "are most likely to make and what check would catch it [n]"
+      }
+    ]
+  }
+}

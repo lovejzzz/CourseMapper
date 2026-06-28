@@ -672,7 +672,7 @@ describe('trusted source ledger', () => {
     expect(report).not.toContain('## Source Ledger');
   });
 
-  it('quarantines UX source-finder false friends as review notes', () => {
+  it('drops unused UX source-finder false friends when trusted topic sources exist', () => {
     const ledger = buildSourceLedgerFromCourseGraph(
       {
         course: { name: 'User Experience Design Studio' },
@@ -780,42 +780,67 @@ describe('trusted source ledger', () => {
     expect(ledger.rows.map((row) => row.title)).not.toContain(
       'Collaborative learning in architectural education: Benefits of combining conventional studio, virtual design studio and live projects',
     );
-    expect(ledger.reviewRows).toEqual(
+    expect(ledger.reviewRows || []).toHaveLength(0);
+    expect(ledger.summary).toMatchObject({ sourceCount: 1, trustedConceptLinkedCount: 1 });
+    expect(ledger.summary.reviewRequiredCount || 0).toBe(0);
+  });
+
+  it('promotes DOI-backed licensed syllabus readings instead of exporting them as review notes', () => {
+    const ledger = buildSourceLedgerFromCourseGraph(
+      {
+        course: { name: 'User Experience Design Studio' },
+        concepts: [
+          { id: 'c1', term: 'UX design studio overview' },
+          { id: 'c2', term: 'project scope' },
+          { id: 'c3', term: 'critique culture' },
+        ],
+        sessions: [
+          {
+            id: 's1',
+            number: 1,
+            sections: [
+              {
+                id: 'sec1',
+                topic: 'UX design studio overview',
+                conceptRefs: ['c1', 'c2', 'c3'],
+                resourceRefs: ['syllabus-src-1-1'],
+              },
+            ],
+          },
+        ],
+        resources: [
+          {
+            id: 'syllabus-src-1-1',
+            origin: 'syllabus',
+            kind: 'weekly reading',
+            citation:
+              'Qian Yang, Aaron Steinfeld, Carolyn Penstein Rosé et al. (2020). Re-examining Whether, Why, and How Human-AI Interaction Is Uniquely Difficult to Design. Open-access via https://dl.acm.org/doi/pdf/10.1145/3313831.3376301 (cc-by)',
+            sessionRefs: [1],
+          },
+        ],
+      },
+      { checkedAt: '2026-06-28T00:00:00.000Z' },
+    );
+
+    expect(ledger.rows).toEqual(
       expect.arrayContaining([
         expect.objectContaining({
-          provider: 'wikipedia',
-          title: 'Positive feedback',
-          conceptLinks: [{ id: 'c1', label: 'project feedback' }],
-        }),
-        expect.objectContaining({
-          provider: 'openalex',
-          title: 'The Green Studio Handbook: Environmental Strategies for Schematic Design',
-          conceptLinks: [{ id: 'c1', label: 'project feedback' }],
-        }),
-        expect.objectContaining({
-          provider: 'wikipedia',
-          title: 'National Design Studio',
-          conceptLinks: [{ id: 'c1', label: 'project feedback' }],
-        }),
-        expect.objectContaining({
-          provider: 'wikipedia',
-          title: 'Le Mans Prototype',
-          conceptLinks: [{ id: 'c1', label: 'project feedback' }],
-        }),
-        expect.objectContaining({
-          provider: 'wikipedia',
-          title: 'List of In Living Color sketches',
-          conceptLinks: [{ id: 'c1', label: 'project feedback' }],
-        }),
-        expect.objectContaining({
-          provider: 'openalex',
-          title:
-            'Collaborative learning in architectural education: Benefits of combining conventional studio, virtual design studio and live projects',
-          conceptLinks: [{ id: 'c1', label: 'project feedback' }],
+          id: 'syllabus-src-1-1',
+          provider: 'crossref',
+          doi: '10.1145/3313831.3376301',
+          license: 'CC BY',
+          licenseAmbiguous: false,
+          conceptLinks: expect.arrayContaining([{ id: 'c1', label: 'UX design studio overview' }]),
         }),
       ]),
     );
-    expect(ledger.summary).toMatchObject({ sourceCount: 1, trustedConceptLinkedCount: 1, reviewRequiredCount: 6 });
+    expect(ledger.reviewRows || []).toHaveLength(0);
+    expect(ledger.summary).toMatchObject({
+      sourceCount: 1,
+      trustedCount: 1,
+      trustedConceptLinkedCount: 1,
+      licenseAmbiguousCount: 0,
+    });
   });
 
   it('quarantines weak UX knowledge resources before they become trusted ledger rows', () => {

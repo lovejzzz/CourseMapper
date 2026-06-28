@@ -3,24 +3,24 @@ import { APP_VERSION } from './appVersion.js';
 export const CURRENT_RELEASE = {
   version: APP_VERSION,
   date: 'June 28, 2026',
-  title: 'UX Sketch False-Friend and PPTX Punctuation: hidden quality debt scores honestly',
-  landingTitle: 'UX Source Truth',
+  title: 'Source Review and Texture Cleanup: known rejects stop shipping as package caveats',
+  landingTitle: 'Source Review Cleanup',
   highlights: [
-    'A fresh deployed v0.15.91 User Experience Design Studio ZIP/log audit generated 99/A with texture 94, but the trusted source ledger still accepted "List of In Living Color sketches" as UX sketching proof and one PPTX key-takeaway callout ended on a bare content word.',
-    'UX source-ledger filtering now quarantines sketch-comedy and television-sketch false friends into sourceReviewRows instead of trusted sourceLedger proof while preserving legitimate UX sketching, wireframing, and information-architecture sources.',
-    'The local deep quality grader mirrors the new sketch false-friend gate, so the same v0.15.91 artifact now regrades at 98/A with the hidden citation P1 surfaced instead of silently passing as a source-clean 99.',
-    'PPTX example-slide key-takeaway callouts now receive terminal punctuation at export time, closing the exact format P1 reproduced in Lesson 05 - Information architecture.',
-    'This release does not claim clean 100/100 quality: a fresh deployed v0.15.92 ZIP/log audit is still required, and the latest measured texture remains 94/100.',
+    'A fresh deployed v0.15.92 User Experience Design Studio ZIP/log audit regraded at 96/A: citation score fell to 70 because ten exported sourceReviewRows were not trusted proof, and texture stayed at 91 from repeated lesson-plan and slide-deck tails.',
+    'Source-finder topics now drop unused rejected candidates from exported sourceReviewRows once trusted concept-linked rows already cover the topic, while still preserving review rows when no trusted source exists.',
+    'DOI-backed, CC-licensed UX/HCI syllabus readings such as the Qian Yang human-AI interaction article now normalize as trusted concept-linked proof instead of instructor review notes.',
+    'Lesson-plan and slide-deck compiler templates now rotate the exact repeated tails found in the v0.15.92 texture evidence, including not-only-topic-recall checks, independent/debrief labels, activity visual labels, and common-pitfall closing prompts.',
+    'This release does not claim clean 100/100 quality: a fresh deployed v0.15.93 ZIP/log audit is still required to prove the exported package has no citation caveats and improved texture.',
   ],
   landingHighlights: [
-    'Sketch false friends move to review.',
-    'Hidden citation debt scores honestly.',
-    'PPTX takeaway punctuation is enforced.',
-    'Fresh provider proof remains required.',
+    'Rejected source candidates stop cluttering export notes.',
+    'Licensed HCI DOI readings become trusted proof.',
+    'Repeated compiler tails rotate by lesson.',
+    'Fresh v0.15.93 provider proof remains required.',
   ],
   proof: {
-    contract: 'release-contracts/v0.15.92.json',
-    roadmap: 'docs/V0.15.92_UX_SKETCH_SOURCE_AND_PPTX_PUNCTUATION_ROADMAP.md',
+    contract: 'release-contracts/v0.15.93.json',
+    roadmap: 'docs/V0.15.93_SOURCE_REVIEW_AND_TEXTURE_CLEANUP_ROADMAP.md',
     auditCommand: 'npm run audit:release-history',
   },
 };
@@ -35,6 +35,18 @@ export const CURRENT_RELEASE_CHANGELOG = {
 };
 
 export const HISTORICAL_RELEASE_CHANGELOGS = [
+  {
+    version: '0.15.92',
+    date: 'June 28, 2026',
+    title: 'UX Sketch False-Friend and PPTX Punctuation: hidden quality debt scores honestly',
+    highlights: [
+      'A fresh deployed v0.15.91 User Experience Design Studio ZIP/log audit generated 99/A with texture 94, but the trusted source ledger still accepted "List of In Living Color sketches" as UX sketching proof and one PPTX key-takeaway callout ended on a bare content word.',
+      'UX source-ledger filtering now quarantines sketch-comedy and television-sketch false friends into sourceReviewRows instead of trusted sourceLedger proof while preserving legitimate UX sketching, wireframing, and information-architecture sources.',
+      'The local deep quality grader mirrors the new sketch false-friend gate, so the same v0.15.91 artifact now regrades at 98/A with the hidden citation P1 surfaced instead of silently passing as a source-clean 99.',
+      'PPTX example-slide key-takeaway callouts now receive terminal punctuation at export time, closing the exact format P1 reproduced in Lesson 05 - Information architecture.',
+      'This release does not claim clean 100/100 quality: a fresh deployed v0.15.92 ZIP/log audit is still required, and the latest measured texture remains 94/100.',
+    ],
+  },
   {
     version: '0.15.91',
     date: 'June 28, 2026',

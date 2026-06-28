@@ -34,7 +34,7 @@ const PLACEHOLDER_RESOURCE_RE =
 const USER_EXPERIENCE_COURSE_RE =
   /\b(?:user\s+experience|ux\b|human[-\s]?centered\s+design|interaction\s+design|interface\s+design|usability|design\s+studio)\b/i;
 const USER_EXPERIENCE_SOURCE_ANCHOR_RE =
-  /\b(?:user\s+experience|ux\b|human[-\s]?centered\s+design|user\s+interfaces?|interface\s+design|usability|design\s+research|user\s+research|personas?\b(?!\s*5)|journey\s+maps?|customer\s+journey|information\s+architecture|wirefram|prototype|interaction\s+design|accessibility|inclusive\s+design|design\s+handoff|design\s+studio|co[-\s]?design|service\s+design|material\s+experience|design\s+patterns?|screen\s+flows?|navigation|portfolio\s+case\s+study|critique\s+session)\b/i;
+  /\b(?:user\s+experience|ux\b|human[-\s]?centered\s+design|human[-\s]?computer\s+interaction|human[-\s]?ai\s+interaction|hci\b|hai\b|user\s+interfaces?|interface\s+design|usability|design\s+research|user\s+research|personas?\b(?!\s*5)|journey\s+maps?|customer\s+journey|information\s+architecture|wirefram|prototype|interaction\s+design|accessibility|inclusive\s+design|design\s+handoff|design\s+studio|co[-\s]?design|service\s+design|material\s+experience|design\s+patterns?|screen\s+flows?|navigation|portfolio\s+case\s+study|critique\s+session)\b/i;
 const USER_EXPERIENCE_FALSE_FRIEND_RE =
   /(?:\bpositive\s+feedback\b|\bnegative\s+feedback\b|\bclimate\s+change\s+feedbacks?\b|\bpersona\s+5\b|\bpersona\s+\(series\)|\bbrief\s+interviews\s+with\s+hideous\s+men\b|\baircraft\s+design\s+process\b|\bprocess\s+design\s+and\s+process\s+control\b|\bifac\s+workshop\b|\bshoe\s+production\s+facilities\b|\bblocplan\b|\bsystematic\s+layout\s+planning\b|\blayout\s+of\s+shoe\s+production\b|\blayout\s+editor\s+configuration\b|\bmetaverse\s+beyond\s+the\s+hype\b|\bpatterns\s+2\.0\b|\blead[-\s]?user\s+theory\b|\bcommercially\s+attractive\s+user\s+innovations\b|\bweb\s+gis\s+in\s+practice\b|\bmicrosoft\s+kinect\b|\bintralogistics\s+processes\b|\bgreen\s+studio\s+handbook\b|\benvironmental\s+strategies\s+for\s+schematic\s+design\b|\bnational\s+design\s+studio\b|\ble\s+mans\s+prototype\b|\bin\s+living\s+color\s+sketches\b|\bsketch\s+comedy\b|\bcomedy\s+sketch(?:es)?\b|\btelevision\s+sketch(?:es)?\b|\barchitectural\s+education\b|\bcollaborative\s+learning\s+in\s+architectur(?:e|al)\b)/i;
 const USER_EXPERIENCE_TOPIC_ANCHORS = [
@@ -249,6 +249,7 @@ function inferProviderFromText(value) {
   if (text.includes('eric.ed.gov') || /\beric\b/.test(text)) return 'eric';
   if (text.includes('wikipedia.org') || /\bwikipedia\b/.test(text)) return 'wikipedia';
   if (text.includes('crossref.org') || /\bcrossref\b/.test(text)) return 'crossref';
+  if (text.includes('dl.acm.org/doi') || extractDoi(text)) return 'crossref';
   return '';
 }
 
@@ -602,7 +603,7 @@ function sourceFinderTopicLedgerSources(courseGraph, topic, topicIndex, checkedA
   if (trustedConceptLinked.length > 0) {
     return {
       rows: trustedConceptLinked.slice(0, SOURCE_FINDER_TRUSTED_ROWS_PER_TOPIC),
-      reviewRows: falseFriendRows,
+      reviewRows: [],
     };
   }
   return {

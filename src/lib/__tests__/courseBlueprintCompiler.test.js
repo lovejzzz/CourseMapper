@@ -2441,6 +2441,12 @@ describe('courseBlueprintCompiler', () => {
       4,
     );
     expect(countPlansWith(/Activate prior knowledge and focus students on the central .* decision/i)).toBeLessThan(4);
+    expect(countPlansWith(/not only topic recall/i)).toBeLessThan(4);
+    expect(countPlansWith(/Independent artifact sprint/i)).toBeLessThan(4);
+    expect(countPlansWith(/Debrief and exit ticket/i)).toBeLessThan(4);
+    expect(countPlansWith(/take a position on the lesson.s live question/i)).toBeLessThan(4);
+    expect(countDecksWith(/practice workflow/i)).toBeLessThan(4);
+    expect(countDecksWith(/what check would catch it/i)).toBeLessThan(4);
 
     const texture = computeTexture([
       ...deckTexts.map((text, index) => ({ id: `deck-${index}`, feature: 'slideDecks', text })),
@@ -2468,6 +2474,12 @@ describe('courseBlueprintCompiler', () => {
     expect(evidence).not.toMatch(/prevent compartmentalized thinking/i);
     expect(evidence).not.toMatch(/students identify which evidence assumptions and constraints matter most/i);
     expect(evidence).not.toMatch(/activate prior knowledge and focus students/i);
+    expect(evidence).not.toMatch(/not only topic recall/i);
+    expect(evidence).not.toMatch(/independent artifact sprint/i);
+    expect(evidence).not.toMatch(/debrief and exit ticket/i);
+    expect(evidence).not.toMatch(/take a position on the lesson.s live question/i);
+    expect(evidence).not.toMatch(/practice workflow practice workflow/i);
+    expect(evidence).not.toMatch(/what check would catch it/i);
   });
 
   it('decodes capstone project milestones with sponsor constraints and defense readiness', () => {
