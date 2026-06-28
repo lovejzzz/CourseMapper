@@ -700,7 +700,6 @@ export default function AppFlow({ startupAction = null, onStartupHandled, onRetu
   // Lesson count — estimated by regex first, then refined by AI when user proceeds
   const [lessonCount, setLessonCount] = useState(0);
   const [isDetectingLessons, setIsDetectingLessons] = useState(false);
-  const addMaterialInputRef = useRef(null);
   const tabButtonRefs = useRef(new Map());
   const trashDropRef = useRef(null);
   const suppressTabClickRef = useRef(false);
@@ -2100,37 +2099,6 @@ export default function AppFlow({ startupAction = null, onStartupHandled, onRetu
     }
   }
 
-  const handleAddMaterials = useCallback(
-    async (e) => {
-      const newFiles = Array.from(e.target.files);
-      if (newFiles.length === 0) return;
-      e.target.value = '';
-      setFiles((prev) => [...prev, ...newFiles]);
-      let parsed;
-      try {
-        parsed = await parseFiles(newFiles);
-      } catch (err) {
-        gen.setError('Failed to parse new files: ' + err.message);
-        return;
-      }
-      const newText = parsed
-        .filter((f) => f.text)
-        .map((f) => `=== File: ${f.name} ===\n${f.text}`)
-        .join('\n\n');
-      if (!newText.trim()) {
-        gen.setError('No text content could be extracted from the new files.');
-        return;
-      }
-      const revisionMsg = `The instructor has provided additional course materials. Please review these materials and update the course map to incorporate any relevant content, topics, assessments, activities, or resources that are missing or need updating.\n\nNew materials:\n${newText.slice(0, 30000)}`;
-      try {
-        await rev.handleRevision(revisionMsg);
-      } catch (err) {
-        if (err.message) gen.setError('Material revision failed: ' + err.message);
-      }
-    },
-    [rev, gen, setFiles],
-  );
-
   function getOrderedSelectedDeliverables() {
     const allFeats = [...FEATURES, ...listCustomDeliverables().map(toFeatureEntry)];
     return allFeats.filter((f) => selectedFeatures.includes(f.id) && f.id !== 'courseMap').map((f) => f.id);
@@ -2787,15 +2755,6 @@ export default function AppFlow({ startupAction = null, onStartupHandled, onRetu
   const canRunPackageFinalizer =
     Boolean(courseMap) && gen.progressStep === 'done' && typeof handleFinishPackageFromExport === 'function';
   const isPackageGenerationRunning = packageGenerationBusy || gen.isStreaming || deliv.isGenerating;
-  const finishPackageDisabled =
-    !canRunPackageFinalizer || packageQualityPass?.status === 'running' || isPackageGenerationRunning;
-  const finishPackageTitle = isFinishPassRunning(packageQualityPass)
-    ? 'Package finishing is already running.'
-    : isPackageGenerationRunning
-      ? 'Generation is running — the package is checked automatically when it finishes.'
-      : !canFinishPackageWithAgent
-        ? 'Run deterministic package checks. Connect AI for model-backed repairs.'
-        : 'Finish, repair, verify, and prepare the package for export.';
   const confirmDeleteDeliverable = () => {
     const target = deleteTabConfirm;
     if (!target || target.id === 'courseMap') return;
@@ -2901,8 +2860,9 @@ export default function AppFlow({ startupAction = null, onStartupHandled, onRetu
                 )}
                 {/* v0.14.7 WS-F1 (+.1 deep clean): ONE morphing verb —
                     Building… → Review N → Download ZIP; renders nothing
-                    pre-generation. The header's ONE disclosure is the
-                    workspace More below — no second menu here. */}
+                    pre-generation. Project/file actions live in the workspace
+                    disclosure below; package/material/editing verbs stay with
+                    their owning panels. */}
                 <PrimaryCta
                   ribbonModel={buildRibbonModel}
                   reviewCount={outstandingReview.counts.headline}
@@ -2924,33 +2884,20 @@ export default function AppFlow({ startupAction = null, onStartupHandled, onRetu
                 <details className="relative">
                   <summary
                     data-testid="workspace-more-menu-trigger"
+                    aria-label="Project actions"
                     className="tactile flex cursor-pointer list-none items-center gap-2 rounded-md border border-slate-200 bg-white px-3 py-2 text-xs font-bold text-slate-600 transition-colors hover:border-slate-300 hover:bg-slate-50 dark:hover:border-slate-600 [&::-webkit-details-marker]:hidden"
                   >
-                    More
+                    Project
                     <svg className="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="m19 9-7 7-7-7" />
                     </svg>
                   </summary>
                   <div className="absolute right-0 z-30 mt-2 w-56 overflow-hidden rounded-lg border border-slate-200 bg-white p-1.5 shadow-xl shadow-slate-950/10">
-                    {/* v0.14.7.1: package actions live HERE — the header's
-                        one disclosure — not in a second CTA-side menu. */}
+                    {/* Project-level actions only. Package export, material
+                        creation, and edit history stay with their owning
+                        surfaces so this menu does not become a junk drawer. */}
                     {hasGenerated && (
                       <>
-                        <button
-                          type="button"
-                          data-testid="workspace-finish-package"
-                          onClick={() =>
-                            handleFinishPackageFromExport({
-                              selectedFeatureIds: selectedFeatures,
-                              lessonFilter: lessonScope.type === 'specific' ? lessonScope.indices : null,
-                            })
-                          }
-                          disabled={finishPackageDisabled}
-                          title={finishPackageTitle}
-                          className="flex w-full items-center gap-2 rounded-md px-3 py-2 text-left text-xs font-semibold text-slate-700 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-40"
-                        >
-                          {isFinishPassRunning(packageQualityPass) ? 'Finishing' : 'Finish package'}
-                        </button>
                         <button
                           type="button"
                           data-testid="workspace-menu-save-project"
@@ -2985,51 +2932,10 @@ export default function AppFlow({ startupAction = null, onStartupHandled, onRetu
                     >
                       New Project
                     </button>
-                    <button
-                      type="button"
-                      data-testid="workspace-menu-add-materials"
-                      onClick={() => addMaterialInputRef.current?.click()}
-                      disabled={gen.isStreaming || rev.isRevising}
-                      className="flex w-full items-center gap-2 rounded-md px-3 py-2 text-left text-xs font-semibold text-slate-700 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-40"
-                    >
-                      Add Materials
-                    </button>
-                    {version.versionHistory.length > 1 && !gen.isStreaming && (
-                      <>
-                        <div className="my-1 border-t border-slate-100" />
-                        <button
-                          type="button"
-                          onClick={version.undo}
-                          disabled={version.activeVersion <= 0}
-                          className="flex w-full items-center gap-2 rounded-md px-3 py-2 text-left text-xs font-semibold text-slate-700 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-40"
-                        >
-                          Undo
-                        </button>
-                        <button
-                          type="button"
-                          onClick={version.redo}
-                          disabled={version.activeVersion >= version.versionHistory.length - 1}
-                          className="flex w-full items-center gap-2 rounded-md px-3 py-2 text-left text-xs font-semibold text-slate-700 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-40"
-                        >
-                          Redo
-                        </button>
-                        <p className="px-3 pb-1 pt-0.5 text-xs font-medium text-slate-400">
-                          Version {version.activeVersion + 1}/{version.versionHistory.length}
-                        </p>
-                      </>
-                    )}
                   </div>
                 </details>
               </div>
             </div>
-            <input
-              ref={addMaterialInputRef}
-              type="file"
-              multiple
-              accept=".doc,.docx,.pdf,.txt,.md,.csv,.rtf,.html,.htm,.xlsx,.xls,.ods,.ppt,.pptx,.odp,.odt,.epub,.key,.pages,.zip"
-              onChange={handleAddMaterials}
-              className="hidden"
-            />
           </div>
 
           {/* v0.14.4 WS-B1: the build ribbon — the single status spine.

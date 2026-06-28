@@ -19,8 +19,31 @@ function isCleanReadyPackage(packageQualityPass) {
   return getPackageTrustStatus({ packageQualityPass }).clean;
 }
 
+export function digestObservationKey(entry) {
+  const anchor = entry?.anchor || {};
+  return [
+    entry?.id || '',
+    anchor.featureId || '',
+    Number.isFinite(anchor.itemIndex) ? anchor.itemIndex : '',
+    String(entry?.observation || '')
+      .replace(/\s+/g, ' ')
+      .trim()
+      .toLowerCase(),
+  ].join('|');
+}
+
+export function dedupeDigestObservations(observations = []) {
+  const seen = new Set();
+  return observations.filter((entry) => {
+    const key = digestObservationKey(entry);
+    if (seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
+}
+
 export default function DigestCard({ digest, onPrompt, onDismiss, status, onOpenInQueue, packageQualityPass = null }) {
-  const observations = digest?.observations || [];
+  const observations = dedupeDigestObservations(digest?.observations || []);
   if (observations.length === 0) return null;
   const dismissed = status === 'dismissed';
   const cleanReady = isCleanReadyPackage(packageQualityPass);

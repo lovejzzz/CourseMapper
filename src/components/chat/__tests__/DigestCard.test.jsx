@@ -59,4 +59,27 @@ describe('DigestCard', () => {
     expect(html).toContain('Worth a look');
     expect(html).toContain('Review');
   });
+
+  it('deduplicates repeated observations before rendering the agent review card', () => {
+    const duplicateDigest = {
+      observations: [
+        DIGEST.observations[0],
+        {
+          ...DIGEST.observations[0],
+          observation: 'Lesson 2 objective has no clear echo in assessments. ',
+        },
+      ],
+    };
+    const html = renderToStaticMarkup(
+      <DigestCard
+        digest={duplicateDigest}
+        status="pending"
+        onOpenInQueue={() => {}}
+        packageQualityPass={{ ...cleanReadyPackage(), warnings: 1 }}
+      />,
+    );
+
+    expect(html).toContain('Worth a look — 1 observation');
+    expect((html.match(/Lesson 2 objective has no clear echo in assessments/g) || []).length).toBe(1);
+  });
 });

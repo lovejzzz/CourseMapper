@@ -88,6 +88,7 @@ export default function CustomToolsMenu({ tools, onDelete, onImport, syncError }
   // can tell cloud sync failed (permission denied, offline, etc.) — hovering
   // shows which macro and which op didn't persist.
   const hasSyncError = !!syncError;
+  if (!hasTools && !hasSyncError) return null;
 
   return (
     <div className="relative" ref={menuRef}>

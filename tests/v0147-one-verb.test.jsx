@@ -8,8 +8,8 @@
  *      (indigo, opens the queue); ready and clear with a graded package →
  *      "Download ZIP" (dark primary, routes to the export panel's
  *      doExport('zip') via the 'coursemapper:request-zip-download' window
- *      event); anything else → nothing. Finish package and Save .coursemapper
- *      demote into the More disclosure (real buttons, aria-expanded trigger).
+ *      event); anything else → nothing. Project/file actions stay in the
+ *      workspace disclosure; package actions stay with export/agent surfaces.
  *
  * F2 — quick start on the landing prompt box: "Generate with defaults",
  *      visible only with a non-empty prompt AND a stored API key; AppFlow's
@@ -118,7 +118,7 @@ describe('F1 — the morphing CTA state matrix', () => {
   });
 });
 
-describe('F1 — ONE disclosure: the workspace More owns the package actions', () => {
+describe('F1 — ONE disclosure: the workspace Project menu stays project-only', () => {
   it('PrimaryCta carries NO menu of its own (two "More" buttons was the live feedback that killed it)', () => {
     const { container } = mount(<PrimaryCta ribbonModel={READY_MODEL} reviewCount={0} canDownload />);
     expect(container.querySelector('[data-testid="primary-cta-more"]')).toBeNull();
@@ -126,17 +126,20 @@ describe('F1 — ONE disclosure: the workspace More owns the package actions', (
     expect(container.querySelectorAll('button')).toHaveLength(1); // the one verb
   });
 
-  it('the workspace More menu hosts Finish package + Save .coursemapper with the existing logic (source contract)', () => {
+  it('the workspace Project menu hosts file/project actions, not package or editing actions', () => {
     const appFlow = read('src/AppFlow.jsx');
     const menuStart = appFlow.indexOf('workspace-more-menu-trigger');
     expect(menuStart).toBeGreaterThan(-1);
     const menu = appFlow.slice(menuStart, menuStart + 4000);
-    expect(menu).toContain('data-testid="workspace-finish-package"');
+    expect(menu).toContain('Project');
     expect(menu).toContain('data-testid="workspace-menu-save-project"');
-    expect(menu).toContain('disabled={finishPackageDisabled}');
-    expect(menu).toContain("isFinishPassRunning(packageQualityPass) ? 'Finishing' : 'Finish package'");
+    expect(menu).toContain('data-testid="workspace-menu-new-project"');
     expect(menu).toContain('onClick={handleSaveProject}');
-    // And it is the ONLY "More" disclosure in the header.
+    expect(menu).not.toContain('data-testid="workspace-finish-package"');
+    expect(menu).not.toContain('data-testid="workspace-menu-add-materials"');
+    expect(menu).not.toContain('version.undo');
+    expect(menu).not.toContain('version.redo');
+    // And it is the ONLY disclosure in the header.
     expect(appFlow).not.toContain('primary-cta-more');
   });
 });
@@ -145,10 +148,10 @@ describe('F1/F2 — source wiring (the header has ONE verb; the paths exist)', (
   it('AppFlow renders PrimaryCta and no longer renders the Finish package button at header top level', () => {
     const appFlow = read('src/AppFlow.jsx');
     expect(appFlow).toContain('<PrimaryCta');
-    // The standalone header button is gone — the finish action lives ONLY in
-    // the workspace More menu (PrimaryCta carries no menu at all).
+    // The standalone header/menu finish button is gone; package checks live in
+    // the export/agent surfaces and the header CTA stays one verb.
     expect(read('src/components/PrimaryCta.jsx')).not.toContain('workspace-finish-package');
-    expect(appFlow).toContain('data-testid="workspace-finish-package"');
+    expect(appFlow).not.toContain('data-testid="workspace-finish-package"');
     // Download routes through the one export executor, not a second builder.
     expect(appFlow).toContain("new CustomEvent('coursemapper:request-zip-download')");
     // v0.14.9 B1: the CTA shows the HEADLINE count — outstanding judgment

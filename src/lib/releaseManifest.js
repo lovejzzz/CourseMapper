@@ -3,22 +3,18 @@ import { APP_VERSION } from './appVersion.js';
 export const CURRENT_RELEASE = {
   version: APP_VERSION,
   date: 'June 27, 2026',
-  title: 'Finalizer Retry Digest Truth: enriched packages stop looking deterministic',
-  landingTitle: 'Finalizer Retry Digest Truth',
+  title: 'Header Action Cleanup: the workspace top row stops acting like a junk drawer',
+  landingTitle: 'Header Action Cleanup',
   highlights: [
-    'A fresh deployed v0.15.86 User Experience Design Studio ZIP/log audit verified the UX source quarantine in real provider output: weak rows such as Iwerks Studio, Flight test, and Website wireframe landed in source review notes instead of trusted sourceLedger proof.',
-    'The same run exposed a report-truth bug: the main generation made a blueprintEnrichment provider call and compiled 9 deliverables from enriched-blueprint, but finalizer retries for Assignments/Rubrics overwrote the digest to deterministic compile only.',
-    'API budget merging now preserves the strongest package-wide enrichment outcome and compiler source, so retry-local deterministic compiles cannot create a false compiled-without-enrichment mail-merge warning.',
-    'This release does not claim 100/100: the corrected v0.15.86 artifact projects to 96/A, with citation proof, texture, agent-note duplication, and local-save quota warnings still carried forward.',
+    'The header overflow is now a Project menu for project/file actions only: Save .coursemapper, New Project, and optional kernel contribution. Package finishing, Add Materials, and undo/redo no longer live in the top-row drawer.',
+    'The custom agent tools pill hides when there are zero tools and no sync error, removing a dead 0-count control from the Agent header while still surfacing sync failures.',
+    'Agent review observations now deduplicate inside each digest and the message list renders only the latest digest card, so repeated Worth a look notes from older package states do not stack.',
+    'This release is UI-surface cleanup, not a new quality claim: fresh deployed v0.15.88 browser/ZIP evidence is still required before claiming provider-side quality improvement.',
   ],
-  landingHighlights: [
-    'Retry diagnostics preserve enrichment truth.',
-    'False mail-merge warnings stop.',
-    'UX quarantine is verified in provider output.',
-  ],
+  landingHighlights: ['Project menu is project-only.', 'Empty tools pill hides.', 'Agent notes dedupe.'],
   proof: {
-    contract: 'release-contracts/v0.15.87.json',
-    roadmap: 'docs/V0.15.87_FINALIZER_RETRY_DIGEST_TRUTH_ROADMAP.md',
+    contract: 'release-contracts/v0.15.88.json',
+    roadmap: 'docs/V0.15.88_HEADER_ACTION_CLEANUP_ROADMAP.md',
     auditCommand: 'npm run audit:release-history',
   },
 };
@@ -33,6 +29,17 @@ export const CURRENT_RELEASE_CHANGELOG = {
 };
 
 export const HISTORICAL_RELEASE_CHANGELOGS = [
+  {
+    version: '0.15.87',
+    date: 'June 27, 2026',
+    title: 'Finalizer Retry Digest Truth: enriched packages stop looking deterministic',
+    highlights: [
+      'A fresh deployed v0.15.86 User Experience Design Studio ZIP/log audit verified the UX source quarantine in real provider output: weak rows such as Iwerks Studio, Flight test, and Website wireframe landed in source review notes instead of trusted sourceLedger proof.',
+      'The same run exposed a report-truth bug: the main generation made a blueprintEnrichment provider call and compiled 9 deliverables from enriched-blueprint, but finalizer retries for Assignments/Rubrics overwrote the digest to deterministic compile only.',
+      'API budget merging now preserves the strongest package-wide enrichment outcome and compiler source, so retry-local deterministic compiles cannot create a false compiled-without-enrichment mail-merge warning.',
+      'This release does not claim 100/100: the corrected v0.15.86 artifact projects to 96/A, with citation proof, texture, agent-note duplication, and local-save quota warnings still carried forward.',
+    ],
+  },
   {
     version: '0.15.86',
     date: 'June 27, 2026',

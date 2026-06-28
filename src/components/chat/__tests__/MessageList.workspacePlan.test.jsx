@@ -89,6 +89,47 @@ describe('MessageList workspace plan actions', () => {
     );
   });
 
+  it('renders only the latest agent digest card so old observations do not stack', () => {
+    root = renderMessageList(container, {
+      messages: [
+        {
+          role: 'digest',
+          digest: {
+            observations: [
+              {
+                id: 'old-note',
+                observation: 'Old package observation should not remain visible.',
+                whyItMatters: 'Old package state is stale.',
+                prompts: [],
+              },
+            ],
+          },
+          status: 'pending',
+        },
+        { role: 'assistant', text: 'Finish package handled safe fixes.' },
+        {
+          role: 'digest',
+          digest: {
+            observations: [
+              {
+                id: 'new-note',
+                observation: 'Latest package observation should stay visible.',
+                whyItMatters: 'This is the current package state.',
+                prompts: [],
+              },
+            ],
+          },
+          status: 'pending',
+        },
+      ],
+      onDigestOpenReview: vi.fn(),
+    });
+
+    expect(container.textContent).not.toContain('Old package observation should not remain visible.');
+    expect(container.textContent).toContain('Latest package observation should stay visible.');
+    expect(container.querySelectorAll('[data-testid="digest-open-in-queue"]')).toHaveLength(1);
+  });
+
   it('lets the parent handle a plan action directly before falling back to the Agent', async () => {
     const onSuggestionClick = vi.fn();
     const onWorkspacePlanAction = vi.fn(() => Promise.resolve(true));

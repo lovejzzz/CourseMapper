@@ -4,6 +4,24 @@
 
 CourseMapper is moving toward a "consider it done" course-production agent. The user should describe the course, choose scope/materials, and receive a finished draft package. The agent owns generation, QA, repair, alignment, and export readiness. Human involvement should be final approval only, not QA labor.
 
+## v0.15.88 - Header Action Cleanup
+
+Goal: make the working/generation page's top controls behave like a calm
+workspace toolbar instead of a mixed action drawer, while keeping export details
+in the Agent panel.
+
+Full plan: `docs/V0.15.88_HEADER_ACTION_CLEANUP_ROADMAP.md`
+
+1. Rename the header overflow affordance to `Project` and keep it scoped to
+   project/file actions only.
+2. Remove package finishing, material upload, and undo/redo from the top
+   overflow because those verbs already have owning surfaces.
+3. Hide the custom-agent-tools pill when there are zero tools and no sync error.
+4. Deduplicate Agent review observations and render only the latest digest card
+   so old "Worth a look" notes do not stack.
+5. Replace the old test contract that pinned the clutter with source and
+   component regressions for the cleaned behavior.
+
 ## v0.15.87 - Finalizer Retry Digest Truth
 
 Goal: fix the fresh v0.15.86 User Experience Design Studio audit evidence where

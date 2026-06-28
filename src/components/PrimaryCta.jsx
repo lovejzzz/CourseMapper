@@ -12,10 +12,9 @@
  *                              downloadable
  *   anything else            → nothing (the pre-generation header stays as-is)
  *
- * v0.14.7.1 deep clean: this component no longer carries its own More menu —
- * the header has ONE disclosure (the workspace More), which now hosts Finish
- * package and Save .coursemapper alongside New Project/Add Materials/Undo.
- * Two "More" buttons in one header was the live feedback that killed it.
+ * v0.15.88 calm pass: this component no longer carries its own More menu, and
+ * the workspace disclosure is project/file-only. Package export stays here/the
+ * export panel; material creation and edit history stay with their own rows.
  */
 import React from 'react';
 

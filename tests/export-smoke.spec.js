@@ -520,7 +520,7 @@ test.describe('Export smoke', () => {
     });
     expect(audit.issues).toEqual([]);
 
-    // v0.14.7.1: Save .coursemapper lives in the header's ONE More menu.
+    // Save .coursemapper lives in the header's project/file disclosure.
     await page.getByTestId('workspace-more-menu-trigger').click();
     await expectDownload(page, () => page.getByTestId('workspace-menu-save-project').click(), {
       extension: 'coursemapper',

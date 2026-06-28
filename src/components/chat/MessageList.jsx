@@ -102,6 +102,13 @@ export default function MessageList({
     landingContext,
   );
   const { greeting, starters = [] } = opener || {};
+  const latestDigestIndex = React.useMemo(() => {
+    for (let i = messages.length - 1; i >= 0; i--) {
+      const message = messages[i];
+      if (message?.role === 'digest' && Array.isArray(message.digest?.observations)) return i;
+    }
+    return -1;
+  }, [messages]);
 
   const scrollToBottom = useCallback((behavior = 'smooth') => {
     const container = containerRef.current;
@@ -320,6 +327,7 @@ export default function MessageList({
             );
           }
           if (msg.role === 'digest') {
+            if (i !== latestDigestIndex) return null;
             return (
               <DigestCard
                 key={key}
