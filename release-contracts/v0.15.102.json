@@ -35,11 +35,7 @@
       "status": "verified-current",
       "changelogHighlightIndex": 0,
       "summary": "The release is grounded in the fresh deployed v0.15.101 UX ZIP/log audit, which regraded at 100/A with no findings but still measured Texture 94/100.",
-      "anchors": [
-        "verification-output/edutool-audit-loop/20260628T143000Z-v015101-ux-fresh/report.md",
-        "verification-output/edutool-audit-loop/20260628T143000Z-v015101-ux-fresh/local-regrade.json",
-        "docs/V0.15.102_UX_TEXTURE_FRAME_VARIATION_ROADMAP.md"
-      ],
+      "anchors": ["docs/V0.15.102_UX_TEXTURE_FRAME_VARIATION_ROADMAP.md", "src/lib/releaseManifest.js"],
       "proofCommands": [
         "npx vitest run src/lib/__tests__/courseBlueprintCompiler.test.js --testNamePattern=\"varies UX lesson-plan\""
       ],
