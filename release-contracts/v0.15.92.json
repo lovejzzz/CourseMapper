@@ -37,7 +37,8 @@
       "summary": "The release is grounded in a fresh deployed v0.15.91 UX ZIP/log audit where a trusted sourceLedger row was a sketch false friend and a PPTX key-takeaway callout caused the only visible P1.",
       "anchors": [
         "docs/V0.15.92_UX_SKETCH_SOURCE_AND_PPTX_PUNCTUATION_ROADMAP.md",
-        "verification-output/edutool-audit-loop/20260628T070346Z-v01591-ux-fresh/local-regrade-after-v01592-patch.json"
+        "src/lib/quality/__tests__/sourceLedgerGrader.test.js",
+        "src/lib/__tests__/pptxExporter.test.js"
       ],
       "proofCommands": [
         "npm test -- --run src/lib/knowledge/__tests__/sourceLedger.test.js src/lib/quality/__tests__/sourceLedgerGrader.test.js src/lib/__tests__/pptxExporter.test.js"
@@ -67,7 +68,7 @@
       "anchors": [
         "src/lib/quality/sourceLedgerQualityChecks.js",
         "src/lib/quality/__tests__/sourceLedgerGrader.test.js",
-        "verification-output/edutool-audit-loop/20260628T070346Z-v01591-ux-fresh/local-regrade-after-v01592-patch.json"
+        "docs/V0.15.92_UX_SKETCH_SOURCE_AND_PPTX_PUNCTUATION_ROADMAP.md"
       ],
       "proofCommands": ["npm test -- --run src/lib/quality/__tests__/sourceLedgerGrader.test.js"],
       "proofScopes": ["unit", "static-audit", "compiled-output"]
