@@ -4,26 +4,27 @@
 
 CourseMapper is moving toward a "consider it done" course-production agent. The user should describe the course, choose scope/materials, and receive a finished draft package. The agent owns generation, QA, repair, alignment, and export readiness. Human involvement should be final approval only, not QA labor.
 
-## v0.15.114 - UX Source False-Friend Gate
+## v0.15.115 - UX Texture Tail Rotation
 
-Goal: address the fresh v0.15.113 User Experience Design Studio ZIP/log audit
-evidence where the package exported `99/A` with Texture `90/100`, but trusted
-source proof still included licensed false friends from family mediation,
-behavior therapy, MTA accessibility, and a retail-store page named `Design
-Research (store)`.
+Goal: address the fresh v0.15.114 User Experience Design Studio ZIP/log audit
+evidence where the package exported and locally regraded `100/A` with no
+P0/P1/P2 findings, but strict texture remained `94/100` because several
+compiler-owned phrases repeated across all 12 lessons.
 
-Full plan: `docs/V0.15.114_UX_SOURCE_FALSE_FRIEND_GATE_ROADMAP.md`
+Full plan: `docs/V0.15.115_UX_TEXTURE_TAIL_ROTATION_ROADMAP.md`
 
-1. Reject those licensed-but-wrong UX source rows before they become trusted
-   `sourceLedger` proof.
-2. Keep legitimate UX usability, accessibility, design-research, prototyping,
-   and practitioner-collaboration sources eligible.
-3. Mirror the source-relevance gate in the deep quality grader so already
-   exported bad rows regrade as citation findings.
-4. Pin the production and grader behavior with focused v0.15.113 regression
-   tests.
-5. Carry forward Texture `90/100`, generic `project-based undergraduate course`
-   lesson identity, and fresh deployed v0.15.114 provider verification.
+1. Rotate Assignment Brief late-policy language by lesson instead of stamping
+   the same deadline/contact sentence across every exported brief.
+2. Rotate Rubric calibration and instructor facilitation language while
+   preserving source-use, anchor-example, bias-check, and criterion-feedback
+   expectations.
+3. Rotate Study Guide review strategy and design-prototype Discussion Prompt
+   protocol language so studio courses do not repeat the same
+   evidence/implication and critique-protocol tails.
+4. Extend UX and compiler-tail texture regressions to include assignments,
+   rubrics, study guides, discussion protocol fields, and late-policy text.
+5. Carry forward fresh deployed v0.15.115 provider verification before claiming
+   strict-clean texture or a clean 100/100 package.
 
 ## v0.15.88 - Header Action Cleanup
 

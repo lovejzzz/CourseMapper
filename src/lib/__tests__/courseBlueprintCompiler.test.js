@@ -2615,10 +2615,14 @@ describe('courseBlueprintCompiler', () => {
       };
     });
 
-    const compiled = compileBlueprintDeliverables(blueprint, ['lessonPlans', 'slideDecks', 'discussions'], {
-      configMap: { lessonPlans: { depth: 'deep' } },
-      enforceCompilerContract: false,
-    });
+    const compiled = compileBlueprintDeliverables(
+      blueprint,
+      ['lessonPlans', 'slideDecks', 'assignments', 'rubrics', 'discussions', 'studyGuides'],
+      {
+        configMap: { lessonPlans: { depth: 'deep' } },
+        enforceCompilerContract: false,
+      },
+    );
     const planTexts = compiled.lessonPlans.lessonPlans.map((plan) =>
       plan.outline.map((item) => `${item.description || ''} ${item.instructorNotes || ''}`).join(' '),
     );
@@ -2631,15 +2635,52 @@ describe('courseBlueprintCompiler', () => {
       [
         discussion.prompt,
         discussion.guidelines,
+        discussion.discussionProtocol?.participationPattern,
+        discussion.discussionProtocol?.facilitationMove,
         ...(discussion.artifactsToReview || []).map((artifact) => `${artifact.title || ''} ${artifact.use || ''}`),
         ...(discussion.followUpProbes || []),
         ...(discussion.evaluationCriteria || []),
+        discussion.facilitationTips?.opening,
+        discussion.facilitationTips?.closure,
+      ].join(' '),
+    );
+    const assignmentTexts = compiled.assignments.assignments.map((assignment) =>
+      [
+        assignment.summary,
+        assignment.academicIntegrityStatement,
+        assignment.formatRequirements?.latePolicy,
+        ...(assignment.milestones || []).map((milestone) =>
+          [milestone.milestone, milestone.description, milestone.feedback, ...(milestone.uploadChecklist || [])].join(
+            ' ',
+          ),
+        ),
+      ].join(' '),
+    );
+    const rubricTexts = compiled.rubrics.rubrics.map((rubric) =>
+      [
+        rubric.instructorFacilitationNote,
+        rubric.assessmentValidity?.calibrationCheck,
+        rubric.gradingCalibrationPlan?.scorerNorming,
+        rubric.gradingCalibrationPlan?.anchorComparison,
+        rubric.anchorExamples?.scoringRationale,
+        rubric.anchorExamples?.revisionPrompt,
+      ].join(' '),
+    );
+    const studyGuideTexts = compiled.studyGuides.studyGuides.map((guide) =>
+      [
+        guide.summary,
+        ...(guide.reviewQuestions || []).map((item) => `${item.question || ''} ${item.hint || ''}`),
+        ...(guide.practiceActivities || []),
+        guide.examPrep?.reviewStrategy,
       ].join(' '),
     );
     const allTexts = [
       ...planTexts.map((text, index) => ({ id: `plan-${index}`, feature: 'lessonPlans', text })),
       ...deckTexts.map((text, index) => ({ id: `deck-${index}`, feature: 'slideDecks', text })),
+      ...assignmentTexts.map((text, index) => ({ id: `assignment-${index}`, feature: 'assignments', text })),
+      ...rubricTexts.map((text, index) => ({ id: `rubric-${index}`, feature: 'rubrics', text })),
       ...discussionTexts.map((text, index) => ({ id: `discussion-${index}`, feature: 'discussions', text })),
+      ...studyGuideTexts.map((text, index) => ({ id: `guide-${index}`, feature: 'studyGuides', text })),
     ];
     const countDocsWith = (texts, pattern) => texts.filter((text) => pattern.test(text)).length;
 
@@ -2652,6 +2693,17 @@ describe('courseBlueprintCompiler', () => {
     expect(countDocsWith(deckTexts, /avoid vague homework language/i)).toBe(0);
     expect(countDocsWith(discussionTexts, /speak or post at least twice/i)).toBe(0);
     expect(countDocsWith(deckTexts, /changes the design decision students will make/i)).toBeLessThan(4);
+    expect(
+      countDocsWith(assignmentTexts, /follow the course late work policy and contact the instructor before/i),
+    ).toBeLessThan(4);
+    expect(countDocsWith(rubricTexts, /rubric before students draft, then use criterion-level feedback/i)).toBeLessThan(
+      4,
+    );
+    expect(countDocsWith(rubricTexts, /the stronger sample should cite/i)).toBeLessThan(4);
+    expect(countDocsWith(studyGuideTexts, /one .* evidence source, and one implication for/i)).toBeLessThan(4);
+    expect(countDocsWith(discussionTexts, /artifact walk-through, critique notes, revision commitment/i)).toBeLessThan(
+      4,
+    );
 
     const texture = computeTexture(allTexts);
     const evidence = texture.evidence.map((item) => item.shingle).join('\n');
@@ -2664,6 +2716,13 @@ describe('courseBlueprintCompiler', () => {
     expect(evidence).not.toMatch(/vague homework language/i);
     expect(evidence).not.toMatch(/speak or post at least twice/i);
     expect(evidence).not.toMatch(/changes the design decision students will make/i);
+    expect(evidence).not.toMatch(/and usability evidence source and one implication for the week .* assessment/i);
+    expect(evidence).not.toMatch(/assessment follow the course late work policy and contact the instructor before/i);
+    expect(evidence).not.toMatch(/assessment rubric before students draft then use criterion-level feedback/i);
+    expect(evidence).not.toMatch(/and one partial week .* assessment sample the stronger sample should cite/i);
+    expect(evidence).not.toMatch(
+      /assessment then name the protocol artifact walk-through critique notes revision commitment/i,
+    );
   });
 
   it('varies lecture-exam slide and lesson-plan texture instead of repeating compiler tails', () => {
@@ -2696,7 +2755,7 @@ describe('courseBlueprintCompiler', () => {
 
     const compiled = compileBlueprintDeliverables(
       blueprint,
-      ['lessonPlans', 'slideDecks', 'assignments', 'discussions', 'studyGuides', 'courseFaq'],
+      ['lessonPlans', 'slideDecks', 'assignments', 'rubrics', 'discussions', 'studyGuides', 'courseFaq'],
       {
         configMap: { lessonPlans: { depth: 'deep' } },
         enforceCompilerContract: false,
@@ -2725,6 +2784,8 @@ describe('courseBlueprintCompiler', () => {
       [
         assignment.summary,
         assignment.academicIntegrityStatement,
+        assignment.formatRequirements?.latePolicy,
+        assignment.formatRequirements?.citationStyle,
         ...(assignment.milestones || []).map((milestone) =>
           [milestone.milestone, milestone.description, milestone.feedback, ...(milestone.uploadChecklist || [])].join(
             ' ',
@@ -2732,12 +2793,26 @@ describe('courseBlueprintCompiler', () => {
         ),
       ].join(' '),
     );
+    const rubricTexts = compiled.rubrics.rubrics.map((rubric) =>
+      [
+        rubric.instructorFacilitationNote,
+        rubric.assessmentValidity?.calibrationCheck,
+        rubric.gradingCalibrationPlan?.scorerNorming,
+        rubric.gradingCalibrationPlan?.anchorComparison,
+        rubric.anchorExamples?.scoringRationale,
+        rubric.anchorExamples?.revisionPrompt,
+      ].join(' '),
+    );
     const discussionTexts = compiled.discussions.discussions.map((discussion) =>
       [
         discussion.prompt,
         discussion.guidelines,
+        discussion.discussionProtocol?.participationPattern,
+        discussion.discussionProtocol?.facilitationMove,
         ...(discussion.followUpProbes || []),
         ...(discussion.evaluationCriteria || []),
+        discussion.facilitationTips?.opening,
+        discussion.facilitationTips?.closure,
         discussion.facilitationGuide?.openingMove,
         discussion.facilitationGuide?.evidencePush,
         discussion.facilitationGuide?.closureMove,
@@ -2748,6 +2823,7 @@ describe('courseBlueprintCompiler', () => {
     const countStudyGuidesWith = (pattern) => studyGuideTexts.filter((text) => pattern.test(text)).length;
     const countFaqsWith = (pattern) => faqTexts.filter((text) => pattern.test(text)).length;
     const countAssignmentsWith = (pattern) => assignmentTexts.filter((text) => pattern.test(text)).length;
+    const countRubricsWith = (pattern) => rubricTexts.filter((text) => pattern.test(text)).length;
     const countDiscussionsWith = (pattern) => discussionTexts.filter((text) => pattern.test(text)).length;
 
     expect(countDecksWith(/with a peer before deciding what/i)).toBe(0);
@@ -2774,6 +2850,13 @@ describe('courseBlueprintCompiler', () => {
     expect(countAssignmentsWith(/AI use when it contributes to the submission. Do not invent authors/i)).toBeLessThan(
       4,
     );
+    expect(countAssignmentsWith(/follow the course late work policy and contact the instructor before/i)).toBeLessThan(
+      4,
+    );
+    expect(countRubricsWith(/rubric before students draft, then use criterion-level feedback/i)).toBeLessThan(4);
+    expect(countRubricsWith(/the stronger sample should cite/i)).toBeLessThan(4);
+    expect(countStudyGuidesWith(/one .* evidence source, and one implication for/i)).toBeLessThan(4);
+    expect(countDiscussionsWith(/artifact walk-through, critique notes, revision commitment/i)).toBeLessThan(4);
     expect(countAssignmentsWith(/\bIntegrity for the Week \d+ transfer means/i)).toBe(0);
     expect(
       countDiscussionsWith(
@@ -2806,6 +2889,7 @@ describe('courseBlueprintCompiler', () => {
       ...deckTexts.map((text, index) => ({ id: `deck-${index}`, feature: 'slideDecks', text })),
       ...planTexts.map((text, index) => ({ id: `plan-${index}`, feature: 'lessonPlans', text })),
       ...assignmentTexts.map((text, index) => ({ id: `assignment-${index}`, feature: 'assignments', text })),
+      ...rubricTexts.map((text, index) => ({ id: `rubric-${index}`, feature: 'rubrics', text })),
       ...discussionTexts.map((text, index) => ({ id: `discussion-${index}`, feature: 'discussions', text })),
       ...studyGuideTexts.map((text, index) => ({ id: `guide-${index}`, feature: 'studyGuides', text })),
       ...faqTexts.map((text, index) => ({ id: `faq-${index}`, feature: 'courseFaq', text })),
@@ -2842,6 +2926,12 @@ describe('courseBlueprintCompiler', () => {
     expect(evidence).not.toMatch(/and one partial week .* assessment sample the stronger sample should cite/i);
     expect(evidence).not.toMatch(/and one revision they still need before the week .* assessment is/i);
     expect(evidence).not.toMatch(/and partial week .* assessment samples before you submit then self check/i);
+    expect(evidence).not.toMatch(/and usability evidence source and one implication for the week .* assessment/i);
+    expect(evidence).not.toMatch(/assessment follow the course late work policy and contact the instructor before/i);
+    expect(evidence).not.toMatch(/assessment rubric before students draft then use criterion-level feedback/i);
+    expect(evidence).not.toMatch(
+      /assessment then name the protocol artifact walk-through critique notes revision commitment/i,
+    );
   });
 
   it('decodes capstone project milestones with sponsor constraints and defense readiness', () => {

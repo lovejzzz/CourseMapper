@@ -12771,7 +12771,14 @@ function buildAssessmentValidityEvidence(lesson) {
     targetConstruct: `${artifact} shows whether students can use ${concept} evidence to make a defensible course decision.`,
     authenticPerformance: `The task asks students to produce ${artifact}, not only recall vocabulary, so performance evidence comes from applied reasoning in ${stripLessonPrefix(lesson.title)}.`,
     validityThreat: `A polished but unsupported ${artifact} could hide weak ${concept} reasoning if scoring does not require inspectable evidence from ${sourceCue}.`,
-    calibrationCheck: `Before scoring ${title}, compare one strong and one partial ${artifact} sample; the stronger sample should cite ${sourceCue}, explain the ${concept} decision, and name a limitation.`,
+    calibrationCheck: lessonVariant(lesson, [
+      `Before scoring ${title}, compare one strong and one partial ${artifact} sample; the stronger sample should cite ${sourceCue}, explain the ${concept} decision, and name a limitation.`,
+      `Start calibration for ${title} with two ${artifact} anchors. Score the stronger one for source use from ${sourceCue}, visible ${concept} reasoning, and a bounded claim.`,
+      `Use a strong and developing ${artifact} example for ${title}; the higher-scoring response should make the ${sourceCue} evidence and ${concept} decision easy to inspect.`,
+      `Norm scoring for ${title} by contrasting two ${artifact} samples, then identify which ${sourceCue} detail makes the stronger ${concept} decision defensible.`,
+      `Before assigning points for ${title}, have scorers explain why one ${artifact} anchor uses ${sourceCue} more precisely and states the ${concept} limit more clearly.`,
+      `Calibrate ${title} with paired ${artifact} anchors: one should show explicit ${sourceCue} evidence, a clear ${concept} decision, and an honest boundary.`,
+    ]),
   };
 }
 
@@ -14953,7 +14960,14 @@ function compileAssignments(blueprint) {
             `Match the local citation expectations for ${assessmentTitle} before uploading the final file.`,
           ]),
           submissionPlatform: 'Official course site',
-          latePolicy: `For ${assessmentTitle}, follow the course late work policy and contact the instructor before the deadline when needed.`,
+          latePolicy: lessonVariant(lesson, [
+            `For ${assessmentTitle}, follow the course late work policy and contact the instructor before the deadline when needed.`,
+            `Submit ${assessmentTitle} by the posted deadline; if timing becomes a problem, use the course late-work process before the due date.`,
+            `Late work for ${assessmentTitle} follows the local course policy. Students should flag conflicts early through the official course channel.`,
+            `Apply the course deadline rules to ${assessmentTitle}; unresolved access, illness, or scheduling issues should be raised before submission closes.`,
+            `Use the instructor's posted late-work procedure for ${assessmentTitle}, including any required notice before the deadline.`,
+            `If ${assessmentTitle} may be late, students should consult the course policy and contact the instructor through the approved channel while there is still time to adjust.`,
+          ]),
         },
         deliverables: assignmentDeliverablesForLesson({ lesson, assessment, submissionProfile, lens }),
         scaffoldingMilestones: [
@@ -15487,7 +15501,14 @@ function compileRubrics(blueprint) {
         courseModalityProfile: blueprint.courseModalityProfile,
         learnerContextCue: lessonLearnerContextCue(blueprint, lesson),
         taskDirections: rubricTaskDirectionsForLesson({ assessment, lesson }),
-        instructorFacilitationNote: `Share the ${assessment.title} rubric before students draft, then use criterion-level feedback for ${assessment.artifact} revision guidance. Prerequisite check: ${lesson?.prerequisitePlan?.diagnosticCheck || `confirm students can connect prior knowledge to ${assessment.artifact}.`} Calibration check: ${assessment.calibrationPlan?.scorerNorming || validityEvidence.calibrationCheck || `review whether ${assessment.artifact} evidence matches the intended learning target before scoring`} ${facilitationBiasCheck} ${sourceCheck}${preference ? ` ${rubricInstructorPreferenceNote(preference, lesson)}` : ''}`,
+        instructorFacilitationNote: `${lessonVariant(lesson, [
+          `Share the ${assessment.title} rubric before students draft, then use criterion-level feedback for ${assessment.artifact} revision guidance.`,
+          `Walk through the ${assessment.title} criteria before drafting starts; after drafts, point feedback to the ${assessment.artifact} evidence move that needs revision.`,
+          `Use the ${assessment.title} rubric as an evidence map during launch, then give feedback that names the next ${assessment.artifact} improvement.`,
+          `Introduce the ${assessment.title} rubric with one anchor example and reserve feedback for the criterion students should revise first in ${assessment.artifact}.`,
+          `Preview the ${assessment.title} scoring language before students build ${assessment.artifact}, then connect comments to a specific revision priority.`,
+          `Before students submit ${assessment.artifact}, have them mark where each ${assessment.title} criterion is visible and use feedback to target the weakest evidence link.`,
+        ])} Prerequisite check: ${lesson?.prerequisitePlan?.diagnosticCheck || `confirm students can connect prior knowledge to ${assessment.artifact}.`} Calibration check: ${assessment.calibrationPlan?.scorerNorming || validityEvidence.calibrationCheck || `review whether ${assessment.artifact} evidence matches the intended learning target before scoring`} ${facilitationBiasCheck} ${sourceCheck}${preference ? ` ${rubricInstructorPreferenceNote(preference, lesson)}` : ''}`,
         calibrationProtocol: assessment.calibrationPlan,
         accessibilityAndUDL:
           `${lesson?.accessibilityPlan?.expression || `For ${assessment.title}, allow equivalent accessible formats when students demonstrate the same ${lens.evidenceNoun}, reasoning, and communication criteria.`} ${lesson?.accessibilityPlan?.accommodationReviewCue || ''}`.trim(),
@@ -15966,12 +15987,14 @@ function compileStudyGuides(blueprint) {
             : `Avoid unsupported claims, vague ${phrase.context} definitions, and responses that omit ${studyArtifact}.`,
           reviewStrategy: isDataScience
             ? `For ${specificity.week}, practice explaining how ${primaryConcept} uses one dataset issue, one validation metric, one threshold or model-performance tradeoff, and one fairness or limitation note for ${specificity.artifact}.`
-            : `${lessonVariant(lesson, [
-                'Rehearse',
-                'Sketch',
-                'Annotate',
-                'Compare',
-              ])} one ${specificity.week} explanation of ${primaryConcept}, one ${lens.evidenceNoun} source, and one implication for ${specificity.artifact}.`,
+            : `${lessonVariant(lesson, ['Rehearse', 'Sketch', 'Annotate', 'Compare'])}${lessonVariant(lesson, [
+                ` one ${specificity.week} explanation of ${primaryConcept}, one ${lens.evidenceNoun} source, and one implication for ${specificity.artifact}.`,
+                ` the ${specificity.week} ${primaryConcept} claim, then attach the source detail that changes ${specificity.artifact}.`,
+                ` how ${primaryConcept} works in ${specificity.week}: source detail first, implication for ${specificity.artifact} second.`,
+                ` a short ${specificity.week} source-to-artifact chain for ${primaryConcept}, including the decision the evidence changes.`,
+                ` the ${primaryConcept} evidence trail for ${specificity.week}, then name what ${specificity.artifact} should keep, revise, or test.`,
+                ` one ${specificity.week} claim about ${primaryConcept} and the source cue that makes the ${specificity.artifact} implication defensible.`,
+              ])}`,
         },
         studentResources: `Use ${specificity.week} ${lesson.title} readings, instructor notes, office hours, peer discussion, and the rubric criteria for ${specificity.artifact}.`,
         tags: unique(['study guide', lesson.title, ...safeConcepts], 10),
@@ -18231,7 +18254,14 @@ function buildDiscussionProtocol({ lesson = {}, blueprint = {}, phrase = {}, len
     },
     'design-prototype': {
       format: 'Studio Critique',
-      participationPattern: 'artifact walk-through, critique notes, revision commitment, and peer challenge',
+      participationPattern: lessonVariant(lesson, [
+        'artifact walk-through, critique notes, revision commitment, and peer challenge',
+        'prototype tour, evidence-based critique, priority revision choice, and peer stress test',
+        'design rationale share, usability-evidence check, critique response, and next-iteration commitment',
+        'visible-decision review, peer question round, evidence note, and revision target selection',
+        'studio pin-up, source-backed critique, accessibility check, and iteration plan',
+        'artifact inspection, user-evidence comparison, critique synthesis, and revision handoff',
+      ]),
       artifactUse: `Students inspect the visible design decision in ${artifact} before selecting the next iteration.`,
       reviewFocus: `visible change, critique evidence, usability reasoning, and the next ${concept} revision`,
     },
