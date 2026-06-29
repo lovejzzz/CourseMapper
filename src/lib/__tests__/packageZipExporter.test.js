@@ -483,6 +483,157 @@ describe('packageZipExporter', () => {
     expect(sourceReport).not.toContain('Source Review Notes');
   });
 
+  it('recovers UX sourceRef proof with licensed concept-linked sources when provider retrieval leaves only CourseIR review rows', async () => {
+    const courseMap = {
+      courseName: 'User Experience Design Studio',
+      lessons: [
+        {
+          title: 'Lesson 1: Design research',
+          sections: [
+            {
+              topicSection: 'user research methods',
+              learningObjectives: 'Apply user experience research methods to identify user needs.',
+            },
+          ],
+        },
+        {
+          title: 'Lesson 2: Prototype review',
+          sections: [
+            {
+              topicSection: 'usability testing and accessibility',
+              learningObjectives: 'Use prototype feedback, usability findings, and accessibility checks.',
+            },
+          ],
+        },
+      ],
+    };
+
+    const result = await buildCourseMaterialsZip({
+      courseMap,
+      deliverables: {
+        lessonPlans: {
+          status: 'done',
+          data: {
+            lessonPlans: [
+              { lessonTitle: 'Lesson 1: Design research', objectives: ['Apply user research methods.'] },
+              { lessonTitle: 'Lesson 2: Prototype review', objectives: ['Use usability findings.'] },
+            ],
+          },
+        },
+      },
+      featureIds: ['courseMap', 'lessonPlans'],
+      courseGraph: {
+        course: { name: 'User Experience Design Studio' },
+        concepts: [
+          { id: 'c1', term: 'user experience' },
+          { id: 'c2', term: 'usability testing' },
+          { id: 'c3', term: 'accessibility' },
+        ],
+        sessions: [
+          {
+            id: 's1',
+            number: 1,
+            title: 'Design research',
+            sections: [{ id: 'sec1', topic: 'user research methods', conceptRefs: ['c1'], resourceRefs: [] }],
+          },
+          {
+            id: 's2',
+            number: 2,
+            title: 'Prototype review',
+            sections: [
+              { id: 'sec2', topic: 'usability testing and accessibility', conceptRefs: ['c2', 'c3'], resourceRefs: [] },
+            ],
+          },
+        ],
+        resources: [],
+        readings: [],
+        courseIR: {
+          version: 'courseir.v1',
+          lessonIds: ['L1', 'L2'],
+          conceptIds: ['C1', 'C2', 'C3'],
+          assessmentIds: ['A1', 'A2'],
+          sourceLedger: [
+            {
+              id: 'SL1',
+              scope: 'course',
+              status: 'source-provided',
+              evidence: 'Existing course map fields.',
+              provider: 'courseir',
+            },
+          ],
+          sourceRefCoverage: {
+            sourceLedgerRows: 1,
+            categories: {
+              outcomes: { total: 8, withRefs: 8, missing: 0, danglingRefs: 0, missingIds: [] },
+              activities: { total: 12, withRefs: 12, missing: 0, danglingRefs: 0, missingIds: [] },
+              examples: { total: 2, withRefs: 2, missing: 0, danglingRefs: 0, missingIds: [] },
+              assessments: { total: 2, withRefs: 2, missing: 0, danglingRefs: 0, missingIds: [] },
+              rubricCriteria: { total: 6, withRefs: 6, missing: 0, danglingRefs: 0, missingIds: [] },
+              factualClaims: { total: 4, withRefs: 4, missing: 0, danglingRefs: 0, missingIds: [] },
+            },
+            totals: { total: 34, withRefs: 34, missing: 0, danglingRefs: 0 },
+          },
+        },
+      },
+      quality: false,
+    });
+
+    const zip = await JSZip.loadAsync(await result.blob.arrayBuffer());
+    const manifest = JSON.parse(await zip.file('PACKAGE_MANIFEST.json').async('string'));
+    const sourceReport = await zip.file('SOURCE_REPORT.md').async('string');
+
+    expect(manifest.sourceLedger.length).toBeGreaterThanOrEqual(3);
+    expect(manifest.sourceLedger).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          id: 'ux-curated-user-experience',
+          provider: 'wikipedia',
+          license: 'CC BY-SA 4.0',
+          url: 'https://en.wikipedia.org/wiki/User_experience',
+          conceptLinks: expect.arrayContaining([expect.objectContaining({ label: 'user experience' })]),
+        }),
+        expect.objectContaining({
+          id: 'ux-curated-usability-testing',
+          provider: 'wikipedia',
+          license: 'CC BY-SA 4.0',
+          url: 'https://en.wikipedia.org/wiki/Usability_testing',
+          conceptLinks: expect.arrayContaining([expect.objectContaining({ label: 'usability testing' })]),
+        }),
+        expect.objectContaining({
+          id: 'ux-curated-web-accessibility',
+          provider: 'wikipedia',
+          license: 'CC BY-SA 4.0',
+          url: 'https://en.wikipedia.org/wiki/Web_accessibility',
+          conceptLinks: expect.arrayContaining([expect.objectContaining({ label: 'accessibility' })]),
+        }),
+      ]),
+    );
+    expect(manifest.sourceReviewRows).toBeUndefined();
+    expect(manifest.sourceLedgerSummary).toMatchObject({
+      trustedCount: manifest.sourceLedger.length,
+      trustedConceptLinkedCount: manifest.sourceLedger.length,
+      providers: ['wikipedia'],
+    });
+    expect(manifest.courseIR).toMatchObject({
+      sourceLedgerRows: manifest.sourceLedger.length,
+      sourceRefBridge: {
+        source: 'coursegraph-concept-linked-ledger',
+        trustedRows: manifest.sourceLedger.length,
+        conceptLinkedRows: manifest.sourceLedger.length,
+        replacedReviewRows: 1,
+      },
+    });
+    expect(manifest.courseIR.sourceRefCoverage).toMatchObject({
+      sourceLedgerRows: manifest.sourceLedger.length,
+      totals: { total: 34, withRefs: 34, missing: 0, danglingRefs: 0 },
+    });
+    expect(sourceReport).toContain('Source Ledger');
+    expect(sourceReport).toContain('User experience');
+    expect(sourceReport).toContain('CC BY-SA 4.0');
+    expect(sourceReport).not.toContain('Source Review Notes');
+    expect(sourceReport).not.toContain('Existing course map fields');
+  });
+
   it('does not inflate CourseIR sourceRef coverage with trusted but unlinked source rows', async () => {
     const result = await buildCourseMaterialsZip({
       courseMap: makeCourseMap('Trusted Unlinked SourceRef Bridge'),

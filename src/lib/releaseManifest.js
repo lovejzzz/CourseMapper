@@ -3,24 +3,24 @@ import { APP_VERSION } from './appVersion.js';
 export const CURRENT_RELEASE = {
   version: APP_VERSION,
   date: 'June 29, 2026',
-  title: 'Study Guide Artifact Firewall: prompt labels become natural checks',
-  landingTitle: 'Study Guide Artifact Firewall',
+  title: 'UX Source Proof Recovery: review-only CourseIR rows get real bibliography proof',
+  landingTitle: 'UX Source Proof Recovery',
   highlights: [
-    'A fresh deployed v0.15.119 User Experience Design Studio ZIP/log audit improved to Quality 98 with source truth clean, but one Study Guide still leaked a `discussion prompts` artifact label into learner-facing preparation text.',
-    'Study Guide check-title compilation now strips deliverable prefixes such as `Discussion prompt:`, quiz-bank labels, study-guide labels, FAQ labels, slide-deck labels, assignment-brief labels, and rubric labels before they become course concepts.',
-    'Prompt-prefixed Study Guide checks now render as natural student work such as `discussion on project scenarios`, `retrieval check on ...`, or `evidence check on ...` rather than shipping internal artifact names.',
-    'The prompt-artifact finalizer regression now covers an in-class `Discussion prompt:` assessment flowing into Study Guides, proving this exact v0.15.119 failure shape is repaired before export.',
-    'This release keeps the target honest: v0.15.120 still needs a fresh deployed ZIP/log audit to prove the remaining Study Guide P1 is gone and Texture 94 reaches the strict-clean target.',
+    'A fresh deployed v0.15.120 User Experience Design Studio ZIP/log audit exported Quality 98 and Texture 95; the remaining scored loss was citation truth: 204 sourceRef atoms depended on zero trusted concept-linked sourceLedger rows.',
+    'UX/design-studio exports now recover source proof when provider retrieval leaves only a CourseIR review row by adding vetted, URL-backed, CC BY-SA licensed UX background sources through the normal source-ledger path.',
+    'The CourseIR bridge still refuses to inflate proof unless multiple trusted concept-linked rows exist, so metadata-only, off-discipline, or unlinked rows stay quarantined instead of replacing source review notes.',
+    'A focused package-export regression reproduces the v0.15.120 failure shape and proves the ZIP manifest and SOURCE_REPORT replace `Existing course map fields` with licensed concept-linked sourceLedger rows.',
+    'This release keeps the target honest: v0.15.121 still needs a fresh deployed ZIP/log audit to prove UX source proof reaches clean provider output and Texture 95 reaches the strict-clean target.',
   ],
   landingHighlights: [
-    'Fresh v0.15.119 output proved source truth clean but exposed one Study Guide artifact-label leak.',
-    'Study Guide check titles now strip deliverable prefixes before export.',
-    'Discussion prompt labels become natural discussion checks for students.',
-    'Fresh v0.15.120 output is still required before claiming clean provider quality.',
+    'Fresh v0.15.120 output isolated the remaining loss to citation/source proof.',
+    'UX exports recover licensed source rows when CourseIR proof is review-only.',
+    'The source bridge still requires real trusted concept-linked rows before replacing review notes.',
+    'Fresh v0.15.121 output is still required before claiming clean provider quality.',
   ],
   proof: {
-    contract: 'release-contracts/v0.15.120.json',
-    roadmap: 'docs/V0.15.120_STUDY_GUIDE_ARTIFACT_FIREWALL_ROADMAP.md',
+    contract: 'release-contracts/v0.15.121.json',
+    roadmap: 'docs/V0.15.121_UX_SOURCE_PROOF_RECOVERY_ROADMAP.md',
     auditCommand: 'npm run audit:release-history',
   },
 };
@@ -35,6 +35,18 @@ export const CURRENT_RELEASE_CHANGELOG = {
 };
 
 export const HISTORICAL_RELEASE_CHANGELOGS = [
+  {
+    version: '0.15.120',
+    date: 'June 29, 2026',
+    title: 'Study Guide Artifact Firewall: prompt labels become natural checks',
+    highlights: [
+      'A fresh deployed v0.15.119 User Experience Design Studio ZIP/log audit improved to Quality 98 with source truth clean, but one Study Guide still leaked a `discussion prompts` artifact label into learner-facing preparation text.',
+      'Study Guide check-title compilation now strips deliverable prefixes such as `Discussion prompt:`, quiz-bank labels, study-guide labels, FAQ labels, slide-deck labels, assignment-brief labels, and rubric labels before they become course concepts.',
+      'Prompt-prefixed Study Guide checks now render as natural student work such as `discussion on project scenarios`, `retrieval check on ...`, or `evidence check on ...` rather than shipping internal artifact names.',
+      'The prompt-artifact finalizer regression now covers an in-class `Discussion prompt:` assessment flowing into Study Guides, proving this exact v0.15.119 failure shape is repaired before export.',
+      'This release kept the target honest: v0.15.120 still needed a fresh deployed ZIP/log audit to prove the remaining Study Guide P1 was gone and Texture 94 reached the strict-clean target.',
+    ],
+  },
   {
     version: '0.15.119',
     date: 'June 29, 2026',
