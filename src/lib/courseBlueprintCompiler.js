@@ -2399,11 +2399,14 @@ const SECTION_COVERAGE_COLUMNS = [
   ['supportingResources', 'resources'],
 ];
 
-function buildSectionCoverageTrace(sourceSections = []) {
+function buildSectionCoverageTrace(sourceSections = [], lesson = {}) {
   const sections = Array.isArray(sourceSections) ? sourceSections : [];
   return sections.map((section, index) => {
     const allFields = SECTION_COVERAGE_COLUMNS.map(([sourceColumn, label]) => {
-      const rawText = cleanText(section?.[sourceColumn]);
+      const rawText =
+        sourceColumn === 'supportingResources'
+          ? normalizeLessonPlanMaterial(section?.[sourceColumn], lesson)
+          : cleanText(section?.[sourceColumn]);
       return {
         sourceColumn,
         label,
@@ -2559,7 +2562,7 @@ function buildSourceEvidenceTrace({
   );
 
   const sourceRowLabel = cleanText(sourceLessonTitle || rawLessonTitle || `Lesson ${lessonNumber}`);
-  const sectionCoverage = buildSectionCoverageTrace(sourceSections);
+  const sectionCoverage = buildSectionCoverageTrace(sourceSections, { title, lessonNumber });
   const sourceSectionCount = Array.isArray(sourceSections) ? sourceSections.length : 0;
   return {
     version: 1,
@@ -12306,7 +12309,15 @@ function extractLessonBlueprint(lesson, originalIndex, assessmentRegistry = null
   // supportingResources cell already names the same work (the graph render
   // does exactly that), so no title ever appears twice or gets re-cased.
   const registryReadingTitles = registryReadingTitlesForLesson(readingsRegistry, lessonNumber);
-  const resources = unique([...registryReadingTitles, ...meaningfulEntries(splitList(resourceText))], 6);
+  const resources = unique(
+    [
+      ...registryReadingTitles,
+      ...meaningfulEntries(splitList(resourceText)).map((entry) =>
+        normalizeLessonPlanMaterial(entry, { title, lessonNumber }),
+      ),
+    ],
+    6,
+  );
   const asyncActivities = meaningfulEntries(splitList(asyncActivityText));
   const syncActivities = meaningfulEntries(splitList(syncActivityText));
   const activities = [...syncActivities, ...asyncActivities];
@@ -12500,7 +12511,7 @@ function extractLessonBlueprint(lesson, originalIndex, assessmentRegistry = null
     objectiveText,
     goalText,
     topicText,
-    resourceText,
+    resourceText: resources.join('; ') || resourceText,
     asyncActivityText,
     syncActivityText,
     weeklyAssessmentText,
@@ -20063,12 +20074,36 @@ function formatDuration(minutes) {
   return `${minutes} minutes`;
 }
 
+const GENERIC_PUBLICATION_REVIEW_PATTERN =
+  /\bconfirm local timing, modality, accessibility, source permissions, and grading policy before publishing\b/i;
+
+function lessonPlanPublicationReviewMaterial(lesson) {
+  const focus = stripLessonPrefix(lesson?.title) || 'this lesson';
+  return lessonVariant(lesson, [
+    `Review ${focus} for local schedule, delivery mode, accessibility needs, source permissions, and grading policy before publishing.`,
+    `Before publishing ${focus}, verify timing, modality, accommodations, source permissions, and grading rules.`,
+    `Check ${focus} against the local calendar, delivery format, accessibility requirements, source permissions, and grading policy before release.`,
+    `Confirm ${focus} fits the local schedule, modality, accessibility needs, source permissions, and grading rules before students see it.`,
+  ]);
+}
+
+function normalizeLessonPlanMaterial(material, lesson) {
+  const text = cleanText(material);
+  if (!text) return '';
+  if (!GENERIC_PUBLICATION_REVIEW_PATTERN.test(text)) return text;
+  const hasConstraintPrefix = /^\s*constraint\s*:/i.test(text);
+  const repaired = lessonPlanPublicationReviewMaterial(lesson);
+  return hasConstraintPrefix ? `Constraint: ${repaired}` : repaired;
+}
+
 function buildLessonPlanMaterials(lesson) {
   const focus = stripLessonPrefix(lesson?.title) || 'lesson focus';
   const artifact = stripTerminalPunctuation(lesson?.studentArtifact || 'weekly artifact');
   return unique(
     [
-      ...lesson.readings,
+      ...(Array.isArray(lesson.readings)
+        ? lesson.readings.map((reading) => normalizeLessonPlanMaterial(reading, lesson))
+        : []),
       lessonVariant(lesson, [
         `${focus} agenda and instructor handout`,
         `Class plan plus ${focus} reference sheet`,
@@ -20297,7 +20332,12 @@ function buildLessonPlanOutline(blueprint, lesson, { depth = 'flat' } = {}) {
         deep && kernelWorkedExample
           ? `Students draft ${artifact}, mirroring the worked example's solution path on their own case — every move the board model made needs an analog in the draft.`
           : deep && kernelTermA?.definition
-            ? `Students revise ${artifact} by using ${kernelTermA.term} to justify one visible decision${kernelCitation ? ` from ${kernelCitation}` : ''}; the draft must show how the lesson evidence changes the work.`
+            ? lessonVariant(lesson, [
+                `Students revise ${artifact} by using ${kernelTermA.term} to justify one visible decision${kernelCitation ? ` from ${kernelCitation}` : ''}; the draft must name which lesson evidence changed the work.`,
+                `Students update ${artifact} by applying ${kernelTermA.term} to one visible choice${kernelCitation ? ` from ${kernelCitation}` : ''}; the revision note explains what evidence shifted the choice.`,
+                `Students improve ${artifact} through ${kernelTermA.term}${kernelCitation ? ` from ${kernelCitation}` : ''}; the draft should identify the evidence behind the changed decision.`,
+                `Students refine ${artifact} by tying ${kernelTermA.term} to one defensible move${kernelCitation ? ` from ${kernelCitation}` : ''}; the work should show the evidence that changed their next step.`,
+              ])
             : `Students draft ${artifact} while using the lesson success criteria, feedback prompts, and exemplar moves to guide each revision.`,
       instructorNotes:
         deep && kernelMisconception

@@ -3,24 +3,24 @@ import { APP_VERSION } from './appVersion.js';
 export const CURRENT_RELEASE = {
   version: APP_VERSION,
   date: 'June 29, 2026',
-  title: 'Assessment Registry Bridge: Course Map promises compile into artifacts',
-  landingTitle: 'Assessment Registry Bridge',
+  title: 'Lesson Plan Texture Constraints: publication review scaffolds vary by lesson',
+  landingTitle: 'Lesson Plan Texture Constraints',
   highlights: [
-    'A fresh deployed v0.15.132 User Experience Design Studio ZIP/log audit completed and locally regraded at 99/100: source proof, export verification, and texture were clean enough, but assessment identity lost one point.',
-    'The remaining P2 was a real CourseMapper compiler mismatch: the exported Course Map and manifest carried 36 assessment rows while the blueprint compiler only authored 12 assignment briefs from the native graph registry.',
-    'Generation now bridges the richer visible Course Map assessment registry into the blueprint compiler when it has more assessment rows than the native graph, so promised graded checkpoints produce downstream assignment artifacts.',
-    'The semantic compiler contract now accepts registry-mode multi-anchor lessons while still blocking lessons whose gradeable registry rows have no compiled assessment anchor.',
-    'Focused registry regressions prove a native one-assessment graph plus a visible three-assessment Course Map compiles three assignment briefs and clears the reconciliation gate without weakening source, export, report, or grader standards.',
+    'The fresh deployed v0.15.132 User Experience Design Studio ZIP/log evidence still exposed a strict-clean texture target after the v0.15.133 assessment bridge: CourseMapper fallback publication-review text could repeat through every lesson.',
+    'CourseIR-to-Course-Map export now localizes the generic publication constraint per lesson before it reaches supporting resources, derived activities, or enrichment kernels.',
+    'The blueprint compiler now normalizes stale Course Map `supportingResources` cells that already contain the old generic publication warning, so source traces, readings, and lesson-plan materials no longer preserve the exact repeated shingle.',
+    'Deep lesson-plan workshop copy now rotates the evidence-change sentence by lesson instead of stamping `the draft must show how the lesson evidence changes the work` across a 12-lesson package.',
+    'Focused v0.15.134 regressions prove the old generic publication constraint and deep workshop shingle stay out of compiled UX lesson plans while source-permission and local-review semantics remain visible.',
   ],
   landingHighlights: [
-    'Fresh v0.15.132 evidence isolated the remaining 99/100 loss.',
-    'Course Map assessment rows now bridge into compiler artifact generation.',
-    'Registry-mode lessons can compile multiple graded anchors safely.',
-    'Fresh v0.15.133 ZIP/log evidence is still required before claiming 100/100.',
+    'A proven repeated publication-review fallback now varies by lesson.',
+    'CourseIR, source traces, readings, and lesson-plan materials share the same cleanup.',
+    'Deep lesson-plan workshop language now rotates deterministically.',
+    'Fresh v0.15.134 ZIP/log evidence is still required before claiming 100/100.',
   ],
   proof: {
-    contract: 'release-contracts/v0.15.133.json',
-    roadmap: 'docs/V0.15.133_ASSESSMENT_REGISTRY_BRIDGE_ROADMAP.md',
+    contract: 'release-contracts/v0.15.134.json',
+    roadmap: 'docs/V0.15.134_LESSON_PLAN_TEXTURE_CONSTRAINT_VARIATION_ROADMAP.md',
     auditCommand: 'npm run audit:release-history',
   },
 };
@@ -35,6 +35,18 @@ export const CURRENT_RELEASE_CHANGELOG = {
 };
 
 export const HISTORICAL_RELEASE_CHANGELOGS = [
+  {
+    version: '0.15.133',
+    date: 'June 29, 2026',
+    title: 'Assessment Registry Bridge: Course Map promises compile into artifacts',
+    highlights: [
+      'A fresh deployed v0.15.132 User Experience Design Studio ZIP/log audit completed and locally regraded at 99/100: source proof, export verification, and texture were clean enough, but assessment identity lost one point.',
+      'The remaining P2 was a real CourseMapper compiler mismatch: the exported Course Map and manifest carried 36 assessment rows while the blueprint compiler only authored 12 assignment briefs from the native graph registry.',
+      'Generation now bridges the richer visible Course Map assessment registry into the blueprint compiler when it has more assessment rows than the native graph, so promised graded checkpoints produce downstream assignment artifacts.',
+      'The semantic compiler contract now accepts registry-mode multi-anchor lessons while still blocking lessons whose gradeable registry rows have no compiled assessment anchor.',
+      'Focused registry regressions prove a native one-assessment graph plus a visible three-assessment Course Map compiles three assignment briefs and clears the reconciliation gate without weakening source, export, report, or grader standards.',
+    ],
+  },
   {
     version: '0.15.132',
     date: 'June 29, 2026',

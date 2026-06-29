@@ -1710,7 +1710,42 @@ function buildAssessmentCell(assessment) {
   return title;
 }
 
-function lessonActivitiesFromIR(lesson, concepts, constraints = []) {
+const GENERIC_PUBLICATION_CONSTRAINT_PATTERN =
+  /\bconfirm local timing, modality, accessibility, source permissions, and grading policy before publishing\b/i;
+
+function lessonFocusLabel(lesson, fallbackIndex = 0) {
+  return (
+    cleanText(lesson?.title || lesson?.topic || '')
+      .replace(/^lesson\s+\d+\s*[:.–—-]\s*/i, '')
+      .trim() || `Lesson ${fallbackIndex + 1}`
+  );
+}
+
+function lessonConstraintVariant(lesson, fallbackIndex = 0, variants = []) {
+  if (!variants.length) return '';
+  const rawNumber = Number(lesson?.lessonNumber || String(lesson?.id || '').match(/\d+/)?.[0] || fallbackIndex + 1);
+  const index = Number.isFinite(rawNumber) && rawNumber > 0 ? rawNumber - 1 : fallbackIndex;
+  return variants[index % variants.length];
+}
+
+function formatConstraintTextForLesson(constraint = {}, lesson = {}, fallbackIndex = 0) {
+  const text = cleanText(constraint.text || constraint);
+  if (!GENERIC_PUBLICATION_CONSTRAINT_PATTERN.test(text)) return text;
+  const focus = lessonFocusLabel(lesson, fallbackIndex);
+  return lessonConstraintVariant(lesson, fallbackIndex, [
+    `Review ${focus} for local schedule, modality, accessibility needs, source permissions, and grading policy before publishing.`,
+    `Before publishing ${focus}, verify timing, delivery mode, accommodations, source permissions, and grading rules.`,
+    `Check ${focus} against local timing, delivery format, accessibility requirements, source permissions, and grading policy before release.`,
+    `Confirm ${focus} fits the local schedule, modality, accessibility needs, source permissions, and grading rules before students see it.`,
+  ]);
+}
+
+function formatConstraintResourceForLesson(constraint = {}, lesson = {}, fallbackIndex = 0) {
+  const text = formatConstraintTextForLesson(constraint, lesson, fallbackIndex);
+  return text ? `Constraint: ${text}` : '';
+}
+
+function lessonActivitiesFromIR(lesson, concepts, constraints = [], fallbackIndex = 0) {
   const terms = concepts.map((concept) => concept.term).filter(Boolean);
   const misconception = lesson.misconceptions[0] || concepts.flatMap((concept) => concept.misconceptions || [])[0];
   const workedExample = lesson.workedExamples[0];
@@ -1723,7 +1758,9 @@ function lessonActivitiesFromIR(lesson, concepts, constraints = []) {
   const derivedSyncActivities = [
     workedExample ? `Work through ${workedExample.skill || workedExample.setup} with visible solution steps` : '',
     misconception?.claim ? `Misconception check: ${misconception.claim}` : '',
-    ...constraints.slice(0, 2).map((constraint) => `Constraint check: ${constraint.text}`),
+    ...constraints
+      .slice(0, 2)
+      .map((constraint) => `Constraint check: ${formatConstraintTextForLesson(constraint, lesson, fallbackIndex)}`),
     ...lesson.practiceItems.slice(2, 4).map((item) => `Peer practice: ${item}`),
   ];
   const explicitAsyncActivities = lesson.activities
@@ -1768,7 +1805,7 @@ export function courseIRToCourseMap(rawIR = {}) {
       const anchors = [...lesson.factualAnchors, ...linkedConcepts.flatMap((concept) => concept.factualAnchors)];
       const constraints = constraintsForLesson(ir, lesson);
       const prerequisiteTerms = lesson.prerequisiteConceptIds.map((id) => concepts.get(id)?.term || id).filter(Boolean);
-      const { asyncActivities, syncActivities } = lessonActivitiesFromIR(lesson, linkedConcepts, constraints);
+      const { asyncActivities, syncActivities } = lessonActivitiesFromIR(lesson, linkedConcepts, constraints, index);
       const learningObjectives = uniqueStrings(
         [...lesson.outcomes.map((outcome) => outcome.statement), ...lesson.objectives],
         8,
@@ -1793,7 +1830,7 @@ export function courseIRToCourseMap(rawIR = {}) {
               [
                 ...sourceLabelsForRefs(ir, sourceRefsForLesson(ir, lesson, assessments)),
                 ...prerequisiteTerms.map((term) => `Prerequisite concept: ${term}`),
-                ...constraints.map((constraint) => `Constraint: ${constraint.text}`),
+                ...constraints.map((constraint) => formatConstraintResourceForLesson(constraint, lesson, index)),
                 ...anchors.map((anchor) => anchor.claim),
                 ...lesson.workedExamples.map((example) => example.setup),
                 ...ir.handoffNotes
@@ -1825,7 +1862,7 @@ function buildDefaultQuizItem({ term, definition, misconception, correction }) {
   };
 }
 
-function lessonKernelFromIR(ir, lesson) {
+function lessonKernelFromIR(ir, lesson, fallbackIndex = 0) {
   const concepts = conceptByIdMap(ir);
   const linkedConcepts = lesson.conceptIds.map((id) => concepts.get(id)).filter(Boolean);
   const prerequisiteTerms = lesson.prerequisiteConceptIds.map((id) => concepts.get(id)?.term || id).filter(Boolean);
@@ -1835,7 +1872,7 @@ function lessonKernelFromIR(ir, lesson) {
     [
       ...lesson.factualAnchors.map((anchor) => anchor.claim),
       ...conceptFacts,
-      ...constraints.map((constraint) => `Constraint: ${constraint.text}`),
+      ...constraints.map((constraint) => formatConstraintResourceForLesson(constraint, lesson, fallbackIndex)),
     ],
     8,
   );
@@ -1896,7 +1933,9 @@ function lessonKernelFromIR(ir, lesson) {
           ...activityLines,
           ...lesson.practiceItems,
           ...prerequisiteTerms.map((term) => `prerequisite: ${term}`),
-          ...constraints.map((constraint) => `constraint: ${constraint.text}`),
+          ...constraints.map(
+            (constraint) => `constraint: ${formatConstraintTextForLesson(constraint, lesson, fallbackIndex)}`,
+          ),
         ],
         5,
       ).join('; '),
@@ -1919,7 +1958,7 @@ function lessonKernelFromIR(ir, lesson) {
           ...rubricLines,
           ...outcomeStatements,
           ...lesson.objectives,
-          ...constraints.map((entry) => entry.text),
+          ...constraints.map((entry) => formatConstraintTextForLesson(entry, lesson, fallbackIndex)),
           ...activityLines,
         ],
         12,
@@ -1935,7 +1974,7 @@ export function courseIRToEnrichmentOverlay(rawIR = {}) {
   const lessonContent = {};
   const itemPlan = buildQuizItemPlan(6);
   for (const [index, lesson] of ir.lessons.entries()) {
-    const kernel = lessonKernelFromIR(ir, lesson);
+    const kernel = lessonKernelFromIR(ir, lesson, index);
     const payload = projectKernelToSurfaces(kernel, { itemPlan });
     payload.courseIR = {
       version: COURSE_IR_VERSION,
