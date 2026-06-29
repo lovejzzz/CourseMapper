@@ -7343,11 +7343,34 @@ function buildArtifactGenreDecode(lesson = {}, profile = {}, modalityDecode = {}
       commonFailure: 'students submit polished notes without showing observable performance evidence',
     },
     'design-prototype': {
-      outputFormat: 'prototype or design artifact plus rationale and revision trace',
-      evidenceRequirement: 'visible design change, critique note, user/usability evidence, and rationale',
-      qualityFocus: 'artifact specificity, usability evidence, design reasoning, and iteration quality',
-      reviewProtocol:
+      outputFormat: lessonVariant(lesson, [
+        'annotated prototype or design artifact with user-evidence rationale',
+        'before/after design artifact plus critique note and revision rationale',
+        'prototype update with usability finding, design decision, and next iteration note',
+        'wireframe, prototype, or portfolio artifact with evidence-backed design rationale',
+        'artifact revision packet showing critique evidence and the design move it changed',
+        'UX case artifact with user signal, rationale, and feedback-informed iteration note',
+      ]),
+      evidenceRequirement: lessonVariant(lesson, [
+        'observable design revision, critique cue, user/usability evidence, and rationale',
+        'before/after artifact evidence, peer critique signal, usability cue, and design reason',
+        'artifact annotation, research or test observation, revision decision, and rationale',
+        'prototype change, user-evidence detail, critique response, and iteration boundary',
+        'portfolio-ready artifact evidence, feedback cue, design choice, and next-step note',
+        'wireframe or prototype revision, supporting user signal, and defensible design rationale',
+      ]),
+      qualityFocus: lessonVariant(lesson, [
+        'artifact specificity, usability evidence, design reasoning, and iteration quality',
+        'traceable user evidence, critique uptake, rationale clarity, and design-change quality',
+        'prototype fit, evidence use, decision defensibility, and next-iteration readiness',
+        'visible UX artifact change, research grounding, feedback response, and rationale quality',
+      ]),
+      reviewProtocol: lessonVariant(lesson, [
         'compare the before/after artifact, inspect critique evidence, and require one named next iteration',
+        'mark what changed in the artifact, cite the user signal, and name the next test or critique question',
+        'review the prototype against user evidence, identify the weakest rationale link, and revise it',
+        'trace the critique note into the visible design change, then require one defensible next move',
+      ]),
       commonFailure: 'students describe design intentions without changing or testing the artifact',
     },
     'analysis-log': {
@@ -18361,7 +18384,14 @@ function slideNoteCriterionCue(type, criterion, lesson = {}) {
 function slideNoteTransition({ type, nextCue, lens, concept, artifact, lesson }) {
   if (nextCue) {
     const transitions = {
-      title: `Then move into "${nextCue}" by asking what students need to notice first about ${concept}.`,
+      title: lessonVariant(lesson, [
+        `Then move into "${nextCue}" by asking which ${concept} cue students should track first.`,
+        `Use "${nextCue}" to have students name the ${concept} evidence they should watch for.`,
+        `Bridge to "${nextCue}" by asking which ${concept} detail will matter during practice.`,
+        `Before "${nextCue}", have students point to the ${concept} cue that should guide the next move.`,
+        `Open "${nextCue}" with one question: what ${concept} evidence would change the artifact?`,
+        `Move into "${nextCue}" by choosing the ${concept} signal students should test next.`,
+      ]),
       agenda: `Before "${nextCue}", confirm students can name the ${concept} evidence they will use for ${artifact}.`,
       objectives: `Transition to "${nextCue}" by choosing one ${concept} objective to watch during practice.`,
       bridge: `Use that ${concept} carry-forward point to launch "${nextCue}" without restarting the lesson from scratch.`,
@@ -18981,7 +19011,14 @@ function buildDiscussionCriteriaSet(lesson) {
       `Names what a classmate's evidence proves, what it leaves uncertain, and how the claim should change.`,
       `Turns one reply into a revision move by linking the peer evidence back to ${artifact}.`,
     ]),
-    `Names one limitation, ethical concern, or revision step that would improve ${artifact}.`,
+    lessonVariant(lesson, [
+      `Records one limitation, ethical concern, or revision move that should change ${artifact}.`,
+      `States the boundary, access concern, or evidence gap students must address before revising ${artifact}.`,
+      `Identifies one uncertainty in the claim and turns it into a concrete next move for ${artifact}.`,
+      `Explains what should be narrowed, tested, or revised before ${artifact} is ready to submit.`,
+      `Marks the ethical or usability risk that should shape the next version of ${artifact}.`,
+      `Connects a discussion caveat to the specific ${artifact} change students should make next.`,
+    ]),
   ];
 }
 
@@ -19582,12 +19619,46 @@ function buildSlideDeckIrForLesson(blueprint, lesson, index) {
     },
     {
       type: 'content',
-      title: `Use ${secondary} to keep claims honest`,
-      bullets: [
-        `${secondary} asks students to state limits.`,
-        `Limit language protects the credibility of ${artifact}.`,
-        `Feedback on ${artifact} should point to the ${secondary} evidence gap, not only grammar.`,
-      ],
+      title: lessonVariant(lesson, [
+        `Use ${secondary} to keep claims honest`,
+        `Test the boundary of ${secondary}`,
+        `Make the ${secondary} evidence claim defensible`,
+        `Narrow the ${secondary} claim before revision`,
+        `Check what ${secondary} can and cannot prove`,
+        `Use ${secondary} to qualify the artifact decision`,
+      ]),
+      bullets: lessonVariant(lesson, [
+        [
+          `${secondary} evidence sets the boundary students must name.`,
+          `Clear limits make the ${artifact} rationale more credible.`,
+          `Feedback on ${artifact} should point to the ${secondary} evidence gap, not only grammar.`,
+        ],
+        [
+          `Students name what ${secondary} evidence does not prove yet.`,
+          `The claim becomes stronger when its boundary is visible in ${artifact}.`,
+          `Feedback should ask where the ${secondary} evidence needs one more test.`,
+        ],
+        [
+          `Students separate supported ${secondary} evidence from assumptions.`,
+          `${artifact} improves when the rationale names the weakest evidence link.`,
+          `Review notes should target the claim boundary before style edits.`,
+        ],
+        [
+          `Students qualify the ${secondary} claim before treating it as a design rule.`,
+          `A bounded claim makes the next ${artifact} revision easier to defend.`,
+          `Critique should identify what evidence would change the recommendation.`,
+        ],
+        [
+          `Students ask what ${secondary} can support, what remains uncertain, and why.`,
+          `${artifact} credibility depends on naming that uncertainty clearly.`,
+          `Feedback should connect the uncertainty to one concrete revision choice.`,
+        ],
+        [
+          `Students use ${secondary} to choose a defensible artifact decision, not a blanket claim.`,
+          `The rationale should name the evidence boundary that keeps ${artifact} honest.`,
+          `Peer review should test that boundary before accepting the revision.`,
+        ],
+      ]),
       minutes: 6,
       bloom: 'Evaluate',
       objective: objectiveTwo,

@@ -278,7 +278,7 @@ describe('v0.14.1 phase 1 batch A compiler fixes', () => {
     const blueprint = buildCourseBlueprint(uxTextureCourseMap());
     const compiled = compileBlueprintDeliverables(
       blueprint,
-      ['lessonPlans', 'slideDecks', 'discussions', 'courseFaq'],
+      ['lessonPlans', 'slideDecks', 'assignments', 'rubrics', 'discussions', 'courseFaq'],
       {
         ...COMPILE_OPTIONS,
         configMap: { slideDecks: { slideCount: 8 }, courseFaq: { questionsPerLesson: 7 } },
@@ -292,6 +292,13 @@ describe('v0.14.1 phase 1 batch A compiler fixes', () => {
       'Explains the reasoning behind the claim and connects it to',
       'revise one evidence move for',
       'Do not stop at summary. Explain how',
+      'prototype or design artifact plus rationale and revision trace',
+      'asks students to state limits',
+      'Limit language protects the credibility',
+      'what students need to notice first about',
+      'Names one limitation, ethical concern, or revision step',
+      'limitation ethical concern or revision step that would improve',
+      'makes visible design change critique note user usability evidence and rationale inspectable',
     ].forEach((oldScaffold) => {
       expect(countOccurrences(text, oldScaffold), oldScaffold).toBe(0);
     });
@@ -303,6 +310,13 @@ describe('v0.14.1 phase 1 batch A compiler fixes', () => {
     expect(text).toContain('test one source-backed');
     expect(text).toContain('Avoid a general recap');
     expect(text).toContain('Move beyond summary');
+    expect(text).toContain('annotated prototype or design artifact with user-evidence rationale');
+    expect(text).toContain('before/after design artifact plus critique note and revision rationale');
+    expect(text).toContain('Clear limits make the');
+    expect(text).toContain('Students separate supported');
+    expect(text).toContain('evidence sets the boundary');
+    expect(text).toContain('which Project-based UX design cue students should track first');
+    expect(text).toContain('Records one limitation');
   });
 
   it('1.3 final export pass punctuates long authored slide bullets', () => {

@@ -3,24 +3,24 @@ import { APP_VERSION } from './appVersion.js';
 export const CURRENT_RELEASE = {
   version: APP_VERSION,
   date: 'June 29, 2026',
-  title: 'Cross-Surface Texture: repeated readiness, discussion, slide, and FAQ scaffolds vary',
-  landingTitle: 'Texture Polish',
+  title: 'UX Texture Tail Rotation: assignment, slide, rubric, and discussion scaffolds vary',
+  landingTitle: 'Texture Tail Rotation',
   highlights: [
-    'A fresh deployed v0.15.138 User Experience Design Studio ZIP/log audit exported successfully after the laptop restart and locally regraded at 100/100 with zero P0/P1/P2 findings, export verification passed, and digest/report/UI agreement on Quality 100 · Texture 95.',
-    'That real provider output proved the v0.15.138 Quiz Bank counterpoint repair held: the old `A strong answer also engages the opposing view...` and `review distractor choices before...` scaffold families had zero hits in the exported package.',
-    'The same audit exposed the remaining texture target as deterministic compiler copy, not model failure: readiness grouping, discussion criteria/follow-ups, slide activity titles, and Course FAQ common-mistake answers reused the same sentence families across lessons.',
-    'The blueprint compiler now varies those cross-surface scaffolds by lesson while preserving their instructional purpose: readiness grouping, evidence-risk discussion, reasoning criteria, slide practice titles, and FAQ summary-avoidance guidance.',
-    'A focused 12-lesson UX compiler regression now requires zero hits for the old repeated scaffolds and proves the replacement variants appear in compiled lesson plans, slide decks, discussions, and Course FAQ.',
+    'A fresh deployed v0.15.139 User Experience Design Studio ZIP/log audit exported successfully after the laptop restart and locally regraded at 100/100 with zero P0/P1/P2 findings, export verification passed, and digest/report/UI agreement on Quality 100 · Texture 95.',
+    'That real provider output proved the v0.15.139 cross-surface texture repair held for the previous target families: diagnostic readiness, revise-one-evidence, summary-avoidance, and claim-reasoning scaffolds had zero hits in the exported package.',
+    'The same audit exposed the next texture target as deterministic compiler tails, not provider failure: slide limit-language, assignment format, rubric evidence, discussion limitation, and slide transition phrases repeated across all twelve lessons.',
+    'The blueprint compiler now rotates those UX artifact and slide-tail families by lesson while preserving the same assessment format, evidence, critique, rationale, limitation, and transition contracts.',
+    'The focused 12-lesson UX compiler regression now covers lesson plans, slide decks, assignments, rubrics, discussions, and Course FAQ, requiring zero hits for both the previous texture target and the new v0.15.139 repeated-tail evidence.',
   ],
   landingHighlights: [
-    'Fresh v0.15.138 ZIP/log evidence regraded cleanly at 100/A.',
-    'The old Quiz Bank counterpoint scaffold stayed gone in real output.',
-    'Remaining texture loss came from deterministic compiler sentence families.',
-    'Readiness, discussion, slide, and FAQ scaffolds now vary by lesson; fresh v0.15.139 provider proof is still required.',
+    'Fresh v0.15.139 ZIP/log evidence regraded cleanly at 100/A.',
+    'The previous cross-surface texture target stayed gone in real output.',
+    'Remaining texture loss came from deterministic compiler tail families.',
+    'Assignment, slide, rubric, and discussion tails now vary by lesson; fresh v0.15.140 provider proof is still required.',
   ],
   proof: {
-    contract: 'release-contracts/v0.15.139.json',
-    roadmap: 'docs/V0.15.139_CROSS_SURFACE_TEXTURE_ROADMAP.md',
+    contract: 'release-contracts/v0.15.140.json',
+    roadmap: 'docs/V0.15.140_UX_TEXTURE_TAIL_ROTATION_ROADMAP.md',
     auditCommand: 'npm run audit:release-history',
   },
 };
@@ -35,6 +35,18 @@ export const CURRENT_RELEASE_CHANGELOG = {
 };
 
 export const HISTORICAL_RELEASE_CHANGELOGS = [
+  {
+    version: '0.15.139',
+    date: 'June 29, 2026',
+    title: 'Cross-Surface Texture: repeated readiness, discussion, slide, and FAQ scaffolds vary',
+    highlights: [
+      'A fresh deployed v0.15.138 User Experience Design Studio ZIP/log audit exported successfully after the laptop restart and locally regraded at 100/100 with zero P0/P1/P2 findings, export verification passed, and digest/report/UI agreement on Quality 100 · Texture 95.',
+      'That real provider output proved the v0.15.138 Quiz Bank counterpoint repair held: the old `A strong answer also engages the opposing view...` and `review distractor choices before...` scaffold families had zero hits in the exported package.',
+      'The same audit exposed the remaining texture target as deterministic compiler copy, not model failure: readiness grouping, discussion criteria/follow-ups, slide activity titles, and Course FAQ common-mistake answers reused the same sentence families across lessons.',
+      'The blueprint compiler now varies those cross-surface scaffolds by lesson while preserving their instructional purpose: readiness grouping, evidence-risk discussion, reasoning criteria, slide practice titles, and FAQ summary-avoidance guidance.',
+      'A focused 12-lesson UX compiler regression now requires zero hits for the old repeated scaffolds and proves the replacement variants appear in compiled lesson plans, slide decks, discussions, and Course FAQ.',
+    ],
+  },
   {
     version: '0.15.138',
     date: 'June 29, 2026',
