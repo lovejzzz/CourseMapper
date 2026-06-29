@@ -138,7 +138,7 @@ describe('trusted source ledger', () => {
 
   it('recovers Crossref DOI and publisher policy URLs without trusting them as reusable licenses', () => {
     const ledger = buildSourceLedgerFromCourseGraph({
-      sessions: [{ id: 's1', number: 1, sections: [{ topic: 'Runway', resourceRefs: ['r1'] }] }],
+      sessions: [{ id: 's1', number: 1, sections: [{ topic: 'Runway', resourceRefs: ['r1', 'r2'] }] }],
       resources: [
         {
           id: 'r1',
@@ -147,19 +147,39 @@ describe('trusted source ledger', () => {
             'Masanao Aoki (1987). No unit root conditions for bivariate series when a component univariate series has a unit root. Crossref: https://doi.org/10.1016/0165-1765(87)90086-3 (https://www.elsevier.com/tdm/userlicense/1.0/)',
           sessionRefs: [1],
         },
+        {
+          id: 'r2',
+          origin: 'syllabus',
+          citation:
+            'Test Plans. Crossref: https://doi.org/10.1002/9780470316795.ch6 (http://doi.wiley.com/10.1002/tdm_license_1.1)',
+          sessionRefs: [1],
+        },
       ],
     });
 
     expect(ledger.rows).toHaveLength(0);
-    expect(ledger.reviewRows[0]).toMatchObject({
-      id: 'r1',
-      provider: 'crossref',
-      doi: '10.1016/0165-1765(87)90086-3',
-      url: 'https://doi.org/10.1016/0165-1765(87)90086-3',
-      license: 'https://www.elsevier.com/tdm/userlicense/1.0/',
-      licenseAmbiguous: true,
-      accessStatus: 'reference-present',
-    });
+    expect(ledger.reviewRows).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          id: 'r1',
+          provider: 'crossref',
+          doi: '10.1016/0165-1765(87)90086-3',
+          url: 'https://doi.org/10.1016/0165-1765(87)90086-3',
+          license: 'https://www.elsevier.com/tdm/userlicense/1.0/',
+          licenseAmbiguous: true,
+          accessStatus: 'reference-present',
+        }),
+        expect.objectContaining({
+          id: 'r2',
+          provider: 'crossref',
+          doi: '10.1002/9780470316795.ch6',
+          url: 'https://doi.org/10.1002/9780470316795.ch6',
+          licenseAmbiguous: true,
+          accessStatus: 'reference-present',
+        }),
+      ]),
+    );
+    expect(isLicenseAmbiguous('http://doi.wiley.com/10.1002/tdm_license_1.1')).toBe(true);
   });
 
   it('quarantines accessible source resources when license proof is missing', () => {
@@ -537,6 +557,15 @@ describe('trusted source ledger', () => {
                   license: 'https://www.elsevier.com/tdm/userlicense/1.0/',
                   snippet: 'Critical path network scheduling for project management.',
                 },
+                {
+                  provider: 'crossref',
+                  kind: 'scholarly work',
+                  title: 'Test Plans',
+                  doi: '10.1002/9780470316795.ch6',
+                  url: 'https://doi.org/10.1002/9780470316795.ch6',
+                  license: 'http://doi.wiley.com/10.1002/tdm_license_1.1',
+                  snippet: 'Critical path test planning and schedule verification.',
+                },
               ],
             },
           ],
@@ -563,6 +592,14 @@ describe('trusted source ledger', () => {
       trustedConceptLinkedCount: 1,
       licenseAmbiguousCount: 0,
     });
+    expect(ledger.rows).not.toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          title: 'Test Plans',
+          license: 'http://doi.wiley.com/10.1002/tdm_license_1.1',
+        }),
+      ]),
+    );
   });
 
   it('counts only accessible non-ambiguous source-finder rows as trusted bibliography', () => {

@@ -27,7 +27,7 @@ const AMBIGUOUS_LICENSE_RE =
   /^(?:|unknown|open access|open license|other[-\s]?oa|(?:[\w.-]+\s+)*public metadata|instructor review required|review required|varies|mixed|metadata only|in copyright|all rights reserved)$/i;
 const RESTRICTED_RIGHTS_STATEMENT_RE = /rightsstatements\.org\/vocab\/inc(?:[-/]|$)/i;
 const PUBLISHER_POLICY_LICENSE_RE =
-  /(?:\/tdm(?:\/|$)|\btdm\b|text[-\s]?and[-\s]?data[-\s]?mining|policy-029|springernature\.com\/gp\/researchers\/text-and-data-mining|elsevier\.com\/tdm|sagepub\.com\/page\/policies\/text-and-data-mining-license)/i;
+  /(?:\/tdm(?:[_/-]|$)|\btdm(?:[_-]?license)?\b|text[-\s]?and[-\s]?data[-\s]?mining|policy-029|springernature\.com\/gp\/researchers\/text-and-data-mining|elsevier\.com\/tdm|sagepub\.com\/page\/policies\/text-and-data-mining-license|doi\.wiley\.com\/10\.1002\/tdm_license)/i;
 const SOURCE_SIGNAL_RE =
   /\b(?:openstax|openalex|open library|openlibrary|eric|doi|creative commons|cc\s+by|open access|textbook|chapter|article|journal|book|reader|press|publication|volume|vol\.|edition|ed\.|et al\.?|isbn|issn)\b|https?:\/\//i;
 const NON_SOURCE_RESOURCE_RE =

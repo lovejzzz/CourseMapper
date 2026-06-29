@@ -126,6 +126,48 @@ describe('source-ledger quality checks', () => {
     );
   });
 
+  it('flags publisher TDM license URLs as ambiguous source-ledger proof', async () => {
+    const result = await grade({
+      fileProvider: createMemoryFileProvider({
+        'PACKAGE_MANIFEST.json': JSON.stringify({
+          courseName: 'User Experience Design Studio',
+          lessonScope: 'all',
+          requestedFeatures: [],
+          readiness: { status: 'ready', blockers: 0, warnings: 0, checkedSections: null },
+          sourceLedger: [
+            {
+              id: 'sf3',
+              title: 'Test Plans',
+              provider: 'crossref',
+              url: 'https://doi.org/10.1002/9780470316795.ch6',
+              doi: '10.1002/9780470316795.ch6',
+              license: 'http://doi.wiley.com/10.1002/tdm_license_1.1',
+              conceptLinks: [{ id: 'c16', label: 'test plans' }],
+            },
+          ],
+          sourceReport: {
+            path: 'SOURCE_REPORT.md',
+            sourceCount: 1,
+          },
+          files: [],
+        }),
+        'SOURCE_REPORT.md': '# Source Report\n\n## Source Ledger\n- sf3: Test Plans\n',
+      }),
+      course: { title: 'User Experience Design Studio', featureIds: [] },
+    });
+
+    expect(result.findings).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          severity: 'P2',
+          dimension: 'citations',
+          detail: 'source ledger row sf3 has ambiguous or missing license',
+          evidence: 'http://doi.wiley.com/10.1002/tdm_license_1.1',
+        }),
+      ]),
+    );
+  });
+
   it('flags CourseIR review rows without treating them as trusted bibliography rows', async () => {
     const result = await grade({
       fileProvider: createMemoryFileProvider({

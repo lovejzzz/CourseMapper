@@ -4,6 +4,26 @@
 
 CourseMapper is moving toward a "consider it done" course-production agent. The user should describe the course, choose scope/materials, and receive a finished draft package. The agent owns generation, QA, repair, alignment, and export readiness. Human involvement should be final approval only, not QA labor.
 
+## v0.15.118 - TDM License Trust Gate
+
+Goal: address the fresh v0.15.117 User Experience Design Studio ZIP/log audit
+evidence where the package exported `Quality 99` with `Texture 92`, but a
+trusted Crossref sourceLedger row used a Wiley `tdm_license_1.1` URL as license
+proof.
+
+Full plan: `docs/V0.15.118_TDM_LICENSE_TRUST_GATE_ROADMAP.md`
+
+1. Treat `tdm_license` URLs as publisher policy proof, not reusable source
+   license proof.
+2. Apply the rule in production source-ledger assembly so source-finder rows
+   using TDM policy URLs do not become trusted bibliography rows.
+3. Apply the same rule in local regrade so existing packages with trusted
+   `tdm_license` rows receive citation findings.
+4. Preserve explicit reusable licenses such as Creative Commons, Wikipedia
+   CC BY-SA, and OER rows.
+5. Carry forward a fresh deployed v0.15.118 audit before claiming clean source
+   proof, and keep texture `92-93/100` as an unresolved strict-clean target.
+
 ## v0.15.117 - Source License Trust Gate
 
 Goal: address the fresh v0.15.116 User Experience Design Studio ZIP/log audit

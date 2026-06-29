@@ -3,24 +3,24 @@ import { APP_VERSION } from './appVersion.js';
 export const CURRENT_RELEASE = {
   version: APP_VERSION,
   date: 'June 29, 2026',
-  title: 'Source License Trust Gate: OA status and publisher policies stop counting as proof',
-  landingTitle: 'Source License Trust Gate',
+  title: 'TDM License Trust Gate: publisher policy URLs stop passing as source proof',
+  landingTitle: 'TDM License Trust Gate',
   highlights: [
-    'A fresh deployed v0.15.116 User Experience Design Studio ZIP/log audit looked clean in the app at Quality 100 with Texture 95, but stricter local source audit regraded it at 98/A because three trusted sourceLedger rows carried ambiguous license proof.',
-    'OpenAlex `other-oa`, publisher text-and-data-mining URLs, and DOI publisher-policy URLs now count as ambiguous license proof, so they cannot become trusted sourceLedger rows without an explicit reusable license.',
-    'The source-ledger grader mirrors the production gate: existing packages that trusted those rows now receive citation P2 findings instead of silently passing as license-clean.',
-    'Focused source-ledger regressions update the old contract that treated TDM URLs as safe and prove source-finder rows with ambiguous license proof are dropped or kept as review evidence rather than trusted bibliography proof.',
-    'This release keeps the target honest: v0.15.117 still needs a fresh deployed ZIP/log audit, and Texture 95 remains below the strict-clean texture target.',
+    'A fresh deployed v0.15.117 User Experience Design Studio ZIP/log audit exported Quality 99 with Texture 92, but stricter local source audit found a trusted Crossref row whose license was `http://doi.wiley.com/10.1002/tdm_license_1.1`.',
+    '`tdm_license` URLs now count as ambiguous publisher-policy proof, not reusable source licenses, so source-finder rows using them cannot become trusted sourceLedger bibliography proof.',
+    'The local source-ledger grader mirrors the production gate: the captured v0.15.117 package now regrades with a citation P2 for row `sf3` instead of silently passing as license-clean.',
+    'Focused regressions prove Wiley-style `tdm_license` URLs are quarantined in source-ledger assembly and flagged in existing exported manifests.',
+    'This release keeps the target honest: v0.15.118 still needs a fresh deployed ZIP/log audit, and Texture 92-93 remains below the strict-clean texture target.',
   ],
   landingHighlights: [
-    'Fresh v0.15.116 output exposed ambiguous license proof hidden behind a nominal 100/A.',
-    '`other-oa`, TDM URLs, and publisher-policy URLs no longer count as reusable license proof.',
-    'Production source-ledger assembly and local regrade now agree on the stricter trust gate.',
-    'Fresh v0.15.117 output is still required before claiming clean provider quality.',
+    'Fresh v0.15.117 output exposed a Wiley TDM license URL hidden inside trusted source proof.',
+    '`tdm_license` URLs no longer count as reusable teaching-material license proof.',
+    'Production source-ledger assembly and local regrade now agree on the stricter TDM gate.',
+    'Fresh v0.15.118 output is still required before claiming clean provider quality.',
   ],
   proof: {
-    contract: 'release-contracts/v0.15.117.json',
-    roadmap: 'docs/V0.15.117_SOURCE_LICENSE_TRUST_GATE_ROADMAP.md',
+    contract: 'release-contracts/v0.15.118.json',
+    roadmap: 'docs/V0.15.118_TDM_LICENSE_TRUST_GATE_ROADMAP.md',
     auditCommand: 'npm run audit:release-history',
   },
 };
@@ -35,6 +35,18 @@ export const CURRENT_RELEASE_CHANGELOG = {
 };
 
 export const HISTORICAL_RELEASE_CHANGELOGS = [
+  {
+    version: '0.15.117',
+    date: 'June 29, 2026',
+    title: 'Source License Trust Gate: OA status and publisher policies stop counting as proof',
+    highlights: [
+      'A fresh deployed v0.15.116 User Experience Design Studio ZIP/log audit looked clean in the app at Quality 100 with Texture 95, but stricter local source audit regraded it at 98/A because three trusted sourceLedger rows carried ambiguous license proof.',
+      'OpenAlex `other-oa`, publisher text-and-data-mining URLs, and DOI publisher-policy URLs now count as ambiguous license proof, so they cannot become trusted sourceLedger rows without an explicit reusable license.',
+      'The source-ledger grader mirrors the production gate: existing packages that trusted those rows now receive citation P2 findings instead of silently passing as license-clean.',
+      'Focused source-ledger regressions update the old contract that treated TDM URLs as safe and prove source-finder rows with ambiguous license proof are dropped or kept as review evidence rather than trusted bibliography proof.',
+      'This release kept the target honest: v0.15.117 still needed a fresh deployed ZIP/log audit, and Texture 95 remained below the strict-clean texture target.',
+    ],
+  },
   {
     version: '0.15.116',
     date: 'June 29, 2026',

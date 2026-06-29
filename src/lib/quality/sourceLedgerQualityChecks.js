@@ -24,7 +24,7 @@ const TRUST_ELIGIBLE_PROVIDERS = new Set([
 const REVIEW_ONLY_PROVIDERS = new Set(['courseir', 'instructor', 'instructor-provided', 'openlibrary']);
 const RESTRICTED_RIGHTS_STATEMENT_RE = /rightsstatements\.org\/vocab\/inc(?:[-/]|$)/i;
 const PUBLISHER_POLICY_LICENSE_RE =
-  /(?:\/tdm(?:\/|$)|\btdm\b|text[-\s]?and[-\s]?data[-\s]?mining|policy-029|springernature\.com\/gp\/researchers\/text-and-data-mining|elsevier\.com\/tdm|sagepub\.com\/page\/policies\/text-and-data-mining-license)/i;
+  /(?:\/tdm(?:[_/-]|$)|\btdm(?:[_-]?license)?\b|text[-\s]?and[-\s]?data[-\s]?mining|policy-029|springernature\.com\/gp\/researchers\/text-and-data-mining|elsevier\.com\/tdm|sagepub\.com\/page\/policies\/text-and-data-mining-license|doi\.wiley\.com\/10\.1002\/tdm_license)/i;
 
 const PROJECT_MANAGEMENT_COURSE_RE =
   /\b(?:project\s+management|project\s+manager|pmbok|project\s+charter|scope\s+management|work\s+breakdown|critical\s+path|risk\s+register|stakeholder\s+analysis|project\s+scheduling|project\s+life\s+cycle)\b/i;
