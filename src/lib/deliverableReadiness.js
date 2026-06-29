@@ -605,6 +605,9 @@ function getCourseMapProgressionTopic(courseMap, lessonIndex) {
 const HISTORY_COURSE_MAP_RE =
   /\b(?:western civilization|civilization|world history|history|historical|ancient|medieval|middle ages|renaissance|reformation|mesopotamia|egypt|egyptian|greece|greek|rome|roman|byzantine|islamic|crusade|feudal|charlemagne|carolingian|empire|kingdom|primary[- ]source|source analysis)\b/i;
 
+const UX_DESIGN_COURSE_MAP_RE =
+  /\b(?:user experience|ux|design studio|design research|user research|usability|prototype|prototyping|wireframe|journey map|personas?|accessibility|portfolio review|case study|critique session|design journals?)\b/i;
+
 const GENERIC_COURSE_MAP_FALLBACK_RE =
   /\b(?:course problem|course applications|next assessment|quick evidence check|exit ticket using|practice response|review assigned materials|prepare notes|new example|observe, label, calculate, or decide|course task or example|course activities|evidence of learning|lab materials|discipline-specific tools)\b/i;
 
@@ -622,6 +625,7 @@ function inferCourseMapFallbackProfile(courseMap, lesson, section) {
     .map(text)
     .join(' ');
   if (PROJECT_MANAGEMENT_COURSE_RE.test(context)) return 'project-management';
+  if (UX_DESIGN_COURSE_MAP_RE.test(context)) return 'ux-design';
   return HISTORY_COURSE_MAP_RE.test(context) ? 'history' : 'general';
 }
 
@@ -727,6 +731,67 @@ function getProjectManagementCourseMapFallbacks(topic, pick) {
   };
 }
 
+function getUxDesignCourseMapFallbacks(topic, pick) {
+  const displayTopic = displayCourseMapTopic(topic);
+  return {
+    learningGoals: pick([
+      `Use ${topic} to make one design choice traceable to user evidence and critique feedback.`,
+      `Connect ${topic} to a prototype, research note, or portfolio case decision students can defend.`,
+      `Build ${topic} evidence that moves from observation to design rationale.`,
+      `Use ${topic} to explain how a user need changes the next design iteration.`,
+    ]),
+    topicSection: topic,
+    learningObjectives: pick([
+      `Apply ${topic} to a UX artifact and explain the design decision it changes.`,
+      `Use ${topic} evidence to critique a prototype or portfolio case section.`,
+      `Interpret a user signal in ${topic} and name the design implication.`,
+      `Revise a UX artifact by connecting ${topic} evidence to one visible choice.`,
+    ]),
+    weeklyAssessments: pick([
+      `${displayTopic} critique memo naming one user-evidence signal and one design revision.`,
+      `${displayTopic} artifact annotation linking a research detail to a design choice.`,
+      `${displayTopic} studio checkpoint: defend one prototype or case-study move with evidence.`,
+      `${displayTopic} rationale note comparing the current artifact with one user need.`,
+    ]),
+    asyncActivities: pick([
+      `Review the UX example and mark where ${topic} changes the design rationale.`,
+      `Prepare a design-journal note connecting ${topic} to one artifact decision.`,
+      `Analyze a research or critique excerpt and bring one ${topic} revision question.`,
+      `Compare the assigned UX example with the current studio artifact for ${topic}.`,
+    ]),
+    syncActivities: pick([
+      `Run a critique round that tests how ${topic} changes the artifact.`,
+      `Use studio feedback to revise the ${topic} decision and explain the evidence.`,
+      `Compare artifact versions in pairs, then name the ${topic} evidence behind the stronger move.`,
+      `Practice turning ${topic} observations into a portfolio-ready design rationale.`,
+    ]),
+    technologyNeeded: pick([
+      'Course LMS, design journal, prototype board, and critique workspace.',
+      'LMS access plus the UX example, research notes, and studio artifact workspace.',
+      'Prototype or wireframe tool, shared critique notes, and the assigned UX example.',
+      'Design file access, usability notes, and a workspace for annotated critique.',
+    ]),
+    presentationFormat: pick([
+      'UX example setup, artifact critique, revision decision, and short studio synthesis.',
+      'Research cue, design-rationale model, paired artifact review, and next-iteration note.',
+      'Critique question, worked UX example, studio application, and portfolio connection.',
+      'User-evidence framing, prototype comparison, revision planning, and reflection.',
+    ]),
+    supportingResources: pick([
+      `UX example, critique protocol, and design-journal prompt aligned to ${topic}.`,
+      `Research-note excerpt, prototype sample, and rationale model for ${topic}.`,
+      `Portfolio case excerpt, artifact version, and studio feedback guide for ${topic}.`,
+      `Usability or critique notes, design example, and revision prompt for ${topic}.`,
+    ]),
+    evaluateDesign: pick([
+      `Check that the ${topic} activity and assessment ask students to justify the same design revision.`,
+      `Confirm the ${topic} resource, critique task, and artifact standard point to one user-evidence claim.`,
+      `Make the ${topic} studio task produce evidence students can reuse in the portfolio case.`,
+      `Align the ${topic} example and assessment around a visible artifact change.`,
+    ]),
+  };
+}
+
 function getCourseMapFallbackValue(key, courseMap, lesson, section, lessonIndex) {
   const topic = getCourseMapTopic(courseMap, lesson, section, lessonIndex);
   // Rotate filler stems by section position so repaired sparse maps do not
@@ -742,56 +807,58 @@ function getCourseMapFallbackValue(key, courseMap, lesson, section, lessonIndex)
       ? getHistoryCourseMapFallbacks(topic, pick)
       : profile === 'project-management'
         ? getProjectManagementCourseMapFallbacks(topic, pick)
-        : {
-            learningGoals: pick([
-              `Use ${topic} to explain a course problem and prepare evidence for the next assessment.`,
-              `Trace how ${topic} changes what students can observe, label, calculate, or decide.`,
-              `Develop an evidence-backed account of ${topic} for course applications.`,
-            ]),
-            topicSection: topic,
-            learningObjectives: pick([
-              `Explain the key ideas in ${topic} and apply them in course activities.`,
-              `Apply the main concepts from ${topic} to a course task or example.`,
-              `Connect ${topic} to the week's work and explain one supporting evidence source.`,
-              `Analyze an example using ${topic} and name one limitation or open question.`,
-            ]),
-            weeklyAssessments: pick([
-              `Quick evidence check: apply ${topic} to a new example.`,
-              `Exit ticket using ${topic} to justify one course-relevant decision.`,
-              `Practice response that names the evidence needed for ${topic}.`,
-            ]),
-            asyncActivities: pick([
-              `Review assigned materials and prepare notes on ${topic}.`,
-              `Read the assigned materials and write a short note on ${topic}.`,
-              `Study the assigned materials and mark questions about ${topic}.`,
-            ]),
-            syncActivities: pick([
-              `Discuss examples and practice applying ${topic}.`,
-              `Work through examples of ${topic} together and practice applying them.`,
-              `Compare examples of ${topic} in class and rehearse the key moves.`,
-            ]),
-            technologyNeeded: pick([
-              'Course LMS, shared files, and any discipline-specific tools named by the instructor.',
-              'LMS access plus the document, slide, lab, or analysis tool required for this lesson.',
-              'Course platform, instructor-provided files, and the classroom tool used for the lesson activity.',
-            ]),
-            presentationFormat: pick([
-              'Instructor framing, guided student work, and a short synthesis.',
-              'Brief setup, worked example or demonstration, then student application.',
-              'Opening question, structured practice, and closing evidence check.',
-            ]),
-            supportingResources: pick([
-              `Instructor-approved readings, examples, or lab materials for ${topic}.`,
-              `Course materials students need to prepare and show evidence about ${topic}.`,
-              `Worked examples, readings, or activity sheets aligned to ${topic}.`,
-            ]),
-            evaluateDesign: pick([
-              `Check that the ${topic} activity, resource, and assessment ask students to produce the same evidence of learning.`,
-              `Confirm that the ${topic} activity and assessment use the same evidence standard.`,
-              `Make sure students practice ${topic} with the same evidence they will use in the assessment.`,
-              `Align the ${topic} resource, class task, and assessment around one visible learning product.`,
-            ]),
-          };
+        : profile === 'ux-design'
+          ? getUxDesignCourseMapFallbacks(topic, pick)
+          : {
+              learningGoals: pick([
+                `Use ${topic} to explain a course problem and prepare evidence for the next assessment.`,
+                `Trace how ${topic} changes what students can observe, label, calculate, or decide.`,
+                `Develop an evidence-backed account of ${topic} for course applications.`,
+              ]),
+              topicSection: topic,
+              learningObjectives: pick([
+                `Explain the key ideas in ${topic} and apply them in course activities.`,
+                `Apply the main concepts from ${topic} to a course task or example.`,
+                `Connect ${topic} to the week's work and explain one supporting evidence source.`,
+                `Analyze an example using ${topic} and name one limitation or open question.`,
+              ]),
+              weeklyAssessments: pick([
+                `Quick evidence check: apply ${topic} to a new example.`,
+                `Exit ticket using ${topic} to justify one course-relevant decision.`,
+                `Practice response that names the evidence needed for ${topic}.`,
+              ]),
+              asyncActivities: pick([
+                `Review assigned materials and prepare notes on ${topic}.`,
+                `Read the assigned materials and write a short note on ${topic}.`,
+                `Study the assigned materials and mark questions about ${topic}.`,
+              ]),
+              syncActivities: pick([
+                `Discuss examples and practice applying ${topic}.`,
+                `Work through examples of ${topic} together and practice applying them.`,
+                `Compare examples of ${topic} in class and rehearse the key moves.`,
+              ]),
+              technologyNeeded: pick([
+                'Course LMS, shared files, and any discipline-specific tools named by the instructor.',
+                'LMS access plus the document, slide, lab, or analysis tool required for this lesson.',
+                'Course platform, instructor-provided files, and the classroom tool used for the lesson activity.',
+              ]),
+              presentationFormat: pick([
+                'Instructor framing, guided student work, and a short synthesis.',
+                'Brief setup, worked example or demonstration, then student application.',
+                'Opening question, structured practice, and closing evidence check.',
+              ]),
+              supportingResources: pick([
+                `Instructor-approved readings, examples, or lab materials for ${topic}.`,
+                `Course materials students need to prepare and show evidence about ${topic}.`,
+                `Worked examples, readings, or activity sheets aligned to ${topic}.`,
+              ]),
+              evaluateDesign: pick([
+                `Check that the ${topic} activity, resource, and assessment ask students to produce the same evidence of learning.`,
+                `Confirm that the ${topic} activity and assessment use the same evidence standard.`,
+                `Make sure students practice ${topic} with the same evidence they will use in the assessment.`,
+                `Align the ${topic} resource, class task, and assessment around one visible learning product.`,
+              ]),
+            };
   return fieldFallbacks[key] || `Instructor-confirmed material for ${topic}.`;
 }
 

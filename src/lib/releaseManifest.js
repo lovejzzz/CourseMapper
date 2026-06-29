@@ -3,24 +3,24 @@ import { APP_VERSION } from './appVersion.js';
 export const CURRENT_RELEASE = {
   version: APP_VERSION,
   date: 'June 29, 2026',
-  title: 'Texture Variation: UX studio scaffolds stop repeating across every lesson',
-  landingTitle: 'Texture Variation',
+  title: 'UX Texture Cleanup: support and closure scaffolds stop repeating through exports',
+  landingTitle: 'UX Texture Cleanup',
   highlights: [
-    'A fresh deployed v0.15.126 User Experience Design Studio ZIP/log audit exported and locally regraded at 99/100 with zero P0/P1/P2 findings, export verification passed, complete enrichment coverage, and Texture 90.',
-    'The v0.15.126 audit proved the prior PPTX punctuation P1 was gone; the only scored loss was repeated texture scaffolding across UX slide decks and lesson plans.',
-    'Studio evidence routines now rotate by lesson, so the fixed `collect critique notes, usability evidence, and rationale changes before the next iteration` shingle no longer repeats through every slide-deck grounding record.',
-    'Slide discussion notes, closing handoffs, lesson-plan warm-up groupings, and generic Course Map review checks now vary deterministically while preserving the same instructional intent and audit truth.',
-    'Deliverable-facing modality grounding now exports a compact lesson-specific profile instead of repeating the raw course-level teaching pattern in every deck.',
+    'A fresh deployed v0.15.127 User Experience Design Studio ZIP/log audit exported and locally regraded at 100/100 with zero P0/P1/P2 findings, export verification passed, complete enrichment coverage, and Texture 95.',
+    'The same audit still exposed a real texture target below the broader clean-output bar: raw exported DOCX/PPTX/XLSX text repeated `checklist`, `exit ticket`, `office hours`, and generic Course Map support scaffolds.',
+    'UX Course Map fallback repair now uses design-research, critique, prototype, portfolio, and user-evidence language instead of generic `quick evidence check`, `lab materials`, or `discipline-specific tools` boilerplate.',
+    'Compiled FAQ, study-guide, assignment, and lesson-plan support surfaces now rotate review guides, closure checks, support channels, and submission steps instead of stamping the same checklist/office-hours/exit-ticket phrases across lessons.',
+    'A focused weak-map UX regression proves the old generic Course Map boilerplate and repeated support/closure scaffolds stay out of compiled UX deliverables without weakening scoring or source gates.',
   ],
   landingHighlights: [
-    'Fresh v0.15.126 output reached 99/100 with no P findings; Texture 90 remained.',
-    'UX studio slide and lesson-plan scaffolds now vary by lesson.',
-    'Course Map fallback review checks rotate instead of repeating one audit-looking sentence.',
-    'Fresh v0.15.127 output is still required before claiming strict-clean provider output.',
+    'Fresh v0.15.127 output reached 100/100 with no P findings; Texture 95 remained.',
+    'UX Course Map fallback rows now stay in design-studio language.',
+    'FAQ, study-guide, assignment, and lesson-plan support copy no longer repeats the same checklist/exit-ticket scaffolds.',
+    'Fresh v0.15.128 output is still required before claiming full texture-clean provider output.',
   ],
   proof: {
-    contract: 'release-contracts/v0.15.127.json',
-    roadmap: 'docs/V0.15.127_TEXTURE_VARIATION_ROADMAP.md',
+    contract: 'release-contracts/v0.15.128.json',
+    roadmap: 'docs/V0.15.128_UX_TEXTURE_SCAFFOLD_CLEANUP_ROADMAP.md',
     auditCommand: 'npm run audit:release-history',
   },
 };
@@ -35,6 +35,18 @@ export const CURRENT_RELEASE_CHANGELOG = {
 };
 
 export const HISTORICAL_RELEASE_CHANGELOGS = [
+  {
+    version: '0.15.127',
+    date: 'June 29, 2026',
+    title: 'Texture Variation: UX studio scaffolds stop repeating across every lesson',
+    highlights: [
+      'A fresh deployed v0.15.126 User Experience Design Studio ZIP/log audit exported and locally regraded at 99/100 with zero P0/P1/P2 findings, export verification passed, complete enrichment coverage, and Texture 90.',
+      'The v0.15.126 audit proved the prior PPTX punctuation P1 was gone; the only scored loss was repeated texture scaffolding across UX slide decks and lesson plans.',
+      'Studio evidence routines now rotate by lesson, so the fixed `collect critique notes, usability evidence, and rationale changes before the next iteration` shingle no longer repeats through every slide-deck grounding record.',
+      'Slide discussion notes, closing handoffs, lesson-plan warm-up groupings, and generic Course Map review checks now vary deterministically while preserving the same instructional intent and audit truth.',
+      'Deliverable-facing modality grounding now exports a compact lesson-specific profile instead of repeating the raw course-level teaching pattern in every deck.',
+    ],
+  },
   {
     version: '0.15.126',
     date: 'June 29, 2026',

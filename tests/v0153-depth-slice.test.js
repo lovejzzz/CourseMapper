@@ -131,8 +131,8 @@ describe('deep mode — kernel atoms inside the back-half steps', () => {
     expect(sprint.instructorNotes).toContain('Powder color is often different');
   });
 
-  it('the exit ticket closes the warm-up misconception loop', () => {
-    expect(debrief.description).toContain('Exit ticket');
+  it('the closure note closes the warm-up misconception loop', () => {
+    expect(debrief.description).toContain('Closure note');
     expect(debrief.description).toContain('Streak always matches the specimen color');
     expect(debrief.instructorNotes).toContain('OpenStax Geology §3.5');
   });

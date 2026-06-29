@@ -2056,7 +2056,7 @@ function syntheticAssessmentPatternForBloom(bloomsLevel, seed = 0) {
 function syntheticAssessmentOutputForBloom(bloomsLevel, seed) {
   const outputs = {
     Apply: [
-      'exit ticket',
+      'closure note',
       'worked response',
       'source-backed practice note',
       'application checkpoint',
@@ -4585,8 +4585,8 @@ function buildAccessibilityPlan({ title, concepts, artifact, evidencePlan, readi
   const lessonStub = lessonStubFromTitle(title, artifactName);
   return {
     representation: lessonVariant(lessonStub, [
-      `Present ${concept} through spoken explanation, a text checklist, and one visual organizer tied to ${sourceCue}.`,
-      `Teach ${concept} with a spoken model, a readable checklist, and one visual organizer connected to ${sourceCue}.`,
+      `Present ${concept} through spoken explanation, a text cue, and one visual organizer tied to ${sourceCue}.`,
+      `Teach ${concept} with a spoken model, a readable review guide, and one visual organizer connected to ${sourceCue}.`,
       `Give students text-first, oral, and visual ways to inspect ${concept} evidence from ${sourceCue}.`,
       `Pair the ${concept} explanation with a concise handout cue and a visual map of the relevant ${sourceCue} evidence.`,
     ]),
@@ -5482,7 +5482,7 @@ function buildLearnerContextProfile({
       'individual think-write',
       'paired evidence rehearsal',
       'small-group critique',
-      'written or spoken exit ticket',
+      'written or spoken closure note',
     ],
     localReviewNeeds:
       localReviewNeeds.length > 0
@@ -8066,7 +8066,7 @@ function buildClassroomEvidenceLoopPlan({
       reviewCadence:
         courseModalityProfile?.primaryMode === 'online-hybrid'
           ? 'Review LMS activity, submissions, and feedback notes before opening the next module.'
-          : 'Review exit tickets, artifact samples, pacing notes, and instructor adjustments before teaching the next lesson.',
+          : 'Review closure notes, artifact samples, pacing notes, and instructor adjustments before teaching the next lesson.',
       publishGate: lesson.compilerDecision?.publishGate || handoffRow?.compilerDecision?.publishGate || '',
       reviewerAction: lessonLocalReviewAction(lesson),
     };
@@ -11916,7 +11916,7 @@ function assignmentChecklistResourceLabel({ submissionProfile = {}, lesson = {},
   );
   const artifactLower = artifactLabel.toLowerCase();
   return lessonVariant(lesson, [
-    `${artifactLabel} checklist for ${lessonFocus}: evidence, reasoning, format, revision.`,
+    `${artifactLabel} review sheet for ${lessonFocus}: evidence, reasoning, format, revision.`,
     `${lessonFocus} ${artifactLower} review sheet: source detail, decision, format, revision.`,
     `${artifactLabel} planning guide for ${lessonFocus}: claim, evidence, audience, feedback.`,
     `${lessonFocus} submission self-check: evidence trail, criterion fit, format, revision.`,
@@ -15219,10 +15219,10 @@ function compileAssignments(blueprint) {
         weightedGradingCriteria: assessment.criterionWeightPlan || [],
         supportResources: assignmentSupportResourcesForLesson({ lesson, assessment, submissionProfile }),
         progressTracking: lessonVariant(lesson, [
-          `Use the ${assessmentTitle} milestone checklist, rubric criteria, ${submissionProfile.assignmentType.toLowerCase()} format, and ${submissionProfile.workload.outOfClassEstimate} to monitor readiness before submission for ${assessment.relatedLessons[0]}.`,
+          `Use the ${assessmentTitle} milestone notes, rubric criteria, ${submissionProfile.assignmentType.toLowerCase()} format, and ${submissionProfile.workload.outOfClassEstimate} to monitor readiness before submission for ${assessment.relatedLessons[0]}.`,
           `Track ${assessmentTitle} with the rubric, the ${submissionProfile.assignmentType.toLowerCase()} format, and the workload estimate so the evidence is ready for ${assessment.relatedLessons[0]}.`,
           `Before uploading ${assessmentTitle}, compare the draft against the milestone notes, criterion weights, and time plan for ${assessment.relatedLessons[0]}.`,
-          `Use the checklist, rubric language, and ${submissionProfile.workload.outOfClassEstimate} plan to decide whether ${assessmentTitle} is ready for review.`,
+          `Use the review notes, rubric language, and ${submissionProfile.workload.outOfClassEstimate} plan to decide whether ${assessmentTitle} is ready for review.`,
           `Monitor ${assessmentTitle} by checking evidence completeness, format fit, and revision status against ${assessment.relatedLessons[0]}.`,
           `Keep the ${assessmentTitle} work plan visible: evidence chosen, criteria checked, workload managed, and final revision completed.`,
         ]),
@@ -16177,7 +16177,12 @@ function compileStudyGuides(blueprint) {
                 ` one ${specificity.week} claim about ${primaryConcept} and the source cue that makes the ${specificity.artifact} implication defensible.`,
               ])}`,
         },
-        studentResources: `Use ${specificity.week} ${lesson.title} readings, instructor notes, office hours, peer discussion, and the rubric criteria for ${specificity.artifact}.`,
+        studentResources: lessonVariant(lesson, [
+          `Use ${specificity.week} ${lesson.title} readings, instructor notes, peer discussion, and the rubric criteria for ${specificity.artifact}.`,
+          `Review the ${specificity.week} source notes, example artifact, feedback channel, and rubric criteria before revising ${specificity.artifact}.`,
+          `Bring questions about ${specificity.artifact} to the approved support space with the source detail and criterion you want checked.`,
+          `Compare ${specificity.artifact} against the ${specificity.week} readings, class notes, and peer feedback before submission.`,
+        ]),
         tags: unique(['study guide', lesson.title, ...safeConcepts], 10),
       };
     }),
@@ -19876,13 +19881,16 @@ function compileCourseFaq(blueprint, config = {}) {
     (lesson) => ({
       q: `How does ${stripLessonPrefix(lesson.title)} connect to graded work?`,
       an: lessonVariant(lesson, [
-        `${lesson.title} prepares you for ${safeCourseFaqStudentArtifact(lesson)}. Use the ${safeCourseFaqPrimaryConcept(lesson)} success criteria as a checklist before submitting or discussing your work.`,
+        `${lesson.title} prepares you for ${safeCourseFaqStudentArtifact(lesson)}. Use the ${safeCourseFaqPrimaryConcept(lesson)} success criteria to test the work before submitting or discussing it.`,
         `${lesson.title} feeds directly into ${safeCourseFaqStudentArtifact(lesson)}. Before you submit or speak in class, check whether your evidence actually proves the ${safeCourseFaqPrimaryConcept(lesson)} decision.`,
         `Treat ${lesson.title} as preparation for ${safeCourseFaqStudentArtifact(lesson)}: match one source detail to the success criteria, then revise the part of the work that still sounds general.`,
         `The graded-work connection is ${safeCourseFaqStudentArtifact(lesson)}. Use ${safeCourseFaqPrimaryConcept(lesson)} to decide which evidence, limitation, and revision note belong in the submission.`,
       ]),
       ca: 'Assignment Clarification',
-      rc: ['success criteria checklist', ...safeCourseFaqConcepts(lesson).slice(0, 2)],
+      rc: [
+        lessonVariant(lesson, ['success criteria', 'quality criteria', 'evidence standard', 'revision cue']),
+        ...safeCourseFaqConcepts(lesson).slice(0, 2),
+      ],
       df: 'Intermediate',
     }),
     (lesson) => ({
@@ -19904,19 +19912,26 @@ function compileCourseFaq(blueprint, config = {}) {
         ]);
       })(),
       ca: 'Assessment Prep',
-      rc: ['success criteria checklist', ...safeCourseFaqConcepts(lesson).slice(0, 2)],
+      rc: [
+        lessonVariant(lesson, ['success criteria', 'quality criteria', 'evidence standard', 'revision cue']),
+        ...safeCourseFaqConcepts(lesson).slice(0, 2),
+      ],
       df: 'Intermediate',
     }),
     (lesson) => ({
       q: `Where should I ask questions about ${stripLessonPrefix(lesson.title)}?`,
       an: lessonVariant(lesson, [
-        `Use the official course communication channel, office hours, peer discussion spaces, and ${lesson.title} support resources. Bring a specific question about ${safeCourseFaqPrimaryConcept(lesson)}, one ${lens.evidenceNoun} point, or a draft section when asking for help.`,
-        `Start with the course communication channel or office hours. To get useful help on ${lesson.title}, bring the exact ${safeCourseFaqPrimaryConcept(lesson)} claim, evidence detail, or assignment step that is stuck.`,
-        `Ask in the official channel, during office hours, or in approved peer spaces. A strong question names ${lesson.title}, the evidence you tried, and what part of ${safeCourseFaqStudentArtifact(lesson)} still needs feedback.`,
+        `Use the official course communication channel, critique thread, peer discussion spaces, and ${lesson.title} support resources. Bring a specific question about ${safeCourseFaqPrimaryConcept(lesson)}, one ${lens.evidenceNoun} point, or a draft section when asking for help.`,
+        `Start with the course communication channel or the scheduled help block. To get useful help on ${lesson.title}, bring the exact ${safeCourseFaqPrimaryConcept(lesson)} claim, evidence detail, or assignment step that is stuck.`,
+        `Ask in the official channel, during instructor support time, or in approved peer spaces. A strong question names ${lesson.title}, the evidence you tried, and what part of ${safeCourseFaqStudentArtifact(lesson)} still needs feedback.`,
         `Use instructor-approved support spaces for ${lesson.title}. Bring a short note showing the concept, evidence source, and revision choice you want checked.`,
       ]),
       ca: 'Course Logistics',
-      rc: [`${lesson.title} support`, 'office hours', 'course communication'],
+      rc: [
+        `${lesson.title} support`,
+        lessonVariant(lesson, ['course communication', 'critique channel', 'scheduled help', 'peer discussion']),
+        'feedback channel',
+      ],
       df: 'Basic',
     }),
     (lesson) => ({
@@ -20020,10 +20035,10 @@ function buildLessonPlanMaterials(lesson) {
         `Group evidence log for ${focus}`,
       ]),
       lessonVariant(lesson, [
-        `${artifact} submission checklist`,
+        `${artifact} submission guide`,
         `Course-site upload guide for ${artifact}`,
         `${artifact} evidence template`,
-        `Final review checklist for ${artifact}`,
+        `Final review guide for ${artifact}`,
       ]),
     ],
     6,
@@ -20236,7 +20251,7 @@ function buildLessonPlanOutline(blueprint, lesson, { depth = 'flat' } = {}) {
           ? `Students draft ${artifact}, mirroring the worked example's solution path on their own case — every move the board model made needs an analog in the draft.`
           : deep && kernelTermA?.definition
             ? `Students revise ${artifact} by using ${kernelTermA.term} to justify one visible decision${kernelCitation ? ` from ${kernelCitation}` : ''}; the draft must show how the lesson evidence changes the work.`
-            : `Students draft ${artifact} while using the lesson success criteria, feedback prompts, and exemplar moves as a checklist.`,
+            : `Students draft ${artifact} while using the lesson success criteria, feedback prompts, and exemplar moves to guide each revision.`,
       instructorNotes:
         deep && kernelMisconception
           ? lessonVariant(lesson, [
@@ -20258,19 +20273,19 @@ function buildLessonPlanOutline(blueprint, lesson, { depth = 'flat' } = {}) {
     {
       time: formatDuration(debrief),
       activity: lessonVariant(lesson, [
-        'Debrief and exit ticket',
+        'Debrief and closure note',
         'Closure evidence check',
-        'Exit reflection and transfer',
+        'Private reflection and transfer',
         'Pattern summary and next step',
       ]),
       type: 'Closure',
       description:
         deep && kernelMisconception
           ? lessonVariant(lesson, [
-              `Exit ticket: revisit the warm-up vote — students explain in their own words why “${stripTerminalPunctuation(kernelMisconception.misconception)}” fails, citing one piece of evidence from today’s work on ${artifact}.`,
-              `Exit ticket: students rewrite “${stripTerminalPunctuation(kernelMisconception.misconception)}” as a corrected claim and attach one evidence note from today's ${artifact} work.`,
-              `Exit ticket: students name the evidence that changed their view of “${stripTerminalPunctuation(kernelMisconception.misconception)}” and connect it to the next ${artifact} move.`,
-              `Exit ticket: students explain what the warm-up claim missed, then cite the lesson evidence that makes the correction useful for ${artifact}.`,
+              `Closure note: revisit the warm-up vote — students explain in their own words why “${stripTerminalPunctuation(kernelMisconception.misconception)}” fails, citing one piece of evidence from today’s work on ${artifact}.`,
+              `Students rewrite “${stripTerminalPunctuation(kernelMisconception.misconception)}” as a corrected claim and attach one evidence note from today's ${artifact} work.`,
+              `Students name the evidence that changed their view of “${stripTerminalPunctuation(kernelMisconception.misconception)}” and connect it to the next ${artifact} move.`,
+              `Students explain what the warm-up claim missed, then cite the lesson evidence that makes the correction useful for ${artifact}.`,
             ])
           : `Students share one revision they made to ${artifact}, one question they still have about ${concept}, and one way today’s ${modality.mode} work prepares them for the next artifact.`,
       instructorNotes:
@@ -20279,12 +20294,12 @@ function buildLessonPlanOutline(blueprint, lesson, { depth = 'flat' } = {}) {
               `A secure ticket restates the correction in the student’s own words${kernelCitation ? ` and can point to ${kernelCitation}` : ''}; sort tickets into secure, partial, and reteach piles to set the next lesson’s warm-up for ${concept}.`,
               `Read tickets for whether students can explain the correction without copying the model${kernelCitation ? ` while naming ${kernelCitation}` : ''}; use the partial group to plan the next ${concept} warm-up.`,
               `Sort closure notes by correction quality: secure responses explain the failed idea, partial responses need one more ${concept} example, and weak responses trigger reteaching.`,
-              `Use the exit tickets as misconception evidence: keep examples that show the correction clearly, flag partial reasoning, and choose the next ${concept} retrieval prompt from the pattern.`,
+              `Use the closure notes as misconception evidence: keep examples that show the correction clearly, flag partial reasoning, and choose the next ${concept} retrieval prompt from the pattern.`,
             ])
-          : `${stripTerminalPunctuation(modality.feedbackRoutine)}; ground the debrief in ${artifact} evidence about ${concept}. Use exit-ticket responses to decide whether the next lesson should review ${concept} before extending it.`,
+          : `${stripTerminalPunctuation(modality.feedbackRoutine)}; ground the debrief in ${artifact} evidence about ${concept}. Use closure responses to decide whether the next lesson should review ${concept} before extending it.`,
       instructorRole: `Synthesize patterns from ${stripLessonPrefix(lesson.title)} and set up the next lesson.`,
       grouping: lessonVariant(lesson, [
-        'Whole class plus individual exit ticket',
+        'Whole class plus individual closure note',
         'Whole-class synthesis followed by private exit note',
         'Fast debrief, then individual transfer check',
         'Class pattern summary with one written next-step ticket',
@@ -20487,7 +20502,7 @@ function compileLessonPlans(blueprint, options = {}) {
           return observationProtocol ? { observationProtocol } : {};
         })(),
         formativeCheck: {
-          type: 'Formative exit ticket',
+          type: 'Formative closure check',
           prompt:
             lesson.feedbackCycle?.formativeEvidence ||
             lesson.readinessSupport?.diagnosticPrompt ||
@@ -20499,7 +20514,7 @@ function compileLessonPlans(blueprint, options = {}) {
             `${lessonVariant(lesson, [
               `Success criteria for ${stripLessonPrefix(lesson.title)}: accurate concept use, specific evidence, and clear reasoning with one concrete example.`,
               `For ${stripLessonPrefix(lesson.title)}, look for accurate concept use, source evidence students can point to, and a clear reasoning link.`,
-              `Use the exit ticket to check whether students can name the concept, cite evidence, and explain the decision it supports.`,
+              `Use the closure check to see whether students can name the concept, cite evidence, and explain the decision it supports.`,
               `Review responses for a correct concept claim, one inspectable example, and reasoning that connects evidence to action.`,
             ])} ${teachingMoves.feedbackMove}`,
         },
@@ -20518,7 +20533,7 @@ function compileLessonPlans(blueprint, options = {}) {
           title: artifact,
           description:
             lesson.feedbackCycle?.closureCheck ||
-            `Complete ${artifact}, use the lesson criteria as a checklist, and add one note explaining how feedback changed your draft.`,
+            `Complete ${artifact}, test it against the lesson criteria, and add one note explaining how feedback changed your draft.`,
           estimatedTime: `${lesson.workloadEstimate.afterClassMinutes} minutes`,
           connectionToNext:
             lesson.learningTransferPlan?.transferTask ||
@@ -20682,7 +20697,7 @@ function compileLessonPlans(blueprint, options = {}) {
             `Confirm students use only approved sources and flag missing citation details for local review.`,
           learnerContextCue: lessonLearnerContextCue(blueprint, lesson),
           methodSpecificMiniRubric: `Mini-rubric: Score ${artifact} for concept accuracy, evidence quality, reasoning strength, and feedback-informed revision.`,
-          studentHandout: `One-page guide with the lesson objective, success criteria, outline, and submission checklist for ${stripLessonPrefix(lesson.title)}.`,
+          studentHandout: `One-page guide with the lesson objective, success criteria, outline, and submission steps for ${stripLessonPrefix(lesson.title)}.`,
           instructorPrep: `Prepare the exemplar, one misconception check, and one targeted feedback prompt before teaching ${stripLessonPrefix(lesson.title)}.${preference ? ` Apply learned instructor preferences: ${preferenceDisplayPhrase(preference)}.` : ''}`,
           accessibilityAndUDL:
             lesson.accessibilityPlan?.accommodationReviewCue ||
