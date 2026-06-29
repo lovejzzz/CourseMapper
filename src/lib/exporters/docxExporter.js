@@ -543,7 +543,7 @@ export function _buildDocxContentShared(featureId, data, children, docx) {
           const colDXA = [1100, 2000, 6260]; // Time, Activity, Description
           const outlineRows = p.outline.map((row) => {
             let desc = row.description || '';
-            if (row.grouping) desc += `${desc ? '\n' : ''}Grouping: ${row.grouping}`;
+            if (row.grouping) desc += `${desc ? '\n' : ''}Class format: ${row.grouping}`;
             if (row.instructorNotes || row.notes) desc += `\nInstructor Notes: ${row.instructorNotes || row.notes}`;
             const actParts = [row.activity || ''];
             if (row.type) actParts.push(row.type);

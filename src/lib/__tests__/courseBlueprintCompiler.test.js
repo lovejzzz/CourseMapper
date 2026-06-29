@@ -7121,4 +7121,40 @@ describe('courseBlueprintCompiler', () => {
       /case conceptualization checklist:\s*client-centered evidence, active listening, helping-skill fit/i,
     );
   });
+
+  it('keeps generic Week N assignment labels and dictionary scaffolds out of deep lesson-plan workshop prose', () => {
+    const blueprint = buildCourseBlueprint(makeCourseMap(4));
+    Object.assign(blueprint.lessons[3], {
+      title: 'Lesson 4: Usability testing',
+      studentArtifact: 'Week 4 assignment',
+      keyConcepts: ['usability testing'],
+      outcomes: ['Use usability testing evidence to improve a prototype review.'],
+      enrichment: {
+        keyTerms: [
+          {
+            term: 'usability testing',
+            definition: 'A method for evaluating how easily people can complete tasks with a product or prototype.',
+          },
+        ],
+        conceptProvenance: {
+          citations: ['Usability testing source packet'],
+        },
+      },
+    });
+
+    const compiled = compileBlueprintDeliverables(blueprint, ['lessonPlans'], {
+      configMap: { lessonPlans: { depth: 'deep' } },
+    });
+    const lessonFour = compiled.lessonPlans.lessonPlans[3];
+    const renderedPlanText = JSON.stringify({
+      outline: lessonFour.outline,
+      summary: lessonFour.studentFacingSummary,
+      criteria: lessonFour.weeklySubmissionCriteria,
+    });
+
+    expect(renderedPlanText).toMatch(/usability testing/i);
+    expect(renderedPlanText).not.toMatch(/\bWeek 4(?:\s+[a-z-]+){0,3}\s+(?:assignment|artifact|work)\b/i);
+    expect(renderedPlanText).not.toMatch(/\bArtifact revision block\b/i);
+    expect(renderedPlanText).not.toMatch(/precise use of usability testing\s+[—-]\s+A method/i);
+  });
 });

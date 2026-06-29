@@ -611,7 +611,9 @@ function isUnsafeLessonConceptPhrase(value) {
 }
 
 const GENERIC_ARTIFACT_LABEL_RE =
-  /\b(?:the\s+)?(?:week|lesson|module|unit|session)\s+\d{1,3}\s+(?:artifact|assessment|work|submission|deliverable)\b/i;
+  /\b(?:the\s+)?(?:week|lesson|module|unit|session)\s+\d{1,3}(?:\s+[a-z][a-z-]*){0,3}\s+(?:artifact|assessment|assignment|work|submission|deliverable)\b/i;
+const GENERIC_ARTIFACT_LABEL_GLOBAL_RE =
+  /\b(?:the\s+)?(?:week|lesson|module|unit|session)\s+\d{1,3}(?:\s+[a-z][a-z-]*){0,3}\s+(?:artifact|assessment|assignment|work|submission|deliverable)\b/gi;
 
 function isGenericArtifactLabel(value) {
   return GENERIC_ARTIFACT_LABEL_RE.test(cleanText(value));
@@ -4755,12 +4757,13 @@ function lessonFocusFallback(lesson = {}) {
     titleFocus &&
     !genericLessonPhrase(titleFocus) &&
     !isWeakConcept(titleFocus) &&
-    !isUnsafeLessonConceptPhrase(titleFocus)
+    !isUnsafeLessonConceptPhrase(titleFocus) &&
+    !isUnsafeLessonArtifactPhrase(titleFocus)
   ) {
     return titleFocus;
   }
   const concept = normalizeConceptCandidates(lesson?.keyConcepts || [], { title: lesson?.title, limit: 1 })[0];
-  if (concept && !genericLessonPhrase(concept)) return concept;
+  if (concept && !genericLessonPhrase(concept) && !isUnsafeLessonArtifactPhrase(concept)) return concept;
   const week = Number.isFinite(Number(lesson?.lessonNumber)) ? `Week ${lesson.lessonNumber}` : 'weekly';
   return `${week} focus`;
 }
@@ -4802,6 +4805,16 @@ function safeLessonArtifact(lesson = {}, fallbackKind = 'artifact') {
   const focus = lessonFocusFallback(lesson);
   const fallback = `${focus} ${fallbackKind}`;
   return lessonDisplayArtifact(lesson?.studentArtifact || fallback, lesson) || fallback;
+}
+
+function safeLessonPlanArtifact(lesson = {}, fallbackKind = 'artifact') {
+  const artifact = safeLessonArtifact(lesson, fallbackKind);
+  if (!isUnsafeLessonArtifactPhrase(artifact)) return artifact;
+  const concept = safeLessonPrimaryConcept(lesson);
+  const fallback = `${concept} ${fallbackKind}`;
+  return isUnsafeLessonArtifactPhrase(fallback)
+    ? `${stripLessonPrefix(lesson?.title || 'Lesson focus')} ${fallbackKind}`
+    : fallback;
 }
 
 function safeLessonEvidenceCue(lesson = {}, lens = null) {
@@ -6634,11 +6647,65 @@ function modalityEvidenceRoutineLabel(mode) {
   return MODALITY_EVIDENCE_ROUTINE_LABELS[cleanText(mode)] || 'the way this course collects its evidence';
 }
 
+function replaceGenericArtifactLabels(value, replacement) {
+  const text = cleanText(value);
+  if (!text) return text;
+  return text.replace(GENERIC_ARTIFACT_LABEL_GLOBAL_RE, replacement);
+}
+
+function sanitizeLessonModalityDecode(modality = {}, lesson = {}, artifactOverride = null) {
+  const artifact = artifactOverride || safeLessonArtifact(lesson);
+  return Object.fromEntries(
+    Object.entries(modality || {}).map(([key, value]) => [
+      key,
+      typeof value === 'string' ? replaceGenericArtifactLabels(value, artifact) : value,
+    ]),
+  );
+}
+
+function sanitizeGenericArtifactLabelsInValue(value, replacement) {
+  if (typeof value === 'string') return replaceGenericArtifactLabels(value, replacement);
+  if (Array.isArray(value)) return value.map((item) => sanitizeGenericArtifactLabelsInValue(item, replacement));
+  if (value && typeof value === 'object') {
+    return Object.fromEntries(
+      Object.entries(value).map(([key, item]) => [key, sanitizeGenericArtifactLabelsInValue(item, replacement)]),
+    );
+  }
+  return value;
+}
+
+function visibleLessonPlanArtifactReplacement(plan = {}, lesson = {}) {
+  const candidates = [
+    plan.studentFacingSummary?.submittedArtifact,
+    plan.homework?.title,
+    safeLessonPlanArtifact(lesson),
+    `${safeLessonPrimaryConcept(lesson)} artifact`,
+  ];
+  return (
+    candidates
+      .map((candidate) => stripTerminalPunctuation(cleanText(candidate)))
+      .find((candidate) => candidate && !isUnsafeLessonArtifactPhrase(candidate)) || 'lesson artifact'
+  );
+}
+
+function sanitizeCompiledLessonPlans(compiled = {}, blueprint = {}) {
+  if (!Array.isArray(compiled.lessonPlans)) return compiled;
+  return {
+    ...compiled,
+    lessonPlans: compiled.lessonPlans.map((plan, index) =>
+      sanitizeGenericArtifactLabelsInValue(
+        plan,
+        visibleLessonPlanArtifactReplacement(plan, blueprint.lessons?.[index] || {}),
+      ),
+    ),
+  };
+}
+
 function buildLessonModalityDecode(profile = {}, lesson = {}) {
   const pattern = profile.teachingPattern || {};
   const mode = profile.primaryMode || 'weekly-applied-seminar';
-  const artifact = stripTerminalPunctuation(lesson.studentArtifact || pattern.studentProduct || 'the lesson artifact');
-  const concept = lesson.keyConcepts?.[0] || stripLessonPrefix(lesson.title) || 'the lesson focus';
+  const artifact = safeLessonPlanArtifact(lesson);
+  const concept = safeLessonPrimaryConcept(lesson);
   return {
     mode,
     signaturePractice:
@@ -13140,8 +13207,8 @@ function buildCriterionPerformanceBand({ assessment, lesson, criterion, planEntr
 }
 
 function buildAssessmentAnchorExamples(lesson, criteria, criterionEvidenceMap, validityEvidence) {
-  const concept = lesson.keyConcepts[0] || stripLessonPrefix(lesson.title);
-  const artifact = stripTerminalPunctuation(lesson.studentArtifact);
+  const concept = safeLessonPrimaryConcept(lesson);
+  const artifact = safeLessonArtifact(lesson);
   const sourceCue =
     lesson.evidencePlan?.sourceCue || lesson.readings?.[0] || `${stripLessonPrefix(lesson.title)} materials`;
   const primaryCriterion = criteria[0] || `${concept} evidence quality`;
@@ -19125,7 +19192,11 @@ function buildSlideDeckIrForLesson(blueprint, lesson, index) {
   const artifact = slideArtifact(lesson);
   const sourceCue = slideSourceCue(lesson);
   const successCriterion = slideSuccessCriterion(lesson);
-  const modality = lesson.modalityDecode || buildLessonModalityDecode(blueprint.courseModalityProfile || {}, lesson);
+  const modality = sanitizeLessonModalityDecode(
+    lesson.modalityDecode || buildLessonModalityDecode(blueprint.courseModalityProfile || {}, lesson),
+    lesson,
+    artifact,
+  );
   const artifactGenre = lesson.artifactGenre || {};
   const classSessionPlan = lesson.classSessionPlan || buildClassSessionPlan({ lesson, modalityDecode: modality });
   const sequenceArtifact = /\b(TBD|to be determined)\b/i.test(cleanText(lesson.studentArtifact))
@@ -19849,11 +19920,15 @@ function buildLessonPlanOutline(blueprint, lesson, { depth = 'flat' } = {}) {
     sessionSegments.length >= 6
       ? sessionSegments.slice(0, 6).map((segment) => Number(segment.minutes || 0))
       : buildLessonPlanDurations(lesson.classSessionPlan?.sessionMinutes || DEFAULT_CLASS_SESSION_MINUTES);
-  const concept = lesson.keyConcepts[0] || stripLessonPrefix(lesson.title);
-  const artifact = stripTerminalPunctuation(lesson.studentArtifact);
+  const concept = safeLessonPrimaryConcept(lesson);
+  const artifact = safeLessonPlanArtifact(lesson);
   const misconception = lesson.misconceptionMap?.[0];
   const evidencePlan = lesson.evidencePlan;
-  const modality = lesson.modalityDecode || buildLessonModalityDecode(blueprint.courseModalityProfile || {}, lesson);
+  const modality = sanitizeLessonModalityDecode(
+    lesson.modalityDecode || buildLessonModalityDecode(blueprint.courseModalityProfile || {}, lesson),
+    lesson,
+    artifact,
+  );
   // v0.13.3: kernel-aware teaching script — when this lesson carries authored
   // or genome-linked subject matter, the script teaches THAT content instead
   // of the generic process frame (the v0.13.1 live audit's weakest surface).
@@ -20027,7 +20102,7 @@ function buildLessonPlanOutline(blueprint, lesson, { depth = 'flat' } = {}) {
         'Independent artifact sprint',
         'Studio build checkpoint',
         'Individual evidence draft',
-        'Artifact revision block',
+        'Draft revision workshop',
         'Solo transfer work',
       ]),
       type: 'Workshop',
@@ -20035,7 +20110,7 @@ function buildLessonPlanOutline(blueprint, lesson, { depth = 'flat' } = {}) {
         deep && kernelWorkedExample
           ? `Students draft ${artifact}, mirroring the worked example's solution path on their own case — every move the board model made needs an analog in the draft.`
           : deep && kernelTermA?.definition
-            ? `Students draft ${artifact}; the bar is precise use of ${kernelTermA.term} — ${stripTerminalPunctuation(kernelTermA.definition)}${kernelCitation ? ` (${kernelCitation})` : ''}.`
+            ? `Students revise ${artifact} by using ${kernelTermA.term} to justify one visible decision${kernelCitation ? ` from ${kernelCitation}` : ''}; the draft must show how the lesson evidence changes the work.`
             : `Students draft ${artifact} while using the lesson success criteria, feedback prompts, and exemplar moves as a checklist.`,
       instructorNotes:
         deep && kernelMisconception
@@ -20051,7 +20126,7 @@ function buildLessonPlanOutline(blueprint, lesson, { depth = 'flat' } = {}) {
         'Independent work with spot coaching',
         'Solo drafting with targeted conferences',
         'Individual artifact sprint plus instructor checkpoints',
-        'Quiet build time with quick evidence audits',
+        'Independent studio work with brief evidence check-ins',
       ]),
       bloomsLevel: lesson.bloomsLevel,
     },
@@ -20106,10 +20181,13 @@ function compileLessonPlans(blueprint, options = {}) {
     lessonPlans: blueprint.lessons.map((lesson, index) => {
       const teachingMoves = lessonTeachingMoves(blueprint, lesson);
       const phrase = lessonPhrase(blueprint, lesson);
-      const artifact = stripTerminalPunctuation(lesson.studentArtifact);
-      const concept = lesson.keyConcepts[0] || stripLessonPrefix(lesson.title);
-      const modality =
-        lesson.modalityDecode || buildLessonModalityDecode(blueprint.courseModalityProfile || {}, lesson);
+      const artifact = safeLessonPlanArtifact(lesson);
+      const concept = safeLessonPrimaryConcept(lesson);
+      const modality = sanitizeLessonModalityDecode(
+        lesson.modalityDecode || buildLessonModalityDecode(blueprint.courseModalityProfile || {}, lesson),
+        lesson,
+        artifact,
+      );
       const artifactGenre = lesson.artifactGenre || {};
       const materials = buildLessonPlanMaterials(lesson);
       const misconceptionMap = Array.isArray(lesson.misconceptionMap) ? lesson.misconceptionMap : [];
@@ -20132,7 +20210,7 @@ function compileLessonPlans(blueprint, options = {}) {
           (row) => row.lessonNumber === lesson.lessonNumber,
         ) || {};
 
-      return {
+      const plan = {
         lessonTitle: lesson.title,
         weekNumber: `Week ${lesson.lessonNumber}`,
         duration: `${classSessionPlan.sessionMinutes} minutes`,
@@ -20486,6 +20564,7 @@ function compileLessonPlans(blueprint, options = {}) {
             `Keep the ${stripLessonPrefix(lesson.title)} directions chunked, provide plain-language criteria, and let students choose an equivalent response format that still demonstrates ${concept}.`,
         },
       };
+      return sanitizeGenericArtifactLabelsInValue(plan, artifact);
     }),
   };
 }
@@ -20499,7 +20578,8 @@ export function compileBlueprintDeliverable(featureId, blueprint, options = {}) 
   }
   const compiled = compileBlueprintDeliverableRaw(featureId, compilerBlueprint, options);
   if (!compiled || options.skipLanguageFinalizer) return compiled;
-  return finalizeCompiledDeliverableLanguage(featureId, compiled, compilerBlueprint);
+  const finalized = finalizeCompiledDeliverableLanguage(featureId, compiled, compilerBlueprint);
+  return featureId === 'lessonPlans' ? sanitizeCompiledLessonPlans(finalized, compilerBlueprint) : finalized;
 }
 
 function compileBlueprintDeliverableRaw(featureId, compilerBlueprint, options = {}) {

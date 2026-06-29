@@ -52,6 +52,34 @@ describe('buildDeliverableDocxBlob', () => {
     expect(xml).not.toContain('Internal proof packet');
   });
 
+  it('renders lesson-plan grouping as student-facing class format text', async () => {
+    const blob = await buildDeliverableDocxBlob(
+      'lessonPlans',
+      {
+        lessonPlans: [
+          {
+            lessonTitle: 'Lesson 4: Usability testing',
+            duration: '75 minutes',
+            outline: [
+              {
+                time: '15 minutes',
+                activity: 'Draft revision workshop',
+                description: 'Students revise a usability testing artifact using task evidence.',
+                grouping: 'Independent studio work with brief evidence check-ins',
+              },
+            ],
+          },
+        ],
+      },
+      'User Experience Design Studio',
+    );
+
+    const xml = await docxDocumentXml(blob);
+
+    expect(xml).toContain('Class format: Independent studio work with brief evidence check-ins');
+    expect(xml).not.toContain('Grouping: Independent studio work with brief evidence check-ins');
+  });
+
   it('uses Word list structure instead of literal bullet glyphs for slide-deck bullets', async () => {
     const blob = await buildDeliverableDocxBlob(
       'slideDecks',

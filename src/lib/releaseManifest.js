@@ -3,24 +3,24 @@ import { APP_VERSION } from './appVersion.js';
 export const CURRENT_RELEASE = {
   version: APP_VERSION,
   date: 'June 29, 2026',
-  title: 'UX Source Proof Recovery: review-only CourseIR rows get real bibliography proof',
-  landingTitle: 'UX Source Proof Recovery',
+  title: 'Lesson Plan Artifact Firewall: Week N scaffolds stay out of exported plans',
+  landingTitle: 'Lesson Plan Artifact Firewall',
   highlights: [
-    'A fresh deployed v0.15.120 User Experience Design Studio ZIP/log audit exported Quality 98 and Texture 95; the remaining scored loss was citation truth: 204 sourceRef atoms depended on zero trusted concept-linked sourceLedger rows.',
-    'UX/design-studio exports now recover source proof when provider retrieval leaves only a CourseIR review row by adding vetted, URL-backed, CC BY-SA licensed UX background sources through the normal source-ledger path.',
-    'The CourseIR bridge still refuses to inflate proof unless multiple trusted concept-linked rows exist, so metadata-only, off-discipline, or unlinked rows stay quarantined instead of replacing source review notes.',
-    'A focused package-export regression reproduces the v0.15.120 failure shape and proves the ZIP manifest and SOURCE_REPORT replace `Existing course map fields` with licensed concept-linked sourceLedger rows.',
-    'This release keeps the target honest: v0.15.121 still needs a fresh deployed ZIP/log audit to prove UX source proof reaches clean provider output and Texture 95 reaches the strict-clean target.',
+    'A fresh deployed v0.15.121 User Experience Design Studio ZIP/log audit exported Quality 74 because one P0 lesson-plan substance finding leaked `Week 4 assignment`, dictionary-definition prose, and `Grouping:` metadata into the DOCX output.',
+    'Lesson-plan compilation now treats `Week N assignment` and short variants like `Week N lab work` as unsafe artifact labels, including stale modality/finalizer text that reaches exported plan prose.',
+    'The deep workshop step now writes a student-facing revision instruction instead of `precise use of <term> — <definition>` dictionary scaffolding, and internal `Artifact revision block` copy is removed from the activity variant pool.',
+    'DOCX lesson-plan session outlines render grouping as `Class format:` instead of the internal `Grouping:` label.',
+    'Focused compiler and DOCX regressions prove the observed v0.15.121 P0 shape is blocked without weakening the quality grader; a fresh deployed v0.15.122 ZIP/log audit is still required before claiming clean provider output.',
   ],
   landingHighlights: [
-    'Fresh v0.15.120 output isolated the remaining loss to citation/source proof.',
-    'UX exports recover licensed source rows when CourseIR proof is review-only.',
-    'The source bridge still requires real trusted concept-linked rows before replacing review notes.',
-    'Fresh v0.15.121 output is still required before claiming clean provider quality.',
+    'Fresh v0.15.121 output isolated a remaining P0 to lesson-plan scaffold leakage.',
+    'Week/session artifact labels are replaced before lesson-plan prose exports.',
+    'DOCX outlines now use student-facing class format wording.',
+    'Fresh v0.15.122 output is still required before claiming clean provider quality.',
   ],
   proof: {
-    contract: 'release-contracts/v0.15.121.json',
-    roadmap: 'docs/V0.15.121_UX_SOURCE_PROOF_RECOVERY_ROADMAP.md',
+    contract: 'release-contracts/v0.15.122.json',
+    roadmap: 'docs/V0.15.122_LESSON_PLAN_ARTIFACT_FIREWALL_ROADMAP.md',
     auditCommand: 'npm run audit:release-history',
   },
 };
@@ -35,6 +35,18 @@ export const CURRENT_RELEASE_CHANGELOG = {
 };
 
 export const HISTORICAL_RELEASE_CHANGELOGS = [
+  {
+    version: '0.15.121',
+    date: 'June 29, 2026',
+    title: 'UX Source Proof Recovery: review-only CourseIR rows get real bibliography proof',
+    highlights: [
+      'A fresh deployed v0.15.120 User Experience Design Studio ZIP/log audit exported Quality 98 and Texture 95; the remaining scored loss was citation truth: 204 sourceRef atoms depended on zero trusted concept-linked sourceLedger rows.',
+      'UX/design-studio exports now recover source proof when provider retrieval leaves only a CourseIR review row by adding vetted, URL-backed, CC BY-SA licensed UX background sources through the normal source-ledger path.',
+      'The CourseIR bridge still refuses to inflate proof unless multiple trusted concept-linked rows exist, so metadata-only, off-discipline, or unlinked rows stay quarantined instead of replacing source review notes.',
+      'A focused package-export regression reproduces the v0.15.120 failure shape and proves the ZIP manifest and SOURCE_REPORT replace `Existing course map fields` with licensed concept-linked sourceLedger rows.',
+      'This release keeps the target honest: v0.15.121 still needs a fresh deployed ZIP/log audit to prove UX source proof reaches clean provider output and Texture 95 reaches the strict-clean target.',
+    ],
+  },
   {
     version: '0.15.120',
     date: 'June 29, 2026',
