@@ -1555,7 +1555,7 @@ describe('courseBlueprintCompiler', () => {
       // v0.8.61 language finalizer shortens repeated artifact titles to
       // week-anchored references after their first mentions.
       readinessCue: expect.stringMatching(/Question-quality memo|Week 1 memo/),
-      feedbackUse: expect.stringContaining('source-based artifact'),
+      feedbackUse: expect.stringMatching(/next|later|discussion|synthesis|artifact/i),
       publishGate: 'instructor-spot-check-before-publish',
       workload: expect.stringContaining('hours including class time'),
     });
@@ -3955,7 +3955,7 @@ describe('courseBlueprintCompiler', () => {
       formativeEvidence: expect.stringContaining('annotated Policy memo checkpoint 1 line'),
       feedbackMethod: expect.stringContaining('criterion-level feedback'),
       studentRevisionAction: expect.stringContaining('evidence-backed Policy Topic 1 reasoning'),
-      nextUse: expect.stringContaining('next source-based artifact'),
+      nextUse: expect.stringMatching(/next|later|discussion|synthesis|artifact/i),
       closureCheck: expect.stringContaining('what feedback changed'),
     });
     expect(blueprint.lessons[0].learningTransferPlan).toMatchObject({

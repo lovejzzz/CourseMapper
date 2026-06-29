@@ -4637,7 +4637,12 @@ function buildFeedbackCycle({ title, concepts, artifact, evidencePlan }) {
       `Return criterion-level feedback that points to the clearest ${sourceCue} use, the uncertain claim, and one targeted ${artifactName} improvement.`,
     ]),
     studentRevisionAction: `Students revise ${artifactName} by replacing a general ${concept} claim with evidence-backed ${concept} reasoning, one limitation, and one next decision.`,
-    nextUse: `Carry the revised ${concept} evidence move into the next source-based artifact, discussion, or synthesis task.`,
+    nextUse: lessonVariant(lessonStub, [
+      `Use the revised ${concept} evidence move when students begin the next artifact, discussion, or synthesis check.`,
+      `Have students bring the revised ${concept} reasoning into the next source-backed task or class discussion.`,
+      `Ask students to reuse the revised ${concept} evidence in the next artifact, discussion, or synthesis checkpoint.`,
+      `Transfer the feedback-based ${concept} revision into the next discussion, artifact, or cumulative task.`,
+    ]),
     closureCheck: lessonVariant(lessonStub, [
       `Before moving on from ${stripLessonPrefix(title)}, students submit a brief note naming what feedback changed and what evidence still needs review.`,
       `At the end of ${stripLessonPrefix(title)}, students mark what feedback changed in ${artifactName} and name the evidence question they will revisit.`,
@@ -20739,7 +20744,12 @@ function compileLessonPlans(blueprint, options = {}) {
             `Recheck ${artifact} after students revise the evidence decision.`,
           transferTask:
             lesson.learningTransferPlan?.transferTask ||
-            `Carry one ${concept} evidence move into the next source-based artifact.`,
+            lessonVariant(lesson, [
+              `Carry one ${concept} evidence move into the next artifact or discussion.`,
+              `Reuse one ${concept} evidence choice in the next source-backed task.`,
+              `Apply one revised ${concept} claim to the next course artifact.`,
+              `Bring one feedback-tested ${concept} move into the next synthesis check.`,
+            ]),
           modalityFit:
             lesson.modalityCue ||
             `Run ${stripLessonPrefix(lesson.title)} as ${blueprint.courseModalityProfile?.primaryMode || 'an applied session'} with participation matched to the course environment.`,

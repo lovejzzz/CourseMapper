@@ -3,24 +3,24 @@ import { APP_VERSION } from './appVersion.js';
 export const CURRENT_RELEASE = {
   version: APP_VERSION,
   date: 'June 29, 2026',
-  title: 'Lesson Plan Texture Constraints: publication review scaffolds vary by lesson',
-  landingTitle: 'Lesson Plan Texture Constraints',
+  title: 'Course FAQ Feedback Texture: repeated source-based artifact shingle is varied',
+  landingTitle: 'Course FAQ Feedback Texture',
   highlights: [
-    'The fresh deployed v0.15.132 User Experience Design Studio ZIP/log evidence still exposed a strict-clean texture target after the v0.15.133 assessment bridge: CourseMapper fallback publication-review text could repeat through every lesson.',
-    'CourseIR-to-Course-Map export now localizes the generic publication constraint per lesson before it reaches supporting resources, derived activities, or enrichment kernels.',
-    'The blueprint compiler now normalizes stale Course Map `supportingResources` cells that already contain the old generic publication warning, so source traces, readings, and lesson-plan materials no longer preserve the exact repeated shingle.',
-    'Deep lesson-plan workshop copy now rotates the evidence-change sentence by lesson instead of stamping `the draft must show how the lesson evidence changes the work` across a 12-lesson package.',
-    'Focused v0.15.134 regressions prove the old generic publication constraint and deep workshop shingle stay out of compiled UX lesson plans while source-permission and local-review semantics remain visible.',
+    'The fresh deployed v0.15.132 User Experience Design Studio ZIP/log evidence still exposed one deterministic CourseMapper texture target after the v0.15.133 and v0.15.134 repairs: Course FAQ feedback answers repeated the same `source-based artifact, discussion, or synthesis task` shingle across all lessons.',
+    'The blueprint compiler now varies the feedback next-use sentence by lesson while preserving the same requirement that students transfer revised evidence into later artifacts, discussions, synthesis checks, or source-backed tasks.',
+    'Lesson-plan ready-to-teach transfer fallback copy now also rotates the same source-backed next-use idea, preventing the old `next source-based artifact` phrasing from resurfacing in support surfaces.',
+    'Existing compiler tests now assert the instructional transfer intent instead of requiring the old repeated literal phrase, so regression coverage protects meaning rather than clutter.',
+    'A focused v0.15.135 UX Course FAQ regression compiles a 12-lesson, six-question FAQ, runs the texture metric, and proves the old repeated feedback shingle stays out of FAQ text and texture evidence.',
   ],
   landingHighlights: [
-    'A proven repeated publication-review fallback now varies by lesson.',
-    'CourseIR, source traces, readings, and lesson-plan materials share the same cleanup.',
-    'Deep lesson-plan workshop language now rotates deterministically.',
-    'Fresh v0.15.134 ZIP/log evidence is still required before claiming 100/100.',
+    'Course FAQ feedback-transfer answers now vary by lesson.',
+    'The old `next source-based artifact` shingle is no longer required or emitted.',
+    'Ready-to-teach transfer fallback copy shares the same texture cleanup.',
+    'Fresh v0.15.135 ZIP/log evidence is still required before claiming 100/100.',
   ],
   proof: {
-    contract: 'release-contracts/v0.15.134.json',
-    roadmap: 'docs/V0.15.134_LESSON_PLAN_TEXTURE_CONSTRAINT_VARIATION_ROADMAP.md',
+    contract: 'release-contracts/v0.15.135.json',
+    roadmap: 'docs/V0.15.135_COURSE_FAQ_FEEDBACK_TEXTURE_ROADMAP.md',
     auditCommand: 'npm run audit:release-history',
   },
 };
@@ -35,6 +35,18 @@ export const CURRENT_RELEASE_CHANGELOG = {
 };
 
 export const HISTORICAL_RELEASE_CHANGELOGS = [
+  {
+    version: '0.15.134',
+    date: 'June 29, 2026',
+    title: 'Lesson Plan Texture Constraints: publication review scaffolds vary by lesson',
+    highlights: [
+      'The fresh deployed v0.15.132 User Experience Design Studio ZIP/log evidence still exposed a strict-clean texture target after the v0.15.133 assessment bridge: CourseMapper fallback publication-review text could repeat through every lesson.',
+      'CourseIR-to-Course-Map export now localizes the generic publication constraint per lesson before it reaches supporting resources, derived activities, or enrichment kernels.',
+      'The blueprint compiler now normalizes stale Course Map `supportingResources` cells that already contain the old generic publication warning, so source traces, readings, and lesson-plan materials no longer preserve the exact repeated shingle.',
+      'Deep lesson-plan workshop copy now rotates the evidence-change sentence by lesson instead of stamping `the draft must show how the lesson evidence changes the work` across a 12-lesson package.',
+      'Focused v0.15.134 regressions prove the old generic publication constraint and deep workshop shingle stay out of compiled UX lesson plans while source-permission and local-review semantics remain visible.',
+    ],
+  },
   {
     version: '0.15.133',
     date: 'June 29, 2026',
