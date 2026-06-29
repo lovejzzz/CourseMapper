@@ -17835,10 +17835,23 @@ function slideVisual(lesson, slide) {
     `Connect ${concept} evidence to ${artifact}`,
     type === 'activity' ? 84 : 100,
   );
+  const visualKind = sentenceCase(selected.kind);
+  const visualDescription = lessonVariant(lesson, [
+    `${visualEvidence}.`,
+    `Use a ${selected.kind} to ${lowercaseClauseLead(visualEvidence)}.`,
+    `${visualKind} highlights how students use the evidence for ${artifact}.`,
+    `Visual plan: ${visualEvidence}.`,
+  ]);
+  const altText = lessonVariant(lesson, [
+    `${visualKind} for "${title}" showing ${concept} evidence for ${artifact}.`,
+    `Accessible ${selected.kind} for "${title}": ${concept} evidence tied to ${artifact}.`,
+    `"${title}" visual: ${selected.kind} connecting ${concept} evidence to ${artifact}.`,
+    `Nonvisual summary for "${title}": ${concept} evidence supports ${artifact}.`,
+  ]);
   return {
     kind: selected.kind,
-    description: `${sentenceCase(selected.kind)}: ${visualEvidence}.`,
-    altText: `${sentenceCase(selected.kind)} for "${title}" showing ${concept} evidence for ${artifact}.`,
+    description: visualDescription,
+    altText,
     // v0.13.3: renderable concept-map data (hub + short spoke terms) rides
     // the descriptor so the PPTX exporter can draw a native group.
     ...(selected.hub && Array.isArray(selected.spokes) ? { hub: selected.hub, spokes: selected.spokes } : {}),

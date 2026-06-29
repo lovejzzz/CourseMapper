@@ -119,22 +119,43 @@ export const ACCENT_FAMILIES = [
   { name: 'Plum', accent: 'C9A0DC' },
 ];
 
+const VISUAL_NOTE_LABELS = [
+  'Slide visual cue',
+  'Teaching visual plan',
+  'Instructor visual note',
+  'Visual support note',
+];
+const ACCESSIBILITY_NOTE_LABELS = [
+  'Accessibility note',
+  'Alt-text cue',
+  'Nonvisual access note',
+  'Accessible reading note',
+];
+
 /**
- * Deterministically pick an accent family for a course name.
- * FNV-1a over the normalized name — same name always maps to the same
- * family; no randomness, no ordering dependence.
+ * FNV-1a over normalized text. Used for stable presentation variation —
+ * same course/deck/slide input always maps to the same output.
  */
-export function accentFamilyForCourse(courseName) {
-  const key = String(courseName || '')
+function stableHash(value) {
+  const key = String(value || '')
     .trim()
     .toLowerCase();
-  if (!key) return ACCENT_FAMILIES[0];
+  if (!key) return 0;
   let h = 0x811c9dc5; // FNV-1a 32-bit offset basis
   for (let i = 0; i < key.length; i++) {
     h ^= key.charCodeAt(i);
     h = Math.imul(h, 0x01000193);
   }
-  return ACCENT_FAMILIES[(h >>> 0) % ACCENT_FAMILIES.length];
+  return h >>> 0;
+}
+
+/**
+ * Deterministically pick an accent family for a course name.
+ * Same name always maps to the same family; no randomness, no ordering
+ * dependence.
+ */
+export function accentFamilyForCourse(courseName) {
+  return ACCENT_FAMILIES[stableHash(courseName) % ACCENT_FAMILIES.length];
 }
 
 /**
@@ -147,6 +168,10 @@ function themeWithCourseAccent(theme, courseName) {
   const family = accentFamilyForCourse(courseName);
   if (!family || family.accent === theme.accent) return theme;
   return { ...theme, accent: family.accent };
+}
+
+function noteLabel(labels, ...parts) {
+  return labels[stableHash(parts.filter(Boolean).join(' | ')) % labels.length];
 }
 
 // ── Slide type detection ───────────────────────────────────────────────────
@@ -2049,8 +2074,19 @@ async function buildSlideForDeck(pptx, deck, theme, slideIndex, totalSlides, opt
     countSpeakerNoteWords(rawNotes) >= 20
       ? rawNotes
       : [rawNotes, buildFallbackSpeakerNotes(deck, s, slideIndex, totalSlides)].filter(Boolean).join('\n\n');
+  const visualLabel = noteLabel(VISUAL_NOTE_LABELS, deck.lessonTitle, deck.lt, s.title, slideIndex, slideType, visKind);
+  const accessibilityLabel = noteLabel(
+    ACCESSIBILITY_NOTE_LABELS,
+    deck.lessonTitle,
+    deck.lt,
+    s.title,
+    slideIndex,
+    slideType,
+    visKind,
+    visAlt,
+  );
   const visualGuidance = hasVisual
-    ? [`Instructor visual note (${visKind}): ${visDesc}`, visAlt ? `Accessibility note: ${visAlt}` : '']
+    ? [`${visualLabel} (${visKind}): ${visDesc}`, visAlt ? `${accessibilityLabel}: ${visAlt}` : '']
         .filter(Boolean)
         .join('\n')
     : '';

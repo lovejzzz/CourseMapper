@@ -241,10 +241,21 @@ const FIXTURE = {
 
 // Distinctive marker strings from our exporter code — if these change, the
 // test fails loudly and someone has to re-verify the feature intentionally.
-const NOTES_MARKER = 'Instructor visual note';
-const ALT_MARKER = 'Accessibility note';
+const VISUAL_NOTE_MARKERS = [
+  'Slide visual cue',
+  'Teaching visual plan',
+  'Instructor visual note',
+  'Visual support note',
+];
+const ALT_MARKERS = ['Accessibility note', 'Alt-text cue', 'Nonvisual access note', 'Accessible reading note'];
 const RAW_NOTES_MARKERS = ['SUGGESTED VISUAL', 'ALT TEXT', 'Visual guidance', 'Accessibility description'];
 const DASHED_LINE_XML = /prstDash\s+val\s*=\s*"dash"/;
+const containsAny = (xml, markers) => markers.some((marker) => xml.includes(marker));
+const firstMarkerIndex = (xml, markers) =>
+  markers.reduce((best, marker) => {
+    const index = xml.indexOf(marker);
+    return index === -1 ? best : Math.min(best, index);
+  }, Number.POSITIVE_INFINITY);
 
 let slideXmls;
 let notesXmls;
@@ -282,13 +293,13 @@ describe('PPTX export — visual placeholders', () => {
     // drew a dashed "SUGGESTED VISUAL" box on the student-facing slide; the
     // suggestion now lives in speaker notes only.
     expect(slideXmls[1]).not.toMatch(DASHED_LINE_XML);
-    expect(slideXmls[1]).not.toContain(NOTES_MARKER);
+    expect(containsAny(slideXmls[1], VISUAL_NOTE_MARKERS)).toBe(false);
   });
 
   it('keyTerm slide with a visual keeps the slide surface free of placeholder scaffolding (v0.8.61)', () => {
     // Fixture slide index 3 = keyTerm with visual
     expect(slideXmls[3]).not.toMatch(DASHED_LINE_XML);
-    expect(slideXmls[3]).not.toContain(NOTES_MARKER);
+    expect(containsAny(slideXmls[3], VISUAL_NOTE_MARKERS)).toBe(false);
   });
 
   it('content slide without a visual does NOT emit the dashed placeholder', () => {
@@ -309,8 +320,8 @@ describe('PPTX export — visual placeholders', () => {
 
   it('content slide notes include clean visual guidance with accessibility text', () => {
     // Notes XML at the same index as the slide
-    expect(notesXmls[1]).toContain(NOTES_MARKER);
-    expect(notesXmls[1]).toContain(ALT_MARKER);
+    expect(containsAny(notesXmls[1], VISUAL_NOTE_MARKERS)).toBe(true);
+    expect(containsAny(notesXmls[1], ALT_MARKERS)).toBe(true);
     for (const marker of RAW_NOTES_MARKERS) {
       expect(notesXmls[1]).not.toContain(marker);
     }
@@ -319,15 +330,30 @@ describe('PPTX export — visual placeholders', () => {
     expect(notesXmls[1]).toContain('labeled data');
   });
 
+  it('varies visual guidance labels across a visual-heavy deck', () => {
+    const usedVisualLabels = new Set();
+    const usedAltLabels = new Set();
+    for (const notes of notesXmls) {
+      for (const marker of VISUAL_NOTE_MARKERS) {
+        if (notes.includes(`${marker} (`)) usedVisualLabels.add(marker);
+      }
+      for (const marker of ALT_MARKERS) {
+        if (notes.includes(`${marker}:`)) usedAltLabels.add(marker);
+      }
+    }
+    expect(usedVisualLabels.size).toBeGreaterThanOrEqual(2);
+    expect(usedAltLabels.size).toBeGreaterThanOrEqual(2);
+  });
+
   it('title slide notes still include clean visual guidance', () => {
     // Even though the on-slide placeholder is exempt, the notes-page block
     // is always added — accessibility metadata should surface regardless.
-    expect(notesXmls[0]).toContain(NOTES_MARKER);
+    expect(containsAny(notesXmls[0], VISUAL_NOTE_MARKERS)).toBe(true);
     expect(notesXmls[0]).toContain('graduation cap');
   });
 
   it('slide without a visual does NOT add visual guidance', () => {
-    expect(notesXmls[2]).not.toContain(NOTES_MARKER);
+    expect(containsAny(notesXmls[2], VISUAL_NOTE_MARKERS)).toBe(false);
     // Baseline notes should still be present unaltered.
     expect(notesXmls[2]).toContain('Remind about cadence');
   });
@@ -337,9 +363,9 @@ describe('PPTX export — visual placeholders', () => {
     // appear after our prepended visual guidance block.
     expect(notesXmls[1]).toContain('Define the core setup');
     // And the order: visual guidance should come before the original note.
-    const visualIdx = notesXmls[1].indexOf(NOTES_MARKER);
+    const visualIdx = firstMarkerIndex(notesXmls[1], VISUAL_NOTE_MARKERS);
     const baseIdx = notesXmls[1].indexOf('Define the core setup');
-    expect(visualIdx).toBeGreaterThanOrEqual(0);
+    expect(Number.isFinite(visualIdx)).toBe(true);
     expect(baseIdx).toBeGreaterThan(visualIdx);
   });
 
@@ -354,7 +380,7 @@ describe('PPTX export — visual placeholders', () => {
     // tech reading the notes page gets the description, even though the shape
     // itself lacks a descr attribute. This assertion pins that fallback.
     const notes = notesXmls[1];
-    expect(notes).toContain(ALT_MARKER);
+    expect(containsAny(notes, ALT_MARKERS)).toBe(true);
     expect(notes).not.toContain('ALT TEXT');
     // Distinctive phrase from our fixture's altText string — proves the
     // altText value reached the exported PPTX, not just the marker label.
@@ -497,10 +523,10 @@ describe('PPTX export — native visuals (v0.12.1)', () => {
   });
 
   it('keeps the SUGGESTED VISUAL block in notes as alt-text even when rendered natively', () => {
-    expect(notesXmls[5]).toContain(NOTES_MARKER);
-    expect(notesXmls[5]).toContain(ALT_MARKER);
-    expect(notesXmls[6]).toContain(NOTES_MARKER);
-    expect(notesXmls[7]).toContain(NOTES_MARKER);
+    expect(containsAny(notesXmls[5], VISUAL_NOTE_MARKERS)).toBe(true);
+    expect(containsAny(notesXmls[5], ALT_MARKERS)).toBe(true);
+    expect(containsAny(notesXmls[6], VISUAL_NOTE_MARKERS)).toBe(true);
+    expect(containsAny(notesXmls[7], VISUAL_NOTE_MARKERS)).toBe(true);
   });
 
   it('native visuals never reintroduce the dashed placeholder scaffolding', () => {

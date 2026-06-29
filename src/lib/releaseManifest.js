@@ -3,24 +3,24 @@ import { APP_VERSION } from './appVersion.js';
 export const CURRENT_RELEASE = {
   version: APP_VERSION,
   date: 'June 29, 2026',
-  title: 'Lesson Plan Prompt-Artifact Precision: assessment labels become natural plan references',
-  landingTitle: 'Lesson Plan Prompt-Artifact Precision',
+  title: 'Slide Note Texture Rotation: PPTX visual scaffolds stop repeating across lessons',
+  landingTitle: 'Slide Note Texture Rotation',
   highlights: [
-    'A fresh deployed v0.15.122 User Experience Design Studio ZIP/log audit exported Quality 98 and Texture 94; source proof, export verification, enrichment coverage, and report/digest truth were clean, but one P1 remained in lesson-plan prompt-artifact handling.',
-    'Lesson-plan compilation now treats colon-labeled assessment artifacts such as `Discussion prompts: Usability testing` as unsafe prose references and rewrites them to natural weekly artifact language before export.',
-    'Stale modality text is sanitized with the same rule, so instructor notes no longer say things like `Discussion prompts: Usability testing evidence about Usability testing` when they should name the visible student work.',
-    'The prompt-artifact detector now requires artifact labels to be near the focus/check cue, preventing a distant DOCX file header such as `LESSON PLANS` from combining with a later discussion question into a false positive.',
-    'Focused compiler and grader regressions prove the observed v0.15.122 P1 shape is blocked without weakening true prompt-artifact findings; a fresh deployed v0.15.123 ZIP/log audit is still required before claiming clean provider output.',
+    'A fresh deployed v0.15.123 User Experience Design Studio ZIP/log audit exported and locally regraded at 99/100 with zero P0/P1/P2 findings, clean source proof, export verification, enrichment coverage, and report/digest truth.',
+    'The only scored loss was Texture 92, led by repeated PPTX slide-deck speaker-note shingles such as fixed `Instructor visual note` / `Accessibility note` labels and repeated visual-kind phrasing across all 12 lesson decks.',
+    'Slide visual descriptors now vary by lesson: compiler-owned descriptions and alt text rotate while preserving the visual kind, evidence use, artifact connection, and accessibility purpose.',
+    'PPTX speaker notes now rotate clean visual and accessibility labels deterministically by deck/slide instead of stamping the same two labels everywhere, while keeping visual guidance in notes and off student-facing slides.',
+    'Focused PPTX/compiler regressions prove note labels vary across a visual-heavy deck without reintroducing raw `SUGGESTED VISUAL`, `ALT TEXT`, `Visual guidance`, or `Accessibility description` scaffolds.',
   ],
   landingHighlights: [
-    'Fresh v0.15.122 output isolated the remaining scored loss to lesson-plan prompt-artifact precision.',
-    'Prompt-labeled weekly assessments become natural plan references before export.',
-    'The grader no longer treats distant document headers as learner-facing artifact concepts.',
-    'Fresh v0.15.123 output is still required before claiming clean provider quality.',
+    'Fresh v0.15.123 output is structurally clean at 99/100 with zero P findings.',
+    'The remaining scored loss is repeated slide-deck note texture, not source truth.',
+    'PPTX visual and accessibility notes now vary deterministically by deck and slide.',
+    'Fresh v0.15.124 output is still required before claiming strict-clean texture.',
   ],
   proof: {
-    contract: 'release-contracts/v0.15.123.json',
-    roadmap: 'docs/V0.15.123_LESSON_PLAN_PROMPT_ARTIFACT_PRECISION_ROADMAP.md',
+    contract: 'release-contracts/v0.15.124.json',
+    roadmap: 'docs/V0.15.124_SLIDE_NOTE_TEXTURE_ROTATION_ROADMAP.md',
     auditCommand: 'npm run audit:release-history',
   },
 };
@@ -35,6 +35,18 @@ export const CURRENT_RELEASE_CHANGELOG = {
 };
 
 export const HISTORICAL_RELEASE_CHANGELOGS = [
+  {
+    version: '0.15.123',
+    date: 'June 29, 2026',
+    title: 'Lesson Plan Prompt-Artifact Precision: assessment labels become natural plan references',
+    highlights: [
+      'A fresh deployed v0.15.122 User Experience Design Studio ZIP/log audit exported Quality 98 and Texture 94; source proof, export verification, enrichment coverage, and report/digest truth were clean, but one P1 remained in lesson-plan prompt-artifact handling.',
+      'Lesson-plan compilation now treats colon-labeled assessment artifacts such as `Discussion prompts: Usability testing` as unsafe prose references and rewrites them to natural weekly artifact language before export.',
+      'Stale modality text is sanitized with the same rule, so instructor notes no longer say things like `Discussion prompts: Usability testing evidence about Usability testing` when they should name the visible student work.',
+      'The prompt-artifact detector now requires artifact labels to be near the focus/check cue, preventing a distant DOCX file header such as `LESSON PLANS` from combining with a later discussion question into a false positive.',
+      'A fresh deployed v0.15.123 ZIP/log audit later proved the P1 was gone and source/export/report truth stayed clean, but Texture 92 still kept the package at 99/100 rather than the strict-clean target.',
+    ],
+  },
   {
     version: '0.15.122',
     date: 'June 29, 2026',
