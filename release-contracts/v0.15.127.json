@@ -1,0 +1,98 @@
+{
+  "version": "0.15.127",
+  "date": "June 29, 2026",
+  "title": "Texture Variation: UX studio scaffolds stop repeating across every lesson",
+  "status": "verified-current",
+  "proofSummary": {
+    "local": [
+      "npx vitest run tests/v015127-texture-variation.test.js",
+      "npm run format:check",
+      "npm run lint",
+      "npm test",
+      "npm run build",
+      "npm run bundle:check",
+      "npm run audit:release-history",
+      "npm run audit:gold:smoke"
+    ],
+    "ciFast": {
+      "status": "pending-push",
+      "note": "Fast verification is claimed only after v0.15.127 is pushed and the GitHub Actions run is attached."
+    },
+    "deploy": {
+      "status": "pending-push",
+      "note": "Pages deploy is not claimed until the pushed v0.15.127 release completes its deploy run."
+    },
+    "ciDeep": {
+      "status": "local-only",
+      "note": "This is a narrow deterministic texture release; focused compiler coverage plus normal gates are the release bar."
+    },
+    "liveProvider": {
+      "status": "local-only",
+      "note": "The release is based on a fresh deployed v0.15.126 ZIP/log audit that exported 99/100 with Texture 90 and no P findings. A fresh deployed v0.15.127 audit is still required before claiming clean provider output."
+    },
+    "manualHuman": {
+      "status": "not-applicable",
+      "note": "No external instructor approval is claimed by this release."
+    }
+  },
+  "claims": [
+    {
+      "id": "v015127-v015126-audit-evidence",
+      "status": "verified-current",
+      "changelogHighlightIndex": 0,
+      "summary": "A fresh deployed v0.15.126 UX audit exported and locally regraded at 99/100 with zero P findings and Texture 90.",
+      "anchors": ["docs/V0.15.127_TEXTURE_VARIATION_ROADMAP.md", "src/lib/releaseManifest.js"],
+      "proofCommands": [
+        "rg -n \"99/100|Quality 99|Texture 90|0 P0|0 P1|0 P2|v0.15.126\" docs/V0.15.127_TEXTURE_VARIATION_ROADMAP.md src/lib/releaseManifest.js"
+      ],
+      "proofScopes": ["live-provider", "static-audit", "compiled-output"]
+    },
+    {
+      "id": "v015127-texture-diagnosis",
+      "status": "verified-current",
+      "changelogHighlightIndex": 1,
+      "summary": "The prior PPTX P1 was gone; the remaining scored loss was repeated texture scaffolding.",
+      "anchors": ["docs/V0.15.127_TEXTURE_VARIATION_ROADMAP.md", "src/lib/releaseManifest.js"],
+      "proofCommands": [
+        "rg -n \"PPTX punctuation P1|repeated texture|Texture 90|collect critique notes\" docs/V0.15.127_TEXTURE_VARIATION_ROADMAP.md src/lib/releaseManifest.js"
+      ],
+      "proofScopes": ["live-provider", "static-audit"]
+    },
+    {
+      "id": "v015127-studio-evidence-rotation",
+      "status": "verified-current",
+      "changelogHighlightIndex": 2,
+      "summary": "Studio evidence routines rotate by lesson before they reach slide-deck grounding.",
+      "anchors": ["src/lib/courseBlueprintCompiler.js", "tests/v015127-texture-variation.test.js"],
+      "proofCommands": ["npx vitest run tests/v015127-texture-variation.test.js"],
+      "proofScopes": ["unit", "compiled-output", "static-audit"]
+    },
+    {
+      "id": "v015127-scaffold-rotation",
+      "status": "verified-current",
+      "changelogHighlightIndex": 3,
+      "summary": "Discussion notes, closing notes, warm-up grouping, and Course Map fallback checks vary deterministically.",
+      "anchors": [
+        "src/lib/courseBlueprintCompiler.js",
+        "src/lib/deliverableReadiness.js",
+        "tests/v015127-texture-variation.test.js"
+      ],
+      "proofCommands": ["npx vitest run tests/v015127-texture-variation.test.js"],
+      "proofScopes": ["unit", "compiled-output", "static-audit"]
+    },
+    {
+      "id": "v015127-compact-modality-grounding",
+      "status": "verified-current",
+      "changelogHighlightIndex": 4,
+      "summary": "Deliverable-facing modality grounding uses compact lesson-specific profile data instead of raw repeated course-level teaching patterns.",
+      "anchors": ["src/lib/courseBlueprintCompiler.js", "tests/v015127-texture-variation.test.js"],
+      "proofCommands": ["npx vitest run tests/v015127-texture-variation.test.js"],
+      "proofScopes": ["unit", "compiled-output", "static-audit"]
+    }
+  ],
+  "knownRemainingTargets": [
+    "Fresh deployed v0.15.127 ZIP/log audit must prove Texture reaches 100/100 or identify the next concrete repeated shingle.",
+    "Source rows must remain real, trusted, on-topic, license-safe, and concept-linked across UX and Project Management domains.",
+    "Every exported surface must agree: UI, ZIP, manifest, quality report, source report, digest logs, DOCX/PPTX files, and local regrade."
+  ]
+}

@@ -3,23 +3,24 @@ import { APP_VERSION } from './appVersion.js';
 export const CURRENT_RELEASE = {
   version: APP_VERSION,
   date: 'June 29, 2026',
-  title: 'PPTX Bullet Finish: exported slide bullets stop shipping as bare clauses',
-  landingTitle: 'PPTX Bullet Finish',
+  title: 'Texture Variation: UX studio scaffolds stop repeating across every lesson',
+  landingTitle: 'Texture Variation',
   highlights: [
-    'A fresh deployed v0.15.125 User Experience Design Studio ZIP/log audit exported and locally regraded at 99/100 with clean source proof, export verification, enrichment coverage, and Texture 95.',
-    'The only scored P finding was a format/export defect in `Slide Decks/Lesson 10 - Accessibility - Slide Decks.pptx`: a long example-slide body bullet shipped as a bare clause without terminal punctuation.',
-    'PPTX export now applies the same long-prose punctuation safety net at final render time, so sentence-like slide body bullets cannot escape the compiler cleanup path as bare lowercase-ending lines.',
-    'A focused PPTX regression reproduces the exact accessibility bullet shape from the v0.15.125 audit and proves short labels plus relationship-arrow concept pairs stay intentionally unpunctuated.',
+    'A fresh deployed v0.15.126 User Experience Design Studio ZIP/log audit exported and locally regraded at 99/100 with zero P0/P1/P2 findings, export verification passed, complete enrichment coverage, and Texture 90.',
+    'The v0.15.126 audit proved the prior PPTX punctuation P1 was gone; the only scored loss was repeated texture scaffolding across UX slide decks and lesson plans.',
+    'Studio evidence routines now rotate by lesson, so the fixed `collect critique notes, usability evidence, and rationale changes before the next iteration` shingle no longer repeats through every slide-deck grounding record.',
+    'Slide discussion notes, closing handoffs, lesson-plan warm-up groupings, and generic Course Map review checks now vary deterministically while preserving the same instructional intent and audit truth.',
+    'Deliverable-facing modality grounding now exports a compact lesson-specific profile instead of repeating the raw course-level teaching pattern in every deck.',
   ],
   landingHighlights: [
-    'Fresh v0.15.125 output reached 99/100 with source proof clean and one PPTX punctuation P1.',
-    'Rendered PPTX body bullets now get a final long-prose punctuation safety pass.',
-    'Short labels and relationship-arrow concept pairs remain clean, not over-punctuated.',
-    'Fresh v0.15.126 output is still required before claiming strict-clean provider output.',
+    'Fresh v0.15.126 output reached 99/100 with no P findings; Texture 90 remained.',
+    'UX studio slide and lesson-plan scaffolds now vary by lesson.',
+    'Course Map fallback review checks rotate instead of repeating one audit-looking sentence.',
+    'Fresh v0.15.127 output is still required before claiming strict-clean provider output.',
   ],
   proof: {
-    contract: 'release-contracts/v0.15.126.json',
-    roadmap: 'docs/V0.15.126_PPTX_BULLET_FINISH_ROADMAP.md',
+    contract: 'release-contracts/v0.15.127.json',
+    roadmap: 'docs/V0.15.127_TEXTURE_VARIATION_ROADMAP.md',
     auditCommand: 'npm run audit:release-history',
   },
 };
@@ -34,6 +35,17 @@ export const CURRENT_RELEASE_CHANGELOG = {
 };
 
 export const HISTORICAL_RELEASE_CHANGELOGS = [
+  {
+    version: '0.15.126',
+    date: 'June 29, 2026',
+    title: 'PPTX Bullet Finish: exported slide bullets stop shipping as bare clauses',
+    highlights: [
+      'A fresh deployed v0.15.125 User Experience Design Studio ZIP/log audit exported and locally regraded at 99/100 with clean source proof, export verification, enrichment coverage, and Texture 95.',
+      'The only scored P finding was a format/export defect in `Slide Decks/Lesson 10 - Accessibility - Slide Decks.pptx`: a long example-slide body bullet shipped as a bare clause without terminal punctuation.',
+      'PPTX export now applies the same long-prose punctuation safety net at final render time, so sentence-like slide body bullets cannot escape the compiler cleanup path as bare lowercase-ending lines.',
+      'A focused PPTX regression reproduces the exact accessibility bullet shape from the v0.15.125 audit and proves short labels plus relationship-arrow concept pairs stay intentionally unpunctuated.',
+    ],
+  },
   {
     version: '0.15.125',
     date: 'June 29, 2026',

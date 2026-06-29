@@ -785,7 +785,12 @@ function getCourseMapFallbackValue(key, courseMap, lesson, section, lessonIndex)
               `Course materials students need to prepare and show evidence about ${topic}.`,
               `Worked examples, readings, or activity sheets aligned to ${topic}.`,
             ]),
-            evaluateDesign: `Check that the ${topic} activity, resource, and assessment ask students to produce the same evidence of learning.`,
+            evaluateDesign: pick([
+              `Check that the ${topic} activity, resource, and assessment ask students to produce the same evidence of learning.`,
+              `Confirm that the ${topic} activity and assessment use the same evidence standard.`,
+              `Make sure students practice ${topic} with the same evidence they will use in the assessment.`,
+              `Align the ${topic} resource, class task, and assessment around one visible learning product.`,
+            ]),
           };
   return fieldFallbacks[key] || `Instructor-confirmed material for ${topic}.`;
 }

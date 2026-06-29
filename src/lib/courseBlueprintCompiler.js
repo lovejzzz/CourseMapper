@@ -6599,6 +6599,19 @@ function contextualizeModalityRoutine(kind, base, { lesson = {}, concept = '', a
       'close synthesis by having students mark the evidence link that needs another pass',
     ]);
   }
+  if (
+    kind === 'evidenceRoutine' &&
+    /\bcollect critique notes, usability evidence, and rationale changes before the next iteration\b/i.test(routine)
+  ) {
+    routine = lessonVariant(lesson, [
+      'compare critique notes with usability evidence before naming the next prototype revision',
+      'mark the test observation, critique cue, and rationale change that should guide the next iteration',
+      'select one usability finding, one design rationale shift, and one visible artifact change before revising',
+      'trace how critique evidence changes the prototype decision students will document next',
+      'separate peer preference from usability evidence before choosing the revision students will carry forward',
+      'connect critique notes to a portfolio rationale so the next iteration has visible evidence behind it',
+    ]);
+  }
   const templates = {
     signaturePractice: [
       `${sentenceCase(routine)} for ${title}, with ${artifact} as the visible product.`,
@@ -12074,8 +12087,35 @@ function safeGroundingValueForDeliverable(value, lesson = {}, fallback = safeLes
   );
 }
 
+function compactCourseModalityProfileForDeliverable(profile = {}, lesson = {}) {
+  if (!profile || typeof profile !== 'object') return null;
+  const modalityDecode = lesson?.modalityDecode || buildLessonModalityDecode(profile, lesson || {});
+  return {
+    primaryMode: profile.primaryMode || modalityDecode?.mode || '',
+    environment: profile.environment || '',
+    interactionPattern: profile.interactionPattern || '',
+    artifactEnvironment: profile.artifactEnvironment || '',
+    source: profile.source || 'compiler-inferred-from-course-map',
+    signaturePractice: modalityDecode?.signaturePractice || '',
+    evidenceRoutine: modalityDecode?.evidenceRoutine || '',
+    feedbackRoutine: modalityDecode?.feedbackRoutine || '',
+  };
+}
+
+function compactGroundingExtrasForDeliverable(extras = {}, lesson = {}) {
+  if (!extras || typeof extras !== 'object' || Array.isArray(extras) || !extras.courseModalityProfile) return extras;
+  return {
+    ...extras,
+    courseModalityProfile: compactCourseModalityProfileForDeliverable(extras.courseModalityProfile, lesson),
+  };
+}
+
 function lessonSourceGrounding(lesson, extras = {}) {
-  const safeExtras = safeGroundingValueForDeliverable(clonePlain(extras), lesson, safeLessonPrimaryConcept(lesson));
+  const safeExtras = safeGroundingValueForDeliverable(
+    clonePlain(compactGroundingExtrasForDeliverable(extras, lesson)),
+    lesson,
+    safeLessonPrimaryConcept(lesson),
+  );
   return {
     lessonNumber: lesson?.lessonNumber || null,
     lessonTitle: lesson?.title || '',
@@ -17684,6 +17724,20 @@ function slideVisual(lesson, slide) {
   const source = slideSourceCue(lesson);
   const modality = lesson.modalityDecode || {};
   const artifactGenre = lesson.artifactGenre || {};
+  const modalityFit =
+    contextualizeModalityRoutine('signaturePractice', modality.signaturePractice, {
+      lesson,
+      concept,
+      artifact,
+      mode: modality.mode || 'practice',
+    }) ||
+    contextualizeModalityRoutine('evidenceRoutine', modality.evidenceRoutine, {
+      lesson,
+      concept,
+      artifact,
+      mode: modality.mode || 'practice',
+    }) ||
+    `Use the course practice pattern to make ${concept} evidence visible.`;
   const visualByType = {
     bridge: {
       kind: 'learning-thread timeline',
@@ -17812,10 +17866,7 @@ function slideVisual(lesson, slide) {
     slidePurpose: selected.purpose,
     evidenceSource: source,
     artifactConnection: artifact,
-    modalityFit:
-      modality.signaturePractice ||
-      modality.evidenceRoutine ||
-      `Use the course practice pattern to make ${concept} evidence visible.`,
+    modalityFit,
     artifactGenreFit:
       artifactGenre.qualityFocus ||
       artifactGenre.evidenceRequirement ||
@@ -17982,7 +18033,14 @@ function slideTypeFocus(type, lesson, lens) {
     case 'discussion':
       return {
         opening: `Use the discussion to compare competing interpretations before students lock in their next ${artifact} move.`,
-        evidence: `Push students to cite specific ${lens.evidenceNoun} instead of general impressions when they defend a ${concept} choice in ${artifact}.`,
+        evidence: lessonVariant(lesson, [
+          `Push students to cite specific ${lens.evidenceNoun} instead of general impressions when they defend a ${concept} choice in ${artifact}.`,
+          `Ask students to point to the ${lens.evidenceNoun} that changes a ${concept} decision in ${artifact}.`,
+          `Require one named evidence cue before students recommend a ${concept} change to ${artifact}.`,
+          `Have students separate preference from evidence before they defend the next ${artifact} move.`,
+          `Make each comment trace back to a visible ${lens.evidenceNoun} detail students can use in ${artifact}.`,
+          `Ask the group to identify which ${concept} evidence would make them revise ${artifact}.`,
+        ]),
         misconception: lessonVariant(lesson, [
           `If the conversation turns into opinion-sharing, redirect to ${artifact} and ask what ${concept} evidence would change the decision.`,
           `When discussion becomes personal preference, ask students which ${concept} detail would make them revise ${artifact}.`,
@@ -18099,7 +18157,14 @@ function slideNoteAnchor({ type, anchor, concept, artifact, displayTitle, lesson
         `Close the slide by having students connect "${safeAnchor}" to one evidence-backed next step for ${artifact}.`,
       ]);
     case 'closing':
-      return `Close with the handoff: students should know exactly what to revise, prepare, or submit for ${artifact}.`;
+      return lessonVariant(lesson, [
+        `Close by naming the next concrete revision for ${artifact} and the evidence students should carry forward.`,
+        `Use the final minute to identify the ${artifact} update, the evidence it needs, and the next checkpoint.`,
+        `End with a submission cue: students leave knowing which ${artifact} move to complete and why it matters.`,
+        `Have students write the next ${artifact} action beside the evidence or feedback that justifies it.`,
+        `Turn the handoff into one visible ${artifact} task students can prepare before the next meeting.`,
+        `Ask students to mark what they will revise, prepare, or submit for ${artifact} before they leave.`,
+      ]);
     default:
       return lessonVariant(lesson, [
         `Use "${safeAnchor}" as the claim students need to test with evidence, not as a label to repeat.`,
@@ -19509,7 +19574,7 @@ function buildSlideDeckIrForLesson(blueprint, lesson, index) {
       learningTransferPlan: lesson.learningTransferPlan,
       teachingIntent: lesson.teachingIntent,
       modalityFit: {
-        courseModalityProfile: blueprint.courseModalityProfile,
+        courseModalityProfile: compactCourseModalityProfileForDeliverable(blueprint.courseModalityProfile, lesson),
         modalityCue: lesson.modalityCue,
         modalityDecode: modality,
       },
@@ -20041,7 +20106,14 @@ function buildLessonPlanOutline(blueprint, lesson, { depth = 'flat' } = {}) {
         ? `Reveal the correction only after the vote: ${stripTerminalPunctuation(kernelMisconception.correction || `in fact, ${kernelMisconception.definition}`)}. Connect the discussion to ${lesson.outcomes[0]}.`
         : `Collect two fast examples about ${concept}, name the evidence move worth imitating, and connect the prompt to ${lesson.outcomes[0]}.`,
       instructorRole: `Facilitate retrieval, surface misconceptions about ${concept}, and set the purpose for ${stripLessonPrefix(lesson.title)}.`,
-      grouping: 'Whole class, then quick pair share',
+      grouping: lessonVariant(lesson, [
+        'Whole-class launch, then partner check',
+        'Individual quick-write, then table share',
+        'Partner comparison before instructor debrief',
+        'Small-group evidence check, then whole-class sampling',
+        'Silent note first, then paired reasoning',
+        'Brief poll, then two-person explanation',
+      ]),
       bloomsLevel: 'Apply',
     },
     {
