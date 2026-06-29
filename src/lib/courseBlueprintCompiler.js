@@ -4627,7 +4627,12 @@ function buildFeedbackCycle({ title, concepts, artifact, evidencePlan }) {
   };
   return {
     formativeEvidence: `Collect one annotated ${artifactName} line or checkpoint response showing how ${concept} evidence from ${stripTerminalPunctuation(sourceCue)} supports the decision.`,
-    feedbackMethod: `Give criterion-level feedback that names the strongest evidence move, the weakest reasoning link, and one revision priority for ${artifactName}.`,
+    feedbackMethod: lessonVariant(lessonStub, [
+      `Give criterion-level feedback on ${artifactName}: name the strongest evidence move, identify the reasoning gap, and set one revision priority.`,
+      `Use criterion-level feedback to mark the best-supported ${concept} claim, the weakest evidence link, and the next ${artifactName} revision.`,
+      `Frame criterion-level feedback as a revision memo for ${artifactName}: what evidence works, what reasoning needs support, and what changes next.`,
+      `Return criterion-level feedback that points to the clearest ${sourceCue} use, the uncertain claim, and one targeted ${artifactName} improvement.`,
+    ]),
     studentRevisionAction: `Students revise ${artifactName} by replacing a general ${concept} claim with evidence-backed ${concept} reasoning, one limitation, and one next decision.`,
     nextUse: `Carry the revised ${concept} evidence move into the next source-based artifact, discussion, or synthesis task.`,
     closureCheck: lessonVariant(lessonStub, [
@@ -6597,6 +6602,19 @@ function contextualizeModalityRoutine(kind, base, { lesson = {}, concept = '', a
       'collect a brief checkout after synthesis and choose the revision need it exposes',
       'turn the class debrief into one individual note about what should be revised next',
       'close synthesis by having students mark the evidence link that needs another pass',
+    ]);
+  }
+  if (
+    kind === 'signaturePractice' &&
+    /\bcritique a visible prototype or design artifact,?\s+then revise one concrete element\b/i.test(routine)
+  ) {
+    routine = lessonVariant(lesson, [
+      'run a studio critique on a visible artifact and commit one evidence-backed revision',
+      'compare a prototype against user evidence, then choose the single revision worth making next',
+      'use critique notes to test one artifact decision and revise the visible design move',
+      'mark the prototype evidence, name the design tradeoff, and make one concrete iteration',
+      'turn peer critique into a visible artifact change with a short rationale for the revision',
+      'inspect a design artifact, separate preference from evidence, and revise one defensible element',
     ]);
   }
   if (
@@ -13234,7 +13252,12 @@ function buildCriterionPerformanceBand({ assessment, lesson, criterion, planEntr
         `Makes the ${lens.evidenceNoun} for ${concept} understandable in ${artifact}, with small format or reader-guidance gaps left to polish.`,
         `Keeps ${artifact} readable and task-focused while leaving a minor organization, heading, or audience-fit issue to revise.`,
       ]),
-      developing: `Includes useful ${concept} content, but organization, format, or audience language makes the ${lens.evidenceNoun} harder to follow in ${artifact}.`,
+      developing: lessonVariant(lesson, [
+        `Includes useful ${concept} content, but the sequence of headings makes the ${lens.evidenceNoun} difficult to trace in ${artifact}.`,
+        `Shows relevant ${concept} evidence, though the format leaves the reader unsure which detail supports the main ${artifact} decision.`,
+        `Contains usable ${lens.evidenceNoun}, but the audience cue or layout needs revision before the ${artifact} argument is easy to follow.`,
+        `Keeps the right ${concept} material, yet the organization should make the evidence path and next action clearer for ${artifact}.`,
+      ]),
       beginning: lessonVariant(lesson, [
         `Presents ${artifact} in a form that obscures the required ${lens.evidenceNoun}, decision, or submission expectations.`,
         `Makes ${artifact} hard to interpret because the evidence, audience, or format expectations are not visible enough.`,

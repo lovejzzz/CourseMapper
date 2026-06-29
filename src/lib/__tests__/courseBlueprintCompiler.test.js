@@ -2700,6 +2700,7 @@ describe('courseBlueprintCompiler', () => {
     expect(countDocsWith(rubricTexts, /rubric before students draft, then use criterion-level feedback/i)).toBeLessThan(
       4,
     );
+    expect(countDocsWith(rubricTexts, /audience language makes the .* evidence harder to follow/i)).toBe(0);
     expect(countDocsWith(rubricTexts, /the stronger sample should cite/i)).toBeLessThan(4);
     expect(countDocsWith(studyGuideTexts, /one .* evidence source, and one implication for/i)).toBeLessThan(4);
     expect(countDocsWith(discussionTexts, /artifact walk-through, critique notes, revision commitment/i)).toBeLessThan(
@@ -2723,6 +2724,9 @@ describe('courseBlueprintCompiler', () => {
     expect(evidence).not.toMatch(/and usability evidence source and one implication for the week .* assessment/i);
     expect(evidence).not.toMatch(/assessment follow the course late work policy and contact the instructor before/i);
     expect(evidence).not.toMatch(/assessment rubric before students draft then use criterion-level feedback/i);
+    expect(evidence).not.toMatch(/audience language makes the user evidence harder to follow/i);
+    expect(evidence).not.toMatch(/criterion-level feedback that names the strongest evidence move/i);
+    expect(evidence).not.toMatch(/critique a visible prototype or design artifact then revise one concrete element/i);
     expect(evidence).not.toMatch(/and one partial week .* assessment sample the stronger sample should cite/i);
     expect(evidence).not.toMatch(
       /assessment then name the protocol artifact walk-through critique notes revision commitment/i,
@@ -2861,6 +2865,7 @@ describe('courseBlueprintCompiler', () => {
       4,
     );
     expect(countRubricsWith(/rubric before students draft, then use criterion-level feedback/i)).toBeLessThan(4);
+    expect(countRubricsWith(/audience language makes .* evidence harder to follow/i)).toBe(0);
     expect(countRubricsWith(/the stronger sample should cite/i)).toBeLessThan(4);
     expect(countStudyGuidesWith(/one .* evidence source, and one implication for/i)).toBeLessThan(4);
     expect(countDiscussionsWith(/artifact walk-through, critique notes, revision commitment/i)).toBeLessThan(4);
@@ -2936,6 +2941,9 @@ describe('courseBlueprintCompiler', () => {
     expect(evidence).not.toMatch(/and usability evidence source and one implication for the week .* assessment/i);
     expect(evidence).not.toMatch(/assessment follow the course late work policy and contact the instructor before/i);
     expect(evidence).not.toMatch(/assessment rubric before students draft then use criterion-level feedback/i);
+    expect(evidence).not.toMatch(/audience language makes .* evidence harder to follow/i);
+    expect(evidence).not.toMatch(/criterion-level feedback that names the strongest evidence move/i);
+    expect(evidence).not.toMatch(/critique a visible prototype or design artifact then revise one concrete element/i);
     expect(evidence).not.toMatch(
       /assessment then name the protocol artifact walk-through critique notes revision commitment/i,
     );

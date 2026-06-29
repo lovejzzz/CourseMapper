@@ -3,24 +3,25 @@ import { APP_VERSION } from './appVersion.js';
 export const CURRENT_RELEASE = {
   version: APP_VERSION,
   date: 'June 29, 2026',
-  title: 'Source Review Cleanup: covered UX bycatch stops exporting as review debt',
-  landingTitle: 'Source Review Cleanup',
+  title: 'Texture Tail Cleanup: rubric, lesson-plan, and slide scaffolds vary by lesson',
+  landingTitle: 'Texture Tail Cleanup',
   highlights: [
-    'A fresh deployed v0.15.128 User Experience Design Studio ZIP/log audit exported and locally regraded at 100/100 with zero P0/P1/P2 findings, export verification passed, complete enrichment coverage, nine trusted concept-linked source rows, and Texture 95.',
-    'The same audit still exposed a source-report cleanliness gap: SOURCE_REPORT.md and PACKAGE_MANIFEST.json exported nine review notes even though the trusted ledger already covered the concepts and the questionable UX bycatch was not valid instructor action.',
-    'Source-ledger assembly now prunes covered non-actionable review rows: generated syllabus placeholders, source-finder candidates, and UX false-friend bycatch stop exporting as reviewRequiredCount debt once trusted licensed concept-linked rows cover their concepts.',
-    'Real citation debt stays visible: rows without trusted concept coverage remain in sourceReviewRows and Source Review Notes, and weak candidates are never promoted into trusted sourceLedger proof.',
-    'Focused source-ledger and package-export regressions prove the cleanup removes covered UX bycatch from user-facing review debt without weakening source trust, license, or concept-link requirements.',
+    'A fresh deployed v0.15.129 User Experience Design Studio ZIP/log audit exported and locally regraded at 100/100 with zero P0/P1/P2 findings, export verification passed, full sourceRef coverage, five trusted concept-linked source rows, and no sourceReviewRows.',
+    'The same audit proved the source-report cleanup worked but still left the strict-clean texture target short: Texture stayed at 95 with repeated rubric, lesson-plan, and slide-deck shingles across all 12 lessons.',
+    'Criterion feedback language now rotates by lesson, so the old `criterion-level feedback that names the strongest evidence move, the weakest reasoning link...` tail no longer stamps into every feedback surface.',
+    'Studio-lab signature practice now contextualizes the critique/prototype revision routine per lesson instead of repeating the same `critique a visible prototype or design artifact...` phrase through slide decks.',
+    'Rubric professional-communication developing bands now vary the organization, audience, and evidence-path language instead of repeating the `audience language makes the user evidence harder to follow` shingle across every rubric.',
+    'Focused compiler texture regressions prove these exact v0.15.129 shingles stay out of the texture evidence without weakening source, report-truth, or quality-grader standards.',
   ],
   landingHighlights: [
-    'Fresh v0.15.128 output reached 100/100 with no P findings; Texture 95 remained.',
-    'Trusted UX source rows stay real, licensed, on-topic, and concept-linked.',
-    'Covered false-friend bycatch no longer appears as instructor review debt.',
-    'Fresh v0.15.129 output is still required before claiming a clean source-report surface.',
+    'Fresh v0.15.129 output reached 100/100 with clean source-report proof.',
+    'Texture still measured 95 because rubric, lesson-plan, and slide tails repeated.',
+    'Compiler scaffolds now rotate the exact repeated shingles found in the audit.',
+    'Fresh v0.15.130 output is still required before claiming texture 100.',
   ],
   proof: {
-    contract: 'release-contracts/v0.15.129.json',
-    roadmap: 'docs/V0.15.129_SOURCE_REVIEW_CAVEAT_CLEANUP_ROADMAP.md',
+    contract: 'release-contracts/v0.15.130.json',
+    roadmap: 'docs/V0.15.130_TEXTURE_TAIL_CLEANUP_ROADMAP.md',
     auditCommand: 'npm run audit:release-history',
   },
 };
@@ -35,6 +36,18 @@ export const CURRENT_RELEASE_CHANGELOG = {
 };
 
 export const HISTORICAL_RELEASE_CHANGELOGS = [
+  {
+    version: '0.15.129',
+    date: 'June 29, 2026',
+    title: 'Source Review Cleanup: covered UX bycatch stops exporting as review debt',
+    highlights: [
+      'A fresh deployed v0.15.128 User Experience Design Studio ZIP/log audit exported and locally regraded at 100/100 with zero P0/P1/P2 findings, export verification passed, complete enrichment coverage, nine trusted concept-linked source rows, and Texture 95.',
+      'The same audit still exposed a source-report cleanliness gap: SOURCE_REPORT.md and PACKAGE_MANIFEST.json exported nine review notes even though the trusted ledger already covered the concepts and the questionable UX bycatch was not valid instructor action.',
+      'Source-ledger assembly now prunes covered non-actionable review rows: generated syllabus placeholders, source-finder candidates, and UX false-friend bycatch stop exporting as reviewRequiredCount debt once trusted licensed concept-linked rows cover their concepts.',
+      'Real citation debt stays visible: rows without trusted concept coverage remain in sourceReviewRows and Source Review Notes, and weak rows are never promoted into trusted sourceLedger proof.',
+      'Focused source-ledger and package-export regressions prove the cleanup removes covered UX bycatch from user-facing review debt without weakening source trust, license, or concept-link requirements.',
+    ],
+  },
   {
     version: '0.15.128',
     date: 'June 29, 2026',
