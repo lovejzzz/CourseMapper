@@ -4,6 +4,26 @@
 
 CourseMapper is moving toward a "consider it done" course-production agent. The user should describe the course, choose scope/materials, and receive a finished draft package. The agent owns generation, QA, repair, alignment, and export readiness. Human involvement should be final approval only, not QA labor.
 
+## v0.15.116 - UX Texture Tail Cleanup
+
+Goal: address the fresh v0.15.115 User Experience Design Studio ZIP/log audit
+evidence where the package exported and locally regraded `100/A` with no
+P0/P1/P2 findings, but strict texture remained `95/100` because slide summary
+notes and study-guide hints still repeated across all 12 lessons.
+
+Full plan: `docs/V0.15.116_UX_TEXTURE_TAIL_CLEANUP_ROADMAP.md`
+
+1. Rotate slide summary titles, visual kinds, visual evidence uses, and activity
+   evidence notes by lesson instead of stamping readiness-check and
+   pair-circulation wording.
+2. Rotate Study Guide first-question hints so the guide asks for source detail,
+   decision impact, artifact support, or revision defensibility without the
+   same cite-evidence phrase in every lesson.
+3. Extend the UX texture regression with the exact v0.15.115 repeated shingles.
+4. Preserve score/source truth: no grader weakening, no source-standard changes,
+   and no strict-clean claim until a fresh deployed v0.15.116 ZIP/log audit
+   proves texture reaches `100/100`.
+
 ## v0.15.115 - UX Texture Tail Rotation
 
 Goal: address the fresh v0.15.114 User Experience Design Studio ZIP/log audit

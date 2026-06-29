@@ -2704,6 +2704,9 @@ describe('courseBlueprintCompiler', () => {
     expect(countDocsWith(discussionTexts, /artifact walk-through, critique notes, revision commitment/i)).toBeLessThan(
       4,
     );
+    expect(countDocsWith(deckTexts, /readiness checklist.*confirm the feedback action/i)).toBe(0);
+    expect(countDocsWith(deckTexts, /circulate for whether pairs can point to one concrete/i)).toBe(0);
+    expect(countDocsWith(studyGuideTexts, /cite evidence, and explain why it matters/i)).toBeLessThan(4);
 
     const texture = computeTexture(allTexts);
     const evidence = texture.evidence.map((item) => item.shingle).join('\n');
@@ -2723,6 +2726,9 @@ describe('courseBlueprintCompiler', () => {
     expect(evidence).not.toMatch(
       /assessment then name the protocol artifact walk-through critique notes revision commitment/i,
     );
+    expect(evidence).not.toMatch(/readiness checklist readiness checklist confirm the feedback action/i);
+    expect(evidence).not.toMatch(/circulate for whether pairs can point to one concrete/i);
+    expect(evidence).not.toMatch(/cite evidence and explain why it matters/i);
   });
 
   it('varies lecture-exam slide and lesson-plan texture instead of repeating compiler tails', () => {

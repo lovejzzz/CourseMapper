@@ -1619,9 +1619,11 @@ async function buildSlideForDeck(pptx, deck, theme, slideIndex, totalSlides, opt
     // "KEY TAKEAWAYS" kicker — slide 11 is the readiness self-check (compiled
     // type "summary", title "… readiness check"), slide 12 the carry-forward.
     // The kicker now names the slide's actual role.
-    const summaryKicker = /readiness|self.?check|check[\s-]?in\b/i.test(s.title || '')
-      ? 'READINESS CHECK'
-      : 'KEY TAKEAWAYS';
+    const rawSummaryType = String(s.type || '').toLowerCase();
+    const summaryKicker =
+      rawSummaryType === 'summary' || /readiness|self.?check|check[\s-]?in\b/i.test(s.title || '')
+        ? 'READINESS CHECK'
+        : 'KEY TAKEAWAYS';
     slide.addText(summaryKicker, {
       x: 0.7,
       y: 0.4,

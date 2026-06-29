@@ -1,0 +1,103 @@
+{
+  "version": "0.15.116",
+  "date": "June 29, 2026",
+  "title": "UX Texture Tail Cleanup: slide and study-guide stamps rotate",
+  "status": "verified-current",
+  "proofSummary": {
+    "local": [
+      "npm test -- src/lib/__tests__/courseBlueprintCompiler.test.js -t \"varies UX lesson-plan, discussion, and slide texture frames\"",
+      "npm run format:check",
+      "npm run lint",
+      "npm test",
+      "npm run build",
+      "npm run bundle:check",
+      "npm run audit:release-history",
+      "npm run audit:gold:smoke"
+    ],
+    "ciFast": {
+      "status": "pending-push",
+      "note": "Fast verification is claimed only after v0.15.116 is pushed and the GitHub Actions run is attached."
+    },
+    "deploy": {
+      "status": "pending-push",
+      "note": "Pages deploy is not claimed until the pushed v0.15.116 release completes its deploy run."
+    },
+    "ciDeep": {
+      "status": "local-only",
+      "note": "This is a narrow compiler texture release; focused compiler texture tests plus normal gates are the release bar."
+    },
+    "liveProvider": {
+      "status": "local-only",
+      "note": "The release is based on a fresh deployed v0.15.115 ZIP/log audit plus local compiler regressions. A fresh deployed v0.15.116 audit is still required before claiming strict-clean provider output."
+    },
+    "manualHuman": {
+      "status": "not-applicable",
+      "note": "No external instructor approval is claimed by this release."
+    }
+  },
+  "claims": [
+    {
+      "id": "v015116-v015115-ux-score-clean-evidence",
+      "status": "verified-current",
+      "changelogHighlightIndex": 0,
+      "summary": "A fresh deployed v0.15.115 UX audit exported and locally regraded at 100/A with no P0/P1/P2 findings, while source-ledger false-friend gates held in real provider output.",
+      "anchors": [
+        "verification-output/edutool-audit-loop/20260629T022007Z-v015115-ux-fresh/report.md",
+        "docs/V0.15.116_UX_TEXTURE_TAIL_CLEANUP_ROADMAP.md",
+        "src/lib/releaseManifest.js"
+      ],
+      "proofCommands": ["local regrade for verification-output/edutool-audit-loop/20260629T022007Z-v015115-ux-fresh"],
+      "proofScopes": ["live-provider", "static-audit", "compiled-output"]
+    },
+    {
+      "id": "v015116-v015115-texture-evidence",
+      "status": "verified-current",
+      "changelogHighlightIndex": 1,
+      "summary": "The same v0.15.115 audit measured Texture 95/100 and identified repeated slide summary, activity-note, and study-guide hint shingles.",
+      "anchors": [
+        "verification-output/edutool-audit-loop/20260629T022007Z-v015115-ux-fresh/local-regrade-current-rules.json",
+        "docs/V0.15.116_UX_TEXTURE_TAIL_CLEANUP_ROADMAP.md"
+      ],
+      "proofCommands": [
+        "node -e \"const j=require('./verification-output/edutool-audit-loop/20260629T022007Z-v015115-ux-fresh/local-regrade-current-rules.json'); console.log(j.texture)\""
+      ],
+      "proofScopes": ["live-provider", "static-audit"]
+    },
+    {
+      "id": "v015116-slide-summary-rotation",
+      "status": "verified-current",
+      "changelogHighlightIndex": 2,
+      "summary": "Slide summary titles, visual kinds, visual evidence uses, and activity evidence notes rotate by lesson while preserving accessibility, transfer, evidence-use, and artifact-revision expectations.",
+      "anchors": ["src/lib/courseBlueprintCompiler.js"],
+      "proofCommands": [
+        "npm test -- src/lib/__tests__/courseBlueprintCompiler.test.js -t \"varies UX lesson-plan, discussion, and slide texture frames\""
+      ],
+      "proofScopes": ["unit", "compiled-output"]
+    },
+    {
+      "id": "v015116-study-guide-hint-rotation",
+      "status": "verified-current",
+      "changelogHighlightIndex": 3,
+      "summary": "Study-guide first-question hints rotate by lesson instead of stamping the same cite-evidence sentence across all 12 lessons.",
+      "anchors": ["src/lib/courseBlueprintCompiler.js", "src/lib/__tests__/courseBlueprintCompiler.test.js"],
+      "proofCommands": [
+        "npm test -- src/lib/__tests__/courseBlueprintCompiler.test.js -t \"varies UX lesson-plan, discussion, and slide texture frames\""
+      ],
+      "proofScopes": ["unit", "compiled-output"]
+    },
+    {
+      "id": "v015116-provider-proof-not-claimed",
+      "status": "verified-current",
+      "changelogHighlightIndex": 4,
+      "summary": "The release explicitly carries forward fresh deployed v0.15.116 provider verification instead of claiming strict-clean output from local compiler evidence alone.",
+      "anchors": ["docs/V0.15.116_UX_TEXTURE_TAIL_CLEANUP_ROADMAP.md", "src/lib/releaseManifest.js"],
+      "proofCommands": ["npm run audit:release-history"],
+      "proofScopes": ["doc", "static-audit"]
+    }
+  ],
+  "knownRemainingTargets": [
+    "Fresh deployed v0.15.116 ZIP/log audit must prove Texture reaches 100/100 or identify the next concrete repeated shingle.",
+    "Source proof must remain clean in real provider output; no v0.15.113 UX false-friend rows should return as trusted sourceLedger proof.",
+    "Every exported surface must agree: UI, ZIP, manifest, quality report, source report, digest logs, DOCX/PPTX files, and local regrade."
+  ]
+}

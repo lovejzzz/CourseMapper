@@ -15906,7 +15906,12 @@ function compileStudyGuides(blueprint) {
                 {
                   question: `How would you explain the central idea of ${stripLessonPrefix(lesson.title)} for ${specificity.week} using ${lens.evidenceNoun} from ${lessonSourceCue}?`,
                   bloomsLevel: 'Analyze',
-                  hint: `Name ${phrase.context}, cite evidence, and explain why it matters.`,
+                  hint: lessonVariant(lesson, [
+                    `Name ${phrase.context}, then connect one source detail to the decision it changes.`,
+                    `Use one inspectable detail from ${lessonSourceCue} and state what it lets you decide.`,
+                    `Anchor the answer in ${phrase.context}, a source cue, and the artifact move it supports.`,
+                    `Point to the evidence first, then explain the choice or revision it makes defensible.`,
+                  ]),
                 },
                 // v0.13.3: when the lesson carries kernel facts, the second
                 // review question asks about the SUBJECT, not the assessment
@@ -17646,9 +17651,19 @@ function slideVisual(lesson, slide) {
       ]),
     },
     summary: {
-      kind: 'readiness checklist',
-      purpose: `Help students self-check whether ${concept} is ready to transfer.`,
-      evidenceUse: `Confirm the feedback action students will carry into ${artifact}.`,
+      kind: lessonVariant(lesson, ['transfer checkpoint', 'evidence handoff', 'next-step map', 'artifact self-check']),
+      purpose: lessonVariant(lesson, [
+        `Help students decide which ${concept} evidence is ready to use next.`,
+        `Make the final ${concept} decision visible before students leave the lesson.`,
+        `Show what students can carry forward from ${concept} work into ${artifact}.`,
+        `Help students test whether their ${artifact} plan has enough ${concept} support.`,
+      ]),
+      evidenceUse: lessonVariant(lesson, [
+        `Name the source detail students will reuse in ${artifact}.`,
+        `Mark the next ${artifact} decision that now has evidence behind it.`,
+        `Choose the ${concept} support students should carry into the next draft.`,
+        `State what students can now defend, revise, or test in ${artifact}.`,
+      ]),
     },
   };
   const selected = visualByType[type] || {
@@ -17801,7 +17816,12 @@ function slideTypeFocus(type, lesson, lens) {
           `Set a brief pair checkpoint where students choose one evidence move to keep, cut, or revise in ${artifact}.`,
           `Start with quiet revision, then have partners compare which ${concept} detail makes ${artifact} stronger.`,
         ]),
-        evidence: `Circulate for whether pairs can point to one concrete ${lens.evidenceNoun} move and one ${concept} revision choice in ${artifact}.`,
+        evidence: lessonVariant(lesson, [
+          `Circulate for pairs who can mark the exact ${lens.evidenceNoun} move they will use in ${artifact}.`,
+          `Check whether partners can show the ${concept} detail that changes their ${artifact} choice.`,
+          `Listen for teams naming the evidence cue and the ${artifact} decision it changes.`,
+          `Ask each pair to point to the draft spot where ${concept} evidence should alter ${artifact}.`,
+        ]),
         misconception: lessonVariant(lesson, [
           `When groups stay abstract, require them to annotate the exact sentence, note, or claim they would change in ${artifact}.`,
           `If teams talk generally, ask them to mark the ${artifact} line where the evidence should change the draft.`,
@@ -19268,7 +19288,12 @@ function buildSlideDeckIrForLesson(blueprint, lesson, index) {
     },
     {
       type: 'summary',
-      title: `${sentenceCase(concept)} readiness check`,
+      title: lessonVariant(lesson, [
+        `${sentenceCase(concept)} transfer check`,
+        `${sentenceCase(concept)} evidence handoff`,
+        `${sentenceCase(concept)} next-use check`,
+        `${sentenceCase(concept)} artifact self-check`,
+      ]),
       bullets: [
         `Can you now ${stripTerminalPunctuation(objectiveOne).toLowerCase()}?`,
         `Can you explain how ${concept} improves ${artifact}?`,

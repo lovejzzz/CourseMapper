@@ -3,24 +3,24 @@ import { APP_VERSION } from './appVersion.js';
 export const CURRENT_RELEASE = {
   version: APP_VERSION,
   date: 'June 29, 2026',
-  title: 'UX Texture Tail Rotation: remaining compiler scaffolds vary by lesson',
-  landingTitle: 'UX Texture Tail Rotation',
+  title: 'UX Texture Tail Cleanup: slide and study-guide stamps rotate',
+  landingTitle: 'UX Texture Tail Cleanup',
   highlights: [
-    'A fresh deployed v0.15.114 User Experience Design Studio ZIP/log audit exported and locally regraded at 100/A with no P0/P1/P2 findings, proving the source false-friend gate held in real provider output.',
-    'The same audit still measured Texture 94/100 because assignment late-policy language, rubric calibration/facilitation notes, study-guide review strategy, and design-prototype discussion protocol wording repeated across all 12 lessons.',
-    'Compiler-owned assignment, rubric, study-guide, and studio-discussion tails now rotate by lesson while preserving deadline, source-use, calibration, accessibility, critique, and revision expectations.',
-    'The UX texture regression now compiles assignments, rubrics, discussions, and study guides, and the lecture/compiler-tail regression includes rubrics and late-policy fields so these repeated shingles cannot silently return.',
-    'This release keeps the target honest: v0.15.115 does not claim strict-clean provider output until a fresh deployed ZIP/log audit proves Texture reaches 100 and every exported surface agrees.',
+    'A fresh deployed v0.15.115 User Experience Design Studio ZIP/log audit exported and locally regraded at 100/A with no P0/P1/P2 findings, proving the UX source false-friend and licensed source-ledger gates held in real provider output.',
+    'The same audit still measured Texture 95/100 because slide-deck summary visuals repeated readiness-check/feedback-action scaffolds, activity notes repeated a pair-circulation evidence line, and study guides repeated the same cite-evidence hint.',
+    'Summary slide titles, visual kinds, visual evidence uses, and activity evidence notes now rotate by lesson while preserving accessibility, transfer, evidence-use, and artifact-revision expectations.',
+    'Study-guide first-question hints now vary by lesson so the guide asks for source detail, decision impact, artifact support, or defensible revision instead of stamping the same cite-evidence sentence across all 12 lessons.',
+    'This release keeps the target honest: v0.15.116 does not claim strict-clean provider output until a fresh deployed ZIP/log audit proves Texture reaches 100 and every exported surface agrees.',
   ],
   landingHighlights: [
-    'Fresh v0.15.114 output proved source proof is clean but texture still needs work.',
-    'Repeated assignment, rubric, study-guide, and studio-discussion tails now vary by lesson.',
-    'Regression coverage now includes the exported surfaces that produced the texture loss.',
-    'Fresh v0.15.115 output is still required before claiming strict-clean provider quality.',
+    'Fresh v0.15.115 output proved score and source proof are clean, but texture still needs work.',
+    'Repeated slide-summary, activity-note, and study-guide hint stamps now vary by lesson.',
+    'Regression coverage pins the latest v0.15.115 texture shingles.',
+    'Fresh v0.15.116 output is still required before claiming strict-clean provider quality.',
   ],
   proof: {
-    contract: 'release-contracts/v0.15.115.json',
-    roadmap: 'docs/V0.15.115_UX_TEXTURE_TAIL_ROTATION_ROADMAP.md',
+    contract: 'release-contracts/v0.15.116.json',
+    roadmap: 'docs/V0.15.116_UX_TEXTURE_TAIL_CLEANUP_ROADMAP.md',
     auditCommand: 'npm run audit:release-history',
   },
 };
@@ -35,6 +35,18 @@ export const CURRENT_RELEASE_CHANGELOG = {
 };
 
 export const HISTORICAL_RELEASE_CHANGELOGS = [
+  {
+    version: '0.15.115',
+    date: 'June 29, 2026',
+    title: 'UX Texture Tail Rotation: remaining compiler scaffolds vary by lesson',
+    highlights: [
+      'A fresh deployed v0.15.114 User Experience Design Studio ZIP/log audit exported and locally regraded at 100/A with no P0/P1/P2 findings, proving the source false-friend gate held in real provider output.',
+      'The same audit still measured Texture 94/100 because assignment late-policy language, rubric calibration/facilitation notes, study-guide review strategy, and design-prototype discussion protocol wording repeated across all 12 lessons.',
+      'Compiler-owned assignment, rubric, study-guide, and studio-discussion tails now rotate by lesson while preserving deadline, source-use, calibration, accessibility, critique, and revision expectations.',
+      'The UX texture regression now compiles assignments, rubrics, discussions, and study guides, and the lecture/compiler-tail regression includes rubrics and late-policy fields so these repeated shingles cannot silently return.',
+      'This release kept the target honest: v0.15.115 did not claim strict-clean provider output until a fresh deployed ZIP/log audit proved Texture reaches 100 and every exported surface agrees.',
+    ],
+  },
   {
     version: '0.15.114',
     date: 'June 29, 2026',
