@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useMemo } from 'react';
 import GenerationLogPanel from './GenerationLogPanel';
 import ExamReview from './ExamReview';
 import RevisionChat from './RevisionChat';
@@ -154,6 +154,8 @@ const DELIV_LOG_STYLES = {
   info: { text: 'text-slate-600', bg: '' },
 };
 
+const ACTIVITY_LOG_RENDER_LIMIT = 80;
+
 export default function ProgressPanel({
   currentStep,
   modelName,
@@ -212,10 +214,12 @@ export default function ProgressPanel({
   const [delivExpanded, setDelivExpanded] = useState(true);
   const [delivLogExpanded, setDelivLogExpanded] = useState(false);
 
-  // Auto-expand activity log when actively generating deliverables OR cascade syncing
+  // Keep provider-run logs collapsed by default; they can grow quickly during
+  // enrichment. Sync logs are short and still auto-open because they explain
+  // user-triggered background updates.
   useEffect(() => {
-    if (isDelivGenerating || isSyncing) setDelivLogExpanded(true);
-  }, [isDelivGenerating, isSyncing]);
+    if (isSyncing) setDelivLogExpanded(true);
+  }, [isSyncing]);
   const [historyExpanded, setHistoryExpanded] = useState(false);
   const [showSnapshotInput, setShowSnapshotInput] = useState(false);
   const [snapshotLabel, setSnapshotLabel] = useState('');
@@ -309,6 +313,24 @@ export default function ProgressPanel({
     }
     prevIsSyncingRef.current = !!isSyncing;
   }, [isSyncing]);
+
+  const activityEntries = useMemo(() => {
+    const delivEntries = (delivGenerationLog || []).map((e) => ({ ...e, _origin: 'deliv' }));
+    const syncEntries = (syncLog || []).map((e) => ({
+      type: e.type === 'done' ? 'done' : e.type === 'error' ? 'error' : 'progress',
+      message: `[Auto-sync] ${resolveLabel(e.featureId)}: ${e.message}`,
+      at: e.at,
+      _origin: 'sync',
+      _syncType: e.type,
+    }));
+    return [...delivEntries, ...syncEntries].sort((a, b) => (a.at || 0) - (b.at || 0));
+  }, [delivGenerationLog, syncLog]);
+
+  const visibleActivityEntries =
+    activityEntries.length > ACTIVITY_LOG_RENDER_LIMIT
+      ? activityEntries.slice(-ACTIVITY_LOG_RENDER_LIMIT)
+      : activityEntries;
+  const hiddenActivityCount = Math.max(activityEntries.length - visibleActivityEntries.length, 0);
 
   if (!currentStep && !error) return null;
 
@@ -705,19 +727,7 @@ export default function ProgressPanel({
 
                 {/* Activity Log — merges deliverable generation log + auto-sync entries */}
                 {(() => {
-                  // Build a unified log: delivGenerationLog entries + syncLog entries (tagged _sync)
-                  const delivEntries = (delivGenerationLog || []).map((e) => ({ ...e, _origin: 'deliv' }));
-                  const syncEntries = (syncLog || []).map((e) => ({
-                    // Map sync log shape → activity log shape
-                    type: e.type === 'done' ? 'done' : e.type === 'error' ? 'error' : 'progress',
-                    message: `[Auto-sync] ${resolveLabel(e.featureId)}: ${e.message}`,
-                    at: e.at,
-                    _origin: 'sync',
-                    _syncType: e.type,
-                  }));
-                  // Merge and sort by timestamp
-                  const combined = [...delivEntries, ...syncEntries].sort((a, b) => (a.at || 0) - (b.at || 0));
-                  if (combined.length === 0) return null;
+                  if (activityEntries.length === 0) return null;
                   return (
                     <div className="mt-2">
                       <button
@@ -740,11 +750,16 @@ export default function ProgressPanel({
                             className={`w-1.5 h-1.5 rounded-full animate-pulse ml-1 ${isSyncing ? 'bg-amber-400' : 'bg-indigo-400'}`}
                           />
                         )}
-                        <span className="text-[9px] font-normal text-slate-300 ml-1">({combined.length})</span>
+                        <span className="text-[9px] font-normal text-slate-300 ml-1">({activityEntries.length})</span>
                       </button>
                       {delivLogExpanded && (
                         <div className="mt-1.5 space-y-px max-h-64 overflow-y-auto">
-                          {combined.map((entry, i) => {
+                          {hiddenActivityCount > 0 && (
+                            <div className="px-2.5 py-1 text-[9px] font-medium text-slate-400">
+                              Showing latest {visibleActivityEntries.length} of {activityEntries.length} events
+                            </div>
+                          )}
+                          {visibleActivityEntries.map((entry, i) => {
                             const isSyncEntry = entry._origin === 'sync';
                             const syncIcon =
                               entry._syncType === 'done' ? 'done' : entry._syncType === 'error' ? 'error' : 'progress';
@@ -767,7 +782,10 @@ export default function ProgressPanel({
                               : DELIV_LOG_STYLES[entry.type] || DELIV_LOG_STYLES.info;
                             const icon = isSyncEntry ? LOG_ICONS[syncIcon] : LOG_ICONS[entryType] || LOG_ICONS.info;
                             return (
-                              <div key={i} className={`flex items-start gap-2 px-2.5 py-1.5 rounded-md ${style.bg}`}>
+                              <div
+                                key={`${entry._origin || 'event'}-${entry.at || 'no-time'}-${entry.type || entry._syncType || 'entry'}-${i}`}
+                                className={`flex items-start gap-2 px-2.5 py-1.5 rounded-md ${style.bg}`}
+                              >
                                 <div className="mt-0.5">{icon}</div>
                                 <span className={`text-[11px] leading-relaxed ${style.text} flex-1 min-w-0`}>
                                   {entry.message}

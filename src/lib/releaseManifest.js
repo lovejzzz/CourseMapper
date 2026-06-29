@@ -3,24 +3,24 @@ import { APP_VERSION } from './appVersion.js';
 export const CURRENT_RELEASE = {
   version: APP_VERSION,
   date: 'June 29, 2026',
-  title: 'Progress Ribbon Truth: running phases stop showing clean checks',
-  landingTitle: 'Progress Ribbon Truth',
+  title: 'Progress Log Bounds: provider-run details stay responsive',
+  landingTitle: 'Progress Log Bounds',
   highlights: [
-    'A fresh deployed v0.15.130 User Experience Design Studio provider run started successfully but blocked before ZIP capture when the Chrome page became unresponsive during enrichment/progress inspection.',
-    'The visible blocker evidence showed the progress spine could display a checked Map stage while the app still said `Enriching lessons 1-12`, `Deliverables 0/9`, `1 material ready`, and the Package ZIP button remained disabled.',
-    'The pipeline step selector now separates settled phase handoff from verified completion: running builds render earlier phases as neutral settled dots instead of emerald checks.',
-    'Blocked or caveated finish states no longer inherit clean-ready stage checks; green checks are reserved for terminal ready/sync-ready work that has actually completed.',
-    'Focused pipeline and build-ribbon regressions pin enrichment, compile, verify, lull, blocked, and ready states without weakening source, report-truth, export, or quality-grader standards.',
+    'A fresh deployed v0.15.130 User Experience Design Studio provider run blocked before ZIP capture after opening generation progress details, producing a Chrome `Page Unresponsive` dialog during enrichment.',
+    'The ProgressPanel activity log no longer auto-expands during active deliverable generation, so long provider event streams stay available without immediately flooding the live workspace DOM.',
+    'Merged deliverable/sync activity is memoized and the expanded panel renders only the latest 80 events with an explicit count note instead of mounting every historical event.',
+    'Short user-triggered sync logs still auto-open because they explain background edits, while provider-generation logs remain opt-in during long runs.',
+    'Focused happy-dom regressions pin collapsed provider logs, bounded expanded rendering, and preserved sync auto-open behavior without weakening source, export, report, or quality-grader standards.',
   ],
   landingHighlights: [
-    'Fresh v0.15.130 evidence found a progress UI truth bug before ZIP capture.',
-    'Running phases now show neutral progress dots, not clean completion checks.',
-    'Course Map no longer implies completion while enrichment/export are unfinished.',
-    'Fresh v0.15.131 ZIP/log evidence is still required before claiming texture 100.',
+    'Fresh blocker evidence found a page-unresponsive path in generation details.',
+    'Provider activity logs now stay collapsed during long generation runs.',
+    'Expanded logs render a bounded latest-event tail instead of every event.',
+    'Fresh v0.15.132 ZIP/log evidence is still required before claiming texture 100.',
   ],
   proof: {
-    contract: 'release-contracts/v0.15.131.json',
-    roadmap: 'docs/V0.15.131_PROGRESS_RIBBON_TRUTH_ROADMAP.md',
+    contract: 'release-contracts/v0.15.132.json',
+    roadmap: 'docs/V0.15.132_PROGRESS_LOG_BOUNDS_ROADMAP.md',
     auditCommand: 'npm run audit:release-history',
   },
 };
@@ -35,6 +35,18 @@ export const CURRENT_RELEASE_CHANGELOG = {
 };
 
 export const HISTORICAL_RELEASE_CHANGELOGS = [
+  {
+    version: '0.15.131',
+    date: 'June 29, 2026',
+    title: 'Progress Ribbon Truth: running phases stop showing clean checks',
+    highlights: [
+      'A fresh deployed v0.15.130 User Experience Design Studio provider run started successfully but blocked before ZIP capture when the Chrome page became unresponsive during enrichment/progress inspection.',
+      'The visible blocker evidence showed the progress spine could display a checked Map stage while the app still said `Enriching lessons 1-12`, `Deliverables 0/9`, `1 material ready`, and the Package ZIP button remained disabled.',
+      'The pipeline step selector now separates settled phase handoff from verified completion: running builds render earlier phases as neutral settled dots instead of emerald checks.',
+      'Blocked or caveated finish states no longer inherit clean-ready stage checks; green checks are reserved for terminal ready/sync-ready work that has actually completed.',
+      'Focused pipeline and build-ribbon regressions pin enrichment, compile, verify, lull, blocked, and ready states without weakening source, report-truth, export, or quality-grader standards.',
+    ],
+  },
   {
     version: '0.15.130',
     date: 'June 29, 2026',

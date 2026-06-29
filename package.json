@@ -1,6 +1,6 @@
 {
   "name": "course-mapper",
-  "version": "0.15.131",
+  "version": "0.15.132",
   "type": "module",
   "description": "AI-powered course syllabus to course map generator",
   "scripts": {
