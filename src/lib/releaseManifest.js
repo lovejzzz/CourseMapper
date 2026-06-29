@@ -2,25 +2,25 @@ import { APP_VERSION } from './appVersion.js';
 
 export const CURRENT_RELEASE = {
   version: APP_VERSION,
-  date: 'June 28, 2026',
-  title: 'Rights Statement Source Gate: in-copyright rows stop counting as trusted proof',
-  landingTitle: 'Rights Statement Source Gate',
+  date: 'June 29, 2026',
+  title: 'UX Source False-Friend Gate: licensed bycatch stops counting as proof',
+  landingTitle: 'UX Source False-Friend Gate',
   highlights: [
-    'A fresh deployed v0.15.112 User Experience Design Studio ZIP/log audit exported Quality 99 and Texture 93, but source audit found two trusted ledger rows whose license was the restrictive rights statement http://rightsstatements.org/vocab/InC/1.0/.',
-    'The shared source-ledger license gate now treats in-copyright rights statements and all-rights-reserved claims as ambiguous license proof, so they cannot count as trusted bibliography rows.',
-    'Source-finder ranking and package export now inherit that stricter license gate before selecting trusted concept-linked source rows, preventing InC rows from inflating sourceLedger/sourceRef proof.',
-    'The deep quality grader mirrors the production rule and flags existing InC sourceLedger rows as citation P2s, proving the captured v0.15.112 artifact was not source-clean under the intended license standard.',
-    'This release keeps the target honest: v0.15.113 does not claim strict-clean provider output until a fresh deployed ZIP/log audit proves reusable source proof replaces restricted rights-statement rows and texture reaches the strict target.',
+    'A fresh deployed v0.15.113 User Experience Design Studio ZIP/log audit exported Quality 99 and Texture 90 with no embedded P findings, but stricter source audit found trusted, licensed, concept-linked false friends: family mediation, behavior therapy, MTA accessibility, and Design Research as a retail store.',
+    'UX source-finder and source-ledger export now reject those licensed bycatch classes before they can become trusted bibliography proof, while preserving discipline-matched UX rows such as usability testing and UX-practitioner collaboration.',
+    'The deep quality grader mirrors the production gate and regrades the captured v0.15.113 package at 94/A with five P1 citation findings instead of treating it as source-clean.',
+    'Focused regressions pin both sides of the contract: production drops the v0.15.113 false-friend rows, and the grader flags the same rows if an exported package already contains them.',
+    'This release keeps the target honest: v0.15.114 does not claim strict-clean provider output because Texture 90, generic lesson identity, and fresh deployed source-proof verification remain carry-forward targets.',
   ],
   landingHighlights: [
-    'Fresh v0.15.112 output exposed restrictive InC source licenses behind a nominal 99/A.',
-    'In-copyright rights statements no longer count as trusted source proof.',
-    'Production export and local regrade now share the same stricter license truth.',
-    'Fresh v0.15.113 output is still required for strict-clean proof.',
+    'Fresh v0.15.113 output exposed licensed-but-wrong UX source proof behind a nominal 99/A.',
+    'Family-mediation, behavior-therapy, MTA-accessibility, and retail-store bycatch no longer count as UX source proof.',
+    'Production export and local regrade now share the same stricter source-relevance truth.',
+    'Fresh v0.15.114 output is still required for strict-clean proof.',
   ],
   proof: {
-    contract: 'release-contracts/v0.15.113.json',
-    roadmap: 'docs/V0.15.113_RIGHTS_STATEMENT_SOURCE_GATE_ROADMAP.md',
+    contract: 'release-contracts/v0.15.114.json',
+    roadmap: 'docs/V0.15.114_UX_SOURCE_FALSE_FRIEND_GATE_ROADMAP.md',
     auditCommand: 'npm run audit:release-history',
   },
 };
@@ -35,6 +35,18 @@ export const CURRENT_RELEASE_CHANGELOG = {
 };
 
 export const HISTORICAL_RELEASE_CHANGELOGS = [
+  {
+    version: '0.15.113',
+    date: 'June 28, 2026',
+    title: 'Rights Statement Source Gate: in-copyright rows stop counting as trusted proof',
+    highlights: [
+      'A fresh deployed v0.15.112 User Experience Design Studio ZIP/log audit exported Quality 99 and Texture 93, but source audit found two trusted ledger rows whose license was the restrictive rights statement http://rightsstatements.org/vocab/InC/1.0/.',
+      'The shared source-ledger license gate now treats in-copyright rights statements and all-rights-reserved claims as ambiguous license proof, so they cannot count as trusted bibliography rows.',
+      'Source-finder ranking and package export now inherit that stricter license gate before selecting trusted concept-linked source rows, preventing InC rows from inflating sourceLedger/sourceRef proof.',
+      'The deep quality grader mirrors the production rule and flags existing InC sourceLedger rows as citation P2s, proving the captured v0.15.112 artifact was not source-clean under the intended license standard.',
+      'This release keeps the target honest: v0.15.113 does not claim strict-clean provider output until a fresh deployed ZIP/log audit proves reusable source proof replaces restricted rights-statement rows and texture reaches the strict target.',
+    ],
+  },
   {
     version: '0.15.112',
     date: 'June 28, 2026',

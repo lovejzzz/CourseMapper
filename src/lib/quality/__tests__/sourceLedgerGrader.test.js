@@ -927,6 +927,118 @@ describe('source-ledger quality checks', () => {
     );
   });
 
+  it('flags v0.15.113 UX source-ledger false friends even when licensed and concept-linked', async () => {
+    const result = await grade({
+      fileProvider: createMemoryFileProvider({
+        'PACKAGE_MANIFEST.json': JSON.stringify({
+          courseName: 'User Experience Design Studio',
+          lessonScope: 'all',
+          requestedFeatures: [],
+          readiness: { status: 'ready', blockers: 0, warnings: 0, checkedSections: null },
+          sourceLedger: [
+            {
+              id: 'sf4',
+              title: 'A Critique of Private Sessions in Family Mediation',
+              provider: 'crossref',
+              url: 'https://doi.org/10.1177/2158244013478950',
+              doi: '10.1177/2158244013478950',
+              license: 'https://journals.sagepub.com/page/policies/text-and-data-mining-license',
+              evidence: 'A critical examination of private sessions in family mediation with mediators.',
+              conceptLinks: [{ id: 'c2', label: 'critique sessions' }],
+            },
+            {
+              id: 'sf-3-2',
+              title: 'Accessibility of the Metropolitan Transportation Authority',
+              provider: 'wikipedia',
+              url: 'https://en.wikipedia.org/wiki/Accessibility_of_the_Metropolitan_Transportation_Authority',
+              license: 'CC BY-SA 4.0',
+              evidence: 'Physical accessibility of the Metropolitan Transportation Authority public transit network.',
+              conceptLinks: [{ id: 'c7', label: 'accessibility review' }],
+            },
+            {
+              id: 'sf-5-2',
+              title:
+                'The efficacy of booster maintenance sessions in behavior therapy: Review and methodological critique',
+              provider: 'crossref',
+              url: 'https://doi.org/10.1016/0272-7358(90)90055-f',
+              doi: '10.1016/0272-7358(90)90055-f',
+              license: 'https://www.elsevier.com/tdm/userlicense/1.0/',
+              evidence: 'A behavior therapy review about booster maintenance sessions.',
+              conceptLinks: [{ id: 'c2', label: 'critique sessions' }],
+            },
+            {
+              id: 'sf6',
+              title: 'Design Research (store)',
+              provider: 'wikipedia',
+              url: 'https://en.wikipedia.org/wiki/Design_Research_(store)',
+              license: 'CC BY-SA 4.0',
+              evidence: 'Design Research was a retail lifestyle store.',
+              conceptLinks: [{ id: 'c5', label: 'design research' }],
+            },
+            {
+              id: 'sf-good',
+              title: 'International usability testing',
+              provider: 'crossref',
+              url: 'https://doi.org/10.1016/b978-0-12-816942-1.00010-1',
+              doi: '10.1016/b978-0-12-816942-1.00010-1',
+              license: 'https://www.elsevier.com/tdm/userlicense/1.0/',
+              evidence: 'International usability testing methods for user research and prototyping.',
+              conceptLinks: [{ id: 'c4', label: 'usability testing' }],
+            },
+          ],
+          sourceReport: {
+            path: 'SOURCE_REPORT.md',
+            sourceCount: 5,
+          },
+          files: [],
+        }),
+        'SOURCE_REPORT.md': [
+          '# Source Report',
+          '',
+          '## Source Ledger',
+          '- sf4: A Critique of Private Sessions in Family Mediation',
+          '- sf-3-2: Accessibility of the Metropolitan Transportation Authority',
+          '- sf-5-2: The efficacy of booster maintenance sessions in behavior therapy',
+          '- sf6: Design Research (store)',
+          '- sf-good: International usability testing',
+        ].join('\n'),
+      }),
+      course: { title: 'User Experience Design Studio', featureIds: [] },
+    });
+
+    expect(result.findings).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          severity: 'P1',
+          dimension: 'citations',
+          detail: 'source ledger row sf4 is off-discipline for User Experience Design Studio',
+        }),
+        expect.objectContaining({
+          severity: 'P1',
+          dimension: 'citations',
+          detail: 'source ledger row sf-3-2 is off-discipline for User Experience Design Studio',
+        }),
+        expect.objectContaining({
+          severity: 'P1',
+          dimension: 'citations',
+          detail: 'source ledger row sf-5-2 is off-discipline for User Experience Design Studio',
+        }),
+        expect.objectContaining({
+          severity: 'P1',
+          dimension: 'citations',
+          detail: 'source ledger row sf6 is off-discipline for User Experience Design Studio',
+        }),
+      ]),
+    );
+    expect(result.findings).not.toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          detail: 'source ledger row sf-good is off-discipline for User Experience Design Studio',
+        }),
+      ]),
+    );
+  });
+
   it('flags complete atom coverage that is not wired to the exported trusted ledger rows', async () => {
     const result = await grade({
       fileProvider: createMemoryFileProvider({

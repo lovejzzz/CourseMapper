@@ -1294,6 +1294,131 @@ describe('trusted source ledger', () => {
     expect(ledger.summary).toMatchObject({ sourceCount: 1, trustedConceptLinkedCount: 1, reviewRequiredCount: 1 });
   });
 
+  it('drops v0.15.113 UX licensed false friends while keeping discipline-matched source proof', () => {
+    const graph = {
+      course: { name: 'User Experience Design Studio' },
+      concepts: [
+        { id: 'c2', term: 'critique sessions' },
+        { id: 'c3', term: 'design journals' },
+        { id: 'c4', term: 'usability testing' },
+        { id: 'c5', term: 'design research' },
+        { id: 'c6', term: 'prototyping' },
+        { id: 'c7', term: 'accessibility review' },
+      ],
+      sessions: [
+        {
+          id: 's1',
+          number: 1,
+          title: 'Critique and accessibility review',
+          sections: [{ id: 'sec1', topic: 'critique sessions', conceptRefs: ['c2', 'c3', 'c7'] }],
+        },
+        {
+          id: 's2',
+          number: 2,
+          title: 'Research and prototyping',
+          sections: [{ id: 'sec2', topic: 'design research', conceptRefs: ['c4', 'c5', 'c6'] }],
+        },
+      ],
+      edges: {
+        teaches: [
+          { from: 's1', to: 'c2' },
+          { from: 's1', to: 'c3' },
+          { from: 's1', to: 'c7' },
+          { from: 's2', to: 'c4' },
+          { from: 's2', to: 'c5' },
+          { from: 's2', to: 'c6' },
+        ],
+      },
+      resources: [],
+      sourceFinderMiniShard: {
+        topics: [
+          {
+            sessionId: 's1',
+            lessonNumber: 1,
+            topic: 'critique sessions, design journals, accessibility review',
+            sources: [
+              {
+                provider: 'crossref',
+                kind: 'journal-article',
+                title: 'A Critique of Private Sessions in Family Mediation',
+                doi: '10.1177/2158244013478950',
+                url: 'https://doi.org/10.1177/2158244013478950',
+                license: 'https://journals.sagepub.com/page/policies/text-and-data-mining-license',
+                snippet:
+                  'A critical examination of private sessions and caucuses in family mediation with mediators and disputants.',
+              },
+              {
+                provider: 'crossref',
+                kind: 'journal-article',
+                title:
+                  'The efficacy of booster maintenance sessions in behavior therapy: Review and methodological critique',
+                doi: '10.1016/0272-7358(90)90055-f',
+                url: 'https://doi.org/10.1016/0272-7358(90)90055-f',
+                license: 'https://www.elsevier.com/tdm/userlicense/1.0/',
+                snippet: 'A behavior therapy review about booster maintenance sessions and methodological critique.',
+              },
+              {
+                provider: 'wikipedia',
+                kind: 'encyclopedia background',
+                title: 'Accessibility of the Metropolitan Transportation Authority',
+                url: 'https://en.wikipedia.org/wiki/Accessibility_of_the_Metropolitan_Transportation_Authority',
+                license: 'CC BY-SA 4.0',
+                snippet: 'Physical accessibility of the Metropolitan Transportation Authority public transit network.',
+              },
+              {
+                provider: 'openalex',
+                kind: 'conference paper',
+                title: 'Understanding Collaborative Practices and Tools of Professional UX Practitioners',
+                doi: '10.1145/3544548.3581273',
+                url: 'https://dl.acm.org/doi/pdf/10.1145/3544548.3581273',
+                license: 'CC BY',
+                snippet: 'Study of user experience practitioners, critique, design handoff, and collaboration.',
+              },
+            ],
+          },
+          {
+            sessionId: 's2',
+            lessonNumber: 2,
+            topic: 'design research, usability testing, prototyping',
+            sources: [
+              {
+                provider: 'wikipedia',
+                kind: 'encyclopedia background',
+                title: 'Design Research (store)',
+                url: 'https://en.wikipedia.org/wiki/Design_Research_(store)',
+                license: 'CC BY-SA 4.0',
+                snippet: 'Design Research was a retail lifestyle store founded in Cambridge, Massachusetts.',
+              },
+              {
+                provider: 'crossref',
+                kind: 'book-chapter',
+                title: 'International usability testing',
+                doi: '10.1016/b978-0-12-816942-1.00010-1',
+                url: 'https://doi.org/10.1016/b978-0-12-816942-1.00010-1',
+                license: 'https://www.elsevier.com/tdm/userlicense/1.0/',
+                snippet: 'International usability testing methods for user research and prototyping.',
+              },
+            ],
+          },
+        ],
+      },
+    };
+
+    const ledger = buildSourceLedgerFromCourseGraph(graph, { checkedAt: '2026-06-29T00:00:00.000Z' });
+    const titles = ledger.rows.map((row) => row.title);
+
+    expect(titles).toContain('Understanding Collaborative Practices and Tools of Professional UX Practitioners');
+    expect(titles).toContain('International usability testing');
+    expect(titles).not.toContain('A Critique of Private Sessions in Family Mediation');
+    expect(titles).not.toContain(
+      'The efficacy of booster maintenance sessions in behavior therapy: Review and methodological critique',
+    );
+    expect(titles).not.toContain('Accessibility of the Metropolitan Transportation Authority');
+    expect(titles).not.toContain('Design Research (store)');
+    expect(ledger.reviewRows || []).toHaveLength(0);
+    expect(ledger.summary).toMatchObject({ sourceCount: 2, trustedConceptLinkedCount: 2 });
+  });
+
   it('drops v0.15.97 UX false-friend sources even when they are licensed and concept-linked', () => {
     const graph = {
       course: { name: 'User Experience Design Studio' },

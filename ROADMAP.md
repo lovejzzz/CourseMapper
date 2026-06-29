@@ -4,6 +4,27 @@
 
 CourseMapper is moving toward a "consider it done" course-production agent. The user should describe the course, choose scope/materials, and receive a finished draft package. The agent owns generation, QA, repair, alignment, and export readiness. Human involvement should be final approval only, not QA labor.
 
+## v0.15.114 - UX Source False-Friend Gate
+
+Goal: address the fresh v0.15.113 User Experience Design Studio ZIP/log audit
+evidence where the package exported `99/A` with Texture `90/100`, but trusted
+source proof still included licensed false friends from family mediation,
+behavior therapy, MTA accessibility, and a retail-store page named `Design
+Research (store)`.
+
+Full plan: `docs/V0.15.114_UX_SOURCE_FALSE_FRIEND_GATE_ROADMAP.md`
+
+1. Reject those licensed-but-wrong UX source rows before they become trusted
+   `sourceLedger` proof.
+2. Keep legitimate UX usability, accessibility, design-research, prototyping,
+   and practitioner-collaboration sources eligible.
+3. Mirror the source-relevance gate in the deep quality grader so already
+   exported bad rows regrade as citation findings.
+4. Pin the production and grader behavior with focused v0.15.113 regression
+   tests.
+5. Carry forward Texture `90/100`, generic `project-based undergraduate course`
+   lesson identity, and fresh deployed v0.15.114 provider verification.
+
 ## v0.15.88 - Header Action Cleanup
 
 Goal: make the working/generation page's top controls behave like a calm
