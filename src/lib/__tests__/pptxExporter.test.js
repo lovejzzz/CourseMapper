@@ -117,6 +117,41 @@ describe('pptxExporter', () => {
     expect(xml).not.toContain('Key Takeaway: Poor labeling makes even well-organized content hard to use<');
   });
 
+  it('punctuates long example-slide body bullets in rendered PPTX XML', async () => {
+    const blob = await buildSlideDeckPptxBlob(
+      {
+        decks: [
+          {
+            lessonTitle: 'Lesson 10: Accessibility',
+            slides: [
+              {
+                title: 'EXAMPLE',
+                type: 'example',
+                bullets: [
+                  'Accessibility is part of overall usability, not an optional add-on',
+                  'Making a form usable with a screen reader and with low vision.',
+                  'Interface state ↔ assistive technology feedback remains visible',
+                  'Key review point',
+                ],
+                notes: 'Use this example to connect accessibility choices to usability evidence.',
+              },
+            ],
+          },
+        ],
+      },
+      'User Experience Design Studio',
+      0,
+    );
+
+    const zip = await loadPptxZip(blob);
+    const xml = await zip.file('ppt/slides/slide1.xml').async('string');
+
+    expect(xml).toContain('Accessibility is part of overall usability, not an optional add-on.');
+    expect(xml).not.toContain('Accessibility is part of overall usability, not an optional add-on<');
+    expect(xml).toContain('Interface state ↔ assistive technology feedback remains visible');
+    expect(xml).not.toContain('Interface state ↔ assistive technology feedback remains visible.');
+  });
+
   describe('per-course accent palette (v0.12.1)', () => {
     it('is deterministic — same course name always maps to the same family', () => {
       const a = accentFamilyForCourse('Introduction to Microeconomics');
@@ -218,6 +253,7 @@ describe('pptxExporter', () => {
       );
       const zip = await loadPptxZip(blob);
       const xml = await zip.file('ppt/slides/slide1.xml').async('string');
+      const exportedLongRow = `${longRow}.`;
 
       // Find the run font size (`sz` in hundredths of a point) immediately
       // preceding each agenda row's text in the slide XML.
@@ -230,7 +266,7 @@ describe('pptxExporter', () => {
         return Number(before.slice(szIdx + 4).match(/^\d+/)[0]);
       };
 
-      const sizes = [runSizeFor('Short item'), runSizeFor('Another short one'), runSizeFor(longRow)];
+      const sizes = [runSizeFor('Short item'), runSizeFor('Another short one'), runSizeFor(exportedLongRow)];
       // All rows share one size…
       expect(new Set(sizes).size).toBe(1);
       // …and it is the shrunken size the long row forced, not the 16pt max —

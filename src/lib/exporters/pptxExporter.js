@@ -368,6 +368,27 @@ function ensureTerminalPunctuation(text) {
   return `${clean}.`;
 }
 
+const EXPORT_BULLET_PUNCTUATION_MIN_LENGTH = 60;
+const EXPORT_BULLET_RELATIONSHIP_ARROW = /[↔→⟷⇄⇆➜➔]/;
+
+function ensureExportBulletPunctuation(text) {
+  const clean = String(text || '').trim();
+  if (!clean || clean.length < EXPORT_BULLET_PUNCTUATION_MIN_LENGTH) return clean;
+  if (EXPORT_BULLET_RELATIONSHIP_ARROW.test(clean)) return clean;
+  if (/[.!?…;:]$/.test(clean) || !/[a-z]$/.test(clean)) return clean;
+  return `${clean}.`;
+}
+
+function normalizeSlideForPptxExport(slide) {
+  if (!Array.isArray(slide?.bullets)) return slide;
+  return {
+    ...slide,
+    bullets: slide.bullets.map((bullet) =>
+      typeof bullet === 'string' ? ensureExportBulletPunctuation(bullet) : bullet,
+    ),
+  };
+}
+
 /**
  * Decide whether this slide's visual descriptor can be rendered natively
  * from the data it already carries. Returns a render plan or null.
@@ -719,8 +740,9 @@ async function maybeProcessLatex(text, hasLatex, { color = '000000', fontSizePt 
  * @param {Object} [opts] - Options: { hasLatex: boolean }
  */
 async function buildSlideForDeck(pptx, deck, theme, slideIndex, totalSlides, opts = {}) {
-  const s = deck.slides?.[slideIndex];
-  if (!s) return;
+  const rawSlide = deck.slides?.[slideIndex];
+  if (!rawSlide) return;
+  const s = normalizeSlideForPptxExport(rawSlide);
   const slideType = getSlideType(s);
   const slide = pptx.addSlide();
   const W = SLIDE_W,

@@ -3,24 +3,23 @@ import { APP_VERSION } from './appVersion.js';
 export const CURRENT_RELEASE = {
   version: APP_VERSION,
   date: 'June 29, 2026',
-  title: 'Source Proof Dedupe: duplicate DOI variants stop inflating trusted source coverage',
-  landingTitle: 'Source Proof Dedupe',
+  title: 'PPTX Bullet Finish: exported slide bullets stop shipping as bare clauses',
+  landingTitle: 'PPTX Bullet Finish',
   highlights: [
-    'A fresh deployed v0.15.124 User Experience Design Studio ZIP/log audit exported and locally regraded at 100/100 with zero P0/P1/P2 findings, export verification passed, enrichment coverage complete, and Texture 95.',
-    'Strict source-ledger review still found a real citation-truth caveat: two trusted Crossref DOI rows described the same Margret Plank prototyping work, so trusted source coverage could be double-counted even though both rows were real, licensed, and on-topic.',
-    'Source-finder topic selection now deduplicates same-work candidates before applying the per-topic trusted-source cap, so duplicate DOI variants cannot crowd out the next distinct trusted source.',
-    'Package source-ledger merging now uses conservative title/author/evidence fingerprints alongside DOI and URL identity, preserving concept links while collapsing duplicate trusted proof across export bundles.',
-    'A focused package-export regression reproduces the v0.15.124 UX duplicate-prototyping shape and proves PACKAGE_MANIFEST.json, SOURCE_REPORT.md, and CourseIR sourceRef bridge counts use distinct trusted works.',
+    'A fresh deployed v0.15.125 User Experience Design Studio ZIP/log audit exported and locally regraded at 99/100 with clean source proof, export verification, enrichment coverage, and Texture 95.',
+    'The only scored P finding was a format/export defect in `Slide Decks/Lesson 10 - Accessibility - Slide Decks.pptx`: a long example-slide body bullet shipped as a bare clause without terminal punctuation.',
+    'PPTX export now applies the same long-prose punctuation safety net at final render time, so sentence-like slide body bullets cannot escape the compiler cleanup path as bare lowercase-ending lines.',
+    'A focused PPTX regression reproduces the exact accessibility bullet shape from the v0.15.125 audit and proves short labels plus relationship-arrow concept pairs stay intentionally unpunctuated.',
   ],
   landingHighlights: [
-    'Fresh v0.15.124 output reached visible 100/100 but still exposed duplicate source proof.',
-    'Duplicate DOI variants now collapse before trusted-source coverage is counted.',
-    'Concept links are merged instead of discarded when duplicate works appear in multiple topics.',
-    'Fresh v0.15.125 output is still required before claiming strict-clean source proof and Texture 100.',
+    'Fresh v0.15.125 output reached 99/100 with source proof clean and one PPTX punctuation P1.',
+    'Rendered PPTX body bullets now get a final long-prose punctuation safety pass.',
+    'Short labels and relationship-arrow concept pairs remain clean, not over-punctuated.',
+    'Fresh v0.15.126 output is still required before claiming strict-clean provider output.',
   ],
   proof: {
-    contract: 'release-contracts/v0.15.125.json',
-    roadmap: 'docs/V0.15.125_SOURCE_PROOF_DEDUPE_ROADMAP.md',
+    contract: 'release-contracts/v0.15.126.json',
+    roadmap: 'docs/V0.15.126_PPTX_BULLET_FINISH_ROADMAP.md',
     auditCommand: 'npm run audit:release-history',
   },
 };
@@ -35,6 +34,18 @@ export const CURRENT_RELEASE_CHANGELOG = {
 };
 
 export const HISTORICAL_RELEASE_CHANGELOGS = [
+  {
+    version: '0.15.125',
+    date: 'June 29, 2026',
+    title: 'Source Proof Dedupe: duplicate DOI variants stop inflating trusted source coverage',
+    highlights: [
+      'A fresh deployed v0.15.124 User Experience Design Studio ZIP/log audit exported and locally regraded at 100/100 with zero P0/P1/P2 findings, export verification passed, enrichment coverage complete, and Texture 95.',
+      'Strict source-ledger review still found a real citation-truth caveat: two trusted Crossref DOI rows described the same Margret Plank prototyping work, so trusted source coverage could be double-counted even though both rows were real, licensed, and on-topic.',
+      'Source-finder topic selection now deduplicates same-work candidates before applying the per-topic trusted-source cap, so duplicate DOI variants cannot crowd out the next distinct trusted source.',
+      'Package source-ledger merging now uses conservative title/author/evidence fingerprints alongside DOI and URL identity, preserving concept links while collapsing duplicate trusted proof across export bundles.',
+      'A focused package-export regression reproduces the v0.15.124 UX duplicate-prototyping shape and proves PACKAGE_MANIFEST.json, SOURCE_REPORT.md, and CourseIR sourceRef bridge counts use distinct trusted works.',
+    ],
+  },
   {
     version: '0.15.124',
     date: 'June 29, 2026',
