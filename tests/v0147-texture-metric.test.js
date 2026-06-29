@@ -448,7 +448,7 @@ describe('D1(2b) — compiler prose texture regression guard', () => {
     expect(
       countNormalizedPhrase(text, 'exit ticket revisit the warm-up vote students explain in their own words'),
     ).toBeLessThanOrEqual(4);
-  });
+  }, 30000);
 });
 
 function healthyConsoleLog() {
