@@ -561,6 +561,7 @@ function isPromptArtifactEvidenceCue(value) {
   if (!normalized) return false;
   if (INTERNAL_SOURCE_PLACEHOLDER_RE.test(normalized)) return true;
   if (PROMPT_ARTIFACT_EVIDENCE_SET.has(normalized)) return true;
+  if (/^weekly assessment\b/i.test(normalized) && countPromptArtifactEvidenceLabels(normalized) >= 1) return true;
   return countPromptArtifactEvidenceLabels(normalized) >= 2;
 }
 
@@ -609,12 +610,26 @@ function isUnsafeLessonConceptPhrase(value) {
   );
 }
 
-function isUnsafeLessonArtifactPhrase(value) {
-  return isPromptArtifactEvidenceCue(value) || isCompactNumberedArtifactList(value);
+const GENERIC_ARTIFACT_LABEL_RE =
+  /\b(?:the\s+)?(?:week|lesson|module|unit|session)\s+\d{1,3}\s+(?:artifact|assessment|work|submission|deliverable)\b/i;
+
+function isGenericArtifactLabel(value) {
+  return GENERIC_ARTIFACT_LABEL_RE.test(cleanText(value));
 }
 
+function isUnsafeLessonArtifactPhrase(value) {
+  return isPromptArtifactEvidenceCue(value) || isCompactNumberedArtifactList(value) || isGenericArtifactLabel(value);
+}
+
+const COURSE_FAQ_INTERNAL_SCAFFOLD_RE =
+  /\b(?:weekly assessment|source packet|source artifacts?|anchor contrast|visual guidance|accessibility description)\b/i;
+
 function isUnsafeCourseFaqPhrase(value) {
-  return isUnsafeLessonConceptPhrase(value) || isUnsafeLessonArtifactPhrase(value);
+  return (
+    isUnsafeLessonConceptPhrase(value) ||
+    isUnsafeLessonArtifactPhrase(value) ||
+    COURSE_FAQ_INTERNAL_SCAFFOLD_RE.test(cleanText(value))
+  );
 }
 
 const DANGLING_TAIL_RE =
@@ -1796,7 +1811,7 @@ function lessonTeachingMoves(blueprint, lesson = {}) {
   const moves = blueprintTeachingMoves(blueprint);
   const lessonTitle = stripLessonPrefix(lesson.title || 'this lesson');
   const concept = lesson.keyConcepts?.[0] || lessonTitle;
-  const artifact = stripTerminalPunctuation(lesson.studentArtifact || 'student artifact');
+  const artifact = safeLessonArtifact(lesson, 'artifact');
   const basePracticeMove = stripTerminalPunctuation(moves.practiceMove);
   const basePracticeClause = lowercaseClauseLead(basePracticeMove);
   const defaultPracticeMove = /\btest one inspectable\b.+\bwith a peer\b.+\bneeds next\b/i.test(basePracticeMove);
@@ -17299,8 +17314,9 @@ function slideArtifact(lesson) {
     .split(/\s*;\s*/)
     .map(stripTerminalPunctuation)
     .map(dedupeNumberedAssessmentEcho)
+    .map((part) => lessonDisplayArtifact(part, lesson))
     .filter((part) => part && !/\b(TBD|to be determined)\b/i.test(part));
-  return parts[0] || `${primarySlideConcept(lesson)} artifact`;
+  return parts[0] || safeLessonArtifact(lesson, 'artifact') || `${primarySlideConcept(lesson)} artifact`;
 }
 
 function escapeRegExpCompiler(value) {
@@ -19577,10 +19593,10 @@ function safeCourseFaqEvidenceCue(lesson, lens) {
 
 function safeCourseFaqAnchorContrast(lesson, lens) {
   const raw = stripTerminalPunctuation(cleanText(lesson?.assessmentAnchorExamples?.strongSample));
-  if (raw && !isPromptArtifactEvidenceCue(raw)) return raw;
+  if (raw && !isUnsafeCourseFaqPhrase(raw)) return raw;
   const focus = stripLessonPrefix(lesson?.title) || 'lesson';
   const concept = safeCourseFaqPrimaryConcept(lesson) || focus;
-  return `Strong ${focus} anchor: cites a concrete detail from ${safeCourseFaqEvidenceCue(lesson, lens)}, explains how it changes the ${concept} decision, names one limitation, and states the revision made before submission`;
+  return `A strong ${focus} example cites a concrete detail from ${safeCourseFaqEvidenceCue(lesson, lens)}, explains how it changes the ${concept} decision, names one limitation, and states the revision made before submission`;
 }
 
 function safeCourseFaqMaterialsReview(lesson, lens) {
@@ -19611,9 +19627,26 @@ function safeCourseFaqPrimaryConcept(lesson) {
 
 function safeCourseFaqStudentArtifact(lesson) {
   const raw = stripTerminalPunctuation(cleanText(lesson?.studentArtifact));
-  if (raw && !isUnsafeCourseFaqPhrase(raw)) return raw;
-  const focus = stripLessonPrefix(lesson?.title) || 'lesson';
-  return `${focus} assessment`;
+  const genericArtifact = isGenericArtifactLabel(raw);
+  const artifact =
+    raw && !genericArtifact && !genericLessonPhrase(raw) && !isUnsafeCourseFaqPhrase(raw)
+      ? raw
+      : `${safeCourseFaqPrimaryConcept(lesson)} assessment`;
+  const genreLabel = stripTerminalPunctuation(cleanText(lesson?.artifactGenre?.label));
+  const safeGenreLabel =
+    genreLabel &&
+    !isGenericArtifactLabel(genreLabel) &&
+    !genericLessonPhrase(genreLabel) &&
+    !isUnsafeCourseFaqPhrase(genreLabel) &&
+    !/\b(?:artifact|prompt|quiz and exam bank|study guides?|course faq|slide decks?|lesson plans?|rubrics?|syllabus)\b/i.test(
+      genreLabel,
+    )
+      ? genreLabel
+      : '';
+  if (safeGenreLabel && !artifact.toLowerCase().includes(safeGenreLabel.toLowerCase())) {
+    return `${safeGenreLabel} (${artifact})`;
+  }
+  return artifact;
 }
 
 function compileCourseFaq(blueprint, config = {}) {
@@ -19625,8 +19658,13 @@ function compileCourseFaq(blueprint, config = {}) {
       const safeConcepts = safeCourseFaqConcepts(lesson);
       const artifact = safeCourseFaqStudentArtifact(lesson);
       return {
-        q: `What should I focus on for ${lesson.title}?`,
-        an: `Focus on ${safeConcepts.slice(0, 3).join(', ')}, then connect those ideas to ${artifact}. Strong work uses ${evidenceCue} and explains a decision or implication.`,
+        q: `What matters most in ${lesson.title}?`,
+        an: lessonVariant(lesson, [
+          `Prioritize ${safeConcepts.slice(0, 3).join(', ')}, then connect those ideas to ${artifact}. Use a concrete detail from ${evidenceCue} to explain the decision, limitation, and next revision.`,
+          `Start with ${safeConcepts.slice(0, 3).join(', ')}, then show how they shape ${artifact}. The clearest answer names evidence from ${evidenceCue} and explains what action follows.`,
+          `Focus first on ${safeConcepts.slice(0, 3).join(', ')}. Link each idea to ${artifact} by citing ${evidenceCue}, naming the reasoning step, and revising the part that remains vague.`,
+          `Treat ${safeConcepts.slice(0, 3).join(', ')} as the priority concepts. Your answer should connect them to ${artifact}, point to ${evidenceCue}, and state the implication for your course work.`,
+        ]),
         ca: 'Concept Explanation',
         rc: safeConcepts.slice(0, 4),
         df: 'Basic',
@@ -19648,17 +19686,18 @@ function compileCourseFaq(blueprint, config = {}) {
       q: `What does strong work on ${stripLessonPrefix(lesson.title)} look like?`,
       an: (() => {
         const primaryConcept = safeCourseFaqPrimaryConcept(lesson);
+        const artifact = safeCourseFaqStudentArtifact(lesson);
         const qualityCue = lessonVariant(lesson, [
           lesson.artifactGenre?.qualityFocus || 'evidence specificity and revision quality',
-          'accurate concept use, visible reasoning, misconception correction, and readiness for the next artifact',
+          'accurate concept use, visible reasoning, misconception correction, and readiness for the next course task',
           'a defensible answer, a clear explanation, a corrected weak spot, and a next-step study move',
           'specific evidence, sound reasoning, corrected confusion, and transfer to the next course task',
         ]);
         return lessonVariant(lesson, [
-          `Strong work on ${lesson.title}: ${joinCriteriaSentence(lesson.successCriteria)} It should be specific enough that another reader can see how ${lesson.throughlineCase?.projectName || lesson.title} evidence about ${primaryConcept} supports the decision. For this ${lesson.artifactGenre?.label || lesson.artifactGenre?.genre || 'artifact'}, also check: ${qualityCue}. Anchor contrast: ${safeCourseFaqAnchorContrast(lesson, lens)}.`,
-          `Strong ${lesson.title} work proves the decision, not just the topic: ${joinCriteriaSentence(lesson.successCriteria)} The reader should be able to trace the ${primaryConcept} evidence, the reasoning step, and the revision choice. For this ${lesson.artifactGenre?.label || lesson.artifactGenre?.genre || 'artifact'}, check for ${qualityCue}. Use the anchor contrast to spot what separates complete from partial evidence: ${safeCourseFaqAnchorContrast(lesson, lens)}.`,
-          `A strong answer for ${lesson.title} shows the criteria in action: ${joinCriteriaSentence(lesson.successCriteria)} It names the ${primaryConcept} evidence, explains the method or decision it supports, and makes the artifact-specific quality move visible. For this ${lesson.artifactGenre?.label || lesson.artifactGenre?.genre || 'artifact'}, review whether the work shows ${qualityCue}. The anchor sample should help you compare strong and partial reasoning: ${safeCourseFaqAnchorContrast(lesson, lens)}.`,
-          `For ${lesson.title}, strong work makes the evidence trail inspectable: ${joinCriteriaSentence(lesson.successCriteria)} The submission should show where ${primaryConcept} appears, why that evidence matters, and what decision follows. Check the ${lesson.artifactGenre?.label || lesson.artifactGenre?.genre || 'artifact'} standard for ${qualityCue}. Then compare against the anchor contrast before submitting: ${safeCourseFaqAnchorContrast(lesson, lens)}.`,
+          `Strong work on ${lesson.title}: ${joinCriteriaSentence(lesson.successCriteria)} It should be specific enough that another reader can see how ${lesson.throughlineCase?.projectName || lesson.title} evidence about ${primaryConcept} supports the decision. For ${artifact}, also check: ${qualityCue}. Comparison example: ${safeCourseFaqAnchorContrast(lesson, lens)}.`,
+          `Strong ${lesson.title} work proves the decision, not just the topic: ${joinCriteriaSentence(lesson.successCriteria)} The reader should be able to trace the ${primaryConcept} evidence, the reasoning step, and the revision choice. For ${artifact}, check for ${qualityCue}. Use the comparison example to spot what separates complete from partial evidence: ${safeCourseFaqAnchorContrast(lesson, lens)}.`,
+          `A strong answer for ${lesson.title} shows the criteria in action: ${joinCriteriaSentence(lesson.successCriteria)} It names the ${primaryConcept} evidence, explains the method or decision it supports, and makes the assessment-specific quality move visible. For ${artifact}, review whether the work shows ${qualityCue}. The comparison example should help you compare strong and partial reasoning: ${safeCourseFaqAnchorContrast(lesson, lens)}.`,
+          `For ${lesson.title}, strong work makes the evidence trail inspectable: ${joinCriteriaSentence(lesson.successCriteria)} The submission should show where ${primaryConcept} appears, why that evidence matters, and what decision follows. Check the ${artifact} standard for ${qualityCue}. Then compare against this example before submitting: ${safeCourseFaqAnchorContrast(lesson, lens)}.`,
         ]);
       })(),
       ca: 'Assessment Prep',

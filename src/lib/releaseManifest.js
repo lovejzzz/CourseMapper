@@ -3,24 +3,24 @@ import { APP_VERSION } from './appVersion.js';
 export const CURRENT_RELEASE = {
   version: APP_VERSION,
   date: 'June 29, 2026',
-  title: 'TDM License Trust Gate: publisher policy URLs stop passing as source proof',
-  landingTitle: 'TDM License Trust Gate',
+  title: 'Prompt Artifact Firewall: FAQ and PPTX notes stop shipping build scaffolds',
+  landingTitle: 'Prompt Artifact Firewall',
   highlights: [
-    'A fresh deployed v0.15.117 User Experience Design Studio ZIP/log audit exported Quality 99 with Texture 92, but stricter local source audit found a trusted Crossref row whose license was `http://doi.wiley.com/10.1002/tdm_license_1.1`.',
-    '`tdm_license` URLs now count as ambiguous publisher-policy proof, not reusable source licenses, so source-finder rows using them cannot become trusted sourceLedger bibliography proof.',
-    'The local source-ledger grader mirrors the production gate: the captured v0.15.117 package now regrades with a citation P2 for row `sf3` instead of silently passing as license-clean.',
-    'Focused regressions prove Wiley-style `tdm_license` URLs are quarantined in source-ledger assembly and flagged in existing exported manifests.',
-    'This release keeps the target honest: v0.15.118 still needs a fresh deployed ZIP/log audit, and Texture 92-93 remains below the strict-clean texture target.',
+    'A fresh deployed v0.15.118 User Experience Design Studio ZIP audit exported Quality 74 because prompt/build scaffolds leaked into Course FAQ prose and PPTX speaker-note metadata even though source trust was clean.',
+    'Course FAQ compilation now treats `Weekly assessment: ...`, generic `Week N artifact` labels, `source packet`, and anchor-contrast scaffolds as unsafe, rewriting them to neutral lesson-assessment and source-evidence language before export.',
+    'PPTX export now writes natural `Instructor visual note` / `Accessibility note` speaker-note text instead of raw `Visual guidance` / `Accessibility description` marker labels.',
+    'The deep quality defect table now treats those raw PPTX visual-note labels as P0 internal scaffolds, so future exports cannot look clean while shipping them.',
+    'This release keeps the target honest: v0.15.119 still needs a fresh deployed ZIP/log audit to prove the prompt-artifact P0 is gone and Texture reaches the strict-clean target.',
   ],
   landingHighlights: [
-    'Fresh v0.15.117 output exposed a Wiley TDM license URL hidden inside trusted source proof.',
-    '`tdm_license` URLs no longer count as reusable teaching-material license proof.',
-    'Production source-ledger assembly and local regrade now agree on the stricter TDM gate.',
-    'Fresh v0.15.118 output is still required before claiming clean provider quality.',
+    'Fresh v0.15.118 output exposed a prompt-artifact P0 in FAQ and PPTX note surfaces.',
+    'Course FAQ answers now rewrite weekly-assessment/source-packet scaffolds before export.',
+    'PPTX speaker notes now use natural instructor/accessibility note labels.',
+    'Fresh v0.15.119 output is still required before claiming clean provider quality.',
   ],
   proof: {
-    contract: 'release-contracts/v0.15.118.json',
-    roadmap: 'docs/V0.15.118_TDM_LICENSE_TRUST_GATE_ROADMAP.md',
+    contract: 'release-contracts/v0.15.119.json',
+    roadmap: 'docs/V0.15.119_PROMPT_ARTIFACT_FIREWALL_ROADMAP.md',
     auditCommand: 'npm run audit:release-history',
   },
 };
@@ -35,6 +35,18 @@ export const CURRENT_RELEASE_CHANGELOG = {
 };
 
 export const HISTORICAL_RELEASE_CHANGELOGS = [
+  {
+    version: '0.15.118',
+    date: 'June 29, 2026',
+    title: 'TDM License Trust Gate: publisher policy URLs stop passing as source proof',
+    highlights: [
+      'A fresh deployed v0.15.117 User Experience Design Studio ZIP/log audit exported Quality 99 with Texture 92, but stricter local source audit found a trusted Crossref row whose license was `http://doi.wiley.com/10.1002/tdm_license_1.1`.',
+      '`tdm_license` URLs now count as ambiguous publisher-policy proof, not reusable source licenses, so source-finder rows using them cannot become trusted sourceLedger bibliography proof.',
+      'The local source-ledger grader mirrors the production gate: the captured v0.15.117 package now regrades with a citation P2 for row `sf3` instead of silently passing as license-clean.',
+      'Focused regressions prove Wiley-style `tdm_license` URLs are quarantined in source-ledger assembly and flagged in existing exported manifests.',
+      'This release keeps the target honest: v0.15.118 still needs a fresh deployed ZIP/log audit, and Texture 92-93 remains below the strict-clean texture target.',
+    ],
+  },
   {
     version: '0.15.117',
     date: 'June 29, 2026',

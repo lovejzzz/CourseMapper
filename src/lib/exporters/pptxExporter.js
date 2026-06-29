@@ -2039,18 +2039,18 @@ async function buildSlideForDeck(pptx, deck, theme, slideIndex, totalSlides, opt
     console.warn(`[CM] Slide ${slideIndex + 1} (${slideType}) validation:`, warnings);
   }
 
-  // Speaker notes — prepend a visual guidance block when
+  // Speaker notes — prepend a natural-language visual note when
   // the slide carries a visual hint. This keeps the cue visible in the
   // PPT's Notes Page view even if the instructor never looks at the slide.
   // The block stays even when the visual was rendered natively above — it
-  // doubles as accessibility guidance for the rendered table/shape group.
+  // doubles as accessibility support for the rendered table/shape group.
   const rawNotes = s.notes || s.speakerNotes || '';
   const baseNotes =
     countSpeakerNoteWords(rawNotes) >= 20
       ? rawNotes
       : [rawNotes, buildFallbackSpeakerNotes(deck, s, slideIndex, totalSlides)].filter(Boolean).join('\n\n');
   const visualGuidance = hasVisual
-    ? [`Visual guidance (${visKind}): ${visDesc}`, visAlt ? `Accessibility description: ${visAlt}` : '']
+    ? [`Instructor visual note (${visKind}): ${visDesc}`, visAlt ? `Accessibility note: ${visAlt}` : '']
         .filter(Boolean)
         .join('\n')
     : '';

@@ -819,6 +819,62 @@ describe('1.16 — prompt artifact labels never become course-map concepts', () 
     expect(faqText).toMatch(/Project Management source evidence|project charter/i);
   });
 
+  it('rewrites weekly-assessment and source-packet scaffolds before Course FAQ export', () => {
+    const courseMap = {
+      courseName: 'User Experience Design Studio',
+      lessons: [
+        {
+          title: 'Lesson 10: Analyze a design issue from multiple perspectives',
+          sections: [
+            {
+              topicSection: '10.1: Design issue analysis',
+              learningGoals: 'Use critique evidence to analyze a design issue from multiple perspectives.',
+              learningObjectives: 'Explain how design evidence changes a critique decision.',
+              weeklyAssessments: 'Weekly assessment: Discussion prompts',
+              asyncActivities: 'Review critique notes and prepare one evidence-backed response.',
+              syncActivities: 'Discuss examples and practice applying critique evidence.',
+              supportingResources: 'Analyze design issue from source packet',
+              evaluateDesign: 'Check design decisions against inspectable user evidence.',
+            },
+          ],
+        },
+      ],
+    };
+    const blueprint = buildCourseBlueprint(courseMap);
+    blueprint.lessons[0].studentArtifact = 'Weekly assessment: Discussion prompts';
+    blueprint.lessons[0].evidencePlan = {
+      ...(blueprint.lessons[0].evidencePlan || {}),
+      sourceCue: 'Analyze design issue from source packet',
+    };
+    blueprint.lessons[0].throughlineCase = {
+      ...(blueprint.lessons[0].throughlineCase || {}),
+      projectName: 'Design prototype',
+      evidencePacket: 'Analyze design issue from source packet',
+    };
+    blueprint.lessons[0].assessmentAnchorExamples = {
+      strongSample:
+        'Strong Weekly assessment: Quiz and exam bank anchor: uses Review core UX concepts source packet to support the core UX concepts decision.',
+    };
+
+    const compiled = compileBlueprintDeliverables(blueprint, ['courseFaq'], {
+      configMap: { courseFaq: { questionsPerLesson: 5 } },
+    });
+    const faqText = compiled.courseFaq.faqs
+      .flatMap((faq) => faq.qs || [])
+      .map((item) => `${item.q || ''} ${item.an || ''} ${(item.rc || []).join(' ')}`)
+      .join(' ');
+
+    expect(faqText).toMatch(/What matters most/i);
+    expect(faqText).not.toMatch(/What should I focus on/i);
+    expect(faqText).not.toMatch(/Weekly assessment:/i);
+    expect(faqText).not.toMatch(/\bsource packet\b/i);
+    expect(faqText).not.toMatch(/Quiz and exam bank/i);
+    expect(faqText).not.toMatch(/anchor contrast/i);
+    expect(faqText).toMatch(/lesson assessment/i);
+    expect(faqText).not.toMatch(/Week\s+\d+\s+artifact/i);
+    expect(faqText).toMatch(/source evidence/i);
+  });
+
   it('keeps prompt artifact labels out of compiled Study Guides and shared lesson metadata', () => {
     const courseMap = {
       courseName: 'Project Management',

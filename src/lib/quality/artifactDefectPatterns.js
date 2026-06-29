@@ -82,7 +82,7 @@ export const ARTIFACT_PATTERNS = [
     roadmap: 'v0.12.1',
   },
   {
-    regex: /\b(?:SUGGESTED VISUAL|ALT TEXT)\b/,
+    regex: /\b(?:SUGGESTED VISUAL|ALT TEXT|Visual guidance|Accessibility description)\b/,
     label: 'raw PPTX visual-note labels',
     name: 'raw-pptx-visual-note-labels',
     severity: 'P0',

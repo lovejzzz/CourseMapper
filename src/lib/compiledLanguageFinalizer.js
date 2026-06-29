@@ -117,9 +117,31 @@ function registryArtifactNoun(kind, title) {
   return head || fallback;
 }
 
+const GENERIC_ARTIFACT_REFERENCE_NOUNS = [
+  'lesson assessment',
+  'evidence task',
+  'application task',
+  'practice check',
+  'synthesis task',
+  'decision brief',
+  'reflection task',
+  'source-use task',
+  'planning task',
+  'lesson assessment',
+  'revision task',
+  'case task',
+];
+
+function genericArtifactReference(lessonNumber = 0) {
+  if (lessonNumber <= 0) return 'the recurring assessment task';
+  const index = (lessonNumber - 1) % GENERIC_ARTIFACT_REFERENCE_NOUNS.length;
+  return `the ${GENERIC_ARTIFACT_REFERENCE_NOUNS[index]}`;
+}
+
 function shortReferenceForKind(kind, lessonNumber = 0) {
   const week = lessonNumber > 0 ? `Week ${lessonNumber}` : 'weekly';
   if (kind === 'discussion-and-quiz') return `the ${week} discussion and quiz`;
+  if (!kind || kind === 'artifact') return genericArtifactReference(lessonNumber);
   return `the ${week} ${kind || 'artifact'}`;
 }
 

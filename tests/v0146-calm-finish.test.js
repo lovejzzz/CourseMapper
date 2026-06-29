@@ -283,7 +283,7 @@ describe('v0.15.52 — slide speaker notes shorten repeated long artifact names 
       compiled.slideDecks.decks.flatMap((deck) => deck.slides.map((slide) => slide.notes || '')),
     );
 
-    expect(notes).toContain('the Week 10 artifact');
+    expect(notes).toContain('the lesson assessment');
     expect((notes.match(/exit ticket using predictive planning to justify one/gi) || []).length).toBeLessThan(12);
 
     const blob = await buildSlideDeckPptxBlob(compiled.slideDecks, 'Project Management', 0);

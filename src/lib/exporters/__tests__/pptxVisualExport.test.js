@@ -241,9 +241,9 @@ const FIXTURE = {
 
 // Distinctive marker strings from our exporter code — if these change, the
 // test fails loudly and someone has to re-verify the feature intentionally.
-const NOTES_MARKER = 'Visual guidance';
-const ALT_MARKER = 'Accessibility description';
-const RAW_NOTES_MARKERS = ['SUGGESTED VISUAL', 'ALT TEXT'];
+const NOTES_MARKER = 'Instructor visual note';
+const ALT_MARKER = 'Accessibility note';
+const RAW_NOTES_MARKERS = ['SUGGESTED VISUAL', 'ALT TEXT', 'Visual guidance', 'Accessibility description'];
 const DASHED_LINE_XML = /prstDash\s+val\s*=\s*"dash"/;
 
 let slideXmls;
