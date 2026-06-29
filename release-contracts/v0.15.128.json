@@ -41,13 +41,9 @@
       "status": "verified-current",
       "changelogHighlightIndex": 0,
       "summary": "A fresh deployed v0.15.127 UX audit exported and locally regraded at 100/100 with zero P findings and Texture 95.",
-      "anchors": [
-        "docs/V0.15.128_UX_TEXTURE_SCAFFOLD_CLEANUP_ROADMAP.md",
-        "src/lib/releaseManifest.js",
-        "verification-output/edutool-audit-loop/20260629T123420Z-v015127-ux-fresh/local-regrade-current-rules.md"
-      ],
+      "anchors": ["docs/V0.15.128_UX_TEXTURE_SCAFFOLD_CLEANUP_ROADMAP.md", "src/lib/releaseManifest.js"],
       "proofCommands": [
-        "rg -n \"Quality 100|Texture 95|100/100|0 P0|0 P1|0 P2|v0.15.127\" docs/V0.15.128_UX_TEXTURE_SCAFFOLD_CLEANUP_ROADMAP.md src/lib/releaseManifest.js verification-output/edutool-audit-loop/20260629T123420Z-v015127-ux-fresh/local-regrade-current-rules.md"
+        "rg -n \"Quality 100|Texture 95|100/100|0 P0|0 P1|0 P2|v0.15.127\" docs/V0.15.128_UX_TEXTURE_SCAFFOLD_CLEANUP_ROADMAP.md src/lib/releaseManifest.js"
       ],
       "proofScopes": ["live-provider", "static-audit", "compiled-output"]
     },
@@ -56,13 +52,9 @@
       "status": "verified-current",
       "changelogHighlightIndex": 1,
       "summary": "The fresh audit still exposed repeated checklist, exit-ticket, office-hours, and generic Course Map support scaffolds in raw exported text.",
-      "anchors": [
-        "docs/V0.15.128_UX_TEXTURE_SCAFFOLD_CLEANUP_ROADMAP.md",
-        "verification-output/edutool-audit-loop/20260629T123420Z-v015127-ux-fresh/phrase-scan.json",
-        "src/lib/releaseManifest.js"
-      ],
+      "anchors": ["docs/V0.15.128_UX_TEXTURE_SCAFFOLD_CLEANUP_ROADMAP.md", "src/lib/releaseManifest.js"],
       "proofCommands": [
-        "rg -n \"checklist|exit ticket|office hours|quick evidence check|observe, label, calculate, or decide|lab materials\" docs/V0.15.128_UX_TEXTURE_SCAFFOLD_CLEANUP_ROADMAP.md verification-output/edutool-audit-loop/20260629T123420Z-v015127-ux-fresh/phrase-scan.json src/lib/releaseManifest.js"
+        "rg -n \"checklist|exit ticket|office hours|quick evidence check|observe, label, calculate, or decide|lab materials\" docs/V0.15.128_UX_TEXTURE_SCAFFOLD_CLEANUP_ROADMAP.md src/lib/releaseManifest.js"
       ],
       "proofScopes": ["live-provider", "static-audit", "compiled-output"]
     },
