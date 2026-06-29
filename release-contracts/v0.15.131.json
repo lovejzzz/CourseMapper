@@ -41,12 +41,9 @@
       "status": "verified-current",
       "changelogHighlightIndex": 0,
       "summary": "A fresh deployed v0.15.130 UX Studio provider run started but blocked before ZIP capture when Chrome became unresponsive during enrichment/progress inspection.",
-      "anchors": [
-        "verification-output/edutool-audit-loop/20260629T152606Z-v015130-fresh-blocker/report.md",
-        "docs/V0.15.131_PROGRESS_RIBBON_TRUTH_ROADMAP.md"
-      ],
+      "anchors": ["docs/V0.15.131_PROGRESS_RIBBON_TRUTH_ROADMAP.md"],
       "proofCommands": [
-        "rg -n \"Page Unresponsive|run-1782745776255|No new matching ZIP\" verification-output/edutool-audit-loop/20260629T152606Z-v015130-fresh-blocker/report.md"
+        "rg -n \"Page Unresponsive|run-1782745776255|ZIP/log audit\" docs/V0.15.131_PROGRESS_RIBBON_TRUTH_ROADMAP.md"
       ],
       "proofScopes": ["live-provider", "browser-live", "static-audit"]
     },
@@ -55,12 +52,9 @@
       "status": "verified-current",
       "changelogHighlightIndex": 1,
       "summary": "The visible blocker evidence showed a checked Map/progress indicator while enrichment was still running and package export remained disabled.",
-      "anchors": [
-        "verification-output/edutool-audit-loop/20260629T152606Z-v015130-fresh-blocker/report.md",
-        "docs/V0.15.131_PROGRESS_RIBBON_TRUTH_ROADMAP.md"
-      ],
+      "anchors": ["docs/V0.15.131_PROGRESS_RIBBON_TRUTH_ROADMAP.md"],
       "proofCommands": [
-        "rg -n \"Enriching lessons 1-12|Deliverables 0/9|1 material ready|checked Map\" verification-output/edutool-audit-loop/20260629T152606Z-v015130-fresh-blocker/report.md docs/V0.15.131_PROGRESS_RIBBON_TRUTH_ROADMAP.md"
+        "rg -n 'Enriching lessons 1-12|Deliverables 0/9|1 material ready|checked .Map. stage' docs/V0.15.131_PROGRESS_RIBBON_TRUTH_ROADMAP.md"
       ],
       "proofScopes": ["browser-live", "static-audit"]
     },
