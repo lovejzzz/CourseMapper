@@ -601,6 +601,35 @@ function appendUnique(rows, source) {
   rows.push(source);
 }
 
+function conceptLinkKeys(source = {}) {
+  return (Array.isArray(source.conceptLinks) ? source.conceptLinks : [])
+    .flatMap((link) => {
+      if (typeof link === 'string') return [link];
+      return [link?.id, link?.label];
+    })
+    .map((value) => cleanText(value, 120).toLowerCase())
+    .filter(Boolean);
+}
+
+function reviewRowConceptsCoveredByTrustedRows(reviewRow, trustedRows) {
+  const reviewKeys = conceptLinkKeys(reviewRow);
+  if (reviewKeys.length === 0 || trustedRows.length === 0) return false;
+  const trustedKeys = new Set(trustedRows.flatMap((row) => conceptLinkKeys(row)));
+  return reviewKeys.every((key) => trustedKeys.has(key));
+}
+
+function isCoveredNonActionableReviewRow(row, trustedRows, courseGraph) {
+  if (!reviewRowConceptsCoveredByTrustedRows(row, trustedRows)) return false;
+  return isGeneratedSyllabusSource(row) || isSourceFinderCandidate(row) || isUserExperienceWeakSource(row, courseGraph);
+}
+
+function pruneCoveredNonActionableReviewRows(rows, reviewRows, courseGraph) {
+  if (!reviewRows.length) return reviewRows;
+  const trustedRows = rows.filter(isTrustedConceptLinkedSourceLedgerRow);
+  if (!trustedRows.length) return reviewRows;
+  return reviewRows.filter((row) => !isCoveredNonActionableReviewRow(row, trustedRows, courseGraph));
+}
+
 function mergeSourceLedgerConceptLinks(existing = {}, incoming = {}) {
   const conceptLinks = normalizeConceptLinks([...(existing.conceptLinks || []), ...(incoming.conceptLinks || [])]);
   return {
@@ -758,12 +787,13 @@ export function buildSourceLedgerFromCourseGraph(courseGraph, { checkedAt = '' }
   }
 
   if (rows.length === 0 && reviewRows.length === 0) return null;
+  const actionableReviewRows = pruneCoveredNonActionableReviewRows(rows, reviewRows, courseGraph);
   return {
     rows,
-    ...(reviewRows.length > 0 ? { reviewRows } : {}),
+    ...(actionableReviewRows.length > 0 ? { reviewRows: actionableReviewRows } : {}),
     summary: {
       ...summarizeSourceLedgerRows(rows),
-      ...(reviewRows.length > 0 ? { reviewRequiredCount: reviewRows.length } : {}),
+      ...(actionableReviewRows.length > 0 ? { reviewRequiredCount: actionableReviewRows.length } : {}),
     },
   };
 }

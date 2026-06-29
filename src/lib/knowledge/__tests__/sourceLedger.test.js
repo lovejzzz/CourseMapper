@@ -1258,7 +1258,7 @@ describe('trusted source ledger', () => {
     expect(ledger.summary).toMatchObject({ sourceCount: 1, trustedConceptLinkedCount: 1 });
   });
 
-  it('quarantines weak UX knowledge resources before they become trusted ledger rows', () => {
+  it('drops covered weak UX knowledge bycatch instead of exporting it as instructor review debt', () => {
     const ledger = buildSourceLedgerFromCourseGraph(
       {
         course: { name: 'User Experience Design Studio' },
@@ -1323,8 +1323,9 @@ describe('trusted source ledger', () => {
     expect(ledger.rows.map((row) => row.title)).toEqual([
       'Optimizing the digital customer journey with personas for individualized user interface adaptations',
     ]);
-    expect(ledger.reviewRows.map((row) => row.title)).toEqual([expect.stringContaining('Metaverse beyond the hype')]);
-    expect(ledger.summary).toMatchObject({ sourceCount: 1, trustedConceptLinkedCount: 1, reviewRequiredCount: 1 });
+    expect(ledger.reviewRows || []).toHaveLength(0);
+    expect(ledger.summary).toMatchObject({ sourceCount: 1, trustedConceptLinkedCount: 1 });
+    expect(ledger.summary.reviewRequiredCount).toBeUndefined();
   });
 
   it('drops v0.15.113 UX licensed false friends while keeping discipline-matched source proof', () => {

@@ -3,24 +3,24 @@ import { APP_VERSION } from './appVersion.js';
 export const CURRENT_RELEASE = {
   version: APP_VERSION,
   date: 'June 29, 2026',
-  title: 'UX Texture Cleanup: support and closure scaffolds stop repeating through exports',
-  landingTitle: 'UX Texture Cleanup',
+  title: 'Source Review Cleanup: covered UX bycatch stops exporting as review debt',
+  landingTitle: 'Source Review Cleanup',
   highlights: [
-    'A fresh deployed v0.15.127 User Experience Design Studio ZIP/log audit exported and locally regraded at 100/100 with zero P0/P1/P2 findings, export verification passed, complete enrichment coverage, and Texture 95.',
-    'The same audit still exposed a real texture target below the broader clean-output bar: raw exported DOCX/PPTX/XLSX text repeated `checklist`, `exit ticket`, `office hours`, and generic Course Map support scaffolds.',
-    'UX Course Map fallback repair now uses design-research, critique, prototype, portfolio, and user-evidence language instead of generic `quick evidence check`, `lab materials`, or `discipline-specific tools` boilerplate.',
-    'Compiled FAQ, study-guide, assignment, and lesson-plan support surfaces now rotate review guides, closure checks, support channels, and submission steps instead of stamping the same checklist/office-hours/exit-ticket phrases across lessons.',
-    'A focused weak-map UX regression proves the old generic Course Map boilerplate and repeated support/closure scaffolds stay out of compiled UX deliverables without weakening scoring or source gates.',
+    'A fresh deployed v0.15.128 User Experience Design Studio ZIP/log audit exported and locally regraded at 100/100 with zero P0/P1/P2 findings, export verification passed, complete enrichment coverage, nine trusted concept-linked source rows, and Texture 95.',
+    'The same audit still exposed a source-report cleanliness gap: SOURCE_REPORT.md and PACKAGE_MANIFEST.json exported nine review notes even though the trusted ledger already covered the concepts and the questionable UX bycatch was not valid instructor action.',
+    'Source-ledger assembly now prunes covered non-actionable review rows: generated syllabus placeholders, source-finder candidates, and UX false-friend bycatch stop exporting as reviewRequiredCount debt once trusted licensed concept-linked rows cover their concepts.',
+    'Real citation debt stays visible: rows without trusted concept coverage remain in sourceReviewRows and Source Review Notes, and weak candidates are never promoted into trusted sourceLedger proof.',
+    'Focused source-ledger and package-export regressions prove the cleanup removes covered UX bycatch from user-facing review debt without weakening source trust, license, or concept-link requirements.',
   ],
   landingHighlights: [
-    'Fresh v0.15.127 output reached 100/100 with no P findings; Texture 95 remained.',
-    'UX Course Map fallback rows now stay in design-studio language.',
-    'FAQ, study-guide, assignment, and lesson-plan support copy no longer repeats the same checklist/exit-ticket scaffolds.',
-    'Fresh v0.15.128 output is still required before claiming full texture-clean provider output.',
+    'Fresh v0.15.128 output reached 100/100 with no P findings; Texture 95 remained.',
+    'Trusted UX source rows stay real, licensed, on-topic, and concept-linked.',
+    'Covered false-friend bycatch no longer appears as instructor review debt.',
+    'Fresh v0.15.129 output is still required before claiming a clean source-report surface.',
   ],
   proof: {
-    contract: 'release-contracts/v0.15.128.json',
-    roadmap: 'docs/V0.15.128_UX_TEXTURE_SCAFFOLD_CLEANUP_ROADMAP.md',
+    contract: 'release-contracts/v0.15.129.json',
+    roadmap: 'docs/V0.15.129_SOURCE_REVIEW_CAVEAT_CLEANUP_ROADMAP.md',
     auditCommand: 'npm run audit:release-history',
   },
 };
@@ -35,6 +35,18 @@ export const CURRENT_RELEASE_CHANGELOG = {
 };
 
 export const HISTORICAL_RELEASE_CHANGELOGS = [
+  {
+    version: '0.15.128',
+    date: 'June 29, 2026',
+    title: 'UX Texture Cleanup: support and closure scaffolds stop repeating through exports',
+    highlights: [
+      'A fresh deployed v0.15.127 User Experience Design Studio ZIP/log audit exported and locally regraded at 100/100 with zero P0/P1/P2 findings, export verification passed, complete enrichment coverage, and Texture 95.',
+      'The same audit still exposed a real texture target below the broader clean-output bar: raw exported DOCX/PPTX/XLSX text repeated `checklist`, `exit ticket`, `office hours`, and generic Course Map support scaffolds.',
+      'UX Course Map fallback repair now uses design-research, critique, prototype, portfolio, and user-evidence language instead of generic `quick evidence check`, `lab materials`, or `discipline-specific tools` boilerplate.',
+      'Compiled FAQ, study-guide, assignment, and lesson-plan support surfaces now rotate review guides, closure checks, support channels, and submission steps instead of stamping the same checklist/office-hours/exit-ticket phrases across lessons.',
+      'A focused weak-map UX regression proves the old generic Course Map boilerplate and repeated support/closure scaffolds stay out of compiled UX deliverables without weakening scoring or source gates.',
+    ],
+  },
   {
     version: '0.15.127',
     date: 'June 29, 2026',
