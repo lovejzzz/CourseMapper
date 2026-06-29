@@ -3,24 +3,24 @@ import { APP_VERSION } from './appVersion.js';
 export const CURRENT_RELEASE = {
   version: APP_VERSION,
   date: 'June 29, 2026',
-  title: 'Lesson Plan Artifact Firewall: Week N scaffolds stay out of exported plans',
-  landingTitle: 'Lesson Plan Artifact Firewall',
+  title: 'Lesson Plan Prompt-Artifact Precision: assessment labels become natural plan references',
+  landingTitle: 'Lesson Plan Prompt-Artifact Precision',
   highlights: [
-    'A fresh deployed v0.15.121 User Experience Design Studio ZIP/log audit exported Quality 74 because one P0 lesson-plan substance finding leaked `Week 4 assignment`, dictionary-definition prose, and `Grouping:` metadata into the DOCX output.',
-    'Lesson-plan compilation now treats `Week N assignment` and short variants like `Week N lab work` as unsafe artifact labels, including stale modality/finalizer text that reaches exported plan prose.',
-    'The deep workshop step now writes a student-facing revision instruction instead of `precise use of <term> — <definition>` dictionary scaffolding, and internal `Artifact revision block` copy is removed from the activity variant pool.',
-    'DOCX lesson-plan session outlines render grouping as `Class format:` instead of the internal `Grouping:` label.',
-    'Focused compiler and DOCX regressions prove the observed v0.15.121 P0 shape is blocked without weakening the quality grader; a fresh deployed v0.15.122 ZIP/log audit is still required before claiming clean provider output.',
+    'A fresh deployed v0.15.122 User Experience Design Studio ZIP/log audit exported Quality 98 and Texture 94; source proof, export verification, enrichment coverage, and report/digest truth were clean, but one P1 remained in lesson-plan prompt-artifact handling.',
+    'Lesson-plan compilation now treats colon-labeled assessment artifacts such as `Discussion prompts: Usability testing` as unsafe prose references and rewrites them to natural weekly artifact language before export.',
+    'Stale modality text is sanitized with the same rule, so instructor notes no longer say things like `Discussion prompts: Usability testing evidence about Usability testing` when they should name the visible student work.',
+    'The prompt-artifact detector now requires artifact labels to be near the focus/check cue, preventing a distant DOCX file header such as `LESSON PLANS` from combining with a later discussion question into a false positive.',
+    'Focused compiler and grader regressions prove the observed v0.15.122 P1 shape is blocked without weakening true prompt-artifact findings; a fresh deployed v0.15.123 ZIP/log audit is still required before claiming clean provider output.',
   ],
   landingHighlights: [
-    'Fresh v0.15.121 output isolated a remaining P0 to lesson-plan scaffold leakage.',
-    'Week/session artifact labels are replaced before lesson-plan prose exports.',
-    'DOCX outlines now use student-facing class format wording.',
-    'Fresh v0.15.122 output is still required before claiming clean provider quality.',
+    'Fresh v0.15.122 output isolated the remaining scored loss to lesson-plan prompt-artifact precision.',
+    'Prompt-labeled weekly assessments become natural plan references before export.',
+    'The grader no longer treats distant document headers as learner-facing artifact concepts.',
+    'Fresh v0.15.123 output is still required before claiming clean provider quality.',
   ],
   proof: {
-    contract: 'release-contracts/v0.15.122.json',
-    roadmap: 'docs/V0.15.122_LESSON_PLAN_ARTIFACT_FIREWALL_ROADMAP.md',
+    contract: 'release-contracts/v0.15.123.json',
+    roadmap: 'docs/V0.15.123_LESSON_PLAN_PROMPT_ARTIFACT_PRECISION_ROADMAP.md',
     auditCommand: 'npm run audit:release-history',
   },
 };
@@ -35,6 +35,18 @@ export const CURRENT_RELEASE_CHANGELOG = {
 };
 
 export const HISTORICAL_RELEASE_CHANGELOGS = [
+  {
+    version: '0.15.122',
+    date: 'June 29, 2026',
+    title: 'Lesson Plan Artifact Firewall: Week N scaffolds stay out of exported plans',
+    highlights: [
+      'A fresh deployed v0.15.121 User Experience Design Studio ZIP/log audit exported Quality 74 because one P0 lesson-plan substance finding leaked `Week 4 assignment`, dictionary-definition prose, and `Grouping:` metadata into the DOCX output.',
+      'Lesson-plan compilation now treats `Week N assignment` and short variants like `Week N lab work` as unsafe artifact labels, including stale modality/finalizer text that reaches exported plan prose.',
+      'The deep workshop step now writes a student-facing revision instruction instead of `precise use of <term> — <definition>` dictionary scaffolding, and internal `Artifact revision block` copy is removed from the activity variant pool.',
+      'DOCX lesson-plan session outlines render grouping as `Class format:` instead of the internal `Grouping:` label.',
+      'A fresh deployed v0.15.122 ZIP/log audit later proved this release fixed the prior P0 but still exported Quality 98 with one P1 from colon-labeled lesson-plan assessment references.',
+    ],
+  },
   {
     version: '0.15.121',
     date: 'June 29, 2026',

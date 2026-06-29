@@ -346,6 +346,7 @@ const PROMPT_ARTIFACT_TOPIC_SOURCE =
 const PROMPT_ARTIFACT_FOCUS_TOPIC_SOURCE =
   'course map|syllabus|evidence-rich lesson plans|lesson plans|lesson objectives|learning objectives|slide decks|assignment briefs|assignments|rubric-driven assignments|rubrics|discussion prompts|scenario quizzes|quizzes|quiz and exam bank|quiz & exam bank|quiz bank|study guides|course faq|final capstone presentations|final capstone presentation|misconceptions|instructor handoff notes';
 const PROMPT_ARTIFACT_FOCUS_TOPIC_RE = new RegExp(`\\b(${PROMPT_ARTIFACT_FOCUS_TOPIC_SOURCE})\\b`, 'i');
+const PROMPT_ARTIFACT_FOCUS_TOPIC_GLOBAL_RE = new RegExp(`\\b(${PROMPT_ARTIFACT_FOCUS_TOPIC_SOURCE})\\b`, 'gi');
 const NUMBERED_PROMPT_ARTIFACT_TOPIC_RE = new RegExp(
   `\\b\\d+(?:\\.\\d+)+\\s*:\\s*(${PROMPT_ARTIFACT_TOPIC_SOURCE})\\b`,
   'i',
@@ -365,9 +366,15 @@ export function findPromptArtifactContamination(line) {
     .replace(/\s+/g, ' ')
     .trim();
   if (!value) return null;
-  const match =
-    value.match(NUMBERED_PROMPT_ARTIFACT_TOPIC_RE) ||
-    (PROMPT_ARTIFACT_FOCUS_RE.test(value) ? value.match(PROMPT_ARTIFACT_FOCUS_TOPIC_RE) : null);
+  const numberedMatch = value.match(NUMBERED_PROMPT_ARTIFACT_TOPIC_RE);
+  if (numberedMatch) return { evidence: value, label: String(numberedMatch[1] || '').toLowerCase() };
+  const focusMatch = value.match(PROMPT_ARTIFACT_FOCUS_RE);
+  if (!focusMatch) return null;
+  const focusIndex = focusMatch.index || 0;
+  const nearbyTopicMatch = Array.from(value.matchAll(PROMPT_ARTIFACT_FOCUS_TOPIC_GLOBAL_RE)).find(
+    (topicMatch) => Math.abs((topicMatch.index || 0) - focusIndex) <= 140,
+  );
+  const match = nearbyTopicMatch || null;
   return match ? { evidence: value, label: String(match[1] || '').toLowerCase() } : null;
 }
 

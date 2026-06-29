@@ -614,13 +614,18 @@ const GENERIC_ARTIFACT_LABEL_RE =
   /\b(?:the\s+)?(?:week|lesson|module|unit|session)\s+\d{1,3}(?:\s+[a-z][a-z-]*){0,3}\s+(?:artifact|assessment|assignment|work|submission|deliverable)\b/i;
 const GENERIC_ARTIFACT_LABEL_GLOBAL_RE =
   /\b(?:the\s+)?(?:week|lesson|module|unit|session)\s+\d{1,3}(?:\s+[a-z][a-z-]*){0,3}\s+(?:artifact|assessment|assignment|work|submission|deliverable)\b/gi;
+const PROMPT_LABELED_ARTIFACT_RE =
+  /\b(?:discussion prompts?|quiz(?:zes)?|quiz\s*(?:&|and)\s*exam\s*bank|assignment briefs?|rubric-driven assignments?|rubrics?|slide decks?|study guides?|course faq|lesson plans?)\s*:(?!\s*(?:redirect|revise|review|use|confirm|ask|have|require|collect|seed|mark|watch|catch|press|students?|drafts?|teams?)\b)\s*[^.;,\n\r—-]{2,80}(?=\s+(?:evidence|shows?|begins?|starts?|supports?|requires?|using|from|into|through|before|after|to|for)\b|[.;,\n\r—-]|$)/i;
+const PROMPT_LABELED_ARTIFACT_GLOBAL_RE =
+  /\b(?:discussion prompts?|quiz(?:zes)?|quiz\s*(?:&|and)\s*exam\s*bank|assignment briefs?|rubric-driven assignments?|rubrics?|slide decks?|study guides?|course faq|lesson plans?)\s*:(?!\s*(?:redirect|revise|review|use|confirm|ask|have|require|collect|seed|mark|watch|catch|press|students?|drafts?|teams?)\b)\s*[^.;,\n\r—-]{2,80}(?=\s+(?:evidence|shows?|begins?|starts?|supports?|requires?|using|from|into|through|before|after|to|for)\b|[.;,\n\r—-]|$)/gi;
 
 function isGenericArtifactLabel(value) {
   return GENERIC_ARTIFACT_LABEL_RE.test(cleanText(value));
 }
 
 function isUnsafeLessonArtifactPhrase(value) {
-  return isPromptArtifactEvidenceCue(value) || isCompactNumberedArtifactList(value) || isGenericArtifactLabel(value);
+  const text = cleanText(value);
+  return isPromptArtifactEvidenceCue(text) || isCompactNumberedArtifactList(text) || isGenericArtifactLabel(text);
 }
 
 const COURSE_FAQ_INTERNAL_SCAFFOLD_RE =
@@ -4807,7 +4812,31 @@ function safeLessonArtifact(lesson = {}, fallbackKind = 'artifact') {
   return lessonDisplayArtifact(lesson?.studentArtifact || fallback, lesson) || fallback;
 }
 
+function promptLabeledArtifactKind(value) {
+  const normalized = cleanText(value).toLowerCase();
+  if (!normalized) return '';
+  if (/^discussion prompts?\s*:/.test(normalized)) return 'discussion prompt';
+  if (/^quiz(?:zes)?\s*:/.test(normalized) || /^quiz\s*(?:&|and)\s*exam\s*bank\s*:/.test(normalized)) {
+    return 'quiz';
+  }
+  if (/^(?:assignment briefs?|rubric-driven assignments?)\s*:/.test(normalized)) return 'assignment';
+  if (/^rubrics?\s*:/.test(normalized)) return 'rubric check';
+  if (/^slide decks?\s*:/.test(normalized)) return 'presentation draft';
+  if (/^study guides?\s*:/.test(normalized)) return 'study guide check';
+  if (/^course faq\s*:/.test(normalized)) return 'support question';
+  if (/^lesson plans?\s*:/.test(normalized)) return 'lesson activity';
+  return '';
+}
+
+function weekScopedArtifactReference(lesson = {}, kind = 'artifact') {
+  const lessonNumber = Number(lesson?.lessonNumber);
+  const prefix = Number.isFinite(lessonNumber) && lessonNumber > 0 ? `Week ${lessonNumber}` : 'Weekly';
+  return `${prefix} ${kind}`;
+}
+
 function safeLessonPlanArtifact(lesson = {}, fallbackKind = 'artifact') {
+  const labeledKind = promptLabeledArtifactKind(lesson?.studentArtifact);
+  if (labeledKind) return weekScopedArtifactReference(lesson, labeledKind);
   const artifact = safeLessonArtifact(lesson, fallbackKind);
   if (!isUnsafeLessonArtifactPhrase(artifact)) return artifact;
   const concept = safeLessonPrimaryConcept(lesson);
@@ -6653,18 +6682,26 @@ function replaceGenericArtifactLabels(value, replacement) {
   return text.replace(GENERIC_ARTIFACT_LABEL_GLOBAL_RE, replacement);
 }
 
+function replaceUnsafeLessonArtifactLabels(value, replacement) {
+  const text = cleanText(value);
+  if (!text) return text;
+  return text
+    .replace(GENERIC_ARTIFACT_LABEL_GLOBAL_RE, replacement)
+    .replace(PROMPT_LABELED_ARTIFACT_GLOBAL_RE, replacement);
+}
+
 function sanitizeLessonModalityDecode(modality = {}, lesson = {}, artifactOverride = null) {
   const artifact = artifactOverride || safeLessonArtifact(lesson);
   return Object.fromEntries(
     Object.entries(modality || {}).map(([key, value]) => [
       key,
-      typeof value === 'string' ? replaceGenericArtifactLabels(value, artifact) : value,
+      typeof value === 'string' ? replaceUnsafeLessonArtifactLabels(value, artifact) : value,
     ]),
   );
 }
 
 function sanitizeGenericArtifactLabelsInValue(value, replacement) {
-  if (typeof value === 'string') return replaceGenericArtifactLabels(value, replacement);
+  if (typeof value === 'string') return replaceUnsafeLessonArtifactLabels(value, replacement);
   if (Array.isArray(value)) return value.map((item) => sanitizeGenericArtifactLabelsInValue(item, replacement));
   if (value && typeof value === 'object') {
     return Object.fromEntries(
@@ -6684,7 +6721,10 @@ function visibleLessonPlanArtifactReplacement(plan = {}, lesson = {}) {
   return (
     candidates
       .map((candidate) => stripTerminalPunctuation(cleanText(candidate)))
-      .find((candidate) => candidate && !isUnsafeLessonArtifactPhrase(candidate)) || 'lesson artifact'
+      .find(
+        (candidate) =>
+          candidate && !isUnsafeLessonArtifactPhrase(candidate) && !PROMPT_LABELED_ARTIFACT_RE.test(candidate),
+      ) || 'lesson artifact'
   );
 }
 

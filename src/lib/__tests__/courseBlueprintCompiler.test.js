@@ -15,6 +15,7 @@ import { evaluateClassroomReadiness } from '../classroomReadiness';
 import { validateDeliverableGeneration } from '../deliverablePostProcess';
 import { deliverableToCsvRows } from '../exporters/csvExporter';
 import { buildInstructorPreferenceProfile } from '../instructorPreferenceProfile';
+import { findPromptArtifactContamination } from '../quality/artifactDefectPatterns';
 import { validateSemanticContentQuality } from '../pedagogicalValidator';
 import { computeTexture } from '../quality/textureMetric';
 import { DEFAULT_AUDIT_PROJECTS, MESSY_IMPORT_STRESS_PROJECT } from '../../../scripts/hybridPipelineAudit.mjs';
@@ -7156,5 +7157,78 @@ describe('courseBlueprintCompiler', () => {
     expect(renderedPlanText).not.toMatch(/\bWeek 4(?:\s+[a-z-]+){0,3}\s+(?:assignment|artifact|work)\b/i);
     expect(renderedPlanText).not.toMatch(/\bArtifact revision block\b/i);
     expect(renderedPlanText).not.toMatch(/precise use of usability testing\s+[—-]\s+A method/i);
+  });
+
+  it('renders prompt-labeled UX weekly assessments as natural lesson-plan artifact references', () => {
+    const blueprint = buildCourseBlueprint({
+      courseName: 'User Experience Design Studio',
+      semester: 'Fall 2026',
+      lessons: Array.from({ length: 5 }, (_, index) => {
+        const lessonNumber = index + 1;
+        const isTarget = lessonNumber === 5;
+        const topic = isTarget ? 'Usability testing' : `UX studio topic ${lessonNumber}`;
+        return {
+          title: `Lesson ${lessonNumber}: ${topic}`,
+          sections: [
+            {
+              topicSection: isTarget ? 'test planning' : topic,
+              learningGoals: `Use ${topic} evidence to improve a UX artifact.`,
+              learningObjectives: `Explain the key ideas in ${topic.toLowerCase()} and apply them in course activities.`,
+              weeklyAssessments: isTarget
+                ? 'Discussion prompts: Usability testing'
+                : `UX evidence note ${lessonNumber}`,
+              asyncActivities: `Review assigned materials and prepare notes on ${topic}.`,
+              syncActivities: `Studio critique and practice applying ${topic}.`,
+              supportingResources: 'UX example packet; critique protocol; design artifact template',
+              evaluateDesign: `Score evidence, reasoning, limitation, and revision quality for ${topic}.`,
+            },
+          ],
+        };
+      }),
+    });
+    Object.assign(blueprint.lessons[4], {
+      keyConcepts: ['usability testing'],
+      studentArtifact: 'Discussion prompts: Usability testing',
+      enrichment: {
+        keyTerms: [
+          {
+            term: 'usability testing',
+            definition: 'A method for evaluating how easily people can complete tasks with a product or prototype.',
+          },
+        ],
+        discussionPrompt: {
+          prompt: 'Should usability testing focus more on realistic tasks or on isolated interface elements?',
+          positions: [
+            'Focus on realistic tasks to capture the whole experience',
+            'Focus on isolated elements to diagnose specific issues efficiently',
+          ],
+        },
+      },
+    });
+
+    const compiled = compileBlueprintDeliverables(blueprint, ['lessonPlans'], {
+      configMap: { lessonPlans: { depth: 'deep' } },
+    });
+    const lessonFive = compiled.lessonPlans.lessonPlans[4];
+    const renderedPlanText = JSON.stringify({
+      materials: lessonFive.materials,
+      assessments: lessonFive.assessmentsThisWeek,
+      outline: lessonFive.outline,
+      homework: lessonFive.homework,
+      summary: lessonFive.studentFacingSummary,
+      criteria: lessonFive.weeklySubmissionCriteria,
+    });
+
+    expect(renderedPlanText).toMatch(/Week 5 discussion prompt/i);
+    expect(renderedPlanText).not.toMatch(/Discussion prompts:\s*Usability testing/i);
+    expect(renderedPlanText).not.toMatch(/Discussion prompts[^.]{0,80}evidence about Usability testing/i);
+    expect(
+      findPromptArtifactContamination(
+        'LESSON PLANS User Experience Design Studio Lesson 5: Usability testing Teams take a position on the lesson live question: Should usability testing focus more on realistic tasks or isolated interface elements?',
+      ),
+    ).toBeNull();
+    expect(
+      findPromptArtifactContamination('This activity focuses on Discussion prompts rather than the course concept.'),
+    ).toEqual(expect.objectContaining({ label: 'discussion prompts' }));
   });
 });
