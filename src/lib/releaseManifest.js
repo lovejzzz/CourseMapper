@@ -3,24 +3,24 @@ import { APP_VERSION } from './appVersion.js';
 export const CURRENT_RELEASE = {
   version: APP_VERSION,
   date: 'June 29, 2026',
-  title: 'Prompt Artifact Firewall: FAQ and PPTX notes stop shipping build scaffolds',
-  landingTitle: 'Prompt Artifact Firewall',
+  title: 'Study Guide Artifact Firewall: prompt labels become natural checks',
+  landingTitle: 'Study Guide Artifact Firewall',
   highlights: [
-    'A fresh deployed v0.15.118 User Experience Design Studio ZIP audit exported Quality 74 because prompt/build scaffolds leaked into Course FAQ prose and PPTX speaker-note metadata even though source trust was clean.',
-    'Course FAQ compilation now treats `Weekly assessment: ...`, generic `Week N artifact` labels, `source packet`, and anchor-contrast scaffolds as unsafe, rewriting them to neutral lesson-assessment and source-evidence language before export.',
-    'PPTX export now writes natural `Instructor visual note` / `Accessibility note` speaker-note text instead of raw `Visual guidance` / `Accessibility description` marker labels.',
-    'The deep quality defect table now treats those raw PPTX visual-note labels as P0 internal scaffolds, so future exports cannot look clean while shipping them.',
-    'This release keeps the target honest: v0.15.119 still needs a fresh deployed ZIP/log audit to prove the prompt-artifact P0 is gone and Texture reaches the strict-clean target.',
+    'A fresh deployed v0.15.119 User Experience Design Studio ZIP/log audit improved to Quality 98 with source truth clean, but one Study Guide still leaked a `discussion prompts` artifact label into learner-facing preparation text.',
+    'Study Guide check-title compilation now strips deliverable prefixes such as `Discussion prompt:`, quiz-bank labels, study-guide labels, FAQ labels, slide-deck labels, assignment-brief labels, and rubric labels before they become course concepts.',
+    'Prompt-prefixed Study Guide checks now render as natural student work such as `discussion on project scenarios`, `retrieval check on ...`, or `evidence check on ...` rather than shipping internal artifact names.',
+    'The prompt-artifact finalizer regression now covers an in-class `Discussion prompt:` assessment flowing into Study Guides, proving this exact v0.15.119 failure shape is repaired before export.',
+    'This release keeps the target honest: v0.15.120 still needs a fresh deployed ZIP/log audit to prove the remaining Study Guide P1 is gone and Texture 94 reaches the strict-clean target.',
   ],
   landingHighlights: [
-    'Fresh v0.15.118 output exposed a prompt-artifact P0 in FAQ and PPTX note surfaces.',
-    'Course FAQ answers now rewrite weekly-assessment/source-packet scaffolds before export.',
-    'PPTX speaker notes now use natural instructor/accessibility note labels.',
-    'Fresh v0.15.119 output is still required before claiming clean provider quality.',
+    'Fresh v0.15.119 output proved source truth clean but exposed one Study Guide artifact-label leak.',
+    'Study Guide check titles now strip deliverable prefixes before export.',
+    'Discussion prompt labels become natural discussion checks for students.',
+    'Fresh v0.15.120 output is still required before claiming clean provider quality.',
   ],
   proof: {
-    contract: 'release-contracts/v0.15.119.json',
-    roadmap: 'docs/V0.15.119_PROMPT_ARTIFACT_FIREWALL_ROADMAP.md',
+    contract: 'release-contracts/v0.15.120.json',
+    roadmap: 'docs/V0.15.120_STUDY_GUIDE_ARTIFACT_FIREWALL_ROADMAP.md',
     auditCommand: 'npm run audit:release-history',
   },
 };
@@ -35,6 +35,18 @@ export const CURRENT_RELEASE_CHANGELOG = {
 };
 
 export const HISTORICAL_RELEASE_CHANGELOGS = [
+  {
+    version: '0.15.119',
+    date: 'June 29, 2026',
+    title: 'Prompt Artifact Firewall: FAQ and PPTX notes stop shipping build scaffolds',
+    highlights: [
+      'A fresh deployed v0.15.118 User Experience Design Studio ZIP audit exported Quality 74 because prompt/build scaffolds leaked into Course FAQ prose and PPTX speaker-note metadata even though source trust was clean.',
+      'Course FAQ compilation now treats `Weekly assessment: ...`, generic `Week N artifact` labels, `source packet`, and anchor-contrast scaffolds as unsafe, rewriting them to neutral lesson-assessment and source-evidence language before export.',
+      'PPTX export now writes natural `Instructor visual note` / `Accessibility note` speaker-note text instead of raw `Visual guidance` / `Accessibility description` marker labels.',
+      'The deep quality defect table now treats those raw PPTX visual-note labels as P0 internal scaffolds, so future exports cannot look clean while shipping them.',
+      'This release keeps the target honest: v0.15.119 still needs a fresh deployed ZIP/log audit to prove the prompt-artifact P0 is gone and Texture reaches the strict-clean target.',
+    ],
+  },
   {
     version: '0.15.118',
     date: 'June 29, 2026',

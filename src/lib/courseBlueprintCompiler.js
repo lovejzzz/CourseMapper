@@ -15763,6 +15763,20 @@ function buildDialoguePractice(lesson) {
 
 function safeStudyGuideCheckTitle(entry = {}, lesson = {}) {
   const title = stripTerminalPunctuation(cleanText(entry.title || entry.label || entry.kind || ''));
+  const promptPrefix = title.match(
+    /^(discussion prompts?|quiz(?:\s*&\s*exam\s*bank|\s+and\s+exam\s+bank)?|study guides?|course faq|slide decks?|lesson plans?|assignment briefs?|rubrics?)\s*[:.–—-]\s*(.+)$/i,
+  );
+  if (promptPrefix) {
+    const topic = cleanText(promptPrefix[2]);
+    const safeTopic =
+      topic && !isUnsafeLessonConceptPhrase(topic) && !isUnsafeLessonArtifactPhrase(topic)
+        ? topic
+        : safeLessonPrimaryConcept(lesson);
+    const label = normalizePromptArtifactEvidenceCue(promptPrefix[1]);
+    if (/^discussion prompt/.test(label)) return `discussion on ${safeTopic}`;
+    if (/^quiz/.test(label)) return `retrieval check on ${safeTopic}`;
+    return `evidence check on ${safeTopic}`;
+  }
   if (title && !isUnsafeLessonConceptPhrase(title) && !isUnsafeLessonArtifactPhrase(title)) return title;
   return `${safeLessonPrimaryConcept(lesson)} evidence check`;
 }

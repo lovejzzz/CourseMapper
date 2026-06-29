@@ -912,6 +912,12 @@ describe('1.16 — prompt artifact labels never become course-map concepts', () 
     blueprint.assessmentRegistry = [
       ...(blueprint.assessmentRegistry || []),
       {
+        id: 'discussion-prefix-review',
+        dueSession: 1,
+        kind: 'in-class',
+        title: 'Discussion prompt: project scenarios',
+      },
+      {
         id: 'live-review',
         dueSession: 3,
         kind: 'in-class',
@@ -995,6 +1001,7 @@ describe('1.16 — prompt artifact labels never become course-map concepts', () 
     expect(guideStudentText).not.toMatch(/quiz and exam bank/i);
     expect(guideStudentText).not.toMatch(/rubric-driven assignments/i);
     expect(guideStudentText).not.toMatch(/final capstone presentation/i);
+    expect(guideStudentText).toMatch(/discussion on project scenarios/i);
     expect(guideText).toMatch(/project scenarios|project actions/i);
     expect(guideText).toMatch(/source evidence/i);
     expect(compiledText).toMatch(/Project scenario evidence|project scenarios|project actions/i);
