@@ -3,25 +3,24 @@ import { APP_VERSION } from './appVersion.js';
 export const CURRENT_RELEASE = {
   version: APP_VERSION,
   date: 'June 29, 2026',
-  title: 'Texture Tail Cleanup: rubric, lesson-plan, and slide scaffolds vary by lesson',
-  landingTitle: 'Texture Tail Cleanup',
+  title: 'Progress Ribbon Truth: running phases stop showing clean checks',
+  landingTitle: 'Progress Ribbon Truth',
   highlights: [
-    'A fresh deployed v0.15.129 User Experience Design Studio ZIP/log audit exported and locally regraded at 100/100 with zero P0/P1/P2 findings, export verification passed, full sourceRef coverage, five trusted concept-linked source rows, and no sourceReviewRows.',
-    'The same audit proved the source-report cleanup worked but still left the strict-clean texture target short: Texture stayed at 95 with repeated rubric, lesson-plan, and slide-deck shingles across all 12 lessons.',
-    'Criterion feedback language now rotates by lesson, so the old `criterion-level feedback that names the strongest evidence move, the weakest reasoning link...` tail no longer stamps into every feedback surface.',
-    'Studio-lab signature practice now contextualizes the critique/prototype revision routine per lesson instead of repeating the same `critique a visible prototype or design artifact...` phrase through slide decks.',
-    'Rubric professional-communication developing bands now vary the organization, audience, and evidence-path language instead of repeating the `audience language makes the user evidence harder to follow` shingle across every rubric.',
-    'Focused compiler texture regressions prove these exact v0.15.129 shingles stay out of the texture evidence without weakening source, report-truth, or quality-grader standards.',
+    'A fresh deployed v0.15.130 User Experience Design Studio provider run started successfully but blocked before ZIP capture when the Chrome page became unresponsive during enrichment/progress inspection.',
+    'The visible blocker evidence showed the progress spine could display a checked Map stage while the app still said `Enriching lessons 1-12`, `Deliverables 0/9`, `1 material ready`, and the Package ZIP button remained disabled.',
+    'The pipeline step selector now separates settled phase handoff from verified completion: running builds render earlier phases as neutral settled dots instead of emerald checks.',
+    'Blocked or caveated finish states no longer inherit clean-ready stage checks; green checks are reserved for terminal ready/sync-ready work that has actually completed.',
+    'Focused pipeline and build-ribbon regressions pin enrichment, compile, verify, lull, blocked, and ready states without weakening source, report-truth, export, or quality-grader standards.',
   ],
   landingHighlights: [
-    'Fresh v0.15.129 output reached 100/100 with clean source-report proof.',
-    'Texture still measured 95 because rubric, lesson-plan, and slide tails repeated.',
-    'Compiler scaffolds now rotate the exact repeated shingles found in the audit.',
-    'Fresh v0.15.130 output is still required before claiming texture 100.',
+    'Fresh v0.15.130 evidence found a progress UI truth bug before ZIP capture.',
+    'Running phases now show neutral progress dots, not clean completion checks.',
+    'Course Map no longer implies completion while enrichment/export are unfinished.',
+    'Fresh v0.15.131 ZIP/log evidence is still required before claiming texture 100.',
   ],
   proof: {
-    contract: 'release-contracts/v0.15.130.json',
-    roadmap: 'docs/V0.15.130_TEXTURE_TAIL_CLEANUP_ROADMAP.md',
+    contract: 'release-contracts/v0.15.131.json',
+    roadmap: 'docs/V0.15.131_PROGRESS_RIBBON_TRUTH_ROADMAP.md',
     auditCommand: 'npm run audit:release-history',
   },
 };
@@ -36,6 +35,19 @@ export const CURRENT_RELEASE_CHANGELOG = {
 };
 
 export const HISTORICAL_RELEASE_CHANGELOGS = [
+  {
+    version: '0.15.130',
+    date: 'June 29, 2026',
+    title: 'Texture Tail Cleanup: rubric, lesson-plan, and slide scaffolds vary by lesson',
+    highlights: [
+      'A fresh deployed v0.15.129 User Experience Design Studio ZIP/log audit exported and locally regraded at 100/100 with zero P0/P1/P2 findings, export verification passed, full sourceRef coverage, five trusted concept-linked source rows, and no sourceReviewRows.',
+      'The same audit proved the source-report cleanup worked but still left the strict-clean texture target short: Texture stayed at 95 with repeated rubric, lesson-plan, and slide-deck shingles across all 12 lessons.',
+      'Criterion feedback language now rotates by lesson, so the old `criterion-level feedback that names the strongest evidence move, the weakest reasoning link...` tail no longer stamps into every feedback surface.',
+      'Studio-lab signature practice now contextualizes the critique/prototype revision routine per lesson instead of repeating the same `critique a visible prototype or design artifact...` phrase through slide decks.',
+      'Rubric professional-communication developing bands now vary the organization, audience, and evidence-path language instead of repeating the `audience language makes the user evidence harder to follow` shingle across every rubric.',
+      'Focused compiler texture regressions prove these exact v0.15.129 shingles stay out of the texture evidence without weakening source, report-truth, or quality-grader standards.',
+    ],
+  },
   {
     version: '0.15.129',
     date: 'June 29, 2026',

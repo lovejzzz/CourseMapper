@@ -139,13 +139,16 @@ export function deriveStepStatuses(pipeline) {
   };
   const activeStepId = pipeline.running ? stageToStep[pipeline.state] : null;
   const activeIndex = activeStepId ? STEP_ORDER.findIndex((step) => step.id === activeStepId) : -1;
-  // Blocked renders like ready for step checks (the ribbon's historical
-  // semantics: the pipeline FINISHED, the needs-review label carries the bad
-  // news) — pinned by the v0.14.4 "blocked finish" test.
-  const isReadyLike = pipeline.state === 'ready' || pipeline.state === 'blocked';
+  // Green checks are reserved for terminal clean/readied work. During
+  // generation, earlier phases are only "settled": they passed control to the
+  // next phase, but the exported material is not yet verified complete.
+  // This prevents Map from wearing a completion check while enrichment is still
+  // filling the visible course-map cells.
+  const shouldShowTerminalChecks = pipeline.state === 'ready' || pipeline.state === 'syncing';
   return STEP_ORDER.map((step, index) => {
     let status = 'pending';
-    if (isReadyLike || pipeline.done[step.id] || (activeIndex >= 0 && index < activeIndex)) status = 'done';
+    if (shouldShowTerminalChecks && pipeline.done[step.id]) status = 'done';
+    else if (pipeline.done[step.id] || (activeIndex >= 0 && index < activeIndex)) status = 'settled';
     if (activeIndex >= 0 && index === activeIndex) status = 'active';
     return { id: step.id, label: step.label, status };
   });

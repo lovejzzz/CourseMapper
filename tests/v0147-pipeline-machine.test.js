@@ -49,7 +49,7 @@ describe('WS-C — the state matrix: every machine state and its step render', (
     });
     expect(p.state).toBe('enriching');
     expect(p.activity).toBe(ENRICH_EVENT);
-    expect(statuses(p)).toEqual(['done', 'active', 'pending', 'pending', 'pending']);
+    expect(statuses(p)).toEqual(['settled', 'active', 'pending', 'pending', 'pending']);
   });
 
   it('compiling: deliverables generating with compiler activity', () => {
@@ -59,7 +59,7 @@ describe('WS-C — the state matrix: every machine state and its step render', (
       deliverables: DELIV_RUNNING,
     });
     expect(p.state).toBe('compiling');
-    expect(statuses(p)).toEqual(['done', 'done', 'active', 'pending', 'pending']);
+    expect(statuses(p)).toEqual(['settled', 'settled', 'active', 'pending', 'pending']);
   });
 
   it('verifying: the finish pass (phase finish), map and deliverables settled', () => {
@@ -70,7 +70,7 @@ describe('WS-C — the state matrix: every machine state and its step render', (
       packageQualityPass: { status: 'running', phase: 'finish' },
     });
     expect(p.state).toBe('verifying');
-    expect(statuses(p)).toEqual(['done', 'done', 'done', 'active', 'pending']);
+    expect(statuses(p)).toEqual(['settled', 'settled', 'settled', 'active', 'pending']);
   });
 
   it('verifying NEVER wins while deliverables still run, even with phase finish (the belt)', () => {
@@ -95,7 +95,7 @@ describe('WS-C — the state matrix: every machine state and its step render', (
     expect(statuses(p)).toEqual(['done', 'done', 'done', 'done', 'done']);
   });
 
-  it('blocked: finish complete with blockers — named reason, ready-like step render', () => {
+  it('blocked: finish complete with blockers — named reason, no clean-ready checks', () => {
     const p = derivePipelineState({
       generation: GEN_DONE,
       deliverables: DELIV_DONE,
@@ -103,7 +103,7 @@ describe('WS-C — the state matrix: every machine state and its step render', (
     });
     expect(p.state).toBe('blocked');
     expect(p.blockedReason).toBe('2 blockers');
-    expect(statuses(p)).toEqual(['done', 'done', 'done', 'done', 'done']);
+    expect(statuses(p)).toEqual(['settled', 'settled', 'settled', 'settled', 'pending']);
   });
 
   it('syncing: approved sync executing post-ready owns the narrative', () => {
@@ -138,7 +138,7 @@ describe('WS-C — the state matrix: every machine state and its step render', (
     expect(p.state).toBe('lull');
     expect(p.running).toBe(false);
     expect(p.nextStep).toBe('enrich');
-    expect(statuses(p)).toEqual(['done', 'pending', 'pending', 'pending', 'pending']);
+    expect(statuses(p)).toEqual(['settled', 'pending', 'pending', 'pending', 'pending']);
   });
 
   it('legacy finish states without a phase still mean the finish pass (back-compat)', () => {

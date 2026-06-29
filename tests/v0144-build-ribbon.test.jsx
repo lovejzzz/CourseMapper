@@ -202,7 +202,7 @@ describe('B1 — buildRibbonModel selector', () => {
       packageQualityPass: { status: 'running', phase: 'generation', message: 'Generating 9 deliverables...' },
     });
     expect(model.stage).toBe('compile');
-    expect(model.steps.map((step) => step.status)).toEqual(['done', 'done', 'active', 'pending', 'pending']);
+    expect(model.steps.map((step) => step.status)).toEqual(['settled', 'settled', 'active', 'pending', 'pending']);
     expect(model.done.compile).toBe(false);
     expect(model.done.verify).toBe(false);
   });
@@ -222,7 +222,7 @@ describe('B1 — buildRibbonModel selector', () => {
     });
     expect(model.stage).toBe('enrich');
     expect(model.stageLabel).toBe('Enriching lessons 9–12');
-    expect(model.steps.map((step) => step.status)).toEqual(['done', 'active', 'pending', 'pending', 'pending']);
+    expect(model.steps.map((step) => step.status)).toEqual(['settled', 'active', 'pending', 'pending', 'pending']);
   });
 
   it('recovery sub-label: "Recovery 1/2 — lessons 1–3"', () => {
@@ -259,7 +259,7 @@ describe('B1 — buildRibbonModel selector', () => {
     expect(model.stage).toBe('compile');
     expect(model.stageLabel).toBe('Compiling deliverables · 3/9 ready');
     expect(model.done.enrich).toBe(true); // enrichmentOutcome landed
-    expect(model.steps.map((step) => step.status)).toEqual(['done', 'done', 'active', 'pending', 'pending']);
+    expect(model.steps.map((step) => step.status)).toEqual(['settled', 'settled', 'active', 'pending', 'pending']);
   });
 
   it('compile stage: partial enrichment names the repair before finish blocks export', () => {
@@ -312,7 +312,7 @@ describe('B1 — buildRibbonModel selector', () => {
     });
     expect(model.stage).toBe('verify');
     expect(model.stageLabel).toBe('Finishing package: checking, repairing, and preparing export...');
-    expect(model.steps.map((step) => step.status)).toEqual(['done', 'done', 'done', 'active', 'pending']);
+    expect(model.steps.map((step) => step.status)).toEqual(['settled', 'settled', 'settled', 'active', 'pending']);
   });
 
   it('ready: all steps done, pipeline chips from the budget, quiet elapsed + spend', () => {
@@ -438,6 +438,8 @@ describe('B1 — BuildRibbon render', () => {
     expect(html).toContain('animate-pulse');
     expect(html).toContain('$0.13');
     expect(html).not.toContain('ribbon-chip');
+    expect(html).toContain('data-status="settled"');
+    expect(html).not.toContain('M5 13l4 4L19 7');
   });
 
   it('ready state: emerald checks on every step, chips, quiet elapsed, no pulse', () => {

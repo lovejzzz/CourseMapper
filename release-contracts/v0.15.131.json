@@ -1,0 +1,105 @@
+{
+  "version": "0.15.131",
+  "date": "June 29, 2026",
+  "title": "Progress Ribbon Truth: running phases stop showing clean checks",
+  "status": "verified-current",
+  "proofSummary": {
+    "local": [
+      "npm test -- tests/v0147-pipeline-machine.test.js tests/v0144-build-ribbon.test.jsx",
+      "npm run format:check",
+      "npm run lint",
+      "npm test",
+      "npm run build",
+      "npm run bundle:check",
+      "npm run audit:release-history",
+      "npm run audit:gold:smoke"
+    ],
+    "ciFast": {
+      "status": "pending-push",
+      "note": "Fast verification is claimed only after v0.15.131 is pushed and the GitHub Actions run is attached."
+    },
+    "deploy": {
+      "status": "pending-push",
+      "note": "Pages deploy is not claimed until the pushed v0.15.131 release completes its deploy run."
+    },
+    "ciDeep": {
+      "status": "local-only",
+      "note": "This is a narrow progress UI truth release; focused pipeline/ribbon tests plus normal gates are the release bar."
+    },
+    "liveProvider": {
+      "status": "not-current",
+      "note": "The release is based on a fresh deployed v0.15.130 provider-run blocker report, not a completed ZIP/log audit. A fresh deployed v0.15.131 audit is required before claiming clean output or Texture 100."
+    },
+    "manualHuman": {
+      "status": "not-applicable",
+      "note": "No external instructor approval is claimed by this release."
+    }
+  },
+  "claims": [
+    {
+      "id": "v015131-v015130-blocker-evidence",
+      "status": "verified-current",
+      "changelogHighlightIndex": 0,
+      "summary": "A fresh deployed v0.15.130 UX Studio provider run started but blocked before ZIP capture when Chrome became unresponsive during enrichment/progress inspection.",
+      "anchors": [
+        "verification-output/edutool-audit-loop/20260629T152606Z-v015130-fresh-blocker/report.md",
+        "docs/V0.15.131_PROGRESS_RIBBON_TRUTH_ROADMAP.md"
+      ],
+      "proofCommands": [
+        "rg -n \"Page Unresponsive|run-1782745776255|No new matching ZIP\" verification-output/edutool-audit-loop/20260629T152606Z-v015130-fresh-blocker/report.md"
+      ],
+      "proofScopes": ["live-provider", "browser-live", "static-audit"]
+    },
+    {
+      "id": "v015131-visible-premature-map-check",
+      "status": "verified-current",
+      "changelogHighlightIndex": 1,
+      "summary": "The visible blocker evidence showed a checked Map/progress indicator while enrichment was still running and package export remained disabled.",
+      "anchors": [
+        "verification-output/edutool-audit-loop/20260629T152606Z-v015130-fresh-blocker/report.md",
+        "docs/V0.15.131_PROGRESS_RIBBON_TRUTH_ROADMAP.md"
+      ],
+      "proofCommands": [
+        "rg -n \"Enriching lessons 1-12|Deliverables 0/9|1 material ready|checked Map\" verification-output/edutool-audit-loop/20260629T152606Z-v015130-fresh-blocker/report.md docs/V0.15.131_PROGRESS_RIBBON_TRUTH_ROADMAP.md"
+      ],
+      "proofScopes": ["browser-live", "static-audit"]
+    },
+    {
+      "id": "v015131-settled-step-selector",
+      "status": "verified-current",
+      "changelogHighlightIndex": 2,
+      "summary": "The shared pipeline step selector now returns neutral settled states for unfinished phase handoff and reserves clean checks for terminal ready/sync-ready states.",
+      "anchors": ["src/lib/pipelineMachine.js", "tests/v0147-pipeline-machine.test.js"],
+      "proofCommands": ["npm test -- tests/v0147-pipeline-machine.test.js"],
+      "proofScopes": ["unit", "static-audit"]
+    },
+    {
+      "id": "v015131-blocked-no-clean-checks",
+      "status": "verified-current",
+      "changelogHighlightIndex": 3,
+      "summary": "Blocked or caveated finish states no longer inherit clean-ready stage checks in the shared selector.",
+      "anchors": ["src/lib/pipelineMachine.js", "tests/v0147-pipeline-machine.test.js"],
+      "proofCommands": ["npm test -- tests/v0147-pipeline-machine.test.js"],
+      "proofScopes": ["unit", "static-audit"]
+    },
+    {
+      "id": "v015131-ribbon-regression-proof",
+      "status": "verified-current",
+      "changelogHighlightIndex": 4,
+      "summary": "Focused pipeline and BuildRibbon regressions pin the new settled/done semantics without changing source, export, report, or grader standards.",
+      "anchors": [
+        "src/components/BuildRibbon.jsx",
+        "tests/v0144-build-ribbon.test.jsx",
+        "tests/v0147-pipeline-machine.test.js"
+      ],
+      "proofCommands": ["npm test -- tests/v0147-pipeline-machine.test.js tests/v0144-build-ribbon.test.jsx"],
+      "proofScopes": ["unit", "static-audit"]
+    }
+  ],
+  "knownRemainingTargets": [
+    "Fresh deployed v0.15.131 ZIP/log audit must prove the progress UI no longer shows clean checks while the build or package review is unfinished.",
+    "The separate Chrome Page Unresponsive blocker must be retested during the next provider run and fixed if it reproduces.",
+    "Fresh provider evidence must still prove overall 100/100, Texture 100/100, no hidden source/review/export caveats, and agreement across UI, ZIP, manifest, reports, digest logs, and local regrade.",
+    "Source rows must remain real, trusted, on-topic, license-safe, and concept-linked across UX and Project Management domains."
+  ]
+}

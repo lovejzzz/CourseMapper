@@ -2,12 +2,12 @@
  * BuildRibbon — v0.14.4 WS-B1: the ONE status spine under the workspace
  * header. Renders the model produced by src/lib/buildRibbonModel.js:
  *
- *   [Map ✓  Enrich ✓  Compile ●  Verify ○  Grade ○]  live sub-label …  $0.13
+ *   [Map ·  Enrich ●  Compile ○  Verify ○  Grade ○]  live sub-label …  $0.13
  *
  * States: hidden (model null — fresh/empty workspace), generating/finishing
- * (active step pulses, sub-label streams the latest event detail), ready
- * (pipeline chips + quiet "Ready in 184s"). One row, ~h-9, full content
- * width. The sub-label is aria-live="polite".
+ * (active step pulses, settled earlier steps stay neutral, sub-label streams
+ * the latest event detail), ready (pipeline chips + quiet "Ready in 184s").
+ * One row, ~h-9, full content width. The sub-label is aria-live="polite".
  *
  * WS-B3 also lives here: TabReadyTick replaces the rainbow per-tab status
  * dots in the workspace tab bar — done tabs get a small emerald check,
@@ -72,7 +72,12 @@ export default function BuildRibbon({ model }) {
     >
       <ol aria-label="Build stages" className="flex flex-shrink-0 items-center gap-2.5">
         {model.steps.map((step) => (
-          <li key={step.id} data-testid={`ribbon-step-${step.id}`} className="flex items-center gap-1">
+          <li
+            key={step.id}
+            data-testid={`ribbon-step-${step.id}`}
+            data-status={step.status}
+            className="flex items-center gap-1"
+          >
             {step.status === 'done' ? (
               <StepCheck />
             ) : (
@@ -81,7 +86,9 @@ export default function BuildRibbon({ model }) {
                 className={`h-1.5 w-1.5 flex-shrink-0 rounded-full ${
                   step.status === 'active'
                     ? 'bg-indigo-500 animate-pulse dark:bg-indigo-400'
-                    : 'bg-slate-300 dark:bg-slate-600'
+                    : step.status === 'settled'
+                      ? 'bg-slate-400 dark:bg-slate-500'
+                      : 'bg-slate-300 dark:bg-slate-600'
                 }`}
               />
             )}
@@ -91,7 +98,9 @@ export default function BuildRibbon({ model }) {
                   ? 'text-indigo-600 dark:text-indigo-300'
                   : step.status === 'done'
                     ? 'text-slate-600 dark:text-slate-300'
-                    : 'text-slate-400 dark:text-slate-500'
+                    : step.status === 'settled'
+                      ? 'text-slate-500 dark:text-slate-400'
+                      : 'text-slate-400 dark:text-slate-500'
               }`}
             >
               {step.label}
