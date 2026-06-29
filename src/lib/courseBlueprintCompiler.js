@@ -10196,7 +10196,9 @@ export function validateCourseBlueprintContract(blueprint = {}) {
     }
   }
 
-  if (assessments.length !== lessons.length) {
+  const assessmentRegistry = Array.isArray(blueprint.assessmentRegistry) ? blueprint.assessmentRegistry : [];
+  const registryMode = assessmentRegistry.length > 0 && assessments.some((assessment) => assessment?.registryId);
+  if (!registryMode && assessments.length !== lessons.length) {
     findings.push(
       makeContractFinding(
         'blocker',
@@ -10204,6 +10206,28 @@ export function validateCourseBlueprintContract(blueprint = {}) {
         `Expected ${lessons.length} assessment anchor(s), found ${assessments.length}.`,
       ),
     );
+  }
+  if (registryMode) {
+    const anchoredLessons = new Set(
+      assessments.flatMap((assessment) => assessment?.lessonNumbers || []).filter(Number.isInteger),
+    );
+    const gradeableRegistryLessons = [
+      ...new Set(
+        assessmentRegistry
+          .filter((entry) => entry?.kind !== 'in-class' && Number.isInteger(entry?.dueSession))
+          .map((entry) => entry.dueSession),
+      ),
+    ].sort((a, b) => a - b);
+    const missingAnchors = gradeableRegistryLessons.filter((lessonNumber) => !anchoredLessons.has(lessonNumber));
+    if (missingAnchors.length > 0) {
+      findings.push(
+        makeContractFinding(
+          'blocker',
+          'assessmentCoverage',
+          `Registry assessment anchors missing for lesson(s) ${missingAnchors.join(', ')}.`,
+        ),
+      );
+    }
   }
   for (const lesson of lessons) {
     const matchedAssessment = assessments.find((assessment) =>

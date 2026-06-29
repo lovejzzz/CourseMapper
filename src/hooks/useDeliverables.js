@@ -2180,10 +2180,33 @@ export default function useDeliverables({
         for (const finding of alignmentFindings.slice(0, 4)) {
           appendLog(`⚠ Alignment: ${finding.message}`, 'warn');
         }
+        let courseMapAssessmentRegistry = null;
+        try {
+          const mapDerivedGraph = courseGraphLib.deriveCourseGraphFromCourseMap(blueprintCourseMap);
+          const mapAssessments = Array.isArray(mapDerivedGraph?.assessments) ? mapDerivedGraph.assessments : [];
+          const graphAssessmentCount = Array.isArray(courseGraph?.assessments) ? courseGraph.assessments.length : 0;
+          if (mapAssessments.length > graphAssessmentCount) {
+            courseMapAssessmentRegistry = mapAssessments;
+            traceGeneration(generationRunId, 'compiler_assessment_registry_bridge', {
+              source: 'course-map-derived-registry',
+              nativeAssessmentCount: graphAssessmentCount,
+              courseMapAssessmentCount: mapAssessments.length,
+            });
+            recordGenerationApiCallEvent({
+              type: 'pipelineDecision',
+              stage: 'blueprintCompiler',
+              label: 'Assessment registry bridge',
+              detail: `Compiler using ${mapAssessments.length} Course Map assessment row(s) instead of ${graphAssessmentCount} native graph row(s) so promised assessments get downstream artifacts.`,
+            });
+          }
+        } catch {
+          courseMapAssessmentRegistry = null;
+        }
         const blueprint = compactBlueprintForStorage(
           courseGraphLib.buildBlueprintFromGraph(courseGraph, {
             scopeIndices,
             localization: (await import('../lib/professorProfile')).getProfile(),
+            ...(courseMapAssessmentRegistry ? { assessmentRegistry: courseMapAssessmentRegistry } : {}),
             compilerPath: {
               mode: blueprintEnrichment ? 'enriched' : 'deterministic',
               reason: !blueprintEnrichment

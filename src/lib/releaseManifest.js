@@ -3,24 +3,24 @@ import { APP_VERSION } from './appVersion.js';
 export const CURRENT_RELEASE = {
   version: APP_VERSION,
   date: 'June 29, 2026',
-  title: 'Progress Log Bounds: provider-run details stay responsive',
-  landingTitle: 'Progress Log Bounds',
+  title: 'Assessment Registry Bridge: Course Map promises compile into artifacts',
+  landingTitle: 'Assessment Registry Bridge',
   highlights: [
-    'A fresh deployed v0.15.130 User Experience Design Studio provider run blocked before ZIP capture after opening generation progress details, producing a Chrome `Page Unresponsive` dialog during enrichment.',
-    'The ProgressPanel activity log no longer auto-expands during active deliverable generation, so long provider event streams stay available without immediately flooding the live workspace DOM.',
-    'Merged deliverable/sync activity is memoized and the expanded panel renders only the latest 80 events with an explicit count note instead of mounting every historical event.',
-    'Short user-triggered sync logs still auto-open because they explain background edits, while provider-generation logs remain opt-in during long runs.',
-    'Focused happy-dom regressions pin collapsed provider logs, bounded expanded rendering, and preserved sync auto-open behavior without weakening source, export, report, or quality-grader standards.',
+    'A fresh deployed v0.15.132 User Experience Design Studio ZIP/log audit completed and locally regraded at 99/100: source proof, export verification, and texture were clean enough, but assessment identity lost one point.',
+    'The remaining P2 was a real CourseMapper compiler mismatch: the exported Course Map and manifest carried 36 assessment rows while the blueprint compiler only authored 12 assignment briefs from the native graph registry.',
+    'Generation now bridges the richer visible Course Map assessment registry into the blueprint compiler when it has more assessment rows than the native graph, so promised graded checkpoints produce downstream assignment artifacts.',
+    'The semantic compiler contract now accepts registry-mode multi-anchor lessons while still blocking lessons whose gradeable registry rows have no compiled assessment anchor.',
+    'Focused registry regressions prove a native one-assessment graph plus a visible three-assessment Course Map compiles three assignment briefs and clears the reconciliation gate without weakening source, export, report, or grader standards.',
   ],
   landingHighlights: [
-    'Fresh blocker evidence found a page-unresponsive path in generation details.',
-    'Provider activity logs now stay collapsed during long generation runs.',
-    'Expanded logs render a bounded latest-event tail instead of every event.',
-    'Fresh v0.15.132 ZIP/log evidence is still required before claiming texture 100.',
+    'Fresh v0.15.132 evidence isolated the remaining 99/100 loss.',
+    'Course Map assessment rows now bridge into compiler artifact generation.',
+    'Registry-mode lessons can compile multiple graded anchors safely.',
+    'Fresh v0.15.133 ZIP/log evidence is still required before claiming 100/100.',
   ],
   proof: {
-    contract: 'release-contracts/v0.15.132.json',
-    roadmap: 'docs/V0.15.132_PROGRESS_LOG_BOUNDS_ROADMAP.md',
+    contract: 'release-contracts/v0.15.133.json',
+    roadmap: 'docs/V0.15.133_ASSESSMENT_REGISTRY_BRIDGE_ROADMAP.md',
     auditCommand: 'npm run audit:release-history',
   },
 };
@@ -35,6 +35,18 @@ export const CURRENT_RELEASE_CHANGELOG = {
 };
 
 export const HISTORICAL_RELEASE_CHANGELOGS = [
+  {
+    version: '0.15.132',
+    date: 'June 29, 2026',
+    title: 'Progress Log Bounds: provider-run details stay responsive',
+    highlights: [
+      'A fresh deployed v0.15.130 User Experience Design Studio provider run blocked before ZIP capture after opening generation progress details, producing a Chrome `Page Unresponsive` dialog during enrichment.',
+      'The ProgressPanel activity log no longer auto-expands during active deliverable generation, so long provider event streams stay available without immediately flooding the live workspace DOM.',
+      'Merged deliverable/sync activity is memoized and the expanded panel renders only the latest 80 events with an explicit count note instead of mounting every historical event.',
+      'Short user-triggered sync logs still auto-open because they explain background edits, while provider-generation logs remain opt-in during long runs.',
+      'Focused happy-dom regressions pin collapsed provider logs, bounded expanded rendering, and preserved sync auto-open behavior without weakening source, export, report, or quality-grader standards.',
+    ],
+  },
   {
     version: '0.15.131',
     date: 'June 29, 2026',

@@ -18,7 +18,11 @@
  */
 import { describe, expect, it } from 'vitest';
 
-import { buildCourseBlueprint, compileBlueprintDeliverables } from '../src/lib/courseBlueprintCompiler';
+import {
+  buildCourseBlueprint,
+  compactBlueprintForStorage,
+  compileBlueprintDeliverables,
+} from '../src/lib/courseBlueprintCompiler';
 import {
   buildBlueprintFromGraph,
   classifyAssessmentKind,
@@ -462,6 +466,89 @@ describe('2.5 gate resolves on the registry path (the audit headline)', () => {
     };
     const issues = buildAssessmentReconciliationIssues({ courseGraph: graph, deliverables });
     expect(issues.filter((issue) => issue.severity !== 'info')).toEqual([]);
+  });
+
+  it('bridges a richer visible Course Map registry into native graph compiles', () => {
+    const nativeMap = {
+      courseName: 'UX Studio',
+      lessons: [
+        {
+          title: 'Lesson 1: Design rationale and case study development',
+          sections: [
+            {
+              topicSection: '1.1: design rationale',
+              learningGoals: 'Build a portfolio-ready design rationale.',
+              learningObjectives: 'Defend one prototype move with evidence.',
+              weeklyAssessments: 'Design rationale studio checkpoint: defend one prototype move with evidence.',
+              asyncActivities: 'Review prototype notes.',
+              syncActivities: 'Critique one rationale move.',
+              supportingResources: 'Portfolio case excerpt',
+            },
+          ],
+        },
+      ],
+    };
+    const visibleMap = {
+      ...nativeMap,
+      lessons: [
+        {
+          ...nativeMap.lessons[0],
+          sections: [
+            nativeMap.lessons[0].sections[0],
+            {
+              topicSection: '1.2: final UX case study portfolio',
+              learningGoals: 'Use portfolio evidence to improve the final case study.',
+              learningObjectives: 'Defend one case-study move with evidence.',
+              weeklyAssessments:
+                'Final UX case study portfolio studio checkpoint: defend one prototype or case-study move with evidence.',
+              asyncActivities: 'Review portfolio evidence.',
+              syncActivities: 'Critique the case-study move.',
+              supportingResources: 'Portfolio case excerpt',
+            },
+            {
+              topicSection: '1.3: project synthesis',
+              learningGoals: 'Synthesize project evidence into one design argument.',
+              learningObjectives: 'Defend one synthesis move with evidence.',
+              weeklyAssessments:
+                'Project synthesis studio checkpoint: defend one prototype or case-study move with evidence.',
+              asyncActivities: 'Review synthesis notes.',
+              syncActivities: 'Critique the synthesis move.',
+              supportingResources: 'Portfolio case excerpt',
+            },
+          ],
+        },
+      ],
+    };
+    const nativeGraph = deriveCourseGraphFromCourseMap(nativeMap);
+    const visibleGraph = deriveCourseGraphFromCourseMap(visibleMap);
+
+    expect(nativeGraph.assessments).toHaveLength(1);
+    expect(visibleGraph.assessments).toHaveLength(3);
+
+    const blueprint = compactBlueprintForStorage(
+      buildBlueprintFromGraph(nativeGraph, {
+        assessmentRegistry: visibleGraph.assessments,
+      }),
+    );
+    const compiled = compileBlueprintDeliverables(blueprint, ['assignments']);
+    const assignmentTitles = compiled.assignments.assignments.map((assignment) => assignment.title);
+
+    expect(assignmentTitles).toEqual([
+      'Design rationale studio checkpoint: defend one prototype move with evidence.',
+      'Final UX case study portfolio studio checkpoint: defend one prototype or case-study move with evidence.',
+      'Project synthesis studio checkpoint: defend one prototype or case-study move with evidence.',
+    ]);
+    expect(compiled.assignments.assignments.map((assignment) => assignment.courseMapRef)).toEqual([
+      'Course Map L1 · A1.1 · 34%',
+      'Course Map L1 · A1.2 · 33%',
+      'Course Map L1 · A1.3 · 33%',
+    ]);
+
+    const issues = buildAssessmentReconciliationIssues({
+      courseGraph: visibleGraph,
+      deliverables: { assignments: { status: 'done', data: compiled.assignments } },
+    });
+    expect(issues).toEqual([]);
   });
 });
 
