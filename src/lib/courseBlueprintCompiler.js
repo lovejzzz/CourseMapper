@@ -4546,7 +4546,7 @@ function buildModelContrast({ title, concepts, artifact, evidencePlan }) {
   };
 }
 
-function buildReadinessSupportPlan({ title, concepts, artifact, evidencePlan }) {
+function buildReadinessSupportPlan({ title, concepts, artifact, evidencePlan, lessonNumber }) {
   const concept = concepts[0] || stripLessonPrefix(title) || 'the lesson focus';
   const artifactName = stripTerminalPunctuation(artifact);
   const sourceCue = evidencePlan?.sourceCue || `${stripLessonPrefix(title)} course materials`;
@@ -4561,7 +4561,12 @@ function buildReadinessSupportPlan({ title, concepts, artifact, evidencePlan }) 
     readinessEvidence: `Students are ready when they can cite inspectable evidence, explain why it matters, and connect it to ${artifactName}.`,
     supportMove: `If students cannot cite evidence for ${concept}, give them a worked sentence frame and have them annotate one detail from ${sourceCue} before drafting ${artifactName}.`,
     extensionMove: `If students are ready, ask them to compare two possible evidence choices and justify which one makes ${artifactName} more defensible.`,
-    groupingCue: `Use the ${concept} diagnostic response to form ready, partial, and needs-support groups before ${artifactName} work begins.`,
+    groupingCue: lessonVariant({ title, lessonNumber }, [
+      `Use the ${concept} warm-up evidence to decide who can draft ${artifactName}, who needs comparison examples, and who needs a support frame.`,
+      `Sort the ${concept} quick-check into ready, developing, and targeted-support groups before students start ${artifactName}.`,
+      `Group students by their ${sourceCue} evidence note: ready to draft, needs one clarification, or needs a worked model for ${artifactName}.`,
+      `Use the opening ${concept} evidence check to decide who drafts independently, who compares examples, and who needs a guided ${artifactName} frame.`,
+    ]),
   };
 }
 
@@ -10998,7 +11003,13 @@ function deriveRoutineFieldsForLesson(lesson = {}, index = 0) {
   const readinessSupport =
     lesson.readinessSupport?.diagnosticPrompt && lesson.readinessSupport?.supportMove
       ? lesson.readinessSupport
-      : buildReadinessSupportPlan({ title, concepts: safeConcepts, artifact, evidencePlan });
+      : buildReadinessSupportPlan({
+          title,
+          concepts: safeConcepts,
+          artifact,
+          evidencePlan,
+          lessonNumber: lesson.lessonNumber || index + 1,
+        });
   const instructionalRationale =
     lesson.instructionalRationale?.sequenceRationale && lesson.instructionalRationale?.assessmentRationale
       ? lesson.instructionalRationale
@@ -12480,6 +12491,7 @@ function extractLessonBlueprint(lesson, originalIndex, assessmentRegistry = null
     concepts: keyConcepts,
     artifact: studentArtifact,
     evidencePlan,
+    lessonNumber,
   });
   const instructionalRationale = buildInstructionalRationale({
     title,
@@ -18893,7 +18905,12 @@ function buildDiscussionFollowUps(lesson, phrase) {
       `Where could another student reasonably read the evidence differently, and what would that mean for ${artifact}?`,
     ]),
     `If the ${concept} evidence changed, what part of ${artifact} would you revise first?`,
-    `Where is the strongest limitation, risk, or ethical concern in your current reasoning about ${artifact}?`,
+    lessonVariant(lesson, [
+      `Which limit, risk, or ethical concern should change how you frame ${artifact}?`,
+      `Which assumption in your ${artifact} reasoning needs the clearest evidence check before you revise?`,
+      `What ethical, access, or feasibility concern should shape the next ${artifact} decision?`,
+      `Where should your claim about ${artifact} be narrowed so the evidence is not overstated?`,
+    ]),
     lessonVariant(lesson, [
       `How does this discussion help students ${stripTerminalPunctuation(phrase.decisionMove).toLowerCase()}?`,
       `Which comment from this exchange gives students a stronger path toward ${artifact}?`,
@@ -18949,7 +18966,12 @@ function buildDiscussionCriteriaSet(lesson) {
   const artifact = safeLessonArtifact(lesson);
   return [
     `Uses specific evidence from ${lesson.title} instead of unsupported opinion.`,
-    `Explains the reasoning behind the claim and connects it to ${artifact}.`,
+    lessonVariant(lesson, [
+      `Explains why the evidence supports the claim and what it changes in ${artifact}.`,
+      `Shows how the evidence supports the claim and what it changes in ${artifact}.`,
+      `Makes the warrant visible before applying the claim to ${artifact}.`,
+      `Links the claim, source detail, and next ${artifact} decision without relying on opinion alone.`,
+    ]),
     lessonVariant(lesson, [
       `Responds to a peer by extending, questioning, or refining the evidence used about ${concept}.`,
       `Builds on a classmate's claim by adding evidence, testing a warrant, or sharpening the limit in ${concept}.`,
@@ -19533,7 +19555,12 @@ function buildSlideDeckIrForLesson(blueprint, lesson, index) {
     },
     {
       type: 'activity',
-      title: `${sentenceCase(modality.mode.replace(/-/g, ' '))}: revise one evidence move for ${artifact}`,
+      title: lessonVariant(lesson, [
+        `${sentenceCase(modality.mode.replace(/-/g, ' '))}: strengthen one evidence-backed ${artifact} choice`,
+        `${sentenceCase(modality.mode.replace(/-/g, ' '))}: test one source-backed ${artifact} revision`,
+        `${sentenceCase(modality.mode.replace(/-/g, ' '))}: choose the evidence move ${artifact} needs next`,
+        `${sentenceCase(modality.mode.replace(/-/g, ' '))}: turn critique into a ${artifact} decision`,
+      ]),
       // v0.12.1: signaturePractice and practiceMove both derive from the
       // modality routine — when they open with the same phrase, keep only
       // the move ("Annotated example. Annotated example: annotate…").
@@ -20022,7 +20049,12 @@ function compileCourseFaq(blueprint, config = {}) {
     }),
     (lesson) => ({
       q: `What common mistake should I avoid in ${stripLessonPrefix(lesson.title)}?`,
-      an: `Do not stop at summary. Explain how ${safeCourseFaqPrimaryConcept(lesson)} works, what evidence supports it, and how it changes the artifact or decision.`,
+      an: lessonVariant(lesson, [
+        `Move beyond summary by showing how ${safeCourseFaqPrimaryConcept(lesson)} works, which evidence supports it, and what changes in the artifact or decision.`,
+        `Avoid a general recap. Name the ${safeCourseFaqPrimaryConcept(lesson)} evidence, explain the reasoning step, and say what changes in ${safeCourseFaqStudentArtifact(lesson)}.`,
+        `The common mistake is describing the topic without proving the move. Show the evidence for ${safeCourseFaqPrimaryConcept(lesson)} and the decision it changes.`,
+        `Do not only define ${safeCourseFaqPrimaryConcept(lesson)}. Connect a specific source detail to the revision, tradeoff, or judgment in ${safeCourseFaqStudentArtifact(lesson)}.`,
+      ]),
       ca: 'Assessment Prep',
       rc: safeCourseFaqConcepts(lesson).slice(0, 4),
       df: 'Advanced',

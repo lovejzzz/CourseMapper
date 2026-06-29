@@ -3,24 +3,24 @@ import { APP_VERSION } from './appVersion.js';
 export const CURRENT_RELEASE = {
   version: APP_VERSION,
   date: 'June 29, 2026',
-  title: 'Quiz Bank Essay Texture: old counterpoint scaffold is removed',
-  landingTitle: 'Quiz Bank Texture',
+  title: 'Cross-Surface Texture: repeated readiness, discussion, slide, and FAQ scaffolds vary',
+  landingTitle: 'Texture Polish',
   highlights: [
-    'A fresh deployed v0.15.137 User Experience Design Studio ZIP/log audit exported successfully after the laptop restart and locally regraded at 100/100 with zero P0/P1/P2 findings, export verification passed, and digest/report/UI agreement on Quality 100 · Texture 95.',
-    'That real provider output proved the v0.15.137 repair reduced the old Quiz Bank counterpoint scaffold but did not eliminate it: the exact `A strong answer also engages the opposing view...` family still appeared six times across three exported Quiz Bank files.',
-    'The essay counterpoint projection no longer emits the old exact sentence family; it rotates six equivalent opposing-view phrasings while preserving the claim/counterclaim/evidence contract.',
-    'A focused kernel-projection regression now requires zero hits for the old counterpoint scaffold while still requiring an opposing-view cue in every projected essay answer.',
-    'The fresh v0.15.137 evidence also verified no generic Lesson/Week/Topic scaffolds, no prompt-artifact labels, no stale Project Management or visual-arts leakage, and no metadata-only trusted source-ledger rows in the exported UX package.',
+    'A fresh deployed v0.15.138 User Experience Design Studio ZIP/log audit exported successfully after the laptop restart and locally regraded at 100/100 with zero P0/P1/P2 findings, export verification passed, and digest/report/UI agreement on Quality 100 · Texture 95.',
+    'That real provider output proved the v0.15.138 Quiz Bank counterpoint repair held: the old `A strong answer also engages the opposing view...` and `review distractor choices before...` scaffold families had zero hits in the exported package.',
+    'The same audit exposed the remaining texture target as deterministic compiler copy, not model failure: readiness grouping, discussion criteria/follow-ups, slide activity titles, and Course FAQ common-mistake answers reused the same sentence families across lessons.',
+    'The blueprint compiler now varies those cross-surface scaffolds by lesson while preserving their instructional purpose: readiness grouping, evidence-risk discussion, reasoning criteria, slide practice titles, and FAQ summary-avoidance guidance.',
+    'A focused 12-lesson UX compiler regression now requires zero hits for the old repeated scaffolds and proves the replacement variants appear in compiled lesson plans, slide decks, discussions, and Course FAQ.',
   ],
   landingHighlights: [
-    'Fresh v0.15.137 ZIP/log evidence regraded cleanly at 100/A.',
-    'The old Quiz Bank counterpoint scaffold was reduced but still reproduced in real output.',
-    'Essay answer counterpoints now avoid the old exact sentence family entirely.',
-    'Fresh v0.15.138 ZIP/log evidence is still required before claiming this texture cleanup in real provider output.',
+    'Fresh v0.15.138 ZIP/log evidence regraded cleanly at 100/A.',
+    'The old Quiz Bank counterpoint scaffold stayed gone in real output.',
+    'Remaining texture loss came from deterministic compiler sentence families.',
+    'Readiness, discussion, slide, and FAQ scaffolds now vary by lesson; fresh v0.15.139 provider proof is still required.',
   ],
   proof: {
-    contract: 'release-contracts/v0.15.138.json',
-    roadmap: 'docs/V0.15.138_QUIZ_BANK_COUNTERPOINT_TEXTURE_ROADMAP.md',
+    contract: 'release-contracts/v0.15.139.json',
+    roadmap: 'docs/V0.15.139_CROSS_SURFACE_TEXTURE_ROADMAP.md',
     auditCommand: 'npm run audit:release-history',
   },
 };
@@ -35,6 +35,18 @@ export const CURRENT_RELEASE_CHANGELOG = {
 };
 
 export const HISTORICAL_RELEASE_CHANGELOGS = [
+  {
+    version: '0.15.138',
+    date: 'June 29, 2026',
+    title: 'Quiz Bank Essay Texture: old counterpoint scaffold is removed',
+    highlights: [
+      'A fresh deployed v0.15.137 User Experience Design Studio ZIP/log audit exported successfully after the laptop restart and locally regraded at 100/100 with zero P0/P1/P2 findings, export verification passed, and digest/report/UI agreement on Quality 100 · Texture 95.',
+      'That real provider output proved the v0.15.137 repair reduced the old Quiz Bank counterpoint scaffold but did not eliminate it: the exact `A strong answer also engages the opposing view...` family still appeared six times across three exported Quiz Bank files.',
+      'The essay counterpoint projection no longer emits the old exact sentence family; it rotates six equivalent opposing-view phrasings while preserving the claim/counterclaim/evidence contract.',
+      'A focused kernel-projection regression now requires zero hits for the old counterpoint scaffold while still requiring an opposing-view cue in every projected essay answer.',
+      'The fresh v0.15.137 evidence also verified no generic Lesson/Week/Topic scaffolds, no prompt-artifact labels, no stale Project Management or visual-arts leakage, and no metadata-only trusted source-ledger rows in the exported UX package.',
+    ],
+  },
   {
     version: '0.15.137',
     date: 'June 29, 2026',

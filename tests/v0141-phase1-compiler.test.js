@@ -25,6 +25,7 @@ import {
   buildQuizAtomsForLesson,
   buildSlideDeckIntermediateRepresentation,
   compileBlueprintDeliverable,
+  compileBlueprintDeliverables,
 } from '../src/lib/courseBlueprintCompiler.js';
 import { buildInstructorPreferenceProfile } from '../src/lib/instructorPreferenceProfile.js';
 
@@ -184,10 +185,47 @@ function loopBlueprint(lesson) {
   return { courseName: 'Introduction to Programming', lessons: [lesson], assessments: [] };
 }
 
+function uxTextureCourseMap() {
+  const topics = [
+    'Project-based UX design',
+    'Critique sessions',
+    'Design journals',
+    'Usability testing',
+    'Accessibility review',
+    'Wireframes',
+    'Prototypes',
+    'Design rationale',
+    'Peer critique',
+    'Final UX case study portfolio',
+    'Studio work',
+    'Portfolio review',
+  ];
+  return {
+    courseName: 'User Experience Design Studio',
+    lessons: topics.map((topic, index) => ({
+      title: `Lesson ${index + 1}: ${topic}`,
+      sections: [
+        {
+          topicSection: `${index + 1}.1: ${topic.toLowerCase()}`,
+          learningObjectives: `Apply ${topic.toLowerCase()} to a UX artifact and explain the design decision it changes.`,
+          weeklyAssessments: `${topic} critique memo naming one user-evidence signal and one design revision.`,
+          asyncActivities: `Review the UX example and mark where ${topic.toLowerCase()} changes the design rationale.`,
+          syncActivities: `Run a critique round that tests how ${topic.toLowerCase()} changes the artifact.`,
+          supportingResources: `UX example, critique protocol, and design-journal prompt aligned to ${topic.toLowerCase()}.`,
+        },
+      ],
+    })),
+  };
+}
+
 function distractorTexts(question) {
   return question.options
     .filter((option) => !option.startsWith(`${question.answer}.`))
     .map((option) => option.replace(/^[A-D]\.\s*/, ''));
+}
+
+function countOccurrences(text, needle) {
+  return text.split(needle).length - 1;
 }
 
 describe('v0.14.1 phase 1 batch A compiler fixes', () => {
@@ -234,6 +272,37 @@ describe('v0.14.1 phase 1 batch A compiler fixes', () => {
       expect(bullet).toMatch(/^(?:Practice|Evidence|Debrief|Step \d+): /);
       expect(bullet.length).toBeLessThanOrEqual(79);
     }
+  });
+
+  it('varies repeated UX readiness, discussion, slide, and FAQ texture scaffolds across 12 lessons', () => {
+    const blueprint = buildCourseBlueprint(uxTextureCourseMap());
+    const compiled = compileBlueprintDeliverables(
+      blueprint,
+      ['lessonPlans', 'slideDecks', 'discussions', 'courseFaq'],
+      {
+        ...COMPILE_OPTIONS,
+        configMap: { slideDecks: { slideCount: 8 }, courseFaq: { questionsPerLesson: 7 } },
+      },
+    );
+    const text = JSON.stringify(compiled);
+
+    [
+      'diagnostic response to form ready, partial, and needs-support groups before',
+      'Where is the strongest limitation, risk, or ethical concern in your current reasoning about',
+      'Explains the reasoning behind the claim and connects it to',
+      'revise one evidence move for',
+      'Do not stop at summary. Explain how',
+    ].forEach((oldScaffold) => {
+      expect(countOccurrences(text, oldScaffold), oldScaffold).toBe(0);
+    });
+
+    expect(text).toContain('warm-up evidence');
+    expect(text).toContain('ready, developing, and targeted-support groups');
+    expect(text).toContain('Which assumption');
+    expect(text).toContain('Makes the warrant visible');
+    expect(text).toContain('test one source-backed');
+    expect(text).toContain('Avoid a general recap');
+    expect(text).toContain('Move beyond summary');
   });
 
   it('1.3 final export pass punctuates long authored slide bullets', () => {
