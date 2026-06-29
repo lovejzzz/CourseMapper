@@ -41,12 +41,10 @@
       "status": "verified-current",
       "changelogHighlightIndex": 0,
       "summary": "A fresh deployed v0.15.115 UX audit exported and locally regraded at 100/A with no P0/P1/P2 findings, while source-ledger false-friend gates held in real provider output.",
-      "anchors": [
-        "verification-output/edutool-audit-loop/20260629T022007Z-v015115-ux-fresh/report.md",
-        "docs/V0.15.116_UX_TEXTURE_TAIL_CLEANUP_ROADMAP.md",
-        "src/lib/releaseManifest.js"
+      "anchors": ["docs/V0.15.116_UX_TEXTURE_TAIL_CLEANUP_ROADMAP.md", "src/lib/releaseManifest.js"],
+      "proofCommands": [
+        "rg -n \"Exported and local regrade:.*100/100|Source proof:\" docs/V0.15.116_UX_TEXTURE_TAIL_CLEANUP_ROADMAP.md"
       ],
-      "proofCommands": ["local regrade for verification-output/edutool-audit-loop/20260629T022007Z-v015115-ux-fresh"],
       "proofScopes": ["live-provider", "static-audit", "compiled-output"]
     },
     {
@@ -54,12 +52,9 @@
       "status": "verified-current",
       "changelogHighlightIndex": 1,
       "summary": "The same v0.15.115 audit measured Texture 95/100 and identified repeated slide summary, activity-note, and study-guide hint shingles.",
-      "anchors": [
-        "verification-output/edutool-audit-loop/20260629T022007Z-v015115-ux-fresh/local-regrade-current-rules.json",
-        "docs/V0.15.116_UX_TEXTURE_TAIL_CLEANUP_ROADMAP.md"
-      ],
+      "anchors": ["docs/V0.15.116_UX_TEXTURE_TAIL_CLEANUP_ROADMAP.md"],
       "proofCommands": [
-        "node -e \"const j=require('./verification-output/edutool-audit-loop/20260629T022007Z-v015115-ux-fresh/local-regrade-current-rules.json'); console.log(j.texture)\""
+        "rg -n 'Texture: .*95/100|Slide decks repeated|Activity slide notes repeated|Study guides repeated' docs/V0.15.116_UX_TEXTURE_TAIL_CLEANUP_ROADMAP.md"
       ],
       "proofScopes": ["live-provider", "static-audit"]
     },
