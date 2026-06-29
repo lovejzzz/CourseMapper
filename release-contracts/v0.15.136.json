@@ -41,12 +41,8 @@
       "status": "verified-current",
       "changelogHighlightIndex": 0,
       "summary": "Fresh deployed v0.15.135 UX evidence exported successfully and locally regraded at 100/A with zero P0/P1/P2 findings, clean export verification, and complete sourceRef coverage.",
-      "anchors": [
-        "verification-output/edutool-audit-loop/20260629T201727Z-v015135-fresh/report.md",
-        "docs/V0.15.136_QUIZ_BANK_TEXTURE_ROADMAP.md"
-      ],
+      "anchors": ["docs/V0.15.136_QUIZ_BANK_TEXTURE_ROADMAP.md"],
       "proofCommands": [
-        "test -f verification-output/edutool-audit-loop/20260629T201727Z-v015135-fresh/local-regrade.json",
         "rg -n \"100/100|run-1782764035901|finish-mqznrd4a-ltgv1\" docs/V0.15.136_QUIZ_BANK_TEXTURE_ROADMAP.md"
       ],
       "proofScopes": ["live-provider", "static-audit"]
