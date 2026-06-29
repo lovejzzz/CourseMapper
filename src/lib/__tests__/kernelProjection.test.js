@@ -172,7 +172,7 @@ describe('projectKernelToSurfaces', () => {
   it('varies essay counterpoint scaffolds across lesson-specific kernels', () => {
     const answerSet = new Set();
     const oldScaffold = 'A strong answer also engages the opposing view';
-    let oldScaffoldCount = 0;
+    const oldScaffoldHits = [];
 
     for (const [index, positions] of [
       [
@@ -214,12 +214,16 @@ describe('projectKernelToSurfaces', () => {
       );
       const essay = payload.quizItems.find((item) => item.type === 'essay');
       expect(essay?.answer.toLowerCase()).toContain('opposing view');
-      if (essay?.answer.includes(oldScaffold)) oldScaffoldCount += 1;
-      answerSet.add(essay?.answer.match(/(?:A strong answer|The opposing view|A complete response)[^.]+/)?.[0] || '');
+      if (essay?.answer.includes(oldScaffold)) oldScaffoldHits.push(essay.answer);
+      answerSet.add(
+        essay?.answer.match(
+          /(?:A well-supported answer|The opposing view|A complete response|The answer should|A strong response)[^.]+/,
+        )?.[0] || '',
+      );
     }
 
     expect(answerSet.size).toBeGreaterThan(1);
-    expect(oldScaffoldCount).toBeLessThan(4);
+    expect(oldScaffoldHits).toEqual([]);
   });
 
   it('omits short-answer and essay frames when their kernel atoms are missing', () => {

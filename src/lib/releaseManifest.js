@@ -3,24 +3,24 @@ import { APP_VERSION } from './appVersion.js';
 export const CURRENT_RELEASE = {
   version: APP_VERSION,
   date: 'June 29, 2026',
-  title: 'Quiz Bank Essay Texture: counterpoint scaffolds vary',
+  title: 'Quiz Bank Essay Texture: old counterpoint scaffold is removed',
   landingTitle: 'Quiz Bank Texture',
   highlights: [
-    'A fresh deployed v0.15.136 User Experience Design Studio ZIP/log audit exported successfully after Chrome restart and locally regraded at 100/100 with zero P0/P1/P2 findings, export verification passed, and digest/report/UI agreement on Quality 100 · Texture 95.',
-    'That real provider output proved the v0.15.136 distractor-review repair held: the old `review distractor choices before the next` and `It’s tempting to think` shingles had zero hits in the exported package.',
-    'The same audit exposed one remaining deterministic Quiz Bank texture target: ten essay answers reused the exact `A strong answer also engages the opposing view...` counterpoint scaffold.',
-    'Essay sample answers now seed counterpoint wording from lesson-specific prompt, term, fact, and position text, rotating equivalent opposing-view scaffolds while preserving the claim/counterclaim/evidence contract.',
-    'A focused kernel-projection regression now proves multiple essay projections do not all retain the old counterpoint scaffold while still requiring an opposing-view cue in the answer.',
+    'A fresh deployed v0.15.137 User Experience Design Studio ZIP/log audit exported successfully after the laptop restart and locally regraded at 100/100 with zero P0/P1/P2 findings, export verification passed, and digest/report/UI agreement on Quality 100 · Texture 95.',
+    'That real provider output proved the v0.15.137 repair reduced the old Quiz Bank counterpoint scaffold but did not eliminate it: the exact `A strong answer also engages the opposing view...` family still appeared six times across three exported Quiz Bank files.',
+    'The essay counterpoint projection no longer emits the old exact sentence family; it rotates six equivalent opposing-view phrasings while preserving the claim/counterclaim/evidence contract.',
+    'A focused kernel-projection regression now requires zero hits for the old counterpoint scaffold while still requiring an opposing-view cue in every projected essay answer.',
+    'The fresh v0.15.137 evidence also verified no generic Lesson/Week/Topic scaffolds, no prompt-artifact labels, no stale Project Management or visual-arts leakage, and no metadata-only trusted source-ledger rows in the exported UX package.',
   ],
   landingHighlights: [
-    'Fresh v0.15.136 ZIP/log evidence regraded cleanly at 100/A.',
-    'The v0.15.136 quiz-bank/pitfall texture repair held in real output.',
-    'Essay answer counterpoint scaffolds now vary by lesson-specific seed.',
-    'Fresh v0.15.137 ZIP/log evidence is still required before claiming this final texture polish in real provider output.',
+    'Fresh v0.15.137 ZIP/log evidence regraded cleanly at 100/A.',
+    'The old Quiz Bank counterpoint scaffold was reduced but still reproduced in real output.',
+    'Essay answer counterpoints now avoid the old exact sentence family entirely.',
+    'Fresh v0.15.138 ZIP/log evidence is still required before claiming this texture cleanup in real provider output.',
   ],
   proof: {
-    contract: 'release-contracts/v0.15.137.json',
-    roadmap: 'docs/V0.15.137_QUIZ_BANK_ESSAY_TEXTURE_ROADMAP.md',
+    contract: 'release-contracts/v0.15.138.json',
+    roadmap: 'docs/V0.15.138_QUIZ_BANK_COUNTERPOINT_TEXTURE_ROADMAP.md',
     auditCommand: 'npm run audit:release-history',
   },
 };
@@ -35,6 +35,18 @@ export const CURRENT_RELEASE_CHANGELOG = {
 };
 
 export const HISTORICAL_RELEASE_CHANGELOGS = [
+  {
+    version: '0.15.137',
+    date: 'June 29, 2026',
+    title: 'Quiz Bank Essay Texture: counterpoint scaffolds vary',
+    highlights: [
+      'A fresh deployed v0.15.136 User Experience Design Studio ZIP/log audit exported successfully after Chrome restart and locally regraded at 100/100 with zero P0/P1/P2 findings, export verification passed, and digest/report/UI agreement on Quality 100 · Texture 95.',
+      'That real provider output proved the v0.15.136 distractor-review repair held: the old `review distractor choices before the next` and `It’s tempting to think` shingles had zero hits in the exported package.',
+      'The same audit exposed one remaining deterministic Quiz Bank texture target: ten essay answers reused the exact `A strong answer also engages the opposing view...` counterpoint scaffold.',
+      'Essay sample answers now seed counterpoint wording from lesson-specific prompt, term, fact, and position text, rotating equivalent opposing-view scaffolds while preserving the claim/counterclaim/evidence contract.',
+      'A focused kernel-projection regression now proves multiple essay projections do not all retain the old counterpoint scaffold while still requiring an opposing-view cue in the answer.',
+    ],
+  },
   {
     version: '0.15.136',
     date: 'June 29, 2026',

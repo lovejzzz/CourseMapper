@@ -286,10 +286,12 @@ export function composeScenarioAnswer(scenario, term, fact, { position = '', cou
     counterClause
       ? ensureSentence(
           projectionVariant(seed, [
-            `A strong answer also engages the opposing view — ${lowercaseLead(counterClause)} — and explains why the evidence weighs against it`,
+            `A well-supported answer names the opposing view — ${lowercaseLead(counterClause)} — and then shows why the evidence favors the main claim`,
             `The opposing view — ${lowercaseLead(counterClause)} — deserves attention, but this answer shows why the lesson evidence points the other way`,
             `A complete response names the opposing view — ${lowercaseLead(counterClause)} — then weighs it against the stronger evidence`,
             `The opposing view matters — ${lowercaseLead(counterClause)} — so the answer should explain why it does not overturn the main claim`,
+            `The answer should test the opposing view — ${lowercaseLead(counterClause)} — against the same evidence before reaching its conclusion`,
+            `A strong response acknowledges the opposing view — ${lowercaseLead(counterClause)} — while explaining why the lesson evidence supports a different judgment`,
           ]),
         )
       : projectionVariant(seed, [
