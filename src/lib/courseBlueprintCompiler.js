@@ -16567,7 +16567,7 @@ function buildMultipleChoiceQuestion({
       estimatedMinutes: difficulty === 'Hard' ? 3 : 2,
       points: 2,
       objectiveAligned: objective,
-      intendedUse: `${use} for ${lesson.title}; review distractor choices before the next ${artifact}.`,
+      intendedUse: quizIntendedUse({ lesson, index, use, artifact }),
       question: prompt,
       options,
       answer,
@@ -16577,6 +16577,18 @@ function buildMultipleChoiceQuestion({
     },
     plan,
   );
+}
+
+function quizIntendedUse({ lesson, index = 0, use, artifact }) {
+  const lessonNumber = Math.max(1, Number(lesson?.lessonNumber || 1));
+  const lessonFocus = stripLessonPrefix(lesson?.title || 'this lesson');
+  const variants = [
+    `${use} for ${lesson.title}; compare each distractor with the ${artifact} evidence before review.`,
+    `${use} for ${lesson.title}; use the options to surface one ${lessonFocus} misconception at a time.`,
+    `${use} for ${lesson.title}; ask students to justify why each wrong option misses the ${artifact} standard.`,
+    `${use} for ${lesson.title}; save this item for the practice moment where ${artifact} decisions need evidence.`,
+  ];
+  return variants[(lessonNumber - 1 + index) % variants.length];
 }
 
 function buildShortAnswerQuestion({ lesson, index, bloom, objective, concept, lens, plan }) {
@@ -19136,7 +19148,7 @@ function applyCommonPitfallsSlide(slides, lesson, { concept, objective }) {
   if (slides.length >= MAX_DEPTH_DECK_SLIDES) return;
   const pairs = lessonMisconceptionPairs(lesson).slice(0, 3);
   if (pairs.length < 2) return;
-  const bullets = pairs.map((pair) => {
+  const bullets = pairs.map((pair, index) => {
     // conciseClause splits list-ish text on semicolons (splitList) — soften
     // them to commas first so a two-clause corrective keeps both clauses.
     const tempting = conciseClause(
@@ -19151,10 +19163,7 @@ function applyCommonPitfallsSlide(slides, lesson, { concept, objective }) {
       88,
       { ellipsis: true },
     );
-    return punctuateDisplayBullet(
-      `It's tempting to think ${lowercaseClauseLead(tempting)} — in fact ${lowercaseClauseLead(corrective)}`,
-      pair.corrective,
-    );
+    return pitfallBullet({ lesson, index, tempting, corrective, fallback: pair.corrective });
   });
   // Placement: directly after the key-concept/evidence/example cluster, so
   // the repair lands while the concept is still on screen.
@@ -19187,6 +19196,20 @@ function applyCommonPitfallsSlide(slides, lesson, { concept, objective }) {
     activity: null,
     enrichmentSource: 'kernel-misconception-pitfalls',
   });
+}
+
+function pitfallBullet({ lesson, index = 0, tempting, corrective, fallback }) {
+  const lessonNumber = Math.max(1, Number(lesson?.lessonNumber || 1));
+  const temptingLead = lowercaseClauseLead(tempting);
+  const correctiveLead = lowercaseClauseLead(corrective);
+  const variants = [
+    `It's tempting to think ${temptingLead} — in fact ${correctiveLead}`,
+    `A common trap is to think ${temptingLead} — in fact ${correctiveLead}`,
+    `Students may assume ${temptingLead}; the correction is ${correctiveLead}`,
+    `The quick but weak claim is ${temptingLead}; stronger reasoning is ${correctiveLead}`,
+    `Watch for the idea that ${temptingLead}; evidence should show ${correctiveLead}`,
+  ];
+  return punctuateDisplayBullet(variants[(lessonNumber - 1 + index) % variants.length], fallback);
 }
 
 function applyMcWalkthroughSlide(slides, lesson, { concept, objective }) {

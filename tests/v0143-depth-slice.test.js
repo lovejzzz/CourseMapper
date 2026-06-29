@@ -200,14 +200,20 @@ describe('D1a — common pitfalls slide from real misconception pairs', () => {
   const blueprint = buildRichBlueprint();
   const decks = compileBlueprintDeliverable('slideDecks', blueprint, { skipLanguageFinalizer: true });
 
-  it('renders a pitfalls slide with one "It\'s tempting…— in fact…" bullet per pair', () => {
+  it('renders a pitfalls slide with one varied misconception/correction bullet per pair', () => {
     const pitfalls = decks.decks[0].slides.find((slide) => /common pitfalls/i.test(slide.title));
     expect(pitfalls).toBeTruthy();
     expect(pitfalls.enrichmentSource).toBe('kernel-misconception-pitfalls');
     expect(pitfalls.bullets).toHaveLength(3);
+    const openingFamilies = new Set();
     for (const bullet of pitfalls.bullets) {
-      expect(bullet).toMatch(/^It's tempting to think .+ — in fact .+/);
+      const opener = bullet.match(
+        /^(It's tempting to think|A common trap is to think|Students may assume|The quick but weak claim is|Watch for the idea that) .+/,
+      );
+      expect(opener).toBeTruthy();
+      openingFamilies.add(opener[1]);
     }
+    expect(openingFamilies.size).toBeGreaterThan(1);
     // The pairs are the lesson's own atoms, recomposed verbatim-adjacent.
     expect(pitfalls.bullets[0]).toContain('streak always matches the specimen color');
     expect(pitfalls.bullets[0]).toContain('powder color is often different');

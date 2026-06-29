@@ -3,24 +3,24 @@ import { APP_VERSION } from './appVersion.js';
 export const CURRENT_RELEASE = {
   version: APP_VERSION,
   date: 'June 29, 2026',
-  title: 'Course FAQ Feedback Texture: repeated source-based artifact shingle is varied',
-  landingTitle: 'Course FAQ Feedback Texture',
+  title: 'Quiz Bank Texture: distractor review and pitfall openers vary',
+  landingTitle: 'Quiz Bank Texture',
   highlights: [
-    'The fresh deployed v0.15.132 User Experience Design Studio ZIP/log evidence still exposed one deterministic CourseMapper texture target after the v0.15.133 and v0.15.134 repairs: Course FAQ feedback answers repeated the same `source-based artifact, discussion, or synthesis task` shingle across all lessons.',
-    'The blueprint compiler now varies the feedback next-use sentence by lesson while preserving the same requirement that students transfer revised evidence into later artifacts, discussions, synthesis checks, or source-backed tasks.',
-    'Lesson-plan ready-to-teach transfer fallback copy now also rotates the same source-backed next-use idea, preventing the old `next source-based artifact` phrasing from resurfacing in support surfaces.',
-    'Existing compiler tests now assert the instructional transfer intent instead of requiring the old repeated literal phrase, so regression coverage protects meaning rather than clutter.',
-    'A focused v0.15.135 UX Course FAQ regression compiles a 12-lesson, six-question FAQ, runs the texture metric, and proves the old repeated feedback shingle stays out of FAQ text and texture evidence.',
+    'A fresh deployed v0.15.135 User Experience Design Studio ZIP/log audit exported successfully after Chrome restart and locally regraded at 100/100 with zero P0/P1/P2 findings, export verification passed, complete sourceRef coverage, 10 trusted source-ledger rows, and no sourceReviewRows.',
+    'The same audit still measured Texture 95 and exposed a deterministic compiler texture target: Quiz Bank intended-use notes repeated `review distractor choices before the next Week...`, while common-pitfall slides repeated the same `It’s tempting to think...` opener.',
+    'Multiple-choice intended-use notes now rotate among distractor comparison, misconception surfacing, wrong-option justification, and evidence-practice language while preserving the same quiz-bank review purpose.',
+    'Common-pitfall slide bullets now rotate opener families while keeping the lesson’s own misconception/correction pairs and slide placement intact.',
+    'Focused texture regressions prove the old distractor-review shingle is gone from a 12-lesson UX Quiz Bank and that pitfall slides still carry varied misconception/correction bullets without weakening source, export, report, or quality-grader standards.',
   ],
   landingHighlights: [
-    'Course FAQ feedback-transfer answers now vary by lesson.',
-    'The old `next source-based artifact` shingle is no longer required or emitted.',
-    'Ready-to-teach transfer fallback copy shares the same texture cleanup.',
-    'Fresh v0.15.135 ZIP/log evidence is still required before claiming 100/100.',
+    'Fresh v0.15.135 ZIP/log evidence regraded cleanly at 100/A.',
+    'Quiz Bank distractor-review notes now vary by lesson and item.',
+    'Common-pitfall slides rotate opener families while preserving corrections.',
+    'Fresh v0.15.136 ZIP/log evidence is still required before claiming the texture repair in real provider output.',
   ],
   proof: {
-    contract: 'release-contracts/v0.15.135.json',
-    roadmap: 'docs/V0.15.135_COURSE_FAQ_FEEDBACK_TEXTURE_ROADMAP.md',
+    contract: 'release-contracts/v0.15.136.json',
+    roadmap: 'docs/V0.15.136_QUIZ_BANK_TEXTURE_ROADMAP.md',
     auditCommand: 'npm run audit:release-history',
   },
 };
@@ -35,6 +35,18 @@ export const CURRENT_RELEASE_CHANGELOG = {
 };
 
 export const HISTORICAL_RELEASE_CHANGELOGS = [
+  {
+    version: '0.15.135',
+    date: 'June 29, 2026',
+    title: 'Course FAQ Feedback Texture: repeated source-based artifact shingle is varied',
+    highlights: [
+      'The fresh deployed v0.15.132 User Experience Design Studio ZIP/log evidence still exposed one deterministic CourseMapper texture target after the v0.15.133 and v0.15.134 repairs: Course FAQ feedback answers repeated the same `source-based artifact, discussion, or synthesis task` shingle across all lessons.',
+      'The blueprint compiler now varies the feedback next-use sentence by lesson while preserving the same requirement that students transfer revised evidence into later artifacts, discussions, synthesis checks, or source-backed tasks.',
+      'Lesson-plan ready-to-teach transfer fallback copy now also rotates the same source-backed next-use idea, preventing the old `next source-based artifact` phrasing from resurfacing in support surfaces.',
+      'Existing compiler tests now assert the instructional transfer intent instead of requiring the old repeated literal phrase, so regression coverage protects meaning rather than clutter.',
+      'A focused v0.15.135 UX Course FAQ regression compiles a 12-lesson, six-question FAQ, runs the texture metric, and proves the old repeated feedback shingle stays out of FAQ text and texture evidence.',
+    ],
+  },
   {
     version: '0.15.134',
     date: 'June 29, 2026',
