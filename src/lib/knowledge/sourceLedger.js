@@ -469,6 +469,16 @@ function conceptLinksForSourceFinderTopic(graph, topic = {}) {
 }
 
 function sourceIdentityKeys(source = {}) {
+  const title = normalizeSourceFingerprintText(source.title || source.citation || '', 260);
+  const authors = normalizeSourceFingerprintAuthors(source.authors || source.author || source.creators || '');
+  const evidence = normalizeSourceFingerprintText(source.evidence || source.snippet || source.abstract || '', 220);
+  const workKeys = [];
+  if (title && title.length >= 12 && !/^(?:source|article|reading|course resource|course materials?)$/.test(title)) {
+    if (authors) workKeys.push(`work:${title}|authors:${authors}`);
+    if (authors && evidence.length >= 24)
+      workKeys.push(`work-evidence:${title}|authors:${authors}|${evidence.slice(0, 140)}`);
+    else if (!authors && evidence.length >= 90) workKeys.push(`work-evidence:${title}|${evidence.slice(0, 140)}`);
+  }
   const strongKeys = [
     source.doi ? `doi:${source.doi}` : '',
     source.url ? `url:${source.url}` : '',
@@ -476,8 +486,31 @@ function sourceIdentityKeys(source = {}) {
   ]
     .filter(Boolean)
     .map((value) => value.toLowerCase());
-  if (strongKeys.length > 0) return strongKeys;
+  if (strongKeys.length > 0 || workKeys.length > 0) return [...strongKeys, ...workKeys];
   return source.title ? [`title:${source.title}`.toLowerCase()] : [];
+}
+
+function normalizeSourceFingerprintText(value = '', maxLength = 600) {
+  let text = cleanText(value, maxLength);
+  for (let index = 0; index < 3; index += 1) {
+    text = text.replace(/&amp;/gi, '&').replace(/&nbsp;/gi, ' ');
+  }
+  return text
+    .normalize('NFKD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/['"‘’“”`]/g, '')
+    .replace(/[^a-z0-9]+/gi, ' ')
+    .replace(/\s+/g, ' ')
+    .trim()
+    .toLowerCase();
+}
+
+function normalizeSourceFingerprintAuthors(value = '') {
+  return normalizeAuthors(value)
+    .map((author) => normalizeSourceFingerprintText(author, 140))
+    .filter(Boolean)
+    .slice(0, 6)
+    .join(',');
 }
 
 function courseText(courseGraph = {}) {
@@ -560,10 +593,20 @@ function appendCourseAwareSource(rows, reviewRows, source, courseGraph) {
 function appendUnique(rows, source) {
   if (!source?.id && !source?.title) return;
   const keys = sourceIdentityKeys(source);
-  if (rows.some((entry) => sourceIdentityKeys(entry).some((key) => keys.includes(key)))) {
+  const existingIndex = rows.findIndex((entry) => sourceIdentityKeys(entry).some((key) => keys.includes(key)));
+  if (existingIndex >= 0) {
+    rows[existingIndex] = mergeSourceLedgerConceptLinks(rows[existingIndex], source);
     return;
   }
   rows.push(source);
+}
+
+function mergeSourceLedgerConceptLinks(existing = {}, incoming = {}) {
+  const conceptLinks = normalizeConceptLinks([...(existing.conceptLinks || []), ...(incoming.conceptLinks || [])]);
+  return {
+    ...existing,
+    ...(conceptLinks.length > 0 ? { conceptLinks } : {}),
+  };
 }
 
 function isCourseIRReviewOnlySource(source = {}) {
@@ -626,9 +669,11 @@ function sourceFinderTopicLedgerSources(courseGraph, topic, topicIndex, checkedA
   const candidates = rankedSourceFinderTopicSources(topic).map(({ source }, sourceIndex) =>
     normalizeSourceFinderTopicSource(courseGraph, topic, source, topicIndex, sourceIndex, checkedAt),
   );
-  const trustedConceptLinked = candidates.filter(
-    (source) => isTrustedConceptLinkedSourceLedgerRow(source) && !isUserExperienceWeakSource(source, courseGraph),
-  );
+  const trustedConceptLinked = [];
+  for (const source of candidates) {
+    if (!isTrustedConceptLinkedSourceLedgerRow(source) || isUserExperienceWeakSource(source, courseGraph)) continue;
+    appendUnique(trustedConceptLinked, source);
+  }
   if (trustedConceptLinked.length > 0) {
     return {
       rows: trustedConceptLinked.slice(0, SOURCE_FINDER_TRUSTED_ROWS_PER_TOPIC),

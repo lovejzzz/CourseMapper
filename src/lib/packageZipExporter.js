@@ -307,12 +307,56 @@ function normalizeSourceIdentity(value = '') {
     .toLowerCase();
 }
 
+function normalizeSourceFingerprintText(value = '', maxLength = 600) {
+  let text = cleanSourceText(value, maxLength);
+  for (let index = 0; index < 3; index += 1) {
+    text = text.replace(/&amp;/gi, '&').replace(/&nbsp;/gi, ' ');
+  }
+  return text
+    .normalize('NFKD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/['"‘’“”`]/g, '')
+    .replace(/[^a-z0-9]+/gi, ' ')
+    .replace(/\s+/g, ' ')
+    .trim()
+    .toLowerCase();
+}
+
+function normalizeSourceFingerprintAuthors(value = '') {
+  const authors = Array.isArray(value)
+    ? value
+    : cleanSourceText(value, 320)
+        .split(/\s*;\s*|\s+\|\s+|\s+and\s+|,\s+(?=[A-Z][a-z]+(?:\s+[A-Z]\.)?(?:\s|$))/)
+        .filter(Boolean);
+  return authors
+    .map((author) => normalizeSourceFingerprintText(author, 140))
+    .filter(Boolean)
+    .slice(0, 6)
+    .join(',');
+}
+
+function sourceLedgerWorkFingerprintKeys(row = {}) {
+  const title = normalizeSourceFingerprintText(row.title || row.citation || '', 260);
+  if (!title || title.length < 12 || /^(?:source|article|reading|course resource|course materials?)$/.test(title)) {
+    return [];
+  }
+  const authors = normalizeSourceFingerprintAuthors(row.authors || row.author || row.creators || '');
+  const evidence = normalizeSourceFingerprintText(row.evidence || row.snippet || row.abstract || '', 220);
+  const keys = [];
+  if (authors) keys.push(`work:${title}|authors:${authors}`);
+  if (authors && evidence.length >= 24)
+    keys.push(`work-evidence:${title}|authors:${authors}|${evidence.slice(0, 140)}`);
+  else if (!authors && evidence.length >= 90) keys.push(`work-evidence:${title}|${evidence.slice(0, 140)}`);
+  return keys;
+}
+
 function sourceLedgerIdentityKeys(row = {}) {
   const strongKeys = [
     row.doi ? `doi:${normalizeSourceIdentity(row.doi).replace(/^doi:/, '')}` : '',
     row.url ? `url:${normalizeSourceIdentity(row.url)}` : '',
   ].filter(Boolean);
-  if (strongKeys.length > 0) return strongKeys;
+  const workKeys = sourceLedgerWorkFingerprintKeys(row);
+  if (strongKeys.length > 0 || workKeys.length > 0) return [...strongKeys, ...workKeys];
   const title = normalizeSourceIdentity(row.title || row.citation || row.evidence || '');
   return title ? [`title:${title}`] : [];
 }

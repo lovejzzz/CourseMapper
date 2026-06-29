@@ -3,24 +3,24 @@ import { APP_VERSION } from './appVersion.js';
 export const CURRENT_RELEASE = {
   version: APP_VERSION,
   date: 'June 29, 2026',
-  title: 'Slide Note Texture Rotation: PPTX visual scaffolds stop repeating across lessons',
-  landingTitle: 'Slide Note Texture Rotation',
+  title: 'Source Proof Dedupe: duplicate DOI variants stop inflating trusted source coverage',
+  landingTitle: 'Source Proof Dedupe',
   highlights: [
-    'A fresh deployed v0.15.123 User Experience Design Studio ZIP/log audit exported and locally regraded at 99/100 with zero P0/P1/P2 findings, clean source proof, export verification, enrichment coverage, and report/digest truth.',
-    'The only scored loss was Texture 92, led by repeated PPTX slide-deck speaker-note shingles such as fixed `Instructor visual note` / `Accessibility note` labels and repeated visual-kind phrasing across all 12 lesson decks.',
-    'Slide visual descriptors now vary by lesson: compiler-owned descriptions and alt text rotate while preserving the visual kind, evidence use, artifact connection, and accessibility purpose.',
-    'PPTX speaker notes now rotate clean visual and accessibility labels deterministically by deck/slide instead of stamping the same two labels everywhere, while keeping visual guidance in notes and off student-facing slides.',
-    'Focused PPTX/compiler regressions prove note labels vary across a visual-heavy deck without reintroducing raw `SUGGESTED VISUAL`, `ALT TEXT`, `Visual guidance`, or `Accessibility description` scaffolds.',
+    'A fresh deployed v0.15.124 User Experience Design Studio ZIP/log audit exported and locally regraded at 100/100 with zero P0/P1/P2 findings, export verification passed, enrichment coverage complete, and Texture 95.',
+    'Strict source-ledger review still found a real citation-truth caveat: two trusted Crossref DOI rows described the same Margret Plank prototyping work, so trusted source coverage could be double-counted even though both rows were real, licensed, and on-topic.',
+    'Source-finder topic selection now deduplicates same-work candidates before applying the per-topic trusted-source cap, so duplicate DOI variants cannot crowd out the next distinct trusted source.',
+    'Package source-ledger merging now uses conservative title/author/evidence fingerprints alongside DOI and URL identity, preserving concept links while collapsing duplicate trusted proof across export bundles.',
+    'A focused package-export regression reproduces the v0.15.124 UX duplicate-prototyping shape and proves PACKAGE_MANIFEST.json, SOURCE_REPORT.md, and CourseIR sourceRef bridge counts use distinct trusted works.',
   ],
   landingHighlights: [
-    'Fresh v0.15.123 output is structurally clean at 99/100 with zero P findings.',
-    'The remaining scored loss is repeated slide-deck note texture, not source truth.',
-    'PPTX visual and accessibility notes now vary deterministically by deck and slide.',
-    'Fresh v0.15.124 output is still required before claiming strict-clean texture.',
+    'Fresh v0.15.124 output reached visible 100/100 but still exposed duplicate source proof.',
+    'Duplicate DOI variants now collapse before trusted-source coverage is counted.',
+    'Concept links are merged instead of discarded when duplicate works appear in multiple topics.',
+    'Fresh v0.15.125 output is still required before claiming strict-clean source proof and Texture 100.',
   ],
   proof: {
-    contract: 'release-contracts/v0.15.124.json',
-    roadmap: 'docs/V0.15.124_SLIDE_NOTE_TEXTURE_ROTATION_ROADMAP.md',
+    contract: 'release-contracts/v0.15.125.json',
+    roadmap: 'docs/V0.15.125_SOURCE_PROOF_DEDUPE_ROADMAP.md',
     auditCommand: 'npm run audit:release-history',
   },
 };
@@ -35,6 +35,18 @@ export const CURRENT_RELEASE_CHANGELOG = {
 };
 
 export const HISTORICAL_RELEASE_CHANGELOGS = [
+  {
+    version: '0.15.124',
+    date: 'June 29, 2026',
+    title: 'Slide Note Texture Rotation: PPTX visual scaffolds stop repeating across lessons',
+    highlights: [
+      'A fresh deployed v0.15.123 User Experience Design Studio ZIP/log audit exported and locally regraded at 99/100 with zero P0/P1/P2 findings, clean source proof, export verification, enrichment coverage, and report/digest truth.',
+      'The only scored loss was Texture 92, led by repeated PPTX slide-deck speaker-note shingles such as fixed `Instructor visual note` / `Accessibility note` labels and repeated visual-kind phrasing across all 12 lesson decks.',
+      'Slide visual descriptors now vary by lesson: compiler-owned descriptions and alt text rotate while preserving the visual kind, evidence use, artifact connection, and accessibility purpose.',
+      'PPTX speaker notes now rotate clean visual and accessibility labels deterministically by deck/slide instead of stamping the same two labels everywhere, while keeping visual guidance in notes and off student-facing slides.',
+      'Focused PPTX/compiler regressions prove note labels vary across a visual-heavy deck without reintroducing raw `SUGGESTED VISUAL`, `ALT TEXT`, `Visual guidance`, or `Accessibility description` scaffolds.',
+    ],
+  },
   {
     version: '0.15.123',
     date: 'June 29, 2026',

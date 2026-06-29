@@ -483,6 +483,162 @@ describe('packageZipExporter', () => {
     expect(sourceReport).not.toContain('Source Review Notes');
   });
 
+  it('deduplicates duplicate trusted source-finder work rows before counting source proof', async () => {
+    const prototypingEvidence =
+      'UX prototyping source evidence for wireframes, mockups, and iterative prototype development.';
+    const result = await buildCourseMaterialsZip({
+      courseMap: {
+        courseName: 'User Experience Design Studio',
+        lessons: [
+          {
+            title: 'Lesson 1: Prototype development',
+            sections: [
+              {
+                topicSection: 'wireframes and prototype development',
+                learningObjectives: 'Use wireframes and prototype iterations to test design ideas.',
+              },
+            ],
+          },
+        ],
+      },
+      deliverables: {
+        lessonPlans: {
+          status: 'done',
+          data: {
+            lessonPlans: [{ lessonTitle: 'Lesson 1: Prototype development', objectives: ['Prototype with evidence.'] }],
+          },
+        },
+      },
+      featureIds: ['courseMap', 'lessonPlans'],
+      courseGraph: {
+        course: { name: 'User Experience Design Studio' },
+        concepts: [
+          { id: 'c1', term: 'wireframes' },
+          { id: 'c2', term: 'prototype development' },
+          { id: 'c3', term: 'test planning' },
+        ],
+        sessions: [
+          {
+            id: 's1',
+            number: 1,
+            title: 'Prototype development',
+            sections: [
+              {
+                id: 'sec1',
+                topic: 'wireframes and prototype development',
+                conceptRefs: ['c1', 'c2', 'c3'],
+                resourceRefs: [],
+              },
+            ],
+          },
+        ],
+        resources: [],
+        readings: [],
+        sourceFinderMiniShard: {
+          topics: [
+            {
+              lessonNumber: 1,
+              topic: 'prototype development',
+              sources: [
+                {
+                  id: 'sf1',
+                  title: 'Prototyping (Wireframes, Mockups &amp; Co)',
+                  authors: ['Margret Plank'],
+                  provider: 'crossref',
+                  kind: 'posted-content',
+                  doi: '10.65527/sfxsp-76774',
+                  license: 'CC BY 4.0',
+                  snippet: prototypingEvidence,
+                },
+                {
+                  id: 'sf-4-2',
+                  title: 'Prototyping (Wireframes, Mockups &amp;amp; Co)',
+                  authors: ['Margret Plank'],
+                  provider: 'crossref',
+                  kind: 'posted-content',
+                  doi: '10.65527/4gsph-jk398',
+                  license: 'CC BY 4.0',
+                  snippet: prototypingEvidence,
+                },
+                {
+                  id: 'sf2',
+                  title: 'A/B testing',
+                  authors: ['Wikipedia contributors'],
+                  provider: 'wikipedia',
+                  kind: 'encyclopedia article',
+                  url: 'https://en.wikipedia.org/wiki/A/B_testing',
+                  license: 'CC BY-SA 4.0',
+                  snippet: 'A/B testing source evidence for test planning and task-scenario comparison.',
+                },
+              ],
+            },
+          ],
+        },
+        courseIR: {
+          version: 'courseir.v1',
+          lessonIds: ['L1'],
+          conceptIds: ['C1', 'C2', 'C3'],
+          assessmentIds: ['A1'],
+          sourceLedger: [
+            {
+              id: 'SL1',
+              scope: 'course',
+              status: 'source-provided',
+              evidence: 'Existing course map fields.',
+              provider: 'courseir',
+            },
+          ],
+          sourceRefCoverage: {
+            sourceLedgerRows: 1,
+            categories: {
+              outcomes: { total: 3, withRefs: 3, missing: 0, danglingRefs: 0, missingIds: [] },
+              activities: { total: 3, withRefs: 3, missing: 0, danglingRefs: 0, missingIds: [] },
+              factualClaims: { total: 3, withRefs: 3, missing: 0, danglingRefs: 0 },
+            },
+            totals: { total: 9, withRefs: 9, missing: 0, danglingRefs: 0 },
+          },
+        },
+      },
+      quality: false,
+    });
+
+    const zip = await JSZip.loadAsync(await result.blob.arrayBuffer());
+    const manifest = JSON.parse(await zip.file('PACKAGE_MANIFEST.json').async('string'));
+    const sourceReport = await zip.file('SOURCE_REPORT.md').async('string');
+
+    expect(manifest.sourceLedger).toHaveLength(2);
+    expect(manifest.sourceLedger).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          title: 'Prototyping (Wireframes, Mockups &amp; Co)',
+          provider: 'crossref',
+          conceptLinks: expect.arrayContaining([expect.objectContaining({ label: 'wireframes' })]),
+        }),
+        expect.objectContaining({
+          title: 'A/B testing',
+          provider: 'wikipedia',
+          conceptLinks: expect.arrayContaining([expect.objectContaining({ label: 'test planning' })]),
+        }),
+      ]),
+    );
+    expect(manifest.sourceLedger.filter((row) => /prototyping/i.test(row.title || ''))).toHaveLength(1);
+    expect(manifest.sourceLedgerSummary).toMatchObject({
+      sourceCount: 2,
+      trustedCount: 2,
+      trustedConceptLinkedCount: 2,
+    });
+    expect(manifest.courseIR).toMatchObject({
+      sourceLedgerRows: 2,
+      sourceRefBridge: {
+        source: 'coursegraph-concept-linked-ledger',
+        trustedRows: 2,
+        conceptLinkedRows: 2,
+        replacedReviewRows: 1,
+      },
+    });
+    expect(sourceReport.match(/Prototyping/g)).toHaveLength(1);
+  });
+
   it('recovers UX sourceRef proof with licensed concept-linked sources when provider retrieval leaves only CourseIR review rows', async () => {
     const courseMap = {
       courseName: 'User Experience Design Studio',
