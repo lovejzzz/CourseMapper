@@ -1,0 +1,98 @@
+{
+  "version": "0.15.117",
+  "date": "June 29, 2026",
+  "title": "Source License Trust Gate: OA status and publisher policies stop counting as proof",
+  "status": "verified-current",
+  "proofSummary": {
+    "local": [
+      "npx vitest run src/lib/knowledge/__tests__/sourceLedger.test.js",
+      "npx vitest run src/lib/quality/__tests__/sourceLedgerGrader.test.js",
+      "npm run format:check",
+      "npm run lint",
+      "npm test",
+      "npm run build",
+      "npm run bundle:check",
+      "npm run audit:release-history",
+      "npm run audit:gold:smoke"
+    ],
+    "ciFast": {
+      "status": "pending-push",
+      "note": "Fast verification is claimed only after v0.15.117 is pushed and the GitHub Actions run is attached."
+    },
+    "deploy": {
+      "status": "pending-push",
+      "note": "Pages deploy is not claimed until the pushed v0.15.117 release completes its deploy run."
+    },
+    "ciDeep": {
+      "status": "local-only",
+      "note": "This is a narrow source-license trust release; focused source-ledger tests plus normal gates are the release bar."
+    },
+    "liveProvider": {
+      "status": "local-only",
+      "note": "The release is based on a fresh deployed v0.15.116 ZIP/log audit that regrades at 98/A under the stricter local rule. A fresh deployed v0.15.117 audit is still required before claiming clean provider output."
+    },
+    "manualHuman": {
+      "status": "not-applicable",
+      "note": "No external instructor approval is claimed by this release."
+    }
+  },
+  "claims": [
+    {
+      "id": "v015117-v015116-license-evidence",
+      "status": "verified-current",
+      "changelogHighlightIndex": 0,
+      "summary": "A fresh deployed v0.15.116 UX audit looked clean in the app, but stricter local source audit regraded it at 98/A because three sourceLedger rows carried ambiguous license proof.",
+      "anchors": ["docs/V0.15.117_SOURCE_LICENSE_TRUST_GATE_ROADMAP.md", "src/lib/releaseManifest.js"],
+      "proofCommands": [
+        "rg -n \"Local regrade after this stricter gate:|98/100|sf2|sf-1-2|sf-8-2\" docs/V0.15.117_SOURCE_LICENSE_TRUST_GATE_ROADMAP.md"
+      ],
+      "proofScopes": ["live-provider", "static-audit", "compiled-output"]
+    },
+    {
+      "id": "v015117-production-license-gate",
+      "status": "verified-current",
+      "changelogHighlightIndex": 1,
+      "summary": "Production source-ledger assembly treats other-oa, publisher TDM URLs, and publisher policy URLs as ambiguous license proof.",
+      "anchors": ["src/lib/knowledge/sourceLedger.js", "src/lib/knowledge/__tests__/sourceLedger.test.js"],
+      "proofCommands": ["npx vitest run src/lib/knowledge/__tests__/sourceLedger.test.js"],
+      "proofScopes": ["unit", "compiled-output"]
+    },
+    {
+      "id": "v015117-grader-license-gate",
+      "status": "verified-current",
+      "changelogHighlightIndex": 2,
+      "summary": "The local deep source-ledger grader flags existing packages that trusted other-oa, TDM, or publisher-policy license proof.",
+      "anchors": [
+        "src/lib/quality/sourceLedgerQualityChecks.js",
+        "src/lib/quality/__tests__/sourceLedgerGrader.test.js"
+      ],
+      "proofCommands": ["npx vitest run src/lib/quality/__tests__/sourceLedgerGrader.test.js"],
+      "proofScopes": ["unit", "static-audit"]
+    },
+    {
+      "id": "v015117-old-contract-updated",
+      "status": "verified-current",
+      "changelogHighlightIndex": 3,
+      "summary": "Focused source-ledger regressions no longer enforce the old behavior where publisher TDM URLs were treated as license-safe proof.",
+      "anchors": ["src/lib/knowledge/__tests__/sourceLedger.test.js"],
+      "proofCommands": [
+        "rg -n \"publisher policy URLs without trusting|sourceCount: 1|trustedConceptLinkedCount: 1\" src/lib/knowledge/__tests__/sourceLedger.test.js"
+      ],
+      "proofScopes": ["unit", "static-audit"]
+    },
+    {
+      "id": "v015117-provider-proof-not-claimed",
+      "status": "verified-current",
+      "changelogHighlightIndex": 4,
+      "summary": "The release explicitly carries forward fresh deployed v0.15.117 provider verification instead of claiming clean output from a local trust-gate patch.",
+      "anchors": ["docs/V0.15.117_SOURCE_LICENSE_TRUST_GATE_ROADMAP.md", "src/lib/releaseManifest.js"],
+      "proofCommands": ["npm run audit:release-history"],
+      "proofScopes": ["doc", "static-audit"]
+    }
+  ],
+  "knownRemainingTargets": [
+    "Fresh deployed v0.15.117 ZIP/log audit must prove no other-oa, TDM, or publisher-policy license row is trusted sourceLedger proof.",
+    "Fresh deployed output must prove Texture reaches 100/100 or identify the next concrete repeated shingle.",
+    "Every exported surface must agree: UI, ZIP, manifest, quality report, source report, digest logs, DOCX/PPTX files, and local regrade."
+  ]
+}

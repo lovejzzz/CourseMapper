@@ -23,6 +23,8 @@ const TRUST_ELIGIBLE_PROVIDERS = new Set([
 
 const REVIEW_ONLY_PROVIDERS = new Set(['courseir', 'instructor', 'instructor-provided', 'openlibrary']);
 const RESTRICTED_RIGHTS_STATEMENT_RE = /rightsstatements\.org\/vocab\/inc(?:[-/]|$)/i;
+const PUBLISHER_POLICY_LICENSE_RE =
+  /(?:\/tdm(?:\/|$)|\btdm\b|text[-\s]?and[-\s]?data[-\s]?mining|policy-029|springernature\.com\/gp\/researchers\/text-and-data-mining|elsevier\.com\/tdm|sagepub\.com\/page\/policies\/text-and-data-mining-license)/i;
 
 const PROJECT_MANAGEMENT_COURSE_RE =
   /\b(?:project\s+management|project\s+manager|pmbok|project\s+charter|scope\s+management|work\s+breakdown|critical\s+path|risk\s+register|stakeholder\s+analysis|project\s+scheduling|project\s+life\s+cycle)\b/i;
@@ -92,7 +94,9 @@ function ambiguousLicense(row) {
     /^(open access|open license|unknown|(?:[\w.-]+\s+)*public metadata|metadata only|instructor review required|review required|varies|mixed|in copyright|all rights reserved)$/.test(
       license,
     ) ||
-    RESTRICTED_RIGHTS_STATEMENT_RE.test(license)
+    /^other[-\s]?oa$/.test(license) ||
+    RESTRICTED_RIGHTS_STATEMENT_RE.test(license) ||
+    PUBLISHER_POLICY_LICENSE_RE.test(license)
   );
 }
 
@@ -302,7 +306,7 @@ export function checkSourceLedger(findings, { files, manifest }) {
         evidence: row?.title || row?.evidence || id,
       });
     }
-    if (isTrustedConceptLinkedBibliographyRow(row) && isProjectManagementFalseFriendSource(row, manifest)) {
+    if (hasConceptLinks(row) && isProjectManagementFalseFriendSource(row, manifest)) {
       findings.add({
         severity: 'P1',
         dimension: 'citations',
@@ -311,7 +315,7 @@ export function checkSourceLedger(findings, { files, manifest }) {
         evidence: row?.title || row?.citation || row?.evidence || id,
       });
     }
-    if (isTrustedConceptLinkedBibliographyRow(row) && isUserExperienceWeakSource(row, manifest)) {
+    if (hasConceptLinks(row) && isUserExperienceWeakSource(row, manifest)) {
       findings.add({
         severity: 'P1',
         dimension: 'citations',

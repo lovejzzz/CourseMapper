@@ -3,24 +3,24 @@ import { APP_VERSION } from './appVersion.js';
 export const CURRENT_RELEASE = {
   version: APP_VERSION,
   date: 'June 29, 2026',
-  title: 'UX Texture Tail Cleanup: slide and study-guide stamps rotate',
-  landingTitle: 'UX Texture Tail Cleanup',
+  title: 'Source License Trust Gate: OA status and publisher policies stop counting as proof',
+  landingTitle: 'Source License Trust Gate',
   highlights: [
-    'A fresh deployed v0.15.115 User Experience Design Studio ZIP/log audit exported and locally regraded at 100/A with no P0/P1/P2 findings, proving the UX source false-friend and licensed source-ledger gates held in real provider output.',
-    'The same audit still measured Texture 95/100 because slide-deck summary visuals repeated readiness-check/feedback-action scaffolds, activity notes repeated a pair-circulation evidence line, and study guides repeated the same cite-evidence hint.',
-    'Summary slide titles, visual kinds, visual evidence uses, and activity evidence notes now rotate by lesson while preserving accessibility, transfer, evidence-use, and artifact-revision expectations.',
-    'Study-guide first-question hints now vary by lesson so the guide asks for source detail, decision impact, artifact support, or defensible revision instead of stamping the same cite-evidence sentence across all 12 lessons.',
-    'This release keeps the target honest: v0.15.116 does not claim strict-clean provider output until a fresh deployed ZIP/log audit proves Texture reaches 100 and every exported surface agrees.',
+    'A fresh deployed v0.15.116 User Experience Design Studio ZIP/log audit looked clean in the app at Quality 100 with Texture 95, but stricter local source audit regraded it at 98/A because three trusted sourceLedger rows carried ambiguous license proof.',
+    'OpenAlex `other-oa`, publisher text-and-data-mining URLs, and DOI publisher-policy URLs now count as ambiguous license proof, so they cannot become trusted sourceLedger rows without an explicit reusable license.',
+    'The source-ledger grader mirrors the production gate: existing packages that trusted those rows now receive citation P2 findings instead of silently passing as license-clean.',
+    'Focused source-ledger regressions update the old contract that treated TDM URLs as safe and prove source-finder rows with ambiguous license proof are dropped or kept as review evidence rather than trusted bibliography proof.',
+    'This release keeps the target honest: v0.15.117 still needs a fresh deployed ZIP/log audit, and Texture 95 remains below the strict-clean texture target.',
   ],
   landingHighlights: [
-    'Fresh v0.15.115 output proved score and source proof are clean, but texture still needs work.',
-    'Repeated slide-summary, activity-note, and study-guide hint stamps now vary by lesson.',
-    'Regression coverage pins the latest v0.15.115 texture shingles.',
-    'Fresh v0.15.116 output is still required before claiming strict-clean provider quality.',
+    'Fresh v0.15.116 output exposed ambiguous license proof hidden behind a nominal 100/A.',
+    '`other-oa`, TDM URLs, and publisher-policy URLs no longer count as reusable license proof.',
+    'Production source-ledger assembly and local regrade now agree on the stricter trust gate.',
+    'Fresh v0.15.117 output is still required before claiming clean provider quality.',
   ],
   proof: {
-    contract: 'release-contracts/v0.15.116.json',
-    roadmap: 'docs/V0.15.116_UX_TEXTURE_TAIL_CLEANUP_ROADMAP.md',
+    contract: 'release-contracts/v0.15.117.json',
+    roadmap: 'docs/V0.15.117_SOURCE_LICENSE_TRUST_GATE_ROADMAP.md',
     auditCommand: 'npm run audit:release-history',
   },
 };
@@ -35,6 +35,18 @@ export const CURRENT_RELEASE_CHANGELOG = {
 };
 
 export const HISTORICAL_RELEASE_CHANGELOGS = [
+  {
+    version: '0.15.116',
+    date: 'June 29, 2026',
+    title: 'UX Texture Tail Cleanup: slide and study-guide stamps rotate',
+    highlights: [
+      'A fresh deployed v0.15.115 User Experience Design Studio ZIP/log audit exported and locally regraded at 100/A with no P0/P1/P2 findings, proving the UX source false-friend and licensed source-ledger gates held in real provider output.',
+      'The same audit still measured Texture 95/100 because slide-deck summary visuals repeated readiness-check/feedback-action scaffolds, activity notes repeated a pair-circulation evidence line, and study guides repeated the same cite-evidence hint.',
+      'Summary slide titles, visual kinds, visual evidence uses, and activity evidence notes now rotate by lesson while preserving accessibility, transfer, evidence-use, and artifact-revision expectations.',
+      'Study-guide first-question hints now vary by lesson so the guide asks for source detail, decision impact, artifact support, or defensible revision instead of stamping the same cite-evidence sentence across all 12 lessons.',
+      'This release kept the target honest: v0.15.116 did not claim strict-clean provider output until a fresh deployed ZIP/log audit proves Texture reaches 100 and every exported surface agrees.',
+    ],
+  },
   {
     version: '0.15.115',
     date: 'June 29, 2026',

@@ -4,6 +4,24 @@
 
 CourseMapper is moving toward a "consider it done" course-production agent. The user should describe the course, choose scope/materials, and receive a finished draft package. The agent owns generation, QA, repair, alignment, and export readiness. Human involvement should be final approval only, not QA labor.
 
+## v0.15.117 - Source License Trust Gate
+
+Goal: address the fresh v0.15.116 User Experience Design Studio ZIP/log audit
+evidence where the app visibly exported `Quality 100` with `Texture 95`, but a
+stricter local source audit regraded the package at `98/A` because three trusted
+sourceLedger rows carried ambiguous license proof.
+
+Full plan: `docs/V0.15.117_SOURCE_LICENSE_TRUST_GATE_ROADMAP.md`
+
+1. Treat `other-oa` as open-access status, not reusable license proof.
+2. Treat publisher text-and-data-mining URLs and publisher-policy DOI URLs as
+   ambiguous license proof.
+3. Apply the same trust rule in production source-ledger assembly and local
+   regrade so future packages do not present those rows as trusted bibliography.
+4. Preserve explicit reusable licenses such as Creative Commons and OER rows.
+5. Carry forward a fresh deployed v0.15.117 audit before claiming clean source
+   proof, and keep texture `95/100` as an unresolved strict-clean target.
+
 ## v0.15.116 - UX Texture Tail Cleanup
 
 Goal: address the fresh v0.15.115 User Experience Design Studio ZIP/log audit

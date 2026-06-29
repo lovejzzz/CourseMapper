@@ -136,7 +136,7 @@ describe('trusted source ledger', () => {
     );
   });
 
-  it('recovers Crossref license URLs and full DOI URLs from rendered source text', () => {
+  it('recovers Crossref DOI and publisher policy URLs without trusting them as reusable licenses', () => {
     const ledger = buildSourceLedgerFromCourseGraph({
       sessions: [{ id: 's1', number: 1, sections: [{ topic: 'Runway', resourceRefs: ['r1'] }] }],
       resources: [
@@ -150,13 +150,14 @@ describe('trusted source ledger', () => {
       ],
     });
 
-    expect(ledger.rows[0]).toMatchObject({
+    expect(ledger.rows).toHaveLength(0);
+    expect(ledger.reviewRows[0]).toMatchObject({
       id: 'r1',
       provider: 'crossref',
       doi: '10.1016/0165-1765(87)90086-3',
       url: 'https://doi.org/10.1016/0165-1765(87)90086-3',
       license: 'https://www.elsevier.com/tdm/userlicense/1.0/',
-      licenseAmbiguous: false,
+      licenseAmbiguous: true,
       accessStatus: 'reference-present',
     });
   });
@@ -544,8 +545,8 @@ describe('trusted source ledger', () => {
       { checkedAt: '2026-06-27T00:00:00.000Z' },
     );
 
-    expect(ledger.rows).toHaveLength(2);
-    expect(ledger.rows.map((row) => row.provider)).toEqual(['openalex', 'crossref']);
+    expect(ledger.rows).toHaveLength(1);
+    expect(ledger.rows.map((row) => row.provider)).toEqual(['openalex']);
     expect(ledger.rows).toEqual(
       expect.arrayContaining([
         expect.objectContaining({
@@ -553,18 +554,13 @@ describe('trusted source ledger', () => {
           licenseAmbiguous: false,
           conceptLinks: [{ id: 'c1', label: 'Critical path method' }],
         }),
-        expect.objectContaining({
-          provider: 'crossref',
-          licenseAmbiguous: false,
-          conceptLinks: [{ id: 'c1', label: 'Critical path method' }],
-        }),
       ]),
     );
     expect(ledger.summary).toMatchObject({
-      sourceCount: 2,
-      trustedCount: 2,
-      conceptLinkedCount: 2,
-      trustedConceptLinkedCount: 2,
+      sourceCount: 1,
+      trustedCount: 1,
+      conceptLinkedCount: 1,
+      trustedConceptLinkedCount: 1,
       licenseAmbiguousCount: 0,
     });
   });
@@ -1408,7 +1404,7 @@ describe('trusted source ledger', () => {
     const titles = ledger.rows.map((row) => row.title);
 
     expect(titles).toContain('Understanding Collaborative Practices and Tools of Professional UX Practitioners');
-    expect(titles).toContain('International usability testing');
+    expect(titles).not.toContain('International usability testing');
     expect(titles).not.toContain('A Critique of Private Sessions in Family Mediation');
     expect(titles).not.toContain(
       'The efficacy of booster maintenance sessions in behavior therapy: Review and methodological critique',
@@ -1416,7 +1412,7 @@ describe('trusted source ledger', () => {
     expect(titles).not.toContain('Accessibility of the Metropolitan Transportation Authority');
     expect(titles).not.toContain('Design Research (store)');
     expect(ledger.reviewRows || []).toHaveLength(0);
-    expect(ledger.summary).toMatchObject({ sourceCount: 2, trustedConceptLinkedCount: 2 });
+    expect(ledger.summary).toMatchObject({ sourceCount: 1, trustedConceptLinkedCount: 1 });
   });
 
   it('drops v0.15.97 UX false-friend sources even when they are licensed and concept-linked', () => {
