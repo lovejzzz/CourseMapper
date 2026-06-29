@@ -41,9 +41,7 @@
       "status": "verified-current",
       "changelogHighlightIndex": 0,
       "summary": "A fresh deployed v0.15.129 UX audit exported and locally regraded at 100/100 with zero P findings, clean source proof, full sourceRef coverage, and Texture 95.",
-      "anchors": [
-        "docs/V0.15.130_TEXTURE_TAIL_CLEANUP_ROADMAP.md"
-      ],
+      "anchors": ["docs/V0.15.130_TEXTURE_TAIL_CLEANUP_ROADMAP.md"],
       "proofCommands": [
         "rg -n \"100/100|Texture 95|trusted concept-linked|sourceRef coverage|no exported sourceReviewRows\" docs/V0.15.130_TEXTURE_TAIL_CLEANUP_ROADMAP.md"
       ],
@@ -54,9 +52,7 @@
       "status": "verified-current",
       "changelogHighlightIndex": 1,
       "summary": "The remaining strict-clean gap was repeated rubric, lesson-plan, and slide-deck texture tails across the v0.15.129 package.",
-      "anchors": [
-        "docs/V0.15.130_TEXTURE_TAIL_CLEANUP_ROADMAP.md"
-      ],
+      "anchors": ["docs/V0.15.130_TEXTURE_TAIL_CLEANUP_ROADMAP.md"],
       "proofCommands": [
         "rg -n \"audience language makes|criterion-level feedback that names|critique a visible prototype|Texture 95\" docs/V0.15.130_TEXTURE_TAIL_CLEANUP_ROADMAP.md"
       ],
