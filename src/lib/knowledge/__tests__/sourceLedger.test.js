@@ -2,6 +2,8 @@ import { describe, expect, it } from 'vitest';
 import {
   buildSourceLedgerFromCourseGraph,
   buildSourceReportMarkdown,
+  isLicenseAmbiguous,
+  isTrustedSourceLedgerRow,
   sourceLedgerFromOpenAlex,
   sourceLedgerFromOpenLibrary,
   sourceLedgerFromOpenStax,
@@ -55,6 +57,29 @@ describe('trusted source ledger', () => {
       license: 'CC BY-NC-SA 4.0',
       trustLevel: 'open-educational-resource',
     });
+  });
+
+  it('treats in-copyright rights statements as review-only license proof', () => {
+    const source = sourceLedgerFromOpenAlex(
+      {
+        id: 'https://openalex.org/W2',
+        title: 'Accessibility Evaluation in Design Studios',
+        authors: 'A. Researcher',
+        doi: '10.1000/accessibility-studio',
+        license: 'http://rightsstatements.org/vocab/InC/1.0/',
+      },
+      { fallbackId: 'SL1', conceptLinks: [{ id: 'C1', label: 'Accessibility review' }] },
+    );
+
+    expect(source).toMatchObject({
+      provider: 'openalex',
+      doi: '10.1000/accessibility-studio',
+      license: 'http://rightsstatements.org/vocab/InC/1.0/',
+      licenseAmbiguous: true,
+      conceptLinks: [{ id: 'C1', label: 'Accessibility review' }],
+    });
+    expect(isLicenseAmbiguous(source.license)).toBe(true);
+    expect(isTrustedSourceLedgerRow(source)).toBe(false);
   });
 
   it('recovers source references embedded in rendered resource text', () => {

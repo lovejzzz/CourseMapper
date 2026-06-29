@@ -85,6 +85,47 @@ describe('source-ledger quality checks', () => {
     );
   });
 
+  it('flags in-copyright rights statements as ambiguous source-ledger licenses', async () => {
+    const result = await grade({
+      fileProvider: createMemoryFileProvider({
+        'PACKAGE_MANIFEST.json': JSON.stringify({
+          courseName: 'User Experience Design Studio',
+          lessonScope: 'all',
+          requestedFeatures: [],
+          readiness: { status: 'ready', blockers: 0, warnings: 0, checkedSections: null },
+          sourceLedger: [
+            {
+              id: 'SL1',
+              title: 'Accessibility Evaluation in Design Studios',
+              provider: 'openalex',
+              url: 'https://doi.org/10.1000/accessibility-studio',
+              doi: '10.1000/accessibility-studio',
+              license: 'http://rightsstatements.org/vocab/InC/1.0/',
+              conceptLinks: [{ id: 'C1', label: 'Accessibility review' }],
+            },
+          ],
+          sourceReport: {
+            path: 'SOURCE_REPORT.md',
+            sourceCount: 1,
+          },
+          files: [],
+        }),
+        'SOURCE_REPORT.md': '# Source Report\n\n## Source Ledger\n- SL1: Accessibility Evaluation in Design Studios\n',
+      }),
+      course: { title: 'User Experience Design Studio', featureIds: [] },
+    });
+
+    expect(result.findings).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          severity: 'P2',
+          dimension: 'citations',
+          detail: 'source ledger row SL1 has ambiguous or missing license',
+        }),
+      ]),
+    );
+  });
+
   it('flags CourseIR review rows without treating them as trusted bibliography rows', async () => {
     const result = await grade({
       fileProvider: createMemoryFileProvider({

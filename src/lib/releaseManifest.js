@@ -3,24 +3,24 @@ import { APP_VERSION } from './appVersion.js';
 export const CURRENT_RELEASE = {
   version: APP_VERSION,
   date: 'June 28, 2026',
-  title: 'Assignment Parameter Texture: prompt scaffolds stop shipping',
-  landingTitle: 'Assignment Parameter Texture',
+  title: 'Rights Statement Source Gate: in-copyright rows stop counting as trusted proof',
+  landingTitle: 'Rights Statement Source Gate',
   highlights: [
-    'A fresh deployed v0.15.111 User Experience Design Studio ZIP/log audit exported Quality 98 and Texture 95; the remaining scored P1 was an Assignment Brief sentence that leaked the internal "Work within these parameters" scaffold.',
-    'Assignment parameter clauses now render as student-facing submission requirements, with prompt-shaped phrases such as "misconceptions," "Focus on," and "Support answers with reasons" rewritten before they can become course concepts.',
-    'The shared compiled-language finalizer now repairs stale/generated "Work within these parameters" sentences before export, and a focused regression proves the exact v0.15.111 failure shape no longer triggers prompt-artifact grading.',
-    'Study-guide transfer questions, slide objective openings, discussion redirect language, and no-invented-source cautions now rotate by lesson to reduce the repeated shingles measured in the v0.15.111 texture evidence.',
-    'This release keeps the target honest: v0.15.112 does not claim strict-clean provider output until a fresh deployed ZIP/log audit proves the prompt-scaffold P1 is gone and texture reaches the strict target.',
+    'A fresh deployed v0.15.112 User Experience Design Studio ZIP/log audit exported Quality 99 and Texture 93, but source audit found two trusted ledger rows whose license was the restrictive rights statement http://rightsstatements.org/vocab/InC/1.0/.',
+    'The shared source-ledger license gate now treats in-copyright rights statements and all-rights-reserved claims as ambiguous license proof, so they cannot count as trusted bibliography rows.',
+    'Source-finder ranking and package export now inherit that stricter license gate before selecting trusted concept-linked source rows, preventing InC rows from inflating sourceLedger/sourceRef proof.',
+    'The deep quality grader mirrors the production rule and flags existing InC sourceLedger rows as citation P2s, proving the captured v0.15.112 artifact was not source-clean under the intended license standard.',
+    'This release keeps the target honest: v0.15.113 does not claim strict-clean provider output until a fresh deployed ZIP/log audit proves reusable source proof replaces restricted rights-statement rows and texture reaches the strict target.',
   ],
   landingHighlights: [
-    'Fresh v0.15.111 output exposed one prompt-scaffold P1 behind a near-clean package.',
-    'Assignment parameters now read as student requirements, not internal prompts.',
-    'Texture tails from study guides, slides, discussions, and source cautions now rotate.',
-    'Fresh v0.15.112 output is still required for strict-clean proof.',
+    'Fresh v0.15.112 output exposed restrictive InC source licenses behind a nominal 99/A.',
+    'In-copyright rights statements no longer count as trusted source proof.',
+    'Production export and local regrade now share the same stricter license truth.',
+    'Fresh v0.15.113 output is still required for strict-clean proof.',
   ],
   proof: {
-    contract: 'release-contracts/v0.15.112.json',
-    roadmap: 'docs/V0.15.112_ASSIGNMENT_PARAMETER_TEXTURE_ROADMAP.md',
+    contract: 'release-contracts/v0.15.113.json',
+    roadmap: 'docs/V0.15.113_RIGHTS_STATEMENT_SOURCE_GATE_ROADMAP.md',
     auditCommand: 'npm run audit:release-history',
   },
 };
@@ -35,6 +35,18 @@ export const CURRENT_RELEASE_CHANGELOG = {
 };
 
 export const HISTORICAL_RELEASE_CHANGELOGS = [
+  {
+    version: '0.15.112',
+    date: 'June 28, 2026',
+    title: 'Assignment Parameter Texture: prompt scaffolds stop shipping',
+    highlights: [
+      'A fresh deployed v0.15.111 User Experience Design Studio ZIP/log audit exported Quality 98 and Texture 95; the remaining scored P1 was an Assignment Brief sentence that leaked the internal "Work within these parameters" scaffold.',
+      'Assignment parameter clauses now render as student-facing submission requirements, with prompt-shaped phrases such as "misconceptions," "Focus on," and "Support answers with reasons" rewritten before they can become course concepts.',
+      'The shared compiled-language finalizer now repairs stale/generated "Work within these parameters" sentences before export, and a focused regression proves the exact v0.15.111 failure shape no longer triggers prompt-artifact grading.',
+      'Study-guide transfer questions, slide objective openings, discussion redirect language, and no-invented-source cautions now rotate by lesson to reduce the repeated shingles measured in the v0.15.111 texture evidence.',
+      'This release kept the target honest: v0.15.112 did not claim strict-clean provider output until a fresh deployed ZIP/log audit proved the prompt-scaffold P1 is gone and texture reaches the strict target.',
+    ],
+  },
   {
     version: '0.15.111',
     date: 'June 28, 2026',

@@ -24,7 +24,8 @@ const TRUST_ELIGIBLE_PROVIDERS = new Set([
 ]);
 const GENERIC_RESOURCE_PROVIDERS = new Set(['', 'course-resource', 'course-map', 'resource', 'syllabus']);
 const AMBIGUOUS_LICENSE_RE =
-  /^(?:|unknown|open access|open license|(?:[\w.-]+\s+)*public metadata|instructor review required|review required|varies|mixed|metadata only)$/i;
+  /^(?:|unknown|open access|open license|(?:[\w.-]+\s+)*public metadata|instructor review required|review required|varies|mixed|metadata only|in copyright|all rights reserved)$/i;
+const RESTRICTED_RIGHTS_STATEMENT_RE = /rightsstatements\.org\/vocab\/inc(?:[-/]|$)/i;
 const SOURCE_SIGNAL_RE =
   /\b(?:openstax|openalex|open library|openlibrary|eric|doi|creative commons|cc\s+by|open access|textbook|chapter|article|journal|book|reader|press|publication|volume|vol\.|edition|ed\.|et al\.?|isbn|issn)\b|https?:\/\//i;
 const NON_SOURCE_RESOURCE_RE =
@@ -224,7 +225,8 @@ function sourceId(entry, fallbackId, index) {
 }
 
 export function isLicenseAmbiguous(license) {
-  return AMBIGUOUS_LICENSE_RE.test(cleanText(license, 180).toLowerCase());
+  const value = cleanText(license, 180).toLowerCase();
+  return AMBIGUOUS_LICENSE_RE.test(value) || RESTRICTED_RIGHTS_STATEMENT_RE.test(value);
 }
 
 export function isSourceAccessible(source) {

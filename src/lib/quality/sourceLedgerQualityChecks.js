@@ -22,6 +22,7 @@ const TRUST_ELIGIBLE_PROVIDERS = new Set([
 ]);
 
 const REVIEW_ONLY_PROVIDERS = new Set(['courseir', 'instructor', 'instructor-provided', 'openlibrary']);
+const RESTRICTED_RIGHTS_STATEMENT_RE = /rightsstatements\.org\/vocab\/inc(?:[-/]|$)/i;
 
 const PROJECT_MANAGEMENT_COURSE_RE =
   /\b(?:project\s+management|project\s+manager|pmbok|project\s+charter|scope\s+management|work\s+breakdown|critical\s+path|risk\s+register|stakeholder\s+analysis|project\s+scheduling|project\s+life\s+cycle)\b/i;
@@ -88,9 +89,10 @@ function ambiguousLicense(row) {
   return (
     row?.licenseAmbiguous === true ||
     !license ||
-    /^(open access|open license|unknown|(?:[\w.-]+\s+)*public metadata|metadata only|instructor review required|review required|varies|mixed)$/.test(
+    /^(open access|open license|unknown|(?:[\w.-]+\s+)*public metadata|metadata only|instructor review required|review required|varies|mixed|in copyright|all rights reserved)$/.test(
       license,
-    )
+    ) ||
+    RESTRICTED_RIGHTS_STATEMENT_RE.test(license)
   );
 }
 
