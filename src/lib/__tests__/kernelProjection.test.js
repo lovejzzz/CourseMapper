@@ -169,6 +169,59 @@ describe('projectKernelToSurfaces', () => {
     expect(payload.kernel.facts).toHaveLength(7);
   });
 
+  it('varies essay counterpoint scaffolds across lesson-specific kernels', () => {
+    const answerSet = new Set();
+    const oldScaffold = 'A strong answer also engages the opposing view';
+    let oldScaffoldCount = 0;
+
+    for (const [index, positions] of [
+      [
+        'adaptation',
+        ['Mitigation first: avoided warming compounds.', 'Adaptation first: protects current residents now.'],
+      ],
+      [
+        'trees',
+        [
+          'Tree canopy should be prioritized because heat exposure is local.',
+          'Cooling centers should come first because they can open immediately.',
+        ],
+      ],
+      [
+        'transit',
+        [
+          'Transit resilience should lead because access shapes evacuation.',
+          'Home retrofits should lead because risk is experienced indoors.',
+        ],
+      ],
+      [
+        'data',
+        [
+          'Use the long-term dataset first because trend evidence is inspectable.',
+          'Use resident interviews first because lived experience reveals gaps.',
+        ],
+      ],
+    ].entries()) {
+      const payload = projectKernelToSurfaces(
+        {
+          ...KERNEL,
+          discussionPrompt: {
+            ...KERNEL.discussionPrompt,
+            prompt: `${KERNEL.discussionPrompt.prompt} Case ${index + 1}?`,
+            positions,
+          },
+        },
+        { itemPlan },
+      );
+      const essay = payload.quizItems.find((item) => item.type === 'essay');
+      expect(essay?.answer.toLowerCase()).toContain('opposing view');
+      if (essay?.answer.includes(oldScaffold)) oldScaffoldCount += 1;
+      answerSet.add(essay?.answer.match(/(?:A strong answer|The opposing view|A complete response)[^.]+/)?.[0] || '');
+    }
+
+    expect(answerSet.size).toBeGreaterThan(1);
+    expect(oldScaffoldCount).toBeLessThan(4);
+  });
+
   it('omits short-answer and essay frames when their kernel atoms are missing', () => {
     const payload = projectKernelToSurfaces({ ...KERNEL, scenario: null, discussionPrompt: null }, { itemPlan });
     const types = payload.quizItems.map((item) => item.type);

@@ -3,24 +3,24 @@ import { APP_VERSION } from './appVersion.js';
 export const CURRENT_RELEASE = {
   version: APP_VERSION,
   date: 'June 29, 2026',
-  title: 'Quiz Bank Texture: distractor review and pitfall openers vary',
+  title: 'Quiz Bank Essay Texture: counterpoint scaffolds vary',
   landingTitle: 'Quiz Bank Texture',
   highlights: [
-    'A fresh deployed v0.15.135 User Experience Design Studio ZIP/log audit exported successfully after Chrome restart and locally regraded at 100/100 with zero P0/P1/P2 findings, export verification passed, complete sourceRef coverage, 10 trusted source-ledger rows, and no sourceReviewRows.',
-    'The same audit still measured Texture 95 and exposed a deterministic compiler texture target: Quiz Bank intended-use notes repeated `review distractor choices before the next Week...`, while common-pitfall slides repeated the same `It’s tempting to think...` opener.',
-    'Multiple-choice intended-use notes now rotate among distractor comparison, misconception surfacing, wrong-option justification, and evidence-practice language while preserving the same quiz-bank review purpose.',
-    'Common-pitfall slide bullets now rotate opener families while keeping the lesson’s own misconception/correction pairs and slide placement intact.',
-    'Focused texture regressions prove the old distractor-review shingle is gone from a 12-lesson UX Quiz Bank and that pitfall slides still carry varied misconception/correction bullets without weakening source, export, report, or quality-grader standards.',
+    'A fresh deployed v0.15.136 User Experience Design Studio ZIP/log audit exported successfully after Chrome restart and locally regraded at 100/100 with zero P0/P1/P2 findings, export verification passed, and digest/report/UI agreement on Quality 100 · Texture 95.',
+    'That real provider output proved the v0.15.136 distractor-review repair held: the old `review distractor choices before the next` and `It’s tempting to think` shingles had zero hits in the exported package.',
+    'The same audit exposed one remaining deterministic Quiz Bank texture target: ten essay answers reused the exact `A strong answer also engages the opposing view...` counterpoint scaffold.',
+    'Essay sample answers now seed counterpoint wording from lesson-specific prompt, term, fact, and position text, rotating equivalent opposing-view scaffolds while preserving the claim/counterclaim/evidence contract.',
+    'A focused kernel-projection regression now proves multiple essay projections do not all retain the old counterpoint scaffold while still requiring an opposing-view cue in the answer.',
   ],
   landingHighlights: [
-    'Fresh v0.15.135 ZIP/log evidence regraded cleanly at 100/A.',
-    'Quiz Bank distractor-review notes now vary by lesson and item.',
-    'Common-pitfall slides rotate opener families while preserving corrections.',
-    'Fresh v0.15.136 ZIP/log evidence is still required before claiming the texture repair in real provider output.',
+    'Fresh v0.15.136 ZIP/log evidence regraded cleanly at 100/A.',
+    'The v0.15.136 quiz-bank/pitfall texture repair held in real output.',
+    'Essay answer counterpoint scaffolds now vary by lesson-specific seed.',
+    'Fresh v0.15.137 ZIP/log evidence is still required before claiming this final texture polish in real provider output.',
   ],
   proof: {
-    contract: 'release-contracts/v0.15.136.json',
-    roadmap: 'docs/V0.15.136_QUIZ_BANK_TEXTURE_ROADMAP.md',
+    contract: 'release-contracts/v0.15.137.json',
+    roadmap: 'docs/V0.15.137_QUIZ_BANK_ESSAY_TEXTURE_ROADMAP.md',
     auditCommand: 'npm run audit:release-history',
   },
 };
@@ -35,6 +35,18 @@ export const CURRENT_RELEASE_CHANGELOG = {
 };
 
 export const HISTORICAL_RELEASE_CHANGELOGS = [
+  {
+    version: '0.15.136',
+    date: 'June 29, 2026',
+    title: 'Quiz Bank Texture: distractor review and pitfall openers vary',
+    highlights: [
+      'A fresh deployed v0.15.135 User Experience Design Studio ZIP/log audit exported successfully after Chrome restart and locally regraded at 100/100 with zero P0/P1/P2 findings, export verification passed, complete sourceRef coverage, 10 trusted source-ledger rows, and no sourceReviewRows.',
+      'The same audit still measured Texture 95 and exposed a deterministic compiler texture target: Quiz Bank intended-use notes repeated `review distractor choices before the next Week...`, while common-pitfall slides repeated the same `It’s tempting to think...` opener.',
+      'Multiple-choice intended-use notes now rotate among distractor comparison, misconception surfacing, wrong-option justification, and evidence-practice language while preserving the same quiz-bank review purpose.',
+      'Common-pitfall slide bullets now rotate opener families while keeping the lesson’s own misconception/correction pairs and slide placement intact.',
+      'Focused texture regressions prove the old distractor-review shingle is gone from a 12-lesson UX Quiz Bank and that pitfall slides still carry varied misconception/correction bullets without weakening source, export, report, or quality-grader standards.',
+    ],
+  },
   {
     version: '0.15.135',
     date: 'June 29, 2026',

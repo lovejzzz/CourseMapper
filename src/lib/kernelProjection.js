@@ -82,6 +82,17 @@ function projectionVariant(seed, variants = []) {
   return variants[index % variants.length];
 }
 
+function projectionTextSeed(...parts) {
+  let hash = 0;
+  for (const part of parts) {
+    const text = cleanText(part);
+    for (let i = 0; i < text.length; i += 1) {
+      hash = (hash * 31 + text.charCodeAt(i)) % 9973;
+    }
+  }
+  return hash;
+}
+
 function contentWords(text) {
   return cleanText(text)
     .toLowerCase()
@@ -274,7 +285,12 @@ export function composeScenarioAnswer(scenario, term, fact, { position = '', cou
   sentences.push(
     counterClause
       ? ensureSentence(
-          `A strong answer also engages the opposing view — ${lowercaseLead(counterClause)} — and explains why the evidence weighs against it`,
+          projectionVariant(seed, [
+            `A strong answer also engages the opposing view — ${lowercaseLead(counterClause)} — and explains why the evidence weighs against it`,
+            `The opposing view — ${lowercaseLead(counterClause)} — deserves attention, but this answer shows why the lesson evidence points the other way`,
+            `A complete response names the opposing view — ${lowercaseLead(counterClause)} — then weighs it against the stronger evidence`,
+            `The opposing view matters — ${lowercaseLead(counterClause)} — so the answer should explain why it does not overturn the main claim`,
+          ]),
         )
       : projectionVariant(seed, [
           'A strong answer also names one limitation or alternative reading of the evidence.',
@@ -348,6 +364,7 @@ function buildEssayItem(kernel, index) {
     answer: composeScenarioAnswer(kernel?.scenario, term, sampleFact, {
       position: positions[0] || '',
       counterpoint: positions[1] || '',
+      seed: projectionTextSeed(prompt, term?.term, sampleFact, positions[0], positions[1]),
     }),
     explanation: '',
     scoringGuidance,
