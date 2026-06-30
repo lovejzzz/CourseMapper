@@ -20,6 +20,7 @@ import { buildLessonKernelPrompt, parseLessonKernelResponse } from '../src/lib/b
 import {
   applyApiCallBudgetEvent,
   buildJudgmentStageEvent,
+  buildSourceBackedJudgmentStageEvent,
   createApiCallBudget,
   formatEnrichmentOutcomeLabel,
 } from '../src/lib/apiCallBudget.js';
@@ -281,6 +282,42 @@ describe('judgment stage event in all three states (P2.4)', () => {
   it('reports not-evaluated when the linker found nothing', () => {
     const event = buildJudgmentStageEvent({ judgment: null, linkedConceptCount: 0, genomeLinkedLessons: 0 });
     expect(event.detail).toBe('not evaluated (0 genome-linked lessons)');
+  });
+
+  it('replaces the stale zero-genome judgment with complete source-backed coverage proof', () => {
+    const initial = buildJudgmentStageEvent({ judgment: null, linkedConceptCount: 0, genomeLinkedLessons: 0 });
+    const sourceBacked = buildSourceBackedJudgmentStageEvent({
+      sourceRefCoverage: {
+        totals: { total: 255, withRefs: 255, missing: 0, danglingRefs: 0 },
+      },
+      citedResourceCount: 11,
+      lessonsWithResources: 15,
+      totalLessons: 15,
+      genomeLinkedLessons: 0,
+    });
+    expect(sourceBacked.detail).toBe(
+      'source-backed coverage check (255/255 sourceRef atoms covered; 15/15 lessons with cited resources; genome prerequisite judgment unavailable)',
+    );
+
+    let budget = applyApiCallBudgetEvent(createApiCallBudget({ runId: 'run-source-j' }), initial);
+    budget = applyApiCallBudgetEvent(budget, sourceBacked);
+    const digest = buildRunDigest({ budget });
+    expect(digest.pipeline.judgment).toBe(sourceBacked.detail);
+    expect(formatRunDigest(digest)).toContain(`course judgment: ${sourceBacked.detail}`);
+  });
+
+  it('does not claim source-backed judgment when source proof is incomplete', () => {
+    expect(
+      buildSourceBackedJudgmentStageEvent({
+        sourceRefCoverage: {
+          totals: { total: 8, withRefs: 7, missing: 1, danglingRefs: 0 },
+        },
+        citedResourceCount: 2,
+        lessonsWithResources: 3,
+        totalLessons: 4,
+        genomeLinkedLessons: 0,
+      }),
+    ).toBeNull();
   });
 
   it('lands in budget.pipeline.judgment so digest and manifest always carry the line', () => {

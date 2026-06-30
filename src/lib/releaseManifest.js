@@ -3,24 +3,24 @@ import { APP_VERSION } from './appVersion.js';
 export const CURRENT_RELEASE = {
   version: APP_VERSION,
   date: 'June 30, 2026',
-  title: 'Assessment Identity Repair: labels no longer seed lesson topics',
-  landingTitle: 'Assessment Identity Repair',
+  title: 'Export Truth Repair: source-backed judgment and stale assignment identity',
+  landingTitle: 'Export Truth Repair',
   highlights: [
-    'Fresh deployed v0.15.162 GPT-5.4-mini Python evidence exported a ZIP and locally regraded at 97/A; the remaining P1 was assessment labels and `(7%)` weights being used as lesson identities, filenames, and source concept links.',
-    'Course Map topic selection now treats assessment labels with grade weights as weak identities and falls through to domain progression instead of reusing labels such as `Evidence check: Introduction to Computer Science with Python (7%)`.',
-    'Computer Science/Python maps now have a 15-lesson progression fallback, so repaired weak topics land on concrete programming concepts such as variables, conditionals, loops, functions, files, testing, and projects.',
-    'Readiness repair now catches embedded assessment-label identities inside complete-looking Course Map cells before they seed graph sessions, concepts, assessments, package filenames, or source-ledger concept links.',
-    'The focused regression uses the exact v0.15.162 failure shape and proves repaired Course Map cells plus derived graph identities stay free of assessment labels and grade-weight leakage.',
+    'Fresh deployed v0.15.163 GPT-5.4-mini Python evidence exported a complete ZIP and locally regraded at 99/A with Texture 95; the only scored loss was stale judgment truth saying the course was not evaluated despite complete sourceRef/source-ledger proof.',
+    'Source-backed final judgment now records a strict coverage event when every CourseIR atom has a sourceRef, every lesson has cited resources, and genome judgment is unavailable, so reports stop penalizing complete source-backed packages as unevaluated.',
+    'The deep grader now trusts the canonical final manifest/report judgment over stale early console `not evaluated` breadcrumbs, while still flagging packages whose final judgment is genuinely missing.',
+    'Cross-lesson lesson-content enrichment now must match the current Course Map identity before the compiler uses assignment-core or key-term payloads, preventing dictionary kernels from contaminating files-and-exceptions lessons.',
+    'The package finalizer now repairs assignment brief titles, related lessons, and overview identity back to the Course Map before ZIP export when a stale generated body disagrees with the authoritative lesson row.',
   ],
   landingHighlights: [
-    'Assessment labels with weights are rejected as lesson topics.',
-    'Python fallback topics now progress across a full semester.',
-    'Embedded label/weight leakage is repaired before export.',
-    'Fresh provider proof is still required after deploy.',
+    'Complete sourceRef proof counts as source-backed judgment.',
+    'Stale early judgment breadcrumbs no longer override final package truth.',
+    'Cross-lesson enrichment payloads are rejected before compile.',
+    'Assignment brief identity is repaired against the Course Map before export.',
   ],
   proof: {
-    contract: 'release-contracts/v0.15.163.json',
-    roadmap: 'docs/V0.15.163_ASSESSMENT_IDENTITY_REPAIR_ROADMAP.md',
+    contract: 'release-contracts/v0.15.164.json',
+    roadmap: 'docs/V0.15.164_EXPORT_TRUTH_REPAIR_ROADMAP.md',
     auditCommand: 'npm run audit:release-history',
   },
 };
@@ -35,6 +35,18 @@ export const CURRENT_RELEASE_CHANGELOG = {
 };
 
 export const HISTORICAL_RELEASE_CHANGELOGS = [
+  {
+    version: '0.15.163',
+    date: 'June 30, 2026',
+    title: 'Assessment Identity Repair: labels no longer seed lesson topics',
+    highlights: [
+      'Fresh deployed v0.15.162 GPT-5.4-mini Python evidence exported a ZIP and locally regraded at 97/A; the remaining P1 was assessment labels and `(7%)` weights being used as lesson identities, filenames, and source concept links.',
+      'Course Map topic selection now treats assessment labels with grade weights as weak identities and falls through to domain progression instead of reusing labels such as `Evidence check: Introduction to Computer Science with Python (7%)`.',
+      'Computer Science/Python maps now have a 15-lesson progression fallback, so repaired weak topics land on concrete programming concepts such as variables, conditionals, loops, functions, files, testing, and projects.',
+      'Readiness repair now catches embedded assessment-label identities inside complete-looking Course Map cells before they seed graph sessions, concepts, assessments, package filenames, or source-ledger concept links.',
+      'The focused regression uses the exact v0.15.162 failure shape and proves repaired Course Map cells plus derived graph identities stay free of assessment labels and grade-weight leakage.',
+    ],
+  },
   {
     version: '0.15.162',
     date: 'June 30, 2026',

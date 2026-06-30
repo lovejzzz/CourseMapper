@@ -136,6 +136,87 @@ describe('v0.15.4 Linear Algebra output quality regressions', () => {
     );
   });
 
+  it('does not let stale zero-genome console text override a source-backed final judgment', async () => {
+    const sourceRefCoverage = {
+      version: 'courseir.v1',
+      sourceLedgerRows: 2,
+      totals: { total: 24, withRefs: 24, missing: 0, danglingRefs: 0 },
+      categories: {
+        outcomes: { total: 8, withRefs: 8, missing: 0, danglingRefs: 0, missingIds: [] },
+        activities: { total: 8, withRefs: 8, missing: 0, danglingRefs: 0, missingIds: [] },
+        assessments: { total: 4, withRefs: 4, missing: 0, danglingRefs: 0, missingIds: [] },
+        factualClaims: { total: 4, withRefs: 4, missing: 0, danglingRefs: 0, missingIds: [] },
+      },
+    };
+    const result = await grade({
+      fileProvider: createMemoryFileProvider({
+        'PACKAGE_MANIFEST.json': JSON.stringify({
+          courseName: 'Introduction to Computer Science with Python',
+          lessonScope: 'all',
+          assessments: [],
+          files: [],
+          readiness: { status: 'ready', blockers: 0 },
+          pipeline: {
+            genomeLinker: '0 genome + 0 cached of 15 lessons (0 concepts, 0 citations, 0 bridges)',
+            knowledgeBackbone:
+              '0/15 lessons genome-linked · 2 cited open resources (openstax: 2) · 15 lessons with readings',
+            judgment:
+              'source-backed coverage check (24/24 sourceRef atoms covered; 15/15 lessons with cited resources; genome prerequisite judgment unavailable)',
+          },
+          sourceLedger: [
+            {
+              id: 'SL1',
+              title: 'OpenStax Introduction to Python Programming: Variables',
+              provider: 'openstax',
+              url: 'https://openstax.org/books/introduction-python-programming/pages/2-introduction',
+              license: 'CC BY 4.0',
+              conceptLinks: [{ id: 'lesson-1:variables', label: 'Variables' }],
+            },
+            {
+              id: 'SL2',
+              title: 'OpenStax Introduction to Python Programming: Dictionaries',
+              provider: 'openstax',
+              url: 'https://openstax.org/books/introduction-python-programming/pages/9-introduction',
+              license: 'CC BY 4.0',
+              conceptLinks: [{ id: 'lesson-7:dictionaries', label: 'Dictionaries' }],
+            },
+          ],
+          sourceReport: {
+            path: 'SOURCE_REPORT.md',
+            sourceCount: 2,
+            sourceRefCoverage,
+          },
+          courseIR: { sourceRefCoverage },
+        }),
+        'SOURCE_REPORT.md': [
+          '# Source Report',
+          '## Source Ledger',
+          '- SL1: OpenStax Introduction to Python Programming: Variables',
+          '- SL2: OpenStax Introduction to Python Programming: Dictionaries',
+          '## SourceRef Coverage',
+          '- totals: 24/24',
+        ].join('\n'),
+      }),
+      consoleLogText:
+        '[CM][API] pipelineDecision {"stage":"judgment","detail":"not evaluated (0 genome-linked lessons)"}',
+      course: {
+        id: 'intro-cs-python',
+        title: 'Introduction to Computer Science with Python',
+        featureIds: [],
+      },
+    });
+
+    expect(result.findings).not.toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          severity: 'P2',
+          dimension: 'honesty',
+          detail: expect.stringMatching(/judgment was not evaluated/i),
+        }),
+      ]),
+    );
+  });
+
   it('scores in-app run digest caveats that the exported package already admits', async () => {
     const digest = {
       pipeline: {

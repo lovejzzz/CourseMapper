@@ -483,3 +483,46 @@ export function buildJudgmentStageEvent({ judgment = null, linkedConceptCount = 
   }
   return { ...base, detail: 'not evaluated (0 genome-linked lessons)' };
 }
+
+/**
+ * When a course has no genome shard/link coverage but the final CourseIR path
+ * has complete sourceRef proof, the judgment surface should say that instead
+ * of leaving the stale pre-enrichment "not evaluated" line in the digest.
+ * This is not a prerequisite-gap judgment; it is an honest source-backed
+ * coverage judgment for domains that are currently source-ledger-backed rather
+ * than genome-backed.
+ */
+export function buildSourceBackedJudgmentStageEvent({
+  sourceRefCoverage = null,
+  citedResourceCount = 0,
+  lessonsWithResources = 0,
+  totalLessons = 0,
+  genomeLinkedLessons = 0,
+} = {}) {
+  if ((Number(genomeLinkedLessons) || 0) > 0) return null;
+  const totals = sourceRefCoverage?.totals || {};
+  const totalAtoms = Number(totals.total) || 0;
+  const coveredAtoms = Number(totals.withRefs) || 0;
+  const missingAtoms = Number(totals.missing) || 0;
+  const danglingRefs = Number(totals.danglingRefs) || 0;
+  const resourceCount = Number(citedResourceCount) || 0;
+  const lessonCount = Number(totalLessons) || 0;
+  const coveredLessons = Number(lessonsWithResources) || 0;
+  if (
+    totalAtoms <= 0 ||
+    coveredAtoms !== totalAtoms ||
+    missingAtoms > 0 ||
+    danglingRefs > 0 ||
+    resourceCount <= 0 ||
+    lessonCount <= 0 ||
+    coveredLessons < lessonCount
+  ) {
+    return null;
+  }
+  return {
+    type: 'pipelineDecision',
+    stage: 'judgment',
+    label: 'Course judgment',
+    detail: `source-backed coverage check (${coveredAtoms}/${totalAtoms} sourceRef atoms covered; ${coveredLessons}/${lessonCount} lessons with cited resources; genome prerequisite judgment unavailable)`,
+  };
+}

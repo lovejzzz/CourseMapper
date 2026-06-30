@@ -403,6 +403,86 @@ function assignmentCoreParametersForStudent(lesson) {
     .filter(Boolean);
 }
 
+const ENRICHMENT_IDENTITY_STOPWORDS = new Set([
+  'lesson',
+  'week',
+  'course',
+  'student',
+  'students',
+  'assessment',
+  'assignment',
+  'artifact',
+  'evidence',
+  'source',
+  'sources',
+  'check',
+  'checkpoint',
+  'practice',
+  'program',
+  'python',
+  'using',
+  'apply',
+  'explain',
+  'define',
+  'describe',
+  'analyze',
+  'compare',
+  'note',
+  'notes',
+]);
+
+function singularIdentityToken(token) {
+  if (/ies$/.test(token) && token.length > 4) return `${token.slice(0, -3)}y`;
+  if (/s$/.test(token) && token.length > 4) return token.slice(0, -1);
+  return token;
+}
+
+function identityTokens(value) {
+  return cleanText(value)
+    .toLowerCase()
+    .replace(/-/g, ' ')
+    .replace(/[^a-z0-9\s]/g, ' ')
+    .split(/\s+/)
+    .map((token) => singularIdentityToken(token))
+    .filter((token) => token.length >= 4 && !ENRICHMENT_IDENTITY_STOPWORDS.has(token));
+}
+
+function lessonIdentityTokenSet(lesson = {}) {
+  return new Set(
+    [
+      stripLessonPrefix(lesson.title || ''),
+      ...(lesson.keyConcepts || []),
+      ...(lesson.outcomes || []),
+      lesson.studentArtifact,
+      lesson.assessmentLink,
+    ].flatMap(identityTokens),
+  );
+}
+
+function highRiskEnrichmentIdentityTokenSet(enrichment = {}) {
+  if (!enrichment || typeof enrichment !== 'object') return new Set();
+  return new Set(
+    [
+      enrichment.title,
+      enrichment.topic,
+      enrichment.focus,
+      enrichment.assignmentCore?.taskDescription,
+      ...(enrichment.assignmentCore?.parameters || []),
+      enrichment.scenario?.title,
+      enrichment.scenario?.prompt,
+      enrichment.discussionPrompt?.prompt,
+    ].flatMap(identityTokens),
+  );
+}
+
+function enrichmentMatchesLessonIdentity(lesson = {}, enrichment = null) {
+  if (!enrichment || typeof enrichment !== 'object') return true;
+  const lessonTokens = lessonIdentityTokenSet(lesson);
+  const highRiskTokens = highRiskEnrichmentIdentityTokenSet(enrichment);
+  if (lessonTokens.size === 0 || highRiskTokens.size === 0) return true;
+  return [...highRiskTokens].some((token) => lessonTokens.has(token));
+}
+
 function blueprintDomainText(blueprint = {}) {
   return cleanText(
     [
@@ -5470,7 +5550,6 @@ function buildLearnerContextProfile({
   );
   const firstLesson = lessons[0] || {};
   const firstConcept = firstLesson.keyConcepts?.[0] || stripLessonPrefix(firstLesson.title) || 'the course focus';
-  const firstArtifact = stripTerminalPunctuation(firstLesson.studentArtifact || 'the first source-based artifact');
   const localReviewNeeds = unique(
     lessons.flatMap((lesson) => lesson.missingSignals || []),
     8,
@@ -5492,7 +5571,7 @@ function buildLearnerContextProfile({
     ),
     coursePerformanceRole: `Students work as ${pluralizeLensPhrase(lens.learnerRole)} who use ${lens.evidenceNoun} to make ${pluralizeLensPhrase(lens.decisionNoun)} across the course.`,
     supportAssumptions: [
-      `Model ${firstConcept} evidence use before asking students to complete ${firstArtifact}.`,
+      `Model one ${firstConcept} evidence decision before students work independently.`,
       'Provide sentence frames, quiet think-write time, and explicit source cues before peer discussion or submission.',
       'Treat missing official readings, dates, policy language, and accommodations as instructor-review items, not compiler facts.',
     ],
@@ -11134,9 +11213,12 @@ function normalizeLessonsForCompiler(blueprint = {}, context = {}) {
       context.lessonContentEnrichment?.[`lesson-${(lesson.lessonIndex ?? 0) + 1}`] ||
       context.lessonContentEnrichment?.[lesson.id] ||
       null;
+    const trustedContentEnrichment = enrichmentMatchesLessonIdentity(lesson, contentEnrichment)
+      ? contentEnrichment
+      : null;
     const lessonWithCompilerKnobs = {
       ...lesson,
-      ...(contentEnrichment ? { enrichment: contentEnrichment } : {}),
+      ...(trustedContentEnrichment ? { enrichment: trustedContentEnrichment } : {}),
       learnerContextCue:
         lesson.learnerContextCue || buildLessonLearnerContextCue(context.learnerContextProfile || {}, lesson),
       modalityCue: lesson.modalityCue || buildLessonModalityCue(context.courseModalityProfile || {}, lesson),
@@ -13916,9 +13998,12 @@ export function buildCourseBlueprint(courseMap, options = {}) {
       assessments.find((item) => (item.lessonNumbers || []).includes(lesson.lessonNumber)) || assessments[0] || {};
     const contentEnrichment =
       lessonContentEnrichment?.[lesson.id] || lessonContentEnrichment?.[`lesson-${lesson.lessonNumber}`] || null;
+    const trustedContentEnrichment = enrichmentMatchesLessonIdentity(lesson, contentEnrichment)
+      ? contentEnrichment
+      : null;
     return {
       ...lesson,
-      ...(contentEnrichment ? { enrichment: contentEnrichment } : {}),
+      ...(trustedContentEnrichment ? { enrichment: trustedContentEnrichment } : {}),
       sourceRisk: sourceRiskRow,
       compilerDecision: buildLessonCompilerDecision({ lesson, sourceRiskRow, assessment }),
     };

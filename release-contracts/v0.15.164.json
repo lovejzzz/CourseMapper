@@ -1,0 +1,101 @@
+{
+  "version": "0.15.164",
+  "date": "June 30, 2026",
+  "title": "Export Truth Repair: source-backed judgment and stale assignment identity",
+  "status": "verified-current",
+  "proofSummary": {
+    "local": [
+      "npm test -- src/lib/__tests__/lessonContentEnrichment.test.js src/lib/__tests__/packageFinalizer.test.js tests/v0141-phase2-coverage.test.js tests/v0154-linear-algebra-output-quality.test.js",
+      "npm run audit:release-history"
+    ],
+    "ciFast": {
+      "status": "pending-push",
+      "note": "Fast verification is claimed only after v0.15.164 is pushed and the GitHub Actions run is attached."
+    },
+    "deploy": {
+      "status": "pending-push",
+      "note": "Pages deploy is not claimed until the pushed v0.15.164 release completes its deploy run."
+    },
+    "ciDeep": {
+      "status": "local-only",
+      "note": "This is a narrow report-truth/compiler/finalizer repair; focused coverage plus normal gates are the release bar."
+    },
+    "liveProvider": {
+      "status": "not-current",
+      "note": "Fresh v0.15.164 provider ZIP/log proof is still required after deploy."
+    },
+    "manualHuman": {
+      "status": "not-applicable",
+      "note": "No external instructor approval is claimed by this release."
+    }
+  },
+  "claims": [
+    {
+      "id": "v015164-fresh-evidence-score",
+      "status": "verified-current",
+      "changelogHighlightIndex": 0,
+      "summary": "The release is grounded in fresh v0.15.163 GPT-5.4-mini Python ZIP/log evidence that locally regraded at 99/A with Texture 95 and exposed stale source-backed judgment truth.",
+      "anchors": [
+        "docs/V0.15.164_EXPORT_TRUTH_REPAIR_ROADMAP.md",
+        "verification-output/edutool-audit-loop/20260630T190159Z-v015163-fresh/report.md"
+      ],
+      "proofCommands": [
+        "rg -n \"99/100|Texture 95|source-backed\" docs/V0.15.164_EXPORT_TRUTH_REPAIR_ROADMAP.md verification-output/edutool-audit-loop/20260630T190159Z-v015163-fresh/report.md"
+      ],
+      "proofScopes": ["static-audit"]
+    },
+    {
+      "id": "v015164-source-backed-judgment-event",
+      "status": "verified-current",
+      "changelogHighlightIndex": 1,
+      "summary": "A strict source-backed judgment event is recorded only when complete sourceRef proof and all-lesson cited resources exist while genome judgment is unavailable.",
+      "anchors": ["src/lib/apiCallBudget.js", "src/hooks/useDeliverables.js", "tests/v0141-phase2-coverage.test.js"],
+      "proofCommands": [
+        "npm test -- tests/v0141-phase2-coverage.test.js",
+        "rg -n \"buildSourceBackedJudgmentStageEvent|source-backed coverage check\" src/lib/apiCallBudget.js src/hooks/useDeliverables.js tests/v0141-phase2-coverage.test.js"
+      ],
+      "proofScopes": ["unit", "static-audit"]
+    },
+    {
+      "id": "v015164-final-judgment-beats-stale-console",
+      "status": "verified-current",
+      "changelogHighlightIndex": 2,
+      "summary": "The deep grader trusts canonical final manifest/report judgment over stale early console not-evaluated breadcrumbs without ignoring genuinely missing final judgment.",
+      "anchors": ["src/lib/quality/deepQualityGrader.js", "tests/v0154-linear-algebra-output-quality.test.js"],
+      "proofCommands": [
+        "npm test -- tests/v0154-linear-algebra-output-quality.test.js",
+        "rg -n \"canonicalJudgment|stale console\" src/lib/quality/deepQualityGrader.js tests/v0154-linear-algebra-output-quality.test.js"
+      ],
+      "proofScopes": ["unit", "static-audit"]
+    },
+    {
+      "id": "v015164-cross-lesson-enrichment-guard",
+      "status": "verified-current",
+      "changelogHighlightIndex": 3,
+      "summary": "Lesson-content enrichment payloads must match the current lesson identity before assignment-core or key-term enrichment is used by the compiler.",
+      "anchors": ["src/lib/courseBlueprintCompiler.js", "src/lib/__tests__/lessonContentEnrichment.test.js"],
+      "proofCommands": [
+        "npm test -- src/lib/__tests__/lessonContentEnrichment.test.js",
+        "rg -n \"enrichmentMatchesLessonIdentity|drops stale cross-lesson enrichment\" src/lib/courseBlueprintCompiler.js src/lib/__tests__/lessonContentEnrichment.test.js"
+      ],
+      "proofScopes": ["unit", "static-audit"]
+    },
+    {
+      "id": "v015164-assignment-finalizer-identity-repair",
+      "status": "verified-current",
+      "changelogHighlightIndex": 4,
+      "summary": "The package finalizer repairs stale assignment brief identity against the Course Map before ZIP export.",
+      "anchors": ["src/lib/packageFinalizer.js", "src/lib/__tests__/packageFinalizer.test.js"],
+      "proofCommands": [
+        "npm test -- src/lib/__tests__/packageFinalizer.test.js",
+        "rg -n \"repairAssignmentIdentitiesFromCourseMap|repairs stale assignment identity\" src/lib/packageFinalizer.js src/lib/__tests__/packageFinalizer.test.js"
+      ],
+      "proofScopes": ["unit", "static-audit"]
+    }
+  ],
+  "knownRemainingTargets": [
+    "Fresh deployed v0.15.164 GPT-5.4-mini ZIP/log proof must confirm source-backed judgment and assignment identity repair in real provider output.",
+    "The next audit should verify no export warning remains for repeated dictionary identity text in files-and-exceptions assignments.",
+    "A clean 100/100 is not claimed until fresh provider output and local regrade both prove it without hidden caveats."
+  ]
+}

@@ -235,6 +235,67 @@ describe('enriched compile (end to end with mock payload)', () => {
     const stored = JSON.parse(JSON.stringify(blueprint));
     expect(stored.lessons[0].enrichment.keyTerms[0].term).toBe('Greenhouse effect');
   });
+
+  it('drops stale cross-lesson enrichment when the kernel identity does not match the lesson', () => {
+    const pythonMap = {
+      courseName: 'Introduction to Computer Science with Python',
+      lessons: [
+        {
+          title: 'Lesson 1: dictionaries and structured data',
+          sections: [
+            {
+              topicSection: '1.1: dictionaries and structured data',
+              learningObjectives: 'Define dictionaries and retrieve values by key.',
+              weeklyAssessments: 'Dictionary mini-program.',
+            },
+          ],
+        },
+        {
+          title: 'Lesson 2: files and exceptions',
+          sections: [
+            {
+              topicSection: '2.1: files and exceptions',
+              learningObjectives: 'Read a file safely and handle exceptions in a small Python program.',
+              weeklyAssessments: 'Files and exceptions debugging note.',
+              asyncActivities: 'Trace file-open examples.',
+              syncActivities: 'Debug file handling code.',
+            },
+          ],
+        },
+      ],
+    };
+    const staleEnrichment = {
+      source: 'test-stale-enrichment',
+      lessonContent: {
+        'lesson-2': {
+          keyTerms: [
+            {
+              term: 'Dictionary',
+              definition: 'A mapping from keys to values.',
+              example: 'Use a name as a key.',
+            },
+          ],
+          assignmentCore: {
+            taskDescription: 'Define a dictionary as a key-value mapping.',
+            parameters: ['Key-value pairs', 'Retrieve one value by key'],
+          },
+        },
+      },
+    };
+
+    const blueprint = buildCourseBlueprint(pythonMap, { enrichment: staleEnrichment });
+    expect(blueprint.lessons[1].enrichment).toBeUndefined();
+
+    const compiled = compileBlueprintDeliverables(blueprint, ['assignments', 'studyGuides', 'slideDecks'], {});
+    const lessonTwoText = JSON.stringify({
+      assignment: compiled.assignments.assignments[1],
+      guide: compiled.studyGuides.studyGuides[1],
+      deck: compiled.slideDecks.decks[1],
+    });
+    expect(lessonTwoText).toMatch(/files and exceptions/i);
+    expect(lessonTwoText).not.toMatch(/key-value mapping/i);
+    expect(lessonTwoText).not.toMatch(/retrieve one value by key/i);
+  });
 });
 
 describe('phase 2 surfaces (slides, discussion, assignment core)', () => {

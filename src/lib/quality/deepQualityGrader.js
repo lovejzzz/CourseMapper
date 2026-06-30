@@ -1531,6 +1531,13 @@ function checkUnevaluatedCourseJudgment(findings, pkg, course, consoleLogText, h
   if (probesSuppressed(course) || course?.expectGenome) return;
   const counts = genomeLinkerCounts(pkg.manifest);
   if (!counts || counts.genome + counts.cached > 0 || !isStructuredStemCourse(course, pkg.manifest)) return;
+  const canonicalJudgment = [
+    pkg.manifest?.pipeline?.judgment ? String(pkg.manifest.pipeline.judgment) : '',
+    honesty?.judgment ? String(honesty.judgment) : '',
+  ]
+    .filter(Boolean)
+    .join('\n');
+  if (canonicalJudgment && !/not evaluated/i.test(canonicalJudgment)) return;
   const judgment = judgmentLineFor(pkg, consoleLogText, honesty);
   if (!/not evaluated/i.test(judgment)) return;
   findings.add({

@@ -160,6 +160,178 @@ function selectedCourseMapLessons(courseMap, lessonFilter = null) {
     .map((index) => lessons[index]);
 }
 
+function compactFinalizerText(value) {
+  return String(value ?? '')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+function stripLessonPrefixText(value) {
+  return compactFinalizerText(value).replace(/^(?:lesson|week|module|unit|session)\s*\d+\s*[:.\-–—]?\s*/i, '');
+}
+
+function stripFinalizerTerminalPunctuation(value) {
+  return compactFinalizerText(value).replace(/[.!?]+$/g, '');
+}
+
+const COURSE_MAP_IDENTITY_STOPWORDS = new Set([
+  'lesson',
+  'week',
+  'course',
+  'assignment',
+  'brief',
+  'assessment',
+  'evidence',
+  'check',
+  'note',
+  'notes',
+  'that',
+  'with',
+  'from',
+  'using',
+  'students',
+  'student',
+]);
+
+function identityTokenList(value) {
+  return stripLessonPrefixText(value)
+    .toLowerCase()
+    .replace(/[^a-z0-9\s]/g, ' ')
+    .split(/\s+/)
+    .filter((token) => token.length >= 4 && !COURSE_MAP_IDENTITY_STOPWORDS.has(token));
+}
+
+function courseMapLessonTitle(lesson, index) {
+  const raw = compactFinalizerText(lesson?.title);
+  if (raw) return raw;
+  return `Lesson ${index + 1}`;
+}
+
+function courseMapLessonFocus(lesson, index) {
+  const fromTitle = stripLessonPrefixText(courseMapLessonTitle(lesson, index));
+  if (fromTitle) return fromTitle;
+  const section = Array.isArray(lesson?.sections) ? lesson.sections[0] || {} : {};
+  return (
+    compactFinalizerText(section.topicSection || section.learningGoals || section.learningObjectives) ||
+    `Lesson ${index + 1}`
+  );
+}
+
+function courseMapAssessmentTitle(lesson, index) {
+  const section = Array.isArray(lesson?.sections) ? lesson.sections[0] || {} : {};
+  const raw = compactFinalizerText(section.weeklyAssessments || lesson?.weeklyAssessments);
+  if (raw) {
+    const firstLine = raw
+      .split(/\n|;/)
+      .map((part) => compactFinalizerText(part))
+      .find(Boolean);
+    const concise = firstLine?.replace(/\s+that\s+.+$/i, '').trim();
+    if (concise && concise.length >= 8) return stripFinalizerTerminalPunctuation(concise);
+    if (firstLine) return stripFinalizerTerminalPunctuation(firstLine);
+  }
+  return `${courseMapLessonFocus(lesson, index)} evidence check`;
+}
+
+function assignmentLessonIndex(assignment, lessons) {
+  const explicit =
+    parseLessonNumberFromText(assignment?.dueWeek || assignment?.dw) ||
+    parseLessonNumberFromText(assignment?.courseMapRef || assignment?.cmr) ||
+    parseLessonNumberFromText(assignment?.title || assignment?.t);
+  if (explicit && explicit >= 1 && explicit <= lessons.length) return explicit - 1;
+  return null;
+}
+
+function assignmentMatchesCourseMapIdentity(assignment, lesson, index) {
+  const focusTokens = identityTokenList(courseMapLessonFocus(lesson, index));
+  if (focusTokens.length === 0) return true;
+  const visibleIdentity = [
+    assignment?.title || assignment?.t,
+    ...(Array.isArray(assignment?.relatedLessons) ? assignment.relatedLessons : []),
+    ...(Array.isArray(assignment?.rl) ? assignment.rl : []),
+  ]
+    .map(compactFinalizerText)
+    .join(' ')
+    .toLowerCase();
+  return focusTokens.every((token) => visibleIdentity.includes(token));
+}
+
+function repairAssignmentBriefIdentity(assignment, lesson, index) {
+  const expectedLessonTitle = courseMapLessonTitle(lesson, index);
+  const expectedFocus = courseMapLessonFocus(lesson, index);
+  const expectedTitle = courseMapAssessmentTitle(lesson, index);
+  const titleKey = assignment?.title !== undefined ? 'title' : assignment?.t !== undefined ? 't' : 'title';
+  const relatedKey =
+    assignment?.relatedLessons !== undefined
+      ? 'relatedLessons'
+      : assignment?.rl !== undefined
+        ? 'rl'
+        : 'relatedLessons';
+  const overviewKey =
+    assignment?.overview !== undefined ? 'overview' : assignment?.ov !== undefined ? 'ov' : 'overview';
+  const submissionProfile =
+    assignment?.submissionProfile && typeof assignment.submissionProfile === 'object'
+      ? {
+          ...assignment.submissionProfile,
+          artifact: expectedTitle,
+          evidenceRequirement:
+            assignment.submissionProfile.evidenceRequirement ||
+            `Use the Course Map lesson evidence for ${expectedFocus}; keep the submitted work tied to the current lesson.`,
+        }
+      : assignment?.submissionProfile;
+
+  return {
+    ...assignment,
+    [titleKey]: expectedTitle,
+    [relatedKey]: [expectedLessonTitle],
+    [overviewKey]: `${expectedTitle} asks students to use ${expectedFocus} evidence from the Course Map. Review for ${assignment?.submissionProfile?.qualityFocus || 'concept accuracy, evidence use, and a clear next decision'}.`,
+    ...(submissionProfile ? { submissionProfile } : {}),
+    portfolioConnection: `This artifact documents how students apply ${expectedLessonTitle} to a course-relevant decision.`,
+    enrichmentSource:
+      assignment?.enrichmentSource === 'lesson-content-enrichment'
+        ? 'course-map-identity-repaired'
+        : assignment?.enrichmentSource,
+  };
+}
+
+function repairAssignmentIdentitiesFromCourseMap(courseMap, deliverables = {}) {
+  const lessons = Array.isArray(courseMap?.lessons) ? courseMap.lessons : [];
+  const assignmentEntry = deliverables?.assignments;
+  const data = assignmentEntry?.status === 'done' ? assignmentEntry.data : null;
+  const assignments = Array.isArray(data?.assignments) ? data.assignments : null;
+  if (!assignments || lessons.length === 0) {
+    return { changed: false, deliverables, repairedCount: 0 };
+  }
+
+  let repairedCount = 0;
+  const nextAssignments = assignments.map((assignment) => {
+    const lessonIndex = assignmentLessonIndex(assignment, lessons);
+    if (lessonIndex === null) return assignment;
+    const lesson = lessons[lessonIndex];
+    if (assignmentMatchesCourseMapIdentity(assignment, lesson, lessonIndex)) return assignment;
+    repairedCount += 1;
+    return repairAssignmentBriefIdentity(assignment, lesson, lessonIndex);
+  });
+
+  if (repairedCount === 0) {
+    return { changed: false, deliverables, repairedCount: 0 };
+  }
+
+  return {
+    changed: true,
+    repairedCount,
+    deliverables: {
+      ...deliverables,
+      assignments: {
+        ...assignmentEntry,
+        data: {
+          ...data,
+          assignments: nextAssignments,
+        },
+      },
+    },
+  };
+}
+
 function applyDeterministicRepairs({
   courseMap,
   deliverables = {},
@@ -235,6 +407,17 @@ function applyDeterministicRepairs({
       nextDeliverables = deliverableRepair.deliverables;
       repairs.push(...deliverableRepair.repairs);
     }
+  }
+
+  const assignmentIdentityRepair = repairAssignmentIdentitiesFromCourseMap(nextCourseMap, nextDeliverables);
+  if (assignmentIdentityRepair.changed) {
+    nextDeliverables = assignmentIdentityRepair.deliverables;
+    repairs.push({
+      featureId: 'assignments',
+      label: featureLabel('assignments'),
+      changes: [`course-map identity: ${assignmentIdentityRepair.repairedCount} assignment brief(s) repaired`],
+      message: `${featureLabel('assignments')} repaired: ${assignmentIdentityRepair.repairedCount} assignment brief identity mismatch(es) aligned to the Course Map`,
+    });
   }
 
   // v0.12.1 P2: deterministic content-quality pass. Mechanical template seams

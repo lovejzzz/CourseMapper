@@ -79,6 +79,67 @@ function makeIntroPsychCourseMap(lessonCount = 15) {
 }
 
 describe('packageFinalizer', () => {
+  it('repairs stale assignment identity against the Course Map before export', () => {
+    const courseMap = {
+      courseName: 'Introduction to Computer Science with Python',
+      lessons: Array.from({ length: 9 }, (_, index) => ({
+        title: index === 8 ? 'Lesson 9: files and exceptions' : `Lesson ${index + 1}: Python topic ${index + 1}`,
+        sections: [
+          {
+            learningGoals:
+              index === 8
+                ? 'Use files and exceptions to read, predict, and explain a small Python program.'
+                : `Use Python topic ${index + 1}.`,
+            topicSection: index === 8 ? 'files and exceptions' : `Python topic ${index + 1}`,
+            learningObjectives:
+              index === 8
+                ? 'Choose the right files and exceptions approach for a small programming problem and justify it.'
+                : `Apply Python topic ${index + 1}.`,
+            weeklyAssessments:
+              index === 8
+                ? 'Files and exceptions debugging note that identifies the bug, fix, and evidence from a run.'
+                : `Python topic ${index + 1} check.`,
+          },
+        ],
+      })),
+    };
+
+    const result = runDeterministicPackageFinalizer({
+      courseMap,
+      selectedFeatures: ['assignments'],
+      includeClassroomReadiness: false,
+      includePedagogicalValidation: false,
+      retryWarnings: false,
+      deliverables: {
+        assignments: {
+          status: 'done',
+          data: {
+            assignments: [
+              {
+                title: 'Lesson 9: Define a dictionary as a key-value mapping',
+                dueWeek: 'Week 9',
+                relatedLessons: ['Lesson 9: Define a dictionary as a key-value mapping'],
+                overview: 'Create a dictionary for a simple inventory or contact list. Show how to retrieve one value.',
+                submissionProfile: {
+                  artifact: 'Lesson 9: Define a dictionary as a key-value mapping',
+                  qualityFocus: 'concept accuracy, retrieval strength, explanation quality',
+                },
+                instructions: ['Meet these submission requirements: Key-value pairs; Retrieve one value by key.'],
+              },
+            ],
+          },
+        },
+      },
+    });
+
+    const repaired = result.deliverables.assignments.data.assignments[0];
+    expect(result.repairs.map((repair) => repair.message).join(' ')).toMatch(/identity mismatch/i);
+    expect(repaired.title).toBe('Files and exceptions debugging note');
+    expect(repaired.relatedLessons).toEqual(['Lesson 9: files and exceptions']);
+    expect(repaired.overview).toMatch(/files and exceptions evidence from the Course Map/i);
+    expect(repaired.title).not.toMatch(/dictionary|key-value/i);
+  });
+
   it('blocks package readiness when enrichment coverage is partial after recovery', () => {
     const result = runDeterministicPackageFinalizer({
       courseMap: makeCourseMap(12),

@@ -68,7 +68,11 @@ import { repairCourseMapReadiness } from '../lib/deliverableReadiness';
 import { enrichmentPreferenceOverride } from '../lib/enrichmentPreference';
 import { readAuthoringMode } from '../lib/authoringMode';
 import { buildApiCostPlan, isNonRetryableFailureClass } from '../lib/apiCostControl';
-import { buildJudgmentStageEvent, formatEnrichmentOutcomeLabel } from '../lib/apiCallBudget';
+import {
+  buildJudgmentStageEvent,
+  buildSourceBackedJudgmentStageEvent,
+  formatEnrichmentOutcomeLabel,
+} from '../lib/apiCallBudget';
 import { classifyError } from '../lib/failureClassification';
 import { traceLog } from '../lib/traceLog';
 
@@ -2147,6 +2151,16 @@ export default function useDeliverables({
                 .map(([origin, count]) => `${origin}: ${count}`)
                 .join(', ')})`,
             });
+            const sourceBackedJudgment = buildSourceBackedJudgmentStageEvent({
+              sourceRefCoverage: courseGraph?.courseIR?.sourceRefCoverage || null,
+              citedResourceCount: coverage.openResources,
+              lessonsWithResources: coverage.sessionsWithResources,
+              totalLessons: coverage.sessions,
+              genomeLinkedLessons: coverage.genomeLinkedLessons,
+            });
+            if (sourceBackedJudgment) {
+              recordGenerationApiCallEvent(sourceBackedJudgment);
+            }
           }
         } catch {
           /* the knowledge backbone is additive — generation never fails on it */
