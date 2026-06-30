@@ -1101,6 +1101,10 @@ export default function ExportSidePanel({
       if (exportScope === 'all') {
         // All mode: only ZIP is available
         if (format === 'zip') {
+          const qualityContext = typeof getQualityContext === 'function' ? { ...(getQualityContext() || {}) } : {};
+          if (packageQualityPass?.quality?.status === 'graded') {
+            qualityContext.precomputed = packageQualityPass.quality;
+          }
           const zipResult = await downloadCourseMaterialsZip({
             deliverables: exportDeliverables || {},
             courseMap: exportCourseMap,
@@ -1115,7 +1119,7 @@ export default function ExportSidePanel({
             // v0.14.3 WS-A: the ZIP grades itself before assembly — budget +
             // digest feed the in-app honesty checks (manifest.quality +
             // QUALITY_REPORT.md ride the download).
-            quality: typeof getQualityContext === 'function' ? { ...(getQualityContext() || {}) } : {},
+            quality: qualityContext,
           });
           setLastOk(`ZIP downloaded with ${zipResult.files.length} file${zipResult.files.length === 1 ? '' : 's'}.`);
         }

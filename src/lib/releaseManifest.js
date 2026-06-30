@@ -3,24 +3,24 @@ import { APP_VERSION } from './appVersion.js';
 export const CURRENT_RELEASE = {
   version: APP_VERSION,
   date: 'June 30, 2026',
-  title: 'Python Source Proof: OpenStax sections replace review-only source rows',
-  landingTitle: 'Python Source Proof',
+  title: 'Download ZIP Path: reuse finish grade and avoid double compression',
+  landingTitle: 'Download ZIP Stability',
   highlights: [
-    'Fresh v0.15.159 GPT-5.4-mini Python ZIP/log evidence regraded 98/A with Texture 95; the remaining scored loss was source proof, not model prose quality.',
-    'That package had 259 sourceRef atoms relying on one trusted concept-linked source row plus a review-only `SL1: Existing course map fields.` note, so the manifest could not honestly prove its bibliography coverage.',
-    'Python/Computer Science source recovery now projects distinct licensed OpenStax Introduction to Python Programming section URLs into trusted concept-linked source-ledger rows when provider proof collapses to CourseIR review fallback.',
-    'The CourseIR sourceRef bridge removes review-only source notes only after multiple trusted concept-linked rows exist, preserving the no-inflation standard for metadata-only or unlinked sources.',
-    'This release does not claim a clean provider score; the next proof step is a fresh v0.15.160 GPT-5.4-mini ZIP/log audit that reconciles UI, digest, ZIP, source report, quality report, and local regrade.',
+    'Fresh deployed v0.15.160 GPT-5.4-mini evidence reached visible Quality 100/A with Texture 95 and zero digest blockers, warnings, retries, or export-verifier failures.',
+    'The same run exposed a real user-facing export defect: clicking either Download ZIP button made the Course Mapper tab unresponsive and did not create a new ZIP in Downloads.',
+    'The package download path now reuses the completed finish-pass quality result in `PACKAGE_MANIFEST.json` and `QUALITY_REPORT.md` instead of re-running the deep grader on the click.',
+    'The outer course-materials ZIP now stores already-compressed Office files without DEFLATE recompression, removing wasted browser CPU while leaving document bytes and local regrade standards unchanged.',
+    'Routine provider proof should stay on GPT-5.4-mini for cost efficiency; GPT-5.5-pro is reserved for occasional controlled model-comparison checks.',
   ],
   landingHighlights: [
-    'Python source fallback now uses licensed OpenStax section proof.',
-    'Review-only SL1 rows are removed only after real trusted rows exist.',
-    'SourceRef coverage must stay concept-linked and non-inflated.',
-    'Fresh GPT-5.4-mini provider proof is still required before a clean claim.',
+    'Download ZIP no longer re-runs the finish grader.',
+    'ZIP assembly avoids double-compressing Office files.',
+    'Quality reports still carry the verified finish-pass result.',
+    'GPT-5.4-mini remains the routine audit model.',
   ],
   proof: {
-    contract: 'release-contracts/v0.15.160.json',
-    roadmap: 'docs/V0.15.160_PYTHON_SOURCE_PROOF_ROADMAP.md',
+    contract: 'release-contracts/v0.15.161.json',
+    roadmap: 'docs/V0.15.161_DOWNLOAD_ZIP_STABILITY_ROADMAP.md',
     auditCommand: 'npm run audit:release-history',
   },
 };
@@ -35,6 +35,18 @@ export const CURRENT_RELEASE_CHANGELOG = {
 };
 
 export const HISTORICAL_RELEASE_CHANGELOGS = [
+  {
+    version: '0.15.160',
+    date: 'June 30, 2026',
+    title: 'Python Source Proof: OpenStax sections replace review-only source rows',
+    highlights: [
+      'Fresh v0.15.159 GPT-5.4-mini Python ZIP/log evidence regraded 98/A with Texture 95; the remaining scored loss was source proof, not model prose quality.',
+      'That package had 259 sourceRef atoms relying on one trusted concept-linked source row plus a review-only `SL1: Existing course map fields.` note, so the manifest could not honestly prove its bibliography coverage.',
+      'Python/Computer Science source recovery now projects distinct licensed OpenStax Introduction to Python Programming section URLs into trusted concept-linked source-ledger rows when provider proof collapses to CourseIR review fallback.',
+      'The CourseIR sourceRef bridge removes review-only source notes only after multiple trusted concept-linked rows exist, preserving the no-inflation standard for metadata-only or unlinked sources.',
+      'This release does not claim a clean provider score; the next proof step is a fresh v0.15.160 GPT-5.4-mini ZIP/log audit that reconciles UI, digest, ZIP, source report, quality report, and local regrade.',
+    ],
+  },
   {
     version: '0.15.159',
     date: 'June 30, 2026',

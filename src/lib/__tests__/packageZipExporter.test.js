@@ -136,6 +136,64 @@ describe('packageZipExporter', () => {
     expect(buildSlideDeckPptxBlob).toHaveBeenCalledTimes(2);
   });
 
+  it('uses precomputed finish quality for ZIP reports instead of requiring a second grade pass', async () => {
+    const result = await buildCourseMaterialsZip({
+      courseMap: makeCourseMap('Browser Export Course'),
+      deliverables: {},
+      featureIds: ['courseMap'],
+      quality: {
+        precomputed: {
+          status: 'graded',
+          score: 100,
+          grade: 'A',
+          graderVersion: 'test-precomputed',
+          findingCounts: { p0: 0, p1: 0, p2: 0 },
+          dimensions: {
+            identity: 100,
+            substance: 100,
+            citations: 100,
+            honesty: 100,
+            discipline: 100,
+            consistency: 100,
+            structure: 100,
+            format: 100,
+            texture: 95,
+          },
+          grades: {
+            identity: 'A',
+            substance: 'A',
+            citations: 'A',
+            honesty: 'A',
+            discipline: 'A',
+            consistency: 'A',
+            structure: 'A',
+            format: 'A',
+            texture: 'A',
+          },
+          texture: { score: 95, version: 'test-texture' },
+          findings: [],
+          fileCount: 2,
+        },
+      },
+    });
+
+    const zip = await JSZip.loadAsync(await result.blob.arrayBuffer());
+    const manifest = JSON.parse(await zip.file('PACKAGE_MANIFEST.json').async('string'));
+    const report = await zip.file('QUALITY_REPORT.md').async('string');
+    expect(manifest.quality).toEqual(
+      expect.objectContaining({
+        status: 'graded',
+        score: 100,
+        grade: 'A',
+        graderVersion: 'test-precomputed',
+        texture: expect.objectContaining({ score: 95 }),
+      }),
+    );
+    expect(report).toContain('Overall: 100/100 (A)');
+    expect(report).toContain('verified finish-pass quality result');
+    expect(report).toContain('| texture | 10 | 95 | A |');
+  });
+
   it('keeps partial enrichment blockers in the exported manifest and readiness report', async () => {
     const result = await buildCourseMaterialsZip({
       courseMap: makeCourseMap('Partial Enrichment Proof'),

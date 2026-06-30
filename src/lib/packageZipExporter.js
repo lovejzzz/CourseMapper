@@ -14,6 +14,29 @@ import { peekVoicePassOutcome } from './voicePass.js';
 
 const MIN_EXPORT_BYTES = 128;
 export const DEFAULT_PACKAGE_QUALITY_TIMEOUT_MS = 30000;
+const ZIP_GENERATION_OPTIONS = { type: 'blob', compression: 'STORE', streamFiles: true };
+const QUALITY_DIMENSION_ORDER = [
+  'identity',
+  'substance',
+  'citations',
+  'honesty',
+  'discipline',
+  'consistency',
+  'structure',
+  'format',
+  'texture',
+];
+const QUALITY_DIMENSION_WEIGHTS = {
+  identity: 20,
+  substance: 20,
+  citations: 15,
+  honesty: 15,
+  discipline: 15,
+  consistency: 10,
+  structure: 10,
+  format: 5,
+  texture: 10,
+};
 const SPLIT_BY_LESSON_FEATURES = new Set([
   'lessonPlans',
   'slideDecks',
@@ -70,6 +93,116 @@ function getExportPartSize(part) {
   if (Number.isFinite(part.length)) return part.length;
   if (typeof part === 'string') return new Blob([part]).size;
   return 0;
+}
+
+function normalizeFindingSeverity(finding) {
+  const severity = String(finding?.severity || finding?.priority || '').toUpperCase();
+  return severity === 'P0' || severity === 'P1' || severity === 'P2' ? severity : 'P2';
+}
+
+function countQualityFindings(findings = []) {
+  const counts = { p0: 0, p1: 0, p2: 0 };
+  for (const finding of Array.isArray(findings) ? findings : []) {
+    const severity = normalizeFindingSeverity(finding);
+    if (severity === 'P0') counts.p0 += 1;
+    else if (severity === 'P1') counts.p1 += 1;
+    else counts.p2 += 1;
+  }
+  return counts;
+}
+
+function normalizePrecomputedPackageQuality(quality) {
+  if (!quality || quality.status !== 'graded') return null;
+  const score = Number(quality.score);
+  if (!Number.isFinite(score)) return null;
+  const findings = Array.isArray(quality.findings) ? quality.findings : [];
+  const counted = countQualityFindings(findings);
+  const findingCounts = {
+    p0: Number.isFinite(quality.findingCounts?.p0) ? quality.findingCounts.p0 : counted.p0,
+    p1: Number.isFinite(quality.findingCounts?.p1) ? quality.findingCounts.p1 : counted.p1,
+    p2: Number.isFinite(quality.findingCounts?.p2) ? quality.findingCounts.p2 : counted.p2,
+  };
+  const dimensions = quality.dimensions && typeof quality.dimensions === 'object' ? quality.dimensions : {};
+  const texture =
+    quality.texture && Number.isFinite(quality.texture.score)
+      ? {
+          version: quality.texture.version || null,
+          score: quality.texture.score,
+          subScores: quality.texture.subScores || null,
+        }
+      : null;
+  const block = {
+    status: 'graded',
+    score,
+    grade: quality.grade || 'A',
+    graderVersion: quality.graderVersion || 'precomputed-finish-pass',
+    findingCounts,
+    dimensions,
+    gradedAt: quality.gradedAt || new Date().toISOString(),
+    ...(texture ? { texture } : {}),
+  };
+  return {
+    block,
+    findings,
+    grades: quality.grades && typeof quality.grades === 'object' ? quality.grades : {},
+    fileCount: Number.isFinite(quality.fileCount) ? quality.fileCount : null,
+  };
+}
+
+function renderPrecomputedQualityReport(precomputed, { courseTitle = 'Course' } = {}) {
+  if (!precomputed?.block) return '';
+  const quality = precomputed.block;
+  const counts = quality.findingCounts || { p0: 0, p1: 0, p2: 0 };
+  const findingCount = counts.p0 + counts.p1 + counts.p2;
+  const lines = [];
+  lines.push(`# Crucible Deep Quality Report - ${courseTitle}`);
+  lines.push('');
+  lines.push(
+    `**Overall: ${quality.score}/100 (${quality.grade})** · ${findingCount} findings (${counts.p0} P0 · ${counts.p1} P1 · ${counts.p2} P2)${precomputed.fileCount ? ` · ${precomputed.fileCount} files` : ''}`,
+  );
+  lines.push('');
+  lines.push(
+    'This report uses the verified finish-pass quality result already shown in the workspace. The downloaded ZIP can still be independently regraded from its files.',
+  );
+  lines.push('');
+  lines.push('## Scores');
+  lines.push('');
+  lines.push('| Dimension | Weight | Score | Grade |');
+  lines.push('| --- | ---: | ---: | :---: |');
+  for (const dimension of QUALITY_DIMENSION_ORDER) {
+    const score = quality.dimensions?.[dimension];
+    const grade = precomputed.grades?.[dimension] || '';
+    if (!Number.isFinite(score)) continue;
+    lines.push(`| ${dimension} | ${QUALITY_DIMENSION_WEIGHTS[dimension]} | ${score} | ${grade} |`);
+  }
+  lines.push(
+    `| **overall** | ${Object.values(QUALITY_DIMENSION_WEIGHTS).reduce((sum, value) => sum + value, 0)} | **${quality.score}** | **${quality.grade}** |`,
+  );
+  lines.push('');
+  lines.push('## Findings');
+  lines.push('');
+  for (const severity of ['P0', 'P1', 'P2']) {
+    const group = precomputed.findings.filter((finding) => normalizeFindingSeverity(finding) === severity);
+    lines.push(`### ${severity} (${group.length})`);
+    if (group.length === 0) {
+      lines.push('');
+      lines.push('_None._');
+      lines.push('');
+      continue;
+    }
+    for (const finding of group) {
+      const dimension = finding.dimension || 'quality';
+      const detail = finding.detail || finding.message || finding.title || 'Quality finding';
+      lines.push(`- **[${dimension}] ${detail}**`);
+      if (finding.file || finding.id) {
+        lines.push(`  - file: \`${finding.file || '-'}\` · id: ${finding.id || '-'}`);
+      }
+      if (finding.evidence)
+        lines.push(`  - evidence: \`${String(finding.evidence).replace(/`/g, "'").slice(0, 200)}\``);
+    }
+    lines.push('');
+  }
+  return lines.join('\n');
 }
 
 async function getZipFileContent(part) {
@@ -1454,75 +1587,81 @@ export async function buildCourseMaterialsZip({
   let qualityResult = null;
   let qualityReportMarkdown = null;
   if (quality !== false) {
-    const timeoutMs = Number.isFinite(qualityOptions.timeoutMs)
-      ? qualityOptions.timeoutMs
-      : DEFAULT_PACKAGE_QUALITY_TIMEOUT_MS;
-    try {
-      // Lazy: the grader + defect patterns are their own chunk, loaded only
-      // when finalize-grading runs (bundle discipline, WS-A A4).
-      const [graderModule, providersModule] = await Promise.all([
-        safeImport(() => import('./quality/deepQualityGrader.js')),
-        safeImport(() => import('./quality/fileProviders.js')),
-      ]);
-      const { grade, renderReportMarkdown, honestyFromDigest, GRADER_VERSION } = graderModule;
-      const gradedFileMap = { ...fileContents, 'PACKAGE_MANIFEST.json': JSON.stringify(manifest, null, 2) };
-      const gradePromise = grade({
-        fileProvider: providersModule.createMemoryFileProvider(gradedFileMap),
-        // In-app honesty source: direct budget/digest object assertions
-        // replace the Crucible's console-log scan (same checks; the two
-        // console-only checks are named in IN_APP_EXCLUDED_CHECKS).
-        honesty: honestyFromDigest(qualityOptions.budget || null, qualityOptions.digest || null),
-        // Discipline probes key off the course title — the manifest's
-        // courseName is the authoritative in-app source.
-        course: {
-          id: qualityOptions.courseId || '',
-          title: safeCourseName,
-          featureIds: requestedFeatureIds,
-        },
-      });
-      const raced = await new Promise((resolve) => {
-        const timer = setTimeout(() => resolve({ timedOut: true }), Math.max(0, timeoutMs));
-        gradePromise.then(
-          (value) => {
-            clearTimeout(timer);
-            resolve({ value });
+    const precomputedQuality = normalizePrecomputedPackageQuality(qualityOptions.precomputed);
+    if (precomputedQuality) {
+      qualityBlock = precomputedQuality.block;
+      qualityReportMarkdown = renderPrecomputedQualityReport(precomputedQuality, { courseTitle: safeCourseName });
+    } else {
+      const timeoutMs = Number.isFinite(qualityOptions.timeoutMs)
+        ? qualityOptions.timeoutMs
+        : DEFAULT_PACKAGE_QUALITY_TIMEOUT_MS;
+      try {
+        // Lazy: the grader + defect patterns are their own chunk, loaded only
+        // when finalize-grading runs (bundle discipline, WS-A A4).
+        const [graderModule, providersModule] = await Promise.all([
+          safeImport(() => import('./quality/deepQualityGrader.js')),
+          safeImport(() => import('./quality/fileProviders.js')),
+        ]);
+        const { grade, renderReportMarkdown, honestyFromDigest, GRADER_VERSION } = graderModule;
+        const gradedFileMap = { ...fileContents, 'PACKAGE_MANIFEST.json': JSON.stringify(manifest, null, 2) };
+        const gradePromise = grade({
+          fileProvider: providersModule.createMemoryFileProvider(gradedFileMap),
+          // In-app honesty source: direct budget/digest object assertions
+          // replace the Crucible's console-log scan (same checks; the two
+          // console-only checks are named in IN_APP_EXCLUDED_CHECKS).
+          honesty: honestyFromDigest(qualityOptions.budget || null, qualityOptions.digest || null),
+          // Discipline probes key off the course title — the manifest's
+          // courseName is the authoritative in-app source.
+          course: {
+            id: qualityOptions.courseId || '',
+            title: safeCourseName,
+            featureIds: requestedFeatureIds,
           },
-          (error) => {
-            clearTimeout(timer);
-            resolve({ error });
-          },
-        );
-      });
-      if (raced.timedOut) {
-        qualityBlock = { status: 'not-graded', reason: `grading timed out after ${timeoutMs}ms` };
-      } else if (raced.error) {
-        qualityBlock = { status: 'not-graded', reason: raced.error?.message || 'grading failed' };
-      } else {
-        qualityResult = raced.value;
-        qualityBlock = {
-          status: 'graded',
-          score: qualityResult.overall.score,
-          grade: qualityResult.overall.grade,
-          graderVersion: GRADER_VERSION,
-          findingCounts: { p0: qualityResult.stats.p0, p1: qualityResult.stats.p1, p2: qualityResult.stats.p2 },
-          dimensions: qualityResult.scores,
-          gradedAt: new Date().toISOString(),
-          // v0.15.6: the score-bearing texture meter rides the manifest
-          // and the in-app Seal; the full evidence stays in QUALITY_REPORT.md.
-          ...(qualityResult.texture && Number.isFinite(qualityResult.texture.score)
-            ? {
-                texture: {
-                  version: qualityResult.texture.version,
-                  score: qualityResult.texture.score,
-                  subScores: qualityResult.texture.subScores || null,
-                },
-              }
-            : {}),
-        };
-        qualityReportMarkdown = renderReportMarkdown(qualityResult, { courseTitle: safeCourseName });
+        });
+        const raced = await new Promise((resolve) => {
+          const timer = setTimeout(() => resolve({ timedOut: true }), Math.max(0, timeoutMs));
+          gradePromise.then(
+            (value) => {
+              clearTimeout(timer);
+              resolve({ value });
+            },
+            (error) => {
+              clearTimeout(timer);
+              resolve({ error });
+            },
+          );
+        });
+        if (raced.timedOut) {
+          qualityBlock = { status: 'not-graded', reason: `grading timed out after ${timeoutMs}ms` };
+        } else if (raced.error) {
+          qualityBlock = { status: 'not-graded', reason: raced.error?.message || 'grading failed' };
+        } else {
+          qualityResult = raced.value;
+          qualityBlock = {
+            status: 'graded',
+            score: qualityResult.overall.score,
+            grade: qualityResult.overall.grade,
+            graderVersion: GRADER_VERSION,
+            findingCounts: { p0: qualityResult.stats.p0, p1: qualityResult.stats.p1, p2: qualityResult.stats.p2 },
+            dimensions: qualityResult.scores,
+            gradedAt: new Date().toISOString(),
+            // v0.15.6: the score-bearing texture meter rides the manifest
+            // and the in-app Seal; the full evidence stays in QUALITY_REPORT.md.
+            ...(qualityResult.texture && Number.isFinite(qualityResult.texture.score)
+              ? {
+                  texture: {
+                    version: qualityResult.texture.version,
+                    score: qualityResult.texture.score,
+                    subScores: qualityResult.texture.subScores || null,
+                  },
+                }
+              : {}),
+          };
+          qualityReportMarkdown = renderReportMarkdown(qualityResult, { courseTitle: safeCourseName });
+        }
+      } catch (err) {
+        qualityBlock = { status: 'not-graded', reason: err?.message || 'grader unavailable' };
       }
-    } catch (err) {
-      qualityBlock = { status: 'not-graded', reason: err?.message || 'grader unavailable' };
     }
     manifest.quality = qualityBlock;
     const qualityIssue = qualityIssueFromManifestQuality(qualityBlock);
@@ -1565,7 +1704,7 @@ export async function buildCourseMaterialsZip({
     };
   }
 
-  const blob = await zip.generateAsync({ type: 'blob', compression: 'DEFLATE', compressionOptions: { level: 6 } });
+  const blob = await zip.generateAsync(ZIP_GENERATION_OPTIONS);
   const zipSize = getExportPartSize(blob);
   if (zipSize < MIN_EXPORT_BYTES) {
     throw new PackageZipExportError([

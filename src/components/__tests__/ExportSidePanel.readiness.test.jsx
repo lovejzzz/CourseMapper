@@ -303,6 +303,12 @@ describe('ExportSidePanel readiness repair timing', () => {
 
     expect(onFinishPackage).not.toHaveBeenCalled();
     expect(downloadCourseMaterialsZip).toHaveBeenCalledTimes(1);
-    expect(downloadCourseMaterialsZip.mock.calls[0][0].quality).toEqual({});
+    expect(downloadCourseMaterialsZip.mock.calls[0][0].quality.precomputed).toEqual(
+      expect.objectContaining({
+        status: 'graded',
+        score: 74,
+        grade: 'C',
+      }),
+    );
   });
 });
