@@ -3,24 +3,24 @@ import { APP_VERSION } from './appVersion.js';
 export const CURRENT_RELEASE = {
   version: APP_VERSION,
   date: 'June 30, 2026',
-  title: 'CS/Python Source Sense: short-token false friends no longer count as trusted proof',
-  landingTitle: 'CS/Python Source Sense',
+  title: 'CS/Python Control-Flow Source Gate: conditional and loop false friends stop passing',
+  landingTitle: 'CS/Python Control-Flow Sources',
   highlights: [
-    'A fresh deployed v0.15.148 GPT-5.5-pro Introduction to Computer Science with Python ZIP/log audit completed without the old unsupported low-effort API errors and locally regraded clean only when scoped to the current run log.',
-    'The same artifact exposed hidden source debt: the exported source ledger trusted licensed-but-wrong short-token pages such as “No Strings Attached,” “String theory,” “Function (mathematics),” and “Lists of American colleges and universities” as CS/Python proof.',
-    'Computer Science/Python source selection now requires programming-context anchors for ambiguous topics such as lists, strings, functions, variables, dictionaries, and file input before source-finder rows can become trusted source-ledger proof.',
-    'The deep quality grader mirrors the production source gate, so the captured v0.15.148 package now regrades at 87/B with citation P1s instead of a false clean 100/A when those false friends are present.',
-    'Focused source-finder, source-ledger, and source-grader regressions pin the live failure shape without weakening source, export, report, or texture standards.',
+    'A fresh deployed v0.15.149 GPT-5.5-pro Introduction to Computer Science with Python ZIP/log audit exported at 98/A with texture 91, proving the old obvious music/string/file-explorer false friends were gone but not that source trust was clean.',
+    'The same package still trusted licensed-but-wrong control-flow bycatch: natural-language conditional sentence pages and a game/language-pedagogy loops article were promoted as Python conditionals/loops proof.',
+    'Computer Science/Python source selection now requires programming-context anchors for ambiguous conditionals and loops, preserving pages such as `Conditional (computer programming)` and `For loop` while quarantining natural-language and game-loop false friends.',
+    'The deep quality grader mirrors the stricter control-flow source gate, so the captured v0.15.149 package regrades at 95/A with citation P1s instead of silently accepting the source ledger as clean.',
+    'Focused source-ledger export and source-grader regressions pin the GPT-5.5-pro failure shape without weakening source, export, report, texture, or model-comparison standards.',
   ],
   landingHighlights: [
-    'CS/Python sources need programming-context anchors.',
-    'Short-token false friends stay out of trusted source proof.',
-    'The grader catches the captured false-clean Python package.',
-    'Model comparisons now separate model output from source-gate defects.',
+    'CS/Python conditionals and loops need programming context.',
+    'Natural-language and game-loop false friends stay out of trusted proof.',
+    'The grader catches the captured GPT-5.5-pro source debt.',
+    'Model comparisons now separate provider behavior from export-gate defects.',
   ],
   proof: {
-    contract: 'release-contracts/v0.15.149.json',
-    roadmap: 'docs/V0.15.149_CS_PYTHON_SOURCE_SENSE_ROADMAP.md',
+    contract: 'release-contracts/v0.15.150.json',
+    roadmap: 'docs/V0.15.150_CS_PYTHON_CONTROL_FLOW_SOURCE_GATE_ROADMAP.md',
     auditCommand: 'npm run audit:release-history',
   },
 };
@@ -35,6 +35,18 @@ export const CURRENT_RELEASE_CHANGELOG = {
 };
 
 export const HISTORICAL_RELEASE_CHANGELOGS = [
+  {
+    version: '0.15.149',
+    date: 'June 30, 2026',
+    title: 'CS/Python Source Sense: short-token false friends no longer count as trusted proof',
+    highlights: [
+      'A fresh deployed v0.15.148 GPT-5.5-pro Introduction to Computer Science with Python ZIP/log audit completed without the old unsupported low-effort API errors and locally regraded clean only when scoped to the current run log.',
+      'The same artifact exposed hidden source debt: the exported source ledger trusted licensed-but-wrong short-token pages such as “No Strings Attached,” “String theory,” “Function (mathematics),” and “Lists of American colleges and universities” as CS/Python proof.',
+      'Computer Science/Python source selection now requires programming-context anchors for ambiguous topics such as lists, strings, functions, variables, dictionaries, and file input before source-finder rows can become trusted source-ledger proof.',
+      'The deep quality grader mirrors the production source gate, so the captured v0.15.148 package now regrades at 87/B with citation P1s instead of a false clean 100/A when those false friends are present.',
+      'Focused source-finder, source-ledger, and source-grader regressions pin the live failure shape without weakening source, export, report, or texture standards.',
+    ],
+  },
   {
     version: '0.15.148',
     date: 'June 30, 2026',

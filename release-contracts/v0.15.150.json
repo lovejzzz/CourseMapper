@@ -1,0 +1,106 @@
+{
+  "version": "0.15.150",
+  "date": "June 30, 2026",
+  "title": "CS/Python Control-Flow Source Gate: conditional and loop false friends stop passing",
+  "status": "verified-current",
+  "proofSummary": {
+    "local": [
+      "npm test -- src/lib/knowledge/__tests__/sourceLedger.test.js src/lib/quality/__tests__/sourceLedgerGrader.test.js",
+      "node scripts/crucible.mjs --skip-generate verification-output/edutool-audit-loop/20260630T085622Z-v015149-gpt55pro-python-fresh/local-regrade-round"
+    ],
+    "ciFast": {
+      "status": "pending-push",
+      "note": "Fast verification is claimed only after v0.15.150 is pushed and the GitHub Actions run is attached."
+    },
+    "deploy": {
+      "status": "pending-push",
+      "note": "Pages deploy is not claimed until the pushed v0.15.150 release completes its deploy run."
+    },
+    "ciDeep": {
+      "status": "local-only",
+      "note": "This is a narrow source relevance and grader-truth release; focused coverage plus normal gates are the release bar."
+    },
+    "liveProvider": {
+      "status": "not-current",
+      "note": "The release is based on a fresh deployed v0.15.149 GPT-5.5-pro ZIP/log audit. A fresh deployed v0.15.150 run is required before claiming the new source gate held in provider output."
+    },
+    "manualHuman": {
+      "status": "not-applicable",
+      "note": "No external instructor approval is claimed by this release."
+    }
+  },
+  "claims": [
+    {
+      "id": "v015150-v015149-model-comparison-evidence",
+      "status": "verified-current",
+      "changelogHighlightIndex": 0,
+      "summary": "Fresh v0.15.149 GPT-5.5-pro Python ZIP/log evidence exported at 98/A with texture 91 and proved v0.15.149 removed the previous obvious short-token false friends.",
+      "anchors": ["docs/V0.15.150_CS_PYTHON_CONTROL_FLOW_SOURCE_GATE_ROADMAP.md", "src/lib/releaseManifest.js"],
+      "proofCommands": [
+        "rg -n \"v0.15.149|GPT-5.5-pro|98/A|run-1782808266269\" docs/V0.15.150_CS_PYTHON_CONTROL_FLOW_SOURCE_GATE_ROADMAP.md src/lib/releaseManifest.js"
+      ],
+      "proofScopes": ["static-audit", "live-provider"]
+    },
+    {
+      "id": "v015150-hidden-control-flow-source-debt",
+      "status": "verified-current",
+      "changelogHighlightIndex": 1,
+      "summary": "The same artifact contained hidden CS/Python source false friends for conditionals and loops, proving the remaining citation issue is CourseMapper-side source relevance rather than only model output.",
+      "anchors": [
+        "docs/V0.15.150_CS_PYTHON_CONTROL_FLOW_SOURCE_GATE_ROADMAP.md",
+        "src/lib/quality/__tests__/sourceLedgerGrader.test.js"
+      ],
+      "proofCommands": [
+        "rg -n \"Conditional sentence|English conditional sentences|Game loops|95/A|5 P1\" docs/V0.15.150_CS_PYTHON_CONTROL_FLOW_SOURCE_GATE_ROADMAP.md src/lib/quality/__tests__/sourceLedgerGrader.test.js"
+      ],
+      "proofScopes": ["static-audit", "unit"]
+    },
+    {
+      "id": "v015150-cs-control-flow-source-gate",
+      "status": "verified-current",
+      "changelogHighlightIndex": 2,
+      "summary": "Source-ledger export now requires programming context for ambiguous conditionals and loops while preserving valid programming sources.",
+      "anchors": ["src/lib/knowledge/sourceLedger.js", "src/lib/knowledge/__tests__/sourceLedger.test.js"],
+      "proofCommands": [
+        "rg -n \"Conditional \\(computer programming\\)|For loop|English conditional sentences|Game loops\" src/lib/knowledge/sourceLedger.js src/lib/knowledge/__tests__/sourceLedger.test.js",
+        "npm test -- src/lib/knowledge/__tests__/sourceLedger.test.js"
+      ],
+      "proofScopes": ["unit"]
+    },
+    {
+      "id": "v015150-cs-control-flow-grader-truth",
+      "status": "verified-current",
+      "changelogHighlightIndex": 3,
+      "summary": "The deep quality grader mirrors the production control-flow source gate and flags already-exported false-friend rows.",
+      "anchors": [
+        "src/lib/quality/sourceLedgerQualityChecks.js",
+        "src/lib/quality/__tests__/sourceLedgerGrader.test.js"
+      ],
+      "proofCommands": [
+        "rg -n \"English conditional sentences|Game loops|source ledger row sf8|source ledger row sf9\" src/lib/quality/sourceLedgerQualityChecks.js src/lib/quality/__tests__/sourceLedgerGrader.test.js",
+        "npm test -- src/lib/quality/__tests__/sourceLedgerGrader.test.js"
+      ],
+      "proofScopes": ["unit", "static-audit"]
+    },
+    {
+      "id": "v015150-focused-regressions",
+      "status": "verified-current",
+      "changelogHighlightIndex": 4,
+      "summary": "Focused regressions cover source-ledger promotion and deep quality regrade behavior for the live GPT-5.5-pro failure shape.",
+      "anchors": [
+        "src/lib/knowledge/__tests__/sourceLedger.test.js",
+        "src/lib/quality/__tests__/sourceLedgerGrader.test.js"
+      ],
+      "proofCommands": [
+        "npm test -- src/lib/knowledge/__tests__/sourceLedger.test.js src/lib/quality/__tests__/sourceLedgerGrader.test.js"
+      ],
+      "proofScopes": ["unit", "static-audit"]
+    }
+  ],
+  "knownRemainingTargets": [
+    "A fresh deployed v0.15.150 GPT-5.5-pro Python ZIP/log audit must prove the source ledger no longer trusts CS/Python control-flow false friends in real provider output.",
+    "The captured v0.15.149 package still has non-source P1s: Lesson 02 study-guide kernel penetration and one truncated final-project slide bullet.",
+    "The voice-pass call in the v0.15.149 run spent tokens but returned 0 stream chunks and 0 usable surfaces; this release records it as evidence but does not change voice-pass behavior.",
+    "Texture remains below the long-running target until fresh packages repeatedly reach 100/100 texture with no repeated-shingle caveat."
+  ]
+}

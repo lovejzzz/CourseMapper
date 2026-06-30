@@ -1606,7 +1606,9 @@ describe('trusted source ledger', () => {
         { id: 'c2', term: 'variables and types' },
         { id: 'c4', term: 'functions' },
         { id: 'c5', term: 'lists' },
+        { id: 'c6', term: 'conditionals' },
         { id: 'c7', term: 'strings' },
+        { id: 'c8', term: 'loops' },
       ],
       sessions: [
         {
@@ -1632,6 +1634,18 @@ describe('trusted source ledger', () => {
           number: 7,
           title: 'Lesson 7: strings',
           sections: [{ id: 'sec7', topic: 'strings', conceptRefs: ['c7'], resourceRefs: [] }],
+        },
+        {
+          id: 's8',
+          number: 8,
+          title: 'Lesson 8: conditionals',
+          sections: [{ id: 'sec8', topic: 'conditionals', conceptRefs: ['c6'], resourceRefs: [] }],
+        },
+        {
+          id: 's9',
+          number: 9,
+          title: 'Lesson 9: loops',
+          sections: [{ id: 'sec9', topic: 'loops', conceptRefs: ['c8'], resourceRefs: [] }],
         },
       ],
       edges: { teaches: [] },
@@ -1730,6 +1744,53 @@ describe('trusted source ledger', () => {
               },
             ],
           },
+          {
+            sessionId: 's8',
+            lessonNumber: 8,
+            topic: 'conditionals',
+            sources: [
+              {
+                provider: 'wikipedia',
+                kind: 'encyclopedia background',
+                title: 'English conditional sentences',
+                url: 'https://en.wikipedia.org/wiki/English_conditional_sentences',
+                license: 'CC BY-SA 4.0',
+                snippet: 'Prototypical conditional sentences in English are those of the form If X then Y.',
+              },
+              {
+                provider: 'wikipedia',
+                kind: 'encyclopedia background',
+                title: 'Conditional (computer programming)',
+                url: 'https://en.wikipedia.org/wiki/Conditional_(computer_programming)',
+                license: 'CC BY-SA 4.0',
+                snippet:
+                  'A computer programming article about conditional statements, if statements, and control flow.',
+              },
+            ],
+          },
+          {
+            sessionId: 's9',
+            lessonNumber: 9,
+            topic: 'loops',
+            sources: [
+              {
+                provider: 'crossref',
+                kind: 'journal-article',
+                title: 'Game loops, Game design loops, Game Terakoya loops and Ludic Language Pedagogy loops',
+                doi: '10.55853/llp_v4pg1',
+                license: 'https://creativecommons.org/licenses/by-nc-nd/4.0/',
+                snippet: 'An article about well-designed games and language pedagogy loops.',
+              },
+              {
+                provider: 'wikipedia',
+                kind: 'encyclopedia background',
+                title: 'For loop',
+                url: 'https://en.wikipedia.org/wiki/For_loop',
+                license: 'CC BY-SA 4.0',
+                snippet: 'A programming article about loop statements and iteration in programming languages.',
+              },
+            ],
+          },
         ],
       },
     };
@@ -1741,6 +1802,8 @@ describe('trusted source ledger', () => {
       'Subroutine',
       'List (abstract data type)',
       'String (computer science)',
+      'Conditional (computer programming)',
+      'For loop',
     ]);
     expect(ledger.reviewRows || []).toHaveLength(0);
   });

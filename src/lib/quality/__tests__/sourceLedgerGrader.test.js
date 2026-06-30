@@ -1197,6 +1197,31 @@ describe('source-ledger quality checks', () => {
               license: 'CC BY-SA 4.0',
               conceptLinks: [{ id: 'c7', label: 'strings' }],
             },
+            {
+              id: 'sf8',
+              title: 'English conditional sentences',
+              provider: 'wikipedia',
+              url: 'https://en.wikipedia.org/wiki/English_conditional_sentences',
+              license: 'CC BY-SA 4.0',
+              conceptLinks: [{ id: 'c8', label: 'conditionals' }],
+            },
+            {
+              id: 'sf9',
+              title: 'Game loops, Game design loops, Game Terakoya loops and Ludic Language Pedagogy loops',
+              provider: 'crossref',
+              url: 'https://doi.org/10.55853/llp_v4pg1',
+              doi: '10.55853/llp_v4pg1',
+              license: 'https://creativecommons.org/licenses/by-nc-nd/4.0/',
+              conceptLinks: [{ id: 'c9', label: 'loops' }],
+            },
+            {
+              id: 'sf-good-conditional',
+              title: 'Conditional (computer programming)',
+              provider: 'wikipedia',
+              url: 'https://en.wikipedia.org/wiki/Conditional_(computer_programming)',
+              license: 'CC BY-SA 4.0',
+              conceptLinks: [{ id: 'c8', label: 'conditionals' }],
+            },
           ],
           sourceReport: {
             path: 'SOURCE_REPORT.md',
@@ -1214,8 +1239,13 @@ describe('source-ledger quality checks', () => {
       expect.arrayContaining([
         'source ledger row sf5 is off-discipline for Computer Science/Python',
         'source ledger row sf7 is off-discipline for Computer Science/Python',
+        'source ledger row sf8 is off-discipline for Computer Science/Python',
+        'source ledger row sf9 is off-discipline for Computer Science/Python',
       ]),
     );
     expect(details).not.toContain('source ledger row sf-good is off-discipline for Computer Science/Python');
+    expect(details).not.toContain(
+      'source ledger row sf-good-conditional is off-discipline for Computer Science/Python',
+    );
   });
 });
