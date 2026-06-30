@@ -45,8 +45,8 @@ describe('B2 — the two-number Seal', () => {
     expect(html).not.toContain('weight 0 in the grade');
   });
 
-  it('texture never changes the health tone — a P0 package stays amber with its meter', () => {
-    const amber = renderToStaticMarkup(
+  it('texture never hides a P0 blocker — a critical package turns red with its meter', () => {
+    const blocked = renderToStaticMarkup(
       <WorkspaceQualityChip
         packageQualityPass={{
           status: 'ready',
@@ -61,8 +61,10 @@ describe('B2 — the two-number Seal', () => {
         onOpenReport={() => {}}
       />,
     );
-    expect(amber).toContain('border-amber-200');
-    expect(amber).toContain('· Texture 90');
+    expect(blocked).toContain('border-red-200');
+    expect(blocked).toContain('Fix required');
+    expect(blocked).toContain('including 1 critical');
+    expect(blocked).toContain('· Texture 90');
   });
 
   it('falls back to the one-number chip when the grade carries no texture block', () => {

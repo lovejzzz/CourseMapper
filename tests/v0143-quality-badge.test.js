@@ -450,8 +450,9 @@ describe('B2 — WorkspaceQualityChip header states', () => {
       status: 'ready',
       quality: gradedQuality({ score: 88, grade: 'B', findingCounts: { p0: 1, p1: 0, p2: 2 } }),
     });
-    expect(withP0).toContain('amber');
+    expect(withP0).toContain('border-red-200');
     expect(withP0).not.toContain('emerald');
+    expect(withP0).toContain('Fix required');
     expect(withP0).toContain('including 1 critical');
 
     const gradeC = render({
@@ -460,6 +461,28 @@ describe('B2 — WorkspaceQualityChip header states', () => {
     });
     expect(gradeC).toContain('amber');
     expect(gradeC).toContain('Quality 74 · C');
+  });
+
+  it('does not foreground a 100/100 grade when the finish pass is blocked', () => {
+    const html = render({
+      status: 'blocked',
+      blockers: 1,
+      warnings: 27,
+      quality: gradedQuality({
+        score: 100,
+        grade: 'A',
+        findingCounts: { p0: 0, p1: 0, p2: 0 },
+        texture: { score: 94 },
+      }),
+    });
+    expect(html).toContain('workspace-quality-chip');
+    expect(html).toContain('Needs review');
+    expect(html).toContain('border-red-200');
+    expect(html).toContain('export blocked by 1 blocker');
+    expect(html).toContain('grade result 100 out of 100');
+    expect(html).toContain('Texture 94');
+    expect(html).not.toContain('Quality 100');
+    expect(html).not.toContain('emerald');
   });
 
   it('renders the slate "Not graded" state with the reason in the tooltip', () => {

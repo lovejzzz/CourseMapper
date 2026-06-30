@@ -30,6 +30,7 @@ const CHIP_BASE =
 export default function WorkspaceQualityChip({ packageQualityPass, onOpenReport }) {
   const status = finishStatusOf(packageQualityPass);
   const quality = packageQualityPass?.quality || null;
+  const trustStatus = getPackageTrustStatus({ packageQualityPass });
 
   // During the generation phase the build ribbon narrates progress and no
   // grading has started — claiming "Grading…" then was a lie the user caught.
@@ -66,14 +67,42 @@ export default function WorkspaceQualityChip({ packageQualityPass, onOpenReport 
 
   const p0 = quality.findingCounts?.p0 || 0;
   const issues = issueCount(quality);
-  const trustStatus = getPackageTrustStatus({ packageQualityPass });
+  const textureScore = Number.isFinite(quality.texture?.score) ? quality.texture.score : null;
+  if (trustStatus.blocked) {
+    const blockers = Math.max(1, Number(trustStatus.blockerCount) || Number(packageQualityPass?.blockers) || 0);
+    const blockerText = `${blockers} blocker${blockers === 1 ? '' : 's'}`;
+    return (
+      <button
+        type="button"
+        data-testid="workspace-quality-chip"
+        onClick={onOpenReport}
+        aria-label={`Package quality: export blocked by ${blockerText}; grade result ${quality.score} out of 100, grade ${
+          quality.grade
+        }${p0 > 0 ? `, including ${p0} critical` : ''}${
+          textureScore !== null ? `, texture ${textureScore} out of 100` : ''
+        } — open the quality report`}
+        title={`Export is blocked by ${blockerText}. The deterministic grade result is ${quality.score}/100 (${
+          quality.grade
+        })${p0 > 0 ? ` including ${p0} critical finding${p0 === 1 ? '' : 's'}` : ''}${
+          textureScore !== null ? ` · Texture ${textureScore}/100` : ''
+        }; click for the quality report and remaining action.`}
+        className={`${CHIP_BASE} border-red-200 bg-red-50 text-red-700 tactile transition-colors hover:brightness-95`}
+      >
+        <span>{p0 > 0 ? 'Fix required' : 'Needs review'}</span>
+        {textureScore !== null && (
+          <span data-testid="workspace-texture-meter" className="font-semibold text-slate-500 dark:text-slate-400">
+            · Texture {textureScore}
+          </span>
+        )}
+      </button>
+    );
+  }
   const tone = trustStatus.clean
     ? 'border-emerald-200 bg-emerald-50 text-emerald-700'
     : 'border-amber-200 bg-amber-50 text-amber-700';
   // v0.15.6: the two-number Seal stays visible, but texture now counts
   // lightly in the grade so a heavily templated package cannot still wear
   // "100/A" with no findings.
-  const textureScore = Number.isFinite(quality.texture?.score) ? quality.texture.score : null;
   return (
     <button
       type="button"

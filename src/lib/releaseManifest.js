@@ -3,24 +3,24 @@ import { APP_VERSION } from './appVersion.js';
 export const CURRENT_RELEASE = {
   version: APP_VERSION,
   date: 'June 30, 2026',
-  title: 'Python Texture Rotation: repeated scaffolds vary before export',
-  landingTitle: 'Python Texture Rotation',
+  title: 'Blocked Quality Chip Truth: review state owns the header',
+  landingTitle: 'Blocked Quality Truth',
   highlights: [
-    'Fresh deployed v0.15.165 GPT-5.4-mini Python evidence honestly regraded 100/A with complete source proof, but Texture stayed at 95 and static ZIP inspection found deterministic CourseMapper scaffold phrases repeating across Python assessment surfaces.',
-    'Computer Science/Python weekly-assessment repair now rotates a broader set of lesson-specific trace memo, bug-fix, implementation-choice, partner-review, edge-case, lab-checkpoint, and code-review variants before export.',
-    'Sparse Course Map fallback rotation is now section-aware across a full lesson map, so a 12-week Python course no longer reuses the same assessment stem every few sections.',
-    'Python support-text repair no longer repeats `runnable Python artifact or trace` or `same input/output evidence used in grading`, and assignment-title repair keeps colon-delimited task details out of titles.',
-    'The new regression uses a 12-week, 3-section Python map with repeated GPT-style assessment scaffolds and proves repaired assessments vary before graph/export derivation.',
+    'Fresh deployed v0.15.166 GPT-5.4-mini Python browser evidence blocked before ZIP export: the digest said finalStatus blocked with 1 blocker and no download, while the workspace header still foregrounded `Quality 100 · Texture 94`.',
+    'WorkspaceQualityChip now reads the shared package trust status before choosing copy, so blocked packages render a concise red `Needs review` or `Fix required` state instead of a clean-looking quality score.',
+    'Blocked quality chips keep the deterministic grade in the tooltip and report, but the primary header state names the export blocker first and includes critical P0 counts when applicable.',
+    'The focused regression pins the exact failure shape from the v0.15.166 run: blocked finish, one blocker, graded 100/A, Texture 94, and no clean `Quality 100` foreground text.',
+    'The blocked audit is recorded under verification-output with no ZIP-score claim; the next provider run should verify the header truth fix and continue the readiness-retry investigation if the blocker reproduces.',
   ],
   landingHighlights: [
-    'Python assessment stems vary before export.',
-    'Section-aware fallback rotation covers full maps.',
-    'Support text and assignment titles stay cleaner.',
-    'Regression locks the exact repeated-output shape.',
+    'Blocked packages no longer look clean in the header.',
+    'The score stays available in the report, not as the primary state.',
+    'Critical findings are named in accessible copy.',
+    'The v0.15.166 blocked run is recorded honestly.',
   ],
   proof: {
-    contract: 'release-contracts/v0.15.166.json',
-    roadmap: 'docs/V0.15.166_PYTHON_TEXTURE_ROTATION_ROADMAP.md',
+    contract: 'release-contracts/v0.15.167.json',
+    roadmap: 'docs/V0.15.167_BLOCKED_QUALITY_CHIP_TRUTH_ROADMAP.md',
     auditCommand: 'npm run audit:release-history',
   },
 };
@@ -35,6 +35,18 @@ export const CURRENT_RELEASE_CHANGELOG = {
 };
 
 export const HISTORICAL_RELEASE_CHANGELOGS = [
+  {
+    version: '0.15.166',
+    date: 'June 30, 2026',
+    title: 'Python Texture Rotation: repeated scaffolds vary before export',
+    highlights: [
+      'Fresh deployed v0.15.165 GPT-5.4-mini Python evidence honestly regraded 100/A with complete source proof, but Texture stayed at 95 and static ZIP inspection found deterministic CourseMapper scaffold phrases repeating across Python assessment surfaces.',
+      'Computer Science/Python weekly-assessment repair now rotates a broader set of lesson-specific trace memo, bug-fix, implementation-choice, partner-review, edge-case, lab-checkpoint, and code-review variants before export.',
+      'Sparse Course Map fallback rotation is now section-aware across a full lesson map, so a 12-week Python course no longer reuses the same assessment stem every few sections.',
+      'Python support-text repair no longer repeats `runnable Python artifact or trace` or `same input/output evidence used in grading`, and assignment-title repair keeps colon-delimited task details out of titles.',
+      'The new regression uses a 12-week, 3-section Python map with repeated GPT-style assessment scaffolds and proves repaired assessments vary before graph/export derivation.',
+    ],
+  },
   {
     version: '0.15.165',
     date: 'June 30, 2026',

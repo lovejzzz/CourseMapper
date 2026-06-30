@@ -1,0 +1,108 @@
+{
+  "version": "0.15.167",
+  "date": "June 30, 2026",
+  "title": "Blocked Quality Chip Truth: review state owns the header",
+  "status": "verified-current",
+  "proofSummary": {
+    "local": [
+      "npm test -- tests/v0143-quality-badge.test.js",
+      "npm test -- tests/v0143-quality-badge.test.js tests/v0155-release-truth-ledger.test.js",
+      "npm run audit:release-history"
+    ],
+    "ciFast": {
+      "status": "pending-push",
+      "note": "Fast verification is claimed only after v0.15.167 is pushed and the GitHub Actions run is attached."
+    },
+    "deploy": {
+      "status": "pending-push",
+      "note": "Pages deploy is not claimed until the pushed v0.15.167 release completes its deploy run."
+    },
+    "ciDeep": {
+      "status": "local-only",
+      "note": "This is a narrow UI truth patch; focused coverage plus normal gates are the release bar."
+    },
+    "liveProvider": {
+      "status": "not-current",
+      "note": "Fresh v0.15.166 browser evidence blocked before ZIP and justified this UI truth fix. A fresh v0.15.167 ZIP/log audit is still required after deploy."
+    },
+    "manualHuman": {
+      "status": "not-applicable",
+      "note": "No external instructor approval is claimed by this release."
+    }
+  },
+  "claims": [
+    {
+      "id": "v015167-blocked-browser-evidence",
+      "status": "verified-current",
+      "changelogHighlightIndex": 0,
+      "summary": "The release is grounded in fresh deployed v0.15.166 browser evidence where the package blocked before ZIP while the header foregrounded Quality 100 and Texture 94.",
+      "anchors": [
+        "verification-output/edutool-audit-loop/20260630T221931Z-v015166-fresh-blocked/report.md",
+        "verification-output/edutool-audit-loop/20260630T221931Z-v015166-fresh-blocked/ui-evidence.json",
+        "src/lib/releaseManifest.js"
+      ],
+      "proofCommands": [
+        "rg -n \"blocked before ZIP|Quality 100|Texture 94|no ZIP-score claim\" verification-output/edutool-audit-loop/20260630T221931Z-v015166-fresh-blocked/report.md",
+        "rg -n \"finalStatus.*blocked|qualityScore.*100|exportStatus.*warnings\" verification-output/edutool-audit-loop/20260630T221931Z-v015166-fresh-blocked/cm-dev-logs.json"
+      ],
+      "proofScopes": ["live-provider", "browser-live", "static-audit"]
+    },
+    {
+      "id": "v015167-shared-trust-chip-state",
+      "status": "verified-current",
+      "changelogHighlightIndex": 1,
+      "summary": "WorkspaceQualityChip now reads the shared package trust status and renders blocked packages as a red review or fix-required state instead of foregrounding a clean-looking score.",
+      "anchors": ["src/components/WorkspaceQualityChip.jsx", "tests/v0143-quality-badge.test.js"],
+      "proofCommands": [
+        "npm test -- tests/v0143-quality-badge.test.js",
+        "rg -n \"trustStatus.blocked|Needs review|Fix required\" src/components/WorkspaceQualityChip.jsx tests/v0143-quality-badge.test.js"
+      ],
+      "proofScopes": ["unit", "static-audit"]
+    },
+    {
+      "id": "v015167-blocked-chip-accessible-grade-context",
+      "status": "verified-current",
+      "changelogHighlightIndex": 2,
+      "summary": "Blocked quality chips preserve the deterministic grade and texture in accessible labels/tooltips while naming the export blocker first, including critical P0 counts when present.",
+      "anchors": ["src/components/WorkspaceQualityChip.jsx", "tests/v0143-quality-badge.test.js"],
+      "proofCommands": [
+        "npm test -- tests/v0143-quality-badge.test.js",
+        "rg -n \"export blocked by|including .* critical|grade result\" src/components/WorkspaceQualityChip.jsx tests/v0143-quality-badge.test.js"
+      ],
+      "proofScopes": ["unit", "static-audit"]
+    },
+    {
+      "id": "v015167-exact-blocked-grade-regression",
+      "status": "verified-current",
+      "changelogHighlightIndex": 3,
+      "summary": "The focused regression pins a blocked finish with one blocker, graded 100/A, Texture 94, and no visible clean Quality 100 foreground text.",
+      "anchors": ["tests/v0143-quality-badge.test.js"],
+      "proofCommands": [
+        "npm test -- tests/v0143-quality-badge.test.js",
+        "rg -n \"does not foreground a 100/100 grade|Texture 94|not.toContain\\('Quality 100'\\)\" tests/v0143-quality-badge.test.js"
+      ],
+      "proofScopes": ["unit", "static-audit"]
+    },
+    {
+      "id": "v015167-no-clean-zip-claim",
+      "status": "verified-current",
+      "changelogHighlightIndex": 4,
+      "summary": "The release records the blocked audit without claiming a ZIP score and carries forward the need for a fresh deployed v0.15.167 provider audit.",
+      "anchors": [
+        "docs/V0.15.167_BLOCKED_QUALITY_CHIP_TRUTH_ROADMAP.md",
+        "verification-output/edutool-audit-loop/20260630T221931Z-v015166-fresh-blocked/report.md",
+        "release-contracts/v0.15.167.json"
+      ],
+      "proofCommands": [
+        "rg -n \"does not claim a clean ZIP score|fresh v0.15.167 ZIP/log audit\" docs/V0.15.167_BLOCKED_QUALITY_CHIP_TRUTH_ROADMAP.md release-contracts/v0.15.167.json",
+        "rg -n \"No ZIP audit score should be claimed|Next audit after deployment\" verification-output/edutool-audit-loop/20260630T221931Z-v015166-fresh-blocked/report.md"
+      ],
+      "proofScopes": ["doc", "static-audit"]
+    }
+  ],
+  "knownRemainingTargets": [
+    "Fresh deployed v0.15.167 GPT-5.4-mini ZIP/log proof must verify the blocked-header truth fix in the live app.",
+    "The readiness-retry gap from the v0.15.166 run still needs investigation if it reproduces: one blocker remained, but the finalizer had zero retry actions.",
+    "Texture below 100 remains a strict-clean target even when the structural grade is 100/A."
+  ]
+}
