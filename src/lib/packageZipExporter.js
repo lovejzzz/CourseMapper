@@ -837,6 +837,34 @@ function buildEffectiveReadiness(readiness, pipelineState, qualityDigest = null)
   return mergeReadinessIssue(readiness, partialEnrichmentIssueFromPipeline(pipelineState, qualityDigest));
 }
 
+function mergeManifestReadinessIssue(readiness, issue) {
+  if (!issue) return readiness;
+  const usesIssueObjects =
+    Array.isArray(readiness?.blockers) || Array.isArray(readiness?.warnings) || issue.severity === 'blocker';
+  if (usesIssueObjects) {
+    return mergeReadinessIssue(
+      {
+        ...(readiness || {}),
+        blockers: Array.isArray(readiness?.blockers) ? readiness.blockers : [],
+        warnings: Array.isArray(readiness?.warnings) ? readiness.warnings : [],
+        issues: Array.isArray(readiness?.issues) ? readiness.issues : [],
+      },
+      issue,
+    );
+  }
+  const blockerCount = Number(readiness?.blockers) || 0;
+  const warningCount = Number(readiness?.warnings) || 0;
+  const blockers = blockerCount + (issue.severity === 'blocker' ? 1 : 0);
+  const warnings = warningCount + (issue.severity === 'warning' ? 1 : 0);
+  return {
+    ...(readiness || {}),
+    status: blockers > 0 ? 'blocked' : warnings > 0 ? 'warnings' : readiness?.status || 'ready',
+    blockers,
+    warnings,
+    isBlocked: blockers > 0,
+  };
+}
+
 function qualityIssueFromManifestQuality(qualityBlock) {
   if (qualityBlock?.status !== 'graded') return null;
   const p0 = Number(qualityBlock?.findingCounts?.p0) || 0;
@@ -1348,7 +1376,7 @@ export async function buildCourseMaterialsZip({
     }
     manifest.quality = qualityBlock;
     const qualityIssue = qualityIssueFromManifestQuality(qualityBlock);
-    if (qualityIssue) manifest.readiness = mergeReadinessIssue(manifest.readiness, qualityIssue);
+    if (qualityIssue) manifest.readiness = mergeManifestReadinessIssue(manifest.readiness, qualityIssue);
   }
 
   const manifestText = JSON.stringify(manifest, null, 2);

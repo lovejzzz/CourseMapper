@@ -3,24 +3,24 @@ import { APP_VERSION } from './appVersion.js';
 export const CURRENT_RELEASE = {
   version: APP_VERSION,
   date: 'June 30, 2026',
-  title: 'Prompt Artifact Truth: assignment-management prose stops failing as prompt leakage',
-  landingTitle: 'Prompt Artifact Truth',
+  title: 'Pro Model Reasoning and Readiness Truth: GPT-5.5-pro no longer receives unsupported low effort',
+  landingTitle: 'Pro Model Reasoning and Readiness Truth',
   highlights: [
-    'A fresh deployed v0.15.146 User Experience Design Studio ZIP/log audit reached export with 98/A, texture 96, clean source rows, and correct final-artifact routing; the only scored P1 was a false prompt-artifact hit on ordinary persona-answer prose about managing assignments and deadlines.',
-    'Prompt-artifact detection now keeps bare `assignments` out of the broad “focus on … nearby artifact label” path while still catching explicit prompt labels such as `Assignment Briefs` and `rubric-driven assignments`.',
-    'Quiz answer DOCX callouts now include an extractable separator between the tracked uppercase label and answer body, so the grader and instructor-facing text read `ANSWER A...` instead of `ANSWERA...`.',
-    'Focused regressions recreate the exact UX persona-answer false positive and the extracted DOCX answer-label glue that appeared in the v0.15.146 package.',
-    'Regrading the captured v0.15.146 ZIP with the corrected detector reaches 100/A with zero findings. Fresh deployed v0.15.147 provider evidence is still required before claiming new-run output is clean.',
+    'A fresh deployed v0.15.147 Introduction to Computer Science with Python ZIP/log audit on GPT-5.5-pro exported 93/A in the embedded report and regraded 94/A locally, with the main P1 caused by partial enrichment after API 400 errors rejected `reasoning.effort: low` for that pro model.',
+    'OpenAI pro reasoning profiles now advertise the supported `medium`, `high`, and `xhigh` tiers, and task-level low-effort requests are normalized to the minimum supported tier before the Responses API call is built.',
+    'The fix preserves low-effort cost control for GPT-5 mini-style models while preventing GPT-5.5-pro native authoring, enrichment, and repair retries from falling into prose/template fallback because of an unsupported option.',
+    'Export manifest truth is repaired: when partial enrichment creates a blocker and package grading later adds a warning, `PACKAGE_MANIFEST.json` keeps the blocker count and blocked status instead of downgrading readiness to warnings.',
+    'Focused regressions cover both the GPT-5.5-pro reasoning clamp and the graded partial-enrichment manifest merge that the Python artifact exposed.',
   ],
   landingHighlights: [
-    'Fresh v0.15.146 evidence isolated a false prompt-artifact P1.',
-    'Ordinary assignment-management prose no longer trips the artifact detector.',
-    'Quiz answer callouts extract with readable label/body spacing.',
-    'The captured ZIP now regrades 100/A under the corrected logic.',
+    'GPT-5.5-pro requests no longer send unsupported low effort.',
+    'Low-cost reasoning tiers still apply to compatible OpenAI models.',
+    'Partial-enrichment blockers stay blocked in exported manifests.',
+    'The release separates model comparison from request-configuration failure.',
   ],
   proof: {
-    contract: 'release-contracts/v0.15.147.json',
-    roadmap: 'docs/V0.15.147_PROMPT_ARTIFACT_TRUTH_ROADMAP.md',
+    contract: 'release-contracts/v0.15.148.json',
+    roadmap: 'docs/V0.15.148_PRO_MODEL_REASONING_AND_READINESS_TRUTH_ROADMAP.md',
     auditCommand: 'npm run audit:release-history',
   },
 };
@@ -35,6 +35,18 @@ export const CURRENT_RELEASE_CHANGELOG = {
 };
 
 export const HISTORICAL_RELEASE_CHANGELOGS = [
+  {
+    version: '0.15.147',
+    date: 'June 30, 2026',
+    title: 'Prompt Artifact Truth: assignment-management prose stops failing as prompt leakage',
+    highlights: [
+      'A fresh deployed v0.15.146 User Experience Design Studio ZIP/log audit reached export with 98/A, texture 96, clean source rows, and correct final-artifact routing; the only scored P1 was a false prompt-artifact hit on ordinary persona-answer prose about managing assignments and deadlines.',
+      'Prompt-artifact detection now keeps bare `assignments` out of the broad “focus on … nearby artifact label” path while still catching explicit prompt labels such as `Assignment Briefs` and `rubric-driven assignments`.',
+      'Quiz answer DOCX callouts now include an extractable separator between the tracked uppercase label and answer body, so the grader and instructor-facing text read `ANSWER A...` instead of `ANSWERA...`.',
+      'Focused regressions recreate the exact UX persona-answer false positive and the extracted DOCX answer-label glue that appeared in the v0.15.146 package.',
+      'Regrading the captured v0.15.146 ZIP with the corrected detector reaches 100/A with zero findings. Fresh deployed v0.15.147 provider evidence is still required before claiming new-run output is clean.',
+    ],
+  },
   {
     version: '0.15.146',
     date: 'June 30, 2026',

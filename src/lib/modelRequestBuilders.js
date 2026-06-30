@@ -52,6 +52,26 @@ function taskEffortFor(reasoning, task) {
   return map[task] ?? map.default ?? null;
 }
 
+const REASONING_LEVEL_ORDER = ['minimal', 'low', 'medium', 'high', 'xhigh'];
+
+function normalizeReasoningLevel(value, reasoning = {}) {
+  const requested = String(value || '').toLowerCase();
+  const levels = Array.isArray(reasoning.levels)
+    ? reasoning.levels.map((level) => String(level || '').toLowerCase()).filter(Boolean)
+    : [];
+  if (levels.length === 0 || levels.includes(requested)) return requested || null;
+
+  const requestedIndex = REASONING_LEVEL_ORDER.indexOf(requested);
+  if (requestedIndex >= 0) {
+    const upward = REASONING_LEVEL_ORDER.slice(requestedIndex).find((level) => levels.includes(level));
+    if (upward) return upward;
+  }
+
+  const defaultLevel = String(reasoning.defaultLevel || '').toLowerCase();
+  if (levels.includes(defaultLevel)) return defaultLevel;
+  return levels[0] || requested || null;
+}
+
 function shouldEnableReasoning(profile, plan, task) {
   if (plan?.reasoning?.enabled === true) return true;
   const reasoning = profile?.reasoning || {};
@@ -78,17 +98,25 @@ function createReasoningRequestControl(profile, plan, task, maxOutputTokens) {
       : { enabled: false, control: 'thinking_budget' };
   }
   if (reasoning.control === 'thinking_level') {
+    const level = normalizeReasoningLevel(
+      plan?.reasoning?.level || taskEffortFor(reasoning, task) || reasoning.defaultLevel || 'medium',
+      reasoning,
+    );
     return {
       enabled: true,
       control: 'thinking_level',
-      level: plan?.reasoning?.level || taskEffortFor(reasoning, task) || reasoning.defaultLevel || 'medium',
+      level,
     };
   }
   if (reasoning.control === 'reasoning_effort') {
+    const effort = normalizeReasoningLevel(
+      plan?.reasoning?.level || taskEffortFor(reasoning, task) || reasoning.defaultLevel || 'medium',
+      reasoning,
+    );
     return {
       enabled: true,
       control: 'reasoning_effort',
-      effort: plan?.reasoning?.level || taskEffortFor(reasoning, task) || reasoning.defaultLevel || 'medium',
+      effort,
     };
   }
   return { enabled: false, control: reasoning.control || 'none' };

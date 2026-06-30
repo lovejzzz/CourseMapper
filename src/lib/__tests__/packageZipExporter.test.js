@@ -180,6 +180,57 @@ describe('packageZipExporter', () => {
     );
   });
 
+  it('keeps partial enrichment blockers after package quality warnings are merged into the manifest', async () => {
+    const result = await buildCourseMaterialsZip({
+      courseMap: makeCourseMap('Graded Partial Enrichment Proof'),
+      deliverables: {
+        lessonPlans: {
+          status: 'done',
+          data: {
+            lessonPlans: [
+              { lessonTitle: 'Lesson 1: Export Reliability', objectives: ['Verify exports.'] },
+              { lessonTitle: 'Lesson 2: Portable Course Materials', objectives: ['Package files.'] },
+            ],
+          },
+        },
+      },
+      featureIds: ['courseMap', 'lessonPlans'],
+      readiness: {
+        status: 'ready',
+        blockers: [],
+        warnings: [],
+        issues: [],
+        featureCount: 2,
+        doneFeatureCount: 2,
+      },
+      pipelineState: {
+        enrichment: 'ran (11/12 — lesson 3 fell back to template)',
+      },
+      quality: { timeoutMs: 5000 },
+    });
+
+    const zip = await JSZip.loadAsync(await result.blob.arrayBuffer());
+    const manifest = JSON.parse(await zip.file('PACKAGE_MANIFEST.json').async('string'));
+    const readinessReport = await zip.file('READINESS_REPORT.txt').async('string');
+
+    expect(manifest.quality.status).toBe('graded');
+    expect(
+      Number(manifest.quality.findingCounts?.p0 || 0) +
+        Number(manifest.quality.findingCounts?.p1 || 0) +
+        Number(manifest.quality.findingCounts?.p2 || 0),
+    ).toBeGreaterThan(0);
+    expect(manifest.readiness).toMatchObject({
+      status: 'blocked',
+      blockers: 1,
+      warnings: 1,
+      checkedSections: '2/2',
+      isBlocked: true,
+    });
+    expect(readinessReport).toContain(
+      'Enrichment covered 11/12 lessons; lesson 3 fell back to template. Retry or repair enrichment before exporting a clean package.',
+    );
+  });
+
   it('includes slim CourseIR and native-repair proof in the package manifest', async () => {
     const result = await buildCourseMaterialsZip({
       courseMap: makeCourseMap('CourseIR Export Proof'),

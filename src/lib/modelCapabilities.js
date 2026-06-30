@@ -229,11 +229,12 @@ const REASONING_TASK_EFFORT_MAP = {
 function inferReasoningControls(provider, modelId) {
   const id = String(modelId || '').toLowerCase();
   if (provider === 'openai' && (/^o\d/.test(id) || /^gpt-[5-9]/.test(id))) {
+    const proReasoning = /\bpro\b/.test(id);
     return {
       supported: true,
       control: 'reasoning_effort',
-      levels: ['minimal', 'low', 'medium', 'high'],
-      defaultLevel: /^gpt-[5-9]/.test(id) ? 'medium' : 'high',
+      levels: proReasoning ? ['medium', 'high', 'xhigh'] : ['minimal', 'low', 'medium', 'high'],
+      defaultLevel: proReasoning || /^o\d/.test(id) ? 'high' : 'medium',
       applyByDefault: false,
       highValueTasks: ['course-map', 'assessment-alignment', 'rubrics', 'verification', 'repair'],
       taskEffortMap: { ...REASONING_TASK_EFFORT_MAP },

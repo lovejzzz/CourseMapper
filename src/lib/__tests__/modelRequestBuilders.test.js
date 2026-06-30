@@ -74,6 +74,38 @@ describe('modelRequestBuilders', () => {
     expect(overridden.body.reasoning).toEqual({ effort: 'high' });
   });
 
+  it('clamps low-effort tasks to the minimum supported tier for OpenAI pro reasoning models', () => {
+    const profile = createBaseModelCapabilities('openai', {
+      id: 'gpt-5.5-pro',
+      name: 'GPT-5.5 Pro',
+      maxOutputTokens: 128000,
+    });
+    const plan = createGenerationPlan(profile);
+    const build = (task, planOverride = plan) =>
+      buildProviderTextRequest({
+        provider: 'openai',
+        apiKey: 'test-key',
+        modelId: profile.modelId,
+        systemPrompt: 'Return JSON.',
+        userPrompt: 'Write enrichment.',
+        modelCapabilities: profile,
+        generationPlan: planOverride,
+        task,
+      });
+
+    expect(profile.reasoning.levels).toEqual(['medium', 'high', 'xhigh']);
+    expect(build('blueprintEnrichment').body.reasoning).toEqual({ effort: 'medium' });
+    expect(build('repair').body.reasoning).toEqual({ effort: 'medium' });
+    expect(build('generation').body.reasoning).toEqual({ effort: 'medium' });
+    expect(build('course-map').body.reasoning).toEqual({ effort: 'medium' });
+
+    const overridden = build('blueprintEnrichment', {
+      ...plan,
+      reasoning: { ...plan.reasoning, enabled: true, level: 'xhigh' },
+    });
+    expect(overridden.body.reasoning).toEqual({ effort: 'xhigh' });
+  });
+
   it('keeps Anthropic thinking opt-in (omitted field already means no thinking)', () => {
     const profile = createBaseModelCapabilities('anthropic', {
       id: 'claude-sonnet-4-20250514',
