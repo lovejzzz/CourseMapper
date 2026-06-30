@@ -572,8 +572,8 @@ describe('1.16 — prompt artifact labels never become course-map concepts', () 
     const repaired = repairCourseMapReadiness({ courseMap }).courseMap;
     const repairedText = JSON.stringify(repaired);
 
-    expect(repaired.lessons[0].title).toBe('Lesson 1: Project Management');
-    expect(repaired.lessons[0].sections[0].topicSection).toBe('Project Management');
+    expect(repaired.lessons[0].title).toBe('Lesson 1: project life cycle and charter purpose');
+    expect(repaired.lessons[0].sections[0].topicSection).toBe('project life cycle and charter purpose');
     expect(repaired.lessons[1].title).toBe('Lesson 2: project charter');
     expect(repaired.lessons[1].sections[0].topicSection).toBe('project charter');
     expect(repaired.lessons[2].title).toBe('Lesson 3: scheduling lab');
@@ -633,6 +633,73 @@ describe('1.16 — prompt artifact labels never become course-map concepts', () 
     const graph = deriveCourseGraphFromCourseMap(repair.courseMap);
     const graphAssessmentText = graph.assessments.map((assessment) => assessment.title).join(' ');
     expect(graphAssessmentText).not.toMatch(/\b(?:quick evidence check|exit ticket using|prepared response)\b/i);
+  });
+
+  it('repairs assessment-label course-title identities before they seed filenames and source concepts', () => {
+    const assessmentLabels = [
+      'Evidence check',
+      'Applied problem',
+      'Practice brief',
+      'Concept transfer',
+      'Evidence check',
+      'Applied problem',
+      'Practice brief',
+      'Concept transfer',
+      'Evidence check',
+      'Applied problem',
+      'Practice brief',
+      'Concept transfer',
+      'Evidence check',
+      'Applied problem',
+      'Practice brief',
+    ];
+    const courseMap = {
+      courseName: 'Introduction to Computer Science with Python',
+      lessons: assessmentLabels.map((label, index) => {
+        const weakIdentity = `${label}: Introduction to Computer Science with Python (7%)`;
+        return {
+          title: `Lesson ${index + 1}: ${weakIdentity}`,
+          sections: [
+            {
+              topicSection: `${index + 1}.1: ${weakIdentity}`,
+              learningGoals: `Use ${weakIdentity} to explain Python program behavior.`,
+              learningObjectives: `Explain the key ideas in ${weakIdentity} and apply them in course activities.`,
+              weeklyAssessments: `${weakIdentity} code trace: predict output and explain the state change.`,
+              asyncActivities: `Review assigned materials and prepare notes on ${weakIdentity}.`,
+              syncActivities: `Discuss examples and practice applying ${weakIdentity}.`,
+              supportingResources: `${weakIdentity} starter code and test notes.`,
+              evaluateDesign: `Check that the ${weakIdentity} activity, resource, and assessment use code evidence.`,
+            },
+          ],
+        };
+      }),
+    };
+
+    const repair = repairCourseMapReadiness({ courseMap });
+    const repairedText = JSON.stringify(repair.courseMap);
+
+    expect(repair.changed).toBe(true);
+    expect(repair.courseMap.lessons[0].title).toBe('Lesson 1: course orientation and computational thinking');
+    expect(repair.courseMap.lessons[1].title).toBe('Lesson 2: variables, expressions, and data types');
+    expect(repair.courseMap.lessons[0].sections[0].topicSection).toBe('course orientation and computational thinking');
+    expect(repair.courseMap.lessons[1].sections[0].topicSection).toBe('variables, expressions, and data types');
+    expect(repairedText).not.toMatch(
+      /\b(?:evidence check|applied problem|practice brief|concept transfer):\s*Introduction to Computer Science with Python\s*\(\s*7%\s*\)/i,
+    );
+
+    const graph = deriveCourseGraphFromCourseMap(repair.courseMap);
+    const graphIdentityText = [
+      ...graph.sessions.map((session) => session.title),
+      ...graph.concepts.map((concept) => concept.term),
+      ...graph.assessments.map((assessment) => assessment.title),
+    ].join(' ');
+
+    expect(graphIdentityText).toMatch(/course orientation and computational thinking/i);
+    expect(graphIdentityText).toMatch(/variables, expressions, and data types/i);
+    expect(graphIdentityText).not.toMatch(
+      /\b(?:evidence check|applied problem|practice brief|concept transfer):\s*Introduction to Computer Science with Python\s*\(\s*7%\s*\)/i,
+    );
+    expect(graphIdentityText).not.toMatch(/\(\s*7%\s*\)/);
   });
 
   it('keeps repaired single artifact-resource labels out of compiled Course FAQ answers', () => {

@@ -134,6 +134,8 @@ const ASSESSMENT_LABEL_COURSE_MAP_RE =
 const ASSESSMENT_WEIGHT_CUE_RE = /(?:\(\s*\d{1,3}\s*%\s*\)|\b\d{1,3}\s*%\b)/;
 const ASSESSMENT_ACTIVITY_CUE_RE =
   /\b(?:studio critique|portfolio review|prototype presentation|usability test|design journal|critique session)\b/i;
+const ASSESSMENT_LABEL_IDENTITY_REFERENCE_RE =
+  /\b(?:evidence check|quick evidence check|applied problem|practice brief|concept transfer|exit ticket|weekly assessment|practice response|assessment|quiz|exam|assignment brief|rubric)\b\s*[:—–-]\s*[^.;\n]{0,160}(?:\(\s*\d{1,3}\s*%\s*\)|\b\d{1,3}\s*%\b)/i;
 const INSTRUCTIONAL_DESIGN_COURSE_RE =
   /\b(?:instructional design|course design|curriculum design|assessment design|teacher education|teaching methods|pedagogy|education)\b/i;
 const PROMPT_ARTIFACT_EMBEDDED_COURSE_MAP_KEYS = new Set([
@@ -180,6 +182,23 @@ const UX_DESIGN_TOPIC_SEQUENCE = [
   'revision planning from critique feedback',
   'design rationale and tradeoff defense',
   'portfolio case reflection and handoff',
+];
+const COMPUTER_SCIENCE_TOPIC_SEQUENCE = [
+  'course orientation and computational thinking',
+  'variables, expressions, and data types',
+  'conditionals and boolean logic',
+  'iteration with while and for loops',
+  'functions and decomposition',
+  'lists and sequence processing',
+  'dictionaries and structured data',
+  'strings and text processing',
+  'files and exceptions',
+  'modules and libraries',
+  'testing and debugging',
+  'data analysis with Python',
+  'object-oriented programming basics',
+  'final project design and implementation',
+  'project presentation and code review',
 ];
 
 function labelFor(featureId) {
@@ -545,6 +564,10 @@ function isAssessmentLabelCourseMapIdentity(value) {
   return ASSESSMENT_WEIGHT_CUE_RE.test(candidate) || ASSESSMENT_ACTIVITY_CUE_RE.test(candidate);
 }
 
+function hasAssessmentLabelCourseMapIdentityReference(value) {
+  return ASSESSMENT_LABEL_IDENTITY_REFERENCE_RE.test(text(value));
+}
+
 function hasRepeatedShortTopicReference(value, courseMap) {
   const normalized = normalizeCourseMapTopicIdentity(value);
   if (!normalized) return false;
@@ -616,6 +639,7 @@ function isWeakCourseMapTopic(value, courseMap) {
   if (isDomainCourseTitleOnlyWeakTopic(candidate, courseMap)) return true;
   if (isCourseTitlePrefixedFallbackTopic(candidate, courseMap)) return true;
   if (isConjoinedAssessmentEventTopic(candidate)) return true;
+  if (isAssessmentLabelCourseMapIdentity(candidate)) return true;
   if (needsRepeatedShortTopicRepair(candidate, courseMap)) return true;
   if (isSentenceShapedCourseMapTopic(candidate)) return true;
   return /^(?:none|n\/a|not applicable|lesson|week|topic|block|clinical|community|health|studio|seminar|placement)$/i.test(
@@ -720,9 +744,13 @@ function getCourseMapTopic(courseMap, lesson, section, lessonIndex) {
     pickCourseMapTopic(sectionSupportingCandidates, courseMap) ||
     pickCourseMapTopic(siblingTopicCandidates, courseMap) ||
     pickCourseMapTopic(siblingSupportingCandidates, courseMap) ||
-    pickCourseMapTopic(titleCandidates, courseMap) ||
-    pickCourseMapTopic(courseCandidates, courseMap);
-  return raw || getCourseMapProgressionTopic(courseMap, lessonIndex) || `Lesson ${lessonIndex + 1}`;
+    pickCourseMapTopic(titleCandidates, courseMap);
+  return (
+    raw ||
+    getCourseMapProgressionTopic(courseMap, lessonIndex) ||
+    pickCourseMapTopic(courseCandidates, courseMap) ||
+    `Lesson ${lessonIndex + 1}`
+  );
 }
 
 function getCourseMapProgressionTopic(courseMap, lessonIndex) {
@@ -745,6 +773,9 @@ function getCourseMapProgressionTopic(courseMap, lessonIndex) {
   }
   if (UX_DESIGN_COURSE_MAP_RE.test(context)) {
     return UX_DESIGN_TOPIC_SEQUENCE[lessonIndex % UX_DESIGN_TOPIC_SEQUENCE.length];
+  }
+  if (COMPUTER_SCIENCE_COURSE_MAP_RE.test(context)) {
+    return COMPUTER_SCIENCE_TOPIC_SEQUENCE[lessonIndex % COMPUTER_SCIENCE_TOPIC_SEQUENCE.length];
   }
   return '';
 }
@@ -1364,6 +1395,21 @@ export function repairCourseMapReadiness({ courseMap, columns = [], lessonFilter
         };
         repairedFields.push(
           `Lesson ${lessonIndex + 1}, Section ${sectionIndex + 1} ${columnLabel(columns, key)} (assessment scaffold)`,
+        );
+        sectionsChanged = true;
+        changed = true;
+      }
+      // Assessment-registry labels with grade weights are valid assessment
+      // metadata, but they are not lesson topics. When they appear inside
+      // Course Map cells, they seed bad filenames and source concept links.
+      for (const key of columnsToNormalize) {
+        if (!hasAssessmentLabelCourseMapIdentityReference(nextSection?.[key])) continue;
+        nextSection = {
+          ...nextSection,
+          [key]: getCourseMapFallbackValue(key, courseMap, nextLesson, nextSection, lessonIndex),
+        };
+        repairedFields.push(
+          `Lesson ${lessonIndex + 1}, Section ${sectionIndex + 1} ${columnLabel(columns, key)} (assessment identity)`,
         );
         sectionsChanged = true;
         changed = true;

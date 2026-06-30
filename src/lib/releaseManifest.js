@@ -3,24 +3,24 @@ import { APP_VERSION } from './appVersion.js';
 export const CURRENT_RELEASE = {
   version: APP_VERSION,
   date: 'June 30, 2026',
-  title: 'Assessment Scaffold Repair: generic checks rotate before export',
-  landingTitle: 'Assessment Scaffold Repair',
+  title: 'Assessment Identity Repair: labels no longer seed lesson topics',
+  landingTitle: 'Assessment Identity Repair',
   highlights: [
-    'Recent Python course-output evidence showed generic assessment scaffolds such as `Quick evidence check`, `Exit ticket using...`, and `Practice response that names...` can look complete enough to bypass blank-cell repair.',
-    'Course Map readiness now repairs weekly-assessment scaffold phrases after prompt-artifact cleanup and before graph/export derivation, preserving lesson-topic inference while removing the repeated scaffold text.',
-    'Computer Science/Python weekly-assessment fallback rotation now includes code trace, mini-program, debugging note, implementation choice, peer review, and transfer-check variants.',
-    'The focused regression uses the exact repeated GPT-style assessment output and proves both repaired Course Map cells and derived graph assessment titles stay free of the generic scaffolds.',
-    'This release does not claim a new provider score; the next proof step is a fresh deployed v0.15.162 GPT-5.4-mini ZIP/log audit that also verifies the v0.15.161 download-path fix.',
+    'Fresh deployed v0.15.162 GPT-5.4-mini Python evidence exported a ZIP and locally regraded at 97/A; the remaining P1 was assessment labels and `(7%)` weights being used as lesson identities, filenames, and source concept links.',
+    'Course Map topic selection now treats assessment labels with grade weights as weak identities and falls through to domain progression instead of reusing labels such as `Evidence check: Introduction to Computer Science with Python (7%)`.',
+    'Computer Science/Python maps now have a 15-lesson progression fallback, so repaired weak topics land on concrete programming concepts such as variables, conditionals, loops, functions, files, testing, and projects.',
+    'Readiness repair now catches embedded assessment-label identities inside complete-looking Course Map cells before they seed graph sessions, concepts, assessments, package filenames, or source-ledger concept links.',
+    'The focused regression uses the exact v0.15.162 failure shape and proves repaired Course Map cells plus derived graph identities stay free of assessment labels and grade-weight leakage.',
   ],
   landingHighlights: [
-    'Generic assessment checks are repaired before export.',
-    'Python repairs rotate across code trace, debug, peer review, and transfer tasks.',
-    'Course graph assessment titles inherit the repaired text.',
+    'Assessment labels with weights are rejected as lesson topics.',
+    'Python fallback topics now progress across a full semester.',
+    'Embedded label/weight leakage is repaired before export.',
     'Fresh provider proof is still required after deploy.',
   ],
   proof: {
-    contract: 'release-contracts/v0.15.162.json',
-    roadmap: 'docs/V0.15.162_ASSESSMENT_SCAFFOLD_REPAIR_ROADMAP.md',
+    contract: 'release-contracts/v0.15.163.json',
+    roadmap: 'docs/V0.15.163_ASSESSMENT_IDENTITY_REPAIR_ROADMAP.md',
     auditCommand: 'npm run audit:release-history',
   },
 };
@@ -35,6 +35,18 @@ export const CURRENT_RELEASE_CHANGELOG = {
 };
 
 export const HISTORICAL_RELEASE_CHANGELOGS = [
+  {
+    version: '0.15.162',
+    date: 'June 30, 2026',
+    title: 'Assessment Scaffold Repair: generic checks rotate before export',
+    highlights: [
+      'Recent Python course-output evidence showed generic assessment scaffolds such as `Quick evidence check`, `Exit ticket using...`, and `Practice response that names...` can look complete enough to bypass blank-cell repair.',
+      'Course Map readiness now repairs weekly-assessment scaffold phrases after prompt-artifact cleanup and before graph/export derivation, preserving lesson-topic inference while removing the repeated scaffold text.',
+      'Computer Science/Python weekly-assessment fallback rotation now includes code trace, mini-program, debugging note, implementation choice, peer review, and transfer-check variants.',
+      'The focused regression uses the exact repeated GPT-style assessment output and proves both repaired Course Map cells and derived graph assessment titles stay free of the generic scaffolds.',
+      'Fresh deployed v0.15.162 proof later found a different identity leak: assessment labels with grade weights could still become lesson/file/source concept identities.',
+    ],
+  },
   {
     version: '0.15.161',
     date: 'June 30, 2026',
