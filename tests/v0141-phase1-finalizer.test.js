@@ -581,6 +581,60 @@ describe('1.16 — prompt artifact labels never become course-map concepts', () 
     expect(repairedText).not.toMatch(/\bSession\s+\d+\b/i);
   });
 
+  it('repairs repeated Python assessment scaffolds before course graph export', () => {
+    const topics = [
+      ['variables and data types', 'Quick evidence check: apply variables and data types to a new example.'],
+      ['conditionals', 'Exit ticket using conditionals to justify one course-relevant decision.'],
+      ['loops', 'Practice response that names loops, checklist, and prepared response.'],
+      ['functions', 'Quick evidence check: apply functions to a new example.'],
+      ['lists', 'Exit ticket using lists to justify one course-relevant decision.'],
+      ['dictionaries', 'Quick evidence check: apply dictionaries to a new example.'],
+    ];
+    const courseMap = {
+      courseName: 'Introduction to Computer Science with Python',
+      lessons: topics.map(([topic, weeklyAssessments], index) => ({
+        title: `Lesson ${index + 1}: ${topic}`,
+        sections: [
+          {
+            topicSection: `${index + 1}.1: ${topic}`,
+            learningGoals: `Use ${topic} to explain Python program behavior.`,
+            learningObjectives: `Write or revise short Python code that uses ${topic}.`,
+            weeklyAssessments,
+            asyncActivities: `Trace a short Python example for ${topic}.`,
+            syncActivities: `Debug a short ${topic} example in pairs.`,
+            supportingResources: `${topic} starter code and test notes.`,
+            evaluateDesign: `Check that ${topic} practice asks for code evidence.`,
+          },
+        ],
+      })),
+    };
+
+    const repair = repairCourseMapReadiness({ courseMap });
+    const repairedAssessments = repair.courseMap.lessons
+      .flatMap((lesson) => lesson.sections)
+      .map((section) => section.weeklyAssessments)
+      .join(' ');
+
+    expect(repair.changed).toBe(true);
+    expect(repair.repairedFields).toEqual(
+      expect.arrayContaining(
+        topics.map((_, index) => `Lesson ${index + 1}, Section 1 Weekly Assessments (assessment scaffold)`),
+      ),
+    );
+    expect(repairedAssessments).toMatch(/code trace/i);
+    expect(repairedAssessments).toMatch(/mini-program/i);
+    expect(repairedAssessments).toMatch(/debugging note/i);
+    expect(repairedAssessments).toMatch(/peer review/i);
+    expect(repairedAssessments).toMatch(/transfer check/i);
+    expect(repairedAssessments).not.toMatch(
+      /\b(?:quick evidence check|exit ticket using|apply\b[^.?!\n]{0,120}\bto a new example|prepared response|course-relevant decision)\b/i,
+    );
+
+    const graph = deriveCourseGraphFromCourseMap(repair.courseMap);
+    const graphAssessmentText = graph.assessments.map((assessment) => assessment.title).join(' ');
+    expect(graphAssessmentText).not.toMatch(/\b(?:quick evidence check|exit ticket using|prepared response)\b/i);
+  });
+
   it('keeps repaired single artifact-resource labels out of compiled Course FAQ answers', () => {
     const courseMap = {
       courseName: 'Genetics and Society',

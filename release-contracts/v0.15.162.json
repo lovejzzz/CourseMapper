@@ -1,0 +1,97 @@
+{
+  "version": "0.15.162",
+  "date": "June 30, 2026",
+  "title": "Assessment Scaffold Repair: generic checks rotate before export",
+  "status": "verified-current",
+  "proofSummary": {
+    "local": [
+      "npx vitest run tests/v0141-phase1-finalizer.test.js",
+      "npx vitest run tests/v0141-phase1-finalizer.test.js tests/v0155-release-truth-ledger.test.js",
+      "npm run audit:release-history"
+    ],
+    "ciFast": {
+      "status": "pending-push",
+      "note": "Fast verification is claimed only after v0.15.162 is pushed and the GitHub Actions run is attached."
+    },
+    "deploy": {
+      "status": "pending-push",
+      "note": "Pages deploy is not claimed until the pushed v0.15.162 release completes its deploy run."
+    },
+    "ciDeep": {
+      "status": "local-only",
+      "note": "This is a narrow Course Map readiness repair; focused coverage plus normal gates are the release bar."
+    },
+    "liveProvider": {
+      "status": "not-current",
+      "note": "Fresh v0.15.162 provider ZIP/log proof is still required after deploy."
+    },
+    "manualHuman": {
+      "status": "not-applicable",
+      "note": "No external instructor approval is claimed by this release."
+    }
+  },
+  "claims": [
+    {
+      "id": "v015162-assessment-scaffold-evidence",
+      "status": "verified-current",
+      "changelogHighlightIndex": 0,
+      "summary": "The release is grounded in Python course-output evidence where generic assessment scaffolds survived complete-looking Course Map cells.",
+      "anchors": ["docs/V0.15.162_ASSESSMENT_SCAFFOLD_REPAIR_ROADMAP.md"],
+      "proofCommands": [
+        "rg -n \"Quick evidence check|Exit ticket using|Practice response that names\" docs/V0.15.162_ASSESSMENT_SCAFFOLD_REPAIR_ROADMAP.md"
+      ],
+      "proofScopes": ["static-audit"]
+    },
+    {
+      "id": "v015162-readiness-repair-order",
+      "status": "verified-current",
+      "changelogHighlightIndex": 1,
+      "summary": "The readiness pass repairs scaffolded weekly assessments after prompt-artifact cleanup and before graph/export derivation.",
+      "anchors": ["src/lib/deliverableReadiness.js", "tests/v0141-phase1-finalizer.test.js"],
+      "proofCommands": [
+        "npx vitest run tests/v0141-phase1-finalizer.test.js",
+        "rg -n \"needsGenericAssessmentScaffoldRepair|assessment scaffold|prompt-artifact cleanup\" src/lib/deliverableReadiness.js tests/v0141-phase1-finalizer.test.js"
+      ],
+      "proofScopes": ["unit", "static-audit"]
+    },
+    {
+      "id": "v015162-python-assessment-rotation",
+      "status": "verified-current",
+      "changelogHighlightIndex": 2,
+      "summary": "Computer Science/Python weekly assessment fallbacks rotate through code trace, mini-program, debugging, implementation, peer-review, and transfer-check variants.",
+      "anchors": ["src/lib/deliverableReadiness.js", "tests/v0141-phase1-finalizer.test.js"],
+      "proofCommands": [
+        "rg -n \"code trace|mini-program|debugging note|peer review|transfer check\" src/lib/deliverableReadiness.js tests/v0141-phase1-finalizer.test.js"
+      ],
+      "proofScopes": ["static-audit"]
+    },
+    {
+      "id": "v015162-graph-export-regression",
+      "status": "verified-current",
+      "changelogHighlightIndex": 3,
+      "summary": "The regression asserts repaired Course Map cells and derived graph assessment titles no longer contain the generic scaffold phrases.",
+      "anchors": ["tests/v0141-phase1-finalizer.test.js"],
+      "proofCommands": [
+        "npx vitest run tests/v0141-phase1-finalizer.test.js",
+        "rg -n \"repairs repeated Python assessment scaffolds|deriveCourseGraphFromCourseMap\" tests/v0141-phase1-finalizer.test.js"
+      ],
+      "proofScopes": ["unit", "static-audit"]
+    },
+    {
+      "id": "v015162-no-provider-score-claim",
+      "status": "verified-current",
+      "changelogHighlightIndex": 4,
+      "summary": "The release explicitly defers provider-score claims until a fresh deployed v0.15.162 GPT-5.4-mini ZIP/log audit exists.",
+      "anchors": ["src/lib/releaseManifest.js", "docs/V0.15.162_ASSESSMENT_SCAFFOLD_REPAIR_ROADMAP.md"],
+      "proofCommands": [
+        "rg -n \"does not claim a new provider score|may not claim a new deployed provider score|fresh deployed v0.15.162 GPT-5.4-mini\" src/lib/releaseManifest.js docs/V0.15.162_ASSESSMENT_SCAFFOLD_REPAIR_ROADMAP.md"
+      ],
+      "proofScopes": ["static-audit"]
+    }
+  ],
+  "knownRemainingTargets": [
+    "Fresh deployed v0.15.162 GPT-5.4-mini ZIP/log proof must confirm the scaffold repair in real provider output.",
+    "The same fresh audit should verify the v0.15.161 Download ZIP stability fix creates a ZIP without a Page Unresponsive dialog.",
+    "Source-truth edge cases and export/report canonical summary agreement remain priority lanes when fresh evidence shows mismatches."
+  ]
+}

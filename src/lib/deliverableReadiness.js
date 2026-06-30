@@ -760,6 +760,10 @@ const COMPUTER_SCIENCE_COURSE_MAP_RE =
 
 const GENERIC_COURSE_MAP_FALLBACK_RE =
   /\b(?:course problem|course applications|next assessment|quick evidence check|exit ticket using|practice response|review assigned materials|prepare notes|new example|observe, label, calculate, or decide|course task or example|course activities|evidence of learning|lab materials|discipline-specific tools)\b/i;
+const GENERIC_ASSESSMENT_SCAFFOLD_RE =
+  /\b(?:quick evidence check|exit ticket using|practice response(?:\s+that\s+names)?|prepared response)\b/i;
+const GENERIC_ASSESSMENT_NEW_EXAMPLE_RE = /\bapply\b[^.?!\n]{0,120}\bto a new example\b/i;
+const GENERIC_ASSESSMENT_COURSE_DECISION_RE = /\busing\b[^.?!\n]{0,120}\bto justify one course-relevant decision\b/i;
 
 function inferCourseMapFallbackProfile(courseMap, lesson, section) {
   const sections = Array.isArray(lesson?.sections) && lesson.sections.length > 0 ? lesson.sections : [section || {}];
@@ -965,6 +969,8 @@ function getComputerScienceCourseMapFallbacks(topic, pick) {
       `${displayTopic} mini-program with one required test case and one edge case.`,
       `${displayTopic} debugging note that identifies the bug, fix, and evidence from a run.`,
       `${displayTopic} programming prompt asking students to choose and justify an implementation.`,
+      `${displayTopic} peer review: run a partner's example and note one test result.`,
+      `${displayTopic} transfer check: adapt the code pattern to a new input or edge case.`,
     ]),
     asyncActivities: pick([
       `Trace a short Python example for ${topic} and note the inputs, variables, and output.`,
@@ -1094,6 +1100,17 @@ function isShortCourseMapListCell(value) {
     const words = part.split(/\s+/).filter(Boolean);
     return words.length <= 6 && !/[.?!:]$/.test(part);
   });
+}
+
+function needsGenericAssessmentScaffoldRepair(key, value) {
+  if (key !== 'weeklyAssessments') return false;
+  const raw = text(value);
+  if (!raw) return false;
+  return (
+    GENERIC_ASSESSMENT_SCAFFOLD_RE.test(raw) ||
+    GENERIC_ASSESSMENT_NEW_EXAMPLE_RE.test(raw) ||
+    GENERIC_ASSESSMENT_COURSE_DECISION_RE.test(raw)
+  );
 }
 
 function needsCourseMapSemanticRepair(key, value, courseMap, lesson, section) {
@@ -1330,6 +1347,23 @@ export function repairCourseMapReadiness({ courseMap, columns = [], lessonFilter
         };
         repairedFields.push(
           `Lesson ${lessonIndex + 1}, Section ${sectionIndex + 1} ${columnLabel(columns, key)} (prompt artifact)`,
+        );
+        sectionsChanged = true;
+        changed = true;
+      }
+      // Generic assessment scaffolds can look complete enough to bypass blank
+      // repair, then seed repeated "quick evidence" or "exit ticket using"
+      // titles into every exported material. Repair them after prompt-artifact
+      // cleanup so topic inference still uses the lesson concept, not the
+      // scaffold sentence.
+      for (const key of columnsToNormalize) {
+        if (!needsGenericAssessmentScaffoldRepair(key, nextSection?.[key])) continue;
+        nextSection = {
+          ...nextSection,
+          [key]: getCourseMapFallbackValue(key, courseMap, nextLesson, nextSection, lessonIndex),
+        };
+        repairedFields.push(
+          `Lesson ${lessonIndex + 1}, Section ${sectionIndex + 1} ${columnLabel(columns, key)} (assessment scaffold)`,
         );
         sectionsChanged = true;
         changed = true;

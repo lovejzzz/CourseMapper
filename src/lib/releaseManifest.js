@@ -3,24 +3,24 @@ import { APP_VERSION } from './appVersion.js';
 export const CURRENT_RELEASE = {
   version: APP_VERSION,
   date: 'June 30, 2026',
-  title: 'Download ZIP Path: reuse finish grade and avoid double compression',
-  landingTitle: 'Download ZIP Stability',
+  title: 'Assessment Scaffold Repair: generic checks rotate before export',
+  landingTitle: 'Assessment Scaffold Repair',
   highlights: [
-    'Fresh deployed v0.15.160 GPT-5.4-mini evidence reached visible Quality 100/A with Texture 95 and zero digest blockers, warnings, retries, or export-verifier failures.',
-    'The same run exposed a real user-facing export defect: clicking either Download ZIP button made the Course Mapper tab unresponsive and did not create a new ZIP in Downloads.',
-    'The package download path now reuses the completed finish-pass quality result in `PACKAGE_MANIFEST.json` and `QUALITY_REPORT.md` instead of re-running the deep grader on the click.',
-    'The outer course-materials ZIP now stores already-compressed Office files without DEFLATE recompression, removing wasted browser CPU while leaving document bytes and local regrade standards unchanged.',
-    'Routine provider proof should stay on GPT-5.4-mini for cost efficiency; GPT-5.5-pro is reserved for occasional controlled model-comparison checks.',
+    'Recent Python course-output evidence showed generic assessment scaffolds such as `Quick evidence check`, `Exit ticket using...`, and `Practice response that names...` can look complete enough to bypass blank-cell repair.',
+    'Course Map readiness now repairs weekly-assessment scaffold phrases after prompt-artifact cleanup and before graph/export derivation, preserving lesson-topic inference while removing the repeated scaffold text.',
+    'Computer Science/Python weekly-assessment fallback rotation now includes code trace, mini-program, debugging note, implementation choice, peer review, and transfer-check variants.',
+    'The focused regression uses the exact repeated GPT-style assessment output and proves both repaired Course Map cells and derived graph assessment titles stay free of the generic scaffolds.',
+    'This release does not claim a new provider score; the next proof step is a fresh deployed v0.15.162 GPT-5.4-mini ZIP/log audit that also verifies the v0.15.161 download-path fix.',
   ],
   landingHighlights: [
-    'Download ZIP no longer re-runs the finish grader.',
-    'ZIP assembly avoids double-compressing Office files.',
-    'Quality reports still carry the verified finish-pass result.',
-    'GPT-5.4-mini remains the routine audit model.',
+    'Generic assessment checks are repaired before export.',
+    'Python repairs rotate across code trace, debug, peer review, and transfer tasks.',
+    'Course graph assessment titles inherit the repaired text.',
+    'Fresh provider proof is still required after deploy.',
   ],
   proof: {
-    contract: 'release-contracts/v0.15.161.json',
-    roadmap: 'docs/V0.15.161_DOWNLOAD_ZIP_STABILITY_ROADMAP.md',
+    contract: 'release-contracts/v0.15.162.json',
+    roadmap: 'docs/V0.15.162_ASSESSMENT_SCAFFOLD_REPAIR_ROADMAP.md',
     auditCommand: 'npm run audit:release-history',
   },
 };
@@ -35,6 +35,18 @@ export const CURRENT_RELEASE_CHANGELOG = {
 };
 
 export const HISTORICAL_RELEASE_CHANGELOGS = [
+  {
+    version: '0.15.161',
+    date: 'June 30, 2026',
+    title: 'Download ZIP Path: reuse finish grade and avoid double compression',
+    highlights: [
+      'Fresh deployed v0.15.160 GPT-5.4-mini evidence reached visible Quality 100/A with Texture 95 and zero digest blockers, warnings, retries, or export-verifier failures.',
+      'The same run exposed a real user-facing export defect: clicking either Download ZIP button made the Course Mapper tab unresponsive and did not create a new ZIP in Downloads.',
+      'The package download path now reuses the completed finish-pass quality result in `PACKAGE_MANIFEST.json` and `QUALITY_REPORT.md` instead of re-running the deep grader on the click.',
+      'The outer course-materials ZIP now stores already-compressed Office files without DEFLATE recompression, removing wasted browser CPU while leaving document bytes and local regrade standards unchanged.',
+      'Routine provider proof should stay on GPT-5.4-mini for cost efficiency; GPT-5.5-pro is reserved for occasional controlled model-comparison checks.',
+    ],
+  },
   {
     version: '0.15.160',
     date: 'June 30, 2026',
