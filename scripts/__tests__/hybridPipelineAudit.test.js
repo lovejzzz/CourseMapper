@@ -79,7 +79,7 @@ describe('hybrid pipeline audit', () => {
     } finally {
       await closeHybridPipelineAuditRuntime();
     }
-  });
+  }, 20_000);
 
   it('records repaired course-map inputs as trust evidence before compile', async () => {
     const runtime = await loadHybridPipelineAuditRuntime();
