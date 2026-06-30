@@ -1,0 +1,116 @@
+{
+  "version": "0.15.144",
+  "date": "June 30, 2026",
+  "title": "Export Truth: internal source-grounding language blocks before download",
+  "status": "verified-current",
+  "proofSummary": {
+    "local": [
+      "npm run test -- src/lib/__tests__/kernelProjection.test.js src/lib/__tests__/packageExportVerifier.test.js src/components/__tests__/ExportSidePanel.readiness.test.jsx tests/lib/exportQualityAudit.test.js"
+    ],
+    "ciFast": {
+      "status": "pending-push",
+      "note": "Fast verification is claimed only after v0.15.144 is pushed and the GitHub Actions run is attached."
+    },
+    "deploy": {
+      "status": "pending-push",
+      "note": "Pages deploy is not claimed until the pushed v0.15.144 release completes its deploy run."
+    },
+    "ciDeep": {
+      "status": "local-only",
+      "note": "This is a narrow export-language and export-button truth repair; focused coverage plus normal gates are the release bar."
+    },
+    "liveProvider": {
+      "status": "not-current",
+      "note": "The release is based on a fresh deployed v0.15.143 provider run that blocked before ZIP export. A fresh deployed v0.15.144 run is required before claiming clean provider output."
+    },
+    "manualHuman": {
+      "status": "not-applicable",
+      "note": "No external instructor approval is claimed by this release."
+    }
+  },
+  "claims": [
+    {
+      "id": "v015144-v015143-blocked-export-evidence",
+      "status": "verified-current",
+      "changelogHighlightIndex": 0,
+      "summary": "Fresh deployed v0.15.143 evidence recorded finalStatus blocked, export verification failed on 1 of 38 checks, quality not graded, and no new ZIP captured.",
+      "anchors": [
+        "verification-output/edutool-audit-loop/20260630T023845Z-v015143-fresh/report.md",
+        "verification-output/edutool-audit-loop/20260630T023845Z-v015143-fresh/digest.json"
+      ],
+      "proofCommands": [
+        "rg -n \"finalStatus blocked|export verification failed|quality stayed not-graded|No ZIP\" verification-output/edutool-audit-loop/20260630T023845Z-v015143-fresh/report.md",
+        "rg -n '\"finalStatus\": \"blocked\"|\"exportStatus\": \"failed\"|\"exportFailed\": 1|\"qualityStatus\": \"not-graded\"' verification-output/edutool-audit-loop/20260630T023845Z-v015143-fresh/digest.json"
+      ],
+      "proofScopes": ["live-provider", "static-audit"]
+    },
+    {
+      "id": "v015144-internal-source-grounding-blocker",
+      "status": "verified-current",
+      "changelogHighlightIndex": 1,
+      "summary": "The v0.15.143 export blocker was the internal source-grounding phrase in Quiz Bank DOCX XML.",
+      "anchors": [
+        "verification-output/edutool-audit-loop/20260630T023845Z-v015143-fresh/digest.json",
+        "src/lib/exportTextInspector.js"
+      ],
+      "proofCommands": [
+        "rg -n \"source grounding\" verification-output/edutool-audit-loop/20260630T023845Z-v015143-fresh/digest.json src/lib/exportTextInspector.js"
+      ],
+      "proofScopes": ["live-provider", "static-audit"]
+    },
+    {
+      "id": "v015144-public-export-language-cleanup",
+      "status": "verified-current",
+      "changelogHighlightIndex": 2,
+      "summary": "Quiz Bank essay guidance and adaptive fallback policy no longer emit source-grounding terminology on public export paths.",
+      "anchors": [
+        "src/lib/kernelProjection.js",
+        "src/lib/courseBlueprintCompiler.js",
+        "src/lib/__tests__/kernelProjection.test.js"
+      ],
+      "proofCommands": [
+        "rg -n \"course evidence|source evidence checks\" src/lib/kernelProjection.js src/lib/courseBlueprintCompiler.js",
+        "rg -n \"not.toMatch\\(/source grounding/i\\)\" src/lib/__tests__/kernelProjection.test.js"
+      ],
+      "proofScopes": ["unit", "static-audit"]
+    },
+    {
+      "id": "v015144-export-failure-trust-blocker",
+      "status": "verified-current",
+      "changelogHighlightIndex": 3,
+      "summary": "Export-failed receipts now become shared trust-model blocker issues with feature labels.",
+      "anchors": [
+        "src/lib/packageTrustStatus.js",
+        "src/components/ExportSidePanel.jsx",
+        "src/components/__tests__/ExportSidePanel.readiness.test.jsx"
+      ],
+      "proofCommands": [
+        "rg -n \"buildExportFailureIssue|exportFailureIssue|criticalIssueCount\" src/lib/packageTrustStatus.js src/components/ExportSidePanel.jsx",
+        "rg -n \"blocks ZIP download when the finish receipt records an export verification failure\" src/components/__tests__/ExportSidePanel.readiness.test.jsx"
+      ],
+      "proofScopes": ["unit", "static-audit"]
+    },
+    {
+      "id": "v015144-export-failed-zip-guard",
+      "status": "verified-current",
+      "changelogHighlightIndex": 4,
+      "summary": "The Package ZIP button and workspace header CTA respect export-failed receipts without weakening amber downloadable review-note packages.",
+      "anchors": [
+        "src/components/ExportSidePanel.jsx",
+        "src/AppFlow.jsx",
+        "src/components/__tests__/ExportSidePanel.readiness.test.jsx"
+      ],
+      "proofCommands": [
+        "rg -n \"hasPackageExportFailure|zipHasExportFailure|packageTrustStatus.canDownload\" src/components/ExportSidePanel.jsx src/AppFlow.jsx",
+        "npm run test -- src/components/__tests__/ExportSidePanel.readiness.test.jsx"
+      ],
+      "proofScopes": ["unit"]
+    }
+  ],
+  "knownRemainingTargets": [
+    "A fresh deployed v0.15.144 ZIP/log audit must prove the internal-language blocker is gone in real provider output.",
+    "Because v0.15.143 did not export a ZIP, source-ledger rows, SOURCE_REPORT.md, and local deep regrade could not be fully audited for that run.",
+    "Texture is still considered incomplete until a fresh package reaches 100/100 texture with no hidden repeated-shingle caveat.",
+    "Source rows must remain real, trusted, on-topic, license-safe, and concept-linked across UX and Project Management domains."
+  ]
+}

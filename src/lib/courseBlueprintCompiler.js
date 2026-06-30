@@ -1602,7 +1602,7 @@ function buildAdaptiveRepairPlan(blueprint = {}, { mode = 'deterministic' } = {}
     escalationPolicy:
       repairRows.length > 0
         ? 'Ask the instructor or instructional designer to confirm the listed rows before export-ready classroom use.'
-        : 'Use deterministic compile with instructor spot-check; optional enrichment may polish phrasing only after source grounding passes.',
+        : 'Use deterministic compile with instructor spot-check; optional enrichment may polish phrasing only after source evidence checks pass.',
     modelFallbackPolicy: {
       status: 'not-used-for-blueprint-compiled-core',
       allowedAfter: [

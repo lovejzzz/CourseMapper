@@ -68,6 +68,21 @@ export function buildExportWarningIssues(packageReceipt, featureLabels = {}) {
   ];
 }
 
+export function buildExportFailureIssue(packageReceipt, featureLabels = {}) {
+  const failedCount = compactCount(packageReceipt?.exportFailed);
+  const exportStatus = String(packageReceipt?.exportStatus || '').toLowerCase();
+  if (failedCount <= 0 && exportStatus !== 'failed') return null;
+  const failures = Array.isArray(packageReceipt?.exportFailures) ? packageReceipt.exportFailures : [];
+  const firstFailure = failures.find((failure) => failure?.message || failure?.featureId) || null;
+  return {
+    label: firstFailure?.label || featureLabels[firstFailure?.featureId] || 'Export check',
+    message: `${plural(Math.max(1, failedCount), 'export issue')} must be fixed before the ZIP is available.`,
+    detail: firstFailure?.message || packageReceipt?.exportFailure || '',
+    count: Math.max(1, failedCount),
+    severity: 'blocker',
+  };
+}
+
 function buildSourceLedgerIssues(packageReceipt) {
   const issues = [];
   const fields = [
@@ -132,13 +147,14 @@ export function getPackageTrustStatus({
   const packageQuality = quality || packageQualityPass?.quality || null;
   const qualityIssue = buildQualityReviewIssue(packageQuality);
   const qualityProofIssue = qualityIssue ? null : buildQualityProofIssue(packageQuality, finishStatus);
+  const exportFailureIssue = buildExportFailureIssue(packageReceipt, featureLabels);
   const exportIssues = buildExportWarningIssues(packageReceipt, featureLabels);
   const sourceIssues = buildSourceLedgerIssues(packageReceipt);
   const readinessBlockers = Array.isArray(readiness?.blockers) ? readiness.blockers : [];
   const readinessWarnings = Array.isArray(readiness?.warnings) ? readiness.warnings : [];
   const packageBlockerCount = compactCount(packageQualityPass?.blockers);
   const packageWarningCount = compactCount(packageQualityPass?.warnings);
-  const exportFailedCount = compactCount(packageReceipt?.exportFailed);
+  const exportFailedCount = exportFailureIssue ? exportFailureIssue.count : compactCount(packageReceipt?.exportFailed);
   const qualityBlockerCount = qualityIssue?.severity === 'blocker' ? Math.max(1, qualityIssue.count) : 0;
   const qualityWarningCount =
     qualityIssue && qualityIssue.severity !== 'blocker' ? Math.max(1, qualityIssue.count) : qualityProofIssue ? 1 : 0;
@@ -172,9 +188,12 @@ export function getPackageTrustStatus({
     canDownload,
     qualityIssue,
     qualityProofIssue,
+    exportFailureIssue,
     exportIssues,
     sourceIssues,
-    reviewIssues: [qualityIssue || qualityProofIssue, ...exportIssues, ...sourceIssues].filter(Boolean),
+    reviewIssues: [qualityIssue || qualityProofIssue, exportFailureIssue, ...exportIssues, ...sourceIssues].filter(
+      Boolean,
+    ),
     blockerCount,
     warningCount,
     reviewMeta: summarizePackageReviewMeta({

@@ -364,7 +364,7 @@ function buildEssayItem(kernel, index, seed = 0) {
     `Look for a clear position, at least one opposing view${counterposition}, and evidence for each major claim. Responses that restate the prompt without taking a stand need revision.`,
     `Score the essay by tracing claim, counterclaim, evidence, and conclusion; unsupported position statements should not receive full credit.`,
     `High-scoring essays identify the strongest opposing view${counterposition}, answer it with course evidence, and make the final judgment explicit.`,
-    `Use the rubric to check position, counterposition, evidence quality, and conclusion; broad opinion without source grounding remains incomplete.`,
+    `Use the rubric to check position, counterposition, evidence quality, and conclusion; broad opinion without course evidence remains incomplete.`,
   ]);
   return {
     index,

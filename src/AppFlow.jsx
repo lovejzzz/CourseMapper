@@ -93,6 +93,7 @@ import { buildCompactPackageTrustReceipt, buildPackageTrustBoundarySummary } fro
 import { getChunkCount } from './lib/parallelGenerator';
 import { buildHumanReviewRecommendation, summarizeRepairEvidence } from './lib/packageTrust';
 import { traceLog } from './lib/traceLog';
+import { getPackageTrustStatus } from './lib/packageTrustStatus';
 import {
   attachEnrichmentToGraph,
   courseGraphStats,
@@ -2711,7 +2712,8 @@ export default function AppFlow({ startupAction = null, onStartupHandled, onRetu
     // v0.14.7 WS-G3: an executing sync owns the ribbon narrative.
     sync: { isSyncing: smartSync.isSyncing, pendingCount: smartSync.pendingSyncCount },
   });
-  const packageReady = packageQualityPass?.status === 'ready';
+  const packageTrustStatus = getPackageTrustStatus({ packageQualityPass });
+  const packageReady = packageTrustStatus.canDownload;
   const workspaceCourseTitle =
     String(courseMap?.courseName || '').trim() ||
     String(promptText || '')
@@ -2866,7 +2868,7 @@ export default function AppFlow({ startupAction = null, onStartupHandled, onRetu
                 <PrimaryCta
                   ribbonModel={buildRibbonModel}
                   reviewCount={outstandingReview.counts.headline}
-                  canDownload={packageQualityPass?.status === 'ready'}
+                  canDownload={packageTrustStatus.canDownload}
                   onDownload={() => window.dispatchEvent(new CustomEvent('coursemapper:request-zip-download'))}
                   onReview={() => handleReviewQueueOpenChange(true)}
                 />

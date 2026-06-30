@@ -264,6 +264,7 @@ describe('projectKernelToSurfaces', () => {
     expect(allText).not.toMatch(/concept recall without evidence stays below/i);
     expect(allText).not.toMatch(/use the assigned evidence rather than general opinion/i);
     expect(allText).not.toMatch(/answer keeps the claim honest by naming a plausible limit/i);
+    expect(allText).not.toMatch(/source grounding/i);
   });
 
   it('omits short-answer and essay frames when their kernel atoms are missing', () => {

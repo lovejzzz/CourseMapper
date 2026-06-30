@@ -313,6 +313,12 @@ function hasFinishedPackageReceipt(packageQualityPass) {
   return isPackageBlocked(packageQualityPass) && Boolean(packageQualityPass?.quality || packageQualityPass?.receipt);
 }
 
+function hasPackageExportFailure(packageQualityPass) {
+  const receipt = packageQualityPass?.receipt || {};
+  const failed = Number(receipt.exportFailed || 0);
+  return (Number.isFinite(failed) && failed > 0) || String(receipt.exportStatus || '').toLowerCase() === 'failed';
+}
+
 function ReadinessPanel({
   readiness,
   onIssueClick,
@@ -331,13 +337,16 @@ function ReadinessPanel({
     packageQualityPass: { status: 'ready', quality, receipt: packageReceipt },
     featureLabels: FEATURE_LABELS,
   });
-  const qualityIssue = trustStatus.qualityIssue;
   const packageReviewIssues = trustStatus.reviewIssues;
+  const packageBlockerIssues = packageReviewIssues.filter((issue) => issue?.severity === 'blocker');
   const isBlocked = readiness.blockers.length > 0 || trustStatus.blocked;
   const hasWarnings = readiness.warnings.length > 0 || trustStatus.review || packageReviewIssues.length > 0;
-  const issuesToShow = isBlocked
-    ? [...readiness.blockers, ...(qualityIssue?.severity === 'blocker' ? [qualityIssue] : [])].slice(0, 3)
-    : [];
+  const issuesToShow = isBlocked ? [...readiness.blockers, ...packageBlockerIssues].slice(0, 3) : [];
+  const criticalIssueCount = Math.max(
+    isBlocked ? 1 : 0,
+    readiness.blockers.length +
+      packageBlockerIssues.reduce((total, issue) => total + Math.max(1, Number(issue?.count) || 1), 0),
+  );
   const hasPackageOnlyReview = packageReviewIssues.length > 0 && readiness.warnings.length === 0;
   const helperText = isBlocked
     ? 'Finish package fixes safe items and stops for decisions.'
@@ -349,7 +358,7 @@ function ReadinessPanel({
         wrap: 'border-red-100 bg-red-50/70 text-red-700',
         icon: 'bg-red-100 text-red-600',
         title: 'Finish package',
-        meta: `${readiness.blockers.length} critical issue${readiness.blockers.length === 1 ? '' : 's'}`,
+        meta: `${criticalIssueCount} critical issue${criticalIssueCount === 1 ? '' : 's'}`,
       }
     : hasWarnings
       ? {
@@ -1228,14 +1237,19 @@ export default function ExportSidePanel({
   const allSelected = selectedLessons === null;
   const selectedCount = selectedLessons === null ? allLessons.length : selectedLessons.length;
   const activeHasReadinessIssues = hasBlockingReadinessIssues(displayedReadiness);
+  const zipHasExportFailure = scope === 'all' && hasPackageExportFailure(packageQualityPass);
   const zipPendingNeedsAttention = zipPendingReadiness && pendingReadinessExport?.canFinishPackageAgain === false;
   const zipCanFinishPackage =
-    scope === 'all' && activeHasReadinessIssues && canFinishPackage && !zipPendingNeedsAttention;
+    scope === 'all' &&
+    activeHasReadinessIssues &&
+    canFinishPackage &&
+    !zipPendingNeedsAttention &&
+    !zipHasExportFailure;
   const zipButtonLabel = finishPackageBusy
     ? 'Finishing package'
     : zipCanFinishPackage
       ? 'Finish package'
-      : zipPendingNeedsAttention
+      : zipPendingNeedsAttention || zipHasExportFailure
         ? 'Needs attention'
         : zipPendingReadiness
           ? 'Finish package'
@@ -1245,6 +1259,7 @@ export default function ExportSidePanel({
     !!busy ||
     isPackageQualityRunning ||
     finishPackageBusy ||
+    zipHasExportFailure ||
     (zipPendingReadiness && !canFinishPackage) ||
     zipPendingNeedsAttention ||
     allReadyCount === 0 ||

@@ -3,24 +3,24 @@ import { APP_VERSION } from './appVersion.js';
 export const CURRENT_RELEASE = {
   version: APP_VERSION,
   date: 'June 30, 2026',
-  title: 'UX Skeleton and Quiz Texture: repeated fallback labels and quiz tails vary',
-  landingTitle: 'UX Skeleton + Quiz Texture',
+  title: 'Export Truth: internal source-grounding language blocks before download',
+  landingTitle: 'Export Truth Fix',
   highlights: [
-    'A fresh deployed v0.15.142 User Experience Design Studio ZIP/log audit exported successfully and locally regraded at 100/100 with zero P0/P1/P2 findings; source rows were URL-backed, license-safe, on-topic, and concept-linked, while texture still measured 95/100.',
-    'That real provider output proved the prior repeated-short-label repair was too narrow: complete-looking Course Map rows still exported course-title-prefixed fallback labels such as `User Experience Design Studio annotation...` and the comma-joined `Weekly studio critique,Final interactive prototype presentation` capstone label.',
-    'Course Map readiness now treats UX course-title-only labels, course-title-prefixed fallback labels, and conjoined assessment/event labels as weak topics, and repairs embedded section cells before those labels seed objectives, assessments, resources, or filenames.',
-    'Quiz Bank projection now varies short-answer and essay frame language from lesson-specific kernel content instead of fixed question-slot number, preserving evidence use and counterclaim handling without stamping identical tails across twelve lessons.',
-    'Focused regressions recreate the v0.15.142 UX Course Map/file-stem collapse and the twelve-lesson Quiz Bank tail family, proving both are removed without weakening source, grader, or export standards.',
+    'A fresh deployed v0.15.143 User Experience Design Studio provider run finished but correctly refused to export: the digest recorded finalStatus blocked, export verification failed on 1 of 38 checks, quality stayed not-graded, and no new ZIP appeared in Downloads.',
+    'The concrete blocker was product-side export language, not provider randomness: Quiz Bank DOCX XML exposed the internal phrase `source grounding`, which the export verifier treats as non-instructor-facing compiler/proof language.',
+    'Quiz Bank essay guidance now says broad opinion without course evidence is incomplete, and the adaptive fallback policy now refers to source evidence checks rather than internal source-grounding terminology.',
+    'Export-failed receipts now become visible package blockers in the shared trust model, so the export panel shows the failing material as a critical issue instead of saying `0 critical issues` while the digest is blocked.',
+    'The Package ZIP button and workspace header CTA now respect export-failed receipts: export-failed packages show Needs attention and cannot route to ZIP download until the blocker is fixed, while amber review-note packages remain downloadable.',
   ],
   landingHighlights: [
-    'Fresh v0.15.142 ZIP/log evidence regraded at 100/A.',
-    'Sources and export truth were clean; texture remained 95.',
-    'UX fallback labels still reached Course Map rows and filenames.',
-    'Quiz Bank frame variants now rotate by lesson-specific kernel content.',
+    'Fresh v0.15.143 provider evidence blocked before ZIP.',
+    'Quiz Bank no longer emits internal source-grounding wording.',
+    'Export-failed receipts now surface as package blockers.',
+    'ZIP buttons stay disabled until export verification is fixed.',
   ],
   proof: {
-    contract: 'release-contracts/v0.15.143.json',
-    roadmap: 'docs/V0.15.143_UX_SKELETON_AND_QUIZ_TEXTURE_ROADMAP.md',
+    contract: 'release-contracts/v0.15.144.json',
+    roadmap: 'docs/V0.15.144_INTERNAL_EXPORT_LANGUAGE_AND_ZIP_TRUTH_ROADMAP.md',
     auditCommand: 'npm run audit:release-history',
   },
 };
@@ -35,6 +35,18 @@ export const CURRENT_RELEASE_CHANGELOG = {
 };
 
 export const HISTORICAL_RELEASE_CHANGELOGS = [
+  {
+    version: '0.15.143',
+    date: 'June 30, 2026',
+    title: 'UX Skeleton and Quiz Texture: repeated fallback labels and quiz tails vary',
+    highlights: [
+      'A fresh deployed v0.15.142 User Experience Design Studio ZIP/log audit exported successfully and locally regraded at 100/100 with zero P0/P1/P2 findings; source rows were URL-backed, license-safe, on-topic, and concept-linked, while texture still measured 95/100.',
+      'That real provider output proved the prior repeated-short-label repair was too narrow: complete-looking Course Map rows still exported course-title-prefixed fallback labels such as `User Experience Design Studio annotation...` and the comma-joined `Weekly studio critique,Final interactive prototype presentation` capstone label.',
+      'Course Map readiness now treats UX course-title-only labels, course-title-prefixed fallback labels, and conjoined assessment/event labels as weak topics, and repairs embedded section cells before those labels seed objectives, assessments, resources, or filenames.',
+      'Quiz Bank projection now varies short-answer and essay frame language from lesson-specific kernel content instead of fixed question-slot number, preserving evidence use and counterclaim handling without stamping identical tails across twelve lessons.',
+      'Focused regressions recreate the v0.15.142 UX Course Map/file-stem collapse and the twelve-lesson Quiz Bank tail family, proving both are removed without weakening source, grader, or export standards.',
+    ],
+  },
   {
     version: '0.15.142',
     date: 'June 29, 2026',

@@ -207,6 +207,50 @@ describe('ExportSidePanel readiness repair timing', () => {
     expect(container.querySelector('[data-testid="export-download-zip"]')?.disabled).toBe(false);
   });
 
+  it('blocks ZIP download when the finish receipt records an export verification failure', async () => {
+    await renderPanel({
+      courseMapInput: cleanCourseMap,
+      preferPackageScope: true,
+      canFinishPackage: true,
+      packageQualityPass: {
+        status: 'blocked',
+        blockers: 1,
+        warnings: 0,
+        repairsApplied: 7,
+        receipt: {
+          finalStatus: 'blocked',
+          exportStatus: 'failed',
+          exportFailed: 1,
+          exportFailures: [
+            {
+              featureId: 'quizBank',
+              message: 'DOCX export exposes internal source grounding language.',
+            },
+          ],
+        },
+        quality: {
+          status: 'not-graded',
+        },
+      },
+    });
+
+    const panel = container.querySelector('[data-testid="readiness-panel"]');
+    expect(panel?.textContent).toContain('Finish package');
+    expect(panel?.textContent).toContain('1 critical issue');
+    expect(panel?.textContent).toContain('Quiz & Exam Bank: 1 export issue must be fixed before the ZIP is available.');
+
+    const zipButton = container.querySelector('[data-testid="export-download-zip"]');
+    expect(zipButton?.textContent).toContain('Needs attention');
+    expect(zipButton?.disabled).toBe(true);
+
+    await act(async () => {
+      zipButton.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+    });
+    await act(async () => {});
+
+    expect(downloadCourseMaterialsZip).not.toHaveBeenCalled();
+  });
+
   it('downloads a reviewed package without rerunning finish after a terminal quality blocker receipt', async () => {
     const onFinishPackage = vi.fn(async () => {
       throw new Error('finish should not rerun for a terminal reviewed package');

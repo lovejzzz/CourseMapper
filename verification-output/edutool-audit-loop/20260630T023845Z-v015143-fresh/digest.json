@@ -1,0 +1,141 @@
+{
+  "digestVersion": 1,
+  "appVersion": "0.15.143",
+  "runId": "run-1782786432050",
+  "finishRunId": "finish-mr014v92-uc77b",
+  "at": "2026-06-30T02:31:12.854Z",
+  "elapsedMs": 240804,
+  "run": {
+    "provider": "openai",
+    "models": [
+      "gpt-5.4-mini"
+    ],
+    "lessonCount": 12,
+    "features": [
+      "courseMap",
+      "syllabus",
+      "lessonPlans",
+      "slideDecks",
+      "assignments",
+      "rubrics",
+      "discussions",
+      "quizBank",
+      "studyGuides",
+      "courseFaq"
+    ],
+    "providerCalls": 5
+  },
+  "pipeline": {
+    "courseIRAuthoring": "whole-course-ir · 1 planned call · 12 expected lessons",
+    "courseMap": "gpt-5.4-mini · typed skeleton (sessions, assessments, readings, resources)",
+    "examine": "skipped: native authoring — Pass B authors lesson content next",
+    "genomeLinker": "0 genome + 0 cached of 12 lessons (0 concepts, 0 citations, 0 bridges)",
+    "judgment": "not evaluated (0 genome-linked lessons)",
+    "enrichmentModelStage": "ran (12 lessons enriched) (linker: ran)",
+    "nativeAuthoring": "assembled 12 sessions onto Pass A entity ids · Pass B authored 12 lesson(s) · 0 registry readings · recorded 12 missing resource signals · CurriculumV1 source 12 lessons",
+    "knowledgeBackbone": "0/12 lessons genome-linked · 8 open resources (openalex: 6, source-finder: 2)",
+    "courseGraph": "12 sessions · 11 concepts (0 genome-linked) · 24 outcomes · 12 assessments",
+    "voicePass": "voiced 6 surface(s), 2 fallback(s) (~$0.006) — voice-surface texture 97→98 (improved)"
+  },
+  "compilerSavings": {
+    "featureIds": [
+      "syllabus",
+      "lessonPlans",
+      "slideDecks",
+      "assignments",
+      "rubrics",
+      "discussions",
+      "quizBank",
+      "studyGuides",
+      "courseFaq"
+    ],
+    "source": "enriched-blueprint",
+    "compiledFeatureCount": 9,
+    "savedProviderCalls": 17,
+    "lastAt": 1782786632623
+  },
+  "cost": {
+    "totalUsd": 0.11209125,
+    "totalDisplay": "$0.11",
+    "inputTokens": 8737,
+    "outputTokens": 23453,
+    "reasoningOutputTokens": 1155,
+    "cachedInputTokens": 0,
+    "accuracy": "tokens provider-reported; cost from published per-token rates",
+    "byTask": [
+      {
+        "task": "blueprintEnrichment",
+        "calls": 2,
+        "inputTokens": 3263,
+        "outputTokens": 12644,
+        "reasoningOutputTokens": 124,
+        "cachedInputTokens": 0,
+        "costUsd": 0.05934525,
+        "costKnown": true
+      },
+      {
+        "task": "courseIR",
+        "calls": 1,
+        "inputTokens": 1458,
+        "outputTokens": 8857,
+        "reasoningOutputTokens": 502,
+        "cachedInputTokens": 0,
+        "costUsd": 0.04095,
+        "costKnown": true
+      },
+      {
+        "task": "nativeSkeleton",
+        "calls": 1,
+        "inputTokens": 944,
+        "outputTokens": 1241,
+        "reasoningOutputTokens": 516,
+        "cachedInputTokens": 0,
+        "costUsd": 0.0062925,
+        "costKnown": true
+      },
+      {
+        "task": "voicePass",
+        "calls": 1,
+        "inputTokens": 3072,
+        "outputTokens": 711,
+        "reasoningOutputTokens": 13,
+        "cachedInputTokens": 0,
+        "costUsd": 0.0055035,
+        "costKnown": true
+      }
+    ]
+  },
+  "gates": {
+    "finalStatus": "blocked",
+    "blockers": 1,
+    "warnings": 0,
+    "repairsApplied": 7,
+    "retryCallCount": 1,
+    "repairRetryCallCount": 1,
+    "finishRetryCallCount": 0,
+    "exportStatus": "failed",
+    "exportChecked": 38,
+    "exportFailed": 1,
+    "exportWarnings": 0,
+    "qualityStatus": "not-graded",
+    "qualityScore": null,
+    "qualityGrade": "",
+    "qualityP0": 0,
+    "qualityP1": 0,
+    "qualityP2": 0,
+    "compiledWithoutEnrichment": false,
+    "enrichmentCoverage": 1,
+    "flaggedChecks": [
+      {
+        "featureId": "quality",
+        "status": "warning",
+        "message": "quality not graded — export verification failed"
+      },
+      {
+        "featureId": "quizBank",
+        "status": "failed",
+        "message": "DOCX export exposes internal source grounding language in word/document.xml."
+      }
+    ]
+  }
+}
