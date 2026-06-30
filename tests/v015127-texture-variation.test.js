@@ -33,6 +33,17 @@ const CS_TOPICS = [
   'final Python project',
 ];
 
+const GENERAL_TOPICS = [
+  'community observation',
+  'evidence notes',
+  'stakeholder examples',
+  'field comparison',
+  'draft response',
+  'peer review',
+  'source synthesis',
+  'presentation planning',
+];
+
 function uxStudioCourseMap() {
   return {
     courseName: 'User Experience Design Studio',
@@ -47,6 +58,29 @@ function uxStudioCourseMap() {
           asyncActivities: `Prepare ${topic.toLowerCase()} notes`,
           syncActivities: `Critique the ${topic.toLowerCase()} artifact`,
           supportingResources: `UX reading packet on ${topic.toLowerCase()}`,
+        },
+      ],
+    })),
+  };
+}
+
+function weakGeneralCourseMap() {
+  return {
+    courseName: 'Interdisciplinary Community Seminar',
+    lessons: GENERAL_TOPICS.map((topic, index) => ({
+      title: `Lesson ${index + 1}: ${topic}`,
+      sections: [
+        {
+          topicSection: `${index + 1}.1: ${topic}`,
+          learningGoals: '',
+          learningObjectives: '',
+          weeklyAssessments: '',
+          asyncActivities: '',
+          syncActivities: '',
+          technologyNeeded: '',
+          presentationFormat: '',
+          supportingResources: '',
+          evaluateDesign: '',
         },
       ],
     })),
@@ -115,6 +149,27 @@ describe('v0.15.127 texture variation', () => {
 
     expect(new Set(reviewCells).size).toBeGreaterThan(3);
     expect(reviewCells.join('\n').match(/same evidence of learning/g) || []).not.toHaveLength(UX_TOPICS.length);
+  });
+
+  it('uses varied generic repairs instead of repeated evidence-check and assigned-material scaffolds', () => {
+    const result = repairCourseMapReadiness({ courseMap: weakGeneralCourseMap() });
+    const cells = result.courseMap.lessons.flatMap((lesson) =>
+      lesson.sections.flatMap((section) => [
+        section.weeklyAssessments,
+        section.asyncActivities,
+        section.syncActivities,
+        section.technologyNeeded,
+        section.supportingResources,
+        section.evaluateDesign,
+      ]),
+    );
+    const text = cells.join('\n');
+
+    expect(text).not.toMatch(/Quick evidence check|Review assigned materials|Read the assigned materials/i);
+    expect(text).not.toMatch(/Study the assigned materials|same evidence standard|same evidence of learning/i);
+    expect(text).not.toMatch(/discipline-specific tools|Instructor-approved readings, examples, or lab materials/i);
+    expect(text).toMatch(/visible product|source detail|observable response|activity prompt/i);
+    expect(new Set(cells.filter(Boolean)).size).toBeGreaterThan(GENERAL_TOPICS.length * 4);
   });
 
   it('uses CS/Python-specific Course Map repairs instead of generic assigned-materials scaffolds', () => {

@@ -1,0 +1,96 @@
+{
+  "version": "0.15.154",
+  "date": "June 30, 2026",
+  "title": "Generic Course Map Texture: evidence-check and assigned-material scaffolds stop repeating",
+  "status": "verified-current",
+  "proofSummary": {
+    "local": [
+      "npm test -- tests/v015127-texture-variation.test.js src/lib/__tests__/deliverableReadiness.test.js",
+      "npm run audit:release-history"
+    ],
+    "ciFast": {
+      "status": "pending-push",
+      "note": "Fast verification is claimed only after v0.15.154 is pushed and the GitHub Actions run is attached."
+    },
+    "deploy": {
+      "status": "pending-push",
+      "note": "Pages deploy is not claimed until the pushed v0.15.154 release completes its deploy run."
+    },
+    "ciDeep": {
+      "status": "local-only",
+      "note": "This is a narrow Course Map readiness texture release; focused coverage plus normal gates are the release bar."
+    },
+    "liveProvider": {
+      "status": "not-current",
+      "note": "The release is based on captured ZIP/log texture evidence and focused local regressions. Fresh v0.15.154 provider proof requires funded model credits."
+    },
+    "manualHuman": {
+      "status": "not-applicable",
+      "note": "No external instructor approval is claimed by this release."
+    }
+  },
+  "claims": [
+    {
+      "id": "v015154-v015150-texture-evidence",
+      "status": "verified-current",
+      "changelogHighlightIndex": 0,
+      "summary": "The v0.15.150 GPT-5.5-pro ZIP/log evidence still explains the texture loss through repeated Course Map fallback scaffold families.",
+      "anchors": ["docs/V0.15.154_GENERIC_COURSE_MAP_TEXTURE_ROADMAP.md", "src/lib/releaseManifest.js"],
+      "proofCommands": [
+        "rg -n \"v0.15.150|texture 91|Quick evidence check\" docs/V0.15.154_GENERIC_COURSE_MAP_TEXTURE_ROADMAP.md src/lib/releaseManifest.js"
+      ],
+      "proofScopes": ["static-audit", "live-provider"]
+    },
+    {
+      "id": "v015154-no-new-provider-claim",
+      "status": "verified-current",
+      "changelogHighlightIndex": 1,
+      "summary": "The release keeps the score claim honest: the current regrade of the old ZIP remains 98/A because the immutable package still carries older source evidence.",
+      "anchors": ["docs/V0.15.154_GENERIC_COURSE_MAP_TEXTURE_ROADMAP.md", "src/lib/releaseManifest.js"],
+      "proofCommands": [
+        "rg -n \"98/A|does not claim a new provider score|fresh deployed v0.15.154\" docs/V0.15.154_GENERIC_COURSE_MAP_TEXTURE_ROADMAP.md src/lib/releaseManifest.js"
+      ],
+      "proofScopes": ["static-audit"]
+    },
+    {
+      "id": "v015154-old-generic-scaffolds-removed",
+      "status": "verified-current",
+      "changelogHighlightIndex": 2,
+      "summary": "Generic Course Map fallback repair no longer emits the old Quick evidence check, assigned-materials, same-evidence, or broad LMS/tooling scaffold families.",
+      "anchors": ["src/lib/deliverableReadiness.js", "tests/v015127-texture-variation.test.js"],
+      "proofCommands": [
+        "rg -n \"Quick evidence check|Review assigned materials|same evidence standard|discipline-specific tools\" src/lib/deliverableReadiness.js tests/v015127-texture-variation.test.js",
+        "npm test -- tests/v015127-texture-variation.test.js"
+      ],
+      "proofScopes": ["unit"]
+    },
+    {
+      "id": "v015154-varied-generic-repairs",
+      "status": "verified-current",
+      "changelogHighlightIndex": 3,
+      "summary": "Replacement generic repairs rotate source-note, visible-product, observable-response, activity-prompt, and feedback-guide language.",
+      "anchors": ["src/lib/deliverableReadiness.js", "tests/v015127-texture-variation.test.js"],
+      "proofCommands": [
+        "rg -n \"visible product|source detail|observable response|Activity prompt|feedback guide\" src/lib/deliverableReadiness.js tests/v015127-texture-variation.test.js"
+      ],
+      "proofScopes": ["unit"]
+    },
+    {
+      "id": "v015154-focused-texture-regressions",
+      "status": "verified-current",
+      "changelogHighlightIndex": 4,
+      "summary": "Focused readiness and texture regressions cover the new generic branch while preserving the existing CS/Python-specific repair branch.",
+      "anchors": ["tests/v015127-texture-variation.test.js", "src/lib/__tests__/deliverableReadiness.test.js"],
+      "proofCommands": [
+        "npm test -- tests/v015127-texture-variation.test.js src/lib/__tests__/deliverableReadiness.test.js"
+      ],
+      "proofScopes": ["unit"]
+    }
+  ],
+  "knownRemainingTargets": [
+    "Add credits or switch to a funded provider/model before the next fresh GPT-5.5-pro ZIP/log audit.",
+    "A fresh deployed v0.15.154 provider ZIP/log audit must prove generic texture cleanup holds in real output.",
+    "Texture remains below the long-running target until fresh packages repeatedly reach 100/100 texture with no repeated-shingle caveat.",
+    "Source truth still needs repeated cross-domain audits so new false-friend classes are blocked without rejecting valid concept-linked sources."
+  ]
+}

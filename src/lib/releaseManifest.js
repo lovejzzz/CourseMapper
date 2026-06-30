@@ -3,24 +3,24 @@ import { APP_VERSION } from './appVersion.js';
 export const CURRENT_RELEASE = {
   version: APP_VERSION,
   date: 'June 30, 2026',
-  title: 'CS/Python Source Sense: module and exception false friends stop passing',
-  landingTitle: 'CS/Python Source Sense',
+  title: 'Generic Course Map Texture: evidence-check and assigned-material scaffolds stop repeating',
+  landingTitle: 'Generic Course Map Texture',
   highlights: [
-    'The latest successful GPT-5.5-pro Python evidence remains the v0.15.150 ZIP/log audit: visible quality improved, but fresh v0.15.152/v0.15.153 provider proof is still blocked until the API key has credits.',
-    'That evidence keeps exposing CourseMapper-side source-trust debt: broad Computer Science anchors can let licensed-but-wrong pages look relevant when an ambiguous concept shares a generic word.',
-    'Computer Science/Python source selection now treats math modules and legal exceptions as false friends for module/exception lessons unless the source carries programming-specific context.',
-    'Ambiguous CS/Python concepts now require concept-specific anchors before source-finder rows can become trusted source-ledger proof, while valid sources such as Modular programming and Exception handling still pass.',
-    'The deep quality grader mirrors the stricter source gate, and focused source-finder/source-ledger/source-grader regressions preserve valid List/String/Module/Exception programming sources without weakening standards.',
+    'The v0.15.150 GPT-5.5-pro Python ZIP/log evidence still explains why texture stayed below the clean target: repeated Course Map fallback families such as `Quick evidence check` and assigned-materials notes can fan out through exported materials.',
+    'The current v0.15.153 regrade of that captured package remains honest at 98/A because the immutable ZIP still contains the older `Correlation` source row; v0.15.154 does not claim a new provider score.',
+    'Generic Course Map fallback repair now avoids the old repeated `Quick evidence check`, `Review assigned materials`, `same evidence standard`, and broad LMS/tooling scaffolds for sparse non-specialized courses.',
+    'Replacement generic repairs rotate source-note, visible-product, observable-response, activity-prompt, and feedback-guide language so weak maps have more texture before they seed compiled deliverables.',
+    'Focused readiness and texture regressions cover both the new generic fallback branch and the existing CS/Python branch, preserving domain-specific Python repairs while removing the old generic scaffold families.',
   ],
   landingHighlights: [
-    'Math modules and legal exceptions stop passing as Python source proof.',
-    'Ambiguous CS concepts require programming-specific anchors.',
-    'The grader mirrors the stricter source gate.',
-    'Model comparisons still wait for real ZIP/log evidence.',
+    'Generic map fallbacks stop saying Quick evidence check.',
+    'Assigned-material scaffolds are replaced with source-note tasks.',
+    'Sparse maps get more varied visible-product language.',
+    'Fresh provider scores still require funded ZIP/log evidence.',
   ],
   proof: {
-    contract: 'release-contracts/v0.15.153.json',
-    roadmap: 'docs/V0.15.153_CS_PYTHON_MODULE_EXCEPTION_SOURCE_GATE_ROADMAP.md',
+    contract: 'release-contracts/v0.15.154.json',
+    roadmap: 'docs/V0.15.154_GENERIC_COURSE_MAP_TEXTURE_ROADMAP.md',
     auditCommand: 'npm run audit:release-history',
   },
 };
@@ -35,6 +35,18 @@ export const CURRENT_RELEASE_CHANGELOG = {
 };
 
 export const HISTORICAL_RELEASE_CHANGELOGS = [
+  {
+    version: '0.15.153',
+    date: 'June 30, 2026',
+    title: 'CS/Python Source Sense: module and exception false friends stop passing',
+    highlights: [
+      'The latest successful GPT-5.5-pro Python evidence remains the v0.15.150 ZIP/log audit: visible quality improved, but fresh v0.15.152/v0.15.153 provider proof is still blocked until the API key has credits.',
+      'That evidence keeps exposing CourseMapper-side source-trust debt: broad Computer Science anchors can let licensed-but-wrong pages look relevant when an ambiguous concept shares a generic word.',
+      'Computer Science/Python source selection now treats math modules and legal exceptions as false friends for module/exception lessons unless the source carries programming-specific context.',
+      'Ambiguous CS/Python concepts now require concept-specific anchors before source-finder rows can become trusted source-ledger proof, while valid sources such as Modular programming and Exception handling still pass.',
+      'The deep quality grader mirrors the stricter source gate, and focused source-finder/source-ledger/source-grader regressions preserve valid List/String/Module/Exception programming sources without weakening standards.',
+    ],
+  },
   {
     version: '0.15.152',
     date: 'June 30, 2026',

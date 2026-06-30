@@ -164,9 +164,8 @@ describe('hybrid pipeline audit', () => {
 
       expect(result.stress).toBe(true);
       expect(result.stressFocus).toBe('Messy imported clinical studio map');
-      // v0.15.5: topic-specific source cues let the 5- and 8-lesson stress
-      // scopes compile without boilerplate warnings; the duplicated 14-lesson
-      // scope still warns (asserted on the markdown below).
+      // v0.15.154: varied generic Course Map fallbacks keep even the
+      // duplicated 14-lesson stress scope out of boilerplate warnings.
       expect(result.summary.status).toBe('pass');
       expect(result.courseMapRepair.changed).toBe(true);
       expect(result.courseMapRepair.repairedFieldCount).toBeGreaterThanOrEqual(6);
@@ -186,12 +185,12 @@ describe('hybrid pipeline audit', () => {
       expect(markdown).toContain('## Stress Case Matrix');
       expect(markdown).toContain('| messy-import-stress | 5 | pass |');
       expect(markdown).toContain('| messy-import-stress | 8 | pass |');
-      expect(markdown).toContain('| messy-import-stress | 14 | warnings |');
+      expect(markdown).toContain('| messy-import-stress | 14 | pass |');
       expect(markdown).toContain('Messy imported clinical studio map');
       expect(
         payload.results.filter((entry) => entry.projectId === 'messy-import-stress').map((entry) => entry.scope),
       ).toEqual([5, 8, 14]);
-      expect(payload.nextActions.some((action) => /messy-import stress cases/i.test(action.title))).toBe(true);
+      expect(payload.nextActions.some((action) => /messy-import stress cases/i.test(action.title))).toBe(false);
     } finally {
       await closeHybridPipelineAuditRuntime();
     }
