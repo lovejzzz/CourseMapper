@@ -3,24 +3,24 @@ import { APP_VERSION } from './appVersion.js';
 export const CURRENT_RELEASE = {
   version: APP_VERSION,
   date: 'June 30, 2026',
-  title: 'Fallback Texture: generic evidence-check scaffolds stop repeating',
-  landingTitle: 'Fallback Texture',
+  title: 'Lecture Exam Texture: concept-check scaffolds rotate by lesson',
+  landingTitle: 'Lecture Exam Texture',
   highlights: [
-    'The latest successful GPT-5.5-pro Python evidence still cannot prove current deployed output because fresh v0.15.155/v0.15.156 provider generation is blocked by OpenAI credits, but the old v0.15.150 ZIP keeps showing texture 91.',
-    'The remaining CourseMapper-side texture target is deterministic: sparse Course Map fallback cells should not seed repeated `evidence check`, `instructor-approved source`, or broad support-guide phrasing into every exported material.',
-    'Generic Course Map fallback repair now replaces the last `closing evidence check` branch with artifact-review language and drops `Instructor-approved source` wording from fallback resources.',
-    'The texture regression now explicitly fails if generic repairs reintroduce closing evidence-check or instructor-approved-source scaffolds while preserving the earlier assigned-material and same-evidence guards.',
-    'This release does not claim a new provider score; the next proof step remains a fresh funded v0.15.156 ZIP/log audit that reconciles UI, digest, ZIP, source report, quality report, and local regrade.',
+    'The latest GPT-5.5-pro Python model-comparison evidence regraded at 94/A on the old v0.15.147 artifact, and its current texture evidence still showed a CourseMapper-side lecture/exam shingle repeated across all 15 slide decks.',
+    'Lecture/exam modality decoding no longer stamps the same `concept-check answers, confidence ratings, misconception patterns, and corrected explanations` routine into every lesson.',
+    'Exam-readiness discussion protocols now rotate participation, artifact-use, and review-focus language instead of repeating the same wrong-answer-sort and exam-transfer-readiness chain across the full course.',
+    'A new 15-lesson lecture/exam regression uses the real repeated-shingle evidence from the GPT-5.5-pro Python ZIP/log audit, so four-lesson texture coverage can no longer miss semester-scale repetition.',
+    'This release does not claim a new provider score; the next proof step remains a fresh funded v0.15.157 ZIP/log audit that reconciles UI, digest, ZIP, source report, quality report, and local regrade.',
   ],
   landingHighlights: [
-    'Generic fallback copy uses artifact-review language.',
-    'Evidence-check scaffolds stay out of sparse Course Maps.',
-    'Instructor-approved-source placeholders stay out of fallback resources.',
+    'Lecture/exam routines rotate by lesson.',
+    'Concept-check texture stamps stay out of full-course decks.',
+    'Exam-readiness discussion prompts vary review language.',
     'Fresh provider scores still require funded ZIP/log evidence.',
   ],
   proof: {
-    contract: 'release-contracts/v0.15.156.json',
-    roadmap: 'docs/V0.15.156_FALLBACK_TEXTURE_ROADMAP.md',
+    contract: 'release-contracts/v0.15.157.json',
+    roadmap: 'docs/V0.15.157_LECTURE_EXAM_TEXTURE_ROADMAP.md',
     auditCommand: 'npm run audit:release-history',
   },
 };
@@ -35,6 +35,18 @@ export const CURRENT_RELEASE_CHANGELOG = {
 };
 
 export const HISTORICAL_RELEASE_CHANGELOGS = [
+  {
+    version: '0.15.156',
+    date: 'June 30, 2026',
+    title: 'Fallback Texture: generic evidence-check scaffolds stop repeating',
+    highlights: [
+      'The latest successful GPT-5.5-pro Python evidence still cannot prove current deployed output because fresh v0.15.155/v0.15.156 provider generation is blocked by OpenAI credits, but the old v0.15.150 ZIP keeps showing texture 91.',
+      'The remaining CourseMapper-side texture target is deterministic: sparse Course Map fallback cells should not seed repeated `evidence check`, `instructor-approved source`, or broad support-guide phrasing into every exported material.',
+      'Generic Course Map fallback repair now replaces the last `closing evidence check` branch with artifact-review language and drops `Instructor-approved source` wording from fallback resources.',
+      'The texture regression now explicitly fails if generic repairs reintroduce closing evidence-check or instructor-approved-source scaffolds while preserving the earlier assigned-material and same-evidence guards.',
+      'This release does not claim a new provider score; the next proof step remains a fresh funded v0.15.156 ZIP/log audit that reconciles UI, digest, ZIP, source report, quality report, and local regrade.',
+    ],
+  },
   {
     version: '0.15.155',
     date: 'June 30, 2026',

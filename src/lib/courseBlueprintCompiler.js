@@ -6598,6 +6598,49 @@ function contextualizeModalityRoutine(kind, base, { lesson = {}, concept = '', a
     ]);
   }
   if (
+    kind === 'evidenceRoutine' &&
+    /\bcollect concept-check answers\b/i.test(routine) &&
+    /\bconfidence ratings\b/i.test(routine) &&
+    /\bmisconception patterns\b/i.test(routine)
+  ) {
+    routine = lessonVariant(lesson, [
+      'review the selected answer, confidence mark, and rationale before asking students to revise the explanation',
+      'compare response choices with the reasoning note so the class can name the misconception before moving on',
+      'sample quiz responses, sort the fragile reasoning, and have students write the corrected concept statement',
+      'ask students to pair a retrieval answer with the evidence cue that would change an exam response',
+      'collect a short rationale, confidence signal, and correction note before the next worked example',
+      'mark which distractor looked tempting, why it fails, and what evidence makes the corrected answer hold',
+    ]);
+  }
+  if (
+    kind === 'feedbackRoutine' &&
+    /\breteach the weakest misconception\b/i.test(routine) &&
+    /\bexam-style transfer\b/i.test(routine)
+  ) {
+    routine = lessonVariant(lesson, [
+      'model one repaired answer, then ask students to apply the correction to a parallel quiz prompt',
+      'turn the most common wrong answer into a worked example and require a revised rationale',
+      'use the weakest misconception as the board example, then check whether students can transfer the fix',
+      'compare an incorrect response with a stronger one before students rewrite their own explanation',
+      'debrief the fragile reasoning pattern and have students add one targeted study-guide correction',
+      'rework the missed idea with an alternate example, then ask students to defend the corrected answer',
+    ]);
+  }
+  if (
+    kind === 'instructorMove' &&
+    /\bpause the lecture after the model example\b/i.test(routine) &&
+    /\bexam answer\b/i.test(routine)
+  ) {
+    routine = lessonVariant(lesson, [
+      'pause after the model and ask which evidence would make a student change answers',
+      'stop before revealing the answer and have students identify the cue that rules out the distractor',
+      'hold the explanation briefly while pairs name the evidence that supports the exam response',
+      'ask students to predict the correction before showing how the worked example resolves it',
+      'invite a quick vote on which clue matters, then connect that clue to the corrected answer',
+      'surface the likely wrong answer first and ask what evidence would repair the reasoning',
+    ]);
+  }
+  if (
     kind === 'signaturePractice' &&
     /\bmilestone design review\b/i.test(routine) &&
     /\bsponsor constraints\b/i.test(routine)
@@ -18878,10 +18921,30 @@ function buildDiscussionProtocol({ lesson = {}, blueprint = {}, phrase = {}, len
               ? {
                   ...protocolByGenre['checkpoint-response'],
                   format: 'Exam Readiness Clinic',
-                  participationPattern:
+                  participationPattern: lessonVariant(lesson, [
                     'retrieval attempt, confidence check, wrong-answer sort, misconception repair, and exam-style transfer item',
-                  artifactUse: `Students use ${artifact} to diagnose what they know, correct the misconception, and prepare for an exam-style transfer prompt.`,
-                  reviewFocus: `concept accuracy, retrieval strength, misconception repair, confidence calibration, and exam-transfer readiness for ${concept}`,
+                    'answer poll, distractor rationale, correction draft, paired explanation, and transfer check',
+                    'quick response, confidence mark, fragile-reasoning discussion, corrected claim, and study-plan note',
+                    'practice item, evidence cue, misconception diagnosis, revised answer, and next-question rehearsal',
+                    'solo retrieval answer, peer rationale comparison, instructor repair, and parallel exam prompt',
+                    'concept check, tempting-answer audit, correction language, and transfer-ready explanation',
+                  ]),
+                  artifactUse: lessonVariant(lesson, [
+                    `Students use ${artifact} to diagnose what they know, correct the misconception, and prepare for an exam-style transfer prompt.`,
+                    `Students annotate ${artifact} for the answer cue, the misleading distractor, and the correction they would reuse.`,
+                    `Students turn ${artifact} into a short repair note that names the missed idea and the next practice move.`,
+                    `Students compare ${artifact} responses before writing the explanation that would survive a parallel exam item.`,
+                    `Students use ${artifact} to separate recall from reasoning, then revise the line that made the answer fragile.`,
+                    `Students map ${artifact} onto a new question stem and mark which evidence makes the corrected answer hold.`,
+                  ]),
+                  reviewFocus: lessonVariant(lesson, [
+                    `concept accuracy, retrieval strength, misconception repair, confidence calibration, and exam-transfer readiness for ${concept}`,
+                    `answer rationale, distractor rejection, corrected explanation, and next-study target for ${concept}`,
+                    `retrieval evidence, repair language, parallel-item transfer, and study-guide update for ${concept}`,
+                    `selected answer, evidence cue, misconception diagnosis, and transfer-ready explanation for ${concept}`,
+                    `confidence judgment, reasoning trace, corrected claim, and future practice choice for ${concept}`,
+                    `accuracy check, answer-cue evidence, misconception recovery, and exam-prep decision for ${concept}`,
+                  ]),
                 }
               : mode === 'world-language'
                 ? protocolByGenre['language-performance']

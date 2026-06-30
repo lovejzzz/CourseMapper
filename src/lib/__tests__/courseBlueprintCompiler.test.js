@@ -1081,6 +1081,48 @@ const makeFourLessonLectureExamCourseMap = () => {
   };
 };
 
+const makeFifteenLessonLectureExamCourseMap = () => {
+  const topics = [
+    ['Scientific Thinking and Psychology', 'theory, hypothesis, operational definition, replication'],
+    ['Neurons and Neural Communication', 'neuron structure, action potential, neurotransmitter, synapse'],
+    ['Learning and Conditioning', 'classical conditioning, reinforcement, extinction, generalization'],
+    ['Memory Systems', 'working memory, retrieval cue, encoding, forgetting curve'],
+    ['Cognition and Problem Solving', 'heuristic, algorithm, confirmation bias, mental set'],
+    ['Development Across the Lifespan', 'attachment, cognitive development, identity, aging'],
+    ['Sensation and Perception', 'threshold, adaptation, depth cue, perceptual set'],
+    ['Emotion and Motivation', 'arousal, appraisal, intrinsic motivation, goal conflict'],
+    ['Personality Theories', 'trait model, psychodynamic explanation, social-cognitive theory'],
+    ['Social Psychology', 'attribution, conformity, obedience, group polarization'],
+    ['Stress and Health', 'stressor, coping strategy, resilience, health behavior'],
+    ['Psychological Disorders', 'diagnostic criteria, impairment, stigma, comorbidity'],
+    ['Therapy and Treatment', 'CBT, exposure, therapeutic alliance, evidence-based treatment'],
+    ['Research Ethics and Bias', 'informed consent, sampling bias, demand characteristic, validity'],
+    ['Exam Synthesis and Transfer', 'concept discrimination, transfer question, study plan, correction log'],
+  ];
+  return {
+    courseName: 'Introduction to Psychology Lecture',
+    semester: 'Fall 2026',
+    learningOutcomes:
+      'Explain core psychology concepts, diagnose misconceptions, use retrieval practice, and prepare for midterm and final exam questions.',
+    lessons: topics.map(([title, topicSection], index) => ({
+      title: `Week ${index + 1}: ${title}`,
+      sections: [
+        {
+          topicSection,
+          learningObjectives: `Explain ${title.toLowerCase()} and apply it to an exam-style scenario.`,
+          learningGoals: `Students use retrieval practice to diagnose misconceptions about ${title.toLowerCase()}.`,
+          weeklyAssessments: `${title} concept check with answer rationale, confidence mark, correction note, and transfer prompt.`,
+          asyncActivities: `Review lecture notes and complete a short retrieval log on ${title.toLowerCase()}.`,
+          syncActivities:
+            'Lecture concept polling with distractor diagnosis, corrected explanation, and parallel exam practice.',
+          supportingResources: 'Lecture notes; exam blueprint; misconception list; practice quiz',
+          evaluateDesign: `Score concept accuracy, correction quality, confidence calibration, and transfer readiness for ${title.toLowerCase()}.`,
+        },
+      ],
+    })),
+  };
+};
+
 const makeCapstoneProjectCourseMap = () => ({
   courseName: 'Product Innovation Capstone',
   semester: 'Fall 2026',
@@ -2947,6 +2989,82 @@ describe('courseBlueprintCompiler', () => {
     expect(evidence).not.toMatch(
       /assessment then name the protocol artifact walk-through critique notes revision commitment/i,
     );
+  });
+
+  it('keeps full lecture-exam courses from repeating concept-check scaffolds across every deck', () => {
+    const blueprint = buildCourseBlueprint(makeFifteenLessonLectureExamCourseMap(), {
+      enrichment: {
+        source: 'test-full-lecture-exam-texture-enrichment',
+        lens: {
+          domain: 'introductory psychology lecture',
+          evidenceNoun: 'concept-check evidence',
+          decisionNoun: 'exam-readiness decision',
+          learnerRole: 'conceptual learner',
+          exampleNoun: 'lecture concept example',
+        },
+      },
+    });
+    blueprint.lessons.forEach((lesson, index) => {
+      lesson.enrichment = {
+        ...(lesson.enrichment || {}),
+        keyTerms: [
+          {
+            term: lesson.keyConcepts[0] || `concept ${index + 1}`,
+            definition: `A usable definition for ${lesson.title}.`,
+            misconception: `Students may treat ${lesson.keyConcepts[0] || 'the concept'} as memorized vocabulary only.`,
+            correction: `The concept has to explain a specific answer choice or exam transfer move.`,
+          },
+        ],
+        conceptProvenance: { citations: [`OpenStax Psychology chapter ${index + 1}`] },
+      };
+    });
+
+    const compiled = compileBlueprintDeliverables(blueprint, ['lessonPlans', 'slideDecks', 'discussions'], {
+      configMap: { lessonPlans: { depth: 'deep' } },
+      enforceCompilerContract: false,
+    });
+    const deckTexts = compiled.slideDecks.decks.map((deck) =>
+      deck.slides
+        .map((slide) => `${slide.title || ''} ${(slide.bullets || []).join(' ')} ${slide.notes || ''}`)
+        .join(' '),
+    );
+    const planTexts = compiled.lessonPlans.lessonPlans.map((plan) =>
+      plan.outline.map((item) => `${item.description || ''} ${item.instructorNotes || ''}`).join(' '),
+    );
+    const discussionTexts = compiled.discussions.discussions.map((discussion) =>
+      [
+        discussion.prompt,
+        discussion.guidelines,
+        discussion.discussionProtocol?.participationPattern,
+        discussion.discussionProtocol?.facilitationMove,
+        discussion.discussionProtocol?.reviewFocus,
+        ...(discussion.followUpProbes || []),
+      ].join(' '),
+    );
+    const countDecksWith = (pattern) => deckTexts.filter((text) => pattern.test(text)).length;
+    const countDiscussionsWith = (pattern) => discussionTexts.filter((text) => pattern.test(text)).length;
+
+    expect(countDecksWith(/collect concept-check answers, confidence ratings, misconception patterns/i)).toBe(0);
+    expect(countDecksWith(/answers confidence ratings misconception patterns and corrected explanations/i)).toBe(0);
+    expect(
+      countDiscussionsWith(/retrieval attempt, confidence check, wrong-answer sort, misconception repair/i),
+    ).toBeLessThan(4);
+    expect(
+      countDiscussionsWith(/concept accuracy, retrieval strength, misconception repair, confidence calibration/i),
+    ).toBeLessThan(4);
+
+    const texture = computeTexture([
+      ...deckTexts.map((text, index) => ({ id: `deck-${index}`, feature: 'slideDecks', text })),
+      ...planTexts.map((text, index) => ({ id: `plan-${index}`, feature: 'lessonPlans', text })),
+      ...discussionTexts.map((text, index) => ({ id: `discussion-${index}`, feature: 'discussions', text })),
+    ]);
+    const evidence = texture.evidence.map((item) => item.shingle).join('\n');
+    expect(evidence).not.toMatch(/answers confidence ratings misconception patterns and corrected explanations/i);
+    expect(evidence).not.toMatch(/concept-check answers confidence ratings misconception patterns/i);
+    expect(evidence).not.toMatch(
+      /confidence check wrong-answer sort misconception repair and exam-style transfer item/i,
+    );
+    expect(evidence).not.toMatch(/concept accuracy retrieval strength misconception repair confidence calibration/i);
   });
 
   it('decodes capstone project milestones with sponsor constraints and defense readiness', () => {
