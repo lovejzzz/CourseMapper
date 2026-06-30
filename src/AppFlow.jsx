@@ -1140,6 +1140,7 @@ export default function AppFlow({ startupAction = null, onStartupHandled, onRetu
             blockOnValidationWarnings: false,
             maxRetryActions: retryLimit,
             retryWarnings: false,
+            retryContentQualityWarnings: source === 'export',
             // v0.14.1 P2.2: partial enrichment coverage surfaces as a
             // finalizer warning (blocker below 60%) instead of staying a
             // digest-only secret.

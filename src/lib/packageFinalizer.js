@@ -801,6 +801,7 @@ export function runDeterministicPackageFinalizer({
   blockOnValidationWarnings = false,
   maxRetryActions = 4,
   retryWarnings = true,
+  retryContentQualityWarnings = false,
   enrichmentOutcome = null,
   courseGraph = null,
   blueprint = null,
@@ -904,11 +905,22 @@ export function runDeterministicPackageFinalizer({
         warnings: [...(readiness.workspaceReadiness?.warnings || []), ...contentQualityIssues],
         issues: [...(readiness.workspaceReadiness?.issues || []), ...contentQualityIssues],
       }
-    : {
-        ...readiness.workspaceReadiness,
-        warnings: [],
-        issues: readiness.workspaceReadiness?.blockers || [],
-      };
+    : retryContentQualityWarnings && contentQualityIssues.length > 0
+      ? {
+          ...readiness.workspaceReadiness,
+          // Keep broad classroom/readability warnings out of the retry queue,
+          // but do retry content-quality defects that survived deterministic
+          // repair. These are visible export warnings the app can name and
+          // often fix with a localized regeneration pass before the user sees
+          // a caveated package.
+          warnings: contentQualityIssues,
+          issues: [...(readiness.workspaceReadiness?.blockers || []), ...contentQualityIssues],
+        }
+      : {
+          ...readiness.workspaceReadiness,
+          warnings: [],
+          issues: readiness.workspaceReadiness?.blockers || [],
+        };
   const retryClassroomReadiness = retryWarnings
     ? readiness.classroomReadiness
     : {

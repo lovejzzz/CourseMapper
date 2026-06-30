@@ -1044,6 +1044,40 @@ describe('packageFinalizer', () => {
     expect(result.retryActions).toEqual([]);
   });
 
+  it('queues retry targets for content-quality warnings that survive deterministic repair during export finish', () => {
+    const result = runDeterministicPackageFinalizer({
+      courseMap: makeCourseMap(2),
+      selectedFeatures: ['assignments'],
+      includeClassroomReadiness: false,
+      includePedagogicalValidation: false,
+      retryWarnings: false,
+      retryContentQualityWarnings: true,
+      deliverables: {
+        assignments: {
+          status: 'done',
+          data: {
+            assignments: [
+              {
+                title: 'Research Memo',
+                instructions: ['Ask students to define method choice before new instruction begins.'],
+              },
+            ],
+          },
+        },
+      },
+    });
+
+    expect(result.status).toBe('needs_retry');
+    expect(result.readiness.warnings.map((warning) => warning.source)).toContain('contentQuality');
+    expect(result.retryActions).toEqual([
+      expect.objectContaining({
+        featureId: 'assignments',
+        scope: 'feature',
+        source: 'readiness',
+      }),
+    ]);
+  });
+
   // v0.12.1 P2: mechanical content-quality seams (double periods etc.) are
   // repaired deterministically during finalize — the v0.12 audit shipped a
   // courseFaq double-period as a permanent export warning because the audit
