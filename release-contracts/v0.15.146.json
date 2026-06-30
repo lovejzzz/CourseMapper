@@ -33,7 +33,7 @@
       "changelogHighlightIndex": 0,
       "summary": "Fresh deployed v0.15.145 UX ZIP evidence produced a blocked 74/C package because final revision/prototype defense assessment rows were routed as exam-kind rows whose quiz-bank files did not contain the registered assessment titles.",
       "anchors": [
-        "verification-output/edutool-audit-loop/20260630T050121Z-v015145-fresh/package.zip",
+        "verification-output/edutool-audit-loop/20260630T050121Z-v015145-fresh/report.md",
         "verification-output/edutool-audit-loop/20260630T050121Z-v015145-fresh/extracted/QUALITY_REPORT.md",
         "verification-output/edutool-audit-loop/20260630T050121Z-v015145-fresh/local-regrade.json"
       ],
