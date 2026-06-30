@@ -1,0 +1,112 @@
+{
+  "version": "0.15.149",
+  "date": "June 30, 2026",
+  "title": "CS/Python Source Sense: short-token false friends no longer count as trusted proof",
+  "status": "verified-current",
+  "proofSummary": {
+    "local": [
+      "npx vitest run src/lib/knowledge/__tests__/sourceLedger.test.js src/lib/knowledge/__tests__/sourceFinder.test.js src/lib/quality/__tests__/sourceLedgerGrader.test.js"
+    ],
+    "ciFast": {
+      "status": "pending-push",
+      "note": "Fast verification is claimed only after v0.15.149 is pushed and the GitHub Actions run is attached."
+    },
+    "deploy": {
+      "status": "pending-push",
+      "note": "Pages deploy is not claimed until the pushed v0.15.149 release completes its deploy run."
+    },
+    "ciDeep": {
+      "status": "local-only",
+      "note": "This is a narrow source relevance and grader-truth release; focused coverage plus normal gates are the release bar."
+    },
+    "liveProvider": {
+      "status": "not-current",
+      "note": "The release is based on a fresh deployed v0.15.148 GPT-5.5-pro ZIP/log audit. A fresh deployed v0.15.149 run is required before claiming the new source gate held in provider output."
+    },
+    "manualHuman": {
+      "status": "not-applicable",
+      "note": "No external instructor approval is claimed by this release."
+    }
+  },
+  "claims": [
+    {
+      "id": "v015149-v015148-model-comparison-evidence",
+      "status": "verified-current",
+      "changelogHighlightIndex": 0,
+      "summary": "Fresh v0.15.148 GPT-5.5-pro Python ZIP/log evidence completed without unsupported low-effort API errors and app-reported 100/A, proving v0.15.148 made the model comparison fairer.",
+      "anchors": ["docs/V0.15.149_CS_PYTHON_SOURCE_SENSE_ROADMAP.md", "src/lib/releaseManifest.js"],
+      "proofCommands": [
+        "rg -n \"v0.15.148|GPT-5.5-pro|100/A|run-1782803932055\" docs/V0.15.149_CS_PYTHON_SOURCE_SENSE_ROADMAP.md src/lib/releaseManifest.js"
+      ],
+      "proofScopes": ["static-audit", "live-provider"]
+    },
+    {
+      "id": "v015149-hidden-cs-source-debt",
+      "status": "verified-current",
+      "changelogHighlightIndex": 1,
+      "summary": "The same artifact contained hidden CS/Python source false friends in trusted sourceLedger proof, so the remaining quality problem is CourseMapper-side source relevance rather than only model output.",
+      "anchors": [
+        "docs/V0.15.149_CS_PYTHON_SOURCE_SENSE_ROADMAP.md",
+        "src/lib/quality/__tests__/sourceLedgerGrader.test.js"
+      ],
+      "proofCommands": [
+        "rg -n \"No Strings Attached|String theory|Function \\(mathematics\\)|Lists of American colleges|87/B|15 P1\" docs/V0.15.149_CS_PYTHON_SOURCE_SENSE_ROADMAP.md src/lib/quality/__tests__/sourceLedgerGrader.test.js"
+      ],
+      "proofScopes": ["static-audit", "unit"]
+    },
+    {
+      "id": "v015149-cs-source-finder-gate",
+      "status": "verified-current",
+      "changelogHighlightIndex": 2,
+      "summary": "Source-finder rejects short-token CS/Python false friends before caching sources while keeping programming-context pages.",
+      "anchors": [
+        "src/lib/knowledge/sourceFinder.js",
+        "src/lib/knowledge/sourceLedger.js",
+        "src/lib/knowledge/__tests__/sourceFinder.test.js"
+      ],
+      "proofCommands": [
+        "rg -n \"isCourseAwareWeakSource|CS/Python short-token Wikipedia false friends|String \\(computer science\\)\" src/lib/knowledge/sourceFinder.js src/lib/knowledge/sourceLedger.js src/lib/knowledge/__tests__/sourceFinder.test.js",
+        "npx vitest run src/lib/knowledge/__tests__/sourceFinder.test.js"
+      ],
+      "proofScopes": ["unit"]
+    },
+    {
+      "id": "v015149-cs-source-ledger-gate",
+      "status": "verified-current",
+      "changelogHighlightIndex": 3,
+      "summary": "Source-ledger export drops CS/Python false friends and the deep quality grader flags already-exported false-clean packages.",
+      "anchors": [
+        "src/lib/knowledge/sourceLedger.js",
+        "src/lib/knowledge/__tests__/sourceLedger.test.js",
+        "src/lib/quality/sourceLedgerQualityChecks.js",
+        "src/lib/quality/__tests__/sourceLedgerGrader.test.js"
+      ],
+      "proofCommands": [
+        "rg -n \"Computer Science/Python|drops CS/Python short-token false friends|source ledger row sf5 is off-discipline\" src/lib/knowledge/sourceLedger.js src/lib/knowledge/__tests__/sourceLedger.test.js src/lib/quality/sourceLedgerQualityChecks.js src/lib/quality/__tests__/sourceLedgerGrader.test.js",
+        "npx vitest run src/lib/knowledge/__tests__/sourceLedger.test.js src/lib/quality/__tests__/sourceLedgerGrader.test.js"
+      ],
+      "proofScopes": ["unit", "static-audit"]
+    },
+    {
+      "id": "v015149-focused-regressions",
+      "status": "verified-current",
+      "changelogHighlightIndex": 4,
+      "summary": "Focused regressions cover source-finder retrieval, source-ledger promotion, and deep quality regrade behavior for the live failure shape.",
+      "anchors": [
+        "src/lib/knowledge/__tests__/sourceFinder.test.js",
+        "src/lib/knowledge/__tests__/sourceLedger.test.js",
+        "src/lib/quality/__tests__/sourceLedgerGrader.test.js"
+      ],
+      "proofCommands": [
+        "npx vitest run src/lib/knowledge/__tests__/sourceLedger.test.js src/lib/knowledge/__tests__/sourceFinder.test.js src/lib/quality/__tests__/sourceLedgerGrader.test.js"
+      ],
+      "proofScopes": ["unit", "static-audit"]
+    }
+  ],
+  "knownRemainingTargets": [
+    "A fresh deployed v0.15.149 GPT-5.5-pro Python ZIP/log audit must prove the source ledger no longer trusts CS/Python short-token false friends in real provider output.",
+    "The voice-pass call in the v0.15.148 run spent tokens but returned 0 stream chunks and 0 usable surfaces; this release records it as evidence but does not change voice-pass behavior.",
+    "The Course Map still uses generic repeated evidence language in visible rows; this release focuses only on source relevance and score truth.",
+    "Texture remains below the long-running target until fresh packages repeatedly reach 100/100 texture with no repeated-shingle caveat."
+  ]
+}

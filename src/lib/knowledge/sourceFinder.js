@@ -18,7 +18,7 @@ import {
   searchScholarlyReadings,
   searchWikipediaPages,
 } from './providers.js';
-import { isLicenseAmbiguous, isUserExperienceWeakSource } from './sourceLedger.js';
+import { isCourseAwareWeakSource, isLicenseAmbiguous } from './sourceLedger.js';
 
 export const SOURCE_FINDER_ORIGIN = 'source-finder';
 
@@ -378,7 +378,7 @@ function dedupeAndRankSources(rawSources, topic, limit) {
     const source = normalizeSource(raw, topic);
     if (!source) continue;
     if (!sourcePassesTopicalFit(source, topic)) continue;
-    if (isUserExperienceWeakSource(sourceFinderCandidateForReview(source, topic), courseContext)) continue;
+    if (isCourseAwareWeakSource(sourceFinderCandidateForReview(source, topic), courseContext)) continue;
     const key = source.url.toLowerCase() || source.title.toLowerCase();
     const scored = { ...source, score: scoreSource(source, topic) };
     const existing = byKey.get(key);
@@ -539,7 +539,7 @@ function attachableTopicSources(graph, miniShard, topic) {
     (source) =>
       (source?.url || source?.doi) &&
       !isLicenseAmbiguous(source?.license) &&
-      !isUserExperienceWeakSource(sourceFinderCandidateForReview(source, topic), courseContext),
+      !isCourseAwareWeakSource(sourceFinderCandidateForReview(source, topic), courseContext),
   );
 }
 

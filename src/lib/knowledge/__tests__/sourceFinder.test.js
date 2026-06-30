@@ -260,6 +260,45 @@ describe('source finder mini-shard', () => {
     expect(titles).not.toContain('Driving under the influence');
   }, 15000);
 
+  it('rejects CS/Python short-token Wikipedia false friends before caching sources', async () => {
+    const graph = createEmptyCourseGraph({ courseName: 'Introduction to Computer Science with Python' });
+    graph.sessions = [
+      {
+        id: 's7',
+        number: 7,
+        title: 'Lesson 7: strings',
+        sections: [{ topic: '7.1: strings and text processing in Python' }],
+      },
+    ];
+    graph.concepts = [{ id: 'c7', term: 'strings' }];
+    graph.edges.teaches = [{ from: 's7', to: 'c7' }];
+
+    const miniShard = await findCourseSources(graph, {
+      storage: memoryStorage(),
+      maxTopics: 1,
+      limitPerTopic: 3,
+      minUsefulSources: 1,
+      providers: {
+        searchScholarlyReadings: vi.fn(async () => []),
+        searchCrossrefWorks: vi.fn(async () => []),
+        searchWikipediaPages: vi.fn(async () => [
+          source('wikipedia', 'No Strings Attached (NSYNC album)', {
+            abstract: 'A pop album by NSYNC with singles, chart history, and music production notes.',
+          }),
+          source('wikipedia', 'String theory', {
+            abstract: 'A theoretical physics framework about one-dimensional strings and quantum gravity.',
+          }),
+          source('wikipedia', 'String (computer science)', {
+            abstract: 'A computer science article about strings as text data in programming languages.',
+          }),
+        ]),
+      },
+    });
+
+    const titles = miniShard.topics.flatMap((topic) => topic.sources.map((item) => item.title));
+    expect(titles).toEqual(['String (computer science)']);
+  }, 15000);
+
   it('rejects off-discipline medical readings for project management topics', async () => {
     const graph = createEmptyCourseGraph({ courseName: 'Project Management' });
     graph.sessions = [

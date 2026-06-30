@@ -85,6 +85,51 @@ const USER_EXPERIENCE_TOPIC_ANCHORS = [
       /\b(?:design\s+studio|studio\s+practice|portfolio\s+case\s+stud(?:y|ies)|case\s+study\s+structure|visuals?|design\s+review|work[-\s]?in[-\s]?progress\s+review|portfolio\s+review|(?:design|prototype|studio|ux|user[-\s]?experience|interface|interaction|portfolio)[-\s]+(?:critique|refinement)|(?:critique|refinement)[-\s]+(?:design|prototype|studio|ux|user[-\s]?experience|interface|interaction|portfolio)|iterative\s+design|prototyping)\b/i,
   },
 ];
+const COMPUTER_SCIENCE_COURSE_RE =
+  /\b(?:computer\s+science|python\b|programming|coding|software\s+development|software\s+engineering|intro(?:duction)?\s+to\s+cs|cs\s*(?:1|101)\b)\b/i;
+const COMPUTER_SCIENCE_SOURCE_ANCHOR_RE =
+  /\b(?:computer\s+science|computing|programming|software|python\b|code\b|coding|algorithm|data\s+structures?|control\s+flow|conditional|loops?|variables?|data\s+types?|strings?\s+(?:in\s+python|in\s+programming|type|object|processing|computer\s+science)|lists?\s+(?:in\s+python|in\s+programming|data\s+structure|abstract\s+data\s+type|array|sequence)|dictionar(?:y|ies)\s+(?:in\s+python|data\s+structure|mapping|hash\s+table)|functions?\s+(?:in\s+python|in\s+programming|programming|subroutine|procedure|method)|modules?\s+(?:in\s+python|programming|software)|exceptions?\s+(?:in\s+python|programming|handling)|debugg(?:ing|er)|unit\s+tests?|software\s+testing|file\s+(?:i\/o|input|output|handling)|input\/output|openstax\s+introduction\s+python\s+programming|python\s+\(programming\s+language\)|computer\s+program|programming\s+language)\b/i;
+const COMPUTER_SCIENCE_FALSE_FRIEND_RE =
+  /\b(?:lists?\s+of\s+(?:american\s+colleges|box\s+office|universities|films|songs|albums|people)|list\s+of\s+dictionaries\s+by\s+number\s+of\s+words|no\s+strings\s+attached|n'?sync|string\s+theory|trigonometric\s+functions?|function\s+\(mathematics\)|continuous\s+or\s+discrete\s+variable|frontiers\s+of\s+flow\s+control|file\s+explorer|file\s+manager|environment\s+variable)\b/i;
+const COMPUTER_SCIENCE_TOPIC_ANCHORS = [
+  {
+    concept: /\b(?:variables?|types?|data\s+types?)\b/i,
+    source:
+      /\b(?:python|programming|computer\s+science|data\s+types?|variables?\s+(?:in\s+python|in\s+programming)|type\s+systems?)\b/i,
+  },
+  {
+    concept: /\b(?:control\s+flow|conditionals?|loops?)\b/i,
+    source: /\b(?:control\s+flow|conditional|loops?|branching|iteration|python|programming)\b/i,
+  },
+  {
+    concept: /\bfunctions?\b/i,
+    source: /\b(?:functions?\s+(?:in\s+python|in\s+programming|programming)|subroutine|procedure|method|python)\b/i,
+  },
+  {
+    concept: /\blists?\b/i,
+    source:
+      /\b(?:lists?\s+(?:in\s+python|in\s+programming|data\s+structure|abstract\s+data\s+type|array|sequence)|python\s+lists?|list\s+comprehensions?)\b/i,
+  },
+  {
+    concept: /\bdictionar(?:y|ies)\b/i,
+    source:
+      /\b(?:dictionar(?:y|ies)\s+(?:in\s+python|data\s+structure|mapping)|hash\s+table|associative\s+array|python\s+dictionar(?:y|ies))\b/i,
+  },
+  {
+    concept: /\bstrings?\b/i,
+    source:
+      /\b(?:strings?\s+(?:in\s+python|in\s+programming|computer\s+science|processing|type|object)|text\s+processing|python\s+strings?)\b/i,
+  },
+  {
+    concept: /\bfile\s+(?:input|output)|file\s+i\/o|files?\b/i,
+    source:
+      /\b(?:file\s+(?:input|output|i\/o|handling)|input\/output|read(?:ing)?\s+files?|writ(?:ing|e)\s+files?|python\s+files?)\b/i,
+  },
+  {
+    concept: /\b(?:modules?|exceptions?|testing|debugging|algorithms?)\b/i,
+    source: /\b(?:modules?|exceptions?|testing|debugging|algorithms?|python|programming|software)\b/i,
+  },
+];
 const SOURCE_FINDER_TRUSTED_ROWS_PER_TOPIC = 2;
 
 function cleanText(value, maxLength = 500) {
@@ -553,6 +598,25 @@ export function isUserExperienceWeakSource(source, courseGraph) {
   return !USER_EXPERIENCE_SOURCE_ANCHOR_RE.test(text) && !hasUserExperienceTopicAnchor(source);
 }
 
+function hasComputerScienceTopicAnchor(source = {}) {
+  const conceptText = sourceConceptText(source);
+  const text = sourceSearchText(source);
+  return COMPUTER_SCIENCE_TOPIC_ANCHORS.some(({ concept, source: sourcePattern }) => {
+    return concept.test(conceptText) && sourcePattern.test(text);
+  });
+}
+
+export function isComputerScienceWeakSource(source, courseGraph) {
+  if (!COMPUTER_SCIENCE_COURSE_RE.test(courseText(courseGraph))) return false;
+  const text = sourceSearchText(source);
+  if (COMPUTER_SCIENCE_FALSE_FRIEND_RE.test(text)) return true;
+  return !COMPUTER_SCIENCE_SOURCE_ANCHOR_RE.test(text) && !hasComputerScienceTopicAnchor(source);
+}
+
+export function isCourseAwareWeakSource(source, courseGraph) {
+  return isUserExperienceWeakSource(source, courseGraph) || isComputerScienceWeakSource(source, courseGraph);
+}
+
 function isSourceFinderCandidate(source = {}) {
   return (
     cleanText(source?.origin || source?.sourceOrigin, 80).toLowerCase() === 'source-finder' ||
@@ -572,18 +636,18 @@ function requiresSourceReview(source = {}) {
 function appendCourseAwareSource(rows, reviewRows, source, courseGraph) {
   if (
     isSourceFinderCandidate(source) &&
-    (requiresSourceReview(source) || isUserExperienceWeakSource(source, courseGraph))
+    (requiresSourceReview(source) || isCourseAwareWeakSource(source, courseGraph))
   ) {
     return;
   }
-  if (isGeneratedSyllabusSource(source) && isUserExperienceWeakSource(source, courseGraph)) {
+  if (isGeneratedSyllabusSource(source) && isCourseAwareWeakSource(source, courseGraph)) {
     return;
   }
   if (requiresSourceReview(source)) {
     appendUnique(reviewRows, source);
     return;
   }
-  if (isTrustedConceptLinkedSourceLedgerRow(source) && isUserExperienceWeakSource(source, courseGraph)) {
+  if (isTrustedConceptLinkedSourceLedgerRow(source) && isCourseAwareWeakSource(source, courseGraph)) {
     appendUnique(reviewRows, source);
     return;
   }
@@ -620,7 +684,7 @@ function reviewRowConceptsCoveredByTrustedRows(reviewRow, trustedRows) {
 
 function isCoveredNonActionableReviewRow(row, trustedRows, courseGraph) {
   if (!reviewRowConceptsCoveredByTrustedRows(row, trustedRows)) return false;
-  return isGeneratedSyllabusSource(row) || isSourceFinderCandidate(row) || isUserExperienceWeakSource(row, courseGraph);
+  return isGeneratedSyllabusSource(row) || isSourceFinderCandidate(row) || isCourseAwareWeakSource(row, courseGraph);
 }
 
 function pruneCoveredNonActionableReviewRows(rows, reviewRows, courseGraph) {
@@ -700,7 +764,7 @@ function sourceFinderTopicLedgerSources(courseGraph, topic, topicIndex, checkedA
   );
   const trustedConceptLinked = [];
   for (const source of candidates) {
-    if (!isTrustedConceptLinkedSourceLedgerRow(source) || isUserExperienceWeakSource(source, courseGraph)) continue;
+    if (!isTrustedConceptLinkedSourceLedgerRow(source) || isCourseAwareWeakSource(source, courseGraph)) continue;
     appendUnique(trustedConceptLinked, source);
   }
   if (trustedConceptLinked.length > 0) {

@@ -1598,4 +1598,150 @@ describe('trusted source ledger', () => {
     ]);
     expect(ledger.reviewRows || []).toHaveLength(0);
   });
+
+  it('drops CS/Python short-token false friends while keeping programming source proof', () => {
+    const graph = {
+      course: { name: 'Introduction to Computer Science with Python' },
+      concepts: [
+        { id: 'c2', term: 'variables and types' },
+        { id: 'c4', term: 'functions' },
+        { id: 'c5', term: 'lists' },
+        { id: 'c7', term: 'strings' },
+      ],
+      sessions: [
+        {
+          id: 's2',
+          number: 2,
+          title: 'Lesson 2: variables and types',
+          sections: [{ id: 'sec2', topic: 'variables and types', conceptRefs: ['c2'], resourceRefs: [] }],
+        },
+        {
+          id: 's4',
+          number: 4,
+          title: 'Lesson 4: functions',
+          sections: [{ id: 'sec4', topic: 'functions', conceptRefs: ['c4'], resourceRefs: [] }],
+        },
+        {
+          id: 's5',
+          number: 5,
+          title: 'Lesson 5: lists',
+          sections: [{ id: 'sec5', topic: 'lists', conceptRefs: ['c5'], resourceRefs: [] }],
+        },
+        {
+          id: 's7',
+          number: 7,
+          title: 'Lesson 7: strings',
+          sections: [{ id: 'sec7', topic: 'strings', conceptRefs: ['c7'], resourceRefs: [] }],
+        },
+      ],
+      edges: { teaches: [] },
+      resources: [],
+      sourceFinderMiniShard: {
+        topics: [
+          {
+            sessionId: 's2',
+            lessonNumber: 2,
+            topic: 'variables and types',
+            sources: [
+              {
+                provider: 'wikipedia',
+                kind: 'encyclopedia background',
+                title: 'Continuous or discrete variable',
+                url: 'https://en.wikipedia.org/wiki/Continuous_or_discrete_variable',
+                license: 'CC BY-SA 4.0',
+                snippet: 'A statistics page about continuous and discrete variables.',
+              },
+              {
+                provider: 'wikipedia',
+                kind: 'encyclopedia background',
+                title: 'Data type',
+                url: 'https://en.wikipedia.org/wiki/Data_type',
+                license: 'CC BY-SA 4.0',
+                snippet: 'A computer science article about data types in programming languages.',
+              },
+            ],
+          },
+          {
+            sessionId: 's4',
+            lessonNumber: 4,
+            topic: 'functions',
+            sources: [
+              {
+                provider: 'wikipedia',
+                kind: 'encyclopedia background',
+                title: 'Function (mathematics)',
+                url: 'https://en.wikipedia.org/wiki/Function_(mathematics)',
+                license: 'CC BY-SA 4.0',
+                snippet: 'A mathematics page about mappings between sets.',
+              },
+              {
+                provider: 'wikipedia',
+                kind: 'encyclopedia background',
+                title: 'Subroutine',
+                url: 'https://en.wikipedia.org/wiki/Subroutine',
+                license: 'CC BY-SA 4.0',
+                snippet: 'A programming article about functions, procedures, and methods in code.',
+              },
+            ],
+          },
+          {
+            sessionId: 's5',
+            lessonNumber: 5,
+            topic: 'lists',
+            sources: [
+              {
+                provider: 'wikipedia',
+                kind: 'encyclopedia background',
+                title: 'Lists of American colleges and universities',
+                url: 'https://en.wikipedia.org/wiki/Lists_of_American_colleges_and_universities',
+                license: 'CC BY-SA 4.0',
+                snippet: 'Lists of institutions in the United States.',
+              },
+              {
+                provider: 'wikipedia',
+                kind: 'encyclopedia background',
+                title: 'List (abstract data type)',
+                url: 'https://en.wikipedia.org/wiki/List_(abstract_data_type)',
+                license: 'CC BY-SA 4.0',
+                snippet: 'A computer science article about list data structures and sequences.',
+              },
+            ],
+          },
+          {
+            sessionId: 's7',
+            lessonNumber: 7,
+            topic: 'strings',
+            sources: [
+              {
+                provider: 'wikipedia',
+                kind: 'encyclopedia background',
+                title: 'No Strings Attached (NSYNC album)',
+                url: 'https://en.wikipedia.org/wiki/No_Strings_Attached_(NSYNC_album)',
+                license: 'CC BY-SA 4.0',
+                snippet: 'A pop album by NSYNC.',
+              },
+              {
+                provider: 'wikipedia',
+                kind: 'encyclopedia background',
+                title: 'String (computer science)',
+                url: 'https://en.wikipedia.org/wiki/String_(computer_science)',
+                license: 'CC BY-SA 4.0',
+                snippet: 'A computer science article about strings as programming-language text data.',
+              },
+            ],
+          },
+        ],
+      },
+    };
+
+    const ledger = buildSourceLedgerFromCourseGraph(graph, { checkedAt: '2026-06-30T00:00:00.000Z' });
+
+    expect(ledger.rows.map((row) => row.title)).toEqual([
+      'Data type',
+      'Subroutine',
+      'List (abstract data type)',
+      'String (computer science)',
+    ]);
+    expect(ledger.reviewRows || []).toHaveLength(0);
+  });
 });

@@ -1160,4 +1160,62 @@ describe('source-ledger quality checks', () => {
       'sourceRef coverage is not wired to trusted concept-linked source ledger rows: 55 atom(s) report coverage through 1 CourseIR source row(s) while 3 trusted concept-linked exported source row(s) exist',
     );
   });
+
+  it('flags CS/Python source-ledger false friends even when licensed and concept-linked', async () => {
+    const result = await grade({
+      fileProvider: createMemoryFileProvider({
+        'PACKAGE_MANIFEST.json': JSON.stringify({
+          courseName: 'Introduction to Computer Science with Python',
+          lessonScope: 'all',
+          requestedFeatures: [],
+          readiness: { status: 'ready', blockers: 0, warnings: 0, checkedSections: null },
+          pipeline: {
+            knowledgeBackbone: '3/15 lessons genome-linked · 12 cited open resources (source-finder: 8)',
+          },
+          sourceLedger: [
+            {
+              id: 'sf5',
+              title: 'Lists of American colleges and universities',
+              provider: 'wikipedia',
+              url: 'https://en.wikipedia.org/wiki/Lists_of_American_colleges_and_universities',
+              license: 'CC BY-SA 4.0',
+              conceptLinks: [{ id: 'c5', label: 'lists' }],
+            },
+            {
+              id: 'sf7',
+              title: 'No Strings Attached (NSYNC album)',
+              provider: 'wikipedia',
+              url: 'https://en.wikipedia.org/wiki/No_Strings_Attached_(NSYNC_album)',
+              license: 'CC BY-SA 4.0',
+              conceptLinks: [{ id: 'c7', label: 'strings' }],
+            },
+            {
+              id: 'sf-good',
+              title: 'String (computer science)',
+              provider: 'wikipedia',
+              url: 'https://en.wikipedia.org/wiki/String_(computer_science)',
+              license: 'CC BY-SA 4.0',
+              conceptLinks: [{ id: 'c7', label: 'strings' }],
+            },
+          ],
+          sourceReport: {
+            path: 'SOURCE_REPORT.md',
+            sourceCount: 3,
+          },
+          files: [],
+        }),
+        'SOURCE_REPORT.md': '# Source Report\n\n## Source Ledger\n- sf5: Lists of American colleges and universities\n',
+      }),
+      course: { title: 'Introduction to Computer Science with Python', featureIds: [] },
+    });
+
+    const details = result.findings.map((finding) => finding.detail);
+    expect(details).toEqual(
+      expect.arrayContaining([
+        'source ledger row sf5 is off-discipline for Computer Science/Python',
+        'source ledger row sf7 is off-discipline for Computer Science/Python',
+      ]),
+    );
+    expect(details).not.toContain('source ledger row sf-good is off-discipline for Computer Science/Python');
+  });
 });

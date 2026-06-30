@@ -83,6 +83,51 @@ const USER_EXPERIENCE_TOPIC_ANCHORS = [
       /\b(?:design\s+studio|studio\s+practice|portfolio\s+case\s+stud(?:y|ies)|case\s+study\s+structure|visuals?|design\s+review|work[-\s]?in[-\s]?progress\s+review|portfolio\s+review|(?:design|prototype|studio|ux|user[-\s]?experience|interface|interaction|portfolio)[-\s]+(?:critique|refinement)|(?:critique|refinement)[-\s]+(?:design|prototype|studio|ux|user[-\s]?experience|interface|interaction|portfolio)|iterative\s+design|prototyping)\b/i,
   },
 ];
+const COMPUTER_SCIENCE_COURSE_RE =
+  /\b(?:computer\s+science|python\b|programming|coding|software\s+development|software\s+engineering|intro(?:duction)?\s+to\s+cs|cs\s*(?:1|101)\b)\b/i;
+const COMPUTER_SCIENCE_SOURCE_ANCHOR_RE =
+  /\b(?:computer\s+science|computing|programming|software|python\b|code\b|coding|algorithm|data\s+structures?|control\s+flow|conditional|loops?|variables?|data\s+types?|strings?\s+(?:in\s+python|in\s+programming|type|object|processing|computer\s+science)|lists?\s+(?:in\s+python|in\s+programming|data\s+structure|abstract\s+data\s+type|array|sequence)|dictionar(?:y|ies)\s+(?:in\s+python|data\s+structure|mapping|hash\s+table)|functions?\s+(?:in\s+python|in\s+programming|programming|subroutine|procedure|method)|modules?\s+(?:in\s+python|programming|software)|exceptions?\s+(?:in\s+python|programming|handling)|debugg(?:ing|er)|unit\s+tests?|software\s+testing|file\s+(?:i\/o|input|output|handling)|input\/output|openstax\s+introduction\s+python\s+programming|python\s+\(programming\s+language\)|computer\s+program|programming\s+language)\b/i;
+const COMPUTER_SCIENCE_FALSE_FRIEND_RE =
+  /\b(?:lists?\s+of\s+(?:american\s+colleges|box\s+office|universities|films|songs|albums|people)|list\s+of\s+dictionaries\s+by\s+number\s+of\s+words|no\s+strings\s+attached|n'?sync|string\s+theory|trigonometric\s+functions?|function\s+\(mathematics\)|continuous\s+or\s+discrete\s+variable|frontiers\s+of\s+flow\s+control|file\s+explorer|file\s+manager|environment\s+variable)\b/i;
+const COMPUTER_SCIENCE_TOPIC_ANCHORS = [
+  {
+    concept: /\b(?:variables?|types?|data\s+types?)\b/i,
+    source:
+      /\b(?:python|programming|computer\s+science|data\s+types?|variables?\s+(?:in\s+python|in\s+programming)|type\s+systems?)\b/i,
+  },
+  {
+    concept: /\b(?:control\s+flow|conditionals?|loops?)\b/i,
+    source: /\b(?:control\s+flow|conditional|loops?|branching|iteration|python|programming)\b/i,
+  },
+  {
+    concept: /\bfunctions?\b/i,
+    source: /\b(?:functions?\s+(?:in\s+python|in\s+programming|programming)|subroutine|procedure|method|python)\b/i,
+  },
+  {
+    concept: /\blists?\b/i,
+    source:
+      /\b(?:lists?\s+(?:in\s+python|in\s+programming|data\s+structure|abstract\s+data\s+type|array|sequence)|python\s+lists?|list\s+comprehensions?)\b/i,
+  },
+  {
+    concept: /\bdictionar(?:y|ies)\b/i,
+    source:
+      /\b(?:dictionar(?:y|ies)\s+(?:in\s+python|data\s+structure|mapping)|hash\s+table|associative\s+array|python\s+dictionar(?:y|ies))\b/i,
+  },
+  {
+    concept: /\bstrings?\b/i,
+    source:
+      /\b(?:strings?\s+(?:in\s+python|in\s+programming|computer\s+science|processing|type|object)|text\s+processing|python\s+strings?)\b/i,
+  },
+  {
+    concept: /\bfile\s+(?:input|output)|file\s+i\/o|files?\b/i,
+    source:
+      /\b(?:file\s+(?:input|output|i\/o|handling)|input\/output|read(?:ing)?\s+files?|writ(?:ing|e)\s+files?|python\s+files?)\b/i,
+  },
+  {
+    concept: /\b(?:modules?|exceptions?|testing|debugging|algorithms?)\b/i,
+    source: /\b(?:modules?|exceptions?|testing|debugging|algorithms?|python|programming|software)\b/i,
+  },
+];
 
 function ambiguousLicense(row) {
   const license = String(row?.license || '')
@@ -146,6 +191,19 @@ function isUserExperienceManifest(manifest) {
   return USER_EXPERIENCE_COURSE_RE.test(courseText);
 }
 
+function isComputerScienceManifest(manifest) {
+  const courseText = [
+    manifest?.courseName,
+    manifest?.title,
+    manifest?.packageTitle,
+    manifest?.pipeline?.knowledgeBackbone,
+    manifest?.pipeline?.courseGraph,
+  ]
+    .filter(Boolean)
+    .join(' ');
+  return COMPUTER_SCIENCE_COURSE_RE.test(courseText);
+}
+
 function rowSearchText(row) {
   return [row?.title, row?.citation, row?.evidence, row?.sourceType, row?.scope].filter(Boolean).join(' ');
 }
@@ -175,6 +233,19 @@ function isUserExperienceWeakSource(row, manifest) {
   const text = rowSearchText(row);
   if (USER_EXPERIENCE_FALSE_FRIEND_RE.test(text)) return true;
   return !USER_EXPERIENCE_SOURCE_ANCHOR_RE.test(text) && !hasUserExperienceTopicAnchor(row);
+}
+
+function hasComputerScienceTopicAnchor(row) {
+  const conceptText = rowConceptText(row);
+  const text = rowSearchText(row);
+  return COMPUTER_SCIENCE_TOPIC_ANCHORS.some(({ concept, source }) => concept.test(conceptText) && source.test(text));
+}
+
+function isComputerScienceWeakSource(row, manifest) {
+  if (!isComputerScienceManifest(manifest)) return false;
+  const text = rowSearchText(row);
+  if (COMPUTER_SCIENCE_FALSE_FRIEND_RE.test(text)) return true;
+  return !COMPUTER_SCIENCE_SOURCE_ANCHOR_RE.test(text) && !hasComputerScienceTopicAnchor(row);
 }
 
 function sourceCoverageTotal(coverage) {
@@ -321,6 +392,15 @@ export function checkSourceLedger(findings, { files, manifest }) {
         dimension: 'citations',
         file: 'PACKAGE_MANIFEST.json',
         detail: `source ledger row ${id || '(missing id)'} is off-discipline for User Experience Design Studio`,
+        evidence: row?.title || row?.citation || row?.evidence || id,
+      });
+    }
+    if (hasConceptLinks(row) && isComputerScienceWeakSource(row, manifest)) {
+      findings.add({
+        severity: 'P1',
+        dimension: 'citations',
+        file: 'PACKAGE_MANIFEST.json',
+        detail: `source ledger row ${id || '(missing id)'} is off-discipline for Computer Science/Python`,
         evidence: row?.title || row?.citation || row?.evidence || id,
       });
     }
