@@ -35,13 +35,8 @@
       "status": "verified-current",
       "changelogHighlightIndex": 0,
       "summary": "The release is grounded in fresh v0.15.163 GPT-5.4-mini Python ZIP/log evidence that locally regraded at 99/A with Texture 95 and exposed stale source-backed judgment truth.",
-      "anchors": [
-        "docs/V0.15.164_EXPORT_TRUTH_REPAIR_ROADMAP.md",
-        "verification-output/edutool-audit-loop/20260630T190159Z-v015163-fresh/report.md"
-      ],
-      "proofCommands": [
-        "rg -n \"99/100|Texture 95|source-backed\" docs/V0.15.164_EXPORT_TRUTH_REPAIR_ROADMAP.md verification-output/edutool-audit-loop/20260630T190159Z-v015163-fresh/report.md"
-      ],
+      "anchors": ["docs/V0.15.164_EXPORT_TRUTH_REPAIR_ROADMAP.md"],
+      "proofCommands": ["rg -n \"99/A|Texture 95|source-backed\" docs/V0.15.164_EXPORT_TRUTH_REPAIR_ROADMAP.md"],
       "proofScopes": ["static-audit"]
     },
     {
