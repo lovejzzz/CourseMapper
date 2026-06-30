@@ -36,10 +36,7 @@
       "status": "verified-current",
       "changelogHighlightIndex": 0,
       "summary": "The release is grounded in fresh v0.15.162 GPT-5.4-mini Python ZIP/log evidence that locally regraded at 97/A because assessment labels and weights became lesson/file/source identities.",
-      "anchors": [
-        "docs/V0.15.163_ASSESSMENT_IDENTITY_REPAIR_ROADMAP.md",
-        "verification-output/edutool-audit-loop/20260630T181200Z-v015162-gpt54mini-fresh"
-      ],
+      "anchors": ["docs/V0.15.163_ASSESSMENT_IDENTITY_REPAIR_ROADMAP.md"],
       "proofCommands": [
         "rg -n \"97/A|assessment labels|grading weights|v0.15.162\" docs/V0.15.163_ASSESSMENT_IDENTITY_REPAIR_ROADMAP.md"
       ],
