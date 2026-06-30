@@ -735,6 +735,61 @@ describe('1.16 — prompt artifact labels never become course-map concepts', () 
     expect(graphIdentityText).not.toMatch(/\(\s*7%\s*\)/);
   });
 
+  it('repairs conjoined Quiz Week and Assignment Week labels before they replace Python topics', () => {
+    const courseMap = {
+      courseName: 'Introduction to Computer Science with Python',
+      lessons: Array.from({ length: 12 }, (_, index) => {
+        const lessonNumber = index + 1;
+        const weakIdentity = `Quiz: Week ${lessonNumber},Assignment: Week ${lessonNumber}`;
+        return {
+          title: `Lesson ${lessonNumber}: ${weakIdentity}`,
+          sections: [
+            {
+              topicSection: `${lessonNumber}.1: ${weakIdentity}`,
+              learningGoals: `Use ${weakIdentity} to read, predict, and explain a small Python program.`,
+              learningObjectives: `Trace Python code using ${weakIdentity} and explain the output before running it.`,
+              weeklyAssessments: `${weakIdentity} trace memo: predict two lines, run the code, and annotate the changed variable.`,
+              asyncActivities: `Trace a short Python example for ${weakIdentity} and note the inputs, variables, and output.`,
+              syncActivities: `Live-code a ${weakIdentity} example, then have students predict the next program state.`,
+              supportingResources: `${weakIdentity} starter code, worked example, and test-case checklist.`,
+              evaluateDesign: `Verify the ${weakIdentity} section ties the sample, lab checkpoint, and grading evidence to one observable behavior.`,
+            },
+          ],
+        };
+      }),
+    };
+
+    const repair = repairCourseMapReadiness({ courseMap });
+    const repairedText = JSON.stringify(repair.courseMap);
+
+    expect(repair.changed).toBe(true);
+    expect(repair.repairedFields).toEqual(
+      expect.arrayContaining([
+        'Lesson 1 title',
+        'Lesson 1, Section 1 Topic Section (assessment identity)',
+        'Lesson 1, Section 1 Learning Goals (assessment identity)',
+        'Lesson 1, Section 1 Learning Objectives (assessment identity)',
+        'Lesson 1, Section 1 Weekly Assessments (assessment identity)',
+      ]),
+    );
+    expect(repair.courseMap.lessons[0].title).toBe('Lesson 1: course orientation and computational thinking');
+    expect(repair.courseMap.lessons[1].title).toBe('Lesson 2: variables, expressions, and data types');
+    expect(repair.courseMap.lessons[0].sections[0].topicSection).toBe('course orientation and computational thinking');
+    expect(repair.courseMap.lessons[1].sections[0].topicSection).toBe('variables, expressions, and data types');
+    expect(repairedText).not.toMatch(/\b(?:Quiz|Assignment)\s*:\s*Week\s+\d{1,2}\b/i);
+
+    const graph = deriveCourseGraphFromCourseMap(repair.courseMap);
+    const graphIdentityText = [
+      ...graph.sessions.map((session) => session.title),
+      ...graph.concepts.map((concept) => concept.term),
+      ...graph.assessments.map((assessment) => assessment.title),
+    ].join(' ');
+
+    expect(graphIdentityText).toMatch(/course orientation and computational thinking/i);
+    expect(graphIdentityText).toMatch(/variables, expressions, and data types/i);
+    expect(graphIdentityText).not.toMatch(/\b(?:Quiz|Assignment)\s*:\s*Week\s+\d{1,2}\b/i);
+  });
+
   it('keeps repaired single artifact-resource labels out of compiled Course FAQ answers', () => {
     const courseMap = {
       courseName: 'Genetics and Society',

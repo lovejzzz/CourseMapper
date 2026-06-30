@@ -134,8 +134,12 @@ const ASSESSMENT_LABEL_COURSE_MAP_RE =
 const ASSESSMENT_WEIGHT_CUE_RE = /(?:\(\s*\d{1,3}\s*%\s*\)|\b\d{1,3}\s*%\b)/;
 const ASSESSMENT_ACTIVITY_CUE_RE =
   /\b(?:studio critique|portfolio review|prototype presentation|usability test|design journal|critique session)\b/i;
+const ASSESSMENT_WEEK_LABEL_CUE_RE =
+  /\b(?:quiz|exam|assignment|lab|rubric)\s*[:—–-]\s*week\s*\d{1,3}\b(?:\s*[,/|&]\s*(?:quiz|exam|assignment|lab|rubric)\s*[:—–-]\s*week\s*\d{1,3}\b)+/i;
 const ASSESSMENT_LABEL_IDENTITY_REFERENCE_RE =
   /\b(?:evidence check|quick evidence check|applied problem|practice brief|concept transfer|exit ticket|weekly assessment|practice response|assessment|quiz|exam|assignment brief|rubric)\b\s*[:—–-]\s*[^.;\n]{0,160}(?:\(\s*\d{1,3}\s*%\s*\)|\b\d{1,3}\s*%\b)/i;
+const ASSESSMENT_WEEK_LABEL_IDENTITY_REFERENCE_RE =
+  /\b(?:quiz|exam|assignment|lab|rubric)\s*[:—–-]\s*week\s*\d{1,3}\b(?:\s*[,/|&]\s*(?:quiz|exam|assignment|lab|rubric)\s*[:—–-]\s*week\s*\d{1,3}\b)+/i;
 const INSTRUCTIONAL_DESIGN_COURSE_RE =
   /\b(?:instructional design|course design|curriculum design|assessment design|teacher education|teaching methods|pedagogy|education)\b/i;
 const PROMPT_ARTIFACT_EMBEDDED_COURSE_MAP_KEYS = new Set([
@@ -561,11 +565,16 @@ function isAssessmentLabelCourseMapIdentity(value) {
     .trim()
     .replace(/^lesson\s+\d{1,3}\s*[:.]\s*/i, '');
   if (!candidate || !ASSESSMENT_LABEL_COURSE_MAP_RE.test(candidate)) return false;
-  return ASSESSMENT_WEIGHT_CUE_RE.test(candidate) || ASSESSMENT_ACTIVITY_CUE_RE.test(candidate);
+  return (
+    ASSESSMENT_WEIGHT_CUE_RE.test(candidate) ||
+    ASSESSMENT_ACTIVITY_CUE_RE.test(candidate) ||
+    ASSESSMENT_WEEK_LABEL_CUE_RE.test(candidate)
+  );
 }
 
 function hasAssessmentLabelCourseMapIdentityReference(value) {
-  return ASSESSMENT_LABEL_IDENTITY_REFERENCE_RE.test(text(value));
+  const raw = text(value);
+  return ASSESSMENT_LABEL_IDENTITY_REFERENCE_RE.test(raw) || ASSESSMENT_WEEK_LABEL_IDENTITY_REFERENCE_RE.test(raw);
 }
 
 function hasRepeatedShortTopicReference(value, courseMap) {

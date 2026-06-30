@@ -3,24 +3,24 @@ import { APP_VERSION } from './appVersion.js';
 export const CURRENT_RELEASE = {
   version: APP_VERSION,
   date: 'June 30, 2026',
-  title: 'Export Finish Retry: content-quality defects spend retry budget',
-  landingTitle: 'Content Quality Retry',
+  title: 'Assessment Week Label Repair: quiz labels cannot replace topics',
+  landingTitle: 'Assessment Label Repair',
   highlights: [
-    'Fresh deployed v0.15.166 GPT-5.4-mini Python browser evidence showed a second finish-truth gap: after 16 deterministic repairs, the digest still carried nine dangling-clause export warnings while finish-stage retry actions stayed at zero.',
-    'Export-triggered package finishing now lets content-quality warnings that survive deterministic repair enter the retry queue, instead of treating them as review-only noise after the app already knows the defect shape.',
-    'Broad classroom/readability warnings still stay out of automatic retry when `retryWarnings` is disabled, preserving cost control and avoiding model calls for subjective polish.',
-    'The focused finalizer regression pins a surviving student-facing content-quality warning and proves export finish produces a concrete retry target without weakening the warning or grader.',
-    'This release does not claim a new ZIP score; the next deployed GPT-5.4-mini audit should confirm v0.15.168 retries known content-quality defects before showing the user a caveated package.',
+    'Fresh deployed v0.15.168 GPT-5.4-mini Python browser evidence blocked before ZIP export with Quality 98, Texture 88, 1 P1, 1 P2, and visible `Quiz: Week N,Assignment: Week N` strings replacing lesson topics across the Course Map.',
+    'Course Map readiness repair now treats conjoined week-labeled assessment metadata such as `Quiz: Week 2,Assignment: Week 2` as assessment identity, not a valid lesson concept.',
+    'The same guard repairs downstream references in goals, objectives, assessments, activities, resources, and evaluate-design cells before they seed filenames, concepts, source queries, and compiled deliverables.',
+    'The regression uses the exact v0.15.168 Python failure shape across 12 lessons and proves repaired Course Map, course graph sessions, concepts, and assessment titles no longer carry `Quiz: Week N` or `Assignment: Week N` topic identities.',
+    'This release does not claim a clean ZIP score; the next deployed GPT-5.4-mini audit should verify a fresh package exports without assessment-label topic contamination.',
   ],
   landingHighlights: [
-    'Known content defects can spend finish retry budget.',
-    'Broad warning noise remains review-only.',
-    'The retry behavior is pinned by finalizer coverage.',
-    'The next live audit must prove the deployed flow.',
+    'Week-labeled quiz/assignment metadata cannot become topics.',
+    'Course Map cells repair before graph and export compilation.',
+    'The regression pins the real v0.15.168 failure shape.',
+    'The next live audit must prove a clean deployed package.',
   ],
   proof: {
-    contract: 'release-contracts/v0.15.168.json',
-    roadmap: 'docs/V0.15.168_CONTENT_QUALITY_RETRY_ROADMAP.md',
+    contract: 'release-contracts/v0.15.169.json',
+    roadmap: 'docs/V0.15.169_ASSESSMENT_WEEK_LABEL_REPAIR_ROADMAP.md',
     auditCommand: 'npm run audit:release-history',
   },
 };
@@ -35,6 +35,18 @@ export const CURRENT_RELEASE_CHANGELOG = {
 };
 
 export const HISTORICAL_RELEASE_CHANGELOGS = [
+  {
+    version: '0.15.168',
+    date: 'June 30, 2026',
+    title: 'Export Finish Retry: content-quality defects spend retry budget',
+    highlights: [
+      'Fresh deployed v0.15.166 GPT-5.4-mini Python browser evidence showed a second finish-truth gap: after 16 deterministic repairs, the digest still carried nine dangling-clause export warnings while finish-stage retry actions stayed at zero.',
+      'Export-triggered package finishing now lets content-quality warnings that survive deterministic repair enter the retry queue, instead of treating them as review-only noise after the app already knows the defect shape.',
+      'Broad classroom/readability warnings still stay out of automatic retry when `retryWarnings` is disabled, preserving cost control and avoiding model calls for subjective polish.',
+      'The focused finalizer regression pins a surviving student-facing content-quality warning and proves export finish produces a concrete retry target without weakening the warning or grader.',
+      'This release does not claim a new ZIP score; the next deployed GPT-5.4-mini audit should confirm v0.15.168 retries known content-quality defects before showing the user a caveated package.',
+    ],
+  },
   {
     version: '0.15.167',
     date: 'June 30, 2026',
