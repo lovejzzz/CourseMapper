@@ -994,14 +994,23 @@ function getComputerScienceCourseMapFallbacks(topic, pick) {
       `Debug a ${topic} mistake by naming the input, state change, and expected result.`,
       `Choose the right ${topic} approach for a small programming problem and justify it.`,
       `Test a ${topic} example with at least one normal case and one edge case.`,
+      `Explain how ${topic} changes control flow, data shape, or program output in a short snippet.`,
+      `Refactor a small ${topic} example and describe the evidence that it still works.`,
+      `Compare a working and broken ${topic} snippet, then name the rule that separates them.`,
     ]),
     weeklyAssessments: pick([
-      `${displayTopic} code trace: predict output and explain the state change.`,
-      `${displayTopic} mini-program with one required test case and one edge case.`,
-      `${displayTopic} debugging note that identifies the bug, fix, and evidence from a run.`,
-      `${displayTopic} programming prompt asking students to choose and justify an implementation.`,
-      `${displayTopic} peer review: run a partner's example and note one test result.`,
-      `${displayTopic} transfer check: adapt the code pattern to a new input or edge case.`,
+      `${displayTopic} trace memo: predict two lines, run the code, and annotate the changed variable.`,
+      `${displayTopic} mini-program: add one feature and submit normal plus edge-case output.`,
+      `${displayTopic} bug-fix note: locate the failing line, patch it, and include rerun evidence.`,
+      `${displayTopic} implementation choice: compare two approaches and defend the cleaner Python version.`,
+      `${displayTopic} partner review: execute a peer snippet and record one test result plus revision advice.`,
+      `${displayTopic} transfer task: adapt the pattern to a new input and explain what stayed invariant.`,
+      `${displayTopic} data-flow sketch: mark each value change and attach the matching console output.`,
+      `${displayTopic} lab checkpoint: complete the starter file and explain the first failing test.`,
+      `${displayTopic} rewrite challenge: simplify a working snippet without changing its observed behavior.`,
+      `${displayTopic} edge-case probe: choose one boundary input and explain the result before submission.`,
+      `${displayTopic} code review card: identify one readability issue and one correctness risk.`,
+      `${displayTopic} concept application: build a tiny example and justify the design decision it shows.`,
     ]),
     asyncActivities: pick([
       `Trace a short Python example for ${topic} and note the inputs, variables, and output.`,
@@ -1009,6 +1018,9 @@ function getComputerScienceCourseMapFallbacks(topic, pick) {
       `Read the ${topic} example and write one question about a possible bug or edge case.`,
       `Prepare a small test table for ${topic} before writing code in class.`,
       `Annotate the provided Python snippet to show where ${topic} affects program behavior.`,
+      `Sketch the expected console output for a ${topic} snippet, then list what to verify in class.`,
+      `Review the ${topic} reading and tag one line of code that could fail for a boundary input.`,
+      `Draft a two-row test plan for ${topic} with the expected result beside each input.`,
     ]),
     syncActivities: pick([
       `Live-code a ${topic} example, then have students predict the next program state.`,
@@ -1016,6 +1028,9 @@ function getComputerScienceCourseMapFallbacks(topic, pick) {
       `Work through a ${topic} coding prompt from pseudocode to tested Python code.`,
       `Compare two ${topic} implementations and discuss readability, correctness, and edge cases.`,
       `Use a short lab checkpoint to connect ${topic} syntax to program output.`,
+      `Run a ${topic} example twice with different inputs and discuss why the outputs diverge.`,
+      `Have pairs refactor a ${topic} solution, then explain the tradeoff they accepted.`,
+      `Ask students to write one failing ${topic} test first, then repair the code together.`,
     ]),
     technologyNeeded: pick([
       'Python interpreter or notebook, starter file, LMS, and shared debugging notes workspace.',
@@ -1034,12 +1049,24 @@ function getComputerScienceCourseMapFallbacks(topic, pick) {
       `Python reference snippet, sample input/output, and debugging guide for ${topic}.`,
       `Annotated code example, short reading, and practice prompt aligned to ${topic}.`,
       `Instructor-provided notebook, trace table, and solution rubric for ${topic}.`,
+      `${displayTopic} boundary-input table, starter notebook, and model explanation.`,
+      `Short ${topic} reading, runnable example, and pair-review checklist.`,
+      `Python style note, failing-test sample, and corrected ${topic} implementation.`,
+      `Code-tracing worksheet, sandbox link, and ${topic} submission rubric.`,
     ]),
     evaluateDesign: pick([
-      `Check that the ${topic} activity, resource, and assessment all require a runnable Python artifact or trace.`,
-      `Confirm students practice ${topic} with the same input/output evidence used in grading.`,
-      `Align the ${topic} example, lab task, and assessment around one tested programming behavior.`,
-      `Make the ${topic} checkpoint ask for code, explanation, and debugging evidence.`,
+      `Verify the ${topic} section ties the sample, lab checkpoint, and grading evidence to one observable behavior.`,
+      `Require the ${topic} submission to include code, output, and a short explanation of the result.`,
+      `Match the ${topic} example, class task, and assessment to the same programming decision.`,
+      `Ask for a ${topic} fix or extension with evidence from a fresh run, not only a written summary.`,
+      `Use one ${topic} boundary case across the activity and assessment so students can compare results.`,
+      `Make the ${topic} resource point to the exact syntax students must use in the graded task.`,
+      `Connect ${topic} feedback to a visible code revision students can demonstrate before export.`,
+      `Have students justify the ${topic} design choice with output evidence and one alternative.`,
+      `Keep the ${topic} activity focused on a tested snippet rather than a definition-only response.`,
+      `Ensure the ${topic} rubric rewards correctness, explanation, and test evidence separately.`,
+      `Have the ${topic} lesson move from prediction to execution to revision in one thread.`,
+      `Use the ${topic} assessment to verify both concept vocabulary and working Python behavior.`,
     ]),
   };
 }
@@ -1051,7 +1078,7 @@ function getCourseMapFallbackValue(key, courseMap, lesson, section, lessonIndex)
   // stems used to flow verbatim into every compiled deliverable.
   const sections = Array.isArray(lesson?.sections) ? lesson.sections : [];
   const sectionIndex = Math.max(0, sections.indexOf(section));
-  const variantIndex = (Number(lessonIndex) || 0) + sectionIndex;
+  const variantIndex = (Number(lessonIndex) || 0) * Math.max(1, sections.length) + sectionIndex;
   const pick = (variants) => variants[variantIndex % variants.length];
   const profile = inferCourseMapFallbackProfile(courseMap, lesson, section);
   const fieldFallbacks =

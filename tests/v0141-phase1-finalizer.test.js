@@ -621,18 +621,51 @@ describe('1.16 — prompt artifact labels never become course-map concepts', () 
         topics.map((_, index) => `Lesson ${index + 1}, Section 1 Weekly Assessments (assessment scaffold)`),
       ),
     );
-    expect(repairedAssessments).toMatch(/code trace/i);
+    expect(repairedAssessments).toMatch(/trace memo/i);
     expect(repairedAssessments).toMatch(/mini-program/i);
-    expect(repairedAssessments).toMatch(/debugging note/i);
-    expect(repairedAssessments).toMatch(/peer review/i);
-    expect(repairedAssessments).toMatch(/transfer check/i);
+    expect(repairedAssessments).toMatch(/bug-fix note/i);
+    expect(repairedAssessments).toMatch(/partner review/i);
+    expect(repairedAssessments).toMatch(/transfer task/i);
     expect(repairedAssessments).not.toMatch(
       /\b(?:quick evidence check|exit ticket using|apply\b[^.?!\n]{0,120}\bto a new example|prepared response|course-relevant decision)\b/i,
     );
+    expect(repairedAssessments).not.toMatch(/\bpredict output and explain the state change\b/i);
 
     const graph = deriveCourseGraphFromCourseMap(repair.courseMap);
     const graphAssessmentText = graph.assessments.map((assessment) => assessment.title).join(' ');
     expect(graphAssessmentText).not.toMatch(/\b(?:quick evidence check|exit ticket using|prepared response)\b/i);
+  });
+
+  it('varies sparse Python section fallback wording across a full 12-week map', () => {
+    const lessons = Array.from({ length: 12 }, (_, lessonIndex) => ({
+      title: `Lesson ${lessonIndex + 1}: Python topic ${lessonIndex + 1}`,
+      sections: Array.from({ length: 3 }, (_, sectionIndex) => ({
+        topicSection: `${lessonIndex + 1}.${sectionIndex + 1}: Python topic ${lessonIndex + 1}.${sectionIndex + 1}`,
+        learningGoals: '',
+        learningObjectives: '',
+        weeklyAssessments: 'Quick evidence check: apply Python to a new example.',
+        asyncActivities: '',
+        syncActivities: '',
+        supportingResources: '',
+        evaluateDesign: '',
+      })),
+    }));
+    const courseMap = {
+      courseName: 'Introduction to Computer Science with Python',
+      lessons,
+    };
+
+    const repair = repairCourseMapReadiness({ courseMap });
+    const repairedSections = repair.courseMap.lessons.flatMap((lesson) => lesson.sections);
+    const assessmentText = repairedSections.map((section) => section.weeklyAssessments).join(' ');
+    const evaluateText = repairedSections.map((section) => section.evaluateDesign).join(' ');
+    const uniqueAssessments = new Set(repairedSections.map((section) => section.weeklyAssessments));
+
+    expect(repair.changed).toBe(true);
+    expect(uniqueAssessments.size).toBeGreaterThanOrEqual(10);
+    expect(assessmentText).not.toMatch(/\bpredict output and explain the state change\b/i);
+    expect(evaluateText).not.toMatch(/\brunnable Python artifact or trace\b/i);
+    expect(evaluateText).not.toMatch(/\bsame input\/output evidence used in grading\b/i);
   });
 
   it('repairs assessment-label course-title identities before they seed filenames and source concepts', () => {

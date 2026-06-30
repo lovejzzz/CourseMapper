@@ -225,7 +225,10 @@ function courseMapAssessmentTitle(lesson, index) {
       .split(/\n|;/)
       .map((part) => compactFinalizerText(part))
       .find(Boolean);
-    const concise = firstLine?.replace(/\s+that\s+.+$/i, '').trim();
+    const concise = firstLine
+      ?.replace(/\s+that\s+.+$/i, '')
+      .replace(/:\s+.+$/i, '')
+      .trim();
     if (concise && concise.length >= 8) return stripFinalizerTerminalPunctuation(concise);
     if (firstLine) return stripFinalizerTerminalPunctuation(firstLine);
   }

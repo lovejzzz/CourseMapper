@@ -134,10 +134,11 @@ describe('packageFinalizer', () => {
 
     const repaired = result.deliverables.assignments.data.assignments[0];
     expect(result.repairs.map((repair) => repair.message).join(' ')).toMatch(/identity mismatch/i);
-    expect(repaired.title).toBe('Files and exceptions debugging note');
+    expect(repaired.title).toBe('Files and exceptions rewrite challenge');
     expect(repaired.relatedLessons).toEqual(['Lesson 9: files and exceptions']);
     expect(repaired.overview).toMatch(/files and exceptions evidence from the Course Map/i);
     expect(repaired.title).not.toMatch(/dictionary|key-value/i);
+    expect(repaired.title).not.toMatch(/simplify a working snippet/i);
   });
 
   it('blocks package readiness when enrichment coverage is partial after recovery', () => {

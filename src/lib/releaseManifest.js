@@ -3,24 +3,24 @@ import { APP_VERSION } from './appVersion.js';
 export const CURRENT_RELEASE = {
   version: APP_VERSION,
   date: 'June 30, 2026',
-  title: 'Source-backed Export Truth: final proof owns the package',
-  landingTitle: 'Source-backed Export Truth',
+  title: 'Python Texture Rotation: repeated scaffolds vary before export',
+  landingTitle: 'Python Texture Rotation',
   highlights: [
-    'Fresh deployed v0.15.164 GPT-5.4-mini Python evidence exported complete OpenStax-backed source proof but still regraded 99/A because the final manifest, digest, and quality report preserved the stale zero-genome `not evaluated` judgment.',
-    'A shared source-backed judgment normalizer now runs through the workspace pipeline state and ZIP assembly, replacing a stale/missing judgment only when final sourceRef coverage is complete and trusted concept-linked source proof exists.',
-    'The final run digest now reads the same normalized pipeline state as PACKAGE_MANIFEST.json, so digest, manifest, QUALITY_REPORT.md, and local regrade stop disagreeing about source-backed packages.',
-    'OpenStax resources now count in the knowledge-backbone coverage surface and blueprint graph path, matching the trusted-source policy already used by source-ledger checks.',
-    'The deep grader now gives the final manifest judgment precedence over stale in-app/digest breadcrumbs, while still flagging genuinely unevaluated final packages.',
+    'Fresh deployed v0.15.165 GPT-5.4-mini Python evidence honestly regraded 100/A with complete source proof, but Texture stayed at 95 and static ZIP inspection found deterministic CourseMapper scaffold phrases repeating across Python assessment surfaces.',
+    'Computer Science/Python weekly-assessment repair now rotates a broader set of lesson-specific trace memo, bug-fix, implementation-choice, partner-review, edge-case, lab-checkpoint, and code-review variants before export.',
+    'Sparse Course Map fallback rotation is now section-aware across a full lesson map, so a 12-week Python course no longer reuses the same assessment stem every few sections.',
+    'Python support-text repair no longer repeats `runnable Python artifact or trace` or `same input/output evidence used in grading`, and assignment-title repair keeps colon-delimited task details out of titles.',
+    'The new regression uses a 12-week, 3-section Python map with repeated GPT-style assessment scaffolds and proves repaired assessments vary before graph/export derivation.',
   ],
   landingHighlights: [
-    'Final source proof owns package judgment.',
-    'Digest, manifest, report, and regrade agree.',
-    'OpenStax counts as trusted coverage.',
-    'Stale breadcrumbs no longer beat the final manifest.',
+    'Python assessment stems vary before export.',
+    'Section-aware fallback rotation covers full maps.',
+    'Support text and assignment titles stay cleaner.',
+    'Regression locks the exact repeated-output shape.',
   ],
   proof: {
-    contract: 'release-contracts/v0.15.165.json',
-    roadmap: 'docs/V0.15.165_SOURCE_BACKED_EXPORT_TRUTH_ROADMAP.md',
+    contract: 'release-contracts/v0.15.166.json',
+    roadmap: 'docs/V0.15.166_PYTHON_TEXTURE_ROTATION_ROADMAP.md',
     auditCommand: 'npm run audit:release-history',
   },
 };
@@ -35,6 +35,18 @@ export const CURRENT_RELEASE_CHANGELOG = {
 };
 
 export const HISTORICAL_RELEASE_CHANGELOGS = [
+  {
+    version: '0.15.165',
+    date: 'June 30, 2026',
+    title: 'Source-backed Export Truth: final proof owns the package',
+    highlights: [
+      'Fresh deployed v0.15.164 GPT-5.4-mini Python evidence exported complete OpenStax-backed source proof but still regraded 99/A because the final manifest, digest, and quality report preserved the stale zero-genome `not evaluated` judgment.',
+      'A shared source-backed judgment normalizer now runs through the workspace pipeline state and ZIP assembly, replacing a stale/missing judgment only when final sourceRef coverage is complete and trusted concept-linked source proof exists.',
+      'The final run digest now reads the same normalized pipeline state as PACKAGE_MANIFEST.json, so digest, manifest, QUALITY_REPORT.md, and local regrade stop disagreeing about source-backed packages.',
+      'OpenStax resources now count in the knowledge-backbone coverage surface and blueprint graph path, matching the trusted-source policy already used by source-ledger checks.',
+      'The deep grader now gives the final manifest judgment precedence over stale in-app/digest breadcrumbs, while still flagging genuinely unevaluated final packages.',
+    ],
+  },
   {
     version: '0.15.164',
     date: 'June 30, 2026',
