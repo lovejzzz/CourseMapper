@@ -1,0 +1,106 @@
+{
+  "version": "0.15.146",
+  "date": "June 30, 2026",
+  "title": "Final Artifact Routing: final revision work stops becoming fake exams",
+  "status": "verified-current",
+  "proofSummary": {
+    "local": ["npm test -- tests/v0141-phase3-registry.test.js", "npm test -- tests/v0143-quality-badge.test.js"],
+    "ciFast": {
+      "status": "pending-push",
+      "note": "Fast verification is claimed only after v0.15.146 is pushed and the GitHub Actions run is attached."
+    },
+    "deploy": {
+      "status": "pending-push",
+      "note": "Pages deploy is not claimed until the pushed v0.15.146 release completes its deploy run."
+    },
+    "ciDeep": {
+      "status": "local-only",
+      "note": "This is a narrow registry-routing and manifest-truth repair; focused coverage plus normal gates are the release bar."
+    },
+    "liveProvider": {
+      "status": "not-current",
+      "note": "The release is based on a fresh deployed v0.15.145 ZIP audit. Chrome log capture timed out after restart/reconnect, so a fresh deployed v0.15.146 ZIP/log audit is required before claiming clean provider output."
+    },
+    "manualHuman": {
+      "status": "not-applicable",
+      "note": "No external instructor approval is claimed by this release."
+    }
+  },
+  "claims": [
+    {
+      "id": "v015146-v015145-final-artifact-evidence",
+      "status": "verified-current",
+      "changelogHighlightIndex": 0,
+      "summary": "Fresh deployed v0.15.145 UX ZIP evidence produced a blocked 74/C package because final revision/prototype defense assessment rows were routed as exam-kind rows whose quiz-bank files did not contain the registered assessment titles.",
+      "anchors": [
+        "verification-output/edutool-audit-loop/20260630T050121Z-v015145-fresh/package.zip",
+        "verification-output/edutool-audit-loop/20260630T050121Z-v015145-fresh/extracted/QUALITY_REPORT.md",
+        "verification-output/edutool-audit-loop/20260630T050121Z-v015145-fresh/local-regrade.json"
+      ],
+      "proofCommands": [
+        "rg -n \"registered exam artifact contains no exam content|Final revisions annotation|Final prototype studio defense\" verification-output/edutool-audit-loop/20260630T050121Z-v015145-fresh/extracted/QUALITY_REPORT.md",
+        "rg -n '\"score\": 74|Final revisions annotation|Final prototype studio defense' verification-output/edutool-audit-loop/20260630T050121Z-v015145-fresh/local-regrade.json"
+      ],
+      "proofScopes": ["live-provider", "static-audit"]
+    },
+    {
+      "id": "v015146-bare-final-classifier",
+      "status": "verified-current",
+      "changelogHighlightIndex": 1,
+      "summary": "Assessment-kind derivation now treats only genuinely bare Midterm/Final labels as exam-kind while named final artifacts keep their own routing.",
+      "anchors": ["src/lib/courseGraph/deriveFromCourseMap.js", "tests/v0141-phase3-registry.test.js"],
+      "proofCommands": [
+        "rg -n \"BARE_MIDTERM_FINAL_RE|Final revisions annotation|Final prototype studio defense\" src/lib/courseGraph/deriveFromCourseMap.js tests/v0141-phase3-registry.test.js",
+        "npm test -- tests/v0141-phase3-registry.test.js"
+      ],
+      "proofScopes": ["unit"]
+    },
+    {
+      "id": "v015146-ux-routing-regression",
+      "status": "verified-current",
+      "changelogHighlightIndex": 2,
+      "summary": "The UX regression compiles the live failure shape and proves the final revision/prototype defense rows ship as assignment artifacts with no fake exam entries.",
+      "anchors": ["tests/v0141-phase3-registry.test.js"],
+      "proofCommands": [
+        "rg -n \"fake quiz-bank exams|compiled.quizBank.quizzes.some|assignmentTitles\" tests/v0141-phase3-registry.test.js",
+        "npm test -- tests/v0141-phase3-registry.test.js"
+      ],
+      "proofScopes": ["unit"]
+    },
+    {
+      "id": "v015146-manifest-quality-readiness-truth",
+      "status": "verified-current",
+      "changelogHighlightIndex": 3,
+      "summary": "ZIP manifest readiness now merges self-grading P0/P1/P2 quality findings, so P0 quality blockers make PACKAGE_MANIFEST.json readiness blocked.",
+      "anchors": ["src/lib/packageZipExporter.js", "tests/v0143-quality-badge.test.js"],
+      "proofCommands": [
+        "rg -n \"qualityIssueFromManifestQuality|manifest.readiness.status|qualityGate\" src/lib/packageZipExporter.js tests/v0143-quality-badge.test.js",
+        "npm test -- tests/v0143-quality-badge.test.js"
+      ],
+      "proofScopes": ["unit"]
+    },
+    {
+      "id": "v015146-focused-regressions",
+      "status": "verified-current",
+      "changelogHighlightIndex": 4,
+      "summary": "Focused regressions cover registry classification, compiler routing, and manifest quality-readiness agreement; fresh v0.15.146 provider evidence remains a follow-up.",
+      "anchors": [
+        "tests/v0141-phase3-registry.test.js",
+        "tests/v0143-quality-badge.test.js",
+        "docs/V0.15.146_FINAL_ARTIFACT_ROUTING_ROADMAP.md"
+      ],
+      "proofCommands": [
+        "npm test -- tests/v0141-phase3-registry.test.js",
+        "npm test -- tests/v0143-quality-badge.test.js",
+        "rg -n \"fresh deployed v0.15.146 ZIP/log audit\" docs/V0.15.146_FINAL_ARTIFACT_ROUTING_ROADMAP.md"
+      ],
+      "proofScopes": ["unit", "static-audit"]
+    }
+  ],
+  "knownRemainingTargets": [
+    "A fresh deployed v0.15.146 ZIP/log audit must prove final revision/prototype defense rows no longer route into Quiz & Exam Bank in real provider output.",
+    "Texture still needs repeated-scaffold cleanup until fresh packages repeatedly reach 100/100 with no texture caveat.",
+    "Source rows must remain real, trusted, on-topic, license-safe, and concept-linked across UX and Project Management domains.",
+    "Chrome log capture after laptop restart/reconnect remains an automation reliability target."
+  ]
+}

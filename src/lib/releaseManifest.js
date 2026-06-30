@@ -3,24 +3,24 @@ import { APP_VERSION } from './appVersion.js';
 export const CURRENT_RELEASE = {
   version: APP_VERSION,
   date: 'June 30, 2026',
-  title: 'Lesson Identity Truth: assessment labels stop becoming course topics',
-  landingTitle: 'Lesson Identity Fix',
+  title: 'Final Artifact Routing: final revision work stops becoming fake exams',
+  landingTitle: 'Final Artifact Routing',
   highlights: [
-    'A fresh deployed v0.15.144 User Experience Design Studio ZIP/log audit exported successfully, but the package was not clean: visible Course Map rows and exported filenames used assessment labels such as `evidence check: Studio critique (9%)` as lesson identities.',
-    'The original package report and local regrade said 99/A, Texture 93, and 0 findings. The regrade after this guard correctly reports 98/A with a P1 identity finding, so the app no longer treats this failure shape as clean.',
-    'Course Map readiness now repairs assessment-label lesson titles before export, using the lesson topic cell for the actual lesson identity instead of letting grading weights or assessment verbs seed filenames.',
-    'The deep quality grader now flags assessment labels or grading weights used as lesson/file identities across exported materials, preserving report truth when the ZIP already contains the defect.',
-    'Focused regressions cover both sides: the pre-export readiness repair and the package-level grader truth guard. A fresh deployed v0.15.145 audit is still required before claiming clean provider output.',
+    'A fresh deployed v0.15.145 User Experience Design Studio ZIP audit produced a blocked 74/C package: `Final revisions annotation...` and `Final prototype studio defense...` were routed as exam-kind registry entries, but their quiz-bank DOCX files did not contain those registered assessment titles.',
+    'Assessment-kind derivation now treats only genuinely bare `Midterm`/`Final` labels as exams; final revision annotations, final prototype defenses, final projects, and final essays keep their own artifact routing instead of becoming fake quiz-bank exams.',
+    'The UX regression compiles the live failure shape and proves those final revision/prototype defense rows ship as assignment artifacts with no `kind: exam` quiz-bank entries.',
+    'ZIP manifest truth is tightened: when package self-grading finds P0 blockers, `PACKAGE_MANIFEST.json` now marks readiness blocked and includes a `qualityGate` blocker instead of saying the package is ready.',
+    'Focused regressions cover the registry classifier, compiler routing, and manifest quality-readiness agreement. A fresh deployed v0.15.146 audit is still required before claiming clean provider output.',
   ],
   landingHighlights: [
-    'Fresh v0.15.144 ZIP/log evidence found lesson identity contamination.',
-    'Readiness repairs assessment-label lesson titles before export.',
-    'The grader now flags polluted lesson/file identities as P1.',
-    'Focused regressions pin the repair and truth guard.',
+    'Fresh v0.15.145 evidence found final-artifact routing contamination.',
+    'Bare Final/Midterm exam detection no longer catches named final artifacts.',
+    'Fake quiz-bank exams are covered by a UX compiler regression.',
+    'Manifest readiness now reflects P0 quality blockers.',
   ],
   proof: {
-    contract: 'release-contracts/v0.15.145.json',
-    roadmap: 'docs/V0.15.145_LESSON_IDENTITY_TRUTH_ROADMAP.md',
+    contract: 'release-contracts/v0.15.146.json',
+    roadmap: 'docs/V0.15.146_FINAL_ARTIFACT_ROUTING_ROADMAP.md',
     auditCommand: 'npm run audit:release-history',
   },
 };
@@ -35,6 +35,18 @@ export const CURRENT_RELEASE_CHANGELOG = {
 };
 
 export const HISTORICAL_RELEASE_CHANGELOGS = [
+  {
+    version: '0.15.145',
+    date: 'June 30, 2026',
+    title: 'Lesson Identity Truth: assessment labels stop becoming course topics',
+    highlights: [
+      'A fresh deployed v0.15.144 User Experience Design Studio ZIP/log audit exported successfully, but the package was not clean: visible Course Map rows and exported filenames used assessment labels such as `evidence check: Studio critique (9%)` as lesson identities.',
+      'The original package report and local regrade said 99/A, Texture 93, and 0 findings. The regrade after this guard correctly reports 98/A with a P1 identity finding, so the app no longer treats this failure shape as clean.',
+      'Course Map readiness now repairs assessment-label lesson titles before export, using the lesson topic cell for the actual lesson identity instead of letting grading weights or assessment verbs seed filenames.',
+      'The deep quality grader now flags assessment labels or grading weights used as lesson/file identities across exported materials, preserving report truth when the ZIP already contains the defect.',
+      'Focused regressions cover both sides: the pre-export readiness repair and the package-level grader truth guard. A fresh deployed v0.15.145 audit is still required before claiming clean provider output.',
+    ],
+  },
   {
     version: '0.15.144',
     date: 'June 30, 2026',

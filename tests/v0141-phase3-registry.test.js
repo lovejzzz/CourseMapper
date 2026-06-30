@@ -190,6 +190,57 @@ describe('3.1 — registry schema (derive)', () => {
     // Another artifact noun as the head keeps its own kind.
     expect(classifyAssessmentKind('Final Project: integration milestone')).toBe('graded-artifact');
     expect(classifyAssessmentKind('Final Essay: comparative analysis')).toBe('graded-artifact');
+    expect(classifyAssessmentKind('Final revisions annotation: research detail to design choice.')).toBe(
+      'graded-artifact',
+    );
+    expect(classifyAssessmentKind('Final prototype studio defense: prototype move and evidence.')).toBe(
+      'graded-artifact',
+    );
+  });
+
+  it('v0.15.145 UX: final revision artifacts do not become fake quiz-bank exams', () => {
+    const graph = deriveCourseGraphFromCourseMap({
+      courseName: 'User Experience Design Studio',
+      lessons: [
+        {
+          title: 'Lesson 10: Final testing',
+          sections: [
+            {
+              topicSection: '10.1: final testing',
+              learningObjectives: 'Use test evidence to prioritize final revisions.',
+              weeklyAssessments:
+                'Usability testing labs annotation: research detail to design choice.\nFinal revisions annotation: research detail to design choice.',
+            },
+          ],
+        },
+        {
+          title: 'Lesson 11: Presentation preparation',
+          sections: [
+            {
+              topicSection: '11.1: presentation preparation',
+              learningObjectives: 'Defend a prototype decision with user evidence.',
+              weeklyAssessments:
+                'Portfolio-ready deliverables studio defense: prototype move and evidence.\nFinal prototype studio defense: prototype move and evidence.',
+            },
+          ],
+        },
+      ],
+    });
+
+    expect(graph.assessments.map((assessment) => [assessment.title, assessment.kind])).toEqual([
+      ['Usability testing labs annotation: research detail to design choice.', 'graded-artifact'],
+      ['Final revisions annotation: research detail to design choice.', 'graded-artifact'],
+      ['Portfolio-ready deliverables studio defense: prototype move and evidence.', 'graded-artifact'],
+      ['Final prototype studio defense: prototype move and evidence.', 'graded-artifact'],
+    ]);
+
+    const blueprint = buildBlueprintFromGraph(graph);
+    const compiled = compileBlueprintDeliverables(blueprint, ['assignments', 'quizBank']);
+
+    expect(compiled.quizBank.quizzes.some((quiz) => quiz.kind === 'exam')).toBe(false);
+    const assignmentTitles = compiled.assignments.assignments.map((assignment) => assignment.title);
+    expect(assignmentTitles).toContain('Final revisions annotation: research detail to design choice.');
+    expect(assignmentTitles).toContain('Final prototype studio defense: prototype move and evidence.');
   });
 
   it('keeps the sum-to-100 invariant with in-class entries at zero weight', () => {

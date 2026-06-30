@@ -68,7 +68,7 @@ const ASSESSMENT_KIND_RULES = [
 const EXAM_PREP_QUALIFIER_RE =
   /\b(?:midterm|final)s?(?:\s+exam)?\s+(?:preparation|prep|review|readiness|practice|study|checklist|reflection)\b/i;
 const EXAM_HEAD_RE = /\b(?:midterm|final)\s+exam\b|\bexam\s*:|^\s*exam\b|\bcomprehensive\s+(?:exam|assessment)\b/i;
-const BARE_MIDTERM_FINAL_RE = /\b(?:midterm|final)s?\b/i;
+const BARE_MIDTERM_FINAL_RE = /^\s*(?:midterm|final)s?\s*(?:\(\s*\d+(?:\.\d+)?\s*%\s*\))?\s*$/i;
 const NON_EXAM_ASSESSMENT_HEAD_RE =
   /\b(problem set|computational lab|lab|notebook|worksheet|project|report|essay|assignment|brief|reflection|study guide|checklist|practice set)\b/i;
 

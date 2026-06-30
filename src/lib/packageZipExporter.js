@@ -837,6 +837,37 @@ function buildEffectiveReadiness(readiness, pipelineState, qualityDigest = null)
   return mergeReadinessIssue(readiness, partialEnrichmentIssueFromPipeline(pipelineState, qualityDigest));
 }
 
+function qualityIssueFromManifestQuality(qualityBlock) {
+  if (qualityBlock?.status !== 'graded') return null;
+  const p0 = Number(qualityBlock?.findingCounts?.p0) || 0;
+  const p1 = Number(qualityBlock?.findingCounts?.p1) || 0;
+  const p2 = Number(qualityBlock?.findingCounts?.p2) || 0;
+  if (p0 > 0) {
+    return {
+      severity: 'blocker',
+      featureId: 'courseMap',
+      label: 'Quality grade',
+      message: `Package quality grader found ${p0} blocking P0 finding${p0 === 1 ? '' : 's'} (score ${qualityBlock.score}/100, grade ${qualityBlock.grade}) — review QUALITY_REPORT.md before publishing`,
+      source: 'qualityGate',
+      retryable: false,
+      autoFixable: false,
+    };
+  }
+  const reviewCount = p1 + p2;
+  if (reviewCount > 0) {
+    return {
+      severity: 'warning',
+      featureId: 'courseMap',
+      label: 'Quality grade',
+      message: `Package quality grader found ${reviewCount} review finding${reviewCount === 1 ? '' : 's'} (score ${qualityBlock.score}/100, grade ${qualityBlock.grade}) — review QUALITY_REPORT.md before publishing`,
+      source: 'qualityGate',
+      retryable: false,
+      autoFixable: false,
+    };
+  }
+  return null;
+}
+
 function buildManifest({
   courseName,
   lessonFilter,
@@ -1316,6 +1347,8 @@ export async function buildCourseMaterialsZip({
       qualityBlock = { status: 'not-graded', reason: err?.message || 'grader unavailable' };
     }
     manifest.quality = qualityBlock;
+    const qualityIssue = qualityIssueFromManifestQuality(qualityBlock);
+    if (qualityIssue) manifest.readiness = mergeReadinessIssue(manifest.readiness, qualityIssue);
   }
 
   const manifestText = JSON.stringify(manifest, null, 2);

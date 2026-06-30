@@ -338,6 +338,8 @@ describe('A5(3) — seeded P0 reaches the manifest and the readiness channel', (
       await (await JSZip.loadAsync(await result.blob.arrayBuffer())).file('PACKAGE_MANIFEST.json').async('string'),
     );
     expect(manifest.quality.findingCounts.p0).toBeGreaterThanOrEqual(1);
+    expect(manifest.readiness.status).toBe('blocked');
+    expect(manifest.readiness.blockers.some((issue) => issue.source === 'qualityGate')).toBe(true);
 
     // The finalizer integration seam AppFlow applies after grading: a P0 is
     // no longer a soft warning because the package is not safe to hand off.
