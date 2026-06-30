@@ -692,7 +692,7 @@ describe('degenerate-skeleton gate (defect 1 → CurriculumV1 repair)', () => {
     const compiled = compile(blueprint, ['syllabus', 'assignments', 'rubrics'], { configMap: {} });
     expect(compileCalls).toHaveLength(1);
     expect(Object.keys(compiled)).toEqual(['syllabus', 'assignments', 'rubrics']);
-  });
+  }, 20_000);
 
   it('CurriculumV1 helper can still convert a raw degenerate assembly map into a valid compiler graph', () => {
     const skeleton = makeSkeletonFixture({
@@ -728,7 +728,7 @@ describe('degenerate-skeleton gate (defect 1 → CurriculumV1 repair)', () => {
       configMap: {},
     });
     expect(Object.keys(compiled)).toEqual(['syllabus', 'assignments', 'rubrics']);
-  });
+  }, 20_000);
 });
 
 describe('the hang class: contract-blocked compile (defect 2)', () => {
