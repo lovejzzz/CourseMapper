@@ -13,6 +13,7 @@ import { derivePipelineState, deriveStepStatuses } from '../src/lib/pipelineMach
 
 const GEN_IDLE = { progressStep: 'idle', isStreaming: false };
 const GEN_STREAMING = { progressStep: 'generating', isStreaming: true };
+const GEN_ERROR = { progressStep: 'error', isStreaming: false };
 const GEN_DONE = { progressStep: 'done', isStreaming: false };
 const DELIV_IDLE = { isGenerating: false, doneCount: 0, totalCount: 0 };
 const DELIV_RUNNING = { isGenerating: true, doneCount: 3, totalCount: 9 };
@@ -104,6 +105,18 @@ describe('WS-C — the state matrix: every machine state and its step render', (
     expect(p.state).toBe('blocked');
     expect(p.blockedReason).toBe('2 blockers');
     expect(statuses(p)).toEqual(['settled', 'settled', 'settled', 'settled', 'pending']);
+  });
+
+  it('blocked generation failure: provider-credit errors do not leave Map active', () => {
+    const p = derivePipelineState({
+      budget: { recentEvents: [{ type: 'providerRequestFailed', label: 'Provider API error' }] },
+      generation: GEN_ERROR,
+      deliverables: DELIV_IDLE,
+      packageQualityPass: { status: 'blocked', blockers: 1 },
+    });
+    expect(p.state).toBe('blocked');
+    expect(p.running).toBe(false);
+    expect(statuses(p)).not.toContain('active');
   });
 
   it('syncing: approved sync executing post-ready owns the narrative', () => {

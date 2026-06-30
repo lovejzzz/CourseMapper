@@ -293,6 +293,28 @@ describe('B1 — buildRibbonModel selector', () => {
     });
   });
 
+  it('failed course-map generation renders blocked instead of a stale Building state', () => {
+    const budget = applyEvents(createApiCallBudget(), [
+      { type: 'reset', runId: 'run-ribbon-credit-fail' },
+      { type: 'providerRequestFailed', label: 'Provider API error', detail: 'quota exceeded' },
+    ]);
+    const model = buildBuildRibbonModel({
+      budget,
+      generation: { progressStep: 'error', isStreaming: false, streamDetail: '' },
+      deliverables: NO_DELIVERABLES,
+      packageQualityPass: {
+        status: 'blocked',
+        message: 'Model credits unavailable.',
+        blockers: 1,
+      },
+    });
+
+    expect(model.stage).toBe('ready');
+    expect(model.running).toBe(false);
+    expect(model.stageLabel).toBe('Needs review — 1 blocker');
+    expect(model.steps.map((step) => step.status)).not.toContain('active');
+  });
+
   it('verify stage while the finish pass runs — grade still pending', () => {
     const budget = applyEvents(createApiCallBudget(), [
       { type: 'reset', runId: 'run-ribbon-1' },

@@ -3,24 +3,24 @@ import { APP_VERSION } from './appVersion.js';
 export const CURRENT_RELEASE = {
   version: APP_VERSION,
   date: 'June 30, 2026',
-  title: 'CS/Python Source and Texture Gate: statistical-variable bycatch and generic map scaffolds stop passing',
-  landingTitle: 'CS/Python Source + Texture',
+  title: 'Provider Failure Status Truth: credit-blocked runs stop looking like active builds',
+  landingTitle: 'Provider Failure Status Truth',
   highlights: [
-    'A fresh deployed v0.15.150 GPT-5.5-pro Introduction to Computer Science with Python ZIP/log audit exported at 99/A with Texture 91, full enrichment coverage, export verification passed, and zero embedded P0/P1/P2 findings.',
-    'The same model-comparison run proved the remaining quality loss was not only model-side: the stricter local grader regraded the package at 98/A after detecting `Correlation` as a trusted source row for Python variables.',
-    'Computer Science/Python source selection and grading now treat correlation/statistical-variable pages as false friends unless they carry programming context, while preserving valid data-type and Python programming sources.',
-    'Course Map fallback repair now uses CS/Python-specific code-tracing, debugging, testing, input/output, and runnable-artifact language instead of repeating generic assigned-materials/LMS scaffolds through every lesson.',
-    'Focused source-ledger, source-grader, and texture fallback regressions pin the GPT-5.5-pro comparison failure shape without weakening source, export, report, texture, or model-comparison standards.',
+    'A fresh deployed v0.15.151 GPT-5.5-pro Python audit attempt reached the authenticated app but provider credits were unavailable, so no new ZIP/log quality score could be honestly captured.',
+    'The failed attempt exposed a UI truth bug: after “Model credits unavailable” and “AI generation failed,” the workspace header CTA and ribbon still looked like an active build because `progressStep` stayed `generating`.',
+    'Course-map generation failures now set the generation progress step to `error`, so the shared pipeline machine renders the blocked/review state instead of a stale Building pulse.',
+    'Build-ribbon and pipeline-machine regressions pin the exact failed-credit state: provider failure + blocked package + no streaming must not leave Map active or the primary CTA stuck on Building.',
+    'The model-comparison conclusion remains honest: GPT-5.5-pro improved visible quality in the v0.15.150 package, but fresh v0.15.151/v0.15.152 provider proof is blocked until the API key has credits.',
   ],
   landingHighlights: [
-    'CS/Python variables need programming-context source proof.',
-    'Correlation/statistical-variable bycatch stays out of trusted proof.',
-    'Generic Course Map fallback text becomes code-tracing practice.',
-    'Model comparisons separate provider behavior from CourseMapper defects.',
+    'Credit-blocked provider runs stop showing Building.',
+    'Course-map failures enter an explicit error state.',
+    'The ribbon renders blocked truth from the pipeline machine.',
+    'Model comparisons wait for real ZIP/log evidence.',
   ],
   proof: {
-    contract: 'release-contracts/v0.15.151.json',
-    roadmap: 'docs/V0.15.151_CS_PYTHON_SOURCE_TEXTURE_GATE_ROADMAP.md',
+    contract: 'release-contracts/v0.15.152.json',
+    roadmap: 'docs/V0.15.152_PROVIDER_FAILURE_STATUS_TRUTH_ROADMAP.md',
     auditCommand: 'npm run audit:release-history',
   },
 };
@@ -35,6 +35,18 @@ export const CURRENT_RELEASE_CHANGELOG = {
 };
 
 export const HISTORICAL_RELEASE_CHANGELOGS = [
+  {
+    version: '0.15.151',
+    date: 'June 30, 2026',
+    title: 'CS/Python Source and Texture Gate: statistical-variable bycatch and generic map scaffolds stop passing',
+    highlights: [
+      'A fresh deployed v0.15.150 GPT-5.5-pro Introduction to Computer Science with Python ZIP/log audit exported at 99/A with Texture 91, full enrichment coverage, export verification passed, and zero embedded P0/P1/P2 findings.',
+      'The same model-comparison run proved the remaining quality loss was not only model-side: the stricter local grader regraded the package at 98/A after detecting `Correlation` as a trusted source row for Python variables.',
+      'Computer Science/Python source selection and grading now treat correlation/statistical-variable pages as false friends unless they carry programming context, while preserving valid data-type and Python programming sources.',
+      'Course Map fallback repair now uses CS/Python-specific code-tracing, debugging, testing, input/output, and runnable-artifact language instead of repeating generic assigned-materials/LMS scaffolds through every lesson.',
+      'Focused source-ledger, source-grader, and texture fallback regressions pin the GPT-5.5-pro comparison failure shape without weakening source, export, report, texture, or model-comparison standards.',
+    ],
+  },
   {
     version: '0.15.150',
     date: 'June 30, 2026',

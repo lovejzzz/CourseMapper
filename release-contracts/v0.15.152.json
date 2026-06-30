@@ -1,0 +1,91 @@
+{
+  "version": "0.15.152",
+  "date": "June 30, 2026",
+  "title": "Provider Failure Status Truth: credit-blocked runs stop looking like active builds",
+  "status": "verified-current",
+  "proofSummary": {
+    "local": ["npm test -- tests/v0147-pipeline-machine.test.js tests/v0144-build-ribbon.test.jsx", "npm test"],
+    "ciFast": {
+      "status": "pending-push",
+      "note": "Fast verification is claimed only after v0.15.152 is pushed and the GitHub Actions run is attached."
+    },
+    "deploy": {
+      "status": "pending-push",
+      "note": "Pages deploy is not claimed until the pushed v0.15.152 release completes its deploy run."
+    },
+    "ciDeep": {
+      "status": "local-only",
+      "note": "This is a narrow failed-provider UI truth patch; focused pipeline/ribbon coverage plus normal gates are the release bar."
+    },
+    "liveProvider": {
+      "status": "not-current",
+      "note": "A fresh deployed v0.15.151 GPT-5.5-pro attempt was blocked by OpenAI key credits before ZIP/log quality evidence could be produced."
+    },
+    "manualHuman": {
+      "status": "not-applicable",
+      "note": "No external instructor approval is claimed by this release."
+    }
+  },
+  "claims": [
+    {
+      "id": "v015152-credit-blocked-audit-evidence",
+      "status": "verified-current",
+      "changelogHighlightIndex": 0,
+      "summary": "The fresh deployed v0.15.151 GPT-5.5-pro Python audit attempt was blocked by unavailable model credits, so no fresh ZIP/log quality score can be claimed.",
+      "anchors": ["docs/V0.15.152_PROVIDER_FAILURE_STATUS_TRUTH_ROADMAP.md", "src/lib/releaseManifest.js"],
+      "proofCommands": [
+        "rg -n \"Model credits unavailable|Insufficient Funds|no fresh v0.15.151\" docs/V0.15.152_PROVIDER_FAILURE_STATUS_TRUTH_ROADMAP.md src/lib/releaseManifest.js"
+      ],
+      "proofScopes": ["browser-live", "static-audit"]
+    },
+    {
+      "id": "v015152-stale-building-bug",
+      "status": "verified-current",
+      "changelogHighlightIndex": 1,
+      "summary": "The failed provider-credit attempt exposed stale Building UI after a terminal course-map failure.",
+      "anchors": ["docs/V0.15.152_PROVIDER_FAILURE_STATUS_TRUTH_ROADMAP.md", "tests/v0144-build-ribbon.test.jsx"],
+      "proofCommands": [
+        "rg -n \"Building|Generating the course map|failed course-map generation\" docs/V0.15.152_PROVIDER_FAILURE_STATUS_TRUTH_ROADMAP.md tests/v0144-build-ribbon.test.jsx"
+      ],
+      "proofScopes": ["browser-live", "unit"]
+    },
+    {
+      "id": "v015152-generation-error-progress-step",
+      "status": "verified-current",
+      "changelogHighlightIndex": 2,
+      "summary": "Course-map generation failures now set progressStep to error so the shared pipeline selector stops treating the Map stage as active.",
+      "anchors": ["src/hooks/useGeneration.js", "tests/v0147-pipeline-machine.test.js"],
+      "proofCommands": [
+        "rg -n \"setProgressStep\\('error'\\)|blocked generation failure\" src/hooks/useGeneration.js tests/v0147-pipeline-machine.test.js",
+        "npm test -- tests/v0147-pipeline-machine.test.js"
+      ],
+      "proofScopes": ["unit"]
+    },
+    {
+      "id": "v015152-ribbon-blocked-state",
+      "status": "verified-current",
+      "changelogHighlightIndex": 3,
+      "summary": "Build-ribbon coverage proves provider failure plus blocked package plus no streaming renders Needs review instead of a running Building state.",
+      "anchors": ["tests/v0144-build-ribbon.test.jsx", "src/lib/pipelineMachine.js"],
+      "proofCommands": ["npm test -- tests/v0144-build-ribbon.test.jsx"],
+      "proofScopes": ["unit"]
+    },
+    {
+      "id": "v015152-model-comparison-nonclaim",
+      "status": "verified-current",
+      "changelogHighlightIndex": 4,
+      "summary": "The release keeps the model-comparison conclusion honest: GPT-5.5-pro improved the v0.15.150 package, but fresh v0.15.152 score proof requires funded ZIP/log output.",
+      "anchors": ["docs/V0.15.152_PROVIDER_FAILURE_STATUS_TRUTH_ROADMAP.md", "src/lib/releaseManifest.js"],
+      "proofCommands": [
+        "rg -n \"Do not claim|next quality evidence|model-comparison\" docs/V0.15.152_PROVIDER_FAILURE_STATUS_TRUTH_ROADMAP.md src/lib/releaseManifest.js"
+      ],
+      "proofScopes": ["static-audit"]
+    }
+  ],
+  "knownRemainingTargets": [
+    "Add credits or switch to a funded provider/model before the next fresh GPT-5.5-pro ZIP/log audit.",
+    "A fresh deployed v0.15.152 GPT-5.5-pro Python ZIP/log audit must prove the v0.15.151 source and texture gates hold in real provider output.",
+    "Texture remains below the long-running target until fresh packages repeatedly reach 100/100 texture with no repeated-shingle caveat.",
+    "The v0.15.150 CourseIR direct-authoring call still fell back to native authoring after spending a large pro-model call; this release records that evidence but does not change CourseIR fallback behavior."
+  ]
+}

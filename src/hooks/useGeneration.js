@@ -763,6 +763,7 @@ Generate lessons ${actual + 1} through ${expectedCount} now as JSON:`;
           } catch (err) {
             setError('Failed to parse files: ' + err.message);
             setStatus('error');
+            setProgressStep('error');
             return null;
           }
           errors = parsedFiles.filter((f) => f.error);
@@ -790,6 +791,7 @@ Generate lessons ${actual + 1} through ${expectedCount} now as JSON:`;
               : 'No text content could be extracted. Upload files or describe your course.';
           setError('Failed to parse files:\n' + errMsg);
           setStatus('error');
+          setProgressStep('error');
           return null;
         }
 
@@ -1200,6 +1202,7 @@ Generate lessons ${actual + 1} through ${expectedCount} now as JSON:`;
           );
           setError('AI generation failed: ' + err.message);
           setStatus('error');
+          setProgressStep('error');
           setIsStreaming(false);
           setStreamDetail('');
           setStreamProgress(0);
