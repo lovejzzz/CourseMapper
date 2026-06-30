@@ -1660,6 +1660,14 @@ describe('trusted source ledger', () => {
               {
                 provider: 'wikipedia',
                 kind: 'encyclopedia background',
+                title: 'Correlation',
+                url: 'https://en.wikipedia.org/wiki/Correlation',
+                license: 'CC BY-SA 4.0',
+                snippet: 'A statistics page about correlation between variables.',
+              },
+              {
+                provider: 'wikipedia',
+                kind: 'encyclopedia background',
                 title: 'Continuous or discrete variable',
                 url: 'https://en.wikipedia.org/wiki/Continuous_or_discrete_variable',
                 license: 'CC BY-SA 4.0',

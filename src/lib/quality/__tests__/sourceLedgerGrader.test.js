@@ -1174,6 +1174,14 @@ describe('source-ledger quality checks', () => {
           },
           sourceLedger: [
             {
+              id: 'sf2',
+              title: 'Correlation',
+              provider: 'wikipedia',
+              url: 'https://en.wikipedia.org/wiki/Correlation',
+              license: 'CC BY-SA 4.0',
+              conceptLinks: [{ id: 'c2', label: 'variables' }],
+            },
+            {
               id: 'sf5',
               title: 'Lists of American colleges and universities',
               provider: 'wikipedia',
@@ -1241,6 +1249,7 @@ describe('source-ledger quality checks', () => {
         'source ledger row sf7 is off-discipline for Computer Science/Python',
         'source ledger row sf8 is off-discipline for Computer Science/Python',
         'source ledger row sf9 is off-discipline for Computer Science/Python',
+        'source ledger row sf2 is off-discipline for Computer Science/Python',
       ]),
     );
     expect(details).not.toContain('source ledger row sf-good is off-discipline for Computer Science/Python');

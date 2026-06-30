@@ -18,6 +18,21 @@ const UX_TOPICS = [
   'UX case study',
 ];
 
+const CS_TOPICS = [
+  'variables',
+  'data types',
+  'conditionals',
+  'loops',
+  'functions',
+  'lists',
+  'dictionaries',
+  'strings',
+  'file input',
+  'debugging',
+  'testing',
+  'final Python project',
+];
+
 function uxStudioCourseMap() {
   return {
     courseName: 'User Experience Design Studio',
@@ -32,6 +47,29 @@ function uxStudioCourseMap() {
           asyncActivities: `Prepare ${topic.toLowerCase()} notes`,
           syncActivities: `Critique the ${topic.toLowerCase()} artifact`,
           supportingResources: `UX reading packet on ${topic.toLowerCase()}`,
+        },
+      ],
+    })),
+  };
+}
+
+function weakPythonCourseMap() {
+  return {
+    courseName: 'Introduction to Computer Science with Python',
+    lessons: CS_TOPICS.map((topic, index) => ({
+      title: `Lesson ${index + 1}: ${topic}`,
+      sections: [
+        {
+          topicSection: `${index + 1}.1: ${topic}`,
+          learningGoals: '',
+          learningObjectives: '',
+          weeklyAssessments: '',
+          asyncActivities: '',
+          syncActivities: '',
+          technologyNeeded: '',
+          presentationFormat: '',
+          supportingResources: '',
+          evaluateDesign: '',
         },
       ],
     })),
@@ -77,5 +115,25 @@ describe('v0.15.127 texture variation', () => {
 
     expect(new Set(reviewCells).size).toBeGreaterThan(3);
     expect(reviewCells.join('\n').match(/same evidence of learning/g) || []).not.toHaveLength(UX_TOPICS.length);
+  });
+
+  it('uses CS/Python-specific Course Map repairs instead of generic assigned-materials scaffolds', () => {
+    const result = repairCourseMapReadiness({ courseMap: weakPythonCourseMap() });
+    const cells = result.courseMap.lessons.flatMap((lesson) =>
+      lesson.sections.flatMap((section) => [
+        section.asyncActivities,
+        section.syncActivities,
+        section.technologyNeeded,
+        section.presentationFormat,
+        section.supportingResources,
+        section.evaluateDesign,
+      ]),
+    );
+    const text = cells.join('\n');
+
+    expect(text).not.toMatch(/Review assigned materials|Read the assigned materials|Study the assigned materials/i);
+    expect(text).not.toMatch(/discipline-specific tools|same evidence of learning|course activities/i);
+    expect(text).toMatch(/Python|code|debug|test|output|program/i);
+    expect(new Set(cells.filter(Boolean)).size).toBeGreaterThan(CS_TOPICS.length * 4);
   });
 });

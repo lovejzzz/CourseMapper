@@ -755,6 +755,9 @@ const HISTORY_COURSE_MAP_RE =
 const UX_DESIGN_COURSE_MAP_RE =
   /\b(?:user experience|ux|design studio|design research|user research|usability|prototype|prototyping|wireframe|journey map|personas?|accessibility|portfolio review|case study|critique session|design journals?)\b/i;
 
+const COMPUTER_SCIENCE_COURSE_MAP_RE =
+  /\b(?:computer\s+science|python\b|programming|coding|software|algorithm|data\s+structures?|variables?|data\s+types?|conditionals?|loops?|functions?|lists?|dictionar(?:y|ies)|strings?|debugging|testing|file\s+(?:input|output|i\/o)|final\s+python\s+project)\b/i;
+
 const GENERIC_COURSE_MAP_FALLBACK_RE =
   /\b(?:course problem|course applications|next assessment|quick evidence check|exit ticket using|practice response|review assigned materials|prepare notes|new example|observe, label, calculate, or decide|course task or example|course activities|evidence of learning|lab materials|discipline-specific tools)\b/i;
 
@@ -773,6 +776,7 @@ function inferCourseMapFallbackProfile(courseMap, lesson, section) {
     .join(' ');
   if (PROJECT_MANAGEMENT_COURSE_RE.test(context)) return 'project-management';
   if (UX_DESIGN_COURSE_MAP_RE.test(context)) return 'ux-design';
+  if (COMPUTER_SCIENCE_COURSE_MAP_RE.test(context)) return 'computer-science';
   return HISTORY_COURSE_MAP_RE.test(context) ? 'history' : 'general';
 }
 
@@ -939,6 +943,70 @@ function getUxDesignCourseMapFallbacks(topic, pick) {
   };
 }
 
+function getComputerScienceCourseMapFallbacks(topic, pick) {
+  const displayTopic = displayCourseMapTopic(topic);
+  return {
+    learningGoals: pick([
+      `Use ${topic} to read, predict, and explain a small Python program.`,
+      `Connect ${topic} to program state, data flow, and debugging evidence.`,
+      `Build ${topic} practice from code tracing to an applied Python task.`,
+      `Use ${topic} to decide how a program should store, transform, or report data.`,
+    ]),
+    topicSection: topic,
+    learningObjectives: pick([
+      `Trace Python code using ${topic} and explain the output before running it.`,
+      `Write or revise a short Python example that uses ${topic} correctly.`,
+      `Debug a ${topic} mistake by naming the input, state change, and expected result.`,
+      `Choose the right ${topic} approach for a small programming problem and justify it.`,
+      `Test a ${topic} example with at least one normal case and one edge case.`,
+    ]),
+    weeklyAssessments: pick([
+      `${displayTopic} code trace: predict output and explain the state change.`,
+      `${displayTopic} mini-program with one required test case and one edge case.`,
+      `${displayTopic} debugging note that identifies the bug, fix, and evidence from a run.`,
+      `${displayTopic} programming prompt asking students to choose and justify an implementation.`,
+    ]),
+    asyncActivities: pick([
+      `Trace a short Python example for ${topic} and note the inputs, variables, and output.`,
+      `Run the starter code for ${topic}, change one value, and record what changes.`,
+      `Read the ${topic} example and write one question about a possible bug or edge case.`,
+      `Prepare a small test table for ${topic} before writing code in class.`,
+      `Annotate the provided Python snippet to show where ${topic} affects program behavior.`,
+    ]),
+    syncActivities: pick([
+      `Live-code a ${topic} example, then have students predict the next program state.`,
+      `Debug a broken ${topic} snippet in pairs and compare fixes.`,
+      `Work through a ${topic} coding prompt from pseudocode to tested Python code.`,
+      `Compare two ${topic} implementations and discuss readability, correctness, and edge cases.`,
+      `Use a short lab checkpoint to connect ${topic} syntax to program output.`,
+    ]),
+    technologyNeeded: pick([
+      'Python interpreter or notebook, starter file, LMS, and shared debugging notes workspace.',
+      'Code editor, terminal or notebook, sample input file when needed, and test-output log.',
+      'Course LMS, Python sandbox, instructor starter code, and a place to submit code traces.',
+      'Python runtime, projected worked example, and shared space for test cases and fixes.',
+    ]),
+    presentationFormat: pick([
+      'Concept cue, code trace, live example, pair debugging, and short tested submission.',
+      'Starter problem, worked Python example, student coding pass, and evidence review.',
+      'Prediction question, code execution, bug discussion, and edge-case check.',
+      'Syntax model, guided practice, independent code edit, and output explanation.',
+    ]),
+    supportingResources: pick([
+      `${displayTopic} starter code, worked example, and test-case checklist.`,
+      `Python reference snippet, sample input/output, and debugging guide for ${topic}.`,
+      `Annotated code example, short reading, and practice prompt aligned to ${topic}.`,
+      `Instructor-provided notebook, trace table, and solution rubric for ${topic}.`,
+    ]),
+    evaluateDesign: pick([
+      `Check that the ${topic} activity, resource, and assessment all require a runnable Python artifact or trace.`,
+      `Confirm students practice ${topic} with the same input/output evidence used in grading.`,
+      `Align the ${topic} example, lab task, and assessment around one tested programming behavior.`,
+      `Make the ${topic} checkpoint ask for code, explanation, and debugging evidence.`,
+    ]),
+  };
+}
+
 function getCourseMapFallbackValue(key, courseMap, lesson, section, lessonIndex) {
   const topic = getCourseMapTopic(courseMap, lesson, section, lessonIndex);
   // Rotate filler stems by section position so repaired sparse maps do not
@@ -956,56 +1024,58 @@ function getCourseMapFallbackValue(key, courseMap, lesson, section, lessonIndex)
         ? getProjectManagementCourseMapFallbacks(topic, pick)
         : profile === 'ux-design'
           ? getUxDesignCourseMapFallbacks(topic, pick)
-          : {
-              learningGoals: pick([
-                `Use ${topic} to explain a course problem and prepare evidence for the next assessment.`,
-                `Trace how ${topic} changes what students can observe, label, calculate, or decide.`,
-                `Develop an evidence-backed account of ${topic} for course applications.`,
-              ]),
-              topicSection: topic,
-              learningObjectives: pick([
-                `Explain the key ideas in ${topic} and apply them in course activities.`,
-                `Apply the main concepts from ${topic} to a course task or example.`,
-                `Connect ${topic} to the week's work and explain one supporting evidence source.`,
-                `Analyze an example using ${topic} and name one limitation or open question.`,
-              ]),
-              weeklyAssessments: pick([
-                `Quick evidence check: apply ${topic} to a new example.`,
-                `Exit ticket using ${topic} to justify one course-relevant decision.`,
-                `Practice response that names the evidence needed for ${topic}.`,
-              ]),
-              asyncActivities: pick([
-                `Review assigned materials and prepare notes on ${topic}.`,
-                `Read the assigned materials and write a short note on ${topic}.`,
-                `Study the assigned materials and mark questions about ${topic}.`,
-              ]),
-              syncActivities: pick([
-                `Discuss examples and practice applying ${topic}.`,
-                `Work through examples of ${topic} together and practice applying them.`,
-                `Compare examples of ${topic} in class and rehearse the key moves.`,
-              ]),
-              technologyNeeded: pick([
-                'Course LMS, shared files, and any discipline-specific tools named by the instructor.',
-                'LMS access plus the document, slide, lab, or analysis tool required for this lesson.',
-                'Course platform, instructor-provided files, and the classroom tool used for the lesson activity.',
-              ]),
-              presentationFormat: pick([
-                'Instructor framing, guided student work, and a short synthesis.',
-                'Brief setup, worked example or demonstration, then student application.',
-                'Opening question, structured practice, and closing evidence check.',
-              ]),
-              supportingResources: pick([
-                `Instructor-approved readings, examples, or lab materials for ${topic}.`,
-                `Course materials students need to prepare and show evidence about ${topic}.`,
-                `Worked examples, readings, or activity sheets aligned to ${topic}.`,
-              ]),
-              evaluateDesign: pick([
-                `Check that the ${topic} activity, resource, and assessment ask students to produce the same evidence of learning.`,
-                `Confirm that the ${topic} activity and assessment use the same evidence standard.`,
-                `Make sure students practice ${topic} with the same evidence they will use in the assessment.`,
-                `Align the ${topic} resource, class task, and assessment around one visible learning product.`,
-              ]),
-            };
+          : profile === 'computer-science'
+            ? getComputerScienceCourseMapFallbacks(topic, pick)
+            : {
+                learningGoals: pick([
+                  `Use ${topic} to explain a course problem and prepare evidence for the next assessment.`,
+                  `Trace how ${topic} changes what students can observe, label, calculate, or decide.`,
+                  `Develop an evidence-backed account of ${topic} for course applications.`,
+                ]),
+                topicSection: topic,
+                learningObjectives: pick([
+                  `Explain the key ideas in ${topic} and apply them in course activities.`,
+                  `Apply the main concepts from ${topic} to a course task or example.`,
+                  `Connect ${topic} to the week's work and explain one supporting evidence source.`,
+                  `Analyze an example using ${topic} and name one limitation or open question.`,
+                ]),
+                weeklyAssessments: pick([
+                  `Quick evidence check: apply ${topic} to a new example.`,
+                  `Exit ticket using ${topic} to justify one course-relevant decision.`,
+                  `Practice response that names the evidence needed for ${topic}.`,
+                ]),
+                asyncActivities: pick([
+                  `Review assigned materials and prepare notes on ${topic}.`,
+                  `Read the assigned materials and write a short note on ${topic}.`,
+                  `Study the assigned materials and mark questions about ${topic}.`,
+                ]),
+                syncActivities: pick([
+                  `Discuss examples and practice applying ${topic}.`,
+                  `Work through examples of ${topic} together and practice applying them.`,
+                  `Compare examples of ${topic} in class and rehearse the key moves.`,
+                ]),
+                technologyNeeded: pick([
+                  'Course LMS, shared files, and any discipline-specific tools named by the instructor.',
+                  'LMS access plus the document, slide, lab, or analysis tool required for this lesson.',
+                  'Course platform, instructor-provided files, and the classroom tool used for the lesson activity.',
+                ]),
+                presentationFormat: pick([
+                  'Instructor framing, guided student work, and a short synthesis.',
+                  'Brief setup, worked example or demonstration, then student application.',
+                  'Opening question, structured practice, and closing evidence check.',
+                ]),
+                supportingResources: pick([
+                  `Instructor-approved readings, examples, or lab materials for ${topic}.`,
+                  `Course materials students need to prepare and show evidence about ${topic}.`,
+                  `Worked examples, readings, or activity sheets aligned to ${topic}.`,
+                ]),
+                evaluateDesign: pick([
+                  `Check that the ${topic} activity, resource, and assessment ask students to produce the same evidence of learning.`,
+                  `Confirm that the ${topic} activity and assessment use the same evidence standard.`,
+                  `Make sure students practice ${topic} with the same evidence they will use in the assessment.`,
+                  `Align the ${topic} resource, class task, and assessment around one visible learning product.`,
+                ]),
+              };
   return fieldFallbacks[key] || `Instructor-confirmed material for ${topic}.`;
 }
 

@@ -3,24 +3,24 @@ import { APP_VERSION } from './appVersion.js';
 export const CURRENT_RELEASE = {
   version: APP_VERSION,
   date: 'June 30, 2026',
-  title: 'CS/Python Control-Flow Source Gate: conditional and loop false friends stop passing',
-  landingTitle: 'CS/Python Control-Flow Sources',
+  title: 'CS/Python Source and Texture Gate: statistical-variable bycatch and generic map scaffolds stop passing',
+  landingTitle: 'CS/Python Source + Texture',
   highlights: [
-    'A fresh deployed v0.15.149 GPT-5.5-pro Introduction to Computer Science with Python ZIP/log audit exported at 98/A with texture 91, proving the old obvious music/string/file-explorer false friends were gone but not that source trust was clean.',
-    'The same package still trusted licensed-but-wrong control-flow bycatch: natural-language conditional sentence pages and a game/language-pedagogy loops article were promoted as Python conditionals/loops proof.',
-    'Computer Science/Python source selection now requires programming-context anchors for ambiguous conditionals and loops, preserving pages such as `Conditional (computer programming)` and `For loop` while quarantining natural-language and game-loop false friends.',
-    'The deep quality grader mirrors the stricter control-flow source gate, so the captured v0.15.149 package regrades at 95/A with citation P1s instead of silently accepting the source ledger as clean.',
-    'Focused source-ledger export and source-grader regressions pin the GPT-5.5-pro failure shape without weakening source, export, report, texture, or model-comparison standards.',
+    'A fresh deployed v0.15.150 GPT-5.5-pro Introduction to Computer Science with Python ZIP/log audit exported at 99/A with Texture 91, full enrichment coverage, export verification passed, and zero embedded P0/P1/P2 findings.',
+    'The same model-comparison run proved the remaining quality loss was not only model-side: the stricter local grader regraded the package at 98/A after detecting `Correlation` as a trusted source row for Python variables.',
+    'Computer Science/Python source selection and grading now treat correlation/statistical-variable pages as false friends unless they carry programming context, while preserving valid data-type and Python programming sources.',
+    'Course Map fallback repair now uses CS/Python-specific code-tracing, debugging, testing, input/output, and runnable-artifact language instead of repeating generic assigned-materials/LMS scaffolds through every lesson.',
+    'Focused source-ledger, source-grader, and texture fallback regressions pin the GPT-5.5-pro comparison failure shape without weakening source, export, report, texture, or model-comparison standards.',
   ],
   landingHighlights: [
-    'CS/Python conditionals and loops need programming context.',
-    'Natural-language and game-loop false friends stay out of trusted proof.',
-    'The grader catches the captured GPT-5.5-pro source debt.',
-    'Model comparisons now separate provider behavior from export-gate defects.',
+    'CS/Python variables need programming-context source proof.',
+    'Correlation/statistical-variable bycatch stays out of trusted proof.',
+    'Generic Course Map fallback text becomes code-tracing practice.',
+    'Model comparisons separate provider behavior from CourseMapper defects.',
   ],
   proof: {
-    contract: 'release-contracts/v0.15.150.json',
-    roadmap: 'docs/V0.15.150_CS_PYTHON_CONTROL_FLOW_SOURCE_GATE_ROADMAP.md',
+    contract: 'release-contracts/v0.15.151.json',
+    roadmap: 'docs/V0.15.151_CS_PYTHON_SOURCE_TEXTURE_GATE_ROADMAP.md',
     auditCommand: 'npm run audit:release-history',
   },
 };
@@ -35,6 +35,18 @@ export const CURRENT_RELEASE_CHANGELOG = {
 };
 
 export const HISTORICAL_RELEASE_CHANGELOGS = [
+  {
+    version: '0.15.150',
+    date: 'June 30, 2026',
+    title: 'CS/Python Control-Flow Source Gate: conditional and loop false friends stop passing',
+    highlights: [
+      'A fresh deployed v0.15.149 GPT-5.5-pro Introduction to Computer Science with Python ZIP/log audit exported at 98/A with texture 91, proving the old obvious music/string/file-explorer false friends were gone but not that source trust was clean.',
+      'The same package still trusted licensed-but-wrong control-flow bycatch: natural-language conditional sentence pages and a game/language-pedagogy loops article were promoted as Python conditionals/loops proof.',
+      'Computer Science/Python source selection now requires programming-context anchors for ambiguous conditionals and loops, preserving pages such as `Conditional (computer programming)` and `For loop` while quarantining natural-language and game-loop false friends.',
+      'The deep quality grader mirrors the stricter control-flow source gate, so the captured v0.15.149 package regrades at 95/A with citation P1s instead of silently accepting the source ledger as clean.',
+      'Focused source-ledger export and source-grader regressions pin the GPT-5.5-pro failure shape without weakening source, export, report, texture, or model-comparison standards.',
+    ],
+  },
   {
     version: '0.15.149',
     date: 'June 30, 2026',

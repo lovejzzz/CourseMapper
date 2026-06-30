@@ -1,0 +1,109 @@
+{
+  "version": "0.15.151",
+  "date": "June 30, 2026",
+  "title": "CS/Python Source and Texture Gate: statistical-variable bycatch and generic map scaffolds stop passing",
+  "status": "verified-current",
+  "proofSummary": {
+    "local": [
+      "npm test -- src/lib/knowledge/__tests__/sourceLedger.test.js src/lib/quality/__tests__/sourceLedgerGrader.test.js tests/v015127-texture-variation.test.js",
+      "node scripts/crucible.mjs --skip-generate verification-output/edutool-audit-loop/20260630T100316Z-v015150-gpt55pro-python-fresh/local-regrade-round"
+    ],
+    "ciFast": {
+      "status": "pending-push",
+      "note": "Fast verification is claimed only after v0.15.151 is pushed and the GitHub Actions run is attached."
+    },
+    "deploy": {
+      "status": "pending-push",
+      "note": "Pages deploy is not claimed until the pushed v0.15.151 release completes its deploy run."
+    },
+    "ciDeep": {
+      "status": "local-only",
+      "note": "This is a narrow source relevance, grader-truth, and Course Map texture release; focused coverage plus normal gates are the release bar."
+    },
+    "liveProvider": {
+      "status": "not-current",
+      "note": "The release is based on a fresh deployed v0.15.150 GPT-5.5-pro ZIP/log audit. A fresh deployed v0.15.151 run is required before claiming the new source and texture gates held in provider output."
+    },
+    "manualHuman": {
+      "status": "not-applicable",
+      "note": "No external instructor approval is claimed by this release."
+    }
+  },
+  "claims": [
+    {
+      "id": "v015151-v015150-model-comparison-evidence",
+      "status": "verified-current",
+      "changelogHighlightIndex": 0,
+      "summary": "Fresh v0.15.150 GPT-5.5-pro Python ZIP/log evidence exported at 99/A with Texture 91, export verification passed, and zero embedded P0/P1/P2 findings.",
+      "anchors": ["docs/V0.15.151_CS_PYTHON_SOURCE_TEXTURE_GATE_ROADMAP.md", "src/lib/releaseManifest.js"],
+      "proofCommands": [
+        "rg -n \"v0.15.150|GPT-5.5-pro|99/A|run-1782812227528\" docs/V0.15.151_CS_PYTHON_SOURCE_TEXTURE_GATE_ROADMAP.md src/lib/releaseManifest.js"
+      ],
+      "proofScopes": ["static-audit", "live-provider"]
+    },
+    {
+      "id": "v015151-hidden-correlation-source-debt",
+      "status": "verified-current",
+      "changelogHighlightIndex": 1,
+      "summary": "The same artifact contained hidden CS/Python source debt: Correlation was trusted for Python variables, so the stricter local grader regraded it at 98/A.",
+      "anchors": [
+        "docs/V0.15.151_CS_PYTHON_SOURCE_TEXTURE_GATE_ROADMAP.md",
+        "src/lib/quality/__tests__/sourceLedgerGrader.test.js"
+      ],
+      "proofCommands": [
+        "rg -n \"Correlation|98/A|citations 92|source ledger row sf2\" docs/V0.15.151_CS_PYTHON_SOURCE_TEXTURE_GATE_ROADMAP.md src/lib/quality/__tests__/sourceLedgerGrader.test.js"
+      ],
+      "proofScopes": ["static-audit", "unit"]
+    },
+    {
+      "id": "v015151-cs-variable-source-gate",
+      "status": "verified-current",
+      "changelogHighlightIndex": 2,
+      "summary": "CS/Python source selection and grading now reject statistical-variable bycatch unless programming context is present.",
+      "anchors": [
+        "src/lib/knowledge/sourceLedger.js",
+        "src/lib/quality/sourceLedgerQualityChecks.js",
+        "src/lib/knowledge/__tests__/sourceLedger.test.js",
+        "src/lib/quality/__tests__/sourceLedgerGrader.test.js"
+      ],
+      "proofCommands": [
+        "rg -n \"correlation|statistical|variables.*in.*python\" src/lib/knowledge/sourceLedger.js src/lib/quality/sourceLedgerQualityChecks.js",
+        "npm test -- src/lib/knowledge/__tests__/sourceLedger.test.js src/lib/quality/__tests__/sourceLedgerGrader.test.js"
+      ],
+      "proofScopes": ["unit"]
+    },
+    {
+      "id": "v015151-cs-course-map-texture",
+      "status": "verified-current",
+      "changelogHighlightIndex": 3,
+      "summary": "CS/Python Course Map fallback repair now uses programming-specific code-tracing, debugging, testing, and runnable-artifact language instead of generic assigned-material scaffolds.",
+      "anchors": ["src/lib/deliverableReadiness.js", "tests/v015127-texture-variation.test.js"],
+      "proofCommands": [
+        "rg -n \"getComputerScienceCourseMapFallbacks|CS/Python-specific Course Map\" src/lib/deliverableReadiness.js tests/v015127-texture-variation.test.js",
+        "npm test -- tests/v015127-texture-variation.test.js"
+      ],
+      "proofScopes": ["unit"]
+    },
+    {
+      "id": "v015151-focused-regressions",
+      "status": "verified-current",
+      "changelogHighlightIndex": 4,
+      "summary": "Focused regressions cover source-ledger promotion, deep quality regrade behavior, and Course Map fallback texture for the live GPT-5.5-pro failure shape.",
+      "anchors": [
+        "src/lib/knowledge/__tests__/sourceLedger.test.js",
+        "src/lib/quality/__tests__/sourceLedgerGrader.test.js",
+        "tests/v015127-texture-variation.test.js"
+      ],
+      "proofCommands": [
+        "npm test -- src/lib/knowledge/__tests__/sourceLedger.test.js src/lib/quality/__tests__/sourceLedgerGrader.test.js tests/v015127-texture-variation.test.js"
+      ],
+      "proofScopes": ["unit", "static-audit"]
+    }
+  ],
+  "knownRemainingTargets": [
+    "A fresh deployed v0.15.151 GPT-5.5-pro Python ZIP/log audit must prove the source ledger no longer trusts statistical-variable bycatch in real provider output.",
+    "Texture remains below the long-running target until fresh packages repeatedly reach 100/100 texture with no repeated-shingle caveat.",
+    "The visible v0.15.150 run completed in 1487s and cost about $9.98, so model comparisons should include runtime and cost, not only score.",
+    "The v0.15.150 CourseIR direct-authoring call still fell back to native authoring after spending a large pro-model call; this release records that evidence but does not change CourseIR fallback behavior."
+  ]
+}
