@@ -344,7 +344,7 @@ export function scanText(patterns, text, { evidenceChars = 160 } = {}) {
 const PROMPT_ARTIFACT_TOPIC_SOURCE =
   'course map|syllabus|evidence-rich lesson plans|lesson plans|lesson objectives|learning objectives|slide decks|assignment briefs|assignments|rubric-driven assignments|rubrics|discussion prompts|scenario quizzes|quizzes|quiz and exam bank|quiz & exam bank|quiz bank|study guides|course faq|final capstone presentations|final capstone presentation|worked examples|misconceptions|instructor handoff notes';
 const PROMPT_ARTIFACT_FOCUS_TOPIC_SOURCE =
-  'course map|syllabus|evidence-rich lesson plans|lesson plans|lesson objectives|learning objectives|slide decks|assignment briefs|assignments|rubric-driven assignments|rubrics|discussion prompts|scenario quizzes|quizzes|quiz and exam bank|quiz & exam bank|quiz bank|study guides|course faq|final capstone presentations|final capstone presentation|misconceptions|instructor handoff notes';
+  'course map|syllabus|evidence-rich lesson plans|lesson plans|lesson objectives|learning objectives|slide decks|assignment briefs|rubric-driven assignments|rubrics|discussion prompts|scenario quizzes|quizzes|quiz and exam bank|quiz & exam bank|quiz bank|study guides|course faq|final capstone presentations|final capstone presentation|misconceptions|instructor handoff notes';
 const PROMPT_ARTIFACT_FOCUS_TOPIC_RE = new RegExp(`\\b(${PROMPT_ARTIFACT_FOCUS_TOPIC_SOURCE})\\b`, 'i');
 const PROMPT_ARTIFACT_FOCUS_TOPIC_GLOBAL_RE = new RegExp(`\\b(${PROMPT_ARTIFACT_FOCUS_TOPIC_SOURCE})\\b`, 'gi');
 const NUMBERED_PROMPT_ARTIFACT_TOPIC_RE = new RegExp(

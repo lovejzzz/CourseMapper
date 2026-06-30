@@ -315,6 +315,18 @@ describe('compiledLanguageFinalizer', () => {
     expect(findPromptArtifactContamination(text)).toBeNull();
   });
 
+  it('does not treat ordinary assignment-management prose as prompt-artifact leakage', () => {
+    const uxAnswer =
+      'A defensible position: Personas should focus on the most common patterns to stay usable. ' +
+      'In a scenario where a team has interviews with six students about managing assignments, deadlines, and notifications, ' +
+      'the persona should name the repeated scheduling pain points rather than every unique preference.';
+
+    expect(findPromptArtifactContamination(uxAnswer)).toBeNull();
+    expect(
+      findPromptArtifactContamination('This activity focuses on Assignment Briefs rather than the course concept.'),
+    ).toEqual(expect.objectContaining({ label: 'assignment briefs' }));
+  });
+
   it('leaves multiple-choice answer letters alone', () => {
     const data = { items: [{ explanation: 'A is correct because it cites evidence.' }] };
     finalizeCompiledDeliverableLanguage('quizBank', data, { lessons: [] });

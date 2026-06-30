@@ -3,24 +3,24 @@ import { APP_VERSION } from './appVersion.js';
 export const CURRENT_RELEASE = {
   version: APP_VERSION,
   date: 'June 30, 2026',
-  title: 'Final Artifact Routing: final revision work stops becoming fake exams',
-  landingTitle: 'Final Artifact Routing',
+  title: 'Prompt Artifact Truth: assignment-management prose stops failing as prompt leakage',
+  landingTitle: 'Prompt Artifact Truth',
   highlights: [
-    'A fresh deployed v0.15.145 User Experience Design Studio ZIP audit produced a blocked 74/C package: `Final revisions annotation...` and `Final prototype studio defense...` were routed as exam-kind registry entries, but their quiz-bank DOCX files did not contain those registered assessment titles.',
-    'Assessment-kind derivation now treats only genuinely bare `Midterm`/`Final` labels as exams; final revision annotations, final prototype defenses, final projects, and final essays keep their own artifact routing instead of becoming fake quiz-bank exams.',
-    'The UX regression compiles the live failure shape and proves those final revision/prototype defense rows ship as assignment artifacts with no `kind: exam` quiz-bank entries.',
-    'ZIP manifest truth is tightened: when package self-grading finds P0 blockers, `PACKAGE_MANIFEST.json` now marks readiness blocked and includes a `qualityGate` blocker instead of saying the package is ready.',
-    'Focused regressions cover the registry classifier, compiler routing, and manifest quality-readiness agreement. A fresh deployed v0.15.146 audit is still required before claiming clean provider output.',
+    'A fresh deployed v0.15.146 User Experience Design Studio ZIP/log audit reached export with 98/A, texture 96, clean source rows, and correct final-artifact routing; the only scored P1 was a false prompt-artifact hit on ordinary persona-answer prose about managing assignments and deadlines.',
+    'Prompt-artifact detection now keeps bare `assignments` out of the broad “focus on … nearby artifact label” path while still catching explicit prompt labels such as `Assignment Briefs` and `rubric-driven assignments`.',
+    'Quiz answer DOCX callouts now include an extractable separator between the tracked uppercase label and answer body, so the grader and instructor-facing text read `ANSWER A...` instead of `ANSWERA...`.',
+    'Focused regressions recreate the exact UX persona-answer false positive and the extracted DOCX answer-label glue that appeared in the v0.15.146 package.',
+    'Regrading the captured v0.15.146 ZIP with the corrected detector reaches 100/A with zero findings. Fresh deployed v0.15.147 provider evidence is still required before claiming new-run output is clean.',
   ],
   landingHighlights: [
-    'Fresh v0.15.145 evidence found final-artifact routing contamination.',
-    'Bare Final/Midterm exam detection no longer catches named final artifacts.',
-    'Fake quiz-bank exams are covered by a UX compiler regression.',
-    'Manifest readiness now reflects P0 quality blockers.',
+    'Fresh v0.15.146 evidence isolated a false prompt-artifact P1.',
+    'Ordinary assignment-management prose no longer trips the artifact detector.',
+    'Quiz answer callouts extract with readable label/body spacing.',
+    'The captured ZIP now regrades 100/A under the corrected logic.',
   ],
   proof: {
-    contract: 'release-contracts/v0.15.146.json',
-    roadmap: 'docs/V0.15.146_FINAL_ARTIFACT_ROUTING_ROADMAP.md',
+    contract: 'release-contracts/v0.15.147.json',
+    roadmap: 'docs/V0.15.147_PROMPT_ARTIFACT_TRUTH_ROADMAP.md',
     auditCommand: 'npm run audit:release-history',
   },
 };
@@ -35,6 +35,18 @@ export const CURRENT_RELEASE_CHANGELOG = {
 };
 
 export const HISTORICAL_RELEASE_CHANGELOGS = [
+  {
+    version: '0.15.146',
+    date: 'June 30, 2026',
+    title: 'Final Artifact Routing: final revision work stops becoming fake exams',
+    highlights: [
+      'A fresh deployed v0.15.145 User Experience Design Studio ZIP audit produced a blocked 74/C package: `Final revisions annotation...` and `Final prototype studio defense...` were routed as exam-kind registry entries, but their quiz-bank DOCX files did not contain those registered assessment titles.',
+      'Assessment-kind derivation now treats only genuinely bare `Midterm`/`Final` labels as exams; final revision annotations, final prototype defenses, final projects, and final essays keep their own artifact routing instead of becoming fake quiz-bank exams.',
+      'The UX regression compiles the live failure shape and proves those final revision/prototype defense rows ship as assignment artifacts with no `kind: exam` quiz-bank entries.',
+      'ZIP manifest truth is tightened: when package self-grading finds P0 blockers, `PACKAGE_MANIFEST.json` now marks readiness blocked and includes a `qualityGate` blocker instead of saying the package is ready.',
+      'Focused regressions cover the registry classifier, compiler routing, and manifest quality-readiness agreement. A fresh deployed v0.15.146 audit is still required before claiming clean provider output.',
+    ],
+  },
   {
     version: '0.15.145',
     date: 'June 30, 2026',

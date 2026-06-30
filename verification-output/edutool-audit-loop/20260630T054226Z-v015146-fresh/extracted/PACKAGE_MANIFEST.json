@@ -1,0 +1,1290 @@
+{
+  "courseName": "User Experience Design Studio",
+  "generatedAt": "2026-06-30T05:49:58.002Z",
+  "lessonScope": "all",
+  "pipeline": {
+    "enrichment": "ran (12 lessons enriched)",
+    "genomeLinker": "0 genome + 0 cached of 12 lessons (0 concepts, 0 citations, 0 bridges)",
+    "courseGraph": "12 sessions · 12 concepts (0 genome-linked, 12 authored) · 12 outcomes",
+    "knowledgeBackbone": "0/12 lessons genome-linked · 7 cited open resources (source-finder: 7) · 19 lessons with readings",
+    "judgment": "not evaluated (0 genome-linked lessons)"
+  },
+  "voicePass": {
+    "enabled": true,
+    "voicedCount": 8,
+    "fallbackCount": 0,
+    "selfCheck": "improved",
+    "texturePre": 97,
+    "texturePost": 98,
+    "textureScope": "voice-surfaces"
+  },
+  "assessments": [
+    {
+      "id": "A1.1",
+      "title": "Design research evidence memo: user signal and revision choice.",
+      "kind": "graded-artifact",
+      "lesson": 1,
+      "weightPct": 9,
+      "artifact": "Assignment Briefs/Lesson 01 - Design research - Assignment Briefs.docx"
+    },
+    {
+      "id": "A2.1",
+      "title": "Personas annotation: research detail to design choice.",
+      "kind": "graded-artifact",
+      "lesson": 2,
+      "weightPct": 9,
+      "artifact": "Assignment Briefs/Lesson 02 - Personas - Assignment Briefs.docx"
+    },
+    {
+      "id": "A3.1",
+      "title": "Journey maps studio defense: prototype move and evidence.",
+      "kind": "graded-artifact",
+      "lesson": 3,
+      "weightPct": 9,
+      "artifact": "Assignment Briefs/Lesson 03 - Journey maps - Assignment Briefs.docx"
+    },
+    {
+      "id": "A4.1",
+      "title": "Information architecture rationale note: user need, tradeoff, and next revision.",
+      "kind": "graded-artifact",
+      "lesson": 4,
+      "weightPct": 9,
+      "artifact": "Assignment Briefs/Lesson 04 - Information architecture - Assignment Briefs.docx"
+    },
+    {
+      "id": "A5.1",
+      "title": "Wireframing evidence memo: user signal and revision choice.",
+      "kind": "graded-artifact",
+      "lesson": 5,
+      "weightPct": 8,
+      "artifact": "Assignment Briefs/Lesson 05 - Wireframing - Assignment Briefs.docx"
+    },
+    {
+      "id": "A6.1",
+      "title": "Interaction patterns annotation: research detail to design choice.",
+      "kind": "graded-artifact",
+      "lesson": 6,
+      "weightPct": 8,
+      "artifact": "Assignment Briefs/Lesson 06 - Interaction patterns - Assignment Briefs.docx"
+    },
+    {
+      "id": "A7.1",
+      "title": "Accessibility studio defense: prototype move and evidence.",
+      "kind": "graded-artifact",
+      "lesson": 7,
+      "weightPct": 8,
+      "artifact": "Assignment Briefs/Lesson 07 - Accessibility - Assignment Briefs.docx"
+    },
+    {
+      "id": "A8.1",
+      "title": "Usability testing rationale note: user need, tradeoff, and next revision.",
+      "kind": "graded-artifact",
+      "lesson": 8,
+      "weightPct": 8,
+      "artifact": "Assignment Briefs/Lesson 08 - Usability testing - Assignment Briefs.docx"
+    },
+    {
+      "id": "A9.1",
+      "title": "Prototype reviews evidence memo: user signal and revision choice.",
+      "kind": "graded-artifact",
+      "lesson": 9,
+      "weightPct": 8,
+      "artifact": "Assignment Briefs/Lesson 09 - Prototype reviews - Assignment Briefs.docx"
+    },
+    {
+      "id": "A10.1",
+      "title": "Design handoff annotation: research detail to design choice.",
+      "kind": "graded-artifact",
+      "lesson": 10,
+      "weightPct": 8,
+      "artifact": "Assignment Briefs/Lesson 10 - Design handoff - Assignment Briefs.docx"
+    },
+    {
+      "id": "A11.1",
+      "title": "Critique studio defense: prototype move and evidence.",
+      "kind": "graded-artifact",
+      "lesson": 11,
+      "weightPct": 8,
+      "artifact": "Assignment Briefs/Lesson 11 - Critique session - Assignment Briefs.docx"
+    },
+    {
+      "id": "A12.1",
+      "title": "Final portfolio case study rationale note: user need, tradeoff, and next revision.",
+      "kind": "graded-artifact",
+      "lesson": 12,
+      "weightPct": 8,
+      "artifact": "Assignment Briefs/Lesson 12 - Final portfolio case study - Assignment Briefs.docx"
+    }
+  ],
+  "sourceLedger": [
+    {
+      "id": "sf2",
+      "title": "Persona",
+      "authors": [
+        "Wikipedia contributors"
+      ],
+      "url": "https://en.wikipedia.org/wiki/Persona",
+      "doi": "",
+      "license": "CC BY-SA 4.0",
+      "provider": "wikipedia",
+      "sourceType": "encyclopedia background",
+      "scope": "course",
+      "status": "source-provided",
+      "origin": "source-finder",
+      "evidence": "A persona (plural personae or personas) is a strategic mask of identity in public, the public image of one's personality, the social role that one adopts, or simply a fictional character. It is also considered \"an intermediary between the individual and the institution.\" Persona studies is an academic field...",
+      "conceptLinks": [
+        {
+          "id": "c2",
+          "label": "personas"
+        }
+      ],
+      "checkedAt": "2026-06-30T05:49:58.002Z",
+      "accessStatus": "reference-present",
+      "trustLevel": "licensed-background-source",
+      "citation": "Wikipedia contributors. Persona. https://en.wikipedia.org/wiki/Persona",
+      "licenseAmbiguous": false
+    },
+    {
+      "id": "sf3",
+      "title": "Information architecture",
+      "authors": [
+        "Wikipedia contributors"
+      ],
+      "url": "https://en.wikipedia.org/wiki/Information_architecture",
+      "doi": "",
+      "license": "CC BY-SA 4.0",
+      "provider": "wikipedia",
+      "sourceType": "encyclopedia background",
+      "scope": "course",
+      "status": "source-provided",
+      "origin": "source-finder",
+      "evidence": "Information architecture is the structural design of shared information environments, in particular the organisation of websites and software to support usability and findability. The term information architecture was coined by Richard Saul Wurman. Since its inception, information architecture has become an...",
+      "conceptLinks": [
+        {
+          "id": "c4",
+          "label": "information architecture"
+        }
+      ],
+      "checkedAt": "2026-06-30T05:49:58.002Z",
+      "accessStatus": "reference-present",
+      "trustLevel": "licensed-background-source",
+      "citation": "Wikipedia contributors. Information architecture. https://en.wikipedia.org/wiki/Information_architecture",
+      "licenseAmbiguous": false
+    },
+    {
+      "id": "sf5",
+      "title": "Human–computer interaction",
+      "authors": [
+        "Wikipedia contributors"
+      ],
+      "url": "https://en.wikipedia.org/wiki/Human%E2%80%93computer_interaction",
+      "doi": "",
+      "license": "CC BY-SA 4.0",
+      "provider": "wikipedia",
+      "sourceType": "encyclopedia background",
+      "scope": "course",
+      "status": "source-provided",
+      "origin": "source-finder",
+      "evidence": "Human–computer interaction (HCI) is the process through which people operate and engage with computer systems. Research in HCI covers the design and the use of computer technology, which focuses on the interfaces between people (users) and computers. HCI researchers observe how people interact with computers and...",
+      "conceptLinks": [
+        {
+          "id": "c6",
+          "label": "interaction patterns"
+        }
+      ],
+      "checkedAt": "2026-06-30T05:49:58.002Z",
+      "accessStatus": "reference-present",
+      "trustLevel": "licensed-background-source",
+      "citation": "Wikipedia contributors. Human–computer interaction. https://en.wikipedia.org/wiki/Human%E2%80%93computer_interaction",
+      "licenseAmbiguous": false
+    },
+    {
+      "id": "sf6",
+      "title": "Accessibility",
+      "authors": [
+        "Wikipedia contributors"
+      ],
+      "url": "https://en.wikipedia.org/wiki/Accessibility",
+      "doi": "",
+      "license": "CC BY-SA 4.0",
+      "provider": "wikipedia",
+      "sourceType": "encyclopedia background",
+      "scope": "course",
+      "status": "source-provided",
+      "origin": "source-finder",
+      "evidence": "Accessibility is the design of products, devices, services, vehicles, or environments to be usable by disabled people. The concept of accessible design and practice of accessible developments ensures both \"direct access\" (i.e. unassisted) and \"indirect access\" meaning compatibility with a person's assistive...",
+      "conceptLinks": [
+        {
+          "id": "c7",
+          "label": "accessibility"
+        }
+      ],
+      "checkedAt": "2026-06-30T05:49:58.002Z",
+      "accessStatus": "reference-present",
+      "trustLevel": "licensed-background-source",
+      "citation": "Wikipedia contributors. Accessibility. https://en.wikipedia.org/wiki/Accessibility",
+      "licenseAmbiguous": false
+    },
+    {
+      "id": "sf7",
+      "title": "Usability testing",
+      "authors": [
+        "Wikipedia contributors"
+      ],
+      "url": "https://en.wikipedia.org/wiki/Usability_testing",
+      "doi": "",
+      "license": "CC BY-SA 4.0",
+      "provider": "wikipedia",
+      "sourceType": "encyclopedia background",
+      "scope": "course",
+      "status": "source-provided",
+      "origin": "source-finder",
+      "evidence": "Usability testing is a technique used in user-centered interaction design to evaluate a product by testing it on users. This can be seen as an irreplaceable usability practice, since it gives direct input on how real users use the system. It is more concerned with the design intuitiveness of the product and tested...",
+      "conceptLinks": [
+        {
+          "id": "c8",
+          "label": "usability testing"
+        }
+      ],
+      "checkedAt": "2026-06-30T05:49:58.002Z",
+      "accessStatus": "reference-present",
+      "trustLevel": "licensed-background-source",
+      "citation": "Wikipedia contributors. Usability testing. https://en.wikipedia.org/wiki/Usability_testing",
+      "licenseAmbiguous": false
+    },
+    {
+      "id": "sf-6-2",
+      "title": "Interaction design",
+      "authors": [
+        "Wikipedia contributors"
+      ],
+      "url": "https://en.wikipedia.org/wiki/Interaction_design",
+      "doi": "",
+      "license": "CC BY-SA 4.0",
+      "provider": "wikipedia",
+      "sourceType": "encyclopedia background",
+      "scope": "lesson-6",
+      "status": "source-provided",
+      "origin": "source-finder",
+      "evidence": "Interaction design, often abbreviated as IxD, is \"the practice of designing interactive digital products, environments, systems, and services.\" While interaction design has an interest in form (similar to other design fields), its main area of focus rests on behavior. Rather than analyzing how things are,...",
+      "conceptLinks": [
+        {
+          "id": "c6",
+          "label": "interaction patterns"
+        }
+      ],
+      "checkedAt": "2026-06-30T05:49:58.002Z",
+      "accessStatus": "reference-present",
+      "trustLevel": "licensed-background-source",
+      "citation": "Wikipedia contributors. Interaction design. https://en.wikipedia.org/wiki/Interaction_design",
+      "licenseAmbiguous": false
+    },
+    {
+      "id": "sf-7-2",
+      "title": "Web accessibility",
+      "authors": [
+        "Wikipedia contributors"
+      ],
+      "url": "https://en.wikipedia.org/wiki/Web_accessibility",
+      "doi": "",
+      "license": "CC BY-SA 4.0",
+      "provider": "wikipedia",
+      "sourceType": "encyclopedia background",
+      "scope": "lesson-7",
+      "status": "source-provided",
+      "origin": "source-finder",
+      "evidence": "Web accessibility, or eAccessibility, is the inclusive practice of ensuring there are no barriers that prevent interaction with, or access to, websites on the World Wide Web by people with disabilities, including both physical and mental disabilities. Through the curb cut effect, it also benefits people with...",
+      "conceptLinks": [
+        {
+          "id": "c7",
+          "label": "accessibility"
+        }
+      ],
+      "checkedAt": "2026-06-30T05:49:58.002Z",
+      "accessStatus": "reference-present",
+      "trustLevel": "licensed-background-source",
+      "citation": "Wikipedia contributors. Web accessibility. https://en.wikipedia.org/wiki/Web_accessibility",
+      "licenseAmbiguous": false
+    },
+    {
+      "id": "sf-8-2",
+      "title": "A/B testing",
+      "authors": [
+        "Wikipedia contributors"
+      ],
+      "url": "https://en.wikipedia.org/wiki/A/B_testing",
+      "doi": "",
+      "license": "CC BY-SA 4.0",
+      "provider": "wikipedia",
+      "sourceType": "encyclopedia background",
+      "scope": "lesson-8",
+      "status": "source-provided",
+      "origin": "source-finder",
+      "evidence": "A/B testing (also known as bucket testing, split-run testing or split testing) is a user-experience research method. A/B tests consist of a randomized experiment that usually involves two variants (A and B), although the concept can be also extended to multiple variants of the same variable. It includes application...",
+      "conceptLinks": [
+        {
+          "id": "c8",
+          "label": "usability testing"
+        }
+      ],
+      "checkedAt": "2026-06-30T05:49:58.002Z",
+      "accessStatus": "reference-present",
+      "trustLevel": "licensed-background-source",
+      "citation": "Wikipedia contributors. A/B testing. https://en.wikipedia.org/wiki/A/B_testing",
+      "licenseAmbiguous": false
+    }
+  ],
+  "sourceLedgerSummary": {
+    "sourceCount": 8,
+    "trustedCount": 8,
+    "conceptLinkedCount": 8,
+    "trustedConceptLinkedCount": 8,
+    "accessibleCount": 8,
+    "licenseAmbiguousCount": 0,
+    "providers": [
+      "wikipedia"
+    ]
+  },
+  "sourceReport": {
+    "path": "SOURCE_REPORT.md",
+    "sourceCount": 8,
+    "sourceRefCoverage": {
+      "version": "courseir.v1",
+      "sourceLedgerRows": 8,
+      "totals": {
+        "total": 204,
+        "withRefs": 204,
+        "missing": 0,
+        "danglingRefs": 0
+      },
+      "categories": {
+        "outcomes": {
+          "total": 48,
+          "withRefs": 48,
+          "missing": 0,
+          "danglingRefs": 0,
+          "missingIds": []
+        },
+        "activities": {
+          "total": 72,
+          "withRefs": 72,
+          "missing": 0,
+          "danglingRefs": 0,
+          "missingIds": []
+        },
+        "examples": {
+          "total": 12,
+          "withRefs": 12,
+          "missing": 0,
+          "danglingRefs": 0,
+          "missingIds": []
+        },
+        "assessments": {
+          "total": 12,
+          "withRefs": 12,
+          "missing": 0,
+          "danglingRefs": 0,
+          "missingIds": []
+        },
+        "rubricCriteria": {
+          "total": 36,
+          "withRefs": 36,
+          "missing": 0,
+          "danglingRefs": 0,
+          "missingIds": []
+        },
+        "factualClaims": {
+          "total": 24,
+          "withRefs": 24,
+          "missing": 0,
+          "danglingRefs": 0,
+          "missingIds": []
+        }
+      },
+      "bridge": {
+        "source": "coursegraph-concept-linked-ledger",
+        "trustedRows": 8,
+        "candidateTrustedRows": 8,
+        "conceptLinkedRows": 8,
+        "replacedReviewRows": 5
+      }
+    }
+  },
+  "courseIR": {
+    "version": "courseir.v1",
+    "lessonCount": 12,
+    "conceptCount": 12,
+    "assessmentCount": 12,
+    "sourceLedgerRows": 8,
+    "sourceRefCoverage": {
+      "version": "courseir.v1",
+      "sourceLedgerRows": 8,
+      "totals": {
+        "total": 204,
+        "withRefs": 204,
+        "missing": 0,
+        "danglingRefs": 0
+      },
+      "categories": {
+        "outcomes": {
+          "total": 48,
+          "withRefs": 48,
+          "missing": 0,
+          "danglingRefs": 0,
+          "missingIds": []
+        },
+        "activities": {
+          "total": 72,
+          "withRefs": 72,
+          "missing": 0,
+          "danglingRefs": 0,
+          "missingIds": []
+        },
+        "examples": {
+          "total": 12,
+          "withRefs": 12,
+          "missing": 0,
+          "danglingRefs": 0,
+          "missingIds": []
+        },
+        "assessments": {
+          "total": 12,
+          "withRefs": 12,
+          "missing": 0,
+          "danglingRefs": 0,
+          "missingIds": []
+        },
+        "rubricCriteria": {
+          "total": 36,
+          "withRefs": 36,
+          "missing": 0,
+          "danglingRefs": 0,
+          "missingIds": []
+        },
+        "factualClaims": {
+          "total": 24,
+          "withRefs": 24,
+          "missing": 0,
+          "danglingRefs": 0,
+          "missingIds": []
+        }
+      },
+      "bridge": {
+        "source": "coursegraph-concept-linked-ledger",
+        "trustedRows": 8,
+        "candidateTrustedRows": 8,
+        "conceptLinkedRows": 8,
+        "replacedReviewRows": 5
+      }
+    },
+    "sourceRefBridge": {
+      "source": "coursegraph-concept-linked-ledger",
+      "trustedRows": 8,
+      "conceptLinkedRows": 8,
+      "replacedReviewRows": 5
+    },
+    "nativeAssembly": {
+      "source": "native-wire-map",
+      "projectedThrough": "curriculumv1",
+      "editedAfterProjection": true
+    }
+  },
+  "requestedFeatures": [
+    {
+      "featureId": "courseMap",
+      "label": "Course Map"
+    },
+    {
+      "featureId": "syllabus",
+      "label": "Syllabus"
+    },
+    {
+      "featureId": "lessonPlans",
+      "label": "Lesson Plans"
+    },
+    {
+      "featureId": "slideDecks",
+      "label": "Slide Decks"
+    },
+    {
+      "featureId": "assignments",
+      "label": "Assignment Briefs"
+    },
+    {
+      "featureId": "rubrics",
+      "label": "Rubrics"
+    },
+    {
+      "featureId": "discussions",
+      "label": "Discussion Prompts"
+    },
+    {
+      "featureId": "quizBank",
+      "label": "Quiz & Exam Bank"
+    },
+    {
+      "featureId": "studyGuides",
+      "label": "Study Guides"
+    },
+    {
+      "featureId": "courseFaq",
+      "label": "Course FAQ"
+    }
+  ],
+  "readiness": {
+    "status": "warnings",
+    "blockers": [],
+    "warnings": [
+      {
+        "severity": "warning",
+        "featureId": "courseMap",
+        "label": "Quality grade",
+        "message": "Package quality grader found 1 review finding (score 98/100, grade A) — review QUALITY_REPORT.md before publishing",
+        "source": "qualityGate",
+        "retryable": false,
+        "autoFixable": false
+      }
+    ],
+    "checkedSections": "10/10",
+    "isBlocked": false,
+    "issues": [
+      {
+        "severity": "warning",
+        "featureId": "courseMap",
+        "label": "Quality grade",
+        "message": "Package quality grader found 1 review finding (score 98/100, grade A) — review QUALITY_REPORT.md before publishing",
+        "source": "qualityGate",
+        "retryable": false,
+        "autoFixable": false
+      }
+    ]
+  },
+  "requiredAssets": [],
+  "files": [
+    {
+      "path": "Course Map/User Experience Design Studio - Course Map.xlsx",
+      "featureId": "courseMap",
+      "label": "Course Map",
+      "format": "xlsx",
+      "size": 33045
+    },
+    {
+      "path": "Syllabus/User Experience Design Studio - Syllabus.docx",
+      "featureId": "syllabus",
+      "label": "Syllabus",
+      "format": "docx",
+      "size": 18252
+    },
+    {
+      "path": "Lesson Plans/Lesson 01 - Design research - Lesson Plans.docx",
+      "featureId": "lessonPlans",
+      "label": "Lesson Plans",
+      "format": "docx",
+      "size": 13408
+    },
+    {
+      "path": "Lesson Plans/Lesson 02 - Personas - Lesson Plans.docx",
+      "featureId": "lessonPlans",
+      "label": "Lesson Plans",
+      "format": "docx",
+      "size": 13251
+    },
+    {
+      "path": "Lesson Plans/Lesson 03 - Journey maps - Lesson Plans.docx",
+      "featureId": "lessonPlans",
+      "label": "Lesson Plans",
+      "format": "docx",
+      "size": 13184
+    },
+    {
+      "path": "Lesson Plans/Lesson 04 - Information architecture - Lesson Plans.docx",
+      "featureId": "lessonPlans",
+      "label": "Lesson Plans",
+      "format": "docx",
+      "size": 13363
+    },
+    {
+      "path": "Lesson Plans/Lesson 05 - Wireframing - Lesson Plans.docx",
+      "featureId": "lessonPlans",
+      "label": "Lesson Plans",
+      "format": "docx",
+      "size": 13357
+    },
+    {
+      "path": "Lesson Plans/Lesson 06 - Interaction patterns - Lesson Plans.docx",
+      "featureId": "lessonPlans",
+      "label": "Lesson Plans",
+      "format": "docx",
+      "size": 13289
+    },
+    {
+      "path": "Lesson Plans/Lesson 07 - Accessibility - Lesson Plans.docx",
+      "featureId": "lessonPlans",
+      "label": "Lesson Plans",
+      "format": "docx",
+      "size": 13304
+    },
+    {
+      "path": "Lesson Plans/Lesson 08 - Usability testing - Lesson Plans.docx",
+      "featureId": "lessonPlans",
+      "label": "Lesson Plans",
+      "format": "docx",
+      "size": 13316
+    },
+    {
+      "path": "Lesson Plans/Lesson 09 - Prototype reviews - Lesson Plans.docx",
+      "featureId": "lessonPlans",
+      "label": "Lesson Plans",
+      "format": "docx",
+      "size": 13273
+    },
+    {
+      "path": "Lesson Plans/Lesson 10 - Design handoff - Lesson Plans.docx",
+      "featureId": "lessonPlans",
+      "label": "Lesson Plans",
+      "format": "docx",
+      "size": 13218
+    },
+    {
+      "path": "Lesson Plans/Lesson 11 - Critique session - Lesson Plans.docx",
+      "featureId": "lessonPlans",
+      "label": "Lesson Plans",
+      "format": "docx",
+      "size": 13225
+    },
+    {
+      "path": "Lesson Plans/Lesson 12 - Final portfolio case study - Lesson Plans.docx",
+      "featureId": "lessonPlans",
+      "label": "Lesson Plans",
+      "format": "docx",
+      "size": 13285
+    },
+    {
+      "path": "Slide Decks/Lesson 01 - Design research - Slide Decks.pptx",
+      "featureId": "slideDecks",
+      "label": "Slide Decks",
+      "format": "pptx",
+      "size": 60417
+    },
+    {
+      "path": "Slide Decks/Lesson 02 - Personas - Slide Decks.pptx",
+      "featureId": "slideDecks",
+      "label": "Slide Decks",
+      "format": "pptx",
+      "size": 59889
+    },
+    {
+      "path": "Slide Decks/Lesson 03 - Journey maps - Slide Decks.pptx",
+      "featureId": "slideDecks",
+      "label": "Slide Decks",
+      "format": "pptx",
+      "size": 59839
+    },
+    {
+      "path": "Slide Decks/Lesson 04 - Information architecture - Slide Decks.pptx",
+      "featureId": "slideDecks",
+      "label": "Slide Decks",
+      "format": "pptx",
+      "size": 62019
+    },
+    {
+      "path": "Slide Decks/Lesson 05 - Wireframing - Slide Decks.pptx",
+      "featureId": "slideDecks",
+      "label": "Slide Decks",
+      "format": "pptx",
+      "size": 61779
+    },
+    {
+      "path": "Slide Decks/Lesson 06 - Interaction patterns - Slide Decks.pptx",
+      "featureId": "slideDecks",
+      "label": "Slide Decks",
+      "format": "pptx",
+      "size": 61116
+    },
+    {
+      "path": "Slide Decks/Lesson 07 - Accessibility - Slide Decks.pptx",
+      "featureId": "slideDecks",
+      "label": "Slide Decks",
+      "format": "pptx",
+      "size": 60062
+    },
+    {
+      "path": "Slide Decks/Lesson 08 - Usability testing - Slide Decks.pptx",
+      "featureId": "slideDecks",
+      "label": "Slide Decks",
+      "format": "pptx",
+      "size": 60123
+    },
+    {
+      "path": "Slide Decks/Lesson 09 - Prototype reviews - Slide Decks.pptx",
+      "featureId": "slideDecks",
+      "label": "Slide Decks",
+      "format": "pptx",
+      "size": 61963
+    },
+    {
+      "path": "Slide Decks/Lesson 10 - Design handoff - Slide Decks.pptx",
+      "featureId": "slideDecks",
+      "label": "Slide Decks",
+      "format": "pptx",
+      "size": 61625
+    },
+    {
+      "path": "Slide Decks/Lesson 11 - Critique session - Slide Decks.pptx",
+      "featureId": "slideDecks",
+      "label": "Slide Decks",
+      "format": "pptx",
+      "size": 60294
+    },
+    {
+      "path": "Slide Decks/Lesson 12 - Final portfolio case study - Slide Decks.pptx",
+      "featureId": "slideDecks",
+      "label": "Slide Decks",
+      "format": "pptx",
+      "size": 61435
+    },
+    {
+      "path": "Assignment Briefs/Lesson 01 - Design research - Assignment Briefs.docx",
+      "featureId": "assignments",
+      "label": "Assignment Briefs",
+      "format": "docx",
+      "size": 12344
+    },
+    {
+      "path": "Assignment Briefs/Lesson 02 - Personas - Assignment Briefs.docx",
+      "featureId": "assignments",
+      "label": "Assignment Briefs",
+      "format": "docx",
+      "size": 12324
+    },
+    {
+      "path": "Assignment Briefs/Lesson 03 - Journey maps - Assignment Briefs.docx",
+      "featureId": "assignments",
+      "label": "Assignment Briefs",
+      "format": "docx",
+      "size": 12393
+    },
+    {
+      "path": "Assignment Briefs/Lesson 04 - Information architecture - Assignment Briefs.docx",
+      "featureId": "assignments",
+      "label": "Assignment Briefs",
+      "format": "docx",
+      "size": 12423
+    },
+    {
+      "path": "Assignment Briefs/Lesson 05 - Wireframing - Assignment Briefs.docx",
+      "featureId": "assignments",
+      "label": "Assignment Briefs",
+      "format": "docx",
+      "size": 12398
+    },
+    {
+      "path": "Assignment Briefs/Lesson 06 - Interaction patterns - Assignment Briefs.docx",
+      "featureId": "assignments",
+      "label": "Assignment Briefs",
+      "format": "docx",
+      "size": 12366
+    },
+    {
+      "path": "Assignment Briefs/Lesson 07 - Accessibility - Assignment Briefs.docx",
+      "featureId": "assignments",
+      "label": "Assignment Briefs",
+      "format": "docx",
+      "size": 12406
+    },
+    {
+      "path": "Assignment Briefs/Lesson 08 - Usability testing - Assignment Briefs.docx",
+      "featureId": "assignments",
+      "label": "Assignment Briefs",
+      "format": "docx",
+      "size": 12346
+    },
+    {
+      "path": "Assignment Briefs/Lesson 09 - Prototype reviews - Assignment Briefs.docx",
+      "featureId": "assignments",
+      "label": "Assignment Briefs",
+      "format": "docx",
+      "size": 12351
+    },
+    {
+      "path": "Assignment Briefs/Lesson 10 - Design handoff - Assignment Briefs.docx",
+      "featureId": "assignments",
+      "label": "Assignment Briefs",
+      "format": "docx",
+      "size": 12437
+    },
+    {
+      "path": "Assignment Briefs/Lesson 11 - Critique session - Assignment Briefs.docx",
+      "featureId": "assignments",
+      "label": "Assignment Briefs",
+      "format": "docx",
+      "size": 12391
+    },
+    {
+      "path": "Assignment Briefs/Lesson 12 - Final portfolio case study - Assignment Briefs.docx",
+      "featureId": "assignments",
+      "label": "Assignment Briefs",
+      "format": "docx",
+      "size": 12352
+    },
+    {
+      "path": "Rubrics/Lesson 01 - Design research - Rubrics.docx",
+      "featureId": "rubrics",
+      "label": "Rubrics",
+      "format": "docx",
+      "size": 11528
+    },
+    {
+      "path": "Rubrics/Lesson 02 - Personas - Rubrics.docx",
+      "featureId": "rubrics",
+      "label": "Rubrics",
+      "format": "docx",
+      "size": 11520
+    },
+    {
+      "path": "Rubrics/Lesson 03 - Journey maps - Rubrics.docx",
+      "featureId": "rubrics",
+      "label": "Rubrics",
+      "format": "docx",
+      "size": 11466
+    },
+    {
+      "path": "Rubrics/Lesson 04 - Information architecture - Rubrics.docx",
+      "featureId": "rubrics",
+      "label": "Rubrics",
+      "format": "docx",
+      "size": 11533
+    },
+    {
+      "path": "Rubrics/Lesson 05 - Wireframing - Rubrics.docx",
+      "featureId": "rubrics",
+      "label": "Rubrics",
+      "format": "docx",
+      "size": 11574
+    },
+    {
+      "path": "Rubrics/Lesson 06 - Interaction patterns - Rubrics.docx",
+      "featureId": "rubrics",
+      "label": "Rubrics",
+      "format": "docx",
+      "size": 11498
+    },
+    {
+      "path": "Rubrics/Lesson 07 - Accessibility - Rubrics.docx",
+      "featureId": "rubrics",
+      "label": "Rubrics",
+      "format": "docx",
+      "size": 11433
+    },
+    {
+      "path": "Rubrics/Lesson 08 - Usability testing - Rubrics.docx",
+      "featureId": "rubrics",
+      "label": "Rubrics",
+      "format": "docx",
+      "size": 11469
+    },
+    {
+      "path": "Rubrics/Lesson 09 - Prototype reviews - Rubrics.docx",
+      "featureId": "rubrics",
+      "label": "Rubrics",
+      "format": "docx",
+      "size": 11558
+    },
+    {
+      "path": "Rubrics/Lesson 10 - Design handoff - Rubrics.docx",
+      "featureId": "rubrics",
+      "label": "Rubrics",
+      "format": "docx",
+      "size": 11498
+    },
+    {
+      "path": "Rubrics/Lesson 11 - Critique session - Rubrics.docx",
+      "featureId": "rubrics",
+      "label": "Rubrics",
+      "format": "docx",
+      "size": 11446
+    },
+    {
+      "path": "Rubrics/Lesson 12 - Final portfolio case study - Rubrics.docx",
+      "featureId": "rubrics",
+      "label": "Rubrics",
+      "format": "docx",
+      "size": 11532
+    },
+    {
+      "path": "Discussion Prompts/Lesson 01 - Design research - Discussion Prompts.docx",
+      "featureId": "discussions",
+      "label": "Discussion Prompts",
+      "format": "docx",
+      "size": 11098
+    },
+    {
+      "path": "Discussion Prompts/Lesson 02 - Personas - Discussion Prompts.docx",
+      "featureId": "discussions",
+      "label": "Discussion Prompts",
+      "format": "docx",
+      "size": 11080
+    },
+    {
+      "path": "Discussion Prompts/Lesson 03 - Journey maps - Discussion Prompts.docx",
+      "featureId": "discussions",
+      "label": "Discussion Prompts",
+      "format": "docx",
+      "size": 11043
+    },
+    {
+      "path": "Discussion Prompts/Lesson 04 - Information architecture - Discussion Prompts.docx",
+      "featureId": "discussions",
+      "label": "Discussion Prompts",
+      "format": "docx",
+      "size": 11086
+    },
+    {
+      "path": "Discussion Prompts/Lesson 05 - Wireframing - Discussion Prompts.docx",
+      "featureId": "discussions",
+      "label": "Discussion Prompts",
+      "format": "docx",
+      "size": 11119
+    },
+    {
+      "path": "Discussion Prompts/Lesson 06 - Interaction patterns - Discussion Prompts.docx",
+      "featureId": "discussions",
+      "label": "Discussion Prompts",
+      "format": "docx",
+      "size": 11058
+    },
+    {
+      "path": "Discussion Prompts/Lesson 07 - Accessibility - Discussion Prompts.docx",
+      "featureId": "discussions",
+      "label": "Discussion Prompts",
+      "format": "docx",
+      "size": 10998
+    },
+    {
+      "path": "Discussion Prompts/Lesson 08 - Usability testing - Discussion Prompts.docx",
+      "featureId": "discussions",
+      "label": "Discussion Prompts",
+      "format": "docx",
+      "size": 11070
+    },
+    {
+      "path": "Discussion Prompts/Lesson 09 - Prototype reviews - Discussion Prompts.docx",
+      "featureId": "discussions",
+      "label": "Discussion Prompts",
+      "format": "docx",
+      "size": 11129
+    },
+    {
+      "path": "Discussion Prompts/Lesson 10 - Design handoff - Discussion Prompts.docx",
+      "featureId": "discussions",
+      "label": "Discussion Prompts",
+      "format": "docx",
+      "size": 11099
+    },
+    {
+      "path": "Discussion Prompts/Lesson 11 - Critique session - Discussion Prompts.docx",
+      "featureId": "discussions",
+      "label": "Discussion Prompts",
+      "format": "docx",
+      "size": 10994
+    },
+    {
+      "path": "Discussion Prompts/Lesson 12 - Final portfolio case study - Discussion Prompts.docx",
+      "featureId": "discussions",
+      "label": "Discussion Prompts",
+      "format": "docx",
+      "size": 11068
+    },
+    {
+      "path": "Quiz & Exam Bank/Lesson 01 - Design research - Quiz & Exam Bank.docx",
+      "featureId": "quizBank",
+      "label": "Quiz & Exam Bank",
+      "format": "docx",
+      "size": 12002
+    },
+    {
+      "path": "Quiz & Exam Bank/Lesson 02 - Personas - Quiz & Exam Bank.docx",
+      "featureId": "quizBank",
+      "label": "Quiz & Exam Bank",
+      "format": "docx",
+      "size": 11794
+    },
+    {
+      "path": "Quiz & Exam Bank/Lesson 03 - Journey maps - Quiz & Exam Bank.docx",
+      "featureId": "quizBank",
+      "label": "Quiz & Exam Bank",
+      "format": "docx",
+      "size": 11738
+    },
+    {
+      "path": "Quiz & Exam Bank/Lesson 04 - Information architecture - Quiz & Exam Bank.docx",
+      "featureId": "quizBank",
+      "label": "Quiz & Exam Bank",
+      "format": "docx",
+      "size": 11894
+    },
+    {
+      "path": "Quiz & Exam Bank/Lesson 05 - Wireframing - Quiz & Exam Bank.docx",
+      "featureId": "quizBank",
+      "label": "Quiz & Exam Bank",
+      "format": "docx",
+      "size": 11744
+    },
+    {
+      "path": "Quiz & Exam Bank/Lesson 06 - Interaction patterns - Quiz & Exam Bank.docx",
+      "featureId": "quizBank",
+      "label": "Quiz & Exam Bank",
+      "format": "docx",
+      "size": 11720
+    },
+    {
+      "path": "Quiz & Exam Bank/Lesson 07 - Accessibility - Quiz & Exam Bank.docx",
+      "featureId": "quizBank",
+      "label": "Quiz & Exam Bank",
+      "format": "docx",
+      "size": 11813
+    },
+    {
+      "path": "Quiz & Exam Bank/Lesson 08 - Usability testing - Quiz & Exam Bank.docx",
+      "featureId": "quizBank",
+      "label": "Quiz & Exam Bank",
+      "format": "docx",
+      "size": 11779
+    },
+    {
+      "path": "Quiz & Exam Bank/Lesson 09 - Prototype reviews - Quiz & Exam Bank.docx",
+      "featureId": "quizBank",
+      "label": "Quiz & Exam Bank",
+      "format": "docx",
+      "size": 11845
+    },
+    {
+      "path": "Quiz & Exam Bank/Lesson 10 - Design handoff - Quiz & Exam Bank.docx",
+      "featureId": "quizBank",
+      "label": "Quiz & Exam Bank",
+      "format": "docx",
+      "size": 11676
+    },
+    {
+      "path": "Quiz & Exam Bank/Lesson 11 - Critique session - Quiz & Exam Bank.docx",
+      "featureId": "quizBank",
+      "label": "Quiz & Exam Bank",
+      "format": "docx",
+      "size": 11983
+    },
+    {
+      "path": "Quiz & Exam Bank/Lesson 12 - Final portfolio case study - Quiz & Exam Bank.docx",
+      "featureId": "quizBank",
+      "label": "Quiz & Exam Bank",
+      "format": "docx",
+      "size": 12237
+    },
+    {
+      "path": "Study Guides/Lesson 01 - Design research - Study Guides.docx",
+      "featureId": "studyGuides",
+      "label": "Study Guides",
+      "format": "docx",
+      "size": 11513
+    },
+    {
+      "path": "Study Guides/Lesson 02 - Personas - Study Guides.docx",
+      "featureId": "studyGuides",
+      "label": "Study Guides",
+      "format": "docx",
+      "size": 11461
+    },
+    {
+      "path": "Study Guides/Lesson 03 - Journey maps - Study Guides.docx",
+      "featureId": "studyGuides",
+      "label": "Study Guides",
+      "format": "docx",
+      "size": 11473
+    },
+    {
+      "path": "Study Guides/Lesson 04 - Information architecture - Study Guides.docx",
+      "featureId": "studyGuides",
+      "label": "Study Guides",
+      "format": "docx",
+      "size": 11416
+    },
+    {
+      "path": "Study Guides/Lesson 05 - Wireframing - Study Guides.docx",
+      "featureId": "studyGuides",
+      "label": "Study Guides",
+      "format": "docx",
+      "size": 11488
+    },
+    {
+      "path": "Study Guides/Lesson 06 - Interaction patterns - Study Guides.docx",
+      "featureId": "studyGuides",
+      "label": "Study Guides",
+      "format": "docx",
+      "size": 11483
+    },
+    {
+      "path": "Study Guides/Lesson 07 - Accessibility - Study Guides.docx",
+      "featureId": "studyGuides",
+      "label": "Study Guides",
+      "format": "docx",
+      "size": 11424
+    },
+    {
+      "path": "Study Guides/Lesson 08 - Usability testing - Study Guides.docx",
+      "featureId": "studyGuides",
+      "label": "Study Guides",
+      "format": "docx",
+      "size": 11449
+    },
+    {
+      "path": "Study Guides/Lesson 09 - Prototype reviews - Study Guides.docx",
+      "featureId": "studyGuides",
+      "label": "Study Guides",
+      "format": "docx",
+      "size": 11471
+    },
+    {
+      "path": "Study Guides/Lesson 10 - Design handoff - Study Guides.docx",
+      "featureId": "studyGuides",
+      "label": "Study Guides",
+      "format": "docx",
+      "size": 11377
+    },
+    {
+      "path": "Study Guides/Lesson 11 - Critique session - Study Guides.docx",
+      "featureId": "studyGuides",
+      "label": "Study Guides",
+      "format": "docx",
+      "size": 11412
+    },
+    {
+      "path": "Study Guides/Lesson 12 - Final portfolio case study - Study Guides.docx",
+      "featureId": "studyGuides",
+      "label": "Study Guides",
+      "format": "docx",
+      "size": 11555
+    },
+    {
+      "path": "Course FAQ/Lesson 01 - Design research - Course FAQ.docx",
+      "featureId": "courseFaq",
+      "label": "Course FAQ",
+      "format": "docx",
+      "size": 10261
+    },
+    {
+      "path": "Course FAQ/Lesson 02 - Personas - Course FAQ.docx",
+      "featureId": "courseFaq",
+      "label": "Course FAQ",
+      "format": "docx",
+      "size": 10213
+    },
+    {
+      "path": "Course FAQ/Lesson 03 - Journey maps - Course FAQ.docx",
+      "featureId": "courseFaq",
+      "label": "Course FAQ",
+      "format": "docx",
+      "size": 10241
+    },
+    {
+      "path": "Course FAQ/Lesson 04 - Information architecture - Course FAQ.docx",
+      "featureId": "courseFaq",
+      "label": "Course FAQ",
+      "format": "docx",
+      "size": 10249
+    },
+    {
+      "path": "Course FAQ/Lesson 05 - Wireframing - Course FAQ.docx",
+      "featureId": "courseFaq",
+      "label": "Course FAQ",
+      "format": "docx",
+      "size": 10121
+    },
+    {
+      "path": "Course FAQ/Lesson 06 - Interaction patterns - Course FAQ.docx",
+      "featureId": "courseFaq",
+      "label": "Course FAQ",
+      "format": "docx",
+      "size": 10306
+    },
+    {
+      "path": "Course FAQ/Lesson 07 - Accessibility - Course FAQ.docx",
+      "featureId": "courseFaq",
+      "label": "Course FAQ",
+      "format": "docx",
+      "size": 10296
+    },
+    {
+      "path": "Course FAQ/Lesson 08 - Usability testing - Course FAQ.docx",
+      "featureId": "courseFaq",
+      "label": "Course FAQ",
+      "format": "docx",
+      "size": 10205
+    },
+    {
+      "path": "Course FAQ/Lesson 09 - Prototype reviews - Course FAQ.docx",
+      "featureId": "courseFaq",
+      "label": "Course FAQ",
+      "format": "docx",
+      "size": 10139
+    },
+    {
+      "path": "Course FAQ/Lesson 10 - Design handoff - Course FAQ.docx",
+      "featureId": "courseFaq",
+      "label": "Course FAQ",
+      "format": "docx",
+      "size": 10174
+    },
+    {
+      "path": "Course FAQ/Lesson 11 - Critique session - Course FAQ.docx",
+      "featureId": "courseFaq",
+      "label": "Course FAQ",
+      "format": "docx",
+      "size": 10218
+    },
+    {
+      "path": "Course FAQ/Lesson 12 - Final portfolio case study - Course FAQ.docx",
+      "featureId": "courseFaq",
+      "label": "Course FAQ",
+      "format": "docx",
+      "size": 10194
+    },
+    {
+      "path": "SOURCE_REPORT.md",
+      "featureId": "sourceReport",
+      "label": "Source Report",
+      "format": "md",
+      "size": 2643
+    }
+  ],
+  "quality": {
+    "status": "graded",
+    "score": 98,
+    "grade": "A",
+    "graderVersion": "1.7.4",
+    "findingCounts": {
+      "p0": 0,
+      "p1": 1,
+      "p2": 0
+    },
+    "dimensions": {
+      "identity": 100,
+      "substance": 92,
+      "citations": 100,
+      "honesty": 100,
+      "discipline": 100,
+      "consistency": 100,
+      "structure": 100,
+      "format": 100,
+      "texture": 96
+    },
+    "gradedAt": "2026-06-30T05:49:58.718Z",
+    "texture": {
+      "version": "1.0.0",
+      "score": 96,
+      "subScores": {
+        "sameness": 98,
+        "openers": 87,
+        "tails": 100
+      }
+    }
+  }
+}

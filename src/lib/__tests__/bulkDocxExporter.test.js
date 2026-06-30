@@ -2,11 +2,19 @@ import { describe, expect, it } from 'vitest';
 import JSZip from 'jszip';
 
 import { buildDeliverableDocxBlob } from '../exporters/bulkDocxExporter';
+import { extractPackage } from '../quality/deepQualityGrader';
+import { createMemoryFileProvider } from '../quality/fileProviders';
 
 async function docxDocumentXml(blob) {
   const buffer = await blob.arrayBuffer();
   const zip = await JSZip.loadAsync(buffer);
   return await zip.file('word/document.xml').async('string');
+}
+
+async function extractedDocxParagraphs(blob, filePath) {
+  const pkg = await extractPackage(createMemoryFileProvider({ [filePath]: blob }));
+  const file = pkg.files.find((entry) => entry.path === filePath);
+  return file?.paragraphs || [];
 }
 
 describe('buildDeliverableDocxBlob', () => {
@@ -173,5 +181,36 @@ describe('buildDeliverableDocxBlob', () => {
     expect(xml.match(/Tags: /g)?.length || 0).toBe(1);
     // Tables are pct-width, never the old fixed letter-width grid.
     expect(xml).not.toContain('w:w="9360"');
+  });
+
+  it('keeps quiz answer callout labels separated in extracted DOCX text', async () => {
+    const filePath = 'Quiz & Exam Bank/Lesson 02 - Personas - Quiz & Exam Bank.docx';
+    const blob = await buildDeliverableDocxBlob(
+      'quizBank',
+      {
+        quizzes: [
+          {
+            lessonTitle: 'Lesson 2: Personas',
+            questions: [
+              {
+                type: 'short_answer',
+                question: 'How should a UX team summarize interviews when creating a persona?',
+                answer:
+                  'A defensible position: Personas should focus on the most common patterns to stay usable. In a scenario where a team has interviews with six students about managing assignments, deadlines, and notifications, the persona should name repeated scheduling pain points.',
+                explanation:
+                  'The response should connect persona scope to recurring user evidence rather than isolated preferences.',
+              },
+            ],
+          },
+        ],
+      },
+      'User Experience Design Studio',
+    );
+
+    const paragraphs = await extractedDocxParagraphs(blob, filePath);
+    const text = paragraphs.join('\n');
+
+    expect(text).toContain('ANSWER A defensible position');
+    expect(text).not.toContain('ANSWERA defensible position');
   });
 });

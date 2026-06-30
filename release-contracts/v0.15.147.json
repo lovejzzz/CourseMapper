@@ -1,0 +1,107 @@
+{
+  "version": "0.15.147",
+  "date": "June 30, 2026",
+  "title": "Prompt Artifact Truth: assignment-management prose stops failing as prompt leakage",
+  "status": "verified-current",
+  "proofSummary": {
+    "local": [
+      "npm test -- src/lib/__tests__/contentQualityChecks.test.js",
+      "npm test -- src/lib/__tests__/bulkDocxExporter.test.js"
+    ],
+    "ciFast": {
+      "status": "pending-push",
+      "note": "Fast verification is claimed only after v0.15.147 is pushed and the GitHub Actions run is attached."
+    },
+    "deploy": {
+      "status": "pending-push",
+      "note": "Pages deploy is not claimed until the pushed v0.15.147 release completes its deploy run."
+    },
+    "ciDeep": {
+      "status": "local-only",
+      "note": "This is a narrow prompt-artifact truth and DOCX answer-label extraction fix; focused coverage plus normal gates are the release bar."
+    },
+    "liveProvider": {
+      "status": "not-current",
+      "note": "The release is based on a fresh deployed v0.15.146 ZIP/log audit plus corrected local regrade. A fresh deployed v0.15.147 run is required before claiming new provider output is clean."
+    },
+    "manualHuman": {
+      "status": "not-applicable",
+      "note": "No external instructor approval is claimed by this release."
+    }
+  },
+  "claims": [
+    {
+      "id": "v015147-v015146-false-positive-evidence",
+      "status": "verified-current",
+      "changelogHighlightIndex": 0,
+      "summary": "Fresh deployed v0.15.146 UX ZIP/log evidence reached 98/A with clean source rows and correct final-artifact routing; its only P1 was ordinary persona-answer prose about managing assignments misread as prompt-artifact leakage.",
+      "anchors": [
+        "verification-output/edutool-audit-loop/20260630T054226Z-v015146-fresh/report.md",
+        "verification-output/edutool-audit-loop/20260630T054226Z-v015146-fresh/local-regrade.json"
+      ],
+      "proofCommands": [
+        "rg -n \"Quality 98|Texture 96|managing assignments|false positive\" verification-output/edutool-audit-loop/20260630T054226Z-v015146-fresh/report.md",
+        "rg -n '\"score\": 98|\"p1\": 1|prompt artifact labels used as lesson concepts' verification-output/edutool-audit-loop/20260630T054226Z-v015146-fresh/local-regrade.json"
+      ],
+      "proofScopes": ["live-provider", "static-audit"]
+    },
+    {
+      "id": "v015147-focus-assignments-detector",
+      "status": "verified-current",
+      "changelogHighlightIndex": 1,
+      "summary": "Prompt-artifact detection no longer treats bare assignments as a nearby focus-topic artifact label while explicit Assignment Briefs and rubric-driven assignments remain protected.",
+      "anchors": ["src/lib/quality/artifactDefectPatterns.js", "src/lib/__tests__/contentQualityChecks.test.js"],
+      "proofCommands": [
+        "rg -n \"PROMPT_ARTIFACT_FOCUS_TOPIC_SOURCE|ordinary assignment-management prose|Assignment Briefs\" src/lib/quality/artifactDefectPatterns.js src/lib/__tests__/contentQualityChecks.test.js",
+        "npm test -- src/lib/__tests__/contentQualityChecks.test.js"
+      ],
+      "proofScopes": ["unit"]
+    },
+    {
+      "id": "v015147-docx-answer-separator",
+      "status": "verified-current",
+      "changelogHighlightIndex": 2,
+      "summary": "Quiz answer DOCX callouts include an extractable separator between the uppercase ANSWER label and answer body.",
+      "anchors": ["src/lib/exporters/docxExporter.js", "src/lib/__tests__/bulkDocxExporter.test.js"],
+      "proofCommands": [
+        "rg -n 'text: text \\?|ANSWER A defensible position|ANSWERA defensible position' src/lib/exporters/docxExporter.js src/lib/__tests__/bulkDocxExporter.test.js",
+        "npm test -- src/lib/__tests__/bulkDocxExporter.test.js"
+      ],
+      "proofScopes": ["unit"]
+    },
+    {
+      "id": "v015147-focused-regressions",
+      "status": "verified-current",
+      "changelogHighlightIndex": 3,
+      "summary": "Focused tests recreate both the UX persona-answer false positive and the extracted DOCX answer-label glue.",
+      "anchors": ["src/lib/__tests__/contentQualityChecks.test.js", "src/lib/__tests__/bulkDocxExporter.test.js"],
+      "proofCommands": [
+        "npm test -- src/lib/__tests__/contentQualityChecks.test.js",
+        "npm test -- src/lib/__tests__/bulkDocxExporter.test.js"
+      ],
+      "proofScopes": ["unit"]
+    },
+    {
+      "id": "v015147-corrected-captured-zip-regrade",
+      "status": "verified-current",
+      "changelogHighlightIndex": 4,
+      "summary": "The captured v0.15.146 ZIP regrades 100/A with zero findings after the corrected detector/export logic.",
+      "anchors": [
+        "verification-output/edutool-audit-loop/20260630T054226Z-v015146-fresh/report.md",
+        "verification-output/edutool-audit-loop/20260630T054226Z-v015146-fresh/postfix-local-regrade.json",
+        "docs/V0.15.147_PROMPT_ARTIFACT_TRUTH_ROADMAP.md"
+      ],
+      "proofCommands": [
+        "rg -n 'Corrected local regrade|fresh deployed v0.15.147 ZIP/log audit' verification-output/edutool-audit-loop/20260630T054226Z-v015146-fresh/report.md docs/V0.15.147_PROMPT_ARTIFACT_TRUTH_ROADMAP.md",
+        "rg -n '\"score\": 100|\"findingCount\": 0|\"texture\": 96' verification-output/edutool-audit-loop/20260630T054226Z-v015146-fresh/postfix-local-regrade.json"
+      ],
+      "proofScopes": ["static-audit", "unit"]
+    }
+  ],
+  "knownRemainingTargets": [
+    "A fresh deployed v0.15.147 ZIP/log audit must prove the corrected detector and answer-label rendering hold in real provider output.",
+    "Texture remains below the long-running target until fresh packages repeatedly reach 100/100 texture with no repeated-shingle caveat.",
+    "Source rows must remain real, trusted, on-topic, license-safe, and concept-linked across UX, Project Management, and other domains.",
+    "Chrome download-event timeout remains an automation reliability target even when the Downloads fallback captures the ZIP successfully."
+  ]
+}

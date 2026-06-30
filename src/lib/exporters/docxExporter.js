@@ -430,7 +430,7 @@ export function _buildDocxContentShared(featureId, data, children, docx) {
           color: theme.accent,
           characterSpacing: LABEL_TRACKING,
         }),
-        new TextRun({ text: text || '', size: BODY_SIZE, font: FONT, color: '333333', break: 1 }),
+        new TextRun({ text: text ? ` ${text}` : '', size: BODY_SIZE, font: FONT, color: '333333', break: 1 }),
       ],
     });
   const NO_BORDER = { style: BorderStyle.NONE, size: 0, color: 'FFFFFF' };
