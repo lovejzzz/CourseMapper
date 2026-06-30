@@ -165,9 +165,13 @@ describe('v0.15.127 texture variation', () => {
     );
     const text = cells.join('\n');
 
-    expect(text).not.toMatch(/Quick evidence check|Review assigned materials|Read the assigned materials/i);
+    expect(text).not.toMatch(
+      /Quick evidence check|closing evidence check|Review assigned materials|Read the assigned materials/i,
+    );
     expect(text).not.toMatch(/Study the assigned materials|same evidence standard|same evidence of learning/i);
-    expect(text).not.toMatch(/discipline-specific tools|Instructor-approved readings, examples, or lab materials/i);
+    expect(text).not.toMatch(
+      /discipline-specific tools|Instructor-approved (?:readings, examples, or lab materials|source)/i,
+    );
     expect(text).toMatch(/visible product|source detail|observable response|activity prompt/i);
     expect(new Set(cells.filter(Boolean)).size).toBeGreaterThan(GENERAL_TOPICS.length * 4);
   });

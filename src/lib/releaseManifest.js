@@ -3,24 +3,24 @@ import { APP_VERSION } from './appVersion.js';
 export const CURRENT_RELEASE = {
   version: APP_VERSION,
   date: 'June 30, 2026',
-  title: 'OpenStax Source Proof: concrete section labels keep URL and license truth',
-  landingTitle: 'OpenStax Source Proof',
+  title: 'Fallback Texture: generic evidence-check scaffolds stop repeating',
+  landingTitle: 'Fallback Texture',
   highlights: [
-    'The v0.15.147 GPT-5.5-pro Python ZIP/log evidence showed concrete OpenStax section rows such as `OpenStax introduction python programming §4.2 (open textbook)` being quarantined as review-only because URL and license fields were not duplicated on the generated row.',
-    'That old package remains an unfair model comparison because GPT-5.5-pro request compatibility was already fixed after v0.15.147; v0.15.155 focuses on the remaining CourseMapper-side source-proof hydration seam.',
-    'Source ledger normalization now recovers canonical OpenStax book URLs and CC BY 4.0 license proof from concrete OpenStax section labels that include a section marker or open-textbook cue.',
-    'The hydration still respects course-aware weak-source gates: a source must remain concept-linked and on-topic, and vague OpenStax placeholders are not promoted just because they contain the publisher name.',
-    'Focused source-ledger and deep-grader regressions prove concrete CS/Python OpenStax sections become trusted, licensed, concept-linked proof without weakening false-friend, metadata-only, or review-only source standards.',
+    'The latest successful GPT-5.5-pro Python evidence still cannot prove current deployed output because fresh v0.15.155/v0.15.156 provider generation is blocked by OpenAI credits, but the old v0.15.150 ZIP keeps showing texture 91.',
+    'The remaining CourseMapper-side texture target is deterministic: sparse Course Map fallback cells should not seed repeated `evidence check`, `instructor-approved source`, or broad support-guide phrasing into every exported material.',
+    'Generic Course Map fallback repair now replaces the last `closing evidence check` branch with artifact-review language and drops `Instructor-approved source` wording from fallback resources.',
+    'The texture regression now explicitly fails if generic repairs reintroduce closing evidence-check or instructor-approved-source scaffolds while preserving the earlier assigned-material and same-evidence guards.',
+    'This release does not claim a new provider score; the next proof step remains a fresh funded v0.15.156 ZIP/log audit that reconciles UI, digest, ZIP, source report, quality report, and local regrade.',
   ],
   landingHighlights: [
-    'Concrete OpenStax sections keep URL and license proof.',
-    'Review-only rows still stay review-only when proof is weak.',
-    'CS/Python source gates still reject false friends.',
-    'Fresh provider scores still require new ZIP/log evidence.',
+    'Generic fallback copy uses artifact-review language.',
+    'Evidence-check scaffolds stay out of sparse Course Maps.',
+    'Instructor-approved-source placeholders stay out of fallback resources.',
+    'Fresh provider scores still require funded ZIP/log evidence.',
   ],
   proof: {
-    contract: 'release-contracts/v0.15.155.json',
-    roadmap: 'docs/V0.15.155_OPENSTAX_SOURCE_PROOF_ROADMAP.md',
+    contract: 'release-contracts/v0.15.156.json',
+    roadmap: 'docs/V0.15.156_FALLBACK_TEXTURE_ROADMAP.md',
     auditCommand: 'npm run audit:release-history',
   },
 };
@@ -35,6 +35,18 @@ export const CURRENT_RELEASE_CHANGELOG = {
 };
 
 export const HISTORICAL_RELEASE_CHANGELOGS = [
+  {
+    version: '0.15.155',
+    date: 'June 30, 2026',
+    title: 'OpenStax Source Proof: concrete section labels keep URL and license truth',
+    highlights: [
+      'The v0.15.147 GPT-5.5-pro Python ZIP/log evidence showed concrete OpenStax section rows such as `OpenStax introduction python programming §4.2 (open textbook)` being quarantined as review-only because URL and license fields were not duplicated on the generated row.',
+      'That old package remains an unfair model comparison because GPT-5.5-pro request compatibility was already fixed after v0.15.147; v0.15.155 focuses on the remaining CourseMapper-side source-proof hydration seam.',
+      'Source ledger normalization now recovers canonical OpenStax book URLs and CC BY 4.0 license proof from concrete OpenStax section labels that include a section marker or open-textbook cue.',
+      'The hydration still respects course-aware weak-source gates: a source must remain concept-linked and on-topic, and vague OpenStax placeholders are not promoted just because they contain the publisher name.',
+      'Focused source-ledger and deep-grader regressions prove concrete CS/Python OpenStax sections become trusted, licensed, concept-linked proof without weakening false-friend, metadata-only, or review-only source standards.',
+    ],
+  },
   {
     version: '0.15.154',
     date: 'June 30, 2026',

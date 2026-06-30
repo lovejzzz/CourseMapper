@@ -1066,12 +1066,12 @@ function getCourseMapFallbackValue(key, courseMap, lesson, section, lessonIndex)
                 presentationFormat: pick([
                   'Instructor framing, guided student work, and a short synthesis.',
                   'Brief setup, worked example or demonstration, then student application.',
-                  'Opening question, structured practice, and closing evidence check.',
+                  'Opening question, structured practice, and a closing artifact review.',
                 ]),
                 supportingResources: pick([
-                  `Instructor-approved source, example, or activity prompt aligned to ${topic}.`,
+                  `Source excerpt, example, or activity prompt aligned to ${topic}.`,
                   `Short resource excerpt, model response, or practice handout for ${topic}.`,
-                  `Course example and response guide students can use to show evidence about ${topic}.`,
+                  `Course example and response guide students can use to explain ${topic}.`,
                   `Activity prompt, reference note, and feedback guide connected to ${topic}.`,
                 ]),
                 evaluateDesign: pick([
