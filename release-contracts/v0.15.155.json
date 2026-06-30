@@ -36,12 +36,9 @@
       "status": "verified-current",
       "changelogHighlightIndex": 0,
       "summary": "The v0.15.147 GPT-5.5-pro Python evidence showed concrete OpenStax section labels downgraded to review-only because duplicated URL/license proof was missing.",
-      "anchors": [
-        "docs/V0.15.155_OPENSTAX_SOURCE_PROOF_ROADMAP.md",
-        "verification-output/edutool-audit-loop/20260630T064106Z-v015147-gpt55pro-python/local-regrade-current-rules.md"
-      ],
+      "anchors": ["docs/V0.15.155_OPENSTAX_SOURCE_PROOF_ROADMAP.md"],
       "proofCommands": [
-        "rg -n \"OpenStax introduction python programming|license=missing|access=missing-url-or-doi|trustedBibliography=false\" verification-output/edutool-audit-loop/20260630T064106Z-v015147-gpt55pro-python/extracted/SOURCE_REPORT.md docs/V0.15.155_OPENSTAX_SOURCE_PROOF_ROADMAP.md"
+        "rg -n \"OpenStax introduction python programming|license=missing|access=missing-url-or-doi|trustedBibliography=false\" docs/V0.15.155_OPENSTAX_SOURCE_PROOF_ROADMAP.md"
       ],
       "proofScopes": ["static-audit"]
     },
