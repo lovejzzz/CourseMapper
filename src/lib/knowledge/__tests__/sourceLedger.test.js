@@ -1609,6 +1609,8 @@ describe('trusted source ledger', () => {
         { id: 'c6', term: 'conditionals' },
         { id: 'c7', term: 'strings' },
         { id: 'c8', term: 'loops' },
+        { id: 'c10', term: 'modules' },
+        { id: 'c11', term: 'exceptions' },
       ],
       sessions: [
         {
@@ -1646,6 +1648,18 @@ describe('trusted source ledger', () => {
           number: 9,
           title: 'Lesson 9: loops',
           sections: [{ id: 'sec9', topic: 'loops', conceptRefs: ['c8'], resourceRefs: [] }],
+        },
+        {
+          id: 's10',
+          number: 10,
+          title: 'Lesson 10: modules',
+          sections: [{ id: 'sec10', topic: 'modules', conceptRefs: ['c10'], resourceRefs: [] }],
+        },
+        {
+          id: 's11',
+          number: 11,
+          title: 'Lesson 11: exceptions',
+          sections: [{ id: 'sec11', topic: 'exceptions', conceptRefs: ['c11'], resourceRefs: [] }],
         },
       ],
       edges: { teaches: [] },
@@ -1799,6 +1813,52 @@ describe('trusted source ledger', () => {
               },
             ],
           },
+          {
+            sessionId: 's10',
+            lessonNumber: 10,
+            topic: 'modules',
+            sources: [
+              {
+                provider: 'wikipedia',
+                kind: 'encyclopedia background',
+                title: 'Module (mathematics)',
+                url: 'https://en.wikipedia.org/wiki/Module_(mathematics)',
+                license: 'CC BY-SA 4.0',
+                snippet: 'An abstract algebra article about modules over a ring.',
+              },
+              {
+                provider: 'wikipedia',
+                kind: 'encyclopedia background',
+                title: 'Modular programming',
+                url: 'https://en.wikipedia.org/wiki/Modular_programming',
+                license: 'CC BY-SA 4.0',
+                snippet: 'A programming article about software modules, module systems, and decomposing code.',
+              },
+            ],
+          },
+          {
+            sessionId: 's11',
+            lessonNumber: 11,
+            topic: 'exceptions',
+            sources: [
+              {
+                provider: 'wikipedia',
+                kind: 'encyclopedia background',
+                title: 'Exception (law)',
+                url: 'https://en.wikipedia.org/wiki/Exception_(law)',
+                license: 'CC BY-SA 4.0',
+                snippet: 'A legal article about exceptions to rules and statutory clauses.',
+              },
+              {
+                provider: 'wikipedia',
+                kind: 'encyclopedia background',
+                title: 'Exception handling',
+                url: 'https://en.wikipedia.org/wiki/Exception_handling',
+                license: 'CC BY-SA 4.0',
+                snippet: 'A programming article about exception handling, try-catch blocks, and runtime errors.',
+              },
+            ],
+          },
         ],
       },
     };
@@ -1812,6 +1872,8 @@ describe('trusted source ledger', () => {
       'String (computer science)',
       'Conditional (computer programming)',
       'For loop',
+      'Modular programming',
+      'Exception handling',
     ]);
     expect(ledger.reviewRows || []).toHaveLength(0);
   });

@@ -3,24 +3,24 @@ import { APP_VERSION } from './appVersion.js';
 export const CURRENT_RELEASE = {
   version: APP_VERSION,
   date: 'June 30, 2026',
-  title: 'Provider Failure Status Truth: credit-blocked runs stop looking like active builds',
-  landingTitle: 'Provider Failure Status Truth',
+  title: 'CS/Python Source Sense: module and exception false friends stop passing',
+  landingTitle: 'CS/Python Source Sense',
   highlights: [
-    'A fresh deployed v0.15.151 GPT-5.5-pro Python audit attempt reached the authenticated app but provider credits were unavailable, so no new ZIP/log quality score could be honestly captured.',
-    'The failed attempt exposed a UI truth bug: after “Model credits unavailable” and “AI generation failed,” the workspace header CTA and ribbon still looked like an active build because `progressStep` stayed `generating`.',
-    'Course-map generation failures now set the generation progress step to `error`, so the shared pipeline machine renders the blocked/review state instead of a stale Building pulse.',
-    'Build-ribbon and pipeline-machine regressions pin the exact failed-credit state: provider failure + blocked package + no streaming must not leave Map active or the primary CTA stuck on Building.',
-    'The model-comparison conclusion remains honest: GPT-5.5-pro improved visible quality in the v0.15.150 package, but fresh v0.15.151/v0.15.152 provider proof is blocked until the API key has credits.',
+    'The latest successful GPT-5.5-pro Python evidence remains the v0.15.150 ZIP/log audit: visible quality improved, but fresh v0.15.152/v0.15.153 provider proof is still blocked until the API key has credits.',
+    'That evidence keeps exposing CourseMapper-side source-trust debt: broad Computer Science anchors can let licensed-but-wrong pages look relevant when an ambiguous concept shares a generic word.',
+    'Computer Science/Python source selection now treats math modules and legal exceptions as false friends for module/exception lessons unless the source carries programming-specific context.',
+    'Ambiguous CS/Python concepts now require concept-specific anchors before source-finder rows can become trusted source-ledger proof, while valid sources such as Modular programming and Exception handling still pass.',
+    'The deep quality grader mirrors the stricter source gate, and focused source-finder/source-ledger/source-grader regressions preserve valid List/String/Module/Exception programming sources without weakening standards.',
   ],
   landingHighlights: [
-    'Credit-blocked provider runs stop showing Building.',
-    'Course-map failures enter an explicit error state.',
-    'The ribbon renders blocked truth from the pipeline machine.',
-    'Model comparisons wait for real ZIP/log evidence.',
+    'Math modules and legal exceptions stop passing as Python source proof.',
+    'Ambiguous CS concepts require programming-specific anchors.',
+    'The grader mirrors the stricter source gate.',
+    'Model comparisons still wait for real ZIP/log evidence.',
   ],
   proof: {
-    contract: 'release-contracts/v0.15.152.json',
-    roadmap: 'docs/V0.15.152_PROVIDER_FAILURE_STATUS_TRUTH_ROADMAP.md',
+    contract: 'release-contracts/v0.15.153.json',
+    roadmap: 'docs/V0.15.153_CS_PYTHON_MODULE_EXCEPTION_SOURCE_GATE_ROADMAP.md',
     auditCommand: 'npm run audit:release-history',
   },
 };
@@ -35,6 +35,18 @@ export const CURRENT_RELEASE_CHANGELOG = {
 };
 
 export const HISTORICAL_RELEASE_CHANGELOGS = [
+  {
+    version: '0.15.152',
+    date: 'June 30, 2026',
+    title: 'Provider Failure Status Truth: credit-blocked runs stop looking like active builds',
+    highlights: [
+      'A fresh deployed v0.15.151 GPT-5.5-pro Python audit attempt reached the authenticated app but provider credits were unavailable, so no new ZIP/log quality score could be honestly captured.',
+      'The failed attempt exposed a UI truth bug: after “Model credits unavailable” and “AI generation failed,” the workspace header CTA and ribbon still looked like an active build because `progressStep` stayed `generating`.',
+      'Course-map generation failures now set the generation progress step to `error`, so the shared pipeline machine renders the blocked/review state instead of a stale Building pulse.',
+      'Build-ribbon and pipeline-machine regressions pin the exact failed-credit state: provider failure + blocked package + no streaming must not leave Map active or the primary CTA stuck on Building.',
+      'The model-comparison conclusion remains honest: GPT-5.5-pro improved visible quality in the v0.15.150 package, but fresh v0.15.151/v0.15.152 provider proof is blocked until the API key has credits.',
+    ],
+  },
   {
     version: '0.15.151',
     date: 'June 30, 2026',

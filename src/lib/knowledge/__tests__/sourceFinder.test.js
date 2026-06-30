@@ -299,6 +299,67 @@ describe('source finder mini-shard', () => {
     expect(titles).toEqual(['String (computer science)']);
   }, 15000);
 
+  it('rejects CS/Python module and exception false friends before caching sources', async () => {
+    const graph = createEmptyCourseGraph({ courseName: 'Introduction to Computer Science with Python' });
+    graph.sessions = [
+      {
+        id: 's10',
+        number: 10,
+        title: 'Lesson 10: modules',
+        sections: [{ topic: '10.1: modules and imports in Python' }],
+      },
+      {
+        id: 's11',
+        number: 11,
+        title: 'Lesson 11: exceptions',
+        sections: [{ topic: '11.1: exceptions and error handling in Python' }],
+      },
+    ];
+    graph.concepts = [
+      { id: 'c10', term: 'modules' },
+      { id: 'c11', term: 'exceptions' },
+    ];
+    graph.edges.teaches = [
+      { from: 's10', to: 'c10' },
+      { from: 's11', to: 'c11' },
+    ];
+
+    const miniShard = await findCourseSources(graph, {
+      storage: memoryStorage(),
+      maxTopics: 2,
+      limitPerTopic: 1,
+      minUsefulSources: 1,
+      providers: {
+        searchScholarlyReadings: vi.fn(async () => []),
+        searchCrossrefWorks: vi.fn(async () => []),
+        searchWikipediaPages: vi.fn(async (query) => {
+          if (/modules/i.test(query)) {
+            return [
+              source('wikipedia', 'Module (mathematics)', {
+                abstract:
+                  'An abstract algebra article about modules over a ring, with examples computed by mathematical software.',
+              }),
+              source('wikipedia', 'Modular programming', {
+                abstract: 'A programming article about software modules, module systems, and decomposing code.',
+              }),
+            ];
+          }
+          return [
+            source('wikipedia', 'Exception (law)', {
+              abstract: 'A legal article about exceptions to laws, rules, and statutory clauses.',
+            }),
+            source('wikipedia', 'Exception handling', {
+              abstract: 'A programming article about exception handling, try-catch blocks, and runtime errors.',
+            }),
+          ];
+        }),
+      },
+    });
+
+    const titles = miniShard.topics.flatMap((topic) => topic.sources.map((item) => item.title));
+    expect(titles).toEqual(['Modular programming', 'Exception handling']);
+  }, 15000);
+
   it('rejects off-discipline medical readings for project management topics', async () => {
     const graph = createEmptyCourseGraph({ courseName: 'Project Management' });
     graph.sessions = [

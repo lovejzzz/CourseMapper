@@ -90,7 +90,9 @@ const COMPUTER_SCIENCE_COURSE_RE =
 const COMPUTER_SCIENCE_SOURCE_ANCHOR_RE =
   /\b(?:computer\s+science|computing|programming|software|python\b|code\b|coding|algorithm|data\s+structures?|control\s+flow|branching|iteration|conditional\s+(?:statement|expression|operator|construct|computer|programming)|if\s+statements?|if[-\s]then(?:[-\s]else)?|loops?\s+(?:in\s+python|in\s+programming|programming|statement|construct)|for\s+loops?|while\s+loops?|variables?\s+(?:in\s+python|in\s+programming)|data\s+types?|strings?\s+(?:in\s+python|in\s+programming|type|object|processing|computer\s+science)|lists?\s+(?:in\s+python|in\s+programming|data\s+structure|abstract\s+data\s+type|array|sequence)|dictionar(?:y|ies)\s+(?:in\s+python|data\s+structure|mapping|hash\s+table)|functions?\s+(?:in\s+python|in\s+programming|programming)|subroutine|procedure|method|modules?\s+(?:in\s+python|programming|software)|exceptions?\s+(?:in\s+python|programming|handling)|debugg(?:ing|er)|unit\s+tests?|software\s+testing|file\s+(?:i\/o|input|output|handling)|input\/output|openstax\s+introduction\s+python\s+programming|python\s+\(programming\s+language\)|computer\s+program|programming\s+language)\b/i;
 const COMPUTER_SCIENCE_FALSE_FRIEND_RE =
-  /\b(?:correlation|statistical\s+variables?|dependent\s+variables?|independent\s+variables?|random\s+variables?|lists?\s+of\s+(?:american\s+colleges|box\s+office|universities|films|songs|albums|people)|list\s+of\s+dictionaries\s+by\s+number\s+of\s+words|no\s+strings\s+attached|n'?sync|string\s+theory|trigonometric\s+functions?|function\s+\(mathematics\)|continuous\s+or\s+discrete\s+variable|frontiers\s+of\s+flow\s+control|file\s+explorer|file\s+manager|environment\s+variable|conditional\s+sentences?|english\s+conditional\s+sentences?|natural\s+language|subordinate\s+clause|protasis|apodosis|game\s+loops?|game\s+design\s+loops?|game\s+terakoya|ludic\s+language\s+pedagogy)\b/i;
+  /\b(?:correlation|statistical\s+variables?|dependent\s+variables?|independent\s+variables?|random\s+variables?|lists?\s+of\s+(?:american\s+colleges|box\s+office|universities|films|songs|albums|people)|list\s+of\s+dictionaries\s+by\s+number\s+of\s+words|no\s+strings\s+attached|n'?sync|string\s+theory|trigonometric\s+functions?|function\s+\(mathematics\)|continuous\s+or\s+discrete\s+variable|frontiers\s+of\s+flow\s+control|file\s+explorer|file\s+manager|environment\s+variable|conditional\s+sentences?|english\s+conditional\s+sentences?|natural\s+language|subordinate\s+clause|protasis|apodosis|game\s+loops?|game\s+design\s+loops?|game\s+terakoya|ludic\s+language\s+pedagogy|module\s+\(mathematics\)|module\s+theory|modules?\s+over\s+(?:a\s+)?rings?|abstract\s+algebra|exception\s+\(law\)|legal\s+exceptions?|exception\s+clauses?|exceptions?\s+to\s+(?:rules?|laws?))\b/i;
+const COMPUTER_SCIENCE_AMBIGUOUS_CONCEPT_RE =
+  /\b(?:variables?|types?|data\s+types?|control\s+flow|conditionals?|loops?|functions?|lists?|dictionar(?:y|ies)|strings?|file\s+(?:input|output|i\/o)|files?|modules?|exceptions?|testing|debugging|algorithms?)\b/i;
 const COMPUTER_SCIENCE_TOPIC_ANCHORS = [
   {
     concept: /\b(?:variables?|types?|data\s+types?)\b/i,
@@ -109,7 +111,7 @@ const COMPUTER_SCIENCE_TOPIC_ANCHORS = [
   {
     concept: /\blists?\b/i,
     source:
-      /\b(?:lists?\s+(?:in\s+python|in\s+programming|data\s+structure|abstract\s+data\s+type|array|sequence)|python\s+lists?|list\s+comprehensions?)\b/i,
+      /(?:\b(?:lists?\s+(?:in\s+python|in\s+programming|data\s+structure|abstract\s+data\s+type|array|sequence)|python\s+lists?|list\s+comprehensions?)\b|\blist\s+\(abstract\s+data\s+type\))/i,
   },
   {
     concept: /\bdictionar(?:y|ies)\b/i,
@@ -119,7 +121,7 @@ const COMPUTER_SCIENCE_TOPIC_ANCHORS = [
   {
     concept: /\bstrings?\b/i,
     source:
-      /\b(?:strings?\s+(?:in\s+python|in\s+programming|computer\s+science|processing|type|object)|text\s+processing|python\s+strings?)\b/i,
+      /(?:\b(?:strings?\s+(?:in\s+python|in\s+programming|computer\s+science|processing|type|object)|text\s+processing|python\s+strings?)\b|\bstring\s+\(computer\s+science\))/i,
   },
   {
     concept: /\bfile\s+(?:input|output)|file\s+i\/o|files?\b/i,
@@ -127,8 +129,27 @@ const COMPUTER_SCIENCE_TOPIC_ANCHORS = [
       /\b(?:file\s+(?:input|output|i\/o|handling)|input\/output|read(?:ing)?\s+files?|writ(?:ing|e)\s+files?|python\s+files?)\b/i,
   },
   {
-    concept: /\b(?:modules?|exceptions?|testing|debugging|algorithms?)\b/i,
-    source: /\b(?:modules?|exceptions?|testing|debugging|algorithms?|python|programming|software)\b/i,
+    concept: /\bmodules?\b/i,
+    source:
+      /\b(?:modules?\s+(?:in\s+python|in\s+programming|programming|software)|python\s+modules?|import\s+statements?|package\s+modules?|module\s+systems?|modular\s+programming)\b/i,
+  },
+  {
+    concept: /\bexceptions?\b/i,
+    source:
+      /\b(?:exceptions?\s+(?:in\s+python|in\s+programming|handling)|exception\s+handling|try\s*\/?\s*except|try[-\s]catch|python\s+exceptions?)\b/i,
+  },
+  {
+    concept: /\btesting\b/i,
+    source: /\b(?:unit\s+tests?|software\s+testing|programming\s+tests?|test[-\s]driven|pytest|unittest|python)\b/i,
+  },
+  {
+    concept: /\bdebugging\b/i,
+    source: /\b(?:debugg(?:ing|er)|software\s+debugging|programming\s+debugging|python)\b/i,
+  },
+  {
+    concept: /\balgorithms?\b/i,
+    source:
+      /\b(?:algorithms?\s+(?:in\s+computer\s+science|in\s+programming|design|analysis)|computer\s+science|programming|software|pseudocode|complexity|data\s+structures?)\b/i,
   },
 ];
 const SOURCE_FINDER_TRUSTED_ROWS_PER_TOPIC = 2;
@@ -611,6 +632,9 @@ export function isComputerScienceWeakSource(source, courseGraph) {
   if (!COMPUTER_SCIENCE_COURSE_RE.test(courseText(courseGraph))) return false;
   const text = sourceSearchText(source);
   if (COMPUTER_SCIENCE_FALSE_FRIEND_RE.test(text)) return true;
+  if (COMPUTER_SCIENCE_AMBIGUOUS_CONCEPT_RE.test(sourceConceptText(source))) {
+    return !hasComputerScienceTopicAnchor(source);
+  }
   return !COMPUTER_SCIENCE_SOURCE_ANCHOR_RE.test(text) && !hasComputerScienceTopicAnchor(source);
 }
 

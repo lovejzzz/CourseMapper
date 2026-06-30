@@ -1,0 +1,111 @@
+{
+  "version": "0.15.153",
+  "date": "June 30, 2026",
+  "title": "CS/Python Source Sense: module and exception false friends stop passing",
+  "status": "verified-current",
+  "proofSummary": {
+    "local": [
+      "npm test -- src/lib/knowledge/__tests__/sourceFinder.test.js src/lib/knowledge/__tests__/sourceLedger.test.js src/lib/quality/__tests__/sourceLedgerGrader.test.js",
+      "npm run audit:release-history"
+    ],
+    "ciFast": {
+      "status": "pending-push",
+      "note": "Fast verification is claimed only after v0.15.153 is pushed and the GitHub Actions run is attached."
+    },
+    "deploy": {
+      "status": "pending-push",
+      "note": "Pages deploy is not claimed until the pushed v0.15.153 release completes its deploy run."
+    },
+    "ciDeep": {
+      "status": "local-only",
+      "note": "This is a narrow source relevance and grader-truth release; focused coverage plus normal gates are the release bar."
+    },
+    "liveProvider": {
+      "status": "not-current",
+      "note": "The release is based on the latest successful v0.15.150 GPT-5.5-pro ZIP/log audit plus local source-truth regressions. Fresh v0.15.153 provider proof requires funded model credits."
+    },
+    "manualHuman": {
+      "status": "not-applicable",
+      "note": "No external instructor approval is claimed by this release."
+    }
+  },
+  "claims": [
+    {
+      "id": "v015153-v015150-evidence-boundary",
+      "status": "verified-current",
+      "changelogHighlightIndex": 0,
+      "summary": "The release stays honest about model-comparison evidence: GPT-5.5-pro improved the v0.15.150 Python package, but fresh v0.15.152/v0.15.153 provider proof is still blocked by credits.",
+      "anchors": ["docs/V0.15.153_CS_PYTHON_MODULE_EXCEPTION_SOURCE_GATE_ROADMAP.md", "src/lib/releaseManifest.js"],
+      "proofCommands": [
+        "rg -n \"v0.15.150|GPT-5.5-pro|credit-blocked|does not claim a new provider score\" docs/V0.15.153_CS_PYTHON_MODULE_EXCEPTION_SOURCE_GATE_ROADMAP.md src/lib/releaseManifest.js"
+      ],
+      "proofScopes": ["static-audit", "live-provider"]
+    },
+    {
+      "id": "v015153-broad-cs-anchor-debt",
+      "status": "verified-current",
+      "changelogHighlightIndex": 1,
+      "summary": "The release documents the remaining CourseMapper-side source-trust debt: broad CS anchors can let licensed-but-wrong generic pages look relevant.",
+      "anchors": [
+        "docs/V0.15.153_CS_PYTHON_MODULE_EXCEPTION_SOURCE_GATE_ROADMAP.md",
+        "src/lib/knowledge/sourceLedger.js"
+      ],
+      "proofCommands": [
+        "rg -n \"generic word|COMPUTER_SCIENCE_AMBIGUOUS_CONCEPT_RE|hasComputerScienceTopicAnchor\" docs/V0.15.153_CS_PYTHON_MODULE_EXCEPTION_SOURCE_GATE_ROADMAP.md src/lib/knowledge/sourceLedger.js"
+      ],
+      "proofScopes": ["static-audit", "unit"]
+    },
+    {
+      "id": "v015153-module-exception-false-friends",
+      "status": "verified-current",
+      "changelogHighlightIndex": 2,
+      "summary": "CS/Python source selection now rejects math-module and legal-exception false friends for module and exception lessons.",
+      "anchors": [
+        "src/lib/knowledge/sourceLedger.js",
+        "src/lib/knowledge/__tests__/sourceFinder.test.js",
+        "src/lib/knowledge/__tests__/sourceLedger.test.js"
+      ],
+      "proofCommands": [
+        "rg -n \"Module \\(mathematics\\)|Exception \\(law\\)|module theory|legal exceptions\" src/lib/knowledge/sourceLedger.js src/lib/knowledge/__tests__/sourceFinder.test.js src/lib/knowledge/__tests__/sourceLedger.test.js",
+        "npm test -- src/lib/knowledge/__tests__/sourceFinder.test.js src/lib/knowledge/__tests__/sourceLedger.test.js"
+      ],
+      "proofScopes": ["unit"]
+    },
+    {
+      "id": "v015153-concept-specific-anchors",
+      "status": "verified-current",
+      "changelogHighlightIndex": 3,
+      "summary": "Ambiguous CS/Python concepts now require concept-specific programming anchors, while valid Modular programming and Exception handling rows still pass.",
+      "anchors": [
+        "src/lib/knowledge/sourceLedger.js",
+        "src/lib/knowledge/__tests__/sourceFinder.test.js",
+        "src/lib/knowledge/__tests__/sourceLedger.test.js"
+      ],
+      "proofCommands": [
+        "rg -n \"Modular programming|Exception handling|COMPUTER_SCIENCE_TOPIC_ANCHORS\" src/lib/knowledge/sourceLedger.js src/lib/knowledge/__tests__/sourceFinder.test.js src/lib/knowledge/__tests__/sourceLedger.test.js"
+      ],
+      "proofScopes": ["unit"]
+    },
+    {
+      "id": "v015153-grader-mirrors-source-gate",
+      "status": "verified-current",
+      "changelogHighlightIndex": 4,
+      "summary": "The deep quality grader mirrors the stricter source gate and focused regressions preserve valid programming source rows.",
+      "anchors": [
+        "src/lib/quality/sourceLedgerQualityChecks.js",
+        "src/lib/quality/__tests__/sourceLedgerGrader.test.js"
+      ],
+      "proofCommands": [
+        "rg -n \"Module \\(mathematics\\)|Exception \\(law\\)|Modular programming|Exception handling\" src/lib/quality/sourceLedgerQualityChecks.js src/lib/quality/__tests__/sourceLedgerGrader.test.js",
+        "npm test -- src/lib/quality/__tests__/sourceLedgerGrader.test.js"
+      ],
+      "proofScopes": ["unit"]
+    }
+  ],
+  "knownRemainingTargets": [
+    "Add credits or switch to a funded provider/model before the next fresh GPT-5.5-pro ZIP/log audit.",
+    "A fresh deployed v0.15.153 GPT-5.5-pro Python ZIP/log audit must prove the stricter source gate holds in real provider output.",
+    "Texture remains below the long-running target until fresh packages repeatedly reach 100/100 texture with no repeated-shingle caveat.",
+    "Source truth still needs repeated cross-domain audits so new false-friend classes are blocked without rejecting valid concept-linked sources."
+  ]
+}

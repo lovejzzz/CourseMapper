@@ -1230,6 +1230,38 @@ describe('source-ledger quality checks', () => {
               license: 'CC BY-SA 4.0',
               conceptLinks: [{ id: 'c8', label: 'conditionals' }],
             },
+            {
+              id: 'sf10',
+              title: 'Module (mathematics)',
+              provider: 'wikipedia',
+              url: 'https://en.wikipedia.org/wiki/Module_(mathematics)',
+              license: 'CC BY-SA 4.0',
+              conceptLinks: [{ id: 'c10', label: 'modules' }],
+            },
+            {
+              id: 'sf11',
+              title: 'Exception (law)',
+              provider: 'wikipedia',
+              url: 'https://en.wikipedia.org/wiki/Exception_(law)',
+              license: 'CC BY-SA 4.0',
+              conceptLinks: [{ id: 'c11', label: 'exceptions' }],
+            },
+            {
+              id: 'sf-good-module',
+              title: 'Modular programming',
+              provider: 'wikipedia',
+              url: 'https://en.wikipedia.org/wiki/Modular_programming',
+              license: 'CC BY-SA 4.0',
+              conceptLinks: [{ id: 'c10', label: 'modules' }],
+            },
+            {
+              id: 'sf-good-exception',
+              title: 'Exception handling',
+              provider: 'wikipedia',
+              url: 'https://en.wikipedia.org/wiki/Exception_handling',
+              license: 'CC BY-SA 4.0',
+              conceptLinks: [{ id: 'c11', label: 'exceptions' }],
+            },
           ],
           sourceReport: {
             path: 'SOURCE_REPORT.md',
@@ -1250,11 +1282,15 @@ describe('source-ledger quality checks', () => {
         'source ledger row sf8 is off-discipline for Computer Science/Python',
         'source ledger row sf9 is off-discipline for Computer Science/Python',
         'source ledger row sf2 is off-discipline for Computer Science/Python',
+        'source ledger row sf10 is off-discipline for Computer Science/Python',
+        'source ledger row sf11 is off-discipline for Computer Science/Python',
       ]),
     );
     expect(details).not.toContain('source ledger row sf-good is off-discipline for Computer Science/Python');
     expect(details).not.toContain(
       'source ledger row sf-good-conditional is off-discipline for Computer Science/Python',
     );
+    expect(details).not.toContain('source ledger row sf-good-module is off-discipline for Computer Science/Python');
+    expect(details).not.toContain('source ledger row sf-good-exception is off-discipline for Computer Science/Python');
   });
 });
