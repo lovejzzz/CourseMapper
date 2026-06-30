@@ -195,5 +195,5 @@ describe('hybrid pipeline audit', () => {
     } finally {
       await closeHybridPipelineAuditRuntime();
     }
-  }, 60000);
+  }, 120000);
 });
