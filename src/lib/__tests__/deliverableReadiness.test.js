@@ -625,6 +625,60 @@ describe('repairCourseMapReadiness', () => {
     expect(repairedText).not.toMatch(/course problem and prepare evidence/i);
   });
 
+  it('repairs assessment-label lesson identities before they become filenames', () => {
+    const result = repairCourseMapReadiness({
+      courseMap: {
+        courseName: 'User Experience Design Studio',
+        lessons: [
+          {
+            title: 'Lesson 1: evidence check: Studio critique (9%)',
+            sections: [
+              {
+                topicSection: '1.1: design research',
+                learningGoals: 'Use design research methods to explain user evidence.',
+                learningObjectives: 'Apply research methods to a design problem.',
+                weeklyAssessments: 'Evidence check: Studio critique (9%)',
+              },
+            ],
+          },
+          {
+            title: 'Lesson 2: applied problem: Studio critique (9%)',
+            sections: [
+              {
+                topicSection: '2.1: user needs',
+                learningGoals: 'Trace user needs from evidence to design choices.',
+                learningObjectives: 'Connect user needs to a prototype decision.',
+                weeklyAssessments: 'Applied problem: Studio critique (9%)',
+              },
+            ],
+          },
+          {
+            title: 'Lesson 3: practice brief: Studio critique (9%)',
+            sections: [
+              {
+                topicSection: '3.1: prototype testing',
+                learningGoals: 'Use prototype testing evidence to plan revisions.',
+                learningObjectives: 'Explain what a prototype test proves and misses.',
+                weeklyAssessments: 'Practice brief: Studio critique (9%)',
+              },
+            ],
+          },
+        ],
+      },
+    });
+
+    expect(result.changed).toBe(true);
+    expect(result.repairedFields).toEqual(
+      expect.arrayContaining(['Lesson 1 title', 'Lesson 2 title', 'Lesson 3 title']),
+    );
+    expect(result.courseMap.lessons[0].title).toBe('Lesson 1: design research');
+    expect(result.courseMap.lessons[1].title).toBe('Lesson 2: user needs');
+    expect(result.courseMap.lessons[2].title).toBe('Lesson 3: prototype testing');
+    expect(JSON.stringify(result.courseMap)).not.toMatch(
+      /Lesson \d+:\s*(?:evidence check|applied problem|practice brief)/i,
+    );
+  });
+
   it('uses history-specific repairs instead of generic lab/STEM fallback prose', () => {
     const result = repairCourseMapReadiness({
       courseMap: {

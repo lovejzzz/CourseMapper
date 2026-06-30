@@ -461,6 +461,56 @@ describe('v0.15.6 anatomy and texture quality regressions', () => {
 });
 
 describe('v0.15.11 prompt-artifact contamination regressions', () => {
+  it('flags assessment-label lesson identities before they can look like a clean package', async () => {
+    const result = await grade({
+      fileProvider: createMemoryFileProvider({
+        'PACKAGE_MANIFEST.json': JSON.stringify({
+          courseName: 'User Experience Design Studio',
+          lessonScope: 'all',
+          assessments: [
+            { id: 'A1.1', title: 'Evidence check: Studio critique (9%) evidence memo.', weightPct: 9 },
+            { id: 'A2.1', title: 'Applied problem: Studio critique (9%) annotation.', weightPct: 9 },
+          ],
+          files: [],
+          readiness: { status: 'ready', blockers: 0 },
+        }),
+        'Lesson Plans/Lesson 01 - evidence check - Studio critique (9%) - Lesson Plans.md': [
+          '# User Experience Design Studio - Lesson 01 - evidence check - Studio critique (9%) - Lesson Plans',
+          'Course Map L1. Students prepare critique evidence and revision notes.',
+        ].join('\n'),
+        'Course FAQ/Lesson 01 - evidence check - Studio critique (9%) - Course FAQ.md': [
+          '# Lesson 1 FAQ',
+          'Students review critique evidence and revision choices.',
+        ].join('\n'),
+        'Study Guides/Lesson 02 - applied problem - Studio critique (9%) - Study Guides.md': [
+          '# Lesson 2 Study Guide',
+          'Students connect critique feedback to design choices.',
+        ].join('\n'),
+        'Slide Decks/Lesson 03 - practice brief - Studio critique (9%) - Slide Decks.md': [
+          '# Lesson 3 Slides',
+          'Students rehearse critique claims with evidence.',
+        ].join('\n'),
+      }),
+      course: {
+        id: 'ux-design-studio',
+        title: 'User Experience Design Studio',
+        featureIds: ['lessonPlans', 'courseFaq', 'studyGuides', 'slideDecks'],
+      },
+    });
+
+    expect(result.findings).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          severity: 'P1',
+          dimension: 'identity',
+          detail: expect.stringMatching(/assessment labels or grading weights are being used as lesson identities/i),
+          evidence: expect.stringMatching(/evidence check - Studio critique \(9%\)/i),
+        }),
+      ]),
+    );
+    expect(result.overall.score).toBeLessThan(100);
+  });
+
   it('blocks packages that use requested deliverable labels as lesson concepts', async () => {
     const result = await grade({
       fileProvider: createMemoryFileProvider({

@@ -1,0 +1,193 @@
+{
+  "scores": {
+    "identity": 100,
+    "substance": 100,
+    "citations": 100,
+    "honesty": 100,
+    "discipline": 100,
+    "consistency": 100,
+    "structure": 100,
+    "format": 100,
+    "texture": 93
+  },
+  "grades": {
+    "identity": "A",
+    "substance": "A",
+    "citations": "A",
+    "honesty": "A",
+    "discipline": "A",
+    "consistency": "A",
+    "structure": "A",
+    "format": "A",
+    "texture": "A"
+  },
+  "overall": {
+    "score": 99,
+    "grade": "A"
+  },
+  "findings": [],
+  "stats": {
+    "fileCount": 99,
+    "findingCount": 0,
+    "p0": 0,
+    "p1": 0,
+    "p2": 0,
+    "byDimension": {
+      "identity": 0,
+      "substance": 0,
+      "citations": 0,
+      "honesty": 0,
+      "discipline": 0,
+      "consistency": 0,
+      "structure": 0,
+      "format": 0,
+      "texture": 0
+    },
+    "hasManifest": true,
+    "registryCount": 12,
+    "readingsCount": 0
+  },
+  "texture": {
+    "version": "1.0.0",
+    "score": 93,
+    "grade": "A",
+    "measured": true,
+    "subScores": {
+      "sameness": 92,
+      "openers": 88,
+      "tails": 99
+    },
+    "evidence": [
+      {
+        "shingle": "time written or spoken response options and sentence frames so students can",
+        "feature": "discussions",
+        "docCount": 12,
+        "docTotal": 12
+      },
+      {
+        "shingle": "use wait time written or spoken response options and sentence frames so",
+        "feature": "discussions",
+        "docCount": 12,
+        "docTotal": 12
+      },
+      {
+        "shingle": "wait time written or spoken response options and sentence frames so students",
+        "feature": "discussions",
+        "docCount": 12,
+        "docTotal": 12
+      },
+      {
+        "shingle": "week [n] [n] [slot] [n] pts [n] [slot] l [n] a [n]",
+        "feature": "assignments",
+        "docCount": 12,
+        "docTotal": 12
+      },
+      {
+        "shingle": "written or spoken response options and sentence frames so students can cite",
+        "feature": "discussions",
+        "docCount": 12,
+        "docTotal": 12
+      }
+    ],
+    "groups": [
+      {
+        "feature": "assignments",
+        "docCount": 12,
+        "avgOverlap": 0.071,
+        "tailCount": 30,
+        "tailDensity": 0.004
+      },
+      {
+        "feature": "courseFaq",
+        "docCount": 12,
+        "avgOverlap": 0.102,
+        "tailCount": 33,
+        "tailDensity": 0.013000000000000001
+      },
+      {
+        "feature": "discussions",
+        "docCount": 12,
+        "avgOverlap": 0.155,
+        "tailCount": 76,
+        "tailDensity": 0.024
+      },
+      {
+        "feature": "lessonPlans",
+        "docCount": 12,
+        "avgOverlap": 0.078,
+        "tailCount": 31,
+        "tailDensity": 0.005
+      },
+      {
+        "feature": "quizBank",
+        "docCount": 12,
+        "avgOverlap": 0.028999999999999998,
+        "tailCount": 38,
+        "tailDensity": 0.004
+      },
+      {
+        "feature": "rubrics",
+        "docCount": 12,
+        "avgOverlap": 0.079,
+        "tailCount": 11,
+        "tailDensity": 0.002
+      },
+      {
+        "feature": "slideDecks",
+        "docCount": 12,
+        "avgOverlap": 0.059000000000000004,
+        "tailCount": 121,
+        "tailDensity": 0.006
+      },
+      {
+        "feature": "studyGuides",
+        "docCount": 12,
+        "avgOverlap": 0.07,
+        "tailCount": 47,
+        "tailDensity": 0.01
+      }
+    ],
+    "advisories": [
+      {
+        "severity": "P2",
+        "dimension": "texture",
+        "advisory": true,
+        "file": "",
+        "detail": "advisory: template tail shared by 12/12 discussions documents (roadmap WS-D D1)",
+        "evidence": "time written or spoken response options and sentence frames so students can"
+      },
+      {
+        "severity": "P2",
+        "dimension": "texture",
+        "advisory": true,
+        "file": "",
+        "detail": "advisory: template tail shared by 12/12 discussions documents (roadmap WS-D D1)",
+        "evidence": "use wait time written or spoken response options and sentence frames so"
+      },
+      {
+        "severity": "P2",
+        "dimension": "texture",
+        "advisory": true,
+        "file": "",
+        "detail": "advisory: template tail shared by 12/12 discussions documents (roadmap WS-D D1)",
+        "evidence": "wait time written or spoken response options and sentence frames so students"
+      },
+      {
+        "severity": "P2",
+        "dimension": "texture",
+        "advisory": true,
+        "file": "",
+        "detail": "advisory: template tail shared by 12/12 assignments documents (roadmap WS-D D1)",
+        "evidence": "week [n] [n] [slot] [n] pts [n] [slot] l [n] a [n]"
+      },
+      {
+        "severity": "P2",
+        "dimension": "texture",
+        "advisory": true,
+        "file": "",
+        "detail": "advisory: template tail shared by 12/12 discussions documents (roadmap WS-D D1)",
+        "evidence": "written or spoken response options and sentence frames so students can cite"
+      }
+    ]
+  }
+}

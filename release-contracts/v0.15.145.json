@@ -1,0 +1,107 @@
+{
+  "version": "0.15.145",
+  "date": "June 30, 2026",
+  "title": "Lesson Identity Truth: assessment labels stop becoming course topics",
+  "status": "verified-current",
+  "proofSummary": {
+    "local": [
+      "npx vitest run tests/v0154-linear-algebra-output-quality.test.js src/lib/__tests__/deliverableReadiness.test.js"
+    ],
+    "ciFast": {
+      "status": "pending-push",
+      "note": "Fast verification is claimed only after v0.15.145 is pushed and the GitHub Actions run is attached."
+    },
+    "deploy": {
+      "status": "pending-push",
+      "note": "Pages deploy is not claimed until the pushed v0.15.145 release completes its deploy run."
+    },
+    "ciDeep": {
+      "status": "local-only",
+      "note": "This is a narrow Course Map readiness and quality-truth repair; focused coverage plus normal gates are the release bar."
+    },
+    "liveProvider": {
+      "status": "not-current",
+      "note": "The release is based on a fresh deployed v0.15.144 provider ZIP/log audit. A fresh deployed v0.15.145 run is required before claiming clean provider output."
+    },
+    "manualHuman": {
+      "status": "not-applicable",
+      "note": "No external instructor approval is claimed by this release."
+    }
+  },
+  "claims": [
+    {
+      "id": "v015145-v015144-assessment-label-evidence",
+      "status": "verified-current",
+      "changelogHighlightIndex": 0,
+      "summary": "Fresh deployed v0.15.144 evidence exported successfully but used assessment labels and weights as visible lesson identities and exported file stems.",
+      "anchors": [
+        "verification-output/edutool-audit-loop/20260630T034544Z-v015144-fresh/report.md",
+        "verification-output/edutool-audit-loop/20260630T034544Z-v015144-fresh/local-regrade.json"
+      ],
+      "proofCommands": [
+        "rg -n \"evidence check: Studio critique|Assignment Briefs/Lesson 01 - evidence check\" verification-output/edutool-audit-loop/20260630T034544Z-v015144-fresh/report.md",
+        "rg -n '\"score\": 99|\"score\": 93|\"findingCount\": 0' verification-output/edutool-audit-loop/20260630T034544Z-v015144-fresh/local-regrade.json"
+      ],
+      "proofScopes": ["live-provider", "static-audit"]
+    },
+    {
+      "id": "v015145-regrade-truth-guard",
+      "status": "verified-current",
+      "changelogHighlightIndex": 1,
+      "summary": "The same v0.15.144 package now regrades with a P1 identity finding instead of looking clean.",
+      "anchors": [
+        "verification-output/edutool-audit-loop/20260630T034544Z-v015144-fresh/local-regrade-after-identity-guard.json",
+        "src/lib/quality/deepQualityGrader.js"
+      ],
+      "proofCommands": [
+        "rg -n '\"score\": 98|assessment labels or grading weights are being used as lesson identities|\"p1\": 1' verification-output/edutool-audit-loop/20260630T034544Z-v015144-fresh/local-regrade-after-identity-guard.json",
+        "rg -n \"GRADER_VERSION = '1.7.4'|checkAssessmentLabelLessonIdentity\" src/lib/quality/deepQualityGrader.js"
+      ],
+      "proofScopes": ["unit", "static-audit"]
+    },
+    {
+      "id": "v015145-readiness-repair",
+      "status": "verified-current",
+      "changelogHighlightIndex": 2,
+      "summary": "Course Map readiness repairs assessment-label lesson titles before they seed exported filenames.",
+      "anchors": ["src/lib/deliverableReadiness.js", "src/lib/__tests__/deliverableReadiness.test.js"],
+      "proofCommands": [
+        "rg -n \"isAssessmentLabelCourseMapIdentity|ASSESSMENT_LABEL_COURSE_MAP_RE\" src/lib/deliverableReadiness.js",
+        "rg -n \"repairs assessment-label lesson identities before they become filenames\" src/lib/__tests__/deliverableReadiness.test.js"
+      ],
+      "proofScopes": ["unit"]
+    },
+    {
+      "id": "v015145-grader-p1",
+      "status": "verified-current",
+      "changelogHighlightIndex": 3,
+      "summary": "The deep quality grader flags assessment labels or grading weights used as lesson/file identities as P1 identity contamination.",
+      "anchors": ["src/lib/quality/deepQualityGrader.js", "tests/v0154-linear-algebra-output-quality.test.js"],
+      "proofCommands": [
+        "rg -n \"assessment labels or grading weights are being used as lesson identities\" src/lib/quality/deepQualityGrader.js tests/v0154-linear-algebra-output-quality.test.js",
+        "npx vitest run tests/v0154-linear-algebra-output-quality.test.js"
+      ],
+      "proofScopes": ["unit"]
+    },
+    {
+      "id": "v015145-focused-regressions",
+      "status": "verified-current",
+      "changelogHighlightIndex": 4,
+      "summary": "Focused tests cover both the pre-export repair and package-level grader truth guard.",
+      "anchors": [
+        "src/lib/__tests__/deliverableReadiness.test.js",
+        "tests/v0154-linear-algebra-output-quality.test.js"
+      ],
+      "proofCommands": [
+        "npx vitest run tests/v0154-linear-algebra-output-quality.test.js src/lib/__tests__/deliverableReadiness.test.js"
+      ],
+      "proofScopes": ["unit"]
+    }
+  ],
+  "knownRemainingTargets": [
+    "A fresh deployed v0.15.145 ZIP/log audit must prove assessment-label lesson identities no longer appear in real provider output.",
+    "Texture remains below the long-running target until a fresh package reaches 100/100 texture with no repeated-shingle caveat.",
+    "The v0.15.144 evidence still showed 0/12 genome-linked lessons and 12 missing resource signals; source depth remains a carry-forward target.",
+    "Source rows must remain real, trusted, on-topic, license-safe, and concept-linked across UX and Project Management domains."
+  ]
+}

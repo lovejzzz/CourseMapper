@@ -129,6 +129,11 @@ const NUMBERED_PROMPT_ARTIFACT_TOPIC_RE = new RegExp(
   `\\b\\d+(?:\\.\\d+)+\\s*:\\s*(?:${PROMPT_ARTIFACT_TOPIC_LABELS.map(escapeRegexLiteral).join('|')})\\b`,
   'i',
 );
+const ASSESSMENT_LABEL_COURSE_MAP_RE =
+  /^(?:lesson\s+\d{1,3}\s*)?(?:evidence check|quick evidence check|applied problem|practice brief|concept transfer|exit ticket|weekly assessment|practice response|assessment|quiz|exam|assignment brief|rubric)\b/i;
+const ASSESSMENT_WEIGHT_CUE_RE = /(?:\(\s*\d{1,3}\s*%\s*\)|\b\d{1,3}\s*%\b)/;
+const ASSESSMENT_ACTIVITY_CUE_RE =
+  /\b(?:studio critique|portfolio review|prototype presentation|usability test|design journal|critique session)\b/i;
 const INSTRUCTIONAL_DESIGN_COURSE_RE =
   /\b(?:instructional design|course design|curriculum design|assessment design|teacher education|teaching methods|pedagogy|education)\b/i;
 const PROMPT_ARTIFACT_EMBEDDED_COURSE_MAP_KEYS = new Set([
@@ -529,6 +534,17 @@ function needsRepeatedShortTopicRepair(value, courseMap) {
   return repeatedShortCourseMapTopicIdentities(courseMap).has(normalized);
 }
 
+function isAssessmentLabelCourseMapIdentity(value) {
+  const candidate = text(value)
+    .replace(/[_/|]+/g, ' ')
+    .replace(/\s*[—–-]\s*/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim()
+    .replace(/^lesson\s+\d{1,3}\s*[:.]\s*/i, '');
+  if (!candidate || !ASSESSMENT_LABEL_COURSE_MAP_RE.test(candidate)) return false;
+  return ASSESSMENT_WEIGHT_CUE_RE.test(candidate) || ASSESSMENT_ACTIVITY_CUE_RE.test(candidate);
+}
+
 function hasRepeatedShortTopicReference(value, courseMap) {
   const normalized = normalizeCourseMapTopicIdentity(value);
   if (!normalized) return false;
@@ -550,6 +566,12 @@ function weakCourseMapTopicIdentities(courseMap) {
       .forEach((candidate) => {
         if (isWeakCourseMapTopic(candidate, courseMap)) identities.add(candidate);
       });
+    [
+      lesson?.title,
+      ...asArray(lesson?.sections).flatMap((section) => [section?.topicSection, section?.weeklyAssessments]),
+    ].forEach((candidate) => {
+      if (isAssessmentLabelCourseMapIdentity(candidate)) identities.add(normalizeCourseMapTopicIdentity(candidate));
+    });
   });
   return identities;
 }
@@ -1129,6 +1151,7 @@ export function repairCourseMapReadiness({ courseMap, columns = [], lessonFilter
       isDomainCourseTitleOnlyWeakTopic(lesson?.title, courseMap) ||
       isCourseTitlePrefixedFallbackTopic(lesson?.title, courseMap) ||
       isConjoinedAssessmentEventTopic(lesson?.title) ||
+      isAssessmentLabelCourseMapIdentity(lesson?.title) ||
       needsRepeatedShortTopicRepair(lesson?.title, courseMap)
     ) {
       const titleTopic = getCourseMapTopic(courseMap, lesson, asArray(lesson?.sections)[0], lessonIndex);

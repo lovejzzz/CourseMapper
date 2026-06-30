@@ -3,24 +3,24 @@ import { APP_VERSION } from './appVersion.js';
 export const CURRENT_RELEASE = {
   version: APP_VERSION,
   date: 'June 30, 2026',
-  title: 'Export Truth: internal source-grounding language blocks before download',
-  landingTitle: 'Export Truth Fix',
+  title: 'Lesson Identity Truth: assessment labels stop becoming course topics',
+  landingTitle: 'Lesson Identity Fix',
   highlights: [
-    'A fresh deployed v0.15.143 User Experience Design Studio provider run finished but correctly refused to export: the digest recorded finalStatus blocked, export verification failed on 1 of 38 checks, quality stayed not-graded, and no new ZIP appeared in Downloads.',
-    'The concrete blocker was product-side export language, not provider randomness: Quiz Bank DOCX XML exposed the internal phrase `source grounding`, which the export verifier treats as non-instructor-facing compiler/proof language.',
-    'Quiz Bank essay guidance now says broad opinion without course evidence is incomplete, and the adaptive fallback policy now refers to source evidence checks rather than internal source-grounding terminology.',
-    'Export-failed receipts now become visible package blockers in the shared trust model, so the export panel shows the failing material as a critical issue instead of saying `0 critical issues` while the digest is blocked.',
-    'The Package ZIP button and workspace header CTA now respect export-failed receipts: export-failed packages show Needs attention and cannot route to ZIP download until the blocker is fixed, while amber review-note packages remain downloadable.',
+    'A fresh deployed v0.15.144 User Experience Design Studio ZIP/log audit exported successfully, but the package was not clean: visible Course Map rows and exported filenames used assessment labels such as `evidence check: Studio critique (9%)` as lesson identities.',
+    'The original package report and local regrade said 99/A, Texture 93, and 0 findings. The regrade after this guard correctly reports 98/A with a P1 identity finding, so the app no longer treats this failure shape as clean.',
+    'Course Map readiness now repairs assessment-label lesson titles before export, using the lesson topic cell for the actual lesson identity instead of letting grading weights or assessment verbs seed filenames.',
+    'The deep quality grader now flags assessment labels or grading weights used as lesson/file identities across exported materials, preserving report truth when the ZIP already contains the defect.',
+    'Focused regressions cover both sides: the pre-export readiness repair and the package-level grader truth guard. A fresh deployed v0.15.145 audit is still required before claiming clean provider output.',
   ],
   landingHighlights: [
-    'Fresh v0.15.143 provider evidence blocked before ZIP.',
-    'Quiz Bank no longer emits internal source-grounding wording.',
-    'Export-failed receipts now surface as package blockers.',
-    'ZIP buttons stay disabled until export verification is fixed.',
+    'Fresh v0.15.144 ZIP/log evidence found lesson identity contamination.',
+    'Readiness repairs assessment-label lesson titles before export.',
+    'The grader now flags polluted lesson/file identities as P1.',
+    'Focused regressions pin the repair and truth guard.',
   ],
   proof: {
-    contract: 'release-contracts/v0.15.144.json',
-    roadmap: 'docs/V0.15.144_INTERNAL_EXPORT_LANGUAGE_AND_ZIP_TRUTH_ROADMAP.md',
+    contract: 'release-contracts/v0.15.145.json',
+    roadmap: 'docs/V0.15.145_LESSON_IDENTITY_TRUTH_ROADMAP.md',
     auditCommand: 'npm run audit:release-history',
   },
 };
@@ -35,6 +35,18 @@ export const CURRENT_RELEASE_CHANGELOG = {
 };
 
 export const HISTORICAL_RELEASE_CHANGELOGS = [
+  {
+    version: '0.15.144',
+    date: 'June 30, 2026',
+    title: 'Export Truth: internal source-grounding language blocks before download',
+    highlights: [
+      'A fresh deployed v0.15.143 User Experience Design Studio provider run finished but correctly refused to export: the digest recorded finalStatus blocked, export verification failed on 1 of 38 checks, quality stayed not-graded, and no new ZIP appeared in Downloads.',
+      'The concrete blocker was product-side export language, not provider randomness: Quiz Bank DOCX XML exposed the internal phrase `source grounding`, which the export verifier treats as non-instructor-facing compiler/proof language.',
+      'Quiz Bank essay guidance now says broad opinion without course evidence is incomplete, and the adaptive fallback policy now refers to source evidence checks rather than internal source-grounding terminology.',
+      'Export-failed receipts now become visible package blockers in the shared trust model, so the export panel shows the failing material as a critical issue instead of saying `0 critical issues` while the digest is blocked.',
+      'The Package ZIP button and workspace header CTA now respect export-failed receipts: export-failed packages show Needs attention and cannot route to ZIP download until the blocker is fixed, while amber review-note packages remain downloadable.',
+    ],
+  },
   {
     version: '0.15.143',
     date: 'June 30, 2026',
