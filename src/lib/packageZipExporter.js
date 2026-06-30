@@ -10,6 +10,7 @@ import {
   summarizeSourceLedgerRows,
 } from './knowledge/sourceLedger.js';
 import { safeImport } from './safeImport';
+import { normalizePipelineStateWithSourceBackedJudgment } from './sourceBackedJudgment.js';
 import { peekVoicePassOutcome } from './voicePass.js';
 
 const MIN_EXPORT_BYTES = 128;
@@ -1527,6 +1528,13 @@ export async function buildCourseMaterialsZip({
   sourceManifestGraph = bridgedSourceProof.courseGraph;
   sourceLedgerBundle = bridgedSourceProof.sourceLedgerBundle;
   sourceRefCoverage = bridgedSourceProof.sourceRefCoverage;
+  const finalPipelineState = normalizePipelineStateWithSourceBackedJudgment(pipelineState, {
+    sourceRefCoverage,
+    sourceLedgerSummary: sourceLedgerBundle?.summary || null,
+    sourceLedger: sourceLedgerBundle?.rows || null,
+    courseGraph: sourceManifestGraph,
+    courseMap,
+  });
   const sourceReportMarkdown = buildSourceReportMarkdown({
     courseName: safeCourseName,
     sourceLedger: sourceLedgerBundle,
@@ -1558,7 +1566,7 @@ export async function buildCourseMaterialsZip({
     files,
     requestedFeatureIds,
     requiredAssets,
-    pipelineState,
+    pipelineState: finalPipelineState,
     assessments: buildManifestAssessments({ registry: assessmentRegistry, files }),
     readings: buildManifestReadings(readingsRegistry),
     courseGraph: sourceManifestGraph,
@@ -1570,7 +1578,7 @@ export async function buildCourseMaterialsZip({
     sourceRefCoverage,
     // v0.14.7 WS-D4: callers may pass the outcome on pipelineState; otherwise
     // the generation run's single-run stash discloses it (cleared each compile).
-    voicePass: pipelineState?.voicePass || peekVoicePassOutcome(),
+    voicePass: finalPipelineState?.voicePass || peekVoicePassOutcome(),
   });
 
   // ── v0.14.3 WS-A A2/A3: the package grades itself ─────────────────────────

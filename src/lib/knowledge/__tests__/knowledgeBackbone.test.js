@@ -284,12 +284,19 @@ describe('reading-list engine (P2)', () => {
   it('knowledgeCoverage reports the trust-surface numbers', async () => {
     const graph = genomeLinkedGraph();
     attachGenomeResources(graph);
+    graph.resources.push({
+      id: 'openstax-python-variables',
+      title: 'OpenStax Introduction to Python Programming section 1.3 Variables',
+      origin: 'openstax',
+      sessionRefs: ['s1'],
+    });
     const coverage = knowledgeCoverage(graph);
     expect(coverage.sessions).toBe(2);
     expect(coverage.genomeLinkedLessons).toBe(2);
     expect(coverage.sessionsWithResources).toBe(2);
-    expect(coverage.openResources).toBe(2);
+    expect(coverage.openResources).toBe(3);
     expect(coverage.resourcesByOrigin.genome).toBe(2);
+    expect(coverage.resourcesByOrigin.openstax).toBe(1);
   });
 });
 

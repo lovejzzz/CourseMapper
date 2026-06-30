@@ -3,24 +3,24 @@ import { APP_VERSION } from './appVersion.js';
 export const CURRENT_RELEASE = {
   version: APP_VERSION,
   date: 'June 30, 2026',
-  title: 'Export Truth Repair: source-backed judgment and stale assignment identity',
-  landingTitle: 'Export Truth Repair',
+  title: 'Source-backed Export Truth: final proof owns the package',
+  landingTitle: 'Source-backed Export Truth',
   highlights: [
-    'Fresh deployed v0.15.163 GPT-5.4-mini Python evidence exported a complete ZIP and locally regraded at 99/A with Texture 95; the only scored loss was stale judgment truth saying the course was not evaluated despite complete sourceRef/source-ledger proof.',
-    'Source-backed final judgment now records a strict coverage event when every CourseIR atom has a sourceRef, every lesson has cited resources, and genome judgment is unavailable, so reports stop penalizing complete source-backed packages as unevaluated.',
-    'The deep grader now trusts the canonical final manifest/report judgment over stale early console `not evaluated` breadcrumbs, while still flagging packages whose final judgment is genuinely missing.',
-    'Cross-lesson lesson-content enrichment now must match the current Course Map identity before the compiler uses assignment-core or key-term payloads, preventing dictionary kernels from contaminating files-and-exceptions lessons.',
-    'The package finalizer now repairs assignment brief titles, related lessons, and overview identity back to the Course Map before ZIP export when a stale generated body disagrees with the authoritative lesson row.',
+    'Fresh deployed v0.15.164 GPT-5.4-mini Python evidence exported complete OpenStax-backed source proof but still regraded 99/A because the final manifest, digest, and quality report preserved the stale zero-genome `not evaluated` judgment.',
+    'A shared source-backed judgment normalizer now runs through the workspace pipeline state and ZIP assembly, replacing a stale/missing judgment only when final sourceRef coverage is complete and trusted concept-linked source proof exists.',
+    'The final run digest now reads the same normalized pipeline state as PACKAGE_MANIFEST.json, so digest, manifest, QUALITY_REPORT.md, and local regrade stop disagreeing about source-backed packages.',
+    'OpenStax resources now count in the knowledge-backbone coverage surface and blueprint graph path, matching the trusted-source policy already used by source-ledger checks.',
+    'The deep grader now gives the final manifest judgment precedence over stale in-app/digest breadcrumbs, while still flagging genuinely unevaluated final packages.',
   ],
   landingHighlights: [
-    'Complete sourceRef proof counts as source-backed judgment.',
-    'Stale early judgment breadcrumbs no longer override final package truth.',
-    'Cross-lesson enrichment payloads are rejected before compile.',
-    'Assignment brief identity is repaired against the Course Map before export.',
+    'Final source proof owns package judgment.',
+    'Digest, manifest, report, and regrade agree.',
+    'OpenStax counts as trusted coverage.',
+    'Stale breadcrumbs no longer beat the final manifest.',
   ],
   proof: {
-    contract: 'release-contracts/v0.15.164.json',
-    roadmap: 'docs/V0.15.164_EXPORT_TRUTH_REPAIR_ROADMAP.md',
+    contract: 'release-contracts/v0.15.165.json',
+    roadmap: 'docs/V0.15.165_SOURCE_BACKED_EXPORT_TRUTH_ROADMAP.md',
     auditCommand: 'npm run audit:release-history',
   },
 };
@@ -35,6 +35,18 @@ export const CURRENT_RELEASE_CHANGELOG = {
 };
 
 export const HISTORICAL_RELEASE_CHANGELOGS = [
+  {
+    version: '0.15.164',
+    date: 'June 30, 2026',
+    title: 'Export Truth Repair: source-backed judgment and stale assignment identity',
+    highlights: [
+      'Fresh deployed v0.15.163 GPT-5.4-mini Python evidence exported a complete ZIP and locally regraded at 99/A with Texture 95; the only scored loss was stale judgment truth saying the course was not evaluated despite complete sourceRef/source-ledger proof.',
+      'Source-backed final judgment now records a strict coverage event when every CourseIR atom has a sourceRef, every lesson has cited resources, and genome judgment is unavailable, so reports stop penalizing complete source-backed packages as unevaluated.',
+      'The deep grader now trusts the canonical final manifest/report judgment over stale early console `not evaluated` breadcrumbs, while still flagging packages whose final judgment is genuinely missing.',
+      'Cross-lesson lesson-content enrichment now must match the current Course Map identity before the compiler uses assignment-core or key-term payloads, preventing dictionary kernels from contaminating files-and-exceptions lessons.',
+      'The package finalizer now repairs assignment brief titles, related lessons, and overview identity back to the Course Map before ZIP export when a stale generated body disagrees with the authoritative lesson row.',
+    ],
+  },
   {
     version: '0.15.163',
     date: 'June 30, 2026',

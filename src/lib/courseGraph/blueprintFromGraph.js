@@ -119,6 +119,7 @@ const KNOWLEDGE_BACKBONE_ORIGINS = new Set([
   'genome-prerequisite',
   'openalex',
   'openlibrary',
+  'openstax',
   'source-finder',
 ]);
 

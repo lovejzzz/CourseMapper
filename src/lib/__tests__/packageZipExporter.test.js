@@ -1729,6 +1729,97 @@ describe('packageZipExporter', () => {
     expect(sourceReport).not.toContain('## Source Ledger');
   });
 
+  it('replaces stale zero-genome judgment when exported source proof is complete', async () => {
+    const sourceRefCoverage = {
+      version: 'courseir.v1',
+      sourceLedgerRows: 2,
+      totals: { total: 8, withRefs: 8, missing: 0, danglingRefs: 0 },
+      categories: {
+        outcomes: { total: 2, withRefs: 2, missing: 0, danglingRefs: 0, missingIds: [] },
+        activities: { total: 2, withRefs: 2, missing: 0, danglingRefs: 0, missingIds: [] },
+        examples: { total: 1, withRefs: 1, missing: 0, danglingRefs: 0, missingIds: [] },
+        assessments: { total: 1, withRefs: 1, missing: 0, danglingRefs: 0, missingIds: [] },
+        rubricCriteria: { total: 1, withRefs: 1, missing: 0, danglingRefs: 0, missingIds: [] },
+        factualClaims: { total: 1, withRefs: 1, missing: 0, danglingRefs: 0, missingIds: [] },
+      },
+    };
+    const result = await buildCourseMaterialsZip({
+      courseMap: makeCourseMap('Introduction to Computer Science with Python'),
+      deliverables: {
+        lessonPlans: {
+          status: 'done',
+          data: {
+            lessonPlans: [
+              { lessonTitle: 'Lesson 1: Variables', objectives: ['Use Python variables.'] },
+              { lessonTitle: 'Lesson 2: Loops', objectives: ['Trace Python loops.'] },
+            ],
+          },
+        },
+      },
+      featureIds: ['courseMap', 'lessonPlans'],
+      courseGraph: {
+        courseName: 'Introduction to Computer Science with Python',
+        sessions: [
+          { id: 's1', number: 1, title: 'Lesson 1: Variables' },
+          { id: 's2', number: 2, title: 'Lesson 2: Loops' },
+        ],
+        concepts: [
+          { id: 'c1', term: 'variables' },
+          { id: 'c2', term: 'loops' },
+        ],
+        resources: [],
+        readings: [],
+        courseIR: {
+          version: 'courseir.v1',
+          lessonIds: ['L1', 'L2'],
+          conceptIds: ['c1', 'c2'],
+          assessmentIds: ['A1', 'A2'],
+          sourceLedger: [
+            {
+              id: 'SL1',
+              title: 'OpenStax Introduction to Python Programming section 1.3 Variables',
+              provider: 'openstax',
+              sourceType: 'open textbook section',
+              url: 'https://openstax.org/books/introduction-python-programming/pages/1-3-variables',
+              license: 'CC BY 4.0',
+              conceptLinks: [{ id: 'c1', label: 'variables' }],
+            },
+            {
+              id: 'SL2',
+              title: 'OpenStax Introduction to Python Programming section 5.1 While Loop',
+              provider: 'openstax',
+              sourceType: 'open textbook section',
+              url: 'https://openstax.org/books/introduction-python-programming/pages/5-1-while-loop',
+              license: 'CC BY 4.0',
+              conceptLinks: [{ id: 'c2', label: 'loops' }],
+            },
+          ],
+          sourceRefCoverage,
+        },
+      },
+      pipelineState: {
+        genomeLinker: '0 genome + 0 cached of 2 lessons (0 concepts, 0 citations, 0 bridges)',
+        judgment: 'not evaluated (0 genome-linked lessons)',
+      },
+      quality: false,
+    });
+
+    const zip = await JSZip.loadAsync(await result.blob.arrayBuffer());
+    const manifest = JSON.parse(await zip.file('PACKAGE_MANIFEST.json').async('string'));
+    const sourceReport = await zip.file('SOURCE_REPORT.md').async('string');
+
+    expect(manifest.pipeline.judgment).toBe(
+      'source-backed coverage check (8/8 sourceRef atoms covered; 2/2 lessons with cited resources; genome prerequisite judgment unavailable)',
+    );
+    expect(manifest.sourceLedgerSummary).toMatchObject({
+      sourceCount: 2,
+      trustedCount: 2,
+      conceptLinkedCount: 2,
+      trustedConceptLinkedCount: 2,
+    });
+    expect(sourceReport).toContain('outcomes: 2/2 with sourceRefs');
+  });
+
   it('omits metadata-only source-finder fallbacks instead of exporting review rows', async () => {
     const result = await buildCourseMaterialsZip({
       courseMap: makeCourseMap('Metadata Source Finder Review'),

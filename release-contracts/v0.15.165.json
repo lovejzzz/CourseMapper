@@ -1,0 +1,111 @@
+{
+  "version": "0.15.165",
+  "date": "June 30, 2026",
+  "title": "Source-backed Export Truth: final proof owns the package",
+  "status": "verified-current",
+  "proofSummary": {
+    "local": [
+      "npm test -- --run src/lib/__tests__/packageZipExporter.test.js tests/v0154-linear-algebra-output-quality.test.js src/lib/knowledge/__tests__/knowledgeBackbone.test.js",
+      "npm run audit:release-history"
+    ],
+    "ciFast": {
+      "status": "pending-push",
+      "note": "Fast verification is claimed only after v0.15.165 is pushed and the GitHub Actions run is attached."
+    },
+    "deploy": {
+      "status": "pending-push",
+      "note": "Pages deploy is not claimed until the pushed v0.15.165 release completes its deploy run."
+    },
+    "ciDeep": {
+      "status": "local-only",
+      "note": "This is a narrow export-truth/source-proof handoff repair; focused coverage plus normal gates are the release bar."
+    },
+    "liveProvider": {
+      "status": "not-current",
+      "note": "Fresh v0.15.165 provider ZIP/log proof is still required after deploy."
+    },
+    "manualHuman": {
+      "status": "not-applicable",
+      "note": "No external instructor approval is claimed by this release."
+    }
+  },
+  "claims": [
+    {
+      "id": "v015165-fresh-evidence-score",
+      "status": "verified-current",
+      "changelogHighlightIndex": 0,
+      "summary": "The release is grounded in fresh deployed v0.15.164 GPT-5.4-mini Python ZIP/log evidence that locally regraded at 99/A because the final package still preserved a stale zero-genome judgment despite complete source proof.",
+      "anchors": [
+        "verification-output/edutool-audit-loop/20260630T202241Z-v015164-fresh/local-regrade.json",
+        "verification-output/edutool-audit-loop/20260630T202241Z-v015164-fresh/unzipped/PACKAGE_MANIFEST.json",
+        "docs/V0.15.165_SOURCE_BACKED_EXPORT_TRUTH_ROADMAP.md"
+      ],
+      "proofCommands": [
+        "rg -n \"99/A|sourceRef|not evaluated\" docs/V0.15.165_SOURCE_BACKED_EXPORT_TRUTH_ROADMAP.md",
+        "node --input-type=module -e \"import fs from 'node:fs'; const r=JSON.parse(fs.readFileSync('verification-output/edutool-audit-loop/20260630T202241Z-v015164-fresh/local-regrade.json','utf8')); if (r.overall.score !== 99) process.exit(1);\""
+      ],
+      "proofScopes": ["live-provider", "static-audit"]
+    },
+    {
+      "id": "v015165-source-backed-normalizer",
+      "status": "verified-current",
+      "changelogHighlightIndex": 1,
+      "summary": "A shared normalizer replaces stale or missing judgment text only when final sourceRef coverage is complete and trusted concept-linked proof exists.",
+      "anchors": [
+        "src/lib/sourceBackedJudgment.js",
+        "src/AppFlow.jsx",
+        "src/lib/packageZipExporter.js",
+        "src/lib/__tests__/packageZipExporter.test.js"
+      ],
+      "proofCommands": [
+        "npm test -- --run src/lib/__tests__/packageZipExporter.test.js",
+        "rg -n \"normalizePipelineStateWithSourceBackedJudgment|trustedConceptLinkedCount|source-backed coverage check\" src/lib/sourceBackedJudgment.js src/AppFlow.jsx src/lib/packageZipExporter.js src/lib/__tests__/packageZipExporter.test.js"
+      ],
+      "proofScopes": ["unit", "static-audit"]
+    },
+    {
+      "id": "v015165-digest-manifest-agreement",
+      "status": "verified-current",
+      "changelogHighlightIndex": 2,
+      "summary": "The final run digest now uses the same normalized pipeline state as the package manifest, preventing digest/report/manifest disagreement.",
+      "anchors": ["src/AppFlow.jsx", "src/lib/packageZipExporter.js"],
+      "proofCommands": [
+        "rg -n \"digestBudget|getManifestPipelineState\\(\\)|pipelineState: finalPipelineState\" src/AppFlow.jsx src/lib/packageZipExporter.js"
+      ],
+      "proofScopes": ["static-audit"]
+    },
+    {
+      "id": "v015165-openstax-coverage",
+      "status": "verified-current",
+      "changelogHighlightIndex": 3,
+      "summary": "OpenStax-backed resources count in the knowledge-backbone coverage surface and blueprint graph path.",
+      "anchors": [
+        "src/lib/knowledge/readingListEngine.js",
+        "src/lib/courseGraph/blueprintFromGraph.js",
+        "src/lib/knowledge/__tests__/knowledgeBackbone.test.js"
+      ],
+      "proofCommands": [
+        "npm test -- --run src/lib/knowledge/__tests__/knowledgeBackbone.test.js",
+        "rg -n \"openstax\" src/lib/knowledge/readingListEngine.js src/lib/courseGraph/blueprintFromGraph.js src/lib/knowledge/__tests__/knowledgeBackbone.test.js"
+      ],
+      "proofScopes": ["unit", "static-audit"]
+    },
+    {
+      "id": "v015165-manifest-judgment-precedence",
+      "status": "verified-current",
+      "changelogHighlightIndex": 4,
+      "summary": "The deep grader gives final manifest judgment precedence over stale in-app/digest judgment breadcrumbs while still flagging genuinely stale final manifests.",
+      "anchors": ["src/lib/quality/deepQualityGrader.js", "tests/v0154-linear-algebra-output-quality.test.js"],
+      "proofCommands": [
+        "npm test -- --run tests/v0154-linear-algebra-output-quality.test.js",
+        "rg -n \"manifestJudgment|does not let stale zero-genome console text\" src/lib/quality/deepQualityGrader.js tests/v0154-linear-algebra-output-quality.test.js"
+      ],
+      "proofScopes": ["unit", "static-audit"]
+    }
+  ],
+  "knownRemainingTargets": [
+    "Fresh deployed v0.15.165 GPT-5.4-mini ZIP/log proof must confirm the digest, PACKAGE_MANIFEST.json, QUALITY_REPORT.md, and local regrade agree on the source-backed judgment.",
+    "The next audit should verify whether the remaining score loss, if any, is now texture/model variability rather than a CourseMapper truth-surface defect.",
+    "A clean 100/100 is not claimed until fresh provider output and local regrade both prove it without hidden caveats."
+  ]
+}

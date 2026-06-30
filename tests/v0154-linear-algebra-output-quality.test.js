@@ -199,6 +199,10 @@ describe('v0.15.4 Linear Algebra output quality regressions', () => {
       }),
       consoleLogText:
         '[CM][API] pipelineDecision {"stage":"judgment","detail":"not evaluated (0 genome-linked lessons)"}',
+      honesty: {
+        genomeLinker: '0 genome + 0 cached of 15 lessons (0 concepts, 0 citations, 0 bridges)',
+        judgment: 'not evaluated (0 genome-linked lessons)',
+      },
       course: {
         id: 'intro-cs-python',
         title: 'Introduction to Computer Science with Python',

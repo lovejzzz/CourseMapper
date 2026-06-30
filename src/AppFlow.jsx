@@ -103,6 +103,7 @@ import {
 } from './lib/courseGraph';
 import { matchEntityIds, preserveSourceProof } from './lib/nativeGraphAuthoring';
 import { knowledgeCoverage } from './lib/knowledge';
+import { normalizePipelineStateWithSourceBackedJudgment } from './lib/sourceBackedJudgment';
 
 const PACKAGE_READY_MESSAGE = 'All required files passed export checks and the package is ready to download.';
 
@@ -667,9 +668,10 @@ export default function AppFlow({ startupAction = null, onStartupHandled, onRetu
     // "ran (12/14 — lessons 13, 14 fell back to template)" in the manifest,
     // matching the digest pipeline line.
     const enrichment = formatEnrichmentOutcomeLabel(outcome);
-    const graphStats = courseGraphStats(courseGraphRef.current);
-    const coverage = knowledgeCoverage(courseGraphRef.current);
-    return {
+    const currentGraph = courseGraphRef.current;
+    const graphStats = courseGraphStats(currentGraph);
+    const coverage = knowledgeCoverage(currentGraph);
+    const pipelineState = {
       enrichment,
       genomeLinker: budget.pipeline?.genomeLinker || 'not run',
       ...(budget.pipeline?.planHealth ? { planHealth: budget.pipeline.planHealth } : {}),
@@ -694,6 +696,16 @@ export default function AppFlow({ startupAction = null, onStartupHandled, onRetu
       // course (prerequisite gaps found, bridged, or flagged).
       ...(budget.pipeline?.judgment ? { judgment: budget.pipeline.judgment } : {}),
     };
+    return normalizePipelineStateWithSourceBackedJudgment(pipelineState, {
+      sourceRefCoverage: currentGraph?.courseIR?.sourceRefCoverage || null,
+      sourceLedgerSummary: currentGraph?.courseIR?.sourceLedgerSummary || null,
+      sourceLedger: currentGraph?.courseIR?.sourceLedger || null,
+      courseGraph: currentGraph,
+      courseMap: courseMapRef.current,
+      totalLessons: coverage?.sessions || 0,
+      lessonsWithResources: coverage?.sessionsWithResources || 0,
+      genomeLinkedLessons: coverage?.genomeLinkedLessons || 0,
+    });
   }, []);
 
   // ── Misc ──
@@ -1598,9 +1610,17 @@ export default function AppFlow({ startupAction = null, onStartupHandled, onRetu
         try {
           const { buildRunDigest, emitRunDigest } = await import('./lib/runDigest');
           emitRunDigestForFinish = emitRunDigest;
-          buildCurrentRunDigest = (quality = null) =>
-            buildRunDigest({
-              budget: apiCallBudgetRef.current || {},
+          buildCurrentRunDigest = (quality = null) => {
+            const currentBudget = apiCallBudgetRef.current || {};
+            const digestBudget = {
+              ...currentBudget,
+              pipeline: {
+                ...(currentBudget.pipeline || {}),
+                ...(getManifestPipelineState() || {}),
+              },
+            };
+            return buildRunDigest({
+              budget: digestBudget,
               exportVerification,
               finish: {
                 finalStatus,
@@ -1623,6 +1643,7 @@ export default function AppFlow({ startupAction = null, onStartupHandled, onRetu
                 featureIds,
               },
             });
+          };
           runDigest = buildCurrentRunDigest();
         } catch {
           /* digest is diagnostics-only — never block the finish on it */

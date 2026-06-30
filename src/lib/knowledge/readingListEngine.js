@@ -1012,7 +1012,7 @@ export function knowledgeCoverage(graph) {
     (payload) => payload?.conceptProvenance?.source === 'genome-linked',
   ).length;
   const citedResources = resources.filter((resource) =>
-    ['genome', 'genome-prerequisite', 'openalex', 'openlibrary', 'source-finder'].includes(resource.origin),
+    ['genome', 'genome-prerequisite', 'openalex', 'openlibrary', 'openstax', 'source-finder'].includes(resource.origin),
   );
   return {
     sessions: sessions.length,
