@@ -1,0 +1,108 @@
+{
+  "version": "0.15.155",
+  "date": "June 30, 2026",
+  "title": "OpenStax Source Proof: concrete section labels keep URL and license truth",
+  "status": "verified-current",
+  "proofSummary": {
+    "local": [
+      "npm test -- src/lib/knowledge/__tests__/sourceLedger.test.js",
+      "npm test -- src/lib/quality/__tests__/sourceLedgerGrader.test.js",
+      "npm run audit:release-history"
+    ],
+    "ciFast": {
+      "status": "pending-push",
+      "note": "Fast verification is claimed only after v0.15.155 is pushed and the GitHub Actions run is attached."
+    },
+    "deploy": {
+      "status": "pending-push",
+      "note": "Pages deploy is not claimed until the pushed v0.15.155 release completes its deploy run."
+    },
+    "ciDeep": {
+      "status": "local-only",
+      "note": "This is a narrow source-ledger normalization release; focused coverage plus normal gates are the release bar."
+    },
+    "liveProvider": {
+      "status": "not-current",
+      "note": "The release is based on captured ZIP/log evidence and local regressions. Fresh v0.15.155 provider proof is still required."
+    },
+    "manualHuman": {
+      "status": "not-applicable",
+      "note": "No external instructor approval is claimed by this release."
+    }
+  },
+  "claims": [
+    {
+      "id": "v015155-openstax-review-evidence",
+      "status": "verified-current",
+      "changelogHighlightIndex": 0,
+      "summary": "The v0.15.147 GPT-5.5-pro Python evidence showed concrete OpenStax section labels downgraded to review-only because duplicated URL/license proof was missing.",
+      "anchors": [
+        "docs/V0.15.155_OPENSTAX_SOURCE_PROOF_ROADMAP.md",
+        "verification-output/edutool-audit-loop/20260630T064106Z-v015147-gpt55pro-python/local-regrade-current-rules.md"
+      ],
+      "proofCommands": [
+        "rg -n \"OpenStax introduction python programming|license=missing|access=missing-url-or-doi|trustedBibliography=false\" verification-output/edutool-audit-loop/20260630T064106Z-v015147-gpt55pro-python/extracted/SOURCE_REPORT.md docs/V0.15.155_OPENSTAX_SOURCE_PROOF_ROADMAP.md"
+      ],
+      "proofScopes": ["static-audit"]
+    },
+    {
+      "id": "v015155-no-new-model-claim",
+      "status": "verified-current",
+      "changelogHighlightIndex": 1,
+      "summary": "The release keeps model-comparison claims honest: the old v0.15.147 run is not treated as a fair GPT-5.5-pro quality verdict.",
+      "anchors": ["docs/V0.15.155_OPENSTAX_SOURCE_PROOF_ROADMAP.md", "src/lib/releaseManifest.js"],
+      "proofCommands": [
+        "rg -n \"not a fair model comparison|reasoning\\.effort: low|source-proof hydration\" docs/V0.15.155_OPENSTAX_SOURCE_PROOF_ROADMAP.md src/lib/releaseManifest.js"
+      ],
+      "proofScopes": ["static-audit"]
+    },
+    {
+      "id": "v015155-openstax-url-license-hydration",
+      "status": "verified-current",
+      "changelogHighlightIndex": 2,
+      "summary": "Source ledger normalization recovers canonical OpenStax book URL and CC BY 4.0 license proof from concrete OpenStax section labels.",
+      "anchors": ["src/lib/knowledge/sourceLedger.js", "src/lib/knowledge/__tests__/sourceLedger.test.js"],
+      "proofCommands": [
+        "rg -n \"inferOpenStaxBookProof|CC BY 4\\.0|introduction-python-programming\" src/lib/knowledge/sourceLedger.js src/lib/knowledge/__tests__/sourceLedger.test.js",
+        "npm test -- src/lib/knowledge/__tests__/sourceLedger.test.js"
+      ],
+      "proofScopes": ["unit"]
+    },
+    {
+      "id": "v015155-source-gates-remain-strict",
+      "status": "verified-current",
+      "changelogHighlightIndex": 3,
+      "summary": "Hydrated rows still pass through existing concept-link and course-aware weak-source gates instead of broadening trust for vague or off-topic rows.",
+      "anchors": [
+        "src/lib/knowledge/sourceLedger.js",
+        "src/lib/quality/sourceLedgerQualityChecks.js",
+        "src/lib/quality/__tests__/sourceLedgerGrader.test.js"
+      ],
+      "proofCommands": [
+        "rg -n \"isCourseAwareWeakSource|isTrustedConceptLinkedSourceLedgerRow|OpenStax section\" src/lib/knowledge/sourceLedger.js src/lib/quality/sourceLedgerQualityChecks.js src/lib/quality/__tests__/sourceLedgerGrader.test.js"
+      ],
+      "proofScopes": ["unit", "static-audit"]
+    },
+    {
+      "id": "v015155-focused-source-regressions",
+      "status": "verified-current",
+      "changelogHighlightIndex": 4,
+      "summary": "Focused source-ledger and deep-grader regressions verify OpenStax section hydration without weakening false-friend, metadata-only, or review-only standards.",
+      "anchors": [
+        "src/lib/knowledge/__tests__/sourceLedger.test.js",
+        "src/lib/quality/__tests__/sourceLedgerGrader.test.js"
+      ],
+      "proofCommands": [
+        "npm test -- src/lib/knowledge/__tests__/sourceLedger.test.js",
+        "npm test -- src/lib/quality/__tests__/sourceLedgerGrader.test.js"
+      ],
+      "proofScopes": ["unit"]
+    }
+  ],
+  "knownRemainingTargets": [
+    "A fresh deployed v0.15.155 provider ZIP/log audit must prove real provider output no longer leaves concrete CS/Python OpenStax section rows in sourceReviewRows for missing URL/license proof.",
+    "Source truth still needs repeated cross-domain audits so hydration helps real OER section rows without promoting weak false friends.",
+    "Texture remains below the long-running target until fresh packages repeatedly reach 100/100 texture with no repeated-shingle caveat.",
+    "Every fresh audit still has to reconcile UI, ZIP, manifest, quality report, source report, digest logs, and local regrade before claiming clean output."
+  ]
+}

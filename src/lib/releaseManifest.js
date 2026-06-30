@@ -3,24 +3,24 @@ import { APP_VERSION } from './appVersion.js';
 export const CURRENT_RELEASE = {
   version: APP_VERSION,
   date: 'June 30, 2026',
-  title: 'Generic Course Map Texture: evidence-check and assigned-material scaffolds stop repeating',
-  landingTitle: 'Generic Course Map Texture',
+  title: 'OpenStax Source Proof: concrete section labels keep URL and license truth',
+  landingTitle: 'OpenStax Source Proof',
   highlights: [
-    'The v0.15.150 GPT-5.5-pro Python ZIP/log evidence still explains why texture stayed below the clean target: repeated Course Map fallback families such as `Quick evidence check` and assigned-materials notes can fan out through exported materials.',
-    'The current v0.15.153 regrade of that captured package remains honest at 98/A because the immutable ZIP still contains the older `Correlation` source row; v0.15.154 does not claim a new provider score.',
-    'Generic Course Map fallback repair now avoids the old repeated `Quick evidence check`, `Review assigned materials`, `same evidence standard`, and broad LMS/tooling scaffolds for sparse non-specialized courses.',
-    'Replacement generic repairs rotate source-note, visible-product, observable-response, activity-prompt, and feedback-guide language so weak maps have more texture before they seed compiled deliverables.',
-    'Focused readiness and texture regressions cover both the new generic fallback branch and the existing CS/Python branch, preserving domain-specific Python repairs while removing the old generic scaffold families.',
+    'The v0.15.147 GPT-5.5-pro Python ZIP/log evidence showed concrete OpenStax section rows such as `OpenStax introduction python programming §4.2 (open textbook)` being quarantined as review-only because URL and license fields were not duplicated on the generated row.',
+    'That old package remains an unfair model comparison because GPT-5.5-pro request compatibility was already fixed after v0.15.147; v0.15.155 focuses on the remaining CourseMapper-side source-proof hydration seam.',
+    'Source ledger normalization now recovers canonical OpenStax book URLs and CC BY 4.0 license proof from concrete OpenStax section labels that include a section marker or open-textbook cue.',
+    'The hydration still respects course-aware weak-source gates: a source must remain concept-linked and on-topic, and vague OpenStax placeholders are not promoted just because they contain the publisher name.',
+    'Focused source-ledger and deep-grader regressions prove concrete CS/Python OpenStax sections become trusted, licensed, concept-linked proof without weakening false-friend, metadata-only, or review-only source standards.',
   ],
   landingHighlights: [
-    'Generic map fallbacks stop saying Quick evidence check.',
-    'Assigned-material scaffolds are replaced with source-note tasks.',
-    'Sparse maps get more varied visible-product language.',
-    'Fresh provider scores still require funded ZIP/log evidence.',
+    'Concrete OpenStax sections keep URL and license proof.',
+    'Review-only rows still stay review-only when proof is weak.',
+    'CS/Python source gates still reject false friends.',
+    'Fresh provider scores still require new ZIP/log evidence.',
   ],
   proof: {
-    contract: 'release-contracts/v0.15.154.json',
-    roadmap: 'docs/V0.15.154_GENERIC_COURSE_MAP_TEXTURE_ROADMAP.md',
+    contract: 'release-contracts/v0.15.155.json',
+    roadmap: 'docs/V0.15.155_OPENSTAX_SOURCE_PROOF_ROADMAP.md',
     auditCommand: 'npm run audit:release-history',
   },
 };
@@ -35,6 +35,18 @@ export const CURRENT_RELEASE_CHANGELOG = {
 };
 
 export const HISTORICAL_RELEASE_CHANGELOGS = [
+  {
+    version: '0.15.154',
+    date: 'June 30, 2026',
+    title: 'Generic Course Map Texture: evidence-check and assigned-material scaffolds stop repeating',
+    highlights: [
+      'The v0.15.150 GPT-5.5-pro Python ZIP/log evidence still explains why texture stayed below the clean target: repeated Course Map fallback families such as `Quick evidence check` and assigned-materials notes can fan out through exported materials.',
+      'The current v0.15.153 regrade of that captured package remains honest at 98/A because the immutable ZIP still contains the older `Correlation` source row; v0.15.154 does not claim a new provider score.',
+      'Generic Course Map fallback repair now avoids the old repeated `Quick evidence check`, `Review assigned materials`, `same evidence standard`, and broad LMS/tooling scaffolds for sparse non-specialized courses.',
+      'Replacement generic repairs rotate source-note, visible-product, observable-response, activity-prompt, and feedback-guide language so weak maps have more texture before they seed compiled deliverables.',
+      'Focused readiness and texture regressions cover both the new generic fallback branch and the existing CS/Python branch, preserving domain-specific Python repairs while removing the old generic scaffold families.',
+    ],
+  },
   {
     version: '0.15.153',
     date: 'June 30, 2026',

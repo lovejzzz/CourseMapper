@@ -109,6 +109,56 @@ describe('trusted source ledger', () => {
     });
   });
 
+  it('hydrates concrete OpenStax section labels into licensed concept-linked source proof', () => {
+    const ledger = buildSourceLedgerFromCourseGraph(
+      {
+        course: { name: 'Introduction to Computer Science with Python' },
+        concepts: [{ id: 'c1', term: 'Boolean logic' }],
+        sessions: [
+          {
+            id: 's3',
+            number: 3,
+            title: 'Boolean Logic and Conditional Control Flow',
+            sections: [
+              {
+                topic: 'Boolean logic',
+                conceptRefs: ['c1'],
+                resourceRefs: ['syllabus-src-3-3'],
+              },
+            ],
+          },
+        ],
+        resources: [
+          {
+            id: 'syllabus-src-3-3',
+            origin: 'syllabus',
+            citation: 'OpenStax introduction python programming §4.2 (open textbook)',
+            sessionRefs: [3],
+          },
+        ],
+      },
+      { checkedAt: '2026-06-30T00:00:00.000Z' },
+    );
+
+    expect(ledger.reviewRows || []).toHaveLength(0);
+    expect(ledger.rows).toEqual([
+      expect.objectContaining({
+        id: 'syllabus-src-3-3',
+        provider: 'openstax',
+        url: 'https://openstax.org/books/introduction-python-programming',
+        license: 'CC BY 4.0',
+        accessStatus: 'reference-present',
+        licenseAmbiguous: false,
+        conceptLinks: [{ id: 'c1', label: 'Boolean logic' }],
+      }),
+    ]);
+    expect(ledger.summary).toMatchObject({
+      sourceCount: 1,
+      trustedConceptLinkedCount: 1,
+    });
+    expect(ledger.summary).not.toHaveProperty('reviewRequiredCount');
+  });
+
   it('normalizes hyphenated Creative Commons licenses recovered from source text', () => {
     const ledger = buildSourceLedgerFromCourseGraph({
       sessions: [{ id: 's1', number: 1, sections: [{ topic: 'Scope definition', resourceRefs: ['r1', 'r2'] }] }],

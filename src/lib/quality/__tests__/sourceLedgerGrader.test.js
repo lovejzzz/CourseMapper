@@ -202,6 +202,59 @@ describe('source-ledger quality checks', () => {
     expect(details).not.toContain('source ledger row SL1 has ambiguous or missing license');
   });
 
+  it('accepts hydrated OpenStax section rows as trusted concept-linked source proof', async () => {
+    const result = await grade({
+      fileProvider: createMemoryFileProvider({
+        'PACKAGE_MANIFEST.json': JSON.stringify({
+          courseName: 'Introduction to Computer Science with Python',
+          lessonScope: 'all',
+          requestedFeatures: [],
+          readiness: { status: 'ready', blockers: 0, warnings: 0, checkedSections: null },
+          sourceLedger: [
+            {
+              id: 'syllabus-src-3-3',
+              title: 'OpenStax introduction python programming §4.2 (open textbook)',
+              provider: 'openstax',
+              url: 'https://openstax.org/books/introduction-python-programming',
+              license: 'CC BY 4.0',
+              conceptLinks: [{ id: 'c1', label: 'Boolean logic' }],
+            },
+            {
+              id: 'syllabus-src-1-1',
+              title: 'OpenStax introduction python programming §1.3 (open textbook)',
+              provider: 'openstax',
+              url: 'https://openstax.org/books/introduction-python-programming',
+              license: 'CC BY 4.0',
+              conceptLinks: [{ id: 'c2', label: 'Programming fundamentals' }],
+            },
+          ],
+          sourceReport: {
+            path: 'SOURCE_REPORT.md',
+            sourceCount: 2,
+          },
+          files: [],
+        }),
+        'SOURCE_REPORT.md': [
+          '# Source Report',
+          '',
+          '## Source Ledger',
+          '- syllabus-src-3-3: OpenStax introduction python programming §4.2 (open textbook)',
+          '- syllabus-src-1-1: OpenStax introduction python programming §1.3 (open textbook)',
+        ].join('\n'),
+      }),
+      course: { title: 'Introduction to Computer Science with Python', featureIds: [] },
+    });
+
+    const details = result.findings.map((finding) => finding.detail);
+    expect(details).not.toEqual(
+      expect.arrayContaining([
+        expect.stringMatching(/source ledger row syllabus-src-.*(?:no accessible URL|ambiguous or missing license)/),
+      ]),
+    );
+    expect(details).not.toContain('source ledger row syllabus-src-3-3 is off-discipline for Computer Science/Python');
+    expect(details).not.toContain('source ledger row syllabus-src-1-1 is off-discipline for Computer Science/Python');
+  });
+
   it('keeps quarantined review rows advisory when trusted concept-linked source rows cover the bibliography', async () => {
     const result = await grade({
       fileProvider: createMemoryFileProvider({

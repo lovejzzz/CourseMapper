@@ -153,6 +153,11 @@ const COMPUTER_SCIENCE_TOPIC_ANCHORS = [
   },
 ];
 const SOURCE_FINDER_TRUSTED_ROWS_PER_TOPIC = 2;
+const OPENSTAX_SLUG_ALIASES = {
+  'microeconomics-3e': 'principles-microeconomics-3e',
+  'macroeconomics-2e': 'principles-macroeconomics-2e',
+  statistics: 'introductory-statistics-2e',
+};
 
 function cleanText(value, maxLength = 500) {
   const text = String(value ?? '')
@@ -224,6 +229,26 @@ function extractLicense(value) {
   const normalized = normalizeLicense(value);
   if (normalized && !isLicenseAmbiguous(normalized)) return normalized;
   return extractLicenseUrl(value) || normalized;
+}
+
+function inferOpenStaxBookProof(value) {
+  const text = cleanText(value, 1000);
+  if (!/\bOpenStax\b/i.test(text)) return null;
+  if (!/(?:§\s*\d|\bopen\s+textbook\b)/i.test(text)) return null;
+  const match = text.match(/\bOpenStax\s+(.+?)(?:\s+§\s*[\d.]+|\s*\(\s*open\s+textbook\s*\)|,|$)/i);
+  const rawTitle = cleanText(match?.[1] || '', 180)
+    .replace(/\s*\(\s*open\s+textbook\s*\)\s*$/i, '')
+    .trim();
+  if (!rawTitle || /^(?:chapter|section|textbook|source|reading)$/i.test(rawTitle)) return null;
+  const slug = rawTitle
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '');
+  if (!slug || slug.length < 6) return null;
+  return {
+    url: `https://openstax.org/books/${OPENSTAX_SLUG_ALIASES[slug] || slug}`,
+    license: 'CC BY 4.0',
+  };
 }
 
 function normalizeDoi(value) {
@@ -359,17 +384,18 @@ export function normalizeTrustedSource(entry = {}, { fallbackId = '', checkedAt 
   const sourceText = [entry.url, entry.sourceUrl, entry.doi, entry.citation, entry.evidence, entry.title]
     .filter(Boolean)
     .join(' ');
+  const openStaxProof = provider === 'openstax' ? inferOpenStaxBookProof(sourceText) : null;
   const doi = normalizeDoi(entry.doi || extractDoi(sourceText));
   const extractedUrl = cleanUrl(entry.url || entry.sourceUrl) || extractUrl(sourceText);
   const url =
     doi && /^https?:\/\/(?:dx\.)?doi\.org\//i.test(extractedUrl || '')
       ? `https://doi.org/${doi}`
-      : extractedUrl || (doi ? `https://doi.org/${doi}` : '');
+      : extractedUrl || (doi ? `https://doi.org/${doi}` : '') || openStaxProof?.url || '';
   const title = cleanText(entry.title || entry.displayTitle || entry.citation || entry.evidence || entry.scope, 260);
   const explicitLicense = cleanText(entry.license || entry.rights || entry.licenseUrl, 180);
   const license = explicitLicense
     ? normalizeLicense(explicitLicense, { preserveUnknown: true })
-    : extractLicense(sourceText);
+    : extractLicense(sourceText) || openStaxProof?.license || '';
   const source = {
     id: sourceId(entry, fallbackId, 0),
     title,
