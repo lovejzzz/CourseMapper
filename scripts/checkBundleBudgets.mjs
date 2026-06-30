@@ -63,7 +63,11 @@ const lazyChunkBudgets = [
   // 2026-06-19 (v0.15.8): +digest caveat scoring and title-only assignment
   // detection from live EduTool ZIP audits; this remains a lazy finalize/ZIP
   // chunk and does not affect the landing path.
-  { prefix: 'deepQualityGrader-', rawKiB: 54, gzipKiB: 19 },
+  // 2026-06-30 (v0.15.145): +assessment-label lesson identity guard from a
+  // fresh ZIP audit where "evidence check: Studio critique (9%)" became lesson
+  // titles and filenames. Still lazy and still within the 40–60 KiB roadmap
+  // range named when this chunk was introduced.
+  { prefix: 'deepQualityGrader-', rawKiB: 57, gzipKiB: 20 },
   // The finalize-time grading seam AppFlow lazy-imports (assembles the file
   // map via packageZipExporter and returns the badge data; measured at
   // 1.1 KiB raw / 0.6 gzip).

@@ -647,66 +647,24 @@ const WET_LAB_REQUIRED_ASSET_RE =
 const ANATOMY_WRONG_REQUIRED_ASSET_RE =
   /\b(rock|mineral|chemical samples?|streak plates?|hand lenses?|field notebook|field activities)\b/i;
 
-const ASSESSMENT_IDENTITY_PREFIX_RE =
-  /^(?:lesson\s+\d{1,3}\s*)?(?:evidence check|quick evidence check|applied problem|practice brief|concept transfer|exit ticket|weekly assessment|practice response|assessment|quiz|exam|assignment brief|rubric)\b/i;
-const ASSESSMENT_WEIGHT_RE = /(?:\(\s*\d{1,3}\s*%\s*\)|\b\d{1,3}\s*%\b)/;
-const ASSESSMENT_ACTIVITY_IDENTITY_RE =
-  /\b(?:studio critique|portfolio review|prototype presentation|usability test|design journal|critique session)\b/i;
-
-function normalizeIdentityCandidate(value) {
-  return String(value || '')
-    .replace(/[_/|]+/g, ' ')
-    .replace(/\s*[—–-]\s*/g, ' ')
-    .replace(/\s+/g, ' ')
-    .trim();
-}
-
-function isAssessmentLabelLessonIdentity(value) {
-  const candidate = normalizeIdentityCandidate(value).replace(/^lesson\s+\d{1,3}\s*[:.]\s*/i, '');
-  if (!candidate) return false;
-  if (!ASSESSMENT_IDENTITY_PREFIX_RE.test(candidate)) return false;
-  return ASSESSMENT_WEIGHT_RE.test(candidate) || ASSESSMENT_ACTIVITY_IDENTITY_RE.test(candidate);
-}
-
-function assessmentIdentityTitleFromPath(relPath) {
-  const base =
-    String(relPath || '')
-      .split('/')
-      .pop() || '';
-  const match = /Lesson\s+\d{1,3}\s*-\s*(.+)\s*-\s*[^/]+$/i.exec(base);
-  return match ? match[1].trim() : lessonTitleFromPath(relPath);
-}
+const ASSESSMENT_LABEL_LESSON_IDENTITY_RE =
+  /\blesson\s+(\d{1,3})\b[\s:_/|—–.-]*(?:evidence check|quick evidence check|applied problem|practice brief|concept transfer|exit ticket|weekly assessment|practice response|assessment|quiz|exam|assignment brief|rubric)\b[\s\S]*(?:\(\s*\d{1,3}\s*%\s*\)|\b\d{1,3}\s*%\b|\b(?:studio critique|portfolio review|prototype presentation|usability test|design journal|critique session)\b)/i;
 
 function checkAssessmentLabelLessonIdentity(findings, files) {
   const hits = [];
   const lessonNumbers = new Set();
-  const featureIds = new Set();
   for (const file of files) {
     if (file.lessonNumber == null || !SHOULD_BE_LESSON_ROOTED.includes(file.featureId)) continue;
-    const title = assessmentIdentityTitleFromPath(file.path);
-    if (!isAssessmentLabelLessonIdentity(title)) continue;
-    hits.push({ file, title });
+    if (!ASSESSMENT_LABEL_LESSON_IDENTITY_RE.test(file.path)) continue;
+    hits.push(file.path);
     lessonNumbers.add(file.lessonNumber);
-    featureIds.add(file.featureId);
   }
-  const courseMap = files.find((file) => file.featureId === 'courseMap' && file.kind === 'xlsx');
-  for (const cell of (courseMap?.cellTexts && courseMap.cellTexts.length ? courseMap.cellTexts : courseMap?.cells) ||
-    []) {
-    const match = String(cell).match(/\bLesson\s+(\d{1,3})\s*:\s*(.+)$/i);
-    if (!match || !isAssessmentLabelLessonIdentity(match[2])) continue;
-    hits.push({ file: courseMap, title: match[0] });
-    lessonNumbers.add(Number(match[1]));
-    featureIds.add('courseMap');
-  }
-  if (hits.length === 0 || (lessonNumbers.size < 2 && featureIds.size < 2)) return;
-  const sample = hits
-    .slice(0, 5)
-    .map((hit) => `${hit.file.path}: ${hit.title}`)
-    .join(' | ');
+  if (hits.length < 2 || lessonNumbers.size < 2) return;
+  const sample = hits.slice(0, 5).join(' | ');
   findings.add({
     severity: 'P1',
     dimension: 'identity',
-    file: hits[0].file.path || 'package',
+    file: hits[0] || 'package',
     detail: 'assessment labels or grading weights are being used as lesson identities across exported materials',
     evidence: sample,
   });
