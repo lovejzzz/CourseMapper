@@ -882,6 +882,86 @@ describe('CourseIR v1', () => {
     });
   });
 
+  it('repairs repeated Python assessment scaffolds before projecting CourseIR to the Course Map', () => {
+    const topics = ['Computer Science', 'Python', 'variables', 'data types', 'conditionals'];
+    const repeatedTitles = [
+      'Quick evidence check: apply Computer Science to a new example.',
+      'Exit ticket using Python to justify one course-relevant decision.',
+      'Exit ticket using variables to justify one course-relevant decision.',
+      'Practice response that names the evidence needed for data types.',
+      'Quick evidence check: apply conditionals to a new example.',
+    ];
+    const baseIR = buildCourseIRFromCourseMap({
+      courseName: 'Introduction to Computer Science with Python',
+      lessons: topics.map((topic, index) => ({
+        title: `Lesson ${index + 1}: ${topic}`,
+        sections: [
+          {
+            topicSection: topic,
+            learningObjectives: `Explain ${topic} and apply it in Python practice.`,
+            weeklyAssessments: `${topic} implementation check`,
+            asyncActivities: `Prepare a ${topic} code note.`,
+            syncActivities: `Workshop a ${topic} example.`,
+            supportingResources: `OpenStax Introduction to Python Programming section for ${topic}.`,
+          },
+        ],
+      })),
+    });
+    const ir = {
+      ...baseIR,
+      assessments: baseIR.assessments.map((assessment, index) => ({
+        ...assessment,
+        title: repeatedTitles[index],
+        prompt: repeatedTitles[index],
+      })),
+    };
+
+    const courseMap = courseIRToCourseMap(ir);
+    const weeklyAssessments = courseMap.lessons.map((lesson) => lesson.sections[0].weeklyAssessments);
+    const text = weeklyAssessments.join('\n');
+
+    expect(text).not.toMatch(/Quick evidence check|Exit ticket using|Practice response that names/i);
+    expect(text).not.toMatch(/course-relevant decision|new example|evidence needed/i);
+    expect(new Set(weeklyAssessments).size).toBe(topics.length);
+    expect(text).toMatch(/Code trace|Debug note|Mini program|Peer review|Transfer check/);
+  });
+
+  it('repairs repeated Python assessment scaffolds before CourseMap-to-CourseIR atoms seed package manifests', () => {
+    const topics = ['Computer Science', 'Python', 'variables', 'data types', 'conditionals'];
+    const repeatedTitles = [
+      'Quick evidence check: apply Computer Science to a new example.',
+      'Exit ticket using Python to justify one course-relevant decision.',
+      'Exit ticket using variables to justify one course-relevant decision.',
+      'Practice response that names the evidence needed for data types.',
+      'Quick evidence check: apply conditionals to a new example.',
+    ];
+
+    const ir = buildCourseIRFromCourseMap({
+      courseName: 'Introduction to Computer Science with Python',
+      lessons: topics.map((topic, index) => ({
+        title: `Lesson ${index + 1}: ${topic}`,
+        sections: [
+          {
+            topicSection: topic,
+            learningObjectives: `Explain ${topic} and apply it in Python practice.`,
+            weeklyAssessments: repeatedTitles[index],
+            asyncActivities: `Prepare a ${topic} code note.`,
+            syncActivities: `Workshop a ${topic} example.`,
+            supportingResources: `OpenStax Introduction to Python Programming section for ${topic}.`,
+          },
+        ],
+      })),
+    });
+    const titles = ir.assessments.map((assessment) => assessment.title);
+    const prompts = ir.assessments.map((assessment) => assessment.prompt);
+    const text = [...titles, ...prompts].join('\n');
+
+    expect(text).not.toMatch(/Quick evidence check|Exit ticket using|Practice response that names/i);
+    expect(text).not.toMatch(/course-relevant decision|new example|evidence needed/i);
+    expect(new Set(titles).size).toBe(topics.length);
+    expect(text).toMatch(/Code trace|Debug note|Mini program|Peer review|Transfer check/);
+  });
+
   it('compiles deterministic package artifacts from CourseIR with proof metadata', () => {
     const result = compileCourseIR(makeCalculusIR(), { featureIds: FEATURE_IDS });
 

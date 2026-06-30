@@ -3,24 +3,24 @@ import { APP_VERSION } from './appVersion.js';
 export const CURRENT_RELEASE = {
   version: APP_VERSION,
   date: 'June 30, 2026',
-  title: 'OpenStax Python Source Gate: canonical OER rows stay trusted',
-  landingTitle: 'OpenStax Python Source Gate',
+  title: 'CourseIR Assessment Texture: generic checks rotate before export',
+  landingTitle: 'CourseIR Assessment Texture',
   highlights: [
-    'Current regrade of the existing GPT-5.5-pro Python ZIP corpus found one source-gate false positive: a licensed, linked, concept-linked OpenStax Introduction to Python Programming row was treated like ambiguous dictionary/file bycatch.',
-    'Computer Science/Python source filtering now recognizes canonical OpenStax Introduction to Python Programming rows from OpenStax/genome providers as discipline-appropriate OER proof, even when they link to ambiguous concepts such as dictionaries or file input.',
-    'The false-friend guard remains strict: source-finder/Wikipedia/Crossref rows such as Environment variable, Function (mathematics), File Explorer, String theory, and No Strings Attached still regrade as off-discipline for Python courses.',
-    'Production source-ledger promotion and the local deep quality grader now share the same canonical-OER rule, so export truth and regrade truth agree on legitimate OpenStax Python proof.',
-    'This release does not claim a new provider score; the next proof step remains a fresh funded v0.15.158 ZIP/log audit that reconciles UI, digest, ZIP, source report, quality report, and local regrade.',
+    'Existing GPT-5.5-pro Python ZIP evidence still showed deterministic assessment-title texture debt: `Quick evidence check`, `Exit ticket using`, and `Practice response that names...` scaffolds repeated across the manifest and Course Map.',
+    'CourseIR-to-CourseMap projection now detects those generic assessment scaffolds and rewrites them before they seed Course Map weekly-assessment cells.',
+    'CourseMap-to-CourseIR normalization applies the same repair before assessment atoms seed package manifests, lesson plans, quizzes, and other compiled deliverables.',
+    'Computer Science/Python repairs rotate code-trace, debug-note, mini-program, peer-review, and transfer-check titles instead of repeating generic evidence-check language.',
+    'This release does not claim a new provider score; the next proof step remains a fresh funded v0.15.159 ZIP/log audit that reconciles UI, digest, ZIP, source report, quality report, and local regrade.',
   ],
   landingHighlights: [
-    'Canonical OpenStax Python OER rows stay trusted.',
-    'Ambiguous CS false friends still fail source review.',
-    'Production export and local regrade source rules match.',
+    'Generic assessment scaffolds rotate before export.',
+    'Course Map and manifest assessment titles share the repair.',
+    'Python courses get code-aware assessment language.',
     'Fresh provider scores still require funded ZIP/log evidence.',
   ],
   proof: {
-    contract: 'release-contracts/v0.15.158.json',
-    roadmap: 'docs/V0.15.158_OPENSTAX_PYTHON_SOURCE_GATE_ROADMAP.md',
+    contract: 'release-contracts/v0.15.159.json',
+    roadmap: 'docs/V0.15.159_COURSEIR_ASSESSMENT_TEXTURE_ROADMAP.md',
     auditCommand: 'npm run audit:release-history',
   },
 };
@@ -35,6 +35,18 @@ export const CURRENT_RELEASE_CHANGELOG = {
 };
 
 export const HISTORICAL_RELEASE_CHANGELOGS = [
+  {
+    version: '0.15.158',
+    date: 'June 30, 2026',
+    title: 'OpenStax Python Source Gate: canonical OER rows stay trusted',
+    highlights: [
+      'Current regrade of the existing GPT-5.5-pro Python ZIP corpus found one source-gate false positive: a licensed, linked, concept-linked OpenStax Introduction to Python Programming row was treated like ambiguous dictionary/file bycatch.',
+      'Computer Science/Python source filtering now recognizes canonical OpenStax Introduction to Python Programming rows from OpenStax/genome providers as discipline-appropriate OER proof, even when they link to ambiguous concepts such as dictionaries or file input.',
+      'The false-friend guard remains strict: source-finder/Wikipedia/Crossref rows such as Environment variable, Function (mathematics), File Explorer, String theory, and No Strings Attached still regrade as off-discipline for Python courses.',
+      'Production source-ledger promotion and the local deep quality grader now share the same canonical-OER rule, so export truth and regrade truth agree on legitimate OpenStax Python proof.',
+      'This release does not claim a new provider score; the next proof step remains a fresh funded v0.15.158 ZIP/log audit that reconciles UI, digest, ZIP, source report, quality report, and local regrade.',
+    ],
+  },
   {
     version: '0.15.157',
     date: 'June 30, 2026',

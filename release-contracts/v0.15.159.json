@@ -1,0 +1,92 @@
+{
+  "version": "0.15.159",
+  "date": "June 30, 2026",
+  "title": "CourseIR Assessment Texture: generic checks rotate before export",
+  "status": "verified-current",
+  "proofSummary": {
+    "local": ["npx vitest run src/lib/__tests__/courseIR.test.js", "npm run audit:release-history"],
+    "ciFast": {
+      "status": "pending-push",
+      "note": "Fast verification is claimed only after v0.15.159 is pushed and the GitHub Actions run is attached."
+    },
+    "deploy": {
+      "status": "pending-push",
+      "note": "Pages deploy is not claimed until the pushed v0.15.159 release completes its deploy run."
+    },
+    "ciDeep": {
+      "status": "local-only",
+      "note": "This is a narrow CourseIR texture/projection release; focused coverage plus normal gates are the release bar."
+    },
+    "liveProvider": {
+      "status": "not-current",
+      "note": "No fresh funded provider ZIP/log score is claimed by this release."
+    },
+    "manualHuman": {
+      "status": "not-applicable",
+      "note": "No external instructor approval is claimed by this release."
+    }
+  },
+  "claims": [
+    {
+      "id": "v015159-python-assessment-scaffold-evidence",
+      "status": "verified-current",
+      "changelogHighlightIndex": 0,
+      "summary": "The release is grounded in existing Python ZIP evidence where generic assessment scaffolds repeated through the manifest.",
+      "anchors": ["docs/V0.15.159_COURSEIR_ASSESSMENT_TEXTURE_ROADMAP.md"],
+      "proofCommands": [
+        "rg -n \"Quick evidence check|Exit ticket using|Practice response that names\" docs/V0.15.159_COURSEIR_ASSESSMENT_TEXTURE_ROADMAP.md"
+      ],
+      "proofScopes": ["static-audit"]
+    },
+    {
+      "id": "v015159-courseir-projection-repair",
+      "status": "verified-current",
+      "changelogHighlightIndex": 1,
+      "summary": "CourseIR-to-CourseMap projection repairs generic assessment scaffolds before weekly-assessment cells are rendered.",
+      "anchors": ["src/lib/courseIR.js", "src/lib/__tests__/courseIR.test.js"],
+      "proofCommands": ["npx vitest run src/lib/__tests__/courseIR.test.js -t \"before projecting CourseIR\""],
+      "proofScopes": ["unit"]
+    },
+    {
+      "id": "v015159-coursemap-normalization-repair",
+      "status": "verified-current",
+      "changelogHighlightIndex": 2,
+      "summary": "CourseMap-to-CourseIR normalization repairs generic assessment scaffolds before assessment atoms seed manifests and deliverables.",
+      "anchors": ["src/lib/courseIR.js", "src/lib/__tests__/courseIR.test.js"],
+      "proofCommands": ["npx vitest run src/lib/__tests__/courseIR.test.js -t \"before CourseMap-to-CourseIR\""],
+      "proofScopes": ["unit"]
+    },
+    {
+      "id": "v015159-python-specific-assessment-variants",
+      "status": "verified-current",
+      "changelogHighlightIndex": 3,
+      "summary": "Computer Science/Python assessment repairs rotate code-aware titles instead of repeating generic evidence-check language.",
+      "anchors": ["src/lib/courseIR.js", "src/lib/__tests__/courseIR.test.js"],
+      "proofCommands": [
+        "rg -n \"Code trace|Debug note|Mini program|Peer review|Transfer check\" src/lib/courseIR.js src/lib/__tests__/courseIR.test.js"
+      ],
+      "proofScopes": ["unit", "static-audit"]
+    },
+    {
+      "id": "v015159-no-provider-score-claim",
+      "status": "verified-current",
+      "changelogHighlightIndex": 4,
+      "summary": "The release ledger explicitly preserves the need for fresh funded ZIP/log proof before claiming clean provider output.",
+      "anchors": [
+        "src/lib/releaseManifest.js",
+        "docs/V0.15.159_COURSEIR_ASSESSMENT_TEXTURE_ROADMAP.md",
+        "release-contracts/v0.15.159.json"
+      ],
+      "proofCommands": [
+        "rg -n \"does not claim a new provider score|may not claim|fresh funded v0.15.159\" src/lib/releaseManifest.js docs/V0.15.159_COURSEIR_ASSESSMENT_TEXTURE_ROADMAP.md release-contracts/v0.15.159.json"
+      ],
+      "proofScopes": ["static-audit"]
+    }
+  ],
+  "knownRemainingTargets": [
+    "A fresh deployed v0.15.159 provider ZIP/log audit must prove the repaired assessment labels appear in real output.",
+    "A same-version GPT-5.4-mini versus GPT-5.5-pro comparison is still blocked until provider credits are available.",
+    "Existing pre-v0.15.159 ZIPs remain useful historical evidence but should not be treated as clean current-release proof.",
+    "Every fresh audit still has to reconcile UI, ZIP, manifest, quality report, source report, digest logs, and local regrade before claiming clean output."
+  ]
+}

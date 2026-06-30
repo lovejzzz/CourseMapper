@@ -1704,9 +1704,61 @@ export function buildCourseIRSourceRefCoverage(rawIR = {}) {
   };
 }
 
-function buildAssessmentCell(assessment) {
-  const title = assessment.title || 'Lesson assessment';
-  if (assessment.prompt) return `${title}: ${assessment.prompt}`;
+const GENERIC_ASSESSMENT_SCAFFOLD_RE =
+  /\b(?:quick evidence check|exit ticket using|practice response that names|course-relevant decision|new example|evidence needed)\b/i;
+
+function isGenericAssessmentScaffold(text) {
+  return GENERIC_ASSESSMENT_SCAFFOLD_RE.test(cleanText(text, 260));
+}
+
+function assessmentVariantIndex(assessment = {}, lesson = {}, fallbackIndex = 0) {
+  const rawNumber =
+    String(assessment?.id || '').match(/\d+/)?.[0] ||
+    String(lesson?.id || '').match(/\d+/)?.[0] ||
+    lesson?.lessonNumber ||
+    fallbackIndex + 1;
+  const parsed = Number(rawNumber);
+  return Number.isFinite(parsed) && parsed > 0 ? parsed - 1 : fallbackIndex;
+}
+
+function assessmentFocusLabel(lesson = {}, fallbackIndex = 0) {
+  return (
+    cleanText(lesson?.topic || lesson?.title || '', 120)
+      .replace(/^lesson\s+\d+\s*[:.–—-]\s*/i, '')
+      .replace(/^\d+(?:\.\d+)?\s*[:.–—-]\s*/i, '')
+      .trim() || `Lesson ${fallbackIndex + 1}`
+  );
+}
+
+function repairedGenericAssessmentTitle(assessment = {}, lesson = {}, fallbackIndex = 0, courseName = '') {
+  const title = cleanText(assessment?.title || assessment?.name || `Assessment ${fallbackIndex + 1}`, 160);
+  if (!isGenericAssessmentScaffold(title)) return title || 'Lesson assessment';
+
+  const focus = assessmentFocusLabel(lesson, fallbackIndex);
+  const variantIndex = assessmentVariantIndex(assessment, lesson, fallbackIndex);
+  const isPythonCourse = /\b(?:computer science|python|programming|coding|software)\b/i.test(`${courseName} ${focus}`);
+  const variants = isPythonCourse
+    ? [
+        `Code trace: predict the ${focus} output and explain why.`,
+        `Debug note: identify one ${focus} error and the correction.`,
+        `Mini program: write a ${focus} example with expected input and output.`,
+        `Peer review: annotate a ${focus} solution for accuracy and style.`,
+        `Transfer check: choose when ${focus} fits a program requirement.`,
+      ]
+    : [
+        `Application note: connect ${focus} to one observed decision.`,
+        `Source-use check: cite a ${focus} detail and explain its consequence.`,
+        `Short response: compare two possible choices for ${focus}.`,
+        `Peer critique: identify the strongest ${focus} evidence in a class artifact.`,
+        `Transfer task: adapt ${focus} to a new case and name the limitation.`,
+      ];
+  return variants[variantIndex % variants.length];
+}
+
+function buildAssessmentCell(assessment, { lesson = {}, fallbackIndex = 0, courseName = '' } = {}) {
+  const title = repairedGenericAssessmentTitle(assessment, lesson, fallbackIndex, courseName);
+  const prompt = cleanText(assessment.prompt, 320);
+  if (prompt && !isGenericAssessmentScaffold(prompt)) return `${title}: ${prompt}`;
   return title;
 }
 
@@ -1823,7 +1875,16 @@ export function courseIRToCourseMap(rawIR = {}) {
               3,
             ).join('; '),
             learningObjectives: learningObjectives.join('; '),
-            weeklyAssessments: uniqueStrings(assessments.map(buildAssessmentCell), 5).join('; '),
+            weeklyAssessments: uniqueStrings(
+              assessments.map((assessment) =>
+                buildAssessmentCell(assessment, {
+                  lesson,
+                  fallbackIndex: index,
+                  courseName: ir.course.title,
+                }),
+              ),
+              5,
+            ).join('; '),
             asyncActivities: asyncActivities.join('; '),
             syncActivities: syncActivities.join('; '),
             supportingResources: uniqueStrings(
@@ -2206,29 +2267,38 @@ export function buildCourseIRFromCourseMap(courseMap = {}) {
       misconceptions: lesson.misconceptions,
     })),
     lessons,
-    assessments: lessons.map((lesson, index) => ({
-      id: `A${index + 1}`,
-      title: cleanText(
+    assessments: lessons.map((lesson, index) => {
+      const rawAssessmentTitle = cleanText(
         asArray(courseMap.lessons?.[index]?.sections)[0]?.weeklyAssessments || `${lesson.topic} check`,
         160,
-      ),
-      kind: 'graded-artifact',
-      lessonIds: [lesson.id],
-      coverageConceptIds: lesson.conceptIds,
-      prompt: cleanText(asArray(courseMap.lessons?.[index]?.sections)[0]?.weeklyAssessments || '', 260),
-      rubricDimensions: ['accuracy', 'evidence use', 'transfer'],
-      sourceRefs: ['SL1'],
-      rubricCriteria: DEFAULT_RUBRIC_DIMENSIONS.map((dimension, criterionIndex) => ({
-        id: `A${index + 1}-R${criterionIndex + 1}`,
-        label: dimension,
-        description: `Evaluate ${dimension} in ${lesson.topic}.`,
-        conceptIds: lesson.conceptIds,
-        outcomeIds: lesson.outcomes.map((outcome) => outcome.id),
-        performanceLevels: repairedRubricLevels(dimension),
+      );
+      const repairedAssessmentTitle = repairedGenericAssessmentTitle(
+        { id: `A${index + 1}`, title: rawAssessmentTitle },
+        lesson,
+        index,
+        courseMap.courseName,
+      );
+      return {
+        id: `A${index + 1}`,
+        title: repairedAssessmentTitle,
+        kind: 'graded-artifact',
+        lessonIds: [lesson.id],
+        coverageConceptIds: lesson.conceptIds,
+        prompt: isGenericAssessmentScaffold(rawAssessmentTitle) ? repairedAssessmentTitle : rawAssessmentTitle,
+        rubricDimensions: ['accuracy', 'evidence use', 'transfer'],
         sourceRefs: ['SL1'],
-      })),
-      provenance: 'course-map',
-    })),
+        rubricCriteria: DEFAULT_RUBRIC_DIMENSIONS.map((dimension, criterionIndex) => ({
+          id: `A${index + 1}-R${criterionIndex + 1}`,
+          label: dimension,
+          description: `Evaluate ${dimension} in ${lesson.topic}.`,
+          conceptIds: lesson.conceptIds,
+          outcomeIds: lesson.outcomes.map((outcome) => outcome.id),
+          performanceLevels: repairedRubricLevels(dimension),
+          sourceRefs: ['SL1'],
+        })),
+        provenance: 'course-map',
+      };
+    }),
     artifactIntents: KNOWN_FEATURE_IDS.map((featureId, index) => ({
       id: `AI${index + 1}`,
       featureId,
