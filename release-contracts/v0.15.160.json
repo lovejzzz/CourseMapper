@@ -1,0 +1,104 @@
+{
+  "version": "0.15.160",
+  "date": "June 30, 2026",
+  "title": "Python Source Proof: OpenStax sections replace review-only source rows",
+  "status": "verified-current",
+  "proofSummary": {
+    "local": [
+      "npx vitest run src/lib/__tests__/packageZipExporter.test.js -t \"recovers Python sourceRef proof\"",
+      "npm run audit:release-history"
+    ],
+    "ciFast": {
+      "status": "pending-push",
+      "note": "Fast verification is claimed only after v0.15.160 is pushed and the GitHub Actions run is attached."
+    },
+    "deploy": {
+      "status": "pending-push",
+      "note": "Pages deploy is not claimed until the pushed v0.15.160 release completes its deploy run."
+    },
+    "ciDeep": {
+      "status": "local-only",
+      "note": "This is a narrow source-ledger/export-truth release; focused coverage plus normal gates are the release bar."
+    },
+    "liveProvider": {
+      "status": "not-current",
+      "note": "No fresh v0.15.160 provider ZIP/log score is claimed by this release."
+    },
+    "manualHuman": {
+      "status": "not-applicable",
+      "note": "No external instructor approval is claimed by this release."
+    }
+  },
+  "claims": [
+    {
+      "id": "v015160-gpt54mini-python-source-evidence",
+      "status": "verified-current",
+      "changelogHighlightIndex": 0,
+      "summary": "The release is grounded in a fresh v0.15.159 GPT-5.4-mini Python ZIP/log audit that regraded 98/A with the remaining scored loss in source proof.",
+      "anchors": [
+        "docs/V0.15.160_PYTHON_SOURCE_PROOF_ROADMAP.md",
+        "verification-output/edutool-audit-loop/20260630T153756Z-v015159-gpt54mini-fresh/local-regrade.json"
+      ],
+      "proofCommands": [
+        "rg -n \"98/A|Texture 95|259 sourceRef atoms|SL1\" docs/V0.15.160_PYTHON_SOURCE_PROOF_ROADMAP.md"
+      ],
+      "proofScopes": ["static-audit"]
+    },
+    {
+      "id": "v015160-review-only-sl1-gap",
+      "status": "verified-current",
+      "changelogHighlightIndex": 1,
+      "summary": "The v0.15.159 artifact proved complete sourceRef counts but still exposed review-only SL1 fallback as insufficient bibliography proof.",
+      "anchors": [
+        "docs/V0.15.160_PYTHON_SOURCE_PROOF_ROADMAP.md",
+        "verification-output/edutool-audit-loop/20260630T153756Z-v015159-gpt54mini-fresh/local-regrade.json"
+      ],
+      "proofCommands": [
+        "rg -n \"259 sourceRef atoms|SL1: Existing course map fields|one trusted concept-linked source row\" docs/V0.15.160_PYTHON_SOURCE_PROOF_ROADMAP.md"
+      ],
+      "proofScopes": ["static-audit"]
+    },
+    {
+      "id": "v015160-python-openstax-curated-rows",
+      "status": "verified-current",
+      "changelogHighlightIndex": 2,
+      "summary": "Python/Computer Science fallback source proof now projects distinct licensed OpenStax section URLs into trusted concept-linked source-ledger rows.",
+      "anchors": ["src/lib/packageZipExporter.js", "src/lib/__tests__/packageZipExporter.test.js"],
+      "proofCommands": [
+        "npx vitest run src/lib/__tests__/packageZipExporter.test.js -t \"recovers Python sourceRef proof\"",
+        "rg -n \"python-openstax-|CC BY 4.0|Introduction to Python Programming\" src/lib/packageZipExporter.js src/lib/__tests__/packageZipExporter.test.js"
+      ],
+      "proofScopes": ["unit", "static-audit"]
+    },
+    {
+      "id": "v015160-source-ref-bridge-guard",
+      "status": "verified-current",
+      "changelogHighlightIndex": 3,
+      "summary": "Review-only CourseIR source notes are removed only after multiple trusted concept-linked source rows exist, preserving metadata-only and unlinked-source guards.",
+      "anchors": ["src/lib/packageZipExporter.js", "src/lib/__tests__/packageZipExporter.test.js"],
+      "proofCommands": ["npx vitest run src/lib/__tests__/packageZipExporter.test.js -t \"sourceRef\""],
+      "proofScopes": ["unit"]
+    },
+    {
+      "id": "v015160-no-provider-score-claim",
+      "status": "verified-current",
+      "changelogHighlightIndex": 4,
+      "summary": "The release ledger explicitly preserves the need for fresh v0.15.160 GPT-5.4-mini ZIP/log proof before claiming clean provider output.",
+      "anchors": [
+        "src/lib/releaseManifest.js",
+        "docs/V0.15.160_PYTHON_SOURCE_PROOF_ROADMAP.md",
+        "release-contracts/v0.15.160.json"
+      ],
+      "proofCommands": [
+        "rg -n \"does not claim|may not claim|fresh v0.15.160 GPT-5.4-mini\" src/lib/releaseManifest.js docs/V0.15.160_PYTHON_SOURCE_PROOF_ROADMAP.md release-contracts/v0.15.160.json"
+      ],
+      "proofScopes": ["static-audit"]
+    }
+  ],
+  "knownRemainingTargets": [
+    "A fresh deployed v0.15.160 GPT-5.4-mini provider ZIP/log audit must prove the OpenStax section rows appear in real output.",
+    "The current clean-score hypothesis is that source proof is fixable on the CourseMapper side; the next run must still reconcile UI, ZIP, manifest, source report, quality report, digest logs, and local regrade.",
+    "GPT-5.5-pro is no longer the routine audit model because GPT-5.4-mini is the cost-efficient default; use GPT-5.5-pro only for occasional controlled model-comparison checks.",
+    "Existing v0.15.159 artifacts remain useful evidence but should not be treated as clean current-release proof."
+  ]
+}

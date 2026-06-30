@@ -564,6 +564,8 @@ function pipelineExpectsSourceLedgerProof(pipelineState) {
 
 const UX_COURSE_CONTEXT_RE =
   /\b(?:user\s+experience|ux\b|human[-\s]?centered\s+design|interaction\s+design|interface\s+design|usability|design\s+studio|design\s+research|user\s+research|prototype|accessibility)\b/i;
+const PYTHON_COURSE_CONTEXT_RE =
+  /\b(?:python|computer\s+science|programming|coding|variables?|data\s+types?|expressions?|conditionals?|loops?|functions?|lists?|dictionar(?:y|ies)|strings?|file\s+(?:input|output|i\/o)|debugg(?:ing)?|testing|algorithms?|recursion|object[-\s]?oriented|classes?|objects?)\b/i;
 
 const CURATED_UX_SOURCE_PROOF_ROWS = [
   {
@@ -600,6 +602,93 @@ const CURATED_UX_SOURCE_PROOF_ROWS = [
     url: 'https://en.wikipedia.org/wiki/Software_prototyping',
     concepts: ['prototype review', 'iteration', 'feedback'],
     trigger: /\b(?:prototyp|prototype\s+review|feedback|revision)\b/i,
+  },
+];
+
+const CURATED_PYTHON_SOURCE_PROOF_ROWS = [
+  {
+    id: 'python-openstax-variables',
+    title: 'OpenStax Introduction to Python Programming section 1.3 Variables',
+    url: 'https://openstax.org/books/introduction-python-programming/pages/1-3-variables',
+    concepts: ['variables', 'data types'],
+    trigger: /\b(?:variables?|data\s+types?)\b/i,
+  },
+  {
+    id: 'python-openstax-expressions',
+    title: 'OpenStax Introduction to Python Programming section 1.5 Number basics',
+    url: 'https://openstax.org/books/introduction-python-programming/pages/1-5-number-basics',
+    concepts: ['expressions', 'operators', 'numeric data'],
+    trigger: /\b(?:expressions?|operators?|numeric|numbers?)\b/i,
+  },
+  {
+    id: 'python-openstax-conditionals',
+    title: 'OpenStax Introduction to Python Programming section 4.2 If-else statements',
+    url: 'https://openstax.org/books/introduction-python-programming/pages/4-2-if-else-statements',
+    concepts: ['conditionals', 'if statements', 'boolean logic'],
+    trigger: /\b(?:conditionals?|if\s+statements?|boolean)\b/i,
+  },
+  {
+    id: 'python-openstax-loops',
+    title: 'OpenStax Introduction to Python Programming section 5.1 While loop',
+    url: 'https://openstax.org/books/introduction-python-programming/pages/5-1-while-loop',
+    concepts: ['loops', 'while loops', 'iteration'],
+    trigger: /\b(?:loops?|iteration|while|for\s+loop)\b/i,
+  },
+  {
+    id: 'python-openstax-functions',
+    title: 'OpenStax Introduction to Python Programming section 6.1 Defining functions',
+    url: 'https://openstax.org/books/introduction-python-programming/pages/6-1-defining-functions',
+    concepts: ['functions', 'parameters', 'return values'],
+    trigger: /\b(?:functions?|parameters?|return\s+values?)\b/i,
+  },
+  {
+    id: 'python-openstax-lists',
+    title: 'OpenStax Introduction to Python Programming section 3.4 List basics',
+    url: 'https://openstax.org/books/introduction-python-programming/pages/3-4-list-basics',
+    concepts: ['lists', 'sequences', 'iteration'],
+    trigger: /\b(?:lists?|sequences?)\b/i,
+  },
+  {
+    id: 'python-openstax-dictionaries',
+    title: 'OpenStax Introduction to Python Programming section 10.1 Dictionary basics',
+    url: 'https://openstax.org/books/introduction-python-programming/pages/10-1-dictionary-basics',
+    concepts: ['dictionaries', 'key-value pairs', 'mapping'],
+    trigger: /\b(?:dictionar(?:y|ies)|key[-\s]?value|mapping)\b/i,
+  },
+  {
+    id: 'python-openstax-strings',
+    title: 'OpenStax Introduction to Python Programming section 8.1 String operations',
+    url: 'https://openstax.org/books/introduction-python-programming/pages/8-1-string-operations',
+    concepts: ['strings', 'text processing', 'string methods'],
+    trigger: /\b(?:strings?|text\s+processing|string\s+methods?)\b/i,
+  },
+  {
+    id: 'python-openstax-files',
+    title: 'OpenStax Introduction to Python Programming section 14.1 Reading from files',
+    url: 'https://openstax.org/books/introduction-python-programming/pages/14-1-reading-from-files',
+    concepts: ['file input', 'file output', 'exceptions'],
+    trigger: /\b(?:file\s+(?:input|output|i\/o)|read(?:ing)?\s+files?|writ(?:ing|e)\s+files?|exceptions?)\b/i,
+  },
+  {
+    id: 'python-openstax-oop',
+    title: 'OpenStax Introduction to Python Programming section 11.2 Classes and instances',
+    url: 'https://openstax.org/books/introduction-python-programming/pages/11-2-classes-and-instances',
+    concepts: ['classes', 'objects', 'object-oriented programming'],
+    trigger: /\b(?:object[-\s]?oriented|classes?|objects?)\b/i,
+  },
+  {
+    id: 'python-openstax-recursion',
+    title: 'OpenStax Introduction to Python Programming section 12.1 Recursion basics',
+    url: 'https://openstax.org/books/introduction-python-programming/pages/12-1-recursion-basics',
+    concepts: ['recursion', 'base cases', 'recursive functions'],
+    trigger: /\b(?:recursion|recursive|base\s+cases?)\b/i,
+  },
+  {
+    id: 'python-openstax-errors',
+    title: 'OpenStax Introduction to Python Programming section 1.6 Error messages',
+    url: 'https://openstax.org/books/introduction-python-programming/pages/1-6-error-messages',
+    concepts: ['debugging', 'error messages', 'testing'],
+    trigger: /\b(?:debugg(?:ing)?|errors?|testing|trace)\b/i,
   },
 ];
 
@@ -687,6 +776,60 @@ function buildCuratedUxSourceProofGraph({ courseName, courseMap, courseGraph, fa
         sections,
       },
     ],
+  };
+}
+
+function buildCuratedPythonSourceProofGraph({ courseName, courseMap, courseGraph, fallbackCourseGraph }) {
+  const context = collectCourseContextText({ courseName, courseMap, courseGraph, fallbackCourseGraph });
+  if (!PYTHON_COURSE_CONTEXT_RE.test(context)) return null;
+  let selected = CURATED_PYTHON_SOURCE_PROOF_ROWS.filter((row) => row.trigger.test(context));
+  if (selected.length < 4) selected = CURATED_PYTHON_SOURCE_PROOF_ROWS.slice(0, 6);
+
+  const conceptIdByTerm = new Map();
+  const concepts = [];
+  const conceptIdForTerm = (term) => {
+    const key = cleanSourceText(term, 120).toLowerCase();
+    if (!key) return '';
+    if (conceptIdByTerm.has(key)) return conceptIdByTerm.get(key);
+    const id = `python-curated-concept-${concepts.length + 1}`;
+    conceptIdByTerm.set(key, id);
+    concepts.push({ id, term: cleanSourceText(term, 120) });
+    return id;
+  };
+
+  const resources = selected.map((row, index) => ({
+    id: row.id,
+    title: row.title,
+    provider: 'openstax',
+    origin: 'openstax',
+    kind: 'open textbook section',
+    url: row.url,
+    license: 'CC BY 4.0',
+    evidence: row.title,
+    attribution: 'OpenStax, Rice University',
+    sessionRefs: [`python-curated-source-proof-${index + 1}`],
+  }));
+  const sessions = selected.map((row, index) => ({
+    id: `python-curated-source-proof-${index + 1}`,
+    number: index + 1,
+    title: `Python source proof: ${row.concepts[0]}`,
+    sections: [
+      {
+        id: `python-curated-source-section-${index + 1}`,
+        topic: row.concepts[0],
+        conceptRefs: row.concepts.map(conceptIdForTerm).filter(Boolean),
+        resourceRefs: [row.id],
+      },
+    ],
+  }));
+
+  return {
+    course: { name: courseName },
+    courseName,
+    concepts,
+    resources,
+    readings: [],
+    sessions,
   };
 }
 
@@ -1229,10 +1372,17 @@ export async function buildCourseMaterialsZip({
       courseGraph: sourceManifestGraph || courseGraph,
       fallbackCourseGraph,
     });
-    if (curatedUxSourceProofGraph) {
+    const curatedPythonSourceProofGraph = buildCuratedPythonSourceProofGraph({
+      courseName: safeCourseName,
+      courseMap,
+      courseGraph: sourceManifestGraph || courseGraph,
+      fallbackCourseGraph,
+    });
+    if (curatedUxSourceProofGraph || curatedPythonSourceProofGraph) {
       sourceLedgerBundle = mergeSourceLedgerBundles(
         sourceLedgerBundle,
         buildSourceLedgerFromCourseGraph(curatedUxSourceProofGraph, { checkedAt: generatedAt }),
+        buildSourceLedgerFromCourseGraph(curatedPythonSourceProofGraph, { checkedAt: generatedAt }),
       );
     }
   }

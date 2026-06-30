@@ -3,24 +3,24 @@ import { APP_VERSION } from './appVersion.js';
 export const CURRENT_RELEASE = {
   version: APP_VERSION,
   date: 'June 30, 2026',
-  title: 'CourseIR Assessment Texture: generic checks rotate before export',
-  landingTitle: 'CourseIR Assessment Texture',
+  title: 'Python Source Proof: OpenStax sections replace review-only source rows',
+  landingTitle: 'Python Source Proof',
   highlights: [
-    'Existing GPT-5.5-pro Python ZIP evidence still showed deterministic assessment-title texture debt: `Quick evidence check`, `Exit ticket using`, and `Practice response that names...` scaffolds repeated across the manifest and Course Map.',
-    'CourseIR-to-CourseMap projection now detects those generic assessment scaffolds and rewrites them before they seed Course Map weekly-assessment cells.',
-    'CourseMap-to-CourseIR normalization applies the same repair before assessment atoms seed package manifests, lesson plans, quizzes, and other compiled deliverables.',
-    'Computer Science/Python repairs rotate code-trace, debug-note, mini-program, peer-review, and transfer-check titles instead of repeating generic evidence-check language.',
-    'This release does not claim a new provider score; the next proof step remains a fresh funded v0.15.159 ZIP/log audit that reconciles UI, digest, ZIP, source report, quality report, and local regrade.',
+    'Fresh v0.15.159 GPT-5.4-mini Python ZIP/log evidence regraded 98/A with Texture 95; the remaining scored loss was source proof, not model prose quality.',
+    'That package had 259 sourceRef atoms relying on one trusted concept-linked source row plus a review-only `SL1: Existing course map fields.` note, so the manifest could not honestly prove its bibliography coverage.',
+    'Python/Computer Science source recovery now projects distinct licensed OpenStax Introduction to Python Programming section URLs into trusted concept-linked source-ledger rows when provider proof collapses to CourseIR review fallback.',
+    'The CourseIR sourceRef bridge removes review-only source notes only after multiple trusted concept-linked rows exist, preserving the no-inflation standard for metadata-only or unlinked sources.',
+    'This release does not claim a clean provider score; the next proof step is a fresh v0.15.160 GPT-5.4-mini ZIP/log audit that reconciles UI, digest, ZIP, source report, quality report, and local regrade.',
   ],
   landingHighlights: [
-    'Generic assessment scaffolds rotate before export.',
-    'Course Map and manifest assessment titles share the repair.',
-    'Python courses get code-aware assessment language.',
-    'Fresh provider scores still require funded ZIP/log evidence.',
+    'Python source fallback now uses licensed OpenStax section proof.',
+    'Review-only SL1 rows are removed only after real trusted rows exist.',
+    'SourceRef coverage must stay concept-linked and non-inflated.',
+    'Fresh GPT-5.4-mini provider proof is still required before a clean claim.',
   ],
   proof: {
-    contract: 'release-contracts/v0.15.159.json',
-    roadmap: 'docs/V0.15.159_COURSEIR_ASSESSMENT_TEXTURE_ROADMAP.md',
+    contract: 'release-contracts/v0.15.160.json',
+    roadmap: 'docs/V0.15.160_PYTHON_SOURCE_PROOF_ROADMAP.md',
     auditCommand: 'npm run audit:release-history',
   },
 };
@@ -35,6 +35,18 @@ export const CURRENT_RELEASE_CHANGELOG = {
 };
 
 export const HISTORICAL_RELEASE_CHANGELOGS = [
+  {
+    version: '0.15.159',
+    date: 'June 30, 2026',
+    title: 'CourseIR Assessment Texture: generic checks rotate before export',
+    highlights: [
+      'Existing GPT-5.5-pro Python ZIP evidence still showed deterministic assessment-title texture debt: `Quick evidence check`, `Exit ticket using`, and `Practice response that names...` scaffolds repeated across the manifest and Course Map.',
+      'CourseIR-to-CourseMap projection now detects those generic assessment scaffolds and rewrites them before they seed Course Map weekly-assessment cells.',
+      'CourseMap-to-CourseIR normalization applies the same repair before assessment atoms seed package manifests, lesson plans, quizzes, and other compiled deliverables.',
+      'Computer Science/Python repairs rotate code-trace, debug-note, mini-program, peer-review, and transfer-check titles instead of repeating generic evidence-check language.',
+      'This release does not claim a new provider score; the next proof step remains a fresh funded v0.15.159 ZIP/log audit that reconciles UI, digest, ZIP, source report, quality report, and local regrade.',
+    ],
+  },
   {
     version: '0.15.158',
     date: 'June 30, 2026',

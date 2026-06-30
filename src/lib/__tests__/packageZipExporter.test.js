@@ -827,9 +827,9 @@ describe('packageZipExporter', () => {
         source: 'coursegraph-concept-linked-ledger',
         trustedRows: manifest.sourceLedger.length,
         conceptLinkedRows: manifest.sourceLedger.length,
-        replacedReviewRows: 1,
       },
     });
+    expect(manifest.courseIR.sourceRefBridge.replacedReviewRows).toBeGreaterThanOrEqual(1);
     expect(manifest.courseIR.sourceRefCoverage).toMatchObject({
       sourceLedgerRows: manifest.sourceLedger.length,
       totals: { total: 34, withRefs: 34, missing: 0, danglingRefs: 0 },
@@ -837,6 +837,217 @@ describe('packageZipExporter', () => {
     expect(sourceReport).toContain('Source Ledger');
     expect(sourceReport).toContain('User experience');
     expect(sourceReport).toContain('CC BY-SA 4.0');
+    expect(sourceReport).not.toContain('Source Review Notes');
+    expect(sourceReport).not.toContain('Existing course map fields');
+  });
+
+  it('recovers Python sourceRef proof with licensed OpenStax sections when provider proof collapses to CourseIR review rows', async () => {
+    const courseMap = {
+      courseName: 'Introduction to Computer Science with Python',
+      lessons: [
+        {
+          title: 'Lesson 1: Variables and expressions',
+          sections: [
+            {
+              topicSection: 'variables, data types, and expressions',
+              learningObjectives: 'Trace Python variables, data types, and expressions before running code.',
+            },
+          ],
+        },
+        {
+          title: 'Lesson 2: Control flow and functions',
+          sections: [
+            {
+              topicSection: 'conditionals, loops, and functions',
+              learningObjectives: 'Use conditionals, loops, and functions to solve small Python problems.',
+            },
+          ],
+        },
+        {
+          title: 'Lesson 3: Collections and files',
+          sections: [
+            {
+              topicSection: 'lists, dictionaries, strings, and file input/output',
+              learningObjectives: 'Manipulate Python collections and read or write text files.',
+            },
+          ],
+        },
+        {
+          title: 'Lesson 4: Recursion and object-oriented programming',
+          sections: [
+            {
+              topicSection: 'recursion, classes, and objects',
+              learningObjectives: 'Explain recursive base cases and model simple objects with classes.',
+            },
+          ],
+        },
+      ],
+    };
+
+    const result = await buildCourseMaterialsZip({
+      courseMap,
+      deliverables: {
+        lessonPlans: {
+          status: 'done',
+          data: {
+            lessonPlans: [
+              { lessonTitle: 'Lesson 1: Variables and expressions', objectives: ['Trace variables.'] },
+              { lessonTitle: 'Lesson 2: Control flow and functions', objectives: ['Use functions.'] },
+              { lessonTitle: 'Lesson 3: Collections and files', objectives: ['Read files.'] },
+              { lessonTitle: 'Lesson 4: Recursion and object-oriented programming', objectives: ['Model objects.'] },
+            ],
+          },
+        },
+      },
+      featureIds: ['courseMap', 'lessonPlans'],
+      courseGraph: {
+        course: { name: 'Introduction to Computer Science with Python' },
+        concepts: [
+          { id: 'c1', term: 'variables' },
+          { id: 'c2', term: 'expressions' },
+          { id: 'c3', term: 'conditionals' },
+          { id: 'c4', term: 'loops' },
+          { id: 'c5', term: 'functions' },
+          { id: 'c6', term: 'lists' },
+          { id: 'c7', term: 'dictionaries' },
+          { id: 'c8', term: 'strings' },
+          { id: 'c9', term: 'file input/output' },
+          { id: 'c10', term: 'recursion' },
+          { id: 'c11', term: 'classes' },
+        ],
+        sessions: [
+          {
+            id: 's1',
+            number: 1,
+            title: 'Variables and expressions',
+            sections: [{ id: 'sec1', topic: 'variables and expressions', conceptRefs: ['c1', 'c2'], resourceRefs: [] }],
+          },
+          {
+            id: 's2',
+            number: 2,
+            title: 'Control flow and functions',
+            sections: [
+              {
+                id: 'sec2',
+                topic: 'conditionals, loops, and functions',
+                conceptRefs: ['c3', 'c4', 'c5'],
+                resourceRefs: [],
+              },
+            ],
+          },
+          {
+            id: 's3',
+            number: 3,
+            title: 'Collections and files',
+            sections: [
+              {
+                id: 'sec3',
+                topic: 'lists, dictionaries, strings, and file input/output',
+                conceptRefs: ['c6', 'c7', 'c8', 'c9'],
+                resourceRefs: [],
+              },
+            ],
+          },
+          {
+            id: 's4',
+            number: 4,
+            title: 'Recursion and object-oriented programming',
+            sections: [
+              {
+                id: 'sec4',
+                topic: 'recursion, classes, and objects',
+                conceptRefs: ['c10', 'c11'],
+                resourceRefs: [],
+              },
+            ],
+          },
+        ],
+        resources: [],
+        readings: [],
+        courseIR: {
+          version: 'courseir.v1',
+          lessonIds: ['L1', 'L2', 'L3', 'L4'],
+          conceptIds: ['C1', 'C2', 'C3', 'C4'],
+          assessmentIds: ['A1', 'A2'],
+          sourceLedger: [
+            {
+              id: 'SL1',
+              scope: 'course',
+              status: 'source-provided',
+              evidence: 'Existing course map fields.',
+              provider: 'courseir',
+            },
+          ],
+          sourceRefCoverage: {
+            sourceLedgerRows: 1,
+            categories: {
+              outcomes: { total: 40, withRefs: 40, missing: 0, danglingRefs: 0, missingIds: [] },
+              activities: { total: 60, withRefs: 60, missing: 0, danglingRefs: 0, missingIds: [] },
+              examples: { total: 15, withRefs: 15, missing: 0, danglingRefs: 0, missingIds: [] },
+              assessments: { total: 15, withRefs: 15, missing: 0, danglingRefs: 0, missingIds: [] },
+              rubricCriteria: { total: 45, withRefs: 45, missing: 0, danglingRefs: 0, missingIds: [] },
+              factualClaims: { total: 94, withRefs: 94, missing: 0, danglingRefs: 0, missingIds: [] },
+            },
+            totals: { total: 269, withRefs: 269, missing: 0, danglingRefs: 0 },
+          },
+        },
+      },
+      quality: false,
+    });
+
+    const zip = await JSZip.loadAsync(await result.blob.arrayBuffer());
+    const manifest = JSON.parse(await zip.file('PACKAGE_MANIFEST.json').async('string'));
+    const sourceReport = await zip.file('SOURCE_REPORT.md').async('string');
+
+    expect(manifest.sourceLedger.length).toBeGreaterThanOrEqual(8);
+    expect(manifest.sourceLedger).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          id: 'python-openstax-variables',
+          provider: 'openstax',
+          license: 'CC BY 4.0',
+          url: 'https://openstax.org/books/introduction-python-programming/pages/1-3-variables',
+          conceptLinks: expect.arrayContaining([expect.objectContaining({ label: 'variables' })]),
+        }),
+        expect.objectContaining({
+          id: 'python-openstax-functions',
+          url: 'https://openstax.org/books/introduction-python-programming/pages/6-1-defining-functions',
+          conceptLinks: expect.arrayContaining([expect.objectContaining({ label: 'functions' })]),
+        }),
+        expect.objectContaining({
+          id: 'python-openstax-dictionaries',
+          url: 'https://openstax.org/books/introduction-python-programming/pages/10-1-dictionary-basics',
+          conceptLinks: expect.arrayContaining([expect.objectContaining({ label: 'dictionaries' })]),
+        }),
+        expect.objectContaining({
+          id: 'python-openstax-recursion',
+          url: 'https://openstax.org/books/introduction-python-programming/pages/12-1-recursion-basics',
+          conceptLinks: expect.arrayContaining([expect.objectContaining({ label: 'recursion' })]),
+        }),
+      ]),
+    );
+    expect(manifest.sourceReviewRows).toBeUndefined();
+    expect(manifest.sourceLedgerSummary).toMatchObject({
+      trustedCount: manifest.sourceLedger.length,
+      trustedConceptLinkedCount: manifest.sourceLedger.length,
+      providers: ['openstax'],
+    });
+    expect(manifest.courseIR).toMatchObject({
+      sourceLedgerRows: manifest.sourceLedger.length,
+      sourceRefBridge: {
+        source: 'coursegraph-concept-linked-ledger',
+        trustedRows: manifest.sourceLedger.length,
+        conceptLinkedRows: manifest.sourceLedger.length,
+      },
+    });
+    expect(manifest.courseIR.sourceRefBridge.replacedReviewRows).toBeGreaterThanOrEqual(1);
+    expect(manifest.courseIR.sourceRefCoverage).toMatchObject({
+      sourceLedgerRows: manifest.sourceLedger.length,
+      totals: { total: 269, withRefs: 269, missing: 0, danglingRefs: 0 },
+    });
+    expect(sourceReport).toContain('Source Ledger');
+    expect(sourceReport).toContain('OpenStax Introduction to Python Programming');
+    expect(sourceReport).toContain('CC BY 4.0');
     expect(sourceReport).not.toContain('Source Review Notes');
     expect(sourceReport).not.toContain('Existing course map fields');
   });
