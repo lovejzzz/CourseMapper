@@ -1,0 +1,103 @@
+{
+  "version": "0.15.142",
+  "date": "June 29, 2026",
+  "title": "UX Course Map Skeleton Cleanup: repeated short labels are repaired",
+  "status": "verified-current",
+  "proofSummary": {
+    "local": [
+      "npm run test -- tests/v015141-ux-texture-regression.test.js src/lib/__tests__/deliverableReadiness.test.js tests/v0141-phase1-finalizer.test.js",
+      "npm run format:check",
+      "npm run lint",
+      "npm test",
+      "npm run build",
+      "npm run bundle:check",
+      "npm run audit:release-history",
+      "npm run audit:gold:smoke"
+    ],
+    "ciFast": {
+      "status": "pending-push",
+      "note": "Fast verification is claimed only after v0.15.142 is pushed and the GitHub Actions run is attached."
+    },
+    "deploy": {
+      "status": "pending-push",
+      "note": "Pages deploy is not claimed until the pushed v0.15.142 release completes its deploy run."
+    },
+    "ciDeep": {
+      "status": "local-only",
+      "note": "This is a narrow Course Map skeleton repair; focused coverage plus normal gates are the release bar."
+    },
+    "liveProvider": {
+      "status": "not-current",
+      "note": "The release is based on fresh deployed v0.15.141 ZIP/log evidence. A fresh deployed v0.15.142 audit is required before claiming this cleanup in real provider output."
+    },
+    "manualHuman": {
+      "status": "not-applicable",
+      "note": "No external instructor approval is claimed by this release."
+    }
+  },
+  "claims": [
+    {
+      "id": "v015142-v015141-audit-evidence",
+      "status": "verified-current",
+      "changelogHighlightIndex": 0,
+      "summary": "Fresh deployed v0.15.141 UX evidence exported successfully and locally regraded at 99/A with zero P0/P1/P2 findings; the only scored loss was texture 92.",
+      "anchors": ["docs/V0.15.142_UX_COURSE_MAP_SKELETON_CLEANUP_ROADMAP.md"],
+      "proofCommands": [
+        "rg -n \"run-1782780310527|finish-mqzxhnnf-qphfo|Quality 99|Texture 92|99/100\" docs/V0.15.142_UX_COURSE_MAP_SKELETON_CLEANUP_ROADMAP.md"
+      ],
+      "proofScopes": ["live-provider", "static-audit"]
+    },
+    {
+      "id": "v015142-repeated-short-label-defect",
+      "status": "verified-current",
+      "changelogHighlightIndex": 1,
+      "summary": "The v0.15.141 package collapsed Course Map lesson titles, filenames, and support text around repeated short labels such as design project and weekly studio critiques.",
+      "anchors": ["docs/V0.15.142_UX_COURSE_MAP_SKELETON_CLEANUP_ROADMAP.md"],
+      "proofCommands": [
+        "rg -n \"Lesson NN - design project|weekly studio critiques|complete-looking Course Map rows\" docs/V0.15.142_UX_COURSE_MAP_SKELETON_CLEANUP_ROADMAP.md"
+      ],
+      "proofScopes": ["live-provider", "doc"]
+    },
+    {
+      "id": "v015142-repeated-topic-repair",
+      "status": "verified-current",
+      "changelogHighlightIndex": 2,
+      "summary": "Course Map readiness treats repeated short labels across many lessons as weak skeleton content before they seed filenames or deliverables.",
+      "anchors": ["src/lib/deliverableReadiness.js", "tests/v015141-ux-texture-regression.test.js"],
+      "proofCommands": [
+        "rg -n \"repeatedShortCourseMapTopicIdentities|needsRepeatedShortTopicRepair|hasRepeatedShortTopicReference\" src/lib/deliverableReadiness.js",
+        "npm run test -- tests/v015141-ux-texture-regression.test.js"
+      ],
+      "proofScopes": ["unit", "static-audit"]
+    },
+    {
+      "id": "v015142-ux-progression-fallback",
+      "status": "verified-current",
+      "changelogHighlightIndex": 3,
+      "summary": "Collapsed UX studio maps fall back to a lesson-specific progression instead of repeating design project.",
+      "anchors": ["src/lib/deliverableReadiness.js", "tests/v015141-ux-texture-regression.test.js"],
+      "proofCommands": [
+        "rg -n \"UX_DESIGN_TOPIC_SEQUENCE|UX problem framing and studio orientation|portfolio case reflection and handoff\" src/lib/deliverableReadiness.js tests/v015141-ux-texture-regression.test.js"
+      ],
+      "proofScopes": ["unit", "static-audit"]
+    },
+    {
+      "id": "v015142-collapse-regression",
+      "status": "verified-current",
+      "changelogHighlightIndex": 4,
+      "summary": "Focused regression reproduces the v0.15.141 design project / weekly studio critiques collapse and proves the repaired map varies across 12 lessons.",
+      "anchors": ["tests/v015141-ux-texture-regression.test.js"],
+      "proofCommands": [
+        "rg -n \"repairs repeated short UX skeleton topics|design project|weekly studio critiques\" tests/v015141-ux-texture-regression.test.js",
+        "npm run test -- tests/v015141-ux-texture-regression.test.js"
+      ],
+      "proofScopes": ["unit"]
+    }
+  ],
+  "knownRemainingTargets": [
+    "Fresh deployed v0.15.142 ZIP/log audit must prove the repeated short-label repair in real provider output.",
+    "Texture can still remain below 100 if another deterministic repeated family appears after this skeleton fix.",
+    "Source rows must remain real, trusted, on-topic, license-safe, and concept-linked across UX and Project Management domains.",
+    "The exporter and UI must keep caveated packages amber/with notes rather than presenting review-needed packages as clean green."
+  ]
+}

@@ -162,6 +162,20 @@ const PROJECT_MANAGEMENT_TOPIC_SEQUENCE = [
   'agile planning and retrospectives',
   'project closure and stakeholder presentation',
 ];
+const UX_DESIGN_TOPIC_SEQUENCE = [
+  'UX problem framing and studio orientation',
+  'user research planning and interview notes',
+  'affinity mapping and insight statements',
+  'information architecture and navigation choices',
+  'accessibility and interface content review',
+  'usability test planning and task scenarios',
+  'findings prioritization and issue severity',
+  'microcopy and recovery-path revision',
+  'interaction data and evidence brief',
+  'revision planning from critique feedback',
+  'design rationale and tradeoff defense',
+  'portfolio case reflection and handoff',
+];
 
 function labelFor(featureId) {
   return READINESS_FEATURE_LABELS[featureId] || (featureId?.startsWith('custom_') ? 'Custom Deliverable' : featureId);
@@ -448,6 +462,50 @@ function needsCourseTitleOnlyTopicRepair(value, courseMap) {
   return hasRepeatedCourseTitleOnlyTopics(courseMap) && isCourseTitleOnlyTopic(value, courseMap);
 }
 
+function repeatedShortCourseMapTopicIdentities(courseMap) {
+  const lessons = asArray(courseMap?.lessons);
+  if (lessons.length < 3) return new Set();
+  const counts = new Map();
+  const add = (value, lessonIndex) => {
+    const normalized = normalizeCourseMapTopicIdentity(value);
+    if (!normalized || isCourseTitleOnlyTopic(value, courseMap)) return;
+    const words = normalized.split(/\s+/).filter(Boolean);
+    if (words.length < 1 || words.length > 5) return;
+    const current = counts.get(normalized) || { count: 0, lessonIndices: new Set() };
+    current.count += 1;
+    if (Number.isInteger(lessonIndex)) current.lessonIndices.add(lessonIndex);
+    counts.set(normalized, current);
+  };
+  lessons.forEach((lesson, lessonIndex) => {
+    add(lesson?.title, lessonIndex);
+    asArray(lesson?.sections).forEach((section) => {
+      add(section?.topicSection || section?.topic, lessonIndex);
+      add(section?.weeklyAssessments, lessonIndex);
+    });
+  });
+  const repeated = new Set();
+  const lessonThreshold = Math.min(lessons.length, 4);
+  for (const [identity, row] of counts.entries()) {
+    if (row.lessonIndices.size >= lessonThreshold || row.count >= lessons.length) repeated.add(identity);
+  }
+  return repeated;
+}
+
+function needsRepeatedShortTopicRepair(value, courseMap) {
+  const normalized = normalizeCourseMapTopicIdentity(value);
+  if (!normalized) return false;
+  return repeatedShortCourseMapTopicIdentities(courseMap).has(normalized);
+}
+
+function hasRepeatedShortTopicReference(value, courseMap) {
+  const normalized = normalizeCourseMapTopicIdentity(value);
+  if (!normalized) return false;
+  for (const identity of repeatedShortCourseMapTopicIdentities(courseMap)) {
+    if (new RegExp(`(?:^|\\b)${escapeRegexLiteral(identity)}(?:\\b|$)`, 'i').test(normalized)) return true;
+  }
+  return false;
+}
+
 function needsPromptArtifactCourseMapRepair(key, value, courseMap) {
   if (isInstructionalDesignCourse(courseMap)) return false;
   const raw = text(value);
@@ -473,6 +531,7 @@ function isWeakCourseMapTopic(value, courseMap) {
   if (hasEmbeddedPromptArtifactTopic(candidate)) return true;
   if (GENERIC_COURSE_MAP_FALLBACK_RE.test(candidate)) return true;
   if (needsCourseTitleOnlyTopicRepair(candidate, courseMap)) return true;
+  if (needsRepeatedShortTopicRepair(candidate, courseMap)) return true;
   if (isSentenceShapedCourseMapTopic(candidate)) return true;
   return /^(?:none|n\/a|not applicable|lesson|week|topic|block|clinical|community|health|studio|seminar|placement)$/i.test(
     candidate,
@@ -598,6 +657,9 @@ function getCourseMapProgressionTopic(courseMap, lessonIndex) {
     .join(' ');
   if (PROJECT_MANAGEMENT_COURSE_RE.test(context)) {
     return PROJECT_MANAGEMENT_TOPIC_SEQUENCE[lessonIndex % PROJECT_MANAGEMENT_TOPIC_SEQUENCE.length];
+  }
+  if (UX_DESIGN_COURSE_MAP_RE.test(context)) {
+    return UX_DESIGN_TOPIC_SEQUENCE[lessonIndex % UX_DESIGN_TOPIC_SEQUENCE.length];
   }
   return '';
 }
@@ -878,6 +940,7 @@ function needsCourseMapSemanticRepair(key, value, courseMap, lesson, section) {
   const raw = text(value);
   if (!raw) return false;
   if (needsCourseTitleOnlyTopicRepair(raw, courseMap)) return true;
+  if (hasRepeatedShortTopicReference(raw, courseMap)) return true;
   const profile = inferCourseMapFallbackProfile(courseMap, lesson, section);
   if (profile === 'history') {
     if (GENERIC_COURSE_MAP_FALLBACK_RE.test(raw)) return true;
@@ -999,7 +1062,8 @@ export function repairCourseMapReadiness({ courseMap, columns = [], lessonFilter
     if (
       needsCourseMapFieldRepair(lesson?.title) ||
       isGenericNumberedCourseMapTopic(lesson?.title) ||
-      needsCourseTitleOnlyTopicRepair(lesson?.title, courseMap)
+      needsCourseTitleOnlyTopicRepair(lesson?.title, courseMap) ||
+      needsRepeatedShortTopicRepair(lesson?.title, courseMap)
     ) {
       const titleTopic = getCourseMapTopic(courseMap, lesson, asArray(lesson?.sections)[0], lessonIndex);
       nextLesson = {

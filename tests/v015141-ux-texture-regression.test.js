@@ -97,4 +97,41 @@ describe('v0.15.141 UX texture regression', () => {
     expect(text).not.toMatch(/critique memo naming one user-evidence signal/i);
     expect(text).not.toMatch(/defend one prototype or case-study move with evidence/i);
   });
+
+  it('repairs repeated short UX skeleton topics before they become lesson titles and file stems', () => {
+    const courseMap = {
+      courseName: 'User Experience Design Studio',
+      lessons: Array.from({ length: 12 }, (_, index) => ({
+        title: `Lesson ${index + 1}: User Experience Design Studio`,
+        sections: [
+          {
+            topicSection: `${index + 1}.1: design project`,
+            learningGoals:
+              'Use design project to make one design choice traceable to user evidence and critique feedback.',
+            learningObjectives: 'Apply design project to a UX artifact and explain the design decision it changes.',
+            weeklyAssessments: 'weekly studio critiques',
+            asyncActivities: 'Review the UX example and mark where design project changes the design rationale.',
+            syncActivities: 'Run a critique round that tests how design project changes the artifact.',
+            supportingResources: 'UX example, critique protocol, and design-journal prompt aligned to design project.',
+            evaluateDesign:
+              'Check that the design project activity and assessment ask students to justify the same design revision.',
+          },
+        ],
+      })),
+    };
+
+    const result = repairCourseMapReadiness({ courseMap });
+    const repairedText = textValues(result.courseMap).join('\n');
+    const repairedTitles = result.courseMap.lessons.map((lesson) => lesson.title);
+    const repairedTopics = result.courseMap.lessons.map((lesson) => lesson.sections[0].topicSection);
+
+    expect(result.changed).toBe(true);
+    expect(new Set(repairedTitles).size).toBeGreaterThan(8);
+    expect(repairedTitles[0]).toContain('UX problem framing and studio orientation');
+    expect(repairedTitles[5]).toContain('usability test planning and task scenarios');
+    expect(repairedTitles[11]).toContain('portfolio case reflection and handoff');
+    expect(repairedTopics).not.toContain('1.1: design project');
+    expect(repairedText.match(/\bdesign project\b/gi) || []).toHaveLength(0);
+    expect(repairedText.match(/\bweekly studio critiques\b/gi) || []).toHaveLength(0);
+  });
 });

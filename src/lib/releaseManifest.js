@@ -3,24 +3,24 @@ import { APP_VERSION } from './appVersion.js';
 export const CURRENT_RELEASE = {
   version: APP_VERSION,
   date: 'June 29, 2026',
-  title: 'UX Texture Tail Cleanup: readiness labels, slide notes, and rubric fairness checks vary',
-  landingTitle: 'UX Texture Cleanup',
+  title: 'UX Course Map Skeleton Cleanup: repeated short labels are repaired',
+  landingTitle: 'UX Skeleton Cleanup',
   highlights: [
-    'A fresh deployed v0.15.140 User Experience Design Studio ZIP/log audit exported successfully and locally regraded at 100/100 with zero P0/P1/P2 findings, while texture improved to 96/100 and export/report/UI agreement held on Quality 100.',
-    'That real provider output proved the v0.15.140 cleanup removed the previous v0.15.139 repeated-tail families, but exposed the next deterministic texture target: sparse UX readiness labels, slide discussion titles/notes, agenda notes, and rubric fairness checks still stamped repeated shingles.',
-    'UX readiness fallback assessment labels are now shorter and less sentence-like, avoiding repeated prompty labels such as `critique memo naming one user-evidence signal...` before they fan out into assignments, rubrics, and syllabus text.',
-    'Blueprint slide discussion openings, discussion titles, and agenda-note transitions now rotate by lesson while preserving the evidence-comparison and revision-decision purpose.',
-    'Rubric calibration bias checks now rotate equivalent fairness language by lesson, so the same `not writing polish, confidence, accent...` tail no longer appears in every rubric.',
+    'A fresh deployed v0.15.141 User Experience Design Studio ZIP/log audit exported successfully and locally regraded at 99/100 with zero P0/P1/P2 findings; identity, source, honesty, discipline, structure, format, and export truth stayed clean while texture measured 92/100.',
+    'That real provider output exposed a CourseMapper-side skeleton defect: complete-looking Course Map rows collapsed lesson titles, exported filenames, assignment headings, and FAQ headings around repeated short labels such as `design project` and `weekly studio critiques`.',
+    'Course Map readiness now treats repeated short labels across many lessons as weak skeleton content, not as acceptable topic material, so they are repaired before they seed filenames or compiled deliverables.',
+    'When a UX studio map collapses this way, the repair path falls back to a lesson-specific UX progression covering problem framing, research planning, affinity mapping, accessibility, usability testing, findings, microcopy, interaction data, revision planning, rationale, and portfolio reflection.',
+    'A focused regression reproduces the v0.15.141 `design project` / `weekly studio critiques` collapse and proves repaired UX lesson titles and topic cells vary across the 12-week course without weakening grader or source standards.',
   ],
   landingHighlights: [
-    'Fresh v0.15.140 ZIP/log evidence regraded cleanly at 100/A.',
-    'Texture rose to 96, with the previous tail families gone.',
-    'The new repeated families were deterministic CourseMapper templates.',
-    'Readiness labels, slide discussion notes, and rubric fairness checks now vary by lesson.',
+    'Fresh v0.15.141 ZIP/log evidence regraded at 99/A.',
+    'The remaining scored loss was texture 92, not source or export truth.',
+    'Repeated short Course Map labels were turning into filenames and support text.',
+    'UX skeleton repair now creates lesson-specific titles before export.',
   ],
   proof: {
-    contract: 'release-contracts/v0.15.141.json',
-    roadmap: 'docs/V0.15.141_UX_TEXTURE_SEED_CLEANUP_ROADMAP.md',
+    contract: 'release-contracts/v0.15.142.json',
+    roadmap: 'docs/V0.15.142_UX_COURSE_MAP_SKELETON_CLEANUP_ROADMAP.md',
     auditCommand: 'npm run audit:release-history',
   },
 };
@@ -35,6 +35,18 @@ export const CURRENT_RELEASE_CHANGELOG = {
 };
 
 export const HISTORICAL_RELEASE_CHANGELOGS = [
+  {
+    version: '0.15.141',
+    date: 'June 29, 2026',
+    title: 'UX Texture Tail Cleanup: readiness labels, slide notes, and rubric fairness checks vary',
+    highlights: [
+      'A fresh deployed v0.15.140 User Experience Design Studio ZIP/log audit exported successfully and locally regraded at 100/100 with zero P0/P1/P2 findings, while texture improved to 96/100 and export/report/UI agreement held on Quality 100.',
+      'That real provider output proved the v0.15.140 cleanup removed the previous v0.15.139 repeated-tail families, but exposed the next deterministic texture target: sparse UX readiness labels, slide discussion titles/notes, agenda notes, and rubric fairness checks still stamped repeated shingles.',
+      'UX readiness fallback assessment labels are now shorter and less sentence-like, avoiding repeated prompty labels such as `critique memo naming one user-evidence signal...` before they fan out into assignments, rubrics, and syllabus text.',
+      'Blueprint slide discussion openings, discussion titles, and agenda-note transitions now rotate by lesson while preserving the evidence-comparison and revision-decision purpose.',
+      'Rubric calibration bias checks now rotate equivalent fairness language by lesson, so the same `not writing polish, confidence, accent...` tail no longer appears in every rubric.',
+    ],
+  },
   {
     version: '0.15.140',
     date: 'June 29, 2026',
