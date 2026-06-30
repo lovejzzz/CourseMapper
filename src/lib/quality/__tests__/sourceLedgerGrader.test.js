@@ -212,6 +212,18 @@ describe('source-ledger quality checks', () => {
           readiness: { status: 'ready', blockers: 0, warnings: 0, checkedSections: null },
           sourceLedger: [
             {
+              id: 'kr1',
+              title:
+                'OpenStax introduction python programming §10.1 (open textbook, CC BY 4.0 — https://openstax.org/books/introduction-python-programming)',
+              provider: 'genome',
+              url: 'https://openstax.org/books/introduction-python-programming',
+              license: 'CC BY 4.0',
+              conceptLinks: [
+                { id: 'c6', label: 'dictionaries' },
+                { id: 'c8', label: 'file input' },
+              ],
+            },
+            {
               id: 'syllabus-src-3-3',
               title: 'OpenStax introduction python programming §4.2 (open textbook)',
               provider: 'openstax',
@@ -238,6 +250,7 @@ describe('source-ledger quality checks', () => {
           '# Source Report',
           '',
           '## Source Ledger',
+          '- kr1: OpenStax introduction python programming §10.1 (open textbook)',
           '- syllabus-src-3-3: OpenStax introduction python programming §4.2 (open textbook)',
           '- syllabus-src-1-1: OpenStax introduction python programming §1.3 (open textbook)',
         ].join('\n'),
@@ -253,6 +266,7 @@ describe('source-ledger quality checks', () => {
     );
     expect(details).not.toContain('source ledger row syllabus-src-3-3 is off-discipline for Computer Science/Python');
     expect(details).not.toContain('source ledger row syllabus-src-1-1 is off-discipline for Computer Science/Python');
+    expect(details).not.toContain('source ledger row kr1 is off-discipline for Computer Science/Python');
   });
 
   it('keeps quarantined review rows advisory when trusted concept-linked source rows cover the bibliography', async () => {

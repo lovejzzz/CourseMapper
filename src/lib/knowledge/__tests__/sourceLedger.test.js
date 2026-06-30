@@ -159,6 +159,62 @@ describe('trusted source ledger', () => {
     expect(ledger.summary).not.toHaveProperty('reviewRequiredCount');
   });
 
+  it('keeps canonical OpenStax Python genome rows trusted for ambiguous CS concepts', () => {
+    const ledger = buildSourceLedgerFromCourseGraph(
+      {
+        course: { name: 'Introduction to Computer Science with Python' },
+        concepts: [
+          { id: 'c6', term: 'Dictionaries' },
+          { id: 'c8', term: 'File input' },
+        ],
+        sessions: [
+          {
+            id: 's10',
+            number: 10,
+            title: 'Dictionaries and Files',
+            sections: [
+              {
+                topic: 'Dictionary and file input practice',
+                conceptRefs: ['c6', 'c8'],
+                resourceRefs: ['kr1'],
+              },
+            ],
+          },
+        ],
+        resources: [
+          {
+            id: 'kr1',
+            provider: 'genome',
+            origin: 'genome',
+            kind: 'textbook section',
+            title:
+              'OpenStax introduction python programming §10.1 (open textbook, CC BY 4.0 — https://openstax.org/books/introduction-python-programming)',
+            url: 'https://openstax.org/books/introduction-python-programming',
+            license: 'CC BY 4.0',
+            sessionRefs: [10],
+          },
+        ],
+      },
+      { checkedAt: '2026-06-30T00:00:00.000Z' },
+    );
+
+    expect(ledger.reviewRows || []).toHaveLength(0);
+    expect(ledger.rows).toEqual([
+      expect.objectContaining({
+        id: 'kr1',
+        provider: 'genome',
+        url: 'https://openstax.org/books/introduction-python-programming',
+        license: 'CC BY 4.0',
+        accessStatus: 'reference-present',
+        licenseAmbiguous: false,
+        conceptLinks: expect.arrayContaining([
+          { id: 'c6', label: 'Dictionaries' },
+          { id: 'c8', label: 'File input' },
+        ]),
+      }),
+    ]);
+  });
+
   it('normalizes hyphenated Creative Commons licenses recovered from source text', () => {
     const ledger = buildSourceLedgerFromCourseGraph({
       sessions: [{ id: 's1', number: 1, sections: [{ topic: 'Scope definition', resourceRefs: ['r1', 'r2'] }] }],

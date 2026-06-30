@@ -1,0 +1,103 @@
+{
+  "version": "0.15.158",
+  "date": "June 30, 2026",
+  "title": "OpenStax Python Source Gate: canonical OER rows stay trusted",
+  "status": "verified-current",
+  "proofSummary": {
+    "local": [
+      "npx vitest run src/lib/knowledge/__tests__/sourceLedger.test.js src/lib/quality/__tests__/sourceLedgerGrader.test.js",
+      "npm run audit:release-history"
+    ],
+    "ciFast": {
+      "status": "pending-push",
+      "note": "Fast verification is claimed only after v0.15.158 is pushed and the GitHub Actions run is attached."
+    },
+    "deploy": {
+      "status": "pending-push",
+      "note": "Pages deploy is not claimed until the pushed v0.15.158 release completes its deploy run."
+    },
+    "ciDeep": {
+      "status": "local-only",
+      "note": "This is a narrow source-truth/grader-parity release; focused coverage plus normal gates are the release bar."
+    },
+    "liveProvider": {
+      "status": "not-current",
+      "note": "No fresh funded provider ZIP/log score is claimed by this release."
+    },
+    "manualHuman": {
+      "status": "not-applicable",
+      "note": "No external instructor approval is claimed by this release."
+    }
+  },
+  "claims": [
+    {
+      "id": "v015158-python-oer-false-positive-evidence",
+      "status": "verified-current",
+      "changelogHighlightIndex": 0,
+      "summary": "The release is grounded in the current regrade of existing Python ZIPs, where a legitimate OpenStax Python row was falsely marked off-discipline.",
+      "anchors": ["docs/V0.15.158_OPENSTAX_PYTHON_SOURCE_GATE_ROADMAP.md"],
+      "proofCommands": [
+        "rg -n \"source-gate false positive|kr1|OpenStax Introduction to Python Programming\" docs/V0.15.158_OPENSTAX_PYTHON_SOURCE_GATE_ROADMAP.md"
+      ],
+      "proofScopes": ["static-audit"]
+    },
+    {
+      "id": "v015158-production-canonical-oer-gate",
+      "status": "verified-current",
+      "changelogHighlightIndex": 1,
+      "summary": "Production source-ledger filtering preserves canonical OpenStax Python OER rows for ambiguous CS concepts.",
+      "anchors": ["src/lib/knowledge/sourceLedger.js", "src/lib/knowledge/__tests__/sourceLedger.test.js"],
+      "proofCommands": [
+        "npx vitest run src/lib/knowledge/__tests__/sourceLedger.test.js -t \"canonical OpenStax Python\""
+      ],
+      "proofScopes": ["unit"]
+    },
+    {
+      "id": "v015158-false-friends-stay-strict",
+      "status": "verified-current",
+      "changelogHighlightIndex": 2,
+      "summary": "Committed source-ledger and deep-grader regressions keep real Python false-friend source rows failing instead of hiding them.",
+      "anchors": [
+        "src/lib/knowledge/__tests__/sourceLedger.test.js",
+        "src/lib/quality/__tests__/sourceLedgerGrader.test.js"
+      ],
+      "proofCommands": [
+        "npx vitest run src/lib/knowledge/__tests__/sourceLedger.test.js src/lib/quality/__tests__/sourceLedgerGrader.test.js -t \"CS/Python\""
+      ],
+      "proofScopes": ["unit"]
+    },
+    {
+      "id": "v015158-grader-production-parity",
+      "status": "verified-current",
+      "changelogHighlightIndex": 3,
+      "summary": "The deep quality grader mirrors the same canonical OpenStax Python OER rule as production source-ledger filtering.",
+      "anchors": [
+        "src/lib/quality/sourceLedgerQualityChecks.js",
+        "src/lib/quality/__tests__/sourceLedgerGrader.test.js"
+      ],
+      "proofCommands": ["npx vitest run src/lib/quality/__tests__/sourceLedgerGrader.test.js -t \"hydrated OpenStax\""],
+      "proofScopes": ["unit"]
+    },
+    {
+      "id": "v015158-no-provider-score-claim",
+      "status": "verified-current",
+      "changelogHighlightIndex": 4,
+      "summary": "The release ledger explicitly preserves the need for a fresh funded ZIP/log audit before claiming clean model output.",
+      "anchors": [
+        "src/lib/releaseManifest.js",
+        "docs/V0.15.158_OPENSTAX_PYTHON_SOURCE_GATE_ROADMAP.md",
+        "release-contracts/v0.15.158.json"
+      ],
+      "proofCommands": [
+        "rg -n \"does not claim a new provider score|may not claim|fresh funded v0.15.158\" src/lib/releaseManifest.js docs/V0.15.158_OPENSTAX_PYTHON_SOURCE_GATE_ROADMAP.md release-contracts/v0.15.158.json"
+      ],
+      "proofScopes": ["static-audit"]
+    }
+  ],
+  "knownRemainingTargets": [
+    "A fresh deployed v0.15.158 provider ZIP/log audit must prove real output source rows are canonical, linked, licensed, and on-topic.",
+    "A same-version GPT-5.4-mini versus GPT-5.5-pro comparison is still needed before attributing remaining losses to model choice.",
+    "Existing ZIP2 still contains real false-friend rows and should not be treated as clean evidence.",
+    "Every fresh audit still has to reconcile UI, ZIP, manifest, quality report, source report, digest logs, and local regrade before claiming clean output."
+  ]
+}

@@ -3,24 +3,24 @@ import { APP_VERSION } from './appVersion.js';
 export const CURRENT_RELEASE = {
   version: APP_VERSION,
   date: 'June 30, 2026',
-  title: 'Lecture Exam Texture: concept-check scaffolds rotate by lesson',
-  landingTitle: 'Lecture Exam Texture',
+  title: 'OpenStax Python Source Gate: canonical OER rows stay trusted',
+  landingTitle: 'OpenStax Python Source Gate',
   highlights: [
-    'The latest GPT-5.5-pro Python model-comparison evidence regraded at 94/A on the old v0.15.147 artifact, and its current texture evidence still showed a CourseMapper-side lecture/exam shingle repeated across all 15 slide decks.',
-    'Lecture/exam modality decoding no longer stamps the same `concept-check answers, confidence ratings, misconception patterns, and corrected explanations` routine into every lesson.',
-    'Exam-readiness discussion protocols now rotate participation, artifact-use, and review-focus language instead of repeating the same wrong-answer-sort and exam-transfer-readiness chain across the full course.',
-    'A new 15-lesson lecture/exam regression uses the real repeated-shingle evidence from the GPT-5.5-pro Python ZIP/log audit, so four-lesson texture coverage can no longer miss semester-scale repetition.',
-    'This release does not claim a new provider score; the next proof step remains a fresh funded v0.15.157 ZIP/log audit that reconciles UI, digest, ZIP, source report, quality report, and local regrade.',
+    'Current regrade of the existing GPT-5.5-pro Python ZIP corpus found one source-gate false positive: a licensed, linked, concept-linked OpenStax Introduction to Python Programming row was treated like ambiguous dictionary/file bycatch.',
+    'Computer Science/Python source filtering now recognizes canonical OpenStax Introduction to Python Programming rows from OpenStax/genome providers as discipline-appropriate OER proof, even when they link to ambiguous concepts such as dictionaries or file input.',
+    'The false-friend guard remains strict: source-finder/Wikipedia/Crossref rows such as Environment variable, Function (mathematics), File Explorer, String theory, and No Strings Attached still regrade as off-discipline for Python courses.',
+    'Production source-ledger promotion and the local deep quality grader now share the same canonical-OER rule, so export truth and regrade truth agree on legitimate OpenStax Python proof.',
+    'This release does not claim a new provider score; the next proof step remains a fresh funded v0.15.158 ZIP/log audit that reconciles UI, digest, ZIP, source report, quality report, and local regrade.',
   ],
   landingHighlights: [
-    'Lecture/exam routines rotate by lesson.',
-    'Concept-check texture stamps stay out of full-course decks.',
-    'Exam-readiness discussion prompts vary review language.',
+    'Canonical OpenStax Python OER rows stay trusted.',
+    'Ambiguous CS false friends still fail source review.',
+    'Production export and local regrade source rules match.',
     'Fresh provider scores still require funded ZIP/log evidence.',
   ],
   proof: {
-    contract: 'release-contracts/v0.15.157.json',
-    roadmap: 'docs/V0.15.157_LECTURE_EXAM_TEXTURE_ROADMAP.md',
+    contract: 'release-contracts/v0.15.158.json',
+    roadmap: 'docs/V0.15.158_OPENSTAX_PYTHON_SOURCE_GATE_ROADMAP.md',
     auditCommand: 'npm run audit:release-history',
   },
 };
@@ -35,6 +35,18 @@ export const CURRENT_RELEASE_CHANGELOG = {
 };
 
 export const HISTORICAL_RELEASE_CHANGELOGS = [
+  {
+    version: '0.15.157',
+    date: 'June 30, 2026',
+    title: 'Lecture Exam Texture: concept-check scaffolds rotate by lesson',
+    highlights: [
+      'The latest GPT-5.5-pro Python model-comparison evidence regraded at 94/A on the old v0.15.147 artifact, and its current texture evidence still showed a CourseMapper-side lecture/exam shingle repeated across all 15 slide decks.',
+      'Lecture/exam modality decoding no longer stamps the same `concept-check answers, confidence ratings, misconception patterns, and corrected explanations` routine into every lesson.',
+      'Exam-readiness discussion protocols now rotate participation, artifact-use, and review-focus language instead of repeating the same wrong-answer-sort and exam-transfer-readiness chain across the full course.',
+      'A new 15-lesson lecture/exam regression uses the real repeated-shingle evidence from the GPT-5.5-pro Python ZIP/log audit, so four-lesson texture coverage can no longer miss semester-scale repetition.',
+      'This release does not claim a new provider score; the next proof step remains a fresh funded v0.15.157 ZIP/log audit that reconciles UI, digest, ZIP, source report, quality report, and local regrade.',
+    ],
+  },
   {
     version: '0.15.156',
     date: 'June 30, 2026',

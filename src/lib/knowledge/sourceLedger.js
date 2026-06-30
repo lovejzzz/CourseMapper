@@ -654,8 +654,21 @@ function hasComputerScienceTopicAnchor(source = {}) {
   });
 }
 
+function isCanonicalComputerScienceOerSource(source = {}) {
+  const provider = cleanText(source?.provider || source?.origin || '', 80).toLowerCase();
+  if (!['openstax', 'genome', 'genome-prerequisite'].includes(provider)) return false;
+  const text = [source?.url, source?.title, source?.citation, source?.evidence, source?.sourceType]
+    .filter(Boolean)
+    .join(' ');
+  return (
+    /openstax\.org\/books\/introduction-python-programming\b/i.test(text) ||
+    /\bopenstax\s+introduction\s+python\s+programming\b/i.test(text)
+  );
+}
+
 export function isComputerScienceWeakSource(source, courseGraph) {
   if (!COMPUTER_SCIENCE_COURSE_RE.test(courseText(courseGraph))) return false;
+  if (isCanonicalComputerScienceOerSource(source)) return false;
   const text = sourceSearchText(source);
   if (COMPUTER_SCIENCE_FALSE_FRIEND_RE.test(text)) return true;
   if (COMPUTER_SCIENCE_AMBIGUOUS_CONCEPT_RE.test(sourceConceptText(source))) {
