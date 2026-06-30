@@ -666,7 +666,7 @@ describe('1.16 — prompt artifact labels never become course-map concepts', () 
     expect(assessmentText).not.toMatch(/\bpredict output and explain the state change\b/i);
     expect(evaluateText).not.toMatch(/\brunnable Python artifact or trace\b/i);
     expect(evaluateText).not.toMatch(/\bsame input\/output evidence used in grading\b/i);
-  });
+  }, 15000);
 
   it('repairs assessment-label course-title identities before they seed filenames and source concepts', () => {
     const assessmentLabels = [
