@@ -440,6 +440,38 @@ function isCourseTitleOnlyTopic(value, courseMap) {
   return normalizeCourseMapTopicIdentity(value) === courseTitle;
 }
 
+function isDomainCourseTitleOnlyWeakTopic(value, courseMap) {
+  if (!isCourseTitleOnlyTopic(value, courseMap)) return false;
+  return UX_DESIGN_COURSE_MAP_RE.test(text(courseMap?.courseName));
+}
+
+function isCourseTitlePrefixedFallbackTopic(value, courseMap) {
+  const courseTitle = normalizeCourseMapTopicIdentity(courseMap?.courseName);
+  if (!courseTitle || !UX_DESIGN_COURSE_MAP_RE.test(text(courseMap?.courseName))) return false;
+  const candidate = normalizeCourseMapTopicIdentity(value);
+  if (!candidate || candidate === courseTitle) return false;
+  if (!candidate.startsWith(`${courseTitle} `)) return false;
+  const suffix = candidate.slice(courseTitle.length).trim();
+  const suffixWords = suffix.split(/\s+/).filter(Boolean);
+  return suffixWords.length > 0 && suffixWords.length <= 8;
+}
+
+function isConjoinedAssessmentEventTopic(value) {
+  const candidate = genericTopicText(value);
+  if (!candidate || !/[,/]/.test(candidate)) return false;
+  const parts = candidate
+    .split(/\s*(?:,|\/|\||\band\b|&)\s*/i)
+    .map((part) => part.trim())
+    .filter(Boolean);
+  if (parts.length < 2 || parts.length > 4) return false;
+  const eventParts = parts.filter((part) =>
+    /\b(?:weekly|final|midterm|presentation|critique|portfolio|prototype|journal|lab|studio|deliverable|assessment)\b/i.test(
+      part,
+    ),
+  );
+  return eventParts.length >= 2;
+}
+
 function repeatedCourseTitleOnlyTopicCount(courseMap) {
   const lessons = asArray(courseMap?.lessons);
   if (lessons.length < 3) return 0;
@@ -506,6 +538,34 @@ function hasRepeatedShortTopicReference(value, courseMap) {
   return false;
 }
 
+function weakCourseMapTopicIdentities(courseMap) {
+  const identities = new Set([...repeatedShortCourseMapTopicIdentities(courseMap)]);
+  asArray(courseMap?.lessons).forEach((lesson) => {
+    [
+      lesson?.title,
+      ...asArray(lesson?.sections).flatMap((section) => [section?.topicSection, section?.weeklyAssessments]),
+    ]
+      .map(normalizeCourseMapTopicIdentity)
+      .filter(Boolean)
+      .forEach((candidate) => {
+        if (isWeakCourseMapTopic(candidate, courseMap)) identities.add(candidate);
+      });
+  });
+  return identities;
+}
+
+function hasWeakCourseMapTopicReference(value, courseMap) {
+  const raw = text(value);
+  if (!raw || stripCourseMapRegistryReferenceSuffix(raw) !== raw) return false;
+  const normalized = normalizeCourseMapTopicIdentity(value);
+  if (!normalized) return false;
+  for (const identity of weakCourseMapTopicIdentities(courseMap)) {
+    if (!identity || identity.length < 5) continue;
+    if (new RegExp(`(?:^|\\b)${escapeRegexLiteral(identity)}(?:\\b|$)`, 'i').test(normalized)) return true;
+  }
+  return false;
+}
+
 function needsPromptArtifactCourseMapRepair(key, value, courseMap) {
   if (isInstructionalDesignCourse(courseMap)) return false;
   const raw = text(value);
@@ -531,6 +591,9 @@ function isWeakCourseMapTopic(value, courseMap) {
   if (hasEmbeddedPromptArtifactTopic(candidate)) return true;
   if (GENERIC_COURSE_MAP_FALLBACK_RE.test(candidate)) return true;
   if (needsCourseTitleOnlyTopicRepair(candidate, courseMap)) return true;
+  if (isDomainCourseTitleOnlyWeakTopic(candidate, courseMap)) return true;
+  if (isCourseTitlePrefixedFallbackTopic(candidate, courseMap)) return true;
+  if (isConjoinedAssessmentEventTopic(candidate)) return true;
   if (needsRepeatedShortTopicRepair(candidate, courseMap)) return true;
   if (isSentenceShapedCourseMapTopic(candidate)) return true;
   return /^(?:none|n\/a|not applicable|lesson|week|topic|block|clinical|community|health|studio|seminar|placement)$/i.test(
@@ -1063,6 +1126,9 @@ export function repairCourseMapReadiness({ courseMap, columns = [], lessonFilter
       needsCourseMapFieldRepair(lesson?.title) ||
       isGenericNumberedCourseMapTopic(lesson?.title) ||
       needsCourseTitleOnlyTopicRepair(lesson?.title, courseMap) ||
+      isDomainCourseTitleOnlyWeakTopic(lesson?.title, courseMap) ||
+      isCourseTitlePrefixedFallbackTopic(lesson?.title, courseMap) ||
+      isConjoinedAssessmentEventTopic(lesson?.title) ||
       needsRepeatedShortTopicRepair(lesson?.title, courseMap)
     ) {
       const titleTopic = getCourseMapTopic(courseMap, lesson, asArray(lesson?.sections)[0], lessonIndex);
@@ -1166,6 +1232,22 @@ export function repairCourseMapReadiness({ courseMap, columns = [], lessonFilter
         };
         repairedFields.push(
           `Lesson ${lessonIndex + 1}, Section ${sectionIndex + 1} ${columnLabel(columns, key)} (prompt artifact)`,
+        );
+        sectionsChanged = true;
+        changed = true;
+      }
+      // If the map's weak topic is embedded in otherwise complete-looking
+      // cells, repair those cells too. Otherwise a title-only fix still lets
+      // the same skeleton label leak into exported Course Map rows and file
+      // stems through objectives, assessments, and resource text.
+      for (const key of columnsToNormalize) {
+        if (!hasWeakCourseMapTopicReference(nextSection?.[key], courseMap)) continue;
+        nextSection = {
+          ...nextSection,
+          [key]: getCourseMapFallbackValue(key, courseMap, nextLesson, nextSection, lessonIndex),
+        };
+        repairedFields.push(
+          `Lesson ${lessonIndex + 1}, Section ${sectionIndex + 1} ${columnLabel(columns, key)} (weak topic)`,
         );
         sectionsChanged = true;
         changed = true;

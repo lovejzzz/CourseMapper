@@ -2,25 +2,25 @@ import { APP_VERSION } from './appVersion.js';
 
 export const CURRENT_RELEASE = {
   version: APP_VERSION,
-  date: 'June 29, 2026',
-  title: 'UX Course Map Skeleton Cleanup: repeated short labels are repaired',
-  landingTitle: 'UX Skeleton Cleanup',
+  date: 'June 30, 2026',
+  title: 'UX Skeleton and Quiz Texture: repeated fallback labels and quiz tails vary',
+  landingTitle: 'UX Skeleton + Quiz Texture',
   highlights: [
-    'A fresh deployed v0.15.141 User Experience Design Studio ZIP/log audit exported successfully and locally regraded at 99/100 with zero P0/P1/P2 findings; identity, source, honesty, discipline, structure, format, and export truth stayed clean while texture measured 92/100.',
-    'That real provider output exposed a CourseMapper-side skeleton defect: complete-looking Course Map rows collapsed lesson titles, exported filenames, assignment headings, and FAQ headings around repeated short labels such as `design project` and `weekly studio critiques`.',
-    'Course Map readiness now treats repeated short labels across many lessons as weak skeleton content, not as acceptable topic material, so they are repaired before they seed filenames or compiled deliverables.',
-    'When a UX studio map collapses this way, the repair path falls back to a lesson-specific UX progression covering problem framing, research planning, affinity mapping, accessibility, usability testing, findings, microcopy, interaction data, revision planning, rationale, and portfolio reflection.',
-    'A focused regression reproduces the v0.15.141 `design project` / `weekly studio critiques` collapse and proves repaired UX lesson titles and topic cells vary across the 12-week course without weakening grader or source standards.',
+    'A fresh deployed v0.15.142 User Experience Design Studio ZIP/log audit exported successfully and locally regraded at 100/100 with zero P0/P1/P2 findings; source rows were URL-backed, license-safe, on-topic, and concept-linked, while texture still measured 95/100.',
+    'That real provider output proved the prior repeated-short-label repair was too narrow: complete-looking Course Map rows still exported course-title-prefixed fallback labels such as `User Experience Design Studio annotation...` and the comma-joined `Weekly studio critique,Final interactive prototype presentation` capstone label.',
+    'Course Map readiness now treats UX course-title-only labels, course-title-prefixed fallback labels, and conjoined assessment/event labels as weak topics, and repairs embedded section cells before those labels seed objectives, assessments, resources, or filenames.',
+    'Quiz Bank projection now varies short-answer and essay frame language from lesson-specific kernel content instead of fixed question-slot number, preserving evidence use and counterclaim handling without stamping identical tails across twelve lessons.',
+    'Focused regressions recreate the v0.15.142 UX Course Map/file-stem collapse and the twelve-lesson Quiz Bank tail family, proving both are removed without weakening source, grader, or export standards.',
   ],
   landingHighlights: [
-    'Fresh v0.15.141 ZIP/log evidence regraded at 99/A.',
-    'The remaining scored loss was texture 92, not source or export truth.',
-    'Repeated short Course Map labels were turning into filenames and support text.',
-    'UX skeleton repair now creates lesson-specific titles before export.',
+    'Fresh v0.15.142 ZIP/log evidence regraded at 100/A.',
+    'Sources and export truth were clean; texture remained 95.',
+    'UX fallback labels still reached Course Map rows and filenames.',
+    'Quiz Bank frame variants now rotate by lesson-specific kernel content.',
   ],
   proof: {
-    contract: 'release-contracts/v0.15.142.json',
-    roadmap: 'docs/V0.15.142_UX_COURSE_MAP_SKELETON_CLEANUP_ROADMAP.md',
+    contract: 'release-contracts/v0.15.143.json',
+    roadmap: 'docs/V0.15.143_UX_SKELETON_AND_QUIZ_TEXTURE_ROADMAP.md',
     auditCommand: 'npm run audit:release-history',
   },
 };
@@ -35,6 +35,18 @@ export const CURRENT_RELEASE_CHANGELOG = {
 };
 
 export const HISTORICAL_RELEASE_CHANGELOGS = [
+  {
+    version: '0.15.142',
+    date: 'June 29, 2026',
+    title: 'UX Course Map Skeleton Cleanup: repeated short labels are repaired',
+    highlights: [
+      'A fresh deployed v0.15.141 User Experience Design Studio ZIP/log audit exported successfully and locally regraded at 99/100 with zero P0/P1/P2 findings; identity, source, honesty, discipline, structure, format, and export truth stayed clean while texture measured 92/100.',
+      'That real provider output exposed a CourseMapper-side skeleton defect: complete-looking Course Map rows collapsed lesson titles, exported filenames, assignment headings, and FAQ headings around repeated short labels such as `design project` and `weekly studio critiques`.',
+      'Course Map readiness now treats repeated short labels across many lessons as weak skeleton content, not as acceptable topic material, so they are repaired before they seed filenames or compiled deliverables.',
+      'When a UX studio map collapses this way, the repair path falls back to a lesson-specific UX progression covering problem framing, research planning, affinity mapping, accessibility, usability testing, findings, microcopy, interaction data, revision planning, rationale, and portfolio reflection.',
+      'A focused regression reproduces the v0.15.141 `design project` / `weekly studio critiques` collapse and proves repaired UX lesson titles and topic cells vary across the 12-week course without weakening grader or source standards.',
+    ],
+  },
   {
     version: '0.15.141',
     date: 'June 29, 2026',

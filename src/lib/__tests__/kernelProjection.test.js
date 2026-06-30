@@ -226,6 +226,46 @@ describe('projectKernelToSurfaces', () => {
     expect(oldScaffoldHits).toEqual([]);
   });
 
+  it('varies short-answer and essay quiz scaffolds across lesson-specific kernels', () => {
+    const shortQuestionTails = new Set();
+    const shortScoring = new Set();
+    const essayScoring = new Set();
+    const combined = [];
+
+    for (let index = 0; index < 12; index += 1) {
+      const payload = projectKernelToSurfaces(
+        {
+          ...KERNEL,
+          scenario: {
+            ...KERNEL.scenario,
+            setup: `${KERNEL.scenario.setup} Lesson-specific evidence packet ${index + 1}.`,
+            materials: `${KERNEL.scenario.materials} packet ${index + 1}`,
+          },
+          discussionPrompt: {
+            ...KERNEL.discussionPrompt,
+            prompt: `${KERNEL.discussionPrompt.prompt} Studio case ${index + 1}?`,
+          },
+        },
+        { itemPlan },
+      );
+      const shortAnswer = payload.quizItems.find((item) => item.type === 'short_answer');
+      const essay = payload.quizItems.find((item) => item.type === 'essay');
+      shortQuestionTails.add(shortAnswer?.question.replace(/^.*?Using|^.*?Use|^.*?Apply|^.*?Connect/s, '').trim());
+      shortScoring.add(shortAnswer?.scoringGuidance || '');
+      essayScoring.add(essay?.scoringGuidance || '');
+      combined.push(shortAnswer?.question, shortAnswer?.scoringGuidance, shortAnswer?.answer, essay?.scoringGuidance);
+    }
+
+    const allText = combined.join('\n');
+    expect(shortQuestionTails.size).toBeGreaterThan(3);
+    expect(shortScoring.size).toBeGreaterThan(3);
+    expect(essayScoring.size).toBeGreaterThan(3);
+    expect(allText).not.toMatch(/analyze what this evidence shows and justify your conclusion/i);
+    expect(allText).not.toMatch(/concept recall without evidence stays below/i);
+    expect(allText).not.toMatch(/use the assigned evidence rather than general opinion/i);
+    expect(allText).not.toMatch(/answer keeps the claim honest by naming a plausible limit/i);
+  });
+
   it('omits short-answer and essay frames when their kernel atoms are missing', () => {
     const payload = projectKernelToSurfaces({ ...KERNEL, scenario: null, discussionPrompt: null }, { itemPlan });
     const types = payload.quizItems.map((item) => item.type);

@@ -134,4 +134,55 @@ describe('v0.15.141 UX texture regression', () => {
     expect(repairedText.match(/\bdesign project\b/gi) || []).toHaveLength(0);
     expect(repairedText.match(/\bweekly studio critiques\b/gi) || []).toHaveLength(0);
   });
+
+  it('repairs repeated course-title-prefixed UX fallback labels before export', () => {
+    const repeatedTopics = [
+      'User Experience Design Studio',
+      'User Experience Design Studio annotation: research detail to design choice',
+      'User Experience Design Studio studio defense: prototype move and evidence',
+      'information architecture and navigation choices',
+      'accessibility and interface content review',
+      'User Experience Design Studio annotation: research detail to design choice',
+      'User Experience Design Studio studio defense: prototype move and evidence',
+      'microcopy and recovery-path revision',
+      'interaction data and evidence brief',
+      'User Experience Design Studio annotation: research detail to design choice',
+      'User Experience Design Studio studio defense: prototype move and evidence',
+      'Weekly studio critique,Final interactive prototype presentation',
+    ];
+    const courseMap = {
+      courseName: 'User Experience Design Studio',
+      lessons: repeatedTopics.map((topic, index) => ({
+        title: `Lesson ${index + 1}: ${topic}`,
+        sections: [
+          {
+            topicSection: topic,
+            learningGoals: `Use ${topic} to make one design choice traceable to user evidence and critique feedback.`,
+            learningObjectives: `Apply ${topic} to a UX artifact and explain the design decision it changes.`,
+            weeklyAssessments: `${topic} evidence memo: user signal and revision choice.`,
+            asyncActivities: `Review the UX example and mark where ${topic} changes the design rationale.`,
+            syncActivities: `Run a critique round that tests how ${topic} changes the artifact.`,
+            supportingResources: `UX example, critique protocol, and design-journal prompt aligned to ${topic}.`,
+            evaluateDesign: `Check that the ${topic} activity and assessment ask students to justify the same design revision.`,
+          },
+        ],
+      })),
+    };
+
+    const result = repairCourseMapReadiness({ courseMap });
+    const repairedText = textValues(result.courseMap).join('\n');
+    const repairedTitles = result.courseMap.lessons.map((lesson) => lesson.title);
+    const repairedTopics = result.courseMap.lessons.map((lesson) => lesson.sections[0].topicSection);
+
+    expect(result.changed).toBe(true);
+    expect(new Set(repairedTitles).size).toBe(12);
+    expect(repairedTitles[1]).toContain('user research planning and interview notes');
+    expect(repairedTitles[5]).toContain('usability test planning and task scenarios');
+    expect(repairedTitles[9]).toContain('revision planning from critique feedback');
+    expect(repairedTitles[11]).toContain('portfolio case reflection and handoff');
+    expect(new Set(repairedTopics).size).toBe(12);
+    expect(repairedText).not.toMatch(/User Experience Design Studio annotation: research detail to design choice/i);
+    expect(repairedText).not.toMatch(/User Experience Design Studio studio defense: prototype move and evidence/i);
+    expect(repairedText).not.toMatch(/Weekly studio critique,Final interactive prototype presentation/i);
+  });
 });

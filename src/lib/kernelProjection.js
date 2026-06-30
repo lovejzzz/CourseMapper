@@ -298,7 +298,7 @@ export function composeScenarioAnswer(scenario, term, fact, { position = '', cou
           'A strong answer also names one limitation or alternative reading of the evidence.',
           'A complete answer also marks what the evidence does not prove.',
           'Strong responses add one boundary, tradeoff, or competing interpretation.',
-          'The best answer keeps the claim honest by naming a plausible limit.',
+          'The strongest answer names a plausible limit so the claim stays honest.',
         ]),
   );
   return sentences
@@ -309,34 +309,45 @@ export function composeScenarioAnswer(scenario, term, fact, { position = '', cou
     .trim();
 }
 
-function buildShortAnswerItem(kernel, index) {
+function buildShortAnswerItem(kernel, index, seed = 0) {
   const term = kernel?.keyTerms?.[0];
   const setup = cleanText(kernel?.scenario?.setup);
   if (!term || !setup) return null;
   const materials = cleanText(kernel?.scenario?.materials) || 'the scenario evidence';
   const fact = bestFactFor(term, kernel.facts) || kernel.facts?.[0] || '';
-  const scoringGuidance = projectionVariant(index, [
+  const variantSeed = projectionTextSeed(seed, setup, term.term, materials, fact, index);
+  const scoringGuidance = projectionVariant(variantSeed, [
     `Full credit uses ${term.term} accurately, cites ${materials}, and reaches a defensible conclusion; give partial credit when the concept is right but the evidence is thin.`,
     `Score for three visible moves: correct ${term.term} language, direct use of ${materials}, and a conclusion the evidence can support.`,
     `A strong answer names ${term.term}, points to the scenario evidence, and explains the conclusion; answers with accurate ideas but weak support earn partial credit.`,
-    `Award full credit only when ${term.term}, ${materials}, and the final claim work together. Concept recall without evidence stays below full credit.`,
+    `Award full credit only when ${term.term}, ${materials}, and the final claim work together; unsupported concept recall should stay below full credit.`,
+    `Look for accurate ${term.term} use, a concrete reference to ${materials}, and a conclusion that does not outrun the evidence.`,
+    `Give full credit when the response uses ${term.term} to interpret ${materials} and explains why the conclusion follows.`,
+  ]);
+  const questionTail = projectionVariant(variantSeed, [
+    `Using ${term.term}, analyze what this evidence shows and justify your conclusion.`,
+    `Use ${term.term} to interpret the evidence and defend a conclusion.`,
+    `Apply ${term.term} to the scenario and explain what conclusion the evidence supports.`,
+    `Using ${term.term}, state the best-supported conclusion and explain the evidence behind it.`,
+    `Connect ${term.term} to the scenario evidence and explain the reasoning it supports.`,
+    `Use ${term.term} to make a supported claim from the scenario evidence.`,
   ]);
   return {
     index,
     type: 'short_answer',
-    question: `${ensureSentence(setup)} Using ${term.term}, analyze what this evidence shows and justify your conclusion.`,
+    question: `${ensureSentence(setup)} ${questionTail}`,
     options: [],
     answerIndex: 0,
     distractorRationales: [],
     // v0.14.1 (1.5): the model answer engages the scenario instead of gluing
     // anchor-fact + definition.
-    answer: composeScenarioAnswer(kernel?.scenario, term, fact, { seed: index }),
+    answer: composeScenarioAnswer(kernel?.scenario, term, fact, { seed: variantSeed }),
     explanation: '',
     scoringGuidance,
   };
 }
 
-function buildEssayItem(kernel, index) {
+function buildEssayItem(kernel, index, seed = 0) {
   const discussion = kernel?.discussionPrompt;
   const prompt = cleanText(discussion?.prompt);
   if (!prompt) return null;
@@ -346,11 +357,14 @@ function buildEssayItem(kernel, index) {
   const positions = Array.isArray(discussion?.positions) ? discussion.positions.map(cleanText).filter(Boolean) : [];
   const counterposition = positions[1] ? ` (for example: ${stripTerminalPeriod(positions[1]).toLowerCase()})` : '';
   const sampleFact = term ? bestFactFor(term, kernel.facts) : kernel.facts?.[0] || '';
-  const scoringGuidance = projectionVariant(index, [
+  const variantSeed = projectionTextSeed(seed, prompt, term?.term, materials, positions[0], positions[1], index);
+  const scoringGuidance = projectionVariant(variantSeed, [
     `Strong responses commit to a position, test the counterargument${counterposition}, and keep every claim tied to course evidence; weak responses summarize without deciding.`,
-    `Full-credit essays make a claim, explain why a plausible alternative falls short${counterposition}, and use the assigned evidence rather than general opinion.`,
+    `Full-credit essays make a claim, explain why a plausible alternative falls short${counterposition}, and ground each major point in the assigned materials.`,
     `Look for a clear position, at least one opposing view${counterposition}, and evidence for each major claim. Responses that restate the prompt without taking a stand need revision.`,
     `Score the essay by tracing claim, counterclaim, evidence, and conclusion; unsupported position statements should not receive full credit.`,
+    `High-scoring essays identify the strongest opposing view${counterposition}, answer it with course evidence, and make the final judgment explicit.`,
+    `Use the rubric to check position, counterposition, evidence quality, and conclusion; broad opinion without source grounding remains incomplete.`,
   ]);
   return {
     index,
@@ -454,11 +468,23 @@ export function projectKernelToSurfaces(kernel, { itemPlan = [] } = {}) {
     });
   }
   if (shortAnswerSlot) {
-    const shortAnswer = buildShortAnswerItem(kernel, shortAnswerSlot.index);
+    const lessonSeed = projectionTextSeed(
+      kernel?.scenario?.setup,
+      kernel?.scenario?.materials,
+      kernel?.keyTerms?.[0]?.term,
+      kernel?.discussionPrompt?.prompt,
+    );
+    const shortAnswer = buildShortAnswerItem(kernel, shortAnswerSlot.index, lessonSeed);
     if (shortAnswer) quizItems.push(shortAnswer);
   }
   if (essaySlot) {
-    const essay = buildEssayItem(kernel, essaySlot.index);
+    const lessonSeed = projectionTextSeed(
+      kernel?.scenario?.setup,
+      kernel?.scenario?.materials,
+      kernel?.keyTerms?.[0]?.term,
+      kernel?.discussionPrompt?.prompt,
+    );
+    const essay = buildEssayItem(kernel, essaySlot.index, lessonSeed);
     if (essay) quizItems.push(essay);
   }
   quizItems.sort((a, b) => a.index - b.index);
