@@ -3,24 +3,24 @@ import { APP_VERSION } from './appVersion.js';
 export const CURRENT_RELEASE = {
   version: APP_VERSION,
   date: 'June 29, 2026',
-  title: 'UX Texture Tail Rotation: assignment, slide, rubric, and discussion scaffolds vary',
-  landingTitle: 'Texture Tail Rotation',
+  title: 'UX Texture Tail Cleanup: readiness labels, slide notes, and rubric fairness checks vary',
+  landingTitle: 'UX Texture Cleanup',
   highlights: [
-    'A fresh deployed v0.15.139 User Experience Design Studio ZIP/log audit exported successfully after the laptop restart and locally regraded at 100/100 with zero P0/P1/P2 findings, export verification passed, and digest/report/UI agreement on Quality 100 · Texture 95.',
-    'That real provider output proved the v0.15.139 cross-surface texture repair held for the previous target families: diagnostic readiness, revise-one-evidence, summary-avoidance, and claim-reasoning scaffolds had zero hits in the exported package.',
-    'The same audit exposed the next texture target as deterministic compiler tails, not provider failure: slide limit-language, assignment format, rubric evidence, discussion limitation, and slide transition phrases repeated across all twelve lessons.',
-    'The blueprint compiler now rotates those UX artifact and slide-tail families by lesson while preserving the same assessment format, evidence, critique, rationale, limitation, and transition contracts.',
-    'The focused 12-lesson UX compiler regression now covers lesson plans, slide decks, assignments, rubrics, discussions, and Course FAQ, requiring zero hits for both the previous texture target and the new v0.15.139 repeated-tail evidence.',
+    'A fresh deployed v0.15.140 User Experience Design Studio ZIP/log audit exported successfully and locally regraded at 100/100 with zero P0/P1/P2 findings, while texture improved to 96/100 and export/report/UI agreement held on Quality 100.',
+    'That real provider output proved the v0.15.140 cleanup removed the previous v0.15.139 repeated-tail families, but exposed the next deterministic texture target: sparse UX readiness labels, slide discussion titles/notes, agenda notes, and rubric fairness checks still stamped repeated shingles.',
+    'UX readiness fallback assessment labels are now shorter and less sentence-like, avoiding repeated prompty labels such as `critique memo naming one user-evidence signal...` before they fan out into assignments, rubrics, and syllabus text.',
+    'Blueprint slide discussion openings, discussion titles, and agenda-note transitions now rotate by lesson while preserving the evidence-comparison and revision-decision purpose.',
+    'Rubric calibration bias checks now rotate equivalent fairness language by lesson, so the same `not writing polish, confidence, accent...` tail no longer appears in every rubric.',
   ],
   landingHighlights: [
-    'Fresh v0.15.139 ZIP/log evidence regraded cleanly at 100/A.',
-    'The previous cross-surface texture target stayed gone in real output.',
-    'Remaining texture loss came from deterministic compiler tail families.',
-    'Assignment, slide, rubric, and discussion tails now vary by lesson; fresh v0.15.140 provider proof is still required.',
+    'Fresh v0.15.140 ZIP/log evidence regraded cleanly at 100/A.',
+    'Texture rose to 96, with the previous tail families gone.',
+    'The new repeated families were deterministic CourseMapper templates.',
+    'Readiness labels, slide discussion notes, and rubric fairness checks now vary by lesson.',
   ],
   proof: {
-    contract: 'release-contracts/v0.15.140.json',
-    roadmap: 'docs/V0.15.140_UX_TEXTURE_TAIL_ROTATION_ROADMAP.md',
+    contract: 'release-contracts/v0.15.141.json',
+    roadmap: 'docs/V0.15.141_UX_TEXTURE_SEED_CLEANUP_ROADMAP.md',
     auditCommand: 'npm run audit:release-history',
   },
 };
@@ -35,6 +35,18 @@ export const CURRENT_RELEASE_CHANGELOG = {
 };
 
 export const HISTORICAL_RELEASE_CHANGELOGS = [
+  {
+    version: '0.15.140',
+    date: 'June 29, 2026',
+    title: 'UX Texture Tail Rotation: assignment, slide, rubric, and discussion scaffolds vary',
+    highlights: [
+      'A fresh deployed v0.15.139 User Experience Design Studio ZIP/log audit exported successfully after the laptop restart and locally regraded at 100/100 with zero P0/P1/P2 findings, export verification passed, and digest/report/UI agreement on Quality 100 · Texture 95.',
+      'That real provider output proved the v0.15.139 cross-surface texture repair held for the previous target families: diagnostic readiness, revise-one-evidence, summary-avoidance, and claim-reasoning scaffolds had zero hits in the exported package.',
+      'The same audit exposed the next texture target as deterministic compiler tails, not provider failure: slide limit-language, assignment format, rubric evidence, discussion limitation, and slide transition phrases repeated across all twelve lessons.',
+      'The blueprint compiler now rotates those UX artifact and slide-tail families by lesson while preserving the same assessment format, evidence, critique, rationale, limitation, and transition contracts.',
+      'The focused 12-lesson UX compiler regression now covers lesson plans, slide decks, assignments, rubrics, discussions, and Course FAQ, requiring zero hits for both the previous texture target and the new v0.15.139 repeated-tail evidence.',
+    ],
+  },
   {
     version: '0.15.139',
     date: 'June 29, 2026',

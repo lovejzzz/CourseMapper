@@ -13047,7 +13047,14 @@ function buildAssessmentCalibrationPlan(lesson, validityEvidence) {
     scorerNorming:
       validityEvidence?.calibrationCheck ||
       `Score two sample ${artifact} responses with the rubric, then reconcile any criterion-level score differences before grading student work.`,
-    biasCheck: `Check whether score differences come from rubric evidence for ${concept}, not writing polish, confidence, accent, format preference, or prior assumptions about the student.`,
+    biasCheck: lessonVariant(lesson, [
+      `Check whether scores reflect rubric evidence for ${concept}, not prose polish, confidence, accent, formatting, or prior assumptions about the student.`,
+      `Keep calibration centered on ${concept} evidence; do not let style preference, delivery confidence, accent, format choices, or prior impressions drive scores.`,
+      `Before finalizing scores, separate real ${concept} evidence from writing polish, presentation confidence, accent, layout preference, or assumptions about the learner.`,
+      `Confirm that each score follows inspectable ${concept} evidence rather than fluency, formatting taste, speaker confidence, accent, or student reputation.`,
+      `Use the rubric anchors to distinguish ${concept} evidence from polish, confidence cues, accent, format preference, and prior expectations.`,
+      `Score the ${artifact} for visible ${concept} proof; set aside style, confidence, accent, formatting preference, and assumptions that are not in the work.`,
+    ]),
     studentTransparency: `Share the ${artifact} criteria, success criteria, and anchor-example contrast before students submit so expectations are inspectable.`,
     postScoreReview:
       lesson.feedbackCycle?.closureCheck ||
@@ -18147,7 +18154,14 @@ function slideTypeFocus(type, lesson, lens) {
       };
     case 'discussion':
       return {
-        opening: `Use the discussion to compare competing interpretations before students lock in their next ${artifact} move.`,
+        opening: lessonVariant(lesson, [
+          `Use the discussion to compare two evidence paths before students choose the next ${artifact} move.`,
+          `Have groups test competing interpretations, then name the ${artifact} choice each one would change.`,
+          `Turn the exchange into a decision check: which ${concept} claim gives ${artifact} the stronger support?`,
+          `Ask students to defend one revision path, challenge it with evidence, and decide what ${artifact} needs next.`,
+          `Frame the discussion as a tradeoff test before students commit to the next ${artifact} revision.`,
+          `Use the discussion to sort evidence quality before students choose how ${artifact} should change.`,
+        ]),
         evidence: lessonVariant(lesson, [
           `Push students to cite specific ${lens.evidenceNoun} instead of general impressions when they defend a ${concept} choice in ${artifact}.`,
           `Ask students to point to the ${lens.evidenceNoun} that changes a ${concept} decision in ${artifact}.`,
@@ -18228,10 +18242,32 @@ function slideNoteAnchor({ type, anchor, concept, artifact, displayTitle, lesson
         `Have students identify the ${concept} decision they will defend before the first practice step.`,
       ])}`;
     case 'agenda':
-      return `Keep the ${displayTitle} pacing visible and point to the first ${concept} checkpoint: ${anchor}. Students should know how the listen, practice, compare, and revise sequence changes ${shortArtifactReference(
-        slideArtifact(lesson),
-        Number(lesson?.lessonNumber) || 0,
-      )}.`;
+      return lessonVariant(lesson, [
+        `Keep the ${displayTitle} pacing visible and point to the first ${concept} checkpoint: ${anchor}. Students should leave knowing which evidence cue changes ${shortArtifactReference(
+          slideArtifact(lesson),
+          Number(lesson?.lessonNumber) || 0,
+        )}.`,
+        `Use ${anchor} to show the lesson arc: listen for the evidence, practice the move, compare drafts, and name the next ${shortArtifactReference(
+          slideArtifact(lesson),
+          Number(lesson?.lessonNumber) || 0,
+        )} revision.`,
+        `Connect ${anchor} to the work sequence so students can explain what the practice step proves before they update ${shortArtifactReference(
+          slideArtifact(lesson),
+          Number(lesson?.lessonNumber) || 0,
+        )}.`,
+        `Make the agenda practical: after ${anchor}, students should be able to identify the evidence, peer check, and revision action for ${shortArtifactReference(
+          slideArtifact(lesson),
+          Number(lesson?.lessonNumber) || 0,
+        )}.`,
+        `Use ${anchor} as the first checkpoint, then have students track which part of the sequence changes their next ${shortArtifactReference(
+          slideArtifact(lesson),
+          Number(lesson?.lessonNumber) || 0,
+        )} decision.`,
+        `Keep the flow tied to ${concept}: the opening cue, practice block, peer comparison, and exit decision should each shape ${shortArtifactReference(
+          slideArtifact(lesson),
+          Number(lesson?.lessonNumber) || 0,
+        )}.`,
+      ]);
     case 'objectives':
       return lessonVariant(lesson, [
         `Turn "${anchor}" into an observable performance target; ask students what evidence would prove they can do it.`,
@@ -19666,7 +19702,14 @@ function buildSlideDeckIrForLesson(blueprint, lesson, index) {
     },
     {
       type: 'discussion',
-      title: `Which ${modality.mode} evidence choice holds up?`,
+      title: lessonVariant(lesson, [
+        `Which ${modality.mode} evidence choice holds up?`,
+        `What evidence should guide ${artifact}?`,
+        `Which ${concept} claim survives critique?`,
+        `Which revision path has stronger support?`,
+        `What should change after the evidence check?`,
+        `Which interpretation best supports the next move?`,
+      ]),
       bullets: lessonVariant(lesson, [
         [
           `Compare two evidence choices for ${artifact}.`,

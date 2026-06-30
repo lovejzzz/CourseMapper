@@ -748,10 +748,10 @@ function getUxDesignCourseMapFallbacks(topic, pick) {
       `Revise a UX artifact by connecting ${topic} evidence to one visible choice.`,
     ]),
     weeklyAssessments: pick([
-      `${displayTopic} critique memo naming one user-evidence signal and one design revision.`,
-      `${displayTopic} artifact annotation linking a research detail to a design choice.`,
-      `${displayTopic} studio checkpoint: defend one prototype or case-study move with evidence.`,
-      `${displayTopic} rationale note comparing the current artifact with one user need.`,
+      `${displayTopic} evidence memo: user signal and revision choice.`,
+      `${displayTopic} annotation: research detail to design choice.`,
+      `${displayTopic} studio defense: prototype move and evidence.`,
+      `${displayTopic} rationale note: user need, tradeoff, and next revision.`,
     ]),
     asyncActivities: pick([
       `Review the UX example and mark where ${topic} changes the design rationale.`,
