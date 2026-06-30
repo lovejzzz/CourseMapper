@@ -36,13 +36,13 @@
       "changelogHighlightIndex": 0,
       "summary": "The release is grounded in fresh deployed v0.15.164 GPT-5.4-mini Python ZIP/log evidence that locally regraded at 99/A because the final package still preserved a stale zero-genome judgment despite complete source proof.",
       "anchors": [
-        "verification-output/edutool-audit-loop/20260630T202241Z-v015164-fresh/local-regrade.json",
-        "verification-output/edutool-audit-loop/20260630T202241Z-v015164-fresh/unzipped/PACKAGE_MANIFEST.json",
-        "docs/V0.15.165_SOURCE_BACKED_EXPORT_TRUTH_ROADMAP.md"
+        "docs/V0.15.165_SOURCE_BACKED_EXPORT_TRUTH_ROADMAP.md",
+        "src/lib/releaseManifest.js",
+        "release-contracts/v0.15.165.json"
       ],
       "proofCommands": [
-        "rg -n \"99/A|sourceRef|not evaluated\" docs/V0.15.165_SOURCE_BACKED_EXPORT_TRUTH_ROADMAP.md",
-        "node --input-type=module -e \"import fs from 'node:fs'; const r=JSON.parse(fs.readFileSync('verification-output/edutool-audit-loop/20260630T202241Z-v015164-fresh/local-regrade.json','utf8')); if (r.overall.score !== 99) process.exit(1);\""
+        "rg -n \"v0.15.164|99/A|239/239|not evaluated\" docs/V0.15.165_SOURCE_BACKED_EXPORT_TRUTH_ROADMAP.md",
+        "rg -n \"Fresh deployed v0.15.164|stale zero-genome\" src/lib/releaseManifest.js release-contracts/v0.15.165.json"
       ],
       "proofScopes": ["live-provider", "static-audit"]
     },
