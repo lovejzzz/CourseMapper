@@ -36,10 +36,7 @@
       "status": "verified-current",
       "changelogHighlightIndex": 0,
       "summary": "Fresh deployed v0.15.175 GPT-5.4-mini Python evidence exported at visible 97/A while the final ZIP locally regraded at 99/A, exposing stale package report truth.",
-      "anchors": [
-        "docs/V0.15.176_PYTHON_EXPORT_TRUTH_ROADMAP.md",
-        "src/lib/releaseManifest.js"
-      ],
+      "anchors": ["docs/V0.15.176_PYTHON_EXPORT_TRUTH_ROADMAP.md", "src/lib/releaseManifest.js"],
       "proofCommands": [
         "rg -n \"Visible app result: `Quality 97`|Final ZIP local regrade: `99/100|stale P1 findings|v0.15.176 carries that follow-up fix\" docs/V0.15.176_PYTHON_EXPORT_TRUTH_ROADMAP.md src/lib/releaseManifest.js"
       ],
