@@ -32,13 +32,9 @@
       "status": "verified-current",
       "changelogHighlightIndex": 0,
       "summary": "The release is grounded in fresh v0.15.180 UX browser/ZIP evidence: visible Quality 100, Texture 96 and local regrade 100/A with zero findings.",
-      "anchors": [
-        "docs/V0.15.181_DISCUSSION_TEXTURE_ROTATION_ROADMAP.md",
-        "verification-output/edutool-audit-loop/20260701T085007Z-v015180-ux-fresh/local-regrade.json"
-      ],
+      "anchors": ["docs/V0.15.181_DISCUSSION_TEXTURE_ROTATION_ROADMAP.md"],
       "proofCommands": [
-        "rg -n \"Quality 100|Texture 96|100/100 A|zero P0/P1/P2\" docs/V0.15.181_DISCUSSION_TEXTURE_ROTATION_ROADMAP.md",
-        "node --input-type=module -e \"import fs from 'node:fs'; const r=JSON.parse(fs.readFileSync('verification-output/edutool-audit-loop/20260701T085007Z-v015180-ux-fresh/local-regrade.json','utf8')); if (r.overall.score !== 100 || r.scores.texture !== 96 || r.findings.length !== 0) process.exit(1);\""
+        "rg -n \"Quality 100|Texture 96|100/100 A|zero P0/P1/P2\" docs/V0.15.181_DISCUSSION_TEXTURE_ROTATION_ROADMAP.md"
       ],
       "proofScopes": ["doc", "static-audit"]
     },

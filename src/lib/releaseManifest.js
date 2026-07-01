@@ -3,24 +3,24 @@ import { APP_VERSION } from './appVersion.js';
 export const CURRENT_RELEASE = {
   version: APP_VERSION,
   date: 'July 1, 2026',
-  title: 'Discussion Participation Texture: accessibility support varies by lesson',
-  landingTitle: 'Discussion Texture Rotation',
+  title: 'Release Proof Truth: current contract uses committed evidence',
+  landingTitle: 'Release Proof Truth',
   highlights: [
-    'Fresh deployed v0.15.180 GPT-5.4-mini UX ZIP plus visible UI evidence exported at Quality 100, Texture 96; the downloaded ZIP locally regraded 100/A with zero P0/P1/P2 findings.',
-    'That package proved the remaining texture debt was CourseMapper-side, not model-side: every discussion prompt repeated the same accessibility support scaffold about wait time, written/spoken response options, and sentence frames.',
-    'Accessibility participation protocols now rotate by lesson while preserving the same support promise, so CourseMapper no longer stamps one deterministic support sentence across all Discussion Prompts.',
-    'Discussion equity follow-up cues now vary by lesson, artifact, and concept instead of appending one repeated revision sentence after the support protocol.',
-    'The UX compiler texture regression now includes `equityConsiderations` and blocks the exact v0.15.180 repeated shingles from returning.',
+    'v0.15.181 Fast verification failed before deploy because the current release contract anchored ignored `verification-output` files that exist locally but not in GitHub Actions clean checkouts.',
+    'The v0.15.181 contract now points proof at committed roadmap and compiler/test anchors, so historical validation no longer depends on laptop-only audit artifacts.',
+    'The current v0.15.182 contract uses only committed docs, source, tests, and release-contract files for release-history proof.',
+    'This release does not change compiler, grader, source-ledger, or export behavior; it unblocks deployment of the discussion texture rotation for real provider verification.',
+    'A fresh deployed GPT-5.4-mini ZIP/log audit remains required after Pages serves v0.15.182 before claiming the discussion texture fix in real output.',
   ],
   landingHighlights: [
-    'Discussion support copy rotates before export.',
-    'Accessibility language stays useful without stamping.',
-    'Equity revision cues vary by lesson.',
-    'The UX texture regression covers the exported discussion field.',
+    'Release proof uses committed evidence.',
+    'Ignored local audit artifacts cannot break CI.',
+    'The discussion texture fix can deploy cleanly.',
+    'Fresh provider proof remains the next gate.',
   ],
   proof: {
-    contract: 'release-contracts/v0.15.181.json',
-    roadmap: 'docs/V0.15.181_DISCUSSION_TEXTURE_ROTATION_ROADMAP.md',
+    contract: 'release-contracts/v0.15.182.json',
+    roadmap: 'docs/V0.15.182_RELEASE_PROOF_TRUTH_ROADMAP.md',
     auditCommand: 'npm run audit:release-history',
   },
 };
@@ -35,6 +35,18 @@ export const CURRENT_RELEASE_CHANGELOG = {
 };
 
 export const HISTORICAL_RELEASE_CHANGELOGS = [
+  {
+    version: '0.15.181',
+    date: 'July 1, 2026',
+    title: 'Discussion Participation Texture: accessibility support varies by lesson',
+    highlights: [
+      'Fresh deployed v0.15.180 GPT-5.4-mini UX ZIP plus visible UI evidence exported at Quality 100, Texture 96; the downloaded ZIP locally regraded 100/A with zero P0/P1/P2 findings.',
+      'That package proved the remaining texture debt was CourseMapper-side, not model-side: every discussion prompt repeated the same accessibility support scaffold about wait time, written/spoken response options, and sentence frames.',
+      'Accessibility participation protocols now rotate by lesson while preserving the same support promise, so CourseMapper no longer stamps one deterministic support sentence across all Discussion Prompts.',
+      'Discussion equity follow-up cues now vary by lesson, artifact, and concept instead of appending one repeated revision sentence after the support protocol.',
+      'The UX compiler texture regression now includes `equityConsiderations` and blocks the exact v0.15.180 repeated shingles from returning.',
+    ],
+  },
   {
     version: '0.15.180',
     date: 'July 1, 2026',
