@@ -3,24 +3,24 @@ import { APP_VERSION } from './appVersion.js';
 export const CURRENT_RELEASE = {
   version: APP_VERSION,
   date: 'July 1, 2026',
-  title: 'Release Proof Truth: current contract uses committed evidence',
-  landingTitle: 'Release Proof Truth',
+  title: 'No-Derivatives Source Trust: ND licenses require review',
+  landingTitle: 'No-Derivatives Source Trust',
   highlights: [
-    'v0.15.181 Fast verification failed before deploy because the current release contract anchored ignored `verification-output` files that exist locally but not in GitHub Actions clean checkouts.',
-    'The v0.15.181 contract now points proof at committed roadmap and compiler/test anchors, so historical validation no longer depends on laptop-only audit artifacts.',
-    'The current v0.15.182 contract uses only committed docs, source, tests, and release-contract files for release-history proof.',
-    'This release does not change compiler, grader, source-ledger, or export behavior; it unblocks deployment of the discussion texture rotation for real provider verification.',
-    'A fresh deployed GPT-5.4-mini ZIP/log audit remains required after Pages serves v0.15.182 before claiming the discussion texture fix in real output.',
+    'Creative Commons no-derivatives licenses such as `CC BY-NC-ND 4.0` and `by-nc-nd` URLs are now review-required source proof, not trusted reusable bibliography proof.',
+    'Trusted source-ledger rows still require URL or DOI access, concept links, topical relevance, and a license that is safe for editable generated teaching materials.',
+    'The source-ledger regression now covers both no-derivatives license labels and Creative Commons no-derivatives URLs, so either form fails the trusted-row gate.',
+    'The UX false-friend source regression now uses a derivative-safe valid control row, keeping topical relevance and license safety tested independently.',
+    'Fresh deployed audit remains required after Pages serves v0.15.183 before claiming real provider output keeps sources trusted only when they are accessible, on-topic, linked, and license-safe.',
   ],
   landingHighlights: [
-    'Release proof uses committed evidence.',
-    'Ignored local audit artifacts cannot break CI.',
-    'The discussion texture fix can deploy cleanly.',
+    'No-derivatives licenses require review.',
+    'Trusted sources must be license-safe.',
+    'Source truth is stricter before export.',
     'Fresh provider proof remains the next gate.',
   ],
   proof: {
-    contract: 'release-contracts/v0.15.182.json',
-    roadmap: 'docs/V0.15.182_RELEASE_PROOF_TRUTH_ROADMAP.md',
+    contract: 'release-contracts/v0.15.183.json',
+    roadmap: 'docs/V0.15.183_NO_DERIVATIVES_SOURCE_TRUST_ROADMAP.md',
     auditCommand: 'npm run audit:release-history',
   },
 };
@@ -35,6 +35,18 @@ export const CURRENT_RELEASE_CHANGELOG = {
 };
 
 export const HISTORICAL_RELEASE_CHANGELOGS = [
+  {
+    version: '0.15.182',
+    date: 'July 1, 2026',
+    title: 'Release Proof Truth: current contract uses committed evidence',
+    highlights: [
+      'v0.15.181 Fast verification failed before deploy because the current release contract anchored ignored `verification-output` files that exist locally but not in GitHub Actions clean checkouts.',
+      'The v0.15.181 contract now points proof at committed roadmap and compiler/test anchors, so historical validation no longer depends on laptop-only audit artifacts.',
+      'The v0.15.182 contract uses only committed docs, source, tests, and release-contract files for release-history proof.',
+      'This release does not change compiler, grader, source-ledger, or export behavior; it unblocks deployment of the discussion texture rotation for real provider verification.',
+      'A fresh deployed GPT-5.4-mini ZIP/log audit remains required after Pages serves v0.15.182 before claiming the discussion texture fix in real output.',
+    ],
+  },
   {
     version: '0.15.181',
     date: 'July 1, 2026',

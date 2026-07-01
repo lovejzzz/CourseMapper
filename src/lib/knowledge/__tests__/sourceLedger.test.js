@@ -82,6 +82,40 @@ describe('trusted source ledger', () => {
     expect(isTrustedSourceLedgerRow(source)).toBe(false);
   });
 
+  it('treats Creative Commons no-derivatives licenses as review-only proof', () => {
+    const ccLabelSource = sourceLedgerFromOpenAlex(
+      {
+        id: 'https://openalex.org/W3',
+        title: 'UX Studio Case Methods',
+        authors: 'A. Researcher',
+        doi: '10.1000/ux-studio-case-methods',
+        license: 'CC BY-NC-ND 4.0',
+      },
+      { fallbackId: 'SL1', conceptLinks: [{ id: 'C1', label: 'UX critique' }] },
+    );
+    const ccUrlSource = sourceLedgerFromOpenAlex(
+      {
+        id: 'https://openalex.org/W4',
+        title: 'Programming Loop Pedagogy',
+        authors: 'B. Researcher',
+        doi: '10.1000/programming-loop-pedagogy',
+        license: 'https://creativecommons.org/licenses/by-nc-nd/4.0/',
+      },
+      { fallbackId: 'SL2', conceptLinks: [{ id: 'C2', label: 'loops' }] },
+    );
+
+    expect(ccLabelSource).toMatchObject({
+      license: 'CC BY-NC-ND 4.0',
+      licenseAmbiguous: true,
+    });
+    expect(ccUrlSource).toMatchObject({
+      license: 'https://creativecommons.org/licenses/by-nc-nd/4.0/',
+      licenseAmbiguous: true,
+    });
+    expect(isTrustedSourceLedgerRow(ccLabelSource)).toBe(false);
+    expect(isTrustedSourceLedgerRow(ccUrlSource)).toBe(false);
+  });
+
   it('recovers source references embedded in rendered resource text', () => {
     const ledger = buildSourceLedgerFromCourseGraph(
       {
@@ -1412,7 +1446,7 @@ describe('trusted source ledger', () => {
             title:
               'Optimizing the digital customer journey with personas for individualized user interface adaptations',
             doi: '10.1002/cb.1964',
-            license: 'CC BY-NC-ND',
+            license: 'CC BY',
             url: 'https://onlinelibrary.wiley.com/doi/pdfdirect/10.1002/cb.1964',
           },
         ],

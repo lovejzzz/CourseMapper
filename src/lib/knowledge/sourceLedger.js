@@ -28,6 +28,8 @@ const AMBIGUOUS_LICENSE_RE =
 const RESTRICTED_RIGHTS_STATEMENT_RE = /rightsstatements\.org\/vocab\/inc(?:[-/]|$)/i;
 const PUBLISHER_POLICY_LICENSE_RE =
   /(?:\/tdm(?:[_/-]|$)|\btdm(?:[_-]?license)?\b|text[-\s]?and[-\s]?data[-\s]?mining|policy-029|springernature\.com\/gp\/researchers\/text-and-data-mining|elsevier\.com\/tdm|sagepub\.com\/page\/policies\/text-and-data-mining-license|doi\.wiley\.com\/10\.1002\/tdm_license)/i;
+const NO_DERIVATIVES_LICENSE_RE =
+  /(?:\bCC[-_\s]+BY(?:[-_\s]+(?:NC|SA|ND))*[-_\s]+ND(?:[-_\s]+(?:NC|SA|ND))*\b|creativecommons\.org\/licenses\/by(?:-[a-z]+)*-nd(?:\/|$))/i;
 const SOURCE_SIGNAL_RE =
   /\b(?:openstax|openalex|open library|openlibrary|eric|doi|creative commons|cc\s+by|open access|textbook|chapter|article|journal|book|reader|press|publication|volume|vol\.|edition|ed\.|et al\.?|isbn|issn)\b|https?:\/\//i;
 const NON_SOURCE_RESOURCE_RE =
@@ -335,7 +337,8 @@ export function isLicenseAmbiguous(license) {
   return (
     AMBIGUOUS_LICENSE_RE.test(value) ||
     RESTRICTED_RIGHTS_STATEMENT_RE.test(value) ||
-    PUBLISHER_POLICY_LICENSE_RE.test(value)
+    PUBLISHER_POLICY_LICENSE_RE.test(value) ||
+    NO_DERIVATIVES_LICENSE_RE.test(value)
   );
 }
 

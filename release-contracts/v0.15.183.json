@@ -1,0 +1,93 @@
+{
+  "version": "0.15.183",
+  "date": "July 1, 2026",
+  "title": "No-Derivatives Source Trust: ND licenses require review",
+  "status": "verified-current",
+  "proofSummary": {
+    "local": ["npm test -- src/lib/knowledge/__tests__/sourceLedger.test.js", "npm run audit:release-history"],
+    "ciFast": {
+      "status": "pending-push",
+      "note": "Fast verification is claimed only after v0.15.183 is pushed and the GitHub Actions run passes."
+    },
+    "deploy": {
+      "status": "pending-push",
+      "note": "Pages deploy is not claimed until the pushed v0.15.183 release completes its deploy run."
+    },
+    "ciDeep": {
+      "status": "local-only",
+      "note": "This is a narrow source-ledger license-trust fix; focused tests plus normal gates are the release bar."
+    },
+    "liveProvider": {
+      "status": "not-current",
+      "note": "No new provider package is claimed. A fresh deployed GPT-5.4-mini audit remains required after Pages serves v0.15.183."
+    },
+    "manualHuman": {
+      "status": "not-applicable",
+      "note": "No external instructor approval is claimed by this release."
+    }
+  },
+  "claims": [
+    {
+      "id": "v015183-nd-license-gap",
+      "status": "verified-current",
+      "changelogHighlightIndex": 0,
+      "summary": "Creative Commons no-derivatives licenses were still explicit license strings and could count as trusted proof when other source fields were present.",
+      "anchors": ["docs/V0.15.183_NO_DERIVATIVES_SOURCE_TRUST_ROADMAP.md", "src/lib/knowledge/sourceLedger.js"],
+      "proofCommands": [
+        "rg -n \"no-derivatives licenses|CC BY-NC-ND|by-\\\\*-nd\" docs/V0.15.183_NO_DERIVATIVES_SOURCE_TRUST_ROADMAP.md"
+      ],
+      "proofScopes": ["doc", "static-audit"]
+    },
+    {
+      "id": "v015183-nd-license-review-required",
+      "status": "verified-current",
+      "changelogHighlightIndex": 1,
+      "summary": "No-derivatives Creative Commons labels and URLs now mark source rows as review-required instead of trusted bibliography proof.",
+      "anchors": ["src/lib/knowledge/sourceLedger.js", "src/lib/knowledge/__tests__/sourceLedger.test.js"],
+      "proofCommands": [
+        "npm test -- src/lib/knowledge/__tests__/sourceLedger.test.js",
+        "rg -n \"NO_DERIVATIVES_LICENSE_RE|no-derivatives licenses\" src/lib/knowledge/sourceLedger.js src/lib/knowledge/__tests__/sourceLedger.test.js"
+      ],
+      "proofScopes": ["unit", "static-audit"]
+    },
+    {
+      "id": "v015183-trusted-source-license-safe",
+      "status": "verified-current",
+      "changelogHighlightIndex": 2,
+      "summary": "Trusted source-ledger proof now requires reusable license safety in addition to accessibility, concept links, and topical relevance.",
+      "anchors": ["docs/V0.15.183_NO_DERIVATIVES_SOURCE_TRUST_ROADMAP.md", "src/lib/knowledge/sourceLedger.js"],
+      "proofCommands": [
+        "rg -n \"license-safe|NO_DERIVATIVES_LICENSE_RE|isTrustedSourceLedgerRow\" docs/V0.15.183_NO_DERIVATIVES_SOURCE_TRUST_ROADMAP.md src/lib/knowledge/sourceLedger.js"
+      ],
+      "proofScopes": ["doc", "static-audit"]
+    },
+    {
+      "id": "v015183-ux-control-source-safe",
+      "status": "verified-current",
+      "changelogHighlightIndex": 3,
+      "summary": "The UX false-friend regression now uses a derivative-safe valid control source, separating topical relevance from license safety.",
+      "anchors": ["src/lib/knowledge/__tests__/sourceLedger.test.js"],
+      "proofCommands": [
+        "rg -n \"Optimizing the digital customer journey|license: 'CC BY'\" src/lib/knowledge/__tests__/sourceLedger.test.js"
+      ],
+      "proofScopes": ["unit", "static-audit"]
+    },
+    {
+      "id": "v015183-fresh-provider-proof-required",
+      "status": "verified-current",
+      "changelogHighlightIndex": 4,
+      "summary": "No fresh deployed provider score is claimed; real-output proof still requires a new GPT-5.4-mini ZIP/log audit after deploy.",
+      "anchors": ["docs/V0.15.183_NO_DERIVATIVES_SOURCE_TRUST_ROADMAP.md", "src/lib/releaseManifest.js"],
+      "proofCommands": [
+        "rg -n \"fresh GPT-5.4-mini ZIP/log audit|Fresh deployed audit remains required\" docs/V0.15.183_NO_DERIVATIVES_SOURCE_TRUST_ROADMAP.md src/lib/releaseManifest.js"
+      ],
+      "proofScopes": ["doc", "static-audit"]
+    }
+  ],
+  "knownRemainingTargets": [
+    "A fresh deployed v0.15.183 GPT-5.4-mini ZIP/log audit must verify that real source rows remain trusted only when they are accessible, concept-linked, on-topic, and license-safe.",
+    "Browser capture remains unstable: the latest Chrome extension claim attempt still timed out before a fresh v0.15.182 provider run could start.",
+    "Texture below 100 remains a monitoring target even when packages round to clean 100/A.",
+    "A clean release claim still requires UI, ZIP, manifest, QUALITY_REPORT, SOURCE_REPORT, digest, and local regrade agreement."
+  ]
+}
