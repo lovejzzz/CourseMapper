@@ -275,7 +275,10 @@ describe('v0.14.1 phase 1 batch A compiler fixes', () => {
   });
 
   it('varies repeated UX readiness, discussion, slide, and FAQ texture scaffolds across 12 lessons', () => {
-    const blueprint = buildCourseBlueprint(uxTextureCourseMap());
+    const preferenceProfile = buildInstructorPreferenceProfile([
+      { featureId: 'discussions', field: 'prompt', action: 'accepted', accessCount: 4, importance: 4 },
+    ]);
+    const blueprint = buildCourseBlueprint(uxTextureCourseMap(), { instructorPreferences: preferenceProfile });
     const compiled = compileBlueprintDeliverables(
       blueprint,
       ['lessonPlans', 'slideDecks', 'assignments', 'rubrics', 'discussions', 'courseFaq'],
@@ -317,6 +320,18 @@ describe('v0.14.1 phase 1 batch A compiler fixes', () => {
     expect(text).toContain('evidence sets the boundary');
     expect(text).toContain('which Project-based UX design cue students should track first');
     expect(text).toContain('Records one limitation');
+
+    const feedbackQuestions = compiled.courseFaq.faqs
+      .map((faq) => faq.qs.find((item) => item.rc?.includes('feedback') && item.rc?.includes('revision'))?.q || '')
+      .filter(Boolean);
+    expect(feedbackQuestions).toHaveLength(12);
+    expect(new Set(feedbackQuestions).size).toBeGreaterThan(6);
+    expect(feedbackQuestions).not.toContain('How should I use feedback from this lesson?');
+
+    const discussionText = JSON.stringify(compiled.discussions);
+    expect(discussionText).toContain('peer responses grounded in evidence');
+    expect(discussionText).not.toContain('Instructor preference: peer responses grounded in evidence.');
+    expect(countOccurrences(discussionText, 'peer responses grounded in evidence')).toBeLessThanOrEqual(12);
   });
 
   it('1.3 final export pass punctuates long authored slide bullets', () => {

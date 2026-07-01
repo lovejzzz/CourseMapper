@@ -974,12 +974,28 @@ function getUxDesignCourseMapFallbacks(topic, pick) {
       'LMS access plus the UX example, research notes, and studio artifact workspace.',
       'Prototype or wireframe tool, shared critique notes, and the assigned UX example.',
       'Design file access, usability notes, and a workspace for annotated critique.',
+      'Interview transcript, affinity board, critique timer, and design-journal workspace.',
+      'Persona template, journey-map canvas, prototype board, and accessibility checklist.',
+      'Research repository, usability-note capture, wireframe file, and peer-comment thread.',
+      'Shared design file, screen-reader checklist, test script, and findings synthesis board.',
+      'Portfolio case-study draft, artifact screenshots, critique log, and revision tracker.',
+      'IA card-sort notes, sitemap board, navigation sketch, and rationale worksheet.',
+      'Prototype link, task notes, observation sheet, and issue-prioritization board.',
+      'Presentation deck, case-study evidence folder, critique rubric, and rehearsal notes.',
     ]),
     presentationFormat: pick([
       'UX example setup, artifact critique, revision decision, and short studio synthesis.',
       'Research cue, design-rationale model, paired artifact review, and next-iteration note.',
       'Critique question, worked UX example, studio application, and portfolio connection.',
       'User-evidence framing, prototype comparison, revision planning, and reflection.',
+      'Interview finding, design implication, artifact mark-up, and revision commitment.',
+      'Persona evidence, scenario walk-through, critique response, and design choice.',
+      'Journey stage, pain-point evidence, opportunity note, and service-improvement move.',
+      'IA decision, navigation tradeoff, card-sort evidence, and sitemap adjustment.',
+      'Wireframe choice, usability concern, peer annotation, and layout revision.',
+      'Prototype task, observed friction, interaction change, and test-ready rationale.',
+      'Accessibility issue, standard or heuristic, remediation step, and verification plan.',
+      'Portfolio claim, supporting artifact, critique takeaway, and presentation rehearsal.',
     ]),
     supportingResources: pick([
       `UX example, critique protocol, and design-journal prompt aligned to ${topic}.`,
@@ -1107,7 +1123,10 @@ function getCourseMapFallbackValue(key, courseMap, lesson, section, lessonIndex)
   // stamp the identical sentence into every lesson and section — repeated
   // stems used to flow verbatim into every compiled deliverable.
   const sections = Array.isArray(lesson?.sections) ? lesson.sections : [];
-  const sectionIndex = Math.max(0, sections.indexOf(section));
+  const sectionNumberMatch = text(section?.topicSection).match(/^\s*\d+\.(\d+)/);
+  const inferredSectionIndex = sectionNumberMatch ? Math.max(0, Number(sectionNumberMatch[1]) - 1) : 0;
+  const directSectionIndex = sections.indexOf(section);
+  const sectionIndex = directSectionIndex >= 0 ? directSectionIndex : inferredSectionIndex;
   const variantIndex = (Number(lessonIndex) || 0) * Math.max(1, sections.length) + sectionIndex;
   const pick = (variants) => variants[variantIndex % variants.length];
   const profile = inferCourseMapFallbackProfile(courseMap, lesson, section);

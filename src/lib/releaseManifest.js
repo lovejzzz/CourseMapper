@@ -3,24 +3,24 @@ import { APP_VERSION } from './appVersion.js';
 export const CURRENT_RELEASE = {
   version: APP_VERSION,
   date: 'July 1, 2026',
-  title: 'Source URL Truth: parenthesized proof links stay valid',
-  landingTitle: 'Source URL Truth',
+  title: 'UX Texture Rotation: repeated support scaffolds vary before export',
+  landingTitle: 'UX Texture Rotation',
   highlights: [
-    'Fresh deployed v0.15.178 GPT-5.4-mini UX ZIP/log evidence exported visibly at Quality 100, Texture 95 and locally regraded 100/A with zero P0/P1/P2 findings.',
-    'That same clean package exposed a source-truth edge: a syllabus-derived Persona reading duplicated a valid source-finder row while truncating the parenthesized Wikipedia URL and still counted as trusted sourceLedger proof.',
-    'Source URL extraction now preserves balanced parenthesized links such as `Persona_(user_experience)` while still trimming surplus trailing punctuation from prose and markdown contexts.',
-    'The deep quality source-ledger grader now flags malformed trusted URL proof as a P2 citation finding, so broken links cannot silently count as accessible source evidence.',
-    'Focused ZIP-exporter and source-grader regressions pin the live UX Persona failure shape without weakening source standards, report standards, or the 100/100 quality bar.',
+    'Fresh deployed v0.15.179 GPT-5.4-mini UX ZIP/log evidence exported visibly at Quality 100, Texture 95 and locally regraded 100/A with zero P0/P1/P2 findings.',
+    'That same clean package proved source URL truth held in real output, but the direct Office text scan still found deterministic CourseMapper texture: the same FAQ feedback question, discussion preference line, and four Course Map resource/presentation stems repeated across the UX package.',
+    'Sparse Course Map repair now preserves section position after cloning repaired cells, so later field repairs rotate by lesson and section instead of collapsing every cloned section back to section zero.',
+    'UX Course Map fallback technology and presentation pools now have enough lesson-specific stems for a 12-week, three-section repair without repeating a long resource/presentation sentence more than three times.',
+    'Course FAQ feedback questions and discussion instructor-preference notes now vary by lesson, artifact, and concept while preserving the same instructor-facing meaning.',
   ],
   landingHighlights: [
-    'Balanced Wikipedia-style source URLs stay intact.',
-    'Malformed trusted links become citation findings.',
-    'Duplicate syllabus/source-finder proof dedupes cleanly.',
-    'Clean ZIP claims still require source-report agreement.',
+    'UX support copy rotates before export.',
+    'Sparse Course Map repairs keep lesson/section position.',
+    'FAQ feedback questions vary by lesson.',
+    'Discussion preference notes stay meaningful without stamping.',
   ],
   proof: {
-    contract: 'release-contracts/v0.15.179.json',
-    roadmap: 'docs/V0.15.179_SOURCE_URL_TRUTH_ROADMAP.md',
+    contract: 'release-contracts/v0.15.180.json',
+    roadmap: 'docs/V0.15.180_UX_TEXTURE_ROTATION_ROADMAP.md',
     auditCommand: 'npm run audit:release-history',
   },
 };
@@ -35,6 +35,18 @@ export const CURRENT_RELEASE_CHANGELOG = {
 };
 
 export const HISTORICAL_RELEASE_CHANGELOGS = [
+  {
+    version: '0.15.179',
+    date: 'July 1, 2026',
+    title: 'Source URL Truth: parenthesized proof links stay valid',
+    highlights: [
+      'Fresh deployed v0.15.178 GPT-5.4-mini UX ZIP/log evidence exported visibly at Quality 100, Texture 95 and locally regraded 100/A with zero P0/P1/P2 findings.',
+      'That same clean package exposed a source-truth edge: a syllabus-derived Persona reading duplicated a valid source-finder row while truncating the parenthesized Wikipedia URL and still counted as trusted sourceLedger proof.',
+      'Source URL extraction now preserves balanced parenthesized links such as `Persona_(user_experience)` while still trimming surplus trailing punctuation from prose and markdown contexts.',
+      'The deep quality source-ledger grader now flags malformed trusted URL proof as a P2 citation finding, so broken links cannot silently count as accessible source evidence.',
+      'Focused ZIP-exporter and source-grader regressions pin the live UX Persona failure shape without weakening source standards, report standards, or the 100/100 quality bar.',
+    ],
+  },
   {
     version: '0.15.178',
     date: 'July 1, 2026',

@@ -1,0 +1,102 @@
+{
+  "version": "0.15.180",
+  "date": "July 1, 2026",
+  "title": "UX Texture Rotation: repeated support scaffolds vary before export",
+  "status": "verified-current",
+  "proofSummary": {
+    "local": [
+      "npm test -- tests/v015135-course-faq-feedback-texture.test.js tests/v0141-phase1-compiler.test.js tests/v0141-phase1-finalizer.test.js"
+    ],
+    "ciFast": {
+      "status": "pending-push",
+      "note": "Fast verification is claimed only after v0.15.180 is pushed and the GitHub Actions run is attached."
+    },
+    "deploy": {
+      "status": "pending-push",
+      "note": "Pages deploy is not claimed until the pushed v0.15.180 release completes its deploy run."
+    },
+    "ciDeep": {
+      "status": "local-only",
+      "note": "This is a narrow compiler/fallback texture fix; focused tests plus normal gates are the release bar."
+    },
+    "liveProvider": {
+      "status": "not-current",
+      "note": "Fresh v0.15.179 ZIP/log evidence motivated the fix. A fresh v0.15.180 audit is required after deploy."
+    },
+    "manualHuman": {
+      "status": "not-applicable",
+      "note": "No external instructor approval is claimed by this release."
+    }
+  },
+  "claims": [
+    {
+      "id": "v015180-live-evidence-clean-but-texture-debt",
+      "status": "verified-current",
+      "changelogHighlightIndex": 0,
+      "summary": "The release is grounded in fresh v0.15.179 UX ZIP/log evidence that regraded cleanly while showing deterministic texture debt.",
+      "anchors": ["docs/V0.15.180_UX_TEXTURE_ROTATION_ROADMAP.md"],
+      "proofCommands": [
+        "rg -n \"100/100 A|Texture 95|Office text scan\" docs/V0.15.180_UX_TEXTURE_ROTATION_ROADMAP.md"
+      ],
+      "proofScopes": ["doc", "browser-live"]
+    },
+    {
+      "id": "v015180-office-text-scan-repetition",
+      "status": "verified-current",
+      "changelogHighlightIndex": 1,
+      "summary": "The fresh v0.15.179 package proved source URL truth held, but Office text extraction found repeated FAQ, discussion, and Course Map fallback scaffolds.",
+      "anchors": [
+        "docs/V0.15.180_UX_TEXTURE_ROTATION_ROADMAP.md",
+        "verification-output/edutool-audit-loop/20260701T075806Z-v015179-ux-fresh/office-text-scan.json"
+      ],
+      "proofCommands": [
+        "rg -n \"source URL truth held|Office text scan|repeated Course FAQ\" docs/V0.15.180_UX_TEXTURE_ROTATION_ROADMAP.md",
+        "test -f verification-output/edutool-audit-loop/20260701T075806Z-v015179-ux-fresh/office-text-scan.json"
+      ],
+      "proofScopes": ["doc", "static-audit"]
+    },
+    {
+      "id": "v015180-section-index-rotation",
+      "status": "verified-current",
+      "changelogHighlightIndex": 2,
+      "summary": "Sparse Course Map fallback repair preserves section position after cloning repaired cells.",
+      "anchors": ["src/lib/deliverableReadiness.js", "tests/v0141-phase1-finalizer.test.js"],
+      "proofCommands": [
+        "npm test -- tests/v0141-phase1-finalizer.test.js",
+        "rg -n \"inferredSectionIndex|varies sparse UX technology\" src/lib/deliverableReadiness.js tests/v0141-phase1-finalizer.test.js"
+      ],
+      "proofScopes": ["unit", "static-audit"]
+    },
+    {
+      "id": "v015180-ux-fallback-pools",
+      "status": "verified-current",
+      "changelogHighlightIndex": 3,
+      "summary": "UX Course Map fallback technology and presentation fields have enough distinct stems for 12-week, three-section courses.",
+      "anchors": ["src/lib/deliverableReadiness.js", "tests/v0141-phase1-finalizer.test.js"],
+      "proofCommands": ["npm test -- tests/v0141-phase1-finalizer.test.js"],
+      "proofScopes": ["unit"]
+    },
+    {
+      "id": "v015180-faq-discussion-texture",
+      "status": "verified-current",
+      "changelogHighlightIndex": 4,
+      "summary": "Course FAQ feedback questions and discussion instructor-preference notes vary by lesson while preserving meaning.",
+      "anchors": [
+        "src/lib/courseBlueprintCompiler.js",
+        "tests/v015135-course-faq-feedback-texture.test.js",
+        "tests/v0141-phase1-compiler.test.js"
+      ],
+      "proofCommands": [
+        "npm test -- tests/v015135-course-faq-feedback-texture.test.js tests/v0141-phase1-compiler.test.js",
+        "rg -n \"discussionInstructorPreferenceNote|How should I use feedback from\" src/lib/courseBlueprintCompiler.js tests/v015135-course-faq-feedback-texture.test.js tests/v0141-phase1-compiler.test.js"
+      ],
+      "proofScopes": ["unit", "static-audit"]
+    }
+  ],
+  "knownRemainingTargets": [
+    "Fresh deployed v0.15.180 GPT-5.4-mini ZIP/log proof must verify the texture cleanup in real provider output.",
+    "Texture below 100 remains a monitoring target even when the package rounds to clean 100/A.",
+    "The export panel and Agent panel should continue using the concise status/detail split rather than duplicating internal warnings.",
+    "A clean release claim still requires UI, ZIP, manifest, QUALITY_REPORT, SOURCE_REPORT, digest, and local regrade agreement."
+  ]
+}

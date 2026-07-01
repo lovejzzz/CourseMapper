@@ -670,6 +670,50 @@ describe('1.16 — prompt artifact labels never become course-map concepts', () 
     expect(evaluateText).not.toMatch(/\bsame input\/output evidence used in grading\b/i);
   }, 15000);
 
+  it('varies sparse UX technology and presentation fallback wording across a full map', () => {
+    const lessons = Array.from({ length: 12 }, (_, lessonIndex) => ({
+      title: `Lesson ${lessonIndex + 1}: UX topic ${lessonIndex + 1}`,
+      sections: Array.from({ length: 3 }, (_, sectionIndex) => ({
+        topicSection: `${lessonIndex + 1}.${sectionIndex + 1}: UX topic ${lessonIndex + 1}.${sectionIndex + 1}`,
+        learningGoals: '',
+        learningObjectives: '',
+        weeklyAssessments: '',
+        asyncActivities: '',
+        syncActivities: '',
+        technologyNeeded: '',
+        presentationFormat: '',
+        supportingResources: '',
+        evaluateDesign: '',
+      })),
+    }));
+    const courseMap = {
+      courseName: 'User Experience Design Studio',
+      lessons,
+    };
+
+    const repair = repairCourseMapReadiness({ courseMap });
+    const sections = repair.courseMap.lessons.flatMap((lesson) => lesson.sections);
+    const technologyValues = sections.map((section) => section.technologyNeeded).filter(Boolean);
+    const presentationValues = sections.map((section) => section.presentationFormat).filter(Boolean);
+    const maxCount = (values) =>
+      Math.max(
+        ...Object.values(
+          values.reduce((counts, value) => {
+            counts[value] = (counts[value] || 0) + 1;
+            return counts;
+          }, {}),
+        ),
+      );
+
+    expect(repair.changed).toBe(true);
+    expect(technologyValues).toHaveLength(36);
+    expect(presentationValues).toHaveLength(36);
+    expect(new Set(technologyValues).size).toBeGreaterThanOrEqual(12);
+    expect(new Set(presentationValues).size).toBeGreaterThanOrEqual(12);
+    expect(maxCount(technologyValues)).toBeLessThanOrEqual(3);
+    expect(maxCount(presentationValues)).toBeLessThanOrEqual(3);
+  }, 15000);
+
   it('compacts objective-shaped Python assessment labels before they fan out into assignments and discussions', async () => {
     const livePhrase = 'Analyze file processing code for line-by-line input handling and explain the test output';
     const courseMap = {

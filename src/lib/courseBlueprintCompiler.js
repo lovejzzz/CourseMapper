@@ -15699,6 +15699,21 @@ function rubricInstructorPreferenceNote(preference, lesson = {}) {
   ]);
 }
 
+function discussionInstructorPreferenceNote(preference, lesson = {}) {
+  if (!preference) return '';
+  const phrase = preferenceDisplayPhrase(preference);
+  const artifact = safeLessonArtifact(lesson);
+  const concept = safeLessonPrimaryConcept(lesson);
+  return lessonVariant(lesson, [
+    `Instructor preference for ${stripLessonPrefix(lesson.title)}: ${phrase}.`,
+    `During the ${artifact} discussion, emphasize ${phrase}.`,
+    `For ${concept}, keep the instructor feedback cue on ${phrase}.`,
+    `Discussion scoring note: look for ${phrase} before students revise ${artifact}.`,
+    `When debriefing ${stripLessonPrefix(lesson.title)}, name where ${phrase} appears.`,
+    `Instructor-facing facilitation cue: collect ${phrase} in the closing revision note.`,
+  ]);
+}
+
 // The two most defensible generic criteria to keep beside parameter-derived
 // ones: evidence quality and communication (analysis logic is implicit in
 // evidence use; feedback/revision documentation is process, not task).
@@ -19794,7 +19809,9 @@ function compileDiscussions(blueprint) {
           assessment.anchorExampleSet?.revisionPrompt ||
           `Compare a strong and partial ${artifact} response before discussion closes.`,
         equityConsiderations,
-        guidelines: `${buildDiscussionGuidelinesForFormat(lesson, discussionProtocol)}${preference ? ` Instructor preference: ${preferenceDisplayPhrase(preference)}.` : ''}`,
+        guidelines: `${buildDiscussionGuidelinesForFormat(lesson, discussionProtocol)}${
+          preference ? ` ${discussionInstructorPreferenceNote(preference, lesson)}` : ''
+        }`,
         tags: unique(['discussion', format, lesson.bloomsLevel, ...safeConcepts], 8),
       };
     }),
@@ -20525,7 +20542,14 @@ function compileCourseFaq(blueprint, config = {}) {
       df: 'Advanced',
     }),
     (lesson) => ({
-      q: 'How should I use feedback from this lesson?',
+      q: lessonVariant(lesson, [
+        `How should I use feedback from ${stripLessonPrefix(lesson.title)}?`,
+        `What should I do with critique notes after ${stripLessonPrefix(lesson.title)}?`,
+        `How does feedback from ${stripLessonPrefix(lesson.title)} change my next draft?`,
+        `Where should I record revision advice from ${stripLessonPrefix(lesson.title)}?`,
+        `How can I turn ${stripLessonPrefix(lesson.title)} feedback into a concrete revision?`,
+        `What feedback evidence should I carry forward from ${stripLessonPrefix(lesson.title)}?`,
+      ]),
       an: lesson.feedbackMoment,
       ca: 'Assignment Clarification',
       rc: ['feedback', 'revision', ...lesson.keyConcepts.slice(0, 2)],

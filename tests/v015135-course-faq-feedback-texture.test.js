@@ -52,9 +52,11 @@ describe('v0.15.135 Course FAQ feedback texture', () => {
     const compiled = compileBlueprintDeliverables(blueprint, ['courseFaq'], {
       configMap: { courseFaq: { questionsPerLesson: 6 } },
     });
-    const feedbackAnswers = compiled.courseFaq.faqs.map(
-      (faq) => faq.qs.find((item) => item.q === 'How should I use feedback from this lesson?')?.an || '',
+    const feedbackItems = compiled.courseFaq.faqs.map((faq) =>
+      faq.qs.find((item) => Array.isArray(item.rc) && item.rc.includes('feedback') && item.rc.includes('revision')),
     );
+    const feedbackQuestions = feedbackItems.map((item) => item?.q || '');
+    const feedbackAnswers = feedbackItems.map((item) => item?.an || '');
     const faqDocs = compiled.courseFaq.faqs.map((faq, index) => ({
       id: `faq-${index + 1}`,
       feature: 'courseFaq',
@@ -66,6 +68,9 @@ describe('v0.15.135 Course FAQ feedback texture', () => {
 
     expect(feedbackAnswers).toHaveLength(UX_TOPICS.length);
     expect(feedbackAnswers.every(Boolean)).toBe(true);
+    expect(feedbackQuestions.every(Boolean)).toBe(true);
+    expect(new Set(feedbackQuestions).size).toBeGreaterThan(UX_TOPICS.length / 2);
+    expect(feedbackQuestions).not.toContain('How should I use feedback from this lesson?');
     expect(new Set(feedbackAnswers).size).toBeGreaterThan(UX_TOPICS.length / 2);
     expect(faqText).not.toMatch(
       /Carry the revised .* evidence move into the next source-based artifact, discussion, or synthesis task/i,
