@@ -3,24 +3,24 @@ import { APP_VERSION } from './appVersion.js';
 export const CURRENT_RELEASE = {
   version: APP_VERSION,
   date: 'July 1, 2026',
-  title: 'Python Texture Scaffold: fallback review prose stops repeating',
-  landingTitle: 'Python Texture Scaffold',
+  title: 'Source Review Truth: rejected retrieval candidates stay visible',
+  landingTitle: 'Source Review Truth',
   highlights: [
-    'Fresh deployed v0.15.176 GPT-5.4-mini Python browser evidence completed visibly at Quality 98 and Texture 92, but ZIP/log capture failed after reload, so this release makes no clean-package claim.',
-    'The remaining visible texture loss came from CourseMapper fallback prose: two-section Python maps repeated long evaluate-design scaffolds such as `one observable behavior`, `same programming decision`, and `visible code revision`.',
-    'Python Course Map fallback review cells now rotate through 24 distinct code-review/checkpoint patterns, enough for a twelve-lesson course with two sections per lesson without duplicating those long scaffolds.',
-    'A regression recreates the exact two-section Intro CS/Python fallback shape and fails if the old long scaffolds return.',
-    'The patch preserves source, grader, texture, and export-report standards; a fresh deployed v0.15.177 ZIP/log audit is still required before any 100/100 claim.',
+    'Fresh v0.15.175 and v0.15.176 audit evidence showed the same source-truth pattern: rows can be real and licensed while still being metadata-only, artifact-linked, or off-topic for the course.',
+    'Source-finder candidates still cannot become trusted sourceLedger proof unless they are accessible, license-safe, concept-linked, and on-topic for the course domain.',
+    'When source-finder retrieval produces only rejected candidates for a topic and no trusted proof exists, the best rejected candidates now export as sourceReviewRows instead of disappearing from the manifest and SOURCE_REPORT.',
+    'If trusted source proof exists, rejected source-finder bycatch remains suppressed so the export and Agent notes do not fill with duplicate internal warning clutter.',
+    'Focused source-ledger, export, and source-grader regressions prove metadata-only OpenLibrary rows and the live CS/Python Session software false friend stay out of trusted proof while remaining visible as review evidence when needed.',
   ],
   landingHighlights: [
-    'Visible v0.15.176 evidence showed 98/92, not clean.',
-    'Python fallback review prose now has 24 variants.',
-    'Old long Course Map scaffolds are pinned out.',
-    'Fresh v0.15.177 ZIP/log proof is still required.',
+    'Rejected source-finder rows stay review-only.',
+    'Trusted source proof still requires accessible, licensed, on-topic concept links.',
+    'Metadata-only and false-friend rows explain source gaps without inflating citations.',
+    'Rejected bycatch stays out when trusted proof already exists.',
   ],
   proof: {
-    contract: 'release-contracts/v0.15.177.json',
-    roadmap: 'docs/V0.15.177_PYTHON_TEXTURE_SCAFFOLD_ROADMAP.md',
+    contract: 'release-contracts/v0.15.178.json',
+    roadmap: 'docs/V0.15.178_SOURCE_REVIEW_TRUTH_ROADMAP.md',
     auditCommand: 'npm run audit:release-history',
   },
 };
@@ -35,6 +35,18 @@ export const CURRENT_RELEASE_CHANGELOG = {
 };
 
 export const HISTORICAL_RELEASE_CHANGELOGS = [
+  {
+    version: '0.15.177',
+    date: 'July 1, 2026',
+    title: 'Python Texture Scaffold: fallback review prose stops repeating',
+    highlights: [
+      'Fresh deployed v0.15.176 GPT-5.4-mini Python browser evidence completed visibly at Quality 98 and Texture 92, but ZIP/log capture failed after reload, so this release makes no clean-package claim.',
+      'The remaining visible texture loss came from CourseMapper fallback prose: two-section Python maps repeated long evaluate-design scaffolds such as `one observable behavior`, `same programming decision`, and `visible code revision`.',
+      'Python Course Map fallback review cells now rotate through 24 distinct code-review/checkpoint patterns, enough for a twelve-lesson course with two sections per lesson without duplicating those long scaffolds.',
+      'A regression recreates the exact two-section Intro CS/Python fallback shape and fails if the old long scaffolds return.',
+      'The patch preserves source, grader, texture, and export-report standards; a fresh deployed v0.15.177 ZIP/log audit is still required before any 100/100 claim.',
+    ],
+  },
   {
     version: '0.15.176',
     date: 'July 1, 2026',

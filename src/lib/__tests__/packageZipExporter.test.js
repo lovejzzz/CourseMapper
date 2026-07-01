@@ -1878,7 +1878,7 @@ describe('packageZipExporter', () => {
     expect(sourceReport).toContain('outcomes: 2/2 with sourceRefs');
   });
 
-  it('omits metadata-only source-finder fallbacks instead of exporting review rows', async () => {
+  it('exports metadata-only source-finder fallbacks as review rows when no trusted source exists', async () => {
     const result = await buildCourseMaterialsZip({
       courseMap: makeCourseMap('Metadata Source Finder Review'),
       deliverables: {
@@ -1935,20 +1935,18 @@ describe('packageZipExporter', () => {
     expect(manifest.sourceReviewRows).toEqual(
       expect.arrayContaining([
         expect.objectContaining({
-          id: 'SL1',
-          provider: 'courseir',
-          accessStatus: 'no-url-or-doi',
+          id: 'sf-1-1',
+          provider: 'openlibrary',
+          title: 'Project Management Metadata',
+          status: 'review-required: metadata-only, license, access, or concept-link gap',
+          conceptLinks: [{ id: 'c1', label: 'Project charter' }],
         }),
       ]),
-    );
-    expect(manifest.sourceReviewRows).not.toEqual(
-      expect.arrayContaining([expect.objectContaining({ provider: 'openlibrary' })]),
     );
     expect(manifest.sourceLedgerSummary).toMatchObject({ sourceCount: 0, reviewRequiredCount: 1 });
     expect(manifest.sourceReport).toMatchObject({ path: 'SOURCE_REPORT.md', sourceCount: 0, sourceReviewCount: 1 });
     expect(sourceReport).toContain('Source Review Notes');
-    expect(sourceReport).toContain('Existing course map fields');
-    expect(sourceReport).not.toContain('Project Management Metadata');
+    expect(sourceReport).toContain('Project Management Metadata');
   });
 
   it('uses custom deliverable names in ZIP paths and manifest labels', async () => {

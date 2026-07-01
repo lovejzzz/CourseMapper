@@ -843,8 +843,17 @@ function sourceFinderTopicLedgerSources(courseGraph, topic, topicIndex, checkedA
     normalizeSourceFinderTopicSource(courseGraph, topic, source, topicIndex, sourceIndex, checkedAt),
   );
   const trustedConceptLinked = [];
+  const reviewRequired = [];
   for (const source of candidates) {
-    if (!isTrustedConceptLinkedSourceLedgerRow(source) || isCourseAwareWeakSource(source, courseGraph)) continue;
+    if (!isTrustedConceptLinkedSourceLedgerRow(source) || isCourseAwareWeakSource(source, courseGraph)) {
+      appendUnique(reviewRequired, {
+        ...source,
+        status: isCourseAwareWeakSource(source, courseGraph)
+          ? 'review-required: off-topic or weak for course'
+          : 'review-required: metadata-only, license, access, or concept-link gap',
+      });
+      continue;
+    }
     appendUnique(trustedConceptLinked, source);
   }
   if (trustedConceptLinked.length > 0) {
@@ -855,7 +864,7 @@ function sourceFinderTopicLedgerSources(courseGraph, topic, topicIndex, checkedA
   }
   return {
     rows: [],
-    reviewRows: [],
+    reviewRows: reviewRequired.slice(0, SOURCE_FINDER_TRUSTED_ROWS_PER_TOPIC),
   };
 }
 
@@ -863,6 +872,7 @@ export function buildSourceLedgerFromCourseGraph(courseGraph, { checkedAt = '' }
   if (!courseGraph || typeof courseGraph !== 'object') return null;
   const rows = [];
   const reviewRows = [];
+  const sourceFinderReviewRows = [];
   const courseIRRows = Array.isArray(courseGraph.courseIR?.sourceLedger) ? courseGraph.courseIR.sourceLedger : [];
   courseIRRows.forEach((entry, index) => {
     const normalized = normalizeTrustedSource(
@@ -926,6 +936,12 @@ export function buildSourceLedgerFromCourseGraph(courseGraph, { checkedAt = '' }
       appendUnique(rows, source);
     }
     for (const source of topicSources.reviewRows || []) {
+      appendUnique(sourceFinderReviewRows, source);
+    }
+  }
+
+  if (rows.length === 0 && reviewRows.length === 0 && sourceFinderReviewRows.length > 0) {
+    for (const source of sourceFinderReviewRows.slice(0, SOURCE_FINDER_TRUSTED_ROWS_PER_TOPIC)) {
       appendUnique(reviewRows, source);
     }
   }

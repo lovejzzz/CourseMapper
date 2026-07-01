@@ -779,7 +779,7 @@ describe('trusted source ledger', () => {
     expect(ledger.summary.reviewRequiredCount || 0).toBe(0);
   });
 
-  it('drops metadata-only source-finder fallbacks instead of exporting review debt', () => {
+  it('keeps metadata-only source-finder fallbacks as review evidence when no trusted source exists', () => {
     const ledger = buildSourceLedgerFromCourseGraph(
       {
         concepts: [{ id: 'c1', term: 'Project charter' }],
@@ -814,9 +814,22 @@ describe('trusted source ledger', () => {
       { checkedAt: '2026-06-27T00:00:00.000Z' },
     );
 
-    expect(ledger).toBeNull();
+    expect(ledger.rows).toHaveLength(0);
+    expect(ledger.reviewRows).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          provider: 'openlibrary',
+          title: 'Project Management Metadata',
+          licenseAmbiguous: true,
+          status: 'review-required: metadata-only, license, access, or concept-link gap',
+          conceptLinks: [{ id: 'c1', label: 'Project charter' }],
+        }),
+      ]),
+    );
+    expect(ledger.summary).toMatchObject({ sourceCount: 0, reviewRequiredCount: 1 });
     const report = buildSourceReportMarkdown({ courseName: 'Project Management', sourceLedger: ledger });
-    expect(report).toBe('');
+    expect(report).toContain('Source Review Notes');
+    expect(report).toContain('Project Management Metadata');
   });
 
   it('drops unused UX source-finder false friends when trusted topic sources exist', () => {
@@ -2032,6 +2045,17 @@ describe('trusted source ledger', () => {
       { checkedAt: '2026-07-01T00:00:00.000Z' },
     );
 
-    expect(ledger).toBeNull();
+    expect(ledger.rows).toHaveLength(0);
+    expect(ledger.reviewRows).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          provider: 'wikipedia',
+          title: 'Session (software)',
+          status: 'review-required: off-topic or weak for course',
+          conceptLinks: [{ id: 'c1', label: 'Quiz,Assignment' }],
+        }),
+      ]),
+    );
+    expect(ledger.summary).toMatchObject({ sourceCount: 0, reviewRequiredCount: 1 });
   });
 });
