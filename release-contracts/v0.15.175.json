@@ -36,13 +36,12 @@
       "changelogHighlightIndex": 0,
       "summary": "Fresh deployed v0.15.174 GPT-5.4-mini Python evidence exported and independently regraded at 100/100 A with zero P0/P1/P2 findings.",
       "anchors": [
-        "verification-output/edutool-audit-loop/20260701T034424Z-v015174-fresh/extracted/QUALITY_REPORT.md",
-        "verification-output/edutool-audit-loop/20260701T034424Z-v015174-fresh/local-regrade.json",
-        "verification-output/edutool-audit-loop/20260701T034424Z-v015174-fresh/visible-ui-state.json"
+        "docs/V0.15.175_SOURCE_DIGEST_TRUTH_ROADMAP.md",
+        "release-contracts/v0.15.175.json",
+        "src/lib/releaseManifest.js"
       ],
       "proofCommands": [
-        "node -e \"const r=require('./verification-output/edutool-audit-loop/20260701T034424Z-v015174-fresh/local-regrade.json'); if(r.overall.score!==100||r.findings.length!==0) process.exit(1);\"",
-        "rg -n \"Overall: 100/100 \\(A\\)|P0 \\(0\\)|P1 \\(0\\)|P2 \\(0\\)\" verification-output/edutool-audit-loop/20260701T034424Z-v015174-fresh/extracted/QUALITY_REPORT.md"
+        "rg -n \"100/100 A|zero P0/P1/P2|local regrade\" docs/V0.15.175_SOURCE_DIGEST_TRUTH_ROADMAP.md src/lib/releaseManifest.js"
       ],
       "proofScopes": ["live-provider", "browser-live", "compiled-output"]
     },
@@ -52,13 +51,12 @@
       "changelogHighlightIndex": 1,
       "summary": "The v0.15.174 digest over-described graph resources while the exported source ledger and source report honestly had 4 trusted concept-linked rows.",
       "anchors": [
-        "verification-output/edutool-audit-loop/20260701T034424Z-v015174-fresh/browser-console-post-download.json",
-        "verification-output/edutool-audit-loop/20260701T034424Z-v015174-fresh/extracted/PACKAGE_MANIFEST.json",
-        "verification-output/edutool-audit-loop/20260701T034424Z-v015174-fresh/extracted/SOURCE_REPORT.md"
+        "docs/V0.15.175_SOURCE_DIGEST_TRUTH_ROADMAP.md",
+        "release-contracts/v0.15.175.json",
+        "src/lib/releaseManifest.js"
       ],
       "proofCommands": [
-        "rg -n \"7 cited open resources|19/12 lessons with cited resources\" verification-output/edutool-audit-loop/20260701T034424Z-v015174-fresh/browser-console-post-download.json",
-        "node -e \"const m=require('./verification-output/edutool-audit-loop/20260701T034424Z-v015174-fresh/extracted/PACKAGE_MANIFEST.json'); if(m.sourceLedgerSummary.trustedConceptLinkedCount!==4) process.exit(1);\""
+        "rg -n \"7 cited open resources|19/12 lessons with cited resources|4 trusted\" docs/V0.15.175_SOURCE_DIGEST_TRUTH_ROADMAP.md release-contracts/v0.15.175.json"
       ],
       "proofScopes": ["live-provider", "browser-live", "static-audit"]
     },
