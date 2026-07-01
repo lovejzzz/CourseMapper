@@ -1,0 +1,105 @@
+{
+  "version": "0.15.175",
+  "date": "July 1, 2026",
+  "title": "Source Digest Truth: trusted ledger counts beat graph candidates",
+  "status": "verified-current",
+  "proofSummary": {
+    "local": [
+      "npm run test -- tests/v0141-phase2-coverage.test.js",
+      "npm run test -- src/lib/__tests__/runDigest.test.js"
+    ],
+    "ciFast": {
+      "status": "pending-push",
+      "note": "Fast verification is claimed only after v0.15.175 is pushed and the GitHub Actions run is attached."
+    },
+    "deploy": {
+      "status": "pending-push",
+      "note": "Pages deploy is not claimed until the pushed v0.15.175 release completes its deploy run."
+    },
+    "ciDeep": {
+      "status": "local-only",
+      "note": "This is a narrow report-truth wording/count fix; focused tests plus normal gates are the release bar."
+    },
+    "liveProvider": {
+      "status": "not-current",
+      "note": "Fresh v0.15.174 browser ZIP/log evidence exported cleanly and identified the source digest wording mismatch. A fresh v0.15.175 audit is still required after deploy."
+    },
+    "manualHuman": {
+      "status": "not-applicable",
+      "note": "No external instructor approval is claimed by this release."
+    }
+  },
+  "claims": [
+    {
+      "id": "v015175-clean-v015174-evidence",
+      "status": "verified-current",
+      "changelogHighlightIndex": 0,
+      "summary": "Fresh deployed v0.15.174 GPT-5.4-mini Python evidence exported and independently regraded at 100/100 A with zero P0/P1/P2 findings.",
+      "anchors": [
+        "verification-output/edutool-audit-loop/20260701T034424Z-v015174-fresh/extracted/QUALITY_REPORT.md",
+        "verification-output/edutool-audit-loop/20260701T034424Z-v015174-fresh/local-regrade.json",
+        "verification-output/edutool-audit-loop/20260701T034424Z-v015174-fresh/visible-ui-state.json"
+      ],
+      "proofCommands": [
+        "node -e \"const r=require('./verification-output/edutool-audit-loop/20260701T034424Z-v015174-fresh/local-regrade.json'); if(r.overall.score!==100||r.findings.length!==0) process.exit(1);\"",
+        "rg -n \"Overall: 100/100 \\(A\\)|P0 \\(0\\)|P1 \\(0\\)|P2 \\(0\\)\" verification-output/edutool-audit-loop/20260701T034424Z-v015174-fresh/extracted/QUALITY_REPORT.md"
+      ],
+      "proofScopes": ["live-provider", "browser-live", "compiled-output"]
+    },
+    {
+      "id": "v015175-source-count-mismatch-evidence",
+      "status": "verified-current",
+      "changelogHighlightIndex": 1,
+      "summary": "The v0.15.174 digest over-described graph resources while the exported source ledger and source report honestly had 4 trusted concept-linked rows.",
+      "anchors": [
+        "verification-output/edutool-audit-loop/20260701T034424Z-v015174-fresh/browser-console-post-download.json",
+        "verification-output/edutool-audit-loop/20260701T034424Z-v015174-fresh/extracted/PACKAGE_MANIFEST.json",
+        "verification-output/edutool-audit-loop/20260701T034424Z-v015174-fresh/extracted/SOURCE_REPORT.md"
+      ],
+      "proofCommands": [
+        "rg -n \"7 cited open resources|19/12 lessons with cited resources\" verification-output/edutool-audit-loop/20260701T034424Z-v015174-fresh/browser-console-post-download.json",
+        "node -e \"const m=require('./verification-output/edutool-audit-loop/20260701T034424Z-v015174-fresh/extracted/PACKAGE_MANIFEST.json'); if(m.sourceLedgerSummary.trustedConceptLinkedCount!==4) process.exit(1);\""
+      ],
+      "proofScopes": ["live-provider", "browser-live", "static-audit"]
+    },
+    {
+      "id": "v015175-clamps-source-judgment-counts",
+      "status": "verified-current",
+      "changelogHighlightIndex": 2,
+      "summary": "Source-backed judgment display counts are clamped to the course lesson denominator.",
+      "anchors": ["src/lib/apiCallBudget.js", "tests/v0141-phase2-coverage.test.js"],
+      "proofCommands": [
+        "npm run test -- tests/v0141-phase2-coverage.test.js",
+        "rg -n \"does not render impossible source-backed lesson counts|displayedCoveredLessons\" tests/v0141-phase2-coverage.test.js src/lib/apiCallBudget.js"
+      ],
+      "proofScopes": ["unit", "static-audit"]
+    },
+    {
+      "id": "v015175-separates-trusted-ledger-from-graph-resources",
+      "status": "verified-current",
+      "changelogHighlightIndex": 3,
+      "summary": "Final knowledge-backbone text now names trusted source-ledger rows separately from graph reading resources.",
+      "anchors": ["src/AppFlow.jsx"],
+      "proofCommands": [
+        "rg -n \"trusted source-ledger row|graph reading resource|buildKnowledgeBackboneLabel\" src/AppFlow.jsx"
+      ],
+      "proofScopes": ["static-audit"]
+    },
+    {
+      "id": "v015175-generation-log-wording",
+      "status": "verified-current",
+      "changelogHighlightIndex": 4,
+      "summary": "Generation-time logs use graph-resource wording before the final source ledger is exported.",
+      "anchors": ["src/hooks/useDeliverables.js"],
+      "proofCommands": ["rg -n \"graph reading resources|lessonCountWithReadings\" src/hooks/useDeliverables.js"],
+      "proofScopes": ["static-audit"]
+    }
+  ],
+  "knownRemainingTargets": [
+    "Fresh deployed v0.15.175 GPT-5.4-mini ZIP/log proof must verify the final digest no longer emits impossible source counts.",
+    "Genome coverage remains sparse for some courses; trusted source-ledger proof is still the honest fallback.",
+    "Texture can remain below 100 even when the scored package is clean; treat repeated scaffolds as future evidence if they reproduce.",
+    "CourseIR direct authoring can still fall back when provider output carries dangling assessment ids.",
+    "All export surfaces must continue to agree before any clean score is claimed."
+  ]
+}

@@ -2137,19 +2137,23 @@ export default function useDeliverables({
             coverage = knowledge.knowledgeCoverage(courseGraph);
           }
           if (coverage && genomeResourceCount + openReadingCount + sourceFinderCount > 0) {
+            const lessonCountWithReadings =
+              coverage.sessions > 0 && coverage.sessionsWithResources > coverage.sessions
+                ? coverage.sessions
+                : coverage.sessionsWithResources;
             appendLog(
-              `✓ Reading lists attached: ${genomeResourceCount} cited textbook section${genomeResourceCount === 1 ? '' : 's'} + ${openReadingCount} open reading${openReadingCount === 1 ? '' : 's'}${sourceFinderCount > 0 ? ` + ${sourceFinderCount} source-finder citation${sourceFinderCount === 1 ? '' : 's'}` : ''} across ${coverage.sessionsWithResources} lesson${coverage.sessionsWithResources === 1 ? '' : 's'}`,
+              `✓ Reading lists attached: ${genomeResourceCount} cited textbook section${genomeResourceCount === 1 ? '' : 's'} + ${openReadingCount} open reading${openReadingCount === 1 ? '' : 's'}${sourceFinderCount > 0 ? ` + ${sourceFinderCount} source-finder citation${sourceFinderCount === 1 ? '' : 's'}` : ''} across ${lessonCountWithReadings} lesson${lessonCountWithReadings === 1 ? '' : 's'}`,
               'done',
             );
             recordGenerationApiCallEvent({
               type: 'pipelineDecision',
               stage: 'knowledgeBackbone',
               label: 'Knowledge backbone',
-              detail: `${coverage.genomeLinkedLessons}/${coverage.sessions} lessons genome-linked · ${coverage.openResources} open resources (${Object.entries(
+              detail: `${coverage.genomeLinkedLessons}/${coverage.sessions} lessons genome-linked · ${coverage.openResources} graph reading resources (${Object.entries(
                 coverage.resourcesByOrigin,
               )
                 .map(([origin, count]) => `${origin}: ${count}`)
-                .join(', ')})`,
+                .join(', ')}) · ${lessonCountWithReadings}/${coverage.sessions} lessons with readings`,
             });
             const sourceBackedJudgment = buildSourceBackedJudgmentStageEvent({
               sourceRefCoverage: courseGraph?.courseIR?.sourceRefCoverage || null,

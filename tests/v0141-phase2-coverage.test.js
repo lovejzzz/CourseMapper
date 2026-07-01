@@ -306,6 +306,21 @@ describe('judgment stage event in all three states (P2.4)', () => {
     expect(formatRunDigest(digest)).toContain(`course judgment: ${sourceBacked.detail}`);
   });
 
+  it('does not render impossible source-backed lesson counts', () => {
+    const sourceBacked = buildSourceBackedJudgmentStageEvent({
+      sourceRefCoverage: {
+        totals: { total: 182, withRefs: 182, missing: 0, danglingRefs: 0 },
+      },
+      citedResourceCount: 4,
+      lessonsWithResources: 19,
+      totalLessons: 12,
+      genomeLinkedLessons: 0,
+    });
+    expect(sourceBacked.detail).toBe(
+      'source-backed coverage check (182/182 sourceRef atoms covered; 12/12 lessons with cited resources; genome prerequisite judgment unavailable)',
+    );
+  });
+
   it('does not claim source-backed judgment when source proof is incomplete', () => {
     expect(
       buildSourceBackedJudgmentStageEvent({

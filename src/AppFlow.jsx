@@ -107,6 +107,40 @@ import { normalizePipelineStateWithSourceBackedJudgment } from './lib/sourceBack
 
 const PACKAGE_READY_MESSAGE = 'All required files passed export checks and the package is ready to download.';
 
+function formatOriginCounts(counts = {}) {
+  return Object.entries(counts || {})
+    .filter(([, count]) => Number(count) > 0)
+    .map(([origin, count]) => `${origin}: ${count}`)
+    .join(', ');
+}
+
+function pluralizeCount(count, singular, plural = `${singular}s`) {
+  return `${count} ${count === 1 ? singular : plural}`;
+}
+
+function buildKnowledgeBackboneLabel(coverage, sourceLedgerSummary = null) {
+  if (!coverage || Number(coverage.openResources || 0) <= 0) return null;
+  const sessionCount = Number(coverage.sessions) || 0;
+  const genomeLinkedLessons = Number(coverage.genomeLinkedLessons) || 0;
+  const openResources = Number(coverage.openResources) || 0;
+  const sessionsWithResources = Number(coverage.sessionsWithResources) || 0;
+  const displayedSessionsWithResources =
+    sessionCount > 0 && sessionsWithResources > sessionCount ? sessionCount : Math.max(0, sessionsWithResources);
+  const trustedSourceRows = Number(sourceLedgerSummary?.trustedConceptLinkedCount) || 0;
+  const originText = formatOriginCounts(coverage.resourcesByOrigin);
+  const parts = [`${genomeLinkedLessons}/${sessionCount} lessons genome-linked`];
+  if (trustedSourceRows > 0) {
+    parts.push(pluralizeCount(trustedSourceRows, 'trusted source-ledger row'));
+    if (openResources !== trustedSourceRows) {
+      parts.push(`${pluralizeCount(openResources, 'graph reading resource')}${originText ? ` (${originText})` : ''}`);
+    }
+  } else {
+    parts.push(`${pluralizeCount(openResources, 'cited open resource')}${originText ? ` (${originText})` : ''}`);
+  }
+  parts.push(`${displayedSessionsWithResources}/${sessionCount} lessons with readings`);
+  return parts.join(' · ');
+}
+
 function summarizeReceiptIssue(issue) {
   if (!issue) return null;
   return {
@@ -671,6 +705,8 @@ export default function AppFlow({ startupAction = null, onStartupHandled, onRetu
     const currentGraph = courseGraphRef.current;
     const graphStats = courseGraphStats(currentGraph);
     const coverage = knowledgeCoverage(currentGraph);
+    const sourceLedgerSummary = currentGraph?.courseIR?.sourceLedgerSummary || null;
+    const knowledgeBackbone = buildKnowledgeBackboneLabel(coverage, sourceLedgerSummary);
     const pipelineState = {
       enrichment,
       genomeLinker: budget.pipeline?.genomeLinker || 'not run',
@@ -683,22 +719,14 @@ export default function AppFlow({ startupAction = null, onStartupHandled, onRetu
         : {}),
       // v0.13.5 P4: the coverage meter — how much of this package is backed
       // by cited open knowledge, recorded where reviewers will look.
-      ...(coverage && coverage.openResources > 0
-        ? {
-            knowledgeBackbone: `${coverage.genomeLinkedLessons}/${coverage.sessions} lessons genome-linked · ${coverage.openResources} cited open resources (${Object.entries(
-              coverage.resourcesByOrigin,
-            )
-              .map(([origin, count]) => `${origin}: ${count}`)
-              .join(', ')}) · ${coverage.sessionsWithResources} lessons with readings`,
-          }
-        : {}),
+      ...(knowledgeBackbone ? { knowledgeBackbone } : {}),
       // v0.14 P3: the judgment surface — what the genome reasoned about this
       // course (prerequisite gaps found, bridged, or flagged).
       ...(budget.pipeline?.judgment ? { judgment: budget.pipeline.judgment } : {}),
     };
     return normalizePipelineStateWithSourceBackedJudgment(pipelineState, {
       sourceRefCoverage: currentGraph?.courseIR?.sourceRefCoverage || null,
-      sourceLedgerSummary: currentGraph?.courseIR?.sourceLedgerSummary || null,
+      sourceLedgerSummary,
       sourceLedger: currentGraph?.courseIR?.sourceLedger || null,
       courseGraph: currentGraph,
       courseMap: courseMapRef.current,

@@ -3,24 +3,24 @@ import { APP_VERSION } from './appVersion.js';
 export const CURRENT_RELEASE = {
   version: APP_VERSION,
   date: 'July 1, 2026',
-  title: 'Python Notebook Readiness: computing labs are not data-science bleed',
-  landingTitle: 'Python Notebook Readiness',
+  title: 'Source Digest Truth: trusted ledger counts beat graph candidates',
+  landingTitle: 'Source Digest Truth',
   highlights: [
-    'Fresh deployed v0.15.173 GPT-5.4-mini Python browser evidence verified the digest-truth fix: the UI, finish event, and `[CM][DIGEST]` all agreed that the package was blocked with one readiness blocker while export verification passed.',
-    'That same run proved the remaining blocker was over-broad for Intro CS: `Non-data-science package references notebook/model-card lab assets` blocked a Python course that legitimately uses notebooks, interpreters, starter files, and test-output logs.',
-    'Notebook/starter-notebook readiness now allows explicit computing courses such as introductory Python, computer science, programming, debugging, modules/libraries, scripts, and terminal workflows.',
-    'The guard remains strict for unsupported model-card language: non-ML computer-science packages still fail if model-card assets leak in without a machine-learning, data-science, or model-governance context.',
-    'This release does not claim a clean ZIP score; the next deployed GPT-5.4-mini audit should verify v0.15.174 gets past the false Python notebook blocker and then address the remaining scored quality/coverage issues honestly.',
+    'Fresh deployed v0.15.174 GPT-5.4-mini Python ZIP/log evidence exported cleanly: visible UI, manifest, QUALITY_REPORT, digest, and local regrade all showed 100/100 A with zero P0/P1/P2 findings.',
+    'That same clean package exposed a report-truth edge: the final digest described 7 source-finder graph resources and an impossible `19/12 lessons with cited resources`, while the exported trusted source ledger honestly contained 4 accessible, licensed, concept-linked rows.',
+    'Source-backed judgment text now clamps lesson coverage to the course denominator, so digest logs cannot render impossible counts such as `19/12`.',
+    'The final knowledge-backbone line now separates trusted source-ledger proof from broader graph reading resources, preventing source-finder candidates from reading like trusted bibliography rows.',
+    'Generation logs use the same safer wording for graph reading resources, while source-trust gates and the deep grader remain unchanged.',
   ],
   landingHighlights: [
-    'Python notebook labs no longer trip the non-data blocker.',
-    'Model-card leakage is still blocked outside ML/governance courses.',
-    'Fresh v0.15.173 evidence is saved for audit.',
-    'The next live audit must re-run GPT-5.4-mini.',
+    'Fresh v0.15.174 evidence exported at 100/A.',
+    'Impossible source-backed counts are clamped.',
+    'Trusted source-ledger rows are named separately.',
+    'Graph candidates no longer read as trusted proof.',
   ],
   proof: {
-    contract: 'release-contracts/v0.15.174.json',
-    roadmap: 'docs/V0.15.174_PYTHON_NOTEBOOK_READINESS_ROADMAP.md',
+    contract: 'release-contracts/v0.15.175.json',
+    roadmap: 'docs/V0.15.175_SOURCE_DIGEST_TRUTH_ROADMAP.md',
     auditCommand: 'npm run audit:release-history',
   },
 };
@@ -35,6 +35,18 @@ export const CURRENT_RELEASE_CHANGELOG = {
 };
 
 export const HISTORICAL_RELEASE_CHANGELOGS = [
+  {
+    version: '0.15.174',
+    date: 'July 1, 2026',
+    title: 'Python Notebook Readiness: computing labs are not data-science bleed',
+    highlights: [
+      'Fresh deployed v0.15.173 GPT-5.4-mini Python browser evidence verified the digest-truth fix: the UI, finish event, and `[CM][DIGEST]` all agreed that the package was blocked with one readiness blocker while export verification passed.',
+      'That same run proved the remaining blocker was over-broad for Intro CS: `Non-data-science package references notebook/model-card lab assets` blocked a Python course that legitimately uses notebooks, interpreters, starter files, and test-output logs.',
+      'Notebook/starter-notebook readiness now allows explicit computing courses such as introductory Python, computer science, programming, debugging, modules/libraries, scripts, and terminal workflows.',
+      'The guard remains strict for unsupported model-card language: non-ML computer-science packages still fail if model-card assets leak in without a machine-learning, data-science, or model-governance context.',
+      'Fresh deployed v0.15.174 evidence later exported cleanly at 100/100 A; v0.15.175 carries the follow-up report-truth wording fix for source counts.',
+    ],
+  },
   {
     version: '0.15.173',
     date: 'July 1, 2026',

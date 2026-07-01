@@ -508,6 +508,8 @@ export function buildSourceBackedJudgmentStageEvent({
   const resourceCount = Number(citedResourceCount) || 0;
   const lessonCount = Number(totalLessons) || 0;
   const coveredLessons = Number(lessonsWithResources) || 0;
+  const displayedCoveredLessons =
+    lessonCount > 0 && coveredLessons > lessonCount ? lessonCount : Math.max(0, coveredLessons);
   if (
     totalAtoms <= 0 ||
     coveredAtoms !== totalAtoms ||
@@ -523,6 +525,6 @@ export function buildSourceBackedJudgmentStageEvent({
     type: 'pipelineDecision',
     stage: 'judgment',
     label: 'Course judgment',
-    detail: `source-backed coverage check (${coveredAtoms}/${totalAtoms} sourceRef atoms covered; ${coveredLessons}/${lessonCount} lessons with cited resources; genome prerequisite judgment unavailable)`,
+    detail: `source-backed coverage check (${coveredAtoms}/${totalAtoms} sourceRef atoms covered; ${displayedCoveredLessons}/${lessonCount} lessons with cited resources; genome prerequisite judgment unavailable)`,
   };
 }
