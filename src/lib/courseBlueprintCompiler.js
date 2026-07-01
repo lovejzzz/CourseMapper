@@ -1,9 +1,24 @@
 import { COLUMN_EXTRACTORS } from './prompts/promptUtils';
+import {
+  asArray,
+  cleanText,
+  escapeRegexLiteral,
+  isObjectiveStemOnly,
+  normalizeObjectiveText,
+  sentenceCase,
+  splitList,
+  stripLessonPrefix,
+  stripListPrefix,
+  stripTerminalPunctuation,
+  unique,
+  wordCount,
+} from './compilerText';
 import { finalizeCompiledDeliverableLanguage, shortArtifactReference } from './compiledLanguageFinalizer';
 import { getChunkCount } from './parallelGenerator';
 import { getCustomDeliverable } from './customDeliverableLibrary';
 import { buildObservationProtocol } from './observationProtocols';
 import { recordLegacyPathHit } from './legacyPathTelemetry';
+import { recordContentFallbackHit } from './contentFallbackTelemetry';
 import { whyThisWorksNote, buildMethodsStatement } from './knowledge/pedagogyEvidence';
 import { buildCompetencyMap } from './knowledge/competencyMap';
 import {
@@ -83,16 +98,6 @@ const FAQ_CATEGORIES = [
   'Technical Help',
   'Assessment Prep',
 ];
-function asArray(value) {
-  return Array.isArray(value) ? value : value === undefined || value === null || value === '' ? [] : [value];
-}
-
-function cleanText(value, fallback = '') {
-  return String(value ?? fallback)
-    .replace(/\s+/g, ' ')
-    .trim();
-}
-
 function slugifyCustomArrayKey(value) {
   return (
     cleanText(value, 'items')
@@ -102,75 +107,8 @@ function slugifyCustomArrayKey(value) {
   );
 }
 
-function stripLessonPrefix(value) {
-  return cleanText(value).replace(/^(?:lesson|week)\s*\d+\s*[:.-]\s*/i, '');
-}
-
-const OBJECTIVE_STEM_RE = /^students?\s+will\s+be\s+able\s+to:?$/i;
-
-function stripListPrefix(value) {
-  return cleanText(value)
-    .replace(/^\s*(?:[-*•]|\(?\d+(?:\.\d+)*[a-z]?[.):]?\)?|\(?[a-z][.)]\)?)\s*/i, '')
-    .replace(/^\s*[:–—-]\s*/, '');
-}
-
-function normalizeObjectiveText(value) {
-  const stripped = stripListPrefix(value);
-  const withoutStem = stripped.replace(/^students?\s+will\s+(?:be\s+able\s+to:?\s*)?/i, '').trim();
-  if (withoutStem !== stripped.trim() && withoutStem) {
-    return withoutStem.charAt(0).toUpperCase() + withoutStem.slice(1);
-  }
-  return withoutStem;
-}
-
-function isObjectiveStemOnly(value) {
-  return OBJECTIVE_STEM_RE.test(cleanText(value));
-}
-
-function wordCount(value) {
-  return (cleanText(value).match(/[A-Za-z0-9]+/g) || []).length;
-}
-
 function lessonTitle(lesson, lessonNumber) {
   return `Lesson ${lessonNumber}: ${stripLessonPrefix(lesson?.title || lesson?.lessonTitle || lesson?.lt || '') || `Topic ${lessonNumber}`}`;
-}
-
-function splitList(value) {
-  if (Array.isArray(value)) {
-    return value.flatMap(splitList);
-  }
-  // Split on newlines, semicolons, pipes, and bullets — but never on a
-  // semicolon inside parentheses, so citations like
-  // "Duke University Press (copyrighted text; library access)" stay whole.
-  const text = String(value || '');
-  const items = [];
-  let current = '';
-  let depth = 0;
-  for (const char of text) {
-    if (char === '(') depth += 1;
-    else if (char === ')') depth = Math.max(0, depth - 1);
-    if (char === '\n' || char === '|' || char === '\u2022' || (char === ';' && depth === 0)) {
-      items.push(current);
-      current = '';
-    } else {
-      current += char;
-    }
-  }
-  items.push(current);
-  return items.map((item) => stripListPrefix(item).trim()).filter(Boolean);
-}
-
-function unique(values, limit = 12) {
-  const seen = new Set();
-  const result = [];
-  for (const value of values.map((item) => cleanText(item)).filter(Boolean)) {
-    const key = value.toLowerCase();
-    if (seen.has(key)) continue;
-    seen.add(key);
-    result.push(value);
-    if (result.length >= limit) break;
-  }
-  return result;
 }
 
 function extractColumn(lesson, key) {
@@ -361,12 +299,6 @@ function firstNonEmpty(...values) {
   return values.map((value) => cleanText(value)).find(Boolean) || '';
 }
 
-function sentenceCase(value) {
-  const text = cleanText(value);
-  if (!text) return '';
-  return text.charAt(0).toUpperCase() + text.slice(1);
-}
-
 function joinCriteriaSentence(criteria = []) {
   const parts = asArray(criteria)
     .map((criterion) => stripTerminalPunctuation(criterion))
@@ -374,10 +306,6 @@ function joinCriteriaSentence(criteria = []) {
     .map((criterion) => criterion.charAt(0).toLowerCase() + criterion.slice(1));
   if (parts.length === 0) return 'meets the published success criteria.';
   return `${parts.join('; ')}.`;
-}
-
-function stripTerminalPunctuation(value) {
-  return cleanText(value).replace(/[.!?]+$/g, '');
 }
 
 function sanitizeAssignmentParameterForStudent(value) {
@@ -629,10 +557,6 @@ const PROMPT_ARTIFACT_EVIDENCE_LABELS = [
 const PROMPT_ARTIFACT_EVIDENCE_SET = new Set(PROMPT_ARTIFACT_EVIDENCE_LABELS);
 const INTERNAL_SOURCE_PLACEHOLDER_RE =
   /\b(?:existing course map fields?|source review rows?|instructor source review|instructor-approved readings|repaired package requires review|no source ledger|prerequisite concept)\b/i;
-
-function escapeRegexLiteral(value) {
-  return String(value || '').replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-}
 
 function normalizePromptArtifactEvidenceCue(value) {
   return cleanText(value)
@@ -1420,6 +1344,9 @@ function inferDisciplineLens(courseName, concepts = []) {
       exampleNoun: 'study-design scenario',
     };
   }
+  // v0.15.187 fallback telemetry: nothing matched the 29 discipline
+  // predicates — the course ships the subject-free default register.
+  recordContentFallbackHit('lens-default', text.slice(0, 200));
   return {
     domain: 'applied course practice',
     evidenceNoun: 'source evidence',
@@ -1621,19 +1548,6 @@ function normalizeBlueprintEnrichment({
     ...(provided.lessonContent && typeof provided.lessonContent === 'object'
       ? { lessonContent: provided.lessonContent }
       : {}),
-  };
-}
-
-export function mergeBlueprintEnrichment(blueprint, enrichment = {}) {
-  if (!blueprint || typeof blueprint !== 'object') return blueprint;
-  return {
-    ...blueprint,
-    enrichment: normalizeBlueprintEnrichment({
-      courseName: blueprint.courseName,
-      lessons: blueprint.lessons || [],
-      courseConcepts: blueprint.courseConcepts || [],
-      provided: enrichment,
-    }),
   };
 }
 
@@ -6053,6 +5967,11 @@ function buildCourseModalityProfile({ courseName, lessons }) {
                                                             : hasOnline
                                                               ? 'online-hybrid'
                                                               : 'weekly-applied-seminar';
+  if (primaryMode === 'weekly-applied-seminar') {
+    // v0.15.187 fallback telemetry: no modality score cleared its bar — the
+    // course runs the generic weekly-applied-seminar teaching pattern.
+    recordContentFallbackHit('modality-default', courseNameText.slice(0, 200));
+  }
   const modeDetails = {
     'clinical-simulation': {
       sessionPattern: 'simulation, role-play, debrief, and performance feedback',
@@ -7518,6 +7437,12 @@ function buildArtifactGenreDecode(lesson = {}, profile = {}, modalityDecode = {}
     genre = 'analysis-log';
   } else if (contextMatches(/\b(role[-\s]?play|simulation|interview|oral|encounter|dialogue|performance)\b/)) {
     genre = 'performance-simulation';
+  }
+
+  if (genre === 'applied-artifact') {
+    // v0.15.187 fallback telemetry: no branch of the genre ladder matched —
+    // the artifact ships the generic applied-artifact treatment.
+    recordContentFallbackHit('artifact-genre-default', artifactText.slice(0, 200));
   }
 
   const details = {
@@ -15193,13 +15118,24 @@ function compileSyllabus(blueprint) {
         'Students should be able to navigate the course site, submit files, participate in discussions, access readings, and use feedback to revise work.',
       aiPolicy:
         'Generative AI tools may be used only as the instructor allows for each task. When approved AI assistance contributes to submitted work, name the tool and describe how it was used. AI output must be verified against course sources, and students remain responsible for accuracy, citations, and final judgment.',
-      weeklySchedule: blueprint.lessons.map((lesson) => ({
-        week: `Week ${lesson.lessonNumber}`,
-        dates: `Week ${lesson.lessonNumber}`,
-        topic: stripLessonPrefix(lesson.title),
-        readings: syllabusWeeklyReadings(lesson).join('; '),
-        assignments: `${lesson.studentArtifact}. Success criterion: ${lesson.successCriteria[0]} Estimated workload: ${lesson.workloadEstimate.studentFacingEstimate}.`,
-      })),
+      weeklySchedule: blueprint.lessons.map((lesson) => {
+        // v0.15.187 atom routing: the kernel's real disciplinary terms become
+        // the week's key vocabulary — the same terms the study guide teaches.
+        const weekTerms = (lesson.enrichment?.keyTerms || [])
+          .map((term) => cleanText(term?.term))
+          .filter(Boolean)
+          .slice(0, 4);
+        return {
+          week: `Week ${lesson.lessonNumber}`,
+          dates: `Week ${lesson.lessonNumber}`,
+          topic: stripLessonPrefix(lesson.title),
+          readings: syllabusWeeklyReadings(lesson).join('; '),
+          assignments: `${lesson.studentArtifact}. Success criterion: ${lesson.successCriteria[0]} Estimated workload: ${lesson.workloadEstimate.studentFacingEstimate}.`,
+          // keyVocabulary is atom-derived; the row itself stays template, so
+          // no row-level enrichmentSource tag (it would overcount the metric).
+          ...(weekTerms.length > 0 ? { keyVocabulary: weekTerms.join('; ') } : {}),
+        };
+      }),
       academicIntegrity: blueprint.policies.academicIntegrity,
       technicalSupport:
         'For technical issues, document the problem, try the recommended course-site troubleshooting steps, and contact institutional technical support or the instructor as appropriate.',
@@ -15714,6 +15650,9 @@ function buildParameterCriterionRow({ parameter, ordinal, weight, assessment, le
   return {
     criterion,
     briefParameter: verbatim,
+    // v0.15.187: these rows quote the authored brief parameter verbatim —
+    // tag them so the grounded-fraction metric can see it.
+    enrichmentSource: 'lesson-content-enrichment',
     objectiveAligned: objective || assessment.objectives?.[0] || '',
     objectiveAlignmentEvidence: {
       criterion,
@@ -16512,6 +16451,18 @@ function compileStudyGuides(blueprint) {
               ]),
         ],
         practiceActivities: [
+          // v0.15.187 atom routing: when the kernel names the actual material
+          // students analyze, the first practice move works on THAT material
+          // and rehearses a real authored fact — not a generic note format.
+          ...(cleanText(lesson.enrichment?.kernel?.scenario?.materials)
+            ? [
+                `Work directly with ${stripTerminalPunctuation(cleanText(lesson.enrichment.kernel.scenario.materials))}: mark the detail that best supports the ${primaryConcept} claim, the detail that complicates it, and the decision each one points to.${
+                  lesson.enrichment?.kernel?.facts?.[1]
+                    ? ` Check your reading against this: ${stripTerminalPunctuation(lesson.enrichment.kernel.facts[1])}.`
+                    : ''
+                }`,
+              ]
+            : []),
           ...(isDataScience
             ? [
                 `Open the ${specificity.week} notebook or dataset card and identify the target/outcome, two important features, and one data-quality risk for ${stripLessonPrefix(lesson.title)}.`,
@@ -17271,11 +17222,36 @@ function examCoveredLessons(blueprint, assessment) {
   return before.length > 0 ? before : lessons.filter((lesson) => lesson.lessonNumber <= dueLesson);
 }
 
+// v0.15.187 atom routing: exams used to be the only ZERO-kernel quiz surface
+// — the sample answer was pure glue ("connect because the second builds on
+// evidence the first establishes"). When covered lessons carry kernels,
+// the exam item compares the two AUTHORED definitions and the sample answer
+// quotes them plus an anchor fact, composeScenarioAnswer-style.
+function examLessonTerm(lesson) {
+  return (lesson?.enrichment?.keyTerms || []).find((term) => cleanText(term?.term) && cleanText(term?.definition));
+}
+
+// "The warming that results…" reads wrong mid-sentence; lowercase the lead
+// unless it opens with an acronym/proper token (CO2, DNA, Bayesian…).
+function lowercaseSentenceLead(value) {
+  const text = cleanText(value);
+  if (!text || /^[A-Z]{2}/.test(text) || /^[A-Z][a-z]*[A-Z0-9]/.test(text)) return text;
+  return text.charAt(0).toLowerCase() + text.slice(1);
+}
+
+function examLessonFact(lesson) {
+  return cleanText(lesson?.enrichment?.kernel?.facts?.[0]);
+}
+
 function buildExamShortAnswerItem({ blueprint, assessment, covered, lens, examSlug, ordinal }) {
   const first = covered[0];
   const last = covered[covered.length - 1];
-  const conceptA = first.keyConcepts?.[0] || stripLessonPrefix(first.title);
-  const conceptB = last.keyConcepts?.[0] || stripLessonPrefix(last.title);
+  const termA = examLessonTerm(first);
+  const termB = examLessonTerm(last);
+  const conceptA = cleanText(termA?.term) || first.keyConcepts?.[0] || stripLessonPrefix(first.title);
+  const conceptB = cleanText(termB?.term) || last.keyConcepts?.[0] || stripLessonPrefix(last.title);
+  const grounded = Boolean(termA && termB && conceptA.toLowerCase() !== conceptB.toLowerCase());
+  const anchorFact = examLessonFact(last) || examLessonFact(first);
   return withQuizPlan(
     {
       id: `${examSlug}-q${ordinal}`,
@@ -17287,8 +17263,17 @@ function buildExamShortAnswerItem({ blueprint, assessment, covered, lens, examSl
       objectiveAligned: last.outcomes?.[0] || '',
       intendedUse: `Summative item on ${assessment.title}; score against the answer guide below.`,
       question: `In 3-4 sentences, compare ${conceptA} (${stripLessonPrefix(first.title)}) with ${conceptB} (${stripLessonPrefix(last.title)}): explain one way they connect and one decision each one supports in ${blueprint.courseName}.`,
-      answer: `A complete answer defines both concepts accurately, names a concrete connection between ${conceptA} and ${conceptB}, and states one decision each supports — with at least one specific course example rather than generic phrasing.`,
-      sampleAnswer: `${sentenceCase(conceptA)} and ${conceptB} connect because the second builds on evidence the first establishes. ${sentenceCase(conceptA)} supports decisions in ${stripLessonPrefix(first.title)}, while ${conceptB} drives the choices in ${stripLessonPrefix(last.title)}.`,
+      answer: grounded
+        ? `A complete answer uses both definitions accurately — ${conceptA}: ${stripTerminalPunctuation(cleanText(termA.definition))}; ${conceptB}: ${stripTerminalPunctuation(cleanText(termB.definition))} — names a concrete connection, and states one decision each supports.`
+        : `A complete answer defines both concepts accurately, names a concrete connection between ${conceptA} and ${conceptB}, and states one decision each supports — with at least one specific course example rather than generic phrasing.`,
+      sampleAnswer: grounded
+        ? `${sentenceCase(conceptA)} means ${lowercaseSentenceLead(stripTerminalPunctuation(cleanText(termA.definition)))}, while ${conceptB} means ${lowercaseSentenceLead(stripTerminalPunctuation(cleanText(termB.definition)))}. They connect because the second concept operates on what the first establishes.${
+            anchorFact
+              ? ` Key supporting evidence: ${lowercaseSentenceLead(stripTerminalPunctuation(anchorFact))}.`
+              : ''
+          }`
+        : `${sentenceCase(conceptA)} and ${conceptB} connect because the second builds on evidence the first establishes. ${sentenceCase(conceptA)} supports decisions in ${stripLessonPrefix(first.title)}, while ${conceptB} drives the choices in ${stripLessonPrefix(last.title)}.`,
+      ...(grounded ? { enrichmentSource: 'lesson-content-enrichment' } : {}),
       explanation: `Cross-lesson synthesis: the item checks whether students can relate ${conceptA} to ${conceptB} instead of recalling each in isolation.`,
       scoringGuidance: `Full credit requires both concepts used accurately, one explicit connection, and one decision per concept. Partial credit when only one concept is applied with evidence. Flag answers that define terms without connecting them.`,
       tags: ['exam', 'short answer', conceptA, conceptB].filter(Boolean),
@@ -19206,6 +19191,11 @@ function buildDiscussionProtocol({ lesson = {}, blueprint = {}, phrase = {}, len
                                           : mode === 'studio-lab' && genre === 'applied-artifact'
                                             ? protocolByGenre['design-prototype']
                                             : null;
+  if (!modeOverride && !protocolByGenre[genre]) {
+    // v0.15.187 fallback telemetry: no mode override and no genre entry —
+    // the discussion runs the generic applied-artifact protocol.
+    recordContentFallbackHit('discussion-protocol-default', `${mode} × ${genre}`);
+  }
   const selected = modeOverride || protocolByGenre[genre] || protocolByGenre['applied-artifact'];
   return {
     ...selected,
@@ -19254,21 +19244,31 @@ function buildDiscussionPrompt(lesson, phrase, lens) {
 function buildDiscussionFollowUps(lesson, phrase) {
   const concept = safeLessonPrimaryConcept(lesson);
   const artifact = safeLessonArtifact(lesson);
+  // v0.15.187 atom routing: when the kernel authored the debate (positions +
+  // tension), the follow-ups quote the ACTUAL opposing position and the
+  // actual tension instead of gesturing at "an alternative reading".
+  const authored = lesson.enrichment?.discussionPrompt || null;
+  const positions = (authored?.positions || []).map((p) => stripTerminalPunctuation(cleanText(p))).filter(Boolean);
+  const tension = stripTerminalPunctuation(cleanText(authored?.tension));
   return [
     `What evidence from ${lesson.title} most strongly supports your position on ${concept}?`,
-    lessonVariant(lesson, [
-      `Which alternative reading of the same evidence about ${concept} would challenge your claim, and why might another student prefer it for ${artifact}?`,
-      `What source detail could weaken your ${concept} interpretation, and how would that change the next ${artifact} move?`,
-      `Which peer claim would force you to qualify your evidence about ${concept} before revising ${artifact}?`,
-      `Where could another student reasonably read the evidence differently, and what would that mean for ${artifact}?`,
-    ]),
+    positions.length >= 2
+      ? `A classmate will argue: “${positions[1]}.” What evidence would you need to answer them — or to concede — before revising ${artifact}?`
+      : lessonVariant(lesson, [
+          `Which alternative reading of the same evidence about ${concept} would challenge your claim, and why might another student prefer it for ${artifact}?`,
+          `What source detail could weaken your ${concept} interpretation, and how would that change the next ${artifact} move?`,
+          `Which peer claim would force you to qualify your evidence about ${concept} before revising ${artifact}?`,
+          `Where could another student reasonably read the evidence differently, and what would that mean for ${artifact}?`,
+        ]),
     `If the ${concept} evidence changed, what part of ${artifact} would you revise first?`,
-    lessonVariant(lesson, [
-      `Which limit, risk, or ethical concern should change how you frame ${artifact}?`,
-      `Which assumption in your ${artifact} reasoning needs the clearest evidence check before you revise?`,
-      `What ethical, access, or feasibility concern should shape the next ${artifact} decision?`,
-      `Where should your claim about ${artifact} be narrowed so the evidence is not overstated?`,
-    ]),
+    tension
+      ? `The live tension: ${tension}. Which side does your evidence actually support, and what finding would change your mind?`
+      : lessonVariant(lesson, [
+          `Which limit, risk, or ethical concern should change how you frame ${artifact}?`,
+          `Which assumption in your ${artifact} reasoning needs the clearest evidence check before you revise?`,
+          `What ethical, access, or feasibility concern should shape the next ${artifact} decision?`,
+          `Where should your claim about ${artifact} be narrowed so the evidence is not overstated?`,
+        ]),
     lessonVariant(lesson, [
       `How does this discussion help students ${stripTerminalPunctuation(phrase.decisionMove).toLowerCase()}?`,
       `Which comment from this exchange gives students a stronger path toward ${artifact}?`,
@@ -19311,6 +19311,19 @@ function buildDiscussionFacilitationTips(lesson, protocol) {
 function buildDiscussionResponseStems(lesson) {
   const concept = safeLessonPrimaryConcept(lesson);
   const artifact = safeLessonArtifact(lesson);
+  // v0.15.187 atom routing: stems name the authored positions so students
+  // respond to the actual debate, not a generic "that conclusion".
+  const positions = (lesson.enrichment?.discussionPrompt?.positions || [])
+    .map((p) => stripTerminalPunctuation(cleanText(p)))
+    .filter(Boolean);
+  if (positions.length >= 2) {
+    return [
+      `I side with “${positions[0]}” because the strongest evidence is...`,
+      `“${positions[1]}” would be the better reading if the evidence showed...`,
+      `A limitation both positions share when applied to ${artifact} is...`,
+      `After weighing the positions, the revision I would make to ${artifact} is...`,
+    ];
+  }
   return [
     `The evidence I find most convincing for ${concept} is...`,
     `I agree with that conclusion about ${concept} only if the evidence also shows...`,
@@ -20560,6 +20573,20 @@ function compileCourseFaq(blueprint, config = {}) {
       const evidenceCue = safeCourseFaqEvidenceCue(lesson, lens);
       const safeConcepts = safeCourseFaqConcepts(lesson);
       const artifact = safeCourseFaqStudentArtifact(lesson);
+      // v0.15.187 atom routing: when the lesson kernel authored real content
+      // claims, THEY are what matters most — quote them instead of listing
+      // concept labels around a template sentence.
+      const facts = (lesson.enrichment?.kernel?.facts || []).slice(0, 2);
+      if (facts.length > 0) {
+        return {
+          q: `What matters most in ${lesson.title}?`,
+          an: `${facts.map((fact) => `${stripTerminalPunctuation(fact)}.`).join(' ')} Those are the load-bearing claims — connect each one to ${artifact}, and be ready to say what evidence from ${evidenceCue} supports it.`,
+          ca: 'Concept Explanation',
+          rc: safeConcepts.slice(0, 4),
+          df: 'Basic',
+          enrichmentSource: 'lesson-content-enrichment',
+        };
+      }
       return {
         q: `What matters most in ${lesson.title}?`,
         an: lessonVariant(lesson, [
@@ -20573,21 +20600,36 @@ function compileCourseFaq(blueprint, config = {}) {
         df: 'Basic',
       };
     },
-    (lesson) => ({
-      q: `How does ${stripLessonPrefix(lesson.title)} connect to graded work?`,
-      an: lessonVariant(lesson, [
-        `${lesson.title} prepares you for ${safeCourseFaqStudentArtifact(lesson)}. Use the ${safeCourseFaqPrimaryConcept(lesson)} success criteria to test the work before submitting or discussing it.`,
-        `${lesson.title} feeds directly into ${safeCourseFaqStudentArtifact(lesson)}. Before you submit or speak in class, check whether your evidence actually proves the ${safeCourseFaqPrimaryConcept(lesson)} decision.`,
-        `Treat ${lesson.title} as preparation for ${safeCourseFaqStudentArtifact(lesson)}: match one source detail to the success criteria, then revise the part of the work that still sounds general.`,
-        `The graded-work connection is ${safeCourseFaqStudentArtifact(lesson)}. Use ${safeCourseFaqPrimaryConcept(lesson)} to decide which evidence, limitation, and revision note belong in the submission.`,
-      ]),
-      ca: 'Assignment Clarification',
-      rc: [
-        lessonVariant(lesson, ['success criteria', 'quality criteria', 'evidence standard', 'revision cue']),
-        ...safeCourseFaqConcepts(lesson).slice(0, 2),
-      ],
-      df: 'Intermediate',
-    }),
+    (lesson) => {
+      // v0.15.187 atom routing: the kernel authored what the graded work
+      // actually IS — quote the task description instead of gesturing at it.
+      const taskDescription = cleanText(lesson.enrichment?.assignmentCore?.taskDescription);
+      if (taskDescription) {
+        return {
+          q: `How does ${stripLessonPrefix(lesson.title)} connect to graded work?`,
+          an: `${lesson.title} feeds directly into the graded task: ${stripTerminalPunctuation(taskDescription)}. Use the ${safeCourseFaqPrimaryConcept(lesson)} success criteria to test your work against that task before submitting.`,
+          ca: 'Assignment Clarification',
+          rc: ['success criteria', ...safeCourseFaqConcepts(lesson).slice(0, 2)],
+          df: 'Intermediate',
+          enrichmentSource: 'lesson-content-enrichment',
+        };
+      }
+      return {
+        q: `How does ${stripLessonPrefix(lesson.title)} connect to graded work?`,
+        an: lessonVariant(lesson, [
+          `${lesson.title} prepares you for ${safeCourseFaqStudentArtifact(lesson)}. Use the ${safeCourseFaqPrimaryConcept(lesson)} success criteria to test the work before submitting or discussing it.`,
+          `${lesson.title} feeds directly into ${safeCourseFaqStudentArtifact(lesson)}. Before you submit or speak in class, check whether your evidence actually proves the ${safeCourseFaqPrimaryConcept(lesson)} decision.`,
+          `Treat ${lesson.title} as preparation for ${safeCourseFaqStudentArtifact(lesson)}: match one source detail to the success criteria, then revise the part of the work that still sounds general.`,
+          `The graded-work connection is ${safeCourseFaqStudentArtifact(lesson)}. Use ${safeCourseFaqPrimaryConcept(lesson)} to decide which evidence, limitation, and revision note belong in the submission.`,
+        ]),
+        ca: 'Assignment Clarification',
+        rc: [
+          lessonVariant(lesson, ['success criteria', 'quality criteria', 'evidence standard', 'revision cue']),
+          ...safeCourseFaqConcepts(lesson).slice(0, 2),
+        ],
+        df: 'Intermediate',
+      };
+    },
     (lesson) => ({
       q: `What does strong work on ${stripLessonPrefix(lesson.title)} look like?`,
       an: (() => {
@@ -20629,18 +20671,36 @@ function compileCourseFaq(blueprint, config = {}) {
       ],
       df: 'Basic',
     }),
-    (lesson) => ({
-      q: `What common mistake should I avoid in ${stripLessonPrefix(lesson.title)}?`,
-      an: lessonVariant(lesson, [
-        `Move beyond summary by showing how ${safeCourseFaqPrimaryConcept(lesson)} works, which evidence supports it, and what changes in the artifact or decision.`,
-        `Avoid a general recap. Name the ${safeCourseFaqPrimaryConcept(lesson)} evidence, explain the reasoning step, and say what changes in ${safeCourseFaqStudentArtifact(lesson)}.`,
-        `The common mistake is describing the topic without proving the move. Show the evidence for ${safeCourseFaqPrimaryConcept(lesson)} and the decision it changes.`,
-        `Do not only define ${safeCourseFaqPrimaryConcept(lesson)}. Connect a specific source detail to the revision, tradeoff, or judgment in ${safeCourseFaqStudentArtifact(lesson)}.`,
-      ]),
-      ca: 'Assessment Prep',
-      rc: safeCourseFaqConcepts(lesson).slice(0, 4),
-      df: 'Advanced',
-    }),
+    (lesson) => {
+      // v0.15.187 atom routing: the kernel authored the ACTUAL common
+      // misunderstanding and its correction — the canonical answer to this
+      // question. The generic "don't just summarize" advice is the fallback.
+      const contested = (lesson.enrichment?.keyTerms || []).find(
+        (term) => cleanText(term?.misconception) && cleanText(term?.correction),
+      );
+      if (contested) {
+        return {
+          q: `What common mistake should I avoid in ${stripLessonPrefix(lesson.title)}?`,
+          an: `${stripTerminalPunctuation(cleanText(contested.misconception))}. That is the trap for ${cleanText(contested.term)}: ${stripTerminalPunctuation(cleanText(contested.correction))}. Check your work against that correction before submitting ${safeCourseFaqStudentArtifact(lesson)}.`,
+          ca: 'Assessment Prep',
+          rc: unique([cleanText(contested.term), ...safeCourseFaqConcepts(lesson)], 4),
+          df: 'Advanced',
+          enrichmentSource: 'lesson-content-enrichment',
+        };
+      }
+      return {
+        q: `What common mistake should I avoid in ${stripLessonPrefix(lesson.title)}?`,
+        an: lessonVariant(lesson, [
+          `Move beyond summary by showing how ${safeCourseFaqPrimaryConcept(lesson)} works, which evidence supports it, and what changes in the artifact or decision.`,
+          `Avoid a general recap. Name the ${safeCourseFaqPrimaryConcept(lesson)} evidence, explain the reasoning step, and say what changes in ${safeCourseFaqStudentArtifact(lesson)}.`,
+          `The common mistake is describing the topic without proving the move. Show the evidence for ${safeCourseFaqPrimaryConcept(lesson)} and the decision it changes.`,
+          `Do not only define ${safeCourseFaqPrimaryConcept(lesson)}. Connect a specific source detail to the revision, tradeoff, or judgment in ${safeCourseFaqStudentArtifact(lesson)}.`,
+        ]),
+        ca: 'Assessment Prep',
+        rc: safeCourseFaqConcepts(lesson).slice(0, 4),
+        df: 'Advanced',
+      };
+    },
     (lesson) => ({
       q: lessonVariant(lesson, [
         `How should I use feedback from ${stripLessonPrefix(lesson.title)}?`,
@@ -20655,22 +20715,56 @@ function compileCourseFaq(blueprint, config = {}) {
       rc: ['feedback', 'revision', ...lesson.keyConcepts.slice(0, 2)],
       df: 'Intermediate',
     }),
-    (lesson) => ({
-      q: `What ${stripLessonPrefix(lesson.title)} materials should I review first?`,
-      an: safeCourseFaqMaterialsReview(lesson, lens),
-      ca: 'Technical Help',
-      rc: lesson.readings.slice(0, 3),
-      df: 'Basic',
-    }),
-    (lesson) => ({
-      q: `How can I check readiness for ${stripLessonPrefix(lesson.title)} before class or submission?`,
-      an:
-        lesson.prerequisitePlan?.diagnosticCheck ||
-        `You are ready when you can define ${safeCourseFaqPrimaryConcept(lesson)}, cite lesson evidence, and explain one implication for ${safeCourseFaqStudentArtifact(lesson)}.`,
-      ca: 'Assessment Prep',
-      rc: safeCourseFaqConcepts(lesson).slice(0, 4),
-      df: 'Intermediate',
-    }),
+    (lesson) => {
+      // v0.15.187 atom routing: when the kernel names the actual materials
+      // students analyze (the scenario's case/dataset/text), review starts
+      // THERE — not with a generic "assigned materials" pointer.
+      const materials = cleanText(lesson.enrichment?.kernel?.scenario?.materials);
+      if (materials) {
+        return {
+          q: `What ${stripLessonPrefix(lesson.title)} materials should I review first?`,
+          an: `Start with ${stripTerminalPunctuation(materials)} — the material analyzed in this lesson. Then review ${safeCourseFaqEvidenceCue(lesson, lens)} and compare your notes against the weekly success criteria.`,
+          ca: 'Technical Help',
+          rc: lesson.readings.slice(0, 3),
+          df: 'Basic',
+          enrichmentSource: 'lesson-content-enrichment',
+        };
+      }
+      return {
+        q: `What ${stripLessonPrefix(lesson.title)} materials should I review first?`,
+        an: safeCourseFaqMaterialsReview(lesson, lens),
+        ca: 'Technical Help',
+        rc: lesson.readings.slice(0, 3),
+        df: 'Basic',
+      };
+    },
+    (lesson) => {
+      // v0.15.187 atom routing: readiness = can you state the authored
+      // definition and apply it — quote the kernel's term/definition when
+      // present so the self-check has real content to check against.
+      const termWithDefinition = (lesson.enrichment?.keyTerms || []).find(
+        (term) => cleanText(term?.term) && cleanText(term?.definition),
+      );
+      if (termWithDefinition) {
+        return {
+          q: `How can I check readiness for ${stripLessonPrefix(lesson.title)} before class or submission?`,
+          an: `You are ready when you can state, without notes, that ${cleanText(termWithDefinition.term)} means: ${stripTerminalPunctuation(cleanText(termWithDefinition.definition))} — and then apply it to one concrete case for ${safeCourseFaqStudentArtifact(lesson)}.`,
+          ca: 'Assessment Prep',
+          rc: unique([cleanText(termWithDefinition.term), ...safeCourseFaqConcepts(lesson)], 4),
+          df: 'Intermediate',
+          enrichmentSource: 'lesson-content-enrichment',
+        };
+      }
+      return {
+        q: `How can I check readiness for ${stripLessonPrefix(lesson.title)} before class or submission?`,
+        an:
+          lesson.prerequisitePlan?.diagnosticCheck ||
+          `You are ready when you can define ${safeCourseFaqPrimaryConcept(lesson)}, cite lesson evidence, and explain one implication for ${safeCourseFaqStudentArtifact(lesson)}.`,
+        ca: 'Assessment Prep',
+        rc: safeCourseFaqConcepts(lesson).slice(0, 4),
+        df: 'Intermediate',
+      };
+    },
   ];
 
   return {
@@ -21500,17 +21594,41 @@ function compileBlueprintDeliverableRaw(featureId, compilerBlueprint, options = 
   }
 }
 
+// Per-feature compile failures ride under a registry symbol so the error
+// channel can never collide with a feature id and never appears in
+// Object.entries/keys iteration of the compiled result.
+export const BLUEPRINT_COMPILE_ERRORS = Symbol.for('coursemapper.blueprintCompileErrors');
+
 export function compileBlueprintDeliverables(blueprint, featureIds = [], options = {}) {
   const compilerBlueprint = prepareBlueprintForCompilation(blueprint, options);
   assertBlueprintCompilerContract(compilerBlueprint, options);
   const result = {};
+  const compileErrors = [];
   for (const featureId of getBlueprintCompiledFeatures(featureIds, options)) {
-    const data = compileBlueprintDeliverable(featureId, compilerBlueprint, {
-      ...options,
-      skipCompilerContractCheck: true,
-      skipPrepareBlueprint: true,
-    });
-    if (data) result[featureId] = data;
+    // Per-feature fault isolation (v0.15.187): a throw inside one
+    // deliverable's renderer used to escape to the caller, which marked
+    // every feature errored — one malformed lesson field voided all nine
+    // deliverables. A single renderer's failure is now its own: loud
+    // (console + error channel + optional callback), never silent, and the
+    // remaining deliverables still compile. Blueprint-level failures
+    // (prepare/contract above) still fail the whole compile — those mean
+    // the INPUT is bad, not one renderer.
+    try {
+      const data = compileBlueprintDeliverable(featureId, compilerBlueprint, {
+        ...options,
+        skipCompilerContractCheck: true,
+        skipPrepareBlueprint: true,
+      });
+      if (data) result[featureId] = data;
+    } catch (error) {
+      const message = error?.message || String(error);
+      console.error(`[CM] Blueprint compile failed for ${featureId}: ${message}`, error);
+      compileErrors.push({ featureId, message });
+      if (typeof options.onFeatureCompileError === 'function') {
+        options.onFeatureCompileError(featureId, error);
+      }
+    }
   }
+  if (compileErrors.length > 0) result[BLUEPRINT_COMPILE_ERRORS] = compileErrors;
   return result;
 }

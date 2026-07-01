@@ -1,3 +1,4 @@
+import { cleanText, stripLessonPrefix } from './compilerText';
 import { expandKeys } from './keyMaps';
 import { lintItemAdmission } from './itemAdmissionLint';
 import { projectKernelToSurfaces } from './kernelProjection';
@@ -76,12 +77,6 @@ export const BLUEPRINT_ENRICHMENT_SYSTEM_PROMPT = [
   'Prefer course-specific nouns and classroom-usable phrasing over generic education boilerplate.',
   'Every returned term or phrase must be traceable to the supplied course-map summary.',
 ].join(' ');
-
-function cleanText(value, fallback = '') {
-  return String(value ?? fallback)
-    .replace(/\s+/g, ' ')
-    .trim();
-}
 
 // ── v0.14.1 round-2 (fix 4): romanization for language courses ──────────────
 // The live Mandarin study guides shipped hanzi key terms with no tone-marked
@@ -222,10 +217,6 @@ function truncateText(value, limit = MAX_TEXT_CHARS) {
 
 function asArray(value) {
   return Array.isArray(value) ? value : value === undefined || value === null || value === '' ? [] : [value];
-}
-
-function stripLessonPrefix(value) {
-  return cleanText(value).replace(/^(?:lesson|week)\s*\d+\s*[:.-]\s*/i, '');
 }
 
 function collectStrings(value, out = []) {

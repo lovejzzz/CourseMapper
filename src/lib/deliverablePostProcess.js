@@ -272,6 +272,8 @@ function compactText(value, fallback = '', maxLength = 220) {
   return clipped || text.slice(0, maxLength).trim();
 }
 
+// Raw-string variant — see compilerText.stripTerminalPunctuation for the
+// compiler-side primitive (cleanText-normalized).
 function stripTerminalPunctuation(value) {
   return String(value || '')
     .replace(/[.!?]+$/g, '')
@@ -307,6 +309,8 @@ function firstStructuredListItem(value, fallback = '') {
   return splitStructuredListItems(value)[0] || fallback;
 }
 
+// Raw-string variant (no cleanText normalization) — deliberately different
+// from compilerText.stripLessonPrefix; calibrated to post-process surfaces.
 function stripLessonPrefix(title) {
   return String(title || '')
     .replace(/^Lesson\s+\d+\s*[:.-]\s*/i, '')

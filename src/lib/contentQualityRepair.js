@@ -96,6 +96,8 @@ function phraseRegex(phrase) {
   return new RegExp(words.map((word) => word.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('[^A-Za-z0-9]+'), 'gi');
 }
 
+// Raw-trim variant — compilerText.sentenceCase normalizes whitespace first;
+// this one must not, because repair operates on already-rendered text.
 function sentenceCase(value) {
   const text = String(value || '').trim();
   return text ? `${text.slice(0, 1).toUpperCase()}${text.slice(1)}` : text;

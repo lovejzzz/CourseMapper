@@ -2337,8 +2337,66 @@ export default function useDeliverables({
           ),
         });
 
+        // v0.15.187: grounding is measured per run — enrichment-tagged prose
+        // bytes per deliverable plus how often the compiler's dictionaries
+        // fell through to their generic defaults. Lazy import keeps the
+        // measurement code out of the AppFlow chunk. Best-effort: metrics
+        // must never fail a generation.
+        try {
+          const [{ measurePackageGroundedFraction }, { getContentFallbackTelemetry }] = await Promise.all([
+            import('../lib/quality/groundedFraction'),
+            import('../lib/contentFallbackTelemetry'),
+          ]);
+          const grounded = measurePackageGroundedFraction(compiled);
+          const fallbacks = getContentFallbackTelemetry();
+          recordGenerationApiCallEvent({
+            type: 'pipelineDecision',
+            stage: 'groundingMetrics',
+            label: 'Grounded fraction',
+            detail: `overall ${(grounded.overall.fraction * 100).toFixed(1)}% · ${Object.entries(grounded.perFeature)
+              .map(([fid, m]) => `${fid} ${(m.fraction * 100).toFixed(0)}%`)
+              .join(' · ')}`,
+            groundedFraction: grounded,
+            contentFallbacks: fallbacks,
+          });
+          traceGeneration(generationRunId, 'grounding_metrics', {
+            overall: grounded.overall,
+            perFeature: Object.fromEntries(Object.entries(grounded.perFeature).map(([fid, m]) => [fid, m.fraction])),
+            contentFallbacks: Object.fromEntries(Object.entries(fallbacks).map(([id, entry]) => [id, entry.hits])),
+          });
+        } catch {
+          /* metrics are advisory */
+        }
+
+        // v0.15.187 fault isolation: a renderer that threw no longer voids
+        // the package — its error arrives on the symbol channel and only
+        // that feature is marked errored, with the real exception message.
+        const featureCompileErrors = new Map(
+          (compiled[Symbol.for('coursemapper.blueprintCompileErrors')] || []).map((entry) => [
+            entry.featureId,
+            entry.message,
+          ]),
+        );
         for (const fid of blueprintCompiledFeatureIds) {
           const data = compiled[fid];
+          if (!data && featureCompileErrors.has(fid)) {
+            const compileErrorMessage = `Compiler error: ${featureCompileErrors.get(fid)}`;
+            markFeatureError(fid, compileErrorMessage);
+            setProgress((prev) => ({
+              ...prev,
+              perFeature: {
+                ...prev.perFeature,
+                [fid]: { ...(prev.perFeature?.[fid] || {}), status: 'error' },
+              },
+            }));
+            traceGeneration(
+              generationRunId,
+              'blueprint_compiler_feature_failed',
+              { featureId: fid, error: featureCompileErrors.get(fid) },
+              'error',
+            );
+            continue;
+          }
           const validation = validateDeliverableGeneration(fid, data, {
             expectedLessonCount: lessonIndices.length,
             config: getGenerationConfig(fid),

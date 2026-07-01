@@ -41,6 +41,13 @@ const lazyChunkBudgets = [
   // index + renderer reuse, digest card, journal — measured at 341.0 KiB raw
   // / 92.8 gzip). Deliberate feature growth; gzip headroom unchanged.
   { prefix: 'ChatPanel-', rawKiB: 350, gzipKiB: 105 },
+  // v0.15.187: the compiler chunk was the LARGEST in dist (measured 711 KiB
+  // raw / 192 KiB gzip on July 1) and the only large chunk with no ratchet —
+  // which is how it grew 31× in 5.5 weeks unnoticed. Budget set just above
+  // the measurement; the content roadmap moves prose to data files and model
+  // atoms, so this number should trend DOWN — do not raise it for new
+  // hand-written template variants.
+  { prefix: 'courseBlueprintCompiler-', rawKiB: 725, gzipKiB: 200 },
   { prefix: 'DeliverableView-', rawKiB: 170, gzipKiB: 35 },
   { prefix: 'DeveloperModePanel-', rawKiB: 130, gzipKiB: 35 },
   // v0.9.1: +3 KiB raw for the pre-export checklist (localization gaps +

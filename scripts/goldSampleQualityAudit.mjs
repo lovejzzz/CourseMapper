@@ -14188,12 +14188,24 @@ function emptyCompiledPackage(compiledFeatures = []) {
 
 function compileGoldDeliverables({ runtime, blueprint, compiledFeatures }) {
   try {
+    const compiled = runtime.compileBlueprintDeliverables(blueprint, compiledFeatures, {
+      configMap: { courseFaq: { questionsPerLesson: 5 } },
+      enforceCompilerContract: false,
+    });
+    // v0.15.187 fault isolation: per-feature renderer failures no longer
+    // throw — read the error channel so an isolated failure is still a
+    // blocker here, never a silently thinner package.
+    const featureErrors = compiled[Symbol.for('coursemapper.blueprintCompileErrors')] || [];
     return {
-      compiled: runtime.compileBlueprintDeliverables(blueprint, compiledFeatures, {
-        configMap: { courseFaq: { questionsPerLesson: 5 } },
-        enforceCompilerContract: false,
-      }),
-      findings: [],
+      compiled,
+      findings: featureErrors.map((entry) =>
+        makeFinding(
+          'blocker',
+          entry.featureId,
+          'compilerException',
+          `Compiler threw while compiling ${entry.featureId}: ${entry.message}`,
+        ),
+      ),
     };
   } catch (error) {
     return {

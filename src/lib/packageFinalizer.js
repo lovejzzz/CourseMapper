@@ -166,6 +166,10 @@ function compactFinalizerText(value) {
     .trim();
 }
 
+// Deliberately WIDER than compilerText.stripLessonPrefix (module/unit/session
+// prefixes, optional separator, en/em dashes) — calibrated to finalizer
+// surfaces; do not swap for the shared primitive without re-running the
+// byte-sensitive harnesses.
 function stripLessonPrefixText(value) {
   return compactFinalizerText(value).replace(/^(?:lesson|week|module|unit|session)\s*\d+\s*[:.\-–—]?\s*/i, '');
 }

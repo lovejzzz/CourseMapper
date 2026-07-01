@@ -1,3 +1,4 @@
+import { cleanText, unique } from './compilerText';
 const FEATURE_LABELS = {
   syllabus: 'Syllabus',
   lessonPlans: 'Lesson Plans',
@@ -15,27 +16,8 @@ const POSITIVE_ACTION_RE =
   /\b(?:accept|accepted|approve|approved|edit|edits|edited|change|changed|prefer|preferred)\b/i;
 const NEGATIVE_ACTION_RE = /\b(?:reject|rejected|decline|declined|undo|remove|removed|avoid|dislike)\b/i;
 
-function cleanText(value, fallback = '') {
-  return String(value ?? fallback)
-    .replace(/\s+/g, ' ')
-    .trim();
-}
-
 function asArray(value) {
   return Array.isArray(value) ? value : value === undefined || value === null || value === '' ? [] : [value];
-}
-
-function unique(values, limit = 12) {
-  const seen = new Set();
-  const result = [];
-  for (const value of values.map((item) => cleanText(item)).filter(Boolean)) {
-    const key = value.toLowerCase();
-    if (seen.has(key)) continue;
-    seen.add(key);
-    result.push(value);
-    if (result.length >= limit) break;
-  }
-  return result;
 }
 
 function normalizeFeatureId(value) {
