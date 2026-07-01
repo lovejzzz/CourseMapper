@@ -34,12 +34,9 @@
       "status": "verified-current",
       "changelogHighlightIndex": 0,
       "summary": "The release is grounded in fresh audit evidence where real/licensed rows were still metadata-only, artifact-linked, or off-topic.",
-      "anchors": [
-        "docs/V0.15.178_SOURCE_REVIEW_TRUTH_ROADMAP.md",
-        "verification-output/edutool-audit-loop/20260701T042053Z-v015175-fresh/report.md"
-      ],
+      "anchors": ["docs/V0.15.178_SOURCE_REVIEW_TRUTH_ROADMAP.md"],
       "proofCommands": [
-        "rg -n \"Session \\(software\\)|Quiz,Assignment|metadata-only|off-topic\" docs/V0.15.178_SOURCE_REVIEW_TRUTH_ROADMAP.md verification-output/edutool-audit-loop/20260701T042053Z-v015175-fresh/report.md"
+        "rg -n \"Session \\(software\\)|Quiz,Assignment|metadata-only|off-topic\" docs/V0.15.178_SOURCE_REVIEW_TRUTH_ROADMAP.md"
       ],
       "proofScopes": ["doc", "browser-live"]
     },
