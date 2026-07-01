@@ -4,6 +4,86 @@
 
 CourseMapper is moving toward a "consider it done" course-production agent. The user should describe the course, choose scope/materials, and receive a finished draft package. The agent owns generation, QA, repair, alignment, and export readiness. Human involvement should be final approval only, not QA labor.
 
+## v0.15.44 - License-Safe Source Selection
+
+Goal: reduce avoidable source-license ambiguity without inventing licenses,
+hiding findings, or weakening the source-ledger grader. The fresh deployed
+v0.15.43 Genetics and Society ZIP audit regraded at 98/A with the trusted
+sourceRef bridge proven (49/49 atoms on nine trusted rows, no P1), leaving four
+P2 license ambiguities (`open access` and Open Library public metadata) as the
+remaining score loss.
+
+Full plan: `docs/V0.15.44_LICENSE_SAFE_SOURCE_SELECTION_ROADMAP.md`
+
+1. Preserve OpenAlex best-OA location license/URL metadata before falling back
+   to primary-location and generic open-access fields.
+2. Prefer explicit reuse licenses over ambiguous-license sources in
+   source-finder and reading-list ranking after topical gates pass.
+3. Query secondary providers for license-safe alternatives when primary hits
+   are all license-ambiguous.
+4. Stop promoting unsolicited OpenLibrary course-book metadata into trusted
+   source proof, while keeping instructor-named registry-book enrichment.
+5. Keep carry-forward debt explicit: remaining ambiguous rows stay visible
+   until provider metadata proves a real license or a curated OER source can
+   replace them.
+
+## v0.15.43 - Trusted SourceRef Bridge
+
+Goal: fix the fresh deployed v0.15.42 Genetics and Society audit P1 without
+weakening the grader. The package regraded at 97/A and exported nine trusted
+source rows, but `courseIR.sourceRefCoverage` still reported all 50 atoms wired
+through one review-only CourseIR fallback row instead of the trusted
+concept-linked rows sitting beside it.
+
+Full plan: `docs/V0.15.43_TRUSTED_SOURCEREF_BRIDGE_ROADMAP.md`
+
+1. Bridge complete CourseIR sourceRef coverage to trusted concept-linked source
+   ledger rows during ZIP assembly when the CourseIR row is only review
+   fallback proof.
+2. Disclose the bridge in `PACKAGE_MANIFEST.json` as `courseIR.sourceRefBridge`
+   with trusted, concept-linked, and replaced review-row counts.
+3. Keep source-ledger grader behavior intact so review-only coverage remains a
+   finding when the bridge conditions are not met.
+4. Pin the live v0.15.42 failure shape with focused exporter and source-ledger
+   grader regressions.
+
+## v0.15.42 - Atom SourceRef Truth Gate
+
+Goal: keep the source-quality score honest after the v0.15.41 source-proof
+fallback. The fresh deployed v0.15.41 Genetics and Society audit shipped
+`SOURCE_REPORT.md` with nine trusted rows and 55/55 atom sourceRef coverage,
+but that complete-looking coverage still routed through a single CourseIR
+review row while the trusted external rows sat unused beside it.
+
+Full plan: `docs/V0.15.42_ATOM_SOURCEREF_TRUTH_GATE_ROADMAP.md`
+
+1. Flag complete atom-level sourceRef coverage as a P1 honesty finding when it
+   is not wired to the exported trusted source ledger.
+2. Keep review-only CourseIR fallback proof visible instead of letting it pose
+   as trusted bibliography wiring.
+3. Change only the quality gate and its regression coverage; retrieval, source
+   selection, license normalization, and export assembly stay untouched.
+4. Pin the live v0.15.41 coverage shape with focused grader regressions.
+
+## v0.15.41 - Source Proof Fallback
+
+Goal: fix the fresh deployed v0.15.40 Genetics and Society audit finding where
+source-backed exports went silent. The digest reported CurriculumV1 repair plus
+five open resources while the downloaded ZIP omitted `sourceLedger`, sourceRef
+coverage, and `SOURCE_REPORT.md` entirely, regrading at 99/A as if no source
+proof was expected.
+
+Full plan: `docs/V0.15.41_SOURCE_PROOF_FALLBACK_ROADMAP.md`
+
+1. Fall back to a CourseIR-derived source-proof graph only when source-backed
+   pipeline state expects proof and the export graph has no source rows.
+2. Quarantine URL/DOI/license-free CourseIR fallback rows as
+   `sourceReviewRows` instead of trusted bibliography.
+3. Explain review status and atom sourceRef coverage in `SOURCE_REPORT.md` so
+   the ZIP ships an explicit review receipt instead of going silent.
+4. Pin the missing-ledger shape with focused exporter regressions without
+   weakening source-thinness, review-row, or fake-citation checks.
+
 ## v0.15.40 - Source Relevance and Slide Polish Guard
 
 Goal: fix the fresh deployed v0.15.39 Genetics and Society ZIP audit P1 and
