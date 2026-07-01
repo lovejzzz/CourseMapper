@@ -880,13 +880,19 @@ export function _buildDocxContentShared(featureId, data, children, docx) {
       }
       for (const a of assignments) {
         children.push(makeHeading(a.title || 'Assignment'));
+        const percentOfGrade = a.percentOfGrade ? String(a.percentOfGrade).trim() : '';
+        const courseMapRef = a.courseMapRef ? String(a.courseMapRef).trim() : '';
+        const percentToken = percentOfGrade.match(/\d+(?:\.\d+)?\s*%/)?.[0]?.replace(/\s+/g, '');
+        const courseMapRefAlreadyShowsPercent =
+          Boolean(percentToken) &&
+          (courseMapRef.match(/\d+(?:\.\d+)?\s*%/g) || []).some((token) => token.replace(/\s+/g, '') === percentToken);
         const aMeta = [
           a.assignmentType,
           a.bloomsLevel,
           a.dueWeek || a.dueDate,
           a.estimatedTime,
           a.totalPoints && `${a.totalPoints} pts`,
-          a.percentOfGrade,
+          courseMapRefAlreadyShowsPercent ? null : a.percentOfGrade,
           // v0.14.1 (3.3b): the reverse stamp — "Course Map L8 · A8.1 · 5%"
           // ties the brief back to the map cell that promised it.
           a.courseMapRef,

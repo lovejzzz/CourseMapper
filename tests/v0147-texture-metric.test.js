@@ -189,6 +189,41 @@ describe('D1(1) — synthetic calibration: slot-varied stamps vs varied prose', 
     );
     expect(labeledStamp.evidence.some((item) => /full credit requires evidence/.test(item.shingle))).toBe(true);
   });
+
+  it('ignores assignment ledger metadata while still catching repeated assignment body prose', () => {
+    const ledgerOnly = computeTexture(
+      Array.from({ length: 12 }, (_, index) => ({
+        id: `assignment-ledger-${index + 1}`,
+        feature: 'assignments',
+        text: normalizeTextureText(
+          [
+            `Prototype brief ${index + 1}`,
+            `Create · Week ${index + 1} · 4 hours including class time · 100 pts · 8% · Course Map L${index + 1} · A${index + 1}.1 · 8%`,
+            `Students produce a different local artifact for studio milestone ${index + 1}.`,
+          ].join('\n'),
+        ),
+      })),
+    );
+
+    expect(ledgerOnly.evidence.some((item) => /course map|pts|week/.test(item.shingle))).toBe(false);
+
+    const repeatedBody = computeTexture(
+      Array.from({ length: 12 }, (_, index) => ({
+        id: `assignment-body-${index + 1}`,
+        feature: 'assignments',
+        text: normalizeTextureText(
+          [
+            `Create · Week ${index + 1} · 4 hours including class time · 100 pts · 8% · Course Map L${index + 1} · A${index + 1}.1 · 8%`,
+            'Students submit the same evidence checklist with one source detail, one decision claim, one limitation, and one revision note before studio critique.',
+          ].join('\n'),
+        ),
+      })),
+    );
+
+    expect(
+      repeatedBody.evidence.some((item) => /same evidence checklist|decision claim one limitation/.test(item.shingle)),
+    ).toBe(true);
+  });
 });
 
 // ── (2) Grounding calibration: distinct real anchors vs one generic anchor ──
@@ -353,6 +388,41 @@ function projectManagementTextureRegressionMap() {
   };
 }
 
+function uxDesignTextureRegressionMap() {
+  const topics = [
+    'UX problem framing and studio orientation',
+    'Design research planning',
+    'User interviews and synthesis',
+    'Personas and journey mapping',
+    'Information architecture',
+    'Interaction flows',
+    'Wireframing',
+    'Prototype critique',
+    'Usability testing',
+    'Accessibility review',
+    'Portfolio case study',
+    'Final studio presentation',
+  ];
+  return {
+    courseName: 'User Experience Design Studio',
+    semester: 'Fall 2026',
+    lessons: topics.map((title, index) => ({
+      title: `Lesson ${index + 1}: ${title}`,
+      sections: [
+        {
+          topicSection: `${index + 1}.1: ${title}`,
+          learningGoals: `Build studio-ready skill for ${title.toLowerCase()} with user evidence, critique notes, and prototype revision.`,
+          learningObjectives: `Analyze ${title.toLowerCase()} using design evidence.\nRevise a UX artifact based on critique and user behavior.`,
+          weeklyAssessments: `${title} studio artifact with critique evidence and revision rationale.`,
+          asyncActivities: `Review assigned design examples and annotate user behavior for ${title.toLowerCase()}.`,
+          syncActivities: `Run critique and prototype review for ${title.toLowerCase()} using user evidence and next-step revision notes.`,
+          supportingResources: `UX methods note; studio critique checklist; prototype example ${index + 1}`,
+        },
+      ],
+    })),
+  };
+}
+
 function countPhrase(haystack, phrase) {
   const escaped = phrase.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
   return haystack.match(new RegExp(escaped, 'g'))?.length || 0;
@@ -448,6 +518,22 @@ describe('D1(2b) — compiler prose texture regression guard', () => {
     expect(
       countNormalizedPhrase(text, 'exit ticket revisit the warm-up vote students explain in their own words'),
     ).toBeLessThanOrEqual(4);
+  }, 30000);
+
+  it('varies the latest UX provider texture stamps across study guides, quiz items, and lesson plans', () => {
+    const blueprint = buildCourseBlueprint(uxDesignTextureRegressionMap());
+    expect(blueprint.courseModalityProfile?.primaryMode).toBe('studio-lab');
+    const compiled = compileBlueprintDeliverables(blueprint, ['lessonPlans', 'quizBank', 'studyGuides']);
+    const text = JSON.stringify(compiled).toLowerCase();
+
+    expect(countNormalizedPhrase(text, 'students should connect those ideas to the weekly activity pattern')).toBe(0);
+    expect(countNormalizedPhrase(text, 'ask students to justify why each wrong option misses')).toBe(0);
+    expect(
+      countNormalizedPhrase(text, 'artifact in front of students and ask what evidence justifies the change'),
+    ).toBe(0);
+    expect(countNormalizedPhrase(text, 'connect those ideas to the weekly activity pattern')).toBeLessThanOrEqual(2);
+    expect(countNormalizedPhrase(text, 'wrong option misses the')).toBeLessThanOrEqual(2);
+    expect(countNormalizedPhrase(text, 'what evidence justifies the change')).toBeLessThanOrEqual(2);
   }, 30000);
 });
 

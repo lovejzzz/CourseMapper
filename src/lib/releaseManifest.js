@@ -3,26 +3,26 @@ import { APP_VERSION } from './appVersion.js';
 export const CURRENT_RELEASE = {
   version: APP_VERSION,
   date: 'July 1, 2026',
-  title: 'Package Handoff Cleanup: Agent notes stop duplicating export state',
-  landingTitle: 'Package Handoff Cleanup',
+  title: 'Texture Finish: ledger metadata is not prose',
+  landingTitle: 'Texture Finish',
   highlights: [
-    'Caveated downloadable Agent receipts now present as `Package notes` with `Notes saved`, so the Agent panel owns the explanation while the export panel keeps the compact `Ready with notes` state.',
-    'Direct finish responses now say package notes were saved in the Agent panel or report instead of repeating `Download is available` copy already owned by the export action.',
-    'ChatPanel tests now mirror production behavior: the custom-tools header affordance stays hidden when there are zero tools and no sync error.',
-    'The export panel remains action-first: amber `Ready with notes`, grade stamp, scope, and Download ZIP, without the longer Agent receipt copy.',
-    'The no-derivatives source-trust hardening from v0.15.183 remains part of the current release baseline while the handoff UI is cleaned up.',
-    'Vitest now has a repo-level timeout that lets heavy compiler fixtures finish under full-suite parallel load without changing their assertions.',
+    'Fresh deployed v0.15.184 GPT-5.4-mini UX ZIP evidence regraded 100/A with zero findings; the only remaining texture caveat was repeated boilerplate, not a structural package failure.',
+    'The texture metric now ignores assignment ledger metadata such as week, points, percent, and Course Map stamps, while still catching repeated assignment body prose.',
+    'Assignment DOCX meta strips no longer repeat the same grade weight twice when the Course Map reverse stamp already carries it.',
+    'UX Study Guide summaries, Quiz Bank intended-use notes, and studio Lesson Plan instructor moves now rotate away from the exact repeated provider-output shingles found in the audit.',
+    'The v0.15.184 package-handoff cleanup remains the UI baseline: compact export panel, notes in Agent, and no zero-tool header clutter.',
+    'A fresh deployed v0.15.185 provider audit remains required before claiming the new compiler texture rotation in real provider output.',
   ],
   landingHighlights: [
-    'Agent notes stop duplicating export state.',
-    'Zero custom tools stay hidden.',
-    'Export stays compact and action-first.',
-    'Full-suite test timing is less flaky.',
-    'Fresh provider proof remains the next gate.',
+    'Fresh audit: 100/A, zero findings.',
+    'Ledger metadata stops counting as prose.',
+    'Assignment weights stop duplicating.',
+    'UX texture stamps rotate by lesson.',
+    'Fresh v0.15.185 proof is next.',
   ],
   proof: {
-    contract: 'release-contracts/v0.15.184.json',
-    roadmap: 'docs/V0.15.184_PACKAGE_HANDOFF_CLEANUP_ROADMAP.md',
+    contract: 'release-contracts/v0.15.185.json',
+    roadmap: 'docs/V0.15.185_TEXTURE_FINISH_ROADMAP.md',
     auditCommand: 'npm run audit:release-history',
   },
 };
@@ -37,6 +37,19 @@ export const CURRENT_RELEASE_CHANGELOG = {
 };
 
 export const HISTORICAL_RELEASE_CHANGELOGS = [
+  {
+    version: '0.15.184',
+    date: 'July 1, 2026',
+    title: 'Package Handoff Cleanup: Agent notes stop duplicating export state',
+    highlights: [
+      'Caveated downloadable Agent receipts now present as `Package notes` with `Notes saved`, so the Agent panel owns the explanation while the export panel keeps the compact `Ready with notes` state.',
+      'Direct finish responses now say package notes were saved in the Agent panel or report instead of repeating `Download is available` copy already owned by the export action.',
+      'ChatPanel tests now mirror production behavior: the custom-tools header affordance stays hidden when there are zero tools and no sync error.',
+      'The export panel remains action-first: amber `Ready with notes`, grade stamp, scope, and Download ZIP, without the longer Agent receipt copy.',
+      'The no-derivatives source-trust hardening from v0.15.183 remains part of the current release baseline while the handoff UI is cleaned up.',
+      'Vitest now has a repo-level timeout that lets heavy compiler fixtures finish under full-suite parallel load without changing their assertions.',
+    ],
+  },
   {
     version: '0.15.183',
     date: 'July 1, 2026',

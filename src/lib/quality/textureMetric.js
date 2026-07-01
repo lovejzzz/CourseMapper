@@ -61,6 +61,9 @@ const STRUCTURAL_HEADING_PATTERN =
 const STRUCTURAL_PREFIX_PATTERN =
   /^(?:overview|objectives?|materials?|outline|agenda|activity|activities|closing activity|purpose|prompt|deliverables?|grading criteria|rubric|criteria|criterion|exemplary|proficient|developing|beginning|question|answer|sample answer|explanation|scoring guidance|rubric hints|intended use|objective aligned|blooms? level|difficulty|points|estimated minutes|tags|speaker notes|suggested visual|discussion prompt|instructor notes|course faq|faq|key terms?|review questions?|practice activities|concept connections|summary|calibration check|bias check|source check|student transparency|post-score review|post score review|revision prompt|scorer calibration use|student-facing use|student facing use|grade policy connection|accessibility and udl|teacher notes|assessment cadence)\s*:?\s*/i;
 const STRUCTURAL_REFERENCE_PATTERN = /\b(?:doi\b|et al\.?|https?:\/\/|isbn\b|retrieved from)\b/i;
+const STRUCTURAL_LEDGER_REFERENCE_PATTERN = /\b(?:course\s+map\s+l\d+|a\d+\.\d+)\b/i;
+const STRUCTURAL_LEDGER_NUMERIC_PATTERN = /\b(?:week\s+\d+|\d+(?:\.\d+)?\s*(?:pts?|points|%|hours?|hrs?))\b/i;
+const STRUCTURAL_LEDGER_SEPARATOR_PATTERN = /[·|•]|\s+-\s+/;
 
 // Internal mask tokens survive word tokenization as plain words; evidence
 // rendering maps them back to readable placeholders.
@@ -128,6 +131,22 @@ function sentencesOf(maskedText) {
 
 function round1(value) {
   return Math.round(value * 10) / 10;
+}
+
+function isStructuralLedgerLine(line) {
+  const text = String(line || '')
+    .replace(/\s+/g, ' ')
+    .trim();
+  if (!text || text.length > 240) return false;
+  const sentenceText = text.replace(/\ba\d+\.\d+\b/gi, '');
+  const hasSentencePunctuation = /[.!?](?:\s|$)/.test(sentenceText);
+  if (hasSentencePunctuation) return false;
+
+  const numericMatches = text.match(new RegExp(STRUCTURAL_LEDGER_NUMERIC_PATTERN.source, 'gi')) || [];
+  const hasCourseMapLedger = STRUCTURAL_LEDGER_REFERENCE_PATTERN.test(text);
+  const hasSeparatedMeta = STRUCTURAL_LEDGER_SEPARATOR_PATTERN.test(text);
+
+  return (hasCourseMapLedger && numericMatches.length >= 1) || (hasSeparatedMeta && numericMatches.length >= 3);
 }
 
 /**
@@ -303,7 +322,13 @@ export function normalizeTextureText(text) {
       }
       return cleaned;
     })
-    .filter((line) => line && !STRUCTURAL_HEADING_PATTERN.test(line) && !STRUCTURAL_REFERENCE_PATTERN.test(line))
+    .filter(
+      (line) =>
+        line &&
+        !STRUCTURAL_HEADING_PATTERN.test(line) &&
+        !STRUCTURAL_REFERENCE_PATTERN.test(line) &&
+        !isStructuralLedgerLine(line),
+    )
     .join('\n');
 }
 

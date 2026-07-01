@@ -6809,6 +6809,20 @@ function contextualizeModalityRoutine(kind, base, { lesson = {}, concept = '', a
       'connect critique notes to a portfolio rationale so the next iteration has visible evidence behind it',
     ]);
   }
+  if (
+    kind === 'instructorMove' &&
+    /\bmark up the artifact in front of students\b/i.test(routine) &&
+    /\bevidence justifies the change\b/i.test(routine)
+  ) {
+    routine = lessonVariant(lesson, [
+      'annotate the visible artifact while students name the evidence behind one revision',
+      'pause critique at one prototype decision and ask which user-evidence cue warrants changing it',
+      'compare two artifact revisions and have students defend the evidence for the stronger move',
+      'turn a desk-critique note into a marked design change with the supporting evidence named',
+      'ask students to separate preference from usability evidence before revising the artifact',
+      'model a visible revision, then require students to cite the critique or test evidence behind theirs',
+    ]);
+  }
   const templates = {
     signaturePractice: [
       `${sentenceCase(routine)} for ${title}, with ${artifact} as the visible product.`,
@@ -16278,7 +16292,12 @@ function compileStudyGuides(blueprint) {
         }`,
         summary: isDataScience
           ? `${lesson.title} focuses on ${conceptList}. Students should inspect ${datasetName}, read notebook outputs, use ${dataScienceEvidenceCue}, and explain how the evidence changes the modeling decision.`
-          : `${lesson.title} focuses on ${conceptList}. Students should connect those ideas to the weekly activity pattern, ${phrase.evidenceMove}, and ${phrase.decisionMove}.`,
+          : lessonVariant(lesson, [
+              `${lesson.title} focuses on ${conceptList}. Use the guide to connect ${conceptPair} with ${studyArtifact}; ${phrase.evidenceMove}, then ${phrase.decisionMove}.`,
+              `For ${lesson.title}, start with ${conceptPair} and the week's artifact work. ${sentenceCase(phrase.evidenceMove)}, then ${phrase.decisionMove}.`,
+              `${lesson.title} turns ${conceptList} into a study lens for ${studyArtifact}. Students practice by ${phrase.evidenceMove} before they ${phrase.decisionMove}.`,
+              `In this guide, ${conceptPair} anchors the review routine: ${phrase.evidenceMove}, connect it to ${studyArtifact}, and ${phrase.decisionMove}.`,
+            ]),
         sourceGrounding: lessonSourceGrounding(lesson, {
           anchorExampleSet: assessment.anchorExampleSet,
           learnerContextProfile: blueprint.learnerContextProfile,
@@ -16814,8 +16833,10 @@ function quizIntendedUse({ lesson, index = 0, use, artifact }) {
   const variants = [
     `${use} for ${lesson.title}; compare each distractor with the ${artifact} evidence before review.`,
     `${use} for ${lesson.title}; use the options to surface one ${lessonFocus} misconception at a time.`,
-    `${use} for ${lesson.title}; ask students to justify why each wrong option misses the ${artifact} standard.`,
+    `${use} for ${lesson.title}; have students name the distractor that breaks the ${lessonFocus} evidence rule.`,
     `${use} for ${lesson.title}; save this item for the practice moment where ${artifact} decisions need evidence.`,
+    `${use} for ${lesson.title}; ask pairs to revise one option until the ${lessonFocus} evidence is visible.`,
+    `${use} for ${lesson.title}; turn the most tempting option into a quick note about missing evidence.`,
   ];
   return variants[(lessonNumber - 1 + index) % variants.length];
 }

@@ -59,7 +59,9 @@ describe('v0.15.136 quiz-bank texture', () => {
     expect(intendedUses.length).toBeGreaterThanOrEqual(UX_TOPICS.length);
     expect(intendedUses.some((value) => /compare each distractor/i.test(value))).toBe(true);
     expect(intendedUses.some((value) => /use the options to surface/i.test(value))).toBe(true);
-    expect(intendedUses.some((value) => /wrong option misses/i.test(value))).toBe(true);
+    expect(intendedUses.some((value) => /wrong option misses/i.test(value))).toBe(false);
+    expect(intendedUses.some((value) => /breaks the .* evidence rule/i.test(value))).toBe(true);
     expect(intendedUses.some((value) => /practice moment/i.test(value))).toBe(true);
+    expect(intendedUses.some((value) => /most tempting option/i.test(value))).toBe(true);
   });
 });
