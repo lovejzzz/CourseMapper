@@ -173,6 +173,75 @@ describe('runDigest', () => {
     expect(text).toContain('[failed] quality');
   });
 
+  it('surfaces readiness blockers even when quality and export verification pass', () => {
+    const digest = buildRunDigest({
+      budget: budgetWithCourseMapCall('gpt-5.4-mini'),
+      exportVerification: { status: 'passed', checked: 38, failed: 0, warningCount: 0, checks: [] },
+      finish: {
+        finalStatus: 'blocked',
+        blockers: 1,
+        warnings: 9,
+        repairsApplied: 10,
+        retryCallCount: 0,
+        quality: {
+          status: 'graded',
+          score: 100,
+          grade: 'A',
+          findingCounts: { p0: 0, p1: 0, p2: 0 },
+          findings: [],
+        },
+        readinessBlockers: [
+          {
+            featureId: 'courseMap',
+            message: 'Non-data-science package references notebook/model-card lab assets',
+          },
+        ],
+      },
+      generation: {
+        provider: 'openai',
+        lessonCount: 12,
+        featureIds: ['courseMap', 'syllabus', 'slideDecks', 'assignments'],
+      },
+    });
+
+    expect(digest.gates.finalStatus).toBe('blocked');
+    expect(digest.gates.qualityScore).toBe(100);
+    expect(digest.gates.exportStatus).toBe('passed');
+    expect(digest.gates.flaggedChecks).toEqual([
+      {
+        featureId: 'courseMap',
+        status: 'failed',
+        message: 'Non-data-science package references notebook/model-card lab assets',
+      },
+      {
+        featureId: 'package',
+        status: 'warning',
+        message: '9 readiness warnings require review',
+      },
+    ]);
+    expect(formatRunDigest(digest)).toContain('[failed] courseMap');
+  });
+
+  it('uses a fallback readiness detail when a blocked finish omits blocker messages', () => {
+    const digest = buildRunDigest({
+      budget: budgetWithCourseMapCall('gpt-5.4-mini'),
+      exportVerification: { status: 'passed', checked: 38, failed: 0, warningCount: 0, checks: [] },
+      finish: {
+        finalStatus: 'blocked',
+        blockers: 1,
+        warnings: 0,
+        quality: { status: 'graded', score: 100, grade: 'A', findingCounts: { p0: 0, p1: 0, p2: 0 } },
+      },
+      generation: { provider: 'openai', lessonCount: 12, featureIds: ['courseMap'] },
+    });
+
+    expect(digest.gates.flaggedChecks[0]).toMatchObject({
+      featureId: 'package',
+      status: 'failed',
+    });
+    expect(digest.gates.flaggedChecks[0].message).toContain('no blocker detail reached the digest');
+  });
+
   it('renders a digest with no model calls without throwing', () => {
     const digest = buildRunDigest({ budget: createApiCallBudget({ runId: 'empty' }) });
     expect(digest.cost.accuracy).toBe('no model calls');

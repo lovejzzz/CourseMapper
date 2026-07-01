@@ -1635,6 +1635,11 @@ export default function AppFlow({ startupAction = null, onStartupHandled, onRetu
                 // the digest's flagged checks (incl. the info-level aggregate
                 // that stays out of the readiness warning count).
                 assessmentReconciliationIssues: result.assessmentReconciliationIssues || [],
+                // v0.15.173: readiness blockers can be the only thing that
+                // stops export after quality/export gates pass. Carry their
+                // messages into the digest so blocked runs are auditable.
+                readinessBlockers: result.readiness?.blockers || [],
+                readinessWarnings: result.readiness?.warnings || [],
               },
               generation: {
                 provider: result.provider || '',

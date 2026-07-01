@@ -1,0 +1,103 @@
+{
+  "version": "0.15.173",
+  "date": "July 1, 2026",
+  "title": "Blocked Digest Truth: readiness blockers cannot disappear",
+  "status": "verified-current",
+  "proofSummary": {
+    "local": ["npx vitest run src/lib/__tests__/runDigest.test.js tests/v0155-release-truth-ledger.test.js"],
+    "ciFast": {
+      "status": "pending-push",
+      "note": "Fast verification is claimed only after v0.15.173 is pushed and the GitHub Actions run is attached."
+    },
+    "deploy": {
+      "status": "pending-push",
+      "note": "Pages deploy is not claimed until the pushed v0.15.173 release completes its deploy run."
+    },
+    "ciDeep": {
+      "status": "local-only",
+      "note": "This is a narrow digest/report-truth repair; focused coverage plus normal gates are the release bar."
+    },
+    "liveProvider": {
+      "status": "not-current",
+      "note": "Fresh v0.15.172 browser evidence justified the fix. A fresh v0.15.173 ZIP/log audit is still required after deploy."
+    },
+    "manualHuman": {
+      "status": "not-applicable",
+      "note": "No external instructor approval is claimed by this release."
+    }
+  },
+  "claims": [
+    {
+      "id": "v015173-blocked-digest-truth-evidence",
+      "status": "verified-current",
+      "changelogHighlightIndex": 0,
+      "summary": "The release is grounded in fresh deployed v0.15.172 Python browser evidence where quality reached 100/A and export verification passed, but the package still blocked before ZIP while the digest hid the readiness blocker.",
+      "anchors": [
+        "verification-output/edutool-audit-loop/20260701T022457Z-v015172-fresh-blocked/report.md",
+        "verification-output/edutool-audit-loop/20260701T022457Z-v015172-fresh-blocked/digest.json",
+        "src/lib/releaseManifest.js"
+      ],
+      "proofCommands": [
+        "rg -n \"100/100|flaggedChecks: \\[\\]|Non-data-science package references notebook/model-card\" verification-output/edutool-audit-loop/20260701T022457Z-v015172-fresh-blocked/report.md verification-output/edutool-audit-loop/20260701T022457Z-v015172-fresh-blocked/digest.json"
+      ],
+      "proofScopes": ["live-provider", "browser-live", "static-audit"]
+    },
+    {
+      "id": "v015173-hidden-readiness-blocker-evidence",
+      "status": "verified-current",
+      "changelogHighlightIndex": 1,
+      "summary": "The v0.15.172 run blocked on a visible Course Map readiness issue for notebook/model-card lab assets, but the emitted digest carried blocker counts with an empty flaggedChecks list.",
+      "anchors": [
+        "verification-output/edutool-audit-loop/20260701T022457Z-v015172-fresh-blocked/report.md",
+        "verification-output/edutool-audit-loop/20260701T022457Z-v015172-fresh-blocked/ui-evidence.json",
+        "verification-output/edutool-audit-loop/20260701T022457Z-v015172-fresh-blocked/digest.json"
+      ],
+      "proofCommands": [
+        "rg -n \"courseMap: Non-data-science package references notebook/model-card|flaggedChecks|blockers\\\": 1\" verification-output/edutool-audit-loop/20260701T022457Z-v015172-fresh-blocked/report.md verification-output/edutool-audit-loop/20260701T022457Z-v015172-fresh-blocked/ui-evidence.json verification-output/edutool-audit-loop/20260701T022457Z-v015172-fresh-blocked/digest.json"
+      ],
+      "proofScopes": ["live-provider", "browser-live", "static-audit"]
+    },
+    {
+      "id": "v015173-readiness-blockers-in-digest",
+      "status": "verified-current",
+      "changelogHighlightIndex": 2,
+      "summary": "Finish-pass readiness blockers and warnings are now passed into the run digest and appear in gates.flaggedChecks even when quality and export verification pass.",
+      "anchors": ["src/AppFlow.jsx", "src/lib/runDigest.js", "src/lib/__tests__/runDigest.test.js"],
+      "proofCommands": [
+        "npx vitest run src/lib/__tests__/runDigest.test.js tests/v0155-release-truth-ledger.test.js",
+        "rg -n \"readinessBlockers|buildReadinessChecks|Non-data-science package references notebook/model-card\" src/AppFlow.jsx src/lib/runDigest.js src/lib/__tests__/runDigest.test.js"
+      ],
+      "proofScopes": ["unit", "static-audit"]
+    },
+    {
+      "id": "v015173-blocked-fallback-visible",
+      "status": "verified-current",
+      "changelogHighlightIndex": 3,
+      "summary": "If a blocked finish ever reports blocker counts without blocker detail, the digest emits a failed package check stating that no blocker detail reached the digest.",
+      "anchors": ["src/lib/runDigest.js", "src/lib/__tests__/runDigest.test.js"],
+      "proofCommands": [
+        "npx vitest run src/lib/__tests__/runDigest.test.js",
+        "rg -n \"no blocker detail reached the digest|readiness blocker\" src/lib/runDigest.js src/lib/__tests__/runDigest.test.js"
+      ],
+      "proofScopes": ["unit", "static-audit"]
+    },
+    {
+      "id": "v015173-no-clean-provider-claim",
+      "status": "verified-current",
+      "changelogHighlightIndex": 4,
+      "summary": "The release explicitly does not claim a fresh clean ZIP score; deployed v0.15.173 still needs a GPT-5.4-mini ZIP/log audit.",
+      "anchors": ["docs/V0.15.173_BLOCKED_DIGEST_TRUTH_ROADMAP.md", "release-contracts/v0.15.173.json"],
+      "proofCommands": [
+        "rg -n \"may not claim|fresh v0.15.173|ZIP/log audit\" docs/V0.15.173_BLOCKED_DIGEST_TRUTH_ROADMAP.md release-contracts/v0.15.173.json"
+      ],
+      "proofScopes": ["doc", "static-audit"]
+    }
+  ],
+  "knownRemainingTargets": [
+    "Fresh deployed v0.15.173 GPT-5.4-mini ZIP/log proof must verify the readiness blocker appears in the digest when download is blocked.",
+    "The notebook/model-card lab asset heuristic may need narrowing for introductory Python courses if fresh evidence shows it is over-broad.",
+    "Source/genome proof remains incomplete when the digest reports 0/12 genome coverage and 0 concept-linked citations.",
+    "Texture below 100 remains a strict-clean target even when structural quality is high.",
+    "All export surfaces must agree before any clean score is claimed."
+  ]
+}

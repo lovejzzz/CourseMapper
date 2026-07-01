@@ -1,0 +1,130 @@
+{
+  "digestVersion": 1,
+  "appVersion": "0.15.172",
+  "runId": "run-1782872333432",
+  "finishRunId": "finish-mr1gcvh7-v0u0f",
+  "at": "2026-07-01T02:24:57.800Z",
+  "elapsedMs": 364368,
+  "run": {
+    "provider": "openai",
+    "models": [
+      "gpt-5.4-mini"
+    ],
+    "lessonCount": 12,
+    "features": [
+      "courseMap",
+      "syllabus",
+      "lessonPlans",
+      "slideDecks",
+      "assignments",
+      "rubrics",
+      "discussions",
+      "quizBank",
+      "studyGuides",
+      "courseFaq"
+    ],
+    "providerCalls": 4
+  },
+  "pipeline": {
+    "courseIRAuthoring": "whole-course-ir · 1 planned call · 12 expected lessons",
+    "courseMap": "gpt-5.4-mini · typed skeleton (sessions, assessments, readings, resources)",
+    "examine": "skipped: native authoring — Pass B authors lesson content next",
+    "genomeLinker": "0 genome + 0 cached of 12 lessons (0 concepts, 0 citations, 0 bridges)",
+    "judgment": "not evaluated (0 genome-linked lessons)",
+    "enrichmentModelStage": "ran (12 lessons enriched) (linker: ran)",
+    "nativeAuthoring": "assembled 12 sessions onto Pass A entity ids · Pass B authored 12 lesson(s) · 0 registry readings · recorded 12 missing resource signals · CurriculumV1 source 12 lessons",
+    "courseGraph": "12 sessions · 12 concepts (0 genome-linked, 12 authored) · 12 outcomes",
+    "voicePass": "voiced 8 surface(s), 0 fallback(s) (~$0.005) — voice-surface texture 99→100 (improved)",
+    "enrichment": "ran (12 lessons enriched)"
+  },
+  "compilerSavings": {
+    "featureIds": [
+      "syllabus",
+      "lessonPlans",
+      "slideDecks",
+      "assignments",
+      "rubrics",
+      "discussions",
+      "quizBank",
+      "studyGuides",
+      "courseFaq"
+    ],
+    "source": "enriched-blueprint",
+    "compiledFeatureCount": 9,
+    "savedProviderCalls": 17,
+    "lastAt": 1782872584274
+  },
+  "cost": {
+    "totalUsd": 0.10683375,
+    "totalDisplay": "$0.11",
+    "inputTokens": 6587,
+    "outputTokens": 22643,
+    "reasoningOutputTokens": 996,
+    "cachedInputTokens": 0,
+    "accuracy": "tokens provider-reported; cost from published per-token rates",
+    "byTask": [
+      {
+        "task": "courseIR",
+        "calls": 1,
+        "inputTokens": 1462,
+        "outputTokens": 11151,
+        "reasoningOutputTokens": 286,
+        "cachedInputTokens": 0,
+        "costUsd": 0.051276,
+        "costKnown": true
+      },
+      {
+        "task": "blueprintEnrichment",
+        "calls": 1,
+        "inputTokens": 1359,
+        "outputTokens": 9974,
+        "reasoningOutputTokens": 183,
+        "cachedInputTokens": 0,
+        "costUsd": 0.04590225,
+        "costKnown": true
+      },
+      {
+        "task": "nativeSkeleton",
+        "calls": 1,
+        "inputTokens": 948,
+        "outputTokens": 767,
+        "reasoningOutputTokens": 492,
+        "cachedInputTokens": 0,
+        "costUsd": 0.0041625,
+        "costKnown": true
+      },
+      {
+        "task": "voicePass",
+        "calls": 1,
+        "inputTokens": 2818,
+        "outputTokens": 751,
+        "reasoningOutputTokens": 35,
+        "cachedInputTokens": 0,
+        "costUsd": 0.005493,
+        "costKnown": true
+      }
+    ]
+  },
+  "gates": {
+    "finalStatus": "blocked",
+    "blockers": 1,
+    "warnings": 9,
+    "repairsApplied": 10,
+    "retryCallCount": 0,
+    "repairRetryCallCount": 0,
+    "finishRetryCallCount": 0,
+    "exportStatus": "passed",
+    "exportChecked": 38,
+    "exportFailed": 0,
+    "exportWarnings": 0,
+    "qualityStatus": "graded",
+    "qualityScore": 100,
+    "qualityGrade": "A",
+    "qualityP0": 0,
+    "qualityP1": 0,
+    "qualityP2": 0,
+    "compiledWithoutEnrichment": false,
+    "enrichmentCoverage": 1,
+    "flaggedChecks": []
+  }
+}

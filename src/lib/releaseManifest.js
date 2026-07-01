@@ -3,24 +3,24 @@ import { APP_VERSION } from './appVersion.js';
 export const CURRENT_RELEASE = {
   version: APP_VERSION,
   date: 'July 1, 2026',
-  title: 'Slide Deck Floor Underfill: sparse kernel decks get full teaching body',
-  landingTitle: 'Slide Deck Floor Underfill',
+  title: 'Blocked Digest Truth: readiness blockers cannot disappear',
+  landingTitle: 'Blocked Digest Truth',
   highlights: [
-    'Fresh deployed v0.15.171 GPT-5.4-mini Python browser evidence showed the prior repeated rendered-text export blocker cleared: Office export verification passed with 38 checks, 0 failures, and 0 warnings.',
-    'The same run still blocked before ZIP at Quality 98/A because enriched slide decks averaged only 4.2 content-bearing slides across five deck(s), below the five-slide floor the finish pass enforces.',
-    'Sparse kernel/depth-marked slide decks now receive a fifth deterministic lesson-specific teaching slide, so the content-floor repair can meet the grader floor even when the model deck contributes no credited teaching-body slides.',
-    'Decks with only zero, one, or two credited teaching-body slides are treated as genuinely sparse and get a full five-slide deterministic top-up instead of stopping after a few weak base slides count.',
-    'This release does not claim a clean ZIP score; the next deployed GPT-5.4-mini audit should verify v0.15.172 exports honestly, clears the slide-deck content-floor blocker, and still reports source/genome caveats truthfully.',
+    'Fresh deployed v0.15.172 GPT-5.4-mini Python browser evidence showed the slide-deck P1 cleared: deep quality reached 100/A and Office export verification passed with 38 checks, 0 failures, and 0 warnings.',
+    'The same run still blocked before ZIP because Course Map readiness found `Non-data-science package references notebook/model-card lab assets`, while the emitted `[CM][DIGEST]` said `blockers: 1` but `flaggedChecks: []`.',
+    'Run digests now carry readiness blocker and warning details from the finish pass, so a blocked package cannot look clean in logs just because quality/export gates passed.',
+    'A fallback digest check now appears if a blocked finish ever omits blocker detail, making the missing diagnostic itself visible to audit automation.',
+    'This release does not claim a clean ZIP score; the next deployed GPT-5.4-mini audit should verify v0.15.173 reports the notebook/model-card blocker truthfully and then decide whether that Python-course heuristic is over-broad.',
   ],
   landingHighlights: [
-    'Export warnings cleared in fresh provider evidence.',
-    'Sparse enriched decks now get five teaching-body inserts.',
-    'The grader bar stays intact.',
-    'The next live audit must prove ZIP export is clean.',
+    'Fresh quality reached 100/A, but export still blocked.',
+    'Readiness blockers now appear in the run digest.',
+    'Hidden blocked states become audit-visible.',
+    'The next live audit must verify the blocker text.',
   ],
   proof: {
-    contract: 'release-contracts/v0.15.172.json',
-    roadmap: 'docs/V0.15.172_SLIDE_DECK_FLOOR_UNDERFILL_ROADMAP.md',
+    contract: 'release-contracts/v0.15.173.json',
+    roadmap: 'docs/V0.15.173_BLOCKED_DIGEST_TRUTH_ROADMAP.md',
     auditCommand: 'npm run audit:release-history',
   },
 };
@@ -35,6 +35,18 @@ export const CURRENT_RELEASE_CHANGELOG = {
 };
 
 export const HISTORICAL_RELEASE_CHANGELOGS = [
+  {
+    version: '0.15.172',
+    date: 'July 1, 2026',
+    title: 'Slide Deck Floor Underfill: sparse kernel decks get full teaching body',
+    highlights: [
+      'Fresh deployed v0.15.171 GPT-5.4-mini Python browser evidence showed the prior repeated rendered-text export blocker cleared: Office export verification passed with 38 checks, 0 failures, and 0 warnings.',
+      'The same run still blocked before ZIP at Quality 98/A because enriched slide decks averaged only 4.2 content-bearing slides across five deck(s), below the five-slide floor the finish pass enforces.',
+      'Sparse kernel/depth-marked slide decks now receive a fifth deterministic lesson-specific teaching slide, so the content-floor repair can meet the grader floor even when the model deck contributes no credited teaching-body slides.',
+      'Decks with only zero, one, or two credited teaching-body slides are treated as genuinely sparse and get a full five-slide deterministic top-up instead of stopping after a few weak base slides count.',
+      'This release does not claim a clean ZIP score; the next deployed GPT-5.4-mini audit should verify v0.15.172 exports honestly, clears the slide-deck content-floor blocker, and still reports source/genome caveats truthfully.',
+    ],
+  },
   {
     version: '0.15.171',
     date: 'July 1, 2026',

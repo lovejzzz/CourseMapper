@@ -25,12 +25,51 @@ function pricingAccuracy(ledger = []) {
   return 'tokens provider-reported; cost from published per-token rates';
 }
 
+function normalizeReadinessIssue(issue, status = 'warning') {
+  if (!issue) return null;
+  if (typeof issue === 'string') {
+    const message = issue.trim();
+    return message ? { featureId: 'package', status, message: message.slice(0, 200) } : null;
+  }
+  const message = String(issue.message || issue.detail || issue.reason || issue.summary || issue.id || '').trim();
+  if (!message) return null;
+  return {
+    featureId: issue.featureId || issue.feature || issue.scope || issue.category || 'package',
+    status,
+    message: message.slice(0, 200),
+  };
+}
+
+function buildReadinessChecks(finish = {}) {
+  const blockerIssues = Array.isArray(finish.readinessBlockers) ? finish.readinessBlockers : [];
+  const warningIssues = Array.isArray(finish.readinessWarnings) ? finish.readinessWarnings : [];
+  const blockerChecks = blockerIssues.map((issue) => normalizeReadinessIssue(issue, 'failed')).filter(Boolean);
+  const warningChecks = warningIssues.map((issue) => normalizeReadinessIssue(issue, 'warning')).filter(Boolean);
+
+  if ((Number(finish.blockers) || 0) > 0 && blockerChecks.length === 0) {
+    blockerChecks.push({
+      featureId: 'package',
+      status: 'failed',
+      message: `${finish.blockers} readiness blocker${finish.blockers === 1 ? '' : 's'} blocked export, but no blocker detail reached the digest`,
+    });
+  }
+  if ((Number(finish.warnings) || 0) > 0 && warningChecks.length === 0) {
+    warningChecks.push({
+      featureId: 'package',
+      status: 'warning',
+      message: `${finish.warnings} readiness warning${finish.warnings === 1 ? '' : 's'} require review`,
+    });
+  }
+
+  return [...blockerChecks, ...warningChecks].slice(0, 12);
+}
+
 /**
  * @param {object} args
  *  - budget: the api call budget (usageLedger, pipeline, counters, tokenUsage)
  *  - exportVerification: verifier result ({status, checked, failed, warningCount, checks})
  *  - finish: { finalStatus, blockers, warnings, repairsApplied, retryCallCount, finishRunId,
- *      assessmentReconciliationIssues }
+ *      assessmentReconciliationIssues, readinessBlockers, readinessWarnings }
  *  - generation: { provider, modelId, lessonCount, featureIds }
  */
 export function buildRunDigest({ budget = {}, exportVerification = null, finish = {}, generation = {} } = {}) {
@@ -109,6 +148,10 @@ export function buildRunDigest({ budget = {}, exportVerification = null, finish 
     status: issue.severity === 'blocker' ? 'failed' : issue.severity === 'warning' ? 'warning' : 'info',
     message: String(issue.message || '').slice(0, 200),
   }));
+  // v0.15.173 report-truth gate: readiness blockers are often the decisive
+  // reason a package cannot export. They must be visible in the digest even
+  // when export verification and deep quality both pass cleanly.
+  const readinessChecks = buildReadinessChecks(finish);
   const qualityChecks = [];
   if (quality?.status === 'graded' && qualityP0 + qualityP1 + qualityP2 > 0) {
     const firstFinding = qualityFindings.find((finding) => finding?.severity === 'P0') || qualityFindings[0] || {};
@@ -174,7 +217,13 @@ export function buildRunDigest({ budget = {}, exportVerification = null, finish 
       qualityP2,
       compiledWithoutEnrichment,
       enrichmentCoverage,
-      flaggedChecks: [...qualityChecks, ...coverageChecks, ...reconciliationChecks, ...flaggedChecks],
+      flaggedChecks: [
+        ...qualityChecks,
+        ...coverageChecks,
+        ...readinessChecks,
+        ...reconciliationChecks,
+        ...flaggedChecks,
+      ],
     },
   };
 }
