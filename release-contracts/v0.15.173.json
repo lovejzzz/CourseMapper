@@ -49,11 +49,10 @@
       "summary": "The v0.15.172 run blocked on a visible Course Map readiness issue for notebook/model-card lab assets, but the emitted digest carried blocker counts with an empty flaggedChecks list.",
       "anchors": [
         "verification-output/edutool-audit-loop/20260701T022457Z-v015172-fresh-blocked/report.md",
-        "verification-output/edutool-audit-loop/20260701T022457Z-v015172-fresh-blocked/ui-evidence.json",
         "verification-output/edutool-audit-loop/20260701T022457Z-v015172-fresh-blocked/digest.json"
       ],
       "proofCommands": [
-        "rg -n \"courseMap: Non-data-science package references notebook/model-card|flaggedChecks|blockers\\\": 1\" verification-output/edutool-audit-loop/20260701T022457Z-v015172-fresh-blocked/report.md verification-output/edutool-audit-loop/20260701T022457Z-v015172-fresh-blocked/ui-evidence.json verification-output/edutool-audit-loop/20260701T022457Z-v015172-fresh-blocked/digest.json"
+        "rg -n \"courseMap: Non-data-science package references notebook/model-card|flaggedChecks|blockers\\\": 1\" verification-output/edutool-audit-loop/20260701T022457Z-v015172-fresh-blocked/report.md verification-output/edutool-audit-loop/20260701T022457Z-v015172-fresh-blocked/digest.json"
       ],
       "proofScopes": ["live-provider", "browser-live", "static-audit"]
     },
