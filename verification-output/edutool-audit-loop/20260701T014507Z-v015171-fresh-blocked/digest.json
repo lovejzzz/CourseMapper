@@ -1,0 +1,137 @@
+{
+  "digestVersion": 1,
+  "appVersion": "0.15.171",
+  "runId": "run-1782870046129",
+  "finishRunId": "finish-mr1exalh-55x7z",
+  "at": "2026-07-01T01:45:01.631Z",
+  "elapsedMs": 255502,
+  "run": {
+    "provider": "openai",
+    "models": [
+      "gpt-5.4-mini"
+    ],
+    "lessonCount": 12,
+    "features": [
+      "courseMap",
+      "syllabus",
+      "lessonPlans",
+      "slideDecks",
+      "assignments",
+      "rubrics",
+      "discussions",
+      "quizBank",
+      "studyGuides",
+      "courseFaq"
+    ],
+    "providerCalls": 4
+  },
+  "pipeline": {
+    "courseIRAuthoring": "whole-course-ir · 1 planned call · 12 expected lessons",
+    "courseMap": "gpt-5.4-mini · typed skeleton (sessions, assessments, readings, resources)",
+    "examine": "skipped: native authoring — Pass B authors lesson content next",
+    "genomeLinker": "0 genome + 0 cached of 12 lessons (0 concepts, 0 citations, 0 bridges)",
+    "judgment": "not evaluated (0 genome-linked lessons)",
+    "enrichmentModelStage": "ran (12 lessons enriched) (linker: ran)",
+    "nativeAuthoring": "assembled 12 sessions onto Pass A entity ids · Pass B authored 12 lesson(s) · 0 registry readings · CurriculumV1 source 12 lessons",
+    "courseGraph": "12 sessions · 12 concepts (0 genome-linked, 12 authored) · 12 outcomes",
+    "blueprintCompiler": "Compiler using 24 Course Map assessment row(s) instead of 12 native graph row(s) so promised assessments get downstream artifacts.",
+    "voicePass": "voiced 7 surface(s), 1 fallback(s) (~$0.005) — voice-surface texture 97→98 (improved)",
+    "enrichment": "ran (12 lessons enriched)"
+  },
+  "compilerSavings": {
+    "featureIds": [
+      "syllabus",
+      "lessonPlans",
+      "slideDecks",
+      "assignments",
+      "rubrics",
+      "discussions",
+      "quizBank",
+      "studyGuides",
+      "courseFaq"
+    ],
+    "source": "enriched-blueprint",
+    "compiledFeatureCount": 9,
+    "savedProviderCalls": 17,
+    "lastAt": 1782870259076
+  },
+  "cost": {
+    "totalUsd": 0.10338675,
+    "totalDisplay": "$0.10",
+    "inputTokens": 6377,
+    "outputTokens": 21912,
+    "reasoningOutputTokens": 738,
+    "cachedInputTokens": 0,
+    "accuracy": "tokens provider-reported; cost from published per-token rates",
+    "byTask": [
+      {
+        "task": "blueprintEnrichment",
+        "calls": 1,
+        "inputTokens": 1444,
+        "outputTokens": 10331,
+        "reasoningOutputTokens": 113,
+        "cachedInputTokens": 0,
+        "costUsd": 0.047572500000000004,
+        "costKnown": true
+      },
+      {
+        "task": "courseIR",
+        "calls": 1,
+        "inputTokens": 1462,
+        "outputTokens": 8739,
+        "reasoningOutputTokens": 184,
+        "cachedInputTokens": 0,
+        "costUsd": 0.040422,
+        "costKnown": true
+      },
+      {
+        "task": "nativeSkeleton",
+        "calls": 1,
+        "inputTokens": 948,
+        "outputTokens": 2074,
+        "reasoningOutputTokens": 415,
+        "cachedInputTokens": 0,
+        "costUsd": 0.010043999999999999,
+        "costKnown": true
+      },
+      {
+        "task": "voicePass",
+        "calls": 1,
+        "inputTokens": 2523,
+        "outputTokens": 768,
+        "reasoningOutputTokens": 26,
+        "cachedInputTokens": 0,
+        "costUsd": 0.00534825,
+        "costKnown": true
+      }
+    ]
+  },
+  "gates": {
+    "finalStatus": "blocked",
+    "blockers": 1,
+    "warnings": 11,
+    "repairsApplied": 17,
+    "retryCallCount": 0,
+    "repairRetryCallCount": 0,
+    "finishRetryCallCount": 0,
+    "exportStatus": "passed",
+    "exportChecked": 38,
+    "exportFailed": 0,
+    "exportWarnings": 0,
+    "qualityStatus": "graded",
+    "qualityScore": 98,
+    "qualityGrade": "A",
+    "qualityP0": 0,
+    "qualityP1": 1,
+    "qualityP2": 1,
+    "compiledWithoutEnrichment": false,
+    "enrichmentCoverage": 1,
+    "flaggedChecks": [
+      {
+        "featureId": "quality",
+        "status": "warning",
+        "message": "quality grade 98/100 (A) — 0 P0, 1 P1, 1 P2; enriched decks average 4.2 content-bearing slides (<5) across 5 deck(s) — the kernel paid for more than the decks show"
+      }
+    ]
+  }
+}

@@ -21,6 +21,7 @@ import {
   buildCourseBlueprint,
   compileBlueprintDeliverable,
   compileBlueprintDeliverables,
+  buildSlideDeckIntermediateRepresentation,
   validateCompilerOutputContract,
 } from '../src/lib/courseBlueprintCompiler';
 import { projectKernelToSurfaces } from '../src/lib/kernelProjection';
@@ -347,13 +348,18 @@ describe('D1b — second application slide from an unused bank item', () => {
     const sparseDeck = compileBlueprintDeliverable('slideDecks', sparseBlueprint, {
       skipLanguageFinalizer: true,
     }).decks[0];
+    const sparseIrDeck = buildSlideDeckIntermediateRepresentation(sparseBlueprint).decks[0];
     const floorSlides = sparseDeck.slides.filter((slide) => slide.enrichmentSource === 'deterministic-content-floor');
+    const irFloorSlides = sparseIrDeck.slides.filter(
+      (slide) => slide.enrichmentSource === 'deterministic-content-floor',
+    );
     expect(
       floorSlides.length,
       sparseDeck.slides
         .map((slide) => `${slide.type}: ${slide.title} [${slide.enrichmentSource || 'base'}]`)
         .join('\n'),
-    ).toBeGreaterThan(0);
+    ).toBeGreaterThanOrEqual(5);
+    expect(irFloorSlides).toHaveLength(floorSlides.length);
     expect(countContentSlides(sparseDeck, PYTHON_DOMAIN_TOKENS)).toBeGreaterThanOrEqual(5);
     expect(JSON.stringify(floorSlides)).not.toMatch(/\bWeek\s+\d\b|\bTopic\s+\d\b/i);
   });

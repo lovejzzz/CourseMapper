@@ -19573,6 +19573,8 @@ function countLessonContentBearingSlides(slides, lesson) {
   ).length;
 }
 
+const MIN_CONTENT_BEARING_SLIDES = 5;
+
 function buildContentFloorSlides(lesson, { concept, secondary, objective, artifact }) {
   const candidates = slideConceptCandidates(lesson);
   const tertiary =
@@ -19585,6 +19587,7 @@ function buildContentFloorSlides(lesson, { concept, secondary, objective, artifa
     secondary;
   const assessmentCue = cleanText(lesson?.assessment?.title || lesson?.assessmentFocus || lesson?.weeklyAssessment);
   const sourceCue = slideSourceCue(lesson);
+  const lessonFocus = stripLessonPrefix(lesson?.title) || concept;
   return [
     {
       type: 'content',
@@ -19648,24 +19651,42 @@ function buildContentFloorSlides(lesson, { concept, secondary, objective, artifa
       activity: null,
       enrichmentSource: 'deterministic-content-floor',
     },
+    {
+      type: 'content',
+      title: `Practice proof: ${stripTerminalPunctuation(concept)} decision`,
+      bullets: [
+        `Use ${concept} and ${secondary} to write one concrete ${artifact} decision.`,
+        `Point to the ${lessonFocus} detail that makes the decision defensible.`,
+        `Name how ${tertiary} would change the next ${artifact} attempt.`,
+      ],
+      notes: `Use this as the final teaching-body check before activity. Students make one ${concept} decision, cite the ${lessonFocus} detail that supports it, and explain how ${secondary} or ${tertiary} would change their next ${artifact} revision.`,
+      minutes: 5,
+      bloom: 'Apply',
+      objective,
+      activity: null,
+      enrichmentSource: 'deterministic-content-floor',
+    },
   ];
 }
 
 function ensureMinimumContentSlideFloor(slides, lesson, { concept, secondary, objective, artifact }) {
   if (!deckClaimsKernelDepth(slides, lesson)) return;
   let contentCount = countLessonContentBearingSlides(slides, lesson);
-  if (contentCount >= 5) return;
+  if (contentCount >= MIN_CONTENT_BEARING_SLIDES) return;
+  const neededContentSlides = Math.max(MIN_CONTENT_BEARING_SLIDES - contentCount, contentCount <= 2 ? 5 : 0);
+  let insertedContentFloorSlides = 0;
   const existingTitles = new Set(slides.map((slide) => cleanText(slide.title).toLowerCase()).filter(Boolean));
   const activityIndex = slides.findIndex((slide) => slide.type === 'activity');
   const discussionIndex = slides.findIndex((slide) => slide.type === 'discussion');
   let insertAt = activityIndex >= 0 ? activityIndex : discussionIndex >= 0 ? discussionIndex : slides.length - 2;
   for (const slide of buildContentFloorSlides(lesson, { concept, secondary, objective, artifact })) {
-    if (contentCount >= 5) break;
+    if (contentCount >= MIN_CONTENT_BEARING_SLIDES && insertedContentFloorSlides >= neededContentSlides) break;
     const key = cleanText(slide.title).toLowerCase();
     if (existingTitles.has(key)) continue;
     slides.splice(Math.max(0, insertAt), 0, slide);
     insertAt += 1;
     existingTitles.add(key);
+    insertedContentFloorSlides += 1;
     if (slideContentFloorTokenCount(slide, contentFloorTokenSet(lesson)) >= 2) contentCount += 1;
   }
 }

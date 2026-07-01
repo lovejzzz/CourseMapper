@@ -3,24 +3,24 @@ import { APP_VERSION } from './appVersion.js';
 export const CURRENT_RELEASE = {
   version: APP_VERSION,
   date: 'July 1, 2026',
-  title: 'Python Assessment Shingle Repair: objective labels cannot block export',
-  landingTitle: 'Assessment Shingle Repair',
+  title: 'Slide Deck Floor Underfill: sparse kernel decks get full teaching body',
+  landingTitle: 'Slide Deck Floor Underfill',
   highlights: [
-    'Fresh deployed v0.15.170 GPT-5.4-mini Python browser evidence showed real progress: the prior slide-deck P1 cleared and digest quality reached 100/A, but the package still blocked before ZIP download on two rendered-text export warnings.',
-    'Objective-shaped Python assessment text such as `Analyze file processing code for line-by-line...` now compacts into a short artifact label like `File-processing code trace` before it fans out through assignments, discussions, rubrics, and filenames.',
-    'The deterministic content-quality repair pass now detects repeated 8-word rendered-text shingles inside compiled deliverables and replaces excess programming shingles with lesson-specific alternatives before Office export verification runs.',
-    'Source-trace and provenance fields keep the original raw course-map objective text, so the repair improves exported student/instructor materials without hiding what the model or course map supplied.',
-    'This release does not claim a clean ZIP score; the next deployed GPT-5.4-mini audit should verify v0.15.171 exports honestly, clears the repeated assignment/discussion shingle blocker, and still reports source/genome caveats truthfully.',
+    'Fresh deployed v0.15.171 GPT-5.4-mini Python browser evidence showed the prior repeated rendered-text export blocker cleared: Office export verification passed with 38 checks, 0 failures, and 0 warnings.',
+    'The same run still blocked before ZIP at Quality 98/A because enriched slide decks averaged only 4.2 content-bearing slides across five deck(s), below the five-slide floor the finish pass enforces.',
+    'Sparse kernel/depth-marked slide decks now receive a fifth deterministic lesson-specific teaching slide, so the content-floor repair can meet the grader floor even when the model deck contributes no credited teaching-body slides.',
+    'Decks with only zero, one, or two credited teaching-body slides are treated as genuinely sparse and get a full five-slide deterministic top-up instead of stopping after a few weak base slides count.',
+    'This release does not claim a clean ZIP score; the next deployed GPT-5.4-mini audit should verify v0.15.172 exports honestly, clears the slide-deck content-floor blocker, and still reports source/genome caveats truthfully.',
   ],
   landingHighlights: [
-    'Long objective labels become compact artifacts.',
-    'Repeated export shingles repair before DOCX/PPTX checks.',
-    'Provenance still preserves the raw source text.',
-    'The next live audit must prove export is clean.',
+    'Export warnings cleared in fresh provider evidence.',
+    'Sparse enriched decks now get five teaching-body inserts.',
+    'The grader bar stays intact.',
+    'The next live audit must prove ZIP export is clean.',
   ],
   proof: {
-    contract: 'release-contracts/v0.15.171.json',
-    roadmap: 'docs/V0.15.171_ASSESSMENT_SHINGLE_REPAIR_ROADMAP.md',
+    contract: 'release-contracts/v0.15.172.json',
+    roadmap: 'docs/V0.15.172_SLIDE_DECK_FLOOR_UNDERFILL_ROADMAP.md',
     auditCommand: 'npm run audit:release-history',
   },
 };
@@ -35,6 +35,18 @@ export const CURRENT_RELEASE_CHANGELOG = {
 };
 
 export const HISTORICAL_RELEASE_CHANGELOGS = [
+  {
+    version: '0.15.171',
+    date: 'July 1, 2026',
+    title: 'Python Assessment Shingle Repair: objective labels cannot block export',
+    highlights: [
+      'Fresh deployed v0.15.170 GPT-5.4-mini Python browser evidence showed real progress: the prior slide-deck P1 cleared and digest quality reached 100/A, but the package still blocked before ZIP download on two rendered-text export warnings.',
+      'Objective-shaped Python assessment text such as `Analyze file processing code for line-by-line...` now compacts into a short artifact label like `File-processing code trace` before it fans out through assignments, discussions, rubrics, and filenames.',
+      'The deterministic content-quality repair pass now detects repeated 8-word rendered-text shingles inside compiled deliverables and replaces excess programming shingles with lesson-specific alternatives before Office export verification runs.',
+      'Source-trace and provenance fields keep the original raw course-map objective text, so the repair improves exported student/instructor materials without hiding what the model or course map supplied.',
+      'This release does not claim a clean ZIP score; the next deployed GPT-5.4-mini audit should verify v0.15.171 exports honestly, clears the repeated assignment/discussion shingle blocker, and still reports source/genome caveats truthfully.',
+    ],
+  },
   {
     version: '0.15.170',
     date: 'July 1, 2026',
