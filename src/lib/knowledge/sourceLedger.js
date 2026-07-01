@@ -90,7 +90,7 @@ const COMPUTER_SCIENCE_COURSE_RE =
 const COMPUTER_SCIENCE_SOURCE_ANCHOR_RE =
   /\b(?:computer\s+science|computing|programming|software|python\b|code\b|coding|algorithm|data\s+structures?|control\s+flow|branching|iteration|conditional\s+(?:statement|expression|operator|construct|computer|programming)|if\s+statements?|if[-\s]then(?:[-\s]else)?|loops?\s+(?:in\s+python|in\s+programming|programming|statement|construct)|for\s+loops?|while\s+loops?|variables?\s+(?:in\s+python|in\s+programming)|data\s+types?|strings?\s+(?:in\s+python|in\s+programming|type|object|processing|computer\s+science)|lists?\s+(?:in\s+python|in\s+programming|data\s+structure|abstract\s+data\s+type|array|sequence)|dictionar(?:y|ies)\s+(?:in\s+python|data\s+structure|mapping|hash\s+table)|functions?\s+(?:in\s+python|in\s+programming|programming)|subroutine|procedure|method|modules?\s+(?:in\s+python|programming|software)|exceptions?\s+(?:in\s+python|programming|handling)|debugg(?:ing|er)|unit\s+tests?|software\s+testing|file\s+(?:i\/o|input|output|handling)|input\/output|openstax\s+introduction\s+python\s+programming|python\s+\(programming\s+language\)|computer\s+program|programming\s+language)\b/i;
 const COMPUTER_SCIENCE_FALSE_FRIEND_RE =
-  /\b(?:correlation|statistical\s+variables?|dependent\s+variables?|independent\s+variables?|random\s+variables?|lists?\s+of\s+(?:american\s+colleges|box\s+office|universities|films|songs|albums|people)|list\s+of\s+dictionaries\s+by\s+number\s+of\s+words|no\s+strings\s+attached|n'?sync|string\s+theory|trigonometric\s+functions?|function\s+\(mathematics\)|continuous\s+or\s+discrete\s+variable|frontiers\s+of\s+flow\s+control|file\s+explorer|file\s+manager|environment\s+variable|conditional\s+sentences?|english\s+conditional\s+sentences?|natural\s+language|subordinate\s+clause|protasis|apodosis|game\s+loops?|game\s+design\s+loops?|game\s+terakoya|ludic\s+language\s+pedagogy|module\s+\(mathematics\)|module\s+theory|modules?\s+over\s+(?:a\s+)?rings?|abstract\s+algebra|exception\s+\(law\)|legal\s+exceptions?|exception\s+clauses?|exceptions?\s+to\s+(?:rules?|laws?))\b/i;
+  /\b(?:correlation|statistical\s+variables?|dependent\s+variables?|independent\s+variables?|random\s+variables?|lists?\s+of\s+(?:american\s+colleges|box\s+office|universities|films|songs|albums|people)|list\s+of\s+dictionaries\s+by\s+number\s+of\s+words|session\s+\(software\)|signal\s+foundation|encrypted\s+messag(?:e|ing)|no\s+strings\s+attached|n'?sync|string\s+theory|trigonometric\s+functions?|function\s+\(mathematics\)|continuous\s+or\s+discrete\s+variable|frontiers\s+of\s+flow\s+control|file\s+explorer|file\s+manager|environment\s+variable|conditional\s+sentences?|english\s+conditional\s+sentences?|natural\s+language|subordinate\s+clause|protasis|apodosis|game\s+loops?|game\s+design\s+loops?|game\s+terakoya|ludic\s+language\s+pedagogy|module\s+\(mathematics\)|module\s+theory|modules?\s+over\s+(?:a\s+)?rings?|abstract\s+algebra|exception\s+\(law\)|legal\s+exceptions?|exception\s+clauses?|exceptions?\s+to\s+(?:rules?|laws?))\b/i;
 const COMPUTER_SCIENCE_AMBIGUOUS_CONCEPT_RE =
   /\b(?:variables?|types?|data\s+types?|control\s+flow|conditionals?|loops?|functions?|lists?|dictionar(?:y|ies)|strings?|file\s+(?:input|output|i\/o)|files?|modules?|exceptions?|testing|debugging|algorithms?)\b/i;
 const COMPUTER_SCIENCE_TOPIC_ANCHORS = [
@@ -631,6 +631,17 @@ function sourceConceptText(source = {}) {
     .join(' ');
 }
 
+const ARTIFACT_ONLY_CONCEPT_RE =
+  /^(?:lesson\s+\d{1,3}\s*[:.]?\s*)?(?:quiz|exam|assignment|assignment\s+brief|lab|rubric|course\s+map|syllabus|lesson\s+plans?|slide\s+decks?|discussion\s+prompts?|study\s+guides?|course\s+faq)(?:\s*[,/&]\s*(?:quiz|exam|assignment|assignment\s+brief|lab|rubric|course\s+map|syllabus|lesson\s+plans?|slide\s+decks?|discussion\s+prompts?|study\s+guides?|course\s+faq))*$/i;
+
+function hasOnlyArtifactConceptLinks(source = {}) {
+  const links = Array.isArray(source?.conceptLinks) ? source.conceptLinks : [];
+  const labels = links
+    .map((link) => cleanText(typeof link === 'string' ? link : link?.label || link?.id || '', 160))
+    .filter(Boolean);
+  return labels.length > 0 && labels.every((label) => ARTIFACT_ONLY_CONCEPT_RE.test(label));
+}
+
 function hasUserExperienceTopicAnchor(source = {}) {
   const conceptText = sourceConceptText(source);
   const text = sourceSearchText(source);
@@ -669,6 +680,7 @@ function isCanonicalComputerScienceOerSource(source = {}) {
 export function isComputerScienceWeakSource(source, courseGraph) {
   if (!COMPUTER_SCIENCE_COURSE_RE.test(courseText(courseGraph))) return false;
   if (isCanonicalComputerScienceOerSource(source)) return false;
+  if (hasOnlyArtifactConceptLinks(source)) return true;
   const text = sourceSearchText(source);
   if (COMPUTER_SCIENCE_FALSE_FRIEND_RE.test(text)) return true;
   if (COMPUTER_SCIENCE_AMBIGUOUS_CONCEPT_RE.test(sourceConceptText(source))) {
@@ -678,7 +690,11 @@ export function isComputerScienceWeakSource(source, courseGraph) {
 }
 
 export function isCourseAwareWeakSource(source, courseGraph) {
-  return isUserExperienceWeakSource(source, courseGraph) || isComputerScienceWeakSource(source, courseGraph);
+  return (
+    hasOnlyArtifactConceptLinks(source) ||
+    isUserExperienceWeakSource(source, courseGraph) ||
+    isComputerScienceWeakSource(source, courseGraph)
+  );
 }
 
 function isSourceFinderCandidate(source = {}) {

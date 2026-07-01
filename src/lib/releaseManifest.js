@@ -3,24 +3,24 @@ import { APP_VERSION } from './appVersion.js';
 export const CURRENT_RELEASE = {
   version: APP_VERSION,
   date: 'July 1, 2026',
-  title: 'Source Digest Truth: trusted ledger counts beat graph candidates',
-  landingTitle: 'Source Digest Truth',
+  title: 'Python Export Truth: artifact labels cannot become sources',
+  landingTitle: 'Python Export Truth',
   highlights: [
-    'Fresh deployed v0.15.174 GPT-5.4-mini Python ZIP/log evidence exported cleanly: visible UI, manifest, QUALITY_REPORT, digest, and local regrade all showed 100/100 A with zero P0/P1/P2 findings.',
-    'That same clean package exposed a report-truth edge: the final digest described 7 source-finder graph resources and an impossible `19/12 lessons with cited resources`, while the exported trusted source ledger honestly contained 4 accessible, licensed, concept-linked rows.',
-    'Source-backed judgment text now clamps lesson coverage to the course denominator, so digest logs cannot render impossible counts such as `19/12`.',
-    'The final knowledge-backbone line now separates trusted source-ledger proof from broader graph reading resources, preventing source-finder candidates from reading like trusted bibliography rows.',
-    'Generation logs use the same safer wording for graph reading resources, while source-trust gates and the deep grader remain unchanged.',
+    'Fresh deployed v0.15.175 GPT-5.4-mini Python ZIP/log evidence exported at visible Quality 97 and Texture 93; the final ZIP independently regraded at 99/A, proving the package report was stale against repaired export contents.',
+    'Course Map repair now treats comma-joined artifact identities such as `Quiz,Assignment` as weak topics, replacing them with lesson-specific Python topics before they seed filenames, assignment briefs, source-finder topics, or source concept links.',
+    'Trusted source-ledger assembly now rejects artifact-only concept links and the live `Session (software)` CS/Python false friend, so real licensed rows still cannot count as bibliography proof when they are off-topic.',
+    'ZIP export keeps the precomputed finish-pass quality fast path only when its findings reference files that still exist in the package; stale pre-repair reports fall back to canonical final ZIP grading.',
+    'Focused regressions pin the v0.15.175 failure shape without weakening source standards, grader standards, or texture expectations.',
   ],
   landingHighlights: [
-    'Fresh v0.15.174 evidence exported at 100/A.',
-    'Impossible source-backed counts are clamped.',
-    'Trusted source-ledger rows are named separately.',
-    'Graph candidates no longer read as trusted proof.',
+    'Fresh v0.15.175 evidence exposed stale report truth.',
+    'Quiz/assignment labels are repaired as weak topics.',
+    'Artifact-only source links no longer count as proof.',
+    'Final ZIP grading replaces stale package reports.',
   ],
   proof: {
-    contract: 'release-contracts/v0.15.175.json',
-    roadmap: 'docs/V0.15.175_SOURCE_DIGEST_TRUTH_ROADMAP.md',
+    contract: 'release-contracts/v0.15.176.json',
+    roadmap: 'docs/V0.15.176_PYTHON_EXPORT_TRUTH_ROADMAP.md',
     auditCommand: 'npm run audit:release-history',
   },
 };
@@ -35,6 +35,18 @@ export const CURRENT_RELEASE_CHANGELOG = {
 };
 
 export const HISTORICAL_RELEASE_CHANGELOGS = [
+  {
+    version: '0.15.175',
+    date: 'July 1, 2026',
+    title: 'Source Digest Truth: trusted ledger counts beat graph candidates',
+    highlights: [
+      'Fresh deployed v0.15.174 GPT-5.4-mini Python ZIP/log evidence exported cleanly: visible UI, manifest, QUALITY_REPORT, digest, and local regrade all showed 100/100 A with zero P0/P1/P2 findings.',
+      'That same clean package exposed a report-truth edge: the final digest described 7 source-finder graph resources and an impossible `19/12 lessons with cited resources`, while the exported trusted source ledger honestly contained 4 accessible, licensed, concept-linked rows.',
+      'Source-backed judgment text now clamps lesson coverage to the course denominator, so digest logs cannot render impossible counts such as `19/12`.',
+      'The final knowledge-backbone line now separates trusted source-ledger proof from broader graph reading resources, preventing source-finder candidates from reading like trusted bibliography rows.',
+      'A fresh deployed v0.15.175 Python audit later exported at visible 97/A and revealed new report/source truth issues; v0.15.176 carries that follow-up fix.',
+    ],
+  },
   {
     version: '0.15.174',
     date: 'July 1, 2026',

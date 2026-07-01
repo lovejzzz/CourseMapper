@@ -194,6 +194,64 @@ describe('packageZipExporter', () => {
     expect(report).toContain('| texture | 10 | 95 | A |');
   });
 
+  it('falls back to final ZIP grading when precomputed findings reference repaired-away files', async () => {
+    const result = await buildCourseMaterialsZip({
+      courseMap: makeCourseMap('Browser Export Course'),
+      deliverables: {},
+      featureIds: ['courseMap'],
+      quality: {
+        timeoutMs: 5000,
+        precomputed: {
+          status: 'graded',
+          score: 97,
+          grade: 'A',
+          graderVersion: 'stale-precomputed',
+          findingCounts: { p0: 0, p1: 1, p2: 0 },
+          dimensions: {
+            identity: 97,
+            substance: 92,
+            citations: 92,
+            honesty: 100,
+            discipline: 100,
+            consistency: 100,
+            structure: 100,
+            format: 100,
+            texture: 93,
+          },
+          grades: {
+            identity: 'A',
+            substance: 'A',
+            citations: 'A',
+            honesty: 'A',
+            discipline: 'A',
+            consistency: 'A',
+            structure: 'A',
+            format: 'A',
+            texture: 'A',
+          },
+          texture: { score: 93, version: 'stale-texture' },
+          findings: [
+            {
+              severity: 'P1',
+              dimension: 'citations',
+              file: 'Lesson Plans/Lesson 08 - Quiz,Assignment - Lesson Plans.docx',
+              detail: 'stale pre-repair finding',
+            },
+          ],
+          fileCount: 99,
+        },
+      },
+    });
+
+    const zip = await JSZip.loadAsync(await result.blob.arrayBuffer());
+    const manifest = JSON.parse(await zip.file('PACKAGE_MANIFEST.json').async('string'));
+    const report = await zip.file('QUALITY_REPORT.md').async('string');
+
+    expect(manifest.quality.graderVersion).not.toBe('stale-precomputed');
+    expect(report).not.toContain('Lesson 08 - Quiz,Assignment');
+    expect(report).not.toContain('stale pre-repair finding');
+  });
+
   it('keeps partial enrichment blockers in the exported manifest and readiness report', async () => {
     const result = await buildCourseMaterialsZip({
       courseMap: makeCourseMap('Partial Enrichment Proof'),

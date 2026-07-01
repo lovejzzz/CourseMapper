@@ -1,0 +1,107 @@
+{
+  "version": "0.15.176",
+  "date": "July 1, 2026",
+  "title": "Python Export Truth: artifact labels cannot become sources",
+  "status": "verified-current",
+  "proofSummary": {
+    "local": [
+      "npm run test -- src/lib/__tests__/deliverableReadiness.test.js",
+      "npm run test -- src/lib/knowledge/__tests__/sourceLedger.test.js",
+      "npm run test -- src/lib/__tests__/packageZipExporter.test.js"
+    ],
+    "ciFast": {
+      "status": "pending-push",
+      "note": "Fast verification is claimed only after v0.15.176 is pushed and the GitHub Actions run is attached."
+    },
+    "deploy": {
+      "status": "pending-push",
+      "note": "Pages deploy is not claimed until the pushed v0.15.176 release completes its deploy run."
+    },
+    "ciDeep": {
+      "status": "local-only",
+      "note": "This is a narrow export/source/report truth fix; focused tests plus normal gates are the release bar."
+    },
+    "liveProvider": {
+      "status": "not-current",
+      "note": "Fresh v0.15.175 browser ZIP/log evidence identified the failure class. A fresh v0.15.176 audit is required after deploy."
+    },
+    "manualHuman": {
+      "status": "not-applicable",
+      "note": "No external instructor approval is claimed by this release."
+    }
+  },
+  "claims": [
+    {
+      "id": "v015176-fresh-v015175-evidence",
+      "status": "verified-current",
+      "changelogHighlightIndex": 0,
+      "summary": "Fresh deployed v0.15.175 GPT-5.4-mini Python evidence exported at visible 97/A while the final ZIP locally regraded at 99/A, exposing stale package report truth.",
+      "anchors": [
+        "docs/V0.15.176_PYTHON_EXPORT_TRUTH_ROADMAP.md",
+        "src/lib/releaseManifest.js"
+      ],
+      "proofCommands": [
+        "rg -n \"Visible app result: `Quality 97`|Final ZIP local regrade: `99/100|stale P1 findings|v0.15.176 carries that follow-up fix\" docs/V0.15.176_PYTHON_EXPORT_TRUTH_ROADMAP.md src/lib/releaseManifest.js"
+      ],
+      "proofScopes": ["live-provider", "browser-live", "compiled-output"]
+    },
+    {
+      "id": "v015176-quiz-assignment-repair",
+      "status": "verified-current",
+      "changelogHighlightIndex": 1,
+      "summary": "Comma-joined quiz/assignment artifact identities are repaired as weak Course Map topics before export.",
+      "anchors": ["src/lib/deliverableReadiness.js", "src/lib/__tests__/deliverableReadiness.test.js"],
+      "proofCommands": [
+        "npm run test -- src/lib/__tests__/deliverableReadiness.test.js",
+        "rg -n \"Quiz,Assignment|ASSESSMENT_ARTIFACT_PAIR_RE|comma-joined\" src/lib/deliverableReadiness.js src/lib/__tests__/deliverableReadiness.test.js"
+      ],
+      "proofScopes": ["unit", "static-audit"]
+    },
+    {
+      "id": "v015176-source-artifact-quarantine",
+      "status": "verified-current",
+      "changelogHighlightIndex": 2,
+      "summary": "Artifact-only concept links and the live Session (software) CS/Python false friend are kept out of trusted sourceLedger proof.",
+      "anchors": ["src/lib/knowledge/sourceLedger.js", "src/lib/knowledge/__tests__/sourceLedger.test.js"],
+      "proofCommands": [
+        "npm run test -- src/lib/knowledge/__tests__/sourceLedger.test.js",
+        "rg -n \"artifact-only|Session \\\\(software\\\\)|hasOnlyArtifactConceptLinks\" src/lib/knowledge/sourceLedger.js src/lib/knowledge/__tests__/sourceLedger.test.js"
+      ],
+      "proofScopes": ["unit", "static-audit"]
+    },
+    {
+      "id": "v015176-stale-precomputed-quality-fallback",
+      "status": "verified-current",
+      "changelogHighlightIndex": 3,
+      "summary": "ZIP export falls back to final package grading when precomputed finish findings reference files absent from the ZIP.",
+      "anchors": ["src/lib/packageZipExporter.js", "src/lib/__tests__/packageZipExporter.test.js"],
+      "proofCommands": [
+        "npm run test -- src/lib/__tests__/packageZipExporter.test.js",
+        "rg -n \"precomputedQualityReferencesMissingPackageFiles|repaired-away files\" src/lib/packageZipExporter.js src/lib/__tests__/packageZipExporter.test.js"
+      ],
+      "proofScopes": ["unit", "static-audit"]
+    },
+    {
+      "id": "v015176-no-standard-weakening",
+      "status": "verified-current",
+      "changelogHighlightIndex": 4,
+      "summary": "The patch adds stricter validation and report fallback behavior without lowering source, grader, or texture standards.",
+      "anchors": [
+        "docs/V0.15.176_PYTHON_EXPORT_TRUTH_ROADMAP.md",
+        "src/lib/knowledge/sourceLedger.js",
+        "src/lib/packageZipExporter.js"
+      ],
+      "proofCommands": [
+        "rg -n \"not a grader weakening|not a grader weakening|cannot count as trusted\" docs/V0.15.176_PYTHON_EXPORT_TRUTH_ROADMAP.md src/lib/releaseManifest.js"
+      ],
+      "proofScopes": ["static-audit"]
+    }
+  ],
+  "knownRemainingTargets": [
+    "Fresh deployed v0.15.176 GPT-5.4-mini ZIP/log proof must verify the artifact-label and source-quarantine repairs in real provider output.",
+    "Texture can remain below 100 even when structural quality is high; repeated scaffolds remain an audit target if they reproduce.",
+    "Assessment coverage notes remain visible until every promised Course Map assessment is represented by a dedicated downstream artifact or the report language is clarified.",
+    "Genome coverage may remain sparse; trusted source-ledger proof is still the honest fallback.",
+    "All export surfaces must continue to agree before any clean 100/100 claim is made."
+  ]
+}

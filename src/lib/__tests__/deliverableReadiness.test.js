@@ -679,6 +679,35 @@ describe('repairCourseMapReadiness', () => {
     );
   });
 
+  it('repairs comma-joined quiz and assignment artifact labels before they become topics', () => {
+    const result = repairCourseMapReadiness({
+      courseMap: {
+        courseName: 'Introduction to Computer Science with Python',
+        lessons: [
+          {
+            title: 'Lesson 1: Quiz,Assignment',
+            sections: [
+              {
+                topicSection: '1.1: Quiz,Assignment',
+                learningGoals: 'Use Quiz,Assignment evidence to prepare for the next assessment.',
+                learningObjectives: 'Explain the key ideas in Quiz,Assignment and apply them in course activities.',
+                weeklyAssessments: 'Quiz,Assignment trace memo',
+              },
+            ],
+          },
+        ],
+      },
+    });
+
+    const repaired = JSON.stringify(result.courseMap);
+
+    expect(result.changed).toBe(true);
+    expect(result.repairedFields.join(' ')).toMatch(/prompt artifact|assessment identity|weak topic/);
+    expect(result.courseMap.lessons[0].title).toBe('Lesson 1: course orientation and computational thinking');
+    expect(result.courseMap.lessons[0].sections[0].topicSection).toBe('course orientation and computational thinking');
+    expect(repaired).not.toMatch(/Quiz,Assignment/i);
+  });
+
   it('uses history-specific repairs instead of generic lab/STEM fallback prose', () => {
     const result = repairCourseMapReadiness({
       courseMap: {

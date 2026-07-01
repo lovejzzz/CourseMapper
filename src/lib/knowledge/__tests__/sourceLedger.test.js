@@ -1983,4 +1983,55 @@ describe('trusted source ledger', () => {
     ]);
     expect(ledger.reviewRows || []).toHaveLength(0);
   });
+
+  it('quarantines artifact-only CS source-finder rows instead of trusting them as Python proof', () => {
+    const ledger = buildSourceLedgerFromCourseGraph(
+      {
+        course: { name: 'Introduction to Computer Science with Python' },
+        concepts: [{ id: 'c1', term: 'Quiz,Assignment' }],
+        sessions: [
+          {
+            id: 's1',
+            number: 1,
+            title: 'Lesson 1: Quiz,Assignment',
+            sections: [{ id: 'sec1', topic: 'Quiz,Assignment', conceptRefs: ['c1'] }],
+          },
+        ],
+        resources: [
+          {
+            id: 'syllabus-src-1-1',
+            origin: 'syllabus',
+            kind: 'weekly reading',
+            title:
+              'Wikipedia contributors. Session (software). Wikipedia: https://en.wikipedia.org/wiki/Session_(software) (CC BY-SA 4.0)',
+            url: 'https://en.wikipedia.org/wiki/Session_(software)',
+            license: 'CC BY-SA 4.0',
+            sessionRefs: [1],
+          },
+        ],
+        sourceFinderMiniShard: {
+          topics: [
+            {
+              sessionId: 's1',
+              lessonNumber: 1,
+              topic: 'Quiz,Assignment',
+              sources: [
+                {
+                  provider: 'wikipedia',
+                  kind: 'encyclopedia background',
+                  title: 'Session (software)',
+                  url: 'https://en.wikipedia.org/wiki/Session_(software)',
+                  license: 'CC BY-SA 4.0',
+                  snippet: 'Session is an encrypted messaging application developed by the Signal Foundation.',
+                },
+              ],
+            },
+          ],
+        },
+      },
+      { checkedAt: '2026-07-01T00:00:00.000Z' },
+    );
+
+    expect(ledger).toBeNull();
+  });
 });

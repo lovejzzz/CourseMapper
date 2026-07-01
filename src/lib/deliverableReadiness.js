@@ -101,6 +101,12 @@ const PROMPT_ARTIFACT_TOPIC_LABELS = [
   'learning objectives',
   'slide decks',
   'assignment briefs',
+  'quiz,assignment',
+  'quiz, assignment',
+  'quiz assignment',
+  'quiz/assignment',
+  'quiz and assignment',
+  'quiz & assignment',
   'assignments',
   'rubric-driven assignments',
   'rubrics',
@@ -130,12 +136,14 @@ const NUMBERED_PROMPT_ARTIFACT_TOPIC_RE = new RegExp(
   'i',
 );
 const ASSESSMENT_LABEL_COURSE_MAP_RE =
-  /^(?:lesson\s+\d{1,3}\s*)?(?:evidence check|quick evidence check|applied problem|practice brief|concept transfer|exit ticket|weekly assessment|practice response|assessment|quiz|exam|assignment brief|rubric)\b/i;
+  /^(?:lesson\s+\d{1,3}\s*[:.]?\s*)?(?:(?:quiz|exam|assignment|lab|rubric)\s*[,/&]\s*(?:quiz|exam|assignment|lab|rubric)|(?:evidence check|quick evidence check|applied problem|practice brief|concept transfer|exit ticket|weekly assessment|practice response|assessment|quiz|exam|assignment brief|rubric)\b)/i;
 const ASSESSMENT_WEIGHT_CUE_RE = /(?:\(\s*\d{1,3}\s*%\s*\)|\b\d{1,3}\s*%\b)/;
 const ASSESSMENT_ACTIVITY_CUE_RE =
   /\b(?:studio critique|portfolio review|prototype presentation|usability test|design journal|critique session)\b/i;
 const ASSESSMENT_WEEK_LABEL_CUE_RE =
   /\b(?:quiz|exam|assignment|lab|rubric)\s*[:—–-]\s*week\s*\d{1,3}\b(?:\s*[,/|&]\s*(?:quiz|exam|assignment|lab|rubric)\s*[:—–-]\s*week\s*\d{1,3}\b)+/i;
+const ASSESSMENT_ARTIFACT_PAIR_RE =
+  /^(?:lesson\s+\d{1,3}\s*[:.]?\s*)?(?:quiz|exam|assignment|lab|rubric)\s*[,/&]\s*(?:quiz|exam|assignment|lab|rubric)$/i;
 const ASSESSMENT_LABEL_IDENTITY_REFERENCE_RE =
   /\b(?:evidence check|quick evidence check|applied problem|practice brief|concept transfer|exit ticket|weekly assessment|practice response|assessment|quiz|exam|assignment brief|rubric)\b\s*[:—–-]\s*[^.;\n]{0,160}(?:\(\s*\d{1,3}\s*%\s*\)|\b\d{1,3}\s*%\b)/i;
 const ASSESSMENT_WEEK_LABEL_IDENTITY_REFERENCE_RE =
@@ -493,7 +501,7 @@ function isConjoinedAssessmentEventTopic(value) {
     .filter(Boolean);
   if (parts.length < 2 || parts.length > 4) return false;
   const eventParts = parts.filter((part) =>
-    /\b(?:weekly|final|midterm|presentation|critique|portfolio|prototype|journal|lab|studio|deliverable|assessment)\b/i.test(
+    /\b(?:weekly|final|midterm|presentation|critique|portfolio|prototype|journal|lab|studio|deliverable|assessment|quiz|exam|assignment|rubric)\b/i.test(
       part,
     ),
   );
@@ -566,6 +574,7 @@ function isAssessmentLabelCourseMapIdentity(value) {
     .replace(/^lesson\s+\d{1,3}\s*[:.]\s*/i, '');
   if (!candidate || !ASSESSMENT_LABEL_COURSE_MAP_RE.test(candidate)) return false;
   return (
+    ASSESSMENT_ARTIFACT_PAIR_RE.test(candidate) ||
     ASSESSMENT_WEIGHT_CUE_RE.test(candidate) ||
     ASSESSMENT_ACTIVITY_CUE_RE.test(candidate) ||
     ASSESSMENT_WEEK_LABEL_CUE_RE.test(candidate)

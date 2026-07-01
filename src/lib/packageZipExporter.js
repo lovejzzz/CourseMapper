@@ -150,6 +150,31 @@ function normalizePrecomputedPackageQuality(quality) {
   };
 }
 
+function normalizePackagePathForQuality(value) {
+  return String(value || '')
+    .replace(/\\/g, '/')
+    .replace(/^\.\//, '')
+    .trim();
+}
+
+function precomputedQualityReferencesMissingPackageFiles(precomputed, fileContents = {}) {
+  const knownFiles = new Set(Object.keys(fileContents || {}).map(normalizePackagePathForQuality));
+  const virtualFiles = new Set([
+    '',
+    'run digest',
+    'console log',
+    'browser console',
+    'quality report',
+    'SOURCE_REPORT.md',
+  ]);
+  return (Array.isArray(precomputed?.findings) ? precomputed.findings : []).some((finding) => {
+    const file = normalizePackagePathForQuality(finding?.file || finding?.path || '');
+    if (!file || virtualFiles.has(file)) return false;
+    if (/^run digest$/i.test(file) || /^console/i.test(file)) return false;
+    return !knownFiles.has(file);
+  });
+}
+
 function renderPrecomputedQualityReport(precomputed, { courseTitle = 'Course' } = {}) {
   if (!precomputed?.block) return '';
   const quality = precomputed.block;
@@ -1596,7 +1621,13 @@ export async function buildCourseMaterialsZip({
   let qualityReportMarkdown = null;
   if (quality !== false) {
     const precomputedQuality = normalizePrecomputedPackageQuality(qualityOptions.precomputed);
-    if (precomputedQuality) {
+    if (
+      precomputedQuality &&
+      !precomputedQualityReferencesMissingPackageFiles(precomputedQuality, {
+        ...fileContents,
+        'PACKAGE_MANIFEST.json': JSON.stringify(manifest, null, 2),
+      })
+    ) {
       qualityBlock = precomputedQuality.block;
       qualityReportMarkdown = renderPrecomputedQualityReport(precomputedQuality, { courseTitle: safeCourseName });
     } else {
