@@ -4727,7 +4727,14 @@ function buildAccessibilityPlan({ title, concepts, artifact, evidencePlan, readi
       `Accept equivalent ${artifactName} formats such as an annotated planning page, short screencast, slide sequence, or structured table when each criterion is visible.`,
       `Offer a format choice for ${artifactName}: students may use text, slides, audio-supported notes, or a table if the evidence and reasoning can be scored with the same criteria.`,
     ]),
-    participationProtocol: `Use wait time, written or spoken response options, and sentence frames so students can cite ${concept} evidence without being rushed.`,
+    participationProtocol: lessonVariant(lessonStub, [
+      `Use wait time, written or spoken response options, and sentence frames so students can cite ${concept} evidence without being rushed.`,
+      `Start with private think-write time, then let students enter through chat, partner rehearsal, or oral share-out while naming ${concept} evidence.`,
+      `Offer a choice of annotated note, short spoken claim, or partner summary so students can connect ${concept} evidence to ${artifactName}.`,
+      `Post two evidence stems and a quiet planning minute before students discuss how ${concept} changes ${artifactName}.`,
+      `Invite students to draft an evidence claim silently, test it with a partner, then share the ${concept} decision in the format they choose.`,
+      `Use a visible evidence guide, optional written response, and paced turn-taking so students can explain ${concept} without speed pressure.`,
+    ]),
     supportBridge:
       readinessSupport?.supportMove ||
       `Provide a sentence frame and annotated ${sourceCue} detail before students continue ${artifactName}.`,
@@ -19744,8 +19751,16 @@ function compileDiscussions(blueprint) {
       const concept = safeConcepts[0] || stripLessonPrefix(lesson.title);
       const artifact = safeLessonArtifact(lesson);
       const equityProtocol = cleanText(lesson.accessibilityPlan?.participationProtocol);
+      const equityRevisionCue = lessonVariant(lesson, [
+        `For ${specificity.week}, ask students to cite ${specificity.concept} evidence before they revise ${specificity.artifact}.`,
+        `Before revising ${specificity.artifact}, have students mark one ${specificity.concept} detail and name the design decision it supports.`,
+        `Ask students to choose the ${specificity.concept} evidence they can defend, then connect it to the next ${specificity.artifact} revision.`,
+        `Have students compare two ${specificity.concept} signals and decide which one should drive the ${specificity.artifact} update.`,
+        `Before discussion closes, students name the ${specificity.concept} evidence that changes ${specificity.artifact} and one point still uncertain.`,
+        `Students can prepare a written or spoken ${specificity.concept} claim, then use peer feedback to refine ${specificity.artifact}.`,
+      ]);
       const equityConsiderations = equityProtocol
-        ? `${stripTerminalPunctuation(equityProtocol)} For ${specificity.week}, ask students to cite ${specificity.concept} evidence before they revise ${specificity.artifact}.`
+        ? `${stripTerminalPunctuation(equityProtocol)} ${equityRevisionCue}`
         : `${lessonVariant(lesson, [
             'Begin',
             'Open',

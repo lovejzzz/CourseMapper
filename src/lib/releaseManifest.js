@@ -3,24 +3,24 @@ import { APP_VERSION } from './appVersion.js';
 export const CURRENT_RELEASE = {
   version: APP_VERSION,
   date: 'July 1, 2026',
-  title: 'UX Texture Rotation: repeated support scaffolds vary before export',
-  landingTitle: 'UX Texture Rotation',
+  title: 'Discussion Participation Texture: accessibility support varies by lesson',
+  landingTitle: 'Discussion Texture Rotation',
   highlights: [
-    'Fresh deployed v0.15.179 GPT-5.4-mini UX ZIP/log evidence exported visibly at Quality 100, Texture 95 and locally regraded 100/A with zero P0/P1/P2 findings.',
-    'That same clean package proved source URL truth held in real output, but the direct Office text scan still found deterministic CourseMapper texture: the same FAQ feedback question, discussion preference line, and four Course Map resource/presentation stems repeated across the UX package.',
-    'Sparse Course Map repair now preserves section position after cloning repaired cells, so later field repairs rotate by lesson and section instead of collapsing every cloned section back to section zero.',
-    'UX Course Map fallback technology and presentation pools now have enough lesson-specific stems for a 12-week, three-section repair without repeating a long resource/presentation sentence more than three times.',
-    'Course FAQ feedback questions and discussion instructor-preference notes now vary by lesson, artifact, and concept while preserving the same instructor-facing meaning.',
+    'Fresh deployed v0.15.180 GPT-5.4-mini UX ZIP plus visible UI evidence exported at Quality 100, Texture 96; the downloaded ZIP locally regraded 100/A with zero P0/P1/P2 findings.',
+    'That package proved the remaining texture debt was CourseMapper-side, not model-side: every discussion prompt repeated the same accessibility support scaffold about wait time, written/spoken response options, and sentence frames.',
+    'Accessibility participation protocols now rotate by lesson while preserving the same support promise, so CourseMapper no longer stamps one deterministic support sentence across all Discussion Prompts.',
+    'Discussion equity follow-up cues now vary by lesson, artifact, and concept instead of appending one repeated revision sentence after the support protocol.',
+    'The UX compiler texture regression now includes `equityConsiderations` and blocks the exact v0.15.180 repeated shingles from returning.',
   ],
   landingHighlights: [
-    'UX support copy rotates before export.',
-    'Sparse Course Map repairs keep lesson/section position.',
-    'FAQ feedback questions vary by lesson.',
-    'Discussion preference notes stay meaningful without stamping.',
+    'Discussion support copy rotates before export.',
+    'Accessibility language stays useful without stamping.',
+    'Equity revision cues vary by lesson.',
+    'The UX texture regression covers the exported discussion field.',
   ],
   proof: {
-    contract: 'release-contracts/v0.15.180.json',
-    roadmap: 'docs/V0.15.180_UX_TEXTURE_ROTATION_ROADMAP.md',
+    contract: 'release-contracts/v0.15.181.json',
+    roadmap: 'docs/V0.15.181_DISCUSSION_TEXTURE_ROTATION_ROADMAP.md',
     auditCommand: 'npm run audit:release-history',
   },
 };
@@ -35,6 +35,18 @@ export const CURRENT_RELEASE_CHANGELOG = {
 };
 
 export const HISTORICAL_RELEASE_CHANGELOGS = [
+  {
+    version: '0.15.180',
+    date: 'July 1, 2026',
+    title: 'UX Texture Rotation: repeated support scaffolds vary before export',
+    highlights: [
+      'Fresh deployed v0.15.179 GPT-5.4-mini UX ZIP/log evidence exported visibly at Quality 100, Texture 95 and locally regraded 100/A with zero P0/P1/P2 findings.',
+      'That same clean package proved source URL truth held in real output, but the direct Office text scan still found deterministic CourseMapper texture: the same FAQ feedback question, discussion preference line, and four Course Map resource/presentation stems repeated across the UX package.',
+      'Sparse Course Map repair now preserves section position after cloning repaired cells, so later field repairs rotate by lesson and section instead of collapsing every cloned section back to section zero.',
+      'UX Course Map fallback technology and presentation pools now have enough lesson-specific stems for a 12-week, three-section repair without repeating a long resource/presentation sentence more than three times.',
+      'Course FAQ feedback questions and discussion instructor-preference notes now vary by lesson, artifact, and concept while preserving the same instructor-facing meaning.',
+    ],
+  },
   {
     version: '0.15.179',
     date: 'July 1, 2026',

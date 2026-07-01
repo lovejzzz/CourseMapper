@@ -2680,6 +2680,7 @@ describe('courseBlueprintCompiler', () => {
         discussion.guidelines,
         discussion.discussionProtocol?.participationPattern,
         discussion.discussionProtocol?.facilitationMove,
+        discussion.equityConsiderations,
         ...(discussion.artifactsToReview || []).map((artifact) => `${artifact.title || ''} ${artifact.use || ''}`),
         ...(discussion.followUpProbes || []),
         ...(discussion.evaluationCriteria || []),
@@ -2748,6 +2749,12 @@ describe('courseBlueprintCompiler', () => {
     expect(countDocsWith(discussionTexts, /artifact walk-through, critique notes, revision commitment/i)).toBeLessThan(
       4,
     );
+    expect(
+      countDocsWith(discussionTexts, /wait time, written or spoken response options, and sentence frames/i),
+    ).toBeLessThan(4);
+    expect(
+      countDocsWith(discussionTexts, /written or spoken response options, and sentence frames so students can cite/i),
+    ).toBeLessThan(4);
     expect(countDocsWith(deckTexts, /readiness checklist.*confirm the feedback action/i)).toBe(0);
     expect(countDocsWith(deckTexts, /circulate for whether pairs can point to one concrete/i)).toBe(0);
     expect(countDocsWith(studyGuideTexts, /cite evidence, and explain why it matters/i)).toBeLessThan(4);
@@ -2773,6 +2780,8 @@ describe('courseBlueprintCompiler', () => {
     expect(evidence).not.toMatch(
       /assessment then name the protocol artifact walk-through critique notes revision commitment/i,
     );
+    expect(evidence).not.toMatch(/time written or spoken response options and sentence frames so students can/i);
+    expect(evidence).not.toMatch(/written or spoken response options and sentence frames so students can cite/i);
     expect(evidence).not.toMatch(/readiness checklist readiness checklist confirm the feedback action/i);
     expect(evidence).not.toMatch(/circulate for whether pairs can point to one concrete/i);
     expect(evidence).not.toMatch(/cite evidence and explain why it matters/i);
