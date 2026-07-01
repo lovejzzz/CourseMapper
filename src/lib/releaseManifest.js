@@ -3,24 +3,24 @@ import { APP_VERSION } from './appVersion.js';
 export const CURRENT_RELEASE = {
   version: APP_VERSION,
   date: 'July 1, 2026',
-  title: 'Blocked Digest Truth: readiness blockers cannot disappear',
-  landingTitle: 'Blocked Digest Truth',
+  title: 'Python Notebook Readiness: computing labs are not data-science bleed',
+  landingTitle: 'Python Notebook Readiness',
   highlights: [
-    'Fresh deployed v0.15.172 GPT-5.4-mini Python browser evidence showed the slide-deck P1 cleared: deep quality reached 100/A and Office export verification passed with 38 checks, 0 failures, and 0 warnings.',
-    'The same run still blocked before ZIP because Course Map readiness found `Non-data-science package references notebook/model-card lab assets`, while the emitted `[CM][DIGEST]` said `blockers: 1` but `flaggedChecks: []`.',
-    'Run digests now carry readiness blocker and warning details from the finish pass, so a blocked package cannot look clean in logs just because quality/export gates passed.',
-    'A fallback digest check now appears if a blocked finish ever omits blocker detail, making the missing diagnostic itself visible to audit automation.',
-    'This release does not claim a clean ZIP score; the next deployed GPT-5.4-mini audit should verify v0.15.173 reports the notebook/model-card blocker truthfully and then decide whether that Python-course heuristic is over-broad.',
+    'Fresh deployed v0.15.173 GPT-5.4-mini Python browser evidence verified the digest-truth fix: the UI, finish event, and `[CM][DIGEST]` all agreed that the package was blocked with one readiness blocker while export verification passed.',
+    'That same run proved the remaining blocker was over-broad for Intro CS: `Non-data-science package references notebook/model-card lab assets` blocked a Python course that legitimately uses notebooks, interpreters, starter files, and test-output logs.',
+    'Notebook/starter-notebook readiness now allows explicit computing courses such as introductory Python, computer science, programming, debugging, modules/libraries, scripts, and terminal workflows.',
+    'The guard remains strict for unsupported model-card language: non-ML computer-science packages still fail if model-card assets leak in without a machine-learning, data-science, or model-governance context.',
+    'This release does not claim a clean ZIP score; the next deployed GPT-5.4-mini audit should verify v0.15.174 gets past the false Python notebook blocker and then address the remaining scored quality/coverage issues honestly.',
   ],
   landingHighlights: [
-    'Fresh quality reached 100/A, but export still blocked.',
-    'Readiness blockers now appear in the run digest.',
-    'Hidden blocked states become audit-visible.',
-    'The next live audit must verify the blocker text.',
+    'Python notebook labs no longer trip the non-data blocker.',
+    'Model-card leakage is still blocked outside ML/governance courses.',
+    'Fresh v0.15.173 evidence is saved for audit.',
+    'The next live audit must re-run GPT-5.4-mini.',
   ],
   proof: {
-    contract: 'release-contracts/v0.15.173.json',
-    roadmap: 'docs/V0.15.173_BLOCKED_DIGEST_TRUTH_ROADMAP.md',
+    contract: 'release-contracts/v0.15.174.json',
+    roadmap: 'docs/V0.15.174_PYTHON_NOTEBOOK_READINESS_ROADMAP.md',
     auditCommand: 'npm run audit:release-history',
   },
 };
@@ -35,6 +35,18 @@ export const CURRENT_RELEASE_CHANGELOG = {
 };
 
 export const HISTORICAL_RELEASE_CHANGELOGS = [
+  {
+    version: '0.15.173',
+    date: 'July 1, 2026',
+    title: 'Blocked Digest Truth: readiness blockers cannot disappear',
+    highlights: [
+      'Fresh deployed v0.15.172 GPT-5.4-mini Python browser evidence showed the slide-deck P1 cleared: deep quality reached 100/A and Office export verification passed with 38 checks, 0 failures, and 0 warnings.',
+      'The same run still blocked before ZIP because Course Map readiness found `Non-data-science package references notebook/model-card lab assets`, while the emitted `[CM][DIGEST]` said `blockers: 1` but `flaggedChecks: []`.',
+      'Run digests now carry readiness blocker and warning details from the finish pass, so a blocked package cannot look clean in logs just because quality/export gates passed.',
+      'A fallback digest check now appears if a blocked finish ever omits blocker detail, making the missing diagnostic itself visible to audit automation.',
+      'This release does not claim a clean ZIP score; the next deployed GPT-5.4-mini audit should verify v0.15.173 reports the notebook/model-card blocker truthfully and then decide whether that Python-course heuristic is over-broad.',
+    ],
+  },
   {
     version: '0.15.172',
     date: 'July 1, 2026',

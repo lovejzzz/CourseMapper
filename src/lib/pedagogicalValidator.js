@@ -780,6 +780,13 @@ function isModelGovernanceCourse(courseMap) {
   );
 }
 
+function isComputingCourse(courseMap) {
+  const text = textify(courseMap).toLowerCase();
+  return /\b(?:computer science|programming|python|coding|software development|software engineering|algorithms?|data structures?|debugging|unit tests?|test suite|code review|modules? and libraries|interpreter|terminal|script|notebooks?)\b/.test(
+    text,
+  );
+}
+
 function validateCourseMapSemanticQuality(courseMap) {
   const findings = [];
   const lessons = courseMap?.lessons || [];
@@ -923,17 +930,19 @@ function validateDomainSemanticQuality(courseMap, deliverables) {
   const hardNotebookAssetPattern = /\b(?:jupyter|ipynb|starter notebook)\b/i;
   const modelCardPattern = /\bmodel[-\s]cards?\b/i;
   const unsupportedModelCard = modelCardPattern.test(text) && !isModelGovernanceCourse(courseMap);
-  if (hardNotebookAssetPattern.test(text) || unsupportedModelCard) {
-    const assetPattern = hardNotebookAssetPattern.test(text) ? hardNotebookAssetPattern : modelCardPattern;
+  const unsupportedNotebookAsset = hardNotebookAssetPattern.test(text) && !isComputingCourse(courseMap);
+  if (unsupportedNotebookAsset || unsupportedModelCard) {
+    const assetPattern = unsupportedNotebookAsset ? hardNotebookAssetPattern : modelCardPattern;
     findings.push({
       id: 'semantic-nonml-lab-assets',
       severity: 'error',
       category: 'semanticQuality',
-      message: 'Non-data-science package references notebook/model-card lab assets',
+      message: unsupportedNotebookAsset
+        ? 'Non-computing package references notebook lab assets'
+        : 'Package references model-card lab assets without a model-governance or machine-learning course context',
       lessonIndex: null,
       featureId: affectedFeatureFor(assetPattern),
-      suggestedPrompt:
-        'Remove notebook, model-card, and data-lab requirements unless the course source explicitly asks for them.',
+      suggestedPrompt: 'Remove unsupported lab-asset requirements unless the course source explicitly asks for them.',
     });
   }
 

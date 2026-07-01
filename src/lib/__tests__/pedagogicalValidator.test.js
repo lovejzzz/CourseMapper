@@ -768,6 +768,67 @@ describe('validateSemanticContentQuality', () => {
     expect(findings.map((finding) => finding.id)).not.toContain('semantic-nonml-lab-assets');
   });
 
+  it('allows introductory computing packages to reference notebook lab assets', () => {
+    const courseMap = {
+      courseName: 'Introduction to Computer Science with Python',
+      lessons: [
+        {
+          title: 'Lesson 10: modules and libraries',
+          sections: [
+            {
+              learningObjectives: 'Use modules and libraries to structure a small Python program.',
+              topicSection: 'modules and libraries',
+              technologyNeeded: 'Python interpreter or notebook, starter file, and test-output log.',
+            },
+          ],
+        },
+      ],
+    };
+    const deliverables = {
+      studyGuides: doneDeliv({
+        guides: [
+          {
+            summary:
+              'Use the starter notebook, Python interpreter, debugging note, and test-output log to explain one module import.',
+          },
+        ],
+      }),
+    };
+
+    const findings = validateSemanticContentQuality(courseMap, deliverables);
+
+    expect(findings.map((finding) => finding.id)).not.toContain('semantic-nonml-lab-assets');
+  });
+
+  it('still flags model-card bleed in non-ML computer science packages', () => {
+    const courseMap = {
+      courseName: 'Introduction to Computer Science with Python',
+      lessons: [
+        {
+          title: 'Lesson 4: conditionals',
+          sections: [{ learningObjectives: 'Write conditional Python logic.' }],
+        },
+      ],
+    };
+    const deliverables = {
+      studyGuides: doneDeliv({
+        guides: [{ summary: 'Use the starter notebook and model card to document the branch behavior.' }],
+      }),
+    };
+
+    const findings = validateSemanticContentQuality(courseMap, deliverables);
+
+    expect(findings).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          id: 'semantic-nonml-lab-assets',
+          message:
+            'Package references model-card lab assets without a model-governance or machine-learning course context',
+        }),
+      ]),
+    );
+  });
+
   it('allows AI governance model-documentation packages to reference model cards without notebook assets', () => {
     const courseMap = {
       courseName: 'AI Governance and Data Ethics',

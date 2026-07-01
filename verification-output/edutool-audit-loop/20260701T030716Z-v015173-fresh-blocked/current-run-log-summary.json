@@ -1,0 +1,790 @@
+{
+  "savedAt": "2026-07-01T03:08:04.592Z",
+  "currentRunId": "run-1782874613152",
+  "finishRunId": "finish-mr1hrjea-50dpn",
+  "url": "https://edutool.dev/?codexAudit=20260701-v015173-fresh-1782874522650",
+  "digest": {
+    "digestVersion": 1,
+    "appVersion": "0.15.173",
+    "runId": "run-1782874613152",
+    "finishRunId": "finish-mr1hrjea-50dpn",
+    "at": "2026-07-01T03:04:43.486Z",
+    "elapsedMs": 470334,
+    "run": {
+      "provider": "openai",
+      "models": [
+        "gpt-5.4-mini"
+      ],
+      "lessonCount": 12,
+      "features": [
+        "courseMap",
+        "syllabus",
+        "lessonPlans",
+        "slideDecks",
+        "assignments",
+        "rubrics",
+        "discussions",
+        "quizBank",
+        "studyGuides",
+        "courseFaq"
+      ],
+      "providerCalls": 5
+    },
+    "pipeline": {
+      "courseIRAuthoring": "whole-course-ir · 1 planned call · 12 expected lessons",
+      "courseMap": "gpt-5.4-mini · typed skeleton (sessions, assessments, readings, resources)",
+      "examine": "skipped: native authoring — Pass B authors lesson content next",
+      "genomeLinker": "0 genome + 0 cached of 12 lessons (0 concepts, 0 citations, 0 bridges)",
+      "judgment": "not evaluated (0 genome-linked lessons)",
+      "enrichmentModelStage": "ran (12 lessons enriched) (linker: ran)",
+      "nativeAuthoring": "assembled 12 sessions onto Pass A entity ids · Pass B authored 12 lesson(s) · 0 registry readings · recorded 12 missing resource signals · CurriculumV1 source 12 lessons",
+      "knowledgeBackbone": "0/12 lessons genome-linked · 1 cited open resources (source-finder: 1) · 13 lessons with readings",
+      "courseGraph": "12 sessions · 12 concepts (0 genome-linked, 12 authored) · 12 outcomes",
+      "voicePass": "voiced 8 surface(s), 0 fallback(s) (~$0.005) — voice-surface texture 89→99 (improved)",
+      "enrichment": "ran (12 lessons enriched)"
+    },
+    "compilerSavings": {
+      "featureIds": [
+        "syllabus",
+        "lessonPlans",
+        "slideDecks",
+        "assignments",
+        "rubrics",
+        "discussions",
+        "quizBank",
+        "studyGuides",
+        "courseFaq"
+      ],
+      "source": "enriched-blueprint",
+      "compiledFeatureCount": 9,
+      "savedProviderCalls": 17,
+      "lastAt": 1782875030092
+    },
+    "cost": {
+      "totalUsd": 0.086763,
+      "totalDisplay": "$0.09",
+      "inputTokens": 8152,
+      "outputTokens": 17922,
+      "reasoningOutputTokens": 1277,
+      "cachedInputTokens": 0,
+      "accuracy": "tokens provider-reported; cost from published per-token rates",
+      "byTask": [
+        {
+          "task": "blueprintEnrichment",
+          "calls": 2,
+          "inputTokens": 2907,
+          "outputTokens": 11324,
+          "reasoningOutputTokens": 398,
+          "cachedInputTokens": 0,
+          "costUsd": 0.053138250000000005,
+          "costKnown": true
+        },
+        {
+          "task": "courseIR",
+          "calls": 1,
+          "inputTokens": 1462,
+          "outputTokens": 5070,
+          "reasoningOutputTokens": 329,
+          "cachedInputTokens": 0,
+          "costUsd": 0.0239115,
+          "costKnown": true
+        },
+        {
+          "task": "nativeSkeleton",
+          "calls": 1,
+          "inputTokens": 948,
+          "outputTokens": 803,
+          "reasoningOutputTokens": 516,
+          "cachedInputTokens": 0,
+          "costUsd": 0.0043245,
+          "costKnown": true
+        },
+        {
+          "task": "voicePass",
+          "calls": 1,
+          "inputTokens": 2835,
+          "outputTokens": 725,
+          "reasoningOutputTokens": 34,
+          "cachedInputTokens": 0,
+          "costUsd": 0.00538875,
+          "costKnown": true
+        }
+      ]
+    },
+    "gates": {
+      "finalStatus": "blocked",
+      "blockers": 1,
+      "warnings": 0,
+      "repairsApplied": 13,
+      "retryCallCount": 1,
+      "repairRetryCallCount": 1,
+      "finishRetryCallCount": 0,
+      "exportStatus": "passed",
+      "exportChecked": 38,
+      "exportFailed": 0,
+      "exportWarnings": 0,
+      "qualityStatus": "graded",
+      "qualityScore": 98,
+      "qualityGrade": "A",
+      "qualityP0": 0,
+      "qualityP1": 1,
+      "qualityP2": 0,
+      "compiledWithoutEnrichment": false,
+      "enrichmentCoverage": 1,
+      "flaggedChecks": [
+        {
+          "featureId": "quality",
+          "status": "warning",
+          "message": "quality grade 98/100 (A) — 0 P0, 1 P1, 0 P2; enriched decks average 4.8 content-bearing slides (<5) across 12 deck(s) — the kernel paid for more than the decks show"
+        },
+        {
+          "featureId": "courseMap",
+          "status": "failed",
+          "message": "Non-data-science package references notebook/model-card lab assets"
+        }
+      ]
+    }
+  },
+  "runDigestText": "[CM][RUN DIGEST]\nRUN DIGEST v1 — CourseMapper 0.15.173 — run-1782874613152 (470s)\nmodel: openai/gpt-5.4-mini · lessons: 12 · provider calls: 5\npipeline:\n  courseIRAuthoring: whole-course-ir · 1 planned call · 12 expected lessons\n  course map: gpt-5.4-mini · typed skeleton (sessions, assessments, readings, resources)\n  examine pass: skipped: native authoring — Pass B authors lesson content next\n  genome linker: 0 genome + 0 cached of 12 lessons (0 concepts, 0 citations, 0 bridges)\n  course judgment: not evaluated (0 genome-linked lessons)\n  enrichment (model): ran (12 lessons enriched) (linker: ran)\n  nativeAuthoring: assembled 12 sessions onto Pass A entity ids · Pass B authored 12 lesson(s) · 0 registry readings · recorded 12 missing resource signals · CurriculumV1 source 12 lessons\n  knowledge backbone: 0/12 lessons genome-linked · 1 cited open resources (source-finder: 1) · 13 lessons with readings\n  course graph: 12 sessions · 12 concepts (0 genome-linked, 12 authored) · 12 outcomes\n  voice pass: voiced 8 surface(s), 0 fallback(s) (~$0.005) — voice-surface texture 89→99 (improved)\n  enrichment: ran (12 lessons enriched)\n  compiler: 9 deliverables compiled, ~17 AI calls avoided\ncost: $0.09 (8152 in / 17922 out, 1277 reasoning, 0 cached)\n  accuracy: tokens provider-reported; cost from published per-token rates\n  blueprintEnrichment: 2 calls, 2907 in / 11324 out (398 reasoning), $0.05\n  courseIR: 1 call, 1462 in / 5070 out (329 reasoning), $0.02\n  nativeSkeleton: 1 call, 948 in / 803 out (516 reasoning), $0.0043\n  voicePass: 1 call, 2835 in / 725 out (34 reasoning), $0.0054\ngates: blocked · export passed (38 files, 0 failed, 0 warnings) · quality 98/100 A · 13 repairs · 1 retry call (1 repair-stage)\n  [warning] quality: quality grade 98/100 (A) — 0 P0, 1 P1, 0 P2; enriched decks average 4.8 content-bearing slides (<5) across 12 deck(s) — the kernel paid for more than the decks show\n  [failed] courseMap: Non-data-science package references notebook/model-card lab assets",
+  "finishEvents": [
+    "[CM][FINISH][finish-mr1hrjea-50dpn] finish_start {\"at\":\"2026-07-01T03:03:57.682Z\",\"selectedFeatureIds\":[\"courseMap\",\"syllabus\",\"lessonPlans\",\"slideDecks\",\"assignments\",\"rubrics\",\"discussions\",\"quizBank\",\"studyGuides\",\"courseFaq\"],\"lessonFilter\":null,\"retry\":true,\"maxRetryActions\":8,\"maxRetryCallBudget\":8,\"maxRetryPasses\":2,\"source\":\"generation\",\"lessonCount\":12,\"deliverableIds\":[\"syllabus\",\"lessonPlans\",\"slideDecks\",\"assignments\",\"rubrics\",\"discussions\",\"quizBank\",\"studyGuides\",\"courseFaq\"]}",
+    "[CM][FINISH][finish-mr1hrjea-50dpn] initial_check {\"at\":\"2026-07-01T03:04:13.908Z\",\"status\":\"blocked\",\"repairsApplied\":13,\"blockers\":1,\"warnings\":0,\"retryActionCount\":0,\"canRetryWeakSpots\":true,\"remainingRetryCallBudget\":8}",
+    "[CM][FINISH][finish-mr1hrjea-50dpn] export_verify_start {\"at\":\"2026-07-01T03:04:13.908Z\",\"selectedFeatureIds\":[\"courseMap\",\"syllabus\",\"lessonPlans\",\"slideDecks\",\"assignments\",\"rubrics\",\"discussions\",\"quizBank\",\"studyGuides\",\"courseFaq\"],\"lessonFilter\":null,\"status\":\"blocked\"}",
+    "[CM][FINISH][finish-mr1hrjea-50dpn] export_verify_done {\"at\":\"2026-07-01T03:04:31.292Z\",\"status\":\"passed\",\"checked\":38,\"failed\":0,\"warningCount\":0}",
+    "[CM][FINISH][finish-mr1hrjea-50dpn] quality_grade_done {\"at\":\"2026-07-01T03:04:43.486Z\",\"status\":\"graded\",\"score\":98,\"grade\":\"A\",\"p0\":0,\"reason\":\"\"}",
+    "[CM][FINISH][finish-mr1hrjea-50dpn] finish_complete {\"at\":\"2026-07-01T03:04:43.488Z\",\"finalStatus\":\"blocked\",\"blockers\":1,\"warnings\":0,\"retryCount\":0,\"retryPassCount\":0,\"retryCallCount\":0,\"skippedRetryActionCount\":0,\"retryBudgetRemaining\":8,\"exportStatus\":\"passed\",\"apiSpend\":\"$0.09 · 26k tokens estimated\",\"compilerSavings\":\"9 compiled · ~17 AI calls saved\"}"
+  ],
+  "apiHighlights": [
+    "[CM][API] reset {\"at\":\"2026-07-01T02:56:53.195Z\",\"runId\":\"run-1782874613152\",\"stage\":\"event\",\"type\":\"reset\",\"label\":\"New course package generation\",\"calls\":2,\"counters\":null,\"spendUsd\":0,\"costPlan\":null,\"usage\":{\"inputTokens\":0,\"outputTokens\":0,\"totalTokens\":0,\"cachedInputTokens\":0,\"costUsd\":0,\"estimated\":false}}",
+    "[CM][API] pipelineDecision {\"at\":\"2026-07-01T02:56:53.593Z\",\"runId\":\"run-1782874613152\",\"stage\":\"courseIRAuthoring\",\"type\":\"pipelineDecision\",\"label\":\"CourseIR direct authoring plan\",\"detail\":\"whole-course-ir · 1 planned call · 12 expected lessons\",\"calls\":2,\"counters\":null,\"spendUsd\":0,\"costPlan\":null,\"usage\":{\"inputTokens\":0,\"outputTokens\":0,\"totalTokens\":0,\"cachedInputTokens\":0,\"costUsd\":0,\"estimated\":false}}",
+    "[CM][API] courseIRCall {\"at\":\"2026-07-01T02:56:53.593Z\",\"runId\":\"run-1782874613152\",\"stage\":\"course-map\",\"type\":\"courseIRCall\",\"label\":\"CourseIR direct authoring\",\"detail\":\"gpt-5.4-mini · whole-course CurriculumV1 object\",\"calls\":3,\"counters\":{\"courseIR\":1},\"spendUsd\":0,\"costPlan\":null,\"usage\":{\"inputTokens\":0,\"outputTokens\":0,\"totalTokens\":0,\"cachedInputTokens\":0,\"costUsd\":0,\"estimated\":false}}",
+    "[CM][API] providerRequestStart {\"at\":\"2026-07-01T02:56:53.593Z\",\"runId\":\"run-1782874613152\",\"stage\":\"provider-request\",\"type\":\"providerRequestStart\",\"label\":\"Provider request start\",\"detail\":\"courseIR attempt 1/4\",\"featureId\":\"courseIR\",\"provider\":\"openai\",\"modelId\":\"gpt-5.4-mini\",\"task\":\"courseIR\",\"attempt\":1,\"maxRetries\":3,\"maxOutputTokens\":128000,\"approxInputTokens\":1602,\"hasSchema\":false,\"calls\":3,\"counters\":{\"courseIR\":1},\"spendUsd\":0,\"costPlan\":null,\"usage\":{\"inputTokens\":0,\"outputTokens\":0,\"totalTokens\":0,\"cachedInputTokens\":0,\"costUsd\":0,\"estimated\":false}}",
+    "[CM][API] providerResponseDone {\"at\":\"2026-07-01T03:01:07.199Z\",\"runId\":\"run-1782874613152\",\"stage\":\"provider-response\",\"type\":\"providerResponseDone\",\"label\":\"Provider response complete\",\"detail\":\"4732 stream chunks, 20563 chars\",\"featureId\":\"courseIR\",\"provider\":\"openai\",\"modelId\":\"gpt-5.4-mini\",\"task\":\"courseIR\",\"attempt\":1,\"maxRetries\":3,\"maxOutputTokens\":128000,\"approxInputTokens\":1602,\"outputChars\":20563,\"streamChunkCount\":4732,\"hasSchema\":false,\"calls\":3,\"counters\":{\"courseIR\":1},\"spendUsd\":0,\"costPlan\":null,\"usage\":{\"inputTokens\":0,\"outputTokens\":0,\"totalTokens\":0,\"cachedInputTokens\":0,\"costUsd\":0,\"estimated\":false}}",
+    "[CM][API] apiUsage {\"at\":\"2026-07-01T03:01:07.199Z\",\"runId\":\"run-1782874613152\",\"stage\":\"provider-usage\",\"type\":\"apiUsage\",\"label\":\"API usage\",\"detail\":\"courseIR\",\"featureId\":\"courseIR\",\"provider\":\"openai\",\"modelId\":\"gpt-5.4-mini\",\"task\":\"courseIR\",\"calls\":3,\"counters\":{\"courseIR\":1},\"spendUsd\":0.0239,\"costPlan\":null,\"usage\":{\"inputTokens\":1462,\"outputTokens\":5070,\"totalTokens\":6532,\"cachedInputTokens\":0,\"costUsd\":0.0239,\"estimated\":false}}",
+    "[CM][API] courseIRAuthoringFellBack {\"at\":\"2026-07-01T03:01:07.262Z\",\"runId\":\"run-1782874613152\",\"stage\":\"event\",\"type\":\"courseIRAuthoringFellBack\",\"label\":\"CourseIR direct authoring fell back\",\"detail\":\"lessons[0].outcomes[0].assessmentIds: Outcome references missing assessment a01. lessons[0].outcomes[1].assessmentIds: Outcome references missing assessment a01. lessons[0].activities[0].assessmentIds: Activity references missing assessment a01.\",\"calls\":3,\"counters\":{\"courseIR\":1},\"spendUsd\":0.0239,\"costPlan\":null,\"usage\":{\"inputTokens\":1462,\"outputTokens\":5070,\"totalTokens\":6532,\"cachedInputTokens\":0,\"costUsd\":0.0239,\"estimated\":false}}",
+    "[CM][API] nativeSkeletonCall {\"at\":\"2026-07-01T03:01:07.320Z\",\"runId\":\"run-1782874613152\",\"stage\":\"course-map\",\"type\":\"nativeSkeletonCall\",\"label\":\"Native graph authoring — Pass A skeleton\",\"detail\":\"gpt-5.4-mini · typed skeleton (sessions, assessments, readings, resources)\",\"calls\":4,\"counters\":{\"courseIR\":1,\"nativeSkeleton\":1},\"spendUsd\":0.0239,\"costPlan\":null,\"usage\":{\"inputTokens\":1462,\"outputTokens\":5070,\"totalTokens\":6532,\"cachedInputTokens\":0,\"costUsd\":0.0239,\"estimated\":false}}",
+    "[CM][API] providerRequestStart {\"at\":\"2026-07-01T03:01:07.321Z\",\"runId\":\"run-1782874613152\",\"stage\":\"provider-request\",\"type\":\"providerRequestStart\",\"label\":\"Provider request start\",\"detail\":\"nativeSkeleton attempt 1/4\",\"featureId\":\"nativeSkeleton\",\"provider\":\"openai\",\"modelId\":\"gpt-5.4-mini\",\"task\":\"nativeSkeleton\",\"attempt\":1,\"maxRetries\":3,\"maxOutputTokens\":128000,\"approxInputTokens\":1015,\"hasSchema\":false,\"calls\":4,\"counters\":{\"courseIR\":1,\"nativeSkeleton\":1},\"spendUsd\":0.0239,\"costPlan\":null,\"usage\":{\"inputTokens\":1462,\"outputTokens\":5070,\"totalTokens\":6532,\"cachedInputTokens\":0,\"costUsd\":0.0239,\"estimated\":false}}",
+    "[CM][API] providerResponseDone {\"at\":\"2026-07-01T03:01:13.110Z\",\"runId\":\"run-1782874613152\",\"stage\":\"provider-response\",\"type\":\"providerResponseDone\",\"label\":\"Provider response complete\",\"detail\":\"278 stream chunks, 963 chars\",\"featureId\":\"nativeSkeleton\",\"provider\":\"openai\",\"modelId\":\"gpt-5.4-mini\",\"task\":\"nativeSkeleton\",\"attempt\":1,\"maxRetries\":3,\"maxOutputTokens\":128000,\"approxInputTokens\":1015,\"outputChars\":963,\"streamChunkCount\":278,\"hasSchema\":false,\"calls\":4,\"counters\":{\"courseIR\":1,\"nativeSkeleton\":1},\"spendUsd\":0.0239,\"costPlan\":null,\"usage\":{\"inputTokens\":1462,\"outputTokens\":5070,\"totalTokens\":6532,\"cachedInputTokens\":0,\"costUsd\":0.0239,\"estimated\":false}}",
+    "[CM][API] apiUsage {\"at\":\"2026-07-01T03:01:13.110Z\",\"runId\":\"run-1782874613152\",\"stage\":\"provider-usage\",\"type\":\"apiUsage\",\"label\":\"API usage\",\"detail\":\"nativeSkeleton\",\"featureId\":\"nativeSkeleton\",\"provider\":\"openai\",\"modelId\":\"gpt-5.4-mini\",\"task\":\"nativeSkeleton\",\"calls\":4,\"counters\":{\"courseIR\":1,\"nativeSkeleton\":1},\"spendUsd\":0.0282,\"costPlan\":null,\"usage\":{\"inputTokens\":948,\"outputTokens\":803,\"totalTokens\":1751,\"cachedInputTokens\":0,\"costUsd\":0.0043,\"estimated\":false}}",
+    "[CM][API] skippedExamine {\"at\":\"2026-07-01T03:01:13.116Z\",\"runId\":\"run-1782874613152\",\"stage\":\"event\",\"type\":\"skippedExamine\",\"label\":\"Skipped course-map review\",\"detail\":\"native authoring — Pass B authors lesson content next\",\"calls\":4,\"counters\":{\"courseIR\":1,\"nativeSkeleton\":1},\"spendUsd\":0.0282,\"costPlan\":null,\"usage\":{\"inputTokens\":2410,\"outputTokens\":5873,\"totalTokens\":8283,\"cachedInputTokens\":0,\"costUsd\":0.0282,\"estimated\":false}}",
+    "[CM][API] costPlan {\"at\":\"2026-07-01T03:01:13.182Z\",\"runId\":\"run-1782874613152\",\"stage\":\"planning\",\"type\":\"costPlan\",\"label\":\"Deliverable call plan\",\"detail\":\"0 generation calls + 1 blueprint enrichment call + 2 enrichment repair reserve + 0 repair reserve; blueprint compiler saves about 17 generation call(s)\",\"calls\":4,\"counters\":{\"courseIR\":1,\"nativeSkeleton\":1},\"spendUsd\":0.0282,\"costPlan\":{\"source\":\"generation\",\"plannedNewCalls\":3,\"plannedCalls\":3,\"softCallLimit\":6,\"hardCallLimit\":9},\"usage\":{\"inputTokens\":2410,\"outputTokens\":5873,\"totalTokens\":8283,\"cachedInputTokens\":0,\"costUsd\":0.0282,\"estimated\":false}}",
+    "[CM][API] genomeLink {\"at\":\"2026-07-01T03:01:13.574Z\",\"runId\":\"run-1782874613152\",\"stage\":\"knowledge-backbone\",\"type\":\"genomeLink\",\"label\":\"CurriculumOS linker\",\"detail\":\"0 genome + 0 cached of 12 lessons (0 concepts, 0 citations, 0 bridges)\",\"featureId\":\"blueprintEnrichment\",\"calls\":4,\"counters\":{\"courseIR\":1,\"nativeSkeleton\":1,\"genomeLink\":1},\"spendUsd\":0.0282,\"costPlan\":{\"source\":\"generation\",\"plannedNewCalls\":3,\"plannedCalls\":7,\"softCallLimit\":10,\"hardCallLimit\":13},\"usage\":{\"inputTokens\":2410,\"outputTokens\":5873,\"totalTokens\":8283,\"cachedInputTokens\":0,\"costUsd\":0.0282,\"estimated\":false}}",
+    "[CM][API] pipelineDecision {\"at\":\"2026-07-01T03:01:13.574Z\",\"runId\":\"run-1782874613152\",\"stage\":\"judgment\",\"type\":\"pipelineDecision\",\"label\":\"Course judgment\",\"detail\":\"not evaluated (0 genome-linked lessons)\",\"calls\":4,\"counters\":{\"courseIR\":1,\"nativeSkeleton\":1,\"genomeLink\":1},\"spendUsd\":0.0282,\"costPlan\":{\"source\":\"generation\",\"plannedNewCalls\":3,\"plannedCalls\":7,\"softCallLimit\":10,\"hardCallLimit\":13},\"usage\":{\"inputTokens\":2410,\"outputTokens\":5873,\"totalTokens\":8283,\"cachedInputTokens\":0,\"costUsd\":0.0282,\"estimated\":false}}",
+    "[CM][API] blueprintEnrichmentCall {\"at\":\"2026-07-01T03:01:13.657Z\",\"runId\":\"run-1782874613152\",\"stage\":\"blueprint-enrichment\",\"type\":\"blueprintEnrichmentCall\",\"label\":\"Author lesson batch (native Pass B)\",\"detail\":\"Lessons 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12 — 1425 input tokens estimated\",\"featureId\":\"blueprintEnrichment\",\"task\":\"blueprintEnrichment\",\"calls\":5,\"counters\":{\"courseIR\":1,\"nativeSkeleton\":1,\"blueprintEnrichment\":1,\"genomeLink\":1},\"spendUsd\":0.0282,\"costPlan\":{\"source\":\"generation\",\"plannedNewCalls\":3,\"plannedCalls\":7,\"softCallLimit\":10,\"hardCallLimit\":13},\"usage\":{\"inputTokens\":2410,\"outputTokens\":5873,\"totalTokens\":8283,\"cachedInputTokens\":0,\"costUsd\":0.0282,\"estimated\":false}}",
+    "[CM][API] providerRequestStart {\"at\":\"2026-07-01T03:01:13.657Z\",\"runId\":\"run-1782874613152\",\"stage\":\"provider-request\",\"type\":\"providerRequestStart\",\"label\":\"Provider request start\",\"detail\":\"blueprintEnrichment attempt 1/4\",\"featureId\":\"blueprintEnrichment\",\"provider\":\"openai\",\"modelId\":\"gpt-5.4-mini\",\"task\":\"blueprintEnrichment\",\"attempt\":1,\"maxRetries\":3,\"maxOutputTokens\":32000,\"approxInputTokens\":1425,\"hasSchema\":false,\"calls\":5,\"counters\":{\"courseIR\":1,\"nativeSkeleton\":1,\"blueprintEnrichment\":1,\"genomeLink\":1},\"spendUsd\":0.0282,\"costPlan\":{\"source\":\"generation\",\"plannedNewCalls\":3,\"plannedCalls\":7,\"softCallLimit\":10,\"hardCallLimit\":13},\"usage\":{\"inputTokens\":2410,\"outputTokens\":5873,\"totalTokens\":8283,\"cachedInputTokens\":0,\"costUsd\":0.0282,\"estimated\":false}}",
+    "[CM][API] providerResponseDone {\"at\":\"2026-07-01T03:01:24.006Z\",\"runId\":\"run-1782874613152\",\"stage\":\"provider-response\",\"type\":\"providerResponseDone\",\"label\":\"Provider response complete\",\"detail\":\"1227 stream chunks, 6330 chars\",\"featureId\":\"blueprintEnrichment\",\"provider\":\"openai\",\"modelId\":\"gpt-5.4-mini\",\"task\":\"blueprintEnrichment\",\"attempt\":1,\"maxRetries\":3,\"maxOutputTokens\":32000,\"approxInputTokens\":1425,\"outputChars\":6330,\"streamChunkCount\":1227,\"hasSchema\":false,\"calls\":5,\"counters\":{\"courseIR\":1,\"nativeSkeleton\":1,\"blueprintEnrichment\":1,\"genomeLink\":1},\"spendUsd\":0.0282,\"costPlan\":{\"source\":\"generation\",\"plannedNewCalls\":3,\"plannedCalls\":7,\"softCallLimit\":10,\"hardCallLimit\":13},\"usage\":{\"inputTokens\":2410,\"outputTokens\":5873,\"totalTokens\":8283,\"cachedInputTokens\":0,\"costUsd\":0.0282,\"estimated\":false}}",
+    "[CM][API] apiUsage {\"at\":\"2026-07-01T03:01:24.006Z\",\"runId\":\"run-1782874613152\",\"stage\":\"provider-usage\",\"type\":\"apiUsage\",\"label\":\"API usage\",\"detail\":\"blueprintEnrichment\",\"featureId\":\"blueprintEnrichment\",\"provider\":\"openai\",\"modelId\":\"gpt-5.4-mini\",\"task\":\"blueprintEnrichment\",\"calls\":5,\"counters\":{\"courseIR\":1,\"nativeSkeleton\":1,\"blueprintEnrichment\":1,\"genomeLink\":1},\"spendUsd\":0.0362,\"costPlan\":{\"source\":\"generation\",\"plannedNewCalls\":3,\"plannedCalls\":7,\"softCallLimit\":10,\"hardCallLimit\":13},\"usage\":{\"inputTokens\":1407,\"outputTokens\":1533,\"totalTokens\":2940,\"cachedInputTokens\":0,\"costUsd\":0.008,\"estimated\":false}}",
+    "[CM][API] repairRetryCall {\"at\":\"2026-07-01T03:01:24.015Z\",\"runId\":\"run-1782874613152\",\"stage\":\"repair-retry\",\"type\":\"repairRetryCall\",\"label\":\"Author lesson batch (native recovery 1/2)\",\"detail\":\"Lessons 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12 — 1500 input tokens estimated\",\"featureId\":\"blueprintEnrichment\",\"task\":\"blueprintEnrichment\",\"calls\":6,\"counters\":{\"courseIR\":1,\"nativeSkeleton\":1,\"blueprintEnrichment\":1,\"repairRetry\":1,\"genomeLink\":1},\"spendUsd\":0.0362,\"costPlan\":{\"source\":\"generation\",\"plannedNewCalls\":3,\"plannedCalls\":7,\"softCallLimit\":10,\"hardCallLimit\":13},\"usage\":{\"inputTokens\":3817,\"outputTokens\":7406,\"totalTokens\":11223,\"cachedInputTokens\":0,\"costUsd\":0.0362,\"estimated\":false}}",
+    "[CM][API] providerRequestStart {\"at\":\"2026-07-01T03:01:24.015Z\",\"runId\":\"run-1782874613152\",\"stage\":\"provider-request\",\"type\":\"providerRequestStart\",\"label\":\"Provider request start\",\"detail\":\"blueprintEnrichment attempt 1/4\",\"featureId\":\"blueprintEnrichment\",\"provider\":\"openai\",\"modelId\":\"gpt-5.4-mini\",\"task\":\"blueprintEnrichment\",\"attempt\":1,\"maxRetries\":3,\"maxOutputTokens\":32000,\"approxInputTokens\":1500,\"hasSchema\":false,\"calls\":6,\"counters\":{\"courseIR\":1,\"nativeSkeleton\":1,\"blueprintEnrichment\":1,\"repairRetry\":1,\"genomeLink\":1},\"spendUsd\":0.0362,\"costPlan\":{\"source\":\"generation\",\"plannedNewCalls\":3,\"plannedCalls\":7,\"softCallLimit\":10,\"hardCallLimit\":13},\"usage\":{\"inputTokens\":3817,\"outputTokens\":7406,\"totalTokens\":11223,\"cachedInputTokens\":0,\"costUsd\":0.0362,\"estimated\":false}}",
+    "[CM][API] providerResponseDone {\"at\":\"2026-07-01T03:02:52.371Z\",\"runId\":\"run-1782874613152\",\"stage\":\"provider-response\",\"type\":\"providerResponseDone\",\"label\":\"Provider response complete\",\"detail\":\"9681 stream chunks, 45137 chars\",\"featureId\":\"blueprintEnrichment\",\"provider\":\"openai\",\"modelId\":\"gpt-5.4-mini\",\"task\":\"blueprintEnrichment\",\"attempt\":1,\"maxRetries\":3,\"maxOutputTokens\":32000,\"approxInputTokens\":1500,\"outputChars\":45137,\"streamChunkCount\":9681,\"hasSchema\":false,\"calls\":6,\"counters\":{\"courseIR\":1,\"nativeSkeleton\":1,\"blueprintEnrichment\":1,\"repairRetry\":1,\"genomeLink\":1},\"spendUsd\":0.0362,\"costPlan\":{\"source\":\"generation\",\"plannedNewCalls\":3,\"plannedCalls\":7,\"softCallLimit\":10,\"hardCallLimit\":13},\"usage\":{\"inputTokens\":3817,\"outputTokens\":7406,\"totalTokens\":11223,\"cachedInputTokens\":0,\"costUsd\":0.0362,\"estimated\":false}}",
+    "[CM][API] apiUsage {\"at\":\"2026-07-01T03:02:52.371Z\",\"runId\":\"run-1782874613152\",\"stage\":\"provider-usage\",\"type\":\"apiUsage\",\"label\":\"API usage\",\"detail\":\"blueprintEnrichment\",\"featureId\":\"blueprintEnrichment\",\"provider\":\"openai\",\"modelId\":\"gpt-5.4-mini\",\"task\":\"blueprintEnrichment\",\"calls\":6,\"counters\":{\"courseIR\":1,\"nativeSkeleton\":1,\"blueprintEnrichment\":1,\"repairRetry\":1,\"genomeLink\":1},\"spendUsd\":0.0814,\"costPlan\":{\"source\":\"generation\",\"plannedNewCalls\":3,\"plannedCalls\":7,\"softCallLimit\":10,\"hardCallLimit\":13},\"usage\":{\"inputTokens\":1500,\"outputTokens\":9791,\"totalTokens\":11291,\"cachedInputTokens\":0,\"costUsd\":0.0452,\"estimated\":false}}",
+    "[CM][API] pipelineDecision {\"at\":\"2026-07-01T03:02:52.681Z\",\"runId\":\"run-1782874613152\",\"stage\":\"enrichmentModelStage\",\"type\":\"pipelineDecision\",\"label\":\"Enrichment decision\",\"detail\":\"ran (12 lessons enriched) (linker: ran)\",\"calls\":6,\"counters\":{\"courseIR\":1,\"nativeSkeleton\":1,\"blueprintEnrichment\":1,\"repairRetry\":1,\"genomeLink\":1},\"spendUsd\":0.0814,\"costPlan\":{\"source\":\"generation\",\"plannedNewCalls\":3,\"plannedCalls\":7,\"softCallLimit\":10,\"hardCallLimit\":13},\"usage\":{\"inputTokens\":5317,\"outputTokens\":17197,\"totalTokens\":22514,\"cachedInputTokens\":0,\"costUsd\":0.0814,\"estimated\":false}}",
+    "[CM][API] pipelineDecision {\"at\":\"2026-07-01T03:02:52.799Z\",\"runId\":\"run-1782874613152\",\"stage\":\"nativeAuthoring\",\"type\":\"pipelineDecision\",\"label\":\"Native graph authoring\",\"detail\":\"assembled 12 sessions onto Pass A entity ids · Pass B authored 12 lesson(s) · 0 registry readings · recorded 12 missing resource signals · CurriculumV1 source 12 lessons\",\"calls\":6,\"counters\":{\"courseIR\":1,\"nativeSkeleton\":1,\"blueprintEnrichment\":1,\"repairRetry\":1,\"genomeLink\":1},\"spendUsd\":0.0814,\"costPlan\":{\"source\":\"generation\",\"plannedNewCalls\":3,\"plannedCalls\":7,\"softCallLimit\":10,\"hardCallLimit\":13},\"usage\":{\"inputTokens\":5317,\"outputTokens\":17197,\"totalTokens\":22514,\"cachedInputTokens\":0,\"costUsd\":0.0814,\"estimated\":false}}",
+    "[CM][API] pipelineDecision {\"at\":\"2026-07-01T03:03:43.817Z\",\"runId\":\"run-1782874613152\",\"stage\":\"knowledgeBackbone\",\"type\":\"pipelineDecision\",\"label\":\"Knowledge backbone\",\"detail\":\"0/12 lessons genome-linked · 1 open resources (source-finder: 1)\",\"calls\":6,\"counters\":{\"courseIR\":1,\"nativeSkeleton\":1,\"blueprintEnrichment\":1,\"repairRetry\":1,\"genomeLink\":1},\"spendUsd\":0.0814,\"costPlan\":{\"source\":\"generation\",\"plannedNewCalls\":3,\"plannedCalls\":7,\"softCallLimit\":10,\"hardCallLimit\":13},\"usage\":{\"inputTokens\":5317,\"outputTokens\":17197,\"totalTokens\":22514,\"cachedInputTokens\":0,\"costUsd\":0.0814,\"estimated\":false}}",
+    "[CM][API] pipelineDecision {\"at\":\"2026-07-01T03:03:43.817Z\",\"runId\":\"run-1782874613152\",\"stage\":\"courseGraph\",\"type\":\"pipelineDecision\",\"label\":\"Course graph\",\"detail\":\"12 sessions · 12 concepts (0 genome-linked) · 48 outcomes · 12 assessments\",\"calls\":6,\"counters\":{\"courseIR\":1,\"nativeSkeleton\":1,\"blueprintEnrichment\":1,\"repairRetry\":1,\"genomeLink\":1},\"spendUsd\":0.0814,\"costPlan\":{\"source\":\"generation\",\"plannedNewCalls\":3,\"plannedCalls\":7,\"softCallLimit\":10,\"hardCallLimit\":13},\"usage\":{\"inputTokens\":5317,\"outputTokens\":17197,\"totalTokens\":22514,\"cachedInputTokens\":0,\"costUsd\":0.0814,\"estimated\":false}}",
+    "[CM][API] compilerPlan {\"at\":\"2026-07-01T03:03:50.407Z\",\"runId\":\"run-1782874613152\",\"stage\":\"blueprint-compiler\",\"type\":\"compilerPlan\",\"label\":\"Enriched blueprint compiler plan\",\"detail\":\"9 deliverables will compile locally; about 17 provider calls avoided\",\"featureIds\":[\"syllabus\",\"lessonPlans\",\"slideDecks\",\"assignments\",\"rubrics\",\"discussions\",\"quizBank\",\"studyGuides\",\"courseFaq\"],\"calls\":6,\"counters\":{\"courseIR\":1,\"nativeSkeleton\":1,\"blueprintEnrichment\":1,\"repairRetry\":1,\"genomeLink\":1},\"spendUsd\":0.0814,\"costPlan\":{\"source\":\"generation\",\"plannedNewCalls\":3,\"plannedCalls\":7,\"softCallLimit\":10,\"hardCallLimit\":13},\"usage\":{\"inputTokens\":5317,\"outputTokens\":17197,\"totalTokens\":22514,\"cachedInputTokens\":0,\"costUsd\":0.0814,\"estimated\":false},\"savedProviderCalls\":17,\"compiledFeatureCount\":9,\"compilerSource\":\"enriched-blueprint\"}",
+    "[CM][API] compiledDeliverable {\"at\":\"2026-07-01T03:03:50.407Z\",\"runId\":\"run-1782874613152\",\"stage\":\"blueprint-compiler\",\"type\":\"compiledDeliverable\",\"label\":\"Enriched blueprint compiler\",\"detail\":\"Compiled 9 deliverables; saved about 17 generation calls\",\"featureIds\":[\"syllabus\",\"lessonPlans\",\"slideDecks\",\"assignments\",\"rubrics\",\"discussions\",\"quizBank\",\"studyGuides\",\"courseFaq\"],\"calls\":6,\"counters\":{\"courseIR\":1,\"nativeSkeleton\":1,\"blueprintEnrichment\":1,\"repairRetry\":1,\"genomeLink\":1},\"spendUsd\":0.0814,\"costPlan\":{\"source\":\"generation\",\"plannedNewCalls\":3,\"plannedCalls\":7,\"softCallLimit\":10,\"hardCallLimit\":13},\"usage\":{\"inputTokens\":5317,\"outputTokens\":17197,\"totalTokens\":22514,\"cachedInputTokens\":0,\"costUsd\":0.0814,\"estimated\":false},\"savedProviderCalls\":17,\"compiledFeatureCount\":9,\"compilerSource\":\"enriched-blueprint\"}",
+    "[CM][API] voicePassCall {\"at\":\"2026-07-01T03:03:52.813Z\",\"runId\":\"run-1782874613152\",\"stage\":\"voice-pass\",\"type\":\"voicePassCall\",\"label\":\"Voice pass call\",\"detail\":\"batch 1/1: 8 surface(s)\",\"featureId\":\"voicePass\",\"task\":\"voicePass\",\"calls\":7,\"counters\":{\"courseIR\":1,\"nativeSkeleton\":1,\"blueprintEnrichment\":1,\"voicePass\":1,\"repairRetry\":1,\"genomeLink\":1},\"spendUsd\":0.0814,\"costPlan\":{\"source\":\"generation\",\"plannedNewCalls\":3,\"plannedCalls\":7,\"softCallLimit\":10,\"hardCallLimit\":13},\"usage\":{\"inputTokens\":5317,\"outputTokens\":17197,\"totalTokens\":22514,\"cachedInputTokens\":0,\"costUsd\":0.0814,\"estimated\":false}}",
+    "[CM][API] providerRequestStart {\"at\":\"2026-07-01T03:03:52.814Z\",\"runId\":\"run-1782874613152\",\"stage\":\"provider-request\",\"type\":\"providerRequestStart\",\"label\":\"Provider request start\",\"detail\":\"voicePass attempt 1/4\",\"featureId\":\"voicePass\",\"provider\":\"openai\",\"modelId\":\"gpt-5.4-mini\",\"task\":\"voicePass\",\"attempt\":1,\"maxRetries\":3,\"maxOutputTokens\":4000,\"approxInputTokens\":3078,\"hasSchema\":false,\"calls\":7,\"counters\":{\"courseIR\":1,\"nativeSkeleton\":1,\"blueprintEnrichment\":1,\"voicePass\":1,\"repairRetry\":1,\"genomeLink\":1},\"spendUsd\":0.0814,\"costPlan\":{\"source\":\"generation\",\"plannedNewCalls\":3,\"plannedCalls\":7,\"softCallLimit\":10,\"hardCallLimit\":13},\"usage\":{\"inputTokens\":5317,\"outputTokens\":17197,\"totalTokens\":22514,\"cachedInputTokens\":0,\"costUsd\":0.0814,\"estimated\":false}}",
+    "[CM][API] providerResponseDone {\"at\":\"2026-07-01T03:03:57.658Z\",\"runId\":\"run-1782874613152\",\"stage\":\"provider-response\",\"type\":\"providerResponseDone\",\"label\":\"Provider response complete\",\"detail\":\"682 stream chunks, 3051 chars\",\"featureId\":\"voicePass\",\"provider\":\"openai\",\"modelId\":\"gpt-5.4-mini\",\"task\":\"voicePass\",\"attempt\":1,\"maxRetries\":3,\"maxOutputTokens\":4000,\"approxInputTokens\":3078,\"outputChars\":3051,\"streamChunkCount\":682,\"hasSchema\":false,\"calls\":7,\"counters\":{\"courseIR\":1,\"nativeSkeleton\":1,\"blueprintEnrichment\":1,\"voicePass\":1,\"repairRetry\":1,\"genomeLink\":1},\"spendUsd\":0.0814,\"costPlan\":{\"source\":\"generation\",\"plannedNewCalls\":3,\"plannedCalls\":7,\"softCallLimit\":10,\"hardCallLimit\":13},\"usage\":{\"inputTokens\":5317,\"outputTokens\":17197,\"totalTokens\":22514,\"cachedInputTokens\":0,\"costUsd\":0.0814,\"estimated\":false}}",
+    "[CM][API] apiUsage {\"at\":\"2026-07-01T03:03:57.659Z\",\"runId\":\"run-1782874613152\",\"stage\":\"provider-usage\",\"type\":\"apiUsage\",\"label\":\"API usage\",\"detail\":\"voicePass\",\"featureId\":\"voicePass\",\"provider\":\"openai\",\"modelId\":\"gpt-5.4-mini\",\"task\":\"voicePass\",\"calls\":7,\"counters\":{\"courseIR\":1,\"nativeSkeleton\":1,\"blueprintEnrichment\":1,\"voicePass\":1,\"repairRetry\":1,\"genomeLink\":1},\"spendUsd\":0.0868,\"costPlan\":{\"source\":\"generation\",\"plannedNewCalls\":3,\"plannedCalls\":7,\"softCallLimit\":10,\"hardCallLimit\":13},\"usage\":{\"inputTokens\":2835,\"outputTokens\":725,\"totalTokens\":3560,\"cachedInputTokens\":0,\"costUsd\":0.0054,\"estimated\":false}}",
+    "[CM][API] pipelineDecision {\"at\":\"2026-07-01T03:03:57.677Z\",\"runId\":\"run-1782874613152\",\"stage\":\"voicePass\",\"type\":\"pipelineDecision\",\"label\":\"Voice pass\",\"detail\":\"voiced 8 surface(s), 0 fallback(s) (~$0.005) — voice-surface texture 89→99 (improved)\",\"calls\":7,\"counters\":{\"courseIR\":1,\"nativeSkeleton\":1,\"blueprintEnrichment\":1,\"voicePass\":1,\"repairRetry\":1,\"genomeLink\":1},\"spendUsd\":0.0868,\"costPlan\":{\"source\":\"generation\",\"plannedNewCalls\":3,\"plannedCalls\":7,\"softCallLimit\":10,\"hardCallLimit\":13},\"usage\":{\"inputTokens\":8152,\"outputTokens\":17922,\"totalTokens\":26074,\"cachedInputTokens\":0,\"costUsd\":0.0868,\"estimated\":false}}",
+    "[CM][API] costPlan {\"at\":\"2026-07-01T03:04:13.908Z\",\"runId\":\"run-1782874613152\",\"stage\":\"planning\",\"type\":\"costPlan\",\"label\":\"Package finalizer call plan\",\"detail\":\"8 finish retry calls reserved\",\"calls\":7,\"counters\":{\"courseIR\":1,\"nativeSkeleton\":1,\"blueprintEnrichment\":1,\"voicePass\":1,\"repairRetry\":1,\"genomeLink\":1},\"spendUsd\":0.0868,\"costPlan\":{\"source\":\"finalizer:generation\",\"plannedNewCalls\":8,\"plannedCalls\":8,\"softCallLimit\":11,\"hardCallLimit\":14},\"usage\":{\"inputTokens\":8152,\"outputTokens\":17922,\"totalTokens\":26074,\"cachedInputTokens\":0,\"costUsd\":0.0868,\"estimated\":false}}"
+  ],
+  "visible": {
+    "headline": "Workspace\n\nIntroduction to Computer Science with Python\n12 lessons\n·\ngpt-5.4-mini\nNeeds review\n· Texture 95\nAutosaved to My Projects\nReview 3\nTian Xing\nProject\nMap\nEnrich\nCompile\nVerify\nGrade\n\nNeeds review — 1 blocker\n\nGenome 0/12\nMaterials 12/12\n$0.09\nCourse Map\nSyllabus\nLesson Plans\nSlide Decks\nAssignment Briefs\nRubrics\nDiscussion Prompts\nQuiz & Exam Bank\nStudy Guides\nCourse FAQ\nAdd\nAgent\nReady\ngpt-5.4-mini\n\nCourse Map\n\nProject brief\nStarting request\n\nReview before export\n\n12 lessons · 9 ready\n\nNeeds attention\nDetails\n\nI am still using your starting brief. I can finish, fix, and verify your course materials.\n\nFinish package\nReview Lesson 10: modules and libraries for gaps\nStarting brief\n\nIntroduction to Computer Science with Python, 12-week undergraduate course for beginners with weekly coding labs, debugging practice, source-backed readings, quizzes, assignments, rubrics, discussion prompts, study guides, and course FAQ.\n\nGot it. I will keep using that starting request while we build, check, and revise the course package.\n\nWorth a look — 1 observation\n\nDismiss\nLesson 6's first objective (\"Explain how lists and sequence processing changes control flow, data s…\") has no clear echo",
+    "containsGenericSession": false,
+    "containsModulesBlocker": true,
+    "lessonRows": [
+      "Lesson 1: course orientation and computational thinking 1 section · 1 assessment",
+      "Lesson 1: course orientation and computational thinking 1 section · 1 assessment",
+      "Lesson 2: variables, expressions, and data types 1 section · 1 assessment",
+      "Lesson 2: variables, expressions, and data types 1 section · 1 assessment",
+      "Lesson 3: conditionals and boolean logic 1 section · 1 assessment",
+      "Lesson 3: conditionals and boolean logic 1 section · 1 assessment",
+      "Lesson 4: iteration with while and for loops 1 section · 1 assessment",
+      "Lesson 4: iteration with while and for loops 1 section · 1 assessment",
+      "Lesson 5: functions and decomposition 1 section · 1 assessment",
+      "Lesson 5: functions and decomposition 1 section · 1 assessment",
+      "Lesson 6: lists and sequence processing 1 section · 1 assessment",
+      "Lesson 6: lists and sequence processing 1 section · 1 assessment",
+      "Lesson 7: dictionaries and structured data 1 section · 1 assessment",
+      "Lesson 7: dictionaries and structured data 1 section · 1 assessment",
+      "Lesson 8: strings and text processing 1 section · 1 assessment",
+      "Lesson 8: strings and text processing 1 section · 1 assessment",
+      "Lesson 9: files and exceptions 1 section · 1 assessment",
+      "Lesson 9: files and exceptions 1 section · 1 assessment",
+      "Lesson 10: modules and libraries 1 section · 1 assessment",
+      "Lesson 10: modules and libraries 1 section · 1 assessment",
+      "10.1 Connect modules and libraries to program state, data flow, and debugging evidence. modules and libraries Write or revise a short Python example that uses modules and libraries correctly. Modules and libraries edge-case probe: choose one boundary input and explain the result before submission. Run the starter code for modules and libraries, change one value, and record what changes. Debug a broken modules and libraries snippet in pairs and compare fixes. Code editor, terminal or notebook, sample input file when needed, and test-output log. Starter problem, worked Python example, student coding pass, and evidence review. Python reference snippet, sample input/output, and debugging guide for modules and libraries. Ensure the modules and libraries rubric rewards correctness, explanation, and test evidence separately.",
+      "Modules and libraries edge-case probe: choose one boundary input and explain the result before submission.",
+      "Modules and libraries edge-case probe: choose one boundary input and explain the result before submission.",
+      "Lesson 11: testing and debugging 1 section · 1 assessment",
+      "Lesson 11: testing and debugging 1 section · 1 assessment",
+      "Lesson 12: data analysis with Python 1 section · 1 assessment",
+      "Lesson 12: data analysis with Python 1 section · 1 assessment"
+    ],
+    "buttons": [
+      {
+        "aria": "Package quality: export blocked by 1 blocker; grade result 98 out of 100, grade A, texture 95 out of 100 — open the quality report",
+        "classes": "inline-flex min-h-[32px] shrink-0 items-center gap-1 rounded-full border px-2.5 text-[10px] font-bold border-red-200 bg-red-50 text-red-700 tactile transition-colors hover:brightness-95",
+        "disabled": false,
+        "testid": "workspace-quality-chip",
+        "text": "Needs review\n· Texture 95"
+      },
+      {
+        "aria": null,
+        "classes": "tactile inline-flex items-center gap-2 rounded-md bg-indigo-600 px-3.5 py-2 text-xs font-bold text-white shadow-sm transition-colors hover:bg-indigo-700",
+        "disabled": false,
+        "testid": "primary-cta",
+        "text": "Review 3"
+      },
+      {
+        "aria": "Switch to dark mode",
+        "classes": "tactile rounded-xl border border-slate-200/70 bg-white/75 p-2 text-slate-500 shadow-sm transition-all duration-200 hover:border-blue-200 hover:bg-blue-50 hover:text-blue-600 dark:border-slate-700 dark",
+        "disabled": false,
+        "testid": null,
+        "text": ""
+      },
+      {
+        "aria": "User menu",
+        "classes": "tactile flex items-center gap-2 rounded-pill pl-1 pr-3 py-1 text-[11px] font-semibold text-slate-600 bg-white/50 border border-slate-200/40 hover:bg-indigo-50/70 hover:border-indigo-200/50 shadow-glas",
+        "disabled": false,
+        "testid": null,
+        "text": "Tian Xing"
+      },
+      {
+        "aria": null,
+        "classes": "flex w-full items-center gap-2 rounded-md px-3 py-2 text-left text-xs font-semibold text-slate-700 hover:bg-slate-50",
+        "disabled": false,
+        "testid": "workspace-menu-save-project",
+        "text": "Save .coursemapper"
+      },
+      {
+        "aria": null,
+        "classes": "flex w-full items-center gap-2 rounded-md px-3 py-2 text-left text-xs font-semibold text-slate-700 hover:bg-slate-50",
+        "disabled": false,
+        "testid": "workspace-menu-new-project",
+        "text": "New Project"
+      },
+      {
+        "aria": null,
+        "classes": "tactile flex items-center gap-2 px-3 py-1.5 rounded-md text-xs font-semibold whitespace-nowrap transition-all duration-200 flex-shrink-0 cursor-grab active:cursor-grabbing touch-none select-none bg-sl",
+        "disabled": false,
+        "testid": null,
+        "text": "Course Map"
+      },
+      {
+        "aria": null,
+        "classes": "tactile flex items-center gap-2 px-3 py-1.5 rounded-md text-xs font-semibold whitespace-nowrap transition-all duration-200 flex-shrink-0 cursor-grab active:cursor-grabbing touch-none select-none text-",
+        "disabled": false,
+        "testid": null,
+        "text": "Syllabus"
+      },
+      {
+        "aria": null,
+        "classes": "tactile flex items-center gap-2 px-3 py-1.5 rounded-md text-xs font-semibold whitespace-nowrap transition-all duration-200 flex-shrink-0 cursor-grab active:cursor-grabbing touch-none select-none text-",
+        "disabled": false,
+        "testid": null,
+        "text": "Lesson Plans"
+      },
+      {
+        "aria": null,
+        "classes": "tactile flex items-center gap-2 px-3 py-1.5 rounded-md text-xs font-semibold whitespace-nowrap transition-all duration-200 flex-shrink-0 cursor-grab active:cursor-grabbing touch-none select-none text-",
+        "disabled": false,
+        "testid": null,
+        "text": "Slide Decks"
+      },
+      {
+        "aria": null,
+        "classes": "tactile flex items-center gap-2 px-3 py-1.5 rounded-md text-xs font-semibold whitespace-nowrap transition-all duration-200 flex-shrink-0 cursor-grab active:cursor-grabbing touch-none select-none text-",
+        "disabled": false,
+        "testid": null,
+        "text": "Assignment Briefs"
+      },
+      {
+        "aria": null,
+        "classes": "tactile flex items-center gap-2 px-3 py-1.5 rounded-md text-xs font-semibold whitespace-nowrap transition-all duration-200 flex-shrink-0 cursor-grab active:cursor-grabbing touch-none select-none text-",
+        "disabled": false,
+        "testid": null,
+        "text": "Rubrics"
+      },
+      {
+        "aria": null,
+        "classes": "tactile flex items-center gap-2 px-3 py-1.5 rounded-md text-xs font-semibold whitespace-nowrap transition-all duration-200 flex-shrink-0 cursor-grab active:cursor-grabbing touch-none select-none text-",
+        "disabled": false,
+        "testid": null,
+        "text": "Discussion Prompts"
+      },
+      {
+        "aria": null,
+        "classes": "tactile flex items-center gap-2 px-3 py-1.5 rounded-md text-xs font-semibold whitespace-nowrap transition-all duration-200 flex-shrink-0 cursor-grab active:cursor-grabbing touch-none select-none text-",
+        "disabled": false,
+        "testid": null,
+        "text": "Quiz & Exam Bank"
+      },
+      {
+        "aria": null,
+        "classes": "tactile flex items-center gap-2 px-3 py-1.5 rounded-md text-xs font-semibold whitespace-nowrap transition-all duration-200 flex-shrink-0 cursor-grab active:cursor-grabbing touch-none select-none text-",
+        "disabled": false,
+        "testid": null,
+        "text": "Study Guides"
+      },
+      {
+        "aria": null,
+        "classes": "tactile flex items-center gap-2 px-3 py-1.5 rounded-md text-xs font-semibold whitespace-nowrap transition-all duration-200 flex-shrink-0 cursor-grab active:cursor-grabbing touch-none select-none text-",
+        "disabled": false,
+        "testid": null,
+        "text": "Course FAQ"
+      },
+      {
+        "aria": null,
+        "classes": "tactile flex items-center gap-1.5 px-3 py-2 rounded-pill text-xs font-semibold text-indigo-500 bg-indigo-50/60 border border-indigo-200/40 hover:bg-indigo-100/70 transition-all duration-200",
+        "disabled": false,
+        "testid": null,
+        "text": "Add"
+      },
+      {
+        "aria": "Open dependency map",
+        "classes": "tactile ml-auto flex-shrink-0 p-1.5 rounded-full text-slate-400 hover:bg-white/60 hover:text-indigo-500 transition-all duration-200",
+        "disabled": false,
+        "testid": null,
+        "text": ""
+      },
+      {
+        "aria": null,
+        "classes": "flex-1 rounded-xl px-3 py-2 text-[11px] font-bold transition-all bg-slate-900 text-white shadow-sm",
+        "disabled": false,
+        "testid": null,
+        "text": "Course Map"
+      },
+      {
+        "aria": null,
+        "classes": "flex-1 rounded-xl px-3 py-2 text-[11px] font-bold transition-all text-slate-500 hover:bg-slate-100/80 hover:text-slate-700",
+        "disabled": false,
+        "testid": null,
+        "text": "Agent"
+      },
+      {
+        "aria": null,
+        "classes": "flex-1 rounded-xl px-3 py-2 text-[11px] font-bold transition-all text-slate-500 hover:bg-slate-100/80 hover:text-slate-700",
+        "disabled": false,
+        "testid": null,
+        "text": "Export"
+      },
+      {
+        "aria": null,
+        "classes": "min-w-0 max-w-[170px] truncate rounded-full border px-2 py-0.5 text-[10px] font-bold transition-colors border-emerald-200/70 bg-emerald-50 text-emerald-700 hover:bg-emerald-100/80",
+        "disabled": false,
+        "testid": "workspace-model-config-trigger",
+        "text": "gpt-5.4-mini"
+      },
+      {
+        "aria": "Show workspace details",
+        "classes": "tactile rounded-md px-1.5 py-0.5 text-[10px] font-semibold text-slate-400 hover:bg-white/80 hover:text-slate-600",
+        "disabled": false,
+        "testid": null,
+        "text": "Details"
+      },
+      {
+        "aria": null,
+        "classes": "tactile text-[12px] px-3 py-1.5 rounded-full bg-white/60 border border-slate-200/40 text-slate-600 hover:bg-indigo-50/60 hover:border-indigo-300/40 dark:hover:border-indigo-500/40 hover:text-indigo-60",
+        "disabled": false,
+        "testid": "agent-starter-finish-package",
+        "text": "Finish package"
+      },
+      {
+        "aria": null,
+        "classes": "tactile text-[12px] px-3 py-1.5 rounded-full bg-white/60 border border-slate-200/40 text-slate-600 hover:bg-indigo-50/60 hover:border-indigo-300/40 dark:hover:border-indigo-500/40 hover:text-indigo-60",
+        "disabled": false,
+        "testid": null,
+        "text": "Review Lesson 10: modules and libraries for gaps"
+      },
+      {
+        "aria": "Copy to clipboard",
+        "classes": "p-1 rounded-md text-slate-400 hover:text-slate-600 hover:bg-slate-100/60 transition-colors",
+        "disabled": false,
+        "testid": null,
+        "text": ""
+      },
+      {
+        "aria": "Regenerate response",
+        "classes": "p-1 rounded-md text-slate-400 hover:text-slate-600 hover:bg-slate-100/60 transition-colors",
+        "disabled": false,
+        "testid": null,
+        "text": ""
+      },
+      {
+        "aria": "Good response",
+        "classes": "p-1 rounded-md transition-colors text-slate-400 hover:text-slate-600 hover:bg-slate-100/60",
+        "disabled": false,
+        "testid": null,
+        "text": ""
+      },
+      {
+        "aria": "Poor response",
+        "classes": "p-1 rounded-md transition-colors text-slate-400 hover:text-slate-600 hover:bg-slate-100/60",
+        "disabled": false,
+        "testid": null,
+        "text": ""
+      },
+      {
+        "aria": null,
+        "classes": "text-xs text-slate-400 hover:text-slate-600 transition-colors dark:hover:text-slate-300",
+        "disabled": false,
+        "testid": null,
+        "text": "Dismiss"
+      },
+      {
+        "aria": null,
+        "classes": "tactile flex w-full items-center gap-2 rounded-md bg-white/60 px-2.5 py-1.5 text-left transition-colors hover:bg-white/90 disabled:cursor-default disabled:opacity-60 dark:bg-white/5 dark:hover:bg-whit",
+        "disabled": false,
+        "testid": "digest-open-in-queue",
+        "text": "Lesson 6's first objective (\"Explain how lists and sequence processing changes control flow, data s…\") has no clear echo in its assessments.\nReview"
+      },
+      {
+        "aria": null,
+        "classes": "tactile mt-2 rounded-md px-1.5 py-0.5 text-[10px] font-semibold text-slate-500 hover:bg-white/70 hover:text-slate-700",
+        "disabled": false,
+        "testid": null,
+        "text": "Show notes"
+      },
+      {
+        "aria": "Send message",
+        "classes": "tactile rounded-lg bg-gradient-to-r from-indigo-500 to-violet-500 p-1.5 text-white shadow-sm transition-all hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-30",
+        "disabled": true,
+        "testid": null,
+        "text": ""
+      },
+      {
+        "aria": "Attach files",
+        "classes": "tactile p-1 rounded-lg text-slate-400 hover:text-indigo-500 hover:bg-indigo-50/50 transition-all",
+        "disabled": false,
+        "testid": null,
+        "text": ""
+      },
+      {
+        "aria": null,
+        "classes": "tactile flex items-center gap-1 px-2 py-0.5 rounded-lg text-[10px] font-semibold text-slate-500 hover:text-indigo-600 hover:bg-indigo-50/50 transition-all duration-200",
+        "disabled": false,
+        "testid": null,
+        "text": "Undo"
+      },
+      {
+        "aria": null,
+        "classes": "px-2.5 py-0.5 rounded-full text-[12px] font-medium transition-colors duration-150 bg-slate-100 text-slate-700 dark:bg-slate-700 dark:text-slate-200",
+        "disabled": false,
+        "testid": null,
+        "text": "Comfortable"
+      },
+      {
+        "aria": null,
+        "classes": "px-2.5 py-0.5 rounded-full text-[12px] font-medium transition-colors duration-150 text-slate-400 hover:text-slate-600 dark:text-slate-500 dark:hover:text-slate-300",
+        "disabled": false,
+        "testid": null,
+        "text": "Compact"
+      },
+      {
+        "aria": "Collapse lesson 1",
+        "classes": "p-0.5 text-indigo-400 hover:text-indigo-600 dark:text-indigo-500 dark:hover:text-indigo-300 transition-colors flex-shrink-0",
+        "disabled": false,
+        "testid": null,
+        "text": ""
+      },
+      {
+        "aria": "Move lesson down",
+        "classes": "p-0.5 text-slate-300 hover:text-indigo-500 transition-colors",
+        "disabled": false,
+        "testid": null,
+        "text": ""
+      },
+      {
+        "aria": "Delete lesson",
+        "classes": "p-0.5 text-slate-300 hover:text-red-400 transition-colors",
+        "disabled": false,
+        "testid": null,
+        "text": ""
+      },
+      {
+        "aria": "Open \"Course orientation and computational thinking trace memo: predict two lines, run the code, and annotate the changed variable.\" in Assignment Briefs",
+        "classes": "group inline text-left font-medium text-indigo-600 hover:text-indigo-800 hover:underline decoration-indigo-300 underline-offset-2 transition-colors duration-150",
+        "disabled": false,
+        "testid": null,
+        "text": "Course orientation and computational thinking trace memo: predict two lines, run the code, and annotate the changed variable."
+      },
+      {
+        "aria": "Add section below",
+        "classes": "p-1 text-slate-300 hover:text-emerald-500 transition-colors",
+        "disabled": false,
+        "testid": null,
+        "text": ""
+      },
+      {
+        "aria": "Collapse lesson 2",
+        "classes": "p-0.5 text-indigo-400 hover:text-indigo-600 dark:text-indigo-500 dark:hover:text-indigo-300 transition-colors flex-shrink-0",
+        "disabled": false,
+        "testid": null,
+        "text": ""
+      },
+      {
+        "aria": "Move lesson up",
+        "classes": "p-0.5 text-slate-300 hover:text-indigo-500 transition-colors",
+        "disabled": false,
+        "testid": null,
+        "text": ""
+      },
+      {
+        "aria": "Move lesson down",
+        "classes": "p-0.5 text-slate-300 hover:text-indigo-500 transition-colors",
+        "disabled": false,
+        "testid": null,
+        "text": ""
+      },
+      {
+        "aria": "Delete lesson",
+        "classes": "p-0.5 text-slate-300 hover:text-red-400 transition-colors",
+        "disabled": false,
+        "testid": null,
+        "text": ""
+      },
+      {
+        "aria": "Open \"Variables, expressions, and data types mini-program: add one feature and submit normal plus edge-case output.\" in Assignment Briefs",
+        "classes": "group inline text-left font-medium text-indigo-600 hover:text-indigo-800 hover:underline decoration-indigo-300 underline-offset-2 transition-colors duration-150",
+        "disabled": false,
+        "testid": null,
+        "text": "Variables, expressions, and data types mini-program: add one feature and submit normal plus edge-case output."
+      },
+      {
+        "aria": "Add section below",
+        "classes": "p-1 text-slate-300 hover:text-emerald-500 transition-colors",
+        "disabled": false,
+        "testid": null,
+        "text": ""
+      },
+      {
+        "aria": "Collapse lesson 3",
+        "classes": "p-0.5 text-indigo-400 hover:text-indigo-600 dark:text-indigo-500 dark:hover:text-indigo-300 transition-colors flex-shrink-0",
+        "disabled": false,
+        "testid": null,
+        "text": ""
+      },
+      {
+        "aria": "Move lesson up",
+        "classes": "p-0.5 text-slate-300 hover:text-indigo-500 transition-colors",
+        "disabled": false,
+        "testid": null,
+        "text": ""
+      },
+      {
+        "aria": "Move lesson down",
+        "classes": "p-0.5 text-slate-300 hover:text-indigo-500 transition-colors",
+        "disabled": false,
+        "testid": null,
+        "text": ""
+      },
+      {
+        "aria": "Delete lesson",
+        "classes": "p-0.5 text-slate-300 hover:text-red-400 transition-colors",
+        "disabled": false,
+        "testid": null,
+        "text": ""
+      },
+      {
+        "aria": "Open \"Conditionals and boolean logic bug-fix note: locate the failing line, patch it, and include rerun evidence.\" in Assignment Briefs",
+        "classes": "group inline text-left font-medium text-indigo-600 hover:text-indigo-800 hover:underline decoration-indigo-300 underline-offset-2 transition-colors duration-150",
+        "disabled": false,
+        "testid": null,
+        "text": "Conditionals and boolean logic bug-fix note: locate the failing line, patch it, and include rerun evidence."
+      },
+      {
+        "aria": "Add section below",
+        "classes": "p-1 text-slate-300 hover:text-emerald-500 transition-colors",
+        "disabled": false,
+        "testid": null,
+        "text": ""
+      },
+      {
+        "aria": "Collapse lesson 4",
+        "classes": "p-0.5 text-indigo-400 hover:text-indigo-600 dark:text-indigo-500 dark:hover:text-indigo-300 transition-colors flex-shrink-0",
+        "disabled": false,
+        "testid": null,
+        "text": ""
+      },
+      {
+        "aria": "Move lesson up",
+        "classes": "p-0.5 text-slate-300 hover:text-indigo-500 transition-colors",
+        "disabled": false,
+        "testid": null,
+        "text": ""
+      },
+      {
+        "aria": "Move lesson down",
+        "classes": "p-0.5 text-slate-300 hover:text-indigo-500 transition-colors",
+        "disabled": false,
+        "testid": null,
+        "text": ""
+      },
+      {
+        "aria": "Delete lesson",
+        "classes": "p-0.5 text-slate-300 hover:text-red-400 transition-colors",
+        "disabled": false,
+        "testid": null,
+        "text": ""
+      },
+      {
+        "aria": "Open \"Iteration with while and for loops implementation choice: compare two approaches and defend the cleaner Python version.\" in Assignment Briefs",
+        "classes": "group inline text-left font-medium text-indigo-600 hover:text-indigo-800 hover:underline decoration-indigo-300 underline-offset-2 transition-colors duration-150",
+        "disabled": false,
+        "testid": null,
+        "text": "Iteration with while and for loops implementation choice: compare two approaches and defend the cleaner Python version."
+      },
+      {
+        "aria": "Add section below",
+        "classes": "p-1 text-slate-300 hover:text-emerald-500 transition-colors",
+        "disabled": false,
+        "testid": null,
+        "text": ""
+      },
+      {
+        "aria": "Collapse lesson 5",
+        "classes": "p-0.5 text-indigo-400 hover:text-indigo-600 dark:text-indigo-500 dark:hover:text-indigo-300 transition-colors flex-shrink-0",
+        "disabled": false,
+        "testid": null,
+        "text": ""
+      },
+      {
+        "aria": "Move lesson up",
+        "classes": "p-0.5 text-slate-300 hover:text-indigo-500 transition-colors",
+        "disabled": false,
+        "testid": null,
+        "text": ""
+      },
+      {
+        "aria": "Move lesson down",
+        "classes": "p-0.5 text-slate-300 hover:text-indigo-500 transition-colors",
+        "disabled": false,
+        "testid": null,
+        "text": ""
+      },
+      {
+        "aria": "Delete lesson",
+        "classes": "p-0.5 text-slate-300 hover:text-red-400 transition-colors",
+        "disabled": false,
+        "testid": null,
+        "text": ""
+      },
+      {
+        "aria": "Open \"Functions and decomposition partner review: execute a peer snippet and record one test result plus revision advice.\" in Assignment Briefs",
+        "classes": "group inline text-left font-medium text-indigo-600 hover:text-indigo-800 hover:underline decoration-indigo-300 underline-offset-2 transition-colors duration-150",
+        "disabled": false,
+        "testid": null,
+        "text": "Functions and decomposition partner review: execute a peer snippet and record one test result plus revision advice."
+      },
+      {
+        "aria": "Add section below",
+        "classes": "p-1 text-slate-300 hover:text-emerald-500 transition-colors",
+        "disabled": false,
+        "testid": null,
+        "text": ""
+      },
+      {
+        "aria": "Collapse lesson 6",
+        "classes": "p-0.5 text-indigo-400 hover:text-indigo-600 dark:text-indigo-500 dark:hover:text-indigo-300 transition-colors flex-shrink-0",
+        "disabled": false,
+        "testid": null,
+        "text": ""
+      },
+      {
+        "aria": "Move lesson up",
+        "classes": "p-0.5 text-slate-300 hover:text-indigo-500 transition-colors",
+        "disabled": false,
+        "testid": null,
+        "text": ""
+      },
+      {
+        "aria": "Move lesson down",
+        "classes": "p-0.5 text-slate-300 hover:text-indigo-500 transition-colors",
+        "disabled": false,
+        "testid": null,
+        "text": ""
+      },
+      {
+        "aria": "Delete lesson",
+        "classes": "p-0.5 text-slate-300 hover:text-red-400 transition-colors",
+        "disabled": false,
+        "testid": null,
+        "text": ""
+      },
+      {
+        "aria": "Open \"Lists and sequence processing transfer task: adapt the pattern to a new input and explain what stayed invariant.\" in Assignment Briefs",
+        "classes": "group inline text-left font-medium text-indigo-600 hover:text-indigo-800 hover:underline decoration-indigo-300 underline-offset-2 transition-colors duration-150",
+        "disabled": false,
+        "testid": null,
+        "text": "Lists and sequence processing transfer task: adapt the pattern to a new input and explain what stayed invariant."
+      },
+      {
+        "aria": "Add section below",
+        "classes": "p-1 text-slate-300 hover:text-emerald-500 transition-colors",
+        "disabled": false,
+        "testid": null,
+        "text": ""
+      },
+      {
+        "aria": "Collapse lesson 7",
+        "classes": "p-0.5 text-indigo-400 hover:text-indigo-600 dark:text-indigo-500 dark:hover:text-indigo-300 transition-colors flex-shrink-0",
+        "disabled": false,
+        "testid": null,
+        "text": ""
+      },
+      {
+        "aria": "Move lesson up",
+        "classes": "p-0.5 text-slate-300 hover:text-indigo-500 transition-colors",
+        "disabled": false,
+        "testid": null,
+        "text": ""
+      },
+      {
+        "aria": "Move lesson down",
+        "classes": "p-0.5 text-slate-300 hover:text-indigo-500 transition-colors",
+        "disabled": false,
+        "testid": null,
+        "text": ""
+      },
+      {
+        "aria": "Delete lesson",
+        "classes": "p-0.5 text-slate-300 hover:text-red-400 transition-colors",
+        "disabled": false,
+        "testid": null,
+        "text": ""
+      },
+      {
+        "aria": "Add section below",
+        "classes": "p-1 text-slate-300 hover:text-emerald-500 transition-colors",
+        "disabled": false,
+        "testid": null,
+        "text": ""
+      },
+      {
+        "aria": "Collapse lesson 8",
+        "classes": "p-0.5 text-indigo-400 hover:text-indigo-600 dark:text-indigo-500 dark:hover:text-indigo-300 transition-colors flex-shrink-0",
+        "disabled": false,
+        "testid": null,
+        "text": ""
+      },
+      {
+        "aria": "Move lesson up",
+        "classes": "p-0.5 text-slate-300 hover:text-indigo-500 transition-colors",
+        "disabled": false,
+        "testid": null,
+        "text": ""
+      },
+      {
+        "aria": "Move lesson down",
+        "classes": "p-0.5 text-slate-300 hover:text-indigo-500 transition-colors",
+        "disabled": false,
+        "testid": null,
+        "text": ""
+      }
+    ]
+  }
+}
