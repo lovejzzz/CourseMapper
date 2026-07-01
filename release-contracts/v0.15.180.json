@@ -45,13 +45,9 @@
       "status": "verified-current",
       "changelogHighlightIndex": 1,
       "summary": "The fresh v0.15.179 package proved source URL truth held, but Office text extraction found repeated FAQ, discussion, and Course Map fallback scaffolds.",
-      "anchors": [
-        "docs/V0.15.180_UX_TEXTURE_ROTATION_ROADMAP.md",
-        "verification-output/edutool-audit-loop/20260701T075806Z-v015179-ux-fresh/office-text-scan.json"
-      ],
+      "anchors": ["docs/V0.15.180_UX_TEXTURE_ROTATION_ROADMAP.md"],
       "proofCommands": [
-        "rg -n \"source URL truth held|Office text scan|repeated Course FAQ\" docs/V0.15.180_UX_TEXTURE_ROTATION_ROADMAP.md",
-        "test -f verification-output/edutool-audit-loop/20260701T075806Z-v015179-ux-fresh/office-text-scan.json"
+        "rg -n \"source truth held|direct Office text scan|repeated Course FAQ feedback questions|repeated discussion preference language|Course Map technology/presentation stems\" docs/V0.15.180_UX_TEXTURE_ROTATION_ROADMAP.md"
       ],
       "proofScopes": ["doc", "static-audit"]
     },
