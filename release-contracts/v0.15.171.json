@@ -1,0 +1,99 @@
+{
+  "version": "0.15.171",
+  "date": "July 1, 2026",
+  "title": "Python Assessment Shingle Repair: objective labels cannot block export",
+  "status": "verified-current",
+  "proofSummary": {
+    "local": ["npx vitest run tests/v0141-phase1-finalizer.test.js"],
+    "ciFast": {
+      "status": "pending-push",
+      "note": "Fast verification is claimed only after v0.15.171 is pushed and the GitHub Actions run is attached."
+    },
+    "deploy": {
+      "status": "pending-push",
+      "note": "Pages deploy is not claimed until the pushed v0.15.171 release completes its deploy run."
+    },
+    "ciDeep": {
+      "status": "local-only",
+      "note": "This is a narrow compiler/export content-quality repair; focused coverage plus normal gates are the release bar."
+    },
+    "liveProvider": {
+      "status": "not-current",
+      "note": "Fresh v0.15.170 browser evidence justified the fix. A fresh v0.15.171 ZIP/log audit is still required after deploy."
+    },
+    "manualHuman": {
+      "status": "not-applicable",
+      "note": "No external instructor approval is claimed by this release."
+    }
+  },
+  "claims": [
+    {
+      "id": "v015171-blocked-python-shingle-evidence",
+      "status": "verified-current",
+      "changelogHighlightIndex": 0,
+      "summary": "The release is grounded in fresh deployed v0.15.170 Python browser evidence where the prior slide P1 cleared and quality reached 100/A, but export still blocked before ZIP on two repeated rendered-text warnings.",
+      "anchors": [
+        "verification-output/edutool-audit-loop/20260701T005400Z-v015170-fresh-blocked/report.md",
+        "verification-output/edutool-audit-loop/20260701T005400Z-v015170-fresh-blocked/digest.json",
+        "src/lib/releaseManifest.js"
+      ],
+      "proofCommands": [
+        "rg -n \"digest quality|100/100|Rendered text repeats|analyze file processing code for line by line|slide-deck P1 appears fixed\" verification-output/edutool-audit-loop/20260701T005400Z-v015170-fresh-blocked/report.md"
+      ],
+      "proofScopes": ["live-provider", "browser-live", "static-audit"]
+    },
+    {
+      "id": "v015171-objective-label-compaction",
+      "status": "verified-current",
+      "changelogHighlightIndex": 1,
+      "summary": "Objective-shaped Python assessment text now compacts into short artifact labels before assignment, discussion, rubric, and filename fanout.",
+      "anchors": ["src/lib/courseBlueprintCompiler.js", "tests/v0141-phase1-finalizer.test.js"],
+      "proofCommands": [
+        "npx vitest run tests/v0141-phase1-finalizer.test.js",
+        "rg -n \"compactObjectiveLikeAssessmentLabel|File-processing code trace|objective-shaped Python assessment\" src/lib/courseBlueprintCompiler.js tests/v0141-phase1-finalizer.test.js"
+      ],
+      "proofScopes": ["unit", "static-audit"]
+    },
+    {
+      "id": "v015171-rendered-shingle-repair",
+      "status": "verified-current",
+      "changelogHighlightIndex": 2,
+      "summary": "The deterministic content-quality repair pass detects repeated 8-word rendered-text shingles and replaces excess programming shingles before Office export verification.",
+      "anchors": ["src/lib/contentQualityRepair.js", "tests/v0141-phase1-finalizer.test.js"],
+      "proofCommands": [
+        "npx vitest run tests/v0141-phase1-finalizer.test.js",
+        "rg -n \"PHRASE_SHINGLE_SIZE|repairRepeatedPhraseNode|repairs repeated Python rendered-text shingles\" src/lib/contentQualityRepair.js tests/v0141-phase1-finalizer.test.js"
+      ],
+      "proofScopes": ["unit", "static-audit"]
+    },
+    {
+      "id": "v015171-provenance-preserved",
+      "status": "verified-current",
+      "changelogHighlightIndex": 3,
+      "summary": "Provenance and source-trace mirror fields are skipped by the repair walker so the raw model/course-map objective remains available for audit.",
+      "anchors": ["src/lib/contentQualityRepair.js", "tests/v0141-phase1-finalizer.test.js"],
+      "proofCommands": [
+        "rg -n \"isProvenanceMirrorKey|sourceTrace|original raw course-map objective|provenance\" src/lib/contentQualityRepair.js tests/v0141-phase1-finalizer.test.js"
+      ],
+      "proofScopes": ["unit", "static-audit"]
+    },
+    {
+      "id": "v015171-no-clean-provider-claim",
+      "status": "verified-current",
+      "changelogHighlightIndex": 4,
+      "summary": "The release explicitly does not claim a fresh clean ZIP score; deployed v0.15.171 still needs a GPT-5.4-mini ZIP/log audit.",
+      "anchors": ["docs/V0.15.171_ASSESSMENT_SHINGLE_REPAIR_ROADMAP.md", "release-contracts/v0.15.171.json"],
+      "proofCommands": [
+        "rg -n \"may not claim|fresh v0.15.171|ZIP/log audit\" docs/V0.15.171_ASSESSMENT_SHINGLE_REPAIR_ROADMAP.md release-contracts/v0.15.171.json"
+      ],
+      "proofScopes": ["doc", "static-audit"]
+    }
+  ],
+  "knownRemainingTargets": [
+    "Fresh deployed v0.15.171 GPT-5.4-mini ZIP/log proof must verify the repeated assignment/discussion shingle repair in real provider output.",
+    "Source/genome proof remains incomplete when the digest reports 0/12 genome coverage and 0 concept-linked citations.",
+    "Texture below 100 remains a strict-clean target even when structural quality reaches 100/A.",
+    "All export surfaces must agree before any clean score is claimed.",
+    "Finish-stage retry behavior still needs provider proof when deterministic repairs leave known repairable quality findings."
+  ]
+}

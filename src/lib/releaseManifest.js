@@ -3,24 +3,24 @@ import { APP_VERSION } from './appVersion.js';
 export const CURRENT_RELEASE = {
   version: APP_VERSION,
   date: 'July 1, 2026',
-  title: 'Slide Deck Content Floor: sparse kernel decks get teaching slides',
-  landingTitle: 'Slide Content Floor',
+  title: 'Python Assessment Shingle Repair: objective labels cannot block export',
+  landingTitle: 'Assessment Shingle Repair',
   highlights: [
-    'Fresh deployed v0.15.169 GPT-5.4-mini Python browser evidence blocked before ZIP export with Quality 98/A, Texture 92, 1 P1, no browser warnings, and repaired final Course Map topics; the remaining blocker was enriched slide decks averaging only 3.1 content-bearing slides.',
-    'Kernel/depth-marked slide decks now run a deterministic content-floor guard after worked-example and pitfalls insertion, adding lesson-specific concept-trace, boundary-check, transfer-check, and source-check teaching slides when the instructional body is thin.',
-    'The guard counts lesson-title and key-concept vocabulary rather than broad artifact/objective words, so title, agenda, objective, and bridge scaffolds cannot satisfy the teaching-content floor by accident.',
-    'Deterministic content-floor slides preserve their authored bullets and speaker notes through the same passthrough path as existing kernel worked-example and common-pitfalls slides.',
-    'This release does not claim a clean ZIP score; the next deployed GPT-5.4-mini audit should verify v0.15.170 exports or blocks honestly and clears the slide-deck content-bearing P1.',
+    'Fresh deployed v0.15.170 GPT-5.4-mini Python browser evidence showed real progress: the prior slide-deck P1 cleared and digest quality reached 100/A, but the package still blocked before ZIP download on two rendered-text export warnings.',
+    'Objective-shaped Python assessment text such as `Analyze file processing code for line-by-line...` now compacts into a short artifact label like `File-processing code trace` before it fans out through assignments, discussions, rubrics, and filenames.',
+    'The deterministic content-quality repair pass now detects repeated 8-word rendered-text shingles inside compiled deliverables and replaces excess programming shingles with lesson-specific alternatives before Office export verification runs.',
+    'Source-trace and provenance fields keep the original raw course-map objective text, so the repair improves exported student/instructor materials without hiding what the model or course map supplied.',
+    'This release does not claim a clean ZIP score; the next deployed GPT-5.4-mini audit should verify v0.15.171 exports honestly, clears the repeated assignment/discussion shingle blocker, and still reports source/genome caveats truthfully.',
   ],
   landingHighlights: [
-    'Sparse kernel decks get concrete teaching slides.',
-    'Scaffold slides cannot satisfy the content floor.',
-    'The regression pins the fresh Python blocker shape.',
-    'The next live audit must prove the blocker is gone.',
+    'Long objective labels become compact artifacts.',
+    'Repeated export shingles repair before DOCX/PPTX checks.',
+    'Provenance still preserves the raw source text.',
+    'The next live audit must prove export is clean.',
   ],
   proof: {
-    contract: 'release-contracts/v0.15.170.json',
-    roadmap: 'docs/V0.15.170_SLIDE_DECK_CONTENT_FLOOR_ROADMAP.md',
+    contract: 'release-contracts/v0.15.171.json',
+    roadmap: 'docs/V0.15.171_ASSESSMENT_SHINGLE_REPAIR_ROADMAP.md',
     auditCommand: 'npm run audit:release-history',
   },
 };
@@ -35,6 +35,18 @@ export const CURRENT_RELEASE_CHANGELOG = {
 };
 
 export const HISTORICAL_RELEASE_CHANGELOGS = [
+  {
+    version: '0.15.170',
+    date: 'July 1, 2026',
+    title: 'Slide Deck Content Floor: sparse kernel decks get teaching slides',
+    highlights: [
+      'Fresh deployed v0.15.169 GPT-5.4-mini Python browser evidence blocked before ZIP export with Quality 98/A, Texture 92, 1 P1, no browser warnings, and repaired final Course Map topics; the remaining blocker was enriched slide decks averaging only 3.1 content-bearing slides.',
+      'Kernel/depth-marked slide decks now run a deterministic content-floor guard after worked-example and pitfalls insertion, adding lesson-specific concept-trace, boundary-check, transfer-check, and source-check teaching slides when the instructional body is thin.',
+      'The guard counts lesson-title and key-concept vocabulary rather than broad artifact/objective words, so title, agenda, objective, and bridge scaffolds cannot satisfy the teaching-content floor by accident.',
+      'Deterministic content-floor slides preserve their authored bullets and speaker notes through the same passthrough path as existing kernel worked-example and common-pitfalls slides.',
+      'This release does not claim a clean ZIP score; the next deployed GPT-5.4-mini audit should verify v0.15.170 exports or blocks honestly and clears the slide-deck content-bearing P1.',
+    ],
+  },
   {
     version: '0.15.169',
     date: 'June 30, 2026',

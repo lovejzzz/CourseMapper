@@ -4275,9 +4275,46 @@ function buildSourceUsePlan({ title, concepts, resources, evidencePlan, artifact
 function assessmentTaskLabel(value, fallback = 'Weekly artifact') {
   const text = stripTerminalPunctuation(value || fallback);
   if (!text) return fallback;
+  const objectiveLabel = compactObjectiveLikeAssessmentLabel(text);
+  if (objectiveLabel) return objectiveLabel;
   const colonIndex = text.indexOf(':');
   const label = colonIndex > 4 && colonIndex <= 64 ? text.slice(0, colonIndex) : conciseClause(text, fallback, 54);
   return sentenceCase(label);
+}
+
+const OBJECTIVE_LIKE_ASSESSMENT_LABEL_RE =
+  /^(?:analy[sz]e|apply|assess|build|compare|create|debug|describe|design|develop|evaluate|explain|identify|implement|interpret|justify|select|trace|use|write)\b/i;
+const PROGRAMMING_ASSESSMENT_LABEL_RE =
+  /\b(?:python|code|program|debug|trace|input|output|file|module|librar(?:y|ies)|loop|function|list|dictionary|variable|conditional|algorithm)\b/i;
+
+function compactObjectiveLikeAssessmentLabel(value) {
+  const raw = stripTerminalPunctuation(cleanText(value));
+  if (!raw || wordCount(raw) < 7 || !OBJECTIVE_LIKE_ASSESSMENT_LABEL_RE.test(raw) || /:/.test(raw)) return '';
+  let body = raw
+    .replace(OBJECTIVE_LIKE_ASSESSMENT_LABEL_RE, '')
+    .replace(/^\s+(?:how\s+to|how|the|a|an|one)\s+/i, ' ')
+    .replace(/\bfor\s+line[-\s]+by[-\s]+line\b/gi, 'line-by-line')
+    .replace(/\bline\s+by\s+line\b/gi, 'line-by-line')
+    .replace(/\binput\s+and\s+output\b/gi, 'input/output')
+    .replace(/\s+/g, ' ')
+    .trim();
+  if (!body) return '';
+  const lower = body.toLowerCase();
+  if (PROGRAMMING_ASSESSMENT_LABEL_RE.test(raw)) {
+    if (/\bfile[-\s]+processing\b/.test(lower) || (/\bfile\b/.test(lower) && /\bline-by-line\b/.test(lower))) {
+      return 'File-processing code trace';
+    }
+    if (/\bmodules?\b/.test(lower) && /\blibrar(?:y|ies)\b/.test(lower)) return 'Modules and libraries practice';
+    if (/\bdebug/.test(lower)) return 'Debugging checkpoint';
+    if (/\bloops?\b/.test(lower)) return 'Loop tracing lab';
+    if (/\bfunctions?\b/.test(lower)) return 'Function practice lab';
+    if (/\blists?\b/.test(lower)) return 'List processing lab';
+    if (/\bdictionar(?:y|ies)\b/.test(lower)) return 'Dictionary practice lab';
+    const cue = compactSourceCue(body, 'Python code', 4);
+    return sentenceCase(`${cue} practice`);
+  }
+  const cue = compactSourceCue(body, '', 5);
+  return cue ? sentenceCase(`${cue} practice`) : '';
 }
 
 function buildStudentArtifactLabel(assessmentText, title, fallback) {

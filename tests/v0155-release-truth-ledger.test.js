@@ -6,7 +6,7 @@ import { LATEST_RELEASE } from '../src/lib/latestRelease';
 
 describe('current release truth ledger', () => {
   it('keeps current release surfaces on the same manifest version', () => {
-    expect(APP_VERSION).toBe('0.15.170');
+    expect(APP_VERSION).toBe('0.15.171');
     expect(CURRENT_RELEASE.version).toBe(APP_VERSION);
     expect(CURRENT_RELEASE_CHANGELOG.version).toBe(APP_VERSION);
     expect(LATEST_RELEASE.version).toBe(APP_VERSION);

@@ -15,9 +15,11 @@ import { describe, expect, it } from 'vitest';
 
 import { finalizeCompiledDeliverableLanguage } from '../src/lib/compiledLanguageFinalizer';
 import { buildCourseBlueprint, compileBlueprintDeliverables } from '../src/lib/courseBlueprintCompiler';
+import { repairDeliverableContentQuality } from '../src/lib/contentQualityRepair';
 import { deriveCompilerOwnedColumns, expandLeanCourseMap, expandLeanSectionField } from '../src/lib/leanCourseMap';
 import { repairCourseMapReadiness } from '../src/lib/deliverableReadiness';
 import { deriveCourseGraphFromCourseMap } from '../src/lib/courseGraph';
+import { verifyPackageExports } from '../src/lib/packageExportVerifier';
 
 const OBJECTIVE_COLUMNS = [
   { key: 'learningObjectives', label: 'Learning Objectives', enabled: true },
@@ -667,6 +669,75 @@ describe('1.16 — prompt artifact labels never become course-map concepts', () 
     expect(evaluateText).not.toMatch(/\brunnable Python artifact or trace\b/i);
     expect(evaluateText).not.toMatch(/\bsame input\/output evidence used in grading\b/i);
   }, 15000);
+
+  it('compacts objective-shaped Python assessment labels before they fan out into assignments and discussions', async () => {
+    const livePhrase = 'Analyze file processing code for line-by-line input handling and explain the test output';
+    const courseMap = {
+      courseName: 'Introduction to Computer Science with Python',
+      lessons: [
+        {
+          title: 'Lesson 1: File processing',
+          sections: [
+            {
+              topicSection: '1.1: file processing',
+              learningGoals: 'Use file input to inspect program behavior.',
+              learningObjectives: livePhrase,
+              weeklyAssessments: livePhrase,
+              asyncActivities: 'Read a Python file-processing example and predict the output.',
+              syncActivities: 'Debug a file-reading snippet in pairs.',
+              supportingResources: 'Python file processing notes and starter code.',
+              evaluateDesign: 'Check that students submit code, output, and a short explanation.',
+            },
+          ],
+        },
+      ],
+    };
+
+    const blueprint = buildCourseBlueprint(courseMap);
+    expect(blueprint.lessons[0].studentArtifact).toBe('File-processing code trace');
+
+    const compiled = compileBlueprintDeliverables(blueprint, ['assignments', 'discussions']);
+    expect(compiled.assignments.assignments[0].title).toBe('File-processing code trace');
+    expect(compiled.discussions.discussions[0].prompt.toLowerCase()).not.toContain(
+      'analyze file processing code for line-by-line',
+    );
+
+    const verification = await verifyPackageExports({
+      courseMap,
+      deliverables: {
+        assignments: { status: 'done', data: compiled.assignments },
+        discussions: { status: 'done', data: compiled.discussions },
+      },
+      selectedFeatures: ['assignments', 'discussions'],
+    });
+    expect(verification.checks.filter((check) => /Rendered text repeats/i.test(check.message))).toEqual([]);
+  }, 15000);
+
+  it('repairs repeated Python rendered-text shingles that survive compilation', () => {
+    const repeated = 'Analyze file processing code for line by line';
+    const data = {
+      assignments: [
+        {
+          title: 'File processing lab',
+          overview: Array.from(
+            { length: 12 },
+            () => `Students ${repeated} input handling and submit output evidence.`,
+          ).join(' '),
+          instructions: Array.from({ length: 4 }, () => `Use ${repeated} evidence in the explanation.`),
+        },
+      ],
+    };
+
+    const result = repairDeliverableContentQuality('assignments', data);
+    const text = JSON.stringify(result.data).toLowerCase();
+    const remaining = (text.match(/analyze file processing code for line by line/g) || []).length;
+
+    expect(result.changed).toBe(true);
+    expect(result.repeatedPhrase).toBe(repeated.toLowerCase());
+    expect(result.repairedPhrases).toBeGreaterThan(0);
+    expect(remaining).toBeLessThan(12);
+    expect(text).toMatch(/file-processing code trace|debugging checkpoint|program-output check/);
+  });
 
   it('repairs assessment-label course-title identities before they seed filenames and source concepts', () => {
     const assessmentLabels = [
