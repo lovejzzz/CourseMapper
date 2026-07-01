@@ -12,7 +12,10 @@ globalThis.IS_REACT_ACT_ENVIRONMENT = true;
 vi.mock('../MessageList', () => ({ default: () => <div data-testid="messages" /> }));
 vi.mock('../ChatInput', () => ({ default: () => <div data-testid="chat-input" /> }));
 vi.mock('../PackageSummaryCard', () => ({ default: () => <div data-testid="package-summary" /> }));
-vi.mock('../CustomToolsMenu', () => ({ default: () => <div data-testid="custom-tools" /> }));
+vi.mock('../CustomToolsMenu', () => ({
+  default: ({ tools = [], syncError = null }) =>
+    tools?.length || syncError ? <div data-testid="custom-tools" /> : null,
+}));
 vi.mock('../../ExamReview', () => ({ default: () => <div data-testid="exam-review" /> }));
 vi.mock('../../../contexts/AIConfigContext', () => ({
   useAIConfig: () => ({

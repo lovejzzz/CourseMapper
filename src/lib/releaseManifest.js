@@ -3,24 +3,26 @@ import { APP_VERSION } from './appVersion.js';
 export const CURRENT_RELEASE = {
   version: APP_VERSION,
   date: 'July 1, 2026',
-  title: 'No-Derivatives Source Trust: ND licenses require review',
-  landingTitle: 'No-Derivatives Source Trust',
+  title: 'Package Handoff Cleanup: Agent notes stop duplicating export state',
+  landingTitle: 'Package Handoff Cleanup',
   highlights: [
-    'Creative Commons no-derivatives licenses such as `CC BY-NC-ND 4.0` and `by-nc-nd` URLs are now review-required source proof, not trusted reusable bibliography proof.',
-    'Trusted source-ledger rows still require URL or DOI access, concept links, topical relevance, and a license that is safe for editable generated teaching materials.',
-    'The source-ledger regression now covers both no-derivatives license labels and Creative Commons no-derivatives URLs, so either form fails the trusted-row gate.',
-    'The UX false-friend source regression now uses a derivative-safe valid control row, keeping topical relevance and license safety tested independently.',
-    'Fresh deployed audit remains required after Pages serves v0.15.183 before claiming real provider output keeps sources trusted only when they are accessible, on-topic, linked, and license-safe.',
+    'Caveated downloadable Agent receipts now present as `Package notes` with `Notes saved`, so the Agent panel owns the explanation while the export panel keeps the compact `Ready with notes` state.',
+    'Direct finish responses now say package notes were saved in the Agent panel or report instead of repeating `Download is available` copy already owned by the export action.',
+    'ChatPanel tests now mirror production behavior: the custom-tools header affordance stays hidden when there are zero tools and no sync error.',
+    'The export panel remains action-first: amber `Ready with notes`, grade stamp, scope, and Download ZIP, without the longer Agent receipt copy.',
+    'The no-derivatives source-trust hardening from v0.15.183 remains part of the current release baseline while the handoff UI is cleaned up.',
+    'Vitest now has a repo-level timeout that lets heavy compiler fixtures finish under full-suite parallel load without changing their assertions.',
   ],
   landingHighlights: [
-    'No-derivatives licenses require review.',
-    'Trusted sources must be license-safe.',
-    'Source truth is stricter before export.',
+    'Agent notes stop duplicating export state.',
+    'Zero custom tools stay hidden.',
+    'Export stays compact and action-first.',
+    'Full-suite test timing is less flaky.',
     'Fresh provider proof remains the next gate.',
   ],
   proof: {
-    contract: 'release-contracts/v0.15.183.json',
-    roadmap: 'docs/V0.15.183_NO_DERIVATIVES_SOURCE_TRUST_ROADMAP.md',
+    contract: 'release-contracts/v0.15.184.json',
+    roadmap: 'docs/V0.15.184_PACKAGE_HANDOFF_CLEANUP_ROADMAP.md',
     auditCommand: 'npm run audit:release-history',
   },
 };
@@ -35,6 +37,18 @@ export const CURRENT_RELEASE_CHANGELOG = {
 };
 
 export const HISTORICAL_RELEASE_CHANGELOGS = [
+  {
+    version: '0.15.183',
+    date: 'July 1, 2026',
+    title: 'No-Derivatives Source Trust: ND licenses require review',
+    highlights: [
+      'Creative Commons no-derivatives licenses such as `CC BY-NC-ND 4.0` and `by-nc-nd` URLs are now review-required source proof, not trusted reusable bibliography proof.',
+      'Trusted source-ledger rows still require URL or DOI access, concept links, topical relevance, and a license that is safe for editable generated teaching materials.',
+      'The source-ledger regression now covers both no-derivatives license labels and Creative Commons no-derivatives URLs, so either form fails the trusted-row gate.',
+      'The UX false-friend source regression now uses a derivative-safe valid control row, keeping topical relevance and license safety tested independently.',
+      'Fresh deployed audit remains required after Pages serves v0.15.183 before claiming real provider output keeps sources trusted only when they are accessible, on-topic, linked, and license-safe.',
+    ],
+  },
   {
     version: '0.15.182',
     date: 'July 1, 2026',

@@ -118,7 +118,7 @@ describe('PackageSummaryCard', () => {
     expect(html).not.toContain('Confirm the official grading weight.');
   });
 
-  it('shows caveated downloadable packages as review before download', () => {
+  it('shows caveated downloadable packages as agent-owned package notes', () => {
     const html = renderToStaticMarkup(
       <PackageSummaryCard
         summary={{
@@ -126,7 +126,7 @@ describe('PackageSummaryCard', () => {
           tone: 'assumptions',
           ready: false,
           downloadable: true,
-          nextAction: 'Download is ready. Review notes are saved for the instructor before publishing.',
+          nextAction: 'Review notes are saved in the Agent panel and package report before publishing.',
           repairsApplied: 0,
           blockerCount: 0,
           warningCount: 3,
@@ -141,11 +141,12 @@ describe('PackageSummaryCard', () => {
       />,
     );
 
-    expect(html).toContain('Ready with notes');
-    expect(html).toContain('Review notes');
+    expect(html).toContain('Package notes');
+    expect(html).toContain('Notes saved');
     expect(html).toContain('3 review notes');
     expect(html).toContain('1 export note');
-    expect(html).toContain('Download is ready. Review notes are saved');
+    expect(html).toContain('Review notes are saved here and in the package report');
+    expect(html).not.toContain('Download is ready');
     expect(html).not.toContain('Ready to download');
     expect(html).not.toContain('Done');
     expect(html).not.toContain('Generated content needs instructor review.');

@@ -58,7 +58,10 @@ vi.mock('../ProgressHeader', () => ({
     return <div data-testid="progress-header" />;
   },
 }));
-vi.mock('../CustomToolsMenu', () => ({ default: () => <div data-testid="custom-tools" /> }));
+vi.mock('../CustomToolsMenu', () => ({
+  default: ({ tools = [], syncError = null }) =>
+    tools?.length || syncError ? <div data-testid="custom-tools" /> : null,
+}));
 vi.mock('../../ExamReview', () => ({ default: () => <div data-testid="exam-review" /> }));
 vi.mock('../../ModelConfig', () => ({ default: () => <div data-testid="model-config" /> }));
 vi.mock('../../../contexts/AIConfigContext', () => ({
@@ -308,6 +311,12 @@ describe('ChatPanel agent command strip', () => {
         agentPromptOverride: expect.stringContaining('Apply safe changes directly'),
       }),
     );
+  });
+
+  it('hides the custom-tools header affordance when no custom tools exist', () => {
+    root = renderChatPanel(container);
+
+    expect(container.querySelector('[data-testid="custom-tools"]')).toBeNull();
   });
 
   it('renders the package quality receipt as the newest conversation message', () => {
@@ -726,7 +735,7 @@ describe('ChatPanel agent command strip', () => {
       }),
       {
         role: 'assistant',
-        text: 'Ready with notes. Download is available, and the package report keeps the remaining review notes.',
+        text: 'Package notes saved. Review them in the Agent panel or package report before publishing.',
       },
       expect.objectContaining({
         role: 'packageSummary',
@@ -802,7 +811,7 @@ describe('ChatPanel agent command strip', () => {
       }),
       {
         role: 'assistant',
-        text: 'Ready with notes. Download is available, and the package report keeps the remaining review notes.',
+        text: 'Package notes saved. Review them in the Agent panel or package report before publishing.',
       },
       expect.objectContaining({
         role: 'packageSummary',
@@ -1308,7 +1317,7 @@ describe('ChatPanel agent command strip', () => {
       }),
       {
         role: 'assistant',
-        text: 'Ready with notes. Download is available, and the package report keeps the remaining review notes.',
+        text: 'Package notes saved. Review them in the Agent panel or package report before publishing.',
       },
       expect.objectContaining({
         role: 'packageSummary',

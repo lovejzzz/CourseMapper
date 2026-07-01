@@ -52,9 +52,9 @@ export default function PackageSummaryCard({ summary, embedded = false }) {
   const outcomeTitle = summary.ready
     ? 'Ready to download'
     : summary.downloadable
-      ? 'Ready with notes'
+      ? 'Package notes'
       : 'Review before export';
-  const badgeText = summary.ready ? 'Done' : summary.tone === 'blocked' ? 'Action needed' : 'Review notes';
+  const badgeText = summary.ready ? 'Done' : summary.tone === 'blocked' ? 'Action needed' : 'Notes saved';
   const repairText =
     summary.repairsApplied > 0
       ? `${summary.repairsApplied} safe repair${summary.repairsApplied === 1 ? '' : 's'} applied`
@@ -92,7 +92,7 @@ export default function PackageSummaryCard({ summary, embedded = false }) {
   const statusText = summary.ready
     ? `${summary.checkedSections || 'All selected'} materials checked — download anytime.`
     : summary.downloadable
-      ? 'Download is ready. Review notes are saved for the instructor before publishing.'
+      ? 'Review notes are saved here and in the package report before publishing.'
       : summary.nextAction || 'Review the items below before export.';
   const reviewText = summary.ready
     ? 'Before class, confirm dates, policies, and official readings.'
