@@ -3,24 +3,24 @@ import { APP_VERSION } from './appVersion.js';
 export const CURRENT_RELEASE = {
   version: APP_VERSION,
   date: 'July 1, 2026',
-  title: 'Source Review Truth: rejected retrieval candidates stay visible',
-  landingTitle: 'Source Review Truth',
+  title: 'Source URL Truth: parenthesized proof links stay valid',
+  landingTitle: 'Source URL Truth',
   highlights: [
-    'Fresh v0.15.175 and v0.15.176 audit evidence showed the same source-truth pattern: rows can be real and licensed while still being metadata-only, artifact-linked, or off-topic for the course.',
-    'Source-finder candidates still cannot become trusted sourceLedger proof unless they are accessible, license-safe, concept-linked, and on-topic for the course domain.',
-    'When source-finder retrieval produces only rejected candidates for a topic and no trusted proof exists, the best rejected candidates now export as sourceReviewRows instead of disappearing from the manifest and SOURCE_REPORT.',
-    'If trusted source proof exists, rejected source-finder bycatch remains suppressed so the export and Agent notes do not fill with duplicate internal warning clutter.',
-    'Focused source-ledger, export, and source-grader regressions prove metadata-only OpenLibrary rows and the live CS/Python Session software false friend stay out of trusted proof while remaining visible as review evidence when needed.',
+    'Fresh deployed v0.15.178 GPT-5.4-mini UX ZIP/log evidence exported visibly at Quality 100, Texture 95 and locally regraded 100/A with zero P0/P1/P2 findings.',
+    'That same clean package exposed a source-truth edge: a syllabus-derived Persona reading duplicated a valid source-finder row while truncating the parenthesized Wikipedia URL and still counted as trusted sourceLedger proof.',
+    'Source URL extraction now preserves balanced parenthesized links such as `Persona_(user_experience)` while still trimming surplus trailing punctuation from prose and markdown contexts.',
+    'The deep quality source-ledger grader now flags malformed trusted URL proof as a P2 citation finding, so broken links cannot silently count as accessible source evidence.',
+    'Focused ZIP-exporter and source-grader regressions pin the live UX Persona failure shape without weakening source standards, report standards, or the 100/100 quality bar.',
   ],
   landingHighlights: [
-    'Rejected source-finder rows stay review-only.',
-    'Trusted source proof still requires accessible, licensed, on-topic concept links.',
-    'Metadata-only and false-friend rows explain source gaps without inflating citations.',
-    'Rejected bycatch stays out when trusted proof already exists.',
+    'Balanced Wikipedia-style source URLs stay intact.',
+    'Malformed trusted links become citation findings.',
+    'Duplicate syllabus/source-finder proof dedupes cleanly.',
+    'Clean ZIP claims still require source-report agreement.',
   ],
   proof: {
-    contract: 'release-contracts/v0.15.178.json',
-    roadmap: 'docs/V0.15.178_SOURCE_REVIEW_TRUTH_ROADMAP.md',
+    contract: 'release-contracts/v0.15.179.json',
+    roadmap: 'docs/V0.15.179_SOURCE_URL_TRUTH_ROADMAP.md',
     auditCommand: 'npm run audit:release-history',
   },
 };
@@ -35,6 +35,18 @@ export const CURRENT_RELEASE_CHANGELOG = {
 };
 
 export const HISTORICAL_RELEASE_CHANGELOGS = [
+  {
+    version: '0.15.178',
+    date: 'July 1, 2026',
+    title: 'Source Review Truth: rejected retrieval candidates stay visible',
+    highlights: [
+      'Fresh v0.15.175 and v0.15.176 audit evidence showed the same source-truth pattern: rows can be real and licensed while still being metadata-only, artifact-linked, or off-topic for the course.',
+      'Source-finder candidates still cannot become trusted sourceLedger proof unless they are accessible, license-safe, concept-linked, and on-topic for the course domain.',
+      'When source-finder retrieval produces only rejected candidates for a topic and no trusted proof exists, the best rejected candidates now export as sourceReviewRows instead of disappearing from the manifest and SOURCE_REPORT.',
+      'If trusted source proof exists, rejected source-finder bycatch remains suppressed so the export and Agent notes do not fill with duplicate internal warning clutter.',
+      'Focused source-ledger, export, and source-grader regressions prove metadata-only OpenLibrary rows and the live CS/Python Session software false friend stay out of trusted proof while remaining visible as review evidence when needed.',
+    ],
+  },
   {
     version: '0.15.177',
     date: 'July 1, 2026',

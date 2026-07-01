@@ -173,17 +173,29 @@ function cleanText(value, maxLength = 500) {
     : text;
 }
 
-function cleanUrl(value) {
+function trimUrlPunctuation(value) {
   const text = cleanText(value, 600);
   if (!text) return '';
-  if (/^https?:\/\//i.test(text)) return text;
+  let url = text.replace(/[.,;:]+$/g, '');
+  while (url.endsWith(')')) {
+    const opens = (url.match(/\(/g) || []).length;
+    const closes = (url.match(/\)/g) || []).length;
+    if (closes <= opens) break;
+    url = url.slice(0, -1);
+  }
+  return url;
+}
+
+function cleanUrl(value) {
+  const url = trimUrlPunctuation(value);
+  if (/^https?:\/\//i.test(url)) return url;
   return '';
 }
 
 function extractUrl(value) {
   const text = cleanText(value, 1000);
-  const match = text.match(/https?:\/\/[^\s),;\]]+/i);
-  return match ? match[0].replace(/[.,;:]+$/g, '') : '';
+  const match = text.match(/https?:\/\/[^\s,;\]]+/i);
+  return match ? trimUrlPunctuation(match[0]) : '';
 }
 
 function extractLicenseUrl(value) {

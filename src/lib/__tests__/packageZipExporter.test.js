@@ -806,6 +806,141 @@ describe('packageZipExporter', () => {
     expect(sourceReport.match(/Prototyping/g)).toHaveLength(1);
   });
 
+  it('keeps parenthesized syllabus URLs intact and dedupes them against trusted source-finder rows', async () => {
+    const result = await buildCourseMaterialsZip({
+      courseMap: {
+        courseName: 'User Experience Design Studio',
+        lessons: [
+          {
+            title: 'Lesson 1: Personas',
+            sections: [
+              {
+                topicSection: 'user profiles and personas',
+                learningObjectives: 'Use persona evidence to explain user needs and scenarios.',
+              },
+            ],
+          },
+        ],
+      },
+      deliverables: {
+        syllabus: {
+          status: 'done',
+          data: {
+            syllabus: {
+              courseTitle: 'User Experience Design Studio',
+              weeklySchedule: [
+                {
+                  week: 'Week 1',
+                  topic: 'Personas',
+                  readings:
+                    'Wikipedia contributors. Persona (user experience). Wikipedia: https://en.wikipedia.org/wiki/Persona_(user_experience) (CC BY-SA 4.0)',
+                },
+              ],
+            },
+          },
+        },
+        lessonPlans: {
+          status: 'done',
+          data: {
+            lessonPlans: [{ lessonTitle: 'Lesson 1: Personas', objectives: ['Use personas with evidence.'] }],
+          },
+        },
+      },
+      featureIds: ['courseMap', 'syllabus', 'lessonPlans'],
+      courseGraph: {
+        course: { name: 'User Experience Design Studio' },
+        concepts: [
+          { id: 'c1', term: 'user profiles' },
+          { id: 'c2', term: 'needs' },
+          { id: 'c3', term: 'scenarios' },
+        ],
+        sessions: [
+          {
+            id: 's1',
+            number: 1,
+            title: 'Personas',
+            sections: [
+              {
+                id: 'sec1',
+                topic: 'user profiles and personas',
+                conceptRefs: ['c1', 'c2', 'c3'],
+                resourceRefs: [],
+              },
+            ],
+          },
+        ],
+        resources: [],
+        readings: [],
+        sourceFinderMiniShard: {
+          topics: [
+            {
+              lessonNumber: 1,
+              topic: 'personas',
+              sources: [
+                {
+                  id: 'sf1',
+                  title: 'Persona (user experience)',
+                  authors: ['Wikipedia contributors'],
+                  provider: 'wikipedia',
+                  kind: 'encyclopedia article',
+                  url: 'https://en.wikipedia.org/wiki/Persona_(user_experience)',
+                  license: 'CC BY-SA 4.0',
+                  snippet:
+                    'Personas are semi-fictional representations of users in user-centered design and UX research.',
+                },
+              ],
+            },
+          ],
+        },
+        courseIR: {
+          version: 'courseir.v1',
+          lessonIds: ['L1'],
+          conceptIds: ['C1', 'C2', 'C3'],
+          assessmentIds: ['A1'],
+          sourceLedger: [
+            {
+              id: 'SL1',
+              scope: 'course',
+              status: 'source-provided',
+              evidence: 'Existing course map fields.',
+              provider: 'courseir',
+            },
+          ],
+          sourceRefCoverage: {
+            sourceLedgerRows: 1,
+            categories: {
+              outcomes: { total: 3, withRefs: 3, missing: 0, danglingRefs: 0, missingIds: [] },
+              activities: { total: 3, withRefs: 3, missing: 0, danglingRefs: 0, missingIds: [] },
+              factualClaims: { total: 3, withRefs: 3, missing: 0, danglingRefs: 0 },
+            },
+            totals: { total: 9, withRefs: 9, missing: 0, danglingRefs: 0 },
+          },
+        },
+      },
+      quality: false,
+    });
+
+    const zip = await JSZip.loadAsync(await result.blob.arrayBuffer());
+    const manifest = JSON.parse(await zip.file('PACKAGE_MANIFEST.json').async('string'));
+    const sourceReport = await zip.file('SOURCE_REPORT.md').async('string');
+
+    expect(manifest.sourceLedger.filter((row) => /Persona \(user experience\)/i.test(row.title || ''))).toHaveLength(1);
+    expect(manifest.sourceLedger).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          id: 'sf1',
+          provider: 'wikipedia',
+          url: 'https://en.wikipedia.org/wiki/Persona_(user_experience)',
+          conceptLinks: expect.arrayContaining([expect.objectContaining({ label: 'user profiles' })]),
+        }),
+      ]),
+    );
+    expect(manifest.sourceLedger.some((row) => /^syllabus-src-/i.test(row.id || ''))).toBe(false);
+    expect(JSON.stringify(manifest.sourceLedger)).not.toContain('Persona_(user_experience"');
+    expect(sourceReport).toContain('https://en.wikipedia.org/wiki/Persona_(user_experience)');
+    expect(sourceReport).not.toContain('syllabus-src-');
+  });
+
   it('recovers UX sourceRef proof with licensed concept-linked sources when provider retrieval leaves only CourseIR review rows', async () => {
     const courseMap = {
       courseName: 'User Experience Design Studio',

@@ -10,6 +10,16 @@ function hasRef(row) {
   return /^https?:\/\//i.test(String(row?.url || '')) || /\S/.test(String(row?.doi || ''));
 }
 
+function hasMalformedUrl(row) {
+  const url = String(row?.url || '').trim();
+  if (!url) return false;
+  if (!/^https?:\/\//i.test(url)) return true;
+  if (/\s|[<>"{}|\\^`]/.test(url)) return true;
+  const opens = (url.match(/\(/g) || []).length;
+  const closes = (url.match(/\)/g) || []).length;
+  return opens !== closes;
+}
+
 const TRUST_ELIGIBLE_PROVIDERS = new Set([
   'genome',
   'genome-prerequisite',
@@ -391,6 +401,15 @@ export function checkSourceLedger(findings, { files, manifest }) {
         file: 'PACKAGE_MANIFEST.json',
         detail: `source ledger row ${id || '(missing id)'} has no accessible URL or DOI`,
         evidence: row?.title || row?.evidence || JSON.stringify(row).slice(0, 120),
+      });
+    }
+    if (hasMalformedUrl(row)) {
+      findings.add({
+        severity: 'P2',
+        dimension: 'citations',
+        file: 'PACKAGE_MANIFEST.json',
+        detail: `source ledger row ${id || '(missing id)'} has malformed URL proof`,
+        evidence: row?.url || row?.title || row?.evidence || id,
       });
     }
     if (ambiguousLicense(row)) {

@@ -32,6 +32,51 @@ describe('source-ledger quality checks', () => {
     );
   });
 
+  it('flags trusted source ledger rows with malformed URL proof', async () => {
+    const result = await grade({
+      fileProvider: createMemoryFileProvider({
+        'PACKAGE_MANIFEST.json': JSON.stringify({
+          courseName: 'User Experience Design Studio',
+          lessonScope: 'all',
+          requestedFeatures: [],
+          readiness: { status: 'ready', blockers: 0, warnings: 0, checkedSections: null },
+          sourceLedger: [
+            {
+              id: 'syllabus-src-4-1',
+              title: 'Persona (user experience)',
+              provider: 'wikipedia',
+              url: 'https://en.wikipedia.org/wiki/Persona_(user_experience',
+              license: 'CC BY-SA 4.0',
+              conceptLinks: [{ id: 'c1', label: 'user profiles' }],
+            },
+          ],
+          sourceReport: {
+            path: 'SOURCE_REPORT.md',
+            sourceCount: 1,
+          },
+          files: [],
+        }),
+        'SOURCE_REPORT.md': [
+          '# Source Report',
+          '',
+          '## Source Ledger',
+          '- syllabus-src-4-1: Persona (user experience). https://en.wikipedia.org/wiki/Persona_(user_experience',
+        ].join('\n'),
+      }),
+      course: { title: 'User Experience Design Studio', featureIds: [] },
+    });
+
+    expect(result.findings).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          severity: 'P2',
+          dimension: 'citations',
+          detail: 'source ledger row syllabus-src-4-1 has malformed URL proof',
+        }),
+      ]),
+    );
+  });
+
   it('flags incomplete source refs, inaccessible sources, and ambiguous licenses from manifest proof', async () => {
     const result = await grade({
       fileProvider: createMemoryFileProvider({
