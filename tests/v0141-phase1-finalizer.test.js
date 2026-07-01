@@ -1194,7 +1194,9 @@ describe('1.16 — prompt artifact labels never become course-map concepts', () 
     expect(faqText).not.toMatch(/\bsource packet\b/i);
     expect(faqText).not.toMatch(/Quiz and exam bank/i);
     expect(faqText).not.toMatch(/anchor contrast/i);
-    expect(faqText).toMatch(/lesson assessment/i);
+    // The scaffolded artifact resolves to a lesson-specific short reference
+    // (head noun of the real artifact) instead of the generic rotation noun.
+    expect(faqText).toMatch(/the Week 1 draft/i);
     expect(faqText).not.toMatch(/Week\s+\d+\s+artifact/i);
     expect(faqText).toMatch(/source evidence/i);
   });

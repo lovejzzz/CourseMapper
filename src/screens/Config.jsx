@@ -189,8 +189,8 @@ function DeliverableExtras({ featureId, config, onChange, modelConfigPlan }) {
             />
             <p className="text-xs text-slate-400">
               Override the user prompt. Use{' '}
-              <code className="text-[9px] bg-slate-100 px-1 py-0.5 rounded">{'{{courseMap}}'}</code> as a placeholder
-              for course data.
+              <code className="text-2xs bg-slate-100 px-1 py-0.5 rounded">{'{{courseMap}}'}</code> as a placeholder for
+              course data.
             </p>
             <textarea
               value={config.customUserPrompt || ''}
@@ -725,7 +725,7 @@ function DeliverablePreview({ featureId, delivData, courseMap, columns, promptTe
               ))}
             </div>
             {!expanded && realContent.total > 3 && (
-              <p className="text-[9px] text-slate-400 mt-1 text-right">+ {realContent.total - 3} more lessons</p>
+              <p className="text-2xs text-slate-400 mt-1 text-right">+ {realContent.total - 3} more lessons</p>
             )}
           </div>
         );
@@ -743,9 +743,9 @@ function DeliverablePreview({ featureId, delivData, courseMap, columns, promptTe
                     <span className="font-semibold text-slate-700">
                       {plan.lessonTitle || plan.lt || plan.title || `Lesson ${i + 1}`}
                     </span>
-                    {plan.duration && <span className="text-[9px] text-slate-400">· {plan.duration}</span>}
+                    {plan.duration && <span className="text-2xs text-slate-400">· {plan.duration}</span>}
                     {Array.isArray(blooms) && blooms.length > 0 && (
-                      <span className="text-[9px] text-indigo-400">· Bloom's: {blooms.join(' · ')}</span>
+                      <span className="text-2xs text-indigo-400">· Bloom's: {blooms.join(' · ')}</span>
                     )}
                   </div>
                   {outline.slice(0, expanded ? 8 : 3).map((seg, j) => (
@@ -769,7 +769,7 @@ function DeliverablePreview({ featureId, delivData, courseMap, columns, promptTe
               );
             })}
             {!expanded && realContent.total > items.length && (
-              <p className="text-[9px] text-slate-400 text-right">+ {realContent.total - items.length} more plans</p>
+              <p className="text-2xs text-slate-400 text-right">+ {realContent.total - items.length} more plans</p>
             )}
           </div>
         );
@@ -818,24 +818,24 @@ function DeliverablePreview({ featureId, delivData, courseMap, columns, promptTe
                         >
                           <div className="flex items-center justify-between gap-1">
                             {ty && (
-                              <span className="text-[8px] font-semibold uppercase tracking-wider text-slate-400 truncate">
+                              <span className="text-2xs font-semibold uppercase tracking-wider text-slate-400 truncate">
                                 {ty}
                               </span>
                             )}
                             <div className="flex items-center gap-0.5 flex-shrink-0">
                               {hasVisual && (
-                                <span className="text-[9px]" aria-hidden="true">
+                                <span className="text-2xs" aria-hidden="true">
                                   {visIcon || '✦'}
                                 </span>
                               )}
-                              {timing && <span className="text-[8px] text-slate-400 font-mono">{timing}</span>}
+                              {timing && <span className="text-2xs text-slate-400 font-mono">{timing}</span>}
                             </div>
                           </div>
-                          <span className="text-[9px] text-slate-600 font-medium line-clamp-2 mt-0.5">
+                          <span className="text-2xs text-slate-600 font-medium line-clamp-2 mt-0.5">
                             {s.title || s.heading || s.t || `Slide ${j + 1}`}
                           </span>
                           {expanded && firstBullet && (
-                            <span className="text-[8px] text-slate-400 line-clamp-2 mt-auto">
+                            <span className="text-2xs text-slate-400 line-clamp-2 mt-auto">
                               • {truncate(firstBullet, 70)}
                             </span>
                           )}
@@ -844,7 +844,7 @@ function DeliverablePreview({ featureId, delivData, courseMap, columns, promptTe
                     })}
                     {slides.length > (expanded ? 12 : 5) && (
                       <div
-                        className={`flex-shrink-0 ${expanded ? 'w-36 h-24' : 'w-24 h-16'} rounded border border-dashed border-slate-200/50 flex items-center justify-center text-[9px] text-slate-400`}
+                        className={`flex-shrink-0 ${expanded ? 'w-36 h-24' : 'w-24 h-16'} rounded border border-dashed border-slate-200/50 flex items-center justify-center text-2xs text-slate-400`}
                       >
                         +{slides.length - (expanded ? 12 : 5)} more
                       </div>
@@ -871,10 +871,10 @@ function DeliverablePreview({ featureId, delivData, courseMap, columns, promptTe
                       {rubric.assignmentTitle || rubric.lessonTitle || rubric.lt || rubric.title || `Rubric ${i + 1}`}
                     </p>
                     {typeof rubric.totalPoints === 'number' && (
-                      <span className="text-[9px] text-slate-400">· {rubric.totalPoints} pts total</span>
+                      <span className="text-2xs text-slate-400">· {rubric.totalPoints} pts total</span>
                     )}
                     {rubric.bloomsLevel && (
-                      <span className="text-[9px] text-indigo-400">· Bloom's: {rubric.bloomsLevel}</span>
+                      <span className="text-2xs text-indigo-400">· Bloom's: {rubric.bloomsLevel}</span>
                     )}
                   </div>
                   <div className="overflow-hidden rounded border border-slate-200/40">
@@ -953,30 +953,30 @@ function DeliverablePreview({ featureId, delivData, courseMap, columns, promptTe
                     </p>
                     <span className="text-slate-400">({questions.length} questions)</span>
                     {Array.isArray(blooms) && blooms.length > 0 && (
-                      <span className="text-[9px] text-indigo-400">· Bloom's: {blooms.join(' · ')}</span>
+                      <span className="text-2xs text-indigo-400">· Bloom's: {blooms.join(' · ')}</span>
                     )}
                   </div>
                   <div className="space-y-1">
                     {questions.slice(0, expanded ? 10 : 3).map((q, j) => (
                       <div key={j} className="pl-1">
                         <div className="flex items-start gap-1.5">
-                          <span className="px-1.5 py-0.5 rounded bg-indigo-50/80 text-indigo-500 font-semibold text-[9px] flex-shrink-0 mt-0.5">
+                          <span className="px-1.5 py-0.5 rounded bg-indigo-50/80 text-indigo-500 font-semibold text-2xs flex-shrink-0 mt-0.5">
                             {typeShort[q.type] || q.type || q.ty || 'Q'}
                           </span>
                           {q.bloomsLevel && (
-                            <span className="px-1.5 py-0.5 rounded bg-violet-50/80 text-violet-500 font-semibold text-[9px] flex-shrink-0 mt-0.5">
+                            <span className="px-1.5 py-0.5 rounded bg-violet-50/80 text-violet-500 font-semibold text-2xs flex-shrink-0 mt-0.5">
                               {q.bloomsLevel}
                             </span>
                           )}
                           {q.difficulty && (
                             <span
-                              className={`px-1.5 py-0.5 rounded font-semibold text-[9px] flex-shrink-0 mt-0.5 ${diffTone[q.difficulty] || 'text-slate-500 bg-slate-50'}`}
+                              className={`px-1.5 py-0.5 rounded font-semibold text-2xs flex-shrink-0 mt-0.5 ${diffTone[q.difficulty] || 'text-slate-500 bg-slate-50'}`}
                             >
                               {q.difficulty}
                             </span>
                           )}
                           {typeof q.points === 'number' && (
-                            <span className="text-[9px] text-slate-400 mt-0.5">{q.points} pt</span>
+                            <span className="text-2xs text-slate-400 mt-0.5">{q.points} pt</span>
                           )}
                           <span className="text-slate-600 flex-1 min-w-0">
                             {truncate(q.question || q.q || q.prompt || '', expanded ? 240 : 100)}
@@ -1028,13 +1028,13 @@ function DeliverablePreview({ featureId, delivData, courseMap, columns, promptTe
                       {disc.lessonTitle || disc.lt || disc.title || `Discussion ${i + 1}`}
                     </span>
                     {disc.bloomsLevel && (
-                      <span className="text-[9px] px-1.5 py-0.5 rounded bg-violet-50/80 text-violet-500 font-semibold">
+                      <span className="text-2xs px-1.5 py-0.5 rounded bg-violet-50/80 text-violet-500 font-semibold">
                         Bloom's: {disc.bloomsLevel}
                       </span>
                     )}
-                    {disc.format && <span className="text-[9px] text-slate-400">· {disc.format}</span>}
+                    {disc.format && <span className="text-2xs text-slate-400">· {disc.format}</span>}
                     {disc.estimatedDuration && (
-                      <span className="text-[9px] text-slate-400">· {disc.estimatedDuration}</span>
+                      <span className="text-2xs text-slate-400">· {disc.estimatedDuration}</span>
                     )}
                   </div>
                   <div className={`${pad} border-t border-slate-200/20`}>
@@ -1043,7 +1043,7 @@ function DeliverablePreview({ featureId, delivData, courseMap, columns, promptTe
                     </p>
                     {followUps.length > 0 && (
                       <div className="mt-1.5">
-                        <p className="text-[9px] font-semibold text-slate-400 uppercase tracking-wider mb-0.5">
+                        <p className="text-2xs font-semibold text-slate-400 uppercase tracking-wider mb-0.5">
                           Follow-up prompts
                         </p>
                         <ul className="space-y-0.5 text-slate-500 list-disc list-inside ml-1">
@@ -1058,7 +1058,7 @@ function DeliverablePreview({ featureId, delivData, courseMap, columns, promptTe
               );
             })}
             {!expanded && realContent.total > items.length && (
-              <p className="text-[9px] text-slate-400 text-right">+ {realContent.total - items.length} more</p>
+              <p className="text-2xs text-slate-400 text-right">+ {realContent.total - items.length} more</p>
             )}
           </div>
         );
@@ -1075,17 +1075,15 @@ function DeliverablePreview({ featureId, delivData, courseMap, columns, promptTe
                   <div className={`${pad} bg-slate-50/60 space-y-1`}>
                     <div className="font-semibold text-slate-700">{asgn.title || asgn.t || `Assignment ${i + 1}`}</div>
                     <div className="flex items-center gap-1.5 flex-wrap">
-                      {asgn.assignmentType && <span className="text-[9px] text-slate-400">{asgn.assignmentType}</span>}
+                      {asgn.assignmentType && <span className="text-2xs text-slate-400">{asgn.assignmentType}</span>}
                       {asgn.bloomsLevel && (
-                        <span className="text-[9px] px-1.5 py-0.5 rounded bg-violet-50/80 text-violet-500 font-semibold">
+                        <span className="text-2xs px-1.5 py-0.5 rounded bg-violet-50/80 text-violet-500 font-semibold">
                           Bloom's: {asgn.bloomsLevel}
                         </span>
                       )}
-                      {asgn.estimatedTime && (
-                        <span className="text-[9px] text-slate-400">· ⏱ {asgn.estimatedTime}</span>
-                      )}
+                      {asgn.estimatedTime && <span className="text-2xs text-slate-400">· ⏱ {asgn.estimatedTime}</span>}
                       {(typeof asgn.totalPoints === 'number' || asgn.percentOfGrade) && (
-                        <span className="text-[9px] text-slate-400">
+                        <span className="text-2xs text-slate-400">
                           · {asgn.totalPoints ? `${asgn.totalPoints} pts` : ''}
                           {asgn.totalPoints && asgn.percentOfGrade ? ' · ' : ''}
                           {asgn.percentOfGrade || ''}
@@ -1101,7 +1099,7 @@ function DeliverablePreview({ featureId, delivData, courseMap, columns, promptTe
                     )}
                     {components.length > 0 && (
                       <div>
-                        <p className="text-[9px] font-semibold text-slate-400 uppercase tracking-wider mb-0.5">
+                        <p className="text-2xs font-semibold text-slate-400 uppercase tracking-wider mb-0.5">
                           Components
                         </p>
                         <ul className="list-disc list-inside space-y-0.5 ml-1 text-slate-500">
@@ -1115,7 +1113,7 @@ function DeliverablePreview({ featureId, delivData, courseMap, columns, promptTe
                     )}
                     {expanded && Array.isArray(deliverables) && deliverables.length > 0 && (
                       <div>
-                        <p className="text-[9px] font-semibold text-slate-400 uppercase tracking-wider mb-0.5">
+                        <p className="text-2xs font-semibold text-slate-400 uppercase tracking-wider mb-0.5">
                           Deliverables
                         </p>
                         <ul className="list-disc list-inside space-y-0.5 ml-1 text-slate-500">
@@ -1129,20 +1127,20 @@ function DeliverablePreview({ featureId, delivData, courseMap, columns, promptTe
                       Array.isArray(asgn.scaffoldingMilestones || asgn.sm) &&
                       (asgn.scaffoldingMilestones || asgn.sm).length > 0 && (
                         <div>
-                          <p className="text-[9px] font-semibold text-slate-400 uppercase tracking-wider mb-0.5">
+                          <p className="text-2xs font-semibold text-slate-400 uppercase tracking-wider mb-0.5">
                             Scaffolding Timeline
                           </p>
                           <ol className="space-y-1 ml-1 text-slate-500">
                             {(asgn.scaffoldingMilestones || asgn.sm).slice(0, 6).map((m, j) => (
                               <li key={j} className="flex items-start gap-1.5">
-                                <span className="font-mono text-indigo-400 flex-shrink-0 text-[9px]">
+                                <span className="font-mono text-indigo-400 flex-shrink-0 text-2xs">
                                   {m.dueDate || m.dd || `#${j + 1}`}
                                 </span>
                                 <div className="flex-1 min-w-0">
                                   <span className="font-semibold text-slate-600">{m.milestone || m.ms || ''}</span>
                                   {m.feedback && <span className="text-violet-500/70 ml-1">↳ {m.feedback}</span>}
                                   {typeof m.points === 'number' && m.points > 0 && (
-                                    <span className="text-[9px] text-slate-400 ml-1 font-mono">· {m.points} pt</span>
+                                    <span className="text-2xs text-slate-400 ml-1 font-mono">· {m.points} pt</span>
                                   )}
                                 </div>
                               </li>
@@ -1194,7 +1192,7 @@ function DeliverablePreview({ featureId, delivData, courseMap, columns, promptTe
                   </div>
                   {expanded && reviewQs.length > 0 && (
                     <div className="mt-2 pt-2 border-t border-slate-200/30">
-                      <p className="text-[9px] font-semibold text-slate-400 uppercase tracking-wider mb-0.5">
+                      <p className="text-2xs font-semibold text-slate-400 uppercase tracking-wider mb-0.5">
                         Review questions
                       </p>
                       <ul className="list-disc list-inside ml-1 text-slate-500 space-y-0.5">
@@ -1227,7 +1225,7 @@ function DeliverablePreview({ featureId, delivData, courseMap, columns, promptTe
                     {truncate(f.question || f.q || '', expanded ? 220 : 100)}
                   </span>
                   {f.category && (
-                    <span className="text-[9px] px-1.5 py-0.5 rounded bg-slate-100 text-slate-500 font-semibold flex-shrink-0">
+                    <span className="text-2xs px-1.5 py-0.5 rounded bg-slate-100 text-slate-500 font-semibold flex-shrink-0">
                       {f.category}
                     </span>
                   )}
@@ -1243,7 +1241,7 @@ function DeliverablePreview({ featureId, delivData, courseMap, columns, promptTe
               </div>
             ))}
             {!expanded && realContent.total > items.length && (
-              <p className="text-[9px] text-slate-400 text-right">+ {realContent.total - items.length} more FAQs</p>
+              <p className="text-2xs text-slate-400 text-right">+ {realContent.total - items.length} more FAQs</p>
             )}
           </div>
         );
@@ -1256,7 +1254,7 @@ function DeliverablePreview({ featureId, delivData, courseMap, columns, promptTe
             {sections.map((s, i) => (
               <div key={i} className="rounded border border-slate-200/30 overflow-hidden">
                 <div className={`${pad} bg-slate-50/60 font-semibold text-slate-700 flex items-center gap-2`}>
-                  <span className="w-5 h-5 rounded bg-cyan-50/80 text-cyan-500 flex items-center justify-center text-[9px] font-bold flex-shrink-0">
+                  <span className="w-5 h-5 rounded bg-cyan-50/80 text-cyan-500 flex items-center justify-center text-2xs font-bold flex-shrink-0">
                     {i + 1}
                   </span>
                   {s.heading || s.title || `Section ${i + 1}`}
@@ -1273,7 +1271,7 @@ function DeliverablePreview({ featureId, delivData, courseMap, columns, promptTe
                 Accreditation teams look for this; we surface it up front. */}
             {matrix.length > 0 && (
               <div className="mt-2 pt-1.5 border-t border-slate-200/30">
-                <p className="text-[9px] font-semibold text-slate-400 uppercase tracking-wider mb-1">
+                <p className="text-2xs font-semibold text-slate-400 uppercase tracking-wider mb-1">
                   Outcome ↔ Assessment
                 </p>
                 <div className="overflow-x-auto">
@@ -1309,13 +1307,13 @@ function DeliverablePreview({ featureId, delivData, courseMap, columns, promptTe
                     </tbody>
                   </table>
                   {!expanded && matrix.length > 3 && (
-                    <p className="text-[9px] text-slate-400 text-right mt-0.5">+ {matrix.length - 3} more outcomes</p>
+                    <p className="text-2xs text-slate-400 text-right mt-0.5">+ {matrix.length - 3} more outcomes</p>
                   )}
                 </div>
               </div>
             )}
             {!expanded && realContent.total > sections.length && (
-              <p className="text-[9px] text-slate-400 text-right">
+              <p className="text-2xs text-slate-400 text-right">
                 + {realContent.total - sections.length} more sections
               </p>
             )}

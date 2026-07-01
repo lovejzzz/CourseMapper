@@ -136,7 +136,17 @@ export const DEFAULT_REVIEW_FIXTURES = [
     ],
     packageMustNotMatch: [/TBD|to be determined|lorem ipsum|placeholder/i],
     featureExpectations: {
-      lessonPlans: [/worked example/i, /mini-rubric/i, /formative/i, /empirical evidence/i],
+      // "mini-rubric" was the model-prompt vocabulary of the pre-compiler
+      // study-guide era (c462f8f, May 2026); compiled lesson plans express the
+      // same assessment bridge as success-criteria / scoring-guidance blocks.
+      // The requirement (instructors can tell what counts as strong work)
+      // stays — only the accepted phrasing tracks the compiler's vocabulary.
+      lessonPlans: [
+        /worked example/i,
+        /mini-rubric|success criteri|scoring guid/i,
+        /formative/i,
+        /empirical evidence/i,
+      ],
       assignments: [/evidence checkpoint/i, /empirical evidence/i, /limitation/i],
       rubrics: [/evidence/i, /decision/i, /revision/i],
       discussions: [/method decision/i, /evidence/i, /limitation/i],

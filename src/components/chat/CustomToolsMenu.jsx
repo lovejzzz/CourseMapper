@@ -123,7 +123,7 @@ export default function CustomToolsMenu({ tools, onDelete, onImport, syncError }
         <span>{count}</span>
         {hasSyncError && (
           <span
-            className="ml-0.5 w-3 h-3 rounded-full bg-amber-200 text-amber-800 text-[9px] flex items-center justify-center font-bold"
+            className="ml-0.5 w-3 h-3 rounded-full bg-amber-200 text-amber-800 text-2xs flex items-center justify-center font-bold"
             aria-hidden="true"
           >
             !
@@ -236,7 +236,7 @@ export default function CustomToolsMenu({ tools, onDelete, onImport, syncError }
                           >
                             <div className="flex items-center gap-1.5">
                               <code className="text-[11px] font-semibold text-violet-700 truncate">{tool.name}</code>
-                              <span className="text-[9px] text-slate-400 font-medium whitespace-nowrap">
+                              <span className="text-2xs text-slate-400 font-medium whitespace-nowrap">
                                 {steps.length} step{steps.length === 1 ? '' : 's'}
                               </span>
                             </div>

@@ -352,7 +352,7 @@ function SlideCanvas({
           )}
           {deckTitle && (
             <p
-              className="mt-auto text-[9px] tracking-widest uppercase font-medium"
+              className="mt-auto text-2xs tracking-widest uppercase font-medium"
               style={{ color: 'rgba(255,255,255,0.35)', fontFamily: bodyFont }}
             >
               Course:{' '}
@@ -360,7 +360,7 @@ function SlideCanvas({
                 value={deckTitle}
                 path={[dataKey, deckIndex, 'lessonTitle']}
                 onEdit={onEdit}
-                className="text-[9px] tracking-widest uppercase font-medium"
+                className="text-2xs tracking-widest uppercase font-medium"
               />
             </p>
           )}
@@ -368,7 +368,7 @@ function SlideCanvas({
         <GeneratedVisualOnSlide visual={generatedVisual} type={type} theme={theme} />
         <ProgressDots slideIndex={slideIndex} totalSlides={totalSlides} theme={theme} isDark />
         <div
-          className="absolute bottom-2.5 right-3.5 text-[9px] font-bold z-10 px-2 py-0.5 rounded"
+          className="absolute bottom-2.5 right-3.5 text-2xs font-bold z-10 px-2 py-0.5 rounded"
           style={{ background: theme.accent, color: theme.primary }}
         >
           {slideIndex + 1} / {totalSlides}
@@ -386,7 +386,7 @@ function SlideCanvas({
         <SlideDecor type="objectives" theme={theme} />
         <div className="relative z-10 flex flex-col h-full">
           <div className="flex flex-col justify-center px-8 pb-1" style={{ paddingLeft: '10%', height: '22%' }}>
-            <p className="text-[9px] font-bold tracking-[0.2em] uppercase mb-0.5" style={{ color: theme.accent }}>
+            <p className="text-2xs font-bold tracking-[0.2em] uppercase mb-0.5" style={{ color: theme.accent }}>
               LEARNING OBJECTIVES
             </p>
             <h2 className="text-[18px] font-bold leading-tight" style={{ color: '#FFFFFF', fontFamily: headingFont }}>
@@ -467,7 +467,7 @@ function SlideCanvas({
         <GeneratedVisualOnSlide visual={generatedVisual} type={type} theme={theme} />
         <ProgressDots slideIndex={slideIndex} totalSlides={totalSlides} theme={theme} />
         <div
-          className="absolute bottom-2.5 right-3.5 text-[8px] font-semibold z-10"
+          className="absolute bottom-2.5 right-3.5 text-2xs font-semibold z-10"
           style={{ color: theme.primary + 'B3' }}
         >
           {slideIndex + 1} / {totalSlides}
@@ -485,7 +485,7 @@ function SlideCanvas({
         <SlideDecor type="agenda" theme={theme} />
         <div className="relative z-10 flex flex-col h-full">
           <div className="flex flex-col justify-center px-8 pb-1" style={{ paddingLeft: '10%', height: '22%' }}>
-            <p className="text-[9px] font-bold tracking-[0.2em] uppercase mb-0.5" style={{ color: theme.accent }}>
+            <p className="text-2xs font-bold tracking-[0.2em] uppercase mb-0.5" style={{ color: theme.accent }}>
               TODAY'S AGENDA
             </p>
             <h2 className="text-[18px] font-bold leading-tight" style={{ color: '#FFFFFF', fontFamily: headingFont }}>
@@ -537,7 +537,7 @@ function SlideCanvas({
         <GeneratedVisualOnSlide visual={generatedVisual} type={type} theme={theme} />
         <ProgressDots slideIndex={slideIndex} totalSlides={totalSlides} theme={theme} />
         <div
-          className="absolute bottom-2.5 right-3.5 text-[8px] font-semibold z-10"
+          className="absolute bottom-2.5 right-3.5 text-2xs font-semibold z-10"
           style={{ color: theme.primary + 'B3' }}
         >
           {slideIndex + 1} / {totalSlides}
@@ -556,7 +556,7 @@ function SlideCanvas({
         <div className="relative z-10 flex h-full">
           {/* Left panel — recap */}
           <div className="w-[42%] flex flex-col px-6 py-5">
-            <p className="text-[9px] font-bold tracking-[0.2em] uppercase mb-1" style={{ color: theme.accent }}>
+            <p className="text-2xs font-bold tracking-[0.2em] uppercase mb-1" style={{ color: theme.accent }}>
               LAST TIME
             </p>
             <h2
@@ -607,7 +607,7 @@ function SlideCanvas({
           </div>
           {/* Right panel — today */}
           <div className="w-[54%] flex flex-col px-6 py-5">
-            <p className="text-[9px] font-bold tracking-[0.2em] uppercase mb-1" style={{ color: theme.primary }}>
+            <p className="text-2xs font-bold tracking-[0.2em] uppercase mb-1" style={{ color: theme.primary }}>
               TODAY
             </p>
             <ul className="space-y-2.5 flex-1 pt-2">
@@ -637,7 +637,7 @@ function SlideCanvas({
         <GeneratedVisualOnSlide visual={generatedVisual} type={type} theme={theme} />
         <ProgressDots slideIndex={slideIndex} totalSlides={totalSlides} theme={theme} />
         <div
-          className="absolute bottom-2.5 right-3.5 text-[8px] font-semibold z-10"
+          className="absolute bottom-2.5 right-3.5 text-2xs font-semibold z-10"
           style={{ color: theme.primary + 'B3' }}
         >
           {slideIndex + 1} / {totalSlides}
@@ -656,7 +656,7 @@ function SlideCanvas({
         <div className="relative z-10 flex flex-col h-full">
           <div className="flex items-center gap-3 px-8" style={{ height: '20%' }}>
             <span
-              className="px-2.5 py-1 rounded-md text-[9px] font-bold tracking-wide uppercase flex-shrink-0"
+              className="px-2.5 py-1 rounded-md text-2xs font-bold tracking-wide uppercase flex-shrink-0"
               style={{ background: theme.accent, color: theme.primary }}
             >
               EXAMPLE
@@ -730,7 +730,7 @@ function SlideCanvas({
         <GeneratedVisualOnSlide visual={generatedVisual} type={type} theme={theme} />
         <ProgressDots slideIndex={slideIndex} totalSlides={totalSlides} theme={theme} />
         <div
-          className="absolute bottom-2.5 right-3.5 text-[8px] font-semibold z-10"
+          className="absolute bottom-2.5 right-3.5 text-2xs font-semibold z-10"
           style={{ color: theme.primary + 'B3' }}
         >
           {slideIndex + 1} / {totalSlides}
@@ -747,7 +747,7 @@ function SlideCanvas({
       >
         <SlideDecor type="keyTerm" theme={theme} />
         <div className="relative z-10 flex flex-col h-full items-center justify-center px-10 py-6">
-          <p className="text-[9px] font-bold tracking-[0.2em] uppercase mb-3" style={{ color: theme.primary }}>
+          <p className="text-2xs font-bold tracking-[0.2em] uppercase mb-3" style={{ color: theme.primary }}>
             KEY CONCEPT
           </p>
           {/* Central card */}
@@ -794,7 +794,7 @@ function SlideCanvas({
         <GeneratedVisualOnSlide visual={generatedVisual} type={type} theme={theme} />
         <ProgressDots slideIndex={slideIndex} totalSlides={totalSlides} theme={theme} />
         <div
-          className="absolute bottom-2.5 right-3.5 text-[8px] font-semibold z-10"
+          className="absolute bottom-2.5 right-3.5 text-2xs font-semibold z-10"
           style={{ color: theme.primary + 'B3' }}
         >
           {slideIndex + 1} / {totalSlides}
@@ -863,7 +863,7 @@ function SlideCanvas({
         <GeneratedVisualOnSlide visual={generatedVisual} type={type} theme={theme} />
         <ProgressDots slideIndex={slideIndex} totalSlides={totalSlides} theme={theme} isDark />
         <div
-          className="absolute bottom-2.5 right-3.5 text-[9px] font-bold z-10 px-2 py-0.5 rounded"
+          className="absolute bottom-2.5 right-3.5 text-2xs font-bold z-10 px-2 py-0.5 rounded"
           style={{ background: theme.accent, color: theme.primary }}
         >
           {slideIndex + 1} / {totalSlides}
@@ -882,7 +882,7 @@ function SlideCanvas({
         <div className="relative z-10 flex flex-col h-full">
           <div className="flex items-center gap-3 px-8" style={{ height: '20%' }}>
             <span
-              className="px-2.5 py-1 rounded-md text-[9px] font-bold tracking-wide uppercase flex-shrink-0"
+              className="px-2.5 py-1 rounded-md text-2xs font-bold tracking-wide uppercase flex-shrink-0"
               style={{ background: theme.accent, color: theme.primary }}
             >
               {type === 'question' ? 'Q&A' : 'ACTIVITY'}
@@ -922,7 +922,7 @@ function SlideCanvas({
                   style={{ color: theme.bodyText }}
                 >
                   <span
-                    className="w-5 h-5 rounded-full flex items-center justify-center text-[9px] font-bold flex-shrink-0 mt-0.5"
+                    className="w-5 h-5 rounded-full flex items-center justify-center text-2xs font-bold flex-shrink-0 mt-0.5"
                     style={{ background: theme.accent + '30', color: theme.primary }}
                   >
                     {k + 1}
@@ -949,7 +949,7 @@ function SlideCanvas({
         <GeneratedVisualOnSlide visual={generatedVisual} type={type} theme={theme} />
         <ProgressDots slideIndex={slideIndex} totalSlides={totalSlides} theme={theme} />
         <div
-          className="absolute bottom-2.5 right-3.5 text-[8px] font-semibold z-10"
+          className="absolute bottom-2.5 right-3.5 text-2xs font-semibold z-10"
           style={{ color: theme.primary + 'B3' }}
         >
           {slideIndex + 1} / {totalSlides}
@@ -1026,7 +1026,7 @@ function SlideCanvas({
       <GeneratedVisualOnSlide visual={generatedVisual} type={type} theme={theme} />
       <ProgressDots slideIndex={slideIndex} totalSlides={totalSlides} theme={theme} />
       <div
-        className="absolute bottom-2.5 right-3.5 text-[8px] font-semibold z-10 px-2 py-0.5 rounded"
+        className="absolute bottom-2.5 right-3.5 text-2xs font-semibold z-10 px-2 py-0.5 rounded"
         style={{ background: theme.primary, color: '#FFFFFF' }}
       >
         {slideIndex + 1} / {totalSlides}

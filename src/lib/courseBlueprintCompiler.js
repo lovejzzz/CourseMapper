@@ -251,7 +251,7 @@ function wordsFromConcepts(values, limit = 8) {
 }
 
 const OBJECTIVE_STEM_LEAD_RE =
-  /^(?:students?\s+(?:will\s+)?(?:be\s+able\s+to\s+)?)?(?:define|explain|describe|analyze|evaluate|create|design|compare|apply|synthesize|formulate|interpret|critique|develop|construct|identify|use|build|examine|assess|distinguish|review|practice|connect|integrate|demonstrate|combine|classify|organize|summarize|investigate|explore|justify|relate|revise)\s+/i;
+  /^(?:students?\s+(?:will\s+)?(?:be\s+able\s+to\s+)?)?(?:define|explain|describe|analyze|evaluate|create|design|compare|apply|synthesize|formulate|interpret|critique|develop|construct|identify|use|build|examine|assess|distinguish|differentiate|calculate|solve|predict|recognize|prioritize|review|practice|connect|integrate|demonstrate|combine|classify|organize|summarize|investigate|explore|justify|relate|revise)\s+/i;
 
 function isQuestionLikeTitle(value) {
   return /^(?:what|why|how|when|where|who)\b/i.test(cleanText(value)) || /\b(?:and why|why it matters)\b/i.test(value);
@@ -560,13 +560,32 @@ function compactSourceCue(value, fallback = 'assigned source materials', maxWord
   if (isPromptArtifactEvidenceCue(text) || isCompactNumberedArtifactList(text)) return fallback;
   const clauses = text
     .split(/\s*(?:[;|\n,]|\/)\s*/g)
-    .map((part) => stripTerminalPunctuation(cleanText(part)))
+    // A clause carved from the middle of a list keeps its conjunction
+    // ("and interpretation quality") — strip it so the cue never leads
+    // with a dangling connective.
+    .map((part) => stripTerminalPunctuation(cleanText(part)).replace(/^(?:and|or|then|also|plus)\s+/i, ''))
     .filter((part) => part && !isPromptArtifactEvidenceCue(part) && !isCompactNumberedArtifactList(part));
   const boundedClause = clauses.find((part) => {
     const count = wordCount(part);
     return count >= 3 && count <= maxWords;
   });
   if (boundedClause) return boundedClause;
+  // No single clause is bounded: prefer the LEADING clauses joined up to the
+  // word budget over a mid-list fragment — "Assess test fit, assumption
+  // checking, and interpretation quality" should cue "test fit, assumption
+  // checking", not "interpretation quality". The head of the list is where
+  // the source put the primary signal.
+  if (clauses.length > 1) {
+    const joined = [];
+    let joinedWords = 0;
+    for (const clause of clauses) {
+      const count = wordCount(clause);
+      if (joinedWords + count > maxWords) break;
+      joined.push(clause);
+      joinedWords += count;
+    }
+    if (joined.length > 0 && joinedWords >= 3) return joined.join(', ');
+  }
   const words = text
     .replace(/[^\w\s.-]+/g, ' ')
     .split(/\s+/)
@@ -4287,11 +4306,23 @@ const OBJECTIVE_LIKE_ASSESSMENT_LABEL_RE =
 const PROGRAMMING_ASSESSMENT_LABEL_RE =
   /\b(?:python|code|program|debug|trace|input|output|file|module|librar(?:y|ies)|loop|function|list|dictionary|variable|conditional|algorithm)\b/i;
 
+// Grading-verb leads ("Score code clarity, evidence use" from an
+// evaluateDesign note) read as instructions, not artifact names, at any
+// length. Whitespace required after the verb so hyphenated artifact titles
+// ("Check-in survey") never match.
+const GRADING_VERB_ASSESSMENT_LABEL_RE = /^(?:score|grade|mark|verify|confirm|check)\s+/i;
+
 function compactObjectiveLikeAssessmentLabel(value) {
   const raw = stripTerminalPunctuation(cleanText(value));
-  if (!raw || wordCount(raw) < 7 || !OBJECTIVE_LIKE_ASSESSMENT_LABEL_RE.test(raw) || /:/.test(raw)) return '';
+  if (!raw || /:/.test(raw)) return '';
+  // Comma required: grading instructions are criterion lists ("Score code
+  // clarity, evidence use, and memo reasoning"); a real artifact title that
+  // happens to start with one of these verbs ("Score report and reflection
+  // memo") has no list structure and stays verbatim.
+  const gradingVerbLead = GRADING_VERB_ASSESSMENT_LABEL_RE.test(raw) && wordCount(raw) >= 4 && /,/.test(raw);
+  if (!gradingVerbLead && (wordCount(raw) < 7 || !OBJECTIVE_LIKE_ASSESSMENT_LABEL_RE.test(raw))) return '';
   let body = raw
-    .replace(OBJECTIVE_LIKE_ASSESSMENT_LABEL_RE, '')
+    .replace(gradingVerbLead ? GRADING_VERB_ASSESSMENT_LABEL_RE : OBJECTIVE_LIKE_ASSESSMENT_LABEL_RE, '')
     .replace(/^\s+(?:how\s+to|how|the|a|an|one)\s+/i, ' ')
     .replace(/\bfor\s+line[-\s]+by[-\s]+line\b/gi, 'line-by-line')
     .replace(/\bline\s+by\s+line\b/gi, 'line-by-line')
@@ -12273,12 +12304,36 @@ const PROMPT_ARTIFACT_DISPLAY_PATTERN =
   '\\b(?:course\\s+map|syllabus|lesson\\s+objectives?|learning\\s+objectives?|scenario\\s+quizzes?|rubric[-\\s]?driven\\s+assignments?|final\\s+capstone\\s+presentations?|capstone\\s+presentations?|evidence-rich\\s+lesson\\s+plans?|lesson\\s+plans?|slide\\s+decks?|assignment\\s+briefs?|discussion\\s+prompts?|quiz\\s+(?:and|&)\\s+exam\\s+bank|quiz\\s+bank|study\\s+guides?|course\\s+faq|worked\\s+examples?|misconceptions?)\\b';
 const PROMPT_ARTIFACT_DISPLAY_RE = new RegExp(PROMPT_ARTIFACT_DISPLAY_PATTERN, 'i');
 
-function safeGroundingText(value, fallback = '') {
+// Words that look like internal deliverable labels ("lesson plans",
+// "misconceptions") are ordinary vocabulary in some disciplines — a
+// teacher-preparation course's lessons are literally ABOUT lesson plans and
+// misconception diagnosis. Blanket-replacing them rewrites the grounding
+// echo of the blueprint's own plans and breaks the fidelity the audit
+// checks. A match that appears in the lesson's own title/artifact/concepts
+// is domain vocabulary and stays verbatim.
+const lessonDomainVocabularyCache = new WeakMap();
+
+function lessonDomainVocabulary(lesson) {
+  if (!lesson || typeof lesson !== 'object') return '';
+  const cached = lessonDomainVocabularyCache.get(lesson);
+  if (cached !== undefined) return cached;
+  const vocabulary = cleanText(
+    [lesson?.title, lesson?.studentArtifact, ...(Array.isArray(lesson?.keyConcepts) ? lesson.keyConcepts : [])]
+      .filter(Boolean)
+      .join(' '),
+  ).toLowerCase();
+  lessonDomainVocabularyCache.set(lesson, vocabulary);
+  return vocabulary;
+}
+
+function safeGroundingText(value, fallback = '', domainVocabulary = '') {
   const text = cleanText(value);
   if (!text) return fallback;
   if (isUnsafeLessonConceptPhrase(text) || isUnsafeLessonArtifactPhrase(text)) return fallback;
   return text
-    .replace(new RegExp(PROMPT_ARTIFACT_DISPLAY_PATTERN, 'gi'), fallback)
+    .replace(new RegExp(PROMPT_ARTIFACT_DISPLAY_PATTERN, 'gi'), (match) =>
+      domainVocabulary && domainVocabulary.includes(match.toLowerCase()) ? match : fallback,
+    )
     .replace(INTERNAL_SOURCE_PLACEHOLDER_RE, fallback)
     .replace(/\s{2,}/g, ' ')
     .trim();
@@ -12298,28 +12353,29 @@ function safeSourceTraceFieldFallback(field = {}, lesson = {}) {
 function safeSourceEvidenceTraceForDeliverable(trace = null, lesson = {}) {
   if (!trace || typeof trace !== 'object') return null;
   const safeTitle = lesson?.title || '';
+  const vocabulary = lessonDomainVocabulary(lesson);
   const safeTrace = clonePlain(trace);
-  safeTrace.lessonTitle = safeGroundingText(safeTrace.lessonTitle, safeTitle);
-  safeTrace.sourceRowLabel = safeGroundingText(safeTrace.sourceRowLabel, safeTitle);
+  safeTrace.lessonTitle = safeGroundingText(safeTrace.lessonTitle, safeTitle, vocabulary);
+  safeTrace.sourceRowLabel = safeGroundingText(safeTrace.sourceRowLabel, safeTitle, vocabulary);
   safeTrace.preservedSignals = asArray(safeTrace.preservedSignals)
-    .map((signal) => safeGroundingText(signal, ''))
+    .map((signal) => safeGroundingText(signal, '', vocabulary))
     .filter(Boolean);
   safeTrace.sourceFields = asArray(safeTrace.sourceFields).map((field) => {
     const fallback = safeSourceTraceFieldFallback(field, lesson);
     return {
       ...field,
-      rawText: safeGroundingText(field.rawText, fallback),
-      compiledValue: safeGroundingText(field.compiledValue, fallback),
+      rawText: safeGroundingText(field.rawText, fallback, vocabulary),
+      compiledValue: safeGroundingText(field.compiledValue, fallback, vocabulary),
     };
   });
   safeTrace.sectionCoverage = asArray(safeTrace.sectionCoverage).map((section) => {
-    const sectionLabel = safeGroundingText(section.sectionLabel, safeLessonPrimaryConcept(lesson));
+    const sectionLabel = safeGroundingText(section.sectionLabel, safeLessonPrimaryConcept(lesson), vocabulary);
     return {
       ...section,
       sectionLabel,
-      rawText: safeGroundingText(section.rawText, sectionLabel),
+      rawText: safeGroundingText(section.rawText, sectionLabel, vocabulary),
       preservedSignals: asArray(section.preservedSignals)
-        .map((signal) => safeGroundingText(signal, ''))
+        .map((signal) => safeGroundingText(signal, '', vocabulary))
         .filter(Boolean),
     };
   });
@@ -12327,17 +12383,18 @@ function safeSourceEvidenceTraceForDeliverable(trace = null, lesson = {}) {
 }
 
 function safeSourceAnchorsForDeliverable(anchors = [], lesson = {}) {
+  const vocabulary = lessonDomainVocabulary(lesson);
   return asArray(anchors).map((anchor) => {
     const fallback = safeSourceTraceFieldFallback({ field: anchor?.field }, lesson);
     return {
       ...anchor,
-      anchor: safeGroundingText(anchor?.anchor, fallback),
+      anchor: safeGroundingText(anchor?.anchor, fallback, vocabulary),
     };
   });
 }
 
 function safeGroundingValueForDeliverable(value, lesson = {}, fallback = safeLessonPrimaryConcept(lesson)) {
-  if (typeof value === 'string') return safeGroundingText(value, fallback);
+  if (typeof value === 'string') return safeGroundingText(value, fallback, lessonDomainVocabulary(lesson));
   if (Array.isArray(value)) return value.map((item) => safeGroundingValueForDeliverable(item, lesson, fallback));
   if (!value || typeof value !== 'object') return value;
   const text = JSON.stringify(value);
@@ -12378,11 +12435,18 @@ function compactGroundingExtrasForDeliverable(extras = {}, lesson = {}) {
 }
 
 function lessonSourceGrounding(lesson, extras = {}) {
+  // The discussion protocol is compiler-built vocabulary (format names like
+  // "Misconception Clinic"), not source-derived text. The grounding copy
+  // exists to prove it matches the item's protocol, so it must bypass
+  // safeGroundingText — which would rewrite pattern words ("misconception")
+  // in the echo only and break the equality the audit checks.
+  const { discussionProtocol: protocolEcho, ...sanitizableExtras } = extras || {};
   const safeExtras = safeGroundingValueForDeliverable(
-    clonePlain(compactGroundingExtrasForDeliverable(extras, lesson)),
+    clonePlain(compactGroundingExtrasForDeliverable(sanitizableExtras, lesson)),
     lesson,
     safeLessonPrimaryConcept(lesson),
   );
+  if (protocolEcho) safeExtras.discussionProtocol = clonePlain(protocolEcho);
   return {
     lessonNumber: lesson?.lessonNumber || null,
     lessonTitle: lesson?.title || '',

@@ -107,11 +107,17 @@ import { computeTexture, textureDocsFromFiles, buildTextureAdvisories, TEXTURE_V
 // labels remain guarded; raw PPTX visual-planning note labels are a direct P0.
 // 1.7.4 — v0.15.145: assessment labels and weights used as lesson/file
 // identities are graded as identity contamination.
-export const GRADER_VERSION = '1.7.4';
+// 1.8.0 — v0.15.186: boilerplate net covers studyGuides/lessonPlans/quizBank/
+// assignments (calibrated bars 0.35/0.7); texture weight 10 → 25 so a fully
+// templated package leaves the A band; texture < 60 is a P1.
+export const GRADER_VERSION = '1.8.0';
 
 // ── Dimension weights & letter bands (documented in the module header) ──────
-// texture now has a small score-bearing weight. It should be able to pull a
-// heavily templated package below 100/A without overpowering substantive gates.
+// v0.15.186: texture weight 10 → 25. At 10/120 a fully templated package
+// (texture ~40) still graded A; the external judge's "too templated to teach
+// as-is" verdict was invisible in the score. At 25/135 the same package
+// loses ~11 points — enough to leave the A band — while today's grounded
+// output (texture 90-94 across the calibration set) stays ≥96/A.
 export const DIMENSION_WEIGHTS = {
   identity: 20,
   substance: 20,
@@ -121,7 +127,7 @@ export const DIMENSION_WEIGHTS = {
   consistency: 10,
   structure: 10,
   format: 5,
-  texture: 10,
+  texture: 25,
 };
 const SEVERITY_PENALTY = { P0: 25, P1: 8, P2: 3 };
 const DIMENSIONS = Object.keys(DIMENSION_WEIGHTS);
@@ -1972,10 +1978,22 @@ function lessonTitleFromPath(relPath) {
 //   - sample-answer engagement: 0.50 → 0.60. Measured 100% engaged on all 10.
 //   - NEW content-slide floor: enriched decks average ≥ CONTENT_SLIDE_MIN.
 //     Measured enriched-deck averages 11.8–13.6; min single deck 5.
+// v0.15.186: coverage extended to the features the texture-rotation era
+// exploited — study guides, lesson plans, quiz banks, and assignments had NO
+// cross-lesson boilerplate check at all, so template saturation there never
+// tripped substance. Calibrated 2026-07-01 over six gold-sample compiles
+// (8- and 14-lesson scopes): measured max 5% (lessonPlans at 14 lessons),
+// everything else <5%. Bars at 0.35/0.7 sit 7× above today's max, so
+// current grounded output passes and regressions toward mail-merge fail
+// long before they reach the legacy features' 0.5 bar.
 const SUBSTANCE_BOILERPLATE_THRESHOLDS = {
   rubrics: { p1: 0.5, p0: 0.8 },
   courseFaq: { p1: 0.5, p0: 0.8 },
   discussions: { p1: 0.5, p0: 0.8 },
+  studyGuides: { p1: 0.35, p0: 0.7 },
+  lessonPlans: { p1: 0.35, p0: 0.7 },
+  quizBank: { p1: 0.35, p0: 0.7 },
+  assignments: { p1: 0.35, p0: 0.7 },
 };
 const META_MCQ_SHARE_LIMIT = 0.15; // v0.14.3 D4 (was 0.20)
 const SAMPLE_ANSWER_ENGAGEMENT_FLOOR = 0.6; // v0.14.3 D4 (was 0.50)
@@ -3142,7 +3160,10 @@ function checkTextureFindings(findings, texture) {
   if (!texture?.measured || !Number.isFinite(texture.score) || texture.score >= 90) return;
   const topEvidence = Array.isArray(texture.evidence) && texture.evidence.length > 0 ? texture.evidence[0] : null;
   findings.add({
-    severity: 'P2',
+    // v0.15.186: below 60 the package is dominated by repeated prose
+    // skeletons — variant rotation cannot reach that floor, only genuine
+    // mail-merge can — so it is a P1, not an advisory P2.
+    severity: texture.score < 60 ? 'P1' : 'P2',
     dimension: 'texture',
     file: topEvidence?.feature ? `${topEvidence.feature} artifacts` : 'package',
     detail: `Texture score ${texture.score}/100 indicates repeated prose patterns across deliverables`,

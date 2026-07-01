@@ -125,15 +125,19 @@ function Spin() {
 // All download format buttons use the same neutral ghost style for consistency.
 // Cloud (Google) buttons retain their brand colors via GDriveBtn.
 function FmtBtn({ fmt, label, disabled, busy, onClick }) {
+  // Google brand combos come from the design-system gbrand palette
+  // (tailwind.config.js) — the single source for every export surface.
   const colorMap = {
     emerald: 'text-slate-600 bg-white/60 border border-slate-200/50 hover:bg-white/80',
     blue: 'text-slate-600 bg-white/60 border border-slate-200/50 hover:bg-white/80',
     red: 'text-slate-600 bg-white/60 border border-slate-200/50 hover:bg-white/80',
     slate: 'text-slate-600 bg-white/60 border border-slate-200/50 hover:bg-white/80',
-    gdocs: 'text-[#1967D2] bg-[#E8F0FE]/80 border border-[#4285F4]/20 hover:bg-[#D2E3FC]',
-    gsheets: 'text-[#188038] bg-[#E6F4EA]/80 border border-[#34A853]/20 hover:bg-[#CEEAD6]',
+    gdocs: 'text-gbrand-docs bg-gbrand-docs-soft/80 border border-gbrand-docs-accent/20 hover:bg-gbrand-docs-hover',
+    gsheets:
+      'text-gbrand-sheets bg-gbrand-sheets-soft/80 border border-gbrand-sheets-accent/20 hover:bg-gbrand-sheets-hover',
     pptx: 'text-slate-600 bg-white/60 border border-slate-200/50 hover:bg-white/80',
-    gslides: 'text-[#F4B400] bg-[#FFF8E1]/80 border border-[#FBBC04]/30 hover:bg-[#FFF0B3]',
+    gslides:
+      'text-gbrand-slides-accent bg-gbrand-slides-soft/80 border border-gbrand-slides-accent/30 hover:bg-gbrand-slides-hover',
     slidepdf: 'text-slate-600 bg-white/60 border border-slate-200/50 hover:bg-white/80',
   };
   const displayLabel = label || fmt.label;
@@ -158,10 +162,10 @@ function GDriveBtn({ fmt, label, disabled, busy, onClick }) {
   const isSlides = fmt.id === 'gslides';
   const displayLabel = label || fmt.label;
   const btnClass = isSlides
-    ? 'text-[#F4B400] bg-[#FFF8E1]/80 border border-[#FBBC04]/30 hover:bg-[#FFF0B3]'
+    ? 'text-gbrand-slides-accent bg-gbrand-slides-soft/80 border border-gbrand-slides-accent/30 hover:bg-gbrand-slides-hover'
     : isSheets
-      ? 'text-[#188038] bg-[#E6F4EA]/80 border border-[#34A853]/20 hover:bg-[#CEEAD6]'
-      : 'text-[#1967D2] bg-[#E8F0FE]/80 border border-[#4285F4]/20 hover:bg-[#D2E3FC]';
+      ? 'text-gbrand-sheets bg-gbrand-sheets-soft/80 border border-gbrand-sheets-accent/20 hover:bg-gbrand-sheets-hover'
+      : 'text-gbrand-docs bg-gbrand-docs-soft/80 border border-gbrand-docs-accent/20 hover:bg-gbrand-docs-hover';
   return (
     <button
       data-testid={`export-format-${fmt.id}`}

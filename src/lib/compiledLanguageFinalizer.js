@@ -78,8 +78,9 @@ const REGISTRY_KIND_FALLBACK_NOUNS = {
 };
 
 // Label words that name the schedule slot, not the artifact genre — a
-// pre-colon label like "Week 3" must never yield "the Week 3 week".
-const HEAD_NOUN_BLOCKLIST_RE = /^(?:week|lesson|session|module|unit|part|day)$/;
+// pre-colon label like "Week 3" must never yield "the Week 3 week" — plus
+// heads too generic to identify anything ("… artifact 4" → 'artifact').
+const HEAD_NOUN_BLOCKLIST_RE = /^(?:week|lesson|session|module|unit|part|day|artifact|task|item|work)$/;
 
 // Head noun of a label: the last word, trailing numerals stripped
 // ("Lab Practical 2" → 'practical'); empty when the word is too short or
@@ -127,7 +128,7 @@ const GENERIC_ARTIFACT_REFERENCE_NOUNS = [
   'reflection task',
   'source-use task',
   'planning task',
-  'lesson assessment',
+  'checkpoint task',
   'revision task',
   'case task',
 ];
@@ -138,15 +139,24 @@ function genericArtifactReference(lessonNumber = 0) {
   return `the ${GENERIC_ARTIFACT_REFERENCE_NOUNS[index]}`;
 }
 
-function shortReferenceForKind(kind, lessonNumber = 0) {
+function shortReferenceForKind(kind, lessonNumber = 0, artifactTitle = '') {
   const week = lessonNumber > 0 ? `Week ${lessonNumber}` : 'weekly';
   if (kind === 'discussion-and-quiz') return `the ${week} discussion and quiz`;
-  if (!kind || kind === 'artifact') return genericArtifactReference(lessonNumber);
+  if (!kind || kind === 'artifact') {
+    // No recognizable kind: the artifact's OWN head noun is still more
+    // lesson-specific than any canned rotation noun — "Peer feedback
+    // protocol draft" reads back as "the Week 4 draft", not "the lesson
+    // assessment". The rotation survives only for titles whose head word
+    // is a schedule slot or too short to carry meaning.
+    const head = titleHeadNoun(artifactTitle);
+    if (head) return `the ${week} ${head}`;
+    return genericArtifactReference(lessonNumber);
+  }
   return `the ${week} ${kind || 'artifact'}`;
 }
 
 export function shortArtifactReference(artifactTitle = '', lessonNumber = 0) {
-  return shortReferenceForKind(artifactKindOf(artifactTitle), lessonNumber);
+  return shortReferenceForKind(artifactKindOf(artifactTitle), lessonNumber, artifactTitle);
 }
 
 // v0.14.1 (1.1): artifact references no longer bake a week number into the
@@ -171,7 +181,7 @@ function resolveReplacement(target, contextLessonNumber = 0) {
   // would be wrong for most readers and the phrasing goes week-neutral.
   const lessonNumber =
     contextLessonNumber > 0 ? contextLessonNumber : target.multiLesson ? 0 : replacement.lessonNumber || 0;
-  return shortReferenceForKind(replacement.artifactKind, lessonNumber);
+  return shortReferenceForKind(replacement.artifactKind, lessonNumber, target.pattern);
 }
 
 function escapeRegExp(value) {
@@ -229,7 +239,12 @@ function fixMechanicalSeams(value) {
   // Stitched double periods: "evidence move in X.." and "X. . Next".
   text = text.replace(/([A-Za-z0-9)'"’”])\.\s*\.(?!\.)/g, '$1.');
   // Exact echo chains from low-information labels: "X: X" / "X: For X".
-  text = text.replace(/\b([A-Z][\w &'-]{3,50}):\s+(?:For\s+)?\1\b/gi, '$1');
+  // Anchored to segment starts (line start or after sentence/colon
+  // punctuation): a label whose LAST word merely coincides with the first
+  // word of a deliberate colon-joined list ("Decision Case: case fact
+  // sort, exhibit check") is not an echo, and collapsing it destroys the
+  // list's leading item.
+  text = text.replace(/(^|[.!?:]\s+)([A-Z][\w &'-]{3,50}):\s+(?:For\s+)?\2\b/gi, '$1$2');
   // Space before punctuation.
   text = text.replace(/[ \t]+([.,;:!?])(?=\s|$)/g, '$1');
   // Doubled connectives produced by reference replacement ("the the Week 2 check").
@@ -426,7 +441,8 @@ function buildReferenceTargets(blueprint = {}) {
   targets.sort((a, b) => b.pattern.length - a.pattern.length);
   return targets.map((target) => ({
     ...target,
-    regex: new RegExp(`(\\b(?:the|a|an)\\s+)?${escapeRegExp(target.pattern)}`, 'gi'),
+    // Trailing boundary: "…artifact 1" must not match inside "…artifact 10".
+    regex: new RegExp(`(\\b(?:the|a|an)\\s+)?${escapeRegExp(target.pattern)}(?![A-Za-z0-9])`, 'gi'),
   }));
 }
 

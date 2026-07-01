@@ -152,8 +152,13 @@ describe('E1 — accent rule on the swept chrome', () => {
 });
 
 describe('E3 — dark parity for classes the global .dark layer does not cover', () => {
-  it('hover:border-indigo-300 variants (layer covers only -100/-200) carry dark companions', () => {
-    expect(read('src/components/Header.jsx')).toContain('hover:border-indigo-300/60 dark:hover:border-indigo-500/40');
+  it('the header IDE button gets dark parity from the token-driven Button primitive', () => {
+    // v0.15.186: the hand-rolled indigo hover (which needed an explicit
+    // dark: companion) became <Button variant="accent"> — accent tokens are
+    // CSS variables that remap in .dark, so parity is structural now.
+    const header = read('src/components/Header.jsx');
+    expect(header).toContain("import { Button } from './ui'");
+    expect(header).toContain('variant="accent"');
     expect(read('src/pages/Contact.jsx')).toContain('hover:border-indigo-300 dark:hover:border-indigo-500/40');
     expect(read('src/components/chat/MessageList.jsx')).toContain(
       'hover:border-indigo-300/40 dark:hover:border-indigo-500/40',

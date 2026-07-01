@@ -2657,11 +2657,16 @@ export default function ChatPanel({
             <h2 className="text-sm font-semibold text-slate-800 truncate">
               {showsAgentIdentity ? 'Agent' : 'Assistant'}
             </h2>
-            <span
-              className={`max-w-[150px] truncate rounded-full border px-2 py-0.5 text-[10px] font-semibold ${STATUS_TONES[headerAgentStatus.tone]}`}
-            >
-              {headerAgentStatus.label}
-            </span>
+            {/* When the recovery banner below carries the same "Configure"
+                call-to-action (with the button), repeating it in this chip
+                was a third nag on one screen — the banner is the message. */}
+            {!(showWorkspaceModelRecovery && headerAgentStatus.label === 'Configure') && (
+              <span
+                className={`max-w-[150px] truncate rounded-full border px-2 py-0.5 text-[10px] font-semibold ${STATUS_TONES[headerAgentStatus.tone]}`}
+              >
+                {headerAgentStatus.label}
+              </span>
+            )}
             {showsAgentIdentity && !compactReady && (
               <button
                 type="button"

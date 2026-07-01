@@ -311,13 +311,22 @@ export default function useGeneration({
   }
 
   // ── Run the Examine step (patch-based) — stores proposals for instructor review ──
-  async function runExamine(finalResult, { reason = 'automatic', triggers = [], focusLessonIndices = null } = {}) {
-    setProgressStep('examining');
-    setStreamDetail('Reviewing for missing or inaccurate content...');
+  async function runExamine(
+    finalResult,
+    { reason = 'automatic', triggers = [], focusLessonIndices = null, background = false } = {},
+  ) {
+    // v0.15.186: background mode — the review runs concurrently with the
+    // deliverables phase (its only output is pending review patches, which
+    // deliverables never consume), so it must not drive the generation-phase
+    // progress UI.
+    if (!background) {
+      setProgressStep('examining');
+      setStreamDetail('Reviewing for missing or inaccurate content...');
+    }
     setExamChanges([]);
     setPendingExamPatches(null);
     const preExamineMap = structuredClone(finalResult);
-    setOldCourseMap(preExamineMap);
+    if (!background) setOldCourseMap(preExamineMap);
 
     // Resolve lesson scope so the examiner knows which lessons are in scope
     const scopeIndices = Array.isArray(lessonScope) ? lessonScope : null;
@@ -353,6 +362,7 @@ export default function useGeneration({
           task: 'verification',
           onApiCallEvent: recordApiCallEvent,
           onChunk: (text) => {
+            if (background) return;
             if (text.length % 200 < 10) {
               const partial = parsePartialJSON(text);
               if (partial && partial.patches) {
@@ -368,6 +378,7 @@ export default function useGeneration({
               label: 'Course-map review stream retry',
               detail: `${attempt}/${max}`,
             });
+            if (background) return;
             setRetryInfo({ attempt, max, delay });
             setStreamDetail(`Connection lost — retrying (${attempt}/${max})...`);
           },
@@ -931,7 +942,6 @@ Generate lessons ${actual + 1} through ${expectedCount} now as JSON:`;
         setActiveModelName(currentModelName);
 
         try {
-          await new Promise((r) => setTimeout(r, 400));
           setProgressStep('generating');
 
           // ── v0.15.17: CourseIR direct authoring — the intended one-call
@@ -1156,11 +1166,16 @@ Generate lessons ${actual + 1} through ${expectedCount} now as JSON:`;
               `Reviewing course map: ${examineTriggers.slice(0, 2).join('; ')}${examineTriggers.length > 2 ? '...' : ''}`,
               'warning',
             );
-            await runExamine(finalResult, {
+            // v0.15.186: fire-and-forget. The review's only output is pending
+            // patches for the instructor review UI — the compiled deliverables
+            // never consume it — yet awaiting it here used to delay the entire
+            // deliverables phase by a full model call.
+            void runExamine(finalResult, {
               reason: 'automatic',
               triggers: examineTriggers,
               focusLessonIndices: examineScan.focusLessonIndices,
-            });
+              background: true,
+            }).catch(() => {});
           } else {
             setOldCourseMap(null);
             setExamChanges([]);

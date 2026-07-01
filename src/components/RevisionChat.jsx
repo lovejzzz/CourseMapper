@@ -194,7 +194,7 @@ export default function RevisionChat({
       {/* ── Feature 6.2: Suggestion chips ── */}
       {suggestions.length > 0 && !isRevising && (
         <div className="px-4 pt-2 pb-1 flex flex-col gap-1.5">
-          <p className="text-[9px] font-semibold text-slate-400 uppercase tracking-wider">Try next:</p>
+          <p className="text-2xs font-semibold text-slate-400 uppercase tracking-wider">Try next:</p>
           <div className="flex flex-wrap gap-1.5">
             {suggestions.map((sug, i) => (
               <button

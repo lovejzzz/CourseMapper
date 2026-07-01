@@ -338,7 +338,7 @@ export default function DependencyMap({ isOpen, onClose, deliverables }) {
                         const f = getFeature(id);
                         const c = COLOR_MAP[f?.color || 'indigo'];
                         return (
-                          <span key={id} className={`${c.badge} text-[9px] font-semibold px-1.5 py-0.5 rounded-full`}>
+                          <span key={id} className={`${c.badge} text-2xs font-semibold px-1.5 py-0.5 rounded-full`}>
                             {f?.label || id}
                           </span>
                         );
@@ -356,7 +356,7 @@ export default function DependencyMap({ isOpen, onClose, deliverables }) {
                         const f = getFeature(id);
                         const c = COLOR_MAP[f?.color || 'indigo'];
                         return (
-                          <span key={id} className={`${c.badge} text-[9px] font-semibold px-1.5 py-0.5 rounded-full`}>
+                          <span key={id} className={`${c.badge} text-2xs font-semibold px-1.5 py-0.5 rounded-full`}>
                             {f?.label || id}
                           </span>
                         );

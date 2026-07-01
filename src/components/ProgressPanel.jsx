@@ -92,7 +92,7 @@ function ElapsedTimer({ startedAt, avgMs }) {
   const elStr = elapsed < 60000 ? `${(elapsed / 1000).toFixed(0)}s` : `${(elapsed / 60000).toFixed(1)}m`;
   const etaStr = avgMs ? (avgMs < 60000 ? `~${(avgMs / 1000).toFixed(0)}s` : `~${(avgMs / 60000).toFixed(1)}m`) : null;
   return (
-    <span className="text-[9px] font-semibold text-indigo-400 animate-pulse tabular-nums">
+    <span className="text-2xs font-semibold text-indigo-400 animate-pulse tabular-nums">
       {elStr}
       {etaStr && <span className="text-slate-400 font-normal"> / {etaStr}</span>}
     </span>
@@ -137,21 +137,23 @@ function DelivStatusIcon({ status }) {
 }
 
 // Sync cascade log item type → styles
+// Design-system status tokens: same semantics as <StatusBadge>, and the
+// soft/base pairs auto-remap in dark mode via CSS variables.
 const SYNC_TYPE_STYLES = {
-  start: { bg: 'bg-indigo-50', text: 'text-indigo-600', dot: 'bg-indigo-400', label: 'Updating' },
-  done: { bg: 'bg-emerald-50', text: 'text-emerald-600', dot: 'bg-emerald-400', label: 'Updated' },
-  error: { bg: 'bg-red-50', text: 'text-red-600', dot: 'bg-red-400', label: 'Failed' },
-  pending: { bg: 'bg-amber-50', text: 'text-amber-600', dot: 'bg-amber-400', label: 'Queued' },
+  start: { bg: 'bg-accent-soft', text: 'text-accent-text', dot: 'bg-accent', label: 'Updating' },
+  done: { bg: 'bg-status-success-soft', text: 'text-status-success', dot: 'bg-status-success', label: 'Updated' },
+  error: { bg: 'bg-status-danger-soft', text: 'text-status-danger', dot: 'bg-status-danger', label: 'Failed' },
+  pending: { bg: 'bg-status-warning-soft', text: 'text-status-warning', dot: 'bg-status-warning', label: 'Queued' },
 };
 
 // Deliverable log entry type → styles
 const DELIV_LOG_STYLES = {
-  start: { text: 'text-indigo-600', bg: 'bg-indigo-50/40' },
-  progress: { text: 'text-indigo-500', bg: 'bg-indigo-50/40' },
-  done: { text: 'text-emerald-700', bg: 'bg-emerald-50/40' },
-  error: { text: 'text-red-600', bg: 'bg-red-50/40' },
-  warn: { text: 'text-amber-700', bg: 'bg-amber-50/40' },
-  info: { text: 'text-slate-600', bg: '' },
+  start: { text: 'text-accent-text', bg: 'bg-accent-soft/40' },
+  progress: { text: 'text-accent', bg: 'bg-accent-soft/40' },
+  done: { text: 'text-status-success', bg: 'bg-status-success-soft/40' },
+  error: { text: 'text-status-danger', bg: 'bg-status-danger-soft/40' },
+  warn: { text: 'text-status-warning', bg: 'bg-status-warning-soft/40' },
+  info: { text: 'text-ink-muted', bg: '' },
 };
 
 const ACTIVITY_LOG_RENDER_LIMIT = 80;
@@ -406,8 +408,8 @@ export default function ProgressPanel({
             return (
               <div>
                 <div className="px-4 pt-1 pb-1 flex items-center gap-1.5">
-                  <span className="text-[9px] font-bold text-slate-400 uppercase tracking-wider">Revising:</span>
-                  <span className="text-[9px] font-bold px-2 py-0.5 rounded-full bg-indigo-50 text-indigo-600 border border-indigo-100 truncate max-w-[120px]">
+                  <span className="text-2xs font-bold text-slate-400 uppercase tracking-wider">Revising:</span>
+                  <span className="text-2xs font-bold px-2 py-0.5 rounded-full bg-indigo-50 text-indigo-600 border border-indigo-100 truncate max-w-[120px]">
                     {tabBadge}
                   </span>
                 </div>
@@ -500,7 +502,7 @@ export default function ProgressPanel({
                   <span className="text-[10px] font-semibold text-amber-600">
                     Auto-syncing {pendingSyncCount > 1 ? `${pendingSyncCount} deliverables` : 'deliverable'}
                   </span>
-                  <span className="text-[9px] text-amber-400 ml-auto">edit detected</span>
+                  <span className="text-2xs text-amber-400 ml-auto">edit detected</span>
                 </div>
                 {/* Per-feature queue: show which are active vs queued */}
                 {syncingFeatures && syncingFeatures.size > 0 && (
@@ -508,7 +510,7 @@ export default function ProgressPanel({
                     {[...syncingFeatures].map((fId) => (
                       <span
                         key={fId}
-                        className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md bg-amber-100/60 text-[9px] font-medium text-amber-700"
+                        className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md bg-amber-100/60 text-2xs font-medium text-amber-700"
                       >
                         <svg className="animate-spin w-2.5 h-2.5 text-amber-500" fill="none" viewBox="0 0 24 24">
                           <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
@@ -522,7 +524,7 @@ export default function ProgressPanel({
                       </span>
                     ))}
                     {pendingSyncCount > syncingFeatures.size && (
-                      <span className="inline-flex items-center px-1.5 py-0.5 rounded-md bg-slate-100/60 text-[9px] text-slate-500">
+                      <span className="inline-flex items-center px-1.5 py-0.5 rounded-md bg-slate-100/60 text-2xs text-slate-500">
                         +{pendingSyncCount - syncingFeatures.size} queued
                       </span>
                     )}
@@ -646,7 +648,7 @@ export default function ProgressPanel({
                             <span className="flex-shrink-0 flex items-center gap-1.5">
                               {/* Chunk progress badge */}
                               {pf && pf.chunksTotal > 1 && pf.status !== 'done' && isDelivGenerating && (
-                                <span className="text-[9px] text-indigo-400 tabular-nums font-medium">
+                                <span className="text-2xs text-indigo-400 tabular-nums font-medium">
                                   {pf.chunksDone}/{pf.chunksTotal}
                                 </span>
                               )}
@@ -661,7 +663,7 @@ export default function ProgressPanel({
                               )}
                               {/* Time spent for completed deliverables */}
                               {doneMs && row.status === 'done' && (
-                                <span className="text-[9px] text-emerald-500 font-medium">
+                                <span className="text-2xs text-emerald-500 font-medium">
                                   {doneMs < 60000
                                     ? `${(doneMs / 1000).toFixed(1)}s`
                                     : `${(doneMs / 60000).toFixed(1)}m`}
@@ -672,7 +674,7 @@ export default function ProgressPanel({
                                 <ElapsedTimer startedAt={timing.startedAt} avgMs={avgMs} />
                               )}
                               {row.error && (
-                                <span className="text-[9px] text-red-400 truncate max-w-[80px]" title={row.error}>
+                                <span className="text-2xs text-red-400 truncate max-w-[80px]" title={row.error}>
                                   {row.error}
                                 </span>
                               )}
@@ -750,12 +752,12 @@ export default function ProgressPanel({
                             className={`w-1.5 h-1.5 rounded-full animate-pulse ml-1 ${isSyncing ? 'bg-amber-400' : 'bg-indigo-400'}`}
                           />
                         )}
-                        <span className="text-[9px] font-normal text-slate-300 ml-1">({activityEntries.length})</span>
+                        <span className="text-2xs font-normal text-slate-300 ml-1">({activityEntries.length})</span>
                       </button>
                       {delivLogExpanded && (
                         <div className="mt-1.5 space-y-px max-h-64 overflow-y-auto">
                           {hiddenActivityCount > 0 && (
-                            <div className="px-2.5 py-1 text-[9px] font-medium text-slate-400">
+                            <div className="px-2.5 py-1 text-2xs font-medium text-slate-400">
                               Showing latest {visibleActivityEntries.length} of {activityEntries.length} events
                             </div>
                           )}
@@ -791,7 +793,7 @@ export default function ProgressPanel({
                                   {entry.message}
                                 </span>
                                 {entry.at && (
-                                  <span className="text-[9px] text-slate-300 flex-shrink-0 mt-0.5">
+                                  <span className="text-2xs text-slate-300 flex-shrink-0 mt-0.5">
                                     {new Date(entry.at).toLocaleTimeString([], {
                                       hour: '2-digit',
                                       minute: '2-digit',
@@ -859,7 +861,7 @@ export default function ProgressPanel({
                             <span className={`text-[10px] font-semibold ${style.text}`}>{style.label}:</span>
                             <span className="text-[10px] text-slate-600 ml-1">{featLabel}</span>
                             {entry.message && (
-                              <p className="text-[9px] text-slate-400 mt-0.5 truncate">{entry.message}</p>
+                              <p className="text-2xs text-slate-400 mt-0.5 truncate">{entry.message}</p>
                             )}
                           </div>
                         </div>
@@ -950,7 +952,7 @@ export default function ProgressPanel({
                     ))}
                   </div>
                 ) : (
-                  <p className="text-[9px] text-slate-400 italic">
+                  <p className="text-2xs text-slate-400 italic">
                     No saved versions yet. Click "+ Name" to pin the current state.
                   </p>
                 )}
@@ -1004,7 +1006,7 @@ export default function ProgressPanel({
                               className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${isActive ? 'bg-indigo-500' : 'bg-slate-300'}`}
                             />
                             <span className="truncate flex-1">{v.label || `v${idx + 1}`}</span>
-                            <span className="text-[9px] text-slate-400 flex-shrink-0">
+                            <span className="text-2xs text-slate-400 flex-shrink-0">
                               {new Date(v.savedAt || v.at || 0).toLocaleTimeString([], {
                                 hour: '2-digit',
                                 minute: '2-digit',
@@ -1086,7 +1088,7 @@ export default function ProgressPanel({
                         {row.label}
                       </span>
                       {currentDelivFeatures?.has(row.id) && isDelivGenerating && delivProgress && (
-                        <span className="ml-auto text-[9px] font-semibold text-indigo-400 animate-pulse">
+                        <span className="ml-auto text-2xs font-semibold text-indigo-400 animate-pulse">
                           Generating…
                         </span>
                       )}
@@ -1227,7 +1229,7 @@ export default function ProgressPanel({
                             <span className={`text-[10px] font-semibold ${style.text}`}>{style.label}:</span>
                             <span className="text-[10px] text-slate-600 ml-1">{featLabel}</span>
                             {entry.message && (
-                              <p className="text-[9px] text-slate-400 mt-0.5 truncate">{entry.message}</p>
+                              <p className="text-2xs text-slate-400 mt-0.5 truncate">{entry.message}</p>
                             )}
                           </div>
                         </div>
@@ -1255,8 +1257,8 @@ export default function ProgressPanel({
             <div>
               {/* Context label */}
               <div className="px-4 pt-3 pb-1 flex items-center gap-1.5">
-                <span className="text-[9px] font-bold text-slate-400 uppercase tracking-wider">Revising:</span>
-                <span className="text-[9px] font-bold px-2 py-0.5 rounded-full bg-indigo-50 text-indigo-600 border border-indigo-100 truncate max-w-[120px]">
+                <span className="text-2xs font-bold text-slate-400 uppercase tracking-wider">Revising:</span>
+                <span className="text-2xs font-bold px-2 py-0.5 rounded-full bg-indigo-50 text-indigo-600 border border-indigo-100 truncate max-w-[120px]">
                   {tabBadge}
                 </span>
               </div>

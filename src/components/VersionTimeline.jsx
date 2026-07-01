@@ -18,7 +18,7 @@ export default function VersionTimeline({ versions, activeVersion, onJump }) {
             />
           </svg>
           History
-          <span className="text-[9px] font-normal text-slate-300">({versions.length})</span>
+          <span className="text-2xs font-normal text-slate-300">({versions.length})</span>
         </h3>
         {versions.length > 8 && (
           <button
@@ -58,7 +58,7 @@ export default function VersionTimeline({ versions, activeVersion, onJump }) {
                   <span className={`text-[11px] font-semibold ${isActive ? 'text-indigo-700' : 'text-slate-500'}`}>
                     v{realIdx + 1}
                   </span>
-                  <span className="text-[9px] text-slate-300 flex-shrink-0">{timeStr}</span>
+                  <span className="text-2xs text-slate-300 flex-shrink-0">{timeStr}</span>
                 </div>
                 <span className="text-[10px] text-slate-400 truncate block">{v.label}</span>
               </div>

@@ -311,31 +311,47 @@ export function composeScenarioAnswer(scenario, term, fact, { position = '', cou
 
 function buildShortAnswerItem(kernel, index, seed = 0) {
   const term = kernel?.keyTerms?.[0];
+  if (!term || !cleanText(term.term)) return null;
   const setup = cleanText(kernel?.scenario?.setup);
-  if (!term || !setup) return null;
-  const materials = cleanText(kernel?.scenario?.materials) || 'the scenario evidence';
   const fact = bestFactFor(term, kernel.facts) || kernel.facts?.[0] || '';
-  const variantSeed = projectionTextSeed(seed, setup, term.term, materials, fact, index);
+  // Genome-linked lessons often arrive without a course-layer scenario
+  // (composeLessonFromConcepts leaves scenario null until the model authors
+  // one). The term's own example or the anchor fact still grounds a real
+  // item — the only alternative is the subject-free template frame.
+  const exampleAnchor = cleanText(term.example) || cleanText(fact);
+  if (!setup && !exampleAnchor) return null;
+  const materials = cleanText(kernel?.scenario?.materials) || (setup ? 'the scenario evidence' : 'the lesson example');
+  const variantSeed = projectionTextSeed(seed, setup || exampleAnchor, term.term, materials, fact, index);
   const scoringGuidance = projectionVariant(variantSeed, [
     `Full credit uses ${term.term} accurately, cites ${materials}, and reaches a defensible conclusion; give partial credit when the concept is right but the evidence is thin.`,
     `Score for three visible moves: correct ${term.term} language, direct use of ${materials}, and a conclusion the evidence can support.`,
-    `A strong answer names ${term.term}, points to the scenario evidence, and explains the conclusion; answers with accurate ideas but weak support earn partial credit.`,
+    `A strong answer names ${term.term}, points to the ${setup ? 'scenario' : 'example'} evidence, and explains the conclusion; answers with accurate ideas but weak support earn partial credit.`,
     `Award full credit only when ${term.term}, ${materials}, and the final claim work together; unsupported concept recall should stay below full credit.`,
     `Look for accurate ${term.term} use, a concrete reference to ${materials}, and a conclusion that does not outrun the evidence.`,
     `Give full credit when the response uses ${term.term} to interpret ${materials} and explains why the conclusion follows.`,
   ]);
-  const questionTail = projectionVariant(variantSeed, [
-    `Using ${term.term}, analyze what this evidence shows and justify your conclusion.`,
-    `Use ${term.term} to interpret the evidence and defend a conclusion.`,
-    `Apply ${term.term} to the scenario and explain what conclusion the evidence supports.`,
-    `Using ${term.term}, state the best-supported conclusion and explain the evidence behind it.`,
-    `Connect ${term.term} to the scenario evidence and explain the reasoning it supports.`,
-    `Use ${term.term} to make a supported claim from the scenario evidence.`,
-  ]);
+  const questionTail = projectionVariant(
+    variantSeed,
+    setup
+      ? [
+          `Using ${term.term}, analyze what this evidence shows and justify your conclusion.`,
+          `Use ${term.term} to interpret the evidence and defend a conclusion.`,
+          `Apply ${term.term} to the scenario and explain what conclusion the evidence supports.`,
+          `Using ${term.term}, state the best-supported conclusion and explain the evidence behind it.`,
+          `Connect ${term.term} to the scenario evidence and explain the reasoning it supports.`,
+          `Use ${term.term} to make a supported claim from the scenario evidence.`,
+        ]
+      : [
+          `Using ${term.term}, explain what this example shows and justify your conclusion.`,
+          `Use ${term.term} to interpret this example and defend a conclusion.`,
+          `Explain how ${term.term} applies here and what conclusion the evidence supports.`,
+          `Using ${term.term}, state the best-supported conclusion and explain the reasoning behind it.`,
+        ],
+  );
   return {
     index,
     type: 'short_answer',
-    question: `${ensureSentence(setup)} ${questionTail}`,
+    question: `${ensureSentence(setup || exampleAnchor)} ${questionTail}`,
     options: [],
     answerIndex: 0,
     distractorRationales: [],
@@ -349,12 +365,26 @@ function buildShortAnswerItem(kernel, index, seed = 0) {
 
 function buildEssayItem(kernel, index, seed = 0) {
   const discussion = kernel?.discussionPrompt;
-  const prompt = cleanText(discussion?.prompt);
-  if (!prompt) return null;
   const terms = Array.isArray(kernel?.keyTerms) ? kernel.keyTerms : [];
-  const term = terms[1] || terms[0];
+  let prompt = cleanText(discussion?.prompt);
+  let term = terms[1] || terms[0];
+  let positions = Array.isArray(discussion?.positions) ? discussion.positions.map(cleanText).filter(Boolean) : [];
+  if (!prompt) {
+    // No course-layer debate (typical for genome-linked lessons): a term
+    // carrying both a misconception and its correction is itself a real,
+    // gradeable evaluative prompt — students must weigh the plausible-but-
+    // wrong claim against the corrective evidence.
+    const contested = terms.find(
+      (candidate) => cleanText(candidate?.misconception) && cleanText(candidate?.correction),
+    );
+    if (!contested) return null;
+    term = contested;
+    prompt = `A common claim about ${cleanText(contested.term)} is: "${stripTerminalPeriod(
+      cleanText(contested.misconception),
+    )}." Evaluate this claim — what does the course evidence actually support?`;
+    positions = [cleanText(contested.correction), cleanText(contested.misconception)];
+  }
   const materials = cleanText(kernel?.scenario?.materials) || 'the assigned materials';
-  const positions = Array.isArray(discussion?.positions) ? discussion.positions.map(cleanText).filter(Boolean) : [];
   const counterposition = positions[1] ? ` (for example: ${stripTerminalPeriod(positions[1]).toLowerCase()})` : '';
   const sampleFact = term ? bestFactFor(term, kernel.facts) : kernel.facts?.[0] || '';
   const variantSeed = projectionTextSeed(seed, prompt, term?.term, materials, positions[0], positions[1], index);

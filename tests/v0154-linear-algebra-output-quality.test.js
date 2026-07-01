@@ -496,14 +496,23 @@ describe('v0.15.6 anatomy and texture quality regressions', () => {
           dimension: 'format',
           detail: expect.stringMatching(/Lesson N application check.*repeats/i),
         }),
+        // v0.15.186: byte-identical lesson plans are mail-merge substance
+        // (the boilerplate net now covers lessonPlans), and a texture score
+        // this low is a P1, not an advisory P2.
         expect.objectContaining({
-          severity: 'P2',
+          severity: 'P0',
+          dimension: 'substance',
+          detail: expect.stringMatching(/lessonPlans: 100% of lines are shared/i),
+        }),
+        expect.objectContaining({
+          severity: 'P1',
           dimension: 'texture',
           detail: expect.stringMatching(/Texture score \d+\/100/i),
         }),
       ]),
     );
-    expect(result.overall.score).toBeLessThan(100);
+    // A fully templated package must leave the A band entirely.
+    expect(result.overall.score).toBeLessThan(80);
   });
 
   it('grades generic lab/STEM fallback language as a history discipline defect', async () => {

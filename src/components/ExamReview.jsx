@@ -237,20 +237,20 @@ function PatchCard({ patch, baseMap, onAccept, onReject, onFocus }) {
             <button
               type="button"
               onClick={handleOpen}
-              className="text-[9px] font-semibold text-violet-700 bg-violet-50 px-1.5 py-0.5 rounded border border-violet-200/60 hover:bg-violet-100 transition-colors duration-100 whitespace-nowrap"
+              className="text-2xs font-semibold text-violet-700 bg-violet-50 px-1.5 py-0.5 rounded border border-violet-200/60 hover:bg-violet-100 transition-colors duration-100 whitespace-nowrap"
             >
               {isOpen ? 'Close' : 'Open'}
             </button>
           )}
           <button
             onClick={onAccept}
-            className="text-[9px] font-semibold text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded border border-emerald-200/60 hover:bg-emerald-100 transition-colors duration-100 whitespace-nowrap"
+            className="text-2xs font-semibold text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded border border-emerald-200/60 hover:bg-emerald-100 transition-colors duration-100 whitespace-nowrap"
           >
             Accept
           </button>
           <button
             onClick={onReject}
-            className="text-[9px] font-semibold text-slate-500 bg-slate-50 px-1.5 py-0.5 rounded border border-slate-200/60 hover:bg-slate-100 transition-colors duration-100 whitespace-nowrap"
+            className="text-2xs font-semibold text-slate-500 bg-slate-50 px-1.5 py-0.5 rounded border border-slate-200/60 hover:bg-slate-100 transition-colors duration-100 whitespace-nowrap"
           >
             Keep mine
           </button>
@@ -259,7 +259,7 @@ function PatchCard({ patch, baseMap, onAccept, onReject, onFocus }) {
       {canShowDiff && (
         <div className="grid gap-1 rounded border border-slate-100 bg-slate-50/70 p-2 leading-relaxed">
           <div>
-            <span className="block text-[9px] font-bold uppercase tracking-wide text-slate-400">Current</span>
+            <span className="block text-2xs font-bold uppercase tracking-wide text-slate-400">Current</span>
             <span
               className={`block whitespace-pre-wrap break-words text-slate-500 line-through decoration-red-300 ${
                 isOpen ? 'max-h-44 overflow-y-auto rounded bg-white/70 p-1.5' : ''
@@ -269,7 +269,7 @@ function PatchCard({ patch, baseMap, onAccept, onReject, onFocus }) {
             </span>
           </div>
           <div>
-            <span className="block text-[9px] font-bold uppercase tracking-wide text-violet-400">Suggested</span>
+            <span className="block text-2xs font-bold uppercase tracking-wide text-violet-400">Suggested</span>
             <span
               className={`block whitespace-pre-wrap break-words text-violet-700 ${
                 isOpen ? 'max-h-44 overflow-y-auto rounded bg-white/70 p-1.5' : ''
@@ -294,7 +294,7 @@ function PatchCard({ patch, baseMap, onAccept, onReject, onFocus }) {
       {/* Reason */}
       {reason && <div className="text-slate-500 italic leading-relaxed break-words whitespace-pre-wrap">{reason}</div>}
       {hasHiddenContent && !isOpen && (
-        <div className="text-[9px] font-semibold text-slate-400">Open to see the full current and suggested text.</div>
+        <div className="text-2xs font-semibold text-slate-400">Open to see the full current and suggested text.</div>
       )}
     </li>
   );

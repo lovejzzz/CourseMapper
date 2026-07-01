@@ -237,7 +237,7 @@ function PlanActionRow({ action, index, isPrimary, actionCapabilities, actionSta
       }`}
     >
       <span
-        className={`mt-0.5 rounded-full px-1.5 py-0.5 text-[9px] font-bold ${
+        className={`mt-0.5 rounded-full px-1.5 py-0.5 text-2xs font-bold ${
           priority === 'P0' ? 'bg-indigo-100 text-indigo-700' : 'bg-slate-100 text-slate-500'
         }`}
       >
@@ -246,13 +246,13 @@ function PlanActionRow({ action, index, isPrimary, actionCapabilities, actionSta
       <div className="min-w-0 flex-1">
         <div className="flex flex-wrap items-center gap-1.5">
           <p className="text-[12px] font-semibold leading-snug text-slate-800">{action.title}</p>
-          <span className="rounded-full border border-slate-200 bg-white/70 px-1.5 py-0.5 text-[9px] font-bold text-slate-500">
+          <span className="rounded-full border border-slate-200 bg-white/70 px-1.5 py-0.5 text-2xs font-bold text-slate-500">
             {safeModeLabel}
           </span>
           {stateLabel && (
             <span
               data-testid={`workspace-plan-action-state-${getPlanActionIntent(action)}`}
-              className={`rounded-full border px-1.5 py-0.5 text-[9px] font-bold ${
+              className={`rounded-full border px-1.5 py-0.5 text-2xs font-bold ${
                 actionState.status === 'done'
                   ? 'border-emerald-200 bg-emerald-50 text-emerald-700'
                   : actionState.status === 'error'

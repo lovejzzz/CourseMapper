@@ -14,6 +14,8 @@ export default [
       'test-results/**',
       'verification-output/**',
       '.firebase/**',
+      // Background-task worktrees are separate checkouts that lint themselves.
+      '.claude/**',
     ],
   },
   js.configs.recommended,

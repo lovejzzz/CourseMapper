@@ -3,26 +3,26 @@ import { APP_VERSION } from './appVersion.js';
 export const CURRENT_RELEASE = {
   version: APP_VERSION,
   date: 'July 1, 2026',
-  title: 'Texture Finish: ledger metadata is not prose',
-  landingTitle: 'Texture Finish',
+  title: 'Grounded Gates: gold audit true green, anti-rotation grading, design system v1',
+  landingTitle: 'Grounded Gates',
   highlights: [
-    'Fresh deployed v0.15.184 GPT-5.4-mini UX ZIP evidence regraded 100/A with zero findings; the only remaining texture caveat was repeated boilerplate, not a structural package failure.',
-    'The texture metric now ignores assignment ledger metadata such as week, points, percent, and Course Map stamps, while still catching repeated assignment body prose.',
-    'Assignment DOCX meta strips no longer repeat the same grade weight twice when the Course Map reverse stamp already carries it.',
-    'UX Study Guide summaries, Quiz Bank intended-use notes, and studio Lesson Plan instructor moves now rotate away from the exact repeated provider-output shingles found in the audit.',
-    'The v0.15.184 package-handoff cleanup remains the UI baseline: compact export panel, notes in Agent, and no zero-tool header clutter.',
-    'A fresh deployed v0.15.185 provider audit remains required before claiming the new compiler texture rotation in real provider output.',
+    'The full 40-sample gold audit is green again with all 26 blockers fixed at their roots — grounding echoes stop rewriting domain vocabulary, colon-joined lists survive the seam fixer, and artifact references derive from each artifact’s own head noun instead of a colliding rotation pool.',
+    'The deep grader (v1.8.0) closes the gates template rotation exploited: cross-lesson boilerplate is now checked on study guides, lesson plans, quiz banks, and assignments, texture weighs 25/135, and a fully templated package drops from A to 74/C while grounded output stays 97-98/A.',
+    'Genome-linked lessons stop shipping template-only short-answer and essay items: when no course-layer scenario exists, the projection grounds them in the concept’s own example, anchor fact, and misconception-versus-correction tension.',
+    'Fast verification now runs a 10-sample gold slice covering every historically fragile sample and all three scopes on every push, so a red gold audit can no longer ship silently from main.',
+    'Generation gets cheaper and faster: kernel chunks share one byte-identical system prompt with warm-first dispatch so provider prompt caches finally land, concurrency rises to 4, knowledge readings prefetch during authoring, finish retries run per-feature in parallel, and a 120-second stall watchdog replaces the 6-8 minute hang.',
+    'Design system v1 ships with semantic color/type/radius tokens, Button/Card/StatusBadge primitives, a 10px type floor replacing 112 sub-10px labels, and a UI declutter pass — one Configure banner instead of three, quiet autosave text, and no empty columns.',
   ],
   landingHighlights: [
-    'Fresh audit: 100/A, zero findings.',
-    'Ledger metadata stops counting as prose.',
-    'Assignment weights stop duplicating.',
-    'UX texture stamps rotate by lesson.',
-    'Fresh v0.15.185 proof is next.',
+    'Gold audit: 40/40, zero blockers.',
+    'Templated packages can no longer grade A.',
+    'Prompt caches finally land; stalls retry in 2 minutes.',
+    'Design tokens + primitives, gated in CI.',
+    'Less chrome: one banner, quieter status.',
   ],
   proof: {
-    contract: 'release-contracts/v0.15.185.json',
-    roadmap: 'docs/V0.15.185_TEXTURE_FINISH_ROADMAP.md',
+    contract: 'release-contracts/v0.15.186.json',
+    roadmap: 'docs/V0.15.186_GROUNDED_GATES_ROADMAP.md',
     auditCommand: 'npm run audit:release-history',
   },
 };
@@ -37,6 +37,19 @@ export const CURRENT_RELEASE_CHANGELOG = {
 };
 
 export const HISTORICAL_RELEASE_CHANGELOGS = [
+  {
+    version: '0.15.185',
+    date: 'July 1, 2026',
+    title: 'Texture Finish: ledger metadata is not prose',
+    highlights: [
+      'Fresh deployed v0.15.184 GPT-5.4-mini UX ZIP evidence regraded 100/A with zero findings; the only remaining texture caveat was repeated boilerplate, not a structural package failure.',
+      'The texture metric now ignores assignment ledger metadata such as week, points, percent, and Course Map stamps, while still catching repeated assignment body prose.',
+      'Assignment DOCX meta strips no longer repeat the same grade weight twice when the Course Map reverse stamp already carries it.',
+      'UX Study Guide summaries, Quiz Bank intended-use notes, and studio Lesson Plan instructor moves now rotate away from the exact repeated provider-output shingles found in the audit.',
+      'The v0.15.184 package-handoff cleanup remains the UI baseline: compact export panel, notes in Agent, and no zero-tool header clutter.',
+      'A fresh deployed v0.15.185 provider audit remains required before claiming the new compiler texture rotation in real provider output.',
+    ],
+  },
   {
     version: '0.15.184',
     date: 'July 1, 2026',

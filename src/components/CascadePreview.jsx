@@ -89,7 +89,7 @@ export default function CascadePreview({ fieldKey, featureId, position, delivera
         })}
       </div>
       {staleOnes.length > 0 && (
-        <p className="text-[9px] text-amber-500 mt-1.5 font-medium">
+        <p className="text-2xs text-amber-500 mt-1.5 font-medium">
           {staleOnes.length === 1 ? '1 deliverable' : `${staleOnes.length} deliverables`} already out of sync
         </p>
       )}

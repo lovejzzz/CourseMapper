@@ -90,7 +90,7 @@ import {
   summarizeCompilerSavings,
 } from './lib/apiUsageCost';
 import { buildCompactPackageTrustReceipt, buildPackageTrustBoundarySummary } from './lib/packageFinalizerSummary';
-import { getChunkCount } from './lib/parallelGenerator';
+import { getChunkCount, pLimit } from './lib/parallelGenerator';
 import { buildHumanReviewRecommendation, summarizeRepairEvidence } from './lib/packageTrust';
 import { traceLog } from './lib/traceLog';
 import { getPackageTrustStatus } from './lib/packageTrustStatus';
@@ -1415,7 +1415,7 @@ export default function AppFlow({ startupAction = null, onStartupHandled, onRetu
             blockers: 0,
           });
 
-          for (const action of retryActionsToRun) {
+          const runRetryAction = async (action) => {
             const retryActionKey = getRetryActionKey(action);
             attemptedRetryKeys.add(retryActionKey);
             tracePackageFinish(finishRunId, 'retry_action_start', {
@@ -1488,7 +1488,28 @@ export default function AppFlow({ startupAction = null, onStartupHandled, onRetu
             await new Promise((resolve) => window.setTimeout(resolve, 0));
             finalizerCourseMap = courseMapRef.current || finalizerCourseMap;
             finalizerDeliverables = deliverablesRef.current || finalizerDeliverables;
+          };
+          // v0.15.186: retry actions used to run strictly one at a time.
+          // Actions on DIFFERENT features are independent — run the feature
+          // groups concurrently (limit 3) and keep actions WITHIN a feature
+          // sequential, so a lesson regen always sees the data the previous
+          // action for that feature just wrote (the :1455 stale-data rule).
+          const retryActionsByFeature = new Map();
+          for (const action of retryActionsToRun) {
+            const featureKey = action.featureId || 'package';
+            if (!retryActionsByFeature.has(featureKey)) retryActionsByFeature.set(featureKey, []);
+            retryActionsByFeature.get(featureKey).push(action);
           }
+          const retryGroupLimit = pLimit(3);
+          await Promise.all(
+            [...retryActionsByFeature.values()].map((group) =>
+              retryGroupLimit(async () => {
+                for (const action of group) {
+                  await runRetryAction(action);
+                }
+              }),
+            ),
+          );
 
           remainingRetryCallBudget = Math.max(0, remainingRetryCallBudget - retryBudget.usedCalls);
           result = runFinalizer(canRetryWeakSpots ? maxRetryActions : 0);
@@ -2733,7 +2754,9 @@ export default function AppFlow({ startupAction = null, onStartupHandled, onRetu
   const workspaceTabs = selectedFeatures.map((id) => featureMap[id]).filter(Boolean);
   workspaceTabsRef.current = workspaceTabs;
   const mobileWorkspaceViews = [
-    { id: 'content', label: activeTab === 'courseMap' ? 'Course Map' : 'Content' },
+    // Always "Content": with the Course Map chip selected above, a view tab
+    // ALSO labeled "Course Map" stacked two identical labels on screen.
+    { id: 'content', label: 'Content' },
     { id: 'agent', label: 'Agent' },
     ...(courseMap && gen.progressStep === 'done' ? [{ id: 'export', label: 'Export' }] : []),
   ];
@@ -2789,14 +2812,18 @@ export default function AppFlow({ startupAction = null, onStartupHandled, onRetu
             : user
               ? 'Autosaved to My Projects'
               : 'Autosaved locally';
+  // Steady-state autosave is not news — a bold pill that never changes reads
+  // as an unclickable button. Only saving/error states earn chip treatment;
+  // the resting state renders as quiet meta text.
+  const workspaceSaveQuiet =
+    cloudSaveStatus !== 'error' &&
+    localSaveStatus !== 'error' &&
+    cloudSaveStatus !== 'saving' &&
+    localSaveStatus !== 'saving';
   const workspaceSaveTone =
     cloudSaveStatus === 'error' || localSaveStatus === 'error'
       ? 'border-red-200 bg-red-50 text-red-700'
-      : cloudSaveStatus === 'saving' || localSaveStatus === 'saving'
-        ? 'border-slate-200 bg-white text-slate-600'
-        : user
-          ? 'border-emerald-200 bg-emerald-50 text-emerald-700'
-          : 'border-slate-200 bg-white text-slate-600';
+      : 'border-slate-200 bg-white text-slate-600';
   const workspaceSaveTextTone =
     cloudSaveStatus === 'error' || localSaveStatus === 'error'
       ? 'text-red-600'
@@ -2909,7 +2936,11 @@ export default function AppFlow({ startupAction = null, onStartupHandled, onRetu
               <div className="flex min-w-0 flex-wrap items-center gap-2">
                 {courseMap && (
                   <span
-                    className={`hidden rounded-full border px-3 py-1 text-xs font-bold md:inline-flex ${workspaceSaveTone}`}
+                    className={
+                      workspaceSaveQuiet
+                        ? 'hidden text-xs font-medium text-slate-400 md:inline-flex dark:text-slate-500'
+                        : `hidden rounded-full border px-3 py-1 text-xs font-bold md:inline-flex ${workspaceSaveTone}`
+                    }
                     title={workspaceSaveTitle}
                   >
                     {workspaceSaveText}

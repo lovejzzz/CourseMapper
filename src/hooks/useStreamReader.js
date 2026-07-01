@@ -319,6 +319,22 @@ export default function useStreamReader() {
         externalSignal.addEventListener('abort', () => controller.abort(), { once: true });
       }
 
+      // v0.15.186: a stalled stream used to cost the 6-8 minute feature
+      // watchdog — and the course-map phase has no watchdog at all, so a
+      // hung stream there waited for a manual Stop. If no bytes arrive for
+      // the inactivity window, abort THIS attempt and let the normal retry
+      // path resend; the flag distinguishes a stall from a user Stop.
+      const STREAM_INACTIVITY_TIMEOUT_MS = 120000;
+      let inactivityAborted = false;
+      let inactivityTimer = null;
+      const armInactivityTimer = () => {
+        if (inactivityTimer) clearTimeout(inactivityTimer);
+        inactivityTimer = setTimeout(() => {
+          inactivityAborted = true;
+          controller.abort();
+        }, STREAM_INACTIVITY_TIMEOUT_MS);
+      };
+
       try {
         recordApiCallEvent({
           type: 'providerRequestStart',
@@ -329,6 +345,7 @@ export default function useStreamReader() {
           attempt: attempt + 1,
           maxRetries,
         });
+        armInactivityTimer();
         const response = await fetch(url, {
           method: 'POST',
           headers,
@@ -401,6 +418,7 @@ export default function useStreamReader() {
         let reportedUsage = null;
 
         while (true) {
+          armInactivityTimer();
           const { done, value } = await reader.read();
           if (!done) {
             buffer += decoder.decode(value, { stream: true });
@@ -434,6 +452,7 @@ export default function useStreamReader() {
 
           if (done) break;
         }
+        if (inactivityTimer) clearTimeout(inactivityTimer);
 
         const outputText = fullText.slice(String(existingText || '').length);
         recordApiCallEvent({
@@ -449,8 +468,18 @@ export default function useStreamReader() {
         });
         recordUsage(reportedUsage, outputText, 'API usage');
         return { fullText };
-      } catch (err) {
-        if (err.name === 'AbortError') throw err;
+      } catch (rawErr) {
+        if (inactivityTimer) clearTimeout(inactivityTimer);
+        let err = rawErr;
+        if (err.name === 'AbortError') {
+          if (!inactivityAborted) throw err;
+          // A stall-triggered abort is a network failure, not a user Stop —
+          // convert it to a retryable error so the backoff path resends.
+          err = new Error(
+            `Stream stalled: no data received for ${STREAM_INACTIVITY_TIMEOUT_MS / 1000}s (network timeout)`,
+          );
+          err.retryable = true;
+        }
         const classifiedError = toClassifiedError(err, { provider, modelId, task });
 
         if (attempt < maxRetries && isRetryableError(classifiedError)) {

@@ -94,10 +94,14 @@ describe('WS-A (1) — budget reducer is order-independent for concurrent enrich
 });
 
 describe('WS-A (2) — the rewritten loop keeps its contract (source pins)', () => {
-  it('enrichment chunks run through grouped Promise.all with a concurrency cap', () => {
+  it('enrichment chunks run warm-first then through a rolling limiter with a concurrency cap', () => {
     expect(hookSource).toContain('const runEnrichmentChunk = async ({ chunk, isFirstChunk })');
     expect(hookSource).toContain('const enrichmentConcurrency = 4;');
-    expect(hookSource).toMatch(/Promise\.all\(\s*enrichmentChunks\.slice\(start, start \+ enrichmentConcurrency\)/);
+    // v0.15.186: chunk #1 completes alone (provider prompt-cache warm-up),
+    // then the rest fan out under a rolling pLimit instead of barrier waves.
+    expect(hookSource).toContain('await runEnrichmentChunk(enrichmentChunks[0]);');
+    expect(hookSource).toContain('pLimit(enrichmentConcurrency)');
+    expect(hookSource).toMatch(/enrichmentChunks\.slice\(1\)\.map\(\(chunk\) => enrichmentLimit/);
   });
 
   it('per-chunk budget check happens at launch, inside the chunk runner', () => {

@@ -27,9 +27,13 @@ function clampConcurrency(value, fallback) {
 }
 
 export function getFeatureConcurrency(generationPlan = null) {
+  // v0.15.186: default 3 → 4. A 13-16-lesson course produces 4 Pass B
+  // batches; at 3 the fourth batch always waited a full extra round trip.
+  // 429s are already retried with exponential backoff, and the conservative
+  // plan keeps its lower ceiling.
   return clampConcurrency(
     generationPlan?.parallelFeatureCalls,
-    generationPlan?.chunkStrategy === 'conservative' ? 2 : 3,
+    generationPlan?.chunkStrategy === 'conservative' ? 2 : 4,
   );
 }
 

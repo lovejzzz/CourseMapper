@@ -71,13 +71,13 @@ export default function ExportBar({ onExport, onImport }) {
         </button>
         <button onClick={() => handleExport('pdf')} disabled={!!exporting} className={btnLight}>
           <SpinOrIcon format="pdf">
-            <span className="w-3.5 h-3.5 flex items-center justify-center text-[8px] font-bold text-red-500">PDF</span>
+            <span className="w-3.5 h-3.5 flex items-center justify-center text-2xs font-bold text-red-500">PDF</span>
           </SpinOrIcon>
           {exporting === 'pdf' ? 'Exporting...' : '.pdf'}
         </button>
         <button onClick={() => handleExport('csv')} disabled={!!exporting} className={btnLight}>
           <SpinOrIcon format="csv">
-            <span className="w-3.5 h-3.5 flex items-center justify-center text-[8px] font-bold text-blue-500">CSV</span>
+            <span className="w-3.5 h-3.5 flex items-center justify-center text-2xs font-bold text-blue-500">CSV</span>
           </SpinOrIcon>
           {exporting === 'csv' ? 'Exporting...' : '.csv'}
         </button>
@@ -109,7 +109,7 @@ export default function ExportBar({ onExport, onImport }) {
         <button
           onClick={() => handleExport('gsheets')}
           disabled={!!exporting}
-          className={`${btnBase} text-[#188038] bg-[#E6F4EA]/80 border border-[#34A853]/20 hover:bg-[#CEEAD6] shadow-glass`}
+          className={`${btnBase} text-gbrand-sheets bg-gbrand-sheets-soft/80 border border-gbrand-sheets-accent/20 hover:bg-gbrand-sheets-hover shadow-glass`}
         >
           <SpinOrIcon format="gsheets">
             <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none">
@@ -127,7 +127,7 @@ export default function ExportBar({ onExport, onImport }) {
         <button
           onClick={() => handleExport('gdocs')}
           disabled={!!exporting}
-          className={`${btnBase} text-[#1967D2] bg-[#E8F0FE]/80 border border-[#4285F4]/20 hover:bg-[#D2E3FC] shadow-glass`}
+          className={`${btnBase} text-gbrand-docs bg-gbrand-docs-soft/80 border border-gbrand-docs-accent/20 hover:bg-gbrand-docs-hover shadow-glass`}
         >
           <SpinOrIcon format="gdocs">
             <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none">

@@ -772,7 +772,13 @@ export function _buildDocxContentShared(featureId, data, children, docx) {
             const answerText = String(q.answer || '').trim();
             if (answerText && q.explanation) {
               if (answerText.length <= 40) {
-                children.push(makeCallout(`Answer — ${answerText}`, q.explanation));
+                // Enriched explanations arrive prefixed with the key letter
+                // ("A. Lava cooling…"); the callout label already carries it,
+                // so the duplicate reads as "ANSWER — A / A. …" in the doc.
+                const explanationText = String(q.explanation)
+                  .replace(new RegExp(`^\\s*${answerText.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}[.)]\\s*`), '')
+                  .trim();
+                children.push(makeCallout(`Answer — ${answerText}`, explanationText || q.explanation));
               } else {
                 children.push(makeCallout('Answer', answerText));
                 children.push(makeBold('Explanation', q.explanation));

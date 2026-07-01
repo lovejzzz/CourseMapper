@@ -4,12 +4,32 @@ export default {
   darkMode: 'class',
   theme: {
     extend: {
+      // ── Design system: semantic type scale (docs/DESIGN_SYSTEM.md) ──
+      // 10px is the floor — text-[8px]/text-[9px] are banned by
+      // tests/design-system.test.js. Prefer these names over raw px so a
+      // future scale change is one edit.
+      fontSize: {
+        '2xs': ['10px', { lineHeight: '14px' }],
+        caption: ['11px', { lineHeight: '16px' }],
+        label: ['12px', { lineHeight: '16px', letterSpacing: '0.01em' }],
+        body: ['13px', { lineHeight: '20px' }],
+        'body-lg': ['14px', { lineHeight: '22px' }],
+        title: ['16px', { lineHeight: '24px' }],
+        headline: ['20px', { lineHeight: '28px' }],
+        display: ['26px', { lineHeight: '34px', letterSpacing: '-0.02em' }],
+      },
       borderRadius: {
         squircle: '22px',
         'squircle-sm': '16px',
         'squircle-xs': '12px',
         'squircle-lg': '28px',
         pill: '9999px',
+        // Semantic aliases: controls (buttons/inputs) → ctl, cards → card,
+        // large panels/modals → panel. Use these instead of picking among
+        // rounded-md/lg/xl per file.
+        ctl: '8px',
+        card: '12px',
+        panel: '16px',
       },
       boxShadow: {
         glass: '0 1px 2px rgba(0,0,0,0.02), 0 8px 32px rgba(0,0,0,0.03), inset 0 1px 0 rgba(255,255,255,0.5)',
@@ -71,6 +91,61 @@ export default {
           'white-heavy': 'rgba(255, 255, 255, 0.85)',
           border: 'rgba(255, 255, 255, 0.35)',
           'border-light': 'rgba(255, 255, 255, 0.18)',
+        },
+        // ── Design system: semantic colors backed by CSS variables ──
+        // These switch automatically with .dark (no dark: prefix, no
+        // !important overrides needed). bg-surface, text-ink-muted,
+        // border-line, bg-accent-soft, text-status-danger, etc.
+        surface: {
+          DEFAULT: 'var(--color-surface)',
+          alt: 'var(--color-surface-alt)',
+          alt2: 'var(--color-surface-alt2)',
+          dim: 'var(--color-surface-dim)',
+          body: 'var(--color-body-bg)',
+        },
+        ink: {
+          DEFAULT: 'var(--color-text)',
+          secondary: 'var(--color-text-secondary)',
+          tertiary: 'var(--color-text-tertiary)',
+          muted: 'var(--color-text-muted)',
+          faint: 'var(--color-text-faint)',
+        },
+        line: {
+          DEFAULT: 'var(--color-border)',
+          strong: 'var(--color-border-strong)',
+        },
+        accent: {
+          DEFAULT: 'var(--color-accent)',
+          strong: 'var(--color-accent-strong)',
+          soft: 'var(--color-accent-soft)',
+          text: 'var(--color-accent-text)',
+        },
+        status: {
+          success: 'var(--color-success)',
+          'success-soft': 'var(--color-success-soft)',
+          warning: 'var(--color-warning)',
+          'warning-soft': 'var(--color-warning-soft)',
+          danger: 'var(--color-danger)',
+          'danger-soft': 'var(--color-danger-soft)',
+          info: 'var(--color-info)',
+          'info-soft': 'var(--color-info-soft)',
+          neutral: 'var(--color-neutral)',
+          'neutral-soft': 'var(--color-neutral-soft)',
+        },
+        // Google Workspace brand — single source for every export surface.
+        gbrand: {
+          docs: '#1967D2',
+          'docs-accent': '#4285F4',
+          'docs-soft': '#E8F0FE',
+          'docs-hover': '#D2E3FC',
+          sheets: '#188038',
+          'sheets-accent': '#34A853',
+          'sheets-soft': '#E6F4EA',
+          'sheets-hover': '#CEEAD6',
+          slides: '#E37400',
+          'slides-accent': '#F4B400',
+          'slides-soft': '#FEF7E0',
+          'slides-hover': '#FEEFC3',
         },
       },
     },

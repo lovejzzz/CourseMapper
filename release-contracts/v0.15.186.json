@@ -1,0 +1,134 @@
+{
+  "version": "0.15.186",
+  "date": "July 1, 2026",
+  "title": "Grounded Gates: gold audit true green, anti-rotation grading, design system v1",
+  "status": "verified-current",
+  "proofSummary": {
+    "local": [
+      "npm run audit:gold",
+      "npm run audit:gold:ci",
+      "npm test",
+      "npx vitest run tests/design-system.test.js tests/v0147-texture-metric.test.js tests/v0154-linear-algebra-output-quality.test.js",
+      "npm run audit:deep-quality -- --mode strict",
+      "npm run curriculumos:proof",
+      "npm run audit:release-history"
+    ],
+    "ciFast": {
+      "status": "pending-push",
+      "note": "Fast verification (which now includes audit:gold:ci) is claimed only after v0.15.186 is pushed and the GitHub Actions run passes."
+    },
+    "deploy": {
+      "status": "pending-push",
+      "note": "Pages deploy is not claimed until the pushed v0.15.186 release completes its deploy run."
+    },
+    "ciDeep": {
+      "status": "local-only",
+      "note": "The full strict deep-proof quality gate (blueprint matrix, deliverables, gold 40/40, expert audit, proof packet) passed locally in strict mode before this release; Deep proof on GitHub runs on its normal schedule."
+    },
+    "liveProvider": {
+      "status": "not-current",
+      "note": "Prompt-cache hits (cachedInputTokens > 0) and the wall-clock effect of warm-first dispatch, higher concurrency, and the stall watchdog require a fresh live provider round (crucible or deployed audit) after deploy."
+    },
+    "manualHuman": {
+      "status": "not-applicable",
+      "note": "No external instructor approval is claimed by this release."
+    }
+  },
+  "claims": [
+    {
+      "id": "v015186-gold-audit-true-green",
+      "status": "verified-current",
+      "changelogHighlightIndex": 0,
+      "summary": "All 26 gold-audit blockers fixed at their roots (grounding-echo domain vocabulary, colon-echo seam anchoring, compactSourceCue leading-clause join, artifact-reference head-noun derivation with pool dedup); full 40-sample audit passes with zero blockers.",
+      "anchors": [
+        "src/lib/courseBlueprintCompiler.js",
+        "src/lib/compiledLanguageFinalizer.js",
+        "scripts/goldSampleQualityAudit.mjs"
+      ],
+      "proofCommands": [
+        "npm run audit:gold",
+        "rg -n \"lessonDomainVocabulary|protocolEcho\" src/lib/courseBlueprintCompiler.js",
+        "rg -n \"is not an echo|artifact 1. must not match inside\" src/lib/compiledLanguageFinalizer.js"
+      ],
+      "proofScopes": ["static-audit", "unit"]
+    },
+    {
+      "id": "v015186-grader-anti-rotation-gates",
+      "status": "verified-current",
+      "changelogHighlightIndex": 1,
+      "summary": "Grader v1.8.0: boilerplate net covers studyGuides/lessonPlans/quizBank/assignments at calibrated 0.35/0.7 bars, texture weight 10 to 25, texture below 60 is a P1; the mail-merge fixture grades 74/C while the calibration set stays 97-98/A.",
+      "anchors": ["src/lib/quality/deepQualityGrader.js", "tests/v0154-linear-algebra-output-quality.test.js"],
+      "proofCommands": [
+        "npx vitest run tests/v0154-linear-algebra-output-quality.test.js tests/v0147-texture-metric.test.js",
+        "rg -n \"GRADER_VERSION = '1.8.0'|texture: 25|studyGuides: \\{ p1: 0.35\" src/lib/quality/deepQualityGrader.js",
+        "npm run curriculumos:proof"
+      ],
+      "proofScopes": ["unit", "static-audit"]
+    },
+    {
+      "id": "v015186-kernel-grounded-sa-essay",
+      "status": "verified-current",
+      "changelogHighlightIndex": 2,
+      "summary": "Short-answer/essay projection degrades to term-example/anchor-fact grounding and misconception-versus-correction essay prompts when the course-layer scenario or discussion is missing, so genome-linked lessons stop shipping template-only assessment surfaces.",
+      "anchors": ["src/lib/kernelProjection.js", "src/lib/__tests__/kernelProjection.test.js"],
+      "proofCommands": [
+        "npx vitest run src/lib/__tests__/kernelProjection.test.js src/lib/genome/__tests__/genomeRefinement2.test.js",
+        "rg -n \"exampleAnchor|misconception-tension|contested\" src/lib/kernelProjection.js"
+      ],
+      "proofScopes": ["unit", "static-audit"]
+    },
+    {
+      "id": "v015186-gold-ci-slice-per-push",
+      "status": "verified-current",
+      "changelogHighlightIndex": 3,
+      "summary": "Fast verification runs audit:gold:ci — a 10-sample slice covering all seven historically fragile samples and the 5/8/14 scopes — on every push, closing the silent-red release hole documented in the v0.15.3 field audit and reproduced at v0.15.185.",
+      "anchors": [".github/workflows/ci.yml", "package.json"],
+      "proofCommands": ["rg -n \"audit:gold:ci\" .github/workflows/ci.yml package.json", "npm run audit:gold:ci"],
+      "proofScopes": ["static-audit", "unit"]
+    },
+    {
+      "id": "v015186-cost-speed-fixes",
+      "status": "verified-current",
+      "changelogHighlightIndex": 4,
+      "summary": "Kernel chunk prompts are byte-identical (courseLevel schema moved to the user prompt) with warm-first dispatch on both Pass B and prose paths; feature concurrency 3 to 4; open-readings prefetch overlaps authoring; finish retries run per-feature-group in parallel; a 120s stream inactivity watchdog converts stalls into retries.",
+      "anchors": [
+        "src/lib/blueprintEnrichmentPass.js",
+        "src/hooks/useDeliverables.js",
+        "src/hooks/useStreamReader.js",
+        "src/lib/parallelGenerator.js",
+        "src/AppFlow.jsx"
+      ],
+      "proofCommands": [
+        "npx vitest run src/lib/__tests__/kernelProjection.test.js tests/v0147-parallel-enrichment.test.js",
+        "rg -n \"cache warm-up|warmFirst\" src/hooks/useDeliverables.js",
+        "rg -n \"STREAM_INACTIVITY_TIMEOUT_MS\" src/hooks/useStreamReader.js",
+        "rg -n \"retryActionsByFeature\" src/AppFlow.jsx"
+      ],
+      "proofScopes": ["unit", "static-audit"]
+    },
+    {
+      "id": "v015186-design-system-v1-and-declutter",
+      "status": "verified-current",
+      "changelogHighlightIndex": 5,
+      "summary": "Semantic tokens (accent/status/gbrand CSS variables mapped into Tailwind), type scale with a 10px floor, Button/Card/StatusBadge primitives, and the declutter pass (single Configure banner, quiet autosave text, empty Type column hidden, Content tab naming) — all gated by tests/design-system.test.js.",
+      "anchors": [
+        "docs/DESIGN_SYSTEM.md",
+        "src/components/ui/index.js",
+        "tests/design-system.test.js",
+        "src/components/chat/ChatPanel.jsx"
+      ],
+      "proofCommands": [
+        "npx vitest run tests/design-system.test.js",
+        "rg -n \"third nag on one screen\" src/components/chat/ChatPanel.jsx",
+        "rg -n \"text-2xs\" tailwind.config.js"
+      ],
+      "proofScopes": ["unit", "static-audit", "doc"]
+    }
+  ],
+  "knownRemainingTargets": [
+    "A live provider round must confirm cachedInputTokens > 0 in the run digest and the wall-clock effect of warm-first dispatch, concurrency 4, and the stall watchdog.",
+    "Model downshift routing for nativeSkeleton/voicePass/genomeExtract is designed but deferred: it needs a per-provider cheap-tier sibling map with availability fallback before it can ship safely.",
+    "The pre-existing deliverable-terminal-states E2E failure (features stuck in streaming when one errors, present at v0.15.185) is under investigation in a separate branch.",
+    "Design-system migration continues opportunistically: raw slate utilities, DependencyMap SVG palette, the changelog page's violet theme, and the legacy dark-mode !important overrides shrink as components are touched."
+  ]
+}

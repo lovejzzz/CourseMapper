@@ -24,6 +24,26 @@
   --color-table-header: #f8fafc;
   --color-table-hover: rgba(99, 102, 241, 0.04);
   --color-placeholder: #94a3b8;
+
+  /* ── Design system: accent + status (docs/DESIGN_SYSTEM.md) ──
+     The accent is the indigo family the brand already uses; status colors
+     are the emerald/amber/red/indigo/slate pairs previously hand-picked per
+     component. -soft variants are the chip/badge backgrounds; the base is
+     text/icon color guaranteed AA on the matching -soft. */
+  --color-accent: #6366f1; /* indigo-500 */
+  --color-accent-strong: #4f46e5; /* indigo-600 */
+  --color-accent-soft: #eef2ff; /* indigo-50 */
+  --color-accent-text: #4338ca; /* indigo-700 */
+  --color-success: #047857; /* emerald-700 */
+  --color-success-soft: #d1fae5; /* emerald-100 */
+  --color-warning: #b45309; /* amber-700 */
+  --color-warning-soft: #fef3c7; /* amber-100 */
+  --color-danger: #b91c1c; /* red-700 */
+  --color-danger-soft: #fee2e2; /* red-100 */
+  --color-info: #4338ca; /* indigo-700 */
+  --color-info-soft: #e0e7ff; /* indigo-100 */
+  --color-neutral: #475569; /* slate-600 */
+  --color-neutral-soft: #f1f5f9; /* slate-100 */
 }
 
 .dark {
@@ -44,6 +64,23 @@
   --color-table-header: rgba(20, 24, 38, 0.9);
   --color-table-hover: rgba(99, 102, 241, 0.05);
   --color-placeholder: #475569;
+
+  /* Design system: accent + status, dark remaps (lighter text on darker
+     translucent softs). */
+  --color-accent: #818cf8; /* indigo-400 */
+  --color-accent-strong: #6366f1; /* indigo-500 */
+  --color-accent-soft: rgba(99, 102, 241, 0.16);
+  --color-accent-text: #a5b4fc; /* indigo-300 */
+  --color-success: #6ee7b7; /* emerald-300 */
+  --color-success-soft: rgba(16, 185, 129, 0.16);
+  --color-warning: #fcd34d; /* amber-300 */
+  --color-warning-soft: rgba(245, 158, 11, 0.16);
+  --color-danger: #fca5a5; /* red-300 */
+  --color-danger-soft: rgba(239, 68, 68, 0.16);
+  --color-info: #a5b4fc; /* indigo-300 */
+  --color-info-soft: rgba(99, 102, 241, 0.16);
+  --color-neutral: #94a3b8; /* slate-400 */
+  --color-neutral-soft: rgba(148, 163, 184, 0.14);
 }
 
 /* ── Base ── */

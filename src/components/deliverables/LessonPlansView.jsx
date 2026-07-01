@@ -152,7 +152,11 @@ export default function LessonPlansView({
                           <tr className="bg-slate-50/80">
                             <th className="text-left px-3 py-2 font-semibold text-slate-500 w-20">Time</th>
                             <th className="text-left px-3 py-2 font-semibold text-slate-500 w-28">Activity</th>
-                            <th className="text-left px-3 py-2 font-semibold text-slate-500 w-16">Type</th>
+                            {/* A column of nothing reads as missing data —
+                                render Type only when some row has one. */}
+                            {plan.outline.some((row) => row.type || row.bloomsLevel) && (
+                              <th className="text-left px-3 py-2 font-semibold text-slate-500 w-16">Type</th>
+                            )}
                             <th className="text-left px-3 py-2 font-semibold text-slate-500">
                               Description &amp; Notes
                             </th>
@@ -170,14 +174,16 @@ export default function LessonPlansView({
                                   <span className="block text-xs text-slate-400 mt-0.5">{row.grouping}</span>
                                 )}
                               </td>
-                              <td className="px-3 py-2 align-top">
-                                {row.type && (
-                                  <span className="text-xs text-indigo-500 bg-indigo-50 px-1.5 py-0.5 rounded font-medium">
-                                    {row.type}
-                                  </span>
-                                )}
-                                {row.bloomsLevel && <BloomsTag level={row.bloomsLevel} />}
-                              </td>
+                              {plan.outline.some((entry) => entry.type || entry.bloomsLevel) && (
+                                <td className="px-3 py-2 align-top">
+                                  {row.type && (
+                                    <span className="text-xs text-indigo-500 bg-indigo-50 px-1.5 py-0.5 rounded font-medium">
+                                      {row.type}
+                                    </span>
+                                  )}
+                                  {row.bloomsLevel && <BloomsTag level={row.bloomsLevel} />}
+                                </td>
+                              )}
                               <td className="px-3 py-2 text-slate-600 align-top">
                                 <E
                                   value={row.description}

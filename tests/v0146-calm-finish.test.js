@@ -283,7 +283,10 @@ describe('v0.15.52 — slide speaker notes shorten repeated long artifact names 
       compiled.slideDecks.decks.flatMap((deck) => deck.slides.map((slide) => slide.notes || '')),
     );
 
-    expect(notes).toContain('the lesson assessment');
+    // The long exit-ticket phrase shortens to a lesson-specific reference
+    // derived from the artifact's own head noun ("… approach comparison" →
+    // "the Week N comparison"), not a generic rotation noun.
+    expect(notes).toContain('the Week 1 comparison');
     expect((notes.match(/exit ticket using predictive planning to justify one/gi) || []).length).toBeLessThan(12);
 
     const blob = await buildSlideDeckPptxBlob(compiled.slideDecks, 'Project Management', 0);

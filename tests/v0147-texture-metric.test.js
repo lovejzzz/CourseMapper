@@ -626,8 +626,8 @@ describe('D1(3)+(4) — weight-0 invariance and the report row on a real package
     if (healthyDir) fs.rmSync(healthyDir, { recursive: true, force: true });
   });
 
-  it('keeps every pre-texture weight and gives texture a small score-bearing weight', () => {
-    expect(GRADER_VERSION).toBe('1.7.4');
+  it('keeps every pre-texture weight and gives texture a score-bearing weight that can cost the A band', () => {
+    expect(GRADER_VERSION).toBe('1.8.0');
     expect(DIMENSION_WEIGHTS).toEqual({
       identity: 20,
       substance: 20,
@@ -637,7 +637,9 @@ describe('D1(3)+(4) — weight-0 invariance and the report row on a real package
       consistency: 10,
       structure: 10,
       format: 5,
-      texture: 10,
+      // v0.15.186: 10 → 25 — heavy templating must be able to pull the
+      // overall score out of the A band on its own.
+      texture: 25,
     });
   });
 
@@ -650,7 +652,7 @@ describe('D1(3)+(4) — weight-0 invariance and the report row on a real package
 
     const entries = Object.entries(DIMENSION_WEIGHTS);
     const totalWeight = entries.reduce((sum, [, weight]) => sum + weight, 0);
-    expect(totalWeight).toBe(120);
+    expect(totalWeight).toBe(135);
     const recomputed = Math.round(
       entries.reduce((sum, [dimension, weight]) => sum + result.scores[dimension] * weight, 0) / totalWeight,
     );
@@ -692,7 +694,7 @@ describe('D1(3)+(4) — weight-0 invariance and the report row on a real package
     expect(md).toContain('| Dimension | Weight | Score | Grade |');
     expect(md).toContain('| identity | 20 |');
     expect(md).toContain('| format | 5 |');
-    expect(md).toContain(`| texture | 10 | ${result.scores.texture} | ${result.grades.texture} |`);
-    expect(md).toContain(`| **overall** | 120 | **${result.overall.score}** | **${result.overall.grade}** |`);
+    expect(md).toContain(`| texture | 25 | ${result.scores.texture} | ${result.grades.texture} |`);
+    expect(md).toContain(`| **overall** | 135 | **${result.overall.score}** | **${result.overall.grade}** |`);
   });
 });

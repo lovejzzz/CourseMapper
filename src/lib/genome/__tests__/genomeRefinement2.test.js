@@ -206,10 +206,15 @@ describe('iteration 2 — sparse mcBank composition', () => {
       ],
     });
     const payload = composeLessonFromConcepts([kernel], {}, { itemPlan: buildQuizItemPlan(6) }).payload;
-    // One MC item only — no scenario/discussion in the course layer, so no
-    // short-answer or essay frames are fabricated.
-    expect(payload.quizItems).toHaveLength(1);
-    expect(payload.quizItems[0].type).toBe('multiple_choice');
+    // The MC item plus a fact-grounded short answer — with no course-layer
+    // scenario the short-answer frame grounds itself in the kernel's anchor
+    // fact rather than staying a subject-free compiled frame. No correction
+    // exists, so the misconception-tension essay is not fabricated.
+    expect(payload.quizItems).toHaveLength(2);
+    expect(payload.quizItems.map((item) => item.type).sort()).toEqual(['multiple_choice', 'short_answer']);
+    const shortAnswer = payload.quizItems.find((item) => item.type === 'short_answer');
+    expect(shortAnswer.question).toMatch(/wider intervals reflect more uncertainty/i);
+    expect(payload.quizItems.map((item) => item.type)).not.toContain('essay');
 
     // The compiled quiz still carries the full frame count: compiler fallbacks
     // own the slots the genome could not fill.
@@ -236,8 +241,10 @@ describe('iteration 2 — sparse mcBank composition', () => {
     const compiled = compileBlueprintDeliverables(blueprint, ['quizBank'], {});
     const questions = compiled.quizBank.quizzes[0].questions;
     expect(questions.length).toBeGreaterThanOrEqual(5);
-    expect(questions.filter((question) => question.enrichmentSource).length).toBe(1);
-    expect(questions.filter((question) => !question.enrichmentSource).length).toBeGreaterThanOrEqual(4);
+    // The genome fills the MC slot and the fact-grounded short answer; the
+    // compiler frames still own every remaining slot.
+    expect(questions.filter((question) => question.enrichmentSource).length).toBe(2);
+    expect(questions.filter((question) => !question.enrichmentSource).length).toBeGreaterThanOrEqual(3);
   });
 });
 

@@ -1167,13 +1167,11 @@ export function buildLessonKernelPrompt(courseMap, lessonIndices, options = {}) 
     // and study guides. Both lines ride the SAME kernel call (no extra cost).
     ...(courseUsesNonLatinScript(courseMap) ? [ROMANIZATION_PROMPT_LINE, DIALOGUE_PROMPT_LINE] : []),
     'Return JSON matching this shape:',
-    JSON.stringify({
-      ...buildKernelSchema(),
-      ...(includeCourseLevel ? KERNEL_COURSE_LEVEL_SCHEMA : {}),
-    }),
-    includeCourseLevel
-      ? 'Also include the courseLevel object once (not per lesson), grounded in the same source facts.'
-      : '',
+    // v0.15.186: the courseLevel schema moved to the USER prompt. Embedding
+    // it here gave chunk #1 a different system prompt than chunks 2..N,
+    // splitting the shared prefix that provider prompt caches key on —
+    // live telemetry showed cachedInputTokens: 0 on every kernel call.
+    JSON.stringify(buildKernelSchema()),
   ]
     .filter(Boolean)
     .join('\n');
@@ -1197,6 +1195,11 @@ export function buildLessonKernelPrompt(courseMap, lessonIndices, options = {}) 
     `Course: ${truncateText(courseMap?.courseName || 'Untitled Course', 120)}`,
     'Lessons:',
     JSON.stringify(lessons),
+    ...(includeCourseLevel
+      ? [
+          `Also include the courseLevel object once (not per lesson), grounded in the same source facts, matching this shape: ${JSON.stringify(KERNEL_COURSE_LEVEL_SCHEMA)}`,
+        ]
+      : []),
     ...(romanizationFocusLines.length > 0
       ? ['Romanization recovery — these lessons returned non-Latin keyTerms without rm:', ...romanizationFocusLines]
       : []),

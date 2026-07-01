@@ -969,6 +969,24 @@ export default function useDeliverables({
           ? scopeIndices
           : (blueprintCourseMap.lessons || []).map((_, lessonIdx) => lessonIdx);
 
+        // v0.15.186: warm the open-readings cache WHILE enrichment authors
+        // content. The knowledge queries derive from lesson titles — identical
+        // between this preliminary graph and the post-enrichment graph — and
+        // results cache weekly in localStorage, so the authoritative attach
+        // after compile becomes a cache hit instead of up to 8s/topic of
+        // network wait on the critical path. Fire-and-forget: a failure here
+        // is invisible because the real attach below still runs.
+        void (async () => {
+          try {
+            const [graphLib, knowledge] = await Promise.all([import('../lib/courseGraph'), import('../lib/knowledge')]);
+            const prefetchGraph = graphLib.deriveCourseGraphFromCourseMap(blueprintCourseMap);
+            knowledge.attachGenomeResources(prefetchGraph);
+            await knowledge.attachOpenReadings(prefetchGraph);
+          } catch {
+            // best-effort cache warm only
+          }
+        })();
+
         // ── Stage 1: CurriculumOS genome linker — free, deterministic, and
         // independent of the enrichment flag and model availability. Library
         // hits cost zero tokens, so they must never sit behind the model
@@ -1320,21 +1338,32 @@ export default function useDeliverables({
             };
 
             const limit = pLimit(getFeatureConcurrency(generationPlan));
+            const runBatchSafely = async (chunk, batchIndex) => {
+              if (!hasProviderCallBudget()) {
+                appendLog('⚠ Native Pass B stopped early: call cap', 'warn');
+                return;
+              }
+              try {
+                await runPassBBatch(chunk, { includeCourseLevel: batchIndex === 0 });
+              } catch (batchErr) {
+                if (batchErr?.name === 'AbortError') throw batchErr;
+                appendLog(`⚠ Native Pass B batch failed: ${batchErr.message || 'model error'}`, 'warn');
+              }
+            };
+            // v0.15.186 cache warm-up: all batches share one static prompt
+            // prefix, but firing them concurrently means no request finishes
+            // before its siblings are sent, so the provider prompt cache
+            // never gets written (live telemetry: cachedInputTokens 0 on
+            // every kernel call). With enough batches to amortize the extra
+            // wave, complete the first batch alone, then fan out the rest
+            // against the now-warm cache.
+            const warmFirst = batches.length >= 3;
+            if (warmFirst) {
+              await runBatchSafely(batches[0], 0);
+            }
+            const fanOut = warmFirst ? batches.slice(1) : batches;
             await Promise.all(
-              batches.map((chunk, batchIndex) =>
-                limit(async () => {
-                  if (!hasProviderCallBudget()) {
-                    appendLog('⚠ Native Pass B stopped early: call cap', 'warn');
-                    return;
-                  }
-                  try {
-                    await runPassBBatch(chunk, { includeCourseLevel: batchIndex === 0 });
-                  } catch (batchErr) {
-                    if (batchErr?.name === 'AbortError') throw batchErr;
-                    appendLog(`⚠ Native Pass B batch failed: ${batchErr.message || 'model error'}`, 'warn');
-                  }
-                }),
-              ),
+              fanOut.map((chunk, position) => limit(() => runBatchSafely(chunk, warmFirst ? position + 1 : position))),
             );
 
             // Recovery (same budget discipline as the prose kernel stage,
@@ -1650,9 +1679,19 @@ export default function useDeliverables({
               appendLog(`⚠ Content enrichment chunk failed: ${chunkErr.message || 'model error'}`, 'warn');
             }
           };
+          // v0.15.186: rolling limiter instead of barrier waves (one straggler
+          // no longer blocks the next group), with the same cache warm-up as
+          // native Pass B — complete chunk #1 alone so the shared prompt
+          // prefix is cached before the fan-out.
           const enrichmentConcurrency = 4;
-          for (let start = 0; start < enrichmentChunks.length; start += enrichmentConcurrency) {
-            await Promise.all(enrichmentChunks.slice(start, start + enrichmentConcurrency).map(runEnrichmentChunk));
+          if (enrichmentChunks.length >= 3) {
+            await runEnrichmentChunk(enrichmentChunks[0]);
+            const enrichmentLimit = pLimit(enrichmentConcurrency);
+            await Promise.all(
+              enrichmentChunks.slice(1).map((chunk) => enrichmentLimit(() => runEnrichmentChunk(chunk))),
+            );
+          } else {
+            await Promise.all(enrichmentChunks.map(runEnrichmentChunk));
           }
 
           // v0.14.1 P2.3: spend recovery budget on dropped lessons BEFORE

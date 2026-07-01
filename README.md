@@ -3,7 +3,7 @@
 AI-powered instructional design platform running on **CurriculumOS** — a deterministic course compiler linked to a **Curriculum Genome** of source-anchored, citable concept knowledge — with an embedded teaching assistant agent. Upload your syllabus and generate a structured Course Map, lesson plans, slide decks, rubrics, quizzes, assignments, discussion prompts, study guides, and a polished syllabus — all pedagogically aligned, validated, and fully editable. Then use the AI agent to revise, validate, research, and visualize your curriculum through natural conversation.
 
 **Live:** [https://edutool.dev](https://edutool.dev)
-**Current release:** v0.15.7
+**Current release:** v0.15.186
 
 ---
 
@@ -25,7 +25,7 @@ Course Mapper is a **purpose-built instructional design tool**, not a general ch
 
 ---
 
-## Current Pipeline (v0.15.7)
+## Current Pipeline (v0.15.186)
 
 The product ribbon and the code share one pipeline vocabulary: **Map -> Enrich -> Compile -> Verify -> Grade**. `src/lib/pipelineMachine.js` is the phase authority; UI surfaces should render from that machine instead of re-deriving state from raw generation/finalizer flags.
 
@@ -491,7 +491,7 @@ For controlled pilots, serve `dist/` from Firebase Hosting or an equivalent stat
 
 ### Tech Stack
 
-- **Frontend** — React 18, Vite, TailwindCSS
+- **Frontend** — React 18, Vite, TailwindCSS with a semantic design system (tokens, `Button`/`Card`/`StatusBadge` primitives, dark mode via CSS variables — see [docs/DESIGN_SYSTEM.md](docs/DESIGN_SYSTEM.md), enforced by `tests/design-system.test.js`)
 - **State** — useReducer + Context (two-context pattern: state + dispatch via `courseStore.jsx`)
 - **AI providers** — OpenAI, Anthropic, Google, and DeepSeek
 - **Auth & Cloud** — Firebase Auth (Google OAuth), Firestore (project cloud storage, professor profiles)

@@ -378,7 +378,7 @@ function ReceiptActionStatePill({ action, actionState }) {
   return (
     <span
       data-testid={`agent-receipt-action-state-${action.id}`}
-      className={`rounded-full border px-1.5 py-0.5 text-[9px] font-bold ${toneClass}`}
+      className={`rounded-full border px-1.5 py-0.5 text-2xs font-bold ${toneClass}`}
     >
       {stateLabel}
     </span>
@@ -556,7 +556,7 @@ function ReceiptQualityScorecard({ quality }) {
           {quality.dimensions.map((dimension) => (
             <span
               key={dimension.id || dimension.label}
-              className={`rounded-md border px-1.5 py-0.5 text-[9px] font-bold ${getQualityDimensionTone(
+              className={`rounded-md border px-1.5 py-0.5 text-2xs font-bold ${getQualityDimensionTone(
                 dimension.status,
                 dimension.score,
               )}`}

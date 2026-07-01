@@ -1,6 +1,6 @@
 {
   "name": "course-mapper",
-  "version": "0.15.185",
+  "version": "0.15.186",
   "type": "module",
   "description": "AI-powered course syllabus to course map generator",
   "scripts": {
@@ -28,6 +28,7 @@
     "audit:pipeline": "node scripts/hybridPipelineAudit.mjs",
     "audit:gold": "node scripts/goldSampleQualityAudit.mjs",
     "audit:gold:smoke": "node scripts/goldSampleQualityAudit.mjs --sample gold-research-methods-short-5,gold-ai-course-design-8,gold-community-health-semester-14",
+    "audit:gold:ci": "node scripts/goldSampleQualityAudit.mjs --sample gold-research-methods-short-5,gold-research-methods-8,gold-research-methods-semester-14,gold-ai-course-design-8,gold-ai-course-design-semester-14,gold-community-health-semester-14,gold-multi-section-seminar-8,gold-business-strategy-case-8,gold-teacher-preparation-8,gold-sparse-assessment-resilience-8",
     "audit:deep-quality": "node scripts/deepProofQualityGate.mjs",
     "audit:self": "node scripts/internalSelfImprovementAudit.mjs",
     "audit:self:rounds": "node scripts/internalSelfImprovementAudit.mjs --rounds 5",

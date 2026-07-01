@@ -113,7 +113,7 @@ function ApiCallBudgetCard({ budget }) {
           <p className="mt-0.5 text-[11px] font-semibold">Current run: {total} provider calls</p>
         </div>
         {budget.skippedExamineCalls > 0 && (
-          <span className="rounded-full bg-white/70 px-2 py-0.5 text-[9px] font-bold text-emerald-600 dark:bg-slate-900/70 dark:text-emerald-300">
+          <span className="rounded-full bg-white/70 px-2 py-0.5 text-2xs font-bold text-emerald-600 dark:bg-slate-900/70 dark:text-emerald-300">
             {budget.skippedExamineCalls} review saved
           </span>
         )}
@@ -125,9 +125,9 @@ function ApiCallBudgetCard({ budget }) {
           title={costControl.reason || ''}
         >
           <div className="flex items-center justify-between gap-2">
-            <p className="text-[9px] font-bold uppercase tracking-wide opacity-60">Cost control</p>
+            <p className="text-2xs font-bold uppercase tracking-wide opacity-60">Cost control</p>
             <span
-              className={`rounded-full px-2 py-0.5 text-[9px] font-bold ${
+              className={`rounded-full px-2 py-0.5 text-2xs font-bold ${
                 costControl.shouldStopRetries
                   ? 'bg-rose-50 text-rose-600 dark:bg-rose-500/15 dark:text-rose-200'
                   : costControl.status && costControl.status !== 'ok'
@@ -157,9 +157,9 @@ function ApiCallBudgetCard({ budget }) {
               {compilerSummary.featureList ? `: ${compilerSummary.featureList}` : ''}
             </p>
           )}
-          {costControl.reason && <p className="mt-0.5 line-clamp-2 text-[9px] opacity-70">{costControl.reason}</p>}
+          {costControl.reason && <p className="mt-0.5 line-clamp-2 text-2xs opacity-70">{costControl.reason}</p>}
           {costControl.remainingBeforeHardLimit !== null && costControl.remainingBeforeHardLimit !== undefined && (
-            <p className="mt-0.5 text-[9px] font-semibold opacity-60">
+            <p className="mt-0.5 text-2xs font-semibold opacity-60">
               {costControl.remainingBeforeHardLimit} calls before hard stop
             </p>
           )}
@@ -170,7 +170,7 @@ function ApiCallBudgetCard({ budget }) {
           data-testid="developer-feature-spend"
           className="mt-2 rounded-lg border border-indigo-100 bg-white/70 px-2 py-1.5 dark:border-indigo-500/20 dark:bg-slate-900/70"
         >
-          <p className="text-[9px] font-bold uppercase tracking-wide opacity-60">Spend by feature</p>
+          <p className="text-2xs font-bold uppercase tracking-wide opacity-60">Spend by feature</p>
           <div className="mt-1 space-y-1">
             {featureUsageSummary.map((summary) => (
               <div key={summary.featureId} className="flex items-center justify-between gap-2 text-[10px]">
@@ -187,7 +187,7 @@ function ApiCallBudgetCard({ budget }) {
       <dl className="mt-2 grid grid-cols-2 gap-1.5">
         {counters.map(([label, value]) => (
           <div key={label} className="rounded-lg bg-white/65 px-2 py-1 dark:bg-slate-900/60">
-            <dt className="text-[9px] font-semibold uppercase tracking-wide opacity-60">{label}</dt>
+            <dt className="text-2xs font-semibold uppercase tracking-wide opacity-60">{label}</dt>
             <dd className="text-[12px] font-bold">{value}</dd>
           </div>
         ))}
@@ -199,7 +199,7 @@ function ApiCallBudgetCard({ budget }) {
               data-testid="developer-api-failure-breakdown"
               className="rounded-lg border border-rose-200 bg-white/70 px-2 py-1.5 dark:border-rose-500/30 dark:bg-slate-900/70"
             >
-              <p className="text-[9px] font-bold uppercase tracking-wide text-rose-500 dark:text-rose-300">
+              <p className="text-2xs font-bold uppercase tracking-wide text-rose-500 dark:text-rose-300">
                 Failure classes
               </p>
               <div className="mt-1 flex flex-wrap gap-1">
@@ -207,7 +207,7 @@ function ApiCallBudgetCard({ budget }) {
                   <span
                     key={failureClass}
                     data-testid="developer-api-failure-class"
-                    className="rounded-full bg-rose-50 px-2 py-0.5 text-[9px] font-bold text-rose-600 dark:bg-rose-500/15 dark:text-rose-200"
+                    className="rounded-full bg-rose-50 px-2 py-0.5 text-2xs font-bold text-rose-600 dark:bg-rose-500/15 dark:text-rose-200"
                   >
                     {formatFailureClass(failureClass)} {count}
                   </span>
@@ -225,19 +225,17 @@ function ApiCallBudgetCard({ budget }) {
                 {formatBudgetEventTime(event.at)} · {event.label}
               </p>
               {(event.failureClass || event.statusCode || event.retryable !== undefined) && (
-                <p className="mt-0.5 truncate text-[9px] font-semibold text-rose-600 dark:text-rose-300">
+                <p className="mt-0.5 truncate text-2xs font-semibold text-rose-600 dark:text-rose-300">
                   {event.failureClass ? formatFailureClass(event.failureClass) : 'Provider failure'}
                   {event.statusCode ? ` · ${event.statusCode}` : ''}
                   {event.retryable !== undefined ? ` · ${event.retryable ? 'retryable' : 'no retry'}` : ''}
                 </p>
               )}
               {event.userMessage && (
-                <p className="truncate text-[9px] font-medium text-slate-500 dark:text-slate-400">
-                  {event.userMessage}
-                </p>
+                <p className="truncate text-2xs font-medium text-slate-500 dark:text-slate-400">{event.userMessage}</p>
               )}
               {event.totalTokens > 0 && (
-                <p className="truncate text-[9px] font-medium text-slate-500 dark:text-slate-400">
+                <p className="truncate text-2xs font-medium text-slate-500 dark:text-slate-400">
                   {event.costUsd !== null && event.costUsd !== undefined
                     ? `$${Number(event.costUsd).toFixed(Number(event.costUsd) < 0.01 ? 4 : 2)}`
                     : 'Cost unknown'}{' '}
@@ -245,7 +243,7 @@ function ApiCallBudgetCard({ budget }) {
                 </p>
               )}
               {event.type === 'compiledDeliverable' && (
-                <p className="truncate text-[9px] font-medium text-emerald-600 dark:text-emerald-300">
+                <p className="truncate text-2xs font-medium text-emerald-600 dark:text-emerald-300">
                   {event.compiledFeatureCount || event.compiledFeatureIds?.length || 0} compiled
                   {event.savedProviderCalls ? ` · ~${event.savedProviderCalls} calls saved` : ''}
                 </p>

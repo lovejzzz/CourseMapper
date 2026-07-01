@@ -267,8 +267,46 @@ describe('projectKernelToSurfaces', () => {
     expect(allText).not.toMatch(/source grounding/i);
   });
 
-  it('omits short-answer and essay frames when their kernel atoms are missing', () => {
+  it('grounds the short-answer frame in the term example when the scenario is missing', () => {
+    // Genome-linked lessons arrive without a course-layer scenario; the item
+    // must still carry real subject matter instead of falling back to the
+    // subject-free template frame.
     const payload = projectKernelToSurfaces({ ...KERNEL, scenario: null, discussionPrompt: null }, { itemPlan });
+    const shortAnswer = payload.quizItems.find((item) => item.type === 'short_answer');
+    expect(shortAnswer).toBeTruthy();
+    expect(shortAnswer.question).toMatch(/CO2 and methane absorb infrared radiation/);
+    expect(shortAnswer.question).toContain('Greenhouse effect');
+    expect(shortAnswer.answer).toMatch(/greenhouse effect/i);
+    // No term carries a correction, so the misconception-tension essay
+    // fallback has nothing gradeable and the essay frame is omitted.
+    expect(payload.quizItems.map((item) => item.type)).not.toContain('essay');
+  });
+
+  it('builds a misconception-tension essay when the discussion prompt is missing but a correction exists', () => {
+    const correctedTerms = [
+      {
+        ...TERMS[0],
+        correction:
+          'The greenhouse effect is driven by radiatively active gases absorbing longwave radiation, not by the ozone hole.',
+      },
+      ...TERMS.slice(1),
+    ];
+    const payload = projectKernelToSurfaces(
+      { ...KERNEL, keyTerms: correctedTerms, scenario: null, discussionPrompt: null },
+      { itemPlan },
+    );
+    const essay = payload.quizItems.find((item) => item.type === 'essay');
+    expect(essay).toBeTruthy();
+    expect(essay.question).toMatch(/common claim about Greenhouse effect/i);
+    expect(essay.question).toMatch(/ozone layer hole/);
+    expect(essay.answer).toMatch(/radiatively active gases/i);
+  });
+
+  it('omits short-answer and essay frames when the kernel has no terms at all', () => {
+    const payload = projectKernelToSurfaces(
+      { ...KERNEL, keyTerms: [], scenario: null, discussionPrompt: null },
+      { itemPlan },
+    );
     const types = payload.quizItems.map((item) => item.type);
     expect(types).not.toContain('short_answer');
     expect(types).not.toContain('essay');
@@ -307,8 +345,14 @@ describe('kernel parse → project → compile (end to end)', () => {
   it('parses the kernel, validates atoms, and projects the full surface payload', () => {
     const prompt = buildLessonKernelPrompt(COURSE_MAP, [0], { includeCourseLevel: true });
     expect(prompt.systemPrompt).toContain('Return JSON matching this shape');
-    expect(prompt.systemPrompt).toContain('courseLevel');
-    // Static prefix discipline: the user prompt carries only course + lessons.
+    // v0.15.186 static-prefix discipline: the courseLevel schema lives in the
+    // USER prompt so every chunk shares a byte-identical system prompt (the
+    // provider prompt-cache prefix). Chunk-varying content never enters the
+    // system prompt.
+    expect(prompt.systemPrompt).not.toContain('courseLevel');
+    expect(prompt.userPrompt).toContain('courseLevel');
+    const chunk2Prompt = buildLessonKernelPrompt(COURSE_MAP, [0], { includeCourseLevel: false });
+    expect(chunk2Prompt.systemPrompt).toBe(prompt.systemPrompt);
     expect(prompt.userPrompt).not.toContain('Return JSON matching this shape');
 
     const parsed = parseLessonKernelResponse(shortKeyResponse, { prompt });

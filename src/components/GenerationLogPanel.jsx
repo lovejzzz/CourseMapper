@@ -141,7 +141,7 @@ export default function GenerationLogPanel({ entries, defaultCollapsed = false }
                     <span className="text-[11px] mx-1.5 opacity-50">—</span>
                     <span className={`text-[11px] ${isDone ? 'line-through' : ''}`}>{entry.message}</span>
                   </div>
-                  <span className="text-[9px] opacity-40 flex-shrink-0 mt-0.5">{entry.time}</span>
+                  <span className="text-2xs opacity-40 flex-shrink-0 mt-0.5">{entry.time}</span>
                 </div>
               );
             })}
