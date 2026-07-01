@@ -183,6 +183,21 @@ const GEOLOGY_DOMAIN_TOKENS = [
   'mohs',
 ];
 
+const PYTHON_DOMAIN_TOKENS = [
+  'variables',
+  'expressions',
+  'types',
+  'conditionals',
+  'booleans',
+  'loops',
+  'functions',
+  'parameters',
+  'lists',
+  'dictionaries',
+  'modules',
+  'libraries',
+];
+
 // The content-slide counter (prefigures the WS-A grader check): a slide is
 // content-bearing when its title+bullets carry at least two distinct domain
 // tokens — scaffold slides (agenda, objectives, readiness check) talk about
@@ -286,6 +301,61 @@ describe('D1b — second application slide from an unused bank item', () => {
     // Unenriched decks keep today's shape — the length is data-driven, not
     // uniformly inflated.
     expect(decks.decks[1].totalSlides).toBe(12);
+  });
+
+  it('tops up sparse kernel-marked decks with deterministic lesson-specific teaching slides', () => {
+    const pythonMap = {
+      courseName: 'Introduction to Computer Science with Python',
+      lessons: [
+        {
+          title: 'Lesson 1: Variables, expressions, and data types',
+          sections: [
+            {
+              topicSection: 'variables; expressions; data types',
+              learningObjectives:
+                'Explain how variables, expressions, and data types shape Python program behavior.\nDebug a short Python trace by checking variable values and expression results.',
+              weeklyAssessments: 'Python lab: trace variables and expressions in a short program.',
+              asyncActivities: 'Read the Python variables and expressions chapter.',
+              syncActivities: 'Code trace and debugging practice with variables and expressions.',
+              supportingResources: 'Python documentation and starter programs',
+            },
+          ],
+        },
+      ],
+    };
+    const sparseBlueprint = buildCourseBlueprint(pythonMap, {
+      enrichment: {
+        source: 'test-enrichment',
+        lessonContent: {
+          'lesson-1': {
+            mcWalkthrough: {
+              question:
+                'A Python program prints the wrong value after assignment. Which trace should the student inspect?',
+              options: [
+                'Trace the variable binding and expression evaluation',
+                'Guess a new syntax form',
+                'Skip the input case',
+                'Delete the function',
+              ],
+              answerIndex: 0,
+              explanation: 'The variable binding and expression evaluation show where the value changes.',
+            },
+          },
+        },
+      },
+    });
+    const sparseDeck = compileBlueprintDeliverable('slideDecks', sparseBlueprint, {
+      skipLanguageFinalizer: true,
+    }).decks[0];
+    const floorSlides = sparseDeck.slides.filter((slide) => slide.enrichmentSource === 'deterministic-content-floor');
+    expect(
+      floorSlides.length,
+      sparseDeck.slides
+        .map((slide) => `${slide.type}: ${slide.title} [${slide.enrichmentSource || 'base'}]`)
+        .join('\n'),
+    ).toBeGreaterThan(0);
+    expect(countContentSlides(sparseDeck, PYTHON_DOMAIN_TOKENS)).toBeGreaterThanOrEqual(5);
+    expect(JSON.stringify(floorSlides)).not.toMatch(/\bWeek\s+\d\b|\bTopic\s+\d\b/i);
   });
 
   it('ships no truncated bullets on the new depth slides (output-gate rule)', () => {

@@ -19495,6 +19495,144 @@ function applyMcWalkthroughSlide(slides, lesson, { concept, objective }) {
   });
 }
 
+function deckClaimsKernelDepth(slides, lesson) {
+  if ((slides || []).some((slide) => /\bcommon pitfalls\b|\bworked example\b/i.test(cleanText(slide?.title)))) {
+    return true;
+  }
+  const enrichment = lesson?.enrichment || {};
+  return (
+    asArray(enrichment.slideContent).length > 0 ||
+    asArray(enrichment.keyTerms).some((term) => cleanText(term?.misconception) && cleanText(term?.correction)) ||
+    Boolean(enrichment.mcWalkthrough || enrichment.workedExample)
+  );
+}
+
+function contentFloorTokenSet(lesson) {
+  const tokens = new Set(
+    [stripLessonPrefix(lesson?.title || ''), ...(lesson?.keyConcepts || [])].flatMap(identityTokens),
+  );
+  if (tokens.size >= 2) return tokens;
+  for (const candidate of slideConceptCandidates(lesson).slice(0, 3).flatMap(identityTokens)) tokens.add(candidate);
+  return tokens;
+}
+
+function slideContentFloorTokenCount(slide, tokens) {
+  if (!slide || !tokens?.size) return 0;
+  const bodyTokens = new Set(identityTokens([slide.title, ...(slide.bullets || [])].join(' ')));
+  let hits = 0;
+  for (const token of tokens) {
+    if (bodyTokens.has(token)) hits += 1;
+    if (hits >= 2) return hits;
+  }
+  return hits;
+}
+
+function countLessonContentBearingSlides(slides, lesson) {
+  const tokens = contentFloorTokenSet(lesson);
+  if (tokens.size < 2) return 0;
+  return (slides || []).filter(
+    (slide) =>
+      ['keyTerm', 'content', 'example'].includes(slide?.type) && slideContentFloorTokenCount(slide, tokens) >= 2,
+  ).length;
+}
+
+function buildContentFloorSlides(lesson, { concept, secondary, objective, artifact }) {
+  const candidates = slideConceptCandidates(lesson);
+  const tertiary =
+    candidates.find(
+      (candidate) =>
+        cleanText(candidate).toLowerCase() !== cleanText(concept).toLowerCase() &&
+        cleanText(candidate).toLowerCase() !== cleanText(secondary).toLowerCase(),
+    ) ||
+    stripLessonPrefix(lesson?.title) ||
+    secondary;
+  const assessmentCue = cleanText(lesson?.assessment?.title || lesson?.assessmentFocus || lesson?.weeklyAssessment);
+  const sourceCue = slideSourceCue(lesson);
+  return [
+    {
+      type: 'content',
+      title: `Concept trace: ${stripTerminalPunctuation(concept)} and ${stripTerminalPunctuation(secondary)}`,
+      bullets: [
+        `${concept} names the step students inspect before they use ${artifact}.`,
+        `${secondary} shows the condition, input, source detail, or design choice that changes the result.`,
+        `Students explain how ${concept} and ${secondary} change the next ${artifact} decision.`,
+      ],
+      notes: `Teach this as a visible trace rather than a definition check. Ask students to mark where ${concept} appears, identify how ${secondary} changes the reasoning, and state the consequence for ${artifact}. Then have one pair explain the trace before students continue.`,
+      minutes: 5,
+      bloom: 'Analyze',
+      objective,
+      activity: null,
+      enrichmentSource: 'deterministic-content-floor',
+    },
+    {
+      type: 'content',
+      title: `Boundary check: ${stripTerminalPunctuation(concept)} evidence`,
+      bullets: [
+        `Name what the ${concept} evidence proves for ${artifact}.`,
+        `Name what ${secondary} does not prove yet, even if the answer looks plausible.`,
+        `Revise the claim so the ${concept} boundary is visible before submission.`,
+      ],
+      notes: `Use this slide to slow down overclaiming. Students first write the strongest defensible claim about ${concept}, then add the limit created by ${secondary}, and finally revise one sentence in ${artifact} so the boundary is explicit.`,
+      minutes: 5,
+      bloom: 'Evaluate',
+      objective,
+      activity: null,
+      enrichmentSource: 'deterministic-content-floor',
+    },
+    {
+      type: 'content',
+      title: `Transfer check: ${stripTerminalPunctuation(tertiary)} in ${stripTerminalPunctuation(artifact)}`,
+      bullets: [
+        `Connect ${tertiary} back to ${concept} before starting the next example.`,
+        `Compare where ${secondary} changes the approach and where the same rule still holds.`,
+        assessmentCue
+          ? `Use the ${assessmentCue} requirement to decide which ${tertiary} detail matters most.`
+          : `Use the next ${artifact} requirement to decide which ${tertiary} detail matters most.`,
+      ],
+      notes: `Frame this as the transfer move for the lesson. Students identify one part of ${tertiary}, connect it to ${concept}, and explain whether ${secondary} changes the action they would take in ${artifact}. Collect one answer as the transition to practice.`,
+      minutes: 5,
+      bloom: 'Apply',
+      objective,
+      activity: null,
+      enrichmentSource: 'deterministic-content-floor',
+    },
+    {
+      type: 'content',
+      title: `Evidence source check: ${stripTerminalPunctuation(concept)}`,
+      bullets: [
+        `Use ${sourceCue} to locate one concrete ${concept} detail.`,
+        `Separate the ${secondary} evidence from guesses or unstated assumptions.`,
+        `Record the detail that should appear in ${artifact}.`,
+      ],
+      notes: `Keep the source work inspectable. Students point to the exact ${concept} detail in ${sourceCue}, explain how it relates to ${secondary}, and record the sentence or data point they will carry into ${artifact}.`,
+      minutes: 5,
+      bloom: 'Analyze',
+      objective,
+      activity: null,
+      enrichmentSource: 'deterministic-content-floor',
+    },
+  ];
+}
+
+function ensureMinimumContentSlideFloor(slides, lesson, { concept, secondary, objective, artifact }) {
+  if (!deckClaimsKernelDepth(slides, lesson)) return;
+  let contentCount = countLessonContentBearingSlides(slides, lesson);
+  if (contentCount >= 5) return;
+  const existingTitles = new Set(slides.map((slide) => cleanText(slide.title).toLowerCase()).filter(Boolean));
+  const activityIndex = slides.findIndex((slide) => slide.type === 'activity');
+  const discussionIndex = slides.findIndex((slide) => slide.type === 'discussion');
+  let insertAt = activityIndex >= 0 ? activityIndex : discussionIndex >= 0 ? discussionIndex : slides.length - 2;
+  for (const slide of buildContentFloorSlides(lesson, { concept, secondary, objective, artifact })) {
+    if (contentCount >= 5) break;
+    const key = cleanText(slide.title).toLowerCase();
+    if (existingTitles.has(key)) continue;
+    slides.splice(Math.max(0, insertAt), 0, slide);
+    insertAt += 1;
+    existingTitles.add(key);
+    if (slideContentFloorTokenCount(slide, contentFloorTokenSet(lesson)) >= 2) contentCount += 1;
+  }
+}
+
 function ensureSentenceCompiler(value) {
   const text = cleanText(value);
   if (!text) return '';
@@ -19924,6 +20062,12 @@ function buildSlideDeckIrForLesson(blueprint, lesson, index) {
   // fallback never targets (and overwrites) a freshly inserted depth slide.
   applyCommonPitfallsSlide(slides, lesson, { concept, objective: objectiveOne });
   applyMcWalkthroughSlide(slides, lesson, { concept, objective: objectiveTwo });
+  ensureMinimumContentSlideFloor(slides, lesson, {
+    concept,
+    secondary,
+    objective: objectiveOne,
+    artifact,
+  });
   const slideMinutes = slides.reduce((sum, slide) => sum + Number(slide.minutes || 0), 0);
   const slideTimingFit = {
     slideMinutes,
@@ -20020,6 +20164,7 @@ function compileSlideDecks(blueprint) {
           'deterministic-worked-example',
           'kernel-misconception-pitfalls',
           'kernel-mc-walkthrough',
+          'deterministic-content-floor',
         ].includes(slide.enrichmentSource);
         const displayBullets = isEnriched
           ? punctuatePassthroughBullets(slide.bullets)

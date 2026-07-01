@@ -1,0 +1,98 @@
+{
+  "version": "0.15.170",
+  "date": "July 1, 2026",
+  "title": "Slide Deck Content Floor: sparse kernel decks get teaching slides",
+  "status": "verified-current",
+  "proofSummary": {
+    "local": ["npm test -- tests/v0143-depth-slice.test.js"],
+    "ciFast": {
+      "status": "pending-push",
+      "note": "Fast verification is claimed only after v0.15.170 is pushed and the GitHub Actions run is attached."
+    },
+    "deploy": {
+      "status": "pending-push",
+      "note": "Pages deploy is not claimed until the pushed v0.15.170 release completes its deploy run."
+    },
+    "ciDeep": {
+      "status": "local-only",
+      "note": "This is a narrow slide-deck compiler repair; focused coverage plus normal gates are the release bar."
+    },
+    "liveProvider": {
+      "status": "not-current",
+      "note": "Fresh v0.15.169 browser evidence justified the fix. A fresh v0.15.170 ZIP/log audit is still required after deploy."
+    },
+    "manualHuman": {
+      "status": "not-applicable",
+      "note": "No external instructor approval is claimed by this release."
+    }
+  },
+  "claims": [
+    {
+      "id": "v015170-blocked-python-slide-evidence",
+      "status": "verified-current",
+      "changelogHighlightIndex": 0,
+      "summary": "The release is grounded in fresh deployed v0.15.169 Python browser evidence where the package blocked at 98/A because enriched slide decks averaged only 3.1 content-bearing slides.",
+      "anchors": [
+        "verification-output/edutool-audit-loop/20260701T000809Z-v015169-fresh-blocked/report.md",
+        "verification-output/edutool-audit-loop/20260701T000809Z-v015169-fresh-blocked/digest.json",
+        "src/lib/releaseManifest.js"
+      ],
+      "proofCommands": [
+        "rg -n \"3.1 content-bearing|Quality 98|Texture 92|finalStatus|blocked\" verification-output/edutool-audit-loop/20260701T000809Z-v015169-fresh-blocked/report.md verification-output/edutool-audit-loop/20260701T000809Z-v015169-fresh-blocked/digest.json"
+      ],
+      "proofScopes": ["live-provider", "browser-live", "static-audit"]
+    },
+    {
+      "id": "v015170-deterministic-slide-content-floor",
+      "status": "verified-current",
+      "changelogHighlightIndex": 1,
+      "summary": "Kernel/depth-marked slide decks now add deterministic concept-trace, boundary-check, transfer-check, and source-check teaching slides when the instructional body is thin.",
+      "anchors": ["src/lib/courseBlueprintCompiler.js", "tests/v0143-depth-slice.test.js"],
+      "proofCommands": [
+        "npm test -- tests/v0143-depth-slice.test.js",
+        "rg -n \"deterministic-content-floor|ensureMinimumContentSlideFloor|tops up sparse\" src/lib/courseBlueprintCompiler.js tests/v0143-depth-slice.test.js"
+      ],
+      "proofScopes": ["unit", "static-audit"]
+    },
+    {
+      "id": "v015170-scaffold-slides-do-not-satisfy-floor",
+      "status": "verified-current",
+      "changelogHighlightIndex": 2,
+      "summary": "The compiler-side guard counts teaching-body slides against lesson-title/key-concept vocabulary instead of crediting title, agenda, objective, bridge, or broad artifact words.",
+      "anchors": ["src/lib/courseBlueprintCompiler.js"],
+      "proofCommands": [
+        "rg -n \"contentFloorTokenSet|countLessonContentBearingSlides|keyTerm', 'content', 'example\" src/lib/courseBlueprintCompiler.js"
+      ],
+      "proofScopes": ["static-audit"]
+    },
+    {
+      "id": "v015170-content-floor-export-passthrough",
+      "status": "verified-current",
+      "changelogHighlightIndex": 3,
+      "summary": "Deterministic content-floor slides preserve authored bullets and notes through the same passthrough path as existing kernel slides.",
+      "anchors": ["src/lib/courseBlueprintCompiler.js"],
+      "proofCommands": [
+        "rg -n \"deterministic-content-floor|punctuatePassthroughBullets|enrichmentSource\" src/lib/courseBlueprintCompiler.js"
+      ],
+      "proofScopes": ["static-audit"]
+    },
+    {
+      "id": "v015170-no-clean-provider-claim",
+      "status": "verified-current",
+      "changelogHighlightIndex": 4,
+      "summary": "The release explicitly does not claim a fresh clean ZIP score; deployed v0.15.170 still needs a GPT-5.4-mini ZIP/log audit.",
+      "anchors": ["docs/V0.15.170_SLIDE_DECK_CONTENT_FLOOR_ROADMAP.md", "release-contracts/v0.15.170.json"],
+      "proofCommands": [
+        "rg -n \"may not claim|fresh v0.15.170|ZIP/log audit\" docs/V0.15.170_SLIDE_DECK_CONTENT_FLOOR_ROADMAP.md release-contracts/v0.15.170.json"
+      ],
+      "proofScopes": ["doc", "static-audit"]
+    }
+  ],
+  "knownRemainingTargets": [
+    "Fresh deployed v0.15.170 GPT-5.4-mini ZIP/log proof must verify the slide-deck content-floor repair in real provider output.",
+    "Source rows must remain real, trusted, on-topic, license-safe, and concept-linked across Python, UX, Project Management, and other domains.",
+    "Texture below 100 remains a strict-clean target even when the structural grade is high.",
+    "All export surfaces must agree before any clean score is claimed.",
+    "Finish-stage retry behavior still needs provider proof when deterministic repairs leave known repairable quality findings."
+  ]
+}

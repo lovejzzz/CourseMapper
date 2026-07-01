@@ -2,25 +2,25 @@ import { APP_VERSION } from './appVersion.js';
 
 export const CURRENT_RELEASE = {
   version: APP_VERSION,
-  date: 'June 30, 2026',
-  title: 'Assessment Week Label Repair: quiz labels cannot replace topics',
-  landingTitle: 'Assessment Label Repair',
+  date: 'July 1, 2026',
+  title: 'Slide Deck Content Floor: sparse kernel decks get teaching slides',
+  landingTitle: 'Slide Content Floor',
   highlights: [
-    'Fresh deployed v0.15.168 GPT-5.4-mini Python browser evidence blocked before ZIP export with Quality 98, Texture 88, 1 P1, 1 P2, and visible `Quiz: Week N,Assignment: Week N` strings replacing lesson topics across the Course Map.',
-    'Course Map readiness repair now treats conjoined week-labeled assessment metadata such as `Quiz: Week 2,Assignment: Week 2` as assessment identity, not a valid lesson concept.',
-    'The same guard repairs downstream references in goals, objectives, assessments, activities, resources, and evaluate-design cells before they seed filenames, concepts, source queries, and compiled deliverables.',
-    'The regression uses the exact v0.15.168 Python failure shape across 12 lessons and proves repaired Course Map, course graph sessions, concepts, and assessment titles no longer carry `Quiz: Week N` or `Assignment: Week N` topic identities.',
-    'This release does not claim a clean ZIP score; the next deployed GPT-5.4-mini audit should verify a fresh package exports without assessment-label topic contamination.',
+    'Fresh deployed v0.15.169 GPT-5.4-mini Python browser evidence blocked before ZIP export with Quality 98/A, Texture 92, 1 P1, no browser warnings, and repaired final Course Map topics; the remaining blocker was enriched slide decks averaging only 3.1 content-bearing slides.',
+    'Kernel/depth-marked slide decks now run a deterministic content-floor guard after worked-example and pitfalls insertion, adding lesson-specific concept-trace, boundary-check, transfer-check, and source-check teaching slides when the instructional body is thin.',
+    'The guard counts lesson-title and key-concept vocabulary rather than broad artifact/objective words, so title, agenda, objective, and bridge scaffolds cannot satisfy the teaching-content floor by accident.',
+    'Deterministic content-floor slides preserve their authored bullets and speaker notes through the same passthrough path as existing kernel worked-example and common-pitfalls slides.',
+    'This release does not claim a clean ZIP score; the next deployed GPT-5.4-mini audit should verify v0.15.170 exports or blocks honestly and clears the slide-deck content-bearing P1.',
   ],
   landingHighlights: [
-    'Week-labeled quiz/assignment metadata cannot become topics.',
-    'Course Map cells repair before graph and export compilation.',
-    'The regression pins the real v0.15.168 failure shape.',
-    'The next live audit must prove a clean deployed package.',
+    'Sparse kernel decks get concrete teaching slides.',
+    'Scaffold slides cannot satisfy the content floor.',
+    'The regression pins the fresh Python blocker shape.',
+    'The next live audit must prove the blocker is gone.',
   ],
   proof: {
-    contract: 'release-contracts/v0.15.169.json',
-    roadmap: 'docs/V0.15.169_ASSESSMENT_WEEK_LABEL_REPAIR_ROADMAP.md',
+    contract: 'release-contracts/v0.15.170.json',
+    roadmap: 'docs/V0.15.170_SLIDE_DECK_CONTENT_FLOOR_ROADMAP.md',
     auditCommand: 'npm run audit:release-history',
   },
 };
@@ -35,6 +35,18 @@ export const CURRENT_RELEASE_CHANGELOG = {
 };
 
 export const HISTORICAL_RELEASE_CHANGELOGS = [
+  {
+    version: '0.15.169',
+    date: 'June 30, 2026',
+    title: 'Assessment Week Label Repair: quiz labels cannot replace topics',
+    highlights: [
+      'Fresh deployed v0.15.168 GPT-5.4-mini Python browser evidence blocked before ZIP export with Quality 98, Texture 88, 1 P1, 1 P2, and visible `Quiz: Week N,Assignment: Week N` strings replacing lesson topics across the Course Map.',
+      'Course Map readiness repair now treats conjoined week-labeled assessment metadata such as `Quiz: Week 2,Assignment: Week 2` as assessment identity, not a valid lesson concept.',
+      'The same guard repairs downstream references in goals, objectives, assessments, activities, resources, and evaluate-design cells before they seed filenames, concepts, source queries, and compiled deliverables.',
+      'The regression uses the exact v0.15.168 Python failure shape across 12 lessons and proves repaired Course Map, course graph sessions, concepts, and assessment titles no longer carry `Quiz: Week N` or `Assignment: Week N` topic identities.',
+      'This release does not claim a clean ZIP score; the next deployed GPT-5.4-mini audit should verify a fresh package exports without assessment-label topic contamination.',
+    ],
+  },
   {
     version: '0.15.168',
     date: 'June 30, 2026',
