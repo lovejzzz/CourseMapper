@@ -1,0 +1,94 @@
+{
+  "version": "0.15.177",
+  "date": "July 1, 2026",
+  "title": "Python Texture Scaffold: fallback review prose stops repeating",
+  "status": "verified-current",
+  "proofSummary": {
+    "local": ["npx vitest run tests/v015127-texture-variation.test.js tests/v0141-phase1-finalizer.test.js"],
+    "ciFast": {
+      "status": "pending-push",
+      "note": "Fast verification is claimed only after v0.15.177 is pushed and the GitHub Actions run is attached."
+    },
+    "deploy": {
+      "status": "pending-push",
+      "note": "Pages deploy is not claimed until the pushed v0.15.177 release completes its deploy run."
+    },
+    "ciDeep": {
+      "status": "local-only",
+      "note": "This is a narrow deterministic fallback-text fix; focused tests plus normal gates are the release bar."
+    },
+    "liveProvider": {
+      "status": "not-current",
+      "note": "Fresh v0.15.176 browser evidence completed visibly at 98/100 with Texture 92, but ZIP/log capture failed after reload. A fresh v0.15.177 audit is required after deploy."
+    },
+    "manualHuman": {
+      "status": "not-applicable",
+      "note": "No external instructor approval is claimed by this release."
+    }
+  },
+  "claims": [
+    {
+      "id": "v015177-visible-v015176-evidence",
+      "status": "verified-current",
+      "changelogHighlightIndex": 0,
+      "summary": "Fresh v0.15.176 GPT-5.4-mini browser evidence completed visibly at Quality 98 and Texture 92, but the ZIP/log capture was blocked after reload.",
+      "anchors": ["docs/V0.15.177_PYTHON_TEXTURE_SCAFFOLD_ROADMAP.md"],
+      "proofCommands": [
+        "rg -n \"Quality 98|Texture 92|ZIP/log capture failed|no clean-package claim\" docs/V0.15.177_PYTHON_TEXTURE_SCAFFOLD_ROADMAP.md src/lib/releaseManifest.js"
+      ],
+      "proofScopes": ["browser-live", "doc"]
+    },
+    {
+      "id": "v015177-visible-scaffold-root-cause",
+      "status": "verified-current",
+      "changelogHighlightIndex": 1,
+      "summary": "The visible texture loss was CourseMapper-side fallback prose, with repeated long evaluate-design scaffolds in the Course Map.",
+      "anchors": ["docs/V0.15.177_PYTHON_TEXTURE_SCAFFOLD_ROADMAP.md", "src/lib/deliverableReadiness.js"],
+      "proofCommands": [
+        "rg -n \"one observable behavior|same programming decision|visible code revision|came from CourseMapper's own fallback\" docs/V0.15.177_PYTHON_TEXTURE_SCAFFOLD_ROADMAP.md src/lib/releaseManifest.js src/lib/deliverableReadiness.js"
+      ],
+      "proofScopes": ["browser-live", "static-audit", "doc"]
+    },
+    {
+      "id": "v015177-python-evaluate-design-variation",
+      "status": "verified-current",
+      "changelogHighlightIndex": 2,
+      "summary": "Python fallback evaluate-design cells now rotate through 24 distinct code-review/checkpoint patterns instead of duplicating the long scaffolds seen in v0.15.176.",
+      "anchors": ["src/lib/deliverableReadiness.js", "tests/v015127-texture-variation.test.js"],
+      "proofCommands": [
+        "npx vitest run tests/v015127-texture-variation.test.js tests/v0141-phase1-finalizer.test.js",
+        "rg -n \"does not duplicate long Python evaluate-design scaffolds|For \\\\${topic}, pair the trace prompt\" tests/v015127-texture-variation.test.js src/lib/deliverableReadiness.js"
+      ],
+      "proofScopes": ["unit", "static-audit"]
+    },
+    {
+      "id": "v015177-two-section-python-regression",
+      "status": "verified-current",
+      "changelogHighlightIndex": 3,
+      "summary": "A regression recreates a twelve-lesson, two-section Python course and fails if the old repeated long scaffolds return.",
+      "anchors": ["tests/v015127-texture-variation.test.js"],
+      "proofCommands": [
+        "npx vitest run tests/v015127-texture-variation.test.js",
+        "rg -n \"does not duplicate long Python evaluate-design scaffolds|weakPythonTwoSectionCourseMap\" tests/v015127-texture-variation.test.js"
+      ],
+      "proofScopes": ["unit"]
+    },
+    {
+      "id": "v015177-no-standard-weakening",
+      "status": "verified-current",
+      "changelogHighlightIndex": 4,
+      "summary": "The patch changes fallback prose only; it does not reduce texture, source, grader, or export-report standards.",
+      "anchors": ["docs/V0.15.177_PYTHON_TEXTURE_SCAFFOLD_ROADMAP.md", "src/lib/deliverableReadiness.js"],
+      "proofCommands": [
+        "rg -n \"not a grader weakening|Preserve the existing strict texture and source standards|Texture 92\" docs/V0.15.177_PYTHON_TEXTURE_SCAFFOLD_ROADMAP.md"
+      ],
+      "proofScopes": ["static-audit"]
+    }
+  ],
+  "knownRemainingTargets": [
+    "Fresh deployed v0.15.177 GPT-5.4-mini ZIP/log proof must verify the texture repair in real provider output.",
+    "The v0.15.176 capture blocker means no local ZIP regrade is claimed for that run.",
+    "Source proof, export/report agreement, and UI warning dedupe remain audit targets until the next complete ZIP/log run.",
+    "A clean 100/100 claim still requires visible UI, manifest, reports, digest, and local regrade agreement."
+  ]
+}

@@ -3,24 +3,24 @@ import { APP_VERSION } from './appVersion.js';
 export const CURRENT_RELEASE = {
   version: APP_VERSION,
   date: 'July 1, 2026',
-  title: 'Python Export Truth: artifact labels cannot become sources',
-  landingTitle: 'Python Export Truth',
+  title: 'Python Texture Scaffold: fallback review prose stops repeating',
+  landingTitle: 'Python Texture Scaffold',
   highlights: [
-    'Fresh deployed v0.15.175 GPT-5.4-mini Python ZIP/log evidence exported at visible Quality 97 and Texture 93; the final ZIP independently regraded at 99/A, proving the package report was stale against repaired export contents.',
-    'Course Map repair now treats comma-joined artifact identities such as `Quiz,Assignment` as weak topics, replacing them with lesson-specific Python topics before they seed filenames, assignment briefs, source-finder topics, or source concept links.',
-    'Trusted source-ledger assembly now rejects artifact-only concept links and the live `Session (software)` CS/Python false friend, so real licensed rows still cannot count as bibliography proof when they are off-topic.',
-    'ZIP export keeps the precomputed finish-pass quality fast path only when its findings reference files that still exist in the package; stale pre-repair reports fall back to canonical final ZIP grading.',
-    'Focused regressions pin the v0.15.175 failure shape without weakening source standards, grader standards, or texture expectations.',
+    'Fresh deployed v0.15.176 GPT-5.4-mini Python browser evidence completed visibly at Quality 98 and Texture 92, but ZIP/log capture failed after reload, so this release makes no clean-package claim.',
+    'The remaining visible texture loss came from CourseMapper fallback prose: two-section Python maps repeated long evaluate-design scaffolds such as `one observable behavior`, `same programming decision`, and `visible code revision`.',
+    'Python Course Map fallback review cells now rotate through 24 distinct code-review/checkpoint patterns, enough for a twelve-lesson course with two sections per lesson without duplicating those long scaffolds.',
+    'A regression recreates the exact two-section Intro CS/Python fallback shape and fails if the old long scaffolds return.',
+    'The patch preserves source, grader, texture, and export-report standards; a fresh deployed v0.15.177 ZIP/log audit is still required before any 100/100 claim.',
   ],
   landingHighlights: [
-    'Fresh v0.15.175 evidence exposed stale report truth.',
-    'Quiz/assignment labels are repaired as weak topics.',
-    'Artifact-only source links no longer count as proof.',
-    'Final ZIP grading replaces stale package reports.',
+    'Visible v0.15.176 evidence showed 98/92, not clean.',
+    'Python fallback review prose now has 24 variants.',
+    'Old long Course Map scaffolds are pinned out.',
+    'Fresh v0.15.177 ZIP/log proof is still required.',
   ],
   proof: {
-    contract: 'release-contracts/v0.15.176.json',
-    roadmap: 'docs/V0.15.176_PYTHON_EXPORT_TRUTH_ROADMAP.md',
+    contract: 'release-contracts/v0.15.177.json',
+    roadmap: 'docs/V0.15.177_PYTHON_TEXTURE_SCAFFOLD_ROADMAP.md',
     auditCommand: 'npm run audit:release-history',
   },
 };
@@ -35,6 +35,18 @@ export const CURRENT_RELEASE_CHANGELOG = {
 };
 
 export const HISTORICAL_RELEASE_CHANGELOGS = [
+  {
+    version: '0.15.176',
+    date: 'July 1, 2026',
+    title: 'Python Export Truth: artifact labels cannot become sources',
+    highlights: [
+      'Fresh deployed v0.15.175 GPT-5.4-mini Python ZIP/log evidence exported at visible Quality 97 and Texture 93; the final ZIP independently regraded at 99/A, proving the package report was stale against repaired export contents.',
+      'Course Map repair now treats comma-joined artifact identities such as `Quiz,Assignment` as weak topics, replacing them with lesson-specific Python topics before they seed filenames, assignment briefs, source-finder topics, or source concept links.',
+      'Trusted source-ledger assembly now rejects artifact-only concept links and the live `Session (software)` CS/Python false friend, so real licensed rows still cannot count as bibliography proof when they are off-topic.',
+      'ZIP export keeps the precomputed finish-pass quality fast path only when its findings reference files that still exist in the package; stale pre-repair reports fall back to canonical final ZIP grading.',
+      'Focused regressions pin the v0.15.175 failure shape without weakening source standards, grader standards, or texture expectations.',
+    ],
+  },
   {
     version: '0.15.175',
     date: 'July 1, 2026',

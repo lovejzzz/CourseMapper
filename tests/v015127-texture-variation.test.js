@@ -110,6 +110,45 @@ function weakPythonCourseMap() {
   };
 }
 
+function weakPythonTwoSectionCourseMap() {
+  const topics = [
+    ['Introduction', 'Python basics'],
+    ['Variables', 'Data types'],
+    ['Conditionals', 'Boolean logic'],
+    ['Loops', 'Iteration'],
+    ['Functions', 'Parameters'],
+    ['Lists', 'Strings'],
+    ['Dictionaries', 'Sets'],
+    ['Files', 'Exception handling'],
+    ['Algorithms', 'Debugging'],
+    ['Object-oriented programming', 'Classes'],
+    ['Recursion', 'Problem solving'],
+    ['Review', 'Project wrap-up'],
+  ];
+  return {
+    courseName: 'Introduction to Computer Science with Python',
+    lessons: topics.map((lessonTopics, lessonIndex) => ({
+      title: `Lesson ${lessonIndex + 1}: ${lessonTopics.join(' and ')}`,
+      sections: lessonTopics.map((topic, sectionIndex) => ({
+        topicSection: `${lessonIndex + 1}.${sectionIndex + 1}: ${topic}`,
+        learningGoals: '',
+        learningObjectives: '',
+        weeklyAssessments: '',
+        asyncActivities: '',
+        syncActivities: '',
+        technologyNeeded: '',
+        presentationFormat: '',
+        supportingResources: '',
+        evaluateDesign: '',
+      })),
+    })),
+  };
+}
+
+function count(text, pattern) {
+  return (text.match(pattern) || []).length;
+}
+
 describe('v0.15.127 texture variation', () => {
   it('does not repeat the same UX studio scaffolds across every compiled lesson', () => {
     const blueprint = buildCourseBlueprint(uxStudioCourseMap());
@@ -194,5 +233,21 @@ describe('v0.15.127 texture variation', () => {
     expect(text).not.toMatch(/discipline-specific tools|same evidence of learning|course activities/i);
     expect(text).toMatch(/Python|code|debug|test|output|program/i);
     expect(new Set(cells.filter(Boolean)).size).toBeGreaterThan(CS_TOPICS.length * 4);
+  });
+
+  it('does not duplicate long Python evaluate-design scaffolds across two-section courses', () => {
+    const result = repairCourseMapReadiness({ courseMap: weakPythonTwoSectionCourseMap() });
+    const evaluateCells = result.courseMap.lessons.flatMap((lesson) =>
+      lesson.sections.map((section) => section.evaluateDesign).filter(Boolean),
+    );
+    const text = evaluateCells.join('\n');
+
+    expect(evaluateCells).toHaveLength(24);
+    expect(new Set(evaluateCells).size).toBe(24);
+    expect(count(text, /one observable behavior/gi)).toBe(0);
+    expect(count(text, /same programming decision/gi)).toBe(0);
+    expect(count(text, /visible code revision/gi)).toBe(0);
+    expect(count(text, /boundary case across the activity and assessment/gi)).toBe(0);
+    expect(text).toMatch(/starter file|runnable code|edge-case run|fresh run|trace table/i);
   });
 });
