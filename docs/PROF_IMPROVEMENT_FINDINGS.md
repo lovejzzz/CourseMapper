@@ -191,3 +191,46 @@ grader-blind defects** — the autograded-quiz contract break and the workload
 contradiction are cheap, high-credibility wins that would move an adopter's
 trust immediately; the false Python primer is a correctness bug worth fixing
 before any beta instructor sees it.
+
+---
+
+## Measurement round — did teach-as-is move? (July 2, 2026)
+
+A fresh live crucible round generated a cs-python package **with the four fixes
+compiled in** (verified in the files: weekly quizzes now 6 MC / 0 essay, midterm
+keeps its written items, workload shows its breakdown, the false primer is
+gone). A 7-universe Prof adoption round on it, same cast and seed as the
+baseline:
+
+|               | Baseline package    | Fixed-compiler package  |
+| ------------- | ------------------- | ----------------------- |
+| Teach-as-is   | 3.43 (CI 2.70–4.16) | **2.29 (CI 1.59–2.99)** |
+| Adoption rate | 0%                  | 0%                      |
+
+**The honest verdict: teach-as-is did NOT move off ~3.** Two reasons, both
+important:
+
+1. **The comparison is confounded.** These are two _independent_ generations,
+   not a same-generation twin — exactly the confound Prof's own design (the C2
+   lesson) warns against. The CIs overlap (2.70–2.99), so by the variance
+   protocol the difference is **not significant** in either direction. A fair
+   A/B needs the same course map compiled both ways; independent generations
+   conflate the fix with model variance.
+
+2. **The fixes were necessary but not sufficient, and Prof showed exactly why.**
+   Theme-level, the fixes worked: the **workload contradiction dropped from
+   P0×2 to a single subjective P1** ("too optimistic," no longer a hard
+   contradiction), and the false primer is gone. But the **autograded theme
+   stayed high (18 findings)** because the fix changed the item _type_ while
+   the item _content_ is still templated — personas now say _"this is multiple
+   choice but not autogradable **as written** … prompt and answer choices are
+   tangled with irrelevant course references."_ And "autograded" now surfaces
+   in the pre-existing template-seam corruption ("Autograded Autograded
+   Autograded the Week 1 quiz" — a finalizer bug, present in the baseline too).
+
+**Conclusion:** teach-as-is is gated by **templated prose / grounding** (the
+big lever, still untouched), not by the narrow defects fixed here. Prof
+confirmed this rather than letting us assume the cheap fixes would move the
+headline — which is the entire point of the instrument. The next real movement
+needs the grounding lane (#3, #4, #6) and a same-generation twin protocol to
+measure it fairly.
