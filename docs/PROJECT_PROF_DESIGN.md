@@ -1,7 +1,8 @@
-# Project Prof — Design Document (Rev 2)
+# Project Prof — Design Document (Rev 3)
 
 _Status: DRAFT for review · July 2, 2026 · owner: CourseMapper core_
-_Rev 2: multiverse execution model; Reality Gap analysis + Reality Anchor; misconception-grounded students; workload accountant; discussion fidelity; learner state._
+_Rev 3: the Student Model (§3) — minds as state machines, LLMs as mouths; cohorts as distributions; psychometrics, confusion heatmaps, and mastery-delta A/B._
+_Rev 2: multiverse execution model; Reality Gap analysis + Reality Anchor._
 _Prereq reading: `docs/V0.15.187_LIVE_PROVEN_COMPILER_ROADMAP.md`, `scripts/crucible.mjs`, `scripts/professor-adoption/adoptionVerdict.mjs`_
 
 ## 1. Why Project Prof exists
@@ -17,31 +18,34 @@ prove it is **teachable**. The gap is visible in our own numbers:
 | Advisory judge             | Would a professor teach this as-is?    | **~5–6/10 — "too templated"**         |
 | `manualHuman` proof bucket | A real instructor validated it         | **Never claimed, ever**               |
 
-Everything above the judge row is green; everything below it is the launch blocker.
-The three gaps named in the go-public assessment — **teachability, breadth, human-like
-validation** — share one root: nothing in our stack _uses the product the way a
-teaching environment does_. The grader reads files; a professor teaches a semester.
+The three gaps named in the go-public assessment — **teachability, breadth,
+human-like validation** — share one root: nothing in our stack _uses the product
+the way a teaching environment does_. The grader reads files; a professor teaches
+a semester; a student learns (or fails to) from the materials.
 
-**Project Prof is a simulated teaching environment**: AI personas that adopt, teach,
-take, grade, review, and sabotage CourseMapper courses across simulated semesters —
-run as a **multiverse** (many independent parallel universes per course, §3) so the
-output is statistics with confidence intervals, not well-written anecdotes.
+**Project Prof is a simulated teaching environment**: instructor, student, TA,
+and reviewer personas that adopt, teach, take, grade, review, and sabotage
+CourseMapper courses across simulated semesters — run as a **multiverse** (many
+independent parallel universes per course, §4) over a **cohort-based student
+model** (§3) so the output is statistics with confidence intervals, not
+well-written anecdotes.
 
 ### Non-goals
 
 - **Prof is not human validation.** Its verdicts never populate the `manualHuman`
-  proof bucket. The Reality Anchor (§8) keeps it calibrated against real
+  proof bucket. The Reality Anchor (§9) keeps it calibrated against real
   instructors; it never replaces them.
 - **Prof is not a new grader.** The deep grader stays the release gate. Prof
-  verdicts are advisory, governed by the Anti-Goodhart Charter (§9).
+  verdicts are advisory, governed by the Anti-Goodhart Charter (§10).
 - **Prof does not test model providers.** It tests CourseMapper.
-- **Prof never claims to measure learning.** It measures _material sufficiency_ —
-  whether the package contains what teaching it requires (§8 states this precisely).
+- **Prof never claims to measure human learning.** The student model (§3) computes
+  _simulated mastery_ over an explicit, inspectable state — a model of learning
+  whose every number is auditable, and which is never reported as human outcome
+  data (§9 states the boundary precisely).
 
 ## 2. The five arenas
 
-A teaching environment is not one activity. Prof simulates it as five **arenas**,
-each stressing a different product surface:
+A teaching environment is not one activity. Prof simulates it as five **arenas**:
 
 ```
                     ┌──────────────────────────────────────────────────┐
@@ -50,9 +54,9 @@ each stressing a different product surface:
  (brief × casts ×   │   universe 1   universe 2   …   universe N       │
   decks × seeds)    │  ┌──────────┐ ┌──────────┐     ┌──────────┐      │
                     │  │A1 adopt  │ │A1 adopt  │     │A1 adopt  │      │
- semester clock  ──►│  │A2 class  │ │A2 class  │  …  │A2 class  │      │
- (per-universe      │  │A3 term   │ │A3 term   │     │A3 term   │      │
-  timelines)        │  │A4 review │ │A4 review │     │A4 review │      │
+ cohort factory  ──►│  │A2 class  │ │A2 class  │  …  │A2 class  │      │
+ semester clock  ──►│  │A3 term   │ │A3 term   │     │A3 term   │      │
+                    │  │A4 review │ │A4 review │     │A4 review │      │
                     │  └────┬─────┘ └────┬─────┘     └────┬─────┘      │
                     │       └────────────┴───── A5 adversary (shared)  │
                     │                    ▼                             │
@@ -77,69 +81,37 @@ course brief they "wrote."
 3. **Verdict**: an `ADOPTION_TIERS` tier (`scripts/professor-adoption/adoptionVerdict.mjs`),
    a **teach-as-is score (1–10)**, a **minimum-edit list**, a **rejection-taxonomy** code.
 
-**The workload accountant (new, deterministic).** Before any persona reads
-anything, a zero-LLM pass computes the package's implied student workload per week:
-reading time (word counts × grade-level reading speeds), writing time (assignment
-word/page targets × drafting rates), viewing/lab time from lesson plans — compared
-against the syllabus's _stated_ hours and credit-hour norms for the scenario's
-institution. Discrepancy > 1.5× is auto-filed and handed to the adjunct persona.
-Workload unrealism is a top real-world adoption killer and it is _computable_ —
-no persona needed, no variance.
+**The workload accountant (deterministic).** Before any persona reads anything, a
+zero-LLM pass computes the package's implied student workload per week — reading
+time (word counts × grade-level reading speeds), writing time (assignment targets ×
+drafting rates), viewing/lab time from lesson plans — against the syllabus's
+_stated_ hours and the scenario institution's credit-hour norms. A discrepancy
+above 1.5× auto-files. Workload unrealism is a top real-world adoption killer and
+it is _computable_. The workload account also feeds the cohort's
+reading-compliance model (§3c): overload doesn't just look bad, it mechanically
+reduces how much the simulated class does the reading.
 
-_Stresses:_ content quality, discipline fit, grounding — the surfaces the judge
-scores 5–6/10 today. _Builds on:_ the advisory judge, `adoptionVerdictAudit.mjs`,
-the grader's ZIP extraction.
+### A2 — The Classroom Arena (do the materials teach?)
 
-### A2 — The Classroom Arena (do the materials work on students?)
+A2 is where the Student Model (§3) runs. A sampled **cohort** takes the course
+week by week: exposure events update per-student knowledge states; assessments are
+sat against those states; performances are rendered and TA-graded. Everything A2
+measures — solvability, psychometrics, misconception repair, FAQ hit rate, pacing
+overflow, rubric discrimination, walkthrough gaps, discussion fidelity — is defined
+in §3f. A2's classical checks remain:
 
-The strongest test we have never run: **simulated students consume the materials
-and we measure whether the package is internally sufficient.**
-
-- **Misconception-grounded students (the key upgrade).** A generic "weak student"
-  prompt is a strong reader acting; its errors are not human errors. Instead,
-  student personas are **instantiated from the Curriculum Genome's misconception
-  library**: a student card carries 2–4 documented misconceptions for the course's
-  concepts ("treats dictionary access as positional") and must answer _through_
-  them. This makes distractor testing valid — the question becomes "does this
-  distractor catch the documented misconception?", which is exactly what a good
-  distractor is for. The genome is our unique asset here; no generic persona can
-  substitute for it. Where a concept has no genome misconception, the student
-  falls back to generic-weak and the item is marked **untestable-by-sim** (honest
-  coverage accounting, not silent optimism).
-- **Closed-book solvability.** A student receives ONLY the study guide + readings
-  list for lesson N, then sits the lesson N quiz; another sits the exam with only
-  covered-lesson study guides. Metrics: score, per-item answerability ("the
-  material never taught this"), and **answer-key agreement** — a _strong_ student's
-  defensible disagreement with our key is a key-error candidate.
-- **Longitudinal learner state.** Each student carries a per-concept knowledge
-  state across the semester: concepts "learned" in lesson N decay unless a later
-  lesson, quiz, or study guide reinforces them (a simple spaced-exposure model —
-  deliberately crude, directionally honest). The midterm is sat against the
-  _decayed_ state. This is the only way a simulation can ask: does the course's
-  cumulative structure actually re-expose what the exam assumes? The genome's
-  prerequisite graph provides the reference sequence to check against.
-- **Assignment round-trip.** Strong / misconception-weak / rules-lawyer students
-  produce submissions from the brief alone; a TA persona grades them using only
-  the rubric. Metrics: **rubric discrimination** (≥ 2 bands separation), **rubric
-  coverage** (criteria the TA needed but didn't have), **brief ambiguity count**
-  (rules-lawyer wins).
-- **Discussion fidelity seminar.** Reading a discussion prompt cannot tell you if
-  it works; what 25 humans _do_ with it can. Approximation: a short structured
-  seminar — 4 student personas (mixed misconception cards) + 1 facilitator persona
-  following the compiled discussion protocol, hard-capped at 12 turns. Measured:
-  do the authored positions actually generate disagreement (or does everyone
-  converge in 2 turns — a dead prompt)? evidence citations per turn; whether the
-  facilitator's follow-up probes were usable verbatim. **Known limit:** LLMs never
-  produce awkward silence, so a "lively" seminar is weak evidence — but a _dead_
-  one (instant convergence, nothing to cite) is strong evidence of a dead prompt.
-  We score only the failure direction.
-- **Lesson-plan walkthrough.** An instructor persona "teaches" the plan step by
-  step; every step that forces improvisation ("discuss the topic" — which
-  questions?) is a **walkthrough gap**.
-
-_Stresses:_ quiz bank, exams, rubrics, briefs, study guides, lesson plans,
-discussion prompts — as a _system_ (cross-artifact sufficiency), which no current
-instrument measures.
+- **Answer-key agreement**: a _high-mastery_ student's defensible disagreement
+  with our key is a key-error candidate.
+- **Assignment round-trip**: strong / misconception-carrying / rules-lawyer
+  submissions graded by a TA persona using only the rubric — **rubric
+  discrimination** (≥ 2 bands separation), **rubric coverage**, **brief ambiguity
+  count**.
+- **Lesson-plan walkthrough**: an instructor persona "teaches" the plan step by
+  step; every step that forces improvisation is a **walkthrough gap**.
+- **Discussion fidelity seminar**: 4 cohort members (mixed misconception cards) +
+  1 facilitator run the compiled discussion protocol, hard-capped at 12 turns.
+  Scored **only in the failure direction**: instant convergence with nothing to
+  cite proves a dead prompt; "lively" proves nothing (LLMs never have dead air).
 
 ### A3 — The Semester Arena (does the product survive a real term?)
 
@@ -157,39 +129,224 @@ persona handles events _through the product_ — the app driven live via
 | Material swap      | "Replace the chapter 4 reading with this OER link"               | Readings registry, verbatim-title contract     |
 | Mid-course regen   | "Regenerate just the week 10 slides, keep my edits elsewhere"    | Scoped compile, edit survival                  |
 
-Because timelines differ per universe, N universes cover N disruption _sequences_
-in one wall-clock pass — including the same events in different orders, which
-tests order-dependence of sync (a real bug class: the mid-sync finish race).
-After every mutation: full regrade + **edit-survival diff**. End of term: the
-instructor re-runs A1 on the final package ("would I teach _next_ semester from
-this?"), and A2's learner state sits the final exam.
-
-_Builds on:_ `scripts/syncEditProof.mjs` (the standing sync harness), agent
-runtime, crucible driver.
+The cohort rides the timeline: a merged week doubles that week's intake load; an
+inserted review week actually re-exposes decayed concepts (§3b) — so schedule
+decisions have measurable learning-state consequences, which is exactly what they
+have in reality. The "my students are lost" event is triggered _by the cohort
+itself_ when mean mastery of a prerequisite drops below threshold — disruptions
+emerge from simulated learning, not only from the scripted deck. After every
+mutation: full regrade + **edit-survival diff**. End of term: the instructor
+re-runs A1 ("would I teach _next_ semester from this?") and the cohort sits the
+final against decayed state.
 
 ### A4 — The Department Arena (does it survive external review?)
 
 One persona per review lens, headless over the final package: curriculum committee
 (alignment, Bloom progression, the workload account), accreditation auditor
 (measurable outcomes, weight arithmetic, citation resolvability), accessibility
-reviewer (reading order, alt-text claims, contrast claims, accommodation hooks),
-academic-integrity officer (literally tries to solve each assessment by pasting it
-into a chatbot with no course material — items that fall are flagged), registrar
-clerk (date arithmetic, week-count consistency, cross-references). Findings file in
-the deep-grader P0/P1/P2 vocabulary so Prof and grader findings share one triage
-stream.
+reviewer (reading order, alt-text claims, accommodation hooks),
+academic-integrity officer (literally tries to solve each assessment with a
+chatbot and no course material — items that fall are flagged), registrar clerk
+(date arithmetic, cross-references). Findings file in the deep-grader P0/P1/P2
+vocabulary; one triage stream with the grader.
 
 ### A5 — The Adversary Arena (what breaks it?)
 
-Shared across universes (adversaries don't need replication, they need coverage):
-chaos syllabi (1-lesson; 40-lesson; Korean-language source with English requests;
-duplicate week numbers; bibliography-only; OCR-grade mess), the prompt-injection
-upload ("ignore previous instructions…") verified never to reach outputs or steer
-the agent, the lazy instructor (3-word prompts, contradictory follow-ups,
-regenerate-spam, garbage-cell-then-"fix everything"), and the skeptic whose only
-goal is to find one false claim in the package. Every adversary win is a bug.
+Shared across universes: chaos syllabi (1-lesson; 40-lesson; Korean-language
+source with English requests; duplicate weeks; bibliography-only; OCR-grade mess),
+prompt-injection uploads verified never to reach outputs or steer the agent, the
+lazy instructor (3-word prompts, contradictory follow-ups, regenerate-spam), and
+the skeptic whose only goal is one false claim. Every adversary win is a bug.
 
-## 3. The multiverse execution model
+## 3. The Student Model — minds, not mouths
+
+The realism of Project Prof lives or dies here, so the design principle is stated
+first and everything follows from it:
+
+> **The LLM is the mouth. The mind is a state machine.**
+> We never ask a language model to _pretend to learn_ — LLMs know too much,
+> forget nothing, and fail in non-human ways. Instead, every student's knowledge
+> is an explicit, inspectable data structure outside the model; deterministic
+> learning rules update it; and the LLM's only job is to _render performances_
+> (answers, essays, questions, discussion turns) strictly conditioned on that
+> state. Learning in the simulation is a **state change we compute**, not a
+> behavior we hope the model acts out.
+
+This one split buys realism, honesty, and cost-control simultaneously: the mind is
+auditable arithmetic (free, deterministic, replayable), and the mouth is a small
+sampled set of LLM calls under a knowledge quarantine.
+
+### 3a. The mind: knowledge state
+
+Each student carries a per-concept record over the course's own concept inventory
+(the CourseGraph concepts + their genome links — the inventory already exists for
+every generated course):
+
+```json
+{
+  "concept": "C7-dictionaries",
+  "mastery": 2, // 0 unseen · 1 recognition · 2 comprehension · 3 transfer
+  "exposures": [
+    { "tick": 4, "kind": "reading", "strength": 0.6 },
+    { "tick": 5, "kind": "retrieval", "strength": 1.0, "feedbackQuality": 0.8 }
+  ],
+  "lastTick": 5,
+  "misconceptions": ["mis-dict-positional"], // from the genome misconception library
+  "contaminated": false, // downstream of an unrepaired misconception
+  "source": "taught" // taught | prior-knowledge
+}
+```
+
+Mastery levels have operational meanings the performance engine (§3e) enforces:
+level 1 can pick a familiar answer but not explain it; level 2 can explain but not
+transfer to a novel case; level 3 can transfer. Nothing about a student is hidden
+inside a prompt — the full cohort state at any tick is a JSON file you can read.
+
+### 3b. The learning function
+
+Exposure events come from the artifacts themselves — reading the study guide,
+"attending" the lesson (processing the lesson plan's actual steps), doing the
+assignment, taking the quiz, reading the feedback. State transitions apply
+learning-science rules with teeth, each a named parameter in one auditable table
+(`learningRules.json`), not folklore buried in prompts:
+
+| Rule                      | Effect                                                                                                                         | Why it tests the product                                                                        |
+| ------------------------- | ------------------------------------------------------------------------------------------------------------------------------ | ----------------------------------------------------------------------------------------------- |
+| **Testing effect**        | Retrieval (quiz item) strengthens more than re-reading                                                                         | Courses with retrieval practice measurably outperform re-read-heavy ones                        |
+| **Spacing effect**        | Re-exposure after decay > massed repetition                                                                                    | Rewards real re-exposure structure; a review week has mechanical value                          |
+| **Generation effect**     | Producing (assignment) > consuming (reading)                                                                                   | Assignment-light weeks leave weaker state — visible                                             |
+| **Feedback gate**         | A quiz repairs a misconception only if its explanation actually addresses it (quality scored against the authored correction)  | Our grounded `quizCorrectExplanation` work now has a mechanical consequence, not just a vibe    |
+| **Prerequisite gate**     | Mastery of a concept is capped by its genome-graph prerequisites (can't reach transfer on recursion with functions at 1)       | Bad sequencing produces measurably stunted cohorts — the prerequisite judgment becomes testable |
+| **Intake capacity**       | Per-lesson cognitive-load budget; a lesson introducing 9 new concepts overflows and later concepts get reduced exposure credit | **Pacing becomes a number**: overflow events per lesson are course findings                     |
+| **Forgetting curve**      | Ebbinghaus-style decay, rate parameterized per student                                                                         | The midterm is sat against _decayed_ state; cumulative structure is tested honestly             |
+| **Contamination**         | An unrepaired misconception corrupts exposure credit for concepts that build on it                                             | A course that never confronts the field's classic misconception ships a visibly damaged cohort  |
+| **Misconception genesis** | Ambiguous material (flagged by a clarity probe) can _seed_ a misinterpretation with small probability                          | Badly worded materials create confusion in the sim the way they do in rooms                     |
+
+All rates live in one table so calibration (§3g) tunes numbers, never rewrites
+logic.
+
+### 3c. The cohort: a distribution, not archetypes
+
+Real classrooms are distributions, so the **cohort factory** samples 20–30
+students per universe from correlated trait vectors — prior knowledge (some
+students already know half the course; `source: "prior-knowledge"`), intake
+capacity, reading speed, conscientiousness, misconception susceptibility,
+help-seeking, procrastination, resilience after failure, L2 processing overhead.
+Traits are sampled with a covariance structure (conscientiousness correlates with
+compliance; prior knowledge with intake headroom), from **cohort presets** that
+make the adoption question sharp: _R1 CS majors · community-college night class ·
+gen-ed requirement-fillers · graduate seminar · L2-heavy international section_.
+Same course, different cohorts → "sufficient for **whose** classroom?" — the
+question real professors actually ask.
+
+**The engagement sampler** makes the classroom's most famous failure mode
+simulable: each week, each student's behavior is drawn — did the reading
+(probability = conscientiousness × workload-account pressure × week-of-term
+fatigue curve), attended, skimmed vs studied, crammed before the exam, submitted
+late. **The nobody-did-the-reading test**: when 40% of a realistic cohort skips
+the reading, does the lesson plan have an in-class path that still exposes the
+concepts, or does the week silently produce zero exposure for the skippers? A
+lesson plan robust to partial compliance is a _product_ property, and now it's
+measured.
+
+### 3d. Misconceptions as dynamics, not flags
+
+Misconceptions (seeded from the genome's documented library — our unique asset)
+behave like they do in real learners:
+
+- **Attractors**: they persist until _confronted_ — repair requires an encounter
+  that contradicts them + a feedback gate pass + one retrieval follow-up.
+  Re-reading a correct definition does not repair (matching the literature and
+  everyone's classroom experience).
+- **Propagation**: unrepaired, they contaminate downstream concepts that build on
+  them (§3b), so an early unaddressed misconception shows up as a week-9 cohort
+  collapse — precisely how it happens in rooms.
+- **The headline finding this enables**: "this course never repairs
+  `mis-dict-positional`, the field's most common misconception for this topic —
+  62% of the simulated cohort finishes still holding it." No current instrument
+  can say anything like that.
+- Where the genome lacks misconceptions for a concept, students fall back to
+  generic-weak and items are marked **untestable-by-sim** — coverage reported,
+  never hidden; the gaps become genome roadmap items.
+
+### 3e. The performance engine: the mouth, under quarantine
+
+When a performance is needed, the LLM receives the student's **knowledge card**
+(the whitelist), the task, and the register — and renders at the state's fidelity:
+
+- **Knowledge quarantine.** The card is a whitelist: "you can use ONLY what it
+  lists, at the listed levels; you hold these misconceptions and must answer
+  through them." Violations are _detectable_ — an answer using a concept not on
+  the card is **leakage**, auto-flagged by a cheap postcheck. **Leakage rate** is
+  a standing validity KPI of the student model itself; a leaky student is a
+  broken instrument, exactly like a persona that fails the calibration gate.
+- **Fidelity by mastery**: level-1 students recognize but garble explanations;
+  level-2 explain but fail transfer items; level-3 transfer. Misconception
+  holders answer _through_ the misconception — which is what makes distractor
+  testing valid ("does this distractor catch the documented misconception?").
+- **Student register**: performances read like students — brief, hedged,
+  vocabulary regurgitated without understanding where mastery is shallow — so
+  TA-grading against the rubric is a realistic exercise, not essay-judging.
+- **Zero-token psychometrics**: multiple-choice outcomes don't need the mouth at
+  all — P(correct) is computable from mastery + misconception–distractor matching,
+  so the whole cohort's MC results, item difficulty, discrimination indices, and
+  distractor analysis are **pure arithmetic**. The LLM renders only what needs
+  prose: short answers, essays, questions, discussion turns — and only for a
+  stratified sample (≈5 representative students + every edge case).
+- **Question generation — the crown jewel for the FAQ**: confused students ask.
+  Each week the sampled students produce their actual questions; clustered across
+  the cohort they form a **confusion heatmap** per lesson. Comparing the heatmap
+  against the generated Course FAQ yields the **FAQ hit rate** — for the first
+  time, the FAQ is tested against simulated _demand_ instead of supply-side
+  guessing about what students might ask.
+
+### 3f. What the Student Model unlocks (new instruments)
+
+| Instrument                      | Definition                                                                               | Cost                                                              |
+| ------------------------------- | ---------------------------------------------------------------------------------------- | ----------------------------------------------------------------- |
+| **Item psychometrics**          | Difficulty, discrimination index, distractor analysis per quiz/exam item over the cohort | ~free (arithmetic)                                                |
+| **Misconception repair rate**   | % of seeded misconceptions repaired by course end                                        | ~free                                                             |
+| **Pacing overflow**             | Intake-capacity overflow events per lesson                                               | free                                                              |
+| **Compliance robustness**       | Cohort end-state under 100% vs realistic reading compliance                              | free                                                              |
+| **FAQ hit rate**                | % of confusion-heatmap clusters answered by the generated FAQ                            | cheap (clustering)                                                |
+| **Exam validity**               | Final-exam coverage vs the cohort's decayed state and the prerequisite graph             | free                                                              |
+| **End-state mastery delta**     | Same cohort seed, two course versions → mastery difference                               | the closest honest thing to a learning-outcome A/B without humans |
+| **Cohort-conditioned adoption** | A1 verdicts issued per cohort preset ("ready for R1 majors; not for gen-ed")             | persona reads cohort summary                                      |
+
+The mastery-delta instrument deserves emphasis: it turns every compiler
+improvement into a falsifiable claim. "Grounded lesson plans improve the course"
+stops being an aesthetic judgment and becomes _same cohort, both versions, +0.4
+mean mastery, CI excludes zero_ — running under the same-generation twin protocol
+the C2 lesson taught us.
+
+### 3g. Calibration & honesty (the student model's Reality Anchor)
+
+- **Psychometric anchoring**: the cohort sits published anchored instruments with
+  known human difficulty data (concept inventories — e.g., FCI-style physics
+  items, documented CS1 misconception studies). Trait distributions are tuned
+  until simulated item-difficulty **rank-correlates** with published human
+  difficulty. We tune to public human data, never to our own courses.
+- **Emergent-statistics sanity**: grade distributions must look like grade
+  distributions (nobody's cohort averages 96%); discrimination indices in
+  realistic ranges; time-on-task from the workload accountant within plausible
+  human bounds. Violations fail the student model, not the course.
+- **Leakage audits** (§3e) on every term.
+- **The boundary, restated**: simulated mastery is a model output. Prof Reports
+  say "simulated cohort" in every headline that uses it; it never populates
+  `manualHuman`; and the Reality Gap table (§9) still carries the "human novice
+  cognition — partial" row, because a calibrated model of learning is still a
+  model. What changed from Rev 2 is that the model's error is now _measurable_
+  (rank-correlation against human data) instead of unknowable.
+
+### 3h. Cost of realism
+
+The mind is arithmetic. A 25-student × 14-week semester: all state transitions,
+all MC psychometrics, pacing, compliance, decay — **$0**. LLM spend is only the
+mouth: ~100–200 small cheap-tier calls (sampled essays, questions, seminar turns,
+TA grading) ≈ **$1–2 per cohort-semester**. Realistic is not expensive when the
+mind is a state machine and the LLM is only the mouth.
+
+## 4. The multiverse execution model
 
 **The unit of execution is the universe**, not the persona call:
 
@@ -197,95 +354,84 @@ goal is to find one false claim in the package. Every adversary win is a bug.
 {
   "universeId": "cs-python/u3",
   "courseArtifact": "sha256 of the ZIP under test (immutable, shared)",
-  "cast": {
-    "instructor": "prof-adjunct-cc",
-    "students": ["stu-mis-dict-pos", "stu-strong", "stu-lawyer"],
-    "ta": "ta-mid"
-  },
+  "cast": { "instructor": "prof-adjunct-cc", "cohortPreset": "cc-night-class", "cohortSeed": 90210, "ta": "ta-mid" },
   "timelineSeed": 40917,
-  "modelAssignment": {
-    "instructor": "claude-sonnet-5",
-    "students": "claude-haiku-4-5",
-    "department": "gemini-frontier"
-  },
+  "modelAssignment": { "instructor": "claude-sonnet-5", "mouths": "claude-haiku-4-5", "department": "gemini-frontier" },
   "readingOrder": "exam-first",
   "pool": "active"
 }
 ```
 
-### 3a. Why multiverse (what parallelism actually buys)
+### 4a. Why multiverse (what parallelism actually buys)
 
-- **Wall-clock, yes — cost, no.** Universes share the immutable artifact, so all
-  arenas except A3's serial timelines are embarrassingly parallel. N universes ≈
-  the wall-clock of one. Tokens still scale with N; the cost knob is N itself.
+- **Wall-clock, yes — cost, no.** Universes share the immutable artifact; all
+  arenas except A3's serial timelines are embarrassingly parallel. Tokens still
+  scale with N; the cost knob is N.
 - **The real prize: variance becomes signal.** The course is constant across
-  universes, so _disagreement between universes measures the instrument_ (persona
-  noise — quantified for free, every run) and _agreement measures the course_.
-  A finding independently discovered in 5/7 universes is real; 1/7 is noise. The
-  teach-as-is score becomes a mean with a confidence interval. This retires the
-  single-judge-anecdote problem the `JUDGE_VARIANCE_NOTE` documents.
-- **Counterfactual twins for free.** Two universes sharing one generation but
-  diverging on one variable (depth on/off, voice on/off, provider) reproduce the
-  same-generation twin protocol — the only A/B design that survived the C2
-  confounding lesson — as a native structure.
+  universes, so _disagreement between universes measures the instrument_ and
+  _agreement measures the course_. A finding independently discovered in 5/7
+  universes is real; 1/7 is noise. Teach-as-is becomes a mean ± CI. This retires
+  the single-judge-anecdote problem the `JUDGE_VARIANCE_NOTE` documents.
+- **Counterfactual twins for free**: two universes sharing one generation but
+  diverging on one variable (depth, voice, provider — or two course versions over
+  the same cohort seed, §3f) reproduce the same-generation twin protocol natively.
 
-### 3b. Independence engineering (the trap)
+### 4b. Independence engineering (the trap)
 
-Seven copies of the same model at the same temperature reading the same order are
-**one universe photocopied seven times** — false consensus dressed as statistics.
-Independence is constructed, then verified:
+Seven copies of the same model at the same temperature reading in the same order
+are **one universe photocopied seven times** — false consensus dressed as
+statistics. Independence is constructed, then verified: different model families
+across universes; different archetypes and cohort presets; different
+`readingOrder`; temperature/seed variation — and the collapse stage computes
+inter-universe persona correlation across the corpus, pruning any pair agreeing
+above 95% ("denied tenure"). Consensus still ≠ truth: 7/7 agreement escalates
+triage priority but never auto-files.
 
-- **By construction**: different model families across universes; different
-  archetypes; different `readingOrder` (exam-first vs syllabus-first); temperature
-  and seed variation.
-- **By measurement**: the collapse stage computes inter-universe agreement per
-  persona pair across the corpus. Two personas agreeing > 95% across many courses
-  are redundant → one is pruned. Persona correlation is a standing report, not a
-  hope.
-- **Consensus ≠ truth**: model families share training biases; 7/7 agreement
-  escalates triage priority but never auto-files. Quote-or-discard and human
-  triage always apply.
+### 4c. The collapse stage
 
-### 3c. The collapse stage
+1. **Finding fingerprinting**: dedup across universes by (artifact file,
+   anchor-quote overlap, taxonomy code) → one finding with an **agreement score**.
+2. **Metric aggregation**: means ± CI for every KPI; per-persona variance;
+   per-pair correlation; cohort-level distributions pooled across universes.
+3. **One triage stream**, merged with deep-grader findings under the shared
+   severity vocabulary.
 
-After universes complete, a barrier stage produces the statistics:
+### 4d. Model assignment (decided)
 
-1. **Finding fingerprinting**: findings dedupe across universes by
-   (artifact file, anchor-quote overlap, taxonomy code) — same defect, different
-   words → one finding with an **agreement score** (k of N universes).
-2. **Metric aggregation**: per-course means + CI for every KPI; per-persona
-   variance; per-pair correlation.
-3. **One triage stream**: agreement-ranked findings, merged with deep-grader
-   findings under the shared severity vocabulary.
+| Role                            | Model tier                                                                   | Rationale                                                                                        |
+| ------------------------------- | ---------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------ |
+| Course generation under test    | Whatever the app run uses (gpt-5.4-mini in crucible smoke today)             | We test the product, not the model                                                               |
+| Instructors, department panel   | Frontier, **cross-family** (split Claude/Gemini; one GPT professor retained) | Same-family judges flatter their own prose (C2 lesson); the GPT seat measures family bias itself |
+| Student mouths, TA              | Cheap tier (Haiku 4.5 / Flash) under quarantine                              | The mind carries the realism; the mouth needs register, not brilliance — cost and fidelity align |
+| Rules-lawyer, integrity officer | Mid tier; promoted only if the calibration gate shows misses                 | Empirical, not aesthetic                                                                         |
 
-### 3d. Model assignment (decided)
+### 4e. Choosing N
 
-| Role                          | Model tier                                                                   | Rationale                                                                                        |
-| ----------------------------- | ---------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------ |
-| Course generation under test  | Whatever the app run uses (gpt-5.4-mini in crucible smoke today)             | We test the product, not the model                                                               |
-| Instructors, department panel | Frontier, **cross-family** (split Claude/Gemini; one GPT professor retained) | Same-family judges flatter their own prose (C2 lesson); the GPT seat measures family bias itself |
-| Weak/median students          | Cheap tier (Haiku 4.5 / Flash)                                               | A weaker model is a _more faithful_ weak student — cost and realism align                        |
-| Strong student, TA, lawyer    | Mid tier; promoted only if the calibration gate shows misses                 | Empirical, not aesthetic                                                                         |
+Statistical power grows ~√N; cost grows linearly. P0 runs one course at **N = 9**
+solely to measure inter-universe variance; standing N is set from that data
+(expectation: 5–7 for adoption panels, 3 timelines for semesters). N is
+configuration, never hardcoded.
 
-### 3e. Choosing N
-
-Statistical power grows ~√N; cost grows linearly — there is a knee. P0 runs one
-course at **N = 9** solely to measure inter-universe variance, then standing N is
-set from that data (expectation: 5–7 for adoption panels, 3 timelines for
-semesters). N is configuration, never hardcoded.
-
-## 4. Architecture
+## 5. Architecture
 
 ```
 scripts/prof.mjs                     orchestrator (npm run prof -- --arena a1 --scenario cs-python --universes 7)
 scripts/prof/
   personaEngine.mjs                  persona cards → prompts → structured verdicts
-  personas/*.json                    instructor/student/TA/department cards
-  misconceptionCast.mjs              builds student cards FROM the genome misconception library
-  scenarios/*.json                   brief × cast × disruption deck × seeds × models
+  personas/*.json                    instructor/TA/department cards
+  scenarios/*.json                   brief × casts × decks × seeds × models × N
   universe.mjs                       the universe record + lifecycle
+  student/
+    studentMind.mjs                  knowledge state + learning function (§3a–3b)
+    learningRules.json               every rate in one auditable table
+    cohortFactory.mjs                correlated trait sampling + presets (§3c)
+    engagementSampler.mjs            weekly behavior draws (§3c)
+    misconceptionCast.mjs            seeds misconceptions FROM the genome library (§3d)
+    performanceEngine.mjs            LLM mouth under knowledge quarantine (§3e)
+    psychometrics.mjs                item stats over the cohort (§3f)
+    confusionHeatmap.mjs             question clustering → FAQ hit rate (§3f)
+    calibration/                     anchored instruments + rank-correlation checks (§3g)
   workloadAccountant.mjs             deterministic hours model (zero LLM)
-  learnerState.mjs                   per-concept exposure/decay state across ticks
   semesterClock.mjs                  week ticks, seeded event dealing
   arenas/{adoption,classroom,semester,department,adversary}.mjs
   collapse.mjs                       fingerprint dedup, agreement, statistics
@@ -298,176 +444,178 @@ verification-output/prof/term-*/     run artifacts (crucible round discipline)
 compile/grade; crucible driver for live A3; the grader's `extractPackage` for all
 persona inputs; `syncEditProof.mjs` protocol for edit invariants;
 `professor-adoption/*` tiers and report writers; crucible key loading, spend caps,
-and `redactSecrets`.
+`redactSecrets`; **the CourseGraph concept inventory and genome
+prerequisite/misconception data as the student model's substrate**.
 
 **The Artifact Bridge rule (non-negotiable):** persona inputs come from the
 **extracted export text**, never internal JSON. If the DOCX renders it wrong, the
 persona must see it wrong (round 4's corruption existed only in rendered prose).
 
-## 5. Personas
+## 6. Personas & scenarios
 
-A persona is a versioned JSON card (auditable, cheap to review) — archetype,
-discipline, institution, standards, pet peeves, time budget, voice, rubric id,
-temperature, pool. Casts span 5–7 instructor archetypes × the crucible course
-disciplines. Student cards are **generated from the genome** (§2 A2) plus three
-fixed archetypes (strong, lawyer, adversarial).
+Instructor/TA/department personas are versioned JSON cards (archetype, discipline,
+institution, standards, pet peeves, time budget, voice, rubric id, temperature,
+pool). **Students are not cards — they are sampled minds** (§3c); only their
+mouths share the persona machinery.
 
-- **Every verdict must quote.** No verbatim artifact quote → the ledger discards
-  the claim. The single biggest defense against judge hallucination.
-- **Calibration gate**: before entering the active pool, a persona must separate a
-  known-excellent human-authored package from a known-bad mail-merge package
-  (fixtures we already own: gold samples; pre-v0.15.186 templated output). Personas
-  that can't separate them are rejected; cheap-tier models that pass are kept
-  (cost control by evidence).
-- **Two pools** (`active` / `holdout`) — §9.
+- **Every verdict must quote.** No verbatim artifact quote → discarded by the
+  ledger. The single biggest defense against judge hallucination.
+- **Calibration gate**: personas must separate a known-excellent human-authored
+  package from a known-bad mail-merge package (fixtures we own: gold samples;
+  pre-v0.15.186 templated output) before entering the active pool.
+- **Two pools** (`active` / `holdout`) — §10.
 
-## 6. Scenarios
+Scenario = **brief × instructor cast × cohort preset × disruption deck × seeds ×
+model assignment × N**:
 
-Scenario = **course brief × cast × disruption deck × seeds × model assignment × N.**
-
-- `prof:smoke` — 1 course, 3 universes, A1+A2. PR-sized: < 15 min, < $2.
+- `prof:smoke` — 1 course, 3 universes, A1 + A2's zero-token layer. < 15 min, < $2.
 - `prof:adopt` — 6 courses × 7 universes, A1+A4. The teachability KPI run.
-- `prof:semester` — 1 course, 3 timeline-universes, 14 ticks, A3 + final A1.
+- `prof:classroom` — 1 course × 3 cohort presets, full A2. The material-sufficiency run.
+- `prof:semester` — 1 course, 3 timeline-universes, 14 ticks, A3 + final A1 + final exam vs decayed cohort.
 - `prof:gauntlet` — everything, all arenas, multi-provider. Pre-launch only.
 
 ## 7. Metrics & KPIs
 
-All KPIs are multiverse statistics (mean ± CI across universes; per-course, then
-per-corpus), never single-universe numbers:
+All KPIs are multiverse statistics (mean ± CI; per-course, then per-corpus):
 
-| KPI                       | Definition                                                 | Launch bar (proposal)                                                            |
-| ------------------------- | ---------------------------------------------------------- | -------------------------------------------------------------------------------- |
-| **Adoption rate**         | % of active-pool verdicts ≥ `classroom-ready-draft`        | ≥ 80%                                                                            |
-| **Teach-as-is mean ± CI** | across cast and universes                                  | ≥ 7.0, CI width ≤ 1.5                                                            |
-| **Student solvability**   | closed-book strong-student quiz/exam score                 | ≥ 85% quiz / ≥ 80% exam                                                          |
-| **Answer-key agreement**  | strong-student answers vs our keys                         | ≥ 98% (every miss triaged)                                                       |
-| **Misconception catch**   | distractors that catch their documented misconception      | ≥ 60% of genome-covered items                                                    |
-| **Sim coverage**          | % of assessment items testable by genome-grounded students | reported, never hidden                                                           |
-| **Workload honesty**      | computed hours vs stated hours                             | ≤ 1.25×                                                                          |
-| **Rubric discrimination** | strong/weak separated ≥ 2 bands                            | 100% of rubrics                                                                  |
-| **Walkthrough gap rate**  | lesson-plan steps requiring improvisation                  | < 15% (today's 0% grounding will fail this — good; it makes the lane measurable) |
-| **Dead-prompt rate**      | seminars converging ≤ 2 turns with nothing to cite         | < 10% of discussions                                                             |
-| **Edit survival**         | instructor edits intact after semester mutations           | 100% (invariant)                                                                 |
-| **Adversary wins**        | A5 findings                                                | 0 P0-equivalent                                                                  |
-| **Verdict stability**     | same scenario+seed re-run variance                         | tier moves ≤ 1                                                                   |
-| **Sim-to-real agreement** | Prof verdicts vs Reality Anchor humans (§8)                | tracked from first anchor round; target ≥ 70% tier agreement                     |
+| KPI                       | Definition                                                   | Launch bar (proposal)                |
+| ------------------------- | ------------------------------------------------------------ | ------------------------------------ |
+| **Adoption rate**         | % of active-pool verdicts ≥ `classroom-ready-draft`          | ≥ 80%                                |
+| **Teach-as-is mean ± CI** | across cast and universes                                    | ≥ 7.0, CI width ≤ 1.5                |
+| **Solvability**           | high-mastery closed-book quiz/exam score                     | ≥ 85% quiz / ≥ 80% exam              |
+| **Answer-key agreement**  | high-mastery answers vs our keys                             | ≥ 98% (every miss triaged)           |
+| **Misconception catch**   | distractors that catch their documented misconception        | ≥ 60% of genome-covered items        |
+| **Misconception repair**  | % of seeded misconceptions repaired by course end            | ≥ 70% of genome-covered              |
+| **Item discrimination**   | items with healthy discrimination index over the cohort      | ≥ 70% of MC items                    |
+| **Pacing overflow**       | intake-capacity overflow events                              | 0 lessons over budget                |
+| **Compliance robustness** | cohort end-state under realistic vs full reading compliance  | degradation ≤ 25%                    |
+| **FAQ hit rate**          | confusion-heatmap clusters answered by the generated FAQ     | ≥ 60%                                |
+| **Workload honesty**      | computed hours vs stated hours                               | ≤ 1.25×                              |
+| **Rubric discrimination** | strong/weak separated ≥ 2 bands                              | 100% of rubrics                      |
+| **Walkthrough gap rate**  | lesson-plan steps requiring improvisation                    | < 15% of steps                       |
+| **Dead-prompt rate**      | seminars converging ≤ 2 turns with nothing to cite           | < 10% of discussions                 |
+| **Edit survival**         | instructor edits intact after semester mutations             | 100% (invariant)                     |
+| **Adversary wins**        | A5 findings                                                  | 0 P0-equivalent                      |
+| **Leakage rate**          | quarantine violations (validity of the student model itself) | < 2%, else the model is the bug      |
+| **Verdict stability**     | same scenario+seed re-run variance                           | tier moves ≤ 1                       |
+| **Sim-to-real agreement** | Prof verdicts vs Reality Anchor humans (§9)                  | tracked; target ≥ 70% tier agreement |
 
-The causal chain becomes checkable: grounding ↑ → walkthrough gaps ↓ →
-teach-as-is ↑. The deep grader stays the **defect** gate; grounding the **cause**
-metric; Prof the **effect** metrics.
+The causal chain becomes checkable end to end: grounding ↑ → walkthrough gaps ↓ →
+pacing/repair/FAQ hit ↑ → teach-as-is ↑ → **end-state mastery delta > 0**. The
+deep grader stays the **defect** gate; grounding the **cause** metric; Prof the
+**effect** metrics.
 
-## 8. The Reality Gap — an honest account
+## 8. Execution & cost
 
-Prof must not become an expensive mirror. This section states what the simulation
-measures well, what it approximates, and what it **cannot** measure — with the
-design consequence of each. This table is the contract; every Prof Report links it.
+- The student mind is free (§3h). Persona calls are small-context; universes fan
+  out under crucible-style spend caps. Estimates: A1 ≈ $0.10/universe; A2 ≈
+  $1–2/cohort-semester (mouth calls only); A3 ≈ $2–4/timeline (live generation +
+  agent traffic); A4 ≈ $0.30; A5 ≈ $0.50 shared. `prof:adopt` ≈ **$8–15**;
+  `prof:gauntlet` ≈ **$35–60**.
+- Nightly `prof:smoke` (after a 2-week manual variance-characterization period);
+  `prof:adopt` weekly and before any content-quality release claim;
+  `prof:classroom` per compiler content release; `prof:semester`/`prof:gauntlet`
+  at milestones.
+- Full replayability: seeds, scenario hashes, persona versions, `learningRules.json`
+  version, model ids, and the complete ledger persist under
+  `verification-output/prof/term-*/`; failures reuse crucible forensics.
 
-| Reality dimension                                           | Sim fidelity | Why                                                                                                    | Design consequence                                                                                                                                      |
-| ----------------------------------------------------------- | ------------ | ------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Document quality & internal sufficiency                     | **High**     | Reading and cross-referencing text is what LLMs do best                                                | A1/A2/A4 verdicts are trustworthy signal                                                                                                                |
-| Product mechanics under change                              | **High**     | Deterministic app behavior, real browser driver                                                        | A3 findings are real bugs, full stop                                                                                                                    |
-| Workload realism                                            | **High**     | It's arithmetic                                                                                        | Computed, not simulated                                                                                                                                 |
-| Human novice cognition                                      | **Partial**  | An LLM "weak student" is a strong reader acting; its natural errors are not human errors               | Misconception-grounded cards (genome) recover validity _only where the genome documents the misconception_; everything else is marked untestable-by-sim |
-| Classroom social dynamics                                   | **Partial**  | LLM seminars never have dead air, boredom, or status games                                             | Discussion sim scores only the failure direction (dead prompts); "lively" is weak evidence by design                                                    |
-| Time (forgetting, spacing, fatigue, motivation)             | **Partial**  | A 20-minute "semester" has no experienced time                                                         | Learner-state decay is a crude directional model; its outputs are structural checks (re-exposure, sequencing), never learning claims                    |
-| Professor's situated judgment                               | **Partial**  | Real adopters weigh department politics, switching costs, their existing course, their actual students | Personas approximate archetypes; the Reality Anchor measures how far off they are                                                                       |
-| Aesthetic/cultural reception ("will my students smell AI?") | **Low**      | Model panels share a trained prose aesthetic; they cannot stand in for 19-year-olds' cultural radar    | Out of scope for sim; explicitly a beta-instructor question                                                                                             |
-| Actual learning outcomes                                    | **None**     | Only humans learn                                                                                      | Prof vocabulary says "material sufficiency," never "learning"; contracts keep `manualHuman` untouched                                                   |
+## 9. The Reality Gap — an honest account
 
-### The Reality Anchor (the mechanism that keeps Prof honest)
+Prof must not become an expensive mirror. This table is the contract; every Prof
+Report links it.
 
-Sim-to-real drift is not solved by better prompts; it is solved by **measurement
-against humans**:
+| Reality dimension                                  | Sim fidelity             | Why                                                                                                                                                 | Design consequence                                                                                     |
+| -------------------------------------------------- | ------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------ |
+| Document quality & internal sufficiency            | **High**                 | Reading and cross-referencing text is what LLMs do best                                                                                             | A1/A2/A4 verdicts are trustworthy signal                                                               |
+| Product mechanics under change                     | **High**                 | Deterministic app behavior, real browser driver                                                                                                     | A3 findings are real bugs, full stop                                                                   |
+| Workload realism                                   | **High**                 | It's arithmetic                                                                                                                                     | Computed, not simulated                                                                                |
+| Assessment psychometrics                           | **High**                 | Item statistics over an explicit state model are real statistics _of the model_; anchored to human data (§3g)                                       | Difficulty/discrimination findings actionable after rank-correlation calibration                       |
+| Human novice cognition                             | **Partial → measurable** | The mind/mouth split + genome misconceptions + psychometric anchoring make the model's error a _measured_ rank-correlation instead of an unknowable | Items outside genome coverage marked untestable-by-sim; model error reported beside every cohort claim |
+| Classroom social dynamics                          | **Partial**              | LLM seminars never have dead air, boredom, status games                                                                                             | Discussion sim scores only the failure direction                                                       |
+| Time (fatigue, motivation, life events)            | **Partial**              | Decay and fatigue curves are models of time, not time                                                                                               | Structural checks only (re-exposure, sequencing, pacing); never wellbeing claims                       |
+| Professor's situated judgment                      | **Partial**              | Real adopters weigh politics, switching costs, their actual students                                                                                | Personas approximate archetypes; the Reality Anchor measures how far off                               |
+| Aesthetic/cultural reception ("students smell AI") | **Low**                  | Model panels share a trained prose aesthetic                                                                                                        | Out of scope for sim; explicitly a beta-instructor question                                            |
+| Actual human learning outcomes                     | **None**                 | Only humans learn                                                                                                                                   | Vocabulary: "simulated mastery," never "learning outcomes"; `manualHuman` untouched                    |
 
-1. Every beta instructor (the go-public plan's step one) performs the **same A1
-   protocol** — same package, same rubric, same verdict schema — on 1–2 packages
-   the multiverse has already reviewed.
-2. The **sim-to-real agreement KPI** (tier agreement, objection overlap) is
-   computed per anchor round and trended per release.
-3. Disagreements are triaged into: persona fix (human raised something no persona
-   sees → new persona card or pet-peeve), weight fix (personas over-index on
-   something humans don't care about), or genuine sim limit (logged against the
-   table above — scope narrowed, not patched).
-4. Prof KPIs carry the date of the last anchor round; a Prof Report older than two
-   anchor rounds is stamped **UNANCHORED** in its headline.
+### The Reality Anchor
 
-This closes the loop in both directions: Prof predicts, humans correct the
-predictor, and every human hour spent reviewing goes twice as far because it also
-recalibrates the machine that runs nightly.
+1. Every beta instructor performs the **same A1 protocol** on 1–2 packages the
+   multiverse already reviewed.
+2. **Sim-to-real agreement** (tier agreement, objection overlap) is computed per
+   anchor round and trended per release.
+3. Disagreements triage into: persona fix, weight fix, or genuine sim limit
+   (logged against the table above — scope narrowed, not patched).
+4. A Prof Report older than two anchor rounds is stamped **UNANCHORED**.
+5. The student model has its own anchor (§3g): published human difficulty data,
+   rank-correlation, reported beside every cohort claim.
 
 ### What we deliberately will NOT build
 
-- **A full agentic classroom soap opera** (20 personas with personalities chatting
-  for simulated weeks). Token-expensive theater; emergent LLM social dynamics do
-  not map to real classrooms; the signal is in the artifacts, not the improv.
-- **Motivation/emotion modeling.** No validation path; pure speculation.
-- **Any learning-outcome claim.** See the table's last row.
+- **A classroom soap opera** (20 personas with personalities improvising weeks of
+  social life). The signal is in the artifacts and the state model, not the improv.
+- **Motivation/emotion modeling.** No validation path.
+- **Any human learning-outcome claim.** See the table's last row.
 
-## 9. The Anti-Goodhart Charter
+## 10. The Anti-Goodhart Charter
 
 1. **Advisory forever.** Prof KPIs gate decisions (launch, roadmap), never CI.
-2. **Held-out pool.** ~30% of personas never feed development; they run at
-   milestones only. Active-pool gains that the holdout doesn't confirm = we tuned
-   to the instrument → revert.
+2. **Held-out pool.** ~30% of personas and one held-out cohort preset never feed
+   development; they run at milestones. Active-pool gains the holdout doesn't
+   confirm = we tuned to the instrument → revert.
 3. **No phrase-level fixes.** Fixes motivated by Prof findings must be content /
-   structure / correctness improvements — never "avoid the words persona X flags."
-   Ledger quotes make this auditable in PR review.
-4. **Cross-family judging** per the model assignment (§3d).
-5. **Variance discipline**: means ± CI only; the `JUDGE_VARIANCE_NOTE` protocol
-   applies to every number; single-universe deltas are never headlines.
-6. **Prof ≠ human** (§8); "simulated" appears in every report headline.
-
-## 10. Execution & cost
-
-- Persona calls are small-context; universes fan out under the crucible-style
-  spend cap. Estimates: A1 ≈ $0.10/universe; A2 ≈ $0.15–0.30/universe
-  (misconception students on cheap tier); A3 ≈ $2–4/timeline (live generation +
-  agent traffic); A4 ≈ $0.30; A5 ≈ $0.50 shared. `prof:adopt` (6 courses × 7
-  universes) ≈ **$8–15**; `prof:gauntlet` ≈ **$30–50**.
-- Nightly `prof:smoke` (after a 2-week manual variance-characterization period);
-  `prof:adopt` weekly and before any content-quality release claim;
-  `prof:semester`/`prof:gauntlet` at milestones.
-- Full replayability: seeds, scenario hashes, persona versions, model ids, and the
-  complete ledger persist under `verification-output/prof/term-*/`; failures reuse
-  crucible forensics (project dump + console).
+   structure / correctness improvements — never "avoid what persona X flags."
+   Ledger quotes make this auditable.
+4. **Cross-family judging** (§4d). **Learning rules are frozen per release** —
+   the compiler team never edits `learningRules.json` in the same change that
+   improves a KPI it feeds.
+5. **Variance discipline**: means ± CI only; `JUDGE_VARIANCE_NOTE` applies;
+   single-universe deltas are never headlines.
+6. **Prof ≠ human** (§9); "simulated" appears in every report headline.
 
 ## 11. Phased build
 
-| Phase                           | Scope                                                                                                                                                                         | Deliverable                                                                           | Est. effort                |
-| ------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------- | -------------------------- |
-| **P0 — Multiverse + Adoption**  | Orchestrator, universe record, persona engine + calibration gate, 6 instructor cards, workload accountant, collapse stage, A1 on existing crucible ZIPs, **N=9 variance run** | First adoption rate ± CI on real packages; standing N chosen from data; triage stream | ~4 sessions                |
-| **P1 — Classroom**              | `misconceptionCast` from the genome, closed-book solvability, distractor/misconception catch, rubric round-trip, walkthrough gaps, sim-coverage accounting                    | First system-level assessment test; answer-key agreement report                       | ~4 sessions                |
-| **P2 — Semester + Seminar**     | Semester clock, timeline universes, A3 on the browser driver + agent, edit-survival diffs, learner state, discussion fidelity seminar                                         | Lifecycle proof; order-dependence coverage; dead-prompt rate                          | ~5 sessions                |
-| **P3 — Department + Adversary** | A4 panel, A5 suite (incl. injection corpus), severity-unified triage                                                                                                          | Institutional-credibility findings; safety evidence                                   | ~3 sessions                |
-| **P4 — Anchor + Longitudinal**  | Reality Anchor protocol + agreement KPI, holdout milestone runs, roll-up dashboard, `prof:gauntlet`, launch-bar report                                                        | The go/no-go instrument for v1.0, calibrated against real instructors                 | ~2 sessions + beta program |
+| Phase                                         | Scope                                                                                                                                                                                                          | Deliverable                                                                            | Est. effort                |
+| --------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------- | -------------------------- |
+| **P0 — Multiverse + Adoption**                | Orchestrator, universe record, persona engine + calibration gate, 6 instructor cards, workload accountant, collapse stage, A1 on existing crucible ZIPs, **N=9 variance run**                                  | First adoption rate ± CI on real packages; standing N chosen from data; triage stream  | ~4 sessions                |
+| **P1 — The Student Mind**                     | `studentMind` + `learningRules.json`, cohort factory + presets, engagement sampler, genome misconception seeding, **zero-token layer**: MC psychometrics, solvability, pacing, compliance, repair rate         | The first system-level assessment test — mostly free to run; `prof:classroom` scenario | ~4 sessions                |
+| **P2 — The Mouth + Semester**                 | Performance engine + quarantine + leakage audit, confusion heatmap → FAQ hit rate, TA round-trip, discussion seminar; semester clock, timeline universes, A3 live, edit-survival, cohort-triggered disruptions | Full A2/A3; dead-prompt and FAQ-demand findings; lifecycle proof                       | ~5 sessions                |
+| **P3 — Department + Adversary + Calibration** | A4 panel, A5 suite, **student-model psychometric anchoring** (published instruments, rank-correlation)                                                                                                         | Institutional findings; a student model with a measured error bar                      | ~4 sessions                |
+| **P4 — Anchor + Longitudinal**                | Reality Anchor protocol + agreement KPI, holdout milestone runs, roll-up dashboard, `prof:gauntlet`, launch-bar report                                                                                         | The go/no-go instrument for v1.0, calibrated against real instructors                  | ~2 sessions + beta program |
 
-P0 needs zero new generation spend: the adoption multiverse runs against ZIPs
-already in `verification-output/crucible/`.
+P0 and most of P1 need zero new generation spend: they run against ZIPs already in
+`verification-output/crucible/`, and the student mind is arithmetic.
 
 ## 12. Risks
 
-| Risk                                   | Mitigation                                                                                   |
-| -------------------------------------- | -------------------------------------------------------------------------------------------- |
-| Correlated universes → false consensus | Independence engineering + measured persona correlation + pruning (§3b)                      |
-| Persona hallucination                  | Quote-or-discard; calibration gate; agreement scoring                                        |
-| Prof becomes the optimization target   | Anti-Goodhart Charter; holdout pool; advisory-only                                           |
-| Sim-to-real drift                      | Reality Anchor with a trended agreement KPI; UNANCHORED stamp                                |
-| Cost creep                             | N chosen from measured variance; cheap-tier-by-evidence; per-term spend caps                 |
-| A3 browser flakiness                   | Crucible retry/forensics inheritance; milestone cadence                                      |
-| Genome misconception coverage gaps     | Sim-coverage KPI reported honestly; gaps feed the genome roadmap (they're genome work items) |
+| Risk                                              | Mitigation                                                                                                                      |
+| ------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------- |
+| Correlated universes → false consensus            | Independence engineering + measured persona correlation + pruning (§4b)                                                         |
+| Persona hallucination                             | Quote-or-discard; calibration gate; agreement scoring                                                                           |
+| **Student model wrong in a flattering direction** | Psychometric anchoring to _public human data_ (§3g); emergent-statistics sanity; leakage KPI; learning rules frozen per release |
+| Prof becomes the optimization target              | Anti-Goodhart Charter; holdout pool + holdout cohort; advisory-only                                                             |
+| Sim-to-real drift                                 | Reality Anchor with trended agreement KPI; UNANCHORED stamp                                                                     |
+| Cost creep                                        | The mind is free; N from measured variance; cheap-tier-by-evidence; per-term caps                                               |
+| A3 browser flakiness                              | Crucible retry/forensics inheritance; milestone cadence                                                                         |
+| Genome misconception coverage gaps                | Sim-coverage KPI reported honestly; gaps feed the genome roadmap                                                                |
 
-## 13. Open questions (decide at P0 review)
+## 13. Open questions (decide at P0/P1 review)
 
-1. Does the N=9 variance run use one discipline or two (CS + one humanities) to
-   check whether variance is discipline-dependent?
-2. Answer-key disagreements: separate triage stream until precision ≥ 90%, then
-   auto-file as grader P1s?
-3. Non-English scenario (Korean flywheel course): P1 or P3?
-4. Reality Anchor recruitment: how many beta instructors constitute an anchor
-   round? (Proposal: 3 minimum, same-package overlap of 2.)
+1. N=9 variance run: one discipline or two (CS + one humanities)?
+2. Answer-key disagreements: separate stream until precision ≥ 90%, then auto-file
+   as grader P1s?
+3. `learningRules.json` initial parameter sources: which published effect sizes do
+   we cite per rule (testing/spacing/forgetting), and who reviews them?
+4. Cohort size 20–30: is 25 the default, or scaled to scenario (seminar = 12)?
+5. Which anchored instruments per discipline for §3g (CS1 misconception studies
+   are well documented; humanities anchors are thinner — accept lower calibration
+   confidence there and say so?)
+6. Reality Anchor recruitment: 3 instructors minimum per round, same-package
+   overlap of 2?
 
 ---
 
 _Naming: runs are "terms," the report is the "Prof Report," a package that clears
-the gauntlet is "tenured," and a persona pruned for agreeing too much is "denied
-tenure." Someone had to say it._
+the gauntlet is "tenured," a persona pruned for agreeing too much is "denied
+tenure," and a student whose mouth outruns their mind is "caught cheating."
+Someone had to say all of it._
