@@ -12,6 +12,7 @@ import { classifyAssessmentKind, deriveCourseGraphFromCourseMap } from '../src/l
 import { buildBlueprintFromGraph } from '../src/lib/courseGraph/blueprintFromGraph.js';
 import { buildCourseBlueprint, compileBlueprintDeliverables } from '../src/lib/courseBlueprintCompiler';
 import { dedupeNumberedAssessmentEcho } from '../src/lib/compilerText.js';
+import { repairCourseMapReadiness } from '../src/lib/deliverableReadiness.js';
 
 const LONG_EXAM_TITLE =
   'Midterm exam edge-case probe: choose one boundary input and explain the result before running the code';
@@ -88,6 +89,49 @@ describe('exam kind classification is consistent compile-to-manifest', () => {
     const graph = deriveCourseGraphFromCourseMap(echoed);
     expect(graph.assessments[0].title).toBe('Midterm exam');
     expect(graph.assessments[0].kind).toBe('exam');
+  });
+
+  // Live crucible round 4: the finish-pass readiness repair replaced a
+  // midterm week's assessment cell with pool text minted from the topic
+  // ("Midterm exam edge-case probe: …") AFTER the package compiled — the
+  // re-derived registry promised an exam paper no compile built. Repairs
+  // must never rewrite exam identity or mint a new one.
+  it('readiness repair never rewrites or mints exam identity in assessment cells', () => {
+    const repairMap = (weeklyAssessments, lessonTitle = 'Lesson 11: Midterm Review and Midterm Exam') => {
+      const { courseMap } = repairCourseMapReadiness({
+        courseMap: {
+          courseName: 'Intro to Python Programming',
+          lessons: [
+            {
+              title: lessonTitle,
+              sections: [
+                {
+                  topicSection: '11.1: Midterm review and midterm exam',
+                  learningGoals: 'Consolidate the first half of the course.',
+                  learningObjectives: 'Trace and debug code from lessons 1-10.',
+                  weeklyAssessments,
+                  asyncActivities: 'Review the practice bank.',
+                  syncActivities: 'Review session with polling.',
+                  supportingResources: 'Lecture notes; practice bank',
+                },
+              ],
+            },
+          ],
+        },
+      });
+      return courseMap.lessons[0].sections[0].weeklyAssessments;
+    };
+
+    // An exam-bearing cell is left verbatim even when a repair predicate
+    // fires (here: a publishability placeholder shares the cell).
+    const preserved = repairMap('Autograded quiz; Midterm exam; TBD');
+    expect(preserved).toBe('Autograded quiz; Midterm exam; TBD');
+
+    // An empty cell in an exam-week lesson gets a minted fallback that must
+    // NOT classify as a new exam.
+    const minted = repairMap('');
+    expect(minted).toBeTruthy();
+    expect(classifyAssessmentKind(minted)).not.toBe('exam');
   });
 
   it('compiles an exam paper even when the blueprint assessment has no stored kind', () => {

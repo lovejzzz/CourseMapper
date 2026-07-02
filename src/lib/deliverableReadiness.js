@@ -1,4 +1,5 @@
 import { getArrayKey } from './syncDependencies';
+import { classifyAssessmentKind } from './courseGraph/deriveFromCourseMap.js';
 import { findPublishabilityPlaceholders } from './publishabilityPlaceholders';
 import { normalizeReadinessIssue, normalizeReadinessIssues } from './readinessIssueSchema';
 import {
@@ -1117,8 +1118,54 @@ function getComputerScienceCourseMapFallbacks(topic, pick) {
   };
 }
 
+// v0.15.187 (live crucible catch 3): the finish-pass repair replaced a
+// midterm week's assessment cell with pool text minted from the lesson topic
+// ("Midterm exam edge-case probe: choose one boundary input…") — REGISTERING
+// A NEW EXAM after the package had already compiled. The re-derived registry
+// then promised an exam paper no compile ever built and the grader blocked
+// the package. Assessment identity is sacred once written:
+//  - a weeklyAssessments cell whose atoms carry exam identity is never
+//    template-repaired (the identity IS the content), and
+//  - minted fallback text must never classify as an exam.
+function assessmentAtomIdentity(atom) {
+  return text(atom)
+    .replace(/^\s*(?:\d+[.)]|[-•*])\s*/, '')
+    .replace(/→.*$/, '')
+    .trim();
+}
+
+function assessmentCellCarriesExamIdentity(value) {
+  if (Array.isArray(value)) return value.some(assessmentCellCarriesExamIdentity);
+  return text(value)
+    .split(/\n|;/)
+    .map(assessmentAtomIdentity)
+    .filter(Boolean)
+    .some((atom) => classifyAssessmentKind(atom) === 'exam');
+}
+
+function stripExamNouns(topic) {
+  return text(topic)
+    .replace(/\b(?:midterms?|finals?|comprehensive|exams?|examinations?)\b/gi, ' ')
+    .replace(/\s{2,}/g, ' ')
+    .trim()
+    .replace(/^(?:and|or)\s+|\s+(?:and|or)$/gi, '')
+    .trim();
+}
+
 function getCourseMapFallbackValue(key, courseMap, lesson, section, lessonIndex) {
-  const topic = getCourseMapTopic(courseMap, lesson, section, lessonIndex);
+  if (key === 'weeklyAssessments' && assessmentCellCarriesExamIdentity(section?.[key])) {
+    // Never re-author a promised exam. Returning the original value makes
+    // the calling repair loop a no-op for this cell (at the cost of one
+    // cosmetic repairedFields entry when a predicate flagged it).
+    return section[key];
+  }
+  const rawTopic = getCourseMapTopic(courseMap, lesson, section, lessonIndex);
+  // An exam-week lesson topic ("Midterm exam") must not seed an assessment
+  // title that classifies as a new exam.
+  const topic =
+    key === 'weeklyAssessments' && classifyAssessmentKind(rawTopic) === 'exam'
+      ? stripExamNouns(rawTopic) || 'review and practice'
+      : rawTopic;
   // Rotate filler stems by section position so repaired sparse maps do not
   // stamp the identical sentence into every lesson and section — repeated
   // stems used to flow verbatim into every compiled deliverable.
@@ -1194,7 +1241,13 @@ function getCourseMapFallbackValue(key, courseMap, lesson, section, lessonIndex)
                   `Make the ${topic} practice task produce evidence students can reuse in the assessment.`,
                 ]),
               };
-  return fieldFallbacks[key] || `Instructor-confirmed material for ${topic}.`;
+  const value = fieldFallbacks[key] || `Instructor-confirmed material for ${topic}.`;
+  // Belt: no minted assessment title may register as an exam, whatever the
+  // frame pool produced.
+  if (key === 'weeklyAssessments' && classifyAssessmentKind(value) === 'exam') {
+    return `${displayCourseMapTopic(stripExamNouns(topic) || 'review and practice')} evidence check with instructor feedback.`;
+  }
+  return value;
 }
 
 function isShortCourseMapListCell(value) {
