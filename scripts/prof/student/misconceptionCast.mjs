@@ -26,6 +26,7 @@ function normalizeTerm(value) {
 /** Load every kernel from every shard, indexed by normalized term + aliases. */
 export function loadGenomeMisconceptionIndex() {
   const index = new Map();
+  const edgesByKernel = new Map();
   const shardFiles = fs
     .readdirSync(GENOME_DIR)
     .filter((name) => name.endsWith('.json') && name !== 'manifest.json' && name !== 'archetypes.json');
@@ -45,6 +46,8 @@ export function loadGenomeMisconceptionIndex() {
           correction: typeof entry === 'object' ? entry.corrective || entry.correction || '' : '',
         }))
         .filter((entry) => entry.claim);
+      const requires = kernel.edges?.requires || [];
+      if (requires.length > 0) edgesByKernel.set(kernel.id, requires);
       if (misconceptions.length === 0) continue;
       kernelCount += 1;
       const names = [kernel.term, ...(kernel.aliases || [])].map(normalizeTerm).filter(Boolean);
@@ -53,7 +56,7 @@ export function loadGenomeMisconceptionIndex() {
       }
     }
   }
-  return { index, kernelCount };
+  return { index, kernelCount, edgesByKernel };
 }
 
 /** Token-overlap resolve: course concept term → genome kernel entry. */

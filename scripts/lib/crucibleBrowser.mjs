@@ -299,7 +299,7 @@ async function waitForExportSidePanel(page, timeoutMs) {
 // Borrowed from scripts/liveBrowserQualityLoop.mjs (ensurePackageReady):
 // switch scope to the full package, then click through "Finish package"
 // states until the ZIP button reads "Download ZIP".
-async function ensurePackageReady(page, remaining) {
+export async function ensurePackageReady(page, remaining) {
   await waitForExportSidePanel(page, remaining(600_000));
   await page.getByTestId('export-scope-all').click();
   await page.getByTestId('readiness-panel').waitFor({ timeout: remaining(600_000) });
@@ -337,7 +337,7 @@ async function ensurePackageReady(page, remaining) {
 }
 
 // Borrowed from scripts/liveBrowserQualityLoop.mjs (downloadZip).
-async function downloadZip(page, destinationPath, remaining) {
+export async function downloadZip(page, destinationPath, remaining) {
   const zipButton = await getZipAction(page);
   await expect(zipButton).toContainText(/Download ZIP/, { timeout: remaining(30_000) });
   const [download] = await Promise.all([

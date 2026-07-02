@@ -28,7 +28,25 @@ import { itemStatistics, summarizeItems } from './psychometrics.mjs';
  *  - weekRatios: Map<lesson, workload ratio>
  */
 export function runClassroomSim({ structuredCourse, cohort, seededByStudent, seed, fullCompliance = false }) {
-  const { lessons, items, prerequisitesByConcept, weekRatios } = structuredCourse;
+  const {
+    lessons,
+    items,
+    prerequisitesByConcept,
+    weekRatios,
+    misconceptionsByConcept = new Map(),
+    groundedSignalByLesson = new Map(),
+  } = structuredCourse;
+
+  // P2 (design 3d): contamination — exposure credit shrinks when a
+  // prerequisite still carries an unrepaired misconception.
+  const contaminationMultiplier = LEARNING_RULES.contamination?.exposureMultiplier ?? 1;
+  const prereqContaminated = (mind, conceptId) => {
+    for (const prereqId of prerequisitesByConcept.get(conceptId) || []) {
+      const record = mind.concepts.get(prereqId);
+      if (record && record.misconceptions.size > 0) return true;
+    }
+    return false;
+  };
   const conceptIds = lessons.flatMap((lesson) => lesson.concepts.map((concept) => concept.id));
   const rng = seededRandom(seed * 7919 + 13);
   const engagement = createEngagement({ seed: seed * 104729 + 7 });
@@ -55,6 +73,8 @@ export function runClassroomSim({ structuredCourse, cohort, seededByStudent, see
   const pMatrix = minds.map(() => new Array(orderedItems.length).fill(null));
 
   const pacing = [];
+  let genesisEvents = 0;
+  let contaminationEvents = 0;
   const seededCounts = minds.map((mind) =>
     [...mind.concepts.values()].reduce((sum, r) => sum + r.misconceptions.size, 0),
   );
@@ -78,15 +98,40 @@ export function runClassroomSim({ structuredCourse, cohort, seededByStudent, see
       });
       lesson.concepts.forEach((concept, conceptIndex) => {
         const overflowed = conceptIndex >= mind.traits.intakeCapacity;
-        if (week.attended && lesson.hasLessonPlan) {
-          applyExposure(mind, { conceptId: concept.id, kind: 'session', tick, overflowed });
+        const record = mind.concepts.get(concept.id);
+        // P2 genesis (design 3b): on FIRST exposure, ungrounded material can
+        // seed a documented misconception the student did not arrive with.
+        if (record && record.exposures === 0 && (week.attended || week.didReading)) {
+          const candidates = misconceptionsByConcept.get(concept.id) || [];
+          const groundedSignal = groundedSignalByLesson.get(tick) ?? 0;
+          const genesisProbability =
+            (LEARNING_RULES.genesis?.baseProbability ?? 0) *
+            (1 - groundedSignal) *
+            mind.traits.misconceptionSusceptibility;
+          for (const candidate of candidates) {
+            if (!record.misconceptions.has(candidate.id) && rng() < genesisProbability) {
+              record.misconceptions.add(candidate.id);
+              genesisEvents += 1;
+            }
+          }
         }
-        if (week.didReading && lesson.hasStudyGuide) {
-          applyExposure(mind, { conceptId: concept.id, kind: 'reading', tick, overflowed });
-        }
-        if (week.didAssignment && lesson.hasAssignment) {
-          applyExposure(mind, { conceptId: concept.id, kind: 'generation', tick, overflowed });
-        }
+        const contaminated = prereqContaminated(mind, concept.id);
+        const exposureArgs = { tick, overflowed: overflowed || false };
+        const apply = (kind) => {
+          applyExposure(mind, { conceptId: concept.id, kind, ...exposureArgs });
+          if (contaminated) {
+            // Claw back the contaminated share of the gain: equivalent to
+            // multiplying the gain, without re-plumbing applyExposure.
+            const rec = mind.concepts.get(concept.id);
+            const gain = LEARNING_RULES.exposureStrength[kind] * mind.traits.aptitude;
+            rec.strength -= gain * (1 - contaminationMultiplier);
+            if (rec.strength < 0) rec.strength = 0;
+            contaminationEvents += 1;
+          }
+        };
+        if (week.attended && lesson.hasLessonPlan) apply('session');
+        if (week.didReading && lesson.hasStudyGuide) apply('reading');
+        if (week.didAssignment && lesson.hasAssignment) apply('generation');
       });
       if (week.tookQuiz) {
         // Massed practice: the SECOND item on the same concept in the same
@@ -149,9 +194,14 @@ export function runClassroomSim({ structuredCourse, cohort, seededByStudent, see
     pacing,
     misconceptions: {
       seeded: seededTotal,
+      genesis: genesisEvents,
+      contaminationEvents,
       remaining,
-      repaired: seededTotal - remaining,
-      repairRate: seededTotal > 0 ? round3((seededTotal - remaining) / seededTotal) : null,
+      repaired: seededTotal + genesisEvents - remaining,
+      repairRate:
+        seededTotal + genesisEvents > 0
+          ? round3((seededTotal + genesisEvents - remaining) / (seededTotal + genesisEvents))
+          : null,
     },
     endMastery,
     cohortMeanMastery: round3(mean(endMastery.map((s) => s.meanStrength))),

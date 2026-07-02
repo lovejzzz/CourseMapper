@@ -121,6 +121,143 @@ async function main() {
     return;
   }
 
+  if (args.arena === 'a2mouth') {
+    // P2: the mouth layer — quarantined performances, FAQ demand, TA
+    // round-trip, seminar. Small stratified samples on the cheap tier.
+    const { sampleCohort } = await import('./prof/student/cohortFactory.mjs');
+    const { buildMisconceptionCast } = await import('./prof/student/misconceptionCast.mjs');
+    const { seededRandom } = await import('./prof/universe.mjs');
+    const { runConfusionHeatmap, runTaRoundTrip, runSeminar } = await import('./prof/arenas/classroomMouth.mjs');
+    const structuredPath = path.isAbsolute(scenario.structuredPackage)
+      ? scenario.structuredPackage
+      : path.join(repoRoot, scenario.structuredPackage);
+    const structured = JSON.parse(await fs.readFile(structuredPath, 'utf8'));
+    const meter = new SpendMeter({ capUsd: term.capUsd });
+    const cohort = sampleCohort({
+      preset: scenario.cohortPreset || 'cc-night-class',
+      size: scenario.cohortSize || 25,
+      seed: term.seed,
+    });
+    const concepts = structured.lessons.flatMap((lesson) => lesson.concepts);
+    const cast = buildMisconceptionCast({ concepts, students: cohort.students, rng: seededRandom(term.seed * 31 + 5) });
+
+    const lessonNumbers = structured.lessons.map((lesson) => lesson.lesson);
+    const heatmapLessons = [
+      1,
+      Math.ceil(lessonNumbers.length / 3),
+      Math.ceil((2 * lessonNumbers.length) / 3),
+      lessonNumbers.length,
+    ]
+      .map((i) => lessonNumbers[Math.min(i - 1, lessonNumbers.length - 1)])
+      .filter((v, i, arr) => arr.indexOf(v) === i);
+    const heatmap = await runConfusionHeatmap({
+      structured,
+      faqQuestions: structured.mouthMaterials?.faqQuestions || [],
+      cast,
+      cohort,
+      lessons: heatmapLessons,
+      sampleSize: 5,
+      meter,
+      seed: term.seed,
+    });
+    const midLesson = lessonNumbers[Math.floor(lessonNumbers.length / 2)];
+    const materials =
+      structured.mouthMaterials?.byLesson?.[String(midLesson)] || structured.mouthMaterials?.byLesson?.[midLesson] || {};
+    const taRoundTrip =
+      materials.briefText && materials.rubricText
+        ? await runTaRoundTrip({
+            structured,
+            cast,
+            cohort,
+            lessonNumber: midLesson,
+            briefText: materials.briefText,
+            rubricText: materials.rubricText,
+            meter,
+            seed: term.seed,
+          })
+        : { skipped: 'no brief/rubric text for the sampled lesson' };
+    const seminar = materials.discussionPrompt
+      ? await runSeminar({
+          structured,
+          cast,
+          cohort,
+          lessonNumber: midLesson,
+          discussionPrompt: materials.discussionPrompt,
+          positions: materials.positions,
+          meter,
+          seed: term.seed,
+        })
+      : { skipped: 'no discussion prompt for the sampled lesson' };
+
+    const taLeaks = (taRoundTrip.leakageEvents || []).length;
+    const totalPerformances = (heatmap.leakage.totalResponses || 0) + 3 + (seminar.turns || 0);
+    const totalLeaked = (heatmap.leakage.leakedResponses || 0) + taLeaks;
+    const leakageRate = totalPerformances > 0 ? Math.round((totalLeaked / totalPerformances) * 1000) / 1000 : null;
+
+    const findings = [];
+    if (heatmap.faqHitRate !== null && heatmap.faqHitRate < 0.6) {
+      findings.push({
+        severity: 'P1',
+        instrument: 'faq-demand',
+        detail: `FAQ hit rate ${heatmap.faqHitRate} (bar 0.6): the generated FAQ answers supply-side guesses, not the questions the simulated cohort actually asked`,
+        evidence: (heatmap.unansweredDemand[0] || {}).question || '',
+      });
+    }
+    if (taRoundTrip.discriminates === false) {
+      findings.push({
+        severity: 'P1',
+        instrument: 'rubric-discrimination',
+        detail: `the rubric separated strong and weak submissions by ${taRoundTrip.discrimination} band(s) (bar: 2)`,
+        evidence: JSON.stringify(taRoundTrip.bands),
+      });
+    }
+    if ((taRoundTrip.missingCriteria || []).length > 0) {
+      findings.push({
+        severity: 'P2',
+        instrument: 'rubric-coverage',
+        detail: `the TA needed ${taRoundTrip.missingCriteria.length} criteria the rubric lacks`,
+        evidence: taRoundTrip.missingCriteria.slice(0, 2).join('; '),
+      });
+    }
+    if (seminar.deadPrompt) {
+      findings.push({
+        severity: 'P1',
+        instrument: 'dead-prompt',
+        detail: `the lesson ${midLesson} discussion produced no disagreement and no citations in ${seminar.turns} turns`,
+        evidence: seminar.transcript?.[0]?.text || '',
+      });
+    }
+
+    const spend = meter.summary();
+    const result = {
+      term,
+      scenario: { id: scenario.id, structuredPackage: scenario.structuredPackage },
+      heatmap,
+      taRoundTrip,
+      seminar: { ...seminar, transcript: undefined, sampleTurn: seminar.transcript?.[0] || null },
+      leakage: {
+        totalPerformances,
+        totalLeaked,
+        rate: leakageRate,
+        killBar: 0.05,
+        killTripped: leakageRate !== null && leakageRate >= 0.05,
+      },
+      findings,
+      spend: { capUsd: spend.capUsd, spentUsd: spend.spentUsd, callCount: spend.callCount },
+    };
+    await fs.writeFile(path.join(termDir, 'term-result.json'), JSON.stringify(result, null, 2));
+    await fs.writeFile(path.join(termDir, 'seminar-transcript.json'), JSON.stringify(seminar.transcript || [], null, 2));
+    console.log(
+      `[prof] a2mouth · questions ${heatmap.questionsAsked} · FAQ hit ${heatmap.faqHitRate} · TA bands ${JSON.stringify(taRoundTrip.bands || {})} · seminar ${seminar.deadPrompt ? 'DEAD' : 'alive'} (${seminar.turns ?? 0} turns)`,
+    );
+    console.log(
+      `[prof] leakage ${totalLeaked}/${totalPerformances} = ${leakageRate} (kill bar 0.05${leakageRate >= 0.05 ? ' — TRIPPED' : ''})`,
+    );
+    for (const finding of findings) console.log(`  [${finding.severity}] ${finding.detail}`);
+    console.log(`[prof] spend $${spend.spentUsd.toFixed(3)} of $${spend.capUsd}`);
+    return;
+  }
+
   const packageDir = path.isAbsolute(scenario.packageDir)
     ? scenario.packageDir
     : path.join(repoRoot, scenario.packageDir);

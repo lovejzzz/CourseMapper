@@ -146,11 +146,36 @@ async function buildOne({ id, courseMap }) {
   const extracted = await extractPackage(createMemoryFileProvider(assembled.fileContents));
   const workload = buildWorkloadAccount(extracted);
 
+  // Mouth materials (P2): rendered brief/rubric text per lesson (the mouths
+  // read what students read — Artifact Bridge), FAQ questions and discussion
+  // prompts/positions from the structured deliverables.
+  const textFor = (featureId, lessonNumber) =>
+    extracted.files.find((file) => file.featureId === featureId && file.lessonNumber === lessonNumber)?.text || '';
+  const mouthMaterials = {
+    faqQuestions: (deliverables.courseFaq?.faqs || []).flatMap((faq) => (faq.qs || []).map((entry) => entry.q)),
+    byLesson: Object.fromEntries(
+      lessons.map((lesson) => {
+        // Discussion entries carry no lessonNumber — they are ordered by lesson.
+        const discussion = (deliverables.discussions?.discussions || [])[lesson.lesson - 1];
+        return [
+          lesson.lesson,
+          {
+            briefText: textFor('assignments', lesson.lesson).slice(0, 4000),
+            rubricText: textFor('rubrics', lesson.lesson).slice(0, 4000),
+            discussionPrompt: discussion?.prompt || '',
+            positions: discussion?.positionMap || [],
+          },
+        ];
+      }),
+    ),
+  };
+
   return {
     id,
     builtAt: new Date().toISOString(),
     lessons,
     items,
+    mouthMaterials,
     weekRatios: Object.fromEntries(workload.weeks.map((week) => [week.lesson, week.ratio])),
     workloadFinding: workload.finding,
   };

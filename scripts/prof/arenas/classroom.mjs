@@ -5,7 +5,12 @@
  */
 
 import { sampleCohort } from '../student/cohortFactory.mjs';
-import { buildMisconceptionCast, normalizeTerm } from '../student/misconceptionCast.mjs';
+import {
+  buildMisconceptionCast,
+  normalizeTerm,
+  loadGenomeMisconceptionIndex,
+  resolveConceptToGenome,
+} from '../student/misconceptionCast.mjs';
 import { runClassroomBattery } from '../student/classroomSim.mjs';
 import { LEARNING_RULES } from '../student/studentMind.mjs';
 import { seededRandom } from '../universe.mjs';
@@ -50,14 +55,39 @@ export function runClassroomArenaZeroToken({ structured, preset = 'cc-night-clas
     };
   });
 
-  // Prerequisites: P1 uses genome edges only where concepts resolved — the
-  // course's own graph edges are a P2 wire. Unresolved → no cap (honest).
+  // P2: prerequisite edges from the genome — a course concept's prereqs are
+  // the kernels its resolved kernel `requires`, mapped BACK to course
+  // concepts when they exist in this course. Unresolved → no edge (honest).
+  const { index: genomeIndex } = loadGenomeMisconceptionIndex();
+  const kernelIdByConcept = new Map();
+  const conceptByKernelId = new Map();
+  for (const concept of concepts) {
+    const resolved = resolveConceptToGenome(concept.term, genomeIndex);
+    if (resolved) {
+      kernelIdByConcept.set(concept.id, resolved.kernelId);
+      if (!conceptByKernelId.has(resolved.kernelId)) conceptByKernelId.set(resolved.kernelId, concept.id);
+    }
+  }
   const prerequisitesByConcept = new Map();
+  const { edgesByKernel } = loadGenomeMisconceptionIndex();
+  for (const [conceptId, kernelId] of kernelIdByConcept) {
+    const prereqKernels = edgesByKernel.get(kernelId) || [];
+    const prereqConcepts = prereqKernels.map((k) => conceptByKernelId.get(k)).filter(Boolean);
+    if (prereqConcepts.length > 0) prerequisitesByConcept.set(conceptId, prereqConcepts);
+  }
 
   const structuredCourse = {
     lessons: structured.lessons,
     items,
     prerequisitesByConcept,
+    misconceptionsByConcept: cast.byConcept,
+    groundedSignalByLesson: new Map(
+      structured.lessons.map((lesson) => {
+        const lessonItems = structured.items.filter((item) => item.lesson === lesson.lesson);
+        const grounded = lessonItems.filter((item) => item.explanationGrounded).length;
+        return [lesson.lesson, lessonItems.length > 0 ? grounded / lessonItems.length : 0];
+      }),
+    ),
     weekRatios: new Map(Object.entries(structured.weekRatios || {}).map(([lesson, ratio]) => [Number(lesson), ratio])),
   };
 

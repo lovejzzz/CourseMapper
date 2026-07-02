@@ -1,7 +1,7 @@
 {
   "version": "learning-rules-v1",
   "frozenPerRelease": true,
-  "notes": "Every rate the student mind uses, in one auditable table (design §3b). Initial values are order-of-magnitude placements from the learning-science directions cited in the design doc (testing > generation > reading; spacing bonus; Ebbinghaus-style decay). P3 psychometric anchoring tunes NUMBERS here; logic never hides in prompts. The compiler team never edits this file in the same change that improves a KPI it feeds (charter §10.4).",
+  "notes": "Every rate the student mind uses, in one auditable table (design \u00a73b). Initial values are order-of-magnitude placements from the learning-science directions cited in the design doc (testing > generation > reading; spacing bonus; Ebbinghaus-style decay). P3 psychometric anchoring tunes NUMBERS here; logic never hides in prompts. The compiler team never edits this file in the same change that improves a KPI it feeds (charter \u00a710.4).",
   "exposureStrength": {
     "reading": 0.35,
     "session": 0.3,
@@ -37,12 +37,24 @@
     "misconceptionPullMax": 0.55,
     "misconceptionImmunityStrength": 1.5,
     "minProbability": 0.05,
-    "difficultyOffsets": { "Easy": -0.35, "Medium": 0, "Hard": 0.45 }
+    "difficultyOffsets": {
+      "Easy": -0.35,
+      "Medium": 0,
+      "Hard": 0.45
+    }
   },
   "misconceptionRepair": {
     "feedbackQualityBar": 0.6,
     "repairProbability": 0.7,
     "groundedExplanationQuality": 0.9,
     "templateExplanationQuality": 0.4
+  },
+  "contamination": {
+    "note": "P2 (design 3d): an unrepaired misconception on a PREREQUISITE corrupts exposure credit downstream.",
+    "exposureMultiplier": 0.6
+  },
+  "genesis": {
+    "note": "P2 (design 3b): ungrounded material can seed a documented misconception on first exposure. Probability scales with (1 - lesson grounded signal) and susceptibility.",
+    "baseProbability": 0.08
   }
 }
