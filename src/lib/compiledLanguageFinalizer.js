@@ -754,21 +754,42 @@ function capLessonTitleMentions(featureId, data, blueprint) {
   if (!TITLE_MENTION_FEATURES.has(featureId)) return;
   const lessons = Array.isArray(blueprint?.lessons) ? blueprint.lessons : [];
   const focusByNumber = new Map();
+  const fullTitleByNumber = new Map();
   lessons.forEach((lesson, index) => {
-    const focus = String(lesson?.title || '')
-      .replace(/^lesson\s*\d+\s*[:.\-\u2013\u2014]\s*/i, '')
-      .trim();
+    const fullTitle = String(lesson?.title || '').trim();
+    const focus = fullTitle.replace(/^lesson\s*\d+\s*[:.\-\u2013\u2014]\s*/i, '').trim();
     if (focus.split(/\s+/).filter(Boolean).length >= 4) {
       focusByNumber.set(index + 1, focus);
+      if (fullTitle.toLowerCase() !== focus.toLowerCase()) fullTitleByNumber.set(index + 1, fullTitle);
     }
   });
   if (focusByNumber.size === 0) return;
+  // v0.15.187 (live crucible P1): identity spans are never compressed. The
+  // cap once rewrote the focus INSIDE full-title and registry-title
+  // occurrences — "Lesson 10: file input and output" became "Lesson 10: the
+  // lesson" and "Autograded quiz: file input and output criterion" became
+  // "Autograded quiz: the lesson criterion" — a generic placeholder in
+  // student-facing wording. Registry titles are verbatim by contract, so any
+  // occurrence of a full lesson title or an assessment-registry title is
+  // masked before capping and restored after (and never eats a budget slot,
+  // matching TITLE_MENTION_SKIP_KEYS' identity rule).
+  const registryTitles = [
+    ...(Array.isArray(blueprint?.assessmentRegistry) ? blueprint.assessmentRegistry : []),
+    ...(Array.isArray(blueprint?.assessments) ? blueprint.assessments : []),
+  ]
+    .map((entry) => String(entry?.title || '').trim())
+    .filter(Boolean);
   for (const value of Object.values(data)) {
     if (!Array.isArray(value)) continue;
     for (const item of value) {
       if (!item || typeof item !== 'object') continue;
-      const focus = focusByNumber.get(itemLessonNumberOf(item));
+      const lessonNumber = itemLessonNumberOf(item);
+      const focus = focusByNumber.get(lessonNumber);
       if (!focus) continue;
+      const identitySpans = [
+        fullTitleByNumber.get(lessonNumber) || '',
+        ...registryTitles.filter((title) => title.toLowerCase().includes(focus.toLowerCase())),
+      ].filter(Boolean);
       // TOP-LEVEL string fields only: compiled items share nested structures
       // (evidence plans, grounding traces) across features — recursing into
       // them once leaked "this lesson" into Lesson Plans that were never a
@@ -778,7 +799,16 @@ function capLessonTitleMentions(featureId, data, blueprint) {
       let used = 0;
       for (const [key, fieldValue] of Object.entries(item)) {
         if (typeof fieldValue !== 'string' || TITLE_MENTION_SKIP_KEYS.has(key)) continue;
-        item[key] = fieldValue.replace(regex, (match, offset, whole) => {
+        const masked = [];
+        let working = fieldValue;
+        for (const span of identitySpans) {
+          const spanRegex = new RegExp(escapeRegExp(span), 'gi');
+          working = working.replace(spanRegex, (match) => {
+            masked.push(match);
+            return `\u0000${masked.length - 1}\u0000`;
+          });
+        }
+        working = working.replace(regex, (match, offset, whole) => {
           used += 1;
           if (used <= TITLE_MENTION_BUDGET) return match;
           const before = whole.slice(0, offset);
@@ -791,6 +821,9 @@ function capLessonTitleMentions(featureId, data, blueprint) {
           if (/\b(?:the|a|an|your|their|its|our|this|each|every)\b[^.!?\n]{0,24}$/i.test(before)) return 'lesson';
           return 'the lesson';
         });
+        item[key] = masked.length
+          ? working.replace(/\u0000(\d+)\u0000/g, (_, maskIndex) => masked[Number(maskIndex)])
+          : working;
       }
     }
   }

@@ -203,12 +203,16 @@ describe('v0.14.7.1 — long lesson titles stay under the mention budget in brie
   // The cap targets TOP-LEVEL prose fields only — nested structures are
   // shared across features (mutating them leaked into Lesson Plans live)
   // and the section renderers stamp top-level fields. Count what the cap
-  // governs.
+  // governs. v0.15.187: identity SPANS inside prose (the full "Lesson N:
+  // <title>" reference) are exempt from the budget — compressing inside them
+  // minted "Lesson 10: the lesson" placeholders in the live crucible round —
+  // so strip them before counting, mirroring the finalizer's masking.
+  const FULL_TITLE_SPAN = /Lesson\s*\d+\s*[:.\-–—]\s*crisis and conservatism in the late 20th century/gi;
   function proseMentions(item) {
     let sum = 0;
     for (const [key, value] of Object.entries(item)) {
       if (IDENTITY_KEYS.has(key) || typeof value !== 'string') continue;
-      sum += (value.match(FOCUS) || []).length;
+      sum += (value.replace(FULL_TITLE_SPAN, '').match(FOCUS) || []).length;
     }
     return sum;
   }

@@ -16766,9 +16766,10 @@ function quizCorrectExplanation({ answer, concept, artifact, objective, lesson, 
       cleanText(term.term).toLowerCase() === cleanText(concept).toLowerCase(),
   );
   if (matchedTerm) {
-    return `${answer} is correct: ${cleanText(matchedTerm.term)} means ${lowercaseSentenceLead(
-      stripTerminalPunctuation(cleanText(matchedTerm.definition)),
-    )} — and this option is the one that applies it to ${artifact}.`;
+    return `${answer} is correct: ${joinTermDefinition(matchedTerm.term, matchedTerm.definition, {
+      separator: ' means ',
+      lowercaseTail: true,
+    })} — and this option is the one that applies it to ${artifact}.`;
   }
   const fullObjective = stripTerminalPunctuation(cleanText(objective, 'the lesson objective'));
   const clipped = conciseClause(objective, 'the lesson objective', 90);
@@ -17276,6 +17277,21 @@ function lowercaseSentenceLead(value) {
   return text.charAt(0).toLowerCase() + text.slice(1);
 }
 
+// Authored definitions often LEAD with their own term ("Dictionaries store
+// values by key…"). Joining them as "Term: definition" then mints the exact
+// "X: X" echo chain the grader hunts (v0.12.1) — and "Term means Term
+// stores…" reads as a stutter. Every term/definition join goes through here:
+// when the definition already leads with the term, the definition IS the
+// joined clause.
+function joinTermDefinition(term, definition, { separator = ': ', lowercaseTail = false } = {}) {
+  const cleanTerm = cleanText(term);
+  const cleanDefinition = stripTerminalPunctuation(cleanText(definition));
+  if (!cleanTerm) return cleanDefinition;
+  if (!cleanDefinition) return cleanTerm;
+  if (cleanDefinition.toLowerCase().startsWith(cleanTerm.toLowerCase())) return cleanDefinition;
+  return `${cleanTerm}${separator}${lowercaseTail ? lowercaseSentenceLead(cleanDefinition) : cleanDefinition}`;
+}
+
 function examLessonFact(lesson) {
   return cleanText(lesson?.enrichment?.kernel?.facts?.[0]);
 }
@@ -17301,10 +17317,10 @@ function buildExamShortAnswerItem({ blueprint, assessment, covered, lens, examSl
       intendedUse: `Summative item on ${assessment.title}; score against the answer guide below.`,
       question: `In 3-4 sentences, compare ${conceptA} (${stripLessonPrefix(first.title)}) with ${conceptB} (${stripLessonPrefix(last.title)}): explain one way they connect and one decision each one supports in ${blueprint.courseName}.`,
       answer: grounded
-        ? `A complete answer uses both definitions accurately — ${conceptA}: ${stripTerminalPunctuation(cleanText(termA.definition))}; ${conceptB}: ${stripTerminalPunctuation(cleanText(termB.definition))} — names a concrete connection, and states one decision each supports.`
+        ? `A complete answer uses both definitions accurately — ${joinTermDefinition(conceptA, termA.definition)}; ${joinTermDefinition(conceptB, termB.definition)} — names a concrete connection, and states one decision each supports.`
         : `A complete answer defines both concepts accurately, names a concrete connection between ${conceptA} and ${conceptB}, and states one decision each supports — with at least one specific course example rather than generic phrasing.`,
       sampleAnswer: grounded
-        ? `${sentenceCase(conceptA)} means ${lowercaseSentenceLead(stripTerminalPunctuation(cleanText(termA.definition)))}, while ${conceptB} means ${lowercaseSentenceLead(stripTerminalPunctuation(cleanText(termB.definition)))}. They connect because the second concept operates on what the first establishes.${
+        ? `${sentenceCase(joinTermDefinition(conceptA, termA.definition, { separator: ' means ', lowercaseTail: true }))}, while ${joinTermDefinition(conceptB, termB.definition, { separator: ' means ', lowercaseTail: true })}. They connect because the second concept operates on what the first establishes.${
             anchorFact
               ? ` Key supporting evidence: ${lowercaseSentenceLead(stripTerminalPunctuation(anchorFact))}.`
               : ''
@@ -20725,9 +20741,18 @@ function compileCourseFaq(blueprint, config = {}) {
         (term) => cleanText(term?.misconception) && cleanText(term?.correction),
       );
       if (contested) {
+        const correction = stripTerminalPunctuation(cleanText(contested.correction));
+        const term = cleanText(contested.term);
+        // Authored corrections often LEAD with the term ("Dictionaries are
+        // accessed by key…") — "the trap for X: X …" would mint the exact
+        // "X: X" echo chain the grader (and v0.12.1) hunt. Drop the
+        // redundant term from the connective in that case.
+        const trapSentence = correction.toLowerCase().startsWith(term.toLowerCase())
+          ? `That is the trap: ${correction}.`
+          : `That is the trap for ${term}: ${correction}.`;
         return {
           q: `What common mistake should I avoid in ${stripLessonPrefix(lesson.title)}?`,
-          an: `${stripTerminalPunctuation(cleanText(contested.misconception))}. That is the trap for ${cleanText(contested.term)}: ${stripTerminalPunctuation(cleanText(contested.correction))}. Check your work against that correction before submitting ${safeCourseFaqStudentArtifact(lesson)}.`,
+          an: `${stripTerminalPunctuation(cleanText(contested.misconception))}. ${trapSentence} Check your work against that correction before submitting ${safeCourseFaqStudentArtifact(lesson)}.`,
           ca: 'Assessment Prep',
           rc: unique([cleanText(contested.term), ...safeCourseFaqConcepts(lesson)], 4),
           df: 'Advanced',
@@ -20794,7 +20819,7 @@ function compileCourseFaq(blueprint, config = {}) {
       if (termWithDefinition) {
         return {
           q: `How can I check readiness for ${stripLessonPrefix(lesson.title)} before class or submission?`,
-          an: `You are ready when you can state, without notes, that ${cleanText(termWithDefinition.term)} means: ${stripTerminalPunctuation(cleanText(termWithDefinition.definition))} — and then apply it to one concrete case for ${safeCourseFaqStudentArtifact(lesson)}.`,
+          an: `You are ready when you can state, without notes, that ${joinTermDefinition(termWithDefinition.term, termWithDefinition.definition, { separator: ' means ', lowercaseTail: true })} — and then apply it to one concrete case for ${safeCourseFaqStudentArtifact(lesson)}.`,
           ca: 'Assessment Prep',
           rc: unique([cleanText(termWithDefinition.term), ...safeCourseFaqConcepts(lesson)], 4),
           df: 'Intermediate',

@@ -175,7 +175,8 @@ describe('courseFaq atom routing (v0.15.187)', () => {
     // reference machinery on 3rd+ mention — assert the stable tail.
     expect(answers).toContain('using the provided survey and interview excerpts');
     expect(answers).toContain('the staff survey excerpt and the attendance log sample');
-    expect(answers).toContain('Cross-checking a claim against at least two independent sources');
+    // Mid-sentence joins lowercase the lead ('… means cross-checking …').
+    expect(answers).toContain('ross-checking a claim against at least two independent sources');
 
     // Grounded items are tagged so the metric can see them.
     const groundedCount = lessonOne.qs.filter((item) => item.enrichmentSource).length;
@@ -189,6 +190,80 @@ describe('courseFaq atom routing (v0.15.187)', () => {
     // Lessons without kernels keep the template fallback (no tag, no throw).
     const lessonTwo = compiled.courseFaq.faqs[1];
     expect(lessonTwo.qs.every((item) => !item.enrichmentSource)).toBe(true);
+  });
+
+  // Live crucible P2 (the last texture point): authored corrections and
+  // definitions often LEAD with their own term ("Dictionaries are accessed
+  // by key…"). "the trap for X: X …" minted the exact "X: X" echo chain the
+  // grader hunts. Every term/atom join now drops the redundant term when the
+  // atom already leads with it.
+  it('never mints an "X: X" echo when the authored atom leads with its term', () => {
+    const echoEnrichment = JSON.parse(JSON.stringify(FULL_KERNEL_ENRICHMENT));
+    echoEnrichment.lessonContent['lesson-1'].keyTerms[0] = {
+      term: 'Evidence triangulation',
+      definition:
+        'Evidence triangulation cross-checks a claim against at least two independent sources before treating it as established.',
+      example: 'Comparing survey results with interview notes before reporting a finding.',
+      misconception: 'Students often treat one strong source as sufficient proof for a claim.',
+      correction:
+        'Evidence triangulation requires independent corroboration before a claim can be treated as defensible.',
+    };
+    const blueprint = buildCourseBlueprint(KERNEL_COURSE, { enrichment: echoEnrichment });
+    const compiled = compileBlueprintDeliverables(blueprint, ['courseFaq', 'quizBank'], {
+      configMap: { courseFaq: { questionsPerLesson: 8 } },
+    });
+    const allText = JSON.stringify(compiled.courseFaq) + JSON.stringify(compiled.quizBank);
+    // The grader's exact echo pattern (artifactDefectPatterns v0.12.1).
+    expect(allText).not.toMatch(/\b([A-Z][\w &'-]{3,50}): \1\b/);
+    // The correction still ships — just without the redundant connective.
+    const answers = compiled.courseFaq.faqs[0].qs.map((item) => item.an).join('\n');
+    expect(answers).toContain('requires independent corroboration');
+  });
+});
+
+// Live crucible P1 (the last format point): the finalizer's lesson-title
+// mention cap rewrote the focus INSIDE identity mentions — "Lesson 10: file
+// input and output" became "Lesson 10: the lesson" and "Autograded quiz:
+// file input and output criterion" became "Autograded quiz: the lesson
+// criterion" (a generic placeholder in student-facing wording). Identity
+// spans are masked before capping; plain prose mentions still compress.
+describe('title-mention cap preserves identity spans (v0.15.187)', () => {
+  it('never rewrites full lesson titles or registry titles, still caps prose', async () => {
+    const { finalizeCompiledDeliverableLanguage } = await import('../src/lib/compiledLanguageFinalizer.js');
+    const blueprint = {
+      // The focus map keys by lesson POSITION — the fixture pads to ten so
+      // lesson 10 sits at index 9 like a real blueprint.
+      lessons: Array.from({ length: 10 }, (_, i) => ({
+        lessonNumber: i + 1,
+        title: i === 9 ? 'Lesson 10: file input and output' : `Lesson ${i + 1}: topic ${i + 1}`,
+      })),
+      assessmentRegistry: [
+        { id: 'A10.1', title: 'Autograded quiz: file input and output', kind: 'graded-artifact', dueSession: 10 },
+      ],
+    };
+    const data = {
+      discussions: [
+        {
+          lessonNumber: 10,
+          lessonTitle: 'Lesson 10: file input and output',
+          context:
+            'Reasonable positions differ. Lesson 10: file input and output turns that tension into a position students must defend.',
+          evidenceRequirement:
+            'Cite one source from Lesson 10: file input and output, then connect a specific Autograded quiz: file input and output criterion to the claim.',
+          prompt:
+            'Within file input and output, weigh direct writes against buffering. Consider file input and output tradeoffs. Then file input and output decisions again, and file input and output once more.',
+        },
+      ],
+    };
+    finalizeCompiledDeliverableLanguage('discussions', data, blueprint);
+    const item = data.discussions[0];
+    // Identity mentions stay verbatim — no placeholder corruption.
+    expect(item.context).toContain('Lesson 10: file input and output turns that tension');
+    expect(item.evidenceRequirement).toContain('Autograded quiz: file input and output criterion');
+    expect(item.context + item.evidenceRequirement).not.toMatch(/Lesson 10: the lesson|the lesson criterion/);
+    // The cap still works on plain prose mentions (budget 2, rest compressed).
+    expect(item.prompt).not.toContain('Then file input and output decisions');
+    expect(item.prompt).toContain('the lesson');
   });
 });
 
