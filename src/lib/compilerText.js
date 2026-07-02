@@ -104,3 +104,27 @@ export function stripTerminalPunctuation(value) {
 export function escapeRegexLiteral(value) {
   return String(value || '').replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 }
+
+// "Title: 1. Title" echoes are minted when a model transcribes a numbered
+// cell rendering back into an assessment title ("Autograded quiz: 1.
+// Autograded quiz"). v0.15.187 (live crucible catch): the echo must be
+// stripped where the registry row is BORN — the compiler deduped its own
+// anchors while the graph/manifest kept the echoed title, so the grader
+// searched artifacts for a string no document ever renders (exam-content P0).
+export function removeNumberedAssessmentEchoes(value) {
+  return cleanText(value)
+    .replace(/\b(Lesson\s+\d+\s+[^.;\n]{8,160}?\(\d{1,3}%\)):\s*\d+\.\s*\1(?=$|[\s,.;:])/gi, '$1')
+    .replace(/\b([^.;\n]{8,160}?\(\d{1,3}%\)):\s*\d+\.\s*\1(?=$|[\s,.;:])/gi, '$1')
+    .replace(/\s{2,}/g, ' ')
+    .trim();
+}
+
+export function dedupeNumberedAssessmentEcho(value) {
+  const text = removeNumberedAssessmentEchoes(value);
+  const match = /^(.{8,140}?)\s*:\s*\d+\.\s*(.+)$/.exec(text);
+  if (!match) return text;
+  const lead = stripTerminalPunctuation(match[1]);
+  const tail = stripTerminalPunctuation(match[2]);
+  if (lead && tail && lead.toLowerCase() === tail.toLowerCase()) return lead;
+  return text;
+}

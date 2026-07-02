@@ -573,6 +573,14 @@ export async function runCourseInBrowser({
       `${new Date().toISOString()} [crucible-driver] FAILED during ${phase}: ${errorText.split('\n')[0]}`,
     );
     await page.screenshot({ path: path.join(outDir, `failure-${phase}.png`), fullPage: true }).catch(() => {});
+    // Failure forensics: the autosaved project (course map + compiled
+    // deliverables + quality report) is the only way to re-grade a blocked
+    // package headlessly — screenshots alone made the exam-content P0
+    // undiagnosable from round artifacts.
+    const projectDump = await page.evaluate(() => localStorage.getItem('coursemapper-project')).catch(() => null);
+    if (projectDump) {
+      await fs.writeFile(path.join(outDir, `project-at-failure-${phase}.json`), projectDump).catch(() => {});
+    }
   } finally {
     await context.close().catch(() => {});
     if (!sharedBrowser) await browser.close().catch(() => {});

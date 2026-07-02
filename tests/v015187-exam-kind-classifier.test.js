@@ -11,6 +11,7 @@ import { describe, expect, it } from 'vitest';
 import { classifyAssessmentKind, deriveCourseGraphFromCourseMap } from '../src/lib/courseGraph/deriveFromCourseMap.js';
 import { buildBlueprintFromGraph } from '../src/lib/courseGraph/blueprintFromGraph.js';
 import { buildCourseBlueprint, compileBlueprintDeliverables } from '../src/lib/courseBlueprintCompiler';
+import { dedupeNumberedAssessmentEcho } from '../src/lib/compilerText.js';
 
 const LONG_EXAM_TITLE =
   'Midterm exam edge-case probe: choose one boundary input and explain the result before running the code';
@@ -39,9 +40,7 @@ describe('exam kind classification is consistent compile-to-manifest', () => {
     // The calibrated false-positive rules stay intact: prep/review artifacts
     // are not exams even when the exam noun leads the title.
     expect(classifyAssessmentKind('Practice Set: midterm preparation')).not.toBe('exam');
-    expect(classifyAssessmentKind('exam review guide 3: evidence table and rationale')).toBe(
-      'graded-artifact',
-    );
+    expect(classifyAssessmentKind('exam review guide 3: evidence table and rationale')).toBe('graded-artifact');
   });
 
   it('compiles a real exam paper for an exam-titled assessment on the graph path', () => {
@@ -54,6 +53,41 @@ describe('exam kind classification is consistent compile-to-manifest', () => {
     expect(exams[0].lessonTitle).toContain('Midterm exam edge-case probe');
     expect(exams[0].questions.length).toBeGreaterThanOrEqual(5);
     expect(exams[0].answerKey.length).toBe(exams[0].questions.length);
+  });
+
+  // Live crucible round 3: Pass A transcribed numbered prose cells back into
+  // assessment titles ("Midterm exam: 1. Midterm exam"). The compiler deduped
+  // its own anchors but the graph/manifest kept the echo, so the grader
+  // searched the quiz bank for a string no document renders — a 74/C P0 on a
+  // package whose exam paper was fine. The echo dies where the row is born.
+  it('strips "Title: 1. Title" transcription echoes from registry identity', () => {
+    expect(dedupeNumberedAssessmentEcho('Midterm exam: 1. Midterm exam')).toBe('Midterm exam');
+    expect(dedupeNumberedAssessmentEcho('Autograded quiz: 1. Autograded quiz')).toBe('Autograded quiz');
+    // Real instruction tails survive — only true echoes collapse.
+    expect(dedupeNumberedAssessmentEcho(LONG_EXAM_TITLE)).toBe(LONG_EXAM_TITLE);
+
+    const echoed = {
+      courseName: 'Intro to Python Programming',
+      lessons: [
+        {
+          title: 'Lesson 1: Python Basics',
+          sections: [
+            {
+              topicSection: '1.1: Basics',
+              learningGoals: 'Write small programs.',
+              learningObjectives: 'Trace and debug code.',
+              weeklyAssessments: '1. Midterm exam: 1. Midterm exam → Quiz & Exam Bank',
+              asyncActivities: 'Read the chapter.',
+              syncActivities: 'Pair programming lab.',
+              supportingResources: 'Python textbook chapter',
+            },
+          ],
+        },
+      ],
+    };
+    const graph = deriveCourseGraphFromCourseMap(echoed);
+    expect(graph.assessments[0].title).toBe('Midterm exam');
+    expect(graph.assessments[0].kind).toBe('exam');
   });
 
   it('compiles an exam paper even when the blueprint assessment has no stored kind', () => {

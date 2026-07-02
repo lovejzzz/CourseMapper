@@ -43,6 +43,7 @@ import { validateCourseGraph } from './courseGraph/schema.js';
 import { attachEnrichmentToGraph } from './courseGraph/blueprintFromGraph.js';
 import { buildCourseIRFromCourseMap, courseIRToCourseGraph, validateCourseIR } from './courseIR.js';
 import { repairNativeFallbackWithCurriculumV1 } from './curriculumV1Repair.js';
+import { dedupeNumberedAssessmentEcho } from './compilerText.js';
 import { NATIVE_PASS_B_AUTHORING_ADDITION } from './prompts';
 export { AUTHORING_MODE_STORAGE_KEY, readAuthoringMode, saveAuthoringMode } from './authoringMode.js';
 
@@ -275,7 +276,10 @@ export function parseNativeSkeletonResponse(text, { expectedLessons = null, sour
 
   const parsedAssessments = asArray(parsed.assessments)
     .map((entry, index) => {
-      const title = cleanText(entry?.title, 200);
+      // v0.15.187: Pass A transcribes assessments from numbered prose, so
+      // titles arrive as "Title: 1. Title" echoes — dedupe at birth (the
+      // registry title is the package-wide identity).
+      const title = dedupeNumberedAssessmentEcho(cleanText(entry?.title, 200));
       if (!title) return null;
       const weight = Number(entry?.weightPct);
       return {

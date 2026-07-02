@@ -9,6 +9,7 @@ import {
   isTrustedSourceLedgerRow,
   summarizeSourceLedgerRows,
 } from './knowledge/sourceLedger.js';
+import { dedupeNumberedAssessmentEcho } from './compilerText.js';
 import { safeImport } from './safeImport';
 import { normalizePipelineStateWithSourceBackedJudgment } from './sourceBackedJudgment.js';
 import { peekVoicePassOutcome } from './voicePass.js';
@@ -364,7 +365,11 @@ function buildManifestAssessments({ registry, files }) {
             : fileFor('assignments', assessment.dueSession);
       return {
         id: assessment.id || '',
-        title: assessment.title,
+        // v0.15.187: legacy saved graphs can carry "Title: 1. Title"
+        // transcription echoes — the manifest must present the same deduped
+        // identity the compiler renders, or the grader searches artifacts
+        // for a string no document contains (exam-content P0).
+        title: dedupeNumberedAssessmentEcho(assessment.title),
         kind,
         lesson: assessment.dueSession,
         weightPct: Number.isFinite(assessment.weightPct) ? assessment.weightPct : null,

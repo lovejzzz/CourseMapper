@@ -5,6 +5,7 @@ import {
 } from './courseBlueprintCompiler.js';
 import { attachEnrichmentToGraph, buildBlueprintFromGraph, deriveCourseGraphFromCourseMap } from './courseGraph';
 import { classifyAssessmentKind } from './courseGraph/deriveFromCourseMap.js';
+import { dedupeNumberedAssessmentEcho } from './compilerText.js';
 import { validateCourseGraph } from './courseGraph/schema.js';
 import { buildQuizItemPlan } from './blueprintEnrichmentPass.js';
 import { projectKernelToSurfaces } from './kernelProjection.js';
@@ -203,14 +204,17 @@ function normalizeConcept(rawConcept, index) {
 
 function normalizeAssessment(rawAssessment, index) {
   const id = normalizeId(rawAssessment?.id, 'A', index);
+  // v0.15.187: dedupe "Title: 1. Title" transcription echoes at birth —
+  // the registry title is the package-wide assessment identity.
+  const title = dedupeNumberedAssessmentEcho(
+    cleanText(rawAssessment?.title || rawAssessment?.name || `Assessment ${index + 1}`, 160),
+  );
   // v0.15.187 (live crucible catch): defaulting unknown kinds to
   // 'graded-artifact' let exam-TITLED assessments compile as briefs while
   // the export manifest re-classified them 'exam' — the grader then found a
   // registered exam with no exam paper (P0). One classifier everywhere: the
   // title-based rule the manifest derivation uses.
-  const kind = VALID_ASSESSMENT_KINDS.has(rawAssessment?.kind)
-    ? rawAssessment.kind
-    : classifyAssessmentKind(rawAssessment?.title || '');
+  const kind = VALID_ASSESSMENT_KINDS.has(rawAssessment?.kind) ? rawAssessment.kind : classifyAssessmentKind(title);
   const rubricDimensions = uniqueStrings(rawAssessment?.rubricDimensions || rawAssessment?.dimensions || [], 8);
   const rawRubricCriteria = asArray(rawAssessment?.rubricCriteria || rawAssessment?.rubric || rawAssessment?.criteria);
   const rubricCriteria = rawRubricCriteria
@@ -232,7 +236,7 @@ function normalizeAssessment(rawAssessment, index) {
   );
   return {
     id,
-    title: cleanText(rawAssessment?.title || rawAssessment?.name || `Assessment ${index + 1}`, 160),
+    title,
     kind,
     lessonIds: uniqueStrings(rawAssessment?.lessonIds || rawAssessment?.lessons || [], 32),
     coverageConceptIds: uniqueStrings(rawAssessment?.coverageConceptIds || rawAssessment?.conceptIds || [], 32),

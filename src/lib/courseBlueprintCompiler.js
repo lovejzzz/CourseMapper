@@ -2,7 +2,9 @@ import { COLUMN_EXTRACTORS } from './prompts/promptUtils';
 import {
   asArray,
   cleanText,
+  dedupeNumberedAssessmentEcho,
   escapeRegexLiteral,
+  removeNumberedAssessmentEchoes,
   isObjectiveStemOnly,
   normalizeObjectiveText,
   sentenceCase,
@@ -17919,24 +17921,6 @@ function compressSlideNoteArtifactReferences(note, lesson) {
   const artifactPattern = escapeRegExpCompiler(artifact);
   const regex = new RegExp(`\\b(?:(?:the|a|an|your|their|this|that)\\s+)?${artifactPattern}(?![A-Za-z0-9])`, 'gi');
   return note.replace(regex, shortRef);
-}
-
-function dedupeNumberedAssessmentEcho(value) {
-  const text = removeNumberedAssessmentEchoes(value);
-  const match = /^(.{8,140}?)\s*:\s*\d+\.\s*(.+)$/.exec(text);
-  if (!match) return text;
-  const lead = stripTerminalPunctuation(match[1]);
-  const tail = stripTerminalPunctuation(match[2]);
-  if (lead && tail && lead.toLowerCase() === tail.toLowerCase()) return lead;
-  return text;
-}
-
-function removeNumberedAssessmentEchoes(value) {
-  return cleanText(value)
-    .replace(/\b(Lesson\s+\d+\s+[^.;\n]{8,160}?\(\d{1,3}%\)):\s*\d+\.\s*\1(?=$|[\s,.;:])/gi, '$1')
-    .replace(/\b([^.;\n]{8,160}?\(\d{1,3}%\)):\s*\d+\.\s*\1(?=$|[\s,.;:])/gi, '$1')
-    .replace(/\s{2,}/g, ' ')
-    .trim();
 }
 
 function slideSourceCue(lesson) {

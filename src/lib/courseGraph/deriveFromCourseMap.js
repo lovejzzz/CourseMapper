@@ -14,6 +14,7 @@
  */
 
 import { createEmptyCourseGraph, createIdFactory } from './schema.js';
+import { dedupeNumberedAssessmentEcho } from '../compilerText.js';
 
 // Cells handled as first-class entities; everything else is extras.
 const ENTITY_KEYS = new Set([
@@ -398,7 +399,10 @@ export function deriveCourseGraphFromCourseMap(courseMap, options = {}) {
         const { label, text: rawText } = splitListPrefix(atom);
         const text = stripAssessmentReferenceSuffix(rawText);
         if (!text) continue;
-        const assessmentTitle = sanitizeGenericAssessmentTitle(text, section, session);
+        // v0.15.187: strip model-transcribed "Title: 1. Title" echoes at
+        // birth — the registry title is the identity every downstream
+        // surface (compiler anchors, export manifest, grader) must share.
+        const assessmentTitle = dedupeNumberedAssessmentEcho(sanitizeGenericAssessmentTitle(text, section, session));
         lessonAssessmentOrdinal += 1;
         const assessment = {
           // v0.14.1 (3.1): stable registry identity — "A<lesson>.<ordinal>".
