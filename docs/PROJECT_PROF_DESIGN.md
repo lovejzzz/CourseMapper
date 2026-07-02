@@ -760,6 +760,33 @@ regardless) and stop spending on persona arenas; it does not mean deleting code.
   "too templated to teach as-is" and the 43% grounding measurement. The launch
   gap now has a confidence interval.
 
+## Appendix B — As-built deltas (P1, July 2, 2026)
+
+- **The zero-token classroom runs** (`npm run prof -- --arena a2`): student
+  mind + learningRules.json v1, cohort presets, engagement sampler, genome
+  misconception seeding (index: 255 kernels, 927 name entries), psychometrics,
+  compliance counterfactual, solvability solver — all deterministic, $0.
+- **Emergent-statistics calibration happened as designed (§3g)**: the first
+  run produced 96% giveaway items — the massed-practice hole (every quiz item
+  granted full retrieval strength) and an unanchored logistic midpoint. Fixed
+  by the massed-retrieval rule (first item per concept per sitting) and
+  midpoint/difficulty-offset rescale; distributions now plausible (median
+  difficulty 0.90, healthy 77%, cohort end-mastery 0.41 after decay).
+- **First-ever findings no existing instrument measures** (usefulness kill
+  evaluated — NOT tripped): misconception-catch 9% (5/56 genome-covered items
+  carry a distractor confronting the documented misconception; bar 60%);
+  misconception repair 0% (template-quality explanations never clear the
+  feedback gate); compliance fragility 25–36% (lesson plans have no in-class
+  path for non-readers); pacing overflow in 12/14 gold-course lessons.
+- **Genome shard field names** are `text`/`corrective` (not claim/correction);
+  concept→kernel resolution requires MIN-side token containment ("variables"
+  ⊂ "Independent and dependent variables") — both were live bugs the first
+  run caught.
+- **P1 scope notes**: prerequisite caps are mechanism-tested but the course
+  prerequisite GRAPH wiring is P2 (currently empty map — no fake edges);
+  research-methods gold has no exam-titled assessment, so exam solvability is
+  null there (honest, not zero).
+
 ---
 
 _Naming: runs are "terms," the report is the "Prof Report," a package that clears

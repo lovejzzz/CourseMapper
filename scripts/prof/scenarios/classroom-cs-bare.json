@@ -1,0 +1,11 @@
+{
+  "id": "classroom-cs-bare",
+  "structuredPackage": "verification-output/prof/fixtures/structured-cs-python-bare.json",
+  "cohortPreset": "cc-night-class",
+  "cohortSize": 25,
+  "calibrationLane": "anchored",
+  "instructorCast": ["prof-hawk-stem"],
+  "modelSeats": ["gpt-5.4-mini"],
+  "packageDir": "verification-output/prof/fixtures/structured-cs-python-bare.json",
+  "courseBrief": "zero-token classroom run"
+}

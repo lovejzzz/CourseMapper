@@ -1,0 +1,48 @@
+{
+  "version": "learning-rules-v1",
+  "frozenPerRelease": true,
+  "notes": "Every rate the student mind uses, in one auditable table (design §3b). Initial values are order-of-magnitude placements from the learning-science directions cited in the design doc (testing > generation > reading; spacing bonus; Ebbinghaus-style decay). P3 psychometric anchoring tunes NUMBERS here; logic never hides in prompts. The compiler team never edits this file in the same change that improves a KPI it feeds (charter §10.4).",
+  "exposureStrength": {
+    "reading": 0.35,
+    "session": 0.3,
+    "generation": 0.55,
+    "retrieval": 0.6
+  },
+  "spacing": {
+    "minGapTicks": 2,
+    "bonusMultiplier": 1.25
+  },
+  "decay": {
+    "halfLifeTicksMean": 4,
+    "halfLifeTicksSd": 1.2
+  },
+  "masteryThresholds": {
+    "recognition": 0.35,
+    "comprehension": 0.75,
+    "transfer": 1.35
+  },
+  "prerequisites": {
+    "gateStrength": 0.35,
+    "cappedMax": 0.55
+  },
+  "intake": {
+    "capacityMeanNewConceptsPerLesson": 5,
+    "capacitySd": 1.5,
+    "overflowExposureMultiplier": 0.4
+  },
+  "answering": {
+    "guessFloorFourOptions": 0.25,
+    "logisticK": 3.0,
+    "logisticMidpointStrength": 1.1,
+    "misconceptionPullMax": 0.55,
+    "misconceptionImmunityStrength": 1.5,
+    "minProbability": 0.05,
+    "difficultyOffsets": { "Easy": -0.35, "Medium": 0, "Hard": 0.45 }
+  },
+  "misconceptionRepair": {
+    "feedbackQualityBar": 0.6,
+    "repairProbability": 0.7,
+    "groundedExplanationQuality": 0.9,
+    "templateExplanationQuality": 0.4
+  }
+}

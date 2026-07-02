@@ -1,0 +1,11 @@
+{
+  "id": "classroom-research-methods",
+  "structuredPackage": "verification-output/prof/fixtures/structured-research-methods-gold.json",
+  "cohortPreset": "r1-majors",
+  "cohortSize": 25,
+  "calibrationLane": "partially-anchored",
+  "instructorCast": ["prof-hawk-stem"],
+  "modelSeats": ["gpt-5.4-mini"],
+  "packageDir": "verification-output/prof/fixtures/structured-research-methods-gold.json",
+  "courseBrief": "zero-token classroom run"
+}

@@ -78,6 +78,49 @@ async function main() {
   const termDir = path.join(repoRoot, 'verification-output', 'prof', term.termId);
   await fs.mkdir(termDir, { recursive: true });
 
+  if (args.arena === 'a2') {
+    // Zero-token classroom (P1): pure arithmetic, no meter, no API.
+    const { runClassroomArenaZeroToken } = await import('./prof/arenas/classroom.mjs');
+    const structuredPath = path.isAbsolute(scenario.structuredPackage)
+      ? scenario.structuredPackage
+      : path.join(repoRoot, scenario.structuredPackage);
+    const structured = JSON.parse(await fs.readFile(structuredPath, 'utf8'));
+    const arena = runClassroomArenaZeroToken({
+      structured,
+      preset: scenario.cohortPreset || 'cc-night-class',
+      cohortSize: scenario.cohortSize || 25,
+      seed: term.seed,
+    });
+    const { battery, ...rest } = arena;
+    const result = {
+      term,
+      scenario: { id: scenario.id, structuredPackage: scenario.structuredPackage },
+      ...rest,
+      itemSummary: battery.itemSummary,
+      complianceRobustness: battery.complianceRobustness,
+      solvability: battery.solvability,
+      misconceptions: battery.realistic.misconceptions,
+      pacing: battery.realistic.pacing,
+      cohortMeanMastery: battery.realistic.cohortMeanMastery,
+      spend: { capUsd: term.capUsd, spentUsd: 0, callCount: 0 },
+    };
+    await fs.writeFile(path.join(termDir, 'term-result.json'), JSON.stringify(result, null, 2));
+    await fs.writeFile(
+      path.join(termDir, 'item-statistics.json'),
+      JSON.stringify(battery.realistic.itemStats, null, 2),
+    );
+    console.log(
+      `[prof] a2 zero-token · items ${result.itemSummary.items} (healthy ${result.itemSummary.healthyFraction}) · repair ${result.misconceptions.repairRate} · solvability quiz ${result.solvability.weeklyQuizExpected} exam ${result.solvability.examExpected}`,
+    );
+    console.log(
+      `[prof] coverage ${result.coverage.covered}/${result.coverage.total} concepts genome-testable · compliance degradation ${result.complianceRobustness.degradation}`,
+    );
+    console.log(`[prof] findings ${result.findings.length} · spend $0 (zero-token layer)`);
+    for (const finding of result.findings) console.log(`  [${finding.severity}] ${finding.detail}`);
+    console.log(`[prof] result: ${path.relative(repoRoot, path.join(termDir, 'term-result.json'))}`);
+    return;
+  }
+
   const packageDir = path.isAbsolute(scenario.packageDir)
     ? scenario.packageDir
     : path.join(repoRoot, scenario.packageDir);
@@ -94,7 +137,8 @@ async function main() {
   const universes = buildUniverses({ scenario, count: args.universes, seed: term.seed });
   await fs.writeFile(path.join(termDir, 'universes.json'), JSON.stringify({ term, scenario, universes }, null, 2));
 
-  if (args.arena !== 'a1') throw new Error(`Arena ${args.arena} is not built yet (P0 ships A1).`);
+  if (args.arena !== 'a1')
+    throw new Error(`Arena ${args.arena} is not built yet (P0 ships A1, P1 ships A2's zero-token layer).`);
   const { reviews, errors } = await runAdoptionArena({
     universes,
     extracted,
