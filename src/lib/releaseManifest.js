@@ -2,27 +2,27 @@ import { APP_VERSION } from './appVersion.js';
 
 export const CURRENT_RELEASE = {
   version: APP_VERSION,
-  date: 'July 1, 2026',
-  title: 'Live-Proven Compiler: grounded surfaces, fault isolation, one assessment identity',
-  landingTitle: 'Live-Proven Compiler',
+  date: 'July 2, 2026',
+  title: 'Ready to Teach: the simulated academy, the twin protocol, and the teachability lanes',
+  landingTitle: 'Ready to Teach',
   highlights: [
-    'Deliverable surfaces that shipped 0% lesson-specific content now quote the authored kernel: course FAQ answers cite facts, misconceptions, and scenario materials; discussion follow-ups and response stems quote authored positions and tension; rubric rows, syllabus week vocabulary, and registry exam short answers ground in each lesson\u2019s own atoms.',
-    'Grounding stops being a guess: a grounded-fraction metric (authored-kernel bytes per deliverable) and dictionary-fallback counters ride the run digest as groundingMetrics \u2014 the live smoke course measures ~43% overall with discussions at 98% and assignments at 99%.',
-    'The kernel authors more of the course: per-lesson study-guide summaries and review strategies plus a complete authored discussion protocol are validated, linted, and preferred over the 34-genre template dictionary, which becomes a counted fallback.',
-    'One deliverable\u2019s compile exception no longer kills all nine: per-feature fault isolation reports the real per-feature error, the browser compile yields between features instead of blocking the main thread for a second, and the compiler chunk now lives under an enforced bundle budget.',
-    'Three live-only bugs found by crucible rounds are fixed at the root with regression tests: exam-titled assessments classified differently at compile time versus manifest time, model-transcribed \u201cTitle: 1. Title\u201d echoes becoming registry identity, and finish-pass repairs minting brand-new exams after the package had compiled \u2014 assessment identity is now born once and never rewritten.',
-    'The live loop is green and instrumented: the smoke course generates end-to-end at 99/A with zero P0 findings for $0.12 in 165 seconds (three prior rounds blocked at 74/C), provider prompt-cache hits appear in live telemetry, and the crucible now saves the project state on any failure so live bugs stay diagnosable.',
+    'Project Prof ships: a simulated teaching academy that measures TEACHABILITY, not just defect-freeness \u2014 an adoption panel of instructor personas reviews real exports blind across parallel universes, a zero-token classroom of psychometrically-modeled students sits the actual quizzes across a semester, a department committee reviews for accessibility and integrity, and every verdict passes a quote-or-discard ledger. The deep grader said 99/A; Prof said 3.4/10 teach-as-is and 0% adoption \u2014 that gap is now a number with a confidence interval, and this release is the campaign against it.',
+    'The same-generation twin protocol makes quality movement provable: one captured generation compiled by two compiler versions, judged in blind pairs, with a t-based CI on the per-universe delta. It detects a half-point compiler effect for under a dollar \u2014 and it correctly rejected one batch of plausible fixes as insufficient before proving the two that mattered.',
+    'Two twin-proven jumps landed the same day the instrument did: the seam-corruption class fix (label replacement is now idempotent and position-aware \u2014 "Autograded Autograded Autograded the Week 1 quiz" stacked 6,785 times in one live compile, now zero) measured +2.43 teach-as-is (CI 1.03\u20133.83), and grounding slice 1 (kernel core ideas in every schedule row, authored homework tasks, real formative questions, kernel exit tickets) measured +1.30 (CI 0.22\u20132.39, 23 pooled pairs). The cumulative arc on one generation: 2.43 \u2192 ~5.1.',
+    'Assessment authenticity: the authored quiz items become the primary source with unit integrity (an authored stem never ships on template options; opinion stems never ship as machine-scored items), every all-MC quiz prints its autograding spec (points, single-key rule, answer-key reference), lesson plans speak the assessment\u2019s genre (students PRACTICE for an autograded quiz and BUILD a lab \u2014 nobody "drafts" a quiz), "define a function" finally tags as the coding performance it is, and the outcome/alignment surfaces cover all fifteen weeks instead of silently stopping at ten.',
+    'The package now survives simulated students better: every lesson plan opens with an explicit catch-up recap for students who missed the reading (compliance mastery loss measured back under the 25% bar), lessons teach a focused 4-concept core instead of eight word-mined fillers, correct-answer explanations name and correct the documented misconception, rubric bands become observable behaviors (strong work applies the definition; weak work shows the misconception), and the course FAQ opens with the questions confused students actually ask.',
+    'The professional-credibility tail from the department review: testing accommodations are stated for every quiz, midterm, and final; keyword-matched readings stop shipping with a straight face (a token-only match is skipped when the kernel already cites a primary open text, or labeled "verify fit"); programming courses get realistic workload floors; and Lesson 1 no longer references "last time."',
   ],
   landingHighlights: [
-    'Deliverables quote the lesson kernel \u2014 measured live at ~43%.',
-    'One compile error no longer kills all nine deliverables.',
-    'Assessment identity: born once, never rewritten.',
-    'Three live-only bugs caught and root-fixed by the crucible loop.',
-    'Live smoke: 99/A, zero P0s, $0.12, 165 seconds.',
+    'Project Prof: teachability is now a measured number, not a feeling.',
+    'Twin protocol: every compiler change gets a paired verdict with a CI.',
+    'Two significant jumps proven: seam fix +2.43, grounding slice +1.30.',
+    'Quizzes are authored-first, machine-scorable, and say so in print.',
+    'Lesson plans carry a catch-up path; rubric bands are observable behaviors.',
   ],
   proof: {
-    contract: 'release-contracts/v0.15.187.json',
-    roadmap: 'docs/V0.15.187_LIVE_PROVEN_COMPILER_ROADMAP.md',
+    contract: 'release-contracts/v0.16.0.json',
+    roadmap: 'docs/ROADMAP_V016_READY_TO_TEACH.md',
     auditCommand: 'npm run audit:release-history',
   },
 };
@@ -37,6 +37,19 @@ export const CURRENT_RELEASE_CHANGELOG = {
 };
 
 export const HISTORICAL_RELEASE_CHANGELOGS = [
+  {
+    version: '0.15.187',
+    date: 'July 1, 2026',
+    title: 'Live-Proven Compiler: grounded surfaces, fault isolation, one assessment identity',
+    highlights: [
+      'Deliverable surfaces that shipped 0% lesson-specific content now quote the authored kernel: course FAQ answers cite facts, misconceptions, and scenario materials; discussion follow-ups and response stems quote authored positions and tension; rubric rows, syllabus week vocabulary, and registry exam short answers ground in each lesson\u2019s own atoms.',
+      'Grounding stops being a guess: a grounded-fraction metric (authored-kernel bytes per deliverable) and dictionary-fallback counters ride the run digest as groundingMetrics \u2014 the live smoke course measures ~43% overall with discussions at 98% and assignments at 99%.',
+      'The kernel authors more of the course: per-lesson study-guide summaries and review strategies plus a complete authored discussion protocol are validated, linted, and preferred over the 34-genre template dictionary, which becomes a counted fallback.',
+      'One deliverable\u2019s compile exception no longer kills all nine: per-feature fault isolation reports the real per-feature error, the browser compile yields between features instead of blocking the main thread for a second, and the compiler chunk now lives under an enforced bundle budget.',
+      'Three live-only bugs found by crucible rounds are fixed at the root with regression tests: exam-titled assessments classified differently at compile time versus manifest time, model-transcribed \u201cTitle: 1. Title\u201d echoes becoming registry identity, and finish-pass repairs minting brand-new exams after the package had compiled \u2014 assessment identity is now born once and never rewritten.',
+      'The live loop is green and instrumented: the smoke course generates end-to-end at 99/A with zero P0 findings for $0.12 in 165 seconds (three prior rounds blocked at 74/C), provider prompt-cache hits appear in live telemetry, and the crucible now saves the project state on any failure so live bugs stay diagnosable.',
+    ],
+  },
   {
     version: '0.15.186',
     date: 'July 1, 2026',

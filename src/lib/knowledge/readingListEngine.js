@@ -950,8 +950,34 @@ export async function attachOpenReadings(graph, { providers = {}, signal, maxSes
       });
       continue;
     }
-    const work = licensedPassing[0].work;
-    const citation = formatScholarlyCitation(work);
+    const best = licensedPassing[0];
+    // v0.16 D1 (Prof catch — "a DTIC report on visual meta-programming is a
+    // poor fit for introductory Python conditionals … assembling citations by
+    // keyword"): a TOKEN-only pass is a lead, not a vetted assignment.
+    // (a) When the session's kernel already cites a primary open text
+    //     (OpenStax et al.), a token-only research paper adds tangent risk to
+    //     an intro course that the textbook section already covers — skip it.
+    // (b) Otherwise the pick attaches with an honest verify-fit label so no
+    //     keyword match ships with a straight face.
+    const tokenOnlyPass = !best.score.phraseHit && !best.score.strongConceptHit;
+    const kernelCitesPrimaryText = Boolean(
+      JSON.stringify(
+        graph.enrichmentOverlay?.lessonContent?.[`lesson-${session.number}`]?.conceptProvenance || '',
+      ).match(/openstax|openintro|libretexts|milne/i),
+    );
+    if (tokenOnlyPass && kernelCitesPrimaryText) {
+      decisions.push({
+        type: 'textbook-covered-no-supplement',
+        lesson: session.number ?? null,
+        sessionId: session.id ?? null,
+        message: `L${session.number ?? '?'}: kernel already cites a primary open text; the best open-paper candidate matched on keywords only — skipped rather than shipped off-topic`,
+      });
+      continue;
+    }
+    const work = best.work;
+    const citation = `${formatScholarlyCitation(work)}${
+      tokenOnlyPass ? ' — suggested reading; verify fit for this course level before assigning' : ''
+    }`;
     if (seen.has(citation.toLowerCase())) continue;
     seen.add(citation.toLowerCase());
     attachResource(graph, session, {

@@ -81,6 +81,12 @@ async function buildOne({ id, courseMap }) {
   const deliverables = compileBlueprintDeliverables(blueprint, featureIds, {});
 
   // Structured layer for the mind.
+  const lessonPlanTextByNumber = new Map(
+    (deliverables.lessonPlans?.lessonPlans || []).map((plan, index) => [
+      blueprint.lessons[index]?.lessonNumber ?? index + 1,
+      JSON.stringify(plan),
+    ]),
+  );
   const lessons = blueprint.lessons.map((lesson) => ({
     lesson: lesson.lessonNumber,
     concepts: (lesson.keyConcepts || []).slice(0, 6).map((term) => ({
@@ -90,6 +96,12 @@ async function buildOne({ id, courseMap }) {
     hasStudyGuide: true,
     hasAssignment: true,
     hasLessonPlan: true,
+    // v0.16 C2: does the printed plan explicitly re-teach the reading's core
+    // idea in class? Detected from the compiled plan itself (never assumed),
+    // so a plan without the recap earns no credit.
+    hasReteachSegment: /missed the reading|without the reading|skipped the reading/i.test(
+      lessonPlanTextByNumber.get(lesson.lessonNumber) || '',
+    ),
   }));
   const conceptIdByLessonTerm = new Map();
   for (const lesson of lessons) {

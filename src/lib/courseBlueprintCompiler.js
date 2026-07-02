@@ -2036,9 +2036,23 @@ const BLOOM_STEM_VERB_PATTERNS = BLOOM_STEM_VERBS.map(([level, verbs]) => ({
   pattern: new RegExp(`\\b(?:${verbs.flatMap(bloomVerbForms).join('|')})\\b`, 'i'),
 }));
 
+// v0.16 A4 (Prof catch): in a coding/making context, "define a function",
+// "create a class", or "build a loop" is a PERFORMANCE — the student writes
+// code — not recall. Tagging it Remember was the alignment error every
+// technical reviewer caught instantly ("If students are expected to 'Define
+// functions,' Bloom should not be 'Remember'").
+const PERFORMANCE_OBJECT_RE =
+  /\b(?:functions?|class(?:es)?|methods?|loops?|variables?|programs?|scripts?|files?|queries|schemas?|circuits?|models?|prototypes?|datasets?|spreadsheets?|simulations?)\b/i;
+// Only verbs the pattern table reads as RECALL need the override — "create",
+// "write", "build" already map to Apply/Create on their own.
+const RECALL_VERB_ON_PERFORMANCE_RE = /^(?:define|declare)\b/i;
+
 export function bloomLevelFromStemVerb(text) {
   const stem = cleanText(text);
   if (!stem) return null;
+  if (RECALL_VERB_ON_PERFORMANCE_RE.test(stem) && PERFORMANCE_OBJECT_RE.test(stem.slice(0, 80))) {
+    return 'Apply';
+  }
   let best = null;
   for (const { level, pattern } of BLOOM_STEM_VERB_PATTERNS) {
     const match = stem.match(pattern);
@@ -2822,9 +2836,19 @@ function formatWorkloadLine({
   })`;
 }
 
-function buildWorkloadEstimate({ resources, hasAssessment, bloomsLevel }) {
+function buildWorkloadEstimate({ resources, hasAssessment, bloomsLevel, artifactTitle = '' }) {
   const beforeClassMinutes = resources.length > 0 ? Math.min(75, 20 + resources.length * 8) : 20;
-  const afterClassBase = hasAssessment ? 55 : 35;
+  // v0.16 E5 (Prof department catch — "estimates remain too low for a
+  // beginner programming course with weekly autograded work and labs"):
+  // hands-on/technical artifacts carry a realistic after-class floor.
+  const technicalArtifact =
+    // Unambiguous programming/hands-on-technical signals only —
+    // 'coding qualitative data' and 'program evaluation' must not
+    // trip a programming-course workload floor.
+    /\b(?:coding lab|hands-on lab|programming|problem sets?|debugging|source code|lab report|compiler?s?)\b/i.test(
+      cleanText(artifactTitle),
+    );
+  const afterClassBase = hasAssessment ? (technicalArtifact ? 90 : 55) : technicalArtifact ? 60 : 35;
   const afterClassMinutes = ['Evaluate', 'Create'].includes(bloomsLevel) ? afterClassBase + 20 : afterClassBase;
   const inClassMinutes = DEFAULT_CLASS_SESSION_MINUTES;
   const totalStudentMinutes = beforeClassMinutes + inClassMinutes + afterClassMinutes;
@@ -4949,6 +4973,17 @@ function weekScopedArtifactReference(lesson = {}, kind = 'artifact') {
   const lessonNumber = Number(lesson?.lessonNumber);
   const prefix = Number.isFinite(lessonNumber) && lessonNumber > 0 ? `Week ${lessonNumber}` : 'Weekly';
   return `${prefix} ${kind}`;
+}
+
+// v0.16 A3 (Prof catch): the activity language must match the assessment's
+// GENRE — "students do not 'draft' an autograded quiz; the lesson plan is
+// still written for some other assessment genre." Detection reads the
+// lesson's own artifact title (registry-verbatim), so it costs nothing.
+function lessonArtifactGenre(lesson = {}) {
+  const title = cleanText(lesson?.studentArtifact).toLowerCase();
+  if (/\bautograd|\bmachine[- ]scored\b/.test(title)) return 'autograded-quiz';
+  if (/\b(?:lab|practical|problem set|coding exercise|worksheet)\b/.test(title)) return 'lab';
+  return 'written';
 }
 
 function safeLessonPlanArtifact(lesson = {}, fallbackKind = 'artifact') {
@@ -11206,7 +11241,12 @@ function deriveRoutineFieldsForLesson(lesson = {}, index = 0) {
   const bloomsLevel = lesson.bloomsLevel || bloomInference.level;
   const workloadEstimate = lesson.workloadEstimate?.totalStudentMinutes
     ? lesson.workloadEstimate
-    : buildWorkloadEstimate({ resources: readings, hasAssessment: Boolean(artifact), bloomsLevel });
+    : buildWorkloadEstimate({
+        resources: readings,
+        hasAssessment: Boolean(artifact),
+        bloomsLevel,
+        artifactTitle: artifact,
+      });
   const difficultyProfile =
     lesson.difficultyProfile?.cognitiveDemand && lesson.difficultyProfile?.stage
       ? lesson.difficultyProfile
@@ -12629,10 +12669,20 @@ function extractLessonBlueprint(lesson, originalIndex, assessmentRegistry = null
       ? evaluationDesignEntries.join('; ')
       : firstNonEmpty(weeklyAssessmentText, evaluationDesignText);
   const hasAssessment = hasWeeklyAssessment || hasEvaluationDesign;
-  const concepts = normalizeConceptCandidates(
-    [...titleConcepts, ...topics, ...wordsFromConcepts([...titleConcepts, ...topics, ...objectives], 5)],
-    { title, limit: 8 },
-  );
+  // v0.16 C3 (Prof classroom catch — 12/14 lessons overflowed the median
+  // student's intake capacity): a lesson TEACHES a focused core, not eight
+  // concepts. Title concepts and real topics come first; derived word-mining
+  // only pads when the source gives fewer than two. The old limit-8 list was
+  // mostly wordsFromConcepts filler that every downstream surface (and the
+  // pacing model) then treated as new content to absorb.
+  const sourcedConcepts = normalizeConceptCandidates([...titleConcepts, ...topics], { title, limit: 4 });
+  const concepts =
+    sourcedConcepts.length >= 2
+      ? sourcedConcepts
+      : normalizeConceptCandidates(
+          [...titleConcepts, ...topics, ...wordsFromConcepts([...titleConcepts, ...topics, ...objectives], 5)],
+          { title, limit: 4 },
+        );
   const keyConcepts =
     concepts.length > 0
       ? concepts
@@ -12735,7 +12785,14 @@ function extractLessonBlueprint(lesson, originalIndex, assessmentRegistry = null
       confidence.fields.resources.confidence,
     ),
   ];
-  const workloadEstimate = buildWorkloadEstimate({ resources, hasAssessment, bloomsLevel });
+  const workloadEstimate = buildWorkloadEstimate({
+    resources,
+    hasAssessment,
+    bloomsLevel,
+    // The technical signal usually lives in the ACTIVITIES ('Hands-on coding
+    // lab'), not the assessment title.
+    artifactTitle: [assessmentLink, syncActivityText, asyncActivityText].filter(Boolean).join(' '),
+  });
   const difficultyProfile = buildDifficultyProfile({
     originalIndex,
     bloomsLevel,
@@ -13320,6 +13377,21 @@ function buildCriterionEvidenceMap(lesson, criteria, validityEvidence) {
   const concept = safeLessonPrimaryConcept(lesson);
   const artifact = safeLessonArtifact(lesson);
   const sourceCue = safeLessonEvidenceCue(lesson);
+  // v0.16 B2 (Prof catch — the TA separated strong from weak work by ONE
+  // band): band descriptors become observable BEHAVIORS from the lesson's
+  // own subject matter. Strong work applies the key term's definition
+  // correctly; weak work shows the documented misconception. That contrast
+  // is scoreable; adverb gradients ("thorough" vs "adequate") are not.
+  // Same screen as every other keyTerm consumer: internal deliverable labels
+  // planted as terms ("Study Guides") must never become rubric language.
+  const safeTerms = (lesson.enrichment?.keyTerms || []).filter(
+    (term) =>
+      cleanText(term?.term) &&
+      !PROMPT_ARTIFACT_DISPLAY_RE.test(cleanText(term.term)) &&
+      !isUnsafeLessonConceptPhrase(cleanText(term.term)),
+  );
+  const keyTerm = safeTerms.find((term) => cleanText(term?.definition));
+  const misconceptionTerm = safeTerms.find((term) => cleanText(term?.misconception));
   return criteria.map((criterion, index) => ({
     criterion,
     evidenceNeeded: lessonVariant(lesson, [
@@ -13329,17 +13401,23 @@ function buildCriterionEvidenceMap(lesson, criteria, validityEvidence) {
       `Use "${criterion}" to check whether a concrete ${sourceCue} detail changes the claim, limit, or revision in ${artifact}.`,
     ]),
     strongSignal:
-      index === 0
-        ? `Strong evidence names the relevant ${concept} detail, explains why it matters, and connects it directly to ${artifact}.`
-        : lessonVariant(lesson, [
-            `Strong evidence connects ${criterion.toLowerCase()} to a specific decision, limitation, or revision in ${artifact}.`,
-            `Look for ${criterion.toLowerCase()} evidence that changes a concrete choice, boundary, or next revision in ${artifact}.`,
-            `A strong signal shows how ${criterion.toLowerCase()} affects the ${artifact} decision and names the evidence limit.`,
-            `Evidence is strongest when ${criterion.toLowerCase()} makes a visible ${artifact} revision or constraint easier to judge.`,
-          ]),
-    partialSignal: `Partial evidence mentions ${concept} or ${artifact} but leaves the reasoning, limitation, or criterion connection implicit.`,
+      index === 0 && keyTerm
+        ? `Strong work uses ${keyTerm.term} correctly — ${lowercaseSentenceLead(stripTerminalPunctuation(keyTerm.definition))} — and applies it to a concrete case in ${artifact}.`
+        : index === 0
+          ? `Strong evidence names the relevant ${concept} detail, explains why it matters, and connects it directly to ${artifact}.`
+          : lessonVariant(lesson, [
+              `Strong evidence connects ${criterion.toLowerCase()} to a specific decision, limitation, or revision in ${artifact}.`,
+              `Look for ${criterion.toLowerCase()} evidence that changes a concrete choice, boundary, or next revision in ${artifact}.`,
+              `A strong signal shows how ${criterion.toLowerCase()} affects the ${artifact} decision and names the evidence limit.`,
+              `Evidence is strongest when ${criterion.toLowerCase()} makes a visible ${artifact} revision or constraint easier to judge.`,
+            ]),
+    partialSignal:
+      index === 0 && misconceptionTerm
+        ? `Weak work shows the common misunderstanding — ${lowercaseSentenceLead(stripTerminalPunctuation(misconceptionTerm.misconception))} — or uses ${misconceptionTerm.term} without applying it; score it below full credit and point to the correction.`
+        : `Partial evidence mentions ${concept} or ${artifact} but leaves the reasoning, limitation, or criterion connection implicit.`,
     feedbackMove: buildCriterionFeedbackMove({ lesson, criterion, index }),
     calibrationQuestion: buildCriterionCalibrationQuestion({ lesson, criterion, index, validityEvidence }),
+    ...(index === 0 && (keyTerm || misconceptionTerm) ? { enrichmentSource: 'lesson-content-enrichment' } : {}),
   }));
 }
 
@@ -14130,6 +14208,18 @@ export function buildCourseBlueprint(courseMap, options = {}) {
     const trustedContentEnrichment = enrichmentMatchesLessonIdentity(lesson, contentEnrichment)
       ? contentEnrichment
       : null;
+    // v0.16 B2: the assessment's criterion evidence map was built BEFORE the
+    // enrichment attached, so its band descriptors never saw the kernel's
+    // key terms — rebuild it with the enriched lesson so "strong work applies
+    // the definition / weak work shows the misconception" can ground.
+    if (trustedContentEnrichment && Array.isArray(assessment?.criteria) && assessment.criteria.length > 0) {
+      const enrichedLesson = { ...lesson, enrichment: trustedContentEnrichment };
+      assessment.criterionEvidenceMap = buildCriterionEvidenceMap(
+        enrichedLesson,
+        assessment.criteria,
+        assessment.validityEvidence || buildAssessmentValidityEvidence(enrichedLesson),
+      );
+    }
     return {
       ...lesson,
       ...(trustedContentEnrichment ? { enrichment: trustedContentEnrichment } : {}),
@@ -14269,8 +14359,10 @@ export function buildCourseBlueprint(courseMap, options = {}) {
         'Submit work by the listed due week. If you need an extension, contact the instructor before the deadline with a concrete completion plan.',
       communication:
         'Use the official course communication channel for questions. Expect professional, respectful communication and allow a standard academic response window.',
+      // v0.16 E2 (Prof department catch): the syllabus names exams but never
+      // stated how approved testing accommodations apply to them.
       accessibility:
-        'Students who need accommodations should contact the institution accessibility office and the instructor early so course activities can be adjusted appropriately.',
+        'Students who need accommodations should contact the institution accessibility office and the instructor early so course activities can be adjusted appropriately. Approved testing accommodations — including extended time, a reduced-distraction environment, and assistive technology — apply to every quiz, midterm, and final assessment in this course; arrange logistics with the instructor at least one week before each exam.',
       academicIntegrity:
         'All submitted work must represent the student or team effort and cite outside sources or approved tools. Course-specific AI use must be disclosed when it contributes to submitted work.',
     },
@@ -14869,7 +14961,24 @@ function sampleAcrossLessons(lessons, getter, cap = 10) {
       if (list[round]) sampled.push(list[round]);
     }
   }
-  return unique(sampled, cap);
+  // v0.16 A5: NEAR-duplicate collapse — template-minted outcomes that differ
+  // only in a tail noun share their first-8-word stem; listing 14 of them
+  // trips the export audit's own repetition gate while adding no information
+  // (their lesson coverage flows through the alignment row's practicedIn
+  // list). Genuinely distinct outcomes rarely share an 8-word stem.
+  const seenStems = new Set();
+  const deduped = unique(sampled, Math.max(cap, sampled.length)).filter((outcome) => {
+    const stem = cleanText(outcome)
+      .toLowerCase()
+      .replace(/[^a-z0-9\s]/g, ' ')
+      .split(/\s+/)
+      .slice(0, 8)
+      .join(' ');
+    if (seenStems.has(stem)) return false;
+    seenStems.add(stem);
+    return true;
+  });
+  return deduped.slice(0, cap);
 }
 
 /**
@@ -15017,7 +15126,15 @@ function compileSyllabus(blueprint) {
       instructorFeedbackLoadPlan: compactFeedbackLoadPlan,
       blueprintAssumptionLedger: compactAssumptions,
       packageCoherenceMatrix: compactCoherence,
-      learningOutcomes: sampleAcrossLessons(blueprint.lessons, (lesson) => lesson.outcomes, 10),
+      // v0.16 A5 (Prof twin catch): the 10-cap silently dropped lessons 11+
+      // from the SLO list — "the outcome list still ends at 10 while the
+      // course assesses Weeks 11-15". Coverage: at least every lesson's
+      // first outcome survives.
+      learningOutcomes: sampleAcrossLessons(
+        blueprint.lessons,
+        (lesson) => lesson.outcomes,
+        Math.max(10, blueprint.lessons.length),
+      ),
       courseAtAGlance: blueprint.lessons.map((lesson) => {
         const assessment = assessmentForLesson(lesson);
         return {
@@ -15052,29 +15169,33 @@ function compileSyllabus(blueprint) {
           localReviewAction: lessonLocalReviewAction(lesson),
         };
       }),
-      outcomeAlignmentMatrix: sampleAcrossLessons(blueprint.lessons, (lesson) => lesson.outcomes, 10).map(
-        (outcome) => ({
-          outcome,
-          // v0.14.1 (5.4): the row's level follows the outcome's stem verb
-          // ("Produce the four tones…" → Apply, not Create); the anywhere-match
-          // inference is only the fallback for verb-less outcomes.
-          bloomsLevel:
-            bloomLevelFromStemVerb(outcome) ||
-            inferBloomLevelFromSignals([{ source: 'course outcome', text: outcome }]).level,
-          assessedBy: blueprint.assessments
-            .filter((assessment) =>
-              assessment.objectives.some(
-                (objective) => cleanText(objective).toLowerCase() === cleanText(outcome).toLowerCase(),
-              ),
-            )
-            .map((assessment) => assessment.title)
-            .slice(0, 3),
-          practicedIn: blueprint.lessons
-            .filter((lesson) => lesson.outcomes.includes(outcome))
-            .map((lesson) => lesson.title)
-            .slice(0, 4),
-        }),
-      ),
+      outcomeAlignmentMatrix: sampleAcrossLessons(
+        blueprint.lessons,
+        (lesson) => lesson.outcomes,
+        Math.max(10, blueprint.lessons.length),
+      ).map((outcome) => ({
+        outcome,
+        // v0.14.1 (5.4): the row's level follows the outcome's stem verb
+        // ("Produce the four tones…" → Apply, not Create); the anywhere-match
+        // inference is only the fallback for verb-less outcomes.
+        bloomsLevel:
+          bloomLevelFromStemVerb(outcome) ||
+          inferBloomLevelFromSignals([{ source: 'course outcome', text: outcome }]).level,
+        assessedBy: blueprint.assessments
+          .filter((assessment) =>
+            assessment.objectives.some(
+              (objective) => cleanText(objective).toLowerCase() === cleanText(outcome).toLowerCase(),
+            ),
+          )
+          .map((assessment) => assessment.title)
+          .slice(0, 3),
+        // v0.16 A5: a collapsed near-duplicate outcome carries its lesson
+        // coverage HERE — cap 4→8 so back-half lessons stay visible.
+        practicedIn: blueprint.lessons
+          .filter((lesson) => lesson.outcomes.includes(outcome))
+          .map((lesson) => lesson.title)
+          .slice(0, 8),
+      })),
       lessonAlignmentMatrix: (blueprint.alignmentMatrix || []).map((row) => ({
         week: `Week ${row.lessonNumber}`,
         lesson: stripLessonPrefix(row.lessonTitle),
@@ -16848,10 +16969,23 @@ function quizCorrectExplanation({ answer, concept, artifact, objective, lesson, 
       cleanText(term.term).toLowerCase() === cleanText(concept).toLowerCase(),
   );
   if (matchedTerm) {
+    // v0.16 C1 (Prof classroom catch — repair rate 0%): an explanation only
+    // REPAIRS a misconception when it names and corrects it. The simulated
+    // feedback gate (and real students) never clear on definition-restating
+    // alone, so when the term documents a misconception, the explanation
+    // confronts it explicitly.
+    const corrective = cleanText(matchedTerm.correction || matchedTerm.corrective || '');
+    const misconceptionClause = cleanText(matchedTerm.misconception)
+      ? ` A common wrong turn: ${lowercaseSentenceLead(stripTerminalPunctuation(matchedTerm.misconception))} — ${
+          corrective
+            ? lowercaseSentenceLead(stripTerminalPunctuation(corrective))
+            : `the definition above is why that fails`
+        }.`
+      : '';
     return `${answer} is correct: ${joinTermDefinition(matchedTerm.term, matchedTerm.definition, {
       separator: ' means ',
       lowercaseTail: true,
-    })} — and this option is the one that applies it to ${artifact}.`;
+    })} — and this option is the one that applies it to ${artifact}.${misconceptionClause}`;
   }
   const fullObjective = stripTerminalPunctuation(cleanText(objective, 'the lesson objective'));
   const clipped = conciseClause(objective, 'the lesson objective', 90);
@@ -17398,34 +17532,92 @@ function appendBankExtensionQuizAtoms(atoms, lesson) {
  * metadata, intended use, and the deterministic answer-letter rotation — so
  * trust records and gates treat enriched items like any compiled item.
  */
+// v0.16 A1 (Prof twin catch): an authored stem may only replace a frame item
+// together with its COMPLETE answer unit. The old index-locked overlay
+// spliced any authored question onto whatever frame shared its index — an
+// authored discussion/short-answer stem landed on an MC frame with the
+// template's evidence-speak options still attached ("prompt and answer
+// choices are tangled with irrelevant course references"), and opinion stems
+// shipped as "autogradable" items ("Should beginners start in a notebook…?
+// Take a position"). Objective, complete items only; opinion stems belong to
+// the discussion surface, never a machine-scored quiz.
+const OPINION_STEM_RE =
+  /\b(?:take a position|in your opinion|do you (?:think|prefer|agree)|should (?:beginners?|students?|you|we|one)\b[^?]*\?|which do you prefer|defend (?:your|a) (?:choice|position))/i;
+
+function enrichedItemIsCompleteMC(item) {
+  return (
+    cleanText(item?.question).length > 0 &&
+    Array.isArray(item?.options) &&
+    item.options.length === 4 &&
+    Number.isInteger(item.answerIndex) &&
+    item.answerIndex >= 0 &&
+    item.answerIndex < 4 &&
+    !OPINION_STEM_RE.test(cleanText(item.question))
+  );
+}
+
+function overlayCompleteMCItem(atom, enriched) {
+  const next = { ...atom, question: enriched.question, enrichmentSource: 'lesson-content-enrichment' };
+  const keyText = enriched.options[enriched.answerIndex];
+  const distractors = enriched.options.filter((_, optionIndex) => optionIndex !== enriched.answerIndex);
+  // Preserve the compiler's deterministic key rotation.
+  const targetLetter = atom.answer;
+  const targetSlot = QUIZ_ANSWER_LETTERS.indexOf(targetLetter);
+  const ordered = [...distractors];
+  ordered.splice(targetSlot < 0 ? 0 : targetSlot, 0, keyText);
+  next.options = ordered.map((text, optionIndex) => labelQuizOption(QUIZ_ANSWER_LETTERS[optionIndex], text));
+  next.answer = targetLetter;
+  if (enriched.distractorRationales?.length > 0) {
+    next.distractorRationale = enriched.distractorRationales.join(' ');
+  }
+  if (enriched.explanation) next.explanation = `${next.answer}. ${enriched.explanation}`;
+  return next;
+}
+
 function overlayEnrichedQuizItems(framedAtoms, lesson) {
   const enrichedItems = lesson?.enrichment?.quizItems;
   if (!Array.isArray(enrichedItems) || enrichedItems.length === 0) return framedAtoms;
-  const byIndex = new Map(enrichedItems.map((item) => [Number(item.index), item]));
+  // Authored-first, unit-integrity overlay: complete MC items fill MC frames
+  // (index-matched first for stability, then any unused complete item);
+  // authored constructed-response items overlay only constructed-response
+  // frames. A frame no complete authored item can fill keeps its template.
+  // extension:true items are RESERVED for appendBankExtensionQuizAtoms and
+  // the deck's application slide — pool-filling them into weekly slots would
+  // ship the same stem twice (the D3 no-duplicate invariant).
+  const completeMC = enrichedItems.filter((item) => enrichedItemIsCompleteMC(item) && item.extension !== true);
+  const usedMC = new Set();
+  const byIndexMC = new Map(completeMC.map((item) => [Number(item.index), item]));
+  // Index-matched items are RESERVED for their own frame first — pool-filling
+  // must not steal an item authored for a later slot.
+  const reservedFrames = new Set(
+    framedAtoms
+      .map((atom, index) => (atom.type === 'multiple_choice' && byIndexMC.has(index) ? index : -1))
+      .filter((index) => index >= 0),
+  );
+  for (const index of reservedFrames) usedMC.add(byIndexMC.get(index));
+  const constructed = new Map(
+    enrichedItems
+      .filter((item) => !enrichedItemIsCompleteMC(item) && cleanText(item?.question).length > 0)
+      .map((item) => [Number(item.index), item]),
+  );
   return framedAtoms.map((atom, index) => {
-    const enriched = byIndex.get(index);
-    if (!enriched || cleanText(enriched.question).length === 0) return atom;
-    const next = { ...atom, question: enriched.question, enrichmentSource: 'lesson-content-enrichment' };
-    if (atom.type === 'multiple_choice' && Array.isArray(enriched.options) && enriched.options.length === 4) {
-      const keyText = enriched.options[enriched.answerIndex] || enriched.options[0];
-      const distractors = enriched.options.filter((_, optionIndex) => optionIndex !== enriched.answerIndex);
-      // Preserve the compiler's deterministic key rotation.
-      const targetLetter = atom.answer;
-      const targetSlot = QUIZ_ANSWER_LETTERS.indexOf(targetLetter);
-      const ordered = [...distractors];
-      ordered.splice(targetSlot < 0 ? 0 : targetSlot, 0, keyText);
-      next.options = ordered.map((text, optionIndex) => labelQuizOption(QUIZ_ANSWER_LETTERS[optionIndex], text));
-      next.answer = targetLetter;
-      if (enriched.distractorRationales?.length > 0) {
-        next.distractorRationale = enriched.distractorRationales.join(' ');
-      }
-      if (enriched.explanation) next.explanation = `${next.answer}. ${enriched.explanation}`;
-    } else if (atom.type !== 'multiple_choice') {
-      if (enriched.answer) next.answer = enriched.answer;
-      if (enriched.answer) next.sampleAnswer = enriched.answer;
-      if (enriched.explanation) next.explanation = enriched.explanation;
-      if (enriched.scoringGuidance) next.scoringGuidance = enriched.scoringGuidance;
+    if (atom.type === 'multiple_choice') {
+      const enriched = reservedFrames.has(index)
+        ? byIndexMC.get(index)
+        : completeMC.find((item) => !usedMC.has(item)) || null;
+      if (!enriched) return atom;
+      usedMC.add(enriched);
+      return overlayCompleteMCItem(atom, enriched);
     }
+    // Constructed-response frames (non-autograded quizzes, exams): overlay
+    // question + answer unit only when the authored item carries an answer.
+    const enriched = constructed.get(index);
+    if (!enriched || OPINION_STEM_RE.test(cleanText(enriched.question)) || !cleanText(enriched.answer)) return atom;
+    const next = { ...atom, question: enriched.question, enrichmentSource: 'lesson-content-enrichment' };
+    next.answer = enriched.answer;
+    next.sampleAnswer = enriched.answer;
+    if (enriched.explanation) next.explanation = enriched.explanation;
+    if (enriched.scoringGuidance) next.scoringGuidance = enriched.scoringGuidance;
     return next;
   });
 }
@@ -17960,10 +18152,19 @@ function compileQuizBank(blueprint, config = {}) {
     const artifact = safeLessonArtifact(lesson);
     const transferTask =
       lesson.learningTransferPlan?.transferTask || `Students transfer quiz evidence into ${artifact}.`;
+    // v0.16 A2 (Prof catch): an "autograded" quiz must STATE its machine
+    // scoring rule — the panel's top objection was "no plausible autograding
+    // scheme". When every item is multiple-choice, the spec is printable
+    // fact, not aspiration.
+    const allMachineScorable = questions.length > 0 && questions.every((q) => q.type === 'multiple_choice');
+    const gradingSpec = allMachineScorable
+      ? `Autograding: ${questions.length} multiple-choice items, one correct letter each, ${questions[0].points || 2} points per item, no partial credit — ${totalPoints} points total. Machine-scorable against the answer key on the instructor page; no manual grading required.`
+      : '';
     return {
       lessonTitle: lesson.title,
       totalQuestions: questions.length,
       totalPoints,
+      ...(gradingSpec ? { gradingSpec } : {}),
       blueprintGrounding: lessonSourceGrounding(lesson, {
         difficultyProfile: lesson.difficultyProfile,
         misconceptionFocus: lesson.misconceptionMap?.[0]?.misconception || '',
@@ -19918,8 +20119,15 @@ function deckClaimsKernelDepth(slides, lesson) {
 }
 
 function contentFloorTokenSet(lesson) {
+  // v0.16 C3 companion: keyConcepts now caps at the 4-concept teaching core,
+  // so the floor's vocabulary also draws on the kernel's OWN terms — the
+  // authored key terms are exactly the content the floor exists to measure.
   const tokens = new Set(
-    [stripLessonPrefix(lesson?.title || ''), ...(lesson?.keyConcepts || [])].flatMap(identityTokens),
+    [
+      stripLessonPrefix(lesson?.title || ''),
+      ...(lesson?.keyConcepts || []),
+      ...(lesson?.enrichment?.keyTerms || []).map((term) => cleanText(term?.term)).filter(Boolean),
+    ].flatMap(identityTokens),
   );
   if (tokens.size >= 2) return tokens;
   for (const candidate of slideConceptCandidates(lesson).slice(0, 3).flatMap(identityTokens)) tokens.add(candidate);
@@ -20289,9 +20497,11 @@ function buildSlideDeckIrForLesson(blueprint, lesson, index) {
       type: 'bridge',
       title: `${sentenceCase(concept)} carries the evidence thread forward`,
       bullets: [
+        // v0.16 E4 (Prof department catch): Lesson 1 has no "last time" — a
+        // continuity reference in the first session reads as unproofed.
         previous
           ? `Last time: ${primarySlideConcept(previous)}`
-          : `Last time: course goals and ${blueprint.courseName}`,
+          : `This course: ${blueprint.courseName} — what we'll build across the semester`,
         `Today: ${phrase.decisionMove}`,
         next ? `Next: ${primarySlideConcept(next)}` : `Next: final synthesis and revision planning`,
       ],
@@ -20819,9 +21029,47 @@ function safeCourseFaqStudentArtifact(lesson) {
 }
 
 function compileCourseFaq(blueprint, config = {}) {
-  const target = Math.max(3, Math.min(8, Number(config.questionsPerLesson) || 5));
+  // v0.16 B4: default rises 5→7 and the ceiling 8→10 — the two demand-driven
+  // entries ADD to the existing routing (facts, artifact, criteria, scenario)
+  // instead of displacing it.
+  const target = Math.max(3, Math.min(10, Number(config.questionsPerLesson) || 7));
   const lens = blueprintLens(blueprint);
   const builders = [
+    // v0.16 B4 (Prof mouth catch — FAQ hit rate 0%): the FAQ must answer
+    // DEMAND, not supply-side guesses. Simulated (and real) students ask
+    // about the concept that confused them, in that concept's own words —
+    // so the first two entries per lesson are the documented misconception,
+    // phrased as the student asks it, and the plain "what does X actually
+    // mean" question. Both quote the kernel's own vocabulary.
+    (lesson) => {
+      const term = (lesson.enrichment?.keyTerms || []).find(
+        (entry) => cleanText(entry?.term) && cleanText(entry?.misconception),
+      );
+      if (!term) return null;
+      const correction = cleanText(term.correction || '');
+      return {
+        q: `I thought ${lowercaseSentenceLead(stripTerminalPunctuation(cleanText(term.misconception)))} — is that wrong? How does ${term.term} actually work?`,
+        an: `${correction ? `${stripTerminalPunctuation(correction)}. ` : ''}${term.definition ? `${sentenceCase(term.term)} means ${lowercaseSentenceLead(stripTerminalPunctuation(term.definition))}.` : ''}${term.example ? ` For example: ${lowercaseSentenceLead(stripTerminalPunctuation(term.example))}.` : ''}`.trim(),
+        ca: 'Common Confusion',
+        rc: [term.term],
+        df: 'Basic',
+        enrichmentSource: 'lesson-content-enrichment',
+      };
+    },
+    (lesson) => {
+      const term = (lesson.enrichment?.keyTerms || []).find(
+        (entry) => cleanText(entry?.term) && cleanText(entry?.definition),
+      );
+      if (!term) return null;
+      return {
+        q: `What does ${term.term} actually mean, and when do I use it in ${stripLessonPrefix(lesson.title)}?`,
+        an: `${sentenceCase(term.term)} means ${lowercaseSentenceLead(stripTerminalPunctuation(term.definition))}.${term.example ? ` A concrete case: ${lowercaseSentenceLead(stripTerminalPunctuation(term.example))}.` : ''}`,
+        ca: 'Concept Explanation',
+        rc: [term.term],
+        df: 'Basic',
+        enrichmentSource: 'lesson-content-enrichment',
+      };
+    },
     (lesson) => {
       const evidenceCue = safeCourseFaqEvidenceCue(lesson, lens);
       const safeConcepts = safeCourseFaqConcepts(lesson);
@@ -21063,7 +21311,13 @@ function compileCourseFaq(blueprint, config = {}) {
         prerequisitePlan: lesson.prerequisitePlan,
         anchorExampleSet: assessment.anchorExampleSet || null,
         teachingIntent: lesson.teachingIntent,
-        qs: builders.slice(0, target).map((build) => build(lessonForFaq)),
+        // v0.16 B4: demand-driven builders may return null when the lesson
+        // has no kernel — take the first `target` non-null entries so a
+        // kernel-less lesson still fills its FAQ from the template builders.
+        qs: builders
+          .map((build) => build(lessonForFaq))
+          .filter(Boolean)
+          .slice(0, target),
       };
     }),
   };
@@ -21247,6 +21501,14 @@ function buildLessonPlanOutline(blueprint, lesson, { depth = 'flat' } = {}) {
             `Tie the example to ${evidencePlan?.sourceCue || 'one source cue'} and ask students to write the reasoning move in ${artifact} language.`,
             `Make ${evidencePlan?.sourceCue || 'one source cue'} visible, then mark the inference students can reuse when drafting ${artifact}.`,
           ]),
+      // v0.16 C2 (Prof classroom catch — realistic reading compliance cost
+      // the cohort 25-36% of mastery): the mini-lesson explicitly re-teaches
+      // the reading's core idea in class, so students who arrived without
+      // the reading can still do today's work. The recap is the reading's
+      // content, compressed — not a replacement for it.
+      catchUpPlan: kernelFact
+        ? `Open with a two-minute recap for students who missed the reading: state “${stripTerminalPunctuation(kernelFact)}” and one concrete example before the model begins, so no one works today's task cold.`
+        : `Open with a two-minute recap of the reading's central idea about ${concept} for students who missed the reading, so no one works today's task cold.`,
       instructorRole: `Model thinking aloud and annotate the exemplar for ${concept}.`,
       grouping: lessonVariant(lesson, [
         'Instructor model with guided notes',
@@ -21325,25 +21587,47 @@ function buildLessonPlanOutline(blueprint, lesson, { depth = 'flat' } = {}) {
     },
     {
       time: formatDuration(independent),
-      activity: lessonVariant(lesson, [
-        'Independent artifact sprint',
-        'Studio build checkpoint',
-        'Individual evidence draft',
-        'Draft revision workshop',
-        'Solo transfer work',
-      ]),
+      activity:
+        lessonArtifactGenre(lesson) === 'autograded-quiz'
+          ? 'Independent practice round'
+          : lessonArtifactGenre(lesson) === 'lab'
+            ? 'Independent lab build'
+            : lessonVariant(lesson, [
+                'Independent artifact sprint',
+                'Studio build checkpoint',
+                'Individual evidence draft',
+                'Draft revision workshop',
+                'Solo transfer work',
+              ]),
       type: 'Workshop',
+      // v0.16 A3: the sprint verb follows the assessment genre — quizzes get
+      // retrieval PRACTICE, labs get BUILD/debug, written artifacts keep
+      // draft/revise. Nobody "drafts" an autograded quiz.
       description:
-        deep && kernelWorkedExample
-          ? `Students draft ${artifact}, mirroring the worked example's solution path on their own case — every move the board model made needs an analog in the draft.`
-          : deep && kernelTermA?.definition
+        lessonArtifactGenre(lesson) === 'autograded-quiz'
+          ? lessonVariant(lesson, [
+              `Students work through practice items like those on ${artifact}, check each answer against the key, and write one line explaining the item they missed.`,
+              `Students answer retrieval-practice questions matched to ${artifact}, then trade papers and explain why each correct option beats its closest distractor.`,
+              `Students take a timed practice set for ${artifact}; afterwards each student names the concept behind their hardest item and where the lesson covered it.`,
+              `Students quiz each other with items in the style of ${artifact}, keeping score and flagging any question whose answer they cannot justify from today's material.`,
+            ])
+          : lessonArtifactGenre(lesson) === 'lab'
             ? lessonVariant(lesson, [
-                `Students revise ${artifact} by using ${kernelTermA.term} to justify one visible decision${kernelCitation ? ` from ${kernelCitation}` : ''}; the draft must name which lesson evidence changed the work.`,
-                `Students update ${artifact} by applying ${kernelTermA.term} to one visible choice${kernelCitation ? ` from ${kernelCitation}` : ''}; the revision note explains what evidence shifted the choice.`,
-                `Students improve ${artifact} through ${kernelTermA.term}${kernelCitation ? ` from ${kernelCitation}` : ''}; the draft should identify the evidence behind the changed decision.`,
-                `Students refine ${artifact} by tying ${kernelTermA.term} to one defensible move${kernelCitation ? ` from ${kernelCitation}` : ''}; the work should show the evidence that changed their next step.`,
+                `Students build the ${artifact} deliverable step by step, running their work as they go and fixing errors before adding the next piece.`,
+                `Students work through ${artifact} at their own pace, testing each step and noting the error message and fix for anything that breaks.`,
+                `Students complete ${artifact}, verifying output at each checkpoint; finished students extend the build with one variation of their own.`,
+                `Students implement ${artifact} incrementally — run early, run often — and record the one bug that taught them the most.`,
               ])
-            : `Students draft ${artifact} while using the lesson success criteria, feedback prompts, and exemplar moves to guide each revision.`,
+            : deep && kernelWorkedExample
+              ? `Students draft ${artifact}, mirroring the worked example's solution path on their own case — every move the board model made needs an analog in the draft.`
+              : deep && kernelTermA?.definition
+                ? lessonVariant(lesson, [
+                    `Students revise ${artifact} by using ${kernelTermA.term} to justify one visible decision${kernelCitation ? ` from ${kernelCitation}` : ''}; the draft must name which lesson evidence changed the work.`,
+                    `Students update ${artifact} by applying ${kernelTermA.term} to one visible choice${kernelCitation ? ` from ${kernelCitation}` : ''}; the revision note explains what evidence shifted the choice.`,
+                    `Students improve ${artifact} through ${kernelTermA.term}${kernelCitation ? ` from ${kernelCitation}` : ''}; the draft should identify the evidence behind the changed decision.`,
+                    `Students refine ${artifact} by tying ${kernelTermA.term} to one defensible move${kernelCitation ? ` from ${kernelCitation}` : ''}; the work should show the evidence that changed their next step.`,
+                  ])
+                : `Students draft ${artifact} while using the lesson success criteria, feedback prompts, and exemplar moves to guide each revision.`,
       instructorNotes:
         deep && kernelMisconception
           ? lessonVariant(lesson, [

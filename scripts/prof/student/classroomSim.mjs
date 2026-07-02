@@ -131,6 +131,18 @@ export function runClassroomSim({ structuredCourse, cohort, seededByStudent, see
         };
         if (week.attended && lesson.hasLessonPlan) apply('session');
         if (week.didReading && lesson.hasStudyGuide) apply('reading');
+        // v0.16 C2: a lesson plan that explicitly re-teaches the reading's
+        // core idea in class gives attending NON-readers a first content
+        // exposure — at reduced strength (an in-class recap compresses the
+        // reading; it does not replace it). Detected from the compiled plan
+        // by the structured builder, never assumed.
+        if (!week.didReading && week.attended && lesson.hasReteachSegment) {
+          apply('reading');
+          const rec = mind.concepts.get(concept.id);
+          const gain = LEARNING_RULES.exposureStrength.reading * mind.traits.aptitude;
+          rec.strength -= gain * 0.5; // recap ≈ half the reading's value
+          if (rec.strength < 0) rec.strength = 0;
+        }
         if (week.didAssignment && lesson.hasAssignment) apply('generation');
       });
       if (week.tookQuiz) {

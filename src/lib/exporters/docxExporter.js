@@ -544,6 +544,8 @@ export function _buildDocxContentShared(featureId, data, children, docx) {
           const outlineRows = p.outline.map((row) => {
             let desc = row.description || '';
             if (row.grouping) desc += `${desc ? '\n' : ''}Class format: ${row.grouping}`;
+            // v0.16 C2: the non-reader recap must reach the printed plan.
+            if (row.catchUpPlan) desc += `\nCatch-up: ${row.catchUpPlan}`;
             if (row.instructorNotes || row.notes) desc += `\nInstructor Notes: ${row.instructorNotes || row.notes}`;
             const actParts = [row.activity || ''];
             if (row.type) actParts.push(row.type);
@@ -731,6 +733,9 @@ export function _buildDocxContentShared(featureId, data, children, docx) {
         // ("Covers Lessons 1–7: …") — print it so the exam document states
         // its covered range; the field never rendered before.
         if (quiz.examScope) children.push(makeBold('Exam Scope', quiz.examScope));
+        // v0.16 A2: the machine-scoring statement, printed where a reviewer
+        // decides whether "autograded" is honest.
+        if (quiz.gradingSpec) children.push(makeBold('Grading', quiz.gradingSpec));
         if (quiz.bloomsCoverage?.length) children.push(makeBold("Bloom's Coverage", quiz.bloomsCoverage.join(', ')));
         const questions = quiz.questions || [];
 

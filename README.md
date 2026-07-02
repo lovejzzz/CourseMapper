@@ -3,7 +3,7 @@
 AI-powered instructional design platform running on **CurriculumOS** — a deterministic course compiler linked to a **Curriculum Genome** of source-anchored, citable concept knowledge — with an embedded teaching assistant agent. Upload your syllabus and generate a structured Course Map, lesson plans, slide decks, rubrics, quizzes, assignments, discussion prompts, study guides, and a polished syllabus — all pedagogically aligned, validated, and fully editable. Then use the AI agent to revise, validate, research, and visualize your curriculum through natural conversation.
 
 **Live:** [https://edutool.dev](https://edutool.dev)
-**Current release:** v0.15.187
+**Current release:** v0.16.0
 
 ---
 
@@ -25,7 +25,7 @@ Course Mapper is a **purpose-built instructional design tool**, not a general ch
 
 ---
 
-## Current Pipeline (v0.15.187)
+## Current Pipeline (v0.16.0)
 
 The product ribbon and the code share one pipeline vocabulary: **Map -> Enrich -> Compile -> Verify -> Grade**. `src/lib/pipelineMachine.js` is the phase authority; UI surfaces should render from that machine instead of re-deriving state from raw generation/finalizer flags.
 

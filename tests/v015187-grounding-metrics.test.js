@@ -162,7 +162,7 @@ describe('courseFaq atom routing (v0.15.187)', () => {
   it('grounds FAQ answers in kernel atoms when present and tags them', () => {
     const blueprint = buildCourseBlueprint(KERNEL_COURSE, { enrichment: FULL_KERNEL_ENRICHMENT });
     const compiled = compileBlueprintDeliverables(blueprint, ['courseFaq'], {
-      configMap: { courseFaq: { questionsPerLesson: 8 } },
+      configMap: { courseFaq: { questionsPerLesson: 10 } },
     });
     const lessonOne = compiled.courseFaq.faqs[0];
     const answers = lessonOne.qs.map((item) => item.an).join('\n');
@@ -210,7 +210,7 @@ describe('courseFaq atom routing (v0.15.187)', () => {
     };
     const blueprint = buildCourseBlueprint(KERNEL_COURSE, { enrichment: echoEnrichment });
     const compiled = compileBlueprintDeliverables(blueprint, ['courseFaq', 'quizBank'], {
-      configMap: { courseFaq: { questionsPerLesson: 8 } },
+      configMap: { courseFaq: { questionsPerLesson: 10 } },
     });
     const allText = JSON.stringify(compiled.courseFaq) + JSON.stringify(compiled.quizBank);
     // The grader's exact echo pattern (artifactDefectPatterns v0.12.1).

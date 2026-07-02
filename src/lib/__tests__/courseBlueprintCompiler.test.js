@@ -5534,7 +5534,8 @@ describe('courseBlueprintCompiler', () => {
       'definition to memorize',
     );
     expect(compiled.courseFaq.faqs).toHaveLength(6);
-    expect(compiled.courseFaq.faqs[0].qs).toHaveLength(5);
+    // v0.16 B4: default FAQ depth is 7 (two demand-driven entries added).
+    expect(compiled.courseFaq.faqs[0].qs).toHaveLength(7);
     expect(compiled.courseFaq.faqGuide.sourceGroundingPolicy).toContain('source anchors');
     expect(compiled.courseFaq.faqs[0].sourceGrounding).toMatchObject({
       confidence: 'high',

@@ -277,3 +277,24 @@ worked, twice, today:
 2.43 → 5.13 in one day, every step gated. v0.16.0 is the same loop, run
 lane by lane, until the Part-2 table is green and two real instructors
 agree with the simulation.
+
+---
+
+## Release Boundary — what v0.16.0 ships vs. what stays open
+
+**Goal of the release:** run the teachability loop (Prof finds → twin proves)
+across every lane until the compiler-side work is landed and measured.
+
+Shipped in 0.16.0 (all lanes' compiler-side work): Lane A (A1–A5), Lane B
+(B1–B5 compiler routes), Lane C (C1–C4 with instrument recognition), Lane D
+(D1 relevance gate v2), Lane E (E2, E4, E5; E1 real-dates input and E3
+applied PPTX alt-text carry to the next cycle), plus Project Prof itself, the
+twin protocol, and the two twin-proven jumps.
+
+Open at the boundary (tracked in Part 2's exit table): teach-as-is is ~5.1 vs
+the 7.0 bar — the remaining gap is generation-side content richness (B6) and
+further iteration; misconception catch/repair bars await a genome-enriched
+live structured run; adoption ≥50% not met; **the ANCHORED stamp requires at
+least two human Reality Anchor rounds and is explicitly NOT claimed** —
+templates ship ready (`npm run prof -- --arena anchor-template`). Every
+number in the release notes is SIMULATED and labeled as such.
