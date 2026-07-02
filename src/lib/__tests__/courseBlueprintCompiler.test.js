@@ -1599,7 +1599,10 @@ describe('courseBlueprintCompiler', () => {
       readinessCue: expect.stringMatching(/Question-quality memo|Week 1 memo/),
       feedbackUse: expect.stringMatching(/next|later|discussion|synthesis|artifact/i),
       publishGate: 'instructor-spot-check-before-publish',
-      workload: expect.stringContaining('hours including class time'),
+      // v0.15.188: the workload line now shows its breakdown (Prof catch —
+      // a bare "N hours including class time" read as contradictory next to
+      // the visible lesson-plan minutes).
+      workload: expect.stringMatching(/hours this week \(\d+ min in class/),
     });
     expect(syllabus.courseAtAGlance[0].masteryEvidencePlan).toBeUndefined();
     expect(syllabus.courseAtAGlance[0].sourceEvidenceTrace).toBeUndefined();
@@ -5282,7 +5285,7 @@ describe('courseBlueprintCompiler', () => {
       artifactGenre: 'policy-brief',
       expectedFormat: expect.stringContaining('Policy memo checkpoint 1'),
       reviewProtocol: expect.stringContaining('problem definition and authority'),
-      estimatedTime: expect.stringContaining('including class time'),
+      estimatedTime: expect.stringMatching(/hours this week \(\d+ min in class/),
       workload: expect.objectContaining({
         totalStudentMinutes: expect.any(Number),
         outOfClassEstimate: expect.stringContaining('outside class'),

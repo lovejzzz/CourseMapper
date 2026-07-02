@@ -10840,7 +10840,7 @@ function buildWorkloadBalanceAudit({ blueprint, compiledFeatures, compiled }) {
     if (compiledFeatures.includes('syllabus')) {
       const glance = syllabus.courseAtAGlance?.[index] || {};
       const schedule = syllabus.weeklySchedule?.[index] || {};
-      if (!glance.workload || !String(glance.workload).includes('hours including class time')) {
+      if (!glance.workload || !/hours this week \(\d+ min in class/.test(String(glance.workload))) {
         missingFeatures.push('syllabus');
         findings.push(
           makeFinding(
@@ -13585,7 +13585,9 @@ function buildClassroomExcellenceScorecard({
           Number(blueprint.courseWorkload?.workloadReviewCount || 0) === 0 &&
           Array.isArray(syllabus.courseAtAGlance) &&
           syllabus.courseAtAGlance.length === scope &&
-          syllabus.courseAtAGlance.every((row) => String(row.workload || '').includes('hours including class time')) &&
+          syllabus.courseAtAGlance.every((row) =>
+            /hours this week \(\d+ min in class/.test(String(row.workload || '')),
+          ) &&
           fullCoverage(
             arrays.assignments,
             scope,

@@ -2804,6 +2804,24 @@ function buildMissingSignals({
   ].filter(Boolean);
 }
 
+// v0.15.188 (Prof catch): one workload-line format, used everywhere the
+// syllabus/lesson shows student time. It SHOWS the breakdown so an adopter can
+// add the parts to the total (a bare "N hours including class time" read as
+// contradictory next to a lesson plan's visible minutes).
+function formatWorkloadLine({
+  inClassMinutes = 0,
+  beforeClassMinutes = 0,
+  afterClassMinutes = 0,
+  hasAssessment = false,
+}) {
+  const total = inClassMinutes + beforeClassMinutes + afterClassMinutes;
+  if (!total) return '';
+  const totalHours = Math.round((total / 60) * 10) / 10;
+  return `About ${totalHours} hours this week (${inClassMinutes} min in class, ${beforeClassMinutes} min preparing, ${afterClassMinutes} min after class${
+    hasAssessment ? ' including the assessment' : ''
+  })`;
+}
+
 function buildWorkloadEstimate({ resources, hasAssessment, bloomsLevel }) {
   const beforeClassMinutes = resources.length > 0 ? Math.min(75, 20 + resources.length * 8) : 20;
   const afterClassBase = hasAssessment ? 55 : 35;
@@ -2815,9 +2833,9 @@ function buildWorkloadEstimate({ resources, hasAssessment, bloomsLevel }) {
     inClassMinutes,
     afterClassMinutes,
     totalStudentMinutes,
-    studentFacingEstimate: `${Math.round(totalStudentMinutes / 30) / 2} hours including class time`,
+    studentFacingEstimate: formatWorkloadLine({ inClassMinutes, beforeClassMinutes, afterClassMinutes, hasAssessment }),
     rationale: hasAssessment
-      ? 'Includes preparation, live practice, and a concrete post-class artifact.'
+      ? 'Includes preparation, live practice, and a concrete post-class artifact; the after-class figure covers the weekly assessment.'
       : 'Assessment details were sparse, so the after-class estimate stays conservative pending local review.',
   };
 }
@@ -5499,7 +5517,14 @@ function buildCourseWorkload(lessons) {
       workloadFit: classifyOutOfClassWorkload(outOfClassMinutes),
       studentFacingEstimate:
         lesson.workloadEstimate?.studentFacingEstimate ||
-        (totalMinutes ? `${Math.round(totalMinutes / 30) / 2} hours including class time` : ''),
+        (totalMinutes
+          ? formatWorkloadLine({
+              inClassMinutes,
+              beforeClassMinutes,
+              afterClassMinutes,
+              hasAssessment: afterClassMinutes > 35,
+            })
+          : ''),
     };
   });
   const totalOutOfClassMinutes = lessonRows.reduce((sum, row) => sum + row.outOfClassMinutes, 0);
@@ -11902,7 +11927,14 @@ function compactWorkloadEstimate(workload = {}) {
     estimatedHours: total ? Number((total / 60).toFixed(1)) : 0,
     studentFacingEstimate:
       workload.studentFacingEstimate ||
-      (total ? `${Math.round(total / 30) / 2} hours including class time` : 'Instructor-confirmed workload'),
+      (total
+        ? formatWorkloadLine({
+            inClassMinutes,
+            beforeClassMinutes,
+            afterClassMinutes,
+            hasAssessment: afterClassMinutes > 35,
+          })
+        : 'Instructor-confirmed workload'),
   };
 }
 
@@ -17005,6 +17037,11 @@ export function buildQuizAtomsForLesson(lesson, blueprint, options = {}) {
     options.assessment ||
     blueprint.assessments?.find((item) => (item.lessonNumbers || []).includes(lesson.lessonNumber)) ||
     {};
+  // v0.15.188 (Prof catch): "autograded" in the assessment title/artifact is a
+  // machine-scoring PROMISE — the weekly quiz must then be autogradeable
+  // (multiple-choice), never essays/short-answer. Registry titles are
+  // verbatim, so the instructor's own word is authoritative.
+  const machineScored = /\bautograd/i.test(`${assessment.title || ''} ${assessment.artifact || ''}`);
   // v0.14.1: frames 2 and 4 are student-facing content questions built from
   // the lesson's scenario seed and evidence plan — the old instructor-meta
   // frames ("Which instructor question…", "Which feedback move…") shipped
@@ -17062,15 +17099,35 @@ export function buildQuizAtomsForLesson(lesson, blueprint, options = {}) {
       correct: `Test ${secondary} against two pieces of evidence from ${evidenceCue} and keep the one that better supports ${artifact}.`,
       plan: quizPlan[2],
     }),
-    buildShortAnswerQuestion({
-      lesson,
-      index: 3,
-      bloom: quizPlan[3].bloom,
-      objective: quizPlan[3].objective,
-      concept,
-      lens,
-      plan: quizPlan[3],
-    }),
+    // v0.15.188 (Prof catch): when the assessment is AUTOGRADED, the weekly
+    // quiz must be machine-scorable — an essay under an "autograded quiz"
+    // label is a broken promise the deep grader can't see (the course brief
+    // asked for autograded quizzes; the panel flagged essays with no scoring
+    // rule). Slots 3 and 5 hold the constructed-response items; swap them for
+    // multiple-choice when autograded. Exams keep their essay/short-answer
+    // items (a midterm may legitimately be written).
+    machineScored
+      ? buildMultipleChoiceQuestion({
+          lesson,
+          index: 3,
+          bloom: quizPlan[3].bloom,
+          difficulty: quizPlan[3].difficulty,
+          objective: quizPlan[3].objective,
+          concept,
+          use: quizPlan[3].use,
+          prompt: `Which statement most accurately describes ${concept}?`,
+          correct: `${sentenceCase(concept)} is used to ${lowercaseSentenceLead(stripTerminalPunctuation(quizPlan[3].objective || `support the work in ${artifact}`))}.`,
+          plan: quizPlan[3],
+        })
+      : buildShortAnswerQuestion({
+          lesson,
+          index: 3,
+          bloom: quizPlan[3].bloom,
+          objective: quizPlan[3].objective,
+          concept,
+          lens,
+          plan: quizPlan[3],
+        }),
     buildMultipleChoiceQuestion({
       lesson,
       index: 4,
@@ -17088,15 +17145,28 @@ export function buildQuizAtomsForLesson(lesson, blueprint, options = {}) {
       ]),
       plan: quizPlan[4],
     }),
-    buildEssayQuestion({
-      lesson,
-      index: 5,
-      bloom: quizPlan[5].bloom,
-      objective: quizPlan[5].objective,
-      concept,
-      lens,
-      plan: quizPlan[5],
-    }),
+    machineScored
+      ? buildMultipleChoiceQuestion({
+          lesson,
+          index: 5,
+          bloom: quizPlan[5].bloom,
+          difficulty: quizPlan[5].difficulty,
+          objective: quizPlan[5].objective,
+          concept: secondary,
+          use: quizPlan[5].use,
+          prompt: `A classmate applies ${secondary} while preparing ${artifact}. Which choice best uses it correctly?`,
+          correct: `Apply ${secondary} to a concrete detail from ${evidenceCue}, then revise the ${artifact} decision it changes.`,
+          plan: quizPlan[5],
+        })
+      : buildEssayQuestion({
+          lesson,
+          index: 5,
+          bloom: quizPlan[5].bloom,
+          objective: quizPlan[5].objective,
+          concept,
+          lens,
+          plan: quizPlan[5],
+        }),
   ];
   const framed = atoms.slice(0, targetCount).map((atom, index) => ({ ...atom, id: quizQuestionId(lesson, index) }));
   // v0.14.1 (5.4) Bloom honesty: the tag follows the stem verb of the FINAL
