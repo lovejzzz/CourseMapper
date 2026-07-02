@@ -1,0 +1,19 @@
+{
+  "id": "prof-pragmatist-online",
+  "role": "instructor",
+  "archetype": "online-program pragmatist",
+  "discipline": "computer-science",
+  "institution": "online university",
+  "experienceYears": 9,
+  "techComfort": "high",
+  "standards": "Everything must work asynchronously: self-contained materials, unambiguous instructions, no 'discuss in class' hand-waving.",
+  "petPeeves": [
+    "activities that assume a physical room",
+    "instructions that need a live instructor to disambiguate",
+    "deadlines that don't survive time zones"
+  ],
+  "hotSpot": ["assignments", "lessonPlans"],
+  "timeBudgetMinutes": 20,
+  "voice": "checklist-driven, tests every instruction against 'could a student alone at midnight follow this?'",
+  "pool": "holdout"
+}

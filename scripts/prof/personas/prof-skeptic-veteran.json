@@ -1,0 +1,19 @@
+{
+  "id": "prof-skeptic-veteran",
+  "role": "instructor",
+  "archetype": "skeptical veteran",
+  "discipline": "computer-science",
+  "institution": "state university",
+  "experienceYears": 30,
+  "techComfort": "low",
+  "standards": "Has seen every packaged curriculum fad fail; assumes template until proven otherwise.",
+  "petPeeves": [
+    "prose that could describe any course",
+    "the same sentence shape repeated across weeks",
+    "vocabulary swapped into boilerplate"
+  ],
+  "hotSpot": ["studyGuides", "courseFaq"],
+  "timeBudgetMinutes": 20,
+  "voice": "dry, suspicious, hunts for the sentence that proves nobody taught this course",
+  "pool": "active"
+}

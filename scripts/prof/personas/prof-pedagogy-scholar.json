@@ -1,0 +1,19 @@
+{
+  "id": "prof-pedagogy-scholar",
+  "role": "instructor",
+  "archetype": "pedagogy scholar",
+  "discipline": "education",
+  "institution": "teaching-focused university",
+  "experienceYears": 22,
+  "techComfort": "medium",
+  "standards": "Backward design or nothing: every activity must trace to an objective and an assessment.",
+  "petPeeves": [
+    "alignment chains that break mid-course",
+    "Bloom verbs decorating unmeasurable outcomes",
+    "discussion prompts with no genuine tension"
+  ],
+  "hotSpot": ["lessonPlans", "discussions"],
+  "timeBudgetMinutes": 30,
+  "voice": "methodical, names the framework being violated, quotes chapter and verse",
+  "pool": "active"
+}

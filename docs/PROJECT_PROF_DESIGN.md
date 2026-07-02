@@ -732,6 +732,34 @@ regardless) and stop spending on persona arenas; it does not mean deleting code.
 6. Reality Anchor recruitment: 3 instructors minimum per round, same-package
    overlap of 2?
 
+## Appendix A — As-built deltas (P0, July 2, 2026)
+
+- **Single-family model seats.** No Anthropic/Google API keys exist on the build
+  machine; seats run gpt-5.4 + gpt-5.4-mini (in-family diversity only). The
+  cross-family requirement (§4d) is pending keys; every scenario file carries a
+  `modelSeatNote` stating the same-family correlation risk, and all current
+  verdicts inherit it.
+- **Anchored teach-as-is scale (instrument fix, pre-declared kill discipline).**
+  The first N=9 instrument run bottom-compressed: every persona floored both
+  calibration fixtures at 1/10 (CIs overlapped; variance kill threatened). One
+  fix was attempted per §13.1 — behavioral anchors on the 1–10 scale (work
+  required, not mood). Post-fix: known-bad 1.67 (CI 1.28–2.05) vs known-good
+  2.89 (CI 2.18–3.60) — **non-overlapping; variance kill evaluated and PASSED.**
+- **Standing N = 7** for adoption panels, chosen from measured data: the first
+  course-mode term at N=7 produced CI width 1.46 against the ≤1.5 launch-bar
+  requirement. N=9 stays reserved for calibration runs.
+- **Calibration pair is bottom-anchored.** Known-good = the best CourseMapper
+  output (the 99/A zero-defect live round), NOT a human-authored excellent
+  package — so the pair calibrates the low end of the scale only. A
+  known-excellent human-authored fixture remains open (§14) before scores near
+  the top of the scale can be trusted.
+- **First course-mode numbers** (term-2026-07-02T06-36-06-943Z, N=7, $0.29):
+  teach-as-is **3.43 (CI 2.70–4.16)**, adoption rate **0%**, 71 quote-backed
+  findings. The panel lands between "a few salvageable pieces" and "usable
+  skeleton" — statistically consistent with the advisory judge's long-standing
+  "too templated to teach as-is" and the 43% grounding measurement. The launch
+  gap now has a confidence interval.
+
 ---
 
 _Naming: runs are "terms," the report is the "Prof Report," a package that clears

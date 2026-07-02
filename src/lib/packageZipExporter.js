@@ -1745,6 +1745,10 @@ export async function buildCourseMaterialsZip({
       quality: qualityBlock,
       qualityResult,
       qualityReportMarkdown,
+      // v0.15.187 Project Prof: assemble-only callers (headless harnesses)
+      // get the in-memory file map so they can run the grader's own
+      // extraction over the REAL export binaries — the Artifact Bridge.
+      fileContents,
     };
   }
 

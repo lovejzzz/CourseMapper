@@ -64,7 +64,8 @@
     "audit:deliverables": "vitest run tests/deliverable-quality-audit.test.js",
     "audit:agent:openai": "vitest run tests/agent-openai.test.js",
     "audit:agent": "vitest run tests/agent-anthropic.test.js tests/agent-multi-turn.test.js tests/agent-quality-probe.test.js tests/agent-content-quality.test.js tests/agent-prose-regression.test.js tests/cache-smoke.test.js tests/agent-skill-nudge.test.js tests/partial-failure-recovery.test.js",
-    "curriculumos:proof": "npx vite-node scripts/curriculumosHeadlessProof.mjs"
+    "curriculumos:proof": "npx vite-node scripts/curriculumosHeadlessProof.mjs",
+    "prof": "node scripts/prof.mjs"
   },
   "dependencies": {
     "@codemirror/commands": "^6.10.3",
