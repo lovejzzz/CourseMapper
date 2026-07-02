@@ -6954,7 +6954,7 @@ function promptLabeledArtifactReplacer(replacement) {
   const base = artifactLabelReplacer(replacement);
   return (match, offset, full) => {
     const before = String(full).slice(0, offset);
-    const endsWithWord = /[A-Za-z0-9][  ]$/.test(before.slice(-2)) || /[A-Za-z0-9-]$/.test(before);
+    const endsWithWord = /[A-Za-z0-9][ \u00A0]$/.test(before.slice(-2)) || /[A-Za-z0-9-]$/.test(before);
     if (endsWithWord && !LABEL_PRECEDING_WORD_ALLOW_RE.test(before)) return match;
     return base(match);
   };
