@@ -95,7 +95,6 @@ export function runClassroomArenaZeroToken({ structured, preset = 'cc-night-clas
 
   // Findings, in the grader's severity vocabulary.
   const findings = [];
-  const summary = battery.itemSummary;
   const degenerate = battery.realistic.itemStats.filter((item) => item.degenerate);
   if (degenerate.length > 0) {
     const giveaways = degenerate.filter((item) => item.degenerate === 'giveaway');

@@ -162,7 +162,9 @@ async function main() {
     });
     const midLesson = lessonNumbers[Math.floor(lessonNumbers.length / 2)];
     const materials =
-      structured.mouthMaterials?.byLesson?.[String(midLesson)] || structured.mouthMaterials?.byLesson?.[midLesson] || {};
+      structured.mouthMaterials?.byLesson?.[String(midLesson)] ||
+      structured.mouthMaterials?.byLesson?.[midLesson] ||
+      {};
     const taRoundTrip =
       materials.briefText && materials.rubricText
         ? await runTaRoundTrip({
@@ -246,7 +248,10 @@ async function main() {
       spend: { capUsd: spend.capUsd, spentUsd: spend.spentUsd, callCount: spend.callCount },
     };
     await fs.writeFile(path.join(termDir, 'term-result.json'), JSON.stringify(result, null, 2));
-    await fs.writeFile(path.join(termDir, 'seminar-transcript.json'), JSON.stringify(seminar.transcript || [], null, 2));
+    await fs.writeFile(
+      path.join(termDir, 'seminar-transcript.json'),
+      JSON.stringify(seminar.transcript || [], null, 2),
+    );
     console.log(
       `[prof] a2mouth · questions ${heatmap.questionsAsked} · FAQ hit ${heatmap.faqHitRate} · TA bands ${JSON.stringify(taRoundTrip.bands || {})} · seminar ${seminar.deadPrompt ? 'DEAD' : 'alive'} (${seminar.turns ?? 0} turns)`,
     );
@@ -255,6 +260,85 @@ async function main() {
     );
     for (const finding of findings) console.log(`  [${finding.severity}] ${finding.detail}`);
     console.log(`[prof] spend $${spend.spentUsd.toFixed(3)} of $${spend.capUsd}`);
+    return;
+  }
+
+  if (args.arena === 'a4' || args.arena === 'a5' || args.arena === 'anchor') {
+    const meter = new SpendMeter({ capUsd: term.capUsd });
+    const result = { term, scenario: { id: scenario.id }, findings: [], spend: null };
+
+    if (args.arena === 'anchor') {
+      // Instrument-mode only: the student model's own psychometric anchor.
+      const { runCs1Anchor } = await import('./prof/student/calibrationAnchor.mjs');
+      const anchorResult = runCs1Anchor({ seed: term.seed });
+      result.anchor = anchorResult;
+      console.log(
+        `[prof] anchor cs lane: Spearman ${anchorResult.spearman} → ${anchorResult.anchored ? 'ANCHORED' : 'NOT anchored'} (tier ${anchorResult.tier})`,
+      );
+      for (const item of anchorResult.items)
+        console.log(`  ${item.itemId}: human ${item.humanDifficulty} / sim ${item.simDifficulty}`);
+    }
+
+    if (args.arena === 'a5') {
+      // Mostly zero-token structural + injection scan.
+      const graphLib = await import(
+        pathToFileURL(path.join(repoRoot, 'src/lib/courseGraph/deriveFromCourseMap.js')).href
+      );
+      const bpLib = await import(pathToFileURL(path.join(repoRoot, 'src/lib/courseGraph/blueprintFromGraph.js')).href);
+      const compilerLib = await import(pathToFileURL(path.join(repoRoot, 'src/lib/courseBlueprintCompiler.js')).href);
+      const { runChaosProbe, runInjectionScan } = await import('./prof/arenas/adversary.mjs');
+      const deps = {
+        deriveCourseGraphFromCourseMap: graphLib.deriveCourseGraphFromCourseMap,
+        buildBlueprintFromGraph: bpLib.buildBlueprintFromGraph,
+        compileBlueprintDeliverables: compilerLib.compileBlueprintDeliverables,
+      };
+      const chaos = await runChaosProbe(deps);
+      const injection = runInjectionScan(deps);
+      result.chaos = chaos.results;
+      result.injection = injection.details;
+      result.findings.push(...chaos.findings, ...injection.findings);
+      console.log(
+        `[prof] a5 chaos: ${chaos.results.map((r) => `${r.id}${r.threw ? '=THREW' : `=${r.compiled}feat`}`).join(' ')}`,
+      );
+      console.log(
+        `[prof] a5 injection: ${injection.details.filter((d) => d.survived).length}/${injection.details.length} survived (0 is required)`,
+      );
+    }
+
+    if (args.arena === 'a4') {
+      const packageDir = path.isAbsolute(scenario.packageDir)
+        ? scenario.packageDir
+        : path.join(repoRoot, scenario.packageDir);
+      const extracted = await extractPackageDir(packageDir);
+      const normalizedCorpus = normalizeForQuoteMatch(extracted.files.map((file) => file.text).join('\n'));
+      const ledger = new VerdictLedger({ termDir, normalizedCorpus });
+      const workloadAccount = buildWorkloadAccount(extracted);
+      const { runDepartmentPanel } = await import('./prof/arenas/department.mjs');
+      const panel = await runDepartmentPanel({
+        extracted,
+        workloadAccount,
+        model: scenario.modelSeats?.[0] || 'gpt-5.4-mini',
+        meter,
+        ledger,
+      });
+      await ledger.flush();
+      const panelFindings = panel.flatMap((r) => (r.findings || []).map((f) => ({ ...f, lens: r.lens })));
+      result.department = panel.map((r) => ({ lens: r.lens, findings: (r.findings || []).length, error: r.error }));
+      result.findings.push(...panelFindings);
+      console.log(
+        `[prof] a4 department panel: ${panel.map((r) => `${r.lens}=${(r.findings || []).length}`).join(' · ')}`,
+      );
+    }
+
+    const spend = meter.summary();
+    result.spend = { capUsd: spend.capUsd, spentUsd: spend.spentUsd, callCount: spend.callCount };
+    await fs.writeFile(path.join(termDir, 'term-result.json'), JSON.stringify(result, null, 2));
+    for (const finding of result.findings)
+      console.log(
+        `  [${finding.severity}] ${finding.detail || finding.objection || ''}${finding.quote ? ` — "${String(finding.quote).slice(0, 80)}"` : ''}`,
+      );
+    console.log(`[prof] findings ${result.findings.length} · spend $${spend.spentUsd.toFixed(3)} of $${spend.capUsd}`);
+    console.log(`[prof] result: ${path.relative(repoRoot, path.join(termDir, 'term-result.json'))}`);
     return;
   }
 
@@ -306,7 +390,14 @@ async function main() {
     scenario: { id: scenario.id, packageDir: scenario.packageDir },
     kpis,
     findings,
-    workloadAccount: { ...workloadAccount, weeks: workloadAccount.weeks.map(({ sources, ...week }) => week) },
+    workloadAccount: {
+      ...workloadAccount,
+      weeks: workloadAccount.weeks.map((week) => {
+        const copy = { ...week };
+        delete copy.sources;
+        return copy;
+      }),
+    },
     pairAgreement,
     ledger: ledgerStats,
     errors,

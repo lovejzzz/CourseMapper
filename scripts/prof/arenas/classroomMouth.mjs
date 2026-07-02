@@ -6,8 +6,7 @@
  * rendered performance.
  */
 
-import { sampleCohort } from '../student/cohortFactory.mjs';
-import { buildMisconceptionCast, normalizeTerm } from '../student/misconceptionCast.mjs';
+import { normalizeTerm } from '../student/misconceptionCast.mjs';
 import { createMind, applyExposure } from '../student/studentMind.mjs';
 import { buildKnowledgeCard, renderPerformance, detectLeakage } from '../student/performanceEngine.mjs';
 import { callModel, parseModelJson } from '../modelClient.mjs';

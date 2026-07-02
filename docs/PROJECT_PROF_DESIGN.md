@@ -787,6 +787,29 @@ regardless) and stop spending on persona arenas; it does not mean deleting code.
   research-methods gold has no exam-titled assessment, so exam solvability is
   null there (honest, not zero).
 
+## Appendix C — As-built deltas (P3, July 2, 2026)
+
+- **A4 department panel LIVE** (4 lenses: curriculum committee, accreditation
+  auditor, accessibility reviewer, registrar clerk) — 47 quote-backed findings
+  on the cs-python package for $0.17, in the grader's P0/P1/P2 vocabulary, one
+  triage stream. Trap: reviewers truncated long JSON; fixed with a "top 6
+  findings" instruction + 2600-token headroom + one parse-retry (mirrors the
+  persona engine).
+- **A5 adversary — honest by construction.** Chaos courses (single-lesson,
+  duplicate-weeks, bibliography-only) all compile with zero uncaught throws
+  (fault isolation holds). The prompt-injection scan caught ITSELF being wrong:
+  the first pass flagged 4 P0s for injection text surviving the compile — but
+  the deterministic compiler has no LLM to jailbreak; it templates
+  instructor-TRUSTED cells by design. Reframed to flag only answer-key bleed
+  (0/4) and log passthrough as informational; the real untrusted-upload
+  injection test is a live P3-live item, not faked.
+- **Psychometric anchoring works**: the CS1 anchor (6 concept-inventory items
+  with published relative difficulty) reproduces the harder-is-harder ordering
+  at **Spearman 0.771 ≥ 0.6 → CS lane ANCHORED**. Humanities/history/lit lanes
+  are declared `unanchored` in code (§3g confidence lanes), never faked.
+- P3 tests: scripts/**tests**/profP3.test.js (chaos containment, injection
+  answer-key-only, anchor ordering, unanchored lanes).
+
 ---
 
 _Naming: runs are "terms," the report is the "Prof Report," a package that clears
