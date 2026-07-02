@@ -810,6 +810,39 @@ regardless) and stop spending on persona arenas; it does not mean deleting code.
 - P3 tests: scripts/**tests**/profP3.test.js (chaos containment, injection
   answer-key-only, anchor ordering, unanchored lanes).
 
+## Appendix D — As-built deltas (P4, July 2, 2026)
+
+- **Reality Anchor machinery built** (human rounds themselves out of scope —
+  they need real instructors): `humanAnchorTemplate` emits the exact
+  persona-verdict schema for a beta instructor to fill;
+  `computeSimToRealAgreement` yields tier agreement, teach-as-is delta, and
+  objection overlap; `anchorFreshness` trips the UNANCHORED stamp with no
+  rounds or when the newest is >2 releases behind. `prof --arena
+anchor-template` writes the blank to hand an instructor.
+- **Longitudinal roll-up** (`prof --arena rollup`): scans every
+  term-result.json, course-mode only (instrument-mode quarantined), trends
+  adoption + classroom KPIs. First roll-up over this session's terms: 12
+  course terms, latest teach-as-is 3.43.
+- **prof:gauntlet** composes the headless arenas (A5, anchor, A2×2, A1×7-universe,
+  A4) as budgeted child invocations under one cap, aggregates spend +
+  findings, and writes a launch-bar report + roll-up. A3 (live browser) stays
+  a separate invocation by design. Runnable and syntax-clean; a full paid run
+  is a campaign decision (est. $10–15), not part of the build.
+- P4 tests: scripts/**tests**/profP4.test.js (template schema, agreement math,
+  freshness stamp, course-mode-only roll-up).
+
+## Status: P0–P3 complete + P4 machinery — Project Prof is built
+
+All five arenas run; the student mind is a calibrated state machine; the
+multiverse collapses verdicts into statistics; every deterministic module is
+unit-tested (four prof test files, ~68 assertions in the full suite); the
+campaign spent well under budget. The standing verdict on CourseMapper from
+its own simulated academy: **defect-free by the grader, ~3.4/10 teach-as-is by
+the simulated adoption panel, ~19% genome-testable coverage, 0% misconception
+repair, 25–36% compliance-fragile** — the launch gap, now measured. What
+remains is not build but USE: campaigns that fix what Prof surfaced, and the
+human Reality Anchor rounds that calibrate Prof against real instructors.
+
 ---
 
 _Naming: runs are "terms," the report is the "Prof Report," a package that clears

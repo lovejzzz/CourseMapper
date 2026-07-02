@@ -78,6 +78,30 @@ async function main() {
   const termDir = path.join(repoRoot, 'verification-output', 'prof', term.termId);
   await fs.mkdir(termDir, { recursive: true });
 
+  if (args.arena === 'rollup') {
+    const { collectTerms, rollUp, renderRollUp } = await import('./prof/longitudinal.mjs');
+    const profDir = path.join(repoRoot, 'verification-output', 'prof');
+    const terms = await collectTerms(profDir);
+    const rollup = rollUp(terms);
+    await fs.writeFile(path.join(termDir, 'rollup.json'), JSON.stringify(rollup, null, 2));
+    await fs.writeFile(path.join(termDir, 'ROLLUP.md'), renderRollUp(rollup));
+    console.log(
+      `[prof] rollup: ${rollup.courseTerms} course terms · latest teach-as-is ${rollup.latestAdoption?.teachAsIs ?? 'n/a'}`,
+    );
+    console.log(`[prof] result: ${path.relative(repoRoot, path.join(termDir, 'ROLLUP.md'))}`);
+    return;
+  }
+
+  if (args.arena === 'anchor-template') {
+    const { humanAnchorTemplate } = await import('./prof/realityAnchor.mjs');
+    const template = humanAnchorTemplate({ scenarioId: scenario.id, packageDir: scenario.packageDir });
+    const outPath = path.join(termDir, 'human-anchor-template.json');
+    await fs.writeFile(outPath, JSON.stringify(template, null, 2));
+    console.log(`[prof] human anchor template written for ${scenario.id}`);
+    console.log(`[prof] hand this to a beta instructor: ${path.relative(repoRoot, outPath)}`);
+    return;
+  }
+
   if (args.arena === 'a2') {
     // Zero-token classroom (P1): pure arithmetic, no meter, no API.
     const { runClassroomArenaZeroToken } = await import('./prof/arenas/classroom.mjs');
