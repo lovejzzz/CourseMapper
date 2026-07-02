@@ -1,6 +1,7 @@
-# Project Prof — Design Document (Rev 3)
+# Project Prof — Design Document (Rev 4)
 
 _Status: DRAFT for review · July 2, 2026 · owner: CourseMapper core_
+_Rev 4 (external review, adopted): per-phase success sentences; term modes (instrument vs course validation); P1 trimmed to the arithmetic MVP; per-discipline calibration confidence lanes; kill criteria._
 _Rev 3: the Student Model (§3) — minds as state machines, LLMs as mouths; cohorts as distributions; psychometrics, confusion heatmaps, and mastery-delta A/B._
 _Rev 2: multiverse execution model; Reality Gap analysis + Reality Anchor._
 _Prereq reading: `docs/V0.15.187_LIVE_PROVEN_COMPILER_ROADMAP.md`, `scripts/crucible.mjs`, `scripts/professor-adoption/adoptionVerdict.mjs`_
@@ -261,6 +262,10 @@ behave like they do in real learners:
 - **Propagation**: unrepaired, they contaminate downstream concepts that build on
   them (§3b), so an early unaddressed misconception shows up as a week-9 cohort
   collapse — precisely how it happens in rooms.
+- **Build order note (external review, adopted)**: static seeding + distractor
+  matching ship in P1 (the zero-token layer needs them); propagation,
+  contamination, and genesis are P2 — the dynamics earn their complexity only
+  after the arithmetic layer proves useful.
 - **The headline finding this enables**: "this course never repairs
   `mis-dict-positional`, the field's most common misconception for this topic —
   62% of the simulated cohort finishes still holding it." No current instrument
@@ -326,6 +331,14 @@ the C2 lesson taught us.
   items, documented CS1 misconception studies). Trait distributions are tuned
   until simulated item-difficulty **rank-correlates** with published human
   difficulty. We tune to public human data, never to our own courses.
+- **Per-discipline confidence lanes (formal, not ad hoc)**: every cohort claim
+  carries the discipline's calibration tier — **anchored** (published
+  instruments exist and rank-correlation passed: CS, physics-adjacent STEM),
+  **partially anchored** (adjacent-discipline instruments borrowed, stated), or
+  **unanchored** (humanities and other thin-anchor fields). Unanchored-lane
+  claims render with the tier in the finding itself and are excluded from launch
+  bars — they are directional input, never evidence. The lane assignment lives
+  in the scenario file, so nobody decides it at report-writing time.
 - **Emergent-statistics sanity**: grade distributions must look like grade
   distributions (nobody's cohort averages 96%); discrimination indices in
   realistic ranges; time-on-task from the workload accountant within plausible
@@ -620,16 +633,46 @@ Report links it.
 
 ## 11. Phased build
 
-| Phase                                         | Scope                                                                                                                                                                                                          | Deliverable                                                                            | Est. effort                |
-| --------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------- | -------------------------- |
-| **P0 — Multiverse + Adoption**                | Orchestrator, universe record, persona engine + calibration gate, 6 instructor cards, workload accountant, collapse stage, A1 on existing crucible ZIPs, **N=9 variance run**                                  | First adoption rate ± CI on real packages; standing N chosen from data; triage stream  | ~4 sessions                |
-| **P1 — The Student Mind**                     | `studentMind` + `learningRules.json`, cohort factory + presets, engagement sampler, genome misconception seeding, **zero-token layer**: MC psychometrics, solvability, pacing, compliance, repair rate         | The first system-level assessment test — mostly free to run; `prof:classroom` scenario | ~4 sessions                |
-| **P2 — The Mouth + Semester**                 | Performance engine + quarantine + leakage audit, confusion heatmap → FAQ hit rate, TA round-trip, discussion seminar; semester clock, timeline universes, A3 live, edit-survival, cohort-triggered disruptions | Full A2/A3; dead-prompt and FAQ-demand findings; lifecycle proof                       | ~5 sessions                |
-| **P3 — Department + Adversary + Calibration** | A4 panel, A5 suite, **student-model psychometric anchoring** (published instruments, rank-correlation)                                                                                                         | Institutional findings; a student model with a measured error bar                      | ~4 sessions                |
-| **P4 — Anchor + Longitudinal**                | Reality Anchor protocol + agreement KPI, holdout milestone runs, roll-up dashboard, `prof:gauntlet`, launch-bar report                                                                                         | The go/no-go instrument for v1.0, calibrated against real instructors                  | ~2 sessions + beta program |
+Every phase ships behind a **one-sentence success criterion** — the vertical
+slice is defined before the code, and the phase is not done until the sentence is
+demonstrably true.
 
-P0 and most of P1 need zero new generation spend: they run against ZIPs already in
+**P0 succeeds when:** three instructor personas across N universes produce
+quote-backed adoption findings on one real exported crucible package, collapsed
+into a single agreement-scored ledger, with workload-accountant evidence
+attached — and the N=9 variance run has produced a measured CI.
+
+**P1 succeeds when:** the zero-token layer, run over two existing packages,
+produces item-difficulty/discrimination tables, pacing-overflow and
+compliance-robustness findings, and at least one actionable course finding no
+existing instrument had surfaced.
+
+| Phase                                         | Scope                                                                                                                                                                                                                                                                                                                     | Deliverable                                                           | Est. effort                |
+| --------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------- | -------------------------- |
+| **P0 — Multiverse + Adoption**                | Orchestrator, universe record + **term mode** (below), persona engine + calibration gate, 6 instructor cards, workload accountant, collapse stage, A1 on existing crucible ZIPs, **N=9 variance run**                                                                                                                     | The P0 sentence above; standing N chosen from data; triage stream     | ~4 sessions                |
+| **P1 — The Student Mind (arithmetic only)**   | `studentMind` + `learningRules.json`, cohort factory + presets, engagement sampler, **static** genome misconception seeding (needed for distractor matching), zero-token layer: MC psychometrics, solvability, prerequisite caps, pacing, compliance, decay                                                               | The P1 sentence above; `prof:classroom` scenario                      | ~3 sessions                |
+| **P2 — Dynamics + Mouth + Semester**          | Misconception **propagation/contamination + genesis** (deferred until the arithmetic layer proves useful), performance engine + quarantine + leakage audit, confusion heatmap → FAQ hit rate, TA round-trip, discussion seminar; semester clock, timeline universes, A3 live, edit-survival, cohort-triggered disruptions | Full A2/A3; dead-prompt and FAQ-demand findings; lifecycle proof      | ~5 sessions                |
+| **P3 — Department + Adversary + Calibration** | A4 panel, A5 suite, **student-model psychometric anchoring** (published instruments, rank-correlation, per-discipline confidence lanes)                                                                                                                                                                                   | Institutional findings; a student model with a measured error bar     | ~4 sessions                |
+| **P4 — Anchor + Longitudinal**                | Reality Anchor protocol + agreement KPI, holdout milestone runs, roll-up dashboard, `prof:gauntlet`, launch-bar report                                                                                                                                                                                                    | The go/no-go instrument for v1.0, calibrated against real instructors | ~2 sessions + beta program |
+
+P0 and P1 need zero new generation spend: they run against ZIPs already in
 `verification-output/crucible/`, and the student mind is arithmetic.
+
+### Term modes: instrument validation vs course validation
+
+Every term declares — in its record, its spend ledger, and its report headline —
+**what is under test**:
+
+- `mode: "instrument"` — testing Project Prof itself: calibration gates, the N=9
+  variance run, leakage audits, persona-correlation measurement, anchored-item
+  runs. Course findings produced in instrument mode are **quarantined** — they
+  inform nothing until reproduced in a course-mode term.
+- `mode: "course"` — testing CourseMapper output with a validated instrument.
+  Only course-mode findings enter the triage stream and KPI history.
+- `mode: "both"` is deliberately **not allowed**. When a run would serve both
+  purposes, it runs twice under the two modes (the instrument half is usually
+  free). The design knows this distinction; this rule exists because
+  implementation pressure will otherwise blur it within a week.
 
 ## 12. Risks
 
@@ -644,7 +687,38 @@ P0 and most of P1 need zero new generation spend: they run against ZIPs already 
 | A3 browser flakiness                              | Crucible retry/forensics inheritance; milestone cadence                                                                         |
 | Genome misconception coverage gaps                | Sim-coverage KPI reported honestly; gaps feed the genome roadmap                                                                |
 
-## 13. Open questions (decide at P0/P1 review)
+## 13. Kill criteria
+
+Prof is an instrument; instruments that don't measure get decommissioned, not
+defended. These are decided in advance so the decision can't be negotiated with
+sunk costs later. "Kill" means **fall back to the free deterministic layer**
+(workload accountant, psychometrics, pacing — which keep running in CI
+regardless) and stop spending on persona arenas; it does not mean deleting code.
+
+1. **Variance kill (at P0)**: if the N=9 instrument-mode run cannot separate the
+   known-excellent fixture from the known-bad mail-merge fixture with
+   non-overlapping CIs, the adoption arena does not proceed to course mode —
+   redesign or stop before any campaign spends on opinions that can't
+   discriminate.
+2. **Usefulness kill (at P1)**: if the zero-token layer, run over the existing
+   package corpus, surfaces no actionable course finding that existing
+   instruments hadn't already surfaced, stop before P2 — the student model's
+   premise failed cheaply, as designed.
+3. **Leakage kill (at P2)**: if mouth leakage stays ≥ 5% after prompt fixes, the
+   validator postcheck, and one model swap, suspend all mouth-based instruments
+   (essays, seminars, FAQ heatmap) and keep only the arithmetic layer. A leaky
+   quarantine produces confident nonsense.
+4. **Prediction kill (at P4, the big one)**: if after two Reality Anchor rounds
+   Prof's quote-backed adoption verdicts agree with real instructors below 50%
+   tier agreement — and persona fixes between rounds fail to close the gap —
+   the persona arenas are decommissioned as validators. A simulation that does
+   not predict humans is a cost, whatever its internal elegance.
+5. **Goodhart kill (standing)**: if active-pool KPIs improve across a campaign
+   while the holdout pool's do not (twice consecutively), freeze all Prof-driven
+   development until the divergence is explained — the instrument, not the
+   product, is what improved.
+
+## 14. Open questions (decide at P0/P1 review)
 
 1. N=9 variance run: one discipline or two (CS + one humanities)?
 2. Answer-key disagreements: separate stream until precision ≥ 90%, then auto-file
