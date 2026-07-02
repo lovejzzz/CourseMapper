@@ -1465,6 +1465,12 @@ export default function useDeliverables({
               signatureTerms: absorbedCourseLevel?.signatureTerms || [],
               lens: absorbedCourseLevel?.lens || null,
               styleNotes: absorbedCourseLevel?.styleNotes || [],
+              // v0.15.187 dictionary retirement (slice 1): the authored
+              // course discussion protocol rides beside the lens; the
+              // compiler prefers it over the genre dictionary.
+              ...(absorbedCourseLevel?.discussionProtocol
+                ? { discussionProtocol: absorbedCourseLevel.discussionProtocol }
+                : {}),
               quality: absorbedCourseLevel?.quality || { source: 'native-pass-b' },
               lessonContent,
               coverage: {

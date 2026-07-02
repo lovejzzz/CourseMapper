@@ -280,6 +280,41 @@ describe('kernel studyGuide body (v0.15.187)', () => {
   });
 });
 
+describe('kernel-authored discussion protocol (v0.15.187 dictionary retirement, slice 1)', () => {
+  it('a complete authored course protocol beats the genre dictionary', () => {
+    const enrichment = {
+      source: 'metric-test',
+      discussionProtocol: {
+        format: 'Corroboration Panel',
+        participationPattern:
+          'claim posting, source-independence check, corroboration ruling, dissent registration, and revised verdict',
+        artifactUse: 'Students inspect the paired sources behind each posted claim before ruling on corroboration.',
+        reviewFocus: 'source independence, method difference, ruling justification, and dissent quality',
+      },
+    };
+    const blueprint = buildCourseBlueprint(GENERIC_COURSE, { enrichment });
+    const compiled = compileBlueprintDeliverables(blueprint, ['discussions'], {});
+    const discussion = compiled.discussions.discussions[0];
+    expect(discussion.discussionProtocol.format).toBe('Corroboration Panel');
+    expect(discussion.discussionProtocol.participationPattern).toContain('source-independence check');
+    expect(discussion.discussionProtocol.reviewFocus).toContain('method difference');
+    // The audit gate's consistency contract still holds on the authored path.
+    expect(discussion.format).toBe('Corroboration Panel');
+    expect(discussion.sourceGrounding.discussionProtocol.format).toBe('Corroboration Panel');
+    expect(discussion.guidelines).toContain(discussion.discussionProtocol.participationPattern);
+  });
+
+  it('incomplete authored protocols fall back to the dictionary', () => {
+    const enrichment = {
+      source: 'metric-test',
+      discussionProtocol: { format: 'Half-Baked Panel' },
+    };
+    const blueprint = buildCourseBlueprint(GENERIC_COURSE, { enrichment });
+    const compiled = compileBlueprintDeliverables(blueprint, ['discussions'], {});
+    expect(compiled.discussions.discussions[0].discussionProtocol.format).not.toBe('Half-Baked Panel');
+  });
+});
+
 describe('package grounded fraction end to end', () => {
   it('reports zero grounding without enrichment and >0 for enriched quiz banks', () => {
     const bare = buildCourseBlueprint(GENERIC_COURSE);

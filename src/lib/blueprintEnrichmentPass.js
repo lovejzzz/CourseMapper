@@ -1130,6 +1130,12 @@ const KERNEL_COURSE_LEVEL_SCHEMA = {
       exampleNoun: 'specific scenario/example noun',
     },
     styleNotes: ['1-4 short style rules for this course'],
+    discussionProtocol: {
+      format: 'the named discussion format this discipline actually uses (e.g. "Case Decision Board", "Proof Clinic")',
+      participationPattern: '4-6 comma-separated moves in the order students perform them, in disciplinary language',
+      artifactUse: 'one sentence: what students inspect or produce during the exchange',
+      reviewFocus: 'comma-separated qualities the instructor listens for, specific to this discipline',
+    },
   },
 };
 
@@ -1248,6 +1254,28 @@ export function normalizeAbsorbedCourseLevel(courseLevel, payload) {
     .map((note) => truncateText(note, 160))
     .filter(Boolean)
     .slice(0, 4);
+  // v0.15.187 dictionary retirement (slice 1): the kernel may author the
+  // course's OWN discussion protocol; when complete, the compiler prefers it
+  // over the 34-genre dictionary (which becomes the validation fallback).
+  const protocolSource =
+    courseLevel.discussionProtocol && typeof courseLevel.discussionProtocol === 'object'
+      ? courseLevel.discussionProtocol
+      : {};
+  const discussionProtocol = Object.fromEntries(
+    [
+      ['format', 60],
+      ['participationPattern', 260],
+      ['artifactUse', 260],
+      ['reviewFocus', 260],
+    ]
+      .map(([key, max]) => [key, truncateText(protocolSource[key], max)])
+      .filter(([, value]) => value),
+  );
+  const protocolComplete =
+    Boolean(discussionProtocol.format) &&
+    Boolean(discussionProtocol.participationPattern) &&
+    Boolean(discussionProtocol.artifactUse) &&
+    Boolean(discussionProtocol.reviewFocus);
   const grounded = payload ? countVocabularySignals({ signatureTerms, lens }, sourceVocabulary(payload)) : 1;
   if (signatureTerms.length === 0 && Object.keys(lens).length === 0) return null;
   if (grounded === 0) return null;
@@ -1255,6 +1283,7 @@ export function normalizeAbsorbedCourseLevel(courseLevel, payload) {
     signatureTerms,
     lens: Object.keys(lens).length > 0 ? lens : null,
     styleNotes,
+    ...(protocolComplete ? { discussionProtocol } : {}),
     quality: { source: 'kernel-chunk-1', sourceGroundingSignalCount: grounded },
   };
 }

@@ -1543,6 +1543,12 @@ function normalizeBlueprintEnrichment({
       6,
     ),
     ...(provided.quality && typeof provided.quality === 'object' ? { quality: provided.quality } : {}),
+    // v0.15.187 dictionary retirement (slice 1): the kernel-authored course
+    // discussion protocol survives normalization so buildDiscussionProtocol
+    // can prefer it over the genre dictionary.
+    ...(provided.discussionProtocol && typeof provided.discussionProtocol === 'object'
+      ? { discussionProtocol: provided.discussionProtocol }
+      : {}),
     // Per-lesson content payloads (v0.9.1 subject-matter enrichment): pass
     // through untouched; lesson normalization attaches them per lesson.
     ...(provided.lessonContent && typeof provided.lessonContent === 'object'
@@ -19216,12 +19222,30 @@ function buildDiscussionProtocol({ lesson = {}, blueprint = {}, phrase = {}, len
                                           : mode === 'studio-lab' && genre === 'applied-artifact'
                                             ? protocolByGenre['design-prototype']
                                             : null;
-  if (!modeOverride && !protocolByGenre[genre]) {
-    // v0.15.187 fallback telemetry: no mode override and no genre entry —
-    // the discussion runs the generic applied-artifact protocol.
+  // v0.15.187 dictionary retirement (slice 1): a complete kernel-authored
+  // course protocol beats the 34-genre dictionary — the dictionary (and its
+  // mode overrides) become the fallback for unauthored courses.
+  const authoredProtocol = blueprint.enrichment?.discussionProtocol;
+  const authoredComplete = Boolean(
+    authoredProtocol?.format &&
+    authoredProtocol?.participationPattern &&
+    authoredProtocol?.artifactUse &&
+    authoredProtocol?.reviewFocus,
+  );
+  if (!authoredComplete && !modeOverride && !protocolByGenre[genre]) {
+    // v0.15.187 fallback telemetry: no authored protocol, no mode override,
+    // no genre entry — the discussion runs the generic applied-artifact
+    // protocol.
     recordContentFallbackHit('discussion-protocol-default', `${mode} × ${genre}`);
   }
-  const selected = modeOverride || protocolByGenre[genre] || protocolByGenre['applied-artifact'];
+  const selected = authoredComplete
+    ? {
+        format: cleanText(authoredProtocol.format),
+        participationPattern: cleanText(authoredProtocol.participationPattern),
+        artifactUse: cleanText(authoredProtocol.artifactUse),
+        reviewFocus: cleanText(authoredProtocol.reviewFocus),
+      }
+    : modeOverride || protocolByGenre[genre] || protocolByGenre['applied-artifact'];
   return {
     ...selected,
     estimatedDuration: discussionDurationForFormat(selected.format),
