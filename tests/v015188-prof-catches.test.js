@@ -2,7 +2,7 @@
 import { describe, expect, it } from 'vitest';
 import { deriveCourseGraphFromCourseMap } from '../src/lib/courseGraph/deriveFromCourseMap.js';
 import { buildBlueprintFromGraph } from '../src/lib/courseGraph/blueprintFromGraph.js';
-import { compileBlueprintDeliverables } from '../src/lib/courseBlueprintCompiler';
+import { buildCourseBlueprint, compileBlueprintDeliverables } from '../src/lib/courseBlueprintCompiler';
 
 function course(weeklyAssessment) {
   return {
@@ -48,6 +48,71 @@ describe('Prof catch #1 — autograded quizzes are machine-scorable', () => {
 
   it('the promise-detection is title-driven and case-insensitive', () => {
     expect(weeklyQuizItems('Weekly AUTOGRADED check').types.essay || 0).toBe(0);
+  });
+});
+
+describe('Prof catch #5 — quiz distractors catch the documented misconception', () => {
+  const KERNEL_COURSE = {
+    courseName: 'Applied Research Evidence',
+    lessons: [
+      {
+        title: 'Lesson 1: Evidence Triangulation',
+        sections: [
+          {
+            topicSection: '1.1: Evidence triangulation and corroboration',
+            learningGoals: 'Use triangulation to test claims.',
+            learningObjectives: 'Explain when a claim is corroborated.',
+            weeklyAssessments: 'Reflection memo',
+            asyncActivities: 'Read the primer.',
+            syncActivities: 'Workshop excerpts.',
+            supportingResources: 'Survey excerpt',
+          },
+        ],
+      },
+    ],
+  };
+  const ENRICHMENT = {
+    source: 'test',
+    lessonContent: {
+      'lesson-1': {
+        quizItems: [],
+        keyTerms: [
+          {
+            term: 'Evidence triangulation',
+            definition: 'Cross-checking a claim against two independent sources.',
+            example: 'Comparing survey results with interviews.',
+            misconception: 'Students often treat one strong source as sufficient proof for a claim.',
+            correction: 'Only independent corroboration makes a claim defensible.',
+          },
+        ],
+      },
+    },
+  };
+
+  it('a genome misconception becomes a clean distractor (no giveaway tell) and is tagged grounded', () => {
+    // Uses the compiler's own buildCourseBlueprint so the concept↔term
+    // containment match ("Evidence triangulation" ⊂ "…and corroboration") is
+    // exercised end to end.
+    const blueprint = buildCourseBlueprint(KERNEL_COURSE, { enrichment: ENRICHMENT });
+    const compiled = compileBlueprintDeliverables(blueprint, ['quizBank'], {});
+    const quiz = compiled.quizBank.quizzes[0];
+    const sourced = quiz.questions.filter((q) => q.misconceptionSourced);
+    expect(sourced.length).toBeGreaterThan(0);
+    const options = sourced.flatMap((q) => q.options).join('\n');
+    // The misconception rode in as an option…
+    expect(options).toMatch(/treat one strong source as sufficient proof/i);
+    // …without announcing itself (a distractor that says "the common
+    // misunderstanding" is a giveaway).
+    expect(options).not.toMatch(/common misunderstanding/i);
+    // …and the item is tagged grounded for the metric.
+    expect(sourced[0].enrichmentSource).toBe('lesson-content-enrichment');
+  });
+
+  it('a concept with no authored misconception keeps only template distractors', () => {
+    const blueprint = buildBlueprintFromGraph(deriveCourseGraphFromCourseMap(course('Autograded quiz')));
+    const compiled = compileBlueprintDeliverables(blueprint, ['quizBank'], {});
+    const quiz = compiled.quizBank.quizzes.find((z) => z.kind !== 'exam');
+    expect(quiz.questions.every((q) => !q.misconceptionSourced)).toBe(true);
   });
 });
 

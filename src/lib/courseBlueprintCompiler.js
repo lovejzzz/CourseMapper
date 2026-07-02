@@ -16865,14 +16865,70 @@ function buildMultipleChoiceOptions({ lesson, index, concept, artifact, use, cor
   const distractorPool = distractorPools[(lessonNumber - 1 + index) % distractorPools.length];
   const start = (lessonNumber * 3 + index * 2) % distractorPool.length;
   const rotated = distractorPool.slice(start).concat(distractorPool.slice(0, start));
-  const distractors = unique(rotated, 3);
+  // v0.15.188 (Prof catch): a good distractor catches the concept's DOCUMENTED
+  // misconception — the whole point of a distractor. Generic pools never do
+  // (Prof measured 9% catch vs a 60% bar). When the kernel authored a
+  // misconception for the exact concept this stem asks about, lead the
+  // distractor list with it, phrased as a plausible wrong choice.
+  const misconceptionDistractor = kernelMisconceptionDistractor(lesson, concept);
+  const distractors = unique(misconceptionDistractor ? [misconceptionDistractor, ...rotated] : rotated, 3);
   let distractorIndex = 0;
   return {
     answer: correctLetter,
     options: QUIZ_ANSWER_LETTERS.map((letter) =>
       labelQuizOption(letter, letter === correctLetter ? correct : distractors[distractorIndex++]),
     ),
+    // Tag the item when a real misconception distractor rode in, so the
+    // grounded-fraction metric and Prof's misconception-catch check can see it.
+    ...(misconceptionDistractor ? { misconceptionSourced: true } : {}),
   };
+}
+
+// A distractor built from the concept's authored genome misconception. Strips
+// "students…" meta-language (the honesty gate rejects it) and presents the
+// wrong belief as an answer choice. Returns '' when no matching misconception.
+function kernelMisconceptionDistractor(lesson, concept) {
+  const conceptNorm = cleanText(concept).toLowerCase();
+  const conceptTokens = new Set(conceptNorm.split(/\s+/).filter((t) => t.length > 3));
+  // Token-CONTAINMENT match (not exact): "Evidence triangulation" (the term)
+  // sits inside "Evidence triangulation and corroboration" (the concept). Safe
+  // against the unrelated-atom mismatch defect because it requires the shorter
+  // phrase's significant tokens to be a subset of the longer.
+  const term = (lesson?.enrichment?.keyTerms || []).find((entry) => {
+    if (!cleanText(entry?.term) || !cleanText(entry?.misconception)) return false;
+    const termNorm = cleanText(entry.term).toLowerCase();
+    if (termNorm === conceptNorm) return true;
+    const termTokens = [...new Set(termNorm.split(/\s+/).filter((t) => t.length > 3))];
+    if (termTokens.length === 0) return false;
+    const shared = termTokens.filter((t) => conceptTokens.has(t)).length;
+    return (
+      shared / termTokens.length >= 0.75 ||
+      (conceptTokens.size > 0 &&
+        [...conceptTokens].filter((t) => termTokens.includes(t)).length / conceptTokens.size >= 0.75)
+    );
+  });
+  if (!term) return '';
+  // Strip the "Students often…" narration and lift the wrong BELIEF/ACTION
+  // into a clean option that reads like a normal wrong answer — a distractor
+  // that announces itself ("the common misunderstanding") is a giveaway, not a
+  // distractor. Meta-framed misconceptions that don't reduce to an action are
+  // skipped rather than mangled.
+  const clause = stripTerminalPunctuation(
+    cleanText(term.misconception).replace(
+      /^students?\s+(?:often\s+|sometimes\s+|frequently\s+|commonly\s+|usually\s+|tend to\s+|may\s+|might\s+|will\s+|typically\s+)*/i,
+      '',
+    ),
+  );
+  if (!clause || wordCount(clause) < 4) return '';
+  // Needs an action verb up front to read as a choice ("Treat…", "Read…").
+  if (
+    !/^(?:treat|read|assume|believe|think|conclude|interpret|use|apply|expect|ignore|confuse|equate|mistake|forget|skip|copy|memoriz)/i.test(
+      clause,
+    )
+  ) {
+    return '';
+  }
+  return sentenceCase(clause) + '.';
 }
 
 function buildMultipleChoiceQuestion({
@@ -16889,7 +16945,14 @@ function buildMultipleChoiceQuestion({
 }) {
   const id = quizQuestionId(lesson, index);
   const artifact = stripTerminalPunctuation(lesson.studentArtifact);
-  const { answer, options } = buildMultipleChoiceOptions({ lesson, index, concept, artifact, use, correct });
+  const { answer, options, misconceptionSourced } = buildMultipleChoiceOptions({
+    lesson,
+    index,
+    concept,
+    artifact,
+    use,
+    correct,
+  });
   const specificity = lessonSpecificityAnchor(lesson);
   return withQuizPlan(
     {
@@ -16907,6 +16970,10 @@ function buildMultipleChoiceQuestion({
       distractorRationale: `${sentenceCase(use)} distractors test evidence use, example fit, recommendation timing, and reasoning quality for ${specificity.week} ${stripLessonPrefix(lesson.title)} question ${index + 1} on ${concept}.`,
       explanation: quizCorrectExplanation({ answer, concept, artifact, objective, lesson, index }),
       tags: quizTags(lesson, 'multiple_choice', bloom, use),
+      // v0.15.188: a distractor built from the concept's documented
+      // misconception is grounded content — tag it so the grounded-fraction
+      // metric and Prof's misconception-catch check can see it.
+      ...(misconceptionSourced ? { enrichmentSource: 'lesson-content-enrichment', misconceptionSourced: true } : {}),
     },
     plan,
   );
