@@ -279,3 +279,36 @@ _Harness caveat logged: the 34k-char packet budget can truncate the two sides
 at slightly different points, producing spurious "cuts off mid-sentence"
 comparisons (u1/u5). Tie-heavy results are unaffected; alignment of packet
 truncation is a small future improvement._
+
+---
+
+## Seam-corruption fix — the first significant movement (July 2, 2026)
+
+The twin round promoted the lesson-plan seam corruption ("Autograded
+Autograded Autograded the Week 1 quiz") to the loudest defect in the package.
+Probe-bisection traced it to the exact replace: the sanitizer treats
+`quiz: <tail>` in prose as an internal-label leak and substitutes the visible
+artifact — but the artifact title itself contains `quiz:` (a generation-glued
+double title), so every sanitize layer re-matched inside its own insertion
+(6,785 duplications in one live compile) and spliced other lessons' artifacts
+mid-title.
+
+Fix: two guards in the replacement machinery — a match that is a substring of
+its own replacement is the artifact's real name (idempotence), and a label
+preceded by a non-determiner word is mid-title (position). Plus a
+generation-side belt in the native skeleton prompt: never glue two cadences
+into one assessment title.
+
+**Twin verdict (same generation, pre-fix vs fixed, N=8, $0.49):**
+
+|                            | A (pre-fix)              | B (fixed) |
+| -------------------------- | ------------------------ | --------- |
+| Corruptions in export text | 209 dups + 398 fragments | **0**     |
+| Mean teach-as-is           | 2.43                     | **4.86**  |
+
+**Paired delta +2.43 (95% CI 1.03 to 3.83), 6W–0L–1T — SIGNIFICANT.** The
+first statistically significant teach-as-is movement, and the loop working
+end-to-end: Prof found it → twin promoted it → probe-bisection rooted it →
+the fix landed → the twin proved it. Next gates to 7+: templated sameness
+(the grounding lane) — u2's tie verdict ("the visible content is effectively
+the same") shows what remains once corruption is gone.
