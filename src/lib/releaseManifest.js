@@ -3,26 +3,26 @@ import { APP_VERSION } from './appVersion.js';
 export const CURRENT_RELEASE = {
   version: APP_VERSION,
   date: 'July 1, 2026',
-  title: 'Grounded Gates: gold audit true green, anti-rotation grading, design system v1',
-  landingTitle: 'Grounded Gates',
+  title: 'Live-Proven Compiler: grounded surfaces, fault isolation, one assessment identity',
+  landingTitle: 'Live-Proven Compiler',
   highlights: [
-    'The full 40-sample gold audit is green again with all 26 blockers fixed at their roots — grounding echoes stop rewriting domain vocabulary, colon-joined lists survive the seam fixer, and artifact references derive from each artifact’s own head noun instead of a colliding rotation pool.',
-    'The deep grader (v1.8.0) closes the gates template rotation exploited: cross-lesson boilerplate is now checked on study guides, lesson plans, quiz banks, and assignments, texture weighs 25/135, and a fully templated package drops from A to 74/C while grounded output stays 97-98/A.',
-    'Genome-linked lessons stop shipping template-only short-answer and essay items: when no course-layer scenario exists, the projection grounds them in the concept’s own example, anchor fact, and misconception-versus-correction tension.',
-    'Fast verification now runs a 10-sample gold slice covering every historically fragile sample and all three scopes on every push, so a red gold audit can no longer ship silently from main.',
-    'Generation gets cheaper and faster: kernel chunks share one byte-identical system prompt with warm-first dispatch so provider prompt caches finally land, concurrency rises to 4, knowledge readings prefetch during authoring, finish retries run per-feature in parallel, and a 120-second stall watchdog replaces the 6-8 minute hang.',
-    'Design system v1 ships with semantic color/type/radius tokens, Button/Card/StatusBadge primitives, a 10px type floor replacing 112 sub-10px labels, and a UI declutter pass — one Configure banner instead of three, quiet autosave text, and no empty columns.',
+    'Deliverable surfaces that shipped 0% lesson-specific content now quote the authored kernel: course FAQ answers cite facts, misconceptions, and scenario materials; discussion follow-ups and response stems quote authored positions and tension; rubric rows, syllabus week vocabulary, and registry exam short answers ground in each lesson\u2019s own atoms.',
+    'Grounding stops being a guess: a grounded-fraction metric (authored-kernel bytes per deliverable) and dictionary-fallback counters ride the run digest as groundingMetrics \u2014 the live smoke course measures ~43% overall with discussions at 98% and assignments at 99%.',
+    'The kernel authors more of the course: per-lesson study-guide summaries and review strategies plus a complete authored discussion protocol are validated, linted, and preferred over the 34-genre template dictionary, which becomes a counted fallback.',
+    'One deliverable\u2019s compile exception no longer kills all nine: per-feature fault isolation reports the real per-feature error, the browser compile yields between features instead of blocking the main thread for a second, and the compiler chunk now lives under an enforced bundle budget.',
+    'Three live-only bugs found by crucible rounds are fixed at the root with regression tests: exam-titled assessments classified differently at compile time versus manifest time, model-transcribed \u201cTitle: 1. Title\u201d echoes becoming registry identity, and finish-pass repairs minting brand-new exams after the package had compiled \u2014 assessment identity is now born once and never rewritten.',
+    'The live loop is green and instrumented: the smoke course generates end-to-end at 99/A with zero P0 findings for $0.12 in 165 seconds (three prior rounds blocked at 74/C), provider prompt-cache hits appear in live telemetry, and the crucible now saves the project state on any failure so live bugs stay diagnosable.',
   ],
   landingHighlights: [
-    'Gold audit: 40/40, zero blockers.',
-    'Templated packages can no longer grade A.',
-    'Prompt caches finally land; stalls retry in 2 minutes.',
-    'Design tokens + primitives, gated in CI.',
-    'Less chrome: one banner, quieter status.',
+    'Deliverables quote the lesson kernel \u2014 measured live at ~43%.',
+    'One compile error no longer kills all nine deliverables.',
+    'Assessment identity: born once, never rewritten.',
+    'Three live-only bugs caught and root-fixed by the crucible loop.',
+    'Live smoke: 99/A, zero P0s, $0.12, 165 seconds.',
   ],
   proof: {
-    contract: 'release-contracts/v0.15.186.json',
-    roadmap: 'docs/V0.15.186_GROUNDED_GATES_ROADMAP.md',
+    contract: 'release-contracts/v0.15.187.json',
+    roadmap: 'docs/V0.15.187_LIVE_PROVEN_COMPILER_ROADMAP.md',
     auditCommand: 'npm run audit:release-history',
   },
 };
@@ -37,6 +37,19 @@ export const CURRENT_RELEASE_CHANGELOG = {
 };
 
 export const HISTORICAL_RELEASE_CHANGELOGS = [
+  {
+    version: '0.15.186',
+    date: 'July 1, 2026',
+    title: 'Grounded Gates: gold audit true green, anti-rotation grading, design system v1',
+    highlights: [
+      'The full 40-sample gold audit is green again with all 26 blockers fixed at their roots \u2014 grounding echoes stop rewriting domain vocabulary, colon-joined lists survive the seam fixer, and artifact references derive from each artifact\u2019s own head noun instead of a colliding rotation pool.',
+      'The deep grader (v1.8.0) closes the gates template rotation exploited: cross-lesson boilerplate is now checked on study guides, lesson plans, quiz banks, and assignments, texture weighs 25/135, and a fully templated package drops from A to 74/C while grounded output stays 97-98/A.',
+      'Genome-linked lessons stop shipping template-only short-answer and essay items: when no course-layer scenario exists, the projection grounds them in the concept\u2019s own example, anchor fact, and misconception-versus-correction tension.',
+      'Fast verification now runs a 10-sample gold slice covering every historically fragile sample and all three scopes on every push, so a red gold audit can no longer ship silently from main.',
+      'Generation gets cheaper and faster: kernel chunks share one byte-identical system prompt with warm-first dispatch so provider prompt caches finally land, concurrency rises to 4, knowledge readings prefetch during authoring, finish retries run per-feature in parallel, and a 120-second stall watchdog replaces the 6-8 minute hang.',
+      'Design system v1 ships with semantic color/type/radius tokens, Button/Card/StatusBadge primitives, a 10px type floor replacing 112 sub-10px labels, and a UI declutter pass \u2014 one Configure banner instead of three, quiet autosave text, and no empty columns.',
+    ],
+  },
   {
     version: '0.15.185',
     date: 'July 1, 2026',

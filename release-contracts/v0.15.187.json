@@ -1,0 +1,144 @@
+{
+  "version": "0.15.187",
+  "date": "July 1, 2026",
+  "title": "Live-Proven Compiler: grounded surfaces, fault isolation, one assessment identity",
+  "status": "verified-current",
+  "proofSummary": {
+    "local": [
+      "npm test",
+      "npm run audit:gold:ci",
+      "npm run curriculumos:proof",
+      "npx vitest run tests/v015187-exam-kind-classifier.test.js tests/v015187-grounding-metrics.test.js tests/v015187-compiler-fault-isolation.test.js",
+      "npm run build",
+      "npm run audit:release-history"
+    ],
+    "ciFast": {
+      "status": "pending-push",
+      "note": "Fast verification (including audit:gold:ci) is claimed only after v0.15.187 is pushed and the GitHub Actions run passes."
+    },
+    "deploy": {
+      "status": "pending-push",
+      "note": "Pages deploy is not claimed until the pushed v0.15.187 release completes its deploy run."
+    },
+    "ciDeep": {
+      "status": "local-only",
+      "note": "The full suite (3,785 tests), the 10-sample gold slice, and the headless curriculumos proof (98/A) passed locally before this release; Deep proof on GitHub runs on its normal schedule."
+    },
+    "liveProvider": {
+      "status": "local-only",
+      "note": "Five live crucible rounds on cs-python (gpt-5.4-mini) during this release: three blocked rounds diagnosed and root-fixed, final round PASSED 99/A with 0 P0s at $0.12 in 165s with identical in-app/offline scores; cachedInputTokens 1280 observed on courseIR calls in three rounds. Round artifacts: verification-output/crucible/round-2026-07-02T02-49-56-242Z."
+    },
+    "manualHuman": {
+      "status": "not-applicable",
+      "note": "No external instructor approval is claimed by this release."
+    }
+  },
+  "claims": [
+    {
+      "id": "v015187-atom-routing-zero-surfaces",
+      "status": "verified-current",
+      "changelogHighlightIndex": 0,
+      "summary": "Course FAQ builders quote kernel facts, task descriptions, misconception-versus-correction, scenario materials, and term definitions (enrichmentSource-tagged); discussion follow-ups and response stems quote authored positions and tension; rubric parameter rows, syllabus week vocabulary, study-guide practice activities, and registry exam short answers ground in per-lesson atoms.",
+      "anchors": [
+        "src/lib/courseBlueprintCompiler.js",
+        "src/lib/kernelProjection.js",
+        "tests/v015187-grounding-metrics.test.js"
+      ],
+      "proofCommands": [
+        "npx vitest run tests/v015187-grounding-metrics.test.js",
+        "rg -n \"enrichmentSource\" src/lib/courseBlueprintCompiler.js | head",
+        "rg -n \"examLessonTerm|examLessonFact\" src/lib/courseBlueprintCompiler.js"
+      ],
+      "proofScopes": ["unit", "static-audit", "live-provider"]
+    },
+    {
+      "id": "v015187-grounding-metrics",
+      "status": "verified-current",
+      "changelogHighlightIndex": 1,
+      "summary": "measureGroundedFraction counts enrichmentSource-ancestor bytes per deliverable; recordContentFallbackHit counts lens/modality/genre/protocol dictionary defaults; both surface as the groundingMetrics pipelineDecision event and grounding_metrics trace; the final live round reported overall ~43% (discussions 98%, assignments 99%).",
+      "anchors": [
+        "src/lib/quality/groundedFraction.js",
+        "src/lib/contentFallbackTelemetry.js",
+        "src/hooks/useDeliverables.js"
+      ],
+      "proofCommands": [
+        "npx vitest run tests/v015187-grounding-metrics.test.js",
+        "rg -n \"groundingMetrics\" src/hooks/useDeliverables.js",
+        "rg -n \"recordContentFallbackHit\" src/lib/courseBlueprintCompiler.js"
+      ],
+      "proofScopes": ["unit", "static-audit", "live-provider"]
+    },
+    {
+      "id": "v015187-kernel-authored-extension",
+      "status": "verified-current",
+      "changelogHighlightIndex": 2,
+      "summary": "The kernel schema gains a studyGuide block (summary sm 60-600 chars, reviewStrategy rs 30-400, meta-language lint) and a course-level discussionProtocol (format/participationPattern/artifactUse/reviewFocus, complete-or-dropped validation); compileStudyGuides prefers authored summaries and buildDiscussionProtocol prefers the complete authored protocol over the 34-genre dictionary, which fires a counted fallback instead.",
+      "anchors": ["src/lib/blueprintEnrichmentPass.js", "src/lib/keyMaps.js", "src/lib/courseBlueprintCompiler.js"],
+      "proofCommands": [
+        "rg -n \"studyGuide|discussionProtocol\" src/lib/blueprintEnrichmentPass.js | head",
+        "rg -n \"sm: 'summary'\" src/lib/keyMaps.js",
+        "npx vitest run tests/v015187-grounding-metrics.test.js"
+      ],
+      "proofScopes": ["unit", "static-audit"]
+    },
+    {
+      "id": "v015187-fault-isolation-yield-budget",
+      "status": "verified-current",
+      "changelogHighlightIndex": 3,
+      "summary": "compileBlueprintDeliverables wraps each feature in try/catch and reports failures on the Symbol.for('coursemapper.blueprintCompileErrors') channel so only the failed feature errors with its real message; compileBlueprintDeliverablesYielding yields between features on the browser path (was a 0.8-1s synchronous main-thread block); the compiler entry chunk is budgeted in checkBundleBudgets.",
+      "anchors": [
+        "src/lib/courseBlueprintCompiler.js",
+        "src/hooks/useDeliverables.js",
+        "scripts/checkBundleBudgets.mjs",
+        "tests/v015187-compiler-fault-isolation.test.js"
+      ],
+      "proofCommands": [
+        "npx vitest run tests/v015187-compiler-fault-isolation.test.js",
+        "rg -n \"compileBlueprintDeliverablesYielding\" src/lib/courseBlueprintCompiler.js src/hooks/useDeliverables.js",
+        "rg -n \"courseBlueprintCompiler-\" scripts/checkBundleBudgets.mjs"
+      ],
+      "proofScopes": ["unit", "static-audit", "build"]
+    },
+    {
+      "id": "v015187-one-assessment-identity",
+      "status": "verified-current",
+      "changelogHighlightIndex": 4,
+      "summary": "Live catch 1: courseIR and compileQuizBank fall back to the same classifyAssessmentKind title rule the export manifest uses (plus the exam-review-guide false-positive fix). Live catch 2: dedupeNumberedAssessmentEcho runs where registry rows are born (map derivation, Pass A skeleton parse, courseIR normalize) with a manifest belt for legacy saved graphs. Live catch 3: getCourseMapFallbackValue never rewrites an exam-bearing assessment cell and can never mint an exam-classified title.",
+      "anchors": [
+        "src/lib/courseIR.js",
+        "src/lib/courseGraph/deriveFromCourseMap.js",
+        "src/lib/compilerText.js",
+        "src/lib/deliverableReadiness.js",
+        "src/lib/packageZipExporter.js",
+        "tests/v015187-exam-kind-classifier.test.js"
+      ],
+      "proofCommands": [
+        "npx vitest run tests/v015187-exam-kind-classifier.test.js",
+        "rg -n \"classifyAssessmentKind\" src/lib/courseIR.js",
+        "rg -n \"dedupeNumberedAssessmentEcho\" src/lib/compilerText.js src/lib/courseGraph/deriveFromCourseMap.js src/lib/packageZipExporter.js",
+        "rg -n \"assessmentCellCarriesExamIdentity\" src/lib/deliverableReadiness.js"
+      ],
+      "proofScopes": ["unit", "static-audit", "live-provider"]
+    },
+    {
+      "id": "v015187-live-green-and-forensics",
+      "status": "verified-current",
+      "changelogHighlightIndex": 5,
+      "summary": "Final crucible smoke round passed end-to-end: 99/A, 0 P0, in-app score identical to offline regrade (delta 0), $0.12, 165 seconds, 125-file ZIP — after three blocked rounds (74/C) whose causes were diagnosed and fixed during this release; cachedInputTokens 1280 observed live on courseIR calls; the crucible driver now dumps the autosaved project to project-at-failure-<phase>.json on any failure.",
+      "anchors": ["scripts/lib/crucibleBrowser.mjs", "docs/V0.15.187_LIVE_PROVEN_COMPILER_ROADMAP.md"],
+      "proofCommands": [
+        "rg -n \"project-at-failure\" scripts/lib/crucibleBrowser.mjs",
+        "rg -n \"round-2026-07-02T02-49-56-242Z\" docs/V0.15.187_LIVE_PROVEN_COMPILER_ROADMAP.md",
+        "npm run crucible:smoke"
+      ],
+      "proofScopes": ["live-provider", "browser-live", "static-audit"]
+    }
+  ],
+  "knownRemainingTargets": [
+    "Kernel-authored modality modeDetails (mirror of the discussionProtocol pattern) and lesson-plan flat-mode step descriptions remain open roadmap items.",
+    "compactBlueprintForStorage on the hot compile path (state-size half of the off-main-thread item) is deferred to its own round due to persistence-shape risk.",
+    "Mechanical decomposition of the 21.5k-line compiler continues leaf-first (lessonContext extraction, per-deliverable compilers starting with courseFaq).",
+    "The final green live round showed cachedInputTokens 0 on its calls while three earlier rounds showed 1280 on courseIR — cache-hit consistency across providers/rounds is not yet claimed.",
+    "The raw-map facade path (headless-only legacy) still title-shortens at extraction; in-app maps go through derive-on-open and are unaffected."
+  ]
+}
