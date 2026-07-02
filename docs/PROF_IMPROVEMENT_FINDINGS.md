@@ -312,3 +312,44 @@ end-to-end: Prof found it → twin promoted it → probe-bisection rooted it →
 the fix landed → the twin proved it. Next gates to 7+: templated sameness
 (the grounding lane) — u2's tie verdict ("the visible content is effectively
 the same") shows what remains once corruption is gone.
+
+---
+
+## Grounding lane, slice 1 — second significant movement (July 2, 2026)
+
+Prof's grounded-fraction scan located the gap precisely: the syllabus was 2%
+grounded and opens every reading order; lesson plans 15%; meanwhile each
+lesson's enrichment carried 6 quiz items, 4 key terms, and kernel facts that
+never reached those surfaces (including a silent routing-to-nowhere: the
+v0.15.187 `keyVocabulary` field was never rendered by any exporter).
+
+Four deterministic kernel-first routes: schedule rows state the week's core
+ideas; homework is the authored task; the formative check is the enrichment's
+own quiz question; the exit ticket closes on a different kernel atom than the
+lesson opened with. Grounded fractions: syllabus 2%→11%, lesson plans 15%→18%.
+
+**Twin verdict (seam-fixed vs grounded, 3 rounds pooled, 23 pairs, $1.24):
+paired delta +1.304 (95% CI 0.22 to 2.39), 12W–7L–4T — SIGNIFICANT.** Judges:
+_"adds actual core ideas and key terms in the weekly schedule, rather than
+leaving the schedule as mostly title repetition."_
+
+One instrument fix was load-bearing: raw char-budget packet cuts read as
+broken exports and differed between twin sides; packets now cut at paragraph
+boundaries with an explicit continuation marker.
+
+### The cumulative twin arc on one generation
+
+| Compiler                                | Mean teach-as-is |
+| --------------------------------------- | ---------------- |
+| Pre-seam-fix                            | 2.43             |
+| + seam fix (+2.43 significant)          | 3.83\*           |
+| + grounding slice 1 (+1.30 significant) | **5.13**         |
+
+_\*3.83 is the same compiler as the 4.86 measured in the seam-fix round —
+judge-pool variance between rounds; deltas within pairs are the stable
+statistic, which is the point of the twin._
+
+Teach-as-is has moved from ~2.4 to ~5.1 on the same generation, every step
+measured. The remaining gap to 7+ ("teachable with light edits"): assignments
+(3% grounded, 586 sentences), rubrics (4%), discussions (9%) — slice 2
+candidates — plus the alignment theme (#3) which no prose routing fixes.
