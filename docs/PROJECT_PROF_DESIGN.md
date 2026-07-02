@@ -849,3 +849,39 @@ _Naming: runs are "terms," the report is the "Prof Report," a package that clear
 the gauntlet is "tenured," a persona pruned for agreeing too much is "denied
 tenure," and a student whose mouth outruns their mind is "caught cheating."
 Someone had to say all of it._
+
+## Appendix E — Same-generation twin protocol (as built, July 2, 2026)
+
+The C2 lesson, turned into machinery. Independent generations differ by model
+variance before the compiler runs, so before/after adoption rounds on separate
+generations measure noise (proven live: the four v0.15.188 fixes "moved"
+3.43 → 2.29 across independent rounds — overlapping CIs, meaningless). The
+twin protocol:
+
+1. **Capture** — crucible rounds save the generation itself
+   (`project.json`: course map + CourseGraph with enrichment baked in) on
+   success, not just on failure.
+2. **Twin compile** — `npx vite-node scripts/prof/twinCompile.mjs -- --project
+<project.json> --refA <ref> --refB <ref|local> --out <dir>` compiles the
+   ONE generation in detached git worktrees at each ref (node_modules
+   symlinked, `_twinRunner.mjs` injected — identical runner logic both sides,
+   only `src/` differs). Deterministic compiler ⇒ sides differ ONLY by
+   compiler code. Fixtures carry `twin.generationId` (sha256 of the project).
+3. **Paired judgment** — `npm run prof -- --arena a1twin --scenario <id>
+--universes N`: the arena REFUSES fixtures with mismatched generationIds
+   (`assertTwinProvenance`); each universe's persona reads BOTH packets in one
+   context, blind (A/B → Packet One/Two randomized per universe, seeded,
+   balanced); same reading order + hot spot both sides; quote-or-discard per
+   side. Statistic: t-based 95% CI on the per-universe teach-as-is delta,
+   plus a W-L-T preference record. Significant ⇔ CI excludes 0.
+
+First live twin (b11543c vs 15dbb2f, N=8, $0.40): delta −0.125
+(CI −0.66 to +0.41), 3W-2L-3T — CI width ±0.54 vs the ~±1.5 the independent
+protocol needed. The instrument can now detect a half-point compiler effect
+for under a dollar.
+
+Traps: (a) packet char-budget truncation can slice the two sides at different
+points → spurious "cuts off" comparisons; (b) the twin isolates COMPILER
+changes only — generation-side fixes (genome shards, prompts) are identical in
+both sides by construction and need a different design; (c) `local` as refB
+compiles the working tree — label it honestly in provenance.

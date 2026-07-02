@@ -366,6 +366,104 @@ async function main() {
     return;
   }
 
+  if (args.arena === 'a1twin') {
+    // Same-generation paired A/B (the C2 lesson): both sides MUST share a
+    // generationId (twinCompile stamps it) or the run refuses — an unpaired
+    // comparison is the confounded measurement this arena exists to replace.
+    const { runAdoptionTwinArena } = await import('./prof/arenas/adoptionTwin.mjs');
+    const { assertTwinProvenance, pairedDeltaStats } = await import('./prof/twinStats.mjs');
+    const { quoteAppearsInCorpus } = await import('./prof/verdictLedger.mjs');
+    const resolveFixture = (p) => (path.isAbsolute(p) ? p : path.join(repoRoot, p));
+    const fixtureA = JSON.parse(await fs.readFile(resolveFixture(scenario.packageA), 'utf8'));
+    const fixtureB = JSON.parse(await fs.readFile(resolveFixture(scenario.packageB), 'utf8'));
+    const provenance = assertTwinProvenance(fixtureA, fixtureB);
+    const extractedA = { files: fixtureA.files };
+    const extractedB = { files: fixtureB.files };
+    console.log(`[prof] ${term.termId} · a1twin · generation ${provenance.generationId.slice(0, 12)}…`);
+    console.log(
+      `[prof] A=${provenance.refA} (${extractedA.files.length} files) vs B=${provenance.refB} (${extractedB.files.length} files)`,
+    );
+
+    const corpusA = normalizeForQuoteMatch(extractedA.files.map((file) => file.text).join('\n'));
+    const corpusB = normalizeForQuoteMatch(extractedB.files.map((file) => file.text).join('\n'));
+    const meter = new SpendMeter({ capUsd: term.capUsd });
+    const universes = buildUniverses({
+      scenario: { ...scenario, packageDir: scenario.packageA },
+      count: args.universes,
+      seed: term.seed,
+    });
+    await fs.writeFile(path.join(termDir, 'universes.json'), JSON.stringify({ term, scenario, universes }, null, 2));
+
+    const { pairs, errors } = await runAdoptionTwinArena({
+      universes,
+      extractedA,
+      extractedB,
+      courseBrief: scenario.courseBrief,
+      meter,
+      seed: term.seed,
+    });
+    // Quote-or-discard per SIDE: a finding must quote the packet it cites.
+    let discarded = 0;
+    for (const pair of pairs) {
+      pair.findings = pair.findings.filter((finding) => {
+        const ok = quoteAppearsInCorpus(finding.quote, finding.side === 'A' ? corpusA : corpusB);
+        if (!ok) discarded += 1;
+        return ok;
+      });
+    }
+    const paired = pairedDeltaStats(pairs);
+    const spend = meter.summary();
+    const result = {
+      term,
+      scenario: { id: scenario.id, packageA: scenario.packageA, packageB: scenario.packageB },
+      provenance,
+      paired,
+      pairs: pairs.map(({ findings, ...rest }) => ({ ...rest, findingCount: findings.length })),
+      findingsA: pairs.flatMap((pair) =>
+        pair.findings.filter((f) => f.side === 'A').map((f) => ({ universeId: pair.universeId, ...f })),
+      ),
+      findingsB: pairs.flatMap((pair) =>
+        pair.findings.filter((f) => f.side === 'B').map((f) => ({ universeId: pair.universeId, ...f })),
+      ),
+      ledger: { discarded },
+      errors,
+      spend: { capUsd: spend.capUsd, spentUsd: spend.spentUsd, callCount: spend.callCount },
+    };
+    await fs.writeFile(path.join(termDir, 'term-result.json'), JSON.stringify(result, null, 2));
+    const verdictLine = paired.significant
+      ? paired.deltaMean > 0
+        ? 'B (candidate) SIGNIFICANTLY better'
+        : 'B (candidate) SIGNIFICANTLY worse'
+      : 'no significant difference';
+    const reportLines = [
+      `# Prof A1twin — same-generation paired A/B`,
+      ``,
+      `_SIMULATED · paired protocol · generation ${provenance.generationId.slice(0, 12)}…_`,
+      ``,
+      `| Side | Compiler ref | Mean teach-as-is |`,
+      `| --- | --- | --- |`,
+      `| A (baseline) | ${provenance.refA} | ${(pairs.reduce((s, p) => s + p.teachA, 0) / (pairs.length || 1)).toFixed(2)} |`,
+      `| B (candidate) | ${provenance.refB} | ${(pairs.reduce((s, p) => s + p.teachB, 0) / (pairs.length || 1)).toFixed(2)} |`,
+      ``,
+      `**Paired delta (B−A): ${paired.deltaMean} (95% CI ${paired.deltaCi95 ? paired.deltaCi95.join(' to ') : 'n/a'}) · ${paired.wins}W-${paired.losses}L-${paired.ties}T · ${verdictLine}**`,
+      ``,
+      ...pairs.map(
+        (pair) =>
+          `- ${pair.universeId} (${pair.personaId}, ${pair.model}, ${pair.aIsPacketOne ? 'A-first' : 'B-first'}): A=${pair.teachA} B=${pair.teachB} pref=${pair.preference} — ${(pair.keyDifferences[0] || '').slice(0, 140)}`,
+      ),
+    ];
+    await fs.writeFile(path.join(termDir, 'PROF_REPORT.md'), `${reportLines.join('\n')}\n`);
+    console.log(
+      `[prof] ${pairs.length}/${universes.length} pairs returned (${errors.length} errors, ${discarded} quotes discarded)`,
+    );
+    console.log(
+      `[prof] paired delta (B−A) ${paired.deltaMean} (CI ${paired.deltaCi95 ? paired.deltaCi95.join(' to ') : 'n/a'}) · ${paired.wins}W-${paired.losses}L-${paired.ties}T · ${verdictLine}`,
+    );
+    console.log(`[prof] spend $${spend.spentUsd.toFixed(3)} of $${spend.capUsd}`);
+    console.log(`[prof] report: ${path.relative(repoRoot, path.join(termDir, 'PROF_REPORT.md'))}`);
+    return;
+  }
+
   const packageDir = path.isAbsolute(scenario.packageDir)
     ? scenario.packageDir
     : path.join(repoRoot, scenario.packageDir);

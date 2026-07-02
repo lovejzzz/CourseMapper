@@ -1,6 +1,6 @@
 /**
  * scripts/prof/longitudinal.mjs — the roll-up dashboard (design §11 P4).
- * Scans verification-output/prof/term-*​/term-result.json across releases and
+ * Scans verification-output/prof/term-<id>/term-result.json across releases and
  * trends the KPIs, so "did the last content release move teachability?" is a
  * chart, not a memory. Course-mode terms only (instrument-mode is quarantined,
  * §11 term modes).

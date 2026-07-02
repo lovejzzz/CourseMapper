@@ -561,6 +561,16 @@ export async function runCourseInBrowser({
     phase = 'done';
     await page.screenshot({ path: path.join(outDir, 'workspace-ready.png'), fullPage: true }).catch(() => {});
     status = 'passed';
+    // Twin protocol (Prof): capture the GENERATION itself, not just its
+    // export. The autosaved project (course map + enrichment + graph) is the
+    // raw material for same-generation A/B — compile it under two compiler
+    // versions and any judged difference is the compiler's, with generation
+    // variance cancelled. Failure runs already dump this for forensics;
+    // success runs need it for measurement.
+    const projectAtSuccess = await page.evaluate(() => localStorage.getItem('coursemapper-project')).catch(() => null);
+    if (projectAtSuccess) {
+      await fs.writeFile(path.join(outDir, 'project.json'), projectAtSuccess).catch(() => {});
+    }
     // WS-C C4: read the compiler's legacy-branch telemetry while the page is alive.
     legacyPathTelemetry = await page
       .evaluate(() =>

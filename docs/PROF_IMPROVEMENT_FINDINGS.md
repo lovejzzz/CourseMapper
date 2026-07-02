@@ -234,3 +234,48 @@ confirmed this rather than letting us assume the cheap fixes would move the
 headline — which is the entire point of the instrument. The next real movement
 needs the grounding lane (#3, #4, #6) and a same-generation twin protocol to
 measure it fairly.
+
+---
+
+## Twin round — the fair measurement (July 2, 2026, later the same day)
+
+The same-generation twin harness now exists (`scripts/prof/twinCompile.mjs` +
+`--arena a1twin`): one captured generation (crucible rounds now save
+`project.json` on success), compiled by two compiler versions into fixtures
+sharing a `generationId` (the arena REFUSES unpaired packages), judged in
+blind pairs — same persona/seat/seed reads both packets, A/B→One/Two order
+randomized per universe, statistic = CI on the per-universe delta.
+
+First live twin: generation `ae42f9db09e8…`, **A = b11543c (pre-fix compiler)
+vs B = HEAD (the four fixes)**, N=8 pairs, $0.40:
+
+|                    | Result                                                         |
+| ------------------ | -------------------------------------------------------------- |
+| Paired delta (B−A) | **−0.125 (95% CI −0.66 to +0.41)** — no significant difference |
+| Record             | 3W–2L–3T                                                       |
+| CI width           | **±0.54 at N=8** (the confounded protocol needed ~±1.5)        |
+
+What the pairs showed, verbatim:
+
+- The fixes ARE perceived where a judge hits the fixed surface: _"Packet Two
+  converts Packet One's non-autogradable short-answer and essay quiz items
+  into multiple-choice items, which is closer to the request"_ (+1, pref B);
+  _"Packet Two gives more concrete weekly time accounting"_ (pref B).
+- But three judges called the packets _"substantively identical"_ — the
+  dominant signal is the shared templated prose, and the loudest visible
+  defect on BOTH sides is the pre-existing lesson-plan seam corruption
+  (_"Autograded Autograded Autograded the Week 1 quiz"_ — a finalizer bug,
+  untouched by the fixes).
+
+**The clean verdict the confounded round couldn't give:** the four fixes are
+real but worth ≲1 point to the judges who notice them, and ~0 on net; the
+teach-as-is ceiling (~2.7 on this generation) is held down by templated
+sameness and the seam-corruption bug. The grounding lane is confirmed as the
+only lever that can move the headline — and the twin harness is now the
+standing instrument to prove it when it lands (target: paired delta CI
+excluding 0).
+
+_Harness caveat logged: the 34k-char packet budget can truncate the two sides
+at slightly different points, producing spurious "cuts off mid-sentence"
+comparisons (u1/u5). Tie-heavy results are unaffected; alignment of packet
+truncation is a small future improvement._
