@@ -544,7 +544,11 @@ export default function useDeliverables({
       const getBlueprintCompiledFeatures = blueprintCompiler?.getBlueprintCompiledFeatures || (() => []);
       const estimateBlueprintCompilerSavings = blueprintCompiler?.estimateBlueprintCompilerSavings || (() => 0);
       const compactBlueprintForStorage = blueprintCompiler?.compactBlueprintForStorage || ((blueprint) => blueprint);
-      const compileBlueprintDeliverables = blueprintCompiler?.compileBlueprintDeliverables;
+      // v0.15.187: the browser path uses the yielding compile (thread yields
+      // between deliverables — the sync compile is ~0.8-1s of main-thread
+      // block on a 14-lesson course); sync entry remains for non-UI callers.
+      const compileBlueprintDeliverables =
+        blueprintCompiler?.compileBlueprintDeliverablesYielding || blueprintCompiler?.compileBlueprintDeliverables;
       const blueprintCompiledFeatureIds = getBlueprintCompiledFeatures(requestedFeatures, {
         enabled: blueprintCompilerEnabled,
       });
@@ -2318,7 +2322,7 @@ export default function useDeliverables({
           savedProviderCalls: compiledSavings,
           compilerSource,
         });
-        const compiled = compileBlueprintDeliverables(blueprint, blueprintCompiledFeatureIds, {
+        const compiled = await compileBlueprintDeliverables(blueprint, blueprintCompiledFeatureIds, {
           configMap: compilerConfigMap,
         });
         recordApiCallEvent({

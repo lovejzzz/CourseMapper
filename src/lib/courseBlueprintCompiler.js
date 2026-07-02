@@ -21648,35 +21648,57 @@ function compileBlueprintDeliverableRaw(featureId, compilerBlueprint, options = 
 // Object.entries/keys iteration of the compiled result.
 export const BLUEPRINT_COMPILE_ERRORS = Symbol.for('coursemapper.blueprintCompileErrors');
 
+// Per-feature fault isolation (v0.15.187): a throw inside one deliverable's
+// renderer used to escape to the caller, which marked every feature errored
+// — one malformed lesson field voided all nine deliverables. A single
+// renderer's failure is now its own: loud (console + error channel +
+// optional callback), never silent, and the remaining deliverables still
+// compile. Blueprint-level failures (prepare/contract in the callers) still
+// fail the whole compile — those mean the INPUT is bad, not one renderer.
+function compileFeatureInto(result, compileErrors, featureId, compilerBlueprint, options) {
+  try {
+    const data = compileBlueprintDeliverable(featureId, compilerBlueprint, {
+      ...options,
+      skipCompilerContractCheck: true,
+      skipPrepareBlueprint: true,
+    });
+    if (data) result[featureId] = data;
+  } catch (error) {
+    const message = error?.message || String(error);
+    console.error(`[CM] Blueprint compile failed for ${featureId}: ${message}`, error);
+    compileErrors.push({ featureId, message });
+    if (typeof options.onFeatureCompileError === 'function') {
+      options.onFeatureCompileError(featureId, error);
+    }
+  }
+}
+
 export function compileBlueprintDeliverables(blueprint, featureIds = [], options = {}) {
   const compilerBlueprint = prepareBlueprintForCompilation(blueprint, options);
   assertBlueprintCompilerContract(compilerBlueprint, options);
   const result = {};
   const compileErrors = [];
   for (const featureId of getBlueprintCompiledFeatures(featureIds, options)) {
-    // Per-feature fault isolation (v0.15.187): a throw inside one
-    // deliverable's renderer used to escape to the caller, which marked
-    // every feature errored — one malformed lesson field voided all nine
-    // deliverables. A single renderer's failure is now its own: loud
-    // (console + error channel + optional callback), never silent, and the
-    // remaining deliverables still compile. Blueprint-level failures
-    // (prepare/contract above) still fail the whole compile — those mean
-    // the INPUT is bad, not one renderer.
-    try {
-      const data = compileBlueprintDeliverable(featureId, compilerBlueprint, {
-        ...options,
-        skipCompilerContractCheck: true,
-        skipPrepareBlueprint: true,
-      });
-      if (data) result[featureId] = data;
-    } catch (error) {
-      const message = error?.message || String(error);
-      console.error(`[CM] Blueprint compile failed for ${featureId}: ${message}`, error);
-      compileErrors.push({ featureId, message });
-      if (typeof options.onFeatureCompileError === 'function') {
-        options.onFeatureCompileError(featureId, error);
-      }
-    }
+    compileFeatureInto(result, compileErrors, featureId, compilerBlueprint, options);
+  }
+  if (compileErrors.length > 0) result[BLUEPRINT_COMPILE_ERRORS] = compileErrors;
+  return result;
+}
+
+// v0.15.187: the measured compile is 775-815ms of synchronous work for a
+// 14-lesson × 9-feature course (slideDecks alone ~300ms) — one solid
+// main-thread block inside the generation hook. Same contract as the sync
+// version, but the thread yields between deliverables so the UI keeps
+// painting; the browser generation path uses this, audits/scripts keep the
+// sync entry.
+export async function compileBlueprintDeliverablesYielding(blueprint, featureIds = [], options = {}) {
+  const compilerBlueprint = prepareBlueprintForCompilation(blueprint, options);
+  assertBlueprintCompilerContract(compilerBlueprint, options);
+  const result = {};
+  const compileErrors = [];
+  for (const featureId of getBlueprintCompiledFeatures(featureIds, options)) {
+    compileFeatureInto(result, compileErrors, featureId, compilerBlueprint, options);
+    await new Promise((resolve) => setTimeout(resolve, 0));
   }
   if (compileErrors.length > 0) result[BLUEPRINT_COMPILE_ERRORS] = compileErrors;
   return result;
