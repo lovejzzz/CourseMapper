@@ -126,3 +126,78 @@ describe('Prof catch #3 — the syllabus workload line shows its breakdown', () 
     expect(text).toMatch(/hours this week/);
   });
 });
+
+describe('Prof twin catch — seam corruption (label replacement is idempotent and position-aware)', () => {
+  // The live defect: registry title "Autograded quiz: X 2. Hands-on coding
+  // lab: X" (a generation-glued monster) contains the internal-label shape
+  // "quiz: …". The sanitizers replaced that inner fragment with the full
+  // artifact title, prepending "Autograded" once per pass (6,785 duplications
+  // in one live compile) and splicing other lessons' artifacts mid-title.
+  const GLUED = 'Autograded quiz: Topic alpha 2. Hands-on coding lab: Topic alpha';
+
+  function gluedBlueprint() {
+    const blueprint = buildBlueprintFromGraph(
+      deriveCourseGraphFromCourseMap({
+        courseName: 'Intro CS with Python',
+        lessons: [1, 2].map((n) => ({
+          title: `Lesson ${n}: Topic ${n === 1 ? 'alpha' : 'beta'}`,
+          sections: [
+            {
+              topicSection: `${n}.1: Topic ${n === 1 ? 'alpha' : 'beta'}`,
+              learningGoals: 'Understand.',
+              learningObjectives: 'Apply in an exercise.',
+              weeklyAssessments: `Autograded quiz: Topic ${n === 1 ? 'alpha' : 'beta'} 2. Hands-on coding lab: Topic ${n === 1 ? 'alpha' : 'beta'}`,
+              asyncActivities: 'Read.',
+              syncActivities: 'Lab.',
+              supportingResources: 'Book',
+            },
+          ],
+        })),
+      }),
+    );
+    // Registry titles are verbatim, so the glued title rides through; make
+    // the lesson artifact carry it the way the live graph path did.
+    blueprint.lessons.forEach((lesson, i) => {
+      lesson.studentArtifact = i === 0 ? GLUED : GLUED.replaceAll('alpha', 'beta');
+    });
+    return blueprint;
+  }
+
+  it('a glued registry title never stacks its own lead word', () => {
+    const compiled = compileBlueprintDeliverables(gluedBlueprint(), ['lessonPlans', 'syllabus'], {});
+    const text = JSON.stringify(compiled);
+    expect(text).not.toMatch(/Autograded Autograded/);
+    expect(text).not.toMatch(/[Aa]utograded the Week \d/);
+  });
+
+  it('label fragments inside ANOTHER lesson title are never cross-spliced', () => {
+    const compiled = compileBlueprintDeliverables(gluedBlueprint(), ['lessonPlans'], {});
+    const text = JSON.stringify(compiled);
+    // The corruption signature: one lesson's topic spliced INSIDE the other
+    // lesson's title structure (an adjacent whole-title mention — "…lab:
+    // Topic alpha into Autograded quiz: Topic beta 2…" — is legitimate
+    // next-lesson prose and must stay allowed).
+    expect(text).not.toMatch(/quiz: Topic alpha 2\. Hands-on coding lab: Topic beta/);
+    expect(text).not.toMatch(/quiz: Topic beta 2\. Hands-on coding lab: Topic alpha/);
+  });
+
+  it('true internal-label leaks still get rewritten at segment starts', () => {
+    // The sanitizers exist for prompt-scaffold leaks like "Quizzes: recall
+    // check…" at value starts — the position guard must not disable that.
+    const blueprint = gluedBlueprint();
+    const compiled = compileBlueprintDeliverables(blueprint, ['lessonPlans'], {});
+    // No document value may BEGIN with a bare internal label leak.
+    const plans = compiled.lessonPlans;
+    const offenders = [];
+    (function walk(node) {
+      if (typeof node === 'string') {
+        if (/^(?:quiz(?:zes)?|assignment briefs?|slide decks?|study guides?)\s*:/i.test(node.trim()))
+          offenders.push(node.slice(0, 60));
+        return;
+      }
+      if (Array.isArray(node)) return node.forEach(walk);
+      if (node && typeof node === 'object') Object.values(node).forEach(walk);
+    })(plans);
+    expect(offenders).toEqual([]);
+  });
+});

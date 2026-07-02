@@ -831,6 +831,7 @@ function capLessonTitleMentions(featureId, data, blueprint) {
 
 export function finalizeCompiledDeliverableLanguage(featureId, data, blueprint = {}) {
   if (!data || typeof data !== 'object') return data;
+
   const targets = buildReferenceTargets(blueprint);
   if (targets.length === 0) {
     walkAndRewrite(data, (value) => fixMechanicalSeams(value));

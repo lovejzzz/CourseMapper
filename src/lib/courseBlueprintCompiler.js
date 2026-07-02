@@ -6887,18 +6887,56 @@ function modalityEvidenceRoutineLabel(mode) {
   return MODALITY_EVIDENCE_ROUTINE_LABELS[cleanText(mode)] || 'the way this course collects its evidence';
 }
 
+// v0.15.188 (Prof twin catch — the "Autograded Autograded Autograded the
+// Week 1 quiz" seam corruption): a label match that is ALREADY PART OF THE
+// REPLACEMENT must be left alone. The registry title "Autograded quiz: X"
+// contains the internal-label shape "quiz: …"; replacing that inner fragment
+// with the full artifact title prepends the leading word and duplicates the
+// tail, and every subsequent sanitize pass re-matches inside its own
+// insertion — stacking one more "Autograded" per pass (6,785 duplications in
+// one live compile). The guard makes replacement idempotent: text that is a
+// substring of the intended replacement IS the artifact's real name, not an
+// internal-label leak.
+function artifactLabelReplacer(replacement) {
+  const replacementNorm = cleanText(replacement).toLowerCase();
+  return (match) => (replacementNorm.includes(cleanText(match).toLowerCase()) ? match : replacement);
+}
+
+// Words that legitimately precede an internal-label leak without making it
+// part of a larger artifact title ("the quizzes: …", "each quiz: …"). Any
+// OTHER preceding word means the label is mid-title ("Autograded quiz: …",
+// "Diagnostic quiz: …") and must not be rewritten.
+const LABEL_PRECEDING_WORD_ALLOW_RE =
+  /\b(?:the|a|an|your|their|its|our|this|that|each|every|one|two|and|or|via|per)\s$/i;
+
+// Position-aware variant for PROMPT-LABELED matches ("quiz: <tail>"): the
+// label shape also occurs INSIDE real registry titles ("Autograded quiz:
+// Variables…"), where rewriting the inner fragment splices another lesson's
+// artifact mid-title (the cross-lesson half of the seam corruption). A label
+// immediately preceded by a non-determiner word is part of a larger title —
+// keep it.
+function promptLabeledArtifactReplacer(replacement) {
+  const base = artifactLabelReplacer(replacement);
+  return (match, offset, full) => {
+    const before = String(full).slice(0, offset);
+    const endsWithWord = /[A-Za-z0-9][  ]$/.test(before.slice(-2)) || /[A-Za-z0-9-]$/.test(before);
+    if (endsWithWord && !LABEL_PRECEDING_WORD_ALLOW_RE.test(before)) return match;
+    return base(match);
+  };
+}
+
 function replaceGenericArtifactLabels(value, replacement) {
   const text = cleanText(value);
   if (!text) return text;
-  return text.replace(GENERIC_ARTIFACT_LABEL_GLOBAL_RE, replacement);
+  return text.replace(GENERIC_ARTIFACT_LABEL_GLOBAL_RE, artifactLabelReplacer(replacement));
 }
 
 function replaceUnsafeLessonArtifactLabels(value, replacement) {
   const text = cleanText(value);
   if (!text) return text;
   return text
-    .replace(GENERIC_ARTIFACT_LABEL_GLOBAL_RE, replacement)
-    .replace(PROMPT_LABELED_ARTIFACT_GLOBAL_RE, replacement);
+    .replace(GENERIC_ARTIFACT_LABEL_GLOBAL_RE, artifactLabelReplacer(replacement))
+    .replace(PROMPT_LABELED_ARTIFACT_GLOBAL_RE, promptLabeledArtifactReplacer(replacement));
 }
 
 function sanitizeLessonModalityDecode(modality = {}, lesson = {}, artifactOverride = null) {
