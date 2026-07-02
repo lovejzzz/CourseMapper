@@ -15207,6 +15207,15 @@ function compileSyllabus(blueprint) {
           .map((term) => cleanText(term?.term))
           .filter(Boolean)
           .slice(0, 4);
+        // v0.15.188 grounding slice 1 (Prof twin: syllabus measured 2%
+        // grounded, and it opens EVERY reading order): each week row states
+        // what the week actually teaches — the kernel's own facts — instead
+        // of only naming the topic. Exporters render this inside the Topic
+        // cell, so the sentence reaches the export text a reviewer reads.
+        const coreIdeas = (lesson.enrichment?.kernel?.facts || [])
+          .map((fact) => stripTerminalPunctuation(cleanText(fact)))
+          .filter(Boolean)
+          .slice(0, 2);
         return {
           week: `Week ${lesson.lessonNumber}`,
           dates: `Week ${lesson.lessonNumber}`,
@@ -15216,6 +15225,9 @@ function compileSyllabus(blueprint) {
           // keyVocabulary is atom-derived; the row itself stays template, so
           // no row-level enrichmentSource tag (it would overcount the metric).
           ...(weekTerms.length > 0 ? { keyVocabulary: weekTerms.join('; ') } : {}),
+          ...(coreIdeas.length > 0
+            ? { coreIdeas: `Core ideas: ${coreIdeas.join('. ')}.`, enrichmentSource: 'lesson-content-enrichment' }
+            : {}),
         };
       }),
       academicIntegrity: blueprint.policies.academicIntegrity,
@@ -21583,7 +21595,11 @@ function compileLessonPlans(blueprint, options = {}) {
         })(),
         formativeCheck: {
           type: 'Formative closure check',
+          // v0.15.188 grounding slice 1: the enrichment's own quiz question is
+          // the honest formative check — a real content question ("What does a
+          // Python interpreter do?") beats a claim-and-evidence frame.
           prompt:
+            cleanText((lesson.enrichment?.quizItems || []).find((item) => cleanText(item?.question))?.question || '') ||
             lesson.feedbackCycle?.formativeEvidence ||
             lesson.readinessSupport?.diagnosticPrompt ||
             `State one claim from ${stripLessonPrefix(lesson.title)} and cite the evidence that makes it credible.`,
@@ -21611,7 +21627,12 @@ function compileLessonPlans(blueprint, options = {}) {
         },
         homework: {
           title: artifact,
+          // v0.15.188 grounding slice 1: the enrichment's authored assignment
+          // task IS this week's homework — say what the task actually is
+          // ("write a program that…") instead of the generic complete-and-note
+          // frame. Template stays as the kernel-less fallback.
           description:
+            cleanText(lesson.enrichment?.assignmentCore?.taskDescription) ||
             lesson.feedbackCycle?.closureCheck ||
             `Complete ${artifact}, test it against the lesson criteria, and add one note explaining how feedback changed your draft.`,
           estimatedTime: `${lesson.workloadEstimate.afterClassMinutes} minutes`,
@@ -21619,13 +21640,37 @@ function compileLessonPlans(blueprint, options = {}) {
             lesson.learningTransferPlan?.transferTask ||
             lesson.feedbackCycle?.nextUse ||
             `Bring your submitted work forward so the next lesson can build on today’s ${concept} reasoning.`,
+          ...(cleanText(lesson.enrichment?.assignmentCore?.taskDescription)
+            ? { enrichmentSource: 'lesson-content-enrichment' }
+            : {}),
         },
-        closingActivity: lessonVariant(lesson, [
-          `Close by having students name one strong evidence move from today and one revision they still need before ${artifact} is fully ready.`,
-          `End with a two-part exit check: the evidence move students trust now, and the ${artifact} edit that still needs attention.`,
-          `Have students mark the strongest source-backed decision from class and write the next revision they will make to ${artifact}.`,
-          `Close the session by asking which evidence claim is ready for ${artifact} and which unsupported part needs one more revision.`,
-        ]),
+        // v0.15.188 grounding slice 1: the exit ticket closes on a DIFFERENT
+        // kernel atom than the mini-lesson opened with (facts[0]) — students
+        // restate the week's second fact or key definition in their own
+        // words. Generic evidence-move closers stay as the kernel-less belt.
+        closingActivity: (() => {
+          const exitFact = stripTerminalPunctuation(
+            cleanText(
+              (lesson.enrichment?.kernel?.facts || [])[1] ||
+                (lesson.enrichment?.keyTerms || []).map((term) => cleanText(term?.definition)).filter(Boolean)[1] ||
+                '',
+            ),
+          );
+          if (exitFact) {
+            return lessonVariant(lesson, [
+              `Exit ticket: students restate “${exitFact}” in their own words and name where today's work on ${artifact} used it.`,
+              `Close with a one-line check: is “${exitFact}” true, and what evidence from today's ${artifact} work shows it?`,
+              `End by asking students to explain “${exitFact}” to a classmate who missed class, using one example from today.`,
+              `Exit ticket: students write why “${exitFact}” matters for ${artifact} and one question they still have about it.`,
+            ]);
+          }
+          return lessonVariant(lesson, [
+            `Close by having students name one strong evidence move from today and one revision they still need before ${artifact} is fully ready.`,
+            `End with a two-part exit check: the evidence move students trust now, and the ${artifact} edit that still needs attention.`,
+            `Have students mark the strongest source-backed decision from class and write the next revision they will make to ${artifact}.`,
+            `Close the session by asking which evidence claim is ready for ${artifact} and which unsupported part needs one more revision.`,
+          ]);
+        })(),
         tags: unique(['lesson-plan', lesson.title, concept, lens.domain, ...lesson.keyConcepts], 10),
         readyToTeachSupport: {
           localReviewAction: lessonLocalReviewAction(lesson),

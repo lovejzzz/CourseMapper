@@ -1249,6 +1249,14 @@ export function _buildDocxContentShared(featureId, data, children, docx) {
           ? ['Week', 'Dates', 'Topic', 'Readings', 'Assignments']
           : ['Week', 'Topic', 'Readings', 'Assignments'];
         const wsDXA = hasDates ? [780, 1200, 2500, 2440, 2440] : [936, 2995, 2810, 2619];
+        // v0.15.188 grounding slice 1: the Topic cell carries the week's core
+        // ideas and key vocabulary — the kernel-derived fields existed on the
+        // row since v0.15.187 but no exporter rendered them, so the schedule
+        // a reviewer reads stayed title-only.
+        const topicCell = (w) =>
+          [w.topic || '', w.coreIdeas || '', w.keyVocabulary ? `Key terms: ${w.keyVocabulary}.` : '']
+            .filter(Boolean)
+            .join(' — ');
         children.push(
           makeTableFn(
             wsDXA,
@@ -1258,11 +1266,11 @@ export function _buildDocxContentShared(featureId, data, children, docx) {
                 ? [
                     w.week || '',
                     (w.dates !== w.week && w.dates) || '',
-                    w.topic || '',
+                    topicCell(w),
                     w.readings || '',
                     w.assignments || '',
                   ]
-                : [w.week || '', w.topic || '', w.readings || '', w.assignments || ''],
+                : [w.week || '', topicCell(w), w.readings || '', w.assignments || ''],
             ),
           ),
         );

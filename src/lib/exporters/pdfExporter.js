@@ -199,13 +199,19 @@ export async function exportDeliverablePdf(featureId, data, courseName) {
       drawSectionHeading('Course Schedule');
       checkPage(20);
       const hasDates = syl.weeklySchedule.some((w) => w.dates);
+      // v0.15.188 grounding slice 1: Topic cell carries core ideas + key
+      // vocabulary (same composition as the DOCX exporter).
+      const pdfTopicCell = (w) =>
+        [w.topic || '', w.coreIdeas || '', w.keyVocabulary ? `Key terms: ${w.keyVocabulary}.` : '']
+          .filter(Boolean)
+          .join(' — ');
       if (hasDates) {
         autoTable(doc, {
           head: [['Week', 'Dates', 'Topic', 'Readings', 'Assignments']],
           body: syl.weeklySchedule.map((w) => [
             w.week || '',
             w.dates || '',
-            w.topic || '',
+            pdfTopicCell(w),
             w.readings || '',
             w.assignments || '',
           ]),
@@ -225,7 +231,7 @@ export async function exportDeliverablePdf(featureId, data, courseName) {
       } else {
         autoTable(doc, {
           head: [['Week', 'Topic', 'Readings', 'Assignments']],
-          body: syl.weeklySchedule.map((w) => [w.week || '', w.topic || '', w.readings || '', w.assignments || '']),
+          body: syl.weeklySchedule.map((w) => [w.week || '', pdfTopicCell(w), w.readings || '', w.assignments || '']),
           startY: y,
           styles: { fontSize: 7.5, cellPadding: 2, overflow: 'linebreak', valign: 'top' },
           headStyles: { fillColor: [68, 114, 196], textColor: 255, fontStyle: 'bold' },

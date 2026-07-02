@@ -111,8 +111,19 @@ export function buildReadingPacket({ extracted, readingOrder, hotSpot, charBudge
     if (!file || seen.has(file.path)) continue;
     seen.add(file.path);
     const text = String(file.text || '');
-    const slice = text.slice(0, Math.max(0, Math.min(text.length, charBudget - used)));
+    let slice = text.slice(0, Math.max(0, Math.min(text.length, charBudget - used)));
     if (slice.length < 200) continue;
+    // v0.15.188 (twin-round instrument fix): a raw character cut lands
+    // mid-sentence, and judges read the cut as a BROKEN EXPORT ("visibly
+    // breaks off at 'HOMEWORK Title:'") — worse, twin sides truncate at
+    // different points when one side's content changes length, so slicing
+    // noise scores as a compiler difference. Cut at the last paragraph or
+    // sentence boundary and say explicitly that the document continues.
+    if (slice.length < text.length) {
+      const boundary = Math.max(slice.lastIndexOf('\n'), slice.lastIndexOf('. '));
+      if (boundary > slice.length * 0.6) slice = slice.slice(0, boundary + 1);
+      slice = `${slice.trimEnd()}\n[Excerpt ends here — the full document continues in the actual export.]`;
+    }
     packet.push({ path: file.path, text: slice });
     used += slice.length;
     if (used >= charBudget) break;
