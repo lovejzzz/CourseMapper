@@ -16293,14 +16293,19 @@ function compileStudyGuides(blueprint) {
                 .join('; ')}.`
             : ''
         }`,
-        summary: isDataScience
-          ? `${lesson.title} focuses on ${conceptList}. Students should inspect ${datasetName}, read notebook outputs, use ${dataScienceEvidenceCue}, and explain how the evidence changes the modeling decision.`
-          : lessonVariant(lesson, [
-              `${lesson.title} focuses on ${conceptList}. Use the guide to connect ${conceptPair} with ${studyArtifact}; ${phrase.evidenceMove}, then ${phrase.decisionMove}.`,
-              `For ${lesson.title}, start with ${conceptPair} and the week's artifact work. ${sentenceCase(phrase.evidenceMove)}, then ${phrase.decisionMove}.`,
-              `${lesson.title} turns ${conceptList} into a study lens for ${studyArtifact}. Students practice by ${phrase.evidenceMove} before they ${phrase.decisionMove}.`,
-              `In this guide, ${conceptPair} anchors the review routine: ${phrase.evidenceMove}, connect it to ${studyArtifact}, and ${phrase.decisionMove}.`,
-            ]),
+        // v0.15.187: an authored kernel summary (real subject matter, linted
+        // at parse) beats every template variant; the rotation is the
+        // fallback for un-enriched lessons.
+        summary:
+          cleanText(lesson.enrichment?.studyGuide?.summary) ||
+          (isDataScience
+            ? `${lesson.title} focuses on ${conceptList}. Students should inspect ${datasetName}, read notebook outputs, use ${dataScienceEvidenceCue}, and explain how the evidence changes the modeling decision.`
+            : lessonVariant(lesson, [
+                `${lesson.title} focuses on ${conceptList}. Use the guide to connect ${conceptPair} with ${studyArtifact}; ${phrase.evidenceMove}, then ${phrase.decisionMove}.`,
+                `For ${lesson.title}, start with ${conceptPair} and the week's artifact work. ${sentenceCase(phrase.evidenceMove)}, then ${phrase.decisionMove}.`,
+                `${lesson.title} turns ${conceptList} into a study lens for ${studyArtifact}. Students practice by ${phrase.evidenceMove} before they ${phrase.decisionMove}.`,
+                `In this guide, ${conceptPair} anchors the review routine: ${phrase.evidenceMove}, connect it to ${studyArtifact}, and ${phrase.decisionMove}.`,
+              ])),
         sourceGrounding: lessonSourceGrounding(lesson, {
           anchorExampleSet: assessment.anchorExampleSet,
           learnerContextProfile: blueprint.learnerContextProfile,
@@ -16492,16 +16497,20 @@ function compileStudyGuides(blueprint) {
           commonErrors: isDataScience
             ? `Avoid treating accuracy as enough, ignoring false-positive/false-negative costs, skipping data-quality checks, or submitting ${studyArtifact} without a limitation note.`
             : `Avoid unsupported claims, vague ${phrase.context} definitions, and responses that omit ${studyArtifact}.`,
-          reviewStrategy: isDataScience
-            ? `For ${specificity.week}, practice explaining how ${primaryConcept} uses one dataset issue, one validation metric, one threshold or model-performance tradeoff, and one fairness or limitation note for ${specificity.artifact}.`
-            : `${lessonVariant(lesson, ['Rehearse', 'Sketch', 'Annotate', 'Compare'])}${lessonVariant(lesson, [
-                ` one ${specificity.week} explanation of ${primaryConcept}, one ${lens.evidenceNoun} source, and one implication for ${specificity.artifact}.`,
-                ` the ${specificity.week} ${primaryConcept} claim, then attach the source detail that changes ${specificity.artifact}.`,
-                ` how ${primaryConcept} works in ${specificity.week}: source detail first, implication for ${specificity.artifact} second.`,
-                ` a short ${specificity.week} source-to-artifact chain for ${primaryConcept}, including the decision the evidence changes.`,
-                ` the ${primaryConcept} evidence trail for ${specificity.week}, then name what ${specificity.artifact} should keep, revise, or test.`,
-                ` one ${specificity.week} claim about ${primaryConcept} and the source cue that makes the ${specificity.artifact} implication defensible.`,
-              ])}`,
+          reviewStrategy:
+            // v0.15.187: authored review strategy names the actual concepts
+            // to rehearse; the verb-rotation template is the fallback.
+            cleanText(lesson.enrichment?.studyGuide?.reviewStrategy) ||
+            (isDataScience
+              ? `For ${specificity.week}, practice explaining how ${primaryConcept} uses one dataset issue, one validation metric, one threshold or model-performance tradeoff, and one fairness or limitation note for ${specificity.artifact}.`
+              : `${lessonVariant(lesson, ['Rehearse', 'Sketch', 'Annotate', 'Compare'])}${lessonVariant(lesson, [
+                  ` one ${specificity.week} explanation of ${primaryConcept}, one ${lens.evidenceNoun} source, and one implication for ${specificity.artifact}.`,
+                  ` the ${specificity.week} ${primaryConcept} claim, then attach the source detail that changes ${specificity.artifact}.`,
+                  ` how ${primaryConcept} works in ${specificity.week}: source detail first, implication for ${specificity.artifact} second.`,
+                  ` a short ${specificity.week} source-to-artifact chain for ${primaryConcept}, including the decision the evidence changes.`,
+                  ` the ${primaryConcept} evidence trail for ${specificity.week}, then name what ${specificity.artifact} should keep, revise, or test.`,
+                  ` one ${specificity.week} claim about ${primaryConcept} and the source cue that makes the ${specificity.artifact} implication defensible.`,
+                ])}`),
         },
         studentResources: lessonVariant(lesson, [
           `Use ${specificity.week} ${lesson.title} readings, instructor notes, peer discussion, and the rubric criteria for ${specificity.artifact}.`,
@@ -16733,6 +16742,22 @@ function labelQuizOption(letter, text) {
 
 function quizCorrectExplanation({ answer, concept, artifact, objective, lesson, index }) {
   const lessonNumber = Number(lesson?.lessonNumber || 1);
+  // v0.15.187 compose-flip: when the kernel authored a definition for the
+  // EXACT concept this stem asks about, the explanation quotes it — the atom
+  // is the subject, the frame is connective. Deliberately narrow: attaching
+  // unrelated facts to frame stems is the mismatch defect the July 1 field
+  // audit flagged, so anything but an exact concept match keeps the frame.
+  const matchedTerm = (lesson?.enrichment?.keyTerms || []).find(
+    (term) =>
+      cleanText(term?.term) &&
+      cleanText(term?.definition) &&
+      cleanText(term.term).toLowerCase() === cleanText(concept).toLowerCase(),
+  );
+  if (matchedTerm) {
+    return `${answer} is correct: ${cleanText(matchedTerm.term)} means ${lowercaseSentenceLead(
+      stripTerminalPunctuation(cleanText(matchedTerm.definition)),
+    )} — and this option is the one that applies it to ${artifact}.`;
+  }
   const fullObjective = stripTerminalPunctuation(cleanText(objective, 'the lesson objective'));
   const clipped = conciseClause(objective, 'the lesson objective', 90);
   const compactObjective = clipped.length < fullObjective.length ? `${clipped}…` : clipped;

@@ -834,6 +834,10 @@ export function buildLessonContentEnrichmentPrompt(courseMap, lessonIndices, opt
           td: '2-3 sentences: the actual case/dataset/text students work on and what they produce',
           pa: ['2-4 concrete parameters: length, data source, format, constraints'],
         },
+        studyGuide: {
+          sm: '2-3 sentence subject-matter summary of what this lesson teaches, written in disciplinary language (never meta-language about the course or its materials)',
+          rs: 'one exam-review strategy that names the specific concepts, methods, or cases to rehearse',
+        },
       },
     ],
   };
@@ -1065,7 +1069,7 @@ export function parseLessonContentEnrichmentResponse(text, { prompt } = {}) {
 // ════════════════════════════════════════════════════════════════════════════
 
 const KERNEL_KEY_LEGEND =
-  'Abbreviated JSON keys: q=question, op=options, ai=answerIndex, ex=explanation, tr=term, df=definition, eg=example, mi=misconception, cx=correction, pr=prompt, tn=tension, po=positions, td=taskDescription, pa=parameters, su=setup, ma=materials, wp=problem, ws=steps, wr=result.';
+  'Abbreviated JSON keys: q=question, op=options, ai=answerIndex, ex=explanation, tr=term, df=definition, eg=example, mi=misconception, cx=correction, pr=prompt, tn=tension, po=positions, td=taskDescription, pa=parameters, su=setup, ma=materials, wp=problem, ws=steps, wr=result, sm=summary, rs=reviewStrategy.';
 
 function buildKernelSchema() {
   return {
@@ -1145,7 +1149,7 @@ export function buildLessonKernelPrompt(courseMap, lessonIndices, options = {}) 
 
   const systemPrompt = [
     LESSON_CONTENT_SYSTEM_PROMPT,
-    `For every lesson in the request, return one knowledge kernel: 5-8 facts, ${keyTermsPerLesson} keyTerms, one scenario, one discussionPrompt, one assignmentCore, and exactly ${mcCount} mc items.`,
+    `For every lesson in the request, return one knowledge kernel: 5-8 facts, ${keyTermsPerLesson} keyTerms, one scenario, one discussionPrompt, one assignmentCore, one studyGuide block, and exactly ${mcCount} mc items.`,
     `The mc items follow this cognitive plan (matching list order): ${itemPlan
       .filter((slot) => slot.type === 'multiple_choice')
       .map((slot) => `${slot.bloom} (${slot.note})`)
@@ -1423,6 +1427,28 @@ export function parseLessonKernelResponse(text, { prompt, expectedLessonIds } = 
     // romanization recovery retry (cost discipline).
     const dialogue = sanitizeDialogueTurns(entry?.dialogue);
     if (dialogue.length > 0) payload.dialogue = dialogue;
+    // v0.15.187: the authored study-guide body (summary + review strategy)
+    // rides beside the projected surfaces, dialogue-style: a bad block is
+    // dropped with an issue row and never costs the lesson; an absent one
+    // falls back to the template body downstream.
+    if (entry?.studyGuide && typeof entry.studyGuide === 'object') {
+      const summary = cleanText(entry.studyGuide.summary);
+      const reviewStrategy = cleanText(entry.studyGuide.reviewStrategy);
+      const problems = [];
+      if (summary && (summary.length < 60 || summary.length > 600)) problems.push('summary-length');
+      if (summary && META_SURFACE_RE.test(summary)) problems.push('meta-summary');
+      if (reviewStrategy && (reviewStrategy.length < 30 || reviewStrategy.length > 400))
+        problems.push('review-strategy-length');
+      if (reviewStrategy && META_SURFACE_RE.test(reviewStrategy)) problems.push('meta-review-strategy');
+      if (problems.length > 0) {
+        issues.push({ lessonId, surface: 'studyGuide', index: 0, problems });
+      } else if (summary || reviewStrategy) {
+        payload.studyGuide = {
+          ...(summary ? { summary } : {}),
+          ...(reviewStrategy ? { reviewStrategy } : {}),
+        };
+      }
+    }
     // Projected slides must pass the same surface lint the direct contract does.
     if (Array.isArray(payload.slideContent)) {
       const slideContent = payload.slideContent.filter((slide, index) => {

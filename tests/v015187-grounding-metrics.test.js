@@ -192,6 +192,94 @@ describe('courseFaq atom routing (v0.15.187)', () => {
   });
 });
 
+describe('kernel studyGuide body (v0.15.187)', () => {
+  it('parses sm/rs short keys and the compiler prefers the authored body', async () => {
+    const { buildLessonKernelPrompt, parseLessonKernelResponse } = await import('../src/lib/blueprintEnrichmentPass');
+    const prompt = buildLessonKernelPrompt(
+      {
+        courseName: 'Applied Research Evidence',
+        // Title differs from the keyTerm below — lintEnrichedKeyTerm rejects
+        // terms that merely restate the lesson title.
+        lessons: [
+          { title: 'Lesson 1: Corroborating Program Claims', sections: [{ topicSection: '1.1: Corroboration' }] },
+        ],
+      },
+      [0],
+      {},
+    );
+    expect(prompt.systemPrompt).toContain('studyGuide');
+    expect(prompt.systemPrompt).toContain('sm=summary, rs=reviewStrategy');
+
+    const response = JSON.stringify({
+      lessons: [
+        {
+          lessonId: 'lesson-1',
+          facts: ['Triangulated claims survive peer review at roughly twice the rate of single-source claims'],
+          keyTerms: [
+            {
+              tr: 'Evidence triangulation',
+              df: 'Cross-checking a claim against at least two independent sources before treating it as established.',
+              eg: 'Comparing survey results with interview notes.',
+              mi: 'One strong source is treated as sufficient proof.',
+              cx: 'Only independent corroboration makes a claim defensible.',
+            },
+          ],
+          studyGuide: {
+            sm: 'Triangulation tests every claim against at least two independent sources; the method-difference rule extends the test to program evaluation, where two same-method surveys never corroborate each other.',
+            rs: 'Rehearse the method-difference rule on the survey-versus-log example until you can state why two staff surveys do not count as triangulation.',
+          },
+          mc: [],
+        },
+      ],
+    });
+    const parsed = parseLessonKernelResponse(response, { prompt, expectedLessonIds: ['lesson-1'] });
+    expect(parsed.lessons['lesson-1'].studyGuide.summary).toContain('method-difference rule');
+    expect(parsed.lessons['lesson-1'].studyGuide.reviewStrategy).toContain('two staff surveys');
+  });
+
+  it('compiled study guides use the authored summary and review strategy', () => {
+    const enrichment = {
+      source: 'metric-test',
+      lessonContent: {
+        'lesson-1': {
+          quizItems: [],
+          keyTerms: [],
+          studyGuide: {
+            summary:
+              'Triangulation tests every claim against at least two independent sources; this lesson develops the method-difference rule for evidence review.',
+            reviewStrategy:
+              'Rehearse the method-difference rule on the survey-versus-log example until the distinction is automatic.',
+          },
+        },
+      },
+    };
+    const course = {
+      courseName: 'Applied Research Evidence',
+      lessons: [
+        {
+          title: 'Lesson 1: Evidence Triangulation',
+          sections: [
+            {
+              topicSection: '1.1: Evidence triangulation and independent sources',
+              learningGoals: 'Use triangulation to test claims.',
+              learningObjectives: 'Explain the method-difference rule for independent sources.',
+              weeklyAssessments: 'Evidence review memo',
+              asyncActivities: 'Read the triangulation primer.',
+              syncActivities: 'Workshop paired sources.',
+              supportingResources: 'Survey excerpt',
+            },
+          ],
+        },
+      ],
+    };
+    const blueprint = buildCourseBlueprint(course, { enrichment });
+    const compiled = compileBlueprintDeliverables(blueprint, ['studyGuides'], {});
+    const guide = compiled.studyGuides.studyGuides[0];
+    expect(guide.summary).toContain('method-difference rule');
+    expect(guide.examPrep.reviewStrategy).toContain('survey-versus-log example');
+  });
+});
+
 describe('package grounded fraction end to end', () => {
   it('reports zero grounding without enrichment and >0 for enriched quiz banks', () => {
     const bare = buildCourseBlueprint(GENERIC_COURSE);

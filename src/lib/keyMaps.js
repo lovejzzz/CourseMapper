@@ -287,6 +287,9 @@ const enrichment = {
   // kernel contract (v0.9.11 P4): scenario block
   su: 'setup',
   ma: 'materials',
+  // v0.15.187: authored study-guide body (kernel studyGuide block)
+  sm: 'summary',
+  rs: 'reviewStrategy',
   // v0.13.3: misconception corrections + quantitative worked examples
   cx: 'correction',
   wp: 'problem',
