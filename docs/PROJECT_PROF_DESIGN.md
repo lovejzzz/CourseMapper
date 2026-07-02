@@ -505,20 +505,65 @@ pacing/repair/FAQ hit ↑ → teach-as-is ↑ → **end-state mastery delta > 0*
 deep grader stays the **defect** gate; grounding the **cause** metric; Prof the
 **effect** metrics.
 
-## 8. Execution & cost
+## 8. Execution & cost — the campaign model
 
-- The student mind is free (§3h). Persona calls are small-context; universes fan
-  out under crucible-style spend caps. Estimates: A1 ≈ $0.10/universe; A2 ≈
-  $1–2/cohort-semester (mouth calls only); A3 ≈ $2–4/timeline (live generation +
-  agent traffic); A4 ≈ $0.30; A5 ≈ $0.50 shared. `prof:adopt` ≈ **$8–15**;
-  `prof:gauntlet` ≈ **$35–60**.
-- Nightly `prof:smoke` (after a 2-week manual variance-characterization period);
-  `prof:adopt` weekly and before any content-quality release claim;
-  `prof:classroom` per compiler content release; `prof:semester`/`prof:gauntlet`
-  at milestones.
-- Full replayability: seeds, scenario hashes, persona versions, `learningRules.json`
-  version, model ids, and the complete ledger persist under
-  `verification-output/prof/term-*/`; failures reuse crucible forensics.
+**Prof is a campaign instrument, not standing infrastructure.** It runs in
+bounded, goal-directed campaigns while the product is being fixed; between
+campaigns it is dormant and costs nothing. This is a deliberate operating
+decision, not a budget accident, and it echoes the proven crucible pattern
+(v0.14.2: run the loop until convergence — 4 rounds, ~$1.70 — then stop).
+
+### 8a. Per-run costs
+
+The student mind is free (§3h). Persona calls are small-context; universes fan
+out under crucible-style spend caps. Estimates: A1 ≈ $0.10/universe; A2 ≈
+$1–2/cohort-semester (mouth calls only); A3 ≈ $2–4/timeline (live generation +
+agent traffic); A4 ≈ $0.30; A5 ≈ $0.50 shared. `prof:smoke` < $2;
+`prof:classroom` ≈ $3–6; `prof:adopt` ≈ **$8–15**; `prof:gauntlet` ≈ **$35–60**.
+
+### 8b. The campaign lifecycle
+
+```
+   CAMPAIGN (weeks, budgeted)                DORMANT (indefinite, $0)
+  ┌────────────────────────────┐            ┌─────────────────────────┐
+  │ run → triage → fix → rerun │──converge─►│ free layer runs in CI   │
+  │ (rounds until KPIs dry up  │            │ findings live on as     │
+  │  or the budget is spent)   │◄─reactivate│ regression tests        │
+  └────────────────────────────┘  trigger   └─────────────────────────┘
+```
+
+- **A campaign** has a goal ("clear the launch bars"), a budget cap (proposal:
+  **$300 per campaign**, enforced by the orchestrator like a crucible spend cap),
+  and a convergence rule: stop when two consecutive rounds surface no new
+  agreement-ranked findings, or the budget is spent. Expected shape of the first
+  campaign: P0–P2 build interleaved with 8–12 runs over 3–4 weeks, total
+  **$150–300** — the entire program to launch readiness should cost less than
+  $500 of API spend.
+- **Reactivation triggers** (dormancy is not abandonment): a major compiler
+  content release, a new discipline/course family, a Reality Anchor round showing
+  sim-to-real drift, or pre-launch of a major version. Each reactivation is a
+  small campaign with its own cap.
+
+### 8c. What survives dormancy for free
+
+The economics split cleanly along the mind/mouth line:
+
+1. **The zero-token layer graduates into permanent CI.** The workload accountant,
+   MC psychometrics, pacing overflow, compliance robustness, exam-vs-decay
+   checks — pure arithmetic over compiled packages — cost $0 and can run in the
+   existing test suite forever. Prof's deterministic instruments become ordinary
+   regression gates; only its _opinions_ (persona calls) are campaign-priced.
+2. **Every campaign finding funnels into a free regression test.** The proven
+   pattern from this release's live rounds: expensive discovery once (a live
+   crucible round found the exam-identity bug), free prevention forever (a vitest
+   regression pins it). Prof findings follow the same funnel — a persona-found
+   defect is only "fixed" when a deterministic test guards it, so the product
+   keeps the campaign's value at zero recurring cost.
+3. **Replayability makes dormancy safe**: seeds, scenario hashes, persona
+   versions, `learningRules.json` version, model ids, and the complete ledger
+   persist under `verification-output/prof/term-*/`; a reactivated campaign
+   re-runs old terms bit-for-bit to detect regressions against the last
+   converged state. Failures reuse crucible forensics.
 
 ## 9. The Reality Gap — an honest account
 
