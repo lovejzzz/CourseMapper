@@ -219,6 +219,42 @@ describe('courseFaq atom routing (v0.15.187)', () => {
     const answers = compiled.courseFaq.faqs[0].qs.map((item) => item.an).join('\n');
     expect(answers).toContain('requires independent corroboration');
   });
+
+  // Live crucible round 6 P1: the slide evidence-table cell composed
+  // "definition — e.g., Example" without terminal punctuation; an example
+  // ending on a preposition then read as a truncated bullet in the PPTX
+  // audit. The composed cell is a full sentence: lowercased example lead,
+  // terminal period.
+  it('slide evidence-table cells end with terminal punctuation', () => {
+    // The evidence table needs >= 2 authored term rows, each composed cell
+    // within the exporter's 130-char row guard.
+    const tableEnrichment = JSON.parse(JSON.stringify(FULL_KERNEL_ENRICHMENT));
+    tableEnrichment.lessonContent['lesson-1'].keyTerms = [
+      {
+        term: 'Evidence triangulation',
+        definition: 'Cross-checking a claim against two independent sources first.',
+        example: 'Comparing survey results with the interview notes over',
+        misconception: 'Students often treat one strong source as sufficient proof for a claim.',
+        correction: 'One source can support a claim, but only independent corroboration makes it defensible.',
+      },
+      {
+        term: 'Corroboration standard',
+        definition: 'The bar a source must clear to count as corroboration.',
+        example: 'A second source with an unshared method',
+        misconception: 'Any second citation is treated as corroboration.',
+        correction: 'A source only corroborates when its method is independent of the first.',
+      },
+    ];
+    const blueprint = buildCourseBlueprint(KERNEL_COURSE, { enrichment: tableEnrichment });
+    const compiled = compileBlueprintDeliverables(blueprint, ['slideDecks'], {});
+    const text = JSON.stringify(compiled.slideDecks);
+    const cell = text.match(/[^"]*— e\.g\., [^"]*/);
+    expect(cell).not.toBeNull();
+    // The composed cell is a full sentence: lowercased example lead and a
+    // terminal period even when the example ends on a preposition ("over").
+    expect(cell[0]).toContain('— e.g., comparing survey results');
+    expect(cell[0]).toMatch(/over\./);
+  });
 });
 
 // Live crucible P1 (the last format point): the finalizer's lesson-title

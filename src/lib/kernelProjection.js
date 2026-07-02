@@ -149,13 +149,20 @@ export function matchDistractorRationales(item, keyTerms = []) {
   return rationales;
 }
 
+// v0.15.187 (live crucible P1 class): a period-stripped bullet that happens
+// to end on a preposition/auxiliary ("…can be iterated over") reads as a
+// truncated line in the PPTX text audit. Bullets ending on a dangling
+// function word keep their sentence punctuation instead.
+const DANGLING_TAIL_RE =
+  /\b(?:a|an|the|and|or|but|nor|so|yet|to|of|in|on|at|by|for|with|from|into|onto|over|under|between|through|during|before|after|about|against|toward|towards|per|via|as|than|that|this|these|those|is|are|was|were|be|been|being|can|could|should|would|may|might|must|will|shall|if|because|while|when|where|which|who|whom|whose|not|without|within)$/i;
+
 function pickBullets(candidates, count) {
   const bullets = [];
   for (const candidate of candidates) {
     const text = stripTerminalPeriod(candidate);
     if (!text || wordCount(text) > 18 || wordCount(text) < 3) continue;
     if (bullets.some((existing) => existing.toLowerCase() === text.toLowerCase())) continue;
-    bullets.push(text);
+    bullets.push(DANGLING_TAIL_RE.test(text) ? `${text}.` : text);
     if (bullets.length >= count) break;
   }
   return bullets;

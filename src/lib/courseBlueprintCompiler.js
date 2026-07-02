@@ -17994,7 +17994,11 @@ function enrichedEvidenceTableRows(lesson) {
       const definition = stripTerminalPunctuation(cleanText(term?.definition));
       const example = stripTerminalPunctuation(cleanText(term?.example));
       if (!claim || !definition || !example) return null;
-      return [claim, `${definition} — e.g., ${example}`];
+      // v0.15.187 (live crucible P1): the composed cell is a full sentence —
+      // it keeps terminal punctuation and lowercases the example lead, or a
+      // preposition-final example ("…can be iterated over") reads as a
+      // truncated bullet in the PPTX text audit.
+      return [claim, `${definition} — e.g., ${lowercaseSentenceLead(example)}.`];
     })
     .filter((row) => row && row[0].length <= 42 && row[1].length <= 130)
     .slice(0, 4);

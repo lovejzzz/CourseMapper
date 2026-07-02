@@ -135,6 +135,28 @@ describe('buildSlideContentFromKernel', () => {
     const slides = buildSlideContentFromKernel({ ...KERNEL, facts: KERNEL.facts.slice(0, 3) });
     expect(slides.length).toBeLessThanOrEqual(2);
   });
+
+  // v0.15.187 live crucible P1 class: a period-stripped bullet ending on a
+  // preposition/auxiliary ("…can be iterated over") reads as a TRUNCATED
+  // line in the PPTX text audit. Such bullets keep sentence punctuation.
+  it('keeps terminal punctuation on bullets that end with a dangling function word', () => {
+    const kernel = {
+      ...KERNEL,
+      facts: [
+        KERNEL.facts[0],
+        'A string or list can be iterated over.',
+        'Generators produce items one at a time in a loop.',
+        ...KERNEL.facts.slice(3),
+      ],
+    };
+    const slides = buildSlideContentFromKernel(kernel);
+    const bullets = slides.flatMap((slide) => slide.bullets);
+    const dangling = bullets.find((bullet) => bullet.includes('iterated over'));
+    expect(dangling).toBe('A string or list can be iterated over.');
+    // Bullets ending on content words stay period-free (bullet style).
+    const content = bullets.find((bullet) => bullet.includes('one at a time in a loop'));
+    expect(content).toBe('Generators produce items one at a time in a loop');
+  });
 });
 
 describe('projectKernelToSurfaces', () => {
