@@ -1,5 +1,24 @@
 # What CourseMapper needs to improve — per Project Prof
 
+> **Fix log (July 2, 2026):** four findings addressed at the root and shipped
+> (commits `8f26c5d`, `f8e705b`), full battery + gold green:
+>
+> - ✅ **#1 autograded-quiz contract** — autograded quizzes now emit all
+>   machine-scorable multiple-choice items; exams keep written items.
+> - ✅ **#2 false Python primer** — `cs/variables` kernel corrected to "binds
+>   the name to the value (for objects it binds the reference)"; source
+>   snapshot kept verbatim.
+> - ✅ **#5 misconception distractors** — quiz distractors now lead with the
+>   concept's documented genome misconception; proven that Prof's own
+>   catch-detector fires on the compiler's output (metric moves on
+>   genome-enriched generation).
+> - ✅ **#7 workload contradiction** — one `formatWorkloadLine` helper shows
+>   the breakdown everywhere so stated == sum-of-visible.
+>
+> Still open (the grounding lane + medium-effort items): #3 alignment, #4
+> templated prose, #6 giveaway items, #8 rubric bands, #9 FAQ demand, #10
+> non-reader path, plus the P2 accessibility/dates tail.
+
 _SIMULATED · UNANCHORED · July 2, 2026 · derived from 12 course-mode Prof terms_
 _Scope caveat: cs-python (primary) + research-methods gold, single provider
 family (gpt-5.4), single-family judges. High-agreement themes are credible;
