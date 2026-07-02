@@ -13,12 +13,14 @@
       "npm run audit:release-history"
     ],
     "ciFast": {
-      "status": "pending-push",
-      "note": "Fast verification (including the gold slice) is claimed only after v0.16.0 is pushed and the GitHub Actions run passes."
+      "status": "success",
+      "url": "https://github.com/lovejzzz/CourseMapper/actions/runs/28617116894/job/84863576912",
+      "note": "Fast verification (format, lint, release-history audit, full unit suite, proof smoke, build, bundle budgets, gold slice) passed on the pushed v0.16.0 release."
     },
     "deploy": {
-      "status": "pending-push",
-      "note": "Pages deploy is not claimed until the pushed v0.16.0 release completes its deploy run."
+      "status": "success",
+      "url": "https://github.com/lovejzzz/CourseMapper/actions/runs/28617732966/job/84865712894",
+      "note": "Pages build and deploy completed for the pushed v0.16.0 release."
     },
     "ciDeep": {
       "status": "local-only",
