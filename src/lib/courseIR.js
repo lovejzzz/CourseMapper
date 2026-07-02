@@ -4,6 +4,7 @@ import {
   getBlueprintCompiledFeatures,
 } from './courseBlueprintCompiler.js';
 import { attachEnrichmentToGraph, buildBlueprintFromGraph, deriveCourseGraphFromCourseMap } from './courseGraph';
+import { classifyAssessmentKind } from './courseGraph/deriveFromCourseMap.js';
 import { validateCourseGraph } from './courseGraph/schema.js';
 import { buildQuizItemPlan } from './blueprintEnrichmentPass.js';
 import { projectKernelToSurfaces } from './kernelProjection.js';
@@ -202,7 +203,14 @@ function normalizeConcept(rawConcept, index) {
 
 function normalizeAssessment(rawAssessment, index) {
   const id = normalizeId(rawAssessment?.id, 'A', index);
-  const kind = VALID_ASSESSMENT_KINDS.has(rawAssessment?.kind) ? rawAssessment.kind : 'graded-artifact';
+  // v0.15.187 (live crucible catch): defaulting unknown kinds to
+  // 'graded-artifact' let exam-TITLED assessments compile as briefs while
+  // the export manifest re-classified them 'exam' — the grader then found a
+  // registered exam with no exam paper (P0). One classifier everywhere: the
+  // title-based rule the manifest derivation uses.
+  const kind = VALID_ASSESSMENT_KINDS.has(rawAssessment?.kind)
+    ? rawAssessment.kind
+    : classifyAssessmentKind(rawAssessment?.title || '');
   const rubricDimensions = uniqueStrings(rawAssessment?.rubricDimensions || rawAssessment?.dimensions || [], 8);
   const rawRubricCriteria = asArray(rawAssessment?.rubricCriteria || rawAssessment?.rubric || rawAssessment?.criteria);
   const rubricCriteria = rawRubricCriteria
@@ -1049,7 +1057,7 @@ function lessonAssessmentFromTemplate(template, lesson, index, id) {
     ...template,
     id,
     title,
-    kind: VALID_ASSESSMENT_KINDS.has(template?.kind) ? template.kind : 'graded-artifact',
+    kind: VALID_ASSESSMENT_KINDS.has(template?.kind) ? template.kind : classifyAssessmentKind(title || ''),
     lessonIds: [lesson.id],
     coverageConceptIds: lesson.conceptIds,
     prompt,

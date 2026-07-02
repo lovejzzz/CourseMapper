@@ -62,11 +62,12 @@ const ASSESSMENT_KIND_RULES = [
 // kind now requires the exam noun as the OPERATIVE HEAD of the title:
 //  - "midterm exam" / "final exam" / "exam:" / "comprehensive exam|assessment";
 //  - a standalone "midterm"/"final" still counts (the word itself is the
-//    artifact) UNLESS a prep/review qualifier follows it — those force
+//    artifact) UNLESS a prep/review qualifier follows it (same for a bare
+//    "exam" head: "exam review guide" is a review artifact) — those force
 //    graded-artifact ("in-class" when it is a review session) — or another
 //    artifact noun is the head ("Final Project", "Final Oral Performance").
 const EXAM_PREP_QUALIFIER_RE =
-  /\b(?:midterm|final)s?(?:\s+exam)?\s+(?:preparation|prep|review|readiness|practice|study|checklist|reflection)\b/i;
+  /\b(?:(?:midterm|final)s?(?:\s+exam)?|exam)\s+(?:preparation|prep|review|readiness|practice|study|checklist|reflection)\b/i;
 const EXAM_HEAD_RE = /\b(?:midterm|final)\s+exam\b|\bexam\s*:|^\s*exam\b|\bcomprehensive\s+(?:exam|assessment)\b/i;
 const BARE_MIDTERM_FINAL_RE = /^\s*(?:midterm|final)s?\s*(?:\(\s*\d+(?:\.\d+)?\s*%\s*\))?\s*$/i;
 const NON_EXAM_ASSESSMENT_HEAD_RE =

@@ -18,6 +18,10 @@ import { getChunkCount } from './parallelGenerator';
 import { getCustomDeliverable } from './customDeliverableLibrary';
 import { buildObservationProtocol } from './observationProtocols';
 import { recordLegacyPathHit } from './legacyPathTelemetry';
+// Leaf import (deriveFromCourseMap → schema only; no cycle): the ONE
+// assessment-kind classifier, shared with graph derivation and the export
+// manifest so compile-time and manifest-time never disagree about exams.
+import { classifyAssessmentKind } from './courseGraph/deriveFromCourseMap.js';
 import { recordContentFallbackHit } from './contentFallbackTelemetry';
 import { whyThisWorksNote, buildMethodsStatement } from './knowledge/pedagogyEvidence';
 import { buildCompetencyMap } from './knowledge/competencyMap';
@@ -17719,7 +17723,16 @@ function compileQuizBank(blueprint, config = {}) {
   // against the exam paper; they still append AFTER the weekly entries.
   const examEntries = [];
   blueprint.assessments
-    .filter((assessment) => assessment.kind === 'exam')
+    // v0.15.187 (live crucible catch): non-registry blueprints carry no
+    // stored kind, but the export manifest re-derives kinds from titles —
+    // an exam-titled assessment with ABSENT kind must compile an exam paper
+    // or the grader flags a registered exam with no exam content. An
+    // explicit non-exam kind is always respected (the "Practice Set:
+    // midterm preparation" false-positive rule lives in the classifier).
+    .filter(
+      (assessment) =>
+        assessment.kind === 'exam' || (!assessment.kind && classifyAssessmentKind(assessment.title || '') === 'exam'),
+    )
     .forEach((assessment, examOrdinal) => {
       const examEntry = buildRegistryExamEntry(blueprint, assessment, examOrdinal);
       if (examEntry) examEntries.push(examEntry);
