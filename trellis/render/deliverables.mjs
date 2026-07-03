@@ -6,6 +6,7 @@
 // `authored` — the renderer writes structure, never voice (D2).
 
 import { orderedLessons, assessmentsForLesson, sourcesForConcepts, indexById } from '../graph/schema.mjs';
+import { tokenOverlapRatio } from '../judgment/text.mjs';
 
 export const FEATURE_FOLDERS = {
   lessonPlans: 'Lesson Plans',
@@ -109,9 +110,25 @@ export function renderPackage({ graph, authored, courseWide, generatedAt, digest
     manifestFiles.push({ path, featureId });
   };
 
+  // Best-fit reading per lesson: a source must share vocabulary with THIS
+  // lesson (title + introduced concepts), not merely touch one of its
+  // concepts — "Invertible matrix" must never headline the Eigenvalues
+  // lesson (the LA breadth-run P1). No fit → no reading line, honestly.
+  const conceptNameById = new Map(graph.concepts.map((c) => [c.id, c.name]));
   const readingFor = (lesson) => {
     const sources = sourcesForConcepts(graph, [...lesson.introduces, ...lesson.reinforces]);
-    return sources[0] ?? null;
+    if (sources.length === 0) return null;
+    const lessonText = [lesson.title, ...lesson.introduces.map((id) => conceptNameById.get(id) ?? '')].join(' ');
+    let best = null;
+    let bestScore = 0;
+    for (const source of sources) {
+      const score = tokenOverlapRatio(source.title, lessonText) + tokenOverlapRatio(lessonText, source.title);
+      if (score > bestScore) {
+        bestScore = score;
+        best = source;
+      }
+    }
+    return bestScore > 0 ? best : null;
   };
 
   // ── per-lesson renders ────────────────────────────────────────────────────

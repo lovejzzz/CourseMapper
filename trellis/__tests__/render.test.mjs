@@ -94,7 +94,10 @@ describe('render-compat package tree', () => {
     expect(manifest.readiness).toEqual({ status: 'ready', blockers: 0, warnings: 0, checkedSections: '10/10' });
     expect(manifest.assessmentSummary.weightTotal).toBe(100);
     expect(manifest.files.length).toBe(files.size - 1); // every file but the manifest itself
-    expect(manifest.readings.length).toBeGreaterThanOrEqual(4);
+    // ≥3 after the best-fit reading rule: a source that shares no vocabulary
+    // with a lesson no longer headlines it (the LA Eigenvalues/Invertible P1),
+    // so the golden fixture honestly drops one weak lesson-reading pairing.
+    expect(manifest.readings.length).toBeGreaterThanOrEqual(3);
     const parsed = JSON.parse(files.get('PACKAGE_MANIFEST.json'));
     expect(parsed.courseName).toBe(graph.course.title);
   });

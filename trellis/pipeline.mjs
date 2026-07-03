@@ -203,6 +203,7 @@ async function runPipelineStages({
   await writeFile(join(runDir, 'graph.json'), JSON.stringify(graph, null, 2));
   await writeFile(join(runDir, 'authored.json'), JSON.stringify(authored, null, 2));
   await writeFile(join(runDir, 'courseWide.json'), JSON.stringify(courseWide, null, 2));
+  await writeFile(join(runDir, 'authoredExams.json'), JSON.stringify(authoredExams, null, 2));
   await writeFile(join(runDir, 'findings.json'), JSON.stringify(repair.findings, null, 2));
   await ledger.flush();
 
