@@ -9,8 +9,10 @@
 //
 //   npx vite-node trellis/humanPacket.mjs <currentExtractedDir> <trellisPackageDir> <outDir>
 
-import { writeFile, mkdir, readdir, copyFile } from 'node:fs/promises';
-import { join, basename } from 'node:path';
+import { writeFile, mkdir, rm } from 'node:fs/promises';
+import { join } from 'node:path';
+import { extractPackage } from '../src/lib/quality/deepQualityGrader.js';
+import { createFsFileProvider } from '../src/lib/quality/fsFileProvider.node.js';
 
 const [currentDir, trellisDir, outDir = 'verification-output/trellis/human-blind-packet'] = process.argv.slice(2);
 if (!currentDir || !trellisDir) {
@@ -26,17 +28,22 @@ const WANTED = [
   { folder: 'Course FAQ', pick: /faq/i },
 ];
 
+// Both packages are normalized to plain text through the grader's own
+// extractor — a DOCX side and a markdown side would unblind the review by
+// format alone. Reviewers judge content, not styling.
 async function collect(sourceDir, destDir) {
+  await rm(destDir, { recursive: true, force: true });
   await mkdir(destDir, { recursive: true });
+  const pkg = await extractPackage(createFsFileProvider(sourceDir));
   const copied = [];
   for (const want of WANTED) {
-    const folder = join(sourceDir, want.folder);
-    const names = await readdir(folder).catch(() => []);
-    const match = names.find((n) => want.pick.test(n)) ?? names[0];
-    if (!match) continue;
-    const dest = join(destDir, `${want.folder.replace(/[^A-Za-z]+/g, '-')}${match.slice(match.lastIndexOf('.'))}`);
-    await copyFile(join(folder, match), dest);
-    copied.push(basename(dest));
+    const file =
+      pkg.files.find((f) => f.path.startsWith(want.folder) && want.pick.test(f.path)) ??
+      pkg.files.find((f) => f.path.startsWith(want.folder));
+    if (!file?.text) continue;
+    const dest = `${want.folder.replace(/[^A-Za-z]+/g, '-')}.txt`;
+    await writeFile(join(destDir, dest), file.text);
+    copied.push(dest);
   }
   return copied;
 }
@@ -53,7 +60,8 @@ await writeFile(
   [
     '# Blind review — two course packages, one course',
     '',
-    'You are looking at teaching materials for the same course produced two',
+    'Both packages are rendered to plain text (formatting normalized so the',
+    'review stays blind). You are looking at teaching materials for the same course produced two',
     'different ways. You do not know which is which, and please do not try to',
     'guess — judge only what you would teach from.',
     '',
