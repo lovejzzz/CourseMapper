@@ -57,6 +57,7 @@ function lessonSystemPrompt(slice) {
       ? `- PRIMER REQUIRED: this lesson uses concepts formally taught later (${slice.primerConcepts.map((p) => p.name).join(', ')}). Open the plan with a 5-10 minute primer introducing just enough of each.\n`
       : '') +
     `- rubricBands describe OBSERVABLE work: the top band applies a definition with an example; the lowest band exhibits the documented misconception. No adverb gradients ("thoroughly", "adequately").\n` +
+    `- For LANGUAGE courses at introductory level: instructions, briefs, and explanations are written in English (students are beginners); the target language appears as CONTENT — examples, vocabulary, prompts, dialogue — not as the instruction medium.\n` +
     `- Write like a person who teaches this course: specific, direct, no template phrases ("In this lesson we will..."), no evidence-speak. Vary sentence openers.\n` +
     `- claims[]: for each factual passage, record {path, ref}; ref must be one of the enum values in the schema (the graph nodes this lesson actually has) or null for your own judgment.` +
     (slice.sources.length === 0
@@ -175,6 +176,7 @@ function coreSystemPrompt(slice) {
     `- studyGuideSection: a markdown section of at least 300 characters — key terms with definitions, the misconceptions to watch for, and 2-3 self-check prompts.\n` +
     `- Every factual claim traces to the kernel facts provided; never invent facts or readings.\n` +
     `- Where a concept carries workedExamples or anchorQuotes, USE them: build the plan's worked-example segment and at least one quiz stem from a provided example, and let anchored quotes ground the study guide.\n` +
+    `- For LANGUAGE courses at introductory level: instructions, briefs, and explanations are written in English (students are beginners); the target language appears as CONTENT — examples, vocabulary, prompts, dialogue — not as the instruction medium.\n` +
     `- Write like a person who teaches this course: specific, direct, no template phrases. claims[].ref: one of the schema enum values or null.`
   );
 }
@@ -189,7 +191,9 @@ function surfacesSystemPrompt(slice) {
     `- rubricBands describe OBSERVABLE work: the top band applies a definition with an example; the lowest band exhibits the documented misconception. No adverb gradients.\n` +
     `- Every factual claim traces to the kernel facts provided; never invent facts, citations, or readings.` +
     (slice.sources.length === 0 ? ` This lesson has NO external sources: do not name any book, article, or URL.` : '') +
-    `\n- Write like a person who teaches this course: specific, direct, no template phrases. claims[].ref: one of the schema enum values or null.`
+    `\n` +
+    `- For LANGUAGE courses at introductory level: instructions, briefs, and explanations are written in English (students are beginners); the target language appears as CONTENT — examples, vocabulary, prompts, dialogue — not as the instruction medium.\n` +
+    `- Write like a person who teaches this course: specific, direct, no template phrases. claims[].ref: one of the schema enum values or null.`
   );
 }
 
