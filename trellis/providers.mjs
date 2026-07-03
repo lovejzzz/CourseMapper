@@ -44,6 +44,44 @@ function costUsd(tier, tokensIn, tokensOut) {
   return (tokensIn * tier.inPerM + tokensOut * tier.outPerM) / 1e6;
 }
 
+// OpenAI strict structured outputs support a keyword subset and demand that
+// every property be required. Our contract schemas carry richer constraints
+// (minLength, minItems, …) that the hand validators enforce post-hoc; this
+// transform strips what strict mode rejects and requires every property, so
+// the grammar guarantees COMPLETENESS (the live failure mode: non-strict
+// mode let the model legally omit later sections).
+const STRICT_UNSUPPORTED = new Set(['minLength', 'maxLength', 'minItems', 'maxItems', 'minimum', 'maximum', 'pattern']);
+
+export function toStrictSchema(node) {
+  if (Array.isArray(node)) return node.map(toStrictSchema);
+  if (!node || typeof node !== 'object') return node;
+  const out = {};
+  for (const [key, value] of Object.entries(node)) {
+    if (STRICT_UNSUPPORTED.has(key)) continue;
+    out[key] = toStrictSchema(value);
+  }
+  if (out.type === 'object' && out.properties) {
+    out.required = Object.keys(out.properties);
+    out.additionalProperties = false;
+  }
+  return out;
+}
+
+const RETRYABLE_HTTP = new Set([429, 500, 502, 503]);
+
+async function fetchWithBackoff(fetchImpl, url, init, { tries = 4, baseDelayMs = 2000 } = {}) {
+  let last = null;
+  for (let attempt = 0; attempt < tries; attempt += 1) {
+    const response = await fetchImpl(url, init);
+    if (!RETRYABLE_HTTP.has(response.status)) return response;
+    last = response;
+    const retryAfter = Number(response.headers?.get?.('retry-after')) || 0;
+    const delayMs = Math.max(retryAfter * 1000, baseDelayMs * 2 ** attempt);
+    await new Promise((resolve) => setTimeout(resolve, delayMs));
+  }
+  return last;
+}
+
 export async function callModel({
   tier: tierName,
   system,
@@ -83,10 +121,15 @@ export async function callModel({
       messages,
       max_completion_tokens: maxOutputTokens,
       ...(schema
-        ? { response_format: { type: 'json_schema', json_schema: { name: schemaName, strict: false, schema } } }
+        ? {
+            response_format: {
+              type: 'json_schema',
+              json_schema: { name: schemaName, strict: true, schema: toStrictSchema(schema) },
+            },
+          }
         : {}),
     };
-    const response = await fetchImpl('https://api.openai.com/v1/chat/completions', {
+    const response = await fetchWithBackoff(fetchImpl, 'https://api.openai.com/v1/chat/completions', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${apiKey}` },
       body: JSON.stringify(body),

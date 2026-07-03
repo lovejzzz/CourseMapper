@@ -33,6 +33,41 @@ export async function runPipeline({
   if (!runId) throw new Error('runPipeline requires runId');
   const runDir = join(outRoot, runId);
   const ledger = createRunLedger({ runId, runDir });
+  try {
+    return await runPipelineStages({
+      syllabusText,
+      graph,
+      tier,
+      budgetUsd,
+      runId,
+      runDir,
+      mockVoice,
+      gradePackage,
+      termStart,
+      generatedAt,
+      ledger,
+    });
+  } finally {
+    // Spend is recorded even when a stage throws — an unflushed ledger on a
+    // failed run was the live-smoke bug that motivated this block.
+    await mkdir(runDir, { recursive: true });
+    await ledger.flush();
+  }
+}
+
+async function runPipelineStages({
+  syllabusText,
+  graph,
+  tier,
+  budgetUsd,
+  runId,
+  runDir,
+  mockVoice,
+  gradePackage,
+  termStart,
+  generatedAt,
+  ledger,
+}) {
   const tiers = await stageTiers(tier);
   const digest = { tier, voice: mockVoice ? 'mock (no quality claim)' : `live (${tiers.author} authoring)` };
 
@@ -93,7 +128,13 @@ export async function runPipeline({
   }
   const missing = graph.lessons.filter((lesson) => !authored[lesson.id]);
   if (missing.length > 0) {
-    throw new Error(`authoring failed for ${missing.length} lesson(s): ${missing.map((l) => l.id).join(', ')}`);
+    const detail = failures
+      .slice(0, 2)
+      .map((f) => `${f.lessonId}: ${f.error}`)
+      .join(' | ');
+    throw new Error(
+      `authoring failed for ${missing.length} lesson(s): ${missing.map((l) => l.id).join(', ')} — first errors: ${detail}`,
+    );
   }
   const courseWide = mockVoice
     ? mockAuthorCourseWide(graph)
