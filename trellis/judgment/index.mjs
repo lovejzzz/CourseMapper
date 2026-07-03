@@ -10,6 +10,7 @@ import { j7Echo } from './checks/j7Echo.mjs';
 import { j8Pacing } from './checks/j8Pacing.mjs';
 import { j9Dates } from './checks/j9Dates.mjs';
 import { j10Relevance } from './checks/j10Relevance.mjs';
+import { j11Catch } from './checks/j11Catch.mjs';
 
 export const CHECKS = [
   j1KeyValid,
@@ -22,6 +23,7 @@ export const CHECKS = [
   j8Pacing,
   j9Dates,
   j10Relevance,
+  j11Catch,
 ];
 
 export function runChecks(graph, authored, options = {}) {

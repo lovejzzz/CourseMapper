@@ -183,7 +183,7 @@ async function runPipelineStages({
   const authorOptions = mockVoice
     ? { mock: mockAuthorLesson }
     : { tier: tiers.author, surfacesTier: tiers.authorSurfaces ?? null, ledger, budgetUsd };
-  if (!mockVoice && tiers.authorSurfaces && tiers.authorSurfaces !== tiers.author) {
+  if (!mockVoice && tiers.authorSurfaces) {
     digest.voice = `live (split: ${tiers.author} core + ${tiers.authorSurfaces} surfaces)`;
   }
   const courseWidePromise = mockVoice

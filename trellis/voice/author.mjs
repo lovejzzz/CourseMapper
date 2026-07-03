@@ -208,7 +208,7 @@ export async function authorLesson(
   if (mock) return mock(slice, { repairNotes });
 
   // Split path: parallel core + surfaces calls on different tiers.
-  if (surfacesTier && surfacesTier !== tier && !repairNotes) {
+  if (surfacesTier && !repairNotes) {
     const [core, surfaces] = await Promise.all([
       callModel({
         tier,
@@ -312,7 +312,6 @@ export async function repairQuizSection(graph, lessonId, authoredLesson, finding
     type: ['string', 'null'],
     enum: [...legalRefsForSlice(slice), null],
   };
-  const correctives = slice.concepts.flatMap((c) => c.misconceptions.map((m) => m.corrective));
   const { result } = await callModel({
     tier,
     stage: 'repair',
@@ -325,8 +324,9 @@ export async function repairQuizSection(graph, lessonId, authoredLesson, finding
     system:
       `You are repairing ONLY the quiz items of week ${slice.lesson.week} ("${slice.lesson.title}") in ${slice.course.title}. ` +
       `Return the full corrected quizItems array (${slice.constraints.quizItems} items) and quizClaims ({path:"quizItems[i]...", ref}). ` +
-      `For each documented misconception, at least one explanation must include the corrective sentence VERBATIM, then apply it to the item. Correctives:\n${correctives
-        .map((c) => `  • "${c}"`)
+      `For each documented misconception: at least one item carries a DISTRACTOR that states the wrong belief near-verbatim (keep its key terms), and at least one explanation confronts the corrective (quote or faithful paraphrase). Misconceptions:\n${slice.concepts
+        .flatMap((c) => c.misconceptions)
+        .map((m) => `  • WRONG BELIEF: "${m.statement}" → CORRECTIVE: "${m.corrective}"`)
         .join('\n')}`,
     user: JSON.stringify(
       {

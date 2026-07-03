@@ -9,7 +9,7 @@
 import { runChecks, blockingFindings, findingsByLesson } from '../judgment/index.mjs';
 import { authorLesson, repairQuizSection } from './author.mjs';
 
-const QUIZ_ONLY_CODES = new Set(['J1_KEY_VALID', 'J3_REPAIR_CONFRONTS']);
+const QUIZ_ONLY_CODES = new Set(['J1_KEY_VALID', 'J3_REPAIR_CONFRONTS', 'J11_CATCH']);
 const REPAIR_BATCH_SIZE = 6;
 
 async function repairOneLesson(graph, authored, lessonId, lessonFindings, options) {

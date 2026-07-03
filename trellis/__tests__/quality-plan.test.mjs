@@ -244,3 +244,32 @@ describe('slide layout normalization (the psych over-packed-deck failure)', () =
     expect(slides[2].title).toBe('Fine');
   });
 });
+
+describe('J11 · misconception-catch gate (Prof-rule mirror)', () => {
+  it('passes when a distractor states the misconception; blocks when none does', async () => {
+    const { j11Catch, distractorCatches } = await import('../judgment/checks/j11Catch.mjs');
+    const graph = buildResearchMethods8();
+    const authored = Object.fromEntries(
+      graph.lessons.map((lesson) => [lesson.id, mockAuthorLesson(buildLessonSlice(graph, lesson.id))]),
+    );
+    expect(j11Catch(graph, authored)).toEqual([]); // mock uses statements as distractors
+    const broken = structuredClone(authored);
+    for (const item of broken.l6.quizItems) {
+      item.options = item.options.map((o, i) => (i === item.correctIndex ? o : `plainly wrong option ${i}.`));
+    }
+    const findings = j11Catch(graph, broken);
+    expect(findings.some((f) => f.path === 'authored/l6' && f.code === 'J11_CATCH')).toBe(true);
+    expect(
+      distractorCatches(
+        'When two variables are correlated, one of them must be causing the other one.',
+        'If two variables are correlated, one must be causing the other.',
+      ),
+    ).toBe(true);
+    expect(
+      distractorCatches(
+        'a totally unrelated statement',
+        'If two variables are correlated, one must be causing the other.',
+      ),
+    ).toBe(false);
+  });
+});

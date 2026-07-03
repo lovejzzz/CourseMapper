@@ -150,7 +150,7 @@ describe('split-tier authoring plumbing', () => {
     const draft = await stageTiers('draft');
     expect(draft.authorSurfaces).toBe('nano');
     const premium = await stageTiers('premium');
-    expect(premium.authorSurfaces).toBe(premium.author); // no split at premium
+    expect(premium.authorSurfaces).toBeNull(); // premium authors single-call (no split)
     expect(typeof authorModule.authorLesson).toBe('function');
     expect(slice.constraints.slides[0]).toBeGreaterThanOrEqual(6);
   });
