@@ -1588,7 +1588,9 @@ function normalizeBlueprintEnrichment({
   // v0.16 lens-noun misbinding fix: a provided lens that promotes one
   // lesson's concept to the course-wide decision/evidence noun is sanitized
   // at the mint; the owning lesson's phrases keep the specific noun below.
-  const lens = courseSafeLensNouns(rawLens, lessons, inferredLens);
+  // A lens the enrichment declares AND reinforces across its own authored
+  // lessonPhrases (a real course lens like "empirical evidence") is exempt.
+  const lens = courseSafeLensNouns(rawLens, lessons, inferredLens, provided);
   const lessonPhrases = Object.fromEntries(
     lessons.map((lesson) => {
       const decisionNoun =
@@ -1955,12 +1957,60 @@ function lessonOwnsLensNoun(noun, lesson) {
   return tokens.some((token) => lessonTokens.has(token));
 }
 
-function lensNounIsLessonScoped(noun, lessons = []) {
+// v0.16 (coordinator fix): a lens noun the enrichment DECLARES as its own
+// course lens — reinforced across many of its authored lessonPhrases — is the
+// intended course lens, not a misbound single-lesson concept. The gold
+// research-methods fixtures carry "empirical evidence" in every lesson's
+// evidenceMove and "… decision" in every decisionMove; that broad
+// reinforcement is the signal that separates a declared course lens from a
+// promoted lesson term. The Linear-Algebra bug promoted "invertibility
+// judgment" (a lesson-6 concept) into the slot, so its concept token appears
+// in at most one authored phrase.
+function lensNounHeadWord(noun) {
+  return identityTokens(noun).find((token) => LENS_NOUN_HEAD_WORDS.has(token) || LENS_NOUN_HEAD_WORDS.has(`${token}s`));
+}
+
+function enrichmentReinforcesLensNoun(noun, enrichment) {
+  const tokens = lensNounConceptTokens(noun);
+  const headWord = lensNounHeadWord(noun);
+  if (tokens.length === 0 && !headWord) return false;
+  const phrases = enrichment?.lessonPhrases;
+  if (!phrases || typeof phrases !== 'object') return false;
+  const phraseEntries = Object.values(phrases).filter((phrase) => phrase && typeof phrase === 'object');
+  if (phraseEntries.length < 3) return false;
+  const threshold = Math.floor(phraseEntries.length / 3);
+  // (a) A declared lens noun whose concept token ("empirical") is echoed
+  // across many authored phrases is the intended course lens.
+  if (tokens.length > 0) {
+    const reinforcing = phraseEntries.filter((phrase) => {
+      const phraseTokens = new Set(identityTokens([phrase.evidenceMove, phrase.decisionMove].join(' ')));
+      return tokens.some((token) => phraseTokens.has(token));
+    }).length;
+    if (reinforcing > threshold) return true;
+  }
+  // (b) A declared lens noun whose HEAD word ("… decision") is the stable
+  // pattern its authored decisionMoves/evidenceMoves follow — with only the
+  // modifier varying per lesson ("recruitment decision", "coding decision") —
+  // is also the intended course lens. The Linear-Algebra misbinding fails
+  // this: no other lesson's move ends in "judgment".
+  if (headWord) {
+    const headHits = phraseEntries.filter((phrase) => {
+      const moveTokens = new Set(identityTokens([phrase.evidenceMove, phrase.decisionMove].join(' ')));
+      return moveTokens.has(headWord) || moveTokens.has(`${headWord}s`);
+    }).length;
+    if (headHits > threshold) return true;
+  }
+  return false;
+}
+
+function lensNounIsLessonScoped(noun, lessons = [], enrichment = null) {
   // Below six lessons a one-lesson concentration is not evidence of
-  // misbinding — a three-lesson course legitimately mints its course noun
-  // from one lesson's vocabulary ("empirical evidence" from an "empirical
-  // research questions" lesson).
+  // misbinding — a small course legitimately mints its course noun from one
+  // lesson's vocabulary.
   if (!cleanText(noun) || !Array.isArray(lessons) || lessons.length < 6) return false;
+  // A noun the enrichment declares AND reinforces across its own authored
+  // lesson phrases is the intended course lens — never sanitize it.
+  if (enrichmentReinforcesLensNoun(noun, enrichment)) return false;
   const tokens = lensNounConceptTokens(noun);
   if (tokens.length === 0) return false;
   const owners = lessons.filter((lesson) => lessonOwnsLensNoun(noun, lesson)).length;
@@ -1970,9 +2020,9 @@ function lensNounIsLessonScoped(noun, lessons = []) {
   return owners > 0 && owners <= Math.max(1, Math.floor(lessons.length / 3));
 }
 
-function courseSafeLensNouns(lens, lessons, inferredLens) {
-  const decisionScoped = lensNounIsLessonScoped(lens?.decisionNoun, lessons);
-  const evidenceScoped = lensNounIsLessonScoped(lens?.evidenceNoun, lessons);
+function courseSafeLensNouns(lens, lessons, inferredLens, enrichment = null) {
+  const decisionScoped = lensNounIsLessonScoped(lens?.decisionNoun, lessons, enrichment);
+  const evidenceScoped = lensNounIsLessonScoped(lens?.evidenceNoun, lessons, enrichment);
   if (!decisionScoped && !evidenceScoped) return lens;
   return {
     ...lens,
@@ -1991,6 +2041,7 @@ function blueprintLens(blueprint) {
     enriched,
     blueprint?.lessons,
     inferDisciplineLens(blueprint?.courseName, blueprint?.courseConcepts || []),
+    blueprint?.enrichment,
   );
   sanitizedBlueprintLensCache.set(blueprint, lens);
   return lens;
