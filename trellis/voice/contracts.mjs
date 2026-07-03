@@ -237,8 +237,8 @@ export function validateAuthoredLesson(authored) {
   for (const [i, slide] of (authored.slides || []).entries()) {
     need(typeof slide?.title === 'string' && slide.title.length >= 3, `slides[${i}].title missing`);
     need(
-      Array.isArray(slide?.bullets) && slide.bullets.length >= 1 && slide.bullets.length <= 5,
-      `slides[${i}].bullets must have 1–5 entries`,
+      Array.isArray(slide?.bullets) && slide.bullets.length >= 1 && slide.bullets.length <= 8,
+      `slides[${i}].bullets must have 1-5 entries (up to 8 tolerated; the renderer splits long slides)`,
     );
     for (const [bi, bullet] of (Array.isArray(slide?.bullets) ? slide.bullets : []).entries()) {
       need(
@@ -387,4 +387,24 @@ export function validateExamItems(minItems = 6) {
     if (!Array.isArray(parsed?.claims)) errors.push('claims must be an array');
     return errors;
   };
+}
+
+// Layout normalization (machine-legal: structure, never prose): a slide the
+// model over-packs (>5 bullets) splits into continuation slides.
+export function normalizeSlides(slides) {
+  const out = [];
+  for (const slide of slides) {
+    if (!Array.isArray(slide.bullets) || slide.bullets.length <= 5) {
+      out.push(slide);
+      continue;
+    }
+    for (let i = 0; i < slide.bullets.length; i += 5) {
+      out.push({
+        ...slide,
+        title: i === 0 ? slide.title : `${slide.title} (cont.)`,
+        bullets: slide.bullets.slice(i, i + 5),
+      });
+    }
+  }
+  return out;
 }

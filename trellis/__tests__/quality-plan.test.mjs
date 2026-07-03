@@ -229,3 +229,18 @@ describe('prerequisite-gap bridging (the seeded econ gap, graph-native)', () => 
     expect(l2).toMatch(/Prerequisite gap bridged: this session opens with a primer/);
   }, 30000);
 });
+
+describe('slide layout normalization (the psych over-packed-deck failure)', () => {
+  it('splits >5-bullet slides into continuation slides; never drops a bullet', async () => {
+    const { normalizeSlides } = await import('../voice/contracts.mjs');
+    const slides = normalizeSlides([
+      { title: 'Memory systems', bullets: ['a.', 'b.', 'c.', 'd.', 'e.', 'f.', 'g.'], speakerNotes: 'n', altText: 't' },
+      { title: 'Fine', bullets: ['x.'], speakerNotes: 'n', altText: 't' },
+    ]);
+    expect(slides).toHaveLength(3);
+    expect(slides[0].bullets).toHaveLength(5);
+    expect(slides[1].title).toBe('Memory systems (cont.)');
+    expect(slides[1].bullets).toEqual(['f.', 'g.']);
+    expect(slides[2].title).toBe('Fine');
+  });
+});

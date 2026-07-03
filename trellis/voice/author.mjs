@@ -16,6 +16,7 @@ import {
   COURSE_WIDE_SCHEMA,
   EXAM_ITEMS_SCHEMA,
   buildLessonSlice,
+  normalizeSlides,
   validateAuthoredLesson,
   validateCourseWide,
   validateExamItems,
@@ -186,6 +187,7 @@ function surfacesSystemPrompt(slice) {
     `You are the course's own instructor writing week ${slice.lesson.week} of "${slice.course.title}" (${slice.course.level} ${slice.course.subject}). ` +
     `Author the lesson's presentation surfaces as JSON: slides, discussion, assignment, faqEntries, claims. Non-negotiables:\n` +
     `- Slides: between ${slice.constraints.slides[0]} and ${slice.constraints.slides[1]} slides — count them; every slide has 1-5 bullets, speakerNotes, altText. Ground bullets in the kernel facts provided.\n` +
+    `- NEVER more than 5 bullets on a slide (split the idea across slides instead). assignment.task: 2-4 full sentences.\n` +
     `- Every bullet is a COMPLETE statement ending with terminal punctuation — . ! ? : or the CJK equivalents 。！？： when writing in that language — never a clipped fragment ending mid-clause.\n` +
     `- Where a concept carries workedExamples, at least one slide walks one example concretely (show the actual case, not a description of it).\n` +
     `- rubricBands describe OBSERVABLE work: the top band applies a definition with an example; the lowest band exhibits the documented misconception. No adverb gradients.\n` +
@@ -236,6 +238,7 @@ export async function authorLesson(
     const merged = {
       ...core.result,
       ...surfaces.result,
+      slides: normalizeSlides(surfaces.result.slides),
       plan: core.result.plan,
       quizItems: core.result.quizItems,
       studyGuideSection: core.result.studyGuideSection,
@@ -260,7 +263,7 @@ export async function authorLesson(
       ? `${lessonUserPrompt(slice)}\n\nA deterministic review found these defects in the previous version — fix every one:\n${repairNotes}`
       : lessonUserPrompt(slice),
   });
-  return result;
+  return { ...result, slides: normalizeSlides(result.slides) };
 }
 
 // Targeted quiz repair — J1/J3 findings implicate quizItems only; re-author
