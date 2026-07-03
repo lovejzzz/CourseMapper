@@ -895,6 +895,21 @@ polishing a candidate that hasn't won.
   current pipeline (99/A vs 99/A), runs 1.9× FASTER (116 s vs 217 s),
   at 2.5× cost ($0.30 vs $0.12), judge 8 vs 5 (advisory, n=4 runs at
   7-8-8-8). 66 trellis tests; full repo 3,997 green. Report §5c.
+- **2026-07-03 (split-tier authoring, owner-directed)** — The remaining
+  cost was authoring output tokens (~90%). Each lesson now authors as two
+  parallel calls: judgment CORE (plan/quiz/study guide — what the judge
+  samples) on mini, presentation SURFACES (slides/discussion/assignment/
+  FAQ) on **gpt-5.4-nano** (canonical family-estimate $0.05/$0.40).
+  Attempt 7 exposed two split regressions (nano mid-clause bullets → 4
+  P1s; core prompt omitted the study-guide spec → 8 silent retries);
+  both root-fixed with contract rules. **Attempt 8: $0.205, 118 s, 99/A
+  (P1=1 standing gap, P2=0), judge 8/10, ZERO repair rounds.** Re-run
+  comparison vs a second fresh crucible round (99/A · judge 4/10 ·
+  $0.13 · 218 s): grader parity, judge 8 vs 4-5 (Trellis n=6:
+  7-8-8-8-7-8), **cost 1.6× (was 5.2×), speed 1.85× in Trellis's
+  favor.** 68 trellis tests. Report §5d. Next: E1 (owner spend
+  decision) — the advisory prior keeps strengthening but is still not
+  the paired verdict.
 
 ---
 

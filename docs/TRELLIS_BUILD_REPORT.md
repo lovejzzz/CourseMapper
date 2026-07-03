@@ -401,6 +401,64 @@ both post-E1 questions. The remaining P1 is the documented no-external-
 sources ledger gap (source-finding stage deferred; fixture-graph runs
 with real sources don't have it).
 
+## 5d. Split-tier authoring — closing the cost gap, re-compared
+
+_Owner directive: find a further improvement and re-run the comparison.
+The remaining cost lived in authoring output tokens (~90% of spend), so
+the solution is architectural: each lesson authors as TWO PARALLEL calls —
+the judgment CORE (plan, quiz items with the misconception work, study
+guide: exactly the artifacts the teach-as-is judge samples) stays on
+gpt-5.4-mini, while the presentation SURFACES (slides, discussion,
+assignment, FAQ — the token volume) move to **gpt-5.4-nano** at the
+canonical family-estimate rate ($0.05/$0.40 per M — ~1/11th of mini
+output; rate source disclosed as 'family-estimate' by the pricing
+module). The merged lesson must still pass the full contract validator._
+
+### The honest middle chapter: attempt 7 exposed two split regressions
+
+Attempt 7 ($0.254, 113 s, 98/A) worked but carried **four new P1s** —
+nano slide bullets ending mid-clause — and burned 8 silent core retries
+because the core prompt never stated the study-guide length requirement.
+Both root-fixed: the contract validator now requires every bullet to be a
+complete statement with terminal punctuation (so nano retries at nano
+prices), and the core prompt states what it wants. Attempt 7's judge: 7.
+
+### Attempt 8 — split-tier confirmed
+
+| Measure        | Attempt 6 (single-tier baseline) | Attempt 8 (split-tier, fixes in)                                                       |
+| -------------- | -------------------------------- | -------------------------------------------------------------------------------------- |
+| **Cost**       | $0.298                           | **$0.205 (−31%)** — core $0.158 · surfaces $0.014 · intake $0.033                      |
+| Wall clock     | 116 s                            | **118 s** (held; the split calls run in parallel)                                      |
+| Deep grader    | 99/A (P1=1, P2=0)                | **99/A (P1=1, P2=0)** — only the standing no-sources ledger gap                        |
+| Advisory judge | 8/10                             | **8/10** (plan 7 · quiz 8 · guide 9) — "coherent, accurate, and appropriately pitched" |
+| Repair rounds  | 1 (1 section)                    | **0 — full first-pass compliance across J1–J10**                                       |
+
+### The comparison, re-run same-day on both pipelines
+
+Current pipeline: **two fresh crucible rounds today** (consistency check),
+plus its 14-round history. Trellis: the split-tier run.
+
+| Measure                       | Current pipeline (rounds 1+2 today)                          | Trellis draft, split-tier (attempt 8)                          | Delta                                |
+| ----------------------------- | ------------------------------------------------------------ | -------------------------------------------------------------- | ------------------------------------ |
+| Deep grader                   | 99/A · 99/A                                                  | **99/A**                                                       | equal                                |
+| Advisory judge "teach as-is?" | **5/10, then 4/10** (history: mean 4.14, max 5 in 14 rounds) | **8/10** (Trellis across 6 judged runs: 7-8-8-8-7-8, mean 7.7) | **+3 to +4**                         |
+| Cost per course               | $0.12 · $0.13                                                | **$0.205**                                                     | **1.6×** (was 5.2× pre-optimization) |
+| Wall clock                    | 217 s · 218 s                                                | **118 s**                                                      | **Trellis 1.85× faster**             |
+| Repair/enforcement            | none (advisory grade only)                                   | J1–J10 enforced, zero rounds needed                            | —                                    |
+
+**What the trajectory says:** across one day of measured optimization the
+cost multiple went **5.2× → 2.5× → 1.6×** while the judge band held at
+7–8 and the grader reached parity — the remaining $0.08 gap buys enforced
+misconception work, verbatim-corrective feedback, prerequisite-verified
+structure, and the trust-class ledger, none of which the $0.12 pipeline
+attempts. Standing caveats, unchanged: the judge is single-seat advisory
+(though now n=6 Trellis vs n=16 current, non-overlapping bands:
+min 7 vs max 5); nano's rate is a family-estimate pending a published
+row; and the paired E1 protocol remains the actual verdict. One honest
+architecture note: split-tier trades a little of the D2 consolidation
+lesson (two calls per lesson) for the tier arbitrage — the ledger says
+the trade wins at draft tier, and premium keeps single-call authoring.
+
 ## 6. What the build taught (honest findings)
 
 1. **The compat layer was cheaper than feared and the grader is a good
