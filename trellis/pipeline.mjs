@@ -17,7 +17,7 @@ import { renderPackage, writePackageToDir, createMemoryFileProvider, FEATURE_FOL
 import { intakeSyllabus } from './intake.mjs';
 import { createRunLedger } from './telemetry.mjs';
 import { stageTiers } from './providers.mjs';
-import { autoAlignBloom, downgradeDanglingClaims } from './graph/autoAlign.mjs';
+import { autoAlignBloom, downgradeDanglingClaims, spliceCatchDistractors } from './graph/autoAlign.mjs';
 
 export async function runPipeline({
   syllabusText = null,
@@ -219,6 +219,14 @@ async function runPipelineStages({
   const downgraded = downgradeDanglingClaims(graph, authored);
   if (downgraded.length > 0) {
     digest.claimsDowngraded = `${downgraded.length} unresolvable claim ref(s) downgraded to JUDGED (disclosed, not repaired)`;
+  }
+
+  // 6d · deterministic catch splicing: any documented misconception still
+  // uncaught gets its belief statement quoted verbatim into a distractor
+  // slot (graph content, assembled — J11 passes by construction, disclosed).
+  const splices = spliceCatchDistractors(graph, authored);
+  if (splices.length > 0) {
+    digest.catchSplices = `${splices.length} distractor(s) set verbatim from documented misconceptions (deterministic, disclosed)`;
   }
 
   // 7 · judge + repair

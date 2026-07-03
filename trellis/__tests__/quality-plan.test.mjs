@@ -273,3 +273,27 @@ describe('J11 · misconception-catch gate (Prof-rule mirror)', () => {
     ).toBe(false);
   });
 });
+
+describe('deterministic catch splicing (J11 satisfied by construction)', () => {
+  it('splices the verbatim belief into the weakest distractor slot, never the key', async () => {
+    const { spliceCatchDistractors, beliefTextFromStatement } = await import('../graph/autoAlign.mjs');
+    const { j11Catch } = await import('../judgment/checks/j11Catch.mjs');
+    const graph = buildResearchMethods8();
+    const authored = Object.fromEntries(
+      graph.lessons.map((lesson) => [lesson.id, mockAuthorLesson(buildLessonSlice(graph, lesson.id))]),
+    );
+    // Strip all catching distractors from l6.
+    for (const item of authored.l6.quizItems) {
+      item.options = item.options.map((o, i) => (i === item.correctIndex ? o : `generic wrong option ${i}.`));
+    }
+    expect(j11Catch(graph, authored).length).toBeGreaterThan(0);
+    const splices = spliceCatchDistractors(graph, authored);
+    expect(splices.some((s) => s.lessonId === 'l6')).toBe(true);
+    expect(j11Catch(graph, authored)).toEqual([]);
+    // The key is never replaced.
+    const l6 = authored.l6.quizItems;
+    for (const item of l6) expect(item.options[item.correctIndex]).not.toMatch(/^generic wrong/);
+    expect(beliefTextFromStatement('Students may think that time flows backwards.')).toBe('Time flows backwards.');
+    expect(beliefTextFromStatement('A hypothesis is a broad topic.')).toBe('A hypothesis is a broad topic.');
+  });
+});
