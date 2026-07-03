@@ -1405,4 +1405,36 @@ describe('source-ledger quality checks', () => {
     expect(details).not.toContain('source ledger row sf-good-module is off-discipline for Computer Science/Python');
     expect(details).not.toContain('source ledger row sf-good-exception is off-discipline for Computer Science/Python');
   });
+
+  // v0.16.1 regression: encyclopedic reading lines used to be INVISIBLE to
+  // checkCitations (no author-head/year/DOI), so a Linear Algebra syllabus
+  // that listed "Wikipedia contributors. Independent politician." as a reading
+  // scored citations 100/100. The grader now admits and relevance-checks
+  // Wikipedia/archive lines.
+  it('flags off-discipline Wikipedia readings embedded in a syllabus for a math course', async () => {
+    const result = await grade({
+      fileProvider: createMemoryFileProvider({
+        'PACKAGE_MANIFEST.json': JSON.stringify({
+          courseName: 'Linear Algebra',
+          lessonScope: 'all',
+          requestedFeatures: ['syllabus'],
+          readiness: { status: 'ready', blockers: 0, warnings: 0, checkedSections: null },
+          files: [{ path: 'Syllabus/Linear Algebra - Syllabus.txt', feature: 'syllabus' }],
+        }),
+        'Syllabus/Linear Algebra - Syllabus.txt': [
+          'LINEAR ALGEBRA — SYLLABUS',
+          '',
+          'WEEKLY READINGS',
+          'Week 4: Wikipedia contributors. Independent politician. https://en.wikipedia.org/wiki/Independent_politician (CC BY-SA 4.0)',
+          'Week 5: Wikipedia contributors. Lewis acids and bases. https://en.wikipedia.org/wiki/Lewis_acids_and_bases (CC BY-SA 4.0)',
+        ].join('\n'),
+      }),
+      course: { title: 'Linear Algebra', featureIds: ['syllabus'] },
+    });
+
+    const citationFindings = result.findings.filter((finding) => finding.dimension === 'citations');
+    expect(citationFindings.length).toBeGreaterThan(0);
+    const evidence = citationFindings.map((finding) => finding.evidence || '').join(' ');
+    expect(evidence).toMatch(/Independent politician|Lewis acids and bases/);
+  });
 });

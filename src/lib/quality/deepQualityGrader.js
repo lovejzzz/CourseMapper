@@ -1586,6 +1586,13 @@ const OFF_DISCIPLINE_SUBJECT_MARKERS = [
   { re: /\bvocabulary acquisition\b/i, domain: 'applied-linguistics' },
   { re: /\bknowledge translation\b/i, domain: 'implementation-science' },
   { re: /\bimplementation science\b/i, domain: 'implementation-science' },
+  // v0.16.1: leak classes from the Linear Algebra field run — keyword
+  // false-friends that rode "independent"/"bases"/"midterm" into a math
+  // course's reading slots.
+  { re: /\bpoliticians?\b|\bgeneral election\b|\belectoral\b/i, domain: 'politics' },
+  { re: /\bacids? and bases\b/i, domain: 'chemistry' },
+  { re: /\bantibod/i, domain: 'medicine' },
+  { re: /\bair force\b|\bmilitary base/i, domain: 'military' },
 ];
 // A marker's domain must not BE the course's discipline (so a nursing course's
 // "cardiovascular" readings are not flagged as off-discipline).
@@ -1598,6 +1605,9 @@ const COURSE_DOMAIN_RE = {
     /\b(evidence-based|systematic review|research methods|nursing|medicine|public health|epidemiolog)\b/i,
   'applied-linguistics': /\b(linguistics|second language acquisition|tesol|applied linguistics)\b/i,
   'implementation-science': /\b(implementation science|health services|public health|knowledge translation)\b/i,
+  politics: /\b(politic|government|civics|public policy|international relations|history|social studies)\b/i,
+  military: /\b(military|defense|security studies|war|history)\b/i,
+  chemistry: /\b(chemistry|chemical|biochem|organic|inorganic)\b/i,
 };
 // v0.14.3 (FP-3 discipline-breadth calibration): four disciplines legitimately
 // cite the medical / clinical-methods literature even though they are not
@@ -1841,6 +1851,12 @@ function isScholarlyCitationLine(line) {
   if (hasAuthorHead && hasYear) return true;
   if (hasIsbn) return true;
   if ((hasDoi || hasOpenAlex) && hasYear) return true;
+  // v0.16.1: encyclopedic/archive reading lines. The Linear Algebra field run
+  // shipped "Wikipedia contributors. Independent politician." as a lesson
+  // reading and scored citations 100/100 because these lines carry no
+  // author-head/year/DOI and were INVISIBLE to the relevance gate. A line that
+  // names a Wikipedia/LoC/Internet Archive source is a checkable citation.
+  if (/\bwikipedia contributors\b|\bwikipedia\.org\b|\barchive\.org\b|\bloc\.gov\b/i.test(text)) return true;
   // Raw shard-key leaks are a hygiene-only citation signal (checked separately).
   if (/:reference\s*§/i.test(text)) return true;
   return false;

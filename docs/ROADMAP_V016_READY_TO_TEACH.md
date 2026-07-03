@@ -298,3 +298,43 @@ live structured run; adoption ≥50% not met; **the ANCHORED stamp requires at
 least two human Reality Anchor rounds and is explicitly NOT claimed** —
 templates ship ready (`npm run prof -- --arena anchor-template`). Every
 number in the release notes is SIMULATED and labeled as such.
+
+---
+
+## 0.16.1 addendum — the first real full course (field-audit fixes)
+
+**Goal:** fix everything the first real user full-course run (Linear Algebra,
+14 lessons) exposed. The deep grader said 99/A; the package was unshippable.
+
+The failure was one cascade, and every step of it is now fixed:
+
+- **Lane E (genome coverage):** the math shard was calculus-only, so a
+  linear-algebra course linked **0/14** lessons. Sixteen curated linear-algebra
+  kernels take it to **10+/14** (`scripts/foundry/sources/math-linear-algebra.json`,
+  `tests/math-shard-proof.test.js`). A distinct telemetry note now fires when a
+  shard loads but shares zero lesson vocabulary (subfield gap ≠ resolver bug).
+- **Lane D (reading relevance):** the 0/14 collapse fired the keyword
+  source-finder, whose fallback providers (Wikipedia/LoC/IA) were the only ones
+  searching **without** the course subject and were **exempt** from the token
+  gate — so "Independent politician", "Lewis acids and bases", and "2025
+  Philippine general election" shipped as readings. All providers now anchor to
+  the course subject; the token gate covers every provider; OpenAlex is
+  rate-limited with backoff so a 429 no longer swaps in ungated junk; math/
+  physics/anatomy gain discipline allowlists; and the deep grader finally sees
+  encyclopedic reading lines (previously invisible → citations 100/100 over
+  garbage).
+- **Lane A/B (compiler content):** cumulative exams built from covered lessons'
+  authored atoms (no topic-connected-to-itself), exam-day deliverable variants,
+  code-lab rubric criteria, correct rubric lesson labels + exam handoff notes,
+  and an unambiguous CS-course-map profile (Linear Algebra no longer inherits a
+  Python course map). Template-seam grammar, slide-bullet fit, and the syllabus
+  TOC leak are repaired.
+- **Honesty gates:** CourseIR repairs dangling/case-mismatched assessment refs
+  instead of discarding the response; the run digest reports the real
+  readiness-warning count on a ready run; compiler duration times the compile;
+  voice-pass fallbacks record their reason.
+
+**Release Boundary — 0.16.1:** a hotfix release. No new teachability claim; the
+adoption/anchor bars remain NOT met and NOT claimed. The standing follow-up is a
+live re-run of the original Linear Algebra course to confirm the cascade fix end
+to end in real provider output.

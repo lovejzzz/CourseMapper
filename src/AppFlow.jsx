@@ -1675,7 +1675,12 @@ export default function AppFlow({ startupAction = null, onStartupHandled, onRetu
               finish: {
                 finalStatus,
                 blockers,
-                warnings,
+                // v0.16.1: the digest reports the REAL warning count. The UI
+                // `warnings` is zeroed on ready (calm pass), which made the
+                // Linear Algebra digest claim "0 warnings" while its own
+                // flaggedChecks listed one — gates must not disagree with
+                // themselves.
+                warnings: reviewWarningCount,
                 repairsApplied: totalRepairsApplied,
                 retryCallCount,
                 finishRunId,
@@ -1798,7 +1803,9 @@ export default function AppFlow({ startupAction = null, onStartupHandled, onRetu
         tracePackageFinish(finishRunId, 'finish_complete', {
           finalStatus,
           blockers,
-          warnings,
+          // v0.16.1: honest count in telemetry (UI `warnings` is calmed to 0
+          // on ready; the trace must not be).
+          warnings: reviewWarningCount,
           retryCount,
           retryPassCount,
           retryCallCount,

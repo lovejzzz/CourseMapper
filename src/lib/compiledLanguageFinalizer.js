@@ -260,10 +260,25 @@ function fixMechanicalSeams(value) {
     /\b(final|revised|initial|next|first|last|new|strong|partial|upcoming)\s+the\s+(?=(?:Week|Lesson)\b)/gi,
     '$1 ',
   );
+  // v0.16: a short artifact reference ("the Week 4 sets") landing after a
+  // possessive or determiner keeps its minted article — "Check your the
+  // Week 4 sets", "strengthen their the Week 4 sets", "an evidence-backed
+  // the Week 11 sets recommendation", "contrasting two the Week 4 sets
+  // samples". Drop the "the" when the frame already supplies a determiner,
+  // allowing up to two modifier words between them — but never across a
+  // phrase boundary word ("a draft of the Week 4 sets" stays intact).
+  text = text.replace(
+    /\b(your|their|our|my|his|her|its|a|an|one|two|three|each|every|either|neither|another)\s+((?:(?!(?:to|of|for|in|on|with|from|about|and|or|nor|but|that|which|as|by|at|into|during|after|before|against|between|through|over|under|toward|towards|versus|via|within|without)\b)[a-z][a-z'’-]*\s+){0,2})the\s+(?=(?:Week|Lesson)\b)/g,
+    '$1 $2',
+  );
   // Article agreement at template joins: "a Energy decision" → "an Energy decision".
   // Require a content-length word so option letters stay untouched ("A is correct").
-  text = text.replace(/\b(a|A)(\s+)([A-Za-z][a-z]{3,})/g, (match, article, gap, word) => {
+  // v0.16: a capital "A" mid-sentence is usually a NAME, not an article —
+  // "pivot columns of A indicate independent columns" (matrix A in linear
+  // algebra) shipped as "of An indicate…". Only sentence-initial "A" converts.
+  text = text.replace(/\b(a|A)(\s+)([A-Za-z][a-z]{3,})/g, (match, article, gap, word, offset) => {
     if (!/^[aeiou]/i.test(word) || A_TO_AN_EXCEPTION_RE.test(word)) return match;
+    if (article === 'A' && !isSentenceStart(text, offset)) return match;
     return `${article}n${gap}${word}`;
   });
   text = text.replace(/\b(an|An)(\s+)([A-Za-z][a-z]+)/g, (match, article, gap, word) => {

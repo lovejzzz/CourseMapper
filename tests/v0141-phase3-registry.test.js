@@ -348,7 +348,15 @@ describe('3.2 — compiler consumes the registry (Geology)', () => {
 
   it('keeps exams out of the brief and rubric sets (answer keys, not rubrics)', () => {
     expect(compiled.assignments.assignments.some((brief) => /Midterm Exam/i.test(brief.title))).toBe(false);
-    expect(compiled.rubrics.rubrics.some((rubric) => /Midterm Exam/i.test(rubric.title))).toBe(false);
+    // v0.16.1: the exam's rubric slot is a short answer-key handoff note
+    // (so the per-lesson rubric file is never an empty shell) — never a
+    // criterion rubric.
+    const examEntries = compiled.rubrics.rubrics.filter((rubric) => /Midterm Exam/i.test(rubric.title));
+    expect(examEntries.length).toBeGreaterThan(0);
+    for (const entry of examEntries) {
+      expect(entry.examHandoffNote).toMatch(/answer key lives in the Quiz & Exam Bank/i);
+      expect(entry.criteria).toBeUndefined();
+    }
     // Rubrics attach per graded assessment id.
     const quizRubric = compiled.rubrics.rubrics.find((rubric) => rubric.title.startsWith('Quiz: plate boundary'));
     expect(quizRubric.assessmentId).toBe('A7.1');

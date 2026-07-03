@@ -55,7 +55,13 @@ const lazyChunkBudgets = [
   // the measurement; the content roadmap moves prose to data files and model
   // atoms, so this number should trend DOWN — do not raise it for new
   // hand-written template variants.
-  { prefix: 'courseBlueprintCompiler-', rawKiB: 725, gzipKiB: 200 },
+  // v0.16.1: +25 KiB raw / +5 KiB gzip (measured 746.1 raw / 203.3 gzip) for
+  // the Linear Algebra field-audit fixes — NEW BEHAVIOR, not template prose:
+  // atom-based cumulative exam item generation, exam-day deliverable variants
+  // (logistics plan / cumulative study guide / short review deck), and
+  // code-lab rubric/brief scaffolds. The trend-DOWN goal still stands: this is
+  // a one-time correctness bump, not a licence for more template variants.
+  { prefix: 'courseBlueprintCompiler-', rawKiB: 752, gzipKiB: 206 },
   { prefix: 'DeliverableView-', rawKiB: 170, gzipKiB: 35 },
   { prefix: 'DeveloperModePanel-', rawKiB: 130, gzipKiB: 35 },
   // v0.9.1: +3 KiB raw for the pre-export checklist (localization gaps +

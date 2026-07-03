@@ -316,7 +316,10 @@ describe('5.2c — evidence table rows are genuine claim/evidence pairs or the s
   });
 });
 
-describe('5.2d — long bullets keep punctuation, short labels stay bare, cuts end in ellipsis', () => {
+// v0.16.1: cuts no longer end in "…" — the Linear Algebra package audit found
+// 79 ellipsis-marked mid-clause truncations, so conciseClause now composes to
+// fit (sentence/clause/word boundary) and never emits an ellipsis.
+describe('5.2d — long bullets keep punctuation, short labels stay bare, cuts compose to fit', () => {
   it('punctuates every >=60-char display bullet and leaves short labels unpunctuated', () => {
     const blueprint = buildCourseBlueprint(hydrologyCourseMap());
     const compiled = compileBlueprintDeliverable('slideDecks', blueprint);
@@ -333,7 +336,7 @@ describe('5.2d — long bullets keep punctuation, short labels stay bare, cuts e
     expect(shortLabels.length, 'short labels/fragments stay unpunctuated').toBeGreaterThan(0);
 
     const truncated = bullets.filter((bullet) => bullet.endsWith('…'));
-    expect(truncated.length, 'the long-activity fixture must produce ellipsis-marked cuts').toBeGreaterThan(0);
+    expect(truncated, 'no bullet may ship as an ellipsis-marked truncation (v0.16.1)').toEqual([]);
   });
 });
 

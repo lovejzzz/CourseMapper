@@ -1,0 +1,1270 @@
+{
+  "_comment": "v0.16.1: curated linear-algebra kernel set. The Linear Algebra field run (2026-07-03) proved the math shard was calculus-only: the genome linker resolved 0/14 lessons for a linear algebra course, which cascaded into no judgment, no citations, and junk source-finder fallbacks. Tier-1 consensus content (anchor: null), same contract as the lang contributed kernels.",
+  "sourceSnapshots": {},
+  "kernels": [
+    {
+      "id": "math/system-of-linear-equations",
+      "rev": 1,
+      "term": "system of linear equations",
+      "aliases": [
+        "linear system",
+        "systems of linear equations",
+        "simultaneous linear equations",
+        "solution set of a linear system"
+      ],
+      "discipline": "math",
+      "tags": [
+        "linear-algebra",
+        "equations",
+        "systems",
+        "solutions"
+      ],
+      "level": "intro",
+      "difficulty": 2,
+      "bloomCeiling": "Apply",
+      "definition": {
+        "text": "A system of linear equations is a collection of linear equations in the same variables; a solution assigns a value to each variable so that every equation holds simultaneously.",
+        "anchor": null,
+        "tier": 1,
+        "verifiedBy": 0
+      },
+      "facts": [
+        {
+          "text": "A linear system has exactly zero, one, or infinitely many solutions — never, for example, exactly two.",
+          "anchor": null,
+          "tier": 1,
+          "verifiedBy": 0,
+          "contested": false
+        },
+        {
+          "text": "A system is consistent when at least one solution exists and inconsistent when no solution exists.",
+          "anchor": null,
+          "tier": 1,
+          "verifiedBy": 0,
+          "contested": false
+        },
+        {
+          "text": "Every linear system can be represented compactly as an augmented matrix and solved by row reduction.",
+          "anchor": null,
+          "tier": 1,
+          "verifiedBy": 0,
+          "contested": false
+        }
+      ],
+      "misconceptions": [
+        {
+          "text": "Every system of equations has a solution.",
+          "corrective": "A system like x + y = 1 and x + y = 3 is inconsistent: the equations describe parallel lines that never meet.",
+          "anchor": null,
+          "tier": 1
+        },
+        {
+          "text": "If a system has more than one solution, it has some finite number of them.",
+          "corrective": "Over the real numbers, once a linear system has two distinct solutions it has infinitely many, because the whole line through the two solutions solves the system.",
+          "anchor": null,
+          "tier": 1
+        }
+      ],
+      "examples": [],
+      "workedExamples": [],
+      "mcBank": [],
+      "edges": {},
+      "variants": [],
+      "freshness": {
+        "sourceEdition": "",
+        "reviewBy": "",
+        "volatility": "low"
+      },
+      "license": "CC-BY-4.0",
+      "attribution": [
+        "Curated consensus linear algebra content; cross-checked against open texts (Hefferon, Linear Algebra; Beezer, A First Course in Linear Algebra)"
+      ],
+      "standards": []
+    },
+    {
+      "id": "math/row-reduction",
+      "rev": 1,
+      "term": "row reduction",
+      "aliases": [
+        "Gaussian elimination",
+        "row echelon form",
+        "reduced row echelon form",
+        "elementary row operations",
+        "pivot"
+      ],
+      "discipline": "math",
+      "tags": [
+        "linear-algebra",
+        "algorithms",
+        "matrices",
+        "systems"
+      ],
+      "level": "intro",
+      "difficulty": 2,
+      "bloomCeiling": "Apply",
+      "definition": {
+        "text": "Row reduction transforms a matrix using elementary row operations (swap two rows, scale a row by a nonzero constant, add a multiple of one row to another) into an echelon form from which solutions can be read off.",
+        "anchor": null,
+        "tier": 1,
+        "verifiedBy": 0
+      },
+      "facts": [
+        {
+          "text": "Elementary row operations do not change the solution set of the linear system the matrix represents.",
+          "anchor": null,
+          "tier": 1,
+          "verifiedBy": 0,
+          "contested": false
+        },
+        {
+          "text": "The reduced row echelon form of a matrix is unique, although different sequences of row operations can reach it.",
+          "anchor": null,
+          "tier": 1,
+          "verifiedBy": 0,
+          "contested": false
+        },
+        {
+          "text": "A pivot is the first nonzero entry of a row in echelon form; pivot positions determine which variables are basic and which are free.",
+          "anchor": null,
+          "tier": 1,
+          "verifiedBy": 0,
+          "contested": false
+        }
+      ],
+      "misconceptions": [
+        {
+          "text": "Row operations change the solutions of the system.",
+          "corrective": "Each elementary row operation is reversible and preserves the solution set — that is exactly why elimination is a valid solving method.",
+          "anchor": null,
+          "tier": 1
+        },
+        {
+          "text": "The columns with the largest numbers become pivot columns.",
+          "corrective": "Pivot positions are determined by echelon structure during elimination, not by the size of the entries.",
+          "anchor": null,
+          "tier": 1
+        }
+      ],
+      "examples": [],
+      "workedExamples": [],
+      "mcBank": [],
+      "edges": {},
+      "variants": [],
+      "freshness": {
+        "sourceEdition": "",
+        "reviewBy": "",
+        "volatility": "low"
+      },
+      "license": "CC-BY-4.0",
+      "attribution": [
+        "Curated consensus linear algebra content; cross-checked against open texts (Hefferon, Linear Algebra; Beezer, A First Course in Linear Algebra)"
+      ],
+      "standards": []
+    },
+    {
+      "id": "math/matrix-operations",
+      "rev": 1,
+      "term": "matrix operations",
+      "aliases": [
+        "matrices",
+        "matrix addition",
+        "matrix multiplication",
+        "matrix product",
+        "transpose",
+        "matrix equation"
+      ],
+      "discipline": "math",
+      "tags": [
+        "linear-algebra",
+        "matrices",
+        "operations"
+      ],
+      "level": "intro",
+      "difficulty": 2,
+      "bloomCeiling": "Apply",
+      "definition": {
+        "text": "Matrix operations combine rectangular arrays of numbers: addition and scalar multiplication act entrywise, while the matrix product AB is defined when the number of columns of A equals the number of rows of B.",
+        "anchor": null,
+        "tier": 1,
+        "verifiedBy": 0
+      },
+      "facts": [
+        {
+          "text": "Matrix multiplication is generally not commutative: AB and BA can differ, and one product may not even be defined.",
+          "anchor": null,
+          "tier": 1,
+          "verifiedBy": 0,
+          "contested": false
+        },
+        {
+          "text": "The (i, j) entry of AB is the dot product of row i of A with column j of B.",
+          "anchor": null,
+          "tier": 1,
+          "verifiedBy": 0,
+          "contested": false
+        },
+        {
+          "text": "Matrix multiplication is associative and distributes over addition, so algebraic manipulation is possible as long as factor order is preserved.",
+          "anchor": null,
+          "tier": 1,
+          "verifiedBy": 0,
+          "contested": false
+        }
+      ],
+      "misconceptions": [
+        {
+          "text": "Matrix multiplication works entrywise, like addition.",
+          "corrective": "The product AB combines rows of A with columns of B via dot products; the entrywise product is a different, rarely used operation.",
+          "anchor": null,
+          "tier": 1
+        },
+        {
+          "text": "AB = BA for matrices, as with numbers.",
+          "corrective": "Order matters in matrix products; AB = BA only in special cases, such as when one factor is the identity or both are powers of the same matrix.",
+          "anchor": null,
+          "tier": 1
+        }
+      ],
+      "examples": [],
+      "workedExamples": [],
+      "mcBank": [],
+      "edges": {},
+      "variants": [],
+      "freshness": {
+        "sourceEdition": "",
+        "reviewBy": "",
+        "volatility": "low"
+      },
+      "license": "CC-BY-4.0",
+      "attribution": [
+        "Curated consensus linear algebra content; cross-checked against open texts (Hefferon, Linear Algebra; Beezer, A First Course in Linear Algebra)"
+      ],
+      "standards": []
+    },
+    {
+      "id": "math/matrix-inverse",
+      "rev": 1,
+      "term": "matrix inverse",
+      "aliases": [
+        "invertible matrix",
+        "inverse matrix",
+        "nonsingular matrix",
+        "singular matrix",
+        "invertibility"
+      ],
+      "discipline": "math",
+      "tags": [
+        "linear-algebra",
+        "matrices",
+        "invertibility"
+      ],
+      "level": "intro",
+      "difficulty": 3,
+      "bloomCeiling": "Analyze",
+      "definition": {
+        "text": "An n-by-n matrix A is invertible when there is a matrix B with AB = BA = I; the inverse is unique, written A⁻¹, and exists exactly when A has n pivots (equivalently, nonzero determinant).",
+        "anchor": null,
+        "tier": 1,
+        "verifiedBy": 0
+      },
+      "facts": [
+        {
+          "text": "Only square matrices can be invertible, and even square matrices fail to be invertible when their columns are linearly dependent.",
+          "anchor": null,
+          "tier": 1,
+          "verifiedBy": 0,
+          "contested": false
+        },
+        {
+          "text": "If A is invertible, the system Ax = b has the unique solution x = A⁻¹b for every right-hand side b.",
+          "anchor": null,
+          "tier": 1,
+          "verifiedBy": 0,
+          "contested": false
+        },
+        {
+          "text": "The inverse of a product reverses the order: (AB)⁻¹ = B⁻¹A⁻¹ when both inverses exist.",
+          "anchor": null,
+          "tier": 1,
+          "verifiedBy": 0,
+          "contested": false
+        }
+      ],
+      "misconceptions": [
+        {
+          "text": "Every nonzero matrix has an inverse.",
+          "corrective": "A square matrix with a zero determinant — for example one with two equal rows — is nonzero yet has no inverse.",
+          "anchor": null,
+          "tier": 1
+        },
+        {
+          "text": "(AB)⁻¹ = A⁻¹B⁻¹.",
+          "corrective": "Undoing two composed operations requires reversing their order: (AB)⁻¹ = B⁻¹A⁻¹.",
+          "anchor": null,
+          "tier": 1
+        }
+      ],
+      "examples": [],
+      "workedExamples": [],
+      "mcBank": [],
+      "edges": {},
+      "variants": [],
+      "freshness": {
+        "sourceEdition": "",
+        "reviewBy": "",
+        "volatility": "low"
+      },
+      "license": "CC-BY-4.0",
+      "attribution": [
+        "Curated consensus linear algebra content; cross-checked against open texts (Hefferon, Linear Algebra; Beezer, A First Course in Linear Algebra)"
+      ],
+      "standards": []
+    },
+    {
+      "id": "math/vector-space",
+      "rev": 1,
+      "term": "vector space",
+      "aliases": [
+        "vector spaces",
+        "linear space",
+        "vectors",
+        "closure properties",
+        "axioms of a vector space"
+      ],
+      "discipline": "math",
+      "tags": [
+        "linear-algebra",
+        "structures",
+        "vectors"
+      ],
+      "level": "intro",
+      "difficulty": 3,
+      "bloomCeiling": "Analyze",
+      "definition": {
+        "text": "A vector space is a set of objects (vectors) with addition and scalar multiplication that satisfy closure, associativity, commutativity, identity, inverse, and distributivity axioms; R^n is the standard example.",
+        "anchor": null,
+        "tier": 1,
+        "verifiedBy": 0
+      },
+      "facts": [
+        {
+          "text": "A vector space must contain a zero vector, and every vector must have an additive inverse.",
+          "anchor": null,
+          "tier": 1,
+          "verifiedBy": 0,
+          "contested": false
+        },
+        {
+          "text": "Vector spaces need not consist of geometric arrows: polynomials, matrices, and functions form vector spaces under the usual operations.",
+          "anchor": null,
+          "tier": 1,
+          "verifiedBy": 0,
+          "contested": false
+        },
+        {
+          "text": "Closure matters: a subset of a vector space fails to be a vector space in its own right if adding two members or scaling a member can leave the subset.",
+          "anchor": null,
+          "tier": 1,
+          "verifiedBy": 0,
+          "contested": false
+        }
+      ],
+      "misconceptions": [
+        {
+          "text": "Vectors are always arrows in 2D or 3D space.",
+          "corrective": "Anything satisfying the vector-space axioms is a vector — polynomials, matrices, and functions included; geometry is one model, not the definition.",
+          "anchor": null,
+          "tier": 1
+        },
+        {
+          "text": "Any subset of R^n is a vector space.",
+          "corrective": "A subset must contain the zero vector and be closed under addition and scalar multiplication; a line not through the origin fails all three.",
+          "anchor": null,
+          "tier": 1
+        }
+      ],
+      "examples": [],
+      "workedExamples": [],
+      "mcBank": [],
+      "edges": {},
+      "variants": [],
+      "freshness": {
+        "sourceEdition": "",
+        "reviewBy": "",
+        "volatility": "low"
+      },
+      "license": "CC-BY-4.0",
+      "attribution": [
+        "Curated consensus linear algebra content; cross-checked against open texts (Hefferon, Linear Algebra; Beezer, A First Course in Linear Algebra)"
+      ],
+      "standards": []
+    },
+    {
+      "id": "math/subspace-span",
+      "rev": 1,
+      "term": "subspace and span",
+      "aliases": [
+        "subspace",
+        "subspaces",
+        "span",
+        "column space",
+        "null space",
+        "linear combination"
+      ],
+      "discipline": "math",
+      "tags": [
+        "linear-algebra",
+        "structures",
+        "subspaces"
+      ],
+      "level": "intro",
+      "difficulty": 3,
+      "bloomCeiling": "Analyze",
+      "definition": {
+        "text": "A subspace is a subset of a vector space that contains the zero vector and is closed under addition and scalar multiplication; the span of a set of vectors — all their linear combinations — is always a subspace.",
+        "anchor": null,
+        "tier": 1,
+        "verifiedBy": 0
+      },
+      "facts": [
+        {
+          "text": "The span of a set of vectors is the smallest subspace containing them.",
+          "anchor": null,
+          "tier": 1,
+          "verifiedBy": 0,
+          "contested": false
+        },
+        {
+          "text": "The column space of a matrix A is the span of its columns and consists of exactly those b for which Ax = b is consistent.",
+          "anchor": null,
+          "tier": 1,
+          "verifiedBy": 0,
+          "contested": false
+        },
+        {
+          "text": "The null space of A is the set of solutions of Ax = 0 and is a subspace of the domain.",
+          "anchor": null,
+          "tier": 1,
+          "verifiedBy": 0,
+          "contested": false
+        }
+      ],
+      "misconceptions": [
+        {
+          "text": "Any line or plane in R^3 is a subspace.",
+          "corrective": "Only lines and planes through the origin are subspaces; others miss the zero vector and are not closed under scaling.",
+          "anchor": null,
+          "tier": 1
+        },
+        {
+          "text": "The span of two vectors is always a plane.",
+          "corrective": "If the two vectors are parallel (or one is zero), their span collapses to a line or a point; the span's dimension depends on independence.",
+          "anchor": null,
+          "tier": 1
+        }
+      ],
+      "examples": [],
+      "workedExamples": [],
+      "mcBank": [],
+      "edges": {},
+      "variants": [],
+      "freshness": {
+        "sourceEdition": "",
+        "reviewBy": "",
+        "volatility": "low"
+      },
+      "license": "CC-BY-4.0",
+      "attribution": [
+        "Curated consensus linear algebra content; cross-checked against open texts (Hefferon, Linear Algebra; Beezer, A First Course in Linear Algebra)"
+      ],
+      "standards": []
+    },
+    {
+      "id": "math/linear-independence",
+      "rev": 1,
+      "term": "linear independence",
+      "aliases": [
+        "linearly independent",
+        "linear dependence",
+        "dependence relation",
+        "independent set of vectors",
+        "independent columns"
+      ],
+      "discipline": "math",
+      "tags": [
+        "linear-algebra",
+        "vectors",
+        "independence"
+      ],
+      "level": "intro",
+      "difficulty": 3,
+      "bloomCeiling": "Analyze",
+      "definition": {
+        "text": "Vectors are linearly independent when the only linear combination equal to the zero vector uses all zero coefficients; a nontrivial combination equal to zero is a dependence relation.",
+        "anchor": null,
+        "tier": 1,
+        "verifiedBy": 0
+      },
+      "facts": [
+        {
+          "text": "A set containing the zero vector is automatically linearly dependent.",
+          "anchor": null,
+          "tier": 1,
+          "verifiedBy": 0,
+          "contested": false
+        },
+        {
+          "text": "A set of vectors is dependent exactly when some vector in it is a linear combination of the others.",
+          "anchor": null,
+          "tier": 1,
+          "verifiedBy": 0,
+          "contested": false
+        },
+        {
+          "text": "The columns of a matrix A are independent exactly when Ax = 0 has only the trivial solution — that is, every column is a pivot column.",
+          "anchor": null,
+          "tier": 1,
+          "verifiedBy": 0,
+          "contested": false
+        }
+      ],
+      "misconceptions": [
+        {
+          "text": "Independent means the vectors are different from each other.",
+          "corrective": "Distinct vectors can still be dependent — (1, 0), (0, 1), and (1, 1) are pairwise different yet dependent; independence is about redundancy, not distinctness.",
+          "anchor": null,
+          "tier": 1
+        },
+        {
+          "text": "More vectors give more independence.",
+          "corrective": "Any set of more than n vectors in R^n is automatically dependent; adding vectors can only create dependence, never remove it.",
+          "anchor": null,
+          "tier": 1
+        }
+      ],
+      "examples": [],
+      "workedExamples": [],
+      "mcBank": [],
+      "edges": {},
+      "variants": [],
+      "freshness": {
+        "sourceEdition": "",
+        "reviewBy": "",
+        "volatility": "low"
+      },
+      "license": "CC-BY-4.0",
+      "attribution": [
+        "Curated consensus linear algebra content; cross-checked against open texts (Hefferon, Linear Algebra; Beezer, A First Course in Linear Algebra)"
+      ],
+      "standards": []
+    },
+    {
+      "id": "math/basis-dimension",
+      "rev": 1,
+      "term": "basis and dimension",
+      "aliases": [
+        "basis",
+        "bases",
+        "dimension",
+        "standard basis",
+        "coordinate vector"
+      ],
+      "discipline": "math",
+      "tags": [
+        "linear-algebra",
+        "structures",
+        "bases"
+      ],
+      "level": "intro",
+      "difficulty": 3,
+      "bloomCeiling": "Analyze",
+      "definition": {
+        "text": "A basis of a vector space is a linearly independent set that spans the space; every basis of a given space has the same number of vectors, and that common count is the space's dimension.",
+        "anchor": null,
+        "tier": 1,
+        "verifiedBy": 0
+      },
+      "facts": [
+        {
+          "text": "Every vector in the space is a unique linear combination of basis vectors; the coefficients are its coordinates in that basis.",
+          "anchor": null,
+          "tier": 1,
+          "verifiedBy": 0,
+          "contested": false
+        },
+        {
+          "text": "All bases of a finite-dimensional vector space contain the same number of vectors.",
+          "anchor": null,
+          "tier": 1,
+          "verifiedBy": 0,
+          "contested": false
+        },
+        {
+          "text": "In R^n, any n independent vectors form a basis, and any spanning set of n vectors is automatically independent.",
+          "anchor": null,
+          "tier": 1,
+          "verifiedBy": 0,
+          "contested": false
+        }
+      ],
+      "misconceptions": [
+        {
+          "text": "A vector space has only one basis.",
+          "corrective": "Spaces have infinitely many bases — R^2 is spanned by the standard basis but equally by (1, 1) and (1, -1); only the SIZE of a basis is fixed.",
+          "anchor": null,
+          "tier": 1
+        },
+        {
+          "text": "Dimension is the number of vectors in the space.",
+          "corrective": "Dimension counts basis vectors, not members; R^2 has infinitely many vectors but dimension 2.",
+          "anchor": null,
+          "tier": 1
+        }
+      ],
+      "examples": [],
+      "workedExamples": [],
+      "mcBank": [],
+      "edges": {},
+      "variants": [],
+      "freshness": {
+        "sourceEdition": "",
+        "reviewBy": "",
+        "volatility": "low"
+      },
+      "license": "CC-BY-4.0",
+      "attribution": [
+        "Curated consensus linear algebra content; cross-checked against open texts (Hefferon, Linear Algebra; Beezer, A First Course in Linear Algebra)"
+      ],
+      "standards": []
+    },
+    {
+      "id": "math/determinant",
+      "rev": 1,
+      "term": "determinant",
+      "aliases": [
+        "determinants",
+        "cofactor expansion",
+        "determinant properties",
+        "det"
+      ],
+      "discipline": "math",
+      "tags": [
+        "linear-algebra",
+        "matrices",
+        "determinants"
+      ],
+      "level": "intro",
+      "difficulty": 3,
+      "bloomCeiling": "Analyze",
+      "definition": {
+        "text": "The determinant is a scalar computed from a square matrix that is nonzero exactly when the matrix is invertible; geometrically, its absolute value scales area or volume under the matrix's transformation.",
+        "anchor": null,
+        "tier": 1,
+        "verifiedBy": 0
+      },
+      "facts": [
+        {
+          "text": "A square matrix is invertible if and only if its determinant is nonzero.",
+          "anchor": null,
+          "tier": 1,
+          "verifiedBy": 0,
+          "contested": false
+        },
+        {
+          "text": "The determinant of a product is the product of determinants: det(AB) = det(A)det(B).",
+          "anchor": null,
+          "tier": 1,
+          "verifiedBy": 0,
+          "contested": false
+        },
+        {
+          "text": "Row operations affect the determinant predictably: swapping rows flips its sign, scaling a row scales it, and adding a multiple of one row to another leaves it unchanged.",
+          "anchor": null,
+          "tier": 1,
+          "verifiedBy": 0,
+          "contested": false
+        }
+      ],
+      "misconceptions": [
+        {
+          "text": "det(A + B) = det(A) + det(B).",
+          "corrective": "The determinant is multiplicative, not additive: det(AB) = det(A)det(B), but det(A + B) usually differs from det(A) + det(B).",
+          "anchor": null,
+          "tier": 1
+        },
+        {
+          "text": "A matrix with small entries has a small determinant, and a large determinant means a 'big' matrix.",
+          "corrective": "The determinant measures invertibility and volume scaling, not entry size; a matrix of large numbers can have determinant zero.",
+          "anchor": null,
+          "tier": 1
+        }
+      ],
+      "examples": [],
+      "workedExamples": [],
+      "mcBank": [],
+      "edges": {},
+      "variants": [],
+      "freshness": {
+        "sourceEdition": "",
+        "reviewBy": "",
+        "volatility": "low"
+      },
+      "license": "CC-BY-4.0",
+      "attribution": [
+        "Curated consensus linear algebra content; cross-checked against open texts (Hefferon, Linear Algebra; Beezer, A First Course in Linear Algebra)"
+      ],
+      "standards": []
+    },
+    {
+      "id": "math/linear-transformation",
+      "rev": 1,
+      "term": "linear transformation",
+      "aliases": [
+        "linear map",
+        "linear mapping",
+        "matrix transformation",
+        "kernel of a linear map",
+        "image"
+      ],
+      "discipline": "math",
+      "tags": [
+        "linear-algebra",
+        "transformations",
+        "functions"
+      ],
+      "level": "intro",
+      "difficulty": 3,
+      "bloomCeiling": "Analyze",
+      "definition": {
+        "text": "A linear transformation is a function T between vector spaces that preserves addition and scalar multiplication: T(u + v) = T(u) + T(v) and T(cu) = cT(u); every linear map from R^n to R^m is multiplication by an m-by-n matrix.",
+        "anchor": null,
+        "tier": 1,
+        "verifiedBy": 0
+      },
+      "facts": [
+        {
+          "text": "A linear transformation always sends the zero vector to the zero vector.",
+          "anchor": null,
+          "tier": 1,
+          "verifiedBy": 0,
+          "contested": false
+        },
+        {
+          "text": "The matrix of a linear transformation has as its columns the images of the standard basis vectors.",
+          "anchor": null,
+          "tier": 1,
+          "verifiedBy": 0,
+          "contested": false
+        },
+        {
+          "text": "Rotations about the origin, reflections across lines through the origin, and projections onto subspaces are linear; translation by a nonzero vector is not.",
+          "anchor": null,
+          "tier": 1,
+          "verifiedBy": 0,
+          "contested": false
+        }
+      ],
+      "misconceptions": [
+        {
+          "text": "Any function given by a formula in x and y is linear.",
+          "corrective": "f(x) = x + 1 and f(x) = x² both fail linearity; the graph passing through the origin AND preserving sums and scalar multiples is required.",
+          "anchor": null,
+          "tier": 1
+        },
+        {
+          "text": "Translation is a linear transformation.",
+          "corrective": "Translating by a nonzero vector moves the origin, so it violates T(0) = 0; translations are affine, not linear.",
+          "anchor": null,
+          "tier": 1
+        }
+      ],
+      "examples": [],
+      "workedExamples": [],
+      "mcBank": [],
+      "edges": {},
+      "variants": [],
+      "freshness": {
+        "sourceEdition": "",
+        "reviewBy": "",
+        "volatility": "low"
+      },
+      "license": "CC-BY-4.0",
+      "attribution": [
+        "Curated consensus linear algebra content; cross-checked against open texts (Hefferon, Linear Algebra; Beezer, A First Course in Linear Algebra)"
+      ],
+      "standards": []
+    },
+    {
+      "id": "math/eigenvalues-eigenvectors",
+      "rev": 1,
+      "term": "eigenvalues and eigenvectors",
+      "aliases": [
+        "eigenvalue",
+        "eigenvector",
+        "characteristic polynomial",
+        "eigenspace",
+        "diagonalization"
+      ],
+      "discipline": "math",
+      "tags": [
+        "linear-algebra",
+        "eigen",
+        "spectral"
+      ],
+      "level": "intro",
+      "difficulty": 3,
+      "bloomCeiling": "Analyze",
+      "definition": {
+        "text": "An eigenvector of a square matrix A is a nonzero vector x whose image Ax is a scalar multiple of itself, Ax = λx; the scalar λ is the eigenvalue, found as a root of the characteristic polynomial det(A − λI).",
+        "anchor": null,
+        "tier": 1,
+        "verifiedBy": 0
+      },
+      "facts": [
+        {
+          "text": "Eigenvectors must be nonzero, but an eigenvalue can be zero — a zero eigenvalue means the matrix is not invertible.",
+          "anchor": null,
+          "tier": 1,
+          "verifiedBy": 0,
+          "contested": false
+        },
+        {
+          "text": "An n-by-n matrix is diagonalizable exactly when it has n linearly independent eigenvectors.",
+          "anchor": null,
+          "tier": 1,
+          "verifiedBy": 0,
+          "contested": false
+        },
+        {
+          "text": "Eigenvectors belonging to distinct eigenvalues are automatically linearly independent.",
+          "anchor": null,
+          "tier": 1,
+          "verifiedBy": 0,
+          "contested": false
+        }
+      ],
+      "misconceptions": [
+        {
+          "text": "The zero vector is an eigenvector for every eigenvalue.",
+          "corrective": "Eigenvectors are required to be nonzero — A0 = λ0 holds trivially and identifies nothing about the matrix.",
+          "anchor": null,
+          "tier": 1
+        },
+        {
+          "text": "A matrix with a zero eigenvalue is a zero matrix.",
+          "corrective": "A zero eigenvalue only means some nonzero vector is sent to zero — the matrix is singular, not necessarily zero.",
+          "anchor": null,
+          "tier": 1
+        }
+      ],
+      "examples": [],
+      "workedExamples": [],
+      "mcBank": [],
+      "edges": {},
+      "variants": [],
+      "freshness": {
+        "sourceEdition": "",
+        "reviewBy": "",
+        "volatility": "low"
+      },
+      "license": "CC-BY-4.0",
+      "attribution": [
+        "Curated consensus linear algebra content; cross-checked against open texts (Hefferon, Linear Algebra; Beezer, A First Course in Linear Algebra)"
+      ],
+      "standards": []
+    },
+    {
+      "id": "math/orthogonality",
+      "rev": 1,
+      "term": "orthogonality",
+      "aliases": [
+        "orthogonal vectors",
+        "inner product",
+        "dot product",
+        "orthonormal basis",
+        "orthogonal projection",
+        "Gram-Schmidt process"
+      ],
+      "discipline": "math",
+      "tags": [
+        "linear-algebra",
+        "geometry",
+        "orthogonality"
+      ],
+      "level": "intro",
+      "difficulty": 3,
+      "bloomCeiling": "Analyze",
+      "definition": {
+        "text": "Two vectors are orthogonal when their dot product is zero; orthogonal and orthonormal bases make coordinates, projections, and distance computations simple because the basis directions do not interfere.",
+        "anchor": null,
+        "tier": 1,
+        "verifiedBy": 0
+      },
+      "facts": [
+        {
+          "text": "Nonzero orthogonal vectors are automatically linearly independent.",
+          "anchor": null,
+          "tier": 1,
+          "verifiedBy": 0,
+          "contested": false
+        },
+        {
+          "text": "The orthogonal projection of a vector onto a subspace is the closest point of the subspace to that vector.",
+          "anchor": null,
+          "tier": 1,
+          "verifiedBy": 0,
+          "contested": false
+        },
+        {
+          "text": "The Gram-Schmidt process converts any independent set into an orthogonal (or orthonormal) set spanning the same subspace.",
+          "anchor": null,
+          "tier": 1,
+          "verifiedBy": 0,
+          "contested": false
+        }
+      ],
+      "misconceptions": [
+        {
+          "text": "Orthogonal just means perpendicular lines in a picture.",
+          "corrective": "Orthogonality is defined by the inner product being zero, which extends to functions and high-dimensional data where no picture exists.",
+          "anchor": null,
+          "tier": 1
+        },
+        {
+          "text": "Projection changes the subspace you project onto.",
+          "corrective": "Projection maps points INTO the subspace; vectors already in the subspace are unchanged by it.",
+          "anchor": null,
+          "tier": 1
+        }
+      ],
+      "examples": [],
+      "workedExamples": [],
+      "mcBank": [],
+      "edges": {},
+      "variants": [],
+      "freshness": {
+        "sourceEdition": "",
+        "reviewBy": "",
+        "volatility": "low"
+      },
+      "license": "CC-BY-4.0",
+      "attribution": [
+        "Curated consensus linear algebra content; cross-checked against open texts (Hefferon, Linear Algebra; Beezer, A First Course in Linear Algebra)"
+      ],
+      "standards": []
+    },
+    {
+      "id": "math/least-squares",
+      "rev": 1,
+      "term": "least squares",
+      "aliases": [
+        "least-squares approximation",
+        "normal equations",
+        "residual",
+        "linear regression fit",
+        "best-fit line"
+      ],
+      "discipline": "math",
+      "tags": [
+        "linear-algebra",
+        "applications",
+        "approximation"
+      ],
+      "level": "intro",
+      "difficulty": 3,
+      "bloomCeiling": "Apply",
+      "definition": {
+        "text": "The least-squares solution of an inconsistent system Ax = b is the vector x̂ minimizing the length of the residual b − Ax; it satisfies the normal equations AᵀAx̂ = Aᵀb and corresponds to projecting b onto the column space of A.",
+        "anchor": null,
+        "tier": 1,
+        "verifiedBy": 0
+      },
+      "facts": [
+        {
+          "text": "Least squares finds the best approximate solution when Ax = b has no exact solution, as with overdetermined data-fitting systems.",
+          "anchor": null,
+          "tier": 1,
+          "verifiedBy": 0,
+          "contested": false
+        },
+        {
+          "text": "Geometrically, Ax̂ is the orthogonal projection of b onto the column space of A.",
+          "anchor": null,
+          "tier": 1,
+          "verifiedBy": 0,
+          "contested": false
+        },
+        {
+          "text": "When the columns of A are linearly independent, AᵀA is invertible and the least-squares solution is unique.",
+          "anchor": null,
+          "tier": 1,
+          "verifiedBy": 0,
+          "contested": false
+        }
+      ],
+      "misconceptions": [
+        {
+          "text": "Least squares finds an exact solution to the system.",
+          "corrective": "It minimizes the residual; the fitted values Ax̂ generally differ from b — being closest is not being equal.",
+          "anchor": null,
+          "tier": 1
+        },
+        {
+          "text": "A best-fit line must pass through the data points.",
+          "corrective": "The least-squares line minimizes the sum of squared vertical gaps and can miss every single data point.",
+          "anchor": null,
+          "tier": 1
+        }
+      ],
+      "examples": [],
+      "workedExamples": [],
+      "mcBank": [],
+      "edges": {},
+      "variants": [],
+      "freshness": {
+        "sourceEdition": "",
+        "reviewBy": "",
+        "volatility": "low"
+      },
+      "license": "CC-BY-4.0",
+      "attribution": [
+        "Curated consensus linear algebra content; cross-checked against open texts (Hefferon, Linear Algebra; Beezer, A First Course in Linear Algebra)"
+      ],
+      "standards": []
+    },
+    {
+      "id": "math/singular-value-decomposition",
+      "rev": 1,
+      "term": "singular value decomposition",
+      "aliases": [
+        "SVD",
+        "singular values",
+        "singular vectors",
+        "low-rank approximation"
+      ],
+      "discipline": "math",
+      "tags": [
+        "linear-algebra",
+        "factorizations",
+        "applications"
+      ],
+      "level": "intro",
+      "difficulty": 4,
+      "bloomCeiling": "Evaluate",
+      "definition": {
+        "text": "The singular value decomposition factors any m-by-n matrix as A = UΣVᵀ with orthogonal U and V and a diagonal Σ of nonnegative singular values; it exists for every matrix, square or not.",
+        "anchor": null,
+        "tier": 1,
+        "verifiedBy": 0
+      },
+      "facts": [
+        {
+          "text": "Every matrix has an SVD, unlike eigendecompositions, which require the matrix to be square and diagonalizable.",
+          "anchor": null,
+          "tier": 1,
+          "verifiedBy": 0,
+          "contested": false
+        },
+        {
+          "text": "The singular values are the square roots of the eigenvalues of AᵀA, listed in decreasing order.",
+          "anchor": null,
+          "tier": 1,
+          "verifiedBy": 0,
+          "contested": false
+        },
+        {
+          "text": "Truncating the SVD to the largest k singular values gives the best rank-k approximation of the matrix, the basis of compression and noise reduction.",
+          "anchor": null,
+          "tier": 1,
+          "verifiedBy": 0,
+          "contested": false
+        }
+      ],
+      "misconceptions": [
+        {
+          "text": "Singular values are the same as eigenvalues.",
+          "corrective": "Singular values are square roots of eigenvalues of AᵀA and are never negative; for non-symmetric or non-square matrices the two notions differ.",
+          "anchor": null,
+          "tier": 1
+        },
+        {
+          "text": "SVD only works for square matrices.",
+          "corrective": "The SVD exists for every rectangular matrix — that generality is exactly why it is used on data matrices.",
+          "anchor": null,
+          "tier": 1
+        }
+      ],
+      "examples": [],
+      "workedExamples": [],
+      "mcBank": [],
+      "edges": {},
+      "variants": [],
+      "freshness": {
+        "sourceEdition": "",
+        "reviewBy": "",
+        "volatility": "low"
+      },
+      "license": "CC-BY-4.0",
+      "attribution": [
+        "Curated consensus linear algebra content; cross-checked against open texts (Hefferon, Linear Algebra; Beezer, A First Course in Linear Algebra)"
+      ],
+      "standards": []
+    },
+    {
+      "id": "math/rank-nullity",
+      "rev": 1,
+      "term": "rank and nullity",
+      "aliases": [
+        "rank",
+        "nullity",
+        "rank-nullity theorem",
+        "rank of a matrix"
+      ],
+      "discipline": "math",
+      "tags": [
+        "linear-algebra",
+        "matrices",
+        "dimension"
+      ],
+      "level": "intro",
+      "difficulty": 3,
+      "bloomCeiling": "Analyze",
+      "definition": {
+        "text": "The rank of a matrix is the dimension of its column space (the number of pivot columns); the nullity is the dimension of its null space; for an m-by-n matrix, rank plus nullity equals n.",
+        "anchor": null,
+        "tier": 1,
+        "verifiedBy": 0
+      },
+      "facts": [
+        {
+          "text": "Row rank equals column rank for every matrix.",
+          "anchor": null,
+          "tier": 1,
+          "verifiedBy": 0,
+          "contested": false
+        },
+        {
+          "text": "The rank-nullity theorem says rank(A) + nullity(A) = n, the number of columns of A.",
+          "anchor": null,
+          "tier": 1,
+          "verifiedBy": 0,
+          "contested": false
+        },
+        {
+          "text": "A square n-by-n matrix is invertible exactly when its rank is n, equivalently when its nullity is 0.",
+          "anchor": null,
+          "tier": 1,
+          "verifiedBy": 0,
+          "contested": false
+        }
+      ],
+      "misconceptions": [
+        {
+          "text": "Rank is the number of nonzero entries or nonzero rows in the original matrix.",
+          "corrective": "Rank counts pivots AFTER row reduction; a matrix full of nonzero entries can still have rank 1 if its rows are proportional.",
+          "anchor": null,
+          "tier": 1
+        },
+        {
+          "text": "A tall matrix with many rows has large rank.",
+          "corrective": "Rank never exceeds the smaller of the row and column counts, and dependence among columns lowers it further.",
+          "anchor": null,
+          "tier": 1
+        }
+      ],
+      "examples": [],
+      "workedExamples": [],
+      "mcBank": [],
+      "edges": {},
+      "variants": [],
+      "freshness": {
+        "sourceEdition": "",
+        "reviewBy": "",
+        "volatility": "low"
+      },
+      "license": "CC-BY-4.0",
+      "attribution": [
+        "Curated consensus linear algebra content; cross-checked against open texts (Hefferon, Linear Algebra; Beezer, A First Course in Linear Algebra)"
+      ],
+      "standards": []
+    },
+    {
+      "id": "math/change-of-basis",
+      "rev": 1,
+      "term": "change of basis",
+      "aliases": [
+        "coordinate change",
+        "transition matrix",
+        "change-of-coordinates matrix",
+        "similar matrices"
+      ],
+      "discipline": "math",
+      "tags": [
+        "linear-algebra",
+        "bases",
+        "transformations"
+      ],
+      "level": "intro",
+      "difficulty": 4,
+      "bloomCeiling": "Evaluate",
+      "definition": {
+        "text": "A change of basis re-expresses vectors and transformations in a new coordinate system: the transition matrix converts coordinates between bases, and matrices A and P⁻¹AP represent the same transformation in different bases.",
+        "anchor": null,
+        "tier": 1,
+        "verifiedBy": 0
+      },
+      "facts": [
+        {
+          "text": "The columns of the change-of-coordinates matrix are the new basis vectors written in the old basis.",
+          "anchor": null,
+          "tier": 1,
+          "verifiedBy": 0,
+          "contested": false
+        },
+        {
+          "text": "Similar matrices P⁻¹AP and A share determinant, rank, characteristic polynomial, and eigenvalues.",
+          "anchor": null,
+          "tier": 1,
+          "verifiedBy": 0,
+          "contested": false
+        },
+        {
+          "text": "Choosing an eigenvector basis, when one exists, makes a transformation's matrix diagonal — the point of diagonalization.",
+          "anchor": null,
+          "tier": 1,
+          "verifiedBy": 0,
+          "contested": false
+        }
+      ],
+      "misconceptions": [
+        {
+          "text": "Changing basis changes the vector itself.",
+          "corrective": "The vector is unchanged; only its coordinate description changes — like the same location under two different map grids.",
+          "anchor": null,
+          "tier": 1
+        },
+        {
+          "text": "Similar matrices are equal.",
+          "corrective": "Similar matrices represent the same transformation in different bases and share invariants, but their entries generally differ.",
+          "anchor": null,
+          "tier": 1
+        }
+      ],
+      "examples": [],
+      "workedExamples": [],
+      "mcBank": [],
+      "edges": {},
+      "variants": [],
+      "freshness": {
+        "sourceEdition": "",
+        "reviewBy": "",
+        "volatility": "low"
+      },
+      "license": "CC-BY-4.0",
+      "attribution": [
+        "Curated consensus linear algebra content; cross-checked against open texts (Hefferon, Linear Algebra; Beezer, A First Course in Linear Algebra)"
+      ],
+      "standards": []
+    }
+  ]
+}

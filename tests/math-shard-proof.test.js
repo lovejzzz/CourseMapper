@@ -96,6 +96,26 @@ const CALCULUS_COURSE = buildCourse('Calculus I', [
   ],
 ]);
 
+// v0.16.1: the linear-algebra course that linked 0/14 live. It infers 'math'
+// (the regex has \blinear algebra) but the then-calculus-only shard shared no
+// vocabulary — the subfield gap this kernel set closes.
+const LINEAR_ALGEBRA_COURSE = buildCourse('Linear Algebra', [
+  ['Systems of linear equations', 'systems of linear equations solution sets row reduction'],
+  ['Matrices', 'matrix operations matrix multiplication matrix inverse'],
+  ['Vector spaces', 'vector space subspaces span column space'],
+  ['Linear independence', 'linear independence dependence relation independent sets'],
+  ['Bases and dimension', 'basis and dimension coordinates standard basis'],
+  ['Determinants', 'determinant cofactor expansion determinant properties'],
+  ['Linear transformations', 'linear transformation linear map kernel image'],
+  ['Eigenvalues and eigenvectors', 'eigenvalues and eigenvectors characteristic polynomial diagonalization'],
+  ['Orthogonality', 'orthogonality inner product orthonormal basis gram-schmidt process'],
+  ['Least squares', 'least squares normal equations best-fit residual'],
+  ['Singular value decomposition', 'singular value decomposition singular values low-rank approximation'],
+  ['Rank and nullity', 'rank and nullity rank-nullity theorem null space'],
+  ['Change of basis', 'change of basis transition matrix similar matrices'],
+  ['Review and applications', 'vector space determinant eigenvalues orthogonality applications'],
+]);
+
 const library = genomeLibrary();
 
 function linkCourse(course) {
@@ -122,11 +142,34 @@ describe('math-intro shard contents (E1 bar: ≥15 concepts, verified citations)
     for (const kernel of shard.kernels) expect(kernel.id).toMatch(/^math\//);
   });
 
-  it('every definition is source-anchored to OpenStax Calculus Volume 1 (tier 2)', () => {
-    for (const kernel of shard.kernels) {
+  it('every OpenStax-anchored definition is tier 2 with a verbatim quote', () => {
+    // v0.16.1: the shard now also carries tier-1 consensus linear-algebra
+    // kernels (anchor: null, same contract as the lang shard). Scope the
+    // OpenStax-anchor bar to the Calculus Volume 1 kernels it applies to.
+    const anchored = shard.kernels.filter((kernel) => kernel.definition?.anchor?.src);
+    expect(anchored.length).toBeGreaterThanOrEqual(15);
+    for (const kernel of anchored) {
       expect(kernel.definition.tier).toBe(2);
       expect(kernel.definition.anchor?.src).toMatch(/^openstax:calculus-volume-1#\d$/);
       expect(kernel.definition.anchor?.quote?.length).toBeGreaterThanOrEqual(12);
+    }
+  });
+
+  it('carries the linear-algebra core as tier-1 consensus kernels (v0.16.1)', () => {
+    const ids = new Set(shard.kernels.map((kernel) => kernel.id));
+    for (const required of [
+      'math/system-of-linear-equations',
+      'math/matrix-operations',
+      'math/vector-space',
+      'math/linear-independence',
+      'math/basis-dimension',
+      'math/determinant',
+      'math/eigenvalues-eigenvectors',
+      'math/orthogonality',
+      'math/least-squares',
+      'math/singular-value-decomposition',
+    ]) {
+      expect(ids.has(required), `missing ${required}`).toBe(true);
     }
   });
 
@@ -186,6 +229,17 @@ describe('math-intro shard proof through the real linker (E1/E4 static bar)', ()
       .join(' ')
       .toLowerCase();
     expect(blob).toMatch(/limit|derivative|continuous|critical|integral/);
+  });
+
+  it('genome-links 10+ of the 14 Linear Algebra lessons (was 0/14 live, v0.16.1)', () => {
+    const linkedLA = runGenomeLinker({
+      courseMap: LINEAR_ALGEBRA_COURSE,
+      lessonIndices: LINEAR_ALGEBRA_COURSE.lessons.map((_, i) => i),
+      library,
+      itemPlan: buildQuizItemPlan(6),
+    });
+    expect(inferCourseDisciplines(LINEAR_ALGEBRA_COURSE)).toContain('math');
+    expect(linkedLA.telemetry.resolvedFromGenome).toBeGreaterThanOrEqual(10);
   });
 
   it('exposes resolvable prerequisite chains for the resolved math concepts', () => {

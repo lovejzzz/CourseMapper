@@ -1,7 +1,7 @@
 {
-  "version": "2026-06-19",
+  "version": "2026-07-03",
   "generator": "curriculumos-foundry-v1",
-  "conceptCount": 255,
+  "conceptCount": 271,
   "shards": [
     {
       "id": "anatomy-intro",
@@ -41,7 +41,7 @@
       "level": "intro",
       "path": "cs-intro.json",
       "conceptCount": 12,
-      "hash": "793f87bed6b6144e"
+      "hash": "fbfb087cd78092d0"
     },
     {
       "id": "econ-intro",
@@ -88,8 +88,8 @@
       "discipline": "math",
       "level": "intro",
       "path": "math-intro.json",
-      "conceptCount": 22,
-      "hash": "6e048ea3e0d8c6fa"
+      "conceptCount": 38,
+      "hash": "8f633ffa2ed161a3"
     },
     {
       "id": "nursing-intro",

@@ -1640,7 +1640,18 @@ function lessonHasRubricWorthyAssessment(lesson) {
   );
 }
 
+// v0.16.1: registry-compiled rubrics carry their assessment row's OWN lesson
+// binding (lessonNumber) — that binding is authoritative and beats any text
+// inference over titles/directions (the text cursor mislabeled 6 of 14
+// lesson rubric files in a live Linear Algebra package).
+function getRubricStructuredLessonNumber(rubric) {
+  const value = rubric?.lessonNumber ?? rubric?.ln;
+  return Number.isInteger(value) && value > 0 ? value : null;
+}
+
 function extractLessonNumbersFromRubric(rubric) {
+  const structured = getRubricStructuredLessonNumber(rubric);
+  if (structured) return [structured];
   const haystack = [
     rubric?.lessonTitle,
     rubric?.lt,
@@ -2114,6 +2125,25 @@ function scoreRubricAnchor(rubric, anchor) {
 }
 
 function inferRubricAnchorIndex(rubric, anchors, rubricIndex, rubricCount) {
+  // v0.16.1: a structured lessonNumber (registry-compiled rubrics) is the
+  // assessment row's own lesson binding — candidates are HARD-restricted to
+  // that lesson's anchors, and a structured rubric never falls back to
+  // global token scoring or positional alignment (both cross-stamped other
+  // lessons' titles onto rubric headers).
+  const structuredLesson = getRubricStructuredLessonNumber(rubric);
+  if (structuredLesson) {
+    const lessonAnchors = anchors.filter((anchor) => anchor.lessonNumber === structuredLesson);
+    if (lessonAnchors.length === 0) return null;
+    let bestStructured = { index: null, score: -1 };
+    lessonAnchors.forEach((anchor) => {
+      const score = scoreRubricAnchor(rubric, anchor);
+      if (score > bestStructured.score) {
+        bestStructured = { index: anchor.anchorIndex ?? anchor.lessonIndex, score };
+      }
+    });
+    return bestStructured.index;
+  }
+
   const explicit = getLessonNumberFromText(getRubricHaystack(rubric));
   const candidates =
     explicit && anchors.some((anchor) => anchor.lessonNumber === explicit)
@@ -2423,6 +2453,9 @@ export function normalizeRubricAssessmentAlignment(data, courseMap, assignmentsD
   }
 
   const rows = rubrics.map((rubric, originalIndex) => {
+    // v0.16.1: exam answer-key handoff entries are deliberate placeholders
+    // (the key lives in the quiz bank) — never rewrite them into rubrics.
+    if (rubric?.examHandoffNote) return { rubric, originalIndex, anchorIndex: null, patch: null };
     const anchorIndex = inferRubricAnchorIndex(rubric, anchors, originalIndex, rubrics.length);
     const anchor =
       anchorIndex === null ? null : anchors.find((item) => (item.anchorIndex ?? item.lessonIndex) === anchorIndex);
@@ -2431,7 +2464,21 @@ export function normalizeRubricAssessmentAlignment(data, courseMap, assignmentsD
     return { rubric: patch.rubric, originalIndex, anchorIndex, patch };
   });
 
+  // v0.16.1: order primarily by lesson (structured lessonNumber or the
+  // matched anchor's lesson) so exam handoff entries sit inside their
+  // lesson instead of being dumped at the tail; anchor order breaks ties
+  // within a lesson exactly as before.
+  const rowLessonNumber = (row) => {
+    const structured = getRubricStructuredLessonNumber(row.rubric);
+    if (structured) return structured;
+    if (row.anchorIndex === null) return 9999;
+    const anchor = anchors.find((item) => (item.anchorIndex ?? item.lessonIndex) === row.anchorIndex);
+    return anchor?.lessonNumber ?? 9999;
+  };
   const sorted = [...rows].sort((a, b) => {
+    const aLesson = rowLessonNumber(a);
+    const bLesson = rowLessonNumber(b);
+    if (aLesson !== bLesson) return aLesson - bLesson;
     const aKey = a.anchorIndex ?? 9999;
     const bKey = b.anchorIndex ?? 9999;
     if (aKey !== bKey) return aKey - bKey;
@@ -2783,6 +2830,19 @@ export function normalizeAssignmentGradeWeights(data) {
   const assignments = arrayKey ? data?.[arrayKey] : null;
 
   if (!Array.isArray(assignments) || assignments.length === 0) {
+    return { data, arrayKey, normalizedGradeWeights: false, previousTotal: 0, newTotal: 0 };
+  }
+
+  // v0.16.1: registry-linked briefs (assessmentId / courseMapRef) carry the
+  // assessment registry row's weight — the single source the syllabus and
+  // the brief's "Course Map LN · AN.M · X%" stamp both render. Briefs
+  // intentionally sum to LESS than 100% (exams hold the rest in the quiz
+  // bank), so re-normalizing here stamped a second, contradictory percent
+  // ("100 PTS · 5% · … · 4%") into the header. Leave registry weights alone.
+  const registryLinked = assignments.some(
+    (assignment) => assignment?.assessmentId || assignment?.courseMapRef || assignment?.cmr,
+  );
+  if (registryLinked) {
     return { data, arrayKey, normalizedGradeWeights: false, previousTotal: 0, newTotal: 0 };
   }
 

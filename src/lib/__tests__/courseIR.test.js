@@ -807,6 +807,62 @@ describe('CourseIR v1', () => {
     expect(compiled.deliverables.quizBank).toBeTruthy();
   });
 
+  // v0.16.1 regression: the Linear Algebra field run discarded a whole
+  // CourseIR response ("Outcome references missing assessment a1") because
+  // outcome/activity assessmentIds pointed at ids that differed only by case
+  // (a1 vs A1) — outcome-level refs were never repaired, only lesson-level.
+  it('remaps case-mismatched outcome and activity assessment refs during normalization', () => {
+    const base = makeCalculusIR();
+    const broken = {
+      ...base,
+      lessons: base.lessons.map((lesson) => ({
+        ...lesson,
+        outcomes: lesson.outcomes.map((outcome) => ({
+          ...outcome,
+          assessmentIds: outcome.assessmentIds.map((id) => id.toLowerCase()),
+        })),
+        activities: lesson.activities.map((activity) => ({
+          ...activity,
+          assessmentIds: activity.assessmentIds.map((id) => id.toLowerCase()),
+        })),
+      })),
+    };
+
+    // normalizeCourseIR (run inside validateCourseIR) remaps the refs to
+    // canonical ids, so the response is accepted instead of thrown away.
+    const { ir, validation } = parseCourseIRResponse(JSON.stringify(broken));
+    expect(validation.valid).toBe(true);
+    const canonicalIds = new Set(ir.assessments.map((assessment) => assessment.id));
+    for (const lesson of ir.lessons) {
+      for (const outcome of lesson.outcomes) {
+        expect(outcome.assessmentIds.length).toBeGreaterThan(0);
+        // every ref remapped to a real, canonically-cased assessment id
+        for (const id of outcome.assessmentIds) expect(canonicalIds.has(id)).toBe(true);
+      }
+    }
+  });
+
+  it('drops truly-dangling outcome assessment refs instead of failing validation', () => {
+    const base = makeCalculusIR();
+    const broken = {
+      ...base,
+      lessons: base.lessons.map((lesson) => ({
+        ...lesson,
+        outcomes: lesson.outcomes.map((outcome) => ({
+          ...outcome,
+          assessmentIds: [...outcome.assessmentIds, 'A404'],
+        })),
+      })),
+    };
+    const { ir, validation } = parseCourseIRResponse(JSON.stringify(broken));
+    expect(validation.valid).toBe(true);
+    for (const lesson of ir.lessons) {
+      for (const outcome of lesson.outcomes) {
+        expect(outcome.assessmentIds).not.toContain('A404');
+      }
+    }
+  });
+
   it('repairs missing source ledger and lesson concept coverage before compile', () => {
     const base = makeCalculusIR();
     const broken = {

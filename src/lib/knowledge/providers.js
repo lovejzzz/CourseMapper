@@ -87,22 +87,113 @@ function cacheSet(key, value) {
   }
 }
 
-async function cachedFetchJson(cacheKey, url, { signal, timeoutMs = 8000 } = {}) {
+// v0.16.1: the Linear Algebra field run fired 14+ parallel OpenAlex GETs
+// (readings attach + cache warm + source finder) and got 429'd out of the
+// polite pool — the ONLY anchored, discipline-gated provider went dark and
+// ungated fallbacks filled the slots. Two defenses: a per-host concurrency
+// gate, and a bounded retry that honors Retry-After. A request that is still
+// rate-limited after retries throws an error tagged rateLimited so callers
+// can tell "provider throttled us" apart from "provider had nothing".
+const HOST_CONCURRENCY = 4;
+const hostSlots = new Map(); // host -> { active: number, waiters: Array<() => void> }
+
+async function withHostSlot(url, task) {
+  let host = '';
+  try {
+    host = new URL(url).host;
+  } catch {
+    return task();
+  }
+  let slot = hostSlots.get(host);
+  if (!slot) {
+    slot = { active: 0, waiters: [] };
+    hostSlots.set(host, slot);
+  }
+  if (slot.active >= HOST_CONCURRENCY) {
+    await new Promise((resolve) => slot.waiters.push(resolve));
+  }
+  slot.active += 1;
+  try {
+    return await task();
+  } finally {
+    slot.active -= 1;
+    const next = slot.waiters.shift();
+    if (next) next();
+  }
+}
+
+function sleep(ms, signal) {
+  return new Promise((resolve) => {
+    const timer = setTimeout(resolve, ms);
+    if (signal) {
+      signal.addEventListener(
+        'abort',
+        () => {
+          clearTimeout(timer);
+          resolve();
+        },
+        { once: true },
+      );
+    }
+  });
+}
+
+export function isRateLimitedError(error) {
+  return Boolean(error && error.rateLimited === true);
+}
+
+async function cachedFetchJson(cacheKey, url, { signal, timeoutMs = 8000, rateLimitRetries = 2 } = {}) {
   const key = `${cacheKey}:${isoWeekStamp()}`;
   const hit = cacheGet(key);
   if (hit) return hit;
-  const controller = new AbortController();
-  const timer = setTimeout(() => controller.abort(), timeoutMs);
-  if (signal) signal.addEventListener('abort', () => controller.abort(), { once: true });
-  try {
-    const res = await fetch(url, { signal: controller.signal });
-    if (!res.ok) throw new Error(`${res.status}`);
-    const json = await res.json();
-    cacheSet(key, json);
-    return json;
-  } finally {
-    clearTimeout(timer);
+  return withHostSlot(url, async () => {
+    let lastError = null;
+    for (let attempt = 0; attempt <= rateLimitRetries; attempt += 1) {
+      if (signal?.aborted) break;
+      const controller = new AbortController();
+      const timer = setTimeout(() => controller.abort(), timeoutMs);
+      if (signal) signal.addEventListener('abort', () => controller.abort(), { once: true });
+      try {
+        const res = await fetch(url, { signal: controller.signal });
+        if (res.status === 429 || res.status === 503) {
+          const error = new Error(`${res.status}`);
+          error.rateLimited = true;
+          lastError = error;
+          if (attempt < rateLimitRetries) {
+            const retryAfterSeconds = Number(res.headers?.get?.('retry-after'));
+            const waitMs = Number.isFinite(retryAfterSeconds)
+              ? Math.min(retryAfterSeconds * 1000, 5000)
+              : 700 * (attempt + 1);
+            clearTimeout(timer);
+            await sleep(waitMs, signal);
+            continue;
+          }
+          throw error;
+        }
+        if (!res.ok) throw new Error(`${res.status}`);
+        const json = await res.json();
+        cacheSet(key, json);
+        return json;
+      } finally {
+        clearTimeout(timer);
+      }
+    }
+    throw lastError || new Error('aborted');
+  });
+}
+
+/**
+ * Providers still degrade to an EMPTY array on failure (the compile never
+ * depends on the network), but a rate-limited failure returns an empty array
+ * carrying a non-enumerable `rateLimited` flag so the source finder can skip
+ * fallback substitution and skip caching the degraded result.
+ */
+function emptyProviderResult(error) {
+  const result = [];
+  if (isRateLimitedError(error)) {
+    Object.defineProperty(result, 'rateLimited', { value: true, enumerable: false });
   }
+  return result;
 }
 
 /** Reconstruct an abstract from OpenAlex's inverted-index format. */
@@ -185,8 +276,8 @@ export async function searchScholarlyReadings(query, { limit = 3, signal, anchor
         attribution: 'OpenAlex (CC0 metadata)',
       };
     });
-  } catch {
-    return [];
+  } catch (error) {
+    return emptyProviderResult(error);
   }
 }
 
@@ -218,8 +309,8 @@ export async function searchEducationResearch(query, { limit = 3, signal } = {})
       attribution: 'ERIC, Institute of Education Sciences',
       ericId: doc.id,
     }));
-  } catch {
-    return [];
+  } catch (error) {
+    return emptyProviderResult(error);
   }
 }
 
@@ -247,8 +338,8 @@ export async function searchBookMetadata(query, { limit = 3, signal } = {}) {
       license: 'Open Library public metadata',
       attribution: 'Open Library, Internet Archive',
     }));
-  } catch {
-    return [];
+  } catch (error) {
+    return emptyProviderResult(error);
   }
 }
 
@@ -294,8 +385,8 @@ export async function searchCrossrefWorks(query, { limit = 3, signal } = {}) {
         attribution: 'Crossref public metadata',
       };
     });
-  } catch {
-    return [];
+  } catch (error) {
+    return emptyProviderResult(error);
   }
 }
 
@@ -323,8 +414,8 @@ export async function searchWikipediaPages(query, { limit = 2, signal } = {}) {
       license: 'CC BY-SA 4.0',
       attribution: 'Wikipedia contributors',
     }));
-  } catch {
-    return [];
+  } catch (error) {
+    return emptyProviderResult(error);
   }
 }
 
@@ -351,8 +442,8 @@ export async function searchLibraryOfCongress(query, { limit = 2, signal } = {})
       license: cleanText(item.rights) || 'Library of Congress public metadata; rights vary',
       attribution: 'Library of Congress',
     }));
-  } catch {
-    return [];
+  } catch (error) {
+    return emptyProviderResult(error);
   }
 }
 
@@ -379,8 +470,8 @@ export async function searchInternetArchiveTexts(query, { limit = 2, signal } = 
       license: cleanText(doc.licenseurl) || 'Internet Archive public metadata; item rights vary',
       attribution: 'Internet Archive',
     }));
-  } catch {
-    return [];
+  } catch (error) {
+    return emptyProviderResult(error);
   }
 }
 
@@ -410,7 +501,7 @@ export async function checkRetractions(ids, { signal } = {}) {
     return (json.results || [])
       .filter((work) => work.is_retracted)
       .map((work) => ({ id: work.id, title: work.display_name }));
-  } catch {
-    return [];
+  } catch (error) {
+    return emptyProviderResult(error);
   }
 }

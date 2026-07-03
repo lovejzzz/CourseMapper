@@ -48,6 +48,33 @@ describe('runDigest', () => {
     expect(digest.cost.byTask[0].task).toBe('course-map');
   });
 
+  // v0.16.1 regression: a READY run with a readiness warning must report the
+  // real warning count in the digest. The Linear Algebra run zeroed warnings
+  // on ready (UI calm pass) so the digest claimed "0 warnings" while its own
+  // flaggedChecks listed the missing-rubric warning — gates disagreed with
+  // themselves. AppFlow now passes the true count into the digest.
+  it('keeps the readiness warning count honest on a ready run', () => {
+    const digest = buildRunDigest({
+      budget: budgetWithCourseMapCall('gpt-5.4-mini'),
+      exportVerification: { status: 'passed', checked: 38, failed: 0, warningCount: 0, checks: [] },
+      finish: {
+        finalStatus: 'ready',
+        blockers: 0,
+        warnings: 1,
+        repairsApplied: 14,
+        retryCallCount: 0,
+        readinessWarnings: [{ featureId: 'rubrics', message: 'Rubrics are missing assessed lesson(s): 14.' }],
+      },
+      generation: { provider: 'openai', lessonCount: 14, featureIds: ['rubrics'] },
+    });
+
+    expect(digest.gates.finalStatus).toBe('ready');
+    expect(digest.gates.warnings).toBe(1);
+    expect(digest.gates.flaggedChecks).toContainEqual(
+      expect.objectContaining({ featureId: 'rubrics', status: 'warning' }),
+    );
+  });
+
   it('labels pricing accuracy honestly', () => {
     const reported = buildRunDigest({ budget: budgetWithCourseMapCall('gpt-5.4-mini', false) });
     expect(reported.cost.accuracy).toContain('provider-reported');

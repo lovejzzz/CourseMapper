@@ -2,26 +2,26 @@ import { APP_VERSION } from './appVersion.js';
 
 export const CURRENT_RELEASE = {
   version: APP_VERSION,
-  date: 'July 2, 2026',
-  title: 'Ready to Teach: the simulated academy, the twin protocol, and the teachability lanes',
-  landingTitle: 'Ready to Teach',
+  date: 'July 3, 2026',
+  title: 'Field-Audit Fixes: the first real full course, and the cascade it exposed',
+  landingTitle: 'Field-Audit Fixes',
   highlights: [
-    'Project Prof ships: a simulated teaching academy that measures TEACHABILITY, not just defect-freeness \u2014 an adoption panel of instructor personas reviews real exports blind across parallel universes, a zero-token classroom of psychometrically-modeled students sits the actual quizzes across a semester, a department committee reviews for accessibility and integrity, and every verdict passes a quote-or-discard ledger. The deep grader said 99/A; Prof said 3.4/10 teach-as-is and 0% adoption \u2014 that gap is now a number with a confidence interval, and this release is the campaign against it.',
-    'The same-generation twin protocol makes quality movement provable: one captured generation compiled by two compiler versions, judged in blind pairs, with a t-based CI on the per-universe delta. It detects a half-point compiler effect for under a dollar \u2014 and it correctly rejected one batch of plausible fixes as insufficient before proving the two that mattered.',
-    'Two twin-proven jumps landed the same day the instrument did: the seam-corruption class fix (label replacement is now idempotent and position-aware \u2014 "Autograded Autograded Autograded the Week 1 quiz" stacked 6,785 times in one live compile, now zero) measured +2.43 teach-as-is (CI 1.03\u20133.83), and grounding slice 1 (kernel core ideas in every schedule row, authored homework tasks, real formative questions, kernel exit tickets) measured +1.30 (CI 0.22\u20132.39, 23 pooled pairs). The cumulative arc on one generation: 2.43 \u2192 ~5.1.',
-    'Assessment authenticity: the authored quiz items become the primary source with unit integrity (an authored stem never ships on template options; opinion stems never ship as machine-scored items), every all-MC quiz prints its autograding spec (points, single-key rule, answer-key reference), lesson plans speak the assessment\u2019s genre (students PRACTICE for an autograded quiz and BUILD a lab \u2014 nobody "drafts" a quiz), "define a function" finally tags as the coding performance it is, and the outcome/alignment surfaces cover all fifteen weeks instead of silently stopping at ten.',
-    'The package now survives simulated students better: every lesson plan opens with an explicit catch-up recap for students who missed the reading (compliance mastery loss measured back under the 25% bar), lessons teach a focused 4-concept core instead of eight word-mined fillers, correct-answer explanations name and correct the documented misconception, rubric bands become observable behaviors (strong work applies the definition; weak work shows the misconception), and the course FAQ opens with the questions confused students actually ask.',
-    'The professional-credibility tail from the department review: testing accommodations are stated for every quiz, midterm, and final; keyword-matched readings stop shipping with a straight face (a token-only match is skipped when the kernel already cites a primary open text, or labeled "verify fit"); programming courses get realistic workload floors; and Lesson 1 no longer references "last time."',
+    'The first real user-run full course (Linear Algebra, 14 lessons) graded 99/A but was unshippable \u2014 and every root cause traced to one cascade. The genome\u2019s math shard was calculus-only, so a linear-algebra course linked 0 of 14 lessons; that collapse turned on the keyword source-finder, whose fallback providers were the ONLY ones searching without the course subject, so \u201cIndependent politician\u201d shipped for linear independence, \u201cLewis acids and bases\u201d for vector-space bases, and \u201c2025 Philippine general election\u201d for the midterm. This release fixes the cascade end to end.',
+    'The genome now knows linear algebra: sixteen curated concept kernels (systems, matrices, vector spaces, independence, bases, determinants, eigenvalues, orthogonality, least squares, SVD, and more) join the math shard, taking a linear-algebra course from 0/14 to 10+/14 genome-linked lessons \u2014 which restores judgment, real citations, and grounded content instead of keyword bycatch.',
+    'Off-topic readings can no longer ship or pass the grade: every open-knowledge provider now searches anchored to the course subject (not just OpenAlex), the token-relevance gate covers Wikipedia/Library-of-Congress/Internet-Archive instead of exempting exactly the fallback providers, OpenAlex requests are rate-limited with backoff so a 429 no longer swaps in ungated junk, math/physics/anatomy gain discipline allowlists, and the deep grader finally sees encyclopedic reading lines (which used to be invisible, scoring citations 100/100 over garbage).',
+    'The compiler stops shipping mail-merge: exam lessons get real cumulative exams built from the covered lessons\u2019 own authored atoms (never \u201cconnects X to the work in X\u201d), exam-day lessons get logistics plans and review guides instead of teaching boilerplate and homework, code-lab assessments get their own rubric criteria instead of a proof-set clone, rubric files carry their own lesson label (no more \u201cLesson 1\u201d on a Week 4 rubric) and exams get a Quiz-Bank handoff note instead of an empty file, and a Linear Algebra course no longer inherits a Python-programming course map.',
+    'Template grammar is repaired at the seam: \u201cyour the Week 4 sets\u201d and \u201ccontrasting two the Week 4 sets samples\u201d drop the doubled determiner, fused sentences regain their period, a course-wide lens noun (\u201cinvertibility judgment\u201d) is bound per-lesson instead of stamped into all 115 sites, raw citation strings stop splicing mid-sentence (\u201c\u2026Independent politician. Wikipedia: https:\u201d), slide bullets compose to fit instead of truncating with \u201c\u2026\u201d, the duplicate key-terms slide is de-duplicated, and the syllabus TOC field-code leak is gone.',
+    'The truth surfaces stop lying: the CourseIR authoring pass repairs case-mismatched and dangling assessment references instead of discarding an entire 8k-token response, the run digest reports the real readiness-warning count (a \u201cready\u201d run no longer claims zero warnings while its own flagged-checks list one), the compiler duration telemetry times the compile instead of the whole pipeline, and voice-pass fallbacks record why they fell back.',
   ],
   landingHighlights: [
-    'Project Prof: teachability is now a measured number, not a feeling.',
-    'Twin protocol: every compiler change gets a paired verdict with a CI.',
-    'Two significant jumps proven: seam fix +2.43, grounding slice +1.30.',
-    'Quizzes are authored-first, machine-scorable, and say so in print.',
-    'Lesson plans carry a catch-up path; rubric bands are observable behaviors.',
+    'The first real full course exposed a whole cascade \u2014 now fixed end to end.',
+    'The genome learns linear algebra: 0/14 \u2192 10+/14 lessons linked.',
+    'Off-topic readings can no longer ship or pass the grade.',
+    'Exams, rubrics, and lab briefs stop shipping mail-merge.',
+    'Template grammar, slide bullets, and honest gate counts all repaired.',
   ],
   proof: {
-    contract: 'release-contracts/v0.16.0.json',
+    contract: 'release-contracts/v0.16.1.json',
     roadmap: 'docs/ROADMAP_V016_READY_TO_TEACH.md',
     auditCommand: 'npm run audit:release-history',
   },
@@ -37,6 +37,19 @@ export const CURRENT_RELEASE_CHANGELOG = {
 };
 
 export const HISTORICAL_RELEASE_CHANGELOGS = [
+  {
+    version: '0.16.0',
+    date: 'July 2, 2026',
+    title: 'Ready to Teach: the simulated academy, the twin protocol, and the teachability lanes',
+    highlights: [
+      'Project Prof ships: a simulated teaching academy that measures TEACHABILITY, not just defect-freeness — an adoption panel of instructor personas reviews real exports blind across parallel universes, a zero-token classroom of psychometrically-modeled students sits the actual quizzes across a semester, a department committee reviews for accessibility and integrity, and every verdict passes a quote-or-discard ledger. The deep grader said 99/A; Prof said 3.4/10 teach-as-is and 0% adoption — that gap is now a number with a confidence interval, and this release is the campaign against it.',
+      'The same-generation twin protocol makes quality movement provable: one captured generation compiled by two compiler versions, judged in blind pairs, with a t-based CI on the per-universe delta. It detects a half-point compiler effect for under a dollar — and it correctly rejected one batch of plausible fixes as insufficient before proving the two that mattered.',
+      'Two twin-proven jumps landed the same day the instrument did: the seam-corruption class fix (label replacement is now idempotent and position-aware — "Autograded Autograded Autograded the Week 1 quiz" stacked 6,785 times in one live compile, now zero) measured +2.43 teach-as-is (CI 1.03–3.83), and grounding slice 1 (kernel core ideas in every schedule row, authored homework tasks, real formative questions, kernel exit tickets) measured +1.30 (CI 0.22–2.39, 23 pooled pairs). The cumulative arc on one generation: 2.43 → ~5.1.',
+      'Assessment authenticity: the authored quiz items become the primary source with unit integrity (an authored stem never ships on template options; opinion stems never ship as machine-scored items), every all-MC quiz prints its autograding spec (points, single-key rule, answer-key reference), lesson plans speak the assessment’s genre (students PRACTICE for an autograded quiz and BUILD a lab — nobody "drafts" a quiz), "define a function" finally tags as the coding performance it is, and the outcome/alignment surfaces cover all fifteen weeks instead of silently stopping at ten.',
+      'The package now survives simulated students better: every lesson plan opens with an explicit catch-up recap for students who missed the reading (compliance mastery loss measured back under the 25% bar), lessons teach a focused 4-concept core instead of eight word-mined fillers, correct-answer explanations name and correct the documented misconception, rubric bands become observable behaviors (strong work applies the definition; weak work shows the misconception), and the course FAQ opens with the questions confused students actually ask.',
+      'The professional-credibility tail from the department review: testing accommodations are stated for every quiz, midterm, and final; keyword-matched readings stop shipping with a straight face (a token-only match is skipped when the kernel already cites a primary open text, or labeled "verify fit"); programming courses get realistic workload floors; and Lesson 1 no longer references "last time."',
+    ],
+  },
   {
     version: '0.15.187',
     date: 'July 1, 2026',

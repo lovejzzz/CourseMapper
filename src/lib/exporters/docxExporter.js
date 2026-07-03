@@ -657,6 +657,23 @@ export function _buildDocxContentShared(featureId, data, children, docx) {
     case 'rubrics': {
       const expanded = expandKeys('rubrics', data);
       const COL_DXA = [2060, 750, 1640, 1640, 1640, 1630];
+      // v0.16.1: a lesson slice with no rubric entries (e.g. legacy saves
+      // where the exam lesson compiled no rubric) must never ship as a
+      // title-only shell — emit the same instructor handoff pattern the
+      // assignments case uses.
+      if ((expanded.rubrics || []).length === 0) {
+        const lesson = inferLessonFromExportTitle(exportTitle);
+        const lessonRef = lesson.lessonNumber ? `Lesson ${lesson.lessonNumber}` : 'this lesson';
+        children.push(makeHeading('No criterion rubric scheduled'));
+        children.push(makeMeta(['Handoff note', lessonRef, lesson.lessonTitle].filter(Boolean).join('  ·  ')));
+        children.push(
+          makeBold(
+            'Instructor handoff',
+            `No rubric-scored assessment was generated for ${lessonRef} in the current package. If this lesson's assessment is an exam, the answer key lives in the Quiz & Exam Bank document for ${lessonRef}; in-class activities are scored from the lesson plan.`,
+          ),
+        );
+        break;
+      }
       for (const r of expanded.rubrics || []) {
         const gradedWork = r.gradedWork || r.assignmentTitle || r.title || '';
         children.push(makeHeading(r.lessonTitle || r.title || 'Rubric'));
@@ -664,6 +681,13 @@ export function _buildDocxContentShared(featureId, data, children, docx) {
         if (r.title && r.lessonTitle) children.push(makeBold('Rubric', r.title));
         const rMeta = [r.totalPoints && `${r.totalPoints} points`, r.assessmentType, r.bloomsLevel].filter(Boolean);
         if (rMeta.length) children.push(makeMeta(rMeta.join('  ·  ')));
+        // v0.16.1: exam answer-key handoff entries — the note IS the body.
+        if (r.examHandoffNote) {
+          children.push(makeBold('Exam Handoff', r.examHandoffNote));
+          if (r.teacherNotes) children.push(makeBold('Teacher Notes', r.teacherNotes));
+          children.push(new Paragraph({ spacing: { before: 200, after: 100 }, children: [] }));
+          continue;
+        }
         if (r.taskDirections) children.push(makeBold('Task Directions', r.taskDirections));
         if (r.instructorFacilitationNote)
           children.push(makeBold('Instructor Facilitation', r.instructorFacilitationNote));
@@ -891,19 +915,20 @@ export function _buildDocxContentShared(featureId, data, children, docx) {
       }
       for (const a of assignments) {
         children.push(makeHeading(a.title || 'Assignment'));
-        const percentOfGrade = a.percentOfGrade ? String(a.percentOfGrade).trim() : '';
         const courseMapRef = a.courseMapRef ? String(a.courseMapRef).trim() : '';
-        const percentToken = percentOfGrade.match(/\d+(?:\.\d+)?\s*%/)?.[0]?.replace(/\s+/g, '');
-        const courseMapRefAlreadyShowsPercent =
-          Boolean(percentToken) &&
-          (courseMapRef.match(/\d+(?:\.\d+)?\s*%/g) || []).some((token) => token.replace(/\s+/g, '') === percentToken);
+        // v0.16.1: ONE weight per header. When the course-map stamp carries
+        // any percent (the assessment registry row's weight), it is the
+        // authoritative figure — a separate percentOfGrade could disagree
+        // ("100 PTS · 5% · Course Map L4 · A4.1 · 4%") after older saves
+        // re-normalized brief weights. Never render two percents.
+        const courseMapRefShowsPercent = /\d+(?:\.\d+)?\s*%/.test(courseMapRef);
         const aMeta = [
           a.assignmentType,
           a.bloomsLevel,
           a.dueWeek || a.dueDate,
           a.estimatedTime,
           a.totalPoints && `${a.totalPoints} pts`,
-          courseMapRefAlreadyShowsPercent ? null : a.percentOfGrade,
+          courseMapRefShowsPercent ? null : a.percentOfGrade,
           // v0.14.1 (3.3b): the reverse stamp — "Course Map L8 · A8.1 · 5%"
           // ties the brief back to the map cell that promised it.
           a.courseMapRef,
@@ -1135,13 +1160,13 @@ export function _buildDocxContentShared(featureId, data, children, docx) {
     // ─── SYLLABUS ───────────────────────────────────────────────
     case 'syllabus': {
       const syl = data.syllabus || data;
-      // v0.12.1: a ~10-page document gets a navigable ToC (heading styles now
-      // match the rendered formatting, so Word can actually build it).
-      if (docx.TableOfContents) {
-        children.push(makeHeading('Contents'));
-        children.push(new docx.TableOfContents('Contents', { hyperlink: true, headingStyleRange: '1-3' }));
-        children.push(new Paragraph({ children: [new PageBreak()] }));
-      }
+      // v0.16.1 (Linear Algebra package audit): the v0.12.1 TableOfContents
+      // field is REMOVED. Its field-instruction text (`TOC \h \o "1-3"`)
+      // shipped as visible body text in every non-Word renderer and text
+      // extractor, and the document never set updateFields, so even Word
+      // showed an unpopulated field until a manual refresh. Heading styles
+      // already give Word's navigation pane a full outline; no TOC field
+      // means no raw field code can leak into the body.
       // Course info — a tidy two-column table instead of stacked lines.
       const infoPairs = [
         ['Semester', syl.semester],

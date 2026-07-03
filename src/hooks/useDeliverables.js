@@ -1054,12 +1054,23 @@ export default function useDeliverables({
           // so — "0 genome + 0 cached" alone gave no hint the discipline
           // simply isn't in the genome yet.
           const uncovered = t.uncoveredDisciplines || [];
-          const uncoveredNote =
+          let uncoveredNote =
             uncovered.length > 0
               ? ` (no shard for inferred discipline${uncovered.length === 1 ? '' : 's'} ${uncovered
                   .map((discipline) => `'${discipline}'`)
                   .join(', ')})`
               : '';
+          // v0.16.1: the OTHER 0-link mode — a shard hydrated but shared no
+          // vocabulary with any lesson (subfield gap: the Linear Algebra run
+          // loaded the then-calculus-only math shard and linked 0/14 with no
+          // hint). Distinct note so a subfield gap is not mistaken for a
+          // resolver failure.
+          const totalLinked = (t.resolvedFromGenome || 0) + (t.resolvedFromCache || 0);
+          if (!uncoveredNote && totalLinked === 0 && (hydration.shardIds || []).length > 0) {
+            uncoveredNote = ` (shard${(hydration.shardIds || []).length === 1 ? '' : 's'} ${(hydration.shardIds || [])
+              .map((id) => `'${id}'`)
+              .join(', ')} loaded but 0 lesson-concept overlap — likely a subfield not yet covered)`;
+          }
           recordGenerationApiCallEvent({
             type: 'genomeLink',
             label: 'CurriculumOS linker',
@@ -2301,6 +2312,10 @@ export default function useDeliverables({
           scopeIndices,
         );
         const compilerSource = blueprintEnrichment ? 'enriched-blueprint' : 'blueprint';
+        // v0.16.1: time the COMPILE, not the whole pipeline. `compiledStart`
+        // is captured before enrichment + knowledge backbone, so the old
+        // durationMs reported ~121s for a ~4s compile (Linear Algebra run).
+        const compileStart = Date.now();
         traceGeneration(generationRunId, 'blueprint_compiler_start', {
           featureIds: blueprintCompiledFeatureIds,
           lessonCount,
@@ -2338,7 +2353,8 @@ export default function useDeliverables({
         });
         traceGeneration(generationRunId, 'blueprint_compiler_compiled', {
           featureIds: blueprintCompiledFeatureIds,
-          durationMs: Date.now() - compiledStart,
+          durationMs: Date.now() - compileStart,
+          pipelineMs: Date.now() - compiledStart,
           itemCounts: Object.fromEntries(
             blueprintCompiledFeatureIds.map((featureId) => [
               featureId,
@@ -2425,9 +2441,9 @@ export default function useDeliverables({
           setDelivTimings((prev) => ({
             ...prev,
             [fid]: {
-              startedAt: compiledStart,
+              startedAt: compileStart,
               endedAt,
-              durationMs: endedAt - compiledStart,
+              durationMs: endedAt - compileStart,
             },
           }));
           setProgress((prev) => ({
@@ -2557,6 +2573,11 @@ export default function useDeliverables({
               traceGeneration(generationRunId, 'voice_pass_done', {
                 voicedCount: voiceResult.voiced.length,
                 fallbackCount: voiceResult.fallbacks.length,
+                // v0.16.1: WHY surfaces fell back — the Linear Algebra run
+                // said "2 fallback(s)" with no reason anywhere in telemetry.
+                fallbacks: (voiceResult.fallbacks || [])
+                  .slice(0, 8)
+                  .map((entry) => ({ surfaceId: entry.surfaceId, reason: entry.reason })),
                 spentUsd: voiceResult.spentUsd,
                 exhausted: voiceResult.exhausted,
               });

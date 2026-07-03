@@ -200,6 +200,64 @@ function sourceContext(source) {
   ).toLowerCase();
 }
 
+// Light stemming so "determinants" (topic) matches "determinant" (source
+// title) — the token gate is a Set intersection, not a substring match.
+function stemTerm(term) {
+  return term.length > 4 && term.endsWith('s') ? term.slice(0, -1) : term;
+}
+
+// v0.16.1: a single-topic-hit source must also touch the course's SUBJECT to
+// clear the homonym trap. The subject is the course-title tokens plus a small
+// discipline lexicon, so a genuinely in-discipline page ("Modular
+// programming" for a CS course, whose abstract says "software"/"code" but not
+// "python") survives while an off-domain homonym ("Independent politician"
+// for linear algebra) does not. Keyed by a signal regex on the course name.
+const COURSE_SUBJECT_LEXICON = [
+  {
+    signal: /\b(?:computer science|python|programming|coding|software|algorithm)\b/i,
+    terms: ['program', 'programming', 'software', 'code', 'coding', 'algorithm', 'comput', 'function', 'data'],
+  },
+  {
+    signal: /\b(?:linear algebra|algebra|calculus|geometry|mathematic|matrix|matrices|vector)\b/i,
+    terms: [
+      'matrix',
+      'matrices',
+      'vector',
+      'linear',
+      'algebra',
+      'theorem',
+      'equation',
+      'mathematic',
+      'scalar',
+      'eigen',
+    ],
+  },
+  {
+    signal: /\b(?:user experience|ux|interaction design|design studio|usability)\b/i,
+    terms: ['design', 'usability', 'prototype', 'prototyping', 'interface', 'wireframe', 'critique'],
+  },
+  {
+    signal: /\b(?:physics|mechanics|electromagnet|thermodynamic)\b/i,
+    terms: ['physic', 'force', 'energy', 'motion', 'quantum', 'field', 'particle'],
+  },
+  {
+    signal: /\b(?:chemistry|chemical|biochem|organic chem)\b/i,
+    terms: ['chemical', 'chemistry', 'molecul', 'reaction', 'compound', 'atom'],
+  },
+];
+
+function courseSubjectTerms(courseName) {
+  const terms = [...stemmedTermSet(courseName)].filter((term) => !LOW_SIGNAL_QUERY_TERMS.has(term));
+  for (const entry of COURSE_SUBJECT_LEXICON) {
+    if (entry.signal.test(courseName || '')) terms.push(...entry.terms.map(stemTerm));
+  }
+  return new Set(terms);
+}
+
+function stemmedTermSet(text) {
+  return new Set((termsFromText(text) || []).map(stemTerm));
+}
+
 function meaningfulQueryTerms(topic) {
   return (termsFromText(`${topic?.topic || ''} ${topic?.query || ''}`) || []).filter(
     (term) => !LOW_SIGNAL_QUERY_TERMS.has(term),
@@ -231,10 +289,25 @@ function sourcePassesTopicalFit(source, topic) {
     }
   }
 
-  if (/^(openalex|crossref|eric)$/.test(source.provider)) {
-    const haystack = new Set(termsFromText(sourceText) || []);
-    const hits = meaningfulQueryTerms(topic).filter((term) => haystack.has(term));
-    if (hits.length === 0) return false;
+  // v0.16.1: the token-overlap gate now applies to EVERY provider — the old
+  // openalex|crossref|eric allowlist exempted exactly the fallback providers
+  // (Wikipedia, LoC, Internet Archive, Open Library) that shipped
+  // "Independent politician" for linear independence. And one shared token is
+  // no longer enough ("Lewis acids and bases" shares "bases"; the lme4 paper
+  // shares "linear"): a source needs either two distinct topic-term hits, or
+  // one topic-term hit plus a course-subject term (e.g. "linear"/"algebra")
+  // when the topic itself is a single word like "Midterm".
+  const haystack = stemmedTermSet(sourceText);
+  const topicTerms = [...new Set(meaningfulQueryTerms(topic).map(stemTerm))];
+  const topicHits = topicTerms.filter((term) => haystack.has(term)).length;
+  if (topicHits === 0) return false;
+  // Two distinct topic-term hits clear the gate outright. A single hit — the
+  // homonym trap ("bases", "independent", "matrix", "determinant", "midterm")
+  // — must ALSO share a course-subject term, so an off-domain page that only
+  // collides on the concept headword is rejected.
+  if (topicHits < 2 && topicTerms.length >= 2) {
+    const courseTerms = courseSubjectTerms(topic?.courseName || '');
+    if (courseTerms.size > 0 && ![...courseTerms].some((term) => haystack.has(term))) return false;
   }
 
   return true;
@@ -322,12 +395,26 @@ function providerFunctions(overrides = {}) {
   };
 }
 
+// v0.16.1: fold the course name into the query for EVERY provider. The
+// Linear Algebra field run proved what an unanchored fallback does: Wikipedia
+// searched bare "Independent sets Linear independence" and shipped
+// "Independent politician"; "Bases Dimension Coordinates" shipped "Lewis
+// acids and bases" and "List of Pakistan Air Force bases"; "Midterm" shipped
+// "2025 Philippine general election". Only OpenAlex was anchored before.
+function anchoredQuery(query, courseName) {
+  const q = cleanText(query);
+  const anchor = cleanText(courseName);
+  if (!anchor) return q;
+  if (q.toLowerCase().includes(anchor.toLowerCase())) return q;
+  return cleanText(`${q} ${anchor}`);
+}
+
 async function callProvider(providerName, fn, topic, { courseName, signal } = {}) {
   if (typeof fn !== 'function') return [];
-  const query = topic.query;
+  const query = anchoredQuery(topic.query, courseName);
   const limit = providerName === 'openalex' || providerName === 'crossref' ? 3 : 2;
   try {
-    if (providerName === 'openalex') return await fn(query, { limit, signal, anchor: courseName });
+    if (providerName === 'openalex') return await fn(topic.query, { limit, signal, anchor: courseName });
     if (providerName === 'openlibrary') return await fn(`${courseName} ${topic.topic}`, { limit: 1, signal });
     return await fn(query, { limit, signal });
   } catch {
@@ -401,11 +488,14 @@ async function retrieveTopicSources(topic, options = {}) {
   const plan = providerPlan(courseName, topic);
   const rawSources = [];
 
+  let rateLimited = false;
   const primary = await Promise.allSettled(
     plan.primary.map(async (name) => callProvider(name, fns[name], topic, { courseName, signal })),
   );
   for (const settled of primary) {
-    if (settled.status === 'fulfilled') rawSources.push(...(settled.value || []));
+    if (settled.status !== 'fulfilled') continue;
+    if (settled.value?.rateLimited) rateLimited = true;
+    rawSources.push(...(settled.value || []));
   }
 
   let sources = dedupeAndRankSources(rawSources, topic, limitPerTopic);
@@ -414,7 +504,9 @@ async function retrieveTopicSources(topic, options = {}) {
       plan.secondary.map(async (name) => callProvider(name, fns[name], topic, { courseName, signal })),
     );
     for (const settled of secondary) {
-      if (settled.status === 'fulfilled') rawSources.push(...(settled.value || []));
+      if (settled.status !== 'fulfilled') continue;
+      if (settled.value?.rateLimited) rateLimited = true;
+      rawSources.push(...(settled.value || []));
     }
     sources = dedupeAndRankSources(rawSources, topic, limitPerTopic);
   }
@@ -424,6 +516,11 @@ async function retrieveTopicSources(topic, options = {}) {
     sources,
     searchLinks: oerSearch ? [oerSearch] : [],
     providerPlan: plan,
+    // v0.16.1: a topic retrieved while a provider was rate-limiting is a
+    // DEGRADED result — findCourseSources must not cache it for the ISO week
+    // (the Linear Algebra run served 429-degraded junk as cacheHit:true on
+    // every re-run for a week).
+    degraded: rateLimited,
   };
 }
 
@@ -461,8 +558,8 @@ export async function findCourseSources(input, options = {}) {
       searchLinks: retrieved.searchLinks,
       providerPlan: retrieved.providerPlan,
     };
-    cacheSet(key, cachedValue, storage);
-    results.push({ ...topic, ...cachedValue, cacheHit: false });
+    if (!retrieved.degraded) cacheSet(key, cachedValue, storage);
+    results.push({ ...topic, ...cachedValue, cacheHit: false, degraded: Boolean(retrieved.degraded) });
   }
 
   return {

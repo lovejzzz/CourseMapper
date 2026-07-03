@@ -260,6 +260,137 @@ describe('source finder mini-shard', () => {
     expect(titles).not.toContain('Driving under the influence');
   }, 15000);
 
+  // v0.16.1 regression: the Linear Algebra field run shipped "Independent
+  // politician", "Lewis acids and bases", and "2025 Philippine general
+  // election" as lesson sources because Wikipedia results were exempt from
+  // the token-overlap gate and fallback queries carried no course anchor.
+  it('rejects keyword false friends from every provider for linear algebra topics', async () => {
+    const graph = createEmptyCourseGraph({ courseName: 'Linear Algebra' });
+    graph.sessions = [
+      {
+        id: 's4',
+        number: 4,
+        title: 'Lesson 4: Linear independence',
+        sections: [{ topic: '4.1: independent sets and dependence relations' }],
+      },
+    ];
+    graph.concepts = [{ id: 'c4', term: 'linear independence' }];
+    graph.edges.teaches = [{ from: 's4', to: 'c4' }];
+
+    const wikipedia = vi.fn(async () => [
+      source('wikipedia', 'Independent politician', {
+        abstract: 'A politician not affiliated with any political party; elections, campaigns, and parliaments.',
+      }),
+      source('wikipedia', 'Teal independents', {
+        abstract: 'A group of independent political candidates in Australian federal elections.',
+      }),
+      source('wikipedia', 'Linear independence', {
+        abstract:
+          'In linear algebra, vectors are linearly independent when no vector is a linear combination of the others; dependence relations and spans.',
+      }),
+    ]);
+    const miniShard = await findCourseSources(graph, {
+      storage: memoryStorage(),
+      maxTopics: 1,
+      limitPerTopic: 3,
+      minUsefulSources: 1,
+      providers: {
+        searchScholarlyReadings: vi.fn(async () => []),
+        searchCrossrefWorks: vi.fn(async () => []),
+        searchWikipediaPages: wikipedia,
+      },
+    });
+
+    const titles = miniShard.topics.flatMap((topic) => topic.sources.map((item) => item.title));
+    expect(titles).toEqual(['Linear independence']);
+    // Fallback provider queries carry the course-name anchor now.
+    expect(wikipedia.mock.calls[0][0].toLowerCase()).toContain('linear algebra');
+  }, 15000);
+
+  it('rejects single-shared-token Crossref hits like "Lewis acids and bases" for a bases lesson', async () => {
+    const graph = createEmptyCourseGraph({ courseName: 'Linear Algebra' });
+    graph.sessions = [
+      {
+        id: 's5',
+        number: 5,
+        title: 'Lesson 5: Bases and dimension',
+        sections: [{ topic: '5.1: bases, dimension, coordinates' }],
+      },
+    ];
+    graph.concepts = [{ id: 'c5', term: 'basis and dimension' }];
+    graph.edges.teaches = [{ from: 's5', to: 'c5' }];
+
+    const miniShard = await findCourseSources(graph, {
+      storage: memoryStorage(),
+      maxTopics: 1,
+      limitPerTopic: 3,
+      minUsefulSources: 1,
+      providers: {
+        searchScholarlyReadings: vi.fn(async () => []),
+        searchCrossrefWorks: vi.fn(async () => [
+          source('crossref', 'Lewis acids and bases in organic synthesis', {
+            abstract: 'Chemistry of electron-pair acceptors and donors, acids and bases in catalysis.',
+          }),
+        ]),
+        searchWikipediaPages: vi.fn(async () => [
+          source('wikipedia', 'Basis (linear algebra)', {
+            abstract:
+              'In linear algebra, a basis of a vector space is a linearly independent spanning set; dimension counts basis vectors and gives coordinates.',
+          }),
+        ]),
+      },
+    });
+
+    const titles = miniShard.topics.flatMap((topic) => topic.sources.map((item) => item.title));
+    expect(titles).toContain('Basis (linear algebra)');
+    expect(titles).not.toContain('Lewis acids and bases in organic synthesis');
+  }, 15000);
+
+  it('does not cache topics whose providers were rate-limited (degraded results)', async () => {
+    const storage = memoryStorage();
+    const rateLimitedResult = () => {
+      const result = [];
+      Object.defineProperty(result, 'rateLimited', { value: true, enumerable: false });
+      return result;
+    };
+    const openalex = vi.fn(async () => rateLimitedResult());
+    const wikipedia = vi.fn(async () => [
+      source('wikipedia', 'Linear independence', {
+        abstract: 'Vectors are linearly independent when no dependence relation exists; linear algebra spans.',
+      }),
+    ]);
+    const graph = createEmptyCourseGraph({ courseName: 'Linear Algebra' });
+    graph.sessions = [
+      {
+        id: 's4',
+        number: 4,
+        title: 'Lesson 4: Linear independence',
+        sections: [{ topic: '4.1: independent sets' }],
+      },
+    ];
+
+    const run = () =>
+      findCourseSources(graph, {
+        storage,
+        maxTopics: 1,
+        limitPerTopic: 2,
+        minUsefulSources: 1,
+        providers: {
+          searchScholarlyReadings: openalex,
+          searchCrossrefWorks: vi.fn(async () => []),
+          searchWikipediaPages: wikipedia,
+        },
+      });
+
+    const first = await run();
+    expect(first.topics[0].degraded).toBe(true);
+    expect(first.topics[0].cacheHit).toBe(false);
+    const second = await run();
+    // A degraded topic is NOT served from cache — the providers are asked again.
+    expect(second.topics[0].cacheHit).toBe(false);
+    expect(openalex.mock.calls.length).toBeGreaterThanOrEqual(2);
+  }, 15000);
+
   it('rejects CS/Python short-token Wikipedia false friends before caching sources', async () => {
     const graph = createEmptyCourseGraph({ courseName: 'Introduction to Computer Science with Python' });
     graph.sessions = [

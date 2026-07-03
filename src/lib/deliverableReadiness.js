@@ -805,8 +805,25 @@ const HISTORY_COURSE_MAP_RE =
 const UX_DESIGN_COURSE_MAP_RE =
   /\b(?:user experience|ux|design studio|design research|user research|usability|prototype|prototyping|wireframe|journey map|personas?|accessibility|portfolio review|case study|critique session|design journals?)\b/i;
 
-const COMPUTER_SCIENCE_COURSE_MAP_RE =
-  /\b(?:computer\s+science|python\b|programming|coding|software|algorithm|data\s+structures?|variables?|data\s+types?|conditionals?|loops?|functions?|lists?|dictionar(?:y|ies)|strings?|debugging|testing|file\s+(?:input|output|i\/o)|final\s+python\s+project)\b/i;
+// v0.16.1: the CS profile used to fire on generic tokens every quantitative
+// course contains — "variables", "functions", "testing", "lists" — which is
+// how a pure Linear Algebra course got a Python-programming course map
+// ("Trace Python code using Linear equations", "Python interpreter or
+// notebook" as required technology; the July 2026 field audit's worst P0).
+// The profile now needs an UNAMBIGUOUS signal; weak tokens only count when
+// at least two distinct ones appear alongside a mention of code.
+const COMPUTER_SCIENCE_STRONG_RE =
+  /\b(?:computer\s+science|python\b|programming|coding|software\s+(?:engineering|development)|algorithms?\b|data\s+structures?|debugging|file\s+(?:input|output|i\/o)|final\s+python\s+project|source\s+code|pseudocode)\b/i;
+const COMPUTER_SCIENCE_WEAK_RE =
+  /\b(?:variables?|data\s+types?|conditionals?|loops?|functions?|lists?|dictionar(?:y|ies)|strings?|testing)\b/gi;
+const COMPUTER_SCIENCE_COURSE_MAP_RE = {
+  test(context) {
+    const text = String(context || '');
+    if (COMPUTER_SCIENCE_STRONG_RE.test(text)) return true;
+    const weakHits = new Set((text.match(COMPUTER_SCIENCE_WEAK_RE) || []).map((hit) => hit.toLowerCase()));
+    return weakHits.size >= 2 && /\bcode\b/i.test(text);
+  },
+};
 
 const GENERIC_COURSE_MAP_FALLBACK_RE =
   /\b(?:course problem|course applications|next assessment|quick evidence check|exit ticket using|practice response|review assigned materials|prepare notes|new example|observe, label, calculate, or decide|course task or example|course activities|evidence of learning|lab materials|discipline-specific tools)\b/i;
@@ -2106,11 +2123,28 @@ function checkPerLessonFeature(featureId, data, courseMap, lessonIndices, issues
   }
 }
 
+// v0.16.1: the compiler deliberately gives exam-kind assessments an answer
+// key in the Quiz & Exam Bank instead of a rubric (courseBlueprintCompiler
+// filters kind === 'exam' out of compileRubrics). The readiness check used to
+// disagree — a final-exam-only lesson warned "Rubrics are missing assessed
+// lesson(s): 14" forever, a warning no generation could ever satisfy. A
+// lesson whose ONLY assessment is an exam is not rubric-assessed.
+function lessonAssessmentsAreExamOnly(lesson) {
+  const assessment = lessonAssessmentText(lesson);
+  if (!/\b(exam|midterm|final)\b/i.test(assessment)) return false;
+  const withoutExamPhrases = assessment.replace(/[^.;\n]*\b(exam|midterm|final)\b[^.;\n]*/gi, ' ');
+  return !/\b(assignment|paper|project|presentation|quiz|portfolio|brief|report|case study|problem set|reflection|proposal|essay|checklist)\b/i.test(
+    withoutExamPhrases,
+  );
+}
+
 function checkRubrics(data, courseMap, lessonIndices, issues) {
   const rubrics = getFeatureArray('rubrics', data);
   const lessons = asArray(courseMap?.lessons);
   const assessedLessonNumbers = lessonIndices
-    .filter((lessonIndex) => lessonHasAssessment(lessons[lessonIndex]))
+    .filter(
+      (lessonIndex) => lessonHasAssessment(lessons[lessonIndex]) && !lessonAssessmentsAreExamOnly(lessons[lessonIndex]),
+    )
     .map((lessonIndex) => lessonIndex + 1);
 
   if (assessedLessonNumbers.length === 0) return;

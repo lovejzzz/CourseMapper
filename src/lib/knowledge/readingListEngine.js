@@ -494,6 +494,13 @@ export const OPENALEX_DISCIPLINE_TOPIC_ALLOWLIST = {
   // analyze (STROBE, observational-study reporting), so Medicine/Health
   // Sciences are on-discipline for an intro-stats course.
   stats: { domains: ['Health Sciences'], fields: ['Mathematics', 'Decision Sciences', 'Medicine'] },
+  // v0.16.1: the Linear Algebra field run proved 'math' had NO entry — the
+  // field/domain layer never ran and off-discipline papers (an lme4
+  // mixed-models paper, a nuclear-physics "midterm plan") faced the token
+  // gate alone. Math legitimately cites CS/engineering/physics applications.
+  math: { fields: ['Mathematics', 'Computer Science', 'Engineering', 'Physics and Astronomy', 'Decision Sciences'] },
+  physics: { fields: ['Physics and Astronomy', 'Mathematics', 'Engineering', 'Materials Science'] },
+  anatomy: { domains: ['Health Sciences', 'Life Sciences'] },
 };
 
 // Tokens too generic to carry a topical match on their own — every Round-1

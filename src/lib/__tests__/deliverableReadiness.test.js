@@ -282,6 +282,54 @@ describe('evaluateWorkspaceReadiness', () => {
     expect(readiness.warnings.map((issue) => issue.message).join(' ')).not.toContain('missing assessed lesson');
   });
 
+  // v0.16.1 regression: a final-exam-only lesson used to warn "Rubrics are
+  // missing assessed lesson(s): N" forever, because the readiness check
+  // counted exams as rubric-assessed while the compiler routes exams to the
+  // Quiz & Exam Bank answer key (no rubric). Exam-only lessons are not
+  // rubric-assessed.
+  it('does not warn about a missing rubric for an exam-only lesson', () => {
+    const examCourseMap = {
+      courseName: 'Linear Algebra',
+      lessons: [
+        {
+          title: 'Lesson 1: Systems',
+          sections: [
+            {
+              learningGoals: 'Solve systems.',
+              topicSection: 'Systems',
+              learningObjectives: 'Solve a linear system.',
+              weeklyAssessments: 'Problem set: solve three systems',
+            },
+          ],
+        },
+        {
+          title: 'Lesson 2: Final exam',
+          sections: [
+            {
+              learningGoals: 'Demonstrate mastery.',
+              topicSection: 'Final exam',
+              learningObjectives: 'Complete the final exam.',
+              weeklyAssessments: 'Final exam covering lessons 1 through 1',
+            },
+          ],
+        },
+      ],
+    };
+    const readiness = evaluateWorkspaceReadiness({
+      courseMap: examCourseMap,
+      columns,
+      selectedFeatures: ['rubrics'],
+      deliverables: {
+        rubrics: {
+          status: 'done',
+          data: { rubrics: [{ title: 'Systems Rubric', lessonTitle: 'Lesson 1: Systems', criteria: [] }] },
+        },
+      },
+    });
+
+    expect(readiness.warnings.map((issue) => issue.message).join(' ')).not.toContain('missing assessed lesson');
+  });
+
   it('treats ordered rubric arrays as lesson coverage when one item lacks an explicit lesson number', () => {
     const readiness = evaluateWorkspaceReadiness({
       courseMap,
@@ -559,6 +607,41 @@ describe('repairCourseMapReadiness', () => {
     expect(second.weeklyAssessments).toMatch(/dimension/i);
     expect(second.supportingResources).toMatch(/dimension/i);
     expect(second.learningObjectives).not.toMatch(/bases/i);
+  });
+
+  // v0.16.1 regression: the CS/Python course-map profile fired on generic
+  // quantitative tokens ("functions", "variables", "testing"), so a pure
+  // Linear Algebra course got a Python-programming course map ("Trace Python
+  // code using Linear equations", "Python interpreter or notebook"). The
+  // profile now needs an unambiguous CS signal.
+  it('does not stamp Python-programming fallbacks into a sparse Linear Algebra map', () => {
+    const result = repairCourseMapReadiness({
+      courseMap: {
+        courseName: 'Linear Algebra',
+        lessons: [
+          {
+            title: 'Lesson 1: Systems of linear equations',
+            sections: [
+              {
+                topicSection: '1.1: systems of linear equations',
+                learningGoals: '',
+                learningObjectives: '',
+                weeklyAssessments: '',
+                asyncActivities: '',
+                syncActivities: '',
+                technologyNeeded: '',
+                supportingResources: '',
+              },
+            ],
+          },
+        ],
+      },
+    });
+
+    const serialized = JSON.stringify(result.courseMap);
+    expect(serialized).not.toMatch(/Python/i);
+    expect(serialized).not.toMatch(/Trace .*code/i);
+    expect(serialized).not.toMatch(/interpreter or notebook/i);
   });
 
   it('repairs generic Week N lesson labels before they become package topics', () => {

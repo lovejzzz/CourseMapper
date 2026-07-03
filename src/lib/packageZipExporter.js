@@ -341,11 +341,67 @@ function lessonFileStem(courseMap, lessonIndex) {
   return `Lesson ${String(lessonIndex + 1).padStart(2, '0')} - ${safeTitle}`;
 }
 
+// v0.16.1: the manifest's weights must MATCH the compile. The compiler's
+// registry bridge (buildRegistryAssessmentAnchors in courseBlueprintCompiler)
+// keeps graded entries whose lesson is in the compiled scope and
+// re-normalizes their weights to sum 100 whenever any weight is missing or
+// the raw total drifts. The manifest used to emit the RAW derived registry
+// (every row, raw exam weights) while the syllabus rendered the bridged one
+// — one registry, two contradicting stories (41 rows @ 7% exams vs 27 rows
+// @ 10%). This mirrors the bridge arithmetic exactly — keep in sync with
+// distributeWeightedPercent + buildRegistryAssessmentAnchors.
+function distributeManifestWeightedPercent(rawWeights = []) {
+  if (rawWeights.length === 0) return [];
+  const safeWeights = rawWeights.map((weight) => Math.max(1, Number(weight || 0)));
+  const total = safeWeights.reduce((sum, weight) => sum + weight, 0);
+  const exact = safeWeights.map((weight) => (weight / total) * 100);
+  const floored = exact.map((weight) => Math.floor(weight));
+  let remainder = 100 - floored.reduce((sum, weight) => sum + weight, 0);
+  const order = exact
+    .map((weight, index) => ({ index, fraction: weight - floored[index] }))
+    .sort((a, b) => b.fraction - a.fraction);
+  for (const item of order) {
+    if (remainder <= 0) break;
+    floored[item.index] += 1;
+    remainder -= 1;
+  }
+  return floored;
+}
+
+function bridgeManifestRegistryWeights(registry, lessonNumbers) {
+  const lessonSet = new Set(Array.isArray(lessonNumbers) ? lessonNumbers : []);
+  const graded = registry.filter((entry) => entry && entry.kind !== 'in-class' && lessonSet.has(entry.dueSession));
+  if (graded.length === 0) return { weightByEntry: new Map(), gradedCount: 0, gradedWeightTotal: 0 };
+  const known = graded.reduce((sum, entry) => sum + (Number.isFinite(entry.weightPct) ? entry.weightPct : 0), 0);
+  const unknown = graded.filter((entry) => !Number.isFinite(entry.weightPct));
+  let weights = graded.map((entry) => (Number.isFinite(entry.weightPct) ? entry.weightPct : 0));
+  if (unknown.length > 0 || known !== 100) {
+    weights = distributeManifestWeightedPercent(
+      graded.map((entry) =>
+        Number.isFinite(entry.weightPct) && entry.weightPct > 0
+          ? entry.weightPct
+          : entry.kind === 'exam'
+            ? 3
+            : entry.kind === 'oral'
+              ? 2
+              : 1,
+      ),
+    );
+  }
+  const weightByEntry = new Map();
+  graded.forEach((entry, index) => weightByEntry.set(entry, weights[index]));
+  return {
+    weightByEntry,
+    gradedCount: graded.length,
+    gradedWeightTotal: weights.reduce((sum, weight) => sum + weight, 0),
+  };
+}
+
 // v0.14.1 (3.3d): the manifest's assessment registry — every map-promised
 // assessment with its kind, lesson, weight, and the package file that
 // fulfills it (briefs/orals → the lesson's Assignment Briefs docx, exams →
 // the lesson's Quiz & Exam Bank docx, in-class → the Lesson Plans listing).
-function buildManifestAssessments({ registry, files }) {
+function buildManifestAssessments({ registry, files, lessonNumbers = null }) {
   if (!Array.isArray(registry) || registry.length === 0) return null;
   const fileFor = (featureId, lessonNumber) => {
     const prefix = `Lesson ${String(lessonNumber).padStart(2, '0')} - `;
@@ -353,30 +409,48 @@ function buildManifestAssessments({ registry, files }) {
       files.find((file) => file.featureId === featureId && file.path.split('/').pop().startsWith(prefix))?.path || null
     );
   };
-  return registry
-    .filter((assessment) => assessment?.title && Number.isInteger(assessment?.dueSession))
-    .map((assessment) => {
-      const kind = assessment.kind || 'graded-artifact';
-      const artifact =
-        kind === 'exam'
-          ? fileFor('quizBank', assessment.dueSession)
-          : kind === 'in-class'
-            ? fileFor('lessonPlans', assessment.dueSession)
-            : fileFor('assignments', assessment.dueSession);
-      return {
-        id: assessment.id || '',
-        // v0.15.187: legacy saved graphs can carry "Title: 1. Title"
-        // transcription echoes — the manifest must present the same deduped
-        // identity the compiler renders, or the grader searches artifacts
-        // for a string no document contains (exam-content P0).
-        title: dedupeNumberedAssessmentEcho(assessment.title),
-        kind,
-        lesson: assessment.dueSession,
-        weightPct: Number.isFinite(assessment.weightPct) ? assessment.weightPct : null,
-        artifact,
-        ...(kind === 'in-class' ? { note: 'in-class activity — listed in the lesson plan' } : {}),
-      };
-    });
+  const rows = registry.filter((assessment) => assessment?.title && Number.isInteger(assessment?.dueSession));
+  const bridge = bridgeManifestRegistryWeights(
+    rows,
+    Array.isArray(lessonNumbers) ? lessonNumbers : rows.map((assessment) => assessment.dueSession),
+  );
+  const entries = rows.map((assessment) => {
+    const kind = assessment.kind || 'graded-artifact';
+    const artifact =
+      kind === 'exam'
+        ? fileFor('quizBank', assessment.dueSession)
+        : kind === 'in-class'
+          ? fileFor('lessonPlans', assessment.dueSession)
+          : fileFor('assignments', assessment.dueSession);
+    const bridgedWeight = bridge.weightByEntry.has(assessment) ? bridge.weightByEntry.get(assessment) : null;
+    return {
+      id: assessment.id || '',
+      // v0.15.187: legacy saved graphs can carry "Title: 1. Title"
+      // transcription echoes — the manifest must present the same deduped
+      // identity the compiler renders, or the grader searches artifacts
+      // for a string no document contains (exam-content P0).
+      title: dedupeNumberedAssessmentEcho(assessment.title),
+      kind,
+      lesson: assessment.dueSession,
+      // v0.16.1: graded rows carry the BRIDGED weight (the number the
+      // syllabus grading table and the briefs' course-map stamps render);
+      // in-class and out-of-scope rows keep their raw registry value.
+      weightPct:
+        bridgedWeight !== null ? bridgedWeight : Number.isFinite(assessment.weightPct) ? assessment.weightPct : null,
+      artifact,
+      ...(kind === 'in-class' ? { note: 'in-class activity — listed in the lesson plan' } : {}),
+    };
+  });
+  return {
+    entries,
+    summary: {
+      total: entries.length,
+      graded: bridge.gradedCount,
+      inClass: entries.filter((entry) => entry.kind === 'in-class').length,
+      gradedWeightTotal: bridge.gradedWeightTotal,
+      weightSource: 'course-map-bridge',
+    },
+  };
 }
 
 // v0.14.5 (A5): the manifest's readings registry — every instructor-named
@@ -1212,6 +1286,7 @@ function buildManifest({
   requiredAssets = [],
   pipelineState = null,
   assessments = null,
+  assessmentSummary = null,
   readings = null,
   courseGraph = null,
   generatedAt = new Date().toISOString(),
@@ -1253,6 +1328,9 @@ function buildManifest({
       : {}),
     // v0.14.1 (3.3d): the assessment registry, with artifact file links.
     ...(assessments && assessments.length > 0 ? { assessments } : {}),
+    // v0.16.1: the bridged registry's counts and weight total — the same
+    // numbers the syllabus grading table renders.
+    ...(assessmentSummary ? { assessmentSummary } : {}),
     // v0.14.5 (A5): the readings registry with provenance tags.
     ...(readings && readings.length > 0 ? { readings } : {}),
     ...(Array.isArray(sourceLedger) && sourceLedger.length > 0 ? { sourceLedger } : {}),
@@ -1589,6 +1667,12 @@ export async function buildCourseMaterialsZip({
       sourceRefCoverage,
     };
   }
+  const manifestAssessments = buildManifestAssessments({
+    registry: assessmentRegistry,
+    files,
+    // v0.16.1: the bridge scopes to the same lessons the compile used.
+    lessonNumbers: lessonIndices.map((index) => index + 1),
+  });
   const manifest = buildManifest({
     courseName: safeCourseName,
     lessonFilter,
@@ -1597,7 +1681,8 @@ export async function buildCourseMaterialsZip({
     requestedFeatureIds,
     requiredAssets,
     pipelineState: finalPipelineState,
-    assessments: buildManifestAssessments({ registry: assessmentRegistry, files }),
+    assessments: manifestAssessments?.entries || null,
+    assessmentSummary: manifestAssessments?.summary || null,
     readings: buildManifestReadings(readingsRegistry),
     courseGraph: sourceManifestGraph,
     generatedAt,

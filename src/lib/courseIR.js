@@ -443,12 +443,33 @@ export function normalizeCourseIR(rawIR = {}) {
 
   const assessments = asArray(rawIR.assessments).map(normalizeAssessment);
   const assessmentIds = new Set(assessments.map((assessment) => assessment.id));
+  // v0.16.1: repair dangling assessment refs at EVERY level, not just the
+  // lesson level. The Linear Algebra field run threw away a whole 8k-token
+  // CourseIR response because outcomes referenced assessments (`a1`, `a2`)
+  // the validator couldn't find — outcome/activity refs were never filtered,
+  // and ids differing only by case counted as missing.
+  const assessmentIdByLowercase = new Map(
+    assessments.map((assessment) => [assessment.id.toLowerCase(), assessment.id]),
+  );
+  const repairAssessmentRefs = (ids) =>
+    uniqueStrings(
+      (ids || []).map((id) =>
+        assessmentIds.has(id) ? id : assessmentIdByLowercase.get(String(id).toLowerCase()) || '',
+      ),
+      16,
+    );
   for (const lesson of lessons) {
-    const linkedIds = new Set(lesson.assessmentIds);
+    const linkedIds = new Set(repairAssessmentRefs(lesson.assessmentIds));
     for (const assessment of assessments) {
       if (assessment.lessonIds.includes(lesson.id)) linkedIds.add(assessment.id);
     }
     lesson.assessmentIds = [...linkedIds].filter((id) => assessmentIds.has(id));
+    for (const outcome of lesson.outcomes || []) {
+      outcome.assessmentIds = repairAssessmentRefs(outcome.assessmentIds);
+    }
+    for (const activity of lesson.activities || []) {
+      activity.assessmentIds = repairAssessmentRefs(activity.assessmentIds);
+    }
   }
 
   return {
@@ -2332,7 +2353,7 @@ export function buildCourseIRPromptPayload({
   return {
     task: 'courseir-v1',
     instruction:
-      'Return compact CourseIR JSON only. Write semantic atoms, not final deliverable prose. Preserve source facts, mark assumptions, and link every lesson to concepts, prerequisite concepts, constraints, outcomes, worked examples, activities, assessments, rubric criteria, and source ledger rows. SourceLedger rows should include title, authors, URL or DOI, license, provider, conceptLinks, and checkedAt when known. Each lesson needs outcomes[] objects and activities[] objects; activities must name learnerAction, evidence, mode, conceptIds, assessmentIds, and sourceRefs. Each worked example and assessment also needs sourceRefs. Each assessment needs rubricCriteria[] objects with label, description, conceptIds, outcomeIds, performanceLevels, and sourceRefs.',
+      'Return compact CourseIR JSON only. Write semantic atoms, not final deliverable prose. Preserve source facts, mark assumptions, and link every lesson to concepts, prerequisite concepts, constraints, outcomes, worked examples, activities, assessments, rubric criteria, and source ledger rows. SourceLedger rows should include title, authors, URL or DOI, license, provider, conceptLinks, and checkedAt when known. Each lesson needs outcomes[] objects and activities[] objects; activities must name learnerAction, evidence, mode, conceptIds, assessmentIds, and sourceRefs. Each worked example and assessment also needs sourceRefs. Each assessment needs rubricCriteria[] objects with label, description, conceptIds, outcomeIds, performanceLevels, and sourceRefs. Referential integrity is required: every assessmentIds value anywhere (lessons, outcomes, activities) must exactly match the id of an entry in assessments[] (ids are case-sensitive; define the assessment before referencing it), and conceptIds must match concepts[] ids the same way.',
     selectedFeatureIds,
     sourcePacket: {
       courseName: courseMap?.courseName || '',
