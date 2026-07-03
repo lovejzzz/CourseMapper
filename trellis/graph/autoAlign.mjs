@@ -67,6 +67,10 @@ const BELIEF_PREFIX_RE =
 export function beliefTextFromStatement(statement) {
   const stripped = String(statement).replace(BELIEF_PREFIX_RE, '').trim();
   const text = stripped.length >= 12 ? stripped : String(statement).trim();
+  // A statement that still reads as behavior-about-students ("Students
+  // concatenate a number directly…") is not a selectable belief — signal
+  // the caller to skip rather than splice incoherent text (audit finding).
+  if (/^students?\b/i.test(text)) return null;
   return text.charAt(0).toUpperCase() + text.slice(1);
 }
 
@@ -108,11 +112,13 @@ export function spliceCatchDistractors(graph, authored) {
       if (already) return;
       if (![...catchCount.values()].some((n) => n < 2)) return; // all capped
       // Pick the UNDER-CAUGHT misconception whose concept best matches this
-      // item's stem.
+      // item's stem — and only splice when the item is actually ABOUT that
+      // concept (audit finding: an integer-division distractor inside a
+      // string-formatting question is incoherent, and the judge sees it).
       const candidates = lessonMisconceptions.filter(({ m }) => (catchCount.get(m.id) ?? 0) < 2);
       if (candidates.length === 0) return;
-      let chosen = candidates[0];
-      let bestScore = -1;
+      let chosen = null;
+      let bestScore = 0;
       for (const entry of candidates) {
         const score = tokenOverlapRatio(entry.conceptName, item.stem);
         if (score > bestScore) {
@@ -120,6 +126,7 @@ export function spliceCatchDistractors(graph, authored) {
           chosen = entry;
         }
       }
+      if (!chosen) return; // no on-topic misconception for this item — skip honestly
       // Weakest distractor slot: least overlap with the stem.
       let slot = -1;
       let slotScore = Infinity;
@@ -132,8 +139,12 @@ export function spliceCatchDistractors(graph, authored) {
         }
       });
       if (slot === -1) return;
-      const wording = index % 2 === 0 ? beliefTextFromStatement(chosen.m.statement) : chosen.m.statement;
-      item.options[slot] = wording;
+      // Audit finding: the raw statement often carries "Students think…"
+      // meta-framing, which is not a selectable answer — always splice the
+      // cleaned belief form, and skip when no belief form exists.
+      const belief = beliefTextFromStatement(chosen.m.statement);
+      if (!belief) return;
+      item.options[slot] = belief;
       catchCount.set(chosen.m.id, (catchCount.get(chosen.m.id) ?? 0) + 1);
       splices.push({ lessonId: lesson.id, misconceptionId: chosen.m.id, item: index, slot });
     });
