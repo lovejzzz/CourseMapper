@@ -82,13 +82,17 @@ export function spliceCatchDistractors(graph, authored) {
     if (!art) continue;
     // Per ITEM (Prof's catch metric counts items, not misconceptions): every
     // item on a misconception-bearing concept carries a catching distractor.
-    // The two wordings (documented statement / cleaned belief) alternate so
-    // repeated catches don't read as copy-paste.
-    const lessonMisconceptions = lesson.introduces.flatMap((conceptId) =>
-      misconceptionsForConcept(graph, conceptId).map((m) => ({
-        m,
-        conceptName: graph.concepts.find((c) => c.id === conceptId)?.name ?? '',
-      })),
+    // Scope is introduces + reinforces — Prof's denominator counts any item
+    // whose concept is genome-covered, and run 8 measured 54% catch with
+    // ZERO splices because reinforced concepts' items were out of scope here
+    // (the judge's J11 stays on introduces; catching MORE than it demands
+    // creates no defect, only instrument alignment).
+    const lessonMisconceptions = [...new Set([...lesson.introduces, ...(lesson.reinforces ?? [])])].flatMap(
+      (conceptId) =>
+        misconceptionsForConcept(graph, conceptId).map((m) => ({
+          m,
+          conceptName: graph.concepts.find((c) => c.id === conceptId)?.name ?? '',
+        })),
     );
     if (lessonMisconceptions.length === 0) continue;
     // Cap: at most 2 catching items per misconception per lesson. Per-item
@@ -185,7 +189,11 @@ export function pairCorrectiveExplanations(graph, authored) {
   for (const lesson of graph.lessons) {
     const art = authored[lesson.id];
     if (!art) continue;
-    const misconceptions = lesson.introduces.flatMap((cid) => misconceptionsForConcept(graph, cid));
+    // Same introduces+reinforces scope as the splice: a reinforced-concept
+    // item that catches must also confront, or Prof withholds repair credit.
+    const misconceptions = [...new Set([...lesson.introduces, ...(lesson.reinforces ?? [])])].flatMap((cid) =>
+      misconceptionsForConcept(graph, cid),
+    );
     if (misconceptions.length === 0) continue;
     art.quizItems.forEach((item, index) => {
       let appended = 0;
