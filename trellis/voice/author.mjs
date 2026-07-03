@@ -222,8 +222,21 @@ function quizSystemPrompt(slice) {
         `- Documented misconceptions:\n${misconceptionBlocks(misconceptions)}\n`
       : '') +
     `- Where a concept carries workedExamples, build at least one stem from a provided example (show the actual case, not a description of it).\n` +
+    `- explanation: 2-3 tight sentences, at most ~50 words — say why the right answer is right and the tempting one is wrong; no preamble, no restating the stem.\n` +
     `- Every factual claim traces to the kernel facts provided; never invent facts. claims[]: {path like "quizItems[2].explanation", ref from the schema enum or null}.\n` +
     `- Write like a person who teaches this course: specific, direct, no template phrases; never open two explanations the same way.`
+  );
+}
+
+// The quiz call's payload: only what items need (concepts with facts,
+// examples and misconceptions, the outcomes, the constraints). Sources,
+// neighbors, assessments and primers ride the OTHER calls — quiz input was
+// 29k tokens/course of which a third was never used by items (run-7 trim).
+function quizUserPrompt(slice) {
+  return JSON.stringify(
+    { lesson: slice.lesson, concepts: slice.concepts, outcomes: slice.outcomes, constraints: slice.constraints },
+    null,
+    1,
   );
 }
 
@@ -301,7 +314,7 @@ export async function authorLesson(
           validate: subValidator(QUIZ_FIELDS),
           maxOutputTokens: 6000,
           system: quizSystemPrompt(slice),
-          user: lessonUserPrompt(slice),
+          user: quizUserPrompt(slice),
         }),
       );
     }
