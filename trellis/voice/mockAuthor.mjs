@@ -273,7 +273,21 @@ export function mockAuthorLesson(slice) {
     },
   ];
 
-  return { plan: { segments }, slides, quizItems, studyGuideSection, discussion, assignment, faqEntries, claims };
+  // Contract: every bullet is a complete statement with terminal punctuation.
+  const punctuated = slides.map((slide) => ({
+    ...slide,
+    bullets: slide.bullets.map((b) => (/[.!?:]$/.test(b.trim()) ? b : `${b}.`)),
+  }));
+  return {
+    plan: { segments },
+    slides: punctuated,
+    quizItems,
+    studyGuideSection,
+    discussion,
+    assignment,
+    faqEntries,
+    claims,
+  };
 }
 
 export function mockAuthorCourseWide(graph) {

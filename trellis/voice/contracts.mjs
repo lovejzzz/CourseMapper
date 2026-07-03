@@ -219,6 +219,12 @@ export function validateAuthoredLesson(authored) {
       Array.isArray(slide?.bullets) && slide.bullets.length >= 1 && slide.bullets.length <= 5,
       `slides[${i}].bullets must have 1–5 entries`,
     );
+    for (const [bi, bullet] of (Array.isArray(slide?.bullets) ? slide.bullets : []).entries()) {
+      need(
+        typeof bullet === 'string' && /[.!?:]$/.test(bullet.trim()),
+        `slides[${i}].bullets[${bi}] must be a complete statement ending with . ! ? or : (no clipped fragments)`,
+      );
+    }
     need(
       typeof slide?.speakerNotes === 'string' && slide.speakerNotes.length >= 20,
       `slides[${i}].speakerNotes too short`,

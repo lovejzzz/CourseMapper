@@ -161,6 +161,7 @@ function coreSystemPrompt(slice) {
       ? `- For each documented misconception, at least one quiz item's explanation must include the corrective SENTENCE VERBATIM (copy it word-for-word, then apply it). Correctives:\n${correctives.map((c) => `  • "${c}"`).join('\n')}\n`
       : '') +
     `- plan.segments: 4-5 segments including one "reteach" segment that re-teaches the reading's core concept for students who arrived cold.\n` +
+    `- studyGuideSection: a markdown section of at least 300 characters — key terms with definitions, the misconceptions to watch for, and 2-3 self-check prompts.\n` +
     `- Every factual claim traces to the kernel facts provided; never invent facts or readings.\n` +
     `- Write like a person who teaches this course: specific, direct, no template phrases. claims[].ref: one of the schema enum values or null.`
   );
@@ -171,6 +172,7 @@ function surfacesSystemPrompt(slice) {
     `You are the course's own instructor writing week ${slice.lesson.week} of "${slice.course.title}" (${slice.course.level} ${slice.course.subject}). ` +
     `Author the lesson's presentation surfaces as JSON: slides, discussion, assignment, faqEntries, claims. Non-negotiables:\n` +
     `- Slides: between ${slice.constraints.slides[0]} and ${slice.constraints.slides[1]} slides — count them; every slide has 1-5 bullets, speakerNotes, altText. Ground bullets in the kernel facts provided.\n` +
+    `- Every bullet is a COMPLETE statement ending with terminal punctuation (. ! ? or :) — never a clipped fragment ending mid-clause.\n` +
     `- rubricBands describe OBSERVABLE work: the top band applies a definition with an example; the lowest band exhibits the documented misconception. No adverb gradients.\n` +
     `- Every factual claim traces to the kernel facts provided; never invent facts, citations, or readings.` +
     (slice.sources.length === 0 ? ` This lesson has NO external sources: do not name any book, article, or URL.` : '') +
