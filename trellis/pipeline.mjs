@@ -118,6 +118,17 @@ async function runPipelineStages({
   }
   digest.enrichment = `genome: ${coverage.linked}/${coverage.total} concepts carry kernels (${coverage.note})`;
 
+  // 4b · readings (live only): the hardened source-finder proposes
+  // candidates; J10 gates them; drops and degradation are disclosed.
+  if (!mockVoice && graph.sources.length === 0) {
+    const { findReadings } = await import('./knowledge/sources.mjs');
+    const readings = await findReadings(graph);
+    graph.sources.push(...readings.sources);
+    digest.readings = readings.degraded
+      ? `DEGRADED: ${readings.degraded} — package ships with ${readings.kept} readings, disclosed`
+      : `${readings.kept}/${readings.found} candidate readings kept (source-finder + J10 relevance gate; ${readings.dropped} dropped)`;
+  }
+
   // 5 · full validation must now be clean
   findings = validateGraph(graph);
   if (blockers(findings).length > 0) {

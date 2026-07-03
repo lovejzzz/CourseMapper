@@ -7,6 +7,9 @@ import { shingles, jaccard } from '../text.mjs';
 
 const SURFACES = [
   ['studyGuide', (art) => art.studyGuideSection],
+  // The new-template guard: corrective-confronting explanations must not
+  // become their own formula across lessons (item 4 of the quality plan).
+  ['quizExplanations', (art) => art.quizItems.map((item) => item.explanation).join(' ')],
   ['discussion', (art) => `${art.discussion.prompt} ${art.discussion.followUps.join(' ')}`],
   ['assignment', (art) => `${art.assignment.task} ${art.assignment.steps.join(' ')}`],
   ['plan', (art) => art.plan.segments.map((s) => s.text).join(' ')],

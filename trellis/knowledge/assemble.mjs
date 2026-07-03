@@ -102,6 +102,12 @@ export function assembleKnowledge(graph, allShards) {
       ...(kernel.definition?.text ? [kernel.definition.text] : []),
       ...(kernel.facts ?? []).map((fact) => fact.text),
     ].filter(Boolean);
+    // The shard's unused riches: worked examples and anchored verbatim
+    // quotes ride into the authoring slice (free grounding).
+    concept.workedExamples = (kernel.examples ?? []).map((e) => e.text).filter(Boolean);
+    concept.anchorQuotes = [kernel.definition?.anchor, ...(kernel.facts ?? []).map((f) => f.anchor)]
+      .filter((a) => a?.quote)
+      .map((a) => ({ quote: a.quote, src: a.src }));
     for (const m of kernel.misconceptions ?? []) {
       if (!m.corrective) continue; // schema requires the repair; skip repair-less entries honestly
       misconceptionCounter += 1;

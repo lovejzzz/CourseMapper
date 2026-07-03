@@ -32,6 +32,8 @@ export function buildLessonSlice(graph, lessonId, { constraints = DEFAULT_CONSTR
     id: concept.id,
     name: concept.name,
     kernelFacts: concept.kernelFacts,
+    workedExamples: concept.workedExamples ?? [],
+    anchorQuotes: concept.anchorQuotes ?? [],
     declaredGap: concept.declaredGap,
     misconceptions: misconceptionsForConcept(graph, concept.id).map(({ id, statement, corrective }) => ({
       id,
