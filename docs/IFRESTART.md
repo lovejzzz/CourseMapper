@@ -199,9 +199,13 @@ lives.)
 
 ### The headline
 
-**≈ $7 per full course package** at mid-2026 API prices, honest range
-**$4–12** depending on the depth dial. Amortized over a semester with
-mid-course replanning: **$15–25 total cost of ownership.**
+**A tier menu on one architecture, not one number** (see the July 3
+amendment below): **~$0.20–0.50 at mini tier, ~$1.50–3 at the standard
+tier, ~$5–12 at the premium dial.** The arithmetic that follows prices the
+premium setting (≈ $7) — the architecture itself is nearly free; model
+tier is the only real cost and it remains a user dial. Amortized over a
+semester with mid-course replanning at premium: **$15–25 total cost of
+ownership.**
 
 ### The arithmetic (assumptions visible)
 
@@ -251,6 +255,63 @@ the range; a lean pass for a draft lands near the bottom.
   equivalently — the same $7 buys two more repair rounds and a full Prof
   battery per course. Cost is the one problem the calendar solves for
   free; quality architecture is not.
+
+### Amendment (July 3, 2026) — the cost dial, or: "today costs $0.16, is yours 44× better?"
+
+_A fair challenge from the owner, and the original headline invited the
+misreading, so per this project's own rule the correction goes here in
+place: **$7 was the premium dial setting, not the price of the
+architecture.** The framing error was presenting one dial position as "the
+cost."_
+
+Separate two things the original section blurred:
+
+1. **The architecture is (almost) free.** The graph, the deterministic
+   judgment layer, the trust-class labels, the renderers, incremental
+   regeneration, caching — none of these consume tokens. They are code
+   that runs locally. The ONLY expensive stage is authoring, and its cost
+   is set by **model tier**, which stays a user dial exactly as it is
+   today.
+2. **What the tokens buy is set by the architecture, not the tier.** At
+   today's $0.16, mini-tier tokens are spent enriching content that the
+   compiler then dilutes into template frames — which is precisely the
+   3–45% grounding and the 5.13. The same $0.16 of mini-tier tokens spent
+   _authoring against graph slices_ produces ~85%+ authored content,
+   because no template dilutes it. The project's own measurements support
+   this direction twice over: native authoring came in **cheaper** than
+   the enrichment-overlay hybrid (−36% at v0.14.4, −22% at v0.14.7),
+   because one consolidated call replaces many small calls plus overhead.
+
+So the honest price table is a **tier menu on one architecture**, not one
+number:
+
+| Tier               | Models                                                                                                                                                                 | Est. cost / course | Expected quality                                                                                                 | For                                                             |
+| ------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------ | ---------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------- |
+| Draft              | mini throughout                                                                                                                                                        | **~$0.20–0.50**    | ~6–6.5 — beats today's 5.13 at comparable cost, because tokens buy authored prose instead of template decoration | Exploration, first drafts                                       |
+| Standard (default) | mini for mechanical stages; frontier ONLY where the findings live (assessment items, misconception-confronting explanations); repair only on judgment-flagged sections | **~$1.50–3**       | ~7–7.5                                                                                                           | The course you'll teach                                         |
+| Premium            | frontier throughout + depth passes + Prof smoke                                                                                                                        | **~$5–12**         | 7.5–8.5                                                                                                          | The course you'll teach for five years — amortized per semester |
+
+And the two decision rules that make the menu smart rather than
+complicated:
+
+- **The gates choose the tier, not the marketing.** A well-covered intro
+  course may clear the bar at Draft; a thin-genome upper-level course
+  honestly reports that it needed Premium. The quality badge already
+  exists to say so.
+- **Cost-per-adopted-course is the real metric.** At adoption 0%, today's
+  $0.16 per course is an infinite cost per adopted course. Quality here is
+  a threshold, not a gradient: below "a professor will actually teach
+  this," spend is waste at any price; above it, the marginal dollars are a
+  rounding error against the 8–16 instructor-hours they save (~$400–800 of
+  time at modest rates — the ROI on Standard tier's extra ~$2 is roughly
+  100×). Nobody's constraint binds at $3/semester; the binding constraint
+  is professor trust.
+
+**The falsifiable next step, instead of trusting this argument:** the
+generation-A/B protocol can test it directly — mini-tier authored-first vs
+the current hybrid at matched cost, ~$3–8 per comparison per the v0.16
+roadmap. If authored-first-at-mini does not beat the hybrid at equal
+spend, this amendment is wrong and should say so in its next dated note.
 
 ---
 
