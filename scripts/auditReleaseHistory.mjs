@@ -87,6 +87,19 @@ function normalizeAnchorPath(anchor) {
     .trim();
 }
 
+// Retired roadmaps move to docs/history/<series>/ without rewriting the
+// release contracts that anchor to them — contracts are verbatim history.
+const ARCHIVED_DOC_SERIES = [{ prefix: 'docs/V0.15', archiveDir: 'docs/history/v0.15' }];
+
+async function anchorPathExists(relativePath) {
+  if (await pathExists(relativePath)) return true;
+  for (const series of ARCHIVED_DOC_SERIES) {
+    if (!relativePath.startsWith(series.prefix)) continue;
+    if (await pathExists(path.join(series.archiveDir, path.basename(relativePath)))) return true;
+  }
+  return false;
+}
+
 function assertNoUnsupportedProfessorAdoptionClaims({ relativePath, text, failures }) {
   for (const rule of UNSUPPORTED_PROFESSOR_ADOPTION_RELEASE_CLAIMS) {
     assert(
@@ -176,7 +189,7 @@ async function validateContractForRelease({
       assert(typeof anchor === 'string' && anchor.trim(), `${label} anchor must be a non-empty string`, failures);
       if (typeof anchor !== 'string' || !anchor.trim()) continue;
       const anchorPath = normalizeAnchorPath(anchor);
-      assert(await pathExists(anchorPath), `${label} anchor does not exist: ${anchor}`, failures);
+      assert(await anchorPathExists(anchorPath), `${label} anchor does not exist: ${anchor}`, failures);
     }
     for (const command of claim?.proofCommands || []) {
       assert(
@@ -332,7 +345,7 @@ async function main() {
     failures,
   );
 
-  const movingMeans = await readText('docs/V0.15.4_MOVING_THE_MEANS_ROADMAP.md');
+  const movingMeans = await readText('docs/history/v0.15/V0.15.4_MOVING_THE_MEANS_ROADMAP.md');
   assert(
     movingMeans.slice(0, 800).includes('superseded as the shipped v0.15.4 plan'),
     'V0.15.4 moving-the-means roadmap must be marked superseded/carry-forward',
@@ -361,7 +374,7 @@ async function main() {
     );
   }
 
-  const truthLedgerRoadmap = await readText('docs/V0.15.5_TRUTH_LEDGER_ROADMAP.md');
+  const truthLedgerRoadmap = await readText('docs/history/v0.15/V0.15.5_TRUTH_LEDGER_ROADMAP.md');
   for (const phrase of [
     'Current Release Manifest',
     'Release Contract Ledger',

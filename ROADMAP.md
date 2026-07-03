@@ -11,7 +11,7 @@ evidence where the package exported `Quality 99` with `Texture 92`, but a
 trusted Crossref sourceLedger row used a Wiley `tdm_license_1.1` URL as license
 proof.
 
-Full plan: `docs/V0.15.118_TDM_LICENSE_TRUST_GATE_ROADMAP.md`
+Full plan: `docs/history/v0.15/V0.15.118_TDM_LICENSE_TRUST_GATE_ROADMAP.md`
 
 1. Treat `tdm_license` URLs as publisher policy proof, not reusable source
    license proof.
@@ -31,7 +31,7 @@ evidence where the app visibly exported `Quality 100` with `Texture 95`, but a
 stricter local source audit regraded the package at `98/A` because three trusted
 sourceLedger rows carried ambiguous license proof.
 
-Full plan: `docs/V0.15.117_SOURCE_LICENSE_TRUST_GATE_ROADMAP.md`
+Full plan: `docs/history/v0.15/V0.15.117_SOURCE_LICENSE_TRUST_GATE_ROADMAP.md`
 
 1. Treat `other-oa` as open-access status, not reusable license proof.
 2. Treat publisher text-and-data-mining URLs and publisher-policy DOI URLs as
@@ -49,7 +49,7 @@ evidence where the package exported and locally regraded `100/A` with no
 P0/P1/P2 findings, but strict texture remained `95/100` because slide summary
 notes and study-guide hints still repeated across all 12 lessons.
 
-Full plan: `docs/V0.15.116_UX_TEXTURE_TAIL_CLEANUP_ROADMAP.md`
+Full plan: `docs/history/v0.15/V0.15.116_UX_TEXTURE_TAIL_CLEANUP_ROADMAP.md`
 
 1. Rotate slide summary titles, visual kinds, visual evidence uses, and activity
    evidence notes by lesson instead of stamping readiness-check and
@@ -69,7 +69,7 @@ evidence where the package exported and locally regraded `100/A` with no
 P0/P1/P2 findings, but strict texture remained `94/100` because several
 compiler-owned phrases repeated across all 12 lessons.
 
-Full plan: `docs/V0.15.115_UX_TEXTURE_TAIL_ROTATION_ROADMAP.md`
+Full plan: `docs/history/v0.15/V0.15.115_UX_TEXTURE_TAIL_ROTATION_ROADMAP.md`
 
 1. Rotate Assignment Brief late-policy language by lesson instead of stamping
    the same deadline/contact sentence across every exported brief.
@@ -90,7 +90,7 @@ Goal: make the working/generation page's top controls behave like a calm
 workspace toolbar instead of a mixed action drawer, while keeping export details
 in the Agent panel.
 
-Full plan: `docs/V0.15.88_HEADER_ACTION_CLEANUP_ROADMAP.md`
+Full plan: `docs/history/v0.15/V0.15.88_HEADER_ACTION_CLEANUP_ROADMAP.md`
 
 1. Rename the header overflow affordance to `Project` and keep it scoped to
    project/file actions only.
@@ -109,7 +109,7 @@ the package really ran blueprint enrichment and compiled from `enriched-blueprin
 but finish-stage retry compiles later rewrote the digest as deterministic
 mail-merge output.
 
-Full plan: `docs/V0.15.87_FINALIZER_RETRY_DIGEST_TRUTH_ROADMAP.md`
+Full plan: `docs/history/v0.15/V0.15.87_FINALIZER_RETRY_DIGEST_TRUTH_ROADMAP.md`
 
 1. Preserve the strongest enrichment outcome across later retry-stage events.
 2. Preserve `enriched-blueprint` compiler source when deterministic retries add
@@ -129,7 +129,7 @@ package regraded at `96/A`, enrichment covered all lessons, but the visible and
 exported Course Map could still read as generic "Session N" work instead of
 the lesson kernels the model had already produced.
 
-Full plan: `docs/V0.15.63_COURSE_MAP_KERNEL_FOCUS_ROADMAP.md`
+Full plan: `docs/history/v0.15/V0.15.63_COURSE_MAP_KERNEL_FOCUS_ROADMAP.md`
 
 1. Use enrichment kernel titles, key terms, or slide titles as the render-time
    focus when a CourseGraph session title is still generic.
@@ -147,7 +147,7 @@ Goal: address the latest Project Management package citation evidence where a
 98/A ZIP still lost points because exported source-ledger rows carried
 ambiguous public-metadata licenses instead of explicit reusable-license proof.
 
-Full plan: `docs/V0.15.62_SOURCE_LICENSE_TRUST_GATE_ROADMAP.md`
+Full plan: `docs/history/v0.15/V0.15.62_SOURCE_LICENSE_TRUST_GATE_ROADMAP.md`
 
 1. Treat explicit reusable licenses as a hard source-finder ranking priority,
    ahead of provider prestige and topical score.
@@ -166,7 +166,7 @@ Goal: address the latest Project Management package texture evidence where a
 98/A ZIP still measured texture at `90/100` because compiler-owned phrases
 stamped across slide decks, discussions, rubrics, and quiz-bank answers.
 
-Full plan: `docs/V0.15.61_PROJECT_MANAGEMENT_TEXTURE_VARIATION_ROADMAP.md`
+Full plan: `docs/history/v0.15/V0.15.61_PROJECT_MANAGEMENT_TEXTURE_VARIATION_ROADMAP.md`
 
 1. Rotate capstone milestone-practice language before it appears in modality,
    slide, and activity surfaces.
@@ -187,7 +187,7 @@ digest reported `3 open resources (source-finder: 3)` but the exported source
 ledger only contained weaker syllabus/Open Library rows after safe package
 repairs.
 
-Full plan: `docs/V0.15.60_SOURCE_PROOF_REPAIR_PERSISTENCE_ROADMAP.md`
+Full plan: `docs/history/v0.15/V0.15.60_SOURCE_PROOF_REPAIR_PERSISTENCE_ROADMAP.md`
 
 1. Preserve source-backed resources, source-finder mini-shards, and reading
    decisions when AppFlow re-derives a prose/fallback graph after map repair.
@@ -206,7 +206,7 @@ Goal: address the real Project Management audit gap where OpenAlex/source-finder
 retrieval found sources, but exported source proof could stay thin,
 off-discipline, or detached from concept-linked source ledger rows.
 
-Full plan: `docs/V0.15.59_SOURCE_FINDER_RESEARCH_BRIDGE_ROADMAP.md`
+Full plan: `docs/history/v0.15/V0.15.59_SOURCE_FINDER_RESEARCH_BRIDGE_ROADMAP.md`
 
 1. Preserve OpenAlex/Crossref DOI, topic, author, year, title, and license
    metadata through source-finder normalization and graph attachment.
@@ -225,7 +225,7 @@ regraded 74/C and reported `partial enrichment (9/12)` with lessons 6, 7, and
 8 on template fallback. A partial-enrichment package should not export as clean
 or hide behind an info caveat.
 
-Full plan: `docs/V0.15.58_ENRICHMENT_COVERAGE_BLOCKER_ROADMAP.md`
+Full plan: `docs/history/v0.15/V0.15.58_ENRICHMENT_COVERAGE_BLOCKER_ROADMAP.md`
 
 1. Convert post-recovery partial enrichment into a package readiness blocker.
 2. Name the exact `enriched/requested` count and missing lesson numbers in the
@@ -244,7 +244,7 @@ the artifact-label firewall into Study Guides and shared lesson
 concept/artifact/source-cue helpers while keeping source/research and texture
 quality targets explicit.
 
-Full plan: `docs/V0.15.57_STUDY_GUIDE_ARTIFACT_FIREWALL_ROADMAP.md`
+Full plan: `docs/history/v0.15/V0.15.57_STUDY_GUIDE_ARTIFACT_FIREWALL_ROADMAP.md`
 
 1. Treat prompt artifact labels, compact numbered artifact runs, and internal
    source placeholders as unsafe lesson concepts/artifacts before shared helper
@@ -267,7 +267,7 @@ reached student-facing Course FAQ and study-guide language. This release fixes
 the Course FAQ compiler/export leakage slice and the double-period repair
 shape while carrying forward partial enrichment and study-guide coverage work.
 
-Full plan: `docs/V0.15.56_COURSE_FAQ_ARTIFACT_FIREWALL_ROADMAP.md`
+Full plan: `docs/history/v0.15/V0.15.56_COURSE_FAQ_ARTIFACT_FIREWALL_ROADMAP.md`
 
 1. Treat compact numbered artifact runs as unsafe Course FAQ phrases.
 2. Replace internal source placeholders with lesson-specific source-evidence
@@ -285,7 +285,7 @@ fresh browser package carried a concrete Crossref/publisher rights URL in
 rendered source text, but the exported ledger still showed `license=missing`
 and a truncated DOI URL.
 
-Full plan: `docs/V0.15.55_CROSSREF_LICENSE_PARSER_ROADMAP.md`
+Full plan: `docs/history/v0.15/V0.15.55_CROSSREF_LICENSE_PARSER_ROADMAP.md`
 
 1. Recover rights/license URLs from rendered source citations when no Creative
    Commons or public-domain label is present.
@@ -304,7 +304,7 @@ the grader. The browser package was downloadable and honest, but weaker
 syllabus-derived rows duplicated stronger DOI/URL rows and created avoidable
 missing-license P2 findings.
 
-Full plan: `docs/V0.15.54_SOURCE_LEDGER_MERGE_ROADMAP.md`
+Full plan: `docs/history/v0.15/V0.15.54_SOURCE_LEDGER_MERGE_ROADMAP.md`
 
 1. Deduplicate source-ledger bundles by stable source identity, especially DOI
    and URL, not row id alone.
@@ -324,7 +324,7 @@ browser round. A package with non-blocking caveats can be downloadable and
 amber at the same time; the recorded workflow should treat that as valid while
 still failing any caveated package that looks clean green.
 
-Full plan: `docs/V0.15.53_READY_NOTES_WORKFLOW_ROADMAP.md`
+Full plan: `docs/history/v0.15/V0.15.53_READY_NOTES_WORKFLOW_ROADMAP.md`
 
 1. Accept `Ready with notes` as a downloadable recorded-workflow state when
    the ZIP action is available.
@@ -345,7 +345,7 @@ export card and agent panel. The user should see a clean downloadable handoff
 with review notes, while known deterministic export defects are fixed before
 they appear as user-facing caveats.
 
-Full plan: `docs/V0.15.52_CLEAN_EXPORT_NOTES_ROADMAP.md`
+Full plan: `docs/history/v0.15/V0.15.52_CLEAN_EXPORT_NOTES_ROADMAP.md`
 
 1. Keep amber review truth for caveated downloadable packages, but label the
    state as `Ready with notes` instead of leading with raw warning copy.
@@ -364,7 +364,7 @@ Goal: fix the fresh v0.15.50 ZIP/log audit mismatch where the browser digest
 reported `quality not graded` after a 10s timeout, while the downloaded ZIP and
 local regrade produced a concrete 74/C package report.
 
-Full plan: `docs/V0.15.51_QUALITY_TIMEOUT_TRUTH_ROADMAP.md`
+Full plan: `docs/history/v0.15/V0.15.51_QUALITY_TIMEOUT_TRUTH_ROADMAP.md`
 
 1. Share one package-quality timeout between finalize grading and ZIP
    self-grading.
@@ -383,7 +383,7 @@ weakening package-quality truth. The package finished and graded at 74/C with a
 terminal blocker receipt, but each visible `Download ZIP` click started another
 finish/export verification pass instead of saving the audited ZIP.
 
-Full plan: `docs/V0.15.50_REVIEWED_ZIP_DOWNLOAD_ROADMAP.md`
+Full plan: `docs/history/v0.15/V0.15.50_REVIEWED_ZIP_DOWNLOAD_ROADMAP.md`
 
 1. Treat terminal package receipts as the handoff to ZIP download when
    structural readiness has no blockers.
@@ -403,7 +403,7 @@ at 98/A with export verified, but a long authored slide bullet lost terminal
 punctuation, and Wikipedia `Driving under the influence` entered the source
 ledger for genetics concepts.
 
-Full plan: `docs/V0.15.40_SOURCE_RELEVANCE_AND_SLIDE_POLISH_ROADMAP.md`
+Full plan: `docs/history/v0.15/V0.15.40_SOURCE_RELEVANCE_AND_SLIDE_POLISH_ROADMAP.md`
 
 1. Run a final export punctuation pass over compiled slide bullets so long
    authored clauses cannot ship as bare lowercase tails.
@@ -423,7 +423,7 @@ package at 97/A, but compact artifact-resource prose such as
 `slide decks 2. quiz bank 3` still survived into Course FAQ evidence and anchor
 examples.
 
-Full plan: `docs/V0.15.39_COURSE_FAQ_EVIDENCE_FIREWALL_ROADMAP.md`
+Full plan: `docs/history/v0.15/V0.15.39_COURSE_FAQ_EVIDENCE_FIREWALL_ROADMAP.md`
 
 1. Preserve array and numbered-list boundaries while checking
    `supportingResources`, so compact artifact-resource lists are repaired before
@@ -445,7 +445,7 @@ blocked at 74/C because a single supporting-resource cell equal to a requested
 deliverable label (`slide decks`) survived into the compiled Course FAQ as if it
 were a lesson concept.
 
-Full plan: `docs/V0.15.38_ARTIFACT_RESOURCE_FIREWALL_ROADMAP.md`
+Full plan: `docs/history/v0.15/V0.15.38_ARTIFACT_RESOURCE_FIREWALL_ROADMAP.md`
 
 1. Treat exact single supporting-resource cells that are requested deliverable
    labels as prompt-artifact contamination in normal disciplinary courses.
@@ -468,7 +468,7 @@ generic Crossref metadata rows for building-environment and geotechnical-testing
 standards were allowed into a genetics package because they matched only broad
 words such as `environment` and `testing`.
 
-Full plan: `docs/V0.15.37_SOURCE_FINDER_RELEVANCE_GATE_ROADMAP.md`
+Full plan: `docs/history/v0.15/V0.15.37_SOURCE_FINDER_RELEVANCE_GATE_ROADMAP.md`
 
 1. Add a discipline-anchor gate for academic metadata providers in genetics
    contexts, requiring retrieved academic rows to carry genetics/genomics source
@@ -489,7 +489,7 @@ still carried only one trusted OpenLibrary row plus a CourseIR review row. The
 small slice is not a full research planner; it makes the retrieved source set
 survive native re-derivation and recover into `SOURCE_REPORT.md`.
 
-Full plan: `docs/V0.15.36_SOURCE_LEDGER_BRIDGE_ROADMAP.md`
+Full plan: `docs/history/v0.15/V0.15.36_SOURCE_LEDGER_BRIDGE_ROADMAP.md`
 
 1. Preserve unmatched source-backed resources when native stable-id
    re-derivation follows a map repair or display rewrite.
@@ -509,7 +509,7 @@ The remaining truth gap is that the package reported complete sourceRef
 coverage while 56 atoms relied on one ambiguous OpenLibrary metadata row and a
 review-only CourseIR fallback row.
 
-Full plan: `docs/V0.15.35_SOURCE_THINNESS_GATE_ROADMAP.md`
+Full plan: `docs/history/v0.15/V0.15.35_SOURCE_THINNESS_GATE_ROADMAP.md`
 
 1. Treat complete-looking sourceRef coverage as insufficient when many atoms
    rest on one thin, review-required bibliography row.
@@ -528,7 +528,7 @@ weakening the source-proof bar. The package exported, but the ZIP regraded
 retrieved open resources while `PACKAGE_MANIFEST.json` exported no
 `sourceLedger`, no sourceRef coverage, and no `SOURCE_REPORT.md`.
 
-Full plan: `docs/V0.15.34_KNOWLEDGE_RESOURCE_HANDOFF_ROADMAP.md`
+Full plan: `docs/history/v0.15/V0.15.34_KNOWLEDGE_RESOURCE_HANDOFF_ROADMAP.md`
 
 1. Adopt generated CourseGraphs synchronously in AppFlow before the repaired
    display map can trigger a stale render/derive sync.
@@ -546,7 +546,7 @@ lab leakage, while the syllabus rendered deterministic assessment echoes such
 as `Lesson 2 applied problem: Model documentation (25%): 1. Lesson 2 applied
 problem: Model documentation (25%)`.
 
-Full plan: `docs/V0.15.33_ASSESSMENT_ECHO_GUARD_ROADMAP.md`
+Full plan: `docs/history/v0.15/V0.15.33_ASSESSMENT_ECHO_GUARD_ROADMAP.md`
 
 1. De-duplicate numbered assessment-title echoes before they enter student
    artifacts, assessment anchors, grading provenance, syllabus schedules, and
@@ -566,7 +566,7 @@ one slide deck carried an `X: X` echo in title-slide text/speaker notes:
 `Environmental Justice and Climate Policy: Policy memo methods...`, alongside a
 numbered assessment echo in the artifact label.
 
-Full plan: `docs/V0.15.32_SLIDE_NOTE_ECHO_GUARD_ROADMAP.md`
+Full plan: `docs/history/v0.15/V0.15.32_SLIDE_NOTE_ECHO_GUARD_ROADMAP.md`
 
 1. Keep title-slide context focused on lesson concepts instead of prefixing it
    with the course title.
@@ -585,7 +585,7 @@ source finding showed CourseIR fallback `SL1: Existing course map fields.` was
 being exported as bibliography proof, while the format finding showed an
 assignment phrase rendered as `Academic Integrity: Integrity...`.
 
-Full plan: `docs/V0.15.31_SOURCE_REVIEW_TRUTH_ROADMAP.md`
+Full plan: `docs/history/v0.15/V0.15.31_SOURCE_REVIEW_TRUTH_ROADMAP.md`
 
 1. Carry the current finish-pass `courseGraph` into ZIP download assembly.
 2. Move review-only CourseIR fallback rows into `sourceReviewRows` and
@@ -604,7 +604,7 @@ the graph-backed source context, but the final ZIP download path dropped
 `courseGraph`, so the exported package lost `SOURCE_REPORT.md`,
 `sourceLedger`, and source-ref proof and regraded worse than the visible badge.
 
-Full plan: `docs/V0.15.30_ZIP_SOURCE_GRAPH_HANDOFF_ROADMAP.md`
+Full plan: `docs/history/v0.15/V0.15.30_ZIP_SOURCE_GRAPH_HANDOFF_ROADMAP.md`
 
 1. Thread the live `courseGraph` from AppFlow into the canonical export panel.
 2. Pass that graph to `downloadCourseMaterialsZip` for all package ZIP
@@ -623,7 +623,7 @@ but the fallback ledger filled it with package labels and generic placeholder
 resource text such as `course map`, `lesson plans`, and `Worked examples,
 readings, or activity sheets...` as if they were citations.
 
-Full plan: `docs/V0.15.29_SOURCE_LEDGER_FALLBACK_GUARD_ROADMAP.md`
+Full plan: `docs/history/v0.15/V0.15.29_SOURCE_LEDGER_FALLBACK_GUARD_ROADMAP.md`
 
 1. Treat Course Map / syllabus resource fallback rows as candidates, not proof.
 2. Drop package labels and placeholder resource sentences before source-ledger
@@ -641,7 +641,7 @@ EduTool.dev Sociology ZIP/log audit. The browser finalizer reported 87/B with
 source-truth issues, but the downloaded ZIP regraded at 99/A because exported
 package proof omitted the source ledger and source report.
 
-Full plan: `docs/V0.15.28_SOURCE_PROOF_EXPORT_TRUTH_ROADMAP.md`
+Full plan: `docs/history/v0.15/V0.15.28_SOURCE_PROOF_EXPORT_TRUTH_ROADMAP.md`
 
 1. Recover source-ledger rows from rendered Course Map resources when the
    source-backed export graph is sparse.
@@ -661,7 +661,7 @@ source-grounded compile architecture. CourseMapper should research once, create
 a trusted ledger, link CurriculumV1/CourseIR atoms to ledger rows, and compile
 materials from those refs rather than inventing source details during export.
 
-Full plan: `docs/V0.15.27_RESEARCH_SOURCE_LEDGER_ROADMAP.md`
+Full plan: `docs/history/v0.15/V0.15.27_RESEARCH_SOURCE_LEDGER_ROADMAP.md`
 
 1. Normalize academic/OER source rows with title, authors, URL/DOI, license,
    provider, concept links, checkedAt, access status, trust level, and
@@ -686,7 +686,7 @@ QUALITY_REPORT still reported 99/A with texture 93/100. The remaining repeated
 shingles came from compiler-owned slide agenda notes, assignment integrity
 policy, and discussion participation-access language.
 
-Full plan: `docs/V0.15.26_COMPILER_TEXTURE_PASS_3_ROADMAP.md`
+Full plan: `docs/history/v0.15/V0.15.26_COMPILER_TEXTURE_PASS_3_ROADMAP.md`
 
 1. Vary assignment academic-integrity policy language while preserving source
    citation, AI/tool disclosure, and no-invented-source requirements.
@@ -708,7 +708,7 @@ P0/P1/P2 findings, clean export, no retry calls, and voice-surface texture
 98->100, but whole-package texture stayed at 93/100 because slide decks,
 lesson plans, study guides, and Course FAQ reused stock compiler phrasing.
 
-Full plan: `docs/V0.15.25_COMPILER_TEXTURE_PASS_2_ROADMAP.md`
+Full plan: `docs/history/v0.15/V0.15.25_COMPILER_TEXTURE_PASS_2_ROADMAP.md`
 
 1. Vary slide-deck example-misconception notes when students jump from example
    to recommendation too early.
@@ -729,7 +729,7 @@ v0.15.23 EduTool.dev audit showed clean ZIP structure and no assessment
 reconciliation caveat, but texture stayed at 93/100 because slide decks and
 lesson plans reused the same teaching-move sentences across all four lessons.
 
-Full plan: `docs/V0.15.24_COMPILER_TEXTURE_ROADMAP.md`
+Full plan: `docs/history/v0.15/V0.15.24_COMPILER_TEXTURE_ROADMAP.md`
 
 1. Vary the default peer-evidence practice move before it propagates into
    slide-deck agenda/activity surfaces.
@@ -750,7 +750,7 @@ assignment/quiz/rubric files. A fresh EduTool.dev Intro Psychology package
 regraded 99/A only because quick evidence checks, exit tickets, and practice
 responses were counted as missing exported artifacts.
 
-Full plan: `docs/V0.15.23_ASSESSMENT_RECONCILIATION_ROADMAP.md`
+Full plan: `docs/history/v0.15/V0.15.23_ASSESSMENT_RECONCILIATION_ROADMAP.md`
 
 1. Classify formative evidence checks as `in-class` unless they carry an
    explicit grade percentage.
@@ -770,7 +770,7 @@ EduTool.dev Microeconomics package recorded `nativeAuthoring: fell back to
 prose: degenerate-skeleton (1 assessment for 8 lessons)` in the digest, but the
 ZIP's manifest/report only surfaced the assessment-coverage observation.
 
-Full plan: `docs/V0.15.13_NATIVE_FALLBACK_AUDIT_TRUTH_ROADMAP.md`
+Full plan: `docs/history/v0.15/V0.15.13_NATIVE_FALLBACK_AUDIT_TRUTH_ROADMAP.md`
 
 1. Promote digest `pipeline.nativeAuthoring` prose fallbacks into scored
    package honesty findings.
@@ -791,7 +791,7 @@ normal supporting resource. A live EduTool.dev Astronomy package showed the
 Course Map repair held, while the package grader still raised a P1 for a FAQ
 sentence that used worked examples as study support rather than as a topic.
 
-Full plan: `docs/V0.15.12_PROMPT_ARTIFACT_PRECISION_ROADMAP.md`
+Full plan: `docs/history/v0.15/V0.15.12_PROMPT_ARTIFACT_PRECISION_ROADMAP.md`
 
 1. Keep `worked examples` suspicious when it appears as a numbered lesson topic.
 2. Do not treat ordinary FAQ/supporting-resource references to worked examples
@@ -808,7 +808,7 @@ plans,” “slide decks,” “assignment briefs,” and related output request
 lesson topics while still reporting 99/A; this release repairs that class
 before compile and makes the grader block it when it survives export.
 
-Full plan: `docs/V0.15.11_PROMPT_ARTIFACT_FIREWALL_ROADMAP.md`
+Full plan: `docs/history/v0.15/V0.15.11_PROMPT_ARTIFACT_FIREWALL_ROADMAP.md`
 
 1. Treat prompt artifact labels as invalid course-map topic candidates for
    normal disciplinary courses.
@@ -827,7 +827,7 @@ Goal: make the successful workspace feel finished instead of overwhelming. A
 ready package should open as a clean handoff for download, inspection, or light
 revision, not as a dense editable table plus a second assistant-side queue.
 
-Full plan: `docs/V0.15.7_FINISHED_PACKAGE_SURFACE_ROADMAP.md`
+Full plan: `docs/history/v0.15/V0.15.7_FINISHED_PACKAGE_SURFACE_ROADMAP.md`
 
 1. Open ready Course Map to a finished-package overview instead of the dense
    editable preview.
@@ -847,7 +847,7 @@ Goal: make the package and UI truth surfaces stricter after the Human Anatomy
 and Physiology I audit. A ready package should not hide weak source coverage,
 wrong discipline assets, repeated prose, or duplicate download confidence.
 
-Full plan: `docs/V0.15.6_CLASSROOM_TRUTH_ROADMAP.md`
+Full plan: `docs/history/v0.15/V0.15.6_CLASSROOM_TRUTH_ROADMAP.md`
 
 1. Add source-backed A&P genome coverage and route anatomy/physiology prompts
    into it.
@@ -869,7 +869,7 @@ professors. The 30-case gate is now broad enough for a stable full run; the
 next quality jump is source provenance, coverage visibility, and harder
 manifest accountability.
 
-Full plan: `docs/V0.15.10_SOURCE_VERIFIED_PROFESSOR_ADOPTION_ROADMAP.md`
+Full plan: `docs/history/v0.15/V0.15.10_SOURCE_VERIFIED_PROFESSOR_ADOPTION_ROADMAP.md`
 
 1. Add `audit:professor-adoption:sources` and
    `audit:professor-adoption:sources:smoke` to verify source URLs, titles,
@@ -919,7 +919,7 @@ initial 15 public professor-taught university course cases, score adoption
 realism, write machine-readable findings, and repair the current
 domain-fit/source-specificity gaps without claiming professor approval.
 
-Full plan: `docs/V0.15.8_PROFESSOR_ADOPTION_ENGINE_ROADMAP.md`
+Full plan: `docs/history/v0.15/V0.15.8_PROFESSOR_ADOPTION_ENGINE_ROADMAP.md`
 
 1. Add `audit:professor-adoption:smoke`, `audit:professor-adoption`, and
    `audit:professor-adoption:100` around a new professor-adoption audit CLI.
@@ -945,7 +945,7 @@ better at finding its own next real defect through adversarial course
 scenarios, synthetic faculty review roles, evidence-backed findings, repair
 candidates, and before/after proof.
 
-Full plan: `docs/V0.15.6_SELF_IMPROVING_RULER_ROADMAP.md`
+Full plan: `docs/history/v0.15/V0.15.6_SELF_IMPROVING_RULER_ROADMAP.md`
 
 1. Add a synthetic faculty board with multiple reviewer roles: working
    instructor, student-in-room, assessment designer, source-fidelity auditor,
@@ -970,7 +970,7 @@ auditable product contract with one current-release source, claim-level proof
 metadata, stale-comment checks, and explicit carry-forward status for superseded
 roadmaps.
 
-Full plan: `docs/V0.15.5_TRUTH_LEDGER_ROADMAP.md`
+Full plan: `docs/history/v0.15/V0.15.5_TRUTH_LEDGER_ROADMAP.md`
 
 1. Derive app version, latest release popover, top changelog entry, and footers
    from one current-release manifest.
@@ -991,7 +991,7 @@ but carried false wet-lab assets, generic study-guide phrasing, thin math
 decks, reused secondary-section content, and a 100/A report despite unevaluated
 judgment.
 
-Full plan: `docs/V0.15.4_TRUTHFUL_LINEAR_ALGEBRA_ROADMAP.md`
+Full plan: `docs/history/v0.15/V0.15.4_TRUTHFUL_LINEAR_ALGEBRA_ROADMAP.md`
 
 1. Tighten Required Assets genre detection so computational Python labs do not
    trigger physical wet-lab supply lists.
