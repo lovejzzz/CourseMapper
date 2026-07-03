@@ -75,42 +75,49 @@ export function spliceCatchDistractors(graph, authored) {
   for (const lesson of graph.lessons) {
     const art = authored[lesson.id];
     if (!art) continue;
-    const usedSlots = new Set();
-    for (const conceptId of lesson.introduces) {
-      const conceptName = graph.concepts.find((c) => c.id === conceptId)?.name ?? '';
-      for (const m of misconceptionsForConcept(graph, conceptId)) {
-        const alreadyCaught = art.quizItems.some((item) =>
-          item.options.some((option, oi) => oi !== item.correctIndex && distractorCatches(option, m.statement)),
-        );
-        if (alreadyCaught) continue;
-        // Best item: highest stem overlap with the concept name.
-        let best = 0;
-        let bestScore = -1;
-        art.quizItems.forEach((item, index) => {
-          const score = tokenOverlapRatio(conceptName, item.stem);
-          if (score > bestScore && !usedSlots.has(index)) {
-            bestScore = score;
-            best = index;
-          }
-        });
-        const item = art.quizItems[best];
-        // Weakest distractor slot: least overlap with the stem.
-        let slot = -1;
-        let slotScore = Infinity;
-        item.options.forEach((option, oi) => {
-          if (oi === item.correctIndex) return;
-          const score = tokenOverlapRatio(option, item.stem);
-          if (score < slotScore) {
-            slotScore = score;
-            slot = oi;
-          }
-        });
-        if (slot === -1) continue;
-        item.options[slot] = beliefTextFromStatement(m.statement);
-        usedSlots.add(best);
-        splices.push({ lessonId: lesson.id, misconceptionId: m.id, item: best, slot });
+    // Per ITEM (Prof's catch metric counts items, not misconceptions): every
+    // item on a misconception-bearing concept carries a catching distractor.
+    // The two wordings (documented statement / cleaned belief) alternate so
+    // repeated catches don't read as copy-paste.
+    const lessonMisconceptions = lesson.introduces.flatMap((conceptId) =>
+      misconceptionsForConcept(graph, conceptId).map((m) => ({
+        m,
+        conceptName: graph.concepts.find((c) => c.id === conceptId)?.name ?? '',
+      })),
+    );
+    if (lessonMisconceptions.length === 0) continue;
+    art.quizItems.forEach((item, index) => {
+      const already = item.options.some(
+        (option, oi) =>
+          oi !== item.correctIndex && lessonMisconceptions.some(({ m }) => distractorCatches(option, m.statement)),
+      );
+      if (already) return;
+      // Pick the misconception whose concept best matches this item's stem.
+      let chosen = lessonMisconceptions[0];
+      let bestScore = -1;
+      for (const entry of lessonMisconceptions) {
+        const score = tokenOverlapRatio(entry.conceptName, item.stem);
+        if (score > bestScore) {
+          bestScore = score;
+          chosen = entry;
+        }
       }
-    }
+      // Weakest distractor slot: least overlap with the stem.
+      let slot = -1;
+      let slotScore = Infinity;
+      item.options.forEach((option, oi) => {
+        if (oi === item.correctIndex) return;
+        const score = tokenOverlapRatio(option, item.stem);
+        if (score < slotScore) {
+          slotScore = score;
+          slot = oi;
+        }
+      });
+      if (slot === -1) return;
+      const wording = index % 2 === 0 ? beliefTextFromStatement(chosen.m.statement) : chosen.m.statement;
+      item.options[slot] = wording;
+      splices.push({ lessonId: lesson.id, misconceptionId: chosen.m.id, item: index, slot });
+    });
   }
   return splices;
 }
