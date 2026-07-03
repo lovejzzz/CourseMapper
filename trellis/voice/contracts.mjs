@@ -248,7 +248,7 @@ export function validateAuthoredLesson(authored) {
 
   need(Array.isArray(authored.quizItems) && authored.quizItems.length >= 3, 'quizItems needs ≥3 items');
   for (const [i, item] of (authored.quizItems || []).entries()) {
-    need(typeof item?.stem === 'string' && item.stem.length >= 20, `quizItems[${i}].stem too short`);
+    need(typeof item?.stem === 'string' && weightedLength(item.stem) >= 20, `quizItems[${i}].stem too short`);
     need(Array.isArray(item?.options) && item.options.length === 4, `quizItems[${i}].options must have exactly 4`);
     need(
       Number.isInteger(item?.correctIndex) && item.correctIndex >= 0 && item.correctIndex <= 3,
