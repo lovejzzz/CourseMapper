@@ -276,7 +276,7 @@ export function mockAuthorLesson(slice) {
   // Contract: every bullet is a complete statement with terminal punctuation.
   const punctuated = slides.map((slide) => ({
     ...slide,
-    bullets: slide.bullets.map((b) => (/[.!?:]$/.test(b.trim()) ? b : `${b}.`)),
+    bullets: slide.bullets.map((b) => (/[.!?:;。！？：；…][\s"'”’」』）)\]]*$/u.test(b.trim()) ? b : `${b}.`)),
   }));
   return {
     plan: { segments },

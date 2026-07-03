@@ -14,6 +14,18 @@ import {
   indexById,
 } from '../graph/schema.mjs';
 
+// Language-aware text metrics (the Mandarin/World-Lit breadth lesson):
+// CJK text is denser than Latin (one hanzi carries roughly a word), so
+// length floors weight CJK chars ×3; and terminal punctuation includes the
+// CJK forms plus trailing closing quotes/brackets ("…literature.”").
+const CJK_RE = /[\u2E80-\u9FFF\uF900-\uFAFF\u3040-\u30FF\uAC00-\uD7AF]/;
+export function weightedLength(text) {
+  let n = 0;
+  for (const ch of String(text)) n += CJK_RE.test(ch) ? 3 : 1;
+  return n;
+}
+export const TERMINAL_PUNCT_RE = /[.!?:;。！？：；…][\s"'"”’」』）)\]]*$/u;
+
 export const DEFAULT_CONSTRAINTS = Object.freeze({
   quizItems: 6,
   slides: [8, 15],
@@ -207,7 +219,7 @@ export function validateAuthoredLesson(authored) {
       ['teach', 'worked-example', 'activity', 'reteach'].includes(seg?.mode),
       `plan.segments[${i}].mode invalid ("${seg?.mode}")`,
     );
-    need(typeof seg?.text === 'string' && seg.text.length >= 40, `plan.segments[${i}].text too short`);
+    need(typeof seg?.text === 'string' && weightedLength(seg.text) >= 40, `plan.segments[${i}].text too short`);
   }
   need(
     (segments || []).some((seg) => seg?.mode === 'reteach'),
@@ -223,12 +235,12 @@ export function validateAuthoredLesson(authored) {
     );
     for (const [bi, bullet] of (Array.isArray(slide?.bullets) ? slide.bullets : []).entries()) {
       need(
-        typeof bullet === 'string' && /[.!?:]$/.test(bullet.trim()),
-        `slides[${i}].bullets[${bi}] must be a complete statement ending with . ! ? or : (no clipped fragments)`,
+        typeof bullet === 'string' && TERMINAL_PUNCT_RE.test(bullet.trim()),
+        `slides[${i}].bullets[${bi}] must be a complete statement ending with terminal punctuation — . ! ? : or the CJK equivalents 。！？： (closing quotes after it are fine; no clipped fragments)`,
       );
     }
     need(
-      typeof slide?.speakerNotes === 'string' && slide.speakerNotes.length >= 20,
+      typeof slide?.speakerNotes === 'string' && weightedLength(slide.speakerNotes) >= 20,
       `slides[${i}].speakerNotes too short`,
     );
     need(typeof slide?.altText === 'string' && slide.altText.length >= 10, `slides[${i}].altText missing`);
@@ -243,17 +255,17 @@ export function validateAuthoredLesson(authored) {
       `quizItems[${i}].correctIndex out of range`,
     );
     need(
-      typeof item?.explanation === 'string' && item.explanation.length >= 30,
+      typeof item?.explanation === 'string' && weightedLength(item.explanation) >= 30,
       `quizItems[${i}].explanation too short`,
     );
   }
 
   need(
-    typeof authored.studyGuideSection === 'string' && authored.studyGuideSection.length >= 200,
+    typeof authored.studyGuideSection === 'string' && weightedLength(authored.studyGuideSection) >= 200,
     'studyGuideSection too short (≥200 chars)',
   );
   need(
-    typeof authored.discussion?.prompt === 'string' && authored.discussion.prompt.length >= 40,
+    typeof authored.discussion?.prompt === 'string' && weightedLength(authored.discussion.prompt) >= 40,
     'discussion.prompt too short',
   );
   need(
@@ -261,7 +273,7 @@ export function validateAuthoredLesson(authored) {
     'discussion.followUps needs ≥2',
   );
   need(
-    typeof authored.assignment?.task === 'string' && authored.assignment.task.length >= 60,
+    typeof authored.assignment?.task === 'string' && weightedLength(authored.assignment.task) >= 60,
     'assignment.task too short',
   );
   need(Array.isArray(authored.assignment?.steps) && authored.assignment.steps.length >= 3, 'assignment.steps needs ≥3');

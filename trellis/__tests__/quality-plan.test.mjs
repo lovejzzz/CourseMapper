@@ -191,3 +191,16 @@ describe('item 6 · dedicated exam items + demand-driven FAQ', () => {
     expect(files.get('Quiz & Exam Bank/Midterm Exam.md')).toMatch(/drawn from lesson banks/);
   });
 });
+
+describe('item 2 · language-aware contract (the Mandarin/World-Lit breadth catch)', () => {
+  it('accepts CJK terminal punctuation and closing quotes; still rejects clipped fragments', async () => {
+    const { TERMINAL_PUNCT_RE, weightedLength } = await import('../voice/contracts.mjs');
+    expect(TERMINAL_PUNCT_RE.test('声调决定意义。')).toBe(true);
+    expect(TERMINAL_PUNCT_RE.test('你叫什么名字？')).toBe(true);
+    expect(TERMINAL_PUNCT_RE.test('a canon that travels beyond its origin culture.”')).toBe(true);
+    expect(TERMINAL_PUNCT_RE.test('ends mid clause without')).toBe(false);
+    // One hanzi weighs ~a word: a short Chinese task passes the 60 floor.
+    expect(weightedLength('用的表达所有格，写三句自我介绍并朗读。')).toBeGreaterThanOrEqual(60 * 0.9);
+    expect(weightedLength('short latin')).toBeLessThan(60);
+  });
+});

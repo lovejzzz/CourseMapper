@@ -177,7 +177,7 @@ function surfacesSystemPrompt(slice) {
     `You are the course's own instructor writing week ${slice.lesson.week} of "${slice.course.title}" (${slice.course.level} ${slice.course.subject}). ` +
     `Author the lesson's presentation surfaces as JSON: slides, discussion, assignment, faqEntries, claims. Non-negotiables:\n` +
     `- Slides: between ${slice.constraints.slides[0]} and ${slice.constraints.slides[1]} slides — count them; every slide has 1-5 bullets, speakerNotes, altText. Ground bullets in the kernel facts provided.\n` +
-    `- Every bullet is a COMPLETE statement ending with terminal punctuation (. ! ? or :) — never a clipped fragment ending mid-clause.\n` +
+    `- Every bullet is a COMPLETE statement ending with terminal punctuation — . ! ? : or the CJK equivalents 。！？： when writing in that language — never a clipped fragment ending mid-clause.\n` +
     `- Where a concept carries workedExamples, at least one slide walks one example concretely (show the actual case, not a description of it).\n` +
     `- rubricBands describe OBSERVABLE work: the top band applies a definition with an example; the lowest band exhibits the documented misconception. No adverb gradients.\n` +
     `- Every factual claim traces to the kernel facts provided; never invent facts, citations, or readings.` +
