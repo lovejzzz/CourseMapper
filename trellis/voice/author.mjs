@@ -465,9 +465,14 @@ export async function authorAllLessons(graph, options) {
   const authored = {};
   const failures = [];
   const ids = graph.lessons.map((lesson) => lesson.id);
+  // One fresh re-author per failed lesson before giving up: a small model
+  // occasionally exhausts its retry feedback on one contract line (run 6
+  // died on a single reteach rule), and fresh sampling is ~$0.001 while a
+  // dead run wastes the whole ledger.
+  const authorWithRetry = (id) => authorLesson(graph, id, options).catch(() => authorLesson(graph, id, options));
   for (let i = 0; i < ids.length; i += AUTHOR_BATCH_SIZE) {
     const batch = ids.slice(i, i + AUTHOR_BATCH_SIZE);
-    const results = await Promise.allSettled(batch.map((id) => authorLesson(graph, id, options)));
+    const results = await Promise.allSettled(batch.map((id) => authorWithRetry(id)));
     results.forEach((result, j) => {
       if (result.status === 'fulfilled') authored[batch[j]] = result.value;
       else failures.push({ lessonId: batch[j], error: String(result.reason?.message ?? result.reason) });
