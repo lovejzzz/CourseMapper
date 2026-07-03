@@ -1,12 +1,30 @@
-// Targeted repair — docs/TRELLIS.md §14.5. Re-authors ONLY the flagged
-// lesson, with the judgment findings quoted in the prompt; two rounds max;
-// residual blocks land in the digest as an honest badge, never silently.
+// Targeted repair — docs/TRELLIS.md §14.5, optimized after the attempt-4
+// ledger (repair was 53% of spend, serial). Two changes, both measured
+// against that baseline: (1) quiz-only findings (J1/J3 — the dominant
+// class) repair ONLY the quiz section (~¼ the tokens of a full lesson
+// re-author, and no risk of regressing the other sections); (2) repairs
+// run in parallel batches like authoring. Residual blocks stay disclosed,
+// never swallowed.
 
 import { runChecks, blockingFindings, findingsByLesson } from '../judgment/index.mjs';
-import { authorLesson } from './author.mjs';
+import { authorLesson, repairQuizSection } from './author.mjs';
+
+const QUIZ_ONLY_CODES = new Set(['J1_KEY_VALID', 'J3_REPAIR_CONFRONTS']);
+const REPAIR_BATCH_SIZE = 6;
+
+async function repairOneLesson(graph, authored, lessonId, lessonFindings, options) {
+  const quizOnly = lessonFindings.every((f) => QUIZ_ONLY_CODES.has(f.code));
+  if (quizOnly && !options.mock) {
+    return repairQuizSection(graph, lessonId, authored[lessonId], lessonFindings, options);
+  }
+  const complaints = lessonFindings.map((f) => `- [${f.code}] ${f.message}`).join('\n');
+  return authorLesson(graph, lessonId, { ...options, repairNotes: complaints });
+}
 
 export async function repairLoop(graph, authored, { tier, ledger, budgetUsd = null, maxRounds = 2, mock = null } = {}) {
   let rounds = 0;
+  let sectionRepairs = 0;
+  let fullRepairs = 0;
   let findings = runChecks(graph, authored);
   while (rounds < maxRounds) {
     const blocking = blockingFindings(findings);
@@ -14,17 +32,20 @@ export async function repairLoop(graph, authored, { tier, ledger, budgetUsd = nu
     const lessonIds = Object.keys(byLesson).filter((key) => key !== '__graph__');
     if (lessonIds.length === 0) break;
     rounds += 1;
-    for (const lessonId of lessonIds) {
-      const complaints = byLesson[lessonId].map((f) => `- [${f.code}] ${f.message}`).join('\n');
-      authored[lessonId] = await authorLesson(graph, lessonId, {
-        tier,
-        ledger,
-        budgetUsd,
-        mock,
-        // Live path: authorLesson has no complaint channel in its signature;
-        // repair rides the validate-retry channel instead by re-authoring
-        // with the findings appended to the slice via repairNotes.
-        repairNotes: complaints,
+    for (let i = 0; i < lessonIds.length; i += REPAIR_BATCH_SIZE) {
+      const batch = lessonIds.slice(i, i + REPAIR_BATCH_SIZE);
+      const results = await Promise.allSettled(
+        batch.map((lessonId) => {
+          const quizOnly = byLesson[lessonId].every((f) => QUIZ_ONLY_CODES.has(f.code));
+          if (quizOnly && !mock) sectionRepairs += 1;
+          else fullRepairs += 1;
+          return repairOneLesson(graph, authored, lessonId, byLesson[lessonId], { tier, ledger, budgetUsd, mock });
+        }),
+      );
+      results.forEach((result, j) => {
+        // A failed repair keeps the previous version — the findings remain
+        // and land in the honest residual; never trade content for silence.
+        if (result.status === 'fulfilled') authored[batch[j]] = result.value;
       });
     }
     findings = runChecks(graph, authored);
@@ -33,6 +54,8 @@ export async function repairLoop(graph, authored, { tier, ledger, budgetUsd = nu
   return {
     findings,
     rounds,
+    sectionRepairs,
+    fullRepairs,
     residual,
     honest:
       residual.length > 0 ? `UNRESOLVED after ${rounds} repair round(s): ${residual.length} blocking finding(s)` : null,

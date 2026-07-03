@@ -17,6 +17,7 @@ import { renderPackage, writePackageToDir, createMemoryFileProvider, FEATURE_FOL
 import { intakeSyllabus } from './intake.mjs';
 import { createRunLedger } from './telemetry.mjs';
 import { stageTiers } from './providers.mjs';
+import { autoAlignBloom, downgradeDanglingClaims } from './graph/autoAlign.mjs';
 
 export async function runPipeline({
   syllabusText = null,
@@ -77,6 +78,14 @@ async function runPipelineStages({
     graph = await intakeSyllabus(syllabusText, { tier: tiers.intake, ledger, budgetUsd, termStart });
   }
 
+  // 1b · deterministic metadata alignment: a Bloom TAG >1 tier from its verb
+  // realigns to the verb (VERIFIED-class metadata fix, disclosed — the J2
+  // class that lesson re-authoring could never repair).
+  const realigned = autoAlignBloom(graph);
+  if (realigned.length > 0) {
+    digest.bloomAutoAligned = realigned.map((r) => `${r.outcomeId}: "${r.verb}" ${r.from}→${r.to}`);
+  }
+
   // 2 · structural validation (pre-knowledge: V5 may legitimately fail here)
   let findings = validateGraph(graph);
   const structural = blockers(findings).filter((f) => f.code !== 'V5_KERNEL_OR_GAP');
@@ -120,8 +129,11 @@ async function runPipelineStages({
   }
   digest.validation = 'V1–V7 structural invariants: 0 blockers';
 
-  // 6 · author
+  // 6 · author (course-wide fires concurrently with the lesson batches)
   const authorOptions = mockVoice ? { mock: mockAuthorLesson } : { tier: tiers.author, ledger, budgetUsd };
+  const courseWidePromise = mockVoice
+    ? Promise.resolve(mockAuthorCourseWide(graph))
+    : authorCourseWide(graph, { tier: tiers.author, ledger, budgetUsd });
   const { authored, failures } = await authorAllLessons(graph, authorOptions);
   if (failures.length > 0) {
     digest.authorFailures = failures.map((f) => `${f.lessonId}: ${f.error.slice(0, 120)}`);
@@ -136,9 +148,15 @@ async function runPipelineStages({
       `authoring failed for ${missing.length} lesson(s): ${missing.map((l) => l.id).join(', ')} — first errors: ${detail}`,
     );
   }
-  const courseWide = mockVoice
-    ? mockAuthorCourseWide(graph)
-    : await authorCourseWide(graph, { tier: tiers.author, ledger, budgetUsd });
+  const courseWide = await courseWidePromise;
+
+  // 6b · deterministic claim hygiene: a dangling ref becomes an explicit
+  // null (JUDGED-class) — an unverifiable citation must not pose as
+  // grounding, and repair calls must not be spent on what a downgrade fixes.
+  const downgraded = downgradeDanglingClaims(graph, authored);
+  if (downgraded.length > 0) {
+    digest.claimsDowngraded = `${downgraded.length} unresolvable claim ref(s) downgraded to JUDGED (disclosed, not repaired)`;
+  }
 
   // 7 · judge + repair
   const repair = await repairLoop(graph, authored, {
@@ -149,7 +167,7 @@ async function runPipelineStages({
     ...(mockVoice ? { mock: mockAuthorLesson } : {}),
   });
   const prereqEdges = graph.concepts.reduce((n, c) => n + c.requires.length, 0);
-  digest.judgment = `Course judgment: ${blockingFindings(repair.findings).length === 0 ? 'no gaps' : `${blockingFindings(repair.findings).length} open finding(s)`} across ${graph.lessons.length} lessons; ${prereqEdges} prerequisite edges verified in order (V2); checks J1–J10 ran, ${repair.rounds} repair round(s)`;
+  digest.judgment = `Course judgment: ${blockingFindings(repair.findings).length === 0 ? 'no gaps' : `${blockingFindings(repair.findings).length} open finding(s)`} across ${graph.lessons.length} lessons; ${prereqEdges} prerequisite edges verified in order (V2); checks J1–J10 ran, ${repair.rounds} repair round(s) (${repair.sectionRepairs ?? 0} section, ${repair.fullRepairs ?? 0} full)`;
   if (repair.honest) digest.repairHonesty = repair.honest;
 
   // 8 · render + artifacts
