@@ -10,8 +10,8 @@ to all quality scores per the standing honesty rules._
 
 ## 1. Verdict up front
 
-**Trellis is built and working.** All six planned modules exist, 57 Trellis
-tests pass (0 failures), the full repo suite (3,989 tests) stays green with
+**Trellis is built and working.** All six planned modules exist, 66 Trellis
+tests pass (0 failures), the full repo suite (3,997 tests) stays green with
 the app untouched, and the three token-free experiment gates all cleared on
 first or second run:
 
@@ -32,8 +32,8 @@ catches the disease classes it was designed for — including in our own code
 
 ## 2. What was built
 
-`trellis/` — 4,170 lines total (16 source modules ~2,700 lines + 8 test
-files ~730 lines + the 423-line golden fixture), against Part I §3's
+`trellis/` — ~4,600 lines total after the optimization pass (18 source
+modules + 9 test files + the 423-line golden fixture), against Part I §3's
 module budget. Zero changes to `src/` (ground rule #2 held; verified by the
 full suite passing and `git diff` scope). Repo files touched outside
 `trellis/`: `package.json` (two scripts), `.gitignore` (runs/),
@@ -62,12 +62,12 @@ all permitted by the ground rules.
 
 ## 3. Test results
 
-- **Trellis suite: 57/57 green** (`npm run trellis:test`): schema (4),
+- **Trellis suite: 66/66 green** (final count after the optimization tests) (`npm run trellis:test`): schema (4),
   validators V1–V7+R0 (10), slice/contract/mock (9), render-compat (11),
   judgment J1–J10 with failing fixtures (11), knowledge+telemetry (3),
   pipeline end-to-end mock (2), replan/diff (6), E0 (1).
-- **Full repo: 285 files / 3,989 tests passed, 16/162 skipped
-  (pre-existing skips), 0 failures, 54.5s** — the app is bit-for-bit
+- **Full repo: 3,997 tests passed, 162 skipped (pre-existing), 0
+  failures, 54.7s** (re-run after the optimization pass) — the app is bit-for-bit
   unaffected; trellis tests ride `npm test` automatically.
 - Lint + prettier green across `trellis/` (node-globals block added to
   eslint config).
@@ -330,6 +330,76 @@ describes as "a solid set to teach from." Whether that trade wins — and
 whether it survives the paired protocol and fresh judge seats — is
 precisely the E1/E2 question, which now has a measured prior instead of
 an argument.
+
+## 5c. The optimization pass — cost and speed, refined and re-measured
+
+_Owner directive: "further improve the cost and speed of Trellis… do more
+test after refine." Targets came from the attempt-4 ledger: repair was 53%
+of spend and serial; authoring ran in 4 sequential batches; most repair
+findings were three mechanical classes (J3/J5/J2)._
+
+### What changed (each fix aimed at a measured line item)
+
+1. **J5 killed at the grammar** — `claims.ref` is now a per-lesson enum of
+   the slice's legal refs (+ null), so a hallucinated citation is
+   grammatically impossible; any residual dangling ref is deterministically
+   downgraded to an explicit JUDGED-class `null`, disclosed in the digest
+   (an unverifiable citation must not pose as grounding).
+2. **J3 killed at authoring time** — explanations must quote the
+   documented corrective verbatim (then apply it), which satisfies J3's
+   substring check by construction. Probe before the run: 0 J3, 0 J5,
+   first attempt.
+3. **J2 became a deterministic metadata fix** — `autoAlignBloom` realigns
+   a Bloom tag >1 tier from its verb (tags are VERIFIED-class metadata,
+   not prose; re-authoring lessons could never fix them). Fired once in
+   the live run, disclosed: `o9: "Build" apply→create`.
+4. **Targeted section repair + parallelism** — quiz-only findings (the
+   dominant class) re-author just `quizItems` (~¼ the tokens); repair
+   batches run in parallel; author batches went 4→6; course-wide prose
+   authors concurrently with the first lesson batch.
+5. **(Post-measurement polish)** attempt 5's only regression was format 58
+   — fourteen P2s, all literal backtick code spans in rendered text; fixed
+   with a deterministic render sanitizer, re-confirmed in attempt 6.
+
+### Before/after, same course, same tier, measured
+
+| Measure                    | Attempt 4 (baseline)                              | Attempt 5 (optimized)                               | Change                                                         |
+| -------------------------- | ------------------------------------------------- | --------------------------------------------------- | -------------------------------------------------------------- |
+| **Wall clock**             | ~660 s                                            | **152 s**                                           | **4.3× faster — now faster than the current pipeline's 217 s** |
+| **Cost (canonical rates)** | $0.628                                            | **$0.331**                                          | **−47%**                                                       |
+| Repair spend               | $0.333 (21 calls, 2 rounds, 13 residual findings) | **$0.013 (2 section repairs, 1 round, 0 residual)** | **−96%, and the loop now CONVERGES**                           |
+| Deep grader                | 97/A (P0=0, P1=1)                                 | 97/A (P0=0, P1=1)                                   | held                                                           |
+| **Advisory judge**         | 8/10                                              | **8/10** (plan 8 · quiz 9 · guide 8)                | held — "I would feel comfortable teaching from…"               |
+| Judgment residuals         | 13 blocking disclosed                             | **0**                                               | the honesty badge is clean, not just honest                    |
+
+### Attempt 6 — the confirming run (all fixes in): the best package yet
+
+| Measure            | Attempt 6                                                                                    |
+| ------------------ | -------------------------------------------------------------------------------------------- |
+| Deep grader        | **99/A — P0=0, P1=1, P2=0; format 100, texture 98** (the backtick fix confirmed: 14 P2s → 0) |
+| Advisory judge     | **8/10** — "I would teach from this set as-is, with only minor…"                             |
+| Cost               | **$0.298**                                                                                   |
+| Wall clock         | **116 s (1:55.76)**                                                                          |
+| Judgment residuals | **0** (1 repair round, 1 section repair)                                                     |
+
+### The head-to-head, final state of the session
+
+|                               | Current pipeline (fresh round)   | Trellis draft, optimized (attempt 6)                              |
+| ----------------------------- | -------------------------------- | ----------------------------------------------------------------- |
+| Deep grader                   | 99/A (P0=0, P1=0)                | **99/A** (P0=0, P1=1 — the known no-sources ledger gap)           |
+| Advisory judge "teach as-is?" | 5/10 (14-round mean 4.14, max 5) | **8/10** (three consecutive live runs: 8, 8, 8 after the first 7) |
+| Cost per course               | **$0.12**                        | $0.298 (**2.5×**, down from 5.2× pre-optimization)                |
+| **Wall clock**                | 217 s                            | **116 s — Trellis is now 1.9× FASTER than the current pipeline**  |
+| Judgment enforcement          | none (advisory grade only)       | J1–J10 enforced, zero unresolved                                  |
+
+Same caveats as §5b: single judge seat, unpaired, ADVISORY — but the
+optimization did not trade quality for the gains (grader went UP, judge
+held at 8, texture held at 98). The remaining cost gap is 2.5× and now
+lives almost entirely in authoring itself ($0.26 of $0.30) — further cuts
+mean nano-tier authoring experiments or prompt caching, both untested,
+both post-E1 questions. The remaining P1 is the documented no-external-
+sources ledger gap (source-finding stage deferred; fixture-graph runs
+with real sources don't have it).
 
 ## 6. What the build taught (honest findings)
 

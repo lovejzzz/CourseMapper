@@ -882,6 +882,19 @@ polishing a candidate that hasn't won.
   Full data: [TRELLIS_BUILD_REPORT.md](TRELLIS_BUILD_REPORT.md) §5–§5b.
   Session spend ≈ $2.10 total. Next action: owner decision on E1
   (~$5, §17). M5 pivot memo blocked on E1–E3/E5 by design.
+- **2026-07-03 (optimization pass, owner-directed)** — Targets from the
+  attempt-4 ledger (repair 53% of spend, serial). Fixes: claims.ref
+  per-lesson ENUM (J5 grammatically impossible), verbatim-corrective
+  quoting (J3 first-pass: probe 0 findings), autoAlignBloom (J2 as
+  deterministic metadata fix, disclosed), dangling-claim downgrade to
+  JUDGED (disclosed), targeted parallel quiz-section repair, author
+  batch 6 + concurrent course-wide, render backtick sanitizer.
+  **Measured: attempt 5 $0.331/152 s (repair $0.013, 0 residuals);
+  attempt 6 confirming: $0.298/116 s, grader 99/A with P2=0
+  (format 100), judge 8/10.** Trellis draft now GRADES EQUAL to the
+  current pipeline (99/A vs 99/A), runs 1.9× FASTER (116 s vs 217 s),
+  at 2.5× cost ($0.30 vs $0.12), judge 8 vs 5 (advisory, n=4 runs at
+  7-8-8-8). 66 trellis tests; full repo 3,997 green. Report §5c.
 
 ---
 
