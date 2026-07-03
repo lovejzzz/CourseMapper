@@ -1,14 +1,28 @@
-# IfRestart
+# Trellis
 
-_July 3, 2026 · a companion to [FABLE5_EDUTOOL.md](FABLE5_EDUTOOL.md)._
+_July 3, 2026 · a companion to [FABLE5_EDUTOOL.md](FABLE5_EDUTOOL.md) ·
+formerly "IfRestart", renamed the same day the owner green-lit building it
+as a side project._
 
-_The question this answers: "if you could build this project from the ground
-up, what would you build?" It is a thought experiment written as a decision
-record — not a demolition order. §8 explains why the right move is still to
-refactor toward this shape rather than restart, and lists exactly which
-decisions port back into the current codebase. Everything here is grounded
-in what six output audits, 192 micro-roadmaps, and the measured 2.43 → 5.13
-arc taught us about where the current architecture fights back._
+**Why "Trellis":** a trellis is a deterministic lattice that living things
+grow on. The lattice — graph, judgment, gates — holds the shape and bears
+the load; the growth — AI-authored teaching content — is organic, and it is
+the point. The lattice never pretends to be the plant, which is the entire
+architecture (D2) in one image.
+
+_This document has two parts. **Part I (§1–§10)** is the vision, written as
+the answer to "what would you build from the ground up?" **Part II
+(§11–§20)** is the executable build plan: Trellis is built on the side, in
+this repo, judged by the instruments CourseMapper already calibrated, and
+the pivot decision is made by the measured verdicts of §17 — not by
+enthusiasm. A future session resuming cold starts at §19. Everything here
+is grounded in what six output audits, 192 micro-roadmaps, and the measured
+2.43 → 5.13 arc taught us about where the current architecture fights
+back._
+
+---
+
+# Part I — The vision
 
 ---
 
@@ -237,7 +251,7 @@ the range; a lean pass for a draft lands near the bottom.
   authoring actually came in _cheaper_ than the enrichment-overlay hybrid
   it replaced (−36% cost at v0.14.4, −22% at v0.14.7) because one
   consolidated authoring call replaces many small enrichment calls plus
-  compiler overhead. IfRestart spends more than today's native runs only
+  compiler overhead. Trellis spends more than today's native runs only
   because it authors _more content per lesson_ (the B6 finding: richer
   authored content is where the last quality points live).
 - **Against the alternative it replaces:** a professor's course prep is
@@ -319,7 +333,7 @@ spend, this amendment is wrong and should say so in its next dated note.
 
 ### The forecast, metric by metric
 
-| Metric                                 | Current (v0.16.1)   | IfRestart, mature                                             | Why the delta is credible                                                                                         |
+| Metric                                 | Current (v0.16.1)   | Trellis, mature                                               | Why the delta is credible                                                                                         |
 | -------------------------------------- | ------------------- | ------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------- |
 | Teach-as-is (anchored scale)           | 5.13, UNANCHORED    | **7.5–8.5 simulated; ≥7 anchored**                            | The "weekend of edits" decomposed into RC1–RC7 (v0.16 diagnosis); each RC is structurally eliminated, not patched |
 | Adoption tier                          | 0%                  | **60–80%** "teach with light edits"                           | Adoption findings are dominated by assessment authenticity + sameness — both die with D2                          |
@@ -418,11 +432,19 @@ longest to earn and cannot be rewritten from memory: **the calibrated
 instruments.** The 23k-line compiler is replaceable; Prof's judgment,
 validated round by round, is not.
 
-So this document's practical output is a port list — the IfRestart
+_(July 3 amendment, same day: the owner chose the side-build path — see
+Part II. This does not contradict §8; it is §8 applied. Trellis is built
+INSIDE this repo precisely so the calibrated instruments remain the shared
+ruler, nothing existing is thrown away, and the current app keeps shipping
+untouched. A pivot happens only if the §17 experiments earn it; §8's
+argument is why Part II ground rule #6 — never grade Trellis with a new
+grader — exists.)_
+
+So this document's practical output is a port list — the Trellis
 decisions applied to the existing codebase, mapped to where FABLE5_EDUTOOL
 already schedules them:
 
-| IfRestart decision                 | Port into current codebase                                                                                            | Where scheduled                |
+| Trellis decision                   | Port into current codebase                                                                                            | Where scheduled                |
 | ---------------------------------- | --------------------------------------------------------------------------------------------------------------------- | ------------------------------ |
 | D2: machine never writes prose     | Finish the inversion; delete the texture engine as authored coverage reaches each surface (do not maintain both)      | Phase 1 (Lane A/B) + Phase 2   |
 | D2: judgment as a check library    | The compiler split's `gates/` module IS the judgment layer — extract it as pure functions with the trust-class labels | Phase 2 (§3.1)                 |
@@ -443,7 +465,7 @@ fantasy.
 
 ## 9. The farther vision — what this becomes by 2031
 
-Beyond the five-year plan, what the IfRestart architecture makes possible
+Beyond the five-year plan, what the Trellis architecture makes possible
 (each of these is impossible or contorted in a document-first design):
 
 - **The pedagogy engine as a library.** The headless core (already
@@ -481,16 +503,349 @@ Beyond the five-year plan, what the IfRestart architecture makes possible
 
 ---
 
-## 10. Closing
+## 10. Closing — Part I
 
 The ground-up build is a course graph wearing a judgment engine, an AI
-voice, and an evaluator that predates all of it — **$4–12 per full
-semester course today, $1–2 by 2028, at a quality whose honest ceiling is
-"the professor's remaining work is personalization" (7.5–8.5), enforced by
-labeled trust classes rather than a single flattering number.** The reason
-not to build it from scratch is the reason it is credible at all: the
-current project already proved every load-bearing piece — the graph, the
-inversion, the flywheel, the gates — one measured release at a time. Steal
-the order of operations; keep the instruments.
+voice, and an evaluator that predates all of it — **~$0.30 to ~$7 per full
+semester course depending on the tier dial, at a quality whose honest
+ceiling is "the professor's remaining work is personalization" (7.5–8.5),
+enforced by labeled trust classes rather than a single flattering
+number.** The reason it is credible is that the current project already
+proved every load-bearing piece — the graph, the inversion, the flywheel,
+the gates — one measured release at a time. Steal the order of operations;
+keep the instruments. Part II does exactly that.
+
+---
+
+# Part II — The build plan
+
+_Added July 3, 2026, when the side-build was green-lit. This is the
+executable spec: a future session with zero conversation memory must be
+able to build Trellis from Part II alone. If that is you, start at §19._
+
+---
+
+## 11. Ground rules for a side-by-side build
+
+Seven rules; #2 and #6 are the two a helpful future session will be most
+tempted to break.
+
+1. **Trellis lives in this repo at `trellis/`.** The entire point of the
+   side-build is reusing the calibrated instruments (§16) as the shared
+   ruler, and imports are only honest inside one repo.
+2. **Trellis never touches the app.** Nothing under `src/` ever imports
+   from `trellis/`. Trellis modifies no existing file except `package.json`
+   (new `trellis:*` scripts) and CI config when its tests land. The app
+   ships unaffected for the entire experiment. (Exception, by design: if a
+   borrowed module needs a small change to run headless, change it in
+   place **with tests** — that benefits both sides — but never fork it.)
+3. **Trellis is headless until after the pivot decision.** Pure ESM
+   modules driven by vite-node, the same pattern as `scripts/crucible.mjs`
+   and `scripts/prof.mjs`. No UI work; UI is post-pivot.
+4. **Borrow by import, never by copy.** A copied file is a fork that rots
+   (the `deliverableExporters` façade lesson).
+5. **Every provider call goes through telemetry (§14.6).** Unmeasured
+   spend is a protocol violation. Part I §5's cost table must become
+   _measured_, not estimated — that table is one of the experiment's
+   deliverables.
+6. **Trellis never grades itself with a grader it wrote.** All quality
+   comparisons use the existing deep grader, judge pools, and Prof, under
+   the existing paired/aggregate protocols. A new grader would be grading
+   our own homework — the exact failure §8 exists to prevent.
+7. **Session discipline.** Every working session ends by appending to the
+   Status Ledger (§20) and committing with a `trellis:` message prefix.
+   The ledger is append-only; verdicts are never edited, only superseded
+   by later dated entries.
+
+## 12. Repository layout
+
+```
+trellis/
+  README.md            → one paragraph + pointer to docs/TRELLIS.md
+  models.json          — the tier registry (Invariant 2, practiced from day one)
+  graph/
+    schema.mjs         — node constructors + field validation (§13.1)
+    validate.mjs       — structural invariants V1–V7 (§13.2)
+    diff.mjs           — dirty-subgraph marking for incremental regeneration
+    replan.mjs         — week-locking + re-flow (M4)
+  knowledge/
+    assemble.mjs       — genome link → kernels/misconceptions/sources per concept
+    flywheel.mjs       — gap-fill extraction for uncovered concepts
+  voice/
+    contracts.mjs      — JSON Schemas for LessonSlice / AuthoredLesson (§13.3)
+    author.mjs         — one consolidated call per lesson, parallel batches
+    repair.mjs         — targeted re-authoring of judgment-flagged units
+  judgment/
+    index.mjs          — runChecks(graph, authored) → Finding[]
+    checks/            — one pure-function file per check J1–J10 (§14.4)
+  render/
+    deliverables.mjs   — Trellis → CourseMapper deliverable shape (§13.4, THE compat layer)
+    qti.mjs imscc.mjs  — post-pivot; NOT needed for the experiments
+  pipeline.mjs         — intake → assemble → author → judge → repair → render → grade
+  providers.mjs        — thin adapter over src/lib/agentProviders.js + models.json
+  telemetry.mjs        — per-call ledger {stage, model, in, out, cached, usd}
+  cli.mjs              — generate | judge | replan | ab | cost (§15)
+  fixtures/
+    graphs/            — hand-built golden graphs (M1, zero tokens)
+    syllabi/           — the crucible course set + the real Linear-Algebra syllabus
+  runs/                — gitignored; per-run artifacts + ledger.json
+  __tests__/
+```
+
+Size discipline: Part I §3's module budget is the bar. If `trellis/`
+passes ~15k lines before M5, stop and ask which template disease crept in.
+
+## 13. The data contracts
+
+### 13.1 Graph schema v0 (`graph/schema.mjs`)
+
+Every node: `{ id, kind }` (ids stable ULID-style strings). Node kinds and
+required fields:
+
+- **course** — `title, subject, level (intro|intermediate|advanced), weeks,
+sessionsPerWeek, termStart (ISO date | null)`
+- **concept** — `name, genomeRef (shard:conceptId | null), kernelFacts[]
+(verbatim from genome or flywheel), misconceptionIds[], requires[]
+(conceptIds)`
+- **misconception** — `conceptId, statement, corrective` — the corrective
+  is REQUIRED; a misconception without its repair is rejected at intake.
+  (This single field constraint is what makes repair-rate structural.)
+- **outcome** — `statement, bloom (remember|understand|apply|analyze|
+evaluate|create), conceptIds[]`
+- **lesson** — `week, session, title, introduces[] (conceptIds),
+reinforces[] (conceptIds), outcomeIds[]`
+- **assessment** — `kindOf (quiz|exam|lab|project|essay|discussion),
+anchor ({lessonId} | {week}), outcomeIds[], weightPct, registryKey`
+  (registryKey verbatim, never normalized — the honesty-gate lesson)
+- **source** — `title, url, provider, license, conceptIds[], trust
+(verified|candidate|rejected)`
+
+Edges are arrays on nodes (`requires` on concept, `introduces` on lesson,
+`outcomeIds` on assessment). No separate edge store in v0 — keep it boring.
+
+### 13.2 Structural invariants (`graph/validate.mjs` — deterministic, blocking)
+
+- **V1** every outcome is assessed by ≥1 assessment
+- **V2** no forward prerequisite: a concept required by lesson N is
+  introduced in some lesson ≤ N
+- **V3** assessment weightPct sums to 100 ± 0.5
+- **V4** every lesson introduces ≥1 and ≤ cap new concepts (default cap 3
+  per session; genome-informed later)
+- **V5** every concept has ≥1 kernelFact OR `declaredGap: true` — an
+  honest gap surfaced in the digest, never a silent one
+- **V6** registryKeys unique
+- **V7** date arithmetic monotonic when termStart is present
+
+### 13.3 The authoring contract (`voice/contracts.mjs`)
+
+**Input — LessonSlice** (what one authoring call receives):
+
+```
+{ lesson, concepts: [{ name, kernelFacts, misconceptions: [{statement, corrective}] }],
+  outcomes, sources: [{ title, whyRelevant }],
+  neighbors: { prevTitle, nextTitle }, courseLens,
+  constraints: { quizItems: 6, slides: [10,15], discussionFollowUps: 3, … } }
+```
+
+**Output — AuthoredLesson**, JSON-Schema-validated at the provider layer
+(schema mismatch → retry, 2 max, then the unit is marked failed-honest):
+
+- `plan.segments[] { minutes, mode (teach|worked-example|activity|reteach),
+text }` — MUST include one `reteach` segment covering the reading's core
+  concept (the non-reader path, made structural)
+- `slides[] { title, bullets[≤5], speakerNotes, altText }`
+- `quizItems[] { stem, options[4], correctIndex, explanation, bloom,
+difficulty (recall|apply|transfer) }` — when the item targets a concept
+  with a documented misconception, the explanation must confront the
+  corrective (enforced by check J3, not by trust)
+- `studyGuideSection`, `discussion { prompt, tension, followUps[] }`,
+  `assignment { task, steps[], rubricBands[] { band, observableBehavior } }`,
+  `faqEntries[] { q, a }`
+- `claims[] { path, sourceRef | kernelRef | null }` — feeds the trust
+  classes: machine-checkable → VERIFIED; ref present → AUTHORED-GROUNDED;
+  null → JUDGED
+
+One consolidated call per lesson (D2). NO per-surface calls — that
+re-creates the hybrid's call overhead, and the −36%/−22% measurements are
+the reason consolidation wins.
+
+### 13.4 The render-compat layer (`render/deliverables.mjs`)
+
+Maps the authored graph to the EXACT deliverable JSON shape the current
+app produces — the shape `src/lib/quality/deepQualityGrader.js`, the gold
+audit, and Prof already consume. **This one module is what lets every
+existing ruler grade Trellis output unmodified**, which is what makes the
+A/B fair and the whole experiment cheap. Source of truth for the shape:
+generate a current-pipeline package (the export-smoke fixture is the
+seed) and mirror it field by field; when ambiguous, the current app's
+output wins by definition.
+
+## 14. Module specs
+
+- **14.1 `pipeline.mjs`** —
+  `runPipeline({ syllabusPath|graphPath, tier, budgetUsd, out }) →
+{ graph, authored, findings, deliverables, ledger, digest }`.
+  Stages: intake (LLM parse → graph draft → V1–V7) → assemble → author
+  (parallel, batch 4) → judge → repair (≤2 rounds, flagged units only) →
+  render → grade (opt-in flag). The digest prints Part I §5's cost table
+  from the real ledger.
+- **14.2 `providers.mjs`** —
+  `callModel({ tier|modelId, system, user, schema, cacheKey }) →
+{ json, usage }`. Wraps `src/lib/agentProviders.js`; tier resolution
+  from `models.json` (`tiers: { cheap, mid, frontier }`, each
+  `{ provider, modelId, inPerM, outPerM }`); API keys from the same env
+  vars the crucible uses. Hard budget: when the run's ledger exceeds
+  `budgetUsd`, further calls throw.
+- **14.3 `voice/author.mjs`** — LessonSlice assembly is pure and unit
+  tested (a bad slice is a graph bug, not a prompt bug); authoring
+  prompts live in `voice/contracts.mjs` next to their schemas.
+- **14.4 Judgment checks v0** — each `(graph, authored) → Finding[]`,
+  `Finding = { severity: block|warn, code, path, message }`. All pure, no
+  I/O; each ships with one failing and one passing fixture:
+  - **J1 KEY_VALID** — correctIndex in range, options distinct, exactly
+    one keyed answer
+  - **J2 BLOOM_MATCH** — outcome verb ⇄ bloom tag (port
+    `bloomLevelFromStemVerb`)
+  - **J3 REPAIR_CONFRONTS** — misconception-targeting item's explanation
+    shares ≥60% content tokens with (or quotes) the corrective
+  - **J4 COVERAGE** — every lesson in the alignment surface; every graded
+    week's component in the schedule (the Lessons-1–10-cap bug class,
+    made impossible)
+  - **J5 CITE_RESOLVES** — every `claims[].sourceRef` resolves to a
+    trusted source node
+  - **J6 XREF** — prev/next references resolve; no "last time" in
+    Lesson 1
+  - **J7 ECHO** — cross-lesson 5-gram Jaccard on same-surface units above
+    threshold → block. _The sameness disease as one deterministic gate,
+    instead of 192 roadmaps._
+  - **J8 PACING** — V4 re-checked post-authoring
+  - **J9 DATES** — week arithmetic vs termStart
+  - **J10 RELEVANCE** — reading token-overlap gate (port the v0.16.1
+    subject-anchored logic)
+- **14.5 `repair.mjs`** — re-authors ONLY the flagged unit, with the
+  finding text in the prompt; two rounds max; residual blocks land in the
+  digest as an honest badge, never silently.
+- **14.6 `telemetry.mjs`** — appends
+  `{ stage, model, tokensIn, tokensOut, cached, usd }` per call to
+  `runs/<id>/ledger.json`. The A/B harness refuses to compare runs with
+  missing ledgers.
+
+## 15. CLI + npm scripts
+
+```
+npm run trellis -- generate --syllabus fixtures/syllabi/linear-algebra.md --tier draft
+npm run trellis -- judge    --run <id>
+npm run trellis -- replan   --run <id> --lock-weeks 1-6 --note "midterm bombed"
+npm run trellis -- ab       --tier draft --pairs 8 --against current
+npm run trellis -- cost     --run <id>
+```
+
+`npm run trellis` = `npx vite-node trellis/cli.mjs --`. The `ab` command
+drives the current pipeline for side B through the crucible entry point,
+then grades both sides identically. `npm run trellis:test` (vitest over
+`trellis/__tests__/`) joins `npm test` at M1 — token-free tests only.
+
+## 16. What Trellis borrows — the import list
+
+| Borrowed                | Path                                                      | Used for                              |
+| ----------------------- | --------------------------------------------------------- | ------------------------------------- |
+| Provider clients        | `src/lib/agentProviders.js`                               | every model call                      |
+| Genome + shards         | `public/genome/*`, `src/lib/genome/libraryShardLoader.js` | knowledge assembly                    |
+| Flywheel extraction     | `src/lib/knowledge/genomeExtraction.js`                   | gap-fill for uncovered concepts       |
+| Source finding + ledger | `src/lib/knowledge/sourceFinder.js`, `sourceLedger.js`    | sources, with the v0.16.1 gates       |
+| Deep grader             | `src/lib/quality/deepQualityGrader.js`                    | scoring BOTH sides of every A/B       |
+| Crucible harness        | `scripts/crucible.mjs`                                    | side-B generation + judged rounds     |
+| Prof arenas             | `scripts/prof.mjs`, `scripts/prof/`                       | experiment E5                         |
+| Gold-audit checks       | `scripts/goldSampleQualityAudit.mjs`                      | regression classes on rendered output |
+
+Per ground rule #2's exception: headless-compat changes to borrowed
+modules happen in place, with tests, benefiting both sides. Never fork.
+
+## 17. The pivot gate — experiments and the decision rule
+
+Every experiment's verdict is a dated, append-only entry in §20. Budget
+for the full ladder: **~$30–45.**
+
+- **E0 (gates M1) · Golden compile, zero tokens.** Fixture graph + mocked
+  voice → render → the unmodified deep grader produces a score. _Proves
+  the ruler fits before any money is spent._
+- **E1 (gates M2) · Matched-cost draft A/B.** Trellis draft tier vs the
+  current app-default pipeline; same 8 syllabi (crucible set + the real
+  Linear Algebra); cost cap $0.25/course/side; aggregate protocol, the
+  existing judge pool. **Bar: Trellis mean ≥ current mean, pooled CI
+  excludes a regression larger than 0.5.** (~$5.) _This is the experiment
+  that answers the owner's "$0.16" challenge empirically._
+- **E2 (gates M3) · Standard tier vs current best.** **Bar: +1.0 mean
+  teach-as-is at ≤$3/course**, ≥8 pairs, pool to 16 if the CI spans zero.
+  (~$10.)
+- **E3 (with E2) · Grounding + sameness.** Grounded-fraction scan ≥80% on
+  every surface of E2's packages (existing scan tooling); J7 echo passes.
+- **E4 (gates M4) · Replan drill.** Lock weeks 1–6 of a real E2 package,
+  inject a perturbation, replan: V1–V7 hold, assessment registry intact,
+  incremental cost ≤$1 draft / ≤$3 standard — measured from the ledger.
+- **E5 (gates M5) · Prof battery.** a1twin + a2 + a2mouth on two
+  disciplines. **Bars (the FABLE5 Part-2 floor subset): misconception
+  repair ≥70%, FAQ hit ≥60%, giveaways ≤20%, residual P0s = 0.**
+
+**Decision rule** (the M5 memo, written into §20):
+
+- **PIVOT-CANDIDATE** — E1–E5 all green → propose the pivot plan: the app
+  adopts `trellis/` as its brain behind the existing UI; the current
+  compiler retires surface-by-surface, each retirement twin-gated, and
+  FABLE5_EDUTOOL Phases 2–3 are re-scoped around the Trellis core.
+- **EXTEND** — any single red with a plausible, named fix → one more
+  milestone; maximum two extensions per experiment, then it counts as red.
+- **FOLD-BACK** — E1 red twice → stop building; port the winning pieces
+  into the main codebase via the §8 port list, and the memo says exactly
+  why the architecture lost. A clean documented loss is a success of the
+  method.
+
+Honesty note: all quality numbers are SIMULATED until anchored. That is
+legitimate for the pivot decision _only because both sides share the same
+ruler_ (the twin logic). The pivot itself still requires the FABLE5 human
+anchor before any public claim.
+
+## 18. Milestones
+
+| #   | Scope                                                                                                       | Days | Gate                          |
+| --- | ----------------------------------------------------------------------------------------------------------- | ---- | ----------------------------- |
+| M0  | Scaffold: layout, `models.json`, fixtures chosen, `trellis:test` wired into `npm test` + CI, ledger started | ≤1   | CI green with the empty suite |
+| M1  | Graph: schema + V1–V7 + golden fixtures + `render/deliverables.mjs`                                         | 2–3  | **E0** green                  |
+| M2  | First live course: assemble + draft-tier author + J1–J5 + full pipeline run                                 | 3–4  | **E1** verdict recorded       |
+| M3  | Quality core: repair loop + J6–J10 + tiering + complete telemetry                                           | 4–5  | **E2 + E3** verdicts recorded |
+| M4  | Living course: `diff.mjs` + `replan.mjs`                                                                    | 3    | **E4** verdict recorded       |
+| M5  | Pivot memo: E5 + measured cost report + the §17 decision                                                    | 2–3  | Memo in §20                   |
+
+Deliberately **not** in the experiment path (post-pivot, per FABLE5
+Phase 3): QTI/IMSCC renderers, any UI, the `.coursemap` migration ladder,
+the student companion. Building them before the pivot verdict would be
+polishing a candidate that hasn't won.
+
+## 19. Session bootstrap — read this first when resuming cold
+
+1. Read §20 (the status ledger) — it says where the build is. Then read
+   the milestone spec you are in. Do not re-read Part I to start working;
+   it is context, not instructions.
+2. Orient: `git log --oneline -10` · `npm run trellis:test` ·
+   `ls trellis/runs/` for prior ledgers.
+3. The seven ground rules (§11) are non-negotiable. The two you will be
+   most tempted to break: **#2** (never change app behavior) and **#6**
+   (never grade Trellis with a grader Trellis wrote).
+4. Provider keys come from the same env vars the crucible uses (see the
+   header of `scripts/crucible.mjs`). **If keys are absent, do token-free
+   work** — fixtures, checks, render-compat — and never mock a live
+   experiment and record it as a verdict.
+5. Any experiment expected to cost >$5 needs the owner's go-ahead first.
+6. End of session: append to §20 (never rewrite), commit with the
+   `trellis:` prefix, and leave the working tree clean.
+
+## 20. Status ledger (append-only)
+
+- **2026-07-03** — Design doc written; project named **Trellis** (formerly
+  IfRestart); Part II added with contracts, experiments E0–E5, milestones
+  M0–M5. Build not started; next action: **M0 scaffold**. Spend to date:
+  $0. Verdicts: none.
+
+---
 
 _— Fable 5_
