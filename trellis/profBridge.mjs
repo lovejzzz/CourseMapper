@@ -30,7 +30,10 @@ export async function buildStructuredFromRun(runDir) {
   } catch {
     // Pre-item-6 runs: exams fall back to weekly items only, disclosed below.
   }
+  return buildStructured(graph, authored, authoredExams);
+}
 
+export function buildStructured(graph, authored, authoredExams = {}) {
   const ordered = [...graph.lessons].sort((a, b) => a.week - b.week || a.session - b.session);
   const conceptById = new Map(graph.concepts.map((c) => [c.id, c]));
   const misconceptionById = new Map(graph.misconceptions.map((m) => [m.id, m]));
@@ -147,7 +150,7 @@ export async function buildStructuredFromRun(runDir) {
     });
   }
 
-  return { id: `trellis:${runDir}`, lessons, items };
+  return { id: 'trellis:in-memory', lessons, items };
 }
 
 const runDir = process.argv[2];

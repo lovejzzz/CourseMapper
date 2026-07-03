@@ -9,6 +9,7 @@
 import { readFile, readdir } from 'node:fs/promises';
 import { join } from 'node:path';
 import { contentTokens, tokenOverlapRatio } from '../judgment/text.mjs';
+import { deriveBeliefForm } from '../graph/schema.mjs';
 
 export async function loadShards({ genomeDir = 'public/genome' } = {}) {
   const files = (await readdir(genomeDir)).filter(
@@ -117,6 +118,7 @@ export function assembleKnowledge(graph, allShards) {
         id,
         conceptId: concept.id,
         statement: m.text,
+        beliefForm: deriveBeliefForm(m.text),
         corrective: m.corrective,
       });
       concept.misconceptionIds.push(id);

@@ -11,6 +11,8 @@ import { j8Pacing } from './checks/j8Pacing.mjs';
 import { j9Dates } from './checks/j9Dates.mjs';
 import { j10Relevance } from './checks/j10Relevance.mjs';
 import { j11Catch } from './checks/j11Catch.mjs';
+import { j3bPairing } from './checks/j3bPairing.mjs';
+import { j12Exposure } from './checks/j12Exposure.mjs';
 
 export const CHECKS = [
   j1KeyValid,
@@ -24,6 +26,8 @@ export const CHECKS = [
   j9Dates,
   j10Relevance,
   j11Catch,
+  j3bPairing,
+  j12Exposure,
 ];
 
 export function runChecks(graph, authored, options = {}) {

@@ -25,9 +25,10 @@ const EXTRACTION_SCHEMA = {
           misconception: {
             type: ['object', 'null'],
             additionalProperties: false,
-            required: ['statement', 'corrective'],
+            required: ['statement', 'beliefForm', 'corrective'],
             properties: {
               statement: { type: 'string', minLength: 20 },
+              beliefForm: { type: 'string', minLength: 12 },
               corrective: { type: 'string', minLength: 30 },
             },
           },
@@ -71,7 +72,7 @@ export async function flywheelFill(graph, uncoveredIds, { tier = 'cheap', ledger
     validate: validateExtraction(uncoveredIds),
     system:
       `You extract teaching-kernel facts for undergraduate course concepts in ${graph.course.subject}. ` +
-      `For each concept: 2-4 precise, checkable facts a textbook would state (no fluff, no "students will"), and the single most common documented student misconception WITH its corrective (how an instructor repairs it). ` +
+      `For each concept: 2-4 precise, checkable facts a textbook would state (no fluff, no "students will"), and the single most common documented student misconception WITH (a) its beliefForm — the wrong belief stated AS a claim a student could pick on a quiz ('X does Y'), never 'students think…' — and (b) its corrective (how an instructor repairs it). ` +
       `If a concept has no well-known misconception, return null for misconception. Never invent citations.`,
     user: `Course: ${graph.course.title} (${graph.course.level}).\nConcepts needing kernels:\n${wanted
       .map((w) => `- ${w.id}: ${w.name}`)
@@ -93,6 +94,7 @@ export async function flywheelFill(graph, uncoveredIds, { tier = 'cheap', ledger
         id,
         conceptId: concept.id,
         statement: entry.misconception.statement,
+        beliefForm: entry.misconception.beliefForm,
         corrective: entry.misconception.corrective,
       });
       concept.misconceptionIds.push(id);

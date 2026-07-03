@@ -53,7 +53,8 @@
       "author": "nano",
       "authorSurfaces": "nano",
       "repair": "cheap",
-      "flywheel": "nano"
+      "flywheel": "nano",
+      "authorQuiz": "cheap"
     }
   }
 }

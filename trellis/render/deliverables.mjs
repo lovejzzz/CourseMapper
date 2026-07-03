@@ -97,7 +97,15 @@ export function stripCodeSpans(text) {
   return String(text).replace(/`([^`\n]+)`/g, '$1');
 }
 
-export function renderPackage({ graph, authored, courseWide, generatedAt, digest = null, authoredExams = {} }) {
+export function renderPackage({
+  graph,
+  authored,
+  courseWide,
+  generatedAt,
+  digest = null,
+  authoredExams = {},
+  readiness = null,
+}) {
   if (!generatedAt) throw new Error('renderPackage requires generatedAt (pass a fixed value in tests)');
   const { course } = graph;
   const lessons = orderedLessons(graph);
@@ -513,7 +521,7 @@ export function renderPackage({ graph, authored, courseWide, generatedAt, digest
     },
     sourceReport: { path: sourceReportPath },
     requestedFeatures: Object.entries(FEATURE_FOLDERS).map(([featureId, label]) => ({ featureId, label })),
-    readiness: { status: 'ready', blockers: 0, warnings: 0, checkedSections: '10/10' },
+    readiness: readiness ?? { status: 'ready', blockers: 0, warnings: 0, checkedSections: '10/10' },
     requiredAssets: [],
     files: manifestFiles,
     trust: {

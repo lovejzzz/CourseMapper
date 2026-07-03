@@ -47,9 +47,10 @@ export function buildLessonSlice(graph, lessonId, { constraints = DEFAULT_CONSTR
     workedExamples: concept.workedExamples ?? [],
     anchorQuotes: concept.anchorQuotes ?? [],
     declaredGap: concept.declaredGap,
-    misconceptions: misconceptionsForConcept(graph, concept.id).map(({ id, statement, corrective }) => ({
+    misconceptions: misconceptionsForConcept(graph, concept.id).map(({ id, statement, beliefForm, corrective }) => ({
       id,
       statement,
+      beliefForm: beliefForm ?? null,
       corrective,
     })),
   }));
@@ -232,6 +233,15 @@ export function validateAuthoredLesson(authored) {
     (segments || []).some((seg) => seg?.mode === 'reteach'),
     'plan must include one reteach segment (the non-reader path)',
   );
+  // Roadmap 1.4: an in-class recap earns real credit only when it WALKS an
+  // example, not when it re-states the reading.
+  need(
+    (segments || []).some(
+      (seg) =>
+        seg?.mode === 'reteach' && /example|walk|work(ed|ing)? through|demo|trace/i.test(String(seg?.text ?? '')),
+    ),
+    'the reteach segment must walk one worked example (mention the example it works through)',
+  );
 
   need(Array.isArray(authored.slides) && authored.slides.length >= 6, 'slides needs ≥6 entries');
   for (const [i, slide] of (authored.slides || []).entries()) {
@@ -270,6 +280,10 @@ export function validateAuthoredLesson(authored) {
   need(
     typeof authored.studyGuideSection === 'string' && weightedLength(authored.studyGuideSection) >= 200,
     'studyGuideSection too short (≥200 chars)',
+  );
+  need(
+    /missed the reading|if you (skipped|missed)/i.test(String(authored.studyGuideSection ?? '')),
+    'studyGuideSection must include a "missed the reading? start here" section (the non-reader catch-up path)',
   );
   need(
     typeof authored.discussion?.prompt === 'string' && weightedLength(authored.discussion.prompt) >= 40,

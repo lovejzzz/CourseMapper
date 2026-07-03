@@ -163,6 +163,9 @@ export function mockAuthorLesson(slice) {
       ? allMisconceptions.map((m) => `- ${m.statement} → ${m.corrective}`)
       : ['- Bring one confusion to class; unresolved questions compound weekly.']),
     '',
+    '### If you missed the reading',
+    `Start here: ${conceptSentences(primary)[0]} Read the key terms above, then attempt the first self-check; the in-class reteach segment will walk a worked example.`,
+    '',
     '### Check yourself',
     `- Restate ${primary.name.toLowerCase()} in one sentence without looking.`,
     ...(outcomes[0]

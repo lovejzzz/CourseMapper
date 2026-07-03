@@ -182,9 +182,15 @@ async function runPipelineStages({
   // the cheaper authorSurfaces tier when the config splits them)
   const authorOptions = mockVoice
     ? { mock: mockAuthorLesson }
-    : { tier: tiers.author, surfacesTier: tiers.authorSurfaces ?? null, ledger, budgetUsd };
+    : {
+        tier: tiers.author,
+        surfacesTier: tiers.authorSurfaces ?? null,
+        quizTier: tiers.authorQuiz ?? null,
+        ledger,
+        budgetUsd,
+      };
   if (!mockVoice && tiers.authorSurfaces) {
-    digest.voice = `live (split: ${tiers.author} core + ${tiers.authorSurfaces} surfaces)`;
+    digest.voice = `live (split: ${tiers.author} core + ${tiers.authorSurfaces} surfaces${tiers.authorQuiz ? ` + ${tiers.authorQuiz} quiz` : ''})`;
   }
   const courseWidePromise = mockVoice
     ? Promise.resolve(mockAuthorCourseWide(graph))
@@ -241,8 +247,58 @@ async function runPipelineStages({
   digest.judgment = `Course judgment: ${blockingFindings(repair.findings).length === 0 ? 'no gaps' : `${blockingFindings(repair.findings).length} open finding(s)`} across ${graph.lessons.length} lessons; ${prereqEdges} prerequisite edges verified in order (V2)${bridges.length > 0 ? `; ${bridges.length} prerequisite gap(s) bridged with inline primers` : ''}; checks J1–J10 ran, ${repair.rounds} repair round(s) (${repair.sectionRepairs ?? 0} section, ${repair.fullRepairs ?? 0} full)`;
   if (repair.honest) digest.repairHonesty = repair.honest;
 
+  // 7c · the classroom gate (roadmap 3.2): Prof's zero-token battery runs
+  // INSIDE the build. Its P1s cannot be repaired by tokens alone (they
+  // reflect item/exposure design), so they set honest readiness — a run
+  // whose classroom bars fail renders as needs_review, never 'ready'.
+  let readiness = { status: 'ready', blockers: 0, warnings: 0, checkedSections: '10/10' };
+  try {
+    const { buildStructured } = await import('./profBridge.mjs');
+    const { runClassroomArenaZeroToken } = await import('../scripts/prof/arenas/classroom.mjs');
+    const structured = buildStructured(graph, authored, authoredExams);
+    const arena = runClassroomArenaZeroToken({ structured, preset: 'cc-night-class', cohortSize: 25, seed: 1 });
+    const classroomP1s = (arena.findings ?? []).filter((f) => f.severity === 'P1');
+    digest.classroom = `zero-token classroom: repair ${arena.battery?.realistic?.misconceptions?.repairRate ?? '?'} · compliance loss ${arena.battery?.complianceRobustness?.degradation ?? '?'} · ${classroomP1s.length} P1 bar(s) unmet`;
+    if (classroomP1s.length > 0) {
+      digest.classroomFindings = classroomP1s.map((f) => f.detail?.slice(0, 140) ?? String(f));
+      readiness = {
+        status: 'needs_review',
+        blockers: 0,
+        warnings: classroomP1s.length,
+        checkedSections: '10/10',
+      };
+    }
+    await mkdir(runDir, { recursive: true });
+    await writeFile(
+      join(runDir, 'classroom.json'),
+      JSON.stringify(
+        {
+          findings: arena.findings,
+          battery: {
+            itemSummary: arena.battery?.itemSummary,
+            complianceRobustness: arena.battery?.complianceRobustness,
+            solvability: arena.battery?.solvability,
+            misconceptions: arena.battery?.realistic?.misconceptions,
+          },
+        },
+        null,
+        2,
+      ),
+    );
+  } catch (error) {
+    digest.classroom = `classroom gate unavailable (${String(error?.message ?? error).slice(0, 100)}) — readiness NOT verified by the battery`;
+  }
+
   // 8 · render + artifacts
-  const { files, manifest } = renderPackage({ graph, authored, courseWide, generatedAt, digest, authoredExams });
+  const { files, manifest } = renderPackage({
+    graph,
+    authored,
+    courseWide,
+    generatedAt,
+    digest,
+    authoredExams,
+    readiness,
+  });
   await mkdir(runDir, { recursive: true });
   await writePackageToDir(files, join(runDir, 'package'));
   await writeFile(join(runDir, 'graph.json'), JSON.stringify(graph, null, 2));

@@ -142,7 +142,7 @@ export function spliceCatchDistractors(graph, authored) {
       // Audit finding: the raw statement often carries "Students think…"
       // meta-framing, which is not a selectable answer — always splice the
       // cleaned belief form, and skip when no belief form exists.
-      const belief = beliefTextFromStatement(chosen.m.statement);
+      const belief = chosen.m.beliefForm ?? beliefTextFromStatement(chosen.m.statement);
       if (!belief) return;
       item.options[slot] = belief;
       catchCount.set(chosen.m.id, (catchCount.get(chosen.m.id) ?? 0) + 1);

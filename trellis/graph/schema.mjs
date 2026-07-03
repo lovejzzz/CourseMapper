@@ -58,6 +58,19 @@ export function makeConcept(node) {
   };
 }
 
+// A misconception must be usable as a DISTRACTOR (roadmap 1.2): the
+// beliefForm states the wrong belief itself ("Concatenating a number onto a
+// string works"), never behavior-about-students ("Students concatenate…").
+const BELIEF_PREFIX_RE =
+  /^students?\s+(?:may|might|often|commonly|sometimes|frequently)?\s*(?:think|believe|assume|treat|say|expect|conclude)\s*(?:that)?\s*/i;
+
+export function deriveBeliefForm(statement) {
+  const stripped = String(statement).replace(BELIEF_PREFIX_RE, '').trim();
+  const text = stripped.length >= 12 ? stripped : String(statement).trim();
+  if (/^students?\b/i.test(text)) return null; // behavioral, not a belief
+  return text.charAt(0).toUpperCase() + text.slice(1);
+}
+
 export function makeMisconception(node) {
   reqId(node, 'misconception');
   req(node, 'conceptId', 'misconception');
@@ -66,7 +79,7 @@ export function makeMisconception(node) {
   // without its repair cannot enter the graph. This single constraint is what
   // makes downstream repair-rate structural rather than aspirational.
   req(node, 'corrective', 'misconception');
-  return { kind: 'misconception', ...node };
+  return { kind: 'misconception', beliefForm: node.beliefForm ?? deriveBeliefForm(node.statement), ...node };
 }
 
 export function makeOutcome(node) {

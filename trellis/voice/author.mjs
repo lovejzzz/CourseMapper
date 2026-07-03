@@ -94,6 +94,8 @@ function lessonUserPrompt(slice) {
 
 const CORE_FIELDS = ['plan', 'quizItems', 'studyGuideSection', 'claims'];
 const SURFACE_FIELDS = ['slides', 'discussion', 'assignment', 'faqEntries', 'claims'];
+const QUIZ_FIELDS = ['quizItems', 'claims'];
+const CORE_SANS_QUIZ_FIELDS = ['plan', 'studyGuideSection', 'claims'];
 
 function subSchema(fields, slice) {
   const full = lessonSchemaForSlice(slice);
@@ -170,11 +172,15 @@ function coreSystemPrompt(slice) {
     (correctives.length > 0
       ? `- For each documented misconception, at least one quiz item's explanation must CONFRONT its corrective: quote it, or paraphrase it faithfully keeping its key terms (a grader checks word overlap — do not water it down). Vary how you weave it in; never open two explanations the same way. Correctives:\n${correctives.map((c) => `  • "${c}"`).join('\n')}\n`
       : '') +
+    (correctives.length > 0
+      ? `- PAIRING RULE: any item whose distractor states a misconception must have an explanation that confronts THAT misconception's corrective — the student who picks the wrong belief must read its repair.\n` +
+        ''
+      : '') +
     `- plan.segments: 4-5 segments, each an integer of at least 5 minutes, including one "reteach" segment that re-teaches the reading's core concept for students who arrived cold.\n` +
     (slice.primerConcepts?.length
       ? `- PRIMER REQUIRED: this lesson uses concepts the course formally teaches later (${slice.primerConcepts.map((p) => p.name).join(', ')}). Open plan.segments with a 5-10 minute primer that introduces just enough of each (kernel facts provided), saying explicitly it is a preview of a later lesson.\n`
       : '') +
-    `- studyGuideSection: a markdown section of at least 300 characters — key terms with definitions, the misconceptions to watch for, and 2-3 self-check prompts.\n` +
+    `- studyGuideSection: a markdown section of at least 300 characters — key terms with definitions, the misconceptions to watch for, 2-3 self-check prompts, and a "### If you missed the reading" catch-up block (3-4 sentences that stand alone).\n` +
     `- Every factual claim traces to the kernel facts provided; never invent facts or readings.\n` +
     `- Where a concept carries workedExamples or anchorQuotes, USE them: build the plan's worked-example segment and at least one quiz stem from a provided example, and let anchored quotes ground the study guide.\n` +
     `- For LANGUAGE courses at introductory level: instructions, briefs, and explanations are written in English (students are beginners); the target language appears as CONTENT — examples, vocabulary, prompts, dialogue — not as the instruction medium.\n` +
@@ -202,22 +208,26 @@ function surfacesSystemPrompt(slice) {
 export async function authorLesson(
   graph,
   lessonId,
-  { tier, surfacesTier = null, ledger, budgetUsd = null, mock = null, repairNotes = null } = {},
+  { tier, surfacesTier = null, quizTier = null, ledger, budgetUsd = null, mock = null, repairNotes = null } = {},
 ) {
   const slice = buildLessonSlice(graph, lessonId);
   if (mock) return mock(slice, { repairNotes });
 
-  // Split path: parallel core + surfaces calls on different tiers.
+  // Split path: parallel calls on different tiers. With quizTier set
+  // (roadmap 2.1) the quiz — the judgment-heaviest artifact — authors on
+  // its own (usually stronger) tier while plan/guide and surfaces stay
+  // cheap; three small schemas, all parallel.
   if (surfacesTier && !repairNotes) {
-    const [core, surfaces] = await Promise.all([
+    const coreFields = quizTier ? CORE_SANS_QUIZ_FIELDS : CORE_FIELDS;
+    const calls = [
       callModel({
         tier,
         stage: 'author',
         ledger,
         budgetUsd,
-        schema: subSchema(CORE_FIELDS, slice),
+        schema: subSchema(coreFields, slice),
         schemaName: 'lesson_core',
-        validate: subValidator(CORE_FIELDS),
+        validate: subValidator(coreFields),
         maxOutputTokens: 8000,
         system: coreSystemPrompt(slice),
         user: lessonUserPrompt(slice),
@@ -234,15 +244,36 @@ export async function authorLesson(
         system: surfacesSystemPrompt(slice),
         user: lessonUserPrompt(slice),
       }),
-    ]);
+    ];
+    if (quizTier) {
+      calls.push(
+        callModel({
+          tier: quizTier,
+          stage: 'authorQuiz',
+          ledger,
+          budgetUsd,
+          schema: subSchema(QUIZ_FIELDS, slice),
+          schemaName: 'lesson_quiz',
+          validate: subValidator(QUIZ_FIELDS),
+          maxOutputTokens: 6000,
+          system: coreSystemPrompt(slice),
+          user: lessonUserPrompt(slice),
+        }),
+      );
+    }
+    const [core, surfaces, quiz] = await Promise.all(calls);
     const merged = {
       ...core.result,
       ...surfaces.result,
       slides: normalizeSlides(surfaces.result.slides),
       plan: core.result.plan,
-      quizItems: core.result.quizItems,
+      quizItems: quizTier ? quiz.result.quizItems : core.result.quizItems,
       studyGuideSection: core.result.studyGuideSection,
-      claims: [...(core.result.claims ?? []), ...(surfaces.result.claims ?? [])],
+      claims: [
+        ...(core.result.claims ?? []),
+        ...(surfaces.result.claims ?? []),
+        ...(quizTier ? (quiz.result.claims ?? []) : []),
+      ],
     };
     const errors = validateAuthoredLesson(merged);
     if (errors.length > 0) throw new Error(`split-authoring merge failed contract: ${errors.join('; ')}`);
@@ -428,6 +459,9 @@ export async function authorExamItems(
   if (mock) return mock(graph, exam, concepts);
   const itemCount = Math.min(Math.max(coveredLessons.length, 6), 12);
   const schema = structuredClone(EXAM_ITEMS_SCHEMA);
+  // Exposure enforced at the grammar (roadmap 1.3): an exam item can only
+  // assess a concept the covered lessons actually taught.
+  schema.properties.items.items.properties.conceptId = { type: 'string', enum: concepts.map((c) => c.id) };
   schema.properties.claims.items.properties.ref = {
     type: ['string', 'null'],
     enum: [
@@ -447,7 +481,7 @@ export async function authorExamItems(
     maxOutputTokens: 8000,
     system:
       `You are writing "${exam.registryKey}" for ${graph.course.title} (${exam.weightPct}% of the grade), covering ${coveredLessons.length} lessons. ` +
-      `Write ${itemCount} EXAM items — apply/transfer difficulty only, novel scenarios (never reworded practice questions), misconception distractors where documented, VARY correctIndex, ` +
+      `Write ${itemCount} EXAM items — apply/transfer difficulty only, roughly 60% apply / 40% transfer, novel scenarios (never reworded practice questions), misconception distractors where documented, VARY correctIndex, ` +
       `each item tagged with the conceptId it assesses, and explanations that confront the documented corrective when one exists.`,
     user: JSON.stringify({ concepts, coveredLessonTitles: coveredLessons.map((l) => l.title) }, null, 1),
   });
