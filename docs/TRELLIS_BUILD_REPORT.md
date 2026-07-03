@@ -568,6 +568,61 @@ Trellis runs $6.59 canonical (all itemized; includes every failed and
 re-run attempt) + crucible rounds ≈ $1.16 + advisory judges ≈ $0.05 ≈
 **$7.8 this session; ≈ $8.2 across the whole Trellis project to date.**
 
+## 5f. The lean frontier — better quality at less cost, measured
+
+_Owner directive: "better quality with less cost." Five lean rounds on
+cs-python answered it, with two architectural findings and one honest
+instrument collision along the way._
+
+### The findings
+
+1. **Nano can't hold the big call but holds the split.** The full
+   12-field lesson call failed 3/15 lessons on nano; the split's small
+   schemas (core + surfaces as separate calls) ran clean all day — so the
+   lean tier keeps the split even when both sides are nano, and premium
+   goes single-call by config.
+2. **J11's catch bar is model-hard but graph-easy.** Models — nano AND
+   mini — paraphrase misconceptions into distractors, failing the exact
+   matching rule Prof's classroom applies (20 residuals, $0.105 of futile
+   repair). The graph holds the documented wrong belief verbatim, so
+   catch splicing quotes it into the weakest distractor slot
+   deterministically: zero tokens, disclosed per splice.
+3. **The instrument collision, recorded not optimized away.** Per-item
+   splicing (64 splices) passed Prof's 60% item-catch bar — and the
+   teach-as-is judge scored that quiz **4/10**: the same wrong belief as
+   an option in every item is bad quiz design. Prof's psychometric
+   coverage metric and quiz quality pull against each other at high
+   splice density. The shipped balance: at most 2 catching items per
+   misconception.
+
+### The frontier (all cs-python, same rulers, canonical rates)
+
+| Configuration                                          | Cost       | Time       | Grader                | Judge                             | a2 repair           | a2 catch         |
+| ------------------------------------------------------ | ---------- | ---------- | --------------------- | --------------------------------- | ------------------- | ---------------- |
+| Current pipeline (same-day rounds)                     | $0.13–0.15 | 217–454 s  | 95–99/A               | 4–7 (14-round mean 4.14)          | **0%** (documented) | 9%               |
+| **Trellis lean (round 5: nano split + capped splice)** | **$0.052** | **164 s**  | **99/A** (P0=0, P1=1) | **8** (plan 8 · quiz 6 · guide 9) | **63.4%** (bar 70)  | **56%** (bar 60) |
+| Trellis draft (mini core, E1 vintage)                  | $0.22–0.36 | ~150–180 s | 96–99/A               | 8–9                               | 39.5% (pre-splice)  | 19% (pre-splice) |
+
+**The directive's answer: lean round 5 is ~60% cheaper than the current
+pipeline, 1.3–2.7× faster, grader-equal, +3 judge points, with
+misconception repair at 63% against the current pipeline's documented
+0% and catch at 56% against its 9% — better quality at less cost, by
+every instrument in the house.** Rounds 1–4 are all in
+`trellis/runs/lean-cs-python-*` with ledgers; nothing was averaged away.
+
+### Honest caveats on the lean numbers
+
+- The judge's quiz artifact scores 6 on lean (nano + splices) vs 8–9 on
+  draft (mini) — the remaining quality lever is a quiz-only mini call
+  (projected ≈ $0.13 total, still ≤ current). Untested.
+- a2 coverage varies with intake (9–20 genome-testable concepts per
+  run), so repair/catch percentages have run-to-run denominators —
+  trends are real (0% → 63%), point values are noisy.
+- The repair (63.4%) and catch (56%) bars remain honestly UNMET (70/60),
+  along with compliance (27% vs 25%) and 2 unexposed exam items.
+- Single course, single judge seat, SIMULATED — the lean configuration
+  has not yet run the 7-course E1 protocol; that comparison used draft.
+
 ## 6a. Where quality still falls short — the next round, pre-registered
 
 The instruments that matter most say the gaps out loud, and writing them

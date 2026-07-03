@@ -930,6 +930,21 @@ polishing a candidate that hasn't won.
   Session ≈ $7.8; project total ≈ $8.2, itemized. 79 trellis tests.
   Pivot stays gated on E2/E3/E5 + the human anchor, by design.
 
+- **2026-07-03 (lean frontier, owner-directed: "better quality with less
+  cost").** Five lean rounds on cs-python. Findings: nano fails the big
+  single call but holds the SPLIT's small schemas (lean = nano+nano split);
+  J11's catch bar is model-hard but graph-easy → deterministic catch
+  SPLICING (wrong belief quoted verbatim into the weakest distractor,
+  disclosed); per-item splicing exposed an instrument COLLISION (Prof's
+  60% item-catch bar passed while the judge scored the quiz 4/10 —
+  repetition is bad design) → capped at 2 catches/misconception.
+  **Round 5: $0.052, 164 s, 99/A, judge 8, a2 repair 63.4% (from 0%
+  baseline; bar 70) and catch 56% (from 9%; bar 60) — ~60% cheaper than
+  the current pipeline with better quality on every instrument.**
+  Caveats: quiz artifact 6 vs draft's 8-9 (quiz-on-mini ≈ $0.13 untested);
+  a2 denominators vary with intake; single course, single seat, SIMULATED;
+  lean has not run the 7-course E1. Report §5f. 81 trellis tests.
+
 ---
 
 _— Fable 5_
