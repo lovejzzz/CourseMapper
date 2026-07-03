@@ -86,16 +86,34 @@ export function spliceCatchDistractors(graph, authored) {
       })),
     );
     if (lessonMisconceptions.length === 0) continue;
+    // Cap: at most 2 catching items per misconception per lesson. Per-item
+    // splicing (lean-4) passed Prof's catch bar but the judge scored the
+    // quiz 4/10 — the same wrong belief as an option in every item is bad
+    // quiz DESIGN, and the two instruments collide. Two catches balances
+    // psychometric coverage against repetition; the tension is recorded.
+    const catchCount = new Map(lessonMisconceptions.map(({ m }) => [m.id, 0]));
+    for (const item of art.quizItems) {
+      item.options.forEach((option, oi) => {
+        if (oi === item.correctIndex) return;
+        for (const { m } of lessonMisconceptions) {
+          if (distractorCatches(option, m.statement)) catchCount.set(m.id, (catchCount.get(m.id) ?? 0) + 1);
+        }
+      });
+    }
     art.quizItems.forEach((item, index) => {
       const already = item.options.some(
         (option, oi) =>
           oi !== item.correctIndex && lessonMisconceptions.some(({ m }) => distractorCatches(option, m.statement)),
       );
       if (already) return;
-      // Pick the misconception whose concept best matches this item's stem.
-      let chosen = lessonMisconceptions[0];
+      if (![...catchCount.values()].some((n) => n < 2)) return; // all capped
+      // Pick the UNDER-CAUGHT misconception whose concept best matches this
+      // item's stem.
+      const candidates = lessonMisconceptions.filter(({ m }) => (catchCount.get(m.id) ?? 0) < 2);
+      if (candidates.length === 0) return;
+      let chosen = candidates[0];
       let bestScore = -1;
-      for (const entry of lessonMisconceptions) {
+      for (const entry of candidates) {
         const score = tokenOverlapRatio(entry.conceptName, item.stem);
         if (score > bestScore) {
           bestScore = score;
@@ -116,6 +134,7 @@ export function spliceCatchDistractors(graph, authored) {
       if (slot === -1) return;
       const wording = index % 2 === 0 ? beliefTextFromStatement(chosen.m.statement) : chosen.m.statement;
       item.options[slot] = wording;
+      catchCount.set(chosen.m.id, (catchCount.get(chosen.m.id) ?? 0) + 1);
       splices.push({ lessonId: lesson.id, misconceptionId: chosen.m.id, item: index, slot });
     });
   }
