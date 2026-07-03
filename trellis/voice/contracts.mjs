@@ -240,7 +240,7 @@ export function validateAuthoredLesson(authored) {
       (seg) =>
         seg?.mode === 'reteach' && /example|walk|work(ed|ing)? through|demo|trace/i.test(String(seg?.text ?? '')),
     ),
-    'the reteach segment must walk one worked example (mention the example it works through)',
+    'plan.segments: the reteach segment must walk one worked example (name the example it works through in its text)',
   );
 
   need(Array.isArray(authored.slides) && authored.slides.length >= 6, 'slides needs ≥6 entries');
