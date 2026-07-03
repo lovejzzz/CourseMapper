@@ -144,6 +144,8 @@ export function spliceCatchDistractors(graph, authored) {
       // cleaned belief form, and skip when no belief form exists.
       const belief = chosen.m.beliefForm ?? beliefTextFromStatement(chosen.m.statement);
       if (!belief) return;
+      // Never create duplicate options (the J1 ambiguity class).
+      if (item.options.some((option) => option.trim().toLowerCase() === belief.trim().toLowerCase())) return;
       item.options[slot] = belief;
       catchCount.set(chosen.m.id, (catchCount.get(chosen.m.id) ?? 0) + 1);
       splices.push({ lessonId: lesson.id, misconceptionId: chosen.m.id, item: index, slot });

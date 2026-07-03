@@ -153,7 +153,9 @@ export function buildStructured(graph, authored, authoredExams = {}) {
   return { id: 'trellis:in-memory', lessons, items };
 }
 
-const runDir = process.argv[2];
+import { pathToFileURL } from 'node:url';
+const executedDirectly = process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href;
+const runDir = executedDirectly ? process.argv[2] : null;
 if (runDir) {
   const structured = await buildStructuredFromRun(runDir);
   const out = join(runDir, 'structured.json');

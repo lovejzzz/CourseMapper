@@ -253,13 +253,20 @@ async function runPipelineStages({
   }
 
   // 7 · judge + repair
+  let respliced = 0;
   const repair = await repairLoop(graph, authored, {
     tier: tiers.repair,
     ledger,
     budgetUsd,
     maxRounds: mockVoice ? 1 : 2,
+    afterRound: (g, a) => {
+      respliced += spliceCatchDistractors(g, a).length;
+    },
     ...(mockVoice ? { mock: mockAuthorLesson } : {}),
   });
+  if (respliced > 0) {
+    digest.catchSplices = `${digest.catchSplices ? `${digest.catchSplices}; ` : ''}${respliced} re-spliced after repair rounds`;
+  }
   const prereqEdges = graph.concepts.reduce((n, c) => n + c.requires.length, 0);
   digest.judgment = `Course judgment: ${blockingFindings(repair.findings).length === 0 ? 'no gaps' : `${blockingFindings(repair.findings).length} open finding(s)`} across ${graph.lessons.length} lessons; ${prereqEdges} prerequisite edges verified in order (V2)${bridges.length > 0 ? `; ${bridges.length} prerequisite gap(s) bridged with inline primers` : ''}; checks J1–J10 ran, ${repair.rounds} repair round(s) (${repair.sectionRepairs ?? 0} section, ${repair.fullRepairs ?? 0} full)`;
   if (repair.honest) digest.repairHonesty = repair.honest;

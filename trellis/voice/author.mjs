@@ -355,7 +355,7 @@ export async function repairQuizSection(graph, lessonId, authoredLesson, finding
     system:
       `You are repairing ONLY the quiz items of week ${slice.lesson.week} ("${slice.lesson.title}") in ${slice.course.title}. ` +
       `Return the full corrected quizItems array (${slice.constraints.quizItems} items) and quizClaims ({path:"quizItems[i]...", ref}). ` +
-      `For each documented misconception: at least one item carries a DISTRACTOR that states the wrong belief near-verbatim (keep its key terms), and at least one explanation confronts the corrective (quote or faithful paraphrase). Misconceptions:\n${slice.concepts
+      `Rules: (1) for each documented misconception, at least one item carries a DISTRACTOR that states the wrong belief near-verbatim (keep its key terms); (2) PAIRING — any item whose options include a misconception must have an explanation that confronts THAT misconception's corrective; (3) no two options in an item may be identical. Misconceptions:\n${slice.concepts
         .flatMap((c) => c.misconceptions)
         .map((m) => `  • WRONG BELIEF: "${m.statement}" → CORRECTIVE: "${m.corrective}"`)
         .join('\n')}`,

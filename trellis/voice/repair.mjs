@@ -21,7 +21,11 @@ async function repairOneLesson(graph, authored, lessonId, lessonFindings, option
   return authorLesson(graph, lessonId, { ...options, repairNotes: complaints });
 }
 
-export async function repairLoop(graph, authored, { tier, ledger, budgetUsd = null, maxRounds = 2, mock = null } = {}) {
+export async function repairLoop(
+  graph,
+  authored,
+  { tier, ledger, budgetUsd = null, maxRounds = 2, mock = null, afterRound = null } = {},
+) {
   let rounds = 0;
   let sectionRepairs = 0;
   let fullRepairs = 0;
@@ -48,6 +52,9 @@ export async function repairLoop(graph, authored, { tier, ledger, budgetUsd = nu
         if (result.status === 'fulfilled') authored[batch[j]] = result.value;
       });
     }
+    // Deterministic post-round transforms (catch re-splicing) run before
+    // re-judging: repaired quizzes must not lose their structural guarantees.
+    afterRound?.(graph, authored);
     findings = runChecks(graph, authored);
   }
   const residual = blockingFindings(findings).filter((f) => f.path.startsWith('authored/'));
