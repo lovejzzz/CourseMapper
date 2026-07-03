@@ -63,7 +63,7 @@ export default [
     },
   },
   {
-    files: ['scripts/**/*.mjs'],
+    files: ['scripts/**/*.mjs', 'trellis/**/*.mjs'],
     languageOptions: {
       globals: {
         ...globals.node,

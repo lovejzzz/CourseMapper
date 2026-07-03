@@ -8,3 +8,4 @@ verification-output/
 API-dontComit/
 .claude/
 scripts/foundry/snapshots/
+trellis/runs/

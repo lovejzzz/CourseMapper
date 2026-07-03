@@ -17,6 +17,8 @@
     "test:e2e": "playwright test",
     "test:v0858:agent": "vitest run tests/agent-v0858-red-team.test.jsx",
     "test:offline": "vitest run src/",
+    "trellis": "npx vite-node trellis/cli.mjs --",
+    "trellis:test": "vitest run trellis",
     "lint": "eslint . --quiet",
     "format": "prettier . --write",
     "format:check": "prettier . --check",
