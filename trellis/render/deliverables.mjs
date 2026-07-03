@@ -89,6 +89,13 @@ function buildExamItems(examAssessment, coveredLessons, authoredByLesson) {
   return items;
 }
 
+// The package's .md files are FINAL rendered text (the grader and the DOCX
+// path read them literally), so authored inline-code backticks must render
+// as plain text — a formatting transform, never a prose change.
+export function stripCodeSpans(text) {
+  return String(text).replace(/`([^`\n]+)`/g, '$1');
+}
+
 export function renderPackage({ graph, authored, courseWide, generatedAt, digest = null }) {
   if (!generatedAt) throw new Error('renderPackage requires generatedAt (pass a fixed value in tests)');
   const { course } = graph;
@@ -98,7 +105,7 @@ export function renderPackage({ graph, authored, courseWide, generatedAt, digest
   const manifestFiles = [];
   const put = (folder, name, content, featureId) => {
     const path = `${folder}/${name}.md`;
-    files.set(path, content);
+    files.set(path, stripCodeSpans(content));
     manifestFiles.push({ path, featureId });
   };
 

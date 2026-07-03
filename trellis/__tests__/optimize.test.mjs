@@ -112,3 +112,27 @@ describe('pipeline integration of the deterministic fixes (mock, zero tokens)', 
     expect(result.digest.judgment).toMatch(/0 section, 0 full|repair round/);
   }, 30000);
 });
+
+describe('render backtick sanitizer (the format-58 fix)', () => {
+  it('strips inline code spans from every rendered file', async () => {
+    const { stripCodeSpans, renderPackage } = await import('../render/deliverables.mjs');
+    expect(stripCodeSpans('A student writes `7 / 2` and expects `3`.')).toBe('A student writes 7 / 2 and expects 3.');
+    const { buildResearchMethods8 } = await import('../fixtures/graphs/researchMethods8.mjs');
+    const { buildLessonSlice } = await import('../voice/contracts.mjs');
+    const { mockAuthorLesson, mockAuthorCourseWide } = await import('../voice/mockAuthor.mjs');
+    const graph = buildResearchMethods8();
+    const authored = Object.fromEntries(
+      graph.lessons.map((lesson) => [lesson.id, mockAuthorLesson(buildLessonSlice(graph, lesson.id))]),
+    );
+    authored.l1.studyGuideSection += '\nCheck `x == 1` before `print(x)`.';
+    const { files } = renderPackage({
+      graph,
+      authored,
+      courseWide: mockAuthorCourseWide(graph),
+      generatedAt: '2026-07-03T00:00:00.000Z',
+    });
+    for (const [path, content] of files) {
+      if (path.endsWith('.md')) expect(content, path).not.toMatch(/`[^`\n]+`/);
+    }
+  });
+});
