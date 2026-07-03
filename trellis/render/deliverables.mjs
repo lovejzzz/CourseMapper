@@ -491,7 +491,7 @@ export function renderPackage({ graph, authored, courseWide, generatedAt, digest
   const manifest = {
     courseName: course.title,
     generatedAt,
-    generator: 'trellis@0.1.0',
+    generator: 'trellis@0.1.1',
     lessonScope: 'all',
     ...(digest ? { pipeline: digest } : {}),
     assessments: graph.assessments.map((a) => ({

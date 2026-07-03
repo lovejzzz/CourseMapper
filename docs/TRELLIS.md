@@ -957,6 +957,18 @@ polishing a candidate that hasn't won.
   only 1-2 J3/run remain); 2 unexposed items traced to the sim exposure
   model. Report §5g.
 
+- **2026-07-03 (v0.1.1 roadmap).** All measured gaps consolidated into
+  [TRELLIS_ROADMAP_V0.1.1.md](TRELLIS_ROADMAP_V0.1.1.md) — four tiers,
+  every item with evidence, exact fix, and a measurable exit bar:
+  Tier 1 clears the classroom bars (J3b item-level pairing → repair ≥70;
+  beliefForm at the knowledge source → catch ≥60; J12 exposure + exam
+  blueprint; non-reader strengthening → compliance ≤25). Tier 2: quiz-on-
+  mini three-way split (≤$0.13) + reading verification. Tier 3: claim
+  entailment, a2 as a build gate, flywheel verification. Tier 4: export
+  parity + multi-seat judging + the human anchor (pivot stays gated).
+  Generator version bumped trellis@0.1.0 → 0.1.1; app version untouched
+  by ground rule #2.
+
 ---
 
 _— Fable 5_
