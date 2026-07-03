@@ -864,6 +864,24 @@ polishing a candidate that hasn't won.
   ground-rule-#5 violation now structurally impossible). Probe after fix:
   first-attempt success, $0.0034/lesson. Second live run in flight; result
   recorded in the next entry, pass or fail.
+- **2026-07-03 (live ladder + head-to-head)** — Attempt 2: 14/15 (slide
+  floor unstated in prompt; fixed). **Attempt 3: SUCCESS — full live
+  pipeline, syllabus → graded package, 98/A, ~9 min.** Its residuals
+  caught a real Trellis bug (lang-shard "Korean" misconceptions linked
+  into a Python course — the v0.16.1 bycatch class); root-fixed with
+  discipline-gated linking + regression test. **Attempt 4 (post-fix):
+  97/A, judge 8/10, zero bycatch.** PRICING CORRECTED: hand-guessed mini
+  rates understated cost 3–4.5×; providers.mjs now borrows
+  src/lib/apiUsageCost.js; true draft-tier cost $0.63–0.66/course.
+  **Head-to-head, same day/course/rulers: current pipeline 99/A · judge
+  5/10 · $0.12 · 217 s; Trellis draft 97–98/A · judge 7–8/10 ·
+  $0.63–0.66 · 9–11 min.** The judge (n=14 history: mean 4.14, max 5)
+  independently named "repeated placeholder phrasing" in the current
+  package and called the Trellis package "a solid set to teach from."
+  ADVISORY, n=2, unpaired — the measured prior for E1, not a verdict.
+  Full data: [TRELLIS_BUILD_REPORT.md](TRELLIS_BUILD_REPORT.md) §5–§5b.
+  Session spend ≈ $2.10 total. Next action: owner decision on E1
+  (~$5, §17). M5 pivot memo blocked on E1–E3/E5 by design.
 
 ---
 
