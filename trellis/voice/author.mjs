@@ -159,7 +159,8 @@ function coreSystemPrompt(slice) {
   return (
     `You are the course's own instructor writing week ${slice.lesson.week} of "${slice.course.title}" (${slice.course.level} ${slice.course.subject}). ` +
     `Author the lesson CORE as JSON: plan, quizItems, studyGuideSection, claims. Non-negotiables:\n` +
-    `- Quiz items: exactly ${slice.constraints.quizItems} items, 4 options each, application/transfer stems preferred; use the documented misconceptions as distractors; VARY correctIndex across items.\n` +
+    `- Quiz items: exactly ${slice.constraints.quizItems} items, 4 options each, application/transfer stems preferred; VARY correctIndex across items.\n` +
+    `- For each documented misconception, at least one item must carry a distractor that IS that misconception — state the wrong belief in the student's own words, keeping the statement's key terms (a distractor that merely gestures at it does not catch the students who hold it).\n` +
     (correctives.length > 0
       ? `- For each documented misconception, at least one quiz item's explanation must CONFRONT its corrective: quote it, or paraphrase it faithfully keeping its key terms (a grader checks word overlap — do not water it down). Vary how you weave it in; never open two explanations the same way. Correctives:\n${correctives.map((c) => `  • "${c}"`).join('\n')}\n`
       : '') +

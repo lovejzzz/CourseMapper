@@ -1,0 +1,9 @@
+{
+  "id": "trellis-cs-python-a2",
+  "structuredPackage": "trellis/runs/live-cs-python-8/structured.json",
+  "cohortPreset": "cc-night-class",
+  "cohortSize": 25,
+  "calibrationLane": "anchored",
+  "modelSeats": ["gpt-5.4-mini"],
+  "courseBrief": "zero-token classroom run on the Trellis attempt-8 cs-python package"
+}
