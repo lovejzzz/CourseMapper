@@ -68,7 +68,14 @@ export function buildLessonSlice(graph, lessonId, { constraints = DEFAULT_CONSTR
       subject: graph.course.subject,
       level: graph.course.level,
     },
-    lesson: { id: lesson.id, week: lesson.week, session: lesson.session, title: lesson.title, number: index + 1 },
+    lesson: {
+      id: lesson.id,
+      week: lesson.week,
+      session: lesson.session,
+      title: lesson.title,
+      number: index + 1,
+      introduces: lesson.introduces,
+    },
     concepts,
     outcomes: lesson.outcomeIds.map((id) => outcomesById.get(id)).filter(Boolean),
     assessments: assessmentsForLesson(graph, lesson).map(({ id, kindOf, registryKey, weightPct }) => ({

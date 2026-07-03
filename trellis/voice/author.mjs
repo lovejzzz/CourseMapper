@@ -22,6 +22,7 @@ import {
   validateExamItems,
 } from './contracts.mjs';
 import { orderedLessons, conceptsForLesson, misconceptionsForConcept } from '../graph/schema.mjs';
+import { quizInstrumentErrors, introducedMisconceptions, ITEM_CATCH_SHARE } from './quizInstrument.mjs';
 
 export function legalRefsForSlice(slice) {
   return [
@@ -107,15 +108,21 @@ function subSchema(fields, slice) {
   };
 }
 
-function subValidator(fields) {
+function subValidator(fields, slice = null) {
   // Validate the fragment by merging it over a shell that satisfies the
   // other half, then filtering the full validator's errors to our fields.
+  // When the fragment owns quizItems and a slice is given, the classroom
+  // instrument's own rules run in the same retry loop (quizInstrument.mjs).
   return (parsed) => {
     if (!parsed || typeof parsed !== 'object') return ['must be an object'];
     const errors = validateAuthoredLesson({ ...VALID_SHELL, ...parsed });
-    return errors.filter((e) =>
+    const filtered = errors.filter((e) =>
       fields.some((f) => e.startsWith(f) || e.includes(`${f}.`) || e.includes(`${f}[`) || e.includes(f)),
     );
+    if (slice && fields.includes('quizItems')) {
+      filtered.push(...quizInstrumentErrors(parsed.quizItems, introducedMisconceptions(slice)));
+    }
+    return filtered;
   };
 }
 
@@ -188,6 +195,37 @@ function coreSystemPrompt(slice) {
   );
 }
 
+// The wrong-belief/corrective pairs, verbatim — the lexical gates (J11,
+// J3b, Prof's catch matcher) check shared key terms, so the model must see
+// the exact texts, not a summary of them.
+function misconceptionBlocks(misconceptions) {
+  return misconceptions
+    .map((m, i) => {
+      const belief = m.beliefForm ?? m.statement;
+      const documented = m.beliefForm && m.beliefForm !== m.statement ? `\n     (documented as: "${m.statement}")` : '';
+      return `  ${i + 1}. WRONG BELIEF (use as a distractor, keep its key terms): "${belief}"${documented}\n     CORRECTIVE (the catching item's explanation keeps ITS key terms): "${m.corrective}"`;
+    })
+    .join('\n');
+}
+
+function quizSystemPrompt(slice) {
+  const misconceptions = introducedMisconceptions(slice);
+  const count = slice.constraints.quizItems;
+  return (
+    `You are the course's own instructor writing the week-${slice.lesson.week} quiz for "${slice.course.title}" (${slice.course.level} ${slice.course.subject}). ` +
+    `Author quizItems + claims as JSON. Non-negotiables:\n` +
+    `- Exactly ${count} items, 4 options each, application/transfer stems preferred over recall; VARY correctIndex across items; no two options in an item may be identical.\n` +
+    (misconceptions.length > 0
+      ? `- The distractors ARE the documented wrong beliefs below. At least ${Math.ceil(count * ITEM_CATCH_SHARE)} of the ${count} items must carry one as a wrong option — vary the wording across items, but keep each belief's key technical terms (a lexical grader checks shared terms, and the simulated student who holds the belief must recognize it as their own).\n` +
+        `- PAIRING: any item whose options state a wrong belief must confront that belief's corrective in its explanation — quote it or paraphrase it keeping its key terms. The student who picks the wrong belief reads its repair.\n` +
+        `- Documented misconceptions:\n${misconceptionBlocks(misconceptions)}\n`
+      : '') +
+    `- Where a concept carries workedExamples, build at least one stem from a provided example (show the actual case, not a description of it).\n` +
+    `- Every factual claim traces to the kernel facts provided; never invent facts. claims[]: {path like "quizItems[2].explanation", ref from the schema enum or null}.\n` +
+    `- Write like a person who teaches this course: specific, direct, no template phrases; never open two explanations the same way.`
+  );
+}
+
 function surfacesSystemPrompt(slice) {
   return (
     `You are the course's own instructor writing week ${slice.lesson.week} of "${slice.course.title}" (${slice.course.level} ${slice.course.subject}). ` +
@@ -227,7 +265,7 @@ export async function authorLesson(
         budgetUsd,
         schema: subSchema(coreFields, slice),
         schemaName: 'lesson_core',
-        validate: subValidator(coreFields),
+        validate: subValidator(coreFields, slice),
         maxOutputTokens: 8000,
         system: coreSystemPrompt(slice),
         user: lessonUserPrompt(slice),
@@ -254,9 +292,9 @@ export async function authorLesson(
           budgetUsd,
           schema: subSchema(QUIZ_FIELDS, slice),
           schemaName: 'lesson_quiz',
-          validate: subValidator(QUIZ_FIELDS),
+          validate: subValidator(QUIZ_FIELDS, slice),
           maxOutputTokens: 6000,
-          system: coreSystemPrompt(slice),
+          system: quizSystemPrompt(slice),
           user: lessonUserPrompt(slice),
         }),
       );
@@ -317,7 +355,7 @@ export const QUIZ_REPAIR_SCHEMA = {
   },
 };
 
-export function validateQuizRepair(constraints) {
+export function validateQuizRepair(constraints, misconceptions = []) {
   return (parsed) => {
     const errors = [];
     if (!Array.isArray(parsed?.quizItems) || parsed.quizItems.length < Math.max(constraints.quizItems ?? 6, 3)) {
@@ -332,6 +370,10 @@ export function validateQuizRepair(constraints) {
         errors.push(`quizItems[${i}].explanation too short`);
     }
     if (!Array.isArray(parsed?.quizClaims)) errors.push('quizClaims must be an array');
+    // A repair that would fail the classroom instrument is rejected inside
+    // THIS call's retry loop — run 3 proved the outer judge/repair cycle
+    // never converges without it.
+    errors.push(...quizInstrumentErrors(parsed?.quizItems ?? [], misconceptions));
     return errors;
   };
 }
@@ -343,6 +385,7 @@ export async function repairQuizSection(graph, lessonId, authoredLesson, finding
     type: ['string', 'null'],
     enum: [...legalRefsForSlice(slice), null],
   };
+  const misconceptions = introducedMisconceptions(slice);
   const { result } = await callModel({
     tier,
     stage: 'repair',
@@ -350,15 +393,13 @@ export async function repairQuizSection(graph, lessonId, authoredLesson, finding
     budgetUsd,
     schema,
     schemaName: 'quiz_repair',
-    validate: validateQuizRepair(slice.constraints),
+    validate: validateQuizRepair(slice.constraints, misconceptions),
     maxOutputTokens: 5000,
     system:
       `You are repairing ONLY the quiz items of week ${slice.lesson.week} ("${slice.lesson.title}") in ${slice.course.title}. ` +
       `Return the full corrected quizItems array (${slice.constraints.quizItems} items) and quizClaims ({path:"quizItems[i]...", ref}). ` +
-      `Rules: (1) for each documented misconception, at least one item carries a DISTRACTOR that states the wrong belief near-verbatim (keep its key terms); (2) PAIRING — any item whose options include a misconception must have an explanation that confronts THAT misconception's corrective; (3) no two options in an item may be identical. Misconceptions:\n${slice.concepts
-        .flatMap((c) => c.misconceptions)
-        .map((m) => `  • WRONG BELIEF: "${m.statement}" → CORRECTIVE: "${m.corrective}"`)
-        .join('\n')}`,
+      `Rules: (1) for each documented misconception, at least one item carries a DISTRACTOR that states the wrong belief near-verbatim (keep its key terms); (2) at least ${Math.ceil(slice.constraints.quizItems * ITEM_CATCH_SHARE)} of the ${slice.constraints.quizItems} items must carry a wrong belief as an option — vary the wording, keep each belief's key terms; (3) PAIRING — any item whose options state a wrong belief must confront THAT belief's corrective in its explanation, keeping the corrective's key terms; (4) no two options in an item may be identical.` +
+      (misconceptions.length > 0 ? ` Documented misconceptions:\n${misconceptionBlocks(misconceptions)}` : ''),
     user: JSON.stringify(
       {
         concepts: slice.concepts,

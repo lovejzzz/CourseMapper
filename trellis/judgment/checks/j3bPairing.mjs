@@ -6,7 +6,14 @@
 import { finding } from '../../graph/validate.mjs';
 import { misconceptionsForConcept } from '../../graph/schema.mjs';
 import { tokenOverlapRatio } from '../text.mjs';
-import { distractorCatches } from './j11Catch.mjs';
+import { distractorCatches, catchTextsFor } from './j11Catch.mjs';
+
+export function confrontsCorrective(explanation, corrective) {
+  return (
+    tokenOverlapRatio(corrective, String(explanation ?? '')) >= 0.5 ||
+    String(explanation ?? '').includes(String(corrective).slice(0, 40))
+  );
+}
 
 export function j3bPairing(graph, authored) {
   const findings = [];
@@ -17,21 +24,18 @@ export function j3bPairing(graph, authored) {
     if (misconceptions.length === 0) continue;
     art.quizItems.forEach((item, index) => {
       for (const m of misconceptions) {
-        const catchTexts = [m.statement, m.beliefForm].filter(Boolean);
+        const catchTexts = catchTextsFor(m);
         const caught = item.options.some(
           (option, oi) => oi !== item.correctIndex && catchTexts.some((t) => distractorCatches(option, t)),
         );
         if (!caught) continue;
-        const confronts =
-          tokenOverlapRatio(m.corrective, item.explanation) >= 0.5 ||
-          item.explanation.includes(m.corrective.slice(0, 40));
-        if (!confronts) {
+        if (!confrontsCorrective(item.explanation, m.corrective)) {
           findings.push(
             finding(
               'block',
               'J3B_PAIRING',
               `authored/${lesson.id}`,
-              `quizItems[${index}] catches "${(m.beliefForm ?? m.statement).slice(0, 50)}…" but its explanation never confronts that corrective — the student who picked it learns nothing`,
+              `quizItems[${index}] catches "${(m.beliefForm ?? m.statement).slice(0, 50)}…" but its explanation never confronts that corrective — rewrite that item's explanation keeping the corrective's key terms: "${String(m.corrective).slice(0, 110)}"`,
             ),
           );
         }

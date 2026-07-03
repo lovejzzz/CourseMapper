@@ -26,6 +26,15 @@ export function distractorCatches(distractorText, misconceptionStatement) {
   return shared >= 2 || shared / claim.size >= 0.5;
 }
 
+// Which texts count as "catching" this misconception. Genome-sourced
+// misconceptions (m-genome-*) must be caught against their SHARD statement —
+// that is the exact text Prof's cast matches, and a beliefForm-only match
+// could pass here while failing the instrument. Flywheel/authored ones are
+// not in Prof's cast, so their (model-written) beliefForm counts too.
+export function catchTextsFor(m) {
+  return String(m.id ?? '').startsWith('m-genome-') ? [m.statement] : [m.statement, m.beliefForm].filter(Boolean);
+}
+
 export function j11Catch(graph, authored) {
   const findings = [];
   for (const lesson of graph.lessons) {
@@ -33,8 +42,11 @@ export function j11Catch(graph, authored) {
     if (!art) continue;
     for (const conceptId of lesson.introduces) {
       for (const m of misconceptionsForConcept(graph, conceptId)) {
+        const catchTexts = catchTextsFor(m);
         const caught = art.quizItems.some((item) =>
-          item.options.some((option, oi) => oi !== item.correctIndex && distractorCatches(option, m.statement)),
+          item.options.some(
+            (option, oi) => oi !== item.correctIndex && catchTexts.some((t) => distractorCatches(option, t)),
+          ),
         );
         if (!caught) {
           findings.push(
@@ -42,7 +54,7 @@ export function j11Catch(graph, authored) {
               'block',
               'J11_CATCH',
               `authored/${lesson.id}`,
-              `no quiz distractor catches the documented misconception "${m.statement.slice(0, 70)}…" — state the wrong belief as an option, near-verbatim`,
+              `no quiz distractor catches the documented misconception — add an option stating this wrong belief with its key terms intact: "${(m.beliefForm ?? m.statement).slice(0, 110)}" (documented: "${m.statement.slice(0, 110)}")`,
             ),
           );
         }
