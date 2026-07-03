@@ -911,6 +911,25 @@ polishing a candidate that hasn't won.
   decision) — the advisory prior keeps strengthening but is still not
   the paired verdict.
 
+- **2026-07-03 (quality-plan goal session — all seven items).** Item 1:
+  readings live behind the trust ledger (LA shipped 10/10 through
+  source-finder + J10; the standing P1 is dead). Item 2: breadth across
+  LA/Mandarin/World-Lit/Psych found real contract bugs within one run
+  each (Latin-centric punctuation + length floors, over-packed slides,
+  language-scaffolding, reading lesson-fit) — all root-fixed with tests.
+  Items 3/4/6: kernel examples + anchored quotes in slices; J7 over
+  explanations; dedicated transfer-level exam items + registry-grounded
+  logistics FAQ; prerequisite-gap BRIDGING (the seeded econ gap ships
+  bridged, 99/A, primer disclosed). Item 5: Prof a2 on Trellis — repair
+  39.5% vs current's 0% but below the 70% bar; catch 19% (bar 60%);
+  honest gaps pre-registered in report §6a. **Item 7: E1 GREEN — seven
+  matched courses, judge paired delta mean +3.0, 95% CI [+2.47, +3.53],
+  every course positive, grader parity; current side's best judged day
+  (mean 5.71) vs Trellis 8–9s. SIMULATED, single-seat, disclosed.** Human
+  blind packet sealed at verification-output/trellis/human-blind-packet/.
+  Session ≈ $7.8; project total ≈ $8.2, itemized. 79 trellis tests.
+  Pivot stays gated on E2/E3/E5 + the human anchor, by design.
+
 ---
 
 _— Fable 5_

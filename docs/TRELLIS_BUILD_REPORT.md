@@ -459,6 +459,143 @@ architecture note: split-tier trades a little of the D2 consolidation
 lesson (two calls per lesson) for the tier arbitrage — the ledger says
 the trade wins at draft tier, and premium keeps single-call authoring.
 
+## 5e. The quality-plan goal session — all seven items, executed and measured
+
+_Owner directive (/goal): execute the seven-item quality plan in order.
+Every item landed; every claim below has a run artifact._
+
+### Item 1 · Readings behind the trust ledger — the standing P1 is dead
+
+`trellis/knowledge/sources.mjs` borrows the v0.16.1-hardened source-finder
+by import; candidates enter as `trust:'candidate'` ONLY, J10 gates them as
+the second net, drops and degradation are disclosed, offline degrades
+honestly. Live proof: Linear Algebra shipped **10/10 readings, 0
+dropped** — the exact surface that died in the original v0.16.1 cascade.
+The residual finding it exposed (a _lesson-fit_ mismatch: "Invertible
+matrix" headlining the Eigenvalues lesson) got a deterministic best-fit
+rule: a source that shares no vocabulary with a lesson never headlines it.
+
+### Item 2 · Breadth — four disciplines, and every failure was a real bug
+
+| Course                              | Result                                                                  | What breadth caught                                                                                                                                                                                                                                                                                                       |
+| ----------------------------------- | ----------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Linear Algebra (the v0.16.1 killer) | **99/A, judge 8, $0.31, 181 s** — genome 25/26, readings 10/10          | the reading lesson-fit bug                                                                                                                                                                                                                                                                                                |
+| Mandarin                            | first run FAILED → **96/A, judge 9** ("coherent, beginner-appropriate") | the contract was Latin-centric: ASCII-only terminal punctuation (。！？ rejected), Latin-calibrated length floors (an 11-hanzi stem is rich), and briefs authored in Chinese that the grader reads as thin — fixed with CJK-aware punctuation, weighted lengths, and the English-scaffolding/target-language-content rule |
+| World Literature                    | **98/A, P1=0, judge 9** — Trellis's best                                | closing-quote-after-punctuation bullets ("…literature.”")                                                                                                                                                                                                                                                                 |
+| Psychology                          | two failures → **98/A, P1=0, judge 9**                                  | strict mode strips maxItems, so nano over-packs slides — fixed with a layout normalizer that splits >5-bullet slides into continuation slides (structure, never prose)                                                                                                                                                    |
+
+The pattern the plan predicted: one discipline proves almost nothing;
+every new discipline found a real contract bug within one run, and every
+bug became a deterministic rule plus a test the same hour.
+
+### Item 3 · Kernel riches
+
+The shards' worked examples and anchored verbatim quotes now ride into
+every authoring slice, and the prompts direct the model to build the
+worked-example segment and at least one quiz stem from them.
+
+### Item 4 · The new-template guard
+
+J7's echo check covers quiz explanations (the corrective-confrontation
+rule must not become its own formula), and the verbatim requirement
+relaxed to faithful-paraphrase-or-quote once first-pass compliance held.
+
+### Item 5 · Prof's zero-token classroom — the honest gap report
+
+`trellis/profBridge.mjs` builds Prof's structured-course input natively
+from run artifacts (same field shapes as the fixture builder — same
+instrument, both pipelines). First honest a2 verdict on a Trellis package
+($0): **misconception repair 39.5% vs the current pipeline's documented
+0% — real, but far below the 70% bar**; catch rate 19% vs baseline 9%
+(bar 60%); compliance loss 27% (reteach segments recognized 15/15; bar
+25%); solvability 0.919 vs 0.985 (fewer giveaways); 2 unexposed items, 6
+non-discriminating. One near-miss caught mid-session: a2's `--package-dir`
+is ignored — the first run measured the current pipeline's fixture, not
+Trellis, and was almost recorded as Trellis's number. The distractor-catch
+gap got its structural fix (a distractor that IS the misconception,
+prompted); the rest is the next round's work (§6a).
+
+### Item 6 · Dedicated exams + demand-driven FAQ
+
+Exams no longer recycle quiz items: one authored call per exam,
+apply/transfer only, misconception distractors, concept-tagged, honest
+quiz-pull fallback disclosed in-file. The FAQ gains a "Grades, exams, and
+logistics" section authored from the actual registry. Bonus from the
+seeded econ gap (below): **prerequisite-gap bridging** — a forward
+prerequisite whose concept is taught later becomes an authored inline
+primer with a disclosed judgment line, never a hard block and never a
+silent reorder. The crucible's deliberately-seeded econ gap (elasticity
+before demand curve) now ships bridged: 99/A, P1=0, "1 prerequisite
+gap(s) bridged with inline primers", primer note in Lesson 5's plan.
+
+### Item 7 · E1 — GREEN, and the human packet is sealed and waiting
+
+Seven matched courses, one fresh crucible round (side B, its best judged
+day on record: 5,7,6,5,6,6,5 — mean 5.71 vs its 4.14 history) vs seven
+Trellis runs (side A), same judge model + prompt + sampling both sides:
+
+| Course      | Current judge | Trellis judge | Δ   | Trellis grader | Trellis $ |
+| ----------- | ------------- | ------------- | --- | -------------- | --------- |
+| cs-python   | 5             | 8             | +3  | 97             | $0.362    |
+| mandarin    | 7             | 9             | +2  | 96             | $0.299    |
+| world-lit   | 6             | 9             | +3  | 98             | $0.216    |
+| geology     | 5             | 8             | +3  | 99             | $0.264    |
+| econ-intro  | 6             | 9             | +3  | 99             | $0.230    |
+| stats-intro | 6             | 9             | +3  | 99             | $0.231    |
+| psych-101   | 5             | 9             | +4  | 98             | $0.266    |
+
+**Judge paired delta: mean +3.0, sd 0.58, 95% CI [+2.47, +3.53], n=7 —
+every course positive; the CI excludes zero by 2.5 points, far beyond the
+§17 non-regression bar. Grader: statistical parity (mean −0.29, CI
+[−2.33, +1.76]). E1 verdict: GREEN.** Full data:
+`verification-output/trellis/E1_REPORT.md`.
+
+Honest disclosures on this verdict: one judge seat, one round per side,
+the advisory scale (NOT the anchored teach-as-is scale); Trellis runs
+span several same-day commits of the fix→rerun loop (each course ran at
+the version including all fixes its predecessors exposed — the crucible's
+own discipline, but version-pure it is not); Trellis cost $0.216–0.362
+per course vs the spec's $0.25 matched-cost cap (3 of 7 above it; current
+pipeline $0.08–0.21); and per the constitution this remains SIMULATED
+until the sealed blind packet
+(`verification-output/trellis/human-blind-packet/` — format-normalized,
+assignment sealed in base64) comes back from two humans. **The pivot
+decision stays gated on E2/E3/E5 and the anchor, by design.**
+
+### Session ledger (this goal)
+
+Trellis runs $6.59 canonical (all itemized; includes every failed and
+re-run attempt) + crucible rounds ≈ $1.16 + advisory judges ≈ $0.05 ≈
+**$7.8 this session; ≈ $8.2 across the whole Trellis project to date.**
+
+## 6a. Where quality still falls short — the next round, pre-registered
+
+The instruments that matter most say the gaps out loud, and writing them
+here is the higher standard applied to our own reporting:
+
+1. **Prof's bars are not met.** Catch 19% (bar 60%), repair 39.5% (bar
+   70%), compliance 27% (bar 25%), 6 non-discriminating items, 2 items
+   testing untaught content. Next: the a2 battery becomes a BUILD GATE
+   (it costs $0), J11 makes distractor-catch a deterministic check with
+   targeted repair, and exposure/discrimination pre-checks join J1–J10.
+2. **Citations that mean something.** AUTHORED-GROUNDED currently means
+   "cites a kernel," not "is supported by it" — an entailment check
+   against the cited fact (overlap tier first) upgrades the trust classes
+   from provenance to verification.
+3. **Readings stay candidates.** No license verification, no content
+   fetch, no section deep-links; the citations dimension (89–92 on
+   several runs) points here.
+4. **One judge family, one seat.** All judge numbers are gpt-5.4-mini
+   judging gpt-5.4-family output; multi-seat cross-family panels are the
+   honest upgrade, per the standing variance rules.
+5. **Export parity.** Trellis renders markdown; the app ships real
+   DOCX/PPTX with formatting and applied alt-text. Every quality claim
+   here is content-only until the render layer reaches parity.
+6. **The only word that counts is human.** The sealed packet is built;
+   until two instructors return it, every number in this report keeps its
+   SIMULATED stamp, and "Trellis is better" remains: better on every
+   instrument we own, none of which is a professor.
+
 ## 6. What the build taught (honest findings)
 
 1. **The compat layer was cheaper than feared and the grader is a good
@@ -503,14 +640,14 @@ the trade wins at draft tier, and premium keeps single-call authoring.
 
 ## 7. Pivot-gate status (docs/TRELLIS.md §17)
 
-| Experiment                       | Status                                                                              | Why                                                                                                                   |
-| -------------------------------- | ----------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------- |
-| E0 golden compile                | **GREEN**                                                                           | This session, zero tokens                                                                                             |
-| E1 matched-cost draft A/B        | **NOT RUN — measured prior now exists (§5b: judge 7–8 vs 5 same day, at ~5× cost)** | Needs 8 paired fresh generations incl. crucible browser side-B (~$5, ~hours of wall clock) — owner go-ahead per §19.5 |
-| E2 standard-tier vs current best | **NOT RUN**                                                                         | Follows E1 (~$10)                                                                                                     |
-| E3 grounding + sameness scan     | **NOT RUN**                                                                         | Runs on E2's packages                                                                                                 |
-| E4 replan drill                  | **MECHANICS GREEN**                                                                 | Token-free half proven; incremental-$ half needs an E2 package                                                        |
-| E5 Prof battery                  | **NOT RUN**                                                                         | Follows E2 (~$10–20)                                                                                                  |
+| Experiment                       | Status                                                                                                  | Why                                                                   |
+| -------------------------------- | ------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------- |
+| E0 golden compile                | **GREEN**                                                                                               | This session, zero tokens                                             |
+| E1 matched-cost draft A/B        | **GREEN — judge Δ mean +3.0, 95% CI [+2.47, +3.53], n=7, every course positive; grader parity (§5e)**   | Ran under the /goal directive; single-seat advisory caveats disclosed |
+| E2 standard-tier vs current best | **NOT RUN**                                                                                             | Follows E1 (~$10)                                                     |
+| E3 grounding + sameness scan     | **PARTIAL — texture 94–98 across all seven E1 packages; grounded-fraction scan not yet run**            | Runs on the E1 packages                                               |
+| E4 replan drill                  | **MECHANICS GREEN**                                                                                     | Token-free half proven; incremental-$ half needs an E2 package        |
+| E5 Prof battery                  | **PARTIAL — a2 zero-token ran on Trellis (repair 39.5% vs 0% baseline, below the 70% bar; §5e item 5)** | a1/a2mouth/a4 arenas remain                                           |
 
 No pivot claim is made or implied by this report. The next decision point
 is E1, and it is the owner's call to spend.
