@@ -40,7 +40,16 @@ export async function stageTiers(pipelineTier) {
   return stages;
 }
 
-function costUsd(tier, tokensIn, tokensOut) {
+// Canonical pricing is the app's own table (src/lib/apiUsageCost.js,
+// borrowed per ground rule #4); models.json rates are fallback-only. The
+// first draft of this module hand-guessed mini at $0.25/$1.00 against the
+// real $0.75/$4.50 — a 3-4.5× cost understatement caught during the
+// head-to-head; never hand-maintain a second pricing table.
+import { estimateUsageCost } from '../src/lib/apiUsageCost.js';
+
+function costUsd(tier, rawUsage, tokensIn, tokensOut) {
+  const est = estimateUsageCost({ provider: tier.provider, modelId: tier.modelId, usage: rawUsage });
+  if (est && typeof est.costUsd === 'number') return est.costUsd;
   return (tokensIn * tier.inPerM + tokensOut * tier.outPerM) / 1e6;
 }
 
@@ -161,7 +170,7 @@ export async function callModel({
       tokensIn,
       tokensOut,
       cached,
-      usd: costUsd(tier, tokensIn, tokensOut),
+      usd: costUsd(tier, usage, tokensIn, tokensOut),
     });
 
     const content = json.choices?.[0]?.message?.content ?? '';

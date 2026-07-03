@@ -15,12 +15,12 @@ tests pass (0 failures), the full repo suite (3,989 tests) stays green with
 the app untouched, and the three token-free experiment gates all cleared on
 first or second run:
 
-| Gate                               | Result                                                                                 | Evidence                                          |
-| ---------------------------------- | -------------------------------------------------------------------------------------- | ------------------------------------------------- |
-| **E0 · golden compile**            | **GREEN — 97/A, 0 P0, 0 P1** from the unmodified deep grader v1.8.0                    | `trellis/runs/e0-golden/report.json`              |
-| Mock pipeline end-to-end (CLI)     | **98/A, 0 P0, 0 P1, 2 P2**, $0.0000 spent                                              | `trellis/runs/cli-mock-smoke/grade.json`          |
-| **E4 mechanics · replan drill**    | **GREEN** — locked weeks untouched, registry keys verbatim, 2 of 7 lessons re-authored | `trellis/runs/cli-mock-smoke/replan.summary.json` |
-| Live smoke (cs-python, draft tier) | see §5                                                                                 | `trellis/runs/live-smoke-cs-python/`              |
+| Gate                               | Result                                                                                    | Evidence                                          |
+| ---------------------------------- | ----------------------------------------------------------------------------------------- | ------------------------------------------------- |
+| **E0 · golden compile**            | **GREEN — 97/A, 0 P0, 0 P1** from the unmodified deep grader v1.8.0                       | `trellis/runs/e0-golden/report.json`              |
+| Mock pipeline end-to-end (CLI)     | **98/A, 0 P0, 0 P1, 2 P2**, $0.0000 spent                                                 | `trellis/runs/cli-mock-smoke/grade.json`          |
+| **E4 mechanics · replan drill**    | **GREEN** — locked weeks untouched, registry keys verbatim, 2 of 7 lessons re-authored    | `trellis/runs/cli-mock-smoke/replan.summary.json` |
+| Live smoke (cs-python, draft tier) | see §5 — attempt 1 failed (root-fixed), attempt 2 near-miss (root-fixed), attempt 3 below | `trellis/runs/live-cs-python-*/`                  |
 
 The §17 pivot experiments E1–E3 and E5 are **NOT claimed** — they need
 fresh paired A/B rounds against the current pipeline under the aggregate
@@ -132,9 +132,192 @@ until retries exhausted. Three fixes, each motivated by live evidence:
    an estimate: ~$0.05–0.10; the only unmeasured tokens in this project's
    history, and the reason they stay the only ones.)
 
-### Attempt 2: (recorded below when the run lands — pass or fail)
+### Attempt 2: NEAR MISS — 14/15 lessons, one real limitation found
+
+With strict mode: 14 of 15 lessons authored; `l4` failed three attempts on
+the ≥6-slides floor — strict grammar cannot enforce array LENGTHS (those
+keywords are stripped), and the prompt never stated the count. Fix: the
+system prompt now names the slide range verbatim. **Attempt 2's spend was
+measured by the new flush-on-failure: $0.076, 22 calls** — the honesty
+machinery working on its own failure.
+
+### Attempt 3: SUCCESS — the full live pipeline, syllabus to graded package
+
+`live-cs-python-3`: syllabus text → intake → genome link → flywheel →
+15 lessons authored live → judge → 2 repair rounds → rendered package →
+**graded 98/A by the unmodified deep grader (P0=0, P1=1, P2=4)**.
+
+| Measure                              | Value                                                                                       |
+| ------------------------------------ | ------------------------------------------------------------------------------------------- |
+| **Total cost (measured)**            | **$0.159** — intake $0.005 · flywheel $0.001 · author $0.058 · repair $0.096                |
+| Tokens                               | 84.7k in / 137.9k out, 45 calls, gpt-5.4-mini throughout                                    |
+| Wall clock                           | ~9 minutes                                                                                  |
+| Genome                               | 20/24 concepts linked (cs shard); 4 flywheel-filled, provenance `flywheel-unverified`       |
+| Structure                            | V1–V7 clean; 34 prerequisite edges verified in order                                        |
+| **Texture (the sameness dimension)** | **98/100 live vs 87 mock** — live authoring kills the template disease exactly as predicted |
+| Honesty                              | Digest disclosed 14 UNRESOLVED blocking judgment findings — the pipeline never overstated   |
+
+**The owner's "$0.16" challenge, first data point:** the live Trellis
+draft run cost **$0.159** — within a cent of the current pipeline's $0.16
+— and scored 98/A on the same ruler. This is NOT the E1 verdict (that
+requires paired fresh generations, both sides, aggregate protocol, and
+teach-as-is judging rather than the deep grader); it is the existence
+proof that the matched-cost comparison is winnable.
+
+**What the live draft-tier content actually reads like** (verbatim from
+the attempt-3 package, Lesson 3 "Conditionals and Boolean Logic"):
+
+> _Q1 (apply):_ "A program should print 'winner' only when score is 100.
+> Which condition matches that rule?" — options include `if score = 100:`
+> (the documented `=`/`==` misconception as a distractor) — _instructor
+> feedback:_ "The test for equality uses ==, not a single =. A single = is
+> assignment, so the right condition is score == 100."
+>
+> _Lesson plan, 10-min reteach segment:_ "For students coming in cold,
+> reset the basics. A variable name holds a value through assignment with
+> =, and = does not mean equality…"
+
+Misconception-as-distractor, corrective-in-feedback, and the non-reader
+reteach path — the Lane A/C design goals — present in $0.16 draft-tier
+output, structurally, because the contract demands them rather than hoping
+for them.
+
+**What attempt 3's residual findings caught (each one earning its keep):**
+
+- **J2** caught a genuine live alignment error (outcome verb "Write"
+  tagged `apply`) — the check the v0.16 roadmap calls "the error a
+  professional catches in seconds," caught by a machine in milliseconds.
+- **J5** caught the model inventing 3 source refs on a course that has no
+  sources — hallucinated citations, blocked before render.
+- **J3 × 11** — most residuals were explanation-vs-corrective misses on
+  mini-authored content… and several exposed a REAL TRELLIS BUG:
+- **The linker bycatch:** "expressions" (Python) token-matched a
+  lang-shard kernel, attaching "time expressions in Korean" misconceptions
+  to a CS course — the v0.16.1 cross-discipline cascade class, reproduced
+  inside Trellis on its first real run. Root-fixed the same hour:
+  discipline-gated shard selection (no match → all shards eligible with an
+  honest lower-confidence note) + a Python-never-links-lang regression
+  test. THIS is why the drills run before the experiments.
+
+### Attempt 4: post-fix confirmation run
+
+- Discipline-gated linker + no-invented-sources rule; result recorded in
+  §5a below when it lands.
+
+### 5a. Attempt 4 result
 
 - **Status:** IN FLIGHT at this draft.
+
+## 5b. Head-to-head: current pipeline vs Trellis, measured
+
+_Added at the owner's request: a fact-based speed/cost/quality comparison.
+Sources: the crucible's own round history and per-course judge KPI table
+(`node scripts/crucible.mjs --history`), the Trellis run ledgers (exact
+token counts re-priced at the canonical `src/lib/apiUsageCost.js` rates),
+and a fresh same-day crucible smoke round + advisory-judge calls (same
+judge model, same prompt builder, same artifact sampling on both sides —
+borrowed by import, not reimplemented)._
+
+### The pricing correction that makes these numbers honest
+
+The first Trellis cost figures used hand-guessed rates ($0.25/$1.00 per M
+for gpt-5.4-mini). The canonical table says **$0.75/$4.50** — a 3–4.5×
+understatement. All Trellis costs below are recomputed from the exact
+recorded token counts at canonical rates (`trellis/recomputeLedger.mjs`),
+and `providers.mjs` now borrows the app's pricing module at runtime so a
+second hand-maintained price table can never drift again. The
+poetic "$0.159 ≈ $0.16" line from an earlier draft of this report was an
+artifact of the wrong rates and is retracted: **the real attempt-3 cost is
+$0.657.**
+
+### Quality — same rulers, both sides
+
+| Instrument                                                                 | Current pipeline (cs-python)                                        | Trellis draft tier (cs-python, live)                                          |
+| -------------------------------------------------------------------------- | ------------------------------------------------------------------- | ----------------------------------------------------------------------------- |
+| Deep grader v1.8.0 (overall)                                               | 98–100/A across recent rounds (history)                             | **98/A** (attempt 3, P0=0 P1=1 P2=4)                                          |
+| Deep grader: texture/sameness                                              | high (post-192-roadmap texture work)                                | **98/100** with zero texture machinery                                        |
+| Advisory judge, "teach as-is?" 1–10 (same judge model + prompt + sampling) | **mean 4.14, sd 0.64, range 3–5, n=14 rounds** (crucible KPI table) | **7** (n=1: plan 7 "I would teach from it as-is", quiz bank 8, study guide 6) |
+
+**The honest read of the judge line:** Trellis's single 7 sits ~4.5 sd
+above the current pipeline's 14-round mean and OUTSIDE its entire observed
+range (max 5 in 14 samples) — same judge model, same prompt, same
+sampling, same course. It is still n=1, single-seat, unpaired, and
+advisory by the standing variance rules — it is **evidence the E1/E2
+comparison is worth funding, not a verdict.** The deep-grader tie (98 vs 98) is expected: that instrument measures structural/honesty quality,
+where the current pipeline is already excellent; the judge measures the
+thing the whole project has been chasing.
+
+### Cost — measured, canonical rates
+
+|                           | Current pipeline                                                               | Trellis draft (attempt 3)                                           |
+| ------------------------- | ------------------------------------------------------------------------------ | ------------------------------------------------------------------- |
+| Per full cs-python course | **$0.12–0.18** (July 2 single-course crucible rounds; fresh smoke round below) | **$0.657** (84.7k in / 137.9k out tokens, exact ledger)             |
+| Breakdown                 | n/a (app telemetry)                                                            | intake $0.021 · flywheel $0.003 · author $0.249 · **repair $0.385** |
+| Failed-attempt cost       | —                                                                              | attempt 2: $0.324 (measured by flush-on-failure)                    |
+
+Trellis draft is **~4–5× the current cost**. Where it goes: the repair
+loop ($0.385 — more than authoring itself) re-authored flagged lessons
+serially for two rounds against strict judgment bars. That is the honest
+price of enforcement the current pipeline doesn't attempt — and also the
+most optimizable line item (targeted section repair instead of full-lesson
+re-author; nano-tier repairs; both untested). The per-adopted-course
+argument from TRELLIS.md §5 stands unchanged: if the judge delta is real,
+$0.50 of extra spend against 8–16 saved instructor-hours is noise — but
+that conditional is exactly what E1/E2 exist to test.
+
+### Speed — measured
+
+|                           | Current pipeline                                       | Trellis draft                                                                                                         |
+| ------------------------- | ------------------------------------------------------ | --------------------------------------------------------------------------------------------------------------------- |
+| Full cs-python generation | (fresh smoke round, below)                             | **~9 min** (attempt 3; authoring batches ~4 min + serial repair ~5 min)                                               |
+| Architecture note         | browser app + compiler, sync compile 0.8–1.0s per edit | headless; deterministic stages are milliseconds; replan re-authors only the dirty subgraph (2/7 lessons in the drill) |
+
+### The same-day head-to-head (both sides measured July 3)
+
+Current pipeline: fresh crucible smoke round
+(`round-2026-07-03T07-59-58-284Z`, app defaults, real browser, gpt-5.4-mini,
+judge on). Trellis: attempt 3 (draft tier, same model, same course).
+
+| Measure                                                  | Current pipeline (crucible, fresh)   | Trellis draft (attempt 3)                      | Delta                                                                                            |
+| -------------------------------------------------------- | ------------------------------------ | ---------------------------------------------- | ------------------------------------------------------------------------------------------------ |
+| Deep grader v1.8.0                                       | **99/A** (P0=0, P1=0)                | **98/A** (P0=0, P1=1)                          | tie-class: both A, the structural ruler is saturated                                             |
+| **Advisory judge "teach as-is?"** (same judge, same day) | **5/10**                             | **7/10**                                       | **+2 — and the 5 matches the current pipeline's historical max (14-round mean 4.14, range 3–5)** |
+| Cost per course                                          | **$0.12**                            | **$0.657**                                     | Trellis 5.5× more expensive                                                                      |
+| Wall clock                                               | **217 s**                            | **~540 s**                                     | Trellis 2.5× slower                                                                              |
+| Sameness/texture machinery                               | 192 V0.15.x roadmaps of texture work | none — J7 gate + live authoring                | texture scores: ~equal (98 vs high)                                                              |
+| Mid-semester replan                                      | full regeneration                    | dirty-subgraph only (2/7 lessons in the drill) | architecture-level difference                                                                    |
+
+**The judge's own words, same course, same Lesson-7 artifact sampling,
+same day** — the qualitative half of the comparison:
+
+> _Current pipeline (5/10):_ "…the pervasive repetition, placeholder-like
+> wording, and occasional off-topic or awkward items reduce usability
+> enough that I would revise before teaching from them directly." Lesson
+> plan: "heavily overrun with repeated placeholder phrasing." Study guide:
+> "cluttered with repeated scaffold language and opaque references to
+> course artifacts."
+>
+> _Trellis draft (7/10):_ "The sequence is clear, tightly timed, and
+> pedagogically coherent… I would teach from it as-is." Quiz bank:
+> "questions are well aligned… mostly target the intended misconceptions…
+> I would use this with only minor edits."
+
+The judge independently named the template disease ("repeated placeholder
+phrasing") in the current package and its absence in the Trellis one —
+the exact failure mode six output audits documented and the D2 inversion
+exists to remove.
+
+**The five-sentence honest summary:** On the structural ruler both
+pipelines are A-grade — that instrument is saturated and no longer
+discriminates. On the teach-as-is question, the single Trellis package
+scored 7 where the current pipeline has never exceeded 5 in 14 measured
+rounds — but n=1 advisory is a signal to fund E1, not a verdict. Trellis
+buys that signal at 5.5× the cost and 2.5× the time, with the repair loop
+(59% of spend) as the obvious optimization target. The current pipeline
+is faster and cheaper at producing packages its own judge scores ~4–5;
+Trellis is slower and pricier at producing its first package the same
+judge scores 7. Which trade wins is precisely the E1/E2 question, now
+with a measured prior.
 
 ## 6. What the build taught (honest findings)
 
@@ -167,7 +350,16 @@ until retries exhausted. Three fixes, each motivated by live evidence:
    (`scripts/lib/crucibleBrowser.mjs#loadApiKey`). (b)
    `knowledge/assemble.mjs` reads shard JSON from disk directly rather
    than importing `libraryShardLoader` (browser-fetch coupling); shared
-   data, not forked code. Both are §11-rule-4 judgment calls, recorded.
+   data, not forked code. (c) The §15 `ab` CLI command is deferred to the
+   E1 session — it drives the crucible's browser side-B and only exists to
+   spend E1's budget, which needs the owner's go-ahead first. All three
+   are §11-rule judgment calls, recorded here so nothing is silently
+   missing.
+6. **Known limitation for the E1 session:** a failed pipeline run discards
+   its successfully authored lessons (authored.json writes at render
+   time), so a retry re-pays the full authoring cost. Fine at
+   $0.08/attempt on draft tier; fix (persist partial authored + resume)
+   before running standard/premium tiers where attempts cost real money.
 
 ## 7. Pivot-gate status (docs/TRELLIS.md §17)
 
