@@ -188,18 +188,54 @@ export function mockAuthorLesson(slice) {
     ].slice(0, Math.max(constraints.discussionFollowUps ?? 3, 2)),
   };
 
+  // Assignment genre rotates by lesson number — a deterministic voice must
+  // still clear J7's sameness gate, so the frames themselves vary, not just
+  // the nouns inside them.
+  const conceptList = concepts.map((c) => c.name.toLowerCase()).join(' and ');
+  const errorNote = allMisconceptions[0] ? allMisconceptions[0].statement.toLowerCase() : 'an unexamined assumption';
+  const citeLine = reading ? `cite ${reading.title} once` : 'cite the week’s material once';
+  const genres = [
+    {
+      task: `Diagnose a flawed study: below-average work on ${conceptList} usually fails at one specific joint. Find a published or invented study summary, locate where ${errorNote} enters it, and write a one-page diagnostic memo that names the failure and prescribes the fix.`,
+      steps: [
+        `Summarize the flawed study in three sentences (its claim, its method, its conclusion).`,
+        `Locate the exact step where the error enters; quote or paraphrase that step.`,
+        `Prescribe the repair and ${citeLine}.`,
+        `End with the strongest defense the original authors could offer — and why it fails.`,
+      ],
+    },
+    {
+      task: `Build something small with ${conceptList}: design a miniature study, instrument, or protocol (one page) in which ${primary.name.toLowerCase()} does real work. The design must be concrete enough that a classmate could execute it next week.`,
+      steps: [
+        `State the goal of your design in one sentence a non-specialist could read.`,
+        `Specify the design decisions where ${primary.name.toLowerCase()} constrained your choices; ${citeLine}.`,
+        `Pre-register the failure mode: how would your design go wrong if ${errorNote}?`,
+        `List the materials or data your classmate would need to run it.`,
+      ],
+    },
+    {
+      task: `Apply ${conceptList} to a case of your choosing from ${slice.course.subject}: state the case in two sentences, work the analysis, and flag the one step where the documented error (${errorNote}) would be easiest to commit.`,
+      steps: [
+        `Choose a concrete case and describe it in ≤2 sentences.`,
+        `Work the analysis using ${primary.name.toLowerCase()}; ${citeLine}.`,
+        `Identify where the common error could enter, and show how you avoided it.`,
+        `Close with one open question your analysis cannot yet answer.`,
+      ],
+    },
+    {
+      task: `Write a referee report: a peer (real or constructed) has applied ${conceptList} and gotten it subtly wrong. Review their work the way a journal reviewer would — verdict first, then the two most consequential objections, each grounded in this week's material.`,
+      steps: [
+        `Open with your verdict in one sentence (accept / revise / reject and why).`,
+        `Raise objection one: where the work conflicts with ${primary.name.toLowerCase()}; ${citeLine}.`,
+        `Raise objection two: check specifically for ${errorNote}.`,
+        `Recommend the single revision that would change your verdict.`,
+      ],
+    },
+  ];
+  const genre = genres[lesson.number % genres.length];
   const assignment = {
-    task:
-      `Apply ${concepts.map((c) => c.name.toLowerCase()).join(' and ')} to a case of your choosing from ${slice.course.subject}: ` +
-      `state the case in two sentences, work the analysis, and flag the one step where the documented error (${
-        allMisconceptions[0] ? allMisconceptions[0].statement.toLowerCase() : 'an unexamined assumption'
-      }) would be easiest to commit.`,
-    steps: [
-      `Choose a concrete case and describe it in ≤2 sentences.`,
-      `Work the analysis using ${primary.name.toLowerCase()}; cite ${reading ? reading.title : 'the week’s material'} once.`,
-      `Identify where the common error could enter, and show how you avoided it.`,
-      `Close with one open question your analysis cannot yet answer.`,
-    ].slice(0, Math.max(constraints.assignmentSteps ?? 4, 3)),
+    task: genre.task,
+    steps: genre.steps.slice(0, Math.max(constraints.assignmentSteps ?? 4, 3)),
     rubricBands: [
       {
         band: 'Exemplary',
