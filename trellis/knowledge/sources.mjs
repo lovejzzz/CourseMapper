@@ -9,6 +9,7 @@
 
 import { findCourseSources } from '../../src/lib/knowledge/sourceFinder.js';
 import { j10Relevance } from '../judgment/checks/j10Relevance.mjs';
+import { tokenOverlapRatio } from '../judgment/text.mjs';
 import { orderedLessons } from '../graph/schema.mjs';
 
 export function sourceInputFromGraph(graph) {
@@ -79,4 +80,64 @@ export async function findReadings(graph, { deadlineMs = 20000, maxTopics = 8, p
     dropped: candidates.length - kept.length,
     degraded: packet.stats?.topicsWithSources === 0 ? 'providers returned no usable sources' : null,
   };
+}
+
+// Roadmap 2.2 — the reading verification tier. A candidate earns
+// 'verified' by having its actual content fetched and topically entailed:
+// the page's title/first-content tokens must overlap the concepts it
+// grounds. Unfetchable or unentailed candidates STAY candidates (never
+// silently dropped after J10 kept them), and every outcome is disclosed.
+const KNOWN_LICENSES = {
+  wikipedia: 'CC BY-SA 4.0',
+  openstax: 'CC BY 4.0',
+  openalex: 'metadata CC0; article rights vary',
+  loc: 'public domain (verify item page)',
+  internetarchive: 'rights vary by item',
+  openlibrary: 'metadata open; book rights vary',
+};
+
+function textFromHtml(html) {
+  return String(html)
+    .replace(/<script[\s\S]*?<\/script>/gi, ' ')
+    .replace(/<style[\s\S]*?<\/style>/gi, ' ')
+    .replace(/<[^>]+>/g, ' ')
+    .replace(/\s+/g, ' ')
+    .slice(0, 2000);
+}
+
+export async function verifyReadings(
+  graph,
+  { fetchImpl = globalThis.fetch, deadlineMs = 8000, minOverlap = 0.15 } = {},
+) {
+  const conceptNames = new Map(graph.concepts.map((c) => [c.id, c.name]));
+  let promoted = 0;
+  let unverified = 0;
+  for (const source of graph.sources) {
+    if (source.trust !== 'candidate') continue;
+    let pageText = '';
+    try {
+      const response = await fetchImpl(source.url, {
+        signal: AbortSignal.timeout(deadlineMs),
+        headers: { 'User-Agent': 'CourseMapper-Trellis/0.1.1 (reading verification)' },
+      });
+      if (response.ok) pageText = textFromHtml(await response.text());
+    } catch {
+      // Unfetchable → stays candidate, disclosed via counts.
+    }
+    if (!pageText) {
+      unverified += 1;
+      continue;
+    }
+    const anchor = `${source.conceptIds.map((id) => conceptNames.get(id) ?? '').join(' ')} ${graph.course.subject}`;
+    const overlap = tokenOverlapRatio(anchor, pageText);
+    if (overlap >= minOverlap) {
+      source.trust = 'verified';
+      source.license = KNOWN_LICENSES[source.provider] ?? source.license;
+      source.verifiedBy = 'content-fetch topical entailment';
+      promoted += 1;
+    } else {
+      unverified += 1;
+    }
+  }
+  return { promoted, unverified };
 }

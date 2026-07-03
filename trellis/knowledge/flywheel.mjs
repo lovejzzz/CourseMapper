@@ -103,3 +103,70 @@ export async function flywheelFill(graph, uncoveredIds, { tier = 'cheap', ledger
   }
   return { filled, provenance: 'flywheel-unverified (model-extracted; contribute + verify to promote)' };
 }
+
+// Roadmap 3.3 — flywheel fact verification. Cross-family verification is
+// key-gated (no anthropic/google keys in this environment), so a SECOND
+// MODEL (mini) checks the nano/mini-extracted facts — disclosed as
+// same-family verification, not claimed as cross-family. Dubious facts are
+// removed; a concept left factless becomes an honest declaredGap.
+const VERIFY_SCHEMA = {
+  type: 'object',
+  additionalProperties: false,
+  required: ['verdicts'],
+  properties: {
+    verdicts: {
+      type: 'array',
+      items: {
+        type: 'object',
+        additionalProperties: false,
+        required: ['index', 'accurate'],
+        properties: { index: { type: 'integer', minimum: 0 }, accurate: { type: 'boolean' } },
+      },
+    },
+  },
+};
+
+export async function verifyFlywheelFacts(graph, filledIds, { tier = 'cheap', ledger = null, budgetUsd = null } = {}) {
+  if (filledIds.length === 0) return { checked: 0, removed: 0, gapped: [] };
+  const byId = new Map(graph.concepts.map((c) => [c.id, c]));
+  const rows = [];
+  for (const id of filledIds) {
+    const concept = byId.get(id);
+    for (const [factIndex, fact] of (concept?.kernelFacts ?? []).entries()) {
+      rows.push({ index: rows.length, conceptId: id, factIndex, concept: concept.name, fact });
+    }
+  }
+  if (rows.length === 0) return { checked: 0, removed: 0, gapped: [] };
+  const { result } = await callModel({
+    tier,
+    stage: 'flywheelVerify',
+    ledger,
+    budgetUsd,
+    schema: VERIFY_SCHEMA,
+    schemaName: 'fact_verdicts',
+    validate: (parsed) => (Array.isArray(parsed?.verdicts) ? [] : ['verdicts must be an array']),
+    maxOutputTokens: 2000,
+    system:
+      `You are fact-checking teaching statements for an undergraduate ${graph.course.subject} course. ` +
+      'For each numbered fact, answer accurate=true only if the statement is correct as written for an introductory course; false if wrong, misleading, or too contested to teach as fact.',
+    user: JSON.stringify(
+      rows.map(({ index, concept, fact }) => ({ index, concept, fact })),
+      null,
+      1,
+    ),
+  });
+  const inaccurate = new Set((result.verdicts ?? []).filter((v) => v.accurate === false).map((v) => v.index));
+  let removed = 0;
+  const gapped = [];
+  for (const row of rows) {
+    if (!inaccurate.has(row.index)) continue;
+    const concept = byId.get(row.conceptId);
+    concept.kernelFacts = concept.kernelFacts.filter((f) => f !== row.fact);
+    removed += 1;
+    if (concept.kernelFacts.length === 0) {
+      concept.declaredGap = true;
+      gapped.push(concept.id);
+    }
+  }
+  return { checked: rows.length, removed, gapped };
+}

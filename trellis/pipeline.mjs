@@ -142,7 +142,11 @@ async function runPipelineStages({
         ledger,
         budgetUsd,
       });
-      digest.flywheel = `${filled.length} concept(s) flywheel-filled — ${provenance}`;
+      // Roadmap 3.3: a second model verifies extracted facts (same-family —
+      // cross-family is key-gated; disclosed as such).
+      const { verifyFlywheelFacts } = await import('./knowledge/flywheel.mjs');
+      const verification = await verifyFlywheelFacts(graph, filled, { tier: 'cheap', ledger, budgetUsd });
+      digest.flywheel = `${filled.length} concept(s) flywheel-filled — ${provenance}; second-model verification: ${verification.checked} facts checked, ${verification.removed} removed${verification.gapped.length > 0 ? `, ${verification.gapped.length} concept(s) → declaredGap` : ''} (same-family — cross-family key-gated)`;
     }
   }
   digest.enrichment = `genome: ${coverage.linked}/${coverage.total} concepts carry kernels (${coverage.note})`;
@@ -153,9 +157,13 @@ async function runPipelineStages({
     const { findReadings } = await import('./knowledge/sources.mjs');
     const readings = await findReadings(graph);
     graph.sources.push(...readings.sources);
+    // Roadmap 2.2: candidates earn 'verified' by content-fetch entailment;
+    // failures stay candidates, disclosed.
+    const { verifyReadings } = await import('./knowledge/sources.mjs');
+    const verification = await verifyReadings(graph);
     digest.readings = readings.degraded
       ? `DEGRADED: ${readings.degraded} — package ships with ${readings.kept} readings, disclosed`
-      : `${readings.kept}/${readings.found} candidate readings kept (source-finder + J10 relevance gate; ${readings.dropped} dropped)`;
+      : `${readings.kept}/${readings.found} candidate readings kept (source-finder + J10); ${verification.promoted} verified by content fetch, ${verification.unverified} remain candidates`;
   }
 
   // 5 · full validation must now be clean (bridged V2 findings excepted —
@@ -225,6 +233,15 @@ async function runPipelineStages({
   const downgraded = downgradeDanglingClaims(graph, authored);
   if (downgraded.length > 0) {
     digest.claimsDowngraded = `${downgraded.length} unresolvable claim ref(s) downgraded to JUDGED (disclosed, not repaired)`;
+  }
+
+  // 6e · claim entailment (roadmap 3.1): AUTHORED-GROUNDED must mean
+  // "supported by the cited kernel." Unsupported citations downgrade to
+  // JUDGED, disclosed.
+  if (!mockVoice) {
+    const { verifyAllClaims } = await import('./knowledge/entailment.mjs');
+    const entailment = await verifyAllClaims(graph, authored, { tier: 'nano', ledger, budgetUsd });
+    digest.entailment = `claims verified against cited kernels: ${entailment.checked} checked, ${entailment.downgraded} unsupported → JUDGED`;
   }
 
   // 6d · deterministic catch splicing: any documented misconception still
