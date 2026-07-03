@@ -395,6 +395,40 @@ export function renderPackage({ graph, authored, courseWide, generatedAt, digest
     'courseFaq',
   );
 
+  // ── source report + ledger (the trust classes, exported as proof) ───────
+  const sourceLedger = graph.sources.map((s) => ({
+    id: s.id,
+    title: s.title,
+    url: s.url,
+    provider: s.provider,
+    license: s.license,
+    trust: s.trust,
+    concepts: s.conceptIds,
+  }));
+  const sourceReportPath = 'SOURCE_REPORT.md';
+  files.set(
+    sourceReportPath,
+    [
+      `# Source Report — ${course.title}`,
+      '',
+      `Every reading in this package appears below with its trust status. ` +
+        `"verified" sources passed the trust pipeline; "candidate" sources are machine-proposed and labeled for instructor review; "rejected" sources are excluded from every render.`,
+      '',
+      '| Source | Provider | License | Trust | Grounds |',
+      '| --- | --- | --- | --- | --- |',
+      ...graph.sources.map((s) => {
+        const names = s.conceptIds.map((id) => conceptsById.get(id)?.name ?? id).join('; ');
+        return `| [${s.title}](${s.url}) | ${s.provider} | ${s.license} | ${s.trust} | ${names} |`;
+      }),
+      '',
+      '## Trust classes in this package',
+      '- VERIFIED — answer keys, alignment tables, schedules, weights: machine-checked at compile; wrong = build failure.',
+      '- AUTHORED-GROUNDED — lesson prose authored against the graph’s kernel facts and the sources above.',
+      '- JUDGED — tone and example quality; simulated scores only, unanchored.',
+    ].join('\n'),
+  );
+  manifestFiles.push({ path: sourceReportPath, featureId: 'sourceReport' });
+
   // ── manifest ─────────────────────────────────────────────────────────────
   const readings = [
     ...new Map(
@@ -421,6 +455,13 @@ export function renderPackage({ graph, authored, courseWide, generatedAt, digest
       weightTotal: graph.assessments.reduce((s, a) => s + a.weightPct, 0),
     },
     readings,
+    sourceLedger,
+    sourceLedgerSummary: {
+      rows: sourceLedger.length,
+      verified: sourceLedger.filter((s) => s.trust === 'verified').length,
+      candidate: sourceLedger.filter((s) => s.trust === 'candidate').length,
+    },
+    sourceReport: { path: sourceReportPath },
     requestedFeatures: Object.entries(FEATURE_FOLDERS).map(([featureId, label]) => ({ featureId, label })),
     readiness: { status: 'ready', blockers: 0, warnings: 0, checkedSections: '10/10' },
     requiredAssets: [],
