@@ -623,6 +623,61 @@ every instrument in the house.** Rounds 1–4 are all in
 - Single course, single judge seat, SIMULATED — the lean configuration
   has not yet run the 7-course E1 protocol; that comparison used draft.
 
+## 5g. Repeated comparison rounds + the findings audit
+
+_Owner directive: "do couple rounds of comparison and audit the
+findings." Two fresh 4-course rounds per side (cs-python, geology,
+econ-intro, world-lit — STEM, lab science, the seeded-gap course,
+humanities), lean tier, same judge everywhere — 8 pooled pairs. And an
+audit of the findings themselves, which caught a real defect._
+
+### The audit's catch — and its measured repair
+
+Reading actual spliced quiz items (not scores) found two coherence
+defects the judge had only hinted at: the alternate-wording rule spliced
+raw **"Students expect…" meta-framing** — describing students is not a
+selectable answer — and splices landed in items about **different
+concepts** (an integer-division distractor inside a string-formatting
+stem). Both fixed: only the cleaned belief form is ever spliced,
+behavioral statements with no belief form are skipped, and a splice
+requires stem-concept overlap. Round A ran the defective splice, Round B
+the fix — so the repair is itself measured: **the judge's quiz-artifact
+mean rose 7.5 → 8.5 (n=4 each)**, and Round B produced the project's
+first 10 (world-lit study guide).
+
+### The pooled comparison (8 pairs, 16 fresh course-runs)
+
+| Course     | Current (rd 1 / rd 2) | Trellis lean (A / B) | Deltas |
+| ---------- | --------------------- | -------------------- | ------ |
+| cs-python  | 5 / 4                 | 7 / 8                | +3, +3 |
+| geology    | 5 / 5                 | 8 / 9                | +3, +4 |
+| econ-intro | 6 / 7                 | 8 / 8                | +1, +2 |
+| world-lit  | 6 / 5                 | 9 / 9                | +3, +4 |
+
+**Pooled judge delta: mean +2.88, sd 0.99, 95% CI [+2.05, +3.70], n=8 —
+every pair positive**, consistent with E1's +3.0 on the draft tier.
+Graders: both sides 96–99/A throughout. Costs this block: Trellis lean
+mean **$0.094** (range $0.060–0.160), current mean **$0.13**
+($0.11–0.18). Within-configuration judge variance ran ~±0.5–1.0 on both
+sides, so a +2.9 delta is roughly 3–5× the noise floor.
+
+### The rest of the audit
+
+- **Ledger math verified**: lean-5's ledger recomputes from raw token
+  entries at canonical rates to the fourth decimal ($0.0522 = $0.0522);
+  models used exactly as configured (nano + mini escalation).
+- **Residuals tabulated across all 20 live runs**: the early runs
+  carried 15+ open findings (J2/J3/J5); each structural fix retired a
+  class permanently; the modern era shows at most 1–2 J3 residuals per
+  run, always disclosed. J11 residuals existed only in the two pre-splice
+  lean rounds.
+- **Unexposed-item flags traced**: 2 items (a classes/objects weekly, a
+  while-loops midterm item at difficulty ~0.19) — a small
+  sim-exposure-model artifact, monitored not alarming.
+- **Standing caveats unchanged**: one judge family/seat, advisory scale,
+  SIMULATED throughout; lean's Prof bars (repair 63%/70, catch 56%/60)
+  remain unmet; the human packet remains the verdict.
+
 ## 6a. Where quality still falls short — the next round, pre-registered
 
 The instruments that matter most say the gaps out loud, and writing them

@@ -945,6 +945,18 @@ polishing a candidate that hasn't won.
   a2 denominators vary with intake; single course, single seat, SIMULATED;
   lean has not run the 7-course E1. Report §5f. 81 trellis tests.
 
+- **2026-07-03 (comparison rounds + findings audit).** Two fresh 4-course
+  rounds per side, lean tier: **pooled judge delta +2.88, 95% CI [+2.05,
+  +3.70], n=8, all pairs positive** — consistent with E1's +3.0, at lean
+  mean $0.094/course vs current $0.13. The audit READ the content and
+  caught two splice-coherence defects the scores only hinted at
+  (meta-framed "Students expect…" options; off-topic splices); fixed
+  between rounds, and the fix measured: quiz-artifact mean 7.5→8.5,
+  first 10/10 artifact (world-lit guide). Ledger math verified exact;
+  residuals across 20 runs tabulated (classes retired progressively;
+  only 1-2 J3/run remain); 2 unexposed items traced to the sim exposure
+  model. Report §5g.
+
 ---
 
 _— Fable 5_
