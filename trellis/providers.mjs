@@ -68,17 +68,29 @@ export function toStrictSchema(node) {
 }
 
 const RETRYABLE_HTTP = new Set([429, 500, 502, 503]);
+const REQUEST_TIMEOUT_MS = 180_000;
 
+// Per-request deadline + 429/5xx backoff. The deadline matters as much as
+// the retry: the app's own history (knowledge-phase stalls) showed one hung
+// connection freezing a whole generation's terminal state.
 async function fetchWithBackoff(fetchImpl, url, init, { tries = 4, baseDelayMs = 2000 } = {}) {
   let last = null;
   for (let attempt = 0; attempt < tries; attempt += 1) {
-    const response = await fetchImpl(url, init);
+    let response;
+    try {
+      response = await fetchImpl(url, { ...init, signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS) });
+    } catch (error) {
+      last = error;
+      await new Promise((resolve) => setTimeout(resolve, baseDelayMs * 2 ** attempt));
+      continue;
+    }
     if (!RETRYABLE_HTTP.has(response.status)) return response;
     last = response;
     const retryAfter = Number(response.headers?.get?.('retry-after')) || 0;
     const delayMs = Math.max(retryAfter * 1000, baseDelayMs * 2 ** attempt);
     await new Promise((resolve) => setTimeout(resolve, delayMs));
   }
+  if (last instanceof Error) throw new Error(`request failed after ${tries} attempts: ${last.message}`);
   return last;
 }
 

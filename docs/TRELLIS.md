@@ -845,6 +845,25 @@ polishing a candidate that hasn't won.
   IfRestart); Part II added with contracts, experiments E0–E5, milestones
   M0–M5. Build not started; next action: **M0 scaffold**. Spend to date:
   $0. Verdicts: none.
+- **2026-07-03 (same day, /goal full-build session)** — **M0–M4 BUILT AND
+  GREEN.** 4,170 lines in `trellis/`; 57 trellis tests pass; full repo
+  suite 3,989 tests green with `src/` untouched. **E0: GREEN — the
+  unmodified deep grader v1.8.0 scores the golden mock package 97/A, 0 P0,
+  0 P1** (after two honest compat fixes the grader itself demanded:
+  judgment-line disclosure, source-ledger + SOURCE_REPORT.md export → mock
+  CLI run 98/A). **E4 mechanics: GREEN** — snow-day replan drill via CLI:
+  locked weeks untouched, registry keys verbatim, 2 of 7 lessons
+  re-authored. J7 caught template-echo in our own mock author (fixed by
+  genre rotation); J10's first version false-positived on a legit OpenStax
+  title (re-scoped to candidate sources). Full report:
+  [TRELLIS_BUILD_REPORT.md](TRELLIS_BUILD_REPORT.md).
+- **2026-07-03 (live smoke)** — First live run (cs-python, draft tier)
+  FAILED 9/15 lessons: non-strict json_schema let the model omit later
+  sections. Root-fixed (strict:true + toStrictSchema; 429/5xx backoff;
+  ledger-flush-on-failure — the failed run's spend went unrecorded, a
+  ground-rule-#5 violation now structurally impossible). Probe after fix:
+  first-attempt success, $0.0034/lesson. Second live run in flight; result
+  recorded in the next entry, pass or fail.
 
 ---
 

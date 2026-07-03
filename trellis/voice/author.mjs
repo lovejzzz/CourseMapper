@@ -18,6 +18,7 @@ function lessonSystemPrompt(slice) {
     `Author ALL student-facing content for this lesson as JSON matching the provided schema. Non-negotiables:\n` +
     `- Every factual claim must trace to the kernel facts provided; do not invent facts, citations, or readings.\n` +
     `- Quiz items: exactly ${slice.constraints.quizItems} items, 4 options each, application/transfer stems preferred over recall; use the documented misconceptions as distractors; VARY correctIndex across items.\n` +
+    `- Slides: between ${slice.constraints.slides[0]} and ${slice.constraints.slides[1]} slides — count them before returning; fewer than ${slice.constraints.slides[0]} fails validation. plan.segments: 4-5 segments.\n` +
     `- When a concept has a documented misconception, at least one item's explanation must actively confront the corrective (paraphrase it, don't just assert the right answer).\n` +
     `- plan.segments must include one "reteach" segment that re-teaches the reading's core concept for students who arrived cold.\n` +
     `- rubricBands describe OBSERVABLE work: the top band applies a definition with an example; the lowest band exhibits the documented misconception. No adverb gradients ("thoroughly", "adequately").\n` +
