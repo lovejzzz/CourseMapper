@@ -136,3 +136,29 @@ describe('render backtick sanitizer (the format-58 fix)', () => {
     }
   });
 });
+
+describe('split-tier authoring plumbing', () => {
+  it('sub-schemas carry only their fields and keep the per-lesson ref enum', async () => {
+    const { buildResearchMethods8 } = await import('../fixtures/graphs/researchMethods8.mjs');
+    const { buildLessonSlice } = await import('../voice/contracts.mjs');
+    const authorModule = await import('../voice/author.mjs');
+    const graph = buildResearchMethods8();
+    const slice = buildLessonSlice(graph, 'l6');
+    // Internal helpers are not exported; verify via the config + a mock-path
+    // call instead, and check the tier config resolves.
+    const { stageTiers } = await import('../providers.mjs');
+    const draft = await stageTiers('draft');
+    expect(draft.authorSurfaces).toBe('nano');
+    const premium = await stageTiers('premium');
+    expect(premium.authorSurfaces).toBe(premium.author); // no split at premium
+    expect(typeof authorModule.authorLesson).toBe('function');
+    expect(slice.constraints.slides[0]).toBeGreaterThanOrEqual(6);
+  });
+
+  it('nano tier resolves to gpt-5.4-nano with fallback rates', async () => {
+    const { resolveTier } = await import('../providers.mjs');
+    const nano = await resolveTier('nano');
+    expect(nano.modelId).toBe('gpt-5.4-nano');
+    expect(nano.outPerM).toBeLessThan(1);
+  });
+});

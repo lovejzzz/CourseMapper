@@ -75,13 +75,158 @@ function lessonUserPrompt(slice) {
   );
 }
 
+// ── split-tier authoring (the cost lever) ───────────────────────────────────
+// Output tokens dominate cost (~90%), so the lesson splits into two parallel
+// calls: the judgment CORE (plan, quiz items with misconception work, study
+// guide — everything the teach-as-is judge actually scores) stays on the
+// author tier; the presentation SURFACES (slides, discussion, assignment,
+// FAQ — the volume) go to the nano tier at ~1/11th the output rate. The
+// merged result must still pass the FULL contract validator.
+
+const CORE_FIELDS = ['plan', 'quizItems', 'studyGuideSection', 'claims'];
+const SURFACE_FIELDS = ['slides', 'discussion', 'assignment', 'faqEntries', 'claims'];
+
+function subSchema(fields, slice) {
+  const full = lessonSchemaForSlice(slice);
+  return {
+    type: 'object',
+    additionalProperties: false,
+    required: fields,
+    properties: Object.fromEntries(fields.map((f) => [f, full.properties[f]])),
+  };
+}
+
+function subValidator(fields) {
+  // Validate the fragment by merging it over a shell that satisfies the
+  // other half, then filtering the full validator's errors to our fields.
+  return (parsed) => {
+    if (!parsed || typeof parsed !== 'object') return ['must be an object'];
+    const errors = validateAuthoredLesson({ ...VALID_SHELL, ...parsed });
+    return errors.filter((e) =>
+      fields.some((f) => e.startsWith(f) || e.includes(`${f}.`) || e.includes(`${f}[`) || e.includes(f)),
+    );
+  };
+}
+
+// A minimal contract-satisfying shell used only to let the full validator
+// run against fragments (never rendered, never sent to a model).
+const VALID_SHELL = {
+  plan: {
+    segments: [
+      { minutes: 10, mode: 'teach', text: 'shell segment text long enough to satisfy the validator minimum.' },
+      { minutes: 10, mode: 'reteach', text: 'shell segment text long enough to satisfy the validator minimum.' },
+      { minutes: 10, mode: 'activity', text: 'shell segment text long enough to satisfy the validator minimum.' },
+    ],
+  },
+  slides: Array.from({ length: 6 }, (_, i) => ({
+    title: `Shell ${i}`,
+    bullets: ['shell bullet'],
+    speakerNotes: 'shell notes long enough to satisfy minimum.',
+    altText: 'shell alt text.',
+  })),
+  quizItems: Array.from({ length: 6 }, (_, i) => ({
+    stem: 'Shell stem long enough to satisfy the validator?',
+    options: ['a', 'b', 'c', 'd'],
+    correctIndex: i % 4,
+    explanation: 'Shell explanation long enough to satisfy the validator.',
+    bloom: 'apply',
+    difficulty: 'apply',
+  })),
+  studyGuideSection: 'S'.repeat(200),
+  discussion: {
+    prompt: 'Shell prompt long enough to satisfy the validator minimum.',
+    tension: 'Shell tension text.',
+    followUps: ['Shell follow-up one.', 'Shell follow-up two.'],
+  },
+  assignment: {
+    task: 'Shell task long enough to satisfy the validator minimum for the assignment field.',
+    steps: ['Shell step one.', 'Shell step two.', 'Shell step three.'],
+    rubricBands: [
+      { band: 'A', observableBehavior: 'Shell observable behavior long enough to pass.' },
+      { band: 'B', observableBehavior: 'Shell observable behavior long enough to pass.' },
+      { band: 'C', observableBehavior: 'Shell observable behavior long enough to pass.' },
+    ],
+  },
+  faqEntries: [{ q: 'Shell question?', a: 'Shell answer long enough to satisfy the validator.' }],
+  claims: [],
+};
+
+function coreSystemPrompt(slice) {
+  const correctives = slice.concepts.flatMap((c) => c.misconceptions.map((m) => m.corrective));
+  return (
+    `You are the course's own instructor writing week ${slice.lesson.week} of "${slice.course.title}" (${slice.course.level} ${slice.course.subject}). ` +
+    `Author the lesson CORE as JSON: plan, quizItems, studyGuideSection, claims. Non-negotiables:\n` +
+    `- Quiz items: exactly ${slice.constraints.quizItems} items, 4 options each, application/transfer stems preferred; use the documented misconceptions as distractors; VARY correctIndex across items.\n` +
+    (correctives.length > 0
+      ? `- For each documented misconception, at least one quiz item's explanation must include the corrective SENTENCE VERBATIM (copy it word-for-word, then apply it). Correctives:\n${correctives.map((c) => `  • "${c}"`).join('\n')}\n`
+      : '') +
+    `- plan.segments: 4-5 segments including one "reteach" segment that re-teaches the reading's core concept for students who arrived cold.\n` +
+    `- Every factual claim traces to the kernel facts provided; never invent facts or readings.\n` +
+    `- Write like a person who teaches this course: specific, direct, no template phrases. claims[].ref: one of the schema enum values or null.`
+  );
+}
+
+function surfacesSystemPrompt(slice) {
+  return (
+    `You are the course's own instructor writing week ${slice.lesson.week} of "${slice.course.title}" (${slice.course.level} ${slice.course.subject}). ` +
+    `Author the lesson's presentation surfaces as JSON: slides, discussion, assignment, faqEntries, claims. Non-negotiables:\n` +
+    `- Slides: between ${slice.constraints.slides[0]} and ${slice.constraints.slides[1]} slides — count them; every slide has 1-5 bullets, speakerNotes, altText. Ground bullets in the kernel facts provided.\n` +
+    `- rubricBands describe OBSERVABLE work: the top band applies a definition with an example; the lowest band exhibits the documented misconception. No adverb gradients.\n` +
+    `- Every factual claim traces to the kernel facts provided; never invent facts, citations, or readings.` +
+    (slice.sources.length === 0 ? ` This lesson has NO external sources: do not name any book, article, or URL.` : '') +
+    `\n- Write like a person who teaches this course: specific, direct, no template phrases. claims[].ref: one of the schema enum values or null.`
+  );
+}
+
 export async function authorLesson(
   graph,
   lessonId,
-  { tier, ledger, budgetUsd = null, mock = null, repairNotes = null } = {},
+  { tier, surfacesTier = null, ledger, budgetUsd = null, mock = null, repairNotes = null } = {},
 ) {
   const slice = buildLessonSlice(graph, lessonId);
   if (mock) return mock(slice, { repairNotes });
+
+  // Split path: parallel core + surfaces calls on different tiers.
+  if (surfacesTier && surfacesTier !== tier && !repairNotes) {
+    const [core, surfaces] = await Promise.all([
+      callModel({
+        tier,
+        stage: 'author',
+        ledger,
+        budgetUsd,
+        schema: subSchema(CORE_FIELDS, slice),
+        schemaName: 'lesson_core',
+        validate: subValidator(CORE_FIELDS),
+        maxOutputTokens: 8000,
+        system: coreSystemPrompt(slice),
+        user: lessonUserPrompt(slice),
+      }),
+      callModel({
+        tier: surfacesTier,
+        stage: 'authorSurfaces',
+        ledger,
+        budgetUsd,
+        schema: subSchema(SURFACE_FIELDS, slice),
+        schemaName: 'lesson_surfaces',
+        validate: subValidator(SURFACE_FIELDS),
+        maxOutputTokens: 8000,
+        system: surfacesSystemPrompt(slice),
+        user: lessonUserPrompt(slice),
+      }),
+    ]);
+    const merged = {
+      ...core.result,
+      ...surfaces.result,
+      plan: core.result.plan,
+      quizItems: core.result.quizItems,
+      studyGuideSection: core.result.studyGuideSection,
+      claims: [...(core.result.claims ?? []), ...(surfaces.result.claims ?? [])],
+    };
+    const errors = validateAuthoredLesson(merged);
+    if (errors.length > 0) throw new Error(`split-authoring merge failed contract: ${errors.join('; ')}`);
+    return merged;
+  }
+
   const { result } = await callModel({
     tier,
     stage: repairNotes ? 'repair' : 'author',

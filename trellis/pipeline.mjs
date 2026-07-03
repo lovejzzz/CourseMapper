@@ -129,8 +129,15 @@ async function runPipelineStages({
   }
   digest.validation = 'V1–V7 structural invariants: 0 blockers';
 
-  // 6 · author (course-wide fires concurrently with the lesson batches)
-  const authorOptions = mockVoice ? { mock: mockAuthorLesson } : { tier: tiers.author, ledger, budgetUsd };
+  // 6 · author (course-wide fires concurrently with the lesson batches;
+  // split-tier: judgment core on the author tier, presentation surfaces on
+  // the cheaper authorSurfaces tier when the config splits them)
+  const authorOptions = mockVoice
+    ? { mock: mockAuthorLesson }
+    : { tier: tiers.author, surfacesTier: tiers.authorSurfaces ?? null, ledger, budgetUsd };
+  if (!mockVoice && tiers.authorSurfaces && tiers.authorSurfaces !== tiers.author) {
+    digest.voice = `live (split: ${tiers.author} core + ${tiers.authorSurfaces} surfaces)`;
+  }
   const courseWidePromise = mockVoice
     ? Promise.resolve(mockAuthorCourseWide(graph))
     : authorCourseWide(graph, { tier: tiers.author, ledger, budgetUsd });
