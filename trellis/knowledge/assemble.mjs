@@ -26,6 +26,41 @@ export async function loadShards({ genomeDir = 'public/genome' } = {}) {
   return shards;
 }
 
+// Discipline gating — the v0.16.1 bycatch class, caught live in Trellis on
+// its first real run: "expressions" (Python) token-matched a lang-shard
+// kernel about Korean time expressions. A shard is only a linking candidate
+// when its discipline plausibly matches the course; if nothing matches, all
+// shards stay eligible and the coverage note says so (a wrong link is worse
+// than an honest gap, so the filter errs toward gaps).
+const SHARD_SUBJECT_HINTS = {
+  anatomy: ['anatomy', 'physiology'],
+  astro: ['astronomy', 'astrophysics', 'planetary'],
+  bio: ['biology', 'life science', 'biological'],
+  chem: ['chemistry', 'chemical'],
+  cs: ['computer science', 'programming', 'python', 'software', 'computing', 'cs'],
+  econ: ['economics', 'microeconomics', 'macroeconomics'],
+  geo: ['geology', 'earth science', 'geoscience'],
+  history: ['history', 'historical'],
+  lang: ['language', 'korean', 'mandarin', 'chinese', 'spanish', 'french', 'japanese', 'linguistics'],
+  lit: ['literature', 'literary'],
+  math: ['math', 'mathematics', 'calculus', 'algebra', 'linear algebra'],
+  nursing: ['nursing', 'clinical'],
+  nutrition: ['nutrition', 'dietetics'],
+  physics: ['physics', 'mechanics'],
+  psych: ['psychology', 'psychological'],
+  'research-methods': ['research methods', 'research design', 'empirical'],
+  stats: ['statistics', 'statistical', 'probability'],
+};
+
+export function shardsForCourse(course, shards) {
+  const courseText = `${course.subject} ${course.title}`.toLowerCase();
+  const compatible = shards.filter((shard) => {
+    const hints = SHARD_SUBJECT_HINTS[shard.discipline] ?? [shard.discipline];
+    return hints.some((hint) => courseText.includes(hint));
+  });
+  return compatible.length > 0 ? { shards: compatible, gated: true } : { shards, gated: false };
+}
+
 export function linkConceptToKernel(concept, kernels) {
   let best = null;
   let bestScore = 0;
@@ -45,7 +80,8 @@ export function linkConceptToKernel(concept, kernels) {
   return best;
 }
 
-export function assembleKnowledge(graph, shards) {
+export function assembleKnowledge(graph, allShards) {
+  const { shards, gated } = shardsForCourse(graph.course, allShards);
   const kernels = shards.flatMap((shard) => shard.kernels);
   const linked = [];
   const uncovered = [];
@@ -88,10 +124,13 @@ export function assembleKnowledge(graph, shards) {
       total: graph.concepts.length,
       linked: linked.length,
       uncovered,
-      note:
+      disciplineGated: gated,
+      note: [
         uncovered.length > 0
           ? `genome gap: ${uncovered.length} concept(s) uncovered — flywheel or declaredGap required before authoring`
           : 'all concepts carry kernel facts',
+        gated ? 'discipline-gated linking' : 'NO discipline match — all shards eligible, links are lower-confidence',
+      ].join('; '),
     },
   };
 }

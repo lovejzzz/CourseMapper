@@ -23,7 +23,10 @@ function lessonSystemPrompt(slice) {
     `- plan.segments must include one "reteach" segment that re-teaches the reading's core concept for students who arrived cold.\n` +
     `- rubricBands describe OBSERVABLE work: the top band applies a definition with an example; the lowest band exhibits the documented misconception. No adverb gradients ("thoroughly", "adequately").\n` +
     `- Write like a person who teaches this course: specific, direct, no template phrases ("In this lesson we will..."), no evidence-speak. Vary sentence openers.\n` +
-    `- claims[]: for each factual passage, record {path, ref} where ref is "kernel:<conceptId>", "misconception:<id>", "source:<sourceId>", or null if it is your judgment.`
+    `- claims[]: for each factual passage, record {path, ref} where ref is "kernel:<conceptId>", "misconception:<id>", "source:<sourceId>", or null if it is your judgment.` +
+    (slice.sources.length === 0
+      ? `\n- This lesson has NO external sources: never invent a source ref or cite a reading — use kernel:/misconception: refs or null, and do not name any book, article, or URL in the prose.`
+      : '')
   );
 }
 

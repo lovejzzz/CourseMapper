@@ -58,6 +58,53 @@ describe('knowledge assembly against the real genome shards', () => {
     );
     expect(kernel).toBeNull();
   });
+
+  it('discipline gating: a Python course never links lang-shard kernels (the live attempt-3 bycatch)', async () => {
+    const shards = await loadShards();
+    const graph = makeGraph({
+      course: {
+        id: 'c',
+        title: 'Introduction to Computer Science with Python',
+        subject: 'computer science',
+        level: 'intro',
+        weeks: 2,
+        sessionsPerWeek: 1,
+      },
+      concepts: [{ id: 'c-0', name: 'Expressions' }],
+      outcomes: [{ id: 'o1', statement: 'Apply expressions', bloom: 'apply', conceptIds: [] }],
+      lessons: [{ id: 'l1', week: 1, session: 1, title: 'Expressions', introduces: ['c-0'], outcomeIds: ['o1'] }],
+      assessments: [
+        {
+          id: 'a1',
+          kindOf: 'quiz',
+          registryKey: 'Quiz 1',
+          anchor: { lessonId: 'l1' },
+          outcomeIds: ['o1'],
+          weightPct: 100,
+        },
+      ],
+    });
+    const { coverage } = assembleKnowledge(graph, shards);
+    expect(coverage.disciplineGated).toBe(true);
+    const concept = graph.concepts[0];
+    if (concept.genomeRef) {
+      expect(concept.genomeRef.startsWith('lang/')).toBe(false);
+      for (const id of concept.misconceptionIds) {
+        const m = graph.misconceptions.find((x) => x.id === id);
+        expect(m.statement.toLowerCase()).not.toMatch(/korean|mandarin|tones/);
+      }
+    }
+  });
+
+  it('an unmatched discipline keeps all shards eligible and says so honestly', async () => {
+    const shards = await loadShards();
+    const graph = bareGraph(['Research hypothesis']);
+    graph.course.subject = 'basket weaving';
+    graph.course.title = 'Advanced Basket Weaving';
+    const { coverage } = assembleKnowledge(graph, shards);
+    expect(coverage.disciplineGated).toBe(false);
+    expect(coverage.note).toMatch(/NO discipline match/);
+  });
 });
 
 describe('telemetry ledger', () => {
