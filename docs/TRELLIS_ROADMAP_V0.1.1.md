@@ -165,3 +165,18 @@ audits read artifacts, not scores (§5g's lesson); fix→run→measure with
 ledgers on every run; residuals disclosed, never swallowed.
 
 _— Fable 5_
+
+---
+
+## Status — implemented and validated (July 3, 2026)
+
+All four tiers landed (generator `trellis@0.1.1`); the full validation
+story, run table, exit-bar scorecard and the six lessons of the
+convergence war are in `docs/TRELLIS_BUILD_REPORT.md` §5h. Headline:
+cs-python run 9 meets 3 of 4 classroom bars (repair 0.769, catch ≥60%,
+0 unexposed) at $0.179/99-A with 1 residual; the held-out
+linear-algebra course does not yet meet the bars (repair 0.45) — the
+refine loop is course-local and must run per discipline. Judge quiz
+bar (≥8) and the $0.13 cost bar remain unmet with causes named
+(corrective-append repetition; quiz output volume). 4.2 multi-seat
+judging stays key-gated. Loop spend $3.16, all ledgered.

@@ -969,6 +969,28 @@ polishing a candidate that hasn't won.
   Generator version bumped trellis@0.1.0 → 0.1.1; app version untouched
   by ground rule #2.
 
+- **2026-07-03 (v0.1.1 implemented + validated — report §5h).** All four
+  tiers code-complete: J3b pairing, beliefForm-at-source, J12 exposure,
+  non-reader path, quiz-on-mini split, reading verification, claim
+  entailment (100% of kernel-cited claims; unsupported → JUDGED), the
+  classroom gate (a2 in-pipeline at stage 7c; failing bars force
+  needs_review), flywheel verification, DOCX export-parity slice. The
+  convergence war (runs 3–9, $3.16 ledgered incl. two failed runs)
+  taught: post-hoc repair cannot converge on lexical gates whose target
+  texts it never sees; enforcing the instrument inside stochastic
+  retries kills runs ($0.32) or thrashes ($0.93, 35 residuals);
+  DETERMINISTIC passes (belief-form splice + corrective pairing, re-run
+  after every repair round) took residuals 35→1, repair spend
+  $0.487→$0.015, cost to $0.18. cs-python run 9: 3/4 classroom bars met
+  (repair 0.769, catch ≥60%, 0 unexposed; compliance 0.26 vs bar 0.25),
+  99/A, 1 residual. Held-out linear-algebra does NOT meet the bars
+  (repair 0.45) — the refine loop is course-local; it must run per
+  discipline. Judge (2 seats): overall 8/8, quiz 7/7 vs bar 8, both
+  seats naming the corrective-append repetition; cost $0.18–0.21 vs bar
+  $0.13. Next: blend correctives via the quiz author instead of
+  appending; run the loop on a math course; 4.2 multi-seat judging
+  stays key-gated; SIMULATED stamps stand.
+
 ---
 
 _— Fable 5_

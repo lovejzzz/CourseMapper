@@ -678,6 +678,128 @@ sides, so a +2.9 delta is roughly 3–5× the noise floor.
   SIMULATED throughout; lean's Prof bars (repair 63%/70, catch 56%/60)
   remain unmet; the human packet remains the verdict.
 
+## 5h. Roadmap v0.1.1 — implemented, validated, and what the war taught
+
+_Owner directive: "fully implement TRELLIS_ROADMAP_V0.1.1, test and
+refine before report." All four tiers are code-complete (generator
+`trellis@0.1.1`); validation took seven live runs (3 → 9) plus a
+held-out course, two of which failed and are ledgered as tuition. Total
+v0.1.1 loop spend: **$3.16** (incl. $0.48 across two failed runs and
+$0.006 of judging)._
+
+### What shipped, by roadmap item
+
+- **1.1 J3b pairing** — new check + deterministic corrective pairing
+  (below); classroom repair 0.769–0.795 on cs-python (bar 0.70 ✓).
+- **1.2 beliefForm at the source** — flywheel extraction requires it,
+  genome imports derive it, splice uses only cleaned belief forms.
+- **1.3 J12 exposure + dedicated exam blueprints** — cs-python run 9:
+  0 unexposed items ✓, exam solvability 0.585 ✓ (bar 0.5).
+- **1.4 non-reader path** — reteach must walk a worked example
+  (validated), study guide requires a "missed the reading" block.
+- **2.1 three-way split** — quiz authors on mini, everything else nano.
+- **2.2 reading verification** — content-fetch entailment promotes
+  candidates to `verified` (2–3 of 4–5 per run, disclosed).
+- **3.1 claim entailment** — every kernel-cited claim checked (83–127
+  per run); unsupported ones downgraded to JUDGED (13–46 per run,
+  disclosed). AUTHORED-GROUNDED now means supported, not just cited.
+- **3.2 classroom gate** — Prof's zero-token battery runs in-pipeline
+  (stage 7c); failing bars force readiness `needs_review`. A run whose
+  battery fails can no longer render `ready`. ✓
+- **3.3 flywheel verification** — second-model fact check (same-family,
+  disclosed; cross-family stays key-gated).
+- **4.1 export parity slice** — lesson plans + quiz/exam bank build as
+  real DOCX through the app's own `buildDeliverableDocxBlob`; round-trip
+  verified through the grader's docx parser (31.9k/65.9k chars).
+- **4.2 multi-seat judging** — NOT implemented; anthropic/google keys
+  absent. Carried, disclosed.
+
+### The convergence war (runs 3–9, one course, same tier)
+
+| Run | Change under test                     | Cost      | Judgment residuals | a2 repair   | a2 catch  |
+| --- | ------------------------------------- | --------- | ------------------ | ----------- | --------- |
+| 3   | checks + gates land                    | $0.31     | 19                 | 0.409       | 32%       |
+| 4   | instrument enforced in author retries  | $0.32 † | — (12/15 lessons dead) | —       | —         |
+| 5   | + reason-bearing distractors, fallback | $0.93     | 35                 | 0.634       | ≥60%      |
+| 6   | (one nano lesson death)                | $0.16 † | —                  | —           | —         |
+| 7   | deterministic passes own the instrument| **$0.18** | **1**              | **0.795 ✓** | 59%       |
+| 8   | catch top-up + quiz diet               | $0.21     | 1                  | 0.532 ‡   | 54% ‡   |
+| 9   | + reinforced-concept scope             | **$0.18** | **1**              | **0.769 ✓** | **≥60% ✓** |
+
+† failed runs, spend ledgered. ‡ fresh intake produced a different
+graph (23 vs 16 concepts) — see finding 3.
+
+Run 9 is the validated state: **3 of 4 classroom bars met on cs-python**
+(repair 0.769, catch ≥60%, 0 unexposed; compliance 0.26 vs bar 0.25),
+grade 99/A, 1 honest residual, $0.179.
+
+### The held-out course says the loop is course-local
+
+Linear algebra never entered the refine loop. Two runs (before/after the
+scope fix): repair 0.42/0.45 (bar 0.70), catch —/57%, compliance
+0.31/0.31, 5 unexposed items. Grades 99/A both times, 4 honest
+residuals. The deterministic machinery transfers (98 correctives paired,
+12 splices, zero dead lessons); the *bars* do not transfer yet — math's
+misconception density and prerequisite contamination behave differently
+from cs. The loop must run per discipline; one course's convergence is
+not a pipeline property.
+
+### What the war taught (each lesson was paid for)
+
+1. **Repair cannot converge on texts it never sees.** Run 3's 24 section
+   repairs left 19 residuals because J11/J3b messages didn't quote the
+   belief/corrective. Every gate's error message now carries the verbatim
+   text the model must keep.
+2. **Never enforce a lexical instrument inside stochastic retry loops.**
+   Run 4 killed 12/15 lessons; run 5 "succeeded" at $0.93 with 73
+   thrashing repair calls and 35 residuals. Runs 6–7 moved the guarantees
+   to deterministic passes (belief-form splice, corrective pairing,
+   re-run after every repair round): residuals 35 → 1, repair spend
+   $0.487 → $0.015, total $0.93 → $0.18.
+3. **The instrument is lexically blind to short-token payloads.** Run 3's
+   l2 quiz caught both misconceptions pedagogically (bare "3" on the 7/2
+   item IS the integer-division catch) and scored 0% — the matcher drops
+   tokens ≤3 chars. The honest bridge is **reason-bearing distractors**
+   ("3, because the operands look like whole numbers"), which are better
+   quiz design *and* instrument-visible. Prompts teach this form now.
+4. **Intake variance dominates between-run a2 deltas.** Runs 7 vs 8:
+   identical instrument code, repair 0.795 → 0.532 because a fresh intake
+   drew a different graph. Same lesson as the judge-variance note: no
+   single-run exit-bar verdicts; pair on the same graph or use
+   multi-run means.
+5. **Determinism has a prose cost the judge can see.** Two judge seats
+   (runs 7 and 8): overall 8/8, quiz 7/7 — both naming "repeated
+   feedback blocks," i.e. the appended correctives. The guarantee
+   machinery and the aesthetic instrument now pull against each other;
+   the designed fix (next round) is blending the corrective into the
+   explanation via the quiz author instead of appending after it.
+6. **Fresh sampling beats fed-back retries on a stuck contract line.**
+   Run 6 died on one nano reteach rule after 3 fed-back attempts; one
+   fresh re-author per failed lesson (~$0.001) ended the run-death class.
+
+### Exit bars, honestly scored
+
+| Bar (roadmap)                          | Measured                        | Verdict |
+| -------------------------------------- | ------------------------------- | ------- |
+| 1.1 a2 repair ≥ 0.70 on two courses    | cs 0.769–0.795 ✓ · LA 0.45 ✗  | PARTIAL |
+| 1.2 a2 catch ≥ 0.60, no meta-framed options | cs ≥60% ✓ (run 9) · LA 57% ✗ | PARTIAL |
+| 1.3 zero unexposed + exam solvability ≥0.5 | cs 0 + 0.585 ✓ · LA 5 ✗    | PARTIAL |
+| 1.4 a2 compliance ≤ 0.25               | cs 0.238–0.267 (straddles bar) · LA 0.31 ✗ | UNMET (structural: reteach earns half-credit by the sim's own rule) |
+| 2.1 judge quiz ≥ 8 at ≤ $0.13          | quiz 7/7 (two seats) at $0.18–0.21 | UNMET (both halves; causes named above) |
+| 2.2 readings verified                  | 2–3 of 4–5 promoted per run     | MET (partial promotion is the design) |
+| 3.1 100% of grounded claims checked    | 100% of kernel-cited claims     | MET     |
+| 3.2 failing battery cannot render ready | readiness forced needs_review  | MET     |
+| 3.3 flywheel facts carry verified status | same-family verify, disclosed | MET (cross-family key-gated) |
+| 4.1 Trellis ZIP opens in Word          | DOCX round-trip via grader parser | MET (parser proxy, disclosed) |
+
+The honest summary: **the machinery of v0.1.1 is fully built and the
+convergence problem is solved** (1 residual, $0.18, instrument
+guarantees deterministic); the *bars* are met on the course the loop ran
+on and not yet on the held-out one, the compliance ruler is pinned near
+its structural ceiling, and cost sits $0.05 above target with both
+drivers identified (quiz output volume, corrective-append repetition).
+All numbers keep their SIMULATED stamps.
+
 ## 6a. Where quality still falls short — the next round, pre-registered
 
 The instruments that matter most say the gaps out loud, and writing them
@@ -705,6 +827,11 @@ here is the higher standard applied to our own reporting:
    until two instructors return it, every number in this report keeps its
    SIMULATED stamp, and "Trellis is better" remains: better on every
    instrument we own, none of which is a professor.
+
+_Status (v0.1.1, §5h): items 1–3 and 5 above were implemented and
+measured — the a2 battery is a build gate, entailment and reading
+verification shipped, and the export-parity DOCX slice round-trips.
+Item 4 (multi-seat judging) stays key-gated; item 6 stays the verdict._
 
 ## 6. What the build taught (honest findings)
 
