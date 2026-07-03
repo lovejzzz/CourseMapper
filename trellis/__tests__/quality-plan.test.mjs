@@ -204,3 +204,28 @@ describe('item 2 · language-aware contract (the Mandarin/World-Lit breadth catc
     expect(weightedLength('short latin')).toBeLessThan(60);
   });
 });
+
+describe('prerequisite-gap bridging (the seeded econ gap, graph-native)', () => {
+  it('a forward prerequisite becomes a disclosed primer, not a hard block', async () => {
+    const { runPipeline } = await import('../pipeline.mjs');
+    const graph = buildResearchMethods8();
+    // Seed the econ-style gap: lesson 2's concept requires one formally
+    // introduced in week 6.
+    graph.concepts.find((c) => c.id === 'c-hypothesis').requires.push('c-correlation-causation');
+    const result = await runPipeline({
+      graph,
+      tier: 'draft',
+      mockVoice: true,
+      runId: 'test-bridge-mock',
+      generatedAt: '2026-07-03T00:00:00.000Z',
+    });
+    expect(result.digest.prerequisiteBridges.join(' ')).toMatch(/Correlation versus causation/);
+    expect(result.digest.judgment).toMatch(/prerequisite gap\(s\) bridged with inline primers/);
+    const { readFile } = await import('node:fs/promises');
+    const l2 = await readFile(
+      'trellis/runs/test-bridge-mock/package/Lesson Plans/Lesson 02 - From Question to Hypothesis.md',
+      'utf8',
+    );
+    expect(l2).toMatch(/Prerequisite gap bridged: this session opens with a primer/);
+  }, 30000);
+});

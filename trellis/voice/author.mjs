@@ -52,7 +52,10 @@ function lessonSystemPrompt(slice) {
     (correctives.length > 0
       ? `- For each documented misconception, at least one quiz item's explanation must CONFRONT its corrective: quote it, or paraphrase it faithfully keeping its key terms (a grader checks word overlap). Vary how you weave it in. The correctives are:\n${correctives.map((c) => `  • "${c}"`).join('\n')}\n`
       : '') +
-    `- plan.segments must include one "reteach" segment that re-teaches the reading's core concept for students who arrived cold.\n` +
+    `- plan.segments must include one "reteach" segment that re-teaches the reading's core concept for students who arrived cold; every segment's minutes is an integer of at least 5.\n` +
+    (slice.primerConcepts?.length
+      ? `- PRIMER REQUIRED: this lesson uses concepts formally taught later (${slice.primerConcepts.map((p) => p.name).join(', ')}). Open the plan with a 5-10 minute primer introducing just enough of each.\n`
+      : '') +
     `- rubricBands describe OBSERVABLE work: the top band applies a definition with an example; the lowest band exhibits the documented misconception. No adverb gradients ("thoroughly", "adequately").\n` +
     `- Write like a person who teaches this course: specific, direct, no template phrases ("In this lesson we will..."), no evidence-speak. Vary sentence openers.\n` +
     `- claims[]: for each factual passage, record {path, ref}; ref must be one of the enum values in the schema (the graph nodes this lesson actually has) or null for your own judgment.` +
@@ -67,6 +70,7 @@ function lessonUserPrompt(slice) {
     {
       lesson: slice.lesson,
       concepts: slice.concepts,
+      primerConcepts: slice.primerConcepts ?? [],
       outcomes: slice.outcomes,
       assessments: slice.assessments,
       sources: slice.sources,
@@ -164,7 +168,10 @@ function coreSystemPrompt(slice) {
     (correctives.length > 0
       ? `- For each documented misconception, at least one quiz item's explanation must CONFRONT its corrective: quote it, or paraphrase it faithfully keeping its key terms (a grader checks word overlap — do not water it down). Vary how you weave it in; never open two explanations the same way. Correctives:\n${correctives.map((c) => `  • "${c}"`).join('\n')}\n`
       : '') +
-    `- plan.segments: 4-5 segments including one "reteach" segment that re-teaches the reading's core concept for students who arrived cold.\n` +
+    `- plan.segments: 4-5 segments, each an integer of at least 5 minutes, including one "reteach" segment that re-teaches the reading's core concept for students who arrived cold.\n` +
+    (slice.primerConcepts?.length
+      ? `- PRIMER REQUIRED: this lesson uses concepts the course formally teaches later (${slice.primerConcepts.map((p) => p.name).join(', ')}). Open plan.segments with a 5-10 minute primer that introduces just enough of each (kernel facts provided), saying explicitly it is a preview of a later lesson.\n`
+      : '') +
     `- studyGuideSection: a markdown section of at least 300 characters — key terms with definitions, the misconceptions to watch for, and 2-3 self-check prompts.\n` +
     `- Every factual claim traces to the kernel facts provided; never invent facts or readings.\n` +
     `- Where a concept carries workedExamples or anchorQuotes, USE them: build the plan's worked-example segment and at least one quiz stem from a provided example, and let anchored quotes ground the study guide.\n` +

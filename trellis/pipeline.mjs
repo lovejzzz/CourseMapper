@@ -86,9 +86,38 @@ async function runPipelineStages({
     digest.bloomAutoAligned = realigned.map((r) => `${r.outcomeId}: "${r.verb}" ${r.from}→${r.to}`);
   }
 
-  // 2 · structural validation (pre-knowledge: V5 may legitimately fail here)
+  // 2 · structural validation (pre-knowledge: V5 may legitimately fail here).
+  // V2 forward-prerequisite blockers whose concept IS introduced later become
+  // BRIDGES (the v0.14 gap-judgment behavior): the earlier lesson opens with
+  // an authored primer, diagnosed and disclosed — never a silent reorder and
+  // never a hard block on a professor's deliberate sequencing.
+  const { prerequisiteBridges } = await import('./graph/validate.mjs');
+  const bridges = prerequisiteBridges(graph);
+  if (bridges.length > 0) {
+    const byLesson = new Map();
+    for (const bridge of bridges) {
+      if (!byLesson.has(bridge.lessonId)) byLesson.set(bridge.lessonId, []);
+      byLesson.get(bridge.lessonId).push(bridge.requiredId);
+    }
+    for (const lesson of graph.lessons) {
+      if (byLesson.has(lesson.id)) lesson.bridgePrimers = [...new Set(byLesson.get(lesson.id))];
+    }
+    digest.prerequisiteBridges = bridges.map(
+      (b) => `${b.lessonId}: primer for "${b.requiredName}" (formally taught in lesson ${b.introducedAtLesson})`,
+    );
+  }
+  const bridgedKeys = new Set(bridges.map((b) => `${b.lessonId}|${b.requiredName}`));
   let findings = validateGraph(graph);
-  const structural = blockers(findings).filter((f) => f.code !== 'V5_KERNEL_OR_GAP');
+  const structural = blockers(findings).filter(
+    (f) =>
+      f.code !== 'V5_KERNEL_OR_GAP' &&
+      !(
+        f.code === 'V2_PREREQ_ORDER' &&
+        [...bridgedKeys].some(
+          (k) => f.path.startsWith(`lesson/${k.split('|')[0]}`) && f.message.includes(`"${k.split('|')[1]}"`),
+        )
+      ),
+  );
   if (structural.length > 0) {
     throw new Error(
       `graph fails structural validation:\n${structural.map((f) => `- [${f.code}] ${f.message}`).join('\n')}`,
@@ -129,13 +158,21 @@ async function runPipelineStages({
       : `${readings.kept}/${readings.found} candidate readings kept (source-finder + J10 relevance gate; ${readings.dropped} dropped)`;
   }
 
-  // 5 · full validation must now be clean
+  // 5 · full validation must now be clean (bridged V2 findings excepted —
+  // they are handled by authored primers, disclosed above)
   findings = validateGraph(graph);
-  if (blockers(findings).length > 0) {
+  const hardBlockers = blockers(findings).filter(
+    (f) =>
+      !(
+        f.code === 'V2_PREREQ_ORDER' &&
+        [...bridgedKeys].some(
+          (k) => f.path.startsWith(`lesson/${k.split('|')[0]}`) && f.message.includes(`"${k.split('|')[1]}"`),
+        )
+      ),
+  );
+  if (hardBlockers.length > 0) {
     throw new Error(
-      `graph fails validation after knowledge:\n${blockers(findings)
-        .map((f) => `- [${f.code}] ${f.message}`)
-        .join('\n')}`,
+      `graph fails validation after knowledge:\n${hardBlockers.map((f) => `- [${f.code}] ${f.message}`).join('\n')}`,
     );
   }
   digest.validation = 'V1–V7 structural invariants: 0 blockers';
@@ -193,7 +230,7 @@ async function runPipelineStages({
     ...(mockVoice ? { mock: mockAuthorLesson } : {}),
   });
   const prereqEdges = graph.concepts.reduce((n, c) => n + c.requires.length, 0);
-  digest.judgment = `Course judgment: ${blockingFindings(repair.findings).length === 0 ? 'no gaps' : `${blockingFindings(repair.findings).length} open finding(s)`} across ${graph.lessons.length} lessons; ${prereqEdges} prerequisite edges verified in order (V2); checks J1–J10 ran, ${repair.rounds} repair round(s) (${repair.sectionRepairs ?? 0} section, ${repair.fullRepairs ?? 0} full)`;
+  digest.judgment = `Course judgment: ${blockingFindings(repair.findings).length === 0 ? 'no gaps' : `${blockingFindings(repair.findings).length} open finding(s)`} across ${graph.lessons.length} lessons; ${prereqEdges} prerequisite edges verified in order (V2)${bridges.length > 0 ? `; ${bridges.length} prerequisite gap(s) bridged with inline primers` : ''}; checks J1–J10 ran, ${repair.rounds} repair round(s) (${repair.sectionRepairs ?? 0} section, ${repair.fullRepairs ?? 0} full)`;
   if (repair.honest) digest.repairHonesty = repair.honest;
 
   // 8 · render + artifacts

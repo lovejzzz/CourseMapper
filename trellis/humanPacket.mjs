@@ -9,7 +9,7 @@
 //
 //   npx vite-node trellis/humanPacket.mjs <currentExtractedDir> <trellisPackageDir> <outDir>
 
-import { readFile, writeFile, mkdir, readdir, copyFile } from 'node:fs/promises';
+import { writeFile, mkdir, readdir, copyFile } from 'node:fs/promises';
 import { join, basename } from 'node:path';
 
 const [currentDir, trellisDir, outDir = 'verification-output/trellis/human-blind-packet'] = process.argv.slice(2);

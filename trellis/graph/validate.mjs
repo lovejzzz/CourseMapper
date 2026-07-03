@@ -221,3 +221,42 @@ export function validateGraph(graph, { pacingCap = PACING_CAP_DEFAULT } = {}) {
 export function blockers(findings) {
   return findings.filter((f) => f.severity === 'block');
 }
+
+// Prerequisite bridges — the graph-native version of the v0.14 gap
+// judgment: a concept REQUIRED before it is formally introduced is not a
+// hard failure when it IS introduced later in the course; it is a gap the
+// earlier lesson must bridge with an inline primer (diagnosed, disclosed,
+// and authored — never silently reordered, never silently ignored).
+export function prerequisiteBridges(graph) {
+  const bridges = [];
+  const concepts = indexById(graph.concepts);
+  const ordered = orderedLessons(graph);
+  const introducedAt = new Map();
+  ordered.forEach((lesson, index) => {
+    for (const conceptId of lesson.introduces) {
+      if (!introducedAt.has(conceptId)) introducedAt.set(conceptId, index);
+    }
+  });
+  ordered.forEach((lesson, index) => {
+    for (const conceptId of [...lesson.introduces, ...lesson.reinforces]) {
+      const concept = concepts.get(conceptId);
+      if (!concept) continue;
+      for (const requiredId of concept.requires) {
+        const required = concepts.get(requiredId);
+        if (!required || required.declaredGap) continue;
+        const at = introducedAt.get(requiredId);
+        if (at !== undefined && at > index) {
+          bridges.push({
+            lessonId: lesson.id,
+            lessonIndex: index,
+            conceptId,
+            requiredId,
+            requiredName: required.name,
+            introducedAtLesson: at + 1,
+          });
+        }
+      }
+    }
+  });
+  return bridges;
+}

@@ -54,7 +54,14 @@ export function buildLessonSlice(graph, lessonId, { constraints = DEFAULT_CONSTR
     })),
   }));
   const outcomesById = indexById(graph.outcomes);
+  const conceptById = new Map(graph.concepts.map((c) => [c.id, c]));
+  const primerConcepts = (lesson.bridgePrimers ?? []).map((id) => ({
+    id,
+    name: conceptById.get(id)?.name ?? id,
+    kernelFacts: conceptById.get(id)?.kernelFacts ?? [],
+  }));
   return {
+    primerConcepts,
     course: {
       title: graph.course.title,
       subject: graph.course.subject,

@@ -7,7 +7,7 @@
 // CI. Bar (spec §17): Trellis judge mean ≥ current mean AND the CI on the
 // judge delta excludes a regression larger than 0.5.
 
-import { readFile, writeFile, readdir } from 'node:fs/promises';
+import { readFile, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
 
 const T95 = { 5: 2.571, 6: 2.447, 7: 2.365, 8: 2.306 }; // df = n-1
@@ -17,11 +17,7 @@ async function crucibleCourseResult(roundDir, courseId) {
   const report = JSON.parse(await readFile(join(courseDir, 'report.json'), 'utf8'));
   const md = await readFile(join(courseDir, 'report.md'), 'utf8').catch(() => '');
   const judgeMatch = /\*\*Overall: (\d+)\/10\*\*/.exec(md);
-  const overall =
-    report?.normalized?.overall?.score ??
-    report?.raw?.overall?.score ??
-    report?.overall?.score ??
-    null;
+  const overall = report?.normalized?.overall?.score ?? report?.raw?.overall?.score ?? report?.overall?.score ?? null;
   return { grader: overall, judge: judgeMatch ? Number(judgeMatch[1]) : null };
 }
 
@@ -73,7 +69,9 @@ const lines = [
   ...rows.map(
     (r) =>
       `| ${r.courseId} | ${r.current.grader} | ${r.trellis.grader} | ${r.current.judge ?? '—'} | ${r.trellis.judge ?? '—'} | ${
-        r.current.judge !== null && r.trellis.judge !== null ? (r.trellis.judge - r.current.judge > 0 ? '+' : '') + (r.trellis.judge - r.current.judge) : '—'
+        r.current.judge !== null && r.trellis.judge !== null
+          ? (r.trellis.judge - r.current.judge > 0 ? '+' : '') + (r.trellis.judge - r.current.judge)
+          : '—'
       } | $${r.trellis.usd?.toFixed(3) ?? '—'} |`,
   ),
   '',

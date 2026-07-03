@@ -158,6 +158,14 @@ export function renderPackage({ graph, authored, courseWide, generatedAt, digest
         readingLine
           ? `## Preparation\n- Read: ${readingLine}`
           : '## Preparation\n- Review the prior week’s study guide.',
+        ...(lesson.bridgePrimers?.length
+          ? [
+              '',
+              `_Prerequisite gap bridged: this session opens with a primer on ${lesson.bridgePrimers
+                .map((id) => conceptNameById.get(id) ?? id)
+                .join(', ')} — formally covered later in the course._`,
+            ]
+          : []),
         '',
         '## Session plan',
         ...art.plan.segments.map((seg) => `### ${seg.minutes} min — ${seg.mode}\n${seg.text}`),
