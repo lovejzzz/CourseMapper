@@ -21,7 +21,11 @@ export const ITEM_CATCH_SHARE = 0.6;
 // break authoring retries on lessons that merely revisit a concept.
 export function introducedMisconceptions(slice) {
   const introduced = new Set(slice.lesson.introduces ?? []);
-  return slice.concepts.filter((c) => introduced.has(c.id)).flatMap((c) => c.misconceptions);
+  const all = slice.concepts.filter((c) => introduced.has(c.id)).flatMap((c) => c.misconceptions);
+  // A concept listed in both introduces and reinforces appears twice in the
+  // slice; duplicated misconceptions double every error message.
+  const seen = new Set();
+  return all.filter((m) => (seen.has(m.id) ? false : seen.add(m.id)));
 }
 
 export function quizInstrumentErrors(quizItems, misconceptions) {

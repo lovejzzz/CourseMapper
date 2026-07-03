@@ -203,7 +203,7 @@ function misconceptionBlocks(misconceptions) {
     .map((m, i) => {
       const belief = m.beliefForm ?? m.statement;
       const documented = m.beliefForm && m.beliefForm !== m.statement ? `\n     (documented as: "${m.statement}")` : '';
-      return `  ${i + 1}. WRONG BELIEF (use as a distractor, keep its key terms): "${belief}"${documented}\n     CORRECTIVE (the catching item's explanation keeps ITS key terms): "${m.corrective}"`;
+      return `  ${i + 1}. WRONG BELIEF (build a distractor from it): "${belief}"${documented}\n     CORRECTIVE (the catching item's explanation keeps ITS key terms): "${m.corrective}"`;
     })
     .join('\n');
 }
@@ -216,7 +216,8 @@ function quizSystemPrompt(slice) {
     `Author quizItems + claims as JSON. Non-negotiables:\n` +
     `- Exactly ${count} items, 4 options each, application/transfer stems preferred over recall; VARY correctIndex across items; no two options in an item may be identical.\n` +
     (misconceptions.length > 0
-      ? `- The distractors ARE the documented wrong beliefs below. At least ${Math.ceil(count * ITEM_CATCH_SHARE)} of the ${count} items must carry one as a wrong option — vary the wording across items, but keep each belief's key technical terms (a lexical grader checks shared terms, and the simulated student who holds the belief must recognize it as their own).\n` +
+      ? `- The distractors ARE the documented wrong beliefs below. At least ${Math.ceil(count * ITEM_CATCH_SHARE)} of the ${count} items must carry one as a wrong option.\n` +
+        `- HOW TO WRITE A CATCHING DISTRACTOR: give the wrong value/claim WITH its wrong rationale, reusing the documented belief's own nouns and verbs — "3, because the operands look like whole numbers so Python does integer division", never the bare value "3". A lexical grader counts the belief's words inside the option, and the student who holds the belief must recognize their own reasoning.\n` +
         `- PAIRING: any item whose options state a wrong belief must confront that belief's corrective in its explanation — quote it or paraphrase it keeping its key terms. The student who picks the wrong belief reads its repair.\n` +
         `- Documented misconceptions:\n${misconceptionBlocks(misconceptions)}\n`
       : '') +
@@ -257,7 +258,7 @@ export async function authorLesson(
   // cheap; three small schemas, all parallel.
   if (surfacesTier && !repairNotes) {
     const coreFields = quizTier ? CORE_SANS_QUIZ_FIELDS : CORE_FIELDS;
-    const calls = [
+    const coreCall = (validate) =>
       callModel({
         tier,
         stage: 'author',
@@ -265,11 +266,15 @@ export async function authorLesson(
         budgetUsd,
         schema: subSchema(coreFields, slice),
         schemaName: 'lesson_core',
-        validate: subValidator(coreFields, slice),
+        validate,
         maxOutputTokens: 8000,
         system: coreSystemPrompt(slice),
         user: lessonUserPrompt(slice),
-      }),
+      });
+    const calls = [
+      // Same instrument-then-structural fallback as the quiz call below —
+      // when there is no quiz tier, the core call owns quizItems.
+      coreCall(subValidator(coreFields, slice)).catch(() => coreCall(subValidator(coreFields))),
       callModel({
         tier: surfacesTier,
         stage: 'authorSurfaces',
@@ -284,7 +289,7 @@ export async function authorLesson(
       }),
     ];
     if (quizTier) {
-      calls.push(
+      const quizCall = (validate) =>
         callModel({
           tier: quizTier,
           stage: 'authorQuiz',
@@ -292,12 +297,16 @@ export async function authorLesson(
           budgetUsd,
           schema: subSchema(QUIZ_FIELDS, slice),
           schemaName: 'lesson_quiz',
-          validate: subValidator(QUIZ_FIELDS, slice),
+          validate,
           maxOutputTokens: 6000,
           system: quizSystemPrompt(slice),
           user: lessonUserPrompt(slice),
-        }),
-      );
+        });
+      // The instrument bar (quizInstrument.mjs) is the target, but a lesson
+      // whose model can't hit it in the retry budget must not die: fall back
+      // to the structural contract and let splice + judged repair converge
+      // it — a residual finding is honest, a dead run is not.
+      calls.push(quizCall(subValidator(QUIZ_FIELDS, slice)).catch(() => quizCall(subValidator(QUIZ_FIELDS))));
     }
     const [core, surfaces, quiz] = await Promise.all(calls);
     const merged = {
@@ -398,7 +407,7 @@ export async function repairQuizSection(graph, lessonId, authoredLesson, finding
     system:
       `You are repairing ONLY the quiz items of week ${slice.lesson.week} ("${slice.lesson.title}") in ${slice.course.title}. ` +
       `Return the full corrected quizItems array (${slice.constraints.quizItems} items) and quizClaims ({path:"quizItems[i]...", ref}). ` +
-      `Rules: (1) for each documented misconception, at least one item carries a DISTRACTOR that states the wrong belief near-verbatim (keep its key terms); (2) at least ${Math.ceil(slice.constraints.quizItems * ITEM_CATCH_SHARE)} of the ${slice.constraints.quizItems} items must carry a wrong belief as an option — vary the wording, keep each belief's key terms; (3) PAIRING — any item whose options state a wrong belief must confront THAT belief's corrective in its explanation, keeping the corrective's key terms; (4) no two options in an item may be identical.` +
+      `Rules: (1) for each documented misconception, at least one item carries a DISTRACTOR built from it — the wrong value/claim WITH its wrong rationale, reusing the belief's own nouns and verbs ("3, because the operands look like whole numbers", never the bare "3"); (2) at least ${Math.ceil(slice.constraints.quizItems * ITEM_CATCH_SHARE)} of the ${slice.constraints.quizItems} items must carry a wrong belief as an option — vary the wording, keep each belief's key terms; (3) PAIRING — any item whose options state a wrong belief must confront THAT belief's corrective in its explanation, keeping the corrective's key terms; (4) no two options in an item may be identical.` +
       (misconceptions.length > 0 ? ` Documented misconceptions:\n${misconceptionBlocks(misconceptions)}` : ''),
     user: JSON.stringify(
       {

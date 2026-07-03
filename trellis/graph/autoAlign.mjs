@@ -13,6 +13,7 @@
 import { levelForVerb } from '../judgment/checks/j2BloomMatch.mjs';
 import { indexById, misconceptionsForConcept } from './schema.mjs';
 import { distractorCatches } from '../judgment/checks/j11Catch.mjs';
+import { confrontsCorrective } from '../judgment/checks/j3bPairing.mjs';
 import { tokenOverlapRatio } from '../judgment/text.mjs';
 
 const ORDER = ['remember', 'understand', 'apply', 'analyze', 'evaluate', 'create'];
@@ -120,7 +121,13 @@ export function spliceCatchDistractors(graph, authored) {
       let chosen = null;
       let bestScore = 0;
       for (const entry of candidates) {
-        const score = tokenOverlapRatio(entry.conceptName, item.stem);
+        const onTopic = tokenOverlapRatio(entry.conceptName, item.stem);
+        if (onTopic <= 0) continue;
+        // Prefer a misconception whose corrective this item's explanation
+        // ALREADY confronts — splicing into any other item mints a J3b
+        // pairing defect the repair loop then has to converge on (run 3's
+        // residual class). Confronting slots win over merely on-topic ones.
+        const score = onTopic + (confrontsCorrective(item.explanation, entry.m.corrective) ? 10 : 0);
         if (score > bestScore) {
           bestScore = score;
           chosen = entry;
