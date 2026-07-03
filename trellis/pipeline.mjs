@@ -9,8 +9,8 @@ import { mkdir, writeFile } from 'node:fs/promises';
 import { validateGraph, blockers } from './graph/validate.mjs';
 import { loadShards, assembleKnowledge } from './knowledge/assemble.mjs';
 import { flywheelFill } from './knowledge/flywheel.mjs';
-import { authorAllLessons, authorCourseWide } from './voice/author.mjs';
-import { mockAuthorLesson, mockAuthorCourseWide } from './voice/mockAuthor.mjs';
+import { authorAllLessons, authorCourseWide, authorAllExams } from './voice/author.mjs';
+import { mockAuthorLesson, mockAuthorCourseWide, mockAuthorExamItems } from './voice/mockAuthor.mjs';
 import { repairLoop } from './voice/repair.mjs';
 import { blockingFindings } from './judgment/index.mjs';
 import { renderPackage, writePackageToDir, createMemoryFileProvider, FEATURE_FOLDERS } from './render/deliverables.mjs';
@@ -168,6 +168,14 @@ async function runPipelineStages({
   }
   const courseWide = await courseWidePromise;
 
+  // 6c · dedicated exam items (item 6): transfer-level, authored per exam;
+  // a failed exam authoring falls back to the quiz-pull render, disclosed.
+  const examOptions = mockVoice ? { mock: mockAuthorExamItems } : { tier: tiers.author, ledger, budgetUsd };
+  const { authoredExams, failures: examFailures } = await authorAllExams(graph, examOptions);
+  if (examFailures.length > 0) {
+    digest.examAuthoring = `FALLBACK for ${examFailures.length} exam(s): ${examFailures.map((f) => f.examId).join(', ')} — quiz-pull items used, disclosed in the exam file`;
+  }
+
   // 6b · deterministic claim hygiene: a dangling ref becomes an explicit
   // null (JUDGED-class) — an unverifiable citation must not pose as
   // grounding, and repair calls must not be spent on what a downgrade fixes.
@@ -189,7 +197,7 @@ async function runPipelineStages({
   if (repair.honest) digest.repairHonesty = repair.honest;
 
   // 8 · render + artifacts
-  const { files, manifest } = renderPackage({ graph, authored, courseWide, generatedAt, digest });
+  const { files, manifest } = renderPackage({ graph, authored, courseWide, generatedAt, digest, authoredExams });
   await mkdir(runDir, { recursive: true });
   await writePackageToDir(files, join(runDir, 'package'));
   await writeFile(join(runDir, 'graph.json'), JSON.stringify(graph, null, 2));

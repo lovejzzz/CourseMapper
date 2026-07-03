@@ -148,3 +148,46 @@ describe('item 4 · the new-template guard', () => {
     expect(j7Echo(graph, authored).filter((f) => f.severity === 'block')).toEqual([]);
   });
 });
+
+describe('item 6 · dedicated exam items + demand-driven FAQ', () => {
+  it('mock pipeline ships dedicated transfer-level exam items and a logistics FAQ', async () => {
+    const { runPipeline } = await import('../pipeline.mjs');
+    const { buildResearchMethods8 } = await import('../fixtures/graphs/researchMethods8.mjs');
+    await runPipeline({
+      graph: buildResearchMethods8(),
+      tier: 'draft',
+      mockVoice: true,
+      runId: 'test-item6-mock',
+      generatedAt: '2026-07-03T00:00:00.000Z',
+    });
+    const { readFile } = await import('node:fs/promises');
+    const midterm = await readFile('trellis/runs/test-item6-mock/package/Quiz & Exam Bank/Midterm Exam.md', 'utf8');
+    expect(midterm).toMatch(/assesses /); // dedicated items, concept-tagged
+    expect(midterm).not.toMatch(/drawn from lesson banks/); // no fallback note
+    expect(midterm).toMatch(/transfer|apply/);
+    const faq = await readFile(
+      'trellis/runs/test-item6-mock/package/Course FAQ/Course FAQ - Introduction to Research Methods.md',
+      'utf8',
+    );
+    expect(faq).toMatch(/## Grades, exams, and logistics/);
+    expect(faq).toMatch(/How is my grade calculated\?/);
+    expect(faq).toMatch(/Midterm Exam — 22%/);
+  }, 30000);
+
+  it('the render falls back honestly when an exam has no dedicated items', async () => {
+    const { renderPackage } = await import('../render/deliverables.mjs');
+    const { buildLessonSlice } = await import('../voice/contracts.mjs');
+    const { mockAuthorLesson, mockAuthorCourseWide } = await import('../voice/mockAuthor.mjs');
+    const graph = buildResearchMethods8();
+    const authored = Object.fromEntries(
+      graph.lessons.map((lesson) => [lesson.id, mockAuthorLesson(buildLessonSlice(graph, lesson.id))]),
+    );
+    const { files } = renderPackage({
+      graph,
+      authored,
+      courseWide: mockAuthorCourseWide(graph),
+      generatedAt: '2026-07-03T00:00:00.000Z',
+    });
+    expect(files.get('Quiz & Exam Bank/Midterm Exam.md')).toMatch(/drawn from lesson banks/);
+  });
+});

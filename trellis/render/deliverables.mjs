@@ -96,7 +96,7 @@ export function stripCodeSpans(text) {
   return String(text).replace(/`([^`\n]+)`/g, '$1');
 }
 
-export function renderPackage({ graph, authored, courseWide, generatedAt, digest = null }) {
+export function renderPackage({ graph, authored, courseWide, generatedAt, digest = null, authoredExams = {} }) {
   if (!generatedAt) throw new Error('renderPackage requires generatedAt (pass a fixed value in tests)');
   const { course } = graph;
   const lessons = orderedLessons(graph);
@@ -249,7 +249,18 @@ export function renderPackage({ graph, authored, courseWide, generatedAt, digest
     const covered = lessons.filter((lesson) => lesson.week <= upTo && lesson.week > coveredFrom);
     const cumulative = exam.registryKey.toLowerCase().includes('final');
     const pool = cumulative ? lessons.filter((lesson) => lesson.week <= upTo) : covered;
-    const items = buildExamItems(exam, pool, authored);
+    // Dedicated authored exam items when present (item 6); the quiz-pull
+    // fallback stays only for runs that could not author them, disclosed in
+    // the file itself.
+    const dedicated = authoredExams[exam.id] ?? null;
+    const conceptNames = new Map(graph.concepts.map((c) => [c.id, c.name]));
+    const items = dedicated
+      ? dedicated.map((item) => ({
+          ...item,
+          sourceLesson: null,
+          conceptName: conceptNames.get(item.conceptId) ?? item.conceptId,
+        }))
+      : buildExamItems(exam, pool, authored);
     const outcomeRows = exam.outcomeIds
       .map((id) => outcomesById.get(id))
       .filter(Boolean)
@@ -269,8 +280,13 @@ export function renderPackage({ graph, authored, courseWide, generatedAt, digest
         '| --- | --- |',
         ...outcomeRows,
         '',
+        ...(dedicated
+          ? []
+          : ['_Note: exam items drawn from lesson banks (dedicated exam authoring unavailable this run)._', '']),
         ...items.flatMap((item, i) => [
-          `## Question ${i + 1} (from Lesson ${lessons.indexOf(item.sourceLesson) + 1}: ${item.sourceLesson.title})`,
+          item.sourceLesson
+            ? `## Question ${i + 1} (from Lesson ${lessons.indexOf(item.sourceLesson) + 1}: ${item.sourceLesson.title})`
+            : `## Question ${i + 1} (${item.difficulty} · assesses ${item.conceptName})`,
           '',
           item.stem,
           '',
@@ -391,6 +407,8 @@ export function renderPackage({ graph, authored, courseWide, generatedAt, digest
       '',
       courseWide.faqIntro,
       '',
+      '## Grades, exams, and logistics',
+      ...(courseWide.logisticsFaq ?? []).flatMap((entry) => [`**Q: ${entry.q}**`, '', entry.a, '']),
       ...lessons.flatMap((lesson) => {
         const art = authored[lesson.id];
         return [

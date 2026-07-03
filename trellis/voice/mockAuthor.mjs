@@ -311,5 +311,57 @@ export function mockAuthorCourseWide(graph) {
       'A notebook or document for the weekly case log (any format).',
     ],
     faqIntro: `Answers below come from the questions students actually ask in ${graph.course.subject} — logistics first, then the conceptual traps, week by week.`,
+    logisticsFaq: [
+      {
+        q: 'How is my grade calculated?',
+        a: `${graph.assessments.map((a) => `${a.registryKey} — ${a.weightPct}%`).join('; ')}. Weights total 100%; nothing is graded that is not in this registry.`,
+      },
+      {
+        q: 'When are the exams and what do they look like?',
+        a:
+          graph.assessments
+            .filter((a) => a.kindOf === 'exam')
+            .map(
+              (a) =>
+                `${a.registryKey} in week ${a.anchor.week}: apply/transfer items with an answer key and accommodations honored`,
+            )
+            .join('. ') || 'No exams; the registry carries the graded work.',
+      },
+      {
+        q: 'What happens if I submit late?',
+        a: 'One 48-hour extension per term, no questions asked; after that, 10% per day. Ask before the deadline, not after.',
+      },
+      {
+        q: 'How much time should this course take each week?',
+        a: `Plan for the reading plus the assignment: roughly 4–6 hours outside the ${graph.course.sessionsPerWeek} weekly session(s).`,
+      },
+    ],
   };
+}
+
+export function mockAuthorExamItems(graph, exam, concepts) {
+  const target = Math.min(Math.max(concepts.length, 6), 12);
+  return Array.from({ length: target }, (_, i) => {
+    const concept = concepts[i % concepts.length];
+    const fact = concept.kernelFacts[0] ?? `${concept.name} has consequences a novel case makes visible.`;
+    const m = concept.misconceptions[0] ?? null;
+    const correctIndex = i % 4;
+    const options = [
+      m ? m.statement : `${concept.name} only matters when an instructor says so.`,
+      `${concept.name} reverses its meaning in exam conditions.`,
+      `A novel case never changes how ${concept.name.toLowerCase()} applies.`,
+    ];
+    options.splice(correctIndex, 0, fact);
+    return {
+      stem: `A situation you have not seen in class hinges on ${concept.name.toLowerCase()}: given a fresh case, which reasoning holds?`,
+      options: options.slice(0, 4),
+      correctIndex: Math.min(correctIndex, 3),
+      explanation: m
+        ? `${m.corrective} Applied to this new case, that is why the keyed option follows.`
+        : `${fact} The distractors either reverse it or make it authority-dependent.`,
+      bloom: i % 2 === 0 ? 'apply' : 'analyze',
+      difficulty: i % 2 === 0 ? 'apply' : 'transfer',
+      conceptId: concept.id,
+    };
+  });
 }

@@ -14,10 +14,13 @@ import { callModel } from '../providers.mjs';
 import {
   AUTHORED_LESSON_SCHEMA,
   COURSE_WIDE_SCHEMA,
+  EXAM_ITEMS_SCHEMA,
   buildLessonSlice,
   validateAuthoredLesson,
   validateCourseWide,
+  validateExamItems,
 } from './contracts.mjs';
+import { orderedLessons, conceptsForLesson, misconceptionsForConcept } from '../graph/schema.mjs';
 
 export function legalRefsForSlice(slice) {
   return [
@@ -344,7 +347,8 @@ export async function authorCourseWide(graph, { tier, ledger, budgetUsd = null, 
     system:
       `You are the instructor of "${graph.course.title}" writing the course-wide prose: description, policies, materials, FAQ intro. ` +
       `Policies must include exam accommodations tied to the actual exams, a late-work rule, an explicit AI-use policy, and attendance. ` +
-      `Materials must be procurement-grade: name the concrete item, version, cost/free status. No template phrases.`,
+      `Materials must be procurement-grade: name the concrete item, version, cost/free status. No template phrases. ` +
+      `logisticsFaq: at least 4 Q&As answering what students actually ask about THIS course's logistics — grading weights and what each assessment is, exam timing and format, the late-work rule, weekly workload — grounded in the registry provided, never generic.`,
     user: JSON.stringify(
       {
         course: graph.course,
@@ -375,4 +379,91 @@ export async function authorAllLessons(graph, options) {
     });
   }
   return { authored, failures };
+}
+
+// ── dedicated exam items (item 6) ───────────────────────────────────────────
+// One authored call per exam over the covered lessons' concepts: transfer-
+// and apply-level stems, misconception distractors, never recycled quiz
+// items. Falls back to the quiz-pull render path only on failure, disclosed.
+export async function authorExamItems(
+  graph,
+  exam,
+  coveredLessons,
+  { tier, ledger, budgetUsd = null, mock = null } = {},
+) {
+  const concepts = [];
+  const seen = new Set();
+  for (const lesson of coveredLessons) {
+    for (const concept of conceptsForLesson(graph, lesson)) {
+      if (seen.has(concept.id)) continue;
+      seen.add(concept.id);
+      concepts.push({
+        id: concept.id,
+        name: concept.name,
+        kernelFacts: concept.kernelFacts,
+        workedExamples: concept.workedExamples ?? [],
+        misconceptions: misconceptionsForConcept(graph, concept.id).map(({ id, statement, corrective }) => ({
+          id,
+          statement,
+          corrective,
+        })),
+      });
+    }
+  }
+  if (mock) return mock(graph, exam, concepts);
+  const itemCount = Math.min(Math.max(coveredLessons.length, 6), 12);
+  const schema = structuredClone(EXAM_ITEMS_SCHEMA);
+  schema.properties.claims.items.properties.ref = {
+    type: ['string', 'null'],
+    enum: [
+      ...concepts.map((c) => `kernel:${c.id}`),
+      ...concepts.flatMap((c) => c.misconceptions.map((m) => `misconception:${m.id}`)),
+      null,
+    ],
+  };
+  const { result } = await callModel({
+    tier,
+    stage: 'authorExams',
+    ledger,
+    budgetUsd,
+    schema,
+    schemaName: 'exam_items',
+    validate: validateExamItems(Math.min(itemCount, 6)),
+    maxOutputTokens: 8000,
+    system:
+      `You are writing "${exam.registryKey}" for ${graph.course.title} (${exam.weightPct}% of the grade), covering ${coveredLessons.length} lessons. ` +
+      `Write ${itemCount} EXAM items — apply/transfer difficulty only, novel scenarios (never reworded practice questions), misconception distractors where documented, VARY correctIndex, ` +
+      `each item tagged with the conceptId it assesses, and explanations that confront the documented corrective when one exists.`,
+    user: JSON.stringify({ concepts, coveredLessonTitles: coveredLessons.map((l) => l.title) }, null, 1),
+  });
+  return result.items;
+}
+
+export async function authorAllExams(graph, options) {
+  const lessons = orderedLessons(graph);
+  const exams = graph.assessments
+    .filter((a) => a.kindOf === 'exam')
+    .sort((a, b) => (a.anchor.week ?? 0) - (b.anchor.week ?? 0));
+  const authoredExams = {};
+  const failures = [];
+  // Pools are computed sequentially (coverage windows chain), then the
+  // authoring calls run in parallel.
+  let coveredFrom = 0;
+  const jobs = exams.map((exam) => {
+    const upTo = exam.anchor.week ?? graph.course.weeks;
+    const cumulative = exam.registryKey.toLowerCase().includes('final');
+    const pool = lessons.filter((lesson) => lesson.week <= upTo && (cumulative || lesson.week > coveredFrom));
+    coveredFrom = upTo;
+    return { exam, pool };
+  });
+  await Promise.allSettled(
+    jobs.map(async ({ exam, pool }) => {
+      try {
+        authoredExams[exam.id] = await authorExamItems(graph, exam, pool, options);
+      } catch (error) {
+        failures.push({ examId: exam.id, error: String(error?.message ?? error).slice(0, 160) });
+      }
+    }),
+  );
+  return { authoredExams, failures };
 }

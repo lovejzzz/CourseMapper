@@ -279,12 +279,22 @@ export function validateAuthoredLesson(authored) {
 export const COURSE_WIDE_SCHEMA = {
   type: 'object',
   additionalProperties: false,
-  required: ['courseDescription', 'policies', 'materials', 'faqIntro'],
+  required: ['courseDescription', 'policies', 'materials', 'faqIntro', 'logisticsFaq'],
   properties: {
     courseDescription: { type: 'string', minLength: 200 },
     policies: { type: 'string', minLength: 200 },
     materials: { type: 'array', minItems: 1, items: { type: 'string', minLength: 10 } },
     faqIntro: { type: 'string', minLength: 60 },
+    logisticsFaq: {
+      type: 'array',
+      minItems: 4,
+      items: {
+        type: 'object',
+        additionalProperties: false,
+        required: ['q', 'a'],
+        properties: { q: { type: 'string', minLength: 10 }, a: { type: 'string', minLength: 30 } },
+      },
+    },
   },
 };
 
@@ -296,5 +306,66 @@ export function validateCourseWide(authored) {
   if (typeof authored.policies !== 'string' || authored.policies.length < 200) errors.push('policies too short');
   if (!Array.isArray(authored.materials) || authored.materials.length < 1) errors.push('materials needs ≥1 entry');
   if (typeof authored.faqIntro !== 'string' || authored.faqIntro.length < 60) errors.push('faqIntro too short');
+  if (!Array.isArray(authored.logisticsFaq) || authored.logisticsFaq.length < 4)
+    errors.push('logisticsFaq needs >=4 entries (grading, exams, late work, workload)');
   return errors;
+}
+
+// ── dedicated exam items (item 6 of the quality plan) ──────────────────────
+// Exams get their own authored, transfer-level items drawn from the covered
+// lessons' concepts — never recycled quiz items with rotated keys.
+
+export const EXAM_ITEMS_SCHEMA = {
+  type: 'object',
+  additionalProperties: false,
+  required: ['items', 'claims'],
+  properties: {
+    items: {
+      type: 'array',
+      minItems: 6,
+      items: {
+        type: 'object',
+        additionalProperties: false,
+        required: ['stem', 'options', 'correctIndex', 'explanation', 'bloom', 'difficulty', 'conceptId'],
+        properties: {
+          stem: { type: 'string', minLength: 30 },
+          options: { type: 'array', minItems: 4, maxItems: 4, items: { type: 'string', minLength: 2 } },
+          correctIndex: { type: 'integer', minimum: 0, maximum: 3 },
+          explanation: { type: 'string', minLength: 30 },
+          bloom: { type: 'string', enum: ['understand', 'apply', 'analyze', 'evaluate', 'create'] },
+          difficulty: { type: 'string', enum: ['apply', 'transfer'] },
+          conceptId: { type: 'string' },
+        },
+      },
+    },
+    claims: {
+      type: 'array',
+      items: {
+        type: 'object',
+        additionalProperties: false,
+        required: ['path', 'ref'],
+        properties: { path: { type: 'string' }, ref: { type: ['string', 'null'] } },
+      },
+    },
+  },
+};
+
+export function validateExamItems(minItems = 6) {
+  return (parsed) => {
+    const errors = [];
+    if (!Array.isArray(parsed?.items) || parsed.items.length < minItems) errors.push(`items needs >=${minItems}`);
+    for (const [i, item] of (parsed?.items ?? []).entries()) {
+      if (!Array.isArray(item?.options) || item.options.length !== 4)
+        errors.push(`items[${i}].options must have exactly 4`);
+      if (!Number.isInteger(item?.correctIndex) || item.correctIndex < 0 || item.correctIndex > 3)
+        errors.push(`items[${i}].correctIndex out of range`);
+      if (!['apply', 'transfer'].includes(item?.difficulty))
+        errors.push(`items[${i}].difficulty must be apply|transfer`);
+    }
+    const indices = new Set((parsed?.items ?? []).map((item) => item.correctIndex));
+    if ((parsed?.items ?? []).length >= 4 && indices.size < 3)
+      errors.push('vary correctIndex across items (>=3 distinct positions)');
+    if (!Array.isArray(parsed?.claims)) errors.push('claims must be an array');
+    return errors;
+  };
 }
