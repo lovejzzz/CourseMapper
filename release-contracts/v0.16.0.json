@@ -48,12 +48,8 @@
         "scripts/prof/arenas/adoption.mjs",
         "docs/PROJECT_PROF_DESIGN.md"
       ],
-      "proofCommands": [
-        "npx vitest run scripts/__tests__/prof.test.js scripts/__tests__/profStudent.test.js"
-      ],
-      "proofScopes": [
-        "unit"
-      ]
+      "proofCommands": ["npx vitest run scripts/__tests__/prof.test.js scripts/__tests__/profStudent.test.js"],
+      "proofScopes": ["unit"]
     },
     {
       "id": "v0160-twin-protocol",
@@ -66,13 +62,8 @@
         "scripts/prof/arenas/adoptionTwin.mjs",
         "scripts/lib/crucibleBrowser.mjs"
       ],
-      "proofCommands": [
-        "npx vitest run scripts/__tests__/profTwin.test.js"
-      ],
-      "proofScopes": [
-        "unit",
-        "live-provider"
-      ]
+      "proofCommands": ["npx vitest run scripts/__tests__/profTwin.test.js"],
+      "proofScopes": ["unit", "live-provider"]
     },
     {
       "id": "v0160-twin-proven-jumps",
@@ -84,13 +75,8 @@
         "tests/v015188-prof-catches.test.js",
         "docs/PROF_IMPROVEMENT_FINDINGS.md"
       ],
-      "proofCommands": [
-        "npx vitest run tests/v015188-prof-catches.test.js"
-      ],
-      "proofScopes": [
-        "unit",
-        "live-provider"
-      ]
+      "proofCommands": ["npx vitest run tests/v015188-prof-catches.test.js"],
+      "proofScopes": ["unit", "live-provider"]
     },
     {
       "id": "v0160-assessment-authenticity",
@@ -102,13 +88,8 @@
         "src/lib/exporters/docxExporter.js",
         "tests/v016-ready-to-teach.test.js"
       ],
-      "proofCommands": [
-        "npx vitest run tests/v016-ready-to-teach.test.js"
-      ],
-      "proofScopes": [
-        "unit",
-        "compiled-output"
-      ]
+      "proofCommands": ["npx vitest run tests/v016-ready-to-teach.test.js"],
+      "proofScopes": ["unit", "compiled-output"]
     },
     {
       "id": "v0160-classroom-dynamics",
@@ -125,10 +106,7 @@
         "npx vitest run tests/v016-ready-to-teach.test.js",
         "npm run prof -- --arena a2 --scenario classroom-research-methods --mode course --budget 1 --seed 42"
       ],
-      "proofScopes": [
-        "unit",
-        "compiled-output"
-      ]
+      "proofScopes": ["unit", "compiled-output"]
     },
     {
       "id": "v0160-credibility-tail",
@@ -140,13 +118,8 @@
         "src/lib/knowledge/readingListEngine.js",
         "tests/v016-ready-to-teach.test.js"
       ],
-      "proofCommands": [
-        "npx vitest run tests/v016-ready-to-teach.test.js src/lib/knowledge/__tests__"
-      ],
-      "proofScopes": [
-        "unit",
-        "compiled-output"
-      ]
+      "proofCommands": ["npx vitest run tests/v016-ready-to-teach.test.js src/lib/knowledge/__tests__"],
+      "proofScopes": ["unit", "compiled-output"]
     }
   ]
 }

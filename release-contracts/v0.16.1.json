@@ -130,9 +130,7 @@
         "src/lib/__tests__/courseIR.test.js",
         "src/lib/__tests__/runDigest.test.js"
       ],
-      "proofCommands": [
-        "npx vitest run src/lib/__tests__/courseIR.test.js src/lib/__tests__/runDigest.test.js"
-      ],
+      "proofCommands": ["npx vitest run src/lib/__tests__/courseIR.test.js src/lib/__tests__/runDigest.test.js"],
       "proofScopes": ["unit"]
     }
   ]

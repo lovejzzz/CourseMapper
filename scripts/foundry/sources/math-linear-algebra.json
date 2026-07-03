@@ -13,12 +13,7 @@
         "solution set of a linear system"
       ],
       "discipline": "math",
-      "tags": [
-        "linear-algebra",
-        "equations",
-        "systems",
-        "solutions"
-      ],
+      "tags": ["linear-algebra", "equations", "systems", "solutions"],
       "level": "intro",
       "difficulty": 2,
       "bloomCeiling": "Apply",
@@ -93,12 +88,7 @@
         "pivot"
       ],
       "discipline": "math",
-      "tags": [
-        "linear-algebra",
-        "algorithms",
-        "matrices",
-        "systems"
-      ],
+      "tags": ["linear-algebra", "algorithms", "matrices", "systems"],
       "level": "intro",
       "difficulty": 2,
       "bloomCeiling": "Apply",
@@ -174,11 +164,7 @@
         "matrix equation"
       ],
       "discipline": "math",
-      "tags": [
-        "linear-algebra",
-        "matrices",
-        "operations"
-      ],
+      "tags": ["linear-algebra", "matrices", "operations"],
       "level": "intro",
       "difficulty": 2,
       "bloomCeiling": "Apply",
@@ -245,19 +231,9 @@
       "id": "math/matrix-inverse",
       "rev": 1,
       "term": "matrix inverse",
-      "aliases": [
-        "invertible matrix",
-        "inverse matrix",
-        "nonsingular matrix",
-        "singular matrix",
-        "invertibility"
-      ],
+      "aliases": ["invertible matrix", "inverse matrix", "nonsingular matrix", "singular matrix", "invertibility"],
       "discipline": "math",
-      "tags": [
-        "linear-algebra",
-        "matrices",
-        "invertibility"
-      ],
+      "tags": ["linear-algebra", "matrices", "invertibility"],
       "level": "intro",
       "difficulty": 3,
       "bloomCeiling": "Analyze",
@@ -324,19 +300,9 @@
       "id": "math/vector-space",
       "rev": 1,
       "term": "vector space",
-      "aliases": [
-        "vector spaces",
-        "linear space",
-        "vectors",
-        "closure properties",
-        "axioms of a vector space"
-      ],
+      "aliases": ["vector spaces", "linear space", "vectors", "closure properties", "axioms of a vector space"],
       "discipline": "math",
-      "tags": [
-        "linear-algebra",
-        "structures",
-        "vectors"
-      ],
+      "tags": ["linear-algebra", "structures", "vectors"],
       "level": "intro",
       "difficulty": 3,
       "bloomCeiling": "Analyze",
@@ -403,20 +369,9 @@
       "id": "math/subspace-span",
       "rev": 1,
       "term": "subspace and span",
-      "aliases": [
-        "subspace",
-        "subspaces",
-        "span",
-        "column space",
-        "null space",
-        "linear combination"
-      ],
+      "aliases": ["subspace", "subspaces", "span", "column space", "null space", "linear combination"],
       "discipline": "math",
-      "tags": [
-        "linear-algebra",
-        "structures",
-        "subspaces"
-      ],
+      "tags": ["linear-algebra", "structures", "subspaces"],
       "level": "intro",
       "difficulty": 3,
       "bloomCeiling": "Analyze",
@@ -491,11 +446,7 @@
         "independent columns"
       ],
       "discipline": "math",
-      "tags": [
-        "linear-algebra",
-        "vectors",
-        "independence"
-      ],
+      "tags": ["linear-algebra", "vectors", "independence"],
       "level": "intro",
       "difficulty": 3,
       "bloomCeiling": "Analyze",
@@ -562,19 +513,9 @@
       "id": "math/basis-dimension",
       "rev": 1,
       "term": "basis and dimension",
-      "aliases": [
-        "basis",
-        "bases",
-        "dimension",
-        "standard basis",
-        "coordinate vector"
-      ],
+      "aliases": ["basis", "bases", "dimension", "standard basis", "coordinate vector"],
       "discipline": "math",
-      "tags": [
-        "linear-algebra",
-        "structures",
-        "bases"
-      ],
+      "tags": ["linear-algebra", "structures", "bases"],
       "level": "intro",
       "difficulty": 3,
       "bloomCeiling": "Analyze",
@@ -641,18 +582,9 @@
       "id": "math/determinant",
       "rev": 1,
       "term": "determinant",
-      "aliases": [
-        "determinants",
-        "cofactor expansion",
-        "determinant properties",
-        "det"
-      ],
+      "aliases": ["determinants", "cofactor expansion", "determinant properties", "det"],
       "discipline": "math",
-      "tags": [
-        "linear-algebra",
-        "matrices",
-        "determinants"
-      ],
+      "tags": ["linear-algebra", "matrices", "determinants"],
       "level": "intro",
       "difficulty": 3,
       "bloomCeiling": "Analyze",
@@ -719,19 +651,9 @@
       "id": "math/linear-transformation",
       "rev": 1,
       "term": "linear transformation",
-      "aliases": [
-        "linear map",
-        "linear mapping",
-        "matrix transformation",
-        "kernel of a linear map",
-        "image"
-      ],
+      "aliases": ["linear map", "linear mapping", "matrix transformation", "kernel of a linear map", "image"],
       "discipline": "math",
-      "tags": [
-        "linear-algebra",
-        "transformations",
-        "functions"
-      ],
+      "tags": ["linear-algebra", "transformations", "functions"],
       "level": "intro",
       "difficulty": 3,
       "bloomCeiling": "Analyze",
@@ -798,19 +720,9 @@
       "id": "math/eigenvalues-eigenvectors",
       "rev": 1,
       "term": "eigenvalues and eigenvectors",
-      "aliases": [
-        "eigenvalue",
-        "eigenvector",
-        "characteristic polynomial",
-        "eigenspace",
-        "diagonalization"
-      ],
+      "aliases": ["eigenvalue", "eigenvector", "characteristic polynomial", "eigenspace", "diagonalization"],
       "discipline": "math",
-      "tags": [
-        "linear-algebra",
-        "eigen",
-        "spectral"
-      ],
+      "tags": ["linear-algebra", "eigen", "spectral"],
       "level": "intro",
       "difficulty": 3,
       "bloomCeiling": "Analyze",
@@ -886,11 +798,7 @@
         "Gram-Schmidt process"
       ],
       "discipline": "math",
-      "tags": [
-        "linear-algebra",
-        "geometry",
-        "orthogonality"
-      ],
+      "tags": ["linear-algebra", "geometry", "orthogonality"],
       "level": "intro",
       "difficulty": 3,
       "bloomCeiling": "Analyze",
@@ -965,11 +873,7 @@
         "best-fit line"
       ],
       "discipline": "math",
-      "tags": [
-        "linear-algebra",
-        "applications",
-        "approximation"
-      ],
+      "tags": ["linear-algebra", "applications", "approximation"],
       "level": "intro",
       "difficulty": 3,
       "bloomCeiling": "Apply",
@@ -1036,18 +940,9 @@
       "id": "math/singular-value-decomposition",
       "rev": 1,
       "term": "singular value decomposition",
-      "aliases": [
-        "SVD",
-        "singular values",
-        "singular vectors",
-        "low-rank approximation"
-      ],
+      "aliases": ["SVD", "singular values", "singular vectors", "low-rank approximation"],
       "discipline": "math",
-      "tags": [
-        "linear-algebra",
-        "factorizations",
-        "applications"
-      ],
+      "tags": ["linear-algebra", "factorizations", "applications"],
       "level": "intro",
       "difficulty": 4,
       "bloomCeiling": "Evaluate",
@@ -1114,18 +1009,9 @@
       "id": "math/rank-nullity",
       "rev": 1,
       "term": "rank and nullity",
-      "aliases": [
-        "rank",
-        "nullity",
-        "rank-nullity theorem",
-        "rank of a matrix"
-      ],
+      "aliases": ["rank", "nullity", "rank-nullity theorem", "rank of a matrix"],
       "discipline": "math",
-      "tags": [
-        "linear-algebra",
-        "matrices",
-        "dimension"
-      ],
+      "tags": ["linear-algebra", "matrices", "dimension"],
       "level": "intro",
       "difficulty": 3,
       "bloomCeiling": "Analyze",
@@ -1192,18 +1078,9 @@
       "id": "math/change-of-basis",
       "rev": 1,
       "term": "change of basis",
-      "aliases": [
-        "coordinate change",
-        "transition matrix",
-        "change-of-coordinates matrix",
-        "similar matrices"
-      ],
+      "aliases": ["coordinate change", "transition matrix", "change-of-coordinates matrix", "similar matrices"],
       "discipline": "math",
-      "tags": [
-        "linear-algebra",
-        "bases",
-        "transformations"
-      ],
+      "tags": ["linear-algebra", "bases", "transformations"],
       "level": "intro",
       "difficulty": 4,
       "bloomCeiling": "Evaluate",
