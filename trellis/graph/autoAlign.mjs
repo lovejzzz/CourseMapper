@@ -12,7 +12,7 @@
 
 import { levelForVerb } from '../judgment/checks/j2BloomMatch.mjs';
 import { indexById, misconceptionsForConcept } from './schema.mjs';
-import { distractorCatches } from '../judgment/checks/j11Catch.mjs';
+import { distractorCatches, catchTextsFor } from '../judgment/checks/j11Catch.mjs';
 import { confrontsCorrective } from '../judgment/checks/j3bPairing.mjs';
 import { tokenOverlapRatio } from '../judgment/text.mjs';
 
@@ -159,4 +159,37 @@ export function spliceCatchDistractors(graph, authored) {
     });
   }
   return splices;
+}
+
+// Pairing pass (J3b, deterministically) — run 5 measured 30 residual
+// J3B_PAIRING findings and 73 repair calls that still could not converge
+// on them. The corrective is VERIFIED-class graph data (genome/flywheel
+// authored, never machine prose), so a catching item whose explanation
+// fails the confrontation gate gets the corrective sentence APPENDED
+// verbatim — the same legitimacy as splicing documented belief text into
+// options. This is also exactly Prof's grounded-explanation rule
+// (explanation includes the corrective), so classroom repair credit
+// follows by construction. Every append is returned for disclosure.
+export function pairCorrectiveExplanations(graph, authored) {
+  const appends = [];
+  for (const lesson of graph.lessons) {
+    const art = authored[lesson.id];
+    if (!art) continue;
+    const misconceptions = lesson.introduces.flatMap((cid) => misconceptionsForConcept(graph, cid));
+    if (misconceptions.length === 0) continue;
+    art.quizItems.forEach((item, index) => {
+      let appended = 0;
+      for (const m of misconceptions) {
+        if (appended >= 2) break; // never stack more than two correctives
+        const caught = item.options.some(
+          (option, oi) => oi !== item.correctIndex && catchTextsFor(m).some((t) => distractorCatches(option, t)),
+        );
+        if (!caught || confrontsCorrective(item.explanation, m.corrective)) continue;
+        item.explanation = `${item.explanation.trim()} ${m.corrective}`.trim();
+        appended += 1;
+        appends.push({ lessonId: lesson.id, misconceptionId: m.id, item: index });
+      }
+    });
+  }
+  return appends;
 }

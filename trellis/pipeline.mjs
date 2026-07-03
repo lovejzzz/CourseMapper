@@ -17,7 +17,12 @@ import { renderPackage, writePackageToDir, createMemoryFileProvider, FEATURE_FOL
 import { intakeSyllabus } from './intake.mjs';
 import { createRunLedger } from './telemetry.mjs';
 import { stageTiers } from './providers.mjs';
-import { autoAlignBloom, downgradeDanglingClaims, spliceCatchDistractors } from './graph/autoAlign.mjs';
+import {
+  autoAlignBloom,
+  downgradeDanglingClaims,
+  spliceCatchDistractors,
+  pairCorrectiveExplanations,
+} from './graph/autoAlign.mjs';
 
 export async function runPipeline({
   syllabusText = null,
@@ -251,21 +256,36 @@ async function runPipelineStages({
   if (splices.length > 0) {
     digest.catchSplices = `${splices.length} distractor(s) set verbatim from documented misconceptions (deterministic, disclosed)`;
   }
+  // 6f · deterministic corrective pairing (J3b): a catching item whose
+  // explanation does not confront gets the corrective appended verbatim
+  // (VERIFIED-class graph data, disclosed — the run-5 lesson: 30 pairing
+  // residuals and 73 repair calls that never converged on them).
+  const pairings = pairCorrectiveExplanations(graph, authored);
+  if (pairings.length > 0) {
+    digest.correctivePairing = `${pairings.length} corrective(s) appended verbatim to catching items' explanations (deterministic, disclosed)`;
+  }
 
   // 7 · judge + repair
   let respliced = 0;
+  let repaired = 0;
   const repair = await repairLoop(graph, authored, {
     tier: tiers.repair,
     ledger,
     budgetUsd,
     maxRounds: mockVoice ? 1 : 2,
     afterRound: (g, a) => {
+      // Repaired quizzes must not lose the instrument guarantees the
+      // deterministic passes provide — both re-run before re-judging.
       respliced += spliceCatchDistractors(g, a).length;
+      repaired += pairCorrectiveExplanations(g, a).length;
     },
     ...(mockVoice ? { mock: mockAuthorLesson } : {}),
   });
   if (respliced > 0) {
     digest.catchSplices = `${digest.catchSplices ? `${digest.catchSplices}; ` : ''}${respliced} re-spliced after repair rounds`;
+  }
+  if (repaired > 0) {
+    digest.correctivePairing = `${digest.correctivePairing ? `${digest.correctivePairing}; ` : ''}${repaired} re-paired after repair rounds`;
   }
   const prereqEdges = graph.concepts.reduce((n, c) => n + c.requires.length, 0);
   digest.judgment = `Course judgment: ${blockingFindings(repair.findings).length === 0 ? 'no gaps' : `${blockingFindings(repair.findings).length} open finding(s)`} across ${graph.lessons.length} lessons; ${prereqEdges} prerequisite edges verified in order (V2)${bridges.length > 0 ? `; ${bridges.length} prerequisite gap(s) bridged with inline primers` : ''}; checks J1–J10 ran, ${repair.rounds} repair round(s) (${repair.sectionRepairs ?? 0} section, ${repair.fullRepairs ?? 0} full)`;

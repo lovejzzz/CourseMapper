@@ -258,7 +258,7 @@ export async function authorLesson(
   // cheap; three small schemas, all parallel.
   if (surfacesTier && !repairNotes) {
     const coreFields = quizTier ? CORE_SANS_QUIZ_FIELDS : CORE_FIELDS;
-    const coreCall = (validate) =>
+    const calls = [
       callModel({
         tier,
         stage: 'author',
@@ -266,15 +266,11 @@ export async function authorLesson(
         budgetUsd,
         schema: subSchema(coreFields, slice),
         schemaName: 'lesson_core',
-        validate,
+        validate: subValidator(coreFields),
         maxOutputTokens: 8000,
         system: coreSystemPrompt(slice),
         user: lessonUserPrompt(slice),
-      });
-    const calls = [
-      // Same instrument-then-structural fallback as the quiz call below —
-      // when there is no quiz tier, the core call owns quizItems.
-      coreCall(subValidator(coreFields, slice)).catch(() => coreCall(subValidator(coreFields))),
+      }),
       callModel({
         tier: surfacesTier,
         stage: 'authorSurfaces',
@@ -289,7 +285,12 @@ export async function authorLesson(
       }),
     ];
     if (quizTier) {
-      const quizCall = (validate) =>
+      // The quiz prompt states the instrument's rules (catch share, pairing,
+      // reason-bearing distractors) but the VALIDATOR stays structural: run 4
+      // died enforcing the instrument here (12/15 lessons), and run 5 paid
+      // $0.93 in retries to satisfy it stochastically. The deterministic
+      // splice + corrective-pairing passes own the instrument instead.
+      calls.push(
         callModel({
           tier: quizTier,
           stage: 'authorQuiz',
@@ -297,16 +298,12 @@ export async function authorLesson(
           budgetUsd,
           schema: subSchema(QUIZ_FIELDS, slice),
           schemaName: 'lesson_quiz',
-          validate,
+          validate: subValidator(QUIZ_FIELDS),
           maxOutputTokens: 6000,
           system: quizSystemPrompt(slice),
           user: lessonUserPrompt(slice),
-        });
-      // The instrument bar (quizInstrument.mjs) is the target, but a lesson
-      // whose model can't hit it in the retry budget must not die: fall back
-      // to the structural contract and let splice + judged repair converge
-      // it — a residual finding is honest, a dead run is not.
-      calls.push(quizCall(subValidator(QUIZ_FIELDS, slice)).catch(() => quizCall(subValidator(QUIZ_FIELDS))));
+        }),
+      );
     }
     const [core, surfaces, quiz] = await Promise.all(calls);
     const merged = {
@@ -379,10 +376,12 @@ export function validateQuizRepair(constraints, misconceptions = []) {
         errors.push(`quizItems[${i}].explanation too short`);
     }
     if (!Array.isArray(parsed?.quizClaims)) errors.push('quizClaims must be an array');
-    // A repair that would fail the classroom instrument is rejected inside
-    // THIS call's retry loop — run 3 proved the outer judge/repair cycle
-    // never converges without it.
-    errors.push(...quizInstrumentErrors(parsed?.quizItems ?? [], misconceptions));
+    // NOTE: the classroom-instrument rules are deliberately NOT enforced
+    // here — run 5 measured 73 repair calls thrashing against them. The
+    // deterministic splice/pairing passes re-run after every repair round
+    // (repairLoop's afterRound), so instrument guarantees are restored by
+    // machine, not by retries. `misconceptions` stays for the prompt blocks.
+    void misconceptions;
     return errors;
   };
 }
