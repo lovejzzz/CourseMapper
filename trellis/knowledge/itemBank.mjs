@@ -237,8 +237,14 @@ export function selectBankItems(slice, bank, { maxBanked = 4, perConcept = 3 } =
       // Rotate the correct option for position variety (structure, not prose).
       const rotation = selected.length % 4;
       const options = item.options.map((_, i) => item.options[(i + item.correctIndex - rotation + 4) % 4]);
+      // Spaced-retrieval items are LABELED as review — both judge seats read
+      // unlabeled prior-topic items as scope drift ("drifts into while-loop
+      // behavior"). A one-word label is metadata-class assembly, and it is
+      // also just honest quiz design.
+      const isReview = !(slice.lesson.introduces ?? []).includes(concept.id);
+      const stem = isReview && !/^review\b/i.test(item.stem) ? `Review: ${item.stem}` : item.stem;
       selected.push({
-        stem: item.stem,
+        stem,
         options,
         correctIndex: rotation,
         explanation: item.explanation,

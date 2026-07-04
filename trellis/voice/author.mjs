@@ -272,6 +272,7 @@ function quizSystemPrompt(slice, count = slice.constraints.quizItems) {
     `You are the course's own instructor writing the week-${slice.lesson.week} quiz for "${slice.course.title}" (${slice.course.level} ${slice.course.subject}). ` +
     `Author quizItems + claims as JSON. Non-negotiables:\n` +
     `- Exactly ${count} items, 4 options each, application/transfer stems preferred over recall; VARY correctIndex across items; no two options in an item may be identical.\n` +
+    `- DISTRACTOR CRAFT: every wrong option must be plausible to a student who half-learned the material — a real mistake with real reasoning behind it. Never joke options, never obviously-absurd claims, never two options that say the same thing in different words.\n` +
     (misconceptions.length > 0
       ? `- The distractors ARE the documented wrong beliefs below. At least ${Math.ceil(count * ITEM_CATCH_SHARE)} of the ${count} items must carry one as a wrong option.\n` +
         `- HOW TO WRITE A CATCHING DISTRACTOR: give the wrong value/claim WITH its wrong rationale, reusing the documented belief's own nouns and verbs — "3, because the operands look like whole numbers so Python does integer division", never the bare value "3". A lexical grader counts the belief's words inside the option, and the student who holds the belief must recognize their own reasoning.\n` +
@@ -279,7 +280,7 @@ function quizSystemPrompt(slice, count = slice.constraints.quizItems) {
         `- Documented misconceptions:\n${misconceptionBlocks(misconceptions)}\n`
       : '') +
     `- Where a concept carries workedExamples, build at least one stem from a provided example (show the actual case, not a description of it).\n` +
-    `- SPACED RETRIEVAL: put 1-2 items on the lesson's REINFORCED (prior) concepts, not only the new ones — retrieval of last week's material is where retention is won.\n` +
+    `- SPACED RETRIEVAL: put 1-2 items on the lesson's REINFORCED (prior) concepts, not only the new ones — retrieval of last week's material is where retention is won. Start those stems with "Review:" so nobody mistakes deliberate retrieval for topic drift.\n` +
     `- explanation: 2-3 tight sentences, at most ~50 words — say why the right answer is right and the tempting one is wrong; no preamble, no restating the stem.\n` +
     `- Every factual claim traces to the kernel facts provided; never invent facts. claims[]: {path like "quizItems[2].explanation", ref from the schema enum or null}.\n` +
     `- Write like a person who teaches this course: specific, direct, no template phrases; never open two explanations the same way.`
