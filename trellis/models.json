@@ -55,6 +55,15 @@
       "repair": "cheap",
       "flywheel": "nano",
       "authorQuiz": "cheap"
+    },
+    "thrift": {
+      "intake": "cheap",
+      "author": "nano",
+      "authorSurfaces": "nano",
+      "repair": "cheap",
+      "flywheel": "nano",
+      "authorQuiz": "nano",
+      "_note": "v0.1.2 cost A/B: quiz on nano UNDER the deterministic instrument machinery (splice/pairing/blend). The 6-vs-8 nano-quiz judge gap predates that machinery; this tier exists to re-measure it, not to assume it."
     }
   }
 }
