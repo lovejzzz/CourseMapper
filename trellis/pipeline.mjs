@@ -361,7 +361,10 @@ async function runPipelineStages({
     tier: tiers.repair,
     ledger,
     budgetUsd,
-    maxRounds: mockVoice ? 1 : 2,
+    // Composed parts are pre-judged assets: one repair round catches
+    // combination artifacts; a second buys little (E7b: 15 calls, $0.163,
+    // residuals unchanged in kind). Fresh generation keeps two rounds.
+    maxRounds: mockVoice || composer ? 1 : 2,
     afterRound: (g, a) => {
       // Repaired quizzes must not lose the instrument guarantees the
       // deterministic passes provide — both re-run before re-judging.
