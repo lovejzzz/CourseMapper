@@ -43,6 +43,7 @@ export function buildLessonSlice(graph, lessonId, { constraints = DEFAULT_CONSTR
   const concepts = conceptsForLesson(graph, lesson).map((concept) => ({
     id: concept.id,
     name: concept.name,
+    genomeRef: concept.genomeRef ?? null,
     kernelFacts: concept.kernelFacts,
     workedExamples: concept.workedExamples ?? [],
     anchorQuotes: concept.anchorQuotes ?? [],

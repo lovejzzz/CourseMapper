@@ -76,3 +76,41 @@ describe('item bank selection', () => {
     expect(assembled.claims.at(-1).path).toBe('quizItems[2].explanation');
   });
 });
+
+import { buildLessonSlice } from '../voice/contracts.mjs';
+import { makeGraph } from '../graph/schema.mjs';
+
+describe('slice carries genomeRef (the live-run regression)', () => {
+  it('buildLessonSlice exposes genomeRef so bank selection can match kernels', () => {
+    const graph = makeGraph({
+      course: { id: 'c', title: 'T', subject: 'cs', level: 'intro', weeks: 1, sessionsPerWeek: 1 },
+      concepts: [{ id: 'c-loops', name: 'while loops', genomeRef: 'cs/while-loops', kernelFacts: ['f'] }],
+      outcomes: [
+        { id: 'o1', statement: 'Apply while loops to iteration problems', bloom: 'apply', conceptIds: ['c-loops'] },
+      ],
+      lessons: [
+        {
+          id: 'l1',
+          week: 1,
+          session: 1,
+          title: 'Loops intro',
+          introduces: ['c-loops'],
+          reinforces: [],
+          outcomeIds: ['o1'],
+        },
+      ],
+      assessments: [
+        {
+          id: 'a1',
+          kindOf: 'quiz',
+          registryKey: 'Weekly Quiz 1',
+          anchor: { lessonId: 'l1' },
+          outcomeIds: ['o1'],
+          weightPct: 100,
+        },
+      ],
+    });
+    const slice = buildLessonSlice(graph, 'l1');
+    expect(slice.concepts[0].genomeRef).toBe('cs/while-loops');
+  });
+});
