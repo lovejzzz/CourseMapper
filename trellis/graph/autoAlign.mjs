@@ -101,6 +101,13 @@ export function spliceCatchDistractors(graph, authored) {
       if (claim) {
         const cid = String(claim.ref).slice('kernel:'.length);
         if (misconceptionsByConcept.has(cid)) return conceptById.get(cid);
+        // The claim names a REINFORCED concept (a spaced-retrieval item,
+        // e.g. from the bank): never force-map it onto an introduced
+        // concept — bank-run 4's judge read the resulting splices as
+        // "obviously malformed answer choices" (a strings belief inside a
+        // list-indexing item). Prof still counts the item; an honest miss
+        // beats an off-topic paste.
+        if (conceptById.has(cid)) return null;
       }
       let best = introduced[0];
       let bestScore = -1;
@@ -114,7 +121,7 @@ export function spliceCatchDistractors(graph, authored) {
       return best;
     };
     const itemConcepts = art.quizItems.map((item, index) => mapItemConcept(item, index));
-    const misconceptionsFor = (index) => misconceptionsByConcept.get(itemConcepts[index].id) ?? [];
+    const misconceptionsFor = (index) => misconceptionsByConcept.get(itemConcepts[index]?.id) ?? [];
     const itemCarries = (item, index) =>
       item.options.some(
         (option, oi) =>
@@ -176,8 +183,15 @@ export function spliceCatchDistractors(graph, authored) {
         // with no belief form are skipped honestly (audit finding).
         const belief = chosen.beliefForm ?? beliefTextFromStatement(chosen.statement);
         if (!belief) continue;
-        // Never create duplicate options (the J1 ambiguity class).
+        // Never create duplicate options (the J1 ambiguity class) — within
+        // the item AND across the lesson's other items (bank-run 4: the
+        // same pasted belief in two items reads as corruption to a judge).
         if (item.options.some((option) => option.trim().toLowerCase() === belief.trim().toLowerCase())) continue;
+        const beliefKey = belief.trim().toLowerCase();
+        const usedElsewhere = art.quizItems.some(
+          (other, oi) => oi !== index && other.options.some((option) => option.trim().toLowerCase() === beliefKey),
+        );
+        if (usedElsewhere) continue;
         item.options[slot] = belief;
         catchCount.set(chosen.id, (catchCount.get(chosen.id) ?? 0) + 1);
         splices.push({ lessonId: lesson.id, misconceptionId: chosen.id, item: index, slot });
