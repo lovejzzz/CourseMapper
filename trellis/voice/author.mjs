@@ -23,6 +23,7 @@ import {
 } from './contracts.mjs';
 import { orderedLessons, conceptsForLesson, misconceptionsForConcept } from '../graph/schema.mjs';
 import { quizInstrumentErrors, introducedMisconceptions, ITEM_CATCH_SHARE } from './quizInstrument.mjs';
+import { selectBankItems } from '../knowledge/itemBank.mjs';
 
 export function legalRefsForSlice(slice) {
   return [
@@ -83,6 +84,63 @@ function lessonUserPrompt(slice) {
     null,
     1,
   );
+}
+
+// ── item-bank quiz plan (v0.1.3) ────────────────────────────────────────────
+// Banked items are selected deterministically ($0) and the model authors
+// only the remainder. Fresh claims' quizItems[N] paths shift by the banked
+// offset so entailment and Prof's item→concept mapping stay correct.
+export function bankQuizPlan(slice, bank) {
+  if (!bank) return null;
+  const banked = selectBankItems(slice, bank);
+  if (banked.length === 0) return null;
+  const bankedClaims = banked.map((item, index) => ({
+    path: `quizItems[${index}].explanation`,
+    ref: `kernel:${item.__bank.conceptId}`,
+  }));
+  return { banked, bankedClaims, freshCount: Math.max(slice.constraints.quizItems - banked.length, 0) };
+}
+
+function remapQuizClaimPaths(claims, offset) {
+  return (claims ?? []).map((claim) => ({
+    ...claim,
+    path: String(claim.path ?? '').replace(/^quizItems\[(\d+)\]/, (_, n) => `quizItems[${Number(n) + offset}]`),
+  }));
+}
+
+export function assembleQuizFromBank(plan, freshResult) {
+  const fresh = freshResult?.quizItems ?? [];
+  return {
+    quizItems: [
+      ...plan.banked.map((item) => {
+        const clean = { ...item };
+        delete clean.__bank;
+        return clean;
+      }),
+      ...fresh,
+    ],
+    claims: [...plan.bankedClaims, ...remapQuizClaimPaths(freshResult?.claims, plan.banked.length)],
+  };
+}
+
+export function partialQuizValidator(count) {
+  return (parsed) => {
+    const errors = [];
+    if (!Array.isArray(parsed?.quizItems) || parsed.quizItems.length !== count) {
+      errors.push(`quizItems must have exactly ${count} item(s)`);
+    }
+    for (const [i, item] of (parsed?.quizItems ?? []).entries()) {
+      if (typeof item?.stem !== 'string' || item.stem.length < 20) errors.push(`quizItems[${i}].stem too short`);
+      if (!Array.isArray(item?.options) || item.options.length !== 4)
+        errors.push(`quizItems[${i}].options must have exactly 4`);
+      if (!Number.isInteger(item?.correctIndex) || item.correctIndex < 0 || item.correctIndex > 3)
+        errors.push(`quizItems[${i}].correctIndex out of range`);
+      if (typeof item?.explanation !== 'string' || item.explanation.length < 30)
+        errors.push(`quizItems[${i}].explanation too short`);
+    }
+    if (!Array.isArray(parsed?.claims)) errors.push('claims must be an array');
+    return errors;
+  };
 }
 
 // ── split-tier authoring (the cost lever) ───────────────────────────────────
@@ -208,9 +266,8 @@ function misconceptionBlocks(misconceptions) {
     .join('\n');
 }
 
-function quizSystemPrompt(slice) {
+function quizSystemPrompt(slice, count = slice.constraints.quizItems) {
   const misconceptions = introducedMisconceptions(slice);
-  const count = slice.constraints.quizItems;
   return (
     `You are the course's own instructor writing the week-${slice.lesson.week} quiz for "${slice.course.title}" (${slice.course.level} ${slice.course.subject}). ` +
     `Author quizItems + claims as JSON. Non-negotiables:\n` +
@@ -261,7 +318,17 @@ function surfacesSystemPrompt(slice) {
 export async function authorLesson(
   graph,
   lessonId,
-  { tier, surfacesTier = null, quizTier = null, ledger, budgetUsd = null, mock = null, repairNotes = null } = {},
+  {
+    tier,
+    surfacesTier = null,
+    quizTier = null,
+    ledger,
+    budgetUsd = null,
+    mock = null,
+    repairNotes = null,
+    bank = null,
+    bankStats = null,
+  } = {},
 ) {
   const slice = buildLessonSlice(graph, lessonId);
   if (mock) return mock(slice, { repairNotes });
@@ -304,20 +371,48 @@ export async function authorLesson(
       // died enforcing the instrument here (12/15 lessons), and run 5 paid
       // $0.93 in retries to satisfy it stochastically. The deterministic
       // splice + corrective-pairing passes own the instrument instead.
-      calls.push(
-        callModel({
-          tier: quizTier,
-          stage: 'authorQuiz',
-          ledger,
-          budgetUsd,
-          schema: subSchema(QUIZ_FIELDS, slice),
-          schemaName: 'lesson_quiz',
-          validate: subValidator(QUIZ_FIELDS),
-          maxOutputTokens: 6000,
-          system: quizSystemPrompt(slice),
-          user: quizUserPrompt(slice),
-        }),
-      );
+      //
+      // v0.1.3: banked items (deterministic, $0) cover what they can; the
+      // model authors only the remainder — or nothing at full coverage.
+      const plan = bank ? bankQuizPlan(slice, bank) : null;
+      if (plan && bankStats) {
+        bankStats.selected += plan.banked.length;
+        bankStats.fresh += plan.freshCount;
+        if (plan.freshCount === 0) bankStats.lessonsFullyBanked += 1;
+      }
+      if (plan && plan.freshCount === 0) {
+        calls.push(Promise.resolve({ result: assembleQuizFromBank(plan, null) }));
+      } else if (plan) {
+        calls.push(
+          callModel({
+            tier: quizTier,
+            stage: 'authorQuiz',
+            ledger,
+            budgetUsd,
+            schema: subSchema(QUIZ_FIELDS, slice),
+            schemaName: 'lesson_quiz',
+            validate: partialQuizValidator(plan.freshCount),
+            maxOutputTokens: 6000,
+            system: quizSystemPrompt(slice, plan.freshCount),
+            user: quizUserPrompt(slice),
+          }).then((r) => ({ result: assembleQuizFromBank(plan, r.result) })),
+        );
+      } else {
+        calls.push(
+          callModel({
+            tier: quizTier,
+            stage: 'authorQuiz',
+            ledger,
+            budgetUsd,
+            schema: subSchema(QUIZ_FIELDS, slice),
+            schemaName: 'lesson_quiz',
+            validate: subValidator(QUIZ_FIELDS),
+            maxOutputTokens: 6000,
+            system: quizSystemPrompt(slice),
+            user: quizUserPrompt(slice),
+          }),
+        );
+      }
     }
     const [core, surfaces, quiz] = await Promise.all(calls);
     return mergeSplitLesson(core.result, surfaces.result, quizTier ? quiz.result : null);
@@ -482,7 +577,11 @@ export function mergeSplitLesson(core, surfaces, quiz) {
 // identical validators, so the quality delta is zero by construction.
 // Lessons whose batch parts fail after the batch's own retry rounds fall
 // back to live authoring; a dead run is never the price of a discount.
-export async function authorAllLessonsBatch(graph, { tier, surfacesTier, quizTier, ledger, budgetUsd }) {
+export async function authorAllLessonsBatch(
+  graph,
+  { tier, surfacesTier, quizTier, ledger, budgetUsd, bank = null, bankStats = null },
+) {
+  const bankPlans = new Map();
   const { batchCallModels } = await import('../providers.mjs');
   const descriptors = [];
   const parts = [];
@@ -512,17 +611,26 @@ export async function authorAllLessonsBatch(graph, { tier, surfacesTier, quizTie
     });
     parts.push({ lessonId: lesson.id, kind: 'surfaces' });
     if (quizTier) {
-      descriptors.push({
-        tier: quizTier,
-        stage: 'authorQuiz',
-        schema: subSchema(QUIZ_FIELDS, slice),
-        schemaName: 'lesson_quiz',
-        validate: subValidator(QUIZ_FIELDS),
-        maxOutputTokens: 6000,
-        system: quizSystemPrompt(slice),
-        user: quizUserPrompt(slice),
-      });
-      parts.push({ lessonId: lesson.id, kind: 'quiz' });
+      const plan = bank ? bankQuizPlan(slice, bank) : null;
+      if (plan) bankPlans.set(lesson.id, plan);
+      if (plan && bankStats) {
+        bankStats.selected += plan.banked.length;
+        bankStats.fresh += plan.freshCount;
+        if (plan.freshCount === 0) bankStats.lessonsFullyBanked += 1;
+      }
+      if (!plan || plan.freshCount > 0) {
+        descriptors.push({
+          tier: quizTier,
+          stage: 'authorQuiz',
+          schema: subSchema(QUIZ_FIELDS, slice),
+          schemaName: 'lesson_quiz',
+          validate: plan ? partialQuizValidator(plan.freshCount) : subValidator(QUIZ_FIELDS),
+          maxOutputTokens: 6000,
+          system: quizSystemPrompt(slice, plan ? plan.freshCount : undefined),
+          user: quizUserPrompt(slice),
+        });
+        parts.push({ lessonId: lesson.id, kind: 'quiz' });
+      }
     }
   }
 
@@ -544,14 +652,28 @@ export async function authorAllLessonsBatch(graph, { tier, surfacesTier, quizTie
   for (const lesson of graph.lessons) {
     const group = byLesson.get(lesson.id) ?? {};
     try {
-      if (!group.core?.result || !group.surfaces?.result || (quizTier && !group.quiz?.result)) {
+      const plan = bankPlans.get(lesson.id) ?? null;
+      const quizNeeded = quizTier && (!plan || plan.freshCount > 0);
+      if (!group.core?.result || !group.surfaces?.result || (quizNeeded && !group.quiz?.result)) {
         throw new Error(group.core?.error ?? group.surfaces?.error ?? group.quiz?.error ?? 'batch part missing');
       }
-      authored[lesson.id] = mergeSplitLesson(group.core.result, group.surfaces.result, group.quiz?.result ?? null);
+      const quizResult = quizTier
+        ? plan
+          ? assembleQuizFromBank(plan, group.quiz?.result ?? null)
+          : group.quiz.result
+        : null;
+      authored[lesson.id] = mergeSplitLesson(group.core.result, group.surfaces.result, quizResult);
     } catch (batchError) {
       transport.fallbackLessons += 1;
       try {
-        authored[lesson.id] = await authorLesson(graph, lesson.id, { tier, surfacesTier, quizTier, ledger, budgetUsd });
+        authored[lesson.id] = await authorLesson(graph, lesson.id, {
+          tier,
+          surfacesTier,
+          quizTier,
+          ledger,
+          budgetUsd,
+          bank,
+        });
       } catch (liveError) {
         failures.push({
           lessonId: lesson.id,

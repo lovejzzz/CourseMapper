@@ -244,20 +244,19 @@ export async function batchCallModels(
   const results = new Array(descriptors.length).fill(null);
   let pending = descriptors.map((descriptor, index) => ({ descriptor, index, feedback: null }));
 
-  for (let round = 0; round < maxRounds && pending.length > 0; round += 1) {
-    if (budgetUsd !== null && ledger && ledger.totals().usd >= budgetUsd) {
-      for (const p of pending) results[p.index] = { error: `budget exhausted before batch round ${round + 1}` };
-      return results;
-    }
-    const tiers = await Promise.all(pending.map((p) => resolveTier(p.descriptor.tier)));
-    const lines = pending.map((p, i) => {
+  // OpenAI constraint (learned from the first overnight run's surfaced
+  // error): a batch must contain requests for a SINGLE model. Each round
+  // therefore partitions by resolved model and runs one batch per model,
+  // in parallel.
+  const runModelGroup = async (group, modelId, round) => {
+    const lines = group.map((p) => {
       const d = p.descriptor;
       return JSON.stringify({
         custom_id: String(p.index),
         method: 'POST',
         url: '/v1/chat/completions',
         body: {
-          model: tiers[i].modelId,
+          model: modelId,
           messages: [
             { role: 'system', content: d.system },
             {
@@ -294,24 +293,22 @@ export async function batchCallModels(
           method: 'POST',
           body: '{}',
         }).catch(() => {});
-        for (const p of pending) results[p.index] = { error: `batch round ${round + 1} exceeded maxWaitMs` };
-        return results;
+        for (const p of group) results[p.index] = { error: `batch round ${round + 1} exceeded maxWaitMs` };
+        return [];
       }
       await new Promise((resolve) => setTimeout(resolve, pollMs));
       state = await openaiJson(fetchImpl, apiKey, `https://api.openai.com/v1/batches/${batch.id}`);
-      onStatus?.(state.status, state.request_counts ?? null, round + 1);
+      onStatus?.(state.status, state.request_counts ?? null, round + 1, modelId);
     }
     if (state.status !== 'completed' || !state.output_file_id) {
-      // Surface WHY — the first overnight run swallowed the reason and the
-      // whole batch degraded to live silently.
       const detail = state.errors?.data
         ? state.errors.data
             .slice(0, 3)
             .map((e) => e.message ?? e.code)
             .join('; ')
         : (state.errors && JSON.stringify(state.errors).slice(0, 200)) || 'no error detail';
-      for (const p of pending) results[p.index] = { error: `batch round ${round + 1} ${state.status}: ${detail}` };
-      return results;
+      for (const p of group) results[p.index] = { error: `batch round ${round + 1} ${state.status}: ${detail}` };
+      return [];
     }
 
     const output = await fetchWithBackoff(
@@ -327,7 +324,7 @@ export async function batchCallModels(
     }
 
     const nextPending = [];
-    for (const p of pending) {
+    for (const p of group) {
       const line = byIndex.get(p.index);
       const d = p.descriptor;
       const body = line?.response?.body;
@@ -365,7 +362,26 @@ export async function batchCallModels(
       }
       results[p.index] = { result: parsedContent };
     }
-    pending = nextPending;
+    return nextPending;
+  };
+
+  for (let round = 0; round < maxRounds && pending.length > 0; round += 1) {
+    if (budgetUsd !== null && ledger && ledger.totals().usd >= budgetUsd) {
+      for (const p of pending) results[p.index] = { error: `budget exhausted before batch round ${round + 1}` };
+      return results;
+    }
+    const withModels = await Promise.all(
+      pending.map(async (p) => ({ p, modelId: (await resolveTier(p.descriptor.tier)).modelId })),
+    );
+    const groups = new Map();
+    for (const { p, modelId } of withModels) {
+      if (!groups.has(modelId)) groups.set(modelId, []);
+      groups.get(modelId).push(p);
+    }
+    const groupOutcomes = await Promise.all(
+      [...groups.entries()].map(([modelId, group]) => runModelGroup(group, modelId, round)),
+    );
+    pending = groupOutcomes.flat();
   }
 
   for (const p of pending) {

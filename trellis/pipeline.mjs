@@ -35,6 +35,7 @@ export async function runPipeline({
   gradePackage = false,
   termStart = null,
   overnight = false,
+  bankDiscipline = null,
   generatedAt = new Date().toISOString(),
 }) {
   if (!runId) throw new Error('runPipeline requires runId');
@@ -52,6 +53,7 @@ export async function runPipeline({
       gradePackage,
       termStart,
       overnight,
+      bankDiscipline,
       generatedAt,
       ledger,
     });
@@ -74,6 +76,7 @@ async function runPipelineStages({
   gradePackage,
   termStart,
   overnight,
+  bankDiscipline,
   generatedAt,
   ledger,
 }) {
@@ -196,6 +199,15 @@ async function runPipelineStages({
   // 6 · author (course-wide fires concurrently with the lesson batches;
   // split-tier: judgment core on the author tier, presentation surfaces on
   // the cheaper authorSurfaces tier when the config splits them)
+  // v0.1.3 item bank: deterministic selection covers what it can; the
+  // model authors the remainder. Opt-in per discipline, fully disclosed.
+  let bank = null;
+  const bankStats = { selected: 0, fresh: 0, lessonsFullyBanked: 0 };
+  if (!mockVoice && bankDiscipline) {
+    const { loadBank } = await import('./knowledge/itemBank.mjs');
+    bank = await loadBank(bankDiscipline);
+    if (!bank) digest.itemBank = `bank "${bankDiscipline}" not found — all quiz items authored fresh`;
+  }
   const authorOptions = mockVoice
     ? { mock: mockAuthorLesson }
     : {
@@ -204,6 +216,8 @@ async function runPipelineStages({
         quizTier: tiers.authorQuiz ?? null,
         ledger,
         budgetUsd,
+        bank,
+        bankStats,
       };
   if (!mockVoice && tiers.authorSurfaces) {
     digest.voice = `live (split: ${tiers.author} core + ${tiers.authorSurfaces} surfaces${tiers.authorQuiz ? ` + ${tiers.authorQuiz} quiz` : ''})`;
@@ -229,6 +243,9 @@ async function runPipelineStages({
         : `overnight batch: ${bt.batchedParts}/${bt.totalParts} authoring parts at 50% token rates${bt.fallbackLessons > 0 ? `; ${bt.fallbackLessons} lesson(s) fell back to live` : ''}`;
   }
   const { authored, failures } = useBatch ? authorOutcome : await authorAllLessons(graph, authorOptions);
+  if (bank && bankStats.selected + bankStats.fresh > 0) {
+    digest.itemBank = `${bankStats.selected}/${bankStats.selected + bankStats.fresh} weekly quiz items selected from the ${bank.discipline} bank (${bank.items.length} banked items over ${bank.kernels} kernels; provenance-tracked); ${bankStats.fresh} authored fresh${bankStats.lessonsFullyBanked > 0 ? `; ${bankStats.lessonsFullyBanked} lesson(s) fully banked` : ''}`;
+  }
   if (failures.length > 0) {
     digest.authorFailures = failures.map((f) => `${f.lessonId}: ${f.error.slice(0, 120)}`);
   }

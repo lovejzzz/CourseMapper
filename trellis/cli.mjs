@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 // Trellis CLI — docs/TRELLIS.md §15.
-//   npm run trellis -- generate --syllabus <path> [--tier draft] [--mock] [--grade] [--budget 5] [--run-id <id>] [--term-start YYYY-MM-DD] [--overnight]
+//   npm run trellis -- generate --syllabus <path> [--tier draft] [--mock] [--grade] [--budget 5] [--run-id <id>] [--term-start YYYY-MM-DD] [--overnight] [--bank <discipline>]
 //   npm run trellis -- generate --graph trellis/fixtures/graphs/researchMethods8.mjs [--mock] [--grade]
 //   npm run trellis -- replan --run <id> --lock-weeks 1-6 [--drop-lesson lN] [--note "…"]
 //   npm run trellis -- cost --run <id>
@@ -51,6 +51,7 @@ async function cmdGenerate(options) {
     budgetUsd: Number(options.budget ?? 5),
     termStart: options['term-start'] ?? null,
     overnight: Boolean(options.overnight),
+    bankDiscipline: typeof options.bank === 'string' ? options.bank : null,
     runId: options['run-id'] ?? newRunId(options.mock ? 'mock' : 'live'),
   });
   console.log(`\nrun: ${result.runId}\npackage: ${result.runDir}/package`);
