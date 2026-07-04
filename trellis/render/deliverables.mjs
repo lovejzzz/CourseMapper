@@ -499,7 +499,7 @@ export function renderPackage({
   const manifest = {
     courseName: course.title,
     generatedAt,
-    generator: 'trellis@0.1.1',
+    generator: 'trellis@0.1.2',
     lessonScope: 'all',
     ...(digest ? { pipeline: digest } : {}),
     assessments: graph.assessments.map((a) => ({
