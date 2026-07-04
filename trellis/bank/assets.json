@@ -3,7 +3,7 @@
  "benchVersion": "1.1.0",
  "stamp": "SIMULATED instruments only; append-only with supersedes (COMPOSER.md C-3)",
  "counts": {
-  "item": 1867,
+  "item": 1869,
   "teach-segment": 206,
   "worked-example": 87,
   "reteach-script": 109,
@@ -54484,7 +54484,7 @@
    "voice": "neutral"
   },
   {
-   "id": "item:gapfill:history/fifteenth-amendment-suffrage-loopholes:the-fifteenth-amendment-",
+   "id": "item:gapfill:history/fifteenth-amendment-suffrage-loopholes:the-fifteenth-amendment--2b7b",
    "kernelId": "history/fifteenth-amendment-suffrage-loopholes",
    "conceptName": "Fifteenth Amendment (1870) and its limitations",
    "move": "item",
@@ -63808,7 +63808,7 @@
    "voice": "neutral"
   },
   {
-   "id": "item:gapfill:lang/food-and-ordering-at-restaurants:students-may-think-they-",
+   "id": "item:gapfill:lang/food-and-ordering-at-restaurants:students-may-think-they--81b6",
    "kernelId": "lang/food-and-ordering-at-restaurants",
    "conceptName": "Food and Ordering at Restaurants",
    "move": "item",
@@ -63988,7 +63988,7 @@
    "voice": "neutral"
   },
   {
-   "id": "item:gapfill:lang/hangul-foundations:hangul-is-an-alphabet-wh",
+   "id": "item:gapfill:lang/hangul-foundations:hangul-is-an-alphabet-wh-7380",
    "kernelId": "lang/hangul-foundations",
    "conceptName": "Hangul Foundations",
    "move": "item",
@@ -64024,7 +64024,7 @@
    "voice": "neutral"
   },
   {
-   "id": "item:gapfill:lang/hangul-foundations:learning-hangul-means-me",
+   "id": "item:gapfill:lang/hangul-foundations:learning-hangul-means-me-0bd7",
    "kernelId": "lang/hangul-foundations",
    "conceptName": "Hangul Foundations",
    "move": "item",
@@ -64132,7 +64132,7 @@
    "voice": "neutral"
   },
   {
-   "id": "item:gapfill:lang/greetings-and-introductions:a-single-greeting-works-",
+   "id": "item:gapfill:lang/greetings-and-introductions:a-single-greeting-works--ea7f",
    "kernelId": "lang/greetings-and-introductions",
    "conceptName": "Greetings and Introductions",
    "move": "item",
@@ -64312,7 +64312,7 @@
    "voice": "neutral"
   },
   {
-   "id": "item:gapfill:lang/numbers-age-and-counting:one-korean-number-system",
+   "id": "item:gapfill:lang/numbers-age-and-counting:one-korean-number-system-62d5",
    "kernelId": "lang/numbers-age-and-counting",
    "conceptName": "Numbers, Age, and Counting",
    "move": "item",
@@ -64348,7 +64348,7 @@
    "voice": "neutral"
   },
   {
-   "id": "item:gapfill:lang/numbers-age-and-counting:you-can-count-nouns-in-k",
+   "id": "item:gapfill:lang/numbers-age-and-counting:you-can-count-nouns-in-k-6fc7",
    "kernelId": "lang/numbers-age-and-counting",
    "conceptName": "Numbers, Age, and Counting",
    "move": "item",
@@ -64456,7 +64456,7 @@
    "voice": "neutral"
   },
   {
-   "id": "item:gapfill:lang/asking-questions:questions-must-be-formed",
+   "id": "item:gapfill:lang/asking-questions:questions-must-be-formed-8ec9",
    "kernelId": "lang/asking-questions",
    "conceptName": "Asking Questions",
    "move": "item",
@@ -64492,7 +64492,7 @@
    "voice": "neutral"
   },
   {
-   "id": "item:gapfill:lang/asking-questions:every-question-needs-a-s",
+   "id": "item:gapfill:lang/asking-questions:every-question-needs-a-s-1338",
    "kernelId": "lang/asking-questions",
    "conceptName": "Asking Questions",
    "move": "item",
@@ -64816,7 +64816,7 @@
    "voice": "neutral"
   },
   {
-   "id": "item:gapfill:math/least-squares:a-best-fit-line-must-pas",
+   "id": "item:gapfill:math/least-squares:a-best-fit-line-must-pas-5cd0",
    "kernelId": "math/least-squares",
    "conceptName": "least squares",
    "move": "item",
@@ -65680,7 +65680,7 @@
    "voice": "neutral"
   },
   {
-   "id": "item:gapfill:geo/rock-cycle:students-think-rocks-are",
+   "id": "item:gapfill:geo/rock-cycle:students-think-rocks-are-695a",
    "kernelId": "geo/rock-cycle",
    "conceptName": "The rock cycle",
    "move": "item",
@@ -65716,7 +65716,7 @@
    "voice": "neutral"
   },
   {
-   "id": "item:gapfill:lang/daily-routines-and-time:students-may-believe-tel",
+   "id": "item:gapfill:lang/daily-routines-and-time:students-may-believe-tel-e95a",
    "kernelId": "lang/daily-routines-and-time",
    "conceptName": "Daily Routines and Time",
    "move": "item",
@@ -65752,7 +65752,7 @@
    "voice": "neutral"
   },
   {
-   "id": "item:gapfill:lit/odyssey-vs-iliad-focus:odysseus-heroism-in-the-",
+   "id": "item:gapfill:lit/odyssey-vs-iliad-focus:odysseus-heroism-in-the--a7fe",
    "kernelId": "lit/odyssey-vs-iliad-focus",
    "conceptName": "Odyssey vs. Iliad: thematic focus and heroism",
    "move": "item",
@@ -65788,7 +65788,7 @@
    "voice": "neutral"
   },
   {
-   "id": "item:gapfill:lit/novel-vs-romance-realism:the-novel-romance-distin",
+   "id": "item:gapfill:lit/novel-vs-romance-realism:the-novel-romance-distin-e58b",
    "kernelId": "lit/novel-vs-romance-realism",
    "conceptName": "Novel vs. romance (realism criterion)",
    "move": "item",
@@ -66184,7 +66184,7 @@
    "voice": "neutral"
   },
   {
-   "id": "item:gapfill:anatomy/skeletal-system-functions:students-may-view-bones-",
+   "id": "item:gapfill:anatomy/skeletal-system-functions:students-may-view-bones--8fdd",
    "kernelId": "anatomy/skeletal-system-functions",
    "conceptName": "Skeletal system functions",
    "move": "item",
@@ -66256,7 +66256,7 @@
    "voice": "neutral"
   },
   {
-   "id": "item:gapfill:lang/daily-routines-and-time:students-may-think-that-",
+   "id": "item:gapfill:lang/daily-routines-and-time:students-may-think-that--1f53",
    "kernelId": "lang/daily-routines-and-time",
    "conceptName": "Daily Routines and Time",
    "move": "item",
@@ -66580,7 +66580,7 @@
    "voice": "neutral"
   },
   {
-   "id": "item:gapfill:anatomy/tissue-types:students-may-treat-tissu",
+   "id": "item:gapfill:anatomy/tissue-types:students-may-treat-tissu-60d3",
    "kernelId": "anatomy/tissue-types",
    "conceptName": "Four primary tissue types",
    "move": "item",
@@ -66652,7 +66652,7 @@
    "voice": "neutral"
   },
   {
-   "id": "item:gapfill:lang/food-and-ordering-at-restaurants:students-may-assume-all-",
+   "id": "item:gapfill:lang/food-and-ordering-at-restaurants:students-may-assume-all--7629",
    "kernelId": "lang/food-and-ordering-at-restaurants",
    "conceptName": "Food and Ordering at Restaurants",
    "move": "item",
@@ -66868,7 +66868,7 @@
    "voice": "neutral"
   },
   {
-   "id": "item:gapfill:econ/labor-force-classification:students-read-the-unempl",
+   "id": "item:gapfill:econ/labor-force-classification:students-read-the-unempl-5f28",
    "kernelId": "econ/labor-force-classification",
    "conceptName": "Labor force classification",
    "move": "item",
@@ -66904,7 +66904,7 @@
    "voice": "neutral"
   },
   {
-   "id": "item:gapfill:lit/odyssey-vs-iliad-focus:the-odyssey-is-mainly-a-",
+   "id": "item:gapfill:lit/odyssey-vs-iliad-focus:the-odyssey-is-mainly-a--6955",
    "kernelId": "lit/odyssey-vs-iliad-focus",
    "conceptName": "Odyssey vs. Iliad: thematic focus and heroism",
    "move": "item",
@@ -66940,7 +66940,7 @@
    "voice": "neutral"
   },
   {
-   "id": "item:gapfill:psych/operant-conditioning:students-read-positive-a",
+   "id": "item:gapfill:psych/operant-conditioning:students-read-positive-a-c529",
    "kernelId": "psych/operant-conditioning",
    "conceptName": "Operant conditioning",
    "move": "item",
@@ -67012,7 +67012,7 @@
    "voice": "neutral"
   },
   {
-   "id": "item:gapfill:geo/plate-tectonics:students-assume-all-plat",
+   "id": "item:gapfill:geo/plate-tectonics:students-assume-all-plat-c4db",
    "kernelId": "geo/plate-tectonics",
    "conceptName": "Plate tectonics and boundaries",
    "move": "item",
@@ -67084,7 +67084,7 @@
    "voice": "neutral"
   },
   {
-   "id": "item:gapfill:math/linear-transformation:translation-is-a-linear-",
+   "id": "item:gapfill:math/linear-transformation:translation-is-a-linear--8c67",
    "kernelId": "math/linear-transformation",
    "conceptName": "linear transformation",
    "move": "item",
@@ -67156,7 +67156,7 @@
    "voice": "neutral"
   },
   {
-   "id": "item:gapfill:psych/piaget-stages:students-see-children-as",
+   "id": "item:gapfill:psych/piaget-stages:students-see-children-as-79cc",
    "kernelId": "psych/piaget-stages",
    "conceptName": "Piaget's stages of cognitive development",
    "move": "item",
@@ -67218,6 +67218,78 @@
    "provenance": {
     "origin": "gapfill",
     "model": "ds",
+    "grade": null,
+    "date": "2026-07-04",
+    "migratedFrom": "all-items.json"
+   },
+   "exposure": {
+    "uses": 0
+   },
+   "voice": "neutral"
+  },
+  {
+   "id": "item:gapfill:math/matrix-inverse:ab-a-b",
+   "kernelId": "math/matrix-inverse",
+   "conceptName": "matrix inverse",
+   "move": "item",
+   "body": {
+    "stem": "A student multiplies two invertible matrices A and B and claims the reverse should be \"undone\" by A⁻¹B⁻¹. Which statement is correct?",
+    "options": [
+     "(AB)⁻¹ = A⁻¹B⁻¹",
+     "(AB)⁻¹ = B⁻¹A⁻¹",
+     "AB is invertible only if A is square",
+     "A⁻¹B⁻¹ works when A and B commute"
+    ],
+    "correctIndex": 1,
+    "explanation": "Undoing composed operations requires reversing their order. The correct inverse of AB is B⁻¹A⁻¹, not A⁻¹B⁻¹. Since matrix multiplication is not commutative, the order matters.",
+    "bloom": "apply",
+    "difficulty": "apply"
+   },
+   "familyKey": "ab a b",
+   "evidence": {
+    "catches": true,
+    "confronts": true,
+    "fromGrade": null
+   },
+   "provenance": {
+    "origin": "gapfill",
+    "model": "cheap",
+    "grade": null,
+    "date": "2026-07-04",
+    "migratedFrom": "all-items.json"
+   },
+   "exposure": {
+    "uses": 0
+   },
+   "voice": "neutral"
+  },
+  {
+   "id": "item:gapfill:math/determinant:det-a-b-det-a-det-b",
+   "kernelId": "math/determinant",
+   "conceptName": "determinant",
+   "move": "item",
+   "body": {
+    "stem": "For two 2×2 matrices A and B, a student computes det(A + B) by adding det(A) and det(B). Which correction is right?",
+    "options": [
+     "det(A + B) = det(A) + det(B)",
+     "det(AB) = det(A) + det(B)",
+     "det is multiplicative, so det(AB)=det(A)det(B)",
+     "det(A + B) usually differs from det(A) + det(B)"
+    ],
+    "correctIndex": 3,
+    "explanation": "The determinant is multiplicative, not additive. So det(A + B) usually differs from det(A) + det(B). The add-the-det rule is not generally valid, even when A and B are square matrices.",
+    "bloom": "apply",
+    "difficulty": "apply"
+   },
+   "familyKey": "det a b det a det b",
+   "evidence": {
+    "catches": true,
+    "confronts": true,
+    "fromGrade": null
+   },
+   "provenance": {
+    "origin": "gapfill",
+    "model": "cheap",
     "grade": null,
     "date": "2026-07-04",
     "migratedFrom": "all-items.json"

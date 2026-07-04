@@ -12,6 +12,7 @@
 //
 //   npx vite-node trellis/knowledge/bankGapFill.mjs   (fills + saves)
 
+import { createHash } from 'node:crypto';
 import { readFile, writeFile, readdir } from 'node:fs/promises';
 import { join } from 'node:path';
 import { callModel } from '../providers.mjs';
@@ -21,6 +22,16 @@ import { tokenOverlapRatio } from '../judgment/text.mjs';
 import { familyKeyOf, loadBank } from './itemBank.mjs';
 
 const BATCH = 8;
+
+// Gapfill item ids carry a short stem hash: the family slug alone collides
+// when gap-fill and floor-fill both land an item in the same (kernel ×
+// family) cell — 24 such pairs shipped with silently shared ids (found by
+// Tendril's embedding cache, which re-embedded the shadowed items forever).
+export function gapfillId(kernelId, family, stem, fallback = 'floor') {
+  const slug = family ? family.slice(0, 24).replace(/\s+/g, '-') : fallback;
+  const stemHash = createHash('sha1').update(String(stem)).digest('hex').slice(0, 4);
+  return `gapfill:${kernelId}:${slug}-${stemHash}`;
+}
 
 // The matcher's own tokenization (normalize, keep >3 chars or digit-bearing)
 // — gate forensics found 'no-catch' dominating on SHORT beliefs ("Translation
@@ -175,7 +186,7 @@ export async function gapFillBank({ ledger = null, budgetUsd = null, tier = 'che
         const shelf = bank.items.filter((b) => b.kernelId === cell.kernelId);
         if (!gapItemPasses(cell, item, shelf)) continue;
         bank.items.push({
-          id: `gapfill:${cell.kernelId}:${cell.family.slice(0, 24).replace(/\s+/g, '-')}`,
+          id: gapfillId(cell.kernelId, cell.family, item.stem),
           kernelId: cell.kernelId,
           conceptName: cell.term,
           stem: item.stem,
@@ -365,7 +376,7 @@ export async function floorFillBank({
           }
         }
         bank.items.push({
-          id: `gapfill:${cell.kernelId}:${cell.family ? cell.family.slice(0, 24).replace(/\s+/g, '-') : `floor-${shelf.length + 1}`}`,
+          id: gapfillId(cell.kernelId, cell.family, item.stem, `floor-${shelf.length + 1}`),
           kernelId: cell.kernelId,
           conceptName: cell.term,
           stem: item.stem,

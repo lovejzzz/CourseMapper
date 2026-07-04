@@ -9,3 +9,5 @@ API-dontComit/
 .claude/
 scripts/foundry/snapshots/
 trellis/runs/
+trellis/tendril/models/
+trellis/tendril/cache/*.bin
