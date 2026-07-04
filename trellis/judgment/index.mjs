@@ -13,6 +13,7 @@ import { j10Relevance } from './checks/j10Relevance.mjs';
 import { j11Catch } from './checks/j11Catch.mjs';
 import { j3bPairing } from './checks/j3bPairing.mjs';
 import { j12Exposure } from './checks/j12Exposure.mjs';
+import { j13CoverageSpread } from './checks/j13CoverageSpread.mjs';
 
 export const CHECKS = [
   j1KeyValid,
@@ -28,6 +29,7 @@ export const CHECKS = [
   j11Catch,
   j3bPairing,
   j12Exposure,
+  j13CoverageSpread,
 ];
 
 export function runChecks(graph, authored, options = {}) {

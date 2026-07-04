@@ -15,6 +15,7 @@ import { indexById, misconceptionsForConcept } from './schema.mjs';
 import { distractorCatches, catchTextsFor } from '../judgment/checks/j11Catch.mjs';
 import { confrontsCorrective } from '../judgment/checks/j3bPairing.mjs';
 import { tokenOverlapRatio } from '../judgment/text.mjs';
+import { familyKeyOf } from '../knowledge/itemBank.mjs';
 
 const ORDER = ['remember', 'understand', 'apply', 'analyze', 'evaluate', 'create'];
 
@@ -154,13 +155,26 @@ export function spliceCatchDistractors(graph, authored) {
         if (itemCarries(item, index)) continue;
         const candidates = misconceptionsFor(index).filter((m) => (catchCount.get(m.id) ?? 0) < cap);
         if (candidates.length === 0) continue;
-        // Prefer a misconception whose corrective this item's explanation
-        // ALREADY confronts (splicing elsewhere mints a J3b defect).
+        // Family-first targeting (v0.1.4 B4): an UNCOVERED misconception
+        // family outranks everything — J13's finding is catches piling
+        // onto one family. Then prefer a misconception whose corrective
+        // this item's explanation ALREADY confronts (J3b economics).
+        const coveredFamilies = new Set();
+        art.quizItems.forEach((other, otherIndex) => {
+          other.options.forEach((option, oi) => {
+            if (oi === other.correctIndex) return;
+            for (const m of misconceptionsFor(otherIndex)) {
+              if (distractorCatches(option, m.statement)) coveredFamilies.add(familyKeyOf(m.statement));
+            }
+          });
+        });
         let chosen = null;
         let bestScore = -1;
         for (const m of candidates) {
           const score =
-            (confrontsCorrective(item.explanation, m.corrective) ? 10 : 0) + tokenOverlapRatio(m.statement, item.stem);
+            (coveredFamilies.has(familyKeyOf(m.statement)) ? 0 : 100) +
+            (confrontsCorrective(item.explanation, m.corrective) ? 10 : 0) +
+            tokenOverlapRatio(m.statement, item.stem);
           if (score > bestScore) {
             bestScore = score;
             chosen = m;

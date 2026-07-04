@@ -28,6 +28,23 @@ import { TERMINAL_PUNCT_RE } from '../voice/contracts.mjs';
 const MIN_GRADE = 97;
 const STEM_DUPE_OVERLAP = 0.6;
 
+// Misconception FAMILY fingerprint — stable across runs because genome
+// statements are shard-verbatim and flywheel statements converge on the
+// same wording for the same wrong belief. The head-to-head's unanimous
+// finding (B1/A5): selection deduped stems but not families, so a quiz
+// could spend four items on one off-by-one family while mutation went
+// untested.
+export function familyKeyOf(statement) {
+  return (
+    String(statement || '')
+      .toLowerCase()
+      .replace(/[^a-z0-9\s]/g, ' ')
+      .replace(/\s+/g, ' ')
+      .trim()
+      .slice(0, 60) || null
+  );
+}
+
 // Mirror of the instrument's item→concept mapping (kernel claim ref first,
 // stem overlap over INTRODUCED concepts as fallback) — the same rule the
 // splice and Prof use, so bank evidence means what the classroom measures.
@@ -125,12 +142,14 @@ export async function harvestRun(runDir) {
       const misconceptions = misconceptionsByConcept.get(concept.id) ?? [];
       let catches = false;
       let confronts = false;
+      let familyKey = null;
       for (const m of misconceptions) {
         const caught = item.options.some(
           (option, oi) => oi !== item.correctIndex && distractorCatches(option, m.statement),
         );
         if (caught) {
           catches = true;
+          familyKey = familyKey ?? familyKeyOf(m.statement);
           if (confrontsCorrective(item.explanation, m.corrective)) confronts = true;
         }
       }
@@ -146,6 +165,7 @@ export async function harvestRun(runDir) {
         difficulty: item.difficulty,
         catches,
         confronts,
+        familyKey,
         provenance: { runId, lessonId: lesson.id, itemIndex, grade: score },
       });
     });
@@ -231,8 +251,16 @@ export function selectBankItems(slice, bank, { maxBanked = 4, perConcept = 3 } =
           b.provenance.grade - a.provenance.grade,
       );
     let taken = 0;
-    for (const item of pool) {
+    // Family spread (B1): at most ceil(maxBanked/2) items per misconception
+    // family, and family-carrying items fill BEFORE family-less ones — a
+    // quiz that spends every catch on one wrong belief tests recognition,
+    // not understanding (the bench11 adjudication finding).
+    const familyCap = Math.ceil(maxBanked / 2);
+    const familyCounts = new Map();
+    const spreadPool = [...pool.filter((item) => item.familyKey), ...pool.filter((item) => !item.familyKey)];
+    for (const item of spreadPool) {
       if (selected.length >= maxBanked || taken >= perConcept) break;
+      if (item.familyKey && (familyCounts.get(item.familyKey) ?? 0) >= familyCap) continue;
       if (selected.some((s) => tokenOverlapRatio(s.stem, item.stem) > STEM_DUPE_OVERLAP)) continue;
       // Rotate the correct option for position variety (structure, not prose).
       const rotation = selected.length % 4;
@@ -243,6 +271,7 @@ export function selectBankItems(slice, bank, { maxBanked = 4, perConcept = 3 } =
       // also just honest quiz design.
       const isReview = !(slice.lesson.introduces ?? []).includes(concept.id);
       const stem = isReview && !/^review\b/i.test(item.stem) ? `Review: ${item.stem}` : item.stem;
+      if (item.familyKey) familyCounts.set(item.familyKey, (familyCounts.get(item.familyKey) ?? 0) + 1);
       selected.push({
         stem,
         options,

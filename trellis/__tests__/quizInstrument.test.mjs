@@ -37,3 +37,47 @@ describe('quizInstrumentErrors (authoring-time mirror of J11/J3b/Prof catch)', (
     expect(quizInstrumentErrors([plain], [])).toEqual([]);
   });
 });
+
+import { j13CoverageSpread } from '../judgment/checks/j13CoverageSpread.mjs';
+
+describe('J13 coverage spread (the bench11 unanimous finding)', () => {
+  const graph = {
+    lessons: [{ id: 'l1', introduces: ['c1'], reinforces: [] }],
+    misconceptions: [
+      { id: 'm1', conceptId: 'c1', statement: 'The last index of a five item list is five not four', corrective: 'x' },
+      { id: 'm2', conceptId: 'c1', statement: 'Appending to a list creates a brand new list object', corrective: 'y' },
+    ],
+  };
+  const catching = (text) => ({
+    stem: 'q'.repeat(20),
+    options: [text, 'b', 'c', 'd'],
+    correctIndex: 1,
+    explanation: 'e'.repeat(30),
+  });
+  it('flags a quiz that piles catches onto one family', () => {
+    const authored = {
+      l1: {
+        quizItems: [
+          catching('The last index of a five item list is five'),
+          catching('the last index of a five item list is five, not four'),
+          catching('A five item list ends at index five not four'),
+        ],
+      },
+    };
+    const findings = j13CoverageSpread(graph, authored);
+    expect(findings).toHaveLength(1);
+    expect(findings[0].code).toBe('J13_COVERAGE_SPREAD');
+    expect(findings[0].severity).toBe('warn');
+  });
+  it('is silent when catches spread across families', () => {
+    const authored = {
+      l1: {
+        quizItems: [
+          catching('The last index of a five item list is five'),
+          catching('Appending to a list creates a brand new list object each time'),
+        ],
+      },
+    };
+    expect(j13CoverageSpread(graph, authored)).toHaveLength(0);
+  });
+});
