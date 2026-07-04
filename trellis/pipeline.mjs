@@ -291,6 +291,19 @@ async function runPipelineStages({
   digest.judgment = `Course judgment: ${blockingFindings(repair.findings).length === 0 ? 'no gaps' : `${blockingFindings(repair.findings).length} open finding(s)`} across ${graph.lessons.length} lessons; ${prereqEdges} prerequisite edges verified in order (V2)${bridges.length > 0 ? `; ${bridges.length} prerequisite gap(s) bridged with inline primers` : ''}; checks J1–J10 ran, ${repair.rounds} repair round(s) (${repair.sectionRepairs ?? 0} section, ${repair.fullRepairs ?? 0} full)`;
   if (repair.honest) digest.repairHonesty = repair.honest;
 
+  // 7b · corrective blending (roadmap v0.1.2 item 2): pasted correctives —
+  // machine-appended or model-quoted — read as "repeated feedback blocks"
+  // to the judge. A voice pass rewrites them into natural explanations;
+  // each rewrite is accepted only if the confrontation gate still passes,
+  // so the classroom guarantee survives every blend by construction.
+  if (!mockVoice) {
+    const { blendCorrectives } = await import('./voice/blend.mjs');
+    const blend = await blendCorrectives(graph, authored, { tier: tiers.flywheel, ledger, budgetUsd });
+    if (blend.candidates > 0) {
+      digest.correctiveBlending = `${blend.blended}/${blend.candidates} pasted corrective(s) blended into natural explanations (voice, confrontation-gated${blend.blended < blend.candidates ? '; the rest keep their appended form' : ''})`;
+    }
+  }
+
   // 7c · the classroom gate (roadmap 3.2): Prof's zero-token battery runs
   // INSIDE the build. Its P1s cannot be repaired by tokens alone (they
   // reflect item/exposure design), so they set honest readiness — a run
