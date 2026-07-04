@@ -3,7 +3,7 @@
   "generator": "trellis@0.1.3",
   "minGrade": 97,
   "stamp": "SIMULATED instruments only — judge-score gating joins when verdicts persist to run dirs",
-  "kernels": 256,
+  "kernels": 264,
   "items": [
     {
       "id": "breadth-linear-algebra:l3:q0",
@@ -42279,10 +42279,2200 @@
         "grade": null,
         "date": "2026-07-04"
       }
+    },
+    {
+      "id": "gapfill:bio/cellular-respiration:students-treat-the-stage",
+      "kernelId": "bio/cellular-respiration",
+      "conceptName": "Cellular respiration",
+      "stem": "A student says the citric acid cycle is just the next item on a memorized list, so blocking glycolysis would not affect later stages. Which statement best explains what happens in cellular respiration?",
+      "options": [
+        "The stages are arbitrary, so each runs independently.",
+        "Blocking glycolysis halts later stages because products feed forward.",
+        "Oxidative phosphorylation starts first and powers glycolysis.",
+        "The citric acid cycle uses glucose directly, not pyruvate."
+      ],
+      "correctIndex": 1,
+      "explanation": "Later stages consume the products of earlier ones, so the order is forced by dependency. If glycolysis is blocked, pyruvate is not produced, and the citric acid cycle and oxidative phosphorylation stop too.",
+      "bloom": "apply",
+      "difficulty": "apply",
+      "catches": true,
+      "confronts": true,
+      "familyKey": "students treat the stages of respiration as an arbitrary lis",
+      "provenance": {
+        "origin": "gapfill",
+        "model": "cheap",
+        "grade": null,
+        "date": "2026-07-04"
+      }
+    },
+    {
+      "id": "gapfill:geo/plate-tectonics:students-assume-all-plat",
+      "kernelId": "geo/plate-tectonics",
+      "conceptName": "Plate tectonics and boundaries",
+      "stem": "A volcano forms where one oceanic plate sinks beneath another, while another region has plates sliding sideways past each other. What best describes these boundaries?",
+      "options": [
+        "All boundaries are the same kind of collision.",
+        "Divergent, convergent, and transform boundaries differ.",
+        "Only convergent boundaries create new lithosphere.",
+        "Transform boundaries always destroy crust."
+      ],
+      "correctIndex": 1,
+      "explanation": "There are three distinct types: divergent, convergent, and transform boundaries. They differ in plate motion and what happens to crust, so not all boundaries are collisions.",
+      "bloom": "apply",
+      "difficulty": "apply",
+      "catches": true,
+      "confronts": true,
+      "familyKey": "students assume all plate boundaries are the same kind of co",
+      "provenance": {
+        "origin": "gapfill",
+        "model": "cheap",
+        "grade": null,
+        "date": "2026-07-04"
+      }
+    },
+    {
+      "id": "gapfill:history/impeachment-andrew-johnson-1868:johnson-was-removed-from",
+      "kernelId": "history/impeachment-andrew-johnson-1868",
+      "conceptName": "Impeachment of President Andrew Johnson",
+      "stem": "A student claims Andrew Johnson was removed from office after impeachment. What actually happened in 1868?",
+      "options": [
+        "He was removed by the House immediately.",
+        "He was acquitted in the Senate by one vote.",
+        "He resigned before the Senate trial.",
+        "The Supreme Court removed him from office."
+      ],
+      "correctIndex": 1,
+      "explanation": "He was acquitted in the Senate by one vote short of the required two-thirds majority. In impeachment, the House prosecutes and the Senate decides removal.",
+      "bloom": "remember",
+      "difficulty": "recall",
+      "catches": true,
+      "confronts": true,
+      "familyKey": "johnson was removed from office after impeachment",
+      "provenance": {
+        "origin": "gapfill",
+        "model": "cheap",
+        "grade": null,
+        "date": "2026-07-04"
+      }
+    },
+    {
+      "id": "gapfill:history/urban-problems-class-inequality:urban-challenges-were-ma",
+      "kernelId": "history/urban-problems-class-inequality",
+      "conceptName": "Challenges of rapid urban growth and their roots",
+      "stem": "A newspaper blames crowded tenements only on new technology and says class had nothing to do with them. What does the historical passage say instead?",
+      "options": [
+        "Urban problems were mainly technical inconveniences.",
+        "Urban issues were rooted in class inequality and division.",
+        "Cities had no sanitation problems at all.",
+        "Only transportation caused urban hardship."
+      ],
+      "correctIndex": 1,
+      "explanation": "The passage explicitly links urban issues to deep class inequalities and divisions of race, religion, and ethnicity, plus corrupt politics. Technology mattered, but it was not the whole explanation.",
+      "bloom": "understand",
+      "difficulty": "transfer",
+      "catches": true,
+      "confronts": true,
+      "familyKey": "urban challenges were mainly technical inconveniences and we",
+      "provenance": {
+        "origin": "gapfill",
+        "model": "cheap",
+        "grade": null,
+        "date": "2026-07-04"
+      }
+    },
+    {
+      "id": "gapfill:history/farmers-alliance-subtreasury-populist-party-omaha-platform:the-farmers-alliance-sta",
+      "kernelId": "history/farmers-alliance-subtreasury-populist-party-omaha-platform",
+      "conceptName": "Farmers’ Alliance to Populist Party (subtreasury plan and Omaha Platform)",
+      "stem": "A farm organization starts with crop loans and warehouse storage, then joins national elections to push railroad regulation and a federal income tax. What shift does this describe?",
+      "options": [
+        "It stayed a self-help group and avoided politics.",
+        "It shifted from the Farmers’ Alliance to the Populist Party.",
+        "It became a labor union in cities.",
+        "It merged with the Republican Party."
+      ],
+      "correctIndex": 1,
+      "explanation": "The section describes the shift to electoral politics: the alliance formed the Populist Party to enact change through elected representatives. The Omaha Platform extended the subtreasury plan into a broader reform agenda.",
+      "bloom": "apply",
+      "difficulty": "transfer",
+      "catches": true,
+      "confronts": true,
+      "familyKey": "the farmers alliance stayed purely a self help organization ",
+      "provenance": {
+        "origin": "gapfill",
+        "model": "cheap",
+        "grade": null,
+        "date": "2026-07-04"
+      }
+    },
+    {
+      "id": "gapfill:history/spanish-american-war-outcomes-empire:u-s-military-strategy-fo",
+      "kernelId": "history/spanish-american-war-outcomes-empire",
+      "conceptName": "Spanish-American War outcomes and U.S. overseas empire",
+      "stem": "After a quick victory in 1898, U.S. leaders plan for bases in the Pacific and future influence in Asia, not just Cuba. What does this show about their strategy?",
+      "options": [
+        "They focused exclusively on liberating Cuba.",
+        "They prepared for the war as empire building.",
+        "They intended only defensive coastal protection.",
+        "They avoided any overseas expansion."
+      ],
+      "correctIndex": 1,
+      "explanation": "The passage says strategists prepared for it as a war for empire. Their goals included Pacific bases and expansion toward Asia, not only Cuban liberation.",
+      "bloom": "understand",
+      "difficulty": "apply",
+      "catches": true,
+      "confronts": true,
+      "familyKey": "u s military strategy focused exclusively on liberating cuba",
+      "provenance": {
+        "origin": "gapfill",
+        "model": "cheap",
+        "grade": null,
+        "date": "2026-07-04"
+      }
+    },
+    {
+      "id": "gapfill:history/wilson-moral-foreign-policy:wilson-consistently-avoi",
+      "kernelId": "history/wilson-moral-foreign-policy",
+      "conceptName": "Wilson’s moral (idealistic) foreign policy",
+      "stem": "After World War I, a student says Wilson was a pure noninterventionist because he opposed U.S. involvement in other nations’ affairs. Which judgment best fits his foreign policy?",
+      "options": [
+        "He consistently avoided intervention abroad.",
+        "He favored restraint, but still intervened when interests were threatened.",
+        "He rejected diplomacy and used force immediately.",
+        "He ended all overseas markets and ties."
+      ],
+      "correctIndex": 1,
+      "explanation": "Wilson advocated restraint, but the text says it was hard to keep the U.S. out of world affairs. When American interests were threatened, intervention still followed.",
+      "bloom": "understand",
+      "difficulty": "apply",
+      "catches": true,
+      "confronts": true,
+      "familyKey": "wilson consistently avoided intervention abroad because he o",
+      "provenance": {
+        "origin": "gapfill",
+        "model": "cheap",
+        "grade": null,
+        "date": "2026-07-04"
+      }
+    },
+    {
+      "id": "gapfill:history/isolationism-interwar-us:the-kellogg-briand-pact-",
+      "kernelId": "history/isolationism-interwar-us",
+      "conceptName": "U.S. isolationism (1920s–1930s)",
+      "stem": "In a history exam, a student argues that the Kellogg-Briand Pact ended the danger of war because it made war illegal. Which statement best reflects U.S. isolationism in the 1920s–1930s?",
+      "options": [
+        "War was abolished because it was declared illegal.",
+        "The U.S. avoided Europe but kept all global commitments.",
+        "The agreements failed because they lacked enforcement action.",
+        "The U.S. fully joined European collective security."
+      ],
+      "correctIndex": 2,
+      "explanation": "The corrective is that the agreements failed because they did not commit nations to take action when violations occurred. Making war “illegal” mattered less than enforcement; without action, states could ignore the pact.",
+      "bloom": "apply",
+      "difficulty": "transfer",
+      "catches": true,
+      "confronts": true,
+      "familyKey": "the kellogg briand pact prevented wars because it made war i",
+      "provenance": {
+        "origin": "gapfill",
+        "model": "cheap",
+        "grade": null,
+        "date": "2026-07-04"
+      }
+    },
+    {
+      "id": "gapfill:history/cold-war:the-cold-war-was-mainly-",
+      "kernelId": "history/cold-war",
+      "conceptName": "Cold War",
+      "stem": "During a debate, one student says the Cold War was mostly U.S. and Soviet troops shooting each other directly. Which description is most accurate?",
+      "options": [
+        "A direct shooting war between armies.",
+        "A rivalry fought through alliances and propaganda.",
+        "A single peace treaty after 1945.",
+        "A colonial war over overseas territory."
+      ],
+      "correctIndex": 1,
+      "explanation": "The Cold War did not include direct military confrontation between Soviet and U.S. troops. It relied on indirect tools like espionage, propaganda, alliances, and an arms race.",
+      "bloom": "understand",
+      "difficulty": "apply",
+      "catches": true,
+      "confronts": true,
+      "familyKey": "the cold war was mainly a direct shooting war between u s an",
+      "provenance": {
+        "origin": "gapfill",
+        "model": "cheap",
+        "grade": null,
+        "date": "2026-07-04"
+      }
+    },
+    {
+      "id": "gapfill:history/september-11-attacks:all-four-hijacked-planes",
+      "kernelId": "history/september-11-attacks",
+      "conceptName": "September 11 Terror Attacks",
+      "stem": "After watching a September 11 memorial, a student says all four hijacked planes reached their targets. Which detail is correct?",
+      "options": [
+        "All four planes hit major buildings.",
+        "One plane crashed in Pennsylvania.",
+        "No plane was hijacked successfully.",
+        "The fourth plane landed safely."
+      ],
+      "correctIndex": 1,
+      "explanation": "The corrective states the fourth plane crashed in Pennsylvania after passengers tried to regain control. That means not all four hijacked planes reached intended targets.",
+      "bloom": "apply",
+      "difficulty": "transfer",
+      "catches": true,
+      "confronts": true,
+      "familyKey": "all four hijacked planes reached their intended targets",
+      "provenance": {
+        "origin": "gapfill",
+        "model": "cheap",
+        "grade": null,
+        "date": "2026-07-04"
+      }
+    },
+    {
+      "id": "gapfill:lang/food-and-ordering-at-restaurants:students-may-think-they-",
+      "kernelId": "lang/food-and-ordering-at-restaurants",
+      "conceptName": "Food and Ordering at Restaurants",
+      "stem": "A beginner in Korean tries to translate “Can I get the menu, please?” word for word into Korean and sounds unnatural. What is the best advice?",
+      "options": [
+        "Translate English phrases word-for-word.",
+        "Memorize common set phrases and polite patterns.",
+        "Skip polite endings in restaurants.",
+        "Use only banchan names when ordering."
+      ],
+      "correctIndex": 1,
+      "explanation": "Korean ordering uses fixed polite patterns and different question forms. Learners should memorize common set phrases rather than literal translations.",
+      "bloom": "apply",
+      "difficulty": "apply",
+      "catches": true,
+      "confronts": true,
+      "familyKey": "students may think they can directly translate english resta",
+      "provenance": {
+        "origin": "gapfill",
+        "model": "cheap",
+        "grade": null,
+        "date": "2026-07-04"
+      }
+    },
+    {
+      "id": "gapfill:lang/daily-routines-and-time:students-may-believe-tel",
+      "kernelId": "lang/daily-routines-and-time",
+      "conceptName": "Daily Routines and Time",
+      "stem": "A student studying Korean says, “I know the numbers, so I can tell time correctly.” Why is this incomplete?",
+      "options": [
+        "Time needs only numbers, never counters.",
+        "Time also needs counters and time expressions.",
+        "Daily routines never use time phrases.",
+        "Only days of the week matter in Korean."
+      ],
+      "correctIndex": 1,
+      "explanation": "Telling time also requires time-related counters and common expressions for hours, minutes, and parts of the day. Numbers alone are not enough to place events accurately.",
+      "bloom": "understand",
+      "difficulty": "apply",
+      "catches": true,
+      "confronts": true,
+      "familyKey": "students may believe telling time only requires memorizing n",
+      "provenance": {
+        "origin": "gapfill",
+        "model": "cheap",
+        "grade": null,
+        "date": "2026-07-04"
+      }
+    },
+    {
+      "id": "gapfill:lit/title-as-doorway:a-first-reading-should-i",
+      "kernelId": "lit/title-as-doorway",
+      "conceptName": "title as doorway (in close reading)",
+      "stem": "On the first read of a poem titled “Winter Station,” a student begins analyzing meter and symbolism before noticing the setting. What is the better first step?",
+      "options": [
+        "Focus first on tone, mood, and style.",
+        "Skip the title because it is decorative.",
+        "Analyze only technical terms immediately.",
+        "Search for one correct paraphrase first."
+      ],
+      "correctIndex": 0,
+      "explanation": "The title is a doorway that sets expectations, and the first pass should orient you to tone, mood, and style. Early reading also notices what stands out or confuses you.",
+      "bloom": "understand",
+      "difficulty": "apply",
+      "catches": true,
+      "confronts": true,
+      "familyKey": "a first reading should immediately focus on line by line ana",
+      "provenance": {
+        "origin": "gapfill",
+        "model": "cheap",
+        "grade": null,
+        "date": "2026-07-04"
+      }
+    },
+    {
+      "id": "gapfill:lit/composite-authorship:the-iliad-must-have-a-si",
+      "kernelId": "lit/composite-authorship",
+      "conceptName": "composite authorship (Homeric epic)",
+      "stem": "A critic insists that the Iliad must be interpreted by identifying its single modern-style author. Which claim matches the account given here?",
+      "options": [
+        "The Iliad had no single author in this account.",
+        "Homer is certain and interpretation depends on him.",
+        "The poem was written all at once by one poet.",
+        "Authorship is fixed, so oral tradition is irrelevant."
+      ],
+      "correctIndex": 0,
+      "explanation": "The passage says the poem “had no single author” and that Homer’s existence is uncertain. Composite authorship explains the mixed dialects and inconsistent details, so identifying one author is not central here.",
+      "bloom": "understand",
+      "difficulty": "apply",
+      "catches": true,
+      "confronts": true,
+      "familyKey": "the iliad must have a single author in the modern sense and ",
+      "provenance": {
+        "origin": "gapfill",
+        "model": "cheap",
+        "grade": null,
+        "date": "2026-07-04"
+      }
+    },
+    {
+      "id": "gapfill:lit/in-medias-res:starting-in-the-middle-m",
+      "kernelId": "lit/in-medias-res",
+      "conceptName": "in medias res",
+      "stem": "A reader complains that the Iliad begins too late, claiming the poet forgot the opening events of the Trojan War. Which explanation fits the poem’s structure?",
+      "options": [
+        "It uses in medias res as a deliberate convention.",
+        "It is incomplete because the beginning was lost.",
+        "The poet ignored earlier events accidentally.",
+        "The audience was meant to know no background."
+      ],
+      "correctIndex": 0,
+      "explanation": "In medias res is a deliberate convention, not a mistake. The audience is expected to know the background, and later exposition supplies earlier events. This makes the opening at a late point purposeful.",
+      "bloom": "understand",
+      "difficulty": "apply",
+      "catches": true,
+      "confronts": true,
+      "familyKey": "starting in the middle means the author forgot to include th",
+      "provenance": {
+        "origin": "gapfill",
+        "model": "cheap",
+        "grade": null,
+        "date": "2026-07-04"
+      }
+    },
+    {
+      "id": "gapfill:lit/mystery-of-paternity-telemachos:telemachos-growth-is-pas",
+      "kernelId": "lit/mystery-of-paternity-telemachos",
+      "conceptName": "“Mystery of paternity” and Telemachos’ self-definition",
+      "stem": "Telemachos tells a friend he is just waiting for his father to return before becoming himself. Which response best captures the “mystery of paternity” here?",
+      "options": [
+        "He must assert himself and take action on his own.",
+        "He should remain passive until Odysseus returns.",
+        "Parentage is only a biological puzzle.",
+        "His identity depends on copying the suitors."
+      ],
+      "correctIndex": 0,
+      "explanation": "The “mystery of paternity” concerns self-definition without the absent father. Athene says he cannot simply wait; he must assert himself, travel, and act so he can become “just Telemachos.”",
+      "bloom": "apply",
+      "difficulty": "apply",
+      "catches": true,
+      "confronts": true,
+      "familyKey": "telemachos growth is passive he simply waits for odysseus to",
+      "provenance": {
+        "origin": "gapfill",
+        "model": "cheap",
+        "grade": null,
+        "date": "2026-07-04"
+      }
+    },
+    {
+      "id": "gapfill:lit/austen-style-wit-delicacy:if-the-language-is-not-c",
+      "kernelId": "lit/austen-style-wit-delicacy",
+      "conceptName": "Austen’s prose style (wit, balance, rhetorical control)",
+      "stem": "A reader says Austen’s prose is too easy to study because her language is “not complex.” Which response best follows the passage?",
+      "options": [
+        "Her balance, sound, and tropes reward close reading.",
+        "There is nothing stylistically notable to analyze.",
+        "Only plot matters in Austen’s novels.",
+        "Her style works only if the sentences are difficult."
+      ],
+      "correctIndex": 0,
+      "explanation": "The passage argues that Austen’s sentences have balance, sound, and rhetorical tropes worth close reading. Even when the language is not hard, the style reveals social realities beneath polite surfaces.",
+      "bloom": "analyze",
+      "difficulty": "apply",
+      "catches": true,
+      "confronts": true,
+      "familyKey": "if the language is not complex there is little to analyze st",
+      "provenance": {
+        "origin": "gapfill",
+        "model": "cheap",
+        "grade": null,
+        "date": "2026-07-04"
+      }
+    },
+    {
+      "id": "gapfill:math/continuity:students-treat-the-graph",
+      "kernelId": "math/continuity",
+      "conceptName": "continuity at a point",
+      "stem": "A student says a curve is continuous because it can be drawn without lifting the pencil. What is the best correction?",
+      "options": [
+        "That is the formal definition of continuity.",
+        "It is only an intuition, not the definition.",
+        "It applies only on open intervals.",
+        "It ignores left and right limits."
+      ],
+      "correctIndex": 1,
+      "explanation": "The pencil test is a helpful picture, not the definition. Continuity at a point requires f(a) defined, the limit exists, and the limit equals f(a).",
+      "bloom": "understand",
+      "difficulty": "apply",
+      "catches": true,
+      "confronts": true,
+      "familyKey": "students treat the graph can be drawn without lifting the pe",
+      "provenance": {
+        "origin": "gapfill",
+        "model": "cheap",
+        "grade": null,
+        "date": "2026-07-04"
+      }
+    },
+    {
+      "id": "gapfill:math/critical-points:if-f-c-is-undefined-then",
+      "kernelId": "math/critical-points",
+      "conceptName": "critical points",
+      "stem": "A function has an interior point c where f'(c) is undefined. What should you conclude when checking for extrema?",
+      "options": [
+        "c cannot matter for extrema.",
+        "c is a critical number and possible extremum location.",
+        "c must be a local minimum.",
+        "c is not in the domain."
+      ],
+      "correctIndex": 1,
+      "explanation": "An undefined derivative at an interior point still makes c a critical number and a possible extremum location. Critical numbers include points where f'(c) is zero or undefined, so c must be checked.",
+      "bloom": "understand",
+      "difficulty": "apply",
+      "catches": true,
+      "confronts": true,
+      "familyKey": "if f c is undefined then c cannot matter for extrema",
+      "provenance": {
+        "origin": "gapfill",
+        "model": "cheap",
+        "grade": null,
+        "date": "2026-07-04"
+      }
+    },
+    {
+      "id": "gapfill:math/absolute-extrema:if-a-function-is-bounded",
+      "kernelId": "math/absolute-extrema",
+      "conceptName": "absolute extrema",
+      "stem": "A function is bounded on an open interval but is not continuous there. What can you conclude about absolute extrema?",
+      "options": [
+        "It must have both absolute maxima and minima.",
+        "Boundedness alone guarantees extrema.",
+        "It may fail to have absolute extrema.",
+        "It has an absolute maximum only."
+      ],
+      "correctIndex": 2,
+      "explanation": "Boundedness alone is not enough; continuity on a closed, bounded interval is the key hypothesis in the theorem. An open interval or a discontinuity can prevent absolute extrema from existing.",
+      "bloom": "understand",
+      "difficulty": "apply",
+      "catches": true,
+      "confronts": true,
+      "familyKey": "if a function is bounded it automatically has absolute maxim",
+      "provenance": {
+        "origin": "gapfill",
+        "model": "cheap",
+        "grade": null,
+        "date": "2026-07-04"
+      }
+    },
+    {
+      "id": "gapfill:research-methods/independent-dependent-variables:students-often-swap-the-",
+      "kernelId": "research-methods/independent-dependent-variables",
+      "conceptName": "Independent and dependent variables",
+      "stem": "A biology lab changes fertilizer amount between two plant groups and then measures plant height after four weeks. Which variable is dependent?",
+      "options": [
+        "Fertilizer amount, because it is the planned change.",
+        "Plant height, because it is measured as the outcome.",
+        "Both are independent variables.",
+        "Neither is a variable in the experiment."
+      ],
+      "correctIndex": 1,
+      "explanation": "Ask what the researcher changes first; then ask what changes in response. The manipulated fertilizer amount is the independent variable, and plant height is the dependent variable because it is the measured outcome.",
+      "bloom": "understand",
+      "difficulty": "apply",
+      "catches": true,
+      "confronts": true,
+      "familyKey": "students often swap the independent and dependent variables ",
+      "provenance": {
+        "origin": "gapfill",
+        "model": "cheap",
+        "grade": null,
+        "date": "2026-07-04"
+      }
+    },
+    {
+      "id": "gapfill:anatomy/tissue-types:floor-2",
+      "kernelId": "anatomy/tissue-types",
+      "conceptName": "Four primary tissue types",
+      "stem": "Which tissue type specializes in rapid communication and signal transmission?",
+      "options": ["Epithelial tissue", "Connective tissue", "Muscle tissue", "Nervous tissue"],
+      "correctIndex": 3,
+      "explanation": "Nervous tissue contains neurons and supporting cells for communication. The other tissues primarily protect, support, or contract.",
+      "bloom": "remember",
+      "difficulty": "recall",
+      "catches": false,
+      "confronts": false,
+      "familyKey": null,
+      "provenance": {
+        "origin": "gapfill",
+        "model": "cheap",
+        "grade": null,
+        "date": "2026-07-04"
+      }
+    },
+    {
+      "id": "gapfill:anatomy/tissue-types:floor-3",
+      "kernelId": "anatomy/tissue-types",
+      "conceptName": "Four primary tissue types",
+      "stem": "A biopsy shows cells embedded in abundant extracellular matrix with scattered cells. Which tissue type is most likely?",
+      "options": ["Epithelial tissue", "Connective tissue", "Muscle tissue", "Nervous tissue"],
+      "correctIndex": 1,
+      "explanation": "Connective tissue is characterized by cells dispersed within an extracellular matrix. This arrangement supports binding, support, and protection.",
+      "bloom": "apply",
+      "difficulty": "apply",
+      "catches": false,
+      "confronts": false,
+      "familyKey": null,
+      "provenance": {
+        "origin": "gapfill",
+        "model": "cheap",
+        "grade": null,
+        "date": "2026-07-04"
+      }
+    },
+    {
+      "id": "gapfill:anatomy/tissue-types:floor-4",
+      "kernelId": "anatomy/tissue-types",
+      "conceptName": "Four primary tissue types",
+      "stem": "Which tissue type is designed to shorten and generate force for movement?",
+      "options": ["Epithelial tissue", "Connective tissue", "Muscle tissue", "Nervous tissue"],
+      "correctIndex": 2,
+      "explanation": "Muscle tissue contracts to produce force and movement. Its cells are specialized for contraction rather than lining, support, or signaling.",
+      "bloom": "remember",
+      "difficulty": "recall",
+      "catches": false,
+      "confronts": false,
+      "familyKey": null,
+      "provenance": {
+        "origin": "gapfill",
+        "model": "cheap",
+        "grade": null,
+        "date": "2026-07-04"
+      }
+    },
+    {
+      "id": "gapfill:anatomy/tissue-types:floor-5",
+      "kernelId": "anatomy/tissue-types",
+      "conceptName": "Four primary tissue types",
+      "stem": "A scientist studies tissue appearance, organization, and function under the microscope. What field is being used?",
+      "options": ["Anatomy", "Histology", "Physiology", "Pathology"],
+      "correctIndex": 1,
+      "explanation": "Histology focuses on tissues under the microscope, including appearance, organization, and function. It connects structure with what the tissue does.",
+      "bloom": "understand",
+      "difficulty": "recall",
+      "catches": false,
+      "confronts": false,
+      "familyKey": null,
+      "provenance": {
+        "origin": "gapfill",
+        "model": "cheap",
+        "grade": null,
+        "date": "2026-07-04"
+      }
+    },
+    {
+      "id": "gapfill:anatomy/skeletal-system-functions:floor-2",
+      "kernelId": "anatomy/skeletal-system-functions",
+      "conceptName": "Skeletal system functions",
+      "stem": "Which structure most directly provides attachment points for skeletal muscles?",
+      "options": ["Bones", "Cartilage", "Ligaments", "Tendons"],
+      "correctIndex": 0,
+      "explanation": "Bones provide attachment points that muscles pull on during movement. Cartilage cushions, ligaments connect bone to bone, and tendons connect muscle to bone.",
+      "bloom": "apply",
+      "difficulty": "apply",
+      "catches": false,
+      "confronts": false,
+      "familyKey": null,
+      "provenance": {
+        "origin": "gapfill",
+        "model": "cheap",
+        "grade": null,
+        "date": "2026-07-04"
+      }
+    },
+    {
+      "id": "gapfill:anatomy/skeletal-system-functions:floor-3",
+      "kernelId": "anatomy/skeletal-system-functions",
+      "conceptName": "Skeletal system functions",
+      "stem": "Which skeletal system function is carried out in bone marrow?",
+      "options": ["Blood cell production", "Signal transmission", "Hormone secretion", "Food digestion"],
+      "correctIndex": 0,
+      "explanation": "Bone marrow produces blood cells, especially in many flat bones. This is one important internal function of the skeletal system.",
+      "bloom": "apply",
+      "difficulty": "apply",
+      "catches": false,
+      "confronts": false,
+      "familyKey": null,
+      "provenance": {
+        "origin": "gapfill",
+        "model": "cheap",
+        "grade": null,
+        "date": "2026-07-04"
+      }
+    },
+    {
+      "id": "gapfill:anatomy/skeletal-system-functions:floor-4",
+      "kernelId": "anatomy/skeletal-system-functions",
+      "conceptName": "Skeletal system functions",
+      "stem": "Which body function is performed by the skeletal system?",
+      "options": [
+        "Pumps blood through vessels",
+        "Supports body and enables movement",
+        "Produces digestive enzymes",
+        "Regulates breathing rate"
+      ],
+      "correctIndex": 1,
+      "explanation": "Bones and cartilage support the body, and bones provide attachment points for muscles to move it. The skeletal system also protects organs and stores minerals, but those are not the best match here.",
+      "bloom": "remember",
+      "difficulty": "recall",
+      "catches": false,
+      "confronts": false,
+      "familyKey": null,
+      "provenance": {
+        "origin": "gapfill",
+        "model": "cheap",
+        "grade": null,
+        "date": "2026-07-04"
+      }
+    },
+    {
+      "id": "gapfill:anatomy/skeletal-system-functions:floor-5",
+      "kernelId": "anatomy/skeletal-system-functions",
+      "conceptName": "Skeletal system functions",
+      "stem": "A runner pushes off the ground mainly because bones provide what?",
+      "options": [
+        "Attachment points for muscles",
+        "Nerve signals to joints",
+        "Stored oxygen for sprinting",
+        "Fluid cushions between organs"
+      ],
+      "correctIndex": 0,
+      "explanation": "Bones help movement by serving as attachment points for muscles. When muscles contract, they pull on bones to produce motion.",
+      "bloom": "apply",
+      "difficulty": "apply",
+      "catches": false,
+      "confronts": false,
+      "familyKey": null,
+      "provenance": {
+        "origin": "gapfill",
+        "model": "cheap",
+        "grade": null,
+        "date": "2026-07-04"
+      }
+    },
+    {
+      "id": "gapfill:econ/economic-model:floor-6",
+      "kernelId": "econ/economic-model",
+      "conceptName": "Economic model",
+      "stem": "Why is an economic model useful in analyzing consumer choice?",
+      "options": [
+        "It copies every detail of reality exactly.",
+        "It keeps relevant features and ignores the rest.",
+        "It proves all assumptions are always true.",
+        "It replaces data with opinions."
+      ],
+      "correctIndex": 1,
+      "explanation": "An economic model simplifies reality by keeping features relevant to the question and discarding others. It is useful when its assumptions are close enough for the problem being studied.",
+      "bloom": "understand",
+      "difficulty": "transfer",
+      "catches": false,
+      "confronts": false,
+      "familyKey": null,
+      "provenance": {
+        "origin": "gapfill",
+        "model": "cheap",
+        "grade": null,
+        "date": "2026-07-04"
+      }
+    },
+    {
+      "id": "gapfill:econ/externality:floor-2",
+      "kernelId": "econ/externality",
+      "conceptName": "Externality",
+      "stem": "Which situation is the best example of an externality?",
+      "options": [
+        "A buyer pays a seller for groceries.",
+        "A concert increases nearby noise for residents.",
+        "A student saves money in a bank account.",
+        "A company reports revenue to shareholders."
+      ],
+      "correctIndex": 1,
+      "explanation": "An externality is a cost or benefit that falls on a third party outside the exchange. Nearby residents experiencing noise from a concert fit that definition.",
+      "bloom": "remember",
+      "difficulty": "recall",
+      "catches": false,
+      "confronts": false,
+      "familyKey": null,
+      "provenance": {
+        "origin": "gapfill",
+        "model": "cheap",
+        "grade": null,
+        "date": "2026-07-04"
+      }
+    },
+    {
+      "id": "gapfill:econ/externality:floor-3",
+      "kernelId": "econ/externality",
+      "conceptName": "Externality",
+      "stem": "Why might policy correct a pollution externality?",
+      "options": [
+        "To make producers face spillover costs",
+        "To eliminate all markets completely",
+        "To guarantee higher prices always",
+        "To remove consumer preferences"
+      ],
+      "correctIndex": 0,
+      "explanation": "Correcting an externality means making decision-makers face costs the market boundary leaves out. That reduces overproduction caused by prices that ignore spillover harm.",
+      "bloom": "understand",
+      "difficulty": "transfer",
+      "catches": false,
+      "confronts": false,
+      "familyKey": null,
+      "provenance": {
+        "origin": "gapfill",
+        "model": "cheap",
+        "grade": null,
+        "date": "2026-07-04"
+      }
+    },
+    {
+      "id": "gapfill:econ/externality:floor-4",
+      "kernelId": "econ/externality",
+      "conceptName": "Externality",
+      "stem": "If a subsidy encourages bee-keeping because nearby farms benefit from pollination, what is this called?",
+      "options": ["Negative externality", "Positive externality", "Inflation", "Deadweight loss"],
+      "correctIndex": 1,
+      "explanation": "Pollination creates benefits for third parties who are not part of the bee-keeping transaction. That makes it a positive externality.",
+      "bloom": "apply",
+      "difficulty": "apply",
+      "catches": false,
+      "confronts": false,
+      "familyKey": null,
+      "provenance": {
+        "origin": "gapfill",
+        "model": "cheap",
+        "grade": null,
+        "date": "2026-07-04"
+      }
+    },
+    {
+      "id": "gapfill:econ/externality:floor-5",
+      "kernelId": "econ/externality",
+      "conceptName": "Externality",
+      "stem": "At a factory, smoke from production harms nearby residents who did not buy the product. What is this called?",
+      "options": ["A negative externality", "A public good", "A subsidy", "A monopoly"],
+      "correctIndex": 0,
+      "explanation": "The smoke imposes a cost on third parties outside the transaction, so it is a negative externality. Because the market price omits that spillover cost, output tends to be too high relative to the socially efficient level.",
+      "bloom": "understand",
+      "difficulty": "apply",
+      "catches": false,
+      "confronts": false,
+      "familyKey": null,
+      "provenance": {
+        "origin": "gapfill",
+        "model": "cheap",
+        "grade": null,
+        "date": "2026-07-04"
+      }
+    },
+    {
+      "id": "gapfill:lang/food-and-ordering-at-restaurants:students-may-think-they-",
+      "kernelId": "lang/food-and-ordering-at-restaurants",
+      "conceptName": "Food and Ordering at Restaurants",
+      "stem": "You want to order politely in Korean and ask for water. What strategy is best?",
+      "options": [
+        "Use a memorized polite set phrase",
+        "Translate English word-for-word",
+        "Skip polite endings",
+        "Use only slang"
+      ],
+      "correctIndex": 0,
+      "explanation": "Korean restaurant speech often relies on fixed polite patterns rather than literal English translation. Memorizing set phrases helps because ordering uses special forms and respect marking.",
+      "bloom": "apply",
+      "difficulty": "transfer",
+      "catches": true,
+      "confronts": true,
+      "familyKey": "students may think they can directly translate english resta",
+      "provenance": {
+        "origin": "gapfill",
+        "model": "cheap",
+        "grade": null,
+        "date": "2026-07-04"
+      }
+    },
+    {
+      "id": "gapfill:lang/food-and-ordering-at-restaurants:floor-4",
+      "kernelId": "lang/food-and-ordering-at-restaurants",
+      "conceptName": "Food and Ordering at Restaurants",
+      "stem": "Which item is most likely part of a Korean meal served alongside the main dish?",
+      "options": ["Banchan", "A tax receipt", "A train ticket", "A dessert menu"],
+      "correctIndex": 0,
+      "explanation": "Banchan are side dishes commonly served with Korean meals. They are part of the dining experience and often accompany the main order.",
+      "bloom": "remember",
+      "difficulty": "recall",
+      "catches": false,
+      "confronts": false,
+      "familyKey": null,
+      "provenance": {
+        "origin": "gapfill",
+        "model": "cheap",
+        "grade": null,
+        "date": "2026-07-04"
+      }
+    },
+    {
+      "id": "gapfill:lang/food-and-ordering-at-restaurants:floor-5",
+      "kernelId": "lang/food-and-ordering-at-restaurants",
+      "conceptName": "Food and Ordering at Restaurants",
+      "stem": "At a Korean restaurant, which request is most appropriate?",
+      "options": ["Please bring another side dish", "Give me food now", "You must hurry", "I refuse politeness"],
+      "correctIndex": 0,
+      "explanation": "A polite request fits Korean restaurant interaction norms. Ordering and asking for items usually uses respectful, set expressions rather than direct commands.",
+      "bloom": "apply",
+      "difficulty": "transfer",
+      "catches": false,
+      "confronts": false,
+      "familyKey": null,
+      "provenance": {
+        "origin": "gapfill",
+        "model": "cheap",
+        "grade": null,
+        "date": "2026-07-04"
+      }
+    },
+    {
+      "id": "gapfill:lang/daily-routines-and-time:floor-3",
+      "kernelId": "lang/daily-routines-and-time",
+      "conceptName": "Daily Routines and Time",
+      "stem": "Which sentence best fits a morning routine in Korean?",
+      "options": [
+        "나는 일어나서 아침을 먹습니다.",
+        "나는 어제 학교에 갑니다.",
+        "나는 책을 오늘 먹습니다.",
+        "나는 잠을 점심에 공부합니다."
+      ],
+      "correctIndex": 0,
+      "explanation": "This sentence sequences routine actions correctly: waking up first, then eating breakfast. Routine descriptions in Korean combine action verbs with time-related sequencing.",
+      "bloom": "apply",
+      "difficulty": "apply",
+      "catches": false,
+      "confronts": false,
+      "familyKey": null,
+      "provenance": {
+        "origin": "gapfill",
+        "model": "cheap",
+        "grade": null,
+        "date": "2026-07-04"
+      }
+    },
+    {
+      "id": "gapfill:lang/daily-routines-and-time:floor-4",
+      "kernelId": "lang/daily-routines-and-time",
+      "conceptName": "Daily Routines and Time",
+      "stem": "A student wants to say, “I study after lunch.” Which Korean structure is most appropriate?",
+      "options": ["점심 후에 공부합니다.", "I lunch after study.", "공부합니다 점심 후에.", "점심은 공부합니다 후에."],
+      "correctIndex": 0,
+      "explanation": "점심 후에 places the time phrase naturally before the verb. Korean routine sentences depend on correct sequencing and time expressions, not English-like word order.",
+      "bloom": "apply",
+      "difficulty": "transfer",
+      "catches": false,
+      "confronts": false,
+      "familyKey": null,
+      "provenance": {
+        "origin": "gapfill",
+        "model": "cheap",
+        "grade": null,
+        "date": "2026-07-04"
+      }
+    },
+    {
+      "id": "gapfill:lang/hangul-foundations:hangul-is-an-alphabet-wh",
+      "kernelId": "lang/hangul-foundations",
+      "conceptName": "Hangul Foundations",
+      "stem": "What best describes Hangul writing?",
+      "options": [
+        "Letters grouped into stacked syllable blocks.",
+        "Words written as separate pictures.",
+        "A simple left-to-right alphabet line.",
+        "Only consonants are written."
+      ],
+      "correctIndex": 0,
+      "explanation": "Hangul is alphabetic, but its letters are arranged in stacked syllable blocks. This makes it different from a linear English-style string of letters.",
+      "bloom": "remember",
+      "difficulty": "recall",
+      "catches": true,
+      "confronts": true,
+      "familyKey": "hangul is an alphabet where letters are written in a simple ",
+      "provenance": {
+        "origin": "gapfill",
+        "model": "cheap",
+        "grade": null,
+        "date": "2026-07-04"
+      }
+    },
+    {
+      "id": "gapfill:lang/hangul-foundations:learning-hangul-means-me",
+      "kernelId": "lang/hangul-foundations",
+      "conceptName": "Hangul Foundations",
+      "stem": "A beginner wants to read Korean efficiently. What should they learn first?",
+      "options": [
+        "Individual consonants and vowels.",
+        "Whole words from a phrasebook.",
+        "Only capital letters and punctuation.",
+        "Sentence endings before letters."
+      ],
+      "correctIndex": 0,
+      "explanation": "Learners first master consonants and vowels, then combine them into syllable blocks and words. Memorizing whole words skips the basic structure of Hangul.",
+      "bloom": "understand",
+      "difficulty": "apply",
+      "catches": true,
+      "confronts": true,
+      "familyKey": "learning hangul means memorizing whole words",
+      "provenance": {
+        "origin": "gapfill",
+        "model": "cheap",
+        "grade": null,
+        "date": "2026-07-04"
+      }
+    },
+    {
+      "id": "gapfill:lang/hangul-foundations:floor-5",
+      "kernelId": "lang/hangul-foundations",
+      "conceptName": "Hangul Foundations",
+      "stem": "Which symbol combination is required for a normal Hangul syllable block?",
+      "options": [
+        "At least one consonant and one vowel.",
+        "Two vowels and no consonant.",
+        "Only one consonant by itself.",
+        "Any three English letters."
+      ],
+      "correctIndex": 0,
+      "explanation": "A Hangul syllable block usually contains at least one consonant and one vowel. That pairing allows the block to be read as a Korean syllable.",
+      "bloom": "remember",
+      "difficulty": "recall",
+      "catches": false,
+      "confronts": false,
+      "familyKey": null,
+      "provenance": {
+        "origin": "gapfill",
+        "model": "cheap",
+        "grade": null,
+        "date": "2026-07-04"
+      }
+    },
+    {
+      "id": "gapfill:lang/hangul-foundations:floor-6",
+      "kernelId": "lang/hangul-foundations",
+      "conceptName": "Hangul Foundations",
+      "stem": "Why can Hangul letters help learners remember pronunciation?",
+      "options": [
+        "Their shapes often suggest articulation.",
+        "They must be memorized as whole words.",
+        "They are pronounced only by context.",
+        "Their shapes never relate to sound."
+      ],
+      "correctIndex": 0,
+      "explanation": "The visual shape of a Hangul letter can hint at how it is pronounced or articulated. That makes the writing system useful for connecting form and sound.",
+      "bloom": "understand",
+      "difficulty": "apply",
+      "catches": false,
+      "confronts": false,
+      "familyKey": null,
+      "provenance": {
+        "origin": "gapfill",
+        "model": "cheap",
+        "grade": null,
+        "date": "2026-07-04"
+      }
+    },
+    {
+      "id": "gapfill:lang/greetings-and-introductions:a-single-greeting-works-",
+      "kernelId": "lang/greetings-and-introductions",
+      "conceptName": "Greetings and Introductions",
+      "stem": "Which statement best explains when to choose a Korean greeting?",
+      "options": [
+        "Any greeting works in every situation.",
+        "Choose based on relationship and politeness.",
+        "Use only formal greetings with everyone.",
+        "Greetings never change by setting."
+      ],
+      "correctIndex": 1,
+      "explanation": "Korean greetings depend on relationship, setting, and politeness level. A single expression is not always appropriate across formal, neutral, and casual contexts.",
+      "bloom": "understand",
+      "difficulty": "apply",
+      "catches": true,
+      "confronts": true,
+      "familyKey": "a single greeting works in every situation",
+      "provenance": {
+        "origin": "gapfill",
+        "model": "cheap",
+        "grade": null,
+        "date": "2026-07-04"
+      }
+    },
+    {
+      "id": "gapfill:lang/greetings-and-introductions:introductions-only-requi",
+      "kernelId": "lang/greetings-and-introductions",
+      "conceptName": "Greetings and Introductions",
+      "stem": "A student meets a professor and wants a basic introduction. What should it include?",
+      "options": [
+        "Only their name.",
+        "Greeting words, name, and a polite closing.",
+        "A long personal story.",
+        "No greeting, just silence."
+      ],
+      "correctIndex": 1,
+      "explanation": "Basic introductions often combine a greeting, the speaker’s name, and a polite closing or self-descriptive phrase. This fits beginner Korean social conventions.",
+      "bloom": "apply",
+      "difficulty": "apply",
+      "catches": true,
+      "confronts": true,
+      "familyKey": "introductions only require saying a name",
+      "provenance": {
+        "origin": "gapfill",
+        "model": "cheap",
+        "grade": null,
+        "date": "2026-07-04"
+      }
+    },
+    {
+      "id": "gapfill:lang/greetings-and-introductions:floor-4",
+      "kernelId": "lang/greetings-and-introductions",
+      "conceptName": "Greetings and Introductions",
+      "stem": "Which phrase best fits a respectful beginner greeting in Korean?",
+      "options": [
+        "Casual speech to a stranger.",
+        "Polite ending with a greeting phrase.",
+        "Only a number and name.",
+        "A greeting with no context."
+      ],
+      "correctIndex": 1,
+      "explanation": "Beginner greetings usually use polite sentence endings, especially in respectful situations. They also reflect the relationship and setting.",
+      "bloom": "apply",
+      "difficulty": "apply",
+      "catches": false,
+      "confronts": false,
+      "familyKey": null,
+      "provenance": {
+        "origin": "gapfill",
+        "model": "cheap",
+        "grade": null,
+        "date": "2026-07-04"
+      }
+    },
+    {
+      "id": "gapfill:lang/greetings-and-introductions:floor-5",
+      "kernelId": "lang/greetings-and-introductions",
+      "conceptName": "Greetings and Introductions",
+      "stem": "Why might two Korean speakers use different greetings in the same place?",
+      "options": [
+        "Because greetings depend on social context.",
+        "Because Korean has no greetings.",
+        "Because greetings are random.",
+        "Because names replace greetings."
+      ],
+      "correctIndex": 0,
+      "explanation": "The same location can still involve different relationships and levels of politeness. Korean greetings shift with social context, not just place.",
+      "bloom": "understand",
+      "difficulty": "apply",
+      "catches": false,
+      "confronts": false,
+      "familyKey": null,
+      "provenance": {
+        "origin": "gapfill",
+        "model": "cheap",
+        "grade": null,
+        "date": "2026-07-04"
+      }
+    },
+    {
+      "id": "gapfill:lang/greetings-and-introductions:floor-6",
+      "kernelId": "lang/greetings-and-introductions",
+      "conceptName": "Greetings and Introductions",
+      "stem": "Which is the best beginner self-introduction in Korean?",
+      "options": [
+        "Name only, no greeting.",
+        "Greeting, name, and polite closing phrase.",
+        "Just a bow with no words.",
+        "A long explanation of hobbies."
+      ],
+      "correctIndex": 1,
+      "explanation": "A beginner introduction typically includes greeting words, the person’s name, and a polite closing or short phrase. That matches common introductory patterns.",
+      "bloom": "apply",
+      "difficulty": "apply",
+      "catches": false,
+      "confronts": false,
+      "familyKey": null,
+      "provenance": {
+        "origin": "gapfill",
+        "model": "cheap",
+        "grade": null,
+        "date": "2026-07-04"
+      }
+    },
+    {
+      "id": "gapfill:lang/numbers-age-and-counting:one-korean-number-system",
+      "kernelId": "lang/numbers-age-and-counting",
+      "conceptName": "Numbers, Age, and Counting",
+      "stem": "A learner wants to tell someone their age in Korean. What should they do?",
+      "options": [
+        "Use one number system always.",
+        "Choose the number form for age.",
+        "Avoid numbers completely.",
+        "Translate the English phrase word-for-word."
+      ],
+      "correctIndex": 1,
+      "explanation": "Korean uses different number systems in different contexts, including age. Learners must choose the form that fits the grammatical situation.",
+      "bloom": "apply",
+      "difficulty": "apply",
+      "catches": true,
+      "confronts": true,
+      "familyKey": "one korean number system is used for every counting situatio",
+      "provenance": {
+        "origin": "gapfill",
+        "model": "cheap",
+        "grade": null,
+        "date": "2026-07-04"
+      }
+    },
+    {
+      "id": "gapfill:lang/numbers-age-and-counting:you-can-count-nouns-in-k",
+      "kernelId": "lang/numbers-age-and-counting",
+      "conceptName": "Numbers, Age, and Counting",
+      "stem": "Which sentence best describes counting nouns in Korean?",
+      "options": [
+        "Nouns are counted without any extra words.",
+        "A counter often appears before the noun.",
+        "Only native numbers can count nouns.",
+        "Counters are used only for ages."
+      ],
+      "correctIndex": 1,
+      "explanation": "Many Korean nouns require a counter between the numeral and the noun. This is a key part of counting expressions.",
+      "bloom": "understand",
+      "difficulty": "apply",
+      "catches": true,
+      "confronts": true,
+      "familyKey": "you can count nouns in korean without counters",
+      "provenance": {
+        "origin": "gapfill",
+        "model": "cheap",
+        "grade": null,
+        "date": "2026-07-04"
+      }
+    },
+    {
+      "id": "gapfill:lang/numbers-age-and-counting:floor-5",
+      "kernelId": "lang/numbers-age-and-counting",
+      "conceptName": "Numbers, Age, and Counting",
+      "stem": "A student counts three books in Korean. What is the main challenge?",
+      "options": [
+        "Choosing the right counter.",
+        "Avoiding all numbers.",
+        "Using only one number system.",
+        "Leaving out the noun."
+      ],
+      "correctIndex": 0,
+      "explanation": "Counting objects in Korean often requires selecting the correct counter. The numeral alone is usually not enough for many nouns.",
+      "bloom": "apply",
+      "difficulty": "apply",
+      "catches": false,
+      "confronts": false,
+      "familyKey": null,
+      "provenance": {
+        "origin": "gapfill",
+        "model": "cheap",
+        "grade": null,
+        "date": "2026-07-04"
+      }
+    },
+    {
+      "id": "gapfill:lang/numbers-age-and-counting:floor-6",
+      "kernelId": "lang/numbers-age-and-counting",
+      "conceptName": "Numbers, Age, and Counting",
+      "stem": "Which number system is commonly used for age in many Korean lessons?",
+      "options": ["Native Korean only", "Sino-Korean only", "Both, depending on context", "Neither number system"],
+      "correctIndex": 2,
+      "explanation": "Korean commonly uses both native Korean and Sino-Korean numbers. Age, quantity, time, and measurement can require different forms and counters depending on context.",
+      "bloom": "understand",
+      "difficulty": "apply",
+      "catches": false,
+      "confronts": false,
+      "familyKey": null,
+      "provenance": {
+        "origin": "gapfill",
+        "model": "cheap",
+        "grade": null,
+        "date": "2026-07-04"
+      }
+    },
+    {
+      "id": "gapfill:lang/asking-questions:questions-must-be-formed",
+      "kernelId": "lang/asking-questions",
+      "conceptName": "Asking Questions",
+      "stem": "Which sentence pattern best forms a Korean question?",
+      "options": [
+        "Move the verb to the front.",
+        "Keep order, change the ending.",
+        "Add a question word only.",
+        "Remove the subject entirely."
+      ],
+      "correctIndex": 1,
+      "explanation": "Korean usually keeps the basic sentence order. A question is marked by the final ending or by a question word in the missing-information spot.",
+      "bloom": "understand",
+      "difficulty": "apply",
+      "catches": true,
+      "confronts": true,
+      "familyKey": "questions must be formed by moving the verb to the front of ",
+      "provenance": {
+        "origin": "gapfill",
+        "model": "cheap",
+        "grade": null,
+        "date": "2026-07-04"
+      }
+    },
+    {
+      "id": "gapfill:lang/asking-questions:every-question-needs-a-s",
+      "kernelId": "lang/asking-questions",
+      "conceptName": "Asking Questions",
+      "stem": "Which sentence can be a Korean yes-no question without a question word?",
+      "options": [
+        "Does the ending signal the question?",
+        "Must every question include 누구?",
+        "Verb must always move first.",
+        "Questions never use polite forms."
+      ],
+      "correctIndex": 0,
+      "explanation": "Yes-no questions do not need a question word. The ending or intonation can signal that the sentence is a question.",
+      "bloom": "understand",
+      "difficulty": "apply",
+      "catches": true,
+      "confronts": true,
+      "familyKey": "every question needs a special question word",
+      "provenance": {
+        "origin": "gapfill",
+        "model": "cheap",
+        "grade": null,
+        "date": "2026-07-04"
+      }
+    },
+    {
+      "id": "gapfill:lang/asking-questions:floor-5",
+      "kernelId": "lang/asking-questions",
+      "conceptName": "Asking Questions",
+      "stem": "Which is the best polite way to ask, “Where are you going?” in Korean?",
+      "options": [
+        "Question word placed where the missing info belongs",
+        "Verb moved to the front",
+        "No ending change is needed",
+        "Only a yes-no ending works"
+      ],
+      "correctIndex": 0,
+      "explanation": "Korean question words can stay in the position of the missing information. Polite question forms are common in beginning communication.",
+      "bloom": "apply",
+      "difficulty": "apply",
+      "catches": false,
+      "confronts": false,
+      "familyKey": null,
+      "provenance": {
+        "origin": "gapfill",
+        "model": "cheap",
+        "grade": null,
+        "date": "2026-07-04"
+      }
+    },
+    {
+      "id": "gapfill:lang/asking-questions:floor-6",
+      "kernelId": "lang/asking-questions",
+      "conceptName": "Asking Questions",
+      "stem": "A student says they can ask any Korean question by using only rising intonation. What is missing?",
+      "options": [
+        "A special subject marker",
+        "A question ending or question word",
+        "A past tense marker",
+        "A noun counter"
+      ],
+      "correctIndex": 1,
+      "explanation": "Korean questions are not formed by intonation alone. They usually use a final question ending, and wh-questions also use a question word.",
+      "bloom": "understand",
+      "difficulty": "transfer",
+      "catches": false,
+      "confronts": false,
+      "familyKey": null,
+      "provenance": {
+        "origin": "gapfill",
+        "model": "cheap",
+        "grade": null,
+        "date": "2026-07-04"
+      }
+    },
+    {
+      "id": "gapfill:lit/odyssey-vs-iliad-focus:floor-3",
+      "kernelId": "lit/odyssey-vs-iliad-focus",
+      "conceptName": "Odyssey vs. Iliad: thematic focus and heroism",
+      "stem": "Which pairing best matches the poems' emphases?",
+      "options": [
+        "Iliad: homecoming; Odyssey: wrath",
+        "Iliad: destruction; Odyssey: adaptable intelligence",
+        "Iliad: comedy; Odyssey: tragedy",
+        "Iliad: peaceful travel; Odyssey: battlefield fury"
+      ],
+      "correctIndex": 1,
+      "explanation": "The Iliad centers on heroic wrath, destruction, and death. The Odyssey centers on adaptability, wisdom, and the return home.",
+      "bloom": "understand",
+      "difficulty": "apply",
+      "catches": false,
+      "confronts": false,
+      "familyKey": null,
+      "provenance": {
+        "origin": "gapfill",
+        "model": "cheap",
+        "grade": null,
+        "date": "2026-07-04"
+      }
+    },
+    {
+      "id": "gapfill:lit/odyssey-vs-iliad-focus:floor-4",
+      "kernelId": "lit/odyssey-vs-iliad-focus",
+      "conceptName": "Odyssey vs. Iliad: thematic focus and heroism",
+      "stem": "Which statement best contrasts the Iliad and the Odyssey?",
+      "options": [
+        "Iliad: homecoming; Odyssey: battlefield wrath.",
+        "Iliad: heroic wrath and death; Odyssey: adaptable intelligence.",
+        "Iliad: supernatural adventures; Odyssey: historical siege.",
+        "Iliad: family restoration; Odyssey: Troy's destruction."
+      ],
+      "correctIndex": 1,
+      "explanation": "The Iliad centers on wrath, destruction, and death. The Odyssey emphasizes Odysseus’s adaptability, intelligence, and return home to restore family life.",
+      "bloom": "understand",
+      "difficulty": "apply",
+      "catches": false,
+      "confronts": false,
+      "familyKey": null,
+      "provenance": {
+        "origin": "gapfill",
+        "model": "cheap",
+        "grade": null,
+        "date": "2026-07-04"
+      }
+    },
+    {
+      "id": "gapfill:math/row-reduction:the-columns-with-the-lar",
+      "kernelId": "math/row-reduction",
+      "conceptName": "row reduction",
+      "stem": "After row reduction, which columns are pivot columns?",
+      "options": [
+        "The columns with the largest numerical entries.",
+        "The columns containing the first nonzero entry in each row.",
+        "The columns with the most zeros.",
+        "The last columns in the matrix."
+      ],
+      "correctIndex": 1,
+      "explanation": "Pivot columns come from pivot positions in echelon form. They are determined by elimination structure, not by entry size.",
+      "bloom": "understand",
+      "difficulty": "apply",
+      "catches": true,
+      "confronts": true,
+      "familyKey": "the columns with the largest numbers become pivot columns",
+      "provenance": {
+        "origin": "gapfill",
+        "model": "cheap",
+        "grade": null,
+        "date": "2026-07-04"
+      }
+    },
+    {
+      "id": "gapfill:math/row-reduction:floor-5",
+      "kernelId": "math/row-reduction",
+      "conceptName": "row reduction",
+      "stem": "What does row reduction preserve?",
+      "options": [
+        "The solution set of the linear system.",
+        "The determinant of every matrix.",
+        "The sum of all entries in each row.",
+        "The number of columns in the matrix."
+      ],
+      "correctIndex": 0,
+      "explanation": "Elementary row operations do not change the solution set. They transform the matrix while keeping the same linear system solutions.",
+      "bloom": "remember",
+      "difficulty": "recall",
+      "catches": false,
+      "confronts": false,
+      "familyKey": null,
+      "provenance": {
+        "origin": "gapfill",
+        "model": "cheap",
+        "grade": null,
+        "date": "2026-07-04"
+      }
+    },
+    {
+      "id": "gapfill:math/row-reduction:floor-6",
+      "kernelId": "math/row-reduction",
+      "conceptName": "row reduction",
+      "stem": "Why is reduced row echelon form especially useful?",
+      "options": [
+        "It is unique, so different methods reach the same result.",
+        "It always makes every entry zero.",
+        "It removes all free variables automatically.",
+        "It changes the solution set to simplify computation."
+      ],
+      "correctIndex": 0,
+      "explanation": "Reduced row echelon form is unique, even though the path to it may differ. That makes it a reliable final form for reading solutions.",
+      "bloom": "understand",
+      "difficulty": "apply",
+      "catches": false,
+      "confronts": false,
+      "familyKey": null,
+      "provenance": {
+        "origin": "gapfill",
+        "model": "cheap",
+        "grade": null,
+        "date": "2026-07-04"
+      }
+    },
+    {
+      "id": "gapfill:math/linear-transformation:floor-3",
+      "kernelId": "math/linear-transformation",
+      "conceptName": "linear transformation",
+      "stem": "Which operation is linear?",
+      "options": [
+        "Translate every vector by (2,3).",
+        "Rotate vectors about the origin.",
+        "Move vectors upward by 1.",
+        "Shift vectors right by 5."
+      ],
+      "correctIndex": 1,
+      "explanation": "Rotation about the origin preserves addition and scalar multiplication, so it is linear. Translations change the zero vector and are not linear transformations.",
+      "bloom": "understand",
+      "difficulty": "apply",
+      "catches": false,
+      "confronts": false,
+      "familyKey": null,
+      "provenance": {
+        "origin": "gapfill",
+        "model": "cheap",
+        "grade": null,
+        "date": "2026-07-04"
+      }
+    },
+    {
+      "id": "gapfill:math/least-squares:a-best-fit-line-must-pas",
+      "kernelId": "math/least-squares",
+      "conceptName": "least squares",
+      "stem": "Which statement best describes a least-squares regression line?",
+      "options": [
+        "It must pass through all data points.",
+        "It minimizes squared vertical errors.",
+        "It always has slope 1.",
+        "It only works for two points."
+      ],
+      "correctIndex": 1,
+      "explanation": "The least-squares line minimizes the sum of squared vertical gaps, not the distance to every point. It can miss every data point and still be the best fit.",
+      "bloom": "understand",
+      "difficulty": "apply",
+      "catches": true,
+      "confronts": true,
+      "familyKey": "a best fit line must pass through the data points",
+      "provenance": {
+        "origin": "gapfill",
+        "model": "cheap",
+        "grade": null,
+        "date": "2026-07-04"
+      }
+    },
+    {
+      "id": "gapfill:math/least-squares:floor-4",
+      "kernelId": "math/least-squares",
+      "conceptName": "least squares",
+      "stem": "When the columns of A are linearly independent, what is true about the least-squares solution?",
+      "options": ["It is unique.", "It is impossible to compute.", "It equals b exactly.", "It must be infinite."],
+      "correctIndex": 0,
+      "explanation": "Linearly independent columns make AᵀA invertible, so the least-squares solution is unique. The fitted vector Ax̂ is the projection of b onto the column space of A.",
+      "bloom": "remember",
+      "difficulty": "recall",
+      "catches": false,
+      "confronts": false,
+      "familyKey": null,
+      "provenance": {
+        "origin": "gapfill",
+        "model": "cheap",
+        "grade": null,
+        "date": "2026-07-04"
+      }
+    },
+    {
+      "id": "gapfill:math/least-squares:floor-5",
+      "kernelId": "math/least-squares",
+      "conceptName": "least squares",
+      "stem": "Which vector is the least-squares fit to an inconsistent system Ax = b?",
+      "options": [
+        "The x making Ax closest to b.",
+        "Any x with Ax = b.",
+        "The x with largest entries.",
+        "The x that makes residual largest."
+      ],
+      "correctIndex": 0,
+      "explanation": "Least squares chooses the x that makes Ax as close as possible to b. Equivalently, Ax̂ is the orthogonal projection of b onto the column space of A.",
+      "bloom": "apply",
+      "difficulty": "apply",
+      "catches": false,
+      "confronts": false,
+      "familyKey": null,
+      "provenance": {
+        "origin": "gapfill",
+        "model": "cheap",
+        "grade": null,
+        "date": "2026-07-04"
+      }
+    },
+    {
+      "id": "gapfill:psych/memory-model:floor-4",
+      "kernelId": "psych/memory-model",
+      "conceptName": "Memory: encoding, storage, and retrieval",
+      "stem": "Which student behavior best shows semantic encoding of a word list?",
+      "options": [
+        "Repeating the words aloud",
+        "Writing each word's meaning",
+        "Tracing the word shapes",
+        "Listening to the word sounds"
+      ],
+      "correctIndex": 1,
+      "explanation": "Semantic encoding means processing words by meaning, which improves later recall. Merely hearing, saying, or copying the forms is shallower than making meaning-based connections.",
+      "bloom": "apply",
+      "difficulty": "apply",
+      "catches": false,
+      "confronts": false,
+      "familyKey": null,
+      "provenance": {
+        "origin": "gapfill",
+        "model": "cheap",
+        "grade": null,
+        "date": "2026-07-04"
+      }
+    },
+    {
+      "id": "gapfill:psych/memory-model:floor-5",
+      "kernelId": "psych/memory-model",
+      "conceptName": "Memory: encoding, storage, and retrieval",
+      "stem": "A teacher wants information to enter memory for later learning. What is the first step?",
+      "options": ["Storage", "Retrieval", "Encoding", "Forgetting"],
+      "correctIndex": 2,
+      "explanation": "Encoding is the input of information into the memory system. Storage comes after information has been encoded, and retrieval happens when it is later accessed.",
+      "bloom": "remember",
+      "difficulty": "recall",
+      "catches": false,
+      "confronts": false,
+      "familyKey": null,
+      "provenance": {
+        "origin": "gapfill",
+        "model": "cheap",
+        "grade": null,
+        "date": "2026-07-04"
+      }
+    },
+    {
+      "id": "gapfill:psych/working-memory:floor-6",
+      "kernelId": "psych/working-memory",
+      "conceptName": "Short-term and working memory",
+      "stem": "A student can hold a phone number briefly but loses it after 20 seconds without rehearsal. Which system is involved?",
+      "options": ["Long-term memory", "Short-term memory", "Procedural memory", "Sensory memory only"],
+      "correctIndex": 1,
+      "explanation": "Short-term memory lasts about 15 to 30 seconds without rehearsal and holds only a limited number of items. Working memory is related, but the brief temporary storage described here is STM.",
+      "bloom": "apply",
+      "difficulty": "apply",
+      "catches": false,
+      "confronts": false,
+      "familyKey": null,
+      "provenance": {
+        "origin": "gapfill",
+        "model": "cheap",
+        "grade": null,
+        "date": "2026-07-04"
+      }
+    },
+    {
+      "id": "gapfill:psych/erikson-psychosocial:floor-3",
+      "kernelId": "psych/erikson-psychosocial",
+      "conceptName": "Erikson's psychosocial development",
+      "stem": "An infant is consistently comforted when distressed. According to Erikson, this supports which conflict?",
+      "options": [
+        "Identity versus role confusion",
+        "Trust versus mistrust",
+        "Industry versus inferiority",
+        "Integrity versus despair"
+      ],
+      "correctIndex": 1,
+      "explanation": "In infancy, Erikson's key task is trust versus mistrust. Reliable comfort helps the child develop trust, which becomes the basis of later development.",
+      "bloom": "remember",
+      "difficulty": "recall",
+      "catches": false,
+      "confronts": false,
+      "familyKey": null,
+      "provenance": {
+        "origin": "gapfill",
+        "model": "cheap",
+        "grade": null,
+        "date": "2026-07-04"
+      }
+    },
+    {
+      "id": "gapfill:psych/erikson-psychosocial:floor-4",
+      "kernelId": "psych/erikson-psychosocial",
+      "conceptName": "Erikson's psychosocial development",
+      "stem": "A retiree reflects on life achievements and regrets. Which Erikson stage is most relevant?",
+      "options": [
+        "Trust versus mistrust",
+        "Industry versus inferiority",
+        "Identity versus role confusion",
+        "Integrity versus despair"
+      ],
+      "correctIndex": 3,
+      "explanation": "Late adulthood involves integrity versus despair, where people evaluate their lives. Erikson saw development as lifelong, so this stage is still psychologically active.",
+      "bloom": "apply",
+      "difficulty": "apply",
+      "catches": false,
+      "confronts": false,
+      "familyKey": null,
+      "provenance": {
+        "origin": "gapfill",
+        "model": "cheap",
+        "grade": null,
+        "date": "2026-07-04"
+      }
+    },
+    {
+      "id": "gapfill:psych/intrinsic-extrinsic-motivation:floor-5",
+      "kernelId": "psych/intrinsic-extrinsic-motivation",
+      "conceptName": "Intrinsic and extrinsic motivation",
+      "stem": "Maya keeps painting after class because it feels rewarding. Her art teacher later pays her for each painting. Which change is most likely?",
+      "options": [
+        "Her intrinsic motivation may decrease.",
+        "Her intrinsic motivation must increase.",
+        "Her extrinsic motivation disappears.",
+        "Her interest cannot change over time."
+      ],
+      "correctIndex": 0,
+      "explanation": "Payment can shift attention from enjoyment to reward, making the activity feel more like work. This overjustification effect often reduces intrinsic motivation, even when the person originally liked the task.",
+      "bloom": "apply",
+      "difficulty": "apply",
+      "catches": false,
+      "confronts": false,
+      "familyKey": null,
+      "provenance": {
+        "origin": "gapfill",
+        "model": "cheap",
+        "grade": null,
+        "date": "2026-07-04"
+      }
+    },
+    {
+      "id": "gapfill:psych/intrinsic-extrinsic-motivation:floor-6",
+      "kernelId": "psych/intrinsic-extrinsic-motivation",
+      "conceptName": "Intrinsic and extrinsic motivation",
+      "stem": "Jared studies piano because he loves the music, then starts teaching lessons for money. What is the best description?",
+      "options": [
+        "Only intrinsic motivation is present.",
+        "Only extrinsic motivation is present.",
+        "Motivation can mix intrinsic and extrinsic factors.",
+        "Motivation never changes across situations."
+      ],
+      "correctIndex": 2,
+      "explanation": "People are usually driven by a mix of intrinsic and extrinsic motives. That mix can shift by context, such as when a hobby becomes partly paid work.",
+      "bloom": "understand",
+      "difficulty": "apply",
+      "catches": false,
+      "confronts": false,
+      "familyKey": null,
+      "provenance": {
+        "origin": "gapfill",
+        "model": "cheap",
+        "grade": null,
+        "date": "2026-07-04"
+      }
+    },
+    {
+      "id": "gapfill:history/urban-infrastructure-innovations:urban-growth-depended-ma",
+      "kernelId": "history/urban-infrastructure-innovations",
+      "conceptName": "Key innovations enabling turn-of-the-century urbanization",
+      "stem": "A city planner says a growing city needs streetcars, subways, and elevated trains because residents must travel across town efficiently. Which innovation best matches this need?",
+      "options": [
+        "Intracity transportation",
+        "Connecting cities by telegraph",
+        "Rural road construction",
+        "Harbor shipping routes"
+      ],
+      "correctIndex": 0,
+      "explanation": "The passage highlights efficient travel within the city as a major challenge. Innovations like trolleys, elevated trains, and subways met this intracity transportation need.",
+      "bloom": "understand",
+      "difficulty": "apply",
+      "catches": true,
+      "confronts": true,
+      "familyKey": "urban growth depended mainly on connecting cities to each ot",
+      "provenance": {
+        "origin": "gapfill",
+        "model": "cheap",
+        "grade": null,
+        "date": "2026-07-04"
+      }
+    },
+    {
+      "id": "gapfill:history/automobile-driven-social-economic-transformation:cars-mainly-affected-per",
+      "kernelId": "history/automobile-driven-social-economic-transformation",
+      "conceptName": "Automobile-driven economic and social transformation",
+      "stem": "A historian studies how car ownership changed America and finds new glass, steel, and rubber businesses, more oil use, and heavy road spending. What does this show?",
+      "options": [
+        "Cars mainly affected personal travel.",
+        "Cars transformed the broader economy.",
+        "Cars reduced the need for roads.",
+        "Cars eliminated roadside businesses."
+      ],
+      "correctIndex": 1,
+      "explanation": "The text links automobiles to expansion in multiple industries, a shift in energy use, and major public infrastructure spending. That shows a broad economic transformation, not just personal travel.",
+      "bloom": "analyze",
+      "difficulty": "apply",
+      "catches": true,
+      "confronts": true,
+      "familyKey": "cars mainly affected personal travel not the broader economy",
+      "provenance": {
+        "origin": "gapfill",
+        "model": "cheap",
+        "grade": null,
+        "date": "2026-07-04"
+      }
+    },
+    {
+      "id": "gapfill:history/black-thursday-bank-intervention-1929:big-banks-successfully-p",
+      "kernelId": "history/black-thursday-bank-intervention-1929",
+      "conceptName": "Black Thursday and bank efforts to stop panic (Oct 24, 1929)",
+      "stem": "After Black Thursday, a student says the big banks stopped the panic by buying blue-chip stocks. Which response is most accurate?",
+      "options": [
+        "Yes, banks successfully ended the sell-off.",
+        "No, the buying effort failed.",
+        "Yes, because U.S. Steel stabilized prices.",
+        "No, because stocks were never bought."
+      ],
+      "correctIndex": 1,
+      "explanation": "The passage states, “Even that effort failed in the growing wave of stock sales.” The banks did buy blue chip stocks, but the attempt did not stop the panic.",
+      "bloom": "understand",
+      "difficulty": "apply",
+      "catches": true,
+      "confronts": true,
+      "familyKey": "big banks successfully prevented panic by buying stocks on b",
+      "provenance": {
+        "origin": "gapfill",
+        "model": "cheap",
+        "grade": null,
+        "date": "2026-07-04"
+      }
+    },
+    {
+      "id": "gapfill:history/isolationism-interwar-us:isolationism-meant-the-u",
+      "kernelId": "history/isolationism-interwar-us",
+      "conceptName": "U.S. isolationism (1920s–1930s)",
+      "stem": "After World War I, a student says the United States avoided all contact with other nations and never signed international agreements. Which choice best matches U.S. isolationism in the 1920s–1930s?",
+      "options": [
+        "The U.S. withdrew entirely from world affairs.",
+        "The U.S. used treaties and conferences to reduce war risk.",
+        "The U.S. joined Europe’s alliances against Germany.",
+        "The U.S. abandoned all Western Hemisphere interventions."
+      ],
+      "correctIndex": 1,
+      "explanation": "Isolationism did not mean complete withdrawal from international affairs. The U.S. still used treaties and conferences to reduce war risk and continued intervening in the Western Hemisphere.",
+      "bloom": "apply",
+      "difficulty": "apply",
+      "catches": true,
+      "confronts": true,
+      "familyKey": "isolationism meant the united states withdrew entirely from ",
+      "provenance": {
+        "origin": "gapfill",
+        "model": "cheap",
+        "grade": null,
+        "date": "2026-07-04"
+      }
+    },
+    {
+      "id": "gapfill:history/rise-of-fascism-and-nazism:fascism-and-nazism-rose-",
+      "kernelId": "history/rise-of-fascism-and-nazism",
+      "conceptName": "Rise of Fascism and Nazism in interwar Europe",
+      "stem": "A history class is discussing why Mussolini and Hitler gained support in the interwar years. Which condition best explains the rise of Fascism and Nazism?",
+      "options": [
+        "Europe was stable and prosperous throughout the 1920s and 1930s.",
+        "Postwar recession, inflation, and the Great Depression destabilized society.",
+        "Democratic institutions were already too strong to challenge.",
+        "Neither leader used nationalism, militarism, or anti-Communism."
+      ],
+      "correctIndex": 1,
+      "explanation": "The corrective points to postwar recession, inflation, and the Great Depression as the key conditions. Those crises fueled instability and made totalitarian appeals more attractive.",
+      "bloom": "apply",
+      "difficulty": "apply",
+      "catches": true,
+      "confronts": true,
+      "familyKey": "fascism and nazism rose mainly because europe was stable and",
+      "provenance": {
+        "origin": "gapfill",
+        "model": "cheap",
+        "grade": null,
+        "date": "2026-07-04"
+      }
+    },
+    {
+      "id": "gapfill:history/appeasement-munich-pact:appeasement-at-munich-pe",
+      "kernelId": "history/appeasement-munich-pact",
+      "conceptName": "Appeasement (Munich Pact)",
+      "stem": "In a debate, one student claims the Munich Pact permanently stopped Hitler’s expansion and guaranteed peace. What does the historical record show?",
+      "options": [
+        "Munich permanently satisfied Hitler’s demands.",
+        "Munich ended all tension in Europe.",
+        "Germany soon occupied the rest of Czechoslovakia.",
+        "Czechoslovakia gained stronger defenses after Munich."
+      ],
+      "correctIndex": 2,
+      "explanation": "Appeasement at Munich did not stop German expansion. The text says Germany soon occupied the rest of Czechoslovakia, showing the policy failed.",
+      "bloom": "apply",
+      "difficulty": "apply",
+      "catches": true,
+      "confronts": true,
+      "familyKey": "appeasement at munich permanently prevented war by satisfyin",
+      "provenance": {
+        "origin": "gapfill",
+        "model": "cheap",
+        "grade": null,
+        "date": "2026-07-04"
+      }
+    },
+    {
+      "id": "gapfill:lit/total-response-reading-poetry:it-s-fine-to-start-by-im",
+      "kernelId": "lit/total-response-reading-poetry",
+      "conceptName": "total response (to a poem)",
+      "stem": "While reading a poem, Maya immediately decides it must be a complaint about lost love. Which reading practice best matches total response?",
+      "options": [
+        "Project an assumed meaning onto each stanza.",
+        "Read openly, without judgment, and attend moment by moment.",
+        "Summarize the poem into one paraphrase.",
+        "Ignore the music and focus on plot."
+      ],
+      "correctIndex": 1,
+      "explanation": "Total response asks you to avoid projecting assumed meanings and to listen openly without judgment. It follows the poem’s moment-by-moment emotional meanings as its words, lines, and stanzas unfold.",
+      "bloom": "apply",
+      "difficulty": "apply",
+      "catches": true,
+      "confronts": true,
+      "familyKey": "it s fine to start by imposing your own assumed meaning on a",
+      "provenance": {
+        "origin": "gapfill",
+        "model": "cheap",
+        "grade": null,
+        "date": "2026-07-04"
+      }
+    },
+    {
+      "id": "gapfill:lit/teach-and-delight:literature-is-mainly-for",
+      "kernelId": "lit/teach-and-delight",
+      "conceptName": "Teach and delight (Horace/Sidney)",
+      "stem": "A professor tells students that a poem should be judged mainly by the lesson it teaches, even if it is dull. Which response best reflects the Horace/Sidney idea?",
+      "options": [
+        "Literature is mainly for instruction; enjoyment is a distraction.",
+        "Enjoyment keeps readers reading, so instruction is absorbed better.",
+        "Teaching should replace delight in serious works.",
+        "Instruction matters only after the plot is forgotten."
+      ],
+      "correctIndex": 1,
+      "explanation": "In this tradition, delight supports instruction. Enjoyment encourages continued reading, which makes the work’s teaching more likely to be absorbed.",
+      "bloom": "understand",
+      "difficulty": "apply",
+      "catches": true,
+      "confronts": true,
+      "familyKey": "literature is mainly for instruction enjoyment is a distract",
+      "provenance": {
+        "origin": "gapfill",
+        "model": "cheap",
+        "grade": null,
+        "date": "2026-07-04"
+      }
+    },
+    {
+      "id": "gapfill:lit/odyssey-domesticity-family-plot:odysseus-appears-immedia",
+      "kernelId": "lit/odyssey-domesticity-family-plot",
+      "conceptName": "Domesticity and the three-strand family plot in the Odyssey",
+      "stem": "A reader opens the Odyssey expecting Odysseus to appear in the first scene as a triumphant warrior. What does the text actually present?",
+      "options": [
+        "Odysseus appears immediately and boasts of victory.",
+        "Odysseus is first shown in Book V, weeping.",
+        "Odysseus is absent until the final book.",
+        "Odysseus appears only through Penelope’s dreams."
+      ],
+      "correctIndex": 1,
+      "explanation": "The text notes that Odysseus is not seen until Book V. His first appearance shows him on Kalypso’s island, grieving separation from loved ones.",
+      "bloom": "remember",
+      "difficulty": "apply",
+      "catches": true,
+      "confronts": true,
+      "familyKey": "odysseus appears immediately as an active hero in the openin",
+      "provenance": {
+        "origin": "gapfill",
+        "model": "cheap",
+        "grade": null,
+        "date": "2026-07-04"
+      }
+    },
+    {
+      "id": "gapfill:lit/literary-realism-as-illusion:if-a-novel-includes-impo",
+      "kernelId": "lit/literary-realism-as-illusion",
+      "conceptName": "Literary realism as illusion",
+      "stem": "A student argues that a novel with one impossible event cannot be realistic in any sense. Which example best challenges that claim?",
+      "options": [
+        "The novel can create its own reality within its frame.",
+        "Realism requires every event to be ordinary.",
+        "Only nonfiction can feel realistic.",
+        "Impossible events always destroy all meaning."
+      ],
+      "correctIndex": 0,
+      "explanation": "Literary realism can be an illusion produced by language and context. A novel may establish its own reality even when its events differ from everyday likelihood.",
+      "bloom": "apply",
+      "difficulty": "transfer",
+      "catches": true,
+      "confronts": true,
+      "familyKey": "if a novel includes impossible events it cannot have any kin",
+      "provenance": {
+        "origin": "gapfill",
+        "model": "cheap",
+        "grade": null,
+        "date": "2026-07-04"
+      }
+    },
+    {
+      "id": "gapfill:math/linear-transformation:translation-is-a-linear-",
+      "kernelId": "math/linear-transformation",
+      "conceptName": "linear transformation",
+      "stem": "A function T(x, y) = (x + 3, y) shifts every point right by 3. How should this transformation be classified?",
+      "options": [
+        "Linear transformation",
+        "Translation, not linear",
+        "Reflection across x-axis",
+        "Projection onto the y-axis"
+      ],
+      "correctIndex": 1,
+      "explanation": "Translating by a nonzero vector moves the origin, so T(0) ≠ 0. That violates linearity; translations are affine, not linear.",
+      "bloom": "apply",
+      "difficulty": "apply",
+      "catches": true,
+      "confronts": true,
+      "familyKey": "translation is a linear transformation",
+      "provenance": {
+        "origin": "gapfill",
+        "model": "cheap",
+        "grade": null,
+        "date": "2026-07-04"
+      }
+    },
+    {
+      "id": "gapfill:math/fundamental-theorem-calculus-part-1:because-f-x-is-written-a",
+      "kernelId": "math/fundamental-theorem-calculus-part-1",
+      "conceptName": "Fundamental Theorem of Calculus, Part 1",
+      "stem": "A student defines F(x)=∫_a^x f(t)dt for a continuous f and says F is just one fixed number. What is the best correction?",
+      "options": [
+        "The integral gives a number, but varying x makes a function.",
+        "F is constant because integrals never depend on x.",
+        "F' equals a constant because integration removes variation.",
+        "The antiderivative must be zero on the interval."
+      ],
+      "correctIndex": 0,
+      "explanation": "For each x, the integral gives a number, but as x varies the result defines a function. By the Fundamental Theorem of Calculus, Part 1, F'(x)=f(x) on the interior of the interval.",
+      "bloom": "apply",
+      "difficulty": "apply",
+      "catches": true,
+      "confronts": true,
+      "familyKey": "because f x is written as an integral it must be a constant ",
+      "provenance": {
+        "origin": "gapfill",
+        "model": "cheap",
+        "grade": null,
+        "date": "2026-07-04"
+      }
+    },
+    {
+      "id": "gapfill:nursing/blood-pressure:students-think-the-diast",
+      "kernelId": "nursing/blood-pressure",
+      "conceptName": "Blood pressure and its regulation",
+      "stem": "A patient’s blood pressure is 118/76 mm Hg. A classmate says the 76 mm Hg value shows the heart is actively pumping. What is the best interpretation?",
+      "options": [
+        "Diastolic pressure reflects ventricular relaxation, not active pumping.",
+        "The diastolic number is the systolic contraction pressure.",
+        "The higher number is the relaxation pressure between beats.",
+        "Blood pressure does not depend on ventricular action."
+      ],
+      "correctIndex": 0,
+      "explanation": "Diastolic pressure is measured during ventricular relaxation, when the heart is not ejecting blood. It reflects residual arterial pressure between beats, not active pumping.",
+      "bloom": "understand",
+      "difficulty": "apply",
+      "catches": true,
+      "confronts": true,
+      "familyKey": "students think the diastolic number reflects the heart activ",
+      "provenance": {
+        "origin": "gapfill",
+        "model": "cheap",
+        "grade": null,
+        "date": "2026-07-04"
+      }
+    },
+    {
+      "id": "gapfill:research-methods/correlation-causation:students-infer-cause-fro",
+      "kernelId": "research-methods/correlation-causation",
+      "conceptName": "Correlation versus causation",
+      "stem": "A study finds that students who carry umbrellas also get more wet sidewalks. A classmate concludes umbrellas cause wet sidewalks. What should you do first?",
+      "options": [
+        "Check reverse causation and a confounder first.",
+        "Assume correlation proves causation.",
+        "Ignore confounders if the correlation is strong.",
+        "Use association alone to decide the cause."
+      ],
+      "correctIndex": 0,
+      "explanation": "Correlation shows variables move together, but it does not prove causation. Generate a reverse-causation story and a confounding variable before making a causal claim.",
+      "bloom": "analyze",
+      "difficulty": "transfer",
+      "catches": true,
+      "confronts": true,
+      "familyKey": "students infer cause from association without checking direc",
+      "provenance": {
+        "origin": "gapfill",
+        "model": "cheap",
+        "grade": null,
+        "date": "2026-07-04"
+      }
+    },
+    {
+      "id": "gapfill:geo/rock-cycle:students-think-rocks-are",
+      "kernelId": "geo/rock-cycle",
+      "conceptName": "The rock cycle",
+      "stem": "A granite cliff breaks down, becomes sediment, then later turns into slate. What does this sequence illustrate?",
+      "options": ["Rocks are permanent", "The rock cycle", "Only igneous formation", "A single sediment layer"],
+      "correctIndex": 1,
+      "explanation": "This sequence shows rocks changing among igneous, sedimentary, and metamorphic forms over time. The rock cycle describes how geologic processes repeatedly transform Earth materials.",
+      "bloom": "understand",
+      "difficulty": "apply",
+      "catches": true,
+      "confronts": true,
+      "familyKey": "students think rocks are permanent and never change type",
+      "provenance": {
+        "origin": "gapfill",
+        "model": "cheap",
+        "grade": null,
+        "date": "2026-07-04"
+      }
+    },
+    {
+      "id": "gapfill:lang/daily-routines-and-time:students-may-believe-tel",
+      "kernelId": "lang/daily-routines-and-time",
+      "conceptName": "Daily Routines and Time",
+      "stem": "What else do you need besides numbers to tell time in Korean?",
+      "options": [
+        "Time counters and common expressions.",
+        "Only cardinal numbers.",
+        "Only days of the week.",
+        "Only verb endings."
+      ],
+      "correctIndex": 0,
+      "explanation": "Telling time needs more than memorized numbers. You also need counters and expressions for hours, minutes, and parts of the day.",
+      "bloom": "remember",
+      "difficulty": "recall",
+      "catches": true,
+      "confronts": true,
+      "familyKey": "students may believe telling time only requires memorizing n",
+      "provenance": {
+        "origin": "gapfill",
+        "model": "cheap",
+        "grade": null,
+        "date": "2026-07-04"
+      }
+    },
+    {
+      "id": "gapfill:lit/odyssey-vs-iliad-focus:odysseus-heroism-in-the-",
+      "kernelId": "lit/odyssey-vs-iliad-focus",
+      "conceptName": "Odyssey vs. Iliad: thematic focus and heroism",
+      "stem": "In the Odyssey, what chiefly makes Odysseus heroic?",
+      "options": ["His battle strength.", "His size and armor.", "His wisdom and adaptability.", "His rage in combat."],
+      "correctIndex": 2,
+      "explanation": "The text emphasizes mental ability and wisdom over physical prowess. Fighting matters, but it is treated as a last resort.",
+      "bloom": "understand",
+      "difficulty": "apply",
+      "catches": true,
+      "confronts": true,
+      "familyKey": "odysseus heroism in the odyssey is primarily about battle st",
+      "provenance": {
+        "origin": "gapfill",
+        "model": "cheap",
+        "grade": null,
+        "date": "2026-07-04"
+      }
+    },
+    {
+      "id": "gapfill:lit/novel-vs-romance-realism:the-novel-romance-distin",
+      "kernelId": "lit/novel-vs-romance-realism",
+      "conceptName": "Novel vs. romance (realism criterion)",
+      "stem": "Why can classifying a prose work as novel or romance be difficult?",
+      "options": [
+        "The distinction is always easy.",
+        "Realism judgments can be subjective.",
+        "All prose is equally realistic.",
+        "Only length decides the category."
+      ],
+      "correctIndex": 1,
+      "explanation": "The text notes that realism is partly a matter of judgment. Borderline works can therefore be hard to classify cleanly.",
+      "bloom": "analyze",
+      "difficulty": "transfer",
+      "catches": true,
+      "confronts": true,
+      "familyKey": "the novel romance distinction is purely objective and always",
+      "provenance": {
+        "origin": "gapfill",
+        "model": "cheap",
+        "grade": null,
+        "date": "2026-07-04"
+      }
+    },
+    {
+      "id": "gapfill:psych/erikson-psychosocial:floor-5",
+      "kernelId": "psych/erikson-psychosocial",
+      "conceptName": "Erikson's psychosocial development",
+      "stem": "A 3-month-old calms when a caregiver returns after crying. Which Erikson task is most relevant?",
+      "options": [
+        "Trust versus mistrust",
+        "Autonomy versus shame",
+        "Industry versus inferiority",
+        "Integrity versus despair"
+      ],
+      "correctIndex": 0,
+      "explanation": "Infancy’s task is trust versus mistrust. Responsive caregiving supports trust, the basis of later development.",
+      "bloom": "apply",
+      "difficulty": "apply",
+      "catches": false,
+      "confronts": false,
+      "familyKey": null,
+      "provenance": {
+        "origin": "gapfill",
+        "model": "cheap",
+        "grade": null,
+        "date": "2026-07-04"
+      }
     }
   ],
   "origins": {
     "harvest": 1471,
-    "gapfill": 267
+    "gapfill": 358
   }
 }

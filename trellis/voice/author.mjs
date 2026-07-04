@@ -98,7 +98,20 @@ export function bankQuizPlan(slice, bank) {
     path: `quizItems[${index}].explanation`,
     ref: `kernel:${item.__bank.conceptId}`,
   }));
-  return { banked, bankedClaims, freshCount: Math.max(slice.constraints.quizItems - banked.length, 0) };
+  // Style exemplar (v0.1.6 item 3): fresh authoring at thin shelves gets
+  // one top-evidence banked item for the lesson's kernels as a CRAFT
+  // reference — never content to copy.
+  const selectedIds = new Set(banked.map((item) => item.__bank.id));
+  const kernels = new Set(slice.concepts.map((c) => c.genomeRef).filter(Boolean));
+  const exemplar = bank.items
+    .filter((item) => kernels.has(item.kernelId) && !selectedIds.has(item.id))
+    .sort((a, b) => Number(b.catches) + Number(b.confronts) - (Number(a.catches) + Number(a.confronts)))[0];
+  return {
+    banked,
+    bankedClaims,
+    freshCount: Math.max(slice.constraints.quizItems - banked.length, 0),
+    exemplar: exemplar ? { stem: exemplar.stem, options: exemplar.options, explanation: exemplar.explanation } : null,
+  };
 }
 
 function remapQuizClaimPaths(claims, offset) {
@@ -266,7 +279,7 @@ function misconceptionBlocks(misconceptions) {
     .join('\n');
 }
 
-function quizSystemPrompt(slice, count = slice.constraints.quizItems) {
+function quizSystemPrompt(slice, count = slice.constraints.quizItems, exemplar = null) {
   const misconceptions = introducedMisconceptions(slice);
   return (
     `You are the course's own instructor writing the week-${slice.lesson.week} quiz for "${slice.course.title}" (${slice.course.level} ${slice.course.subject}). ` +
@@ -283,7 +296,10 @@ function quizSystemPrompt(slice, count = slice.constraints.quizItems) {
     `- SPACED RETRIEVAL: AT MOST 1-2 items on the lesson's REINFORCED (prior) concepts; every other item tests THIS lesson's new material. Start ONLY those 1-2 review stems with "Review:" — never label a new-topic item Review.\n` +
     `- explanation: 2-3 tight sentences, at most ~50 words — say why the right answer is right and the tempting one is wrong; no preamble, no restating the stem.\n` +
     `- Every factual claim traces to the kernel facts provided; never invent facts. claims[]: {path like "quizItems[2].explanation", ref from the schema enum or null}.\n` +
-    `- Write like a person who teaches this course: specific, direct, no template phrases; never open two explanations the same way.`
+    `- Write like a person who teaches this course: specific, direct, no template phrases; never open two explanations the same way.` +
+    (exemplar
+      ? `\n- CRAFT EXEMPLAR (match its craft — concrete case, reason-bearing distractors, tight confronting explanation. NEVER copy its content):\n${JSON.stringify(exemplar)}`
+      : '')
   );
 }
 
@@ -394,7 +410,7 @@ export async function authorLesson(
             schemaName: 'lesson_quiz',
             validate: partialQuizValidator(plan.freshCount),
             maxOutputTokens: 6000,
-            system: quizSystemPrompt(slice, plan.freshCount),
+            system: quizSystemPrompt(slice, plan.freshCount, plan.exemplar),
             user: quizUserPrompt(slice),
           }).then((r) => ({ result: assembleQuizFromBank(plan, r.result) })),
         );
@@ -627,7 +643,7 @@ export async function authorAllLessonsBatch(
           schemaName: 'lesson_quiz',
           validate: plan ? partialQuizValidator(plan.freshCount) : subValidator(QUIZ_FIELDS),
           maxOutputTokens: 6000,
-          system: quizSystemPrompt(slice, plan ? plan.freshCount : undefined),
+          system: quizSystemPrompt(slice, plan ? plan.freshCount : undefined, plan?.exemplar ?? null),
           user: quizUserPrompt(slice),
         });
         parts.push({ lessonId: lesson.id, kind: 'quiz' });

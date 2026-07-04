@@ -191,3 +191,160 @@ if (existsSync('trellis/bank/all-items.json') && process.argv.length <= 3 && !pr
     await ledger.flush();
   }
 }
+
+// ── floor fill (v0.1.6 item 1) ──────────────────────────────────────────────
+// Family coverage ≠ depth: cs/strings had its families covered and still
+// starved L8 into an all-review quiz. Floor mode raises every allow-listed
+// kernel to ≥`floor` items — under-covered documented families first, then
+// general application items (familyKey null, evidence flags honest).
+// Thin shelves make whole-shelf dedupe safe here.
+
+export async function floorFillBank({
+  kernelAllowList,
+  floor = 6,
+  ledger = null,
+  budgetUsd = null,
+  tier = 'cheap',
+  outDir = 'trellis/bank',
+  genomeDir = 'public/genome',
+} = {}) {
+  const bank = await loadBank('all');
+  const allow = new Set(kernelAllowList);
+  const shelfCount = new Map();
+  for (const item of bank.items) shelfCount.set(item.kernelId, (shelfCount.get(item.kernelId) ?? 0) + 1);
+
+  const cells = [];
+  for (const name of (await readdir(genomeDir)).filter((n) => n.endsWith('.json'))) {
+    let shard;
+    try {
+      shard = JSON.parse(await readFile(join(genomeDir, name), 'utf8'));
+    } catch {
+      continue;
+    }
+    for (const kernel of shard.kernels ?? []) {
+      if (!allow.has(kernel.id)) continue;
+      let deficit = floor - (shelfCount.get(kernel.id) ?? 0);
+      if (deficit <= 0) continue;
+      const families = (kernel.misconceptions ?? [])
+        .map((m) => ({
+          statement: typeof m === 'string' ? m : (m.text ?? ''),
+          corrective: typeof m === 'object' ? (m.corrective ?? m.correction ?? '') : '',
+        }))
+        .filter((f) => f.statement && f.corrective);
+      // Under-covered families first, then general items to the floor.
+      const perFamily = new Map(
+        families.map((f) => [
+          familyKeyOf(f.statement),
+          bank.items.filter((i) => i.kernelId === kernel.id && i.familyKey === familyKeyOf(f.statement)).length,
+        ]),
+      );
+      for (const f of families) {
+        if (deficit <= 0) break;
+        if ((perFamily.get(familyKeyOf(f.statement)) ?? 0) >= 2) continue;
+        cells.push({
+          kernelId: kernel.id,
+          term: kernel.term,
+          definition: kernel.definition?.text ?? '',
+          facts: (kernel.facts ?? []).map((x) => x.text).slice(0, 4),
+          statement: f.statement,
+          corrective: f.corrective,
+          family: familyKeyOf(f.statement),
+        });
+        deficit -= 1;
+      }
+      for (let i = 0; i < deficit; i += 1) {
+        cells.push({
+          kernelId: kernel.id,
+          term: kernel.term,
+          definition: kernel.definition?.text ?? '',
+          facts: (kernel.facts ?? []).map((x) => x.text).slice(0, 4),
+          statement: null,
+          corrective: null,
+          family: null,
+        });
+      }
+    }
+  }
+  if (cells.length === 0) return { cells: 0, filled: 0 };
+
+  let filled = 0;
+  for (let i = 0; i < cells.length; i += BATCH) {
+    const batch = cells.slice(i, i + BATCH);
+    try {
+      const { result } = await callModel({
+        tier,
+        stage: 'bankGapFill',
+        ledger,
+        budgetUsd,
+        schema: ITEMS_SCHEMA,
+        schemaName: 'floor_items',
+        validate: (parsed) => (Array.isArray(parsed?.items) ? [] : ['items must be an array']),
+        maxOutputTokens: 4000,
+        system:
+          'You author ONE multiple-choice quiz item per numbered entry for an undergraduate item bank. ' +
+          'When an entry has wrongBelief+corrective: one wrong option states that belief with its wrong reasoning (keep its key terms — a lexical gate checks), and the explanation confronts the corrective keeping half its key terms. ' +
+          'When an entry has NO wrongBelief: write an application-level item grounded purely in the kernel facts — a concrete case, plausible half-learned mistakes as distractors. ' +
+          'Always: stem ends with terminal punctuation; 4 distinct options under 15 words; explanation 2-3 sentences under 60 words; no code fences. ' +
+          'Return {items:[{index, stem, options, correctIndex, explanation, bloom, difficulty}]} covering every entry.',
+        user: JSON.stringify(
+          batch.map((cell, index) => ({
+            index,
+            concept: cell.term,
+            definition: cell.definition,
+            facts: cell.facts,
+            wrongBelief: cell.statement,
+            corrective: cell.corrective,
+          })),
+          null,
+          1,
+        ),
+      });
+      for (const item of result.items ?? []) {
+        const cell = batch[item.index];
+        if (!cell) continue;
+        const shelf = bank.items.filter((b) => b.kernelId === cell.kernelId);
+        if (cell.statement) {
+          if (!gapItemPasses(cell, item, shelf)) continue;
+        } else {
+          // General item: structural + aesthetic gates + thin-shelf dedupe.
+          if (typeof item?.stem !== 'string' || item.stem.length < 20) continue;
+          if (!/[.!?:;]["'”’)\]]*\s*$/u.test(item.stem.trim())) continue;
+          if (!Array.isArray(item.options) || item.options.length !== 4) continue;
+          if (new Set(item.options.map((o) => String(o).trim().toLowerCase())).size !== 4) continue;
+          if (item.options.some((o) => String(o).length > 110 || /^students?\s/i.test(String(o).trim()))) continue;
+          if (typeof item.explanation !== 'string' || item.explanation.length < 30 || item.explanation.length > 500)
+            continue;
+          if ([item.stem, ...item.options, item.explanation].join(' ').includes('```')) continue;
+          if (shelf.some((other) => tokenOverlapRatio(other.stem, item.stem) > 0.6)) continue;
+        }
+        bank.items.push({
+          id: `gapfill:${cell.kernelId}:${cell.family ? cell.family.slice(0, 24).replace(/\s+/g, '-') : `floor-${shelf.length + 1}`}`,
+          kernelId: cell.kernelId,
+          conceptName: cell.term,
+          stem: item.stem,
+          options: item.options,
+          correctIndex: item.correctIndex,
+          explanation: item.explanation,
+          bloom: item.bloom,
+          difficulty: item.difficulty,
+          catches: Boolean(cell.statement),
+          confronts: Boolean(cell.statement),
+          familyKey: cell.family,
+          provenance: { origin: 'gapfill', model: tier, grade: null, date: '2026-07-04' },
+        });
+        filled += 1;
+      }
+    } catch {
+      // Uncovered cells retry on a future pass.
+    }
+  }
+
+  const byKernel = new Map();
+  for (const item of bank.items) byKernel.set(item.kernelId, (byKernel.get(item.kernelId) ?? 0) + 1);
+  bank.kernels = byKernel.size;
+  const origins = { harvest: 0, gapfill: 0 };
+  for (const item of bank.items) origins[item.provenance?.origin === 'gapfill' ? 'gapfill' : 'harvest'] += 1;
+  bank.origins = origins;
+  await writeFile(join(outDir, 'all-items.json'), JSON.stringify(bank, null, 1));
+  return { cells: cells.length, filled, origins };
+}
