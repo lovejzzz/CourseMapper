@@ -53,6 +53,24 @@ function mapItemConcept(graph, lesson, art, itemIndex) {
   return best;
 }
 
+// Aesthetic gates (the bank-run-2 lesson): grade ≥97 sees content, never
+// option aesthetics — and the catches/confronts evidence PREFERS pasted
+// belief sentences, importing the exact defect the blends exist to kill.
+// The consuming run's option blend cannot rescue them (it matches the
+// CURRENT course's belief texts, not the source course's), so pasted-
+// looking items never enter the bank at all.
+const META_OPTION_RE = /^students?\s/i;
+const MAX_OPTION_CHARS = 110;
+const MAX_EXPLANATION_CHARS = 500;
+
+function aestheticallyClean(item) {
+  if (item.options.some((option, oi) => oi !== item.correctIndex && META_OPTION_RE.test(String(option).trim())))
+    return false;
+  if (item.options.some((option) => String(option).length > MAX_OPTION_CHARS)) return false;
+  if (String(item.explanation).length > MAX_EXPLANATION_CHARS) return false;
+  return true;
+}
+
 function structurallySound(item) {
   return (
     typeof item?.stem === 'string' &&
@@ -92,7 +110,7 @@ export async function harvestRun(runDir) {
     const art = authored[lesson.id];
     if (!art?.quizItems) continue;
     art.quizItems.forEach((item, itemIndex) => {
-      if (!structurallySound(item)) return;
+      if (!structurallySound(item) || !aestheticallyClean(item)) return;
       const concept = mapItemConcept(graph, lesson, art, itemIndex);
       // Bank items key on GENOME kernel ids — course-agnostic by
       // construction. Flywheel-only concepts stay out until contributed.
