@@ -271,6 +271,10 @@ export function validateAuthoredLesson(authored) {
     need(typeof slide?.altText === 'string' && slide.altText.length >= 10, `slides[${i}].altText missing`);
   }
 
+  // Session-duration floor (v0.1.8 blind-read finding): a 32-minute plan
+  // was contract-legal — segments had minimums but the SESSION did not.
+  const totalMinutes = (authored.plan?.segments ?? []).reduce((sum, seg) => sum + (seg.minutes ?? 0), 0);
+  need(totalMinutes >= 45, `plan.segments total ${totalMinutes} minutes — a real session plans at least 45`);
   need(Array.isArray(authored.quizItems) && authored.quizItems.length >= 3, 'quizItems needs ≥3 items');
   for (const [i, item] of (authored.quizItems || []).entries()) {
     need(typeof item?.stem === 'string' && weightedLength(item.stem) >= 20, `quizItems[${i}].stem too short`);

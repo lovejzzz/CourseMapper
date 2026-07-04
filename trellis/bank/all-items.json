@@ -45254,10 +45254,160 @@
         "grade": null,
         "date": "2026-07-04"
       }
+    },
+    {
+      "id": "gapfill:geo/plate-tectonics:students-assume-all-plat",
+      "kernelId": "geo/plate-tectonics",
+      "conceptName": "Plate tectonics and boundaries",
+      "stem": "A student claims that all plate boundaries involve plates colliding with each other. What is the best response to correct this misunderstanding?",
+      "options": [
+        "All plate boundaries are the same kind of collision.",
+        "Plate boundaries are classified as divergent, convergent, and transform.",
+        "Most plate boundaries are convergent, and the rest are divergent.",
+        "Plate boundaries only occur where plates are moving apart."
+      ],
+      "correctIndex": 1,
+      "explanation": "There are three distinct types: divergent (plates apart, new crust), convergent (plates together, crust destroyed), and transform (plates sliding past), each with landforms and hazards.",
+      "bloom": "understand",
+      "difficulty": "apply",
+      "catches": true,
+      "confronts": true,
+      "familyKey": "students assume all plate boundaries are the same kind of co",
+      "provenance": {
+        "origin": "gapfill",
+        "model": "ds",
+        "grade": null,
+        "date": "2026-07-04"
+      }
+    },
+    {
+      "id": "gapfill:lit/novel-vs-romance-realism:all-prose-narratives-are",
+      "kernelId": "lit/novel-vs-romance-realism",
+      "conceptName": "Novel vs. romance (realism criterion)",
+      "stem": "A student claims that all prose fiction works, including ancient Greek romances, should be called novels. How would you correct this misconception?",
+      "options": [
+        "All prose narratives are novels, so earlier fiction automatically counts as a novel.",
+        "Earlier prose narratives are often romances, not novels, because they lack realism.",
+        "Early prose works are not fiction.",
+        "Novels are defined by their length, not realism."
+      ],
+      "correctIndex": 1,
+      "explanation": "According to the text, we should distinguish types of prose fiction. Many earlier narratives follow romance conventions, not the realism of a novel.",
+      "bloom": "understand",
+      "difficulty": "apply",
+      "catches": true,
+      "confronts": true,
+      "familyKey": "all prose narratives are novels so earlier prose fiction aut",
+      "provenance": {
+        "origin": "gapfill",
+        "model": "ds",
+        "grade": null,
+        "date": "2026-07-04"
+      }
+    },
+    {
+      "id": "gapfill:math/linear-transformation:translation-is-a-linear-",
+      "kernelId": "math/linear-transformation",
+      "conceptName": "linear transformation",
+      "stem": "A student claims that shifting a graph up by 2 units is a linear transformation. Why is this incorrect?",
+      "options": [
+        "Translation is a linear transformation.",
+        "Translation moves the origin, so T(0)≠0; therefore it is affine, not linear.",
+        "Translation does not preserve distances.",
+        "Translation is not a function."
+      ],
+      "correctIndex": 1,
+      "explanation": "Translating by a nonzero vector moves the origin, violating T(0)=0. Translations are affine transformations, not linear.",
+      "bloom": "understand",
+      "difficulty": "apply",
+      "catches": true,
+      "confronts": true,
+      "familyKey": "translation is a linear transformation",
+      "provenance": {
+        "origin": "gapfill",
+        "model": "ds",
+        "grade": null,
+        "date": "2026-07-04"
+      }
+    },
+    {
+      "id": "gapfill:psych/memory-model:students-picture-memory-",
+      "kernelId": "psych/memory-model",
+      "conceptName": "Memory: encoding, storage, and retrieval",
+      "stem": "A student thinks that once they see information, it is permanently stored in memory. What is the flaw in this view?",
+      "options": [
+        "Memory is a storehouse where information simply sits once seen.",
+        "Memory involves encoding, storage through stages, and retrieval; information can be lost at each step.",
+        "Information once seen is always available for recall.",
+        "Memory works like a video recorder."
+      ],
+      "correctIndex": 1,
+      "explanation": "Memory is a set of processes, not a place. Information must be encoded, pass through sensory and short-term stages to long-term storage, and can be lost at any step.",
+      "bloom": "understand",
+      "difficulty": "apply",
+      "catches": true,
+      "confronts": true,
+      "familyKey": "students picture memory as one big storehouse where informat",
+      "provenance": {
+        "origin": "gapfill",
+        "model": "ds",
+        "grade": null,
+        "date": "2026-07-04"
+      }
+    },
+    {
+      "id": "gapfill:psych/piaget-stages:students-see-children-as",
+      "kernelId": "psych/piaget-stages",
+      "conceptName": "Piaget's stages of cognitive development",
+      "stem": "A student thinks that children simply have less knowledge than adults. According to Piaget, what is wrong with this view?",
+      "options": [
+        "Children are miniature adults who simply know fewer facts.",
+        "Children think qualitatively differently; e.g., a preoperational child cannot perform conservation tasks.",
+        "Children are not as intelligent as adults.",
+        "Children learn faster than adults."
+      ],
+      "correctIndex": 1,
+      "explanation": "Piaget showed differences are qualitative; a preoperational child fails a conservation task because the required mental operations have not developed. Telling them the answer does not fix it.",
+      "bloom": "understand",
+      "difficulty": "apply",
+      "catches": true,
+      "confronts": true,
+      "familyKey": "students see children as miniature adults who simply know fe",
+      "provenance": {
+        "origin": "gapfill",
+        "model": "ds",
+        "grade": null,
+        "date": "2026-07-04"
+      }
+    },
+    {
+      "id": "gapfill:psych/erikson-psychosocial:students-assume-personal",
+      "kernelId": "psych/erikson-psychosocial",
+      "conceptName": "Erikson's psychosocial development",
+      "stem": "A student claims that personality is fully formed by adolescence. According to Erikson, why is this incorrect?",
+      "options": [
+        "Personality development is finished by the end of childhood.",
+        "Erikson proposed eight stages across the lifespan; adults face conflicts like intimacy and generativity.",
+        "Personality development stops after adolescence.",
+        "Personality is determined entirely by genetics."
+      ],
+      "correctIndex": 1,
+      "explanation": "Erikson's eight psychosocial stages run from infancy through late adulthood. Adults still face conflicts such as intimacy, generativity, and integrity; development is lifelong.",
+      "bloom": "understand",
+      "difficulty": "apply",
+      "catches": true,
+      "confronts": true,
+      "familyKey": "students assume personality development is finished by the e",
+      "provenance": {
+        "origin": "gapfill",
+        "model": "ds",
+        "grade": null,
+        "date": "2026-07-04"
+      }
     }
   ],
   "origins": {
     "harvest": 1471,
-    "gapfill": 390
+    "gapfill": 396
   }
 }

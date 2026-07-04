@@ -55,7 +55,7 @@ function lessonSystemPrompt(slice) {
     (correctives.length > 0
       ? `- For each documented misconception, at least one quiz item's explanation must CONFRONT its corrective: quote it, or paraphrase it faithfully keeping its key terms (a grader checks word overlap). Vary how you weave it in. The correctives are:\n${correctives.map((c) => `  • "${c}"`).join('\n')}\n`
       : '') +
-    `- plan.segments must include one "reteach" segment that WALKS ONE WORKED EXAMPLE from the reading, naming the example it works through in its text (a validator checks for this), for students who arrived cold; every segment's minutes is an integer of at least 5.\n` +
+    `- plan.segments: total 50-75 minutes (a validator rejects sessions under 45) and must include one "reteach" segment that WALKS ONE WORKED EXAMPLE from the reading, naming the example it works through in its text (a validator checks for this), for students who arrived cold; every segment's minutes is an integer of at least 5.\n` +
     (slice.primerConcepts?.length
       ? `- PRIMER REQUIRED: this lesson uses concepts formally taught later (${slice.primerConcepts.map((p) => p.name).join(', ')}). Open the plan with a 5-10 minute primer introducing just enough of each.\n`
       : '') +
@@ -254,7 +254,7 @@ function coreSystemPrompt(slice) {
       ? `- PAIRING RULE: any item whose distractor states a misconception must have an explanation that confronts THAT misconception's corrective — the student who picks the wrong belief must read its repair.\n` +
         ''
       : '') +
-    `- plan.segments: 4-5 segments, each an integer of at least 5 minutes, including one "reteach" segment that WALKS ONE WORKED EXAMPLE from the reading — name the example it works through in its text (a validator checks for this) — for students who arrived cold.\n` +
+    `- plan.segments: 4-5 segments totaling 50-75 minutes (a validator rejects sessions under 45), each an integer of at least 5 minutes, including one "reteach" segment that WALKS ONE WORKED EXAMPLE from the reading — name the example it works through in its text (a validator checks for this) — for students who arrived cold.\n` +
     (slice.primerConcepts?.length
       ? `- PRIMER REQUIRED: this lesson uses concepts the course formally teaches later (${slice.primerConcepts.map((p) => p.name).join(', ')}). Open plan.segments with a 5-10 minute primer that introduces just enough of each (kernel facts provided), saying explicitly it is a preview of a later lesson.\n`
       : '') +

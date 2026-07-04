@@ -1213,6 +1213,27 @@ polishing a candidate that hasn't won.
   rebuilds now preserve gapfill origin. Bank 1,861. LA cost crept to
   $0.333 (blend ds tail + corrective volume) — watch.
 
+- **2026-07-04 (v0.1.8 Autopsy & Blind Verdict — all four items, ≤$0.05
+  spent).** (1) DENSE-MODE AUTOPSY: compliance was HIGH (21/28 fresh LA
+  items caught ≥2 families, 11/28 caught 3+) yet repair moved zero —
+  the hypothesis is RETIRED, not the prompt: in this sim a student's
+  held family either appears or doesn't; extra families serve other
+  students, and common families were already covered. The honest LA
+  lever standing is items-per-course (quiz size — an owner design call
+  with cost attached). (2) COST AUTOPSY: LA creep was REPAIR volume
+  ($0.064→$0.153), not the ds blend tail — roadmap assumption corrected.
+  (3) STRAGGLERS: deepseek filled 6/7 cells in ONE pass where mini
+  failed five — cross-family authoring phrases differently through the
+  same gates; fixture kernels at floor 80/81 (only
+  math/linear-transformation remains, annotated). (4) FIRST SEMI-BLIND
+  ADJUDICATION (docs/adjudications/2026-07-04-semiblind-v017.md):
+  scores written before unsealing — blind Δ+2.8 for the package that
+  proved to be Trellis, inside the open-label band (+2..+4): direction
+  CONFIRMED without label bias. The blind read also found a contract
+  hole no instrument had: NO session-duration floor (a 32-minute plan
+  was legal) — fixed same-day (≥45 validator floor, 50-75 prompted).
+  Bank 1,867. 97 tests.
+
 ---
 
 _— Fable 5_
