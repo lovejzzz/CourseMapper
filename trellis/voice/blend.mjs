@@ -70,86 +70,85 @@ const REWRITES_SCHEMA = {
   },
 };
 
-function validateRewrites(batch) {
-  return (parsed) => {
-    const errors = [];
-    if (!Array.isArray(parsed?.rewrites)) return ['rewrites must be an array'];
-    const seen = new Set();
-    for (const rewrite of parsed.rewrites) {
-      const entry = batch[rewrite.index];
-      if (!entry) {
-        errors.push(`rewrites: index ${rewrite.index} does not exist`);
-        continue;
-      }
-      const text = String(rewrite.text ?? '').trim();
-      if (text.length < 40) errors.push(`rewrites[${rewrite.index}]: too short — a real explanation, not a stub`);
-      if (text.length > 700) errors.push(`rewrites[${rewrite.index}]: too long — tighten to a paragraph`);
-      // The guarantee: a blend that loses ANY confrontation is rejected and
-      // the appended version stays. Cosmetic-only, by construction.
-      for (const corrective of entry.correctives) {
-        if (!confrontsCorrective(text, corrective)) {
-          errors.push(
-            `rewrites[${rewrite.index}]: every corrective's content must survive the rewrite — keep at least half the key terms of: "${corrective.slice(0, 100)}"`,
-          );
-        }
-      }
-      const key = text.toLowerCase();
-      if (seen.has(key)) errors.push(`rewrites[${rewrite.index}]: identical to another rewrite — vary the wording`);
-      seen.add(key);
-    }
-    return errors;
-  };
+// Per-entry gates. Batch-wide all-or-nothing validation was measured
+// broken at batch 18 (July 4 diet run: 0/68 accepted, 30 calls burned in
+// retries) — P(all N rewrites valid) collapses as N grows. Instead: ONE
+// call per batch, accept each rewrite that passes its own gates, escalate
+// only the rejects.
+function schemaOnly(parsed) {
+  return Array.isArray(parsed?.rewrites) ? [] : ['rewrites must be an array'];
+}
+
+function explanationGate(entry, text, accepted) {
+  if (text.length < 40 || text.length > 700) return false;
+  for (const corrective of entry.correctives) {
+    if (!confrontsCorrective(text, corrective)) return false;
+  }
+  if (accepted.has(text.toLowerCase())) return false;
+  return true;
 }
 
 export async function blendCorrectives(graph, authored, { tier = 'nano', ledger = null, budgetUsd = null } = {}) {
   const candidates = findBlendCandidates(graph, authored);
   if (candidates.length === 0) return { candidates: 0, blended: 0 };
 
+  const callBatch = (batch, batchTier) =>
+    callModel({
+      tier: batchTier,
+      stage: 'blend',
+      ledger,
+      budgetUsd,
+      schema: REWRITES_SCHEMA,
+      schemaName: 'explanation_rewrites',
+      validate: schemaOnly,
+      maxOutputTokens: 4000,
+      system:
+        'You polish quiz explanations. Each entry contains one or more corrective sentences that were pasted in mechanically, so the text reads as two voices. ' +
+        'Rewrite each as ONE natural explanation (2-3 sentences, under 60 words) that makes every corrective’s content its own point — keep at least half of EACH corrective’s key terms (a lexical gate checks this), never paste one as a standalone sentence. ' +
+        'Vary the openers: no two rewrites may start with the same words. Return {rewrites:[{index, text}]} covering every entry.',
+      user: JSON.stringify(
+        batch.map((entry, index) => ({ index, explanation: entry.explanation, correctives: entry.correctives })),
+        null,
+        1,
+      ),
+    });
+
+  const accepted = new Set();
   let blended = 0;
-  for (let i = 0; i < candidates.length; i += BATCH) {
-    const batch = candidates.slice(i, i + BATCH);
-    // Math-dense correctives defeat nano rewrites (LA measured 9/69
-    // accepted) — a failed batch escalates once to the cheap tier before
-    // keeping its pasted form.
-    for (const batchTier of tier === 'cheap' ? ['cheap'] : [tier, 'cheap']) {
+  const applyBatch = (batch, result) => {
+    const rejected = new Set(batch.keys());
+    for (const rewrite of result?.rewrites ?? []) {
+      const entry = batch[rewrite.index];
+      if (!entry) continue;
+      const text = String(rewrite.text ?? '').trim();
+      if (!explanationGate(entry, text, accepted)) continue;
+      const item = authored[entry.lessonId]?.quizItems?.[entry.itemIndex];
+      // Apply only when the explanation is still the one we sampled.
+      if (!item || item.explanation !== entry.explanation) continue;
+      item.explanation = text;
+      accepted.add(text.toLowerCase());
+      rejected.delete(rewrite.index);
+      blended += 1;
+    }
+    return [...rejected].map((index) => batch[index]);
+  };
+
+  let pending = candidates;
+  for (const batchTier of tier === 'cheap' ? ['cheap'] : [tier, 'cheap']) {
+    const stillPending = [];
+    for (let i = 0; i < pending.length; i += BATCH) {
+      const batch = pending.slice(i, i + BATCH);
       try {
-        const { result } = await callModel({
-          tier: batchTier,
-          stage: 'blend',
-          ledger,
-          budgetUsd,
-          schema: REWRITES_SCHEMA,
-          schemaName: 'explanation_rewrites',
-          validate: validateRewrites(batch),
-          maxOutputTokens: 4000,
-          system:
-            'You polish quiz explanations. Each entry contains one or more corrective sentences that were pasted in mechanically, so the text reads as two voices. ' +
-            'Rewrite each as ONE natural explanation (2-3 sentences, under 60 words) that makes every corrective’s content its own point — keep at least half of EACH corrective’s key terms (a lexical gate checks this), never paste one as a standalone sentence. ' +
-            'Vary the openers: no two rewrites may start with the same words, and none may open with "Remember" or "Note that". Return {rewrites:[{index, text}]} covering every entry.',
-          user: JSON.stringify(
-            batch.map((entry, index) => ({ index, explanation: entry.explanation, correctives: entry.correctives })),
-            null,
-            1,
-          ),
-        });
-        for (const rewrite of result.rewrites) {
-          const entry = batch[rewrite.index];
-          if (!entry) continue;
-          const art = authored[entry.lessonId];
-          const item = art?.quizItems?.[entry.itemIndex];
-          // The item may have moved under a concurrent transform; apply only
-          // when the explanation is still the one we sampled.
-          if (!item || item.explanation !== entry.explanation) continue;
-          item.explanation = String(rewrite.text).trim();
-          blended += 1;
-        }
-        break; // batch accepted at this tier
+        const { result } = await callBatch(batch, batchTier);
+        stillPending.push(...applyBatch(batch, result));
       } catch {
-        // Try the next tier; after the last, the batch keeps its appended
-        // explanations — the guarantee stands, the polish is skipped, the
-        // digest discloses the ratio.
+        stillPending.push(...batch); // call itself failed — keep for escalation
       }
     }
+    pending = stillPending;
+    if (pending.length === 0) break;
+    // Rejects keep their pasted form after the last tier — the guarantee
+    // stands, the polish is skipped, the digest discloses the ratio.
   }
   return { candidates: candidates.length, blended };
 }
@@ -192,88 +191,79 @@ export function findSplicedOptionCandidates(graph, authored) {
   return candidates;
 }
 
-function validateOptionRewrites(batch) {
-  return (parsed) => {
-    const errors = [];
-    if (!Array.isArray(parsed?.rewrites)) return ['rewrites must be an array'];
-    const seen = new Set();
-    for (const rewrite of parsed.rewrites) {
-      const entry = batch[rewrite.index];
-      if (!entry) {
-        errors.push(`rewrites: index ${rewrite.index} does not exist`);
-        continue;
-      }
-      const text = String(rewrite.text ?? '').trim();
-      if (text.length < 8) errors.push(`rewrites[${rewrite.index}]: too short to be a plausible option`);
-      if (text.length > 130)
-        errors.push(`rewrites[${rewrite.index}]: still too long — a quiz option, not a sentence from a database`);
-      // The guarantee: the rewrite must still catch (same lexical rule the
-      // classroom instrument runs) or the pasted version stays.
-      if (!entry.catchTexts.some((t) => distractorCatches(text, t))) {
-        errors.push(
-          `rewrites[${rewrite.index}]: the wrong belief's key technical terms must survive — a student who holds it must still recognize it (source: "${entry.catchTexts[0].slice(0, 90)}")`,
-        );
-      }
-      if (entry.otherOptions.some((other) => other.trim().toLowerCase() === text.toLowerCase())) {
-        errors.push(`rewrites[${rewrite.index}]: duplicates another option in the same item`);
-      }
-      const key = text.toLowerCase();
-      if (seen.has(key)) errors.push(`rewrites[${rewrite.index}]: identical to another rewrite — vary the wording`);
-      seen.add(key);
-    }
-    return errors;
-  };
+function optionGate(entry, text, accepted) {
+  if (text.length < 8 || text.length > 130) return false;
+  // The rewrite must still catch (same lexical rule the classroom
+  // instrument runs) or the pasted version stays.
+  if (!entry.catchTexts.some((t) => distractorCatches(text, t))) return false;
+  if (entry.otherOptions.some((other) => other.trim().toLowerCase() === text.toLowerCase())) return false;
+  if (accepted.has(text.toLowerCase())) return false;
+  return true;
 }
 
 export async function blendSplicedOptions(graph, authored, { tier = 'nano', ledger = null, budgetUsd = null } = {}) {
   const candidates = findSplicedOptionCandidates(graph, authored);
   if (candidates.length === 0) return { candidates: 0, blended: 0 };
 
+  const callBatch = (batch, batchTier) =>
+    callModel({
+      tier: batchTier,
+      stage: 'blend',
+      ledger,
+      budgetUsd,
+      schema: REWRITES_SCHEMA,
+      schemaName: 'option_rewrites',
+      validate: schemaOnly,
+      maxOutputTokens: 3000,
+      system:
+        'You polish multiple-choice options. Each entry is a WRONG option that was pasted verbatim from a misconception database — it reads as a documented sentence, not something a student would pick. ' +
+        'Rewrite each as a concise, plausible distractor (at most ~15 words) in the visual style of the item’s other options, keeping the wrong belief’s key technical terms (a lexical gate checks them). ' +
+        'It must stay WRONG — never soften it into something defensible. Vary the phrasing: no two rewrites alike. Return {rewrites:[{index, text}]} covering every entry.',
+      user: JSON.stringify(
+        batch.map((entry, index) => ({
+          index,
+          pastedOption: entry.option,
+          stem: entry.stem,
+          otherOptions: entry.otherOptions,
+        })),
+        null,
+        1,
+      ),
+    });
+
+  const accepted = new Set();
   let blended = 0;
-  for (let i = 0; i < candidates.length; i += BATCH) {
-    const batch = candidates.slice(i, i + BATCH);
-    // Same escalation as blendCorrectives (LA: 0/5 option rewrites on nano).
-    for (const batchTier of tier === 'cheap' ? ['cheap'] : [tier, 'cheap']) {
+  const applyBatch = (batch, result) => {
+    const rejected = new Set(batch.keys());
+    for (const rewrite of result?.rewrites ?? []) {
+      const entry = batch[rewrite.index];
+      if (!entry) continue;
+      const text = String(rewrite.text ?? '').trim();
+      if (!optionGate(entry, text, accepted)) continue;
+      const item = authored[entry.lessonId]?.quizItems?.[entry.itemIndex];
+      if (!item || item.options[entry.optionIndex] !== entry.option) continue;
+      item.options[entry.optionIndex] = text;
+      accepted.add(text.toLowerCase());
+      rejected.delete(rewrite.index);
+      blended += 1;
+    }
+    return [...rejected].map((index) => batch[index]);
+  };
+
+  let pending = candidates;
+  for (const batchTier of tier === 'cheap' ? ['cheap'] : [tier, 'cheap']) {
+    const stillPending = [];
+    for (let i = 0; i < pending.length; i += BATCH) {
+      const batch = pending.slice(i, i + BATCH);
       try {
-        const { result } = await callModel({
-          tier: batchTier,
-          stage: 'blend',
-          ledger,
-          budgetUsd,
-          schema: REWRITES_SCHEMA,
-          schemaName: 'option_rewrites',
-          validate: validateOptionRewrites(batch),
-          maxOutputTokens: 3000,
-          system:
-            'You polish multiple-choice options. Each entry is a WRONG option that was pasted verbatim from a misconception database — it reads as a documented sentence, not something a student would pick. ' +
-            'Rewrite each as a concise, plausible distractor (at most ~15 words) in the visual style of the item’s other options, keeping the wrong belief’s key technical terms (a lexical gate checks them). ' +
-            'It must stay WRONG — never soften it into something defensible. Vary the phrasing: no two rewrites alike. Return {rewrites:[{index, text}]} covering every entry.',
-          user: JSON.stringify(
-            batch.map((entry, index) => ({
-              index,
-              pastedOption: entry.option,
-              stem: entry.stem,
-              otherOptions: entry.otherOptions,
-            })),
-            null,
-            1,
-          ),
-        });
-        for (const rewrite of result.rewrites) {
-          const entry = batch[rewrite.index];
-          if (!entry) continue;
-          const item = authored[entry.lessonId]?.quizItems?.[entry.itemIndex];
-          if (!item || item.options[entry.optionIndex] !== entry.option) continue;
-          item.options[entry.optionIndex] = String(rewrite.text).trim();
-          blended += 1;
-        }
-        break; // batch accepted at this tier
+        const { result } = await callBatch(batch, batchTier);
+        stillPending.push(...applyBatch(batch, result));
       } catch {
-        // Try the next tier; after the last, the batch keeps its pasted
-        // options — the catch guarantee stands, the polish is skipped, the
-        // digest discloses the ratio.
+        stillPending.push(...batch);
       }
     }
+    pending = stillPending;
+    if (pending.length === 0) break;
   }
   return { candidates: candidates.length, blended };
 }
