@@ -1335,3 +1335,25 @@ polishing a candidate that hasn't won.
   ≥5k pairs + S gated acceptance ≥40% vs nano 85–95%), 2
   (Tutor-in-a-File v2, ≤110MB, offline). Design only — no build spend
   committed.
+
+- **2026-07-04 (Tendril BUILT — Phases 0-2 in one day).** Owner /goal
+  "fully build Tendril, leave no rock unturned" → all bars measured,
+  docs/TENDRIL_BUILD_REPORT.md. **T-M1c 81.7%** family accuracy via
+  contrastive ITEM-LOCAL diagnosis (absolute similarity false-fires
+  84-97% — topic ≠ stance at 25MB); **T-M1a findings NONE on the LA
+  ruler at ε=0.92** (0.87 rejected: battery 0.447 — sibling echo IS
+  spaced confrontation; family depth is the durable fix); T-M1b
+  relevance ranking REJECTED (battery 0.523→0.486; variety wins);
+  T-M2 honest 3,485 reconstructed pairs + live corpusLog (ledgers
+  never stored payloads — the doc's §6 optimism corrected); **T-M3
+  Tendril-S 53.3% gated acceptance** (base 16.7%, nano-same-bench
+  71.7%; blends 73.3% vs 80% at $0; LoRA on M4 Max ~2 min, $0 API);
+  **Tutor-in-a-File v2: 99MB, Tendril-E 0.3s WebGPU in-browser**, the
+  typed-answer diagnose→corrective→reteach→sibling loop verified live.
+  Live-wires found: 24 shadowed gapfill bank ids (stem-hash fix +
+  migration), bankGapFill CLI fired on IMPORT under vite-node
+  (spend-capable → GAPFILL=run opt-in), --bank la misconfiguration
+  ($0.21, bank file is all-items). 13 new tests; suite 4,045 green.
+  Spend ≈$0.52. Open: false-fire floor → Tendril-D; skin acceptance
+  33% (length band); bare-numeral eval blind spot patched
+  conditionally in the Tutor.

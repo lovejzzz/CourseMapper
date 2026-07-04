@@ -193,4 +193,20 @@ API) + ~$0.30 of frozen-ruler eval runs. Phase 2: $0. All ledgered.
 
 ---
 
-_— Fable 5_
+# Part III — As built (July 4, 2026)
+
+**Phases 0–2 are BUILT and measured** — see
+[TENDRIL_BUILD_REPORT.md](TENDRIL_BUILD_REPORT.md) for the full
+scorecard. Every pre-registered bar: T-M0 ✓ (2,867 assets, 31.7s
+cold/0.0s warm) · T-M1c ✓ 81.7% (contrastive item-local — absolute
+similarity false-fired 84–97% and was abandoned) · T-M1a ✓ at ε=0.92
+(findings NONE on the LA ruler, battery 0.523 in band; ε=0.87 rejected
+— echo vs spaced-confrontation is a real tension) · T-M1b ✗ rejected,
+exposure draw kept · T-M2 honest count 3,485 pairs (ledgers never
+stored payloads; corpusLog now records live verdicts) · T-M3 ✓ 53.3%
+gated acceptance (base 16.7%, nano 71.7%; blends 73.3% vs nano 80% at
+$0) · Phase 2 ✓ 99MB Tutor bundle, Tendril-E 0.3s on WebGPU, the full
+diagnose→corrective→reteach→sibling loop verified live in a browser.
+Total spend ≈$0.52; training $0 API (M4 Max, ~2 min). Known blind spot
+fixed in deployment: bare-numeral correct options (eval never covered
+them) run explanation-nulls + 0.05 margin, scoped to that class only.
