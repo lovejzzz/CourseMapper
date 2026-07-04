@@ -1014,6 +1014,23 @@ polishing a candidate that hasn't won.
   cause named (spiral review items read as drift — label them).
   SIMULATED stamps stand; two instructors remain the verdict.
 
+- **2026-07-04 (call diet).** Owner asked for fewer API calls at equal
+  quality. Ledger audit: 110 calls/course, mostly retries and
+  fragmentation. Fixes: reteach + spiral rules now STATED in the
+  prompts that validators check (13 author retries → 5); entailment
+  pooled course-wide in chunks of 40 (14 → 3 calls); blend batches 18
+  with PARTIAL ACCEPTANCE — the first diet run measured all-or-nothing
+  batch validation collapsing at 18 (0/68 accepted, 30 calls burned);
+  one schema-validated call per batch, each rewrite gated individually,
+  rejects escalated once. Measured: **110 → 70 calls, 350 → 188 s,
+  $0.305 → $0.221; blending 49/65 + 5/11 accepted in 8 calls.** Judge
+  8 [8,8] / quiz 6.5 — inside the established same-code variance band
+  (7.5–9 overall) on yet another fresh intake graph; no mechanism in
+  the diet lowers content (no check loosened, no artifact smaller).
+  Deliberately NOT batched: quiz authoring across lessons (per-lesson
+  validation protects the judge-quiz bar). LESSON: never validate
+  rewrite batches all-or-nothing — gate per entry, escalate the rest.
+
 ---
 
 _— Fable 5_
