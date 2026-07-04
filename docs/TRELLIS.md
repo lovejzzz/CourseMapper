@@ -991,6 +991,29 @@ polishing a candidate that hasn't won.
   appending; run the loop on a math course; 4.2 multi-seat judging
   stays key-gated; SIMULATED stamps stand.
 
+- **2026-07-03 (v0.1.2 implemented + validated — report §5i).** The
+  "not as good" list worked, $1.68 ledgered. Gate-validated BLENDING is
+  the round's pattern: voice rewrites pasted correctives (explanations)
+  and spliced beliefForms (options), each accepted only if the
+  instrument's own lexical gate still passes — cosmetic by
+  construction; failed batches escalate nano→mini once, then keep the
+  pasted form, disclosed. Judge quiz 5 → 7.5 [7,8]; judge overall
+  **9 [9,9] on cs-verify — best ever** (plan 9, study guide 9.5).
+  Splice now mirrors Prof's exact item→concept mapping (the lesson-pool
+  approximation over-counted and under-spliced — catch read 52% while
+  the splice saw >60%); catch passes on ALL courses now. Spiral
+  reinforcement (intake requires post-week-1 reinforces; quiz spreads
+  items onto them) cut unexposed items 7→1–3. Exports: 22 Office files
+  (7 DOCX features + 15 real PPTX) round-trip through the grader's own
+  parsers. Multi-seat judge everywhere; human packet RESEALED from
+  cs-verify. Honest misses: cost frontier published (thrift
+  $0.110/quiz 5 — nano cannot write assessment; lean $0.19–0.23/quiz
+  7.5 stays default), LA repair 0.428–0.479 (misconception seed density
+  is structural — the named next lever is richer repair on dense
+  concepts, not more catches), quiz bar 0.5 short with the residual
+  cause named (spiral review items read as drift — label them).
+  SIMULATED stamps stand; two instructors remain the verdict.
+
 ---
 
 _— Fable 5_
