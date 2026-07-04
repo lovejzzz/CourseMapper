@@ -1306,6 +1306,21 @@ polishing a candidate that hasn't won.
   loop grinds on cross-lesson echo it cannot fix (composed-content
   signature; J7-exclusion for composed repair = next lever). 100 tests.
 
+- **2026-07-05 (Composer v0.2.5 Echo & Fresh Ground).** Course-level
+  asset dedup (same asset never twice per course; thin-shelf dup
+  reuses counted) + composed repair excludes J7_ECHO from triggering
+  (echo is a composition property the model cannot rewrite away).
+  **E7e: LA cost $0.174 → $0.063 (repair 2 calls/$0.017) — the LA cost
+  bar finally met (≤$0.12 ✓✓), repair 0.545 still above Trellis's
+  0.463.** Honest partial: LA J7 rose to 4 — dedup kills SAME-asset
+  echo but LA's shelves hold near-identical SIBLINGS from three
+  same-course harvests; sibling-text exclusion at selection is the
+  named next lever. **E8 — FRESH GROUND: composition on a graph the
+  library never saw: $0.068 · 97/A · repair 0.518 · panel 7.67 [7,8] —
+  ALL BARS MET; the self-reuse caveat is now bounded at −0.33 vs the
+  frozen ruler (seat noise).** Solver gate seen working in production
+  (1 fresh item rejected). 100 tests.
+
 ---
 
 _— Fable 5_
