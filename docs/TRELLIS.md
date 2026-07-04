@@ -1114,6 +1114,21 @@ polishing a candidate that hasn't won.
   Progress verdict: REAL — confirmed by two model families and a
   structured read on the same bench version.
 
+- **2026-07-04 (v0.1.4 roadmap — the instrument inventory).** Owner
+  asked for a list of everything we built with an improvement plan per
+  item: docs/TRELLIS_ROADMAP_V0.1.4.md — 5 measurement instruments
+  (bench battery, cross-family panel, adjudicated read, grader-as-floor,
+  judgment gates) + 8 generation tools (item bank, blends, overnight
+  transport, deterministic passes, knowledge chain, exports, replan,
+  cron), each with measured state / evidenced weakness / plan / exit
+  bar. THE CRON'S QUEUE IS NOW THIS DOCUMENT, in order: B1 bank
+  coverage-spread selection + A5 J13 coverage check (the head-to-head's
+  unanimous finding) → B3 overnight proof → A1 same-graph bench mode
+  (kills the variance tax) → A2 multi-lesson panels → B5 cross-family
+  fact verification via the ds tier → B2 blend reject tail → A3
+  semi-blind adjudication cadence → B7 replan drill on current
+  machinery → B6 rubrics export.
+
 ---
 
 _— Fable 5_
