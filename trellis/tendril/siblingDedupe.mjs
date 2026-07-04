@@ -7,7 +7,14 @@
 // ε calibration (measured on e7e-composer-la, the frozen LA ruler): the
 // J7 block-severity explanation pairs sit at cosine 0.883-0.945; the one
 // warn pair at 0.833; legitimate same-concept explanations ≤0.85.
-// ε = 0.87 excludes every blocked sibling and spares the legitimate band.
+//
+// ε = 0.92, not 0.87 — the ruler decided. 0.87 gave J7 0 but battery
+// 0.545→0.447 (below band): siblings echo BECAUSE they re-confront the
+// same high-value misconception across lessons, and the classroom sim
+// rewards exactly that repetition. 0.92 excludes only flagrant prose
+// twins: J7 0, battery 0.523 (in band), $0.0883 (≤$0.12), grade 97/A.
+// Echo vs spaced-confrontation is a real tension; the durable fix is
+// family DEPTH (more distinctly-worded items per family), not a lower ε.
 //
 // Scope: bank-item explanations (the measured defect class) + prose move
 // assets (same mechanism, asset-cache vectors). Fresh model-authored fills
@@ -15,7 +22,7 @@
 
 import { cosine, cachedEmbed, loadEmbeddingCache, makeEmbedder } from './embedder.mjs';
 
-export const SIBLING_EPSILON = 0.87;
+export const SIBLING_EPSILON = 0.92;
 
 export async function buildTendrilContext(bank, { epsilon = SIBLING_EPSILON, embedder = null } = {}) {
   const emb = embedder ?? makeEmbedder();
@@ -56,6 +63,17 @@ export async function buildTendrilContext(bank, { epsilon = SIBLING_EPSILON, emb
     noteAsset(asset) {
       const vec = assetCache?.byId.get(asset.id)?.vector;
       if (vec) usedAssetVecs.push(vec);
+    },
+    // T-M1b — semantic relevance ranking. Returns a rank(asset) function
+    // for the given lesson context text, or null when vectors are missing
+    // (selection then falls back to the exposure draw untouched).
+    async relevanceRanker(lessonText) {
+      const [lessonVec] = await emb.embed([lessonText]);
+      if (!lessonVec) return null;
+      return (asset) => {
+        const vec = assetCache?.byId.get(asset.id)?.vector;
+        return vec ? cosine(lessonVec, vec) : -1;
+      };
     },
   };
 }

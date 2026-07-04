@@ -1,6 +1,6 @@
 {
  "stamp": "SIMULATED instruments — PROF-BENCH culture; Tendril T-M1c",
- "seconds": 0.4,
+ "seconds": 0.6,
  "loo": {
   "all": {
    "correct": 431,
@@ -302,6 +302,56 @@
       "total": 120,
       "falseFires": 24,
       "falseFireRate": 0.2
+     }
+    }
+   },
+   "item-options+expl": {
+    "0": {
+     "wrong": {
+      "total": 240,
+      "firedRight": 148,
+      "familyAccuracy": 0.6166666666666667
+     },
+     "correct": {
+      "total": 120,
+      "falseFires": 22,
+      "falseFireRate": 0.18333333333333332
+     }
+    },
+    "0.03": {
+     "wrong": {
+      "total": 240,
+      "firedRight": 128,
+      "familyAccuracy": 0.5333333333333333
+     },
+     "correct": {
+      "total": 120,
+      "falseFires": 18,
+      "falseFireRate": 0.15
+     }
+    },
+    "0.05": {
+     "wrong": {
+      "total": 240,
+      "firedRight": 113,
+      "familyAccuracy": 0.4708333333333333
+     },
+     "correct": {
+      "total": 120,
+      "falseFires": 14,
+      "falseFireRate": 0.11666666666666667
+     }
+    },
+    "0.08": {
+     "wrong": {
+      "total": 240,
+      "firedRight": 95,
+      "familyAccuracy": 0.3958333333333333
+     },
+     "correct": {
+      "total": 120,
+      "falseFires": 11,
+      "falseFireRate": 0.09166666666666666
      }
     }
    },

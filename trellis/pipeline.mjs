@@ -257,7 +257,10 @@ async function runPipelineStages({
     if (tendril) {
       try {
         const { buildTendrilContext } = await import('./tendril/siblingDedupe.mjs');
-        tendrilCtx = await buildTendrilContext(bank);
+        tendrilCtx = await buildTendrilContext(bank, {
+          ...(typeof tendril === 'string' && Number(tendril) > 0 ? { epsilon: Number(tendril) } : {}),
+        });
+        if (process.env.TENDRIL_RANK === '1') tendrilCtx.rankSelection = true;
       } catch (error) {
         digest.tendril = `UNAVAILABLE (${String(error.message).slice(0, 80)}) — semantic dedupe off this run`;
       }

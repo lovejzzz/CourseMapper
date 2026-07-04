@@ -49,6 +49,7 @@ function itemContextFor(bank) {
           correctText,
           stem: item.stem,
           itemId: item.id,
+          explanation: typeof item.explanation === 'string' ? item.explanation : null,
           distractors: (item.options ?? []).filter((_, i) => i !== item.correctIndex),
         });
       }
@@ -377,6 +378,7 @@ async function evalContrastive(bank, embedder, ledger) {
     ...wrongQueries.map((q) => q.correctText),
     ...correctQueries.map((q) => q.correctText),
     ...[...wrongQueries, ...correctQueries].flatMap((q) => q.ctx.distractors ?? []),
+    ...[...wrongQueries, ...correctQueries].map((q) => q.ctx.explanation).filter(Boolean),
   ];
   const vectors = await cachedEmbed(allTexts, { name: 'contrastive-eval', embedder });
   const vecOf = new Map(allTexts.map((t, i) => [t, vectors[i]]));
@@ -384,7 +386,7 @@ async function evalContrastive(bank, embedder, ledger) {
   // Fourth formulation — 'item-options': grade the typed answer against the
   // answered ITEM's own surfaces (its distractors vs its correct option).
   // Register-matched by construction; the kernel-wide exemplars stay out.
-  const itemOptionsEval = (queries, expectFire) => {
+  const itemOptionsEval = (queries, expectFire, withExpl = false) => {
     const perMargin = {};
     for (const margin of MARGINS) {
       let fired = 0;
@@ -395,7 +397,13 @@ async function evalContrastive(bank, embedder, ledger) {
           ...ctx.distractors.map((d) => (vecOf.has(d) ? Number(cosineOf(q.answer, d)) : -1)),
           -1,
         );
-        const nullTop = cosineOf(q.answer, ctx.correctText);
+        // +expl: the item's explanation joins the null side — bare-numeral
+        // correct options ("5") carry no semantics for a sentence answer
+        // to match (live false-fire class found in the Tutor).
+        const nullTop = Math.max(
+          cosineOf(q.answer, ctx.correctText),
+          withExpl && ctx.explanation ? cosineOf(q.answer, ctx.explanation) : -1,
+        );
         const fires = wrongTop >= 0.35 && wrongTop > nullTop + margin;
         if (fires) {
           fired += 1;
@@ -462,13 +470,19 @@ async function evalContrastive(bank, embedder, ledger) {
     byMode[mode] = perMargin;
   }
   const itemOptions = {};
+  const itemOptionsExpl = {};
   for (const margin of MARGINS) {
     itemOptions[margin] = {
       wrong: itemOptionsEval(wrongQueries, true)[margin],
       correct: itemOptionsEval(correctQueries, false)[margin],
     };
+    itemOptionsExpl[margin] = {
+      wrong: itemOptionsEval(wrongQueries, true, true)[margin],
+      correct: itemOptionsEval(correctQueries, false, true)[margin],
+    };
   }
   byMode['item-options'] = itemOptions;
+  byMode['item-options+expl'] = itemOptionsExpl;
 
   // Conservative profile: fire only when BOTH the item-local grader and the
   // kernel-wide contrastive check (corrects+expl) agree. If their false

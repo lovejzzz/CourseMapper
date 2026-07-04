@@ -14,3 +14,4 @@ trellis/tendril/cache/*.bin
 trellis/tendril/.venv/
 trellis/tendril/corpus/live-pairs.jsonl
 trellis/tendril/distill/adapters/0*
+trellis/tendril/tutor/bundle/

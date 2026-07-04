@@ -55,6 +55,14 @@ export async function composeLesson(
   const lesson = graph.lessons.find((l) => l.id === lessonId);
   const anchor = primaryKernel(graph, lesson);
   if (!anchor) throw new Error(`composeLesson: ${lessonId} has no genome-linked concept — fill path required`);
+  // T-M1b (A/B, off by default): rank the top-k draw by semantic fit to
+  // this lesson instead of exposure.
+  const rank =
+    tendril?.rankSelection && tendril.relevanceRanker
+      ? await tendril.relevanceRanker(
+          [lesson.title, ...(slice.concepts ?? []).map((c) => c.name)].filter(Boolean).join('; '),
+        )
+      : null;
   const exclude = new Set();
   const pick = (move) => {
     // Course-level dedup (v0.2.5): the same asset in two lessons IS the
@@ -66,6 +74,7 @@ export async function composeLesson(
     let asset = selectAsset(store, anchor.kernelId, move, {
       exclude: courseExclude,
       excludeIf: tendril ? (a) => tendril.assetEchoes(a) : null,
+      rank,
     });
     if (!asset && tendril) {
       asset = selectAsset(store, anchor.kernelId, move, { exclude: courseExclude });

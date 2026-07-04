@@ -1,0 +1,189 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Tendril Tutor</title>
+<style>
+  :root { --ink: #1c2733; --soft: #5b6b7b; --line: #dfe6ec; --accent: #2c6e49; --warn: #8a4f0e; --bg: #f7f9fa; }
+  * { box-sizing: border-box; }
+  body { margin: 0; font: 16px/1.55 Georgia, 'Times New Roman', serif; color: var(--ink); background: var(--bg); }
+  header { padding: 18px 22px; border-bottom: 1px solid var(--line); background: #fff; }
+  header h1 { margin: 0; font-size: 20px; }
+  header .meta { color: var(--soft); font-size: 13px; margin-top: 2px; }
+  main { max-width: 760px; margin: 0 auto; padding: 22px; }
+  select { font: inherit; padding: 6px 8px; margin: 4px 0 16px; max-width: 100%; }
+  .card { background: #fff; border: 1px solid var(--line); border-radius: 8px; padding: 18px 20px; margin-bottom: 16px; }
+  .stem { font-weight: bold; white-space: pre-line; }
+  textarea { width: 100%; min-height: 84px; font: inherit; padding: 10px; border: 1px solid var(--line); border-radius: 6px; margin-top: 10px; }
+  button { font: inherit; padding: 8px 18px; border: 1px solid var(--accent); background: var(--accent); color: #fff; border-radius: 6px; cursor: pointer; margin-top: 10px; }
+  button.quiet { background: #fff; color: var(--accent); }
+  button:disabled { opacity: 0.5; cursor: default; }
+  .verdict-null { border-left: 4px solid var(--accent); padding-left: 14px; }
+  .verdict-fire { border-left: 4px solid var(--warn); padding-left: 14px; }
+  .label { font-size: 12px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--soft); }
+  .reteach { background: #f4f8f5; border-radius: 6px; padding: 12px 14px; margin-top: 10px; font-size: 15px; }
+  #status { font-size: 13px; color: var(--soft); }
+  .scores { font-size: 12px; color: var(--soft); margin-top: 8px; }
+</style>
+</head>
+<body>
+<header>
+  <h1>Tendril Tutor</h1>
+  <div class="meta" id="course-meta">loading…</div>
+  <div id="status">Loading Tendril-E (≈23 MB, first visit only — cached after)…</div>
+</header>
+<main>
+  <div class="label">Lesson</div>
+  <select id="lesson"></select>
+  <div id="item-area"></div>
+</main>
+<script type="module">
+import { pipeline, env } from './vendor/transformers.min.js';
+
+env.allowRemoteModels = false;
+env.allowLocalModels = true; // web builds default this OFF — offline needs it ON
+env.localModelPath = './models';
+// Absolute URL — a relative wasmPaths resolves against the vendor script
+// itself and doubles to vendor/vendor/.
+env.backends.onnx.wasm.wasmPaths = new URL('./vendor/', document.baseURI).href;
+
+const statusEl = document.getElementById('status');
+const course = await (await fetch('./course.json')).json();
+document.getElementById('course-meta').textContent =
+  `${course.course.title} — typed-answer diagnosis, on-device, offline-capable`;
+
+window.addEventListener('error', (e) => { statusEl.textContent = `Model load failed: ${e.message}`; });
+window.addEventListener('unhandledrejection', (e) => { statusEl.textContent = `Model load failed: ${e.reason}`; });
+
+let embedder = null;
+let backend = 'wasm';
+const t0 = performance.now();
+// WebGPU when available, but RACED against a timeout — a hanging adapter
+// request (headless browsers, some drivers) must degrade to wasm, not
+// stall the tutor forever.
+try {
+  embedder = await Promise.race([
+    pipeline('feature-extraction', course.model.id, { dtype: 'q8', device: 'webgpu' }),
+    new Promise((_, reject) => setTimeout(() => reject(new Error('webgpu timeout')), 4000)),
+  ]);
+  backend = 'webgpu';
+} catch {
+  embedder = await pipeline('feature-extraction', course.model.id, { dtype: 'q8' });
+}
+statusEl.textContent = `Tendril-E ready in ${((performance.now() - t0) / 1000).toFixed(1)}s (${backend}). Everything below runs on this device.`;
+
+const vecCache = new Map();
+async function embed(text) {
+  if (!vecCache.has(text)) {
+    const out = await embedder(text, { pooling: 'mean', normalize: true });
+    vecCache.set(text, Array.from(out.data));
+  }
+  return vecCache.get(text);
+}
+const cos = (a, b) => a.reduce((s, x, i) => s + x * b[i], 0);
+
+// The T-M1c standard profile: item-local contrastive diagnosis.
+// Short correct options (a bare "5") carry no stance for a sentence
+// answer to match, so the explanation joins the null side ONLY then —
+// the frozen eval showed blanket +expl hurts (explanations restate the
+// misconception), while the bare-numeral class was its blind spot.
+async function diagnose(item, answer) {
+  const qv = await embed(answer);
+  const wrong = await Promise.all(
+    item.options.filter((_, i) => i !== item.correctIndex).map(async (d) => ({ d, s: cos(qv, await embed(d)) })),
+  );
+  const correct = item.options[item.correctIndex];
+  const shortOption = correct.length < 25;
+  let nullTop = cos(qv, await embed(correct));
+  if (shortOption && item.explanation) {
+    nullTop = Math.max(nullTop, cos(qv, await embed(item.explanation)));
+  }
+  const wrongTop = wrong.reduce((m, w) => Math.max(m, w.s), -1);
+  // Short-option items are the T-M1c eval's blind spot (it required
+  // sentence-length corrects), so they run a conservative 0.05 margin;
+  // measured items keep the measured profile.
+  const margin = shortOption ? Math.max(course.profile.margin, 0.05) : course.profile.margin;
+  const fires = wrongTop >= course.profile.floor && wrongTop > nullTop + margin;
+  return { fires, wrongTop, nullTop };
+}
+
+const lessonSel = document.getElementById('lesson');
+course.lessons.forEach((l, i) => {
+  const opt = document.createElement('option');
+  opt.value = i;
+  opt.textContent = `Week ${l.week} — ${l.title}`;
+  lessonSel.appendChild(opt);
+});
+
+const area = document.getElementById('item-area');
+function esc(s) {
+  const d = document.createElement('div');
+  d.textContent = s ?? '';
+  return d.innerHTML;
+}
+
+function renderItem(item, container, isSibling = false) {
+  const card = document.createElement('div');
+  card.className = 'card';
+  card.innerHTML = `
+    <div class="label">${isSibling ? 'One more, same idea' : 'Answer in your own words'}</div>
+    <p class="stem">${esc(item.stem)}</p>
+    <textarea placeholder="Type what you think the answer is…"></textarea>
+    <button>Check my answer</button>
+    <div class="out"></div>`;
+  const ta = card.querySelector('textarea');
+  const btn = card.querySelector('button');
+  const out = card.querySelector('.out');
+  btn.onclick = async () => {
+    const answer = ta.value.trim();
+    if (answer.length < 4) return;
+    btn.disabled = true;
+    btn.textContent = 'Reading…';
+    const v = await diagnose(item, answer);
+    btn.textContent = 'Check my answer';
+    btn.disabled = false;
+    if (!v.fires) {
+      out.innerHTML = `
+        <div class="card verdict-null">
+          <div class="label">That matches the correct idea</div>
+          <p>${esc(item.explanation)}</p>
+          <div class="scores">on-device: correct-side ${v.nullTop.toFixed(2)} vs wrong-side ${v.wrongTop.toFixed(2)}</div>
+        </div>`;
+    } else {
+      // Confirm-style, never assertive: 33% of correct answers land here
+      // (T-M1c measured), so the tutor asks, it does not scold.
+      out.innerHTML = `
+        <div class="card verdict-fire">
+          <div class="label">Let's double-check one thing</div>
+          ${item.misconception ? `<p>Your answer reads close to a common mix-up: <em>${esc(item.misconception)}</em></p>` : '<p>Your answer reads closer to one of the tempting wrong turns than to the key idea.</p>'}
+          ${item.corrective ? `<p><strong>The key idea:</strong> ${esc(item.corrective)}</p>` : `<p>${esc(item.explanation)}</p>`}
+          ${item.reteach ? `<div class="reteach"><div class="label">Worth re-walking</div>${esc(item.reteach)}</div>` : ''}
+          <div class="scores">on-device: wrong-side ${v.wrongTop.toFixed(2)} vs correct-side ${v.nullTop.toFixed(2)}</div>
+          <div class="sib"></div>
+        </div>`;
+      if (item.sibling && !isSibling) {
+        const sibBtn = document.createElement('button');
+        sibBtn.className = 'quiet';
+        sibBtn.textContent = 'Try a fresh question on the same idea';
+        sibBtn.onclick = () => {
+          sibBtn.remove();
+          renderItem(item.sibling, out.querySelector('.sib'), true);
+        };
+        out.querySelector('.sib').appendChild(sibBtn);
+      }
+    }
+  };
+  container.appendChild(card);
+}
+
+function renderLesson() {
+  area.innerHTML = '';
+  const lesson = course.lessons[Number(lessonSel.value)];
+  lesson.items.forEach((item) => renderItem(item, area));
+}
+lessonSel.onchange = renderLesson;
+renderLesson();
+</script>
+</body>
+</html>

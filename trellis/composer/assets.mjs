@@ -203,12 +203,21 @@ export async function buildAssets({ outPath = ASSETS_PATH } = {}) {
 // Selection with the CAT-style exposure draw (§7): among the top-k
 // candidates by evidence, draw by LOWEST exposure first — argmax reuse
 // is how every course becomes the same course.
-export function selectAsset(store, kernelId, move, { exclude = new Set(), k = 3, excludeIf = null } = {}) {
+//
+// T-M1b (A/B, flag-gated): when `rank` is provided (tendril relevance
+// ranking), the top-k draw orders by semantic fit to THIS lesson instead
+// of exposure, exposure as tie-break. Measured on the frozen ruler before
+// any default flips — relevance could beat variety or lose to it.
+export function selectAsset(store, kernelId, move, { exclude = new Set(), k = 3, excludeIf = null, rank = null } = {}) {
   const pool = store.assets
     .filter((a) => a.kernelId === kernelId && a.move === move && !exclude.has(a.id) && !excludeIf?.(a))
     .sort((a, b) => (b.evidence.fromGrade ?? 0) - (a.evidence.fromGrade ?? 0))
     .slice(0, k)
-    .sort((a, b) => (a.exposure?.uses ?? 0) - (b.exposure?.uses ?? 0));
+    .sort(
+      rank
+        ? (a, b) => rank(b) - rank(a) || (a.exposure?.uses ?? 0) - (b.exposure?.uses ?? 0)
+        : (a, b) => (a.exposure?.uses ?? 0) - (b.exposure?.uses ?? 0),
+    );
   const chosen = pool[0] ?? null;
   if (chosen) chosen.exposure.uses = (chosen.exposure.uses ?? 0) + 1;
   return chosen;
