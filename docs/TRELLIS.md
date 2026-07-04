@@ -1096,6 +1096,24 @@ polishing a candidate that hasn't won.
   style benchmark: charter, version freeze, change discipline,
   fixed protocol, anti-gaming stance — docs/PROF_BENCH.md.
 
+- **2026-07-04 (the big test — PROF-BENCH v1.1 head-to-head, all
+  1b2449d machinery under load).** Fresh Trellis run ($0.145/191s/98A,
+  56/84 banked) vs the current pipeline's real July-3 package, both on
+  3-seat cross-family panels + the charter's FIRST adjudicated read
+  (docs/adjudications/2026-07-04-bench11-head-to-head.md). RESULTS:
+  every instrument family agrees on direction — judge openai +2
+  (8,8 vs 6,6), judge deepseek +4 (9 vs 5), adjudicated read +3 (~8 vs
+  ~5). The cross-family seat did NOT flatter same-family output (ranked
+  Trellis higher, current lower than openai did) — the bias concern is
+  now measured, twice, in the unflattering direction. The adjudication
+  protocol EARNED ITS PLACE on round one: the panel scored the current
+  pipeline's quiz 7 [7,7]; the read found four items testing one recall
+  fact and a self-answering stem (5.5) — a class lexical panels cannot
+  see; disagreement recorded per charter, not averaged. Cycle-1 fixes
+  visible in production (Review: labels, zero stub distractors).
+  Progress verdict: REAL — confirmed by two model families and a
+  structured read on the same bench version.
+
 ---
 
 _— Fable 5_
