@@ -35,6 +35,7 @@ export async function runPipeline({
   gradePackage = false,
   termStart = null,
   overnight = false,
+  composer = false,
   bankDiscipline = null,
   generatedAt = new Date().toISOString(),
 }) {
@@ -53,6 +54,7 @@ export async function runPipeline({
       gradePackage,
       termStart,
       overnight,
+      composer,
       bankDiscipline,
       generatedAt,
       ledger,
@@ -76,6 +78,7 @@ async function runPipelineStages({
   gradePackage,
   termStart,
   overnight,
+  composer,
   bankDiscipline,
   generatedAt,
   ledger,
@@ -238,7 +241,17 @@ async function runPipelineStages({
   // Overnight transport (batch API, 50% token rates): identical models,
   // schemas and validators — a latency trade, never a quality one. Only
   // the authoring fan-out batches; small serial stages stay live.
-  const useBatch = overnight && !mockVoice && tiers.authorSurfaces;
+  // E6 (COMPOSER.md): assemble from the asset store; Trellis fills gaps.
+  if (composer && !mockVoice) {
+    const { loadAssets } = await import('./composer/assets.mjs');
+    const { composeAllLessons } = await import('./composer/compose.mjs');
+    const store = await loadAssets();
+    if (!store) throw new Error('composer requires trellis/bank/assets.json — run trellis/composer/assets.mjs');
+    const outcome = await composeAllLessons(graph, store, { ledger, budgetUsd, tiers, bank });
+    digest.composer = `assembled from ${store.assets.length} assets: reuse ${outcome.stats.reusePct}% by surface area (${outcome.stats.reusedParts} parts reused, ${outcome.stats.freshParts} fresh); skin ${outcome.stats.skinned}/${outcome.stats.skinOf} segments unified`;
+    var composerOutcome = outcome;
+  }
+  const useBatch = !composer && overnight && !mockVoice && tiers.authorSurfaces;
   let authorOutcome;
   if (useBatch) {
     const { authorAllLessonsBatch } = await import('./voice/author.mjs');
@@ -252,7 +265,8 @@ async function runPipelineStages({
         ? `overnight batch FAILED (${(bt.firstError ?? 'unknown').slice(0, 160)}) — all authoring fell back to LIVE at full rate`
         : `overnight batch: ${bt.batchedParts}/${bt.totalParts} authoring parts at 50% token rates${bt.fallbackLessons > 0 ? `; ${bt.fallbackLessons} lesson(s) fell back to live` : ''}`;
   }
-  const { authored, failures } = useBatch ? authorOutcome : await authorAllLessons(graph, authorOptions);
+  const { authored, failures } =
+    composer && !mockVoice ? composerOutcome : useBatch ? authorOutcome : await authorAllLessons(graph, authorOptions);
   if (bank && bankStats.selected + bankStats.fresh > 0) {
     // Shelf telemetry (v0.1.5 item 2): the thinnest lesson is named in
     // every digest — late-course shelf thinning was invisible until a

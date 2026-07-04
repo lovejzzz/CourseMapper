@@ -59,6 +59,7 @@ async function cmdGenerate(options) {
     budgetUsd: Number(options.budget ?? 5),
     termStart: options['term-start'] ?? null,
     overnight: Boolean(options.overnight),
+    composer: Boolean(options.composer),
     bankDiscipline: typeof options.bank === 'string' ? options.bank : null,
     runId: options['run-id'] ?? newRunId(options.mock ? 'mock' : 'live'),
   });
