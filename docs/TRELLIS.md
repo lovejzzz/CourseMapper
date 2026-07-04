@@ -1321,6 +1321,17 @@ polishing a candidate that hasn't won.
   frozen ruler (seat noise).** Solver gate seen working in production
   (1 fresh item rejected). 100 tests.
 
----
-
-_— Fable 5_
+- **2026-07-04 (Tendril design doc).** Owner approved the tiny
+  in-browser model direction ("name this model and write a detailed
+  design doc") → **docs/TENDRIL.md**. Named **Tendril** (the smallest
+  organ of the plant, the only one that grips in real time). Family:
+  Tendril-E (~25MB embedder, PROVEN tier: typed-answer diagnosis,
+  semantic sibling dedupe/selection, X-ray), Tendril-S (~40–80MB
+  distilled skin from our gate-labeled rewrite corpus, AMBITIOUS tier,
+  bench decides), Tendril-D (future classifier, only if E <80%).
+  Core claim: the gate-with-fallback invariant makes a tiny model safe
+  — quality monotonic by construction, failures ship nothing. Phases:
+  0 (E, $0 API, exit bars J7 ≤1 LA / ≥80% family accuracy), 1 (corpus
+  ≥5k pairs + S gated acceptance ≥40% vs nano 85–95%), 2
+  (Tutor-in-a-File v2, ≤110MB, offline). Design only — no build spend
+  committed.
