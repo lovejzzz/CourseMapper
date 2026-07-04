@@ -1194,6 +1194,25 @@ polishing a candidate that hasn't won.
   math-dense items. CARRIES: 16 floor stragglers (systematic rejects —
   investigate the gate, not the model), LA ≥0.55, blend tail-of-tail.
 
+- **2026-07-04 (v0.1.7 Dense Repair — implemented + validated; one bar
+  met, one exceeded, one honest null).** GATE FORENSICS: gapItemRejection
+  returns WHY (histogram in output); diagnosis found 'no-catch' on
+  SHORT beliefs — our own reason-bearing guidance teaches paraphrase,
+  which shares zero of three gate tokens. Fix: generation receives the
+  matcher's OWN tokens (mustIncludeTwoOf / explanationMustIncludeHalfOf).
+  Floor stragglers 16→6 over five passes (bar ≥12/16 recovered: 10 —
+  partial, the six hardest short-belief kernels disclosed). BLEND BAR
+  MET: word budgets scale with the corrective stack → LA 91.4%, cs 97%
+  (bar ≥90 ✓✓). cs frozen replay: repair 0.603 (top of band), **J13=0
+  first time**, 98/A. THE NULL: dense-mode distractors did NOT move LA
+  — same-graph repair 0.497 vs 0.498, zero effect; the 3×-catch-surface
+  hypothesis is unconfirmed on the sim; carry with a sharper design
+  (verify fresh-item family compliance first, then bank-side multi-catch
+  tagging). TRAP CAUGHT BY READING: buildBank rebuilds from harvests
+  only and would have silently destroyed 390 paid gapfill items —
+  rebuilds now preserve gapfill origin. Bank 1,861. LA cost crept to
+  $0.333 (blend ds tail + corrective volume) — watch.
+
 ---
 
 _— Fable 5_
