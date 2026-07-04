@@ -96,8 +96,13 @@ export function gapItemPasses(cell, item, shelf) {
   );
   if (!caught) return false;
   if (!confrontsCorrective(item.explanation, cell.corrective)) return false;
-  // Dedupe against the existing shelf for this kernel.
-  if (shelf.some((other) => tokenOverlapRatio(other.stem, item.stem) > 0.6)) return false;
+  // Dedupe WITHIN the family only (v0.1.5 refit): the first fill rejected
+  // every cs cell because any new stem about a deep-shelf concept
+  // resembles its 50-100 siblings — but cross-family similarity about one
+  // concept is legitimate; the dupe that matters is same-family.
+  const sameFamily = shelf.filter((other) => other.familyKey === cell.family);
+  if (sameFamily.some((other) => tokenOverlapRatio(other.stem, item.stem) > 0.6)) return false;
+  if (shelf.some((other) => other.stem.trim().toLowerCase() === item.stem.trim().toLowerCase())) return false;
   return true;
 }
 

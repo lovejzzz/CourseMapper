@@ -257,7 +257,20 @@ export function selectBankItems(slice, bank, { maxBanked = 4, perConcept = 3 } =
     // not understanding (the bench11 adjudication finding).
     const familyCap = Math.ceil(maxBanked / 2);
     const familyCounts = new Map();
-    const spreadPool = [...pool.filter((item) => item.familyKey), ...pool.filter((item) => !item.familyKey)];
+    // Round-robin across families (v0.1.5 refit): evidence-order-with-cap
+    // still yielded 2:1 within a concept; interleaving yields 1:1:… so no
+    // family waits behind another's second pick.
+    const groups = new Map();
+    for (const item of pool.filter((i) => i.familyKey)) {
+      if (!groups.has(item.familyKey)) groups.set(item.familyKey, []);
+      groups.get(item.familyKey).push(item);
+    }
+    const interleaved = [];
+    const groupLists = [...groups.values()];
+    for (let round = 0; groupLists.some((g) => g.length > round); round += 1) {
+      for (const g of groupLists) if (g[round]) interleaved.push(g[round]);
+    }
+    const spreadPool = [...interleaved, ...pool.filter((item) => !item.familyKey)];
     for (const item of spreadPool) {
       if (selected.length >= maxBanked || taken >= perConcept) break;
       if (item.familyKey && (familyCounts.get(item.familyKey) ?? 0) >= familyCap) continue;

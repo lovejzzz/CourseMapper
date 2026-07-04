@@ -40,18 +40,20 @@ export function j13CoverageSpread(graph, authored) {
       });
       if (catchingItems < 2) continue;
 
-      for (const [key, count] of byFamily) {
-        if (count / catchingItems > 0.5 && count >= 2) {
-          findings.push(
-            finding(
-              'warn',
-              'J13_COVERAGE_SPREAD',
-              `authored/${lesson.id}`,
-              `quiz spends ${count}/${catchingItems} catching items on one misconception family ("${key.slice(0, 50)}…") while ${families.size - 1} other documented famil${families.size - 1 === 1 ? 'y goes' : 'ies go'} untested — spread bank selection/splicing across families`,
-            ),
-          );
-          break; // one finding per concept is signal enough
-        }
+      // v0.1.5 recalibration: fire on NEGLECT, not imbalance — the bench11
+      // finding was families with ZERO items while another had four, and
+      // the first J13 fired even when every family had coverage (2:1
+      // ratios). A tested family is a tested family.
+      const untested = [...families].filter((key) => !(byFamily.get(key) > 0));
+      if (untested.length > 0 && Math.max(...byFamily.values()) >= 2) {
+        findings.push(
+          finding(
+            'warn',
+            'J13_COVERAGE_SPREAD',
+            `authored/${lesson.id}`,
+            `${untested.length} documented misconception famil${untested.length === 1 ? 'y has' : 'ies have'} ZERO catching items ("${untested[0].slice(0, 50)}…") while another family holds ${Math.max(...byFamily.values())} — fill the neglected family via bank selection/splicing`,
+          ),
+        );
       }
     }
   }

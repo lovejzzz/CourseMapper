@@ -3,7 +3,7 @@
   "generator": "trellis@0.1.3",
   "minGrade": 97,
   "stamp": "SIMULATED instruments only — judge-score gating joins when verdicts persist to run dirs",
-  "kernels": 227,
+  "kernels": 256,
   "items": [
     {
       "id": "breadth-linear-algebra:l3:q0",
@@ -40764,10 +40764,1525 @@
         "grade": null,
         "date": "2026-07-04"
       }
+    },
+    {
+      "id": "gapfill:anatomy/levels-of-organization:students-may-memorize-st",
+      "kernelId": "anatomy/levels-of-organization",
+      "conceptName": "Levels of structural organization",
+      "stem": "A student labels a diagram as cell, tissue, organ, and organ system but cannot explain how a kidney differs from a nephron or why both matter. Which explanation best fixes the student's understanding?",
+      "options": [
+        "Memorize the labels; structure and function are separate.",
+        "Cells, tissues, organs, and systems are isolated names.",
+        "A cell is the smallest functioning unit; organs have multiple tissue types.",
+        "Only organ systems matter in anatomy; lower levels are trivia."
+      ],
+      "correctIndex": 2,
+      "explanation": "A&P uses structure-function reasoning across levels of organization, not isolated labels. A cell is the smallest independently functioning unit, and organs are made of two or more tissue types.",
+      "bloom": "apply",
+      "difficulty": "apply",
+      "catches": true,
+      "confronts": true,
+      "familyKey": "students may memorize structures as isolated labels",
+      "provenance": {
+        "origin": "gapfill",
+        "model": "cheap",
+        "grade": null,
+        "date": "2026-07-04"
+      }
+    },
+    {
+      "id": "gapfill:anatomy/synovial-joints:students-may-treat-every",
+      "kernelId": "anatomy/synovial-joints",
+      "conceptName": "Synovial joints",
+      "stem": "A clinician tells a patient that a shoulder joint is like the skull sutures because all joints are structurally identical. What correction is most accurate?",
+      "options": [
+        "All joints are identical, so mobility depends only on muscles.",
+        "Synovial joints have a joint cavity and specialized structures.",
+        "Every joint lacks ligaments and cartilage.",
+        "A joint cavity means the joint cannot move."
+      ],
+      "correctIndex": 1,
+      "explanation": "Synovial joints are not structurally identical to all other joints. Their joint cavity, articular cartilage, synovial fluid, and ligaments support smooth motion and resist abnormal motion.",
+      "bloom": "apply",
+      "difficulty": "apply",
+      "catches": true,
+      "confronts": true,
+      "familyKey": "students may treat every joint as structurally identical",
+      "provenance": {
+        "origin": "gapfill",
+        "model": "cheap",
+        "grade": null,
+        "date": "2026-07-04"
+      }
+    },
+    {
+      "id": "gapfill:astro/telescope-aperture:students-think-a-telesco",
+      "kernelId": "astro/telescope-aperture",
+      "conceptName": "Telescope light-gathering power",
+      "stem": "An amateur astronomer buys a larger telescope hoping to make dim galaxies brighter, but the view is only bigger, not clearer. What should they understand?",
+      "options": [
+        "Magnification is the telescope's main purpose.",
+        "Light-gathering area matters; doubling aperture quadruples light.",
+        "A smaller aperture always resolves more detail.",
+        "Magnification alone reveals fainter objects."
+      ],
+      "correctIndex": 1,
+      "explanation": "Telescope performance depends on light-gathering area, not just magnification. Doubling aperture quadruples collected light, while magnification alone can only enlarge a dim blur.",
+      "bloom": "apply",
+      "difficulty": "apply",
+      "catches": true,
+      "confronts": true,
+      "familyKey": "students think a telescope s main purpose is magnification",
+      "provenance": {
+        "origin": "gapfill",
+        "model": "cheap",
+        "grade": null,
+        "date": "2026-07-04"
+      }
+    },
+    {
+      "id": "gapfill:astro/parallax:students-expect-a-larger",
+      "kernelId": "astro/parallax",
+      "conceptName": "Stellar parallax",
+      "stem": "A nearby star shows a much larger annual shift against background stars than another star. What does that imply?",
+      "options": [
+        "It is more distant, because larger parallax means farther away.",
+        "It is nearer, because parallax shrinks with distance.",
+        "Its parsec value must be zero.",
+        "Its motion is unrelated to distance."
+      ],
+      "correctIndex": 1,
+      "explanation": "Parallax and distance are inverse. Nearby stars shift the most, and a star twice as far shows half the parallax.",
+      "bloom": "apply",
+      "difficulty": "apply",
+      "catches": true,
+      "confronts": true,
+      "familyKey": "students expect a larger parallax to mean a more distant sta",
+      "provenance": {
+        "origin": "gapfill",
+        "model": "cheap",
+        "grade": null,
+        "date": "2026-07-04"
+      }
+    },
+    {
+      "id": "gapfill:astro/solar-nebula:students-treat-the-arran",
+      "kernelId": "astro/solar-nebula",
+      "conceptName": "Solar nebula hypothesis",
+      "stem": "A student wonders why Mercury and Venus are rocky while Jupiter and Saturn contain much more ice and gas. Which explanation best fits the solar nebula hypothesis?",
+      "options": [
+        "The arrangement is coincidence from random planet collisions.",
+        "The disk temperature gradient determined what could condense.",
+        "All planets formed from identical amounts of rock.",
+        "Outer planets are only large because they are older."
+      ],
+      "correctIndex": 1,
+      "explanation": "The temperature gradient of the disk explains the architecture. Near the hot Sun, only metals and rock condensed; beyond the frost line, ices condensed too, providing more building material.",
+      "bloom": "apply",
+      "difficulty": "apply",
+      "catches": true,
+      "confronts": true,
+      "familyKey": "students treat the arrangement of rocky inner planets and ic",
+      "provenance": {
+        "origin": "gapfill",
+        "model": "cheap",
+        "grade": null,
+        "date": "2026-07-04"
+      }
+    },
+    {
+      "id": "gapfill:bio/homeostasis:students-think-homeostas",
+      "kernelId": "bio/homeostasis",
+      "conceptName": "Homeostasis",
+      "stem": "During exercise, a runner's body temperature rises, then sweating cools it back toward normal. Which statement best describes homeostasis?",
+      "options": [
+        "The body keeps temperature completely unchanging.",
+        "Homeostasis is active regulation around a set point.",
+        "Homeostasis means the body stops responding.",
+        "Sweating proves the set point does not matter."
+      ],
+      "correctIndex": 1,
+      "explanation": "Homeostasis is active regulation around a set point, not a frozen constant. Negative feedback counters the change and returns the variable toward the set point.",
+      "bloom": "apply",
+      "difficulty": "apply",
+      "catches": true,
+      "confronts": true,
+      "familyKey": "students think homeostasis means an unchanging internal stat",
+      "provenance": {
+        "origin": "gapfill",
+        "model": "cheap",
+        "grade": null,
+        "date": "2026-07-04"
+      }
+    },
+    {
+      "id": "gapfill:chem/titration:students-read-an-endpoin",
+      "kernelId": "chem/titration",
+      "conceptName": "Titration",
+      "stem": "In lab, a group titrates an acid sample using a titrant they never standardized, yet they still record an endpoint and calculate concentration. What is the main flaw?",
+      "options": [
+        "The endpoint is meaningful without knowing titrant concentration.",
+        "The titrant must be standardized before the endpoint matters.",
+        "Standardization only applies after the endpoint.",
+        "Endpoint readings replace concentration measurements."
+      ],
+      "correctIndex": 1,
+      "explanation": "The endpoint is only meaningful once the titrant's concentration is known. Titration steps are sequential, and an unstandardized titrant makes the result invalid.",
+      "bloom": "apply",
+      "difficulty": "apply",
+      "catches": true,
+      "confronts": true,
+      "familyKey": "students read an endpoint from a titrant that was never stan",
+      "provenance": {
+        "origin": "gapfill",
+        "model": "cheap",
+        "grade": null,
+        "date": "2026-07-04"
+      }
+    },
+    {
+      "id": "gapfill:econ/wage-price-spiral:students-assume-positive",
+      "kernelId": "econ/wage-price-spiral",
+      "conceptName": "Wage-price spiral",
+      "stem": "A central bank sees prices and wages keep rising after each increase. What best describes this cycle?",
+      "options": [
+        "Positive feedback amplifies the initial change.",
+        "Negative feedback restores stability.",
+        "Positive feedback always produces good outcomes.",
+        "Wage-price spiral means prices stop changing."
+      ],
+      "correctIndex": 0,
+      "explanation": "Positive feedback describes runaway amplification, not automatic benefit. In an inflation spiral, rising prices lead to higher wages and then still higher prices.",
+      "bloom": "understand",
+      "difficulty": "apply",
+      "catches": true,
+      "confronts": true,
+      "familyKey": "students assume positive feedback is beneficial when it name",
+      "provenance": {
+        "origin": "gapfill",
+        "model": "cheap",
+        "grade": null,
+        "date": "2026-07-04"
+      }
+    },
+    {
+      "id": "gapfill:history/radical-republicans-wade-davis:the-wade-davis-bill-was-",
+      "kernelId": "history/radical-republicans-wade-davis",
+      "conceptName": "Radical Republicans and the Wade–Davis Bill",
+      "stem": "A Reconstruction plan requires the Ironclad Oath from many former Confederates and excludes many from politics. Compared with Lincoln’s approach, how was it viewed?",
+      "options": [
+        "It was more lenient than Lincoln's plan.",
+        "It was harsher than Lincoln's plan.",
+        "It matched Lincoln's plan exactly.",
+        "It ended Reconstruction immediately."
+      ],
+      "correctIndex": 1,
+      "explanation": "The Wade–Davis Bill was harsher, requiring the Ironclad Oath and excluding many from political participation. Lincoln blocked it with a pocket veto.",
+      "bloom": "understand",
+      "difficulty": "apply",
+      "catches": true,
+      "confronts": true,
+      "familyKey": "the wade davis bill was more lenient than lincoln s plan",
+      "provenance": {
+        "origin": "gapfill",
+        "model": "cheap",
+        "grade": null,
+        "date": "2026-07-04"
+      }
+    },
+    {
+      "id": "gapfill:history/thirteenth-amendment-abolition:the-thirteenth-amendment",
+      "kernelId": "history/thirteenth-amendment-abolition",
+      "conceptName": "Thirteenth Amendment (abolition of slavery)",
+      "stem": "A textbook asks when the Thirteenth Amendment legally ended slavery in the United States. Which statement is correct?",
+      "options": [
+        "It was ratified during Lincoln's lifetime.",
+        "It ended slavery only in the North.",
+        "It was ratified after Lincoln died.",
+        "It replaced the Emancipation Proclamation."
+      ],
+      "correctIndex": 2,
+      "explanation": "Lincoln never saw the final ratification of the Thirteenth Amendment. The amendment permanently abolished slavery after his death.",
+      "bloom": "remember",
+      "difficulty": "recall",
+      "catches": true,
+      "confronts": true,
+      "familyKey": "the thirteenth amendment was ratified during lincoln s lifet",
+      "provenance": {
+        "origin": "gapfill",
+        "model": "cheap",
+        "grade": null,
+        "date": "2026-07-04"
+      }
+    },
+    {
+      "id": "gapfill:history/overland-migration-trails-oregon-1845-1870:wagon-trains-were-typica",
+      "kernelId": "history/overland-migration-trails-oregon-1845-1870",
+      "conceptName": "Overland migration trails (Oregon Trail and others)",
+      "stem": "A family in 1852 joins a wagon train on the Oregon Trail. Why does the journey remain risky even with many travelers?",
+      "options": [
+        "Large groups guaranteed safety.",
+        "Illness and starvation were still common.",
+        "Native people always attacked wagon trains.",
+        "The route was only a few hundred miles."
+      ],
+      "correctIndex": 1,
+      "explanation": "The trails were dangerous even for large groups. Illness, starvation, and other hazards made survival difficult on long wagon journeys.",
+      "bloom": "understand",
+      "difficulty": "apply",
+      "catches": true,
+      "confronts": true,
+      "familyKey": "wagon trains were typically safe because large numbers guara",
+      "provenance": {
+        "origin": "gapfill",
+        "model": "cheap",
+        "grade": null,
+        "date": "2026-07-04"
+      }
+    },
+    {
+      "id": "gapfill:history/late-19c-urbanization-drivers:urban-population-growth-",
+      "kernelId": "history/late-19c-urbanization-drivers",
+      "conceptName": "Drivers of late nineteenth-century U.S. urbanization",
+      "stem": "A city’s population surges in the 1880s as factories add electric lights and immigrants arrive near ports. What best explains the growth?",
+      "options": [
+        "Urban growth was already explosive in colonial times.",
+        "Industrialization and new technology drew people into cities.",
+        "Factories moved back to farms near rivers.",
+        "Cities grew only because of wagon trains."
+      ],
+      "correctIndex": 1,
+      "explanation": "The explosion in urban population growth came later, in the mid-nineteenth century. Industrialization, new technologies, and immigration concentrated jobs and people in cities.",
+      "bloom": "understand",
+      "difficulty": "apply",
+      "catches": true,
+      "confronts": true,
+      "familyKey": "urban population growth in the u s was already explosive fro",
+      "provenance": {
+        "origin": "gapfill",
+        "model": "cheap",
+        "grade": null,
+        "date": "2026-07-04"
+      }
+    },
+    {
+      "id": "gapfill:history/urban-infrastructure-innovations:skyscrapers-became-commo",
+      "kernelId": "history/urban-infrastructure-innovations",
+      "conceptName": "Key innovations enabling turn-of-the-century urbanization",
+      "stem": "A downtown developer wants to build a 20-story office tower in 1890. Which invention makes that height practical for daily use?",
+      "options": ["Steel frame construction alone", "The electric elevator", "The telegraph", "The electric trolley"],
+      "correctIndex": 1,
+      "explanation": "Steel helped, but tall buildings needed another vital invention: the elevator. The first electric elevator in 1889 made skyscrapers usable, not just possible.",
+      "bloom": "apply",
+      "difficulty": "apply",
+      "catches": true,
+      "confronts": true,
+      "familyKey": "skyscrapers became common as soon as steel construction exis",
+      "provenance": {
+        "origin": "gapfill",
+        "model": "cheap",
+        "grade": null,
+        "date": "2026-07-04"
+      }
+    },
+    {
+      "id": "gapfill:history/grange-granger-laws-greenback-party-wabash:the-grange-mainly-sought",
+      "kernelId": "history/grange-granger-laws-greenback-party-wabash",
+      "conceptName": "The Grange, Granger Laws, and the Greenback Party",
+      "stem": "Midwestern farmers form cooperatives to buy supplies together and demand fair railroad rates. Which belief best fits the Grange's strategy?",
+      "options": [
+        "Violent confrontation with railroads",
+        "Self-help through cooperatives",
+        "Ending all currency use",
+        "Joining city factory unions"
+      ],
+      "correctIndex": 1,
+      "explanation": "The Grange emphasized self-help through cooperatives to pool resources and negotiate better rates. It pursued organization and regulation, not violence against railroads or banks.",
+      "bloom": "understand",
+      "difficulty": "apply",
+      "catches": true,
+      "confronts": true,
+      "familyKey": "the grange mainly sought violent confrontation with railroad",
+      "provenance": {
+        "origin": "gapfill",
+        "model": "cheap",
+        "grade": null,
+        "date": "2026-07-04"
+      }
+    },
+    {
+      "id": "gapfill:history/black-soldiers-smoked-yankees:black-americans-uniforml",
+      "kernelId": "history/black-soldiers-smoked-yankees",
+      "conceptName": "African American soldiers (“Smoked Yankees”) in the Spanish-American War",
+      "stem": "In a Black community meeting, some residents urge enlistment while others warn the war will deepen inequality. What view matches the historical debate?",
+      "options": [
+        "All Black Americans supported the war",
+        "There was debate for and against involvement",
+        "Black soldiers were kept entirely from service",
+        "The war had no connection to citizenship"
+      ],
+      "correctIndex": 1,
+      "explanation": "Black Americans did not respond uniformly; the passage describes debate both for and against involvement. Those views reflected different ideas about citizenship, obligation, and opportunity.",
+      "bloom": "analyze",
+      "difficulty": "transfer",
+      "catches": true,
+      "confronts": true,
+      "familyKey": "black americans uniformly supported participation in the war",
+      "provenance": {
+        "origin": "gapfill",
+        "model": "cheap",
+        "grade": null,
+        "date": "2026-07-04"
+      }
+    },
+    {
+      "id": "gapfill:history/wilson-moral-foreign-policy:wilson-s-foreign-policy-",
+      "kernelId": "history/wilson-moral-foreign-policy",
+      "conceptName": "Wilson’s moral (idealistic) foreign policy",
+      "stem": "During a debate, a student says Wilson backed intervention abroad only because it protected U.S. business and power, not because of any higher principle. Which interpretation best fits the text?",
+      "options": [
+        "Wilson was purely self-interested, not moral.",
+        "Wilson framed intervention as a moral imperative.",
+        "Wilson opposed all overseas markets.",
+        "Wilson rejected diplomacy and peace talks."
+      ],
+      "correctIndex": 1,
+      "explanation": "The text describes Wilson’s idealistic foreign policy as grounded in morality and a moral imperative, even if practice diverged. It also notes he still valued U.S. values and overseas markets, so “purely self-interest” is too narrow.",
+      "bloom": "understand",
+      "difficulty": "apply",
+      "catches": true,
+      "confronts": true,
+      "familyKey": "wilson s foreign policy was purely about u s self interest n",
+      "provenance": {
+        "origin": "gapfill",
+        "model": "cheap",
+        "grade": null,
+        "date": "2026-07-04"
+      }
+    },
+    {
+      "id": "gapfill:history/european-alliance-system-1914:the-triple-alliance-and-",
+      "kernelId": "history/european-alliance-system-1914",
+      "conceptName": "European alliance system at the outbreak of World War I",
+      "stem": "At the start of World War I, a student says the Triple Alliance and Triple Entente were simply the same as the later Central and Allied powers. What is the best correction?",
+      "options": [
+        "They were identical from the start.",
+        "They became opposing sides after war began.",
+        "Italy never changed sides.",
+        "Austria-Hungary joined the Entente."
+      ],
+      "correctIndex": 1,
+      "explanation": "The prewar alliance system transformed after the outbreak of war into opposing camps. The text emphasizes the Triple Entente and Triple Alliance first, then the Central Powers and Allied Powers later, with Italy’s neutrality and switch showing the change.",
+      "bloom": "understand",
+      "difficulty": "apply",
+      "catches": true,
+      "confronts": true,
+      "familyKey": "the triple alliance and triple entente were the same thing a",
+      "provenance": {
+        "origin": "gapfill",
+        "model": "cheap",
+        "grade": null,
+        "date": "2026-07-04"
+      }
+    },
+    {
+      "id": "gapfill:history/emergency-banking-act-1933:going-off-the-gold-stand",
+      "kernelId": "history/emergency-banking-act-1933",
+      "conceptName": "Emergency Banking Act of 1933 (bank holiday and reform)",
+      "stem": "After the 1933 bank holiday, a student says people could still exchange dollar bills for gold exactly as before. What does the text say instead?",
+      "options": [
+        "Gold redemption continued unchanged.",
+        "Dollar bills were no longer redeemable in gold.",
+        "Only banks could redeem gold.",
+        "Gold became the only legal currency."
+      ],
+      "correctIndex": 1,
+      "explanation": "The Emergency Banking Act ended redemption of dollar bills in gold and took the country off the gold standard. The law expanded federal control, so the old convertibility was not preserved.",
+      "bloom": "understand",
+      "difficulty": "apply",
+      "catches": true,
+      "confronts": true,
+      "familyKey": "going off the gold standard meant people could still redeem ",
+      "provenance": {
+        "origin": "gapfill",
+        "model": "cheap",
+        "grade": null,
+        "date": "2026-07-04"
+      }
+    },
+    {
+      "id": "gapfill:history/work-relief-programs-first-new-deal:new-deal-relief-was-main",
+      "kernelId": "history/work-relief-programs-first-new-deal",
+      "conceptName": "Work relief programs (FERA, CWA, CCC)",
+      "stem": "In a county facing mass unemployment, a New Deal administrator argues for federal aid. Which response best matches the work relief programs described in the passage?",
+      "options": [
+        "Send cash handouts to unemployed families.",
+        "Use grants and public jobs to employ workers.",
+        "Wait for private industry to recover.",
+        "Expand tariffs to protect wages."
+      ],
+      "correctIndex": 1,
+      "explanation": "FERA and the CWA emphasized grants, relief agencies, and public employment, not just cash handouts. The passage says Roosevelt mostly wanted to create more jobs through mass employment on projects like roads and bridges.",
+      "bloom": "apply",
+      "difficulty": "apply",
+      "catches": true,
+      "confronts": true,
+      "familyKey": "new deal relief was mainly cash handouts rather than jobs",
+      "provenance": {
+        "origin": "gapfill",
+        "model": "cheap",
+        "grade": null,
+        "date": "2026-07-04"
+      }
+    },
+    {
+      "id": "gapfill:history/appeasement-munich-pact:the-munich-pact-was-main",
+      "kernelId": "history/appeasement-munich-pact",
+      "conceptName": "Appeasement (Munich Pact)",
+      "stem": "A textbook chapter on the Munich Pact includes maps of the Sudetenland and Czechoslovakia. What is the pact mainly about?",
+      "options": [
+        "Reducing navies through disarmament.",
+        "Territorial concessions to Germany.",
+        "Creating a Soviet-German alliance.",
+        "Ending trade barriers in Europe."
+      ],
+      "correctIndex": 1,
+      "explanation": "The Munich Pact concerned territorial concessions in Czechoslovakia, especially German occupation of the Sudetenland. It was not mainly about arms limits or naval reductions.",
+      "bloom": "understand",
+      "difficulty": "apply",
+      "catches": true,
+      "confronts": true,
+      "familyKey": "the munich pact was mainly about reducing navies or arms lim",
+      "provenance": {
+        "origin": "gapfill",
+        "model": "cheap",
+        "grade": null,
+        "date": "2026-07-04"
+      }
+    },
+    {
+      "id": "gapfill:history/cold-war:only-europe-mattered-in-",
+      "kernelId": "history/cold-war",
+      "conceptName": "Cold War",
+      "stem": "After World War II, a student says the Cold War was only about Europe because the U.S. and USSR fought mainly over Berlin and Germany. Which response best corrects this view?",
+      "options": [
+        "Only Europe mattered; Asia was unrelated.",
+        "It also involved poorer nations and wars like Korea and Vietnam.",
+        "It was a direct war between U.S. and Soviet troops.",
+        "It ended immediately in 1945."
+      ],
+      "correctIndex": 1,
+      "explanation": "The Cold War was not limited to Europe. Its influence extended to poorer nations and conflicts such as Korea and Vietnam, showing a broad global struggle for influence, not just a European dispute.",
+      "bloom": "apply",
+      "difficulty": "apply",
+      "catches": true,
+      "confronts": true,
+      "familyKey": "only europe mattered in the cold war",
+      "provenance": {
+        "origin": "gapfill",
+        "model": "cheap",
+        "grade": null,
+        "date": "2026-07-04"
+      }
+    },
+    {
+      "id": "gapfill:history/containment:containment-meant-immedi",
+      "kernelId": "history/containment",
+      "conceptName": "Containment",
+      "stem": "A classmate claims containment meant the United States should immediately overthrow Communist governments wherever they appeared. Which statement best fits Kennan’s strategy?",
+      "options": [
+        "Overthrow Communist governments everywhere at once.",
+        "Limit Soviet influence where it already existed.",
+        "Stay out of all foreign conflicts.",
+        "Support Soviet expansion into new regions."
+      ],
+      "correctIndex": 1,
+      "explanation": "Containment aimed to limit Soviet influence to those places where it already existed. It was meant to prevent expansion into new areas, not launch immediate regime change everywhere.",
+      "bloom": "apply",
+      "difficulty": "apply",
+      "catches": true,
+      "confronts": true,
+      "familyKey": "containment meant immediately overthrowing communist governm",
+      "provenance": {
+        "origin": "gapfill",
+        "model": "cheap",
+        "grade": null,
+        "date": "2026-07-04"
+      }
+    },
+    {
+      "id": "gapfill:history/containment:containment-was-mainly-a",
+      "kernelId": "history/containment",
+      "conceptName": "Containment",
+      "stem": "A student says containment was mostly a domestic campaign against American Communists at home. Which interpretation matches the text?",
+      "options": [
+        "A domestic anti-Communist purge.",
+        "A foreign policy to restrict Soviet influence abroad.",
+        "A plan to end all elections.",
+        "A program to nationalize U.S. industry."
+      ],
+      "correctIndex": 1,
+      "explanation": "In this section, containment is a foreign policy strategy. It restricts Soviet influence abroad and includes economic policy and security reorganization, not mainly domestic policing.",
+      "bloom": "apply",
+      "difficulty": "apply",
+      "catches": true,
+      "confronts": true,
+      "familyKey": "containment was mainly a domestic anti communist policy",
+      "provenance": {
+        "origin": "gapfill",
+        "model": "cheap",
+        "grade": null,
+        "date": "2026-07-04"
+      }
+    },
+    {
+      "id": "gapfill:history/marshall-plan:the-marshall-plan-was-pu",
+      "kernelId": "history/marshall-plan",
+      "conceptName": "Marshall Plan (European Recovery Program)",
+      "stem": "A student argues the Marshall Plan was only charity for starving Europeans and had no U.S. interests. What best corrects that claim?",
+      "options": [
+        "It was purely humanitarian aid only.",
+        "It had economic and political goals too.",
+        "It was meant to punish Britain.",
+        "It funded only military bases."
+      ],
+      "correctIndex": 1,
+      "explanation": "The plan was not purely humanitarian. Truman’s motivation was economic and political, as well as humanitarian, and requiring purchases of American goods boosted U.S. economy and cultural presence.",
+      "bloom": "apply",
+      "difficulty": "apply",
+      "catches": true,
+      "confronts": true,
+      "familyKey": "the marshall plan was purely humanitarian and had no politic",
+      "provenance": {
+        "origin": "gapfill",
+        "model": "cheap",
+        "grade": null,
+        "date": "2026-07-04"
+      }
+    },
+    {
+      "id": "gapfill:history/brown-v-board-education-holding:brown-immediately-integr",
+      "kernelId": "history/brown-v-board-education-holding",
+      "conceptName": "Brown v. Board of Education (1954) holding",
+      "stem": "A classmate says Brown v. Board immediately integrated most Southern schools in 1954. Which detail best corrects that claim?",
+      "options": [
+        "Integration happened slowly under deliberate speed.",
+        "Most schools integrated by 1955.",
+        "Segregation increased after Brown.",
+        "Only Northern schools were affected."
+      ],
+      "correctIndex": 0,
+      "explanation": "Brown did not produce immediate large-scale integration. The Court ordered desegregation with all deliberate speed, and by 1960 fewer than 10 percent of Southern Black students attended integrated schools.",
+      "bloom": "apply",
+      "difficulty": "apply",
+      "catches": true,
+      "confronts": true,
+      "familyKey": "brown immediately integrated southern schools at large scale",
+      "provenance": {
+        "origin": "gapfill",
+        "model": "cheap",
+        "grade": null,
+        "date": "2026-07-04"
+      }
+    },
+    {
+      "id": "gapfill:history/reagan-revolution:the-reagan-revolution-de",
+      "kernelId": "history/reagan-revolution",
+      "conceptName": "Reagan Revolution",
+      "stem": "A student describes the Reagan Revolution as just Reagan’s upbeat speaking style. What is the better explanation?",
+      "options": [
+        "Only a communication style, not policy.",
+        "A conservative agenda and voter coalition.",
+        "A return to New Deal liberalism.",
+        "A movement against elections."
+      ],
+      "correctIndex": 1,
+      "explanation": "The Reagan Revolution refers to a conservative political turn, not just personality. It involved a voter coalition and policy priorities that reshaped later U.S. politics.",
+      "bloom": "understand",
+      "difficulty": "apply",
+      "catches": true,
+      "confronts": true,
+      "familyKey": "the reagan revolution describes only reagan s personality an",
+      "provenance": {
+        "origin": "gapfill",
+        "model": "cheap",
+        "grade": null,
+        "date": "2026-07-04"
+      }
+    },
+    {
+      "id": "gapfill:history/patco-strike-1981:reagan-was-consistently-",
+      "kernelId": "history/patco-strike-1981",
+      "conceptName": "PATCO strike and Reagan’s response (1981)",
+      "stem": "After Reagan fires striking PATCO controllers, a commentator says he was still flexible toward unions while deregulating industry. What best fits the text?",
+      "options": [
+        "Correct; he remained flexible toward unions.",
+        "Wrong; he was less flexible and weakened labor unions.",
+        "Correct; PATCO strengthened union bargaining power.",
+        "Wrong; deregulation increased union influence."
+      ],
+      "correctIndex": 1,
+      "explanation": "The passage says Reagan was “less flexible” about deregulation and “weakening the power of labor unions.” Firing PATCO helped destroy the union and signaled an employer shift toward replacing striking workers.",
+      "bloom": "understand",
+      "difficulty": "apply",
+      "catches": true,
+      "confronts": true,
+      "familyKey": "reagan was consistently flexible toward unions even while de",
+      "provenance": {
+        "origin": "gapfill",
+        "model": "cheap",
+        "grade": null,
+        "date": "2026-07-04"
+      }
+    },
+    {
+      "id": "gapfill:history/bush-doctrine:the-bush-doctrine-was-on",
+      "kernelId": "history/bush-doctrine",
+      "conceptName": "Bush Doctrine",
+      "stem": "A classmate argues the Bush Doctrine was only a plan for invading Afghanistan after 9/11. What is the best correction?",
+      "options": [
+        "It was only about Afghanistan and one battle.",
+        "It described pre-emptive war and regime change broadly.",
+        "It rejected self-protection against terrorism.",
+        "It applied only to NATO allies."
+      ],
+      "correctIndex": 1,
+      "explanation": "The definition presents the Bush Doctrine as a general policy about U.S. rights and tools, including pre-emption and regime change. It was not limited to Afghanistan; it framed a broader war on terrorism.",
+      "bloom": "understand",
+      "difficulty": "apply",
+      "catches": true,
+      "confronts": true,
+      "familyKey": "the bush doctrine was only about afghanistan and had nothing",
+      "provenance": {
+        "origin": "gapfill",
+        "model": "cheap",
+        "grade": null,
+        "date": "2026-07-04"
+      }
+    },
+    {
+      "id": "gapfill:lang/numbers-age-and-counting:one-korean-number-system",
+      "kernelId": "lang/numbers-age-and-counting",
+      "conceptName": "Numbers, Age, and Counting",
+      "stem": "A Korean learner wants to say “three apples,” “three years old,” and “three o’clock” on the same worksheet. Which choice best fits all three uses?",
+      "options": [
+        "Use one number system everywhere.",
+        "Use the context-appropriate number system and counters.",
+        "Always use native Korean without counters.",
+        "Always translate directly from English."
+      ],
+      "correctIndex": 1,
+      "explanation": "Different contexts favor different number systems. Age, quantity, and time all require the grammatical setting to guide whether native Korean or Sino-Korean forms, plus counters, are needed.",
+      "bloom": "apply",
+      "difficulty": "apply",
+      "catches": true,
+      "confronts": true,
+      "familyKey": "one korean number system is used for every counting situatio",
+      "provenance": {
+        "origin": "gapfill",
+        "model": "cheap",
+        "grade": null,
+        "date": "2026-07-04"
+      }
+    },
+    {
+      "id": "gapfill:lang/particles-and-sentence-basics:particles-are-optional-d",
+      "kernelId": "lang/particles-and-sentence-basics",
+      "conceptName": "Particles and Sentence Basics",
+      "stem": "A student writes the sentence as “Teacher book read” and leaves out all particles. What is the best revision strategy?",
+      "options": [
+        "Particles are optional decoration.",
+        "Keep the word order and ignore endings.",
+        "Use particles to show each noun’s role.",
+        "Drop the verb because it is already implied."
+      ],
+      "correctIndex": 2,
+      "explanation": "Particles carry grammatical meaning and help show what each noun is doing in the sentence. In Korean, they matter for interpretation, along with verb-final order and a final ending.",
+      "bloom": "apply",
+      "difficulty": "apply",
+      "catches": true,
+      "confronts": true,
+      "familyKey": "particles are optional decoration",
+      "provenance": {
+        "origin": "gapfill",
+        "model": "cheap",
+        "grade": null,
+        "date": "2026-07-04"
+      }
+    },
+    {
+      "id": "gapfill:lang/honorifics-and-politeness-levels:politeness-is-optional-a",
+      "kernelId": "lang/honorifics-and-politeness-levels",
+      "conceptName": "Honorifics and Politeness Levels",
+      "stem": "At a job interview in Korean, a speaker uses plain endings and informal vocabulary with the interviewer. What is the most accurate concern?",
+      "options": [
+        "Politeness is optional and does not affect grammar.",
+        "Only pronunciation matters in this situation.",
+        "Politeness shapes endings and word choice.",
+        "Honorifics are used only in writing."
+      ],
+      "correctIndex": 2,
+      "explanation": "Politeness is built into Korean grammar and strongly shapes how sentences are formed. The situation and social relationship affect sentence endings and vocabulary, so plain speech can sound inappropriate.",
+      "bloom": "apply",
+      "difficulty": "apply",
+      "catches": true,
+      "confronts": true,
+      "familyKey": "politeness is optional and does not affect grammar",
+      "provenance": {
+        "origin": "gapfill",
+        "model": "cheap",
+        "grade": null,
+        "date": "2026-07-04"
+      }
+    },
+    {
+      "id": "gapfill:lit/close-reading:students-catalogue-textu",
+      "kernelId": "lit/close-reading",
+      "conceptName": "Close reading",
+      "stem": "While drafting about a novel, a student lists symbols, colors, and names but never explains how they support a claim about the book’s meaning. What should the student do?",
+      "options": [
+        "Catalogue more details without interpretation.",
+        "Require each detail to support the whole work.",
+        "Ignore the whole and focus on one line.",
+        "Replace analysis with summary."
+      ],
+      "correctIndex": 1,
+      "explanation": "Require each detail to earn its place by supporting an interpretive claim about the whole. Close reading moves between part and whole, so description alone is not enough.",
+      "bloom": "apply",
+      "difficulty": "apply",
+      "catches": true,
+      "confronts": true,
+      "familyKey": "students catalogue textual details without connecting them t",
+      "provenance": {
+        "origin": "gapfill",
+        "model": "cheap",
+        "grade": null,
+        "date": "2026-07-04"
+      }
+    },
+    {
+      "id": "gapfill:lit/ghazal-form:a-ghazal-is-just-any-poe",
+      "kernelId": "lit/ghazal-form",
+      "conceptName": "Ghazal (poetic form)",
+      "stem": "A writer submits a 20-line love poem with no refrain and irregular line lengths, calling it a ghazal. What is the best response?",
+      "options": [
+        "A ghazal is just any poem about love and separation.",
+        "It needs couplets, equal line lengths, and a refrain.",
+        "It must be written only in Arabic.",
+        "It must have exactly one speaker and one stanza."
+      ],
+      "correctIndex": 1,
+      "explanation": "Topic alone is not enough. A ghazal uses couplets with a repeating rhyme+refrain scheme and equal line lengths, so the form requires more than love and separation.",
+      "bloom": "apply",
+      "difficulty": "apply",
+      "catches": true,
+      "confronts": true,
+      "familyKey": "a ghazal is just any poem about love and separation",
+      "provenance": {
+        "origin": "gapfill",
+        "model": "cheap",
+        "grade": null,
+        "date": "2026-07-04"
+      }
+    },
+    {
+      "id": "gapfill:lit/metrical-feet-and-line-length:pentameter-means-a-line-",
+      "kernelId": "lit/metrical-feet-and-line-length",
+      "conceptName": "Metrical feet and metrical line length",
+      "stem": "An assignment asks for iambic pentameter, and a student writes a five-syllable line. What is the main problem?",
+      "options": [
+        "Pentameter means five syllables.",
+        "Pentameter is five feet, not five syllables.",
+        "Iambs cannot be used in English.",
+        "The line must have ten stresses."
+      ],
+      "correctIndex": 1,
+      "explanation": "Pentameter is defined here as a five-foot line, not five syllables. The pattern concerns metrical feet, such as iambs, rather than counting syllables alone.",
+      "bloom": "understand",
+      "difficulty": "apply",
+      "catches": true,
+      "confronts": true,
+      "familyKey": "pentameter means a line has five syllables",
+      "provenance": {
+        "origin": "gapfill",
+        "model": "cheap",
+        "grade": null,
+        "date": "2026-07-04"
+      }
+    },
+    {
+      "id": "gapfill:lit/sensory-understanding:the-senses-in-reading-ar",
+      "kernelId": "lit/sensory-understanding",
+      "conceptName": "Sensory understanding in poetry",
+      "stem": "A student says, “When I read the poem, the five senses are just metaphorical; they are not real ways I process the text.” Which response best fits the passage’s view of poetry?",
+      "options": [
+        "Senses are natural powers that receive information from words.",
+        "Senses are metaphorical decorations, not cognitive inputs.",
+        "Poetry avoids sensory experience and favors abstraction.",
+        "Reading only involves logic, not mental images."
+      ],
+      "correctIndex": 0,
+      "explanation": "The passage treats senses as natural powers for receiving information, and says reading turns words into mental images involving the five senses. It rejects the idea that we understand mainly through abstract thought alone.",
+      "bloom": "apply",
+      "difficulty": "apply",
+      "catches": true,
+      "confronts": true,
+      "familyKey": "the senses in reading are metaphorical rather than real cogn",
+      "provenance": {
+        "origin": "gapfill",
+        "model": "cheap",
+        "grade": null,
+        "date": "2026-07-04"
+      }
+    },
+    {
+      "id": "gapfill:lit/genres-and-imagery:a-diary-entry-is-written",
+      "kernelId": "lit/genres-and-imagery",
+      "conceptName": "Genre purpose and density of imagery",
+      "stem": "A writer says her diary is meant to shape public opinion, so she fills it with persuasive images. Which choice best matches the section?",
+      "options": [
+        "A diary is usually private and not aimed at outsiders.",
+        "A diary is mainly written to affect an outside audience.",
+        "A diary should use more images than a poem.",
+        "A diary is identical to a news article."
+      ],
+      "correctIndex": 0,
+      "explanation": "The section describes a diary as usually private, with little attention to affecting an outside audience. That fits the genre contrast: literary forms are image-rich, while private or utilitarian forms are not.",
+      "bloom": "apply",
+      "difficulty": "apply",
+      "catches": true,
+      "confronts": true,
+      "familyKey": "a diary entry is written primarily to affect an outside audi",
+      "provenance": {
+        "origin": "gapfill",
+        "model": "cheap",
+        "grade": null,
+        "date": "2026-07-04"
+      }
+    },
+    {
+      "id": "gapfill:lit/total-response-reading-poetry:reading-a-poem-well-main",
+      "kernelId": "lit/total-response-reading-poetry",
+      "conceptName": "total response (to a poem)",
+      "stem": "After one quick read, a student says, “I already figured out the poem’s meaning, so there’s no need to read it again.” What is the best advice?",
+      "options": [
+        "Figure out the meaning as quickly as possible.",
+        "Use total response and reread attentively.",
+        "Ignore emotion and focus on paraphrase.",
+        "Skip listening and rely on assumptions."
+      ],
+      "correctIndex": 1,
+      "explanation": "Total response emphasizes attentive listening, nonjudgment, and rereading so emotional meanings can emerge over time. The poem is not reduced to a quick paraphrase; readers return to its words, lines, and music.",
+      "bloom": "apply",
+      "difficulty": "apply",
+      "catches": true,
+      "confronts": true,
+      "familyKey": "reading a poem well mainly means figuring out what it means ",
+      "provenance": {
+        "origin": "gapfill",
+        "model": "cheap",
+        "grade": null,
+        "date": "2026-07-04"
+      }
+    },
+    {
+      "id": "gapfill:lit/negative-capability-reading:to-read-a-poem-well-you-",
+      "kernelId": "lit/negative-capability-reading",
+      "conceptName": "negative capability (as a reader)",
+      "stem": "During discussion, a student keeps saying, “First I need to judge whether I agree with the speaker.” What reading stance is the passage recommending instead?",
+      "options": [
+        "Set aside ego and imagine the speaker’s perspective.",
+        "Center your own opinions before listening.",
+        "Interrupt to correct the speaker’s view.",
+        "Treat the speaker as irrelevant to meaning."
+      ],
+      "correctIndex": 0,
+      "explanation": "Negative capability asks the reader to set aside ego and imagine the speaker’s perspective. The goal is nonjudgmental listening, as if the poem’s universe is the only one that exists.",
+      "bloom": "apply",
+      "difficulty": "apply",
+      "catches": true,
+      "confronts": true,
+      "familyKey": "to read a poem well you should focus on your own opinions fi",
+      "provenance": {
+        "origin": "gapfill",
+        "model": "cheap",
+        "grade": null,
+        "date": "2026-07-04"
+      }
+    },
+    {
+      "id": "gapfill:lit/title-as-doorway:the-title-is-just-a-labe",
+      "kernelId": "lit/title-as-doorway",
+      "conceptName": "title as doorway (in close reading)",
+      "stem": "Before reading a poem called “Winter Hospital,” a student ignores the title and starts at line one. What does close reading recommend?",
+      "options": [
+        "Treat the title as a doorway into the poem.",
+        "Assume the title has no interpretive value.",
+        "Wait until the end to consider the title.",
+        "Use the title only as a label."
+      ],
+      "correctIndex": 0,
+      "explanation": "Close reading begins at the title because it sets expectations for mood, tone, setting, or time. The title is a doorway that prepares the reader for what follows.",
+      "bloom": "apply",
+      "difficulty": "apply",
+      "catches": true,
+      "confronts": true,
+      "familyKey": "the title is just a label and doesn t affect interpretation",
+      "provenance": {
+        "origin": "gapfill",
+        "model": "cheap",
+        "grade": null,
+        "date": "2026-07-04"
+      }
+    },
+    {
+      "id": "gapfill:lit/composite-authorship:inconsistencies-in-armor",
+      "kernelId": "lit/composite-authorship",
+      "conceptName": "composite authorship (Homeric epic)",
+      "stem": "A teacher points to mismatched armor, burial customs, and dialects in the Iliad. A student says these flaws show the poem was badly written. What does the passage suggest instead?",
+      "options": [
+        "They prove the poem is poorly made.",
+        "They are expected results of composite formation.",
+        "They show a later translator made mistakes.",
+        "They are irrelevant because the poem is fiction."
+      ],
+      "correctIndex": 1,
+      "explanation": "The passage treats mixed dialects and inconsistent details as artifacts of long composite formation. Oral transmission across time can preserve a traditional story while leaving uneven details.",
+      "bloom": "analyze",
+      "difficulty": "apply",
+      "catches": true,
+      "confronts": true,
+      "familyKey": "inconsistencies in armor burial practices or language prove ",
+      "provenance": {
+        "origin": "gapfill",
+        "model": "cheap",
+        "grade": null,
+        "date": "2026-07-04"
+      }
+    },
+    {
+      "id": "gapfill:lit/odyssey-vs-iliad-focus:the-odyssey-is-mainly-a-",
+      "kernelId": "lit/odyssey-vs-iliad-focus",
+      "conceptName": "Odyssey vs. Iliad: thematic focus and heroism",
+      "stem": "A student claims the Odyssey is mainly the next chapter of the Trojan War story. Which interpretation best matches the passage?",
+      "options": [
+        "It continues the war in a direct sequel.",
+        "It is only loosely connected to the Iliad.",
+        "It retells the Iliad from Helen’s view.",
+        "It rejects all Homeric heroism."
+      ],
+      "correctIndex": 1,
+      "explanation": "The passage says the Odyssey continues the Iliad only in “the loosest sense.” Its heart is homecoming, family restoration, and adventure rather than the war narrative.",
+      "bloom": "understand",
+      "difficulty": "apply",
+      "catches": true,
+      "confronts": true,
+      "familyKey": "the odyssey is mainly a sequel to the iliad that continues t",
+      "provenance": {
+        "origin": "gapfill",
+        "model": "cheap",
+        "grade": null,
+        "date": "2026-07-04"
+      }
+    },
+    {
+      "id": "gapfill:lit/reading-shakespeare-as-director:shakespeare-s-plays-cont",
+      "kernelId": "lit/reading-shakespeare-as-director",
+      "conceptName": "Directorial reading of a play",
+      "stem": "A director wants to stage a Shakespeare scene and assumes the script already gives exact blocking, costumes, and gestures. Which interpretation fits the passage?",
+      "options": [
+        "Shakespeare provides exact stage directions.",
+        "Staging must be inferred and decided.",
+        "Only modern plays need directors.",
+        "Costumes are never interpretive."
+      ],
+      "correctIndex": 1,
+      "explanation": "The passage emphasizes that Shakespeare lacks detailed stage directions. A directorial reading therefore asks the reader to infer delivery, blocking, costumes, and setting from the text.",
+      "bloom": "understand",
+      "difficulty": "apply",
+      "catches": true,
+      "confronts": true,
+      "familyKey": "shakespeare s plays contain detailed stage directions that t",
+      "provenance": {
+        "origin": "gapfill",
+        "model": "cheap",
+        "grade": null,
+        "date": "2026-07-04"
+      }
+    },
+    {
+      "id": "gapfill:lit/picaresque-satire-touchstone:picaresque-satire-focuse",
+      "kernelId": "lit/picaresque-satire-touchstone",
+      "conceptName": "Picaresque satire (the traveler as social touchstone)",
+      "stem": "In a seminar on Don Quixote, a student claims picaresque satire mainly tracks a traveler’s feelings and private growth. What is the better interpretation?",
+      "options": [
+        "It centers on inner psychological development.",
+        "It uses movement through classes for social critique.",
+        "It avoids satire and praises each setting.",
+        "It focuses only on one fixed social class."
+      ],
+      "correctIndex": 1,
+      "explanation": "Picaresque movement across classes makes each new social setting a target of satiric vision. The result is broad social critique, not mainly inward psychological development.",
+      "bloom": "understand",
+      "difficulty": "apply",
+      "catches": true,
+      "confronts": true,
+      "familyKey": "picaresque satire focuses on a hero s inner psychological de",
+      "provenance": {
+        "origin": "gapfill",
+        "model": "cheap",
+        "grade": null,
+        "date": "2026-07-04"
+      }
+    },
+    {
+      "id": "gapfill:lit/gender-and-publication-history:if-a-work-is-popular-gen",
+      "kernelId": "lit/gender-and-publication-history",
+      "conceptName": "Gender bias in literary publication and canon formation",
+      "stem": "A professor notes that Little Women is still often treated as “for girls,” while Huckleberry Finn is assigned as universal. What issue does this illustrate?",
+      "options": [
+        "Popularity ends gender bias in publishing.",
+        "Gendered assumptions shape canon formation.",
+        "Women always wrote for only female readers.",
+        "Curricula ignore all older novels equally."
+      ],
+      "correctIndex": 1,
+      "explanation": "The passage stresses enduring assumptions about “universal” male experience and curricular patterns. Popularity does not erase gender bias in publication, reception, or classroom selection.",
+      "bloom": "apply",
+      "difficulty": "transfer",
+      "catches": true,
+      "confronts": true,
+      "familyKey": "if a work is popular gender bias in reception and curricula ",
+      "provenance": {
+        "origin": "gapfill",
+        "model": "cheap",
+        "grade": null,
+        "date": "2026-07-04"
+      }
+    },
+    {
+      "id": "gapfill:math/rank-nullity:a-tall-matrix-with-many-",
+      "kernelId": "math/rank-nullity",
+      "conceptName": "rank and nullity",
+      "stem": "A 6-by-2 matrix has two pivot columns. What can you conclude about its rank?",
+      "options": [
+        "Its rank is 6 because it has six rows.",
+        "Its rank is at most 2.",
+        "Its rank equals the number of rows.",
+        "Its rank is always large for tall matrices."
+      ],
+      "correctIndex": 1,
+      "explanation": "Rank never exceeds the smaller of the row and column counts. For a 6-by-2 matrix, the most it can have is 2, and dependence among columns can lower it further.",
+      "bloom": "apply",
+      "difficulty": "apply",
+      "catches": true,
+      "confronts": true,
+      "familyKey": "a tall matrix with many rows has large rank",
+      "provenance": {
+        "origin": "gapfill",
+        "model": "cheap",
+        "grade": null,
+        "date": "2026-07-04"
+      }
+    },
+    {
+      "id": "gapfill:math/discontinuity-types:a-jump-discontinuity-mea",
+      "kernelId": "math/discontinuity-types",
+      "conceptName": "types of discontinuities",
+      "stem": "As x approaches 3, a function stays near 2 on the left and near 7 on the right. What kind of discontinuity is this?",
+      "options": [
+        "Removable, because it is not defined.",
+        "Jump, because the pieces do not meet up.",
+        "Infinite, because it goes to infinity.",
+        "Continuous, because both sides exist."
+      ],
+      "correctIndex": 1,
+      "explanation": "Jump discontinuities are noninfinite. The graph’s pieces do not meet up, so this is a jump discontinuity rather than an infinite discontinuity.",
+      "bloom": "apply",
+      "difficulty": "apply",
+      "catches": true,
+      "confronts": true,
+      "familyKey": "a jump discontinuity means the function goes to infinity",
+      "provenance": {
+        "origin": "gapfill",
+        "model": "cheap",
+        "grade": null,
+        "date": "2026-07-04"
+      }
+    },
+    {
+      "id": "gapfill:math/derivative-at-point:the-derivative-is-only-a",
+      "kernelId": "math/derivative-at-point",
+      "conceptName": "derivative at a point",
+      "stem": "A business analyst uses the derivative of profit to estimate how profit changes when sales increase slightly. What is the best interpretation?",
+      "options": [
+        "Only a graph-slope formula.",
+        "A rate of change used in applications.",
+        "A replacement for limits.",
+        "A method for proving continuity."
+      ],
+      "correctIndex": 1,
+      "explanation": "The text connects derivatives to rates of change in physics, business, and biology. So the derivative is not just a slope formula; it is a quantity used in applications.",
+      "bloom": "understand",
+      "difficulty": "apply",
+      "catches": true,
+      "confronts": true,
+      "familyKey": "the derivative is only a formula for slopes of graphs not a ",
+      "provenance": {
+        "origin": "gapfill",
+        "model": "cheap",
+        "grade": null,
+        "date": "2026-07-04"
+      }
+    },
+    {
+      "id": "gapfill:math/derivative-at-point:a-derivative-always-exis",
+      "kernelId": "math/derivative-at-point",
+      "conceptName": "derivative at a point",
+      "stem": "For f(x)=|x| at x=0, a student says the derivative must exist because the function is defined there. Is that correct?",
+      "options": [
+        "Yes; defined means differentiable.",
+        "No; the limit must exist.",
+        "Yes; every point has a derivative.",
+        "No; derivatives ignore limits."
+      ],
+      "correctIndex": 1,
+      "explanation": "Both derivative definitions require the stated limit to exist. Being defined at the point is not enough, so a derivative does not automatically exist there.",
+      "bloom": "apply",
+      "difficulty": "apply",
+      "catches": true,
+      "confronts": true,
+      "familyKey": "a derivative always exists at every point",
+      "provenance": {
+        "origin": "gapfill",
+        "model": "cheap",
+        "grade": null,
+        "date": "2026-07-04"
+      }
+    },
+    {
+      "id": "gapfill:math/chain-rule:students-differentiate-t",
+      "kernelId": "math/chain-rule",
+      "conceptName": "chain rule",
+      "stem": "A student differentiates h(x)=(x^2+1)^5 as 5(x^2+1)^4 and stops there. What is missing?",
+      "options": [
+        "Multiply by the derivative of x^2+1",
+        "Evaluate the outer derivative at x",
+        "Subtract 1 from the exponent",
+        "Replace 5 with 1"
+      ],
+      "correctIndex": 0,
+      "explanation": "Every chain-rule derivative has two factors: f′ evaluated at g(x), then times g′(x). If no inner derivative appears, the chain rule was not applied.",
+      "bloom": "apply",
+      "difficulty": "apply",
+      "catches": true,
+      "confronts": true,
+      "familyKey": "students differentiate the outer function and stop forgettin",
+      "provenance": {
+        "origin": "gapfill",
+        "model": "cheap",
+        "grade": null,
+        "date": "2026-07-04"
+      }
+    },
+    {
+      "id": "gapfill:math/chain-rule:students-evaluate-the-ou",
+      "kernelId": "math/chain-rule",
+      "conceptName": "chain rule",
+      "stem": "A student finds d/dx of (3x+2)^4 as 4(3x+2)^3 and then substitutes x for the outer derivative. What should the outer derivative use?",
+      "options": ["g(x), not x", "x, not g(x)", "the constant 4", "the inner derivative only"],
+      "correctIndex": 0,
+      "explanation": "The outer derivative is evaluated at g(x), not x: h′(x)=f′(g(x))·g′(x), never f′(x)·g′(x). The chain rule works from the outside function in.",
+      "bloom": "apply",
+      "difficulty": "apply",
+      "catches": true,
+      "confronts": true,
+      "familyKey": "students evaluate the outer derivative at x instead of at th",
+      "provenance": {
+        "origin": "gapfill",
+        "model": "cheap",
+        "grade": null,
+        "date": "2026-07-04"
+      }
+    },
+    {
+      "id": "gapfill:math/implicit-differentiation:implicit-differentiation",
+      "kernelId": "math/implicit-differentiation",
+      "conceptName": "implicit differentiation",
+      "stem": "A relation x^2+y^2=25 is given, and y is not solved for. Which method is appropriate to find dy/dx?",
+      "options": [
+        "Implicit differentiation",
+        "Only explicit differentiation",
+        "A constant multiple rule",
+        "Direct substitution of y=5"
+      ],
+      "correctIndex": 0,
+      "explanation": "Implicit differentiation is especially useful when y is not isolated; the method differentiates the relation directly. It can produce a derivative in terms of both x and y.",
+      "bloom": "understand",
+      "difficulty": "apply",
+      "catches": true,
+      "confronts": true,
+      "familyKey": "implicit differentiation is only needed when an equation alr",
+      "provenance": {
+        "origin": "gapfill",
+        "model": "cheap",
+        "grade": null,
+        "date": "2026-07-04"
+      }
+    },
+    {
+      "id": "gapfill:math/optimization-problem-setup:if-a-function-has-a-crit",
+      "kernelId": "math/optimization-problem-setup",
+      "conceptName": "optimization problem setup",
+      "stem": "A student models the cost of fencing a rectangular garden with 100 m of fence, rewrites the cost as one variable, and finds one critical point inside the domain. They conclude that this critical point must give the minimum cost. What should they do next?",
+      "options": [
+        "Check only the critical point.",
+        "Compare endpoints and the critical point.",
+        "Ignore the domain if a critical point exists.",
+        "Use the critical point as the answer immediately."
+      ],
+      "correctIndex": 1,
+      "explanation": "Closed, bounded optimization problems require checking endpoints as well as critical points. The extrema can occur at an endpoint, so the critical point is not automatically the answer.",
+      "bloom": "apply",
+      "difficulty": "apply",
+      "catches": true,
+      "confronts": true,
+      "familyKey": "if a function has a critical point that point is automatical",
+      "provenance": {
+        "origin": "gapfill",
+        "model": "cheap",
+        "grade": null,
+        "date": "2026-07-04"
+      }
+    },
+    {
+      "id": "gapfill:math/definite-integral-definition:a-definite-integral-is-t",
+      "kernelId": "math/definite-integral-definition",
+      "conceptName": "definite integral",
+      "stem": "A student computes \\(\\int_0^2 x^2\\,dx\\) and says it is the same type of result as \\(\\int x^2\\,dx\\). Which statement is correct?",
+      "options": [
+        "Both are families of functions.",
+        "Both are numbers.",
+        "The definite integral is a number.",
+        "The indefinite integral is a number."
+      ],
+      "correctIndex": 2,
+      "explanation": "A definite integral evaluates to a number. An indefinite integral represents a family of functions, so the two objects are not the same kind of result.",
+      "bloom": "understand",
+      "difficulty": "apply",
+      "catches": true,
+      "confronts": true,
+      "familyKey": "a definite integral is the same kind of object as an indefin",
+      "provenance": {
+        "origin": "gapfill",
+        "model": "cheap",
+        "grade": null,
+        "date": "2026-07-04"
+      }
+    },
+    {
+      "id": "gapfill:math/definite-integral-definition:only-continuous-and-nonn",
+      "kernelId": "math/definite-integral-definition",
+      "conceptName": "definite integral",
+      "stem": "A teacher asks whether \\(\\int_0^1 \\sqrt{x}\\,dx\\) can be evaluated even though the function is not negative. A student says only continuous and nonnegative functions can be integrated. What is the best reply?",
+      "options": [
+        "Yes, only continuous and nonnegative functions work.",
+        "No, continuity is sufficient but not necessary.",
+        "Only nonnegative functions are integrable.",
+        "Only continuous functions on \\([0,1]\\) are integrable."
+      ],
+      "correctIndex": 1,
+      "explanation": "The definite integral can apply beyond continuous, nonnegative functions. Continuity on a closed interval guarantees integrability, but continuity is sufficient but not necessary.",
+      "bloom": "understand",
+      "difficulty": "apply",
+      "catches": true,
+      "confronts": true,
+      "familyKey": "only continuous and nonnegative functions can be integrated",
+      "provenance": {
+        "origin": "gapfill",
+        "model": "cheap",
+        "grade": null,
+        "date": "2026-07-04"
+      }
+    },
+    {
+      "id": "gapfill:math/fundamental-theorem-calculus-part-2:definite-integrals-must-",
+      "kernelId": "math/fundamental-theorem-calculus-part-2",
+      "conceptName": "Fundamental Theorem of Calculus, Part 2",
+      "stem": "A student needs \\(\\int_0^3 (2x+1)\\,dx\\) and insists it must be found by drawing rectangles or summing Riemann slices. What is the best method?",
+      "options": [
+        "Use FTC Part 2 with an antiderivative.",
+        "Use only a geometric area formula.",
+        "Riemann sums are the only valid method.",
+        "Differentiate the integrand instead."
+      ],
+      "correctIndex": 0,
+      "explanation": "FTC Part 2 provides a faster method using antiderivatives. Definite integrals do not have to be computed only from areas or Riemann sums.",
+      "bloom": "apply",
+      "difficulty": "apply",
+      "catches": true,
+      "confronts": true,
+      "familyKey": "definite integrals must always be computed from areas or rie",
+      "provenance": {
+        "origin": "gapfill",
+        "model": "cheap",
+        "grade": null,
+        "date": "2026-07-04"
+      }
+    },
+    {
+      "id": "gapfill:nursing/homeostasis:students-assume-negative",
+      "kernelId": "nursing/homeostasis",
+      "conceptName": "Homeostasis and negative feedback",
+      "stem": "During a run, a student says sweating is a harmful negative effect because it lowers body temperature. Which explanation is best?",
+      "options": [
+        "Negative means harmful, so sweating is bad.",
+        "Negative means the response reverses the deviation.",
+        "Sweating shuts down homeostasis.",
+        "Sweating is not feedback at all."
+      ],
+      "correctIndex": 1,
+      "explanation": "Negative feedback means the response opposes the deviation to restore the set point. Sweating is a negative-feedback response because it reverses the temperature increase.",
+      "bloom": "understand",
+      "difficulty": "apply",
+      "catches": true,
+      "confronts": true,
+      "familyKey": "students assume negative feedback means an effect that is ha",
+      "provenance": {
+        "origin": "gapfill",
+        "model": "cheap",
+        "grade": null,
+        "date": "2026-07-04"
+      }
+    },
+    {
+      "id": "gapfill:nursing/levels-of-organization:students-think-an-organ-",
+      "kernelId": "nursing/levels-of-organization",
+      "conceptName": "Levels of structural organization",
+      "stem": "A student says the stomach is just a larger tissue because it is a single structure. Which correction is most accurate?",
+      "options": [
+        "An organ is one tissue enlarged.",
+        "An organ combines two or more tissue types.",
+        "A tissue is made of organs.",
+        "An organ system is smaller than a tissue."
+      ],
+      "correctIndex": 1,
+      "explanation": "An organ is not just a bigger tissue. It combines two or more different tissue types into one functional structure, as in the stomach.",
+      "bloom": "understand",
+      "difficulty": "apply",
+      "catches": true,
+      "confronts": true,
+      "familyKey": "students think an organ is just a bigger version of a tissue",
+      "provenance": {
+        "origin": "gapfill",
+        "model": "cheap",
+        "grade": null,
+        "date": "2026-07-04"
+      }
+    },
+    {
+      "id": "gapfill:nursing/bacterial-cell-structure:students-think-the-gram-",
+      "kernelId": "nursing/bacterial-cell-structure",
+      "conceptName": "Bacterial cell structure",
+      "stem": "A lab uses Gram stain on two unknown bacteria. One stays purple, and the other turns pink after safranin. Which explanation best accounts for the color difference?",
+      "options": [
+        "The stain colors are arbitrary dye choices.",
+        "Purple cells have thick peptidoglycan; pink cells have thin peptidoglycan.",
+        "Pink cells have thick peptidoglycan; purple cells have thin peptidoglycan.",
+        "Both cell types lack peptidoglycan entirely."
+      ],
+      "correctIndex": 1,
+      "explanation": "The Gram stain reflects real wall structure, not arbitrary dye choice. Thick peptidoglycan retains crystal violet and stays purple, while thin peptidoglycan loses crystal violet and takes up safranin as pink.",
+      "bloom": "apply",
+      "difficulty": "apply",
+      "catches": true,
+      "confronts": true,
+      "familyKey": "students think the gram stain color is just an arbitrary dye",
+      "provenance": {
+        "origin": "gapfill",
+        "model": "cheap",
+        "grade": null,
+        "date": "2026-07-04"
+      }
+    },
+    {
+      "id": "gapfill:nutrition/lipids:students-treat-all-dieta",
+      "kernelId": "nutrition/lipids",
+      "conceptName": "Lipids: saturated, unsaturated, and trans fats",
+      "stem": "A patient says olive oil and trans-fat-rich pastry are both equally harmful because 'all fat is bad.' Which statement is best supported?",
+      "options": [
+        "All dietary fat is harmful in the same way.",
+        "Only trans fatty acids raise heart-disease risk; unsaturated fats differ.",
+        "Saturated fats are always healthier than unsaturated fats.",
+        "Triglycerides are not dietary lipids."
+      ],
+      "correctIndex": 1,
+      "explanation": "The harmful effect is specific to trans fatty acids and their effect on blood cholesterol. Unsaturated fats such as olive oil behave very differently in the body, so all fat is not bad.",
+      "bloom": "analyze",
+      "difficulty": "transfer",
+      "catches": true,
+      "confronts": true,
+      "familyKey": "students treat all dietary fat as harmful all fat is bad",
+      "provenance": {
+        "origin": "gapfill",
+        "model": "cheap",
+        "grade": null,
+        "date": "2026-07-04"
+      }
+    },
+    {
+      "id": "gapfill:nutrition/vitamins:students-assume-that-if-",
+      "kernelId": "nutrition/vitamins",
+      "conceptName": "Vitamins: fat-soluble and water-soluble",
+      "stem": "A runner starts taking very large doses of vitamin D because 'more is always better.' What is the main concern?",
+      "options": [
+        "Water-soluble vitamins are the only ones stored.",
+        "Fat-soluble vitamins can accumulate; excess vitamin D can cause hypercalcemia.",
+        "Vitamin D is flushed out immediately in urine.",
+        "Megadoses only affect vitamin A, not D."
+      ],
+      "correctIndex": 1,
+      "explanation": "Fat-soluble vitamins are stored rather than flushed, especially in the liver. Because excess vitamin D can cause hypercalcemia, more is not safer for this class.",
+      "bloom": "apply",
+      "difficulty": "apply",
+      "catches": true,
+      "confronts": true,
+      "familyKey": "students assume that if a vitamin is good megadoses must be ",
+      "provenance": {
+        "origin": "gapfill",
+        "model": "cheap",
+        "grade": null,
+        "date": "2026-07-04"
+      }
+    },
+    {
+      "id": "gapfill:nutrition/energy-balance:students-attribute-weigh",
+      "kernelId": "nutrition/energy-balance",
+      "conceptName": "Energy balance and metabolism",
+      "stem": "A student gains weight during a semester and blames only pizza, even though total calories rose from drinks and snacks too. What explains the change best?",
+      "options": [
+        "Pizza uniquely causes fat gain regardless of calories.",
+        "Body weight follows total energy balance, not a single food.",
+        "Basal metabolism does not affect weight.",
+        "Only physical activity determines energy balance."
+      ],
+      "correctIndex": 1,
+      "explanation": "Body weight tracks the energy ledger: maintained, lost, or gained according to intake versus expenditure. The source of the energy matters less than whether total intake exceeds total expenditure.",
+      "bloom": "apply",
+      "difficulty": "apply",
+      "catches": true,
+      "confronts": true,
+      "familyKey": "students attribute weight change to specific fattening foods",
+      "provenance": {
+        "origin": "gapfill",
+        "model": "cheap",
+        "grade": null,
+        "date": "2026-07-04"
+      }
     }
   ],
   "origins": {
     "harvest": 1471,
-    "gapfill": 206
+    "gapfill": 267
   }
 }
