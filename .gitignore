@@ -11,3 +11,5 @@ scripts/foundry/snapshots/
 trellis/runs/
 trellis/tendril/models/
 trellis/tendril/cache/*.bin
+trellis/tendril/.venv/
+trellis/tendril/corpus/live-pairs.jsonl

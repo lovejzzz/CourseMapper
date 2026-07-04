@@ -203,9 +203,9 @@ export async function buildAssets({ outPath = ASSETS_PATH } = {}) {
 // Selection with the CAT-style exposure draw (§7): among the top-k
 // candidates by evidence, draw by LOWEST exposure first — argmax reuse
 // is how every course becomes the same course.
-export function selectAsset(store, kernelId, move, { exclude = new Set(), k = 3 } = {}) {
+export function selectAsset(store, kernelId, move, { exclude = new Set(), k = 3, excludeIf = null } = {}) {
   const pool = store.assets
-    .filter((a) => a.kernelId === kernelId && a.move === move && !exclude.has(a.id))
+    .filter((a) => a.kernelId === kernelId && a.move === move && !exclude.has(a.id) && !excludeIf?.(a))
     .sort((a, b) => (b.evidence.fromGrade ?? 0) - (a.evidence.fromGrade ?? 0))
     .slice(0, k)
     .sort((a, b) => (a.exposure?.uses ?? 0) - (b.exposure?.uses ?? 0));

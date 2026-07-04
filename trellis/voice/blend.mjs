@@ -79,6 +79,11 @@ function schemaOnly(parsed) {
   return Array.isArray(parsed?.rewrites) ? [] : ['rewrites must be an array'];
 }
 
+async function logBlendPair(entry) {
+  const { corpusLog } = await import('../tendril/corpus.mjs');
+  await corpusLog(entry);
+}
+
 function explanationGate(entry, text, accepted) {
   if (text.length < 40 || text.length > 700) return false;
   for (const corrective of entry.correctives) {
@@ -121,10 +126,16 @@ export async function blendCorrectives(graph, authored, { tier = 'nano', ledger 
       const entry = batch[rewrite.index];
       if (!entry) continue;
       const text = String(rewrite.text ?? '').trim();
-      if (!explanationGate(entry, text, accepted)) continue;
+      if (!explanationGate(entry, text, accepted)) {
+        // Tendril corpus (T-M2): gate verdicts are training labels;
+        // fire-and-forget so logging can never slow or break a blend.
+        void logBlendPair({ task: 'blend-explanation', accepted: false, reason: 'explanation-gate', source: entry.explanation, target: text });
+        continue;
+      }
       const item = authored[entry.lessonId]?.quizItems?.[entry.itemIndex];
       // Apply only when the explanation is still the one we sampled.
       if (!item || item.explanation !== entry.explanation) continue;
+      void logBlendPair({ task: 'blend-explanation', accepted: true, source: entry.explanation, target: text });
       item.explanation = text;
       accepted.add(text.toLowerCase());
       rejected.delete(rewrite.index);

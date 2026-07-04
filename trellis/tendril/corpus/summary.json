@@ -1,0 +1,338 @@
+{
+ "stamp": "reconstructed accepted-pairs only — rejects unrecoverable from history (TENDRIL.md T-M2 honesty note)",
+ "totalPairs": 3485,
+ "bySurface": {
+  "quiz-explanation": 2490,
+  "segment:teach": 443,
+  "segment:worked-example": 291,
+  "segment:reteach": 218,
+  "segment:activity": 43
+ },
+ "runsScanned": 81,
+ "perRun": {
+  "bench11-trellis": {
+   "surfaces": 165,
+   "pairs": 58
+  },
+  "breadth-linear-algebra": {
+   "surfaces": 154,
+   "pairs": 27
+  },
+  "breadth-world-lit-2": {
+   "surfaces": 154,
+   "pairs": 15
+  },
+  "cli-mock-smoke": {
+   "surfaces": 80,
+   "pairs": 3
+  },
+  "cmpA-cs-python": {
+   "surfaces": 165,
+   "pairs": 35
+  },
+  "cmpA-econ-intro": {
+   "surfaces": 153,
+   "pairs": 35
+  },
+  "cmpA-geology": {
+   "surfaces": 153,
+   "pairs": 63
+  },
+  "cmpA-world-lit": {
+   "surfaces": 153,
+   "pairs": 13
+  },
+  "cmpB-cs-python": {
+   "surfaces": 164,
+   "pairs": 41
+  },
+  "cmpB-econ-intro": {
+   "surfaces": 153,
+   "pairs": 36
+  },
+  "cmpB-geology": {
+   "surfaces": 153,
+   "pairs": 38
+  },
+  "cmpB-world-lit": {
+   "surfaces": 155,
+   "pairs": 9
+  },
+  "e1-cs-python": {
+   "surfaces": 165,
+   "pairs": 38
+  },
+  "e1-econ-intro-2": {
+   "surfaces": 154,
+   "pairs": 12
+  },
+  "e1-geology-2": {
+   "surfaces": 153,
+   "pairs": 27
+  },
+  "e1-mandarin": {
+   "surfaces": 165,
+   "pairs": 12
+  },
+  "e1-mandarin-2": {
+   "surfaces": 165,
+   "pairs": 9
+  },
+  "e1-psych-101-3": {
+   "surfaces": 165,
+   "pairs": 16
+  },
+  "e1-stats-intro-2": {
+   "surfaces": 154,
+   "pairs": 13
+  },
+  "e6-composer": {
+   "surfaces": 165,
+   "pairs": 69
+  },
+  "e6b-composer": {
+   "surfaces": 165,
+   "pairs": 57
+  },
+  "e6c-composer": {
+   "surfaces": 165,
+   "pairs": 61
+  },
+  "e6d-composer": {
+   "surfaces": 165,
+   "pairs": 64
+  },
+  "e6e-composer": {
+   "surfaces": 165,
+   "pairs": 66
+  },
+  "e7-composer-la": {
+   "surfaces": 156,
+   "pairs": 75
+  },
+  "e7b-composer-la": {
+   "surfaces": 156,
+   "pairs": 81
+  },
+  "e7c-composer-la": {
+   "surfaces": 157,
+   "pairs": 87
+  },
+  "e7d-composer-la": {
+   "surfaces": 155,
+   "pairs": 87
+  },
+  "e7e-composer-la": {
+   "surfaces": 154,
+   "pairs": 86
+  },
+  "e8-fresh-cs": {
+   "surfaces": 164,
+   "pairs": 55
+  },
+  "lean-cs-python-2": {
+   "surfaces": 164,
+   "pairs": 36
+  },
+  "lean-cs-python-3": {
+   "surfaces": 164,
+   "pairs": 35
+  },
+  "lean-cs-python-4": {
+   "surfaces": 164,
+   "pairs": 44
+  },
+  "lean-cs-python-5": {
+   "surfaces": 165,
+   "pairs": 37
+  },
+  "live-cs-python-3": {
+   "surfaces": 164,
+   "pairs": 16
+  },
+  "live-cs-python-4": {
+   "surfaces": 163,
+   "pairs": 16
+  },
+  "live-cs-python-5": {
+   "surfaces": 165,
+   "pairs": 25
+  },
+  "live-cs-python-6": {
+   "surfaces": 165,
+   "pairs": 27
+  },
+  "live-cs-python-7": {
+   "surfaces": 165,
+   "pairs": 36
+  },
+  "live-cs-python-8": {
+   "surfaces": 165,
+   "pairs": 27
+  },
+  "test-bridge-mock": {
+   "surfaces": 80,
+   "pairs": 0
+  },
+  "test-item6-mock": {
+   "surfaces": 80,
+   "pairs": 0
+  },
+  "test-optimize-mock": {
+   "surfaces": 80,
+   "pairs": 0
+  },
+  "test-pipeline-gap": {
+   "surfaces": 80,
+   "pairs": 0
+  },
+  "test-pipeline-mock": {
+   "surfaces": 80,
+   "pairs": 0
+  },
+  "v011-cs-python-2": {
+   "surfaces": 165,
+   "pairs": 44
+  },
+  "v011-cs-python-3": {
+   "surfaces": 165,
+   "pairs": 42
+  },
+  "v011-cs-python-5": {
+   "surfaces": 165,
+   "pairs": 49
+  },
+  "v011-cs-python-7": {
+   "surfaces": 165,
+   "pairs": 39
+  },
+  "v011-cs-python-8": {
+   "surfaces": 165,
+   "pairs": 56
+  },
+  "v011-cs-python-9": {
+   "surfaces": 165,
+   "pairs": 52
+  },
+  "v011-linear-algebra-1": {
+   "surfaces": 153,
+   "pairs": 37
+  },
+  "v011-linear-algebra-2": {
+   "surfaces": 154,
+   "pairs": 39
+  },
+  "v012-cs-diet": {
+   "surfaces": 166,
+   "pairs": 56
+  },
+  "v012-cs-diet2": {
+   "surfaces": 165,
+   "pairs": 57
+  },
+  "v012-cs-final": {
+   "surfaces": 164,
+   "pairs": 46
+  },
+  "v012-cs-lean": {
+   "surfaces": 167,
+   "pairs": 50
+  },
+  "v012-cs-overnight": {
+   "surfaces": 165,
+   "pairs": 47
+  },
+  "v012-cs-overnight2": {
+   "surfaces": 165,
+   "pairs": 52
+  },
+  "v012-cs-thrift": {
+   "surfaces": 165,
+   "pairs": 38
+  },
+  "v012-cs-thrift2": {
+   "surfaces": 165,
+   "pairs": 55
+  },
+  "v012-cs-verify": {
+   "surfaces": 164,
+   "pairs": 39
+  },
+  "v012-la-final": {
+   "surfaces": 154,
+   "pairs": 47
+  },
+  "v012-la-verify": {
+   "surfaces": 154,
+   "pairs": 35
+  },
+  "v012-stats-probe": {
+   "surfaces": 154,
+   "pairs": 20
+  },
+  "v013-cs-bank": {
+   "surfaces": 165,
+   "pairs": 41
+  },
+  "v013-cs-bank2": {
+   "surfaces": 165,
+   "pairs": 67
+  },
+  "v013-cs-bank3": {
+   "surfaces": 166,
+   "pairs": 51
+  },
+  "v013-cs-bank4": {
+   "surfaces": 165,
+   "pairs": 60
+  },
+  "v013-cs-bank5": {
+   "surfaces": 164,
+   "pairs": 44
+  },
+  "v013-cs-review": {
+   "surfaces": 165,
+   "pairs": 63
+  },
+  "v014-proof2": {
+   "surfaces": 165,
+   "pairs": 71
+  },
+  "v014-samegraph-a": {
+   "surfaces": 165,
+   "pairs": 83
+  },
+  "v014-samegraph-b": {
+   "surfaces": 165,
+   "pairs": 65
+  },
+  "v015-samegraph-final": {
+   "surfaces": 166,
+   "pairs": 71
+  },
+  "v015-samegraph-final2": {
+   "surfaces": 165,
+   "pairs": 49
+  },
+  "v015-samegraph-post": {
+   "surfaces": 165,
+   "pairs": 74
+  },
+  "v016-cs-replay": {
+   "surfaces": 165,
+   "pairs": 60
+  },
+  "v016-la-replay": {
+   "surfaces": 154,
+   "pairs": 67
+  },
+  "v017-cs-replay": {
+   "surfaces": 165,
+   "pairs": 71
+  },
+  "v017-la-replay": {
+   "surfaces": 154,
+   "pairs": 61
+  }
+ }
+}

@@ -238,7 +238,7 @@ export async function loadBank(discipline, { dir = 'trellis/bank' } = {}) {
 // genomeRef, instrument-evidenced first, stem-deduped against each other,
 // correctIndex rotated for position variety. Course concept ids are mapped
 // back so claims stay legal in THIS course's ref enum.
-export function selectBankItems(slice, bank, { maxBanked = 4, perConcept = 3 } = {}) {
+export function selectBankItems(slice, bank, { maxBanked = 4, perConcept = 3, excludeItem = null } = {}) {
   if (!bank?.items?.length) return [];
   const conceptsInOrder = [...slice.concepts].sort((a, b) => {
     const aIntro = (slice.lesson.introduces ?? []).includes(a.id) ? 0 : 1;
@@ -290,6 +290,9 @@ export function selectBankItems(slice, bank, { maxBanked = 4, perConcept = 3 } =
       if (isReviewConcept && reviewCount >= REVIEW_CAP) break;
       if (item.familyKey && (familyCounts.get(item.familyKey) ?? 0) >= familyCap) continue;
       if (selected.some((s) => tokenOverlapRatio(s.stem, item.stem) > STEM_DUPE_OVERLAP)) continue;
+      // Tendril sibling dedupe (T-M1a): course-level semantic exclusion —
+      // the J7 echo class lives in near-identical sibling EXPLANATIONS.
+      if (excludeItem?.(item)) continue;
       // Rotate the correct option for position variety (structure, not prose).
       const rotation = selected.length % 4;
       const options = item.options.map((_, i) => item.options[(i + item.correctIndex - rotation + 4) % 4]);

@@ -60,6 +60,7 @@ async function cmdGenerate(options) {
     termStart: options['term-start'] ?? null,
     overnight: Boolean(options.overnight),
     composer: Boolean(options.composer),
+    tendril: !options['no-tendril'],
     bankDiscipline: typeof options.bank === 'string' ? options.bank : null,
     runId: options['run-id'] ?? newRunId(options.mock ? 'mock' : 'live'),
   });

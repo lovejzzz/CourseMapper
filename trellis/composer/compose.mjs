@@ -49,7 +49,7 @@ export async function composeLesson(
   graph,
   lessonId,
   store,
-  { ledger, budgetUsd, tiers, bank, courseUsed = null } = {},
+  { ledger, budgetUsd, tiers, bank, courseUsed = null, tendril = null } = {},
 ) {
   const slice = buildLessonSlice(graph, lessonId);
   const lesson = graph.lessons.find((l) => l.id === lessonId);
@@ -59,8 +59,18 @@ export async function composeLesson(
   const pick = (move) => {
     // Course-level dedup (v0.2.5): the same asset in two lessons IS the
     // J7 echo class. Thin shelves may fall back to reuse — counted.
+    // Tendril (T-M1a) extends the exclusion to semantic SIBLINGS of used
+    // assets; the fallback drops the semantic filter before it drops the
+    // id filter, so thin shelves degrade to dup reuse, never to nothing.
     const courseExclude = courseUsed ? new Set([...exclude, ...courseUsed]) : exclude;
-    let asset = selectAsset(store, anchor.kernelId, move, { exclude: courseExclude });
+    let asset = selectAsset(store, anchor.kernelId, move, {
+      exclude: courseExclude,
+      excludeIf: tendril ? (a) => tendril.assetEchoes(a) : null,
+    });
+    if (!asset && tendril) {
+      asset = selectAsset(store, anchor.kernelId, move, { exclude: courseExclude });
+      if (asset) stats.tendrilFallbacks = (stats.tendrilFallbacks ?? 0) + 1;
+    }
     if (!asset && courseUsed) {
       asset = selectAsset(store, anchor.kernelId, move, { exclude });
       if (asset) stats.dupReuses = (stats.dupReuses ?? 0) + 1;
@@ -68,6 +78,7 @@ export async function composeLesson(
     if (asset) {
       exclude.add(asset.id);
       courseUsed?.add(asset.id);
+      tendril?.noteAsset(asset);
     }
     return asset;
   };
@@ -114,13 +125,18 @@ export async function composeLesson(
   // v0.2.1 final config: banked-first (E6b MEASURED the 4+2 fresh mix
   // hurting quiz panels 7.11→6.11 at 2× cost — hypothesis rejected,
   // reverted) with PER-ITEM claims (confirmed: repair 0.530→0.548).
-  const banked = selectBankItems(slice, bank, { maxBanked: 6, perConcept: 4 });
+  const banked = selectBankItems(slice, bank, {
+    maxBanked: 6,
+    perConcept: 4,
+    excludeItem: tendril ? (item) => tendril.itemEchoes(item) : null,
+  });
   const itemConceptIds = [];
   const quizItems = banked.map((item) => {
     const clean = { ...item };
     itemConceptIds.push(item.__bank?.conceptId ?? anchor.conceptId);
     delete clean.__bank;
     used(item, clean);
+    tendril?.noteItem(item);
     return clean;
   });
   if (quizItems.length < 6) {
@@ -252,20 +268,36 @@ export async function skinLesson(graph, lessonNumber, composed, { ledger, budget
         1,
       ),
     });
+    // Every verdict feeds the Tendril-S corpus (T-M2): accepted pairs are
+    // positive supervision, gate-rejected pairs carry their reason.
+    const { corpusLog } = await import('../tendril/corpus.mjs');
     for (const rewrite of result.rewrites ?? []) {
       const seg = segments[rewrite.index];
       if (!seg) continue;
       const text = String(rewrite.text ?? '').trim();
+      const reject = (reason) => corpusLog({ task: 'skin', accepted: false, reason, source: seg.text, target: text });
       const len = weightedLength(text);
       const orig = weightedLength(seg.text);
-      if (len < orig * 0.6 || len > orig * 1.4) continue;
-      if (!TERMINAL_PUNCT_RE.test(text)) continue;
-      if (text.includes('```')) continue;
+      if (len < orig * 0.6 || len > orig * 1.4) {
+        await reject('length-band');
+        continue;
+      }
+      if (!TERMINAL_PUNCT_RE.test(text)) {
+        await reject('terminal-punct');
+        continue;
+      }
+      if (text.includes('```')) {
+        await reject('code-fence');
+        continue;
+      }
       if (
         (seg.mode === 'reteach' || seg.mode === 'worked-example') &&
         !/example|walk|work(ed|ing)? through|demo|trace/i.test(text)
-      )
+      ) {
+        await reject('mode-example');
         continue;
+      }
+      await corpusLog({ task: 'skin', accepted: true, mode: seg.mode, source: seg.text, target: text });
       seg.text = text;
       skinned += 1;
     }
@@ -275,7 +307,7 @@ export async function skinLesson(graph, lessonNumber, composed, { ledger, budget
   return { skinned, of: segments.length };
 }
 
-export async function composeAllLessons(graph, store, { ledger, budgetUsd, tiers, bank } = {}) {
+export async function composeAllLessons(graph, store, { ledger, budgetUsd, tiers, bank, tendril = null } = {}) {
   const authored = {};
   const failures = [];
   const totals = { reusedChars: 0, freshChars: 0, reusedParts: 0, freshParts: 0, skinned: 0, skinOf: 0 };
@@ -288,6 +320,7 @@ export async function composeAllLessons(graph, store, { ledger, budgetUsd, tiers
         tiers,
         bank,
         courseUsed,
+        tendril,
       });
       const skin = await skinLesson(graph, index + 1, composed, { ledger, budgetUsd, tier: tiers?.flywheel ?? 'nano' });
       const errors = validateAuthoredLesson(composed);
@@ -301,6 +334,7 @@ export async function composeAllLessons(graph, store, { ledger, budgetUsd, tiers
       totals.skinOf += skin.of;
       totals.solverRejected = (totals.solverRejected ?? 0) + (stats.solverRejected ?? 0);
       totals.dupReuses = (totals.dupReuses ?? 0) + (stats.dupReuses ?? 0);
+      totals.tendrilFallbacks = (totals.tendrilFallbacks ?? 0) + (stats.tendrilFallbacks ?? 0);
     } catch (composeError) {
       // Fold-back per lesson: the factory authors it whole, disclosed.
       try {

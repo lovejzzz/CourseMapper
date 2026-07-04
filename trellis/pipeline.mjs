@@ -36,6 +36,7 @@ export async function runPipeline({
   termStart = null,
   overnight = false,
   composer = false,
+  tendril = true,
   bankDiscipline = null,
   generatedAt = new Date().toISOString(),
 }) {
@@ -55,6 +56,7 @@ export async function runPipeline({
       termStart,
       overnight,
       composer,
+      tendril,
       bankDiscipline,
       generatedAt,
       ledger,
@@ -79,6 +81,7 @@ async function runPipelineStages({
   termStart,
   overnight,
   composer,
+  tendril = true,
   bankDiscipline,
   generatedAt,
   ledger,
@@ -247,7 +250,22 @@ async function runPipelineStages({
     const { composeAllLessons } = await import('./composer/compose.mjs');
     const store = await loadAssets();
     if (!store) throw new Error('composer requires trellis/bank/assets.json — run trellis/composer/assets.mjs');
-    const outcome = await composeAllLessons(graph, store, { ledger, budgetUsd, tiers, bank });
+    // Tendril sibling dedupe (T-M1a) — default on for composed runs;
+    // --no-tendril opts out. Failure to build the context (missing model,
+    // cold cache on an offline box) degrades to no-dedupe, disclosed.
+    let tendrilCtx = null;
+    if (tendril) {
+      try {
+        const { buildTendrilContext } = await import('./tendril/siblingDedupe.mjs');
+        tendrilCtx = await buildTendrilContext(bank);
+      } catch (error) {
+        digest.tendril = `UNAVAILABLE (${String(error.message).slice(0, 80)}) — semantic dedupe off this run`;
+      }
+    }
+    const outcome = await composeAllLessons(graph, store, { ledger, budgetUsd, tiers, bank, tendril: tendrilCtx });
+    if (tendrilCtx) {
+      digest.tendril = `sibling dedupe ε=${tendrilCtx.epsilon}: excluded ${tendrilCtx.counters.itemsExcluded} item(s) + ${tendrilCtx.counters.assetsExcluded} asset(s)${outcome.stats.tendrilFallbacks ? `; ${outcome.stats.tendrilFallbacks} thin-shelf semantic fallback(s)` : ''}`;
+    }
     // v0.2.2: PERSIST exposure counters — without this write-back the
     // CAT-style anti-homogenization draw was a no-op and every
     // same-syllabus composition drew identical assets (found while
