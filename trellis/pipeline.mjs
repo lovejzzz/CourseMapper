@@ -254,7 +254,18 @@ async function runPipelineStages({
   }
   const { authored, failures } = useBatch ? authorOutcome : await authorAllLessons(graph, authorOptions);
   if (bank && bankStats.selected + bankStats.fresh > 0) {
-    digest.itemBank = `${bankStats.selected}/${bankStats.selected + bankStats.fresh} weekly quiz items selected from the ${bank.discipline} bank (${bank.items.length} banked items over ${bank.kernels} kernels; provenance-tracked); ${bankStats.fresh} authored fresh${bankStats.lessonsFullyBanked > 0 ? `; ${bankStats.lessonsFullyBanked} lesson(s) fully banked` : ''}`;
+    // Shelf telemetry (v0.1.5 item 2): the thinnest lesson is named in
+    // every digest — late-course shelf thinning was invisible until a
+    // multi-lesson panel found it; now any single run shows it.
+    const shelfByLesson = graph.lessons.map((lesson) => {
+      const kernels = [...new Set([...lesson.introduces, ...(lesson.reinforces ?? [])])]
+        .map((cid) => graph.concepts.find((c) => c.id === cid)?.genomeRef)
+        .filter(Boolean);
+      const shelf = bank.items.filter((item) => kernels.includes(item.kernelId)).length;
+      return { id: lesson.id, shelf };
+    });
+    const thinnest = shelfByLesson.reduce((a, b) => (b.shelf < a.shelf ? b : a), shelfByLesson[0]);
+    digest.itemBank = `${bankStats.selected}/${bankStats.selected + bankStats.fresh} weekly quiz items selected from the ${bank.discipline} bank (${bank.items.length} banked items over ${bank.kernels} kernels; ${bank.origins ? `${bank.origins.harvest} harvest + ${bank.origins.gapfill} gapfill; ` : ''}provenance-tracked); ${bankStats.fresh} authored fresh${bankStats.lessonsFullyBanked > 0 ? `; ${bankStats.lessonsFullyBanked} lesson(s) fully banked` : ''}; thinnest shelf: ${thinnest?.id} (${thinnest?.shelf} items)`;
   }
   if (failures.length > 0) {
     digest.authorFailures = failures.map((f) => `${f.lessonId}: ${f.error.slice(0, 120)}`);

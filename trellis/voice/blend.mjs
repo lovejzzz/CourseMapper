@@ -153,29 +153,35 @@ export async function blendCorrectives(graph, authored, { tier = 'nano', ledger 
   // starve math-dense correctives of room; LA measured the tail at ~20%).
   // Bounded to 10 items; whatever still fails keeps its pasted form.
   for (const entry of pending.slice(0, 10)) {
-    try {
-      const { result } = await callModel({
-        tier: 'cheap',
-        stage: 'blend',
-        ledger,
-        budgetUsd,
-        schema: REWRITES_SCHEMA,
-        schemaName: 'explanation_rewrites',
-        validate: schemaOnly,
-        maxOutputTokens: 600,
-        system:
-          'Rewrite ONE quiz explanation so the pasted corrective sentence(s) become its own natural argument (2-3 sentences, under 60 words). Keep at least half of EACH corrective’s key terms — a lexical gate checks. Return {rewrites:[{index:0, text}]}.',
-        user: JSON.stringify({ explanation: entry.explanation, correctives: entry.correctives }, null, 1),
-      });
-      const text = String(result?.rewrites?.[0]?.text ?? '').trim();
-      if (!explanationGate(entry, text, accepted)) continue;
-      const item = authored[entry.lessonId]?.quizItems?.[entry.itemIndex];
-      if (!item || item.explanation !== entry.explanation) continue;
-      item.explanation = text;
-      accepted.add(text.toLowerCase());
-      blended += 1;
-    } catch {
-      /* keeps the pasted form — disclosed via the blended/candidates ratio */
+    // Math-dense correctives need room (v0.1.5 item 3): 80 words here,
+    // and a deepseek seat tries once after mini — different family,
+    // different failure mode. Whatever still fails keeps the paste.
+    for (const tailTier of ['cheap', 'ds']) {
+      try {
+        const { result } = await callModel({
+          tier: tailTier,
+          stage: 'blend',
+          ledger,
+          budgetUsd,
+          schema: REWRITES_SCHEMA,
+          schemaName: 'explanation_rewrites',
+          validate: schemaOnly,
+          maxOutputTokens: 700,
+          system:
+            'Rewrite ONE quiz explanation so the pasted corrective sentence(s) become its own natural argument (2-4 sentences, under 80 words). Keep at least half of EACH corrective’s key terms — a lexical gate checks. Return {rewrites:[{index:0, text}]}.',
+          user: JSON.stringify({ explanation: entry.explanation, correctives: entry.correctives }, null, 1),
+        });
+        const text = String(result?.rewrites?.[0]?.text ?? '').trim();
+        if (!explanationGate(entry, text, accepted)) continue;
+        const item = authored[entry.lessonId]?.quizItems?.[entry.itemIndex];
+        if (!item || item.explanation !== entry.explanation) break;
+        item.explanation = text;
+        accepted.add(text.toLowerCase());
+        blended += 1;
+        break;
+      } catch {
+        /* try the next tier; after the last, the paste stays — disclosed */
+      }
     }
   }
   return { candidates: candidates.length, blended };
