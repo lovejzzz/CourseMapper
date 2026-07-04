@@ -1284,6 +1284,28 @@ polishing a candidate that hasn't won.
   cost with all guarantees held. Queue: E7 cross-discipline (LA) after
   C6 build-out; homogenization index at ≥3 same-syllabus compositions.
 
+- **2026-07-04/05 (Composer v0.2.2→v0.2.4 arc — variety, cross-
+  discipline, and the shelf fix).** v0.2.2: exposure persistence (the
+  counters never wrote back — pre-fix homogenization 84%, POST-FIX 62%
+  ✓ bar <80; carry-over across rebuilds); LA harvest shelf (+384
+  assets, store 2,865). E7 (LA frozen ruler): **panel 9 [9,9] —
+  project record, +1 over Trellis LA's 8 [8,8] baseline** — with the
+  self-reuse validity caveat named; repair 0.452 in old band; cost
+  $0.222 = 79% repair. v0.2.3: RESELECTION-BEFORE-REPAIR shipped —
+  measured an honest null (0/4: LA's defects were SHELF GAPS, not
+  combinations; the mechanism correctly refused non-improving swaps);
+  repair round cap 1 for composed runs (E7c $0.168). v0.2.4 "Fix the
+  Shelf": the gap-fill exposed PURE-NOTATION BELIEF BLINDNESS
+  ("(AB)⁻¹=A⁻¹B⁻¹" → zero informative tokens → distractorCatches false
+  FOREVER) → **PROF-BENCH v1.2.0** (empty-claim fine-token fallback;
+  $0 re-baseline: cs ≤0.004, LA 0.428→0.463 — notation catches now
+  register); claimTokens mirrors; the two eternal cells filled 2/2.
+  **E7d: J11 ELIMINATED (findings J7_ECHO×2 only); LA repair 0.553 —
+  the Composer now BEATS Trellis (0.463) on LA's weakest metric.**
+  Cost $0.174 vs ≤$0.12 bar — unmet; residual driver named: the repair
+  loop grinds on cross-lesson echo it cannot fix (composed-content
+  signature; J7-exclusion for composed repair = next lever). 100 tests.
+
 ---
 
 _— Fable 5_
