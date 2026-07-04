@@ -344,6 +344,17 @@ async function runPipelineStages({
   }
 
   // 7 · judge + repair
+  // v0.2.3 (composer only): RESELECTION BEFORE REPAIR — with a library,
+  // a quiz-class defect is a selection problem first; redraw from the
+  // shelf ($0, deterministic) and let the model repair only what
+  // reselection couldn't (E7 measured repair at 79% of composed cost).
+  if (composer && !mockVoice && bank) {
+    const { reselectQuizForFindings } = await import('./composer/reselect.mjs');
+    const reselect = reselectQuizForFindings(graph, authored, bank);
+    if (reselect.lessonsTried > 0) {
+      digest.reselection = `${reselect.lessonsSwapped}/${reselect.lessonsTried} quiz-defect lesson(s) fixed by shelf redraw ($0) before model repair`;
+    }
+  }
   let respliced = 0;
   let repaired = 0;
   const repair = await repairLoop(graph, authored, {
