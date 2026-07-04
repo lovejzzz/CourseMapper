@@ -156,8 +156,18 @@ async function runPipelineStages({
       // Roadmap 3.3: a second model verifies extracted facts (same-family —
       // cross-family is key-gated; disclosed as such).
       const { verifyFlywheelFacts } = await import('./knowledge/flywheel.mjs');
-      const verification = await verifyFlywheelFacts(graph, filled, { tier: 'cheap', ledger, budgetUsd });
-      digest.flywheel = `${filled.length} concept(s) flywheel-filled — ${provenance}; second-model verification: ${verification.checked} facts checked, ${verification.removed} removed${verification.gapped.length > 0 ? `, ${verification.gapped.length} concept(s) → declaredGap` : ''} (same-family — cross-family key-gated)`;
+      // v0.1.4 B5: TRUE cross-family verification (the original design
+      // intent) — a deepseek seat checks openai-extracted facts. Falls
+      // back to same-family if the ds call fails, disclosed either way.
+      let verification;
+      let verifierFamily = 'cross-family (deepseek-v4-flash)';
+      try {
+        verification = await verifyFlywheelFacts(graph, filled, { tier: 'ds', ledger, budgetUsd });
+      } catch {
+        verifierFamily = 'same-family FALLBACK (deepseek call failed)';
+        verification = await verifyFlywheelFacts(graph, filled, { tier: 'cheap', ledger, budgetUsd });
+      }
+      digest.flywheel = `${filled.length} concept(s) flywheel-filled — ${provenance}; second-model verification: ${verification.checked} facts checked, ${verification.removed} removed${verification.gapped.length > 0 ? `, ${verification.gapped.length} concept(s) → declaredGap` : ''} (${verifierFamily})`;
     }
   }
   digest.enrichment = `genome: ${coverage.linked}/${coverage.total} concepts carry kernels (${coverage.note})`;
