@@ -248,6 +248,12 @@ async function runPipelineStages({
     const store = await loadAssets();
     if (!store) throw new Error('composer requires trellis/bank/assets.json — run trellis/composer/assets.mjs');
     const outcome = await composeAllLessons(graph, store, { ledger, budgetUsd, tiers, bank });
+    // v0.2.2: PERSIST exposure counters — without this write-back the
+    // CAT-style anti-homogenization draw was a no-op and every
+    // same-syllabus composition drew identical assets (found while
+    // planning the homogenization index; e6 vs e6c measured it).
+    const { writeFile: writeStore } = await import('node:fs/promises');
+    await writeStore('trellis/bank/assets.json', JSON.stringify(store, null, 1));
     digest.composer = `assembled from ${store.assets.length} assets: reuse ${outcome.stats.reusePct}% by surface area (${outcome.stats.reusedParts} parts reused, ${outcome.stats.freshParts} fresh); skin ${outcome.stats.skinned}/${outcome.stats.skinOf} segments unified${outcome.stats.solverRejected ? `; solver rejected ${outcome.stats.solverRejected} fresh item(s)` : ''}`;
     var composerOutcome = outcome;
   }

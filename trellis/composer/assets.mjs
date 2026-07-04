@@ -17,7 +17,17 @@ const ASSETS_PATH = 'trellis/bank/assets.json';
 // Runs whose packages carried the strongest instrument evidence — the
 // E6 harvest sources. Grade ≥97 is the floor; these also carried panel
 // scores 8-9 in the ledger.
-const HARVEST_RUNS = ['v016-cs-replay', 'v015-samegraph-final2', 'v013-cs-bank5', 'v012-cs-verify', 'bench11-trellis'];
+const HARVEST_RUNS = [
+  'v016-cs-replay',
+  'v015-samegraph-final2',
+  'v013-cs-bank5',
+  'v012-cs-verify',
+  'bench11-trellis',
+  // v0.2.2: the LA shelf (grades 97-99) — the E7 prerequisite.
+  'v012-la-verify',
+  'v016-la-replay',
+  'v017-la-replay',
+];
 
 export async function loadAssets({ path = ASSETS_PATH } = {}) {
   try {
@@ -128,6 +138,10 @@ function dedupeAssets(assets) {
 export async function buildAssets({ outPath = ASSETS_PATH } = {}) {
   const bank = await loadBank('all');
   if (!bank) throw new Error('item bank missing — the Composer builds on it, not around it');
+  // Carry exposure counters across rebuilds — persisted draw history is
+  // an asset property now (same class of loss as the gapfill-rebuild trap).
+  const existing = await loadAssets({ path: outPath });
+  const priorUses = new Map((existing?.assets ?? []).map((a) => [a.id, a.exposure?.uses ?? 0]));
   const itemAssets = bank.items.map((item) => ({
     id: `item:${item.id}`,
     kernelId: item.kernelId,
@@ -167,6 +181,12 @@ export async function buildAssets({ outPath = ASSETS_PATH } = {}) {
   }
 
   const moveAssets = dedupeAssets(harvested);
+  for (const asset of moveAssets) {
+    if (priorUses.has(asset.id)) asset.exposure.uses = priorUses.get(asset.id);
+  }
+  for (const asset of [...itemAssets]) {
+    if (priorUses.has(asset.id)) asset.exposure.uses = priorUses.get(asset.id);
+  }
   const store = {
     version: 'composer-assets-v0',
     benchVersion: '1.1.0',
