@@ -280,7 +280,7 @@ function quizSystemPrompt(slice, count = slice.constraints.quizItems) {
         `- Documented misconceptions:\n${misconceptionBlocks(misconceptions)}\n`
       : '') +
     `- Where a concept carries workedExamples, build at least one stem from a provided example (show the actual case, not a description of it).\n` +
-    `- SPACED RETRIEVAL: put 1-2 items on the lesson's REINFORCED (prior) concepts, not only the new ones — retrieval of last week's material is where retention is won. Start those stems with "Review:" so nobody mistakes deliberate retrieval for topic drift.\n` +
+    `- SPACED RETRIEVAL: AT MOST 1-2 items on the lesson's REINFORCED (prior) concepts; every other item tests THIS lesson's new material. Start ONLY those 1-2 review stems with "Review:" — never label a new-topic item Review.\n` +
     `- explanation: 2-3 tight sentences, at most ~50 words — say why the right answer is right and the tempting one is wrong; no preamble, no restating the stem.\n` +
     `- Every factual claim traces to the kernel facts provided; never invent facts. claims[]: {path like "quizItems[2].explanation", ref from the schema enum or null}.\n` +
     `- Write like a person who teaches this course: specific, direct, no template phrases; never open two explanations the same way.`

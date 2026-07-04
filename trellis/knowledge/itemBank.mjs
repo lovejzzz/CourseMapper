@@ -241,8 +241,17 @@ export function selectBankItems(slice, bank, { maxBanked = 4, perConcept = 3 } =
     return aIntro - bIntro;
   });
   const selected = [];
+  // Review cap (v0.1.5 final refit): when the INTRODUCED concept's shelf
+  // is thin, unlimited backfill floods the quiz with reinforced-topic
+  // reviews — the L8 defect: a strings lesson whose six items were all
+  // list reviews, judged 2-4. Spaced retrieval means 1-2 review items,
+  // ever; the new topic gets the rest fresh-authored if the shelf can't
+  // provide.
+  const REVIEW_CAP = 2;
+  let reviewCount = 0;
   for (const concept of conceptsInOrder) {
     if (!concept.genomeRef) continue;
+    const isReviewConcept = !(slice.lesson.introduces ?? []).includes(concept.id);
     const pool = bank.items
       .filter((item) => item.kernelId === concept.genomeRef)
       .sort(
@@ -273,6 +282,7 @@ export function selectBankItems(slice, bank, { maxBanked = 4, perConcept = 3 } =
     const spreadPool = [...interleaved, ...pool.filter((item) => !item.familyKey)];
     for (const item of spreadPool) {
       if (selected.length >= maxBanked || taken >= perConcept) break;
+      if (isReviewConcept && reviewCount >= REVIEW_CAP) break;
       if (item.familyKey && (familyCounts.get(item.familyKey) ?? 0) >= familyCap) continue;
       if (selected.some((s) => tokenOverlapRatio(s.stem, item.stem) > STEM_DUPE_OVERLAP)) continue;
       // Rotate the correct option for position variety (structure, not prose).
@@ -282,7 +292,8 @@ export function selectBankItems(slice, bank, { maxBanked = 4, perConcept = 3 } =
       // unlabeled prior-topic items as scope drift ("drifts into while-loop
       // behavior"). A one-word label is metadata-class assembly, and it is
       // also just honest quiz design.
-      const isReview = !(slice.lesson.introduces ?? []).includes(concept.id);
+      const isReview = isReviewConcept;
+      if (isReview) reviewCount += 1;
       const stem = isReview && !/^review\b/i.test(item.stem) ? `Review: ${item.stem}` : item.stem;
       if (item.familyKey) familyCounts.set(item.familyKey, (familyCounts.get(item.familyKey) ?? 0) + 1);
       selected.push({
