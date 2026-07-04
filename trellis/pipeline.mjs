@@ -215,10 +215,18 @@ async function runPipelineStages({
   // schemas and validators — a latency trade, never a quality one. Only
   // the authoring fan-out batches; small serial stages stay live.
   const useBatch = overnight && !mockVoice && tiers.authorSurfaces;
+  let authorOutcome;
   if (useBatch) {
     const { authorAllLessonsBatch } = await import('./voice/author.mjs');
-    digest.transport = 'overnight batch (authoring stages via /v1/batches at 50% token rates; small stages live)';
-    var authorOutcome = await authorAllLessonsBatch(graph, authorOptions);
+    authorOutcome = await authorAllLessonsBatch(graph, authorOptions);
+    // The digest reports the transport that actually RAN — the first
+    // overnight run fell back to live silently while the digest still
+    // claimed the discount (the overstating-digest bug class).
+    const bt = authorOutcome.transport;
+    digest.transport =
+      bt.batchedParts === 0
+        ? `overnight batch FAILED (${(bt.firstError ?? 'unknown').slice(0, 160)}) — all authoring fell back to LIVE at full rate`
+        : `overnight batch: ${bt.batchedParts}/${bt.totalParts} authoring parts at 50% token rates${bt.fallbackLessons > 0 ? `; ${bt.fallbackLessons} lesson(s) fell back to live` : ''}`;
   }
   const { authored, failures } = useBatch ? authorOutcome : await authorAllLessons(graph, authorOptions);
   if (failures.length > 0) {

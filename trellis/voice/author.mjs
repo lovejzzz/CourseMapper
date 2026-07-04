@@ -535,6 +535,12 @@ export async function authorAllLessonsBatch(graph, { tier, surfacesTier, quizTie
 
   const authored = {};
   const failures = [];
+  const transport = {
+    totalParts: descriptors.length,
+    batchedParts: outcomes.filter((o) => o?.result).length,
+    fallbackLessons: 0,
+    firstError: outcomes.find((o) => o?.error)?.error ?? null,
+  };
   for (const lesson of graph.lessons) {
     const group = byLesson.get(lesson.id) ?? {};
     try {
@@ -543,6 +549,7 @@ export async function authorAllLessonsBatch(graph, { tier, surfacesTier, quizTie
       }
       authored[lesson.id] = mergeSplitLesson(group.core.result, group.surfaces.result, group.quiz?.result ?? null);
     } catch (batchError) {
+      transport.fallbackLessons += 1;
       try {
         authored[lesson.id] = await authorLesson(graph, lesson.id, { tier, surfacesTier, quizTier, ledger, budgetUsd });
       } catch (liveError) {
@@ -553,7 +560,7 @@ export async function authorAllLessonsBatch(graph, { tier, surfacesTier, quizTie
       }
     }
   }
-  return { authored, failures };
+  return { authored, failures, transport };
 }
 
 export async function authorAllLessons(graph, options) {

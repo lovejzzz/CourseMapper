@@ -302,7 +302,15 @@ export async function batchCallModels(
       onStatus?.(state.status, state.request_counts ?? null, round + 1);
     }
     if (state.status !== 'completed' || !state.output_file_id) {
-      for (const p of pending) results[p.index] = { error: `batch round ${round + 1} ${state.status}` };
+      // Surface WHY — the first overnight run swallowed the reason and the
+      // whole batch degraded to live silently.
+      const detail = state.errors?.data
+        ? state.errors.data
+            .slice(0, 3)
+            .map((e) => e.message ?? e.code)
+            .join('; ')
+        : (state.errors && JSON.stringify(state.errors).slice(0, 200)) || 'no error detail';
+      for (const p of pending) results[p.index] = { error: `batch round ${round + 1} ${state.status}: ${detail}` };
       return results;
     }
 
