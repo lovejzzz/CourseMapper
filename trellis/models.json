@@ -24,6 +24,13 @@
       "modelId": "gpt-5.4",
       "inPerM": 2.5,
       "outPerM": 15.0
+    },
+    "ds": {
+      "provider": "deepseek",
+      "modelId": "deepseek-v4-flash",
+      "inPerM": 0.27,
+      "outPerM": 1.1,
+      "_note": "cross-family verification tier; canonical pricing row matches v4-flash"
     }
   },
   "pipelineTiers": {

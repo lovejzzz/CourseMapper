@@ -6,24 +6,14 @@
 // tokens), so passing J11 is passing the instrument, not gaming it.
 import { finding } from '../../graph/validate.mjs';
 import { misconceptionsForConcept } from '../../graph/schema.mjs';
+import { distractorCatchesMisconception } from '../../../scripts/prof/arenas/classroom.mjs';
 
-function tokensOf(value) {
-  return new Set(
-    String(value)
-      .toLowerCase()
-      .replace(/[^a-z0-9\s]/g, ' ')
-      .split(/\s+/)
-      .filter((token) => token.length > 3),
-  );
-}
-
+// DELEGATED to the instrument itself (PROF-BENCH ≥v1.1.0): one matching
+// rule, zero drift. This module used to carry a hand-mirrored copy; when
+// the bench recalibrated (digit tokens now informative at any length),
+// a mirror would have silently diverged.
 export function distractorCatches(distractorText, misconceptionStatement) {
-  const distractor = tokensOf(distractorText);
-  const claim = tokensOf(misconceptionStatement);
-  if (claim.size === 0 || distractor.size === 0) return false;
-  let shared = 0;
-  for (const token of claim) if (distractor.has(token)) shared += 1;
-  return shared >= 2 || shared / claim.size >= 0.5;
+  return distractorCatchesMisconception(distractorText, misconceptionStatement);
 }
 
 // Which texts count as "catching" this misconception. Genome-sourced

@@ -216,6 +216,12 @@ export const PROVIDER_KEY_RULES = {
     valueShape: (value) => /^AIza[0-9A-Za-z_-]+$/.test(value),
     shapeHint: 'AIza…',
   },
+  deepseek: {
+    envVars: ['COURSEMAPPER_DEEPSEEK_API_KEY', 'DEEPSEEK_API_KEY'],
+    keyNameRe: /DEEPSEEK/i,
+    valueShape: (value) => value.length > 20,
+    shapeHint: 'sk-…',
+  },
 };
 
 /**

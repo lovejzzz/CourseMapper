@@ -118,10 +118,14 @@ export async function callModel({
   fetchImpl = globalThis.fetch,
 }) {
   const tier = await resolveTier(tierName);
-  if (tier.provider !== 'openai') {
-    throw new Error(`Provider "${tier.provider}" not wired yet — models.json currently routes through openai`);
+  const ENDPOINTS = {
+    openai: 'https://api.openai.com/v1/chat/completions',
+    deepseek: 'https://api.deepseek.com/v1/chat/completions',
+  };
+  if (!ENDPOINTS[tier.provider]) {
+    throw new Error(`Provider "${tier.provider}" not wired — have: ${Object.keys(ENDPOINTS).join(', ')}`);
   }
-  const apiKey = await loadApiKey(undefined, 'openai');
+  const apiKey = await loadApiKey(undefined, tier.provider);
 
   let feedback = null;
   for (let attempt = 0; attempt <= maxRetries; attempt += 1) {
@@ -137,20 +141,31 @@ export async function callModel({
           : user,
       },
     ];
+    // Cross-family callers (deepseek) get json_object mode + the strict
+    // schema inlined into the system prompt — no grammar enforcement, so
+    // the validate-retry loop carries the contract (it always did).
+    if (schema && tier.provider !== 'openai' && !messages[0].content.includes('Return ONLY JSON matching')) {
+      messages[0] = {
+        role: 'system',
+        content: `${system}\n\nReturn ONLY JSON matching this schema exactly:\n${JSON.stringify(toStrictSchema(schema))}`,
+      };
+    }
     const body = {
       model: tier.modelId,
       messages,
       max_completion_tokens: maxOutputTokens,
       ...(schema
-        ? {
-            response_format: {
-              type: 'json_schema',
-              json_schema: { name: schemaName, strict: true, schema: toStrictSchema(schema) },
-            },
-          }
+        ? tier.provider === 'openai'
+          ? {
+              response_format: {
+                type: 'json_schema',
+                json_schema: { name: schemaName, strict: true, schema: toStrictSchema(schema) },
+              },
+            }
+          : { response_format: { type: 'json_object' } }
         : {}),
     };
-    const response = await fetchWithBackoff(fetchImpl, 'https://api.openai.com/v1/chat/completions', {
+    const response = await fetchWithBackoff(fetchImpl, ENDPOINTS[tier.provider], {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${apiKey}` },
       body: JSON.stringify(body),

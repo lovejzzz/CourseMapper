@@ -21,20 +21,41 @@ import { createFsFileProvider } from '../src/lib/quality/fsFileProvider.node.js'
 import { loadApiKey } from '../scripts/lib/crucibleBrowser.mjs';
 import { estimateUsageCost } from '../src/lib/apiUsageCost.js';
 
-async function judgeOnce(prompt, apiKey) {
-  const response = await fetch('https://api.openai.com/v1/chat/completions', {
+// Judge families (owner decision 2026-07-04: DeepSeek joins as the
+// CROSS-FAMILY seat — same prompt, same rubric, different model family,
+// which is the honest fix for same-family bias at DeepSeek prices).
+const FAMILIES = {
+  openai: { endpoint: 'https://api.openai.com/v1/chat/completions', model: () => JUDGE_MODEL },
+  deepseek: { endpoint: 'https://api.deepseek.com/v1/chat/completions', model: () => 'deepseek-v4-pro' },
+};
+
+async function judgeOnce(prompt, apiKey, family = 'openai') {
+  const spec = FAMILIES[family];
+  const model = spec.model();
+  const response = await fetch(spec.endpoint, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${apiKey}` },
     body: JSON.stringify({
-      model: JUDGE_MODEL,
+      model,
       messages: [{ role: 'user', content: prompt }],
       response_format: { type: 'json_object' },
     }),
   });
+  if (!response.ok) {
+    // A failed seat must be VISIBLE in the output, never an empty family
+    // (the first cross-family smoke lost its deepseek seat silently).
+    const text = await response.text().catch(() => '');
+    return { parsed: null, family, costUsd: 0, error: `HTTP ${response.status}: ${text.slice(0, 140)}` };
+  }
   const data = await response.json();
   const parsed = parseJudgeResponse(data?.choices?.[0]?.message?.content || '');
-  const cost = estimateUsageCost({ provider: 'openai', modelId: JUDGE_MODEL, usage: data?.usage });
-  return { parsed, costUsd: cost?.costUsd ?? 0 };
+  const cost = estimateUsageCost({ provider: family, modelId: model, usage: data?.usage });
+  // deepseek-v4 has no canonical pricing row yet — fall back to chat-tier rates.
+  const fallback =
+    family === 'deepseek' && !cost
+      ? ((data?.usage?.prompt_tokens ?? 0) * 0.27 + (data?.usage?.completion_tokens ?? 0) * 1.1) / 1e6
+      : 0;
+  return { parsed, family, costUsd: cost?.costUsd ?? fallback };
 }
 
 function artifactScores(parsed) {
@@ -47,8 +68,13 @@ export async function judgePackage(packageDir, { title = 'this course', lessonCo
   if (artifacts.length === 0) throw new Error('no sampleable artifacts');
   const prompt = buildJudgePrompt({ id: 'trellis', title }, artifacts);
   const apiKey = await loadApiKey(undefined, 'openai');
+  const dsKey = await loadApiKey(undefined, 'deepseek').catch(() => '');
 
-  const results = await Promise.all(Array.from({ length: seats }, () => judgeOnce(prompt, apiKey)));
+  // Panel: `seats` openai seats + (when the key exists) one deepseek
+  // cross-family seat. Disclosed per family in the output.
+  const calls = Array.from({ length: seats }, () => judgeOnce(prompt, apiKey, 'openai'));
+  if (dsKey) calls.push(judgeOnce(prompt, dsKey, 'deepseek'));
+  const results = await Promise.all(calls);
   const spendUsd = results.reduce((sum, r) => sum + r.costUsd, 0);
 
   const perArtifact = artifacts.map((artifact, index) => {
@@ -63,9 +89,20 @@ export async function judgePackage(packageDir, { title = 'this course', lessonCo
   const overalls = results
     .map((r) => r.parsed?.overall ?? r.parsed?.scores?.overall)
     .filter((s) => typeof s === 'number');
+  const perFamily = {};
+  for (const family of new Set(results.map((r) => r.family))) {
+    const overallScores = results
+      .filter((r) => r.family === family)
+      .map((r) => r.parsed?.overall ?? r.parsed?.scores?.overall)
+      .filter((s) => typeof s === 'number');
+    perFamily[family] = overallScores;
+  }
+  const seatErrors = results.filter((r) => r.error).map((r) => `${r.family}: ${r.error}`);
   return {
-    seats,
-    model: `${JUDGE_MODEL} (same-family seats — cross-family key-gated)`,
+    seats: results.length,
+    families: perFamily,
+    ...(seatErrors.length > 0 ? { seatErrors } : {}),
+    model: `${JUDGE_MODEL} + ${results.some((r) => r.family === 'deepseek') ? 'deepseek-v4 cross-family seat' : 'NO cross-family seat (deepseek key missing)'}`,
     overall: {
       mean: overalls.length ? Math.round((overalls.reduce((a, b) => a + b, 0) / overalls.length) * 100) / 100 : null,
       range: overalls.length ? [Math.min(...overalls), Math.max(...overalls)] : null,

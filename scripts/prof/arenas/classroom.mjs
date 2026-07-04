@@ -15,13 +15,22 @@ import { runClassroomBattery } from '../student/classroomSim.mjs';
 import { LEARNING_RULES } from '../student/studentMind.mjs';
 import { seededRandom } from '../universe.mjs';
 
-/** Distractor ↔ misconception lexical match: shared informative tokens. */
+// PROF-BENCH instrument version. Any change to a matching rule or a bar
+// bumps this and requires re-baselining every previously reported number
+// (owner-directed calibration, 2026-07-04).
+export const PROF_BENCH_VERSION = '1.1.0';
+
+/** Distractor ↔ misconception lexical match: shared informative tokens.
+ * v1.1.0 calibration: tokens containing digits are informative at ANY
+ * length — the >3-char filter was measurably blind to numeric/code
+ * payloads ("7 / 2 gives 3": a pedagogically perfect catch scored zero,
+ * TRELLIS_BUILD_REPORT §5h finding 3). */
 export function distractorCatchesMisconception(distractorText, misconceptionClaim) {
   const tokensOf = (value) =>
     new Set(
       normalizeTerm(value)
         .split(' ')
-        .filter((token) => token.length > 3),
+        .filter((token) => token.length > 3 || /\d/.test(token)),
     );
   const distractor = tokensOf(distractorText);
   const claim = tokensOf(misconceptionClaim);

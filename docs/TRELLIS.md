@@ -1075,6 +1075,27 @@ polishing a candidate that hasn't won.
   splice gains a 20-char belief floor. LESSON: never put a copyable
   placeholder in an extraction prompt — nano WILL return it.
 
+- **2026-07-04 (measurement overhaul — five owner directives, §PROF-BENCH).**
+  (1) Owner decision: NO human validation before launch; Claude is the
+  judge of record — adjudication protocol codified in docs/PROF_BENCH.md
+  (three instrument families + adjudicated read for any launch-gating
+  claim; SIMULATED stamps stay because honesty about derivation stays;
+  the sealed packet remains available but optional). (2) CROSS-FAMILY
+  JUDGING LIVE: deepseek-v4-pro seat wired (owner's key; api.ev names
+  were approximate — API accepts v4-pro/v4-flash only; failed seats now
+  reported, never silently dropped). First independent-family verdict:
+  deepseek 7 vs openai 8 overall, quiz identical [7,7] — same-family
+  bias shrinks from disclosed risk to measured ±1. trellis providers +
+  models.json gain a 'ds' (v4-flash) tier for cross-family verification.
+  (3) Grader ceiling reframed: deep grader = regression floor; rising
+  standards live in PROF-BENCH as versioned releases. (4) Instrument
+  blindness FIXED: PROF-BENCH v1.1.0 — digit-bearing tokens informative
+  at any length; trellis J11 now DELEGATES to the bench matcher (no
+  mirrors to drift); $0 re-baseline over 4 saved runs: deltas ≤0.004,
+  all published numbers stand. (5) Prof hardened into a third-party-
+  style benchmark: charter, version freeze, change discipline,
+  fixed protocol, anti-gaming stance — docs/PROF_BENCH.md.
+
 ---
 
 _— Fable 5_
