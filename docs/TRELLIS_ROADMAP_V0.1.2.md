@@ -110,3 +110,19 @@ stamps until the human anchor._
 Estimated $1.5–2.5 total (A/B pair, 3 generalization runs, multi-seat
 judging at ~$0.003/seat, packet regeneration) — inside the standing
 $5-per-experiment gate; every call ledgered.
+
+---
+
+## Status — implemented and validated (July 3, 2026)
+
+All five items landed; full story in `docs/TRELLIS_BUILD_REPORT.md` §5i.
+Scorecard: exports MET (22 Office files round-trip), proof MET
+(multi-seat means everywhere, packet resealed from cs-verify), quiz bar
+HALF-MET (5 → 7.5 [7,8] via gate-validated blending; classroom repair
+co-requirement met at 0.717–0.740), cost UNMET (frontier published:
+thrift $0.110/quiz 5 vs lean $0.19–0.23/quiz 7.5; lean stays default),
+LA generalization UNMET (repair 0.428–0.479 — seed density is
+structural; catch now passes on all courses via the instrument-mirror
+splice). Best-ever judge overall: 9 [9,9] on cs-verify. Loop spend
+$1.68, ledgered. Next levers named in §5i: label review items, richer
+repair on dense concepts, quiz voice above nano.

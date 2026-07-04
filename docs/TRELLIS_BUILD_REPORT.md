@@ -800,6 +800,97 @@ its structural ceiling, and cost sits $0.05 above target with both
 drivers identified (quiz output volume, corrective-append repetition).
 All numbers keep their SIMULATED stamps.
 
+## 5i. Roadmap v0.1.2 — the "not as good" list, worked
+
+_Owner directive: close the five places Trellis measurably trails the
+current pipeline (§5h comparison), plan in TRELLIS_ROADMAP_V0.1.2.md,
+implement. Loop spend: **$1.68** ($1.64 generation + ~$0.04 multi-seat
+judging), inside the roadmap's own estimate. All judge numbers below are
+2-seat means with ranges._
+
+### What shipped
+
+- **Blending (item 2):** pasted correctives in explanations AND spliced
+  beliefForm sentences in option slots are rewritten by voice passes
+  that are cosmetic BY CONSTRUCTION — a rewrite is accepted only if the
+  instrument's own lexical gate (confrontation / catch) still passes;
+  failed batches escalate nano→mini once, then keep the pasted form,
+  disclosed. A deterministic re-pair runs after all blending as the
+  guarantee safety net.
+- **Cost frontier (item 1):** a `thrift` tier (quiz on nano) measured
+  against lean. Prompt-cache reordering was measured VOID (all prompts
+  sit under OpenAI's 1024-token caching floor) and dropped honestly.
+- **Generalization (item 3):** spiral reinforcement — intake now
+  requires every post-week-1 lesson to reinforce 1–2 recent concepts,
+  and the quiz spreads items onto them (spaced retrieval). Plus the
+  decisive alignment fix: the catch splice now runs Prof's OWN
+  item→concept mapping (kernel claim ref, stem fallback, introduced
+  concepts only) instead of a lesson-pool approximation that
+  over-counted and under-spliced.
+- **Export parity (item 4):** 7 features as real DOCX + 15 per-lesson
+  real PPTX through the app's own builders — 22 Office files, all
+  round-tripped through the grader's docx/pptx parsers.
+- **Proof (item 5):** multi-seat advisory judge (means ± ranges,
+  same-family disclosed); the human blind packet REGENERATED and
+  RESEALED from the final v0.1.2 run. Cross-family judging stays
+  key-gated.
+
+### The measured arc (cs-python, lean unless noted)
+
+| Run           | Change under test         | Cost   | a2 repair   | a2 catch | Judge overall | Judge quiz |
+| ------------- | ------------------------- | ------ | ----------- | -------- | ------------- | ---------- |
+| A/B lean      | blends v1                 | $0.216 | 0.433 ‡     | —        | 7.5 [7,8]     | 5 [5,5]    |
+| A/B thrift    | quiz on nano              | $0.163 | 0.376 ‡     | —        | 7.5 [7,8]     | 5.5 [5,6]  |
+| cs-final      | + spiral + option blend   | $0.194 | 0.717 ✓     | 52% ✗    | 8.5 [8,9]     | 7.5 [7,8]  |
+| thrift2       | thrift, full machinery    | **$0.110** | 0.729 ✓ | 52% ✗    | 7 [7,7]       | 5 [5,5]    |
+| **cs-verify** | + instrument-mirror splice | $0.233 | **0.740 ✓** | **✓**    | **9 [9,9]**   | 7.5 [7,8]  |
+
+‡ the A/B pair drew unlucky intake graphs (the §5h variance lesson,
+live again). The quiz's 5→7.5 recovery is the blending story: the A/B
+seats said "bloated, repetitive distractors / repeated feedback
+blocks"; the verify seats say "plausible distractors… teach from it
+with only light edits."
+
+Held-out courses, reported as they landed: linear-algebra repair
+0.428–0.479 (catch ✓, unexposed 5→2–3 after spiral), stats-intro
+repair 0.448 — dense-misconception disciplines (767 seeds vs a 6-item
+weekly quiz) are the structural ceiling the cs loop does not transfer
+over.
+
+### Exit bars, honestly scored
+
+| Bar (v0.1.2)                                | Measured                                             | Verdict |
+| ------------------------------------------- | ---------------------------------------------------- | ------- |
+| 1 · a tier at ≤$0.13 with judge quiz ≥8     | thrift $0.110/quiz 5 · lean $0.19–0.23/quiz 7.5      | UNMET — frontier published per the bar's own fallback; lean stays default |
+| 2 · judge quiz ≥8, classroom repair ≥0.70   | quiz 7.5 [7,8] (two rounds) · repair 0.717–0.740 ✓   | HALF-MET — quiz +2.5 from the A/B floor, 0.5 short; residual cause named (spiral items read as scope drift) |
+| 3 · LA repair ≥0.60, ≤2 unexposed, cs no regression | LA 0.428–0.479 ✗ · unexposed 2–3 ≈ · cs 0.717–0.740 ✓ | UNMET on LA — misconception seed density is structural; catch bar now passes on ALL courses via the instrument-mirror splice |
+| 4 · 7–8 features as Office files, round-trip | 22 files (7 DOCX features + 15 PPTX), round-trip OK  | MET     |
+| 5 · multi-seat judge numbers + fresh packet | all verdicts 2-seat mean±range · packet resealed from cs-verify | MET (cross-family still key-gated) |
+
+### What this round taught
+
+1. **Guarantees and aesthetics need different mechanisms.** The
+   deterministic passes hold the classroom bars; the blends buy back the
+   judge — and the gate-validated rewrite ("cosmetic by construction")
+   is the pattern that lets both exist without trading one for the other.
+2. **Mirror the instrument exactly or don't bother.** Twice this round a
+   "close enough" approximation of Prof's counting (lesson-pool catches,
+   introduced+reinforced scope) silently diverged from the real metric.
+   The splice now imports the mapping rule; catch passes on every course.
+3. **The judge found the spiral.** Spaced-retrieval items were the
+   round's pedagogical win AND the judge's residual quiz complaint
+   ("drifts into prior topics") — the next prompt iteration should label
+   review items as review, which is also just good quiz design.
+4. **nano cannot write assessment.** Quiz-on-nano holds every structural
+   guarantee (repair 0.729!) and still judges 5 — voice quality is the
+   one thing the machinery cannot splice in. The $0.11 thrift package is
+   real; it is just not an 8.
+5. **Density is the next frontier.** LA and stats fail repair for the
+   same reason cs passes it: seeds-per-item. The lever is not more
+   catches (catch passes) but richer per-item repair — likely more items
+   per dense concept, which is a design decision with cost attached, not
+   a bug fix.
+
 ## 6a. Where quality still falls short — the next round, pre-registered
 
 The instruments that matter most say the gaps out loud, and writing them
