@@ -43,12 +43,7 @@ const VERDICTS_SCHEMA = {
   },
 };
 
-export async function verifyLessonClaims(
-  graph,
-  lessonId,
-  art,
-  { tier = 'nano', ledger = null, budgetUsd = null } = {},
-) {
+export function collectCheckableClaims(graph, art) {
   const concepts = indexById(graph.concepts);
   const checkable = [];
   for (const claim of art.claims ?? []) {
@@ -58,8 +53,10 @@ export async function verifyLessonClaims(
     if (!concept || !text) continue;
     checkable.push({ claim, text: text.slice(0, 400), facts: concept.kernelFacts.slice(0, 5) });
   }
-  if (checkable.length === 0) return { checked: 0, downgraded: 0 };
+  return checkable;
+}
 
+async function verifyChunk(chunk, { tier, ledger, budgetUsd }) {
   const { result } = await callModel({
     tier,
     stage: 'entailment',
@@ -68,42 +65,55 @@ export async function verifyLessonClaims(
     schema: VERDICTS_SCHEMA,
     schemaName: 'claim_verdicts',
     validate: (parsed) => (Array.isArray(parsed?.verdicts) ? [] : ['verdicts must be an array']),
-    maxOutputTokens: 2000,
+    maxOutputTokens: 4000,
     system:
       'You verify citations. For each numbered claim, answer whether the claim text is SUPPORTED by (consistent with and grounded in) the cited facts. ' +
       'supported=false when the claim contradicts the facts or asserts something the facts do not cover. Judge support, not writing quality.',
     user: JSON.stringify(
-      checkable.map((c, index) => ({ index, claim: c.text, citedFacts: c.facts })),
+      chunk.map((c, index) => ({ index, claim: c.text, citedFacts: c.facts })),
       null,
       1,
     ),
   });
-
   let downgraded = 0;
   for (const verdict of result.verdicts) {
-    const entry = checkable[verdict.index];
+    const entry = chunk[verdict.index];
     if (!entry || verdict.supported) continue;
     entry.claim.ref = null; // unsupported citation → explicit JUDGED class
     downgraded += 1;
   }
+  return downgraded;
+}
+
+export async function verifyLessonClaims(
+  graph,
+  lessonId,
+  art,
+  { tier = 'nano', ledger = null, budgetUsd = null } = {},
+) {
+  const checkable = collectCheckableClaims(graph, art);
+  if (checkable.length === 0) return { checked: 0, downgraded: 0 };
+  const downgraded = await verifyChunk(checkable, { tier, ledger, budgetUsd });
   return { checked: checkable.length, downgraded };
 }
 
-export async function verifyAllClaims(graph, authored, options) {
-  let checked = 0;
+// Course-wide verification pools every lesson's kernel-cited claims into
+// chunks of 40 — the per-lesson version spent 14 calls doing what 3 can
+// (the verdicts are tiny; the July-4 110-call audit). Same checks, same
+// downgrades, fewer round-trips.
+const CHUNK = 40;
+
+export async function verifyAllClaims(graph, authored, options = {}) {
+  const checkable = graph.lessons
+    .map((lesson) => lesson.id)
+    .filter((id) => authored[id])
+    .flatMap((id) => collectCheckableClaims(graph, authored[id]));
+  if (checkable.length === 0) return { checked: 0, downgraded: 0 };
+
+  const chunks = [];
+  for (let i = 0; i < checkable.length; i += CHUNK) chunks.push(checkable.slice(i, i + CHUNK));
+  const results = await Promise.allSettled(chunks.map((chunk) => verifyChunk(chunk, { tier: 'nano', ...options })));
   let downgraded = 0;
-  const ids = graph.lessons.map((lesson) => lesson.id).filter((id) => authored[id]);
-  const batch = 6;
-  for (let i = 0; i < ids.length; i += batch) {
-    const results = await Promise.allSettled(
-      ids.slice(i, i + batch).map((id) => verifyLessonClaims(graph, id, authored[id], options)),
-    );
-    for (const r of results) {
-      if (r.status === 'fulfilled') {
-        checked += r.value.checked;
-        downgraded += r.value.downgraded;
-      }
-    }
-  }
-  return { checked, downgraded };
+  for (const r of results) if (r.status === 'fulfilled') downgraded += r.value;
+  return { checked: checkable.length, downgraded };
 }

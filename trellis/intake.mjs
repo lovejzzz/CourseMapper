@@ -152,7 +152,7 @@ export async function intakeSyllabus(
     maxOutputTokens: 12000,
     system:
       `You convert a course syllabus into a typed course graph. Extract (never invent) the course shape: concepts with prerequisite edges, lessons in order, measurable outcomes with honest Bloom tags (the verb must match the tag), and the assessment registry with weights totaling 100. ` +
-      `Rules: ≤3 concepts introduced per lesson (overflow goes to reinforces or a later lesson); every outcome must be assessed by something; registry keys are the assessment names a professor would print; ids: concepts "c-…", outcomes "oN", lessons "lN" in teaching order.`,
+      `Rules: ≤3 concepts introduced per lesson (overflow goes to reinforces or a later lesson); every lesson after week 1 must REINFORCE 1-2 recently introduced concepts (spiral curriculum — a validator checks this); every outcome must be assessed by something; registry keys are the assessment names a professor would print; ids: concepts "c-…", outcomes "oN", lessons "lN" in teaching order.`,
     user: syllabusText,
   });
 

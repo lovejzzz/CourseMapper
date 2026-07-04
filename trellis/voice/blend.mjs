@@ -20,7 +20,9 @@ import { confrontsCorrective } from '../judgment/checks/j3bPairing.mjs';
 import { distractorCatches, catchTextsFor } from '../judgment/checks/j11Catch.mjs';
 import { beliefTextFromStatement } from '../graph/autoAlign.mjs';
 
-const BATCH = 12;
+// 18/batch: rewrites are ~60 words each, well inside the output caps —
+// smaller batches were pure call-count waste (110-call audit, July 4).
+const BATCH = 18;
 
 function lessonMisconceptions(graph, lesson) {
   return [...new Set([...lesson.introduces, ...(lesson.reinforces ?? [])])].flatMap((cid) =>
