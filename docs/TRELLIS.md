@@ -1234,6 +1234,24 @@ polishing a candidate that hasn't won.
   was legal) — fixed same-day (≥45 validator floor, 50-75 prompted).
   Bank 1,867. 97 tests.
 
+- **2026-07-04 (the third architecture — docs/COMPOSER.md).** Owner
+  asked whether a third method could beat both pipelines; researched
+  (CAT item-bank governance, Knewton/ALEKS post-mortems, LibreTexts
+  remixing, RLO failure history, 2025-26 multi-agent AIG literature)
+  and designed THE COMPOSER: courses assembled from a library of
+  gate-passed, bench-scored, provenance-tracked pedagogical assets
+  (kernel × move taxonomy, voice-neutral storage), unified by a
+  gate-validated VOICE SKIN, with AI authoring only what the library
+  lacks — and everything authored joins the library. Trellis is
+  promoted to the FACTORY, not replaced; app pivot proceeds unchanged.
+  Governance stolen from CAT practice (exposure control doubles as
+  anti-homogenization; drift recalibration from per-run classroom
+  evidence; append-only + supersedes). Economics: mature course
+  ~$0.02-0.04 (+skin), library build-out $15-25 one-time. Gated by E6:
+  a ≤$0.35 pilot on the frozen bench11 ruler (≥80% reuse, panel ≥7.5,
+  no seam objection, ≤$0.08) with a written fold-back rule. C0-C4 fit
+  one session; nothing beyond commits until E6 reports.
+
 ---
 
 _— Fable 5_
