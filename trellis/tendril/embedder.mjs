@@ -136,8 +136,51 @@ export async function embedAssetLibrary(store, { dir = CACHE_DIR, name = 'asset-
   return { total: entries.length, embedded: toEmbed.length, reused: entries.length - toEmbed.length, dim };
 }
 
-// CLI (content-guarded — the vite-node argv lesson).
-if (existsSync('trellis/bank/assets.json') && process.argv.length <= 3 && !process.env.VITEST) {
+// Generic text-embedding cache keyed by sha1 — for exemplar/query sets
+// that are not assets (diagnosis index, eval sets). Append-only file pair
+// like the asset cache; identical texts dedupe naturally.
+export async function cachedEmbed(texts, { dir = CACHE_DIR, name, embedder = null } = {}) {
+  if (!name) throw new Error('cachedEmbed needs a cache name');
+  const emb = embedder ?? makeEmbedder();
+  let meta = { model: TENDRIL_MODEL_ID, dim: TENDRIL_DIM, hashes: [] };
+  let flat = new Float32Array(0);
+  try {
+    meta = JSON.parse(await readFile(join(dir, `${name}.json`), 'utf8'));
+    const buf = await readFile(join(dir, `${name}.bin`));
+    flat = new Float32Array(buf.buffer, buf.byteOffset, buf.byteLength / 4);
+  } catch {
+    /* cold cache */
+  }
+  const pos = new Map(meta.hashes.map((h, i) => [h, i]));
+  const missing = [...new Set(texts.map(textHash).filter((h) => !pos.has(h)))];
+  if (missing.length > 0) {
+    const byHash = new Map(texts.map((t) => [textHash(t), t]));
+    const fresh = await emb.embed(missing.map((h) => byHash.get(h)));
+    const grown = new Float32Array(flat.length + missing.length * meta.dim);
+    grown.set(flat, 0);
+    missing.forEach((h, j) => {
+      pos.set(h, meta.hashes.length + j);
+      grown.set(fresh[j], (meta.hashes.length + j) * meta.dim);
+    });
+    meta.hashes.push(...missing);
+    flat = grown;
+    await mkdir(dir, { recursive: true });
+    await writeFile(join(dir, `${name}.json`), JSON.stringify(meta));
+    await writeFile(join(dir, `${name}.bin`), Buffer.from(flat.buffer));
+  }
+  return texts.map((t) => flat.subarray(pos.get(textHash(t)) * meta.dim, (pos.get(textHash(t)) + 1) * meta.dim));
+}
+
+// CLI — plain-node only (`node trellis/tendril/embedder.mjs`). argv[1] is
+// reliable under plain node; under vite-node (which strips script paths)
+// this module is only ever IMPORTED, and the guard must not fire then —
+// the content-guard pattern misfires here because this module's input
+// (assets.json) always exists.
+if (
+  process.argv[1]?.endsWith('tendril/embedder.mjs') &&
+  existsSync('trellis/bank/assets.json') &&
+  !process.env.VITEST
+) {
   const store = JSON.parse(await readFile('trellis/bank/assets.json', 'utf8'));
   const t0 = performance.now();
   const result = await embedAssetLibrary(store);

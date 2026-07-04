@@ -1,0 +1,426 @@
+{
+ "stamp": "FROZEN eval set — regenerating changes the ruler; delete only with a version note",
+ "skipped": [],
+ "generated": [
+  {
+   "kernelId": "math/matrix-operations",
+   "answers": [
+    "Matrix multiplication uses dot products of rows and columns, not just multiplying matching entries.",
+    "AB is computed by summing products of rows from A and columns from B, not entrywise."
+   ]
+  },
+  {
+   "kernelId": "math/matrix-inverse",
+   "answers": [
+    "A zero determinant means the matrix is singular, so it has no inverse even if entries aren't all zero.",
+    "Nonzero entries don't guarantee an inverse; the determinant must be nonzero for that."
+   ]
+  },
+  {
+   "kernelId": "math/basis-dimension",
+   "answers": [
+    "Dimension is the number of vectors in a basis, not the number of elements in the space.",
+    "The dimension tells you how many basis vectors span the space, not total vectors."
+   ]
+  },
+  {
+   "kernelId": "math/subspace-span",
+   "answers": [
+    "The column space is all linear combos of the columns, so Ax=b has a solution only for b in that span.",
+    "Col(A) = span of columns; consistency means b can be written as a combo of column vectors."
+   ]
+  },
+  {
+   "kernelId": "math/rank-nullity",
+   "answers": [
+    "Rank equals the count of pivot positions in the reduced row echelon form.",
+    "It's the number of linearly independent columns, which matches the number of pivots."
+   ]
+  },
+  {
+   "kernelId": "math/eigenvalues-eigenvectors",
+   "answers": [
+    "Zero eigenvalue means there's a nonzero vector that A maps to zero, so A is not invertible.",
+    "If det(A)=0, then 0 is an eigenvalue, making A singular."
+   ]
+  },
+  {
+   "kernelId": "cs/conditionals",
+   "answers": [
+    "We need age strictly greater than 13 and strictly less than 19 for the range 14-18.",
+    "The condition should be age > 13 and age < 19 to include 14 up to 18."
+   ]
+  },
+  {
+   "kernelId": "cs/for-loops",
+   "answers": [
+    "The list doesn't change because reassigning the loop variable doesn't modify the list elements.",
+    "Modifying v inside the loop has no effect on the original list; it stays the same."
+   ]
+  },
+  {
+   "kernelId": "cs/lists",
+   "answers": [
+    "Index 5 is out of range for a list with 5 items (valid indices 0-4).",
+    "Accessing nums[5] gives an error because the last index is 4."
+   ]
+  },
+  {
+   "kernelId": "cs/dictionaries",
+   "answers": [
+    "Assigning to an existing key just updates its value, so grades['Ava'] becomes 97.",
+    "Dictionary keys are unique; writing to an existing key replaces the old value with the new one."
+   ]
+  },
+  {
+   "kernelId": "cs/file-io",
+   "answers": [
+    "So the second read gives an empty string because you already hit the end of the file.",
+    "You only get the full content once; after that, read() returns nothing but ''."
+   ]
+  },
+  {
+   "kernelId": "cs/recursion",
+   "answers": [
+    "Python will crash with a RecursionError because it runs out of stack space.",
+    "You'll get a maximum recursion depth exceeded error since there's no base to stop."
+   ]
+  },
+  {
+   "kernelId": "cs/classes",
+   "answers": [
+    "b doesn't have a name attribute yet, so it won't be 'Rex'—each object is separate.",
+    "b.name will raise an AttributeError unless you set it; instances don't share attributes."
+   ]
+  },
+  {
+   "kernelId": "geo/earths-interior",
+   "answers": [
+    "Even though it's super hot, the pressure there is so high that the iron stays solid.",
+    "The outer core is liquid, but the inner core is solid because of extreme pressure."
+   ]
+  },
+  {
+   "kernelId": "geo/igneous-rocks",
+   "answers": [
+    "Big crystals form when magma cools slowly underground, small ones when it cools fast on top.",
+    "Large crystals mean slow cooling deep down; tiny crystals mean quick cooling at the surface."
+   ]
+  },
+  {
+   "kernelId": "geo/metamorphic-rocks",
+   "answers": [
+    "Metamorphism is solid-state change; if it melts, that's igneous, not metamorphic.",
+    "Melting means it becomes magma, so that's not metamorphism—it's a whole new process."
+   ]
+  },
+  {
+   "kernelId": "geo/rock-cycle",
+   "answers": [
+    "So the rock went from igneous to sedimentary, then got metamorphosed, melted, and became igneous again.",
+    "Sandstone was sedimentary, then heat/pressure made it quartzite (metamorphic), then it melted and cooled to igneous."
+   ]
+  },
+  {
+   "kernelId": "geo/earthquakes",
+   "answers": [
+    "S waves can't pass through the liquid outer core, so they never reach the other side.",
+    "Only P waves make it through the core because S waves need a solid to travel through."
+   ]
+  },
+  {
+   "kernelId": "geo/weathering-erosion",
+   "answers": [
+    "Chemical weathering changes the minerals themselves, like feldspar turning into clay.",
+    "When feldspar reacts with water and becomes clay, that's chemical, not just breaking apart."
+   ]
+  },
+  {
+   "kernelId": "geo/geologic-time",
+   "answers": [
+    "Saying it's 120 million years old based on position is relative dating; you need radiometric for absolute.",
+    "Just because it's below another layer doesn't give a precise age, only that it's older."
+   ]
+  },
+  {
+   "kernelId": "cs/while-loops",
+   "answers": [
+    "You gotta change the variable in the condition so the loop eventually stops running.",
+    "The loop keeps going because you never modify the variable that controls the condition."
+   ]
+  },
+  {
+   "kernelId": "cs/variables",
+   "answers": [
+    "y is 5 since it remembers the value of x+2 when that line ran, not the final x.",
+    "Assignment captures the value at that time, so y stays 5 even after x changes."
+   ]
+  },
+  {
+   "kernelId": "cs/functions",
+   "answers": [
+    "temp only exists inside the function, so trying to print it outside gives an error.",
+    "You can't access temp outside the function because it's a local variable."
+   ]
+  },
+  {
+   "kernelId": "cs/strings",
+   "answers": [
+    "s[0:3] gives the first three letters, so it's 'Pyt'.",
+    "Slice from index 0 up to but not including 3 gives 'Pyt'."
+   ]
+  },
+  {
+   "kernelId": "cs/expressions-and-types",
+   "answers": [
+    "In Python 3, division always gives a float, so 7/2 is 3.5, not 3.",
+    "Even if both numbers are ints, the / operator returns a float, so you get 3.5."
+   ]
+  },
+  {
+   "kernelId": "math/system-of-linear-equations",
+   "answers": [
+    "If two different solutions exist, then every point on the line between them also works.",
+    "Having two distinct solutions means there's a whole line of solutions, so infinitely many."
+   ]
+  },
+  {
+   "kernelId": "math/vector-space",
+   "answers": [
+    "First double v to (2,4), then add w (3,-1) to get (5,3).",
+    "Double v to (2,4) and add w (3,-1) componentwise to get (5,3)."
+   ]
+  },
+  {
+   "kernelId": "math/determinant",
+   "answers": [
+    "You can't just add determinants; det(A+B) depends on the actual entries, not just the dets.",
+    "det(A+B) is not simply det(A)+det(B), so you can't guess it from just those numbers."
+   ]
+  },
+  {
+   "kernelId": "math/linear-independence",
+   "answers": [
+    "Those two vectors aren't multiples of each other, so they're independent.",
+    "You can't get one from the other by scaling, so they're linearly independent."
+   ]
+  },
+  {
+   "kernelId": "math/linear-transformation",
+   "answers": [
+    "Only scaling each coordinate separately keeps the linearity rules.",
+    "That transformation is linear because it just multiplies x and y by constants."
+   ]
+  },
+  {
+   "kernelId": "math/orthogonality",
+   "answers": [
+    "They're orthogonal. Dot product zero means they're perpendicular even if we can't visualize it in 5D.",
+    "It means u and v are perpendicular vectors, but in 5D space, not just 2D lines."
+   ]
+  },
+  {
+   "kernelId": "math/row-reduction",
+   "answers": [
+    "The solution set doesn't change; row operations just rewrite the system without losing info.",
+    "It stays exactly the same. Each operation can be undone, so the solutions are preserved."
+   ]
+  },
+  {
+   "kernelId": "lit/sensory-understanding",
+   "answers": [
+    "That's wrong; poetry works through sensory experience and feelings, not abstract explanation.",
+    "Poetry isn't about abstract ideas—it's about what you feel with your senses and body."
+   ]
+  },
+  {
+   "kernelId": "lit/pedestal-effect",
+   "answers": [
+    "We should respect classics but not put them on a pedestal so that people feel they can't read them.",
+    "Classics are great, but they shouldn't be treated as untouchable—anyone should feel able to read them."
+   ]
+  },
+  {
+   "kernelId": "psych/operant-conditioning",
+   "answers": [
+    "It's negative reinforcement: taking away the annoying phone rule to increase good behavior.",
+    "Negative reinforcement; the coach removes the bad consequence (no phone break) to encourage keeping phones away."
+   ]
+  },
+  {
+   "kernelId": "geo/minerals",
+   "answers": [
+    "Streak color is more reliable because it's consistent even if the mineral's surface looks different due to impurities.",
+    "You should check the streak—the powder color—since surface color can be misleading because of contaminants."
+   ]
+  },
+  {
+   "kernelId": "geo/sedimentary-rocks",
+   "answers": [
+    "Sedimentary rock forms from layers of sediment getting squished and glued together over time.",
+    "It's made from sand or mud deposited in layers, then compacted and cemented into solid rock."
+   ]
+  },
+  {
+   "kernelId": "math/least-squares",
+   "answers": [
+    "Ax̂ is the closest approximation to b, but it's not exactly equal; it minimizes the error.",
+    "The least-squares solution gives the best fit, so Ax̂ is as near to b as possible, but still different."
+   ]
+  },
+  {
+   "kernelId": "geo/volcanism",
+   "answers": [
+    "Expect gentle lava flows because runny magma comes out easily and doesn't blow up.",
+    "It will produce fluid lava flows, not violent explosions, since basalt is low viscosity and flows smoothly."
+   ]
+  },
+  {
+   "kernelId": "lit/novel-vs-romance-realism",
+   "answers": [
+    "That's a romance, not a novel, because it has unrealistic elements and exaggerated adventures.",
+    "Romance fits: far-fetched plots, exotic locations, and supernatural stuff are typical of romance, not realistic novels."
+   ]
+  },
+  {
+   "kernelId": "geo/silicate-structures",
+   "answers": [
+    "It's a sheet silicate, so tetrahedra link in flat sheets causing the flaking.",
+    "The mineral cleaves into flakes because its tetrahedra are arranged in sheets."
+   ]
+  },
+  {
+   "kernelId": "geo/plate-tectonics",
+   "answers": [
+    "At transform boundaries, plates just slide sideways past each other.",
+    "The plates move horizontally, rubbing past one another without vertical motion."
+   ]
+  },
+  {
+   "kernelId": "history/ten-percent-plan",
+   "answers": [
+    "Lincoln required only 10% of 1860 voters to take the loyalty oath.",
+    "Under the Ten Percent Plan, a state just needed 10% of voters to swear loyalty."
+   ]
+  },
+  {
+   "kernelId": "history/radical-republicans-wade-davis",
+   "answers": [
+    "Lincoln actually pocket-vetoed the Wade-Davis Bill, not signed it.",
+    "He let the bill die by not signing it while Congress was adjourned."
+   ]
+  },
+  {
+   "kernelId": "history/thirteenth-amendment-abolition",
+   "answers": [
+    "Slavery ended forever because of the 13th Amendment, not the Proclamation.",
+    "The Emancipation Proclamation only freed slaves in rebel states; the 13th made it permanent."
+   ]
+  },
+  {
+   "kernelId": "history/reconstruction-acts-1867-military-districts",
+   "answers": [
+    "Tennessee wasn't in a military district because it had already rejoined the Union.",
+    "Tennessee was readmitted in 1866, so it wasn't part of the 1867 Reconstruction Act."
+   ]
+  },
+  {
+   "kernelId": "history/impeachment-andrew-johnson-1868",
+   "answers": [
+    "The House brings charges, the Senate runs the trial and votes to remove.",
+    "Impeachment is like an indictment by the House, then the Senate convicts or acquits."
+   ]
+  },
+  {
+   "kernelId": "history/fifteenth-amendment-suffrage-loopholes",
+   "answers": [
+    "The 15th Amendment didn't stop literacy tests or poll taxes.",
+    "States still used poll taxes and literacy tests to keep blacks from voting."
+   ]
+  },
+  {
+   "kernelId": "history/manifest-destiny-ideology",
+   "answers": [
+    "Manifest Destiny was a belief that God wanted America to expand across the continent.",
+    "It wasn't just natural growth; it was a religious justification for taking land."
+   ]
+  },
+  {
+   "kernelId": "history/federal-assistance-westward-migration-1862",
+   "answers": [
+    "Unmarried women could claim land under the Homestead Act too.",
+    "The act let any head of house, including single women, file a claim."
+   ]
+  },
+  {
+   "kernelId": "history/overland-migration-trails-oregon-1845-1870",
+   "answers": [
+    "Most encounters were peaceful and natives helped show the way or trade goods.",
+    "The ambush stuff is overblown – usually it was just friendly interactions."
+   ]
+  },
+  {
+   "kernelId": "history/railroads-big-business-industrial-growth",
+   "answers": [
+    "The government chipped in big time with loans and land grants, not just rich dudes.",
+    "Private money wasn't the only source – Congress gave them tons of land too."
+   ]
+  },
+  {
+   "kernelId": "history/robber-barons-differential-shipping-rates",
+   "answers": [
+    "It's a negative term, calling them out for ripping off small farmers while helping big companies.",
+    "Robber baron implies they are shady business guys, not just successful."
+   ]
+  },
+  {
+   "kernelId": "history/carnegie-gospel-of-wealth",
+   "answers": [
+    "Carnegie said wealthy people should give their money back to help society, not blow it on parties.",
+    "He believed you should use your fortune for the public good, not just yourself."
+   ]
+  },
+  {
+   "kernelId": "history/late-19c-urbanization-drivers",
+   "answers": [
+    "They stayed in cities because that's where the jobs were and they already landed there.",
+    "Most immigrants didn't go to farms – they found work right in the city close to the docks."
+   ]
+  },
+  {
+   "kernelId": "history/urban-problems-class-inequality",
+   "answers": [
+    "Clean water and sanitation were big problems in cities back then, not easy like in the country.",
+    "Urban life meant dealing with dirty streets and unreliable water – it was a struggle."
+   ]
+  },
+  {
+   "kernelId": "history/farmers-revolt-causes-overproduction-tariffs-currency",
+   "answers": [
+    "Prices dropped because farmers produced way too much stuff, flooding the market.",
+    "Overproduction led to a glut – too much supply meant lower prices for farmers."
+   ]
+  },
+  {
+   "kernelId": "history/grange-granger-laws-greenback-party-wabash",
+   "answers": [
+    "States can't regulate railroads that cross state lines – that's federal territory.",
+    "The Supreme Court said states had no power over interstate commerce, so that law would fail."
+   ]
+  },
+  {
+   "kernelId": "history/farmers-alliance-subtreasury-populist-party-omaha-platform",
+   "answers": [
+    "That proposal is called the subtreasury plan – it let farmers use crops as collateral for loans.",
+    "It's the subtreasury plan – government stores grain and gives cash to farmers until prices are good."
+   ]
+  },
+  {
+   "kernelId": "history/square-deal",
+   "answers": [
+    "The Square Deal covered protecting consumers, regulating businesses, and conserving the environment.",
+    "It was about fairness – like food safety, land protection, and keeping companies in check."
+   ]
+  }
+ ]
+}
