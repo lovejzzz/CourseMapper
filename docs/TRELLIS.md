@@ -1154,6 +1154,29 @@ polishing a candidate that hasn't won.
   depth (J13's target), late-course shelf thinning (A2's discovery),
   blend math tail 2%.
 
+- **2026-07-04 (v0.1.5 Deep Shelves — implemented, validated on the
+  frozen-graph ruler, refit twice by its own instruments).** Gap-fill
+  authoring: 267 items authored DIRECTLY into the bank through the full
+  harvest gate stack ($0.33 one-time; provenance 'gapfill', origins in
+  the bank header; multi-family kernels 28→77). Shelf telemetry in
+  every digest. Blend tail: 80 words + ds seat. VALIDATION on the same
+  frozen graph, four measurements: **J13 15 → 2** (bar ≤5 MET); L13
+  quiz panel 5.33 → 6 (bar 6.5 near-miss, +0.67); classroom repair
+  0.554-0.599 vs pre-fill 0.579-0.584 (no regression); cost
+  $0.123-0.151 ✓. THE LOOP FOUND AND FIXED THREE DEFECTS MID-RELEASE:
+  (1) shelf dedupe rejected every deep-shelf cell (cross-family
+  similarity about one concept is legitimate → within-family dedupe);
+  (2) J13 fired on IMBALANCE when the bench11 finding was NEGLECT →
+  recalibrated to zero-item families only, selection now round-robins
+  families; (3) the L8 all-review flood — a strings lesson whose six
+  items were ALL list reviews (panel seats scored 2) because thin
+  introduced-shelves backfilled unlimited reviews → hard review cap 2 +
+  scoped labels. RESIDUAL CARRIES: thin introduced shelves for
+  late/specialized kernels (L8 strings quiz 5 — next queue: per-kernel
+  shelf floors via gap-fill round 2), L13 bar 0.5 short, blend ≥90%
+  re-measure. Spend $0.82 vs $0.35 estimate — two unplanned refit loops,
+  both instrument-caught, both worth it. 97 tests.
+
 ---
 
 _— Fable 5_
