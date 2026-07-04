@@ -45,15 +45,30 @@ function primaryKernel(graph, lesson) {
 
 const chars = (x) => JSON.stringify(x ?? '').length;
 
-export async function composeLesson(graph, lessonId, store, { ledger, budgetUsd, tiers, bank } = {}) {
+export async function composeLesson(
+  graph,
+  lessonId,
+  store,
+  { ledger, budgetUsd, tiers, bank, courseUsed = null } = {},
+) {
   const slice = buildLessonSlice(graph, lessonId);
   const lesson = graph.lessons.find((l) => l.id === lessonId);
   const anchor = primaryKernel(graph, lesson);
   if (!anchor) throw new Error(`composeLesson: ${lessonId} has no genome-linked concept — fill path required`);
   const exclude = new Set();
   const pick = (move) => {
-    const asset = selectAsset(store, anchor.kernelId, move, { exclude });
-    if (asset) exclude.add(asset.id);
+    // Course-level dedup (v0.2.5): the same asset in two lessons IS the
+    // J7 echo class. Thin shelves may fall back to reuse — counted.
+    const courseExclude = courseUsed ? new Set([...exclude, ...courseUsed]) : exclude;
+    let asset = selectAsset(store, anchor.kernelId, move, { exclude: courseExclude });
+    if (!asset && courseUsed) {
+      asset = selectAsset(store, anchor.kernelId, move, { exclude });
+      if (asset) stats.dupReuses = (stats.dupReuses ?? 0) + 1;
+    }
+    if (asset) {
+      exclude.add(asset.id);
+      courseUsed?.add(asset.id);
+    }
     return asset;
   };
   const stats = { reusedChars: 0, freshChars: 0, reusedParts: 0, freshParts: 0 };
@@ -264,9 +279,16 @@ export async function composeAllLessons(graph, store, { ledger, budgetUsd, tiers
   const authored = {};
   const failures = [];
   const totals = { reusedChars: 0, freshChars: 0, reusedParts: 0, freshParts: 0, skinned: 0, skinOf: 0 };
+  const courseUsed = new Set();
   for (const [index, lesson] of graph.lessons.entries()) {
     try {
-      const { composed, stats } = await composeLesson(graph, lesson.id, store, { ledger, budgetUsd, tiers, bank });
+      const { composed, stats } = await composeLesson(graph, lesson.id, store, {
+        ledger,
+        budgetUsd,
+        tiers,
+        bank,
+        courseUsed,
+      });
       const skin = await skinLesson(graph, index + 1, composed, { ledger, budgetUsd, tier: tiers?.flywheel ?? 'nano' });
       const errors = validateAuthoredLesson(composed);
       if (errors.length > 0) throw new Error(`composed lesson fails contract: ${errors.slice(0, 3).join('; ')}`);
@@ -278,6 +300,7 @@ export async function composeAllLessons(graph, store, { ledger, budgetUsd, tiers
       totals.skinned += skin.skinned;
       totals.skinOf += skin.of;
       totals.solverRejected = (totals.solverRejected ?? 0) + (stats.solverRejected ?? 0);
+      totals.dupReuses = (totals.dupReuses ?? 0) + (stats.dupReuses ?? 0);
     } catch (composeError) {
       // Fold-back per lesson: the factory authors it whole, disclosed.
       try {

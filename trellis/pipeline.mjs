@@ -254,7 +254,7 @@ async function runPipelineStages({
     // planning the homogenization index; e6 vs e6c measured it).
     const { writeFile: writeStore } = await import('node:fs/promises');
     await writeStore('trellis/bank/assets.json', JSON.stringify(store, null, 1));
-    digest.composer = `assembled from ${store.assets.length} assets: reuse ${outcome.stats.reusePct}% by surface area (${outcome.stats.reusedParts} parts reused, ${outcome.stats.freshParts} fresh); skin ${outcome.stats.skinned}/${outcome.stats.skinOf} segments unified${outcome.stats.solverRejected ? `; solver rejected ${outcome.stats.solverRejected} fresh item(s)` : ''}`;
+    digest.composer = `assembled from ${store.assets.length} assets: reuse ${outcome.stats.reusePct}% by surface area (${outcome.stats.reusedParts} parts reused, ${outcome.stats.freshParts} fresh); skin ${outcome.stats.skinned}/${outcome.stats.skinOf} segments unified${outcome.stats.dupReuses ? `; ${outcome.stats.dupReuses} thin-shelf dup reuse(s)` : ''}${outcome.stats.solverRejected ? `; solver rejected ${outcome.stats.solverRejected} fresh item(s)` : ''}`;
     var composerOutcome = outcome;
   }
   const useBatch = !composer && overnight && !mockVoice && tiers.authorSurfaces;
@@ -365,6 +365,7 @@ async function runPipelineStages({
     // combination artifacts; a second buys little (E7b: 15 calls, $0.163,
     // residuals unchanged in kind). Fresh generation keeps two rounds.
     maxRounds: mockVoice || composer ? 1 : 2,
+    ...(composer ? { skipCodes: new Set(['J7_ECHO']) } : {}),
     afterRound: (g, a) => {
       // Repaired quizzes must not lose the instrument guarantees the
       // deterministic passes provide — both re-run before re-judging.

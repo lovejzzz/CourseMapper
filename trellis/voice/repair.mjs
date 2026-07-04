@@ -24,14 +24,17 @@ async function repairOneLesson(graph, authored, lessonId, lessonFindings, option
 export async function repairLoop(
   graph,
   authored,
-  { tier, ledger, budgetUsd = null, maxRounds = 2, mock = null, afterRound = null } = {},
+  { tier, ledger, budgetUsd = null, maxRounds = 2, mock = null, afterRound = null, skipCodes = null } = {},
 ) {
   let rounds = 0;
   let sectionRepairs = 0;
   let fullRepairs = 0;
   let findings = runChecks(graph, authored);
   while (rounds < maxRounds) {
-    const blocking = blockingFindings(findings);
+    // skipCodes (v0.2.5): findings the model demonstrably cannot fix for
+    // this run class (composed cross-lesson echo) never TRIGGER paid
+    // repair — they stay in the findings and the honest residual.
+    const blocking = blockingFindings(findings).filter((f) => !skipCodes?.has(f.code));
     const byLesson = findingsByLesson(blocking);
     const lessonIds = Object.keys(byLesson).filter((key) => key !== '__graph__');
     if (lessonIds.length === 0) break;
