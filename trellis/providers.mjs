@@ -192,3 +192,176 @@ export async function callModel({
   }
   throw new Error(`stage "${stage}": validation failed after ${maxRetries + 1} attempts — last feedback: ${feedback}`);
 }
+
+// ── Batch transport (the overnight tier) ────────────────────────────────────
+// OpenAI's /v1/batches runs the IDENTICAL models with the IDENTICAL strict
+// schemas at 50% of the token rates, in exchange for latency (a 24h window;
+// small batches usually land in minutes). Trellis authoring is batch-shaped
+// by nature, so this is the one cost lever with ZERO quality delta by
+// construction. Validation still runs per call; failures are re-submitted
+// with feedback in follow-up rounds (the same retry semantics callModel
+// gives a single call).
+
+const BATCH_DISCOUNT = 0.5; // OpenAI batch pricing: half the synchronous rate
+
+async function openaiUpload(fetchImpl, apiKey, jsonl) {
+  const form = new FormData();
+  form.append('purpose', 'batch');
+  form.append('file', new Blob([jsonl], { type: 'application/jsonl' }), 'trellis-batch.jsonl');
+  const response = await fetchWithBackoff(fetchImpl, 'https://api.openai.com/v1/files', {
+    method: 'POST',
+    headers: { Authorization: `Bearer ${apiKey}` },
+    body: form,
+  });
+  if (!response.ok) throw new Error(`file upload HTTP ${response.status}: ${(await response.text()).slice(0, 200)}`);
+  return (await response.json()).id;
+}
+
+async function openaiJson(fetchImpl, apiKey, url, init = {}) {
+  const response = await fetchWithBackoff(fetchImpl, url, {
+    ...init,
+    headers: { Authorization: `Bearer ${apiKey}`, ...(init.body ? { 'Content-Type': 'application/json' } : {}) },
+  });
+  if (!response.ok) throw new Error(`${url} HTTP ${response.status}: ${(await response.text()).slice(0, 200)}`);
+  return response.json();
+}
+
+const BATCH_TERMINAL = new Set(['completed', 'failed', 'expired', 'cancelled']);
+
+export async function batchCallModels(
+  descriptors,
+  {
+    ledger = null,
+    budgetUsd = null,
+    pollMs = 15_000,
+    maxRounds = 3,
+    maxWaitMs = 2 * 60 * 60 * 1000,
+    fetchImpl = globalThis.fetch,
+    onStatus = null,
+  } = {},
+) {
+  const apiKey = await loadApiKey(undefined, 'openai');
+  const results = new Array(descriptors.length).fill(null);
+  let pending = descriptors.map((descriptor, index) => ({ descriptor, index, feedback: null }));
+
+  for (let round = 0; round < maxRounds && pending.length > 0; round += 1) {
+    if (budgetUsd !== null && ledger && ledger.totals().usd >= budgetUsd) {
+      for (const p of pending) results[p.index] = { error: `budget exhausted before batch round ${round + 1}` };
+      return results;
+    }
+    const tiers = await Promise.all(pending.map((p) => resolveTier(p.descriptor.tier)));
+    const lines = pending.map((p, i) => {
+      const d = p.descriptor;
+      return JSON.stringify({
+        custom_id: String(p.index),
+        method: 'POST',
+        url: '/v1/chat/completions',
+        body: {
+          model: tiers[i].modelId,
+          messages: [
+            { role: 'system', content: d.system },
+            {
+              role: 'user',
+              content: p.feedback
+                ? `${d.user}\n\nYour previous attempt failed validation:\n${p.feedback}\nFix these issues and return the corrected JSON.`
+                : d.user,
+            },
+          ],
+          max_completion_tokens: d.maxOutputTokens ?? 8000,
+          ...(d.schema
+            ? {
+                response_format: {
+                  type: 'json_schema',
+                  json_schema: { name: d.schemaName ?? 'result', strict: true, schema: toStrictSchema(d.schema) },
+                },
+              }
+            : {}),
+        },
+      });
+    });
+
+    const fileId = await openaiUpload(fetchImpl, apiKey, lines.join('\n'));
+    const batch = await openaiJson(fetchImpl, apiKey, 'https://api.openai.com/v1/batches', {
+      method: 'POST',
+      body: JSON.stringify({ input_file_id: fileId, endpoint: '/v1/chat/completions', completion_window: '24h' }),
+    });
+
+    const startedAt = Date.now();
+    let state = batch;
+    while (!BATCH_TERMINAL.has(state.status)) {
+      if (Date.now() - startedAt > maxWaitMs) {
+        await openaiJson(fetchImpl, apiKey, `https://api.openai.com/v1/batches/${batch.id}/cancel`, {
+          method: 'POST',
+          body: '{}',
+        }).catch(() => {});
+        for (const p of pending) results[p.index] = { error: `batch round ${round + 1} exceeded maxWaitMs` };
+        return results;
+      }
+      await new Promise((resolve) => setTimeout(resolve, pollMs));
+      state = await openaiJson(fetchImpl, apiKey, `https://api.openai.com/v1/batches/${batch.id}`);
+      onStatus?.(state.status, state.request_counts ?? null, round + 1);
+    }
+    if (state.status !== 'completed' || !state.output_file_id) {
+      for (const p of pending) results[p.index] = { error: `batch round ${round + 1} ${state.status}` };
+      return results;
+    }
+
+    const output = await fetchWithBackoff(
+      fetchImpl,
+      `https://api.openai.com/v1/files/${state.output_file_id}/content`,
+      { headers: { Authorization: `Bearer ${apiKey}` } },
+    );
+    const byIndex = new Map();
+    for (const line of (await output.text()).split('\n')) {
+      if (!line.trim()) continue;
+      const parsed = JSON.parse(line);
+      byIndex.set(Number(parsed.custom_id), parsed);
+    }
+
+    const nextPending = [];
+    for (const p of pending) {
+      const line = byIndex.get(p.index);
+      const d = p.descriptor;
+      const body = line?.response?.body;
+      if (!body || line.error || line.response.status_code !== 200) {
+        p.feedback = `batch request failed (${line?.error?.message ?? `HTTP ${line?.response?.status_code ?? 'missing'}`})`;
+        nextPending.push(p);
+        continue;
+      }
+      const usage = body.usage ?? {};
+      const tokensIn = usage.prompt_tokens ?? 0;
+      const tokensOut = usage.completion_tokens ?? 0;
+      const tier = await resolveTier(d.tier);
+      ledger?.record({
+        stage: d.stage ?? 'batch',
+        model: `${tier.modelId} (batch)`,
+        tokensIn,
+        tokensOut,
+        cached: usage.prompt_tokens_details?.cached_tokens ?? 0,
+        usd: costUsd(tier, usage, tokensIn, tokensOut) * BATCH_DISCOUNT,
+      });
+      const content = body.choices?.[0]?.message?.content ?? '';
+      let parsedContent;
+      try {
+        parsedContent = d.schema ? JSON.parse(content) : content;
+      } catch (error) {
+        p.feedback = `response was not valid JSON (${error.message})`;
+        nextPending.push(p);
+        continue;
+      }
+      const errors = d.validate ? d.validate(parsedContent) : [];
+      if (errors.length > 0) {
+        p.feedback = errors.join('\n');
+        nextPending.push(p);
+        continue;
+      }
+      results[p.index] = { result: parsedContent };
+    }
+    pending = nextPending;
+  }
+
+  for (const p of pending) {
+    results[p.index] = { error: `validation failed after ${maxRounds} batch round(s) — last feedback: ${p.feedback}` };
+  }
+  return results;
+}

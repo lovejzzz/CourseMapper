@@ -34,6 +34,7 @@ export async function runPipeline({
   mockVoice = false,
   gradePackage = false,
   termStart = null,
+  overnight = false,
   generatedAt = new Date().toISOString(),
 }) {
   if (!runId) throw new Error('runPipeline requires runId');
@@ -50,6 +51,7 @@ export async function runPipeline({
       mockVoice,
       gradePackage,
       termStart,
+      overnight,
       generatedAt,
       ledger,
     });
@@ -71,6 +73,7 @@ async function runPipelineStages({
   mockVoice,
   gradePackage,
   termStart,
+  overnight,
   generatedAt,
   ledger,
 }) {
@@ -208,7 +211,16 @@ async function runPipelineStages({
   const courseWidePromise = mockVoice
     ? Promise.resolve(mockAuthorCourseWide(graph))
     : authorCourseWide(graph, { tier: tiers.author, ledger, budgetUsd });
-  const { authored, failures } = await authorAllLessons(graph, authorOptions);
+  // Overnight transport (batch API, 50% token rates): identical models,
+  // schemas and validators — a latency trade, never a quality one. Only
+  // the authoring fan-out batches; small serial stages stay live.
+  const useBatch = overnight && !mockVoice && tiers.authorSurfaces;
+  if (useBatch) {
+    const { authorAllLessonsBatch } = await import('./voice/author.mjs');
+    digest.transport = 'overnight batch (authoring stages via /v1/batches at 50% token rates; small stages live)';
+    var authorOutcome = await authorAllLessonsBatch(graph, authorOptions);
+  }
+  const { authored, failures } = useBatch ? authorOutcome : await authorAllLessons(graph, authorOptions);
   if (failures.length > 0) {
     digest.authorFailures = failures.map((f) => `${f.lessonId}: ${f.error.slice(0, 120)}`);
   }

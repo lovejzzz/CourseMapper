@@ -320,22 +320,7 @@ export async function authorLesson(
       );
     }
     const [core, surfaces, quiz] = await Promise.all(calls);
-    const merged = {
-      ...core.result,
-      ...surfaces.result,
-      slides: normalizeSlides(surfaces.result.slides),
-      plan: core.result.plan,
-      quizItems: quizTier ? quiz.result.quizItems : core.result.quizItems,
-      studyGuideSection: core.result.studyGuideSection,
-      claims: [
-        ...(core.result.claims ?? []),
-        ...(surfaces.result.claims ?? []),
-        ...(quizTier ? (quiz.result.claims ?? []) : []),
-      ],
-    };
-    const errors = validateAuthoredLesson(merged);
-    if (errors.length > 0) throw new Error(`split-authoring merge failed contract: ${errors.join('; ')}`);
-    return merged;
+    return mergeSplitLesson(core.result, surfaces.result, quizTier ? quiz.result : null);
   }
 
   const { result } = await callModel({
@@ -474,6 +459,102 @@ export async function authorCourseWide(graph, { tier, ledger, budgetUsd = null, 
 
 // Author all lessons with bounded parallelism.
 export const AUTHOR_BATCH_SIZE = 6;
+
+// Merge the split-authored parts into one lesson and hold it to the FULL
+// contract — shared by the live path and the batch transport.
+export function mergeSplitLesson(core, surfaces, quiz) {
+  const merged = {
+    ...core,
+    ...surfaces,
+    slides: normalizeSlides(surfaces.slides),
+    plan: core.plan,
+    quizItems: quiz ? quiz.quizItems : core.quizItems,
+    studyGuideSection: core.studyGuideSection,
+    claims: [...(core.claims ?? []), ...(surfaces.claims ?? []), ...(quiz ? (quiz.claims ?? []) : [])],
+  };
+  const errors = validateAuthoredLesson(merged);
+  if (errors.length > 0) throw new Error(`split-authoring merge failed contract: ${errors.join('; ')}`);
+  return merged;
+}
+
+// The overnight transport (v0.1.2+): every lesson's split calls ride ONE
+// OpenAI batch at 50% token rates — identical models, identical schemas,
+// identical validators, so the quality delta is zero by construction.
+// Lessons whose batch parts fail after the batch's own retry rounds fall
+// back to live authoring; a dead run is never the price of a discount.
+export async function authorAllLessonsBatch(graph, { tier, surfacesTier, quizTier, ledger, budgetUsd }) {
+  const { batchCallModels } = await import('../providers.mjs');
+  const descriptors = [];
+  const parts = [];
+  for (const lesson of graph.lessons) {
+    const slice = buildLessonSlice(graph, lesson.id);
+    const coreFields = quizTier ? CORE_SANS_QUIZ_FIELDS : CORE_FIELDS;
+    descriptors.push({
+      tier,
+      stage: 'author',
+      schema: subSchema(coreFields, slice),
+      schemaName: 'lesson_core',
+      validate: subValidator(coreFields),
+      maxOutputTokens: 8000,
+      system: coreSystemPrompt(slice),
+      user: lessonUserPrompt(slice),
+    });
+    parts.push({ lessonId: lesson.id, kind: 'core' });
+    descriptors.push({
+      tier: surfacesTier,
+      stage: 'authorSurfaces',
+      schema: subSchema(SURFACE_FIELDS, slice),
+      schemaName: 'lesson_surfaces',
+      validate: subValidator(SURFACE_FIELDS),
+      maxOutputTokens: 8000,
+      system: surfacesSystemPrompt(slice),
+      user: lessonUserPrompt(slice),
+    });
+    parts.push({ lessonId: lesson.id, kind: 'surfaces' });
+    if (quizTier) {
+      descriptors.push({
+        tier: quizTier,
+        stage: 'authorQuiz',
+        schema: subSchema(QUIZ_FIELDS, slice),
+        schemaName: 'lesson_quiz',
+        validate: subValidator(QUIZ_FIELDS),
+        maxOutputTokens: 6000,
+        system: quizSystemPrompt(slice),
+        user: quizUserPrompt(slice),
+      });
+      parts.push({ lessonId: lesson.id, kind: 'quiz' });
+    }
+  }
+
+  const outcomes = await batchCallModels(descriptors, { ledger, budgetUsd });
+  const byLesson = new Map();
+  parts.forEach((part, i) => {
+    if (!byLesson.has(part.lessonId)) byLesson.set(part.lessonId, {});
+    byLesson.get(part.lessonId)[part.kind] = outcomes[i];
+  });
+
+  const authored = {};
+  const failures = [];
+  for (const lesson of graph.lessons) {
+    const group = byLesson.get(lesson.id) ?? {};
+    try {
+      if (!group.core?.result || !group.surfaces?.result || (quizTier && !group.quiz?.result)) {
+        throw new Error(group.core?.error ?? group.surfaces?.error ?? group.quiz?.error ?? 'batch part missing');
+      }
+      authored[lesson.id] = mergeSplitLesson(group.core.result, group.surfaces.result, group.quiz?.result ?? null);
+    } catch (batchError) {
+      try {
+        authored[lesson.id] = await authorLesson(graph, lesson.id, { tier, surfacesTier, quizTier, ledger, budgetUsd });
+      } catch (liveError) {
+        failures.push({
+          lessonId: lesson.id,
+          error: `batch: ${String(batchError?.message ?? batchError).slice(0, 120)}; live: ${String(liveError?.message ?? liveError).slice(0, 120)}`,
+        });
+      }
+    }
+  }
+  return { authored, failures };
+}
 
 export async function authorAllLessons(graph, options) {
   const authored = {};
