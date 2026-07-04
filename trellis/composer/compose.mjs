@@ -96,10 +96,10 @@ export async function composeLesson(graph, lessonId, store, { ledger, budgetUsd,
   }
 
   // ── quiz: bank selection at full depth, fill the remainder ──
-  // v0.2.1: 4 banked + 2 fresh (lesson fit) with PER-ITEM claims — E6's
-  // anchor-only claims coarsened Prof's item→concept attribution (the
-  // repair −0.02 suspect).
-  const banked = selectBankItems(slice, bank, { maxBanked: 4, perConcept: 3 });
+  // v0.2.1 final config: banked-first (E6b MEASURED the 4+2 fresh mix
+  // hurting quiz panels 7.11→6.11 at 2× cost — hypothesis rejected,
+  // reverted) with PER-ITEM claims (confirmed: repair 0.530→0.548).
+  const banked = selectBankItems(slice, bank, { maxBanked: 6, perConcept: 4 });
   const itemConceptIds = [];
   const quizItems = banked.map((item) => {
     const clean = { ...item };
