@@ -82,6 +82,23 @@ $0 autopsy); durability of the panel score across fresh graphs.
 5. Homogenization index measurement once ≥3 same-syllabus compositions
    exist.
 
+## Addendum — v0.2.1 Quality Pass (same day)
+
+Three hypotheses, three verdicts on the frozen ruler:
+
+| Change | Verdict | Evidence |
+| --- | --- | --- |
+| Per-item claims | **CONFIRMED, kept** | repair 0.530 → 0.548 → **0.567 (in band)** |
+| Solver gate (cross-family, blind) | **kept** (correctness net; pass-open disclosed) | live at fresh fills + gap-fill intake |
+| 4+2 fresh quiz mix | **REJECTED, reverted** | quiz panel 7.11 → 6.11 at 2× cost (E6b) |
+
+**E6c (final config): panel 8 [7,9] · quiz mean 7.67 (L4 8.33 — the
+best quiz score any pipeline has posted on this ruler) · repair 0.567
+IN BAND · reuse 95% · $0.059 · 98/A.** All five E6 exit bars now met
+outright. The Composer matches Trellis's panel (8) at one-third the
+cost, with the quiz — historically the weakest artifact — now its
+strongest relative showing.
+
 ## Cost of knowing
 
 E6 total: run $0.060 + panel $0.024 ≈ **$0.084**. The architecture

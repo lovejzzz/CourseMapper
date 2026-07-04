@@ -1271,6 +1271,19 @@ polishing a candidate that hasn't won.
   best case; cross-discipline is E7 after C6. E6 total cost of the
   architecture decision: $0.084.
 
+- **2026-07-04 (Composer v0.2.1 Quality Pass — all E6 bars now MET).**
+  Three hypotheses, three frozen-ruler verdicts: per-item claims
+  CONFIRMED (repair 0.530→0.548→0.567, IN BAND); cross-family SOLVER
+  GATE kept (blind ds seat solves each fresh item; key mismatch or
+  unanswerable → rejected; wired at composer fills + gap-fill intake;
+  pass-open disclosed); 4+2 fresh mix REJECTED by measurement (quiz
+  7.11→6.11 at 2× cost) and reverted same-session. **E6c final: panel
+  8 [7,9] with a first 9-seat · quiz mean 7.67 (L4 8.33 = best quiz on
+  this ruler by ANY pipeline) · repair 0.567 ✓ · reuse 95% · $0.059 ·
+  98/A · 100 tests.** The Composer now matches Trellis's panel at ~1/3
+  cost with all guarantees held. Queue: E7 cross-discipline (LA) after
+  C6 build-out; homogenization index at ≥3 same-syllabus compositions.
+
 ---
 
 _— Fable 5_
