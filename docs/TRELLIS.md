@@ -1031,6 +1031,36 @@ polishing a candidate that hasn't won.
   validation protects the judge-quiz bar). LESSON: never validate
   rewrite batches all-or-nothing — gate per entry, escalate the rest.
 
+- **2026-07-04 (v0.1.3 — the item bank + overnight transport, measured).**
+  Owner: "fundamentally change something" to cut cost, then "proceed."
+  Two fundamentals landed. (1) OVERNIGHT BATCH transport: /v1/batches at
+  50% token rates, identical models/schemas/validators; probe proven at
+  batch rates in ~40s; first course run surfaced the constraint (batches
+  are SINGLE-model — now partitioned per model, parallel) AND an
+  overstating-digest bug (silent live fallback while claiming the
+  discount — digest now reports the transport that actually ran).
+  (2) ITEM BANK, "the genome learns assessment": quiz items are
+  course-agnostic, so bar-passing runs feed a kernel-keyed bank
+  (knowledge/itemBank.mjs; 1,452 items / 72 kernels from 40+ runs after
+  gates); selection is deterministic and $0; the model authors only the
+  remainder. Three judge-led refine rounds retired three defect classes
+  AT HARVEST/SPLICE: pasted-commentary options (meta/length gates),
+  truncated stems + fenced code (TERMINAL_PUNCT_RE + ``` gates), and
+  off-topic force-mapped splices with cross-item duplicate beliefs
+  (splice skips spaced-retrieval items; lesson-level belief dedupe).
+  MEASURED (cs, live rates): **$0.125–0.132 · 175–176s · 68–70 calls ·
+  99/A · judge 8 [8,8] overall / quiz 6.5 · catch bar PASSED · zero
+  repair rounds · 60–66% of weekly items banked** — under the $0.13
+  bar at live rates, with overnight composing to a projected ~$0.08.
+  Classroom repair band across bank runs: 0.508–0.818 (intake variance,
+  as documented). TRAPS: mock slices lie — test the real builder
+  (buildLessonSlice dropped genomeRef and selection silently chose
+  nothing); evidence-first ranking PREFERS pasted belief text (the
+  instrument-vs-judge collision imports at scale through any bank);
+  vite-node strips the script path from argv. Bank grows with every
+  bar-passing course — the marginal-cost collapse is now real
+  infrastructure, not a roadmap line.
+
 ---
 
 _— Fable 5_
