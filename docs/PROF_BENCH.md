@@ -80,6 +80,51 @@ signal. Per owner direction, rising standards live HERE: bar raises
 arrive as versioned bench releases with published re-baselines — never
 as silent tightening.
 
+## Learning-rule provenance (v0.1.4 A1)
+
+Every constant the student mind uses lives in
+`scripts/prof/student/learningRules.json` (frozen per release; the
+compiler team never edits it in the same change that improves a KPI it
+feeds). Provenance, honestly labeled — DIRECTION from literature,
+NUMBER hand-set pending psychometric anchoring:
+
+| Constant group | Values | Literature direction | Number status |
+| --- | --- | --- | --- |
+| exposureStrength | reading .35 · session .30 · generation .55 · retrieval .60 | testing > generation > reading (Roediger & Karpicke 2006; generation effect, Slamecka & Graf 1978) | hand-set |
+| spacing bonus | ×1.25, min gap 2 ticks | distributed practice (Cepeda et al. 2006) | hand-set |
+| decay | half-life 4 ticks (sd 1.2) | Ebbinghaus-style forgetting | hand-set |
+| answering logistic | k=3.0, midpoint 1.1, guess floor .25 | 4-option guessing floor is arithmetic; IRT-shaped response curve | floor exact; curve hand-set |
+| misconception pull/immunity | .55 / 1.5 | conceptual-change literature (Posner et al. 1982): held beliefs distort until confronted | hand-set |
+| repair | P(repair)=.70 at feedback ≥.60; grounded .9 vs template .4 explanation quality | refutation + feedback quality effects (Muller et al. 2008) | hand-set |
+| prerequisite gate / contamination | .35–.55 cap; ×.60 exposure | knowledge-dependence; no direct coefficient source | hand-set |
+| genesis | base P=.08 ungrounded-material misconception seeding | plausible-direction only | hand-set, weakest anchor |
+
+## Same-graph mode (v0.1.4 A1)
+
+`npm run trellis -- generate --graph <run>/graph.json …` replays a
+FROZEN graph through authoring, isolating content changes from
+intake-graph variance (the measured ±0.15 repair band). Classroom
+comparisons between code versions should be same-graph pairs; fresh-
+intake runs measure the whole system including intake luck.
+
+## Adjudication cadence (v0.1.4 A3)
+
+Adjudicated reads run (a) at every PROF-BENCH version release, and
+(b) for any launch-gating or pivot-gating claim. Procedure is
+SEMI-BLIND: artifacts are extracted and format-normalized by the
+humanPacket machinery (both sides rendered to plain text, assignment
+randomized, key sealed) BEFORE the read; provenance is unsealed only
+after per-artifact scores and quoted evidence are written. Reads are
+filed in `docs/adjudications/`.
+
+## Panel protocol (v0.1.4 A2)
+
+Judge panels sample THREE lessons (≈25%/50%/85% of the course) with
+per-lesson artifacts, scored with rubric anchors (5 = weekend of
+rewrites; 7 = light edits; 9 = teach tomorrow), reported per family
+and pooled. Single-lesson panels are retired — the lesson draw was a
+measured variance source.
+
 ## Known limits (standing, disclosed)
 
 - The classroom's learning-rule parameters are literature-grounded but

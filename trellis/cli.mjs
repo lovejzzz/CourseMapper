@@ -34,9 +34,17 @@ async function cmdGenerate(options) {
   let graph = null;
   let syllabusText = null;
   if (options.graph) {
-    const module = await import(pathToFileURL(resolve(options.graph)).href);
-    const builder = Object.values(module).find((v) => typeof v === 'function');
-    graph = builder();
+    if (String(options.graph).endsWith('.json')) {
+      // Same-graph replay (v0.1.4 A1): re-run authoring on a FROZEN graph
+      // from a previous run — classroom deltas then isolate content
+      // changes from intake variance, the biggest noise source the bench
+      // has measured (repair band ±0.15 on identical code).
+      graph = JSON.parse(await readFile(options.graph, 'utf8'));
+    } else {
+      const module = await import(pathToFileURL(resolve(options.graph)).href);
+      const builder = Object.values(module).find((v) => typeof v === 'function');
+      graph = builder();
+    }
   } else if (options.syllabus) {
     syllabusText = await readFile(options.syllabus, 'utf8');
   } else {

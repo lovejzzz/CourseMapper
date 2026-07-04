@@ -116,6 +116,32 @@ export function mapAssignmentsData(graph, authored) {
   return { assignments };
 }
 
+export function mapRubricsData(graph, authored) {
+  const rubrics = orderedLessons(graph)
+    .map((lesson, index) => {
+      const bands = authored[lesson.id]?.assignment?.rubricBands ?? [];
+      if (bands.length < 3) return null;
+      // Trellis authors 3 observable bands; the app's rubric table reads
+      // named columns — top→excellent, middle→developing, low→beginning.
+      return {
+        lessonTitle: `Lesson ${index + 1}: ${lesson.title}`,
+        title: `${lesson.title} — Assignment Rubric`,
+        assessmentType: 'Assignment',
+        criteria: [
+          {
+            criterion: bands[0].band,
+            excellent: bands[0].observableBehavior,
+            developing: bands[1].observableBehavior,
+            beginning: bands[2].observableBehavior,
+            weight: '100%',
+          },
+        ],
+      };
+    })
+    .filter(Boolean);
+  return { rubrics };
+}
+
 export function mapSyllabusData(graph, courseWide) {
   return {
     syllabus: {
@@ -188,6 +214,7 @@ export async function writeDocxExports(runDir) {
     ['studyGuides', 'Study Guides', mapStudyGuidesData(graph, authored)],
     ['discussions', 'Discussion Questions', mapDiscussionsData(graph, authored)],
     ['assignments', 'Assignments', mapAssignmentsData(graph, authored)],
+    ['rubrics', 'Rubrics', mapRubricsData(graph, authored)],
     ['syllabus', 'Syllabus', mapSyllabusData(graph, courseWide)],
     ['courseFaq', 'Course FAQ', mapCourseFaqData(graph, authored, courseWide)],
   ];

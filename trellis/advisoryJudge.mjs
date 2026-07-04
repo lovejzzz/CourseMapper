@@ -62,11 +62,42 @@ function artifactScores(parsed) {
   return parsed?.scores?.artifacts ?? parsed?.artifacts ?? [];
 }
 
-export async function judgePackage(packageDir, { title = 'this course', lessonCount = 15, seats = 2 } = {}) {
+// Rubric anchors (v0.1.4 A2): one line per band shrinks seat-to-seat
+// spread — a seat that knows what a 7 looks like stops oscillating
+// between 5 and 8 for the same artifact.
+const RUBRIC_ANCHORS =
+  '\n\nScoring anchors: 5 = teachable only after a full weekend of rewrites (template prose, broken items, or missing substance); ' +
+  '7 = teachable after light edits (real content, a few rough items or stiff passages); ' +
+  '9 = teach tomorrow as-is (specific, correct, professionally written; only taste-level nits).';
+
+// One lesson's artifacts, selected by lesson number when possible.
+function lessonArtifacts(files, lessonCount, lessonNumber) {
+  const wanted = files.filter((f) => {
+    const match = f.path.match(/lesson\s*0?(\d+)/i);
+    return match && Number(match[1]) === lessonNumber && /(lesson plans|quiz|study guides)/i.test(f.path);
+  });
+  if (wanted.length >= 2) {
+    return wanted.map((f) => ({ name: `Lesson ${lessonNumber} ${f.path.split('/')[0]}`, text: f.text.slice(0, 9000) }));
+  }
+  return null;
+}
+
+export async function judgePackage(
+  packageDir,
+  { title = 'this course', lessonCount = 15, seats = 2, lessons = null } = {},
+) {
   const pkg = await extractPackage(createFsFileProvider(packageDir));
-  const artifacts = sampleJudgeArtifacts(pkg.files, lessonCount);
+  // Multi-lesson sampling (v0.1.4 A2): early/middle/late by default —
+  // single-lesson sampling is why panel verdicts swung with the draw.
+  const targets = lessons ?? [
+    Math.max(2, Math.round(lessonCount * 0.25)),
+    Math.round(lessonCount * 0.5),
+    Math.min(lessonCount - 1, Math.round(lessonCount * 0.85)),
+  ];
+  let artifacts = targets.flatMap((n) => lessonArtifacts(pkg.files, lessonCount, n) ?? []);
+  if (artifacts.length === 0) artifacts = sampleJudgeArtifacts(pkg.files, lessonCount);
   if (artifacts.length === 0) throw new Error('no sampleable artifacts');
-  const prompt = buildJudgePrompt({ id: 'trellis', title }, artifacts);
+  const prompt = buildJudgePrompt({ id: 'trellis', title }, artifacts) + RUBRIC_ANCHORS;
   const apiKey = await loadApiKey(undefined, 'openai');
   const dsKey = await loadApiKey(undefined, 'deepseek').catch(() => '');
 
