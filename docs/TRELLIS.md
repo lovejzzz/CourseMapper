@@ -1129,6 +1129,31 @@ polishing a candidate that hasn't won.
   semi-blind adjudication cadence → B7 replan drill on current
   machinery → B6 rubrics export.
 
+- **2026-07-04 (v0.1.4 IMPLEMENTED + TESTED — every roadmap item).**
+  B1+A5: family fingerprints at harvest, spread selection (ceil(K/2)/
+  family), family-first splice, J13 warn-check — J13's first sweep
+  found the REAL bottleneck: bank depth (28/72 kernels hold ≥2 catch
+  families vs 12/12 documented in the genome) — selection can't spread
+  what harvests never captured; self-corrects via family-first splicing
+  feeding future harvests; J13 exit bar honestly NOT met yet. A1:
+  same-graph replay mode PROVEN — repair 0.584 vs 0.579 (Δ0.005) on a
+  frozen graph vs the ±0.15 fresh-intake band: ~30× variance collapse;
+  classroom experiments now cost one pair. A2: 3-lesson anchored
+  cross-family panels live at $0.0235 (bar ≤$0.03 ✓) — and immediately
+  found what single-lesson sampling couldn't: quiz quality DECAYS
+  through the course (L4 7.33 → L8 6.33 → L13 5.33; late concepts have
+  thin bank shelves). A3: semi-blind cadence + learning-rule provenance
+  table in PROF_BENCH.md. B3 PROVEN: v014-proof2 ran 52/85 calls at
+  batch rates — **$0.104 total** (quality bar ≤$0.13 ✓; stretch ≤$0.10
+  missed by $0.004), wall 578s incl. queue, repair 0.779/catch ✓/98A.
+  B5: deepseek fact-verification ran IN PRODUCTION (true cross-family).
+  B2: blends 8/8 options + 58/66 explanations (88% vs ≥90% — near-miss,
+  math tail remains). B6: 8 DOCX features + 15 PPTX round-trip. B7:
+  replan drill green on current machinery (locked weeks untouched,
+  registry intact). 97 tests. NEW FINDINGS FOR THE QUEUE: bank family
+  depth (J13's target), late-course shelf thinning (A2's discovery),
+  blend math tail 2%.
+
 ---
 
 _— Fable 5_
