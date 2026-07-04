@@ -104,7 +104,7 @@ export async function blendCorrectives(graph, authored, { tier = 'nano', ledger 
       maxOutputTokens: 4000,
       system:
         'You polish quiz explanations. Each entry contains one or more corrective sentences that were pasted in mechanically, so the text reads as two voices. ' +
-        'Rewrite each as ONE natural explanation (2-3 sentences, under 60 words) that makes every corrective’s content its own point — keep at least half of EACH corrective’s key terms (a lexical gate checks this), never paste one as a standalone sentence. ' +
+        'Rewrite each as ONE natural explanation (2-3 sentences; under 60 words for one corrective, plus 40 more words per additional corrective) that makes every corrective’s content its own point — keep at least half of EACH corrective’s key terms (a lexical gate checks this), never paste one as a standalone sentence. ' +
         'Vary the openers: no two rewrites may start with the same words. Return {rewrites:[{index, text}]} covering every entry.',
       user: JSON.stringify(
         batch.map((entry, index) => ({ index, explanation: entry.explanation, correctives: entry.correctives })),
@@ -168,7 +168,7 @@ export async function blendCorrectives(graph, authored, { tier = 'nano', ledger 
           validate: schemaOnly,
           maxOutputTokens: 700,
           system:
-            'Rewrite ONE quiz explanation so the pasted corrective sentence(s) become its own natural argument (2-4 sentences, under 80 words). Keep at least half of EACH corrective’s key terms — a lexical gate checks. Return {rewrites:[{index:0, text}]}.',
+            'Rewrite ONE quiz explanation so the pasted corrective sentence(s) become its own natural argument (2-4 sentences; 80 words for one corrective, plus 40 per additional corrective). Keep at least half of EACH corrective’s key terms — a lexical gate checks. Return {rewrites:[{index:0, text}]}.',
           user: JSON.stringify({ explanation: entry.explanation, correctives: entry.correctives }, null, 1),
         });
         const text = String(result?.rewrites?.[0]?.text ?? '').trim();

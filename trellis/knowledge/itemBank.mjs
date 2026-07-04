@@ -192,7 +192,12 @@ function dedupeItems(items) {
 
 export async function buildBank({ runsDir = 'trellis/runs', discipline = 'all', outDir = 'trellis/bank' } = {}) {
   const runs = (await readdir(runsDir, { withFileTypes: true })).filter((d) => d.isDirectory()).map((d) => d.name);
-  const all = [];
+  // PRESERVE gap-fill items across rebuilds — they exist only in the bank
+  // file (authored directly into the asset, not into any run), and a
+  // rebuild that forgets them silently destroys paid work.
+  const existing = await loadBank(discipline, { dir: outDir });
+  const gapfillItems = (existing?.items ?? []).filter((i) => i.provenance?.origin === 'gapfill');
+  const all = [...gapfillItems];
   const log = [];
   for (const run of runs) {
     try {

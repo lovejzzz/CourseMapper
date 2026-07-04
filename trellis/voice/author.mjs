@@ -286,6 +286,9 @@ function quizSystemPrompt(slice, count = slice.constraints.quizItems, exemplar =
     `Author quizItems + claims as JSON. Non-negotiables:\n` +
     `- Exactly ${count} items, 4 options each, application/transfer stems preferred over recall; VARY correctIndex across items; no two options in an item may be identical.\n` +
     `- DISTRACTOR CRAFT: every wrong option must be plausible to a student who half-learned the material — a real mistake with real reasoning behind it. Never joke options, never obviously-absurd claims, never two options that say the same thing in different words.\n` +
+    (misconceptions.length >= 4
+      ? `- DENSE MODE (this lesson documents ${misconceptions.length} wrong beliefs): where options allow, an item's THREE wrong options should state THREE DIFFERENT documented wrong beliefs — reason-bearing, each keeping its own belief's key terms. Three families per item triples what the quiz can diagnose.\n`
+      : '') +
     (misconceptions.length > 0
       ? `- The distractors ARE the documented wrong beliefs below. At least ${Math.ceil(count * ITEM_CATCH_SHARE)} of the ${count} items must carry one as a wrong option.\n` +
         `- HOW TO WRITE A CATCHING DISTRACTOR: give the wrong value/claim WITH its wrong rationale, reusing the documented belief's own nouns and verbs — "3, because the operands look like whole numbers so Python does integer division", never the bare value "3". A lexical grader counts the belief's words inside the option, and the student who holds the belief must recognize their own reasoning.\n` +
