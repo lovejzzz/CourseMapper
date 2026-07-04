@@ -52,6 +52,16 @@ function validateExtraction(uncoveredIds) {
       if (!Array.isArray(entry.kernelFacts) || entry.kernelFacts.length < 2) {
         errors.push(`${entry.conceptId}: need ≥2 kernel facts`);
       }
+      // The v013-cs-review judge found the literal placeholder 'X does Y'
+      // spliced into four lessons' options — nano copied the prompt's old
+      // format example verbatim as a beliefForm. Stub belief forms are
+      // rejected in the retry loop; a real wrong belief names real things.
+      const belief = entry.misconception?.beliefForm;
+      if (belief && (belief.length < 20 || /\bX does Y\b/i.test(belief) || /^[A-Z] .{0,12} [A-Z]\.?$/.test(belief))) {
+        errors.push(
+          `${entry.conceptId}: beliefForm "${belief}" is a stub — state the actual wrong belief with the concept's own terms (e.g. "Dividing two integers always yields an integer")`,
+        );
+      }
     }
     return errors;
   };
@@ -72,7 +82,7 @@ export async function flywheelFill(graph, uncoveredIds, { tier = 'cheap', ledger
     validate: validateExtraction(uncoveredIds),
     system:
       `You extract teaching-kernel facts for undergraduate course concepts in ${graph.course.subject}. ` +
-      `For each concept: 2-4 precise, checkable facts a textbook would state (no fluff, no "students will"), and the single most common documented student misconception WITH (a) its beliefForm — the wrong belief stated AS a claim a student could pick on a quiz ('X does Y'), never 'students think…' — and (b) its corrective (how an instructor repairs it). ` +
+      `For each concept: 2-4 precise, checkable facts a textbook would state (no fluff, no "students will"), and the single most common documented student misconception WITH (a) its beliefForm — the wrong belief stated AS a claim a student could pick on a quiz — a full sentence using the concept's own terms, like "Dividing two integers always yields an integer" — never 'students think…' and never a placeholder — and (b) its corrective (how an instructor repairs it). ` +
       `If a concept has no well-known misconception, return null for misconception. Never invent citations.`,
     user: `Course: ${graph.course.title} (${graph.course.level}).\nConcepts needing kernels:\n${wanted
       .map((w) => `- ${w.id}: ${w.name}`)

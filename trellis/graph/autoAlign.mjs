@@ -182,7 +182,9 @@ export function spliceCatchDistractors(graph, authored) {
         // Only the cleaned belief form is spliced; behavioral statements
         // with no belief form are skipped honestly (audit finding).
         const belief = chosen.beliefForm ?? beliefTextFromStatement(chosen.statement);
-        if (!belief) continue;
+        // Length floor: defense in depth against stub belief forms (the
+        // 'X does Y' class) reaching option slots from ANY source.
+        if (!belief || belief.trim().length < 20) continue;
         // Never create duplicate options (the J1 ambiguity class) — within
         // the item AND across the lesson's other items (bank-run 4: the
         // same pasted belief in two items reads as corruption to a judge).

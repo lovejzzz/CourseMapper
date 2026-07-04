@@ -1061,6 +1061,20 @@ polishing a candidate that hasn't won.
   bar-passing course — the marginal-cost collapse is now real
   infrastructure, not a roadmap line.
 
+- **2026-07-04 (improvement cycle 1 — kicked off interactively; hourly
+  cron continues).** Review-item labels (deterministic 'Review:' prefix
+  on banked reinforced-concept items; prompted for fresh spaced-
+  retrieval stems) + distractor-craft prompt rules. Measured
+  (v013-cs-review, $0.165/176s/97A, 59/90 banked): judge quiz 6 [6,6] —
+  within the noise band, no label gain provable on one pair. The
+  judge's real gift: a literal 'X does Y' distractor in FOUR lessons —
+  nano copied the flywheel prompt's format example verbatim as a
+  beliefForm and the splice pasted it. Root-fixed at three layers:
+  flywheel prompt reworded (concrete example, 'never a placeholder'),
+  extraction validator rejects stub belief forms in the retry loop,
+  splice gains a 20-char belief floor. LESSON: never put a copyable
+  placeholder in an extraction prompt — nano WILL return it.
+
 ---
 
 _— Fable 5_
