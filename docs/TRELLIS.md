@@ -1177,6 +1177,23 @@ polishing a candidate that hasn't won.
   re-measure. Spend $0.82 vs $0.35 estimate — two unplanned refit loops,
   both instrument-caught, both worth it. 97 tests.
 
+- **2026-07-04 (v0.1.6 Every Shelf, Every Discipline — implemented +
+  validated, $0.48 vs ≤$0.75 est).** Floor fill: +56 items over two
+  passes (bank 1,829; 358 gapfill), fixture kernels at floor 65/81 —
+  16 systematic gate-reject stragglers DISCLOSED as a partial bar.
+  Exemplar-guided fresh authoring (one top-evidence banked item as a
+  craft reference, live + batch paths). VALIDATION on two frozen
+  rulers: cs replay panel **8 [8,8] — all three families unanimous,
+  first time** — quiz decay flattened to 8/7/7 (was 7.33/6.33/5.33):
+  L8 5→7 ✓ and L13 →7 [7,7] ✓ (both 6.5 bars MET). THE LA LEVER MOVED:
+  same-graph repair **0.428 → 0.498** (+0.07, attributable to the deep
+  bank — first movement on the dense-discipline plateau since it was
+  measured), catch ✓, unexposed 3→1; the ≥0.55 intermediate bar remains
+  unmet, 0.70 remains the destination. Blend re-measure: 85%/84% vs
+  ≥90% — honest miss, residual class = long corrective stacks on
+  math-dense items. CARRIES: 16 floor stragglers (systematic rejects —
+  investigate the gate, not the model), LA ≥0.55, blend tail-of-tail.
+
 ---
 
 _— Fable 5_
