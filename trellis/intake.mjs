@@ -111,6 +111,13 @@ function validateIntake(parsed) {
         `lesson ${l.id} introduces ${l.introduces.length} concepts — cap is 3; move the overflow to a later lesson's introduces or this lesson's reinforces`,
       );
     if (l.introduces.length === 0 && l.reinforces.length === 0) errors.push(`lesson ${l.id} teaches nothing`);
+    // Spiral curriculum (v0.1.2 item 3): a concept met once is a concept
+    // forgotten — the LA field runs measured it (unexposed items, low
+    // mastery). Every lesson after week 1 revisits recent ground.
+    if (l.week > 1 && l.reinforces.length === 0)
+      errors.push(
+        `lesson ${l.id} (week ${l.week}) reinforces nothing — spiral the curriculum: add 1-2 recently introduced concepts (ideally prerequisites of this lesson's new material) to reinforces`,
+      );
   }
   const assessed = new Set((parsed.assessments ?? []).flatMap((a) => a.outcomeIds));
   for (const o of parsed.outcomes ?? []) {
