@@ -217,9 +217,16 @@ export async function gapFillBank({ ledger = null, budgetUsd = null, tier = 'che
   return { cells: cells.length, filled, origins };
 }
 
-// CLI — content-guarded (vite-node strips the script path from argv).
+// CLI — EXPLICIT env opt-in (GAPFILL=run). The previous content guard
+// (bank exists + short argv) fired on IMPORT under vite-node, where the
+// script path is stripped from argv: any module importing claimTokens
+// through a vite-node entrypoint silently ran a paid gap-fill pass
+// (caught live by Tendril's gate bench — it printed {cells:0} into the
+// bench output; $0 only because the shelves happened to be full).
+// A spend-capable CLI must never be reachable by import side effect.
+//   GAPFILL=run npx vite-node trellis/knowledge/bankGapFill.mjs
 import { existsSync } from 'node:fs';
-if (existsSync('trellis/bank/all-items.json') && process.argv.length <= 3 && !process.env.VITEST) {
+if (process.env.GAPFILL === 'run' && existsSync('trellis/bank/all-items.json') && !process.env.VITEST) {
   const { createRunLedger } = await import('../telemetry.mjs');
   const ledger = createRunLedger({ runId: 'bank-gapfill', runDir: 'trellis/runs/bank-gapfill' });
   try {
