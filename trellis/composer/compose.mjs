@@ -96,9 +96,14 @@ export async function composeLesson(graph, lessonId, store, { ledger, budgetUsd,
   }
 
   // ── quiz: bank selection at full depth, fill the remainder ──
-  const banked = selectBankItems(slice, bank, { maxBanked: 6, perConcept: 4 });
+  // v0.2.1: 4 banked + 2 fresh (lesson fit) with PER-ITEM claims — E6's
+  // anchor-only claims coarsened Prof's item→concept attribution (the
+  // repair −0.02 suspect).
+  const banked = selectBankItems(slice, bank, { maxBanked: 4, perConcept: 3 });
+  const itemConceptIds = [];
   const quizItems = banked.map((item) => {
     const clean = { ...item };
+    itemConceptIds.push(item.__bank?.conceptId ?? anchor.conceptId);
     delete clean.__bank;
     used(item, clean);
     return clean;
@@ -122,7 +127,19 @@ export async function composeLesson(graph, lessonId, store, { ledger, budgetUsd,
       system: `Author exactly ${need} application-level multiple-choice item(s) for the lesson below, grounded in the kernel facts. 4 distinct options; plausible half-learned mistakes as distractors; explanation 2-3 sentences confronting the tempting wrong answer.`,
       user: JSON.stringify({ lesson: slice.lesson, concepts: slice.concepts, need }, null, 1),
     });
-    for (const item of result.quizItems) quizItems.push(fresh(item));
+    // v0.2.1 SOLVER GATE: a cross-family seat answers each fresh item
+    // BLIND; solver ≠ key → one re-author, then drop honestly (a 5-item
+    // quiz is legal; a wrong key is not). The 'scarcity' class killer.
+    const { solveGate } = await import('./solver.mjs');
+    for (const item of result.quizItems) {
+      const verdict = await solveGate(item, { ledger, budgetUsd });
+      if (verdict.ok) {
+        quizItems.push(fresh(item));
+        itemConceptIds.push(anchor.conceptId);
+      } else {
+        stats.solverRejected = (stats.solverRejected ?? 0) + 1;
+      }
+    }
   }
 
   // ── surfaces from assets ──
@@ -143,7 +160,10 @@ export async function composeLesson(graph, lessonId, store, { ledger, budgetUsd,
     faqEntries: [faq1, faq2].filter(Boolean).map((a) => used(a, a.body)),
     claims: [
       ...segments.map((_, i) => ({ path: `plan.segments[${i}].text`, ref: `kernel:${anchor.conceptId}` })),
-      ...quizItems.map((_, i) => ({ path: `quizItems[${i}].explanation`, ref: `kernel:${anchor.conceptId}` })),
+      ...quizItems.map((_, i) => ({
+        path: `quizItems[${i}].explanation`,
+        ref: `kernel:${itemConceptIds[i] ?? anchor.conceptId}`,
+      })),
     ],
   };
 
@@ -257,6 +277,7 @@ export async function composeAllLessons(graph, store, { ledger, budgetUsd, tiers
       totals.freshParts += stats.freshParts;
       totals.skinned += skin.skinned;
       totals.skinOf += skin.of;
+      totals.solverRejected = (totals.solverRejected ?? 0) + (stats.solverRejected ?? 0);
     } catch (composeError) {
       // Fold-back per lesson: the factory authors it whole, disclosed.
       try {

@@ -338,6 +338,14 @@ export async function floorFillBank({
         const cell = batch[item.index];
         if (!cell) continue;
         const shelf = bank.items.filter((b) => b.kernelId === cell.kernelId);
+        // v0.2.1 solver gate: a cross-family seat solves the item blind;
+        // key mismatch rejects — the wrong-key class no lexical gate sees.
+        const { solveGate } = await import('../composer/solver.mjs');
+        const solved = await solveGate(item, { ledger, budgetUsd });
+        if (!solved.ok) {
+          rejections['solver'] = (rejections['solver'] ?? 0) + 1;
+          continue;
+        }
         if (cell.statement) {
           const reason = gapItemRejection(cell, item, shelf);
           if (reason) {
