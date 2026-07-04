@@ -23,6 +23,7 @@ import { join } from 'node:path';
 import { distractorCatches } from '../judgment/checks/j11Catch.mjs';
 import { confrontsCorrective } from '../judgment/checks/j3bPairing.mjs';
 import { tokenOverlapRatio } from '../judgment/text.mjs';
+import { TERMINAL_PUNCT_RE } from '../voice/contracts.mjs';
 
 const MIN_GRADE = 97;
 const STEM_DUPE_OVERLAP = 0.6;
@@ -68,6 +69,12 @@ function aestheticallyClean(item) {
     return false;
   if (item.options.some((option) => String(option).length > MAX_OPTION_CHARS)) return false;
   if (String(item.explanation).length > MAX_EXPLANATION_CHARS) return false;
+  // Bank-run-3 judge findings, both machine-checkable: truncated stems
+  // (old nano-era items cut mid-sentence) and fenced code blocks, which
+  // the plain-text package surfaces render broken.
+  if (!TERMINAL_PUNCT_RE.test(String(item.stem).trim())) return false;
+  const everything = [item.stem, ...item.options, item.explanation].join(' ');
+  if (everything.includes('```')) return false;
   return true;
 }
 

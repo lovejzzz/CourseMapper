@@ -222,30 +222,6 @@
    }
   },
   {
-   "id": "cmpA-cs-python:l6:q2",
-   "kernelId": "cs/functions",
-   "conceptName": "functions and scope",
-   "stem": "You write this code:\n\n```python\ndef greet():\n    print(\"Hi\")\n\nprint(\"Before\")\n# greet() is commented out\nprint(\"After\")\n```\n\nWhat prints?",
-   "options": [
-    "Writing def greet(): runs the function body immediately.",
-    "Before then After then Hi",
-    "Before then After (no Hi)",
-    "A SyntaxError"
-   ],
-   "correctIndex": 2,
-   "explanation": "If you think, \"Students think writing def greet(): runs the function body immediately,\" that would be wrong here. The body runs only when the function is called by name, such as `greet()`. Since `greet()` is commented out, you only see `Before` and `After`.",
-   "bloom": "apply",
-   "difficulty": "transfer",
-   "catches": true,
-   "confronts": true,
-   "provenance": {
-    "runId": "cmpA-cs-python",
-    "lessonId": "l6",
-    "itemIndex": 2,
-    "grade": 99
-   }
-  },
-  {
    "id": "cmpA-cs-python:l7:q1",
    "kernelId": "cs/lists",
    "conceptName": "lists",
@@ -1662,30 +1638,6 @@
    }
   },
   {
-   "id": "lean-cs-python-4:l5:q2",
-   "kernelId": "cs/for-loops",
-   "conceptName": "range",
-   "stem": "What values does this loop iterate over, and how many times does the body run? for i in range(5): print(i)",
-   "options": [
-    "Range(5) produces 1 through 5, so their loop runs one time too few or accesses the wrong indices.",
-    "0, 1, 2, 3, 4 — five times",
-    "0, 1, 2, 3, 4, 5 — six times",
-    "0, 1, 2, 3 — four times"
-   ],
-   "correctIndex": 1,
-   "explanation": "range(5) yields 0, 1, 2, 3, 4 — it starts at 0 and stops before the endpoint, giving exactly five values. The loop body runs once per yielded value.",
-   "bloom": "apply",
-   "difficulty": "apply",
-   "catches": true,
-   "confronts": true,
-   "provenance": {
-    "runId": "lean-cs-python-4",
-    "lessonId": "l5",
-    "itemIndex": 2,
-    "grade": 99
-   }
-  },
-  {
    "id": "lean-cs-python-4:l7:q3",
    "kernelId": "cs/lists",
    "conceptName": "lists",
@@ -2406,30 +2358,6 @@
    }
   },
   {
-   "id": "v011-cs-python-2:l5:q1",
-   "kernelId": "cs/for-loops",
-   "conceptName": "for loops and range",
-   "stem": "A list starts as `nums = [10, 20, 30]`. What happens after this loop?\n\n`for n in nums:\n    n = 99`",
-   "options": [
-    "The list becomes `[99, 99, 99]` because the loop variable changes each element.",
-    "The list stays `[10, 20, 30]` because `n` is just a fresh binding to each element.",
-    "The loop crashes because you cannot reassign a loop variable.",
-    "The list becomes `[10, 99, 30]` because the middle item is replaced."
-   ],
-   "correctIndex": 1,
-   "explanation": "The loop variable is a fresh binding to each element in turn; assigning to it does not edit the container. To change list contents, index into the list directly. Here, `n = 99` changes only the temporary name `n`, not `nums`.",
-   "bloom": "understand",
-   "difficulty": "transfer",
-   "catches": true,
-   "confronts": true,
-   "provenance": {
-    "runId": "v011-cs-python-2",
-    "lessonId": "l5",
-    "itemIndex": 1,
-    "grade": 99
-   }
-  },
-  {
    "id": "v011-cs-python-2:l6:q4",
    "kernelId": "cs/functions",
    "conceptName": "functions and scope",
@@ -2742,30 +2670,6 @@
    }
   },
   {
-   "id": "v011-cs-python-3:l6:q1",
-   "kernelId": "cs/functions",
-   "conceptName": "functions and scope",
-   "stem": "A student writes:\n\n```python\ndef make_total():\n    total = 7 + 8\n\nprint(total)\n```\n\nWhat is the best fix if they want to print the result outside the function?",
-   "options": [
-    "Change `total` to a global variable inside the function.",
-    "Add `return total` in the function and store the returned value in a variable before printing it.",
-    "Indent `print(total)` inside the function and leave everything else the same.",
-    "Rename `total` to `result` and Python will make it visible outside the function."
-   ],
-   "correctIndex": 1,
-   "explanation": "Local variables exist only during the call that created them; to use a result outside, the function must return it and the caller must capture the returned value. In this code, `total` is local to `make_total()`, so `print(total)` outside the function cannot see it.",
-   "bloom": "apply",
-   "difficulty": "transfer",
-   "catches": true,
-   "confronts": true,
-   "provenance": {
-    "runId": "v011-cs-python-3",
-    "lessonId": "l6",
-    "itemIndex": 1,
-    "grade": 99
-   }
-  },
-  {
    "id": "v011-cs-python-3:l9:q1",
    "kernelId": "cs/dictionaries",
    "conceptName": "dictionaries and nested data",
@@ -2834,30 +2738,6 @@
     "runId": "v011-cs-python-3",
     "lessonId": "l10",
     "itemIndex": 2,
-    "grade": 99
-   }
-  },
-  {
-   "id": "v011-cs-python-3:l12:q0",
-   "kernelId": "cs/recursion",
-   "conceptName": "recursion",
-   "stem": "A student writes this function:\n\n```python\ndef countdown(n):\n    return countdown(n - 1)\n```\n\nWhat is the best diagnosis?",
-   "options": [
-    "It is missing a base case, so the self-calls never stop.",
-    "It should use n + 1 so it eventually becomes smaller.",
-    "It is correct because every recursive function must call itself.",
-    "It is incorrect because recursion cannot use subtraction."
-   ],
-   "correctIndex": 0,
-   "explanation": "This version never stops because there is no simplest input handled directly. Every recursion needs a base case — a simplest input solved directly without another call — so the chain of self-calls eventually stops.",
-   "bloom": "understand",
-   "difficulty": "apply",
-   "catches": true,
-   "confronts": true,
-   "provenance": {
-    "runId": "v011-cs-python-3",
-    "lessonId": "l12",
-    "itemIndex": 0,
     "grade": 99
    }
   },
@@ -3174,6 +3054,30 @@
    }
   },
   {
+   "id": "v011-cs-python-7:l6:q5",
+   "kernelId": "cs/functions",
+   "conceptName": "functions and scope",
+   "stem": "A student writes this code:\n\ndef make_message():\n    message = 'Done'\n\nprint(message)\n\nWhat is the best fix if the goal is to print Done outside the function?",
+   "options": [
+    "Return message from make_message and capture the returned value before printing it",
+    "Write def make_message(): runs the function body immediately, so print(message) will work as written",
+    "Move message outside the function if you want it to be local scope",
+    "Change print(message) to print(range(1, 5)) so the loop variable becomes global"
+   ],
+   "correctIndex": 0,
+   "explanation": "Local variables exist only during the call that created them; to use a result outside, the function must return it and the caller must capture the returned value. Here message is local to make_message, so print(message) outside the function cannot read it. Returning the string is the correct repair. Defining a function only stores it; the body runs when the function is called by name, such as greet().",
+   "bloom": "apply",
+   "difficulty": "transfer",
+   "catches": true,
+   "confronts": true,
+   "provenance": {
+    "runId": "v011-cs-python-7",
+    "lessonId": "l6",
+    "itemIndex": 5,
+    "grade": 99
+   }
+  },
+  {
    "id": "v011-cs-python-7:l7:q0",
    "kernelId": "cs/lists",
    "conceptName": "lists",
@@ -3294,30 +3198,6 @@
    }
   },
   {
-   "id": "v011-cs-python-7:l9:q5",
-   "kernelId": "cs/dictionaries",
-   "conceptName": "dictionaries and nested data",
-   "stem": "What does this code print?\n\n```python\ngrades = {'Ava': 95, 'Ben': 88}\ngrades['Ava'] = 97\nprint(grades['Ava'])\n```",
-   "options": [
-    "95, because once a key has a value, it cannot be changed",
-    "97, because assigning to an existing key overwrites the previous value",
-    "Ava, because dictionary access returns the key itself",
-    "88, because the dictionary keeps the older value for Ava as a backup"
-   ],
-   "correctIndex": 1,
-   "explanation": "`grades['Ava'] = 97` replaces the old value for `'Ava'`, so printing `grades['Ava']` gives 97. Keys are unique; assigning to an existing key overwrites its previous value rather than adding a second entry. Dictionaries are accessed by key, not position; use d['name'] to get the value stored under the key 'name', not d[0].",
-   "bloom": "apply",
-   "difficulty": "transfer",
-   "catches": true,
-   "confronts": true,
-   "provenance": {
-    "runId": "v011-cs-python-7",
-    "lessonId": "l9",
-    "itemIndex": 5,
-    "grade": 99
-   }
-  },
-  {
    "id": "v011-cs-python-7:l10:q0",
    "kernelId": "cs/file-io",
    "conceptName": "file input and output",
@@ -3390,30 +3270,6 @@
    }
   },
   {
-   "id": "v011-cs-python-7:l12:q2",
-   "kernelId": "cs/recursion",
-   "conceptName": "recursion",
-   "stem": "For this function, what does factorial(0) return?\n\ndef factorial(n):\n    if n == 0:\n        return 1\n    return n * factorial(n - 1)",
-   "options": [
-    "0, because multiplying by 0 always gives 0",
-    "1, because n == 0 is the base case and it is solved directly",
-    "factorial(-1), because the recursive call still happens once",
-    "It raises a RecursionError, because base cases do not stop self-calls"
-   ],
-   "correctIndex": 1,
-   "explanation": "factorial(0) hits the base case immediately, so it returns 1 without another call. That is exactly what the worked example says: the smallest input is solved directly, and the self-calls stop there. Each recursive call must move toward the base case by shrinking the problem (e.g. n - 1), or the base case is never reached.",
-   "bloom": "understand",
-   "difficulty": "recall",
-   "catches": true,
-   "confronts": true,
-   "provenance": {
-    "runId": "v011-cs-python-7",
-    "lessonId": "l12",
-    "itemIndex": 2,
-    "grade": 99
-   }
-  },
-  {
    "id": "v011-cs-python-7:l12:q5",
    "kernelId": "cs/recursion",
    "conceptName": "recursion",
@@ -3458,30 +3314,6 @@
     "runId": "v011-cs-python-7",
     "lessonId": "l13",
     "itemIndex": 0,
-    "grade": 99
-   }
-  },
-  {
-   "id": "v011-cs-python-7:l13:q1",
-   "kernelId": "cs/classes",
-   "conceptName": "classes and objects",
-   "stem": "After this code runs, what is true?\n\n```python\nclass Dog:\n    pass\n\na = Dog()\nb = Dog()\na.name = \"Milo\"\n```",
-   "options": [
-    "`a` has `name`, `b` does not, because each instance has its own attributes.",
-    "`b` now also has `name` because two instances of the same class share their attribute values.",
-    "`Dog` now has `name`, because the class itself stores the data for every object.",
-    "`a` and `b` both lose `name` because methods are the only thing instances keep."
-   ],
-   "correctIndex": 0,
-   "explanation": "Each instance has its own attributes, so setting `a.name` affects `a` only. The class is still just the blueprint; per-object data lives on each instance, not on the class.",
-   "bloom": "apply",
-   "difficulty": "apply",
-   "catches": true,
-   "confronts": true,
-   "provenance": {
-    "runId": "v011-cs-python-7",
-    "lessonId": "l13",
-    "itemIndex": 1,
     "grade": 99
    }
   },
@@ -3601,78 +3433,6 @@
    "provenance": {
     "runId": "v011-cs-python-9",
     "lessonId": "l4",
-    "itemIndex": 1,
-    "grade": 99
-   }
-  },
-  {
-   "id": "v011-cs-python-9:l4:q2",
-   "kernelId": "cs/while-loops",
-   "conceptName": "while loops",
-   "stem": "Which change makes this loop stop?\n\ncount = 5\nwhile count > 0:\n    print(count)",
-   "options": [
-    "Add count = count - 1 inside the body so the condition eventually becomes false.",
-    "Add count == count - 1 inside the body so the loop condition is updated.",
-    "Move the print(count) below the loop so the condition stays true forever.",
-    "Replace while with if so the body runs again as long as count > 0."
-   ],
-   "correctIndex": 0,
-   "explanation": "Every while loop must change something the condition depends on; here that means updating count inside the body. Without that progress, the condition stays true forever and the loop becomes infinite. The loop expression is tested only at the top of each iteration; the rest of the current pass still runs before the condition is checked again.",
-   "bloom": "apply",
-   "difficulty": "transfer",
-   "catches": true,
-   "confronts": true,
-   "provenance": {
-    "runId": "v011-cs-python-9",
-    "lessonId": "l4",
-    "itemIndex": 2,
-    "grade": 99
-   }
-  },
-  {
-   "id": "v011-cs-python-9:l5:q1",
-   "kernelId": "cs/for-loops",
-   "conceptName": "for loops and range",
-   "stem": "What does this print?\\n\\nfor i in range(3):\\n    print(i)",
-   "options": [
-    "0\\n1\\n2",
-    "Range(5) produces 1 through 5, so their loop runs one time too few or accesses the wrong indices.",
-    "0\\n1\\n2\\n3",
-    "3\\n2\\n1"
-   ],
-   "correctIndex": 0,
-   "explanation": "range(3) yields 0, 1, 2, so the loop runs three times and prints those values. It does not start at 1 or include 3, because range stops before the endpoint.",
-   "bloom": "understand",
-   "difficulty": "recall",
-   "catches": true,
-   "confronts": true,
-   "provenance": {
-    "runId": "v011-cs-python-9",
-    "lessonId": "l5",
-    "itemIndex": 1,
-    "grade": 99
-   }
-  },
-  {
-   "id": "v011-cs-python-9:l6:q1",
-   "kernelId": "cs/functions",
-   "conceptName": "functions and scope",
-   "stem": "After this code runs, what happens?\n\n```python\ndef greet():\n    message = \"Hi\"\n\nprint(message)\n```",
-   "options": [
-    "A `NameError`, because `message` was created inside `greet()` and is local to that call",
-    "It prints `Hi`, because writing `def greet():` runs the function body immediately",
-    "It prints `Hi`, because `message` has global scope and can be accessed anywhere",
-    "No output, because `print(message)` is inside the function body"
-   ],
-   "correctIndex": 0,
-   "explanation": "`message` exists only during the call that created it, so `print(message)` outside the function cannot access it. If you need the value later, the function must return it and the caller must capture the returned value. Defining a function only stores it; the body runs when the function is called by name, such as greet().",
-   "bloom": "analyze",
-   "difficulty": "transfer",
-   "catches": true,
-   "confronts": true,
-   "provenance": {
-    "runId": "v011-cs-python-9",
-    "lessonId": "l6",
     "itemIndex": 1,
     "grade": 99
    }
@@ -3822,30 +3582,6 @@
    }
   },
   {
-   "id": "v011-cs-python-9:l10:q1",
-   "kernelId": "cs/file-io",
-   "conceptName": "file input and output",
-   "stem": "After this runs, what is most likely in `second`? `with open('data.txt') as f: first = f.read(); second = f.read()`",
-   "options": [
-    "'' because read() advances a position marker through the file and the second read reaches the end",
-    "the same text again, because read() always starts over at the beginning",
-    "the next single line, because read() keeps switching to readline() after the first call",
-    "a list of the remaining lines, because read() turns into readlines() once the file is open"
-   ],
-   "correctIndex": 0,
-   "explanation": "Reading advances a position marker through the file; once `read()` reaches the end, a second `read()` returns `''` until the file is reopened or the position is reset. The other choices confuse `read()` with restarting, `readline()`, or `readlines()`. Always close the file when done, or open it in a with statement so Python closes it automatically even if an error occurs. Dictionaries are accessed by key, not position; use d['name'] to get the value stored under the key 'name', not d[0].",
-   "bloom": "understand",
-   "difficulty": "transfer",
-   "catches": true,
-   "confronts": true,
-   "provenance": {
-    "runId": "v011-cs-python-9",
-    "lessonId": "l10",
-    "itemIndex": 1,
-    "grade": 99
-   }
-  },
-  {
    "id": "v011-cs-python-9:l10:q2",
    "kernelId": "cs/file-io",
    "conceptName": "file input and output",
@@ -3914,30 +3650,6 @@
     "runId": "v011-cs-python-9",
     "lessonId": "l12",
     "itemIndex": 0,
-    "grade": 99
-   }
-  },
-  {
-   "id": "v011-cs-python-9:l12:q2",
-   "kernelId": "cs/recursion",
-   "conceptName": "recursion",
-   "stem": "What does read() return on this code the second time it runs?\n\nwith open('data.txt') as f:\n    first = f.read()\n    second = f.read()",
-   "options": [
-    "The same full contents again, because read() never moves through the file.",
-    "'' because reading advances a position marker and the second read() is at the end.",
-    "A list of lines, because read() becomes readlines() after the first call.",
-    "The next single line, because read() behaves like readline() after it is used once."
-   ],
-   "correctIndex": 1,
-   "explanation": "After the first read(), the file position is at the end, so the second read() returns ''. Reading advances a position marker through the file; to read again, you reopen the file or reset the position. Each recursive call must move toward the base case by shrinking the problem (e.g. n - 1), or the base case is never reached.",
-   "bloom": "apply",
-   "difficulty": "transfer",
-   "catches": true,
-   "confronts": true,
-   "provenance": {
-    "runId": "v011-cs-python-9",
-    "lessonId": "l12",
-    "itemIndex": 2,
     "grade": 99
    }
   },
@@ -5382,30 +5094,6 @@
    }
   },
   {
-   "id": "v012-cs-final:l6:q3",
-   "kernelId": "cs/functions",
-   "conceptName": "functions and scope",
-   "stem": "You want to use a value made inside a function after the function finishes. Which version works?\n\nA. def make_total():\n       total = 7\n\n   print(total)\n\nB. def make_total():\n       total = 7\n       return total\n\n   value = make_total()\n   print(value)",
-   "options": [
-    "A works, because total is created inside the function and stays readable outside it.",
-    "B works, because the function returns total and the caller captures the returned value.",
-    "A works, because local variables have global scope after the call ends.",
-    "B does not work, because return hides total instead of making it available."
-   ],
-   "correctIndex": 1,
-   "explanation": "Local variables exist only during the call that created them; in A, total is local to make_total(), so print(total) outside would fail. To use a result outside, the function must return it and the caller must capture the returned value.",
-   "bloom": "apply",
-   "difficulty": "transfer",
-   "catches": true,
-   "confronts": true,
-   "provenance": {
-    "runId": "v012-cs-final",
-    "lessonId": "l6",
-    "itemIndex": 3,
-    "grade": 99
-   }
-  },
-  {
    "id": "v012-cs-final:l7:q4",
    "kernelId": "cs/lists",
    "conceptName": "lists",
@@ -5646,30 +5334,6 @@
    }
   },
   {
-   "id": "v012-cs-lean:l2:q0",
-   "kernelId": "cs/variables",
-   "conceptName": "variables",
-   "stem": "After these lines run, what is the value of total?\n\ntotal = 8\ntotal = total + 1",
-   "options": [
-    "8, because total already names the original value and assignment cannot change it",
-    "9, because the right side is evaluated first and the result is stored back in total",
-    "total + 1, because a variable stores the expression itself",
-    "It raises an error because total = total + 1 is a mathematical equation"
-   ],
-   "correctIndex": 1,
-   "explanation": "Assignment stores the value computed at that moment; if y = x + 2 runs when x is 3, y is 5 and stays 5 even if x changes afterward. The key idea is that `=` binds the result of the right-hand expression at assignment time.",
-   "bloom": "apply",
-   "difficulty": "transfer",
-   "catches": true,
-   "confronts": true,
-   "provenance": {
-    "runId": "v012-cs-lean",
-    "lessonId": "l2",
-    "itemIndex": 0,
-    "grade": 99
-   }
-  },
-  {
    "id": "v012-cs-lean:l2:q1",
    "kernelId": "cs/variables",
    "conceptName": "variables",
@@ -5689,54 +5353,6 @@
    "provenance": {
     "runId": "v012-cs-lean",
     "lessonId": "l2",
-    "itemIndex": 1,
-    "grade": 99
-   }
-  },
-  {
-   "id": "v012-cs-lean:l2:q4",
-   "kernelId": "cs/expressions-and-types",
-   "conceptName": "expressions",
-   "stem": "What is the value of n after this runs?\n\nn = int(3.9)",
-   "options": [
-    "3.9, because int() keeps the fractional part",
-    "4, because int() rounds to the nearest whole number",
-    "3, because int() removes any fractional part",
-    "True, because 3.9 becomes a float first"
-   ],
-   "correctIndex": 2,
-   "explanation": "In Python 3 the / operator always returns a float, so 7 / 2 is 3.5; use // for whole-number floor division, which gives 3. The important distinction is that `int()` truncates, while `//` performs integer (floor) division.",
-   "bloom": "remember",
-   "difficulty": "recall",
-   "catches": true,
-   "confronts": true,
-   "provenance": {
-    "runId": "v012-cs-lean",
-    "lessonId": "l2",
-    "itemIndex": 4,
-    "grade": 99
-   }
-  },
-  {
-   "id": "v012-cs-lean:l4:q1",
-   "kernelId": "cs/while-loops",
-   "conceptName": "while loops",
-   "stem": "What is the output of this code?\n\nn = 3\nwhile n > 0:\n    print(n)\n    n = n - 1",
-   "options": [
-    "3, 2, 1, then it stops when n reaches 0.",
-    "3, 2, 1, 0, then it stops because the loop condition becomes false after printing 0.",
-    "3, 2, then it stops because the condition is re-checked in the middle of the body the instant n changes to 1.",
-    "3 repeated forever, because n = n - 1 never affects the loop condition."
-   ],
-   "correctIndex": 0,
-   "explanation": "Every while loop must change something the condition depends on; a counter loop needs n = n - 1 (or += 1) inside the body so the condition eventually becomes false. Without that update, the top-of-loop test can keep passing forever.",
-   "bloom": "apply",
-   "difficulty": "transfer",
-   "catches": true,
-   "confronts": true,
-   "provenance": {
-    "runId": "v012-cs-lean",
-    "lessonId": "l4",
     "itemIndex": 1,
     "grade": 99
    }
@@ -5882,30 +5498,6 @@
     "runId": "v012-cs-lean",
     "lessonId": "l5",
     "itemIndex": 3,
-    "grade": 99
-   }
-  },
-  {
-   "id": "v012-cs-lean:l6:q0",
-   "kernelId": "cs/functions",
-   "conceptName": "functions",
-   "stem": "You write this and then, on the next line, `print(square(5))`:\n```python\ndef square(n):\n    return n * n\n```\nWhat happens when the `def` line runs?",
-   "options": [
-    "It stores `square`; `square(5)` runs the body later and returns `25`.",
-    "It runs the body immediately, so `print(square(5))` prints `25` twice.",
-    "It makes `n` global, so `print(square(5))` can read `n` after the function ends.",
-    "It turns `n * n` into a string and saves that expression for later updates."
-   ],
-   "correctIndex": 0,
-   "explanation": "Defining a function only stores it; the body runs when the function is called by name, such as `square(5)`. The other choices mix up definition with execution or confuse scope and stored values. Local variables exist only during the call that created them; to use a result outside, the function must return it and the caller must capture the returned value. Assignment stores the value computed at that moment; if y = x + 2 runs when x is 3, y is 5 and stays 5 even if x changes afterward.",
-   "bloom": "understand",
-   "difficulty": "transfer",
-   "catches": true,
-   "confronts": true,
-   "provenance": {
-    "runId": "v012-cs-lean",
-    "lessonId": "l6",
-    "itemIndex": 0,
     "grade": 99
    }
   },
@@ -6102,54 +5694,6 @@
    }
   },
   {
-   "id": "v012-cs-lean:l11:q1",
-   "kernelId": "cs/recursion",
-   "conceptName": "recursion",
-   "stem": "What is the best reason this recursive function never finishes?\n\n```python\ndef count_down(n):\n    return count_down(n)\n```",
-   "options": [
-    "It has no base case, so the chain of self-calls eventually stops nowhere and overflows the call stack",
-    "It calls itself on a smaller input, so it reaches the base case too quickly",
-    "It defines a function with `def`, so the body runs immediately and loops forever",
-    "It returns a value before the recursive call, so Python ignores the recursion"
-   ],
-   "correctIndex": 0,
-   "explanation": "Every recursion needs a base case—a simplest input solved directly without another call—so the chain of self-calls eventually stops. If your recursion never reaches that stopping point (for example, it never shrinks toward the base case), it will keep calling itself forever.",
-   "bloom": "analyze",
-   "difficulty": "transfer",
-   "catches": true,
-   "confronts": true,
-   "provenance": {
-    "runId": "v012-cs-lean",
-    "lessonId": "l11",
-    "itemIndex": 1,
-    "grade": 99
-   }
-  },
-  {
-   "id": "v012-cs-lean:l11:q2",
-   "kernelId": "cs/recursion",
-   "conceptName": "recursion",
-   "stem": "A function is defined like this:\n\n```python\ndef greet():\n    print('hi')\n```\n\nWhat happens when Python reads the definition line?",
-   "options": [
-    "Nothing is printed yet; `def greet():` stores the function and the body runs when `greet()` is called",
-    "`hi` is printed immediately, because writing `def greet():` runs the function body immediately",
-    "The function is called on a smaller input, so Python waits for the base case",
-    "The function body runs only outside the function, because local variables have global scope"
-   ],
-   "correctIndex": 0,
-   "explanation": "When you write a function like `def greet():`, you’re only defining it; the body runs only when you call it by name (e.g. `greet()`). Also, every recursion needs a base case—a simplest input solved directly without another call—so the chain of self-calls eventually stops.",
-   "bloom": "understand",
-   "difficulty": "apply",
-   "catches": true,
-   "confronts": true,
-   "provenance": {
-    "runId": "v012-cs-lean",
-    "lessonId": "l11",
-    "itemIndex": 2,
-    "grade": 99
-   }
-  },
-  {
    "id": "v012-cs-lean:l11:q4",
    "kernelId": "cs/recursion",
    "conceptName": "recursion",
@@ -6170,30 +5714,6 @@
     "runId": "v012-cs-lean",
     "lessonId": "l11",
     "itemIndex": 4,
-    "grade": 99
-   }
-  },
-  {
-   "id": "v012-cs-lean:l11:q5",
-   "kernelId": "cs/recursion",
-   "conceptName": "recursion",
-   "stem": "A function is meant to print numbers from `n` down to 1:\n\n```python\ndef show(n):\n    if n == 1:\n        print(1)\n    else:\n        print(n)\n        show(n)\n```\n\nWhat is the main problem?",
-   "options": [
-    "It makes the recursive call on the same-size input instead of a smaller one, so it never reaches the base case",
-    "It has no `def` keyword, so the function body runs immediately",
-    "It returns `n` before printing it, so Python skips the base case",
-    "It uses a local variable, so the recursive function cannot call itself"
-   ],
-   "correctIndex": 0,
-   "explanation": "If `show(n)` calls itself with the same input, it never shrinks toward a base case, so the recursion can’t end. Every recursion needs a base case—a simplest input solved directly without another call—so the chain of self-calls eventually stops.",
-   "bloom": "analyze",
-   "difficulty": "transfer",
-   "catches": true,
-   "confronts": true,
-   "provenance": {
-    "runId": "v012-cs-lean",
-    "lessonId": "l11",
-    "itemIndex": 5,
     "grade": 99
    }
   },
@@ -6266,6 +5786,54 @@
     "runId": "v012-cs-thrift",
     "lessonId": "l2",
     "itemIndex": 1,
+    "grade": 99
+   }
+  },
+  {
+   "id": "v012-cs-thrift:l4:q0",
+   "kernelId": "cs/while-loops",
+   "conceptName": "while loops",
+   "stem": "Consider this code:\n\nn = 3\nwhile n > 0:\n    print(n)\n    n = n - 1\n\nWhat does it print?",
+   "options": [
+    "3 2 1",
+    "3 2 1 0",
+    "It prints nothing because n starts at 3",
+    "It runs forever because n changes but the loop condition is never re-checked"
+   ],
+   "correctIndex": 0,
+   "explanation": "Every while loop must change something the condition depends on; for a counter loop, that means updating n (e.g., n = n - 1 or += 1) inside the body so the condition eventually becomes false.",
+   "bloom": "apply",
+   "difficulty": "apply",
+   "catches": true,
+   "confronts": true,
+   "provenance": {
+    "runId": "v012-cs-thrift",
+    "lessonId": "l4",
+    "itemIndex": 0,
+    "grade": 99
+   }
+  },
+  {
+   "id": "v012-cs-thrift:l5:q2",
+   "kernelId": "cs/for-loops",
+   "conceptName": "range",
+   "stem": "A student uses:\n\nfor i in range(5):\n    print(i)\n\nWhat does the code actually print?",
+   "options": [
+    "0, 1, 2, 3, 4",
+    "1, 2, 3, 4, 5 because Range(5) produces 1 through 5",
+    "0, 1, 2, 3 because range(5) stops at 3",
+    "1, 2, 3, 4 because range(5) starts at 1 and stops before 5"
+   ],
+   "correctIndex": 0,
+   "explanation": "range(5) yields 0, 1, 2, 3, 4 — it starts at 0 and stops before the endpoint, giving exactly five values. Thinking Range(5) produces 1 through 5 leads to one time too few or the wrong indices.",
+   "bloom": "apply",
+   "difficulty": "apply",
+   "catches": true,
+   "confronts": true,
+   "provenance": {
+    "runId": "v012-cs-thrift",
+    "lessonId": "l5",
+    "itemIndex": 2,
     "grade": 99
    }
   },
@@ -6654,6 +6222,30 @@
    }
   },
   {
+   "id": "v013-cs-bank:l3:q0",
+   "kernelId": "cs/while-loops",
+   "conceptName": "while loops",
+   "stem": "You want this to print 3, 2, 1 and then stop:\nn = 3\nwhile n > 0:\n    print(n)\n    n = n - 1\nWhat makes the loop finish?",
+   "options": [
+    "n is updated inside the body, so the condition eventually becomes false",
+    "The condition is re-checked in the middle of the body the instant n changes",
+    "The loop prints 1 because the condition only runs once before the body starts",
+    "n > 0 stays true forever, so the program hangs"
+   ],
+   "correctIndex": 0,
+   "explanation": "Every while loop must change the variable that the condition depends on, otherwise it may never become false. For a counter, update n in the body (e.g., n = n - 1 or n += 1) so the condition eventually fails. The loop expression is tested only at the top of each iteration; the rest of the current pass still runs before the condition is checked again.",
+   "bloom": "apply",
+   "difficulty": "apply",
+   "catches": true,
+   "confronts": true,
+   "provenance": {
+    "runId": "v013-cs-bank",
+    "lessonId": "l3",
+    "itemIndex": 0,
+    "grade": 99
+   }
+  },
+  {
    "id": "v013-cs-bank:l3:q1",
    "kernelId": "cs/while-loops",
    "conceptName": "while loops",
@@ -6674,30 +6266,6 @@
     "runId": "v013-cs-bank",
     "lessonId": "l3",
     "itemIndex": 1,
-    "grade": 99
-   }
-  },
-  {
-   "id": "v013-cs-bank:l4:q0",
-   "kernelId": "cs/for-loops",
-   "conceptName": "for loops and range",
-   "stem": "What prints?\n\nfor i in range(3):\n    print(i)",
-   "options": [
-    "0, 1, 2",
-    "range(3) gives 1 to 3, so the loop prints one extra number or wrong indices.",
-    "0, 1, 2, 3",
-    "1, 2"
-   ],
-   "correctIndex": 0,
-   "explanation": "range(3) yields 0, 1, 2 — it starts at 0 and stops before 3. The “1 through 3” choice matches the common wrong belief, but Python does not include the endpoint.",
-   "bloom": "apply",
-   "difficulty": "apply",
-   "catches": true,
-   "confronts": true,
-   "provenance": {
-    "runId": "v013-cs-bank",
-    "lessonId": "l4",
-    "itemIndex": 0,
     "grade": 99
    }
   },
@@ -6750,30 +6318,6 @@
    }
   },
   {
-   "id": "v013-cs-bank:l5:q2",
-   "kernelId": "cs/functions",
-   "conceptName": "functions and scope",
-   "stem": "How many times does this loop print a number, and which numbers appear?\n\nfor i in range(3):\n    print(i)",
-   "options": [
-    "It prints 1, 2, 3 because range(3) produces 1 through 3.",
-    "It prints 0, 1, 2 because range(3) yields 0, 1, 2, and stops before 3.",
-    "It prints 0, 1, 2, 3 because the endpoint is included in range(3).",
-    "Defining greet() runs the code immediately, so the loop prints before the loop even starts."
-   ],
-   "correctIndex": 1,
-   "explanation": "Defining a function just stores it; the function body runs only when the function is called (for example, greet()). range(5) yields 0, 1, 2, 3, 4 — it starts at 0 and stops before the endpoint, giving exactly five values.",
-   "bloom": "apply",
-   "difficulty": "apply",
-   "catches": true,
-   "confronts": true,
-   "provenance": {
-    "runId": "v013-cs-bank",
-    "lessonId": "l5",
-    "itemIndex": 2,
-    "grade": 99
-   }
-  },
-  {
    "id": "v013-cs-bank:l6:q0",
    "kernelId": "cs/lists",
    "conceptName": "lists",
@@ -6818,30 +6362,6 @@
     "runId": "v013-cs-bank",
     "lessonId": "l6",
     "itemIndex": 1,
-    "grade": 99
-   }
-  },
-  {
-   "id": "v013-cs-bank:l6:q5",
-   "kernelId": "cs/lists",
-   "conceptName": "lists",
-   "stem": "What does this loop print?\n\ncolors = ['red', 'blue', 'green']\nfor c in colors:\n    print(c)",
-   "options": [
-    "red, then blue, then green",
-    "Only green, because a for loop starts at the last element",
-    "0, 1, 2",
-    "The loop prints nothing unless you use range(len(colors))"
-   ],
-   "correctIndex": 0,
-   "explanation": "A 5-item list has valid indices 0 through 4, so the last index is 4 and lst[5] is out of range.",
-   "bloom": "apply",
-   "difficulty": "apply",
-   "catches": true,
-   "confronts": true,
-   "provenance": {
-    "runId": "v013-cs-bank",
-    "lessonId": "l6",
-    "itemIndex": 5,
     "grade": 99
    }
   },
@@ -7038,25 +6558,49 @@
    }
   },
   {
-   "id": "v013-cs-bank2:l6:q5",
-   "kernelId": "cs/functions",
-   "conceptName": "functions and scope",
-   "stem": "What happens when Python reaches this line by itself?\n\n```python\ndef greet():\n    print('hello')\n```",
+   "id": "v013-cs-bank2:l5:q4",
+   "kernelId": "cs/for-loops",
+   "conceptName": "for loops and range",
+   "stem": "A student wants to print the indices for a list of 5 items using `for i in range(5):`. Which set of values does `i` take?",
    "options": [
-    "It stores the function definition, and `print('hello')` runs only when `greet()` is called by name.",
-    "It prints `hello` right away because writing `def greet():` runs the function body immediately.",
-    "It causes a NameError because `greet` is local to the function body.",
-    "It prints `hello` three times because `range(3)` is implied by the colon."
+    "1, 2, 3, 4, 5, because range(5) produces 1 through 5",
+    "0, 1, 2, 3, 4, because range(5) starts at 0 and stops before the endpoint",
+    "0, 1, 2, 3, 4, 5, because range(5) includes both ends",
+    "0, 2, 4, 6, 8, because range(5) skips every other number"
    ],
-   "correctIndex": 0,
-   "explanation": "Local variables exist only during the call that created them, so if you want a result outside the function you must return it and have the caller capture it. Also, remember that def greet(): stores the function definition; it doesn’t execute the body until you later call greet().",
-   "bloom": "understand",
+   "correctIndex": 1,
+   "explanation": "range(5) produces 0, 1, 2, 3, and 4 because it starts at 0 and stops before the endpoint. That “1 through 5” assumption is the common off-by-one mistake.",
+   "bloom": "apply",
+   "difficulty": "transfer",
+   "catches": true,
+   "confronts": true,
+   "provenance": {
+    "runId": "v013-cs-bank2",
+    "lessonId": "l5",
+    "itemIndex": 4,
+    "grade": 99
+   }
+  },
+  {
+   "id": "v013-cs-bank2:l5:q5",
+   "kernelId": "cs/for-loops",
+   "conceptName": "for loops and range",
+   "stem": "Consider `nums = [2, 4, 6]` and this loop: `for x in nums: x = x + 1`. What happens to `nums` after the loop finishes?",
+   "options": [
+    "It becomes `[3, 5, 7]` because reassigning the loop variable changes the underlying list it came from",
+    "It stays `[2, 4, 6]` because the loop variable is a fresh binding to each element in turn",
+    "It becomes `[2, 4, 6, 1]` because the loop adds one new value for each pass",
+    "It becomes `[1, 1, 1]` because `x` is reset on each iteration"
+   ],
+   "correctIndex": 1,
+   "explanation": "A while loop has to update the variable that the loop condition depends on; with a counter, do n = n - 1 (or n += 1) inside the body so the condition eventually becomes false. Also, the loop condition is checked only at the start of each iteration, so the rest of the current pass still runs. The loop variable is a fresh binding to each element in turn; assigning to it does not edit the container. To change list contents, index into the list directly.",
+   "bloom": "analyze",
    "difficulty": "apply",
    "catches": true,
    "confronts": true,
    "provenance": {
     "runId": "v013-cs-bank2",
-    "lessonId": "l6",
+    "lessonId": "l5",
     "itemIndex": 5,
     "grade": 99
    }
@@ -7128,6 +6672,150 @@
    "confronts": true,
    "provenance": {
     "runId": "v013-cs-bank2",
+    "lessonId": "l12",
+    "itemIndex": 4,
+    "grade": 99
+   }
+  },
+  {
+   "id": "v013-cs-bank3:l3:q5",
+   "kernelId": "cs/conditionals",
+   "conceptName": "conditionals and boolean logic",
+   "stem": "What is the best test for a teen age between 13 and 19, using both comparisons correctly?",
+   "options": [
+    "If age > 13 and < 19 is valid, chaining the second comparison without repeating the variable.",
+    "age > 13 and age < 19",
+    "age > 13 or age < 19",
+    "not age > 13 and age < 19"
+   ],
+   "correctIndex": 1,
+   "explanation": "Each comparison needs its own operands joined by and: age > 13 and age < 19. The bare < 19 has nothing on its left, so the first option is not valid Python.",
+   "bloom": "understand",
+   "difficulty": "apply",
+   "catches": true,
+   "confronts": true,
+   "provenance": {
+    "runId": "v013-cs-bank3",
+    "lessonId": "l3",
+    "itemIndex": 5,
+    "grade": 99
+   }
+  },
+  {
+   "id": "v013-cs-bank3:l5:q4",
+   "kernelId": "cs/for-loops",
+   "conceptName": "for loops and range",
+   "stem": "A student wants this code to print three numbers, starting at 0: `for i in range(3): print(i)`. What will it print?",
+   "options": [
+    "0, 1, 2 — because range(3) yields 0, 1, 2 and the loop gets each value one at a time.",
+    "1, 2, 3 — because range(3) produces 1 through 3, so the loop starts at 1.",
+    "0, 1, 2, 3 — because range(3) includes the endpoint when used in a for loop.",
+    "0, 2, 4 — because the loop variable steps through even numbers only."
+   ],
+   "correctIndex": 0,
+   "explanation": "range(3) yields 0, 1, 2 — it starts at 0 and stops before 3, giving exactly three values. The 1-through-3 idea is the common trap, but that is not how range works. The loop variable is a fresh binding to each element in turn; assigning to it does not edit the container. To change list contents, index into the list directly. Every while loop must change something the condition depends on; a counter loop needs n = n - 1 (or += 1) inside the body so the condition eventually becomes false.",
+   "bloom": "apply",
+   "difficulty": "transfer",
+   "catches": true,
+   "confronts": true,
+   "provenance": {
+    "runId": "v013-cs-bank3",
+    "lessonId": "l5",
+    "itemIndex": 4,
+    "grade": 99
+   }
+  },
+  {
+   "id": "v013-cs-bank3:l6:q3",
+   "kernelId": "cs/functions",
+   "conceptName": "functions and scope",
+   "stem": "Suppose lst = [10, 20, 30]. You run:\n\nfor v in lst:\n    v = v + 1\n\nAfter the loop, what is lst?",
+   "options": [
+    "Reassigning the loop variable inside a for loop changes the underlying list it came from.",
+    "It becomes [11, 21, 31] only if lst contains strings",
+    "An error occurs because assigning to v is not allowed",
+    "[10, 20, 30]"
+   ],
+   "correctIndex": 3,
+   "explanation": "Local variables exist only during the call that created them, so a variable inside a function can’t be used outside unless the function returns a value. Separately, a loop variable is just a fresh binding each iteration—assigning to it doesn’t edit the container—so to change list contents you must use direct indexing.",
+   "bloom": "apply",
+   "difficulty": "transfer",
+   "catches": true,
+   "confronts": true,
+   "provenance": {
+    "runId": "v013-cs-bank3",
+    "lessonId": "l6",
+    "itemIndex": 3,
+    "grade": 99
+   }
+  },
+  {
+   "id": "v013-cs-bank3:l9:q4",
+   "kernelId": "cs/dictionaries",
+   "conceptName": "dictionaries and nested data",
+   "stem": "A menu of labeled settings is stored as a dictionary:\n\nsettings = {'theme': 'dark', 'font': 'large'}\nWhich expression gets the theme value?",
+   "options": [
+    "settings[0], because dictionaries are read by numeric position like a list",
+    "settings['theme'], because dictionaries are accessed by key, not position",
+    "settings['dark'], because the value is always used as the lookup label",
+    "settings['font'], because the first label in the braces must be the one you want"
+   ],
+   "correctIndex": 1,
+   "explanation": "The theme is stored under the key 'theme', so you use that key to retrieve the value. Dictionaries are accessed by key, not position; use settings['name']-style lookup, not settings[0].",
+   "bloom": "understand",
+   "difficulty": "transfer",
+   "catches": true,
+   "confronts": true,
+   "provenance": {
+    "runId": "v013-cs-bank3",
+    "lessonId": "l9",
+    "itemIndex": 4,
+    "grade": 99
+   }
+  },
+  {
+   "id": "v013-cs-bank3:l9:q5",
+   "kernelId": "cs/dictionaries",
+   "conceptName": "dictionaries and nested data",
+   "stem": "You want to store a student’s name and score, and the data is naturally labeled rather than ordered. Which structure fits best?",
+   "options": [
+    "A dictionary with key:value pairs in curly braces, because the data is labeled by name",
+    "A list, because the data is best accessed by numeric position",
+    "A string, because one text value can hold both name and score without labels",
+    "A tuple of two values, because tuples are meant for changing a score later"
+   ],
+   "correctIndex": 0,
+   "explanation": "Use a dictionary when data is naturally labeled rather than ordered, because each value is stored alongside a key. Dictionaries use key: value pairs with access by key (e.g., d['name']) rather than position like a list, so you shouldn’t try to read values as if d[0] were the first element.",
+   "bloom": "analyze",
+   "difficulty": "transfer",
+   "catches": true,
+   "confronts": true,
+   "provenance": {
+    "runId": "v013-cs-bank3",
+    "lessonId": "l9",
+    "itemIndex": 5,
+    "grade": 99
+   }
+  },
+  {
+   "id": "v013-cs-bank3:l12:q4",
+   "kernelId": "cs/recursion",
+   "conceptName": "recursion",
+   "stem": "A student writes `factorial(n)` like this: `return n * factorial(n)` and tests it with `factorial(4)`. What happens, and why?",
+   "options": [
+    "It keeps calling itself on the same-size input, so it never reaches the base case.",
+    "It returns 24 because `n * factorial(n)` still shrinks toward 1 automatically.",
+    "It returns 1 because recursion always stops when the input is a whole number.",
+    "It raises a file error because recursive calls need `open()` to work."
+   ],
+   "correctIndex": 0,
+   "explanation": "Each recursive call must move toward the base case by shrinking the problem, for example `n - 1`. Here the input stays the same size, so the base case is never reached and the calls keep going. Every recursion needs a base case — a simplest input solved directly without another call — so the chain of self-calls eventually stops. Always close the file when done, or open it in a with statement so Python closes it automatically even if an error occurs.",
+   "bloom": "apply",
+   "difficulty": "transfer",
+   "catches": true,
+   "confronts": true,
+   "provenance": {
+    "runId": "v013-cs-bank3",
     "lessonId": "l12",
     "itemIndex": 4,
     "grade": 99
@@ -7206,26 +6894,26 @@
    }
   },
   {
-   "id": "cmpB-cs-python:l3:q1",
-   "kernelId": "cs/conditionals",
-   "conceptName": "conditionals",
-   "stem": "A student wrote: if score = 100: print('perfect') else: print('not perfect'). What is the best correction?\n\nA) Change = to == : if score == 100: ...\nB) Remove the else: if score == 100: print('perfect')\nC) Keep = but change the quotes: if score = '100': ...\nD) Write if score = 100 print('perfect') else print('not perfect')",
+   "id": "cmpB-cs-python:l4:q2",
+   "kernelId": "cs/while-loops",
+   "conceptName": "while loops",
+   "stem": "Predict the output for this code:\n\nn = 1\nwhile n < 3:\n    n = n + 1\n    print(n)\n\nWhat is printed?",
    "options": [
-    "A) Change = to == : if score == 100: ...",
-    "B) Remove the else: if score == 100: print('perfect')",
-    "C) Keep = but change the quotes: if score = '100': ...",
-    "D) Write if score = 100 print('perfect') else print('not perfect')"
+    "2 3",
+    "1 2 3",
+    "2 only",
+    "It runs forever because the condition changes inside the body"
    ],
    "correctIndex": 0,
-   "explanation": "Comparison uses == (two equals signs); a single = is assignment. A condition that asks whether two values are equal must be written score == 100. A single = in an if condition is not the comparison operator.",
+   "explanation": "The loop expression is tested only at the top of each iteration; the rest of the current pass still runs before the condition is checked again. Here, the loop starts because n < 3 is true (n=1), then the body runs and prints 2; next iteration condition is checked again (2 < 3) so it runs and prints 3; then 3 < 3 is false and the loop ends.",
    "bloom": "apply",
    "difficulty": "transfer",
    "catches": true,
    "confronts": true,
    "provenance": {
     "runId": "cmpB-cs-python",
-    "lessonId": "l3",
-    "itemIndex": 1,
+    "lessonId": "l4",
+    "itemIndex": 2,
     "grade": 98
    }
   },
@@ -7806,6 +7494,30 @@
    }
   },
   {
+   "id": "live-cs-python-7:l4:q1",
+   "kernelId": "cs/while-loops",
+   "conceptName": "while loops",
+   "stem": "Suppose `count = 3` and the code is `while count > 0: print(count); count = count - 1`. When is `count > 0` checked?",
+   "options": [
+    "Before the loop starts and then only after the body finishes each pass",
+    "Right after `count = count - 1`, before the `print(count)` runs",
+    "Only when Python first reads the program",
+    "In the middle of the body, the moment `count` changes"
+   ],
+   "correctIndex": 0,
+   "explanation": "The loop expression is tested only at the top of each iteration; the rest of the current pass still runs before the condition is checked again. So `print(count)` and the update both happen during the current pass, and then Python checks `count > 0` again before the next pass.",
+   "bloom": "understand",
+   "difficulty": "apply",
+   "catches": true,
+   "confronts": true,
+   "provenance": {
+    "runId": "live-cs-python-7",
+    "lessonId": "l4",
+    "itemIndex": 1,
+    "grade": 98
+   }
+  },
+  {
    "id": "live-cs-python-7:l4:q5",
    "kernelId": "cs/while-loops",
    "conceptName": "while loops",
@@ -7850,30 +7562,6 @@
     "runId": "live-cs-python-7",
     "lessonId": "l5",
     "itemIndex": 4,
-    "grade": 98
-   }
-  },
-  {
-   "id": "live-cs-python-7:l6:q2",
-   "kernelId": "cs/functions",
-   "conceptName": "functions",
-   "stem": "What happens in this code? `x = 4; def f(): x = 9; print(x); f(); print(x)`",
-   "options": [
-    "It prints 9 twice because x was changed inside the function.",
-    "It prints 4 then 9 because local variables override globals everywhere.",
-    "It prints 9 then 9 because the function runs before the first print.",
-    "It prints 4 then 4 because the x inside the function is local to that call."
-   ],
-   "correctIndex": 3,
-   "explanation": "The `x` inside `f` is local to that call, so it does not change the global `x`. The outside `print(x)` still sees the global value. Local variables exist only during the call that created them; to use a result outside, the function must return it and the caller must capture the returned value.",
-   "bloom": "analyze",
-   "difficulty": "apply",
-   "catches": true,
-   "confronts": true,
-   "provenance": {
-    "runId": "live-cs-python-7",
-    "lessonId": "l6",
-    "itemIndex": 2,
     "grade": 98
    }
   },
@@ -7998,30 +7686,6 @@
    }
   },
   {
-   "id": "v011-cs-python-5:l6:q0",
-   "kernelId": "cs/functions",
-   "conceptName": "functions and scope",
-   "stem": "A student wants to reuse a calculation. They write:\n\n```python\ndef square(n):\n    return n * n\n```\n\nWhat happens when they later run `square(5)`?",
-   "options": [
-    "It runs the body, computes `5 * 5`, and returns `25`.",
-    "It defines `square` and runs the function body immediately, so `5 * 5` happens before any call.",
-    "It gives `1` through `5` because `range(5)` starts at 1 and ends at 5.",
-    "It creates a local variable `n` that can be read from outside the function without calling it."
-   ],
-   "correctIndex": 0,
-   "explanation": "`def` defines the function, it does not run the body. The body runs when the function is called by name, and here `square(5)` returns `25` from the reusable calculation. Local variables exist only during the call that created them; to use a result outside, the function must return it and the caller must capture the returned value.",
-   "bloom": "understand",
-   "difficulty": "apply",
-   "catches": true,
-   "confronts": true,
-   "provenance": {
-    "runId": "v011-cs-python-5",
-    "lessonId": "l6",
-    "itemIndex": 0,
-    "grade": 98
-   }
-  },
-  {
    "id": "v011-cs-python-5:l7:q1",
    "kernelId": "cs/lists",
    "conceptName": "lists",
@@ -8114,30 +7778,6 @@
     "runId": "v011-cs-python-5",
     "lessonId": "l9",
     "itemIndex": 2,
-    "grade": 98
-   }
-  },
-  {
-   "id": "v011-cs-python-5:l9:q3",
-   "kernelId": "cs/dictionaries",
-   "conceptName": "dictionaries and nested data",
-   "stem": "What is the most accurate description of this code? `grades = {'Ava': 95, 'Ben': 88}`",
-   "options": [
-    "It creates a dictionary with two key-value pairs inside curly braces",
-    "It creates a list because the items are separated by commas",
-    "It creates a string because the names and numbers are written as text",
-    "It creates two duplicate keys because both names are stored in the same container"
-   ],
-   "correctIndex": 0,
-   "explanation": "That line creates a dictionary in curly-brace key: value form. The two names are keys, and each one points to its own value. Keys are unique; assigning to an existing key overwrites its previous value rather than adding a second entry.",
-   "bloom": "remember",
-   "difficulty": "recall",
-   "catches": true,
-   "confronts": true,
-   "provenance": {
-    "runId": "v011-cs-python-5",
-    "lessonId": "l9",
-    "itemIndex": 3,
     "grade": 98
    }
   },
@@ -8286,30 +7926,6 @@
    }
   },
   {
-   "id": "v012-cs-diet:l3:q2",
-   "kernelId": "cs/while-loops",
-   "conceptName": "while loops",
-   "stem": "What does this print? n = 3; while n > 0: print(n); n = n - 1",
-   "options": [
-    "3, 2, 1, then it stops when n reaches 0.",
-    "3, 2, 1, and the condition is re-checked in the middle of the body the instant n changes.",
-    "3, 2, 1, 0 because the loop runs one extra time after n becomes 0.",
-    "Nothing, because while only works when the condition is false at the start."
-   ],
-   "correctIndex": 0,
-   "explanation": "The worked example runs 3, 2, 1 and then stops when n reaches 0. The loop expression is checked again only after a full pass through the body, not in the middle of that pass. The loop expression is tested only at the top of each iteration; the rest of the current pass still runs before the condition is checked again.",
-   "bloom": "remember",
-   "difficulty": "recall",
-   "catches": true,
-   "confronts": true,
-   "provenance": {
-    "runId": "v012-cs-diet",
-    "lessonId": "l3",
-    "itemIndex": 2,
-    "grade": 98
-   }
-  },
-  {
    "id": "v012-cs-diet:l3:q4",
    "kernelId": "cs/while-loops",
    "conceptName": "while loops",
@@ -8334,26 +7950,26 @@
    }
   },
   {
-   "id": "v012-cs-diet:l3:q5",
+   "id": "v012-cs-diet:l4:q1",
    "kernelId": "cs/while-loops",
-   "conceptName": "while loops",
-   "stem": "Which branch runs here when temp is 95? if temp > 100: print('boiling') else: print('not boiling')",
+   "conceptName": "for loops",
+   "stem": "A student writes: n = 3; while n > 0: print(n); n = n - 1. What happens after the 1 is printed?",
    "options": [
-    "The else branch prints 'not boiling'.",
-    "Both branches run because one and only one of the branches is taken.",
-    "The if branch prints 'boiling' because temp is close to 100.",
-    "Nothing runs because an if-else needs a true condition to start."
+    "The loop stops because n is updated so the condition eventually becomes false.",
+    "The loop hangs forever because the condition stays true forever.",
+    "The condition is re-checked in the middle of the body the instant n changes, so 1 is skipped.",
+    "The body runs once more even though the condition is false because while always repeats once more."
    ],
    "correctIndex": 0,
-   "explanation": "When the condition is false, the if body is skipped and the else body runs. This is the one-and-only-one branch rule for if-else. Every while loop must change something the condition depends on; a counter loop needs n = n - 1 (or += 1) inside the body so the condition eventually becomes false.",
+   "explanation": "The loop stops because n is updated so the condition eventually becomes false. Every while loop must change something the condition depends on; a counter loop needs n = n - 1 (or += 1) inside the body so the condition eventually becomes false. The loop expression is tested only at the top of each iteration, so the rest of the current pass still runs before the condition is checked again. Defining a function only stores it; the body runs when the function is called by name, such as greet().",
    "bloom": "understand",
-   "difficulty": "recall",
+   "difficulty": "transfer",
    "catches": true,
    "confronts": true,
    "provenance": {
     "runId": "v012-cs-diet",
-    "lessonId": "l3",
-    "itemIndex": 5,
+    "lessonId": "l4",
+    "itemIndex": 1,
     "grade": 98
    }
   },
@@ -8886,6 +8502,30 @@
    }
   },
   {
+   "id": "v012-cs-diet2:l11:q4",
+   "kernelId": "cs/recursion",
+   "conceptName": "recursion",
+   "stem": "Consider `def factorial(n): return 1 if n == 0 else n * factorial(n - 1)`. Why does this version terminate?",
+   "options": [
+    "It reaches `n == 0`, which is a base case solved directly without another call",
+    "It keeps calling itself forever because there is no smaller input",
+    "It never reaches the base case because `n - 1` is the same-size input",
+    "It terminates only because `return 1` closes the file automatically"
+   ],
+   "correctIndex": 0,
+   "explanation": "This recursion terminates because it uses a base case like n == 0, solved directly without further calls. To actually reach that point, the recursion must shrink the problem each time (e.g. n - 1). Without shrinking, the base case would never be reached. Every recursion needs a base case — a simplest input solved directly without another call — so the chain of self-calls eventually stops.",
+   "bloom": "analyze",
+   "difficulty": "apply",
+   "catches": true,
+   "confronts": true,
+   "provenance": {
+    "runId": "v012-cs-diet2",
+    "lessonId": "l11",
+    "itemIndex": 4,
+    "grade": 98
+   }
+  },
+  {
    "id": "v012-cs-diet2:l11:q5",
    "kernelId": "cs/recursion",
    "conceptName": "recursion",
@@ -9050,30 +8690,6 @@
     "runId": "v012-cs-overnight2",
     "lessonId": "l4",
     "itemIndex": 0,
-    "grade": 98
-   }
-  },
-  {
-   "id": "v012-cs-overnight2:l5:q5",
-   "kernelId": "cs/functions",
-   "conceptName": "functions and scope",
-   "stem": "Which choice best describes this function header?\n\ndef square(n):\n    return n * n",
-   "options": [
-    "It defines a reusable calculation with def; square(5) calls the body and returns 25.",
-    "It runs the body immediately, so square(5) is already 25 when Python reaches def square(n):",
-    "It creates a variable n with global scope that can be accessed anywhere in the program.",
-    "It makes range(5) yield 1 through 5, so square(5) means the loop uses 5 first."
-   ],
-   "correctIndex": 0,
-   "explanation": "This is a reusable function definition, and square(5) calls the body and returns 25. The body does not run at definition time, and n is local to the function call. Defining a function only stores it; the body runs when the function is called by name, such as greet(). range(5) yields 0, 1, 2, 3, 4 — it starts at 0 and stops before the endpoint, giving exactly five values.",
-   "bloom": "understand",
-   "difficulty": "recall",
-   "catches": true,
-   "confronts": true,
-   "provenance": {
-    "runId": "v012-cs-overnight2",
-    "lessonId": "l5",
-    "itemIndex": 5,
     "grade": 98
    }
   },
@@ -10302,6 +9918,30 @@
    }
   },
   {
+   "id": "live-cs-python-4:l5:q3",
+   "kernelId": "cs/while-loops",
+   "conceptName": "for loops",
+   "stem": "A while loop has a condition that becomes false during the body. When does the loop stop?",
+   "options": [
+    "Right away, in the middle of the body.",
+    "Only after the current pass finishes and the condition is checked again.",
+    "Before the body starts the first time.",
+    "It never stops once the body has started."
+   ],
+   "correctIndex": 1,
+   "explanation": "The condition is checked at the top of each iteration, not in the middle of the body. The rest of the current pass still runs before the next check.",
+   "bloom": "understand",
+   "difficulty": "apply",
+   "catches": true,
+   "confronts": true,
+   "provenance": {
+    "runId": "live-cs-python-4",
+    "lessonId": "l5",
+    "itemIndex": 3,
+    "grade": 97
+   }
+  },
+  {
    "id": "live-cs-python-4:l6:q0",
    "kernelId": "cs/functions",
    "conceptName": "functions",
@@ -10394,6 +10034,30 @@
     "runId": "live-cs-python-5",
     "lessonId": "l6",
     "itemIndex": 0,
+    "grade": 97
+   }
+  },
+  {
+   "id": "live-cs-python-5:l6:q1",
+   "kernelId": "cs/functions",
+   "conceptName": "functions and scope",
+   "stem": "A student enters this code: def greet(): print('hi'). Nothing prints when the file runs. What is the best explanation?",
+   "options": [
+    "The function body has a syntax error.",
+    "Defining a function only stores it; the body runs when the function is called by name, such as greet().",
+    "The print statement only works inside loops.",
+    "The function will run only after a return statement is added."
+   ],
+   "correctIndex": 1,
+   "explanation": "The definition only creates the function object; it does not execute the body. Defining a function only stores it; the body runs when the function is called by name, such as greet(). To see output, the code must call greet().",
+   "bloom": "understand",
+   "difficulty": "apply",
+   "catches": true,
+   "confronts": true,
+   "provenance": {
+    "runId": "live-cs-python-5",
+    "lessonId": "l6",
+    "itemIndex": 1,
     "grade": 97
    }
   },
@@ -10494,30 +10158,6 @@
    }
   },
   {
-   "id": "v011-cs-python-8:l2:q1",
-   "kernelId": "cs/expressions-and-types",
-   "conceptName": "expressions",
-   "stem": "What happens when this runs?\n\nprint('Age: ' + 19)",
-   "options": [
-    "It prints 'Age: 19' because Python will silently turn an int into a string inside a + with a str.",
-    "It prints 'Age: 19' because implicit type conversion always fixes mixed + expressions.",
-    "It raises a TypeError because a str and an int cannot be added without converting the number with str().",
-    "It prints 'Age: 38' because the string and number are combined by addition."
-   ],
-   "correctIndex": 2,
-   "explanation": "That expression raises a TypeError because Python will not silently turn an int into a string inside a + with a str. Convert the number with str() before joining it to text, or use formatting.",
-   "bloom": "apply",
-   "difficulty": "transfer",
-   "catches": true,
-   "confronts": true,
-   "provenance": {
-    "runId": "v011-cs-python-8",
-    "lessonId": "l2",
-    "itemIndex": 1,
-    "grade": 97
-   }
-  },
-  {
    "id": "v011-cs-python-8:l3:q2",
    "kernelId": "cs/conditionals",
    "conceptName": "conditionals",
@@ -10566,74 +10206,26 @@
    }
   },
   {
-   "id": "v011-cs-python-8:l5:q4",
-   "kernelId": "cs/while-loops",
-   "conceptName": "for loops",
-   "stem": "What happens here?\n\nnums = [2, 4, 6]\nfor n in nums:\n    n = n + 1\nprint(nums)",
+   "id": "v011-cs-python-8:l6:q5",
+   "kernelId": "cs/functions",
+   "conceptName": "functions",
+   "stem": "A grader sees this code:\n\ndef show():\n    x = 4\n\nprint(x)\n\nWhat should the student change if they want to print 4 after calling show()?",
    "options": [
-    "[3, 5, 7], because reassigning the loop variable inside a for loop changes the underlying list it came from",
-    "[2, 4, 6], because the loop variable is a fresh binding and assigning to it does not edit the container",
-    "[n + 1, n + 1, n + 1], because the list stores the updated loop variable names",
-    "[2, 4, 6, 7], because each pass appends the new value to the list"
+    "Use x outside the function; variables created inside a function have global scope.",
+    "Return x from show() and store the returned value in a variable outside the function.",
+    "Write def show(): again before print(x) so x becomes visible.",
+    "Replace print(x) with print(show); the name show contains the value 4."
    ],
    "correctIndex": 1,
-   "explanation": "The loop variable is a fresh binding to each element in turn; assigning to it does not edit the container. To change list contents, index into the list directly instead of rebinding `n`. Every while loop must change something the condition depends on; a counter loop needs n = n - 1 (or += 1) inside the body so the condition eventually becomes false. The loop expression is tested only at the top of each iteration; the rest of the current pass still runs before the condition is checked again.",
-   "bloom": "understand",
+   "explanation": "Local variables exist only during the call that created them; to use a result outside, the function must return it and the caller must capture the returned value. A variable created inside a function cannot be read from outside just by naming it.",
+   "bloom": "apply",
    "difficulty": "transfer",
    "catches": true,
    "confronts": true,
    "provenance": {
     "runId": "v011-cs-python-8",
-    "lessonId": "l5",
-    "itemIndex": 4,
-    "grade": 97
-   }
-  },
-  {
-   "id": "v011-cs-python-8:l6:q3",
-   "kernelId": "cs/functions",
-   "conceptName": "scope",
-   "stem": "What is the scope of total in this program?\n\ntotal = 0\n\ndef add_one():\n    total = total + 1",
-   "options": [
-    "local scope, because total is created inside add_one().",
-    "global scope, because total is created outside any function and can be accessed anywhere in the program.",
-    "no scope, because a variable cannot be created outside a function.",
-    "function scope that exists only while add_one() is defined."
-   ],
-   "correctIndex": 1,
-   "explanation": "A variable created outside any function has global scope and can be accessed anywhere in the program. The local variable rule applies to names created inside the function body, not the outer total. Local variables exist only during the call that created them; to use a result outside, the function must return it and the caller must capture the returned value.",
-   "bloom": "understand",
-   "difficulty": "apply",
-   "catches": true,
-   "confronts": true,
-   "provenance": {
-    "runId": "v011-cs-python-8",
     "lessonId": "l6",
-    "itemIndex": 3,
-    "grade": 97
-   }
-  },
-  {
-   "id": "v011-cs-python-8:l7:q2",
-   "kernelId": "cs/lists",
-   "conceptName": "lists",
-   "stem": "What does this expression produce? nums = [10, 20, 30]; nums[0] + nums[2]",
-   "options": [
-    "40",
-    "30 because 10 and 30 are whole numbers so Python keeps only the first one",
-    "20 because list indexes begin at 1",
-    "60 because it adds every element in the list"
-   ],
-   "correctIndex": 0,
-   "explanation": "nums[0] is 10 and nums[2] is 30, so the expression adds to 40. Indexes begin at 0, so the first item is nums[0], not nums[1]. Indexes run from 0 to length minus 1, so a 5-item list's last index is 4; lst[5] is out of range.",
-   "bloom": "apply",
-   "difficulty": "apply",
-   "catches": true,
-   "confronts": true,
-   "provenance": {
-    "runId": "v011-cs-python-8",
-    "lessonId": "l7",
-    "itemIndex": 2,
+    "itemIndex": 5,
     "grade": 97
    }
   },
@@ -10730,30 +10322,6 @@
     "runId": "v011-cs-python-8",
     "lessonId": "l10",
     "itemIndex": 0,
-    "grade": 97
-   }
-  },
-  {
-   "id": "v011-cs-python-8:l10:q1",
-   "kernelId": "cs/file-io",
-   "conceptName": "file input and output",
-   "stem": "What does this code store in second after the first read?  with open('notes.txt') as f: first = f.read(); second = f.read()",
-   "options": [
-    "The remaining contents of the file, because read() starts over each time",
-    "'' because reading advances a position marker through the file",
-    "The same full text again, because read() always returns the entire contents",
-    "None, because read() closes the file after the first call"
-   ],
-   "correctIndex": 1,
-   "explanation": "After the first read(), the file position is at the end, so a second read() returns '' until the file is reopened or the position is reset. The tempting idea that read() starts over each time is the documented misconception.",
-   "bloom": "analyze",
-   "difficulty": "apply",
-   "catches": true,
-   "confronts": true,
-   "provenance": {
-    "runId": "v011-cs-python-8",
-    "lessonId": "l10",
-    "itemIndex": 1,
     "grade": 97
    }
   },
@@ -11070,30 +10638,6 @@
    }
   },
   {
-   "id": "v012-cs-overnight:l5:q3",
-   "kernelId": "cs/functions",
-   "conceptName": "functions",
-   "stem": "A loop is supposed to count down from 3 to 1:\n\n```python\nn = 3\nwhile n > 0:\n    print(n)\n    n = n - 1\n```",
-   "options": [
-    "It prints `3 2 1` and stops because `n = n - 1` makes the condition eventually false.",
-    "It prints forever because the condition is re-checked in the middle of the body the instant `n` changes.",
-    "It prints `2 1 0` because `range` starts at 0 and stops before the endpoint.",
-    "It stops immediately because `while n > 0` is tested only after the body finishes."
-   ],
-   "correctIndex": 0,
-   "explanation": "The loop expression is checked at the top of each iteration, and `n = n - 1` changes the condition so it eventually becomes false. The body does not stop in the middle just because `n` changed. Defining a function only stores it; the body runs when the function is called by name, such as greet(). Every while loop must change something the condition depends on; a counter loop needs n = n - 1 (or += 1) inside the body so the condition eventually becomes false.",
-   "bloom": "apply",
-   "difficulty": "apply",
-   "catches": true,
-   "confronts": true,
-   "provenance": {
-    "runId": "v012-cs-overnight",
-    "lessonId": "l5",
-    "itemIndex": 3,
-    "grade": 97
-   }
-  },
-  {
    "id": "v012-cs-overnight:l6:q1",
    "kernelId": "cs/lists",
    "conceptName": "lists",
@@ -11138,30 +10682,6 @@
     "runId": "v012-cs-overnight",
     "lessonId": "l7",
     "itemIndex": 0,
-    "grade": 97
-   }
-  },
-  {
-   "id": "v012-cs-overnight:l7:q1",
-   "kernelId": "cs/strings",
-   "conceptName": "strings",
-   "stem": "What happens if you run this code? s = 'hello'; s[0] = 'H'",
-   "options": [
-    "It changes s in place to 'Hello' because modifying s[0] = 'H' will change a character in place.",
-    "It raises an error because strings are immutable and you cannot assign to s[0].",
-    "It creates a new string automatically, but only if s has more than one character.",
-    "It changes only the last character because index 0 refers to the whole string."
-   ],
-   "correctIndex": 1,
-   "explanation": "String slices stop before the end index, so `s[0:3]` returns characters at indices 0, 1, and 2. Python strings are immutable, so `replace` returns a new string that must be assigned, and list indexes still run from 0 to length minus 1. Strings are immutable; you cannot assign to s[0]. Build a new string instead, e.g. 'H' + s[1:].",
-   "bloom": "understand",
-   "difficulty": "apply",
-   "catches": true,
-   "confronts": true,
-   "provenance": {
-    "runId": "v012-cs-overnight",
-    "lessonId": "l7",
-    "itemIndex": 1,
     "grade": 97
    }
   },
@@ -11282,6 +10802,30 @@
     "runId": "v012-cs-overnight",
     "lessonId": "l9",
     "itemIndex": 3,
+    "grade": 97
+   }
+  },
+  {
+   "id": "v012-cs-overnight:l11:q0",
+   "kernelId": "cs/recursion",
+   "conceptName": "recursion",
+   "stem": "A student wants a recursive function for factorial and writes `def fact(n): return n * fact(n)`.\nWhat is the main problem with this version?",
+   "options": [
+    "It calls `fact` on the same-size input `n`, so it never reaches the base case.",
+    "It returns `n * fact(n)`, which uses recursion correctly because the operands are both numbers.",
+    "It has a base case hidden inside the `return` statement, so it will stop when `n` becomes small.",
+    "It uses `def`, which means the function body runs immediately and repeats forever."
+   ],
+   "correctIndex": 0,
+   "explanation": "Every recursion needs a base case, a simplest input solved directly without another call, so the chain of self-calls eventually stops. Defining a function only stores it; the body runs when the function is called by name, such as `greet()`. Each recursive call must move toward the base case by shrinking the problem (e.g. n - 1), or the base case is never reached.",
+   "bloom": "analyze",
+   "difficulty": "transfer",
+   "catches": true,
+   "confronts": true,
+   "provenance": {
+    "runId": "v012-cs-overnight",
+    "lessonId": "l11",
+    "itemIndex": 0,
     "grade": 97
    }
   },
@@ -11478,6 +11022,54 @@
    }
   },
   {
+   "id": "v012-cs-thrift2:l4:q5",
+   "kernelId": "cs/while-loops",
+   "conceptName": "while loops",
+   "stem": "A student writes: \n\nn = 3\nwhile n > 0:\n    print(n)\n\nThey claim the loop will stop automatically when n becomes 0. What is the best correction?",
+   "options": [
+    "It will hang forever because they never update n; add something like n = n - 1 inside the body.",
+    "It stops because Python automatically decrements n each time print(n) runs.",
+    "It will stop after one iteration because the condition is re-checked in the middle of the body.",
+    "It will stop when n > 0 becomes false only after Python finishes the current print statement."
+   ],
+   "correctIndex": 0,
+   "explanation": "The loop expression is tested only at the top of each iteration; the rest of the current pass still runs before the condition is checked again. If the condition is n > 0 and you don’t update n (for example, with n = n - 1 or += 1) inside the body, it stays true forever, so the loop never ends.",
+   "bloom": "evaluate",
+   "difficulty": "apply",
+   "catches": true,
+   "confronts": true,
+   "provenance": {
+    "runId": "v012-cs-thrift2",
+    "lessonId": "l4",
+    "itemIndex": 5,
+    "grade": 97
+   }
+  },
+  {
+   "id": "v012-cs-thrift2:l5:q0",
+   "kernelId": "cs/for-loops",
+   "conceptName": "for loops and range",
+   "stem": "You run:\n\nfor i in range(4):\n    print(i)\n\nHow many lines print, and what are they?",
+   "options": [
+    "Five lines: 1, 2, 3, 4, 5, because range(4) produces 1 through 5",
+    "Four lines: 0, 1, 2, 3",
+    "Three lines: 0, 1, 2",
+    "Three lines: 1, 2, 3"
+   ],
+   "correctIndex": 1,
+   "explanation": "range(4) yields 0, 1, 2, 3 — it starts at 0 and stops before the endpoint, giving exactly four values. So the loop body runs exactly four times and prints those four values.",
+   "bloom": "apply",
+   "difficulty": "apply",
+   "catches": true,
+   "confronts": true,
+   "provenance": {
+    "runId": "v012-cs-thrift2",
+    "lessonId": "l5",
+    "itemIndex": 0,
+    "grade": 97
+   }
+  },
+  {
    "id": "v012-cs-thrift2:l5:q1",
    "kernelId": "cs/for-loops",
    "conceptName": "for loops and range",
@@ -11670,6 +11262,30 @@
    }
   },
   {
+   "id": "v012-cs-thrift2:l12:q0",
+   "kernelId": "cs/recursion",
+   "conceptName": "recursion",
+   "stem": "You’re given: \n\ndef factorial(n):\n    if n == 0:\n        return 1\n    return n * factorial(n - 1)\n\nWhat would factorial(3) return, and why does the recursion stop?",
+   "options": [
+    "6, because the recursive call eventually hits the base case when n becomes 0",
+    "3, because the recursive call uses n-1 so it skips multiplying by the missing n",
+    "RecursionError, because factorial calls itself and never reaches a smallest input",
+    "1, because the base case returns 1 every time regardless of n"
+   ],
+   "correctIndex": 0,
+   "explanation": "factorial(3) computes 3 * factorial(2) → 3 * (2 * factorial(1)) → 3 * (2 * (1 * factorial(0))) = 6. It stops because each call shrinks n until it reaches the base case n == 0. Every recursion needs a base case — a simplest input solved directly without another call — so the chain of self-calls eventually stops. Each recursive call must move toward the base case by shrinking the problem (e.g. n - 1), or the base case is never reached.",
+   "bloom": "apply",
+   "difficulty": "apply",
+   "catches": true,
+   "confronts": true,
+   "provenance": {
+    "runId": "v012-cs-thrift2",
+    "lessonId": "l12",
+    "itemIndex": 0,
+    "grade": 97
+   }
+  },
+  {
    "id": "v012-cs-thrift2:l12:q1",
    "kernelId": "cs/recursion",
    "conceptName": "recursion",
@@ -11714,30 +11330,6 @@
     "runId": "v012-cs-thrift2",
     "lessonId": "l12",
     "itemIndex": 2,
-    "grade": 97
-   }
-  },
-  {
-   "id": "v012-cs-thrift2:l13:q0",
-   "kernelId": "cs/classes",
-   "conceptName": "classes and objects",
-   "stem": "In the code below, which line correctly creates an instance with its own attribute data?\n\nclass Dog:\n    pass\n",
-   "options": [
-    "a = Dog()  # an instance built from the class blueprint",
-    "b = Dog  # the class itself stores data",
-    "c = Dog  # the blueprint becomes the instance with attributes",
-    "d = Dog( )  # instances share one attributes record"
-   ],
-   "correctIndex": 0,
-   "explanation": "A class is the blueprint; Dog() builds an object (an instance). Per-object data (attributes) belongs to each instance, not to the class object itself. Each instance has its own attributes, so changing one Dog's name does not change another Dog's name; only the methods are shared.",
-   "bloom": "apply",
-   "difficulty": "transfer",
-   "catches": true,
-   "confronts": true,
-   "provenance": {
-    "runId": "v012-cs-thrift2",
-    "lessonId": "l13",
-    "itemIndex": 0,
     "grade": 97
    }
   },
@@ -11958,102 +11550,6 @@
    }
   },
   {
-   "id": "v012-cs-verify:l6:q0",
-   "kernelId": "cs/functions",
-   "conceptName": "functions and scope",
-   "stem": "You want to print the result of this function after it runs:\n\n```python\ndef make_total():\n    total = 7 + 5\n``` \nWhich change makes that work?",
-   "options": [
-    "Add `return total` inside the function, then store the returned value outside the function.",
-    "Try `print(total)` after the function call; variables defined inside a function are global.",
-    "Move `total = 7 + 5` outside the function so the variable is accessible anywhere.",
-    "Add `range(total)` so Python keeps the variable after the call ends."
-   ],
-   "correctIndex": 0,
-   "explanation": "`total` is local to that call, so it disappears when the function ends. To use the result outside, the function must return it and the caller must capture the returned value; printing `total` outside would not work.",
-   "bloom": "apply",
-   "difficulty": "transfer",
-   "catches": true,
-   "confronts": true,
-   "provenance": {
-    "runId": "v012-cs-verify",
-    "lessonId": "l6",
-    "itemIndex": 0,
-    "grade": 97
-   }
-  },
-  {
-   "id": "v012-cs-verify:l6:q3",
-   "kernelId": "cs/functions",
-   "conceptName": "functions and scope",
-   "stem": "A student writes:\n\n```python\nnums = [2, 4, 6]\nfor x in nums:\n    x = x + 1\nprint(nums)\n```\nWhat prints?",
-   "options": [
-    "[2, 4, 6], because reassigning the loop variable inside a for loop does not edit the container.",
-    "[3, 5, 7], because reassigning the loop variable inside a for loop changes the underlying list it came from.",
-    "[2, 4], because the loop variable removes each value as it is used.",
-    "[x + 1, x + 1, x + 1], because Python stores the expression back into the list automatically."
-   ],
-   "correctIndex": 0,
-   "explanation": "Local variables exist only during the call that created them. If you want a computed value to be used outside the function, the function must return it, and the caller must capture that returned value. The loop variable is a fresh binding to each element in turn; assigning to it does not edit the container. To change list contents, index into the list directly.",
-   "bloom": "analyze",
-   "difficulty": "transfer",
-   "catches": true,
-   "confronts": true,
-   "provenance": {
-    "runId": "v012-cs-verify",
-    "lessonId": "l6",
-    "itemIndex": 3,
-    "grade": 97
-   }
-  },
-  {
-   "id": "v012-cs-verify:l6:q4",
-   "kernelId": "cs/functions",
-   "conceptName": "functions and scope",
-   "stem": "Given this function:\n\n```python\ndef square(n):\n    return n * n\n```\nWhat is the result of `square(5)`?",
-   "options": [
-    "25, because square(5) runs the body and returns 5 * 5.",
-    "10, because the body runs immediately when the function is defined.",
-    "`n * n` as text, because return sends the formula back unchanged.",
-    "0, because range-like functions always start at 0."
-   ],
-   "correctIndex": 0,
-   "explanation": "Defining a function does not compute anything by itself; it just stores the function for later calls. Local variables exist only during the call that created them, so to use a value outside, return it and have the caller capture the returned result. Defining a function only stores it; the body runs when the function is called by name, such as greet().",
-   "bloom": "remember",
-   "difficulty": "recall",
-   "catches": true,
-   "confronts": true,
-   "provenance": {
-    "runId": "v012-cs-verify",
-    "lessonId": "l6",
-    "itemIndex": 4,
-    "grade": 97
-   }
-  },
-  {
-   "id": "v012-cs-verify:l6:q5",
-   "kernelId": "cs/functions",
-   "conceptName": "functions and scope",
-   "stem": "Which statement best describes the scope of `count` here?\n\n```python\ndef show():\n    count = 3\n    print(count)\n\ncount = 9\n```",
-   "options": [
-    "`count` inside `show` has local scope, while the `count` set to 9 has global scope.",
-    "Both `count` variables have global scope because they share the same name.",
-    "The `count` inside `show` can be read from outside the function after it prints.",
-    "The `count` set to 9 is local because it appears later in the file."
-   ],
-   "correctIndex": 0,
-   "explanation": "Local variables exist only during the call that created them, and using their values outside requires returning them and capturing the returned result. Separately, the loop variable is a fresh binding to each element in turn—assigning to it doesn’t edit the container—so to change list contents you must index into the list directly.",
-   "bloom": "understand",
-   "difficulty": "apply",
-   "catches": true,
-   "confronts": true,
-   "provenance": {
-    "runId": "v012-cs-verify",
-    "lessonId": "l6",
-    "itemIndex": 5,
-    "grade": 97
-   }
-  },
-  {
    "id": "v012-cs-verify:l7:q1",
    "kernelId": "cs/lists",
    "conceptName": "lists",
@@ -12146,6 +11642,30 @@
     "runId": "v012-cs-verify",
     "lessonId": "l10",
     "itemIndex": 0,
+    "grade": 97
+   }
+  },
+  {
+   "id": "v012-cs-verify:l10:q1",
+   "kernelId": "cs/file-io",
+   "conceptName": "file input and output",
+   "stem": "A file object is already open for reading. After `first = f.read()` you immediately do `second = f.read()`. What is most likely in `second`?",
+   "options": [
+    "'' because read() advances a position marker through the file, so the second read() reaches the end",
+    "the same text again, because read() always returns the whole file every time",
+    "a list of lines, because read() behaves like readlines() after the first call",
+    "None, because the file object is exhausted after one read()"
+   ],
+   "correctIndex": 0,
+   "explanation": "Reading advances a position marker through the file; once `read()` reaches the end, a second `read()` returns `''` until the file is reopened or the position is reset. Dictionaries are accessed by key, not position, so use `d['name']` for the value under `'name'`, not `d[0]`.",
+   "bloom": "understand",
+   "difficulty": "transfer",
+   "catches": true,
+   "confronts": true,
+   "provenance": {
+    "runId": "v012-cs-verify",
+    "lessonId": "l10",
+    "itemIndex": 1,
     "grade": 97
    }
   },
@@ -12338,6 +11858,30 @@
     "runId": "v012-cs-verify",
     "lessonId": "l13",
     "itemIndex": 0,
+    "grade": 97
+   }
+  },
+  {
+   "id": "v012-cs-verify:l13:q1",
+   "kernelId": "cs/classes",
+   "conceptName": "classes and objects",
+   "stem": "After running this code: class Dog: pass; a = Dog(); b = Dog(); a.name = 'Milo'; b.name = 'Rex' — what is true?",
+   "options": [
+    "a.name and b.name are separate, because each instance has its own attributes.",
+    "a.name and b.name must match, because two instances of the same class share their attribute values.",
+    "a.name is stored on Dog, so b.name will become 'Milo' too.",
+    "Both names are stored in the class, because the class itself is an object."
+   ],
+   "correctIndex": 0,
+   "explanation": "Each instance has its own attributes, so changing one Dog’s name does not change another Dog’s name. The incorrect idea is that two instances share attribute values by default. A class is the blueprint: you create instances from it (e.g. d = Dog()), and per-object data lives on each instance, not on the class.",
+   "bloom": "understand",
+   "difficulty": "apply",
+   "catches": true,
+   "confronts": true,
+   "provenance": {
+    "runId": "v012-cs-verify",
+    "lessonId": "l13",
+    "itemIndex": 1,
     "grade": 97
    }
   },
@@ -13110,6 +12654,30 @@
    }
   },
   {
+   "id": "cmpA-cs-python:l5:q0",
+   "kernelId": "cs/for-loops",
+   "conceptName": "for loops and range",
+   "stem": "You run this code: \n\nfor i in range(4):\n    print(i)\n\nWhat is the exact output (the printed numbers, in order)?",
+   "options": [
+    "0 1 2 3",
+    "Range(5) produces 1 through 5, so their loop runs one time too few or accesses the wrong indices.",
+    "0 1 2",
+    "1 2 3"
+   ],
+   "correctIndex": 0,
+   "explanation": "range(n) yields values from 0 up to n-1. So range(4) produces 0, 1, 2, 3. The code prints i for each element in that sequence.",
+   "bloom": "apply",
+   "difficulty": "recall",
+   "catches": true,
+   "confronts": false,
+   "provenance": {
+    "runId": "cmpA-cs-python",
+    "lessonId": "l5",
+    "itemIndex": 0,
+    "grade": 99
+   }
+  },
+  {
    "id": "cmpA-cs-python:l13:q2",
    "kernelId": "cs/classes",
    "conceptName": "classes and objects",
@@ -13734,6 +13302,30 @@
    }
   },
   {
+   "id": "lean-cs-python-2:l4:q0",
+   "kernelId": "cs/while-loops",
+   "conceptName": "while loops",
+   "stem": "Suppose you write:\n\nx = 5\nwhile x > 0:\n    print(x)\n    x = x - 1\n\nWhat will this loop print, in order?",
+   "options": [
+    "5, 4, 3, 2, 1, then stops",
+    "5, 4, 3, 2, then stops",
+    "Nothing, because the condition is false at the start",
+    "It never stops because x > 0 stays true"
+   ],
+   "correctIndex": 0,
+   "explanation": "This while loop re-checks the loop expression before each iteration, and the body updates the condition variable: x = x - 1. Starting at x = 5, it prints 5, then 4, then 3, then 2, then 1, and stops when x reaches 0 (so x > 0 becomes false).",
+   "bloom": "apply",
+   "difficulty": "apply",
+   "catches": true,
+   "confronts": false,
+   "provenance": {
+    "runId": "lean-cs-python-2",
+    "lessonId": "l4",
+    "itemIndex": 0,
+    "grade": 99
+   }
+  },
+  {
    "id": "lean-cs-python-2:l12:q2",
    "kernelId": "cs/recursion",
    "conceptName": "recursion",
@@ -13922,30 +13514,6 @@
     "runId": "lean-cs-python-5",
     "lessonId": "l3",
     "itemIndex": 2,
-    "grade": 99
-   }
-  },
-  {
-   "id": "lean-cs-python-5:l5:q3",
-   "kernelId": "cs/for-loops",
-   "conceptName": "for loops and range",
-   "stem": "Students claim: “reassigning the loop variable inside a for loop changes the underlying list it came from.” Which result matches that belief for this code?\n\nvals = [1, 2, 3]\nfor v in vals:\n    v = v * 10\nprint(vals)",
-   "options": [
-    "It prints [10, 20, 30].",
-    "It prints [1, 2, 3].",
-    "It prints [1, 2, 3, 10, 20, 30].",
-    "It prints nothing because the loop variable can’t be reassigned."
-   ],
-   "correctIndex": 1,
-   "explanation": "Your quote “reassigning the loop variable inside a for loop changes the underlying list it came from” is false here. Assigning to v does not edit the list; the loop variable is just bound to elements one at a time. So vals stays [1, 2, 3].",
-   "bloom": "analyze",
-   "difficulty": "transfer",
-   "catches": true,
-   "confronts": false,
-   "provenance": {
-    "runId": "lean-cs-python-5",
-    "lessonId": "l5",
-    "itemIndex": 3,
     "grade": 99
    }
   },
@@ -14330,30 +13898,6 @@
     "runId": "v011-cs-python-3",
     "lessonId": "l12",
     "itemIndex": 5,
-    "grade": 99
-   }
-  },
-  {
-   "id": "v011-cs-python-3:l13:q2",
-   "kernelId": "cs/classes",
-   "conceptName": "classes and objects",
-   "stem": "Which choice best explains why this recursive function is unsafe?\n\n```python\ndef count_down(n):\n    return count_down(n)\n```",
-   "options": [
-    "It has no base case, so the self-calls never stop",
-    "It uses a class instead of an object",
-    "It should return 1 for every input",
-    "It will only fail if n is negative"
-   ],
-   "correctIndex": 0,
-   "explanation": "This recursive function has no base case, so it keeps calling itself forever and eventually raises a RecursionError. Every recursion needs a base case — a simplest input solved directly without another call — so the chain of self-calls eventually stops.",
-   "bloom": "analyze",
-   "difficulty": "apply",
-   "catches": true,
-   "confronts": false,
-   "provenance": {
-    "runId": "v011-cs-python-3",
-    "lessonId": "l13",
-    "itemIndex": 2,
     "grade": 99
    }
   },
@@ -15246,30 +14790,6 @@
    }
   },
   {
-   "id": "live-cs-python-7:l12:q3",
-   "kernelId": "cs/recursion",
-   "conceptName": "recursion",
-   "stem": "What happens when Python reaches this code? def greet(): print('hi')",
-   "options": [
-    "It prints hi immediately.",
-    "It stores the function, but does not run the body yet.",
-    "It raises a RecursionError.",
-    "It makes greet a local variable only."
-   ],
-   "correctIndex": 1,
-   "explanation": "Defining a function creates the function object, but it does not execute the body. Defining a function only stores it; the body runs when the function is called by name, such as greet().",
-   "bloom": "remember",
-   "difficulty": "recall",
-   "catches": true,
-   "confronts": false,
-   "provenance": {
-    "runId": "live-cs-python-7",
-    "lessonId": "l12",
-    "itemIndex": 3,
-    "grade": 98
-   }
-  },
-  {
    "id": "live-cs-python-7:l13:q5",
    "kernelId": "cs/classes",
    "conceptName": "classes",
@@ -15318,6 +14838,30 @@
    }
   },
   {
+   "id": "v011-cs-python-5:l4:q4",
+   "kernelId": "cs/while-loops",
+   "conceptName": "while loops",
+   "stem": "A program says:\n\nif temp > 100:\n    print('boiling')\nelse:\n    print('not boiling')\n\nWhat prints when temp is 100?",
+   "options": [
+    "'not boiling', because the else branch runs when the if condition is false.",
+    "'boiling', because if-else takes exactly one branch and 100 is close to 100.",
+    "Nothing prints, because a false if condition skips both branches.",
+    "'boiling' and 'not boiling', because the condition is checked again in the middle of the body."
+   ],
+   "correctIndex": 0,
+   "explanation": "When temp is 100, temp > 100 is false, so the if body is skipped and the else body runs. An if-else statement takes one branch or the other, and the else clause is the one executed when the if condition is false.",
+   "bloom": "apply",
+   "difficulty": "apply",
+   "catches": true,
+   "confronts": false,
+   "provenance": {
+    "runId": "v011-cs-python-5",
+    "lessonId": "l4",
+    "itemIndex": 4,
+    "grade": 98
+   }
+  },
+  {
    "id": "v011-cs-python-5:l10:q5",
    "kernelId": "cs/file-io",
    "conceptName": "file input and output",
@@ -15338,6 +14882,30 @@
     "runId": "v011-cs-python-5",
     "lessonId": "l10",
     "itemIndex": 5,
+    "grade": 98
+   }
+  },
+  {
+   "id": "v011-cs-python-5:l12:q4",
+   "kernelId": "cs/recursion",
+   "conceptName": "recursion",
+   "stem": "Look at this code: def greet(): print('hello') Which statement is true when Python reads the def line?",
+   "options": [
+    "It only stores the function; the body runs when greet() is called by name.",
+    "It runs the function body immediately, because writing def greet(): executes the code inside right away.",
+    "It makes the variable greet local to the function body, so greet() cannot be called later.",
+    "It calls itself on a smaller input, because every def statement is recursive."
+   ],
+   "correctIndex": 0,
+   "explanation": "Defining a function only stores it. The body runs when the function is called by name, such as greet(). The def line itself does not execute the printed line.",
+   "bloom": "understand",
+   "difficulty": "apply",
+   "catches": true,
+   "confronts": false,
+   "provenance": {
+    "runId": "v011-cs-python-5",
+    "lessonId": "l12",
+    "itemIndex": 4,
     "grade": 98
    }
   },
@@ -15966,6 +15534,30 @@
    }
   },
   {
+   "id": "e1-cs-python:l5:q0",
+   "kernelId": "cs/while-loops",
+   "conceptName": "for loops",
+   "stem": "A program has n = 4 and this loop: while n > 0: print(n). What change must be added so the loop eventually stops?",
+   "options": [
+    "Add n = n - 1 somewhere in the body so the condition becomes false.",
+    "Add print(n) again so the condition gets checked more often.",
+    "Change while to for so the condition is ignored.",
+    "Put break at the top; then the loop will count down automatically."
+   ],
+   "correctIndex": 0,
+   "explanation": "The key is progress: “Every while loop must change something the condition depends on; a counter loop needs n = n - 1 (or += 1) inside the body so the condition eventually becomes false.” Printing does not affect the condition, and a for loop is a different structure entirely.",
+   "bloom": "apply",
+   "difficulty": "transfer",
+   "catches": true,
+   "confronts": false,
+   "provenance": {
+    "runId": "e1-cs-python",
+    "lessonId": "l5",
+    "itemIndex": 0,
+    "grade": 97
+   }
+  },
+  {
    "id": "e1-cs-python:l11:q3",
    "kernelId": "cs/recursion",
    "conceptName": "recursion",
@@ -16010,30 +15602,6 @@
     "runId": "e1-cs-python",
     "lessonId": "l12",
     "itemIndex": 5,
-    "grade": 97
-   }
-  },
-  {
-   "id": "live-cs-python-4:l3:q3",
-   "kernelId": "cs/conditionals",
-   "conceptName": "conditionals",
-   "stem": "What happens in this code when x is 4? if x > 5: print('big') else: print('small')",
-   "options": [
-    "It prints 'big' because x is a number.",
-    "It prints both lines.",
-    "It prints 'small'.",
-    "It gives a syntax error because of else."
-   ],
-   "correctIndex": 2,
-   "explanation": "The if body runs only when the condition is true. Since 4 > 5 is false, the else branch runs instead.",
-   "bloom": "apply",
-   "difficulty": "apply",
-   "catches": true,
-   "confronts": false,
-   "provenance": {
-    "runId": "live-cs-python-4",
-    "lessonId": "l3",
-    "itemIndex": 3,
     "grade": 97
    }
   },
@@ -17334,6 +16902,30 @@
    }
   },
   {
+   "id": "cmpA-cs-python:l4:q2",
+   "kernelId": "cs/while-loops",
+   "conceptName": "while loops",
+   "stem": "A student writes this:\n\nn = 3\nwhile n > 1:\n    n = n - 1\n    print(n)\n\nHow many times does print(n) run?",
+   "options": [
+    "2 times",
+    "3 times",
+    "1 time",
+    "It prints forever"
+   ],
+   "correctIndex": 1,
+   "explanation": "It prints 3 times. The loop expression is checked only at the top of each iteration; the rest of the current pass still runs before the condition is checked again. So the body runs while n > 1 is true at the top, then n is reduced and printed during that pass. After the third pass, the next top-of-iteration check sees n is no longer > 1 and the loop ends.",
+   "bloom": "apply",
+   "difficulty": "transfer",
+   "catches": false,
+   "confronts": false,
+   "provenance": {
+    "runId": "cmpA-cs-python",
+    "lessonId": "l4",
+    "itemIndex": 2,
+    "grade": 99
+   }
+  },
+  {
    "id": "cmpA-cs-python:l4:q3",
    "kernelId": "cs/while-loops",
    "conceptName": "while loops",
@@ -17430,54 +17022,6 @@
    }
   },
   {
-   "id": "cmpA-cs-python:l6:q4",
-   "kernelId": "cs/functions",
-   "conceptName": "functions and scope",
-   "stem": "You want to print exactly five numbers starting at 0. Which loop is correct?",
-   "options": [
-    "```python\nfor i in range(5):\n    print(i)\n```",
-    "```python\nfor i in range(1,5):\n    print(i)\n```",
-    "```python\nfor i in range(5):\n    print(i+1)\n```",
-    "```python\nfor i in range(4):\n    print(i)\n```"
-   ],
-   "correctIndex": 0,
-   "explanation": "`range(5)` yields 0, 1, 2, 3, 4—five values starting at 0. Common misconception to avoid: \"range(5) produces 1 through 5...\"; in Python it starts at 0 and stops before the endpoint.",
-   "bloom": "apply",
-   "difficulty": "transfer",
-   "catches": false,
-   "confronts": false,
-   "provenance": {
-    "runId": "cmpA-cs-python",
-    "lessonId": "l6",
-    "itemIndex": 4,
-    "grade": 99
-   }
-  },
-  {
-   "id": "cmpA-cs-python:l6:q5",
-   "kernelId": "cs/functions",
-   "conceptName": "functions and scope",
-   "stem": "Suppose you run this code:\n\n```python\nnums = [10, 20, 30]\nfor x in nums:\n    x = 99\nprint(nums)\n```\n\nWhat is printed?",
-   "options": [
-    "[99, 99, 99]",
-    "[10, 20, 30]",
-    "NameError",
-    "An infinite loop"
-   ],
-   "correctIndex": 1,
-   "explanation": "If you believe: \"Students believe reassigning the loop variable inside a for loop changes the underlying list it came from,\" that’s not how it works. The loop variable is a fresh binding to each element in turn; assigning to it does not edit the container. To change list contents, index into the list directly.",
-   "bloom": "analyze",
-   "difficulty": "transfer",
-   "catches": false,
-   "confronts": false,
-   "provenance": {
-    "runId": "cmpA-cs-python",
-    "lessonId": "l6",
-    "itemIndex": 5,
-    "grade": 99
-   }
-  },
-  {
    "id": "cmpA-cs-python:l7:q4",
    "kernelId": "cs/lists",
    "conceptName": "lists",
@@ -17502,30 +17046,6 @@
    }
   },
   {
-   "id": "cmpA-cs-python:l7:q5",
-   "kernelId": "cs/lists",
-   "conceptName": "lists",
-   "stem": "Misconception check: A student says, \"Defining a function with def greet(): runs the greet body right away.\" What actually happens in this code?\n\ndef greet():\n    print('Hi')\n\ngreet()",
-   "options": [
-    "It prints 'Hi' when the function is defined, even before greet() runs.",
-    "It prints nothing when greet() is called.",
-    "It prints 'Hi' only when greet() is called.",
-    "It raises a SyntaxError because greet() needs parameters."
-   ],
-   "correctIndex": 2,
-   "explanation": "“Defining a function only stores it; the body runs when the function is called by name, such as greet().” So 'Hi' prints when greet() is called.",
-   "bloom": "understand",
-   "difficulty": "transfer",
-   "catches": false,
-   "confronts": false,
-   "provenance": {
-    "runId": "cmpA-cs-python",
-    "lessonId": "l7",
-    "itemIndex": 5,
-    "grade": 99
-   }
-  },
-  {
    "id": "cmpA-cs-python:l9:q3",
    "kernelId": "cs/dictionaries",
    "conceptName": "dictionaries and nested data",
@@ -17546,30 +17066,6 @@
     "runId": "cmpA-cs-python",
     "lessonId": "l9",
     "itemIndex": 3,
-    "grade": 99
-   }
-  },
-  {
-   "id": "cmpA-cs-python:l10:q2",
-   "kernelId": "cs/file-io",
-   "conceptName": "file input and output",
-   "stem": "You have:\n\ngrades = {'Ava': 95, 'Ben': 88}\n\nWhat is grades['Ava'] after the line below runs?\n\ngrades['Ava'] = 97",
-   "options": [
-    "95",
-    "97",
-    "The dictionary will have two 'Ava' entries",
-    "A KeyError occurs because 'Ava' already exists"
-   ],
-   "correctIndex": 1,
-   "explanation": "Keys are unique; assigning to an existing key overwrites its previous value rather than adding a second entry.",
-   "bloom": "apply",
-   "difficulty": "apply",
-   "catches": false,
-   "confronts": false,
-   "provenance": {
-    "runId": "cmpA-cs-python",
-    "lessonId": "l10",
-    "itemIndex": 2,
     "grade": 99
    }
   },
@@ -20262,6 +19758,30 @@
    }
   },
   {
+   "id": "lean-cs-python-2:l4:q3",
+   "kernelId": "cs/while-loops",
+   "conceptName": "while loops",
+   "stem": "Choose the correct while condition and update pair for counting down from 10 to 1. (You want to print 10, 9, ..., 1.)",
+   "options": [
+    "while n >= 0: print(n); n = n + 1",
+    "while n > 0: print(n); n = n - 1",
+    "while n > 1: print(n); n = n + 1",
+    "while n > 0: print(n); (no update needed)"
+   ],
+   "correctIndex": 1,
+   "explanation": "To print 10 down to 1, the loop should run while n > 0 and the update must move n toward 0: n = n - 1 inside the body. This makes the condition eventually become false and stops the loop.",
+   "bloom": "apply",
+   "difficulty": "apply",
+   "catches": false,
+   "confronts": false,
+   "provenance": {
+    "runId": "lean-cs-python-2",
+    "lessonId": "l4",
+    "itemIndex": 3,
+    "grade": 99
+   }
+  },
+  {
    "id": "lean-cs-python-2:l5:q0",
    "kernelId": "cs/while-loops",
    "conceptName": "for loops",
@@ -20282,6 +19802,30 @@
     "runId": "lean-cs-python-2",
     "lessonId": "l5",
     "itemIndex": 0,
+    "grade": 99
+   }
+  },
+  {
+   "id": "lean-cs-python-2:l5:q1",
+   "kernelId": "cs/for-loops",
+   "conceptName": "range",
+   "stem": "Consider this code: for i in range(3): print(i). What are the outputs (in order)?",
+   "options": [
+    "3, 2, 1",
+    "0, 1, 2",
+    "1, 2, 3",
+    "2, 1, 0"
+   ],
+   "correctIndex": 1,
+   "explanation": "range(3) yields 0, 1, 2 — it starts at 0 and stops before the endpoint. So i takes 0 then 1 then 2, producing three lines: 0, 1, 2.",
+   "bloom": "apply",
+   "difficulty": "apply",
+   "catches": false,
+   "confronts": false,
+   "provenance": {
+    "runId": "lean-cs-python-2",
+    "lessonId": "l5",
+    "itemIndex": 1,
     "grade": 99
    }
   },
@@ -20402,30 +19946,6 @@
     "runId": "lean-cs-python-2",
     "lessonId": "l6",
     "itemIndex": 4,
-    "grade": 99
-   }
-  },
-  {
-   "id": "lean-cs-python-2:l6:q5",
-   "kernelId": "cs/functions",
-   "conceptName": "functions",
-   "stem": "What does Python 3 evaluate:\n\n7 / 2",
-   "options": [
-    "3",
-    "3.5",
-    "3.0",
-    "2"
-   ],
-   "correctIndex": 1,
-   "explanation": "In Python 3 the / operator always returns a float, so 7 / 2 is 3.5; use // for whole-number floor division, which gives 3.",
-   "bloom": "remember",
-   "difficulty": "apply",
-   "catches": false,
-   "confronts": false,
-   "provenance": {
-    "runId": "lean-cs-python-2",
-    "lessonId": "l6",
-    "itemIndex": 5,
     "grade": 99
    }
   },
@@ -20618,6 +20138,30 @@
     "runId": "lean-cs-python-2",
     "lessonId": "l9",
     "itemIndex": 3,
+    "grade": 99
+   }
+  },
+  {
+   "id": "lean-cs-python-2:l10:q0",
+   "kernelId": "cs/file-io",
+   "conceptName": "file input and output",
+   "stem": "A student writes: `with open('data.txt') as f:\n    a = f.read()\n    b = f.read()`.\nWhat value is `b` most likely to be right after `a` was read fully?",
+   "options": [
+    "It will repeat the same full file contents as `a`.",
+    "It will be an empty string '' because the read position is already at end-of-file.",
+    "It will be a list of lines, one per newline.",
+    "It will raise an exception because read() can only be called once."
+   ],
+   "correctIndex": 1,
+   "explanation": "Correct: once read() reaches the end, a second read() returns '' until the file is reopened or the position is reset. So `a` gets the whole file as one string, and `b` becomes ''.",
+   "bloom": "apply",
+   "difficulty": "transfer",
+   "catches": false,
+   "confronts": false,
+   "provenance": {
+    "runId": "lean-cs-python-2",
+    "lessonId": "l10",
+    "itemIndex": 0,
     "grade": 99
    }
   },
@@ -20930,6 +20474,30 @@
     "runId": "lean-cs-python-3",
     "lessonId": "l5",
     "itemIndex": 1,
+    "grade": 99
+   }
+  },
+  {
+   "id": "lean-cs-python-3:l5:q5",
+   "kernelId": "cs/for-loops",
+   "conceptName": "range",
+   "stem": "Using the provided range logic, what values does i take in: for i in range(3): print(i)?",
+   "options": [
+    "0, 1, 2",
+    "1, 2, 3",
+    "0, 1",
+    "2, 3"
+   ],
+   "correctIndex": 0,
+   "explanation": "range(3) yields 0 through n-1, so i takes 0, 1, 2. This matches the worked example: for i in range(3): print(i) prints 0, 1, 2.",
+   "bloom": "apply",
+   "difficulty": "apply",
+   "catches": false,
+   "confronts": false,
+   "provenance": {
+    "runId": "lean-cs-python-3",
+    "lessonId": "l5",
+    "itemIndex": 5,
     "grade": 99
    }
   },
@@ -21553,54 +21121,6 @@
    "provenance": {
     "runId": "lean-cs-python-5",
     "lessonId": "l5",
-    "itemIndex": 5,
-    "grade": 99
-   }
-  },
-  {
-   "id": "lean-cs-python-5:l6:q4",
-   "kernelId": "cs/functions",
-   "conceptName": "functions and scope",
-   "stem": "A student says: “Students believe reassigning the loop variable inside a for loop changes the underlying list it came from.” Which option correctly fixes that misunderstanding in the context of this code?\n\nnums = [1, 2, 3]\nfor x in nums:\n    x = x * 10\n\nprint(nums)",
-   "options": [
-    "It prints [10, 20, 30] because x is the same thing as each list element",
-    "It prints [1, 2, 3] because assigning to x does not edit the container",
-    "It errors because x is read-only",
-    "It prints [10, 20, 30, 1, 2, 3] because the loop appends copies"
-   ],
-   "correctIndex": 1,
-   "explanation": "The loop variable is a fresh binding to each element in turn; assigning to it does not edit the container. To change list contents, index into the list directly. In this loop, x is reassigned, but nums never gets modified.",
-   "bloom": "analyze",
-   "difficulty": "transfer",
-   "catches": false,
-   "confronts": false,
-   "provenance": {
-    "runId": "lean-cs-python-5",
-    "lessonId": "l6",
-    "itemIndex": 4,
-    "grade": 99
-   }
-  },
-  {
-   "id": "lean-cs-python-5:l6:q5",
-   "kernelId": "cs/functions",
-   "conceptName": "functions and scope",
-   "stem": "Which function correctly uses a returned value so the caller can use it outside the function?\n\nOption A:\ndef square(n):\n    n = n * n\n\nOption B:\ndef square(n):\n    return n * n",
-   "options": [
-    "Option A is enough; print(square(5)) prints 25 because Python auto-returns the last assignment",
-    "Option B is correct; print(square(5)) returns 25 so you can capture or print it",
-    "Neither option works because functions cannot return computed values",
-    "Both options work the same because variables inside functions are global"
-   ],
-   "correctIndex": 1,
-   "explanation": "Local variables exist only during the call that created them; to use a result outside, the function must return it and the caller must capture the returned value. The worked example is: def square(n): return n * n ; square(5) runs the body and returns 25.",
-   "bloom": "apply",
-   "difficulty": "transfer",
-   "catches": false,
-   "confronts": false,
-   "provenance": {
-    "runId": "lean-cs-python-5",
-    "lessonId": "l6",
     "itemIndex": 5,
     "grade": 99
    }
@@ -22734,30 +22254,6 @@
    }
   },
   {
-   "id": "live-cs-python-8:l5:q1",
-   "kernelId": "cs/for-loops",
-   "conceptName": "for loops and range",
-   "stem": "What does this loop print?\n\nfor ch in \"cat\":\n    print(ch)",
-   "options": [
-    "c\na\nt",
-    "cat",
-    "0\n1\n2",
-    "It prints nothing unless you use range()."
-   ],
-   "correctIndex": 0,
-   "explanation": "A for loop iterates over each element of a container one at a time. A string is a container of characters, so the loop prints each character on its own line.",
-   "bloom": "understand",
-   "difficulty": "apply",
-   "catches": false,
-   "confronts": false,
-   "provenance": {
-    "runId": "live-cs-python-8",
-    "lessonId": "l5",
-    "itemIndex": 1,
-    "grade": 99
-   }
-  },
-  {
    "id": "live-cs-python-8:l5:q2",
    "kernelId": "cs/for-loops",
    "conceptName": "for loops and range",
@@ -22778,30 +22274,6 @@
     "runId": "live-cs-python-8",
     "lessonId": "l5",
     "itemIndex": 2,
-    "grade": 99
-   }
-  },
-  {
-   "id": "live-cs-python-8:l5:q3",
-   "kernelId": "cs/for-loops",
-   "conceptName": "for loops and range",
-   "stem": "You have nums = [10, 20, 30]. What does this code do?\n\nfor x in nums:\n    x = 99\nprint(nums)",
-   "options": [
-    "It prints [99, 99, 99]",
-    "It prints [10, 20, 30]",
-    "It prints [99, 20, 30]",
-    "It raises a type error"
-   ],
-   "correctIndex": 1,
-   "explanation": "The loop variable is a fresh binding to each element in turn; assigning to it does not edit the container. To change list contents, index into the list directly. Here, nums stays the same because x is only a temporary name for each item.",
-   "bloom": "analyze",
-   "difficulty": "transfer",
-   "catches": false,
-   "confronts": false,
-   "provenance": {
-    "runId": "live-cs-python-8",
-    "lessonId": "l5",
-    "itemIndex": 3,
     "grade": 99
    }
   },
@@ -22946,30 +22418,6 @@
     "runId": "live-cs-python-8",
     "lessonId": "l7",
     "itemIndex": 1,
-    "grade": 99
-   }
-  },
-  {
-   "id": "live-cs-python-8:l7:q2",
-   "kernelId": "cs/lists",
-   "conceptName": "lists",
-   "stem": "What happens when Python reaches this code?\\n\\ndef greet():\\n    print('hi')",
-   "options": [
-    "Python prints hi immediately when it reads def greet():",
-    "Python stores the function, and nothing prints until greet() is called",
-    "Python creates a list named greet",
-    "Python raises an error because functions cannot print"
-   ],
-   "correctIndex": 1,
-   "explanation": "Defining a function only stores it; the body runs when the function is called by name, such as greet(). Here, nothing prints until greet() is actually called.",
-   "bloom": "understand",
-   "difficulty": "apply",
-   "catches": false,
-   "confronts": false,
-   "provenance": {
-    "runId": "live-cs-python-8",
-    "lessonId": "l7",
-    "itemIndex": 2,
     "grade": 99
    }
   },
@@ -23526,6 +22974,30 @@
    }
   },
   {
+   "id": "v011-cs-python-2:l4:q0",
+   "kernelId": "cs/while-loops",
+   "conceptName": "while loops",
+   "stem": "A student writes:\n\nn = 3\nwhile n > 0:\n    print(n)\n\nIt prints 3 once and then seems to go on forever. What is the best fix?",
+   "options": [
+    "Add `n = n - 1` inside the loop body.",
+    "Change `while n > 0` to `while n == 0`.",
+    "Move `print(n)` outside the loop.",
+    "Replace `while` with `if`."
+   ],
+   "correctIndex": 0,
+   "explanation": "`while` keeps running only while the condition stays true, and the body must make progress toward ending it. Here, the loop condition depends on `n`, so the body needs to change `n`; as the corrective says, \"Every while loop must change something the condition depends on; a counter loop needs n = n - 1 (or += 1) inside the body so the condition eventually becomes false.\"",
+   "bloom": "apply",
+   "difficulty": "apply",
+   "catches": false,
+   "confronts": false,
+   "provenance": {
+    "runId": "v011-cs-python-2",
+    "lessonId": "l4",
+    "itemIndex": 0,
+    "grade": 99
+   }
+  },
+  {
    "id": "v011-cs-python-2:l5:q2",
    "kernelId": "cs/for-loops",
    "conceptName": "for loops and range",
@@ -23598,30 +23070,6 @@
    }
   },
   {
-   "id": "v011-cs-python-2:l6:q2",
-   "kernelId": "cs/functions",
-   "conceptName": "functions and scope",
-   "stem": "What will this print?\n\nfor i in range(3):\n    print(i)",
-   "options": [
-    "1 2 3",
-    "0 1 2",
-    "0 1 2 3",
-    "3 2 1"
-   ],
-   "correctIndex": 1,
-   "explanation": "The loop prints `0, 1, 2`. That matches the rule: `range(3)` starts at 0 and stops before 3, so it gives exactly three values.",
-   "bloom": "apply",
-   "difficulty": "apply",
-   "catches": false,
-   "confronts": false,
-   "provenance": {
-    "runId": "v011-cs-python-2",
-    "lessonId": "l6",
-    "itemIndex": 2,
-    "grade": 99
-   }
-  },
-  {
    "id": "v011-cs-python-2:l6:q3",
    "kernelId": "cs/functions",
    "conceptName": "functions and scope",
@@ -23642,54 +23090,6 @@
     "runId": "v011-cs-python-2",
     "lessonId": "l6",
     "itemIndex": 3,
-    "grade": 99
-   }
-  },
-  {
-   "id": "v011-cs-python-2:l6:q5",
-   "kernelId": "cs/functions",
-   "conceptName": "functions and scope",
-   "stem": "What does this loop do to the list?\n\nnums = [1, 2, 3]\nfor x in nums:\n    x = x * 2",
-   "options": [
-    "It changes nums to `[2, 4, 6]` because x is the list element.",
-    "It leaves nums as `[1, 2, 3]` because the loop variable is a fresh binding, not the list cell itself.",
-    "It deletes the list and creates a new one called x.",
-    "It changes only the last element to 6."
-   ],
-   "correctIndex": 1,
-   "explanation": "The loop variable is a fresh binding to each element in turn; assigning to it does not edit the container. To change list contents, index into the list directly.",
-   "bloom": "analyze",
-   "difficulty": "transfer",
-   "catches": false,
-   "confronts": false,
-   "provenance": {
-    "runId": "v011-cs-python-2",
-    "lessonId": "l6",
-    "itemIndex": 5,
-    "grade": 99
-   }
-  },
-  {
-   "id": "v011-cs-python-2:l7:q5",
-   "kernelId": "cs/lists",
-   "conceptName": "lists",
-   "stem": "Which code best shows a function definition that does not run until it is called?",
-   "options": [
-    "```python\ndef greet():\n    print('Hello')\n```",
-    "```python\ngreet = print('Hello')\n```",
-    "```python\ngreet()\n```",
-    "```python\nprint('Hello')\n```"
-   ],
-   "correctIndex": 0,
-   "explanation": "A `def` statement stores the function; it does not execute the body by itself. Defining a function only stores it, and the body runs when the function is called by name, such as `greet()`. In other words, `def greet():` does not run the body immediately.",
-   "bloom": "understand",
-   "difficulty": "apply",
-   "catches": false,
-   "confronts": false,
-   "provenance": {
-    "runId": "v011-cs-python-2",
-    "lessonId": "l7",
-    "itemIndex": 5,
     "grade": 99
    }
   },
@@ -23762,30 +23162,6 @@
     "runId": "v011-cs-python-2",
     "lessonId": "l10",
     "itemIndex": 2,
-    "grade": 99
-   }
-  },
-  {
-   "id": "v011-cs-python-2:l10:q3",
-   "kernelId": "cs/file-io",
-   "conceptName": "file input and output",
-   "stem": "What happens here?\n\n```python\ngrades = {'Ava': 95, 'Ben': 88}\ngrades['Ava'] = 97\n```",
-   "options": [
-    "Ava keeps both 95 and 97 in the dictionary.",
-    "The dictionary now has two `'Ava'` keys.",
-    "The value for `'Ava'` becomes 97.",
-    "Python changes `'Ben'` to 97."
-   ],
-   "correctIndex": 2,
-   "explanation": "Assigning to an existing key replaces the old value. This is the same idea as the lesson worked example: `grades['Ava'] = 97` overwrites the old value rather than adding a second one. In the corrective’s own words, “Keys are unique; assigning to an existing key overwrites its previous value rather than adding a second entry.”",
-   "bloom": "understand",
-   "difficulty": "apply",
-   "catches": false,
-   "confronts": false,
-   "provenance": {
-    "runId": "v011-cs-python-2",
-    "lessonId": "l10",
-    "itemIndex": 3,
     "grade": 99
    }
   },
@@ -24006,6 +23382,30 @@
    }
   },
   {
+   "id": "v011-cs-python-3:l4:q4",
+   "kernelId": "cs/while-loops",
+   "conceptName": "while loops",
+   "stem": "A loop is written as:\n\ncount = 4\nwhile count > 0:\n    print(count)\n\nWhat is the best fix?",
+   "options": [
+    "Change the condition to `while count < 0:`",
+    "Add `count = count - 1` inside the loop body.",
+    "Move `print(count)` outside the loop.",
+    "Replace `while` with `if`."
+   ],
+   "correctIndex": 1,
+   "explanation": "Every while loop must change something the condition depends on; a counter loop needs `count = count - 1` (or `+= 1`) inside the body so the condition eventually becomes false. Here, `count` never changes, so `count > 0` stays true forever and the loop becomes an infinite loop.",
+   "bloom": "apply",
+   "difficulty": "transfer",
+   "catches": false,
+   "confronts": false,
+   "provenance": {
+    "runId": "v011-cs-python-3",
+    "lessonId": "l4",
+    "itemIndex": 4,
+    "grade": 99
+   }
+  },
+  {
    "id": "v011-cs-python-3:l4:q5",
    "kernelId": "cs/while-loops",
    "conceptName": "while loops",
@@ -24026,6 +23426,30 @@
     "runId": "v011-cs-python-3",
     "lessonId": "l4",
     "itemIndex": 5,
+    "grade": 99
+   }
+  },
+  {
+   "id": "v011-cs-python-3:l5:q0",
+   "kernelId": "cs/for-loops",
+   "conceptName": "for loops and range",
+   "stem": "You want to print the numbers 0, 1, 2, 3, 4. Which loop does that?",
+   "options": [
+    "for i in range(5): print(i)",
+    "for i in range(1, 5): print(i)",
+    "for i in range(5, 0): print(i)",
+    "while i < 5: print(i)"
+   ],
+   "correctIndex": 0,
+   "explanation": "`range(5) yields 0, 1, 2, 3, 4 — it starts at 0 and stops before the endpoint, giving exactly five values.` That is why this loop prints the five numbers you want. By contrast, `range(1, 5)` starts at 1, which is the misconception that `range(5)` means 1 through 5.",
+   "bloom": "apply",
+   "difficulty": "apply",
+   "catches": false,
+   "confronts": false,
+   "provenance": {
+    "runId": "v011-cs-python-3",
+    "lessonId": "l5",
+    "itemIndex": 0,
     "grade": 99
    }
   },
@@ -24054,6 +23478,30 @@
    }
   },
   {
+   "id": "v011-cs-python-3:l5:q3",
+   "kernelId": "cs/for-loops",
+   "conceptName": "for loops and range",
+   "stem": "Consider:\n\nn = 3\nwhile n > 0:\n    print(n)\n    n = n - 1\n\nWhat prints?",
+   "options": [
+    "3 2 1",
+    "3 2 1 0",
+    "2 1 0",
+    "An infinite loop"
+   ],
+   "correctIndex": 0,
+   "explanation": "This follows the worked example: `n = 3; while n > 0: print(n); n = n - 1` prints 3, 2, 1 and then stops when `n` reaches 0.",
+   "bloom": "apply",
+   "difficulty": "apply",
+   "catches": false,
+   "confronts": false,
+   "provenance": {
+    "runId": "v011-cs-python-3",
+    "lessonId": "l5",
+    "itemIndex": 3,
+    "grade": 99
+   }
+  },
+  {
    "id": "v011-cs-python-3:l5:q4",
    "kernelId": "cs/for-loops",
    "conceptName": "for loops and range",
@@ -24078,6 +23526,30 @@
    }
   },
   {
+   "id": "v011-cs-python-3:l5:q5",
+   "kernelId": "cs/for-loops",
+   "conceptName": "for loops and range",
+   "stem": "Read this loop:\n\nn = 3\nwhile n > 0:\n    print(n)\n    n = n - 1\n    print(\"done\")\n\nWhen does `\"done\"` print?",
+   "options": [
+    "After every `n = n - 1`, before the condition is checked again",
+    "Only once, after the loop ends",
+    "Three times, once per pass through the body",
+    "Never, because the condition is re-checked the instant `n` changes"
+   ],
+   "correctIndex": 2,
+   "explanation": "The loop expression is tested only at the top of each iteration; the rest of the current pass still runs before the condition is checked again. So `print(\"done\")` runs on every pass through the body, not in the middle and not only after the loop.",
+   "bloom": "analyze",
+   "difficulty": "transfer",
+   "catches": false,
+   "confronts": false,
+   "provenance": {
+    "runId": "v011-cs-python-3",
+    "lessonId": "l5",
+    "itemIndex": 5,
+    "grade": 99
+   }
+  },
+  {
    "id": "v011-cs-python-3:l6:q2",
    "kernelId": "cs/functions",
    "conceptName": "functions and scope",
@@ -24098,30 +23570,6 @@
     "runId": "v011-cs-python-3",
     "lessonId": "l6",
     "itemIndex": 2,
-    "grade": 99
-   }
-  },
-  {
-   "id": "v011-cs-python-3:l6:q3",
-   "kernelId": "cs/functions",
-   "conceptName": "functions and scope",
-   "stem": "Suppose this code runs:\n\n```python\nfor item in numbers:\n    item = item * 2\n```\n\nWhat is true about the list `numbers` after the loop?",
-   "options": [
-    "Every element in `numbers` is doubled because `item` is the list element.",
-    "Only the last element changes because `item` keeps its final value.",
-    "The loop variable is a fresh binding to each element in turn, so assigning to it does not edit the container.",
-    "The list becomes empty because the loop variable is reassigned."
-   ],
-   "correctIndex": 2,
-   "explanation": "The loop variable is a fresh binding to each element in turn; assigning to it does not edit the container. To change list contents, index into the list directly.",
-   "bloom": "analyze",
-   "difficulty": "apply",
-   "catches": false,
-   "confronts": false,
-   "provenance": {
-    "runId": "v011-cs-python-3",
-    "lessonId": "l6",
-    "itemIndex": 3,
     "grade": 99
    }
   },
@@ -24170,54 +23618,6 @@
     "runId": "v011-cs-python-3",
     "lessonId": "l7",
     "itemIndex": 0,
-    "grade": 99
-   }
-  },
-  {
-   "id": "v011-cs-python-3:l7:q2",
-   "kernelId": "cs/lists",
-   "conceptName": "lists",
-   "stem": "What does this code do?\n\ndef greet():\n    print('Hi')",
-   "options": [
-    "It prints Hi as soon as Python reads the def line",
-    "It stores a function named greet, and Hi prints only when greet() is called",
-    "It creates a list named greet",
-    "It makes greet a global variable with the value Hi"
-   ],
-   "correctIndex": 1,
-   "explanation": "Defining a function only stores it; the body runs when the function is called by name, such as greet(). So this code does not print until greet() is actually called.",
-   "bloom": "understand",
-   "difficulty": "apply",
-   "catches": false,
-   "confronts": false,
-   "provenance": {
-    "runId": "v011-cs-python-3",
-    "lessonId": "l7",
-    "itemIndex": 2,
-    "grade": 99
-   }
-  },
-  {
-   "id": "v011-cs-python-3:l7:q3",
-   "kernelId": "cs/lists",
-   "conceptName": "lists",
-   "stem": "What is true about this code?\n\ndef make_total():\n    total = 3 + 4\n\nprint(total)",
-   "options": [
-    "It prints 7 because total was created inside the function",
-    "It prints nothing because total is local to the function and cannot be accessed outside",
-    "It prints 3 + 4 as text",
-    "It works only if make_total() is called first"
-   ],
-   "correctIndex": 1,
-   "explanation": "Local variables exist only during the call that created them; to use a result outside, the function must return it and the caller must capture the returned value. Here, total is local to make_total(), so print(total) outside the function causes a NameError.",
-   "bloom": "apply",
-   "difficulty": "transfer",
-   "catches": false,
-   "confronts": false,
-   "provenance": {
-    "runId": "v011-cs-python-3",
-    "lessonId": "l7",
-    "itemIndex": 3,
     "grade": 99
    }
   },
@@ -24366,54 +23766,6 @@
    }
   },
   {
-   "id": "v011-cs-python-3:l13:q3",
-   "kernelId": "cs/classes",
-   "conceptName": "classes and objects",
-   "stem": "A student writes a factorial function like this:\n\n```python\ndef fact(n):\n    if n == 0:\n        return 1\n    return n * fact(n)\n```",
-   "options": [
-    "It is correct because the base case is present",
-    "It is wrong because the recursive call must use a smaller input",
-    "It is wrong because factorial cannot use recursion at all",
-    "It is correct only for even numbers"
-   ],
-   "correctIndex": 1,
-   "explanation": "The call is `fact(n)`, the same size as the current problem, so it never moves toward the base case. Each recursive call must shrink the problem, such as `fact(n - 1)`, or the base case is never reached.",
-   "bloom": "apply",
-   "difficulty": "transfer",
-   "catches": false,
-   "confronts": false,
-   "provenance": {
-    "runId": "v011-cs-python-3",
-    "lessonId": "l13",
-    "itemIndex": 3,
-    "grade": 99
-   }
-  },
-  {
-   "id": "v011-cs-python-3:l13:q4",
-   "kernelId": "cs/classes",
-   "conceptName": "classes and objects",
-   "stem": "Which code best matches the worked example for a class blueprint and two instances with their own `name` data?",
-   "options": [
-    "```python\nclass Dog:\n    pass\n\nDog.name = 'Milo'\nDog.name = 'Luna'\n```",
-    "```python\nclass Dog:\n    pass\n\na = Dog()\nb = Dog()\na.name = 'Milo'\nb.name = 'Luna'\n```",
-    "```python\nclass Dog:\n    name = 'Milo'\n\nb = Dog()\nb.name = 'Luna'\n```",
-    "```python\na = Dog\nb = Dog\n```"
-   ],
-   "correctIndex": 1,
-   "explanation": "This one creates two instances from the class, then stores data on each object separately. That matches the idea that a class is the blueprint and the instances are the things built from it. `Dog.name = 'Milo'` and `Dog.name = 'Luna'` would incorrectly store data on the class itself, confusing the blueprint with the things built from it.",
-   "bloom": "apply",
-   "difficulty": "transfer",
-   "catches": false,
-   "confronts": false,
-   "provenance": {
-    "runId": "v011-cs-python-3",
-    "lessonId": "l13",
-    "itemIndex": 4,
-    "grade": 99
-   }
-  },
-  {
    "id": "v011-cs-python-3:l13:q5",
    "kernelId": "cs/classes",
    "conceptName": "classes and objects",
@@ -24530,6 +23882,30 @@
     "runId": "v011-cs-python-7",
     "lessonId": "l6",
     "itemIndex": 3,
+    "grade": 99
+   }
+  },
+  {
+   "id": "v011-cs-python-7:l7:q4",
+   "kernelId": "cs/lists",
+   "conceptName": "lists",
+   "stem": "You have `def greet(): print('Hi')`. When does `print('Hi')` run?",
+   "options": [
+    "Only when `greet()` is called by name, because defining a function only stores it",
+    "Right away when Python reads `def greet():`, because writing def greet(): runs the function body immediately",
+    "Only after another function finishes, because local variables need to be global first",
+    "Never, because a function defined with def cannot print"
+   ],
+   "correctIndex": 0,
+   "explanation": "The body runs when the function is called by name, such as `greet()`. Writing `def greet():` only defines the function; it does not execute the body immediately.",
+   "bloom": "understand",
+   "difficulty": "transfer",
+   "catches": false,
+   "confronts": false,
+   "provenance": {
+    "runId": "v011-cs-python-7",
+    "lessonId": "l7",
+    "itemIndex": 4,
     "grade": 99
    }
   },
@@ -24750,25 +24126,25 @@
    }
   },
   {
-   "id": "v011-cs-python-9:l6:q5",
-   "kernelId": "cs/functions",
-   "conceptName": "functions and scope",
-   "stem": "Which snippet defines a function correctly and then uses it to compute a value?",
+   "id": "v011-cs-python-9:l5:q5",
+   "kernelId": "cs/for-loops",
+   "conceptName": "for loops and range",
+   "stem": "A loop needs to visit each character in the string 'cat' and print it on its own line. Which code does that?",
    "options": [
-    "```python\ndef square(n):\n    return n * n\n\nprint(square(4))\n```",
-    "```python\nsquare(4):\n    return n * n\n\nprint(square)\n```",
-    "```python\nprint(square(4))\n\ndef square(n):\n    return n * n\n```",
-    "```python\ndef square(n)\n    print(square(4))\n```"
+    "for ch in 'cat':\\n    print(ch)",
+    "for ch in range('cat'):\\n    print(ch)",
+    "for ch in range(1, 4):\\n    print('cat')",
+    "while 'cat':\\n    print('cat')"
    ],
    "correctIndex": 0,
-   "explanation": "This is the only option with the `def` keyword, a name, parentheses, a colon, and an indented body, followed by a call. The other snippets either are not valid function definitions or try to use the function before it exists.",
-   "bloom": "remember",
+   "explanation": "A for loop iterates over each element of a container, and a string is a container of characters. range() makes integers, not characters, so it is the wrong tool here.",
+   "bloom": "apply",
    "difficulty": "apply",
    "catches": false,
    "confronts": false,
    "provenance": {
     "runId": "v011-cs-python-9",
-    "lessonId": "l6",
+    "lessonId": "l5",
     "itemIndex": 5,
     "grade": 99
    }
@@ -24794,6 +24170,30 @@
     "runId": "v011-cs-python-9",
     "lessonId": "l7",
     "itemIndex": 5,
+    "grade": 99
+   }
+  },
+  {
+   "id": "v011-cs-python-9:l10:q4",
+   "kernelId": "cs/file-io",
+   "conceptName": "file input and output",
+   "stem": "Suppose `grades = {'Ava': 95, 'Ben': 88}`. What happens with `grades['Ava'] = 97`?",
+   "options": [
+    "It overwrites the old value for 'Ava' with 97",
+    "It adds a second 'Ava' entry because dictionaries can keep duplicate keys",
+    "It changes the value at position 0, like a list update",
+    "It makes `grades['Ava']` return both 95 and 97"
+   ],
+   "correctIndex": 0,
+   "explanation": "Dictionaries use keys, and assigning to an existing key overwrites the previous value. They cannot hold duplicate keys, so the old `95` is replaced rather than preserved. Dictionaries are accessed by key, not position; use d['name'] to get the value stored under the key 'name', not d[0].",
+   "bloom": "apply",
+   "difficulty": "apply",
+   "catches": false,
+   "confronts": false,
+   "provenance": {
+    "runId": "v011-cs-python-9",
+    "lessonId": "l10",
+    "itemIndex": 4,
     "grade": 99
    }
   },
@@ -25710,26 +25110,26 @@
    }
   },
   {
-   "id": "v012-cs-final:l5:q3",
+   "id": "v012-cs-final:l5:q2",
    "kernelId": "cs/for-loops",
    "conceptName": "for loops and range",
-   "stem": "What will this code print?\n\nword = \"cat\"\nfor ch in word:\n    print(ch)",
+   "stem": "A loop should print 0, 1, 2, 3, 4 and then stop. Which code does that?",
    "options": [
-    "cat on one line, because a for loop treats a string as one chunk.",
-    "c, a, t on separate lines, because a string is a container of characters.",
-    "0, 1, 2, because range is used implicitly for strings.",
-    "Nothing, because for loops only work with lists and not strings."
+    "for k in range(5):\n    print(k)",
+    "for k in range(1, 5):\n    print(k)",
+    "for k in range(1, 6):\n    print(k)",
+    "for k in range(5):\n    print(k + 1)"
    ],
-   "correctIndex": 1,
-   "explanation": "A string is a container of characters, and the loop retrieves the objects one at a time. So the loop binds ch to c, then a, then t.",
-   "bloom": "understand",
-   "difficulty": "recall",
+   "correctIndex": 0,
+   "explanation": "range(5) gives five integers: 0 through 4. The 1-through-5 idea is wrong here, so the options that start at 1 miss 0 or reach the wrong end.",
+   "bloom": "apply",
+   "difficulty": "apply",
    "catches": false,
    "confronts": false,
    "provenance": {
     "runId": "v012-cs-final",
     "lessonId": "l5",
-    "itemIndex": 3,
+    "itemIndex": 2,
     "grade": 99
    }
   },
@@ -25902,78 +25302,6 @@
    }
   },
   {
-   "id": "v012-cs-lean:l2:q2",
-   "kernelId": "cs/variables",
-   "conceptName": "variables",
-   "stem": "What does Python print here?\n\nprint(7 / 2)",
-   "options": [
-    "3, because the operands look like whole numbers so Python does integer division",
-    "3.5, because / always returns a float in Python 3",
-    "3, because floor division happens automatically with /",
-    "7 / 2, because the interpreter leaves the expression unchanged"
-   ],
-   "correctIndex": 1,
-   "explanation": "In Python 3 the / operator always returns a float, so 7 / 2 is 3.5. Use // for whole-number floor division, which gives 3.",
-   "bloom": "apply",
-   "difficulty": "apply",
-   "catches": false,
-   "confronts": false,
-   "provenance": {
-    "runId": "v012-cs-lean",
-    "lessonId": "l2",
-    "itemIndex": 2,
-    "grade": 99
-   }
-  },
-  {
-   "id": "v012-cs-lean:l2:q3",
-   "kernelId": "cs/variables",
-   "conceptName": "variables",
-   "stem": "Which line correctly makes this output?\n\nAge: 19",
-   "options": [
-    "print('Age: ' + 19)",
-    "print('Age: ' + str(19))",
-    "print('Age: ' + int(19))",
-    "print('Age: ' + 19.0)"
-   ],
-   "correctIndex": 1,
-   "explanation": "Convert the number with str() before joining it to text, or use formatting. Python will not silently turn an int into a string inside a + with a str.",
-   "bloom": "apply",
-   "difficulty": "transfer",
-   "catches": false,
-   "confronts": false,
-   "provenance": {
-    "runId": "v012-cs-lean",
-    "lessonId": "l2",
-    "itemIndex": 3,
-    "grade": 99
-   }
-  },
-  {
-   "id": "v012-cs-lean:l3:q4",
-   "kernelId": "cs/conditionals",
-   "conceptName": "conditionals",
-   "stem": "After these statements run, what value is stored in y?\n\nx = 3\ny = x + 2\nx = 10",
-   "options": [
-    "5, because assignment stores the value computed at that moment and y stays 5 even if x changes afterward.",
-    "12, because y stores the expression itself, so it updates when x changes.",
-    "10, because y is assigned after x becomes 10.",
-    "3, because x = x + 2 is treated as an impossible mathematical equation."
-   ],
-   "correctIndex": 0,
-   "explanation": "In Python = is assignment, not equality: the right side is evaluated first and the result is bound to the name on the left, so x = x + 1 simply increases x by one. It does not mean “compare x to x + 1”; it updates x with the computed value.",
-   "bloom": "analyze",
-   "difficulty": "apply",
-   "catches": false,
-   "confronts": false,
-   "provenance": {
-    "runId": "v012-cs-lean",
-    "lessonId": "l3",
-    "itemIndex": 4,
-    "grade": 99
-   }
-  },
-  {
    "id": "v012-cs-lean:l5:q5",
    "kernelId": "cs/for-loops",
    "conceptName": "range",
@@ -25994,30 +25322,6 @@
     "runId": "v012-cs-lean",
     "lessonId": "l5",
     "itemIndex": 5,
-    "grade": 99
-   }
-  },
-  {
-   "id": "v012-cs-lean:l6:q2",
-   "kernelId": "cs/functions",
-   "conceptName": "functions",
-   "stem": "What is the value of `score` after these lines run?\n```python\nscore = 10\nscore = score + 5\n```",
-   "options": [
-    "10, because `score = score + 5` just repeats the old value on the right side.",
-    "15, because the old value is read, 5 is added, and the result is stored back in `score`.",
-    "`score + 5`, because a variable stores the expression itself and updates later.",
-    "An error, because `=` is mathematical equality and the statement is impossible."
-   ],
-   "correctIndex": 1,
-   "explanation": "In Python `=` is assignment, not equality: the right side is evaluated first and the result is bound to the name on the left. That is why `score` changes from 10 to 15 instead of storing an unevaluated expression. Assignment stores the value computed at that moment; if y = x + 2 runs when x is 3, y is 5 and stays 5 even if x changes afterward.",
-   "bloom": "understand",
-   "difficulty": "apply",
-   "catches": false,
-   "confronts": false,
-   "provenance": {
-    "runId": "v012-cs-lean",
-    "lessonId": "l6",
-    "itemIndex": 2,
     "grade": 99
    }
   },
@@ -26142,30 +25446,6 @@
    }
   },
   {
-   "id": "v012-cs-thrift:l2:q2",
-   "kernelId": "cs/variables",
-   "conceptName": "variables",
-   "stem": "What does this evaluate to in Python 3?\n7 / 2",
-   "options": [
-    "3, because 7 / 2 performs integer division when the operands look like whole numbers",
-    "3.5, because / always returns a float in Python 3",
-    "3, because floor division (//) is the only way to compute a quotient",
-    "4, because / rounds up to the next whole number"
-   ],
-   "correctIndex": 1,
-   "explanation": "In Python 3, the / operator always returns a float, so 7 / 2 is 3.5. The wrong belief is that 7 / 2 gives 3 because the operands look like whole numbers; use // for whole-number floor division, which gives 3.",
-   "bloom": "apply",
-   "difficulty": "apply",
-   "catches": false,
-   "confronts": false,
-   "provenance": {
-    "runId": "v012-cs-thrift",
-    "lessonId": "l2",
-    "itemIndex": 2,
-    "grade": 99
-   }
-  },
-  {
    "id": "v012-cs-thrift:l2:q3",
    "kernelId": "cs/variables",
    "conceptName": "variables",
@@ -26210,30 +25490,6 @@
     "runId": "v012-cs-thrift",
     "lessonId": "l2",
     "itemIndex": 5,
-    "grade": 99
-   }
-  },
-  {
-   "id": "v012-cs-thrift:l3:q3",
-   "kernelId": "cs/conditionals",
-   "conceptName": "conditionals",
-   "stem": "What is the value of result after running:\n\nresult = 7 / 2",
-   "options": [
-    "3, because / performs integer division when the operands look like whole numbers",
-    "3.5",
-    "3, because Python automatically discards the fractional part for division",
-    "3.0, because / returns an int when the inputs are ints"
-   ],
-   "correctIndex": 1,
-   "explanation": "In Python 3 the / operator always returns a float, so 7 / 2 is 3.5. Integer (whole-number) division would use // instead.",
-   "bloom": "apply",
-   "difficulty": "transfer",
-   "catches": false,
-   "confronts": false,
-   "provenance": {
-    "runId": "v012-cs-thrift",
-    "lessonId": "l3",
-    "itemIndex": 3,
     "grade": 99
    }
   },
@@ -26886,54 +26142,6 @@
    }
   },
   {
-   "id": "v013-cs-bank:l5:q5",
-   "kernelId": "cs/functions",
-   "conceptName": "functions and scope",
-   "stem": "What does this code print?\n\nfor ch in 'cat':\n    print(ch)",
-   "options": [
-    "It prints c, a, t because a for loop iterates over each element of a string one at a time.",
-    "It prints cat on one line because a string is treated like a single object in a for loop.",
-    "It prints three copies of cat because the loop repeats the whole string for each character.",
-    "It prints t, a, c because for loops move through strings from the last character backward."
-   ],
-   "correctIndex": 0,
-   "explanation": "A for loop iterates over each element of a container, and a string is a container of characters. Here the loop retrieves one character at a time: c, then a, then t.",
-   "bloom": "understand",
-   "difficulty": "apply",
-   "catches": false,
-   "confronts": false,
-   "provenance": {
-    "runId": "v013-cs-bank",
-    "lessonId": "l5",
-    "itemIndex": 5,
-    "grade": 99
-   }
-  },
-  {
-   "id": "v013-cs-bank:l6:q3",
-   "kernelId": "cs/lists",
-   "conceptName": "lists",
-   "stem": "After this code runs, what can be printed outside the function?\n\ndef make_message():\n    msg = 'hello'\n    return msg\n\ntext = make_message()",
-   "options": [
-    "text, because the function returned the local variable and the caller captured it",
-    "msg, because variables created inside a function have global scope",
-    "msg, because local variables can always be accessed outside the function",
-    "Nothing; return does not send a value back to the caller"
-   ],
-   "correctIndex": 0,
-   "explanation": "Local variables exist only during the call, so the usable value is the one returned and stored in text. msg is not accessible outside the function body.",
-   "bloom": "apply",
-   "difficulty": "transfer",
-   "catches": false,
-   "confronts": false,
-   "provenance": {
-    "runId": "v013-cs-bank",
-    "lessonId": "l6",
-    "itemIndex": 3,
-    "grade": 99
-   }
-  },
-  {
    "id": "v013-cs-bank:l6:q4",
    "kernelId": "cs/lists",
    "conceptName": "lists",
@@ -27102,30 +26310,6 @@
    }
   },
   {
-   "id": "v013-cs-bank:l11:q5",
-   "kernelId": "cs/classes",
-   "conceptName": "classes and objects",
-   "stem": "Which function is the best recursive version for factorial?",
-   "options": [
-    "```python\ndef factorial(n):\n    if n == 0:\n        return 1\n    return n * factorial(n)\n```",
-    "```python\ndef factorial(n):\n    if n == 0:\n        return 1\n    return n * factorial(n - 1)\n```",
-    "```python\ndef factorial(n):\n    return n * factorial(n - 1)\n```",
-    "```python\ndef factorial(n):\n    if n == 0:\n        return 1\n    return factorial(n - 1)\n```"
-   ],
-   "correctIndex": 1,
-   "explanation": "The correct version has a base case and shrinks the problem with `n - 1` each call. The same-size recursive call is the trap, and the no-base-case version never stops.",
-   "bloom": "apply",
-   "difficulty": "apply",
-   "catches": false,
-   "confronts": false,
-   "provenance": {
-    "runId": "v013-cs-bank",
-    "lessonId": "l11",
-    "itemIndex": 5,
-    "grade": 99
-   }
-  },
-  {
    "id": "v013-cs-bank2:l3:q5",
    "kernelId": "cs/conditionals",
    "conceptName": "conditionals and boolean logic",
@@ -27145,6 +26329,126 @@
    "provenance": {
     "runId": "v013-cs-bank2",
     "lessonId": "l3",
+    "itemIndex": 5,
+    "grade": 99
+   }
+  },
+  {
+   "id": "v013-cs-bank3:l3:q3",
+   "kernelId": "cs/conditionals",
+   "conceptName": "conditionals and boolean logic",
+   "stem": "Which expression will produce the whole-number quotient 3 (not 3.5)?",
+   "options": [
+    "int(7) / int(2)",
+    "float(7) // 2",
+    "7 / 2 gives 3 by integer division whenever the operands appear to be integers.",
+    "7 // 2"
+   ],
+   "correctIndex": 3,
+   "explanation": "In Python 3, the / operator always returns a float, so 7 / 2 is 3.5; use // for whole-number floor division, which gives 3.",
+   "bloom": "apply",
+   "difficulty": "transfer",
+   "catches": false,
+   "confronts": false,
+   "provenance": {
+    "runId": "v013-cs-bank3",
+    "lessonId": "l3",
+    "itemIndex": 3,
+    "grade": 99
+   }
+  },
+  {
+   "id": "v013-cs-bank3:l3:q4",
+   "kernelId": "cs/conditionals",
+   "conceptName": "conditionals and boolean logic",
+   "stem": "A student wants a message to appear only when a score is exactly 100. Which condition should go in the if statement?",
+   "options": [
+    "score == 100",
+    "score = 100",
+    "score != 100",
+    "score >= 100 and score <= 100"
+   ],
+   "correctIndex": 0,
+   "explanation": "Comparison uses ==, not a single =. A single = is assignment, so score == 100 is the condition that checks whether the two values are equal.",
+   "bloom": "apply",
+   "difficulty": "transfer",
+   "catches": false,
+   "confronts": false,
+   "provenance": {
+    "runId": "v013-cs-bank3",
+    "lessonId": "l3",
+    "itemIndex": 4,
+    "grade": 99
+   }
+  },
+  {
+   "id": "v013-cs-bank3:l5:q3",
+   "kernelId": "cs/for-loops",
+   "conceptName": "for loops and range",
+   "stem": "A student wrote a while loop but it never stops. They say: “Every while loop runs forever unless I used an if-else inside the body.” Which fix matches the real cause and addresses it?",
+   "options": [
+    "Change while to if so it repeats automatically",
+    "Remove the condition and always run the loop body",
+    "Add an if-else inside the body; that guarantees termination",
+    "Update the variable used in the loop condition so the condition eventually becomes false"
+   ],
+   "correctIndex": 3,
+   "explanation": "A while loop terminates only if something the condition depends on changes during the loop. For a counter loop, update the counter inside the body (e.g., n = n - 1 or += 1) so the condition eventually becomes false. Also, the loop condition is checked only at the top of each iteration, after the current pass runs.",
+   "bloom": "evaluate",
+   "difficulty": "transfer",
+   "catches": false,
+   "confronts": false,
+   "provenance": {
+    "runId": "v013-cs-bank3",
+    "lessonId": "l5",
+    "itemIndex": 3,
+    "grade": 99
+   }
+  },
+  {
+   "id": "v013-cs-bank3:l12:q3",
+   "kernelId": "cs/recursion",
+   "conceptName": "recursion",
+   "stem": "Misconception check (read carefully):\n\n\"I can call read() twice on the same file object, and it will just give me the full contents again both times.\" \n\nIs that belief correct?",
+   "options": [
+    "Yes—readline() does that, but read() is different",
+    "No—read() returns a list, so the second call fails",
+    "Yes—read() always returns the entire file contents from the start",
+    "No—after the first read() reaches the end, the next read() returns '' until you reopen/reset"
+   ],
+   "correctIndex": 3,
+   "explanation": "Reading advances a position marker through the file; once read() reaches EOF, the next read() returns '' until the file is reopened or the position is reset.",
+   "bloom": "evaluate",
+   "difficulty": "transfer",
+   "catches": false,
+   "confronts": false,
+   "provenance": {
+    "runId": "v013-cs-bank3",
+    "lessonId": "l12",
+    "itemIndex": 3,
+    "grade": 99
+   }
+  },
+  {
+   "id": "v013-cs-bank3:l12:q5",
+   "kernelId": "cs/recursion",
+   "conceptName": "recursion",
+   "stem": "For the worked example `factorial(n)`, which version matches the lesson's recursive pattern?",
+   "options": [
+    "`return 1` when `n` is 0; otherwise `return n * factorial(n - 1)`.",
+    "`return n` when `n` is 0; otherwise `return n * factorial(n)`.",
+    "`return 0` when `n` is 1; otherwise `return factorial(n + 1)`.",
+    "`return n * factorial(n + 1)` until the number gets bigger enough to stop."
+   ],
+   "correctIndex": 0,
+   "explanation": "That version has the base case `n == 0` and the recursive call on a smaller input, `n - 1`. The other choices either skip the base case or move away from it, so the chain of self-calls does not stop correctly.",
+   "bloom": "apply",
+   "difficulty": "apply",
+   "catches": false,
+   "confronts": false,
+   "provenance": {
+    "runId": "v013-cs-bank3",
+    "lessonId": "l12",
     "itemIndex": 5,
     "grade": 99
    }
@@ -27558,6 +26862,30 @@
    }
   },
   {
+   "id": "cmpB-cs-python:l2:q4",
+   "kernelId": "cs/variables",
+   "conceptName": "variables",
+   "stem": "What does Python 3 produce for 7 / 2?",
+   "options": [
+    "3",
+    "3.5",
+    "3.0",
+    "0"
+   ],
+   "correctIndex": 1,
+   "explanation": "In Python 3, `/` always returns a float, so `7 / 2` is `3.5`. Use `//` for whole-number floor division, which gives `3`.",
+   "bloom": "remember",
+   "difficulty": "recall",
+   "catches": false,
+   "confronts": false,
+   "provenance": {
+    "runId": "cmpB-cs-python",
+    "lessonId": "l2",
+    "itemIndex": 4,
+    "grade": 98
+   }
+  },
+  {
    "id": "cmpB-cs-python:l3:q3",
    "kernelId": "cs/conditionals",
    "conceptName": "conditionals",
@@ -27578,30 +26906,6 @@
     "runId": "cmpB-cs-python",
     "lessonId": "l3",
     "itemIndex": 3,
-    "grade": 98
-   }
-  },
-  {
-   "id": "cmpB-cs-python:l3:q5",
-   "kernelId": "cs/conditionals",
-   "conceptName": "conditionals",
-   "stem": "Your goal: build the string 'Age: 19' from the number 19.\n\nWhich expression is correct?\n\nA) 'Age: ' + 19\nB) 'Age: ' + str(19)\nC) 'Age: ' + int('19')\nD) 'Age: ' + 19.0",
-   "options": [
-    "A) 'Age: ' + 19",
-    "B) 'Age: ' + str(19)",
-    "C) 'Age: ' + int('19')",
-    "D) 'Age: ' + 19.0"
-   ],
-   "correctIndex": 1,
-   "explanation": "Convert the number with str() before joining it to text, or use formatting; Python will not silently turn an int into a string inside a + with a str. That’s why 'Age: ' + str(19) works.",
-   "bloom": "apply",
-   "difficulty": "apply",
-   "catches": false,
-   "confronts": false,
-   "provenance": {
-    "runId": "cmpB-cs-python",
-    "lessonId": "l3",
-    "itemIndex": 5,
     "grade": 98
    }
   },
@@ -27630,30 +26934,6 @@
    }
   },
   {
-   "id": "cmpB-cs-python:l4:q3",
-   "kernelId": "cs/while-loops",
-   "conceptName": "while loops",
-   "stem": "Student claim (choose what you should do): “Every while loop must change something the condition depends on; a counter loop needs n = n - 1 (or += 1) inside the body so the condition eventually becomes false.” Which code matches that rule?",
-   "options": [
-    "while n > 0:\n    print(n)\n    # forget to change n\n",
-    "while n > 0:\n    print(n)\n    n = n + 1\n",
-    "while n > 0:\n    n = n - 1\n    print(n)\n",
-    "while n > 0:\n    print('still looping')\n    break\n"
-   ],
-   "correctIndex": 2,
-   "explanation": "Corrective applied directly: “Every while loop must change something the condition depends on; a counter loop needs n = n - 1 (or += 1) inside the body so the condition eventually becomes false.” Option 3 updates n downward, so n > 0 eventually becomes false.",
-   "bloom": "apply",
-   "difficulty": "transfer",
-   "catches": false,
-   "confronts": false,
-   "provenance": {
-    "runId": "cmpB-cs-python",
-    "lessonId": "l4",
-    "itemIndex": 3,
-    "grade": 98
-   }
-  },
-  {
    "id": "cmpB-cs-python:l5:q0",
    "kernelId": "cs/while-loops",
    "conceptName": "for loops",
@@ -27678,6 +26958,30 @@
    }
   },
   {
+   "id": "cmpB-cs-python:l5:q2",
+   "kernelId": "cs/while-loops",
+   "conceptName": "for loops",
+   "stem": "Consider:\n\ni = 0\nwhile i < 3:\n    i = i + 1\n    print(i)\n\nWhat sequence is printed?",
+   "options": [
+    "1 2 3",
+    "0 1 2",
+    "1 2 3 4",
+    "0 1 2 3"
+   ],
+   "correctIndex": 0,
+   "explanation": "The loop expression is tested only at the top of each iteration; the rest of the current pass still runs before the condition is checked again. So the body with i = 0 runs, increments i to 1, and prints 1. Then the loop repeats for i = 1 and i = 2. When i becomes 3, the next top-of-iteration check fails, so the sequence printed is 1 2 3.",
+   "bloom": "apply",
+   "difficulty": "transfer",
+   "catches": false,
+   "confronts": false,
+   "provenance": {
+    "runId": "cmpB-cs-python",
+    "lessonId": "l5",
+    "itemIndex": 2,
+    "grade": 98
+   }
+  },
+  {
    "id": "cmpB-cs-python:l6:q2",
    "kernelId": "cs/functions",
    "conceptName": "functions",
@@ -27698,30 +27002,6 @@
     "runId": "cmpB-cs-python",
     "lessonId": "l6",
     "itemIndex": 2,
-    "grade": 98
-   }
-  },
-  {
-   "id": "cmpB-cs-python:l6:q3",
-   "kernelId": "cs/functions",
-   "conceptName": "functions",
-   "stem": "Which statement best describes what this code does?\n\nx = 1\nx = x + 1",
-   "options": [
-    "It asserts x equals x + 1 mathematically and doesn’t change x",
-    "It converts 1 into a float and assigns it to x",
-    "It computes x + 1 using the old value of x, then stores the result back in x",
-    "It evaluates x + 1 but does not store the result anywhere"
-   ],
-   "correctIndex": 2,
-   "explanation": "In Python, “= is assignment, not equality: the right side is evaluated first and the result is bound to the name on the left, so x = x + 1 simply increases x by one.”",
-   "bloom": "understand",
-   "difficulty": "transfer",
-   "catches": false,
-   "confronts": false,
-   "provenance": {
-    "runId": "cmpB-cs-python",
-    "lessonId": "l6",
-    "itemIndex": 3,
     "grade": 98
    }
   },
@@ -29982,30 +29262,6 @@
    }
   },
   {
-   "id": "live-cs-python-7:l3:q3",
-   "kernelId": "cs/conditionals",
-   "conceptName": "conditionals",
-   "stem": "What happens in Python when this runs?\n\nx = 3\nx = x + 1",
-   "options": [
-    "It causes a math error because x cannot equal x + 1.",
-    "x becomes 4.",
-    "x stays 3 because assignment cannot reuse the same name.",
-    "x becomes 1."
-   ],
-   "correctIndex": 1,
-   "explanation": "The assignment uses the current value of x, adds 1, and stores the result back in x. In Python = is assignment, not equality: the right side is evaluated first and the result is bound to the name on the left, so x = x + 1 simply increases x by one.",
-   "bloom": "apply",
-   "difficulty": "transfer",
-   "catches": false,
-   "confronts": false,
-   "provenance": {
-    "runId": "live-cs-python-7",
-    "lessonId": "l3",
-    "itemIndex": 3,
-    "grade": 98
-   }
-  },
-  {
    "id": "live-cs-python-7:l3:q4",
    "kernelId": "cs/conditionals",
    "conceptName": "conditionals",
@@ -30126,50 +29382,50 @@
    }
   },
   {
-   "id": "live-cs-python-7:l6:q1",
+   "id": "live-cs-python-7:l6:q3",
    "kernelId": "cs/functions",
    "conceptName": "functions",
-   "stem": "Which change would make this loop stop? `n = 3; while n > 0: print(n)`",
+   "stem": "A program uses `for i in range(5): print(i)`. Which values are printed?",
    "options": [
-    "Add `n = n - 1` inside the loop body.",
-    "Replace `while` with `if`.",
-    "Move `print(n)` above the `while` line.",
-    "Change the condition to `while n:` only."
+    "1, 2, 3, 4, 5",
+    "0, 1, 2, 3, 4",
+    "0, 1, 2, 3, 4, 5",
+    "5 only, because range(5) means five times starting at 5"
    ],
-   "correctIndex": 0,
-   "explanation": "The loop never changes `n`, so the condition stays true. Every while loop must change something the condition depends on; a counter loop needs n = n - 1 (or += 1) inside the body so the condition eventually becomes false.",
+   "correctIndex": 1,
+   "explanation": "range(5) yields 0, 1, 2, 3, 4 — it starts at 0 and stops before the endpoint, giving exactly five values.",
+   "bloom": "remember",
+   "difficulty": "recall",
+   "catches": false,
+   "confronts": false,
+   "provenance": {
+    "runId": "live-cs-python-7",
+    "lessonId": "l6",
+    "itemIndex": 3,
+    "grade": 98
+   }
+  },
+  {
+   "id": "live-cs-python-7:l7:q3",
+   "kernelId": "cs/lists",
+   "conceptName": "lists",
+   "stem": "A student runs this code:\n\ndef make_total():\n    total = 8 + 4\n\nprint(total)\nWhat happens?",
+   "options": [
+    "It prints 12 because total is global.",
+    "It prints 8 because the function runs before print.",
+    "It raises NameError because total is local to the function.",
+    "It prints nothing because functions cannot assign variables."
+   ],
+   "correctIndex": 2,
+   "explanation": "Local variables exist only during the call that created them; to use a result outside, the function must return it and the caller must capture the returned value. Here, total exists only inside make_total(), so print(total) fails outside the function.",
    "bloom": "apply",
    "difficulty": "transfer",
    "catches": false,
    "confronts": false,
    "provenance": {
     "runId": "live-cs-python-7",
-    "lessonId": "l6",
-    "itemIndex": 1,
-    "grade": 98
-   }
-  },
-  {
-   "id": "live-cs-python-7:l6:q5",
-   "kernelId": "cs/functions",
-   "conceptName": "functions",
-   "stem": "What does this loop do? `count = 2; while count > 0: print('go'); count = 0; print('done')`",
-   "options": [
-    "It prints `go`, then `done`, then stops.",
-    "It prints `go` once, then `done`, then stops.",
-    "It prints `go` forever because the condition was true at the start.",
-    "It prints nothing because the loop condition becomes false before the body starts."
-   ],
-   "correctIndex": 1,
-   "explanation": "The condition is checked only before the iteration starts. The body runs all the way through, so `print('go')` happens, then `count = 0`, then `print('done')`; the loop stops on the next test. The loop expression is tested only at the top of each iteration; the rest of the current pass still runs before the condition is checked again.",
-   "bloom": "analyze",
-   "difficulty": "transfer",
-   "catches": false,
-   "confronts": false,
-   "provenance": {
-    "runId": "live-cs-python-7",
-    "lessonId": "l6",
-    "itemIndex": 5,
+    "lessonId": "l7",
+    "itemIndex": 3,
     "grade": 98
    }
   },
@@ -30774,30 +30030,6 @@
    }
   },
   {
-   "id": "v011-cs-python-5:l13:q3",
-   "kernelId": "cs/classes",
-   "conceptName": "classes and objects",
-   "stem": "In this code, why does the last line fail?\n\n```python\ndef make_number():\n    x = 10\n\nmake_number()\nprint(x)\n```",
-   "options": [
-    "Because `x` has local scope inside `make_number()`, so it cannot be accessed outside the function.",
-    "Because `x` is global, so `print(x)` can only be used before the function is called.",
-    "Because `make_number()` returns `10`, but `print(x)` changes the returned value into `None`.",
-    "Because variables created outside any function are the only ones that can be printed."
-   ],
-   "correctIndex": 0,
-   "explanation": "A variable created inside a function has local scope and cannot be accessed outside the function. If you want to use the value later, the function must return it and the caller must capture that returned value.",
-   "bloom": "apply",
-   "difficulty": "apply",
-   "catches": false,
-   "confronts": false,
-   "provenance": {
-    "runId": "v011-cs-python-5",
-    "lessonId": "l13",
-    "itemIndex": 3,
-    "grade": 98
-   }
-  },
-  {
    "id": "v012-cs-diet:l2:q4",
    "kernelId": "cs/expressions-and-types",
    "conceptName": "types",
@@ -31038,30 +30270,6 @@
    }
   },
   {
-   "id": "v012-cs-diet2:l1:q4",
-   "kernelId": "cs/variables",
-   "conceptName": "variables",
-   "stem": "What does `int(3.9)` produce?",
-   "options": [
-    "3.9, because `int()` keeps the fractional part and only changes the label.",
-    "4, because `int()` rounds any decimal up to the next whole number.",
-    "3, because `int()` converts to an integer and removes any fractional part.",
-    "0, because `int()` clears everything after the decimal and the whole number too."
-   ],
-   "correctIndex": 2,
-   "explanation": "`int()` converts a value to an integer by truncating the fractional part, so `int(3.9)` becomes `3` rather than rounding. Also, in Python 3 the `/` operator always returns a float (`7 / 2` is 3.5), so for whole-number results you should use `//` for floor division.",
-   "bloom": "remember",
-   "difficulty": "recall",
-   "catches": false,
-   "confronts": false,
-   "provenance": {
-    "runId": "v012-cs-diet2",
-    "lessonId": "l1",
-    "itemIndex": 4,
-    "grade": 98
-   }
-  },
-  {
    "id": "v012-cs-diet2:l2:q5",
    "kernelId": "cs/conditionals",
    "conceptName": "conditionals",
@@ -31206,30 +30414,6 @@
    }
   },
   {
-   "id": "v012-cs-diet2:l5:q5",
-   "kernelId": "cs/while-loops",
-   "conceptName": "for loops",
-   "stem": "In this code, what gets printed?\n\ndef square(n):\n    return n * n\n\nresult = square(5)\nprint(result)",
-   "options": [
-    "5, because variables created inside it are local to that call and cannot be returned.",
-    "25, because square(5) runs the body and returns n * n.",
-    "n * n, because the function definition runs only when the body is called.",
-    "Nothing, because a function is a named, reusable block of code that performs a task when called."
-   ],
-   "correctIndex": 1,
-   "explanation": "square(5) runs the body and returns 25, and result stores that returned value. The local-scope idea is about where names can be accessed, not about blocking the return value. Defining a function only stores it; the body runs when the function is called by name.",
-   "bloom": "apply",
-   "difficulty": "transfer",
-   "catches": false,
-   "confronts": false,
-   "provenance": {
-    "runId": "v012-cs-diet2",
-    "lessonId": "l5",
-    "itemIndex": 5,
-    "grade": 98
-   }
-  },
-  {
    "id": "v012-cs-diet2:l6:q4",
    "kernelId": "cs/functions",
    "conceptName": "functions",
@@ -31274,54 +30458,6 @@
     "runId": "v012-cs-diet2",
     "lessonId": "l7",
     "itemIndex": 3,
-    "grade": 98
-   }
-  },
-  {
-   "id": "v012-cs-diet2:l7:q4",
-   "kernelId": "cs/lists",
-   "conceptName": "lists",
-   "stem": "What happens when this runs?\n\n```python\ndef greet():\n    print('hi')\n```",
-   "options": [
-    "Nothing prints yet; defining a function only stores it, and the body runs when `greet()` is called",
-    "`hi` prints immediately because writing def greet(): runs the function body immediately",
-    "A NameError happens because `greet` is local and cannot be created outside a function",
-    "Python prints the function name because a function is a named, reusable block of code"
-   ],
-   "correctIndex": 0,
-   "explanation": "Defining a function just stores its code; the body runs only when the function is called (e.g., `greet()`). Local variables exist only during that call, so to use a result outside, the function must return it and the caller must capture the returned value.",
-   "bloom": "understand",
-   "difficulty": "apply",
-   "catches": false,
-   "confronts": false,
-   "provenance": {
-    "runId": "v012-cs-diet2",
-    "lessonId": "l7",
-    "itemIndex": 4,
-    "grade": 98
-   }
-  },
-  {
-   "id": "v012-cs-diet2:l9:q4",
-   "kernelId": "cs/dictionaries",
-   "conceptName": "dictionaries",
-   "stem": "After this code runs, what is `text`? `text = 'cat,dog'; parts = text.split(',')`",
-   "options": [
-    "'cat,dog', because `split` returns a new list and leaves the original string unchanged",
-    "['cat', 'dog'], because `split` changes `text` itself into a list",
-    "'cat dog', because `split` removes the comma from the original string",
-    "parts, because `text` is renamed to match the new variable"
-   ],
-   "correctIndex": 0,
-   "explanation": "Since strings are immutable, `split` returns a new list and does not modify `text` itself. The original string remains `'cat,dog'`, and methods like `split` always return new values.",
-   "bloom": "understand",
-   "difficulty": "apply",
-   "catches": false,
-   "confronts": false,
-   "provenance": {
-    "runId": "v012-cs-diet2",
-    "lessonId": "l9",
-    "itemIndex": 4,
     "grade": 98
    }
   },
@@ -31542,6 +30678,30 @@
    }
   },
   {
+   "id": "v012-cs-overnight2:l6:q2",
+   "kernelId": "cs/lists",
+   "conceptName": "lists",
+   "stem": "What happens when Python reaches `def greet(): print('hi')` in a file that has not called `greet()` yet?",
+   "options": [
+    "It prints `hi` immediately, because writing `def greet():` runs the function body immediately.",
+    "It stores the function, and the body runs later only when `greet()` is called by name.",
+    "It raises a NameError, because a function cannot be defined before it is called.",
+    "It prints `hi` only if the function is inside a list."
+   ],
+   "correctIndex": 1,
+   "explanation": "Writing `def greet():` only defines/stores the function; it does not run the body immediately. Variables created inside the call are local to that call, so to use a result outside the function you must `return` it and capture the returned value at the call site.",
+   "bloom": "understand",
+   "difficulty": "apply",
+   "catches": false,
+   "confronts": false,
+   "provenance": {
+    "runId": "v012-cs-overnight2",
+    "lessonId": "l6",
+    "itemIndex": 2,
+    "grade": 98
+   }
+  },
+  {
    "id": "v012-cs-overnight2:l11:q2",
    "kernelId": "cs/recursion",
    "conceptName": "recursion",
@@ -31586,30 +30746,6 @@
     "runId": "v012-cs-overnight2",
     "lessonId": "l11",
     "itemIndex": 3,
-    "grade": 98
-   }
-  },
-  {
-   "id": "v012-cs-overnight2:l11:q4",
-   "kernelId": "cs/recursion",
-   "conceptName": "recursion",
-   "stem": "Which recursive version matches the example pattern for factorial from class?",
-   "options": [
-    "`factorial(n)` returns 1 when n is 0, and otherwise returns `n * factorial(n - 1)`",
-    "`factorial(n)` returns 1 when n is 0, and otherwise returns `n * factorial(n)`",
-    "`factorial(n)` returns n when n is 0, and otherwise returns `factorial(n - 1) + 1`",
-    "`factorial(n)` returns 0 when n is 0, and otherwise returns `factorial(n - 1)`"
-   ],
-   "correctIndex": 0,
-   "explanation": "That is the worked example: the base case is 0 returning 1, and each recursive call shrinks n by 1. The same-size call in the second option never moves toward the base case.",
-   "bloom": "remember",
-   "difficulty": "recall",
-   "catches": false,
-   "confronts": false,
-   "provenance": {
-    "runId": "v012-cs-overnight2",
-    "lessonId": "l11",
-    "itemIndex": 4,
     "grade": 98
    }
   },
@@ -31682,30 +30818,6 @@
     "runId": "v012-la-final",
     "lessonId": "l2",
     "itemIndex": 4,
-    "grade": 98
-   }
-  },
-  {
-   "id": "v012-la-final:l2:q5",
-   "kernelId": "math/vector-space",
-   "conceptName": "vectors",
-   "stem": "In the echelon form below, where are the pivot positions? \n\\[\n\\begin{bmatrix}\n1 & 2 & 0 & 5\\\\\n0 & 3 & 4 & 1\\\\\n0 & 0 & 7 & 9\n\\end{bmatrix}\n\\]",
-   "options": [
-    "The first nonzero entry in each row: columns 1, 2, and 3.",
-    "The columns with the largest numbers: columns 4, 3, and 2.",
-    "Every column, because every column contains a nonzero entry.",
-    "Only column 1, because pivot positions come from the first row only."
-   ],
-   "correctIndex": 0,
-   "explanation": "A pivot is the first nonzero entry of a row in echelon form, so the pivots are in columns 1, 2, and 3. They are determined by echelon structure during elimination, not by entry size or by the first row alone.",
-   "bloom": "apply",
-   "difficulty": "apply",
-   "catches": false,
-   "confronts": false,
-   "provenance": {
-    "runId": "v012-la-final",
-    "lessonId": "l2",
-    "itemIndex": 5,
     "grade": 98
    }
   },
@@ -33030,6 +32142,30 @@
    }
   },
   {
+   "id": "e1-cs-python:l7:q4",
+   "kernelId": "cs/lists",
+   "conceptName": "lists",
+   "stem": "Read this code: def greet(): print('Hi'). What happens when this line is executed?",
+   "options": [
+    "The word Hi is printed immediately.",
+    "The function is stored, but the body runs only when greet() is called.",
+    "A NameError happens because print is inside a function.",
+    "The function runs automatically at the end of the program."
+   ],
+   "correctIndex": 1,
+   "explanation": "Defining a function only stores it; the body runs when the function is called by name, such as greet(). So def greet(): sets up the function, but it does not print anything until you call it.",
+   "bloom": "understand",
+   "difficulty": "apply",
+   "catches": false,
+   "confronts": false,
+   "provenance": {
+    "runId": "e1-cs-python",
+    "lessonId": "l7",
+    "itemIndex": 4,
+    "grade": 97
+   }
+  },
+  {
    "id": "e1-cs-python:l8:q1",
    "kernelId": "cs/strings",
    "conceptName": "strings",
@@ -33050,54 +32186,6 @@
     "runId": "e1-cs-python",
     "lessonId": "l8",
     "itemIndex": 1,
-    "grade": 97
-   }
-  },
-  {
-   "id": "e1-cs-python:l8:q2",
-   "kernelId": "cs/strings",
-   "conceptName": "strings",
-   "stem": "What happens when this runs?\ns = 'cat'\ns[0] = 'b'",
-   "options": [
-    "s becomes 'bat'",
-    "Python changes only the first character",
-    "It raises an error because strings are immutable",
-    "It returns a new string and stores it in s automatically"
-   ],
-   "correctIndex": 2,
-   "explanation": "Strings are immutable; you cannot assign to s[0]. Build a new string instead, e.g. 'H' + s[1:]. In other words, Python does not change one character in place here.",
-   "bloom": "apply",
-   "difficulty": "transfer",
-   "catches": false,
-   "confronts": false,
-   "provenance": {
-    "runId": "e1-cs-python",
-    "lessonId": "l8",
-    "itemIndex": 2,
-    "grade": 97
-   }
-  },
-  {
-   "id": "e1-cs-python:l8:q3",
-   "kernelId": "cs/strings",
-   "conceptName": "strings",
-   "stem": "What does this code leave in s?\ns = 'banana'\ns.replace('a', 'o')",
-   "options": [
-    "'bonono' stored back in s",
-    "'banana' stored back in s",
-    "It changes s only if there are three 'a' characters",
-    "It raises an error because replace works only on lists"
-   ],
-   "correctIndex": 1,
-   "explanation": "Instructors emphasize that Python strings are immutable and require assignment (e.g., s = s.replace(...)) or direct use of the returned value; show a before/after example to confirm behavior. Since the result is not assigned, s stays 'banana'.",
-   "bloom": "apply",
-   "difficulty": "transfer",
-   "catches": false,
-   "confronts": false,
-   "provenance": {
-    "runId": "e1-cs-python",
-    "lessonId": "l8",
-    "itemIndex": 3,
     "grade": 97
    }
   },
@@ -33289,78 +32377,6 @@
    "provenance": {
     "runId": "e1-cs-python",
     "lessonId": "l10",
-    "itemIndex": 4,
-    "grade": 97
-   }
-  },
-  {
-   "id": "e1-cs-python:l11:q1",
-   "kernelId": "cs/recursion",
-   "conceptName": "recursion",
-   "stem": "Which version of factorial matches the worked example and stops correctly?",
-   "options": [
-    "def factorial(n): return n * factorial(n - 1)",
-    "def factorial(n): if n == 0: return 1; return n * factorial(n - 1)",
-    "def factorial(n): return factorial(n)",
-    "def factorial(n): if n == 0: return n; return factorial(n + 1)"
-   ],
-   "correctIndex": 1,
-   "explanation": "The worked example is the one with the base case at n == 0 returning 1 and the recursive step n * factorial(n - 1). That setup both stops the self-calls and shrinks n each time.",
-   "bloom": "understand",
-   "difficulty": "apply",
-   "catches": false,
-   "confronts": false,
-   "provenance": {
-    "runId": "e1-cs-python",
-    "lessonId": "l11",
-    "itemIndex": 1,
-    "grade": 97
-   }
-  },
-  {
-   "id": "e1-cs-python:l12:q3",
-   "kernelId": "cs/classes",
-   "conceptName": "classes",
-   "stem": "Consider this code:\n\n```python\ndef square(n):\n    result = n * n\n\nprint(result)\n```\n\nWhat is the best explanation for why this fails?",
-   "options": [
-    "`result` is local to `square`, so it cannot be read outside the function.",
-    "`result` is global, so `print(result)` always works.",
-    "`n` is global, so the multiplication overwrites `print`.",
-    "The function runs only after `print(result)` finishes."
-   ],
-   "correctIndex": 0,
-   "explanation": "Local variables exist only during the call that created them; to use a result outside, the function must return it and the caller must capture the returned value. Here, `result` never leaves the function body.",
-   "bloom": "apply",
-   "difficulty": "apply",
-   "catches": false,
-   "confronts": false,
-   "provenance": {
-    "runId": "e1-cs-python",
-    "lessonId": "l12",
-    "itemIndex": 3,
-    "grade": 97
-   }
-  },
-  {
-   "id": "e1-cs-python:l12:q4",
-   "kernelId": "cs/classes",
-   "conceptName": "classes",
-   "stem": "Which change best fixes this code so the caller can use the computed value?\n\n```python\ndef square(n):\n    result = n * n\n```\n",
-   "options": [
-    "Add `print(result)` inside the function and keep the rest the same.",
-    "Replace `result = n * n` with `n = result * result`.",
-    "Add `return result` and store the call result in the caller.",
-    "Rename `result` to `global_result` so it can be used anywhere."
-   ],
-   "correctIndex": 2,
-   "explanation": "To use a result outside, the function must return it and the caller must capture the returned value. Returning `result` is what carries the value out of the local scope.",
-   "bloom": "apply",
-   "difficulty": "transfer",
-   "catches": false,
-   "confronts": false,
-   "provenance": {
-    "runId": "e1-cs-python",
-    "lessonId": "l12",
     "itemIndex": 4,
     "grade": 97
    }
@@ -33606,6 +32622,30 @@
    }
   },
   {
+   "id": "live-cs-python-4:l5:q1",
+   "kernelId": "cs/for-loops",
+   "conceptName": "range",
+   "stem": "A loop prints the numbers for range(5). Which sequence should the student expect?",
+   "options": [
+    "1, 2, 3, 4, 5",
+    "0, 1, 2, 3, 4",
+    "0, 1, 2, 3, 4, 5",
+    "5, 4, 3, 2, 1"
+   ],
+   "correctIndex": 1,
+   "explanation": "range(5) starts at 0 and stops before 5, so it yields exactly 0 through 4. That is the version to use when a loop needs five passes.",
+   "bloom": "understand",
+   "difficulty": "apply",
+   "catches": false,
+   "confronts": false,
+   "provenance": {
+    "runId": "live-cs-python-4",
+    "lessonId": "l5",
+    "itemIndex": 1,
+    "grade": 97
+   }
+  },
+  {
    "id": "live-cs-python-4:l5:q2",
    "kernelId": "cs/for-loops",
    "conceptName": "range",
@@ -33770,30 +32810,6 @@
     "runId": "live-cs-python-4",
     "lessonId": "l7",
     "itemIndex": 0,
-    "grade": 97
-   }
-  },
-  {
-   "id": "live-cs-python-4:l7:q2",
-   "kernelId": "cs/lists",
-   "conceptName": "lists",
-   "stem": "What does this print? 7 / 2",
-   "options": [
-    "3",
-    "3.0",
-    "3.5",
-    "4"
-   ],
-   "correctIndex": 2,
-   "explanation": "The / operator always returns a float in Python 3, even when both operands look like whole numbers. So 7 / 2 is 3.5. Use // when you want the whole-number quotient.",
-   "bloom": "apply",
-   "difficulty": "apply",
-   "catches": false,
-   "confronts": false,
-   "provenance": {
-    "runId": "live-cs-python-4",
-    "lessonId": "l7",
-    "itemIndex": 2,
     "grade": 97
    }
   },
@@ -34350,6 +33366,30 @@
    }
   },
   {
+   "id": "live-cs-python-5:l4:q0",
+   "kernelId": "cs/while-loops",
+   "conceptName": "while loops",
+   "stem": "A loop starts with n = 5 and uses while n > 0:. Which body change makes the loop stop on its own?",
+   "options": [
+    "Leave n alone and print n each time",
+    "Set n = n - 1 inside the body",
+    "Move the print statement above the loop",
+    "Use if n > 0 instead of while n > 0"
+   ],
+   "correctIndex": 1,
+   "explanation": "The body has to change the value the condition depends on. Every while loop must change something the condition depends on; a counter loop needs n = n - 1 (or += 1) inside the body so the condition eventually becomes false. Here, subtracting 1 each pass moves n toward 0, so the loop ends.",
+   "bloom": "apply",
+   "difficulty": "transfer",
+   "catches": false,
+   "confronts": false,
+   "provenance": {
+    "runId": "live-cs-python-5",
+    "lessonId": "l4",
+    "itemIndex": 0,
+    "grade": 97
+   }
+  },
+  {
    "id": "live-cs-python-5:l4:q4",
    "kernelId": "cs/while-loops",
    "conceptName": "while loops",
@@ -34514,6 +33554,30 @@
     "runId": "live-cs-python-5",
     "lessonId": "l7",
     "itemIndex": 1,
+    "grade": 97
+   }
+  },
+  {
+   "id": "live-cs-python-5:l7:q3",
+   "kernelId": "cs/lists",
+   "conceptName": "lists",
+   "stem": "A student types def greet(): and expects the greeting to print immediately. What actually happens?",
+   "options": [
+    "The function body runs right away.",
+    "The function body runs only when greet() is called.",
+    "The code inside the function becomes global.",
+    "The function cannot be called until after a loop."
+   ],
+   "correctIndex": 1,
+   "explanation": "Defining a function only stores it; the body runs when the function is called by name, such as greet(). Writing the definition sets up the function, but calling it is what executes the body.",
+   "bloom": "understand",
+   "difficulty": "apply",
+   "catches": false,
+   "confronts": false,
+   "provenance": {
+    "runId": "live-cs-python-5",
+    "lessonId": "l7",
+    "itemIndex": 3,
     "grade": 97
    }
   },
@@ -34806,30 +33870,6 @@
    }
   },
   {
-   "id": "v011-cs-python-8:l1:q3",
-   "kernelId": "cs/variables",
-   "conceptName": "variables",
-   "stem": "After these two statements run, what are the values of total and Total?\n\ntotal = 4\nTotal = total + 1",
-   "options": [
-    "total = 5 and Total = 5, because letter case does not matter.",
-    "total = 4 and Total = 4, because the second line only copies the old total.",
-    "total = 4 and Total = 5, because total and Total are two different variables.",
-    "total = 5 and Total = 4, because assignment always changes every variable with a similar name."
-   ],
-   "correctIndex": 2,
-   "explanation": "total and Total are case-sensitive, so they are different names. The first line leaves total at 4, and the second line computes 4 + 1 and stores 5 in Total.",
-   "bloom": "apply",
-   "difficulty": "transfer",
-   "catches": false,
-   "confronts": false,
-   "provenance": {
-    "runId": "v011-cs-python-8",
-    "lessonId": "l1",
-    "itemIndex": 3,
-    "grade": 97
-   }
-  },
-  {
    "id": "v011-cs-python-8:l1:q4",
    "kernelId": "cs/variables",
    "conceptName": "variables",
@@ -34921,30 +33961,6 @@
    "provenance": {
     "runId": "v011-cs-python-8",
     "lessonId": "l3",
-    "itemIndex": 3,
-    "grade": 97
-   }
-  },
-  {
-   "id": "v011-cs-python-8:l4:q3",
-   "kernelId": "cs/while-loops",
-   "conceptName": "while loops",
-   "stem": "Which condition correctly matches ages from 14 through 18?\n\n```python\nage = 16\n```",
-   "options": [
-    "`age > 13 and age < 19` because each comparison needs its own operands joined by and.",
-    "`age > 13 and < 19` because the second comparison can reuse the first one without repeating `age`.",
-    "`age = 13 and age = 19` because `=` compares the endpoints of the range.",
-    "`not age > 13 and age < 19` because `not` makes the whole range test true."
-   ],
-   "correctIndex": 0,
-   "explanation": "Each comparison needs its own left-hand operand, so `age > 13 and age < 19` is the valid range test. The chained form is invalid because the bare `< 19` has nothing on its left, and `=` is assignment, not comparison.",
-   "bloom": "apply",
-   "difficulty": "apply",
-   "catches": false,
-   "confronts": false,
-   "provenance": {
-    "runId": "v011-cs-python-8",
-    "lessonId": "l4",
     "itemIndex": 3,
     "grade": 97
    }
@@ -35142,30 +34158,6 @@
    }
   },
   {
-   "id": "v012-cs-overnight:l1:q3",
-   "kernelId": "cs/variables",
-   "conceptName": "variables",
-   "stem": "What does this line do?\n\n'Age: ' + 19",
-   "options": [
-    "It prints 'Age: 19' because Python silently turns an int into a string inside a + with a str.",
-    "It raises a TypeError because a str and an int cannot be added directly.",
-    "It gives 38 because + adds the text length and the number.",
-    "It works only if the number is written first, like 19 + 'Age: '."
-   ],
-   "correctIndex": 1,
-   "explanation": "To build a string, convert the number first (e.g., with `str()`), or use formatting; Python won’t automatically mix `str` and `int` with `+`. If you try to do string concatenation with an `int` directly, like `str_var + 3`, Python raises a `TypeError`. Convert the `int` before joining it to text.",
-   "bloom": "apply",
-   "difficulty": "transfer",
-   "catches": false,
-   "confronts": false,
-   "provenance": {
-    "runId": "v012-cs-overnight",
-    "lessonId": "l1",
-    "itemIndex": 3,
-    "grade": 97
-   }
-  },
-  {
    "id": "v012-cs-overnight:l2:q0",
    "kernelId": "cs/conditionals",
    "conceptName": "conditionals",
@@ -35258,6 +34250,30 @@
     "runId": "v012-cs-overnight",
     "lessonId": "l3",
     "itemIndex": 5,
+    "grade": 97
+   }
+  },
+  {
+   "id": "v012-cs-overnight:l4:q3",
+   "kernelId": "cs/while-loops",
+   "conceptName": "for loops",
+   "stem": "You want to print the numbers 0 through 4 using a for loop. Which header does that?",
+   "options": [
+    "`for i in range(5):` because `range(5)` yields 0, 1, 2, 3, 4.",
+    "`for i in range(1, 5):` because `range(5)` produces 1 through 5.",
+    "`for i in range(5, 0):` because the endpoint is included when counting up.",
+    "`for i in range(4):` because `range(4)` gives 0 through 4."
+   ],
+   "correctIndex": 0,
+   "explanation": "`range(5)` gives five values, starting at 0 and stopping before 5. The 1-through-5 belief is the common trap here, but Python does not include the endpoint.",
+   "bloom": "apply",
+   "difficulty": "apply",
+   "catches": false,
+   "confronts": false,
+   "provenance": {
+    "runId": "v012-cs-overnight",
+    "lessonId": "l4",
+    "itemIndex": 3,
     "grade": 97
    }
   },
@@ -35382,6 +34398,30 @@
    }
   },
   {
+   "id": "v012-cs-thrift2:l4:q2",
+   "kernelId": "cs/while-loops",
+   "conceptName": "while loops",
+   "stem": "Pick the code that correctly runs a branch when a temperature is boiling (temp > 100), and otherwise runs the not-boiling branch.",
+   "options": [
+    "if temp > 100: print('boiling') else: print('not boiling')",
+    "if temp > 100: print('not boiling') else: print('boiling')",
+    "if temp = 100: print('boiling') else: print('not boiling')",
+    "if temp > 100 and temp < 100: print('boiling') else: print('not boiling')"
+   ],
+   "correctIndex": 0,
+   "explanation": "This uses if-else so exactly one branch runs, and else runs when temp > 100 is false. Options that flip the branch are backwards, and temp = 100 uses a single =, which isn’t a comparison for equality.",
+   "bloom": "apply",
+   "difficulty": "apply",
+   "catches": false,
+   "confronts": false,
+   "provenance": {
+    "runId": "v012-cs-thrift2",
+    "lessonId": "l4",
+    "itemIndex": 2,
+    "grade": 97
+   }
+  },
+  {
    "id": "v012-cs-thrift2:l5:q2",
    "kernelId": "cs/for-loops",
    "conceptName": "for loops and range",
@@ -35430,30 +34470,6 @@
    }
   },
   {
-   "id": "v012-cs-thrift2:l5:q5",
-   "kernelId": "cs/for-loops",
-   "conceptName": "for loops and range",
-   "stem": "Is this condition valid, and if not, what’s wrong?\n\nif age > 13 and < 19:\n    print('teen')",
-   "options": [
-    "It’s invalid because each comparison needs its own operands: age > 13 and age < 19",
-    "It’s valid: < 19 automatically uses age from the left",
-    "It’s valid: if age > 13 and < 19 always means age > 13 and age > 19",
-    "It raises a syntax error because and requires three operands"
-   ],
-   "correctIndex": 0,
-   "explanation": "Comparison uses == (two equals signs); a single = is assignment, so equality tests must use score == 100 style syntax. A condition that asks whether two values are equal must be written with ==, and comparisons need to be correctly formed (e.g., age > 13 and age < 19 uses and to combine two complete comparisons).",
-   "bloom": "analyze",
-   "difficulty": "transfer",
-   "catches": false,
-   "confronts": false,
-   "provenance": {
-    "runId": "v012-cs-thrift2",
-    "lessonId": "l5",
-    "itemIndex": 5,
-    "grade": 97
-   }
-  },
-  {
    "id": "v012-cs-thrift2:l6:q4",
    "kernelId": "cs/functions",
    "conceptName": "functions and scope",
@@ -35474,30 +34490,6 @@
     "runId": "v012-cs-thrift2",
     "lessonId": "l6",
     "itemIndex": 4,
-    "grade": 97
-   }
-  },
-  {
-   "id": "v012-cs-thrift2:l7:q3",
-   "kernelId": "cs/lists",
-   "conceptName": "lists",
-   "stem": "Consider this program:\n\ndef make_msg():\n    msg = 'hi'\n    return msg\n\nprint(msg)",
-   "options": [
-    "It raises an error because msg is defined inside make_msg and has local scope, so printing msg outside fails.",
-    "It prints 'hi' because writing def make_msg(): runs the body immediately.",
-    "It prints 'hi' because any variable created inside a function becomes global automatically.",
-    "It raises an error only if msg is spelled differently inside the function."
-   ],
-   "correctIndex": 0,
-   "explanation": "Variables created inside a function have local scope, so they can’t be accessed outside that function. The right approach is to return the value and have the caller capture it (e.g., m = make_msg(); print(m)), rather than assuming msg is global. Also, defining a function only stores it; the body runs only when the function is called by name, such as greet().",
-   "bloom": "analyze",
-   "difficulty": "transfer",
-   "catches": false,
-   "confronts": false,
-   "provenance": {
-    "runId": "v012-cs-thrift2",
-    "lessonId": "l7",
-    "itemIndex": 3,
     "grade": 97
    }
   },
@@ -35598,30 +34590,6 @@
    }
   },
   {
-   "id": "v012-cs-thrift2:l13:q4",
-   "kernelId": "cs/classes",
-   "conceptName": "classes and objects",
-   "stem": "Which best explains why this code errors?\n\ndef greet():\n    message = 'hi'\n\ngreet()\nprint(message)\n",
-   "options": [
-    "It errors because message is local to the greet() call and can’t be accessed outside",
-    "It errors because message is global only when you call greet()",
-    "It errors because defining def greet(): automatically runs the body at definition time",
-    "It errors only if greet() returns a value, otherwise message doesn’t exist"
-   ],
-   "correctIndex": 0,
-   "explanation": "Variables created inside a function have local scope, so message exists only during that call. Since greet() doesn’t expose message, print(message) can’t access it outside the function. Defining a function only stores it; the body runs when the function is called by name, such as greet().",
-   "bloom": "analyze",
-   "difficulty": "transfer",
-   "catches": false,
-   "confronts": false,
-   "provenance": {
-    "runId": "v012-cs-thrift2",
-    "lessonId": "l13",
-    "itemIndex": 4,
-    "grade": 97
-   }
-  },
-  {
    "id": "v012-cs-verify:l3:q5",
    "kernelId": "cs/conditionals",
    "conceptName": "conditionals and boolean logic",
@@ -35642,6 +34610,30 @@
     "runId": "v012-cs-verify",
     "lessonId": "l3",
     "itemIndex": 5,
+    "grade": 97
+   }
+  },
+  {
+   "id": "v012-cs-verify:l4:q2",
+   "kernelId": "cs/while-loops",
+   "conceptName": "while loops",
+   "stem": "Which condition correctly matches ages from 14 through 18, inclusive?",
+   "options": [
+    "age > 13 and < 19, because and can join the two bounds without repeating age.",
+    "age > 13 and age < 19, because each comparison needs its own operands joined by and.",
+    "age == 14 or 15 or 16 or 17 or 18, because or chains the allowed ages together.",
+    "age >= 14 and <= 18, because the second comparison can skip repeating age."
+   ],
+   "correctIndex": 1,
+   "explanation": "Each comparison needs its own operands, so age > 13 and age < 19 is the valid form. The bare “< 19” option is the documented mistake of skipping the left operand on the second comparison.",
+   "bloom": "apply",
+   "difficulty": "apply",
+   "catches": false,
+   "confronts": false,
+   "provenance": {
+    "runId": "v012-cs-verify",
+    "lessonId": "l4",
+    "itemIndex": 2,
     "grade": 97
    }
   },
