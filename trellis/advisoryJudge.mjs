@@ -77,11 +77,13 @@ export async function judgePackage(packageDir, { title = 'this course', lessonCo
   };
 }
 
-// CLI — guarded so importing this module never runs it (the profBridge lesson).
-import { pathToFileURL } from 'node:url';
-const executedDirectly = process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href;
-if (executedDirectly && process.argv[2]) {
-  const result = await judgePackage(process.argv[2], {
+// CLI — guarded so importing this module never runs it (the profBridge
+// lesson). vite-node strips the script path from argv, so the guard is
+// content-based: argv[2] must be an existing package directory.
+import { existsSync, statSync } from 'node:fs';
+const packageDirArg = process.argv[2];
+if (packageDirArg && existsSync(packageDirArg) && statSync(packageDirArg).isDirectory()) {
+  const result = await judgePackage(packageDirArg, {
     title: process.argv[3] ?? 'this course',
     lessonCount: Number(process.argv[4] ?? 15),
     seats: Number(process.argv[5] ?? 2),

@@ -153,9 +153,12 @@ export function buildStructured(graph, authored, authoredExams = {}) {
   return { id: 'trellis:in-memory', lessons, items };
 }
 
-import { pathToFileURL } from 'node:url';
-const executedDirectly = process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href;
-const runDir = executedDirectly ? process.argv[2] : null;
+// vite-node strips the script path from argv, so URL-matching cannot
+// detect direct execution — the guard is content-based: argv[2] must be a
+// real run directory (the pipeline's import passes 'generate', which fails).
+import { existsSync } from 'node:fs';
+const candidate = process.argv[2];
+const runDir = candidate && existsSync(join(candidate, 'graph.json')) ? candidate : null;
 if (runDir) {
   const structured = await buildStructuredFromRun(runDir);
   const out = join(runDir, 'structured.json');

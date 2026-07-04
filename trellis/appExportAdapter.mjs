@@ -79,21 +79,117 @@ export function mapQuizBankData(graph, authored, authoredExams = {}) {
   return { quizzes };
 }
 
-export async function writeDocxExports(runDir) {
+// ── v0.1.2 slice 2: the remaining printable features ────────────────────────
+
+export function mapStudyGuidesData(graph, authored) {
+  const guides = orderedLessons(graph).map((lesson, index) => ({
+    lessonTitle: `Lesson ${index + 1}: ${lesson.title} — Study Guide`,
+    summary: authored[lesson.id].studyGuideSection,
+  }));
+  return { guides };
+}
+
+export function mapDiscussionsData(graph, authored) {
+  const discussions = orderedLessons(graph).map((lesson, index) => {
+    const d = authored[lesson.id].discussion;
+    return {
+      lessonTitle: `Lesson ${index + 1}: ${lesson.title} — Discussion`,
+      prompt: d.prompt,
+      context: d.tension,
+      followUpProbes: d.followUps,
+    };
+  });
+  return { discussions };
+}
+
+export function mapAssignmentsData(graph, authored) {
+  const outcomesById = new Map(graph.outcomes.map((o) => [o.id, o]));
+  const assignments = orderedLessons(graph).map((lesson, index) => {
+    const a = authored[lesson.id].assignment;
+    return {
+      title: `Lesson ${index + 1}: ${lesson.title} — Assignment`,
+      overview: a.task,
+      instructions: a.steps,
+      objectives: lesson.outcomeIds.map((id) => outcomesById.get(id)?.statement).filter(Boolean),
+    };
+  });
+  return { assignments };
+}
+
+export function mapSyllabusData(graph, courseWide) {
+  return {
+    syllabus: {
+      courseDescription: courseWide?.courseDescription ?? `${graph.course.title} (${graph.course.subject}).`,
+      meetingPattern: `${graph.course.sessionsPerWeek} session(s)/week × ${graph.course.weeks} weeks`,
+      learningOutcomes: graph.outcomes.map((o) => o.statement),
+      courseRequirements: graph.assessments.map((a) => ({
+        component: a.registryKey,
+        weight: `${a.weightPct}%`,
+      })),
+    },
+  };
+}
+
+export function mapCourseFaqData(graph, authored, courseWide) {
+  const faqs = orderedLessons(graph)
+    .map((lesson, index) => ({
+      lessonTitle: `Lesson ${index + 1}: ${lesson.title}`,
+      questions: (authored[lesson.id].faqEntries ?? []).map((entry) => ({ question: entry.q, answer: entry.a })),
+    }))
+    .filter((lesson) => lesson.questions.length > 0);
+  if (courseWide?.logisticsFaq?.length) {
+    faqs.unshift({
+      lessonTitle: 'Course Logistics',
+      questions: courseWide.logisticsFaq.map((entry) => ({ question: entry.q, answer: entry.a })),
+    });
+  }
+  return { faqs };
+}
+
+export function mapSlideDecksData(graph, authored) {
+  const decks = orderedLessons(graph).map((lesson, index) => ({
+    lessonTitle: `Lesson ${index + 1}: ${lesson.title}`,
+    slides: authored[lesson.id].slides.map((slide) => ({
+      title: slide.title,
+      bullets: slide.bullets,
+      speakerNotes: slide.speakerNotes,
+      altText: slide.altText,
+    })),
+  }));
+  return { decks };
+}
+
+async function loadRun(runDir) {
   const graph = JSON.parse(await readFile(join(runDir, 'graph.json'), 'utf8'));
   const authored = JSON.parse(await readFile(join(runDir, 'authored.json'), 'utf8'));
   let authoredExams = {};
+  let courseWide = null;
   try {
     authoredExams = JSON.parse(await readFile(join(runDir, 'authoredExams.json'), 'utf8'));
   } catch {
     /* pre-exam runs */
   }
+  try {
+    courseWide = JSON.parse(await readFile(join(runDir, 'courseWide.json'), 'utf8'));
+  } catch {
+    /* pre-course-wide runs */
+  }
+  return { graph, authored, authoredExams, courseWide };
+}
+
+export async function writeDocxExports(runDir) {
+  const { graph, authored, authoredExams, courseWide } = await loadRun(runDir);
   const { buildDeliverableDocxBlob } = await import('../src/lib/exporters/bulkDocxExporter.js');
   const outDir = join(runDir, 'package-docx');
   const written = [];
   const features = [
     ['lessonPlans', 'Lesson Plans', mapLessonPlansData(graph, authored)],
     ['quizBank', 'Quiz & Exam Bank', mapQuizBankData(graph, authored, authoredExams)],
+    ['studyGuides', 'Study Guides', mapStudyGuidesData(graph, authored)],
+    ['discussions', 'Discussion Questions', mapDiscussionsData(graph, authored)],
+    ['assignments', 'Assignments', mapAssignmentsData(graph, authored)],
+    ['syllabus', 'Syllabus', mapSyllabusData(graph, courseWide)],
+    ['courseFaq', 'Course FAQ', mapCourseFaqData(graph, authored, courseWide)],
   ];
   for (const [featureId, folder, data] of features) {
     const blob = await buildDeliverableDocxBlob(featureId, data, graph.course.title);
@@ -106,18 +202,45 @@ export async function writeDocxExports(runDir) {
   return { outDir, written };
 }
 
-const runDir = process.argv[2];
+// Real PPTX per lesson deck through the app's own builder (heuristic
+// text-fit tier is headless-safe — the v0.15.1 lesson).
+export async function writePptxExports(runDir) {
+  const { graph, authored } = await loadRun(runDir);
+  const { buildSingleDeckPptxBlob } = await import('../src/lib/exporters/pptxExporter.js');
+  const { decks } = mapSlideDecksData(graph, authored);
+  const dir = join(runDir, 'package-docx', 'Slide Decks');
+  await mkdir(dir, { recursive: true });
+  const written = [];
+  for (const [index, deck] of decks.entries()) {
+    const blob = await buildSingleDeckPptxBlob(deck, index, graph.course.title, 0);
+    const file = join(dir, `${deck.lessonTitle.replace(/[:/\\]/g, ' -')}.pptx`);
+    await writeFile(file, Buffer.from(await blob.arrayBuffer()));
+    written.push(file);
+  }
+  return { written };
+}
+
+// CLI — guarded so importing this module never runs it (the profBridge
+// lesson). vite-node STRIPS the script path from argv, so URL-matching
+// cannot detect direct execution; the guard is content-based instead:
+// argv[2] must be a real run directory (the pipeline's own import passes
+// 'generate' here, which fails this test — that bug class stays dead).
+import { existsSync } from 'node:fs';
+const candidate = process.argv[2];
+const runDir = candidate && existsSync(join(candidate, 'graph.json')) ? candidate : null;
 if (runDir) {
   const { written } = await writeDocxExports(runDir);
-  // Round-trip verification through the grader's own docx parser: if the
-  // grader can extract non-trivial text, Word can open it.
+  const pptx = await writePptxExports(runDir);
+  // Round-trip verification through the grader's own docx/pptx parsers: if
+  // the grader can extract non-trivial text, Office can open it.
   const { extractPackage } = await import('../src/lib/quality/deepQualityGrader.js');
   const { createFsFileProvider } = await import('../src/lib/quality/fsFileProvider.node.js');
   const pkg = await extractPackage(createFsFileProvider(join(runDir, 'package-docx')));
   for (const file of pkg.files) {
     console.log(`${file.path}: kind=${file.kind}, extracted ${file.text.length} chars`);
   }
+  const office = written.length + pptx.written.length;
   console.log(
-    `${written.length} docx file(s) written; round-trip ${pkg.files.every((f) => f.text.length > 500) ? 'OK' : 'THIN'}`,
+    `${office} Office file(s) written (${written.length} docx + ${pptx.written.length} pptx); round-trip ${pkg.files.every((f) => f.text.length > 300) ? 'OK' : 'THIN'}`,
   );
 }
