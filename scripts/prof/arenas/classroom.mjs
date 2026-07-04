@@ -18,7 +18,7 @@ import { seededRandom } from '../universe.mjs';
 // PROF-BENCH instrument version. Any change to a matching rule or a bar
 // bumps this and requires re-baselining every previously reported number
 // (owner-directed calibration, 2026-07-04).
-export const PROF_BENCH_VERSION = '1.1.0';
+export const PROF_BENCH_VERSION = '1.2.0';
 
 /** Distractor ↔ misconception lexical match: shared informative tokens.
  * v1.1.0 calibration: tokens containing digits are informative at ANY
@@ -32,8 +32,19 @@ export function distractorCatchesMisconception(distractorText, misconceptionClai
         .split(' ')
         .filter((token) => token.length > 3 || /\d/.test(token)),
     );
-  const distractor = tokensOf(distractorText);
-  const claim = tokensOf(misconceptionClaim);
+  // v1.2.0: pure-NOTATION claims ("(AB)⁻¹ = A⁻¹B⁻¹", "det(A+B) =
+  // det(A)+det(B)") lose every token to the informative-word filter,
+  // making them permanently uncatchable (claim set empty → false
+  // forever). When the claim has no informative tokens, both sides fall
+  // back to fine-grained tokens (every alphanumeric run), so notation
+  // beliefs become matchable by their own symbols.
+  const fineTokensOf = (value) => new Set(normalizeTerm(value).split(' ').filter(Boolean));
+  let distractor = tokensOf(distractorText);
+  let claim = tokensOf(misconceptionClaim);
+  if (claim.size === 0) {
+    claim = fineTokensOf(misconceptionClaim);
+    distractor = fineTokensOf(distractorText);
+  }
   if (claim.size === 0 || distractor.size === 0) return false;
   let shared = 0;
   for (const token of claim) if (distractor.has(token)) shared += 1;

@@ -27,15 +27,16 @@ const BATCH = 8;
 // is a linear transformation"): reason-bearing paraphrase shares zero of
 // three informative tokens. Generation now receives the gate's own words.
 export function claimTokens(statement) {
-  return [
-    ...new Set(
-      String(statement || '')
-        .toLowerCase()
-        .replace(/[^a-z0-9\s]/g, ' ')
-        .split(/\s+/)
-        .filter((token) => token.length > 3 || /\d/.test(token)),
-    ),
-  ].filter((token) => !/^students?$|^think|^assume|^treat|^equate|^read|^picture|^see$|^may$/.test(token));
+  const normalized = String(statement || '')
+    .toLowerCase()
+    .replace(/[^a-z0-9\s]/g, ' ')
+    .split(/\s+/)
+    .filter(Boolean);
+  const informative = [...new Set(normalized.filter((token) => token.length > 3 || /\d/.test(token)))].filter(
+    (token) => !/^students?$|^think|^assume|^treat|^equate|^read|^picture|^see$|^may$/.test(token),
+  );
+  // Bench v1.2.0 parity: pure-notation claims fall back to fine tokens.
+  return informative.length > 0 ? informative : [...new Set(normalized)];
 }
 
 export async function findGapCells({ genomeDir = 'public/genome' } = {}) {
