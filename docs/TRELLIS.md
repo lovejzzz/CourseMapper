@@ -1252,6 +1252,25 @@ polishing a candidate that hasn't won.
   no seam objection, ≤$0.08) with a written fold-back rule. C0-C4 fit
   one session; nothing beyond commits until E6 reports.
 
+- **2026-07-04 (E6 — THE COMPOSER MET ITS GATE; report
+  docs/COMPOSER_E6_REPORT.md).** C0-C3 built in one session (asset
+  store: 2,481 assets/10 moves from the item bank + five highest-judged
+  runs; exposure-draw planner; gate-validated voice skin with fold-back
+  per lesson). E6 on the frozen bench11 ruler: **reuse 95% · $0.060
+  (−63% vs Trellis) · 98/A · panel 7.67 [7,8] (bar ≥7.5 ✓) · 70/70
+  segments skinned · blends 100% · zero seam objections across four
+  readers/two families**. Classroom repair 0.530 vs band 0.554-0.603 —
+  PARTIAL (−0.02), autopsy queued. Adjudicated read (L8): the skin
+  visibly bridges reused parts ("tie it back to text processing…");
+  the all-review defect class is dead; ONE flagged fresh item (the
+  'cat'-from-'scarcity' slice may have no valid answer) → new gate
+  candidate: execute-the-answer-key verification. DECISION per
+  COMPOSER.md §12: bars met → Composer is the v0.2 architecture
+  target; library build-out funded; Trellis = the factory (authored
+  17/239 parts in this very run). Honest scope: cs→cs reuse is the
+  best case; cross-discipline is E7 after C6. E6 total cost of the
+  architecture decision: $0.084.
+
 ---
 
 _— Fable 5_
