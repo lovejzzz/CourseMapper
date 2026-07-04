@@ -22,6 +22,22 @@ import { familyKeyOf, loadBank } from './itemBank.mjs';
 
 const BATCH = 8;
 
+// The matcher's own tokenization (normalize, keep >3 chars or digit-bearing)
+// — gate forensics found 'no-catch' dominating on SHORT beliefs ("Translation
+// is a linear transformation"): reason-bearing paraphrase shares zero of
+// three informative tokens. Generation now receives the gate's own words.
+export function claimTokens(statement) {
+  return [
+    ...new Set(
+      String(statement || '')
+        .toLowerCase()
+        .replace(/[^a-z0-9\s]/g, ' ')
+        .split(/\s+/)
+        .filter((token) => token.length > 3 || /\d/.test(token)),
+    ),
+  ].filter((token) => !/^students?$|^think|^assume|^treat|^equate|^read|^picture|^see$|^may$/.test(token));
+}
+
 export async function findGapCells({ genomeDir = 'public/genome' } = {}) {
   const bank = await loadBank('all');
   if (!bank) throw new Error('no bank — build it before gap-filling');
@@ -81,29 +97,35 @@ const ITEMS_SCHEMA = {
   },
 };
 
-// The full harvest gate stack, applied to a candidate gap-fill item.
-export function gapItemPasses(cell, item, shelf) {
-  if (typeof item?.stem !== 'string' || item.stem.length < 20) return false;
-  if (!/[.!?:;]["'”’)\]]*\s*$/u.test(item.stem.trim())) return false;
-  if (!Array.isArray(item.options) || item.options.length !== 4) return false;
-  if (new Set(item.options.map((o) => String(o).trim().toLowerCase())).size !== 4) return false;
-  if (item.options.some((o) => String(o).length > 110 || /^students?\s/i.test(String(o).trim()))) return false;
+// The full harvest gate stack. Returns null when the item passes, or the
+// REASON it fails (v0.1.7 gate forensics — two floor passes rejected the
+// same 16 kernels; a gate that won't say why cannot be fixed).
+export function gapItemRejection(cell, item, shelf) {
+  if (typeof item?.stem !== 'string' || item.stem.length < 20) return 'stem-short';
+  if (!/[.!?:;]["'”’)\]]*\s*$/u.test(item.stem.trim())) return 'stem-truncated';
+  if (!Array.isArray(item.options) || item.options.length !== 4) return 'options-count';
+  if (new Set(item.options.map((o) => String(o).trim().toLowerCase())).size !== 4) return 'options-dupe';
+  if (item.options.some((o) => String(o).length > 110 || /^students?\s/i.test(String(o).trim())))
+    return 'option-pasted-or-long';
   if (typeof item.explanation !== 'string' || item.explanation.length < 30 || item.explanation.length > 500)
-    return false;
-  if ([item.stem, ...item.options, item.explanation].join(' ').includes('```')) return false;
-  const caught = item.options.some(
-    (option, oi) => oi !== item.correctIndex && distractorCatches(option, cell.statement),
-  );
-  if (!caught) return false;
-  if (!confrontsCorrective(item.explanation, cell.corrective)) return false;
-  // Dedupe WITHIN the family only (v0.1.5 refit): the first fill rejected
-  // every cs cell because any new stem about a deep-shelf concept
-  // resembles its 50-100 siblings — but cross-family similarity about one
-  // concept is legitimate; the dupe that matters is same-family.
+    return 'explanation-length';
+  if ([item.stem, ...item.options, item.explanation].join(' ').includes('```')) return 'code-fence';
+  if (cell.statement) {
+    const caught = item.options.some(
+      (option, oi) => oi !== item.correctIndex && distractorCatches(option, cell.statement),
+    );
+    if (!caught) return 'no-catch';
+    if (!confrontsCorrective(item.explanation, cell.corrective)) return 'no-confront';
+  }
+  // Dedupe WITHIN the family only (v0.1.5 refit).
   const sameFamily = shelf.filter((other) => other.familyKey === cell.family);
-  if (sameFamily.some((other) => tokenOverlapRatio(other.stem, item.stem) > 0.6)) return false;
-  if (shelf.some((other) => other.stem.trim().toLowerCase() === item.stem.trim().toLowerCase())) return false;
-  return true;
+  if (sameFamily.some((other) => tokenOverlapRatio(other.stem, item.stem) > 0.6)) return 'family-dupe';
+  if (shelf.some((other) => other.stem.trim().toLowerCase() === item.stem.trim().toLowerCase())) return 'exact-dupe';
+  return null;
+}
+
+export function gapItemPasses(cell, item, shelf) {
+  return gapItemRejection(cell, item, shelf) === null;
 }
 
 export async function gapFillBank({ ledger = null, budgetUsd = null, tier = 'cheap', outDir = 'trellis/bank' } = {}) {
@@ -125,7 +147,7 @@ export async function gapFillBank({ ledger = null, budgetUsd = null, tier = 'che
         maxOutputTokens: 4000,
         system:
           'You author ONE multiple-choice quiz item per numbered entry, for an undergraduate course item bank. Each entry documents a WRONG BELIEF students hold and its CORRECTIVE. ' +
-          'Requirements per item: an application-level stem grounded in the kernel facts (a concrete case, ending with terminal punctuation); 4 distinct options; one wrong option states the documented wrong belief as a plausible answer WITH its wrong reasoning, reusing the belief’s own key terms (a lexical gate checks them); the explanation confronts the corrective, keeping at least half its key terms (gated), in 2-3 sentences under 60 words; no code fences, options under 15 words. ' +
+          'Requirements per item: an application-level stem grounded in the kernel facts (a concrete case, ending with terminal punctuation); 4 distinct options; one wrong option states the documented wrong belief as a plausible answer WITH its wrong reasoning, and MUST contain at least TWO of the mustIncludeTwoOf words verbatim (the lexical gate counts exactly those words); the explanation confronts the corrective and MUST contain at least HALF of the explanationMustIncludeHalfOf words verbatim (the gate counts exactly those), in 2-4 sentences under 80 words; no code fences, options under 15 words. ' +
           'Return {items:[{index, stem, options, correctIndex, explanation, bloom, difficulty}]} covering every entry.',
         user: JSON.stringify(
           batch.map((cell, index) => ({
@@ -135,6 +157,12 @@ export async function gapFillBank({ ledger = null, budgetUsd = null, tier = 'che
             facts: cell.facts,
             wrongBelief: cell.statement,
             corrective: cell.corrective,
+            ...(cell.statement
+              ? {
+                  mustIncludeTwoOf: claimTokens(cell.statement),
+                  explanationMustIncludeHalfOf: claimTokens(cell.corrective),
+                }
+              : {}),
           })),
           null,
           1,
@@ -265,9 +293,10 @@ export async function floorFillBank({
       }
     }
   }
-  if (cells.length === 0) return { cells: 0, filled: 0 };
+  if (cells.length === 0) return { cells: 0, filled: 0, rejections: {} };
 
   let filled = 0;
+  const rejections = {};
   for (let i = 0; i < cells.length; i += BATCH) {
     const batch = cells.slice(i, i + BATCH);
     try {
@@ -282,7 +311,7 @@ export async function floorFillBank({
         maxOutputTokens: 4000,
         system:
           'You author ONE multiple-choice quiz item per numbered entry for an undergraduate item bank. ' +
-          'When an entry has wrongBelief+corrective: one wrong option states that belief with its wrong reasoning (keep its key terms — a lexical gate checks), and the explanation confronts the corrective keeping half its key terms. ' +
+          'When an entry has wrongBelief+corrective: one wrong option states that belief with its wrong reasoning and MUST contain at least TWO of the mustIncludeTwoOf words verbatim (the lexical gate counts exactly those words), and the explanation MUST contain at least HALF of the explanationMustIncludeHalfOf words verbatim (the gate counts exactly those), 2-4 sentences under 80 words. ' +
           'When an entry has NO wrongBelief: write an application-level item grounded purely in the kernel facts — a concrete case, plausible half-learned mistakes as distractors. ' +
           'Always: stem ends with terminal punctuation; 4 distinct options under 15 words; explanation 2-3 sentences under 60 words; no code fences. ' +
           'Return {items:[{index, stem, options, correctIndex, explanation, bloom, difficulty}]} covering every entry.',
@@ -294,6 +323,12 @@ export async function floorFillBank({
             facts: cell.facts,
             wrongBelief: cell.statement,
             corrective: cell.corrective,
+            ...(cell.statement
+              ? {
+                  mustIncludeTwoOf: claimTokens(cell.statement),
+                  explanationMustIncludeHalfOf: claimTokens(cell.corrective),
+                }
+              : {}),
           })),
           null,
           1,
@@ -304,18 +339,21 @@ export async function floorFillBank({
         if (!cell) continue;
         const shelf = bank.items.filter((b) => b.kernelId === cell.kernelId);
         if (cell.statement) {
-          if (!gapItemPasses(cell, item, shelf)) continue;
-        } else {
-          // General item: structural + aesthetic gates + thin-shelf dedupe.
-          if (typeof item?.stem !== 'string' || item.stem.length < 20) continue;
-          if (!/[.!?:;]["'”’)\]]*\s*$/u.test(item.stem.trim())) continue;
-          if (!Array.isArray(item.options) || item.options.length !== 4) continue;
-          if (new Set(item.options.map((o) => String(o).trim().toLowerCase())).size !== 4) continue;
-          if (item.options.some((o) => String(o).length > 110 || /^students?\s/i.test(String(o).trim()))) continue;
-          if (typeof item.explanation !== 'string' || item.explanation.length < 30 || item.explanation.length > 500)
+          const reason = gapItemRejection(cell, item, shelf);
+          if (reason) {
+            rejections[reason] = (rejections[reason] ?? 0) + 1;
             continue;
-          if ([item.stem, ...item.options, item.explanation].join(' ').includes('```')) continue;
-          if (shelf.some((other) => tokenOverlapRatio(other.stem, item.stem) > 0.6)) continue;
+          }
+        } else {
+          // General item: same gate stack, statement-less; thin shelves make
+          // whole-shelf dedupe safe.
+          const reason =
+            gapItemRejection(cell, item, shelf) ??
+            (shelf.some((other) => tokenOverlapRatio(other.stem, item.stem) > 0.6) ? 'shelf-dupe' : null);
+          if (reason) {
+            rejections[reason] = (rejections[reason] ?? 0) + 1;
+            continue;
+          }
         }
         bank.items.push({
           id: `gapfill:${cell.kernelId}:${cell.family ? cell.family.slice(0, 24).replace(/\s+/g, '-') : `floor-${shelf.length + 1}`}`,
@@ -346,5 +384,5 @@ export async function floorFillBank({
   for (const item of bank.items) origins[item.provenance?.origin === 'gapfill' ? 'gapfill' : 'harvest'] += 1;
   bank.origins = origins;
   await writeFile(join(outDir, 'all-items.json'), JSON.stringify(bank, null, 1));
-  return { cells: cells.length, filled, origins };
+  return { cells: cells.length, filled, origins, rejections };
 }
