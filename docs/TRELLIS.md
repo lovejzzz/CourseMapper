@@ -1357,3 +1357,20 @@ polishing a candidate that hasn't won.
   Spend ≈$0.52. Open: false-fire floor → Tendril-D; skin acceptance
   33% (length band); bare-numeral eval blind spot patched
   conditionally in the Tutor.
+
+- **2026-07-04 (Tendril v0.1.1 — Stance, Skin, Depth).** Owner "keep
+  improving" → TENDRIL_ROADMAP_V0.1.1, four slices, ≈$0.18: **R2 MET,
+  the headline — Tendril-S round 2 beats nano on the deployment gates
+  (72.5% vs 71.7%; skin 33→61.7% via ×2 oversampling + temp-0.7
+  noop retry; blend 83.3% vs 80%)**. R4 MET and OVERTURNED the
+  bare-numeral Tutor patch (plain rule wins the short class 83.3/29.2
+  on its new additive v2 frozen ruler — anecdote→patch→ruler→revert).
+  R1 E2 stance fine-tune SHELVED by the pre-registered joint bar
+  despite dominating E1's frontier at every margin (m0.08 beats both
+  axes); machinery kept (TENDRIL_MODEL swap, isolated caches); next
+  round: student-register triplets. R3 MISSED honestly (10/25 twin
+  cells deepened through the full stack; battery 0.494 vs ≥0.545) and
+  exposed a RULER DEFECT: exposure counters persist across replays so
+  composed same-graph comparisons drift — --freeze-exposure now marks
+  measurement runs. Meta-lesson: three of four slices ended with the
+  ruler overruling intuition. 14 tendril tests; suite 4,046 green.
