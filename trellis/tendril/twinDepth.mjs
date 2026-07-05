@@ -11,12 +11,38 @@
 //   npx vite-node trellis/tendril/twinDepth.mjs        (author + save)
 
 import { existsSync } from 'node:fs';
-import { readFile, writeFile } from 'node:fs/promises';
+import { readFile, readdir, writeFile } from 'node:fs/promises';
+import { join } from 'node:path';
 import { callModel } from '../providers.mjs';
 import { createRunLedger } from '../telemetry.mjs';
-import { gapItemRejection, gapfillId } from '../knowledge/bankGapFill.mjs';
+import { claimTokens, gapItemRejection, gapfillId } from '../knowledge/bankGapFill.mjs';
+import { familyKeyOf } from '../knowledge/itemBank.mjs';
 import { solveGate } from '../composer/solver.mjs';
 import { cachedEmbed, cosine, makeEmbedder } from './embedder.mjs';
+
+// Genome misconceptions by (kernelId, familyKey) — the corrective source.
+// The confrontation gate is checked against the DOCUMENTED corrective; a
+// twin cell whose family has no genome corrective is skipped, counted.
+async function genomeFamilies({ genomeDir = 'public/genome' } = {}) {
+  const map = new Map();
+  for (const name of (await readdir(genomeDir)).filter((n) => n.endsWith('.json'))) {
+    let shard;
+    try {
+      shard = JSON.parse(await readFile(join(genomeDir, name), 'utf8'));
+    } catch {
+      continue;
+    }
+    for (const kernel of shard.kernels ?? []) {
+      for (const m of kernel.misconceptions ?? []) {
+        const text = typeof m === 'string' ? m : (m.text ?? '');
+        const corrective = typeof m === 'object' ? (m.corrective ?? m.correction ?? '') : '';
+        if (!text || !corrective) continue;
+        map.set(`${kernel.id}::${familyKeyOf(text)}`, { statement: text, corrective, term: kernel.term });
+      }
+    }
+  }
+  return map;
+}
 
 const TWIN_EPSILON = 0.92;
 const BATCH = 8;
@@ -78,10 +104,18 @@ const ITEM_SCHEMA = {
 export async function twinDepthPass({ budgetUsd = 0.5 } = {}) {
   const bank = JSON.parse(await readFile('trellis/bank/all-items.json', 'utf8'));
   const embedder = makeEmbedder();
-  const { twins } = await findTwinCells(bank, { embedder });
+  const { twins: allTwins } = await findTwinCells(bank, { embedder });
+  const genome = await genomeFamilies();
+  const twins = [];
+  let noCorrective = 0;
+  for (const cell of allTwins) {
+    const g = genome.get(`${cell.kernelId}::${cell.family}`);
+    if (g) twins.push({ ...cell, genome: g });
+    else noCorrective += 1;
+  }
   const ledger = createRunLedger({ runId: 'tendril-twin-depth', runDir: 'trellis/runs/tendril-twin-depth' });
   let authored = 0;
-  const rejections = {};
+  const rejections = noCorrective > 0 ? { 'no-genome-corrective': noCorrective } : {};
   try {
     for (let i = 0; i < twins.length; i += BATCH) {
       const batch = twins.slice(i, i + BATCH);
@@ -96,13 +130,20 @@ export async function twinDepthPass({ budgetUsd = 0.5 } = {}) {
           schemaName: 'twin_depth_items',
           validate: (out) => (Array.isArray(out?.items) ? [] : ['items array required']),
           maxOutputTokens: 6000,
+          // The gap-fill lesson verbatim: hand the model the gate's OWN
+          // tokens — the first pass omitted them and 21/25 died no-catch/
+          // no-confront.
           system:
-            'You author ONE multiple-choice item per entry. Each entry has a misconception family that already has items — but they all use the SAME scenario. Your item must confront the SAME wrong belief through a DIFFERENT scenario/context than the existing stems (given). 4 distinct options; the belief-bearing distractor keeps the misconception’s key terms; explanation 2-3 sentences that confronts the wrong belief with the corrective idea in fresh wording (a lexical gate checks key terms; a similarity gate rejects explanations that mirror the existing ones). Return {items:[{index,...}]}.',
+            'You author ONE multiple-choice item per entry, confronting a documented wrong belief through a DIFFERENT scenario than the existing stems (given). Requirements: application-level stem ending with terminal punctuation; 4 distinct options under 15 words; one wrong option states the wrong belief WITH its wrong reasoning and MUST contain at least TWO of the mustIncludeTwoOf words verbatim (the lexical gate counts exactly those words); the explanation confronts the corrective and MUST contain at least HALF of the explanationMustIncludeHalfOf words verbatim, 2-4 sentences under 80 words, in FRESH wording (a similarity gate rejects explanations mirroring the existing ones); no code fences. Return {items:[{index,...}]}.',
           user: JSON.stringify(
             batch.map((cell, index) => ({
               index,
               kernelId: cell.kernelId,
-              family: cell.family,
+              term: cell.genome.term,
+              wrongBelief: cell.genome.statement,
+              corrective: cell.genome.corrective,
+              mustIncludeTwoOf: claimTokens(cell.genome.statement),
+              explanationMustIncludeHalfOf: claimTokens(cell.genome.corrective),
               existingStems: cell.items.map((it) => it.stem).slice(0, 3),
               existingExplanations: cell.items.map((it) => it.explanation).slice(0, 2),
             })),
@@ -118,7 +159,13 @@ export async function twinDepthPass({ budgetUsd = 0.5 } = {}) {
         const cell = batch[item.index];
         if (!cell) continue;
         const shelf = bank.items.filter((b) => b.kernelId === cell.kernelId);
-        const gateCell = { kernelId: cell.kernelId, family: cell.family, statement: cell.family, term: cell.family };
+        const gateCell = {
+          kernelId: cell.kernelId,
+          family: cell.family,
+          statement: cell.genome.statement,
+          corrective: cell.genome.corrective,
+          term: cell.genome.term,
+        };
         const reason = gapItemRejection(gateCell, item, shelf);
         if (reason) {
           rejections[reason] = (rejections[reason] ?? 0) + 1;
@@ -162,7 +209,7 @@ export async function twinDepthPass({ budgetUsd = 0.5 } = {}) {
   } finally {
     await ledger.flush();
   }
-  return { twinCells: twins.length, authored, rejections, bankItems: bank.items.length };
+  return { twinCells: allTwins.length, withCorrective: twins.length, authored, rejections, bankItems: bank.items.length };
 }
 
 // CLI — explicit env opt-in (spend-capable; the bankGapFill lesson).

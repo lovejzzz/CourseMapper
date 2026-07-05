@@ -15,3 +15,6 @@ trellis/tendril/.venv/
 trellis/tendril/corpus/live-pairs.jsonl
 trellis/tendril/distill/adapters/0*
 trellis/tendril/tutor/bundle/
+trellis/tendril/distill/stance-model/
+trellis/tendril/distill/stance-onnx/
+trellis/tendril/distill/stance-triplets.jsonl
