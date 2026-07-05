@@ -14,6 +14,15 @@ import { existsSync } from 'node:fs';
 import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
 
+// FUNCTION-ROUTED EMBEDDERS (2026-07-05): round 4 (tendril-e2d) wins
+// DIAGNOSIS outright (81.7%/19.2% at margin 0.035 — beats the deployed
+// point on both axes) but its compression collapses the sibling/benign
+// separation dedupe needs (benign max 0.956 vs block min 0.933 — no ε
+// separates). So: the TUTOR ships e2d (frozen diagnosis ruler is its
+// gate); this Node-side default stays e2c for dedupe/selection (its
+// ε=0.94 adoption ruler stands). Same lesson as S's task routing: the
+// better model is per-function, not global.
+//
 // tendril-e2c ADOPTED 2026-07-04: three stance fine-tune rounds (bank
 // triplets → student-register corpus → hard-negative mining) met the
 // pre-registered joint bar (familyAcc 80.4% ≥80 AND falseFire 20.0% ≤20

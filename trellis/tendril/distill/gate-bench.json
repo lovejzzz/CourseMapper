@@ -58,6 +58,122 @@
    }
   }
  },
+ "qwen-skin": {
+  "overall": {
+   "total": 120,
+   "accepted": 65,
+   "rate": 0.542
+  },
+  "byTask": {
+   "skin": {
+    "total": 60,
+    "accepted": 32,
+    "reasons": {
+     "identity-noop": 24,
+     "length-band": 4
+    },
+    "rate": 0.533
+   },
+   "blend": {
+    "total": 60,
+    "accepted": 33,
+    "reasons": {
+     "length-band": 10,
+     "claim-loss": 8,
+     "identity-noop": 9
+    },
+    "rate": 0.55
+   }
+  }
+ },
+ "qwen-blend": {
+  "overall": {
+   "total": 120,
+   "accepted": 70,
+   "rate": 0.583
+  },
+  "byTask": {
+   "skin": {
+    "total": 60,
+    "accepted": 29,
+    "reasons": {
+     "mode-example": 14,
+     "identity-noop": 4,
+     "length-band": 13
+    },
+    "rate": 0.483
+   },
+   "blend": {
+    "total": 60,
+    "accepted": 41,
+    "reasons": {
+     "length-band": 11,
+     "identity-noop": 7,
+     "claim-loss": 1
+    },
+    "rate": 0.683
+   }
+  }
+ },
+ "smol-skin": {
+  "overall": {
+   "total": 120,
+   "accepted": 43,
+   "rate": 0.358
+  },
+  "byTask": {
+   "skin": {
+    "total": 60,
+    "accepted": 18,
+    "reasons": {
+     "length-band": 13,
+     "identity-noop": 28,
+     "terminal-punct": 1
+    },
+    "rate": 0.3
+   },
+   "blend": {
+    "total": 60,
+    "accepted": 25,
+    "reasons": {
+     "identity-noop": 11,
+     "length-band": 14,
+     "claim-loss": 10
+    },
+    "rate": 0.417
+   }
+  }
+ },
+ "smol-blend": {
+  "overall": {
+   "total": 120,
+   "accepted": 78,
+   "rate": 0.65
+  },
+  "byTask": {
+   "skin": {
+    "total": 60,
+    "accepted": 38,
+    "reasons": {
+     "mode-example": 3,
+     "terminal-punct": 6,
+     "identity-noop": 8,
+     "length-band": 5
+    },
+    "rate": 0.633
+   },
+   "blend": {
+    "total": 60,
+    "accepted": 40,
+    "reasons": {
+     "length-band": 9,
+     "identity-noop": 6,
+     "claim-loss": 5
+    },
+    "rate": 0.667
+   }
+  }
+ },
  "tendril-s": {
   "overall": {
    "total": 120,

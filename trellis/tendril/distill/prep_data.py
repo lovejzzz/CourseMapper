@@ -91,6 +91,19 @@ def main():
         if b == "test":
             heldout.append({"task": task, "mode": mode, "source": p["source"], "reference": p["target"]})
 
+    # TASK=skin|blend filters train/valid to one task for specialized
+    # adapters (frozen test/heldout untouched — the bench splits by task).
+    task_filter = os.environ.get("TASK")
+    if task_filter:
+        for name in ("train", "valid"):
+            keep = []
+            for r in splits[name]:
+                sys_txt = r["messages"][0]["content"]
+                is_blend = sys_txt.startswith("You polish")
+                if (task_filter == "blend") == is_blend:
+                    keep.append(r)
+            splits[name] = keep
+
     os.makedirs(OUT, exist_ok=True)
     # mlx-lm parses every jsonl in the data dir, so all three carry chat
     # format; the bench reads test-heldout.jsonl (its own shape) instead.

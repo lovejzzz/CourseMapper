@@ -241,4 +241,15 @@ Tutor — is now **zero dollars and roughly six minutes of local
 compute**. The factory (Trellis) still costs money to make NEW
 knowledge; the replay is free. Spend once per discipline, teach forever.
 
+---
+
+# v0.1.5 — Keep Training (owner-directed; all training $0)
+
+| Slice | Verdict |
+| --- | --- |
+| **Specialist sweep (4 trainings)** | **ALL REJECTED by the frozen gate bench.** Task-specialized adapters (skin-only/blend-only × Qwen-0.5B/SmolLM2) every one LOST to its mixed-task counterpart (qwen-skin 53.3 vs mixed 71.7; smol-blend 66.7 vs mixed 83.3). At 135M-500M scale, cross-task transfer is load-bearing — data quantity beats task purity. The routed pair (skin→Qwen-s3b 71.7, blend→SmolLM2-S2 83.3 = 77.5%) stands as measured argmax. |
+| **E round 4 (E2d) — SHIPPED to the Tutor** | +319 persona-3 entries + 467 hard negatives vs E2c (12,337 triplets): **joint bar cleared WITH MARGIN at three points; best m0.035 = 81.7% / 19.2%** — beats deployed E2c (80.4/20.0) on both axes. Tutor ships E2d at margin 0.035; verified live in-browser (1.6s WebGPU, wrong answer fires 0.69 vs 0.18). |
+| **Function-routed embedders (the round's discovery)** | E2d's compression COLLAPSES dedupe separability (benign max 0.956 vs sibling-block min 0.933 — no ε separates). So embedders now route by FUNCTION like S routes by task: **E2d diagnoses (Tutor), E2c dedupes (composer)** — each behind its own passed ruler, neither re-run. The pattern of the day, twice: the better model is per-function, not global. |
+| **Corpus flywheel widened** | Researcher-Zero skin verdicts (incl. fidelity rejections) now corpusLog — the grounded-rewrite failure class becomes training data for the next round. |
+
 _— Fable 5_

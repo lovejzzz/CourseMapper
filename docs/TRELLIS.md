@@ -1498,3 +1498,17 @@ polishing a candidate that hasn't won.
   4.29, seat agreement 12/12 unanimous.** Speed 4.7s vs 38.9s (8×).
   Round spend $0.082. Standing: items paid; human anchor still the
   only accepted verdict.
+
+- **2026-07-05 (v0.1.5 keep-training round — all $0).** (1) Specialist
+  sweep: 4 task-specialized adapters ALL LOST to mixed-task models on
+  the frozen bench (qwen-skin 53.3 vs 71.7; smol-blend 66.7 vs 83.3) —
+  at this scale cross-task transfer is load-bearing; routed pair
+  (77.5%) stands. (2) **E2d SHIPPED to the Tutor: joint bar cleared
+  with margin (81.7/19.2 @ m0.035**, beats E2c both axes; persona-3 +
+  467 hard negatives, 12,337 triplets); verified live in-browser.
+  (3) FUNCTION-ROUTED EMBEDDERS: E2d's compression collapses dedupe
+  separability (benign max 0.956 > block min 0.933) → E2d diagnoses,
+  E2c dedupes, each behind its own passed ruler. Twice in one day:
+  the better model is per-function, not global. (4) Researcher-Zero
+  skin verdicts now feed the corpus (fidelity rejections included).
+  Suite 4,051 green.

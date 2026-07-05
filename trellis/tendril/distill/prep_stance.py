@@ -18,6 +18,7 @@ BANK = os.path.join(HERE, "..", "..", "bank", "all-items.json")
 TRAINING_FILES = [
     os.path.join(HERE, "stance-training.json"),
     os.path.join(HERE, "stance-training-2.json"),
+    os.path.join(HERE, "stance-training-3.json"),
 ]
 HARD = os.path.join(HERE, "hard-triplets.jsonl")
 OUT = os.path.join(HERE, "stance-triplets.jsonl")

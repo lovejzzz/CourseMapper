@@ -14,13 +14,17 @@ import { createRunLedger } from '../../telemetry.mjs';
 
 // STANCE_ROUND=2 writes a second, persona-varied corpus file — round 3's
 // "3x corpus" is additive files, never regeneration of an existing one.
-const ROUND = process.env.STANCE_ROUND === '2' ? 2 : 1;
-const OUT = ROUND === 2 ? 'trellis/tendril/distill/stance-training-2.json' : 'trellis/tendril/distill/stance-training.json';
+const ROUND = Number(process.env.STANCE_ROUND ?? '1');
+const OUT =
+  ROUND === 1
+    ? 'trellis/tendril/distill/stance-training.json'
+    : `trellis/tendril/distill/stance-training-${ROUND}.json`;
 const BATCH = 10;
-const PERSONA =
-  ROUND === 2
-    ? 'Vary the student voice across answers: one hasty and clipped, one verbose and hedging, one non-native-speaker phrasing with small grammar slips. '
-    : '';
+const PERSONAS = {
+  2: 'Vary the student voice across answers: one hasty and clipped, one verbose and hedging, one non-native-speaker phrasing with small grammar slips. ',
+  3: 'Vary the student voice across answers: one overconfident and assertive, one uncertain with hedges like "i think maybe", one that mixes in a half-remembered related concept. ',
+};
+const PERSONA = PERSONAS[ROUND] ?? '';
 
 async function evalKernelIds() {
   const ids = new Set();

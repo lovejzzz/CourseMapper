@@ -63,6 +63,10 @@ const EXAMPLE_RE = /for example|for instance|such as|e\.g\.|consider the|一?exa
 const META_REGISTER_RE = /^(teach|explain|tell (the )?students|note that the (lesson|class))\b/i;
 
 async function skin(text, { mode = 'teach', embedder, pool = [], tau = 0.75 } = {}) {
+  const log = async (accepted, reason, target) => {
+    const { corpusLog } = await import('../tendril/corpus.mjs');
+    await corpusLog({ task: 'skin', context: 'researcher-zero', accepted, ...(reason ? { reason } : {}), source: text, target });
+  };
   try {
     const out = String(
       await sGenerate({ system: SKIN_SYSTEM, user: JSON.stringify({ mode, text }), source: text }),
@@ -83,10 +87,14 @@ async function skin(text, { mode = 'teach', embedder, pool = [], tau = 0.75 } = 
         const poolVecs = vectors.slice(outSentences.length);
         for (const ov of outVecs) {
           const best = Math.max(...poolVecs.map((pv) => cosine(ov, pv)));
-          if (best < tau) return { text, skinned: false }; // invented content
+          if (best < tau) {
+            await log(false, 'fidelity', out);
+            return { text, skinned: false }; // invented content
+          }
         }
       }
     }
+    await log(true, null, out);
     return { text: out, skinned: true };
   } catch {
     return { text, skinned: false }; // S failure ships the extractive draft

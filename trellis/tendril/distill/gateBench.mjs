@@ -69,6 +69,10 @@ if (existsSync('trellis/tendril/distill/outputs') && !process.env.VITEST) {
   for (const [name, path] of [
     ['tendril-s3', 'trellis/tendril/distill/outputs/tendril-s3.jsonl'],
     ['tendril-s3b', 'trellis/tendril/distill/outputs/tendril-s3b.jsonl'],
+    ['qwen-skin', 'trellis/tendril/distill/outputs/qwen-skin.jsonl'],
+    ['qwen-blend', 'trellis/tendril/distill/outputs/qwen-blend.jsonl'],
+    ['smol-skin', 'trellis/tendril/distill/outputs/smol-skin.jsonl'],
+    ['smol-blend', 'trellis/tendril/distill/outputs/smol-blend.jsonl'],
     ['tendril-s', 'trellis/tendril/distill/outputs/tendril-s.jsonl'],
     ['smollm-base', 'trellis/tendril/distill/outputs/smollm-base.jsonl'],
     ['nano', 'trellis/tendril/distill/outputs/nano.jsonl'],

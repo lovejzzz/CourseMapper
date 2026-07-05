@@ -4,38 +4,35 @@ tags:
 - sentence-similarity
 - feature-extraction
 - generated_from_trainer
-- dataset_size:10821
+- dataset_size:12337
 - loss:TripletLoss
 base_model: sentence-transformers/all-MiniLM-L6-v2
 widget:
-- source_sentence: abstract statements about emotions are as engaging as concre
+- source_sentence: students try to read a dictionary value with a numeric index
   sentences:
-  - In Korean, spelling often stay same even if pronunciation change, so you need
-    to know both.
-  - The abstract statement is more engaging.
-  - The passage says concrete, sensory detail more directly engages the reader’s senses
-    and sensibilities. Specific images are more effective than abstract statements
-    alone.
-- source_sentence: starting in the middle means the author forgot to include th
+  - A dictionary can hold duplicate keys; it will store both values
+  - nums is empty because the loop variable steals each value from the list.
+  - It returns the key 'name'
+- source_sentence: It's just about his speaking style.
   sentences:
-  - Earlier events were not known to audiences.
-  - Check endpoints too. Critical point not automatically min.
-  - The poet ignored earlier events accidentally.
-- source_sentence: students treat the class itself as an object and expect to s
+  - A conservative agenda and voter coalition.
+  - the reagan revolution describes only reagan s personality an
+  - It stops after one call because Python automatically finds the smallest input
+- source_sentence: students treat water as inert filler with no working role in
   sentences:
-  - Use readline() instead of read().
-  - '`total` is global, so it can be accessed anywhere after the function call.'
-  - Inside the method only, because methods are shared.
-- source_sentence: students think p waves and s waves both travel through every
+  - Water is a required nutrient with four jobs.
+  - Italy fought only on the Western Front.
+  - Water is inert because it has no calories.
+- source_sentence: students treat positions on the celestial sphere as if all s
   sentences:
-  - Magma rises and pushes the fault apart, causing the quake.
-  - No; continuity is necessary but not sufficient.
-  - No waves arrive because all seismic energy is absorbed at the fault.
-- source_sentence: students forget to update the variable in the loop condition
+  - If they look close in the sky, they're close in space.
+  - All joints are identical, so mobility depends only on muscles.
+  - The sphere only shows direction, not distance.
+- source_sentence: 'students drastically underestimate the age of the earth and '
   sentences:
-  - 5, 4, 3, 2, then stops
-  - It repeats only when the condition is false.
-  - Big-O means the program always takes the same time for equal n.
+  - It's indirect contact via the doorknob, a fomite, so pathogens linger on surfaces.
+  - Dinosaurs lived after recorded history.
+  - Relative dating
 pipeline_tag: sentence-similarity
 library_name: sentence-transformers
 ---
@@ -90,9 +87,9 @@ from sentence_transformers import SentenceTransformer
 model = SentenceTransformer("sentence_transformers_model_id")
 # Run inference
 sentences = [
-    'students forget to update the variable in the loop condition',
-    '5, 4, 3, 2, then stops',
-    'It repeats only when the condition is false.',
+    'students drastically underestimate the age of the earth and ',
+    'Dinosaurs lived after recorded history.',
+    'Relative dating',
 ]
 embeddings = model.encode(sentences)
 print(embeddings.shape)
@@ -101,9 +98,9 @@ print(embeddings.shape)
 # Get the similarity scores for the embeddings
 similarities = model.similarity(embeddings, embeddings)
 print(similarities)
-# tensor([[1.0000, 0.2095, 0.1868],
-#         [0.2095, 1.0000, 0.2526],
-#         [0.1868, 0.2526, 1.0000]])
+# tensor([[1.0000, 0.4210, 0.3410],
+#         [0.4210, 1.0000, 0.3633],
+#         [0.3410, 0.3633, 1.0000]])
 ```
 <!--
 ### Direct Usage (Transformers)
@@ -147,20 +144,20 @@ You can finetune this model on your own dataset.
 
 #### Unnamed Dataset
 
-* Size: 10,821 training samples
+* Size: 12,337 training samples
 * Columns: <code>sentence_0</code>, <code>sentence_1</code>, and <code>sentence_2</code>
 * Approximate statistics based on the first 100 samples:
   |          | sentence_0                                                                        | sentence_1                                                                        | sentence_2                                                                        |
   |:---------|:----------------------------------------------------------------------------------|:----------------------------------------------------------------------------------|:----------------------------------------------------------------------------------|
   | type     | string                                                                            | string                                                                            | string                                                                            |
   | modality | text                                                                              | text                                                                              | text                                                                              |
-  | details  | <ul><li>min: 7 tokens</li><li>mean: 14.34 tokens</li><li>max: 31 tokens</li></ul> | <ul><li>min: 4 tokens</li><li>mean: 15.77 tokens</li><li>max: 31 tokens</li></ul> | <ul><li>min: 7 tokens</li><li>mean: 17.29 tokens</li><li>max: 70 tokens</li></ul> |
+  | details  | <ul><li>min: 8 tokens</li><li>mean: 14.08 tokens</li><li>max: 34 tokens</li></ul> | <ul><li>min: 5 tokens</li><li>mean: 15.76 tokens</li><li>max: 37 tokens</li></ul> | <ul><li>min: 5 tokens</li><li>mean: 18.05 tokens</li><li>max: 80 tokens</li></ul> |
 * Samples:
-  | sentence_0                                                                | sentence_1                                                         | sentence_2                                                                                                                                                |
-  |:--------------------------------------------------------------------------|:-------------------------------------------------------------------|:----------------------------------------------------------------------------------------------------------------------------------------------------------|
-  | <code>tariffs helped farmers by keeping farm prices high</code>           | <code>Tariffs kept farm prices high</code>                         | <code>Tariffs raised crop prices directly</code>                                                                                                          |
-  | <code>students forget to close the file or use a with block leavin</code> | <code>text = open('data.txt').readlines()</code>                   | <code>`text = open('report.txt')` because open() already gives the file contents.</code>                                                                  |
-  | <code>a first reading should immediately focus on line by line ana</code> | <code>Skip title, just analyze lines. Title doesn't matter.</code> | <code>The title is actually a doorway that sets expectations, so first you should focus on tone, mood, and what stands out, not detailed analysis.</code> |
+  | sentence_0                                                                | sentence_1                                                                  | sentence_2                                                                                                                                                                                                 |
+  |:--------------------------------------------------------------------------|:----------------------------------------------------------------------------|:-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+  | <code>students may think an inductor simply blocks current</code>         | <code>The inductor simply blocks current forever.</code>                    | <code>An inductor resists changes in current by inducing back emf. It stores energy in its magnetic field, so steady current can pass through an ideal inductor.</code>                                    |
+  | <code>students forget to close the file or use a with block leavin</code> | <code>with open('data.txt') as f: text = f.readline()</code>                | <code>Always close the file when done, or open it in a with statement so Python closes it automatically even if an error occurs. That’s exactly what the `with open(...) as f:` structure provides.</code> |
+  | <code>students may treat every joint as structurally identical</code>     | <code>All joints are identical, so mobility depends only on muscles.</code> | <code>Synovial joints are not structurally identical to all other joints. Their joint cavity, articular cartilage, synovial fluid, and ligaments support smooth motion and resist abnormal motion.</code>  |
 * Loss: [<code>TripletLoss</code>](https://sbert.net/docs/package_reference/sentence_transformer/losses.html#tripletloss) with these parameters:
   ```json
   {
@@ -301,7 +298,7 @@ You can finetune this model on your own dataset.
 </details>
 
 ### Training Time
-- **Training**: 59.8 seconds
+- **Training**: 1.3 minutes
 
 ### Framework Versions
 - Python: 3.13.3

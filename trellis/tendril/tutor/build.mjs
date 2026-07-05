@@ -95,8 +95,8 @@ export async function buildTutorCourse(runDir) {
     stamp:
       'Tendril Tutor v2 — offline; diagnosis profile measured in T-M1c (81.7% family accuracy, 33% false-fire mitigated by confirm-style prompts)',
     course: graph.course,
-    profile: { floor: 0.35, margin: 0 },
-    model: { id: 'tendril-e2c', dim: 384 },
+    profile: { floor: 0.35, margin: 0.035 },
+    model: { id: 'tendril-e2d', dim: 384 },
     lessons,
   };
   return {
@@ -129,7 +129,7 @@ export async function writeTutorBundle(course, outDir, { assets = 'copy' } = {})
     }
     return;
   }
-  await cp('trellis/tendril/models/tendril-e2c', join(outDir, 'models', 'tendril-e2c'), { recursive: true });
+  await cp('trellis/tendril/models/tendril-e2d', join(outDir, 'models', 'tendril-e2d'), { recursive: true });
   await cp('node_modules/@huggingface/transformers/dist/transformers.min.js', join(outDir, 'vendor/transformers.min.js'));
   // ORT probes backend variants at runtime (jsep/asyncify/jspi/plain) —
   // ship every loader+wasm pair it might resolve to.
