@@ -3,7 +3,7 @@
  "benchVersion": "1.1.0",
  "stamp": "SIMULATED instruments only; append-only with supersedes (COMPOSER.md C-3)",
  "counts": {
-  "item": 1869,
+  "item": 1879,
   "teach-segment": 206,
   "worked-example": 87,
   "reteach-script": 109,
@@ -67300,6 +67300,366 @@
    "voice": "neutral"
   },
   {
+   "id": "item:gapfill:math/basis-dimension:a-vector-space-has-only--88bf",
+   "kernelId": "math/basis-dimension",
+   "conceptName": "dimension",
+   "move": "item",
+   "body": {
+    "stem": "Consider the vector space R^2. A student argues that only the set {(1,0), (0,1)} can be a basis. Which set proves the student's belief is incorrect?",
+    "options": [
+     "{(1,1), (1,-1)} is also a basis for R^2.",
+     "Only the standard basis works because a basis must be unique.",
+     "Any set of two vectors in R^2 is a basis.",
+     "Bases for R^2 always include (1,0) and (0,1)."
+    ],
+    "correctIndex": 0,
+    "explanation": "Vector spaces have infinitely many bases; for example, R^2 is spanned by the standard basis but equally by {(1,1), (1,-1)}. Only the size of a basis is fixed, not the specific set.",
+    "bloom": "apply",
+    "difficulty": "transfer"
+   },
+   "familyKey": "a vector space has only one basis",
+   "evidence": {
+    "catches": true,
+    "confronts": true,
+    "fromGrade": null
+   },
+   "provenance": {
+    "origin": "twin-depth",
+    "model": "ds",
+    "grade": null,
+    "date": "2026-07-04",
+    "migratedFrom": "all-items.json"
+   },
+   "exposure": {
+    "uses": 0
+   },
+   "voice": "neutral"
+  },
+  {
+   "id": "item:gapfill:cs/lists:students-access-the-last-cbd4",
+   "kernelId": "cs/lists",
+   "conceptName": "lists",
+   "move": "item",
+   "body": {
+    "stem": "A student writes colors = ['red', 'green', 'blue', 'yellow', 'purple'] and then last = colors[5]. What will happen?",
+    "options": [
+     "An IndexError occurs because indices are 0-based, so the last index is 4.",
+     "It correctly accesses the last element because the list has 5 items and index 5 is valid.",
+     "It returns None because the list is out of bounds.",
+     "It returns 'purple' because that is the last element."
+    ],
+    "correctIndex": 0,
+    "explanation": "Indexes run from 0 to length minus 1, so a 5-item list's last index is 4; colors[5] is out of range.",
+    "bloom": "apply",
+    "difficulty": "transfer"
+   },
+   "familyKey": "students access the last element of a 5 item list with index",
+   "evidence": {
+    "catches": true,
+    "confronts": true,
+    "fromGrade": null
+   },
+   "provenance": {
+    "origin": "twin-depth",
+    "model": "ds",
+    "grade": null,
+    "date": "2026-07-04",
+    "migratedFrom": "all-items.json"
+   },
+   "exposure": {
+    "uses": 0
+   },
+   "voice": "neutral"
+  },
+  {
+   "id": "item:gapfill:cs/classes:students-expect-two-inst-9925",
+   "kernelId": "cs/classes",
+   "conceptName": "classes and objects",
+   "move": "item",
+   "body": {
+    "stem": "You create two Person objects, alice and bob. You set alice.name = 'Alice'. What happens when you access bob.name?",
+    "options": [
+     "bob.name is also 'Alice' because instances of the same class share attribute values.",
+     "bob.name raises an AttributeError because bob.name was never set.",
+     "bob.name is 'Bob' because each instance has its own default name.",
+     "bob.name is None because Python initializes it to None."
+    ],
+    "correctIndex": 1,
+    "explanation": "Each instance has its own attributes. Changing one instance's name does not change another's. Only methods are shared. Therefore bob.name was never set, so accessing it raises an error.",
+    "bloom": "apply",
+    "difficulty": "apply"
+   },
+   "familyKey": "students expect two instances of the same class to share the",
+   "evidence": {
+    "catches": true,
+    "confronts": true,
+    "fromGrade": null
+   },
+   "provenance": {
+    "origin": "twin-depth",
+    "model": "ds",
+    "grade": null,
+    "date": "2026-07-04",
+    "migratedFrom": "all-items.json"
+   },
+   "exposure": {
+    "uses": 0
+   },
+   "voice": "neutral"
+  },
+  {
+   "id": "item:gapfill:econ/supply-curve:students-treat-a-price-c-24b9",
+   "kernelId": "econ/supply-curve",
+   "conceptName": "supply curve",
+   "move": "item",
+   "body": {
+    "stem": "A new technology reduces the cost of producing smartphones. What happens to the supply curve for smartphones?",
+    "options": [
+     "The supply curve shifts because the price of smartphones changes.",
+     "The supply curve shifts right due to the technology change.",
+     "The supply curve does not change, only quantity supplied increases.",
+     "The demand curve shifts right."
+    ],
+    "correctIndex": 1,
+    "explanation": "A change in the good's price moves along the curve; only non-price factors shift the curve. Technology is a non-price factor, so the supply curve shifts. This confronts the misconception that price changes shift the curve.",
+    "bloom": "apply",
+    "difficulty": "apply"
+   },
+   "familyKey": "students treat a price change as shifting the whole supply c",
+   "evidence": {
+    "catches": true,
+    "confronts": true,
+    "fromGrade": null
+   },
+   "provenance": {
+    "origin": "twin-depth",
+    "model": "ds",
+    "grade": null,
+    "date": "2026-07-04",
+    "migratedFrom": "all-items.json"
+   },
+   "exposure": {
+    "uses": 0
+   },
+   "voice": "neutral"
+  },
+  {
+   "id": "item:gapfill:geo/weathering-erosion:students-think-all-weath-2565",
+   "kernelId": "geo/weathering-erosion",
+   "conceptName": "Weathering",
+   "move": "item",
+   "body": {
+    "stem": "A student observes that in a hot, humid climate, granite boulders develop a crumbly surface where feldspar has turned to clay. The student claims: 'This is just weathering that breaks the rock into smaller pieces.' What is the correct classification?",
+    "options": [
+     "Mechanical weathering, because it breaks rock into smaller pieces of the same material.",
+     "Chemical weathering, because the minerals themselves change into new substances.",
+     "Mechanical weathering, because the rock is physically broken down.",
+     "Chemical weathering, because water dissolves the rock."
+    ],
+    "correctIndex": 1,
+    "explanation": "Mechanical weathering physically breaks rock into smaller pieces. Chemical weathering changes the minerals themselves into new substances, such as feldspar altering to clay. The student's claim is incorrect because the process involves mineral change.",
+    "bloom": "apply",
+    "difficulty": "apply"
+   },
+   "familyKey": "students think all weathering just breaks rock into smaller ",
+   "evidence": {
+    "catches": true,
+    "confronts": true,
+    "fromGrade": null
+   },
+   "provenance": {
+    "origin": "twin-depth",
+    "model": "ds",
+    "grade": null,
+    "date": "2026-07-04",
+    "migratedFrom": "all-items.json"
+   },
+   "exposure": {
+    "uses": 0
+   },
+   "voice": "neutral"
+  },
+  {
+   "id": "item:gapfill:cs/conditionals:students-write-if-score--9a53",
+   "kernelId": "cs/conditionals",
+   "conceptName": "conditionals",
+   "move": "item",
+   "body": {
+    "stem": "You write: if score = 100: print('perfect'). What happens when you run this code?",
+    "options": [
+     "It compares score to 100 and prints 'perfect' if they are equal.",
+     "It causes a SyntaxError because assignment is not allowed in a condition.",
+     "It assigns 100 to score and then prints 'perfect' because the condition is true.",
+     "It prints nothing because the condition is false."
+    ],
+    "correctIndex": 1,
+    "explanation": "Comparison uses == (two equals signs); a single = is assignment. This code causes a SyntaxError because you cannot assign in a condition. The condition that asks whether values are equal must be written score == 100.",
+    "bloom": "analyze",
+    "difficulty": "apply"
+   },
+   "familyKey": "students write if score 100 using a single and expect it to ",
+   "evidence": {
+    "catches": true,
+    "confronts": true,
+    "fromGrade": null
+   },
+   "provenance": {
+    "origin": "twin-depth",
+    "model": "ds",
+    "grade": null,
+    "date": "2026-07-04",
+    "migratedFrom": "all-items.json"
+   },
+   "exposure": {
+    "uses": 0
+   },
+   "voice": "neutral"
+  },
+  {
+   "id": "item:gapfill:cs/while-loops:students-assume-the-cond-c747",
+   "kernelId": "cs/while-loops",
+   "conceptName": "for loops",
+   "move": "item",
+   "body": {
+    "stem": "Consider the following code:\nx = 2\nwhile x > 0:\n    x = x - 1\n    print(x)\nA student claims that the loop will print 1, because as soon as x becomes 0 the condition is re-checked in the middle of the body and the loop stops. What is the actual output?",
+    "options": [
+     "1, 0",
+     "1: because condition is re-checked in middle of body at the instant variable changes.",
+     "2, 1",
+     "0"
+    ],
+    "correctIndex": 0,
+    "explanation": "The loop expression is only tested at the top of each iteration; the rest of the current pass still runs before the condition is checked again. Here, after x becomes 0, the current pass completes normally, printing 0, then the condition is re-checked.",
+    "bloom": "apply",
+    "difficulty": "apply"
+   },
+   "familyKey": "students assume the condition is re checked in the middle of",
+   "evidence": {
+    "catches": true,
+    "confronts": true,
+    "fromGrade": null
+   },
+   "provenance": {
+    "origin": "twin-depth",
+    "model": "ds",
+    "grade": null,
+    "date": "2026-07-04",
+    "migratedFrom": "all-items.json"
+   },
+   "exposure": {
+    "uses": 0
+   },
+   "voice": "neutral"
+  },
+  {
+   "id": "item:gapfill:cs/classes:students-treat-the-class-811a",
+   "kernelId": "cs/classes",
+   "conceptName": "classes",
+   "move": "item",
+   "body": {
+    "stem": "A student wants each Dog object to have its own name. They write:\nclass Dog:\n    pass\nDog.name = 'Milo'\nd1 = Dog()\nDog.name = 'Buddy'\nd2 = Dog()\nprint(d1.name, d2.name)\nThey expect 'Milo Buddy' because the class stores per-dog data separately. What is actually printed?",
+    "options": [
+     "Buddy Buddy",
+     "Milo Buddy: class itself stores names, confusing blueprint with built things.",
+     "Milo Milo",
+     "Buddy Milo"
+    ],
+    "correctIndex": 0,
+    "explanation": "A class is the blueprint; you create instances from it. Per-object data lives on each instance, not on the class. Here, storing a name on the class affects all instances, making both dogs see the same name.",
+    "bloom": "apply",
+    "difficulty": "apply"
+   },
+   "familyKey": "students treat the class itself as an object and expect to s",
+   "evidence": {
+    "catches": true,
+    "confronts": true,
+    "fromGrade": null
+   },
+   "provenance": {
+    "origin": "twin-depth",
+    "model": "ds",
+    "grade": null,
+    "date": "2026-07-04",
+    "migratedFrom": "all-items.json"
+   },
+   "exposure": {
+    "uses": 0
+   },
+   "voice": "neutral"
+  },
+  {
+   "id": "item:gapfill:lang/numbers-age-and-counting:you-can-count-nouns-in-k-f4dd",
+   "kernelId": "lang/numbers-age-and-counting",
+   "conceptName": "Numbers, Age, and Counting",
+   "move": "item",
+   "body": {
+    "stem": "A student says '세 개의 책' as '세 책' to mean 'three books'. What is the grammatical issue?",
+    "options": [
+     "A counter is required between the numeral and the noun, so '세 권의 책' would be correct.",
+     "It is correct, because you can count nouns in Korean without counters.",
+     "The word order is wrong.",
+     "The numeral should be after the noun."
+    ],
+    "correctIndex": 0,
+    "explanation": "In many cases, a counter is required between the numeral and the noun. Without the counter, the expression is grammatically incomplete.",
+    "bloom": "apply",
+    "difficulty": "apply"
+   },
+   "familyKey": "you can count nouns in korean without counters",
+   "evidence": {
+    "catches": true,
+    "confronts": true,
+    "fromGrade": null
+   },
+   "provenance": {
+    "origin": "twin-depth",
+    "model": "ds",
+    "grade": null,
+    "date": "2026-07-04",
+    "migratedFrom": "all-items.json"
+   },
+   "exposure": {
+    "uses": 0
+   },
+   "voice": "neutral"
+  },
+  {
+   "id": "item:gapfill:math/linear-transformation:translation-is-a-linear--125f",
+   "kernelId": "math/linear-transformation",
+   "conceptName": "linear transformation",
+   "move": "item",
+   "body": {
+    "stem": "A student in a physics simulation adds a fixed vector to every point of an object to translate it. They claim this is a linear transformation because adding vectors is a linear operation. How should you correct this?",
+    "options": [
+     "Translation is a linear transformation because adding a fixed vector is a linear operation.",
+     "Translation is not linear because T(0) ≠ 0, violating linearity.",
+     "Translation is a linear transformation because it preserves distances.",
+     "Translation is an affine transformation, which is a type of linear transformation."
+    ],
+    "correctIndex": 1,
+    "explanation": "Translating an object by a nonzero vector displaces the origin, resulting in T(0) ≠ 0, which violates the linearity axiom. Hence, translations are affine, not linear.",
+    "bloom": "apply",
+    "difficulty": "transfer"
+   },
+   "familyKey": "translation is a linear transformation",
+   "evidence": {
+    "catches": true,
+    "confronts": true,
+    "fromGrade": null
+   },
+   "provenance": {
+    "origin": "twin-depth",
+    "model": "ds",
+    "grade": null,
+    "date": "2026-07-04",
+    "migratedFrom": "all-items.json"
+   },
+   "exposure": {
+    "uses": 0
+   },
+   "voice": "neutral"
+  },
+  {
    "id": "v013-cs-bank5:teach-segment:cs/variables:0",
    "kernelId": "cs/variables",
    "conceptName": "Variables and types",
@@ -85272,7 +85632,7 @@
     "date": "2026-07-04"
    },
    "exposure": {
-    "uses": 9
+    "uses": 10
    },
    "voice": "source-course"
   },
@@ -85316,7 +85676,7 @@
     "date": "2026-07-04"
    },
    "exposure": {
-    "uses": 9
+    "uses": 10
    },
    "voice": "source-course"
   },
@@ -85338,7 +85698,7 @@
     "date": "2026-07-04"
    },
    "exposure": {
-    "uses": 6
+    "uses": 7
    },
    "voice": "source-course"
   },
@@ -85407,7 +85767,7 @@
     "date": "2026-07-04"
    },
    "exposure": {
-    "uses": 6
+    "uses": 7
    },
    "voice": "source-course"
   },
@@ -85470,7 +85830,7 @@
     "date": "2026-07-04"
    },
    "exposure": {
-    "uses": 9
+    "uses": 10
    },
    "voice": "source-course"
   },
@@ -85604,7 +85964,7 @@
     "date": "2026-07-04"
    },
    "exposure": {
-    "uses": 8
+    "uses": 9
    },
    "voice": "source-course"
   },
@@ -85648,7 +86008,7 @@
     "date": "2026-07-04"
    },
    "exposure": {
-    "uses": 6
+    "uses": 7
    },
    "voice": "source-course"
   },
@@ -85692,7 +86052,7 @@
     "date": "2026-07-04"
    },
    "exposure": {
-    "uses": 4
+    "uses": 5
    },
    "voice": "source-course"
   },
@@ -85713,7 +86073,7 @@
     "date": "2026-07-04"
    },
    "exposure": {
-    "uses": 9
+    "uses": 10
    },
    "voice": "source-course"
   },
@@ -85740,7 +86100,7 @@
     "date": "2026-07-04"
    },
    "exposure": {
-    "uses": 4
+    "uses": 5
    },
    "voice": "source-course"
   },
@@ -85781,7 +86141,7 @@
     "date": "2026-07-04"
    },
    "exposure": {
-    "uses": 4
+    "uses": 5
    },
    "voice": "source-course"
   },
@@ -85937,7 +86297,7 @@
     "date": "2026-07-04"
    },
    "exposure": {
-    "uses": 9
+    "uses": 10
    },
    "voice": "source-course"
   },
@@ -86047,7 +86407,7 @@
     "date": "2026-07-04"
    },
    "exposure": {
-    "uses": 4
+    "uses": 5
    },
    "voice": "source-course"
   },
@@ -86095,7 +86455,7 @@
     "date": "2026-07-04"
    },
    "exposure": {
-    "uses": 3
+    "uses": 4
    },
    "voice": "source-course"
   },
@@ -86158,7 +86518,7 @@
     "date": "2026-07-04"
    },
    "exposure": {
-    "uses": 4
+    "uses": 5
    },
    "voice": "source-course"
   },
@@ -86283,7 +86643,7 @@
     "date": "2026-07-04"
    },
    "exposure": {
-    "uses": 9
+    "uses": 10
    },
    "voice": "source-course"
   },
@@ -86327,7 +86687,7 @@
     "date": "2026-07-04"
    },
    "exposure": {
-    "uses": 4
+    "uses": 5
    },
    "voice": "source-course"
   },
@@ -86349,7 +86709,7 @@
     "date": "2026-07-04"
    },
    "exposure": {
-    "uses": 4
+    "uses": 5
    },
    "voice": "source-course"
   },
@@ -86414,7 +86774,7 @@
     "date": "2026-07-04"
    },
    "exposure": {
-    "uses": 9
+    "uses": 10
    },
    "voice": "source-course"
   },
@@ -86526,7 +86886,7 @@
     "date": "2026-07-04"
    },
    "exposure": {
-    "uses": 4
+    "uses": 5
    },
    "voice": "source-course"
   },
@@ -86647,7 +87007,7 @@
     "date": "2026-07-04"
    },
    "exposure": {
-    "uses": 9
+    "uses": 10
    },
    "voice": "source-course"
   },
@@ -86713,7 +87073,7 @@
     "date": "2026-07-04"
    },
    "exposure": {
-    "uses": 4
+    "uses": 5
    },
    "voice": "source-course"
   },
@@ -86757,7 +87117,7 @@
     "date": "2026-07-04"
    },
    "exposure": {
-    "uses": 3
+    "uses": 4
    },
    "voice": "source-course"
   },
@@ -86778,7 +87138,7 @@
     "date": "2026-07-04"
    },
    "exposure": {
-    "uses": 9
+    "uses": 10
    },
    "voice": "source-course"
   },
@@ -87022,7 +87382,7 @@
     "date": "2026-07-04"
    },
    "exposure": {
-    "uses": 9
+    "uses": 10
    },
    "voice": "source-course"
   },
@@ -87044,7 +87404,7 @@
     "date": "2026-07-04"
    },
    "exposure": {
-    "uses": 6
+    "uses": 7
    },
    "voice": "source-course"
   },
@@ -87066,7 +87426,7 @@
     "date": "2026-07-04"
    },
    "exposure": {
-    "uses": 4
+    "uses": 5
    },
    "voice": "source-course"
   },
@@ -87110,7 +87470,7 @@
     "date": "2026-07-04"
    },
    "exposure": {
-    "uses": 4
+    "uses": 5
    },
    "voice": "source-course"
   },
@@ -87153,7 +87513,7 @@
     "date": "2026-07-04"
    },
    "exposure": {
-    "uses": 9
+    "uses": 10
    },
    "voice": "source-course"
   },
@@ -87179,7 +87539,7 @@
     "date": "2026-07-04"
    },
    "exposure": {
-    "uses": 4
+    "uses": 5
    },
    "voice": "source-course"
   },
@@ -87264,7 +87624,7 @@
     "date": "2026-07-04"
    },
    "exposure": {
-    "uses": 6
+    "uses": 7
    },
    "voice": "source-course"
   },
@@ -87395,7 +87755,7 @@
     "date": "2026-07-04"
    },
    "exposure": {
-    "uses": 9
+    "uses": 10
    },
    "voice": "source-course"
   },
@@ -87422,7 +87782,7 @@
     "date": "2026-07-04"
    },
    "exposure": {
-    "uses": 3
+    "uses": 4
    },
    "voice": "source-course"
   },
@@ -87485,7 +87845,7 @@
     "date": "2026-07-04"
    },
    "exposure": {
-    "uses": 6
+    "uses": 7
    },
    "voice": "source-course"
   },
@@ -87507,7 +87867,7 @@
     "date": "2026-07-04"
    },
    "exposure": {
-    "uses": 6
+    "uses": 7
    },
    "voice": "source-course"
   },
@@ -87619,7 +87979,7 @@
     "date": "2026-07-04"
    },
    "exposure": {
-    "uses": 3
+    "uses": 4
    },
    "voice": "source-course"
   },
@@ -87641,7 +88001,7 @@
     "date": "2026-07-04"
    },
    "exposure": {
-    "uses": 7
+    "uses": 8
    },
    "voice": "source-course"
   },
@@ -87663,7 +88023,7 @@
     "date": "2026-07-04"
    },
    "exposure": {
-    "uses": 4
+    "uses": 5
    },
    "voice": "source-course"
   },
@@ -87685,7 +88045,7 @@
     "date": "2026-07-04"
    },
    "exposure": {
-    "uses": 4
+    "uses": 5
    },
    "voice": "source-course"
   },
@@ -87707,7 +88067,7 @@
     "date": "2026-07-04"
    },
    "exposure": {
-    "uses": 4
+    "uses": 5
    },
    "voice": "source-course"
   },
@@ -87729,7 +88089,7 @@
     "date": "2026-07-04"
    },
    "exposure": {
-    "uses": 7
+    "uses": 8
    },
    "voice": "source-course"
   },
@@ -88000,7 +88360,7 @@
     "date": "2026-07-04"
    },
    "exposure": {
-    "uses": 5
+    "uses": 6
    },
    "voice": "source-course"
   },
@@ -88088,7 +88448,7 @@
     "date": "2026-07-04"
    },
    "exposure": {
-    "uses": 4
+    "uses": 5
    },
    "voice": "source-course"
   },
@@ -88131,7 +88491,7 @@
     "date": "2026-07-04"
    },
    "exposure": {
-    "uses": 6
+    "uses": 7
    },
    "voice": "source-course"
   },
@@ -88158,7 +88518,7 @@
     "date": "2026-07-04"
    },
    "exposure": {
-    "uses": 4
+    "uses": 5
    },
    "voice": "source-course"
   },
@@ -88243,7 +88603,7 @@
     "date": "2026-07-04"
    },
    "exposure": {
-    "uses": 6
+    "uses": 7
    },
    "voice": "source-course"
   },
@@ -88448,7 +88808,7 @@
     "date": "2026-07-04"
    },
    "exposure": {
-    "uses": 6
+    "uses": 7
    },
    "voice": "source-course"
   },
@@ -88491,7 +88851,7 @@
     "date": "2026-07-04"
    },
    "exposure": {
-    "uses": 6
+    "uses": 7
    },
    "voice": "source-course"
   },
@@ -88559,7 +88919,7 @@
     "date": "2026-07-04"
    },
    "exposure": {
-    "uses": 5
+    "uses": 6
    },
    "voice": "source-course"
   },
@@ -88581,7 +88941,7 @@
     "date": "2026-07-04"
    },
    "exposure": {
-    "uses": 8
+    "uses": 9
    },
    "voice": "source-course"
   },
@@ -88701,7 +89061,7 @@
     "date": "2026-07-04"
    },
    "exposure": {
-    "uses": 7
+    "uses": 8
    },
    "voice": "source-course"
   },
@@ -88723,7 +89083,7 @@
     "date": "2026-07-04"
    },
    "exposure": {
-    "uses": 7
+    "uses": 8
    },
    "voice": "source-course"
   },
@@ -88811,7 +89171,7 @@
     "date": "2026-07-04"
    },
    "exposure": {
-    "uses": 4
+    "uses": 5
    },
    "voice": "source-course"
   },
@@ -88858,7 +89218,7 @@
     "date": "2026-07-04"
    },
    "exposure": {
-    "uses": 4
+    "uses": 5
    },
    "voice": "source-course"
   },
@@ -88899,7 +89259,7 @@
     "date": "2026-07-04"
    },
    "exposure": {
-    "uses": 6
+    "uses": 7
    },
    "voice": "source-course"
   },
@@ -88921,7 +89281,7 @@
     "date": "2026-07-04"
    },
    "exposure": {
-    "uses": 7
+    "uses": 8
    },
    "voice": "source-course"
   },
@@ -88943,7 +89303,7 @@
     "date": "2026-07-04"
    },
    "exposure": {
-    "uses": 6
+    "uses": 7
    },
    "voice": "source-course"
   },
@@ -89046,7 +89406,7 @@
     "date": "2026-07-04"
    },
    "exposure": {
-    "uses": 7
+    "uses": 8
    },
    "voice": "source-course"
   },
@@ -89068,7 +89428,7 @@
     "date": "2026-07-04"
    },
    "exposure": {
-    "uses": 6
+    "uses": 7
    },
    "voice": "source-course"
   },
@@ -89090,7 +89450,7 @@
     "date": "2026-07-04"
    },
    "exposure": {
-    "uses": 4
+    "uses": 5
    },
    "voice": "source-course"
   },
@@ -89112,7 +89472,7 @@
     "date": "2026-07-04"
    },
    "exposure": {
-    "uses": 4
+    "uses": 5
    },
    "voice": "source-course"
   },
@@ -89155,7 +89515,7 @@
     "date": "2026-07-04"
    },
    "exposure": {
-    "uses": 4
+    "uses": 5
    },
    "voice": "source-course"
   },
@@ -89465,7 +89825,7 @@
     "date": "2026-07-04"
    },
    "exposure": {
-    "uses": 9
+    "uses": 10
    },
    "voice": "source-course"
   },
@@ -89492,7 +89852,7 @@
     "date": "2026-07-04"
    },
    "exposure": {
-    "uses": 3
+    "uses": 4
    },
    "voice": "source-course"
   },
@@ -89533,7 +89893,7 @@
     "date": "2026-07-04"
    },
    "exposure": {
-    "uses": 3
+    "uses": 4
    },
    "voice": "source-course"
   },
@@ -89577,7 +89937,7 @@
     "date": "2026-07-04"
    },
    "exposure": {
-    "uses": 4
+    "uses": 5
    },
    "voice": "source-course"
   },
@@ -89689,7 +90049,7 @@
     "date": "2026-07-04"
    },
    "exposure": {
-    "uses": 4
+    "uses": 5
    },
    "voice": "source-course"
   },
@@ -89711,7 +90071,7 @@
     "date": "2026-07-04"
    },
    "exposure": {
-    "uses": 5
+    "uses": 6
    },
    "voice": "source-course"
   },
@@ -89755,7 +90115,7 @@
     "date": "2026-07-04"
    },
    "exposure": {
-    "uses": 5
+    "uses": 6
    },
    "voice": "source-course"
   },
@@ -89799,7 +90159,7 @@
     "date": "2026-07-04"
    },
    "exposure": {
-    "uses": 5
+    "uses": 6
    },
    "voice": "source-course"
   },
@@ -90036,7 +90396,7 @@
     "date": "2026-07-04"
    },
    "exposure": {
-    "uses": 8
+    "uses": 9
    },
    "voice": "source-course"
   },
@@ -90058,7 +90418,7 @@
     "date": "2026-07-04"
    },
    "exposure": {
-    "uses": 4
+    "uses": 5
    },
    "voice": "source-course"
   },
@@ -90080,7 +90440,7 @@
     "date": "2026-07-04"
    },
    "exposure": {
-    "uses": 5
+    "uses": 6
    },
    "voice": "source-course"
   },
@@ -90102,7 +90462,7 @@
     "date": "2026-07-04"
    },
    "exposure": {
-    "uses": 5
+    "uses": 6
    },
    "voice": "source-course"
   },
@@ -90124,7 +90484,7 @@
     "date": "2026-07-04"
    },
    "exposure": {
-    "uses": 4
+    "uses": 5
    },
    "voice": "source-course"
   },
@@ -90146,7 +90506,7 @@
     "date": "2026-07-04"
    },
    "exposure": {
-    "uses": 4
+    "uses": 5
    },
    "voice": "source-course"
   },
@@ -90172,7 +90532,7 @@
     "date": "2026-07-04"
    },
    "exposure": {
-    "uses": 5
+    "uses": 6
    },
    "voice": "source-course"
   },
@@ -90213,7 +90573,7 @@
     "date": "2026-07-04"
    },
    "exposure": {
-    "uses": 5
+    "uses": 6
    },
    "voice": "source-course"
   },
@@ -90279,7 +90639,7 @@
     "date": "2026-07-04"
    },
    "exposure": {
-    "uses": 5
+    "uses": 6
    },
    "voice": "source-course"
   },
@@ -90301,7 +90661,7 @@
     "date": "2026-07-04"
    },
    "exposure": {
-    "uses": 4
+    "uses": 5
    },
    "voice": "source-course"
   },
@@ -90345,7 +90705,7 @@
     "date": "2026-07-04"
    },
    "exposure": {
-    "uses": 4
+    "uses": 5
    },
    "voice": "source-course"
   },
@@ -90434,7 +90794,7 @@
     "date": "2026-07-04"
    },
    "exposure": {
-    "uses": 4
+    "uses": 5
    },
    "voice": "source-course"
   },
@@ -90478,7 +90838,7 @@
     "date": "2026-07-04"
    },
    "exposure": {
-    "uses": 4
+    "uses": 5
    },
    "voice": "source-course"
   },
@@ -90678,7 +91038,7 @@
     "date": "2026-07-04"
    },
    "exposure": {
-    "uses": 3
+    "uses": 4
    },
    "voice": "source-course"
   },
@@ -90856,7 +91216,7 @@
     "date": "2026-07-04"
    },
    "exposure": {
-    "uses": 4
+    "uses": 5
    },
    "voice": "source-course"
   },
@@ -90900,7 +91260,7 @@
     "date": "2026-07-04"
    },
    "exposure": {
-    "uses": 3
+    "uses": 4
    },
    "voice": "source-course"
   },
@@ -91056,7 +91416,7 @@
     "date": "2026-07-04"
    },
    "exposure": {
-    "uses": 4
+    "uses": 5
    },
    "voice": "source-course"
   },
@@ -91078,7 +91438,7 @@
     "date": "2026-07-04"
    },
    "exposure": {
-    "uses": 4
+    "uses": 5
    },
    "voice": "source-course"
   },
@@ -91100,7 +91460,7 @@
     "date": "2026-07-04"
    },
    "exposure": {
-    "uses": 5
+    "uses": 6
    },
    "voice": "source-course"
   },
@@ -91188,7 +91548,7 @@
     "date": "2026-07-04"
    },
    "exposure": {
-    "uses": 4
+    "uses": 5
    },
    "voice": "source-course"
   },
@@ -91256,7 +91616,7 @@
     "date": "2026-07-04"
    },
    "exposure": {
-    "uses": 4
+    "uses": 5
    },
    "voice": "source-course"
   },
@@ -91377,7 +91737,7 @@
     "date": "2026-07-04"
    },
    "exposure": {
-    "uses": 9
+    "uses": 10
    },
    "voice": "source-course"
   },
@@ -91399,7 +91759,7 @@
     "date": "2026-07-04"
    },
    "exposure": {
-    "uses": 4
+    "uses": 5
    },
    "voice": "source-course"
   },
@@ -91421,7 +91781,7 @@
     "date": "2026-07-04"
    },
    "exposure": {
-    "uses": 4
+    "uses": 5
    },
    "voice": "source-course"
   },
@@ -91711,7 +92071,7 @@
     "date": "2026-07-04"
    },
    "exposure": {
-    "uses": 4
+    "uses": 5
    },
    "voice": "source-course"
   },
@@ -91733,7 +92093,7 @@
     "date": "2026-07-04"
    },
    "exposure": {
-    "uses": 4
+    "uses": 5
    },
    "voice": "source-course"
   },
@@ -91755,7 +92115,7 @@
     "date": "2026-07-04"
    },
    "exposure": {
-    "uses": 4
+    "uses": 5
    },
    "voice": "source-course"
   },
@@ -91820,7 +92180,7 @@
     "date": "2026-07-04"
    },
    "exposure": {
-    "uses": 5
+    "uses": 6
    },
    "voice": "source-course"
   },
@@ -91888,7 +92248,7 @@
     "date": "2026-07-04"
    },
    "exposure": {
-    "uses": 4
+    "uses": 5
    },
    "voice": "source-course"
   },
@@ -91910,7 +92270,7 @@
     "date": "2026-07-04"
    },
    "exposure": {
-    "uses": 5
+    "uses": 6
    },
    "voice": "source-course"
   },
@@ -92163,7 +92523,7 @@
     "date": "2026-07-04"
    },
    "exposure": {
-    "uses": 4
+    "uses": 5
    },
    "voice": "source-course"
   },
@@ -92212,7 +92572,7 @@
     "date": "2026-07-04"
    },
    "exposure": {
-    "uses": 4
+    "uses": 5
    },
    "voice": "source-course"
   },
@@ -92253,7 +92613,7 @@
     "date": "2026-07-04"
    },
    "exposure": {
-    "uses": 4
+    "uses": 5
    },
    "voice": "source-course"
   },
@@ -92374,7 +92734,7 @@
     "date": "2026-07-04"
    },
    "exposure": {
-    "uses": 3
+    "uses": 4
    },
    "voice": "source-course"
   },
@@ -92396,7 +92756,7 @@
     "date": "2026-07-04"
    },
    "exposure": {
-    "uses": 4
+    "uses": 5
    },
    "voice": "source-course"
   },
@@ -92440,7 +92800,7 @@
     "date": "2026-07-04"
    },
    "exposure": {
-    "uses": 4
+    "uses": 5
    },
    "voice": "source-course"
   },
@@ -92484,7 +92844,7 @@
     "date": "2026-07-04"
    },
    "exposure": {
-    "uses": 4
+    "uses": 5
    },
    "voice": "source-course"
   },
@@ -92511,7 +92871,7 @@
     "date": "2026-07-04"
    },
    "exposure": {
-    "uses": 4
+    "uses": 5
    },
    "voice": "source-course"
   },
@@ -92552,7 +92912,7 @@
     "date": "2026-07-04"
    },
    "exposure": {
-    "uses": 4
+    "uses": 5
    },
    "voice": "source-course"
   },
@@ -92574,7 +92934,7 @@
     "date": "2026-07-04"
    },
    "exposure": {
-    "uses": 2
+    "uses": 3
    },
    "voice": "source-course"
   },
@@ -92596,7 +92956,7 @@
     "date": "2026-07-04"
    },
    "exposure": {
-    "uses": 5
+    "uses": 6
    },
    "voice": "source-course"
   },
@@ -92618,7 +92978,7 @@
     "date": "2026-07-04"
    },
    "exposure": {
-    "uses": 4
+    "uses": 5
    },
    "voice": "source-course"
   },
@@ -92640,7 +93000,7 @@
     "date": "2026-07-04"
    },
    "exposure": {
-    "uses": 5
+    "uses": 6
    },
    "voice": "source-course"
   },
@@ -92662,7 +93022,7 @@
     "date": "2026-07-04"
    },
    "exposure": {
-    "uses": 4
+    "uses": 5
    },
    "voice": "source-course"
   },
@@ -92684,7 +93044,7 @@
     "date": "2026-07-04"
    },
    "exposure": {
-    "uses": 5
+    "uses": 6
    },
    "voice": "source-course"
   },
@@ -92775,7 +93135,7 @@
     "date": "2026-07-04"
    },
    "exposure": {
-    "uses": 4
+    "uses": 5
    },
    "voice": "source-course"
   },
@@ -92912,7 +93272,7 @@
     "date": "2026-07-04"
    },
    "exposure": {
-    "uses": 4
+    "uses": 5
    },
    "voice": "source-course"
   },
@@ -92953,7 +93313,7 @@
     "date": "2026-07-04"
    },
    "exposure": {
-    "uses": 6
+    "uses": 7
    },
    "voice": "source-course"
   },
@@ -92975,7 +93335,7 @@
     "date": "2026-07-04"
    },
    "exposure": {
-    "uses": 4
+    "uses": 5
    },
    "voice": "source-course"
   },
@@ -93109,7 +93469,7 @@
     "date": "2026-07-04"
    },
    "exposure": {
-    "uses": 4
+    "uses": 5
    },
    "voice": "source-course"
   },
@@ -93131,7 +93491,7 @@
     "date": "2026-07-04"
    },
    "exposure": {
-    "uses": 4
+    "uses": 5
    },
    "voice": "source-course"
   },
@@ -93153,7 +93513,7 @@
     "date": "2026-07-04"
    },
    "exposure": {
-    "uses": 4
+    "uses": 5
    },
    "voice": "source-course"
   },
@@ -93331,7 +93691,7 @@
     "date": "2026-07-04"
    },
    "exposure": {
-    "uses": 4
+    "uses": 5
    },
    "voice": "source-course"
   },
@@ -93552,7 +93912,7 @@
     "date": "2026-07-04"
    },
    "exposure": {
-    "uses": 5
+    "uses": 6
    },
    "voice": "source-course"
   },
@@ -93574,7 +93934,7 @@
     "date": "2026-07-04"
    },
    "exposure": {
-    "uses": 5
+    "uses": 6
    },
    "voice": "source-course"
   },
@@ -93951,7 +94311,7 @@
     "date": "2026-07-04"
    },
    "exposure": {
-    "uses": 2
+    "uses": 3
    },
    "voice": "source-course"
   },
@@ -93973,7 +94333,7 @@
     "date": "2026-07-04"
    },
    "exposure": {
-    "uses": 2
+    "uses": 3
    },
    "voice": "source-course"
   },
@@ -93995,7 +94355,7 @@
     "date": "2026-07-04"
    },
    "exposure": {
-    "uses": 2
+    "uses": 3
    },
    "voice": "source-course"
   },
@@ -94016,7 +94376,7 @@
     "date": "2026-07-04"
    },
    "exposure": {
-    "uses": 4
+    "uses": 5
    },
    "voice": "source-course"
   },
@@ -94084,7 +94444,7 @@
     "date": "2026-07-04"
    },
    "exposure": {
-    "uses": 2
+    "uses": 3
    },
    "voice": "source-course"
   },
@@ -94106,7 +94466,7 @@
     "date": "2026-07-04"
    },
    "exposure": {
-    "uses": 4
+    "uses": 5
    },
    "voice": "source-course"
   },
@@ -94172,7 +94532,7 @@
     "date": "2026-07-04"
    },
    "exposure": {
-    "uses": 2
+    "uses": 3
    },
    "voice": "source-course"
   },
@@ -94216,7 +94576,7 @@
     "date": "2026-07-04"
    },
    "exposure": {
-    "uses": 2
+    "uses": 3
    },
    "voice": "source-course"
   },
@@ -94243,7 +94603,7 @@
     "date": "2026-07-04"
    },
    "exposure": {
-    "uses": 2
+    "uses": 3
    },
    "voice": "source-course"
   },
@@ -94284,7 +94644,7 @@
     "date": "2026-07-04"
    },
    "exposure": {
-    "uses": 2
+    "uses": 3
    },
    "voice": "source-course"
   },
@@ -94372,7 +94732,7 @@
     "date": "2026-07-04"
    },
    "exposure": {
-    "uses": 4
+    "uses": 5
    },
    "voice": "source-course"
   },
@@ -94394,7 +94754,7 @@
     "date": "2026-07-04"
    },
    "exposure": {
-    "uses": 2
+    "uses": 3
    },
    "voice": "source-course"
   },
@@ -94443,7 +94803,7 @@
     "date": "2026-07-04"
    },
    "exposure": {
-    "uses": 2
+    "uses": 3
    },
    "voice": "source-course"
   },
@@ -94484,7 +94844,7 @@
     "date": "2026-07-04"
    },
    "exposure": {
-    "uses": 2
+    "uses": 3
    },
    "voice": "source-course"
   },
@@ -94706,7 +95066,7 @@
     "date": "2026-07-04"
    },
    "exposure": {
-    "uses": 4
+    "uses": 5
    },
    "voice": "source-course"
   },
@@ -94728,7 +95088,7 @@
     "date": "2026-07-04"
    },
    "exposure": {
-    "uses": 1
+    "uses": 2
    },
    "voice": "source-course"
   },
@@ -94794,7 +95154,7 @@
     "date": "2026-07-04"
    },
    "exposure": {
-    "uses": 2
+    "uses": 3
    },
    "voice": "source-course"
   },
@@ -94816,7 +95176,7 @@
     "date": "2026-07-04"
    },
    "exposure": {
-    "uses": 2
+    "uses": 3
    },
    "voice": "source-course"
   },
@@ -94838,7 +95198,7 @@
     "date": "2026-07-04"
    },
    "exposure": {
-    "uses": 2
+    "uses": 3
    },
    "voice": "source-course"
   },
@@ -94905,7 +95265,7 @@
     "date": "2026-07-04"
    },
    "exposure": {
-    "uses": 2
+    "uses": 3
    },
    "voice": "source-course"
   },
@@ -95218,7 +95578,7 @@
     "date": "2026-07-04"
    },
    "exposure": {
-    "uses": 4
+    "uses": 5
    },
    "voice": "source-course"
   },
@@ -95240,7 +95600,7 @@
     "date": "2026-07-04"
    },
    "exposure": {
-    "uses": 2
+    "uses": 3
    },
    "voice": "source-course"
   },
@@ -95552,7 +95912,7 @@
     "date": "2026-07-04"
    },
    "exposure": {
-    "uses": 4
+    "uses": 5
    },
    "voice": "source-course"
   },
@@ -95829,7 +96189,7 @@
     "date": "2026-07-04"
    },
    "exposure": {
-    "uses": 6
+    "uses": 7
    },
    "voice": "source-course"
   },
@@ -95916,7 +96276,7 @@
     "date": "2026-07-04"
    },
    "exposure": {
-    "uses": 1
+    "uses": 2
    },
    "voice": "source-course"
   },
@@ -96319,7 +96679,7 @@
     "date": "2026-07-04"
    },
    "exposure": {
-    "uses": 2
+    "uses": 3
    },
    "voice": "source-course"
   },
@@ -96341,7 +96701,7 @@
     "date": "2026-07-04"
    },
    "exposure": {
-    "uses": 2
+    "uses": 3
    },
    "voice": "source-course"
   },
@@ -96363,7 +96723,7 @@
     "date": "2026-07-04"
    },
    "exposure": {
-    "uses": 2
+    "uses": 3
    },
    "voice": "source-course"
   },
@@ -96705,7 +97065,7 @@
     "date": "2026-07-04"
    },
    "exposure": {
-    "uses": 3
+    "uses": 4
    },
    "voice": "source-course"
   },

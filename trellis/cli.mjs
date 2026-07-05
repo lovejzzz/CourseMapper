@@ -61,6 +61,7 @@ async function cmdGenerate(options) {
     overnight: Boolean(options.overnight),
     composer: Boolean(options.composer),
     tendril: options['no-tendril'] ? false : (options.tendril ?? true), // --tendril 0.92 overrides ε
+    freezeExposure: Boolean(options['freeze-exposure']),
     bankDiscipline: typeof options.bank === 'string' ? options.bank : null,
     runId: options['run-id'] ?? newRunId(options.mock ? 'mock' : 'live'),
   });

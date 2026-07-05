@@ -152,6 +152,9 @@ export async function cachedEmbed(texts, { dir = CACHE_DIR, name, embedder = nul
   if (!name) throw new Error('cachedEmbed needs a cache name');
   name = tagged(name);
   const emb = embedder ?? makeEmbedder();
+  // Hermetic under vitest: mock embedders must never append junk vectors
+  // to the repo's real caches.
+  if (process.env.VITEST) return emb.embed(texts);
   let meta = { model: TENDRIL_MODEL_ID, dim: TENDRIL_DIM, hashes: [] };
   let flat = new Float32Array(0);
   try {

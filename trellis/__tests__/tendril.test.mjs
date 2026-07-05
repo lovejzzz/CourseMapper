@@ -141,6 +141,31 @@ describe('selection hooks', () => {
   });
 });
 
+describe('twin-depth cell finder (R3)', () => {
+  it('flags cells whose explanations are near-twins and spares distinct ones', async () => {
+    const { findTwinCells } = await import('../tendril/twinDepth.mjs');
+    const mk = (id, kernelId, familyKey, explanation) => ({ id, kernelId, familyKey, explanation });
+    const bank = {
+      items: [
+        mk('a', 'k1', 'students think twins', 'twin explanation one'),
+        mk('b', 'k1', 'students think twins', 'twin explanation two'),
+        mk('c', 'k2', 'students think distinct', 'about apples entirely'),
+        mk('d', 'k2', 'students think distinct', 'about oranges instead'),
+      ],
+    };
+    const vectors = {
+      'twin explanation one': unit([1, 0, 0]),
+      'twin explanation two': unit([1, 0.05, 0]), // cosine ≈ 0.999
+      'about apples entirely': unit([0, 1, 0]),
+      'about oranges instead': unit([0, 0, 1]), // cosine 0
+    };
+    const embedder = makeEmbedder({ embedFn: async (texts) => texts.map((t) => vectors[t]) });
+    const { twins } = await findTwinCells(bank, { embedder });
+    expect(twins.map((t) => t.kernelId)).toEqual(['k1']);
+    expect(twins[0].maxPair).toBeGreaterThanOrEqual(0.92);
+  });
+});
+
 describe('T-M3 gate bench gates', () => {
   const base = { task: 'skin', mode: 'teach', source: 'A long enough source segment that ends with a period and says plenty of things about the topic at hand.' };
 

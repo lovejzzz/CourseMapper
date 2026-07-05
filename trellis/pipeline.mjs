@@ -37,6 +37,7 @@ export async function runPipeline({
   overnight = false,
   composer = false,
   tendril = true,
+  freezeExposure = false,
   bankDiscipline = null,
   generatedAt = new Date().toISOString(),
 }) {
@@ -57,6 +58,7 @@ export async function runPipeline({
       overnight,
       composer,
       tendril,
+      freezeExposure,
       bankDiscipline,
       generatedAt,
       ledger,
@@ -82,6 +84,7 @@ async function runPipelineStages({
   overnight,
   composer,
   tendril = true,
+  freezeExposure = false,
   bankDiscipline,
   generatedAt,
   ledger,
