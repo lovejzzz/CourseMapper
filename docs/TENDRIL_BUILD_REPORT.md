@@ -116,4 +116,24 @@ training $0 API (local M4 Max) · commits `0cc80d0…29a1a0c`_
   accumulate for a contrastive training round.
 - Bench numbers are SIMULATED-stamped; the 2-human anchor rule stands.
 
+---
+
+# v0.1.1 — Stance, Skin, Depth (same day, commits `340881a…`)
+
+_Roadmap: [TENDRIL_ROADMAP_V0.1.1.md](TENDRIL_ROADMAP_V0.1.1.md).
+Spend ≈$0.18 + $0 training. Two bars met, one shelved by its own rule,
+one missed honestly — and two instrument defects found and fixed._
+
+| Slice | Verdict |
+| --- | --- |
+| **R4 blind spot** | **MET — and it overturned my own patch.** The short-option class got its additive v2 frozen ruler (self-contained item surfaces). Verdict: plain item-options wins that class too (83.3%/29.2%), dominating the conditional explanation-null rule the Tutor briefly shipped (23.3%/4.2% — over-corrected to deaf). Tutor reverted to ONE rule everywhere. Anecdote → patch → ruler → revert. |
+| **R2 Tendril-S round 2** | **MET — S now beats nano on the deployment gates.** Skin oversampled ×2 (class imbalance), iters 1000, identity-noop retried once with temp-0.7 sampling (gates judge the retry). **72.5% overall (skin 61.7 / blend 83.3) vs nano 71.7 (63.3 / 80.0)** — the $0 local 135M matches the paid tier on its trained tasks. |
+| **R1 Tendril-E v2** | **SHELVED by the pre-registered joint bar, direction proven.** 5,728 bank stance triplets, MPS, ONNX q8 (22.8MB), model-swap machinery with isolated caches. E2 **dominates E1's frontier at every margin** (m0 85.8/34.2; m0.08 70.8/17.5 beats E1 on both axes) but no point satisfies ≥80% AND ≤20% jointly → E1 stays deployed. Next round named: student-register paraphrase triplets. LOO retired (trained on its texts). |
+| **R3 twin depth** | **MISSED honestly; instrument fixed.** 25 twin cells; pass 1 authored 0/25 (re-learned: hand the model the gate's own tokens + genome correctives); pass 2 authored 10/25 through the full stack (solver killed one wrong key blind). Ruler: findings 2 / battery 0.494 vs bar ≤1 / ≥0.545 — but the trace exonerates the new items: both findings sit on a misconception no new item touches. Root cause: **exposure counters persist across replays, so composed "frozen ruler" runs drift** — the baseline moved under every comparison since e7e. `--freeze-exposure` now marks measurement runs. "Depth lifts battery" stays unproven; items kept (gate-passed diversity headroom). |
+
+**The meta-lesson of v0.1.1:** three of four slices ended with the
+ruler overruling intuition — the live-anecdote patch, the E2 adoption,
+the depth hypothesis. The pre-registered bars did exactly what they
+exist to do.
+
 _— Fable 5_
