@@ -1426,3 +1426,18 @@ polishing a candidate that hasn't won.
   lever, worth ~0.1 battery for every pipeline). 17 tendril tests;
   suite 4,046 green. The economics land: spend once per discipline at
   the factory; replay each course at $0 and ~6 min local compute.
+
+- **2026-07-05 (zero mode cross-course + cross-pipeline).** Owner
+  "different prompt, compare all pipelines" → zero on FRESH-GROUND cs
+  (e8 graph) + a boundary probe (world-lit). **zero-cs: $0.0000 ·
+  98/A with P1=0 (cleanest P-profile of any run) · panel 6.67 [6,7]
+  cross-family — ABOVE the Compiler (5-6 at $0.12), one point under
+  the paid Composer (7.67 at $0.068) · battery 0.404 (carries the
+  known ~0.1 claims-mapping penalty) · findings 2 disclosed.** The
+  panel LOCATED the gap: 8/9 artifacts 5-9 (guides 9/9/9); l13
+  "Debugging and Testing" 4.33 — no debugging assets in the library,
+  adjacent content assembled. **zero-lit: refused all 14 lessons and
+  shipped a $0 ledger** — bank items exist but no lit prose assets;
+  the loud-failure design working. Levers named: Tendril-E topic-match
+  disclosure ($0), claims/mapping decoupling (+0.1 battery all
+  pipelines), lit/history harvest = C6. Panel spend $0.041.
