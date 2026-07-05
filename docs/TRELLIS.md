@@ -1464,3 +1464,21 @@ polishing a candidate that hasn't won.
   origin preservation extended (twin-depth/researcher were
   rebuild-vulnerable); assets.mjs import-CLI; shard manifest now
   maintained by deposits. Suite 4,049 green.
+
+- **2026-07-05 (Researcher-Zero — the $0-API research brain, benched).**
+  Owner: "the little researcher itself at $0 API; unsure of speed and
+  accuracy — build and test." Built extract-don't-generate: Tendril-E
+  selects source sentences (anchored by construction), deterministic
+  surface assembly, S-skin under a FIDELITY GATE (every output sentence
+  must embed ≥0.75 to a source sentence — added after the first bench
+  eyeball caught the 135M skin INJECTING a false claim the length
+  gates could not see). Bench (6 targets, same sources): **2.7s vs
+  49.1s per kernel (18×), $0 vs ~$0.007, surfaces 52/54 vs 53/54,
+  anchoring 100%-by-construction, blind cross-family teach read 7.67
+  vs 5.50 (5-1, one disclosed outlier, n=6 advisory).** Post-gate skin
+  acceptance 2/18 → the value is E's SELECTION, not S's rewriting;
+  well-chosen encyclopedic prose beats cheap-model paraphrase. Honest
+  hole: 0/6 misconceptions mined from intro extracts → confrontation
+  pedagogy needs OpenAlex edu-literature mining or cents-level paid
+  top-ups (items likewise). Deployment: zero for knowledge+prose,
+  paid only for misconceptions+items. Suite 4,051 green.
