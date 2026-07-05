@@ -7,6 +7,7 @@ import os
 import sys
 
 from mlx_lm import load, generate
+from mlx_lm.sample_utils import make_sampler
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 N_PER_TASK = 60
@@ -54,6 +55,16 @@ def main():
                 add_generation_prompt=True,
             )
             output = generate(model, tokenizer, prompt=prompt, max_tokens=600)
+            # R2: greedy decoding invites verbatim copying (identity-noop was
+            # 23/60 on skin). One sampled retry when the output is a no-op —
+            # the gates judge the retry, so this is free of risk.
+            def is_noop(o, src):
+                o, src = o.strip(), src.strip()
+                return o == src or (len(o) > 0 and (o in src or src in o))
+            if is_noop(output, t["source"]):
+                output = generate(
+                    model, tokenizer, prompt=prompt, max_tokens=600, sampler=make_sampler(temp=0.7)
+                )
             f.write(json.dumps({"task": t["task"], "mode": t["mode"], "source": t["source"], "output": output.strip()}) + "\n")
             if (i + 1) % 20 == 0:
                 print(f"{i + 1}/{len(sample)}", flush=True)

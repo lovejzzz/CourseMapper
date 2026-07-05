@@ -19,13 +19,22 @@ export const TENDRIL_DIM = 384;
 const CACHE_DIR = 'trellis/tendril/cache';
 const MODELS_DIR = 'trellis/tendril/models';
 
+// R1: TENDRIL_MODEL=<local-dir-name> (e.g. tendril-e2) swaps the embedder
+// for A/B verdicts. Every disk cache name gains a model tag so candidate
+// models can NEVER pollute the default model's caches.
+const ACTIVE_MODEL = process.env.TENDRIL_MODEL || TENDRIL_MODEL_ID;
+const MODEL_TAG = process.env.TENDRIL_MODEL ? `@${process.env.TENDRIL_MODEL.replace(/[^a-z0-9-]/gi, '_')}` : '';
+const tagged = (name) => `${name}${MODEL_TAG}`;
+
 let _pipeline = null;
 
 async function loadPipeline() {
   if (_pipeline) return _pipeline;
   const { pipeline, env } = await import('@huggingface/transformers');
   env.cacheDir = MODELS_DIR; // project-local so the browser bundle reuses the same files
-  _pipeline = await pipeline('feature-extraction', TENDRIL_MODEL_ID, { dtype: 'q8' });
+  env.localModelPath = MODELS_DIR; // local candidates (tendril-e2/…) resolve here
+  env.allowLocalModels = true;
+  _pipeline = await pipeline('feature-extraction', ACTIVE_MODEL, { dtype: 'q8' });
   return _pipeline;
 }
 
@@ -86,7 +95,7 @@ export function makeEmbedder({ embedFn = realEmbed, batchSize = 64 } = {}) {
 //   cache/asset-embeddings.bin   — Float32Array rows in entry order
 // ---------------------------------------------------------------------------
 
-export async function loadEmbeddingCache({ dir = CACHE_DIR, name = 'asset-embeddings' } = {}) {
+export async function loadEmbeddingCache({ dir = CACHE_DIR, name = tagged('asset-embeddings') } = {}) {
   try {
     const meta = JSON.parse(await readFile(join(dir, `${name}.json`), 'utf8'));
     const buf = await readFile(join(dir, `${name}.bin`));
@@ -101,7 +110,7 @@ export async function loadEmbeddingCache({ dir = CACHE_DIR, name = 'asset-embedd
   }
 }
 
-export async function embedAssetLibrary(store, { dir = CACHE_DIR, name = 'asset-embeddings', embedder = null } = {}) {
+export async function embedAssetLibrary(store, { dir = CACHE_DIR, name = tagged('asset-embeddings'), embedder = null } = {}) {
   const emb = embedder ?? makeEmbedder();
   const prior = await loadEmbeddingCache({ dir, name });
   const entries = [];
@@ -141,6 +150,7 @@ export async function embedAssetLibrary(store, { dir = CACHE_DIR, name = 'asset-
 // like the asset cache; identical texts dedupe naturally.
 export async function cachedEmbed(texts, { dir = CACHE_DIR, name, embedder = null } = {}) {
   if (!name) throw new Error('cachedEmbed needs a cache name');
+  name = tagged(name);
   const emb = embedder ?? makeEmbedder();
   let meta = { model: TENDRIL_MODEL_ID, dim: TENDRIL_DIM, hashes: [] };
   let flat = new Float32Array(0);
@@ -184,5 +194,5 @@ if (
   const store = JSON.parse(await readFile('trellis/bank/assets.json', 'utf8'));
   const t0 = performance.now();
   const result = await embedAssetLibrary(store);
-  console.log(JSON.stringify({ ...result, seconds: ((performance.now() - t0) / 1000).toFixed(1) }, null, 2));
+  console.log(JSON.stringify({ model: ACTIVE_MODEL, ...result, seconds: ((performance.now() - t0) / 1000).toFixed(1) }, null, 2));
 }

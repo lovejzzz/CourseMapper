@@ -60,6 +60,10 @@ def main():
         }
         b = bucket(p["source"])
         splits[b].append(record)
+        # R2: skin is outnumbered ~2.5:1 by blends and its acceptance
+        # trailed (33% vs 73%); oversample skin x2 in TRAIN only.
+        if b == "train" and task == "skin":
+            splits[b].append(record)
         if b == "test":
             heldout.append({"task": task, "mode": mode, "source": p["source"], "reference": p["target"]})
 
