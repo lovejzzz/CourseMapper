@@ -11,15 +11,35 @@ export const SKIN_SYSTEM =
 export const BLEND_SYSTEM =
   "You polish quiz explanations. The text contains corrective sentences that were pasted in mechanically, so it reads as two voices. Rewrite it as ONE natural explanation (2-3 sentences) that makes every corrective's content its own point — keep the key technical terms (a lexical gate checks this), never paste a corrective as a standalone sentence. Return only the rewritten explanation text.";
 
-let proc = null;
-let nextId = 1;
-const pending = new Map();
+// TASK-ROUTED local serving (v0.2, 'the better model is a pair'): the
+// held-out gate bench measured complementary strengths — Qwen2.5-0.5B
+// (s3b, 800-iter checkpoint) wins SKIN 71.7% vs 61.7%, while the
+// SmolLM2 round-2 tune keeps BLEND 83.3% vs 61.7%. Routing by task
+// scores 77.5% combined vs 72.5% single-model. Servers start lazily.
+const ROUTES = {
+  skin: {
+    base: 'Qwen/Qwen2.5-0.5B-Instruct',
+    adapters: 'trellis/tendril/distill/adapters-s3-800',
+  },
+  blend: {
+    base: 'HuggingFaceTB/SmolLM2-135M-Instruct',
+    adapters: 'trellis/tendril/distill/adapters',
+  },
+};
 
-export async function startS({ timeoutMs = 60_000 } = {}) {
-  if (proc) return;
-  proc = spawn('trellis/tendril/.venv/bin/python', ['trellis/tendril/distill/serve_s.py'], {
+let nextId = 1;
+const servers = new Map(); // route -> { proc, pending }
+
+async function startRoute(route, { timeoutMs = 120_000 } = {}) {
+  if (servers.has(route)) return servers.get(route);
+  const cfg = ROUTES[route];
+  const proc = spawn('trellis/tendril/.venv/bin/python', ['trellis/tendril/distill/serve_s.py'], {
     stdio: ['pipe', 'pipe', 'pipe'],
+    env: { ...process.env, S_BASE: cfg.base, S_ADAPTERS: cfg.adapters },
   });
+  const pending = new Map();
+  const entry = { proc, pending };
+  servers.set(route, entry);
   let buffer = '';
   proc.stdout.on('data', (chunk) => {
     buffer += chunk.toString();
@@ -40,38 +60,44 @@ export async function startS({ timeoutMs = 60_000 } = {}) {
           else p.resolve(msg.text);
         }
       } catch {
-        /* non-JSON chatter on stdout is ignored */
+        /* non-JSON stdout chatter ignored */
       }
     }
   });
   proc.on('exit', () => {
-    for (const p of pending.values()) p.reject?.(new Error('tendril-s server exited'));
+    for (const p of pending.values()) p.reject?.(new Error(`tendril-s [${route}] server exited`));
     pending.clear();
-    proc = null;
+    servers.delete(route);
   });
   await new Promise((resolve, reject) => {
     pending.set('ready', { resolve, reject });
-    setTimeout(() => reject(new Error('tendril-s server did not start (is the venv built?)')), timeoutMs);
+    setTimeout(() => reject(new Error(`tendril-s [${route}] did not start (venv built?)`)), timeoutMs);
   });
+  return entry;
 }
 
-export function sGenerate({ system, user, source = '' }, { timeoutMs = 90_000 } = {}) {
-  if (!proc) return Promise.reject(new Error('tendril-s server not started'));
+export async function startS(options = {}) {
+  await startRoute('skin', options); // blend starts lazily on first use
+}
+
+export async function sGenerate({ system, user, source = '', task = 'skin' }, { timeoutMs = 90_000 } = {}) {
+  const route = ROUTES[task] ? task : 'skin';
+  const entry = await startRoute(route);
   const id = String(nextId++);
   const promise = new Promise((resolve, reject) => {
-    pending.set(id, { resolve, reject });
+    entry.pending.set(id, { resolve, reject });
     setTimeout(() => {
-      if (pending.has(id)) {
-        pending.delete(id);
+      if (entry.pending.has(id)) {
+        entry.pending.delete(id);
         reject(new Error('tendril-s timeout'));
       }
     }, timeoutMs);
   });
-  proc.stdin.write(`${JSON.stringify({ id, system, user, source })}\n`);
+  entry.proc.stdin.write(`${JSON.stringify({ id, system, user, source })}\n`);
   return promise;
 }
 
 export function stopS() {
-  proc?.kill();
-  proc = null;
+  for (const { proc } of servers.values()) proc.kill();
+  servers.clear();
 }

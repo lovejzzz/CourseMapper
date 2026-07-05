@@ -29,12 +29,10 @@ BLEND_SYSTEM = (
 
 
 def main():
-    adapter = os.path.join(HERE, "adapters")
+    adapter = os.environ.get("S_ADAPTERS", os.path.join(HERE, "adapters"))
+    base = os.environ.get("S_BASE", "HuggingFaceTB/SmolLM2-135M-Instruct")
     use_adapter = "--base" not in sys.argv and os.path.isdir(adapter)
-    model, tokenizer = load(
-        "HuggingFaceTB/SmolLM2-135M-Instruct",
-        adapter_path=adapter if use_adapter else None,
-    )
+    model, tokenizer = load(base, adapter_path=adapter if use_adapter else None)
     tests = [json.loads(line) for line in open(os.path.join(HERE, "test-heldout.jsonl")) if line.strip()]
     sample = []
     counts = {"skin": 0, "blend": 0}
@@ -42,7 +40,7 @@ def main():
         if counts[t["task"]] < N_PER_TASK:
             counts[t["task"]] += 1
             sample.append(t)
-    out_name = "tendril-s.jsonl" if use_adapter else "smollm-base.jsonl"
+    out_name = os.environ.get("S_OUT", "tendril-s.jsonl" if use_adapter else "smollm-base.jsonl")
     os.makedirs(os.path.join(HERE, "outputs"), exist_ok=True)
     out_path = os.path.join(HERE, "outputs", out_name)
     with open(out_path, "w") as f:

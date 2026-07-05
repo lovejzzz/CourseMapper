@@ -1,5 +1,63 @@
 {
  "stamp": "SIMULATED instruments — deployment gates + non-identity + claim-preservation stand-in",
+ "tendril-s3": {
+  "overall": {
+   "total": 120,
+   "accepted": 62,
+   "rate": 0.517
+  },
+  "byTask": {
+   "skin": {
+    "total": 60,
+    "accepted": 27,
+    "reasons": {
+     "mode-example": 2,
+     "length-band": 13,
+     "identity-noop": 18
+    },
+    "rate": 0.45
+   },
+   "blend": {
+    "total": 60,
+    "accepted": 35,
+    "reasons": {
+     "identity-noop": 15,
+     "length-band": 9,
+     "claim-loss": 1
+    },
+    "rate": 0.583
+   }
+  }
+ },
+ "tendril-s3b": {
+  "overall": {
+   "total": 120,
+   "accepted": 80,
+   "rate": 0.667
+  },
+  "byTask": {
+   "skin": {
+    "total": 60,
+    "accepted": 43,
+    "reasons": {
+     "identity-noop": 14,
+     "length-band": 2,
+     "mode-example": 1
+    },
+    "rate": 0.717
+   },
+   "blend": {
+    "total": 60,
+    "accepted": 37,
+    "reasons": {
+     "length-band": 4,
+     "identity-noop": 16,
+     "claim-loss": 3
+    },
+    "rate": 0.617
+   }
+  }
+ },
  "tendril-s": {
   "overall": {
    "total": 120,

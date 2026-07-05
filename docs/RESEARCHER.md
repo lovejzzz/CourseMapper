@@ -247,4 +247,40 @@ paid side + judge $0.0425 — measurement only):**
    deployment: **Researcher-Zero for knowledge + prose ($0, seconds),
    paid top-ups only for misconceptions + items (cents, per gap).**
 
+---
+
+# Part V — Truth-worthy (R2, owner: "we need a better model; keep improving")
+
+**Three upgrades, all measured; round spend $0.082 + $0 training.**
+
+**1. The better model is a PAIR, not a bigger single.** S3 (Qwen2.5-
+0.5B, Apache-2.0) trained on the grown corpus (6,243 pairs — the live
+logger added 1,916 accepted pairs by itself). Verdict on the frozen
+gate bench: the 1200-iter run REGRESSED (51.7%); the 800-iter
+checkpoint split the tasks — **skin 71.7% (beats S2's 61.7% AND nano's
+63.3%), blend 61.7% (S2 keeps 83.3%).** Shipped as task routing:
+Qwen-0.5B serves skin, SmolLM2-tuned serves blend — **77.5% combined
+vs 72.5% single-model**, still $0, both Apache-2.0.
+
+**2. The truth layer is live.** (a) OpenAlex education-literature
+mining: misconceptions DOCUMENTED in real classroom studies, each with
+title/year/DOI — the R1 hole (0/6 topics) is now **2-4 cited
+misconceptions per topic, 39 across the 12-target bench.** (b)
+Cross-source corroboration: extractive facts carry verifiedBy counts
+(sentence ≥0.80-similar in an independent source) — 12/68 on the
+bench, honestly low at 3-source caps and disclosed per fact. (c) A
+self-inflicted 429 from Wikipedia (three benches, no cache) produced
+the politeness layer: on-disk source cache + 1.1s throttle.
+
+**3. The measurement is now trustworthy.** 12 targets (double), TWO
+judge seats across model FAMILIES (openai + deepseek), blind with
+per-target shuffle, agreement reported rather than averaged away:
+**zero 11-1 over paid, means 7.96 vs 4.29, seat agreement 12/12 —
+every verdict unanimous across families.** Speed 4.7s vs 38.9s per
+kernel (the throttle is most of the slowdown; still 8×, still $0).
+
+**Standing honest limits:** items still paid (distractors + solver);
+corroboration thin at cap-3 sources; judge n=12 advisory — the
+2-human anchor remains the only verdict the constitution accepts.
+
 _— Fable 5_

@@ -118,6 +118,7 @@ export async function blendCorrectives(
             system: BLEND_SYSTEM,
             user: JSON.stringify({ text: entry.explanation }),
             source: entry.explanation,
+            task: 'blend',
           }),
         ).trim();
       } catch {

@@ -1482,3 +1482,19 @@ polishing a candidate that hasn't won.
   pedagogy needs OpenAlex edu-literature mining or cents-level paid
   top-ups (items likewise). Deployment: zero for knowledge+prose,
   paid only for misconceptions+items. Suite 4,051 green.
+
+- **2026-07-05 (R2 truth-worthy round — routed pair + truth layer +
+  trust bench).** Owner: "make this truth-worthy; better model." (1)
+  S3 Qwen2.5-0.5B on the grown corpus (6,243 pairs; live logger added
+  1,916 by itself): 1200-iter REGRESSED 51.7%, 800-checkpoint split —
+  skin 71.7% (beats S2 61.7 AND nano 63.3), blend 61.7 (S2 keeps
+  83.3) → SHIPPED as task ROUTING (skin→Qwen, blend→SmolLM2): 77.5%
+  combined vs 72.5%, $0, both Apache-2.0. Bigger ≠ better; routed ≠
+  single. (2) Truth layer: OpenAlex-documented misconceptions with
+  citations (0/6 hole → 2-4/topic, 39/12 targets); cross-source
+  verifiedBy corroboration (12/68, disclosed thin); Wikipedia 429
+  self-inflicted → source cache + 1.1s throttle. (3) Trust bench: 12
+  targets × 2 family seats, blind, shuffled — **zero 11-1, 7.96 vs
+  4.29, seat agreement 12/12 unanimous.** Speed 4.7s vs 38.9s (8×).
+  Round spend $0.082. Standing: items paid; human anchor still the
+  only accepted verdict.

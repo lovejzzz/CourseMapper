@@ -67,6 +67,8 @@ async function benchFile(path) {
 if (existsSync('trellis/tendril/distill/outputs') && !process.env.VITEST) {
   const report = { stamp: 'SIMULATED instruments — deployment gates + non-identity + claim-preservation stand-in' };
   for (const [name, path] of [
+    ['tendril-s3', 'trellis/tendril/distill/outputs/tendril-s3.jsonl'],
+    ['tendril-s3b', 'trellis/tendril/distill/outputs/tendril-s3b.jsonl'],
     ['tendril-s', 'trellis/tendril/distill/outputs/tendril-s.jsonl'],
     ['smollm-base', 'trellis/tendril/distill/outputs/smollm-base.jsonl'],
     ['nano', 'trellis/tendril/distill/outputs/nano.jsonl'],

@@ -21,18 +21,21 @@ const TARGETS = [
   { id: 'bench/supply-and-demand', term: 'supply and demand', discipline: 'econ', queries: ['Supply and demand'] },
   { id: 'bench/mitosis', term: 'mitosis', discipline: 'bio', queries: ['Mitosis'] },
   { id: 'bench/redshift', term: 'redshift', discipline: 'astro', queries: ['Redshift'] },
+  { id: 'bench/photosynthesis', term: 'photosynthesis', discipline: 'bio', queries: ['Photosynthesis'] },
+  { id: 'bench/cognitive-dissonance', term: 'cognitive dissonance', discipline: 'psych', queries: ['Cognitive dissonance'] },
+  { id: 'bench/opportunity-cost', term: 'opportunity cost', discipline: 'econ', queries: ['Opportunity cost'] },
+  { id: 'bench/natural-selection', term: 'natural selection', discipline: 'bio', queries: ['Natural selection'] },
+  { id: 'bench/french-revolution', term: 'the French Revolution', discipline: 'history', queries: ['French Revolution'] },
+  { id: 'bench/electromagnetic-induction', term: 'electromagnetic induction', discipline: 'physics', queries: ['Electromagnetic induction'] },
 ];
 
 const SURFACE_COUNT = 9; // teach, worked, reteach, guide, discussion, activity, 2×faq, slides
 
-async function judgePair(term, a, b, ledger) {
-  // Blind A/B, cross-family seat: which teach-segment+facts would you
-  // rather teach from? Sides are shuffled per target.
-  const flip = Math.random() < 0.5;
-  const first = flip ? b : a;
-  const second = flip ? a : b;
+// Two seats, two model FAMILIES (openai nano + deepseek flash), blind,
+// per-target shuffle. Trust = agreement is reported, never averaged away.
+async function judgeSeat(tier, term, first, second, ledger) {
   const { result } = await callModel({
-    tier: 'ds',
+    tier,
     stage: 'bench-judge',
     ledger,
     schema: {
@@ -52,17 +55,41 @@ async function judgePair(term, a, b, ledger) {
       'You are a professor deciding which of two drafts to teach from. Score each 1-10 for teach-as-is quality (clarity, accuracy, teachability — penalize stitched/choppy prose AND vague filler equally). Return JSON only.',
     user: JSON.stringify({ topic: term, first, second }),
   });
-  const zeroScore = flip ? result.scoreFirst : result.scoreSecond;
-  const paidScore = flip ? result.scoreSecond : result.scoreFirst;
-  const better = result.better === 'tie' ? 'tie' : (result.better === 'first') === flip ? 'zero' : 'paid';
-  return { zeroScore, paidScore, better };
+  return result;
+}
+
+async function judgePair(term, a, b, ledger) {
+  const flip = Math.random() < 0.5;
+  const first = flip ? b : a;
+  const second = flip ? a : b;
+  const seats = {};
+  for (const tier of ['nano', 'ds']) {
+    try {
+      const result = await judgeSeat(tier, term, first, second, ledger);
+      seats[tier] = {
+        zeroScore: flip ? result.scoreFirst : result.scoreSecond,
+        paidScore: flip ? result.scoreSecond : result.scoreFirst,
+        better: result.better === 'tie' ? 'tie' : (result.better === 'first') === flip ? 'zero' : 'paid',
+      };
+    } catch {
+      seats[tier] = null; // failed seat stays visible, never silently dropped
+    }
+  }
+  const verdicts = Object.values(seats).filter(Boolean).map((s) => s.better);
+  const agreement = verdicts.length === 2 && verdicts[0] === verdicts[1];
+  const better = agreement ? verdicts[0] : verdicts.length === 1 ? verdicts[0] : 'split';
+  const mean = (k) => {
+    const xs = Object.values(seats).filter(Boolean).map((s) => s[k]);
+    return xs.length ? xs.reduce((x, y) => x + y, 0) / xs.length : null;
+  };
+  return { zeroScore: mean('zeroScore'), paidScore: mean('paidScore'), better, agreement, seats };
 }
 
 if (process.env.RESEARCH_BENCH === 'run' && !process.env.VITEST) {
   const ledger = createRunLedger({ runId: 'researcher-zero-bench', runDir: 'trellis/runs/researcher-zero-bench' });
   const embedder = makeEmbedder();
   const rows = [];
-  const totals = { zeroMs: 0, paidMs: 0, zeroSurfaces: 0, paidSurfaces: 0, zeroFacts: 0, paidFactsKept: 0, paidFactsDropped: 0, wins: { zero: 0, paid: 0, tie: 0 }, zeroJudge: [], paidJudge: [] };
+  const totals = { zeroMs: 0, paidMs: 0, zeroSurfaces: 0, paidSurfaces: 0, zeroFacts: 0, paidFactsKept: 0, paidFactsDropped: 0, wins: { zero: 0, paid: 0, tie: 0, split: 0 }, agreements: 0, zeroJudge: [], paidJudge: [], corroborated: 0, litMisconceptions: 0 };
   try {
     for (const target of TARGETS) {
       const sources = await gatherSources(target.queries, { cap: 2 });
@@ -94,7 +121,10 @@ if (process.env.RESEARCH_BENCH === 'run' && !process.env.VITEST) {
       totals.zeroFacts += zKernel.facts.length;
       totals.paidFactsKept += pKernel.facts.length;
       totals.paidFactsDropped += pKernel.droppedFacts;
-      totals.wins[judge.better] += 1;
+      totals.wins[judge.better] = (totals.wins[judge.better] ?? 0) + 1;
+      if (judge.agreement) totals.agreements += 1;
+      totals.corroborated += zKernel.facts.filter((f) => f.verifiedBy >= 1).length;
+      totals.litMisconceptions += zKernel.misconceptions.filter((m) => m.documentedIn).length;
       totals.zeroJudge.push(judge.zeroScore);
       totals.paidJudge.push(judge.paidScore);
       rows.push({
@@ -110,12 +140,13 @@ if (process.env.RESEARCH_BENCH === 'run' && !process.env.VITEST) {
   }
   const mean = (xs) => (xs.length ? (xs.reduce((a, b) => a + b, 0) / xs.length).toFixed(2) : null);
   const summary = {
-    stamp: 'SIMULATED — single cross-family judge seat, advisory; gates are the hard instrument',
+    stamp: 'SIMULATED — two judge seats across model families (openai+deepseek), blind, per-target shuffle; agreement reported, never averaged away; gates are the hard instrument',
     targets: rows.length,
     speed: { zeroSecPerKernel: (totals.zeroMs / rows.length / 1000).toFixed(1), paidSecPerKernel: (totals.paidMs / rows.length / 1000).toFixed(1) },
     surfaces: { zero: totals.zeroSurfaces, paid: totals.paidSurfaces, of: rows.length * SURFACE_COUNT },
     facts: { zero: totals.zeroFacts, paidKept: totals.paidFactsKept, paidDroppedUnanchored: totals.paidFactsDropped },
-    judge: { zeroMean: mean(totals.zeroJudge), paidMean: mean(totals.paidJudge), wins: totals.wins },
+    judge: { zeroMean: mean(totals.zeroJudge), paidMean: mean(totals.paidJudge), wins: totals.wins, seatAgreement: `${totals.agreements}/${rows.length}` },
+    truth: { corroboratedFacts: totals.corroborated, ofFacts: totals.zeroFacts, literatureMisconceptions: totals.litMisconceptions },
     rows,
   };
   await writeFile('trellis/researcher/zero-bench.json', JSON.stringify(summary, null, 1));

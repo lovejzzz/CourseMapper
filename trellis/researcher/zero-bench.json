@@ -1,63 +1,43 @@
 {
  "stamp": "SIMULATED — single cross-family judge seat, advisory; gates are the hard instrument",
- "targets": 6,
+ "targets": 12,
  "speed": {
-  "zeroSecPerKernel": "2.7",
-  "paidSecPerKernel": "49.1"
+  "zeroSecPerKernel": "4.7",
+  "paidSecPerKernel": "38.9"
  },
  "surfaces": {
-  "zero": 52,
-  "paid": 53,
-  "of": 54
+  "zero": 101,
+  "paid": 107,
+  "of": 108
  },
  "facts": {
-  "zero": 34,
-  "paidKept": 31,
-  "paidDroppedUnanchored": 1
+  "zero": 68,
+  "paidKept": 61,
+  "paidDroppedUnanchored": 5
  },
  "judge": {
-  "zeroMean": "7.67",
-  "paidMean": "5.50",
+  "zeroMean": "7.96",
+  "paidMean": "4.29",
   "wins": {
-   "zero": 5,
+   "zero": 11,
    "paid": 1,
-   "tie": 0
-  }
+   "tie": 0,
+   "split": 0
+  },
+  "seatAgreement": "12/12"
+ },
+ "truth": {
+  "corroboratedFacts": 12,
+  "ofFacts": 68,
+  "literatureMisconceptions": 39
  },
  "rows": [
   {
    "target": "bench/epistemology",
    "zero": {
-    "ms": 4837,
+    "ms": 7532,
     "facts": 6,
-    "misconceptionsMined": 0,
-    "surfaces": "9/9",
-    "anchored": true,
-    "skin": {
-     "accepted": 0,
-     "attempts": 3
-    },
-    "rejected": {}
-   },
-   "paid": {
-    "ms": 46458,
-    "factsKept": 5,
-    "factsDropped": 0,
-    "surfaces": "9/9",
-    "rejected": {}
-   },
-   "judge": {
-    "zeroScore": 10,
-    "paidScore": 7,
-    "better": "zero"
-   }
-  },
-  {
-   "target": "bench/operant-conditioning",
-   "zero": {
-    "ms": 2957,
-    "facts": 6,
-    "misconceptionsMined": 0,
+    "misconceptionsMined": 4,
     "surfaces": "9/9",
     "anchored": true,
     "skin": {
@@ -67,24 +47,37 @@
     "rejected": {}
    },
    "paid": {
-    "ms": 44346,
+    "ms": 38038,
     "factsKept": 6,
     "factsDropped": 0,
     "surfaces": "9/9",
     "rejected": {}
    },
    "judge": {
-    "zeroScore": 9,
-    "paidScore": 7,
-    "better": "zero"
+    "zeroScore": 8.5,
+    "paidScore": 4,
+    "better": "zero",
+    "agreement": true,
+    "seats": {
+     "nano": {
+      "zeroScore": 8,
+      "paidScore": 4,
+      "better": "zero"
+     },
+     "ds": {
+      "zeroScore": 9,
+      "paidScore": 4,
+      "better": "zero"
+     }
+    }
    }
   },
   {
-   "target": "bench/plate-tectonics",
+   "target": "bench/operant-conditioning",
    "zero": {
-    "ms": 2035,
+    "ms": 4377,
     "facts": 6,
-    "misconceptionsMined": 0,
+    "misconceptionsMined": 2,
     "surfaces": "9/9",
     "anchored": true,
     "skin": {
@@ -94,8 +87,48 @@
     "rejected": {}
    },
    "paid": {
-    "ms": 56888,
+    "ms": 38064,
     "factsKept": 5,
+    "factsDropped": 0,
+    "surfaces": "9/9",
+    "rejected": {}
+   },
+   "judge": {
+    "zeroScore": 8.5,
+    "paidScore": 4.5,
+    "better": "zero",
+    "agreement": true,
+    "seats": {
+     "nano": {
+      "zeroScore": 8,
+      "paidScore": 4,
+      "better": "zero"
+     },
+     "ds": {
+      "zeroScore": 9,
+      "paidScore": 5,
+      "better": "zero"
+     }
+    }
+   }
+  },
+  {
+   "target": "bench/plate-tectonics",
+   "zero": {
+    "ms": 4732,
+    "facts": 6,
+    "misconceptionsMined": 4,
+    "surfaces": "9/9",
+    "anchored": true,
+    "skin": {
+     "accepted": 1,
+     "attempts": 3
+    },
+    "rejected": {}
+   },
+   "paid": {
+    "ms": 30303,
+    "factsKept": 6,
     "factsDropped": 0,
     "surfaces": "8/9",
     "rejected": {
@@ -104,53 +137,79 @@
    },
    "judge": {
     "zeroScore": 1,
-    "paidScore": 8,
-    "better": "paid"
+    "paidScore": 8.5,
+    "better": "paid",
+    "agreement": true,
+    "seats": {
+     "nano": {
+      "zeroScore": 1,
+      "paidScore": 8,
+      "better": "paid"
+     },
+     "ds": {
+      "zeroScore": 1,
+      "paidScore": 9,
+      "better": "paid"
+     }
+    }
    }
   },
   {
    "target": "bench/supply-and-demand",
    "zero": {
-    "ms": 2122,
+    "ms": 3679,
     "facts": 6,
-    "misconceptionsMined": 0,
+    "misconceptionsMined": 3,
     "surfaces": "8/9",
     "anchored": true,
     "skin": {
-     "accepted": 0,
+     "accepted": 1,
      "attempts": 3
     },
     "rejected": {}
    },
    "paid": {
-    "ms": 60404,
-    "factsKept": 5,
+    "ms": 42549,
+    "factsKept": 4,
     "factsDropped": 1,
     "surfaces": "9/9",
     "rejected": {}
    },
    "judge": {
-    "zeroScore": 9,
-    "paidScore": 3,
-    "better": "zero"
+    "zeroScore": 8.5,
+    "paidScore": 4,
+    "better": "zero",
+    "agreement": true,
+    "seats": {
+     "nano": {
+      "zeroScore": 8,
+      "paidScore": 3,
+      "better": "zero"
+     },
+     "ds": {
+      "zeroScore": 9,
+      "paidScore": 5,
+      "better": "zero"
+     }
+    }
    }
   },
   {
    "target": "bench/mitosis",
    "zero": {
-    "ms": 2624,
+    "ms": 4752,
     "facts": 6,
-    "misconceptionsMined": 0,
+    "misconceptionsMined": 4,
     "surfaces": "9/9",
     "anchored": true,
     "skin": {
-     "accepted": 0,
+     "accepted": 1,
      "attempts": 3
     },
     "rejected": {}
    },
    "paid": {
-    "ms": 42794,
+    "ms": 34231,
     "factsKept": 6,
     "factsDropped": 0,
     "surfaces": "9/9",
@@ -158,17 +217,150 @@
    },
    "judge": {
     "zeroScore": 9,
-    "paidScore": 4,
-    "better": "zero"
+    "paidScore": 3,
+    "better": "zero",
+    "agreement": true,
+    "seats": {
+     "nano": {
+      "zeroScore": 9,
+      "paidScore": 2,
+      "better": "zero"
+     },
+     "ds": {
+      "zeroScore": 9,
+      "paidScore": 4,
+      "better": "zero"
+     }
+    }
    }
   },
   {
    "target": "bench/redshift",
    "zero": {
-    "ms": 1811,
-    "facts": 4,
-    "misconceptionsMined": 0,
+    "ms": 4928,
+    "facts": 6,
+    "misconceptionsMined": 4,
     "surfaces": "8/9",
+    "anchored": true,
+    "skin": {
+     "accepted": 1,
+     "attempts": 3
+    },
+    "rejected": {}
+   },
+   "paid": {
+    "ms": 37896,
+    "factsKept": 5,
+    "factsDropped": 0,
+    "surfaces": "9/9",
+    "rejected": {}
+   },
+   "judge": {
+    "zeroScore": 8.5,
+    "paidScore": 4.5,
+    "better": "zero",
+    "agreement": true,
+    "seats": {
+     "nano": {
+      "zeroScore": 8,
+      "paidScore": 3,
+      "better": "zero"
+     },
+     "ds": {
+      "zeroScore": 9,
+      "paidScore": 6,
+      "better": "zero"
+     }
+    }
+   }
+  },
+  {
+   "target": "bench/photosynthesis",
+   "zero": {
+    "ms": 4671,
+    "facts": 6,
+    "misconceptionsMined": 4,
+    "surfaces": "8/9",
+    "anchored": true,
+    "skin": {
+     "accepted": 2,
+     "attempts": 3
+    },
+    "rejected": {}
+   },
+   "paid": {
+    "ms": 46689,
+    "factsKept": 4,
+    "factsDropped": 1,
+    "surfaces": "9/9",
+    "rejected": {}
+   },
+   "judge": {
+    "zeroScore": 8.5,
+    "paidScore": 3,
+    "better": "zero",
+    "agreement": true,
+    "seats": {
+     "nano": {
+      "zeroScore": 8,
+      "paidScore": 3,
+      "better": "zero"
+     },
+     "ds": {
+      "zeroScore": 9,
+      "paidScore": 3,
+      "better": "zero"
+     }
+    }
+   }
+  },
+  {
+   "target": "bench/cognitive-dissonance",
+   "zero": {
+    "ms": 4669,
+    "facts": 6,
+    "misconceptionsMined": 4,
+    "surfaces": "9/9",
+    "anchored": true,
+    "skin": {
+     "accepted": 1,
+     "attempts": 3
+    },
+    "rejected": {}
+   },
+   "paid": {
+    "ms": 40751,
+    "factsKept": 3,
+    "factsDropped": 3,
+    "surfaces": "9/9",
+    "rejected": {}
+   },
+   "judge": {
+    "zeroScore": 8.5,
+    "paidScore": 3.5,
+    "better": "zero",
+    "agreement": true,
+    "seats": {
+     "nano": {
+      "zeroScore": 8,
+      "paidScore": 3,
+      "better": "zero"
+     },
+     "ds": {
+      "zeroScore": 9,
+      "paidScore": 4,
+      "better": "zero"
+     }
+    }
+   }
+  },
+  {
+   "target": "bench/opportunity-cost",
+   "zero": {
+    "ms": 4808,
+    "facts": 6,
+    "misconceptionsMined": 4,
+    "surfaces": "7/9",
     "anchored": true,
     "skin": {
      "accepted": 0,
@@ -177,16 +369,151 @@
     "rejected": {}
    },
    "paid": {
-    "ms": 43660,
-    "factsKept": 4,
+    "ms": 34543,
+    "factsKept": 5,
     "factsDropped": 0,
     "surfaces": "9/9",
     "rejected": {}
    },
    "judge": {
-    "zeroScore": 8,
-    "paidScore": 4,
-    "better": "zero"
+    "zeroScore": 8.5,
+    "paidScore": 2,
+    "better": "zero",
+    "agreement": true,
+    "seats": {
+     "nano": {
+      "zeroScore": 8,
+      "paidScore": 2,
+      "better": "zero"
+     },
+     "ds": {
+      "zeroScore": 9,
+      "paidScore": 2,
+      "better": "zero"
+     }
+    }
+   }
+  },
+  {
+   "target": "bench/natural-selection",
+   "zero": {
+    "ms": 3896,
+    "facts": 6,
+    "misconceptionsMined": 4,
+    "surfaces": "9/9",
+    "anchored": true,
+    "skin": {
+     "accepted": 1,
+     "attempts": 3
+    },
+    "rejected": {}
+   },
+   "paid": {
+    "ms": 38428,
+    "factsKept": 5,
+    "factsDropped": 0,
+    "surfaces": "9/9",
+    "rejected": {}
+   },
+   "judge": {
+    "zeroScore": 8.5,
+    "paidScore": 5.5,
+    "better": "zero",
+    "agreement": true,
+    "seats": {
+     "nano": {
+      "zeroScore": 8,
+      "paidScore": 5,
+      "better": "zero"
+     },
+     "ds": {
+      "zeroScore": 9,
+      "paidScore": 6,
+      "better": "zero"
+     }
+    }
+   }
+  },
+  {
+   "target": "bench/french-revolution",
+   "zero": {
+    "ms": 4262,
+    "facts": 2,
+    "misconceptionsMined": 1,
+    "surfaces": "8/9",
+    "anchored": true,
+    "skin": {
+     "accepted": 1,
+     "attempts": 3
+    },
+    "rejected": {
+     "slides": "too few"
+    }
+   },
+   "paid": {
+    "ms": 44452,
+    "factsKept": 6,
+    "factsDropped": 0,
+    "surfaces": "9/9",
+    "rejected": {}
+   },
+   "judge": {
+    "zeroScore": 8.5,
+    "paidScore": 2.5,
+    "better": "zero",
+    "agreement": true,
+    "seats": {
+     "nano": {
+      "zeroScore": 9,
+      "paidScore": 2,
+      "better": "zero"
+     },
+     "ds": {
+      "zeroScore": 8,
+      "paidScore": 3,
+      "better": "zero"
+     }
+    }
+   }
+  },
+  {
+   "target": "bench/electromagnetic-induction",
+   "zero": {
+    "ms": 4110,
+    "facts": 6,
+    "misconceptionsMined": 1,
+    "surfaces": "8/9",
+    "anchored": true,
+    "skin": {
+     "accepted": 1,
+     "attempts": 3
+    },
+    "rejected": {}
+   },
+   "paid": {
+    "ms": 40742,
+    "factsKept": 6,
+    "factsDropped": 0,
+    "surfaces": "9/9",
+    "rejected": {}
+   },
+   "judge": {
+    "zeroScore": 9,
+    "paidScore": 6.5,
+    "better": "zero",
+    "agreement": true,
+    "seats": {
+     "nano": {
+      "zeroScore": 9,
+      "paidScore": 7,
+      "better": "zero"
+     },
+     "ds": {
+      "zeroScore": 9,
+      "paidScore": 6,
+      "better": "zero"
+     }
+    }
    }
   }
  ]

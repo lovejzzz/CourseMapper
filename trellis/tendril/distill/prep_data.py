@@ -40,8 +40,32 @@ def bucket(source_text):
     return "test"
 
 
+LIVE = os.path.join(HERE, "..", "corpus", "live-pairs.jsonl")
+
+
+def live_pairs():
+    """Live-logged ACCEPTED pairs (skin + blend) join training. Pairs whose
+    source hashes into the FROZEN test bucket are SKIPPED entirely — the
+    ruler must not grow and the train set must not leak toward it."""
+    out = []
+    if not os.path.exists(LIVE):
+        return out
+    for line in open(LIVE):
+        if not line.strip():
+            continue
+        e = json.loads(line)
+        if not e.get("accepted"):
+            continue
+        surface = "quiz-explanation" if e.get("task") == "blend-explanation" else f"segment:{e.get('mode', 'teach')}"
+        out.append({"surface": surface, "source": e["source"], "target": e["target"]})
+    return out
+
+
 def main():
     pairs = [json.loads(line) for line in open(CORPUS) if line.strip()]
+    for p_ in live_pairs():
+        if bucket(p_["source"]) != "test":
+            pairs.append(p_)
     random.seed(7)
     random.shuffle(pairs)
     splits = {"train": [], "valid": [], "test": []}

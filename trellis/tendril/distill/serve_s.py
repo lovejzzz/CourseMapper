@@ -13,7 +13,9 @@ from mlx_lm import load, generate
 from mlx_lm.sample_utils import make_sampler
 
 HERE = os.path.dirname(os.path.abspath(__file__))
-model, tokenizer = load("HuggingFaceTB/SmolLM2-135M-Instruct", adapter_path=os.path.join(HERE, "adapters"))
+BASE = os.environ.get("S_BASE", "HuggingFaceTB/SmolLM2-135M-Instruct")
+ADAPTERS = os.environ.get("S_ADAPTERS", os.path.join(HERE, "adapters"))
+model, tokenizer = load(BASE, adapter_path=ADAPTERS)
 print(json.dumps({"ready": True}), flush=True)
 
 for line in sys.stdin:

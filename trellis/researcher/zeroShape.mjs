@@ -17,6 +17,7 @@
 import { cosine, makeEmbedder } from '../tendril/embedder.mjs';
 import { startS, sGenerate, SKIN_SYSTEM } from '../tendril/sModel.mjs';
 import { TERMINAL_PUNCT_RE, weightedLength } from '../voice/contracts.mjs';
+import { openAlexMisconceptions } from './sources.mjs';
 
 export function splitSentences(text) {
   return String(text)
@@ -94,6 +95,9 @@ async function skin(text, { mode = 'teach', embedder, pool = [], tau = 0.75 } = 
 
 // ── kernel at $0: extractive facts + mined misconceptions ──────────────────
 export async function zeroShapeKernel(target, sources, { embedder = null } = {}) {
+  if (!sources || sources.length === 0) {
+    return { ok: false, definition: null, facts: [], misconceptions: [], exampleSentences: [], anchoringRate: 0 };
+  }
   const emb = embedder ?? makeEmbedder();
   const allSentences = dedupeKeepOrder(sources.flatMap((s) => splitSentences(s.text)));
   const srcOf = (sentence) => sources.find((s) => s.text.replace(/\s+/g, ' ').includes(sentence)) ?? sources[0];
@@ -104,18 +108,33 @@ export async function zeroShapeKernel(target, sources, { embedder = null } = {})
   const ranked = await rankSentences(emb, `${target.term}: definition, key properties, how it works`, allSentences, {
     k: 10,
   });
-  const facts = ranked
-    .filter((r) => r.text !== definition)
-    .slice(0, 6)
-    .map((r) => ({
+  // Cross-source corroboration: a fact earns verifiedBy for every OTHER
+  // source containing a sentence ≥0.80 similar — truth-worthiness as a
+  // recorded number, not a vibe.
+  const perSource = sources.map((src) => splitSentences(src.text));
+  const perSourceVecs = [];
+  for (const sentences of perSource) perSourceVecs.push(sentences.length ? await emb.embed(sentences) : []);
+  const factCandidates = ranked.filter((r) => r.text !== definition).slice(0, 6);
+  const factVecs = factCandidates.length ? await emb.embed(factCandidates.map((r) => r.text)) : [];
+  const facts = factCandidates.map((r, fi) => {
+    const home = srcOf(r.text);
+    let verifiedBy = 0;
+    sources.forEach((src, si) => {
+      if (src === home) return;
+      if (perSourceVecs[si].some((v) => cosine(factVecs[fi], v) >= 0.8)) verifiedBy += 1;
+    });
+    return {
       text: r.text,
-      anchor: { src: srcOf(r.text).url, loc: 'extract', quote: r.text },
+      anchor: { src: home.url, loc: 'extract', quote: r.text },
       tier: 2,
-      verifiedBy: 0,
+      verifiedBy,
       contested: false,
-    }));
+    };
+  });
 
-  // Misconceptions only where the SOURCE states them.
+  // Misconceptions from two DOCUMENTED channels only: (1) sentences the
+  // sources state, (2) education literature via OpenAlex — measured in
+  // real classrooms, cited. Never model-invented at $0.
   const minedMisconceptions = allSentences
     .filter((s) => MISCONCEPTION_RE.test(s))
     .slice(0, 3)
@@ -124,6 +143,14 @@ export async function zeroShapeKernel(target, sources, { embedder = null } = {})
       corrective: s,
       minedFromSource: true,
     }));
+  const literature = await openAlexMisconceptions(target.term);
+  for (const doc of literature) {
+    minedMisconceptions.push({
+      text: doc.text,
+      corrective: `Address directly: ${doc.text}`,
+      documentedIn: doc.citation,
+    });
+  }
 
   const exampleSentences = allSentences.filter((s) => EXAMPLE_RE.test(s)).slice(0, 3);
   return {
