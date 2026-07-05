@@ -20,3 +20,8 @@ trellis/tendril/distill/stance-onnx/
 trellis/tendril/distill/stance-triplets.jsonl
 trellis/researcher/cache/
 trellis/tendril/.venv-g4/
+trellis/tendril/distill/s2-fused/
+trellis/tendril/distill/s2-onnx/
+trellis/tendril/distill/adapters-g4/
+trellis/tendril/distill/data-g4/
+trellis/tendril/models/tendril-s2-web/

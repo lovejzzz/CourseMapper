@@ -287,4 +287,22 @@ pair's ~1.5s — fine for factory, not for interactive.
 ship only if it beats 77.5% combined (and then it also needs an
 mlx-vlm-based serve route; serve_s cannot host it).
 
+---
+
+# v0.1.7 — "Let's make Gemma 4 work" (owner-directed)
+
+**Four experiments, four verdicts; the prize is not where we aimed.**
+
+| Experiment | Verdict |
+| --- | --- |
+| **Item-authoring probe (zero-shot E2B)** | **THE FINDING: 9/9 parseable, 8/9 through the full gate stack (catch/confront/aesthetics), 8/8 through the blind cross-family solver.** n=9/3 kernels, advisory — but this is the capability no 0.5B model has, aimed at the last paid generation step (~items). E2B's role is the local AUTHORING tier, not skin/blend. |
+| Fine-tune (LoRA via mlx-vlm, 800 iters) | **COLLAPSED: 26.7%** (identity-noop 49/60 skin + 31/60 blend — the model learned to parrot). Diagnosed: mlx-vlm trains on full sequences without `--train-on-completions`; on rewrite pairs where output ≈ input, the dominant gradient is COPY. The one-flag retry is the named next training. Zero-shot (63.3%) remains E2B's best measured config; routed pair keeps the S-tier. |
+| Browser blend (ONNX S2 through transformers.js, the literal web runtime) | **Possible, measurably degraded:** fp32 65% at 0.8s/sample (~550MB), q8 43.3% (~137MB) vs mlx-native 83.3%. Two named gaps: an 18-point runtime-parity gap at full precision (tokenizer/logits investigation) and quantization damage on top. Not shipped; the chain (fuse → ONNX → template restoration → parity retry) is built and repeatable. |
+| Toolchain | Traps paid once, documented: gemma4 = mlx-VLM only; --adapter-path means RESUME (output = --output-path); datasets wants a dir; fused exports DROP chat_template (restore it or apply_chat_template throws); scratchpad scripts can't resolve repo node_modules. |
+
+**Where this leaves the model roster:** routed pair (S-tier, 77.5) ·
+E2c dedupes · E2d diagnoses · E2B (zero-shot) queued as the local
+authoring tier pending a completions-masked retrain + a larger item
+probe with the retry-trained model.
+
 _— Fable 5_
