@@ -194,4 +194,57 @@ found and cited it, the gates shaped it, assembly was free. A discipline
 we had NEVER touched went from refusal to a 96/A, panel-6.67, fully
 cited course for twenty-eight cents, and stays $0 forever.
 
+---
+
+# Part IV — Researcher-Zero: the $0-API research brain (R1, owner-directed)
+
+_"A model that can go on the internet, do research, at $0 API fee —
+but I'm not sure of the speed and accuracy, so build and test."
+Built as `trellis/researcher/zeroShape.mjs` + `benchZero.mjs`; bench in
+`trellis/researcher/zero-bench.json`._
+
+**Design — extract, don't generate:** Tendril-E SELECTS source
+sentences (extractive facts are span-anchored BY CONSTRUCTION — they
+ARE the source); a deterministic assembler drafts every surface from
+selected sentences; Tendril-S may smooth seams under a **fidelity
+gate** (every skinned sentence must embed within τ=0.75 of a source
+sentence, else the pure-source draft ships). Misconceptions only when
+sources STATE them; items stay a paid per-gap top-up — a 135M cannot
+be trusted to invent distractors, and the solver seat is cross-family
+by definition.
+
+**The bench (6 fresh cross-discipline targets, identical sources,
+paid side + judge $0.0425 — measurement only):**
+
+| Metric | Researcher-Zero ($0) | Paid shaper (ds) |
+| --- | --- | --- |
+| Speed / kernel | **2.7 s** | 49.1 s (**18× slower**) |
+| Cost / kernel | **$0.0000** | ~$0.007 |
+| Surfaces through gates | 52/54 | 53/54 |
+| Fact anchoring | **100% by construction** | 31 kept / 1 dropped post-hoc |
+| Teach-as-is (1 cross-family seat, blind, advisory) | **7.67** | 5.50 (zero wins 5–1) |
+| Misconceptions | **0/6 mined** — the honest hole | 2–3/target |
+
+**The three real findings:**
+1. **The first bench caught a live hallucination** — the 135M skin
+   injected "problems with the 2+1 scale assumption" (in no source)
+   and leaked instruction register ("Teach that…"); length/punct gates
+   cannot see semantic infidelity. The fidelity gate now excludes both
+   classes; after it, skin acceptance fell to **2/18** — and quality
+   went UP. Conclusion: **the $0 researcher's value is E's selection
+   of source prose, not S's rewriting.** Encyclopedic sentences,
+   well-chosen, beat a cheap model's paraphrase — the judge said so
+   5–1 (one outlier: plate-tectonics scored 1, disclosed; n=6, single
+   seat, advisory).
+2. **Speed is a solved question:** ~2.7 s/kernel local vs ~49 s paid —
+   a 14-lesson course researches in under a minute on the M4 Max, $0.
+3. **The honest boundary is misconceptions (and items).** Intro-page
+   extracts stated zero misconceptions across all six topics, so
+   zero-researched kernels carry no confrontation pedagogy — the
+   catching-item layer thins exactly as pre-registered. The path:
+   OpenAlex education-literature mining (misconceptions ARE documented
+   there) or a cents-level paid pass per discipline. Recommended
+   deployment: **Researcher-Zero for knowledge + prose ($0, seconds),
+   paid top-ups only for misconceptions + items (cents, per gap).**
+
 _— Fable 5_

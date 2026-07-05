@@ -227,6 +227,32 @@ describe('zero-API mode (v0.1.4)', () => {
   });
 });
 
+describe('researcher-zero ($0 shaper)', () => {
+  it('zeroShapeKernel extracts anchored facts with an injected embedder', async () => {
+    const { zeroShapeKernel } = await import('../researcher/zeroShape.mjs');
+    const sources = [
+      {
+        title: 'T', url: 'https://x/T', license: 'CC-BY-SA-4.0', attribution: 'test',
+        text: 'Widgets are devices that convert motion into light through a coupling process. The coupling efficiency depends on the ambient temperature of the room. For example, a cold widget produces dim light in winter conditions. Contrary to popular belief, widgets do not store energy between uses at all.',
+      },
+    ];
+    const embedder = makeEmbedder({ embedFn: async (texts) => texts.map((t, i) => unit([1, (t.length % 7) / 10, i % 2])) });
+    const kernel = await zeroShapeKernel({ id: 'bench/widgets', term: 'widgets' }, sources, { embedder });
+    expect(kernel.ok).toBe(true);
+    for (const fact of kernel.facts) {
+      expect(sources[0].text).toContain(fact.anchor.quote); // extractive: quote IS the source
+    }
+    expect(kernel.misconceptions.length).toBeGreaterThanOrEqual(1); // 'Contrary to popular belief' mined
+    expect(kernel.exampleSentences.length).toBeGreaterThanOrEqual(1);
+  });
+
+  it('splitSentences keeps real sentences and drops fragments', async () => {
+    const { splitSentences } = await import('../researcher/zeroShape.mjs');
+    const out = splitSentences('Short. This is a genuinely long sentence that should absolutely survive the splitter filter. == Heading == Another proper sentence follows here with enough length to pass the gate.');
+    expect(out.length).toBe(2);
+  });
+});
+
 describe('T-M3 gate bench gates', () => {
   const base = { task: 'skin', mode: 'teach', source: 'A long enough source segment that ends with a period and says plenty of things about the topic at hand.' };
 

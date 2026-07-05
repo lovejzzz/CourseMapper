@@ -1,0 +1,193 @@
+{
+ "stamp": "SIMULATED — single cross-family judge seat, advisory; gates are the hard instrument",
+ "targets": 6,
+ "speed": {
+  "zeroSecPerKernel": "2.7",
+  "paidSecPerKernel": "49.1"
+ },
+ "surfaces": {
+  "zero": 52,
+  "paid": 53,
+  "of": 54
+ },
+ "facts": {
+  "zero": 34,
+  "paidKept": 31,
+  "paidDroppedUnanchored": 1
+ },
+ "judge": {
+  "zeroMean": "7.67",
+  "paidMean": "5.50",
+  "wins": {
+   "zero": 5,
+   "paid": 1,
+   "tie": 0
+  }
+ },
+ "rows": [
+  {
+   "target": "bench/epistemology",
+   "zero": {
+    "ms": 4837,
+    "facts": 6,
+    "misconceptionsMined": 0,
+    "surfaces": "9/9",
+    "anchored": true,
+    "skin": {
+     "accepted": 0,
+     "attempts": 3
+    },
+    "rejected": {}
+   },
+   "paid": {
+    "ms": 46458,
+    "factsKept": 5,
+    "factsDropped": 0,
+    "surfaces": "9/9",
+    "rejected": {}
+   },
+   "judge": {
+    "zeroScore": 10,
+    "paidScore": 7,
+    "better": "zero"
+   }
+  },
+  {
+   "target": "bench/operant-conditioning",
+   "zero": {
+    "ms": 2957,
+    "facts": 6,
+    "misconceptionsMined": 0,
+    "surfaces": "9/9",
+    "anchored": true,
+    "skin": {
+     "accepted": 1,
+     "attempts": 3
+    },
+    "rejected": {}
+   },
+   "paid": {
+    "ms": 44346,
+    "factsKept": 6,
+    "factsDropped": 0,
+    "surfaces": "9/9",
+    "rejected": {}
+   },
+   "judge": {
+    "zeroScore": 9,
+    "paidScore": 7,
+    "better": "zero"
+   }
+  },
+  {
+   "target": "bench/plate-tectonics",
+   "zero": {
+    "ms": 2035,
+    "facts": 6,
+    "misconceptionsMined": 0,
+    "surfaces": "9/9",
+    "anchored": true,
+    "skin": {
+     "accepted": 1,
+     "attempts": 3
+    },
+    "rejected": {}
+   },
+   "paid": {
+    "ms": 56888,
+    "factsKept": 5,
+    "factsDropped": 0,
+    "surfaces": "8/9",
+    "rejected": {
+     "teach": "teachQuote failed span-anchoring (RS-1)"
+    }
+   },
+   "judge": {
+    "zeroScore": 1,
+    "paidScore": 8,
+    "better": "paid"
+   }
+  },
+  {
+   "target": "bench/supply-and-demand",
+   "zero": {
+    "ms": 2122,
+    "facts": 6,
+    "misconceptionsMined": 0,
+    "surfaces": "8/9",
+    "anchored": true,
+    "skin": {
+     "accepted": 0,
+     "attempts": 3
+    },
+    "rejected": {}
+   },
+   "paid": {
+    "ms": 60404,
+    "factsKept": 5,
+    "factsDropped": 1,
+    "surfaces": "9/9",
+    "rejected": {}
+   },
+   "judge": {
+    "zeroScore": 9,
+    "paidScore": 3,
+    "better": "zero"
+   }
+  },
+  {
+   "target": "bench/mitosis",
+   "zero": {
+    "ms": 2624,
+    "facts": 6,
+    "misconceptionsMined": 0,
+    "surfaces": "9/9",
+    "anchored": true,
+    "skin": {
+     "accepted": 0,
+     "attempts": 3
+    },
+    "rejected": {}
+   },
+   "paid": {
+    "ms": 42794,
+    "factsKept": 6,
+    "factsDropped": 0,
+    "surfaces": "9/9",
+    "rejected": {}
+   },
+   "judge": {
+    "zeroScore": 9,
+    "paidScore": 4,
+    "better": "zero"
+   }
+  },
+  {
+   "target": "bench/redshift",
+   "zero": {
+    "ms": 1811,
+    "facts": 4,
+    "misconceptionsMined": 0,
+    "surfaces": "8/9",
+    "anchored": true,
+    "skin": {
+     "accepted": 0,
+     "attempts": 3
+    },
+    "rejected": {}
+   },
+   "paid": {
+    "ms": 43660,
+    "factsKept": 4,
+    "factsDropped": 0,
+    "surfaces": "9/9",
+    "rejected": {}
+   },
+   "judge": {
+    "zeroScore": 8,
+    "paidScore": 4,
+    "better": "zero"
+   }
+  }
+ ]
+}
