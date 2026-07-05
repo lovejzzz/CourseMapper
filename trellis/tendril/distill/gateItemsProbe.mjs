@@ -7,7 +7,7 @@ import { solveGate } from '../../composer/solver.mjs';
 import { createRunLedger } from '../../telemetry.mjs';
 
 if (process.env.PROBE === 'run' && !process.env.VITEST) {
-  const probes = JSON.parse(await readFile('trellis/tendril/distill/outputs/g4-item-probe.json', 'utf8'));
+  const probes = JSON.parse(await readFile(process.env.PROBE_FILE ?? 'trellis/tendril/distill/outputs/g4-item-probe.json', 'utf8'));
   const bank = JSON.parse(await readFile('trellis/bank/all-items.json', 'utf8'));
   const ledger = createRunLedger({ runId: 'g4-item-probe', runDir: 'trellis/runs/g4-item-probe' });
   const summary = { parsed: 0, unparseable: 0, gatePassed: 0, solverPassed: 0, rejections: {} };

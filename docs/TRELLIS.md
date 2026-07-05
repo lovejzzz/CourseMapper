@@ -1537,3 +1537,16 @@ polishing a candidate that hasn't won.
   traps documented (adapter-path=resume; datasets dir; fused exports
   drop chat_template). Roster: routed pair S-tier · E2c dedupe · E2d
   diagnosis · E2B authoring-pending-retrain.
+
+- **2026-07-05 (comparison + plan v0.2 — the org chart).** 10-kernel
+  paired item probe (same gates/solver): **E2B zero-shot 26/30 gates,
+  23/30 end-to-end vs ds 22/30, at $0 and 1.7× faster** — ds's
+  signature failure is pasted/long options (8), E2B's is wrong keys
+  (3, all caught by the solver). Completion-masked retrain made the
+  collapse WORSE (13.3%; identity 97/120) → root cause reassigned:
+  the rewrite corpus's targets are near-copies — SFT on it teaches
+  strong models to COPY; **E2B fine-tuning RETIRED, zero-shot is its
+  config, authoring is its seat.** docs/TENDRIL_ROADMAP_V0.2.md =
+  the consolidated org chart + adoption plan (A1 E2B items adoption
+  run, A2 misconception scale, A3 browser parity, A4 corpus DPO).
+  The remaining dollars in the stack buy TRUST and NOVELTY only.

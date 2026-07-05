@@ -1,0 +1,108 @@
+[
+ {
+  "kernelId": "anatomy/levels-of-organization",
+  "term": "Levels of structural organization",
+  "misconception": "Students may memorize structures as isolated labels.",
+  "corrective": "Labels matter, but the A&P backbone is structure-function reasoning across levels of organization.",
+  "facts": [
+   "A cell is the smallest independently functioning unit of a living organism.",
+   "Organs are anatomically distinct structures made of two or more tissue types."
+  ]
+ },
+ {
+  "kernelId": "astro/diurnal-motion",
+  "term": "Diurnal motion",
+  "misconception": "Students assume the stars truly orbit Earth each day because the sky visibly wheels overhead.",
+  "corrective": "The nightly motion is apparent, not real: Earth's rotation carries the observer eastward, so the whole sky seems to turn westward once every 24 hours.",
+  "facts": [
+   "Observed over hours, stars rise on the eastern horizon, cross the sky, and set on the western horizon.",
+   "The sky only appears to turn; the rotation belongs to Earth, not to the stars."
+  ]
+ },
+ {
+  "kernelId": "bio/homeostasis",
+  "term": "Homeostasis",
+  "misconception": "Students think homeostasis means an unchanging internal state, when it means a variable held near a set point by ongoing correction.",
+  "corrective": "Homeostasis is active regulation around a set point, not a frozen constant.",
+  "facts": [
+   "In negative feedback, a change in a regulated variable triggers a response that counteracts the change and returns it toward the set point.",
+   "Sensors detect the deviation, a control center compares it to the set point, and effectors produce the corrective response."
+  ]
+ },
+ {
+  "kernelId": "chem/chemical-equilibrium",
+  "term": "Chemical equilibrium",
+  "misconception": "Students think a reaction at equilibrium has stopped, when the forward and reverse reactions continue at equal rates.",
+  "corrective": "Equilibrium is dynamic balance, not the absence of reaction.",
+  "facts": [
+   "Equilibrium is dynamic: the forward and reverse reactions both continue even though no net change is observed.",
+   "By Le Chatelier's principle, a disturbed equilibrium shifts in the direction that partially counteracts the disturbance."
+  ]
+ },
+ {
+  "kernelId": "cs/variables",
+  "term": "Variables and assignment",
+  "misconception": "Students read x = x + 1 as a mathematical equation and conclude it is impossible, instead of as an instruction to compute x + 1 and store the result back in x.",
+  "corrective": "In Python = is assignment, not equality: the right side is evaluated first and the result is bound to the name on the left, so x = x + 1 simply increases x by one.",
+  "facts": [
+   "A statement sets a variable to a value using the assignment operator (=), with the name on the left and the value on the right.",
+   "Assignment is not mathematical equality \u2014 = copies a value into a variable rather than asserting two sides are equal.",
+   "A variable name may contain letters, digits, and underscores and be any length, but cannot start with a digit.",
+   "Variable names are case-sensitive, so total and Total are two different variables."
+  ]
+ },
+ {
+  "kernelId": "econ/price-elasticity-of-demand",
+  "term": "Price elasticity of demand",
+  "misconception": "Students confuse the slope of the demand curve with its elasticity; slope uses absolute units while elasticity uses percentage change.",
+  "corrective": "Elasticity compares percentage changes, so it varies along a straight-line demand curve even though the slope is constant.",
+  "facts": [
+   "Demand is elastic when the absolute value of the elasticity is greater than one.",
+   "Necessities tend to have inelastic demand because consumers have few substitutes.",
+   "The availability of close substitutes is a primary determinant of elasticity."
+  ]
+ },
+ {
+  "kernelId": "geo/minerals",
+  "term": "Minerals and identification",
+  "misconception": "Students assume diamond cannot be scratched or broken because it is the hardest mineral, confusing hardness with toughness.",
+  "corrective": "Hardness measures scratch resistance, not toughness; diamond tops the Mohs scale yet has perfect cleavage and can be split by a sharp blow along those planes.",
+  "facts": [
+   "Hardness is measured on the Mohs scale; diamond is a 10 and is about four times harder than corundum, a 9.",
+   "Streak is the color of a mineral's powder, and is more reliable than the color of the whole specimen.",
+   "Cleavage is the tendency of a mineral to break along flat planes of weak bonding; minerals without such planes fracture irregularly.",
+   "Luster describes how a mineral's surface reflects light \u2014 metallic, glassy, or dull."
+  ]
+ },
+ {
+  "kernelId": "history/historical-argument",
+  "term": "Historical argument",
+  "misconception": "Students treat a forceful assertion about the past as an argument, without connecting it to primary-source evidence or naming the record's gaps.",
+  "corrective": "An argument links a claim to evidence through reasoning and states what the evidence cannot settle.",
+  "facts": [
+   "Historians justify claims with evidence, using contextual reasoning to connect the sources to the interpretation.",
+   "Every historical argument is bounded by the limitations of the surviving record, which is always incomplete."
+  ]
+ },
+ {
+  "kernelId": "lang/food-and-ordering-at-restaurants",
+  "term": "Food and Ordering at Restaurants",
+  "misconception": "Students may think they can directly translate English restaurant phrases word-for-word.",
+  "corrective": "Korean ordering often uses fixed polite patterns and different question forms, so learners should memorize common set phrases rather than literal translations.",
+  "facts": [
+   "Korean restaurant interactions often use polite sentence endings and set expressions to show respect.",
+   "Common ordering language includes asking for quantities, naming menu items, and requesting side dishes or drinks.",
+   "Many Korean meals are served with side dishes called banchan, which are part of the dining experience."
+  ]
+ },
+ {
+  "kernelId": "lit/literary-argument",
+  "term": "Literary argument",
+  "misconception": "Students summarize the plot instead of arguing an interpretation grounded in specific textual evidence.",
+  "corrective": "An interpretation makes an arguable claim and earns it with close reading of details.",
+  "facts": [
+   "A strong interpretation uses close reading to explain how particular details produce meaning, rather than merely asserting a reading.",
+   "A careful argument acknowledges alternative readings the same evidence could support."
+  ]
+ }
+]

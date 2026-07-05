@@ -58,6 +58,34 @@
    }
   }
  },
+ "gemma4-e2b-ft2": {
+  "overall": {
+   "total": 120,
+   "accepted": 16,
+   "rate": 0.133
+  },
+  "byTask": {
+   "skin": {
+    "total": 60,
+    "accepted": 5,
+    "reasons": {
+     "mode-example": 2,
+     "identity-noop": 52,
+     "length-band": 1
+    },
+    "rate": 0.083
+   },
+   "blend": {
+    "total": 60,
+    "accepted": 11,
+    "reasons": {
+     "identity-noop": 45,
+     "length-band": 4
+    },
+    "rate": 0.183
+   }
+  }
+ },
  "gemma4-e2b-ft": {
   "overall": {
    "total": 120,

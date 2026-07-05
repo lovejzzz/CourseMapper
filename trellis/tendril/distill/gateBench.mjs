@@ -69,6 +69,7 @@ if (existsSync('trellis/tendril/distill/outputs') && !process.env.VITEST) {
   for (const [name, path] of [
     ['tendril-s3', 'trellis/tendril/distill/outputs/tendril-s3.jsonl'],
     ['tendril-s3b', 'trellis/tendril/distill/outputs/tendril-s3b.jsonl'],
+    ['gemma4-e2b-ft2', 'trellis/tendril/distill/outputs/gemma4-e2b-ft2.jsonl'],
     ['gemma4-e2b-ft', 'trellis/tendril/distill/outputs/gemma4-e2b-ft.jsonl'],
     ['gemma4-e2b-zs', 'trellis/tendril/distill/outputs/gemma4-e2b-zs.jsonl'],
     ['s2-web', 'trellis/tendril/distill/outputs/s2-web.jsonl'],
