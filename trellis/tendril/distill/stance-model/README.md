@@ -4,40 +4,38 @@ tags:
 - sentence-similarity
 - feature-extraction
 - generated_from_trainer
-- dataset_size:7563
+- dataset_size:10821
 - loss:TripletLoss
 base_model: sentence-transformers/all-MiniLM-L6-v2
 widget:
+- source_sentence: abstract statements about emotions are as engaging as concre
+  sentences:
+  - In Korean, spelling often stay same even if pronunciation change, so you need
+    to know both.
+  - The abstract statement is more engaging.
+  - The passage says concrete, sensory detail more directly engages the reader’s senses
+    and sensibilities. Specific images are more effective than abstract statements
+    alone.
+- source_sentence: starting in the middle means the author forgot to include th
+  sentences:
+  - Earlier events were not known to audiences.
+  - Check endpoints too. Critical point not automatically min.
+  - The poet ignored earlier events accidentally.
+- source_sentence: students treat the class itself as an object and expect to s
+  sentences:
+  - Use readline() instead of read().
+  - '`total` is global, so it can be accessed anywhere after the function call.'
+  - Inside the method only, because methods are shared.
 - source_sentence: students think p waves and s waves both travel through every
   sentences:
   - Magma rises and pushes the fault apart, causing the quake.
-  - Television replaced movies in the 1920s.
-  - Incorrect—P waves also cannot travel through liquids, so no P waves would be recorded
-    far away.
-- source_sentence: a best fit line must pass through the data points
+  - No; continuity is necessary but not sufficient.
+  - No waves arrive because all seismic energy is absorbed at the fault.
+- source_sentence: students forget to update the variable in the loop condition
   sentences:
-  - It only works for exact systems.
-  - An exact solution
-  - Jane Austen is all about dramatic love stories and crazy emotions.
-- source_sentence: students treat a price change as shifting the whole supply c
-  sentences:
-  - The demand curve shifts because consumers now want less coffee
-  - A frost changes a non-price factor, so the whole supply curve shifts. That fits
-    the rule that only a change in the good's own price moves along the curve; input
-    costs or technology shift the curve.
-  - The loop prints 1 because the condition only runs once before the body starts
-- source_sentence: students try to read a dictionary value with a numeric index
-  sentences:
-  - '`{''CS101'': ''ENGR'', ''CS101'': ''SCI''}` because the same key can keep both
-    values'
-  - You must convert the dictionary to a list before indexing; d[0] will work only
-    after that conversion
-  - Rename msg to global_msg inside the function and print it outside.
-- source_sentence: 'students may treat field lines as physical wires or paths a '
-  sentences:
-  - Field lines show direction and strength.
-  - Negative charges cannot feel fields.
-  - int(7) / int(2)
+  - 5, 4, 3, 2, then stops
+  - It repeats only when the condition is false.
+  - Big-O means the program always takes the same time for equal n.
 pipeline_tag: sentence-similarity
 library_name: sentence-transformers
 ---
@@ -92,9 +90,9 @@ from sentence_transformers import SentenceTransformer
 model = SentenceTransformer("sentence_transformers_model_id")
 # Run inference
 sentences = [
-    'students may treat field lines as physical wires or paths a ',
-    'Negative charges cannot feel fields.',
-    'Field lines show direction and strength.',
+    'students forget to update the variable in the loop condition',
+    '5, 4, 3, 2, then stops',
+    'It repeats only when the condition is false.',
 ]
 embeddings = model.encode(sentences)
 print(embeddings.shape)
@@ -103,9 +101,9 @@ print(embeddings.shape)
 # Get the similarity scores for the embeddings
 similarities = model.similarity(embeddings, embeddings)
 print(similarities)
-# tensor([[1.0000, 0.3538, 0.4261],
-#         [0.3538, 1.0000, 0.2816],
-#         [0.4261, 0.2816, 1.0000]])
+# tensor([[1.0000, 0.2095, 0.1868],
+#         [0.2095, 1.0000, 0.2526],
+#         [0.1868, 0.2526, 1.0000]])
 ```
 <!--
 ### Direct Usage (Transformers)
@@ -149,20 +147,20 @@ You can finetune this model on your own dataset.
 
 #### Unnamed Dataset
 
-* Size: 7,563 training samples
+* Size: 10,821 training samples
 * Columns: <code>sentence_0</code>, <code>sentence_1</code>, and <code>sentence_2</code>
 * Approximate statistics based on the first 100 samples:
-  |          | sentence_0                                                                        | sentence_1                                                                       | sentence_2                                                                         |
-  |:---------|:----------------------------------------------------------------------------------|:---------------------------------------------------------------------------------|:-----------------------------------------------------------------------------------|
-  | type     | string                                                                            | string                                                                           | string                                                                             |
-  | modality | text                                                                              | text                                                                             | text                                                                               |
-  | details  | <ul><li>min: 8 tokens</li><li>mean: 13.27 tokens</li><li>max: 21 tokens</li></ul> | <ul><li>min: 8 tokens</li><li>mean: 14.1 tokens</li><li>max: 29 tokens</li></ul> | <ul><li>min: 4 tokens</li><li>mean: 22.48 tokens</li><li>max: 113 tokens</li></ul> |
+  |          | sentence_0                                                                        | sentence_1                                                                        | sentence_2                                                                        |
+  |:---------|:----------------------------------------------------------------------------------|:----------------------------------------------------------------------------------|:----------------------------------------------------------------------------------|
+  | type     | string                                                                            | string                                                                            | string                                                                            |
+  | modality | text                                                                              | text                                                                              | text                                                                              |
+  | details  | <ul><li>min: 7 tokens</li><li>mean: 14.34 tokens</li><li>max: 31 tokens</li></ul> | <ul><li>min: 4 tokens</li><li>mean: 15.77 tokens</li><li>max: 31 tokens</li></ul> | <ul><li>min: 7 tokens</li><li>mean: 17.29 tokens</li><li>max: 70 tokens</li></ul> |
 * Samples:
-  | sentence_0                                                                | sentence_1                                                                              | sentence_2                                                                                                                                                                                                                                                                                                                                                                                                                                                        |
-  |:--------------------------------------------------------------------------|:----------------------------------------------------------------------------------------|:------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-  | <code>students think market equilibrium means nothing changes when</code> | <code>Demand equals supply, so there is no pressure.</code>                             | <code>When the price is above equilibrium, the market has a surplus. The core idea is: “a surplus pushes it down, and when the price is below equilibrium a shortage pushes it up.” Since $14 is above $10, the surplus pushes the price downward toward $10.</code>                                                                                                                                                                                              |
-  | <code>students think modifying s 0 h will change a character in pl</code> | <code>Python will quietly create a new string and update s automatically.</code>        | <code>s[0], because the left-most character is index 0.</code>                                                                                                                                                                                                                                                                                                                                                                                                    |
-  | <code>a vector space has only one basis</code>                            | <code>Any two vectors in the space form a basis, because any spanning set works.</code> | <code>Dimension counts basis vectors, not members of the space. R^2 has infinitely many vectors but dimension 2, so the total number of vectors does not determine dimension. Any set of more than n vectors in R^n is automatically dependent; adding vectors can only create dependence, never remove it. Spaces have infinitely many bases — R^2 is spanned by the standard basis but equally by (1, 1) and (1, -1); only the SIZE of a basis is fixed.</code> |
+  | sentence_0                                                                | sentence_1                                                         | sentence_2                                                                                                                                                |
+  |:--------------------------------------------------------------------------|:-------------------------------------------------------------------|:----------------------------------------------------------------------------------------------------------------------------------------------------------|
+  | <code>tariffs helped farmers by keeping farm prices high</code>           | <code>Tariffs kept farm prices high</code>                         | <code>Tariffs raised crop prices directly</code>                                                                                                          |
+  | <code>students forget to close the file or use a with block leavin</code> | <code>text = open('data.txt').readlines()</code>                   | <code>`text = open('report.txt')` because open() already gives the file contents.</code>                                                                  |
+  | <code>a first reading should immediately focus on line by line ana</code> | <code>Skip title, just analyze lines. Title doesn't matter.</code> | <code>The title is actually a doorway that sets expectations, so first you should focus on tone, mood, and what stands out, not detailed analysis.</code> |
 * Loss: [<code>TripletLoss</code>](https://sbert.net/docs/package_reference/sentence_transformer/losses.html#tripletloss) with these parameters:
   ```json
   {
@@ -303,7 +301,7 @@ You can finetune this model on your own dataset.
 </details>
 
 ### Training Time
-- **Training**: 47.8 seconds
+- **Training**: 59.8 seconds
 
 ### Framework Versions
 - Python: 3.13.3

@@ -492,6 +492,20 @@ async function runPipelineStages({
   await writeFile(join(runDir, 'courseWide.json'), JSON.stringify(courseWide, null, 2));
   await writeFile(join(runDir, 'authoredExams.json'), JSON.stringify(authoredExams, null, 2));
   await writeFile(join(runDir, 'findings.json'), JSON.stringify(repair.findings, null, 2));
+
+  // 8b · Tendril Tutor (composed runs): every course ships its offline
+  // typed-answer tutor for $0 — course.json + index.html per run, the
+  // shared ~76MB model/vendor assets symlinked, never duplicated.
+  if (composer && !mockVoice) {
+    try {
+      const { buildTutorCourse, writeTutorBundle } = await import('./tendril/tutor/build.mjs');
+      const { course, stats } = await buildTutorCourse(runDir);
+      await writeTutorBundle(course, join(runDir, 'package', 'tutor'), { assets: 'link' });
+      digest.tutor = `offline tutor bundled: ${stats.lessons} lesson(s), ${stats.items} item(s), ${stats.withCorrective} with corrective+diagnosis`;
+    } catch (error) {
+      digest.tutor = `tutor bundle FAILED (${String(error.message).slice(0, 80)}) — package ships without it`;
+    }
+  }
   await ledger.flush();
 
   // 9 · optional grade with the borrowed ruler (ground rule #6)

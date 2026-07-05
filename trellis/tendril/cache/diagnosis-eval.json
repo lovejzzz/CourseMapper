@@ -1,28 +1,28 @@
 {
  "stamp": "SIMULATED instruments — PROF-BENCH culture; Tendril T-M1c",
- "seconds": 1.7,
+ "seconds": 14.6,
  "loo": {
   "all": {
-   "correct": 460,
+   "correct": 450,
    "total": 619,
-   "accuracy": 0.7431340872374798
+   "accuracy": 0.7269789983844911
   },
   "catching": {
-   "correct": 110,
+   "correct": 101,
    "total": 131,
-   "accuracy": 0.8396946564885496
+   "accuracy": 0.7709923664122137
   },
   "byDiscipline": {
    "math": {
-    "correct": 114,
+    "correct": 108,
     "total": 147
    },
    "cs": {
-    "correct": 40,
+    "correct": 38,
     "total": 48
    },
    "geo": {
-    "correct": 39,
+    "correct": 43,
     "total": 48
    },
    "lit": {
@@ -30,15 +30,15 @@
     "total": 128
    },
    "psych": {
-    "correct": 2,
+    "correct": 4,
     "total": 4
    },
    "history": {
-    "correct": 155,
+    "correct": 143,
     "total": 204
    },
    "lang": {
-    "correct": 26,
+    "correct": 30,
     "total": 40
    }
   }
@@ -47,25 +47,25 @@
   "queries": 240,
   "perThreshold": {
    "0.35": {
-    "correct": 197,
-    "abstained": 0,
-    "total": 240,
-    "accuracy": 0.8208333333333333,
-    "accuracyWhenFired": 0.8208333333333333
-   },
-   "0.45": {
-    "correct": 196,
+    "correct": 190,
     "abstained": 5,
     "total": 240,
-    "accuracy": 0.8166666666666667,
-    "accuracyWhenFired": 0.8340425531914893
+    "accuracy": 0.7916666666666666,
+    "accuracyWhenFired": 0.8085106382978723
+   },
+   "0.45": {
+    "correct": 189,
+    "abstained": 14,
+    "total": 240,
+    "accuracy": 0.7875,
+    "accuracyWhenFired": 0.8362831858407079
    },
    "0.55": {
-    "correct": 187,
-    "abstained": 22,
+    "correct": 162,
+    "abstained": 49,
     "total": 240,
-    "accuracy": 0.7791666666666667,
-    "accuracyWhenFired": 0.8577981651376146
+    "accuracy": 0.675,
+    "accuracyWhenFired": 0.8481675392670157
    }
   }
  },
@@ -73,19 +73,19 @@
   "negatives": 355,
   "perThreshold": {
    "0.35": {
-    "falseFires": 341,
+    "falseFires": 308,
     "total": 355,
-    "falseFireRate": 0.9605633802816902
+    "falseFireRate": 0.8676056338028169
    },
    "0.45": {
-    "falseFires": 312,
+    "falseFires": 271,
     "total": 355,
-    "falseFireRate": 0.8788732394366198
+    "falseFireRate": 0.7633802816901408
    },
    "0.55": {
-    "falseFires": 270,
+    "falseFires": 221,
     "total": 355,
-    "falseFireRate": 0.7605633802816901
+    "falseFireRate": 0.6225352112676056
    }
   }
  },
@@ -97,213 +97,27 @@
     "0": {
      "wrong": {
       "total": 240,
-      "firedRight": 193,
-      "familyAccuracy": 0.8041666666666667,
-      "accuracyWhenFired": 0.8247863247863247
-     },
-     "correct": {
-      "total": 120,
-      "falseFires": 71,
-      "falseFireRate": 0.5916666666666667
-     }
-    },
-    "0.03": {
-     "wrong": {
-      "total": 240,
-      "firedRight": 188,
-      "familyAccuracy": 0.7833333333333333,
-      "accuracyWhenFired": 0.8245614035087719
-     },
-     "correct": {
-      "total": 120,
-      "falseFires": 63,
-      "falseFireRate": 0.525
-     }
-    },
-    "0.035": {
-     "wrong": {
-      "total": 240,
-      "firedRight": 189,
-      "familyAccuracy": 0.7875,
-      "accuracyWhenFired": 0.8289473684210527
-     },
-     "correct": {
-      "total": 120,
-      "falseFires": 60,
-      "falseFireRate": 0.5
-     }
-    },
-    "0.04": {
-     "wrong": {
-      "total": 240,
-      "firedRight": 187,
-      "familyAccuracy": 0.7791666666666667,
-      "accuracyWhenFired": 0.827433628318584
-     },
-     "correct": {
-      "total": 120,
-      "falseFires": 59,
-      "falseFireRate": 0.49166666666666664
-     }
-    },
-    "0.045": {
-     "wrong": {
-      "total": 240,
-      "firedRight": 182,
-      "familyAccuracy": 0.7583333333333333,
-      "accuracyWhenFired": 0.8235294117647058
-     },
-     "correct": {
-      "total": 120,
-      "falseFires": 58,
-      "falseFireRate": 0.48333333333333334
-     }
-    },
-    "0.05": {
-     "wrong": {
-      "total": 240,
-      "firedRight": 182,
-      "familyAccuracy": 0.7583333333333333,
-      "accuracyWhenFired": 0.8235294117647058
-     },
-     "correct": {
-      "total": 120,
-      "falseFires": 54,
-      "falseFireRate": 0.45
-     }
-    },
-    "0.08": {
-     "wrong": {
-      "total": 240,
-      "firedRight": 177,
-      "familyAccuracy": 0.7375,
-      "accuracyWhenFired": 0.8194444444444444
-     },
-     "correct": {
-      "total": 120,
-      "falseFires": 46,
-      "falseFireRate": 0.38333333333333336
-     }
-    }
-   },
-   "corrects": {
-    "0": {
-     "wrong": {
-      "total": 240,
-      "firedRight": 191,
-      "familyAccuracy": 0.7958333333333333,
-      "accuracyWhenFired": 0.834061135371179
-     },
-     "correct": {
-      "total": 120,
-      "falseFires": 50,
-      "falseFireRate": 0.4166666666666667
-     }
-    },
-    "0.03": {
-     "wrong": {
-      "total": 240,
-      "firedRight": 180,
-      "familyAccuracy": 0.75,
-      "accuracyWhenFired": 0.8411214953271028
-     },
-     "correct": {
-      "total": 120,
-      "falseFires": 39,
-      "falseFireRate": 0.325
-     }
-    },
-    "0.035": {
-     "wrong": {
-      "total": 240,
       "firedRight": 181,
       "familyAccuracy": 0.7541666666666667,
-      "accuracyWhenFired": 0.8457943925233645
+      "accuracyWhenFired": 0.8080357142857143
      },
      "correct": {
       "total": 120,
-      "falseFires": 35,
-      "falseFireRate": 0.2916666666666667
-     }
-    },
-    "0.04": {
-     "wrong": {
-      "total": 240,
-      "firedRight": 179,
-      "familyAccuracy": 0.7458333333333333,
-      "accuracyWhenFired": 0.8443396226415094
-     },
-     "correct": {
-      "total": 120,
-      "falseFires": 34,
-      "falseFireRate": 0.2833333333333333
-     }
-    },
-    "0.045": {
-     "wrong": {
-      "total": 240,
-      "firedRight": 175,
-      "familyAccuracy": 0.7291666666666666,
-      "accuracyWhenFired": 0.8454106280193237
-     },
-     "correct": {
-      "total": 120,
-      "falseFires": 32,
-      "falseFireRate": 0.26666666666666666
-     }
-    },
-    "0.05": {
-     "wrong": {
-      "total": 240,
-      "firedRight": 175,
-      "familyAccuracy": 0.7291666666666666,
-      "accuracyWhenFired": 0.8454106280193237
-     },
-     "correct": {
-      "total": 120,
-      "falseFires": 30,
-      "falseFireRate": 0.25
-     }
-    },
-    "0.08": {
-     "wrong": {
-      "total": 240,
-      "firedRight": 160,
-      "familyAccuracy": 0.6666666666666666,
-      "accuracyWhenFired": 0.8695652173913043
-     },
-     "correct": {
-      "total": 120,
-      "falseFires": 18,
-      "falseFireRate": 0.15
-     }
-    }
-   },
-   "corrects+expl": {
-    "0": {
-     "wrong": {
-      "total": 240,
-      "firedRight": 186,
-      "familyAccuracy": 0.775,
-      "accuracyWhenFired": 0.8303571428571429
-     },
-     "correct": {
-      "total": 120,
-      "falseFires": 42,
-      "falseFireRate": 0.35
+      "falseFires": 52,
+      "falseFireRate": 0.43333333333333335
      }
     },
     "0.03": {
      "wrong": {
       "total": 240,
-      "firedRight": 175,
-      "familyAccuracy": 0.7291666666666666,
-      "accuracyWhenFired": 0.8373205741626795
+      "firedRight": 178,
+      "familyAccuracy": 0.7416666666666667,
+      "accuracyWhenFired": 0.8054298642533937
      },
      "correct": {
       "total": 120,
-      "falseFires": 32,
-      "falseFireRate": 0.26666666666666666
+      "falseFires": 45,
+      "falseFireRate": 0.375
      }
     },
     "0.035": {
@@ -311,33 +125,87 @@
       "total": 240,
       "firedRight": 176,
       "familyAccuracy": 0.7333333333333333,
-      "accuracyWhenFired": 0.8421052631578947
+      "accuracyWhenFired": 0.8036529680365296
      },
      "correct": {
       "total": 120,
-      "falseFires": 28,
-      "falseFireRate": 0.23333333333333334
+      "falseFires": 45,
+      "falseFireRate": 0.375
      }
     },
     "0.04": {
      "wrong": {
       "total": 240,
-      "firedRight": 174,
-      "familyAccuracy": 0.725,
-      "accuracyWhenFired": 0.8405797101449275
+      "firedRight": 176,
+      "familyAccuracy": 0.7333333333333333,
+      "accuracyWhenFired": 0.8036529680365296
      },
      "correct": {
       "total": 120,
-      "falseFires": 27,
-      "falseFireRate": 0.225
+      "falseFires": 44,
+      "falseFireRate": 0.36666666666666664
      }
     },
     "0.045": {
      "wrong": {
       "total": 240,
+      "firedRight": 174,
+      "familyAccuracy": 0.725,
+      "accuracyWhenFired": 0.8018433179723502
+     },
+     "correct": {
+      "total": 120,
+      "falseFires": 43,
+      "falseFireRate": 0.35833333333333334
+     }
+    },
+    "0.05": {
+     "wrong": {
+      "total": 240,
+      "firedRight": 174,
+      "familyAccuracy": 0.725,
+      "accuracyWhenFired": 0.8055555555555556
+     },
+     "correct": {
+      "total": 120,
+      "falseFires": 43,
+      "falseFireRate": 0.35833333333333334
+     }
+    },
+    "0.08": {
+     "wrong": {
+      "total": 240,
       "firedRight": 170,
       "familyAccuracy": 0.7083333333333334,
-      "accuracyWhenFired": 0.8415841584158416
+      "accuracyWhenFired": 0.8056872037914692
+     },
+     "correct": {
+      "total": 120,
+      "falseFires": 38,
+      "falseFireRate": 0.31666666666666665
+     }
+    }
+   },
+   "corrects": {
+    "0": {
+     "wrong": {
+      "total": 240,
+      "firedRight": 179,
+      "familyAccuracy": 0.7458333333333333,
+      "accuracyWhenFired": 0.8211009174311926
+     },
+     "correct": {
+      "total": 120,
+      "falseFires": 32,
+      "falseFireRate": 0.26666666666666666
+     }
+    },
+    "0.03": {
+     "wrong": {
+      "total": 240,
+      "firedRight": 166,
+      "familyAccuracy": 0.6916666666666667,
+      "accuracyWhenFired": 0.8097560975609757
      },
      "correct": {
       "total": 120,
@@ -345,12 +213,51 @@
       "falseFireRate": 0.20833333333333334
      }
     },
+    "0.035": {
+     "wrong": {
+      "total": 240,
+      "firedRight": 165,
+      "familyAccuracy": 0.6875,
+      "accuracyWhenFired": 0.8168316831683168
+     },
+     "correct": {
+      "total": 120,
+      "falseFires": 25,
+      "falseFireRate": 0.20833333333333334
+     }
+    },
+    "0.04": {
+     "wrong": {
+      "total": 240,
+      "firedRight": 166,
+      "familyAccuracy": 0.6916666666666667,
+      "accuracyWhenFired": 0.8217821782178217
+     },
+     "correct": {
+      "total": 120,
+      "falseFires": 25,
+      "falseFireRate": 0.20833333333333334
+     }
+    },
+    "0.045": {
+     "wrong": {
+      "total": 240,
+      "firedRight": 163,
+      "familyAccuracy": 0.6791666666666667,
+      "accuracyWhenFired": 0.815
+     },
+     "correct": {
+      "total": 120,
+      "falseFires": 24,
+      "falseFireRate": 0.2
+     }
+    },
     "0.05": {
      "wrong": {
       "total": 240,
-      "firedRight": 170,
-      "familyAccuracy": 0.7083333333333334,
-      "accuracyWhenFired": 0.8415841584158416
+      "firedRight": 162,
+      "familyAccuracy": 0.675,
+      "accuracyWhenFired": 0.8307692307692308
      },
      "correct": {
       "total": 120,
@@ -361,14 +268,107 @@
     "0.08": {
      "wrong": {
       "total": 240,
-      "firedRight": 154,
-      "familyAccuracy": 0.6416666666666667,
-      "accuracyWhenFired": 0.8651685393258427
+      "firedRight": 151,
+      "familyAccuracy": 0.6291666666666667,
+      "accuracyWhenFired": 0.8435754189944135
      },
      "correct": {
       "total": 120,
-      "falseFires": 12,
-      "falseFireRate": 0.1
+      "falseFires": 17,
+      "falseFireRate": 0.14166666666666666
+     }
+    }
+   },
+   "corrects+expl": {
+    "0": {
+     "wrong": {
+      "total": 240,
+      "firedRight": 175,
+      "familyAccuracy": 0.7291666666666666,
+      "accuracyWhenFired": 0.8177570093457944
+     },
+     "correct": {
+      "total": 120,
+      "falseFires": 27,
+      "falseFireRate": 0.225
+     }
+    },
+    "0.03": {
+     "wrong": {
+      "total": 240,
+      "firedRight": 162,
+      "familyAccuracy": 0.675,
+      "accuracyWhenFired": 0.8059701492537313
+     },
+     "correct": {
+      "total": 120,
+      "falseFires": 20,
+      "falseFireRate": 0.16666666666666666
+     }
+    },
+    "0.035": {
+     "wrong": {
+      "total": 240,
+      "firedRight": 161,
+      "familyAccuracy": 0.6708333333333333,
+      "accuracyWhenFired": 0.8131313131313131
+     },
+     "correct": {
+      "total": 120,
+      "falseFires": 20,
+      "falseFireRate": 0.16666666666666666
+     }
+    },
+    "0.04": {
+     "wrong": {
+      "total": 240,
+      "firedRight": 162,
+      "familyAccuracy": 0.675,
+      "accuracyWhenFired": 0.8181818181818182
+     },
+     "correct": {
+      "total": 120,
+      "falseFires": 19,
+      "falseFireRate": 0.15833333333333333
+     }
+    },
+    "0.045": {
+     "wrong": {
+      "total": 240,
+      "firedRight": 159,
+      "familyAccuracy": 0.6625,
+      "accuracyWhenFired": 0.8112244897959183
+     },
+     "correct": {
+      "total": 120,
+      "falseFires": 19,
+      "falseFireRate": 0.15833333333333333
+     }
+    },
+    "0.05": {
+     "wrong": {
+      "total": 240,
+      "firedRight": 159,
+      "familyAccuracy": 0.6625,
+      "accuracyWhenFired": 0.828125
+     },
+     "correct": {
+      "total": 120,
+      "falseFires": 19,
+      "falseFireRate": 0.15833333333333333
+     }
+    },
+    "0.08": {
+     "wrong": {
+      "total": 240,
+      "firedRight": 149,
+      "familyAccuracy": 0.6208333333333333,
+      "accuracyWhenFired": 0.8418079096045198
+     },
+     "correct": {
+      "total": 120,
+      "falseFires": 14,
+      "falseFireRate": 0.11666666666666667
      }
     }
    },
@@ -376,138 +376,64 @@
     "0": {
      "wrong": {
       "total": 240,
-      "firedRight": 208,
-      "familyAccuracy": 0.8666666666666667
+      "firedRight": 193,
+      "familyAccuracy": 0.8041666666666667
      },
      "correct": {
       "total": 120,
-      "falseFires": 34,
-      "falseFireRate": 0.2833333333333333
+      "falseFires": 24,
+      "falseFireRate": 0.2
      }
     },
     "0.03": {
      "wrong": {
       "total": 240,
-      "firedRight": 194,
-      "familyAccuracy": 0.8083333333333333
+      "firedRight": 185,
+      "familyAccuracy": 0.7708333333333334
      },
      "correct": {
       "total": 120,
-      "falseFires": 27,
-      "falseFireRate": 0.225
+      "falseFires": 18,
+      "falseFireRate": 0.15
      }
     },
     "0.035": {
      "wrong": {
       "total": 240,
-      "firedRight": 194,
-      "familyAccuracy": 0.8083333333333333
+      "firedRight": 184,
+      "familyAccuracy": 0.7666666666666667
      },
      "correct": {
       "total": 120,
-      "falseFires": 27,
-      "falseFireRate": 0.225
+      "falseFires": 18,
+      "falseFireRate": 0.15
      }
     },
     "0.04": {
      "wrong": {
       "total": 240,
-      "firedRight": 194,
-      "familyAccuracy": 0.8083333333333333
+      "firedRight": 182,
+      "familyAccuracy": 0.7583333333333333
      },
      "correct": {
       "total": 120,
-      "falseFires": 26,
-      "falseFireRate": 0.21666666666666667
+      "falseFires": 18,
+      "falseFireRate": 0.15
      }
     },
     "0.045": {
      "wrong": {
       "total": 240,
-      "firedRight": 190,
-      "familyAccuracy": 0.7916666666666666
+      "firedRight": 181,
+      "familyAccuracy": 0.7541666666666667
      },
      "correct": {
       "total": 120,
-      "falseFires": 25,
-      "falseFireRate": 0.20833333333333334
+      "falseFires": 18,
+      "falseFireRate": 0.15
      }
     },
     "0.05": {
-     "wrong": {
-      "total": 240,
-      "firedRight": 187,
-      "familyAccuracy": 0.7791666666666667
-     },
-     "correct": {
-      "total": 120,
-      "falseFires": 24,
-      "falseFireRate": 0.2
-     }
-    },
-    "0.08": {
-     "wrong": {
-      "total": 240,
-      "firedRight": 171,
-      "familyAccuracy": 0.7125
-     },
-     "correct": {
-      "total": 120,
-      "falseFires": 19,
-      "falseFireRate": 0.15833333333333333
-     }
-    }
-   },
-   "item-options+expl": {
-    "0": {
-     "wrong": {
-      "total": 240,
-      "firedRight": 201,
-      "familyAccuracy": 0.8375
-     },
-     "correct": {
-      "total": 120,
-      "falseFires": 31,
-      "falseFireRate": 0.25833333333333336
-     }
-    },
-    "0.03": {
-     "wrong": {
-      "total": 240,
-      "firedRight": 185,
-      "familyAccuracy": 0.7708333333333334
-     },
-     "correct": {
-      "total": 120,
-      "falseFires": 24,
-      "falseFireRate": 0.2
-     }
-    },
-    "0.035": {
-     "wrong": {
-      "total": 240,
-      "firedRight": 185,
-      "familyAccuracy": 0.7708333333333334
-     },
-     "correct": {
-      "total": 120,
-      "falseFires": 24,
-      "falseFireRate": 0.2
-     }
-    },
-    "0.04": {
-     "wrong": {
-      "total": 240,
-      "firedRight": 185,
-      "familyAccuracy": 0.7708333333333334
-     },
-     "correct": {
-      "total": 120,
-      "falseFires": 23,
-      "falseFireRate": 0.19166666666666668
-     }
-    },
-    "0.045": {
      "wrong": {
       "total": 240,
       "firedRight": 180,
@@ -515,11 +441,61 @@
      },
      "correct": {
       "total": 120,
+      "falseFires": 18,
+      "falseFireRate": 0.15
+     }
+    },
+    "0.08": {
+     "wrong": {
+      "total": 240,
+      "firedRight": 170,
+      "familyAccuracy": 0.7083333333333334
+     },
+     "correct": {
+      "total": 120,
+      "falseFires": 14,
+      "falseFireRate": 0.11666666666666667
+     }
+    }
+   },
+   "item-options+expl": {
+    "0": {
+     "wrong": {
+      "total": 240,
+      "firedRight": 189,
+      "familyAccuracy": 0.7875
+     },
+     "correct": {
+      "total": 120,
       "falseFires": 22,
       "falseFireRate": 0.18333333333333332
      }
     },
-    "0.05": {
+    "0.03": {
+     "wrong": {
+      "total": 240,
+      "firedRight": 180,
+      "familyAccuracy": 0.75
+     },
+     "correct": {
+      "total": 120,
+      "falseFires": 15,
+      "falseFireRate": 0.125
+     }
+    },
+    "0.035": {
+     "wrong": {
+      "total": 240,
+      "firedRight": 179,
+      "familyAccuracy": 0.7458333333333333
+     },
+     "correct": {
+      "total": 120,
+      "falseFires": 15,
+      "falseFireRate": 0.125
+     }
+    },
+    "0.04": {
      "wrong": {
       "total": 240,
       "firedRight": 177,
@@ -527,11 +503,147 @@
      },
      "correct": {
       "total": 120,
-      "falseFires": 21,
-      "falseFireRate": 0.175
+      "falseFires": 15,
+      "falseFireRate": 0.125
+     }
+    },
+    "0.045": {
+     "wrong": {
+      "total": 240,
+      "firedRight": 176,
+      "familyAccuracy": 0.7333333333333333
+     },
+     "correct": {
+      "total": 120,
+      "falseFires": 15,
+      "falseFireRate": 0.125
+     }
+    },
+    "0.05": {
+     "wrong": {
+      "total": 240,
+      "firedRight": 175,
+      "familyAccuracy": 0.7291666666666666
+     },
+     "correct": {
+      "total": 120,
+      "falseFires": 15,
+      "falseFireRate": 0.125
      }
     },
     "0.08": {
+     "wrong": {
+      "total": 240,
+      "firedRight": 166,
+      "familyAccuracy": 0.6916666666666667
+     },
+     "correct": {
+      "total": 120,
+      "falseFires": 11,
+      "falseFireRate": 0.09166666666666666
+     }
+    }
+   },
+   "deployed": {
+    "0": {
+     "wrong": {
+      "total": 240,
+      "firedRight": 189,
+      "familyAccuracy": 0.7875
+     },
+     "correct": {
+      "total": 120,
+      "falseFires": 22,
+      "falseFireRate": 0.18333333333333332
+     }
+    }
+   },
+   "deployed-short-class": {
+    "0": {
+     "wrong": {
+      "total": 30,
+      "firedRight": 18,
+      "familyAccuracy": 0.6
+     },
+     "correct": {
+      "total": 24,
+      "falseFires": 4,
+      "falseFireRate": 0.16666666666666666
+     }
+    }
+   },
+   "item-options-short-class": {
+    "0": {
+     "wrong": {
+      "total": 30,
+      "firedRight": 22,
+      "familyAccuracy": 0.7333333333333333
+     },
+     "correct": {
+      "total": 24,
+      "falseFires": 6,
+      "falseFireRate": 0.25
+     }
+    }
+   },
+   "deployed2": {
+    "0": {
+     "wrong": {
+      "total": 240,
+      "firedRight": 193,
+      "familyAccuracy": 0.8041666666666667
+     },
+     "correct": {
+      "total": 120,
+      "falseFires": 22,
+      "falseFireRate": 0.18333333333333332
+     }
+    }
+   },
+   "deployed2-short-class": {
+    "0": {
+     "wrong": {
+      "total": 30,
+      "firedRight": 22,
+      "familyAccuracy": 0.7333333333333333
+     },
+     "correct": {
+      "total": 24,
+      "falseFires": 5,
+      "falseFireRate": 0.20833333333333334
+     }
+    }
+   },
+   "deployed2-m0": {
+    "0": {
+     "wrong": {
+      "total": 240,
+      "firedRight": 196,
+      "familyAccuracy": 0.8166666666666667
+     },
+     "correct": {
+      "total": 120,
+      "falseFires": 24,
+      "falseFireRate": 0.2
+     }
+    }
+   },
+   "deployed2-m0-short-class": {
+    "0": {
+     "wrong": {
+      "total": 30,
+      "firedRight": 25,
+      "familyAccuracy": 0.8333333333333334
+     },
+     "correct": {
+      "total": 24,
+      "falseFires": 8,
+      "falseFireRate": 0.3333333333333333
+     }
+    }
+   },
+   "and-gate": {
+    "0": {
      "wrong": {
       "total": 240,
       "firedRight": 163,
@@ -542,168 +654,8 @@
       "falseFires": 15,
       "falseFireRate": 0.125
      }
-    }
-   },
-   "deployed": {
-    "0": {
-     "wrong": {
-      "total": 240,
-      "firedRight": 204,
-      "familyAccuracy": 0.85
-     },
-     "correct": {
-      "total": 120,
-      "falseFires": 32,
-      "falseFireRate": 0.26666666666666666
-     }
-    }
-   },
-   "deployed-short-class": {
-    "0": {
-     "wrong": {
-      "total": 30,
-      "firedRight": 21,
-      "familyAccuracy": 0.7
-     },
-     "correct": {
-      "total": 24,
-      "falseFires": 6,
-      "falseFireRate": 0.25
-     }
-    }
-   },
-   "item-options-short-class": {
-    "0": {
-     "wrong": {
-      "total": 30,
-      "firedRight": 25,
-      "familyAccuracy": 0.8333333333333334
-     },
-     "correct": {
-      "total": 24,
-      "falseFires": 9,
-      "falseFireRate": 0.375
-     }
-    }
-   },
-   "deployed2": {
-    "0": {
-     "wrong": {
-      "total": 240,
-      "firedRight": 207,
-      "familyAccuracy": 0.8625
-     },
-     "correct": {
-      "total": 120,
-      "falseFires": 32,
-      "falseFireRate": 0.26666666666666666
-     }
-    }
-   },
-   "deployed2-short-class": {
-    "0": {
-     "wrong": {
-      "total": 30,
-      "firedRight": 24,
-      "familyAccuracy": 0.8
-     },
-     "correct": {
-      "total": 24,
-      "falseFires": 7,
-      "falseFireRate": 0.2916666666666667
-     }
-    }
-   },
-   "deployed2-m0": {
-    "0": {
-     "wrong": {
-      "total": 240,
-      "firedRight": 210,
-      "familyAccuracy": 0.875
-     },
-     "correct": {
-      "total": 120,
-      "falseFires": 34,
-      "falseFireRate": 0.2833333333333333
-     }
-    }
-   },
-   "deployed2-m0-short-class": {
-    "0": {
-     "wrong": {
-      "total": 30,
-      "firedRight": 27,
-      "familyAccuracy": 0.9
-     },
-     "correct": {
-      "total": 24,
-      "falseFires": 10,
-      "falseFireRate": 0.4166666666666667
-     }
-    }
-   },
-   "and-gate": {
-    "0": {
-     "wrong": {
-      "total": 240,
-      "firedRight": 178,
-      "familyAccuracy": 0.7416666666666667
-     },
-     "correct": {
-      "total": 120,
-      "falseFires": 26,
-      "falseFireRate": 0.21666666666666667
-     }
     },
     "0.03": {
-     "wrong": {
-      "total": 240,
-      "firedRight": 161,
-      "familyAccuracy": 0.6708333333333333
-     },
-     "correct": {
-      "total": 120,
-      "falseFires": 18,
-      "falseFireRate": 0.15
-     }
-    },
-    "0.035": {
-     "wrong": {
-      "total": 240,
-      "firedRight": 161,
-      "familyAccuracy": 0.6708333333333333
-     },
-     "correct": {
-      "total": 120,
-      "falseFires": 17,
-      "falseFireRate": 0.14166666666666666
-     }
-    },
-    "0.04": {
-     "wrong": {
-      "total": 240,
-      "firedRight": 161,
-      "familyAccuracy": 0.6708333333333333
-     },
-     "correct": {
-      "total": 120,
-      "falseFires": 17,
-      "falseFireRate": 0.14166666666666666
-     }
-    },
-    "0.045": {
-     "wrong": {
-      "total": 240,
-      "firedRight": 155,
-      "familyAccuracy": 0.6458333333333334
-     },
-     "correct": {
-      "total": 120,
-      "falseFires": 15,
-      "falseFireRate": 0.125
-     }
-    },
-    "0.05": {
      "wrong": {
       "total": 240,
       "firedRight": 153,
@@ -711,20 +663,68 @@
      },
      "correct": {
       "total": 120,
-      "falseFires": 14,
-      "falseFireRate": 0.11666666666666667
+      "falseFires": 8,
+      "falseFireRate": 0.06666666666666667
      }
     },
-    "0.08": {
+    "0.035": {
      "wrong": {
       "total": 240,
-      "firedRight": 134,
-      "familyAccuracy": 0.5583333333333333
+      "firedRight": 152,
+      "familyAccuracy": 0.6333333333333333
+     },
+     "correct": {
+      "total": 120,
+      "falseFires": 8,
+      "falseFireRate": 0.06666666666666667
+     }
+    },
+    "0.04": {
+     "wrong": {
+      "total": 240,
+      "firedRight": 150,
+      "familyAccuracy": 0.625
      },
      "correct": {
       "total": 120,
       "falseFires": 7,
       "falseFireRate": 0.058333333333333334
+     }
+    },
+    "0.045": {
+     "wrong": {
+      "total": 240,
+      "firedRight": 150,
+      "familyAccuracy": 0.625
+     },
+     "correct": {
+      "total": 120,
+      "falseFires": 7,
+      "falseFireRate": 0.058333333333333334
+     }
+    },
+    "0.05": {
+     "wrong": {
+      "total": 240,
+      "firedRight": 149,
+      "familyAccuracy": 0.6208333333333333
+     },
+     "correct": {
+      "total": 120,
+      "falseFires": 7,
+      "falseFireRate": 0.058333333333333334
+     }
+    },
+    "0.08": {
+     "wrong": {
+      "total": 240,
+      "firedRight": 137,
+      "familyAccuracy": 0.5708333333333333
+     },
+     "correct": {
+      "total": 120,
+      "falseFires": 5,
+      "falseFireRate": 0.041666666666666664
      }
     }
    }

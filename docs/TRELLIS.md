@@ -1393,3 +1393,18 @@ polishing a candidate that hasn't won.
   capability rows only Tendril has (81.7% typed diagnosis offline,
   S 72.5% ≥ nano 71.7%). Verdict: a stack, not a winner — and the
   Compiler is the only layer with no role in it. Spend ≈$0.16.
+
+- **2026-07-04 (Tendril v0.1.3 — E2c ADOPTED).** Owner "go" → round 3
+  (persona corpus + 738 mined hard negatives, 10,821 triplets) MET the
+  joint bar at margin 0: **80.4%/20.0%** (trajectory 33.3→21.7→20.0
+  false-fire at bar accuracy). Adoption gates passed: ε recalibrated
+  0.94 for E2c's compressed geometry; adoption ruler J7 1 · battery
+  0.473 (in band) · $0.103 · 97/A. Cache model-guard added (caches
+  self-invalidate on model switch — two models can never mix vectors).
+  SHIPPED: default embedder = tendril-e2c (model card in repo), Tutor
+  rebuilt + verified live on E2c, Tutor bundles attach to every
+  composed run (204K/run, symlinked assets), cron re-aligned to
+  v0.1.2 discipline, human packet v2 SEALED (Compiler crucible
+  cs-python vs Composer e8) awaiting two readers. Honest residual: the
+  original bare-numeral anecdote still false-fires — in the measured
+  20%, no anecdote patch (the R4 lesson). Suite 4,046 green.

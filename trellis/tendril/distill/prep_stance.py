@@ -15,7 +15,11 @@ import random
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 BANK = os.path.join(HERE, "..", "..", "bank", "all-items.json")
-TRAINING = os.path.join(HERE, "stance-training.json")
+TRAINING_FILES = [
+    os.path.join(HERE, "stance-training.json"),
+    os.path.join(HERE, "stance-training-2.json"),
+]
+HARD = os.path.join(HERE, "hard-triplets.jsonl")
 OUT = os.path.join(HERE, "stance-triplets.jsonl")
 
 
@@ -57,7 +61,7 @@ def main():
     # Round 2 (S1): student-register triplets — the DEPLOYED geometry.
     # anchor = family; positive = a typed wrong answer; negative = a typed
     # correct answer (plus one bank-negative draw for register mixing).
-    if os.path.exists(TRAINING):
+    for TRAINING in [f for f in TRAINING_FILES if os.path.exists(f)]:
         training = json.load(open(TRAINING))
         for entry in training.get("generated", []):
             fam = entry["family"]
@@ -71,6 +75,13 @@ def main():
             for r in rights:
                 for w in wrongs[:1]:
                     triplets.append({"anchor": r, "positive": r, "negative": w})
+
+    # Round 3: hard negatives mined from the current model's own mistakes
+    # (see mineHardNegatives.mjs) — weighted x2, they are the frontier.
+    if os.path.exists(HARD):
+        hard = [json.loads(l) for l in open(HARD) if l.strip()]
+        triplets.extend(hard)
+        triplets.extend(hard)
 
     random.shuffle(triplets)
     with open(OUT, "w") as f:

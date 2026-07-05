@@ -12,8 +12,11 @@
 
 import { cosine, cachedEmbed, makeEmbedder } from './embedder.mjs';
 
-// Operating profiles measured in T-M1c (cache/diagnosis-eval.json, frozen
-// ds-paraphrase rulers, n=240 wrong / 120 correct):
+// Operating profiles measured in T-M1c and re-verified per embedder round
+// (cache/diagnosis-eval.json, frozen ds-paraphrase rulers, n=240/120).
+// DEPLOYED (tendril-e2c, adopted 2026-07-04): standard = 80.4% family
+// accuracy / 20.0% false-fire at margin 0 — the joint bar, met on round 3.
+// The E1-era numbers below remain the original T-M1c record:
 //   standard     — item-local grading (typed answer vs the item's own
 //                  distractors and correct option): 81.7% family accuracy
 //                  (bar ≥80% MET), 33% false-fire on correct answers. The

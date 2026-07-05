@@ -12,8 +12,15 @@ import { readFile, writeFile } from 'node:fs/promises';
 import { callModel } from '../../providers.mjs';
 import { createRunLedger } from '../../telemetry.mjs';
 
-const OUT = 'trellis/tendril/distill/stance-training.json';
+// STANCE_ROUND=2 writes a second, persona-varied corpus file — round 3's
+// "3x corpus" is additive files, never regeneration of an existing one.
+const ROUND = process.env.STANCE_ROUND === '2' ? 2 : 1;
+const OUT = ROUND === 2 ? 'trellis/tendril/distill/stance-training-2.json' : 'trellis/tendril/distill/stance-training.json';
 const BATCH = 10;
+const PERSONA =
+  ROUND === 2
+    ? 'Vary the student voice across answers: one hasty and clipped, one verbose and hedging, one non-native-speaker phrasing with small grammar slips. '
+    : '';
 
 async function evalKernelIds() {
   const ids = new Set();
@@ -52,7 +59,7 @@ export async function generateStanceTraining() {
     }
   }
   const targets = [...cells.values()];
-  const ledger = createRunLedger({ runId: 'tendril-stance-training', runDir: 'trellis/runs/tendril-stance-training' });
+  const ledger = createRunLedger({ runId: `tendril-stance-training-r${ROUND}`, runDir: `trellis/runs/tendril-stance-training-r${ROUND}` });
   const generated = [];
   const skipped = [];
   try {
@@ -64,7 +71,9 @@ export async function generateStanceTraining() {
           stage: 'stance-training',
           ledger,
           system:
-            'For each entry you receive a misconception family, a quiz stem, its correct answer, and explanation. Write exactly 3 short typed answers (8-25 words) a student HOLDING the wrong belief would type, and exactly 3 short typed answers a student who UNDERSTANDS would type (answer + correct reason). Casual student language, fresh words — never copy the given texts. Return JSON only.',
+            'For each entry you receive a misconception family, a quiz stem, its correct answer, and explanation. Write exactly 3 short typed answers (8-25 words) a student HOLDING the wrong belief would type, and exactly 3 short typed answers a student who UNDERSTANDS would type (answer + correct reason). ' +
+            PERSONA +
+            'Casual student language, fresh words — never copy the given texts. Return JSON only.',
           user: JSON.stringify({
             instructions:
               'Return {"entries":[{"kernelId":"...","family":"<verbatim>","wrong":["...","...","..."],"right":["...","...","..."]}]} covering every entry.',

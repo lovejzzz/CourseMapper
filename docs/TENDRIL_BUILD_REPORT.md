@@ -150,4 +150,42 @@ comparison deliverable: [PIPELINE_COMPARISON_2026-07.md](PIPELINE_COMPARISON_202
 | **S2 ruler v2 baseline** | **RECORDED.** First drift-free composed baseline (--freeze-exposure): 97/A · findings NONE · battery 0.464 · $0.0963. Calibration bycatch: three near-identical configs span battery 0.464–0.523 → **composed-battery noise band ±0.03–0.06**, now stated on every comparison (retro-softens R3's "miss" and e7e's 0.545 anchor). |
 | **S3 the reckoning** | **DELIVERED** — all four pipelines, one provenance-stamped table (see the comparison doc). Headline: Compiler = cheapest 5-6/10; Trellis = the 8-9/10 factory; Composer = the $0.06-0.07 assembler at 95-99% reuse; Tendril = the layer that removed the echo class, tutors typed answers at 81.7% offline, and whose distilled S out-clears nano on the deployment gates. |
 
+---
+
+# v0.1.3 — E2c ADOPTED (owner "go", same day)
+
+_Round 3 crossed the bar and every adoption gate passed; tendril-e2c is
+now the deployed Tendril-E. Spend ≈$0.21 (corpus $0.06, adoption ruler
+$0.10, cents of mining/eval)._
+
+- **The bar, met on round 3:** +297 persona-varied eval-disjoint
+  entries (hasty/verbose/ESL registers) + 738 hard triplets mined from
+  the previous round's own mistakes (×2 weight; 10,821 total).
+  **Frozen-ruler verdict at margin 0: 80.4% family accuracy AND 20.0%
+  false-fire — the pre-registered joint bar (≥80/≤20), exactly at the
+  line.** Trajectory across rounds at bar-level accuracy: false-fire
+  33.3% → 21.7% → 20.0%.
+- **Adoption gates:** ε recalibrated for E2c's compressed geometry
+  (benign p95 0.924, blocks ≥0.945 → ε=0.94); adoption ruler
+  (--freeze-exposure): J7 1 (≤1) · battery 0.473 (baseline 0.464, in
+  band) · $0.103 (≤$0.12) · 97/A. Cache-integrity guard added first:
+  caches now record their model and self-invalidate on mismatch — a
+  default switch can never mix two models' vectors in one file.
+- **Shipped:** default TENDRIL_MODEL_ID → tendril-e2c (base model one
+  env var away); ε=0.94; Tutor bundle rebuilt on E2c (99MB, verified
+  live in-browser: wrong answer fires 0.61 vs 0.18); model card at
+  models/tendril-e2c/README.md; default caches re-embedded (2,877).
+- **Honest residual:** the original live anecdote ("y is 5, since…" on
+  the bare-numeral item) STILL false-fires under E2c — it sits in the
+  measured 20%. Per the R4 lesson, no anecdote patch: the class rulers
+  decided, and the confirm-style UX is the designed mitigation.
+- **Also this session ("go" list):** Tutor bundles now attach to every
+  composed run (pipeline 8b, symlinked assets, 204K/run); the hourly
+  cron replaced with a v0.1.2-aware prompt (freeze-exposure discipline,
+  shelved-verdict respect, $0.50/cycle cap); human blind-review packet
+  v2 built and sealed (Compiler July-3 crucible cs-python vs Composer
+  e8-fresh-cs, 5 files/side) at
+  verification-output/trellis/human-blind-packet-v2 — awaiting two
+  human readers, the owner's input.
+
 _— Fable 5_

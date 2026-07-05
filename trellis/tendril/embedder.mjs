@@ -14,7 +14,13 @@ import { existsSync } from 'node:fs';
 import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
 
-export const TENDRIL_MODEL_ID = 'Xenova/all-MiniLM-L6-v2';
+// tendril-e2c ADOPTED 2026-07-04: three stance fine-tune rounds (bank
+// triplets → student-register corpus → hard-negative mining) met the
+// pre-registered joint bar (familyAcc 80.4% ≥80 AND falseFire 20.0% ≤20
+// at margin 0) AND kept the dedupe ruler clean at ε=0.94 (J7 ≤1, battery
+// in band, cost in band). Base model remains available via
+// TENDRIL_MODEL=Xenova/all-MiniLM-L6-v2. Model card: models/tendril-e2c.
+export const TENDRIL_MODEL_ID = 'tendril-e2c';
 export const TENDRIL_DIM = 384;
 const CACHE_DIR = 'trellis/tendril/cache';
 const MODELS_DIR = 'trellis/tendril/models';
@@ -98,6 +104,7 @@ export function makeEmbedder({ embedFn = realEmbed, batchSize = 64 } = {}) {
 export async function loadEmbeddingCache({ dir = CACHE_DIR, name = tagged('asset-embeddings') } = {}) {
   try {
     const meta = JSON.parse(await readFile(join(dir, `${name}.json`), 'utf8'));
+    if (meta.model && meta.model !== ACTIVE_MODEL) return null; // model switched → cold cache
     const buf = await readFile(join(dir, `${name}.bin`));
     const flat = new Float32Array(buf.buffer, buf.byteOffset, buf.byteLength / 4);
     const byId = new Map();
@@ -140,7 +147,7 @@ export async function embedAssetLibrary(store, { dir = CACHE_DIR, name = tagged(
   const flat = new Float32Array(entries.length * dim);
   vectors.forEach((v, i) => flat.set(v, i * dim));
   await mkdir(dir, { recursive: true });
-  await writeFile(join(dir, `${name}.json`), JSON.stringify({ model: TENDRIL_MODEL_ID, dim, entries }, null, 1));
+  await writeFile(join(dir, `${name}.json`), JSON.stringify({ model: ACTIVE_MODEL, dim, entries }, null, 1));
   await writeFile(join(dir, `${name}.bin`), Buffer.from(flat.buffer));
   return { total: entries.length, embedded: toEmbed.length, reused: entries.length - toEmbed.length, dim };
 }
@@ -155,15 +162,19 @@ export async function cachedEmbed(texts, { dir = CACHE_DIR, name, embedder = nul
   // Hermetic under vitest: mock embedders must never append junk vectors
   // to the repo's real caches.
   if (process.env.VITEST) return emb.embed(texts);
-  let meta = { model: TENDRIL_MODEL_ID, dim: TENDRIL_DIM, hashes: [] };
+  let meta = { model: ACTIVE_MODEL, dim: TENDRIL_DIM, hashes: [] };
   let flat = new Float32Array(0);
   try {
-    meta = JSON.parse(await readFile(join(dir, `${name}.json`), 'utf8'));
-    const buf = await readFile(join(dir, `${name}.bin`));
-    flat = new Float32Array(buf.buffer, buf.byteOffset, buf.byteLength / 4);
+    const onDisk = JSON.parse(await readFile(join(dir, `${name}.json`), 'utf8'));
+    if (!onDisk.model || onDisk.model === ACTIVE_MODEL) {
+      meta = onDisk;
+      const buf = await readFile(join(dir, `${name}.bin`));
+      flat = new Float32Array(buf.buffer, buf.byteOffset, buf.byteLength / 4);
+    } // model switched → start cold, never mix vectors from two models
   } catch {
     /* cold cache */
   }
+  if (!meta.model) meta.model = ACTIVE_MODEL;
   const pos = new Map(meta.hashes.map((h, i) => [h, i]));
   const missing = [...new Set(texts.map(textHash).filter((h) => !pos.has(h)))];
   if (missing.length > 0) {

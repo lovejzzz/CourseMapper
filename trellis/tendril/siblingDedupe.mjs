@@ -8,6 +8,12 @@
 // J7 block-severity explanation pairs sit at cosine 0.883-0.945; the one
 // warn pair at 0.833; legitimate same-concept explanations ≤0.85.
 //
+// ε = 0.94 under tendril-e2c (adopted 2026-07-04): the fine-tune
+// compressed same-kernel space upward — benign cross-family p95 0.924,
+// flagged block pairs ≥0.945, warn 0.897 — so the line moved from 0.92
+// to 0.94 with the same logic. Adoption ruler: J7 1 (≤1), battery 0.473
+// (baseline 0.464, in band), $0.103. History of the E1-era line below.
+//
 // ε = 0.92, not 0.87 — the ruler decided. 0.87 gave J7 0 but battery
 // 0.545→0.447 (below band): siblings echo BECAUSE they re-confront the
 // same high-value misconception across lessons, and the classroom sim
@@ -22,7 +28,7 @@
 
 import { cosine, cachedEmbed, loadEmbeddingCache, makeEmbedder } from './embedder.mjs';
 
-export const SIBLING_EPSILON = 0.92;
+export const SIBLING_EPSILON = 0.94;
 
 export async function buildTendrilContext(bank, { epsilon = SIBLING_EPSILON, embedder = null } = {}) {
   const emb = embedder ?? makeEmbedder();
