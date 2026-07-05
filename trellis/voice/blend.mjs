@@ -93,9 +93,49 @@ function explanationGate(entry, text, accepted) {
   return true;
 }
 
-export async function blendCorrectives(graph, authored, { tier = 'nano', ledger = null, budgetUsd = null } = {}) {
+export async function blendCorrectives(
+  graph,
+  authored,
+  { tier = 'nano', ledger = null, budgetUsd = null, sGenerate = null } = {},
+) {
   const candidates = findBlendCandidates(graph, authored);
   if (candidates.length === 0) return { candidates: 0, blended: 0 };
+
+  // Zero-API path: Tendril-S rewrites each two-voice explanation locally
+  // (its trained blend task, 83.3% gated acceptance vs nano's 80%). Same
+  // per-entry gates; a gate miss keeps the appended form, disclosed by
+  // the standing digest line. No escalation tiers — there is no paid
+  // tier to escalate to.
+  if (sGenerate) {
+    const { BLEND_SYSTEM } = await import('../tendril/sModel.mjs');
+    const accepted = new Set();
+    let blended = 0;
+    for (const entry of candidates) {
+      let text;
+      try {
+        text = String(
+          await sGenerate({
+            system: BLEND_SYSTEM,
+            user: JSON.stringify({ text: entry.explanation }),
+            source: entry.explanation,
+          }),
+        ).trim();
+      } catch {
+        continue; // S failure keeps the appended form
+      }
+      if (!explanationGate(entry, text, accepted)) {
+        void logBlendPair({ task: 'blend-explanation', accepted: false, reason: 'explanation-gate', source: entry.explanation, target: text });
+        continue;
+      }
+      const item = authored[entry.lessonId]?.quizItems?.[entry.itemIndex];
+      if (!item || item.explanation !== entry.explanation) continue;
+      void logBlendPair({ task: 'blend-explanation', accepted: true, source: entry.explanation, target: text });
+      item.explanation = text;
+      accepted.add(text.toLowerCase());
+      blended += 1;
+    }
+    return { candidates: candidates.length, blended };
+  }
 
   const callBatch = (batch, batchTier) =>
     callModel({

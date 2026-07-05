@@ -38,6 +38,7 @@ export async function runPipeline({
   composer = false,
   tendril = true,
   freezeExposure = false,
+  zeroApi = false,
   bankDiscipline = null,
   generatedAt = new Date().toISOString(),
 }) {
@@ -59,6 +60,7 @@ export async function runPipeline({
       composer,
       tendril,
       freezeExposure,
+      zeroApi,
       bankDiscipline,
       generatedAt,
       ledger,
@@ -85,6 +87,7 @@ async function runPipelineStages({
   composer,
   tendril = true,
   freezeExposure = false,
+  zeroApi = false,
   bankDiscipline,
   generatedAt,
   ledger,
@@ -243,7 +246,9 @@ async function runPipelineStages({
   }
   const courseWidePromise = mockVoice
     ? Promise.resolve(mockAuthorCourseWide(graph))
-    : authorCourseWide(graph, { tier: tiers.author, ledger, budgetUsd });
+    : composer && zeroApi
+      ? import('./composer/zeroApi.mjs').then(({ zeroCourseWide }) => zeroCourseWide(graph))
+      : authorCourseWide(graph, { tier: tiers.author, ledger, budgetUsd });
   // Overnight transport (batch API, 50% token rates): identical models,
   // schemas and validators — a latency trade, never a quality one. Only
   // the authoring fan-out batches; small serial stages stay live.
@@ -268,7 +273,28 @@ async function runPipelineStages({
         digest.tendril = `UNAVAILABLE (${String(error.message).slice(0, 80)}) — semantic dedupe off this run`;
       }
     }
-    const outcome = await composeAllLessons(graph, store, { ledger, budgetUsd, tiers, bank, tendril: tendrilCtx });
+    let sGen = null;
+    if (zeroApi) {
+      // $0 mode: Tendril-S serves skin/blend locally; a missing venv is a
+      // HARD error — zero mode must never quietly fall back to paid calls.
+      const { startS, sGenerate } = await import('./tendril/sModel.mjs');
+      await startS();
+      sGen = sGenerate;
+      digest.zero = 'ZERO-API mode: S-local skin/blend · banked exams · lexical entailment · no fresh fills · no model repair';
+    }
+    const outcome = await composeAllLessons(graph, store, {
+      ledger,
+      budgetUsd,
+      tiers,
+      bank,
+      tendril: tendrilCtx,
+      zero: zeroApi,
+      sGenerate: sGen,
+    });
+    if (zeroApi && outcome.stats.zeroShortQuizzes) {
+      digest.zero += `; ${outcome.stats.zeroShortQuizzes} lesson(s) shipped short quizzes (shelf-limited, disclosed)`;
+    }
+    var zeroSGenerate = sGen;
     if (tendrilCtx) {
       digest.tendril = `sibling dedupe ε=${tendrilCtx.epsilon}: excluded ${tendrilCtx.counters.itemsExcluded} item(s) + ${tendrilCtx.counters.assetsExcluded} asset(s)${outcome.stats.tendrilFallbacks ? `; ${outcome.stats.tendrilFallbacks} thin-shelf semantic fallback(s)` : ''}`;
     }
@@ -329,7 +355,17 @@ async function runPipelineStages({
   // 6c · dedicated exam items (item 6): transfer-level, authored per exam;
   // a failed exam authoring falls back to the quiz-pull render, disclosed.
   const examOptions = mockVoice ? { mock: mockAuthorExamItems } : { tier: tiers.author, ledger, budgetUsd };
-  const { authoredExams, failures: examFailures } = await authorAllExams(graph, examOptions);
+  let authoredExams;
+  let examFailures = [];
+  if (composer && zeroApi) {
+    const { assembleExamsFromBank } = await import('./composer/zeroApi.mjs');
+    authoredExams = assembleExamsFromBank(graph, bank);
+    digest.examsZero = `exams assembled from the bank (${Object.values(authoredExams)
+      .map((items) => items.length)
+      .join('+')} items, $0)`;
+  } else {
+    ({ authoredExams, failures: examFailures } = await authorAllExams(graph, examOptions));
+  }
   if (examFailures.length > 0) {
     digest.examAuthoring = `FALLBACK for ${examFailures.length} exam(s): ${examFailures.map((f) => f.examId).join(', ')} — quiz-pull items used, disclosed in the exam file`;
   }
@@ -346,9 +382,15 @@ async function runPipelineStages({
   // "supported by the cited kernel." Unsupported citations downgrade to
   // JUDGED, disclosed.
   if (!mockVoice) {
-    const { verifyAllClaims } = await import('./knowledge/entailment.mjs');
-    const entailment = await verifyAllClaims(graph, authored, { tier: 'nano', ledger, budgetUsd });
-    digest.entailment = `claims verified against cited kernels: ${entailment.checked} checked, ${entailment.downgraded} unsupported → JUDGED`;
+    if (composer && zeroApi) {
+      const { zeroEntailment } = await import('./composer/zeroApi.mjs');
+      const entailment = zeroEntailment(graph, authored);
+      digest.entailment = `zero mode WITHHOLDS grounding claims: all ${entailment.checked} checkable citations → JUDGED (a lexical verifier was retired by calibration — 64% false-keep vs the model verifier)`;
+    } else {
+      const { verifyAllClaims } = await import('./knowledge/entailment.mjs');
+      const entailment = await verifyAllClaims(graph, authored, { tier: 'nano', ledger, budgetUsd });
+      digest.entailment = `claims verified against cited kernels: ${entailment.checked} checked, ${entailment.downgraded} unsupported → JUDGED`;
+    }
   }
 
   // 6d · deterministic catch splicing: any documented misconception still
@@ -388,7 +430,7 @@ async function runPipelineStages({
     // Composed parts are pre-judged assets: one repair round catches
     // combination artifacts; a second buys little (E7b: 15 calls, $0.163,
     // residuals unchanged in kind). Fresh generation keeps two rounds.
-    maxRounds: mockVoice || composer ? 1 : 2,
+    maxRounds: zeroApi ? 0 : mockVoice || composer ? 1 : 2,
     ...(composer ? { skipCodes: new Set(['J7_ECHO']) } : {}),
     afterRound: (g, a) => {
       // Repaired quizzes must not lose the instrument guarantees the
@@ -419,11 +461,19 @@ async function runPipelineStages({
   // — restored guarantee beats restored prose).
   if (!mockVoice) {
     const { blendCorrectives, blendSplicedOptions } = await import('./voice/blend.mjs');
-    const optionBlend = await blendSplicedOptions(graph, authored, { tier: tiers.flywheel, ledger, budgetUsd });
+    const optionBlend =
+      composer && zeroApi
+        ? { candidates: 0, blended: 0, skipped: 'zero mode — S untrained on option rewrites; spliced forms ship (catch-gated)' }
+        : await blendSplicedOptions(graph, authored, { tier: tiers.flywheel, ledger, budgetUsd });
     if (optionBlend.candidates > 0) {
       digest.optionBlending = `${optionBlend.blended}/${optionBlend.candidates} spliced option(s) rewritten as concise reason-bearing distractors (voice, catch-gated)`;
     }
-    const blend = await blendCorrectives(graph, authored, { tier: tiers.flywheel, ledger, budgetUsd });
+    const blend = await blendCorrectives(graph, authored, {
+      tier: tiers.flywheel,
+      ledger,
+      budgetUsd,
+      ...(composer && zeroApi ? { sGenerate: zeroSGenerate } : {}),
+    });
     if (blend.candidates > 0) {
       digest.correctiveBlending = `${blend.blended}/${blend.candidates} pasted corrective(s) blended into natural explanations (voice, confrontation-gated${blend.blended < blend.candidates ? '; the rest keep their appended form' : ''})`;
     }
@@ -492,6 +542,12 @@ async function runPipelineStages({
   await writeFile(join(runDir, 'courseWide.json'), JSON.stringify(courseWide, null, 2));
   await writeFile(join(runDir, 'authoredExams.json'), JSON.stringify(authoredExams, null, 2));
   await writeFile(join(runDir, 'findings.json'), JSON.stringify(repair.findings, null, 2));
+
+  if (zeroApi) {
+    const { stopS } = await import('./tendril/sModel.mjs');
+    stopS();
+    digest.zeroLedger = 'expected \$0.0000 — any nonzero total is a zero-mode BUG';
+  }
 
   // 8b · Tendril Tutor (composed runs): every course ships its offline
   // typed-answer tutor for $0 — course.json + index.html per run, the

@@ -166,6 +166,67 @@ describe('twin-depth cell finder (R3)', () => {
   });
 });
 
+describe('zero-API mode (v0.1.4)', () => {
+  it('assembleExamsFromBank draws windowed, deduped, rotated bank items', async () => {
+    const { assembleExamsFromBank } = await import('../composer/zeroApi.mjs');
+    const graph = {
+      course: { weeks: 2 },
+      lessons: [
+        { id: 'l1', week: 1, introduces: ['c1'], reinforces: [] },
+        { id: 'l2', week: 2, introduces: ['c2'], reinforces: [] },
+      ],
+      concepts: [
+        { id: 'c1', genomeRef: 'k1' },
+        { id: 'c2', genomeRef: 'k2' },
+      ],
+      assessments: [{ id: 'a9', kindOf: 'exam', registryKey: 'Final Exam', anchor: { lessonId: 'l2' } }],
+    };
+    const mk = (id, kernelId, stem) => ({
+      id, kernelId, stem,
+      options: ['w1', 'right', 'w2', 'w3'], correctIndex: 1,
+      explanation: 'because reasons', bloom: 'apply', difficulty: 'apply',
+      catches: true, confronts: true,
+    });
+    const bank = { items: [mk('i1', 'k1', 'stem about vectors and spans'), mk('i2', 'k2', 'stem about matrices instead')] };
+    const exams = assembleExamsFromBank(graph, bank, { perExam: 12 });
+    expect(exams.a9).toHaveLength(2);
+    expect(exams.a9[0].options[exams.a9[0].correctIndex]).toBe('right'); // rotation preserves the key
+    expect(exams.a9.map((i) => i.conceptId).sort()).toEqual(['c1', 'c2']);
+  });
+
+  it('zeroEntailment withholds every checkable citation (JUDGED class)', async () => {
+    const { zeroEntailment } = await import('../composer/zeroApi.mjs');
+    const graph = {
+      lessons: [{ id: 'l1' }],
+      concepts: [{ id: 'c1', kernelFacts: ['a fact about vectors'] }],
+    };
+    const authored = {
+      l1: {
+        quizItems: [{ explanation: 'text' }],
+        claims: [{ path: 'quizItems[0].explanation', ref: 'kernel:c1' }],
+      },
+    };
+    const out = zeroEntailment(graph, authored);
+    expect(out).toEqual({ checked: 1, downgraded: 1 });
+    expect(authored.l1.claims[0].ref).toBeNull();
+  });
+
+  it('zeroCourseWide assembles syllabus surfaces from graph facts only', async () => {
+    const { zeroCourseWide } = await import('../composer/zeroApi.mjs');
+    const cw = zeroCourseWide({
+      course: { title: 'Linear Algebra', level: 'intermediate', subject: 'math', weeks: 14 },
+      outcomes: [{ text: 'solve systems' }],
+      assessments: [{ registryKey: 'Final Exam' }],
+      sources: [{ title: 'Lay', author: 'D. Lay' }],
+      lessons: [],
+    });
+    expect(cw.courseDescription).toContain('Linear Algebra');
+    expect(cw.courseDescription).toContain('solve systems');
+    expect(cw.materials[0]).toContain('Lay');
+    expect(cw.logisticsFaq.length).toBeGreaterThanOrEqual(3);
+  });
+});
+
 describe('T-M3 gate bench gates', () => {
   const base = { task: 'skin', mode: 'teach', source: 'A long enough source segment that ends with a period and says plenty of things about the topic at hand.' };
 

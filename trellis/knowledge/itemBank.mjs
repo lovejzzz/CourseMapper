@@ -238,7 +238,7 @@ export async function loadBank(discipline, { dir = 'trellis/bank' } = {}) {
 // genomeRef, instrument-evidenced first, stem-deduped against each other,
 // correctIndex rotated for position variety. Course concept ids are mapped
 // back so claims stay legal in THIS course's ref enum.
-export function selectBankItems(slice, bank, { maxBanked = 4, perConcept = 3, excludeItem = null } = {}) {
+export function selectBankItems(slice, bank, { maxBanked = 4, perConcept = 3, excludeItem = null, reviewCap = 2 } = {}) {
   if (!bank?.items?.length) return [];
   const conceptsInOrder = [...slice.concepts].sort((a, b) => {
     const aIntro = (slice.lesson.introduces ?? []).includes(a.id) ? 0 : 1;
@@ -252,7 +252,7 @@ export function selectBankItems(slice, bank, { maxBanked = 4, perConcept = 3, ex
   // list reviews, judged 2-4. Spaced retrieval means 1-2 review items,
   // ever; the new topic gets the rest fresh-authored if the shelf can't
   // provide.
-  const REVIEW_CAP = 2;
+  const REVIEW_CAP = reviewCap; // zero-mode floor rescue may lift this (see compose.mjs)
   let reviewCount = 0;
   for (const concept of conceptsInOrder) {
     if (!concept.genomeRef) continue;

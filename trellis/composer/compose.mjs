@@ -49,7 +49,7 @@ export async function composeLesson(
   graph,
   lessonId,
   store,
-  { ledger, budgetUsd, tiers, bank, courseUsed = null, tendril = null } = {},
+  { ledger, budgetUsd, tiers, bank, courseUsed = null, tendril = null, zero = false } = {},
 ) {
   const slice = buildLessonSlice(graph, lessonId);
   const lesson = graph.lessons.find((l) => l.id === lessonId);
@@ -148,7 +148,32 @@ export async function composeLesson(
     tendril?.noteItem(item);
     return clean;
   });
-  if (quizItems.length < 6) {
+  if (quizItems.length < 6 && zero) {
+    // Zero mode never authors. Below the contract floor (3) the review
+    // cap relaxes first — an all-review synthesis week (the l14 class:
+    // introduces only pseudo-concepts, reinforces 26) can only ever hold
+    // Review: items, and labeled spaced retrieval beats an empty quiz.
+    if (quizItems.length < 3) {
+      const rescued = selectBankItems(slice, bank, {
+        maxBanked: 6,
+        perConcept: 4,
+        reviewCap: 6,
+        excludeItem: tendril ? (item) => tendril.itemEchoes(item) : null,
+      });
+      quizItems.length = 0;
+      itemConceptIds.length = 0;
+      for (const item of rescued) {
+        const clean = { ...item };
+        itemConceptIds.push(item.__bank?.conceptId ?? anchor.conceptId);
+        delete clean.__bank;
+        used(item, clean);
+        tendril?.noteItem(item);
+        quizItems.push(clean);
+      }
+      stats.zeroReviewRelaxed = true;
+    }
+    if (quizItems.length < 6) stats.zeroShortQuiz = 6 - quizItems.length;
+  } else if (quizItems.length < 6) {
     const need = 6 - quizItems.length;
     const { result } = await callModel({
       tier: tiers?.authorQuiz ?? 'cheap',
@@ -253,11 +278,30 @@ const SKIN_SCHEMA = {
   },
 };
 
-export async function skinLesson(graph, lessonNumber, composed, { ledger, budgetUsd, tier = 'nano' } = {}) {
+export async function skinLesson(graph, lessonNumber, composed, { ledger, budgetUsd, tier = 'nano', sGenerate = null } = {}) {
   const lesson = graph.lessons[lessonNumber - 1];
   const segments = composed.plan.segments;
   let skinned = 0;
   try {
+    // Zero-API path: Tendril-S locally, one segment per call — the exact
+    // single-entry prompt it was distilled on. Same gates, same fallback.
+    if (sGenerate) {
+      const { SKIN_SYSTEM } = await import('../tendril/sModel.mjs');
+      const rewrites = [];
+      for (const [index, seg] of segments.entries()) {
+        try {
+          const text = await sGenerate({
+            system: SKIN_SYSTEM,
+            user: JSON.stringify({ mode: seg.mode, text: seg.text }),
+            source: seg.text,
+          });
+          rewrites.push({ index, text });
+        } catch {
+          // S failure on one segment keeps its source form
+        }
+      }
+      return applySkinRewrites(segments, rewrites, (n) => (skinned = n));
+    }
     const { result } = await callModel({
       tier,
       stage: 'skin',
@@ -277,46 +321,53 @@ export async function skinLesson(graph, lessonNumber, composed, { ledger, budget
         1,
       ),
     });
-    // Every verdict feeds the Tendril-S corpus (T-M2): accepted pairs are
-    // positive supervision, gate-rejected pairs carry their reason.
-    const { corpusLog } = await import('../tendril/corpus.mjs');
-    for (const rewrite of result.rewrites ?? []) {
-      const seg = segments[rewrite.index];
-      if (!seg) continue;
-      const text = String(rewrite.text ?? '').trim();
-      const reject = (reason) => corpusLog({ task: 'skin', accepted: false, reason, source: seg.text, target: text });
-      const len = weightedLength(text);
-      const orig = weightedLength(seg.text);
-      if (len < orig * 0.6 || len > orig * 1.4) {
-        await reject('length-band');
-        continue;
-      }
-      if (!TERMINAL_PUNCT_RE.test(text)) {
-        await reject('terminal-punct');
-        continue;
-      }
-      if (text.includes('```')) {
-        await reject('code-fence');
-        continue;
-      }
-      if (
-        (seg.mode === 'reteach' || seg.mode === 'worked-example') &&
-        !/example|walk|work(ed|ing)? through|demo|trace/i.test(text)
-      ) {
-        await reject('mode-example');
-        continue;
-      }
-      await corpusLog({ task: 'skin', accepted: true, mode: seg.mode, source: seg.text, target: text });
-      seg.text = text;
-      skinned += 1;
-    }
+    return await applySkinRewrites(segments, result.rewrites ?? [], (n) => (skinned = n));
   } catch {
     // Skin failure keeps every source form — stiff beats wrong (C-1).
   }
   return { skinned, of: segments.length };
 }
 
-export async function composeAllLessons(graph, store, { ledger, budgetUsd, tiers, bank, tendril = null } = {}) {
+// Shared accept loop — one gate stack for the nano batch path and the
+// Tendril-S local path. Every verdict feeds the corpus (T-M2).
+async function applySkinRewrites(segments, rewrites, setCount) {
+  const { corpusLog } = await import('../tendril/corpus.mjs');
+  let skinned = 0;
+  for (const rewrite of rewrites) {
+    const seg = segments[rewrite.index];
+    if (!seg) continue;
+    const text = String(rewrite.text ?? '').trim();
+    const reject = (reason) => corpusLog({ task: 'skin', accepted: false, reason, source: seg.text, target: text });
+    const len = weightedLength(text);
+    const orig = weightedLength(seg.text);
+    if (len < orig * 0.6 || len > orig * 1.4) {
+      await reject('length-band');
+      continue;
+    }
+    if (!TERMINAL_PUNCT_RE.test(text)) {
+      await reject('terminal-punct');
+      continue;
+    }
+    if (text.includes('```')) {
+      await reject('code-fence');
+      continue;
+    }
+    if (
+      (seg.mode === 'reteach' || seg.mode === 'worked-example') &&
+      !/example|walk|work(ed|ing)? through|demo|trace/i.test(text)
+    ) {
+      await reject('mode-example');
+      continue;
+    }
+    await corpusLog({ task: 'skin', accepted: true, mode: seg.mode, source: seg.text, target: text });
+    seg.text = text;
+    skinned += 1;
+  }
+  setCount(skinned);
+  return { skinned, of: segments.length };
+}
+
+export async function composeAllLessons(graph, store, { ledger, budgetUsd, tiers, bank, tendril = null, zero = false, sGenerate = null } = {}) {
   const authored = {};
   const failures = [];
   const totals = { reusedChars: 0, freshChars: 0, reusedParts: 0, freshParts: 0, skinned: 0, skinOf: 0 };
@@ -330,8 +381,14 @@ export async function composeAllLessons(graph, store, { ledger, budgetUsd, tiers
         bank,
         courseUsed,
         tendril,
+        zero,
       });
-      const skin = await skinLesson(graph, index + 1, composed, { ledger, budgetUsd, tier: tiers?.flywheel ?? 'nano' });
+      const skin = await skinLesson(graph, index + 1, composed, {
+        ledger,
+        budgetUsd,
+        tier: tiers?.flywheel ?? 'nano',
+        sGenerate,
+      });
       const errors = validateAuthoredLesson(composed);
       if (errors.length > 0) throw new Error(`composed lesson fails contract: ${errors.slice(0, 3).join('; ')}`);
       authored[lesson.id] = composed;
@@ -344,7 +401,14 @@ export async function composeAllLessons(graph, store, { ledger, budgetUsd, tiers
       totals.solverRejected = (totals.solverRejected ?? 0) + (stats.solverRejected ?? 0);
       totals.dupReuses = (totals.dupReuses ?? 0) + (stats.dupReuses ?? 0);
       totals.tendrilFallbacks = (totals.tendrilFallbacks ?? 0) + (stats.tendrilFallbacks ?? 0);
+      totals.zeroShortQuizzes = (totals.zeroShortQuizzes ?? 0) + (stats.zeroShortQuiz ? 1 : 0);
     } catch (composeError) {
+      // Zero mode NEVER folds back to a paid author call — the lesson is
+      // reported failed, honestly, and the course ships without it.
+      if (zero) {
+        failures.push({ lessonId: lesson.id, error: `zero-mode compose: ${composeError.message?.slice(0, 120)}` });
+        continue;
+      }
       // Fold-back per lesson: the factory authors it whole, disclosed.
       try {
         const { authorLesson } = await import('../voice/author.mjs');

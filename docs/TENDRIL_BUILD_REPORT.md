@@ -188,4 +188,57 @@ $0.10, cents of mining/eval)._
   verification-output/trellis/human-blind-packet-v2 — awaiting two
   human readers, the owner's input.
 
+---
+
+# v0.1.4 — ZERO ("build it": the $0 course, measured)
+
+_Owner: "can we run it without a LLM, no API calls, cost zero?" —
+"build it." The answer is yes, and it is now a flag: `--zero`._
+
+**The headline (tendril-zero-4, frozen LA ruler, --freeze-exposure):**
+
+| | zero mode | paid baseline (ruler-v2) |
+| --- | --- | --- |
+| **API calls** | **0 — ledger $0.0000** | 51 calls, $0.0963 |
+| Grader | 97/A (P0=0 P1=2 P2=3) | 97/A (P0=0 P1=2 P2=2) |
+| Classroom battery | 0.441 | 0.464 (band ±0.03–0.06 → parity) |
+| Findings | 4 disclosed, unrepaired | NONE (after paid repair) |
+| Reuse | **100% (240 parts, 0 fresh)** | 99% |
+| Skin | Tendril-S local: 63/70 unified | nano: 70/70 |
+| Blends | S local: 35/68 (rest keep appended form) | nano: 66/69 |
+| Exams | assembled from the bank (12+12) | authored ($0.027) |
+| Tutor | attached, 72 items with diagnosis | attached |
+
+**How each paid stage died:** skin/blend → Tendril-S served locally
+(persistent mlx server, the exact single-entry prompts it was distilled
+on, same gates, same fallback); quiz fills + solver → banked-only with
+a review-cap floor rescue (the l14 class: an all-review synthesis week
+can only hold Review: items — labeled spaced retrieval beats an empty
+quiz, and zero mode NEVER folds back to a paid author call); exams →
+deterministic windowed assembly from the bank; course-wide → assembled
+from graph facts (a syllabus states facts, it does not teach); repair →
+0 model rounds, residuals disclosed.
+
+**Two verdicts the build itself delivered:**
+1. **The lexical entailment verifier was retired by its own
+   calibration.** Built first ($0, house-matcher semantics), then
+   measured against the nano verifier on the same claims: **64.2%
+   false-keep** ($0.002, runs/zero-entailment-calibration). No token
+   threshold approximates the semantic bar. Zero mode now WITHHOLDS all
+   grounding citations (every checkable claim → JUDGED): a citation the
+   house cannot verify to the house standard must not ship.
+2. **Claim refs double as the classroom's item→concept mapping** —
+   zero-3 (overclaimed citations kept) scored battery 0.568, the
+   highest composed number ever, partly as a mapping artifact; the
+   honest zero-4 scores 0.441. Named lever: decouple exposure mapping
+   from grounding claims, which would recover the 0.55+ battery
+   honestly for every pipeline.
+
+**What this means:** for any course the library covers, the marginal
+cost of a complete graded package — 14 lesson plans, 84 quiz items,
+two exams, study guides, syllabus, FAQ, and an offline typed-answer
+Tutor — is now **zero dollars and roughly six minutes of local
+compute**. The factory (Trellis) still costs money to make NEW
+knowledge; the replay is free. Spend once per discipline, teach forever.
+
 _— Fable 5_

@@ -1408,3 +1408,21 @@ polishing a candidate that hasn't won.
   cs-python vs Composer e8) awaiting two readers. Honest residual: the
   original bare-numeral anecdote still false-fires — in the measured
   20%, no anecdote patch (the R4 lesson). Suite 4,046 green.
+
+- **2026-07-04 (Tendril v0.1.4 — ZERO: the $0 course).** Owner asked
+  "no LLM, no API, zero cost?" → `--zero` built and MEASURED on the
+  frozen LA ruler: **0 API calls, ledger $0.0000, 97/A, battery 0.441
+  (paid baseline 0.464 — parity within band), reuse 100%, Tutor
+  attached.** Stage kills: skin/blend → Tendril-S served locally
+  (persistent mlx server, trained prompts, same gates); fills+solver →
+  banked-only + review-cap floor rescue (all-review synthesis weeks);
+  exams → windowed bank assembly; courseWide → graph facts; repair → 0
+  rounds, residuals disclosed; zero mode NEVER folds back to paid.
+  Two self-delivered verdicts: lexical entailment RETIRED by its own
+  calibration (64.2% false-keep vs nano, $0.002) → zero mode WITHHOLDS
+  all grounding citations (JUDGED); and claim refs double as the
+  classroom's item→concept mapping (zero-3's 0.568 battery was partly
+  a mapping artifact of overclaimed refs — decoupling is the named
+  lever, worth ~0.1 battery for every pipeline). 17 tendril tests;
+  suite 4,046 green. The economics land: spend once per discipline at
+  the factory; replay each course at $0 and ~6 min local compute.
