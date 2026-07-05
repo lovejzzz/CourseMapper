@@ -1525,3 +1525,15 @@ polishing a candidate that hasn't won.
   dedicated .venv-g4 ONLY); community 4-bit conversions broken (PLE);
   only official google/gemma-4-e2b-it loads. ~6.5s/sample (factory-ok,
   not interactive).
+
+- **2026-07-05 ("make Gemma 4 work" — four verdicts).** **THE PRIZE:
+  zero-shot E2B item probe = 9/9 parsed, 8/9 full gate stack, 8/8
+  blind solver (n=9, advisory)** — the last paid GENERATION step is
+  within local reach; E2B queued as the AUTHORING tier. Fine-tune
+  COLLAPSED (26.7%; identity parroting — mlx-vlm lacks completion
+  masking by default and rewrite pairs teach COPY; one-flag retry
+  named). Browser blend measured: fp32 65%/q8 43.3% vs mlx 83.3 —
+  runtime-parity gap 18pts named, chain built, not shipped. Toolchain
+  traps documented (adapter-path=resume; datasets dir; fused exports
+  drop chat_template). Roster: routed pair S-tier · E2c dedupe · E2d
+  diagnosis · E2B authoring-pending-retrain.
