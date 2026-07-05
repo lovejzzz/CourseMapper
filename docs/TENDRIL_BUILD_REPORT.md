@@ -136,4 +136,18 @@ ruler overruling intuition — the live-anecdote patch, the E2 adoption,
 the depth hypothesis. The pre-registered bars did exactly what they
 exist to do.
 
+---
+
+# v0.1.2 — Register, Re-baseline, Reckoning (same day)
+
+_Roadmap: [TENDRIL_ROADMAP_V0.1.2.md](TENDRIL_ROADMAP_V0.1.2.md).
+Spend ≈$0.16 ($0.05 training corpus + $0.10 ruler + cents). The
+comparison deliverable: [PIPELINE_COMPARISON_2026-07.md](PIPELINE_COMPARISON_2026-07.md)._
+
+| Slice | Verdict |
+| --- | --- |
+| **S1 E2 round 2 (student register)** | **SHELVED by 1.7 points — trajectory now unambiguous.** 297 eval-disjoint training entries in student register (ds, $0.05; 63 eval kernels excluded before generation), 7,563 mixed triplets, 47s training. Frontier: m0 86.7/28.3; **m0.04 80.8/21.7** — accuracy bar passes, false-fire misses ≤20% by 1.7. Round-over-round at bar-level accuracy: false-fire 33.3% (E1) → 21.7% (E2b). **E2b m0.04 strictly dominates the DEPLOYED E1 point (81.7/33.3)** — the absolute pre-registered bar, not relative dominance, is what keeps it shelved; if the owner prefers dominance-gating, adoption is a one-line profile change + the dedupe-ruler recal. Round 3 named: 3× corpus + hard-negative mining (train on current-model mistakes). |
+| **S2 ruler v2 baseline** | **RECORDED.** First drift-free composed baseline (--freeze-exposure): 97/A · findings NONE · battery 0.464 · $0.0963. Calibration bycatch: three near-identical configs span battery 0.464–0.523 → **composed-battery noise band ±0.03–0.06**, now stated on every comparison (retro-softens R3's "miss" and e7e's 0.545 anchor). |
+| **S3 the reckoning** | **DELIVERED** — all four pipelines, one provenance-stamped table (see the comparison doc). Headline: Compiler = cheapest 5-6/10; Trellis = the 8-9/10 factory; Composer = the $0.06-0.07 assembler at 95-99% reuse; Tendril = the layer that removed the echo class, tutors typed answers at 81.7% offline, and whose distilled S out-clears nano on the deployment gates. |
+
 _— Fable 5_

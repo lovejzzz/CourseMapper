@@ -1374,3 +1374,22 @@ polishing a candidate that hasn't won.
   composed same-graph comparisons drift — --freeze-exposure now marks
   measurement runs. Meta-lesson: three of four slices ended with the
   ruler overruling intuition. 14 tendril tests; suite 4,046 green.
+
+- **2026-07-04 (Tendril v0.1.2 — Register, Re-baseline, Reckoning +
+  the four-pipeline comparison).** Owner "keep improving + compare all
+  pipelines." S1: E2b student-register round (297 eval-disjoint ds
+  entries, 7,563 triplets, 47s) — **frontier m0.04 = 80.8/21.7,
+  SHELVED 1.7pts from the joint ≤20% bar; at bar-level accuracy the
+  false-fire went 33.3 (E1) → 21.7 (E2b), and E2b m0.04 strictly
+  DOMINATES the deployed E1 point** — absolute-vs-dominance gating
+  recorded as an owner decision; round 3 named (3× corpus +
+  hard-negative mining). S2: first drift-free ruler baseline
+  (tendril-ruler-v2: 97/A · findings NONE · 0.464 · $0.096); noise
+  band ±0.03-0.06 now stated on all composed-battery comparisons.
+  S3: docs/PIPELINE_COMPARISON_2026-07.md — Compiler ($0.12, judge
+  5-6, teach-as-is 3.43) vs Trellis ($0.15-0.33, judge 8-9, battery
+  0.603 cs) vs Composer ($0.063-0.068, panels 7.67-9, reuse 95-99%)
+  vs Composer+Tendril (echo class ELIMINATED, +$0.02-0.03) + the
+  capability rows only Tendril has (81.7% typed diagnosis offline,
+  S 72.5% ≥ nano 71.7%). Verdict: a stack, not a winner — and the
+  Compiler is the only layer with no role in it. Spend ≈$0.16.

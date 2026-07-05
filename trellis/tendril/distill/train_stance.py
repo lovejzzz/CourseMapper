@@ -11,8 +11,10 @@ from torch.utils.data import DataLoader
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 TRIPLETS = os.path.join(HERE, "stance-triplets.jsonl")
+import sys
+VARIANT = sys.argv[1] if len(sys.argv) > 1 else "tendril-e2"
 FT_DIR = os.path.join(HERE, "stance-model")
-EXPORT_DIR = os.path.join(HERE, "..", "models", "tendril-e2")
+EXPORT_DIR = os.path.join(HERE, "..", "models", VARIANT)
 
 
 def train():
@@ -33,6 +35,7 @@ def export():
     import subprocess
 
     tmp = os.path.join(HERE, "stance-onnx")
+    shutil.rmtree(tmp, ignore_errors=True)
     subprocess.run(
         [
             os.path.join(HERE, "..", ".venv", "bin", "optimum-cli"),
@@ -42,6 +45,8 @@ def export():
             FT_DIR,
             "--task",
             "feature-extraction",
+            "--library-name",
+            "transformers",
             tmp,
         ],
         check=True,

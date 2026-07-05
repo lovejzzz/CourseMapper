@@ -1,0 +1,4165 @@
+{
+ "stamp": "TRAINING corpus (student register) — eval-disjoint kernels; regenerable, NOT a ruler",
+ "excludedEvalKernels": 63,
+ "skipped": [],
+ "generated": [
+  {
+   "kernelId": "econ/economic-model",
+   "family": "students treat an economic model as literally true and apply",
+   "wrong": [
+    "If it worked before, it's always right everywhere.",
+    "Models are facts, not just tools to check.",
+    "Once a model fits, it's true forever."
+   ],
+   "right": [
+    "Models are tools that work only when assumptions hold.",
+    "You gotta check assumptions before reusing a model.",
+    "A model's not universal; context matters for validity."
+   ]
+  },
+  {
+   "kernelId": "econ/opportunity-cost",
+   "family": "students count only the money paid and ignore the value of t",
+   "wrong": [
+    "Free means no cost, so watching costs nothing.",
+    "Because it's free, there's no opportunity cost.",
+    "I don't pay money, so the lecture costs zero."
+   ],
+   "right": [
+    "Opportunity cost is the next best use of time, not money.",
+    "Free doesn't mean costless; your time has value.",
+    "You always give up something else, even if it's free."
+   ]
+  },
+  {
+   "kernelId": "econ/consumer-choice",
+   "family": "students propose the bundle a consumer would most like ignor",
+   "wrong": [
+    "Pick the bundle that makes you happiest, no matter the price.",
+    "The best choice is the one you like most, even if unaffordable.",
+    "Just choose the most satisfying bundle regardless of cost."
+   ],
+   "right": [
+    "You can't buy what you can't afford; best must be within budget.",
+    "Optimal bundle balances satisfaction and affordability.",
+    "Best choice is the most satisfying one you can actually pay for."
+   ]
+  },
+  {
+   "kernelId": "econ/supply-curve",
+   "family": "students treat a price change as shifting the whole supply c",
+   "wrong": [
+    "Higher price shifted the supply curve to the right.",
+    "Supply increased because price went up.",
+    "The supply curve moved due to the price change."
+   ],
+   "right": [
+    "Price change moves along the curve, not shift it.",
+    "Only non-price factors shift supply; price changes quantity.",
+    "It's a movement along the supply curve, not a shift."
+   ]
+  },
+  {
+   "kernelId": "econ/market-equilibrium",
+   "family": "students think market equilibrium means nothing changes when",
+   "wrong": [
+    "Equilibrium means nothing is happening in the market.",
+    "When in equilibrium, buyers and sellers stop acting.",
+    "Equilibrium is a freeze where no one does anything."
+   ],
+   "right": [
+    "Equilibrium balances ongoing pressures, not a standstill.",
+    "It's a dynamic balance, not a frozen state.",
+    "Equilibrium is a balance of forces, not a pause."
+   ]
+  },
+  {
+   "kernelId": "econ/monopoly",
+   "family": "students think a monopoly can charge any price it likes with",
+   "wrong": [
+    "Monopoly can charge whatever price it wants, no limits.",
+    "No close substitute means infinite pricing power.",
+    "Monopoly sets any price without any constraints."
+   ],
+   "right": [
+    "Monopoly is constrained by demand; raise price by selling less.",
+    "It can raise price but must accept lower quantity.",
+    "Price power is limited by the demand curve."
+   ]
+  },
+  {
+   "kernelId": "econ/circular-flow-of-income",
+   "family": "students treat saving as money that disappears from the econ",
+   "wrong": [
+    "Saving takes money out of the economy forever.",
+    "Saved money is lost and never returns.",
+    "Saving reduces total spending permanently."
+   ],
+   "right": [
+    "Saving is a leakage re-injected as investment.",
+    "Saved money flows back via investment, spending, or exports.",
+    "Saving doesn't vanish; it returns through investment."
+   ]
+  },
+  {
+   "kernelId": "econ/capital-accumulation",
+   "family": "students expect the capital stock to jump when investment ri",
+   "wrong": [
+    "Buying equipment instantly increases the capital stock.",
+    "Capital stock jumps right after the purchase.",
+    "Investment immediately raises the capital stock."
+   ],
+   "right": [
+    "Capital stock grows gradually as net investment stays positive.",
+    "It's a gradual increase over time, not a jump.",
+    "Capital stock rises slowly as investment beats depreciation."
+   ]
+  },
+  {
+   "kernelId": "stats/data-provenance",
+   "family": "students treat a dataset as objective fact ignoring how the ",
+   "wrong": [
+    "The survey is valid because it uses real customers.",
+    "Data from our customers is always reliable.",
+    "The survey proves everyone loves the service."
+   ],
+   "right": [
+    "Survey biased by excluding unhappy customers; overstates satisfaction.",
+    "Data collection method matters; check who's left out.",
+    "Provenance matters; sample likely overstates satisfaction."
+   ]
+  },
+  {
+   "kernelId": "stats/observational-study",
+   "family": "students read a strong association in an observational study",
+   "wrong": [
+    "Strong association means the lighters cause the disease.",
+    "If it's correlated, it's caused.",
+    "The study proves carrying lighters leads to lung disease."
+   ],
+   "right": [
+    "Association doesn't mean causation; confounders might explain it.",
+    "Observational studies can't prove cause; hidden factors exist.",
+    "Correlation isn't causation until confounders are ruled out."
+   ]
+  },
+  {
+   "kernelId": "stats/p-value",
+   "family": "students interpret the p value as the probability that the n",
+   "wrong": [
+    "It means there's a 3% chance the null hypothesis is true.",
+    "The null hypothesis is probably false with 97% confidence.",
+    "Only a 3% probability that the null hypothesis holds, so we reject it."
+   ],
+   "right": [
+    "P-value means if null is true, data this extreme occurs 3% of the time.",
+    "It's about the data, not about the null; it's the chance of seeing results like this under the null.",
+    "The p-value is not the probability of the null; it's the probability of getting our results assuming the null is true."
+   ]
+  },
+  {
+   "kernelId": "stats/statistical-model",
+   "family": "students trust a model that fits the sample well overlooking",
+   "wrong": [
+    "High R-squared means the model is reliable and assumptions are fine.",
+    "If it fits the sample perfectly, the model must be correct.",
+    "R-squared tells us everything we need; we can trust the model."
+   ],
+   "right": [
+    "A model can fit well but still be wrong if assumptions like independence are broken.",
+    "Good fit doesn't guarantee validity; always check residuals and assumptions.",
+    "Fitting the sample well is not enough; we need to check if assumptions hold."
+   ]
+  },
+  {
+   "kernelId": "psych/memory-model",
+   "family": "students picture memory as one big storehouse where informat",
+   "wrong": [
+    "Reading three times puts the facts into memory for sure.",
+    "The more you read, the better it's stored in your memory bank.",
+    "Facts are like files; reading stores them permanently."
+   ],
+   "right": [
+    "Memory is not a place; it's processes like encoding, storage, and retrieval that can fail.",
+    "Reading alone doesn't guarantee storage; you need to encode actively and maybe retrieve later.",
+    "Even if you read, information can be lost at any step; memory is not a simple storehouse."
+   ]
+  },
+  {
+   "kernelId": "psych/working-memory",
+   "family": "students believe short term memory holds information for hou",
+   "wrong": [
+    "She should have remembered it; short-term memory lasts a long time.",
+    "Rehearsal shouldn't be necessary; memory can hold info for hours.",
+    "She must not have paid attention; short-term memory is permanent."
+   ],
+   "right": [
+    "Short-term memory only lasts 15-30 seconds without rehearsal, so it faded.",
+    "Without repeating it, the password was lost from short-term memory quickly.",
+    "That's normal; working memory is short-lived and needs active maintenance."
+   ]
+  },
+  {
+   "kernelId": "psych/long-term-memory",
+   "family": "students assume everything in long term memory can be consci",
+   "wrong": [
+    "If it's in long-term memory, you should be able to bring it to mind.",
+    "Procedural memory is conscious; you just can't articulate it well.",
+    "Everything stored can be recalled if you try hard enough."
+   ],
+   "right": [
+    "Implicit memories like skills are long-term but not conscious; that's why you can't explain them.",
+    "Not all long-term memory is conscious; procedural memories are automatic.",
+    "You can ride a bike without being able to describe the balance adjustments; that's implicit memory."
+   ]
+  },
+  {
+   "kernelId": "psych/forgetting",
+   "family": "students treat all forgetting as memories being erased from",
+   "wrong": [
+    "If you forget, the memory is gone from your brain.",
+    "Tip-of-the-tongue means the memory is erased or never stored.",
+    "Forgetting is always because the memory has been deleted."
+   ],
+   "right": [
+    "Tip-of-the-tongue shows the memory is still stored but retrieval is blocked.",
+    "Forgetting can be retrieval failure, not just erasure; the information is there but blocked.",
+    "Memory can be intact but inaccessible due to interference or blocking."
+   ]
+  },
+  {
+   "kernelId": "psych/erikson-psychosocial",
+   "family": "students assume personality development is finished by the e",
+   "wrong": [
+    "Personality is fixed by the end of childhood.",
+    "Erikson says development stops after adolescence.",
+    "Your personality doesn't change after your teenage years."
+   ],
+   "right": [
+    "Erikson says there are eight stages across the whole lifespan, from infancy to old age.",
+    "Personality continues to develop through adulthood with new challenges like intimacy and generativity.",
+    "Development is lifelong; each stage builds on the previous ones."
+   ]
+  },
+  {
+   "kernelId": "psych/intelligence-theories",
+   "family": "students treat an iq score as identical to intelligence itse",
+   "wrong": [
+    "The mechanic's score is low, so he must be less intelligent.",
+    "IQ tests measure all forms of intelligence perfectly.",
+    "A single test score fully represents a person's mental ability."
+   ],
+   "right": [
+    "IQ tests don't capture practical or creative intelligence; the mechanic has strengths not measured.",
+    "Intelligence is broader than a test score; Sternberg's theory includes practical and creative types.",
+    "The test missed his practical intelligence; he might have high ability in real-world problem solving."
+   ]
+  },
+  {
+   "kernelId": "psych/problem-solving-strategies",
+   "family": "students dismiss heuristics as sloppy thinking that should a",
+   "wrong": [
+    "Heuristics are just guesswork; algorithms are always better.",
+    "You should always use an algorithm for accuracy; heuristics are lazy.",
+    "Heuristics lead to errors; algorithms guarantee correct answers."
+   ],
+   "right": [
+    "Heuristics are useful shortcuts when time or info is limited; they are adaptive.",
+    "Algorithms aren't always possible; heuristics work well in many situations.",
+    "Heuristics aren't sloppy; they are efficient strategies that often work."
+   ]
+  },
+  {
+   "kernelId": "econ/comparative-advantage",
+   "family": "students think the producer who is best at everything absolu",
+   "wrong": [
+    "Priya should do both because she's faster at reports; she has absolute advantage.",
+    "Marco has no advantage because he is slower at reports; he should not specialize.",
+    "Absolute advantage is the same as comparative advantage; the faster producer should do everything."
+   ],
+   "right": [
+    "Priya has lower opportunity cost for reports; she gives up fewer slides per report, so she has comparative advantage.",
+    "Even though Marco is faster at slides, Priya's opportunity cost for reports is lower, so she specializes in reports.",
+    "Comparative advantage is about opportunity cost, not absolute speed; Priya sacrifices only 1.5 slides per report while Marco sacrifices more."
+   ]
+  },
+  {
+   "kernelId": "econ/externality",
+   "family": "students assume a free market always reaches the efficient q",
+   "wrong": [
+    "Market produces too little since the price is missing a cost.",
+    "The market outcome is efficient because firms pay all costs.",
+    "Externalities don't change the equilibrium quantity."
+   ],
+   "right": [
+    "Market overproduces because price ignores pollution costs.",
+    "Too much output since third-party costs aren't in the price.",
+    "Equilibrium exceeds social optimum due to unpaid external costs."
+   ]
+  },
+  {
+   "kernelId": "econ/natural-experiment",
+   "family": "students accept a natural experiment result as causal without considering comparability",
+   "wrong": [
+    "Employment fell in A, so the minimum wage caused it.",
+    "The difference in employment is directly due to the policy.",
+    "No confounders matter because it's a natural experiment."
+   ],
+   "right": [
+    "Causality requires groups be similar except for the policy.",
+    "Without comparability, confounders could explain changes.",
+    "Natural experiments need a credible control group."
+   ]
+  },
+  {
+   "kernelId": "econ/price-elasticity-of-demand",
+   "family": "students confuse the slope of the demand curve with its elasticity",
+   "wrong": [
+    "Elasticity is change in price divided by change in quantity.",
+    "Slope of the demand curve is the same as elasticity.",
+    "Price change over quantity change gives elasticity."
+   ],
+   "right": [
+    "Elasticity is % change in quantity over % change in price.",
+    "It's the percentage formula, not the slope ratio.",
+    "Elasticity uses percentage changes, so it's unit-free."
+   ]
+  },
+  {
+   "kernelId": "psych/observational-learning",
+   "family": "students assume a person must be directly rewarded themselves",
+   "wrong": [
+    "Children only learn if they get a reward themselves.",
+    "Observational learning only works if the model is rewarded.",
+    "Models matter only for aggressive behavior, not helpful."
+   ],
+   "right": [
+    "Observational learning can teach both good and bad behaviors.",
+    "Kids learn by watching, even without direct rewards.",
+    "Models influence prosocial and antisocial actions alike."
+   ]
+  },
+  {
+   "kernelId": "psych/intrinsic-extrinsic-motivation",
+   "family": "students and teachers assume adding rewards always strengthens motivation",
+   "wrong": [
+    "Rewards will kill their love for reading.",
+    "Extrinsic rewards always backfire and reduce motivation.",
+    "You should avoid any outside reward at all costs."
+   ],
+   "right": [
+    "A pizza reward can kickstart reading habits.",
+    "Extrinsic motivators help begin new behaviors.",
+    "Combining rewards with interest works well to start."
+   ]
+  },
+  {
+   "kernelId": "anatomy/homeostasis-feedback",
+   "family": "students may read negative feedback as a harmful response",
+   "wrong": [
+    "Negative feedback is harmful because it lowers glucose.",
+    "Insulin release is bad because it reduces energy.",
+    "Negative feedback means something is wrong."
+   ],
+   "right": [
+    "Negative feedback corrects the change and restores balance.",
+    "It's a corrective response, not a harmful one.",
+    "It opposes the deviation from the set point."
+   ]
+  },
+  {
+   "kernelId": "anatomy/tissue-types",
+   "family": "students may treat tissue identification as matching colors",
+   "wrong": [
+    "Just look at the stain color to identify tissues.",
+    "All flat cells are the same tissue type.",
+    "Tissues are identified solely by their color."
+   ],
+   "right": [
+    "Tissue ID uses cell shape, arrangement, and function.",
+    "Functional and structural clues, not just color.",
+    "Arrangement and location reveal tissue identity."
+   ]
+  },
+  {
+   "kernelId": "anatomy/epithelial-tissue",
+   "family": "students may assume epithelial tissue is only skin",
+   "wrong": [
+    "Epithelium is only the skin.",
+    "Skin is the only example of epithelial tissue.",
+    "Epithelial tissue is just the outer covering."
+   ],
+   "right": [
+    "Epithelium lines internal cavities and glands too.",
+    "It's found in skin, linings, and glandular tissues.",
+    "Epithelial tissue is everywhere, not just on the surface."
+   ]
+  },
+  {
+   "kernelId": "anatomy/connective-tissue",
+   "family": "students may assume connective tissue has one uniform appearance",
+   "wrong": [
+    "All connective tissue looks the same.",
+    "Bone and blood must be different tissues.",
+    "Connective tissue has one uniform structure."
+   ],
+   "right": [
+    "Connective tissue is diverse in form and function.",
+    "It includes many types with different structures.",
+    "Bone, fat, blood all differ despite being connective."
+   ]
+  },
+  {
+   "kernelId": "anatomy/integumentary-skin-layers",
+   "family": "students may treat skin as a simple covering",
+   "wrong": [
+    "Skin is just the epidermis.",
+    "Skin is only a protective outer layer.",
+    "The skin has no other functions besides covering."
+   ],
+   "right": [
+    "Skin is a complex organ system with multiple layers.",
+    "It includes glands, nerves, and blood vessels.",
+    "Skin is more than a wrap; it has many functions."
+   ]
+  },
+  {
+   "kernelId": "anatomy/skeletal-system-functions",
+   "family": "students may view bones as passive supports only",
+   "wrong": [
+    "Bones are just a frame, nothing else matters.",
+    "They just hold us up, like a building frame.",
+    "Bones are dead and just sit there."
+   ],
+   "right": [
+    "Bones do way more: store minerals, make blood, help movement.",
+    "They protect organs, store fat, and work with muscles.",
+    "Bones are active: they support, protect, and produce blood cells."
+   ]
+  },
+  {
+   "kernelId": "anatomy/muscle-tissue-types",
+   "family": "students may assume all muscle is voluntary skeletal muscle",
+   "wrong": [
+    "All muscle is the same, just in different places.",
+    "Heart muscle is just like arm muscle, controlled by us.",
+    "Smooth muscle is just weaker skeletal muscle."
+   ],
+   "right": [
+    "Cardiac and smooth are involuntary, built differently.",
+    "Skeletal is voluntary; others work on their own.",
+    "Not all muscle is voluntary: heart and gut muscles are automatic."
+   ]
+  },
+  {
+   "kernelId": "anatomy/nervous-tissue",
+   "family": "students may treat glial cells as unimportant filler",
+   "wrong": [
+    "Glial cells are just packing peanuts in the brain.",
+    "Neurons do it all, glia are useless.",
+    "Glial cells don't really do anything important."
+   ],
+   "right": [
+    "Glial cells support neurons and keep them healthy.",
+    "They insulate, feed, and clean up around neurons.",
+    "Without glia, neurons can't signal properly."
+   ]
+  },
+  {
+   "kernelId": "anatomy/sensory-perception",
+   "family": "students may use sensation and perception as interchangeable",
+   "wrong": [
+    "Sensation and perception are basically the same thing.",
+    "Feeling something is the same as understanding it.",
+    "They're synonyms in my book."
+   ],
+   "right": [
+    "Sensation is raw input; perception gives it meaning.",
+    "Sensing is detecting, perceiving is interpreting.",
+    "One is stimulation, the other is brain interpretation."
+   ]
+  },
+  {
+   "kernelId": "anatomy/endocrine-hormone-signaling",
+   "family": "students may assume every circulating hormone acts on every ",
+   "wrong": [
+    "Hormones in blood hit every cell equally.",
+    "All cells respond to all hormones.",
+    "If it's in your blood, it affects everything."
+   ],
+   "right": [
+    "Only cells with the right receptors respond to a hormone.",
+    "Target cells have specific receptors, others ignore it.",
+    "Hormones are selective; they only act on certain cells."
+   ]
+  },
+  {
+   "kernelId": "astro/diurnal-motion",
+   "family": "students assume the stars truly orbit earth each day because",
+   "wrong": [
+    "Stars actually circle Earth every 24 hours.",
+    "The sky moves because stars go around us.",
+    "It's obvious: the stars are orbiting Earth."
+   ],
+   "right": [
+    "Earth's rotation makes the sky appear to move.",
+    "We spin, so stars seem to travel westward.",
+    "It's an illusion from Earth turning, not stars moving."
+   ]
+  },
+  {
+   "kernelId": "astro/celestial-sphere",
+   "family": "students treat positions on the celestial sphere as if all s",
+   "wrong": [
+    "If they look close in the sky, they're close in space.",
+    "The celestial sphere tells you the real distances.",
+    "Objects near each other on the sphere are neighbors."
+   ],
+   "right": [
+    "The sphere only shows direction, not distance.",
+    "Two stars can appear side by side but be far apart.",
+    "It's a map of angles, distances are not given."
+   ]
+  },
+  {
+   "kernelId": "astro/seasons",
+   "family": "students think seasons are caused mainly by earth s changing",
+   "wrong": [
+    "Summer happens when Earth is closer to the Sun.",
+    "Distance from the Sun is what causes seasons.",
+    "Earth's orbit makes us warmer or colder."
+   ],
+   "right": [
+    "Seasons come from the tilt causing different sun angles.",
+    "It's about how direct sunlight is, not distance.",
+    "Day length and sun height change with axial tilt."
+   ]
+  },
+  {
+   "kernelId": "astro/moon-phases",
+   "family": "students believe the moon s phases are caused by earth s sha",
+   "wrong": [
+    "Phases are from Earth's shadow on the Moon.",
+    "Earth blocks sunlight, creating phases.",
+    "Moon phases are mini-eclipses every month."
+   ],
+   "right": [
+    "Phases are just the lit part we see from Earth.",
+    "It's about our viewing angle, not Earth's shadow.",
+    "We see different amounts of the sunlit half."
+   ]
+  },
+  {
+   "kernelId": "astro/keplers-third-law",
+   "family": "students plug periods in days or distances in kilometers int",
+   "wrong": [
+    "Just use any units, it's still P^2 = a^3.",
+    "Days and kilometers are fine as long as you're consistent.",
+    "You can plug in anything; the math should work."
+   ],
+   "right": [
+    "Use years and AU for the simple form.",
+    "Convert period to years and distance to AU.",
+    "Newton's version works for any units, but not the simple one."
+   ]
+  },
+  {
+   "kernelId": "astro/electromagnetic-spectrum",
+   "family": "students assume invisible wavelengths are less scientificall",
+   "wrong": [
+    "Why use infrared? Visible light is more natural for astronomy.",
+    "Infrared is just fancy; visible light tells the whole story.",
+    "Nonvisible waves are not as reliable as what our eyes see."
+   ],
+   "right": [
+    "Infrared is best because it pierces dust that blocks visible light.",
+    "Infrared sees what visible can't, like hidden stars in nebulas.",
+    "Visible light gets absorbed by dust, so infrared reveals the structure."
+   ]
+  },
+  {
+   "kernelId": "astro/spectral-lines",
+   "family": "students treat a star s spectrum as just its color rather th",
+   "wrong": [
+    "So the star is just yellow, that's all we can know.",
+    "The spectrum only gives color, not chemistry.",
+    "Dark lines don't matter; the color is what counts."
+   ],
+   "right": [
+    "The lines show specific elements like sodium and hydrogen inside the star.",
+    "Each element leaves its fingerprint in the spectrum, revealing composition.",
+    "Dark lines identify elements because they absorb at exact wavelengths."
+   ]
+  },
+  {
+   "kernelId": "astro/apparent-magnitude",
+   "family": "students assume a brighter looking star is intrinsically mor",
+   "wrong": [
+    "The star that looks brighter must be way more powerful.",
+    "If it's bright in the sky, it's definitely more luminous.",
+    "Apparent brightness always means higher actual luminosity."
+   ],
+   "right": [
+    "A dim star can be close; brightness doesn't equal luminosity.",
+    "Apparent magnitude mixes distance and light; a close dim star can appear bright.",
+    "You need distance to know true brightness; apparent alone is misleading."
+   ]
+  },
+  {
+   "kernelId": "astro/hubble-law",
+   "family": "students conclude that earth must sit at the center of the u",
+   "wrong": [
+    "Every galaxy moves away from us, so we are the center.",
+    "The universe expands from Earth like a bang from us.",
+    "We see recession everywhere because Earth is special."
+   ],
+   "right": [
+    "Expansion is uniform; every observer sees the same pattern, so no center.",
+    "Like raisins in dough, each galaxy sees others moving away, no center.",
+    "Hubble law shows expansion, not Earth's central position."
+   ]
+  },
+  {
+   "kernelId": "bio/optimal-foraging",
+   "family": "students assume a forager simply eats the largest prey ignor",
+   "wrong": [
+    "Lions should always go for the biggest meal they can.",
+    "Why waste time on medium? The huge prey is more food.",
+    "Optimal means picking the largest animal every time."
+   ],
+   "right": [
+    "Medium prey gives more energy per effort when huge is risky.",
+    "Lions maximize net gain; large prey may cost too much time/risk.",
+    "Optimal foraging balances energy reward against hunting cost."
+   ]
+  },
+  {
+   "kernelId": "bio/population-dynamics",
+   "family": "students expect the population size to jump the moment the b",
+   "wrong": [
+    "If births go up now, deer should be more right away.",
+    "Population changes instantly when birth rate changes.",
+    "More births today means bigger population today."
+   ],
+   "right": [
+    "Births add gradually; population size changes over time via rates.",
+    "It's a rate, so total only changes after time passes, not instantly.",
+    "Population adjusts over time; births increase the future size, not current."
+   ]
+  },
+  {
+   "kernelId": "bio/bioindicator",
+   "family": "students treat one indicator species as a full measure of ec",
+   "wrong": [
+    "Mayflies are all you need to judge if the river is healthy.",
+    "If mayflies are fine, the whole ecosystem must be fine.",
+    "One species can tell you everything about environmental health."
+   ],
+   "right": [
+    "Mayflies only show what they're sensitive to; other stressors might be missed.",
+    "Different indicators detect different threats; mayflies can't catch pesticides.",
+    "Ecosystem health needs multiple indicators because stressors vary."
+   ]
+  },
+  {
+   "kernelId": "bio/species-concept",
+   "family": "students treat a species as a fixed natural fact rather than",
+   "wrong": [
+    "Species are real categories; scientists always agree on them.",
+    "Frogs are either one species or another, that's a fact.",
+    "Species boundaries are obvious and don't depend on the definition."
+   ],
+   "right": [
+    "Different species concepts draw different boundaries, so classifications change.",
+    "Species are human categories; changing definition changes which frogs are protected.",
+    "Frogs classified differently under different concepts show boundaries are not fixed."
+   ]
+  },
+  {
+   "kernelId": "chem/chemical-equilibrium",
+   "family": "students think a reaction at equilibrium has stopped when th",
+   "wrong": [
+    "If concentrations are constant, the reaction must be done.",
+    "Equilibrium means no reaction is happening anymore.",
+    "The reaction stops when it reaches equilibrium."
+   ],
+   "right": [
+    "Forward and reverse rates are equal, so no net change but reactions continue.",
+    "Dynamic balance: reactions keep going, just at same speed both ways.",
+    "Concentrations constant because molecules react back and forth at same rate."
+   ]
+  },
+  {
+   "kernelId": "chem/conservation-of-mass",
+   "family": "students change a subscript to make an equation balance whic",
+   "wrong": [
+    "If H2O doesn't balance, just change it to H2O2 to fix.",
+    "Subscripts can be changed to make the atoms equal.",
+    "Altering the formula is fine to balance the equation."
+   ],
+   "right": [
+    "Only coefficients can be changed; subscripts change the chemical identity.",
+    "Balancing uses coefficients in front, not changing the molecular formula.",
+    "Changing subscripts invents new substances; use coefficients to conserve mass."
+   ]
+  },
+  {
+   "kernelId": "econ/proxy-variable",
+   "family": "students treat gdp as if it were well being itself forgettin",
+   "wrong": [
+    "GDP tells us everything about happiness.",
+    "If GDP is high, people must be thriving.",
+    "GDP directly measures how good life is."
+   ],
+   "right": [
+    "GDP is a rough proxy, ignoring unpaid work and pollution.",
+    "GDP misses important stuff like care and environment.",
+    "Well-being needs more than GDP; it leaves out key factors."
+   ]
+  },
+  {
+   "kernelId": "econ/labor-force-classification",
+   "family": "students read the unemployment rate as a neutral fact missin",
+   "wrong": [
+    "Unemployment rate is purely factual with no bias.",
+    "The rate always tells the real jobless story.",
+    "It's straightforward, no one is left out."
+   ],
+   "right": [
+    "The rate excludes discouraged workers, so it understates joblessness.",
+    "Unemployment ignores those who stopped looking.",
+    "It's not neutral; discouraged workers aren't counted."
+   ]
+  },
+  {
+   "kernelId": "history/historical-argument",
+   "family": "students treat a forceful assertion about the past as an arg",
+   "wrong": [
+    "Just stating it forcefully makes it a solid argument.",
+    "If it sounds convincing, it's a good argument.",
+    "No need for evidence if the claim is bold."
+   ],
+   "right": [
+    "An argument needs evidence and reasoning, not just a bold claim.",
+    "Without sources, it's just an opinion, not an argument.",
+    "Historical arguments must show how evidence supports the claim."
+   ]
+  },
+  {
+   "kernelId": "history/primary-source-criticism",
+   "family": "students read a primary source as a transparent window onto ",
+   "wrong": [
+    "Primary sources are direct truth from the past.",
+    "The letter tells exactly what happened.",
+    "Sources are unbiased; just read them literally."
+   ],
+   "right": [
+    "Sources reflect the author's bias and audience, not pure truth.",
+    "We must ask who wrote it and why, not take it at face value.",
+    "Primary sources need questioning about purpose and context."
+   ]
+  },
+  {
+   "kernelId": "history/contextual-interpretation",
+   "family": "students judge a past detail by present day standards instea",
+   "wrong": [
+    "Judging by today's morals is fine.",
+    "Past people should be held to modern standards.",
+    "Context doesn't matter; we know right from wrong."
+   ],
+   "right": [
+    "Understand the past on its own terms, not modern ones.",
+    "Look at the historical context before judging.",
+    "Avoid presentism; consider what was normal then."
+   ]
+  },
+  {
+   "kernelId": "history/roosevelt-trustbusting",
+   "family": "roosevelt tried to eliminate all trusts and big corporations",
+   "wrong": [
+    "TR wanted to break up all big companies.",
+    "He hated all monopolies equally.",
+    "Roosevelt's goal was to destroy every trust."
+   ],
+   "right": [
+    "TR distinguished good trusts from bad, not all.",
+    "He allowed beneficial trusts, only went after bad ones.",
+    "Not all trusts bad; some helped consumers."
+   ]
+  },
+  {
+   "kernelId": "history/roosevelt-trustbusting",
+   "family": "trustbusting was mainly done by state governments not the fe",
+   "wrong": [
+    "States handled most trustbusting.",
+    "Federal government had little role.",
+    "Trustbusting was left to state laws."
+   ],
+   "right": [
+    "Federal government led trustbusting via Justice Dept and courts.",
+    "TR used federal bureaus and Supreme Court.",
+    "Federal action was key, not state."
+   ]
+  },
+  {
+   "kernelId": "history/taft-progressive-agenda",
+   "family": "taft abandoned progressive reforms and did not pursue antitr",
+   "wrong": [
+    "Taft ditched all progressive ideas.",
+    "He stopped antitrust efforts.",
+    "Taft was a conservative who reversed reforms."
+   ],
+   "right": [
+    "Taft actually filed more antitrust suits than TR.",
+    "He signed Mann-Elkins, continuing regulation.",
+    "Taft kept progressivism, especially in antitrust."
+   ]
+  },
+  {
+   "kernelId": "history/taft-progressive-agenda",
+   "family": "taft had full freedom to set policy because roosevelt person",
+   "wrong": [
+    "Taft could do whatever he wanted.",
+    "Roosevelt's backing gave Taft total control.",
+    "He had no constraints from party leaders."
+   ],
+   "right": [
+    "Republican leaders limited Taft's options.",
+    "Taft was constrained by party conservatives.",
+    "He didn't have free rein; party bosses held him back."
+   ]
+  },
+  {
+   "kernelId": "history/spanish-american-war-origins-triggers",
+   "family": "the spanish american war was mainly about a direct u s spain",
+   "wrong": [
+    "The war was over a trade dispute.",
+    "It was a direct conflict between U.S. and Spain only.",
+    "The cause was economic rivalry."
+   ],
+   "right": [
+    "The war was about Spanish control over Cuba.",
+    "U.S. intervened in Cuba, not direct feud.",
+    "Cuban independence was the real issue."
+   ]
+  },
+  {
+   "kernelId": "history/spanish-american-war-origins-triggers",
+   "family": "it was definitively proven in 1898 that spain blew up the us",
+   "wrong": [
+    "The Spanish definitely bombed the Maine.",
+    "It's proven Spain blew it up.",
+    "No doubt the Spanish set the explosion."
+   ],
+   "right": [
+    "Likely an accident; later evidence showed no sabotage.",
+    "Historians think it was an internal explosion, not Spanish.",
+    "No proof of Spanish attack; probably accidental."
+   ]
+  },
+  {
+   "kernelId": "history/spanish-american-war-outcomes-empire",
+   "family": "the spanish american war was fought only in cuba",
+   "wrong": [
+    "The war only happened in Cuba.",
+    "All battles were near Havana.",
+    "No fighting occurred outside Cuba."
+   ],
+   "right": [
+    "First big battle was in the Philippines, so global war.",
+    "War included Pacific battles, not just Cuba.",
+    "Major fighting in Asia too, not only Caribbean."
+   ]
+  },
+  {
+   "kernelId": "history/black-soldiers-smoked-yankees",
+   "family": "the rough riders succeeded on their own without major suppor",
+   "wrong": [
+    "Rough Riders won all by themselves.",
+    "They needed no help from anyone.",
+    "No other troops assisted them."
+   ],
+   "right": [
+    "Black veterans reduced their casualties significantly.",
+    "Without Black soldiers, they would have lost more men.",
+    "Experienced Black troops were crucial for their success."
+   ]
+  },
+  {
+   "kernelId": "history/wilson-interventions-western-hemisphere",
+   "family": "u s actions in haiti were limited to a brief peacekeeping mi",
+   "wrong": [
+    "US only did a short peacekeeping mission.",
+    "US left Haiti quickly after a brief stay.",
+    "No lasting control, just a temporary intervention."
+   ],
+   "right": [
+    "US took over Haiti's finances and foreign policy for years.",
+    "Marines stayed and controlled Haitian government for decades.",
+    "US imposed long-term control over Haiti's money and diplomacy."
+   ]
+  },
+  {
+   "kernelId": "history/european-alliance-system-1914",
+   "family": "italy fought with germany and austria hungary throughout wor",
+   "wrong": [
+    "Italy always fought alongside Germany and Austria.",
+    "Italy stayed with Central Powers the whole war.",
+    "Italy never left the Triple Alliance."
+   ],
+   "right": [
+    "Italy remained neutral then joined the Allies against them.",
+    "Italy switched sides and fought against the Central Powers.",
+    "Italy did not fight with them; it later fought them."
+   ]
+  },
+  {
+   "kernelId": "history/talkies-and-hollywood-studio-system",
+   "family": "hollywood was always the center of american film production",
+   "wrong": [
+    "Hollywood was always the film capital.",
+    "Movies started in Hollywood from the beginning.",
+    "New York never had film production."
+   ],
+   "right": [
+    "Film started in New York, then moved to California.",
+    "NY was original center, not Hollywood from start.",
+    "Early films were made in New York before Hollywood."
+   ]
+  },
+  {
+   "kernelId": "history/talkies-and-hollywood-studio-system",
+   "family": "silent films ended because audiences stopped going to movies",
+   "wrong": [
+    "Audiences stopped going so silent films died.",
+    "No one watched movies anymore.",
+    "People got bored of films altogether."
+   ],
+   "right": [
+    "Attendance was huge; sound films replaced silent ones.",
+    "People still went but wanted sound movies.",
+    "Silent films ended because talkies became popular, not low attendance."
+   ]
+  },
+  {
+   "kernelId": "history/fordism-assembly-line-model-t",
+   "family": "henry ford invented the automobile",
+   "wrong": [
+    "Ford invented the first car.",
+    "Ford created the automobile.",
+    "Ford was the original car inventor."
+   ],
+   "right": [
+    "Ford didn't invent the car; he mass-produced it.",
+    "Cars existed before Ford; he made them cheap.",
+    "Ford's innovation was assembly line, not invention."
+   ]
+  },
+  {
+   "kernelId": "history/fordism-assembly-line-model-t",
+   "family": "assembly line work improved job satisfaction because it requ",
+   "wrong": [
+    "Assembly line made work more skilled.",
+    "Workers enjoyed complex tasks on line.",
+    "Jobs became more satisfying due to variety."
+   ],
+   "right": [
+    "Work became boring and repetitive, leading to high turnover.",
+    "Assembly line jobs were simple and monotonous.",
+    "Repetitive tasks made workers unhappy, not satisfied."
+   ]
+  },
+  {
+   "kernelId": "history/automobile-driven-social-economic-transformation",
+   "family": "suburbanization in this period was driven primarily by stree",
+   "wrong": [
+    "Suburbs grew because of streetcars.",
+    "Streetcars caused suburbs.",
+    "Trolleys were the main reason for suburban expansion."
+   ],
+   "right": [
+    "Cars caused suburbs, with highways and roadside businesses.",
+    "Automobiles reshaped suburbs, not streetcars.",
+    "Car travel replaced streetcar suburbs with auto suburbs."
+   ]
+  },
+  {
+   "kernelId": "history/stock-market-crash-1929-not-sole-cause",
+   "family": "the stock market crash of 1929 was the sole cause of the gre",
+   "wrong": [
+    "Crash alone caused the Depression, no other factors needed.",
+    "It was all about the market collapse, nothing else.",
+    "The crash was the one and only reason."
+   ],
+   "right": [
+    "Crash triggered it but deep weaknesses made it worse.",
+    "Banks, tariffs, and spending habits all played parts.",
+    "Not just the crash, other issues like income gap mattered."
+   ]
+  },
+  {
+   "kernelId": "history/stock-market-crash-1929-not-sole-cause",
+   "family": "because few people owned stock the crash could not significa",
+   "wrong": [
+    "Only rich owned stocks so regular folks weren't affected.",
+    "The crash only hurt those with money in the market.",
+    "Few investors so impact was tiny on most people."
+   ],
+   "right": [
+    "It triggered bank runs and job losses hurting everyone.",
+    "Even without stock, people lost jobs and savings.",
+    "The crash spread panic leading to widespread unemployment."
+   ]
+  },
+  {
+   "kernelId": "history/speculation-and-margin-buying-1920s",
+   "family": "buying on margin is basically risk free as long as the econo",
+   "wrong": [
+    "Margin buying is safe if the economy keeps growing.",
+    "No risk when stocks always go up like in 1920s.",
+    "You can't lose money buying on margin in good times."
+   ],
+   "right": [
+    "Margin is risky debt; prices can drop and you owe big.",
+    "It's borrowing money, so you can lose more than invested.",
+    "Not risk-free; a small dip wipes out your stake."
+   ]
+  },
+  {
+   "kernelId": "history/speculation-and-margin-buying-1920s",
+   "family": "speculation in the 1920s mainly involved careful fully funde",
+   "wrong": [
+    "Back then investors paid cash and were super careful.",
+    "Speculators used their own money, no borrowing needed.",
+    "1920s investing was all about saving and caution."
+   ],
+   "right": [
+    "Lots of investors bought on margin with borrowed money.",
+    "Speculation was often risky with easy credit from banks.",
+    "People gambled using loans, not their own cash."
+   ]
+  },
+  {
+   "kernelId": "history/first-new-deal-overview",
+   "family": "the first new deal was mostly a single program focused only ",
+   "wrong": [
+    "Just one big relief program for the unemployed.",
+    "It was all about giving out money, nothing else.",
+    "No reforms, just temporary jobs and handouts."
+   ],
+   "right": [
+    "Many programs like CCC, TVA, and banking reform together.",
+    "It covered relief, recovery, and reform all at once.",
+    "Roosevelt pushed several laws, not just one bill."
+   ]
+  },
+  {
+   "kernelId": "history/emergency-banking-act-1933",
+   "family": "the emergency banking act permanently solved all banking pro",
+   "wrong": [
+    "Fixed the banks for good in one go.",
+    "No more bank failures after that act.",
+    "All banking problems were solved permanently."
+   ],
+   "right": [
+    "It reopened sound banks but later laws were needed.",
+    "Just a quick fix, Glass-Steagall came for real reform.",
+    "Calmed panic but didn't stop future issues without more laws."
+   ]
+  },
+  {
+   "kernelId": "history/rise-of-fascism-and-nazism",
+   "family": "hitler became dictator solely through a popular vote",
+   "wrong": [
+    "People voted him in and he took power directly.",
+    "Hitler got a majority and became dictator legally.",
+    "The election made him the absolute ruler."
+   ],
+   "right": [
+    "He was appointed chancellor then used the Enabling Act.",
+    "Not a popular mandate; he manipulated the system afterwards.",
+    "Became dictator through laws, not just votes."
+   ]
+  },
+  {
+   "kernelId": "history/marshall-plan",
+   "family": "the soviet union and eastern europe participated fully in th",
+   "wrong": [
+    "USSR and Eastern Bloc took the money and joined in.",
+    "The plan included everyone in Europe after WWII.",
+    "Soviets accepted the aid like everyone else."
+   ],
+   "right": [
+    "Stalin refused and forced Eastern Europe to reject it.",
+    "Only Western Europe got Marshall Plan funds.",
+    "Cold War split: no Soviet participation at all."
+   ]
+  },
+  {
+   "kernelId": "history/postwar-civil-rights-legal-strategy",
+   "family": "civil rights gains after world war ii came mainly from symbo",
+   "wrong": [
+    "Marches and symbols were most important for change.",
+    "Court cases didn't matter much; it was all about attitudes.",
+    "Legal work was less important than public protests."
+   ],
+   "right": [
+    "Key victories came from lawsuits like Brown v. Board.",
+    "NAACP used courts to challenge segregation effectively.",
+    "Legal strategy targeted housing, schools, and voting."
+   ]
+  },
+  {
+   "kernelId": "history/postwar-civil-rights-legal-strategy",
+   "family": "shelley v kraemer ended housing discrimination by outlawing ",
+   "wrong": [
+    "The case made racial covenants illegal everywhere.",
+    "After Shelley, no one could write a racial covenant.",
+    "Private discrimination in housing was completely banned."
+   ],
+   "right": [
+    "It only stopped courts from enforcing such covenants.",
+    "Private agreements still existed but couldn't be enforced.",
+    "Limited enforcement, not the covenants themselves, were banned."
+   ]
+  },
+  {
+   "kernelId": "history/brown-v-board-education-holding",
+   "family": "brown v board declared segregation unconstitutional only whe",
+   "wrong": [
+    "So schools are fine if they have equal stuff.",
+    "They just had to make buildings and books the same.",
+    "Segregation is okay if facilities are equal, right?"
+   ],
+   "right": [
+    "Separation itself is unequal, so no segregation at all.",
+    "It's about the harm of being separate, not just resources.",
+    "Even with equal buildings, separate schools are illegal."
+   ]
+  },
+  {
+   "kernelId": "history/little-rock-nine-federal-intervention",
+   "family": "eisenhower eagerly pushed southern states to integrate schoo",
+   "wrong": [
+    "He was all for it and pushed integration hard.",
+    "Eisenhower wanted desegregation right away.",
+    "He was a big supporter of Brown from the start."
+   ],
+   "right": [
+    "He didn't agree but had to enforce the ruling anyway.",
+    "He only acted because of crisis, not enthusiasm.",
+    "He opposed the decision but did his duty as president."
+   ]
+  },
+  {
+   "kernelId": "history/reagan-revolution",
+   "family": "reagan won in 1980 because overall voter participation was u",
+   "wrong": [
+    "Reagan won because tons of people voted for him.",
+    "High turnout among all groups gave him the win.",
+    "The electorate was huge and diverse in 1980."
+   ],
+   "right": [
+    "Voter turnout was low, and voters were mostly older and White.",
+    "The electorate was not representative, so his win doesn't show broad support.",
+    "Low turnout by a specific demographic helped Reagan."
+   ]
+  },
+  {
+   "kernelId": "history/patco-strike-1981",
+   "family": "the patco episode strengthened federal unions and encouraged",
+   "wrong": [
+    "Unions got stronger after PATCO was fired.",
+    "Strikes became way more common after that.",
+    "PATCO showed unions can win against presidents."
+   ],
+   "right": [
+    "PATCO got crushed, and employers started replacing strikers.",
+    "It weakened unions and made strikes risky.",
+    "Reagan destroying PATCO made unions afraid to strike."
+   ]
+  },
+  {
+   "kernelId": "history/bush-doctrine",
+   "family": "the bush doctrine only meant retaliating after an attack had",
+   "wrong": [
+    "Bush just wanted to hit back if we got attacked.",
+    "It was only about revenge after 9/11.",
+    "No preemptive stuff, just retaliation."
+   ],
+   "right": [
+    "It was about attacking before threats become actual attacks.",
+    "Preemptive war against hostile regimes is key.",
+    "Bush doctrine allowed striking first to prevent attacks."
+   ]
+  },
+  {
+   "kernelId": "history/september-11-attacks",
+   "family": "the 9 11 attacks were carried out by a domestic u s group ra",
+   "wrong": [
+    "It was an inside job by Americans.",
+    "No foreign group was involved, just US citizens.",
+    "Government did it to start a war."
+   ],
+   "right": [
+    "Al-Qaeda hijackers from overseas did it.",
+    "It was a terrorist plot by a foreign group.",
+    "Planes were hijacked by al-Qaeda members."
+   ]
+  },
+  {
+   "kernelId": "history/operation-iraqi-freedom",
+   "family": "the iraq invasion quickly ended with no long term occupation",
+   "wrong": [
+    "We won fast and everything was fine.",
+    "No problems after the invasion, all good.",
+    "Occupation was smooth, no conflict."
+   ],
+   "right": [
+    "There was sectarian violence and lawlessness afterwards.",
+    "Victory was premature; occupation was a mess.",
+    "US wasn't ready for the chaos after the invasion."
+   ]
+  },
+  {
+   "kernelId": "lang/food-and-ordering-at-restaurants",
+   "family": "students may assume all restaurant interactions use the same",
+   "wrong": [
+    "I can talk to the server like my buddy.",
+    "No need to be polite, just casual talk.",
+    "Politeness doesn't matter in Korean restaurants."
+   ],
+   "right": [
+    "Use polite forms and set expressions to show respect.",
+    "Korean has levels; restaurant needs humble speech.",
+    "Don't be casual; use the right honorifics."
+   ]
+  },
+  {
+   "kernelId": "lang/daily-routines-and-time",
+   "family": "students may think that time expressions in korean work exac",
+   "wrong": [
+    "Just add 'at' and say the time like English.",
+    "Korean time words work exactly like English prepositions.",
+    "I can translate 'at 7 p.m.' word for word."
+   ],
+   "right": [
+    "Korean uses different particles and word order for time.",
+    "You have to learn time phrases, not translate directly.",
+    "Particles like 'e' are used, not prepositions."
+   ]
+  },
+  {
+   "kernelId": "lang/hangul-foundations",
+   "family": "hangul is an alphabet where letters are written in a simple ",
+   "wrong": [
+    "Hangul is just written left to right like English.",
+    "Letters are all in a straight line, no stacking.",
+    "It's just like our alphabet, no blocks."
+   ],
+   "right": [
+    "Hangul letters are grouped into syllable blocks.",
+    "It's alphabetic but stacked, not linear.",
+    "You combine consonants and vowels into blocks."
+   ]
+  },
+  {
+   "kernelId": "lang/hangul-foundations",
+   "family": "learning hangul means memorizing whole words",
+   "wrong": [
+    "I just memorize the whole word as a picture, why bother with letters?",
+    "Learning Hangul is like learning Chinese characters, you just memorize each word.",
+    "I thought Hangul was all about learning whole words by heart, not individual letters."
+   ],
+   "right": [
+    "I should learn the consonants and vowels first because Hangul is built from them.",
+    "I need to know the basic letters separately before combining them into syllables.",
+    "Understanding the alphabet first helps me read any syllable, not just memorized words."
+   ]
+  },
+  {
+   "kernelId": "lang/pronunciation-and-sound-patterns",
+   "family": "korean pronunciation is exactly the same as the spelling in ",
+   "wrong": [
+    "I see it written one way, so that's exactly how I should say it every time.",
+    "Why does the pronunciation change? The spelling is the real pronunciation.",
+    "I thought Korean is phonetic, so spelling equals pronunciation always."
+   ],
+   "right": [
+    "Pronunciation can change due to sound rules; spelling stays the same.",
+    "I need to learn the sound changes because speech doesn't always match spelling.",
+    "Korean has regular sound changes; I should study both forms."
+   ]
+  },
+  {
+   "kernelId": "lang/pronunciation-and-sound-patterns",
+   "family": "if a sound change happens the spelling should also change",
+   "wrong": [
+    "If the sound changes, the spelling should change too to match.",
+    "I think Korean should update its spelling when pronunciation changes.",
+    "Why isn't Korean spelling reformed to match the actual sound?"
+   ],
+   "right": [
+    "Spelling in Korean is often stable even if pronunciation shifts.",
+    "I accept that spelling doesn't always change with sound changes.",
+    "Korean spelling remains constant; I learn the pronunciation rules separately."
+   ]
+  },
+  {
+   "kernelId": "lang/greetings-and-introductions",
+   "family": "a single greeting works in every situation",
+   "wrong": [
+    "I use 'anyoung' for everyone, it's fine.",
+    "Why do I need different greetings? One should work.",
+    "I thought one greeting fits all situations in Korean."
+   ],
+   "right": [
+    "Greetings change based on politeness; I adjust to the relationship.",
+    "I use different greetings for professors, friends, and siblings.",
+    "Korean greetings depend on social context; one form doesn't fit all."
+   ]
+  },
+  {
+   "kernelId": "lang/numbers-age-and-counting",
+   "family": "you can count nouns in korean without counters",
+   "wrong": [
+    "I just say 'three chair' in Korean, no counter needed.",
+    "Counters are unnecessary; I just put the number before the noun.",
+    "I thought Korean counts like English, just number + noun."
+   ],
+   "right": [
+    "I need to use a counter between the number and the noun.",
+    "Korean requires measure words when counting most nouns.",
+    "I learned that counters are essential; I use the correct one."
+   ]
+  },
+  {
+   "kernelId": "lang/particles-and-sentence-basics",
+   "family": "korean word order must match english word order exactly",
+   "wrong": [
+    "I have to put words in English order for Korean to make sense.",
+    "Korean sentence order should be Subject-Verb-Object like English.",
+    "I rearrange Korean words to match English exactly."
+   ],
+   "right": [
+    "Korean uses particles to show roles, so order can vary.",
+    "The verb usually comes at the end; particles mark the grammar.",
+    "I don't need to copy English order; particles clarify meaning."
+   ]
+  },
+  {
+   "kernelId": "lang/present-tense-verb-conjugation",
+   "family": "the verb form stays unchanged no matter the subject or conte",
+   "wrong": [
+    "I use the same verb form for everyone; it's consistent.",
+    "Why change the verb? It should stay the same regardless.",
+    "I thought Korean verbs don't change form like English."
+   ],
+   "right": [
+    "Verb endings change based on politeness and context.",
+    "I conjugate verbs by adding different endings to the stem.",
+    "Korean verbs change form; I adjust for politeness and sentence type."
+   ]
+  },
+  {
+   "kernelId": "lang/present-tense-verb-conjugation",
+   "family": "present tense in korean is formed the same way as in english",
+   "wrong": [
+    "I add 'do' or 'am' like in English to make present tense.",
+    "Korean present tense works exactly like English auxiliary verbs.",
+    "I thought tense marking in Korean is similar to English."
+   ],
+   "right": [
+    "Korean uses stem-plus-ending patterns, not like English auxiliaries.",
+    "I attach endings to the verb stem for present tense.",
+    "Korean forms present tense by adding an ending to the verb stem."
+   ]
+  },
+  {
+   "kernelId": "lang/honorifics-and-politeness-levels",
+   "family": "honorifics are only used for royalty or extremely formal occ",
+   "wrong": [
+    "I only use honorifics when speaking to kings or in ceremonies.",
+    "Honorifics are for extremely formal situations only.",
+    "I thought honorifics aren't needed in everyday talk."
+   ],
+   "right": [
+    "Honorifics are used whenever respect is needed, even daily.",
+    "I use polite forms with elders and strangers, not just royalty.",
+    "Korean honorifics are common in everyday conversation for respect."
+   ]
+  },
+  {
+   "kernelId": "lang/asking-questions",
+   "family": "questions must be formed by moving the verb to the front of ",
+   "wrong": [
+    "I move the verb to the front to form questions like in English.",
+    "To ask a question, I put the verb first in Korean.",
+    "I thought Korean question formation requires verb fronting."
+   ],
+   "right": [
+    "Korean questions usually change the final ending, not move the verb.",
+    "I keep the order and use a question ending or question word.",
+    "To ask a question, I modify the verb ending, not its position."
+   ]
+  },
+  {
+   "kernelId": "lang/asking-questions",
+   "family": "every question needs a special question word",
+   "wrong": [
+    "You gotta have a question word every time you ask something, no exceptions.",
+    "Without a question word like 'what' or 'who', a sentence isn't a real question.",
+    "Questions always need a special word; otherwise how would anyone know you're asking?"
+   ],
+   "right": [
+    "Yes-no questions work fine with just a rising tone, no question word needed.",
+    "You don't need a question word for questions answered with yes or no.",
+    "Intonation or a question mark is enough; question words are for specific info."
+   ]
+  },
+  {
+   "kernelId": "lit/abecedarian-poem",
+   "family": "an abecedarian must rhyme or follow a fixed meter",
+   "wrong": [
+    "An abecedarian has to rhyme every line, no way around it.",
+    "Without a strict meter like iambic pentameter, it can't be an abecedarian.",
+    "Abecedarians require both rhyme and a set rhythm pattern, so this fails."
+   ],
+   "right": [
+    "It's abecedarian if each line starts with next letter, rhyme and meter don't matter.",
+    "The only rule is alphabetical order of first letters; iambic pentameter is just extra.",
+    "Abecedarians are about alphabet progression, not rhyme or meter at all."
+   ]
+  },
+  {
+   "kernelId": "lit/abecedarian-poem",
+   "family": "an abecedarian must use exactly 26 lines one per letter",
+   "wrong": [
+    "An abecedarian poem has exactly 26 lines, one for each letter, no more no less.",
+    "You can't call it an abecedarian if it doesn't go through all 26 letters on separate lines.",
+    "The whole point is to use every letter once, so it must be 26 lines."
+   ],
+   "right": [
+    "Abecedarian only needs alphabetical order of first letters, line count can vary.",
+    "You don't need 26 lines; as long as lines progress through the alphabet, it counts.",
+    "Alphabetical progression is key, not a specific number of lines like 26."
+   ]
+  },
+  {
+   "kernelId": "lit/ballad-form",
+   "family": "all ballads must follow one fixed structure with no variatio",
+   "wrong": [
+    "Ballads have one strict pattern that never changes, no variations allowed.",
+    "If the lines vary at all, it breaks the ballad form completely.",
+    "Every ballad must follow the exact same meter and rhyme scheme, no exceptions."
+   ],
+   "right": [
+    "Ballads can have different patterns; the common one is just one of many.",
+    "The form is flexible; variation in lines is totally fine for ballads.",
+    "Ballads are defined by storytelling and rhythm, not one rigid structure."
+   ]
+  },
+  {
+   "kernelId": "lit/ballad-form",
+   "family": "a ballad is defined mainly by being about love or dawn",
+   "wrong": [
+    "Ballads are all about love or sunrises, so mentioning dawn makes it a ballad.",
+    "If a poem talks about dawn, it's automatically a ballad by definition.",
+    "The main thing that makes a ballad is its topic, like love or morning."
+   ],
+   "right": [
+    "Ballads are about telling a story with rhythm, not just the subject matter.",
+    "Topic doesn't define a ballad; it's the narrative and musical quality that matter.",
+    "Any poem can have dawn, but ballads need a story and a beat to qualify."
+   ]
+  },
+  {
+   "kernelId": "lit/ghazal-form",
+   "family": "in a ghazal every line must end with the same rhyme and refr",
+   "wrong": [
+    "In a ghazal, every single line must end with the same rhyme and refrain word.",
+    "The whole poem repeats the same rhyme and refrain in every line without fail.",
+    "Ghazals require the rhyme and refrain at the end of each and every line."
+   ],
+   "right": [
+    "Only the second line of each couplet after the first needs the rhyme and refrain.",
+    "The refrain appears in the first couplet's both lines, then only in second lines of later couplets.",
+    "You don't put the refrain at the end of every line, just the second line of each couplet."
+   ]
+  },
+  {
+   "kernelId": "lit/scansion",
+   "family": "scansion is an objective procedure that always yields one co",
+   "wrong": [
+    "Scansion is totally objective and there's only one right way to scan a line.",
+    "If two scans disagree, one of them must be wrong because scansion is exact.",
+    "Scansion gives one correct answer every time; it's not up to interpretation."
+   ],
+   "right": [
+    "Scansion can be subjective because readers hear stress differently.",
+    "Different readers might hear different rhythms, so both scans could be valid.",
+    "Scansion is about interpretation; stress patterns aren't always fixed."
+   ]
+  },
+  {
+   "kernelId": "lit/scansion",
+   "family": "a foot must always align with whole words",
+   "wrong": [
+    "Feet in scansion always match whole words, never split a word across feet.",
+    "You should only split feet between words, never inside a word.",
+    "Scansion feet must line up with word boundaries, no exceptions."
+   ],
+   "right": [
+    "Feet can break across words; scansion is about syllables, not whole words.",
+    "You can split words between feet; it's about stress patterns, not words.",
+    "Scansion divides by syllables, so feet often cut through words."
+   ]
+  },
+  {
+   "kernelId": "lit/metrical-feet-and-line-length",
+   "family": "a dactyl and an anapest have the same stress order",
+   "wrong": [
+    "Dactyl and anapest both start with a heavy stress and end with two lights.",
+    "They're the same pattern, just different names for the same thing.",
+    "Both feet have the stress on the first syllable, so they're identical."
+   ],
+   "right": [
+    "Dactyl is heavy-light-light, anapest is light-light-heavy, total opposites.",
+    "A dactyl starts heavy, an anapest ends heavy, so stress order is reversed.",
+    "Dactyl puts stress first, anapest puts stress last; they're not the same."
+   ]
+  },
+  {
+   "kernelId": "lit/rhyme-scheme-and-internal-rhyme",
+   "family": "rhyme scheme only applies to poems with perfect end rhymes",
+   "wrong": [
+    "Rhyme scheme only counts perfect rhymes at the end of lines, nothing else.",
+    "If the rhymes aren't exact and at line ends, there's no rhyme scheme.",
+    "Slant rhymes and internal rhymes don't count towards a rhyme scheme."
+   ],
+   "right": [
+    "Slant rhymes and internal rhymes are part of the rhyme scheme too.",
+    "A rhyme scheme can include off rhymes and rhymes inside lines, not just ends.",
+    "Imperfect rhymes and internal ones still create a pattern for the scheme."
+   ]
+  },
+  {
+   "kernelId": "lit/rhyme-scheme-and-internal-rhyme",
+   "family": "free verse never uses rhyme",
+   "wrong": [
+    "Free verse has no rhyme at all, that's the whole point.",
+    "If it rhymes, it's not free verse. Simple as that.",
+    "Real free verse poets avoid rhyme completely."
+   ],
+   "right": [
+    "Free verse can have internal rhyme, just not regular end rhymes.",
+    "Internal rhymes still count, even without a set pattern.",
+    "Rhyme isn't banned in free verse, it's just not forced."
+   ]
+  },
+  {
+   "kernelId": "lit/language-of-images",
+   "family": "abstract statements about emotions are as engaging as concre",
+   "wrong": [
+    "Saying 'I felt sad' gets the feeling across just fine.",
+    "Abstract words are powerful enough without needing imagery.",
+    "A direct statement of emotion is the most honest way."
+   ],
+   "right": [
+    "Specific images like a folded letter pull you into the moment.",
+    "Concrete details make the feeling real and relatable.",
+    "Abstract statements are vague; images show the experience."
+   ]
+  },
+  {
+   "kernelId": "lit/genres-and-imagery",
+   "family": "all genres use imagery equally imagery is just a decorative",
+   "wrong": [
+    "Every genre needs the same amount of imagery to be good.",
+    "Imagery is just decoration, so all genres use it equally.",
+    "News articles should be full of vivid images like poems."
+   ],
+   "right": [
+    "Literary genres lean on imagery; news aims for clear facts.",
+    "Each genre has a purpose; imagery fits literary ones best.",
+    "Utilitarian writing uses fewer images because it's about info."
+   ]
+  },
+  {
+   "kernelId": "lit/negative-capability-reading",
+   "family": "poems can t create a bodily experience because they only use",
+   "wrong": [
+    "Words on a page can't make your body feel anything.",
+    "Poetry is just mental; it has no physical effect.",
+    "Ink can't create a bodily reaction like a song does."
+   ],
+   "right": [
+    "Rhythm and pauses in a poem can make your body respond.",
+    "Reading aloud, you feel the stresses and speed physically.",
+    "Poetry engages your body through voice and breath."
+   ]
+  },
+  {
+   "kernelId": "lit/teach-and-delight",
+   "family": "to make literature appealing teachers should simplify it by",
+   "wrong": [
+    "Simplifying makes old poems easier and more fun to read.",
+    "Cutting hard language is the best way to teach classics.",
+    "Students will enjoy poetry more if it's dumbed down."
+   ],
+   "right": [
+    "Simplifying too much can ruin the value and pleasure.",
+    "Good teaching keeps the challenge but makes it engaging.",
+    "You can explain without cheapening the work's depth."
+   ]
+  },
+  {
+   "kernelId": "lit/oral-formulaic-composition",
+   "family": "repetition and recurring epithets in the iliad are simply sl",
+   "wrong": [
+    "Repeating lines is just lazy writing in Homer.",
+    "Epithets are filler the poet couldn't think of something new.",
+    "It's a flaw that Homer didn't vary his descriptions."
+   ],
+   "right": [
+    "Repetition helps the performer keep rhythm and compose on the fly.",
+    "Those repeats are tools for oral performance, not mistakes.",
+    "They aid memory and meter during live recitation."
+   ]
+  },
+  {
+   "kernelId": "lit/oral-formulaic-composition",
+   "family": "an oral epic is memorized exactly the way modern readers mem",
+   "wrong": [
+    "Homer memorized his poems word for word like we do.",
+    "Oral poets recited from a fixed text in their head.",
+    "The Iliad was performed exactly as written each time."
+   ],
+   "right": [
+    "Rhapsodes recreated the story each time with flexible memory.",
+    "Oral epics were improvised around key episodes, not memorized.",
+    "No fixed text; performers composed each recitation anew."
+   ]
+  },
+  {
+   "kernelId": "lit/in-medias-res",
+   "family": "to understand the iliad readers only need the events describ",
+   "wrong": [
+    "The poem starts in the middle, so only those days matter.",
+    "What happened before doesn't affect understanding the story.",
+    "You don't need to know the backstory to get the Iliad."
+   ],
+   "right": [
+    "You need the mythological background to grasp the full story.",
+    "The poem assumes you know the larger Trojan War context.",
+    "Earlier events are crucial for understanding the characters."
+   ]
+  },
+  {
+   "kernelId": "lit/odyssey-vs-iliad-focus",
+   "family": "odysseus heroism in the odyssey is primarily about battle st",
+   "wrong": [
+    "Odysseus is a hero because he's strong in battle.",
+    "Fighting skill is what makes Odysseus great.",
+    "His heroism is all about physical combat prowess."
+   ],
+   "right": [
+    "Odysseus' cleverness and wit make him a true hero.",
+    "His intelligence and adaptability matter more than strength.",
+    "The Odyssey values mental ability over physical might."
+   ]
+  },
+  {
+   "kernelId": "lit/mystery-of-paternity-telemachos",
+   "family": "the mystery of paternity is only about whether odysseus is t",
+   "wrong": [
+    "It's just a DNA question: is Odysseus his dad or not?",
+    "The mystery is only about biological fatherhood.",
+    "Telemachos just needs to know his dad's identity."
+   ],
+   "right": [
+    "It's about Telemachos forming his own identity without his dad.",
+    "The mystery is about self-definition, not just biology.",
+    "He must become himself apart from his father's shadow."
+   ]
+  },
+  {
+   "kernelId": "lit/shakespeare-drama-and-poetry-dual-nature",
+   "family": "shakespeare s plays should be studied only as theatre perfor",
+   "wrong": [
+    "Shakespeare's plays are just for acting, nothing else matters.",
+    "If you read it silently, you miss the real play.",
+    "The words don't matter as much as the performance."
+   ],
+   "right": [
+    "They're both poetic texts and scripts for the stage.",
+    "You can't separate the language from the drama.",
+    "Understanding them means reading and watching, both."
+   ]
+  },
+  {
+   "kernelId": "lit/shakespeare-drama-and-poetry-dual-nature",
+   "family": "seeing a stage or film version gives the definitive meaning ",
+   "wrong": [
+    "The director's version is the one true meaning of the play.",
+    "Once you watch a movie, that's what Shakespeare meant.",
+    "Film adaptations settle the debate about what the play says."
+   ],
+   "right": [
+    "Any production is just one possible take on the text.",
+    "No single performance can claim to be the final word.",
+    "Different directors will always bring out different meanings."
+   ]
+  },
+  {
+   "kernelId": "lit/reading-shakespeare-as-director",
+   "family": "there is only one historically correct costume approach for ",
+   "wrong": [
+    "You have to dress them exactly like Romans or it's wrong.",
+    "Historical accuracy is the only rule for costumes.",
+    "There's no room for creativity with Shakespeare's costumes."
+   ],
+   "right": [
+    "Many different costume styles can all work and make sense.",
+    "You can justify modern clothes or ancient ones depending on your vision.",
+    "The play allows for lots of interpretations in costuming."
+   ]
+  },
+  {
+   "kernelId": "lit/shakespeare-wordplay-integral-meaning",
+   "family": "shakespeare s puns and sexual jokes are mostly filler meant ",
+   "wrong": [
+    "The jokes are just for the groundlings and not important.",
+    "You can skip the puns because they don't add to the plot.",
+    "The dirty jokes are just filler to keep the audience entertained."
+   ],
+   "right": [
+    "Even the crude humor carries serious themes and meanings.",
+    "Every pun and double entendre connects to the play's big ideas.",
+    "The porter's jokes actually reflect the horror of the murder."
+   ]
+  },
+  {
+   "kernelId": "lit/shakespeare-wordplay-integral-meaning",
+   "family": "if a scene feels like comic relief it can be ignored as unre",
+   "wrong": [
+    "Comic relief scenes are pointless and can be cut out.",
+    "The funny parts don't belong in a tragedy, so skip them.",
+    "Ignoring the porter scene won't change your understanding."
+   ],
+   "right": [
+    "The comic scene actually echoes the play's dark events.",
+    "What seems funny is often linked to the tragic action.",
+    "The porter's humor makes the horror even more intense."
+   ]
+  },
+  {
+   "kernelId": "lit/epistolary-novel",
+   "family": "epistolary novels can assume illiteracy for main characters ",
+   "wrong": [
+    "Characters don't need to be literate for the letter format to work.",
+    "The letters could be dictated, so illiteracy isn't a problem.",
+    "You can still have an epistolary novel even if the hero can't write."
+   ],
+   "right": [
+    "The whole story depends on characters who can write and read.",
+    "If the main character couldn't write, the letter format collapses.",
+    "The form assumes literacy; otherwise the letters wouldn't exist."
+   ]
+  },
+  {
+   "kernelId": "lit/picaresque-satire-touchstone",
+   "family": "don quixote is only a fool for laughs so the satire lacks mo",
+   "wrong": [
+    "Don Quixote is just a joke, nothing serious about society.",
+    "The satire is shallow because the main character is ridiculous.",
+    "Cervantes only makes fun, no deeper social critique."
+   ],
+   "right": [
+    "Quixote's idealism highlights how selfish others are.",
+    "His foolishness becomes a mirror that reveals society's flaws.",
+    "Through his eyes, we see the lack of true nobility in others."
+   ]
+  },
+  {
+   "kernelId": "lit/reader-response-interaction",
+   "family": "a novel has a single fully objective meaning independent of ",
+   "wrong": [
+    "The author's intended meaning is the only correct one.",
+    "A book means the same thing to everyone who reads it.",
+    "There is one true interpretation, and we can find it."
+   ],
+   "right": [
+    "Each reader brings their own experience, so meanings differ.",
+    "The text changes based on who is reading it.",
+    "Objective meaning doesn't exist because reading is personal."
+   ]
+  },
+  {
+   "kernelId": "lit/reader-response-interaction",
+   "family": "reading is passive the book changes nothing in the reader",
+   "wrong": [
+    "Reading is just receiving information, not changing you.",
+    "The book stays the same; only my feelings change.",
+    "Words are static, so nothing really happens when you read."
+   ],
+   "right": [
+    "Reading actively alters your thoughts and perspective.",
+    "A good book gets inside you and changes how you see things.",
+    "The interaction with text transforms your consciousness."
+   ]
+  },
+  {
+   "kernelId": "lit/gender-and-publication-history",
+   "family": "women writers were rare mainly because women were less capab",
+   "wrong": [
+    "Women just weren't as good at writing as men.",
+    "Natural ability differences explain why few women wrote.",
+    "Women didn't have the talent to produce great literature."
+   ],
+   "right": [
+    "Social barriers like lack of education held women back.",
+    "Publishing was harder for women, not because of ability.",
+    "Restricted access to schooling, not talent, explains the gap."
+   ]
+  },
+  {
+   "kernelId": "lit/austen-style-wit-delicacy",
+   "family": "austen s main appeal is sensational characters and overt pas",
+   "wrong": [
+    "Jane Austen is all about dramatic love stories and crazy emotions.",
+    "She writes like a Gothic novel with big passions.",
+    "Austen's characters are over-the-top and sensational, full of passion."
+   ],
+   "right": [
+    "It's the subtle wit and ordinary characters that make Austen great.",
+    "She reveals deep insights through quiet, controlled prose.",
+    "Austen's charm is in her clever observations, not melodrama."
+   ]
+  },
+  {
+   "kernelId": "lit/literary-realism-as-illusion",
+   "family": "a realistic novel is one that reports reality directly and o",
+   "wrong": [
+    "Realism means the novel is 100% true to life.",
+    "Only factual accuracy makes a novel realistic.",
+    "A realistic novel must be an exact report of reality."
+   ],
+   "right": [
+    "Realism is an effect created by language, not literal truth.",
+    "A novel feels real because of how it's written, not facts.",
+    "The words on the page create the illusion of reality."
+   ]
+  },
+  {
+   "kernelId": "lit/dickens-magician-realism",
+   "family": "because dickens uses outrageous situations his novels cannot",
+   "wrong": [
+    "Dickens's novels are just fantasy, no real lessons.",
+    "Outrageous plots can't teach anything about society.",
+    "Improbable events mean no insights into real life."
+   ],
+   "right": [
+    "They teach about society and relationships even with wild plots.",
+    "Improbable events can still reveal truths about human nature.",
+    "Dickens uses outrageous situations to illuminate real social issues."
+   ]
+  },
+  {
+   "kernelId": "lit/serialization-and-novel-length",
+   "family": "long dickens novels are long mainly because he added filler ",
+   "wrong": [
+    "Dickens stretched his novels by adding extra scenes.",
+    "He padded the books with filler to make them longer.",
+    "The length is just from adding unnecessary material."
+   ],
+   "right": [
+    "Dickens's novels are long but without filler, every part matters.",
+    "Serialization shaped length but not by padding with filler.",
+    "The novels are purposeful, not stretched by added scenes."
+   ]
+  },
+  {
+   "kernelId": "lit/serialization-and-novel-length",
+   "family": "victorian readers experienced these novels the same way mode",
+   "wrong": [
+    "Reading a long novel today feels just like Victorian times.",
+    "Victorian readers experienced the book the same as we do.",
+    "There's no difference in how they read and how we read."
+   ],
+   "right": [
+    "Monthly installments made the reading experience very different.",
+    "Serialization created anticipation and breaks that we don't have.",
+    "Victorian readers experienced the novel in parts, not all at once."
+   ]
+  },
+  {
+   "kernelId": "math/singular-value-decomposition",
+   "family": "singular values are the same as eigenvalues",
+   "wrong": [
+    "Singular values are exactly the same as eigenvalues.",
+    "For any matrix, singular values equal eigenvalues.",
+    "Eigenvalues and singular values are identical."
+   ],
+   "right": [
+    "Singular values are the square roots of eigenvalues of AᵀA.",
+    "They come from AᵀA, not directly from the matrix.",
+    "For non-square matrices, singular values differ from eigenvalues."
+   ]
+  },
+  {
+   "kernelId": "math/singular-value-decomposition",
+   "family": "svd only works for square matrices",
+   "wrong": [
+    "SVD only works on square matrices.",
+    "You can't do SVD on a rectangular matrix.",
+    "SVD is restricted to square matrices only."
+   ],
+   "right": [
+    "SVD works for any matrix, square or rectangular.",
+    "Every matrix has an SVD, even non-square ones.",
+    "Rectangular matrices are commonly compressed using SVD."
+   ]
+  },
+  {
+   "kernelId": "math/change-of-basis",
+   "family": "changing basis changes the vector itself",
+   "wrong": [
+    "Changing basis actually moves the vector.",
+    "The vector itself changes when you change basis.",
+    "A different basis gives a different vector."
+   ],
+   "right": [
+    "The vector stays the same, only the coordinates change.",
+    "It's like describing the same point in a new grid.",
+    "Change of basis doesn't alter the vector, just its description."
+   ]
+  },
+  {
+   "kernelId": "math/change-of-basis",
+   "family": "similar matrices are equal",
+   "wrong": [
+    "If they have same eigenvalues, the matrices are equal.",
+    "Similar matrices are exactly the same matrix.",
+    "Same determinant and rank means they are identical."
+   ],
+   "right": [
+    "They are similar, representing the same transformation in different bases.",
+    "Similar matrices share invariants but have different entries.",
+    "They are not equal, just similar with same eigenvalues etc."
+   ]
+  },
+  {
+   "kernelId": "math/limit-of-function",
+   "family": "if f a is undefined then lim x a f x cannot exist",
+   "wrong": [
+    "If the function is undefined at a point, the limit doesn't exist.",
+    "No function value means no limit possible.",
+    "Undefined at the point automatically means no limit."
+   ],
+   "right": [
+    "The limit exists if values approach a number from both sides.",
+    "Undefined at the point doesn't stop the limit from existing.",
+    "Limits care about behavior near, not at, the point."
+   ]
+  },
+  {
+   "kernelId": "math/limit-of-function",
+   "family": "the limit must equal the function value at the point",
+   "wrong": [
+    "The limit has to be 10 since that's the function value.",
+    "The limit is always the same as the function value.",
+    "If the function value is 10, the limit can't be 7."
+   ],
+   "right": [
+    "The limit is about what values approach, not the actual value.",
+    "Limit and function value can be different if there's a jump.",
+    "The limit is 7 because nearby values go to 7."
+   ]
+  },
+  {
+   "kernelId": "math/limit-laws",
+   "family": "you can always apply the quotient law to any ratio of limits",
+   "wrong": [
+    "No need to check, quotient law works for any ratio.",
+    "It's always valid to apply quotient law.",
+    "Quotient law works even if denominator limit is zero."
+   ],
+   "right": [
+    "First check that denominator's limit isn't zero.",
+    "Quotient law fails if denominator limit is zero.",
+    "You must ensure denominator limit is nonzero."
+   ]
+  },
+  {
+   "kernelId": "math/limit-laws",
+   "family": "each algebraic rewrite is allowed even if one of the interme",
+   "wrong": [
+    "Algebraic rewrite makes the limit valid anyway.",
+    "If you rewrite, the limit laws always apply.",
+    "The rewrite cancels the problem, so it's fine."
+   ],
+   "right": [
+    "Each step in limit laws needs a real limit first.",
+    "If an intermediate limit doesn't exist, you can't apply law.",
+    "The rewriting doesn't make a nonexistent limit exist."
+   ]
+  },
+  {
+   "kernelId": "math/derivative-function",
+   "family": "if a function has a derivative at one point it has a derivat",
+   "wrong": [
+    "If it's differentiable at 2, it's differentiable everywhere.",
+    "Having a derivative at one point means the whole function is smooth.",
+    "Existence of f'(2) proves differentiability for all x."
+   ],
+   "right": [
+    "Differentiability is pointwise; other points can fail.",
+    "The function could be differentiable at 2 but not elsewhere.",
+    "A single point doesn't guarantee differentiability everywhere."
+   ]
+  },
+  {
+   "kernelId": "math/derivative-function",
+   "family": "dy dx is only a fraction and never a derivative symbol",
+   "wrong": [
+    "dy/dx is just a fraction, not a derivative.",
+    "That symbol always means a ratio, never a derivative.",
+    "dy/dx can't represent a derivative in any context."
+   ],
+   "right": [
+    "dy/dx is Leibniz notation for the derivative.",
+    "That's standard derivative notation, not a fraction.",
+    "In calculus, dy/dx commonly means the derivative."
+   ]
+  },
+  {
+   "kernelId": "math/differentiability-continuity",
+   "family": "every continuous function is differentiable",
+   "wrong": [
+    "If it's continuous, it must be differentiable.",
+    "No gaps mean it has a derivative everywhere.",
+    "Continuity guarantees the derivative exists."
+   ],
+   "right": [
+    "Continuity is needed for differentiability but not enough.",
+    "A corner breaks differentiability even if continuous.",
+    "Continuous functions can have non-differentiable points."
+   ]
+  },
+  {
+   "kernelId": "math/differentiability-continuity",
+   "family": "if a graph has no breaks then it has a derivative everywhere",
+   "wrong": [
+    "No breaks means it's smooth enough to have a derivative.",
+    "A continuous graph must have a derivative at every point.",
+    "The absolute value graph has no breaks, so it's differentiable everywhere."
+   ],
+   "right": [
+    "Continuous graphs can have corners like |x| at 0.",
+    "Sharp turns make the derivative undefined at that point.",
+    "The derivative of |x| doesn't exist at 0."
+   ]
+  },
+  {
+   "kernelId": "math/constant-and-power-rules",
+   "family": "a constant function has nonzero slope because it is always c",
+   "wrong": [
+    "The slope must be 12 because the function value is 12.",
+    "Since x changes, the slope is not zero.",
+    "Constant functions have a slope of 12."
+   ],
+   "right": [
+    "The derivative of a constant is 0.",
+    "A horizontal line has slope zero.",
+    "Constant functions don't change, so derivative is zero."
+   ]
+  },
+  {
+   "kernelId": "math/constant-and-power-rules",
+   "family": "the power rule works for every exponential expression",
+   "wrong": [
+    "Power rule applies to any exponent expression.",
+    "3^x is just like x^3, so power rule works.",
+    "You can apply power rule to 3^x."
+   ],
+   "right": [
+    "Power rule is for x raised to a constant, not constant raised to x.",
+    "3^x is an exponential function, needs different rule.",
+    "You can't use power rule on 3^x; it's a^x form."
+   ]
+  },
+  {
+   "kernelId": "math/sum-difference-constant-multiple-rules",
+   "family": "a constant multiple disappears when differentiating",
+   "wrong": [
+    "The 7 vanishes when you differentiate.",
+    "Constants never affect the derivative.",
+    "The derivative of 7f(x) is just f'(x)."
+   ],
+   "right": [
+    "The constant stays as a multiplier: 7f'(x).",
+    "Constant multiple rule: bring constant out.",
+    "The derivative of 7f(x) is 7 times f'(x)."
+   ]
+  },
+  {
+   "kernelId": "math/critical-points",
+   "family": "every critical point is a local maximum or minimum",
+   "wrong": [
+    "It must be a minimum or maximum because it's a critical point.",
+    "Derivative zero means it's either a peak or a valley.",
+    "If derivative equals zero, there's always a local extremum there."
+   ],
+   "right": [
+    "It's a critical point but not a max or min; derivative zero is just a candidate.",
+    "Critical points need checking, not all are extremes like on x^3.",
+    "Derivative zero doesn't guarantee an extremum; the function can be flat."
+   ]
+  },
+  {
+   "kernelId": "math/absolute-extrema",
+   "family": "an absolute extremum must be positive",
+   "wrong": [
+    "Absolute means absolute value, so extrema are always positive.",
+    "An absolute min can't be negative because absolute is positive.",
+    "Absolute extremum must be bigger than zero since it's the extreme."
+   ],
+   "right": [
+    "Absolute extrema can be negative, zero, or positive; it's just the overall extreme.",
+    "Absolute here means overall, not absolute value, so negative is allowed.",
+    "The minimum value can be negative; absolute doesn't mean positive."
+   ]
+  },
+  {
+   "kernelId": "math/first-derivative-test",
+   "family": "any critical point must be a local extremum",
+   "wrong": [
+    "All critical points are automatically local max or min.",
+    "If derivative is zero, it has to be a local extremum.",
+    "Critical points always give peaks or valleys, no need to check."
+   ],
+   "right": [
+    "Not all critical points are extrema; check if derivative changes sign.",
+    "Critical points are just candidates; test sign change for confirmation.",
+    "The first derivative test determines if it's a max, min, or neither."
+   ]
+  },
+  {
+   "kernelId": "math/first-derivative-test",
+   "family": "you must compute second derivatives to use the first derivat",
+   "wrong": [
+    "You need f'' to use the first derivative test; it's required.",
+    "Without second derivative, you can't tell if it's a max or min.",
+    "First derivative test is useless without second derivative information."
+   ],
+   "right": [
+    "First derivative test only needs sign of f' around critical points.",
+    "You only check if f' changes from positive to negative or vice versa.",
+    "Second derivative is for concavity; first derivative test is separate."
+   ]
+  },
+  {
+   "kernelId": "math/concavity-second-derivative",
+   "family": "a positive second derivative always means the function is in",
+   "wrong": [
+    "Positive f'' means the function is increasing.",
+    "If f'' is positive, the graph is going up.",
+    "Second derivative positive tells that the function rises."
+   ],
+   "right": [
+    "f'' positive means concave up, not increasing; f' tells rising.",
+    "Concavity is about curvature, not direction; check f' for increase.",
+    "Increasing is determined by f', not f''; f'' gives shape."
+   ]
+  },
+  {
+   "kernelId": "math/concavity-second-derivative",
+   "family": "concavity can be determined by looking only at a single poin",
+   "wrong": [
+    "At a point where f''>0, the graph is concave up everywhere.",
+    "Checking one point is enough to decide concavity on the whole graph.",
+    "If f''(x) is positive at a point, the function is concave up globally."
+   ],
+   "right": [
+    "Concavity is determined over intervals, not at single points.",
+    "You need to check f'' sign on an open interval, not just one x.",
+    "A single point can't tell concavity; it must be consistent on an interval."
+   ]
+  },
+  {
+   "kernelId": "math/antiderivative",
+   "family": "an antiderivative of f is unique",
+   "wrong": [
+    "There is only one antiderivative because derivative is unique.",
+    "If two functions have same derivative, they must be identical.",
+    "Antiderivatives are unique; adding constants changes the derivative."
+   ],
+   "right": [
+    "Antiderivatives differ by a constant; both are correct families.",
+    "Any two antiderivatives differ by constant C, not unique.",
+    "The constant doesn't affect derivative, so there are infinitely many."
+   ]
+  },
+  {
+   "kernelId": "math/antiderivative",
+   "family": "adding a constant changes whether a function is an antideriv",
+   "wrong": [
+    "Adding 7 changes the derivative, so it's no longer an antiderivative.",
+    "Only x^2 is an antiderivative, x^2+7 has a different derivative.",
+    "A constant shift changes the function, so derivative changes too."
+   ],
+   "right": [
+    "Derivative of constant is zero, so x^2+7 still gives 2x.",
+    "Adding any constant keeps the same derivative; it's still an antiderivative.",
+    "All x^2+C are antiderivatives; constant doesn't affect derivative."
+   ]
+  },
+  {
+   "kernelId": "math/riemann-sum",
+   "family": "the approximation is exact as soon as rectangles are used",
+   "wrong": [
+    "Rectangles cover the area exactly, so it's a perfect estimate.",
+    "Using rectangles gives the exact area under the curve.",
+    "The sum of rectangle areas equals the area under the curve."
+   ],
+   "right": [
+    "Rectangles approximate area; it's exact only in limit as width→0.",
+    "It's an approximation; error decreases with more rectangles.",
+    "No, rectangles only estimate; exact area needs integral."
+   ]
+  },
+  {
+   "kernelId": "math/riemann-sum",
+   "family": "left endpoint and right endpoint methods use the same height",
+   "wrong": [
+    "Both use f at the same point, just different rectangle placement.",
+    "Left and right endpoints both use f(x_i) for each subinterval.",
+    "The heights are the same because both evaluate at the partition points."
+   ],
+   "right": [
+    "Left uses f at left endpoint; right uses f at right endpoint.",
+    "They differ: left uses x_{i-1}, right uses x_i for each subinterval.",
+    "Heights are from different points; left uses start, right uses end."
+   ]
+  },
+  {
+   "kernelId": "math/fundamental-theorem-calculus-part-1",
+   "family": "the theorem only says integration and differentiation are un",
+   "wrong": [
+    "Integration and differentiation have nothing to do with each other.",
+    "The theorem just says they're different, not connected.",
+    "You can do one without affecting the other."
+   ],
+   "right": [
+    "Differentiating the integral gives back the original function, so they're linked.",
+    "Part 1 shows that integration undoes differentiation, like inverse operations.",
+    "The theorem proves that differentiation reverses integration, so they're connected."
+   ]
+  },
+  {
+   "kernelId": "math/fundamental-theorem-calculus-part-2",
+   "family": "part 2 is unrelated to part 1",
+   "wrong": [
+    "Part 2 has nothing to do with Part 1, it's a separate idea.",
+    "Part 2 is just a shortcut, not connected to differentiation.",
+    "They teach different concepts, Part 1 is about derivatives, Part 2 is about area."
+   ],
+   "right": [
+    "Part 2 builds on Part 1, using antiderivatives to evaluate integrals.",
+    "Both parts connect differentiation and integration; Part 2 is the evaluation theorem.",
+    "Part 2 is directly derived from Part 1, making integration easier."
+   ]
+  },
+  {
+   "kernelId": "nursing/blood-components",
+   "family": "students think of blood as a simple liquid rather than a tis",
+   "wrong": [
+    "Blood is just a liquid, not a real tissue.",
+    "It's just cells floating in water, no matrix.",
+    "Tissues are solid, blood is fluid so it's not a tissue."
+   ],
+   "right": [
+    "Blood is a connective tissue with plasma as its matrix.",
+    "It has formed elements suspended in fluid, same tissue organization as bone.",
+    "Blood's fluid matrix makes it a specialized connective tissue."
+   ]
+  },
+  {
+   "kernelId": "nursing/cardiac-cycle",
+   "family": "students assume a fast heart rate always means a high cardia",
+   "wrong": [
+    "Faster heart rate always pumps more blood.",
+    "Cardiac output increases with heart rate, no exceptions.",
+    "If heart rate rises, output must rise too."
+   ],
+   "right": [
+    "Cardiac output is heart rate times stroke volume, so if stroke volume drops, output can fall.",
+    "Fast rate can reduce filling time, lowering stroke volume and possibly output.",
+    "Output depends on both; a fast heart doesn't guarantee high output."
+   ]
+  },
+  {
+   "kernelId": "nursing/gas-exchange",
+   "family": "students think the body actively pumps oxygen across the lun",
+   "wrong": [
+    "The body uses energy to push oxygen into blood.",
+    "Oxygen is actively transported across the membrane.",
+    "Cells pump oxygen from air to blood."
+   ],
+   "right": [
+    "Oxygen diffuses down its partial pressure gradient, no energy needed.",
+    "Simple diffusion drives gas exchange, not active transport.",
+    "Both gases move passively from high to low pressure."
+   ]
+  },
+  {
+   "kernelId": "nursing/fluid-electrolyte-balance",
+   "family": "students think water is actively pumped from one fluid compa",
+   "wrong": [
+    "Water is actively pumped into the extracellular space.",
+    "The body moves water by using energy.",
+    "Cells actively transport water across membranes."
+   ],
+   "right": [
+    "Water follows sodium by osmosis, no active transport of water.",
+    "Osmosis moves water passively toward higher solute concentration.",
+    "Water shifts due to solute gradients, not active pumping."
+   ]
+  },
+  {
+   "kernelId": "nursing/innate-adaptive-immunity",
+   "family": "students think the innate immune system gets stronger after ",
+   "wrong": [
+    "Innate immunity improves after you get sick.",
+    "Your first line defenses get better with each infection.",
+    "Innate immune cells remember past pathogens."
+   ],
+   "right": [
+    "Only adaptive immunity has memory; innate is always the same.",
+    "Innate defenses don't adapt; adaptive immunity does.",
+    "Vaccines boost adaptive, not innate immunity."
+   ]
+  },
+  {
+   "kernelId": "nursing/inflammation",
+   "family": "students view inflammation as purely harmful and always to b",
+   "wrong": [
+    "Inflammation is bad and should always be stopped.",
+    "Redness and swelling mean something is wrong, suppress it.",
+    "Inflammation only causes damage, no benefit."
+   ],
+   "right": [
+    "Inflammation is protective; it brings immune cells to the injury.",
+    "It's harmful only if excessive or chronic; normally it heals.",
+    "Acute inflammation helps fight infection and repair tissue."
+   ]
+  },
+  {
+   "kernelId": "nursing/viral-replication",
+   "family": "students think antibiotics can cure viral infections such as",
+   "wrong": [
+    "Antibiotics kill viruses just like bacteria.",
+    "Antibiotics treat colds and flu.",
+    "Any infection can be cured with antibiotics."
+   ],
+   "right": [
+    "Antibiotics target bacterial cell walls; viruses need antivirals.",
+    "Viruses live inside cells; antibiotics don't work there.",
+    "Colds are viral, so antibiotics are useless; rest and fluids help."
+   ]
+  },
+  {
+   "kernelId": "nursing/antimicrobial-resistance",
+   "family": "patients believe stopping an antibiotic early once they feel",
+   "wrong": [
+    "If you feel better, you can stop the antibiotic.",
+    "Taking less antibiotic is safer for your body.",
+    "Stopping early prevents side effects."
+   ],
+   "right": [
+    "Stopping early lets resistant bacteria survive and multiply.",
+    "Finish the full course to ensure all bacteria are killed.",
+    "Incomplete treatment selects for resistance, making future infections harder."
+   ]
+  },
+  {
+   "kernelId": "nursing/disease-transmission",
+   "family": "students assume that touching a contaminated object cannot s",
+   "wrong": [
+    "You only get sick if you touch the actual sick person.",
+    "The infection must come from direct contact with the patient.",
+    "How can a doorknob make you sick if the patient is gone?"
+   ],
+   "right": [
+    "Indirect contact; the doorknob is a fomite that holds germs.",
+    "Germs survive on surfaces, so you can catch it later.",
+    "Touching contaminated objects spreads infection indirectly."
+   ]
+  },
+  {
+   "kernelId": "nutrition/six-classes-of-nutrients",
+   "family": "students believe vitamins and minerals give the body energy",
+   "wrong": [
+    "Vitamins are like mini energy pills that power you up.",
+    "More vitamins mean more energy, so take extras.",
+    "Vitamins and minerals give you calories for energy."
+   ],
+   "right": [
+    "Only carbs, fats, and proteins have calories for energy.",
+    "Vitamins help use energy but don't give any themselves.",
+    "Micronutrients don't provide energy; they assist reactions."
+   ]
+  },
+  {
+   "kernelId": "nutrition/carbohydrates",
+   "family": "students believe eating carbohydrates inherently causes weig",
+   "wrong": [
+    "Eating pasta directly leads to fat storage.",
+    "Carbs are the reason people get overweight.",
+    "You should avoid all carbs to prevent weight gain."
+   ],
+   "right": [
+    "Weight gain is from eating too many total calories.",
+    "It's about energy balance, not just carbs.",
+    "Any extra calories, not just from carbs, cause weight gain."
+   ]
+  },
+  {
+   "kernelId": "nutrition/dietary-fiber",
+   "family": "students conclude fiber is worthless because the body cannot",
+   "wrong": [
+    "If you can't digest it, it's useless for your body.",
+    "Fiber just passes through with no benefit.",
+    "Why eat something that doesn't get broken down?"
+   ],
+   "right": [
+    "Fiber feeds good bacteria in your gut for health.",
+    "It helps digestion and prevents constipation.",
+    "Bacteria ferment fiber in the colon for benefits."
+   ]
+  },
+  {
+   "kernelId": "nutrition/proteins-amino-acids",
+   "family": "students think every amino acid must be supplied by food",
+   "wrong": [
+    "You need all twenty amino acids from food every day.",
+    "Your body cannot make any amino acids on its own.",
+    "Missing one amino acid means you can't build protein."
+   ],
+   "right": [
+    "Only nine essential amino acids need to come from food.",
+    "Your body makes most amino acids; just nine are essential.",
+    "You don't need all from diet; body synthesizes many."
+   ]
+  },
+  {
+   "kernelId": "nutrition/major-minerals",
+   "family": "students think calcium matters only for bones and teeth",
+   "wrong": [
+    "Calcium is only important for your skeleton.",
+    "Low calcium won't affect your muscles or nerves.",
+    "Calcium deficiency only weakens bones and teeth."
+   ],
+   "right": [
+    "Calcium helps muscles contract and nerves send signals.",
+    "It's stored in bones but also used for other functions.",
+    "A small amount of calcium is vital for nerve and muscle function."
+   ]
+  },
+  {
+   "kernelId": "nutrition/water-hydration",
+   "family": "students treat water as inert filler with no working role in",
+   "wrong": [
+    "Water has no calories, so it's not a real nutrient.",
+    "It's just filler that doesn't do anything important.",
+    "Water just takes up space in your body."
+   ],
+   "right": [
+    "Water is a nutrient that transports and regulates temperature.",
+    "It's needed for chemical reactions and joint lubrication.",
+    "Water does many jobs: transport, coolant, and reaction medium."
+   ]
+  },
+  {
+   "kernelId": "nutrition/dietary-guidelines",
+   "family": "students equate healthy eating with banning food groups or f",
+   "wrong": [
+    "To eat healthy, you must cut out all your favorite foods.",
+    "Healthy means avoiding bread, fruit, and sweets.",
+    "Any food you like is probably unhealthy and should be banned."
+   ],
+   "right": [
+    "Eat a variety of foods in moderation, including treats.",
+    "Healthy eating includes all food groups in balance.",
+    "You can enjoy favorite foods as part of a diverse diet."
+   ]
+  },
+  {
+   "kernelId": "nutrition/nutrition-labels",
+   "family": "students read the calories line as if it covered the whole p",
+   "wrong": [
+    "The whole box only has 120 calories total.",
+    "I only ate 120 calories because the box says so.",
+    "The label shows the calories for the entire package."
+   ],
+   "right": [
+    "You actually ate 1200 calories since it's per serving.",
+    "That's per serving; whole box is ten times that.",
+    "Check the serving size; you consumed all ten servings."
+   ]
+  },
+  {
+   "kernelId": "physics/electric-charge",
+   "family": "students may think an object becomes charged by creating cha",
+   "wrong": [
+    "Rubbing creates new electric charge from scratch.",
+    "The rod gets a new charge that wasn't there before.",
+    "Friction produces extra charge on the rod."
+   ],
+   "right": [
+    "Rubbing transfers charge; it's conserved, not created.",
+    "Charge just moves from one object to another.",
+    "No new charge; it's redistributed between the two."
+   ]
+  },
+  {
+   "kernelId": "physics/electric-field",
+   "family": "students may treat field lines as physical wires or paths a ",
+   "wrong": [
+    "Field lines are like wires that push charges along.",
+    "The test charge will follow the curves exactly.",
+    "Lines are tracks for charges to slide on."
+   ],
+   "right": [
+    "Field lines show direction, not paths; negative charge goes opposite field.",
+    "Lines represent field, not tracks; acceleration follows field direction.",
+    "Field lines indicate force direction; charge path depends on initial velocity."
+   ]
+  },
+  {
+   "kernelId": "physics/gausss-law",
+   "family": "students may think gauss s law works only when the electric ",
+   "wrong": [
+    "Gauss's law only works if the field is constant.",
+    "Zero net charge means field must be zero everywhere.",
+    "Gauss's law is only for symmetric situations."
+   ],
+   "right": [
+    "Gauss's law always holds; zero flux means net field not necessarily zero.",
+    "Net zero charge gives zero flux, but field can be nonzero locally.",
+    "Gauss's law is always true; symmetry helps calculation not validity."
+   ]
+  },
+  {
+   "kernelId": "physics/electric-potential",
+   "family": "students may confuse electric potential with electric potent",
+   "wrong": [
+    "Potential of 12 V means potential energy is 12 J for any charge.",
+    "Potential and potential energy are the same thing.",
+    "12 V always means 12 J of energy."
+   ],
+   "right": [
+    "Potential is energy per charge; multiply by charge to get energy.",
+    "12 V means 12 J per coulomb, not fixed energy.",
+    "Potential energy = charge × potential; different charges give different energies."
+   ]
+  },
+  {
+   "kernelId": "physics/capacitance",
+   "family": "students may think a capacitor stores charge on one plate on",
+   "wrong": [
+    "Only the positive plate stores charge; the other is neutral.",
+    "Charge is stored on just one plate of the capacitor.",
+    "The other plate has no charge; it's just a conductor."
+   ],
+   "right": [
+    "Capacitor stores equal and opposite charge on both plates.",
+    "Both plates get equal but opposite charge; net zero.",
+    "Energy is stored in the electric field between plates, not on one plate."
+   ]
+  },
+  {
+   "kernelId": "physics/electric-current",
+   "family": "students may think current is used up by circuit components",
+   "wrong": [
+    "Current gets used up by the bulb; less comes out.",
+    "Components consume current; it decreases after them.",
+    "Current is like fuel; it's burned by the component."
+   ],
+   "right": [
+    "Current is conserved; it's the same through each series element.",
+    "Components use energy, not charge; current continues unchanged.",
+    "Charge is conserved; current everywhere in a series loop is identical."
+   ]
+  },
+  {
+   "kernelId": "physics/dc-circuits",
+   "family": "students may think physically close resistors must be in ser",
+   "wrong": [
+    "They are series because they are close together on the board.",
+    "Resistors next to each other must be in series.",
+    "Physical proximity determines if they are series or parallel."
+   ],
+   "right": [
+    "Series means same current through; node connections tell the story.",
+    "They are parallel if connected to same two nodes; closeness doesn't matter.",
+    "Circuit topology, not physical layout, decides series or parallel."
+   ]
+  },
+  {
+   "kernelId": "physics/magnetic-field",
+   "family": "students may expect magnetic field lines to start at a north",
+   "wrong": [
+    "Field lines start at north pole and end at south pole.",
+    "Magnetic field lines originate at north and terminate at south.",
+    "Field lines begin and end, like electric field lines."
+   ],
+   "right": [
+    "Magnetic field lines are continuous loops; no start or end.",
+    "Inside the magnet, lines go from south to north, forming closed loops.",
+    "Unlike electric fields, magnetic fields are divergence-free; lines loop."
+   ]
+  },
+  {
+   "kernelId": "physics/magnetic-force",
+   "family": "students may aim magnetic force in the same direction as the",
+   "wrong": [
+    "The force points north, same as the field.",
+    "Force is in the direction of the magnetic field.",
+    "Magnetic force is along the field direction."
+   ],
+   "right": [
+    "Force is perpendicular to both field and velocity; use right hand rule.",
+    "Magnetic force is at right angles to field and motion; up or down.",
+    "Cross product gives force; it's not along the field."
+   ]
+  },
+  {
+   "kernelId": "physics/faradays-law",
+   "family": "students may think any magnetic field automatically induces ",
+   "wrong": [
+    "A strong constant field will induce a current in a loop.",
+    "A steady magnetic field always induces emf.",
+    "The loop will have current just because a field is present."
+   ],
+   "right": [
+    "Only changing magnetic flux induces emf; constant field does nothing.",
+    "Induction requires change in flux; steady field means steady flux.",
+    "Faraday's law needs varying flux; no change, no induced emf."
+   ]
+  },
+  {
+   "kernelId": "physics/inductance",
+   "family": "students may think an inductor simply blocks current",
+   "wrong": [
+    "Inductor blocks current like a resistor at all times.",
+    "Inductor stops current completely and permanently.",
+    "An inductor is an open circuit forever."
+   ],
+   "right": [
+    "Inductor opposes changes in current, then allows steady current.",
+    "Back emf slows current rise; after long time, inductor acts like wire.",
+    "Inductor resists change, not current; steady DC flows freely."
+   ]
+  },
+  {
+   "kernelId": "physics/maxwell-equations",
+   "family": "students may treat the four equations as disconnected formul",
+   "wrong": [
+    "They're four separate laws that don't mix.",
+    "Electric and magnetic fields are independent.",
+    "Each equation works alone with no connection."
+   ],
+   "right": [
+    "They link electric and magnetic fields together, so changing one creates the other.",
+    "The displacement current term ties them together, making waves possible.",
+    "They're not separate; they're a set of rules that describe how fields interact."
+   ]
+  },
+  {
+   "kernelId": "psych/piaget-stages",
+   "family": "students see children as miniature adults who simply know fe",
+   "wrong": [
+    "Kids just need more facts to understand.",
+    "The child thinks the snake has more clay because it's longer.",
+    "Children are small adults who need more practice."
+   ],
+   "right": [
+    "Kids at that age haven't developed conservation yet, so they focus on one thing like length.",
+    "It's not about missing info; their thinking is different from adults.",
+    "Piaget says they can't mentally reverse the change, so they don't see it's the same."
+   ]
+  },
+  {
+   "kernelId": "research-methods/hypothesis",
+   "family": "students treat a hypothesis as a broad topic or preference r",
+   "wrong": [
+    "Exercise is healthy is fine because it's a good topic.",
+    "I prefer exercise, so it's a hypothesis.",
+    "Keep it broad—hypotheses don't need to be testable."
+   ],
+   "right": [
+    "Make it specific: 'Does exercise improve sleep quality?' so we can test it.",
+    "A hypothesis must predict an outcome we can measure, like hours of sleep.",
+    "We need to say what result would prove or disprove it, not just a general idea."
+   ]
+  },
+  {
+   "kernelId": "research-methods/operational-definition",
+   "family": "students equate the construct itself with the measure chosen",
+   "wrong": [
+    "Cortisol is stress, so that's a good measure.",
+    "If cortisol goes up, that's stress.",
+    "Stress equals cortisol level."
+   ],
+   "right": [
+    "Stress is a feeling; cortisol is just one biological marker that doesn't capture everything.",
+    "We need to define what we mean by stress first, then see if cortisol is a good measure.",
+    "Operational definition means we separate the concept from the measurement."
+   ]
+  },
+  {
+   "kernelId": "research-methods/informed-consent",
+   "family": "students treat informed consent as a signature form rather t",
+   "wrong": [
+    "Signing the form means they agreed, so it's ethical.",
+    "They signed, so they can't complain later.",
+    "The form covers everything, no need to mention withdrawal."
+   ],
+   "right": [
+    "They need to know they can quit anytime without penalty.",
+    "Consent isn't just a signature; they must understand risks and their rights.",
+    "It's ongoing—they can withdraw even after starting."
+   ]
+  },
+  {
+   "kernelId": "anatomy/levels-of-organization",
+   "family": "students may memorize structures as isolated labels",
+   "wrong": [
+    "Just memorize labels; they don't connect.",
+    "Kidney and nephron are the same level.",
+    "Structure and function are separate, so it doesn't matter."
+   ],
+   "right": [
+    "Cells make tissues, tissues make organs—each level has a different role.",
+    "Nephron is the functional unit inside the kidney; kidney has many tissue types.",
+    "It's like a hierarchy: atoms to cells to organs, and each level has unique functions."
+   ]
+  },
+  {
+   "kernelId": "anatomy/synovial-joints",
+   "family": "students may treat every joint as structurally identical",
+   "wrong": [
+    "All joints are the same; only muscles affect movement.",
+    "Sutures and shoulder joints are structurally identical.",
+    "Joints are just bones touching; no difference."
+   ],
+   "right": [
+    "Synovial joints have fluid and cartilage for smooth movement.",
+    "Skull sutures are fixed, while shoulders have cavities for range of motion.",
+    "They're different designs: structural classification matters."
+   ]
+  },
+  {
+   "kernelId": "astro/telescope-aperture",
+   "family": "students think a telescope s main purpose is magnification",
+   "wrong": [
+    "Magnification is the main point, bigger means better.",
+    "A bigger telescope just makes things bigger.",
+    "Magnification should make dim things brighter."
+   ],
+   "right": [
+    "It's about how much light you collect, not just zoom.",
+    "Doubling the aperture lets in four times more light, making things clearer.",
+    "A telescope is a light bucket; magnification without light just enlarges blur."
+   ]
+  },
+  {
+   "kernelId": "astro/parallax",
+   "family": "students expect a larger parallax to mean a more distant sta",
+   "wrong": [
+    "Larger parallax means farther away.",
+    "More shift means more distance.",
+    "Parallax is bigger for distant stars."
+   ],
+   "right": [
+    "Nearby stars move more relative to background stars.",
+    "Parallax is like your finger: close finger shifts more.",
+    "Smaller parallax means farther star; it's an inverse relationship."
+   ]
+  },
+  {
+   "kernelId": "astro/solar-nebula",
+   "family": "students treat the arrangement of rocky inner planets and ic",
+   "wrong": [
+    "It's random; no pattern.",
+    "Planets just formed wherever.",
+    "Inner planets got hit by rocks, outer by gas."
+   ],
+   "right": [
+    "Near the Sun it was hot, so only metal and rock could condense.",
+    "Beyond the frost line, ice helped make bigger planets.",
+    "The temperature of the solar nebula decided what materials were available."
+   ]
+  },
+  {
+   "kernelId": "bio/homeostasis",
+   "family": "students think homeostasis means an unchanging internal stat",
+   "wrong": [
+    "Homeostasis means your body never changes inside.",
+    "Sweating keeps everything perfectly constant.",
+    "If you get hot, your body just stays hot."
+   ],
+   "right": [
+    "Homeostasis is like a thermostat, it keeps things around a set point.",
+    "Your body actively regulates temperature, not keeps it totally still.",
+    "Sweating brings temp back to normal, it's a dynamic balance."
+   ]
+  },
+  {
+   "kernelId": "chem/titration",
+   "family": "students read an endpoint from a titrant that was never stan",
+   "wrong": [
+    "The endpoint tells us the concentration directly.",
+    "We don't need to know titrant strength to get a valid result.",
+    "Just read the volume at endpoint and that's it, calculation works."
+   ],
+   "right": [
+    "You must standardize the titrant first, or your concentration is worthless.",
+    "Without knowing titrant molarity, the endpoint gives no real info.",
+    "The endpoint only matters after you know the exact titrant concentration."
+   ]
+  },
+  {
+   "kernelId": "econ/wage-price-spiral",
+   "family": "students assume positive feedback is beneficial when it name",
+   "wrong": [
+    "Positive feedback means it's good for the economy.",
+    "Raising wages and prices is a good cycle.",
+    "More inflation means more growth, so it's positive."
+   ],
+   "right": [
+    "Positive feedback can be bad, like an inflation spiral out of control.",
+    "In this case, positive feedback makes prices and wages keep rising, bad.",
+    "Positive feedback amplifies, so it can run away, not always good."
+   ]
+  },
+  {
+   "kernelId": "history/black-soldiers-smoked-yankees",
+   "family": "black americans uniformly supported participation in the war",
+   "wrong": [
+    "All Black people wanted to fight for the Union.",
+    "There was no debate, everyone supported enlistment.",
+    "Black community was united behind the war effort."
+   ],
+   "right": [
+    "Black Americans were split; many debated whether war would help.",
+    "Some urged enlistment, others warned it would deepen inequality.",
+    "There was real debate about whether to support the war or not."
+   ]
+  },
+  {
+   "kernelId": "history/wilson-moral-foreign-policy",
+   "family": "wilson s foreign policy was purely about u s self interest n",
+   "wrong": [
+    "Wilson only cared about U.S. business, not principles.",
+    "He used morality as a cover for economic gain.",
+    "His foreign policy was all about power, no morals involved."
+   ],
+   "right": [
+    "Wilson framed his actions as a moral imperative, even if mixed with interests.",
+    "He believed in spreading democracy, not just business.",
+    "His policy had moral goals, though sometimes they conflicted with reality."
+   ]
+  },
+  {
+   "kernelId": "history/european-alliance-system-1914",
+   "family": "the triple alliance and triple entente were the same thing a",
+   "wrong": [
+    "Triple Alliance and Central Powers are the same countries.",
+    "The alliances didn't change after war started.",
+    "Italy was always on the same side as Germany and Austria."
+   ],
+   "right": [
+    "The alliances shifted; Italy switched sides, so they weren't identical.",
+    "Triple Entente became Allies, Triple Alliance became Central Powers, but not exactly same.",
+    "Pre-war alliances transformed after war started, with some nations changing."
+   ]
+  },
+  {
+   "kernelId": "history/emergency-banking-act-1933",
+   "family": "going off the gold standard meant people could still redeem ",
+   "wrong": [
+    "People could still exchange dollars for gold after the act.",
+    "The gold standard wasn't really changed.",
+    "You could still turn in your paper money for gold coins."
+   ],
+   "right": [
+    "The act ended gold redemption, so dollars were no longer gold-backed.",
+    "After 1933, you couldn't exchange dollars for gold anymore.",
+    "The U.S. went off gold standard, so paper money wasn't convertible."
+   ]
+  },
+  {
+   "kernelId": "history/work-relief-programs-first-new-deal",
+   "family": "new deal relief was mainly cash handouts rather than jobs",
+   "wrong": [
+    "New Deal just gave out cash to the unemployed.",
+    "People got money without having to work.",
+    "Relief programs were mostly direct cash payments."
+   ],
+   "right": [
+    "New Deal focused on creating jobs, not just handing cash.",
+    "Work relief meant public projects like roads, not just handouts.",
+    "FERA and CWA emphasized employment, not cash alone."
+   ]
+  },
+  {
+   "kernelId": "history/appeasement-munich-pact",
+   "family": "the munich pact was mainly about reducing navies or arms lim",
+   "wrong": [
+    "Munich Pact was a disarmament treaty.",
+    "It aimed to reduce naval forces.",
+    "The pact was about limiting weapons, not land."
+   ],
+   "right": [
+    "Munich Pact gave the Sudetenland to Germany, so it's about territory.",
+    "It was about land concessions, not arms control.",
+    "Appeasement meant giving up land, not reducing weapons."
+   ]
+  },
+  {
+   "kernelId": "history/cold-war",
+   "family": "only europe mattered in the cold war",
+   "wrong": [
+    "Cold War was only about Germany and Berlin.",
+    "Asia and other regions were unimportant in the Cold War.",
+    "The superpowers only competed in Europe."
+   ],
+   "right": [
+    "Cold War included proxy wars in Korea and Vietnam, so global.",
+    "It also involved poor nations, not just Europe.",
+    "The struggle was worldwide, with conflicts in Asia and elsewhere."
+   ]
+  },
+  {
+   "kernelId": "history/containment",
+   "family": "containment meant immediately overthrowing communist governm",
+   "wrong": [
+    "Containment means we invade every communist country right away.",
+    "The US should have started wars to remove all communist leaders.",
+    "Containment is about kicking out communist governments ASAP."
+   ],
+   "right": [
+    "Containment stops communism from spreading, not overthrows existing ones.",
+    "Kennan wanted to limit Soviet influence, not attack all communists.",
+    "Containment is a defensive strategy to prevent expansion."
+   ]
+  },
+  {
+   "kernelId": "history/containment",
+   "family": "containment was mainly a domestic anti communist policy",
+   "wrong": [
+    "Containment was all about hunting down communists in the US.",
+    "The main goal was to fire communists from American jobs.",
+    "Containment meant spying on American citizens suspected of communism."
+   ],
+   "right": [
+    "Containment is foreign policy to stop Soviet spread, not domestic.",
+    "It's about stopping communism abroad, not witch hunts at home.",
+    "Containment focused on Europe and Asia, not US internal affairs."
+   ]
+  },
+  {
+   "kernelId": "history/marshall-plan",
+   "family": "the marshall plan was purely humanitarian and had no politic",
+   "wrong": [
+    "The Marshall Plan was just a charity give-away with no strings.",
+    "America gave free money to Europe because they felt sorry.",
+    "It had zero US self-interest, purely helping the hungry."
+   ],
+   "right": [
+    "The Marshall Plan also boosted US economy and countered communism.",
+    "It was aid to Europe but also a political tool for US interests.",
+    "Truman mixed humanitarian help with economic and political goals."
+   ]
+  },
+  {
+   "kernelId": "history/brown-v-board-education-holding",
+   "family": "brown immediately integrated southern schools at large scale",
+   "wrong": [
+    "Brown v Board made all schools mix overnight in 1954.",
+    "After Brown, every Southern school was integrated by 1955.",
+    "Brown forced immediate massive integration across the South."
+   ],
+   "right": [
+    "Brown ordered gradual integration with 'all deliberate speed'.",
+    "Integration was slow; by 1960 few black kids were in mixed schools.",
+    "Brown didn't integrate schools right away; it took years."
+   ]
+  },
+  {
+   "kernelId": "history/reagan-revolution",
+   "family": "the reagan revolution describes only reagan s personality an",
+   "wrong": [
+    "The Reagan Revolution is just his style and smile.",
+    "It only means Reagan was a good speaker, not policy change.",
+    "Reagan Revolution is about his charisma, nothing else."
+   ],
+   "right": [
+    "It's a conservative shift in policy and voter base.",
+    "Reagan Revolution means his agenda like tax cuts and deregulation.",
+    "It's about the political movement, not just his personality."
+   ]
+  },
+  {
+   "kernelId": "history/patco-strike-1981",
+   "family": "reagan was consistently flexible toward unions even while de",
+   "wrong": [
+    "Reagan was always nice to unions, even after firing PATCO.",
+    "He remained flexible and didn't weaken unions at all.",
+    "PATCO firing was an exception; he still supported unions."
+   ],
+   "right": [
+    "Reagan was less flexible and actively weakened labor unions.",
+    "Firing PATCO strikers showed he wanted to break union power.",
+    "He took a hard line against unions, not flexibility."
+   ]
+  },
+  {
+   "kernelId": "history/bush-doctrine",
+   "family": "the bush doctrine was only about afghanistan and had nothing",
+   "wrong": [
+    "The Bush Doctrine is just the invasion of Afghanistan.",
+    "It's only a plan for one country, nothing more.",
+    "Bush Doctrine = Afghanistan war and that's it."
+   ],
+   "right": [
+    "Bush Doctrine includes pre-emptive war and regime change broadly.",
+    "It's a general policy for war on terror, not just Afghanistan.",
+    "The doctrine let the US strike any potential threat anywhere."
+   ]
+  },
+  {
+   "kernelId": "lang/numbers-age-and-counting",
+   "family": "one korean number system is used for every counting situatio",
+   "wrong": [
+    "You can use one set of numbers for age, time, and counting.",
+    "Korean has just one number system that works for everything.",
+    "Just learn one number system and it covers all contexts."
+   ],
+   "right": [
+    "Korean has native and Sino systems; use the right one per context.",
+    "For age you use native, for time Sino, and counters matter.",
+    "Different situations demand different number sets and counters."
+   ]
+  },
+  {
+   "kernelId": "lang/particles-and-sentence-basics",
+   "family": "particles are optional decoration",
+   "wrong": [
+    "Particles are just pretty add-ons, you can skip them.",
+    "You don't need particles, the sentence is still clear.",
+    "Particles don't change meaning, so leave them out."
+   ],
+   "right": [
+    "Particles show subject and object; without them, meaning is unclear.",
+    "Particles are essential grammar, not optional decoration.",
+    "In Korean, particles mark roles, so you must include them."
+   ]
+  },
+  {
+   "kernelId": "lang/honorifics-and-politeness-levels",
+   "family": "politeness is optional and does not affect grammar",
+   "wrong": [
+    "You can speak informally to anyone, it's just a choice.",
+    "Politeness doesn't change sentence structure in Korean.",
+    "Honorifics are extra, not required for grammar."
+   ],
+   "right": [
+    "Politeness changes verb endings and vocabulary in Korean.",
+    "Using wrong politeness level is grammatically incorrect.",
+    "Korean grammar forces you to show respect through endings."
+   ]
+  },
+  {
+   "kernelId": "lit/close-reading",
+   "family": "students catalogue textual details without connecting them t",
+   "wrong": [
+    "I listed all symbols and colors, that should be enough for my essay.",
+    "The teacher just wants us to point out every metaphor we see.",
+    "Why do I need to explain? The details speak for themselves."
+   ],
+   "right": [
+    "Each detail I mention must support my argument about the book's theme.",
+    "I can't just list symbols; I have to show how they build meaning.",
+    "My evidence only counts if it ties back to my main point."
+   ]
+  },
+  {
+   "kernelId": "lit/ghazal-form",
+   "family": "a ghazal is just any poem about love and separation",
+   "wrong": [
+    "Any love poem counts as a ghazal, that's the whole idea.",
+    "My poem is about love, so it's definitely a ghazal.",
+    "I don't need a refrain; the feeling of separation is enough."
+   ],
+   "right": [
+    "A ghazal needs equal line couplets and a repeating refrain and rhyme.",
+    "Not every love poem is a ghazal; the form has strict rules.",
+    "The poem must have couplets, same line length, and a radif."
+   ]
+  },
+  {
+   "kernelId": "lit/metrical-feet-and-line-length",
+   "family": "pentameter means a line has five syllables",
+   "wrong": [
+    "Iambic pentameter means five syllables per line, easy.",
+    "My five-syllable line is correct because pentameter is five.",
+    "Pentameter counts syllables, not feet, so I'm right."
+   ],
+   "right": [
+    "Pentameter has five feet, each foot usually two syllables for iambs.",
+    "Iambic pentameter means five iambs, which is ten syllables, not five.",
+    "A foot is a unit of stressed and unstressed syllables, not a single syllable."
+   ]
+  },
+  {
+   "kernelId": "lit/genres-and-imagery",
+   "family": "a diary entry is written primarily to affect an outside audi",
+   "wrong": [
+    "I write my diary to change people's minds, it's persuasive.",
+    "Diaries are public documents meant to influence readers.",
+    "My diary is full of images because I want to persuade others."
+   ],
+   "right": [
+    "A diary is usually private and not intended for an audience.",
+    "Diaries don't aim to affect outsiders; they're personal records.",
+    "Private writing like a diary isn't meant to persuade; it's introspective."
+   ]
+  },
+  {
+   "kernelId": "lit/total-response-reading-poetry",
+   "family": "reading a poem well mainly means figuring out what it means ",
+   "wrong": [
+    "I got the meaning on first read, so I'm done.",
+    "Poems are puzzles to solve quickly, then move on.",
+    "If I understand the plot, I don't need to reread."
+   ],
+   "right": [
+    "Total response means rereading and listening nonjudgmentally over time.",
+    "You can't just paraphrase a poem; you must experience it multiple times.",
+    "Emotional meanings emerge with attentive rereading, not just one pass."
+   ]
+  },
+  {
+   "kernelId": "lit/negative-capability-reading",
+   "family": "to read a poem well you should focus on your own opinions fi",
+   "wrong": [
+    "I always start by deciding if I agree with the speaker.",
+    "My opinion is the most important thing when reading a poem.",
+    "Reading is about judging whether the poem matches my views."
+   ],
+   "right": [
+    "Negative capability means setting aside ego and imagining the speaker's view.",
+    "Focus on the poem's world, not your own reactions.",
+    "Listen without judgment and let the poem's perspective take over."
+   ]
+  },
+  {
+   "kernelId": "lit/title-as-doorway",
+   "family": "the title is just a label and doesn t affect interpretation",
+   "wrong": [
+    "Titles are irrelevant; just start reading the text.",
+    "I skip the title because it doesn't add any meaning.",
+    "The title is just a name, it doesn't influence the poem."
+   ],
+   "right": [
+    "The title sets expectations and is a doorway into the poem.",
+    "Close reading begins with the title because it frames the poem.",
+    "The title gives clues about mood, setting, and tone."
+   ]
+  },
+  {
+   "kernelId": "lit/composite-authorship",
+   "family": "inconsistencies in armor burial practices or language prove ",
+   "wrong": [
+    "Mismatched details show the poet was careless or bad.",
+    "Inconsistent armor means the poem is poorly written.",
+    "If the dialects don't match, it's a mistake by the author."
+   ],
+   "right": [
+    "Inconsistencies come from oral tradition and composite authorship.",
+    "Such flaws are expected from a story formed over time.",
+    "Composite formation explains uneven details like armor and dialect."
+   ]
+  },
+  {
+   "kernelId": "lit/odyssey-vs-iliad-focus",
+   "family": "the odyssey is mainly a sequel to the iliad that continues t",
+   "wrong": [
+    "The Odyssey picks up right after the Iliad, continuing the war.",
+    "The Odyssey is all about the last battles of Troy.",
+    "It's a direct sequel, so it's still about the war."
+   ],
+   "right": [
+    "The Odyssey is loosely connected, focusing on homecoming and adventure.",
+    "It's not a direct war sequel; it's about Odysseus's journey home.",
+    "The heart of the Odyssey is family restoration, not the Trojan War."
+   ]
+  },
+  {
+   "kernelId": "lit/reading-shakespeare-as-director",
+   "family": "shakespeare s plays contain detailed stage directions that t",
+   "wrong": [
+    "Shakespeare gives exact blocking and costumes in the script.",
+    "The text tells you exactly where actors should stand.",
+    "I can stage the play directly from the detailed directions."
+   ],
+   "right": [
+    "Shakespeare rarely provides stage directions; some blocking must be inferred.",
+    "Directors have to interpret and decide on staging from the dialogue.",
+    "The script lacks detailed directions, so you must imagine the staging."
+   ]
+  },
+  {
+   "kernelId": "lit/picaresque-satire-touchstone",
+   "family": "picaresque satire focuses on a hero s inner psychological de",
+   "wrong": [
+    "It's all about the hero's inner feelings and growth.",
+    "The main point is tracking his psychological journey.",
+    "It focuses on personal development, not society."
+   ],
+   "right": [
+    "It critiques society by moving through different classes.",
+    "The satire is about social flaws, not inner change.",
+    "The hero's travels expose class issues, not psychology."
+   ]
+  },
+  {
+   "kernelId": "lit/gender-and-publication-history",
+   "family": "if a work is popular gender bias in reception and curricula ",
+   "wrong": [
+    "Popularity totally erases any gender bias.",
+    "If it's popular, everyone sees it as universal.",
+    "Gender bias disappears once a book is popular."
+   ],
+   "right": [
+    "Gender assumptions affect which books are in the canon.",
+    "Even popular books can be seen as 'for girls' or 'for boys'.",
+    "Reception and curricula are shaped by gendered ideas."
+   ]
+  },
+  {
+   "kernelId": "math/discontinuity-types",
+   "family": "a jump discontinuity means the function goes to infinity",
+   "wrong": [
+    "Jump means the graph shoots off to infinity.",
+    "Jump discontinuities are infinite gaps.",
+    "Jump means the function becomes infinite."
+   ],
+   "right": [
+    "Jump is when left and right limits are finite but different.",
+    "Jump doesn't involve infinity, just a break.",
+    "The pieces don't meet, but neither goes to infinity."
+   ]
+  },
+  {
+   "kernelId": "math/derivative-at-point",
+   "family": "the derivative is only a formula for slopes of graphs not a ",
+   "wrong": [
+    "Derivative is just for finding graph slopes.",
+    "It's only a math tool for slopes, not real life.",
+    "Derivative only tells you steepness of a line."
+   ],
+   "right": [
+    "Derivative measures rates of change in many fields.",
+    "It's used in physics, business, and biology as a rate.",
+    "Derivative is a rate, not just a slope formula."
+   ]
+  },
+  {
+   "kernelId": "math/derivative-at-point",
+   "family": "a derivative always exists at every point",
+   "wrong": [
+    "If the function is defined, the derivative exists.",
+    "Definition at a point automatically means differentiability.",
+    "Derivative always exists if the function is defined there."
+   ],
+   "right": [
+    "Derivative exists only if the limit exists.",
+    "Defined doesn't guarantee the derivative exists.",
+    "You need the limit of the difference quotient to exist."
+   ]
+  },
+  {
+   "kernelId": "math/chain-rule",
+   "family": "students differentiate the outer function and stop forgettin",
+   "wrong": [
+    "Just take the derivative of the outside part.",
+    "Chain rule is done after differentiating the outer.",
+    "No need to multiply by anything else."
+   ],
+   "right": [
+    "Multiply by the derivative of the inside function.",
+    "Chain rule needs both outer and inner derivatives.",
+    "Don't forget to include the inner derivative factor."
+   ]
+  },
+  {
+   "kernelId": "math/chain-rule",
+   "family": "students evaluate the outer derivative at x instead of at th",
+   "wrong": [
+    "Plug x into the derivative of the outer function.",
+    "Outer derivative is just f'(x) even in a composition.",
+    "You evaluate the outer derivative at x, not at the inner."
+   ],
+   "right": [
+    "Evaluate the outer derivative at the inner function.",
+    "It's f'(g(x)), not f'(x).",
+    "In chain rule, plug the inside into the outer derivative."
+   ]
+  },
+  {
+   "kernelId": "math/optimization-problem-setup",
+   "family": "if a function has a critical point that point is automatical",
+   "wrong": [
+    "One critical point means that's the min or max.",
+    "Just check the critical point, endpoints don't matter.",
+    "If there's only one critical point, it has to be the answer."
+   ],
+   "right": [
+    "Check endpoints as well as critical points.",
+    "The min or max could be at an endpoint.",
+    "Optimization requires comparing all candidates."
+   ]
+  },
+  {
+   "kernelId": "math/definite-integral-definition",
+   "family": "a definite integral is the same kind of object as an indefin",
+   "wrong": [
+    "Both definite and indefinite give families of functions.",
+    "Definite integral is also a set of antiderivatives.",
+    "They are the same type of result."
+   ],
+   "right": [
+    "Definite integral gives a number, indefinite gives functions.",
+    "One is a number, the other is a family of functions.",
+    "Definite is a number; indefinite is a family."
+   ]
+  },
+  {
+   "kernelId": "math/definite-integral-definition",
+   "family": "only continuous and nonnegative functions can be integrated",
+   "wrong": [
+    "Only continuous nonnegative functions are integrable.",
+    "If it's discontinuous, you can't integrate it.",
+    "Negative functions can't be integrated."
+   ],
+   "right": [
+    "Many discontinuous functions can still be integrated.",
+    "Continuity is enough but not necessary for integrability.",
+    "Integrals can be negative; nonnegative isn't required."
+   ]
+  },
+  {
+   "kernelId": "math/fundamental-theorem-calculus-part-2",
+   "family": "definite integrals must always be computed from areas or rie",
+   "wrong": [
+    "Gotta draw rectangles to find the area under the curve.",
+    "Geometric area formulas are the only way to get exact values.",
+    "Riemann sums give the real answer; antiderivatives are shortcuts."
+   ],
+   "right": [
+    "Use the antiderivative and just subtract—way faster than summing rectangles.",
+    "FTC says find F(b)-F(a) using that original function's antiderivative.",
+    "The antiderivative method works for polynomials; no need for geometry."
+   ]
+  },
+  {
+   "kernelId": "nursing/homeostasis",
+   "family": "students assume negative feedback means an effect that is ha",
+   "wrong": [
+    "Negative feedback means something bad happens, like sweating is harmful.",
+    "Sweating lowers temperature, so it's a negative thing.",
+    "Negative feedback always causes damage to the body."
+   ],
+   "right": [
+    "Negative feedback reverses the change to return to normal.",
+    "Sweating is the body's way to cool down, not harm.",
+    "It's called negative because it opposes the initial stimulus."
+   ]
+  },
+  {
+   "kernelId": "nursing/levels-of-organization",
+   "family": "students think an organ is just a bigger version of a tissue",
+   "wrong": [
+    "The stomach is just one tissue type that's stretched out.",
+    "An organ is basically a large piece of tissue.",
+    "Organs are just tissues grouped together, same thing."
+   ],
+   "right": [
+    "An organ has multiple tissue types working together.",
+    "The stomach has muscle, nerve, and epithelial tissues.",
+    "It's not just one tissue; different tissues form the organ."
+   ]
+  },
+  {
+   "kernelId": "nursing/bacterial-cell-structure",
+   "family": "students think the gram stain color is just an arbitrary dye",
+   "wrong": [
+    "The colors are just random; they don't mean anything structural.",
+    "Gram stain colors are chosen arbitrarily by scientists.",
+    "Purple and pink are just different dyes stuck on."
+   ],
+   "right": [
+    "Purple means thick peptidoglycan wall, pink means thin.",
+    "The stain reveals cell wall structure, not arbitrary color.",
+    "Gram positive has thick peptidoglycan, gram negative thin."
+   ]
+  },
+  {
+   "kernelId": "nutrition/lipids",
+   "family": "students treat all dietary fat as harmful all fat is bad",
+   "wrong": [
+    "Olive oil is just as bad as trans fat because all fat is bad.",
+    "Any fat in your diet is unhealthy and should be avoided.",
+    "Fat is fat; it all causes heart disease."
+   ],
+   "right": [
+    "Unsaturated fats like olive oil are heart-healthy; trans fats are bad.",
+    "Not all fat is harmful; trans fats are the risky ones.",
+    "Olive oil has good fats, while trans fats raise cholesterol."
+   ]
+  },
+  {
+   "kernelId": "nutrition/vitamins",
+   "family": "students assume that if a vitamin is good megadoses must be",
+   "wrong": [
+    "If vitamin D is good, then more is always better.",
+    "Take large doses to get super healthy; no harm done.",
+    "Vitamins are safe in any amount since they're natural."
+   ],
+   "right": [
+    "Fat-soluble vitamins build up; too much D can be toxic.",
+    "Megadoses of vitamin D can cause calcium overload.",
+    "More isn't better for fat-soluble vitamins because they accumulate."
+   ]
+  },
+  {
+   "kernelId": "nutrition/energy-balance",
+   "family": "students attribute weight change to specific fattening foods",
+   "wrong": [
+    "Pizza is the only reason I gained weight; other stuff doesn't count.",
+    "It's the pizza's fault; just cut out pizza and you'll lose weight.",
+    "Specific foods like pizza directly cause fat gain."
+   ],
+   "right": [
+    "Weight change depends on total calorie balance, not one food.",
+    "You gained because overall calories increased, not just pizza.",
+    "Total energy in vs. out determines weight, not the source."
+   ]
+  },
+  {
+   "kernelId": "bio/cellular-respiration",
+   "family": "students treat the stages of respiration as an arbitrary lis",
+   "wrong": [
+    "Each stage works alone; blocking glycolysis won't affect later steps.",
+    "The stages are just random steps you have to memorize.",
+    "The order doesn't matter because they don't depend on each other."
+   ],
+   "right": [
+    "Glycolysis makes products needed for the citric acid cycle.",
+    "If glycolysis stops, pyruvate isn't made, so later stages halt.",
+    "The stages are connected; earlier ones feed into later ones."
+   ]
+  },
+  {
+   "kernelId": "history/spanish-american-war-outcomes-empire",
+   "family": "u s military strategy focused exclusively on liberating cuba",
+   "wrong": [
+    "The US only cared about freeing Cuba, nothing else.",
+    "They just wanted to help Cuba; no strategic expansion.",
+    "The war was all about Cuban independence."
+   ],
+   "right": [
+    "The US planned for empire and Pacific bases too.",
+    "They wanted influence in Asia, not just Cuban liberation.",
+    "The strategy was about building an empire, not just helping Cuba."
+   ]
+  },
+  {
+   "kernelId": "history/wilson-moral-foreign-policy",
+   "family": "wilson consistently avoided intervention abroad because he o",
+   "wrong": [
+    "Wilson never got involved in other countries' affairs.",
+    "He was a pure noninterventionist, so no interventions.",
+    "Wilson always avoided war and foreign conflicts."
+   ],
+   "right": [
+    "Wilson preached restraint but still intervened when needed.",
+    "He avoided war but acted when US interests were threatened.",
+    "His policy favored restraint, not total nonintervention."
+   ]
+  },
+  {
+   "kernelId": "history/isolationism-interwar-us",
+   "family": "the kellogg briand pact prevented wars because it made war i",
+   "wrong": [
+    "War is illegal now so wars are over forever.",
+    "The pact made war illegal, problem solved.",
+    "No more wars because it's against the law."
+   ],
+   "right": [
+    "It failed because no enforcement. Countries ignored it.",
+    "Pact didn't stop wars, needed action not words.",
+    "No enforcement means pact was just paper."
+   ]
+  },
+  {
+   "kernelId": "history/cold-war",
+   "family": "the cold war was mainly a direct shooting war between u s an",
+   "wrong": [
+    "US and USSR troops fought each other all the time.",
+    "Cold War was a big battle between armies.",
+    "They shot at each other for decades."
+   ],
+   "right": [
+    "No direct fights, it was proxy wars and propaganda.",
+    "They used spies and allies, not shooting each other.",
+    "Cold War was indirect, via arms race and influence."
+   ]
+  },
+  {
+   "kernelId": "history/september-11-attacks",
+   "family": "all four hijacked planes reached their intended targets",
+   "wrong": [
+    "Every plane hit its target, all four did.",
+    "All planes reached buildings, no crash elsewhere.",
+    "Fourth plane also hit a major building."
+   ],
+   "right": [
+    "One plane crashed in PA, passengers fought back.",
+    "Not all reached targets, one went down in field.",
+    "Fourth plane didn't hit target, crash in Pennsylvania."
+   ]
+  },
+  {
+   "kernelId": "lang/food-and-ordering-at-restaurants",
+   "family": "students may think they can directly translate english resta",
+   "wrong": [
+    "Just translate English words directly to Korean.",
+    "Word-for-word translation is fine for ordering.",
+    "Korean uses same sentence structure as English."
+   ],
+   "right": [
+    "Use fixed polite patterns, not literal translation.",
+    "Memorize common phrases, direct translation sounds weird.",
+    "Korean ordering has set phrases, learn those."
+   ]
+  },
+  {
+   "kernelId": "lang/daily-routines-and-time",
+   "family": "students may believe telling time only requires memorizing n",
+   "wrong": [
+    "Just memorize numbers and you can tell time.",
+    "Time telling is only about knowing numbers.",
+    "Counters are not needed for time."
+   ],
+   "right": [
+    "Need counters and time expressions too, not just numbers.",
+    "Numbers alone can't place events; use time words.",
+    "Time needs counters like hours and minutes phrases."
+   ]
+  },
+  {
+   "kernelId": "lit/title-as-doorway",
+   "family": "a first reading should immediately focus on line by line ana",
+   "wrong": [
+    "Skip the title and jump into analysis.",
+    "First read should dive straight into meter and symbols.",
+    "Title isn't important for understanding poem."
+   ],
+   "right": [
+    "First, get the tone and mood from title and style.",
+    "Set scene with title, then notice what stands out.",
+    "Start with tone and mood, not line-by-line analysis."
+   ]
+  },
+  {
+   "kernelId": "lit/composite-authorship",
+   "family": "the iliad must have a single author in the modern sense and ",
+   "wrong": [
+    "Iliad must have one author like modern books.",
+    "You can't understand Iliad without knowing its single author.",
+    "Homer is a real single author and key to meaning."
+   ],
+   "right": [
+    "Iliad had no single author; composite authorship explains it.",
+    "Multiple authors contributed; don't fixate on one.",
+    "Uncertain author; poem's mix shows many contributors."
+   ]
+  },
+  {
+   "kernelId": "lit/in-medias-res",
+   "family": "starting in the middle means the author forgot to include th",
+   "wrong": [
+    "Poet forgot to start at the real beginning.",
+    "Missing opening events means poem is incomplete.",
+    "Story should have started from the war's start."
+   ],
+   "right": [
+    "In medias res is intentional; audience knows backstory.",
+    "Deliberate convention, not a mistake; exposition comes later.",
+    "Purposeful start in middle, background assumed known."
+   ]
+  },
+  {
+   "kernelId": "lit/mystery-of-paternity-telemachos",
+   "family": "telemachos growth is passive he simply waits for odysseus to",
+   "wrong": [
+    "Telemachos should just wait for Odysseus to come back.",
+    "He becomes himself only when father returns.",
+    "Passive waiting is the right path for Telemachos."
+   ],
+   "right": [
+    "He must take action and assert himself without father.",
+    "Athene tells him to go out and act to find himself.",
+    "Growth requires self-assertion, not waiting for Odysseus."
+   ]
+  },
+  {
+   "kernelId": "lit/austen-style-wit-delicacy",
+   "family": "if the language is not complex there is little to analyze st",
+   "wrong": [
+    "Austen's simple writing has nothing to analyze.",
+    "Easy language means no deeper meaning to find.",
+    "Her prose is too plain for close reading."
+   ],
+   "right": [
+    "Her balanced sentences and tropes reward close analysis.",
+    "Beneath simple surface, style reveals social truths.",
+    "Focus on rhythm and rhetoric; she's deceptively complex."
+   ]
+  },
+  {
+   "kernelId": "math/continuity",
+   "family": "students treat the graph can be drawn without lifting the pe",
+   "wrong": [
+    "If there's no gap, it's continuous.",
+    "The pencil test is the real definition.",
+    "As long as I can draw it, it's continuous."
+   ],
+   "right": [
+    "The pencil trick is just a picture, not the real deal.",
+    "You need limits to match the function value.",
+    "Continuity is about the limit existing and equaling the value."
+   ]
+  },
+  {
+   "kernelId": "math/critical-points",
+   "family": "if f c is undefined then c cannot matter for extrema",
+   "wrong": [
+    "No derivative means no extremum possible.",
+    "Only points with zero derivative count.",
+    "If f'(c) is undefined, ignore it."
+   ],
+   "right": [
+    "Undefined derivative still makes c critical.",
+    "You have to check points where derivative doesn't exist.",
+    "Critical numbers include where f' is zero or undefined."
+   ]
+  },
+  {
+   "kernelId": "math/absolute-extrema",
+   "family": "if a function is bounded it automatically has absolute maxim",
+   "wrong": [
+    "If it stays bounded, it must have a max and min.",
+    "Bounded functions always hit their extremes.",
+    "Bounded means it automatically has absolute extrema."
+   ],
+   "right": [
+    "You need continuity on a closed interval too.",
+    "Bounded alone doesn't guarantee absolute extrema.",
+    "Open intervals can ruin the theorem conditions."
+   ]
+  },
+  {
+   "kernelId": "research-methods/independent-dependent-variables",
+   "family": "students often swap the independent and dependent variables ",
+   "wrong": [
+    "Fertilizer is the outcome, so dependent.",
+    "The manipulated variable is the dependent one.",
+    "Height is independent since we measure it."
+   ],
+   "right": [
+    "What you change is independent; what you measure is dependent.",
+    "Fertilizer amount is independent, height is dependent.",
+    "The dependent variable is the measured response."
+   ]
+  },
+  {
+   "kernelId": "lang/greetings-and-introductions",
+   "family": "introductions only require saying a name",
+   "wrong": [
+    "Just say your name and walk away.",
+    "No need for a greeting or closing.",
+    "Saying your name is all you need."
+   ],
+   "right": [
+    "Start with a greeting, then name, then a polite phrase.",
+    "Basic intros need a hello and a goodbye.",
+    "Don't forget polite words after your name."
+   ]
+  },
+  {
+   "kernelId": "history/automobile-driven-social-economic-transformation",
+   "family": "cars mainly affected personal travel not the broader economy",
+   "wrong": [
+    "Cars just changed how we travel personally.",
+    "The main effect was on personal transportation.",
+    "Cars didn't really shift the whole economy."
+   ],
+   "right": [
+    "Cars boosted industries like steel and oil.",
+    "Automobiles transformed multiple economic sectors.",
+    "New businesses and roads show broad economic change."
+   ]
+  },
+  {
+   "kernelId": "history/black-thursday-bank-intervention-1929",
+   "family": "big banks successfully prevented panic by buying stocks on b",
+   "wrong": [
+    "The banks stopped the panic with their buying.",
+    "The intervention successfully ended the sell-off.",
+    "Big banks saved the market on Black Thursday."
+   ],
+   "right": [
+    "The bank buying failed to stop the panic.",
+    "Even with banks buying, the wave of sales continued.",
+    "The effort didn't work; the market still crashed."
+   ]
+  },
+  {
+   "kernelId": "history/isolationism-interwar-us",
+   "family": "isolationism meant the united states withdrew entirely from ",
+   "wrong": [
+    "The US never talked to other countries.",
+    "Isolationism means complete withdrawal from world affairs.",
+    "The US signed no international agreements."
+   ],
+   "right": [
+    "The US still used treaties to reduce war risk.",
+    "Isolationism didn't mean zero international contact.",
+    "The US still intervened in Latin America."
+   ]
+  },
+  {
+   "kernelId": "history/rise-of-fascism-and-nazism",
+   "family": "fascism and nazism rose mainly because europe was stable and",
+   "wrong": [
+    "Europe was fine, so fascism came from boredom.",
+    "Stable and prosperous conditions led to fascism.",
+    "People were too comfortable and turned to extremism."
+   ],
+   "right": [
+    "Postwar crises like the Great Depression fueled fascism.",
+    "Economic instability made totalitarian ideas popular.",
+    "Inflation and recession helped Hitler gain support."
+   ]
+  },
+  {
+   "kernelId": "history/appeasement-munich-pact",
+   "family": "appeasement at munich permanently prevented war by satisfyi",
+   "wrong": [
+    "Munich stopped Hitler for good.",
+    "The pact satisfied all Hitler's demands.",
+    "Appeasement at Munich guaranteed peace."
+   ],
+   "right": [
+    "Germany soon took over the rest of Czechoslovakia.",
+    "Appeasement failed; Hitler kept expanding.",
+    "Munich only delayed the war, didn't prevent it."
+   ]
+  },
+  {
+   "kernelId": "lit/total-response-reading-poetry",
+   "family": "it s fine to start by imposing your own assumed meaning on a",
+   "wrong": [
+    "I just go with my first idea about what it means.",
+    "I already know it's about lost love, so I read that way.",
+    "My interpretation is just as valid as anyone else's."
+   ],
+   "right": [
+    "I stay open and let the poem's words guide my reading.",
+    "I avoid jumping to conclusions and follow each moment.",
+    "I read without judgment and let the poem unfold."
+   ]
+  },
+  {
+   "kernelId": "lit/teach-and-delight",
+   "family": "literature is mainly for instruction enjoyment is a distract",
+   "wrong": [
+    "A poem's only value is the lesson it teaches.",
+    "Enjoyment just gets in the way of real learning.",
+    "If it's fun, it can't be serious literature."
+   ],
+   "right": [
+    "Delight keeps you reading, so you absorb the teaching better.",
+    "Horace says pleasure helps instruction sink in more.",
+    "Enjoyment is not a distraction; it supports the lesson."
+   ]
+  },
+  {
+   "kernelId": "lit/odyssey-domesticity-family-plot",
+   "family": "odysseus appears immediately as an active hero in the opening",
+   "wrong": [
+    "I thought Odysseus would be in the first scene bragging.",
+    "Doesn't the story start with Odysseus showing off his victory?",
+    "I expected Odysseus to appear right away as a warrior."
+   ],
+   "right": [
+    "Actually, Odysseus isn't seen until Book V, and he's weeping.",
+    "He's not in the opening; he's trapped on Kalypso's island, missing home.",
+    "The text delays Odysseus's appearance to show his longing."
+   ]
+  },
+  {
+   "kernelId": "lit/literary-realism-as-illusion",
+   "family": "if a novel includes impossible events it cannot have any kin",
+   "wrong": [
+    "Realism means everything must be possible in real life.",
+    "One impossible event ruins all realistic qualities.",
+    "If it's not possible, it's not realistic at all."
+   ],
+   "right": [
+    "A novel can create its own reality even with impossible events.",
+    "Realism is an illusion; language and context set the rules.",
+    "Even with impossible events, the story can feel realistic within its frame."
+   ]
+  },
+  {
+   "kernelId": "math/fundamental-theorem-calculus-part-1",
+   "family": "because f x is written as an integral it must be a constant",
+   "wrong": [
+    "That integral is just a number, so it's constant.",
+    "Integrals don't depend on the upper limit? Wait, they do?",
+    "I think F(x) is the same for every x."
+   ],
+   "right": [
+    "As x changes, the integral changes, so F is a function.",
+    "F(x) is a function of x, not a constant; FTC says F'=f.",
+    "The integral gives a number for each x, so it's a function."
+   ]
+  },
+  {
+   "kernelId": "nursing/blood-pressure",
+   "family": "students think the diastolic number reflects the heart active",
+   "wrong": [
+    "76 means the heart is squeezing actively.",
+    "Diastolic pressure is when the heart contracts, right?",
+    "The bottom number shows pumping power."
+   ],
+   "right": [
+    "Diastolic is relaxation, not active pumping; it's residual pressure.",
+    "That reading is during ventricular relaxation, between beats.",
+    "76 mm Hg reflects resting pressure, not the heart pumping."
+   ]
+  },
+  {
+   "kernelId": "research-methods/correlation-causation",
+   "family": "students infer cause from association without checking direction",
+   "wrong": [
+    "Umbrellas must cause wet sidewalks because they go together.",
+    "Correlation means one causes the other, always.",
+    "I see a pattern, so I know what's causing it."
+   ],
+   "right": [
+    "First, check if wet sidewalks cause umbrella use or a third factor.",
+    "Correlation doesn't prove causation; consider reverse direction.",
+    "Look for a confounding variable like rain causing both."
+   ]
+  },
+  {
+   "kernelId": "history/operation-iraqi-freedom",
+   "family": "the iraq war was universally supported within the bush admin",
+   "wrong": [
+    "Everyone in the Bush team wanted to invade Iraq.",
+    "There was no debate about going to war.",
+    "The administration was all on board for Iraq."
+   ],
+   "right": [
+    "Neoconservatives pushed war, but Powell was cautious.",
+    "Not unanimous; some like Powell were more skeptical.",
+    "There was internal debate, not universal support."
+   ]
+  },
+  {
+   "kernelId": "lit/literary-argument",
+   "family": "students summarize the plot instead of arguing an interpreta",
+   "wrong": [
+    "I retold the whole story, so that proves my point.",
+    "Summarizing the plot is enough to make an argument.",
+    "The story speaks for itself; I just need to retell it."
+   ],
+   "right": [
+    "I need to state an arguable claim and back it with evidence.",
+    "An interpretation is not just summary; it's a claim supported by details.",
+    "I should make a focused argument, not just retell the plot."
+   ]
+  },
+  {
+   "kernelId": "lit/language-of-images",
+   "family": "creative writing mainly exists to communicate information clearly",
+   "wrong": [
+    "Poems should just tell me facts in a clear way.",
+    "Creative writing is mainly about conveying information.",
+    "A poem is like a newspaper report, just with line breaks."
+   ],
+   "right": [
+    "Creative writing uses images and sensory details to create experience.",
+    "Fiction and poetry let readers experience through concrete details.",
+    "It's about showing, not just informing; images create the world."
+   ]
+  },
+  {
+   "kernelId": "lit/epistolary-novel",
+   "family": "an epistolary novel is simply any novel that includes a few ",
+   "wrong": [
+    "Yeah, epistolary just means it has some letters in it.",
+    "Any book that includes a letter or two counts as epistolary.",
+    "Epistolary novels can have just one letter and still qualify."
+   ],
+   "right": [
+    "Epistolary novels are mostly told through letters between characters.",
+    "The main story is delivered via letters, not just a few.",
+    "Almost the entire narrative consists of exchanged letters."
+   ]
+  },
+  {
+   "kernelId": "lit/dickens-magician-realism",
+   "family": "if a novel feels realistic it must be strictly realistic in ",
+   "wrong": [
+    "Dickens writes strict realism because his stories feel real.",
+    "If it feels lifelike, then it has to be realistic.",
+    "Realism in novels means everything is possible in real life."
+   ],
+   "right": [
+    "Dickens uses exaggeration to create an illusion of realism.",
+    "His realism is a trick made from improbable characters and events.",
+    "He's like a magician making unrealistic things seem real."
+   ]
+  },
+  {
+   "kernelId": "math/discontinuity-types",
+   "family": "every discontinuity is removable",
+   "wrong": [
+    "All discontinuities can be fixed by redefining the function.",
+    "Every break in a graph is a removable discontinuity.",
+    "Holes, jumps, and asymptotes are all removable discontinuities."
+   ],
+   "right": [
+    "Jump and infinite discontinuities are not removable.",
+    "Only holes are removable; jumps and asymptotes are not.",
+    "At x=5 it's an asymptote, not removable."
+   ]
+  },
+  {
+   "kernelId": "math/sum-difference-constant-multiple-rules",
+   "family": "when differentiating a sum only the first term is differenti",
+   "wrong": [
+    "Only the first term changes, so just differentiate that.",
+    "Derivative of sum is just derivative of the first function.",
+    "The second term stays constant when you differentiate."
+   ],
+   "right": [
+    "Derivative of sum is sum of derivatives: f'(x)+g'(x).",
+    "Differentiate each term separately and add them up.",
+    "h'(x) = f'(x) + g'(x) because both terms vary."
+   ]
+  },
+  {
+   "kernelId": "math/optimization-problem-setup",
+   "family": "you can maximize or minimize the algebraic formula without c",
+   "wrong": [
+    "Just find the maximum of the formula, ignore the limits.",
+    "The domain doesn't matter for optimization.",
+    "Only the equation matters when finding the max profit."
+   ],
+   "right": [
+    "Check the domain within 0 to 200 to see feasibility.",
+    "Optimization needs to consider physical constraints.",
+    "Must restrict to realistic values like x between 0 and 200."
+   ]
+  },
+  {
+   "kernelId": "physics/resistance-ohms-law",
+   "family": "students may apply ohm s law to every device without checkin",
+   "wrong": [
+    "Ohm's law works for all electronic components.",
+    "Every device follows Ohm's law: V=IR.",
+    "You can use Ohm's law for diodes and resistors alike."
+   ],
+   "right": [
+    "Ohm's law only applies to ohmic materials.",
+    "Diodes are non-ohmic, so Ohm's law doesn't apply.",
+    "Not all devices have linear V-I relationships."
+   ]
+  },
+  {
+   "kernelId": "history/wilson-interventions-western-hemisphere",
+   "family": "wilson s presidency marked a clear retreat from u s military",
+   "wrong": [
+    "Wilson reduced military involvement in Latin America.",
+    "He avoided sending troops to the Caribbean.",
+    "Wilson was less interventionist than Taft."
+   ],
+   "right": [
+    "Wilson actually intervened more than Taft or Roosevelt.",
+    "He sent Marines to Haiti and Dominican Republic.",
+    "Wilson increased U.S. military actions in the hemisphere."
+   ]
+  },
+  {
+   "kernelId": "history/black-thursday-bank-intervention-1929",
+   "family": "the 1929 crash came without any warning signs",
+   "wrong": [
+    "The crash was completely unexpected with no signs.",
+    "There were no warnings before Black Thursday.",
+    "Nobody saw the crash coming at all."
+   ],
+   "right": [
+    "There were several warning signs before the crash.",
+    "Earlier downturns and foreign troubles signaled the crash.",
+    "The crash had many red flags beforehand."
+   ]
+  },
+  {
+   "kernelId": "history/first-new-deal-overview",
+   "family": "the first new deal primarily targeted one economic sector li",
+   "wrong": [
+    "The First New Deal only focused on banking.",
+    "It ignored other problems besides banking.",
+    "Banking was the sole target of the First New Deal."
+   ],
+   "right": [
+    "The New Deal had multiple goals like jobs and reform.",
+    "It addressed banking, job creation, and regional planning.",
+    "The First New Deal was not limited to one sector."
+   ]
+  },
+  {
+   "kernelId": "history/work-relief-programs-first-new-deal",
+   "family": "the ccc was open to all unemployed people regardless of age ",
+   "wrong": [
+    "The CCC accepted anyone who was out of work.",
+    "All unemployed people could join the CCC.",
+    "Age and family situation didn't matter for CCC eligibility."
+   ],
+   "right": [
+    "The CCC only took young men from relief families.",
+    "It targeted guys aged 14-24 from families on relief.",
+    "Not all unemployed could join; it was for young men."
+   ]
+  },
+  {
+   "kernelId": "history/reaganomics-supply-side",
+   "family": "reaganomics mainly targeted tax relief for low income americ",
+   "wrong": [
+    "Yeah it cut taxes for the poor to help them out.",
+    "It was all about helping regular folks with tax breaks.",
+    "Low income families got the biggest tax cuts."
+   ],
+   "right": [
+    "Nah, it mostly cut top income taxes to boost investment.",
+    "Wrong, it was about slashing taxes on the rich for economic growth.",
+    "Actually it focused on upper incomes to spur spending."
+   ]
+  },
+  {
+   "kernelId": "history/reaganomics-supply-side",
+   "family": "reaganomics was entirely new in 1981 including the anti infl",
+   "wrong": [
+    "Yeah Reagan invented it all in 1981.",
+    "It was brand new, nothing like it before.",
+    "The high interest rates were his new idea."
+   ],
+   "right": [
+    "No, Carter started deregulation and high rates first.",
+    "Actually those policies began under Carter, not Reagan.",
+    "Reagan built on earlier moves like Carter's anti-inflation."
+   ]
+  },
+  {
+   "kernelId": "nutrition/digestion-absorption",
+   "family": "students believe the stomach is where food is absorbed into",
+   "wrong": [
+    "Yeah the stomach absorbs most nutrients.",
+    "I thought the stomach was the main absorption site.",
+    "Stomach does all the absorbing, right?"
+   ],
+   "right": [
+    "No, the stomach just mixes; small intestine does absorption.",
+    "Actually absorption happens in the small intestine with villi.",
+    "The stomach is for digestion, not absorption; that's small intestine."
+   ]
+  },
+  {
+   "kernelId": "history/little-rock-nine-federal-intervention",
+   "family": "little rock was resolved mainly by state authorities protect",
+   "wrong": [
+    "State police protected the students in the end.",
+    "The governor eventually let them in on his own.",
+    "State officials handled it without federal help."
+   ],
+   "right": [
+    "No, state blocked them; federal troops enforced integration.",
+    "Eisenhower sent the 101st Airborne to escort the nine.",
+    "The state resisted, so feds took over to ensure entry."
+   ]
+  },
+  {
+   "kernelId": "lit/odyssey-domesticity-family-plot",
+   "family": "the odyssey is mainly about odysseus adventures at sea so pe",
+   "wrong": [
+    "Yeah it's all about Odysseus at sea, family is minor.",
+    "The family parts are just side stories.",
+    "Telemachos and Penelope are barely in it."
+   ],
+   "right": [
+    "Actually the first four books focus on Telemachos.",
+    "Family homecoming is central, not just sea adventures.",
+    "Large parts focus on Penelope and Telemachos at home."
+   ]
+  },
+  {
+   "kernelId": "math/continuity",
+   "family": "students conclude a function is continuous at a point whenev",
+   "wrong": [
+    "Yes it's continuous because the limit is there.",
+    "A limit existing means it's continuous for sure.",
+    "It counts as continuous if the limit exists."
+   ],
+   "right": [
+    "No, it's not continuous because f(2) is undefined.",
+    "Continuity requires the function value to equal the limit.",
+    "Removable discontinuity: limit exists but function not defined."
+   ]
+  },
+  {
+   "kernelId": "math/related-rates",
+   "family": "you can substitute the given numerical value for a changing",
+   "wrong": [
+    "It's fine to plug in numbers early to simplify.",
+    "Yeah substitute now to make the equation easier.",
+    "I always plug in values before differentiating."
+   ],
+   "right": [
+    "No, keep them as variables or their derivatives will vanish.",
+    "You must differentiate first, then substitute values later.",
+    "Plugging early turns them into constants, losing derivatives."
+   ]
+  }
+ ]
+}

@@ -15,6 +15,7 @@ import random
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 BANK = os.path.join(HERE, "..", "..", "bank", "all-items.json")
+TRAINING = os.path.join(HERE, "stance-training.json")
 OUT = os.path.join(HERE, "stance-triplets.jsonl")
 
 
@@ -52,6 +53,24 @@ def main():
                 # a second draw with a different negative class when available
                 if cell["neg"] and hard:
                     triplets.append({"anchor": family, "positive": pos, "negative": random.choice(hard)})
+
+    # Round 2 (S1): student-register triplets — the DEPLOYED geometry.
+    # anchor = family; positive = a typed wrong answer; negative = a typed
+    # correct answer (plus one bank-negative draw for register mixing).
+    if os.path.exists(TRAINING):
+        training = json.load(open(TRAINING))
+        for entry in training.get("generated", []):
+            fam = entry["family"]
+            rights = [r for r in entry.get("right", []) if len(r) >= 8]
+            wrongs = [w for w in entry.get("wrong", []) if len(w) >= 8]
+            if not rights or not wrongs:
+                continue
+            for w in wrongs:
+                triplets.append({"anchor": fam, "positive": w, "negative": random.choice(rights)})
+            # answers must also separate from each other when queried
+            for r in rights:
+                for w in wrongs[:1]:
+                    triplets.append({"anchor": r, "positive": r, "negative": w})
 
     random.shuffle(triplets)
     with open(OUT, "w") as f:

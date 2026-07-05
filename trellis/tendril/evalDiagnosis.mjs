@@ -27,7 +27,7 @@ const PARAPHRASE_CACHE = 'trellis/tendril/cache/paraphrase-eval.json';
 const CORRECT_CACHE = 'trellis/tendril/cache/correct-paraphrase-eval.json';
 const MAX_PARAPHRASE_KERNELS = 60;
 const THRESHOLDS = [0.35, 0.45, 0.55];
-const MARGINS = [0, 0.03, 0.05, 0.08];
+const MARGINS = [0, 0.03, 0.035, 0.04, 0.045, 0.05, 0.08];
 
 // First bank item per (kernel × family) — the Tutor's item context — plus
 // the kernel-wide correct surfaces (every item's correct option, every
