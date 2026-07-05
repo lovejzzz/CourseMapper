@@ -187,12 +187,24 @@ export async function buildAssets({ outPath = ASSETS_PATH } = {}) {
   for (const asset of [...itemAssets]) {
     if (priorUses.has(asset.id)) asset.exposure.uses = priorUses.get(asset.id);
   }
+  // Researcher deposits (RESEARCHER.md RS-4): cited assets live in their
+  // own file and merge on every rebuild — the gapfill-persistence pattern.
+  let researcherAssets = [];
+  try {
+    researcherAssets = JSON.parse(await readFile('trellis/bank/researcher-assets.json', 'utf8')).assets ?? [];
+  } catch {
+    /* none yet */
+  }
+  for (const asset of researcherAssets) {
+    if (priorUses.has(asset.id)) asset.exposure.uses = priorUses.get(asset.id);
+  }
+
   const store = {
     version: 'composer-assets-v0',
     benchVersion: '1.1.0',
     stamp: 'SIMULATED instruments only; append-only with supersedes (COMPOSER.md C-3)',
     counts: {},
-    assets: [...itemAssets, ...moveAssets],
+    assets: [...itemAssets, ...moveAssets, ...researcherAssets],
   };
   for (const asset of store.assets) store.counts[asset.move] = (store.counts[asset.move] ?? 0) + 1;
   await mkdir('trellis/bank', { recursive: true });
@@ -223,8 +235,14 @@ export function selectAsset(store, kernelId, move, { exclude = new Set(), k = 3,
   return chosen;
 }
 
-// CLI (content-guarded — the vite-node argv lesson).
+// CLI — plain-node only (argv[1] check): the content guard fired on
+// IMPORT under `node -e` probes (benign $0 rebuild, but the import-CLI
+// class is a standing trap — see bankGapFill).
 import { existsSync } from 'node:fs';
-if (existsSync('trellis/bank/all-items.json') && process.argv.length <= 3 && !process.env.VITEST) {
+if (
+  process.argv[1]?.endsWith('composer/assets.mjs') &&
+  existsSync('trellis/bank/all-items.json') &&
+  !process.env.VITEST
+) {
   console.log(JSON.stringify(await buildAssets(), null, 2));
 }

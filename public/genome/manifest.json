@@ -40,7 +40,7 @@
       "discipline": "cs",
       "level": "intro",
       "path": "cs-intro.json",
-      "conceptCount": 12,
+      "conceptCount": 14,
       "hash": "fbfb087cd78092d0"
     },
     {
@@ -80,7 +80,7 @@
       "discipline": "lit",
       "level": "intro",
       "path": "lit-intro.json",
-      "conceptCount": 34,
+      "conceptCount": 47,
       "hash": "10b1d402cc5a64f5"
     },
     {

@@ -1441,3 +1441,26 @@ polishing a candidate that hasn't won.
   the loud-failure design working. Levers named: Tendril-E topic-match
   disclosure ($0), claims/mapping decoupling (+0.1 battery all
   pipelines), lit/history harvest = C6. Panel spend $0.041.
+
+- **2026-07-05 (THE RESEARCHER — RESEARCHER.md written, built, R0
+  PASSED).** Owner: "a model that can find anything" → the fourth verb
+  (find → judge → assemble → serve). Wikipedia-first mining with
+  RS-1 span-anchoring (every fact carries a verbatim quote verified
+  against the fetched source — grounding by construction), full gate
+  stack at Shape (segments/guide/discussion/assignment/slides/items +
+  blind solver), rebuild-safe deposits with license+attribution.
+  **R0: 15 kernels + 137 assets + 42 items from 40+ CC-BY-SA sources
+  for $0.281 all-in (bar ≤$0.35). cs l13: plans 4.33→7.0, quiz→6.67
+  (guide 5 — partial). WORLD-LIT: from total refusal to ALL 14 lessons
+  at $0.0000 · 96/A (P0=0 P1=0) · battery 0.548 · panel 6.67 [6,7] —
+  a never-seen discipline composing at cs's level, fully cited.**
+  Root discoveries: frozen graphs never re-consult the genome (baked
+  kernelFacts) → --relink flag (argmax rebind, disclosed; rulers stay
+  frozen by default; also exposed 6 wrong original wl links); the
+  authoring CONTRACT must be mirrored whole into shaping gates (3
+  one-field-at-a-time deaths); first-touch shelves are thin → the
+  shopping-list top-up loop ($0.02 flipped 3 refusing lessons). Traps
+  killed: zero-mode paid-fold-back leak in missing-surfaces; buildBank
+  origin preservation extended (twin-depth/researcher were
+  rebuild-vulnerable); assets.mjs import-CLI; shard manifest now
+  maintained by deposits. Suite 4,049 green.

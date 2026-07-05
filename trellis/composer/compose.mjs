@@ -154,12 +154,19 @@ export async function composeLesson(
     // introduces only pseudo-concepts, reinforces 26) can only ever hold
     // Review: items, and labeled spaced retrieval beats an empty quiz.
     if (quizItems.length < 3) {
-      const rescued = selectBankItems(slice, bank, {
+      let rescued = selectBankItems(slice, bank, {
         maxBanked: 6,
         perConcept: 4,
         reviewCap: 6,
         excludeItem: tendril ? (item) => tendril.itemEchoes(item) : null,
       });
+      // Last step of the floor rescue: drop the semantic sibling filter
+      // too — labeled spaced retrieval beats an empty quiz, and any echo
+      // this admits is disclosed via the standing J7 instrument.
+      if (rescued.length < 3) {
+        rescued = selectBankItems(slice, bank, { maxBanked: 6, perConcept: 4, reviewCap: 6 });
+        stats.zeroRescueUnfiltered = true;
+      }
       quizItems.length = 0;
       itemConceptIds.length = 0;
       for (const item of rescued) {
@@ -239,6 +246,12 @@ export async function composeLesson(
   if (!composed.assignment) missing.push('assignment');
   if (!composed.slides) missing.push('slides');
   if (composed.faqEntries.length === 0) missing.push('faqEntries');
+  if (missing.length > 0 && zero) {
+    // Zero mode: a missing surface is a REFUSAL, never a paid fold-back
+    // (this branch was a latent \$-leak reachable at 100% coverage minus one
+    // guide — found during the Researcher build).
+    throw new Error(`zero-mode: library lacks surfaces [${missing.join(', ')}] for ${lessonId}`);
+  }
   if (missing.length > 0) {
     const { authorLesson } = await import('../voice/author.mjs');
     const filled = await authorLesson(graph, lessonId, {

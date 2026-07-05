@@ -39,6 +39,7 @@ export async function runPipeline({
   tendril = true,
   freezeExposure = false,
   zeroApi = false,
+  relink = false,
   bankDiscipline = null,
   generatedAt = new Date().toISOString(),
 }) {
@@ -61,6 +62,7 @@ export async function runPipeline({
       tendril,
       freezeExposure,
       zeroApi,
+      relink,
       bankDiscipline,
       generatedAt,
       ledger,
@@ -88,6 +90,7 @@ async function runPipelineStages({
   tendril = true,
   freezeExposure = false,
   zeroApi = false,
+  relink = false,
   bankDiscipline,
   generatedAt,
   ledger,
@@ -149,7 +152,8 @@ async function runPipelineStages({
 
   // 3 · knowledge assembly (genome link)
   const shards = await loadShards();
-  const { coverage } = assembleKnowledge(graph, shards);
+  const { coverage } = assembleKnowledge(graph, shards, { relink });
+  if (coverage.rebinds?.length > 0) digest.relink = coverage.rebinds;
 
   // 4 · flywheel for uncovered concepts (live) or declared gaps (mock)
   if (coverage.uncovered.length > 0) {

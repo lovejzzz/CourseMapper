@@ -62,7 +62,12 @@ export function shardsForCourse(course, shards) {
   return compatible.length > 0 ? { shards: compatible, gated: true } : { shards, gated: false };
 }
 
-export function linkConceptToKernel(concept, kernels) {
+export function scoredLink(concept, kernels) {
+  const r = linkScored(concept, kernels);
+  return r;
+}
+
+function linkScored(concept, kernels) {
   let best = null;
   let bestScore = 0;
   const conceptTokens = new Set(contentTokens(concept.name));
@@ -78,14 +83,41 @@ export function linkConceptToKernel(concept, kernels) {
   }
   // Require a real match: at least half of one side's tokens shared.
   if (!best || bestScore < 1.0 || conceptTokens.size === 0) return null;
-  return best;
+  return { kernel: best, score: bestScore };
 }
 
-export function assembleKnowledge(graph, allShards) {
+export function linkConceptToKernel(concept, kernels) {
+  const scored = linkScored(concept, kernels);
+  return scored ? scored.kernel : null;
+}
+
+export function assembleKnowledge(graph, allShards, { relink = false } = {}) {
   const { shards, gated } = shardsForCourse(graph.course, allShards);
   const kernels = shards.flatMap((shard) => shard.kernels);
   const linked = [];
   const uncovered = [];
+  const rebinds = [];
+  // --relink (Researcher R0): frozen-graph replays bake kernelFacts, so
+  // by default they NEVER consult the genome again — correct for rulers,
+  // blind to new deposits. Under relink, a concept rebinds when the shard
+  // registry now offers a STRICTLY better-scoring kernel (argmax linking),
+  // or when it was never linked at all; baked facts are refreshed from the
+  // new kernel. Disclosed via coverage.note + rebind list.
+  if (relink) {
+    const kernelById = new Map(kernels.map((k) => [k.id, k]));
+    for (const concept of graph.concepts) {
+      const best = scoredLink(concept, kernels);
+      if (!best) continue;
+      const current = concept.genomeRef ? kernelById.get(concept.genomeRef) : null;
+      const currentScore = current ? (scoredLink(concept, [current])?.score ?? 0) : 0;
+      if (!current || (best.kernel.id !== current.id && best.score > currentScore)) {
+        if (concept.genomeRef) rebinds.push(`${concept.name}: ${concept.genomeRef} → ${best.kernel.id}`);
+        else rebinds.push(`${concept.name}: (unlinked) → ${best.kernel.id}`);
+        concept.genomeRef = null;
+        concept.kernelFacts = [];
+      }
+    }
+  }
   let misconceptionCounter = 0;
 
   for (const concept of graph.concepts) {

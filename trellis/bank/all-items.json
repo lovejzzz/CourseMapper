@@ -46979,6 +46979,1056 @@
     "grade": null,
     "date": "2026-07-04"
    }
+  },
+  {
+   "id": "gapfill:cs/debugging:Students-think-debugging-191c",
+   "kernelId": "cs/debugging",
+   "conceptName": "debugging",
+   "stem": "A student says, 'Debugging is only fixing syntax errors.' Which response best corrects this misconception?",
+   "options": [
+    "Debugging is only fixing syntax errors because compilers catch all other issues.",
+    "Debugging involves finding root causes of logical and runtime errors, not just syntax.",
+    "Debugging is the process of running programs to find errors.",
+    "Debugging is done by using print statements to trace program flow."
+   ],
+   "correctIndex": 1,
+   "explanation": "Debugging involves finding root causes of logical and runtime errors, not just syntax. It includes reproducing problems, analyzing control flow, and using various tools like interactive debuggers and profilers.",
+   "bloom": "apply",
+   "difficulty": "apply",
+   "catches": true,
+   "confronts": true,
+   "familyKey": "students think debugging is only fixing syntax errors",
+   "provenance": {
+    "origin": "researcher",
+    "model": "ds",
+    "grade": null,
+    "date": "2026-07-05"
+   }
+  },
+  {
+   "id": "gapfill:cs/debugging:Students-believe-debuggi-63ae",
+   "kernelId": "cs/debugging",
+   "conceptName": "debugging",
+   "stem": "A developer pauses program execution to inspect variable values. Which debugging tactic is being used?",
+   "options": [
+    "Interactive debugging",
+    "Control flow analysis",
+    "Log file analysis",
+    "Profiling"
+   ],
+   "correctIndex": 0,
+   "explanation": "Interactive debugging allows step-by-step execution and pausing to inspect or alter program state. This matches the described action.",
+   "bloom": "apply",
+   "difficulty": "apply",
+   "catches": false,
+   "confronts": false,
+   "familyKey": null,
+   "provenance": {
+    "origin": "researcher",
+    "model": "ds",
+    "grade": null,
+    "date": "2026-07-05"
+   }
+  },
+  {
+   "id": "gapfill:cs/testing:Students-believe-that-al-fc52",
+   "kernelId": "cs/testing",
+   "conceptName": "testing",
+   "stem": "A developer believes that if there is a defect, it will always cause an immediate failure. Which statement corrects this misconception?",
+   "options": [
+    "All defects lead to immediate failures, so any defect must be fixed immediately.",
+    "Not all defects cause failures; for example, a defect in dead code may not cause a failure.",
+    "Defects only cause failures if they are in the main code path.",
+    "Immediate failures are always caused by defects in the code."
+   ],
+   "correctIndex": 1,
+   "explanation": "Not all defects cause failures. For example, a defect in dead code may not cause a failure, and failures may only appear under certain environmental changes.",
+   "bloom": "apply",
+   "difficulty": "apply",
+   "catches": true,
+   "confronts": true,
+   "familyKey": "students believe that all defects lead to immediate failures",
+   "provenance": {
+    "origin": "researcher",
+    "model": "ds",
+    "grade": null,
+    "date": "2026-07-05"
+   }
+  },
+  {
+   "id": "gapfill:cs/testing:Students-believe-that-al-dae9",
+   "kernelId": "cs/testing",
+   "conceptName": "testing",
+   "stem": "A team needs a quick test to verify that the most critical functions of a new build work before deeper testing. Which type of test is best?",
+   "options": [
+    "Unit testing",
+    "Smoke testing",
+    "Integration testing",
+    "System testing"
+   ],
+   "correctIndex": 1,
+   "explanation": "Smoke tests are quick tests that verify basic functionality and provide fast feedback, making them ideal for this scenario.",
+   "bloom": "apply",
+   "difficulty": "apply",
+   "catches": false,
+   "confronts": false,
+   "familyKey": null,
+   "provenance": {
+    "origin": "researcher",
+    "model": "ds",
+    "grade": null,
+    "date": "2026-07-05"
+   }
+  },
+  {
+   "id": "gapfill:lit/world-literature:Students-think-world-lit-8765",
+   "kernelId": "lit/world-literature",
+   "conceptName": "world literature",
+   "stem": "Which statement best characterizes world literature today?",
+   "options": [
+    "It includes masterpieces from only Western Europe.",
+    "It is limited to works in their original languages.",
+    "It encompasses works from diverse cultures and eras.",
+    "It excludes translated works from non-Western countries."
+   ],
+   "correctIndex": 2,
+   "explanation": "World literature today includes works from many cultures and time periods, not just the Western canon. It thrives through translation, allowing global circulation.",
+   "bloom": "apply",
+   "difficulty": "apply",
+   "catches": true,
+   "confronts": true,
+   "familyKey": "students think world literature is limited to western europe",
+   "provenance": {
+    "origin": "researcher",
+    "model": "ds",
+    "grade": null,
+    "date": "2026-07-05"
+   }
+  },
+  {
+   "id": "gapfill:lit/world-literature:Students-think-a-work-in-509e",
+   "kernelId": "lit/world-literature",
+   "conceptName": "world literature",
+   "stem": "What effect does translation have on a work's status as world literature?",
+   "options": [
+    "Translation destroys the original literary value.",
+    "Translation enables the work to gain new meaning.",
+    "Translation prevents a work from being world literature.",
+    "Translation is irrelevant to world literature."
+   ],
+   "correctIndex": 1,
+   "explanation": "Translation can actually enhance a work's meaning and enable it to thrive as world literature, contrary to the idea that it loses literary value.",
+   "bloom": "apply",
+   "difficulty": "apply",
+   "catches": true,
+   "confronts": true,
+   "familyKey": "students think a work in translation loses its literary valu",
+   "provenance": {
+    "origin": "researcher",
+    "model": "ds",
+    "grade": null,
+    "date": "2026-07-05"
+   }
+  },
+  {
+   "id": "gapfill:lit/world-literature:Students-think-a-work-in-1f6b",
+   "kernelId": "lit/world-literature",
+   "conceptName": "world literature",
+   "stem": "According to Moretti, how should world literature be studied?",
+   "options": [
+    "By close reading of individual texts.",
+    "By distant reading of large patterns.",
+    "By focusing on national literatures.",
+    "By avoiding translated works."
+   ],
+   "correctIndex": 1,
+   "explanation": "Moretti advocates 'distant reading' to study large-scale patterns, not focusing on individual texts or national boundaries.",
+   "bloom": "apply",
+   "difficulty": "apply",
+   "catches": false,
+   "confronts": false,
+   "familyKey": null,
+   "provenance": {
+    "origin": "researcher",
+    "model": "ds",
+    "grade": null,
+    "date": "2026-07-05"
+   }
+  },
+  {
+   "id": "gapfill:lit/oral-epic-tradition:Students-think-oral-epic-fc0a",
+   "kernelId": "lit/oral-epic-tradition",
+   "conceptName": "oral epic tradition",
+   "stem": "Which statement best describes how oral epic traditions, such as the Homeric epics, are transmitted?",
+   "options": [
+    "Oral epics change drastically with each telling, making them unreliable.",
+    "Oral epic poems are memorized word for word and passed down with community oversight.",
+    "Oral epics are only found in ancient Greece.",
+    "Oral epic traditions rely on written manuscripts to ensure accuracy."
+   ],
+   "correctIndex": 1,
+   "explanation": "Oral traditions often maintain stability through memorization and community control, as seen in the careful transmission of the Homeric epics.",
+   "bloom": "apply",
+   "difficulty": "apply",
+   "catches": true,
+   "confronts": true,
+   "familyKey": "students think oral epics are unreliable and change drastica",
+   "provenance": {
+    "origin": "researcher",
+    "model": "ds",
+    "grade": null,
+    "date": "2026-07-05"
+   }
+  },
+  {
+   "id": "gapfill:lit/oral-epic-tradition:Students-think-oral-epic-a385",
+   "kernelId": "lit/oral-epic-tradition",
+   "conceptName": "oral epic tradition",
+   "stem": "Which statement accurately reflects the geographic scope of oral epic traditions?",
+   "options": [
+    "Oral epics are only found in ancient Greece.",
+    "Oral epic traditions exist in many regions, including West Africa.",
+    "Oral epics are uniquely a European phenomenon.",
+    "Oral epic traditions developed solely in the Balkans."
+   ],
+   "correctIndex": 1,
+   "explanation": "Oral epic traditions exist worldwide, including in Africa with the Epic of Sundiata and in other cultures.",
+   "bloom": "apply",
+   "difficulty": "apply",
+   "catches": true,
+   "confronts": true,
+   "familyKey": "students think oral epics are only found in ancient greece",
+   "provenance": {
+    "origin": "researcher",
+    "model": "ds",
+    "grade": null,
+    "date": "2026-07-05"
+   }
+  },
+  {
+   "id": "gapfill:lit/oral-epic-tradition:Students-think-oral-epic-a427",
+   "kernelId": "lit/oral-epic-tradition",
+   "conceptName": "oral epic tradition",
+   "stem": "Which structural feature is characteristic of oral epic poems?",
+   "options": [
+    "They are divided into short episodes.",
+    "They are composed in long, continuous narratives.",
+    "They include extensive written commentary.",
+    "They rely on improvisation without any fixed structure."
+   ],
+   "correctIndex": 0,
+   "explanation": "Oral epics tend to be constructed in short episodes to facilitate memorization.",
+   "bloom": "apply",
+   "difficulty": "apply",
+   "catches": false,
+   "confronts": false,
+   "familyKey": null,
+   "provenance": {
+    "origin": "researcher",
+    "model": "ds",
+    "grade": null,
+    "date": "2026-07-05"
+   }
+  },
+  {
+   "id": "gapfill:lit/classical-drama:Students-often-think-cla-32ca",
+   "kernelId": "lit/classical-drama",
+   "conceptName": "classical drama",
+   "stem": "Which statement correctly refutes the common misconception that classical drama is only about tragedy?",
+   "options": [
+    "Classical drama is only about tragedy.",
+    "Classical drama also includes comedy and satyr plays.",
+    "Classical drama focuses exclusively on tragic plots.",
+    "Classical drama excludes all forms of comedy."
+   ],
+   "correctIndex": 1,
+   "explanation": "Classical drama also includes comedy and satyr plays, which were performed alongside tragedies in competitions. This demonstrates that classical drama encompasses more than just tragedy.",
+   "bloom": "apply",
+   "difficulty": "apply",
+   "catches": true,
+   "confronts": true,
+   "familyKey": "students often think classical drama is only about tragedy",
+   "provenance": {
+    "origin": "researcher",
+    "model": "ds",
+    "grade": null,
+    "date": "2026-07-05"
+   }
+  },
+  {
+   "id": "gapfill:lit/classical-drama:Students-may-underestima-25bd",
+   "kernelId": "lit/classical-drama",
+   "conceptName": "classical drama",
+   "stem": "A playwright wants to create a tragedy that evokes catharsis. According to Aristotle, through which emotions must this be achieved?",
+   "options": [
+    "Pity and fear",
+    "Joy and sorrow",
+    "Anger and jealousy",
+    "Love and hate"
+   ],
+   "correctIndex": 0,
+   "explanation": "Aristotle defined tragedy as an enactment that effects catharsis through pity and fear.",
+   "bloom": "apply",
+   "difficulty": "apply",
+   "catches": false,
+   "confronts": false,
+   "familyKey": null,
+   "provenance": {
+    "origin": "researcher",
+    "model": "ds",
+    "grade": null,
+    "date": "2026-07-05"
+   }
+  },
+  {
+   "id": "gapfill:lit/tang-poetry:Students-may-think-all-T-afb4",
+   "kernelId": "lit/tang-poetry",
+   "conceptName": "Tang poetry",
+   "stem": "Which statement accurately reflects the length of Tang poems?",
+   "options": [
+    "Tang poems can vary in length, often consisting of multiple rhyming couplets.",
+    "All Tang poems are short, as they are typically limited to four lines.",
+    "Tang poems are always exactly eight lines long.",
+    "Tang poems are limited to five characters per line."
+   ],
+   "correctIndex": 0,
+   "explanation": "Tang poems have no strict limit on length; they often consist of multiple rhyming couplets with a preference for multiples of four lines, allowing for longer works.",
+   "bloom": "analyze",
+   "difficulty": "apply",
+   "catches": true,
+   "confronts": true,
+   "familyKey": "students may think all tang poems are short",
+   "provenance": {
+    "origin": "researcher",
+    "model": "ds",
+    "grade": null,
+    "date": "2026-07-05"
+   }
+  },
+  {
+   "id": "gapfill:lit/tang-poetry:Students-may-think-all-T-8cbe",
+   "kernelId": "lit/tang-poetry",
+   "conceptName": "Tang poetry",
+   "stem": "Given that many Tang poems have been lost, what does the survival of over 50,000 poems indicate?",
+   "options": [
+    "It represents a small portion of what was actually produced.",
+    "It is the complete collection of all Tang poems ever written.",
+    "It shows that most Tang poems were preserved.",
+    "It indicates that only the best poems survived."
+   ],
+   "correctIndex": 0,
+   "explanation": "The Complete Tang Poems includes over 48,900 poems, but many have been lost. The surviving poems represent only a small portion of what was produced.",
+   "bloom": "apply",
+   "difficulty": "transfer",
+   "catches": false,
+   "confronts": false,
+   "familyKey": null,
+   "provenance": {
+    "origin": "researcher",
+    "model": "ds",
+    "grade": null,
+    "date": "2026-07-05"
+   }
+  },
+  {
+   "id": "gapfill:lit/frame-narrative:Students-may-think-a-fra-8111",
+   "kernelId": "lit/frame-narrative",
+   "conceptName": "frame narrative",
+   "stem": "A student claims that a frame narrative is simply a story within a story. Which of the following best explains why this understanding is incomplete?",
+   "options": [
+    "Frame narrative uses framing and embedded stories; framing gives context and continues after inner.",
+    "Frame narrative is simply a story within a story, without recognizing framing contextualizes inner.",
+    "Any story containing another story qualifies as a frame narrative.",
+    "Frame narrative only includes one story, the outer one."
+   ],
+   "correctIndex": 0,
+   "explanation": "This understanding is incomplete because a frame narrative includes both a framing story and an embedded story. The framing story provides context for the inner tale and often continues after it ends.",
+   "bloom": "analyze",
+   "difficulty": "transfer",
+   "catches": true,
+   "confronts": true,
+   "familyKey": "students may think a frame narrative is simply a story withi",
+   "provenance": {
+    "origin": "researcher",
+    "model": "ds",
+    "grade": null,
+    "date": "2026-07-05"
+   }
+  },
+  {
+   "id": "gapfill:lit/frame-narrative:Students-may-think-that--9956",
+   "kernelId": "lit/frame-narrative",
+   "conceptName": "frame narrative",
+   "stem": "A student says, 'Any story that contains another story is a frame narrative.' Which of the following best corrects this misconception?",
+   "options": [
+    "Frame narrative: framing must serve as structural device introducing or concluding inner story.",
+    "That is correct because any story that contains another story qualifies as a frame narrative.",
+    "A frame narrative is the same as any story with a flashback.",
+    "The outer story must be longer than the inner story."
+   ],
+   "correctIndex": 0,
+   "explanation": "This is incorrect because a work must have a framing story that serves as a structural device for the frame narrative. The framing story introduces, interrupts, or concludes the inner story, not merely a casual mention.",
+   "bloom": "analyze",
+   "difficulty": "transfer",
+   "catches": true,
+   "confronts": true,
+   "familyKey": "students may think that any story that contains another stor",
+   "provenance": {
+    "origin": "researcher",
+    "model": "ds",
+    "grade": null,
+    "date": "2026-07-05"
+   }
+  },
+  {
+   "id": "gapfill:lit/frame-narrative:Students-may-think-that--32bb",
+   "kernelId": "lit/frame-narrative",
+   "conceptName": "frame narrative",
+   "stem": "Which of the following best exemplifies a frame narrative?",
+   "options": [
+    "A diary entry that includes a dream sequence.",
+    "A novel with a narrator telling tales to a group at the start and end.",
+    "A poem that describes a painting.",
+    "A play with a prologue and epilogue."
+   ],
+   "correctIndex": 1,
+   "explanation": "This is a frame narrative because the outer story of the narrator telling tales provides a structure that introduces and concludes the inner stories.",
+   "bloom": "apply",
+   "difficulty": "apply",
+   "catches": false,
+   "confronts": false,
+   "familyKey": null,
+   "provenance": {
+    "origin": "researcher",
+    "model": "ds",
+    "grade": null,
+    "date": "2026-07-05"
+   }
+  },
+  {
+   "id": "gapfill:lit/dante:Students-often-believe-t-3acd",
+   "kernelId": "lit/dante",
+   "conceptName": "Dante",
+   "stem": "Why is Dante's choice of language for the Divine Comedy considered revolutionary?",
+   "options": [
+    "Because he wrote in Latin, the scholarly language of the time.",
+    "Because he wrote in the vernacular Tuscan dialect.",
+    "Because he used a mix of Latin and Italian.",
+    "Because he wrote in French, the language of the court."
+   ],
+   "correctIndex": 1,
+   "explanation": "Actually, Dante wrote in the vernacular, specifically his native Tuscan dialect, which helped standardize the Italian language. This broke with tradition as Latin was the standard for scholarly works.",
+   "bloom": "apply",
+   "difficulty": "apply",
+   "catches": true,
+   "confronts": true,
+   "familyKey": "students often believe that dante wrote the divine comedy in",
+   "provenance": {
+    "origin": "researcher",
+    "model": "ds",
+    "grade": null,
+    "date": "2026-07-05"
+   }
+  },
+  {
+   "id": "gapfill:lit/dante:Students-sometimes-think-46c2",
+   "kernelId": "lit/dante",
+   "conceptName": "Dante",
+   "stem": "A student claims the Divine Comedy is solely about Hell. How would you correct this misconception?",
+   "options": [
+    "It only describes Hell, as it is a journey through the afterlife.",
+    "It is divided into three parts: Inferno, Purgatorio, and Paradiso.",
+    "It describes both Heaven and Hell but not Purgatory.",
+    "It is primarily about Purgatory, with Hell as a minor part."
+   ],
+   "correctIndex": 1,
+   "explanation": "Actually, it is divided into three parts: Inferno, Purgatorio, and Paradiso, covering the entire Christian afterlife. The misconception is that it only covers Hell.",
+   "bloom": "apply",
+   "difficulty": "apply",
+   "catches": true,
+   "confronts": true,
+   "familyKey": "students sometimes think the divine comedy only describes he",
+   "provenance": {
+    "origin": "researcher",
+    "model": "ds",
+    "grade": null,
+    "date": "2026-07-05"
+   }
+  },
+  {
+   "id": "gapfill:lit/dante:Students-sometimes-think-29f2",
+   "kernelId": "lit/dante",
+   "conceptName": "Dante",
+   "stem": "Which rhyme scheme did Dante invent for the Divine Comedy?",
+   "options": [
+    "Terza rima",
+    "Ottava rima",
+    "Sonnet",
+    "Ballad"
+   ],
+   "correctIndex": 0,
+   "explanation": "Dante is credited with inventing the terza rima rhyme scheme, which consists of interlocking three-line stanzas. It is used throughout the Divine Comedy.",
+   "bloom": "apply",
+   "difficulty": "recall",
+   "catches": false,
+   "confronts": false,
+   "familyKey": null,
+   "provenance": {
+    "origin": "researcher",
+    "model": "ds",
+    "grade": null,
+    "date": "2026-07-05"
+   }
+  },
+  {
+   "id": "gapfill:lit/comparative-reading:Students-think-comparati-cb68",
+   "kernelId": "lit/comparative-reading",
+   "conceptName": "comparative reading methods",
+   "stem": "Given a comparative reading assignment analyzing a French poem and an English novel from the same historical period, which step is most appropriate?",
+   "options": [
+    "Read both texts in their original languages and consider their cultural contexts.",
+    "Compare only the plot structures of the two works.",
+    "Focus exclusively on the formal features of the poem.",
+    "Use only English translations to simplify the analysis."
+   ],
+   "correctIndex": 0,
+   "explanation": "Comparative reading involves analyzing texts across cultural and historical contexts, often requiring reading in original languages to appreciate nuances. This step aligns with the interdisciplinary nature of comparative literature.",
+   "bloom": "apply",
+   "difficulty": "apply",
+   "catches": false,
+   "confronts": false,
+   "familyKey": null,
+   "provenance": {
+    "origin": "researcher",
+    "model": "ds",
+    "grade": null,
+    "date": "2026-07-05"
+   }
+  },
+  {
+   "id": "gapfill:lit/translation-mediation:Students-often-think-tra-e7a0",
+   "kernelId": "lit/translation-mediation",
+   "conceptName": "translation",
+   "stem": "Which of the following best describes the nature of translation?",
+   "options": [
+    "Translation is often simply word-for-word substitution.",
+    "Translation requires balancing literal and paraphrastic approaches to achieve equivalence.",
+    "Translation is only about preserving the original word order.",
+    "Translation is primarily a mechanical process."
+   ],
+   "correctIndex": 1,
+   "explanation": "Translation requires balancing literal and paraphrastic approaches to achieve equivalence, as metaphrase and paraphrase mark the extremes of possible approaches.",
+   "bloom": "apply",
+   "difficulty": "apply",
+   "catches": true,
+   "confronts": true,
+   "familyKey": "students often think translation is simply word for word sub",
+   "provenance": {
+    "origin": "researcher",
+    "model": "ds",
+    "grade": null,
+    "date": "2026-07-05"
+   }
+  },
+  {
+   "id": "gapfill:lit/translation-mediation:Students-believe-machine-7992",
+   "kernelId": "lit/translation-mediation",
+   "conceptName": "translation",
+   "stem": "Which statement accurately reflects the accuracy of machine translation?",
+   "options": [
+    "Machine translation is always accurate and requires no editing.",
+    "Machine translation accuracy varies greatly across languages and contexts.",
+    "Machine translation has been criticized for its lack of reliability.",
+    "Machine translation is perfect for all language pairs."
+   ],
+   "correctIndex": 1,
+   "explanation": "Machine translation accuracy varies greatly across languages and has been criticized on several occasions.",
+   "bloom": "apply",
+   "difficulty": "apply",
+   "catches": true,
+   "confronts": true,
+   "familyKey": "students believe machine translation is always accurate",
+   "provenance": {
+    "origin": "researcher",
+    "model": "ds",
+    "grade": null,
+    "date": "2026-07-05"
+   }
+  },
+  {
+   "id": "gapfill:lit/translation-mediation:Students-believe-machine-db63",
+   "kernelId": "lit/translation-mediation",
+   "conceptName": "translation",
+   "stem": "What is the primary goal of descriptive translation studies?",
+   "options": [
+    "To prescribe rules for good translation.",
+    "To build an empirical discipline for studying translations.",
+    "To automate translation using neural networks.",
+    "To focus on equivalence between source and target texts."
+   ],
+   "correctIndex": 1,
+   "explanation": "Descriptive translation studies aims to build an empirical discipline for studying translations.",
+   "bloom": "apply",
+   "difficulty": "apply",
+   "catches": false,
+   "confronts": false,
+   "familyKey": null,
+   "provenance": {
+    "origin": "researcher",
+    "model": "ds",
+    "grade": null,
+    "date": "2026-07-05"
+   }
+  },
+  {
+   "id": "gapfill:lit/postcolonial-literature:Students-sometimes-assum-7d24",
+   "kernelId": "lit/postcolonial-literature",
+   "conceptName": "postcolonial literature",
+   "stem": "A student claims that all postcolonial literature is about migration. Which of the following statements best challenges this misconception?",
+   "options": [
+    "All postcolonial literature is about migration because colonial subjects often moved.",
+    "Not all postcolonial literature deals with migration; it covers broader themes.",
+    "Postcolonial literature primarily focuses on pre-colonial cultures.",
+    "Migration is only a minor theme in postcolonial literature."
+   ],
+   "correctIndex": 1,
+   "explanation": "Not all migration takes place in a colonial setting. Postcolonial literature deals with a broader range of themes such as cultural imperialism and national identity.",
+   "bloom": "analyze",
+   "difficulty": "apply",
+   "catches": true,
+   "confronts": true,
+   "familyKey": "students sometimes assume all postcolonial literature is abo",
+   "provenance": {
+    "origin": "researcher",
+    "model": "ds",
+    "grade": null,
+    "date": "2026-07-05"
+   }
+  },
+  {
+   "id": "gapfill:lit/postcolonial-literature:Students-sometimes-assum-5f60",
+   "kernelId": "lit/postcolonial-literature",
+   "conceptName": "postcolonial literature",
+   "stem": "In Things Fall Apart, how does Chinua Achebe challenge colonial narratives?",
+   "options": [
+    "By portraying Africans as victims.",
+    "By depicting Igbo society as complex and sophisticated.",
+    "By celebrating British colonialism.",
+    "By focusing solely on migration."
+   ],
+   "correctIndex": 1,
+   "explanation": "Achebe presents a nuanced portrayal of Igbo culture, countering European depictions of Africans as primitive.",
+   "bloom": "apply",
+   "difficulty": "apply",
+   "catches": false,
+   "confronts": false,
+   "familyKey": null,
+   "provenance": {
+    "origin": "researcher",
+    "model": "ds",
+    "grade": null,
+    "date": "2026-07-05"
+   }
+  },
+  {
+   "id": "gapfill:lit/magical-realism:Students-believe-magical-30e4",
+   "kernelId": "lit/magical-realism",
+   "conceptName": "magical realism",
+   "stem": "A student believes that magical realism originated only in Latin America because of its association with Gabriel García Márquez. Which statement best corrects this misconception?",
+   "options": [
+    "Magical realism has roots in European and other traditions, not just Latin America.",
+    "Magical realism originated only in Latin America because of authors like García Márquez.",
+    "Magical realism is found only in Latin American literature.",
+    "Magical realism cannot be associated with Latin America."
+   ],
+   "correctIndex": 0,
+   "explanation": "While often associated with Latin America, magical realism has roots in European and other traditions, with authors from Russia, Japan, and elsewhere. Therefore, it did not originate only in Latin America.",
+   "bloom": "apply",
+   "difficulty": "transfer",
+   "catches": true,
+   "confronts": true,
+   "familyKey": "students believe magical realism originated only in latin am",
+   "provenance": {
+    "origin": "researcher",
+    "model": "ds",
+    "grade": null,
+    "date": "2026-07-05"
+   }
+  },
+  {
+   "id": "gapfill:lit/magical-realism:Students-believe-magical-9c88",
+   "kernelId": "lit/magical-realism",
+   "conceptName": "magical realism",
+   "stem": "Which of the following best exemplifies magical realism?",
+   "options": [
+    "A village where the dead appear as ghosts who interact with the living matter-of-factly.",
+    "A spaceship travels to a distant galaxy where aliens have advanced technology.",
+    "A wizard saves a kingdom from a dragon in a mythical land.",
+    "A realistic account of a historical event with no supernatural elements."
+   ],
+   "correctIndex": 0,
+   "explanation": "Magical realism presents supernatural events matter-of-factly in a realistic setting. The option with ghosts interacting naturally fits this definition.",
+   "bloom": "apply",
+   "difficulty": "apply",
+   "catches": false,
+   "confronts": false,
+   "familyKey": null,
+   "provenance": {
+    "origin": "researcher",
+    "model": "ds",
+    "grade": null,
+    "date": "2026-07-05"
+   }
+  },
+  {
+   "id": "gapfill:lit/modernist-poetry:Students-think-modernist-29df",
+   "kernelId": "lit/modernist-poetry",
+   "conceptName": "modernist poetry",
+   "stem": "Which technique is commonly used in modernist poetry?",
+   "options": [
+    "Collage and fragmentation",
+    "Strict iambic pentameter",
+    "Romantic emotionalism",
+    "Allegorical narrative"
+   ],
+   "correctIndex": 0,
+   "explanation": "Modernist poetry often employs collage and fragmentation, as exemplified by T.S. Eliot's 'The Waste Land'.",
+   "bloom": "apply",
+   "difficulty": "apply",
+   "catches": false,
+   "confronts": false,
+   "familyKey": null,
+   "provenance": {
+    "origin": "researcher",
+    "model": "ds",
+    "grade": null,
+    "date": "2026-07-05"
+   }
+  },
+  {
+   "id": "gapfill:lit/the-fantastic:Students-think-the-fanta-68bb",
+   "kernelId": "lit/the-fantastic",
+   "conceptName": "the fantastic",
+   "stem": "Which of the following best describes the fantastic?",
+   "options": [
+    "Any story that includes magic or fantasy elements.",
+    "A genre characterized by hesitation between natural and supernatural explanations.",
+    "A genre emphasizing scientific accuracy and technological innovation.",
+    "A narrative that always involves complex world-building."
+   ],
+   "correctIndex": 1,
+   "explanation": "The fantastic is specifically characterized by a hesitation between natural and supernatural explanations, not merely the presence of magical elements.",
+   "bloom": "apply",
+   "difficulty": "apply",
+   "catches": true,
+   "confronts": true,
+   "familyKey": "students think the fantastic is just any story with magic or",
+   "provenance": {
+    "origin": "researcher",
+    "model": "ds",
+    "grade": null,
+    "date": "2026-07-05"
+   }
+  },
+  {
+   "id": "gapfill:lit/the-fantastic:Students-think-the-fanta-dc3f",
+   "kernelId": "lit/the-fantastic",
+   "conceptName": "the fantastic",
+   "stem": "A student claims that the fantastic is the same as science fiction. How would you correct this misconception?",
+   "options": [
+    "The fantastic involves supernatural elements, while science fiction relies on scientific extrapolation.",
+    "The fantastic is just a subgenre of science fiction.",
+    "The fantastic and science fiction are completely unrelated genres.",
+    "The fantastic is only about dreams and labyrinths."
+   ],
+   "correctIndex": 0,
+   "explanation": "The fantastic involves supernatural or magical elements, whereas science fiction relies on scientific or technological extrapolation.",
+   "bloom": "apply",
+   "difficulty": "apply",
+   "catches": true,
+   "confronts": true,
+   "familyKey": "students think the fantastic is the same as science fiction",
+   "provenance": {
+    "origin": "researcher",
+    "model": "ds",
+    "grade": null,
+    "date": "2026-07-05"
+   }
+  },
+  {
+   "id": "gapfill:lit/the-fantastic:Students-think-the-fanta-0384",
+   "kernelId": "lit/the-fantastic",
+   "conceptName": "the fantastic",
+   "stem": "Which of the following works is an example of the fantastic?",
+   "options": [
+    "\"The Martian\" by Andy Weir",
+    "\"The Garden of Forking Paths\" by Jorge Luis Borges",
+    "\"1984\" by George Orwell",
+    "\"The Catcher in the Rye\" by J.D. Salinger"
+   ],
+   "correctIndex": 1,
+   "explanation": "Borges's works are key examples of the fantastic, often featuring labyrinths, dreams, and infinite possibilities. This aligns with the fantastic's emphasis on hesitation between natural and supernatural.",
+   "bloom": "apply",
+   "difficulty": "apply",
+   "catches": false,
+   "confronts": false,
+   "familyKey": null,
+   "provenance": {
+    "origin": "researcher",
+    "model": "ds",
+    "grade": null,
+    "date": "2026-07-05"
+   }
+  },
+  {
+   "id": "gapfill:lit/contemporary-global-fiction:Students-often-think-con-04c3",
+   "kernelId": "lit/contemporary-global-fiction",
+   "conceptName": "contemporary global fiction",
+   "stem": "How would you correct a student who says contemporary literature only means literature written in the present moment?",
+   "options": [
+    "Contemporary literature is only literature written in the present moment.",
+    "Contemporary literature is specifically defined as set after World War II.",
+    "Contemporary literature includes all works from the 21st century.",
+    "Contemporary literature is the same as modern literature."
+   ],
+   "correctIndex": 1,
+   "explanation": "Contemporary literature is specifically defined as literature set after World War II, not just any recent work. This definition distinguishes it from current writing.",
+   "bloom": "analyze",
+   "difficulty": "apply",
+   "catches": true,
+   "confronts": true,
+   "familyKey": "students often think contemporary literature only means lite",
+   "provenance": {
+    "origin": "researcher",
+    "model": "ds",
+    "grade": null,
+    "date": "2026-07-05"
+   }
+  },
+  {
+   "id": "gapfill:lit/contemporary-global-fiction:Students-may-assume-cont-6619",
+   "kernelId": "lit/contemporary-global-fiction",
+   "conceptName": "contemporary global fiction",
+   "stem": "Which contemporary global fiction author is known for blending Turkish folk traditions with Western influences?",
+   "options": [
+    "Gabriel García Márquez",
+    "Orhan Pamuk",
+    "Haruki Murakami",
+    "Chinua Achebe"
+   ],
+   "correctIndex": 1,
+   "explanation": "Orhan Pamuk is a prominent Turkish writer of contemporary global fiction, blending folk traditions with Western influences. His works exemplify postmodern techniques like unreliable narration.",
+   "bloom": "apply",
+   "difficulty": "recall",
+   "catches": false,
+   "confronts": false,
+   "familyKey": null,
+   "provenance": {
+    "origin": "researcher",
+    "model": "ds",
+    "grade": null,
+    "date": "2026-07-05"
+   }
+  },
+  {
+   "id": "gapfill:lit/classical-drama:Students-often-think-cla-5184",
+   "kernelId": "lit/classical-drama",
+   "conceptName": "classical drama",
+   "stem": "How would you correct a student who claims classical drama is only about tragedy?",
+   "options": [
+    "Classical drama is only about tragedy because other genres were not performed.",
+    "Classical drama also includes comedy and satyr plays performed alongside tragedies.",
+    "The chorus was the most important part of classical drama.",
+    "Only 32 of over a thousand tragedies survive."
+   ],
+   "correctIndex": 1,
+   "explanation": "Classical drama also includes comedy and satyr plays, which were performed alongside tragedies in competitions.",
+   "bloom": "apply",
+   "difficulty": "apply",
+   "catches": true,
+   "confronts": true,
+   "familyKey": "students often think classical drama is only about tragedy",
+   "provenance": {
+    "origin": "researcher",
+    "model": "ds",
+    "grade": null,
+    "date": "2026-07-05"
+   }
+  },
+  {
+   "id": "gapfill:lit/classical-drama:Students-may-underestima-48f0",
+   "kernelId": "lit/classical-drama",
+   "conceptName": "classical drama",
+   "stem": "Which statement best corrects the misconception that the chorus played a minor role in Greek tragedy?",
+   "options": [
+    "Some underestimate the chorus in Greek tragedy because they think it only sang and danced.",
+    "The chorus was central, singing and dancing; its role diminished after Sophocles added a third actor.",
+    "The chorus was only used in tragedies.",
+    "The chorus had no interaction with actors."
+   ],
+   "correctIndex": 1,
+   "explanation": "The chorus was a central element, singing, dancing, and interacting with the actors. Its role diminished only after Sophocles added a third actor.",
+   "bloom": "apply",
+   "difficulty": "apply",
+   "catches": true,
+   "confronts": true,
+   "familyKey": "students may underestimate the role of the chorus in greek t",
+   "provenance": {
+    "origin": "researcher",
+    "model": "ds",
+    "grade": null,
+    "date": "2026-07-05"
+   }
+  },
+  {
+   "id": "gapfill:lit/classical-drama:Students-may-underestima-6916",
+   "kernelId": "lit/classical-drama",
+   "conceptName": "classical drama",
+   "stem": "What percentage of ancient Greek tragedies are estimated to be lost?",
+   "options": [
+    "97%",
+    "50%",
+    "10%",
+    "3%"
+   ],
+   "correctIndex": 0,
+   "explanation": "Only 32 of over a thousand tragedies survive, meaning approximately 97% are lost.",
+   "bloom": "apply",
+   "difficulty": "apply",
+   "catches": false,
+   "confronts": false,
+   "familyKey": null,
+   "provenance": {
+    "origin": "researcher",
+    "model": "ds",
+    "grade": null,
+    "date": "2026-07-05"
+   }
+  },
+  {
+   "id": "gapfill:lit/tang-poetry:Students-may-think-all-T-bb47",
+   "kernelId": "lit/tang-poetry",
+   "conceptName": "Tang poetry",
+   "stem": "Which of the following would best correct a misconception that all Tang poems are short?",
+   "options": [
+    "All Tang poems are short because they rarely exceed eight lines.",
+    "Tang poems vary in length; even long works with multiple couplets exist.",
+    "Tang poems are restricted to four lines or less.",
+    "Tang poems always have exactly eight lines."
+   ],
+   "correctIndex": 1,
+   "explanation": "Tang poems have no strict limit on length; they often consist of multiple rhyming couplets with a preference for multiples of four lines, allowing for longer works.",
+   "bloom": "apply",
+   "difficulty": "apply",
+   "catches": true,
+   "confronts": true,
+   "familyKey": "students may think all tang poems are short",
+   "provenance": {
+    "origin": "researcher",
+    "model": "ds",
+    "grade": null,
+    "date": "2026-07-05"
+   }
+  },
+  {
+   "id": "gapfill:lit/tang-poetry:Students-may-think-all-T-b105",
+   "kernelId": "lit/tang-poetry",
+   "conceptName": "Tang poetry",
+   "stem": "If a student reads a Tang poem with 20 lines arranged in 5 quatrains, this structure is consistent with which feature of Tang poetry?",
+   "options": [
+    "Preference for pentasyllabic lines",
+    "Use of multiple rhyming couplets",
+    "Adherence to strict rhyme schemes only in nature poems",
+    "Limitation to eight-line poems"
+   ],
+   "correctIndex": 1,
+   "explanation": "This structure uses multiple quatrains, each forming a set of couplets, which is a common feature in Tang poems.",
+   "bloom": "apply",
+   "difficulty": "apply",
+   "catches": false,
+   "confronts": false,
+   "familyKey": null,
+   "provenance": {
+    "origin": "researcher",
+    "model": "ds",
+    "grade": null,
+    "date": "2026-07-05"
+   }
+  },
+  {
+   "id": "gapfill:lit/modernist-poetry:Students-think-modernist-4e20",
+   "kernelId": "lit/modernist-poetry",
+   "conceptName": "modernist poetry",
+   "stem": "Which of the following statements best describes the structure of modernist poetry?",
+   "options": [
+    "It is completely formless and lacks any structure.",
+    "It adheres strictly to traditional formal structures.",
+    "It embraces new disciplines like exact concord of thought and rhythmic musical phrasing.",
+    "It follows no rules at all."
+   ],
+   "correctIndex": 2,
+   "explanation": "While modernist poetry rejects traditional formal structures, it embraces new disciplines such as exact concord of thought and feeling and rhythmic musical phrasing. Thus, modernist poetry is not completely formless but has its own structure.",
+   "bloom": "apply",
+   "difficulty": "apply",
+   "catches": true,
+   "confronts": true,
+   "familyKey": "students think modernist poetry is completely formless and l",
+   "provenance": {
+    "origin": "researcher",
+    "model": "ds",
+    "grade": null,
+    "date": "2026-07-05"
+   }
+  },
+  {
+   "id": "gapfill:lit/modernist-poetry:Students-think-modernist-53ea",
+   "kernelId": "lit/modernist-poetry",
+   "conceptName": "modernist poetry",
+   "stem": "Which of the following best describes modernist poets' attitude toward earlier poetic traditions?",
+   "options": [
+    "They rejected all past poetry completely.",
+    "They strictly followed classical forms.",
+    "They looked back to earlier traditions like ancient Greek and Japanese poetry.",
+    "They only valued contemporary poetry."
+   ],
+   "correctIndex": 2,
+   "explanation": "Modernist poets actually looked back to earlier traditions, including ancient Greek literature, Chinese and Japanese poetry, and the Metaphysical poets, as models for their work. Thus, they did not reject all past poetry.",
+   "bloom": "apply",
+   "difficulty": "apply",
+   "catches": true,
+   "confronts": true,
+   "familyKey": "students think modernist poets rejected all past poetry",
+   "provenance": {
+    "origin": "researcher",
+    "model": "ds",
+    "grade": null,
+    "date": "2026-07-05"
+   }
+  },
+  {
+   "id": "gapfill:lit/modernist-poetry:Students-think-modernist-02ba",
+   "kernelId": "lit/modernist-poetry",
+   "conceptName": "modernist poetry",
+   "stem": "According to Imagist principles, how should a poem treat its subject?",
+   "options": [
+    "Indirectly and symbolically",
+    "Directly and without unnecessary words",
+    "With elaborate metaphors",
+    "Through emotional expression"
+   ],
+   "correctIndex": 1,
+   "explanation": "Imagist principles include direct treatment of the subject, no unnecessary words, and composition in the musical phrase. Therefore, a poem should treat its subject directly.",
+   "bloom": "apply",
+   "difficulty": "apply",
+   "catches": false,
+   "confronts": false,
+   "familyKey": null,
+   "provenance": {
+    "origin": "researcher",
+    "model": "ds",
+    "grade": null,
+    "date": "2026-07-05"
+   }
   }
  ],
  "origins": {

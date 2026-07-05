@@ -196,7 +196,10 @@ export async function buildBank({ runsDir = 'trellis/runs', discipline = 'all', 
   // file (authored directly into the asset, not into any run), and a
   // rebuild that forgets them silently destroys paid work.
   const existing = await loadBank(discipline, { dir: outDir });
-  const gapfillItems = (existing?.items ?? []).filter((i) => i.provenance?.origin === 'gapfill');
+  // v0.1.5: ANY directly-authored origin survives (gapfill, twin-depth,
+  // researcher) — twin-depth items were silently rebuild-vulnerable.
+  const DIRECT_ORIGINS = new Set(['gapfill', 'twin-depth', 'researcher']);
+  const gapfillItems = (existing?.items ?? []).filter((i) => DIRECT_ORIGINS.has(i.provenance?.origin));
   const all = [...gapfillItems];
   const log = [];
   for (const run of runs) {
