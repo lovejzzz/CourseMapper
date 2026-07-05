@@ -321,8 +321,8 @@
     "0.03": {
      "wrong": {
       "total": 240,
-      "firedRight": 128,
-      "familyAccuracy": 0.5333333333333333
+      "firedRight": 130,
+      "familyAccuracy": 0.5416666666666666
      },
      "correct": {
       "total": 120,
@@ -333,8 +333,8 @@
     "0.05": {
      "wrong": {
       "total": 240,
-      "firedRight": 113,
-      "familyAccuracy": 0.4708333333333333
+      "firedRight": 115,
+      "familyAccuracy": 0.4791666666666667
      },
      "correct": {
       "total": 120,
@@ -345,13 +345,111 @@
     "0.08": {
      "wrong": {
       "total": 240,
-      "firedRight": 95,
-      "familyAccuracy": 0.3958333333333333
+      "firedRight": 98,
+      "familyAccuracy": 0.4083333333333333
      },
      "correct": {
       "total": 120,
       "falseFires": 11,
       "falseFireRate": 0.09166666666666666
+     }
+    }
+   },
+   "deployed": {
+    "0": {
+     "wrong": {
+      "total": 240,
+      "firedRight": 178,
+      "familyAccuracy": 0.7416666666666667
+     },
+     "correct": {
+      "total": 120,
+      "falseFires": 39,
+      "falseFireRate": 0.325
+     }
+    }
+   },
+   "deployed-short-class": {
+    "0": {
+     "wrong": {
+      "total": 30,
+      "firedRight": 7,
+      "familyAccuracy": 0.23333333333333334
+     },
+     "correct": {
+      "total": 24,
+      "falseFires": 1,
+      "falseFireRate": 0.041666666666666664
+     }
+    }
+   },
+   "item-options-short-class": {
+    "0": {
+     "wrong": {
+      "total": 30,
+      "firedRight": 25,
+      "familyAccuracy": 0.8333333333333334
+     },
+     "correct": {
+      "total": 24,
+      "falseFires": 7,
+      "falseFireRate": 0.2916666666666667
+     }
+    }
+   },
+   "deployed2": {
+    "0": {
+     "wrong": {
+      "total": 240,
+      "firedRight": 182,
+      "familyAccuracy": 0.7583333333333333
+     },
+     "correct": {
+      "total": 120,
+      "falseFires": 39,
+      "falseFireRate": 0.325
+     }
+    }
+   },
+   "deployed2-short-class": {
+    "0": {
+     "wrong": {
+      "total": 30,
+      "firedRight": 11,
+      "familyAccuracy": 0.36666666666666664
+     },
+     "correct": {
+      "total": 24,
+      "falseFires": 1,
+      "falseFireRate": 0.041666666666666664
+     }
+    }
+   },
+   "deployed2-m0": {
+    "0": {
+     "wrong": {
+      "total": 240,
+      "firedRight": 188,
+      "familyAccuracy": 0.7833333333333333
+     },
+     "correct": {
+      "total": 120,
+      "falseFires": 40,
+      "falseFireRate": 0.3333333333333333
+     }
+    }
+   },
+   "deployed2-m0-short-class": {
+    "0": {
+     "wrong": {
+      "total": 30,
+      "firedRight": 17,
+      "familyAccuracy": 0.5666666666666667
+     },
+     "correct": {
+      "total": 24,
+      "falseFires": 5,
+      "falseFireRate": 0.20833333333333334
      }
     }
    },

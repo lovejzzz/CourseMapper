@@ -32,7 +32,13 @@ const MARGINS = [0, 0.03, 0.05, 0.08];
 // First bank item per (kernel × family) — the Tutor's item context — plus
 // the kernel-wide correct surfaces (every item's correct option, every
 // explanation) as candidate null exemplars.
-function itemContextFor(bank) {
+// minCorrectLen — R4: the ≥8 default silently excluded bare-numeral
+// correct options ("5") from every context, which is exactly the class
+// the live Tutor false-fired on. The v1 FROZEN correct-answer set was
+// generated under the strict rule, so v1 evaluation must resolve
+// contexts with minCorrectLen=8 (same items as generation); the relaxed
+// contexts serve the wrong-side and the additive v2 short-option set.
+function itemContextFor(bank, { minCorrectLen = 1 } = {}) {
   const byKernel = new Map();
   const kernelNulls = new Map();
   for (const item of bank.items) {
@@ -42,8 +48,8 @@ function itemContextFor(bank) {
     const families = byKernel.get(item.kernelId);
     const nulls = kernelNulls.get(item.kernelId);
     const correctText = item.options?.[item.correctIndex];
-    if (typeof correctText === 'string' && correctText.length >= 8) {
-      nulls.corrects.push(correctText);
+    if (typeof correctText === 'string' && correctText.length >= minCorrectLen) {
+      if (correctText.length >= 8) nulls.corrects.push(correctText);
       if (!families.has(item.familyKey)) {
         families.set(item.familyKey, {
           correctText,
@@ -261,7 +267,8 @@ async function loadOrGenerateCorrectParaphrases(bank, ledger) {
   if (existsSync(CORRECT_CACHE)) {
     return JSON.parse(await readFile(CORRECT_CACHE, 'utf8'));
   }
-  const contexts = itemContextFor(bank).byKernel;
+  // Strict rule pins generation to the same items v1 evaluation resolves.
+  const contexts = itemContextFor(bank, { minCorrectLen: 8 }).byKernel;
   const byKernel = exemplarsFromBank(bank);
   const targets = twoFamilyKernels(byKernel)
     .slice(0, MAX_PARAPHRASE_KERNELS)
@@ -322,15 +329,94 @@ async function loadOrGenerateCorrectParaphrases(bank, ledger) {
   return frozen;
 }
 
+// --- 2b2. Short-option correct answers (v2, ADDITIVE frozen set) -------------
+// The v1 set could not cover bare-numeral items (generation excluded them).
+// v2 is self-contained: each entry pins its item surfaces at generation
+// time, so evaluation never depends on context-resolution rules again.
+
+const SHORT_CORRECT_CACHE = 'trellis/tendril/cache/correct-paraphrase-eval-v2-short.json';
+
+async function loadOrGenerateShortCorrectParaphrases(bank, ledger) {
+  if (existsSync(SHORT_CORRECT_CACHE)) {
+    return JSON.parse(await readFile(SHORT_CORRECT_CACHE, 'utf8'));
+  }
+  const relaxed = itemContextFor(bank).byKernel;
+  const targets = [];
+  for (const [kernelId, families] of relaxed) {
+    const [, ctx] = [...families.entries()][0];
+    if (ctx.correctText.length < 25 && targets.length < 40) {
+      targets.push({
+        kernelId,
+        stem: ctx.stem,
+        correct: ctx.correctText,
+        explanation: ctx.explanation,
+        distractors: ctx.distractors,
+      });
+    }
+  }
+  const generated = [];
+  const skipped = [];
+  const BATCH = 10;
+  for (let i = 0; i < targets.length; i += BATCH) {
+    const batch = targets.slice(i, i + BATCH);
+    const result = await withNetworkRetry(() =>
+      callModel({
+        tier: 'ds',
+        stage: 'short-correct-paraphrase-eval',
+        ledger,
+        system:
+          'You simulate students who UNDERSTAND a concept correctly. For each quiz question, its short correct answer, and the explanation of why it is correct, write exactly 2 short typed answers (8-25 words) a student who genuinely gets it would type — they state the answer AND the correct reason in casual student words. Do NOT copy the explanation text. Return JSON only.',
+        user: JSON.stringify({
+          instructions: 'Return {"kernels":[{"kernelId":"...","answers":["...","..."]}]} covering every kernel given.',
+          kernels: batch.map(({ kernelId, stem, correct, explanation }) => ({ kernelId, stem, correct, explanation })),
+        }),
+        schema: {
+          type: 'object',
+          properties: {
+            kernels: {
+              type: 'array',
+              items: {
+                type: 'object',
+                properties: { kernelId: { type: 'string' }, answers: { type: 'array', items: { type: 'string' } } },
+                required: ['kernelId', 'answers'],
+              },
+            },
+          },
+          required: ['kernels'],
+        },
+        schemaName: 'shortCorrectParaphrases',
+        validate: (out) => (Array.isArray(out?.kernels) && out.kernels.length > 0 ? [] : ['kernels array required']),
+      }),
+    );
+    if (result) {
+      const byId = new Map(batch.map((t) => [t.kernelId, t]));
+      for (const k of result.result.kernels) {
+        const ctx = byId.get(k.kernelId);
+        if (ctx) generated.push({ ...ctx, answers: (k.answers ?? []).slice(0, 2) });
+      }
+    } else skipped.push(...batch.map((t) => t.kernelId));
+  }
+  const frozen = {
+    stamp: 'FROZEN v2 (short-option class) — self-contained item surfaces; additive to v1, never replaces it',
+    skipped,
+    generated,
+  };
+  await mkdir('trellis/tendril/cache', { recursive: true });
+  await writeFile(SHORT_CORRECT_CACHE, JSON.stringify(frozen, null, 1));
+  return frozen;
+}
+
 // --- 2c. Contrastive eval — the deployment configuration ---------------------
 // Family paraphrases must fire their family; correct paraphrases must fire
 // nothing. Both run with the item's correct answer as nullVectors.
 
 async function evalContrastive(bank, embedder, ledger) {
   const index = await buildDiagnosisIndex(bank, { embedder });
-  const { byKernel: contexts, kernelNulls } = itemContextFor(bank);
+  const { byKernel: contexts, kernelNulls } = itemContextFor(bank); // relaxed: wrong side + deployed
+  const strictContexts = itemContextFor(bank, { minCorrectLen: 8 }).byKernel; // v1 correct-set resolution
   const { generated: wrongSet } = await loadOrGenerateParaphrases(bank, ledger);
   const { generated: correctSet } = await loadOrGenerateCorrectParaphrases(bank, ledger);
+  const { generated: shortCorrectSet } = await loadOrGenerateShortCorrectParaphrases(bank, ledger);
 
   const wrongQueries = [];
   for (const kernel of wrongSet) {
@@ -348,7 +434,7 @@ async function evalContrastive(bank, embedder, ledger) {
   }
   const correctQueries = [];
   for (const kernel of correctSet) {
-    const known = contexts.get(kernel.kernelId);
+    const known = strictContexts.get(kernel.kernelId);
     if (!known) continue;
     const [, ctx] = [...known.entries()][0];
     for (const answer of (kernel.answers ?? []).slice(0, 2)) {
@@ -379,6 +465,7 @@ async function evalContrastive(bank, embedder, ledger) {
     ...correctQueries.map((q) => q.correctText),
     ...[...wrongQueries, ...correctQueries].flatMap((q) => q.ctx.distractors ?? []),
     ...[...wrongQueries, ...correctQueries].map((q) => q.ctx.explanation).filter(Boolean),
+    ...wrongQueries.map((q) => q.family).filter(Boolean),
   ];
   const vectors = await cachedEmbed(allTexts, { name: 'contrastive-eval', embedder });
   const vecOf = new Map(allTexts.map((t, i) => [t, vectors[i]]));
@@ -386,25 +473,31 @@ async function evalContrastive(bank, embedder, ledger) {
   // Fourth formulation — 'item-options': grade the typed answer against the
   // answered ITEM's own surfaces (its distractors vs its correct option).
   // Register-matched by construction; the kernel-wide exemplars stay out.
-  const itemOptionsEval = (queries, expectFire, withExpl = false) => {
+  const itemOptionsEval = (queries, expectFire, mode = 'plain') => {
     const perMargin = {};
     for (const margin of MARGINS) {
       let fired = 0;
       let right = 0;
       for (const q of queries) {
         const ctx = q.ctx;
-        const wrongTop = Math.max(
-          ...ctx.distractors.map((d) => (vecOf.has(d) ? Number(cosineOf(q.answer, d)) : -1)),
-          -1,
-        );
-        // +expl: the item's explanation joins the null side — bare-numeral
-        // correct options ("5") carry no semantics for a sentence answer
-        // to match (live false-fire class found in the Tutor).
+        // 'expl' adds the explanation always; 'deployed' adds it ONLY for
+        // short correct options (<25 chars) and escalates their margin to
+        // 0.05 — the Tutor's shipped rule (R4). 'deployed2*' additionally
+        // puts the FAMILY STATEMENT on the wrong side for short items —
+        // numeral items have numeral distractors, so without it neither
+        // side of the contrast carries any semantics.
+        const short = ctx.correctText.length < 25;
+        const wrongTexts = [...ctx.distractors];
+        if (mode.startsWith('deployed2') && short && q.family && vecOf.has(q.family)) wrongTexts.push(q.family);
+        const wrongTop = Math.max(...wrongTexts.map((d) => (vecOf.has(d) ? Number(cosineOf(q.answer, d)) : -1)), -1);
+        const useExpl = mode === 'expl' || (mode.startsWith('deployed') && short);
         const nullTop = Math.max(
           cosineOf(q.answer, ctx.correctText),
-          withExpl && ctx.explanation ? cosineOf(q.answer, ctx.explanation) : -1,
+          useExpl && ctx.explanation ? cosineOf(q.answer, ctx.explanation) : -1,
         );
-        const fires = wrongTop >= 0.35 && wrongTop > nullTop + margin;
+        const effMargin =
+          (mode === 'deployed' || mode === 'deployed2') && short ? Math.max(margin, 0.05) : margin;
+        const fires = wrongTop >= 0.35 && wrongTop > nullTop + effMargin;
         if (fires) {
           fired += 1;
           if (expectFire) right += 1; // the item has ONE family; firing names it
@@ -477,12 +570,72 @@ async function evalContrastive(bank, embedder, ledger) {
       correct: itemOptionsEval(correctQueries, false)[margin],
     };
     itemOptionsExpl[margin] = {
-      wrong: itemOptionsEval(wrongQueries, true, true)[margin],
-      correct: itemOptionsEval(correctQueries, false, true)[margin],
+      wrong: itemOptionsEval(wrongQueries, true, 'expl')[margin],
+      correct: itemOptionsEval(correctQueries, false, 'expl')[margin],
     };
   }
   byMode['item-options'] = itemOptions;
   byMode['item-options+expl'] = itemOptionsExpl;
+
+  // DEPLOYED config (R4): margin 0 base (short-option escalation inside),
+  // wrong side on relaxed contexts, v1 correct set, and the v2
+  // short-option correct class measured separately.
+  const familyOf = (entry) =>
+    bank.items.find(
+      (i) => i.kernelId === entry.kernelId && i.stem === entry.stem && i.options?.[i.correctIndex] === entry.correct,
+    )?.familyKey ?? null;
+  const shortCorrectQueries = shortCorrectSet.flatMap((entry) =>
+    (entry.answers ?? [])
+      .filter((a) => typeof a === 'string' && a.length >= 8)
+      .map((answer) => ({
+        kernelId: entry.kernelId,
+        answer,
+        correctText: entry.correct,
+        family: familyOf(entry),
+        ctx: { correctText: entry.correct, explanation: entry.explanation, distractors: entry.distractors },
+      })),
+  );
+  const shortTexts = shortCorrectQueries
+    .flatMap((q) => [q.answer, q.ctx.correctText, q.ctx.explanation ?? '', q.family ?? '', ...(q.ctx.distractors ?? [])])
+    .filter(Boolean);
+  const shortVecs = await cachedEmbed(shortTexts, { name: 'contrastive-eval', embedder });
+  shortTexts.forEach((t, i) => vecOf.set(t, shortVecs[i]));
+  const shortWrong = wrongQueries.filter((q) => q.ctx.correctText.length < 25);
+  byMode['deployed'] = {
+    0: {
+      wrong: itemOptionsEval(wrongQueries, true, 'deployed')[0],
+      correct: itemOptionsEval(correctQueries, false, 'deployed')[0],
+    },
+  };
+  byMode['deployed-short-class'] = {
+    0: {
+      wrong: itemOptionsEval(shortWrong, true, 'deployed')[0],
+      correct: itemOptionsEval(shortCorrectQueries, false, 'deployed')[0],
+    },
+  };
+  byMode['item-options-short-class'] = {
+    0: {
+      wrong: itemOptionsEval(shortWrong, true, 'plain')[0],
+      correct: itemOptionsEval(shortCorrectQueries, false, 'plain')[0],
+    },
+  };
+  for (const [name, mode] of [
+    ['deployed2', 'deployed2'],
+    ['deployed2-m0', 'deployed2-m0'],
+  ]) {
+    byMode[name] = {
+      0: {
+        wrong: itemOptionsEval(wrongQueries, true, mode)[0],
+        correct: itemOptionsEval(correctQueries, false, mode)[0],
+      },
+    };
+    byMode[`${name}-short-class`] = {
+      0: {
+        wrong: itemOptionsEval(shortWrong, true, mode)[0],
+        correct: itemOptionsEval(shortCorrectQueries, false, mode)[0],
+      },
+    };
+  }
 
   // Conservative profile: fire only when BOTH the item-local grader and the
   // kernel-wide contrastive check (corrects+expl) agree. If their false

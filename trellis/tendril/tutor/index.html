@@ -83,28 +83,21 @@ async function embed(text) {
 }
 const cos = (a, b) => a.reduce((s, x, i) => s + x * b[i], 0);
 
-// The T-M1c standard profile: item-local contrastive diagnosis.
-// Short correct options (a bare "5") carry no stance for a sentence
-// answer to match, so the explanation joins the null side ONLY then —
-// the frozen eval showed blanket +expl hurts (explanations restate the
-// misconception), while the bare-numeral class was its blind spot.
+// The T-M1c standard profile: item-local contrastive diagnosis — ONE
+// rule for every item. R4 measured the short-option (bare-numeral)
+// class on its own frozen ruler and plain item-options WON it too
+// (83.3%/29.2%, dominating the conditional explanation-null patch this
+// file briefly carried): the live false-fire that motivated the patch
+// was real but the patch suppressed far more true fires than false
+// ones at class level. Reverted by evidence.
 async function diagnose(item, answer) {
   const qv = await embed(answer);
   const wrong = await Promise.all(
     item.options.filter((_, i) => i !== item.correctIndex).map(async (d) => ({ d, s: cos(qv, await embed(d)) })),
   );
-  const correct = item.options[item.correctIndex];
-  const shortOption = correct.length < 25;
-  let nullTop = cos(qv, await embed(correct));
-  if (shortOption && item.explanation) {
-    nullTop = Math.max(nullTop, cos(qv, await embed(item.explanation)));
-  }
+  const nullTop = cos(qv, await embed(item.options[item.correctIndex]));
   const wrongTop = wrong.reduce((m, w) => Math.max(m, w.s), -1);
-  // Short-option items are the T-M1c eval's blind spot (it required
-  // sentence-length corrects), so they run a conservative 0.05 margin;
-  // measured items keep the measured profile.
-  const margin = shortOption ? Math.max(course.profile.margin, 0.05) : course.profile.margin;
-  const fires = wrongTop >= course.profile.floor && wrongTop > nullTop + margin;
+  const fires = wrongTop >= course.profile.floor && wrongTop > nullTop + course.profile.margin;
   return { fires, wrongTop, nullTop };
 }
 
