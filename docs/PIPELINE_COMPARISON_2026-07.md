@@ -91,4 +91,46 @@ findings NONE battery 0.464. ⁽⁵⁾ Prof Adoption arena teach-as-is
    at cents → Tendril selects, dedupes, tutors at $0. The Compiler is
    the only layer with no role in that stack.
 
+## 5. Addendum (July 5): the same course through every pipeline — including $0
+
+Owner: "test it with different prompt, compare results with other
+pipelines." Course: **Introduction to CS with Python** (the one course
+all four pipelines have measured) + a deliberate out-of-coverage probe.
+
+| cs-python | Compiler | Trellis | Composer (paid) | **Composer ZERO** |
+| --- | --- | --- | --- | --- |
+| Grader | 99/A | 98/A | 97/A | **98/A (P0=0 P1=0** P2=6) |
+| Judge panel (cross-family) | 5–6 | 8–9 | 7.67 | **6.67 [6,7]** |
+| Cost | $0.12 | $0.145–0.177 | $0.068 | **$0.0000** |
+| Battery | — | 0.603 | 0.518 | 0.404 † |
+| Findings shipped | opaque | 0–2 | 1–4 | 2 (J2+J8, disclosed, unrepaired) |
+
+† zero withholds all grounding citations (the honest policy after the
+64% false-keep calibration), and claim refs double as the classroom's
+item→concept mapping — a known ~0.1 battery penalty; the decoupling
+lever recovers it for every pipeline.
+
+**Reading:** the $0 pipeline judges ABOVE the Compiler (6.67 vs 5–6 at
+$0.12) and one point below the paid Composer. The gap is not diffuse —
+the panel located it: 8 of 9 sampled artifacts scored 5–9 (study guides
+9/9/9), while Lesson 13 "Debugging and Testing" scored 4.33 because the
+library holds no debugging move-assets and zero mode assembled adjacent
+content instead. Unrepaired quiz-feedback residue (the no-model-repair
+cost) is the second named complaint. Panel spend $0.041 (measurement,
+not generation).
+
+**The boundary probe:** zero mode on World Literature — a discipline
+with bank items but NO harvested prose assets — refused all 14 lessons
+("zero-mode compose: plan needs ≥3 segments") and shipped nothing but a
+$0 ledger. **Where the library covers, $0 works; where it doesn't, zero
+mode fails loudly instead of authoring fiction.** That refusal is the
+design working: coverage is the currency, and the factory is how you
+mint it.
+
+**Named next levers from this round:** (1) topic-match disclosure —
+Tendril-E can flag off-topic assembly (lesson title vs selected assets)
+at $0 before a judge ever sees it; (2) claims/mapping decoupling
+(~+0.1 battery, all pipelines); (3) lit/history move-asset harvest or
+factory run = the C6 library build-out already awaiting owner spend.
+
 _— Fable 5_
