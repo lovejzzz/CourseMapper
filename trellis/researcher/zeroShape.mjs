@@ -10,14 +10,21 @@
 // - misconceptions: only mined when sources STATE them (misconception/
 //   commonly-confused sentences); a 135M cannot invent good ones. Thin
 //   misconceptions → fewer catching items → disclosed J11/J3 residuals.
-// - items: NOT produced at $0 — plausible-distractor authoring plus the
-//   blind solver seat is beyond the local tier; items remain a paid
-//   per-gap top-up (cents), counted separately.
+// - items: AUTHORED at $0 since v0.2 (A1) — Gemma 4 E2B (local, mlx-vlm)
+//   writes the distractors, proven at DeepSeek parity on the same gate
+//   stack (18 vs 19 accepted over 8 lit kernels, E2B winning 4 outright).
+//   The blind SOLVER seat stays cross-family/paid BY DESIGN (trust, not
+//   capability): zeroShapeItems runs gate-only at $0 (items carry
+//   solverVerified:false, disclosed) OR takes an injected solver for the
+//   ~$0.01/course verification. Thin misconceptions still cap catching-
+//   item yield (a 135M cannot invent the wrong beliefs E2B needs).
 
 import { cosine, makeEmbedder } from '../tendril/embedder.mjs';
 import { startS, sGenerate, SKIN_SYSTEM } from '../tendril/sModel.mjs';
 import { TERMINAL_PUNCT_RE, weightedLength } from '../voice/contracts.mjs';
 import { openAlexMisconceptions } from './sources.mjs';
+import { authorItemsE2B } from './shape.mjs';
+import { claimTokens, gapItemRejection, gapfillId } from '../knowledge/bankGapFill.mjs';
 
 export function splitSentences(text) {
   return String(text)
@@ -65,7 +72,14 @@ const META_REGISTER_RE = /^(teach|explain|tell (the )?students|note that the (le
 async function skin(text, { mode = 'teach', embedder, pool = [], tau = 0.75 } = {}) {
   const log = async (accepted, reason, target) => {
     const { corpusLog } = await import('../tendril/corpus.mjs');
-    await corpusLog({ task: 'skin', context: 'researcher-zero', accepted, ...(reason ? { reason } : {}), source: text, target });
+    await corpusLog({
+      task: 'skin',
+      context: 'researcher-zero',
+      accepted,
+      ...(reason ? { reason } : {}),
+      source: text,
+      target,
+    });
   };
   try {
     const out = String(
@@ -76,7 +90,10 @@ async function skin(text, { mode = 'teach', embedder, pool = [], tau = 0.75 } = 
     if (len < orig * 0.6 || len > orig * 1.4) return { text, skinned: false };
     if (!TERMINAL_PUNCT_RE.test(out)) return { text, skinned: false };
     if (out.includes('```')) return { text, skinned: false };
-    if ((mode === 'reteach' || mode === 'worked-example') && !/example|walk|work(ed|ing)? through|demo|trace/i.test(out))
+    if (
+      (mode === 'reteach' || mode === 'worked-example') &&
+      !/example|walk|work(ed|ing)? through|demo|trace/i.test(out)
+    )
       return { text, skinned: false };
     if (META_REGISTER_RE.test(out)) return { text, skinned: false };
     if (embedder && pool.length > 0) {
@@ -267,7 +284,11 @@ export async function zeroShapeSurfaces(target, sources, kernel, { embedder = nu
   // assignment: apply-the-facts task with standard rubric.
   push('activity', {
     task: `Choose one real case (from the reading or your own experience) and analyze it using ${target.term}. State the case in two sentences, apply each key point from the study guide to it explicitly, and note one place where the concept fits imperfectly.`,
-    steps: ['Pick and describe your case (2 sentences).', 'Apply each key point to the case, one short paragraph each.', 'Name one limit or imperfect fit and explain why.'],
+    steps: [
+      'Pick and describe your case (2 sentences).',
+      'Apply each key point to the case, one short paragraph each.',
+      'Name one limit or imperfect fit and explain why.',
+    ],
     rubricBands: [
       'Excellent: case is concrete, every key point applied accurately, the limit shows real insight.',
       'Adequate: case present, most key points applied, limit named but thin.',
@@ -276,7 +297,12 @@ export async function zeroShapeSurfaces(target, sources, kernel, { embedder = nu
   });
 
   // faqs: mined question-adjacent sentences → Q/A pairs (extractive answers).
-  const faqRank = await rankSentences(emb, `${target.term}: why does it matter, common question, when does it apply`, dedupeKeepOrder(sources.flatMap((s) => splitSentences(s.text))), { k: 2 });
+  const faqRank = await rankSentences(
+    emb,
+    `${target.term}: why does it matter, common question, when does it apply`,
+    dedupeKeepOrder(sources.flatMap((s) => splitSentences(s.text))),
+    { k: 2 },
+  );
   for (const r of faqRank) {
     push('faq-entry', { q: `How does this apply: ${target.term}?`, a: r.text });
   }
@@ -285,7 +311,10 @@ export async function zeroShapeSurfaces(target, sources, kernel, { embedder = nu
   const slides = [
     { title: `${target.term}: the idea`, bullets: [kernel.definition ?? ''].filter(Boolean) },
     ...facts.slice(0, 5).map((f, i) => ({ title: `Key point ${i + 1}`, bullets: [f] })),
-    { title: 'Check yourself', bullets: [`Explain ${target.term} without notes.`, 'Connect it to one earlier concept.'] },
+    {
+      title: 'Check yourself',
+      bullets: [`Explain ${target.term} without notes.`, 'Connect it to one earlier concept.'],
+    },
   ].map((slide) => ({
     ...slide,
     bullets: slide.bullets.map((b) => (TERMINAL_PUNCT_RE.test(b.trim()) ? b.trim() : `${b.trim()}.`)),
@@ -296,4 +325,82 @@ export async function zeroShapeSurfaces(target, sources, kernel, { embedder = nu
   else rejected.slides = 'too few';
 
   return { assets, rejected, skin: { accepted: skinAccepted, attempts: skinAttempts } };
+}
+
+// zeroShapeItems (A1) — the $0 item author researcher-zero could not have
+// before Gemma 4. E2B writes 3 items per kernel (2 misconception-catchers +
+// 1 application); the SAME deterministic gate stack the paid shaper uses
+// decides what survives (gapItemRejection: catch/confront/lexical/dedupe).
+// The blind solver seat is OPTIONAL and paid: pass `solver` to buy the
+// ~$0.01/course verification; omit it for strict $0 (items carry
+// solverVerified:false and are disclosed as gate-only). RS-5 intact: the
+// default path spends nothing.
+export async function zeroShapeItems(target, kernel, shelf = [], { solver = null, ledger = null, budgetUsd = 0 } = {}) {
+  const misc = kernel.misconceptions ?? [];
+  if (misc.length < 2) return { accepted: [], rejections: { 'thin-misconceptions': 1 }, solverUsed: false };
+  const cells = misc.slice(0, 2).map((m) => ({
+    statement: m.text,
+    corrective: m.corrective,
+    mustIncludeTwoOf: claimTokens(m.text),
+    explanationMustIncludeHalfOf: claimTokens(m.corrective),
+  }));
+  const facts = kernel.facts.map((f) => (typeof f === 'string' ? f : f.text));
+  const items = await authorItemsE2B(target, { definition: kernel.definition, facts, misconceptions: misc }, cells);
+
+  const accepted = [];
+  const rejections = {};
+  for (const [i, item] of items.entries()) {
+    const cell = cells[Math.min(i, cells.length - 1)];
+    const gateCell = {
+      kernelId: target.id,
+      family: cell.statement,
+      statement: cell.statement,
+      corrective: cell.corrective,
+      term: target.term,
+    };
+    const reason = i < 2 ? gapItemRejection(gateCell, item, shelf) : null;
+    if (reason) {
+      rejections[reason] = (rejections[reason] ?? 0) + 1;
+      continue;
+    }
+    let solverVerified = false;
+    if (solver) {
+      const verdict = await solver(item, { ledger, budgetUsd });
+      if (!verdict.ok) {
+        rejections.solver = (rejections.solver ?? 0) + 1;
+        continue;
+      }
+      solverVerified = true;
+    }
+    accepted.push({
+      id: gapfillId(target.id, cell.statement, item.stem),
+      kernelId: target.id,
+      conceptName: target.term,
+      stem: item.stem,
+      options: item.options,
+      correctIndex: item.correctIndex,
+      explanation: item.explanation,
+      bloom: item.bloom,
+      difficulty: item.difficulty,
+      catches: i < 2,
+      confronts: i < 2,
+      familyKey:
+        i < 2
+          ? cell.statement
+              .toLowerCase()
+              .replace(/[^a-z0-9\s]/g, ' ')
+              .replace(/\s+/g, ' ')
+              .trim()
+              .slice(0, 60)
+          : null,
+      provenance: {
+        origin: 'researcher-zero',
+        model: 'e2b',
+        solverVerified,
+        grade: null,
+        date: new Date().toISOString().slice(0, 10),
+      },
+    });
+  }
+  return { accepted, rejections, solverUsed: !!solver };
 }

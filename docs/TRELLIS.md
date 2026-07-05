@@ -1550,3 +1550,33 @@ polishing a candidate that hasn't won.
   the consolidated org chart + adoption plan (A1 E2B items adoption
   run, A2 misconception scale, A3 browser parity, A4 corpus DPO).
   The remaining dollars in the stack buy TRUST and NOVELTY only.
+
+- **2026-07-05 (A1 — E2B seated as the researcher's item author,
+  "keep refine it").** serve_g4.py (mlx-vlm JSONL server) + sModel
+  `items` route with a PER-ROUTE interpreter (Gemma needs .venv-g4,
+  not the stable .venv); E2B author wired into shapeItems, routed by
+  RESEARCH_ITEMS (ds default, e2b opt-in); both authors feed the
+  IDENTICAL gapItemRejection + blind solver, so routing can't change
+  what ships. **Ruler verdict: E2B's parity is DOMAIN-DEPENDENT** -
+  the diverse-discipline probe's 26/30 win does NOT hold on a frozen
+  8-kernel lexically-dense lit-POETRY slice: E2B 18/24 then 13/24 vs
+  ds 19/24 then 20/24 (variance driven by ds's OWN solver-reject
+  rate; E2B's weak kernels stable). **rhyme-scheme 0/3 in BOTH runs**
+  - E2B makes vague/meta ("how does THE TEXT correct...") items the
+  gate+solver correctly kill; NOTHING BAD SHIPS. Live-wire bug fixed:
+  **E2B's doubled-brace JSON** silently returned [] (invisible 0-item
+  failure) -> parseItemArray does string-aware balanced per-object
+  slicing (recovered abecedarian 0->3; +2 regression tests). **The
+  real win: zeroShapeItems** - researcher-zero could NOT author items
+  at $0 (documented gap); E2B now does, solver seat OPTIONAL (strict-
+  $0 gate-only + disclosed solverVerified:false, or injected solver
+  for ~$0.01/course). RS-5 intact. Cost/8-kernel: ds authoring
+  $0.0229 (E2B zeroes it) . solver $0.0261 (paid by design, both
+  authors). Also: transient DeepSeek ECONNRESET (uncaught
+  TypeError:terminated) crashed a run / hung a silent replicate loop -
+  bench now catches per-author, continues. **Adoption (not blanket):
+  E2B = default author for researcher-zero (capability win); opt-in
+  for paid researcher.mjs (ds keeps the lexically-dense edge).**
+  twinDepth deferred (batched-indexed contract, own bench). Queued:
+  dense-kernel prompt hardening (own A/B). Suite 22 tendril tests
+  green (+3).

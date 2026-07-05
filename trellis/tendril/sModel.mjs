@@ -25,6 +25,12 @@ const ROUTES = {
     base: 'HuggingFaceTB/SmolLM2-135M-Instruct',
     adapters: 'trellis/tendril/distill/adapters',
   },
+  // items: Gemma 4 E2B zero-shot via mlx-vlm (plan v0.2 A1) — beat the
+  // paid author 26/30 vs 22/30 on its own gates at $0.
+  items: {
+    python: 'trellis/tendril/.venv-g4/bin/python',
+    script: 'trellis/tendril/distill/serve_g4.py',
+  },
 };
 
 let nextId = 1;
@@ -33,10 +39,18 @@ const servers = new Map(); // route -> { proc, pending }
 async function startRoute(route, { timeoutMs = 120_000 } = {}) {
   if (servers.has(route)) return servers.get(route);
   const cfg = ROUTES[route];
-  const proc = spawn('trellis/tendril/.venv/bin/python', ['trellis/tendril/distill/serve_s.py'], {
-    stdio: ['pipe', 'pipe', 'pipe'],
-    env: { ...process.env, S_BASE: cfg.base, S_ADAPTERS: cfg.adapters },
-  });
+  const proc = spawn(
+    cfg.python ?? 'trellis/tendril/.venv/bin/python',
+    [cfg.script ?? 'trellis/tendril/distill/serve_s.py'],
+    {
+      stdio: ['pipe', 'pipe', 'pipe'],
+      env: {
+        ...process.env,
+        ...(cfg.base ? { S_BASE: cfg.base } : {}),
+        ...(cfg.adapters ? { S_ADAPTERS: cfg.adapters } : {}),
+      },
+    },
+  );
   const pending = new Map();
   const entry = { proc, pending };
   servers.set(route, entry);
@@ -80,7 +94,7 @@ export async function startS(options = {}) {
   await startRoute('skin', options); // blend starts lazily on first use
 }
 
-export async function sGenerate({ system, user, source = '', task = 'skin' }, { timeoutMs = 90_000 } = {}) {
+export async function sGenerate({ system, user, source = '', task = 'skin', maxTokens }, { timeoutMs = 180_000 } = {}) {
   const route = ROUTES[task] ? task : 'skin';
   const entry = await startRoute(route);
   const id = String(nextId++);
@@ -93,7 +107,7 @@ export async function sGenerate({ system, user, source = '', task = 'skin' }, { 
       }
     }, timeoutMs);
   });
-  entry.proc.stdin.write(`${JSON.stringify({ id, system, user, source })}\n`);
+  entry.proc.stdin.write(`${JSON.stringify({ id, system, user, source, ...(maxTokens ? { maxTokens } : {}) })}\n`);
   return promise;
 }
 

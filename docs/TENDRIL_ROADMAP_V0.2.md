@@ -39,12 +39,26 @@ frozen-ruler win; every retirement is a measured loss._
 
 ## 4. The plan, in order
 
-1. **A1 — E2B items adoption run**: mlx-vlm serve route (serve_g4.py +
-   sModel 'items' route), swap into shapeItems (researcher) and
-   twinDepth; ONE full research run (world-lit-class) with E2B items
-   vs the ds-items baseline. Bar: grade/battery parity, item counts ≥
-   baseline. Result: research runs become local except the solver
-   seat (~$0.01/course of verification).
+1. **A1 — E2B items adoption run** — ✅ DONE, verdict nuanced (see
+   build report §7). serve_g4.py + sModel 'items' route (per-route
+   interpreter, Gemma in .venv-g4) shipped; E2B author routed into
+   shapeItems by RESEARCH_ITEMS; parseItemArray fixes E2B's doubled-
+   brace JSON. **Ruler verdict: parity is DOMAIN-DEPENDENT.** On the
+   frozen lit-poetry slice (8 kernels × 3, twice): E2B 18/24 then
+   13/24 vs ds 19/24 then 20/24 — E2B TRAILS on lexically-dense
+   kernels (rhyme-scheme 0/3 in BOTH runs: vague/meta stems the gate+
+   solver correctly kill; nothing bad ships). On the earlier diverse-
+   discipline probe (n=30) E2B WON 26/30. So E2B ≥ ds on diverse
+   material, E2B < ds on lexically-entangled material; $0 authoring
+   either way (ds authoring $0.0229/8-kernel removed; solver seat
+   $0.0261 unchanged, paid by design). **Adoption:** E2B is the
+   DEFAULT author for researcher-zero (zeroShapeItems — the $0 path
+   could not author items AT ALL before; a capability win regardless
+   of the ds gap); ds STAYS the paid default for researcher.mjs, E2B
+   opt-in via RESEARCH_ITEMS=e2b. NOT a blanket flip. twinDepth
+   deferred (different batched-indexed contract, its own bench).
+   Queued: dense-kernel prompt hardening (forbid "the text" meta-
+   framing) — needs its own A/B before adoption.
 2. **A2 — misconception scale**: OpenAlex mining is live (2-4
    cited/topic); wire into researcher targets by default and measure
    catching-item density on the next research run.

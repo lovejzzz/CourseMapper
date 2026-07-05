@@ -305,4 +305,38 @@ E2c dedupes · E2d diagnoses · E2B (zero-shot) queued as the local
 authoring tier pending a completions-masked retrain + a larger item
 probe with the retry-trained model.
 
+---
+
+# v0.2 — A1: E2B seated as the researcher's item author (owner "keep refine it")
+
+**The prize from v0.1.7 is now wired into the pipeline — and the fuller
+measurement makes the verdict honest and nuanced: E2B's parity is
+DOMAIN-DEPENDENT.** The 10-discipline probe that showed E2B winning
+(26/30) was diverse subject matter; run it on a frozen slice of eight
+_lexically-dense poetry-form_ lit kernels through the real `shapeItems`
+gate stack, and E2B trails DeepSeek.
+
+| Slice | Verdict |
+| --- | --- |
+| **E2B author wired into `shapeItems`** | **SHIPPED.** `serve_g4.py` (mlx-vlm JSONL server, apply_chat_template) + an `items` route in `sModel` carrying a per-route interpreter (Gemma needs `.venv-g4`, not the stable `.venv`). Author routed by `RESEARCH_ITEMS` (ds default, e2b opt-in). Both authors feed the _identical_ `gapItemRejection` + blind cross-family solver — routing cannot change what ships. |
+| **Live-wire bug: E2B's doubled-brace JSON** | **FOUND + FIXED.** E2B habitually emits an extra `}` after each object; a whole-array `JSON.parse` throws and silently returned `[]` (0 items, no rejection reason — an invisible failure). `parseItemArray` does string-aware balanced-brace per-object slicing, absorbing fences, doubled braces, and trailing commas. Recovered `abecedarian` from 0→3 items. Regression-tested (+2 tests). |
+| **The ruler verdict: parity is domain-dependent** | **HONEST TIE-TO-TRAIL on lit-poetry.** Frozen 8-kernel slice, twice: E2B **18/24** then **13/24** accepted vs ds **19/24** then **20/24**. Run-to-run variance is large and driven by _ds's own_ solver-rejection rate (run 1 ds lost 5, run 2 ~0); E2B's weak kernels are stable. The strict bar (E2B ≥ ds) is **UNMET here** — reversing the diverse-discipline probe. |
+| **`rhyme-scheme` fails 0/3 in BOTH runs (diagnosed)** | E2B parses 3 clean items but produces **vague, meta-framed** ones — "How does _the text_ correct this belief?" (fails `no-catch`) and stems too abstract for the blind solver to answer ("which concept best describes how sounds within lines relate"). The gate + solver reject all three. **Nothing bad ships** — the failure is caught, not leaked. A genuine E2B limit on lexically-entangled kernels, not a parser defect. |
+| **Capability closure: `zeroShapeItems`** | **THE REAL WIN.** `zeroShape.mjs` had documented items as the _one thing_ researcher-zero could not produce at $0. E2B now authors them locally; the blind solver seat is _optional_ — strict-$0 ships gate-only (`solverVerified:false`, disclosed) or takes an injected solver for the ~$0.01/course verification. RS-5 intact: the default path spends nothing. |
+| **Robustness: transient DeepSeek `ECONNRESET`** | Surfaced as an uncaught `TypeError: terminated` that crashed a run (and hung a silent replicate loop). The bench now catches per-author network errors and continues (counted as `network-error`), so a blip cannot lose a whole measurement. |
+
+**Cost (per 8-kernel run):** ds authoring **$0.0229** (what E2B zeroes
+out) · solver seat **$0.0261** (paid, cross-family, BY DESIGN, runs for
+both authors, unchanged). E2B removes authoring spend entirely.
+
+**Adoption (ruler-decided, not blanket):** E2B is the **default author
+for researcher-zero** — a capability win regardless of the ds gap, since
+the $0 path had no items at all before. It is **opt-in** for the paid
+`researcher.mjs` (RESEARCH_ITEMS=e2b), where ds stays default and holds
+an edge on lexically-dense material. `twinDepth` deferred (different
+batched-indexed contract, needs its own bench). **Queued refinement:**
+dense-kernel prompt hardening (forbid "the text" meta-framing, demand
+concrete application stems) — its own A/B before adoption, since the
+current prompt ties on diverse kernels and must not regress them.
+
 _— Fable 5_

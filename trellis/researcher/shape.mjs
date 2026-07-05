@@ -8,6 +8,7 @@
 import { callModel } from '../providers.mjs';
 import { claimTokens, gapItemRejection, gapfillId } from '../knowledge/bankGapFill.mjs';
 import { solveGate } from '../composer/solver.mjs';
+import { sGenerate } from '../tendril/sModel.mjs';
 import { TERMINAL_PUNCT_RE, weightedLength } from '../voice/contracts.mjs';
 
 const norm = (s) =>
@@ -89,10 +90,23 @@ export async function shapeKernel(target, sources, { ledger, budgetUsd }) {
     });
   }
   const misconceptions = (result.misconceptions ?? [])
-    .filter((m) => typeof m.text === 'string' && m.text.length >= 20 && typeof m.corrective === 'string' && m.corrective.length >= 20)
+    .filter(
+      (m) =>
+        typeof m.text === 'string' &&
+        m.text.length >= 20 &&
+        typeof m.corrective === 'string' &&
+        m.corrective.length >= 20,
+    )
     .slice(0, 3);
   const ok = facts.length >= 3 && misconceptions.length >= 2;
-  return { ok, definition: result.definition, facts, misconceptions, workedExample: result.workedExample, droppedFacts };
+  return {
+    ok,
+    definition: result.definition,
+    facts,
+    misconceptions,
+    workedExample: result.workedExample,
+    droppedFacts,
+  };
 }
 
 const SURFACES_SCHEMA = {
@@ -218,7 +232,8 @@ export async function shapeSurfaces(target, sources, kernel, { ledger, budgetUsd
 
   if (segmentOk(result.worked, { requireExample: true })) push('worked-example', { minutes: 15, text: result.worked });
   else rejected.worked = 'segment gate';
-  if (segmentOk(result.reteach, { requireExample: true })) push('reteach-script', { minutes: 10, text: result.reteach });
+  if (segmentOk(result.reteach, { requireExample: true }))
+    push('reteach-script', { minutes: 10, text: result.reteach });
   else rejected.reteach = 'segment gate';
 
   if (
@@ -230,7 +245,8 @@ export async function shapeSurfaces(target, sources, kernel, { ledger, budgetUsd
     push('guide', { markdown: result.guide });
   else rejected.guide = 'guide gate';
 
-  if (result.discussion?.prompt && weightedLength(result.discussion.prompt) >= 40) push('discussion-tension', result.discussion);
+  if (result.discussion?.prompt && weightedLength(result.discussion.prompt) >= 40)
+    push('discussion-tension', result.discussion);
   else rejected.discussion = 'prompt too short';
 
   if (result.assignment?.task && (result.assignment.rubricBands ?? []).length >= 3) push('activity', result.assignment);
@@ -245,7 +261,9 @@ export async function shapeSurfaces(target, sources, kernel, { ledger, budgetUsd
     // unchanged) rather than reject a whole deck for a missing period.
     const slides = result.slides.map((slide) => ({
       title: slide.title,
-      bullets: (slide.bullets ?? []).map((b) => (TERMINAL_PUNCT_RE.test(String(b).trim()) ? String(b).trim() : `${String(b).trim()}.`)),
+      bullets: (slide.bullets ?? []).map((b) =>
+        TERMINAL_PUNCT_RE.test(String(b).trim()) ? String(b).trim() : `${String(b).trim()}.`,
+      ),
       speakerNotes: slide.speakerNotes,
       altText: slide.altText,
     }));
@@ -279,15 +297,8 @@ const ITEMS_SCHEMA = {
   },
 };
 
-// 3 items per kernel, one per misconception + one straight application —
-// the full gate stack (gapItemRejection + blind solver seat).
-export async function shapeItems(target, kernel, shelf, { ledger, budgetUsd }) {
-  const cells = kernel.misconceptions.slice(0, 2).map((m) => ({
-    statement: m.text,
-    corrective: m.corrective,
-    mustIncludeTwoOf: claimTokens(m.text),
-    explanationMustIncludeHalfOf: claimTokens(m.corrective),
-  }));
+// The paid item author (DeepSeek), structured-output tooling.
+async function authorItemsDs(target, kernel, cells, { ledger, budgetUsd }) {
   const { result } = await callModel({
     tier: 'ds',
     stage: 'research-items',
@@ -305,12 +316,116 @@ export async function shapeItems(target, kernel, shelf, { ledger, budgetUsd }) {
       wrongBeliefs: cells,
     }),
   });
+  return result.items ?? [];
+}
+
+// The local item author (Gemma 4 E2B, zero-shot via mlx-vlm; plan v0.2 A1).
+// No structured-output tooling — raw JSON array, parsed defensively. Prompt
+// is the winning item-probe format (26/30 vs the paid author's 22/30 on the
+// same gates, at $0). Same gate stack downstream, so failures ship nothing.
+// Balanced-brace extraction of a JSON array of objects. Robust to the
+// small-model output noise that a whole-array JSON.parse chokes on:
+// ```json fences, doubled closing braces between elements (E2B's habit),
+// and trailing commas. Each top-level {...} is sliced on balanced depth
+// (string-aware) and parsed alone; a bad object drops itself, not the batch.
+export function parseItemArray(text) {
+  const s = String(text ?? '');
+  const start = s.indexOf('[');
+  if (start < 0) return [];
+  const items = [];
+  let depth = 0;
+  let objStart = -1;
+  let inStr = false;
+  let esc = false;
+  for (let i = start; i < s.length; i += 1) {
+    const ch = s[i];
+    if (inStr) {
+      if (esc) esc = false;
+      else if (ch === '\\') esc = true;
+      else if (ch === '"') inStr = false;
+      continue;
+    }
+    if (ch === '"') {
+      inStr = true;
+      continue;
+    }
+    if (ch === '{') {
+      if (depth === 0) objStart = i;
+      depth += 1;
+    } else if (ch === '}') {
+      depth -= 1;
+      if (depth === 0 && objStart >= 0) {
+        try {
+          items.push(JSON.parse(s.slice(objStart, i + 1)));
+        } catch {
+          /* skip the malformed object, keep the rest */
+        }
+        objStart = -1;
+      } else if (depth < 0) {
+        depth = 0; // absorb a stray extra closing brace
+      }
+    }
+  }
+  return items;
+}
+
+export async function authorItemsE2B(target, kernel, cells) {
+  const beliefs = cells.map((c, n) => ({
+    n: n + 1,
+    wrongBelief: c.statement,
+    mustIncludeTwoOf: c.mustIncludeTwoOf,
+    corrective: c.corrective,
+    explanationMustIncludeHalfOf: c.explanationMustIncludeHalfOf,
+  }));
+  const system =
+    'Author exactly 3 multiple-choice items as a JSON array. Each item: {"stem","options"(4 distinct strings under 15 words),"correctIndex"(0-3),"explanation"(2-4 sentences under 80 words),"bloom":"apply","difficulty":"apply"}. ' +
+    `Items 1-2 each confront one wrongBelief (given): that item's wrong option states the belief with its wrong reasoning and includes at least TWO of its mustIncludeTwoOf words verbatim; that item's explanation confronts the corrective and includes at least HALF of its explanationMustIncludeHalfOf words verbatim. Item 3 is a straight application item. Every stem is application-level and ends with terminal punctuation. Output ONLY the JSON array.`;
+  const user = JSON.stringify({
+    term: target.term,
+    facts: kernel.facts.map((f) => f.text),
+    wrongBeliefs: beliefs,
+  });
+  let text;
+  try {
+    text = await sGenerate({ system, user, task: 'items', maxTokens: 1600 });
+  } catch {
+    return [];
+  }
+  return parseItemArray(text);
+}
+
+// 3 items per kernel, one per misconception + one straight application —
+// the full gate stack (gapItemRejection + blind solver seat). The author is
+// routed: 'ds' (paid, default) or 'e2b' (local Gemma 4, RESEARCH_ITEMS=e2b).
+// Both feed the identical gate loop, so the routing cannot change what ships.
+export async function shapeItems(
+  target,
+  kernel,
+  shelf,
+  { ledger, budgetUsd, author = process.env.RESEARCH_ITEMS ?? 'ds' },
+) {
+  const cells = kernel.misconceptions.slice(0, 2).map((m) => ({
+    statement: m.text,
+    corrective: m.corrective,
+    mustIncludeTwoOf: claimTokens(m.text),
+    explanationMustIncludeHalfOf: claimTokens(m.corrective),
+  }));
+  const items =
+    author === 'e2b'
+      ? await authorItemsE2B(target, kernel, cells)
+      : await authorItemsDs(target, kernel, cells, { ledger, budgetUsd });
 
   const accepted = [];
   const rejections = {};
-  for (const [i, item] of (result.items ?? []).entries()) {
+  for (const [i, item] of items.entries()) {
     const cell = cells[Math.min(i, cells.length - 1)];
-    const gateCell = { kernelId: target.id, family: cell.statement, statement: cell.statement, corrective: cell.corrective, term: target.term };
+    const gateCell = {
+      kernelId: target.id,
+      family: cell.statement,
+      statement: cell.statement,
+      corrective: cell.corrective,
+      term: target.term,
+    };
     const reason = i < 2 ? gapItemRejection(gateCell, item, shelf) : null;
     if (reason) {
       rejections[reason] = (rejections[reason] ?? 0) + 1;
@@ -333,8 +448,16 @@ export async function shapeItems(target, kernel, shelf, { ledger, budgetUsd }) {
       difficulty: item.difficulty,
       catches: i < 2,
       confronts: i < 2,
-      familyKey: i < 2 ? cell.statement.toLowerCase().replace(/[^a-z0-9\s]/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 60) : null,
-      provenance: { origin: 'researcher', model: 'ds', grade: null, date: new Date().toISOString().slice(0, 10) },
+      familyKey:
+        i < 2
+          ? cell.statement
+              .toLowerCase()
+              .replace(/[^a-z0-9\s]/g, ' ')
+              .replace(/\s+/g, ' ')
+              .trim()
+              .slice(0, 60)
+          : null,
+      provenance: { origin: 'researcher', model: author, grade: null, date: new Date().toISOString().slice(0, 10) },
     });
   }
   return { accepted, rejections };

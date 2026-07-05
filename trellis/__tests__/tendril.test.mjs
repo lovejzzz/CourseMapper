@@ -277,3 +277,43 @@ describe('T-M3 gate bench gates', () => {
     expect(gateOutput({ task: 'skin', mode: 'worked-example', source: src, output: noExample })).toBe('mode-example');
   });
 });
+
+describe('E2B item-array extraction (A1)', () => {
+  it('recovers objects from E2B doubled-brace defect and ```json fences', async () => {
+    const { parseItemArray } = await import('../researcher/shape.mjs');
+    // E2B habitually emits an extra closing brace after each object; a whole-
+    // array JSON.parse throws on this, so per-object balanced slicing is used.
+    const raw = [
+      '```json',
+      '[',
+      '  { "stem": "a?", "options": ["w","x","y","z"], "correctIndex": 2, "explanation": "e.", "bloom":"apply","difficulty":"apply"',
+      '    }',
+      '  },',
+      '  { "stem": "b?", "options": ["w","x","y","z"], "correctIndex": 1, "explanation": "e.", "bloom":"apply","difficulty":"apply"',
+      '    }',
+      '  }',
+      ']',
+      '```',
+    ].join('\n');
+    const items = parseItemArray(raw);
+    expect(items.map((i) => i.stem)).toEqual(['a?', 'b?']);
+  });
+
+  it('returns [] on non-JSON and parses clean arrays; a brace inside a string is not a delimiter', async () => {
+    const { parseItemArray } = await import('../researcher/shape.mjs');
+    expect(parseItemArray('the model refused to answer')).toEqual([]);
+    expect(parseItemArray('[{"a":1},{"a":2}]')).toHaveLength(2);
+    expect(parseItemArray('[{"stem":"use a } brace","options":["a"]}]')[0].stem).toBe('use a } brace');
+  });
+
+  it('zeroShapeItems refuses to author when misconceptions are too thin (no model call)', async () => {
+    const { zeroShapeItems } = await import('../researcher/zeroShape.mjs');
+    const res = await zeroShapeItems(
+      { id: 'x/y', term: 'thing' },
+      { definition: 'A thing.', facts: [{ text: 'It exists.' }], misconceptions: [{ text: 'only one', corrective: 'c' }] },
+    );
+    expect(res.accepted).toEqual([]);
+    expect(res.rejections['thin-misconceptions']).toBe(1);
+    expect(res.solverUsed).toBe(false);
+  });
+});
