@@ -19,3 +19,4 @@ trellis/tendril/distill/stance-model/
 trellis/tendril/distill/stance-onnx/
 trellis/tendril/distill/stance-triplets.jsonl
 trellis/researcher/cache/
+trellis/tendril/.venv-g4/

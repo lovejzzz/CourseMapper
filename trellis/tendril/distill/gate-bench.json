@@ -58,6 +58,35 @@
    }
   }
  },
+ "gemma4-e2b-zs": {
+  "overall": {
+   "total": 120,
+   "accepted": 76,
+   "rate": 0.633
+  },
+  "byTask": {
+   "skin": {
+    "total": 60,
+    "accepted": 41,
+    "reasons": {
+     "mode-example": 3,
+     "terminal-punct": 7,
+     "length-band": 7,
+     "identity-noop": 2
+    },
+    "rate": 0.683
+   },
+   "blend": {
+    "total": 60,
+    "accepted": 35,
+    "reasons": {
+     "length-band": 24,
+     "claim-loss": 1
+    },
+    "rate": 0.583
+   }
+  }
+ },
  "qwen-skin": {
   "overall": {
    "total": 120,

@@ -252,4 +252,39 @@ knowledge; the replay is free. Spend once per discipline, teach forever.
 | **Function-routed embedders (the round's discovery)** | E2d's compression COLLAPSES dedupe separability (benign max 0.956 vs sibling-block min 0.933 — no ε separates). So embedders now route by FUNCTION like S routes by task: **E2d diagnoses (Tutor), E2c dedupes (composer)** — each behind its own passed ruler, neither re-run. The pattern of the day, twice: the better model is per-function, not global. |
 | **Corpus flywheel widened** | Researcher-Zero skin verdicts (incl. fidelity rejections) now corpusLog — the grounded-rewrite failure class becomes training data for the next round. |
 
+---
+
+# v0.1.6 — Gemma 4 evaluation (owner-directed, $0)
+
+**The question:** is Google's Gemma 4 (April 2026) more fitting than
+our stack? **The verdict: not as a drop-in — promising as the next
+fine-tune base for the factory tier, with the license blocker gone.**
+
+**What changed with Gemma 4:** first Gemma under **Apache 2.0** (Gemma
+1-3's custom terms failed our T-3 rule outright); sizes E2B (2.3B
+effective) / E4B / 12B multimodal / 26B MoE / 31B.
+
+**Fit by slot:**
+| Slot | Verdict |
+| --- | --- |
+| Tutor bundle (≤110MB) | **No.** E2B is ~50× the budget; MiniLM-class E stays. |
+| S-tier (skin/blend, local factory) | **Zero-shot E2B on OUR frozen bench: 63.3%** (skin 68.3 / blend 58.3) vs routed pair 77.5, nano 71.7. Untuned it nearly matches our FINE-TUNED Qwen skin (68.3 vs 71.7); blend fails almost purely on length-band (24/60 — verbosity), the exact failure class fine-tuning fixed on both smaller bases. **Fine-tuned E2B plausibly beats everything local — the named next training.** |
+| Researcher shaper | Untested under the fidelity gate (serving blocked, below); expected strong; named with the fine-tune. |
+| E-tier embedder | No fit — Gemma 4 has no small embedder variant. |
+
+**Toolchain reality (the afternoon's tax, recorded):** mlx-lm (≤0.31.3)
+cannot load Gemma 4 — support lives in mlx-vlm (E2B is natively
+multimodal); mlx-lm 0.31.3 crashes against transformers 5.x (string key
+in AutoTokenizer.register — shimmed in the dedicated .venv-g4, never in
+the stable venv); the community's 4-bit E2B conversions are broken
+(PLE layers quantized to garbage — bf16 only); the mlx-community bf16
+repo mismatches mlx-vlm 0.6.3's graph — **only the official
+google/gemma-4-e2b-it loads clean.** Speed: ~6.5s/sample vs the routed
+pair's ~1.5s — fine for factory, not for interactive.
+
+**Recommendation:** keep the routed pair deployed; queue ONE experiment
+— LoRA E2B on the full corpus via mlx-vlm's trainer, same frozen bench,
+ship only if it beats 77.5% combined (and then it also needs an
+mlx-vlm-based serve route; serve_s cannot host it).
+
 _— Fable 5_

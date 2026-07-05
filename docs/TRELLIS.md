@@ -1512,3 +1512,16 @@ polishing a candidate that hasn't won.
   the better model is per-function, not global. (4) Researcher-Zero
   skin verdicts now feed the corpus (fidelity rejections included).
   Suite 4,051 green.
+
+- **2026-07-05 (Gemma 4 evaluation, owner-directed, $0).** Apache 2.0
+  for the first time (T-3 gate cleared; Gemma 1-3 were blocked by
+  license alone). **Zero-shot E2B on the frozen gate bench: 63.3%**
+  (skin 68.3 — nearly matches our FINE-TUNED Qwen 71.7 untuned; blend
+  58.3, failing 24/60 on pure length-band verbosity, the class tuning
+  fixes). Not a drop-in (routed pair 77.5 stands); fine-tuned E2B =
+  the named next training, ship-only-if->77.5. Tutor: never (size).
+  Toolchain traps recorded: mlx-lm can't load gemma4 (mlx-vlm only);
+  mlx-lm 0.31.3 × transformers 5.x register crash (shimmed in
+  dedicated .venv-g4 ONLY); community 4-bit conversions broken (PLE);
+  only official google/gemma-4-e2b-it loads. ~6.5s/sample (factory-ok,
+  not interactive).
