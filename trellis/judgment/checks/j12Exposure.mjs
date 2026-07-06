@@ -13,8 +13,12 @@ export function j12Exposure(graph, authored) {
     const closure = new Set([...lesson.introduces, ...lesson.reinforces, ...(lesson.bridgePrimers ?? [])]);
     for (const claim of art.claims ?? []) {
       const match = /^quizItems\[(\d+)\]/.exec(String(claim.path));
-      if (!match || !String(claim.ref ?? '').startsWith('kernel:')) continue;
-      const conceptId = String(claim.ref).slice('kernel:'.length);
+      // Read the DURABLE concept mapping (`concept`), not the withheld-in-zero
+      // grounding citation (`ref`) — else exposure stops being enforced under
+      // zero mode when ref is nulled.
+      const mapping = String(claim.concept ?? claim.ref ?? '');
+      if (!match || !mapping.startsWith('kernel:')) continue;
+      const conceptId = mapping.slice('kernel:'.length);
       if (!closure.has(conceptId)) {
         findings.push(
           finding(

@@ -1,0 +1,160 @@
+{
+ "stamp": "L5 item-prompt A/B — v1 vs v2, dense vs diverse, same gates+solver",
+ "sets": {
+  "dense": {
+   "kernels": 6,
+   "v1": 10,
+   "v2": 4,
+   "perKernel": [
+    {
+     "kernel": "lit/ghazal-form",
+     "v1": 1,
+     "v2": 1,
+     "v1rej": {
+      "option-pasted-or-long": 1,
+      "solver": 1
+     },
+     "v2rej": {
+      "no-catch": 1,
+      "option-pasted-or-long": 1
+     }
+    },
+    {
+     "kernel": "lit/scansion",
+     "v1": 3,
+     "v2": 1,
+     "v1rej": {},
+     "v2rej": {
+      "no-catch": 2
+     }
+    },
+    {
+     "kernel": "lit/metrical-feet-and-line-length",
+     "v1": 1,
+     "v2": 0,
+     "v1rej": {
+      "no-catch": 1,
+      "solver": 1
+     },
+     "v2rej": {
+      "no-catch": 1,
+      "solver": 2
+     }
+    },
+    {
+     "kernel": "lit/rhyme-scheme-and-internal-rhyme",
+     "v1": 2,
+     "v2": 0,
+     "v1rej": {
+      "no-catch": 1
+     },
+     "v2rej": {
+      "no-confront": 1,
+      "no-catch": 1,
+      "solver": 1
+     }
+    },
+    {
+     "kernel": "lit/language-of-images",
+     "v1": 2,
+     "v2": 1,
+     "v1rej": {
+      "no-catch": 1
+     },
+     "v2rej": {
+      "no-catch": 2
+     }
+    },
+    {
+     "kernel": "lit/sensory-understanding",
+     "v1": 1,
+     "v2": 1,
+     "v1rej": {
+      "no-catch": 2
+     },
+     "v2rej": {
+      "no-catch": 2
+     }
+    }
+   ]
+  },
+  "diverse": {
+   "kernels": 6,
+   "v1": 9,
+   "v2": 10,
+   "perKernel": [
+    {
+     "kernel": "cs/variables",
+     "v1": 1,
+     "v2": 1,
+     "v1rej": {
+      "option-pasted-or-long": 1,
+      "solver": 1
+     },
+     "v2rej": {
+      "no-catch": 2
+     }
+    },
+    {
+     "kernel": "geo/minerals",
+     "v1": 0,
+     "v2": 2,
+     "v1rej": {
+      "solver": 2,
+      "option-pasted-or-long": 1
+     },
+     "v2rej": {
+      "no-catch": 1
+     }
+    },
+    {
+     "kernel": "history/ten-percent-plan",
+     "v1": 3,
+     "v2": 3,
+     "v1rej": {},
+     "v2rej": {}
+    },
+    {
+     "kernel": "math/system-of-linear-equations",
+     "v1": 3,
+     "v2": 1,
+     "v1rej": {},
+     "v2rej": {
+      "no-confront": 1,
+      "solver": 1
+     }
+    },
+    {
+     "kernel": "lang/food-and-ordering-at-restaurants",
+     "v1": 0,
+     "v2": 1,
+     "v1rej": {
+      "no-catch": 2,
+      "solver": 1
+     },
+     "v2rej": {
+      "no-catch": 1,
+      "options-dupe": 1
+     }
+    },
+    {
+     "kernel": "psych/operant-conditioning",
+     "v1": 2,
+     "v2": 2,
+     "v1rej": {
+      "options-dupe": 1
+     },
+     "v2rej": {
+      "no-catch": 1
+     }
+    }
+   ]
+  }
+ },
+ "verdict": {
+  "denseLift": -6,
+  "diverseDelta": 1,
+  "ship": "v2 REJECTED — regressed somewhere",
+  "ledgerUsd": 0.0196
+ }
+}

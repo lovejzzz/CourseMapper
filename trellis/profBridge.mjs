@@ -54,12 +54,18 @@ export function buildStructured(graph, authored, authoredExams = {}) {
 
   const conceptIdForItem = (lessonIndex, lesson, item, art, itemIndex) => {
     const lessonConcepts = lessons[lessonIndex].concepts;
-    // Prefer the authored claim ref for this item (kernel:<conceptId>).
+    // Prefer the authored item→concept mapping. `concept` is the DURABLE
+    // mapping (never withheld); `ref` is the grounding citation (null in zero
+    // mode). Reading `concept ?? ref` recovers the ~0.1 battery zero mode lost
+    // when nulling `ref` also erased the mapping.
     const claim = (art.claims ?? []).find(
-      (c) => String(c.path).startsWith(`quizItems[${itemIndex}]`) && String(c.ref ?? '').startsWith('kernel:'),
+      (c) =>
+        String(c.path).startsWith(`quizItems[${itemIndex}]`) &&
+        (String(c.concept ?? '').startsWith('kernel:') || String(c.ref ?? '').startsWith('kernel:')),
     );
     if (claim) {
-      const graphConcept = conceptById.get(String(claim.ref).slice('kernel:'.length));
+      const mapping = String(claim.concept ?? claim.ref);
+      const graphConcept = conceptById.get(mapping.slice('kernel:'.length));
       const match = lessonConcepts.find((c) => c.term === graphConcept?.name);
       if (match) return match;
     }

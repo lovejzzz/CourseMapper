@@ -369,7 +369,31 @@ export function parseItemArray(text) {
   return items;
 }
 
-export async function authorItemsE2B(target, kernel, cells) {
+// E2B item-author prompts. v1 (original, DEPLOYED) ties ds on diverse kernels
+// but trails on lexically-dense ones (A1: rhyme-scheme 0/3) via META stems
+// ("how does THE TEXT correct this belief?") and VAGUE stems the solver can't
+// answer. v2 forbids document-referential framing and demands concrete stems —
+// but the A/B REJECTED it (itemPromptABBench): dense 10→4 (−6), diverse 9→10
+// (+1). Piling rules onto a 4B prompt made the dense case WORSE, not better;
+// v2 is kept only as the recorded negative. Level 7 (win-everywhere) is not a
+// prompt problem — it needs preference data, not more instructions. Default v1.
+const E2B_ITEM_PROMPTS = {
+  v1:
+    'Author exactly 3 multiple-choice items as a JSON array. Each item: {"stem","options"(4 distinct strings under 15 words),"correctIndex"(0-3),"explanation"(2-4 sentences under 80 words),"bloom":"apply","difficulty":"apply"}. ' +
+    `Items 1-2 each confront one wrongBelief (given): that item's wrong option states the belief with its wrong reasoning and includes at least TWO of its mustIncludeTwoOf words verbatim; that item's explanation confronts the corrective and includes at least HALF of its explanationMustIncludeHalfOf words verbatim. Item 3 is a straight application item. Every stem is application-level and ends with terminal punctuation. Output ONLY the JSON array.`,
+  v2:
+    'Author exactly 3 multiple-choice items as a JSON array. Each item: {"stem","options"(4 distinct strings under 15 words),"correctIndex"(0-3),"explanation"(2-4 sentences under 80 words),"bloom":"apply","difficulty":"apply"}. ' +
+    'RULE A — every stem describes a CONCRETE situation, example, or task and asks what is true or what to do; it must be answerable from the concept ALONE by someone who never saw any source. NEVER write a stem that refers to "the text", "the passage", "the reading", "the author", "the description", or "this belief" — test the idea, not a document. ' +
+    'RULE B — items 1-2 each target one wrongBelief (given): one WRONG option states that belief with its faulty reasoning and includes at least TWO of its mustIncludeTwoOf words verbatim; the correct option applies the corrective; the explanation says why the belief fails and includes at least HALF of the explanationMustIncludeHalfOf words verbatim. ' +
+    'RULE C — item 3 is a straight application item. RULE D — exactly ONE option is defensibly correct and the other three are clearly wrong to someone who knows the concept. Every stem ends with terminal punctuation. Output ONLY the JSON array.',
+};
+
+export async function authorItemsE2B(
+  target,
+  kernel,
+  cells,
+  { variant = process.env.RESEARCH_ITEM_PROMPT ?? 'v1' } = {},
+) {
   const beliefs = cells.map((c, n) => ({
     n: n + 1,
     wrongBelief: c.statement,
@@ -377,9 +401,7 @@ export async function authorItemsE2B(target, kernel, cells) {
     corrective: c.corrective,
     explanationMustIncludeHalfOf: c.explanationMustIncludeHalfOf,
   }));
-  const system =
-    'Author exactly 3 multiple-choice items as a JSON array. Each item: {"stem","options"(4 distinct strings under 15 words),"correctIndex"(0-3),"explanation"(2-4 sentences under 80 words),"bloom":"apply","difficulty":"apply"}. ' +
-    `Items 1-2 each confront one wrongBelief (given): that item's wrong option states the belief with its wrong reasoning and includes at least TWO of its mustIncludeTwoOf words verbatim; that item's explanation confronts the corrective and includes at least HALF of its explanationMustIncludeHalfOf words verbatim. Item 3 is a straight application item. Every stem is application-level and ends with terminal punctuation. Output ONLY the JSON array.`;
+  const system = E2B_ITEM_PROMPTS[variant] ?? E2B_ITEM_PROMPTS.v1;
   const user = JSON.stringify({
     term: target.term,
     facts: kernel.facts.map((f) => f.text),

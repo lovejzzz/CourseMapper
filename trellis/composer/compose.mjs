@@ -230,11 +230,21 @@ export async function composeLesson(
     assignment: assignment ? used(assignment, assignment.body) : null,
     slides: slideGroup ? used(slideGroup, slideGroup.body.slides) : null,
     faqEntries: [faq1, faq2].filter(Boolean).map((a) => used(a, a.body)),
+    // Each claim carries TWO decoupled roles: `ref` = the grounding citation
+    // (external, VERIFIABLE — withheld/nulled in zero mode), and `concept` =
+    // the item→concept mapping (course-LOCAL, always knowable, never withheld).
+    // Merging them cost ~0.1 battery: zero mode nulled `ref` to withhold an
+    // unverifiable citation and destroyed the Prof coverage mapping with it.
     claims: [
-      ...segments.map((_, i) => ({ path: `plan.segments[${i}].text`, ref: `kernel:${anchor.conceptId}` })),
+      ...segments.map((_, i) => ({
+        path: `plan.segments[${i}].text`,
+        ref: `kernel:${anchor.conceptId}`,
+        concept: `kernel:${anchor.conceptId}`,
+      })),
       ...quizItems.map((_, i) => ({
         path: `quizItems[${i}].explanation`,
         ref: `kernel:${itemConceptIds[i] ?? anchor.conceptId}`,
+        concept: `kernel:${itemConceptIds[i] ?? anchor.conceptId}`,
       })),
     ],
   };
@@ -291,7 +301,12 @@ const SKIN_SCHEMA = {
   },
 };
 
-export async function skinLesson(graph, lessonNumber, composed, { ledger, budgetUsd, tier = 'nano', sGenerate = null } = {}) {
+export async function skinLesson(
+  graph,
+  lessonNumber,
+  composed,
+  { ledger, budgetUsd, tier = 'nano', sGenerate = null } = {},
+) {
   const lesson = graph.lessons[lessonNumber - 1];
   const segments = composed.plan.segments;
   let skinned = 0;
@@ -380,7 +395,11 @@ async function applySkinRewrites(segments, rewrites, setCount) {
   return { skinned, of: segments.length };
 }
 
-export async function composeAllLessons(graph, store, { ledger, budgetUsd, tiers, bank, tendril = null, zero = false, sGenerate = null } = {}) {
+export async function composeAllLessons(
+  graph,
+  store,
+  { ledger, budgetUsd, tiers, bank, tendril = null, zero = false, sGenerate = null } = {},
+) {
   const authored = {};
   const failures = [];
   const totals = { reusedChars: 0, freshChars: 0, reusedParts: 0, freshParts: 0, skinned: 0, skinOf: 0 };

@@ -115,4 +115,21 @@ describe('judgment checks J1–J10 (each with a passing and a failing fixture)',
     const grouped = findingsByLesson(blockingFindings(runChecks(graph, broken)));
     expect(Object.keys(grouped)).toContain('l1');
   });
+
+  // L2: zero mode nulls claim.ref to withhold unverifiable citations. Exposure
+  // enforcement must survive that via the durable claim.concept mapping — else
+  // J12 silently stops firing in zero mode (refs all null → every item skipped).
+  it('J12 exposure still fires on the durable concept mapping when ref is withheld', async () => {
+    const { j12Exposure } = await import('../judgment/checks/j12Exposure.mjs');
+    const lesson = graph.lessons[0];
+    const untaught = 'kernel:concept/never-taught-here';
+    // ref withheld (zero mode), but concept preserved → J12 must catch it.
+    const withheld = {
+      [lesson.id]: { claims: [{ path: 'quizItems[0].explanation', ref: null, concept: untaught }] },
+    };
+    expect(j12Exposure(graph, withheld).some((f) => f.code === 'J12_EXPOSURE')).toBe(true);
+    // Both null → nothing to enforce, and no false positive.
+    const blind = { [lesson.id]: { claims: [{ path: 'quizItems[0].explanation', ref: null, concept: null }] } };
+    expect(j12Exposure(graph, blind)).toEqual([]);
+  });
 });

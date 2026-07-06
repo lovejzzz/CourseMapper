@@ -1580,3 +1580,31 @@ polishing a candidate that hasn't won.
   twinDepth deferred (batched-indexed contract, own bench). Queued:
   dense-kernel prompt hardening (own A/B). Suite 22 tendril tests
   green (+3).
+
+- **2026-07-06 (v0.2 "make the zero pipeline the best" — do it all; three
+  honest negatives, coverage stands).** Four levers greenlit; the rulers
+  retired three. **L2 decouple** (item->concept mapping vs grounding
+  citation): added durable claim.concept; profBridge + j12Exposure read
+  concept ?? ref; fixes a LATENT BUG (zero mode nulled all refs BEFORE
+  judgment, silently disabling J12 exposure enforcement) — regression-
+  tested. But the deterministic battery A/B (same items, toggle the field)
+  measured 0.000 delta EVERY metric: the arena resolves items only against
+  each lesson's `introduces`, so reinforced-concept bank items never bind
+  regardless of mapping. "~0.1 battery" hypothesis UNCONFIRMED; widening
+  the candidate set changes the FROZEN RULER (version bump + re-baseline) —
+  deferred, not hot-patched. **L5 dense-prompt hardening REJECTED** by its
+  A/B (itemPromptABBench, dense+diverse): v2 dense 10->4 (-6), diverse
+  9->10 (+1) — piling rules on a 4B prompt made the target WORSE; v1 stays,
+  v2 kept as recorded negative; Level 7 is not a prompt problem. **L3 DPO
+  dataset built ($0)**: 123 natural same-source preference pairs (chosen=
+  gate-PASS, rejected=gate-FAIL, exact deploy prompt) -> dpo-{train,test}
+  .jsonl (105/18); TRAINING BLOCKED — stable mlx-lm 0.31.3 has no DPO
+  trainer + 123 pairs is thin; needs a separate venv + a grown reject
+  corpus. **L1 coverage = the lever still standing** (every low zero score
+  is a coverage gap, not a model gap); scoped: needs a zero-deposit runner
+  + live run + zero-replay refusal->shipped. **docs/GEMMA4_LEVELS.md** = a
+  1->10 capability standard for E2B (each rung a frozen-ruler bar; currently
+  Level 6; also a shareable Artifact character sheet). Through-line: the
+  cheap paths to "best" don't exist — the zero pipeline improves by COVERAGE
+  (L1) and the two-human ANCHOR (Level 10), not by tuning an untunable 4B.
+  Suite 123 trellis tests green.

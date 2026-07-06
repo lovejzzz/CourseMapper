@@ -340,3 +340,31 @@ concrete application stems) — its own A/B before adoption, since the
 current prompt ties on diverse kernels and must not regress them.
 
 _— Fable 5_
+
+---
+
+# v0.2 — "Make the zero pipeline the best" (owner "do it all")
+
+**Four levers greenlit; three came back honest-negative — and that is the
+finding.** The zero pipeline does not improve by a cheap prompt/architecture/
+DPO trick. The rulers said so, one at a time. What is left standing is
+coverage.
+
+| Lever | Verdict |
+| --- | --- |
+| **L2 — decouple item→concept mapping from grounding** | **Correctness fix; battery hypothesis NOT confirmed.** The mapping and the grounding citation shared one field (`claim.ref`); zero mode nulled it to withhold an unverifiable citation and destroyed the Prof coverage mapping with it. Added a durable `claim.concept`; `profBridge` and `j12Exposure` now read `concept ?? ref`. This fixes a real **latent bug** — zero mode was silently disabling J12 exposure enforcement (refs all null → every item skipped), now regression-tested. But the deterministic battery A/B (same items, toggle the field) measured **0.000 delta on every metric**: the arena resolves items only against each lesson's `introduces` set, so reinforced-concept bank items never bind regardless of the mapping. The "~0.1 battery" was a hypothesis; the ruler says no. Widening the candidate set would change the *frozen ruler* (version bump + re-baseline) — deferred, not hot-patched. |
+| **L5 — dense-kernel item-prompt hardening** | **REJECTED by the A/B.** v2 forbade "the-text" meta-framing and demanded concrete stems, to fix A1's dense failure. Result on the same gates+solver: **dense 10→4 (−6)**, diverse 9→10 (+1). Piling rules onto a 4B prompt made the target case *worse*. v1 stays deployed; v2 is kept only as the recorded negative. **Level 7 is not a prompt problem.** |
+| **L3 — DPO on the reject corpus** | **Dataset built ($0); training blocked (honest).** 123 natural same-source preference pairs (chosen = gate-PASS, rejected = gate-FAIL, exact deployment prompt) → `dpo-{train,test}.jsonl` (105/18). This is the one training signal not retired (SFT teaches copy; preference teaches the gate). But the stable mlx-lm 0.31.3 has **no DPO trainer**, and 123 pairs is thin. Training needs a separate venv + a grown corpus — the reject corpus must accrue from more live runs first. Named, not forced. |
+| **L1 — coverage fill** | **The lever that actually works — the one still standing.** Every low score the zero pipeline has ever posted is a *coverage gap*, not a model gap (lit refused 14/14; the debugging lesson scored 4.33 with zero debugging guides). A1 made item-authoring $0, so filling coverage is now nearly free. Scoped: needs a **zero-deposit runner** (researcher-zero that deposits kernels+assets+items at $0) + a live run + a zero replay showing refusal→shipped. Next. |
+
+**Also shipped:** `docs/GEMMA4_LEVELS.md` — a level-based (1→10) evaluation
+standard for the local model, each rung a frozen-ruler bar. Gemma 4 E2B sits at
+**Level 6** (ships as a default, for free, never ships broken). The Locked
+levels 7–9 are exactly the L5/A3/L3 levers above — and the measured negatives
+this round are *why* they stay Locked. Level 10 (two humans) caps them all.
+
+**The honest through-line:** the cheap paths to "best" don't exist. The zero
+pipeline gets better by covering more of the world (L1) and by earning the
+two-human anchor (Level 10) — not by tuning a 4B model that can't be tuned.
+
+_— Fable 5_
