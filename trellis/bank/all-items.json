@@ -48415,6 +48415,926 @@
     "grade": null,
     "date": "2026-07-06"
    }
+  },
+  {
+   "id": "gapfill:physics/electric-charge:Students-may-think-an-ob-7051",
+   "kernelId": "physics/electric-charge",
+   "conceptName": "Electric charge",
+   "stem": "If a neutral object is rubbed with a plastic rod, students might think the object becomes charged by creating charge from nothing.",
+   "options": [
+    "The object gains charge by losing electrons to the rod.",
+    "The object becomes charged by creating charge from nothing.",
+    "The object loses charge by gaining electrons from the rod.",
+    "The object remains neutral because the interaction is balanced."
+   ],
+   "correctIndex": 0,
+   "explanation": "Charging usually transfers charge; it does not create net charge in an isolated system. The object gains or loses electrons during this transfer process.",
+   "bloom": "apply",
+   "difficulty": "apply",
+   "catches": true,
+   "confronts": true,
+   "familyKey": "students may think an object becomes charged by creating cha",
+   "provenance": {
+    "origin": "researcher-zero",
+    "model": "e2b",
+    "solverVerified": true,
+    "grade": null,
+    "date": "2026-07-06"
+   }
+  },
+  {
+   "id": "gapfill:physics/electric-charge:Abstract-This-study-aims-ca56",
+   "kernelId": "physics/electric-charge",
+   "conceptName": "Electric charge",
+   "stem": "A student places a negatively charged electron onto a neutral atom. How does the net electric charge of the atom change?",
+   "options": [
+    "The net charge becomes positive because the electron is added.",
+    "The net charge remains zero because the positive and negative charges cancel.",
+    "The net charge becomes negative due to the addition of the electron.",
+    "The atom gains an equal amount of positive charge."
+   ],
+   "correctIndex": 2,
+   "explanation": "The net charge becomes negative due to the addition of the electron. Since the electron carries a negative charge, the atom acquires a net negative charge.",
+   "bloom": "apply",
+   "difficulty": "apply",
+   "catches": false,
+   "confronts": false,
+   "familyKey": null,
+   "provenance": {
+    "origin": "researcher-zero",
+    "model": "e2b",
+    "solverVerified": true,
+    "grade": null,
+    "date": "2026-07-06"
+   }
+  },
+  {
+   "id": "gapfill:physics/electric-field:Students-may-treat-field-9612",
+   "kernelId": "physics/electric-field",
+   "conceptName": "Electric field",
+   "stem": "A student believes that electric field lines are physical wires or paths a charge must follow. How should you correct this misconception?",
+   "options": [
+    "Explain that field lines show the direction and relative strength of the electric field.",
+    "State that field lines are mathematical constructs used for calculating potential energy.",
+    "Tell the student that field lines are like magnetic field lines in a different context.",
+    "Confirm that field lines are indeed physical paths that a charge must follow."
+   ],
+   "correctIndex": 0,
+   "explanation": "Field lines are a representation of field direction and relative strength, not material tracks. Field lines show the direction and relative strength of the electric field, which is the correct understanding.",
+   "catches": true,
+   "confronts": true,
+   "familyKey": "students may treat field lines as physical wires or paths a ",
+   "provenance": {
+    "origin": "researcher-zero",
+    "model": "e2b",
+    "solverVerified": true,
+    "grade": null,
+    "date": "2026-07-06"
+   }
+  },
+  {
+   "id": "gapfill:physics/electric-field:The-present-study-aimed--1bbe",
+   "kernelId": "physics/electric-field",
+   "conceptName": "Electric field",
+   "stem": "The present study aimed to provide an overview of the common diagnostic instruments in science to assess students' misconceptions. Which of the following best describes the primary goal of this investigation?",
+   "options": [
+    "To list every diagnostic instrument in science.",
+    "To provide an overview of common diagnostic instruments in science.",
+    "To compare the accuracy of different instruments.",
+    "To demonstrate the physical properties of electric fields."
+   ],
+   "correctIndex": 1,
+   "explanation": "Address directly: The present study aimed to provide an overview of the common diagnostic instruments in science to assess students' misconceptions. This goal focuses on the diagnostic tools used in the science context.",
+   "catches": true,
+   "confronts": true,
+   "familyKey": "the present study aimed to provide an overview of the common",
+   "provenance": {
+    "origin": "researcher-zero",
+    "model": "e2b",
+    "solverVerified": true,
+    "grade": null,
+    "date": "2026-07-06"
+   }
+  },
+  {
+   "id": "gapfill:physics/electric-field:The-present-study-aimed--dd5d",
+   "kernelId": "physics/electric-field",
+   "conceptName": "Electric field",
+   "stem": "If you place a positive charge near a region where the electric field lines point downward, describe the resulting force on a small positive test charge placed in that region.",
+   "options": [
+    "The positive test charge will experience a repulsive force, moving away from the field lines.",
+    "The positive test charge will experience an attractive force, moving toward the downward field lines.",
+    "The positive test charge will experience no net force because the field lines are only lines.",
+    "The positive test charge will experience a force perpendicular to the field lines."
+   ],
+   "correctIndex": 1,
+   "explanation": "Since the field lines point downward, a positive test charge will experience an attractive force, moving toward the downward field lines. This demonstrates the fundamental interaction between charge and electric fields.",
+   "catches": false,
+   "confronts": false,
+   "familyKey": null,
+   "provenance": {
+    "origin": "researcher-zero",
+    "model": "e2b",
+    "solverVerified": true,
+    "grade": null,
+    "date": "2026-07-06"
+   }
+  },
+  {
+   "id": "gapfill:physics/gausss-law:Students-may-think-Gauss-821c",
+   "kernelId": "physics/gausss-law",
+   "conceptName": "Gauss's law",
+   "stem": "A student believes that Gauss's law works only when the electric field is zero. Which statement best corrects this belief?",
+   "options": [
+    "Gauss's law works only when the electric field is zero.",
+    "Zero flux means zero field everywhere.",
+    "Gauss's law is always true.",
+    "No enclosed charge means no charges nearby."
+   ],
+   "correctIndex": 2,
+   "explanation": "Gauss's law is always true; symmetry determines when it is practical for field calculation. Zero enclosed charge gives zero net flux, but symmetry, not zero field, determines when field calculation is practical.",
+   "catches": true,
+   "confronts": true,
+   "familyKey": "students may think gauss s law works only when the electric ",
+   "provenance": {
+    "origin": "researcher-zero",
+    "model": "e2b",
+    "solverVerified": true,
+    "grade": null,
+    "date": "2026-07-06"
+   }
+  },
+  {
+   "id": "gapfill:physics/gausss-law:It-has-been-supposed-tha-56cf",
+   "kernelId": "physics/gausss-law",
+   "conceptName": "Gauss's law",
+   "stem": "Calculate the electric field magnitude using Gauss's law for a uniformly charged sphere of radius R and total charge Q. What is the appropriate setup?",
+   "options": [
+    "Calculate the field by integrating the field over the surface area.",
+    "Use Gauss's law with a spherical Gaussian surface enclosing the charge.",
+    "Assume the electric field is constant over the sphere's surface.",
+    "Apply Coulomb's law directly to all surface charges."
+   ],
+   "correctIndex": 1,
+   "explanation": "Use Gauss's law with a spherical Gaussian surface enclosing the charge. This setup leverages the spherical symmetry, simplifying the flux calculation significantly.",
+   "catches": false,
+   "confronts": false,
+   "familyKey": null,
+   "provenance": {
+    "origin": "researcher-zero",
+    "model": "e2b",
+    "solverVerified": true,
+    "grade": null,
+    "date": "2026-07-06"
+   }
+  },
+  {
+   "id": "gapfill:physics/electric-potential:Students-may-confuse-ele-6247",
+   "kernelId": "physics/electric-potential",
+   "conceptName": "Electric potential",
+   "stem": "A student incorrectly believes that electric potential is the same as electric potential energy. Which statement best corrects this misconception?",
+   "options": [
+    "Potential is energy per unit charge.",
+    "Potential energy equals potential only.",
+    "Only the field matters, not potential.",
+    "Potential energy has no units."
+   ],
+   "correctIndex": 0,
+   "explanation": "Potential is energy per unit charge. Multiplying the 12 V potential by the charge gives the potential energy, so it is not always 12 J.",
+   "catches": true,
+   "confronts": true,
+   "familyKey": "students may confuse electric potential with electric potent",
+   "provenance": {
+    "origin": "researcher-zero",
+    "model": "e2b",
+    "solverVerified": true,
+    "grade": null,
+    "date": "2026-07-06"
+   }
+  },
+  {
+   "id": "gapfill:physics/capacitance:Students-may-think-a-cap-9dc9",
+   "kernelId": "physics/capacitance",
+   "conceptName": "Capacitance",
+   "stem": "If a student believes a capacitor stores charge on one plate only, which statement best corrects this misconception?",
+   "options": [
+    "A capacitor stores charge on one plate only.",
+    "A capacitor stores equal and opposite charge on paired conductors, with energy in the field.",
+    "A capacitor only stores positive charge on the positive plate.",
+    "The capacitor stores charge only when connected to a battery."
+   ],
+   "correctIndex": 1,
+   "explanation": "A capacitor stores equal and opposite charge on paired conductors, with energy in the field. This corrects the belief that the capacitor stores charge on one plate only. The energy is stored in the electric field between the plates.",
+   "bloom": "apply",
+   "difficulty": "apply",
+   "catches": true,
+   "confronts": true,
+   "familyKey": "students may think a capacitor stores charge on one plate on",
+   "provenance": {
+    "origin": "researcher-zero",
+    "model": "e2b",
+    "solverVerified": true,
+    "grade": null,
+    "date": "2026-07-06"
+   }
+  },
+  {
+   "id": "gapfill:physics/capacitance:In-the-present-study,-an-788d",
+   "kernelId": "physics/capacitance",
+   "conceptName": "Capacitance",
+   "stem": "A circuit requires a capacitor to smooth out voltage fluctuations in a power supply. How should you apply this knowledge to design a filter circuit?",
+   "options": [
+    "Use a large resistor to block all AC signals completely.",
+    "Place a capacitor in parallel with the load to store excess charge.",
+    "Use an inductor instead of a capacitor for voltage smoothing.",
+    "Connect the capacitor in series to increase the total resistance."
+   ],
+   "correctIndex": 1,
+   "explanation": "Place a capacitor in parallel with the load to store excess charge. This action effectively smooths out the voltage fluctuations. This application demonstrates the practical use of capacitance in filtering.",
+   "bloom": "apply",
+   "difficulty": "apply",
+   "catches": false,
+   "confronts": false,
+   "familyKey": null,
+   "provenance": {
+    "origin": "researcher-zero",
+    "model": "e2b",
+    "solverVerified": true,
+    "grade": null,
+    "date": "2026-07-06"
+   }
+  },
+  {
+   "id": "gapfill:physics/electric-current:Students-may-think-curre-22e8",
+   "kernelId": "physics/electric-current",
+   "conceptName": "Electric current",
+   "stem": "A student believes that electric current is 'used up' by circuit components. Which statement best corrects this misconception?",
+   "options": [
+    "Current is consumed by components, so it stops flowing.",
+    "Charge is conserved; components transform energy while current continuity holds in series paths.",
+    "Components absorb the current, changing its direction completely.",
+    "Current is a material that is depleted when passing through components."
+   ],
+   "correctIndex": 1,
+   "explanation": "Charge is conserved; components transform energy while current continuity holds in series paths. The misconception arises from thinking current is 'used up' by circuit components. Current is the flow of charge, not a consumable substance.",
+   "bloom": "apply",
+   "difficulty": "apply",
+   "catches": true,
+   "confronts": true,
+   "familyKey": "students may think current is used up by circuit components",
+   "provenance": {
+    "origin": "researcher-zero",
+    "model": "e2b",
+    "solverVerified": true,
+    "grade": null,
+    "date": "2026-07-06"
+   }
+  },
+  {
+   "id": "gapfill:physics/dc-circuits:Students-may-think-physi-706e",
+   "kernelId": "physics/dc-circuits",
+   "conceptName": "DC circuits",
+   "stem": "A student believes that physically close resistors must be in series because they are physically close. How should you correct this belief?",
+   "options": [
+    "Resistors in series are always physically close.",
+    "Series and parallel are defined by current paths and node connections, not visual proximity.",
+    "If resistors are close, they must be in parallel.",
+    "Physical closeness dictates the circuit configuration."
+   ],
+   "correctIndex": 1,
+   "explanation": "Series and parallel are defined by current paths and node connections, not visual proximity. Series and parallel are defined by current paths and node connections, not visual proximity.",
+   "catches": true,
+   "confronts": true,
+   "familyKey": "students may think physically close resistors must be in ser",
+   "provenance": {
+    "origin": "researcher-zero",
+    "model": "e2b",
+    "solverVerified": true,
+    "grade": null,
+    "date": "2026-07-06"
+   }
+  },
+  {
+   "id": "gapfill:physics/dc-circuits:The-purpose-of-this-stud-1e99",
+   "kernelId": "physics/dc-circuits",
+   "conceptName": "DC circuits",
+   "stem": "If a student is struggling to understand how voltage affects current flow in a simple circuit, what is the best instructional strategy to address their conceptual misunderstanding?",
+   "options": [
+    "Provide a cartoon to visualize the flow of electric current.",
+    "Only remedy misconceptions with a simple worksheet.",
+    "Use a simulation to investigate the effect of conceptual change instruction.",
+    "Compare the current in series and parallel circuits."
+   ],
+   "correctIndex": 2,
+   "explanation": "This study's purpose is twofold: first to investigate the effect of conceptual change oriented instruction accompanied by concept cartoon worksheet with simulation on students’ understanding, and second to remedy their misconceptions of direct current electric circuits. The simulation is key to directly address their conceptual difficulties.",
+   "bloom": "apply",
+   "difficulty": "apply",
+   "catches": true,
+   "confronts": true,
+   "familyKey": "the purpose of this study was twofold first to investigate t",
+   "provenance": {
+    "origin": "researcher-zero",
+    "model": "e2b",
+    "solverVerified": true,
+    "grade": null,
+    "date": "2026-07-06"
+   }
+  },
+  {
+   "id": "gapfill:physics/dc-circuits:The-purpose-of-this-stud-b8ac",
+   "kernelId": "physics/dc-circuits",
+   "conceptName": "DC circuits",
+   "stem": "If you have a circuit with a voltage source, two resistors in series, and a third resistor in parallel with the combination, what is the total equivalent resistance of the circuit?",
+   "options": [
+    "The sum of the three individual resistances.",
+    "The resistance of the series combination in parallel with the third resistor.",
+    "The reciprocal of the sum of the reciprocals of the resistances.",
+    "The product of the three resistances."
+   ],
+   "correctIndex": 1,
+   "explanation": "The resistance of the series combination in parallel with the third resistor. This requires calculating the series resistance first, then applying the parallel formula. This is a straight application of circuit rules.",
+   "catches": false,
+   "confronts": false,
+   "familyKey": null,
+   "provenance": {
+    "origin": "researcher-zero",
+    "model": "e2b",
+    "solverVerified": true,
+    "grade": null,
+    "date": "2026-07-06"
+   }
+  },
+  {
+   "id": "gapfill:physics/magnetic-field:Students-may-expect-magn-2146",
+   "kernelId": "physics/magnetic-field",
+   "conceptName": "Magnetic field",
+   "stem": "Given the belief that magnetic field lines start at a north pole and stop at a south pole, how should you interpret the pattern observed when iron filings are placed around a bar magnet?",
+   "options": [
+    "Field lines start at north and stop at south.",
+    "Magnetic field lines form closed loops.",
+    "Magnetic charges create open field lines.",
+    "Field lines exist only outside the magnet."
+   ],
+   "correctIndex": 1,
+   "explanation": "Magnetic field lines continue through the magnet and form closed loops. They do not begin or end on isolated magnetic charges.",
+   "catches": true,
+   "confronts": true,
+   "familyKey": "students may expect magnetic field lines to start at a north",
+   "provenance": {
+    "origin": "researcher-zero",
+    "model": "e2b",
+    "solverVerified": true,
+    "grade": null,
+    "date": "2026-07-06"
+   }
+  },
+  {
+   "id": "gapfill:physics/magnetic-field:Abstract-This-study-exam-0e5b",
+   "kernelId": "physics/magnetic-field",
+   "conceptName": "Magnetic field",
+   "stem": "A current-carrying wire is placed in a magnetic field. Describe the resulting force on the wire.",
+   "options": [
+    "The wire experiences no force because the magnetic field is uniform.",
+    "The wire experiences a force perpendicular to both the current and the field.",
+    "The wire experiences a force parallel to the magnetic field lines.",
+    "The wire experiences a force only if the current is zero."
+   ],
+   "correctIndex": 1,
+   "explanation": "The wire experiences a force perpendicular to both the current and the field. This force is described by the Lorentz force law for a current-carrying conductor. The resulting force is perpendicular to both the current and the field.",
+   "bloom": "apply",
+   "difficulty": "apply",
+   "catches": false,
+   "confronts": false,
+   "familyKey": null,
+   "provenance": {
+    "origin": "researcher-zero",
+    "model": "e2b",
+    "solverVerified": true,
+    "grade": null,
+    "date": "2026-07-06"
+   }
+  },
+  {
+   "id": "gapfill:physics/magnetic-force:Students-may-aim-magneti-8f1c",
+   "kernelId": "physics/magnetic-force",
+   "conceptName": "Magnetic force",
+   "stem": "If a South pole of a magnet is placed near a magnetic field pointing upwards, which direction will the magnetic force on the South pole be?",
+   "options": [
+    "The force will be in the same direction as the magnetic field.",
+    "The force will be opposite to the magnetic field.",
+    "The force will be perpendicular to both the field and the pole.",
+    "The force will be zero because the pole is stationary."
+   ],
+   "correctIndex": 1,
+   "explanation": "Use the cross-product/right-hand rule direction; the force is perpendicular to the field and motion. The force on a magnetic pole is always perpendicular to the magnetic field direction.",
+   "bloom": "apply",
+   "difficulty": "apply",
+   "catches": true,
+   "confronts": true,
+   "familyKey": "students may aim magnetic force in the same direction as the",
+   "provenance": {
+    "origin": "researcher-zero",
+    "model": "e2b",
+    "solverVerified": true,
+    "grade": null,
+    "date": "2026-07-06"
+   }
+  },
+  {
+   "id": "gapfill:physics/magnetic-force:Abstract-This-study-exam-16f2",
+   "kernelId": "physics/magnetic-force",
+   "conceptName": "Magnetic force",
+   "stem": "Abstract This study examined university engineering and physical science students' misconceptions of the nature of magnetic field. Based on this, how should you apply the concept of magnetic force when a current-carrying wire is placed in a uniform magnetic field?",
+   "options": [
+    "Assume the magnetic force acts parallel to the current flow.",
+    "Assume the magnetic force acts in the same direction as the magnetic field.",
+    "Assume the magnetic force is perpendicular to both the current and the field.",
+    "Assume the magnetic force is zero if the current is constant."
+   ],
+   "correctIndex": 2,
+   "explanation": "Address directly: Abstract This study examined university engineering and physical science students' misconceptions of the nature of magnetic field. The magnetic force is perpendicular to both the current and the field.",
+   "bloom": "apply",
+   "difficulty": "apply",
+   "catches": true,
+   "confronts": true,
+   "familyKey": "abstract this study examined university engineering and phys",
+   "provenance": {
+    "origin": "researcher-zero",
+    "model": "e2b",
+    "solverVerified": true,
+    "grade": null,
+    "date": "2026-07-06"
+   }
+  },
+  {
+   "id": "gapfill:physics/faradays-law:Students-may-think-any-m-be88",
+   "kernelId": "physics/faradays-law",
+   "conceptName": "Faraday's law of induction",
+   "stem": "If a wire is moved into a constant magnetic field, what is the necessary condition for an induced current to be generated?",
+   "options": [
+    "A static magnetic field automatically induces current in the wire.",
+    "The wire must have a high resistance to generate current.",
+    "Changing magnetic flux through the loop induces current.",
+    "Only a DC current can cause a magnetic field change."
+   ],
+   "correctIndex": 2,
+   "explanation": "Induction requires changing magnetic flux through the loop. A static magnetic field alone does not generate a current. This is the core principle of Faraday's law of induction.",
+   "catches": true,
+   "confronts": true,
+   "familyKey": "students may think any magnetic field automatically induces ",
+   "provenance": {
+    "origin": "researcher-zero",
+    "model": "e2b",
+    "solverVerified": true,
+    "grade": null,
+    "date": "2026-07-06"
+   }
+  },
+  {
+   "id": "gapfill:physics/faradays-law:By-calculating-the-line--1236",
+   "kernelId": "physics/faradays-law",
+   "conceptName": "Faraday's law of induction",
+   "stem": "When calculating the induced EMF using the line integral of the electric field and applying Faraday's law of electromagnetic induction, what is the primary benefit?",
+   "options": [
+    "It only obtain correct results and present a clear physical picture.",
+    "It calculates the total resistance of the circuit accurately.",
+    "It helps in determining the material's magnetic permeability.",
+    "It shows that the line integral is unnecessary for this calculation."
+   ],
+   "correctIndex": 0,
+   "explanation": "Address directly: By calculating the line integral of the electric field and applying Faraday's law of electromagnetic induction, one can not only obtain correct results but also present a clear physical picture of the circuit's interior, clarifying some widespread misconceptions.",
+   "catches": true,
+   "confronts": true,
+   "familyKey": "by calculating the line integral of the electric field and a",
+   "provenance": {
+    "origin": "researcher-zero",
+    "model": "e2b",
+    "solverVerified": true,
+    "grade": null,
+    "date": "2026-07-06"
+   }
+  },
+  {
+   "id": "gapfill:physics/maxwell-equations:Students-may-treat-the-f-147d",
+   "kernelId": "physics/maxwell-equations",
+   "conceptName": "Maxwell's equations",
+   "stem": "If you are analyzing a situation where a changing electric field induces a magnetic field, which aspect of Maxwell's equations best describes this relationship?",
+   "options": [
+    "The equations are disconnected formulas describing separate phenomena.",
+    "The equations form a coupled field model linking sources, field changes, and wave propagation.",
+    "The equations only describe static electric and magnetic fields independently.",
+    "The equations are purely mathematical tools without physical meaning."
+   ],
+   "correctIndex": 1,
+   "explanation": "The equations form a coupled field model linking sources, field changes, and wave propagation. This coupling is essential for understanding how changing electric fields generate magnetic fields and vice versa.",
+   "catches": true,
+   "confronts": true,
+   "familyKey": "students may treat the four equations as disconnected formul",
+   "provenance": {
+    "origin": "researcher-zero",
+    "model": "e2b",
+    "solverVerified": true,
+    "grade": null,
+    "date": "2026-07-06"
+   }
+  },
+  {
+   "id": "gapfill:physics/maxwell-equations:Electromagnetism,-being--9c21",
+   "kernelId": "physics/maxwell-equations",
+   "conceptName": "Maxwell's equations",
+   "stem": "If a wire carrying a steady electric current is placed in a magnetic field, what happens to the wire's motion?",
+   "options": [
+    "The wire will remain completely stationary.",
+    "The wire will experience a force perpendicular to both the current and the magnetic field.",
+    "The wire will only experience a force if the magnetic field is static.",
+    "The wire's motion is governed only by electric field concepts."
+   ],
+   "correctIndex": 1,
+   "explanation": "Address directly: Electromagnetism, being much less intuitive than mechanics, where a lot of sources of misconceptions have been documented, has in addition to the common sources of misconceptions borrowed from mechanics other sources related to the abstract new concepts of electric and magnetic fields. The force arises because the magnetic field exerts a force on the moving charge.",
+   "bloom": "apply",
+   "difficulty": "apply",
+   "catches": true,
+   "confronts": true,
+   "familyKey": "electromagnetism being much less intuitive than mechanics wh",
+   "provenance": {
+    "origin": "researcher-zero",
+    "model": "e2b",
+    "solverVerified": true,
+    "grade": null,
+    "date": "2026-07-06"
+   }
+  },
+  {
+   "id": "gapfill:physics/maxwell-equations:Electromagnetism,-being--b425",
+   "kernelId": "physics/maxwell-equations",
+   "conceptName": "Maxwell's equations",
+   "stem": "A radio transmitter generates an oscillating electric field. Using Maxwell's equations, what physical phenomenon is most accurately described by the resulting propagating electromagnetic wave?",
+   "options": [
+    "The conservation of momentum in a non-interacting system.",
+    "The propagation of coupled electric and magnetic field oscillations through space.",
+    "The static equilibrium of charges in a uniform medium.",
+    "The relationship between mass and acceleration in classical mechanics."
+   ],
+   "correctIndex": 1,
+   "explanation": "The propagation of coupled electric and magnetic field oscillations through space is what Maxwell's equations describe. This phenomenon is the definition of an electromagnetic wave traveling through a vacuum or dielectric.",
+   "catches": false,
+   "confronts": false,
+   "familyKey": null,
+   "provenance": {
+    "origin": "researcher-zero",
+    "model": "e2b",
+    "solverVerified": true,
+    "grade": null,
+    "date": "2026-07-06"
+   }
+  },
+  {
+   "id": "gapfill:stats/sampling-distribution:Students-believe-a-large-a383",
+   "kernelId": "stats/sampling-distribution",
+   "conceptName": "Sampling distribution",
+   "stem": "A researcher collects 100 scores from a large population and calculates the mean. Students believe a larger sample makes the population itself normal, rather than the sampling distribution of the mean.",
+   "options": [
+    "The sample mean is always the population mean.",
+    "A larger sample makes the population itself normal.",
+    "The sampling distribution approaches normality with a larger sample.",
+    "The population distribution is determined by the sample size."
+   ],
+   "correctIndex": 2,
+   "explanation": "The sampling distribution of the mean approaches normality with a larger sample size due to the Central Limit Theorem. This distribution describes the distribution of sample means, not the population itself. Therefore, a larger sample helps approximate the sampling distribution.",
+   "bloom": "apply",
+   "difficulty": "apply",
+   "catches": true,
+   "confronts": true,
+   "familyKey": "students believe a larger sample makes the population itself",
+   "provenance": {
+    "origin": "researcher-zero",
+    "model": "e2b",
+    "solverVerified": true,
+    "grade": null,
+    "date": "2026-07-06"
+   }
+  },
+  {
+   "id": "gapfill:stats/p-value:Students-interpret-the-p-659b",
+   "kernelId": "stats/p-value",
+   "conceptName": "p-value",
+   "stem": "A researcher calculates a p-value of 0.01. Which statement best describes the correct interpretation of this p-value?",
+   "options": [
+    "There is a 1% probability that the null hypothesis is true.",
+    "The probability that the null hypothesis is true is 0.01.",
+    "If the null hypothesis were true, the probability of observing the data is 0.01.",
+    "The p-value is the probability that the alternative hypothesis is correct."
+   ],
+   "correctIndex": 2,
+   "explanation": "It is a probability about the data given the null, not about the hypothesis given the data. The p-value is the probability of observing data as extreme as, or more extreme than, what was actually observed, assuming the null hypothesis is true.",
+   "bloom": "apply",
+   "difficulty": "apply",
+   "catches": true,
+   "confronts": true,
+   "familyKey": "students interpret the p value as the probability that the n",
+   "provenance": {
+    "origin": "researcher-zero",
+    "model": "e2b",
+    "solverVerified": true,
+    "grade": null,
+    "date": "2026-07-06"
+   }
+  },
+  {
+   "id": "gapfill:stats/observational-study:Students-read-a-strong-a-f1c5",
+   "kernelId": "stats/observational-study",
+   "conceptName": "Observational study",
+   "stem": "A researcher observes a strong association between ice cream sales and drowning incidents and concludes that eating ice cream causes drowning. What is the correct interpretation of this observational study?",
+   "options": [
+    "Ice cream sales cause drowning because the association is strong.",
+    "Drowning causes ice cream sales due to a direct causal link.",
+    "The association is likely due to a confounding variable, so causation cannot be established.",
+    "The study proves that ice cream consumption is the sole cause of drowning."
+   ],
+   "correctIndex": 2,
+   "explanation": "Association is not causation until plausible confounders are ruled out. This study design only shows a relationship, not a direct cause. Therefore, we must consider other factors influencing both variables.",
+   "catches": true,
+   "confronts": true,
+   "familyKey": "students read a strong association in an observational study",
+   "provenance": {
+    "origin": "researcher-zero",
+    "model": "e2b",
+    "solverVerified": true,
+    "grade": null,
+    "date": "2026-07-06"
+   }
+  },
+  {
+   "id": "gapfill:stats/data-provenance:Students-treat-a-dataset-f0d5",
+   "kernelId": "stats/data-provenance",
+   "conceptName": "Data provenance",
+   "stem": "A researcher claims their study shows a strong correlation between ice cream sales and crime rates across a city. They present the data as proof of a causal link. Which statement best critiques the data provenance?",
+   "options": [
+    "Correlation does not imply causation; the study design needs review.",
+    "The data is objective fact, so the correlation proves a direct link.",
+    "Ice cream sales and crime rates are unrelated events, so the data is flawed.",
+    "The study's purpose was clearly to show a causal relationship."
+   ],
+   "correctIndex": 0,
+   "explanation": "The collection method and purpose can shape what the data can support. Ask who collected the data, how, and why before trusting what the numbers say.",
+   "catches": true,
+   "confronts": true,
+   "familyKey": "students treat a dataset as objective fact ignoring how the ",
+   "provenance": {
+    "origin": "researcher-zero",
+    "model": "e2b",
+    "solverVerified": true,
+    "grade": null,
+    "date": "2026-07-06"
+   }
+  },
+  {
+   "id": "gapfill:stats/data-provenance:We-discuss-a-diverse-ran-1026",
+   "kernelId": "stats/data-provenance",
+   "conceptName": "Data provenance",
+   "stem": "A political analyst presents statistics showing high voter turnout in a specific district, suggesting widespread public support for a policy. They state this proves the policy is popular. Which statement is the strongest critique?",
+   "options": [
+    "High turnout only shows the motivated voters participated, not the whole population.",
+    "The diverse range of myths discussed proves the policy is universally loved.",
+    "The data is objective fact, so the popularity of the policy is confirmed.",
+    "We discuss a diverse range of myths and misconceptions relevant for anybody analyzing population data."
+   ],
+   "correctIndex": 0,
+   "explanation": "Address directly: We discuss a diverse range of myths and misconceptions relevant for anybody capturing, processing, linking, or analysing population data. Ask who collected the data, how, and why before trusting what the numbers say.",
+   "catches": true,
+   "confronts": true,
+   "familyKey": "we discuss a diverse range of myths and misconceptions relev",
+   "provenance": {
+    "origin": "researcher-zero",
+    "model": "e2b",
+    "solverVerified": true,
+    "grade": null,
+    "date": "2026-07-06"
+   }
+  },
+  {
+   "id": "gapfill:stats/data-provenance:We-discuss-a-diverse-ran-57a7",
+   "kernelId": "stats/data-provenance",
+   "conceptName": "Data provenance",
+   "stem": "You are preparing a report using sensor readings from an IoT device. To ensure data quality, what is the most appropriate action regarding data provenance?",
+   "options": [
+    "Assume the sensor readings are perfectly accurate without checking the calibration logs.",
+    "Document the sensor type, calibration date, and environmental conditions for every reading.",
+    "Ignore the collection method since the data is real-time and immediate.",
+    "Only focus on the final aggregated results, ignoring the raw data history."
+   ],
+   "correctIndex": 1,
+   "explanation": "Document the sensor type, calibration date, and environmental conditions for every reading. This practice ensures full traceability of the data's origin.",
+   "catches": false,
+   "confronts": false,
+   "familyKey": null,
+   "provenance": {
+    "origin": "researcher-zero",
+    "model": "e2b",
+    "solverVerified": true,
+    "grade": null,
+    "date": "2026-07-06"
+   }
+  },
+  {
+   "id": "gapfill:chem/chemical-equilibrium:Students-think-a-reactio-bc40",
+   "kernelId": "chem/chemical-equilibrium",
+   "conceptName": "Chemical equilibrium",
+   "stem": "A student believes that at chemical equilibrium, the forward and reverse reactions have completely stopped, meaning no net change occurs.",
+   "options": [
+    "The forward reaction stops because the concentration of reactants equals the products.",
+    "The reverse reaction stops when the forward reaction reaches its maximum rate.",
+    "The forward and reverse reactions continue at equal rates, resulting in no net change.",
+    "The system reaches equilibrium when the forward reaction is faster than the reverse reaction."
+   ],
+   "correctIndex": 2,
+   "explanation": "Equilibrium is dynamic balance, not the absence of reaction. The forward and reverse reactions continue at equal rates, which is the definition of chemical equilibrium.",
+   "bloom": "apply",
+   "difficulty": "apply",
+   "catches": true,
+   "confronts": true,
+   "familyKey": "students think a reaction at equilibrium has stopped when th",
+   "provenance": {
+    "origin": "researcher-zero",
+    "model": "e2b",
+    "solverVerified": true,
+    "grade": null,
+    "date": "2026-07-06"
+   }
+  },
+  {
+   "id": "gapfill:chem/chemical-equilibrium:A-written-test-was-devel-c106",
+   "kernelId": "chem/chemical-equilibrium",
+   "conceptName": "Chemical equilibrium",
+   "stem": "Considering a written test was developed to diagnose misconceptions in chemical equilibrium among students and teachers, what is the primary purpose of this diagnostic tool?",
+   "options": [
+    "To confirm that all students understand the final state.",
+    "To assess the knowledge of different areas of chemical equilibrium.",
+    "To prove that the equilibrium has truly stopped.",
+    "To count the total number of students who passed the test."
+   ],
+   "correctIndex": 1,
+   "explanation": "Address directly: A written test was developed and administered to diagnose misconceptions in different areas of chemical equilibrium among 162 undergraduate chemistry students and 69 school‐teachers of chemistry.",
+   "catches": true,
+   "confronts": true,
+   "familyKey": "a written test was developed and administered to diagnose mi",
+   "provenance": {
+    "origin": "researcher-zero",
+    "model": "e2b",
+    "solverVerified": true,
+    "grade": null,
+    "date": "2026-07-06"
+   }
+  },
+  {
+   "id": "gapfill:chem/titration:The-study-was-conducted--2f69",
+   "kernelId": "chem/titration",
+   "conceptName": "Titration",
+   "stem": "If a student consistently fails to predict the endpoint in an argentometric titration, what is the most likely underlying issue?",
+   "options": [
+    "They need more practice with the basic acid-base theory.",
+    "The student has a misconception pattern in chemistry.",
+    "The teacher did not study the correct titration procedure.",
+    "The prospective teachers learned a wrong pattern of reaction."
+   ],
+   "correctIndex": 1,
+   "explanation": "Address directly: The student has a misconception pattern in chemistry. We conducted a study to address this, showing that a misunderstanding of the argentometric titration process is the primary issue.",
+   "bloom": "apply",
+   "difficulty": "apply",
+   "catches": true,
+   "confronts": true,
+   "familyKey": "the study was conducted to map the misconception pattern of ",
+   "provenance": {
+    "origin": "researcher-zero",
+    "model": "e2b",
+    "solverVerified": true,
+    "grade": null,
+    "date": "2026-07-06"
+   }
+  },
+  {
+   "id": "gapfill:chem/titration:The-study-was-conducted--7c5b",
+   "kernelId": "chem/titration",
+   "conceptName": "Titration",
+   "stem": "To determine the concentration of an unknown acid solution using a standardized NaOH solution, what is the correct procedure to perform the titration?",
+   "options": [
+    "Add the NaOH solution rapidly to the acid and record the initial volume.",
+    "Slowly add the standardized NaOH solution to the acid while continuously swirling and recording the volume.",
+    "Measure the initial volume of the acid and then add a fixed volume of NaOH.",
+    "Titrate the acid with a non-standardized NaOH and calculate the average concentration."
+   ],
+   "correctIndex": 1,
+   "explanation": "Slowly add the standardized NaOH solution to the acid while continuously swirling and recording the volume. This controlled addition ensures accurate measurement of the equivalence point.",
+   "bloom": "apply",
+   "difficulty": "apply",
+   "catches": false,
+   "confronts": false,
+   "familyKey": null,
+   "provenance": {
+    "origin": "researcher-zero",
+    "model": "e2b",
+    "solverVerified": true,
+    "grade": null,
+    "date": "2026-07-06"
+   }
+  },
+  {
+   "id": "gapfill:chem/conservation-of-mass:This-study-focuses-on-th-8dc0",
+   "kernelId": "chem/conservation-of-mass",
+   "conceptName": "Conservation of mass",
+   "stem": "This study focuses on the misconceptions of eighth-grade students in the Arab sector compared to the Jewish sector regarding the conservation of mass during combustion in a closed system and in an open system before the subject is taught, and to what extent the misconceptions change after it is taught.",
+   "options": [
+    "The study compares misconceptions in closed and open systems.",
+    "The study focuses on misconceptions in eighth-grade students.",
+    "The study examines how misconceptions change after teaching.",
+    "The study compares Arab and Jewish sector beliefs about mass."
+   ],
+   "correctIndex": 3,
+   "explanation": "Address directly: This study focuses on the misconceptions of eighth-grade students in the Arab sector compared to the Jewish sector regarding the conservation of mass during combustion in a closed system and in an open system before the subject is taught, and to what extent the misconceptions change after it is taught.",
+   "catches": true,
+   "confronts": true,
+   "familyKey": "this study focuses on the misconceptions of eighth grade stu",
+   "provenance": {
+    "origin": "researcher-zero",
+    "model": "e2b",
+    "solverVerified": true,
+    "grade": null,
+    "date": "2026-07-06"
+   }
+  },
+  {
+   "id": "gapfill:chem/conservation-of-mass:This-study-focuses-on-th-f65f",
+   "kernelId": "chem/conservation-of-mass",
+   "conceptName": "Conservation of mass",
+   "stem": "When burning methane ($CH_4$), the total mass of the reactants must equal the total mass of the products according to the law of conservation of mass. Which of the following correctly represents this principle in a chemical reaction?",
+   "options": [
+    "The sum of the atomic masses of reactants equals the sum of atomic masses of products.",
+    "The number of atoms of each element must be equal on both sides.",
+    "The total mass of all atoms before the reaction equals the total mass of all atoms after.",
+    "The coefficients in the balanced equation must sum to zero."
+   ],
+   "correctIndex": 2,
+   "explanation": "The total mass of all atoms before the reaction equals the total mass of all atoms after. This principle ensures that mass is neither created nor destroyed during the chemical change.",
+   "catches": false,
+   "confronts": false,
+   "familyKey": null,
+   "provenance": {
+    "origin": "researcher-zero",
+    "model": "e2b",
+    "solverVerified": true,
+    "grade": null,
+    "date": "2026-07-06"
+   }
+  },
+  {
+   "id": "gapfill:chem/titration:Students-read-an-endpoin-52bd",
+   "kernelId": "chem/titration",
+   "conceptName": "Titration",
+   "stem": "A student reads an endpoint from a titrant that was never standardized, treating the steps as independent.",
+   "options": [
+    "The endpoint is only meaningful once the titrant's concentration is known.",
+    "Independent steps allow for accurate endpoint determination regardless of concentration.",
+    "Standardization is unnecessary if the volume measurements are precise enough.",
+    "The endpoint reading is valid even if the titrant concentration is unknown."
+   ],
+   "correctIndex": 0,
+   "explanation": "The endpoint is only meaningful once the titrant concentration is known. Treating steps as independent ignores the concentration dependency in titration calculations. This is crucial for accurate results.",
+   "bloom": "apply",
+   "difficulty": "apply",
+   "catches": true,
+   "confronts": true,
+   "familyKey": "students read an endpoint from a titrant that was never stan",
+   "provenance": {
+    "origin": "researcher-zero",
+    "model": "e2b",
+    "solverVerified": true,
+    "grade": null,
+    "date": "2026-07-06"
+   }
+  },
+  {
+   "id": "gapfill:chem/titration:Students-read-an-endpoin-f60c",
+   "kernelId": "chem/titration",
+   "conceptName": "Titration",
+   "stem": "A student reads an endpoint from a titrant that was never standardized, treating the steps as independent. What is the main flaw?",
+   "options": [
+    "The endpoint is meaningful without knowing titrant concentration.",
+    "The titrant must be standardized before the endpoint matters.",
+    "Standardization only applies after the endpoint.",
+    "Endpoint readings replace concentration measurements."
+   ],
+   "correctIndex": 1,
+   "explanation": "The endpoint is only meaningful once the titrant's concentration is known. Titration steps are sequential, and an unstandardized titrant makes the result invalid.",
+   "catches": true,
+   "confronts": true,
+   "familyKey": "students read an endpoint from a titrant that was never stan",
+   "provenance": {
+    "origin": "researcher-zero",
+    "model": "e2b",
+    "solverVerified": true,
+    "grade": null,
+    "date": "2026-07-06"
+   }
   }
  ],
  "origins": {

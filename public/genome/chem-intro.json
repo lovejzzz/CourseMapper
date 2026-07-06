@@ -1,1 +1,562 @@
-{"id":"chem-intro","discipline":"chem","level":"intro","conceptCount":3,"kernels":[{"id":"chem/chemical-equilibrium","rev":1,"term":"Chemical equilibrium","aliases":["dynamic equilibrium","Le Chatelier's principle"],"discipline":"chem","tags":[],"level":"intro","difficulty":3,"bloomCeiling":"Analyze","definition":{"text":"Chemical equilibrium is the state in which the forward and reverse reaction rates are equal, so the concentrations of reactants and products stay constant.","anchor":{"src":"openstax:chemistry-2e#13","loc":"13.1","quote":"the forward and reverse reaction rates are equal, so the concentrations of reactants and products remain constant over time"},"tier":2,"verifiedBy":0},"facts":[{"text":"Equilibrium is dynamic: the forward and reverse reactions both continue even though no net change is observed.","anchor":{"src":"openstax:chemistry-2e#13","loc":"13.1","quote":"both the forward and reverse reactions continue to occur even though no net change is observed"},"tier":2,"verifiedBy":0,"contested":false},{"text":"By Le Chatelier's principle, a disturbed equilibrium shifts in the direction that partially counteracts the disturbance.","anchor":{"src":"openstax:chemistry-2e#13","loc":"13.3","quote":"the equilibrium shifts in the direction that partially counteracts the disturbance"},"tier":2,"verifiedBy":0,"contested":false}],"misconceptions":[{"text":"Students think a reaction at equilibrium has stopped, when the forward and reverse reactions continue at equal rates.","corrective":"Equilibrium is dynamic balance, not the absence of reaction.","anchor":null,"tier":1}],"examples":[{"text":"Adding more reactant to a system at equilibrium shifts it toward products until balance is restored.","domain":"chemistry","anchor":null}],"workedExamples":[],"mcBank":[{"stem":"When a reaction reaches chemical equilibrium, what is true of the forward and reverse reactions?","options":["They continue at equal rates","They both stop completely","Only the forward reaction continues","Only the reverse reaction continues"],"answerIndex":0,"explanationFactRef":0,"rationaleRefs":[0]}],"edges":{"requires":["chem/conservation-of-mass"],"instanceOf":[{"archetype":"structure/equilibrium","confidence":0.95,"mapping":{"system":"a reversible chemical reaction","opposing processes":"the forward and reverse reactions","balanced quantity":"the concentrations of reactants and products","perturbation":"a change in concentration, temperature, or pressure","restoring force":"the equilibrium shift that counteracts the disturbance (Le Chatelier's principle)"},"verified":true}]},"variants":[],"freshness":{"sourceEdition":"","reviewBy":"","volatility":"low"},"license":"CC-BY-4.0","attribution":["OpenStax Chemistry 2e, Ch. 13"],"standards":[]},{"id":"chem/titration","rev":1,"term":"Titration","aliases":["titration procedure","endpoint determination"],"discipline":"chem","tags":[],"level":"intro","difficulty":2,"bloomCeiling":"Apply","definition":{"text":"A titration is a staged laboratory procedure for determining an unknown concentration by standardizing a titrant, adding it gradually, and identifying the endpoint.","anchor":{"src":"openstax:chemistry-2e#4","loc":"4.7","quote":"standardize the titrant, add it gradually to the analyte while monitoring, and identify the endpoint"},"tier":2,"verifiedBy":0},"facts":[{"text":"Each step depends on the previous one; an unstandardized titrant makes the endpoint reading meaningless.","anchor":{"src":"openstax:chemistry-2e#4","loc":"4.7","quote":"an unstandardized titrant makes the endpoint reading meaningless"},"tier":2,"verifiedBy":0,"contested":false},{"text":"Performing steps out of order invalidates the result.","anchor":{"src":"openstax:chemistry-2e#4","loc":"4.7","quote":"Performing steps out of order invalidates the result"},"tier":2,"verifiedBy":0,"contested":false}],"misconceptions":[{"text":"Students read an endpoint from a titrant that was never standardized, treating the steps as independent.","corrective":"The endpoint is only meaningful once the titrant's concentration is known.","anchor":null,"tier":1}],"examples":[{"text":"Reading a color change before standardizing the base gives a concentration that is meaningless.","domain":"chemistry","anchor":null}],"workedExamples":[],"mcBank":[{"stem":"In a titration, what happens if the titrant is not standardized first?","options":["the endpoint reading becomes meaningless","the result is more accurate","the analyte disappears","the color never changes"],"answerIndex":0,"explanationFactRef":0,"rationaleRefs":[0]}],"edges":{"requires":["chem/conservation-of-mass"],"instanceOf":[{"archetype":"process/staged-process","confidence":0.9,"mapping":{"process":"a titration","stages":"standardize the titrant, add it gradually, identify the endpoint","dependency":"each step depends on the previous one","failure if skipped":"an unstandardized titrant makes the endpoint reading meaningless"},"verified":true}]},"variants":[],"freshness":{"sourceEdition":"","reviewBy":"","volatility":"low"},"license":"CC-BY-4.0","attribution":["OpenStax Chemistry 2e, Ch. 4"],"standards":[]},{"id":"chem/conservation-of-mass","rev":1,"term":"Conservation of mass","aliases":["balancing chemical equations","law of conservation of mass","stoichiometric balance"],"discipline":"chem","tags":[],"level":"intro","difficulty":3,"bloomCeiling":"Apply","definition":{"text":"The law of conservation of mass states that matter is neither created nor destroyed in a chemical reaction, so the total mass of the reactants equals the total mass of the products.","anchor":{"src":"openstax:chemistry-2e#4","loc":"4.1","quote":"matter is neither created nor destroyed in a chemical reaction, so the total mass of the reactants equals the total mass of the products"},"tier":2,"verifiedBy":0},"facts":[{"text":"Balancing a chemical equation enforces this law: the number of atoms of each element must be equal on both sides of the equation.","anchor":{"src":"openstax:chemistry-2e#4","loc":"4.1","quote":"the number of atoms of each element must be equal on both sides of the equation"},"tier":2,"verifiedBy":0,"contested":false},{"text":"Coefficients are adjusted to balance an equation, never subscripts, because changing a subscript would change the identity of the substance.","anchor":{"src":"openstax:chemistry-2e#4","loc":"4.1","quote":"Coefficients are adjusted to balance an equation, never subscripts"},"tier":2,"verifiedBy":0,"contested":false}],"misconceptions":[{"text":"Students change a subscript to make an equation balance, which silently changes the substance instead of conserving atoms.","corrective":"Balance only with coefficients; subscripts define the substance and must not change.","anchor":null,"tier":1}],"examples":[{"text":"Burning methane, CH4 + 2 O2 produces CO2 + 2 H2O: one carbon, four hydrogen, and four oxygen atoms appear on each side.","domain":"chemistry","anchor":null}],"workedExamples":[],"mcBank":[{"stem":"A chemical equation is balanced by adjusting coefficients rather than subscripts because","options":["balancing with coefficients is only a convenient writing shortcut","changing a subscript would change the identity of the substance","the count of atoms may differ between the two sides","mass is conserved for elements but not for compounds"],"answerIndex":1,"explanationFactRef":1,"rationaleRefs":[0]}],"edges":{"instanceOf":[{"archetype":"method/conservation-balance","confidence":0.95,"mapping":{"quantity":"the atoms of each element","system":"the chemical reaction","inputs":"the atoms present in the reactants","outputs":"the atoms present in the products"},"verified":true}]},"variants":[],"freshness":{"sourceEdition":"","reviewBy":"","volatility":"low"},"license":"CC-BY-4.0","attribution":["OpenStax Chemistry 2e, Ch. 4"],"standards":[]}],"index":{"postings":{"chemical":["chem/chemical-equilibrium","chem/conservation-of-mass"],"equilibrium":["chem/chemical-equilibrium"],"dynamic":["chem/chemical-equilibrium"],"chatelier":["chem/chemical-equilibrium"],"principle":["chem/chemical-equilibrium"],"titration":["chem/titration"],"procedure":["chem/titration"],"endpoint":["chem/titration"],"determination":["chem/titration"],"conservation":["chem/conservation-of-mass"],"mas":["chem/conservation-of-mass"],"balanc":["chem/conservation-of-mass"],"equation":["chem/conservation-of-mass"],"law":["chem/conservation-of-mass"],"stoichiometric":["chem/conservation-of-mass"],"balance":["chem/conservation-of-mass"]}}}
+{
+ "id": "chem-intro",
+ "discipline": "chem",
+ "level": "intro",
+ "conceptCount": 3,
+ "kernels": [
+  {
+   "id": "chem/chemical-equilibrium",
+   "rev": 2,
+   "term": "Chemical equilibrium",
+   "aliases": [
+    "dynamic equilibrium",
+    "Le Chatelier's principle"
+   ],
+   "discipline": "chem",
+   "tags": [],
+   "level": "intro",
+   "difficulty": 3,
+   "bloomCeiling": "Analyze",
+   "definition": {
+    "text": "Chemical equilibrium is the state in which the forward and reverse reaction rates are equal, so the concentrations of reactants and products stay constant.",
+    "anchor": {
+     "src": "openstax:chemistry-2e#13",
+     "loc": "13.1",
+     "quote": "the forward and reverse reaction rates are equal, so the concentrations of reactants and products remain constant over time"
+    },
+    "tier": 2,
+    "verifiedBy": 0
+   },
+   "facts": [
+    {
+     "text": "Equilibrium is dynamic: the forward and reverse reactions both continue even though no net change is observed.",
+     "anchor": {
+      "src": "openstax:chemistry-2e#13",
+      "loc": "13.1",
+      "quote": "both the forward and reverse reactions continue to occur even though no net change is observed"
+     },
+     "tier": 2,
+     "verifiedBy": 0,
+     "contested": false
+    },
+    {
+     "text": "By Le Chatelier's principle, a disturbed equilibrium shifts in the direction that partially counteracts the disturbance.",
+     "anchor": {
+      "src": "openstax:chemistry-2e#13",
+      "loc": "13.3",
+      "quote": "the equilibrium shifts in the direction that partially counteracts the disturbance"
+     },
+     "tier": 2,
+     "verifiedBy": 0,
+     "contested": false
+    },
+    {
+     "text": "Classical thermodynamics deals with states of dynamic equilibrium.",
+     "anchor": {
+      "src": "https://en.wikipedia.org/wiki/Thermodynamic_equilibrium",
+      "loc": "extract",
+      "quote": "Classical thermodynamics deals with states of dynamic equilibrium."
+     },
+     "tier": 2,
+     "verifiedBy": 0,
+     "contested": false
+    },
+    {
+     "text": "In a macroscopic equilibrium, perfectly or almost perfectly balanced microscopic exchanges occur; this is the physical explanation of the notion of macroscopic equilibrium.",
+     "anchor": {
+      "src": "https://en.wikipedia.org/wiki/Thermodynamic_equilibrium",
+      "loc": "extract",
+      "quote": "In a macroscopic equilibrium, perfectly or almost perfectly balanced microscopic exchanges occur; this is the physical explanation of the notion of macroscopic equilibrium."
+     },
+     "tier": 2,
+     "verifiedBy": 1,
+     "contested": false
+    },
+    {
+     "text": "It is the subject of study of equilibrium chemistry.",
+     "anchor": {
+      "src": "https://en.wikipedia.org/wiki/Chemical_equilibrium",
+      "loc": "extract",
+      "quote": "It is the subject of study of equilibrium chemistry."
+     },
+     "tier": 2,
+     "verifiedBy": 0,
+     "contested": false
+    },
+    {
+     "text": "This is a thermodynamic state of internal equilibrium.",
+     "anchor": {
+      "src": "https://en.wikipedia.org/wiki/Thermodynamic_equilibrium",
+      "loc": "extract",
+      "quote": "This is a thermodynamic state of internal equilibrium."
+     },
+     "tier": 2,
+     "verifiedBy": 0,
+     "contested": false
+    }
+   ],
+   "misconceptions": [
+    {
+     "text": "Students think a reaction at equilibrium has stopped, when the forward and reverse reactions continue at equal rates.",
+     "corrective": "Equilibrium is dynamic balance, not the absence of reaction.",
+     "anchor": null,
+     "tier": 1
+    },
+    {
+     "text": "A written test was developed and administered to diagnose misconceptions in different areas of chemical equilibrium among 162 undergraduate chemistry students and 69 school‐teachers of chemistry.",
+     "corrective": "Address directly: A written test was developed and administered to diagnose misconceptions in different areas of chemical equilibrium among 162 undergraduate chemistry students and 69 school‐teachers of chemistry.",
+     "documentedIn": {
+      "title": "Misconceptions of students and teachers in chemical equilibrium",
+      "year": 1991,
+      "id": "https://doi.org/10.1080/0950069910130411"
+     }
+    },
+    {
+     "text": "Analysis of the responses reveal widespread misconceptions among both students and teachers in areas related to the prediction of equilibrium conditions, rate and equilibrium, applying equilibrium principles to daily life, and to acid‐base and ionic solutions in water.",
+     "corrective": "Address directly: Analysis of the responses reveal widespread misconceptions among both students and teachers in areas related to the prediction of equilibrium conditions, rate and equilibrium, applying equilibrium principles to daily life, and to acid‐base and ionic solutions in water.",
+     "documentedIn": {
+      "title": "Misconceptions of students and teachers in chemical equilibrium",
+      "year": 1991,
+      "id": "https://doi.org/10.1080/0950069910130411"
+     }
+    }
+   ],
+   "examples": [
+    {
+     "text": "Adding more reactant to a system at equilibrium shifts it toward products until balance is restored.",
+     "domain": "chemistry",
+     "anchor": null
+    }
+   ],
+   "workedExamples": [],
+   "mcBank": [
+    {
+     "stem": "When a reaction reaches chemical equilibrium, what is true of the forward and reverse reactions?",
+     "options": [
+      "They continue at equal rates",
+      "They both stop completely",
+      "Only the forward reaction continues",
+      "Only the reverse reaction continues"
+     ],
+     "answerIndex": 0,
+     "explanationFactRef": 0,
+     "rationaleRefs": [
+      0
+     ]
+    }
+   ],
+   "edges": {
+    "requires": [
+     "chem/conservation-of-mass"
+    ],
+    "instanceOf": [
+     {
+      "archetype": "structure/equilibrium",
+      "confidence": 0.95,
+      "mapping": {
+       "system": "a reversible chemical reaction",
+       "opposing processes": "the forward and reverse reactions",
+       "balanced quantity": "the concentrations of reactants and products",
+       "perturbation": "a change in concentration, temperature, or pressure",
+       "restoring force": "the equilibrium shift that counteracts the disturbance (Le Chatelier's principle)"
+      },
+      "verified": true
+     }
+    ]
+   },
+   "variants": [],
+   "freshness": {
+    "sourceEdition": "",
+    "reviewBy": "",
+    "volatility": "low"
+   },
+   "license": "CC-BY-4.0",
+   "attribution": [
+    "OpenStax Chemistry 2e, Ch. 13"
+   ],
+   "standards": []
+  },
+  {
+   "id": "chem/titration",
+   "rev": 2,
+   "term": "Titration",
+   "aliases": [
+    "titration procedure",
+    "endpoint determination"
+   ],
+   "discipline": "chem",
+   "tags": [],
+   "level": "intro",
+   "difficulty": 2,
+   "bloomCeiling": "Apply",
+   "definition": {
+    "text": "A titration is a staged laboratory procedure for determining an unknown concentration by standardizing a titrant, adding it gradually, and identifying the endpoint.",
+    "anchor": {
+     "src": "openstax:chemistry-2e#4",
+     "loc": "4.7",
+     "quote": "standardize the titrant, add it gradually to the analyte while monitoring, and identify the endpoint"
+    },
+    "tier": 2,
+    "verifiedBy": 0
+   },
+   "facts": [
+    {
+     "text": "Each step depends on the previous one; an unstandardized titrant makes the endpoint reading meaningless.",
+     "anchor": {
+      "src": "openstax:chemistry-2e#4",
+      "loc": "4.7",
+      "quote": "an unstandardized titrant makes the endpoint reading meaningless"
+     },
+     "tier": 2,
+     "verifiedBy": 0,
+     "contested": false
+    },
+    {
+     "text": "Performing steps out of order invalidates the result.",
+     "anchor": {
+      "src": "openstax:chemistry-2e#4",
+      "loc": "4.7",
+      "quote": "Performing steps out of order invalidates the result"
+     },
+     "tier": 2,
+     "verifiedBy": 0,
+     "contested": false
+    },
+    {
+     "text": "The acid–base indicator indicates the endpoint of the titration by changing color.",
+     "anchor": {
+      "src": "https://en.wikipedia.org/wiki/Titration",
+      "loc": "extract",
+      "quote": "The acid–base indicator indicates the endpoint of the titration by changing color."
+     },
+     "tier": 2,
+     "verifiedBy": 0,
+     "contested": false
+    },
+    {
+     "text": "In an acid–base titration, the titration curve represents the strength of the corresponding acid and base.",
+     "anchor": {
+      "src": "https://en.wikipedia.org/wiki/Titration",
+      "loc": "extract",
+      "quote": "In an acid–base titration, the titration curve represents the strength of the corresponding acid and base."
+     },
+     "tier": 2,
+     "verifiedBy": 0,
+     "contested": false
+    },
+    {
+     "text": "Before beginning of titration, the concentration of [ H + ] {\\displaystyle {\\ce {[H+]}}} is calculated in an aqueous solution of weak acid before adding any base.",
+     "anchor": {
+      "src": "https://en.wikipedia.org/wiki/Titration",
+      "loc": "extract",
+      "quote": "Before beginning of titration, the concentration of [ H + ] {\\displaystyle {\\ce {[H+]}}} is calculated in an aqueous solution of weak acid before adding any base."
+     },
+     "tier": 2,
+     "verifiedBy": 0,
+     "contested": false
+    }
+   ],
+   "misconceptions": [
+    {
+     "text": "Students read an endpoint from a titrant that was never standardized, treating the steps as independent.",
+     "corrective": "The endpoint is only meaningful once the titrant's concentration is known.",
+     "anchor": null,
+     "tier": 1
+    },
+    {
+     "text": "The study was conducted to map the misconception pattern of chemistry prospective teachers who learned acid-base and argentometric titration.",
+     "corrective": "Address directly: The study was conducted to map the misconception pattern of chemistry prospective teachers who learned acid-base and argentometric titration.",
+     "documentedIn": {
+      "title": "UNDERGRADUATE STUDENTS’ MISCONCEPTION ON ACID-BASE AND ARGENTOMETRIC TITRATIONS: A CHALLENGE TO IMPLEMENT MULTIPLE REPRESENTATION LEARNING MODEL WITH COGNITIVE DISSONANCE STRATEGY",
+      "year": 2017,
+      "id": "https://doi.org/10.17509/ije.v9i2.5464"
+     }
+    },
+    {
+     "text": "Further, it attempts to minimize misconception through a multiple representation model of learning chemistry with cognitive dissonance strategy.",
+     "corrective": "Address directly: Further, it attempts to minimize misconception through a multiple representation model of learning chemistry with cognitive dissonance strategy.",
+     "documentedIn": {
+      "title": "UNDERGRADUATE STUDENTS’ MISCONCEPTION ON ACID-BASE AND ARGENTOMETRIC TITRATIONS: A CHALLENGE TO IMPLEMENT MULTIPLE REPRESENTATION LEARNING MODEL WITH COGNITIVE DISSONANCE STRATEGY",
+      "year": 2017,
+      "id": "https://doi.org/10.17509/ije.v9i2.5464"
+     }
+    }
+   ],
+   "examples": [
+    {
+     "text": "Reading a color change before standardizing the base gives a concentration that is meaningless.",
+     "domain": "chemistry",
+     "anchor": null
+    }
+   ],
+   "workedExamples": [],
+   "mcBank": [
+    {
+     "stem": "In a titration, what happens if the titrant is not standardized first?",
+     "options": [
+      "the endpoint reading becomes meaningless",
+      "the result is more accurate",
+      "the analyte disappears",
+      "the color never changes"
+     ],
+     "answerIndex": 0,
+     "explanationFactRef": 0,
+     "rationaleRefs": [
+      0
+     ]
+    }
+   ],
+   "edges": {
+    "requires": [
+     "chem/conservation-of-mass"
+    ],
+    "instanceOf": [
+     {
+      "archetype": "process/staged-process",
+      "confidence": 0.9,
+      "mapping": {
+       "process": "a titration",
+       "stages": "standardize the titrant, add it gradually, identify the endpoint",
+       "dependency": "each step depends on the previous one",
+       "failure if skipped": "an unstandardized titrant makes the endpoint reading meaningless"
+      },
+      "verified": true
+     }
+    ]
+   },
+   "variants": [],
+   "freshness": {
+    "sourceEdition": "",
+    "reviewBy": "",
+    "volatility": "low"
+   },
+   "license": "CC-BY-4.0",
+   "attribution": [
+    "OpenStax Chemistry 2e, Ch. 4"
+   ],
+   "standards": []
+  },
+  {
+   "id": "chem/conservation-of-mass",
+   "rev": 2,
+   "term": "Conservation of mass",
+   "aliases": [
+    "balancing chemical equations",
+    "law of conservation of mass",
+    "stoichiometric balance"
+   ],
+   "discipline": "chem",
+   "tags": [],
+   "level": "intro",
+   "difficulty": 3,
+   "bloomCeiling": "Apply",
+   "definition": {
+    "text": "The law of conservation of mass states that matter is neither created nor destroyed in a chemical reaction, so the total mass of the reactants equals the total mass of the products.",
+    "anchor": {
+     "src": "openstax:chemistry-2e#4",
+     "loc": "4.1",
+     "quote": "matter is neither created nor destroyed in a chemical reaction, so the total mass of the reactants equals the total mass of the products"
+    },
+    "tier": 2,
+    "verifiedBy": 0
+   },
+   "facts": [
+    {
+     "text": "Balancing a chemical equation enforces this law: the number of atoms of each element must be equal on both sides of the equation.",
+     "anchor": {
+      "src": "openstax:chemistry-2e#4",
+      "loc": "4.1",
+      "quote": "the number of atoms of each element must be equal on both sides of the equation"
+     },
+     "tier": 2,
+     "verifiedBy": 0,
+     "contested": false
+    },
+    {
+     "text": "Coefficients are adjusted to balance an equation, never subscripts, because changing a subscript would change the identity of the substance.",
+     "anchor": {
+      "src": "openstax:chemistry-2e#4",
+      "loc": "4.1",
+      "quote": "Coefficients are adjusted to balance an equation, never subscripts"
+     },
+     "tier": 2,
+     "verifiedBy": 0,
+     "contested": false
+    },
+    {
+     "text": "This implies that mass can be converted to energy, and vice versa.",
+     "anchor": {
+      "src": "https://en.wikipedia.org/wiki/Conservation_of_energy",
+      "loc": "extract",
+      "quote": "This implies that mass can be converted to energy, and vice versa."
+     },
+     "tier": 2,
+     "verifiedBy": 0,
+     "contested": false
+    },
+    {
+     "text": "For instance, chemical energy is converted to kinetic energy when a stick of dynamite explodes.",
+     "anchor": {
+      "src": "https://en.wikipedia.org/wiki/Conservation_of_energy",
+      "loc": "extract",
+      "quote": "For instance, chemical energy is converted to kinetic energy when a stick of dynamite explodes."
+     },
+     "tier": 2,
+     "verifiedBy": 0,
+     "contested": false
+    },
+    {
+     "text": "The continuity equation for the mass is part of the Euler equations of fluid dynamics.",
+     "anchor": {
+      "src": "https://en.wikipedia.org/wiki/Conservation_of_mass",
+      "loc": "extract",
+      "quote": "The continuity equation for the mass is part of the Euler equations of fluid dynamics."
+     },
+     "tier": 2,
+     "verifiedBy": 0,
+     "contested": false
+    },
+    {
+     "text": "The concept of mass conservation is widely used in many fields such as chemistry, mechanics, and fluid dynamics.",
+     "anchor": {
+      "src": "https://en.wikipedia.org/wiki/Conservation_of_mass",
+      "loc": "extract",
+      "quote": "The concept of mass conservation is widely used in many fields such as chemistry, mechanics, and fluid dynamics."
+     },
+     "tier": 2,
+     "verifiedBy": 0,
+     "contested": false
+    }
+   ],
+   "misconceptions": [
+    {
+     "text": "Students change a subscript to make an equation balance, which silently changes the substance instead of conserving atoms.",
+     "corrective": "Balance only with coefficients; subscripts define the substance and must not change.",
+     "anchor": null,
+     "tier": 1
+    },
+    {
+     "text": "This study focuses on the misconceptions of eighth-grade students in the Arab sector compared to the Jewish sector regarding the conservation of mass during combustion in a closed system and in an open system before the subject is taught, and to what extent the misconceptions change after it is taught.",
+     "corrective": "Address directly: This study focuses on the misconceptions of eighth-grade students in the Arab sector compared to the Jewish sector regarding the conservation of mass during combustion in a closed system and in an open system before the subject is taught, and to what extent the misconceptions change after it is taught.",
+     "documentedIn": {
+      "title": "Misconceptions among Middle School Students Regarding the Conservation of Mass during Combustion",
+      "year": 2018,
+      "id": "https://doi.org/10.29333/ejmste/91664"
+     }
+    },
+    {
+     "text": "The analysis of the collected data revealed that students had some misconceptions.",
+     "corrective": "Address directly: The analysis of the collected data revealed that students had some misconceptions.",
+     "documentedIn": {
+      "title": "STUDENTS DIFFICULTIES IN UNDERSTANDING OF THE CONSERVATION OF MATTER IN OPEN AND CLOSED-SYSTEM CHEMICAL REACTIONS",
+      "year": 2003,
+      "id": "https://doi.org/10.1039/b3rp90017g"
+     }
+    }
+   ],
+   "examples": [
+    {
+     "text": "Burning methane, CH4 + 2 O2 produces CO2 + 2 H2O: one carbon, four hydrogen, and four oxygen atoms appear on each side.",
+     "domain": "chemistry",
+     "anchor": null
+    }
+   ],
+   "workedExamples": [],
+   "mcBank": [
+    {
+     "stem": "A chemical equation is balanced by adjusting coefficients rather than subscripts because",
+     "options": [
+      "balancing with coefficients is only a convenient writing shortcut",
+      "changing a subscript would change the identity of the substance",
+      "the count of atoms may differ between the two sides",
+      "mass is conserved for elements but not for compounds"
+     ],
+     "answerIndex": 1,
+     "explanationFactRef": 1,
+     "rationaleRefs": [
+      0
+     ]
+    }
+   ],
+   "edges": {
+    "instanceOf": [
+     {
+      "archetype": "method/conservation-balance",
+      "confidence": 0.95,
+      "mapping": {
+       "quantity": "the atoms of each element",
+       "system": "the chemical reaction",
+       "inputs": "the atoms present in the reactants",
+       "outputs": "the atoms present in the products"
+      },
+      "verified": true
+     }
+    ]
+   },
+   "variants": [],
+   "freshness": {
+    "sourceEdition": "",
+    "reviewBy": "",
+    "volatility": "low"
+   },
+   "license": "CC-BY-4.0",
+   "attribution": [
+    "OpenStax Chemistry 2e, Ch. 4"
+   ],
+   "standards": []
+  }
+ ],
+ "index": {
+  "postings": {
+   "chemical": [
+    "chem/chemical-equilibrium",
+    "chem/conservation-of-mass"
+   ],
+   "equilibrium": [
+    "chem/chemical-equilibrium"
+   ],
+   "dynamic": [
+    "chem/chemical-equilibrium"
+   ],
+   "chatelier": [
+    "chem/chemical-equilibrium"
+   ],
+   "principle": [
+    "chem/chemical-equilibrium"
+   ],
+   "titration": [
+    "chem/titration"
+   ],
+   "procedure": [
+    "chem/titration"
+   ],
+   "endpoint": [
+    "chem/titration"
+   ],
+   "determination": [
+    "chem/titration"
+   ],
+   "conservation": [
+    "chem/conservation-of-mass"
+   ],
+   "mas": [
+    "chem/conservation-of-mass"
+   ],
+   "balanc": [
+    "chem/conservation-of-mass"
+   ],
+   "equation": [
+    "chem/conservation-of-mass"
+   ],
+   "law": [
+    "chem/conservation-of-mass"
+   ],
+   "stoichiometric": [
+    "chem/conservation-of-mass"
+   ],
+   "balance": [
+    "chem/conservation-of-mass"
+   ]
+  }
+ }
+}

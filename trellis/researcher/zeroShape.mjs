@@ -318,6 +318,16 @@ export async function zeroShapeSurfaces(target, sources, kernel, { embedder = nu
   for (const r of faqRank) {
     push('faq-entry', { q: `How does this apply: ${target.term}?`, a: r.text });
   }
+  // Facts fallback (the titration class): procedural/technical sources can
+  // rank NO sentence above the relevance floor for the "why does it matter"
+  // query, and a zero-mode course REFUSES without faq surfaces. Kernel facts
+  // are extractive and span-anchored — a fact-backed FAQ is safe by
+  // construction and beats an honest-but-avoidable refusal.
+  if (faqRank.length === 0) {
+    for (const f of facts.slice(0, 2)) {
+      if (weightedLength(f) >= 30) push('faq-entry', { q: `What should I remember about ${target.term}?`, a: f });
+    }
+  }
 
   // slides: definition + facts as bullets, notes from the same sentences.
   const slides = [

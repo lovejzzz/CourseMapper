@@ -347,6 +347,19 @@ describe('E2B item-array extraction (A1)', () => {
   });
 });
 
+describe('self-solve letter parser', () => {
+  it('extracts the answer letter from model chatter and rejects non-answers', async () => {
+    const { parseSolveLetter } = await import('../researcher/shape.mjs');
+    expect(parseSolveLetter('B')).toBe(1);
+    expect(parseSolveLetter('The answer is C.')).toBe(2);
+    expect(parseSolveLetter('  d\n')).toBe(3);
+    expect(parseSolveLetter('I cannot decide')).toBeNull();
+    expect(parseSolveLetter('')).toBeNull();
+    // A bare "A" inside a longer word must not match:
+    expect(parseSolveLetter('ABOUT nothing')).toBeNull();
+  });
+});
+
 describe('per-kernel author routing (the registry)', () => {
   it('routes only the measured blind spots to the paid author', async () => {
     const { authorRouteFor } = await import('../researcher/shape.mjs');

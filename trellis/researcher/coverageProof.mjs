@@ -8,6 +8,16 @@ import { readFile } from 'node:fs/promises';
 import { loadAssets } from '../composer/assets.mjs';
 import { composeLesson } from '../composer/compose.mjs';
 
+const STEM = [
+  ['physics/electric-field', 'electric field'],
+  ['physics/resistance-ohms-law', 'ohmic resistance'],
+  ['physics/faradays-law', "Faraday's law of induction"],
+  ['stats/p-value', 'p-value'],
+  ['stats/sampling-distribution', 'sampling distribution'],
+  ['chem/chemical-equilibrium', 'chemical equilibrium'],
+  ['chem/titration', 'titration'],
+];
+
 const GAPS = [
   ['lit/ghazal-form', 'ghazal'],
   ['lit/scansion', 'scansion'],
@@ -53,7 +63,8 @@ if (process.env.COVERAGE_PROOF === 'run' && !process.env.VITEST) {
   const store = await loadAssets({ path: 'trellis/bank/assets.json' });
   const bank = JSON.parse(await readFile('trellis/bank/all-items.json', 'utf8'));
   const rows = [];
-  for (const [kernelId, term] of GAPS) {
+  const set = process.env.PROOF_SET === 'stem' ? STEM : GAPS;
+  for (const [kernelId, term] of set) {
     let segments = 0,
       quiz = 0,
       note = '';

@@ -60,6 +60,54 @@ async function depositKernel(shardPath, target, shaped) {
   return true;
 }
 
+// ENRICH an existing thin kernel (the physics/stats/chem class: kernels
+// present but below the authoring floor of ≥2 misconceptions / ≥3 facts).
+// Strictly additive: mined entries append after a token-overlap dedupe against
+// what is already there; nothing existing is touched; rev bumps.
+async function enrichKernel(shardPath, targetId, mined) {
+  const { tokenOverlapRatio } = await import('../judgment/text.mjs');
+  const shard = JSON.parse(await readFile(shardPath, 'utf8'));
+  const kernel = shard.kernels.find((k) => k.id === targetId);
+  if (!kernel) return { added: 0 };
+  let added = 0;
+  const dup = (texts, text) => texts.some((t) => tokenOverlapRatio(t, text) > 0.6);
+  kernel.misconceptions ??= [];
+  for (const m of mined.misconceptions ?? []) {
+    if (kernel.misconceptions.length >= 3) break;
+    if (
+      dup(
+        kernel.misconceptions.map((x) => x.text),
+        m.text,
+      )
+    )
+      continue;
+    kernel.misconceptions.push({
+      text: m.text,
+      corrective: m.corrective,
+      ...(m.documentedIn ? { documentedIn: m.documentedIn } : {}),
+    });
+    added += 1;
+  }
+  kernel.facts ??= [];
+  for (const f of mined.facts ?? []) {
+    if (kernel.facts.length >= 6) break;
+    if (
+      dup(
+        kernel.facts.map((x) => x.text),
+        f.text,
+      )
+    )
+      continue;
+    kernel.facts.push(f);
+    added += 1;
+  }
+  if (added > 0) {
+    kernel.rev = (kernel.rev ?? 1) + 1;
+    await writeFile(shardPath, JSON.stringify(shard, null, 1));
+  }
+  return { added, misconceptions: kernel.misconceptions.length, facts: kernel.facts.length };
+}
+
 async function depositAssets(assets) {
   let store = { stamp: 'Researcher deposits — cited, rebuild-safe (merged by buildAssets)', assets: [] };
   try {
@@ -211,6 +259,17 @@ export async function researchZero(
           }
           // kernel: reuse the shard's if present, else extract at $0.
           let kernel = shard.kernels.find((k) => k.id === target.id);
+          // ENRICH existing-but-thin kernels (below the ≥2 misconceptions /
+          // ≥3 facts authoring floor): mine at $0 and merge additively.
+          if (kernel && ((kernel.misconceptions ?? []).length < 2 || (kernel.facts ?? []).length < 3)) {
+            const mined = await zeroShapeKernel({ ...target, discipline: shard.discipline }, sources, { embedder });
+            const merged = await enrichKernel(group.shard, target.id, mined);
+            if (merged.added > 0) {
+              const fresh = JSON.parse(await readFile(group.shard, 'utf8'));
+              kernel = fresh.kernels.find((k) => k.id === target.id);
+              entry.enriched = `+${merged.added} (now ${merged.misconceptions} misconceptions, ${merged.facts} facts)`;
+            }
+          }
           if (kernel) {
             kernel = {
               // shard definitions are {text}; the zero shapers want a string.

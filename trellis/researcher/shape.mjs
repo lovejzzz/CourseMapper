@@ -539,7 +539,8 @@ export async function authorItemsE2BMax(
     const cell = cells[Math.min(i, cells.length - 1)];
     return !greedy[i]?.stem || gapItemRejection(gateFor(cell), greedy[i], shelf ?? []);
   });
-  if (adaptive && greedyFail.length === 0 && greedy[2]?.stem) return greedy;
+  if (adaptive && greedyFail.length === 0 && greedy[2]?.stem)
+    return maybeSelfSolve(greedy, target, cells, shelf, gateFor);
 
   const exemplarSource = (shelf ?? []).find((s) => s.catches && typeof s.stem === 'string');
   const exemplar = exemplarSource
@@ -579,7 +580,88 @@ export async function authorItemsE2BMax(
       break;
     }
   }
-  return items.filter(Boolean);
+  return maybeSelfSolve(items.filter(Boolean), target, cells, shelf, gateFor);
+}
+
+// Self-solve verdict (run 5): solver rejects 4 (bar ≤3, baselines 6/4) and
+// acceptance 17 (floor 18) — NO HARM, NO PROVEN GAIN. Ship-only-if-better
+// applies to our own levers too: default OFF, opt-in via SELF_SOLVE=1,
+// replicate queued before any adoption call.
+async function maybeSelfSolve(items, target, cells, shelf, gateFor) {
+  if (process.env.SELF_SOLVE !== '1') return items;
+  return selfSolvePass(items, target, cells, shelf, gateFor);
+}
+
+// Letter parser for the self-solve check — exported for the regression test.
+export function parseSolveLetter(text) {
+  const m = String(text ?? '')
+    .toUpperCase()
+    .match(/\b([ABCD])\b/);
+  return m ? ['A', 'B', 'C', 'D'].indexOf(m[1]) : null;
+}
+
+// SELF-SOLVE CHECK: the wrong-key class (e2b solver rejects: 6 then 4 in the
+// stability runs) is terminal today — the paid solver catches it, money spent,
+// item dead. But E2B can answer its own item BLIND first: present stem+options
+// with no key; if its answer disagrees with its own correctIndex, the key is
+// suspect — rewrite once, keep the fix only if it now self-solves (and, for
+// catcher slots, still passes the gate). All local, $0; the paid solver stays
+// the final judge, this just stops known-bad items from reaching it.
+async function selfSolveIndex(item) {
+  const letters = ['A', 'B', 'C', 'D'];
+  const system =
+    'Answer the multiple-choice question. Reply with ONLY the single letter A, B, C, or D of the correct option.';
+  const user = `${item.stem}\n${item.options.map((o, i) => `${letters[i]}. ${o}`).join('\n')}`;
+  try {
+    const text = await sGenerate({ system, user, task: 'items', maxTokens: 8 });
+    return parseSolveLetter(text);
+  } catch {
+    return null; // inconclusive — never blocks; the solver decides
+  }
+}
+
+async function selfSolvePass(items, target, cells, shelf, gateFor) {
+  for (const [i, item] of items.entries()) {
+    if (!item?.stem || !Array.isArray(item.options)) continue;
+    const solved = await selfSolveIndex(item);
+    if (solved === null || solved === item.correctIndex) continue;
+    // Key suspect: one rewrite quoting the disagreement.
+    const cell = cells[Math.min(i, cells.length - 1)];
+    const system =
+      'Rewrite ONE multiple-choice item as a single JSON object {"stem","options"(4 distinct strings under 15 words),"correctIndex"(0-3),"explanation"(2-4 sentences under 80 words),"bloom":"apply","difficulty":"apply"}. ' +
+      `PROBLEM: answering your item blind selects option ${'ABCD'[solved]}, not the key — either the key is wrong or two options are defensible. Rewrite so EXACTLY ONE option is defensibly correct and it is the keyed one.` +
+      (i < 2
+        ? ` Keep the catcher contract: one wrong option states the wrongBelief with its reasoning and includes at least TWO of ${JSON.stringify(cell.mustIncludeTwoOf)} verbatim; the explanation confronts the corrective with at least HALF of ${JSON.stringify(cell.explanationMustIncludeHalfOf)} verbatim.`
+        : '') +
+      ' Output ONLY the JSON object.';
+    const user = JSON.stringify({
+      term: target.term,
+      wrongBelief: i < 2 ? cell.statement : undefined,
+      previousItem: {
+        stem: item.stem,
+        options: item.options,
+        correctIndex: item.correctIndex,
+        explanation: item.explanation,
+      },
+    });
+    try {
+      const text = await sGenerate({ system, user, task: 'items', maxTokens: 900, temperature: 0.7 });
+      const [fixed] = parseItemArray(
+        `[${String(text)
+          .replace(/^[^{]*/, '')
+          .replace(/[^}]*$/, '')}]`,
+      );
+      if (!fixed?.stem) continue;
+      const candidate = { bloom: 'apply', difficulty: 'apply', ...fixed };
+      if (i < 2 && gapItemRejection(gateFor(cell), candidate, shelf ?? [])) continue; // fix broke the gate — keep original
+      const reSolved = await selfSolveIndex(candidate);
+      if (reSolved !== null && reSolved === candidate.correctIndex) items[i] = candidate;
+      // else: original stands; the blind solver remains the judge of record.
+    } catch {
+      /* best-effort; never blocks */
+    }
+  }
+  return items;
 }
 
 // 3 items per kernel, one per misconception + one straight application —

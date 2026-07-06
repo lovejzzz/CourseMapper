@@ -1685,3 +1685,25 @@ polishing a candidate that hasn't won.
   surfaces -> 2 solver-verified items, $0.0012). 125 trellis tests.
   SIMULATED stamp stands until the two-human packet read — that is the
   one remaining publish gate, and it is the owner's.
+
+- **2026-07-06 ("both" — self-solve lever + STEM coverage fill).**
+  **SELF-SOLVE CHECK built** (E2B answers its own item BLIND pre-solver;
+  key mismatch -> one rewrite, kept only if it self-solves AND passes
+  the gate): run 5 = **E2B 17 / ds 16 / mini 13 — FIRST OUTRIGHT WIN
+  over DeepSeek** (honest caveat: ds posted its 5-run floor; e2b in
+  its 17-18 band; pooled /120 ds 96 · e2b 84 · mini 68). Self-solve's
+  OWN bar NOT PROVEN (solver rejects 4 vs <=3; acceptance 17 vs >=18 —
+  no harm, no proven gain) -> **flag-gated OFF (SELF_SOLVE=1)**,
+  replicate queued; ship-only-if-better applies to our own levers.
+  **STEM FILL: 21/21 kernels ENRICHED + 21/21 ok** via the new
+  enrichKernel path (existing-but-thin kernels — 1 misconception /
+  2 facts — get $0-mined misconceptions+facts merged additively,
+  token-overlap deduped, rev-bumped): 174 surfaces + 35 solver-verified
+  E2B items across physics(13)/stats(5)/chem(3) for **$0.028 total**.
+  Coverage proof: **STEM 7/7 refusal -> shipped** (3 segments + 1-4
+  verified items each). Live-wire fix: the TITRATION CLASS — procedural
+  sources can rank NO sentence above the faq relevance floor and
+  zero-mode courses REFUSE without faqEntries -> facts-fallback FAQ
+  (extractive, span-anchored, safe by construction). Scoreboard 5 runs
+  ZERO drift; item-verdict corpus 150/300 toward DPO r2. 126 tests.
+  Spend ~$0.09 this session.

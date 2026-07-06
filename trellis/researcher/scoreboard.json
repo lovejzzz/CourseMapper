@@ -4,15 +4,16 @@
   "author-showdown-run2max.json",
   "author-showdown-run3adaptive.json",
   "author-showdown-run4adaptive.json",
+  "author-showdown-run5selfsolve.json",
   "author-showdown.json"
  ],
  "driftFlags": [],
  "board": {
   "lit/ghazal-form": {
-   "runs": 4,
+   "runs": 5,
    "e2bMean": 3,
    "e2bLatest": 3,
-   "dsMean": 2.5,
+   "dsMean": 2.6,
    "history": [
     {
      "file": "author-showdown-run2max.json",
@@ -36,20 +37,27 @@
      "mini": 3
     },
     {
+     "file": "author-showdown-run5selfsolve.json",
+     "e2bMode": "max",
+     "e2b": 3,
+     "ds": 3,
+     "mini": 2
+    },
+    {
      "file": "author-showdown.json",
      "e2bMode": "max",
      "e2b": 3,
      "ds": 3,
-     "mini": 3
+     "mini": 2
     }
    ],
    "drift": false
   },
   "lit/scansion": {
-   "runs": 4,
-   "e2bMean": 2.5,
+   "runs": 5,
+   "e2bMean": 2.4,
    "e2bLatest": 2,
-   "dsMean": 2.75,
+   "dsMean": 1.6,
    "history": [
     {
      "file": "author-showdown-run2max.json",
@@ -73,17 +81,24 @@
      "mini": 1
     },
     {
+     "file": "author-showdown-run5selfsolve.json",
+     "e2bMode": "max",
+     "e2b": 2,
+     "ds": 0,
+     "mini": 1
+    },
+    {
      "file": "author-showdown.json",
      "e2bMode": "max",
      "e2b": 2,
-     "ds": 3,
+     "ds": 0,
      "mini": 1
     }
    ],
    "drift": false
   },
   "lit/rhyme-scheme-and-internal-rhyme": {
-   "runs": 4,
+   "runs": 5,
    "e2bMean": 1,
    "e2bLatest": 1,
    "dsMean": 2,
@@ -110,20 +125,27 @@
      "mini": 1
     },
     {
+     "file": "author-showdown-run5selfsolve.json",
+     "e2bMode": "max",
+     "e2b": 1,
+     "ds": 2,
+     "mini": 2
+    },
+    {
      "file": "author-showdown.json",
      "e2bMode": "max",
      "e2b": 1,
      "ds": 2,
-     "mini": 1
+     "mini": 2
     }
    ],
    "drift": false
   },
   "lit/language-of-images": {
-   "runs": 4,
+   "runs": 5,
    "e2bMean": 2,
    "e2bLatest": 2,
-   "dsMean": 2.25,
+   "dsMean": 1.8,
    "history": [
     {
      "file": "author-showdown-run2max.json",
@@ -147,18 +169,25 @@
      "mini": 1
     },
     {
+     "file": "author-showdown-run5selfsolve.json",
+     "e2bMode": "max",
+     "e2b": 2,
+     "ds": 1,
+     "mini": 2
+    },
+    {
      "file": "author-showdown.json",
      "e2bMode": "max",
      "e2b": 2,
-     "ds": 2,
-     "mini": 1
+     "ds": 1,
+     "mini": 2
     }
    ],
    "drift": false
   },
   "cs/variables": {
-   "runs": 4,
-   "e2bMean": 2.5,
+   "runs": 5,
+   "e2bMean": 2.6,
    "e2bLatest": 3,
    "dsMean": 3,
    "history": [
@@ -184,20 +213,27 @@
      "mini": 2
     },
     {
+     "file": "author-showdown-run5selfsolve.json",
+     "e2bMode": "max",
+     "e2b": 3,
+     "ds": 3,
+     "mini": 1
+    },
+    {
      "file": "author-showdown.json",
      "e2bMode": "max",
      "e2b": 3,
      "ds": 3,
-     "mini": 2
+     "mini": 1
     }
    ],
    "drift": false
   },
   "geo/minerals": {
-   "runs": 4,
-   "e2bMean": 2.75,
-   "e2bLatest": 3,
-   "dsMean": 2,
+   "runs": 5,
+   "e2bMean": 2.4,
+   "e2bLatest": 2,
+   "dsMean": 1.4,
    "history": [
     {
      "file": "author-showdown-run2max.json",
@@ -221,18 +257,25 @@
      "mini": 2
     },
     {
+     "file": "author-showdown-run5selfsolve.json",
+     "e2bMode": "max",
+     "e2b": 2,
+     "ds": 1,
+     "mini": 1
+    },
+    {
      "file": "author-showdown.json",
      "e2bMode": "max",
-     "e2b": 3,
-     "ds": 3,
-     "mini": 2
+     "e2b": 2,
+     "ds": 1,
+     "mini": 1
     }
    ],
    "drift": false
   },
   "math/system-of-linear-equations": {
-   "runs": 4,
-   "e2bMean": 2.75,
+   "runs": 5,
+   "e2bMean": 2.8,
    "e2bLatest": 3,
    "dsMean": 3,
    "history": [
@@ -258,6 +301,13 @@
      "mini": 1
     },
     {
+     "file": "author-showdown-run5selfsolve.json",
+     "e2bMode": "max",
+     "e2b": 3,
+     "ds": 3,
+     "mini": 1
+    },
+    {
      "file": "author-showdown.json",
      "e2bMode": "max",
      "e2b": 3,
@@ -268,10 +318,10 @@
    "drift": false
   },
   "psych/operant-conditioning": {
-   "runs": 4,
+   "runs": 5,
    "e2bMean": 1,
    "e2bLatest": 1,
-   "dsMean": 2,
+   "dsMean": 2.6,
    "history": [
     {
      "file": "author-showdown-run2max.json",
@@ -295,11 +345,18 @@
      "mini": 2
     },
     {
+     "file": "author-showdown-run5selfsolve.json",
+     "e2bMode": "max",
+     "e2b": 1,
+     "ds": 3,
+     "mini": 3
+    },
+    {
      "file": "author-showdown.json",
      "e2bMode": "max",
      "e2b": 1,
-     "ds": 1,
-     "mini": 2
+     "ds": 3,
+     "mini": 3
     }
    ],
    "drift": false

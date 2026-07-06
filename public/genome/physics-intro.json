@@ -1,1 +1,2415 @@
-{"id":"physics-intro","discipline":"physics","level":"intro","conceptCount":13,"kernels":[{"id":"physics/electric-charge","rev":1,"term":"Electric charge","aliases":["charge","conservation of charge","quantization of charge","positive and negative charge"],"discipline":"physics","tags":["electricity","electrostatics"],"level":"intro","difficulty":2,"bloomCeiling":"Analyze","definition":{"text":"Electric charge is a conserved property of matter that comes in positive and negative forms and determines electric interactions.","anchor":{"src":"openstax:university-physics-volume-2#5","loc":"5.1","quote":"Electric charge is a conserved property of matter."},"tier":2,"verifiedBy":0},"facts":[{"text":"Like charges repel and unlike charges attract.","anchor":{"src":"openstax:university-physics-volume-2#5","loc":"5.1","quote":"Like charges repel and unlike charges attract."},"tier":2,"verifiedBy":0,"contested":false},{"text":"Net charge is conserved in an isolated system.","anchor":{"src":"openstax:university-physics-volume-2#5","loc":"5.1","quote":"charge is conserved"},"tier":2,"verifiedBy":0,"contested":false}],"misconceptions":[{"text":"Students may think an object becomes charged by creating charge from nothing.","corrective":"Charging usually transfers charge; it does not create net charge in an isolated system.","anchor":null,"tier":1}],"examples":[{"text":"A rubbed plastic rod attracts small neutral paper pieces after charge redistributes within them.","domain":"electrostatics","anchor":null}],"workedExamples":[],"mcBank":[{"stem":"When a neutral object becomes negatively charged by rubbing, the best explanation is that","options":["electrons were transferred to it","positive charge was destroyed","mass became charge","the object lost all protons"],"answerIndex":0,"explanationFactRef":1,"rationaleRefs":[0]}],"edges":{"recommends":["physics/electric-field"]},"variants":[],"freshness":{"sourceEdition":"","reviewBy":"","volatility":"low"},"license":"CC-BY-4.0","attribution":["OpenStax University Physics Volume 2, Ch. 5"],"standards":[]},{"id":"physics/electric-field","rev":1,"term":"Electric field","aliases":["electric fields","field lines","force per unit charge","test charge"],"discipline":"physics","tags":["electricity","electrostatics"],"level":"intro","difficulty":2,"bloomCeiling":"Apply","definition":{"text":"An electric field describes the electric force per unit positive test charge at each point in space.","anchor":{"src":"openstax:university-physics-volume-2#5","loc":"5.5","quote":"The electric field is the electric force per unit charge."},"tier":2,"verifiedBy":0},"facts":[{"text":"The direction of the electric field is the direction a positive test charge would accelerate.","anchor":{"src":"openstax:university-physics-volume-2#5","loc":"5.5","quote":"the direction of the force on a positive test charge"},"tier":2,"verifiedBy":0,"contested":false},{"text":"Field-line density indicates relative field strength.","anchor":{"src":"openstax:university-physics-volume-2#5","loc":"5.6","quote":"closer field lines indicate a stronger field"},"tier":2,"verifiedBy":0,"contested":false}],"misconceptions":[{"text":"Students may treat field lines as physical wires or paths a charge must follow.","corrective":"Field lines are a representation of field direction and relative strength, not material tracks.","anchor":null,"tier":1}],"examples":[{"text":"Near a positive point charge, field vectors point radially outward.","domain":"electrostatics","anchor":null}],"workedExamples":[],"mcBank":[{"stem":"The electric field at a point is defined as","options":["electric force per unit positive test charge","charge per unit time","energy per unit mass","resistance per unit length"],"answerIndex":0,"explanationFactRef":0,"rationaleRefs":[0]}],"edges":{"requires":["physics/electric-charge"],"recommends":["physics/gausss-law"]},"variants":[],"freshness":{"sourceEdition":"","reviewBy":"","volatility":"low"},"license":"CC-BY-4.0","attribution":["OpenStax University Physics Volume 2, Ch. 5"],"standards":[]},{"id":"physics/gausss-law","rev":1,"term":"Gauss's law","aliases":["Gauss law","electric flux","Gaussian surface","enclosed charge","spherical cylindrical planar symmetry"],"discipline":"physics","tags":["electricity","electrostatics"],"level":"intro","difficulty":3,"bloomCeiling":"Analyze","definition":{"text":"Gauss's law relates the net electric flux through a closed surface to the net charge enclosed by that surface.","anchor":{"src":"openstax:university-physics-volume-2#6","loc":"6.3","quote":"electric flux through any closed surface is proportional to the enclosed electric charge"},"tier":2,"verifiedBy":0},"facts":[{"text":"A Gaussian surface is useful for calculating fields when symmetry makes the field magnitude or direction simple on the surface.","anchor":{"src":"openstax:university-physics-volume-2#6","loc":"6.4","quote":"Use symmetry to determine the electric field"},"tier":2,"verifiedBy":0,"contested":false},{"text":"Zero enclosed charge implies zero net flux, not necessarily zero electric field everywhere on the surface.","anchor":{"src":"openstax:university-physics-volume-2#6","loc":"6.3","quote":"the net flux depends only on the charge enclosed"},"tier":2,"verifiedBy":0,"contested":false}],"misconceptions":[{"text":"Students may think Gauss's law works only when the electric field is zero.","corrective":"Gauss's law is always true; symmetry determines when it is practical for field calculation.","anchor":null,"tier":1}],"examples":[{"text":"A spherical Gaussian surface around a point charge makes the field constant over the surface.","domain":"electrostatics","anchor":null}],"workedExamples":[],"mcBank":[{"stem":"A closed Gaussian surface encloses no net charge. What follows?","options":["The net electric flux is zero","The electric field is zero everywhere","No charges exist outside the surface","The surface cannot be spherical"],"answerIndex":0,"explanationFactRef":1,"rationaleRefs":[0]}],"edges":{"requires":["physics/electric-field"],"instanceOf":[{"archetype":"structure/system-boundary","confidence":0.88,"mapping":{"system":"electric field calculation around a charge distribution","boundary":"the chosen Gaussian surface","what crosses":"electric flux through the closed surface","what is excluded":"charges outside the boundary do not change the net enclosed charge"},"verified":true}]},"variants":[],"freshness":{"sourceEdition":"","reviewBy":"","volatility":"low"},"license":"CC-BY-4.0","attribution":["OpenStax University Physics Volume 2, Ch. 6"],"standards":[]},{"id":"physics/electric-potential","rev":1,"term":"Electric potential","aliases":["voltage","potential difference","potential energy per unit charge"],"discipline":"physics","tags":["electricity","electrostatics"],"level":"intro","difficulty":3,"bloomCeiling":"Apply","definition":{"text":"Electric potential is electric potential energy per unit charge; potential difference is the work per unit charge required to move between two points.","anchor":{"src":"openstax:university-physics-volume-2#7","loc":"7.1","quote":"electric potential energy per unit charge"},"tier":2,"verifiedBy":0},"facts":[{"text":"Only potential differences affect work and energy changes in electrostatics.","anchor":{"src":"openstax:university-physics-volume-2#7","loc":"7.1","quote":"only differences in potential energy are physically meaningful"},"tier":2,"verifiedBy":0,"contested":false},{"text":"Electric field points in the direction of decreasing electric potential.","anchor":{"src":"openstax:university-physics-volume-2#7","loc":"7.5","quote":"electric field points in the direction of decreasing potential"},"tier":2,"verifiedBy":0,"contested":false}],"misconceptions":[{"text":"Students may confuse electric potential with electric potential energy.","corrective":"Potential is energy per unit charge; multiplying by charge gives potential energy.","anchor":null,"tier":1}],"examples":[{"text":"A 9 V battery supplies 9 joules of energy per coulomb of charge moved through the circuit.","domain":"electric circuits","anchor":null}],"workedExamples":[],"mcBank":[{"stem":"Electric potential is measured in volts, equivalent to","options":["joules per coulomb","coulombs per second","newtons per meter","ohms per ampere"],"answerIndex":0,"explanationFactRef":0,"rationaleRefs":[0]}],"edges":{"requires":["physics/electric-field"],"recommends":["physics/capacitance"]},"variants":[],"freshness":{"sourceEdition":"","reviewBy":"","volatility":"low"},"license":"CC-BY-4.0","attribution":["OpenStax University Physics Volume 2, Ch. 7"],"standards":[]},{"id":"physics/capacitance","rev":1,"term":"Capacitance","aliases":["capacitor","capacitors","charge and potential difference","parallel plate capacitor"],"discipline":"physics","tags":["electricity","circuits"],"level":"intro","difficulty":3,"bloomCeiling":"Apply","definition":{"text":"Capacitance is the ratio of stored charge to potential difference for a conductor or capacitor.","anchor":{"src":"openstax:university-physics-volume-2#8","loc":"8.1","quote":"capacitance is the amount of charge stored per volt"},"tier":2,"verifiedBy":0},"facts":[{"text":"A capacitor stores energy in the electric field between its conductors.","anchor":{"src":"openstax:university-physics-volume-2#8","loc":"8.3","quote":"energy stored in a capacitor"},"tier":2,"verifiedBy":0,"contested":false},{"text":"For a parallel-plate capacitor, increasing plate area increases capacitance and increasing separation decreases capacitance.","anchor":{"src":"openstax:university-physics-volume-2#8","loc":"8.2","quote":"capacitance is directly proportional to the area and inversely proportional to the separation"},"tier":2,"verifiedBy":0,"contested":false}],"misconceptions":[{"text":"Students may think a capacitor stores charge on one plate only.","corrective":"A capacitor stores equal and opposite charge on paired conductors, with energy in the field.","anchor":null,"tier":1}],"examples":[{"text":"A camera flash capacitor stores energy and releases it rapidly through a lamp.","domain":"circuits","anchor":null}],"workedExamples":[],"mcBank":[{"stem":"If plate separation in a parallel-plate capacitor increases while area stays fixed, capacitance","options":["decreases","increases","becomes infinite","is unchanged for all materials"],"answerIndex":0,"explanationFactRef":1,"rationaleRefs":[0]}],"edges":{"requires":["physics/electric-potential"]},"variants":[],"freshness":{"sourceEdition":"","reviewBy":"","volatility":"low"},"license":"CC-BY-4.0","attribution":["OpenStax University Physics Volume 2, Ch. 8"],"standards":[]},{"id":"physics/electric-current","rev":1,"term":"Electric current","aliases":["current","charge flow rate","current and resistance"],"discipline":"physics","tags":["electricity","circuits"],"level":"intro","difficulty":2,"bloomCeiling":"Apply","definition":{"text":"Electric current is the rate at which charge passes through a surface.","anchor":{"src":"openstax:university-physics-volume-2#9","loc":"9.1","quote":"electric current is the rate at which charge flows"},"tier":2,"verifiedBy":0},"facts":[{"text":"Conventional current direction is the direction positive charge would move.","anchor":{"src":"openstax:university-physics-volume-2#9","loc":"9.1","quote":"direction of positive charge flow"},"tier":2,"verifiedBy":0,"contested":false},{"text":"Microscopic drift speed is slow even though the electric signal through a circuit propagates rapidly.","anchor":{"src":"openstax:university-physics-volume-2#9","loc":"9.2","quote":"constant velocity, known as the drift velocity"},"tier":2,"verifiedBy":0,"contested":false}],"misconceptions":[{"text":"Students may think current is used up by circuit components.","corrective":"Charge is conserved; components transform energy while current continuity holds in series paths.","anchor":null,"tier":1}],"examples":[{"text":"A current of 2 A means 2 coulombs of charge pass a cross-section each second.","domain":"circuits","anchor":null}],"workedExamples":[],"mcBank":[{"stem":"A current of 3 amperes means","options":["3 coulombs per second pass a point","3 volts are used each second","3 ohms flow through a wire","3 joules are stored per meter"],"answerIndex":0,"explanationFactRef":0,"rationaleRefs":[0]}],"edges":{"recommends":["physics/resistance-ohms-law"]},"variants":[],"freshness":{"sourceEdition":"","reviewBy":"","volatility":"low"},"license":"CC-BY-4.0","attribution":["OpenStax University Physics Volume 2, Ch. 9"],"standards":[]},{"id":"physics/resistance-ohms-law","rev":1,"term":"Ohmic resistance in electric circuits","aliases":["Ohm's law in circuits","electric circuit resistance","voltage-current relationship","ohmic conductor"],"discipline":"physics","tags":["electricity","circuits"],"level":"intro","difficulty":2,"bloomCeiling":"Apply","definition":{"text":"Electrical resistance describes how strongly a material or device opposes current; Ohm's law relates voltage, current, and resistance for ohmic conductors.","anchor":{"src":"openstax:university-physics-volume-2#9","loc":"9.4","quote":"The current that flows through most substances is directly proportional to the voltage V applied to it"},"tier":2,"verifiedBy":0},"facts":[{"text":"For an ohmic device at fixed temperature, current is proportional to voltage.","anchor":{"src":"openstax:university-physics-volume-2#9","loc":"9.4","quote":"current is proportional to the voltage"},"tier":2,"verifiedBy":0,"contested":false},{"text":"Resistance depends on material, length, cross-sectional area, and temperature.","anchor":{"src":"openstax:university-physics-volume-2#9","loc":"9.3","quote":"resistance depends on the geometry and material"},"tier":2,"verifiedBy":0,"contested":false}],"misconceptions":[{"text":"Students may apply Ohm's law to every device without checking whether it is ohmic.","corrective":"Ohm's law is a model for ohmic behavior, not a universal device law.","anchor":null,"tier":1}],"examples":[{"text":"Doubling the voltage across an ohmic resistor doubles the current.","domain":"circuits","anchor":null}],"workedExamples":[],"mcBank":[{"stem":"For an ohmic resistor, if voltage doubles while resistance stays fixed, current","options":["doubles","halves","stays zero","becomes unrelated to voltage"],"answerIndex":0,"explanationFactRef":0,"rationaleRefs":[0]}],"edges":{"requires":["physics/electric-current"],"recommends":["physics/dc-circuits"]},"variants":[],"freshness":{"sourceEdition":"","reviewBy":"","volatility":"low"},"license":"CC-BY-4.0","attribution":["OpenStax University Physics Volume 2, Ch. 9"],"standards":[]},{"id":"physics/dc-circuits","rev":1,"term":"DC circuits","aliases":["series circuit","parallel circuit","equivalent resistance","Kirchhoff rules","circuit labs"],"discipline":"physics","tags":["electricity","circuits"],"level":"intro","difficulty":3,"bloomCeiling":"Analyze","definition":{"text":"A DC circuit is a conducting path with steady current, sources, and components whose voltages and currents obey conservation rules.","anchor":{"src":"openstax:university-physics-volume-2#10","loc":"10.1","quote":"direct-current circuits"},"tier":2,"verifiedBy":0},"facts":[{"text":"Series components share the same current; parallel branches share the same voltage.","anchor":{"src":"openstax:university-physics-volume-2#10","loc":"10.2","quote":"series and parallel resistors"},"tier":2,"verifiedBy":0,"contested":false},{"text":"Kirchhoff's junction rule expresses charge conservation, and the loop rule expresses energy conservation.","anchor":{"src":"openstax:university-physics-volume-2#10","loc":"10.3","quote":"Kirchhoff's rules"},"tier":2,"verifiedBy":0,"contested":false}],"misconceptions":[{"text":"Students may think physically close resistors must be in series.","corrective":"Series and parallel are defined by current paths and node connections, not visual proximity.","anchor":null,"tier":1}],"examples":[{"text":"Two bulbs on separate branches across the same battery are in parallel and share the battery voltage.","domain":"circuits","anchor":null}],"workedExamples":[],"mcBank":[{"stem":"In a parallel resistor network connected across one battery, each branch has","options":["the same voltage","the same current no matter resistance","zero resistance","no energy transfer"],"answerIndex":0,"explanationFactRef":0,"rationaleRefs":[0]}],"edges":{"requires":["physics/resistance-ohms-law"],"instanceOf":[{"archetype":"method/conservation-balance","confidence":0.9,"mapping":{"quantity":"charge at a junction and energy around a loop","system":"a circuit junction or loop","inputs":"currents entering a junction or voltage rises around a loop","outputs":"currents leaving a junction or voltage drops around a loop"},"verified":true}]},"variants":[],"freshness":{"sourceEdition":"","reviewBy":"","volatility":"low"},"license":"CC-BY-4.0","attribution":["OpenStax University Physics Volume 2, Ch. 10"],"standards":[]},{"id":"physics/magnetic-field","rev":1,"term":"Magnetic field","aliases":["magnetic fields","magnetic field lines","magnetism"],"discipline":"physics","tags":["magnetism"],"level":"intro","difficulty":2,"bloomCeiling":"Apply","definition":{"text":"A magnetic field describes magnetic influence in space and determines magnetic forces on moving charges and currents.","anchor":{"src":"openstax:university-physics-volume-2#11","loc":"11.1","quote":"magnetic field"},"tier":2,"verifiedBy":0},"facts":[{"text":"Magnetic field lines form closed loops and do not begin or end on isolated magnetic charges.","anchor":{"src":"openstax:university-physics-volume-2#11","loc":"11.1","quote":"magnetic field lines are continuous"},"tier":2,"verifiedBy":0,"contested":false},{"text":"Currents produce magnetic fields.","anchor":{"src":"openstax:university-physics-volume-2#12","loc":"12.1","quote":"currents produce magnetic fields"},"tier":2,"verifiedBy":0,"contested":false}],"misconceptions":[{"text":"Students may expect magnetic field lines to start at a north pole and stop at a south pole.","corrective":"Magnetic field lines continue through the magnet and form closed loops.","anchor":null,"tier":1}],"examples":[{"text":"A compass needle aligns with the local magnetic field near a current-carrying wire.","domain":"magnetism","anchor":null}],"workedExamples":[],"mcBank":[{"stem":"A steady current in a long straight wire produces","options":["a magnetic field circling the wire","only an electric field inside the wire","no field outside the wire","isolated magnetic charges"],"answerIndex":0,"explanationFactRef":1,"rationaleRefs":[0]}],"edges":{"requires":["physics/electric-current"],"recommends":["physics/magnetic-force"]},"variants":[],"freshness":{"sourceEdition":"","reviewBy":"","volatility":"low"},"license":"CC-BY-4.0","attribution":["OpenStax University Physics Volume 2, Ch. 11-12"],"standards":[]},{"id":"physics/magnetic-force","rev":1,"term":"Magnetic force","aliases":["magnetic force law","Lorentz force","moving charge","right-hand rule"],"discipline":"physics","tags":["magnetism"],"level":"intro","difficulty":3,"bloomCeiling":"Analyze","definition":{"text":"Magnetic force on a moving charge depends on charge, velocity, magnetic field, and the angle between velocity and field.","anchor":{"src":"openstax:university-physics-volume-2#11","loc":"11.4","quote":"force on a moving charge in a magnetic field"},"tier":2,"verifiedBy":0},"facts":[{"text":"The magnetic force is perpendicular to both the velocity and the magnetic field.","anchor":{"src":"openstax:university-physics-volume-2#11","loc":"11.4","quote":"perpendicular to the velocity and magnetic field"},"tier":2,"verifiedBy":0,"contested":false},{"text":"A charge moving parallel to a magnetic field experiences no magnetic force.","anchor":{"src":"openstax:university-physics-volume-2#11","loc":"11.4","quote":"zero when velocity is parallel to the field"},"tier":2,"verifiedBy":0,"contested":false}],"misconceptions":[{"text":"Students may aim magnetic force in the same direction as the magnetic field.","corrective":"Use the cross-product/right-hand-rule direction; the force is perpendicular to the field and motion.","anchor":null,"tier":1}],"examples":[{"text":"A charged particle entering a uniform magnetic field perpendicular to its velocity curves in a circular path.","domain":"magnetism","anchor":null}],"workedExamples":[],"mcBank":[{"stem":"A positive charge moves exactly parallel to a uniform magnetic field. The magnetic force is","options":["zero","maximum","opposite the velocity","toward the north pole"],"answerIndex":0,"explanationFactRef":1,"rationaleRefs":[0]}],"edges":{"requires":["physics/magnetic-field"]},"variants":[],"freshness":{"sourceEdition":"","reviewBy":"","volatility":"low"},"license":"CC-BY-4.0","attribution":["OpenStax University Physics Volume 2, Ch. 11"],"standards":[]},{"id":"physics/faradays-law","rev":1,"term":"Faraday's law of induction","aliases":["Faraday law","electromagnetic induction","magnetic flux","induced emf","Lenz's law"],"discipline":"physics","tags":["magnetism","induction"],"level":"intro","difficulty":3,"bloomCeiling":"Analyze","definition":{"text":"Faraday's law states that a changing magnetic flux through a circuit induces an emf, with direction constrained by Lenz's law.","anchor":{"src":"openstax:university-physics-volume-2#13","loc":"13.2","quote":"changing magnetic flux induces an emf"},"tier":2,"verifiedBy":0},"facts":[{"text":"Induced current direction opposes the change in magnetic flux that produced it.","anchor":{"src":"openstax:university-physics-volume-2#13","loc":"13.3","quote":"opposes the change in flux"},"tier":2,"verifiedBy":0,"contested":false},{"text":"Changing field strength, area, or orientation can change magnetic flux.","anchor":{"src":"openstax:university-physics-volume-2#13","loc":"13.2","quote":"magnetic flux"},"tier":2,"verifiedBy":0,"contested":false}],"misconceptions":[{"text":"Students may think any magnetic field automatically induces current.","corrective":"Induction requires changing magnetic flux through the loop.","anchor":null,"tier":1}],"examples":[{"text":"Moving a magnet toward a coil changes flux and induces a current whose field resists the change.","domain":"induction","anchor":null}],"workedExamples":[],"mcBank":[{"stem":"A stationary loop in a constant magnetic field has no induced emf because","options":["the magnetic flux is not changing","magnetic fields cannot act on loops","the loop contains no charges","Lenz's law cancels all fields"],"answerIndex":0,"explanationFactRef":1,"rationaleRefs":[0]}],"edges":{"requires":["physics/magnetic-field"],"recommends":["physics/inductance"]},"variants":[],"freshness":{"sourceEdition":"","reviewBy":"","volatility":"low"},"license":"CC-BY-4.0","attribution":["OpenStax University Physics Volume 2, Ch. 13"],"standards":[]},{"id":"physics/inductance","rev":1,"term":"Inductance","aliases":["inductor","self-inductance","magnetic energy","back emf"],"discipline":"physics","tags":["magnetism","circuits"],"level":"intro","difficulty":3,"bloomCeiling":"Apply","definition":{"text":"Inductance measures how a circuit element resists changes in current by inducing emf through changing magnetic flux.","anchor":{"src":"openstax:university-physics-volume-2#14","loc":"14.1","quote":"self-induced emf opposes the change in current"},"tier":2,"verifiedBy":0},"facts":[{"text":"An inductor stores energy in its magnetic field.","anchor":{"src":"openstax:university-physics-volume-2#14","loc":"14.3","quote":"energy stored in the magnetic field"},"tier":2,"verifiedBy":0,"contested":false},{"text":"A changing current creates a changing magnetic flux that induces back emf.","anchor":{"src":"openstax:university-physics-volume-2#14","loc":"14.1","quote":"Inductance is the property of a device that tells us how effectively it induces an emf in another device"},"tier":2,"verifiedBy":0,"contested":false}],"misconceptions":[{"text":"Students may think an inductor simply blocks current.","corrective":"An inductor resists changes in current; steady current can pass through an ideal inductor.","anchor":null,"tier":1}],"examples":[{"text":"A coil in an RL circuit slows the rise of current after a switch closes.","domain":"circuits","anchor":null}],"workedExamples":[],"mcBank":[{"stem":"An ideal inductor primarily resists","options":["changes in current","constant current itself","all voltage","electric charge conservation"],"answerIndex":0,"explanationFactRef":1,"rationaleRefs":[0]}],"edges":{"requires":["physics/faradays-law"]},"variants":[],"freshness":{"sourceEdition":"","reviewBy":"","volatility":"low"},"license":"CC-BY-4.0","attribution":["OpenStax University Physics Volume 2, Ch. 14"],"standards":[]},{"id":"physics/maxwell-equations","rev":1,"term":"Maxwell's equations","aliases":["Maxwell equations","displacement current","electromagnetic wave propagation","charge conservation in fields"],"discipline":"physics","tags":["electricity","magnetism"],"level":"intro","difficulty":4,"bloomCeiling":"Evaluate","definition":{"text":"Maxwell's equations summarize how electric and magnetic fields are produced by charges, currents, and changing fields.","anchor":{"src":"openstax:university-physics-volume-2#16","loc":"16.1","quote":"Maxwell's equations"},"tier":2,"verifiedBy":0},"facts":[{"text":"The displacement-current term links changing electric fields to magnetic fields.","anchor":{"src":"openstax:university-physics-volume-2#16","loc":"16.1","quote":"displacement current"},"tier":2,"verifiedBy":0,"contested":false},{"text":"Maxwell's equations predict electromagnetic waves that propagate through space.","anchor":{"src":"openstax:university-physics-volume-2#16","loc":"16.3","quote":"electromagnetic waves"},"tier":2,"verifiedBy":0,"contested":false}],"misconceptions":[{"text":"Students may treat the four equations as disconnected formulas.","corrective":"The equations form a coupled field model linking sources, field changes, and wave propagation.","anchor":null,"tier":1}],"examples":[{"text":"A changing electric field between capacitor plates contributes to the magnetic field around the circuit.","domain":"electromagnetism","anchor":null}],"workedExamples":[],"mcBank":[{"stem":"Maxwell added displacement current to explain how changing electric fields can","options":["produce magnetic fields","destroy charge","remove electric fields","make circuits resistance-free"],"answerIndex":0,"explanationFactRef":0,"rationaleRefs":[0]}],"edges":{"requires":["physics/gausss-law","physics/faradays-law"],"instanceOf":[{"archetype":"method/conservation-balance","confidence":0.88,"mapping":{"quantity":"charge and field consistency","system":"coupled electric and magnetic fields","inputs":"charges, currents, and changing fields","outputs":"electric flux, magnetic circulation, and induced fields"},"verified":true}]},"variants":[],"freshness":{"sourceEdition":"","reviewBy":"","volatility":"low"},"license":"CC-BY-4.0","attribution":["OpenStax University Physics Volume 2, Ch. 16"],"standards":[]}],"index":{"postings":{"electric":["physics/electric-charge","physics/electric-field","physics/gausss-law","physics/electric-potential","physics/electric-current","physics/resistance-ohms-law"],"charge":["physics/electric-charge","physics/electric-field","physics/gausss-law","physics/electric-potential","physics/capacitance","physics/electric-current","physics/magnetic-force","physics/maxwell-equations"],"conservation":["physics/electric-charge","physics/maxwell-equations"],"quantization":["physics/electric-charge"],"positive":["physics/electric-charge"],"negative":["physics/electric-charge"],"electricity":["physics/electric-charge","physics/electric-field","physics/gausss-law","physics/electric-potential","physics/capacitance","physics/electric-current","physics/resistance-ohms-law","physics/dc-circuits","physics/maxwell-equations"],"electrostatic":["physics/electric-charge","physics/electric-field","physics/gausss-law","physics/electric-potential"],"field":["physics/electric-field","physics/magnetic-field","physics/maxwell-equations"],"lin":["physics/electric-field","physics/magnetic-field"],"force":["physics/electric-field","physics/magnetic-force"],"per":["physics/electric-field","physics/electric-potential"],"unit":["physics/electric-field","physics/electric-potential"],"test":["physics/electric-field"],"gaus":["physics/gausss-law"],"law":["physics/gausss-law","physics/resistance-ohms-law","physics/magnetic-force","physics/faradays-law"],"flux":["physics/gausss-law","physics/faradays-law"],"gaussian":["physics/gausss-law"],"surface":["physics/gausss-law"],"enclos":["physics/gausss-law"],"spherical":["physics/gausss-law"],"cylindrical":["physics/gausss-law"],"planar":["physics/gausss-law"],"symmetry":["physics/gausss-law"],"potential":["physics/electric-potential","physics/capacitance"],"voltage":["physics/electric-potential"],"difference":["physics/electric-potential","physics/capacitance"],"energy":["physics/electric-potential","physics/inductance"],"capacitance":["physics/capacitance"],"capacitor":["physics/capacitance"],"parallel":["physics/capacitance","physics/dc-circuits"],"plate":["physics/capacitance"],"circuit":["physics/capacitance","physics/electric-current","physics/resistance-ohms-law","physics/dc-circuits","physics/inductance"],"current":["physics/electric-current","physics/maxwell-equations"],"flow":["physics/electric-current"],"rate":["physics/electric-current"],"resistance":["physics/electric-current","physics/resistance-ohms-law","physics/dc-circuits"],"ohmic":["physics/resistance-ohms-law"],"ohm":["physics/resistance-ohms-law"],"voltage-current":["physics/resistance-ohms-law"],"relationship":["physics/resistance-ohms-law"],"conductor":["physics/resistance-ohms-law"],"seri":["physics/dc-circuits"],"equivalent":["physics/dc-circuits"],"kirchhoff":["physics/dc-circuits"],"rul":["physics/dc-circuits"],"lab":["physics/dc-circuits"],"magnetic":["physics/magnetic-field","physics/magnetic-force","physics/faradays-law","physics/inductance"],"magnetism":["physics/magnetic-field","physics/magnetic-force","physics/faradays-law","physics/inductance","physics/maxwell-equations"],"lorentz":["physics/magnetic-force"],"mov":["physics/magnetic-force"],"right-hand":["physics/magnetic-force"],"rule":["physics/magnetic-force"],"faraday":["physics/faradays-law"],"induction":["physics/faradays-law"],"electromagnetic":["physics/faradays-law","physics/maxwell-equations"],"induc":["physics/faradays-law"],"emf":["physics/faradays-law","physics/inductance"],"lenz":["physics/faradays-law"],"inductance":["physics/inductance"],"inductor":["physics/inductance"],"self-inductance":["physics/inductance"],"back":["physics/inductance"],"maxwell":["physics/maxwell-equations"],"equation":["physics/maxwell-equations"],"displacement":["physics/maxwell-equations"],"wave":["physics/maxwell-equations"],"propagation":["physics/maxwell-equations"]}}}
+{
+ "id": "physics-intro",
+ "discipline": "physics",
+ "level": "intro",
+ "conceptCount": 13,
+ "kernels": [
+  {
+   "id": "physics/electric-charge",
+   "rev": 2,
+   "term": "Electric charge",
+   "aliases": [
+    "charge",
+    "conservation of charge",
+    "quantization of charge",
+    "positive and negative charge"
+   ],
+   "discipline": "physics",
+   "tags": [
+    "electricity",
+    "electrostatics"
+   ],
+   "level": "intro",
+   "difficulty": 2,
+   "bloomCeiling": "Analyze",
+   "definition": {
+    "text": "Electric charge is a conserved property of matter that comes in positive and negative forms and determines electric interactions.",
+    "anchor": {
+     "src": "openstax:university-physics-volume-2#5",
+     "loc": "5.1",
+     "quote": "Electric charge is a conserved property of matter."
+    },
+    "tier": 2,
+    "verifiedBy": 0
+   },
+   "facts": [
+    {
+     "text": "Like charges repel and unlike charges attract.",
+     "anchor": {
+      "src": "openstax:university-physics-volume-2#5",
+      "loc": "5.1",
+      "quote": "Like charges repel and unlike charges attract."
+     },
+     "tier": 2,
+     "verifiedBy": 0,
+     "contested": false
+    },
+    {
+     "text": "Net charge is conserved in an isolated system.",
+     "anchor": {
+      "src": "openstax:university-physics-volume-2#5",
+      "loc": "5.1",
+      "quote": "charge is conserved"
+     },
+     "tier": 2,
+     "verifiedBy": 0,
+     "contested": false
+    },
+    {
+     "text": "Charge is the fundamental property of matter that exhibits electrostatic attraction or repulsion in the presence of other matter with charge.",
+     "anchor": {
+      "src": "https://en.wikipedia.org/wiki/Electric_charge",
+      "loc": "extract",
+      "quote": "Charge is the fundamental property of matter that exhibits electrostatic attraction or repulsion in the presence of other matter with charge."
+     },
+     "tier": 2,
+     "verifiedBy": 0,
+     "contested": false
+    },
+    {
+     "text": "Electric charge is a characteristic property of many subatomic particles.",
+     "anchor": {
+      "src": "https://en.wikipedia.org/wiki/Electric_charge",
+      "loc": "extract",
+      "quote": "Electric charge is a characteristic property of many subatomic particles."
+     },
+     "tier": 2,
+     "verifiedBy": 0,
+     "contested": false
+    },
+    {
+     "text": "Today, a negative charge is defined as the charge carried by an electron and a positive charge is that carried by a proton.",
+     "anchor": {
+      "src": "https://en.wikipedia.org/wiki/Electric_charge",
+      "loc": "extract",
+      "quote": "Today, a negative charge is defined as the charge carried by an electron and a positive charge is that carried by a proton."
+     },
+     "tier": 2,
+     "verifiedBy": 0,
+     "contested": false
+    },
+    {
+     "text": "The SI unit of quantity of electric charge is the coulomb (symbol: C).",
+     "anchor": {
+      "src": "https://en.wikipedia.org/wiki/Electric_charge",
+      "loc": "extract",
+      "quote": "The SI unit of quantity of electric charge is the coulomb (symbol: C)."
+     },
+     "tier": 2,
+     "verifiedBy": 0,
+     "contested": false
+    }
+   ],
+   "misconceptions": [
+    {
+     "text": "Students may think an object becomes charged by creating charge from nothing.",
+     "corrective": "Charging usually transfers charge; it does not create net charge in an isolated system.",
+     "anchor": null,
+     "tier": 1
+    },
+    {
+     "text": "Abstract This study aims to determine Turkish high school students’ misconceptions about the electric charge imbalance by using a four-tier misconception test, where the main questions are accompanied by a question about the reason for the answer, as well as student declarations about their degrees of certainty.",
+     "corrective": "Address directly: Abstract This study aims to determine Turkish high school students’ misconceptions about the electric charge imbalance by using a four-tier misconception test, where the main questions are accompanied by a question about the reason for the answer, as well as student declarations about their degrees of certainty.",
+     "documentedIn": {
+      "title": "Determining Turkish high school students’ misconceptions about electric charge imbalance by using a four-tier misconception test",
+      "year": 2022,
+      "id": "https://doi.org/10.1088/1361-6552/ac68c1"
+     }
+    },
+    {
+     "text": "A four-tier electric charge imbalance misconception test (4-tier ECIMT) was developed by Onder-Celikkanli (2019) in the context of her dissertation.",
+     "corrective": "Address directly: A four-tier electric charge imbalance misconception test (4-tier ECIMT) was developed by Onder-Celikkanli (2019) in the context of her dissertation.",
+     "documentedIn": {
+      "title": "Determining Turkish high school students’ misconceptions about electric charge imbalance by using a four-tier misconception test",
+      "year": 2022,
+      "id": "https://doi.org/10.1088/1361-6552/ac68c1"
+     }
+    }
+   ],
+   "examples": [
+    {
+     "text": "A rubbed plastic rod attracts small neutral paper pieces after charge redistributes within them.",
+     "domain": "electrostatics",
+     "anchor": null
+    }
+   ],
+   "workedExamples": [],
+   "mcBank": [
+    {
+     "stem": "When a neutral object becomes negatively charged by rubbing, the best explanation is that",
+     "options": [
+      "electrons were transferred to it",
+      "positive charge was destroyed",
+      "mass became charge",
+      "the object lost all protons"
+     ],
+     "answerIndex": 0,
+     "explanationFactRef": 1,
+     "rationaleRefs": [
+      0
+     ]
+    }
+   ],
+   "edges": {
+    "recommends": [
+     "physics/electric-field"
+    ]
+   },
+   "variants": [],
+   "freshness": {
+    "sourceEdition": "",
+    "reviewBy": "",
+    "volatility": "low"
+   },
+   "license": "CC-BY-4.0",
+   "attribution": [
+    "OpenStax University Physics Volume 2, Ch. 5"
+   ],
+   "standards": []
+  },
+  {
+   "id": "physics/electric-field",
+   "rev": 2,
+   "term": "Electric field",
+   "aliases": [
+    "electric fields",
+    "field lines",
+    "force per unit charge",
+    "test charge"
+   ],
+   "discipline": "physics",
+   "tags": [
+    "electricity",
+    "electrostatics"
+   ],
+   "level": "intro",
+   "difficulty": 2,
+   "bloomCeiling": "Apply",
+   "definition": {
+    "text": "An electric field describes the electric force per unit positive test charge at each point in space.",
+    "anchor": {
+     "src": "openstax:university-physics-volume-2#5",
+     "loc": "5.5",
+     "quote": "The electric field is the electric force per unit charge."
+    },
+    "tier": 2,
+    "verifiedBy": 0
+   },
+   "facts": [
+    {
+     "text": "The direction of the electric field is the direction a positive test charge would accelerate.",
+     "anchor": {
+      "src": "openstax:university-physics-volume-2#5",
+      "loc": "5.5",
+      "quote": "the direction of the force on a positive test charge"
+     },
+     "tier": 2,
+     "verifiedBy": 0,
+     "contested": false
+    },
+    {
+     "text": "Field-line density indicates relative field strength.",
+     "anchor": {
+      "src": "openstax:university-physics-volume-2#5",
+      "loc": "5.6",
+      "quote": "closer field lines indicate a stronger field"
+     },
+     "tier": 2,
+     "verifiedBy": 0,
+     "contested": false
+    },
+    {
+     "text": "Together, these laws are enough to define the behavior of the electric field.",
+     "anchor": {
+      "src": "https://en.wikipedia.org/wiki/Electric_field",
+      "loc": "extract",
+      "quote": "Together, these laws are enough to define the behavior of the electric field."
+     },
+     "tier": 2,
+     "verifiedBy": 0,
+     "contested": false
+    },
+    {
+     "text": "It accounts for the electromagnetic effects of polarization and that of an electric field, combining the two in an auxiliary field.",
+     "anchor": {
+      "src": "https://en.wikipedia.org/wiki/Electric_displacement_field",
+      "loc": "extract",
+      "quote": "It accounts for the electromagnetic effects of polarization and that of an electric field, combining the two in an auxiliary field."
+     },
+     "tier": 2,
+     "verifiedBy": 1,
+     "contested": false
+    },
+    {
+     "text": "Faraday's law describes the relationship between a time-varying magnetic field and the electric field.",
+     "anchor": {
+      "src": "https://en.wikipedia.org/wiki/Electric_field",
+      "loc": "extract",
+      "quote": "Faraday's law describes the relationship between a time-varying magnetic field and the electric field."
+     },
+     "tier": 2,
+     "verifiedBy": 0,
+     "contested": false
+    },
+    {
+     "text": "This is the basis for Coulomb's law, which states that, for stationary charges, the electric field varies with the source charge and varies inversely with the square of the distance from the source.",
+     "anchor": {
+      "src": "https://en.wikipedia.org/wiki/Electric_field",
+      "loc": "extract",
+      "quote": "This is the basis for Coulomb's law, which states that, for stationary charges, the electric field varies with the source charge and varies inversely with the square of the distance from the source."
+     },
+     "tier": 2,
+     "verifiedBy": 1,
+     "contested": false
+    }
+   ],
+   "misconceptions": [
+    {
+     "text": "Students may treat field lines as physical wires or paths a charge must follow.",
+     "corrective": "Field lines are a representation of field direction and relative strength, not material tracks.",
+     "anchor": null,
+     "tier": 1
+    },
+    {
+     "text": "The present study aimed to provide an overview of the common diagnostic instruments in science to assess students' misconceptions.",
+     "corrective": "Address directly: The present study aimed to provide an overview of the common diagnostic instruments in science to assess students' misconceptions.",
+     "documentedIn": {
+      "title": "A Review and Comparison of Diagnostic Instruments to Identify Students’ Misconceptions in Science",
+      "year": 2015,
+      "id": "https://doi.org/10.12973/eurasia.2015.1369a"
+     }
+    },
+    {
+     "text": "Seeking to enrich discussions in standard texts and correct misconceptions about the dynamics of these large-scale fields, Parker engages readers in a series of conversations that are at times anecdotal and even entertaining without ever sacrificing theoretical rigor.",
+     "corrective": "Address directly: Seeking to enrich discussions in standard texts and correct misconceptions about the dynamics of these large-scale fields, Parker engages readers in a series of conversations that are at times anecdotal and even entertaining without ever sacrificing theoretical rigor.",
+     "documentedIn": {
+      "title": "Conversations on Electric and Magnetic Fields in the Cosmos",
+      "year": 2007,
+      "id": "https://doi.org/10.1515/9781400847433"
+     }
+    }
+   ],
+   "examples": [
+    {
+     "text": "Near a positive point charge, field vectors point radially outward.",
+     "domain": "electrostatics",
+     "anchor": null
+    }
+   ],
+   "workedExamples": [],
+   "mcBank": [
+    {
+     "stem": "The electric field at a point is defined as",
+     "options": [
+      "electric force per unit positive test charge",
+      "charge per unit time",
+      "energy per unit mass",
+      "resistance per unit length"
+     ],
+     "answerIndex": 0,
+     "explanationFactRef": 0,
+     "rationaleRefs": [
+      0
+     ]
+    }
+   ],
+   "edges": {
+    "requires": [
+     "physics/electric-charge"
+    ],
+    "recommends": [
+     "physics/gausss-law"
+    ]
+   },
+   "variants": [],
+   "freshness": {
+    "sourceEdition": "",
+    "reviewBy": "",
+    "volatility": "low"
+   },
+   "license": "CC-BY-4.0",
+   "attribution": [
+    "OpenStax University Physics Volume 2, Ch. 5"
+   ],
+   "standards": []
+  },
+  {
+   "id": "physics/gausss-law",
+   "rev": 2,
+   "term": "Gauss's law",
+   "aliases": [
+    "Gauss law",
+    "electric flux",
+    "Gaussian surface",
+    "enclosed charge",
+    "spherical cylindrical planar symmetry"
+   ],
+   "discipline": "physics",
+   "tags": [
+    "electricity",
+    "electrostatics"
+   ],
+   "level": "intro",
+   "difficulty": 3,
+   "bloomCeiling": "Analyze",
+   "definition": {
+    "text": "Gauss's law relates the net electric flux through a closed surface to the net charge enclosed by that surface.",
+    "anchor": {
+     "src": "openstax:university-physics-volume-2#6",
+     "loc": "6.3",
+     "quote": "electric flux through any closed surface is proportional to the enclosed electric charge"
+    },
+    "tier": 2,
+    "verifiedBy": 0
+   },
+   "facts": [
+    {
+     "text": "A Gaussian surface is useful for calculating fields when symmetry makes the field magnitude or direction simple on the surface.",
+     "anchor": {
+      "src": "openstax:university-physics-volume-2#6",
+      "loc": "6.4",
+      "quote": "Use symmetry to determine the electric field"
+     },
+     "tier": 2,
+     "verifiedBy": 0,
+     "contested": false
+    },
+    {
+     "text": "Zero enclosed charge implies zero net flux, not necessarily zero electric field everywhere on the surface.",
+     "anchor": {
+      "src": "openstax:university-physics-volume-2#6",
+      "loc": "6.3",
+      "quote": "the net flux depends only on the charge enclosed"
+     },
+     "tier": 2,
+     "verifiedBy": 0,
+     "contested": false
+    },
+    {
+     "text": "Gauss's law can be used to derive Coulomb's law, and vice versa.",
+     "anchor": {
+      "src": "https://en.wikipedia.org/wiki/Gauss's_law",
+      "loc": "extract",
+      "quote": "Gauss's law can be used to derive Coulomb's law, and vice versa."
+     },
+     "tier": 2,
+     "verifiedBy": 0,
+     "contested": false
+    },
+    {
+     "text": "It is an application of the divergence theorem, and it relates the distribution of electric charge to the resulting electric field.",
+     "anchor": {
+      "src": "https://en.wikipedia.org/wiki/Gauss's_law",
+      "loc": "extract",
+      "quote": "It is an application of the divergence theorem, and it relates the distribution of electric charge to the resulting electric field."
+     },
+     "tier": 2,
+     "verifiedBy": 0,
+     "contested": false
+    },
+    {
+     "text": "The electric field is then calculated as the potential's negative gradient.",
+     "anchor": {
+      "src": "https://en.wikipedia.org/wiki/Gauss's_law",
+      "loc": "extract",
+      "quote": "The electric field is then calculated as the potential's negative gradient."
+     },
+     "tier": 2,
+     "verifiedBy": 0,
+     "contested": false
+    },
+    {
+     "text": "In physics, Gauss's law for magnetism is one of the four Maxwell's equations that underlie classical electrodynamics.",
+     "anchor": {
+      "src": "https://en.wikipedia.org/wiki/Gauss's_law_for_magnetism",
+      "loc": "extract",
+      "quote": "In physics, Gauss's law for magnetism is one of the four Maxwell's equations that underlie classical electrodynamics."
+     },
+     "tier": 2,
+     "verifiedBy": 0,
+     "contested": false
+    }
+   ],
+   "misconceptions": [
+    {
+     "text": "Students may think Gauss's law works only when the electric field is zero.",
+     "corrective": "Gauss's law is always true; symmetry determines when it is practical for field calculation.",
+     "anchor": null,
+     "tier": 1
+    },
+    {
+     "text": "It has been supposed that the problems seen in understanding and applying both laws do not spring from students' misconceptions.",
+     "corrective": "Address directly: It has been supposed that the problems seen in understanding and applying both laws do not spring from students' misconceptions.",
+     "documentedIn": {
+      "title": "The Gauss and Ampere laws: different laws but similar difficulties for student learning",
+      "year": 2008,
+      "id": "https://doi.org/10.1088/0143-0807/29/5/013"
+     }
+    }
+   ],
+   "examples": [
+    {
+     "text": "A spherical Gaussian surface around a point charge makes the field constant over the surface.",
+     "domain": "electrostatics",
+     "anchor": null
+    }
+   ],
+   "workedExamples": [],
+   "mcBank": [
+    {
+     "stem": "A closed Gaussian surface encloses no net charge. What follows?",
+     "options": [
+      "The net electric flux is zero",
+      "The electric field is zero everywhere",
+      "No charges exist outside the surface",
+      "The surface cannot be spherical"
+     ],
+     "answerIndex": 0,
+     "explanationFactRef": 1,
+     "rationaleRefs": [
+      0
+     ]
+    }
+   ],
+   "edges": {
+    "requires": [
+     "physics/electric-field"
+    ],
+    "instanceOf": [
+     {
+      "archetype": "structure/system-boundary",
+      "confidence": 0.88,
+      "mapping": {
+       "system": "electric field calculation around a charge distribution",
+       "boundary": "the chosen Gaussian surface",
+       "what crosses": "electric flux through the closed surface",
+       "what is excluded": "charges outside the boundary do not change the net enclosed charge"
+      },
+      "verified": true
+     }
+    ]
+   },
+   "variants": [],
+   "freshness": {
+    "sourceEdition": "",
+    "reviewBy": "",
+    "volatility": "low"
+   },
+   "license": "CC-BY-4.0",
+   "attribution": [
+    "OpenStax University Physics Volume 2, Ch. 6"
+   ],
+   "standards": []
+  },
+  {
+   "id": "physics/electric-potential",
+   "rev": 2,
+   "term": "Electric potential",
+   "aliases": [
+    "voltage",
+    "potential difference",
+    "potential energy per unit charge"
+   ],
+   "discipline": "physics",
+   "tags": [
+    "electricity",
+    "electrostatics"
+   ],
+   "level": "intro",
+   "difficulty": 3,
+   "bloomCeiling": "Apply",
+   "definition": {
+    "text": "Electric potential is electric potential energy per unit charge; potential difference is the work per unit charge required to move between two points.",
+    "anchor": {
+     "src": "openstax:university-physics-volume-2#7",
+     "loc": "7.1",
+     "quote": "electric potential energy per unit charge"
+    },
+    "tier": 2,
+    "verifiedBy": 0
+   },
+   "facts": [
+    {
+     "text": "Only potential differences affect work and energy changes in electrostatics.",
+     "anchor": {
+      "src": "openstax:university-physics-volume-2#7",
+      "loc": "7.1",
+      "quote": "only differences in potential energy are physically meaningful"
+     },
+     "tier": 2,
+     "verifiedBy": 0,
+     "contested": false
+    },
+    {
+     "text": "Electric field points in the direction of decreasing electric potential.",
+     "anchor": {
+      "src": "openstax:university-physics-volume-2#7",
+      "loc": "7.5",
+      "quote": "electric field points in the direction of decreasing potential"
+     },
+     "tier": 2,
+     "verifiedBy": 0,
+     "contested": false
+    },
+    {
+     "text": "Classical mechanics explores concepts such as force, energy, and potential.",
+     "anchor": {
+      "src": "https://en.wikipedia.org/wiki/Electric_potential",
+      "loc": "extract",
+      "quote": "Classical mechanics explores concepts such as force, energy, and potential."
+     },
+     "tier": 2,
+     "verifiedBy": 0,
+     "contested": false
+    },
+    {
+     "text": "The gradient theorem then allows us to write: This states that the electric field points \"downhill\" towards lower voltages.",
+     "anchor": {
+      "src": "https://en.wikipedia.org/wiki/Electric_potential",
+      "loc": "extract",
+      "quote": "The gradient theorem then allows us to write: This states that the electric field points \"downhill\" towards lower voltages."
+     },
+     "tier": 2,
+     "verifiedBy": 0,
+     "contested": false
+    },
+    {
+     "text": "The generalization of electric potential to this case is described in the section § Generalization to electrodynamics.",
+     "anchor": {
+      "src": "https://en.wikipedia.org/wiki/Electric_potential",
+      "loc": "extract",
+      "quote": "The generalization of electric potential to this case is described in the section § Generalization to electrodynamics."
+     },
+     "tier": 2,
+     "verifiedBy": 0,
+     "contested": false
+    },
+    {
+     "text": "In a static electric field, it corresponds to the work needed per unit of charge to move a positive test charge from the first point to the second point.",
+     "anchor": {
+      "src": "https://en.wikipedia.org/wiki/Voltage",
+      "loc": "extract",
+      "quote": "In a static electric field, it corresponds to the work needed per unit of charge to move a positive test charge from the first point to the second point."
+     },
+     "tier": 2,
+     "verifiedBy": 1,
+     "contested": false
+    }
+   ],
+   "misconceptions": [
+    {
+     "text": "Students may confuse electric potential with electric potential energy.",
+     "corrective": "Potential is energy per unit charge; multiplying by charge gives potential energy.",
+     "anchor": null,
+     "tier": 1
+    },
+    {
+     "text": "The present study aimed to provide an overview of the common diagnostic instruments in science to assess students' misconceptions.",
+     "corrective": "Address directly: The present study aimed to provide an overview of the common diagnostic instruments in science to assess students' misconceptions.",
+     "documentedIn": {
+      "title": "A Review and Comparison of Diagnostic Instruments to Identify Students’ Misconceptions in Science",
+      "year": 2015,
+      "id": "https://doi.org/10.12973/eurasia.2015.1369a"
+     }
+    },
+    {
+     "text": "Several misconceptions relating to the inappropriate use of definitions of oxidation and reduction were identified.",
+     "corrective": "Address directly: Several misconceptions relating to the inappropriate use of definitions of oxidation and reduction were identified.",
+     "documentedIn": {
+      "title": "Conceptual difficulties experienced by senior high school students of electrochemistry: Electric circuits and oxidation‐reduction equations",
+      "year": 1992,
+      "id": "https://doi.org/10.1002/tea.3660290204"
+     }
+    }
+   ],
+   "examples": [
+    {
+     "text": "A 9 V battery supplies 9 joules of energy per coulomb of charge moved through the circuit.",
+     "domain": "electric circuits",
+     "anchor": null
+    }
+   ],
+   "workedExamples": [],
+   "mcBank": [
+    {
+     "stem": "Electric potential is measured in volts, equivalent to",
+     "options": [
+      "joules per coulomb",
+      "coulombs per second",
+      "newtons per meter",
+      "ohms per ampere"
+     ],
+     "answerIndex": 0,
+     "explanationFactRef": 0,
+     "rationaleRefs": [
+      0
+     ]
+    }
+   ],
+   "edges": {
+    "requires": [
+     "physics/electric-field"
+    ],
+    "recommends": [
+     "physics/capacitance"
+    ]
+   },
+   "variants": [],
+   "freshness": {
+    "sourceEdition": "",
+    "reviewBy": "",
+    "volatility": "low"
+   },
+   "license": "CC-BY-4.0",
+   "attribution": [
+    "OpenStax University Physics Volume 2, Ch. 7"
+   ],
+   "standards": []
+  },
+  {
+   "id": "physics/capacitance",
+   "rev": 2,
+   "term": "Capacitance",
+   "aliases": [
+    "capacitor",
+    "capacitors",
+    "charge and potential difference",
+    "parallel plate capacitor"
+   ],
+   "discipline": "physics",
+   "tags": [
+    "electricity",
+    "circuits"
+   ],
+   "level": "intro",
+   "difficulty": 3,
+   "bloomCeiling": "Apply",
+   "definition": {
+    "text": "Capacitance is the ratio of stored charge to potential difference for a conductor or capacitor.",
+    "anchor": {
+     "src": "openstax:university-physics-volume-2#8",
+     "loc": "8.1",
+     "quote": "capacitance is the amount of charge stored per volt"
+    },
+    "tier": 2,
+    "verifiedBy": 0
+   },
+   "facts": [
+    {
+     "text": "A capacitor stores energy in the electric field between its conductors.",
+     "anchor": {
+      "src": "openstax:university-physics-volume-2#8",
+      "loc": "8.3",
+      "quote": "energy stored in a capacitor"
+     },
+     "tier": 2,
+     "verifiedBy": 0,
+     "contested": false
+    },
+    {
+     "text": "For a parallel-plate capacitor, increasing plate area increases capacitance and increasing separation decreases capacitance.",
+     "anchor": {
+      "src": "openstax:university-physics-volume-2#8",
+      "loc": "8.2",
+      "quote": "capacitance is directly proportional to the area and inversely proportional to the separation"
+     },
+     "tier": 2,
+     "verifiedBy": 0,
+     "contested": false
+    },
+    {
+     "text": "A capacitor is a device that stores electrical energy by accumulating electric charges on two closely spaced surfaces that are insulated from each other.",
+     "anchor": {
+      "src": "https://en.wikipedia.org/wiki/Capacitor",
+      "loc": "extract",
+      "quote": "A capacitor is a device that stores electrical energy by accumulating electric charges on two closely spaced surfaces that are insulated from each other."
+     },
+     "tier": 2,
+     "verifiedBy": 0,
+     "contested": false
+    },
+    {
+     "text": "The nonconducting dielectric acts to increase the capacitor's charge capacity.",
+     "anchor": {
+      "src": "https://en.wikipedia.org/wiki/Capacitor",
+      "loc": "extract",
+      "quote": "The nonconducting dielectric acts to increase the capacitor's charge capacity."
+     },
+     "tier": 2,
+     "verifiedBy": 0,
+     "contested": false
+    },
+    {
+     "text": "The reciprocal of capacitance is called elastance.",
+     "anchor": {
+      "src": "https://en.wikipedia.org/wiki/Capacitance",
+      "loc": "extract",
+      "quote": "The reciprocal of capacitance is called elastance."
+     },
+     "tier": 2,
+     "verifiedBy": 0,
+     "contested": false
+    },
+    {
+     "text": "An object that can be electrically charged exhibits self-capacitance, for which the electric potential is measured between the object and ground.",
+     "anchor": {
+      "src": "https://en.wikipedia.org/wiki/Capacitance",
+      "loc": "extract",
+      "quote": "An object that can be electrically charged exhibits self-capacitance, for which the electric potential is measured between the object and ground."
+     },
+     "tier": 2,
+     "verifiedBy": 2,
+     "contested": false
+    }
+   ],
+   "misconceptions": [
+    {
+     "text": "Students may think a capacitor stores charge on one plate only.",
+     "corrective": "A capacitor stores equal and opposite charge on paired conductors, with energy in the field.",
+     "anchor": null,
+     "tier": 1
+    },
+    {
+     "text": "In the present study, an experimental teaching material using a soundcard oscilloscope developed for science, technology, engineering, and mathematics (STEM) education considering the engineering viewpoint was applied to address student’s misconceptions in the alternating current (AC) circuit topic in high school physics.",
+     "corrective": "Address directly: In the present study, an experimental teaching material using a soundcard oscilloscope developed for science, technology, engineering, and mathematics (STEM) education considering the engineering viewpoint was applied to address student’s misconceptions in the alternating current (AC) circuit topic in high school physics.",
+     "documentedIn": {
+      "title": "The Effectiveness of STEM Education for Overcoming Students’ Misconceptions in High School Physics: Engineering Viewpoint",
+      "year": 2020,
+      "id": "https://doi.org/10.33828/sei.v31.i1.1"
+     }
+    },
+    {
+     "text": "This study concluded that the STEM system used in this study was considered to be useful to overcome the various misconceptions in high school physics.",
+     "corrective": "Address directly: This study concluded that the STEM system used in this study was considered to be useful to overcome the various misconceptions in high school physics.",
+     "documentedIn": {
+      "title": "The Effectiveness of STEM Education for Overcoming Students’ Misconceptions in High School Physics: Engineering Viewpoint",
+      "year": 2020,
+      "id": "https://doi.org/10.33828/sei.v31.i1.1"
+     }
+    }
+   ],
+   "examples": [
+    {
+     "text": "A camera flash capacitor stores energy and releases it rapidly through a lamp.",
+     "domain": "circuits",
+     "anchor": null
+    }
+   ],
+   "workedExamples": [],
+   "mcBank": [
+    {
+     "stem": "If plate separation in a parallel-plate capacitor increases while area stays fixed, capacitance",
+     "options": [
+      "decreases",
+      "increases",
+      "becomes infinite",
+      "is unchanged for all materials"
+     ],
+     "answerIndex": 0,
+     "explanationFactRef": 1,
+     "rationaleRefs": [
+      0
+     ]
+    }
+   ],
+   "edges": {
+    "requires": [
+     "physics/electric-potential"
+    ]
+   },
+   "variants": [],
+   "freshness": {
+    "sourceEdition": "",
+    "reviewBy": "",
+    "volatility": "low"
+   },
+   "license": "CC-BY-4.0",
+   "attribution": [
+    "OpenStax University Physics Volume 2, Ch. 8"
+   ],
+   "standards": []
+  },
+  {
+   "id": "physics/electric-current",
+   "rev": 2,
+   "term": "Electric current",
+   "aliases": [
+    "current",
+    "charge flow rate",
+    "current and resistance"
+   ],
+   "discipline": "physics",
+   "tags": [
+    "electricity",
+    "circuits"
+   ],
+   "level": "intro",
+   "difficulty": 2,
+   "bloomCeiling": "Apply",
+   "definition": {
+    "text": "Electric current is the rate at which charge passes through a surface.",
+    "anchor": {
+     "src": "openstax:university-physics-volume-2#9",
+     "loc": "9.1",
+     "quote": "electric current is the rate at which charge flows"
+    },
+    "tier": 2,
+    "verifiedBy": 0
+   },
+   "facts": [
+    {
+     "text": "Conventional current direction is the direction positive charge would move.",
+     "anchor": {
+      "src": "openstax:university-physics-volume-2#9",
+      "loc": "9.1",
+      "quote": "direction of positive charge flow"
+     },
+     "tier": 2,
+     "verifiedBy": 0,
+     "contested": false
+    },
+    {
+     "text": "Microscopic drift speed is slow even though the electric signal through a circuit propagates rapidly.",
+     "anchor": {
+      "src": "openstax:university-physics-volume-2#9",
+      "loc": "9.2",
+      "quote": "constant velocity, known as the drift velocity"
+     },
+     "tier": 2,
+     "verifiedBy": 0,
+     "contested": false
+    },
+    {
+     "text": "Current can be measured using an ammeter.",
+     "anchor": {
+      "src": "https://en.wikipedia.org/wiki/Electric_current",
+      "loc": "extract",
+      "quote": "Current can be measured using an ammeter."
+     },
+     "tier": 2,
+     "verifiedBy": 0,
+     "contested": false
+    },
+    {
+     "text": "Mathematically, this is expressed as the line integral of the electric field along that path.",
+     "anchor": {
+      "src": "https://en.wikipedia.org/wiki/Voltage",
+      "loc": "extract",
+      "quote": "Mathematically, this is expressed as the line integral of the electric field along that path."
+     },
+     "tier": 2,
+     "verifiedBy": 0,
+     "contested": false
+    },
+    {
+     "text": "More specifically, Ohm's law states that the R in this relation is constant, independent of the current.",
+     "anchor": {
+      "src": "https://en.wikipedia.org/wiki/Electric_current",
+      "loc": "extract",
+      "quote": "More specifically, Ohm's law states that the R in this relation is constant, independent of the current."
+     },
+     "tier": 2,
+     "verifiedBy": 0,
+     "contested": false
+    },
+    {
+     "text": "It is defined as the net rate at which electric charge flows through a surface.",
+     "anchor": {
+      "src": "https://en.wikipedia.org/wiki/Electric_current",
+      "loc": "extract",
+      "quote": "It is defined as the net rate at which electric charge flows through a surface."
+     },
+     "tier": 2,
+     "verifiedBy": 0,
+     "contested": false
+    }
+   ],
+   "misconceptions": [
+    {
+     "text": "Students may think current is used up by circuit components.",
+     "corrective": "Charge is conserved; components transform energy while current continuity holds in series paths.",
+     "anchor": null,
+     "tier": 1
+    },
+    {
+     "text": "The aim of this study is to identify 10th grade students’ misconceptions related to electric current.",
+     "corrective": "Address directly: The aim of this study is to identify 10th grade students’ misconceptions related to electric current.",
+     "documentedIn": {
+      "title": "An investigation 10th grade students’ misconceptions about electric current",
+      "year": 2011,
+      "id": "https://doi.org/10.1016/j.sbspro.2011.04.036"
+     }
+    },
+    {
+     "text": "The findings showed that 10th grade students’ understanding of electric current is poor and also they have important and prevalent misconceptions.",
+     "corrective": "Address directly: The findings showed that 10th grade students’ understanding of electric current is poor and also they have important and prevalent misconceptions.",
+     "documentedIn": {
+      "title": "An investigation 10th grade students’ misconceptions about electric current",
+      "year": 2011,
+      "id": "https://doi.org/10.1016/j.sbspro.2011.04.036"
+     }
+    }
+   ],
+   "examples": [
+    {
+     "text": "A current of 2 A means 2 coulombs of charge pass a cross-section each second.",
+     "domain": "circuits",
+     "anchor": null
+    }
+   ],
+   "workedExamples": [],
+   "mcBank": [
+    {
+     "stem": "A current of 3 amperes means",
+     "options": [
+      "3 coulombs per second pass a point",
+      "3 volts are used each second",
+      "3 ohms flow through a wire",
+      "3 joules are stored per meter"
+     ],
+     "answerIndex": 0,
+     "explanationFactRef": 0,
+     "rationaleRefs": [
+      0
+     ]
+    }
+   ],
+   "edges": {
+    "recommends": [
+     "physics/resistance-ohms-law"
+    ]
+   },
+   "variants": [],
+   "freshness": {
+    "sourceEdition": "",
+    "reviewBy": "",
+    "volatility": "low"
+   },
+   "license": "CC-BY-4.0",
+   "attribution": [
+    "OpenStax University Physics Volume 2, Ch. 9"
+   ],
+   "standards": []
+  },
+  {
+   "id": "physics/resistance-ohms-law",
+   "rev": 2,
+   "term": "Ohmic resistance in electric circuits",
+   "aliases": [
+    "Ohm's law in circuits",
+    "electric circuit resistance",
+    "voltage-current relationship",
+    "ohmic conductor"
+   ],
+   "discipline": "physics",
+   "tags": [
+    "electricity",
+    "circuits"
+   ],
+   "level": "intro",
+   "difficulty": 2,
+   "bloomCeiling": "Apply",
+   "definition": {
+    "text": "Electrical resistance describes how strongly a material or device opposes current; Ohm's law relates voltage, current, and resistance for ohmic conductors.",
+    "anchor": {
+     "src": "openstax:university-physics-volume-2#9",
+     "loc": "9.4",
+     "quote": "The current that flows through most substances is directly proportional to the voltage V applied to it"
+    },
+    "tier": 2,
+    "verifiedBy": 0
+   },
+   "facts": [
+    {
+     "text": "For an ohmic device at fixed temperature, current is proportional to voltage.",
+     "anchor": {
+      "src": "openstax:university-physics-volume-2#9",
+      "loc": "9.4",
+      "quote": "current is proportional to the voltage"
+     },
+     "tier": 2,
+     "verifiedBy": 0,
+     "contested": false
+    },
+    {
+     "text": "Resistance depends on material, length, cross-sectional area, and temperature.",
+     "anchor": {
+      "src": "openstax:university-physics-volume-2#9",
+      "loc": "9.3",
+      "quote": "resistance depends on the geometry and material"
+     },
+     "tier": 2,
+     "verifiedBy": 0,
+     "contested": false
+    },
+    {
+     "text": "Examples of ohmic components are wires and resistors.",
+     "anchor": {
+      "src": "https://en.wikipedia.org/wiki/Electrical_resistance_and_conductance",
+      "loc": "extract",
+      "quote": "Examples of ohmic components are wires and resistors."
+     },
+     "tier": 2,
+     "verifiedBy": 0,
+     "contested": false
+    },
+    {
+     "text": "Thus, Ohm's coefficients are, a = E R , b = r R . {\\displaystyle a={\\frac {\\mathcal {E}}{\\mathcal {R}}},\\quad b={\\frac {\\mathcal {r}}{\\mathcal {R}}}.} Ohm's law was probably the most important of the early quantitative descriptions of the physics of electricity.",
+     "anchor": {
+      "src": "https://en.wikipedia.org/wiki/Ohm's_law",
+      "loc": "extract",
+      "quote": "Thus, Ohm's coefficients are, a = E R , b = r R . {\\displaystyle a={\\frac {\\mathcal {E}}{\\mathcal {R}}},\\quad b={\\frac {\\mathcal {r}}{\\mathcal {R}}}.} Ohm's law was probably the most important of the early quantitative descriptions of the physics of electricity."
+     },
+     "tier": 2,
+     "verifiedBy": 0,
+     "contested": false
+    },
+    {
+     "text": "More specifically, Ohm's law states that the R in this relation is constant, independent of the current.",
+     "anchor": {
+      "src": "https://en.wikipedia.org/wiki/Ohm's_law",
+      "loc": "extract",
+      "quote": "More specifically, Ohm's law states that the R in this relation is constant, independent of the current."
+     },
+     "tier": 2,
+     "verifiedBy": 0,
+     "contested": false
+    },
+    {
+     "text": "For example, a wire's resistance is higher if it is long and thin, and lower if it is short and thick.",
+     "anchor": {
+      "src": "https://en.wikipedia.org/wiki/Electrical_resistance_and_conductance",
+      "loc": "extract",
+      "quote": "For example, a wire's resistance is higher if it is long and thin, and lower if it is short and thick."
+     },
+     "tier": 2,
+     "verifiedBy": 0,
+     "contested": false
+    }
+   ],
+   "misconceptions": [
+    {
+     "text": "Students may apply Ohm's law to every device without checking whether it is ohmic.",
+     "corrective": "Ohm's law is a model for ohmic behavior, not a universal device law.",
+     "anchor": null,
+     "tier": 1
+    },
+    {
+     "text": "This study aims to determine the misconceptions and level of understanding of physics education students on dynamic electricity.",
+     "corrective": "Address directly: This study aims to determine the misconceptions and level of understanding of physics education students on dynamic electricity.",
+     "documentedIn": {
+      "title": "Identifikasi Miskonsepsi dan Tingkat Pemahaman Mahasiswa Tadris Fisika pada Materi Listrik Dinamis Menggunakan 3-Tier Diagnostic Test",
+      "year": 2020,
+      "id": "https://doi.org/10.24014/jnsi.v3i2.9911"
+     }
+    },
+    {
+     "text": "In the concept of current and electric voltage, students who are included in the full understanding category are 26% and 29% understand partially with the low category and the level of misconception reaches 45%.",
+     "corrective": "Address directly: In the concept of current and electric voltage, students who are included in the full understanding category are 26% and 29% understand partially with the low category and the level of misconception reaches 45%.",
+     "documentedIn": {
+      "title": "Identifikasi Miskonsepsi dan Tingkat Pemahaman Mahasiswa Tadris Fisika pada Materi Listrik Dinamis Menggunakan 3-Tier Diagnostic Test",
+      "year": 2020,
+      "id": "https://doi.org/10.24014/jnsi.v3i2.9911"
+     }
+    }
+   ],
+   "examples": [
+    {
+     "text": "Doubling the voltage across an ohmic resistor doubles the current.",
+     "domain": "circuits",
+     "anchor": null
+    }
+   ],
+   "workedExamples": [],
+   "mcBank": [
+    {
+     "stem": "For an ohmic resistor, if voltage doubles while resistance stays fixed, current",
+     "options": [
+      "doubles",
+      "halves",
+      "stays zero",
+      "becomes unrelated to voltage"
+     ],
+     "answerIndex": 0,
+     "explanationFactRef": 0,
+     "rationaleRefs": [
+      0
+     ]
+    }
+   ],
+   "edges": {
+    "requires": [
+     "physics/electric-current"
+    ],
+    "recommends": [
+     "physics/dc-circuits"
+    ]
+   },
+   "variants": [],
+   "freshness": {
+    "sourceEdition": "",
+    "reviewBy": "",
+    "volatility": "low"
+   },
+   "license": "CC-BY-4.0",
+   "attribution": [
+    "OpenStax University Physics Volume 2, Ch. 9"
+   ],
+   "standards": []
+  },
+  {
+   "id": "physics/dc-circuits",
+   "rev": 2,
+   "term": "DC circuits",
+   "aliases": [
+    "series circuit",
+    "parallel circuit",
+    "equivalent resistance",
+    "Kirchhoff rules",
+    "circuit labs"
+   ],
+   "discipline": "physics",
+   "tags": [
+    "electricity",
+    "circuits"
+   ],
+   "level": "intro",
+   "difficulty": 3,
+   "bloomCeiling": "Analyze",
+   "definition": {
+    "text": "A DC circuit is a conducting path with steady current, sources, and components whose voltages and currents obey conservation rules.",
+    "anchor": {
+     "src": "openstax:university-physics-volume-2#10",
+     "loc": "10.1",
+     "quote": "direct-current circuits"
+    },
+    "tier": 2,
+    "verifiedBy": 0
+   },
+   "facts": [
+    {
+     "text": "Series components share the same current; parallel branches share the same voltage.",
+     "anchor": {
+      "src": "openstax:university-physics-volume-2#10",
+      "loc": "10.2",
+      "quote": "series and parallel resistors"
+     },
+     "tier": 2,
+     "verifiedBy": 0,
+     "contested": false
+    },
+    {
+     "text": "Kirchhoff's junction rule expresses charge conservation, and the loop rule expresses energy conservation.",
+     "anchor": {
+      "src": "openstax:university-physics-volume-2#10",
+      "loc": "10.3",
+      "quote": "Kirchhoff's rules"
+     },
+     "tier": 2,
+     "verifiedBy": 0,
+     "contested": false
+    },
+    {
+     "text": "Networks designed to this model are called distributed-element circuits.",
+     "anchor": {
+      "src": "https://en.wikipedia.org/wiki/Electrical_network",
+      "loc": "extract",
+      "quote": "Networks designed to this model are called distributed-element circuits."
+     },
+     "tier": 2,
+     "verifiedBy": 0,
+     "contested": false
+    },
+    {
+     "text": "Every time a diode switches from on to off or vice versa, the configuration of the linear network changes.",
+     "anchor": {
+      "src": "https://en.wikipedia.org/wiki/Electrical_network",
+      "loc": "extract",
+      "quote": "Every time a diode switches from on to off or vice versa, the configuration of the linear network changes."
+     },
+     "tier": 2,
+     "verifiedBy": 0,
+     "contested": false
+    },
+    {
+     "text": "In a series circuit, every device must function for the circuit to be complete.",
+     "anchor": {
+      "src": "https://en.wikipedia.org/wiki/Series_and_parallel_circuits",
+      "loc": "extract",
+      "quote": "In a series circuit, every device must function for the circuit to be complete."
+     },
+     "tier": 2,
+     "verifiedBy": 0,
+     "contested": false
+    },
+    {
+     "text": "They consist of passive elements like resistors and capacitors.",
+     "anchor": {
+      "src": "https://en.wikipedia.org/wiki/Electrical_network",
+      "loc": "extract",
+      "quote": "They consist of passive elements like resistors and capacitors."
+     },
+     "tier": 2,
+     "verifiedBy": 0,
+     "contested": false
+    }
+   ],
+   "misconceptions": [
+    {
+     "text": "Students may think physically close resistors must be in series.",
+     "corrective": "Series and parallel are defined by current paths and node connections, not visual proximity.",
+     "anchor": null,
+     "tier": 1
+    },
+    {
+     "text": "The purpose of this study was twofold: first to investigate the effect of conceptual change oriented instruction accompanied by concept cartoon worksheet with simulation on students’ conceptual understanding and second to remedy their misconceptions of direct current electric circuits.",
+     "corrective": "Address directly: The purpose of this study was twofold: first to investigate the effect of conceptual change oriented instruction accompanied by concept cartoon worksheet with simulation on students’ conceptual understanding and second to remedy their misconceptions of direct current electric circuits.",
+     "documentedIn": {
+      "title": "Effect of Conceptual Change Oriented Instruction on Students’ Conceptual Understanding and Decreasing Their Misconceptions in DC Electric Circuits",
+      "year": 2013,
+      "id": "https://doi.org/10.4236/ce.2013.44041"
+     }
+    },
+    {
+     "text": "Students’ conceptual understanding and misconceptions were measured by a tree-tired misconception test.",
+     "corrective": "Address directly: Students’ conceptual understanding and misconceptions were measured by a tree-tired misconception test.",
+     "documentedIn": {
+      "title": "Effect of Conceptual Change Oriented Instruction on Students’ Conceptual Understanding and Decreasing Their Misconceptions in DC Electric Circuits",
+      "year": 2013,
+      "id": "https://doi.org/10.4236/ce.2013.44041"
+     }
+    }
+   ],
+   "examples": [
+    {
+     "text": "Two bulbs on separate branches across the same battery are in parallel and share the battery voltage.",
+     "domain": "circuits",
+     "anchor": null
+    }
+   ],
+   "workedExamples": [],
+   "mcBank": [
+    {
+     "stem": "In a parallel resistor network connected across one battery, each branch has",
+     "options": [
+      "the same voltage",
+      "the same current no matter resistance",
+      "zero resistance",
+      "no energy transfer"
+     ],
+     "answerIndex": 0,
+     "explanationFactRef": 0,
+     "rationaleRefs": [
+      0
+     ]
+    }
+   ],
+   "edges": {
+    "requires": [
+     "physics/resistance-ohms-law"
+    ],
+    "instanceOf": [
+     {
+      "archetype": "method/conservation-balance",
+      "confidence": 0.9,
+      "mapping": {
+       "quantity": "charge at a junction and energy around a loop",
+       "system": "a circuit junction or loop",
+       "inputs": "currents entering a junction or voltage rises around a loop",
+       "outputs": "currents leaving a junction or voltage drops around a loop"
+      },
+      "verified": true
+     }
+    ]
+   },
+   "variants": [],
+   "freshness": {
+    "sourceEdition": "",
+    "reviewBy": "",
+    "volatility": "low"
+   },
+   "license": "CC-BY-4.0",
+   "attribution": [
+    "OpenStax University Physics Volume 2, Ch. 10"
+   ],
+   "standards": []
+  },
+  {
+   "id": "physics/magnetic-field",
+   "rev": 2,
+   "term": "Magnetic field",
+   "aliases": [
+    "magnetic fields",
+    "magnetic field lines",
+    "magnetism"
+   ],
+   "discipline": "physics",
+   "tags": [
+    "magnetism"
+   ],
+   "level": "intro",
+   "difficulty": 2,
+   "bloomCeiling": "Apply",
+   "definition": {
+    "text": "A magnetic field describes magnetic influence in space and determines magnetic forces on moving charges and currents.",
+    "anchor": {
+     "src": "openstax:university-physics-volume-2#11",
+     "loc": "11.1",
+     "quote": "magnetic field"
+    },
+    "tier": 2,
+    "verifiedBy": 0
+   },
+   "facts": [
+    {
+     "text": "Magnetic field lines form closed loops and do not begin or end on isolated magnetic charges.",
+     "anchor": {
+      "src": "openstax:university-physics-volume-2#11",
+      "loc": "11.1",
+      "quote": "magnetic field lines are continuous"
+     },
+     "tier": 2,
+     "verifiedBy": 0,
+     "contested": false
+    },
+    {
+     "text": "Currents produce magnetic fields.",
+     "anchor": {
+      "src": "openstax:university-physics-volume-2#12",
+      "loc": "12.1",
+      "quote": "currents produce magnetic fields"
+     },
+     "tier": 2,
+     "verifiedBy": 0,
+     "contested": false
+    },
+    {
+     "text": "The global definition of the Earth's field is based on a mathematical model.",
+     "anchor": {
+      "src": "https://en.wikipedia.org/wiki/Earth's_magnetic_field",
+      "loc": "extract",
+      "quote": "The global definition of the Earth's field is based on a mathematical model."
+     },
+     "tier": 2,
+     "verifiedBy": 0,
+     "contested": false
+    },
+    {
+     "text": "The intensity (F) of the field is proportional to the force it exerts on a magnet.",
+     "anchor": {
+      "src": "https://en.wikipedia.org/wiki/Earth's_magnetic_field",
+      "loc": "extract",
+      "quote": "The intensity (F) of the field is proportional to the force it exerts on a magnet."
+     },
+     "tier": 2,
+     "verifiedBy": 0,
+     "contested": false
+    },
+    {
+     "text": "The local definition is the point where the magnetic field is vertical.",
+     "anchor": {
+      "src": "https://en.wikipedia.org/wiki/Earth's_magnetic_field",
+      "loc": "extract",
+      "quote": "The local definition is the point where the magnetic field is vertical."
+     },
+     "tier": 2,
+     "verifiedBy": 0,
+     "contested": false
+    },
+    {
+     "text": "At any location, the Earth's magnetic field can be represented by a three-dimensional vector.",
+     "anchor": {
+      "src": "https://en.wikipedia.org/wiki/Earth's_magnetic_field",
+      "loc": "extract",
+      "quote": "At any location, the Earth's magnetic field can be represented by a three-dimensional vector."
+     },
+     "tier": 2,
+     "verifiedBy": 0,
+     "contested": false
+    }
+   ],
+   "misconceptions": [
+    {
+     "text": "Students may expect magnetic field lines to start at a north pole and stop at a south pole.",
+     "corrective": "Magnetic field lines continue through the magnet and form closed loops.",
+     "anchor": null,
+     "tier": 1
+    },
+    {
+     "text": "Abstract This study examined university engineering and physical science students' misconceptions of the nature of magnetic field.",
+     "corrective": "Address directly: Abstract This study examined university engineering and physical science students' misconceptions of the nature of magnetic field.",
+     "documentedIn": {
+      "title": "Difficulties in learning the introductory magnetic field theory in the first years of university",
+      "year": 2004,
+      "id": "https://doi.org/10.1002/sce.10119"
+     }
+    },
+    {
+     "text": "It is concluded that although the questionnaire and interviews involved a wide range of phenomena, the misconceptions identified fall into four main categories of explanations which can inform curriculum development by identifying the strengths and weaknesses of the students' conceptions.",
+     "corrective": "Address directly: It is concluded that although the questionnaire and interviews involved a wide range of phenomena, the misconceptions identified fall into four main categories of explanations which can inform curriculum development by identifying the strengths and weaknesses of the students' conceptions.",
+     "documentedIn": {
+      "title": "Difficulties in learning the introductory magnetic field theory in the first years of university",
+      "year": 2004,
+      "id": "https://doi.org/10.1002/sce.10119"
+     }
+    }
+   ],
+   "examples": [
+    {
+     "text": "A compass needle aligns with the local magnetic field near a current-carrying wire.",
+     "domain": "magnetism",
+     "anchor": null
+    }
+   ],
+   "workedExamples": [],
+   "mcBank": [
+    {
+     "stem": "A steady current in a long straight wire produces",
+     "options": [
+      "a magnetic field circling the wire",
+      "only an electric field inside the wire",
+      "no field outside the wire",
+      "isolated magnetic charges"
+     ],
+     "answerIndex": 0,
+     "explanationFactRef": 1,
+     "rationaleRefs": [
+      0
+     ]
+    }
+   ],
+   "edges": {
+    "requires": [
+     "physics/electric-current"
+    ],
+    "recommends": [
+     "physics/magnetic-force"
+    ]
+   },
+   "variants": [],
+   "freshness": {
+    "sourceEdition": "",
+    "reviewBy": "",
+    "volatility": "low"
+   },
+   "license": "CC-BY-4.0",
+   "attribution": [
+    "OpenStax University Physics Volume 2, Ch. 11-12"
+   ],
+   "standards": []
+  },
+  {
+   "id": "physics/magnetic-force",
+   "rev": 2,
+   "term": "Magnetic force",
+   "aliases": [
+    "magnetic force law",
+    "Lorentz force",
+    "moving charge",
+    "right-hand rule"
+   ],
+   "discipline": "physics",
+   "tags": [
+    "magnetism"
+   ],
+   "level": "intro",
+   "difficulty": 3,
+   "bloomCeiling": "Analyze",
+   "definition": {
+    "text": "Magnetic force on a moving charge depends on charge, velocity, magnetic field, and the angle between velocity and field.",
+    "anchor": {
+     "src": "openstax:university-physics-volume-2#11",
+     "loc": "11.4",
+     "quote": "force on a moving charge in a magnetic field"
+    },
+    "tier": 2,
+    "verifiedBy": 0
+   },
+   "facts": [
+    {
+     "text": "The magnetic force is perpendicular to both the velocity and the magnetic field.",
+     "anchor": {
+      "src": "openstax:university-physics-volume-2#11",
+      "loc": "11.4",
+      "quote": "perpendicular to the velocity and magnetic field"
+     },
+     "tier": 2,
+     "verifiedBy": 0,
+     "contested": false
+    },
+    {
+     "text": "A charge moving parallel to a magnetic field experiences no magnetic force.",
+     "anchor": {
+      "src": "openstax:university-physics-volume-2#11",
+      "loc": "11.4",
+      "quote": "zero when velocity is parallel to the field"
+     },
+     "tier": 2,
+     "verifiedBy": 0,
+     "contested": false
+    },
+    {
+     "text": "Physically, an accelerating charge emits radiation (according to the Larmor formula), which carries momentum away from the charge.",
+     "anchor": {
+      "src": "https://en.wikipedia.org/wiki/Abraham%E2%80%93Lorentz_force",
+      "loc": "extract",
+      "quote": "Physically, an accelerating charge emits radiation (according to the Larmor formula), which carries momentum away from the charge."
+     },
+     "tier": 2,
+     "verifiedBy": 0,
+     "contested": false
+    },
+    {
+     "text": "The force is proportional to the square of the object's charge, multiplied by the jerk that it is experiencing.",
+     "anchor": {
+      "src": "https://en.wikipedia.org/wiki/Abraham%E2%80%93Lorentz_force",
+      "loc": "extract",
+      "quote": "The force is proportional to the square of the object's charge, multiplied by the jerk that it is experiencing."
+     },
+     "tier": 2,
+     "verifiedBy": 0,
+     "contested": false
+    },
+    {
+     "text": "The Abraham–Lorentz force, a generalization of Lorentz self-force for arbitrary velocities is given by: F r a d = μ 0 q 2 6 π c ( γ 2 a ˙ + γ 4 v ( v ⋅ a ˙ ) c 2 + 3 γ 4 a ( v ⋅ a ) c 2 + 3 γ 6 v ( v ⋅ a ) 2 c 4 ) {\\displaystyle \\m",
+     "anchor": {
+      "src": "https://en.wikipedia.org/wiki/Abraham%E2%80%93Lorentz_force",
+      "loc": "extract",
+      "quote": "The Abraham–Lorentz force, a generalization of Lorentz self-force for arbitrary velocities is given by: F r a d = μ 0 q 2 6 π c ( γ 2 a ˙ + γ 4 v ( v ⋅ a ˙ ) c 2 + 3 γ 4 a ( v ⋅ a ) c 2 + 3 γ 6 v ( v ⋅ a ) 2 c 4 ) {\\displaystyle \\m"
+     },
+     "tier": 2,
+     "verifiedBy": 0,
+     "contested": false
+    },
+    {
+     "text": "In a uniform magnetic field, this results in circular or helical trajectories, known as cyclotron motion.",
+     "anchor": {
+      "src": "https://en.wikipedia.org/wiki/Lorentz_force",
+      "loc": "extract",
+      "quote": "In a uniform magnetic field, this results in circular or helical trajectories, known as cyclotron motion."
+     },
+     "tier": 2,
+     "verifiedBy": 0,
+     "contested": false
+    }
+   ],
+   "misconceptions": [
+    {
+     "text": "Students may aim magnetic force in the same direction as the magnetic field.",
+     "corrective": "Use the cross-product/right-hand-rule direction; the force is perpendicular to the field and motion.",
+     "anchor": null,
+     "tier": 1
+    },
+    {
+     "text": "Abstract This study examined university engineering and physical science students' misconceptions of the nature of magnetic field.",
+     "corrective": "Address directly: Abstract This study examined university engineering and physical science students' misconceptions of the nature of magnetic field.",
+     "documentedIn": {
+      "title": "Difficulties in learning the introductory magnetic field theory in the first years of university",
+      "year": 2004,
+      "id": "https://doi.org/10.1002/sce.10119"
+     }
+    },
+    {
+     "text": "It is concluded that although the questionnaire and interviews involved a wide range of phenomena, the misconceptions identified fall into four main categories of explanations which can inform curriculum development by identifying the strengths and weaknesses of the students' conceptions.",
+     "corrective": "Address directly: It is concluded that although the questionnaire and interviews involved a wide range of phenomena, the misconceptions identified fall into four main categories of explanations which can inform curriculum development by identifying the strengths and weaknesses of the students' conceptions.",
+     "documentedIn": {
+      "title": "Difficulties in learning the introductory magnetic field theory in the first years of university",
+      "year": 2004,
+      "id": "https://doi.org/10.1002/sce.10119"
+     }
+    }
+   ],
+   "examples": [
+    {
+     "text": "A charged particle entering a uniform magnetic field perpendicular to its velocity curves in a circular path.",
+     "domain": "magnetism",
+     "anchor": null
+    }
+   ],
+   "workedExamples": [],
+   "mcBank": [
+    {
+     "stem": "A positive charge moves exactly parallel to a uniform magnetic field. The magnetic force is",
+     "options": [
+      "zero",
+      "maximum",
+      "opposite the velocity",
+      "toward the north pole"
+     ],
+     "answerIndex": 0,
+     "explanationFactRef": 1,
+     "rationaleRefs": [
+      0
+     ]
+    }
+   ],
+   "edges": {
+    "requires": [
+     "physics/magnetic-field"
+    ]
+   },
+   "variants": [],
+   "freshness": {
+    "sourceEdition": "",
+    "reviewBy": "",
+    "volatility": "low"
+   },
+   "license": "CC-BY-4.0",
+   "attribution": [
+    "OpenStax University Physics Volume 2, Ch. 11"
+   ],
+   "standards": []
+  },
+  {
+   "id": "physics/faradays-law",
+   "rev": 2,
+   "term": "Faraday's law of induction",
+   "aliases": [
+    "Faraday law",
+    "electromagnetic induction",
+    "magnetic flux",
+    "induced emf",
+    "Lenz's law"
+   ],
+   "discipline": "physics",
+   "tags": [
+    "magnetism",
+    "induction"
+   ],
+   "level": "intro",
+   "difficulty": 3,
+   "bloomCeiling": "Analyze",
+   "definition": {
+    "text": "Faraday's law states that a changing magnetic flux through a circuit induces an emf, with direction constrained by Lenz's law.",
+    "anchor": {
+     "src": "openstax:university-physics-volume-2#13",
+     "loc": "13.2",
+     "quote": "changing magnetic flux induces an emf"
+    },
+    "tier": 2,
+    "verifiedBy": 0
+   },
+   "facts": [
+    {
+     "text": "Induced current direction opposes the change in magnetic flux that produced it.",
+     "anchor": {
+      "src": "openstax:university-physics-volume-2#13",
+      "loc": "13.3",
+      "quote": "opposes the change in flux"
+     },
+     "tier": 2,
+     "verifiedBy": 0,
+     "contested": false
+    },
+    {
+     "text": "Changing field strength, area, or orientation can change magnetic flux.",
+     "anchor": {
+      "src": "openstax:university-physics-volume-2#13",
+      "loc": "13.2",
+      "quote": "magnetic flux"
+     },
+     "tier": 2,
+     "verifiedBy": 0,
+     "contested": false
+    },
+    {
+     "text": "Faraday explained these phenomena using the concept of lines of force.",
+     "anchor": {
+      "src": "https://en.wikipedia.org/wiki/Faraday's_law_of_induction",
+      "loc": "extract",
+      "quote": "Faraday explained these phenomena using the concept of lines of force."
+     },
+     "tier": 2,
+     "verifiedBy": 1,
+     "contested": false
+    },
+    {
+     "text": "Lenz's law describes the direction of the induced field.",
+     "anchor": {
+      "src": "https://en.wikipedia.org/wiki/Electromagnetic_induction",
+      "loc": "extract",
+      "quote": "Lenz's law describes the direction of the induced field."
+     },
+     "tier": 2,
+     "verifiedBy": 0,
+     "contested": false
+    },
+    {
+     "text": "When the flux changes, an emf is induced around the loop.",
+     "anchor": {
+      "src": "https://en.wikipedia.org/wiki/Faraday's_law_of_induction",
+      "loc": "extract",
+      "quote": "When the flux changes, an emf is induced around the loop."
+     },
+     "tier": 2,
+     "verifiedBy": 0,
+     "contested": false
+    },
+    {
+     "text": "Felici came up with Felici's law, a version of the law of induction.",
+     "anchor": {
+      "src": "https://en.wikipedia.org/wiki/Faraday's_law_of_induction",
+      "loc": "extract",
+      "quote": "Felici came up with Felici's law, a version of the law of induction."
+     },
+     "tier": 2,
+     "verifiedBy": 0,
+     "contested": false
+    }
+   ],
+   "misconceptions": [
+    {
+     "text": "Students may think any magnetic field automatically induces current.",
+     "corrective": "Induction requires changing magnetic flux through the loop.",
+     "anchor": null,
+     "tier": 1
+    },
+    {
+     "text": "By calculating the line integral of the electric field and applying Faraday's law of electromagnetic induction, one can not only obtain correct results but also present a clear physical picture of the circuit's interior, clarifying some widespread misconceptions.",
+     "corrective": "Address directly: By calculating the line integral of the electric field and applying Faraday's law of electromagnetic induction, one can not only obtain correct results but also present a clear physical picture of the circuit's interior, clarifying some widespread misconceptions.",
+     "documentedIn": {
+      "title": "APPLICATION OF FARADAY'S LAW OF ELECTROMAGNETIC INDUCTION IN CIRCUIT ANALYSIS",
+      "year": 2025,
+      "id": "https://doi.org/10.26599/phys.2025.9320109"
+     }
+    },
+    {
+     "text": "&lt;p style=\"text-align:justify\"&gt;This study investigated the effects of analogy on the elimination of students’ misconceptions about direct current circuits, students’ achievement and the attitudes towards physics lessons.",
+     "corrective": "Address directly: &lt;p style=\"text-align:justify\"&gt;This study investigated the effects of analogy on the elimination of students’ misconceptions about direct current circuits, students’ achievement and the attitudes towards physics lessons.",
+     "documentedIn": {
+      "title": "The effects of analogy on students' understanding of direct current circuits and attitudes towards physics lessons",
+      "year": 2012,
+      "id": "https://doi.org/10.12973/eu-jer.1.3.211"
+     }
+    }
+   ],
+   "examples": [
+    {
+     "text": "Moving a magnet toward a coil changes flux and induces a current whose field resists the change.",
+     "domain": "induction",
+     "anchor": null
+    }
+   ],
+   "workedExamples": [],
+   "mcBank": [
+    {
+     "stem": "A stationary loop in a constant magnetic field has no induced emf because",
+     "options": [
+      "the magnetic flux is not changing",
+      "magnetic fields cannot act on loops",
+      "the loop contains no charges",
+      "Lenz's law cancels all fields"
+     ],
+     "answerIndex": 0,
+     "explanationFactRef": 1,
+     "rationaleRefs": [
+      0
+     ]
+    }
+   ],
+   "edges": {
+    "requires": [
+     "physics/magnetic-field"
+    ],
+    "recommends": [
+     "physics/inductance"
+    ]
+   },
+   "variants": [],
+   "freshness": {
+    "sourceEdition": "",
+    "reviewBy": "",
+    "volatility": "low"
+   },
+   "license": "CC-BY-4.0",
+   "attribution": [
+    "OpenStax University Physics Volume 2, Ch. 13"
+   ],
+   "standards": []
+  },
+  {
+   "id": "physics/inductance",
+   "rev": 2,
+   "term": "Inductance",
+   "aliases": [
+    "inductor",
+    "self-inductance",
+    "magnetic energy",
+    "back emf"
+   ],
+   "discipline": "physics",
+   "tags": [
+    "magnetism",
+    "circuits"
+   ],
+   "level": "intro",
+   "difficulty": 3,
+   "bloomCeiling": "Apply",
+   "definition": {
+    "text": "Inductance measures how a circuit element resists changes in current by inducing emf through changing magnetic flux.",
+    "anchor": {
+     "src": "openstax:university-physics-volume-2#14",
+     "loc": "14.1",
+     "quote": "self-induced emf opposes the change in current"
+    },
+    "tier": 2,
+    "verifiedBy": 0
+   },
+   "facts": [
+    {
+     "text": "An inductor stores energy in its magnetic field.",
+     "anchor": {
+      "src": "openstax:university-physics-volume-2#14",
+      "loc": "14.3",
+      "quote": "energy stored in the magnetic field"
+     },
+     "tier": 2,
+     "verifiedBy": 0,
+     "contested": false
+    },
+    {
+     "text": "A changing current creates a changing magnetic flux that induces back emf.",
+     "anchor": {
+      "src": "openstax:university-physics-volume-2#14",
+      "loc": "14.1",
+      "quote": "Inductance is the property of a device that tells us how effectively it induces an emf in another device"
+     },
+     "tier": 2,
+     "verifiedBy": 0,
+     "contested": false
+    },
+    {
+     "text": "Their ratio defines the inductance L {\\displaystyle L} .",
+     "anchor": {
+      "src": "https://en.wikipedia.org/wiki/Inductor",
+      "loc": "extract",
+      "quote": "Their ratio defines the inductance L {\\displaystyle L} ."
+     },
+     "tier": 2,
+     "verifiedBy": 0,
+     "contested": false
+    },
+    {
+     "text": "For example, if the current is increased, the magnetic field increases.",
+     "anchor": {
+      "src": "https://en.wikipedia.org/wiki/Inductor",
+      "loc": "extract",
+      "quote": "For example, if the current is increased, the magnetic field increases."
+     },
+     "tier": 2,
+     "verifiedBy": 0,
+     "contested": false
+    },
+    {
+     "text": "In the measurement of magnetic circuits, it is equivalent to ⁠weber/ampere⁠.",
+     "anchor": {
+      "src": "https://en.wikipedia.org/wiki/Inductor",
+      "loc": "extract",
+      "quote": "In the measurement of magnetic circuits, it is equivalent to ⁠weber/ampere⁠."
+     },
+     "tier": 2,
+     "verifiedBy": 0,
+     "contested": false
+    },
+    {
+     "text": "This is usually taken to be the constitutive relation (defining equation) of the inductor.",
+     "anchor": {
+      "src": "https://en.wikipedia.org/wiki/Inductor",
+      "loc": "extract",
+      "quote": "This is usually taken to be the constitutive relation (defining equation) of the inductor."
+     },
+     "tier": 2,
+     "verifiedBy": 0,
+     "contested": false
+    }
+   ],
+   "misconceptions": [
+    {
+     "text": "Students may think an inductor simply blocks current.",
+     "corrective": "An inductor resists changes in current; steady current can pass through an ideal inductor.",
+     "anchor": null,
+     "tier": 1
+    }
+   ],
+   "examples": [
+    {
+     "text": "A coil in an RL circuit slows the rise of current after a switch closes.",
+     "domain": "circuits",
+     "anchor": null
+    }
+   ],
+   "workedExamples": [],
+   "mcBank": [
+    {
+     "stem": "An ideal inductor primarily resists",
+     "options": [
+      "changes in current",
+      "constant current itself",
+      "all voltage",
+      "electric charge conservation"
+     ],
+     "answerIndex": 0,
+     "explanationFactRef": 1,
+     "rationaleRefs": [
+      0
+     ]
+    }
+   ],
+   "edges": {
+    "requires": [
+     "physics/faradays-law"
+    ]
+   },
+   "variants": [],
+   "freshness": {
+    "sourceEdition": "",
+    "reviewBy": "",
+    "volatility": "low"
+   },
+   "license": "CC-BY-4.0",
+   "attribution": [
+    "OpenStax University Physics Volume 2, Ch. 14"
+   ],
+   "standards": []
+  },
+  {
+   "id": "physics/maxwell-equations",
+   "rev": 2,
+   "term": "Maxwell's equations",
+   "aliases": [
+    "Maxwell equations",
+    "displacement current",
+    "electromagnetic wave propagation",
+    "charge conservation in fields"
+   ],
+   "discipline": "physics",
+   "tags": [
+    "electricity",
+    "magnetism"
+   ],
+   "level": "intro",
+   "difficulty": 4,
+   "bloomCeiling": "Evaluate",
+   "definition": {
+    "text": "Maxwell's equations summarize how electric and magnetic fields are produced by charges, currents, and changing fields.",
+    "anchor": {
+     "src": "openstax:university-physics-volume-2#16",
+     "loc": "16.1",
+     "quote": "Maxwell's equations"
+    },
+    "tier": 2,
+    "verifiedBy": 0
+   },
+   "facts": [
+    {
+     "text": "The displacement-current term links changing electric fields to magnetic fields.",
+     "anchor": {
+      "src": "openstax:university-physics-volume-2#16",
+      "loc": "16.1",
+      "quote": "displacement current"
+     },
+     "tier": 2,
+     "verifiedBy": 0,
+     "contested": false
+    },
+    {
+     "text": "Maxwell's equations predict electromagnetic waves that propagate through space.",
+     "anchor": {
+      "src": "openstax:university-physics-volume-2#16",
+      "loc": "16.3",
+      "quote": "electromagnetic waves"
+     },
+     "tier": 2,
+     "verifiedBy": 0,
+     "contested": false
+    },
+    {
+     "text": "The equations provide a mathematical model for electric, optical, and radio technologies, such as power generation, electric motors, wireless communication, lenses, radar, etc.",
+     "anchor": {
+      "src": "https://en.wikipedia.org/wiki/Maxwell's_equations",
+      "loc": "extract",
+      "quote": "The equations provide a mathematical model for electric, optical, and radio technologies, such as power generation, electric motors, wireless communication, lenses, radar, etc."
+     },
+     "tier": 2,
+     "verifiedBy": 0,
+     "contested": false
+    },
+    {
+     "text": "These works had already laid the basis of the formulation of the Maxwell's equations.",
+     "anchor": {
+      "src": "https://en.wikipedia.org/wiki/History_of_Maxwell's_equations",
+      "loc": "extract",
+      "quote": "These works had already laid the basis of the formulation of the Maxwell's equations."
+     },
+     "tier": 2,
+     "verifiedBy": 0,
+     "contested": false
+    },
+    {
+     "text": "After that, Maxwell's equations were fully accepted by scientists.",
+     "anchor": {
+      "src": "https://en.wikipedia.org/wiki/History_of_Maxwell's_equations",
+      "loc": "extract",
+      "quote": "After that, Maxwell's equations were fully accepted by scientists."
+     },
+     "tier": 2,
+     "verifiedBy": 0,
+     "contested": false
+    },
+    {
+     "text": "The relationships amongst electricity, magnetism, and the speed of light can be summarized by the modern equation: c = 1 μ 0 ε 0 . {\\displaystyle c={\\frac {1}{\\sqrt {\\mu _{0}\\varepsilon _{0}}}}\\ .} The left-hand side is the speed of light and the right-hand side is a quantity related to the constants that appear in the equations governing electricity and magnetism.",
+     "anchor": {
+      "src": "https://en.wikipedia.org/wiki/History_of_Maxwell's_equations",
+      "loc": "extract",
+      "quote": "The relationships amongst electricity, magnetism, and the speed of light can be summarized by the modern equation: c = 1 μ 0 ε 0 . {\\displaystyle c={\\frac {1}{\\sqrt {\\mu _{0}\\varepsilon _{0}}}}\\ .} The left-hand side is the speed of light and the right-hand side is a quantity related to the constants that appear in the equations governing electricity and magnetism."
+     },
+     "tier": 2,
+     "verifiedBy": 1,
+     "contested": false
+    }
+   ],
+   "misconceptions": [
+    {
+     "text": "Students may treat the four equations as disconnected formulas.",
+     "corrective": "The equations form a coupled field model linking sources, field changes, and wave propagation.",
+     "anchor": null,
+     "tier": 1
+    },
+    {
+     "text": "Electromagnetism, being much less intuitive than mechanics, where a lot of sources of misconceptions have been documented, has in addition to the common sources of misconceptions borrowed from mechanics other sources related to the abstract new concepts of electric and magnetic fields.",
+     "corrective": "Address directly: Electromagnetism, being much less intuitive than mechanics, where a lot of sources of misconceptions have been documented, has in addition to the common sources of misconceptions borrowed from mechanics other sources related to the abstract new concepts of electric and magnetic fields.",
+     "documentedIn": {
+      "title": "General students' misconceptions related to Electricity and Magnetism",
+      "year": 2005,
+      "id": "https://doi.org/10.48550/arxiv.physics/0503132"
+     }
+    },
+    {
+     "text": "This paper is the first general overview of the most important documented misconceptions related to E&amp;M.",
+     "corrective": "Address directly: This paper is the first general overview of the most important documented misconceptions related to E&amp;M.",
+     "documentedIn": {
+      "title": "General students' misconceptions related to Electricity and Magnetism",
+      "year": 2005,
+      "id": "https://doi.org/10.48550/arxiv.physics/0503132"
+     }
+    }
+   ],
+   "examples": [
+    {
+     "text": "A changing electric field between capacitor plates contributes to the magnetic field around the circuit.",
+     "domain": "electromagnetism",
+     "anchor": null
+    }
+   ],
+   "workedExamples": [],
+   "mcBank": [
+    {
+     "stem": "Maxwell added displacement current to explain how changing electric fields can",
+     "options": [
+      "produce magnetic fields",
+      "destroy charge",
+      "remove electric fields",
+      "make circuits resistance-free"
+     ],
+     "answerIndex": 0,
+     "explanationFactRef": 0,
+     "rationaleRefs": [
+      0
+     ]
+    }
+   ],
+   "edges": {
+    "requires": [
+     "physics/gausss-law",
+     "physics/faradays-law"
+    ],
+    "instanceOf": [
+     {
+      "archetype": "method/conservation-balance",
+      "confidence": 0.88,
+      "mapping": {
+       "quantity": "charge and field consistency",
+       "system": "coupled electric and magnetic fields",
+       "inputs": "charges, currents, and changing fields",
+       "outputs": "electric flux, magnetic circulation, and induced fields"
+      },
+      "verified": true
+     }
+    ]
+   },
+   "variants": [],
+   "freshness": {
+    "sourceEdition": "",
+    "reviewBy": "",
+    "volatility": "low"
+   },
+   "license": "CC-BY-4.0",
+   "attribution": [
+    "OpenStax University Physics Volume 2, Ch. 16"
+   ],
+   "standards": []
+  }
+ ],
+ "index": {
+  "postings": {
+   "electric": [
+    "physics/electric-charge",
+    "physics/electric-field",
+    "physics/gausss-law",
+    "physics/electric-potential",
+    "physics/electric-current",
+    "physics/resistance-ohms-law"
+   ],
+   "charge": [
+    "physics/electric-charge",
+    "physics/electric-field",
+    "physics/gausss-law",
+    "physics/electric-potential",
+    "physics/capacitance",
+    "physics/electric-current",
+    "physics/magnetic-force",
+    "physics/maxwell-equations"
+   ],
+   "conservation": [
+    "physics/electric-charge",
+    "physics/maxwell-equations"
+   ],
+   "quantization": [
+    "physics/electric-charge"
+   ],
+   "positive": [
+    "physics/electric-charge"
+   ],
+   "negative": [
+    "physics/electric-charge"
+   ],
+   "electricity": [
+    "physics/electric-charge",
+    "physics/electric-field",
+    "physics/gausss-law",
+    "physics/electric-potential",
+    "physics/capacitance",
+    "physics/electric-current",
+    "physics/resistance-ohms-law",
+    "physics/dc-circuits",
+    "physics/maxwell-equations"
+   ],
+   "electrostatic": [
+    "physics/electric-charge",
+    "physics/electric-field",
+    "physics/gausss-law",
+    "physics/electric-potential"
+   ],
+   "field": [
+    "physics/electric-field",
+    "physics/magnetic-field",
+    "physics/maxwell-equations"
+   ],
+   "lin": [
+    "physics/electric-field",
+    "physics/magnetic-field"
+   ],
+   "force": [
+    "physics/electric-field",
+    "physics/magnetic-force"
+   ],
+   "per": [
+    "physics/electric-field",
+    "physics/electric-potential"
+   ],
+   "unit": [
+    "physics/electric-field",
+    "physics/electric-potential"
+   ],
+   "test": [
+    "physics/electric-field"
+   ],
+   "gaus": [
+    "physics/gausss-law"
+   ],
+   "law": [
+    "physics/gausss-law",
+    "physics/resistance-ohms-law",
+    "physics/magnetic-force",
+    "physics/faradays-law"
+   ],
+   "flux": [
+    "physics/gausss-law",
+    "physics/faradays-law"
+   ],
+   "gaussian": [
+    "physics/gausss-law"
+   ],
+   "surface": [
+    "physics/gausss-law"
+   ],
+   "enclos": [
+    "physics/gausss-law"
+   ],
+   "spherical": [
+    "physics/gausss-law"
+   ],
+   "cylindrical": [
+    "physics/gausss-law"
+   ],
+   "planar": [
+    "physics/gausss-law"
+   ],
+   "symmetry": [
+    "physics/gausss-law"
+   ],
+   "potential": [
+    "physics/electric-potential",
+    "physics/capacitance"
+   ],
+   "voltage": [
+    "physics/electric-potential"
+   ],
+   "difference": [
+    "physics/electric-potential",
+    "physics/capacitance"
+   ],
+   "energy": [
+    "physics/electric-potential",
+    "physics/inductance"
+   ],
+   "capacitance": [
+    "physics/capacitance"
+   ],
+   "capacitor": [
+    "physics/capacitance"
+   ],
+   "parallel": [
+    "physics/capacitance",
+    "physics/dc-circuits"
+   ],
+   "plate": [
+    "physics/capacitance"
+   ],
+   "circuit": [
+    "physics/capacitance",
+    "physics/electric-current",
+    "physics/resistance-ohms-law",
+    "physics/dc-circuits",
+    "physics/inductance"
+   ],
+   "current": [
+    "physics/electric-current",
+    "physics/maxwell-equations"
+   ],
+   "flow": [
+    "physics/electric-current"
+   ],
+   "rate": [
+    "physics/electric-current"
+   ],
+   "resistance": [
+    "physics/electric-current",
+    "physics/resistance-ohms-law",
+    "physics/dc-circuits"
+   ],
+   "ohmic": [
+    "physics/resistance-ohms-law"
+   ],
+   "ohm": [
+    "physics/resistance-ohms-law"
+   ],
+   "voltage-current": [
+    "physics/resistance-ohms-law"
+   ],
+   "relationship": [
+    "physics/resistance-ohms-law"
+   ],
+   "conductor": [
+    "physics/resistance-ohms-law"
+   ],
+   "seri": [
+    "physics/dc-circuits"
+   ],
+   "equivalent": [
+    "physics/dc-circuits"
+   ],
+   "kirchhoff": [
+    "physics/dc-circuits"
+   ],
+   "rul": [
+    "physics/dc-circuits"
+   ],
+   "lab": [
+    "physics/dc-circuits"
+   ],
+   "magnetic": [
+    "physics/magnetic-field",
+    "physics/magnetic-force",
+    "physics/faradays-law",
+    "physics/inductance"
+   ],
+   "magnetism": [
+    "physics/magnetic-field",
+    "physics/magnetic-force",
+    "physics/faradays-law",
+    "physics/inductance",
+    "physics/maxwell-equations"
+   ],
+   "lorentz": [
+    "physics/magnetic-force"
+   ],
+   "mov": [
+    "physics/magnetic-force"
+   ],
+   "right-hand": [
+    "physics/magnetic-force"
+   ],
+   "rule": [
+    "physics/magnetic-force"
+   ],
+   "faraday": [
+    "physics/faradays-law"
+   ],
+   "induction": [
+    "physics/faradays-law"
+   ],
+   "electromagnetic": [
+    "physics/faradays-law",
+    "physics/maxwell-equations"
+   ],
+   "induc": [
+    "physics/faradays-law"
+   ],
+   "emf": [
+    "physics/faradays-law",
+    "physics/inductance"
+   ],
+   "lenz": [
+    "physics/faradays-law"
+   ],
+   "inductance": [
+    "physics/inductance"
+   ],
+   "inductor": [
+    "physics/inductance"
+   ],
+   "self-inductance": [
+    "physics/inductance"
+   ],
+   "back": [
+    "physics/inductance"
+   ],
+   "maxwell": [
+    "physics/maxwell-equations"
+   ],
+   "equation": [
+    "physics/maxwell-equations"
+   ],
+   "displacement": [
+    "physics/maxwell-equations"
+   ],
+   "wave": [
+    "physics/maxwell-equations"
+   ],
+   "propagation": [
+    "physics/maxwell-equations"
+   ]
+  }
+ }
+}
