@@ -48029,6 +48029,344 @@
     "grade": null,
     "date": "2026-07-05"
    }
+  },
+  {
+   "id": "gapfill:lit/ghazal-form:A-ghazal-is-just-any-poe-9b38",
+   "kernelId": "lit/ghazal-form",
+   "conceptName": "Ghazal",
+   "stem": "If you are analyzing a piece of poetry and believe that a ghazal is just any poem about love and separation, which statement best corrects this misconception?",
+   "options": [
+    "It is a narrative poem detailing a single romantic event.",
+    "A ghazal is just any poem about love and separation.",
+    "The form uses couplets with a repeating rhyme+refrain scheme and equal line lengths.",
+    "It is a long, single stanza expressing deep emotion."
+   ],
+   "correctIndex": 2,
+   "explanation": "Topic alone is not enough; the form uses couplets with a repeating rhyme+refrain scheme and equal line lengths. This structure defines the ghazal's specific poetic architecture.",
+   "bloom": "apply",
+   "difficulty": "apply",
+   "catches": true,
+   "confronts": true,
+   "familyKey": "a ghazal is just any poem about love and separation",
+   "provenance": {
+    "origin": "researcher-zero",
+    "model": "e2b",
+    "solverVerified": true,
+    "grade": null,
+    "date": "2026-07-06"
+   }
+  },
+  {
+   "id": "gapfill:lit/ghazal-form:In-a-ghazal,-every-line--c2e2",
+   "kernelId": "lit/ghazal-form",
+   "conceptName": "Ghazal",
+   "stem": "Given a specific stanza of poetry, apply your knowledge of the ghazal form to identify which structural element is being demonstrated.",
+   "options": [
+    "Identifying the central theme of the poem.",
+    "Determining the meter and rhythm of the verses.",
+    "Recognizing the consistent use of couplets and the recurring rhyme/refrain.",
+    "Analyzing the narrative progression of the story."
+   ],
+   "correctIndex": 2,
+   "explanation": "Recognizing the consistent use of couplets and the recurring rhyme/refrain is the direct application of understanding the ghazal's structure. This demonstrates the required structural knowledge.",
+   "bloom": "apply",
+   "difficulty": "apply",
+   "catches": false,
+   "confronts": false,
+   "familyKey": null,
+   "provenance": {
+    "origin": "researcher-zero",
+    "model": "e2b",
+    "solverVerified": true,
+    "grade": null,
+    "date": "2026-07-06"
+   }
+  },
+  {
+   "id": "gapfill:lit/scansion:Scansion-is-an-objective-cf37",
+   "kernelId": "lit/scansion",
+   "conceptName": "Scansion",
+   "stem": "When analyzing a line of poetry, which statement best describes the nature of scansion?",
+   "options": [
+    "Scansion is an objective procedure that always yields one correct pattern.",
+    "Scansion is purely subjective and depends entirely on personal feeling.",
+    "Scansion is an interpretive process that reveals underlying metrical patterns.",
+    "Scansion is a rigid set of rules that must be followed exactly."
+   ],
+   "correctIndex": 2,
+   "explanation": "Stress can sound different to different readers, so scansion is partly interpretive. It involves analyzing the rhythmic structure of the verse. This process helps reveal the underlying metrical patterns in the poem.",
+   "bloom": "apply",
+   "difficulty": "apply",
+   "catches": true,
+   "confronts": true,
+   "familyKey": "scansion is an objective procedure that always yields one co",
+   "provenance": {
+    "origin": "researcher-zero",
+    "model": "e2b",
+    "solverVerified": true,
+    "grade": null,
+    "date": "2026-07-06"
+   }
+  },
+  {
+   "id": "gapfill:lit/metrical-feet-and-line-length:A-dactyl-and-an-anapest--e5ca",
+   "kernelId": "lit/metrical-feet-and-line-length",
+   "conceptName": "Metre (poetry)",
+   "stem": "Analyze the following line: 'To be or not to be, that is the question.' Identify the primary metrical pattern used in this line. ",
+   "options": [
+    "Trochaic tetrameter with alternating stresses.",
+    "Iambic pentameter with a clear rhythm.",
+    "Anapestic trimeter with a flowing sound.",
+    "Dactylic hexameter with heavy emphasis."
+   ],
+   "correctIndex": 1,
+   "explanation": "The line 'To be or not to be, that is the question' exhibits the classic rhythm of iambic pentameter. This pattern consists of ten syllables alternating unstressed and stressed.",
+   "bloom": "apply",
+   "difficulty": "apply",
+   "catches": false,
+   "confronts": false,
+   "familyKey": null,
+   "provenance": {
+    "origin": "researcher-zero",
+    "model": "e2b",
+    "solverVerified": true,
+    "grade": null,
+    "date": "2026-07-06"
+   }
+  },
+  {
+   "id": "gapfill:lit/rhyme-scheme-and-internal-rhyme:Free-verse-never-uses-rh-bbf7",
+   "kernelId": "lit/rhyme-scheme-and-internal-rhyme",
+   "conceptName": "Rhyme scheme",
+   "stem": "A student believes that free verse never uses rhyme. How does this belief misinterpret the text's view on free verse?",
+   "options": [
+    "Free verse never uses rhyme because it lacks traditional structure.",
+    "Free verse never uses rhyme; rhyme is only for formal poetry.",
+    "Free verse never uses rhyme, but rhyme is elemental in free verse too.",
+    "Free verse never uses rhyme because it relies solely on rhythm."
+   ],
+   "correctIndex": 2,
+   "explanation": "The text says rhyme is elemental in free verse too, and is more likely to be internal. This corrects the belief that free verse never uses rhyme by acknowledging internal rhyme.",
+   "bloom": "apply",
+   "difficulty": "apply",
+   "catches": true,
+   "confronts": true,
+   "familyKey": "free verse never uses rhyme",
+   "provenance": {
+    "origin": "researcher-zero",
+    "model": "e2b",
+    "solverVerified": true,
+    "grade": null,
+    "date": "2026-07-06"
+   }
+  },
+  {
+   "id": "gapfill:lit/rhyme-scheme-and-internal-rhyme:Free-verse-never-uses-rh-ccbe",
+   "kernelId": "lit/rhyme-scheme-and-internal-rhyme",
+   "conceptName": "Rhyme scheme",
+   "stem": "Given a stanza with AABB rhyme, what is the correct way to describe its rhyme scheme?",
+   "options": [
+    "The scheme is ABAB, indicating alternating rhymes.",
+    "The scheme is ABCB, showing a pattern shift.",
+    "The scheme is AABB, indicating couplets with matching end rhymes.",
+    "The scheme is free verse, meaning no rhyme is present."
+   ],
+   "correctIndex": 2,
+   "explanation": "The scheme is AABB, indicating couplets with matching end rhymes. This is a direct application of identifying the pattern based on the provided rhyme sounds.",
+   "bloom": "apply",
+   "difficulty": "apply",
+   "catches": false,
+   "confronts": false,
+   "familyKey": null,
+   "provenance": {
+    "origin": "researcher-zero",
+    "model": "e2b",
+    "solverVerified": true,
+    "grade": null,
+    "date": "2026-07-06"
+   }
+  },
+  {
+   "id": "gapfill:lit/language-of-images:Abstract-statements-abou-845c",
+   "kernelId": "lit/language-of-images",
+   "conceptName": "Imagery",
+   "stem": "A reader believes that abstract statements about emotions are as engaging as concrete description. How does the text challenge this belief? ",
+   "options": [
+    "Abstract statements are superior because they allow for deeper philosophical thought.",
+    "Concrete description is less engaging because it limits imaginative scope.",
+    "The passage shows that concrete, sensory detail more directly engages the reader’s senses and sensibilities.",
+    "Only abstract statements can convey complex emotional truths effectively."
+   ],
+   "correctIndex": 2,
+   "explanation": "The passage shows that concrete, sensory detail more directly engages the reader’s senses and sensibilities. Sensory details provide immediate, tangible experiences that resonate more powerfully than purely abstract concepts.",
+   "bloom": "apply",
+   "difficulty": "apply",
+   "catches": true,
+   "confronts": true,
+   "familyKey": "abstract statements about emotions are as engaging as concre",
+   "provenance": {
+    "origin": "researcher-zero",
+    "model": "e2b",
+    "solverVerified": true,
+    "grade": null,
+    "date": "2026-07-06"
+   }
+  },
+  {
+   "id": "gapfill:lit/language-of-images:Abstract-statements-abou-5547",
+   "kernelId": "lit/language-of-images",
+   "conceptName": "Imagery",
+   "stem": "To effectively apply the concept of imagery in a descriptive passage about a stormy sea, which sentence best demonstrates its use? ",
+   "options": [
+    "The captain felt a deep sense of anxiety about the voyage ahead.",
+    "The waves crashed with a deafening roar against the jagged rocks.",
+    "The journey was long and filled with many unforeseen challenges.",
+    "He considered the philosophical implications of the ocean's vastness."
+   ],
+   "correctIndex": 1,
+   "explanation": "The waves crashed with a deafening roar against the jagged rocks. This sentence uses strong auditory and visual details to create a vivid, sensory experience for the reader.",
+   "bloom": "apply",
+   "difficulty": "apply",
+   "catches": false,
+   "confronts": false,
+   "familyKey": null,
+   "provenance": {
+    "origin": "researcher-zero",
+    "model": "e2b",
+    "solverVerified": true,
+    "grade": null,
+    "date": "2026-07-06"
+   }
+  },
+  {
+   "id": "gapfill:lit/ballad-form:All-ballads-must-follow--1c45",
+   "kernelId": "lit/ballad-form",
+   "conceptName": "Ballad",
+   "stem": "If you are analyzing a traditional folk song, which statement best reflects the nature of ballads?",
+   "options": [
+    "All ballads must follow one fixed structure with no variation.",
+    "Ballads exist in many variations, even if one pattern is commonly taught and used today.",
+    "A ballad is defined mainly by being about love or dawn.",
+    "Ballads are exclusively short, simple songs with no complex themes."
+   ],
+   "correctIndex": 1,
+   "explanation": "Ballads exist in many variations, even if one pattern is commonly taught and used today. This acknowledges the fluid nature of folk music. The structure can change based on the narrative being told.",
+   "bloom": "apply",
+   "difficulty": "apply",
+   "catches": true,
+   "confronts": true,
+   "familyKey": "all ballads must follow one fixed structure with no variatio",
+   "provenance": {
+    "origin": "researcher-zero",
+    "model": "e2b",
+    "solverVerified": true,
+    "grade": null,
+    "date": "2026-07-06"
+   }
+  },
+  {
+   "id": "gapfill:lit/ballad-form:A-ballad-is-defined-main-5ace",
+   "kernelId": "lit/ballad-form",
+   "conceptName": "Ballad",
+   "stem": "When interpreting a ballad, which understanding of its core definition is most accurate?",
+   "options": [
+    "A ballad is defined mainly by being about love or dawn.",
+    "Ballads are exclusively short, simple songs with no complex themes.",
+    "The description emphasizes narrative transmission and rhythmic/musical qualities.",
+    "Ballads are only suitable for historical documentation of events."
+   ],
+   "correctIndex": 2,
+   "explanation": "The description emphasizes narrative transmission and rhythmic/musical qualities. This captures the essential elements of a ballad. Topic like love or dawn is tied to other forms like ghazal or aubade.",
+   "bloom": "apply",
+   "difficulty": "apply",
+   "catches": true,
+   "confronts": true,
+   "familyKey": "a ballad is defined mainly by being about love or dawn",
+   "provenance": {
+    "origin": "researcher-zero",
+    "model": "e2b",
+    "solverVerified": true,
+    "grade": null,
+    "date": "2026-07-06"
+   }
+  },
+  {
+   "id": "gapfill:lit/ballad-form:A-ballad-is-defined-main-f8ac",
+   "kernelId": "lit/ballad-form",
+   "conceptName": "Ballad",
+   "stem": "You are tasked with creating a modern adaptation of a traditional ballad. Which step should you prioritize to ensure the core essence of the original is maintained?",
+   "options": [
+    "Completely rewrite the lyrics to use contemporary slang and themes.",
+    "Focus solely on changing the melody to a completely different genre.",
+    "Preserve the core narrative structure and rhythmic cadence while updating the language.",
+    "Remove all historical references to make the song universally accessible."
+   ],
+   "correctIndex": 2,
+   "explanation": "Preserve the core narrative structure and rhythmic cadence while updating the language. This ensures the ballad's essential qualities are kept. This application requires balancing tradition and modernity effectively.",
+   "bloom": "apply",
+   "difficulty": "apply",
+   "catches": false,
+   "confronts": false,
+   "familyKey": null,
+   "provenance": {
+    "origin": "researcher-zero",
+    "model": "e2b",
+    "solverVerified": true,
+    "grade": null,
+    "date": "2026-07-06"
+   }
+  },
+  {
+   "id": "gapfill:lit/abecedarian-poem:An-abecedarian-must-rhym-cbda",
+   "kernelId": "lit/abecedarian-poem",
+   "conceptName": "Acrostic",
+   "stem": "If a poem is an acrostic, what is the primary structural requirement regarding its lines?",
+   "options": [
+    "It must rhyme or follow a fixed meter.",
+    "It must use exactly 26 lines, one per letter.",
+    "The first letter of each line spells out a word or phrase.",
+    "It must contain at least three stanzas."
+   ],
+   "correctIndex": 2,
+   "explanation": "Rhyme and meter are optional; the only stated constraint is the alphabetical line beginnings. The description emphasizes alphabetical progression of line initials, not a strict rhyme or meter requirement.",
+   "bloom": "apply",
+   "difficulty": "apply",
+   "catches": true,
+   "confronts": true,
+   "familyKey": "an abecedarian must rhyme or follow a fixed meter",
+   "provenance": {
+    "origin": "researcher-zero",
+    "model": "e2b",
+    "solverVerified": true,
+    "grade": null,
+    "date": "2026-07-06"
+   }
+  },
+  {
+   "id": "gapfill:lit/abecedarian-poem:An-abecedarian-must-use--92f9",
+   "kernelId": "lit/abecedarian-poem",
+   "conceptName": "Acrostic",
+   "stem": "A student believes that an acrostic must use exactly 26 lines, one per letter. How does this belief misinterpret the definition?",
+   "options": [
+    "It must rhyme or follow a fixed meter.",
+    "It must use exactly 26 lines, one per letter.",
+    "The first letter of each line spells out a word or phrase.",
+    "It must contain at least three stanzas."
+   ],
+   "correctIndex": 2,
+   "explanation": "The description emphasizes alphabetical progression of line initials; it does state required count. The description emphasizes alphabetical progression of line initials, not a strict required count.",
+   "bloom": "apply",
+   "difficulty": "apply",
+   "catches": true,
+   "confronts": true,
+   "familyKey": "an abecedarian must use exactly 26 lines one per letter",
+   "provenance": {
+    "origin": "researcher-zero",
+    "model": "e2b",
+    "solverVerified": true,
+    "grade": null,
+    "date": "2026-07-06"
+   }
   }
  ],
  "origins": {

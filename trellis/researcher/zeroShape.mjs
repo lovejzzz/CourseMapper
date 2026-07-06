@@ -60,6 +60,14 @@ const MISCONCEPTION_RE =
   /misconception|commonly (confused|mistaken|misunderstood)|contrary to (popular belief|common belief)|often (incorrectly|mistakenly|wrongly)|a common (error|mistake|myth)|it is a myth/i;
 const EXAMPLE_RE = /for example|for instance|such as|e\.g\.|consider the|一?example of/i;
 
+// Mine example-bearing sentences from raw sources — used by the zero runner
+// when a kernel already exists in the shard (shard kernels carry no example
+// sentences, but the sources do, and worked-example ships only with them).
+export function mineExamples(sources) {
+  const all = sources.flatMap((s) => splitSentences(s.text));
+  return all.filter((s) => EXAMPLE_RE.test(s)).slice(0, 3);
+}
+
 // FIDELITY GATE (added after the first bench eyeball caught the 135M
 // skin INJECTING a false claim that no length/punct gate can see):
 // every sentence of the skinned output must sit within cosine τ of some
@@ -199,9 +207,13 @@ export async function zeroShapeSurfaces(target, sources, kernel, { embedder = nu
   };
   const rejected = {};
   const assets = [];
+  const perMove = {};
   const push = (move, body) => {
+    // Per-move ids (not batch-index): a re-run that adds one surface must not
+    // shift every later id and re-deposit the same content as "new".
+    perMove[move] = (perMove[move] ?? 0) + 1;
     assets.push({
-      id: `researcher-zero:${move}:${target.id}:${assets.length}`,
+      id: `researcher-zero:${move}:${target.id}:${perMove[move] - 1}`,
       kernelId: target.id,
       conceptName: target.term,
       move,
@@ -317,8 +329,11 @@ export async function zeroShapeSurfaces(target, sources, kernel, { embedder = nu
     },
   ].map((slide) => ({
     ...slide,
-    bullets: slide.bullets.map((b) => (TERMINAL_PUNCT_RE.test(b.trim()) ? b.trim() : `${b.trim()}.`)),
-    speakerNotes: `Walk the class through this slowly: ${slide.bullets.join(' ')} Invite one question before moving on.`,
+    bullets: slide.bullets.map((raw) => {
+      const b = String(raw).trim(); // definitions may arrive as {text} objects — coerce defensively
+      return TERMINAL_PUNCT_RE.test(b) ? b : `${b}.`;
+    }),
+    speakerNotes: `Walk the class through this slowly: ${slide.bullets.map((b) => String(b?.text ?? b)).join(' ')} Invite one question before moving on.`,
     altText: `A single-idea slide about ${target.term} suitable for a clean text layout with one highlighted phrase.`,
   }));
   if (slides.length >= 6) push('slide-group', { slides });

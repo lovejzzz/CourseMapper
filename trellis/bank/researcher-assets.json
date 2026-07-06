@@ -6808,6 +6808,2905 @@
     "uses": 0
    },
    "voice": "sourced"
+  },
+  {
+   "id": "researcher-zero:teach-segment:lit/ghazal-form:0",
+   "kernelId": "lit/ghazal-form",
+   "conceptName": "Ghazal",
+   "move": "teach-segment",
+   "body": {
+    "minutes": 12,
+    "text": "A ghazal is a form with Arabic roots made of rhyming couplets of equal line length featuring a refrain; it typically explores love and separation, and its couplets can stand as autonomous units while sharing the repeated scheme. A ghazal is composed of at least five couplets and typically no more than fifteen. Each couplet is structurally, thematically, and emotionally autonomous. Each line must be the same length, but English ghazals do not require a specific meter."
+   },
+   "evidence": {
+    "fromGrade": null,
+    "sourced": true,
+    "extractive": true
+   },
+   "provenance": {
+    "origin": "researcher-zero",
+    "sources": [
+     {
+      "url": "https://en.wikipedia.org/wiki/Ghazal",
+      "license": "CC-BY-SA-4.0",
+      "attribution": "Wikipedia contributors, \"Ghazal\""
+     },
+     {
+      "url": "https://en.wikipedia.org/wiki/Ghazal_Ghazal",
+      "license": "CC-BY-SA-4.0",
+      "attribution": "Wikipedia contributors, \"Ghazal Ghazal\""
+     },
+     {
+      "url": "https://en.wikipedia.org/wiki/Urdu_ghazal",
+      "license": "CC-BY-SA-4.0",
+      "attribution": "Wikipedia contributors, \"Urdu ghazal\""
+     }
+    ],
+    "date": "2026-07-06"
+   },
+   "exposure": {
+    "uses": 0
+   },
+   "voice": "sourced-zero"
+  },
+  {
+   "id": "researcher-zero:worked-example:lit/ghazal-form:0",
+   "kernelId": "lit/ghazal-form",
+   "conceptName": "Ghazal",
+   "move": "worked-example",
+   "body": {
+    "minutes": 15,
+    "text": "Worked example: we walk through one concrete case. To meet the demands of musical presentation, the ghazal became briefer and utilized lighter poetic meters, such as Khafīf, Ramal, and Mutaqārib, moving away from the more ponderous meters like Kāmil, Basīṭ, and Rajaz. Thematically, the Arabic ghazal branched into two primary schools: The Udhri school (al-ghazal al-ʿudhrī): Named after the Banu Udhra tribe, it emphasized \"courtly\" or Platonic love, characterized by devotion and suffering (e.g., Jamil ibn Ma'mar). The Hijazi school (al-ghazal al-ṣarīḥ): Known for its erotic or explicit themes and a more lighthearted tone (e.g., Umar ibn Abi Rabi'ah). Working through it step by step, connect each part back to Ghazal."
+   },
+   "evidence": {
+    "fromGrade": null,
+    "sourced": true,
+    "extractive": true
+   },
+   "provenance": {
+    "origin": "researcher-zero",
+    "sources": [
+     {
+      "url": "https://en.wikipedia.org/wiki/Ghazal",
+      "license": "CC-BY-SA-4.0",
+      "attribution": "Wikipedia contributors, \"Ghazal\""
+     },
+     {
+      "url": "https://en.wikipedia.org/wiki/Ghazal_Ghazal",
+      "license": "CC-BY-SA-4.0",
+      "attribution": "Wikipedia contributors, \"Ghazal Ghazal\""
+     },
+     {
+      "url": "https://en.wikipedia.org/wiki/Urdu_ghazal",
+      "license": "CC-BY-SA-4.0",
+      "attribution": "Wikipedia contributors, \"Urdu ghazal\""
+     }
+    ],
+    "date": "2026-07-06"
+   },
+   "exposure": {
+    "uses": 0
+   },
+   "voice": "sourced-zero"
+  },
+  {
+   "id": "researcher-zero:reteach-script:lit/ghazal-form:0",
+   "kernelId": "lit/ghazal-form",
+   "conceptName": "Ghazal",
+   "move": "reteach-script",
+   "body": {
+    "minutes": 10,
+    "text": "If Ghazal did not land the first time, here is the idea again through another example. The first couplet sets a scheme of a rhyme followed by a refrain, which recurs in later couplets' second lines. The final couplet usually includes the poet's signature and often the poet's name. The example to hold onto: To meet the demands of musical presentation, the ghazal became briefer and utilized lighter poetic meters, such as Khafīf, Ramal, and Mutaqārib, moving away from the more ponderous meters like Kāmil, Basīṭ, and Rajaz."
+   },
+   "evidence": {
+    "fromGrade": null,
+    "sourced": true,
+    "extractive": true
+   },
+   "provenance": {
+    "origin": "researcher-zero",
+    "sources": [
+     {
+      "url": "https://en.wikipedia.org/wiki/Ghazal",
+      "license": "CC-BY-SA-4.0",
+      "attribution": "Wikipedia contributors, \"Ghazal\""
+     },
+     {
+      "url": "https://en.wikipedia.org/wiki/Ghazal_Ghazal",
+      "license": "CC-BY-SA-4.0",
+      "attribution": "Wikipedia contributors, \"Ghazal Ghazal\""
+     },
+     {
+      "url": "https://en.wikipedia.org/wiki/Urdu_ghazal",
+      "license": "CC-BY-SA-4.0",
+      "attribution": "Wikipedia contributors, \"Urdu ghazal\""
+     }
+    ],
+    "date": "2026-07-06"
+   },
+   "exposure": {
+    "uses": 0
+   },
+   "voice": "sourced-zero"
+  },
+  {
+   "id": "researcher-zero:guide:lit/ghazal-form:0",
+   "kernelId": "lit/ghazal-form",
+   "conceptName": "Ghazal",
+   "move": "guide",
+   "body": {
+    "markdown": "## Ghazal — study guide\n\n**Core idea.** A ghazal is a form with Arabic roots made of rhyming couplets of equal line length featuring a refrain; it typically explores love and separation, and its couplets can stand as autonomous units while sharing the repeated scheme.\n\n**Key points.**\n- A ghazal is composed of at least five couplets and typically no more than fifteen.\n- Each couplet is structurally, thematically, and emotionally autonomous.\n- Each line must be the same length, but English ghazals do not require a specific meter.\n- The first couplet sets a scheme of a rhyme followed by a refrain, which recurs in later couplets' second lines.\n\n**If you missed the reading:** start with the core idea above, then read the key points twice; each is taken directly from the course sources.\n\n**Check yourself.**\n- Explain Ghazal in your own words without looking at the definition.\n- Which key point above would change most if its conditions changed? Why?"
+   },
+   "evidence": {
+    "fromGrade": null,
+    "sourced": true,
+    "extractive": true
+   },
+   "provenance": {
+    "origin": "researcher-zero",
+    "sources": [
+     {
+      "url": "https://en.wikipedia.org/wiki/Ghazal",
+      "license": "CC-BY-SA-4.0",
+      "attribution": "Wikipedia contributors, \"Ghazal\""
+     },
+     {
+      "url": "https://en.wikipedia.org/wiki/Ghazal_Ghazal",
+      "license": "CC-BY-SA-4.0",
+      "attribution": "Wikipedia contributors, \"Ghazal Ghazal\""
+     },
+     {
+      "url": "https://en.wikipedia.org/wiki/Urdu_ghazal",
+      "license": "CC-BY-SA-4.0",
+      "attribution": "Wikipedia contributors, \"Urdu ghazal\""
+     }
+    ],
+    "date": "2026-07-06"
+   },
+   "exposure": {
+    "uses": 0
+   },
+   "voice": "sourced-zero"
+  },
+  {
+   "id": "researcher-zero:discussion-tension:lit/ghazal-form:0",
+   "kernelId": "lit/ghazal-form",
+   "conceptName": "Ghazal",
+   "move": "discussion-tension",
+   "body": {
+    "prompt": "The sources note: \"Abdolhamid Ziaei considers the content of old Persian ghazal to include four elements: love, mysticism, education or excellence, and Qalandari.\" — where do you see this holding or breaking down, and what evidence would settle it?",
+    "tension": "Abdolhamid Ziaei considers the content of old Persian ghazal to include four elements: love, mysticism, education or excellence, and Qalandari.",
+    "followUps": [
+     "What would count as a counter-example?",
+     "How does this connect to last week's concept?"
+    ]
+   },
+   "evidence": {
+    "fromGrade": null,
+    "sourced": true,
+    "extractive": true
+   },
+   "provenance": {
+    "origin": "researcher-zero",
+    "sources": [
+     {
+      "url": "https://en.wikipedia.org/wiki/Ghazal",
+      "license": "CC-BY-SA-4.0",
+      "attribution": "Wikipedia contributors, \"Ghazal\""
+     },
+     {
+      "url": "https://en.wikipedia.org/wiki/Ghazal_Ghazal",
+      "license": "CC-BY-SA-4.0",
+      "attribution": "Wikipedia contributors, \"Ghazal Ghazal\""
+     },
+     {
+      "url": "https://en.wikipedia.org/wiki/Urdu_ghazal",
+      "license": "CC-BY-SA-4.0",
+      "attribution": "Wikipedia contributors, \"Urdu ghazal\""
+     }
+    ],
+    "date": "2026-07-06"
+   },
+   "exposure": {
+    "uses": 0
+   },
+   "voice": "sourced-zero"
+  },
+  {
+   "id": "researcher-zero:activity:lit/ghazal-form:0",
+   "kernelId": "lit/ghazal-form",
+   "conceptName": "Ghazal",
+   "move": "activity",
+   "body": {
+    "task": "Choose one real case (from the reading or your own experience) and analyze it using Ghazal. State the case in two sentences, apply each key point from the study guide to it explicitly, and note one place where the concept fits imperfectly.",
+    "steps": [
+     "Pick and describe your case (2 sentences).",
+     "Apply each key point to the case, one short paragraph each.",
+     "Name one limit or imperfect fit and explain why."
+    ],
+    "rubricBands": [
+     "Excellent: case is concrete, every key point applied accurately, the limit shows real insight.",
+     "Adequate: case present, most key points applied, limit named but thin.",
+     "Insufficient: case vague or key points restated without application."
+    ]
+   },
+   "evidence": {
+    "fromGrade": null,
+    "sourced": true,
+    "extractive": true
+   },
+   "provenance": {
+    "origin": "researcher-zero",
+    "sources": [
+     {
+      "url": "https://en.wikipedia.org/wiki/Ghazal",
+      "license": "CC-BY-SA-4.0",
+      "attribution": "Wikipedia contributors, \"Ghazal\""
+     },
+     {
+      "url": "https://en.wikipedia.org/wiki/Ghazal_Ghazal",
+      "license": "CC-BY-SA-4.0",
+      "attribution": "Wikipedia contributors, \"Ghazal Ghazal\""
+     },
+     {
+      "url": "https://en.wikipedia.org/wiki/Urdu_ghazal",
+      "license": "CC-BY-SA-4.0",
+      "attribution": "Wikipedia contributors, \"Urdu ghazal\""
+     }
+    ],
+    "date": "2026-07-06"
+   },
+   "exposure": {
+    "uses": 0
+   },
+   "voice": "sourced-zero"
+  },
+  {
+   "id": "researcher-zero:faq-entry:lit/ghazal-form:0",
+   "kernelId": "lit/ghazal-form",
+   "conceptName": "Ghazal",
+   "move": "faq-entry",
+   "body": {
+    "q": "How does this apply: Ghazal?",
+    "a": "Learning the common tropes is key to understanding the ghazal."
+   },
+   "evidence": {
+    "fromGrade": null,
+    "sourced": true,
+    "extractive": true
+   },
+   "provenance": {
+    "origin": "researcher-zero",
+    "sources": [
+     {
+      "url": "https://en.wikipedia.org/wiki/Ghazal",
+      "license": "CC-BY-SA-4.0",
+      "attribution": "Wikipedia contributors, \"Ghazal\""
+     },
+     {
+      "url": "https://en.wikipedia.org/wiki/Ghazal_Ghazal",
+      "license": "CC-BY-SA-4.0",
+      "attribution": "Wikipedia contributors, \"Ghazal Ghazal\""
+     },
+     {
+      "url": "https://en.wikipedia.org/wiki/Urdu_ghazal",
+      "license": "CC-BY-SA-4.0",
+      "attribution": "Wikipedia contributors, \"Urdu ghazal\""
+     }
+    ],
+    "date": "2026-07-06"
+   },
+   "exposure": {
+    "uses": 0
+   },
+   "voice": "sourced-zero"
+  },
+  {
+   "id": "researcher-zero:faq-entry:lit/ghazal-form:1",
+   "kernelId": "lit/ghazal-form",
+   "conceptName": "Ghazal",
+   "move": "faq-entry",
+   "body": {
+    "q": "How does this apply: Ghazal?",
+    "a": "The matla is the first she'r of a ghazal."
+   },
+   "evidence": {
+    "fromGrade": null,
+    "sourced": true,
+    "extractive": true
+   },
+   "provenance": {
+    "origin": "researcher-zero",
+    "sources": [
+     {
+      "url": "https://en.wikipedia.org/wiki/Ghazal",
+      "license": "CC-BY-SA-4.0",
+      "attribution": "Wikipedia contributors, \"Ghazal\""
+     },
+     {
+      "url": "https://en.wikipedia.org/wiki/Ghazal_Ghazal",
+      "license": "CC-BY-SA-4.0",
+      "attribution": "Wikipedia contributors, \"Ghazal Ghazal\""
+     },
+     {
+      "url": "https://en.wikipedia.org/wiki/Urdu_ghazal",
+      "license": "CC-BY-SA-4.0",
+      "attribution": "Wikipedia contributors, \"Urdu ghazal\""
+     }
+    ],
+    "date": "2026-07-06"
+   },
+   "exposure": {
+    "uses": 0
+   },
+   "voice": "sourced-zero"
+  },
+  {
+   "id": "researcher-zero:slide-group:lit/ghazal-form:0",
+   "kernelId": "lit/ghazal-form",
+   "conceptName": "Ghazal",
+   "move": "slide-group",
+   "body": {
+    "slides": [
+     {
+      "title": "Ghazal: the idea",
+      "bullets": [
+       "A ghazal is a form with Arabic roots made of rhyming couplets of equal line length featuring a refrain; it typically explores love and separation, and its couplets can stand as autonomous units while sharing the repeated scheme."
+      ],
+      "speakerNotes": "Walk the class through this slowly: A ghazal is a form with Arabic roots made of rhyming couplets of equal line length featuring a refrain; it typically explores love and separation, and its couplets can stand as autonomous units while sharing the repeated scheme. Invite one question before moving on.",
+      "altText": "A single-idea slide about Ghazal suitable for a clean text layout with one highlighted phrase."
+     },
+     {
+      "title": "Key point 1",
+      "bullets": [
+       "A ghazal is composed of at least five couplets and typically no more than fifteen."
+      ],
+      "speakerNotes": "Walk the class through this slowly: A ghazal is composed of at least five couplets and typically no more than fifteen. Invite one question before moving on.",
+      "altText": "A single-idea slide about Ghazal suitable for a clean text layout with one highlighted phrase."
+     },
+     {
+      "title": "Key point 2",
+      "bullets": [
+       "Each couplet is structurally, thematically, and emotionally autonomous."
+      ],
+      "speakerNotes": "Walk the class through this slowly: Each couplet is structurally, thematically, and emotionally autonomous. Invite one question before moving on.",
+      "altText": "A single-idea slide about Ghazal suitable for a clean text layout with one highlighted phrase."
+     },
+     {
+      "title": "Key point 3",
+      "bullets": [
+       "Each line must be the same length, but English ghazals do not require a specific meter."
+      ],
+      "speakerNotes": "Walk the class through this slowly: Each line must be the same length, but English ghazals do not require a specific meter. Invite one question before moving on.",
+      "altText": "A single-idea slide about Ghazal suitable for a clean text layout with one highlighted phrase."
+     },
+     {
+      "title": "Key point 4",
+      "bullets": [
+       "The first couplet sets a scheme of a rhyme followed by a refrain, which recurs in later couplets' second lines."
+      ],
+      "speakerNotes": "Walk the class through this slowly: The first couplet sets a scheme of a rhyme followed by a refrain, which recurs in later couplets' second lines. Invite one question before moving on.",
+      "altText": "A single-idea slide about Ghazal suitable for a clean text layout with one highlighted phrase."
+     },
+     {
+      "title": "Key point 5",
+      "bullets": [
+       "The final couplet usually includes the poet's signature and often the poet's name."
+      ],
+      "speakerNotes": "Walk the class through this slowly: The final couplet usually includes the poet's signature and often the poet's name. Invite one question before moving on.",
+      "altText": "A single-idea slide about Ghazal suitable for a clean text layout with one highlighted phrase."
+     },
+     {
+      "title": "Check yourself",
+      "bullets": [
+       "Explain Ghazal without notes.",
+       "Connect it to one earlier concept."
+      ],
+      "speakerNotes": "Walk the class through this slowly: Explain Ghazal without notes. Connect it to one earlier concept. Invite one question before moving on.",
+      "altText": "A single-idea slide about Ghazal suitable for a clean text layout with one highlighted phrase."
+     }
+    ]
+   },
+   "evidence": {
+    "fromGrade": null,
+    "sourced": true,
+    "extractive": true
+   },
+   "provenance": {
+    "origin": "researcher-zero",
+    "sources": [
+     {
+      "url": "https://en.wikipedia.org/wiki/Ghazal",
+      "license": "CC-BY-SA-4.0",
+      "attribution": "Wikipedia contributors, \"Ghazal\""
+     },
+     {
+      "url": "https://en.wikipedia.org/wiki/Ghazal_Ghazal",
+      "license": "CC-BY-SA-4.0",
+      "attribution": "Wikipedia contributors, \"Ghazal Ghazal\""
+     },
+     {
+      "url": "https://en.wikipedia.org/wiki/Urdu_ghazal",
+      "license": "CC-BY-SA-4.0",
+      "attribution": "Wikipedia contributors, \"Urdu ghazal\""
+     }
+    ],
+    "date": "2026-07-06"
+   },
+   "exposure": {
+    "uses": 0
+   },
+   "voice": "sourced-zero"
+  },
+  {
+   "id": "researcher-zero:teach-segment:lit/scansion:0",
+   "kernelId": "lit/scansion",
+   "conceptName": "Scansion",
+   "move": "teach-segment",
+   "body": {
+    "minutes": 12,
+    "text": "Set the reading in practice: a short, practice passage (e.g., a couple of lines) where students must read “An apple a day keeps the doctor” and then identify which feet have two syllables and which have three. Then transition to metrical versus free verse: free verse doesn’t use feet, and metrical verse has a rule about how many syllables each foot can contain."
+   },
+   "evidence": {
+    "fromGrade": null,
+    "sourced": true,
+    "extractive": true
+   },
+   "provenance": {
+    "origin": "researcher-zero",
+    "sources": [
+     {
+      "url": "https://en.wikipedia.org/wiki/Scansion",
+      "license": "CC-BY-SA-4.0",
+      "attribution": "Wikipedia contributors, \"Scansion\""
+     },
+     {
+      "url": "https://en.wikipedia.org/wiki/Latin_prosody",
+      "license": "CC-BY-SA-4.0",
+      "attribution": "Wikipedia contributors, \"Latin prosody\""
+     },
+     {
+      "url": "https://en.wikipedia.org/wiki/Metre_(poetry)",
+      "license": "CC-BY-SA-4.0",
+      "attribution": "Wikipedia contributors, \"Metre (poetry)\""
+     }
+    ],
+    "date": "2026-07-06"
+   },
+   "exposure": {
+    "uses": 0
+   },
+   "voice": "sourced-zero"
+  },
+  {
+   "id": "researcher-zero:worked-example:lit/scansion:0",
+   "kernelId": "lit/scansion",
+   "conceptName": "Scansion",
+   "move": "worked-example",
+   "body": {
+    "minutes": 15,
+    "text": "Worked example: we walk through one concrete case. For example, in trisyllabic measures (anapestic, amphibrachic, dactylic) it is often quite arbitrary where one divides the feet, and the salient fact seems to be the number of non-ictic syllables —in this case two— between each ictus, rather than whether the repeated pattern is imagined as ××/, ×/×, or /××. Ennius employed a poetic diction and style well suited to the Greek model, thus providing a foundation for later poets such as Lucretius and Virgil to build on. The Alexandrians' preference for short poems influenced Catullus to experiment with a variety of meters borrowed from Greece, including Aeolian forms such as hendecasyllabic verse, the Sapphic stanza and Greater Asclepiad, as well as iambic verses such as the choliamb and the iambic tetrameter catalectic (a dialogue meter borrowed from Old Comedy). Working through it step by step, connect each part back to Scansion."
+   },
+   "evidence": {
+    "fromGrade": null,
+    "sourced": true,
+    "extractive": true
+   },
+   "provenance": {
+    "origin": "researcher-zero",
+    "sources": [
+     {
+      "url": "https://en.wikipedia.org/wiki/Scansion",
+      "license": "CC-BY-SA-4.0",
+      "attribution": "Wikipedia contributors, \"Scansion\""
+     },
+     {
+      "url": "https://en.wikipedia.org/wiki/Latin_prosody",
+      "license": "CC-BY-SA-4.0",
+      "attribution": "Wikipedia contributors, \"Latin prosody\""
+     },
+     {
+      "url": "https://en.wikipedia.org/wiki/Metre_(poetry)",
+      "license": "CC-BY-SA-4.0",
+      "attribution": "Wikipedia contributors, \"Metre (poetry)\""
+     }
+    ],
+    "date": "2026-07-06"
+   },
+   "exposure": {
+    "uses": 0
+   },
+   "voice": "sourced-zero"
+  },
+  {
+   "id": "researcher-zero:reteach-script:lit/scansion:0",
+   "kernelId": "lit/scansion",
+   "conceptName": "Scansion",
+   "move": "reteach-script",
+   "body": {
+    "minutes": 10,
+    "text": "If Scansion did not land the first time, here is the idea again through another example. Feet may break in the middle of words when scanning a line. Scansion is not purely mechanical; it can involve subjective judgment about stress. The example to hold onto: For example, in trisyllabic measures (anapestic, amphibrachic, dactylic) it is often quite arbitrary where one divides the feet, and the salient fact seems to be the number of non-ictic syllables —in this case two— between each ictus, rather than whether the repeated pattern is imagined as ××/, ×/×, or /××."
+   },
+   "evidence": {
+    "fromGrade": null,
+    "sourced": true,
+    "extractive": true
+   },
+   "provenance": {
+    "origin": "researcher-zero",
+    "sources": [
+     {
+      "url": "https://en.wikipedia.org/wiki/Scansion",
+      "license": "CC-BY-SA-4.0",
+      "attribution": "Wikipedia contributors, \"Scansion\""
+     },
+     {
+      "url": "https://en.wikipedia.org/wiki/Latin_prosody",
+      "license": "CC-BY-SA-4.0",
+      "attribution": "Wikipedia contributors, \"Latin prosody\""
+     },
+     {
+      "url": "https://en.wikipedia.org/wiki/Metre_(poetry)",
+      "license": "CC-BY-SA-4.0",
+      "attribution": "Wikipedia contributors, \"Metre (poetry)\""
+     }
+    ],
+    "date": "2026-07-06"
+   },
+   "exposure": {
+    "uses": 0
+   },
+   "voice": "sourced-zero"
+  },
+  {
+   "id": "researcher-zero:guide:lit/scansion:0",
+   "kernelId": "lit/scansion",
+   "conceptName": "Scansion",
+   "move": "guide",
+   "body": {
+    "markdown": "## Scansion — study guide\n\n**Core idea.** Scansion is the method of dividing a poem’s lines into feet and stresses in order to describe and analyze its rhythm.\n\n**Key points.**\n- In metrical verse, lines can be divided into feet, and each foot’s syllables are marked by stress (stressed vs. unstressed).\n- Feet typically contain either two or three syllables.\n- Standard scansion symbols can mark unstressed and stressed beats.\n- Feet may break in the middle of words when scanning a line.\n\n**If you missed the reading:** start with the core idea above, then read the key points twice; each is taken directly from the course sources.\n\n**Check yourself.**\n- Explain Scansion in your own words without looking at the definition.\n- Which key point above would change most if its conditions changed? Why?"
+   },
+   "evidence": {
+    "fromGrade": null,
+    "sourced": true,
+    "extractive": true
+   },
+   "provenance": {
+    "origin": "researcher-zero",
+    "sources": [
+     {
+      "url": "https://en.wikipedia.org/wiki/Scansion",
+      "license": "CC-BY-SA-4.0",
+      "attribution": "Wikipedia contributors, \"Scansion\""
+     },
+     {
+      "url": "https://en.wikipedia.org/wiki/Latin_prosody",
+      "license": "CC-BY-SA-4.0",
+      "attribution": "Wikipedia contributors, \"Latin prosody\""
+     },
+     {
+      "url": "https://en.wikipedia.org/wiki/Metre_(poetry)",
+      "license": "CC-BY-SA-4.0",
+      "attribution": "Wikipedia contributors, \"Metre (poetry)\""
+     }
+    ],
+    "date": "2026-07-06"
+   },
+   "exposure": {
+    "uses": 0
+   },
+   "voice": "sourced-zero"
+  },
+  {
+   "id": "researcher-zero:discussion-tension:lit/scansion:0",
+   "kernelId": "lit/scansion",
+   "conceptName": "Scansion",
+   "move": "discussion-tension",
+   "body": {
+    "prompt": "The sources note: \"Multiple symbols are used: Metrical scansion explicitly requires a 2-level notation.\" — where do you see this holding or breaking down, and what evidence would settle it?",
+    "tension": "Multiple symbols are used: Metrical scansion explicitly requires a 2-level notation.",
+    "followUps": [
+     "What would count as a counter-example?",
+     "How does this connect to last week's concept?"
+    ]
+   },
+   "evidence": {
+    "fromGrade": null,
+    "sourced": true,
+    "extractive": true
+   },
+   "provenance": {
+    "origin": "researcher-zero",
+    "sources": [
+     {
+      "url": "https://en.wikipedia.org/wiki/Scansion",
+      "license": "CC-BY-SA-4.0",
+      "attribution": "Wikipedia contributors, \"Scansion\""
+     },
+     {
+      "url": "https://en.wikipedia.org/wiki/Latin_prosody",
+      "license": "CC-BY-SA-4.0",
+      "attribution": "Wikipedia contributors, \"Latin prosody\""
+     },
+     {
+      "url": "https://en.wikipedia.org/wiki/Metre_(poetry)",
+      "license": "CC-BY-SA-4.0",
+      "attribution": "Wikipedia contributors, \"Metre (poetry)\""
+     }
+    ],
+    "date": "2026-07-06"
+   },
+   "exposure": {
+    "uses": 0
+   },
+   "voice": "sourced-zero"
+  },
+  {
+   "id": "researcher-zero:activity:lit/scansion:0",
+   "kernelId": "lit/scansion",
+   "conceptName": "Scansion",
+   "move": "activity",
+   "body": {
+    "task": "Choose one real case (from the reading or your own experience) and analyze it using Scansion. State the case in two sentences, apply each key point from the study guide to it explicitly, and note one place where the concept fits imperfectly.",
+    "steps": [
+     "Pick and describe your case (2 sentences).",
+     "Apply each key point to the case, one short paragraph each.",
+     "Name one limit or imperfect fit and explain why."
+    ],
+    "rubricBands": [
+     "Excellent: case is concrete, every key point applied accurately, the limit shows real insight.",
+     "Adequate: case present, most key points applied, limit named but thin.",
+     "Insufficient: case vague or key points restated without application."
+    ]
+   },
+   "evidence": {
+    "fromGrade": null,
+    "sourced": true,
+    "extractive": true
+   },
+   "provenance": {
+    "origin": "researcher-zero",
+    "sources": [
+     {
+      "url": "https://en.wikipedia.org/wiki/Scansion",
+      "license": "CC-BY-SA-4.0",
+      "attribution": "Wikipedia contributors, \"Scansion\""
+     },
+     {
+      "url": "https://en.wikipedia.org/wiki/Latin_prosody",
+      "license": "CC-BY-SA-4.0",
+      "attribution": "Wikipedia contributors, \"Latin prosody\""
+     },
+     {
+      "url": "https://en.wikipedia.org/wiki/Metre_(poetry)",
+      "license": "CC-BY-SA-4.0",
+      "attribution": "Wikipedia contributors, \"Metre (poetry)\""
+     }
+    ],
+    "date": "2026-07-06"
+   },
+   "exposure": {
+    "uses": 0
+   },
+   "voice": "sourced-zero"
+  },
+  {
+   "id": "researcher-zero:faq-entry:lit/scansion:0",
+   "kernelId": "lit/scansion",
+   "conceptName": "Scansion",
+   "move": "faq-entry",
+   "body": {
+    "q": "How does this apply: Scansion?",
+    "a": "(\"do you see this woman?\"), which is scanned u u –."
+   },
+   "evidence": {
+    "fromGrade": null,
+    "sourced": true,
+    "extractive": true
+   },
+   "provenance": {
+    "origin": "researcher-zero",
+    "sources": [
+     {
+      "url": "https://en.wikipedia.org/wiki/Scansion",
+      "license": "CC-BY-SA-4.0",
+      "attribution": "Wikipedia contributors, \"Scansion\""
+     },
+     {
+      "url": "https://en.wikipedia.org/wiki/Latin_prosody",
+      "license": "CC-BY-SA-4.0",
+      "attribution": "Wikipedia contributors, \"Latin prosody\""
+     },
+     {
+      "url": "https://en.wikipedia.org/wiki/Metre_(poetry)",
+      "license": "CC-BY-SA-4.0",
+      "attribution": "Wikipedia contributors, \"Metre (poetry)\""
+     }
+    ],
+    "date": "2026-07-06"
+   },
+   "exposure": {
+    "uses": 0
+   },
+   "voice": "sourced-zero"
+  },
+  {
+   "id": "researcher-zero:faq-entry:lit/scansion:1",
+   "kernelId": "lit/scansion",
+   "conceptName": "Scansion",
+   "move": "faq-entry",
+   "body": {
+    "q": "How does this apply: Scansion?",
+    "a": "It is the notation preferred by the Poetry WikiProject for Wikipedia articles displaying scansion."
+   },
+   "evidence": {
+    "fromGrade": null,
+    "sourced": true,
+    "extractive": true
+   },
+   "provenance": {
+    "origin": "researcher-zero",
+    "sources": [
+     {
+      "url": "https://en.wikipedia.org/wiki/Scansion",
+      "license": "CC-BY-SA-4.0",
+      "attribution": "Wikipedia contributors, \"Scansion\""
+     },
+     {
+      "url": "https://en.wikipedia.org/wiki/Latin_prosody",
+      "license": "CC-BY-SA-4.0",
+      "attribution": "Wikipedia contributors, \"Latin prosody\""
+     },
+     {
+      "url": "https://en.wikipedia.org/wiki/Metre_(poetry)",
+      "license": "CC-BY-SA-4.0",
+      "attribution": "Wikipedia contributors, \"Metre (poetry)\""
+     }
+    ],
+    "date": "2026-07-06"
+   },
+   "exposure": {
+    "uses": 0
+   },
+   "voice": "sourced-zero"
+  },
+  {
+   "id": "researcher-zero:slide-group:lit/scansion:0",
+   "kernelId": "lit/scansion",
+   "conceptName": "Scansion",
+   "move": "slide-group",
+   "body": {
+    "slides": [
+     {
+      "title": "Scansion: the idea",
+      "bullets": [
+       "Scansion is the method of dividing a poem’s lines into feet and stresses in order to describe and analyze its rhythm."
+      ],
+      "speakerNotes": "Walk the class through this slowly: Scansion is the method of dividing a poem’s lines into feet and stresses in order to describe and analyze its rhythm. Invite one question before moving on.",
+      "altText": "A single-idea slide about Scansion suitable for a clean text layout with one highlighted phrase."
+     },
+     {
+      "title": "Key point 1",
+      "bullets": [
+       "In metrical verse, lines can be divided into feet, and each foot’s syllables are marked by stress (stressed vs. unstressed)."
+      ],
+      "speakerNotes": "Walk the class through this slowly: In metrical verse, lines can be divided into feet, and each foot’s syllables are marked by stress (stressed vs. unstressed). Invite one question before moving on.",
+      "altText": "A single-idea slide about Scansion suitable for a clean text layout with one highlighted phrase."
+     },
+     {
+      "title": "Key point 2",
+      "bullets": [
+       "Feet typically contain either two or three syllables."
+      ],
+      "speakerNotes": "Walk the class through this slowly: Feet typically contain either two or three syllables. Invite one question before moving on.",
+      "altText": "A single-idea slide about Scansion suitable for a clean text layout with one highlighted phrase."
+     },
+     {
+      "title": "Key point 3",
+      "bullets": [
+       "Standard scansion symbols can mark unstressed and stressed beats."
+      ],
+      "speakerNotes": "Walk the class through this slowly: Standard scansion symbols can mark unstressed and stressed beats. Invite one question before moving on.",
+      "altText": "A single-idea slide about Scansion suitable for a clean text layout with one highlighted phrase."
+     },
+     {
+      "title": "Key point 4",
+      "bullets": [
+       "Feet may break in the middle of words when scanning a line."
+      ],
+      "speakerNotes": "Walk the class through this slowly: Feet may break in the middle of words when scanning a line. Invite one question before moving on.",
+      "altText": "A single-idea slide about Scansion suitable for a clean text layout with one highlighted phrase."
+     },
+     {
+      "title": "Key point 5",
+      "bullets": [
+       "Scansion is not purely mechanical; it can involve subjective judgment about stress."
+      ],
+      "speakerNotes": "Walk the class through this slowly: Scansion is not purely mechanical; it can involve subjective judgment about stress. Invite one question before moving on.",
+      "altText": "A single-idea slide about Scansion suitable for a clean text layout with one highlighted phrase."
+     },
+     {
+      "title": "Check yourself",
+      "bullets": [
+       "Explain Scansion without notes.",
+       "Connect it to one earlier concept."
+      ],
+      "speakerNotes": "Walk the class through this slowly: Explain Scansion without notes. Connect it to one earlier concept. Invite one question before moving on.",
+      "altText": "A single-idea slide about Scansion suitable for a clean text layout with one highlighted phrase."
+     }
+    ]
+   },
+   "evidence": {
+    "fromGrade": null,
+    "sourced": true,
+    "extractive": true
+   },
+   "provenance": {
+    "origin": "researcher-zero",
+    "sources": [
+     {
+      "url": "https://en.wikipedia.org/wiki/Scansion",
+      "license": "CC-BY-SA-4.0",
+      "attribution": "Wikipedia contributors, \"Scansion\""
+     },
+     {
+      "url": "https://en.wikipedia.org/wiki/Latin_prosody",
+      "license": "CC-BY-SA-4.0",
+      "attribution": "Wikipedia contributors, \"Latin prosody\""
+     },
+     {
+      "url": "https://en.wikipedia.org/wiki/Metre_(poetry)",
+      "license": "CC-BY-SA-4.0",
+      "attribution": "Wikipedia contributors, \"Metre (poetry)\""
+     }
+    ],
+    "date": "2026-07-06"
+   },
+   "exposure": {
+    "uses": 0
+   },
+   "voice": "sourced-zero"
+  },
+  {
+   "id": "researcher-zero:teach-segment:lit/metrical-feet-and-line-length:0",
+   "kernelId": "lit/metrical-feet-and-line-length",
+   "conceptName": "Metre (poetry)",
+   "move": "teach-segment",
+   "body": {
+    "minutes": 12,
+    "text": "Metrical feet are recurring stress patterns (e.g., iamb, trochee) used to build lines of metrical verse; metrical line length names how many feet a line contains (e.g., tetrameter, pentameter). An iamb is a light stress followed by a heavy stress. A trochee is a heavy stress followed by a light stress. A dactyl is a heavy stress followed by two light stresses; an anapest is two light stresses followed by a heavy stress."
+   },
+   "evidence": {
+    "fromGrade": null,
+    "sourced": true,
+    "extractive": true
+   },
+   "provenance": {
+    "origin": "researcher-zero",
+    "sources": [
+     {
+      "url": "https://en.wikipedia.org/wiki/Metre_(poetry)",
+      "license": "CC-BY-SA-4.0",
+      "attribution": "Wikipedia contributors, \"Metre (poetry)\""
+     },
+     {
+      "url": "https://en.wikipedia.org/wiki/Metre_(music)",
+      "license": "CC-BY-SA-4.0",
+      "attribution": "Wikipedia contributors, \"Metre (music)\""
+     },
+     {
+      "url": "https://en.wikipedia.org/wiki/Metrical_foot",
+      "license": "CC-BY-SA-4.0",
+      "attribution": "Wikipedia contributors, \"Metrical foot\""
+     }
+    ],
+    "date": "2026-07-06"
+   },
+   "exposure": {
+    "uses": 0
+   },
+   "voice": "sourced-zero"
+  },
+  {
+   "id": "researcher-zero:worked-example:lit/metrical-feet-and-line-length:0",
+   "kernelId": "lit/metrical-feet-and-line-length",
+   "conceptName": "Metre (poetry)",
+   "move": "worked-example",
+   "body": {
+    "minutes": 15,
+    "text": "Worked example: we walk through one concrete case. The familiar type of metre in English-language poetry is called qualitative metre, with stressed syllables coming at regular intervals (e.g. in iambic pentameters, usually every even-numbered syllable). Many Romance languages use a scheme that is somewhat similar but where the position of only one particular stressed syllable (e.g. the last) needs to be fixed. The alliterative metre of the old Germanic poetry of languages such as Old Norse and Old English was radically different, but was still based on stress patterns. Working through it step by step, connect each part back to Metre (poetry)."
+   },
+   "evidence": {
+    "fromGrade": null,
+    "sourced": true,
+    "extractive": true
+   },
+   "provenance": {
+    "origin": "researcher-zero",
+    "sources": [
+     {
+      "url": "https://en.wikipedia.org/wiki/Metre_(poetry)",
+      "license": "CC-BY-SA-4.0",
+      "attribution": "Wikipedia contributors, \"Metre (poetry)\""
+     },
+     {
+      "url": "https://en.wikipedia.org/wiki/Metre_(music)",
+      "license": "CC-BY-SA-4.0",
+      "attribution": "Wikipedia contributors, \"Metre (music)\""
+     },
+     {
+      "url": "https://en.wikipedia.org/wiki/Metrical_foot",
+      "license": "CC-BY-SA-4.0",
+      "attribution": "Wikipedia contributors, \"Metrical foot\""
+     }
+    ],
+    "date": "2026-07-06"
+   },
+   "exposure": {
+    "uses": 0
+   },
+   "voice": "sourced-zero"
+  },
+  {
+   "id": "researcher-zero:reteach-script:lit/metrical-feet-and-line-length:0",
+   "kernelId": "lit/metrical-feet-and-line-length",
+   "conceptName": "Metre (poetry)",
+   "move": "reteach-script",
+   "body": {
+    "minutes": 10,
+    "text": "If Metre (poetry) did not land the first time, here is the idea again through another example. An anapest is two light stresses followed by a heavy stress. Line length terms name the number of feet, such as pentameter for a five-foot line. The example to hold onto: The familiar type of metre in English-language poetry is called qualitative metre, with stressed syllables coming at regular intervals (e.g. in iambic pentameters, usually every even-numbered syllable)."
+   },
+   "evidence": {
+    "fromGrade": null,
+    "sourced": true,
+    "extractive": true
+   },
+   "provenance": {
+    "origin": "researcher-zero",
+    "sources": [
+     {
+      "url": "https://en.wikipedia.org/wiki/Metre_(poetry)",
+      "license": "CC-BY-SA-4.0",
+      "attribution": "Wikipedia contributors, \"Metre (poetry)\""
+     },
+     {
+      "url": "https://en.wikipedia.org/wiki/Metre_(music)",
+      "license": "CC-BY-SA-4.0",
+      "attribution": "Wikipedia contributors, \"Metre (music)\""
+     },
+     {
+      "url": "https://en.wikipedia.org/wiki/Metrical_foot",
+      "license": "CC-BY-SA-4.0",
+      "attribution": "Wikipedia contributors, \"Metrical foot\""
+     }
+    ],
+    "date": "2026-07-06"
+   },
+   "exposure": {
+    "uses": 0
+   },
+   "voice": "sourced-zero"
+  },
+  {
+   "id": "researcher-zero:guide:lit/metrical-feet-and-line-length:0",
+   "kernelId": "lit/metrical-feet-and-line-length",
+   "conceptName": "Metre (poetry)",
+   "move": "guide",
+   "body": {
+    "markdown": "## Metre (poetry) — study guide\n\n**Core idea.** Metrical feet are recurring stress patterns (e.g., iamb, trochee) used to build lines of metrical verse; metrical line length names how many feet a line contains (e.g., tetrameter, pentameter).\n\n**Key points.**\n- An iamb is a light stress followed by a heavy stress.\n- A trochee is a heavy stress followed by a light stress.\n- A dactyl is a heavy stress followed by two light stresses; an anapest is two light stresses followed by a heavy stress.\n- An anapest is two light stresses followed by a heavy stress.\n\n**If you missed the reading:** start with the core idea above, then read the key points twice; each is taken directly from the course sources.\n\n**Check yourself.**\n- Explain Metre (poetry) in your own words without looking at the definition.\n- Which key point above would change most if its conditions changed? Why?"
+   },
+   "evidence": {
+    "fromGrade": null,
+    "sourced": true,
+    "extractive": true
+   },
+   "provenance": {
+    "origin": "researcher-zero",
+    "sources": [
+     {
+      "url": "https://en.wikipedia.org/wiki/Metre_(poetry)",
+      "license": "CC-BY-SA-4.0",
+      "attribution": "Wikipedia contributors, \"Metre (poetry)\""
+     },
+     {
+      "url": "https://en.wikipedia.org/wiki/Metre_(music)",
+      "license": "CC-BY-SA-4.0",
+      "attribution": "Wikipedia contributors, \"Metre (music)\""
+     },
+     {
+      "url": "https://en.wikipedia.org/wiki/Metrical_foot",
+      "license": "CC-BY-SA-4.0",
+      "attribution": "Wikipedia contributors, \"Metrical foot\""
+     }
+    ],
+    "date": "2026-07-06"
+   },
+   "exposure": {
+    "uses": 0
+   },
+   "voice": "sourced-zero"
+  },
+  {
+   "id": "researcher-zero:discussion-tension:lit/metrical-feet-and-line-length:0",
+   "kernelId": "lit/metrical-feet-and-line-length",
+   "conceptName": "Metre (poetry)",
+   "move": "discussion-tension",
+   "body": {
+    "prompt": "The sources note: \"In poetry, metre (Commonwealth spelling) or meter (American spelling; see spelling differences) is the basic rhythmic structure of a verse or lines in verse.\" — where do you see this holding or breaking down, and what evidence would settle it?",
+    "tension": "In poetry, metre (Commonwealth spelling) or meter (American spelling; see spelling differences) is the basic rhythmic structure of a verse or lines in verse.",
+    "followUps": [
+     "What would count as a counter-example?",
+     "How does this connect to last week's concept?"
+    ]
+   },
+   "evidence": {
+    "fromGrade": null,
+    "sourced": true,
+    "extractive": true
+   },
+   "provenance": {
+    "origin": "researcher-zero",
+    "sources": [
+     {
+      "url": "https://en.wikipedia.org/wiki/Metre_(poetry)",
+      "license": "CC-BY-SA-4.0",
+      "attribution": "Wikipedia contributors, \"Metre (poetry)\""
+     },
+     {
+      "url": "https://en.wikipedia.org/wiki/Metre_(music)",
+      "license": "CC-BY-SA-4.0",
+      "attribution": "Wikipedia contributors, \"Metre (music)\""
+     },
+     {
+      "url": "https://en.wikipedia.org/wiki/Metrical_foot",
+      "license": "CC-BY-SA-4.0",
+      "attribution": "Wikipedia contributors, \"Metrical foot\""
+     }
+    ],
+    "date": "2026-07-06"
+   },
+   "exposure": {
+    "uses": 0
+   },
+   "voice": "sourced-zero"
+  },
+  {
+   "id": "researcher-zero:activity:lit/metrical-feet-and-line-length:0",
+   "kernelId": "lit/metrical-feet-and-line-length",
+   "conceptName": "Metre (poetry)",
+   "move": "activity",
+   "body": {
+    "task": "Choose one real case (from the reading or your own experience) and analyze it using Metre (poetry). State the case in two sentences, apply each key point from the study guide to it explicitly, and note one place where the concept fits imperfectly.",
+    "steps": [
+     "Pick and describe your case (2 sentences).",
+     "Apply each key point to the case, one short paragraph each.",
+     "Name one limit or imperfect fit and explain why."
+    ],
+    "rubricBands": [
+     "Excellent: case is concrete, every key point applied accurately, the limit shows real insight.",
+     "Adequate: case present, most key points applied, limit named but thin.",
+     "Insufficient: case vague or key points restated without application."
+    ]
+   },
+   "evidence": {
+    "fromGrade": null,
+    "sourced": true,
+    "extractive": true
+   },
+   "provenance": {
+    "origin": "researcher-zero",
+    "sources": [
+     {
+      "url": "https://en.wikipedia.org/wiki/Metre_(poetry)",
+      "license": "CC-BY-SA-4.0",
+      "attribution": "Wikipedia contributors, \"Metre (poetry)\""
+     },
+     {
+      "url": "https://en.wikipedia.org/wiki/Metre_(music)",
+      "license": "CC-BY-SA-4.0",
+      "attribution": "Wikipedia contributors, \"Metre (music)\""
+     },
+     {
+      "url": "https://en.wikipedia.org/wiki/Metrical_foot",
+      "license": "CC-BY-SA-4.0",
+      "attribution": "Wikipedia contributors, \"Metrical foot\""
+     }
+    ],
+    "date": "2026-07-06"
+   },
+   "exposure": {
+    "uses": 0
+   },
+   "voice": "sourced-zero"
+  },
+  {
+   "id": "researcher-zero:faq-entry:lit/metrical-feet-and-line-length:0",
+   "kernelId": "lit/metrical-feet-and-line-length",
+   "conceptName": "Metre (poetry)",
+   "move": "faq-entry",
+   "body": {
+    "q": "How does this apply: Metre (poetry)?",
+    "a": "In hymnody it is called the \"common metre\", as it is the most common of the named hymn"
+   },
+   "evidence": {
+    "fromGrade": null,
+    "sourced": true,
+    "extractive": true
+   },
+   "provenance": {
+    "origin": "researcher-zero",
+    "sources": [
+     {
+      "url": "https://en.wikipedia.org/wiki/Metre_(poetry)",
+      "license": "CC-BY-SA-4.0",
+      "attribution": "Wikipedia contributors, \"Metre (poetry)\""
+     },
+     {
+      "url": "https://en.wikipedia.org/wiki/Metre_(music)",
+      "license": "CC-BY-SA-4.0",
+      "attribution": "Wikipedia contributors, \"Metre (music)\""
+     },
+     {
+      "url": "https://en.wikipedia.org/wiki/Metrical_foot",
+      "license": "CC-BY-SA-4.0",
+      "attribution": "Wikipedia contributors, \"Metrical foot\""
+     }
+    ],
+    "date": "2026-07-06"
+   },
+   "exposure": {
+    "uses": 0
+   },
+   "voice": "sourced-zero"
+  },
+  {
+   "id": "researcher-zero:faq-entry:lit/metrical-feet-and-line-length:1",
+   "kernelId": "lit/metrical-feet-and-line-length",
+   "conceptName": "Metre (poetry)",
+   "move": "faq-entry",
+   "body": {
+    "q": "How does this apply: Metre (poetry)?",
+    "a": "Pentameter is the most common in English verse."
+   },
+   "evidence": {
+    "fromGrade": null,
+    "sourced": true,
+    "extractive": true
+   },
+   "provenance": {
+    "origin": "researcher-zero",
+    "sources": [
+     {
+      "url": "https://en.wikipedia.org/wiki/Metre_(poetry)",
+      "license": "CC-BY-SA-4.0",
+      "attribution": "Wikipedia contributors, \"Metre (poetry)\""
+     },
+     {
+      "url": "https://en.wikipedia.org/wiki/Metre_(music)",
+      "license": "CC-BY-SA-4.0",
+      "attribution": "Wikipedia contributors, \"Metre (music)\""
+     },
+     {
+      "url": "https://en.wikipedia.org/wiki/Metrical_foot",
+      "license": "CC-BY-SA-4.0",
+      "attribution": "Wikipedia contributors, \"Metrical foot\""
+     }
+    ],
+    "date": "2026-07-06"
+   },
+   "exposure": {
+    "uses": 0
+   },
+   "voice": "sourced-zero"
+  },
+  {
+   "id": "researcher-zero:slide-group:lit/metrical-feet-and-line-length:0",
+   "kernelId": "lit/metrical-feet-and-line-length",
+   "conceptName": "Metre (poetry)",
+   "move": "slide-group",
+   "body": {
+    "slides": [
+     {
+      "title": "Metre (poetry): the idea",
+      "bullets": [
+       "Metrical feet are recurring stress patterns (e.g., iamb, trochee) used to build lines of metrical verse; metrical line length names how many feet a line contains (e.g., tetrameter, pentameter)."
+      ],
+      "speakerNotes": "Walk the class through this slowly: Metrical feet are recurring stress patterns (e.g., iamb, trochee) used to build lines of metrical verse; metrical line length names how many feet a line contains (e.g., tetrameter, pentameter). Invite one question before moving on.",
+      "altText": "A single-idea slide about Metre (poetry) suitable for a clean text layout with one highlighted phrase."
+     },
+     {
+      "title": "Key point 1",
+      "bullets": [
+       "An iamb is a light stress followed by a heavy stress."
+      ],
+      "speakerNotes": "Walk the class through this slowly: An iamb is a light stress followed by a heavy stress. Invite one question before moving on.",
+      "altText": "A single-idea slide about Metre (poetry) suitable for a clean text layout with one highlighted phrase."
+     },
+     {
+      "title": "Key point 2",
+      "bullets": [
+       "A trochee is a heavy stress followed by a light stress."
+      ],
+      "speakerNotes": "Walk the class through this slowly: A trochee is a heavy stress followed by a light stress. Invite one question before moving on.",
+      "altText": "A single-idea slide about Metre (poetry) suitable for a clean text layout with one highlighted phrase."
+     },
+     {
+      "title": "Key point 3",
+      "bullets": [
+       "A dactyl is a heavy stress followed by two light stresses; an anapest is two light stresses followed by a heavy stress."
+      ],
+      "speakerNotes": "Walk the class through this slowly: A dactyl is a heavy stress followed by two light stresses; an anapest is two light stresses followed by a heavy stress. Invite one question before moving on.",
+      "altText": "A single-idea slide about Metre (poetry) suitable for a clean text layout with one highlighted phrase."
+     },
+     {
+      "title": "Key point 4",
+      "bullets": [
+       "An anapest is two light stresses followed by a heavy stress."
+      ],
+      "speakerNotes": "Walk the class through this slowly: An anapest is two light stresses followed by a heavy stress. Invite one question before moving on.",
+      "altText": "A single-idea slide about Metre (poetry) suitable for a clean text layout with one highlighted phrase."
+     },
+     {
+      "title": "Key point 5",
+      "bullets": [
+       "Line length terms name the number of feet, such as pentameter for a five-foot line."
+      ],
+      "speakerNotes": "Walk the class through this slowly: Line length terms name the number of feet, such as pentameter for a five-foot line. Invite one question before moving on.",
+      "altText": "A single-idea slide about Metre (poetry) suitable for a clean text layout with one highlighted phrase."
+     },
+     {
+      "title": "Check yourself",
+      "bullets": [
+       "Explain Metre (poetry) without notes.",
+       "Connect it to one earlier concept."
+      ],
+      "speakerNotes": "Walk the class through this slowly: Explain Metre (poetry) without notes. Connect it to one earlier concept. Invite one question before moving on.",
+      "altText": "A single-idea slide about Metre (poetry) suitable for a clean text layout with one highlighted phrase."
+     }
+    ]
+   },
+   "evidence": {
+    "fromGrade": null,
+    "sourced": true,
+    "extractive": true
+   },
+   "provenance": {
+    "origin": "researcher-zero",
+    "sources": [
+     {
+      "url": "https://en.wikipedia.org/wiki/Metre_(poetry)",
+      "license": "CC-BY-SA-4.0",
+      "attribution": "Wikipedia contributors, \"Metre (poetry)\""
+     },
+     {
+      "url": "https://en.wikipedia.org/wiki/Metre_(music)",
+      "license": "CC-BY-SA-4.0",
+      "attribution": "Wikipedia contributors, \"Metre (music)\""
+     },
+     {
+      "url": "https://en.wikipedia.org/wiki/Metrical_foot",
+      "license": "CC-BY-SA-4.0",
+      "attribution": "Wikipedia contributors, \"Metrical foot\""
+     }
+    ],
+    "date": "2026-07-06"
+   },
+   "exposure": {
+    "uses": 0
+   },
+   "voice": "sourced-zero"
+  },
+  {
+   "id": "researcher-zero:teach-segment:lit/rhyme-scheme-and-internal-rhyme:0",
+   "kernelId": "lit/rhyme-scheme-and-internal-rhyme",
+   "conceptName": "Rhyme scheme",
+   "move": "teach-segment",
+   "body": {
+    "minutes": 12,
+    "text": "A rhyme scheme is a pattern of rhymes in a stanza, commonly diagrammed with letters (A, B, C...). In formal verse it often appears as end-rhyme, while in free verse rhyme is more likely to be internal. In formal poetry, rhyme occurs more frequently as end-rhyme, when words that end lines rhyme. In free verse, rhyme is more likely to be internal rather than at line ends. Rhyme scheme notation changes letters when the rhyme changes and introduces a new letter for a new rhyme."
+   },
+   "evidence": {
+    "fromGrade": null,
+    "sourced": true,
+    "extractive": true
+   },
+   "provenance": {
+    "origin": "researcher-zero",
+    "sources": [
+     {
+      "url": "https://en.wikipedia.org/wiki/Rhyme_scheme",
+      "license": "CC-BY-SA-4.0",
+      "attribution": "Wikipedia contributors, \"Rhyme scheme\""
+     },
+     {
+      "url": "https://en.wikipedia.org/wiki/Rhyme",
+      "license": "CC-BY-SA-4.0",
+      "attribution": "Wikipedia contributors, \"Rhyme\""
+     },
+     {
+      "url": "https://en.wikipedia.org/wiki/Internal_rhyme",
+      "license": "CC-BY-SA-4.0",
+      "attribution": "Wikipedia contributors, \"Internal rhyme\""
+     }
+    ],
+    "date": "2026-07-06"
+   },
+   "exposure": {
+    "uses": 0
+   },
+   "voice": "sourced-zero"
+  },
+  {
+   "id": "researcher-zero:worked-example:lit/rhyme-scheme-and-internal-rhyme:0",
+   "kernelId": "lit/rhyme-scheme-and-internal-rhyme",
+   "conceptName": "Rhyme scheme",
+   "move": "worked-example",
+   "body": {
+    "minutes": 15,
+    "text": "Worked example: we walk through one concrete case. An example of the ABAB rhyming scheme, from \"To Anthea, who may Command him Anything\", by Robert Herrick: These rhyme patterns have various effects, and can be used to: Control flow: If every line has the same rhyme (AAAA), the stanza will read as having a very quick flow, whereas a rhyme scheme like ABCABC can be felt to unfold more slowly. Structure a poem's message and thought patterns: For example, a simple couplet with a rhyme scheme of AABB lends itself to simpler direct ideas, because the resolution comes in the very next line. (In other words, all the \"A\" and \"a\" lines rhyme with each other, but not with the \"b\" lines.) XAXA – Four lines, two unrhymed (X) and two with the same end rhyme (A) Other notation examples: Indicating the number of stressed syllables in certain lines: AA4B2CC4 or AA4B2CC4 Some publications use lowercase or have punctuation to separate lines or stanzas, e.g. abba cdcd or a-b-b-a,c-d-c-d. Working through it step by step, connect each part back to Rhyme scheme."
+   },
+   "evidence": {
+    "fromGrade": null,
+    "sourced": true,
+    "extractive": true
+   },
+   "provenance": {
+    "origin": "researcher-zero",
+    "sources": [
+     {
+      "url": "https://en.wikipedia.org/wiki/Rhyme_scheme",
+      "license": "CC-BY-SA-4.0",
+      "attribution": "Wikipedia contributors, \"Rhyme scheme\""
+     },
+     {
+      "url": "https://en.wikipedia.org/wiki/Rhyme",
+      "license": "CC-BY-SA-4.0",
+      "attribution": "Wikipedia contributors, \"Rhyme\""
+     },
+     {
+      "url": "https://en.wikipedia.org/wiki/Internal_rhyme",
+      "license": "CC-BY-SA-4.0",
+      "attribution": "Wikipedia contributors, \"Internal rhyme\""
+     }
+    ],
+    "date": "2026-07-06"
+   },
+   "exposure": {
+    "uses": 0
+   },
+   "voice": "sourced-zero"
+  },
+  {
+   "id": "researcher-zero:reteach-script:lit/rhyme-scheme-and-internal-rhyme:0",
+   "kernelId": "lit/rhyme-scheme-and-internal-rhyme",
+   "conceptName": "Rhyme scheme",
+   "move": "reteach-script",
+   "body": {
+    "minutes": 10,
+    "text": "Reteach the reading idea: “Rhyme can be exact or “slant or off rather than exact.” The example to hold onto: An example of the ABAB rhyming scheme, from “To Anthea, who may Command him Anything,” by Robert Herrick: These rhyme patterns have various effects, and can be used to: Control flow: If every line has the same rhyme (AAAA), the stanza will read as having a very quick flow, whereas a rhyme scheme like ABCABC can be felt to unfold more slowly.”"
+   },
+   "evidence": {
+    "fromGrade": null,
+    "sourced": true,
+    "extractive": true
+   },
+   "provenance": {
+    "origin": "researcher-zero",
+    "sources": [
+     {
+      "url": "https://en.wikipedia.org/wiki/Rhyme_scheme",
+      "license": "CC-BY-SA-4.0",
+      "attribution": "Wikipedia contributors, \"Rhyme scheme\""
+     },
+     {
+      "url": "https://en.wikipedia.org/wiki/Rhyme",
+      "license": "CC-BY-SA-4.0",
+      "attribution": "Wikipedia contributors, \"Rhyme\""
+     },
+     {
+      "url": "https://en.wikipedia.org/wiki/Internal_rhyme",
+      "license": "CC-BY-SA-4.0",
+      "attribution": "Wikipedia contributors, \"Internal rhyme\""
+     }
+    ],
+    "date": "2026-07-06"
+   },
+   "exposure": {
+    "uses": 0
+   },
+   "voice": "sourced-zero"
+  },
+  {
+   "id": "researcher-zero:guide:lit/rhyme-scheme-and-internal-rhyme:0",
+   "kernelId": "lit/rhyme-scheme-and-internal-rhyme",
+   "conceptName": "Rhyme scheme",
+   "move": "guide",
+   "body": {
+    "markdown": "## Rhyme scheme — study guide\n\n**Core idea.** A rhyme scheme is a pattern of rhymes in a stanza, commonly diagrammed with letters (A, B, C...). In formal verse it often appears as end-rhyme, while in free verse rhyme is more likely to be internal.\n\n**Key points.**\n- In formal poetry, rhyme occurs more frequently as end-rhyme, when words that end lines rhyme.\n- In free verse, rhyme is more likely to be internal rather than at line ends.\n- Rhyme scheme notation changes letters when the rhyme changes and introduces a new letter for a new rhyme.\n- Rhyme can be exact or “slant or off rather than exact.”\n\n**If you missed the reading:** start with the core idea above, then read the key points twice; each is taken directly from the course sources.\n\n**Check yourself.**\n- Explain Rhyme scheme in your own words without looking at the definition.\n- Which key point above would change most if its conditions changed? Why?"
+   },
+   "evidence": {
+    "fromGrade": null,
+    "sourced": true,
+    "extractive": true
+   },
+   "provenance": {
+    "origin": "researcher-zero",
+    "sources": [
+     {
+      "url": "https://en.wikipedia.org/wiki/Rhyme_scheme",
+      "license": "CC-BY-SA-4.0",
+      "attribution": "Wikipedia contributors, \"Rhyme scheme\""
+     },
+     {
+      "url": "https://en.wikipedia.org/wiki/Rhyme",
+      "license": "CC-BY-SA-4.0",
+      "attribution": "Wikipedia contributors, \"Rhyme\""
+     },
+     {
+      "url": "https://en.wikipedia.org/wiki/Internal_rhyme",
+      "license": "CC-BY-SA-4.0",
+      "attribution": "Wikipedia contributors, \"Internal rhyme\""
+     }
+    ],
+    "date": "2026-07-06"
+   },
+   "exposure": {
+    "uses": 0
+   },
+   "voice": "sourced-zero"
+  },
+  {
+   "id": "researcher-zero:discussion-tension:lit/rhyme-scheme-and-internal-rhyme:0",
+   "kernelId": "lit/rhyme-scheme-and-internal-rhyme",
+   "conceptName": "Rhyme scheme",
+   "move": "discussion-tension",
+   "body": {
+    "prompt": "The sources note: \"A rhyme scheme is the pattern of rhyming lines in a poem.\" — where do you see this holding or breaking down, and what evidence would settle it?",
+    "tension": "A rhyme scheme is the pattern of rhyming lines in a poem.",
+    "followUps": [
+     "What would count as a counter-example?",
+     "How does this connect to last week's concept?"
+    ]
+   },
+   "evidence": {
+    "fromGrade": null,
+    "sourced": true,
+    "extractive": true
+   },
+   "provenance": {
+    "origin": "researcher-zero",
+    "sources": [
+     {
+      "url": "https://en.wikipedia.org/wiki/Rhyme_scheme",
+      "license": "CC-BY-SA-4.0",
+      "attribution": "Wikipedia contributors, \"Rhyme scheme\""
+     },
+     {
+      "url": "https://en.wikipedia.org/wiki/Rhyme",
+      "license": "CC-BY-SA-4.0",
+      "attribution": "Wikipedia contributors, \"Rhyme\""
+     },
+     {
+      "url": "https://en.wikipedia.org/wiki/Internal_rhyme",
+      "license": "CC-BY-SA-4.0",
+      "attribution": "Wikipedia contributors, \"Internal rhyme\""
+     }
+    ],
+    "date": "2026-07-06"
+   },
+   "exposure": {
+    "uses": 0
+   },
+   "voice": "sourced-zero"
+  },
+  {
+   "id": "researcher-zero:activity:lit/rhyme-scheme-and-internal-rhyme:0",
+   "kernelId": "lit/rhyme-scheme-and-internal-rhyme",
+   "conceptName": "Rhyme scheme",
+   "move": "activity",
+   "body": {
+    "task": "Choose one real case (from the reading or your own experience) and analyze it using Rhyme scheme. State the case in two sentences, apply each key point from the study guide to it explicitly, and note one place where the concept fits imperfectly.",
+    "steps": [
+     "Pick and describe your case (2 sentences).",
+     "Apply each key point to the case, one short paragraph each.",
+     "Name one limit or imperfect fit and explain why."
+    ],
+    "rubricBands": [
+     "Excellent: case is concrete, every key point applied accurately, the limit shows real insight.",
+     "Adequate: case present, most key points applied, limit named but thin.",
+     "Insufficient: case vague or key points restated without application."
+    ]
+   },
+   "evidence": {
+    "fromGrade": null,
+    "sourced": true,
+    "extractive": true
+   },
+   "provenance": {
+    "origin": "researcher-zero",
+    "sources": [
+     {
+      "url": "https://en.wikipedia.org/wiki/Rhyme_scheme",
+      "license": "CC-BY-SA-4.0",
+      "attribution": "Wikipedia contributors, \"Rhyme scheme\""
+     },
+     {
+      "url": "https://en.wikipedia.org/wiki/Rhyme",
+      "license": "CC-BY-SA-4.0",
+      "attribution": "Wikipedia contributors, \"Rhyme\""
+     },
+     {
+      "url": "https://en.wikipedia.org/wiki/Internal_rhyme",
+      "license": "CC-BY-SA-4.0",
+      "attribution": "Wikipedia contributors, \"Internal rhyme\""
+     }
+    ],
+    "date": "2026-07-06"
+   },
+   "exposure": {
+    "uses": 0
+   },
+   "voice": "sourced-zero"
+  },
+  {
+   "id": "researcher-zero:faq-entry:lit/rhyme-scheme-and-internal-rhyme:0",
+   "kernelId": "lit/rhyme-scheme-and-internal-rhyme",
+   "conceptName": "Rhyme scheme",
+   "move": "faq-entry",
+   "body": {
+    "q": "How does this apply: Rhyme scheme?",
+    "a": "Traditional rhyme: ABAB CDCD EFEF GHGH..."
+   },
+   "evidence": {
+    "fromGrade": null,
+    "sourced": true,
+    "extractive": true
+   },
+   "provenance": {
+    "origin": "researcher-zero",
+    "sources": [
+     {
+      "url": "https://en.wikipedia.org/wiki/Rhyme_scheme",
+      "license": "CC-BY-SA-4.0",
+      "attribution": "Wikipedia contributors, \"Rhyme scheme\""
+     },
+     {
+      "url": "https://en.wikipedia.org/wiki/Rhyme",
+      "license": "CC-BY-SA-4.0",
+      "attribution": "Wikipedia contributors, \"Rhyme\""
+     },
+     {
+      "url": "https://en.wikipedia.org/wiki/Internal_rhyme",
+      "license": "CC-BY-SA-4.0",
+      "attribution": "Wikipedia contributors, \"Internal rhyme\""
+     }
+    ],
+    "date": "2026-07-06"
+   },
+   "exposure": {
+    "uses": 0
+   },
+   "voice": "sourced-zero"
+  },
+  {
+   "id": "researcher-zero:faq-entry:lit/rhyme-scheme-and-internal-rhyme:1",
+   "kernelId": "lit/rhyme-scheme-and-internal-rhyme",
+   "conceptName": "Rhyme scheme",
+   "move": "faq-entry",
+   "body": {
+    "q": "How does this apply: Rhyme scheme?",
+    "a": "Rhyme is also occasionally used in the Bible."
+   },
+   "evidence": {
+    "fromGrade": null,
+    "sourced": true,
+    "extractive": true
+   },
+   "provenance": {
+    "origin": "researcher-zero",
+    "sources": [
+     {
+      "url": "https://en.wikipedia.org/wiki/Rhyme_scheme",
+      "license": "CC-BY-SA-4.0",
+      "attribution": "Wikipedia contributors, \"Rhyme scheme\""
+     },
+     {
+      "url": "https://en.wikipedia.org/wiki/Rhyme",
+      "license": "CC-BY-SA-4.0",
+      "attribution": "Wikipedia contributors, \"Rhyme\""
+     },
+     {
+      "url": "https://en.wikipedia.org/wiki/Internal_rhyme",
+      "license": "CC-BY-SA-4.0",
+      "attribution": "Wikipedia contributors, \"Internal rhyme\""
+     }
+    ],
+    "date": "2026-07-06"
+   },
+   "exposure": {
+    "uses": 0
+   },
+   "voice": "sourced-zero"
+  },
+  {
+   "id": "researcher-zero:slide-group:lit/rhyme-scheme-and-internal-rhyme:0",
+   "kernelId": "lit/rhyme-scheme-and-internal-rhyme",
+   "conceptName": "Rhyme scheme",
+   "move": "slide-group",
+   "body": {
+    "slides": [
+     {
+      "title": "Rhyme scheme: the idea",
+      "bullets": [
+       "A rhyme scheme is a pattern of rhymes in a stanza, commonly diagrammed with letters (A, B, C...). In formal verse it often appears as end-rhyme, while in free verse rhyme is more likely to be internal."
+      ],
+      "speakerNotes": "Walk the class through this slowly: A rhyme scheme is a pattern of rhymes in a stanza, commonly diagrammed with letters (A, B, C...). In formal verse it often appears as end-rhyme, while in free verse rhyme is more likely to be internal. Invite one question before moving on.",
+      "altText": "A single-idea slide about Rhyme scheme suitable for a clean text layout with one highlighted phrase."
+     },
+     {
+      "title": "Key point 1",
+      "bullets": [
+       "In formal poetry, rhyme occurs more frequently as end-rhyme, when words that end lines rhyme."
+      ],
+      "speakerNotes": "Walk the class through this slowly: In formal poetry, rhyme occurs more frequently as end-rhyme, when words that end lines rhyme. Invite one question before moving on.",
+      "altText": "A single-idea slide about Rhyme scheme suitable for a clean text layout with one highlighted phrase."
+     },
+     {
+      "title": "Key point 2",
+      "bullets": [
+       "In free verse, rhyme is more likely to be internal rather than at line ends."
+      ],
+      "speakerNotes": "Walk the class through this slowly: In free verse, rhyme is more likely to be internal rather than at line ends. Invite one question before moving on.",
+      "altText": "A single-idea slide about Rhyme scheme suitable for a clean text layout with one highlighted phrase."
+     },
+     {
+      "title": "Key point 3",
+      "bullets": [
+       "Rhyme scheme notation changes letters when the rhyme changes and introduces a new letter for a new rhyme."
+      ],
+      "speakerNotes": "Walk the class through this slowly: Rhyme scheme notation changes letters when the rhyme changes and introduces a new letter for a new rhyme. Invite one question before moving on.",
+      "altText": "A single-idea slide about Rhyme scheme suitable for a clean text layout with one highlighted phrase."
+     },
+     {
+      "title": "Key point 4",
+      "bullets": [
+       "Rhyme can be exact or “slant or off rather than exact.”"
+      ],
+      "speakerNotes": "Walk the class through this slowly: Rhyme can be exact or “slant or off rather than exact.” Invite one question before moving on.",
+      "altText": "A single-idea slide about Rhyme scheme suitable for a clean text layout with one highlighted phrase."
+     },
+     {
+      "title": "Check yourself",
+      "bullets": [
+       "Explain Rhyme scheme without notes.",
+       "Connect it to one earlier concept."
+      ],
+      "speakerNotes": "Walk the class through this slowly: Explain Rhyme scheme without notes. Connect it to one earlier concept. Invite one question before moving on.",
+      "altText": "A single-idea slide about Rhyme scheme suitable for a clean text layout with one highlighted phrase."
+     }
+    ]
+   },
+   "evidence": {
+    "fromGrade": null,
+    "sourced": true,
+    "extractive": true
+   },
+   "provenance": {
+    "origin": "researcher-zero",
+    "sources": [
+     {
+      "url": "https://en.wikipedia.org/wiki/Rhyme_scheme",
+      "license": "CC-BY-SA-4.0",
+      "attribution": "Wikipedia contributors, \"Rhyme scheme\""
+     },
+     {
+      "url": "https://en.wikipedia.org/wiki/Rhyme",
+      "license": "CC-BY-SA-4.0",
+      "attribution": "Wikipedia contributors, \"Rhyme\""
+     },
+     {
+      "url": "https://en.wikipedia.org/wiki/Internal_rhyme",
+      "license": "CC-BY-SA-4.0",
+      "attribution": "Wikipedia contributors, \"Internal rhyme\""
+     }
+    ],
+    "date": "2026-07-06"
+   },
+   "exposure": {
+    "uses": 0
+   },
+   "voice": "sourced-zero"
+  },
+  {
+   "id": "researcher-zero:teach-segment:lit/language-of-images:0",
+   "kernelId": "lit/language-of-images",
+   "conceptName": "Imagery",
+   "move": "teach-segment",
+   "body": {
+    "minutes": 12,
+    "text": "Walk through the core mechanics of storytelling: 1) feelings and emotions are not the same as facts. 2) a story is not just a set of facts; it is a narrative of events that change over time. 3) the key is “a story is a narrative of events in the real world, occurring in time and space, told by a character who experiences them as a participant.” A story is more than just a list of facts; it is a tool for conveying meaning through words."
+   },
+   "evidence": {
+    "fromGrade": null,
+    "sourced": true,
+    "extractive": true
+   },
+   "provenance": {
+    "origin": "researcher-zero",
+    "sources": [
+     {
+      "url": "https://en.wikipedia.org/wiki/Imagery",
+      "license": "CC-BY-SA-4.0",
+      "attribution": "Wikipedia contributors, \"Imagery\""
+     },
+     {
+      "url": "https://en.wikipedia.org/wiki/Computer-generated_imagery",
+      "license": "CC-BY-SA-4.0",
+      "attribution": "Wikipedia contributors, \"Computer-generated imagery\""
+     },
+     {
+      "url": "https://en.wikipedia.org/wiki/Hyperphantasia",
+      "license": "CC-BY-SA-4.0",
+      "attribution": "Wikipedia contributors, \"Hyperphantasia\""
+     }
+    ],
+    "date": "2026-07-06"
+   },
+   "exposure": {
+    "uses": 0
+   },
+   "voice": "sourced-zero"
+  },
+  {
+   "id": "researcher-zero:worked-example:lit/language-of-images:0",
+   "kernelId": "lit/language-of-images",
+   "conceptName": "Imagery",
+   "move": "worked-example",
+   "body": {
+    "minutes": 15,
+    "text": "Worked example: we walk through one concrete case. Not only do animated images form part of computer-generated imagery; natural looking landscapes (such as fractal landscapes) are also generated via computer algorithms. A simple way to generate fractal surfaces is to use an extension of the triangular mesh method, relying on the construction of some special case of a de Rham curve, e.g., midpoint displacement. For instance, the algorithm may start with a large triangle, then recursively zoom in by dividing it into four smaller Sierpinski triangles, then interpolate the height of each point from its nearest neighbors. Working through it step by step, connect each part back to Imagery."
+   },
+   "evidence": {
+    "fromGrade": null,
+    "sourced": true,
+    "extractive": true
+   },
+   "provenance": {
+    "origin": "researcher-zero",
+    "sources": [
+     {
+      "url": "https://en.wikipedia.org/wiki/Imagery",
+      "license": "CC-BY-SA-4.0",
+      "attribution": "Wikipedia contributors, \"Imagery\""
+     },
+     {
+      "url": "https://en.wikipedia.org/wiki/Computer-generated_imagery",
+      "license": "CC-BY-SA-4.0",
+      "attribution": "Wikipedia contributors, \"Computer-generated imagery\""
+     },
+     {
+      "url": "https://en.wikipedia.org/wiki/Hyperphantasia",
+      "license": "CC-BY-SA-4.0",
+      "attribution": "Wikipedia contributors, \"Hyperphantasia\""
+     }
+    ],
+    "date": "2026-07-06"
+   },
+   "exposure": {
+    "uses": 0
+   },
+   "voice": "sourced-zero"
+  },
+  {
+   "id": "researcher-zero:reteach-script:lit/language-of-images:0",
+   "kernelId": "lit/language-of-images",
+   "conceptName": "Imagery",
+   "move": "reteach-script",
+   "body": {
+    "minutes": 10,
+    "text": "This week’s lesson is on “How computer-generated images are created” and “The power of 2D computer-generated imagery.” We’ll use the example of specificity as the key: the more specific the image, the more engaging the reader is. The idea is to use the technical terms: “computer-generated imagery” (CM) and “specificity” (how specific the image is)."
+   },
+   "evidence": {
+    "fromGrade": null,
+    "sourced": true,
+    "extractive": true
+   },
+   "provenance": {
+    "origin": "researcher-zero",
+    "sources": [
+     {
+      "url": "https://en.wikipedia.org/wiki/Imagery",
+      "license": "CC-BY-SA-4.0",
+      "attribution": "Wikipedia contributors, \"Imagery\""
+     },
+     {
+      "url": "https://en.wikipedia.org/wiki/Computer-generated_imagery",
+      "license": "CC-BY-SA-4.0",
+      "attribution": "Wikipedia contributors, \"Computer-generated imagery\""
+     },
+     {
+      "url": "https://en.wikipedia.org/wiki/Hyperphantasia",
+      "license": "CC-BY-SA-4.0",
+      "attribution": "Wikipedia contributors, \"Hyperphantasia\""
+     }
+    ],
+    "date": "2026-07-06"
+   },
+   "exposure": {
+    "uses": 0
+   },
+   "voice": "sourced-zero"
+  },
+  {
+   "id": "researcher-zero:guide:lit/language-of-images:0",
+   "kernelId": "lit/language-of-images",
+   "conceptName": "Imagery",
+   "move": "guide",
+   "body": {
+    "markdown": "## Imagery — study guide\n\n**Core idea.** In creative writing (especially fiction and poetry), images and concrete sensory details are the primary means of translating the world into text so readers can experience it, not just receive information.\n\n**Key points.**\n- Unlike informational genres, fiction and poetry rely on images to let a reader experience the world of the text.\n- Strong image-making depends on significant, concrete detail that stimulates the reader’s senses.\n- Writers describe what the speaker sees (the mind’s eye) so readers can translate words back into images.\n- Specificity increases effectiveness: the more specific the image, the better the reader’s sensory and emotional engagement tends to be.\n\n**If you missed the reading:** start with the core idea above, then read the key points twice; each is taken directly from the course sources.\n\n**Check yourself.**\n- Explain Imagery in your own words without looking at the definition.\n- Which key point above would change most if its conditions changed? Why?"
+   },
+   "evidence": {
+    "fromGrade": null,
+    "sourced": true,
+    "extractive": true
+   },
+   "provenance": {
+    "origin": "researcher-zero",
+    "sources": [
+     {
+      "url": "https://en.wikipedia.org/wiki/Imagery",
+      "license": "CC-BY-SA-4.0",
+      "attribution": "Wikipedia contributors, \"Imagery\""
+     },
+     {
+      "url": "https://en.wikipedia.org/wiki/Computer-generated_imagery",
+      "license": "CC-BY-SA-4.0",
+      "attribution": "Wikipedia contributors, \"Computer-generated imagery\""
+     },
+     {
+      "url": "https://en.wikipedia.org/wiki/Hyperphantasia",
+      "license": "CC-BY-SA-4.0",
+      "attribution": "Wikipedia contributors, \"Hyperphantasia\""
+     }
+    ],
+    "date": "2026-07-06"
+   },
+   "exposure": {
+    "uses": 0
+   },
+   "voice": "sourced-zero"
+  },
+  {
+   "id": "researcher-zero:discussion-tension:lit/language-of-images:0",
+   "kernelId": "lit/language-of-images",
+   "conceptName": "Imagery",
+   "move": "discussion-tension",
+   "body": {
+    "prompt": "The sources note: \"Auditory imagery pertains to sounds, noises, music, or the sense of hearing.\" — where do you see this holding or breaking down, and what evidence would settle it?",
+    "tension": "Auditory imagery pertains to sounds, noises, music, or the sense of hearing.",
+    "followUps": [
+     "What would count as a counter-example?",
+     "How does this connect to last week's concept?"
+    ]
+   },
+   "evidence": {
+    "fromGrade": null,
+    "sourced": true,
+    "extractive": true
+   },
+   "provenance": {
+    "origin": "researcher-zero",
+    "sources": [
+     {
+      "url": "https://en.wikipedia.org/wiki/Imagery",
+      "license": "CC-BY-SA-4.0",
+      "attribution": "Wikipedia contributors, \"Imagery\""
+     },
+     {
+      "url": "https://en.wikipedia.org/wiki/Computer-generated_imagery",
+      "license": "CC-BY-SA-4.0",
+      "attribution": "Wikipedia contributors, \"Computer-generated imagery\""
+     },
+     {
+      "url": "https://en.wikipedia.org/wiki/Hyperphantasia",
+      "license": "CC-BY-SA-4.0",
+      "attribution": "Wikipedia contributors, \"Hyperphantasia\""
+     }
+    ],
+    "date": "2026-07-06"
+   },
+   "exposure": {
+    "uses": 0
+   },
+   "voice": "sourced-zero"
+  },
+  {
+   "id": "researcher-zero:activity:lit/language-of-images:0",
+   "kernelId": "lit/language-of-images",
+   "conceptName": "Imagery",
+   "move": "activity",
+   "body": {
+    "task": "Choose one real case (from the reading or your own experience) and analyze it using Imagery. State the case in two sentences, apply each key point from the study guide to it explicitly, and note one place where the concept fits imperfectly.",
+    "steps": [
+     "Pick and describe your case (2 sentences).",
+     "Apply each key point to the case, one short paragraph each.",
+     "Name one limit or imperfect fit and explain why."
+    ],
+    "rubricBands": [
+     "Excellent: case is concrete, every key point applied accurately, the limit shows real insight.",
+     "Adequate: case present, most key points applied, limit named but thin.",
+     "Insufficient: case vague or key points restated without application."
+    ]
+   },
+   "evidence": {
+    "fromGrade": null,
+    "sourced": true,
+    "extractive": true
+   },
+   "provenance": {
+    "origin": "researcher-zero",
+    "sources": [
+     {
+      "url": "https://en.wikipedia.org/wiki/Imagery",
+      "license": "CC-BY-SA-4.0",
+      "attribution": "Wikipedia contributors, \"Imagery\""
+     },
+     {
+      "url": "https://en.wikipedia.org/wiki/Computer-generated_imagery",
+      "license": "CC-BY-SA-4.0",
+      "attribution": "Wikipedia contributors, \"Computer-generated imagery\""
+     },
+     {
+      "url": "https://en.wikipedia.org/wiki/Hyperphantasia",
+      "license": "CC-BY-SA-4.0",
+      "attribution": "Wikipedia contributors, \"Hyperphantasia\""
+     }
+    ],
+    "date": "2026-07-06"
+   },
+   "exposure": {
+    "uses": 0
+   },
+   "voice": "sourced-zero"
+  },
+  {
+   "id": "researcher-zero:faq-entry:lit/language-of-images:0",
+   "kernelId": "lit/language-of-images",
+   "conceptName": "Imagery",
+   "move": "faq-entry",
+   "body": {
+    "q": "How does this apply: Imagery?",
+    "a": "What is Imagery?: Oregon State Guide to English Literary Terms"
+   },
+   "evidence": {
+    "fromGrade": null,
+    "sourced": true,
+    "extractive": true
+   },
+   "provenance": {
+    "origin": "researcher-zero",
+    "sources": [
+     {
+      "url": "https://en.wikipedia.org/wiki/Imagery",
+      "license": "CC-BY-SA-4.0",
+      "attribution": "Wikipedia contributors, \"Imagery\""
+     },
+     {
+      "url": "https://en.wikipedia.org/wiki/Computer-generated_imagery",
+      "license": "CC-BY-SA-4.0",
+      "attribution": "Wikipedia contributors, \"Computer-generated imagery\""
+     },
+     {
+      "url": "https://en.wikipedia.org/wiki/Hyperphantasia",
+      "license": "CC-BY-SA-4.0",
+      "attribution": "Wikipedia contributors, \"Hyperphantasia\""
+     }
+    ],
+    "date": "2026-07-06"
+   },
+   "exposure": {
+    "uses": 0
+   },
+   "voice": "sourced-zero"
+  },
+  {
+   "id": "researcher-zero:faq-entry:lit/language-of-images:1",
+   "kernelId": "lit/language-of-images",
+   "conceptName": "Imagery",
+   "move": "faq-entry",
+   "body": {
+    "q": "How does this apply: Imagery?",
+    "a": "One of the most commonly used types of imagery."
+   },
+   "evidence": {
+    "fromGrade": null,
+    "sourced": true,
+    "extractive": true
+   },
+   "provenance": {
+    "origin": "researcher-zero",
+    "sources": [
+     {
+      "url": "https://en.wikipedia.org/wiki/Imagery",
+      "license": "CC-BY-SA-4.0",
+      "attribution": "Wikipedia contributors, \"Imagery\""
+     },
+     {
+      "url": "https://en.wikipedia.org/wiki/Computer-generated_imagery",
+      "license": "CC-BY-SA-4.0",
+      "attribution": "Wikipedia contributors, \"Computer-generated imagery\""
+     },
+     {
+      "url": "https://en.wikipedia.org/wiki/Hyperphantasia",
+      "license": "CC-BY-SA-4.0",
+      "attribution": "Wikipedia contributors, \"Hyperphantasia\""
+     }
+    ],
+    "date": "2026-07-06"
+   },
+   "exposure": {
+    "uses": 0
+   },
+   "voice": "sourced-zero"
+  },
+  {
+   "id": "researcher-zero:slide-group:lit/language-of-images:0",
+   "kernelId": "lit/language-of-images",
+   "conceptName": "Imagery",
+   "move": "slide-group",
+   "body": {
+    "slides": [
+     {
+      "title": "Imagery: the idea",
+      "bullets": [
+       "In creative writing (especially fiction and poetry), images and concrete sensory details are the primary means of translating the world into text so readers can experience it, not just receive information."
+      ],
+      "speakerNotes": "Walk the class through this slowly: In creative writing (especially fiction and poetry), images and concrete sensory details are the primary means of translating the world into text so readers can experience it, not just receive information. Invite one question before moving on.",
+      "altText": "A single-idea slide about Imagery suitable for a clean text layout with one highlighted phrase."
+     },
+     {
+      "title": "Key point 1",
+      "bullets": [
+       "Unlike informational genres, fiction and poetry rely on images to let a reader experience the world of the text."
+      ],
+      "speakerNotes": "Walk the class through this slowly: Unlike informational genres, fiction and poetry rely on images to let a reader experience the world of the text. Invite one question before moving on.",
+      "altText": "A single-idea slide about Imagery suitable for a clean text layout with one highlighted phrase."
+     },
+     {
+      "title": "Key point 2",
+      "bullets": [
+       "Strong image-making depends on significant, concrete detail that stimulates the reader’s senses."
+      ],
+      "speakerNotes": "Walk the class through this slowly: Strong image-making depends on significant, concrete detail that stimulates the reader’s senses. Invite one question before moving on.",
+      "altText": "A single-idea slide about Imagery suitable for a clean text layout with one highlighted phrase."
+     },
+     {
+      "title": "Key point 3",
+      "bullets": [
+       "Writers describe what the speaker sees (the mind’s eye) so readers can translate words back into images."
+      ],
+      "speakerNotes": "Walk the class through this slowly: Writers describe what the speaker sees (the mind’s eye) so readers can translate words back into images. Invite one question before moving on.",
+      "altText": "A single-idea slide about Imagery suitable for a clean text layout with one highlighted phrase."
+     },
+     {
+      "title": "Key point 4",
+      "bullets": [
+       "Specificity increases effectiveness: the more specific the image, the better the reader’s sensory and emotional engagement tends to be."
+      ],
+      "speakerNotes": "Walk the class through this slowly: Specificity increases effectiveness: the more specific the image, the better the reader’s sensory and emotional engagement tends to be. Invite one question before moving on.",
+      "altText": "A single-idea slide about Imagery suitable for a clean text layout with one highlighted phrase."
+     },
+     {
+      "title": "Check yourself",
+      "bullets": [
+       "Explain Imagery without notes.",
+       "Connect it to one earlier concept."
+      ],
+      "speakerNotes": "Walk the class through this slowly: Explain Imagery without notes. Connect it to one earlier concept. Invite one question before moving on.",
+      "altText": "A single-idea slide about Imagery suitable for a clean text layout with one highlighted phrase."
+     }
+    ]
+   },
+   "evidence": {
+    "fromGrade": null,
+    "sourced": true,
+    "extractive": true
+   },
+   "provenance": {
+    "origin": "researcher-zero",
+    "sources": [
+     {
+      "url": "https://en.wikipedia.org/wiki/Imagery",
+      "license": "CC-BY-SA-4.0",
+      "attribution": "Wikipedia contributors, \"Imagery\""
+     },
+     {
+      "url": "https://en.wikipedia.org/wiki/Computer-generated_imagery",
+      "license": "CC-BY-SA-4.0",
+      "attribution": "Wikipedia contributors, \"Computer-generated imagery\""
+     },
+     {
+      "url": "https://en.wikipedia.org/wiki/Hyperphantasia",
+      "license": "CC-BY-SA-4.0",
+      "attribution": "Wikipedia contributors, \"Hyperphantasia\""
+     }
+    ],
+    "date": "2026-07-06"
+   },
+   "exposure": {
+    "uses": 0
+   },
+   "voice": "sourced-zero"
+  },
+  {
+   "id": "researcher-zero:teach-segment:lit/ballad-form:0",
+   "kernelId": "lit/ballad-form",
+   "conceptName": "Ballad",
+   "move": "teach-segment",
+   "body": {
+    "minutes": 12,
+    "text": "A ballad is a traditional narrative form associated with oral transmission and rhythmic, often musical delivery; in common modern practice it uses quatrains with ABCB rhyme and alternating line lengths (8 syllables then 6). Ballads historically transmitted stories, often tragic, before written language. The term is connected to dance and suggests rhythmic qualities and musical accompaniment. A common modern ballad structure is quatrains with ABCB rhyme."
+   },
+   "evidence": {
+    "fromGrade": null,
+    "sourced": true,
+    "extractive": true
+   },
+   "provenance": {
+    "origin": "researcher-zero",
+    "sources": [
+     {
+      "url": "https://en.wikipedia.org/wiki/Ballad",
+      "license": "CC-BY-SA-4.0",
+      "attribution": "Wikipedia contributors, \"Ballad\""
+     },
+     {
+      "url": "https://en.wikipedia.org/wiki/Power_Ballad_(film)",
+      "license": "CC-BY-SA-4.0",
+      "attribution": "Wikipedia contributors, \"Power Ballad (film)\""
+     },
+     {
+      "url": "https://en.wikipedia.org/wiki/Ballad_stanza",
+      "license": "CC-BY-SA-4.0",
+      "attribution": "Wikipedia contributors, \"Ballad stanza\""
+     }
+    ],
+    "date": "2026-07-06"
+   },
+   "exposure": {
+    "uses": 0
+   },
+   "voice": "sourced-zero"
+  },
+  {
+   "id": "researcher-zero:worked-example:lit/ballad-form:0",
+   "kernelId": "lit/ballad-form",
+   "conceptName": "Ballad",
+   "move": "worked-example",
+   "body": {
+    "minutes": 15,
+    "text": "Worked example: we walk through one concrete case. In the later 19th century, the term took on the meaning of a slow form of popular love song and is often used for any love song, particularly the sentimental ballad of pop or rock music, although the term is also associated with the concept of a stylized storytelling song or poem, particularly when used as a title for other media such as a film. As a narrative song, their theme and function may originate from Scandinavian and Germanic traditions of storytelling that can be seen in poems such as Beowulf. The earliest example of a recognizable ballad in form in England is \"Judas\" in a 13th-century manuscript. Working through it step by step, connect each part back to Ballad."
+   },
+   "evidence": {
+    "fromGrade": null,
+    "sourced": true,
+    "extractive": true
+   },
+   "provenance": {
+    "origin": "researcher-zero",
+    "sources": [
+     {
+      "url": "https://en.wikipedia.org/wiki/Ballad",
+      "license": "CC-BY-SA-4.0",
+      "attribution": "Wikipedia contributors, \"Ballad\""
+     },
+     {
+      "url": "https://en.wikipedia.org/wiki/Power_Ballad_(film)",
+      "license": "CC-BY-SA-4.0",
+      "attribution": "Wikipedia contributors, \"Power Ballad (film)\""
+     },
+     {
+      "url": "https://en.wikipedia.org/wiki/Ballad_stanza",
+      "license": "CC-BY-SA-4.0",
+      "attribution": "Wikipedia contributors, \"Ballad stanza\""
+     }
+    ],
+    "date": "2026-07-06"
+   },
+   "exposure": {
+    "uses": 0
+   },
+   "voice": "sourced-zero"
+  },
+  {
+   "id": "researcher-zero:reteach-script:lit/ballad-form:0",
+   "kernelId": "lit/ballad-form",
+   "conceptName": "Ballad",
+   "move": "reteach-script",
+   "body": {
+    "minutes": 10,
+    "text": "If Ballad did not land the first time, here is the idea again through another example. Line syllable counts often alternate 8 syllables (lines 1 and 3) with 6 syllables (lines 2 and 4). A frequently cited metrical pattern is iambic tetrameter alternating with iambic trimeter. The example to hold onto: In the later 19th century, the term took on the meaning of a slow form of popular love song and is often used for any love song, particularly the sentimental ballad of pop or rock music, although the term is also associated with the concept of a stylized storytelling song or poem, particularly when used as a title for other media such as a film."
+   },
+   "evidence": {
+    "fromGrade": null,
+    "sourced": true,
+    "extractive": true
+   },
+   "provenance": {
+    "origin": "researcher-zero",
+    "sources": [
+     {
+      "url": "https://en.wikipedia.org/wiki/Ballad",
+      "license": "CC-BY-SA-4.0",
+      "attribution": "Wikipedia contributors, \"Ballad\""
+     },
+     {
+      "url": "https://en.wikipedia.org/wiki/Power_Ballad_(film)",
+      "license": "CC-BY-SA-4.0",
+      "attribution": "Wikipedia contributors, \"Power Ballad (film)\""
+     },
+     {
+      "url": "https://en.wikipedia.org/wiki/Ballad_stanza",
+      "license": "CC-BY-SA-4.0",
+      "attribution": "Wikipedia contributors, \"Ballad stanza\""
+     }
+    ],
+    "date": "2026-07-06"
+   },
+   "exposure": {
+    "uses": 0
+   },
+   "voice": "sourced-zero"
+  },
+  {
+   "id": "researcher-zero:guide:lit/ballad-form:0",
+   "kernelId": "lit/ballad-form",
+   "conceptName": "Ballad",
+   "move": "guide",
+   "body": {
+    "markdown": "## Ballad — study guide\n\n**Core idea.** A ballad is a traditional narrative form associated with oral transmission and rhythmic, often musical delivery; in common modern practice it uses quatrains with ABCB rhyme and alternating line lengths (8 syllables then 6).\n\n**Key points.**\n- Ballads historically transmitted stories, often tragic, before written language.\n- The term is connected to dance and suggests rhythmic qualities and musical accompaniment.\n- A common modern ballad structure is quatrains with ABCB rhyme.\n- Line syllable counts often alternate 8 syllables (lines 1 and 3) with 6 syllables (lines 2 and 4).\n\n**If you missed the reading:** start with the core idea above, then read the key points twice; each is taken directly from the course sources.\n\n**Check yourself.**\n- Explain Ballad in your own words without looking at the definition.\n- Which key point above would change most if its conditions changed? Why?"
+   },
+   "evidence": {
+    "fromGrade": null,
+    "sourced": true,
+    "extractive": true
+   },
+   "provenance": {
+    "origin": "researcher-zero",
+    "sources": [
+     {
+      "url": "https://en.wikipedia.org/wiki/Ballad",
+      "license": "CC-BY-SA-4.0",
+      "attribution": "Wikipedia contributors, \"Ballad\""
+     },
+     {
+      "url": "https://en.wikipedia.org/wiki/Power_Ballad_(film)",
+      "license": "CC-BY-SA-4.0",
+      "attribution": "Wikipedia contributors, \"Power Ballad (film)\""
+     },
+     {
+      "url": "https://en.wikipedia.org/wiki/Ballad_stanza",
+      "license": "CC-BY-SA-4.0",
+      "attribution": "Wikipedia contributors, \"Ballad stanza\""
+     }
+    ],
+    "date": "2026-07-06"
+   },
+   "exposure": {
+    "uses": 0
+   },
+   "voice": "sourced-zero"
+  },
+  {
+   "id": "researcher-zero:discussion-tension:lit/ballad-form:0",
+   "kernelId": "lit/ballad-form",
+   "conceptName": "Ballad",
+   "move": "discussion-tension",
+   "body": {
+    "prompt": "The sources note: \"A ballad is a form of verse, often a narrative set to music.\" — where do you see this holding or breaking down, and what evidence would settle it?",
+    "tension": "A ballad is a form of verse, often a narrative set to music.",
+    "followUps": [
+     "What would count as a counter-example?",
+     "How does this connect to last week's concept?"
+    ]
+   },
+   "evidence": {
+    "fromGrade": null,
+    "sourced": true,
+    "extractive": true
+   },
+   "provenance": {
+    "origin": "researcher-zero",
+    "sources": [
+     {
+      "url": "https://en.wikipedia.org/wiki/Ballad",
+      "license": "CC-BY-SA-4.0",
+      "attribution": "Wikipedia contributors, \"Ballad\""
+     },
+     {
+      "url": "https://en.wikipedia.org/wiki/Power_Ballad_(film)",
+      "license": "CC-BY-SA-4.0",
+      "attribution": "Wikipedia contributors, \"Power Ballad (film)\""
+     },
+     {
+      "url": "https://en.wikipedia.org/wiki/Ballad_stanza",
+      "license": "CC-BY-SA-4.0",
+      "attribution": "Wikipedia contributors, \"Ballad stanza\""
+     }
+    ],
+    "date": "2026-07-06"
+   },
+   "exposure": {
+    "uses": 0
+   },
+   "voice": "sourced-zero"
+  },
+  {
+   "id": "researcher-zero:activity:lit/ballad-form:0",
+   "kernelId": "lit/ballad-form",
+   "conceptName": "Ballad",
+   "move": "activity",
+   "body": {
+    "task": "Choose one real case (from the reading or your own experience) and analyze it using Ballad. State the case in two sentences, apply each key point from the study guide to it explicitly, and note one place where the concept fits imperfectly.",
+    "steps": [
+     "Pick and describe your case (2 sentences).",
+     "Apply each key point to the case, one short paragraph each.",
+     "Name one limit or imperfect fit and explain why."
+    ],
+    "rubricBands": [
+     "Excellent: case is concrete, every key point applied accurately, the limit shows real insight.",
+     "Adequate: case present, most key points applied, limit named but thin.",
+     "Insufficient: case vague or key points restated without application."
+    ]
+   },
+   "evidence": {
+    "fromGrade": null,
+    "sourced": true,
+    "extractive": true
+   },
+   "provenance": {
+    "origin": "researcher-zero",
+    "sources": [
+     {
+      "url": "https://en.wikipedia.org/wiki/Ballad",
+      "license": "CC-BY-SA-4.0",
+      "attribution": "Wikipedia contributors, \"Ballad\""
+     },
+     {
+      "url": "https://en.wikipedia.org/wiki/Power_Ballad_(film)",
+      "license": "CC-BY-SA-4.0",
+      "attribution": "Wikipedia contributors, \"Power Ballad (film)\""
+     },
+     {
+      "url": "https://en.wikipedia.org/wiki/Ballad_stanza",
+      "license": "CC-BY-SA-4.0",
+      "attribution": "Wikipedia contributors, \"Ballad stanza\""
+     }
+    ],
+    "date": "2026-07-06"
+   },
+   "exposure": {
+    "uses": 0
+   },
+   "voice": "sourced-zero"
+  },
+  {
+   "id": "researcher-zero:faq-entry:lit/ballad-form:0",
+   "kernelId": "lit/ballad-form",
+   "conceptName": "Ballad",
+   "move": "faq-entry",
+   "body": {
+    "q": "How does this apply: Ballad?",
+    "a": "They attempted to record and classify all the known ballads and variants in their chosen regi"
+   },
+   "evidence": {
+    "fromGrade": null,
+    "sourced": true,
+    "extractive": true
+   },
+   "provenance": {
+    "origin": "researcher-zero",
+    "sources": [
+     {
+      "url": "https://en.wikipedia.org/wiki/Ballad",
+      "license": "CC-BY-SA-4.0",
+      "attribution": "Wikipedia contributors, \"Ballad\""
+     },
+     {
+      "url": "https://en.wikipedia.org/wiki/Power_Ballad_(film)",
+      "license": "CC-BY-SA-4.0",
+      "attribution": "Wikipedia contributors, \"Power Ballad (film)\""
+     },
+     {
+      "url": "https://en.wikipedia.org/wiki/Ballad_stanza",
+      "license": "CC-BY-SA-4.0",
+      "attribution": "Wikipedia contributors, \"Ballad stanza\""
+     }
+    ],
+    "date": "2026-07-06"
+   },
+   "exposure": {
+    "uses": 0
+   },
+   "voice": "sourced-zero"
+  },
+  {
+   "id": "researcher-zero:slide-group:lit/ballad-form:0",
+   "kernelId": "lit/ballad-form",
+   "conceptName": "Ballad",
+   "move": "slide-group",
+   "body": {
+    "slides": [
+     {
+      "title": "Ballad: the idea",
+      "bullets": [
+       "A ballad is a traditional narrative form associated with oral transmission and rhythmic, often musical delivery; in common modern practice it uses quatrains with ABCB rhyme and alternating line lengths (8 syllables then 6)."
+      ],
+      "speakerNotes": "Walk the class through this slowly: A ballad is a traditional narrative form associated with oral transmission and rhythmic, often musical delivery; in common modern practice it uses quatrains with ABCB rhyme and alternating line lengths (8 syllables then 6). Invite one question before moving on.",
+      "altText": "A single-idea slide about Ballad suitable for a clean text layout with one highlighted phrase."
+     },
+     {
+      "title": "Key point 1",
+      "bullets": [
+       "Ballads historically transmitted stories, often tragic, before written language."
+      ],
+      "speakerNotes": "Walk the class through this slowly: Ballads historically transmitted stories, often tragic, before written language. Invite one question before moving on.",
+      "altText": "A single-idea slide about Ballad suitable for a clean text layout with one highlighted phrase."
+     },
+     {
+      "title": "Key point 2",
+      "bullets": [
+       "The term is connected to dance and suggests rhythmic qualities and musical accompaniment."
+      ],
+      "speakerNotes": "Walk the class through this slowly: The term is connected to dance and suggests rhythmic qualities and musical accompaniment. Invite one question before moving on.",
+      "altText": "A single-idea slide about Ballad suitable for a clean text layout with one highlighted phrase."
+     },
+     {
+      "title": "Key point 3",
+      "bullets": [
+       "A common modern ballad structure is quatrains with ABCB rhyme."
+      ],
+      "speakerNotes": "Walk the class through this slowly: A common modern ballad structure is quatrains with ABCB rhyme. Invite one question before moving on.",
+      "altText": "A single-idea slide about Ballad suitable for a clean text layout with one highlighted phrase."
+     },
+     {
+      "title": "Key point 4",
+      "bullets": [
+       "Line syllable counts often alternate 8 syllables (lines 1 and 3) with 6 syllables (lines 2 and 4)."
+      ],
+      "speakerNotes": "Walk the class through this slowly: Line syllable counts often alternate 8 syllables (lines 1 and 3) with 6 syllables (lines 2 and 4). Invite one question before moving on.",
+      "altText": "A single-idea slide about Ballad suitable for a clean text layout with one highlighted phrase."
+     },
+     {
+      "title": "Key point 5",
+      "bullets": [
+       "A frequently cited metrical pattern is iambic tetrameter alternating with iambic trimeter."
+      ],
+      "speakerNotes": "Walk the class through this slowly: A frequently cited metrical pattern is iambic tetrameter alternating with iambic trimeter. Invite one question before moving on.",
+      "altText": "A single-idea slide about Ballad suitable for a clean text layout with one highlighted phrase."
+     },
+     {
+      "title": "Check yourself",
+      "bullets": [
+       "Explain Ballad without notes.",
+       "Connect it to one earlier concept."
+      ],
+      "speakerNotes": "Walk the class through this slowly: Explain Ballad without notes. Connect it to one earlier concept. Invite one question before moving on.",
+      "altText": "A single-idea slide about Ballad suitable for a clean text layout with one highlighted phrase."
+     }
+    ]
+   },
+   "evidence": {
+    "fromGrade": null,
+    "sourced": true,
+    "extractive": true
+   },
+   "provenance": {
+    "origin": "researcher-zero",
+    "sources": [
+     {
+      "url": "https://en.wikipedia.org/wiki/Ballad",
+      "license": "CC-BY-SA-4.0",
+      "attribution": "Wikipedia contributors, \"Ballad\""
+     },
+     {
+      "url": "https://en.wikipedia.org/wiki/Power_Ballad_(film)",
+      "license": "CC-BY-SA-4.0",
+      "attribution": "Wikipedia contributors, \"Power Ballad (film)\""
+     },
+     {
+      "url": "https://en.wikipedia.org/wiki/Ballad_stanza",
+      "license": "CC-BY-SA-4.0",
+      "attribution": "Wikipedia contributors, \"Ballad stanza\""
+     }
+    ],
+    "date": "2026-07-06"
+   },
+   "exposure": {
+    "uses": 0
+   },
+   "voice": "sourced-zero"
+  },
+  {
+   "id": "researcher-zero:teach-segment:lit/abecedarian-poem:0",
+   "kernelId": "lit/abecedarian-poem",
+   "conceptName": "Acrostic",
+   "move": "teach-segment",
+   "body": {
+    "minutes": 12,
+    "text": "An abecedarian is a poem whose lines progress through the alphabet, with each new line beginning with the next letter after the previous line’s first letter; it does not require specific meter or rhyme. The defining constraint is alphabetical progression from line to line based on initial letters. Abecedarians do not impose meter or rhyme requirements. A model abecedarian can be recognized by its line initials moving A, B, C, and so on."
+   },
+   "evidence": {
+    "fromGrade": null,
+    "sourced": true,
+    "extractive": true
+   },
+   "provenance": {
+    "origin": "researcher-zero",
+    "sources": [
+     {
+      "url": "https://en.wikipedia.org/wiki/Acrostic",
+      "license": "CC-BY-SA-4.0",
+      "attribution": "Wikipedia contributors, \"Acrostic\""
+     },
+     {
+      "url": "https://en.wikipedia.org/wiki/Acrostic_(puzzle)",
+      "license": "CC-BY-SA-4.0",
+      "attribution": "Wikipedia contributors, \"Acrostic (puzzle)\""
+     },
+     {
+      "url": "https://en.wikipedia.org/wiki/Abecedarian",
+      "license": "CC-BY-SA-4.0",
+      "attribution": "Wikipedia contributors, \"Abecedarian\""
+     }
+    ],
+    "date": "2026-07-06"
+   },
+   "exposure": {
+    "uses": 0
+   },
+   "voice": "sourced-zero"
+  },
+  {
+   "id": "researcher-zero:worked-example:lit/abecedarian-poem:0",
+   "kernelId": "lit/abecedarian-poem",
+   "conceptName": "Acrostic",
+   "move": "worked-example",
+   "body": {
+    "minutes": 15,
+    "text": "Worked example: we walk through one concrete case. When the last letter of each new line (or other recurring feature) forms a word it is called a telestich (or telestic); the combination of an acrostic and a telestich in the same composition is called a double acrostic (e.g. the first-century Latin Sator Square). The Middle High German poet Rudolf von Ems for example opens all his great works with an acrostic of his name, and his world chronicle marks the beginning of each age with an acrostic of the key figure (Moses, David, etc.). For example, Psalm 9 and Psalm 10 appear to constitute a single acrostic psalm together, but the length assigned to each letter is unequal and five of the 22 letters of the Hebrew alphabet are not represented and the sequence of two letters is reversed. Working through it step by step, connect each part back to Acrostic."
+   },
+   "evidence": {
+    "fromGrade": null,
+    "sourced": true,
+    "extractive": true
+   },
+   "provenance": {
+    "origin": "researcher-zero",
+    "sources": [
+     {
+      "url": "https://en.wikipedia.org/wiki/Acrostic",
+      "license": "CC-BY-SA-4.0",
+      "attribution": "Wikipedia contributors, \"Acrostic\""
+     },
+     {
+      "url": "https://en.wikipedia.org/wiki/Acrostic_(puzzle)",
+      "license": "CC-BY-SA-4.0",
+      "attribution": "Wikipedia contributors, \"Acrostic (puzzle)\""
+     },
+     {
+      "url": "https://en.wikipedia.org/wiki/Abecedarian",
+      "license": "CC-BY-SA-4.0",
+      "attribution": "Wikipedia contributors, \"Abecedarian\""
+     }
+    ],
+    "date": "2026-07-06"
+   },
+   "exposure": {
+    "uses": 0
+   },
+   "voice": "sourced-zero"
+  },
+  {
+   "id": "researcher-zero:reteach-script:lit/abecedarian-poem:0",
+   "kernelId": "lit/abecedarian-poem",
+   "conceptName": "Acrostic",
+   "move": "reteach-script",
+   "body": {
+    "minutes": 10,
+    "text": "Reteach with the same example: when the last letter of each new line (or other recurring feature) forms a word it is called a telestich (or telestic); the combination of an acrostic and a telestich in the same composition is called a double acrostic (e.g. the first-century Latin Sator Square)."
+   },
+   "evidence": {
+    "fromGrade": null,
+    "sourced": true,
+    "extractive": true
+   },
+   "provenance": {
+    "origin": "researcher-zero",
+    "sources": [
+     {
+      "url": "https://en.wikipedia.org/wiki/Acrostic",
+      "license": "CC-BY-SA-4.0",
+      "attribution": "Wikipedia contributors, \"Acrostic\""
+     },
+     {
+      "url": "https://en.wikipedia.org/wiki/Acrostic_(puzzle)",
+      "license": "CC-BY-SA-4.0",
+      "attribution": "Wikipedia contributors, \"Acrostic (puzzle)\""
+     },
+     {
+      "url": "https://en.wikipedia.org/wiki/Abecedarian",
+      "license": "CC-BY-SA-4.0",
+      "attribution": "Wikipedia contributors, \"Abecedarian\""
+     }
+    ],
+    "date": "2026-07-06"
+   },
+   "exposure": {
+    "uses": 0
+   },
+   "voice": "sourced-zero"
+  },
+  {
+   "id": "researcher-zero:guide:lit/abecedarian-poem:0",
+   "kernelId": "lit/abecedarian-poem",
+   "conceptName": "Acrostic",
+   "move": "guide",
+   "body": {
+    "markdown": "## Acrostic — study guide\n\n**Core idea.** An abecedarian is a poem whose lines progress through the alphabet, with each new line beginning with the next letter after the previous line’s first letter; it does not require specific meter or rhyme.\n\n**Key points.**\n- The defining constraint is alphabetical progression from line to line based on initial letters.\n- Abecedarians do not impose meter or rhyme requirements.\n- A model abecedarian can be recognized by its line initials moving A, B, C, and so on.\n- The chapter frames these forms as tools to experiment with while writing poetry.\n\n**If you missed the reading:** start with the core idea above, then read the key points twice; each is taken directly from the course sources.\n\n**Check yourself.**\n- Explain Acrostic in your own words without looking at the definition.\n- Which key point above would change most if its conditions changed? Why?"
+   },
+   "evidence": {
+    "fromGrade": null,
+    "sourced": true,
+    "extractive": true
+   },
+   "provenance": {
+    "origin": "researcher-zero",
+    "sources": [
+     {
+      "url": "https://en.wikipedia.org/wiki/Acrostic",
+      "license": "CC-BY-SA-4.0",
+      "attribution": "Wikipedia contributors, \"Acrostic\""
+     },
+     {
+      "url": "https://en.wikipedia.org/wiki/Acrostic_(puzzle)",
+      "license": "CC-BY-SA-4.0",
+      "attribution": "Wikipedia contributors, \"Acrostic (puzzle)\""
+     },
+     {
+      "url": "https://en.wikipedia.org/wiki/Abecedarian",
+      "license": "CC-BY-SA-4.0",
+      "attribution": "Wikipedia contributors, \"Abecedarian\""
+     }
+    ],
+    "date": "2026-07-06"
+   },
+   "exposure": {
+    "uses": 0
+   },
+   "voice": "sourced-zero"
+  },
+  {
+   "id": "researcher-zero:discussion-tension:lit/abecedarian-poem:0",
+   "kernelId": "lit/abecedarian-poem",
+   "conceptName": "Acrostic",
+   "move": "discussion-tension",
+   "body": {
+    "prompt": "The sources note: \"An acrostic is a poem or other word composition in which the first letter (or syllable, or word) of each new line (or paragraph, or other recurring feature in the text) spells out a word, message or the alphabet.\" — where do you see this holding or breaking down, and what evidence would settle it?",
+    "tension": "An acrostic is a poem or other word composition in which the first letter (or syllable, or word) of each new line (or paragraph, or other recurring feature in the text) spells out a word, message or the alphabet.",
+    "followUps": [
+     "What would count as a counter-example?",
+     "How does this connect to last week's concept?"
+    ]
+   },
+   "evidence": {
+    "fromGrade": null,
+    "sourced": true,
+    "extractive": true
+   },
+   "provenance": {
+    "origin": "researcher-zero",
+    "sources": [
+     {
+      "url": "https://en.wikipedia.org/wiki/Acrostic",
+      "license": "CC-BY-SA-4.0",
+      "attribution": "Wikipedia contributors, \"Acrostic\""
+     },
+     {
+      "url": "https://en.wikipedia.org/wiki/Acrostic_(puzzle)",
+      "license": "CC-BY-SA-4.0",
+      "attribution": "Wikipedia contributors, \"Acrostic (puzzle)\""
+     },
+     {
+      "url": "https://en.wikipedia.org/wiki/Abecedarian",
+      "license": "CC-BY-SA-4.0",
+      "attribution": "Wikipedia contributors, \"Abecedarian\""
+     }
+    ],
+    "date": "2026-07-06"
+   },
+   "exposure": {
+    "uses": 0
+   },
+   "voice": "sourced-zero"
+  },
+  {
+   "id": "researcher-zero:activity:lit/abecedarian-poem:0",
+   "kernelId": "lit/abecedarian-poem",
+   "conceptName": "Acrostic",
+   "move": "activity",
+   "body": {
+    "task": "Choose one real case (from the reading or your own experience) and analyze it using Acrostic. State the case in two sentences, apply each key point from the study guide to it explicitly, and note one place where the concept fits imperfectly.",
+    "steps": [
+     "Pick and describe your case (2 sentences).",
+     "Apply each key point to the case, one short paragraph each.",
+     "Name one limit or imperfect fit and explain why."
+    ],
+    "rubricBands": [
+     "Excellent: case is concrete, every key point applied accurately, the limit shows real insight.",
+     "Adequate: case present, most key points applied, limit named but thin.",
+     "Insufficient: case vague or key points restated without application."
+    ]
+   },
+   "evidence": {
+    "fromGrade": null,
+    "sourced": true,
+    "extractive": true
+   },
+   "provenance": {
+    "origin": "researcher-zero",
+    "sources": [
+     {
+      "url": "https://en.wikipedia.org/wiki/Acrostic",
+      "license": "CC-BY-SA-4.0",
+      "attribution": "Wikipedia contributors, \"Acrostic\""
+     },
+     {
+      "url": "https://en.wikipedia.org/wiki/Acrostic_(puzzle)",
+      "license": "CC-BY-SA-4.0",
+      "attribution": "Wikipedia contributors, \"Acrostic (puzzle)\""
+     },
+     {
+      "url": "https://en.wikipedia.org/wiki/Abecedarian",
+      "license": "CC-BY-SA-4.0",
+      "attribution": "Wikipedia contributors, \"Abecedarian\""
+     }
+    ],
+    "date": "2026-07-06"
+   },
+   "exposure": {
+    "uses": 0
+   },
+   "voice": "sourced-zero"
+  },
+  {
+   "id": "researcher-zero:faq-entry:lit/abecedarian-poem:0",
+   "kernelId": "lit/abecedarian-poem",
+   "conceptName": "Acrostic",
+   "move": "faq-entry",
+   "body": {
+    "q": "How does this apply: Acrostic?",
+    "a": "One might need more clue answers before daring to guess which it could be."
+   },
+   "evidence": {
+    "fromGrade": null,
+    "sourced": true,
+    "extractive": true
+   },
+   "provenance": {
+    "origin": "researcher-zero",
+    "sources": [
+     {
+      "url": "https://en.wikipedia.org/wiki/Acrostic",
+      "license": "CC-BY-SA-4.0",
+      "attribution": "Wikipedia contributors, \"Acrostic\""
+     },
+     {
+      "url": "https://en.wikipedia.org/wiki/Acrostic_(puzzle)",
+      "license": "CC-BY-SA-4.0",
+      "attribution": "Wikipedia contributors, \"Acrostic (puzzle)\""
+     },
+     {
+      "url": "https://en.wikipedia.org/wiki/Abecedarian",
+      "license": "CC-BY-SA-4.0",
+      "attribution": "Wikipedia contributors, \"Abecedarian\""
+     }
+    ],
+    "date": "2026-07-06"
+   },
+   "exposure": {
+    "uses": 0
+   },
+   "voice": "sourced-zero"
+  },
+  {
+   "id": "researcher-zero:slide-group:lit/abecedarian-poem:0",
+   "kernelId": "lit/abecedarian-poem",
+   "conceptName": "Acrostic",
+   "move": "slide-group",
+   "body": {
+    "slides": [
+     {
+      "title": "Acrostic: the idea",
+      "bullets": [
+       "An abecedarian is a poem whose lines progress through the alphabet, with each new line beginning with the next letter after the previous line’s first letter; it does not require specific meter or rhyme."
+      ],
+      "speakerNotes": "Walk the class through this slowly: An abecedarian is a poem whose lines progress through the alphabet, with each new line beginning with the next letter after the previous line’s first letter; it does not require specific meter or rhyme. Invite one question before moving on.",
+      "altText": "A single-idea slide about Acrostic suitable for a clean text layout with one highlighted phrase."
+     },
+     {
+      "title": "Key point 1",
+      "bullets": [
+       "The defining constraint is alphabetical progression from line to line based on initial letters."
+      ],
+      "speakerNotes": "Walk the class through this slowly: The defining constraint is alphabetical progression from line to line based on initial letters. Invite one question before moving on.",
+      "altText": "A single-idea slide about Acrostic suitable for a clean text layout with one highlighted phrase."
+     },
+     {
+      "title": "Key point 2",
+      "bullets": [
+       "Abecedarians do not impose meter or rhyme requirements."
+      ],
+      "speakerNotes": "Walk the class through this slowly: Abecedarians do not impose meter or rhyme requirements. Invite one question before moving on.",
+      "altText": "A single-idea slide about Acrostic suitable for a clean text layout with one highlighted phrase."
+     },
+     {
+      "title": "Key point 3",
+      "bullets": [
+       "A model abecedarian can be recognized by its line initials moving A, B, C, and so on."
+      ],
+      "speakerNotes": "Walk the class through this slowly: A model abecedarian can be recognized by its line initials moving A, B, C, and so on. Invite one question before moving on.",
+      "altText": "A single-idea slide about Acrostic suitable for a clean text layout with one highlighted phrase."
+     },
+     {
+      "title": "Key point 4",
+      "bullets": [
+       "The chapter frames these forms as tools to experiment with while writing poetry."
+      ],
+      "speakerNotes": "Walk the class through this slowly: The chapter frames these forms as tools to experiment with while writing poetry. Invite one question before moving on.",
+      "altText": "A single-idea slide about Acrostic suitable for a clean text layout with one highlighted phrase."
+     },
+     {
+      "title": "Check yourself",
+      "bullets": [
+       "Explain Acrostic without notes.",
+       "Connect it to one earlier concept."
+      ],
+      "speakerNotes": "Walk the class through this slowly: Explain Acrostic without notes. Connect it to one earlier concept. Invite one question before moving on.",
+      "altText": "A single-idea slide about Acrostic suitable for a clean text layout with one highlighted phrase."
+     }
+    ]
+   },
+   "evidence": {
+    "fromGrade": null,
+    "sourced": true,
+    "extractive": true
+   },
+   "provenance": {
+    "origin": "researcher-zero",
+    "sources": [
+     {
+      "url": "https://en.wikipedia.org/wiki/Acrostic",
+      "license": "CC-BY-SA-4.0",
+      "attribution": "Wikipedia contributors, \"Acrostic\""
+     },
+     {
+      "url": "https://en.wikipedia.org/wiki/Acrostic_(puzzle)",
+      "license": "CC-BY-SA-4.0",
+      "attribution": "Wikipedia contributors, \"Acrostic (puzzle)\""
+     },
+     {
+      "url": "https://en.wikipedia.org/wiki/Abecedarian",
+      "license": "CC-BY-SA-4.0",
+      "attribution": "Wikipedia contributors, \"Abecedarian\""
+     }
+    ],
+    "date": "2026-07-06"
+   },
+   "exposure": {
+    "uses": 0
+   },
+   "voice": "sourced-zero"
   }
  ]
 }

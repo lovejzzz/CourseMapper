@@ -19,7 +19,7 @@ async function politeDelay() {
   lastRequestAt = Date.now();
 }
 
-async function fetchJson(url, { timeoutMs = 15000 } = {}) {
+async function fetchOnce(url, timeoutMs) {
   await politeDelay();
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), timeoutMs);
@@ -28,11 +28,34 @@ async function fetchJson(url, { timeoutMs = 15000 } = {}) {
       signal: controller.signal,
       headers: { 'user-agent': 'CourseMapper-Researcher/0.1 (research pipeline; contact: repo owner)' },
     });
-    if (!response.ok) throw new Error(`${response.status}`);
+    if (!response.ok) {
+      const err = new Error(`${response.status}`);
+      err.status = response.status;
+      throw err;
+    }
     return await response.json();
   } finally {
     clearTimeout(timer);
   }
+}
+
+// A burst of fresh titles used to 429 the whole batch (the cause of L1's
+// first "NO SOURCES ×5" — 2 targets warmed the cache, the rest hit the wall).
+// Retry the rate-limit / transient statuses with exponential backoff so a
+// cold-cache discipline fill survives its own burst.
+async function fetchJson(url, { timeoutMs = 15000, retries = 3 } = {}) {
+  let lastErr;
+  for (let attempt = 0; attempt <= retries; attempt += 1) {
+    try {
+      return await fetchOnce(url, timeoutMs);
+    } catch (error) {
+      lastErr = error;
+      const transient = error.status === 429 || error.status === 503 || error.name === 'AbortError';
+      if (!transient || attempt === retries) break;
+      await new Promise((resolve) => setTimeout(resolve, 1500 * 2 ** attempt)); // 1.5s, 3s, 6s
+    }
+  }
+  throw lastErr;
 }
 
 export async function searchWikipedia(query, { limit = 2 } = {}) {
