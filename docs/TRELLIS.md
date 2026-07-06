@@ -1637,3 +1637,30 @@ polishing a candidate that hasn't won.
   at $0.027/26.7s (won the round; owns dense; its solver-reject rate
   swings run-to-run). gen_test.py trap: S_OUT wants a BASENAME (it
   prepends outputs/). Session spend ~$0.11 all instruments.
+
+- **2026-07-06 (the customization campaign — "beat any paid model" +
+  "best for education" + hard set).** THE MODEL NEVER CHANGED; THE
+  HARNESS DID, one pre-registered config per run: plain 15 -> MAX 16
+  (always-on best-of-3 + shelf exemplar + feedback-resample; broke the
+  five-run rhyme-scheme blind spot 2/3, WON dense 10v7v7, but bled easy
+  kernels cs 3->1; solver rejects 2->5 = the blind seat can't be gamed)
+  -> **ADAPTIVE 18** (greedy-first, escalate only on gate failure —
+  restored cs to 3, kept hard rescues; NOW THE DEPLOYED CONFIG in
+  zeroShapeItems + shapeItems e2b). Bar vs ds UNMET twice (-2, -2; ds
+  20-22); **pooled /72: e2b 49 · ds 60 · mini 42 — E2B now clearly
+  beats GPT-5.4-mini.** serve_g4 + sGenerate grew temperature (best-of-N
+  needs sampling). **HARD SET (9 unseen kernels + identical-prompt
+  control):** e2b-adaptive 19/27 generic incl. 7/9 notation-dense LA;
+  noise floor calibrated ±1/kernel by the control; discipline-genre
+  prompts: math LOST -2 (computed-result distractors STARVE the lexical
+  catch gate), lang noise, **history WON +3 (proper-noun beliefs FEED
+  the gate) -> ADOPTED_GENRES={history}** in the deployed author — the
+  same intervention helps or hurts BY DISCIPLINE, decided per-discipline
+  like every routing before it. **EDUCATION BAR (course-level A/B,
+  battery seed 1 + blind 2-family judge):** realistic mastery e2b 0.69
+  vs ds 0.67 (PARITY — the simulation cannot tell $0 items from paid),
+  item health/catching identical, catch density 13v14 (noise), judge
+  6.9 vs 7.9 (ds a point more polished; ds-judges-ds bias disclosed).
+  Item-verdict corpus flywheel LIVE: 102 verdicts banked (DPO r2 at
+  ~300+). Found: physics/stats/chem shards have ZERO ready kernels ->
+  coverage queue. Session spend ~$0.15.

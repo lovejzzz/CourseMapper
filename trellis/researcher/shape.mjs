@@ -389,11 +389,27 @@ const E2B_ITEM_PROMPTS = {
     'RULE C — item 3 is a straight application item. RULE D — exactly ONE option is defensibly correct and the other three are clearly wrong to someone who knows the concept. Every stem ends with terminal punctuation. Output ONLY the JSON array.',
 };
 
+// Discipline GENRE lines (hard-set experiment): v1 with its one genre
+// sentence swapped per course family — same rule budget, different stem
+// world. The L5 lesson stands (adding rules hurts); this SWAPS, never adds.
+const GENRE_LINES = {
+  math: 'Every stem gives small concrete numbers, a small matrix, or a short expression and asks the student to compute or diagnose a result; wrong options are the answers the DOCUMENTED wrong procedures would produce.',
+  lang: 'Every stem gives a short real-life situation (who is speaking, to whom, about what) and asks which form or sentence the speaker should use; wrong options are forms a learner actually produces.',
+  history:
+    'Every stem describes a concrete event, law, or source from the period and asks what it shows or why it happened; wrong options are documented misreadings of that evidence.',
+  default: 'Every stem is application-level',
+};
+
+export function disciplinePrompt(discipline) {
+  const genre = GENRE_LINES[discipline] ?? GENRE_LINES.default;
+  return E2B_ITEM_PROMPTS.v1.replace('Every stem is application-level', genre);
+}
+
 export async function authorItemsE2B(
   target,
   kernel,
   cells,
-  { variant = process.env.RESEARCH_ITEM_PROMPT ?? 'v1' } = {},
+  { variant = process.env.RESEARCH_ITEM_PROMPT ?? 'v1', temperature = 0, exemplar = null, system = null } = {},
 ) {
   const beliefs = cells.map((c, n) => ({
     n: n + 1,
@@ -402,19 +418,52 @@ export async function authorItemsE2B(
     corrective: c.corrective,
     explanationMustIncludeHalfOf: c.explanationMustIncludeHalfOf,
   }));
-  const system = E2B_ITEM_PROMPTS[variant] ?? E2B_ITEM_PROMPTS.v1;
+  const systemPrompt = system ?? E2B_ITEM_PROMPTS[variant] ?? E2B_ITEM_PROMPTS.v1;
   const user = JSON.stringify({
     term: target.term,
     facts: kernel.facts.map((f) => f.text),
     wrongBeliefs: beliefs,
+    // Exemplar ≠ more rules (the L5 negative): a concrete model answer is the
+    // mechanism that already won for paid authoring in v0.1.6. One only.
+    ...(exemplar ? { exampleOfAcceptedItem: exemplar } : {}),
   });
   let text;
   try {
-    text = await sGenerate({ system, user, task: 'items', maxTokens: 1600 });
+    text = await sGenerate({ system: systemPrompt, user, task: 'items', maxTokens: 1600, temperature });
   } catch {
     return [];
   }
   return parseItemArray(text);
+}
+
+// One feedback-directed resample of a single failed catcher slot (shared by
+// the retry and MAX harnesses): the model sees the gate's own reason.
+async function resampleSlot(target, cell, item, reason, { temperature = 0 } = {}) {
+  const system =
+    'Rewrite ONE multiple-choice item as a single JSON object {"stem","options"(4 distinct strings under 15 words),"correctIndex"(0-3),"explanation"(2-4 sentences under 80 words),"bloom":"apply","difficulty":"apply"}. ' +
+    `Your previous item FAILED an automatic gate with reason "${reason}". Fix exactly that: one wrong option must state the wrongBelief with its faulty reasoning and include at least TWO of these words verbatim: ${JSON.stringify(cell.mustIncludeTwoOf)}; the explanation must confront the corrective and include at least HALF of these words verbatim: ${JSON.stringify(cell.explanationMustIncludeHalfOf)}. Keep the stem a concrete application question ending with terminal punctuation. Output ONLY the JSON object.`;
+  const user = JSON.stringify({
+    term: target.term,
+    wrongBelief: cell.statement,
+    corrective: cell.corrective,
+    previousItem: {
+      stem: item?.stem,
+      options: item?.options,
+      correctIndex: item?.correctIndex,
+      explanation: item?.explanation,
+    },
+  });
+  try {
+    const text = await sGenerate({ system, user, task: 'items', maxTokens: 900, temperature });
+    const [fixed] = parseItemArray(
+      `[${String(text)
+        .replace(/^[^{]*/, '')
+        .replace(/[^}]*$/, '')}]`,
+    );
+    return fixed?.stem ? { bloom: 'apply', difficulty: 'apply', ...fixed } : null;
+  } catch {
+    return null;
+  }
 }
 
 // Level-7 lever: feedback-directed RESAMPLE (test-time compute, still $0).
@@ -440,33 +489,97 @@ export async function authorItemsE2BRetry(target, kernel, cells, shelf, { varian
   if (failures.length === 0 || first.length === 0) return first;
   const items = [...first];
   for (const { i, item, reason, cell } of failures) {
-    const system =
-      'Rewrite ONE multiple-choice item as a single JSON object {"stem","options"(4 distinct strings under 15 words),"correctIndex"(0-3),"explanation"(2-4 sentences under 80 words),"bloom":"apply","difficulty":"apply"}. ' +
-      `Your previous item FAILED an automatic gate with reason "${reason}". Fix exactly that: one wrong option must state the wrongBelief with its faulty reasoning and include at least TWO of these words verbatim: ${JSON.stringify(cell.mustIncludeTwoOf)}; the explanation must confront the corrective and include at least HALF of these words verbatim: ${JSON.stringify(cell.explanationMustIncludeHalfOf)}. Keep the stem a concrete application question ending with terminal punctuation. Output ONLY the JSON object.`;
-    const user = JSON.stringify({
-      term: target.term,
-      wrongBelief: cell.statement,
-      corrective: cell.corrective,
-      previousItem: {
-        stem: item.stem,
-        options: item.options,
-        correctIndex: item.correctIndex,
-        explanation: item.explanation,
-      },
-    });
-    try {
-      const text = await sGenerate({ system, user, task: 'items', maxTokens: 900 });
-      const [fixed] = parseItemArray(
-        `[${String(text)
-          .replace(/^[^{]*/, '')
-          .replace(/[^}]*$/, '')}]`,
-      );
-      if (fixed?.stem) items[i] = { bloom: 'apply', difficulty: 'apply', ...fixed };
-    } catch {
-      /* retry is best-effort; the original item stands and the gate decides */
-    }
+    const fixed = await resampleSlot(target, cell, item, reason);
+    if (fixed) items[i] = fixed;
   }
   return items;
+}
+
+// E2B-MAX — the maximally customized $0 harness (the "beat the paid authors"
+// configuration). The model is FIXED; the levels live in the harness:
+//   1. THREE candidate sets: greedy + two temperature samples, exemplar-guided
+//      when the shelf has an accepted catching item (one example, not rules).
+//   2. PER-SLOT argmax: each catcher slot takes the first candidate that
+//      passes the deterministic gate; the application slot takes the first
+//      well-formed candidate (the blind solver remains its only judge).
+//   3. FEEDBACK RESAMPLE on any slot still failing, quoting the gate's reason.
+// Everything above is local and $0; the blind cross-family solver still
+// verifies every item downstream, so the harness cannot ship anything a paid
+// pipeline wouldn't.
+// Hard-set verdict (July 6, 9 unseen kernels + identical-prompt control):
+// noise floor ±1/kernel; history's evidence-genre prompt won +3 (proper-noun
+// beliefs FEED the catch gate) while math's computed-result genre LOST −2
+// (numeric distractors starve it). Adoption is per-discipline, ruler-decided:
+const ADOPTED_GENRES = new Set(['history']);
+
+export async function authorItemsE2BMax(
+  target,
+  kernel,
+  cells,
+  shelf,
+  { variant, adaptive = true, system = null } = {},
+) {
+  if (!system && ADOPTED_GENRES.has(String(target.id ?? '').split('/')[0])) {
+    system = disciplinePrompt(String(target.id).split('/')[0]);
+  }
+  const gateFor = (cell) => ({
+    kernelId: target.id,
+    family: cell.statement,
+    statement: cell.statement,
+    corrective: cell.corrective,
+    term: target.term,
+  });
+  // ADAPTIVE (v2, the run-2 lesson): the candidates+exemplar machinery WON
+  // the hard kernels (dense 10v7, rhyme-scheme 0/3×5 → 2/3) but ADDED NOISE
+  // on easy ones (cs/variables 3 → 1). So: greedy first — if the gate passes
+  // both catcher slots, stop. Escalate to sampling + exemplar + resample
+  // ONLY where the gate says greedy failed. Compute goes where failure is.
+  const greedy = await authorItemsE2B(target, kernel, cells, { variant, system });
+  const greedyFail = [0, 1].filter((i) => {
+    const cell = cells[Math.min(i, cells.length - 1)];
+    return !greedy[i]?.stem || gapItemRejection(gateFor(cell), greedy[i], shelf ?? []);
+  });
+  if (adaptive && greedyFail.length === 0 && greedy[2]?.stem) return greedy;
+
+  const exemplarSource = (shelf ?? []).find((s) => s.catches && typeof s.stem === 'string');
+  const exemplar = exemplarSource
+    ? (({ stem, options, correctIndex, explanation }) => ({ stem, options, correctIndex, explanation }))(exemplarSource)
+    : null;
+  const candidates = [greedy];
+  for (const temperature of [0.7, 0.9]) {
+    candidates.push(await authorItemsE2B(target, kernel, cells, { variant, temperature, exemplar, system }));
+  }
+  const items = [];
+  // catcher slots 0-1: first gate-passing candidate wins.
+  for (const i of [0, 1]) {
+    const cell = cells[Math.min(i, cells.length - 1)];
+    let chosen = null;
+    let firstFailure = null;
+    for (const set of candidates) {
+      const candidate = set[i];
+      if (!candidate?.stem) continue;
+      const reason = gapItemRejection(gateFor(cell), candidate, shelf ?? []);
+      if (!reason) {
+        chosen = candidate;
+        break;
+      }
+      if (!firstFailure) firstFailure = { candidate, reason };
+    }
+    if (!chosen && firstFailure) {
+      chosen =
+        (await resampleSlot(target, cell, firstFailure.candidate, firstFailure.reason, { temperature: 0.7 })) ??
+        firstFailure.candidate;
+    }
+    if (chosen) items[i] = chosen;
+  }
+  // application slot 2: first well-formed candidate; the solver decides.
+  for (const set of candidates) {
+    if (set[2]?.stem) {
+      items[2] = set[2];
+      break;
+    }
+  }
+  return items.filter(Boolean);
 }
 
 // 3 items per kernel, one per misconception + one straight application —
@@ -487,7 +600,7 @@ export async function shapeItems(
   }));
   const items =
     author === 'e2b'
-      ? await authorItemsE2B(target, kernel, cells)
+      ? await authorItemsE2BMax(target, kernel, cells, shelf) // adaptive harness = the deployed e2b config (15→16→18)
       : await authorItemsPaid(target, kernel, cells, { ledger, budgetUsd, tier: author === 'mini' ? 'cheap' : 'ds' });
 
   const accepted = [];

@@ -7,7 +7,8 @@
 //   SHOWDOWN=run npx vite-node trellis/researcher/authorShowdownBench.mjs [e2bMode]
 //   e2bMode: plain (default) | retry
 import { readFile, writeFile } from 'node:fs/promises';
-import { authorItemsE2B, authorItemsE2BRetry, authorItemsPaid } from './shape.mjs';
+import { authorItemsE2B, authorItemsE2BRetry, authorItemsE2BMax, authorItemsPaid } from './shape.mjs';
+import { corpusLog } from '../tendril/corpus.mjs';
 import { claimTokens, gapItemRejection } from '../knowledge/bankGapFill.mjs';
 import { solveGate } from '../composer/solver.mjs';
 import { createRunLedger } from '../telemetry.mjs';
@@ -40,7 +41,8 @@ async function loadKernel(shardPath, id) {
 }
 
 if (process.env.SHOWDOWN === 'run' && !process.env.VITEST) {
-  const e2bMode = process.argv[2] === 'retry' || process.argv[process.argv.length - 1] === 'retry' ? 'retry' : 'plain';
+  const argvMode = [process.argv[2], process.argv[process.argv.length - 1]].find((a) => a === 'retry' || a === 'max');
+  const e2bMode = argvMode ?? 'plain';
   const bank = JSON.parse(await readFile('trellis/bank/all-items.json', 'utf8'));
   const solverLedger = createRunLedger({ runId: 'showdown-solver', runDir: 'trellis/runs/showdown-solver' });
   const authors = {
@@ -73,9 +75,11 @@ if (process.env.SHOWDOWN === 'run' && !process.env.VITEST) {
         try {
           if (name === 'e2b') {
             items =
-              e2bMode === 'retry'
-                ? await authorItemsE2BRetry(kernel, kernel, cells, shelf)
-                : await authorItemsE2B(kernel, kernel, cells);
+              e2bMode === 'max'
+                ? await authorItemsE2BMax(kernel, kernel, cells, shelf)
+                : e2bMode === 'retry'
+                  ? await authorItemsE2BRetry(kernel, kernel, cells, shelf)
+                  : await authorItemsE2B(kernel, kernel, cells);
           } else {
             items = await authorItemsPaid(kernel, kernel, cells, {
               ledger: authors[name].ledger,
@@ -103,13 +107,39 @@ if (process.env.SHOWDOWN === 'run' && !process.env.VITEST) {
           const reason = i < 2 ? gapItemRejection(gateCell, item, shelf) : null;
           if (reason) {
             agg.rejections[reason] = (agg.rejections[reason] ?? 0) + 1;
+            if (name === 'e2b')
+              await corpusLog({
+                task: 'items',
+                context: `showdown-${e2bMode}`,
+                accepted: false,
+                reason,
+                source: JSON.stringify({ kernel: kernel.id, cell: cell.statement }),
+                target: JSON.stringify(item),
+              });
             continue;
           }
           const verdict = await solveGate(item, { ledger: solverLedger, budgetUsd: 1.5 });
           if (!verdict.ok) {
             agg.rejections.solver = (agg.rejections.solver ?? 0) + 1;
+            if (name === 'e2b')
+              await corpusLog({
+                task: 'items',
+                context: `showdown-${e2bMode}`,
+                accepted: false,
+                reason: 'solver',
+                source: JSON.stringify({ kernel: kernel.id, cell: cell.statement }),
+                target: JSON.stringify(item),
+              });
             continue;
           }
+          if (name === 'e2b')
+            await corpusLog({
+              task: 'items',
+              context: `showdown-${e2bMode}`,
+              accepted: true,
+              source: JSON.stringify({ kernel: kernel.id, cell: cell.statement }),
+              target: JSON.stringify(item),
+            });
           accepted += 1;
           // Full bodies feed the human blind packet (L10) — no re-authoring.
           (out.acceptedItems ??= []).push({ author: name, kernel: kernel.id, klass, item });

@@ -23,7 +23,7 @@ import { cosine, makeEmbedder } from '../tendril/embedder.mjs';
 import { startS, sGenerate, SKIN_SYSTEM } from '../tendril/sModel.mjs';
 import { TERMINAL_PUNCT_RE, weightedLength } from '../voice/contracts.mjs';
 import { openAlexMisconceptions } from './sources.mjs';
-import { authorItemsE2B } from './shape.mjs';
+import { authorItemsE2BMax } from './shape.mjs';
 import { claimTokens, gapItemRejection, gapfillId } from '../knowledge/bankGapFill.mjs';
 
 export function splitSentences(text) {
@@ -360,7 +360,15 @@ export async function zeroShapeItems(target, kernel, shelf = [], { solver = null
     explanationMustIncludeHalfOf: claimTokens(m.corrective),
   }));
   const facts = kernel.facts.map((f) => (typeof f === 'string' ? f : f.text));
-  const items = await authorItemsE2B(target, { definition: kernel.definition, facts, misconceptions: misc }, cells);
+  // Adaptive E2B-MAX (measured 15→16→18 across three same-protocol runs):
+  // greedy first, escalate to sampling+exemplar+resample only where the gate
+  // fails. Compute goes where failure is; easy kernels stay cheap.
+  const items = await authorItemsE2BMax(
+    target,
+    { definition: kernel.definition, facts, misconceptions: misc },
+    cells,
+    shelf,
+  );
 
   const accepted = [];
   const rejections = {};

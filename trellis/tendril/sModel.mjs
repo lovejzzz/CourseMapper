@@ -94,7 +94,10 @@ export async function startS(options = {}) {
   await startRoute('skin', options); // blend starts lazily on first use
 }
 
-export async function sGenerate({ system, user, source = '', task = 'skin', maxTokens }, { timeoutMs = 180_000 } = {}) {
+export async function sGenerate(
+  { system, user, source = '', task = 'skin', maxTokens, temperature },
+  { timeoutMs = 180_000 } = {},
+) {
   const route = ROUTES[task] ? task : 'skin';
   const entry = await startRoute(route);
   const id = String(nextId++);
@@ -107,7 +110,9 @@ export async function sGenerate({ system, user, source = '', task = 'skin', maxT
       }
     }, timeoutMs);
   });
-  entry.proc.stdin.write(`${JSON.stringify({ id, system, user, source, ...(maxTokens ? { maxTokens } : {}) })}\n`);
+  entry.proc.stdin.write(
+    `${JSON.stringify({ id, system, user, source, ...(maxTokens ? { maxTokens } : {}), ...(temperature ? { temperature } : {}) })}\n`,
+  );
   return promise;
 }
 

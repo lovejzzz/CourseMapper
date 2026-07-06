@@ -1,0 +1,126 @@
+{
+ "stamp": "HARD SET — unseen kernels, generic vs discipline-genre prompts, adaptive harness both arms",
+ "byDiscipline": {
+  "math": {
+   "kernels": 3,
+   "generic": 7,
+   "tuned": 5
+  },
+  "lang": {
+   "kernels": 2,
+   "generic": 5,
+   "tuned": 4
+  },
+  "history": {
+   "kernels": 3,
+   "generic": 6,
+   "tuned": 9
+  },
+  "default": {
+   "kernels": 1,
+   "generic": 1,
+   "tuned": 2
+  }
+ },
+ "perKernel": [
+  {
+   "kernel": "math/eigenvalues-eigenvectors",
+   "disc": "math",
+   "generic": 3,
+   "tuned": 2,
+   "genericRej": {},
+   "tunedRej": {
+    "solver": 1
+   }
+  },
+  {
+   "kernel": "math/matrix-inverse",
+   "disc": "math",
+   "generic": 3,
+   "tuned": 1,
+   "genericRej": {},
+   "tunedRej": {
+    "solver": 2
+   }
+  },
+  {
+   "kernel": "math/determinant",
+   "disc": "math",
+   "generic": 1,
+   "tuned": 2,
+   "genericRej": {
+    "solver": 2
+   },
+   "tunedRej": {
+    "solver": 1
+   }
+  },
+  {
+   "kernel": "lang/honorifics-and-politeness-levels",
+   "disc": "lang",
+   "generic": 3,
+   "tuned": 1,
+   "genericRej": {},
+   "tunedRej": {
+    "no-catch": 2
+   }
+  },
+  {
+   "kernel": "lang/particles-and-sentence-basics",
+   "disc": "lang",
+   "generic": 2,
+   "tuned": 3,
+   "genericRej": {
+    "solver": 1
+   },
+   "tunedRej": {}
+  },
+  {
+   "kernel": "history/reconstruction-acts-1867-military-districts",
+   "disc": "history",
+   "generic": 3,
+   "tuned": 3,
+   "genericRej": {},
+   "tunedRej": {}
+  },
+  {
+   "kernel": "history/thirteenth-amendment-abolition",
+   "disc": "history",
+   "generic": 2,
+   "tuned": 3,
+   "genericRej": {
+    "solver": 1
+   },
+   "tunedRej": {}
+  },
+  {
+   "kernel": "history/fifteenth-amendment-suffrage-loopholes",
+   "disc": "history",
+   "generic": 1,
+   "tuned": 3,
+   "genericRej": {
+    "option-pasted-or-long": 2
+   },
+   "tunedRej": {}
+  },
+  {
+   "kernel": "lit/negative-capability-reading",
+   "disc": "default",
+   "generic": 1,
+   "tuned": 2,
+   "genericRej": {
+    "solver": 2
+   },
+   "tunedRej": {
+    "solver": 1
+   }
+  }
+ ],
+ "adopt": {
+  "math": "keep v1",
+  "lang": "keep v1",
+  "history": "ADOPT discipline prompt",
+  "default": "ADOPT discipline prompt"
+ },
+ "solverUsd": 0.022
+}

@@ -23,7 +23,16 @@ for line in sys.stdin:
     try:
         req = json.loads(line)
         prompt = apply_chat_template(processor, config, f"{req['system']}\n\n{req['user']}", num_images=0)
-        out = generate(model, processor, prompt, max_tokens=int(req.get("maxTokens", 1200)), verbose=False)
+        # temperature>0 enables the best-of-N sampling harness (E2B-MAX);
+        # default stays greedy for deterministic single-shot authoring.
+        out = generate(
+            model,
+            processor,
+            prompt,
+            max_tokens=int(req.get("maxTokens", 1200)),
+            temperature=float(req.get("temperature", 0.0)),
+            verbose=False,
+        )
         text = (out.text if hasattr(out, "text") else str(out)).strip()
         print(json.dumps({"id": req.get("id"), "text": text}), flush=True)
     except Exception as error:  # noqa: BLE001
