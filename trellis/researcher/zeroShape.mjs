@@ -353,6 +353,13 @@ export async function zeroShapeSurfaces(target, sources, kernel, { embedder = nu
 export async function zeroShapeItems(target, kernel, shelf = [], { solver = null, ledger = null, budgetUsd = 0 } = {}) {
   const misc = kernel.misconceptions ?? [];
   if (misc.length < 2) return { accepted: [], rejections: { 'thin-misconceptions': 1 }, solverUsed: false };
+  // Registry blind spots (measured e2b ≤3/9): strict-$0 mode DISCLOSES the
+  // gap rather than shipping the weak author's items; with a solver+ledger
+  // the caller can route to the paid author via shapeItems instead.
+  const { authorRouteFor } = await import('./shape.mjs');
+  if ((await authorRouteFor(target.id)) === 'ds' && !solver) {
+    return { accepted: [], rejections: { 'routed-paid-needed': 1 }, solverUsed: false };
+  }
   const cells = misc.slice(0, 2).map((m) => ({
     statement: m.text,
     corrective: m.corrective,

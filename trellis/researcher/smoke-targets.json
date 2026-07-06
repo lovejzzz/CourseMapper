@@ -1,0 +1,9 @@
+{
+  "note": "Production smoke: one kernel through the FULL zero-deposit path (sources → surfaces → adaptive E2B-MAX items → solver → deposits). Deposits are idempotent; this verifies the deployed author end-to-end.",
+  "groups": [
+    {
+      "shard": "public/genome/lit-intro.json",
+      "kernels": [{ "id": "lit/ghazal-form", "term": "Ghazal", "queries": ["Ghazal", "Ghazal poetry"] }]
+    }
+  ]
+}

@@ -1,0 +1,308 @@
+{
+ "stamp": "per-kernel author scoreboard — registry evidence + drift alarm (noise ±1/run from the identical-prompt control)",
+ "files": [
+  "author-showdown-run2max.json",
+  "author-showdown-run3adaptive.json",
+  "author-showdown-run4adaptive.json",
+  "author-showdown.json"
+ ],
+ "driftFlags": [],
+ "board": {
+  "lit/ghazal-form": {
+   "runs": 4,
+   "e2bMean": 3,
+   "e2bLatest": 3,
+   "dsMean": 2.5,
+   "history": [
+    {
+     "file": "author-showdown-run2max.json",
+     "e2bMode": "max",
+     "e2b": 3,
+     "ds": 1,
+     "mini": 2
+    },
+    {
+     "file": "author-showdown-run3adaptive.json",
+     "e2bMode": "max",
+     "e2b": 3,
+     "ds": 3,
+     "mini": 2
+    },
+    {
+     "file": "author-showdown-run4adaptive.json",
+     "e2bMode": "max",
+     "e2b": 3,
+     "ds": 3,
+     "mini": 3
+    },
+    {
+     "file": "author-showdown.json",
+     "e2bMode": "max",
+     "e2b": 3,
+     "ds": 3,
+     "mini": 3
+    }
+   ],
+   "drift": false
+  },
+  "lit/scansion": {
+   "runs": 4,
+   "e2bMean": 2.5,
+   "e2bLatest": 2,
+   "dsMean": 2.75,
+   "history": [
+    {
+     "file": "author-showdown-run2max.json",
+     "e2bMode": "max",
+     "e2b": 3,
+     "ds": 2,
+     "mini": 3
+    },
+    {
+     "file": "author-showdown-run3adaptive.json",
+     "e2bMode": "max",
+     "e2b": 3,
+     "ds": 3,
+     "mini": 3
+    },
+    {
+     "file": "author-showdown-run4adaptive.json",
+     "e2bMode": "max",
+     "e2b": 2,
+     "ds": 3,
+     "mini": 1
+    },
+    {
+     "file": "author-showdown.json",
+     "e2bMode": "max",
+     "e2b": 2,
+     "ds": 3,
+     "mini": 1
+    }
+   ],
+   "drift": false
+  },
+  "lit/rhyme-scheme-and-internal-rhyme": {
+   "runs": 4,
+   "e2bMean": 1,
+   "e2bLatest": 1,
+   "dsMean": 2,
+   "history": [
+    {
+     "file": "author-showdown-run2max.json",
+     "e2bMode": "max",
+     "e2b": 2,
+     "ds": 1,
+     "mini": 1
+    },
+    {
+     "file": "author-showdown-run3adaptive.json",
+     "e2bMode": "max",
+     "e2b": 0,
+     "ds": 3,
+     "mini": 0
+    },
+    {
+     "file": "author-showdown-run4adaptive.json",
+     "e2bMode": "max",
+     "e2b": 1,
+     "ds": 2,
+     "mini": 1
+    },
+    {
+     "file": "author-showdown.json",
+     "e2bMode": "max",
+     "e2b": 1,
+     "ds": 2,
+     "mini": 1
+    }
+   ],
+   "drift": false
+  },
+  "lit/language-of-images": {
+   "runs": 4,
+   "e2bMean": 2,
+   "e2bLatest": 2,
+   "dsMean": 2.25,
+   "history": [
+    {
+     "file": "author-showdown-run2max.json",
+     "e2bMode": "max",
+     "e2b": 2,
+     "ds": 3,
+     "mini": 1
+    },
+    {
+     "file": "author-showdown-run3adaptive.json",
+     "e2bMode": "max",
+     "e2b": 2,
+     "ds": 2,
+     "mini": 1
+    },
+    {
+     "file": "author-showdown-run4adaptive.json",
+     "e2bMode": "max",
+     "e2b": 2,
+     "ds": 2,
+     "mini": 1
+    },
+    {
+     "file": "author-showdown.json",
+     "e2bMode": "max",
+     "e2b": 2,
+     "ds": 2,
+     "mini": 1
+    }
+   ],
+   "drift": false
+  },
+  "cs/variables": {
+   "runs": 4,
+   "e2bMean": 2.5,
+   "e2bLatest": 3,
+   "dsMean": 3,
+   "history": [
+    {
+     "file": "author-showdown-run2max.json",
+     "e2bMode": "max",
+     "e2b": 1,
+     "ds": 3,
+     "mini": 2
+    },
+    {
+     "file": "author-showdown-run3adaptive.json",
+     "e2bMode": "max",
+     "e2b": 3,
+     "ds": 3,
+     "mini": 1
+    },
+    {
+     "file": "author-showdown-run4adaptive.json",
+     "e2bMode": "max",
+     "e2b": 3,
+     "ds": 3,
+     "mini": 2
+    },
+    {
+     "file": "author-showdown.json",
+     "e2bMode": "max",
+     "e2b": 3,
+     "ds": 3,
+     "mini": 2
+    }
+   ],
+   "drift": false
+  },
+  "geo/minerals": {
+   "runs": 4,
+   "e2bMean": 2.75,
+   "e2bLatest": 3,
+   "dsMean": 2,
+   "history": [
+    {
+     "file": "author-showdown-run2max.json",
+     "e2bMode": "max",
+     "e2b": 2,
+     "ds": 2,
+     "mini": 3
+    },
+    {
+     "file": "author-showdown-run3adaptive.json",
+     "e2bMode": "max",
+     "e2b": 3,
+     "ds": 0,
+     "mini": 1
+    },
+    {
+     "file": "author-showdown-run4adaptive.json",
+     "e2bMode": "max",
+     "e2b": 3,
+     "ds": 3,
+     "mini": 2
+    },
+    {
+     "file": "author-showdown.json",
+     "e2bMode": "max",
+     "e2b": 3,
+     "ds": 3,
+     "mini": 2
+    }
+   ],
+   "drift": false
+  },
+  "math/system-of-linear-equations": {
+   "runs": 4,
+   "e2bMean": 2.75,
+   "e2bLatest": 3,
+   "dsMean": 3,
+   "history": [
+    {
+     "file": "author-showdown-run2max.json",
+     "e2bMode": "max",
+     "e2b": 2,
+     "ds": 3,
+     "mini": 1
+    },
+    {
+     "file": "author-showdown-run3adaptive.json",
+     "e2bMode": "max",
+     "e2b": 3,
+     "ds": 3,
+     "mini": 1
+    },
+    {
+     "file": "author-showdown-run4adaptive.json",
+     "e2bMode": "max",
+     "e2b": 3,
+     "ds": 3,
+     "mini": 1
+    },
+    {
+     "file": "author-showdown.json",
+     "e2bMode": "max",
+     "e2b": 3,
+     "ds": 3,
+     "mini": 1
+    }
+   ],
+   "drift": false
+  },
+  "psych/operant-conditioning": {
+   "runs": 4,
+   "e2bMean": 1,
+   "e2bLatest": 1,
+   "dsMean": 2,
+   "history": [
+    {
+     "file": "author-showdown-run2max.json",
+     "e2bMode": "max",
+     "e2b": 1,
+     "ds": 3,
+     "mini": 2
+    },
+    {
+     "file": "author-showdown-run3adaptive.json",
+     "e2bMode": "max",
+     "e2b": 1,
+     "ds": 3,
+     "mini": 2
+    },
+    {
+     "file": "author-showdown-run4adaptive.json",
+     "e2bMode": "max",
+     "e2b": 1,
+     "ds": 1,
+     "mini": 2
+    },
+    {
+     "file": "author-showdown.json",
+     "e2bMode": "max",
+     "e2b": 1,
+     "ds": 1,
+     "mini": 2
+    }
+   ],
+   "drift": false
+  }
+ }
+}

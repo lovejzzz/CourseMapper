@@ -48367,6 +48367,54 @@
     "grade": null,
     "date": "2026-07-06"
    }
+  },
+  {
+   "id": "gapfill:lit/ghazal-form:A-ghazal-is-just-any-poe-9e20",
+   "kernelId": "lit/ghazal-form",
+   "conceptName": "Ghazal",
+   "stem": "A student believes that a ghazal is just any poem about love and separation. Which description best corrects this belief?",
+   "options": [
+    "A ghazal is just any poem about love and separation.",
+    "The form uses couplets with a repeating rhyme+refrain scheme and equal line lengths.",
+    "It only requires a single rhyme throughout the entire poem.",
+    "It must have exactly four lines in total."
+   ],
+   "correctIndex": 1,
+   "explanation": "Topic alone is not enough; the form uses couplets with a repeating rhyme+refrain scheme and equal line lengths. This corrects the belief that it is just any poem about love and separation.",
+   "catches": true,
+   "confronts": true,
+   "familyKey": "a ghazal is just any poem about love and separation",
+   "provenance": {
+    "origin": "researcher-zero",
+    "model": "e2b",
+    "solverVerified": true,
+    "grade": null,
+    "date": "2026-07-06"
+   }
+  },
+  {
+   "id": "gapfill:lit/ghazal-form:In-a-ghazal,-every-line--3eab",
+   "kernelId": "lit/ghazal-form",
+   "conceptName": "Ghazal",
+   "stem": "A student thinks that in a ghazal, every line must end with the same rhyme and refrain. Which statement clarifies the structure?",
+   "options": [
+    "This matches the ghazal scheme exactly.",
+    "Only the second line of later couplets should repeat the rhyme+refrain.",
+    "A ghazal must have no refrain at all.",
+    "A ghazal requires alternating line lengths."
+   ],
+   "correctIndex": 1,
+   "explanation": "The refrain/rhyme scheme is set in the first couplet and then recurs in the second line of later couplets. It is not repeated at the end of every single line.",
+   "catches": true,
+   "confronts": true,
+   "familyKey": "in a ghazal every line must end with the same rhyme and refr",
+   "provenance": {
+    "origin": "researcher-zero",
+    "model": "e2b",
+    "solverVerified": true,
+    "grade": null,
+    "date": "2026-07-06"
+   }
   }
  ],
  "origins": {

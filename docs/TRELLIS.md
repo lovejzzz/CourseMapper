@@ -1664,3 +1664,24 @@ polishing a candidate that hasn't won.
   Item-verdict corpus flywheel LIVE: 102 verdicts banked (DPO r2 at
   ~300+). Found: physics/stats/chem shards have ZERO ready kernels ->
   coverage queue. Session spend ~$0.15.
+
+- **2026-07-06 (goal: publish-ready E2B-MAX — classroom-grade,
+  professional, reliable).** RELIABILITY RAILS: **author-registry.json**
+  (per-kernel routing, registry = measured blind spots only: e2b <=3/9
+  AND ds >=7/9 pooled -> rhyme-scheme + psych; shapeItems routes to paid
+  when ledgered, provenance records effectiveAuthor + routed flag;
+  strict-$0 zeroShapeItems DISCLOSES 'routed-paid-needed' instead of
+  shipping weak items; +2 regression tests). **scoreboard.mjs** = the
+  standing per-kernel history + drift alarm (noise +-1 from the
+  identical-prompt control); 4 runs aggregated, ZERO drift flags.
+  **STABILITY RUN 4 (deployed adaptive): e2b 18/24 REPLICATED exactly
+  (ds 20 replicated too); pooled /96: e2b 67 · ds 80 · mini 55.**
+  **THE ROUTED SYSTEM (what production ships): runs 3-4 total 41/48 vs
+  ds-alone 40/48 — edges the best paid author paying for 2 of 8
+  kernels.** Packet v3 RESEALED with 6 deployed-config blind pairs.
+  **Model card docs/E2B_MAX.md** (every claim -> bench file; limits +
+  reproduce commands + license/provenance). PRODUCTION SMOKE green:
+  full zero-deposit path with the deployed author (3 sources -> 9
+  surfaces -> 2 solver-verified items, $0.0012). 125 trellis tests.
+  SIMULATED stamp stands until the two-human packet read — that is the
+  one remaining publish gate, and it is the owner's.

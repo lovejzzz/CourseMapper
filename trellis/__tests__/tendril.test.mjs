@@ -182,12 +182,20 @@ describe('zero-API mode (v0.1.4)', () => {
       assessments: [{ id: 'a9', kindOf: 'exam', registryKey: 'Final Exam', anchor: { lessonId: 'l2' } }],
     };
     const mk = (id, kernelId, stem) => ({
-      id, kernelId, stem,
-      options: ['w1', 'right', 'w2', 'w3'], correctIndex: 1,
-      explanation: 'because reasons', bloom: 'apply', difficulty: 'apply',
-      catches: true, confronts: true,
+      id,
+      kernelId,
+      stem,
+      options: ['w1', 'right', 'w2', 'w3'],
+      correctIndex: 1,
+      explanation: 'because reasons',
+      bloom: 'apply',
+      difficulty: 'apply',
+      catches: true,
+      confronts: true,
     });
-    const bank = { items: [mk('i1', 'k1', 'stem about vectors and spans'), mk('i2', 'k2', 'stem about matrices instead')] };
+    const bank = {
+      items: [mk('i1', 'k1', 'stem about vectors and spans'), mk('i2', 'k2', 'stem about matrices instead')],
+    };
     const exams = assembleExamsFromBank(graph, bank, { perExam: 12 });
     expect(exams.a9).toHaveLength(2);
     expect(exams.a9[0].options[exams.a9[0].correctIndex]).toBe('right'); // rotation preserves the key
@@ -232,11 +240,16 @@ describe('researcher-zero ($0 shaper)', () => {
     const { zeroShapeKernel } = await import('../researcher/zeroShape.mjs');
     const sources = [
       {
-        title: 'T', url: 'https://x/T', license: 'CC-BY-SA-4.0', attribution: 'test',
+        title: 'T',
+        url: 'https://x/T',
+        license: 'CC-BY-SA-4.0',
+        attribution: 'test',
         text: 'Widgets are devices that convert motion into light through a coupling process. The coupling efficiency depends on the ambient temperature of the room. For example, a cold widget produces dim light in winter conditions. Contrary to popular belief, widgets do not store energy between uses at all.',
       },
     ];
-    const embedder = makeEmbedder({ embedFn: async (texts) => texts.map((t, i) => unit([1, (t.length % 7) / 10, i % 2])) });
+    const embedder = makeEmbedder({
+      embedFn: async (texts) => texts.map((t, i) => unit([1, (t.length % 7) / 10, i % 2])),
+    });
     const kernel = await zeroShapeKernel({ id: 'bench/widgets', term: 'widgets' }, sources, { embedder });
     expect(kernel.ok).toBe(true);
     for (const fact of kernel.facts) {
@@ -248,17 +261,27 @@ describe('researcher-zero ($0 shaper)', () => {
 
   it('splitSentences keeps real sentences and drops fragments', async () => {
     const { splitSentences } = await import('../researcher/zeroShape.mjs');
-    const out = splitSentences('Short. This is a genuinely long sentence that should absolutely survive the splitter filter. == Heading == Another proper sentence follows here with enough length to pass the gate.');
+    const out = splitSentences(
+      'Short. This is a genuinely long sentence that should absolutely survive the splitter filter. == Heading == Another proper sentence follows here with enough length to pass the gate.',
+    );
     expect(out.length).toBe(2);
   });
 });
 
 describe('T-M3 gate bench gates', () => {
-  const base = { task: 'skin', mode: 'teach', source: 'A long enough source segment that ends with a period and says plenty of things about the topic at hand.' };
+  const base = {
+    task: 'skin',
+    mode: 'teach',
+    source: 'A long enough source segment that ends with a period and says plenty of things about the topic at hand.',
+  };
 
   it('accepts a genuine rewrite', () => {
     expect(
-      gateOutput({ ...base, output: 'A long enough REWRITTEN segment that ends with a period and says plenty of fresh things about the topic here.' }),
+      gateOutput({
+        ...base,
+        output:
+          'A long enough REWRITTEN segment that ends with a period and says plenty of fresh things about the topic here.',
+      }),
     ).toBeNull();
   });
 
@@ -272,8 +295,10 @@ describe('T-M3 gate bench gates', () => {
   });
 
   it('demands example language for worked-example modes', () => {
-    const src = 'Worked example: we trace the loop and walk through each iteration of the sum as the demo requires today.';
-    const noExample = 'This text is long enough and terminal but mentions nothing of the required lexical markers at all, sadly.';
+    const src =
+      'Worked example: we trace the loop and walk through each iteration of the sum as the demo requires today.';
+    const noExample =
+      'This text is long enough and terminal but mentions nothing of the required lexical markers at all, sadly.';
     expect(gateOutput({ task: 'skin', mode: 'worked-example', source: src, output: noExample })).toBe('mode-example');
   });
 });
@@ -310,10 +335,44 @@ describe('E2B item-array extraction (A1)', () => {
     const { zeroShapeItems } = await import('../researcher/zeroShape.mjs');
     const res = await zeroShapeItems(
       { id: 'x/y', term: 'thing' },
-      { definition: 'A thing.', facts: [{ text: 'It exists.' }], misconceptions: [{ text: 'only one', corrective: 'c' }] },
+      {
+        definition: 'A thing.',
+        facts: [{ text: 'It exists.' }],
+        misconceptions: [{ text: 'only one', corrective: 'c' }],
+      },
     );
     expect(res.accepted).toEqual([]);
     expect(res.rejections['thin-misconceptions']).toBe(1);
     expect(res.solverUsed).toBe(false);
+  });
+});
+
+describe('per-kernel author routing (the registry)', () => {
+  it('routes only the measured blind spots to the paid author', async () => {
+    const { authorRouteFor } = await import('../researcher/shape.mjs');
+    // The two kernels with pooled e2b ≤3/9 AND ds ≥7/9 across three runs:
+    expect(await authorRouteFor('lit/rhyme-scheme-and-internal-rhyme')).toBe('ds');
+    expect(await authorRouteFor('psych/operant-conditioning')).toBe('ds');
+    // E2B's strong kernels stay local:
+    expect(await authorRouteFor('lit/ghazal-form')).toBeNull();
+    expect(await authorRouteFor('cs/variables')).toBeNull();
+    expect(await authorRouteFor('never/heard-of-it')).toBeNull();
+  });
+
+  it('strict-$0 zeroShapeItems DISCLOSES a registry kernel instead of shipping the weak author (no model call)', async () => {
+    const { zeroShapeItems } = await import('../researcher/zeroShape.mjs');
+    const res = await zeroShapeItems(
+      { id: 'psych/operant-conditioning', term: 'operant conditioning' },
+      {
+        definition: 'd',
+        facts: [{ text: 'f1' }, { text: 'f2' }, { text: 'f3' }],
+        misconceptions: [
+          { text: 'wrong belief one about reinforcement', corrective: 'corrective one for the belief' },
+          { text: 'wrong belief two about punishment', corrective: 'corrective two for the belief' },
+        ],
+      },
+    );
+    expect(res.accepted).toEqual([]);
+    expect(res.rejections['routed-paid-needed']).toBe(1);
   });
 });

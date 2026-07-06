@@ -1,0 +1,14 @@
+{
+ "stamp": "per-kernel author routing \u2014 measured blind spots only; e2b everywhere else",
+ "updated": "2026-07-06",
+ "registry": {
+  "lit/rhyme-scheme-and-internal-rhyme": {
+   "route": "ds",
+   "evidence": "e2b 2/9 vs ds 7/9 across 3 same-protocol runs (2026-07-06)"
+  },
+  "psych/operant-conditioning": {
+   "route": "ds",
+   "evidence": "e2b 3/9 vs ds 9/9 across 3 same-protocol runs (2026-07-06)"
+  }
+ }
+}

@@ -586,6 +586,23 @@ export async function authorItemsE2BMax(
 // the full gate stack (gapItemRejection + blind solver seat). The author is
 // routed: 'ds' (paid, default) or 'e2b' (local Gemma 4, RESEARCH_ITEMS=e2b).
 // Both feed the identical gate loop, so the routing cannot change what ships.
+// Per-kernel author routing (the org-chart answer, 4th application): the
+// registry lists ONLY measured blind spots (e2b ≤3/9 AND ds ≥7/9 pooled over
+// three same-protocol runs). Everything else stays local. Routing to a paid
+// author is disclosed in provenance; the gate stack is identical either way.
+let AUTHOR_REGISTRY = null;
+export async function authorRouteFor(kernelId) {
+  if (!AUTHOR_REGISTRY) {
+    try {
+      const { readFile } = await import('node:fs/promises');
+      AUTHOR_REGISTRY = JSON.parse(await readFile('trellis/researcher/author-registry.json', 'utf8')).registry ?? {};
+    } catch {
+      AUTHOR_REGISTRY = {};
+    }
+  }
+  return AUTHOR_REGISTRY[kernelId]?.route ?? null;
+}
+
 export async function shapeItems(
   target,
   kernel,
@@ -598,10 +615,18 @@ export async function shapeItems(
     mustIncludeTwoOf: claimTokens(m.text),
     explanationMustIncludeHalfOf: claimTokens(m.corrective),
   }));
+  // Blind-spot routing: an e2b request on a registry kernel goes to the paid
+  // author when a ledger is available (cents, disclosed via provenance).
+  let effectiveAuthor = author;
+  if (author === 'e2b' && ledger && (await authorRouteFor(target.id)) === 'ds') effectiveAuthor = 'ds';
   const items =
-    author === 'e2b'
+    effectiveAuthor === 'e2b'
       ? await authorItemsE2BMax(target, kernel, cells, shelf) // adaptive harness = the deployed e2b config (15→16→18)
-      : await authorItemsPaid(target, kernel, cells, { ledger, budgetUsd, tier: author === 'mini' ? 'cheap' : 'ds' });
+      : await authorItemsPaid(target, kernel, cells, {
+          ledger,
+          budgetUsd,
+          tier: effectiveAuthor === 'mini' ? 'cheap' : 'ds',
+        });
 
   const accepted = [];
   const rejections = {};
@@ -645,7 +670,13 @@ export async function shapeItems(
               .trim()
               .slice(0, 60)
           : null,
-      provenance: { origin: 'researcher', model: author, grade: null, date: new Date().toISOString().slice(0, 10) },
+      provenance: {
+        origin: 'researcher',
+        model: effectiveAuthor,
+        routed: effectiveAuthor !== author || undefined,
+        grade: null,
+        date: new Date().toISOString().slice(0, 10),
+      },
     });
   }
   return { accepted, rejections };
