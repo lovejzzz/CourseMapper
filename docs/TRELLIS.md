@@ -1755,3 +1755,19 @@ polishing a candidate that hasn't won.
   priced maturation path). The publishable claim set: grade-A structure,
   $0 replay, solver-verified items, offline Tutor, honest quality bands
   — SIMULATED until the two-human packet.
+
+- **2026-07-06 (the clean prose-seam test — Trellis+E2B vs Trellis+mini,
+  confound removed).** Second virgin course ("Introduction to Ethics",
+  verified zero coverage), arm A BEFORE any factory touch, arm B on arm
+  A's exact graph with ONLY the item-fill seat swapped: **QUALITY TIE
+  (98/A P1=1 both; judge 9.0 vs 8.67 — Δ0.33 inside the ±1 band) at
+  −21% cost ($0.2622 → $0.2078) and ~half the authoring wall.** E2B's
+  fill path engaged partially (Trellis intake authors 1-2 misconceptions
+  /concept; the ≥2 path fell back paid elsewhere, disclosed) — named
+  lever: intake authors ≥2 misconceptions/concept and the seat converts
+  fully. Ethics prose judged 9s on BOTH arms (strongest virgin-ground
+  reading yet). ANSWER OF RECORD to "does customized E2B-MAX beat paid":
+  beats gpt-5.4-mini at the item seat (pooled 84v68 /120, ≥mini all 5
+  runs, quality tie inside Trellis at −21% cost); beats ds AS THE ROUTED
+  SYSTEM (41/48 v 40/48) not as a bare model (pooled 96v84, one outright
+  win run 5); battery cannot distinguish its items from paid.
