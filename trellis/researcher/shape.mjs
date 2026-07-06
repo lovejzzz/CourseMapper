@@ -297,10 +297,11 @@ const ITEMS_SCHEMA = {
   },
 };
 
-// The paid item author (DeepSeek), structured-output tooling.
-async function authorItemsDs(target, kernel, cells, { ledger, budgetUsd }) {
+// The paid item author (any callModel tier — ds default; 'cheap' =
+// gpt-5.4-mini for the cross-family showdown), structured-output tooling.
+export async function authorItemsPaid(target, kernel, cells, { ledger, budgetUsd, tier = 'ds' }) {
   const { result } = await callModel({
-    tier: 'ds',
+    tier,
     stage: 'research-items',
     ledger,
     budgetUsd,
@@ -416,6 +417,58 @@ export async function authorItemsE2B(
   return parseItemArray(text);
 }
 
+// Level-7 lever: feedback-directed RESAMPLE (test-time compute, still $0).
+// More prompt rules made dense kernels WORSE (the L5 negative) — but a retry
+// that quotes the gate's own rejection reason is a different mechanism: the
+// model sees exactly which contract line its concrete item broke. One retry
+// per failed catcher cell, then the identical gate stack decides again.
+export async function authorItemsE2BRetry(target, kernel, cells, shelf, { variant } = {}) {
+  const first = await authorItemsE2B(target, kernel, cells, { variant });
+  const failures = [];
+  for (const [i, item] of first.slice(0, 2).entries()) {
+    const cell = cells[Math.min(i, cells.length - 1)];
+    const gateCell = {
+      kernelId: target.id,
+      family: cell.statement,
+      statement: cell.statement,
+      corrective: cell.corrective,
+      term: target.term,
+    };
+    const reason = gapItemRejection(gateCell, item, shelf);
+    if (reason) failures.push({ i, item, reason, cell });
+  }
+  if (failures.length === 0 || first.length === 0) return first;
+  const items = [...first];
+  for (const { i, item, reason, cell } of failures) {
+    const system =
+      'Rewrite ONE multiple-choice item as a single JSON object {"stem","options"(4 distinct strings under 15 words),"correctIndex"(0-3),"explanation"(2-4 sentences under 80 words),"bloom":"apply","difficulty":"apply"}. ' +
+      `Your previous item FAILED an automatic gate with reason "${reason}". Fix exactly that: one wrong option must state the wrongBelief with its faulty reasoning and include at least TWO of these words verbatim: ${JSON.stringify(cell.mustIncludeTwoOf)}; the explanation must confront the corrective and include at least HALF of these words verbatim: ${JSON.stringify(cell.explanationMustIncludeHalfOf)}. Keep the stem a concrete application question ending with terminal punctuation. Output ONLY the JSON object.`;
+    const user = JSON.stringify({
+      term: target.term,
+      wrongBelief: cell.statement,
+      corrective: cell.corrective,
+      previousItem: {
+        stem: item.stem,
+        options: item.options,
+        correctIndex: item.correctIndex,
+        explanation: item.explanation,
+      },
+    });
+    try {
+      const text = await sGenerate({ system, user, task: 'items', maxTokens: 900 });
+      const [fixed] = parseItemArray(
+        `[${String(text)
+          .replace(/^[^{]*/, '')
+          .replace(/[^}]*$/, '')}]`,
+      );
+      if (fixed?.stem) items[i] = { bloom: 'apply', difficulty: 'apply', ...fixed };
+    } catch {
+      /* retry is best-effort; the original item stands and the gate decides */
+    }
+  }
+  return items;
+}
+
 // 3 items per kernel, one per misconception + one straight application —
 // the full gate stack (gapItemRejection + blind solver seat). The author is
 // routed: 'ds' (paid, default) or 'e2b' (local Gemma 4, RESEARCH_ITEMS=e2b).
@@ -435,7 +488,7 @@ export async function shapeItems(
   const items =
     author === 'e2b'
       ? await authorItemsE2B(target, kernel, cells)
-      : await authorItemsDs(target, kernel, cells, { ledger, budgetUsd });
+      : await authorItemsPaid(target, kernel, cells, { ledger, budgetUsd, tier: author === 'mini' ? 'cheap' : 'ds' });
 
   const accepted = [];
   const rejections = {};

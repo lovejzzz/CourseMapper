@@ -1,0 +1,122 @@
+{
+ "stamp": "L7 retry bench — plain vs feedback-resample, dense+diverse, same gates+solver",
+ "sets": {
+  "dense": {
+   "kernels": 6,
+   "plain": 10,
+   "retry": 12,
+   "perKernel": [
+    {
+     "kernel": "lit/ghazal-form",
+     "plain": 2,
+     "retry": 3,
+     "plainRej": {
+      "solver": 1
+     },
+     "retryRej": {}
+    },
+    {
+     "kernel": "lit/scansion",
+     "plain": 2,
+     "retry": 3,
+     "plainRej": {
+      "solver": 1
+     },
+     "retryRej": {}
+    },
+    {
+     "kernel": "lit/metrical-feet-and-line-length",
+     "plain": 2,
+     "retry": 2,
+     "plainRej": {
+      "solver": 1
+     },
+     "retryRej": {
+      "solver": 1
+     }
+    },
+    {
+     "kernel": "lit/rhyme-scheme-and-internal-rhyme",
+     "plain": 0,
+     "retry": 0,
+     "plainRej": {
+      "no-catch": 1,
+      "solver": 2
+     },
+     "retryRej": {
+      "no-catch": 1,
+      "solver": 2
+     }
+    },
+    {
+     "kernel": "lit/language-of-images",
+     "plain": 1,
+     "retry": 2,
+     "plainRej": {
+      "no-catch": 2
+     },
+     "retryRej": {
+      "no-catch": 1
+     }
+    },
+    {
+     "kernel": "lit/sensory-understanding",
+     "plain": 3,
+     "retry": 2,
+     "plainRej": {},
+     "retryRej": {
+      "solver": 1
+     }
+    }
+   ]
+  },
+  "diverse": {
+   "kernels": 4,
+   "plain": 8,
+   "retry": 11,
+   "perKernel": [
+    {
+     "kernel": "cs/variables",
+     "plain": 3,
+     "retry": 3,
+     "plainRej": {},
+     "retryRej": {}
+    },
+    {
+     "kernel": "geo/minerals",
+     "plain": 1,
+     "retry": 3,
+     "plainRej": {
+      "option-pasted-or-long": 2
+     },
+     "retryRej": {}
+    },
+    {
+     "kernel": "math/system-of-linear-equations",
+     "plain": 3,
+     "retry": 3,
+     "plainRej": {},
+     "retryRej": {}
+    },
+    {
+     "kernel": "psych/operant-conditioning",
+     "plain": 1,
+     "retry": 2,
+     "plainRej": {
+      "no-confront": 1,
+      "no-catch": 1
+     },
+     "retryRej": {
+      "no-catch": 1
+     }
+    }
+   ]
+  }
+ },
+ "verdict": {
+  "denseLift": 2,
+  "diverseDelta": 3,
+  "ship": "RETRY NOT PROVEN — bar unmet",
+  "ledgerUsd": 0.0389
+ }
+}

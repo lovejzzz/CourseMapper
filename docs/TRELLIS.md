@@ -1608,3 +1608,32 @@ polishing a candidate that hasn't won.
   cheap paths to "best" don't exist — the zero pipeline improves by COVERAGE
   (L1) and the two-human ANCHOR (Level 10), not by tuning an untunable 4B.
   Suite 123 trellis tests green.
+
+- **2026-07-06 (goal: "Gemma4 to level 10" — the ladder climb + the
+  showdown).** L1 COVERAGE PROVEN: researchZero (the zero-deposit
+  runner, RESEARCH_ZERO=run) filled 7 poetry-form lit kernels — 61
+  surfaces + 13 solver-verified E2B items, $0.02 total (all solver
+  seat) — and coverageProof went **refusal -> 7/7 SHIPPED** (0 -> 3
+  segments + 3-4 items per kernel). Live-wire fixes: b.trim on {text}
+  definitions; Wikipedia burst-429 -> fetchJson backoff retry;
+  mineExamples(sources) so worked-example ships for existing kernels;
+  per-move deposit ids (index ids re-deposit shifted dups). **L7
+  attempt 2 (feedback-resample, test-time compute): NOT PROVEN** —
+  dense +2 (bar +3), diverse +3, pooled +5/10 kernels no regression;
+  direction positive, unshipped by the letter; replicate queued;
+  rhyme-scheme = E2B's stable blind spot (0/3 five straight runs).
+  **L9: toolchain UNBLOCKED** (.venv-dpo, mlx-lm-lora 2.1.0,
+  transformers-5 shim; package's PreferenceDataset encodes the literal
+  string "rejected" — a real bug — but --train-mode dpo uses the
+  correct DPODataset); **round 1 REJECTED by the frozen gate bench**:
+  DPO from s3-800 on 105 pairs, val pref-acc 0.764 BUT deployment
+  acceptance collapsed to 37.5% (train loss 0.002 = overtrained; ranks
+  well, writes badly); deployed pair stands; round 2 needs 3-5x corpus.
+  **L10 STAGED**: item-author-packet-v3 SEALED (4 blind kernel-pairs,
+  E2B vs ds quizzes, X/Y hash-shuffled) — two humans grant it. **THE
+  SHOWDOWN (docs/SHOWDOWN_2026-07-06.md), 8 frozen kernels, same
+  gates+solver:** E2B 15/24 at $0/7.9s vs GPT-5.4-mini 16/24 at
+  $0.016/3.9s (TIE, same no-catch failure signature) vs DeepSeek 22/24
+  at $0.027/26.7s (won the round; owns dense; its solver-reject rate
+  swings run-to-run). gen_test.py trap: S_OUT wants a BASENAME (it
+  prepends outputs/). Session spend ~$0.11 all instruments.

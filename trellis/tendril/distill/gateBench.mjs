@@ -54,10 +54,7 @@ async function benchFile(path) {
   return {
     overall: { ...overall, rate: Number((overall.accepted / Math.max(1, overall.total)).toFixed(3)) },
     byTask: Object.fromEntries(
-      Object.entries(byTask).map(([task, b]) => [
-        task,
-        { ...b, rate: Number((b.accepted / b.total).toFixed(3)) },
-      ]),
+      Object.entries(byTask).map(([task, b]) => [task, { ...b, rate: Number((b.accepted / b.total).toFixed(3)) }]),
     ),
   };
 }
@@ -67,6 +64,7 @@ async function benchFile(path) {
 if (existsSync('trellis/tendril/distill/outputs') && !process.env.VITEST) {
   const report = { stamp: 'SIMULATED instruments — deployment gates + non-identity + claim-preservation stand-in' };
   for (const [name, path] of [
+    ['qwen-dpo', 'trellis/tendril/distill/outputs/qwen-dpo.jsonl'],
     ['tendril-s3', 'trellis/tendril/distill/outputs/tendril-s3.jsonl'],
     ['tendril-s3b', 'trellis/tendril/distill/outputs/tendril-s3b.jsonl'],
     ['gemma4-e2b-ft2', 'trellis/tendril/distill/outputs/gemma4-e2b-ft2.jsonl'],
