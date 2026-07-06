@@ -108,6 +108,47 @@ async function enrichKernel(shardPath, targetId, mined) {
   return { added, misconceptions: kernel.misconceptions.length, facts: kernel.facts.length };
 }
 
+// Paid misconception top-up (the documented $0 bound: confrontation pedagogy
+// needs wrong beliefs, and some disciplines' sources never STATE them; a
+// disclosed cents-call on the cheap tier fills the gap, grounded in the same
+// fetched sources). Used only when mining + enrich leave a kernel below the
+// ≥2 floor and a ledger is present.
+async function authorMisconceptionsPaid(target, sources, { ledger, budgetUsd }) {
+  const { callModel } = await import('../providers.mjs');
+  const { result } = await callModel({
+    tier: 'cheap',
+    stage: 'research-misconceptions',
+    ledger,
+    budgetUsd,
+    schema: {
+      type: 'object',
+      additionalProperties: false,
+      required: ['misconceptions'],
+      properties: {
+        misconceptions: {
+          type: 'array',
+          items: {
+            type: 'object',
+            additionalProperties: false,
+            required: ['text', 'corrective'],
+            properties: { text: { type: 'string' }, corrective: { type: 'string' } },
+          },
+        },
+      },
+    },
+    schemaName: 'research_misconceptions',
+    validate: (o) => ((o?.misconceptions ?? []).length >= 2 ? [] : ['need >=2']),
+    maxOutputTokens: 800,
+    system:
+      'From the provided source texts, write 2-3 misconceptions REAL students hold about this topic. Each: text phrased "Students ..." (a specific wrong belief with its plausible wrong reasoning, >=20 words), and a one-sentence corrective grounded in the sources. Never invent facts the sources do not support.',
+    user: JSON.stringify({
+      term: target.term,
+      sources: sources.map((x) => ({ title: x.title, text: x.text.slice(0, 4000) })),
+    }),
+  });
+  return (result.misconceptions ?? []).filter((m) => (m.text ?? '').length >= 20 && (m.corrective ?? '').length >= 15);
+}
+
 async function depositAssets(assets) {
   let store = { stamp: 'Researcher deposits — cited, rebuild-safe (merged by buildAssets)', assets: [] };
   try {
@@ -268,6 +309,20 @@ export async function researchZero(
               const fresh = JSON.parse(await readFile(group.shard, 'utf8'));
               kernel = fresh.kernels.find((k) => k.id === target.id);
               entry.enriched = `+${merged.added} (now ${merged.misconceptions} misconceptions, ${merged.facts} facts)`;
+            }
+          }
+          // Sources state no wrong beliefs -> the disclosed paid top-up (cents).
+          if (kernel && (kernel.misconceptions ?? []).length < 2 && ledger) {
+            try {
+              const authored = await authorMisconceptionsPaid({ ...target }, sources, { ledger, budgetUsd });
+              const merged = await enrichKernel(group.shard, target.id, { misconceptions: authored, facts: [] });
+              if (merged.added > 0) {
+                const fresh = JSON.parse(await readFile(group.shard, 'utf8'));
+                kernel = fresh.kernels.find((k) => k.id === target.id);
+                entry.paidMisconceptions = merged.added;
+              }
+            } catch (error) {
+              entry.paidMisconceptions = `failed: ${String(error.message).slice(0, 60)}`;
             }
           }
           if (kernel) {

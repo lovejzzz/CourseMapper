@@ -49335,6 +49335,2072 @@
     "grade": null,
     "date": "2026-07-06"
    }
+  },
+  {
+   "id": "gapfill:anatomy/tissue-types:Students-may-treat-tissu-c7bb",
+   "kernelId": "anatomy/tissue-types",
+   "conceptName": "Four primary tissue types",
+   "stem": "A student believes that tissue identification is achieved by matching colors only. Which statement best corrects this belief?",
+   "options": [
+    "Tissue identification relies solely on matching colors for quick assessment.",
+    "Identification should connect microscopic organization to the tissue's function and location.",
+    "Color matching is a useful preliminary step for initial tissue identification.",
+    "Only matching colors can accurately determine the specific tissue type."
+   ],
+   "correctIndex": 1,
+   "explanation": "Identification should connect microscopic organization to the tissue's function and location. Matching colors is insufficient because tissue structure dictates its role.",
+   "catches": true,
+   "confronts": true,
+   "familyKey": "students may treat tissue identification as matching colors ",
+   "provenance": {
+    "origin": "researcher-zero",
+    "model": "e2b",
+    "solverVerified": true,
+    "grade": null,
+    "date": "2026-07-06"
+   }
+  },
+  {
+   "id": "gapfill:anatomy/tissue-types:Even-though-menstruation-b5f1",
+   "kernelId": "anatomy/tissue-types",
+   "conceptName": "Four primary tissue types",
+   "stem": "If you observe a tissue characterized by tightly packed, cuboidal cells forming a barrier, what is the most appropriate application of your knowledge of tissue types?",
+   "options": [
+    "Identify it as simple squamous epithelium for rapid diffusion.",
+    "Apply knowledge to identify it as simple cuboidal epithelium for secretion.",
+    "Determine it is connective tissue due to the presence of extracellular matrix.",
+    "Classify it as stratified squamous epithelium for protection."
+   ],
+   "correctIndex": 1,
+   "explanation": "Apply knowledge to identify it as simple cuboidal epithelium for secretion. The cell shape and arrangement directly inform the functional classification of the tissue.",
+   "catches": false,
+   "confronts": false,
+   "familyKey": null,
+   "provenance": {
+    "origin": "researcher-zero",
+    "model": "e2b",
+    "solverVerified": true,
+    "grade": null,
+    "date": "2026-07-06"
+   }
+  },
+  {
+   "id": "gapfill:anatomy/epithelial-tissue:Students-may-assume-epit-d90a",
+   "kernelId": "anatomy/epithelial-tissue",
+   "conceptName": "Epithelial tissue",
+   "stem": "A scientist is studying the function of epithelial tissue in the digestive system. Which statement best describes the primary role of this tissue in this context?",
+   "options": [
+    "Epithelial tissue is only found in the skin layer.",
+    "Epithelial tissue lines internal cavities and passageways and forms glands.",
+    "Epithelial tissue only provides structural support to organs.",
+    "Epithelial tissue is exclusively involved in muscle contraction."
+   ],
+   "correctIndex": 1,
+   "explanation": "Epithelium also lines internal cavities and passageways and forms glands. This is because its primary role is to cover surfaces and line structures throughout the body. It is not limited to the skin.",
+   "catches": true,
+   "confronts": true,
+   "familyKey": "students may assume epithelial tissue is only skin",
+   "provenance": {
+    "origin": "researcher-zero",
+    "model": "e2b",
+    "solverVerified": true,
+    "grade": null,
+    "date": "2026-07-06"
+   }
+  },
+  {
+   "id": "gapfill:anatomy/epithelial-tissue:He-dismissed-EMT-as-a-“f-dc16",
+   "kernelId": "anatomy/epithelial-tissue",
+   "conceptName": "Epithelial tissue",
+   "stem": "If a surgeon needs to create a barrier to prevent leakage between two adjacent organs, which type of epithelial tissue would be most appropriate to apply?",
+   "options": [
+    "Simple squamous epithelium for rapid diffusion.",
+    "Stratified squamous epithelium for abrasion resistance.",
+    "Simple cuboidal epithelium for secretion control.",
+    "Pseudostratified columnar epithelium for mucus production."
+   ],
+   "correctIndex": 1,
+   "explanation": "Stratified squamous epithelium for abrasion resistance. This tissue is best suited for surfaces that experience friction or wear, like areas requiring a strong barrier.",
+   "catches": false,
+   "confronts": false,
+   "familyKey": null,
+   "provenance": {
+    "origin": "researcher-zero",
+    "model": "e2b",
+    "solverVerified": true,
+    "grade": null,
+    "date": "2026-07-06"
+   }
+  },
+  {
+   "id": "gapfill:anatomy/integumentary-skin-layers:Students-may-treat-skin--a047",
+   "kernelId": "anatomy/integumentary-skin-layers",
+   "conceptName": "Integumentary system and skin layers",
+   "stem": "A student believes that the skin is a simple covering that only provides physical protection. Which statement best corrects this belief?",
+   "options": [
+    "Skin is just a simple covering for the body.",
+    "Skin is an organ system surface with layered tissues and functions.",
+    "The skin is only a simple covering, lacking complex structures.",
+    "Skin is a simple covering, but it has some sensory structures."
+   ],
+   "correctIndex": 1,
+   "explanation": "Skin is an organ system surface with layered tissues, sensory structures, vessels, glands, and protective functions. Skin is an organ system surface with layered tissues and functions.",
+   "catches": true,
+   "confronts": true,
+   "familyKey": "students may treat skin as a simple covering",
+   "provenance": {
+    "origin": "researcher-zero",
+    "model": "e2b",
+    "solverVerified": true,
+    "grade": null,
+    "date": "2026-07-06"
+   }
+  },
+  {
+   "id": "gapfill:anatomy/integumentary-skin-layers:University-students’-mis-2c6b",
+   "kernelId": "anatomy/integumentary-skin-layers",
+   "conceptName": "Integumentary system and skin layers",
+   "stem": "If you need to determine the function of a sweat gland, which layer of the integumentary system would you primarily examine?",
+   "options": [
+    "Epidermis, focusing on keratinization processes.",
+    "Dermis, examining structures like sweat glands and blood vessels.",
+    "Hypodermis, analyzing fat storage and insulation.",
+    "Stratum corneum, looking only at the outermost protective layer."
+   ],
+   "correctIndex": 1,
+   "explanation": "Dermis, examining structures like sweat glands and blood vessels. The dermis contains the connective tissue necessary for housing these functional components. This layer is crucial for glandular and vascular activity.",
+   "catches": false,
+   "confronts": false,
+   "familyKey": null,
+   "provenance": {
+    "origin": "researcher-zero",
+    "model": "e2b",
+    "solverVerified": true,
+    "grade": null,
+    "date": "2026-07-06"
+   }
+  },
+  {
+   "id": "gapfill:anatomy/skeletal-system-functions:Students-may-view-bones--db89",
+   "kernelId": "anatomy/skeletal-system-functions",
+   "conceptName": "Skeletal system functions",
+   "stem": "A student believes that bones are passive supports only. Which statement best explains bone function?",
+   "options": [
+    "Bones are passive supports only.",
+    "Bones support, protect, store minerals and fat, and help movement.",
+    "Bones cannot help movement without muscles.",
+    "Bones are not involved in blood cell production."
+   ],
+   "correctIndex": 1,
+   "explanation": "Bones support, protect, store minerals and fat, and help movement. Bones support, protect, store minerals and fat, produce blood cells, and act with muscles and joints to produce movement.",
+   "catches": true,
+   "confronts": true,
+   "familyKey": "students may view bones as passive supports only",
+   "provenance": {
+    "origin": "researcher-zero",
+    "model": "e2b",
+    "solverVerified": true,
+    "grade": null,
+    "date": "2026-07-06"
+   }
+  },
+  {
+   "id": "gapfill:anatomy/skeletal-system-functions:University-students’-mis-2abc",
+   "kernelId": "anatomy/skeletal-system-functions",
+   "conceptName": "Skeletal system functions",
+   "stem": "University students’ misconceptions have become an important issue to discuss as prior concepts brought by the students into the classroom can affect the acquisition of new information. Which statement best describes the impact of prior knowledge on learning?",
+   "options": [
+    "Prior knowledge does not affect new information acquisition.",
+    "Prior concepts brought into the classroom can affect the acquisition of new information.",
+    "Misconceptions are irrelevant to the learning process.",
+    "Only new information matters for concept acquisition."
+   ],
+   "correctIndex": 1,
+   "explanation": "Prior concepts brought into the classroom can affect the acquisition of new information. Address directly: University students’ misconceptions have become an important issue to discuss as prior concepts brought by the students into the classroom can affect the acquisition of new information.",
+   "catches": true,
+   "confronts": true,
+   "familyKey": "university students misconceptions have become an important ",
+   "provenance": {
+    "origin": "researcher-zero",
+    "model": "e2b",
+    "solverVerified": true,
+    "grade": null,
+    "date": "2026-07-06"
+   }
+  },
+  {
+   "id": "gapfill:anatomy/skeletal-system-functions:University-students’-mis-470a",
+   "kernelId": "anatomy/skeletal-system-functions",
+   "conceptName": "Skeletal system functions",
+   "stem": "If a person attempts to lift a heavy weight, which skeletal system function is most immediately demonstrated?",
+   "options": [
+    "Mineral storage in the bone matrix.",
+    "The production of blood cells in the marrow.",
+    "The action of bones and muscles to produce movement.",
+    "The passive support provided by cartilage."
+   ],
+   "correctIndex": 2,
+   "explanation": "The action of bones and muscles to produce movement is most immediately demonstrated when lifting a heavy weight. This shows the dynamic role of the skeletal system in physical activity.",
+   "bloom": "apply",
+   "difficulty": "apply",
+   "catches": false,
+   "confronts": false,
+   "familyKey": null,
+   "provenance": {
+    "origin": "researcher-zero",
+    "model": "e2b",
+    "solverVerified": true,
+    "grade": null,
+    "date": "2026-07-06"
+   }
+  },
+  {
+   "id": "gapfill:anatomy/muscle-tissue-types:Students-may-assume-all--7473",
+   "kernelId": "anatomy/muscle-tissue-types",
+   "conceptName": "Muscle tissue types and contraction",
+   "stem": "Students may assume all muscle is voluntary skeletal muscle because they all shorten when force is applied. Which statement corrects this misconception?",
+   "options": [
+    "All muscle tissue is exclusively skeletal muscle.",
+    "Cardiac and smooth muscle differ in control and location.",
+    "Muscle contraction only occurs in voluntary tissues.",
+    "Skeletal muscle is the only type that contracts quickly."
+   ],
+   "correctIndex": 1,
+   "explanation": "Cardiac and smooth muscle differ from skeletal muscle in control, location, structure, and physiological regulation. This distinction is crucial because not all muscle types function under voluntary control.",
+   "catches": true,
+   "confronts": true,
+   "familyKey": "students may assume all muscle is voluntary skeletal muscle",
+   "provenance": {
+    "origin": "researcher-zero",
+    "model": "e2b",
+    "solverVerified": true,
+    "grade": null,
+    "date": "2026-07-06"
+   }
+  },
+  {
+   "id": "gapfill:anatomy/muscle-tissue-types:Students-may-hold-the-do-13f0",
+   "kernelId": "anatomy/muscle-tissue-types",
+   "conceptName": "Muscle tissue types and contraction",
+   "stem": "A weightlifter performs a maximal effort lift requiring rapid, powerful contractions. Which muscle tissue type is primarily responsible for this type of activity?",
+   "options": [
+    "Smooth muscle, due to its slow, sustained contractions.",
+    "Cardiac muscle, due to its rhythmic pumping action.",
+    "Skeletal muscle, due to its high capacity for rapid, forceful contraction.",
+    "Oxidative muscle, due to its endurance in prolonged activity."
+   ],
+   "correctIndex": 2,
+   "explanation": "Skeletal muscle, due to its high capacity for rapid, forceful contraction, is primarily responsible for activities like maximal weightlifting. This tissue type is designed for strength and speed.",
+   "bloom": "apply",
+   "difficulty": "apply",
+   "catches": false,
+   "confronts": false,
+   "familyKey": null,
+   "provenance": {
+    "origin": "researcher-zero",
+    "model": "e2b",
+    "solverVerified": true,
+    "grade": null,
+    "date": "2026-07-06"
+   }
+  },
+  {
+   "id": "gapfill:anatomy/nervous-tissue:Students-may-treat-glial-04a8",
+   "kernelId": "anatomy/nervous-tissue",
+   "conceptName": "Nervous tissue",
+   "stem": "A student believes that glial cells are unimportant filler in the nervous system because they do not directly transmit electrical signals.",
+   "options": [
+    "Glial cells are unimportant filler because they do not transmit electrical signals.",
+    "Glial cells are essential support and modulation cells for nervous-system function.",
+    "Glial cells are only present to fill space and are not involved in any function.",
+    "Glial cells are the primary neurons responsible for signal transmission."
+   ],
+   "correctIndex": 1,
+   "explanation": "Neuroglia are essential support and modulation cells for nervous-system function. Glial cells provide crucial support and regulate neuronal activity, which is necessary for proper nervous system function.",
+   "bloom": "apply",
+   "difficulty": "apply",
+   "catches": true,
+   "confronts": true,
+   "familyKey": "students may treat glial cells as unimportant filler",
+   "provenance": {
+    "origin": "researcher-zero",
+    "model": "e2b",
+    "solverVerified": true,
+    "grade": null,
+    "date": "2026-07-06"
+   }
+  },
+  {
+   "id": "gapfill:anatomy/nervous-tissue:Students'-misconceptions-6f6f",
+   "kernelId": "anatomy/nervous-tissue",
+   "conceptName": "Nervous tissue",
+   "stem": "If a neuron is stimulated, what is the primary function of the nervous tissue in this immediate response?",
+   "options": [
+    "The nervous tissue simply stores the electrical impulse without any action.",
+    "The nervous tissue transmits electrical signals to communicate information.",
+    "The nervous tissue produces hormones that affect distant organs.",
+    "The nervous tissue acts only as a physical structure for protection."
+   ],
+   "correctIndex": 1,
+   "explanation": "The nervous tissue transmits electrical signals to communicate information. This is the fundamental role of neurons in processing and relaying messages throughout the body.",
+   "bloom": "apply",
+   "difficulty": "apply",
+   "catches": false,
+   "confronts": false,
+   "familyKey": null,
+   "provenance": {
+    "origin": "researcher-zero",
+    "model": "e2b",
+    "solverVerified": true,
+    "grade": null,
+    "date": "2026-07-06"
+   }
+  },
+  {
+   "id": "gapfill:anatomy/sensory-perception:Students-may-use-sensati-739a",
+   "kernelId": "anatomy/sensory-perception",
+   "conceptName": "Sensory receptors and perception",
+   "stem": "A student observes a bright, flashing light and immediately identifies it as a stop sign. Which statement correctly separates the two processes?",
+   "options": [
+    "Sensation and perception are identical.",
+    "Sensation is receptor activation; perception is central processing.",
+    "Perception happens before receptor activation.",
+    "Stimuli are not converted into signals."
+   ],
+   "correctIndex": 1,
+   "explanation": "Sensation begins with receptor activation and conversion of stimuli into electrochemical signals. Perception is the central processing of those signals into a meaningful pattern.",
+   "bloom": "apply",
+   "difficulty": "apply",
+   "catches": true,
+   "confronts": true,
+   "familyKey": "students may use sensation and perception as interchangeable",
+   "provenance": {
+    "origin": "researcher-zero",
+    "model": "e2b",
+    "solverVerified": true,
+    "grade": null,
+    "date": "2026-07-06"
+   }
+  },
+  {
+   "id": "gapfill:anatomy/sensory-perception:BACKGROUND:-Misconceptio-6c9d",
+   "kernelId": "anatomy/sensory-perception",
+   "conceptName": "Sensory receptors and perception",
+   "stem": "A person smells coffee and immediately recognizes it as their favorite morning beverage. Which step in the sensory process is primarily occurring here?",
+   "options": [
+    "Receptor activation only.",
+    "Sensory input only.",
+    "Perception through central processing.",
+    "Receptor activation and sensation."
+   ],
+   "correctIndex": 2,
+   "explanation": "Perception through central processing is occurring here. This involves the brain interpreting the smell into a recognizable concept. This demonstrates the full sensory pathway in action.",
+   "catches": false,
+   "confronts": false,
+   "familyKey": null,
+   "provenance": {
+    "origin": "researcher-zero",
+    "model": "e2b",
+    "solverVerified": true,
+    "grade": null,
+    "date": "2026-07-06"
+   }
+  },
+  {
+   "id": "gapfill:anatomy/endocrine-hormone-signaling:Students-may-assume-ever-8021",
+   "kernelId": "anatomy/endocrine-hormone-signaling",
+   "conceptName": "Endocrine hormone signaling",
+   "stem": "A student believes that every circulating hormone acts on every cell in the body. Which statement corrects this misconception about endocrine hormone signaling?",
+   "options": [
+    "Every circulating hormone acts on every cell.",
+    "Only target cells with the right receptors respond.",
+    "Hormones work only in the brain.",
+    "Blood flow determines hormone effect, not receptors."
+   ],
+   "correctIndex": 1,
+   "explanation": "Only target cells with the right receptors respond to a given hormone. This is because hormones are specific messengers. Binding triggers a chain of events that produces a target-cell response.",
+   "catches": true,
+   "confronts": true,
+   "familyKey": "students may assume every circulating hormone acts on every ",
+   "provenance": {
+    "origin": "researcher-zero",
+    "model": "e2b",
+    "solverVerified": true,
+    "grade": null,
+    "date": "2026-07-06"
+   }
+  },
+  {
+   "id": "gapfill:anatomy/endocrine-hormone-signaling:RESULTS:-Given-the-preva-67dc",
+   "kernelId": "anatomy/endocrine-hormone-signaling",
+   "conceptName": "Endocrine hormone signaling",
+   "stem": "Given the prevalence of lay perceptions, and the confidence of dermatological opinion in rebutting these perceptions as myths and misconceptions, surprisingly little evidence exists for the efficacy or lack of efficacy of dietary factors, face-washing and sunlight exposure in the management of acne. What is the most accurate scientific conclusion?",
+   "options": [
+    "Dietary factors are the sole cause of all acne.",
+    "Results show no evidence for the efficacy of these factors.",
+    "Face-washing is universally effective for all acne.",
+    "Sunlight exposure always cures all forms of acne."
+   ],
+   "correctIndex": 1,
+   "explanation": "Address directly: RESULTS: Given the prevalence of lay perceptions, and the confidence of dermatological opinion in rebutting these perceptions as myths and misconceptions, surprisingly little evidence exists for the efficacy or lack of efficacy of dietary factors, face-washing and sunlight exposure in the management of acne.",
+   "bloom": "apply",
+   "difficulty": "apply",
+   "catches": true,
+   "confronts": true,
+   "familyKey": "results given the prevalence of lay perceptions and the conf",
+   "provenance": {
+    "origin": "researcher-zero",
+    "model": "e2b",
+    "solverVerified": true,
+    "grade": null,
+    "date": "2026-07-06"
+   }
+  },
+  {
+   "id": "gapfill:anatomy/endocrine-hormone-signaling:RESULTS:-Given-the-preva-f711",
+   "kernelId": "anatomy/endocrine-hormone-signaling",
+   "conceptName": "Endocrine hormone signaling",
+   "stem": "A patient is prescribed a hormone that binds to a specific receptor on liver cells to regulate glucose levels. Which process best describes the mechanism of action?",
+   "options": [
+    "The hormone diffuses across the cell membrane freely.",
+    "The hormone initiates a cascade inside the cell to alter gene expression.",
+    "The hormone binds to the receptor, triggering a specific intracellular response.",
+    "The hormone is immediately broken down by enzymes outside the cell."
+   ],
+   "correctIndex": 2,
+   "explanation": "The hormone binds to the receptor, triggering a specific intracellular response. This binding event is the critical first step in endocrine signaling. This mechanism allows for precise regulation of cellular function.",
+   "catches": false,
+   "confronts": false,
+   "familyKey": null,
+   "provenance": {
+    "origin": "researcher-zero",
+    "model": "e2b",
+    "solverVerified": true,
+    "grade": null,
+    "date": "2026-07-06"
+   }
+  },
+  {
+   "id": "gapfill:astro/celestial-sphere:Students-treat-positions-6783",
+   "kernelId": "astro/celestial-sphere",
+   "conceptName": "Celestial sphere",
+   "stem": "A student believes that because all celestial objects are on the celestial sphere, they must all be at the same distance from Earth.",
+   "options": [
+    "The sphere records only direction, not distance.",
+    "All celestial objects are equidistant because they share the same sphere.",
+    "The sphere shows relative positions, implying equal distance.",
+    "Distance is determined by the object's brightness on the sphere."
+   ],
+   "correctIndex": 0,
+   "explanation": "The sphere records only direction; two objects that appear side by side can differ in distance by billions of light-years. The sphere records only direction, objects that appear side differ distance billions light years.",
+   "catches": true,
+   "confronts": true,
+   "familyKey": "students treat positions on the celestial sphere as if all s",
+   "provenance": {
+    "origin": "researcher-zero",
+    "model": "e2b",
+    "solverVerified": true,
+    "grade": null,
+    "date": "2026-07-06"
+   }
+  },
+  {
+   "id": "gapfill:astro/celestial-sphere:The-aim-of-this-study-is-6118",
+   "kernelId": "astro/celestial-sphere",
+   "conceptName": "Celestial sphere",
+   "stem": "If a student uses a globe to locate the constellation Orion, what is the most appropriate application of this tool?",
+   "options": [
+    "To calculate the precise parallax shift of Orion.",
+    "To determine the exact distance to the nearest star in Orion.",
+    "To visualize the relative positions of Orion's stars in the sky.",
+    "To measure the angular velocity of the constellation's movement."
+   ],
+   "correctIndex": 2,
+   "explanation": "To visualize the relative positions of Orion's stars in the sky. A globe is a model used to show the spatial arrangement and relative locations of celestial objects.",
+   "catches": false,
+   "confronts": false,
+   "familyKey": null,
+   "provenance": {
+    "origin": "researcher-zero",
+    "model": "e2b",
+    "solverVerified": true,
+    "grade": null,
+    "date": "2026-07-06"
+   }
+  },
+  {
+   "id": "gapfill:astro/seasons:Students-think-seasons-a-a11a",
+   "kernelId": "astro/seasons",
+   "conceptName": "Seasons and axial tilt",
+   "stem": "Which statement best explains why the seasons occur on Earth?",
+   "options": [
+    "Seasons are caused mainly by Earth's changing distance from the Sun.",
+    "The tilt of Earth's axis causes the angle at which sunlight hits different parts of the planet.",
+    "The length of the day changes throughout the year, directly causing seasonal shifts.",
+    "Earth's orbit is highly elongated, causing extreme temperature variations."
+   ],
+   "correctIndex": 1,
+   "explanation": "Seasons come from sun angle and day length changing with the 23.5° axial tilt — Earth is actually closest to the Sun in January, in the middle of northern winter.",
+   "bloom": "apply",
+   "difficulty": "apply",
+   "catches": true,
+   "confronts": true,
+   "familyKey": "students think seasons are caused mainly by earth s changing",
+   "provenance": {
+    "origin": "researcher-zero",
+    "model": "e2b",
+    "solverVerified": true,
+    "grade": null,
+    "date": "2026-07-06"
+   }
+  },
+  {
+   "id": "gapfill:astro/seasons:Abstract-The-cause-of-th-df2b",
+   "kernelId": "astro/seasons",
+   "conceptName": "Seasons and axial tilt",
+   "stem": "Students often think that seasons are caused mainly by Earth's changing distance from the Sun. Which of the following corrects this misconception?",
+   "options": [
+    "The Earth's orbit is perfectly circular, which causes seasonal changes.",
+    "The tilt of Earth's axis causes the angle at which sunlight hits different parts of the planet.",
+    "The seasons are due to the Earth moving closer to the Sun during summer.",
+    "Changes in atmospheric pressure are the primary cause of seasonal variations."
+   ],
+   "correctIndex": 1,
+   "explanation": "Address directly: Abstract The cause of the seasons is often associated with a very particular alternative conception: That the earth's orbit around the sun is highly elongated, and the differences in distance result in variations in temperature.",
+   "bloom": "apply",
+   "difficulty": "apply",
+   "catches": true,
+   "confronts": true,
+   "familyKey": "abstract the cause of the seasons is often associated with a",
+   "provenance": {
+    "origin": "researcher-zero",
+    "model": "e2b",
+    "solverVerified": true,
+    "grade": null,
+    "date": "2026-07-06"
+   }
+  },
+  {
+   "id": "gapfill:astro/moon-phases:Students-believe-the-Moo-86ff",
+   "kernelId": "astro/moon-phases",
+   "conceptName": "Phases of the Moon",
+   "stem": "A student believes that the Moon's phases are caused by Earth's shadow falling on the Moon. Why is this belief incorrect?",
+   "options": [
+    "Earth's shadow misses the Moon most months.",
+    "The Moon is not half illuminated.",
+    "Phases are caused by cloud cover.",
+    "The Moon stops orbiting at full moon."
+   ],
+   "correctIndex": 0,
+   "explanation": "Earth's shadow misses the Moon almost every month, so a full moon is regular. Phases are a viewing-angle effect: we see different fractions of the Moon's permanently sunlit half.",
+   "catches": true,
+   "confronts": true,
+   "familyKey": "students believe the moon s phases are caused by earth s sha",
+   "provenance": {
+    "origin": "researcher-zero",
+    "model": "e2b",
+    "solverVerified": true,
+    "grade": null,
+    "date": "2026-07-06"
+   }
+  },
+  {
+   "id": "gapfill:astro/moon-phases:It-is-clear-from-the-res-f930",
+   "kernelId": "astro/moon-phases",
+   "conceptName": "Phases of the Moon",
+   "stem": "If a student incorrectly believes that the moon's phases are caused by the sun's light, what is the most effective instructional strategy to correct this misconception?",
+   "options": [
+    "Tell the student they are wrong and stop the lesson immediately.",
+    "Provide clear visual evidence and address misconceptions directly.",
+    "Ask the student to memorize the phases without explanation.",
+    "Suggest that this belief is common among adults."
+   ],
+   "correctIndex": 1,
+   "explanation": "Address directly: It is clear from research literature, however, that misconceptions about moon phases are widespread and resistant to change, even among adults. Providing visual evidence directly addresses the faulty belief with accurate information.",
+   "bloom": "apply",
+   "difficulty": "apply",
+   "catches": true,
+   "confronts": true,
+   "familyKey": "it is clear from the research literature however that miscon",
+   "provenance": {
+    "origin": "researcher-zero",
+    "model": "e2b",
+    "solverVerified": true,
+    "grade": null,
+    "date": "2026-07-06"
+   }
+  },
+  {
+   "id": "gapfill:astro/keplers-third-law:Students-plug-periods-in-9873",
+   "kernelId": "astro/keplers-third-law",
+   "conceptName": "Kepler's third law",
+   "stem": "A student believes that they can plug periods in days or distances in kilometers into P² = a³ and get nonsense values. What is the best fix?",
+   "options": [
+    "Convert to years and astronomical units.",
+    "Use days and kilometers anyway.",
+    "Multiply by the orbit's eccentricity.",
+    "Use the orbital diameter instead of semimajor axis."
+   ],
+   "correctIndex": 0,
+   "explanation": "The simple equality holds only with the period in Earth years and the semimajor axis in astronomical units. Other units need the full Newtonian constant, so days and kilometers will not work directly.",
+   "bloom": "apply",
+   "difficulty": "apply",
+   "catches": true,
+   "confronts": true,
+   "familyKey": "students plug periods in days or distances in kilometers int",
+   "provenance": {
+    "origin": "researcher-zero",
+    "model": "e2b",
+    "solverVerified": true,
+    "grade": null,
+    "date": "2026-07-06"
+   }
+  },
+  {
+   "id": "gapfill:astro/electromagnetic-spectrum:Although-radiation-plays-1616",
+   "kernelId": "astro/electromagnetic-spectrum",
+   "conceptName": "Electromagnetic spectrum",
+   "stem": "If you are trying to communicate over a very long distance, which type of electromagnetic wave is most effective for carrying information?",
+   "options": [
+    "Visible light because it is the most powerful form of radiation.",
+    "Radio waves because they can travel across vast distances effectively.",
+    "Infrared waves because they are the only form of radiation that can penetrate matter.",
+    "X-rays because they have the predominant role in sensing biological structures."
+   ],
+   "correctIndex": 1,
+   "explanation": "Address directly: Although radiation plays a predominant role in daily life, many students have developed and retain misconceptions concerning EM radiation. Radio waves are most effective because their properties allow them to travel across vast distances efficiently.",
+   "bloom": "apply",
+   "difficulty": "apply",
+   "catches": true,
+   "confronts": true,
+   "familyKey": "although radiation plays a predominant role in daily life ma",
+   "provenance": {
+    "origin": "researcher-zero",
+    "model": "e2b",
+    "solverVerified": true,
+    "grade": null,
+    "date": "2026-07-06"
+   }
+  },
+  {
+   "id": "gapfill:astro/electromagnetic-spectrum:Although-radiation-plays-acc1",
+   "kernelId": "astro/electromagnetic-spectrum",
+   "conceptName": "Electromagnetic spectrum",
+   "stem": "A medical scanner uses X-rays to visualize broken bones. Which part of the electromagnetic spectrum is primarily responsible for producing these high-energy waves?",
+   "options": [
+    "Visible light, which has relatively low energy levels.",
+    "Infrared radiation, which is used to measure heat.",
+    "X-rays, which are high-energy electromagnetic waves.",
+    "Radio waves, which are used for long-distance communication."
+   ],
+   "correctIndex": 2,
+   "explanation": "X-rays, which are high-energy electromagnetic waves, are used to visualize broken bones. This application directly demonstrates the use of high-energy radiation in medical imaging.",
+   "bloom": "apply",
+   "difficulty": "apply",
+   "catches": false,
+   "confronts": false,
+   "familyKey": null,
+   "provenance": {
+    "origin": "researcher-zero",
+    "model": "e2b",
+    "solverVerified": true,
+    "grade": null,
+    "date": "2026-07-06"
+   }
+  },
+  {
+   "id": "gapfill:astro/spectral-lines:Students-treat-a-star's--8588",
+   "kernelId": "astro/spectral-lines",
+   "conceptName": "Spectral lines",
+   "stem": "A student believes that a star's spectrum is just its color, and therefore, the spectral lines provide little useful information about the star's composition.",
+   "options": [
+    "The spectrum is only a visual representation of the star's overall color.",
+    "Spectral lines are a fingerprint of the star's composition.",
+    "Color is the only reliable indicator of a star's internal temperature.",
+    "The lines only show the star's surface temperature, nothing else."
+   ],
+   "correctIndex": 1,
+   "explanation": "The dark-line pattern is element-specific: matching observed lines to laboratory patterns identifies which elements are present and at what temperature, far beyond what overall color shows. This confirms that spectral lines are crucial for determining stellar composition.",
+   "bloom": "apply",
+   "difficulty": "apply",
+   "catches": true,
+   "confronts": true,
+   "familyKey": "students treat a star s spectrum as just its color rather th",
+   "provenance": {
+    "origin": "researcher-zero",
+    "model": "e2b",
+    "solverVerified": true,
+    "grade": null,
+    "date": "2026-07-06"
+   }
+  },
+  {
+   "id": "gapfill:astro/spectral-lines:Abstract-We-use-standard-6798",
+   "kernelId": "astro/spectral-lines",
+   "conceptName": "Spectral lines",
+   "stem": "If you use standard general relativity to illustrate the expansion of the universe, what is the purpose of this approach?",
+   "options": [
+    "To show that general relativity is always wrong.",
+    "To illustrate and clarify several common misconceptions about the expansion of the universe.",
+    "To prove that the universe is static.",
+    "To demonstrate that relativity only applies locally."
+   ],
+   "correctIndex": 1,
+   "explanation": "Address directly: Abstract We use standard general relativity to illustrate and clarify several common misconceptions about the expansion of the universe. This helps correct misunderstandings about cosmic expansion.",
+   "bloom": "apply",
+   "difficulty": "apply",
+   "catches": true,
+   "confronts": true,
+   "familyKey": "abstract we use standard general relativity to illustrate an",
+   "provenance": {
+    "origin": "researcher-zero",
+    "model": "e2b",
+    "solverVerified": true,
+    "grade": null,
+    "date": "2026-07-06"
+   }
+  },
+  {
+   "id": "gapfill:astro/spectral-lines:Abstract-We-use-standard-58e5",
+   "kernelId": "astro/spectral-lines",
+   "conceptName": "Spectral lines",
+   "stem": "Given a star's observed spectral lines, what is the most appropriate application of this knowledge in astrophysics?",
+   "options": [
+    "Determine the star's surface temperature by measuring the peak wavelength of the spectrum.",
+    "Identify the specific chemical elements present in the star's outer atmosphere.",
+    "Calculate the star's total luminosity using the integrated intensity of the lines.",
+    "Determine the star's distance based solely on the Doppler shift of the lines."
+   ],
+   "correctIndex": 1,
+   "explanation": "The most appropriate application is to identify the specific chemical elements present in the star's outer atmosphere. Matching observed lines to laboratory patterns identifies which elements are present and at what temperature.",
+   "bloom": "apply",
+   "difficulty": "apply",
+   "catches": false,
+   "confronts": false,
+   "familyKey": null,
+   "provenance": {
+    "origin": "researcher-zero",
+    "model": "e2b",
+    "solverVerified": true,
+    "grade": null,
+    "date": "2026-07-06"
+   }
+  },
+  {
+   "id": "gapfill:astro/telescope-aperture:Students-think-a-telesco-03cb",
+   "kernelId": "astro/telescope-aperture",
+   "conceptName": "Telescope light-gathering power",
+   "stem": "A student believes that the main purpose of a telescope is magnification because they associate larger lenses with clearer views.",
+   "options": [
+    "Magnification is the telescope's main purpose.",
+    "Light-gathering area matters; doubling aperture quadruples light.",
+    "A smaller aperture always resolves more detail.",
+    "Magnification alone reveals fainter objects."
+   ],
+   "correctIndex": 1,
+   "explanation": "Light gathering area is what matters; doubling aperture quadruples collected light, revealing fainter objects — magnification alone just enlarges a dim blur.",
+   "bloom": "apply",
+   "difficulty": "apply",
+   "catches": true,
+   "confronts": true,
+   "familyKey": "students think a telescope s main purpose is magnification",
+   "provenance": {
+    "origin": "researcher-zero",
+    "model": "e2b",
+    "solverVerified": true,
+    "grade": null,
+    "date": "2026-07-06"
+   }
+  },
+  {
+   "id": "gapfill:astro/telescope-aperture:When-students-develop-mi-9925",
+   "kernelId": "astro/telescope-aperture",
+   "conceptName": "Telescope light-gathering power",
+   "stem": "When students develop misconceptions of science concepts, it limits their ability to progress in this area because they cannot understand the underlying physics.",
+   "options": [
+    "It slows down the pace of learning in this area.",
+    "It prevents them from memorizing complex formulas.",
+    "It limits their ability to progress in this area.",
+    "It makes them unable to perform simple observations."
+   ],
+   "correctIndex": 2,
+   "explanation": "Address directly: When students develop misconceptions of science concepts, it limits their ability to progress in this area. Misconceptions must be corrected to allow for true understanding.",
+   "bloom": "apply",
+   "difficulty": "apply",
+   "catches": true,
+   "confronts": true,
+   "familyKey": "when students develop misconceptions of science concepts it ",
+   "provenance": {
+    "origin": "researcher-zero",
+    "model": "e2b",
+    "solverVerified": true,
+    "grade": null,
+    "date": "2026-07-06"
+   }
+  },
+  {
+   "id": "gapfill:astro/telescope-aperture:When-students-develop-mi-e4b7",
+   "kernelId": "astro/telescope-aperture",
+   "conceptName": "Telescope light-gathering power",
+   "stem": "If you want to observe a very distant galaxy, which characteristic of a telescope is most important for gathering enough light?",
+   "options": [
+    "Its ability to focus light into a very small spot.",
+    "Its high magnification power for detailed viewing.",
+    "Its large light-gathering power for faint light.",
+    "Its speed in tracking fast-moving celestial objects."
+   ],
+   "correctIndex": 2,
+   "explanation": "Its large light-gathering power for faint light is most important. A larger aperture collects more photons, which is necessary to see very distant, dim galaxies clearly.",
+   "bloom": "apply",
+   "difficulty": "apply",
+   "catches": false,
+   "confronts": false,
+   "familyKey": null,
+   "provenance": {
+    "origin": "researcher-zero",
+    "model": "e2b",
+    "solverVerified": true,
+    "grade": null,
+    "date": "2026-07-06"
+   }
+  },
+  {
+   "id": "gapfill:astro/parallax:Visualizing-the-three-di-2748",
+   "kernelId": "astro/parallax",
+   "conceptName": "Stellar parallax",
+   "stem": "When comparing the apparent brightness of two stars in a distant constellation, which concept best helps you understand their relative distance?",
+   "options": [
+    "The stars are the same size, so brightness is equal.",
+    "The distribution of stars within the constellation determines their distance.",
+    "Stellar parallax indicates the difference in their apparent brightness.",
+    "The size of the stars directly relates to their brightness."
+   ],
+   "correctIndex": 2,
+   "explanation": "Address directly: Visualizing the three-dimensional distribution of stars within a constellation is highly challenging for both students and educators, but when carried out in an interactive collaborative way, it can create an ideal environment to explore common misconceptions about size and scale within astronomy. Stellar parallax directly addresses how we determine the distance to stars.",
+   "bloom": "apply",
+   "difficulty": "apply",
+   "catches": true,
+   "confronts": true,
+   "familyKey": "visualizing the three dimensional distribution of stars with",
+   "provenance": {
+    "origin": "researcher-zero",
+    "model": "e2b",
+    "solverVerified": true,
+    "grade": null,
+    "date": "2026-07-06"
+   }
+  },
+  {
+   "id": "gapfill:astro/hubble-law:Students-conclude-that-E-1a81",
+   "kernelId": "astro/hubble-law",
+   "conceptName": "Hubble's law",
+   "stem": "A student wrongly concludes that Earth must sit at the center of the universe because everything recedes from us.",
+   "options": [
+    "Earth is at the universe's center.",
+    "The universe is expanding uniformly.",
+    "Only our galaxy is moving.",
+    "Galaxies are receding into empty space."
+   ],
+   "correctIndex": 1,
+   "explanation": "In a uniform expansion every observer sees the same recession pattern. Like raisins in rising bread dough, no raisin is at a center, so the data indicate expansion rather than a central location.",
+   "bloom": "apply",
+   "difficulty": "apply",
+   "catches": true,
+   "confronts": true,
+   "familyKey": "students conclude that earth must sit at the center of the u",
+   "provenance": {
+    "origin": "researcher-zero",
+    "model": "e2b",
+    "solverVerified": true,
+    "grade": null,
+    "date": "2026-07-06"
+   }
+  },
+  {
+   "id": "gapfill:astro/hubble-law:Abstract-We-use-standard-a15d",
+   "kernelId": "astro/hubble-law",
+   "conceptName": "Hubble's law",
+   "stem": "Given the relationship described by Hubble's law, how would you use this law to estimate the distance to a galaxy that exhibits a specific redshift value?",
+   "options": [
+    "Calculate the galaxy's mass using the inverse square law of gravity.",
+    "Use the Hubble constant to determine the galaxy's absolute luminosity.",
+    "Apply the Hubble's law equation to find the recession velocity and then distance.",
+    "Assume a static universe to calculate the galaxy's current spatial coordinates."
+   ],
+   "correctIndex": 2,
+   "explanation": "Apply the Hubble's law equation to find the recession velocity and then distance. This application directly uses the law to estimate the distance.",
+   "bloom": "apply",
+   "difficulty": "apply",
+   "catches": false,
+   "confronts": false,
+   "familyKey": null,
+   "provenance": {
+    "origin": "researcher-zero",
+    "model": "e2b",
+    "solverVerified": true,
+    "grade": null,
+    "date": "2026-07-06"
+   }
+  },
+  {
+   "id": "gapfill:bio/photosynthesis:Students-think-plants-ge-37fa",
+   "kernelId": "bio/photosynthesis",
+   "conceptName": "Photosynthesis",
+   "stem": "A student believes that plants get their mass mainly from soil rather than from carbon dioxide fixed during photosynthesis.",
+   "options": [
+    "Plants gain mass primarily from soil nutrients.",
+    "Plants gain mass mainly from carbon dioxide fixed during photosynthesis.",
+    "Plants gain mass from water absorption only.",
+    "Plants gain mass from sunlight energy conversion."
+   ],
+   "correctIndex": 1,
+   "explanation": "Plants gain mass mainly from carbon dioxide fixed during photosynthesis. This process converts inorganic carbon into organic matter, which constitutes the plant's biomass. Soil provides minerals, but the bulk of the plant's structure comes from this process.",
+   "bloom": "apply",
+   "difficulty": "apply",
+   "catches": true,
+   "confronts": true,
+   "familyKey": "students think plants get their mass mainly from soil rather",
+   "provenance": {
+    "origin": "researcher-zero",
+    "model": "e2b",
+    "solverVerified": true,
+    "grade": null,
+    "date": "2026-07-06"
+   }
+  },
+  {
+   "id": "gapfill:bio/photosynthesis:These-reasons-include-id-f82a",
+   "kernelId": "bio/photosynthesis",
+   "conceptName": "Photosynthesis",
+   "stem": "If a plant is placed in complete darkness, what is the immediate effect on its ability to perform photosynthesis?",
+   "options": [
+    "The plant will increase its rate of respiration.",
+    "The plant will stop producing glucose immediately.",
+    "The plant will continue photosynthesis using stored energy.",
+    "The plant will absorb more water from the soil."
+   ],
+   "correctIndex": 1,
+   "explanation": "The plant will stop producing glucose immediately. Photosynthesis requires light as the initial energy source to convert carbon dioxide and water into sugars. Without light, the light-dependent reactions cannot occur.",
+   "bloom": "apply",
+   "difficulty": "apply",
+   "catches": false,
+   "confronts": false,
+   "familyKey": null,
+   "provenance": {
+    "origin": "researcher-zero",
+    "model": "e2b",
+    "solverVerified": true,
+    "grade": null,
+    "date": "2026-07-06"
+   }
+  },
+  {
+   "id": "gapfill:bio/cell-membrane:This-paper-sheds-new-lig-1f26",
+   "kernelId": "bio/cell-membrane",
+   "conceptName": "Cell membrane",
+   "stem": "Given the structure of the cell membrane, apply the concept of selective permeability to explain how a cell maintains homeostasis.",
+   "options": [
+    "The membrane allows all ions to pass freely to maintain internal balance.",
+    "The membrane selectively controls the passage of necessary substances to maintain internal balance.",
+    "The membrane acts as a solid barrier, preventing any exchange to maintain balance.",
+    "The membrane only allows water to pass, which is sufficient for homeostasis."
+   ],
+   "correctIndex": 1,
+   "explanation": "The membrane selectively controls the passage of necessary substances to maintain internal balance. This selective control is key to maintaining homeostasis. This application demonstrates the membrane's true function.",
+   "bloom": "apply",
+   "difficulty": "apply",
+   "catches": false,
+   "confronts": false,
+   "familyKey": null,
+   "provenance": {
+    "origin": "researcher-zero",
+    "model": "e2b",
+    "solverVerified": true,
+    "grade": null,
+    "date": "2026-07-06"
+   }
+  },
+  {
+   "id": "gapfill:bio/homeostasis:Students-think-homeostas-ff82",
+   "kernelId": "bio/homeostasis",
+   "conceptName": "Homeostasis",
+   "stem": "A body maintains a stable internal temperature of 98.6°F through sweating when the temperature rises. Which concept best describes this process?",
+   "options": [
+    "Homeostasis means an unchanging internal state.",
+    "Homeostasis means a variable held near a set point by ongoing correction.",
+    "Homeostasis means the body stops all internal regulation.",
+    "Homeostasis means the body only reacts to external stimuli."
+   ],
+   "correctIndex": 1,
+   "explanation": "Homeostasis is active regulation around a set point, not a frozen constant. This process involves ongoing correction to keep the temperature stable.",
+   "bloom": "apply",
+   "difficulty": "apply",
+   "catches": true,
+   "confronts": true,
+   "familyKey": "students think homeostasis means an unchanging internal stat",
+   "provenance": {
+    "origin": "researcher-zero",
+    "model": "e2b",
+    "solverVerified": true,
+    "grade": null,
+    "date": "2026-07-06"
+   }
+  },
+  {
+   "id": "gapfill:bio/cellular-respiration:Preliminary-data-indicat-f61b",
+   "kernelId": "bio/cellular-respiration",
+   "conceptName": "Cellular respiration",
+   "stem": "Preliminary data indicate that after engaging with the case study, students were more likely to answer a question addressing misconceptions about cellular respiration correctly when compared with students who did not use the case study. Which statement best explains why the case study improved performance?",
+   "options": [
+    "The case study taught that the electron transport chain happens before glycolysis.",
+    "The case study explicitly showed how the products of one stage become the inputs for the next.",
+    "The case study detailed the role of ATP synthase in reversing the process.",
+    "The case study proved that cellular respiration requires oxygen only at the final step."
+   ],
+   "correctIndex": 1,
+   "explanation": "Address directly: Preliminary data indicate that after engaging with the case study, students were more likely to answer a question addressing misconceptions about cellular respiration correctly when compared with students who did not use the case study.",
+   "bloom": "apply",
+   "difficulty": "apply",
+   "catches": true,
+   "confronts": true,
+   "familyKey": "preliminary data indicate that after engaging with the case ",
+   "provenance": {
+    "origin": "researcher-zero",
+    "model": "e2b",
+    "solverVerified": true,
+    "grade": null,
+    "date": "2026-07-06"
+   }
+  },
+  {
+   "id": "gapfill:bio/cellular-respiration:Preliminary-data-indicat-ef75",
+   "kernelId": "bio/cellular-respiration",
+   "conceptName": "Cellular respiration",
+   "stem": "If a cell has a high concentration of pyruvate entering the mitochondria, what is the most likely immediate next step in cellular respiration?",
+   "options": [
+    "Glycolysis will immediately stop due to product inhibition.",
+    "The pyruvate will be converted into Acetyl-CoA to enter the Krebs cycle.",
+    "Pyruvate will be directly converted into lactate in the cytoplasm.",
+    "The electron transport chain will begin immediately without intermediate steps."
+   ],
+   "correctIndex": 1,
+   "explanation": "The pyruvate will be converted into Acetyl-CoA to enter the Krebs cycle. This step is necessary to feed the subsequent stages of aerobic respiration.",
+   "bloom": "apply",
+   "difficulty": "apply",
+   "catches": false,
+   "confronts": false,
+   "familyKey": null,
+   "provenance": {
+    "origin": "researcher-zero",
+    "model": "e2b",
+    "solverVerified": true,
+    "grade": null,
+    "date": "2026-07-06"
+   }
+  },
+  {
+   "id": "gapfill:bio/population-dynamics:Students-expect-the-popu-8f75",
+   "kernelId": "bio/population-dynamics",
+   "conceptName": "Population dynamics",
+   "stem": "If a population's birth rate increases significantly, students expect the population size to jump the moment the birth rate rises.",
+   "options": [
+    "The population size will instantly double due to the increased birth rate.",
+    "The population size will increase gradually as more individuals are born.",
+    "The population size will remain stable because the environment cannot support more.",
+    "The population size will decrease because resources become scarce quickly."
+   ],
+   "correctIndex": 1,
+   "explanation": "A flow change bends the trajectory of the level over time; it does not instantly reset the level. Population size changes reflect the cumulative effect of birth and death rates over time.",
+   "bloom": "apply",
+   "difficulty": "apply",
+   "catches": true,
+   "confronts": true,
+   "familyKey": "students expect the population size to jump the moment the b",
+   "provenance": {
+    "origin": "researcher-zero",
+    "model": "e2b",
+    "solverVerified": true,
+    "grade": null,
+    "date": "2026-07-06"
+   }
+  },
+  {
+   "id": "gapfill:bio/population-dynamics:These-may-be-in-the-form-3045",
+   "kernelId": "bio/population-dynamics",
+   "conceptName": "Population dynamics",
+   "stem": "These may be in the form of misconceptions, biases, or simply concepts that are difficult to learn and teach, and they occur at all levels of biological analysis.",
+   "options": [
+    "They are only relevant at the molecular level of biological analysis.",
+    "They occur at all levels of biological analysis, from cellular to ecosystem.",
+    "They are only misconceptions that occur at the population level.",
+    "They are simply concepts that are difficult to learn and teach at the organismal level."
+   ],
+   "correctIndex": 1,
+   "explanation": "Address directly: These may be in the form of misconceptions, biases, or simply concepts that are difficult to learn and teach, and they occur at all levels of biological analysis (molecular, cellular, organismal, population, and ecosystem). Understanding this scope is key.",
+   "bloom": "apply",
+   "difficulty": "apply",
+   "catches": true,
+   "confronts": true,
+   "familyKey": "these may be in the form of misconceptions biases or simply ",
+   "provenance": {
+    "origin": "researcher-zero",
+    "model": "e2b",
+    "solverVerified": true,
+    "grade": null,
+    "date": "2026-07-06"
+   }
+  },
+  {
+   "id": "gapfill:bio/population-dynamics:These-may-be-in-the-form-cf52",
+   "kernelId": "bio/population-dynamics",
+   "conceptName": "Population dynamics",
+   "stem": "A species experiences a sudden, sustained increase in its birth rate due to a new resource availability. How does this primarily affect the population dynamics?",
+   "options": [
+    "The death rate will increase proportionally to the birth rate.",
+    "The population size will increase exponentially over time.",
+    "The population size will remain constant due to density-dependent factors.",
+    "The birth rate will immediately drop due to resource depletion."
+   ],
+   "correctIndex": 1,
+   "explanation": "A sustained increase in the birth rate leads to a positive growth rate, causing the population size to increase exponentially over time. This application shows how rates drive population trajectories.",
+   "bloom": "apply",
+   "difficulty": "apply",
+   "catches": false,
+   "confronts": false,
+   "familyKey": null,
+   "provenance": {
+    "origin": "researcher-zero",
+    "model": "e2b",
+    "solverVerified": true,
+    "grade": null,
+    "date": "2026-07-06"
+   }
+  },
+  {
+   "id": "gapfill:bio/species-concept:This-paper-provides-an-o-d07d",
+   "kernelId": "bio/species-concept",
+   "conceptName": "Species concept",
+   "stem": "If you observe a population change over time, which concept best explains the mechanism driving that change?",
+   "options": [
+    "Genetic drift is the only force causing population changes.",
+    "Natural selection is the primary mechanism driving adaptive evolution.",
+    "Mutation rates determine the extent of species diversity.",
+    "Gene flow is the most common cause of population divergence."
+   ],
+   "correctIndex": 1,
+   "explanation": "This paper provides an overview of the basic process of natural selection, discusses the extent and possible causes of misunderstandings of the process, and presents a review of the most common misconceptions that must be corrected before a functional understanding of natural selection and adaptive evolution is achieved.",
+   "bloom": "apply",
+   "difficulty": "apply",
+   "catches": true,
+   "confronts": true,
+   "familyKey": "this paper provides an overview of the basic process of natu",
+   "provenance": {
+    "origin": "researcher-zero",
+    "model": "e2b",
+    "solverVerified": true,
+    "grade": null,
+    "date": "2026-07-06"
+   }
+  },
+  {
+   "id": "gapfill:bio/species-concept:This-paper-provides-an-o-a33a",
+   "kernelId": "bio/species-concept",
+   "conceptName": "Species concept",
+   "stem": "Given the Biological Species Concept, which definition best describes the criteria for two populations to be considered separate species?",
+   "options": [
+    "They must share a common ancestor within the last million years.",
+    "They must be reproductively isolated, preventing gene flow between them.",
+    "They must exhibit significant morphological differences in their physical traits.",
+    "They must occupy entirely different ecological niches and habitats."
+   ],
+   "correctIndex": 1,
+   "explanation": "They must be reproductively isolated, preventing gene flow between them. This is the core requirement of the Biological Species Concept for species delineation.",
+   "bloom": "apply",
+   "difficulty": "apply",
+   "catches": false,
+   "confronts": false,
+   "familyKey": null,
+   "provenance": {
+    "origin": "researcher-zero",
+    "model": "e2b",
+    "solverVerified": true,
+    "grade": null,
+    "date": "2026-07-06"
+   }
+  },
+  {
+   "id": "gapfill:econ/price-elasticity-of-demand:Students-confuse-the-slo-be02",
+   "kernelId": "econ/price-elasticity-of-demand",
+   "conceptName": "Price elasticity of demand",
+   "stem": "If the price of a product increases by 20% and the quantity demanded drops by 15%, what does this indicate about the price elasticity of demand?",
+   "options": [
+    "Demand is elastic because the percentage change in quantity is larger than the percentage change in price.",
+    "Demand is inelastic because the percentage change in quantity is smaller than the percentage change in price.",
+    "Demand is unit elastic because the percentage changes are equal in magnitude.",
+    "Demand is perfectly inelastic because the quantity demanded does not change at all."
+   ],
+   "correctIndex": 1,
+   "explanation": "Elasticity compares percentage changes, so it varies along a straight line demand curve even though the slope is constant. Since the percentage change in quantity (15%) is smaller than the percentage change in price (20%), the demand is inelastic.",
+   "bloom": "apply",
+   "difficulty": "apply",
+   "catches": true,
+   "confronts": true,
+   "familyKey": "students confuse the slope of the demand curve with its elas",
+   "provenance": {
+    "origin": "researcher-zero",
+    "model": "e2b",
+    "solverVerified": true,
+    "grade": null,
+    "date": "2026-07-06"
+   }
+  },
+  {
+   "id": "gapfill:econ/price-elasticity-of-demand:Students-may-hold-the-do-ffbd",
+   "kernelId": "econ/price-elasticity-of-demand",
+   "conceptName": "Price elasticity of demand",
+   "stem": "A product has a price elasticity of demand of -1.5. What does this value tell you about consumer responsiveness to price changes?",
+   "options": [
+    "The demand is perfectly inelastic, meaning quantity demanded will not change.",
+    "The demand is unit elastic, meaning total revenue is maximized.",
+    "The demand is elastic, meaning quantity demanded is highly responsive to price changes.",
+    "The demand is inelastic, meaning quantity demanded is not responsive to price changes."
+   ],
+   "correctIndex": 2,
+   "explanation": "Contrary to common misconception, the price elasticity is not constant even along a linear demand curve, but rather varies along the curve. A value of -1.5 indicates elastic demand, meaning quantity demanded is highly responsive to price changes.",
+   "bloom": "apply",
+   "difficulty": "apply",
+   "catches": true,
+   "confronts": true,
+   "familyKey": "students may hold the documented misunderstanding contrary t",
+   "provenance": {
+    "origin": "researcher-zero",
+    "model": "e2b",
+    "solverVerified": true,
+    "grade": null,
+    "date": "2026-07-06"
+   }
+  },
+  {
+   "id": "gapfill:econ/demand-curve:We-conduct-experiments-t-60ce",
+   "kernelId": "econ/demand-curve",
+   "conceptName": "Demand curve",
+   "stem": "A consumer observes that when the price of coffee rises, they buy less coffee. How does this observation relate to the demand curve?",
+   "options": [
+    "The demand curve shifts to the right.",
+    "The demand curve shifts to the left.",
+    "This represents a movement along the demand curve.",
+    "The demand curve is irrelevant in this scenario."
+   ],
+   "correctIndex": 2,
+   "explanation": "This represents a movement along the demand curve. A change in the good's own price causes a change in the quantity demanded. Therefore, the consumer's action is a movement along the existing demand curve.",
+   "bloom": "apply",
+   "difficulty": "apply",
+   "catches": false,
+   "confronts": false,
+   "familyKey": null,
+   "provenance": {
+    "origin": "researcher-zero",
+    "model": "e2b",
+    "solverVerified": true,
+    "grade": null,
+    "date": "2026-07-06"
+   }
+  },
+  {
+   "id": "gapfill:econ/wage-price-spiral:Students-may-hold-the-do-a935",
+   "kernelId": "econ/wage-price-spiral",
+   "conceptName": "Wage-price spiral",
+   "stem": "A country experiences persistent inflation because workers demand higher wages, which in turn prompts businesses to raise prices further. Which economic phenomenon is best described by this cycle?",
+   "options": [
+    "A deflationary spiral.",
+    "A wage-price spiral.",
+    "A supply-side bottleneck.",
+    "A fiscal stimulus effect."
+   ],
+   "correctIndex": 1,
+   "explanation": "A wage-price spiral is the phenomenon where rising wages lead to higher prices, which then prompts further wage demands. This cycle demonstrates how expectations create a self-perpetuating inflationary trend. This is a classic example of how economic forces interact.",
+   "bloom": "apply",
+   "difficulty": "apply",
+   "catches": false,
+   "confronts": false,
+   "familyKey": null,
+   "provenance": {
+    "origin": "researcher-zero",
+    "model": "e2b",
+    "solverVerified": true,
+    "grade": null,
+    "date": "2026-07-06"
+   }
+  },
+  {
+   "id": "gapfill:econ/economic-model:Students-treat-an-econom-892e",
+   "kernelId": "econ/economic-model",
+   "conceptName": "Economic model",
+   "stem": "A student believes that an economic model is literally true and should be applied where its assumptions clearly fail.",
+   "options": [
+    "Always use the model because it is a proven economic model.",
+    "Apply the model only when all assumptions are perfectly met.",
+    "A model is a tool whose conclusions hold only while its assumptions approximately hold.",
+    "Ignore the model if the real-world situation is too complex."
+   ],
+   "correctIndex": 2,
+   "explanation": "A model is a tool whose conclusions hold only while its assumptions approximately hold. This corrects the belief that the model is literally true. You must understand the limitations of the model to use it effectively.",
+   "bloom": "apply",
+   "difficulty": "apply",
+   "catches": true,
+   "confronts": true,
+   "familyKey": "students treat an economic model as literally true and apply",
+   "provenance": {
+    "origin": "researcher-zero",
+    "model": "e2b",
+    "solverVerified": true,
+    "grade": null,
+    "date": "2026-07-06"
+   }
+  },
+  {
+   "id": "gapfill:econ/economic-model:Identifying-and-addressi-aaf5",
+   "kernelId": "econ/economic-model",
+   "conceptName": "Economic model",
+   "stem": "Given a scenario where a business wants to predict sales based on advertising spend, which step correctly applies the economic model?",
+   "options": [
+    "Assume the advertising spend has no effect on sales for simplicity.",
+    "Collect historical data and use the model to project future sales.",
+    "Ignore the model because market conditions are too volatile for prediction.",
+    "Change the model's assumptions to match the current market perfectly."
+   ],
+   "correctIndex": 1,
+   "explanation": "Collect historical data and use the model to project future sales. This is the correct application of the economic model for prediction. It uses the model as a tool to forecast outcomes.",
+   "bloom": "apply",
+   "difficulty": "apply",
+   "catches": false,
+   "confronts": false,
+   "familyKey": null,
+   "provenance": {
+    "origin": "researcher-zero",
+    "model": "e2b",
+    "solverVerified": true,
+    "grade": null,
+    "date": "2026-07-06"
+   }
+  },
+  {
+   "id": "gapfill:music/staff-clefs-pitch-notation:Students-think-the-clef--f6d5",
+   "kernelId": "music/staff-clefs-pitch-notation",
+   "conceptName": "Staff and clefs",
+   "stem": "If a musician chooses the treble clef, what is the primary function of that clef in relation to the staff?",
+   "options": [
+    "It is just a decorative sign at the start of the staff.",
+    "It assigns a particular pitch to one line or space.",
+    "It dictates that all notes must be written on the bottom line.",
+    "It means the notes are already fixed by the five lines and spaces."
+   ],
+   "correctIndex": 1,
+   "explanation": "A clef assigns a particular pitch to one line or space, and all other staff positions are determined relative to that reference note. This reference point is crucial for reading music correctly.",
+   "bloom": "apply",
+   "difficulty": "apply",
+   "catches": true,
+   "confronts": true,
+   "familyKey": "students think the clef is just a decorative sign at the sta",
+   "provenance": {
+    "origin": "researcher-zero",
+    "model": "e2b",
+    "solverVerified": true,
+    "grade": null,
+    "date": "2026-07-06"
+   }
+  },
+  {
+   "id": "gapfill:music/staff-clefs-pitch-notation:Students-think-every-sta-2e73",
+   "kernelId": "music/staff-clefs-pitch-notation",
+   "conceptName": "Staff and clefs",
+   "stem": "A student believes that every staff must always have exactly five lines because they assume the staff is always the same in every kind of music.",
+   "options": [
+    "The staff must always have exactly five lines for all music.",
+    "Percussion staves have one to five or more lines.",
+    "Guitar tablature can use up to six or more lines.",
+    "Extra or fewer lines would not count as a real staff."
+   ],
+   "correctIndex": 1,
+   "explanation": "Sources say a standard pitched staff usually has five lines, but percussion staves have one to five or more lines, and guitar tablature can also use up to six or more lines. This shows staffs vary.",
+   "bloom": "apply",
+   "difficulty": "apply",
+   "catches": true,
+   "confronts": true,
+   "familyKey": "students think every staff must always have exactly five lin",
+   "provenance": {
+    "origin": "researcher-zero",
+    "model": "e2b",
+    "solverVerified": true,
+    "grade": null,
+    "date": "2026-07-06"
+   }
+  },
+  {
+   "id": "gapfill:music/staff-clefs-pitch-notation:Students-think-every-sta-5100",
+   "kernelId": "music/staff-clefs-pitch-notation",
+   "conceptName": "Staff and clefs",
+   "stem": "A composer needs to write a melody that spans a wide range of pitches across a standard musical line. Which element of staff notation is most essential for accurately representing these varying pitches?",
+   "options": [
+    "The use of a specific clef to anchor the pitch.",
+    "Ensuring every staff has exactly five lines.",
+    "Using only the bottom line for all notes.",
+    "Ignoring the relationship between lines and spaces."
+   ],
+   "correctIndex": 0,
+   "explanation": "The use of a specific clef to anchor the pitch is most essential for accurately representing these varying pitches. The clef provides the necessary reference point for all other notes.",
+   "bloom": "apply",
+   "difficulty": "apply",
+   "catches": false,
+   "confronts": false,
+   "familyKey": null,
+   "provenance": {
+    "origin": "researcher-zero",
+    "model": "e2b",
+    "solverVerified": true,
+    "grade": null,
+    "date": "2026-07-06"
+   }
+  },
+  {
+   "id": "gapfill:music/intervals:Students-may-think-an-in-d9ba",
+   "kernelId": "music/intervals",
+   "conceptName": "Interval (music)",
+   "stem": "If a musician plays a C and an E simultaneously, what musical concept is being described?",
+   "options": [
+    "A time gap between two notes.",
+    "A difference in pitch between two sounds.",
+    "A sequence of notes played one after another.",
+    "A generic distance between any two sounds."
+   ],
+   "correctIndex": 1,
+   "explanation": "An interval is defined in the sources as a difference in pitch between two sounds. This applies when the notes sound at the same time, which is a harmonic interval.",
+   "bloom": "apply",
+   "difficulty": "apply",
+   "catches": true,
+   "confronts": true,
+   "familyKey": "students may think an interval in music is just any pair of ",
+   "provenance": {
+    "origin": "researcher-zero",
+    "model": "e2b",
+    "solverVerified": true,
+    "grade": null,
+    "date": "2026-07-06"
+   }
+  },
+  {
+   "id": "gapfill:music/intervals:Students-may-believe-all-ee8e",
+   "kernelId": "music/intervals",
+   "conceptName": "Interval (music)",
+   "stem": "A student believes that all intervals are simply counted by how many letter names apart the notes are, so spelling does not matter as long as the semitone distance is the same.",
+   "options": [
+    "Intervals are only about the time gap between notes.",
+    "Interval names only depend on the quantity of semitones.",
+    "Interval names use both quality and number, and spelling matters.",
+    "The interval is just a generic distance between sounds."
+   ],
+   "correctIndex": 2,
+   "explanation": "Sources say interval names use both quality and number, and spelling matters because historically enharmonic intervals like G–G♯ and G–A♭ were distinguished.",
+   "bloom": "apply",
+   "difficulty": "apply",
+   "catches": true,
+   "confronts": true,
+   "familyKey": "students may believe all intervals are simply counted by how",
+   "provenance": {
+    "origin": "researcher-zero",
+    "model": "e2b",
+    "solverVerified": true,
+    "grade": null,
+    "date": "2026-07-06"
+   }
+  },
+  {
+   "id": "gapfill:music/intervals:Students-may-believe-all-18b4",
+   "kernelId": "music/intervals",
+   "conceptName": "Interval (music)",
+   "stem": "Determine the interval name for the distance between a C and a G, played successively.",
+   "options": [
+    "Major Second",
+    "Perfect Fourth",
+    "Perfect Fifth",
+    "Minor Third"
+   ],
+   "correctIndex": 2,
+   "explanation": "The distance between C and G is a perfect fifth. This is a standard interval defined by the specific pitch difference between the two notes.",
+   "bloom": "apply",
+   "difficulty": "apply",
+   "catches": false,
+   "confronts": false,
+   "familyKey": null,
+   "provenance": {
+    "origin": "researcher-zero",
+    "model": "e2b",
+    "solverVerified": true,
+    "grade": null,
+    "date": "2026-07-06"
+   }
+  },
+  {
+   "id": "gapfill:music/scales-and-key-signatures:Students-think-a-scale-i-1f5a",
+   "kernelId": "music/scales-and-key-signatures",
+   "conceptName": "Scales and key signatures",
+   "stem": "If a musician wants to play a C major scale, which of the following best describes the structure of that scale?",
+   "options": [
+    "A collection of notes that just sound good together without any pattern.",
+    "A set of notes that follow a fixed step pattern and repeat at the octave.",
+    "A scale that is simply a major scale with extra accidentals added for decoration.",
+    "A scale where notes do not need to follow a fixed step pattern or repeat at the octave."
+   ],
+   "correctIndex": 1,
+   "explanation": "A scale is defined by its consecutive notes and characteristic interval pattern, and most scales repeat that pattern across octaves. This structure ensures the scale has its proper musical identity.",
+   "bloom": "apply",
+   "difficulty": "apply",
+   "catches": true,
+   "confronts": true,
+   "familyKey": "students think a scale is just any set of notes that happen ",
+   "provenance": {
+    "origin": "researcher-zero",
+    "model": "e2b",
+    "solverVerified": true,
+    "grade": null,
+    "date": "2026-07-06"
+   }
+  },
+  {
+   "id": "gapfill:music/scales-and-key-signatures:Students-think-a-chromat-00c7",
+   "kernelId": "music/scales-and-key-signatures",
+   "conceptName": "Scales and key signatures",
+   "stem": "A student believes that a chromatic scale is simply a major or minor scale with extra accidentals added for decoration. Which statement corrects this misconception?",
+   "options": [
+    "The chromatic scale is just a major scale with some extra notes added.",
+    "The chromatic scale consists of all twelve pitches in the octave, each one semitone apart.",
+    "A chromatic scale is only used for decorative purposes in music.",
+    "It is the same as a major or minor scale with added notes for flair."
+   ],
+   "correctIndex": 1,
+   "explanation": "The chromatic scale consists of twelve pitches in the octave, each semitone apart, and it is not the same as a major or minor scale with added notes. This clarifies the true nature of the chromatic scale.",
+   "bloom": "apply",
+   "difficulty": "apply",
+   "catches": true,
+   "confronts": true,
+   "familyKey": "students think a chromatic scale is simply a major or minor ",
+   "provenance": {
+    "origin": "researcher-zero",
+    "model": "e2b",
+    "solverVerified": true,
+    "grade": null,
+    "date": "2026-07-06"
+   }
+  },
+  {
+   "id": "gapfill:music/scales-and-key-signatures:Students-think-a-chromat-a92a",
+   "kernelId": "music/scales-and-key-signatures",
+   "conceptName": "Scales and key signatures",
+   "stem": "A composer needs to write a melody using only the notes of a C major scale. Which set of notes correctly represents the notes of the C major scale?",
+   "options": [
+    "C, D, E, F, G, A, B, C",
+    "C, D, E, F, G, A, B, C#, D",
+    "C, D, E, F, G, A, B, C, D",
+    "C, E, G, B, D, F, A, C"
+   ],
+   "correctIndex": 0,
+   "explanation": "The C major scale is defined by its consecutive notes and characteristic interval pattern, and most scales repeat that pattern across octaves. The correct sequence is C, D, E, F, G, A, B, C.",
+   "bloom": "apply",
+   "difficulty": "apply",
+   "catches": false,
+   "confronts": false,
+   "familyKey": null,
+   "provenance": {
+    "origin": "researcher-zero",
+    "model": "e2b",
+    "solverVerified": true,
+    "grade": null,
+    "date": "2026-07-06"
+   }
+  },
+  {
+   "id": "gapfill:music/triads-and-seventh-chords:Students-often-think-any-50df",
+   "kernelId": "music/triads-and-seventh-chords",
+   "conceptName": "Triads and seventh chords",
+   "stem": "A three-note chord built with the root in the bass sounds identical to a standard triad regardless of note orientation, so any three pitches should count as a triad.",
+   "options": [
+    "Because any three notes automatically form a triad structure.",
+    "Because the chord sounds the same when inverted, meaning the root remains the lowest.",
+    "Because the usual definition depends on thirds, not just having three notes.",
+    "Because the structure must be built with the root in the bass and notes in one fixed order."
+   ],
+   "correctIndex": 2,
+   "explanation": "Sources define triad three notes stacked in thirds, and note that some broader uses of term other theorists trichord instead. This clarifies the strict definition.",
+   "bloom": "apply",
+   "difficulty": "apply",
+   "catches": true,
+   "confronts": true,
+   "familyKey": "students often think any chord with three notes is automatic",
+   "provenance": {
+    "origin": "researcher-zero",
+    "model": "e2b",
+    "solverVerified": true,
+    "grade": null,
+    "date": "2026-07-06"
+   }
+  },
+  {
+   "id": "gapfill:music/triads-and-seventh-chords:Students-often-think-any-1207",
+   "kernelId": "music/triads-and-seventh-chords",
+   "conceptName": "Triads and seventh chords",
+   "stem": "Given the notes C, E, and G, apply the definition of a triad to determine the chord type.",
+   "options": [
+    "It is a diminished triad because the intervals are minor third and diminished fifth.",
+    "It is a major triad because the notes are stacked in thirds above C.",
+    "It is a seventh chord because it contains three distinct pitches.",
+    "It is an augmented triad because the intervals are large and uneven."
+   ],
+   "correctIndex": 1,
+   "explanation": "It is a major triad because the notes are stacked in thirds above C. This directly applies the definition of a triad structure.",
+   "bloom": "apply",
+   "difficulty": "apply",
+   "catches": false,
+   "confronts": false,
+   "familyKey": null,
+   "provenance": {
+    "origin": "researcher-zero",
+    "model": "e2b",
+    "solverVerified": true,
+    "grade": null,
+    "date": "2026-07-06"
+   }
+  },
+  {
+   "id": "gapfill:music/rhythm-and-meter:Students-often-think-rhy-2d06",
+   "kernelId": "music/rhythm-and-meter",
+   "conceptName": "Rhythm and meter",
+   "stem": "A student believes that rhythm is just any repeated sound pattern, so if something repeats evenly over time it must automatically count as rhythm, even without any distinction between strong and weak elements.",
+   "options": [
+    "Rhythm is only about the speed of the music.",
+    "Rhythm is a regular recurrence involving accented and unaccented beats.",
+    "Rhythm is simply any sound that occurs repeatedly in a sequence.",
+    "Rhythm is the total volume level of the music."
+   ],
+   "correctIndex": 1,
+   "explanation": "Sources define rhythm as a regular recurrence that involves an interrelationship between accented and unaccented beats, not mere repetition alone. This clarifies the necessary distinction.",
+   "bloom": "apply",
+   "difficulty": "apply",
+   "catches": true,
+   "confronts": true,
+   "familyKey": "students often think rhythm is just any repeated sound patte",
+   "provenance": {
+    "origin": "researcher-zero",
+    "model": "e2b",
+    "solverVerified": true,
+    "grade": null,
+    "date": "2026-07-06"
+   }
+  },
+  {
+   "id": "gapfill:music/harmony-and-progressions:Students-may-believe-cho-7e1e",
+   "kernelId": "music/harmony-and-progressions",
+   "conceptName": "Harmony and chord progressions",
+   "stem": "A student believes chord progressions are only a feature of classical music, so popular songs, blues, and jazz must rely on something different less structured than harmony.",
+   "options": [
+    "Popular music uses only simple triads for harmony.",
+    "Chord progressions are foundational in popular music too.",
+    "Blues relies entirely on rhythmic patterns, not harmony.",
+    "Jazz progressions are completely unrelated to traditional harmony."
+   ],
+   "correctIndex": 1,
+   "explanation": "Sources state that chord progressions are foundational not only in Western classical common-practice music also in popular music, traditional music, blues, and jazz.",
+   "bloom": "apply",
+   "difficulty": "apply",
+   "catches": true,
+   "confronts": true,
+   "familyKey": "students may believe chord progressions are only a feature o",
+   "provenance": {
+    "origin": "researcher-zero",
+    "model": "e2b",
+    "solverVerified": true,
+    "grade": null,
+    "date": "2026-07-06"
+   }
+  },
+  {
+   "id": "gapfill:music/musical-form:Students-think-musical-f-ace0",
+   "kernelId": "music/musical-form",
+   "conceptName": "Musical form",
+   "stem": "A student believes that musical form just means the title or genre of a piece, so if a work is called a fantasia it automatically has a certain fixed shape, even though the name itself tells you the structure.",
+   "options": [
+    "Form is only the title and genre of the music.",
+    "Musical form is the larger structure of a composition.",
+    "The title determines the exact musical form.",
+    "Form is solely about the melody of the piece."
+   ],
+   "correctIndex": 1,
+   "explanation": "The sources say musical form is the larger structure of a composition, and fantasia is specifically described as a form rooted in improvisation that seldom follows textbook rules. This shows form is more than just the name.",
+   "bloom": "apply",
+   "difficulty": "apply",
+   "catches": true,
+   "confronts": true,
+   "familyKey": "students think musical form just means the title or genre of",
+   "provenance": {
+    "origin": "researcher-zero",
+    "model": "e2b",
+    "solverVerified": true,
+    "grade": null,
+    "date": "2026-07-06"
+   }
+  },
+  {
+   "id": "gapfill:music/musical-form:Students-assume-form-is--90b4",
+   "kernelId": "music/musical-form",
+   "conceptName": "Musical form",
+   "stem": "Students assume form is mostly about one single feature, like melody or rhythm alone, because they notice repeated tunes and conclude that repetition itself creates form.",
+   "options": [
+    "Form is created only by repeating the same melody.",
+    "Form results from the interaction of several structural elements.",
+    "Repetition of tunes is the only element of musical form.",
+    "Melody and rhythm are the only components of form."
+   ],
+   "correctIndex": 1,
+   "explanation": "The sources explain that form results from interaction of several structural elements—sound, harmony, melody, and rhythm—and can also involve phrasing, orchestration, and repetition or variation. Form is complex.",
+   "bloom": "apply",
+   "difficulty": "apply",
+   "catches": true,
+   "confronts": true,
+   "familyKey": "students assume form is mostly about one single feature like",
+   "provenance": {
+    "origin": "researcher-zero",
+    "model": "e2b",
+    "solverVerified": true,
+    "grade": null,
+    "date": "2026-07-06"
+   }
+  },
+  {
+   "id": "gapfill:music/staff-clefs-pitch-notation:Students-think-the-clef--26f7",
+   "kernelId": "music/staff-clefs-pitch-notation",
+   "conceptName": "Staff and clefs",
+   "stem": "Students think the clef is just a decorative sign at the start of a staff, so the notes are already fixed by the five lines and spaces and do not really change when you choose a different clef.",
+   "options": [
+    "It is just a decorative sign at the start of the staff.",
+    "It assigns a particular pitch to one line or space.",
+    "It dictates that all notes must be written on the bottom line.",
+    "It means the notes are already fixed by the five lines and spaces."
+   ],
+   "correctIndex": 1,
+   "explanation": "A clef assigns a particular pitch to one line or space, and all other staff positions are determined relative to that reference note. This reference point is crucial for reading music correctly.",
+   "catches": true,
+   "confronts": true,
+   "familyKey": "students think the clef is just a decorative sign at the sta",
+   "provenance": {
+    "origin": "researcher-zero",
+    "model": "e2b",
+    "solverVerified": true,
+    "grade": null,
+    "date": "2026-07-06"
+   }
+  },
+  {
+   "id": "gapfill:music/intervals:Students-may-think-an-in-03bb",
+   "kernelId": "music/intervals",
+   "conceptName": "Interval (music)",
+   "stem": "Students may think an interval in music is just any pair of notes or any time gap between notes, because the word sounds like a generic distance.",
+   "options": [
+    "It is only the time gap between two sounds.",
+    "It is the difference in pitch between two sounds.",
+    "It is a sequence of notes played successively.",
+    "It is a generic distance between any two sounds."
+   ],
+   "correctIndex": 1,
+   "explanation": "An interval is defined in the sources as a difference in pitch between two sounds. This applies when the notes sound at the same time, which is a harmonic interval.",
+   "bloom": "apply",
+   "difficulty": "apply",
+   "catches": true,
+   "confronts": true,
+   "familyKey": "students may think an interval in music is just any pair of ",
+   "provenance": {
+    "origin": "researcher-zero",
+    "model": "e2b",
+    "solverVerified": true,
+    "grade": null,
+    "date": "2026-07-06"
+   }
+  },
+  {
+   "id": "gapfill:music/intervals:Students-may-believe-all-f3b8",
+   "kernelId": "music/intervals",
+   "conceptName": "Interval (music)",
+   "stem": "Students may believe all intervals are simply counted by how many letter names apart the notes are, so spelling does not matter as long as the semitone distance is the same.",
+   "options": [
+    "Spelling only matters for melodic intervals.",
+    "Spelling does not matter if the semitone distance is the same.",
+    "Interval names use both quality and number, and spelling matters.",
+    "Only the numerical distance determines the interval name."
+   ],
+   "correctIndex": 2,
+   "explanation": "Sources say interval names use both quality and number, and spelling matters because historically enharmonic intervals like G–G♯ and G–A♭ were distinguished.",
+   "bloom": "apply",
+   "difficulty": "apply",
+   "catches": true,
+   "confronts": true,
+   "familyKey": "students may believe all intervals are simply counted by how",
+   "provenance": {
+    "origin": "researcher-zero",
+    "model": "e2b",
+    "solverVerified": true,
+    "grade": null,
+    "date": "2026-07-06"
+   }
+  },
+  {
+   "id": "gapfill:music/scales-and-key-signatures:Students-think-a-scale-i-fcbc",
+   "kernelId": "music/scales-and-key-signatures",
+   "conceptName": "Scales and key signatures",
+   "stem": "Students think a scale is just any set of notes that happen to sound good together, so the notes do not need to follow a fixed step pattern or repeat at the octave.",
+   "options": [
+    "A set of notes that just sound good together without any pattern.",
+    "A set of notes that follow a fixed step pattern and repeat at the octave.",
+    "A scale that is simply a major scale with extra accidentals added for decoration.",
+    "A scale where notes do not need to follow a fixed step pattern or repeat at the octave."
+   ],
+   "correctIndex": 1,
+   "explanation": "A scale is defined by its consecutive notes and characteristic interval pattern, and most scales repeat that pattern across octaves. This structure ensures the scale has its proper musical identity.",
+   "catches": true,
+   "confronts": true,
+   "familyKey": "students think a scale is just any set of notes that happen ",
+   "provenance": {
+    "origin": "researcher-zero",
+    "model": "e2b",
+    "solverVerified": true,
+    "grade": null,
+    "date": "2026-07-06"
+   }
+  },
+  {
+   "id": "gapfill:music/scales-and-key-signatures:Students-think-a-chromat-153c",
+   "kernelId": "music/scales-and-key-signatures",
+   "conceptName": "Scales and key signatures",
+   "stem": "What is the defining characteristic of a chromatic scale compared to a major scale?",
+   "options": [
+    "A chromatic scale is simply a major scale with extra accidentals added for decoration.",
+    "A chromatic scale consists of all twelve pitches in the octave, each one semitone apart.",
+    "A chromatic scale is just any set of notes that happen to sound good together.",
+    "A chromatic scale does not need to follow a fixed step pattern or repeat at the octave."
+   ],
+   "correctIndex": 1,
+   "explanation": "The chromatic scale consists of twelve pitches in the octave, each semitone apart, and it is not the same as a major or minor scale with added notes. This clearly distinguishes it from diatonic scales.",
+   "catches": true,
+   "confronts": true,
+   "familyKey": "students think a chromatic scale is simply a major or minor ",
+   "provenance": {
+    "origin": "researcher-zero",
+    "model": "e2b",
+    "solverVerified": true,
+    "grade": null,
+    "date": "2026-07-06"
+   }
+  },
+  {
+   "id": "gapfill:music/triads-and-seventh-chords:Students-often-think-a-t-ad52",
+   "kernelId": "music/triads-and-seventh-chords",
+   "conceptName": "Triads and seventh chords",
+   "stem": "If a three-note chord is built with the root in the bass and notes in a fixed order, it is always a standard triad, even if the third or fifth is the lowest note.",
+   "options": [
+    "Because any three notes automatically form a triad structure.",
+    "Because the chord sounds the same when inverted, meaning the root remains the lowest.",
+    "Because the usual definition depends on thirds, not just having three notes.",
+    "Because the structure must be built with the root in the bass and notes in one fixed order."
+   ],
+   "correctIndex": 3,
+   "explanation": "Sources say inversion does not change the root, and a triad can have the third or fifth as the lowest note. This clarifies the structure definition.",
+   "catches": true,
+   "confronts": true,
+   "familyKey": "students often think a triad must always be built with the r",
+   "provenance": {
+    "origin": "researcher-zero",
+    "model": "e2b",
+    "solverVerified": true,
+    "grade": null,
+    "date": "2026-07-06"
+   }
+  },
+  {
+   "id": "gapfill:music/triads-and-seventh-chords:Students-often-think-any-2e54",
+   "kernelId": "music/triads-and-seventh-chords",
+   "conceptName": "Triads and seventh chords",
+   "stem": "Any chord with three notes is automatically a triad because the term 'tri-' implies three notes, and any stack of intervals should count the same as a normal triad.",
+   "options": [
+    "Because the chord sounds the same when inverted, meaning the root remains the lowest.",
+    "Because the structure must be built with the root in the bass and notes in one fixed order.",
+    "Because the usual definition depends on thirds, not just having three notes.",
+    "Because any three notes automatically form a triad structure."
+   ],
+   "correctIndex": 2,
+   "explanation": "Sources define triad three notes stacked in thirds, and note that some broader uses of term other theorists trichord instead. This clarifies the strict definition.",
+   "catches": true,
+   "confronts": true,
+   "familyKey": "students often think any chord with three notes is automatic",
+   "provenance": {
+    "origin": "researcher-zero",
+    "model": "e2b",
+    "solverVerified": true,
+    "grade": null,
+    "date": "2026-07-06"
+   }
+  },
+  {
+   "id": "gapfill:music/harmony-and-progressions:Students-often-think-har-1605",
+   "kernelId": "music/harmony-and-progressions",
+   "conceptName": "Harmony and chord progressions",
+   "stem": "A musician hears two notes sounding at the same time and assumes this automatically constitutes a chord progression.",
+   "options": [
+    "This is always a complex harmonic structure.",
+    "This is just two notes sounding at the same time.",
+    "This means melody and texture are basically the same thing.",
+    "This is a simple interval relationship only."
+   ],
+   "correctIndex": 1,
+   "explanation": "Sources explain that harmony involves combining pitches into chords and progressions. Harmony overlaps with but is not identical to melody, timbre, form, or counterpoint.",
+   "bloom": "apply",
+   "difficulty": "apply",
+   "catches": true,
+   "confronts": true,
+   "familyKey": "students often think harmony just means any two notes soundi",
+   "provenance": {
+    "origin": "researcher-zero",
+    "model": "e2b",
+    "solverVerified": true,
+    "grade": null,
+    "date": "2026-07-06"
+   }
+  },
+  {
+   "id": "gapfill:music/harmony-and-progressions:Students-may-believe-cho-4927",
+   "kernelId": "music/harmony-and-progressions",
+   "conceptName": "Harmony and chord progressions",
+   "stem": "A student may believe chord progressions are only a feature of classical music, so popular songs, blues, and jazz must rely on something different less structured than harmony.",
+   "options": [
+    "Popular music uses only simple triads for harmony.",
+    "Chord progressions are foundational in popular music too.",
+    "Blues relies entirely on rhythmic patterns, not harmony.",
+    "Jazz progressions are completely unrelated to traditional harmony."
+   ],
+   "correctIndex": 1,
+   "explanation": "Sources state that chord progressions are foundational not only in Western classical common-practice music also in popular music, traditional music, blues, and jazz.",
+   "bloom": "apply",
+   "difficulty": "apply",
+   "catches": true,
+   "confronts": true,
+   "familyKey": "students may believe chord progressions are only a feature o",
+   "provenance": {
+    "origin": "researcher-zero",
+    "model": "e2b",
+    "solverVerified": true,
+    "grade": null,
+    "date": "2026-07-06"
+   }
+  },
+  {
+   "id": "gapfill:music/harmony-and-progressions:Students-may-believe-cho-a4fa",
+   "kernelId": "music/harmony-and-progressions",
+   "conceptName": "Harmony and chord progressions",
+   "stem": "Given a melody in C major, apply a ii-V-I progression to create a simple harmonic progression for a four-measure phrase.",
+   "options": [
+    "C major, D minor, G major, C major.",
+    "D minor, G major, C major, F major.",
+    "E minor, A major, D major, G major.",
+    "C major, F major, G major, C major."
+   ],
+   "correctIndex": 0,
+   "explanation": "The ii-V-I progression in C major uses D minor (ii), G major (V), and C major (I). This sequence provides a standard, functional harmonic movement for the phrase.",
+   "bloom": "apply",
+   "difficulty": "apply",
+   "catches": false,
+   "confronts": false,
+   "familyKey": null,
+   "provenance": {
+    "origin": "researcher-zero",
+    "model": "e2b",
+    "solverVerified": true,
+    "grade": null,
+    "date": "2026-07-06"
+   }
+  },
+  {
+   "id": "gapfill:music/musical-form:Students-think-musical-f-ad6a",
+   "kernelId": "music/musical-form",
+   "conceptName": "Musical form",
+   "stem": "When analyzing a complex piece of music, how should you understand musical form?",
+   "options": [
+    "Musical form is only the title and genre of the music.",
+    "Musical form is the larger structure of a composition.",
+    "The title determines the exact musical form.",
+    "Form is solely about the melody of the piece."
+   ],
+   "correctIndex": 1,
+   "explanation": "The sources say musical form is the larger structure of a composition, and fantasia is specifically described as a form rooted in improvisation that seldom follows textbook rules. This shows form is more than just the name.",
+   "bloom": "apply",
+   "difficulty": "apply",
+   "catches": true,
+   "confronts": true,
+   "familyKey": "students think musical form just means the title or genre of",
+   "provenance": {
+    "origin": "researcher-zero",
+    "model": "e2b",
+    "solverVerified": true,
+    "grade": null,
+    "date": "2026-07-06"
+   }
+  },
+  {
+   "id": "gapfill:music/musical-form:Students-assume-form-is--73f1",
+   "kernelId": "music/musical-form",
+   "conceptName": "Musical form",
+   "stem": "Students assume form is mostly about one single feature, like melody or rhythm alone, because they notice repeated tunes and conclude that repetition by itself creates form.",
+   "options": [
+    "Form is only about repeating the same melody.",
+    "Form results from interaction of several structural elements.",
+    "Repetition of tunes alone creates musical form.",
+    "Melody and rhythm are the only components of form."
+   ],
+   "correctIndex": 1,
+   "explanation": "The sources explain that form results from interaction of several structural elements—sound, harmony, melody, and rhythm—and can also involve phrasing, orchestration, and repetition or variation.",
+   "bloom": "apply",
+   "difficulty": "apply",
+   "catches": true,
+   "confronts": true,
+   "familyKey": "students assume form is mostly about one single feature like",
+   "provenance": {
+    "origin": "researcher-zero",
+    "model": "e2b",
+    "solverVerified": true,
+    "grade": null,
+    "date": "2026-07-06"
+   }
+  },
+  {
+   "id": "gapfill:music/musical-form:Students-assume-form-is--17f2",
+   "kernelId": "music/musical-form",
+   "conceptName": "Musical form",
+   "stem": "Analyze the provided excerpt from a sonata form and identify the structural element that defines the transition between the exposition and the development section.",
+   "options": [
+    "Recapitulation",
+    "Coda",
+    "Transition",
+    "Exposition"
+   ],
+   "correctIndex": 2,
+   "explanation": "The transition is the structural element that defines the movement between the exposition and the development section in sonata form. This element signals a shift in musical material and thematic focus.",
+   "bloom": "apply",
+   "difficulty": "apply",
+   "catches": false,
+   "confronts": false,
+   "familyKey": null,
+   "provenance": {
+    "origin": "researcher-zero",
+    "model": "e2b",
+    "solverVerified": true,
+    "grade": null,
+    "date": "2026-07-06"
+   }
   }
  ],
  "origins": {

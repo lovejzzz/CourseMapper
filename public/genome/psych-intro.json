@@ -1,1 +1,2424 @@
-{"id":"psych-intro","discipline":"psych","level":"intro","conceptCount":12,"kernels":[{"id":"psych/classical-conditioning","rev":1,"term":"Classical conditioning","aliases":["learning","Pavlovian conditioning","respondent conditioning","stimulus-stimulus learning","Pavlov's dogs"],"discipline":"psych","tags":["learning","behaviorism","associative learning"],"level":"intro","difficulty":2,"bloomCeiling":"Analyze","definition":{"text":"Classical conditioning is a process by which we learn to associate stimuli and, consequently, to anticipate events — a neutral stimulus repeatedly paired with an unconditioned stimulus comes to trigger a learned response on its own.","anchor":{"src":"openstax:psychology-2e#6","loc":"6.2","quote":"a process by which we learn to associate stimuli and, consequently, to anticipate events"},"tier":2,"verifiedBy":0},"facts":[{"text":"An unconditioned stimulus (UCS) elicits a reflexive response in an organism with no learning required.","anchor":{"src":"openstax:psychology-2e#6","loc":"6.2","quote":"an unconditioned stimulus (UCS): a stimulus that elicits a reflexive response in an organism"},"tier":2,"verifiedBy":0,"contested":false},{"text":"An unconditioned response (UCR) is a natural, unlearned reaction to a given stimulus — Pavlov's dogs salivating to meat powder.","anchor":{"src":"openstax:psychology-2e#6","loc":"6.2","quote":"an unconditioned response (UCR): a natural (unlearned) reaction to a given stimulus"},"tier":2,"verifiedBy":0,"contested":false},{"text":"A conditioned stimulus (CS) is a stimulus that elicits a response only after repeatedly being paired with an unconditioned stimulus.","anchor":{"src":"openstax:psychology-2e#6","loc":"6.2","quote":"the conditioned stimulus (CS), which is a stimulus that elicits a response after repeatedly being paired with an unconditioned stimulus"},"tier":2,"verifiedBy":0,"contested":false},{"text":"Extinction is the decrease in the conditioned response when the unconditioned stimulus stops accompanying the conditioned stimulus.","anchor":{"src":"openstax:psychology-2e#6","loc":"6.2","quote":"Extinction is the decrease in the conditioned response when the unconditioned stimulus is no longer presented with the conditioned stimulus"},"tier":2,"verifiedBy":0,"contested":false},{"text":"Spontaneous recovery is the return of a previously extinguished conditioned response following a rest period.","anchor":{"src":"openstax:psychology-2e#6","loc":"6.2","quote":"the return of a previously extinguished conditioned response following a rest period"},"tier":2,"verifiedBy":0,"contested":false}],"misconceptions":[{"text":"Students label any stimulus that triggers behavior a conditioned stimulus, blurring the UCS/CS distinction.","corrective":"An unconditioned stimulus elicits a reflex with no learning at all; a stimulus is conditioned only after repeated pairing with the UCS turns a formerly neutral stimulus into a trigger.","anchor":null,"tier":1}],"examples":[{"text":"The smell of a dentist's office (CS) making a patient's heart race after past pairings with the drill (UCS) — anticipation learned, not chosen.","domain":"everyday life","anchor":null}],"workedExamples":[],"mcBank":[{"stem":"In Pavlov's studies, the tone began to trigger salivation only after being repeatedly paired with meat powder. At that point the tone is best labeled the","options":["conditioned stimulus","unconditioned stimulus","unconditioned response","neutral response"],"answerIndex":0,"explanationFactRef":2,"rationaleRefs":[0]},{"stem":"A dog conditioned to salivate at a bell stops salivating after the bell sounds many times with no food. This decline is called","options":["extinction","spontaneous recovery","acquisition","habituation"],"answerIndex":0,"explanationFactRef":3,"rationaleRefs":[0]},{"stem":"Days after its salivation response faded out, the same dog suddenly salivates when the bell rings again. This return is called","options":["spontaneous recovery","stimulus discrimination","acquisition","negative reinforcement"],"answerIndex":0,"explanationFactRef":4,"rationaleRefs":[0]}],"edges":{"recommends":["psych/operant-conditioning"]},"variants":[],"freshness":{"sourceEdition":"","reviewBy":"","volatility":"low"},"license":"CC-BY-4.0","attribution":["OpenStax Psychology 2e, §6.2 Classical Conditioning"],"standards":[]},{"id":"psych/operant-conditioning","rev":1,"term":"Operant conditioning","aliases":["learning","reinforcement and punishment","Skinnerian conditioning","consequence learning","instrumental conditioning"],"discipline":"psych","tags":["learning","behaviorism","classroom management"],"level":"intro","difficulty":2,"bloomCeiling":"Evaluate","definition":{"text":"In operant conditioning, organisms learn to associate a behavior and its consequence: reinforced behaviors become more likely, punished behaviors less likely.","anchor":{"src":"openstax:psychology-2e#6b","loc":"6.3","quote":"organisms learn to associate a behavior and its consequence"},"tier":2,"verifiedBy":0},"facts":[{"text":"The law of effect: behaviors followed by satisfying consequences are more likely to be repeated; behaviors followed by unpleasant consequences are less likely.","anchor":{"src":"openstax:psychology-2e#6b","loc":"6.3","quote":"behaviors that are followed by consequences that are satisfying to the organism are more likely to be repeated"},"tier":2,"verifiedBy":0,"contested":false},{"text":"In operant terms, positive means adding something and negative means taking something away — not good and bad.","anchor":{"src":"openstax:psychology-2e#6b","loc":"6.3","quote":"positive means you are adding something, and negative means you are taking something away"},"tier":2,"verifiedBy":0,"contested":false},{"text":"Reinforcement always increases a behavior and punishment always decreases it, whichever sign it carries.","anchor":{"src":"openstax:psychology-2e#6b","loc":"6.3","quote":"Reinforcement means you are increasing a behavior, and punishment means you are decreasing a behavior"},"tier":2,"verifiedBy":0,"contested":false},{"text":"In negative reinforcement, an undesirable stimulus is removed to increase a behavior.","anchor":{"src":"openstax:psychology-2e#6b","loc":"6.3","quote":"In negative reinforcement, an undesirable stimulus is removed to increase a behavior"},"tier":2,"verifiedBy":0,"contested":false},{"text":"Shaping builds complex behavior by rewarding successive approximations of a target behavior.","anchor":{"src":"openstax:psychology-2e#6b","loc":"6.3","quote":"we reward successive approximations of a target behavior"},"tier":2,"verifiedBy":0,"contested":false}],"misconceptions":[{"text":"Students equate negative reinforcement with punishment.","corrective":"Negative refers to removing a stimulus, not to badness: negative reinforcement removes something undesirable to increase a behavior, while punishment of either sign decreases behavior.","anchor":null,"tier":1},{"text":"Students read positive and negative as good and bad outcomes.","corrective":"In operant conditioning positive means adding something and negative means taking something away; either operation can serve reinforcement or punishment.","anchor":null,"tier":1}],"examples":[{"text":"A teacher excuses students from Friday homework when the class stays on task all week — removing an undesirable task to increase on-task behavior (negative reinforcement).","domain":"classroom","anchor":null}],"workedExamples":[],"mcBank":[{"stem":"Taking aspirin removes your headache, so you become more likely to take aspirin the next time one starts. Removing the headache acts as","options":["negative reinforcement","positive reinforcement","negative punishment","positive punishment"],"answerIndex":0,"explanationFactRef":3,"rationaleRefs":[0]},{"stem":"In operant conditioning, the words 'positive' and 'negative' refer to","options":["adding or removing a stimulus","good or bad outcomes","pleasant or unpleasant emotions","strong or weak responses"],"answerIndex":0,"explanationFactRef":1,"rationaleRefs":[1]},{"stem":"A trainer rewards a dolphin for closer and closer approximations of a full flip. This technique is called","options":["shaping","extinction","generalization","spontaneous recovery"],"answerIndex":0,"explanationFactRef":4,"rationaleRefs":[0]}],"edges":{"recommends":["psych/classical-conditioning"]},"variants":[],"freshness":{"sourceEdition":"","reviewBy":"","volatility":"low"},"license":"CC-BY-4.0","attribution":["OpenStax Psychology 2e, §6.3 Operant Conditioning"],"standards":[]},{"id":"psych/observational-learning","rev":1,"term":"Observational learning","aliases":["learning","modeling","social learning","vicarious learning","Bandura's Bobo doll"],"discipline":"psych","tags":["learning","social cognition","Bandura"],"level":"intro","difficulty":2,"bloomCeiling":"Analyze","definition":{"text":"In observational learning, we learn by watching others and then imitating, or modeling, what they do or say — no direct reinforcement of the learner is required.","anchor":{"src":"openstax:psychology-2e#6c","loc":"6.4","quote":"we learn by watching others and then imitating, or modeling, what they do or say"},"tier":2,"verifiedBy":0},"facts":[{"text":"Bandura researched modeling behavior, particularly children's modeling of adults' aggressive and violent behaviors.","anchor":{"src":"openstax:psychology-2e#6c","loc":"6.4","quote":"Bandura researched modeling behavior, particularly children's modeling of adults' aggressive and violent behaviors"},"tier":2,"verifiedBy":0,"contested":false},{"text":"Successful modeling requires four steps in order: attention, retention, reproduction, and motivation.","anchor":{"src":"openstax:psychology-2e#6c","loc":"6.4","quote":"steps in the process of modeling that must be followed if learning is to be successful: attention, retention, reproduction, and motivation"},"tier":2,"verifiedBy":0,"contested":false},{"text":"Seeing a model reinforced makes the observer more motivated to copy them — vicarious reinforcement.","anchor":{"src":"openstax:psychology-2e#6c","loc":"6.4","quote":"If you saw that the model was reinforced for their behavior, you will be more motivated to copy them"},"tier":2,"verifiedBy":0,"contested":false},{"text":"Seeing a model punished makes the observer less motivated to copy them — vicarious punishment; children who saw the model punished decreased their imitation.","anchor":{"src":"openstax:psychology-2e#6c","loc":"6.4","quote":"If you observed the model being punished, you would be less motivated to copy them"},"tier":2,"verifiedBy":0,"contested":false},{"text":"Observational learning can have both prosocial and antisocial effects, so the models children see matter.","anchor":{"src":"openstax:psychology-2e#6c","loc":"6.4","quote":"this learning can have both prosocial and antisocial effects"},"tier":2,"verifiedBy":0,"contested":false}],"misconceptions":[{"text":"Students assume a person must be directly rewarded themselves before imitation occurs.","corrective":"Bandura showed vicarious consequences suffice: children imitated a model who was praised or simply not punished, and held back when the model was punished — the consequence landed on the model, not the child.","anchor":null,"tier":1}],"examples":[{"text":"A new student watches a classmate get praised for raising a hand before speaking and starts raising their own hand — vicarious reinforcement in action.","domain":"classroom","anchor":null}],"workedExamples":[],"mcBank":[{"stem":"Bandura's four steps of successful modeling, in order, are","options":["attention, retention, reproduction, motivation","motivation, attention, retention, reproduction","attention, reproduction, retention, motivation","retention, attention, motivation, reproduction"],"answerIndex":0,"explanationFactRef":1,"rationaleRefs":[0]},{"stem":"Children who watched an adult get scolded for hitting the Bobo doll later hit the doll less themselves. This effect is called","options":["vicarious punishment","vicarious reinforcement","direct punishment","negative reinforcement"],"answerIndex":0,"explanationFactRef":3,"rationaleRefs":[0]}],"edges":{"requires":["psych/operant-conditioning"]},"variants":[],"freshness":{"sourceEdition":"","reviewBy":"","volatility":"low"},"license":"CC-BY-4.0","attribution":["OpenStax Psychology 2e, §6.4 Observational Learning (Modeling)"],"standards":[]},{"id":"psych/memory-model","rev":1,"term":"Memory: encoding, storage, and retrieval","aliases":["memory","how memory functions","memory processes","Atkinson-Shiffrin model","information processing model"],"discipline":"psych","tags":["memory","cognition","study skills"],"level":"intro","difficulty":2,"bloomCeiling":"Analyze","definition":{"text":"Memory is the set of processes used to encode, store, and retrieve information over different periods of time; to be stored long term, information must pass through sensory, short-term, and long-term stages.","anchor":{"src":"openstax:psychology-2e#8","loc":"8.1","quote":"Memory is the set of processes used to encode, store, and retrieve information over different periods of time"},"tier":2,"verifiedBy":0},"facts":[{"text":"Encoding is the input of information into the memory system.","anchor":{"src":"openstax:psychology-2e#8","loc":"8.1","quote":"the input of information into the memory system"},"tier":2,"verifiedBy":0,"contested":false},{"text":"Words encoded semantically — by their meaning — are remembered better than words encoded visually or acoustically.","anchor":{"src":"openstax:psychology-2e#8","loc":"8.1","quote":"Words that had been encoded semantically were better remembered than those encoded visually or acoustically"},"tier":2,"verifiedBy":0,"contested":false},{"text":"Storage is the creation of a permanent record of information.","anchor":{"src":"openstax:psychology-2e#8","loc":"8.1","quote":"Storage is the creation of a permanent record of information"},"tier":2,"verifiedBy":0,"contested":false},{"text":"A memory headed for long-term storage must pass through three distinct stages: sensory memory, short-term memory, and long-term memory.","anchor":{"src":"openstax:psychology-2e#8","loc":"8.1","quote":"it has to pass through three distinct stages: Sensory Memory, Short-Term Memory, and finally Long-Term Memory"},"tier":2,"verifiedBy":0,"contested":false},{"text":"Retrieval is the act of getting information out of memory storage and back into conscious awareness.","anchor":{"src":"openstax:psychology-2e#8","loc":"8.1","quote":"The act of getting information out of memory storage and back into conscious awareness is known as retrieval"},"tier":2,"verifiedBy":0,"contested":false}],"misconceptions":[{"text":"Students picture memory as one big storehouse where information simply sits once seen.","corrective":"Memory is a set of processes, not a place: information must be encoded, pass through sensory and short-term stages into long-term storage, and then be retrieved — and it can be lost at every step.","anchor":null,"tier":1}],"examples":[{"text":"Explaining a new term in your own words (semantic encoding) beats recopying it ten times — meaning-based processing is the deepest route into storage.","domain":"study skills","anchor":null}],"workedExamples":[],"mcBank":[{"stem":"Which sequence correctly orders the stages information passes through on its way into lasting storage?","options":["sensory memory, then short-term memory, then long-term memory","short-term memory, then sensory memory, then long-term memory","long-term memory, then short-term memory, then sensory memory","sensory memory, then long-term memory, then short-term memory"],"answerIndex":0,"explanationFactRef":3,"rationaleRefs":[0]},{"stem":"Research on encoding shows that words are remembered best when a learner processes their","options":["meaning","appearance","sound","spelling"],"answerIndex":0,"explanationFactRef":1,"rationaleRefs":[0]}],"edges":{"recommends":["psych/working-memory","psych/long-term-memory"],"instanceOf":[{"archetype":"process/staged-process","confidence":0.85,"mapping":{"process":"forming a lasting memory","stages":"encoding into sensory memory, holding in short-term memory, consolidating into long-term memory","dependency":"each stage hands its product to the next — unencoded input cannot be rehearsed, unrehearsed traces never reach long-term storage","failure if skipped":"information is lost and there is nothing left to retrieve"},"verified":true}]},"variants":[],"freshness":{"sourceEdition":"","reviewBy":"","volatility":"low"},"license":"CC-BY-4.0","attribution":["OpenStax Psychology 2e, §8.1 How Memory Functions"],"standards":[]},{"id":"psych/working-memory","rev":1,"term":"Short-term and working memory","aliases":["memory","short-term memory","STM","working memory","rehearsal"],"discipline":"psych","tags":["memory","cognition","cognitive load"],"level":"intro","difficulty":2,"bloomCeiling":"Apply","definition":{"text":"Short-term memory (STM) is a temporary storage system that processes incoming sensory memory; the related term working memory emphasizes active manipulation, and the two terms are not exactly the same.","anchor":{"src":"openstax:psychology-2e#8b","loc":"8.1","quote":"Short-term memory (STM) is a temporary storage system that processes incoming sensory memory"},"tier":2,"verifiedBy":0},"facts":[{"text":"Short-term memory storage lasts only about 15 to 30 seconds without rehearsal.","anchor":{"src":"openstax:psychology-2e#8b","loc":"8.1","quote":"Short-term memory storage lasts 15 to 30 seconds"},"tier":2,"verifiedBy":0,"contested":false},{"text":"For most people short-term capacity is close to 7 plus or minus 2 items.","anchor":{"src":"openstax:psychology-2e#8b","loc":"8.1","quote":"the capacity will probably be close to 7 plus or minus 2"},"tier":2,"verifiedBy":0,"contested":false},{"text":"Active rehearsal is a way of attending to information to move it from short-term to long-term memory.","anchor":{"src":"openstax:psychology-2e#8b","loc":"8.1","quote":"Active rehearsal is a way of attending to information to move it from short-term to long-term memory"},"tier":2,"verifiedBy":0,"contested":false},{"text":"Short-term memory and working memory are sometimes used interchangeably, but they are not exactly the same.","anchor":{"src":"openstax:psychology-2e#8b","loc":"8.1","quote":"The terms short-term and working memory are sometimes used interchangeably, but they are not exactly the same"},"tier":2,"verifiedBy":0,"contested":false},{"text":"Sensory memory holds brief sensory events such as sights and sounds for only up to a couple of seconds before they fade or move on.","anchor":{"src":"openstax:psychology-2e#8b","loc":"8.1","quote":"storage of brief sensory events, such as sights, sounds, and tastes"},"tier":2,"verifiedBy":0,"contested":false}],"misconceptions":[{"text":"Students believe short-term memory holds information for hours, like a mental notepad left open all day.","corrective":"Without active rehearsal, short-term storage lasts only about 15 to 30 seconds and holds roughly 7 plus or minus 2 items — which is exactly why unwritten phone numbers vanish.","anchor":null,"tier":1}],"examples":[{"text":"Repeating a Wi-Fi password to yourself while crossing the room — stop rehearsing for half a minute and it is gone.","domain":"everyday life","anchor":null}],"workedExamples":[],"mcBank":[{"stem":"Without rehearsal, information held in short-term storage typically lasts about","options":["15 to 30 seconds","2 to 3 minutes","an hour","one full day"],"answerIndex":0,"explanationFactRef":0,"rationaleRefs":[0]},{"stem":"Which activity moves information from short-term into long-term storage?","options":["active rehearsal","sensory buffering","blocking","proactive interference"],"answerIndex":0,"explanationFactRef":2,"rationaleRefs":[0]}],"edges":{"requires":["psych/memory-model"]},"variants":[],"freshness":{"sourceEdition":"","reviewBy":"","volatility":"low"},"license":"CC-BY-4.0","attribution":["OpenStax Psychology 2e, §8.1 How Memory Functions"],"standards":[]},{"id":"psych/long-term-memory","rev":1,"term":"Long-term memory systems","aliases":["memory","LTM","explicit and implicit memory","episodic and semantic memory","procedural memory"],"discipline":"psych","tags":["memory","cognition","knowledge types"],"level":"intro","difficulty":2,"bloomCeiling":"Analyze","definition":{"text":"Long-term memory (LTM) is the continuous storage of information, divided into explicit memories we consciously recall and implicit memories that operate outside consciousness.","anchor":{"src":"openstax:psychology-2e#8b","loc":"8.1","quote":"Long-term memory (LTM) is the continuous storage of information"},"tier":2,"verifiedBy":0},"facts":[{"text":"Unlike short-term memory, long-term storage capacity is believed to be unlimited.","anchor":{"src":"openstax:psychology-2e#8b","loc":"8.1","quote":"long-term memory storage capacity is believed to be unlimited"},"tier":2,"verifiedBy":0,"contested":false},{"text":"Explicit memories are those we consciously try to remember, recall, and report.","anchor":{"src":"openstax:psychology-2e#8b","loc":"8.1","quote":"Explicit memories are those we consciously try to remember, recall, and report"},"tier":2,"verifiedBy":0,"contested":false},{"text":"Implicit memories are long-term memories that are not part of our consciousness.","anchor":{"src":"openstax:psychology-2e#8b","loc":"8.1","quote":"Implicit memories are long-term memories that are not part of our consciousness"},"tier":2,"verifiedBy":0,"contested":false},{"text":"Implicit procedural memory stores how to do things — the memory for skilled actions.","anchor":{"src":"openstax:psychology-2e#8b","loc":"8.1","quote":"Implicit procedural memory stores information about the way to do something, and it is the memory for skilled actions"},"tier":2,"verifiedBy":0,"contested":false},{"text":"Explicit memory divides into episodic memory (events we have personally experienced) and semantic memory (knowledge about words, concepts, and facts).","anchor":{"src":"openstax:psychology-2e#8b","loc":"8.1","quote":"Episodic memory is information about events we have personally experienced"},"tier":2,"verifiedBy":0,"contested":false}],"misconceptions":[{"text":"Students assume everything in long-term memory can be consciously recalled and described.","corrective":"Implicit memories — including procedural memory for skilled actions — are long-term memories outside consciousness: you ride a bicycle reliably without being able to report the balance corrections you make.","anchor":null,"tier":1}],"examples":[{"text":"A pianist who cannot say which finger plays which note mid-piece, yet performs flawlessly — procedural memory running without conscious access.","domain":"skills","anchor":null}],"workedExamples":[],"mcBank":[{"stem":"Knowing how to ride a bicycle without consciously thinking through the motions draws on","options":["procedural memory","episodic memory","semantic memory","sensory memory"],"answerIndex":0,"explanationFactRef":3,"rationaleRefs":[0]},{"stem":"Remembering your own high school graduation day is an example of","options":["episodic memory","semantic memory","procedural memory","implicit memory"],"answerIndex":0,"explanationFactRef":4,"rationaleRefs":[0]}],"edges":{"requires":["psych/memory-model"],"recommends":["psych/working-memory"]},"variants":[],"freshness":{"sourceEdition":"","reviewBy":"","volatility":"low"},"license":"CC-BY-4.0","attribution":["OpenStax Psychology 2e, §8.1 How Memory Functions"],"standards":[]},{"id":"psych/forgetting","rev":1,"term":"Forgetting and retrieval failure","aliases":["memory","encoding failure","interference","tip of the tongue","Ebbinghaus forgetting curve"],"discipline":"psych","tags":["memory","cognition","assessment design"],"level":"intro","difficulty":3,"bloomCeiling":"Analyze","definition":{"text":"Forgetting arises at every stage of memory: encoding failure (the information never entered memory), storage decay over time, and retrieval failures such as blocking and interference.","anchor":{"src":"openstax:psychology-2e#8c","loc":"8.3","quote":"memory loss happens before the actual memory process begins, which is encoding failure"},"tier":2,"verifiedBy":0},"facts":[{"text":"We cannot remember something that was never stored in memory in the first place — encoding failure is not really forgetting.","anchor":{"src":"openstax:psychology-2e#8c","loc":"8.3","quote":"We can't remember something if we never stored it in our memory in the first place"},"tier":2,"verifiedBy":0,"contested":false},{"text":"Ebbinghaus found storage decay is fast at first: an average person loses 50% of memorized information after 20 minutes and 70% after 24 hours, then the curve levels out.","anchor":{"src":"openstax:psychology-2e#8c","loc":"8.3","quote":"lose 50% of the memorized information after 20 minutes and 70% of the information after 24 hours"},"tier":2,"verifiedBy":0,"contested":false},{"text":"Blocking is a retrieval failure where stored information is temporarily inaccessible — the tip-of-the-tongue state.","anchor":{"src":"openstax:psychology-2e#8c","loc":"8.3","quote":"you can't access stored information"},"tier":2,"verifiedBy":0,"contested":false},{"text":"Proactive interference: old information hinders the recall of newly learned information.","anchor":{"src":"openstax:psychology-2e#8c","loc":"8.3","quote":"old information hinders the recall of newly learned information"},"tier":2,"verifiedBy":0,"contested":false},{"text":"Retroactive interference: information learned more recently hinders the recall of older information.","anchor":{"src":"openstax:psychology-2e#8c","loc":"8.3","quote":"information learned more recently hinders the recall of older information"},"tier":2,"verifiedBy":0,"contested":false}],"misconceptions":[{"text":"Students treat all forgetting as memories being erased from storage.","corrective":"Much forgetting is encoding failure (never stored) or retrieval failure (blocking, interference) — the tip-of-the-tongue state proves information can remain stored yet be temporarily unreachable.","anchor":null,"tier":1}],"examples":[{"text":"Most people cannot draw a penny correctly despite seeing thousands — the details were never encoded, so there was nothing to forget.","domain":"classroom demo","anchor":null}],"workedExamples":[{"problem":"A student memorizes 200 vocabulary terms the night before a test and does not review them. Using Ebbinghaus's averages, estimate how many terms remain after 24 hours.","steps":["Ebbinghaus's curve: an average person loses 70% of memorized information after 24 hours.","Compute the loss: 200 × 0.70 = 140 terms lost.","Subtract from the total: 200 − 140 = 60 terms retained."],"result":"About 60 of 200 terms remain — the case for spaced review instead of one-night cramming.","anchor":{"src":"openstax:psychology-2e#8c","loc":"8.3","quote":"70% of the information after 24 hours"}}],"mcBank":[{"stem":"Years of speaking French make it harder to retrieve newly learned Spanish vocabulary. This is","options":["proactive interference","retroactive interference","encoding failure","storage decay"],"answerIndex":0,"explanationFactRef":3,"rationaleRefs":[0]},{"stem":"After memorizing a new phone number, you struggle to recall your previous one. This is","options":["retroactive interference","proactive interference","blocking","spontaneous recovery"],"answerIndex":0,"explanationFactRef":4,"rationaleRefs":[0]}],"edges":{"requires":["psych/memory-model"],"recommends":["psych/long-term-memory"]},"variants":[],"freshness":{"sourceEdition":"","reviewBy":"","volatility":"low"},"license":"CC-BY-4.0","attribution":["OpenStax Psychology 2e, §8.3 Problems with Memory"],"standards":[]},{"id":"psych/piaget-stages","rev":1,"term":"Piaget's stages of cognitive development","aliases":["cognitive development theory","sensorimotor stage","preoperational stage","concrete and formal operations"],"discipline":"psych","tags":["development","cognition","child psychology"],"level":"intro","difficulty":3,"bloomCeiling":"Evaluate","definition":{"text":"Piaget's theory holds that children do not think and reason like adults but move through four qualitatively different stages — sensorimotor, preoperational, concrete operational, and formal operational — building and revising schemata along the way.","anchor":{"src":"openstax:psychology-2e#9","loc":"9.2","quote":"children do not think and reason like adults"},"tier":2,"verifiedBy":0},"facts":[{"text":"Children organize knowledge in schemata — concepts (mental models) used to categorize and interpret information — updating them by assimilation and accommodation.","anchor":{"src":"openstax:psychology-2e#9","loc":"9.2","quote":"Schemata are concepts (mental models) that are used to help us categorize and interpret information"},"tier":2,"verifiedBy":0,"contested":false},{"text":"In the sensorimotor stage (birth to about 2), the child develops object permanence — the understanding that something out of sight still exists.","anchor":{"src":"openstax:psychology-2e#9","loc":"9.2","quote":"object permanence, which is the understanding that even if something is out of sight, it still exists"},"tier":2,"verifiedBy":0,"contested":false},{"text":"In the preoperational stage (about 2 to 7), children display egocentrism and lack conservation — the idea that changing something's appearance does not change its amount.","anchor":{"src":"openstax:psychology-2e#9","loc":"9.2","quote":"egocentrism, which means that the child is not able to take the perspective of others"},"tier":2,"verifiedBy":0,"contested":false},{"text":"In the concrete operational stage (about 7 to 11), children can think logically about real, concrete events.","anchor":{"src":"openstax:psychology-2e#9","loc":"9.2","quote":"In this stage, children can think logically about real (concrete) events"},"tier":2,"verifiedBy":0,"contested":false},{"text":"In the formal operational stage (about age 11 to adulthood), thinkers can handle abstract ideas and hypothetical situations.","anchor":{"src":"openstax:psychology-2e#9","loc":"9.2","quote":"children in the formal operational stage can also deal with abstract ideas and hypothetical situations"},"tier":2,"verifiedBy":0,"contested":false}],"misconceptions":[{"text":"Students see children as miniature adults who simply know fewer facts.","corrective":"Piaget showed the differences are qualitative: a preoperational child fails a conservation task not from missing information but because the required mental operations have not yet developed — telling them the answer does not fix it.","anchor":null,"tier":1}],"examples":[{"text":"Pour the same juice from a short wide cup into a tall thin glass: a four-year-old insists there is now more juice — conservation has not yet arrived.","domain":"classroom demo","anchor":null}],"workedExamples":[],"mcBank":[{"stem":"An infant who keeps searching for a toy hidden under a blanket has developed","options":["object permanence","conservation","egocentrism","formal logic"],"answerIndex":0,"explanationFactRef":1,"rationaleRefs":[0]},{"stem":"A child watches water poured from a short wide glass into a tall thin one and says there is now more water. The child has not yet mastered","options":["conservation","object permanence","reversibility","metacognition"],"answerIndex":0,"explanationFactRef":2,"rationaleRefs":[0]},{"stem":"Reasoning carefully about a purely hypothetical 'what if' scenario first becomes possible in the","options":["formal operational stage","concrete operational stage","preoperational stage","sensorimotor stage"],"answerIndex":0,"explanationFactRef":4,"rationaleRefs":[0]}],"edges":{"recommends":["psych/erikson-psychosocial"],"instanceOf":[{"archetype":"process/staged-process","confidence":0.84,"mapping":{"process":"cognitive development from infancy to adulthood","stages":"sensorimotor, preoperational, concrete operational, formal operational","dependency":"each stage's mental operations are built from the schemata consolidated in the stage before","failure if skipped":"instruction pitched above the child's stage produces imitation without understanding"},"verified":true}]},"variants":[],"freshness":{"sourceEdition":"","reviewBy":"","volatility":"low"},"license":"CC-BY-4.0","attribution":["OpenStax Psychology 2e, §9.2 Lifespan Theories"],"standards":[]},{"id":"psych/erikson-psychosocial","rev":1,"term":"Erikson's psychosocial development","aliases":["psychosocial stages","eight stages of development","identity versus role confusion","trust versus mistrust"],"discipline":"psych","tags":["development","personality","lifespan"],"level":"intro","difficulty":2,"bloomCeiling":"Analyze","definition":{"text":"Erikson's psychosocial development theory emphasizes the social nature of development: across eight stages from infancy through late adulthood, each stage poses a conflict, or task, to resolve.","anchor":{"src":"openstax:psychology-2e#9b","loc":"9.2","quote":"psychosocial development theory emphasizes the social nature of our development"},"tier":2,"verifiedBy":0},"facts":[{"text":"Erikson proposed that personality development takes place all through the lifespan, not only in childhood.","anchor":{"src":"openstax:psychology-2e#9b","loc":"9.2","quote":"personality development takes place all through the lifespan"},"tier":2,"verifiedBy":0,"contested":false},{"text":"We experience eight stages of development over our lifespan, from infancy through late adulthood.","anchor":{"src":"openstax:psychology-2e#9b","loc":"9.2","quote":"we experience eight stages of development over our lifespan, from infancy through late adulthood"},"tier":2,"verifiedBy":0,"contested":false},{"text":"At each stage there is a conflict, or task, that we need to resolve.","anchor":{"src":"openstax:psychology-2e#9b","loc":"9.2","quote":"At each stage there is a conflict, or task, that we need to resolve"},"tier":2,"verifiedBy":0,"contested":false},{"text":"Infancy's task (birth to 12 months) is trust versus mistrust, with trust as the basis of development.","anchor":{"src":"openstax:psychology-2e#9b","loc":"9.2","quote":"trust is the basis of our development during infancy"},"tier":2,"verifiedBy":0,"contested":false},{"text":"Adolescents (ages 12–18) face identity versus role confusion; the main task is developing a sense of self.","anchor":{"src":"openstax:psychology-2e#9b","loc":"9.2","quote":"children face the task of identity versus role confusion"},"tier":2,"verifiedBy":0,"contested":false}],"misconceptions":[{"text":"Students assume personality development is finished by the end of childhood.","corrective":"Erikson's eight psychosocial stages run from infancy through late adulthood — adults still face new conflicts such as intimacy, generativity, and integrity; development is lifelong.","anchor":null,"tier":1}],"examples":[{"text":"A college first-year cycling through majors, friend groups, and aesthetics is doing the normal work of identity versus role confusion — exploration, not flakiness.","domain":"higher education","anchor":null}],"workedExamples":[],"mcBank":[{"stem":"According to Erikson, the central task of infancy (birth to 12 months) is","options":["trust versus mistrust","identity versus role confusion","autonomy versus shame and doubt","intimacy versus isolation"],"answerIndex":0,"explanationFactRef":3,"rationaleRefs":[0]},{"stem":"An adolescent trying out different styles, beliefs, and possible careers is working through the task of","options":["identity versus role confusion","trust versus mistrust","generativity versus stagnation","industry versus inferiority"],"answerIndex":0,"explanationFactRef":4,"rationaleRefs":[0]}],"edges":{"recommends":["psych/piaget-stages"]},"variants":[],"freshness":{"sourceEdition":"","reviewBy":"","volatility":"low"},"license":"CC-BY-4.0","attribution":["OpenStax Psychology 2e, §9.2 Lifespan Theories"],"standards":[]},{"id":"psych/intelligence-theories","rev":1,"term":"Theories of intelligence","aliases":["general intelligence g","triarchic theory","multiple intelligences","crystallized and fluid intelligence"],"discipline":"psych","tags":["intelligence","individual differences","assessment"],"level":"intro","difficulty":3,"bloomCeiling":"Evaluate","definition":{"text":"Theories of intelligence disagree on its structure: Spearman saw one general factor (g) that can be measured and compared, while Sternberg's triarchic theory and Gardner's multiple intelligences carve it into several distinct capacities.","anchor":{"src":"openstax:psychology-2e#7b","loc":"7.4","quote":"intelligence consisted of one general factor, called g, which could be measured and compared among individuals"},"tier":2,"verifiedBy":0},"facts":[{"text":"Spearman proposed a single general factor, g, measurable and comparable across individuals.","anchor":{"src":"openstax:psychology-2e#7b","loc":"7.4","quote":"Charles Spearman believed intelligence consisted of one general factor, called g"},"tier":2,"verifiedBy":0,"contested":false},{"text":"Crystallized intelligence is acquired knowledge and the ability to retrieve it.","anchor":{"src":"openstax:psychology-2e#7b","loc":"7.4","quote":"Crystallized intelligence is characterized as acquired knowledge and the ability to retrieve it"},"tier":2,"verifiedBy":0,"contested":false},{"text":"Fluid intelligence is the ability to see complex relationships and solve problems.","anchor":{"src":"openstax:psychology-2e#7b","loc":"7.4","quote":"Fluid intelligence encompasses the ability to see complex relationships and solve problems"},"tier":2,"verifiedBy":0,"contested":false},{"text":"Sternberg's triarchic theory splits intelligence into practical ('street smarts'), analytical (academic problem solving), and creative (inventing solutions) parts.","anchor":{"src":"openstax:psychology-2e#7b","loc":"7.4","quote":"the triarchic theory of intelligence because it sees intelligence as comprised of three parts"},"tier":2,"verifiedBy":0,"contested":false},{"text":"In Gardner's theory, each person possesses at least eight intelligences.","anchor":{"src":"openstax:psychology-2e#7b","loc":"7.4","quote":"In Gardner's theory, each person possesses at least eight intelligences"},"tier":2,"verifiedBy":0,"contested":false}],"misconceptions":[{"text":"Students treat an IQ score as identical to intelligence itself.","corrective":"A test score is one operationalization of the construct: it captures Spearman's comparable general factor, but Sternberg's practical and creative intelligences and Gardner's eight-plus intelligences fall largely outside a single number.","anchor":null,"tier":1}],"examples":[{"text":"A top mechanic who never finished school diagnoses engine faults instantly (practical intelligence) yet scores unremarkably on a paper IQ test — the measure misses the capacity.","domain":"everyday life","anchor":null}],"workedExamples":[],"mcBank":[{"stem":"A mechanic with little formal schooling can diagnose almost any engine failure on sight. Sternberg would call this","options":["practical intelligence","analytical intelligence","crystallized intelligence","general intelligence"],"answerIndex":0,"explanationFactRef":3,"rationaleRefs":[0]},{"stem":"An 80-year-old's rich vocabulary and deep stock of historical facts best illustrates","options":["crystallized intelligence","fluid intelligence","creative intelligence","emotional intelligence"],"answerIndex":0,"explanationFactRef":1,"rationaleRefs":[0]},{"stem":"Gardner's theory holds that each person possesses at least","options":["eight intelligences","three intelligences","two intelligences","one intelligence"],"answerIndex":0,"explanationFactRef":4,"rationaleRefs":[0]}],"edges":{"recommends":["psych/problem-solving-strategies"],"instanceOf":[{"archetype":"epistemic/operationalization","confidence":0.82,"mapping":{"construct":"a person's intelligence","measure":"a single general-factor (g) test score","what the measure captures":"performance that can be measured and compared among individuals","what it misses":"practical, creative, and multiple intelligences that sit outside the test"},"verified":true}]},"variants":[],"freshness":{"sourceEdition":"","reviewBy":"","volatility":"low"},"license":"CC-BY-4.0","attribution":["OpenStax Psychology 2e, §7.4 What Are Intelligence and Creativity?"],"standards":[]},{"id":"psych/intrinsic-extrinsic-motivation","rev":1,"term":"Intrinsic and extrinsic motivation","aliases":["motivation","overjustification effect","internal and external motivation","rewards and motivation"],"discipline":"psych","tags":["motivation","classroom incentives","engagement"],"level":"intro","difficulty":2,"bloomCeiling":"Evaluate","definition":{"text":"Motivation describes the wants or needs that direct behavior toward a goal; intrinsically motivated behaviors are performed for the personal satisfaction they bring, while extrinsically motivated behaviors are performed to receive something from others.","anchor":{"src":"openstax:psychology-2e#10","loc":"10.1","quote":"Motivation describes the wants or needs that direct behavior toward a goal"},"tier":2,"verifiedBy":0},"facts":[{"text":"Intrinsic motivation comes from the sense of personal satisfaction a behavior brings; extrinsic motivation aims to receive something from others.","anchor":{"src":"openstax:psychology-2e#10","loc":"10.1","quote":"Intrinsically motivated behaviors are performed because of the sense of personal satisfaction that they bring"},"tier":2,"verifiedBy":0,"contested":false},{"text":"Being paid for an activity we already enjoy can lead the behavior to be thought of as work that no longer provides the same enjoyment.","anchor":{"src":"openstax:psychology-2e#10","loc":"10.1","quote":"leads to those behaviors being thought of as work no longer providing that same enjoyment"},"tier":2,"verifiedBy":0,"contested":false},{"text":"The overjustification effect: intrinsic motivation is diminished when extrinsic motivation is given.","anchor":{"src":"openstax:psychology-2e#10","loc":"10.1","quote":"the overjustification effect—intrinsic motivation is diminished when extrinsic motivation is given"},"tier":2,"verifiedBy":0,"contested":false},{"text":"Real motivation is usually a mix of intrinsic and extrinsic factors, and the mix can change over time.","anchor":{"src":"openstax:psychology-2e#10","loc":"10.1","quote":"our motivations are often a mix of both intrinsic and extrinsic factors"},"tier":2,"verifiedBy":0,"contested":false}],"misconceptions":[{"text":"Students (and teachers) assume adding rewards always strengthens motivation.","corrective":"The overjustification effect shows the opposite can happen: paying or prizing an activity someone already enjoys can recast it as work and diminish the intrinsic motivation that was driving it.","anchor":null,"tier":1}],"examples":[{"text":"A reading-for-pizza program gets reluctant readers started (extrinsic), but a child who already devours novels may read less once reading becomes a transaction.","domain":"classroom","anchor":null}],"workedExamples":[],"mcBank":[{"stem":"A child who once drew for fun starts getting paid per picture; when the payments stop, she draws far less than before. This illustrates","options":["the overjustification effect","vicarious reinforcement","negative reinforcement","the law of effect"],"answerIndex":0,"explanationFactRef":2,"rationaleRefs":[0]},{"stem":"Which learner is intrinsically motivated?","options":["one who studies because the material itself is satisfying","one who studies to win a cash scholarship award","one who studies to avoid losing phone privileges","one who studies because parents pay for each good grade"],"answerIndex":0,"explanationFactRef":0,"rationaleRefs":[0]}],"edges":{"recommends":["psych/operant-conditioning"]},"variants":[],"freshness":{"sourceEdition":"","reviewBy":"","volatility":"low"},"license":"CC-BY-4.0","attribution":["OpenStax Psychology 2e, §10.1 Motivation"],"standards":[]},{"id":"psych/problem-solving-strategies","rev":1,"term":"Problem-solving strategies","aliases":["cognitive bias","cognitive biases","heuristics and biases","algorithms and heuristics","mental set","functional fixedness","working backwards"],"discipline":"psych","tags":["cognition","thinking","metacognition"],"level":"intro","difficulty":2,"bloomCeiling":"Apply","definition":{"text":"A problem-solving strategy is a plan of action used to find a solution; the main families are algorithms (exact step-by-step formulas) and heuristics (general frameworks that trade certainty for speed).","anchor":{"src":"openstax:psychology-2e#7","loc":"7.3","quote":"A problem-solving strategy is a plan of action used to find a solution"},"tier":2,"verifiedBy":0},"facts":[{"text":"An algorithm is a problem-solving formula providing step-by-step instructions to achieve a desired outcome.","anchor":{"src":"openstax:psychology-2e#7","loc":"7.3","quote":"An algorithm is a problem-solving formula that provides you with step-by-step instructions used to achieve a desired outcome"},"tier":2,"verifiedBy":0,"contested":false},{"text":"A heuristic is a general problem-solving framework rather than an exact recipe.","anchor":{"src":"openstax:psychology-2e#7","loc":"7.3","quote":"A heuristic is a general problem-solving framework"},"tier":2,"verifiedBy":0,"contested":false},{"text":"People reach for heuristics under specific conditions — for example, when faced with too much information or when decision time is limited.","anchor":{"src":"openstax:psychology-2e#7","loc":"7.3","quote":"When one is faced with too much information; When the time to make a decision is limited"},"tier":2,"verifiedBy":0,"contested":false},{"text":"A mental set is persisting with an approach that worked in the past but is clearly not working now.","anchor":{"src":"openstax:psychology-2e#7","loc":"7.3","quote":"you persist in approaching a problem in a way that has worked in the past but is clearly not working now"},"tier":2,"verifiedBy":0,"contested":false},{"text":"Functional fixedness is a mental set in which you cannot perceive an object being used for anything other than its designed purpose.","anchor":{"src":"openstax:psychology-2e#7","loc":"7.3","quote":"you cannot perceive an object being used for something other than what it was designed for"},"tier":2,"verifiedBy":0,"contested":false}],"misconceptions":[{"text":"Students dismiss heuristics as sloppy thinking that should always be replaced by algorithms.","corrective":"Heuristics are adaptive general frameworks deliberately used when information or time is limited; an algorithm guarantees a result only where a step-by-step formula exists and there is time to run it.","anchor":null,"tier":1}],"examples":[{"text":"Working backwards from a paper's due date to set draft and research milestones — a heuristic the textbook itself recommends for planning.","domain":"study skills","anchor":null}],"workedExamples":[],"mcBank":[{"stem":"Persisting with a tactic that solved earlier puzzles even though it clearly fails on the current one demonstrates","options":["a mental set","an algorithm","working backwards","trial and error"],"answerIndex":0,"explanationFactRef":3,"rationaleRefs":[0]},{"stem":"Failing to realize a metal coin could serve as a screwdriver is an example of","options":["functional fixedness","an algorithm","a heuristic","working backwards"],"answerIndex":0,"explanationFactRef":4,"rationaleRefs":[0]}],"edges":{},"variants":[],"freshness":{"sourceEdition":"","reviewBy":"","volatility":"low"},"license":"CC-BY-4.0","attribution":["OpenStax Psychology 2e, §7.3 Problem Solving"],"standards":[]}],"index":{"postings":{"classical":["psych/classical-conditioning"],"condition":["psych/classical-conditioning","psych/operant-conditioning"],"learn":["psych/classical-conditioning","psych/operant-conditioning","psych/observational-learning"],"pavlovian":["psych/classical-conditioning"],"respondent":["psych/classical-conditioning"],"stimulus-stimulu":["psych/classical-conditioning"],"pavlov":["psych/classical-conditioning"],"dog":["psych/classical-conditioning"],"behaviorism":["psych/classical-conditioning","psych/operant-conditioning"],"associative":["psych/classical-conditioning"],"operant":["psych/operant-conditioning"],"reinforcement":["psych/operant-conditioning"],"punishment":["psych/operant-conditioning"],"skinnerian":["psych/operant-conditioning"],"consequence":["psych/operant-conditioning"],"instrumental":["psych/operant-conditioning"],"classroom":["psych/operant-conditioning","psych/intrinsic-extrinsic-motivation"],"management":["psych/operant-conditioning"],"observational":["psych/observational-learning"],"model":["psych/observational-learning","psych/memory-model"],"social":["psych/observational-learning"],"vicariou":["psych/observational-learning"],"bandura":["psych/observational-learning"],"bobo":["psych/observational-learning"],"doll":["psych/observational-learning"],"cognition":["psych/observational-learning","psych/memory-model","psych/working-memory","psych/long-term-memory","psych/forgetting","psych/piaget-stages","psych/problem-solving-strategies"],"memory":["psych/memory-model","psych/working-memory","psych/long-term-memory","psych/forgetting"],"encod":["psych/memory-model","psych/forgetting"],"storage":["psych/memory-model"],"retrieval":["psych/memory-model","psych/forgetting"],"how":["psych/memory-model"],"function":["psych/memory-model"],"process":["psych/memory-model"],"atkinson-shiffrin":["psych/memory-model"],"information":["psych/memory-model"],"study":["psych/memory-model"],"skill":["psych/memory-model"],"short-term":["psych/working-memory"],"work":["psych/working-memory","psych/problem-solving-strategies"],"stm":["psych/working-memory"],"rehearsal":["psych/working-memory"],"cognitive":["psych/working-memory","psych/piaget-stages","psych/problem-solving-strategies"],"load":["psych/working-memory"],"long-term":["psych/long-term-memory"],"system":["psych/long-term-memory"],"ltm":["psych/long-term-memory"],"explicit":["psych/long-term-memory"],"implicit":["psych/long-term-memory"],"episodic":["psych/long-term-memory"],"semantic":["psych/long-term-memory"],"procedural":["psych/long-term-memory"],"knowledge":["psych/long-term-memory"],"typ":["psych/long-term-memory"],"forgett":["psych/forgetting"],"failure":["psych/forgetting"],"interference":["psych/forgetting"],"tip":["psych/forgetting"],"tongue":["psych/forgetting"],"ebbinghau":["psych/forgetting"],"curve":["psych/forgetting"],"assessment":["psych/forgetting","psych/intelligence-theories"],"design":["psych/forgetting"],"piaget":["psych/piaget-stages"],"stag":["psych/piaget-stages","psych/erikson-psychosocial"],"development":["psych/piaget-stages","psych/erikson-psychosocial"],"sensorimotor":["psych/piaget-stages"],"stage":["psych/piaget-stages"],"preoperational":["psych/piaget-stages"],"concrete":["psych/piaget-stages"],"formal":["psych/piaget-stages"],"operation":["psych/piaget-stages"],"child":["psych/piaget-stages"],"psychology":["psych/piaget-stages"],"erikson":["psych/erikson-psychosocial"],"psychosocial":["psych/erikson-psychosocial"],"eight":["psych/erikson-psychosocial"],"identity":["psych/erikson-psychosocial"],"versu":["psych/erikson-psychosocial"],"role":["psych/erikson-psychosocial"],"confusion":["psych/erikson-psychosocial"],"trust":["psych/erikson-psychosocial"],"mistrust":["psych/erikson-psychosocial"],"personality":["psych/erikson-psychosocial"],"lifespan":["psych/erikson-psychosocial"],"theori":["psych/intelligence-theories"],"intelligence":["psych/intelligence-theories"],"general":["psych/intelligence-theories"],"triarchic":["psych/intelligence-theories"],"multiple":["psych/intelligence-theories"],"intelligenc":["psych/intelligence-theories"],"crystalliz":["psych/intelligence-theories"],"fluid":["psych/intelligence-theories"],"individual":["psych/intelligence-theories"],"differenc":["psych/intelligence-theories"],"intrinsic":["psych/intrinsic-extrinsic-motivation"],"extrinsic":["psych/intrinsic-extrinsic-motivation"],"motivation":["psych/intrinsic-extrinsic-motivation"],"overjustification":["psych/intrinsic-extrinsic-motivation"],"effect":["psych/intrinsic-extrinsic-motivation"],"internal":["psych/intrinsic-extrinsic-motivation"],"external":["psych/intrinsic-extrinsic-motivation"],"reward":["psych/intrinsic-extrinsic-motivation"],"incentiv":["psych/intrinsic-extrinsic-motivation"],"engagement":["psych/intrinsic-extrinsic-motivation"],"problem-solv":["psych/problem-solving-strategies"],"strategi":["psych/problem-solving-strategies"],"bia":["psych/problem-solving-strategies"],"bias":["psych/problem-solving-strategies"],"heuristic":["psych/problem-solving-strategies"],"algorithm":["psych/problem-solving-strategies"],"mental":["psych/problem-solving-strategies"],"set":["psych/problem-solving-strategies"],"functional":["psych/problem-solving-strategies"],"fixednes":["psych/problem-solving-strategies"],"backward":["psych/problem-solving-strategies"],"think":["psych/problem-solving-strategies"],"metacognition":["psych/problem-solving-strategies"]}}}
+{
+ "id": "psych-intro",
+ "discipline": "psych",
+ "level": "intro",
+ "conceptCount": 12,
+ "kernels": [
+  {
+   "id": "psych/classical-conditioning",
+   "rev": 2,
+   "term": "Classical conditioning",
+   "aliases": [
+    "learning",
+    "Pavlovian conditioning",
+    "respondent conditioning",
+    "stimulus-stimulus learning",
+    "Pavlov's dogs"
+   ],
+   "discipline": "psych",
+   "tags": [
+    "learning",
+    "behaviorism",
+    "associative learning"
+   ],
+   "level": "intro",
+   "difficulty": 2,
+   "bloomCeiling": "Analyze",
+   "definition": {
+    "text": "Classical conditioning is a process by which we learn to associate stimuli and, consequently, to anticipate events — a neutral stimulus repeatedly paired with an unconditioned stimulus comes to trigger a learned response on its own.",
+    "anchor": {
+     "src": "openstax:psychology-2e#6",
+     "loc": "6.2",
+     "quote": "a process by which we learn to associate stimuli and, consequently, to anticipate events"
+    },
+    "tier": 2,
+    "verifiedBy": 0
+   },
+   "facts": [
+    {
+     "text": "An unconditioned stimulus (UCS) elicits a reflexive response in an organism with no learning required.",
+     "anchor": {
+      "src": "openstax:psychology-2e#6",
+      "loc": "6.2",
+      "quote": "an unconditioned stimulus (UCS): a stimulus that elicits a reflexive response in an organism"
+     },
+     "tier": 2,
+     "verifiedBy": 0,
+     "contested": false
+    },
+    {
+     "text": "An unconditioned response (UCR) is a natural, unlearned reaction to a given stimulus — Pavlov's dogs salivating to meat powder.",
+     "anchor": {
+      "src": "openstax:psychology-2e#6",
+      "loc": "6.2",
+      "quote": "an unconditioned response (UCR): a natural (unlearned) reaction to a given stimulus"
+     },
+     "tier": 2,
+     "verifiedBy": 0,
+     "contested": false
+    },
+    {
+     "text": "A conditioned stimulus (CS) is a stimulus that elicits a response only after repeatedly being paired with an unconditioned stimulus.",
+     "anchor": {
+      "src": "openstax:psychology-2e#6",
+      "loc": "6.2",
+      "quote": "the conditioned stimulus (CS), which is a stimulus that elicits a response after repeatedly being paired with an unconditioned stimulus"
+     },
+     "tier": 2,
+     "verifiedBy": 0,
+     "contested": false
+    },
+    {
+     "text": "Extinction is the decrease in the conditioned response when the unconditioned stimulus stops accompanying the conditioned stimulus.",
+     "anchor": {
+      "src": "openstax:psychology-2e#6",
+      "loc": "6.2",
+      "quote": "Extinction is the decrease in the conditioned response when the unconditioned stimulus is no longer presented with the conditioned stimulus"
+     },
+     "tier": 2,
+     "verifiedBy": 0,
+     "contested": false
+    },
+    {
+     "text": "Spontaneous recovery is the return of a previously extinguished conditioned response following a rest period.",
+     "anchor": {
+      "src": "openstax:psychology-2e#6",
+      "loc": "6.2",
+      "quote": "the return of a previously extinguished conditioned response following a rest period"
+     },
+     "tier": 2,
+     "verifiedBy": 0,
+     "contested": false
+    },
+    {
+     "text": "These terms are defined by their effect on behavior.",
+     "anchor": {
+      "src": "https://en.wikipedia.org/wiki/Operant_conditioning",
+      "loc": "extract",
+      "quote": "These terms are defined by their effect on behavior."
+     },
+     "tier": 2,
+     "verifiedBy": 0,
+     "contested": false
+    }
+   ],
+   "misconceptions": [
+    {
+     "text": "Students label any stimulus that triggers behavior a conditioned stimulus, blurring the UCS/CS distinction.",
+     "corrective": "An unconditioned stimulus elicits a reflex with no learning at all; a stimulus is conditioned only after repeated pairing with the UCS turns a formerly neutral stimulus into a trigger.",
+     "anchor": null,
+     "tier": 1
+    }
+   ],
+   "examples": [
+    {
+     "text": "The smell of a dentist's office (CS) making a patient's heart race after past pairings with the drill (UCS) — anticipation learned, not chosen.",
+     "domain": "everyday life",
+     "anchor": null
+    }
+   ],
+   "workedExamples": [],
+   "mcBank": [
+    {
+     "stem": "In Pavlov's studies, the tone began to trigger salivation only after being repeatedly paired with meat powder. At that point the tone is best labeled the",
+     "options": [
+      "conditioned stimulus",
+      "unconditioned stimulus",
+      "unconditioned response",
+      "neutral response"
+     ],
+     "answerIndex": 0,
+     "explanationFactRef": 2,
+     "rationaleRefs": [
+      0
+     ]
+    },
+    {
+     "stem": "A dog conditioned to salivate at a bell stops salivating after the bell sounds many times with no food. This decline is called",
+     "options": [
+      "extinction",
+      "spontaneous recovery",
+      "acquisition",
+      "habituation"
+     ],
+     "answerIndex": 0,
+     "explanationFactRef": 3,
+     "rationaleRefs": [
+      0
+     ]
+    },
+    {
+     "stem": "Days after its salivation response faded out, the same dog suddenly salivates when the bell rings again. This return is called",
+     "options": [
+      "spontaneous recovery",
+      "stimulus discrimination",
+      "acquisition",
+      "negative reinforcement"
+     ],
+     "answerIndex": 0,
+     "explanationFactRef": 4,
+     "rationaleRefs": [
+      0
+     ]
+    }
+   ],
+   "edges": {
+    "recommends": [
+     "psych/operant-conditioning"
+    ]
+   },
+   "variants": [],
+   "freshness": {
+    "sourceEdition": "",
+    "reviewBy": "",
+    "volatility": "low"
+   },
+   "license": "CC-BY-4.0",
+   "attribution": [
+    "OpenStax Psychology 2e, §6.2 Classical Conditioning"
+   ],
+   "standards": []
+  },
+  {
+   "id": "psych/operant-conditioning",
+   "rev": 1,
+   "term": "Operant conditioning",
+   "aliases": [
+    "learning",
+    "reinforcement and punishment",
+    "Skinnerian conditioning",
+    "consequence learning",
+    "instrumental conditioning"
+   ],
+   "discipline": "psych",
+   "tags": [
+    "learning",
+    "behaviorism",
+    "classroom management"
+   ],
+   "level": "intro",
+   "difficulty": 2,
+   "bloomCeiling": "Evaluate",
+   "definition": {
+    "text": "In operant conditioning, organisms learn to associate a behavior and its consequence: reinforced behaviors become more likely, punished behaviors less likely.",
+    "anchor": {
+     "src": "openstax:psychology-2e#6b",
+     "loc": "6.3",
+     "quote": "organisms learn to associate a behavior and its consequence"
+    },
+    "tier": 2,
+    "verifiedBy": 0
+   },
+   "facts": [
+    {
+     "text": "The law of effect: behaviors followed by satisfying consequences are more likely to be repeated; behaviors followed by unpleasant consequences are less likely.",
+     "anchor": {
+      "src": "openstax:psychology-2e#6b",
+      "loc": "6.3",
+      "quote": "behaviors that are followed by consequences that are satisfying to the organism are more likely to be repeated"
+     },
+     "tier": 2,
+     "verifiedBy": 0,
+     "contested": false
+    },
+    {
+     "text": "In operant terms, positive means adding something and negative means taking something away — not good and bad.",
+     "anchor": {
+      "src": "openstax:psychology-2e#6b",
+      "loc": "6.3",
+      "quote": "positive means you are adding something, and negative means you are taking something away"
+     },
+     "tier": 2,
+     "verifiedBy": 0,
+     "contested": false
+    },
+    {
+     "text": "Reinforcement always increases a behavior and punishment always decreases it, whichever sign it carries.",
+     "anchor": {
+      "src": "openstax:psychology-2e#6b",
+      "loc": "6.3",
+      "quote": "Reinforcement means you are increasing a behavior, and punishment means you are decreasing a behavior"
+     },
+     "tier": 2,
+     "verifiedBy": 0,
+     "contested": false
+    },
+    {
+     "text": "In negative reinforcement, an undesirable stimulus is removed to increase a behavior.",
+     "anchor": {
+      "src": "openstax:psychology-2e#6b",
+      "loc": "6.3",
+      "quote": "In negative reinforcement, an undesirable stimulus is removed to increase a behavior"
+     },
+     "tier": 2,
+     "verifiedBy": 0,
+     "contested": false
+    },
+    {
+     "text": "Shaping builds complex behavior by rewarding successive approximations of a target behavior.",
+     "anchor": {
+      "src": "openstax:psychology-2e#6b",
+      "loc": "6.3",
+      "quote": "we reward successive approximations of a target behavior"
+     },
+     "tier": 2,
+     "verifiedBy": 0,
+     "contested": false
+    }
+   ],
+   "misconceptions": [
+    {
+     "text": "Students equate negative reinforcement with punishment.",
+     "corrective": "Negative refers to removing a stimulus, not to badness: negative reinforcement removes something undesirable to increase a behavior, while punishment of either sign decreases behavior.",
+     "anchor": null,
+     "tier": 1
+    },
+    {
+     "text": "Students read positive and negative as good and bad outcomes.",
+     "corrective": "In operant conditioning positive means adding something and negative means taking something away; either operation can serve reinforcement or punishment.",
+     "anchor": null,
+     "tier": 1
+    }
+   ],
+   "examples": [
+    {
+     "text": "A teacher excuses students from Friday homework when the class stays on task all week — removing an undesirable task to increase on-task behavior (negative reinforcement).",
+     "domain": "classroom",
+     "anchor": null
+    }
+   ],
+   "workedExamples": [],
+   "mcBank": [
+    {
+     "stem": "Taking aspirin removes your headache, so you become more likely to take aspirin the next time one starts. Removing the headache acts as",
+     "options": [
+      "negative reinforcement",
+      "positive reinforcement",
+      "negative punishment",
+      "positive punishment"
+     ],
+     "answerIndex": 0,
+     "explanationFactRef": 3,
+     "rationaleRefs": [
+      0
+     ]
+    },
+    {
+     "stem": "In operant conditioning, the words 'positive' and 'negative' refer to",
+     "options": [
+      "adding or removing a stimulus",
+      "good or bad outcomes",
+      "pleasant or unpleasant emotions",
+      "strong or weak responses"
+     ],
+     "answerIndex": 0,
+     "explanationFactRef": 1,
+     "rationaleRefs": [
+      1
+     ]
+    },
+    {
+     "stem": "A trainer rewards a dolphin for closer and closer approximations of a full flip. This technique is called",
+     "options": [
+      "shaping",
+      "extinction",
+      "generalization",
+      "spontaneous recovery"
+     ],
+     "answerIndex": 0,
+     "explanationFactRef": 4,
+     "rationaleRefs": [
+      0
+     ]
+    }
+   ],
+   "edges": {
+    "recommends": [
+     "psych/classical-conditioning"
+    ]
+   },
+   "variants": [],
+   "freshness": {
+    "sourceEdition": "",
+    "reviewBy": "",
+    "volatility": "low"
+   },
+   "license": "CC-BY-4.0",
+   "attribution": [
+    "OpenStax Psychology 2e, §6.3 Operant Conditioning"
+   ],
+   "standards": []
+  },
+  {
+   "id": "psych/observational-learning",
+   "rev": 2,
+   "term": "Observational learning",
+   "aliases": [
+    "learning",
+    "modeling",
+    "social learning",
+    "vicarious learning",
+    "Bandura's Bobo doll"
+   ],
+   "discipline": "psych",
+   "tags": [
+    "learning",
+    "social cognition",
+    "Bandura"
+   ],
+   "level": "intro",
+   "difficulty": 2,
+   "bloomCeiling": "Analyze",
+   "definition": {
+    "text": "In observational learning, we learn by watching others and then imitating, or modeling, what they do or say — no direct reinforcement of the learner is required.",
+    "anchor": {
+     "src": "openstax:psychology-2e#6c",
+     "loc": "6.4",
+     "quote": "we learn by watching others and then imitating, or modeling, what they do or say"
+    },
+    "tier": 2,
+    "verifiedBy": 0
+   },
+   "facts": [
+    {
+     "text": "Bandura researched modeling behavior, particularly children's modeling of adults' aggressive and violent behaviors.",
+     "anchor": {
+      "src": "openstax:psychology-2e#6c",
+      "loc": "6.4",
+      "quote": "Bandura researched modeling behavior, particularly children's modeling of adults' aggressive and violent behaviors"
+     },
+     "tier": 2,
+     "verifiedBy": 0,
+     "contested": false
+    },
+    {
+     "text": "Successful modeling requires four steps in order: attention, retention, reproduction, and motivation.",
+     "anchor": {
+      "src": "openstax:psychology-2e#6c",
+      "loc": "6.4",
+      "quote": "steps in the process of modeling that must be followed if learning is to be successful: attention, retention, reproduction, and motivation"
+     },
+     "tier": 2,
+     "verifiedBy": 0,
+     "contested": false
+    },
+    {
+     "text": "Seeing a model reinforced makes the observer more motivated to copy them — vicarious reinforcement.",
+     "anchor": {
+      "src": "openstax:psychology-2e#6c",
+      "loc": "6.4",
+      "quote": "If you saw that the model was reinforced for their behavior, you will be more motivated to copy them"
+     },
+     "tier": 2,
+     "verifiedBy": 0,
+     "contested": false
+    },
+    {
+     "text": "Seeing a model punished makes the observer less motivated to copy them — vicarious punishment; children who saw the model punished decreased their imitation.",
+     "anchor": {
+      "src": "openstax:psychology-2e#6c",
+      "loc": "6.4",
+      "quote": "If you observed the model being punished, you would be less motivated to copy them"
+     },
+     "tier": 2,
+     "verifiedBy": 0,
+     "contested": false
+    },
+    {
+     "text": "Observational learning can have both prosocial and antisocial effects, so the models children see matter.",
+     "anchor": {
+      "src": "openstax:psychology-2e#6c",
+      "loc": "6.4",
+      "quote": "this learning can have both prosocial and antisocial effects"
+     },
+     "tier": 2,
+     "verifiedBy": 0,
+     "contested": false
+    },
+    {
+     "text": "Observational learning occurs through observing negative and positive behaviors.",
+     "anchor": {
+      "src": "https://en.wikipedia.org/wiki/Observational_learning",
+      "loc": "extract",
+      "quote": "Observational learning occurs through observing negative and positive behaviors."
+     },
+     "tier": 2,
+     "verifiedBy": 0,
+     "contested": false
+    }
+   ],
+   "misconceptions": [
+    {
+     "text": "Students assume a person must be directly rewarded themselves before imitation occurs.",
+     "corrective": "Bandura showed vicarious consequences suffice: children imitated a model who was praised or simply not punished, and held back when the model was punished — the consequence landed on the model, not the child.",
+     "anchor": null,
+     "tier": 1
+    }
+   ],
+   "examples": [
+    {
+     "text": "A new student watches a classmate get praised for raising a hand before speaking and starts raising their own hand — vicarious reinforcement in action.",
+     "domain": "classroom",
+     "anchor": null
+    }
+   ],
+   "workedExamples": [],
+   "mcBank": [
+    {
+     "stem": "Bandura's four steps of successful modeling, in order, are",
+     "options": [
+      "attention, retention, reproduction, motivation",
+      "motivation, attention, retention, reproduction",
+      "attention, reproduction, retention, motivation",
+      "retention, attention, motivation, reproduction"
+     ],
+     "answerIndex": 0,
+     "explanationFactRef": 1,
+     "rationaleRefs": [
+      0
+     ]
+    },
+    {
+     "stem": "Children who watched an adult get scolded for hitting the Bobo doll later hit the doll less themselves. This effect is called",
+     "options": [
+      "vicarious punishment",
+      "vicarious reinforcement",
+      "direct punishment",
+      "negative reinforcement"
+     ],
+     "answerIndex": 0,
+     "explanationFactRef": 3,
+     "rationaleRefs": [
+      0
+     ]
+    }
+   ],
+   "edges": {
+    "requires": [
+     "psych/operant-conditioning"
+    ]
+   },
+   "variants": [],
+   "freshness": {
+    "sourceEdition": "",
+    "reviewBy": "",
+    "volatility": "low"
+   },
+   "license": "CC-BY-4.0",
+   "attribution": [
+    "OpenStax Psychology 2e, §6.4 Observational Learning (Modeling)"
+   ],
+   "standards": []
+  },
+  {
+   "id": "psych/memory-model",
+   "rev": 2,
+   "term": "Memory: encoding, storage, and retrieval",
+   "aliases": [
+    "memory",
+    "how memory functions",
+    "memory processes",
+    "Atkinson-Shiffrin model",
+    "information processing model"
+   ],
+   "discipline": "psych",
+   "tags": [
+    "memory",
+    "cognition",
+    "study skills"
+   ],
+   "level": "intro",
+   "difficulty": 2,
+   "bloomCeiling": "Analyze",
+   "definition": {
+    "text": "Memory is the set of processes used to encode, store, and retrieve information over different periods of time; to be stored long term, information must pass through sensory, short-term, and long-term stages.",
+    "anchor": {
+     "src": "openstax:psychology-2e#8",
+     "loc": "8.1",
+     "quote": "Memory is the set of processes used to encode, store, and retrieve information over different periods of time"
+    },
+    "tier": 2,
+    "verifiedBy": 0
+   },
+   "facts": [
+    {
+     "text": "Encoding is the input of information into the memory system.",
+     "anchor": {
+      "src": "openstax:psychology-2e#8",
+      "loc": "8.1",
+      "quote": "the input of information into the memory system"
+     },
+     "tier": 2,
+     "verifiedBy": 0,
+     "contested": false
+    },
+    {
+     "text": "Words encoded semantically — by their meaning — are remembered better than words encoded visually or acoustically.",
+     "anchor": {
+      "src": "openstax:psychology-2e#8",
+      "loc": "8.1",
+      "quote": "Words that had been encoded semantically were better remembered than those encoded visually or acoustically"
+     },
+     "tier": 2,
+     "verifiedBy": 0,
+     "contested": false
+    },
+    {
+     "text": "Storage is the creation of a permanent record of information.",
+     "anchor": {
+      "src": "openstax:psychology-2e#8",
+      "loc": "8.1",
+      "quote": "Storage is the creation of a permanent record of information"
+     },
+     "tier": 2,
+     "verifiedBy": 0,
+     "contested": false
+    },
+    {
+     "text": "A memory headed for long-term storage must pass through three distinct stages: sensory memory, short-term memory, and long-term memory.",
+     "anchor": {
+      "src": "openstax:psychology-2e#8",
+      "loc": "8.1",
+      "quote": "it has to pass through three distinct stages: Sensory Memory, Short-Term Memory, and finally Long-Term Memory"
+     },
+     "tier": 2,
+     "verifiedBy": 0,
+     "contested": false
+    },
+    {
+     "text": "Retrieval is the act of getting information out of memory storage and back into conscious awareness.",
+     "anchor": {
+      "src": "openstax:psychology-2e#8",
+      "loc": "8.1",
+      "quote": "The act of getting information out of memory storage and back into conscious awareness is known as retrieval"
+     },
+     "tier": 2,
+     "verifiedBy": 0,
+     "contested": false
+    },
+    {
+     "text": "Various strategies can be applied such as chunking and mnemonics to aid in encoding, and in some cases, allow deep processing, and optimizing retrieval.",
+     "anchor": {
+      "src": "https://en.wikipedia.org/wiki/Encoding_(memory)",
+      "loc": "extract",
+      "quote": "Various strategies can be applied such as chunking and mnemonics to aid in encoding, and in some cases, allow deep processing, and optimizing retrieval."
+     },
+     "tier": 2,
+     "verifiedBy": 1,
+     "contested": false
+    }
+   ],
+   "misconceptions": [
+    {
+     "text": "Students picture memory as one big storehouse where information simply sits once seen.",
+     "corrective": "Memory is a set of processes, not a place: information must be encoded, pass through sensory and short-term stages into long-term storage, and then be retrieved — and it can be lost at every step.",
+     "anchor": null,
+     "tier": 1
+    }
+   ],
+   "examples": [
+    {
+     "text": "Explaining a new term in your own words (semantic encoding) beats recopying it ten times — meaning-based processing is the deepest route into storage.",
+     "domain": "study skills",
+     "anchor": null
+    }
+   ],
+   "workedExamples": [],
+   "mcBank": [
+    {
+     "stem": "Which sequence correctly orders the stages information passes through on its way into lasting storage?",
+     "options": [
+      "sensory memory, then short-term memory, then long-term memory",
+      "short-term memory, then sensory memory, then long-term memory",
+      "long-term memory, then short-term memory, then sensory memory",
+      "sensory memory, then long-term memory, then short-term memory"
+     ],
+     "answerIndex": 0,
+     "explanationFactRef": 3,
+     "rationaleRefs": [
+      0
+     ]
+    },
+    {
+     "stem": "Research on encoding shows that words are remembered best when a learner processes their",
+     "options": [
+      "meaning",
+      "appearance",
+      "sound",
+      "spelling"
+     ],
+     "answerIndex": 0,
+     "explanationFactRef": 1,
+     "rationaleRefs": [
+      0
+     ]
+    }
+   ],
+   "edges": {
+    "recommends": [
+     "psych/working-memory",
+     "psych/long-term-memory"
+    ],
+    "instanceOf": [
+     {
+      "archetype": "process/staged-process",
+      "confidence": 0.85,
+      "mapping": {
+       "process": "forming a lasting memory",
+       "stages": "encoding into sensory memory, holding in short-term memory, consolidating into long-term memory",
+       "dependency": "each stage hands its product to the next — unencoded input cannot be rehearsed, unrehearsed traces never reach long-term storage",
+       "failure if skipped": "information is lost and there is nothing left to retrieve"
+      },
+      "verified": true
+     }
+    ]
+   },
+   "variants": [],
+   "freshness": {
+    "sourceEdition": "",
+    "reviewBy": "",
+    "volatility": "low"
+   },
+   "license": "CC-BY-4.0",
+   "attribution": [
+    "OpenStax Psychology 2e, §8.1 How Memory Functions"
+   ],
+   "standards": []
+  },
+  {
+   "id": "psych/working-memory",
+   "rev": 2,
+   "term": "Short-term and working memory",
+   "aliases": [
+    "memory",
+    "short-term memory",
+    "STM",
+    "working memory",
+    "rehearsal"
+   ],
+   "discipline": "psych",
+   "tags": [
+    "memory",
+    "cognition",
+    "cognitive load"
+   ],
+   "level": "intro",
+   "difficulty": 2,
+   "bloomCeiling": "Apply",
+   "definition": {
+    "text": "Short-term memory (STM) is a temporary storage system that processes incoming sensory memory; the related term working memory emphasizes active manipulation, and the two terms are not exactly the same.",
+    "anchor": {
+     "src": "openstax:psychology-2e#8b",
+     "loc": "8.1",
+     "quote": "Short-term memory (STM) is a temporary storage system that processes incoming sensory memory"
+    },
+    "tier": 2,
+    "verifiedBy": 0
+   },
+   "facts": [
+    {
+     "text": "Short-term memory storage lasts only about 15 to 30 seconds without rehearsal.",
+     "anchor": {
+      "src": "openstax:psychology-2e#8b",
+      "loc": "8.1",
+      "quote": "Short-term memory storage lasts 15 to 30 seconds"
+     },
+     "tier": 2,
+     "verifiedBy": 0,
+     "contested": false
+    },
+    {
+     "text": "For most people short-term capacity is close to 7 plus or minus 2 items.",
+     "anchor": {
+      "src": "openstax:psychology-2e#8b",
+      "loc": "8.1",
+      "quote": "the capacity will probably be close to 7 plus or minus 2"
+     },
+     "tier": 2,
+     "verifiedBy": 0,
+     "contested": false
+    },
+    {
+     "text": "Active rehearsal is a way of attending to information to move it from short-term to long-term memory.",
+     "anchor": {
+      "src": "openstax:psychology-2e#8b",
+      "loc": "8.1",
+      "quote": "Active rehearsal is a way of attending to information to move it from short-term to long-term memory"
+     },
+     "tier": 2,
+     "verifiedBy": 0,
+     "contested": false
+    },
+    {
+     "text": "Short-term memory and working memory are sometimes used interchangeably, but they are not exactly the same.",
+     "anchor": {
+      "src": "openstax:psychology-2e#8b",
+      "loc": "8.1",
+      "quote": "The terms short-term and working memory are sometimes used interchangeably, but they are not exactly the same"
+     },
+     "tier": 2,
+     "verifiedBy": 0,
+     "contested": false
+    },
+    {
+     "text": "Sensory memory holds brief sensory events such as sights and sounds for only up to a couple of seconds before they fade or move on.",
+     "anchor": {
+      "src": "openstax:psychology-2e#8b",
+      "loc": "8.1",
+      "quote": "storage of brief sensory events, such as sights, sounds, and tastes"
+     },
+     "tier": 2,
+     "verifiedBy": 0,
+     "contested": false
+    },
+    {
+     "text": "Baddeley re-defined the theory of short-term memory as a working memory to explain this phenomenon.",
+     "anchor": {
+      "src": "https://en.wikipedia.org/wiki/Baddeley's_model_of_working_memory",
+      "loc": "extract",
+      "quote": "Baddeley re-defined the theory of short-term memory as a working memory to explain this phenomenon."
+     },
+     "tier": 2,
+     "verifiedBy": 0,
+     "contested": false
+    }
+   ],
+   "misconceptions": [
+    {
+     "text": "Students believe short-term memory holds information for hours, like a mental notepad left open all day.",
+     "corrective": "Without active rehearsal, short-term storage lasts only about 15 to 30 seconds and holds roughly 7 plus or minus 2 items — which is exactly why unwritten phone numbers vanish.",
+     "anchor": null,
+     "tier": 1
+    }
+   ],
+   "examples": [
+    {
+     "text": "Repeating a Wi-Fi password to yourself while crossing the room — stop rehearsing for half a minute and it is gone.",
+     "domain": "everyday life",
+     "anchor": null
+    }
+   ],
+   "workedExamples": [],
+   "mcBank": [
+    {
+     "stem": "Without rehearsal, information held in short-term storage typically lasts about",
+     "options": [
+      "15 to 30 seconds",
+      "2 to 3 minutes",
+      "an hour",
+      "one full day"
+     ],
+     "answerIndex": 0,
+     "explanationFactRef": 0,
+     "rationaleRefs": [
+      0
+     ]
+    },
+    {
+     "stem": "Which activity moves information from short-term into long-term storage?",
+     "options": [
+      "active rehearsal",
+      "sensory buffering",
+      "blocking",
+      "proactive interference"
+     ],
+     "answerIndex": 0,
+     "explanationFactRef": 2,
+     "rationaleRefs": [
+      0
+     ]
+    }
+   ],
+   "edges": {
+    "requires": [
+     "psych/memory-model"
+    ]
+   },
+   "variants": [],
+   "freshness": {
+    "sourceEdition": "",
+    "reviewBy": "",
+    "volatility": "low"
+   },
+   "license": "CC-BY-4.0",
+   "attribution": [
+    "OpenStax Psychology 2e, §8.1 How Memory Functions"
+   ],
+   "standards": []
+  },
+  {
+   "id": "psych/long-term-memory",
+   "rev": 2,
+   "term": "Long-term memory systems",
+   "aliases": [
+    "memory",
+    "LTM",
+    "explicit and implicit memory",
+    "episodic and semantic memory",
+    "procedural memory"
+   ],
+   "discipline": "psych",
+   "tags": [
+    "memory",
+    "cognition",
+    "knowledge types"
+   ],
+   "level": "intro",
+   "difficulty": 2,
+   "bloomCeiling": "Analyze",
+   "definition": {
+    "text": "Long-term memory (LTM) is the continuous storage of information, divided into explicit memories we consciously recall and implicit memories that operate outside consciousness.",
+    "anchor": {
+     "src": "openstax:psychology-2e#8b",
+     "loc": "8.1",
+     "quote": "Long-term memory (LTM) is the continuous storage of information"
+    },
+    "tier": 2,
+    "verifiedBy": 0
+   },
+   "facts": [
+    {
+     "text": "Unlike short-term memory, long-term storage capacity is believed to be unlimited.",
+     "anchor": {
+      "src": "openstax:psychology-2e#8b",
+      "loc": "8.1",
+      "quote": "long-term memory storage capacity is believed to be unlimited"
+     },
+     "tier": 2,
+     "verifiedBy": 0,
+     "contested": false
+    },
+    {
+     "text": "Explicit memories are those we consciously try to remember, recall, and report.",
+     "anchor": {
+      "src": "openstax:psychology-2e#8b",
+      "loc": "8.1",
+      "quote": "Explicit memories are those we consciously try to remember, recall, and report"
+     },
+     "tier": 2,
+     "verifiedBy": 0,
+     "contested": false
+    },
+    {
+     "text": "Implicit memories are long-term memories that are not part of our consciousness.",
+     "anchor": {
+      "src": "openstax:psychology-2e#8b",
+      "loc": "8.1",
+      "quote": "Implicit memories are long-term memories that are not part of our consciousness"
+     },
+     "tier": 2,
+     "verifiedBy": 0,
+     "contested": false
+    },
+    {
+     "text": "Implicit procedural memory stores how to do things — the memory for skilled actions.",
+     "anchor": {
+      "src": "openstax:psychology-2e#8b",
+      "loc": "8.1",
+      "quote": "Implicit procedural memory stores information about the way to do something, and it is the memory for skilled actions"
+     },
+     "tier": 2,
+     "verifiedBy": 0,
+     "contested": false
+    },
+    {
+     "text": "Explicit memory divides into episodic memory (events we have personally experienced) and semantic memory (knowledge about words, concepts, and facts).",
+     "anchor": {
+      "src": "openstax:psychology-2e#8b",
+      "loc": "8.1",
+      "quote": "Episodic memory is information about events we have personally experienced"
+     },
+     "tier": 2,
+     "verifiedBy": 0,
+     "contested": false
+    },
+    {
+     "text": "It aims to provide a short-term memory for RNN that can last thousands of timesteps (thus \"long short-term memory\").",
+     "anchor": {
+      "src": "https://en.wikipedia.org/wiki/Long_short-term_memory",
+      "loc": "extract",
+      "quote": "It aims to provide a short-term memory for RNN that can last thousands of timesteps (thus \"long short-term memory\")."
+     },
+     "tier": 2,
+     "verifiedBy": 0,
+     "contested": false
+    }
+   ],
+   "misconceptions": [
+    {
+     "text": "Students assume everything in long-term memory can be consciously recalled and described.",
+     "corrective": "Implicit memories — including procedural memory for skilled actions — are long-term memories outside consciousness: you ride a bicycle reliably without being able to report the balance corrections you make.",
+     "anchor": null,
+     "tier": 1
+    }
+   ],
+   "examples": [
+    {
+     "text": "A pianist who cannot say which finger plays which note mid-piece, yet performs flawlessly — procedural memory running without conscious access.",
+     "domain": "skills",
+     "anchor": null
+    }
+   ],
+   "workedExamples": [],
+   "mcBank": [
+    {
+     "stem": "Knowing how to ride a bicycle without consciously thinking through the motions draws on",
+     "options": [
+      "procedural memory",
+      "episodic memory",
+      "semantic memory",
+      "sensory memory"
+     ],
+     "answerIndex": 0,
+     "explanationFactRef": 3,
+     "rationaleRefs": [
+      0
+     ]
+    },
+    {
+     "stem": "Remembering your own high school graduation day is an example of",
+     "options": [
+      "episodic memory",
+      "semantic memory",
+      "procedural memory",
+      "implicit memory"
+     ],
+     "answerIndex": 0,
+     "explanationFactRef": 4,
+     "rationaleRefs": [
+      0
+     ]
+    }
+   ],
+   "edges": {
+    "requires": [
+     "psych/memory-model"
+    ],
+    "recommends": [
+     "psych/working-memory"
+    ]
+   },
+   "variants": [],
+   "freshness": {
+    "sourceEdition": "",
+    "reviewBy": "",
+    "volatility": "low"
+   },
+   "license": "CC-BY-4.0",
+   "attribution": [
+    "OpenStax Psychology 2e, §8.1 How Memory Functions"
+   ],
+   "standards": []
+  },
+  {
+   "id": "psych/forgetting",
+   "rev": 2,
+   "term": "Forgetting and retrieval failure",
+   "aliases": [
+    "memory",
+    "encoding failure",
+    "interference",
+    "tip of the tongue",
+    "Ebbinghaus forgetting curve"
+   ],
+   "discipline": "psych",
+   "tags": [
+    "memory",
+    "cognition",
+    "assessment design"
+   ],
+   "level": "intro",
+   "difficulty": 3,
+   "bloomCeiling": "Analyze",
+   "definition": {
+    "text": "Forgetting arises at every stage of memory: encoding failure (the information never entered memory), storage decay over time, and retrieval failures such as blocking and interference.",
+    "anchor": {
+     "src": "openstax:psychology-2e#8c",
+     "loc": "8.3",
+     "quote": "memory loss happens before the actual memory process begins, which is encoding failure"
+    },
+    "tier": 2,
+    "verifiedBy": 0
+   },
+   "facts": [
+    {
+     "text": "We cannot remember something that was never stored in memory in the first place — encoding failure is not really forgetting.",
+     "anchor": {
+      "src": "openstax:psychology-2e#8c",
+      "loc": "8.3",
+      "quote": "We can't remember something if we never stored it in our memory in the first place"
+     },
+     "tier": 2,
+     "verifiedBy": 0,
+     "contested": false
+    },
+    {
+     "text": "Ebbinghaus found storage decay is fast at first: an average person loses 50% of memorized information after 20 minutes and 70% after 24 hours, then the curve levels out.",
+     "anchor": {
+      "src": "openstax:psychology-2e#8c",
+      "loc": "8.3",
+      "quote": "lose 50% of the memorized information after 20 minutes and 70% of the information after 24 hours"
+     },
+     "tier": 2,
+     "verifiedBy": 0,
+     "contested": false
+    },
+    {
+     "text": "Blocking is a retrieval failure where stored information is temporarily inaccessible — the tip-of-the-tongue state.",
+     "anchor": {
+      "src": "openstax:psychology-2e#8c",
+      "loc": "8.3",
+      "quote": "you can't access stored information"
+     },
+     "tier": 2,
+     "verifiedBy": 0,
+     "contested": false
+    },
+    {
+     "text": "Proactive interference: old information hinders the recall of newly learned information.",
+     "anchor": {
+      "src": "openstax:psychology-2e#8c",
+      "loc": "8.3",
+      "quote": "old information hinders the recall of newly learned information"
+     },
+     "tier": 2,
+     "verifiedBy": 0,
+     "contested": false
+    },
+    {
+     "text": "Retroactive interference: information learned more recently hinders the recall of older information.",
+     "anchor": {
+      "src": "openstax:psychology-2e#8c",
+      "loc": "8.3",
+      "quote": "information learned more recently hinders the recall of older information"
+     },
+     "tier": 2,
+     "verifiedBy": 0,
+     "contested": false
+    },
+    {
+     "text": "Forgetting State-dependent learning Context-dependent memory Encoding specificity principle Tulving, Endel (1974).",
+     "anchor": {
+      "src": "https://en.wikipedia.org/wiki/Forgetting",
+      "loc": "extract",
+      "quote": "Forgetting State-dependent learning Context-dependent memory Encoding specificity principle Tulving, Endel (1974)."
+     },
+     "tier": 2,
+     "verifiedBy": 1,
+     "contested": false
+    }
+   ],
+   "misconceptions": [
+    {
+     "text": "Students treat all forgetting as memories being erased from storage.",
+     "corrective": "Much forgetting is encoding failure (never stored) or retrieval failure (blocking, interference) — the tip-of-the-tongue state proves information can remain stored yet be temporarily unreachable.",
+     "anchor": null,
+     "tier": 1
+    }
+   ],
+   "examples": [
+    {
+     "text": "Most people cannot draw a penny correctly despite seeing thousands — the details were never encoded, so there was nothing to forget.",
+     "domain": "classroom demo",
+     "anchor": null
+    }
+   ],
+   "workedExamples": [
+    {
+     "problem": "A student memorizes 200 vocabulary terms the night before a test and does not review them. Using Ebbinghaus's averages, estimate how many terms remain after 24 hours.",
+     "steps": [
+      "Ebbinghaus's curve: an average person loses 70% of memorized information after 24 hours.",
+      "Compute the loss: 200 × 0.70 = 140 terms lost.",
+      "Subtract from the total: 200 − 140 = 60 terms retained."
+     ],
+     "result": "About 60 of 200 terms remain — the case for spaced review instead of one-night cramming.",
+     "anchor": {
+      "src": "openstax:psychology-2e#8c",
+      "loc": "8.3",
+      "quote": "70% of the information after 24 hours"
+     }
+    }
+   ],
+   "mcBank": [
+    {
+     "stem": "Years of speaking French make it harder to retrieve newly learned Spanish vocabulary. This is",
+     "options": [
+      "proactive interference",
+      "retroactive interference",
+      "encoding failure",
+      "storage decay"
+     ],
+     "answerIndex": 0,
+     "explanationFactRef": 3,
+     "rationaleRefs": [
+      0
+     ]
+    },
+    {
+     "stem": "After memorizing a new phone number, you struggle to recall your previous one. This is",
+     "options": [
+      "retroactive interference",
+      "proactive interference",
+      "blocking",
+      "spontaneous recovery"
+     ],
+     "answerIndex": 0,
+     "explanationFactRef": 4,
+     "rationaleRefs": [
+      0
+     ]
+    }
+   ],
+   "edges": {
+    "requires": [
+     "psych/memory-model"
+    ],
+    "recommends": [
+     "psych/long-term-memory"
+    ]
+   },
+   "variants": [],
+   "freshness": {
+    "sourceEdition": "",
+    "reviewBy": "",
+    "volatility": "low"
+   },
+   "license": "CC-BY-4.0",
+   "attribution": [
+    "OpenStax Psychology 2e, §8.3 Problems with Memory"
+   ],
+   "standards": []
+  },
+  {
+   "id": "psych/piaget-stages",
+   "rev": 2,
+   "term": "Piaget's stages of cognitive development",
+   "aliases": [
+    "cognitive development theory",
+    "sensorimotor stage",
+    "preoperational stage",
+    "concrete and formal operations"
+   ],
+   "discipline": "psych",
+   "tags": [
+    "development",
+    "cognition",
+    "child psychology"
+   ],
+   "level": "intro",
+   "difficulty": 3,
+   "bloomCeiling": "Evaluate",
+   "definition": {
+    "text": "Piaget's theory holds that children do not think and reason like adults but move through four qualitatively different stages — sensorimotor, preoperational, concrete operational, and formal operational — building and revising schemata along the way.",
+    "anchor": {
+     "src": "openstax:psychology-2e#9",
+     "loc": "9.2",
+     "quote": "children do not think and reason like adults"
+    },
+    "tier": 2,
+    "verifiedBy": 0
+   },
+   "facts": [
+    {
+     "text": "Children organize knowledge in schemata — concepts (mental models) used to categorize and interpret information — updating them by assimilation and accommodation.",
+     "anchor": {
+      "src": "openstax:psychology-2e#9",
+      "loc": "9.2",
+      "quote": "Schemata are concepts (mental models) that are used to help us categorize and interpret information"
+     },
+     "tier": 2,
+     "verifiedBy": 0,
+     "contested": false
+    },
+    {
+     "text": "In the sensorimotor stage (birth to about 2), the child develops object permanence — the understanding that something out of sight still exists.",
+     "anchor": {
+      "src": "openstax:psychology-2e#9",
+      "loc": "9.2",
+      "quote": "object permanence, which is the understanding that even if something is out of sight, it still exists"
+     },
+     "tier": 2,
+     "verifiedBy": 0,
+     "contested": false
+    },
+    {
+     "text": "In the preoperational stage (about 2 to 7), children display egocentrism and lack conservation — the idea that changing something's appearance does not change its amount.",
+     "anchor": {
+      "src": "openstax:psychology-2e#9",
+      "loc": "9.2",
+      "quote": "egocentrism, which means that the child is not able to take the perspective of others"
+     },
+     "tier": 2,
+     "verifiedBy": 0,
+     "contested": false
+    },
+    {
+     "text": "In the concrete operational stage (about 7 to 11), children can think logically about real, concrete events.",
+     "anchor": {
+      "src": "openstax:psychology-2e#9",
+      "loc": "9.2",
+      "quote": "In this stage, children can think logically about real (concrete) events"
+     },
+     "tier": 2,
+     "verifiedBy": 0,
+     "contested": false
+    },
+    {
+     "text": "In the formal operational stage (about age 11 to adulthood), thinkers can handle abstract ideas and hypothetical situations.",
+     "anchor": {
+      "src": "openstax:psychology-2e#9",
+      "loc": "9.2",
+      "quote": "children in the formal operational stage can also deal with abstract ideas and hypothetical situations"
+     },
+     "tier": 2,
+     "verifiedBy": 0,
+     "contested": false
+    },
+    {
+     "text": "Piaget proposed four stages of cognitive development: the sensorimotor, preoperational, concrete operational, and formal operational period.",
+     "anchor": {
+      "src": "https://en.wikipedia.org/wiki/Cognitive_development",
+      "loc": "extract",
+      "quote": "Piaget proposed four stages of cognitive development: the sensorimotor, preoperational, concrete operational, and formal operational period."
+     },
+     "tier": 2,
+     "verifiedBy": 1,
+     "contested": false
+    }
+   ],
+   "misconceptions": [
+    {
+     "text": "Students see children as miniature adults who simply know fewer facts.",
+     "corrective": "Piaget showed the differences are qualitative: a preoperational child fails a conservation task not from missing information but because the required mental operations have not yet developed — telling them the answer does not fix it.",
+     "anchor": null,
+     "tier": 1
+    }
+   ],
+   "examples": [
+    {
+     "text": "Pour the same juice from a short wide cup into a tall thin glass: a four-year-old insists there is now more juice — conservation has not yet arrived.",
+     "domain": "classroom demo",
+     "anchor": null
+    }
+   ],
+   "workedExamples": [],
+   "mcBank": [
+    {
+     "stem": "An infant who keeps searching for a toy hidden under a blanket has developed",
+     "options": [
+      "object permanence",
+      "conservation",
+      "egocentrism",
+      "formal logic"
+     ],
+     "answerIndex": 0,
+     "explanationFactRef": 1,
+     "rationaleRefs": [
+      0
+     ]
+    },
+    {
+     "stem": "A child watches water poured from a short wide glass into a tall thin one and says there is now more water. The child has not yet mastered",
+     "options": [
+      "conservation",
+      "object permanence",
+      "reversibility",
+      "metacognition"
+     ],
+     "answerIndex": 0,
+     "explanationFactRef": 2,
+     "rationaleRefs": [
+      0
+     ]
+    },
+    {
+     "stem": "Reasoning carefully about a purely hypothetical 'what if' scenario first becomes possible in the",
+     "options": [
+      "formal operational stage",
+      "concrete operational stage",
+      "preoperational stage",
+      "sensorimotor stage"
+     ],
+     "answerIndex": 0,
+     "explanationFactRef": 4,
+     "rationaleRefs": [
+      0
+     ]
+    }
+   ],
+   "edges": {
+    "recommends": [
+     "psych/erikson-psychosocial"
+    ],
+    "instanceOf": [
+     {
+      "archetype": "process/staged-process",
+      "confidence": 0.84,
+      "mapping": {
+       "process": "cognitive development from infancy to adulthood",
+       "stages": "sensorimotor, preoperational, concrete operational, formal operational",
+       "dependency": "each stage's mental operations are built from the schemata consolidated in the stage before",
+       "failure if skipped": "instruction pitched above the child's stage produces imitation without understanding"
+      },
+      "verified": true
+     }
+    ]
+   },
+   "variants": [],
+   "freshness": {
+    "sourceEdition": "",
+    "reviewBy": "",
+    "volatility": "low"
+   },
+   "license": "CC-BY-4.0",
+   "attribution": [
+    "OpenStax Psychology 2e, §9.2 Lifespan Theories"
+   ],
+   "standards": []
+  },
+  {
+   "id": "psych/erikson-psychosocial",
+   "rev": 2,
+   "term": "Erikson's psychosocial development",
+   "aliases": [
+    "psychosocial stages",
+    "eight stages of development",
+    "identity versus role confusion",
+    "trust versus mistrust"
+   ],
+   "discipline": "psych",
+   "tags": [
+    "development",
+    "personality",
+    "lifespan"
+   ],
+   "level": "intro",
+   "difficulty": 2,
+   "bloomCeiling": "Analyze",
+   "definition": {
+    "text": "Erikson's psychosocial development theory emphasizes the social nature of development: across eight stages from infancy through late adulthood, each stage poses a conflict, or task, to resolve.",
+    "anchor": {
+     "src": "openstax:psychology-2e#9b",
+     "loc": "9.2",
+     "quote": "psychosocial development theory emphasizes the social nature of our development"
+    },
+    "tier": 2,
+    "verifiedBy": 0
+   },
+   "facts": [
+    {
+     "text": "Erikson proposed that personality development takes place all through the lifespan, not only in childhood.",
+     "anchor": {
+      "src": "openstax:psychology-2e#9b",
+      "loc": "9.2",
+      "quote": "personality development takes place all through the lifespan"
+     },
+     "tier": 2,
+     "verifiedBy": 0,
+     "contested": false
+    },
+    {
+     "text": "We experience eight stages of development over our lifespan, from infancy through late adulthood.",
+     "anchor": {
+      "src": "openstax:psychology-2e#9b",
+      "loc": "9.2",
+      "quote": "we experience eight stages of development over our lifespan, from infancy through late adulthood"
+     },
+     "tier": 2,
+     "verifiedBy": 0,
+     "contested": false
+    },
+    {
+     "text": "At each stage there is a conflict, or task, that we need to resolve.",
+     "anchor": {
+      "src": "openstax:psychology-2e#9b",
+      "loc": "9.2",
+      "quote": "At each stage there is a conflict, or task, that we need to resolve"
+     },
+     "tier": 2,
+     "verifiedBy": 0,
+     "contested": false
+    },
+    {
+     "text": "Infancy's task (birth to 12 months) is trust versus mistrust, with trust as the basis of development.",
+     "anchor": {
+      "src": "openstax:psychology-2e#9b",
+      "loc": "9.2",
+      "quote": "trust is the basis of our development during infancy"
+     },
+     "tier": 2,
+     "verifiedBy": 0,
+     "contested": false
+    },
+    {
+     "text": "Adolescents (ages 12–18) face identity versus role confusion; the main task is developing a sense of self.",
+     "anchor": {
+      "src": "openstax:psychology-2e#9b",
+      "loc": "9.2",
+      "quote": "children face the task of identity versus role confusion"
+     },
+     "tier": 2,
+     "verifiedBy": 0,
+     "contested": false
+    },
+    {
+     "text": "Erikson's Psychosocial Development theory is based on eight stages of development.",
+     "anchor": {
+      "src": "https://en.wikipedia.org/wiki/Psychoanalytic_theory",
+      "loc": "extract",
+      "quote": "Erikson's Psychosocial Development theory is based on eight stages of development."
+     },
+     "tier": 2,
+     "verifiedBy": 0,
+     "contested": false
+    }
+   ],
+   "misconceptions": [
+    {
+     "text": "Students assume personality development is finished by the end of childhood.",
+     "corrective": "Erikson's eight psychosocial stages run from infancy through late adulthood — adults still face new conflicts such as intimacy, generativity, and integrity; development is lifelong.",
+     "anchor": null,
+     "tier": 1
+    }
+   ],
+   "examples": [
+    {
+     "text": "A college first-year cycling through majors, friend groups, and aesthetics is doing the normal work of identity versus role confusion — exploration, not flakiness.",
+     "domain": "higher education",
+     "anchor": null
+    }
+   ],
+   "workedExamples": [],
+   "mcBank": [
+    {
+     "stem": "According to Erikson, the central task of infancy (birth to 12 months) is",
+     "options": [
+      "trust versus mistrust",
+      "identity versus role confusion",
+      "autonomy versus shame and doubt",
+      "intimacy versus isolation"
+     ],
+     "answerIndex": 0,
+     "explanationFactRef": 3,
+     "rationaleRefs": [
+      0
+     ]
+    },
+    {
+     "stem": "An adolescent trying out different styles, beliefs, and possible careers is working through the task of",
+     "options": [
+      "identity versus role confusion",
+      "trust versus mistrust",
+      "generativity versus stagnation",
+      "industry versus inferiority"
+     ],
+     "answerIndex": 0,
+     "explanationFactRef": 4,
+     "rationaleRefs": [
+      0
+     ]
+    }
+   ],
+   "edges": {
+    "recommends": [
+     "psych/piaget-stages"
+    ]
+   },
+   "variants": [],
+   "freshness": {
+    "sourceEdition": "",
+    "reviewBy": "",
+    "volatility": "low"
+   },
+   "license": "CC-BY-4.0",
+   "attribution": [
+    "OpenStax Psychology 2e, §9.2 Lifespan Theories"
+   ],
+   "standards": []
+  },
+  {
+   "id": "psych/intelligence-theories",
+   "rev": 2,
+   "term": "Theories of intelligence",
+   "aliases": [
+    "general intelligence g",
+    "triarchic theory",
+    "multiple intelligences",
+    "crystallized and fluid intelligence"
+   ],
+   "discipline": "psych",
+   "tags": [
+    "intelligence",
+    "individual differences",
+    "assessment"
+   ],
+   "level": "intro",
+   "difficulty": 3,
+   "bloomCeiling": "Evaluate",
+   "definition": {
+    "text": "Theories of intelligence disagree on its structure: Spearman saw one general factor (g) that can be measured and compared, while Sternberg's triarchic theory and Gardner's multiple intelligences carve it into several distinct capacities.",
+    "anchor": {
+     "src": "openstax:psychology-2e#7b",
+     "loc": "7.4",
+     "quote": "intelligence consisted of one general factor, called g, which could be measured and compared among individuals"
+    },
+    "tier": 2,
+    "verifiedBy": 0
+   },
+   "facts": [
+    {
+     "text": "Spearman proposed a single general factor, g, measurable and comparable across individuals.",
+     "anchor": {
+      "src": "openstax:psychology-2e#7b",
+      "loc": "7.4",
+      "quote": "Charles Spearman believed intelligence consisted of one general factor, called g"
+     },
+     "tier": 2,
+     "verifiedBy": 0,
+     "contested": false
+    },
+    {
+     "text": "Crystallized intelligence is acquired knowledge and the ability to retrieve it.",
+     "anchor": {
+      "src": "openstax:psychology-2e#7b",
+      "loc": "7.4",
+      "quote": "Crystallized intelligence is characterized as acquired knowledge and the ability to retrieve it"
+     },
+     "tier": 2,
+     "verifiedBy": 0,
+     "contested": false
+    },
+    {
+     "text": "Fluid intelligence is the ability to see complex relationships and solve problems.",
+     "anchor": {
+      "src": "openstax:psychology-2e#7b",
+      "loc": "7.4",
+      "quote": "Fluid intelligence encompasses the ability to see complex relationships and solve problems"
+     },
+     "tier": 2,
+     "verifiedBy": 0,
+     "contested": false
+    },
+    {
+     "text": "Sternberg's triarchic theory splits intelligence into practical ('street smarts'), analytical (academic problem solving), and creative (inventing solutions) parts.",
+     "anchor": {
+      "src": "openstax:psychology-2e#7b",
+      "loc": "7.4",
+      "quote": "the triarchic theory of intelligence because it sees intelligence as comprised of three parts"
+     },
+     "tier": 2,
+     "verifiedBy": 0,
+     "contested": false
+    },
+    {
+     "text": "In Gardner's theory, each person possesses at least eight intelligences.",
+     "anchor": {
+      "src": "openstax:psychology-2e#7b",
+      "loc": "7.4",
+      "quote": "In Gardner's theory, each person possesses at least eight intelligences"
+     },
+     "tier": 2,
+     "verifiedBy": 0,
+     "contested": false
+    },
+    {
+     "text": "Research also suggests that the theories of intelligence are predictors of one's affective states when responding to challenges.",
+     "anchor": {
+      "src": "https://en.wikipedia.org/wiki/Implicit_theories_of_intelligence",
+      "loc": "extract",
+      "quote": "Research also suggests that the theories of intelligence are predictors of one's affective states when responding to challenges."
+     },
+     "tier": 2,
+     "verifiedBy": 0,
+     "contested": false
+    }
+   ],
+   "misconceptions": [
+    {
+     "text": "Students treat an IQ score as identical to intelligence itself.",
+     "corrective": "A test score is one operationalization of the construct: it captures Spearman's comparable general factor, but Sternberg's practical and creative intelligences and Gardner's eight-plus intelligences fall largely outside a single number.",
+     "anchor": null,
+     "tier": 1
+    }
+   ],
+   "examples": [
+    {
+     "text": "A top mechanic who never finished school diagnoses engine faults instantly (practical intelligence) yet scores unremarkably on a paper IQ test — the measure misses the capacity.",
+     "domain": "everyday life",
+     "anchor": null
+    }
+   ],
+   "workedExamples": [],
+   "mcBank": [
+    {
+     "stem": "A mechanic with little formal schooling can diagnose almost any engine failure on sight. Sternberg would call this",
+     "options": [
+      "practical intelligence",
+      "analytical intelligence",
+      "crystallized intelligence",
+      "general intelligence"
+     ],
+     "answerIndex": 0,
+     "explanationFactRef": 3,
+     "rationaleRefs": [
+      0
+     ]
+    },
+    {
+     "stem": "An 80-year-old's rich vocabulary and deep stock of historical facts best illustrates",
+     "options": [
+      "crystallized intelligence",
+      "fluid intelligence",
+      "creative intelligence",
+      "emotional intelligence"
+     ],
+     "answerIndex": 0,
+     "explanationFactRef": 1,
+     "rationaleRefs": [
+      0
+     ]
+    },
+    {
+     "stem": "Gardner's theory holds that each person possesses at least",
+     "options": [
+      "eight intelligences",
+      "three intelligences",
+      "two intelligences",
+      "one intelligence"
+     ],
+     "answerIndex": 0,
+     "explanationFactRef": 4,
+     "rationaleRefs": [
+      0
+     ]
+    }
+   ],
+   "edges": {
+    "recommends": [
+     "psych/problem-solving-strategies"
+    ],
+    "instanceOf": [
+     {
+      "archetype": "epistemic/operationalization",
+      "confidence": 0.82,
+      "mapping": {
+       "construct": "a person's intelligence",
+       "measure": "a single general-factor (g) test score",
+       "what the measure captures": "performance that can be measured and compared among individuals",
+       "what it misses": "practical, creative, and multiple intelligences that sit outside the test"
+      },
+      "verified": true
+     }
+    ]
+   },
+   "variants": [],
+   "freshness": {
+    "sourceEdition": "",
+    "reviewBy": "",
+    "volatility": "low"
+   },
+   "license": "CC-BY-4.0",
+   "attribution": [
+    "OpenStax Psychology 2e, §7.4 What Are Intelligence and Creativity?"
+   ],
+   "standards": []
+  },
+  {
+   "id": "psych/intrinsic-extrinsic-motivation",
+   "rev": 2,
+   "term": "Intrinsic and extrinsic motivation",
+   "aliases": [
+    "motivation",
+    "overjustification effect",
+    "internal and external motivation",
+    "rewards and motivation"
+   ],
+   "discipline": "psych",
+   "tags": [
+    "motivation",
+    "classroom incentives",
+    "engagement"
+   ],
+   "level": "intro",
+   "difficulty": 2,
+   "bloomCeiling": "Evaluate",
+   "definition": {
+    "text": "Motivation describes the wants or needs that direct behavior toward a goal; intrinsically motivated behaviors are performed for the personal satisfaction they bring, while extrinsically motivated behaviors are performed to receive something from others.",
+    "anchor": {
+     "src": "openstax:psychology-2e#10",
+     "loc": "10.1",
+     "quote": "Motivation describes the wants or needs that direct behavior toward a goal"
+    },
+    "tier": 2,
+    "verifiedBy": 0
+   },
+   "facts": [
+    {
+     "text": "Intrinsic motivation comes from the sense of personal satisfaction a behavior brings; extrinsic motivation aims to receive something from others.",
+     "anchor": {
+      "src": "openstax:psychology-2e#10",
+      "loc": "10.1",
+      "quote": "Intrinsically motivated behaviors are performed because of the sense of personal satisfaction that they bring"
+     },
+     "tier": 2,
+     "verifiedBy": 0,
+     "contested": false
+    },
+    {
+     "text": "Being paid for an activity we already enjoy can lead the behavior to be thought of as work that no longer provides the same enjoyment.",
+     "anchor": {
+      "src": "openstax:psychology-2e#10",
+      "loc": "10.1",
+      "quote": "leads to those behaviors being thought of as work no longer providing that same enjoyment"
+     },
+     "tier": 2,
+     "verifiedBy": 0,
+     "contested": false
+    },
+    {
+     "text": "The overjustification effect: intrinsic motivation is diminished when extrinsic motivation is given.",
+     "anchor": {
+      "src": "openstax:psychology-2e#10",
+      "loc": "10.1",
+      "quote": "the overjustification effect—intrinsic motivation is diminished when extrinsic motivation is given"
+     },
+     "tier": 2,
+     "verifiedBy": 0,
+     "contested": false
+    },
+    {
+     "text": "Real motivation is usually a mix of intrinsic and extrinsic factors, and the mix can change over time.",
+     "anchor": {
+      "src": "openstax:psychology-2e#10",
+      "loc": "10.1",
+      "quote": "our motivations are often a mix of both intrinsic and extrinsic factors"
+     },
+     "tier": 2,
+     "verifiedBy": 0,
+     "contested": false
+    },
+    {
+     "text": "Cognitive evaluation theory (CET): explains the relationship between internal motivation and external rewards.",
+     "anchor": {
+      "src": "https://en.wikipedia.org/wiki/Self-determination_theory",
+      "loc": "extract",
+      "quote": "Cognitive evaluation theory (CET): explains the relationship between internal motivation and external rewards."
+     },
+     "tier": 2,
+     "verifiedBy": 0,
+     "contested": false
+    },
+    {
+     "text": "One needs to determine their reasons for being motivated and reaching their goal.",
+     "anchor": {
+      "src": "https://en.wikipedia.org/wiki/Self-determination_theory",
+      "loc": "extract",
+      "quote": "One needs to determine their reasons for being motivated and reaching their goal."
+     },
+     "tier": 2,
+     "verifiedBy": 0,
+     "contested": false
+    }
+   ],
+   "misconceptions": [
+    {
+     "text": "Students (and teachers) assume adding rewards always strengthens motivation.",
+     "corrective": "The overjustification effect shows the opposite can happen: paying or prizing an activity someone already enjoys can recast it as work and diminish the intrinsic motivation that was driving it.",
+     "anchor": null,
+     "tier": 1
+    }
+   ],
+   "examples": [
+    {
+     "text": "A reading-for-pizza program gets reluctant readers started (extrinsic), but a child who already devours novels may read less once reading becomes a transaction.",
+     "domain": "classroom",
+     "anchor": null
+    }
+   ],
+   "workedExamples": [],
+   "mcBank": [
+    {
+     "stem": "A child who once drew for fun starts getting paid per picture; when the payments stop, she draws far less than before. This illustrates",
+     "options": [
+      "the overjustification effect",
+      "vicarious reinforcement",
+      "negative reinforcement",
+      "the law of effect"
+     ],
+     "answerIndex": 0,
+     "explanationFactRef": 2,
+     "rationaleRefs": [
+      0
+     ]
+    },
+    {
+     "stem": "Which learner is intrinsically motivated?",
+     "options": [
+      "one who studies because the material itself is satisfying",
+      "one who studies to win a cash scholarship award",
+      "one who studies to avoid losing phone privileges",
+      "one who studies because parents pay for each good grade"
+     ],
+     "answerIndex": 0,
+     "explanationFactRef": 0,
+     "rationaleRefs": [
+      0
+     ]
+    }
+   ],
+   "edges": {
+    "recommends": [
+     "psych/operant-conditioning"
+    ]
+   },
+   "variants": [],
+   "freshness": {
+    "sourceEdition": "",
+    "reviewBy": "",
+    "volatility": "low"
+   },
+   "license": "CC-BY-4.0",
+   "attribution": [
+    "OpenStax Psychology 2e, §10.1 Motivation"
+   ],
+   "standards": []
+  },
+  {
+   "id": "psych/problem-solving-strategies",
+   "rev": 2,
+   "term": "Problem-solving strategies",
+   "aliases": [
+    "cognitive bias",
+    "cognitive biases",
+    "heuristics and biases",
+    "algorithms and heuristics",
+    "mental set",
+    "functional fixedness",
+    "working backwards"
+   ],
+   "discipline": "psych",
+   "tags": [
+    "cognition",
+    "thinking",
+    "metacognition"
+   ],
+   "level": "intro",
+   "difficulty": 2,
+   "bloomCeiling": "Apply",
+   "definition": {
+    "text": "A problem-solving strategy is a plan of action used to find a solution; the main families are algorithms (exact step-by-step formulas) and heuristics (general frameworks that trade certainty for speed).",
+    "anchor": {
+     "src": "openstax:psychology-2e#7",
+     "loc": "7.3",
+     "quote": "A problem-solving strategy is a plan of action used to find a solution"
+    },
+    "tier": 2,
+    "verifiedBy": 0
+   },
+   "facts": [
+    {
+     "text": "An algorithm is a problem-solving formula providing step-by-step instructions to achieve a desired outcome.",
+     "anchor": {
+      "src": "openstax:psychology-2e#7",
+      "loc": "7.3",
+      "quote": "An algorithm is a problem-solving formula that provides you with step-by-step instructions used to achieve a desired outcome"
+     },
+     "tier": 2,
+     "verifiedBy": 0,
+     "contested": false
+    },
+    {
+     "text": "A heuristic is a general problem-solving framework rather than an exact recipe.",
+     "anchor": {
+      "src": "openstax:psychology-2e#7",
+      "loc": "7.3",
+      "quote": "A heuristic is a general problem-solving framework"
+     },
+     "tier": 2,
+     "verifiedBy": 0,
+     "contested": false
+    },
+    {
+     "text": "People reach for heuristics under specific conditions — for example, when faced with too much information or when decision time is limited.",
+     "anchor": {
+      "src": "openstax:psychology-2e#7",
+      "loc": "7.3",
+      "quote": "When one is faced with too much information; When the time to make a decision is limited"
+     },
+     "tier": 2,
+     "verifiedBy": 0,
+     "contested": false
+    },
+    {
+     "text": "A mental set is persisting with an approach that worked in the past but is clearly not working now.",
+     "anchor": {
+      "src": "openstax:psychology-2e#7",
+      "loc": "7.3",
+      "quote": "you persist in approaching a problem in a way that has worked in the past but is clearly not working now"
+     },
+     "tier": 2,
+     "verifiedBy": 0,
+     "contested": false
+    },
+    {
+     "text": "Functional fixedness is a mental set in which you cannot perceive an object being used for anything other than its designed purpose.",
+     "anchor": {
+      "src": "openstax:psychology-2e#7",
+      "loc": "7.3",
+      "quote": "you cannot perceive an object being used for something other than what it was designed for"
+     },
+     "tier": 2,
+     "verifiedBy": 0,
+     "contested": false
+    },
+    {
+     "text": "Problem solving in psychology refers to the process of finding solutions to problems encountered in life.",
+     "anchor": {
+      "src": "https://en.wikipedia.org/wiki/Problem_solving",
+      "loc": "extract",
+      "quote": "Problem solving in psychology refers to the process of finding solutions to problems encountered in life."
+     },
+     "tier": 2,
+     "verifiedBy": 0,
+     "contested": false
+    }
+   ],
+   "misconceptions": [
+    {
+     "text": "Students dismiss heuristics as sloppy thinking that should always be replaced by algorithms.",
+     "corrective": "Heuristics are adaptive general frameworks deliberately used when information or time is limited; an algorithm guarantees a result only where a step-by-step formula exists and there is time to run it.",
+     "anchor": null,
+     "tier": 1
+    }
+   ],
+   "examples": [
+    {
+     "text": "Working backwards from a paper's due date to set draft and research milestones — a heuristic the textbook itself recommends for planning.",
+     "domain": "study skills",
+     "anchor": null
+    }
+   ],
+   "workedExamples": [],
+   "mcBank": [
+    {
+     "stem": "Persisting with a tactic that solved earlier puzzles even though it clearly fails on the current one demonstrates",
+     "options": [
+      "a mental set",
+      "an algorithm",
+      "working backwards",
+      "trial and error"
+     ],
+     "answerIndex": 0,
+     "explanationFactRef": 3,
+     "rationaleRefs": [
+      0
+     ]
+    },
+    {
+     "stem": "Failing to realize a metal coin could serve as a screwdriver is an example of",
+     "options": [
+      "functional fixedness",
+      "an algorithm",
+      "a heuristic",
+      "working backwards"
+     ],
+     "answerIndex": 0,
+     "explanationFactRef": 4,
+     "rationaleRefs": [
+      0
+     ]
+    }
+   ],
+   "edges": {},
+   "variants": [],
+   "freshness": {
+    "sourceEdition": "",
+    "reviewBy": "",
+    "volatility": "low"
+   },
+   "license": "CC-BY-4.0",
+   "attribution": [
+    "OpenStax Psychology 2e, §7.3 Problem Solving"
+   ],
+   "standards": []
+  }
+ ],
+ "index": {
+  "postings": {
+   "classical": [
+    "psych/classical-conditioning"
+   ],
+   "condition": [
+    "psych/classical-conditioning",
+    "psych/operant-conditioning"
+   ],
+   "learn": [
+    "psych/classical-conditioning",
+    "psych/operant-conditioning",
+    "psych/observational-learning"
+   ],
+   "pavlovian": [
+    "psych/classical-conditioning"
+   ],
+   "respondent": [
+    "psych/classical-conditioning"
+   ],
+   "stimulus-stimulu": [
+    "psych/classical-conditioning"
+   ],
+   "pavlov": [
+    "psych/classical-conditioning"
+   ],
+   "dog": [
+    "psych/classical-conditioning"
+   ],
+   "behaviorism": [
+    "psych/classical-conditioning",
+    "psych/operant-conditioning"
+   ],
+   "associative": [
+    "psych/classical-conditioning"
+   ],
+   "operant": [
+    "psych/operant-conditioning"
+   ],
+   "reinforcement": [
+    "psych/operant-conditioning"
+   ],
+   "punishment": [
+    "psych/operant-conditioning"
+   ],
+   "skinnerian": [
+    "psych/operant-conditioning"
+   ],
+   "consequence": [
+    "psych/operant-conditioning"
+   ],
+   "instrumental": [
+    "psych/operant-conditioning"
+   ],
+   "classroom": [
+    "psych/operant-conditioning",
+    "psych/intrinsic-extrinsic-motivation"
+   ],
+   "management": [
+    "psych/operant-conditioning"
+   ],
+   "observational": [
+    "psych/observational-learning"
+   ],
+   "model": [
+    "psych/observational-learning",
+    "psych/memory-model"
+   ],
+   "social": [
+    "psych/observational-learning"
+   ],
+   "vicariou": [
+    "psych/observational-learning"
+   ],
+   "bandura": [
+    "psych/observational-learning"
+   ],
+   "bobo": [
+    "psych/observational-learning"
+   ],
+   "doll": [
+    "psych/observational-learning"
+   ],
+   "cognition": [
+    "psych/observational-learning",
+    "psych/memory-model",
+    "psych/working-memory",
+    "psych/long-term-memory",
+    "psych/forgetting",
+    "psych/piaget-stages",
+    "psych/problem-solving-strategies"
+   ],
+   "memory": [
+    "psych/memory-model",
+    "psych/working-memory",
+    "psych/long-term-memory",
+    "psych/forgetting"
+   ],
+   "encod": [
+    "psych/memory-model",
+    "psych/forgetting"
+   ],
+   "storage": [
+    "psych/memory-model"
+   ],
+   "retrieval": [
+    "psych/memory-model",
+    "psych/forgetting"
+   ],
+   "how": [
+    "psych/memory-model"
+   ],
+   "function": [
+    "psych/memory-model"
+   ],
+   "process": [
+    "psych/memory-model"
+   ],
+   "atkinson-shiffrin": [
+    "psych/memory-model"
+   ],
+   "information": [
+    "psych/memory-model"
+   ],
+   "study": [
+    "psych/memory-model"
+   ],
+   "skill": [
+    "psych/memory-model"
+   ],
+   "short-term": [
+    "psych/working-memory"
+   ],
+   "work": [
+    "psych/working-memory",
+    "psych/problem-solving-strategies"
+   ],
+   "stm": [
+    "psych/working-memory"
+   ],
+   "rehearsal": [
+    "psych/working-memory"
+   ],
+   "cognitive": [
+    "psych/working-memory",
+    "psych/piaget-stages",
+    "psych/problem-solving-strategies"
+   ],
+   "load": [
+    "psych/working-memory"
+   ],
+   "long-term": [
+    "psych/long-term-memory"
+   ],
+   "system": [
+    "psych/long-term-memory"
+   ],
+   "ltm": [
+    "psych/long-term-memory"
+   ],
+   "explicit": [
+    "psych/long-term-memory"
+   ],
+   "implicit": [
+    "psych/long-term-memory"
+   ],
+   "episodic": [
+    "psych/long-term-memory"
+   ],
+   "semantic": [
+    "psych/long-term-memory"
+   ],
+   "procedural": [
+    "psych/long-term-memory"
+   ],
+   "knowledge": [
+    "psych/long-term-memory"
+   ],
+   "typ": [
+    "psych/long-term-memory"
+   ],
+   "forgett": [
+    "psych/forgetting"
+   ],
+   "failure": [
+    "psych/forgetting"
+   ],
+   "interference": [
+    "psych/forgetting"
+   ],
+   "tip": [
+    "psych/forgetting"
+   ],
+   "tongue": [
+    "psych/forgetting"
+   ],
+   "ebbinghau": [
+    "psych/forgetting"
+   ],
+   "curve": [
+    "psych/forgetting"
+   ],
+   "assessment": [
+    "psych/forgetting",
+    "psych/intelligence-theories"
+   ],
+   "design": [
+    "psych/forgetting"
+   ],
+   "piaget": [
+    "psych/piaget-stages"
+   ],
+   "stag": [
+    "psych/piaget-stages",
+    "psych/erikson-psychosocial"
+   ],
+   "development": [
+    "psych/piaget-stages",
+    "psych/erikson-psychosocial"
+   ],
+   "sensorimotor": [
+    "psych/piaget-stages"
+   ],
+   "stage": [
+    "psych/piaget-stages"
+   ],
+   "preoperational": [
+    "psych/piaget-stages"
+   ],
+   "concrete": [
+    "psych/piaget-stages"
+   ],
+   "formal": [
+    "psych/piaget-stages"
+   ],
+   "operation": [
+    "psych/piaget-stages"
+   ],
+   "child": [
+    "psych/piaget-stages"
+   ],
+   "psychology": [
+    "psych/piaget-stages"
+   ],
+   "erikson": [
+    "psych/erikson-psychosocial"
+   ],
+   "psychosocial": [
+    "psych/erikson-psychosocial"
+   ],
+   "eight": [
+    "psych/erikson-psychosocial"
+   ],
+   "identity": [
+    "psych/erikson-psychosocial"
+   ],
+   "versu": [
+    "psych/erikson-psychosocial"
+   ],
+   "role": [
+    "psych/erikson-psychosocial"
+   ],
+   "confusion": [
+    "psych/erikson-psychosocial"
+   ],
+   "trust": [
+    "psych/erikson-psychosocial"
+   ],
+   "mistrust": [
+    "psych/erikson-psychosocial"
+   ],
+   "personality": [
+    "psych/erikson-psychosocial"
+   ],
+   "lifespan": [
+    "psych/erikson-psychosocial"
+   ],
+   "theori": [
+    "psych/intelligence-theories"
+   ],
+   "intelligence": [
+    "psych/intelligence-theories"
+   ],
+   "general": [
+    "psych/intelligence-theories"
+   ],
+   "triarchic": [
+    "psych/intelligence-theories"
+   ],
+   "multiple": [
+    "psych/intelligence-theories"
+   ],
+   "intelligenc": [
+    "psych/intelligence-theories"
+   ],
+   "crystalliz": [
+    "psych/intelligence-theories"
+   ],
+   "fluid": [
+    "psych/intelligence-theories"
+   ],
+   "individual": [
+    "psych/intelligence-theories"
+   ],
+   "differenc": [
+    "psych/intelligence-theories"
+   ],
+   "intrinsic": [
+    "psych/intrinsic-extrinsic-motivation"
+   ],
+   "extrinsic": [
+    "psych/intrinsic-extrinsic-motivation"
+   ],
+   "motivation": [
+    "psych/intrinsic-extrinsic-motivation"
+   ],
+   "overjustification": [
+    "psych/intrinsic-extrinsic-motivation"
+   ],
+   "effect": [
+    "psych/intrinsic-extrinsic-motivation"
+   ],
+   "internal": [
+    "psych/intrinsic-extrinsic-motivation"
+   ],
+   "external": [
+    "psych/intrinsic-extrinsic-motivation"
+   ],
+   "reward": [
+    "psych/intrinsic-extrinsic-motivation"
+   ],
+   "incentiv": [
+    "psych/intrinsic-extrinsic-motivation"
+   ],
+   "engagement": [
+    "psych/intrinsic-extrinsic-motivation"
+   ],
+   "problem-solv": [
+    "psych/problem-solving-strategies"
+   ],
+   "strategi": [
+    "psych/problem-solving-strategies"
+   ],
+   "bia": [
+    "psych/problem-solving-strategies"
+   ],
+   "bias": [
+    "psych/problem-solving-strategies"
+   ],
+   "heuristic": [
+    "psych/problem-solving-strategies"
+   ],
+   "algorithm": [
+    "psych/problem-solving-strategies"
+   ],
+   "mental": [
+    "psych/problem-solving-strategies"
+   ],
+   "set": [
+    "psych/problem-solving-strategies"
+   ],
+   "functional": [
+    "psych/problem-solving-strategies"
+   ],
+   "fixednes": [
+    "psych/problem-solving-strategies"
+   ],
+   "backward": [
+    "psych/problem-solving-strategies"
+   ],
+   "think": [
+    "psych/problem-solving-strategies"
+   ],
+   "metacognition": [
+    "psych/problem-solving-strategies"
+   ]
+  }
+ }
+}

@@ -131,6 +131,14 @@ export const referenceCourses = [
 // P0 exit gate and the pass/fail summary.
 export const strangerPool = [
   {
+    id: 'music-theory',
+    title: 'Music Theory Fundamentals',
+    lessonCount: 7,
+    probeProfile: 'generic',
+    prompt:
+      'Music Theory Fundamentals, a 7-lesson introductory college course with weekly listening and notation exercises. Lessons cover: the staff, clefs, and pitch notation; intervals and how to hear them; major and minor scales and key signatures; triads and seventh chords; rhythm, meter, and time signatures; harmony and basic chord progressions; and musical form with a final analysis project.',
+  },
+  {
     id: 'art-history',
     title: 'Survey of Art History',
     lessonCount: 14,

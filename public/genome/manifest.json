@@ -138,6 +138,12 @@
       "path": "stats-intro.json",
       "conceptCount": 5,
       "hash": "d043fca784ae8f65"
+    },
+    {
+      "id": "music-intro",
+      "file": "music-intro.json",
+      "discipline": "music",
+      "conceptCount": 7
     }
   ],
   "archetypeShard": {

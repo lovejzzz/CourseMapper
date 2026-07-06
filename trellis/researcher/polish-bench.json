@@ -1,0 +1,28 @@
+{
+ "stamp": "POLISH BENCH — raw-e2b vs ds AND polished-e2b vs ds, same blind judge protocol",
+ "file": "trellis/researcher/author-showdown-run5selfsolve.json",
+ "polished": 9,
+ "kept": 5,
+ "perKernel": [
+  {
+   "kernel": "lit/ghazal-form"
+  },
+  {
+   "kernel": "cs/variables"
+  },
+  {
+   "kernel": "math/system-of-linear-equations"
+  }
+ ],
+ "verdict": {
+  "rawE2b": 8,
+  "rawDs": 6.5,
+  "rawGap": -1.5,
+  "polishedE2b": 7.83,
+  "polishedDs": 7,
+  "polishedGap": -0.83,
+  "keptRate": "5/9",
+  "ship": "POLISH NOT PROVEN — bar unmet",
+  "judgeUsd": 0.0089
+ }
+}

@@ -1707,3 +1707,30 @@ polishing a candidate that hasn't won.
   (extractive, span-anchored, safe by construction). Scoreboard 5 runs
   ZERO drift; item-verdict corpus 150/300 toward DPO r2. 126 tests.
   Spend ~$0.09 this session.
+
+- **2026-07-06 (catalog sweep + the virgin-course bake-off).** SWEEP:
+  **89/89 kernels enriched+ok** across anatomy/astro/bio/econ/nursing/
+  nutrition/psych/research-methods — 783 surfaces + 53 verified items,
+  $0.0379; EVERY genome discipline now above the authoring floor (item
+  yield thinner than STEM — some mined misconceptions die at catching
+  gates, disclosed; production fills don't corpusLog yet — wiring task
+  queued). POLISH LEVER: NOT PROVEN and premise UNSTABLE — on run-5
+  items raw E2B out-judged ds 8.0 v 6.5 (the eduBar -1.0 "gap" was
+  judge variance, as the standing note predicted); shelved. **BAKE-OFF
+  (docs/BAKEOFF_2026-07-06.md): brand-new Music Theory course, no
+  pipeline advantage, ALL paid stages on gpt-5.4-mini** (new `mini`
+  pipelineTier; crucible --model): Compiler 99/A judge 5.67 $0.07
+  199s (template signature reproduced on virgin ground) · Trellis
+  98/A **8.33** $0.235 153s · Composer-cold 99/A 8.0 $0.27 202s ·
+  Zero-no-factory REFUSES 7/7 in 5s $0 (the honest control) ·
+  **E2B-MAX factory->zero: 96/A, $0.0000 ledger-verified replay,
+  217s, offline Tutor 29 items — judge 4.33** (day-one prose from
+  extractive surfaces + thin catching depth repair 0.339; items are
+  NOT the bottleneck). Cold-start cascade built under the mini
+  constraint: **paid misconception top-up** (sources state no wrong
+  beliefs -> mini authors them, $0.034/7 kernels, disclosed) + kernel
+  ALIASES as the relink contract (non-stemming matcher) + dedupe-
+  triggered escalation self-diversifies re-run item top-ups (+13).
+  Named day-one-quality lever: richer first-touch surfaces (paid
+  9-surface shaping ~$0.02/kernel judged 6.67 on lit). Music discipline
+  born: 7 kernels, 28 verified items, full course at $0.05-once.
