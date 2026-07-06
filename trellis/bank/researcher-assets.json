@@ -53664,6 +53664,3107 @@
     "uses": 0
    },
    "voice": "sourced-zero"
+  },
+  {
+   "id": "researcher:teach-segment:music/staff-clefs-pitch-notation:0",
+   "kernelId": "music/staff-clefs-pitch-notation",
+   "conceptName": "Staff and clefs",
+   "move": "teach-segment",
+   "body": {
+    "minutes": 12,
+    "text": "In Western music notation, the staff consists of five horizontal lines and four spaces, each representing a different pitch. However, the staff alone does not indicate which pitches correspond to which lines and spaces. That is the role of the clef: a symbol placed at the beginning of the staff that assigns a specific pitch to one line, from which all other pitches are derived. For example, the treble clef, also known as the G-clef, curls around the second line (counting from the bottom) to indicate that this line is the G above middle C. Consequently, the space above that line is A, the next line is B, and so on. Without the clef, the staff has no fixed pitch meaning; the clef provides the key to reading the notes. Different clefs exist for different vocal and instrumental ranges, such as the bass clef for lower pitches and the alto clef for mid-range instruments like the viola."
+   },
+   "evidence": {
+    "fromGrade": null,
+    "sourced": true,
+    "teachQuote": "a musical symbol used to indicate which notes are represented by the lines and spaces on a musical staff."
+   },
+   "provenance": {
+    "origin": "researcher",
+    "sources": [
+     {
+      "url": "https://en.wikipedia.org/wiki/Staff_(music)",
+      "license": "CC-BY-SA-4.0",
+      "attribution": "Wikipedia contributors, \"Staff (music)\""
+     },
+     {
+      "url": "https://en.wikipedia.org/wiki/Musical_notation",
+      "license": "CC-BY-SA-4.0",
+      "attribution": "Wikipedia contributors, \"Musical notation\""
+     },
+     {
+      "url": "https://en.wikipedia.org/wiki/Clef",
+      "license": "CC-BY-SA-4.0",
+      "attribution": "Wikipedia contributors, \"Clef\""
+     }
+    ],
+    "date": "2026-07-06"
+   },
+   "exposure": {
+    "uses": 0
+   },
+   "voice": "sourced"
+  },
+  {
+   "id": "researcher:worked-example:music/staff-clefs-pitch-notation:1",
+   "kernelId": "music/staff-clefs-pitch-notation",
+   "conceptName": "Staff and clefs",
+   "move": "worked-example",
+   "body": {
+    "minutes": 15,
+    "text": "Worked example: Reading a note on a treble clef staff. Step 1: Identify the clef. The treble clef is placed on the second line, fixing that line as G above middle C. Step 2: Recognize that the staff lines from bottom to top are E, G, B, D, F. Spaces from bottom to top are F, A, C, E. Step 3: Consider a note on the first line (bottom line). According to the line sequence, that note is E. Step 4: Consider a note in the second space (between lines 2 and 3). The spaces are F (first), A (second), C (third), E (fourth). Therefore, the second space is A. Step 5: Thus, a note placed on the second line is G, and a note placed on the fourth line is D. This system applies consistently once the clef is established."
+   },
+   "evidence": {
+    "fromGrade": null,
+    "sourced": true,
+    "teachQuote": "a musical symbol used to indicate which notes are represented by the lines and spaces on a musical staff."
+   },
+   "provenance": {
+    "origin": "researcher",
+    "sources": [
+     {
+      "url": "https://en.wikipedia.org/wiki/Staff_(music)",
+      "license": "CC-BY-SA-4.0",
+      "attribution": "Wikipedia contributors, \"Staff (music)\""
+     },
+     {
+      "url": "https://en.wikipedia.org/wiki/Musical_notation",
+      "license": "CC-BY-SA-4.0",
+      "attribution": "Wikipedia contributors, \"Musical notation\""
+     },
+     {
+      "url": "https://en.wikipedia.org/wiki/Clef",
+      "license": "CC-BY-SA-4.0",
+      "attribution": "Wikipedia contributors, \"Clef\""
+     }
+    ],
+    "date": "2026-07-06"
+   },
+   "exposure": {
+    "uses": 0
+   },
+   "voice": "sourced"
+  },
+  {
+   "id": "researcher:reteach-script:music/staff-clefs-pitch-notation:2",
+   "kernelId": "music/staff-clefs-pitch-notation",
+   "conceptName": "Staff and clefs",
+   "move": "reteach-script",
+   "body": {
+    "minutes": 10,
+    "text": "Let's try a different example using the bass clef. The bass clef is an F-clef placed on the fourth line, meaning that line is F below middle C. From bottom to top, the lines are G, B, D, F, A (remember: Good Boys Deserve Fudge Always). Spaces are A, C, E, G (All Cows Eat Grass). For instance, if a note is on the third line, count lines from bottom: first line G, second line B, third line D. So that note is D. This example shows how the same five-line structure can represent different pitches depending on the clef."
+   },
+   "evidence": {
+    "fromGrade": null,
+    "sourced": true,
+    "teachQuote": "a musical symbol used to indicate which notes are represented by the lines and spaces on a musical staff."
+   },
+   "provenance": {
+    "origin": "researcher",
+    "sources": [
+     {
+      "url": "https://en.wikipedia.org/wiki/Staff_(music)",
+      "license": "CC-BY-SA-4.0",
+      "attribution": "Wikipedia contributors, \"Staff (music)\""
+     },
+     {
+      "url": "https://en.wikipedia.org/wiki/Musical_notation",
+      "license": "CC-BY-SA-4.0",
+      "attribution": "Wikipedia contributors, \"Musical notation\""
+     },
+     {
+      "url": "https://en.wikipedia.org/wiki/Clef",
+      "license": "CC-BY-SA-4.0",
+      "attribution": "Wikipedia contributors, \"Clef\""
+     }
+    ],
+    "date": "2026-07-06"
+   },
+   "exposure": {
+    "uses": 0
+   },
+   "voice": "sourced"
+  },
+  {
+   "id": "researcher:guide:music/staff-clefs-pitch-notation:3",
+   "kernelId": "music/staff-clefs-pitch-notation",
+   "conceptName": "Staff and clefs",
+   "move": "guide",
+   "body": {
+    "markdown": "If you missed the reading, start by reviewing the source articles on staff and clef. Focus on understanding that the staff is a set of five lines and four spaces, and that the clef assigns pitch meaning to those positions. Key terms include: staff, clef, treble clef, bass clef, alto clef, ledger lines, and grand staff. For a quick catch-up, memorize the line and space sequences for treble and bass clefs using mnemonics. Self-check prompts: 1) What note is on the third line of a treble clef staff? (Answer: B) 2) How does a bass clef differ from a treble clef in terms of which line is fixed? (Answer: Bass clef fixes the fourth line as F below middle C; treble clef fixes the second line as G above middle C.)"
+   },
+   "evidence": {
+    "fromGrade": null,
+    "sourced": true,
+    "teachQuote": "a musical symbol used to indicate which notes are represented by the lines and spaces on a musical staff."
+   },
+   "provenance": {
+    "origin": "researcher",
+    "sources": [
+     {
+      "url": "https://en.wikipedia.org/wiki/Staff_(music)",
+      "license": "CC-BY-SA-4.0",
+      "attribution": "Wikipedia contributors, \"Staff (music)\""
+     },
+     {
+      "url": "https://en.wikipedia.org/wiki/Musical_notation",
+      "license": "CC-BY-SA-4.0",
+      "attribution": "Wikipedia contributors, \"Musical notation\""
+     },
+     {
+      "url": "https://en.wikipedia.org/wiki/Clef",
+      "license": "CC-BY-SA-4.0",
+      "attribution": "Wikipedia contributors, \"Clef\""
+     }
+    ],
+    "date": "2026-07-06"
+   },
+   "exposure": {
+    "uses": 0
+   },
+   "voice": "sourced"
+  },
+  {
+   "id": "researcher:discussion-tension:music/staff-clefs-pitch-notation:4",
+   "kernelId": "music/staff-clefs-pitch-notation",
+   "conceptName": "Staff and clefs",
+   "move": "discussion-tension",
+   "body": {
+    "prompt": "If the staff has fixed lines and spaces but different clefs change their meaning, how does this flexibility aid or complicate music reading for different instruments?",
+    "tension": "The same visual layout can represent different pitches depending on the clef, making it both efficient for various ranges and potentially confusing for beginners who must learn multiple clefs.",
+    "followUps": [
+     "What strategies could help a musician quickly switch between clefs?",
+     "Could a universal clef simplify notation, or would it create other problems?"
+    ]
+   },
+   "evidence": {
+    "fromGrade": null,
+    "sourced": true,
+    "teachQuote": "a musical symbol used to indicate which notes are represented by the lines and spaces on a musical staff."
+   },
+   "provenance": {
+    "origin": "researcher",
+    "sources": [
+     {
+      "url": "https://en.wikipedia.org/wiki/Staff_(music)",
+      "license": "CC-BY-SA-4.0",
+      "attribution": "Wikipedia contributors, \"Staff (music)\""
+     },
+     {
+      "url": "https://en.wikipedia.org/wiki/Musical_notation",
+      "license": "CC-BY-SA-4.0",
+      "attribution": "Wikipedia contributors, \"Musical notation\""
+     },
+     {
+      "url": "https://en.wikipedia.org/wiki/Clef",
+      "license": "CC-BY-SA-4.0",
+      "attribution": "Wikipedia contributors, \"Clef\""
+     }
+    ],
+    "date": "2026-07-06"
+   },
+   "exposure": {
+    "uses": 0
+   },
+   "voice": "sourced"
+  },
+  {
+   "id": "researcher:activity:music/staff-clefs-pitch-notation:5",
+   "kernelId": "music/staff-clefs-pitch-notation",
+   "conceptName": "Staff and clefs",
+   "move": "activity",
+   "body": {
+    "task": "Write a short explanation (about 150 words) of how to determine the pitch of a note on a treble clef staff and a bass clef staff. Include one concrete example for each clef. Your explanation should describe the role of the clef and how to derive note names from the staff positions.",
+    "steps": [
+     "Define the staff and the function of a clef.",
+     "Explain how the treble clef assigns pitches and provide an example (e.g., note on second line or first space).",
+     "Explain how the bass clef assigns pitches and provide an example.",
+     "Briefly compare the two clefs, noting which instruments typically use each."
+    ],
+    "rubricBands": [
+     "Excellent: Clear, accurate explanation with correct examples for both clefs; demonstrates understanding of clef function.",
+     "Adequate: Explains one clef well but the other is incomplete or contains minor errors; examples are present but not fully correct.",
+     "Insufficient: Does not correctly identify note positions or lacks examples; major misunderstanding of clef role."
+    ]
+   },
+   "evidence": {
+    "fromGrade": null,
+    "sourced": true,
+    "teachQuote": "a musical symbol used to indicate which notes are represented by the lines and spaces on a musical staff."
+   },
+   "provenance": {
+    "origin": "researcher",
+    "sources": [
+     {
+      "url": "https://en.wikipedia.org/wiki/Staff_(music)",
+      "license": "CC-BY-SA-4.0",
+      "attribution": "Wikipedia contributors, \"Staff (music)\""
+     },
+     {
+      "url": "https://en.wikipedia.org/wiki/Musical_notation",
+      "license": "CC-BY-SA-4.0",
+      "attribution": "Wikipedia contributors, \"Musical notation\""
+     },
+     {
+      "url": "https://en.wikipedia.org/wiki/Clef",
+      "license": "CC-BY-SA-4.0",
+      "attribution": "Wikipedia contributors, \"Clef\""
+     }
+    ],
+    "date": "2026-07-06"
+   },
+   "exposure": {
+    "uses": 0
+   },
+   "voice": "sourced"
+  },
+  {
+   "id": "researcher:faq-entry:music/staff-clefs-pitch-notation:6",
+   "kernelId": "music/staff-clefs-pitch-notation",
+   "conceptName": "Staff and clefs",
+   "move": "faq-entry",
+   "body": {
+    "q": "Do I have to memorize the lines and spaces for every clef?",
+    "a": "Yes, but mnemonics help. For treble clef, lines: Every Good Boy Deserves Fudge (E-G-B-D-F), spaces: FACE. For bass clef, lines: Good Boys Deserve Fudge Always (G-B-D-F-A), spaces: All Cows Eat Grass (A-C-E-G). Practice will make recognition automatic."
+   },
+   "evidence": {
+    "fromGrade": null,
+    "sourced": true,
+    "teachQuote": "a musical symbol used to indicate which notes are represented by the lines and spaces on a musical staff."
+   },
+   "provenance": {
+    "origin": "researcher",
+    "sources": [
+     {
+      "url": "https://en.wikipedia.org/wiki/Staff_(music)",
+      "license": "CC-BY-SA-4.0",
+      "attribution": "Wikipedia contributors, \"Staff (music)\""
+     },
+     {
+      "url": "https://en.wikipedia.org/wiki/Musical_notation",
+      "license": "CC-BY-SA-4.0",
+      "attribution": "Wikipedia contributors, \"Musical notation\""
+     },
+     {
+      "url": "https://en.wikipedia.org/wiki/Clef",
+      "license": "CC-BY-SA-4.0",
+      "attribution": "Wikipedia contributors, \"Clef\""
+     }
+    ],
+    "date": "2026-07-06"
+   },
+   "exposure": {
+    "uses": 0
+   },
+   "voice": "sourced"
+  },
+  {
+   "id": "researcher:faq-entry:music/staff-clefs-pitch-notation:7",
+   "kernelId": "music/staff-clefs-pitch-notation",
+   "conceptName": "Staff and clefs",
+   "move": "faq-entry",
+   "body": {
+    "q": "Why are there different clefs instead of just one?",
+    "a": "Different instruments and voices have different pitch ranges. Using clefs allows music to be written with minimal ledger lines, making it easier to read. For example, bass clef suits low instruments like cello, while treble clef suits high instruments like flute. This avoids excessive ledger lines."
+   },
+   "evidence": {
+    "fromGrade": null,
+    "sourced": true,
+    "teachQuote": "a musical symbol used to indicate which notes are represented by the lines and spaces on a musical staff."
+   },
+   "provenance": {
+    "origin": "researcher",
+    "sources": [
+     {
+      "url": "https://en.wikipedia.org/wiki/Staff_(music)",
+      "license": "CC-BY-SA-4.0",
+      "attribution": "Wikipedia contributors, \"Staff (music)\""
+     },
+     {
+      "url": "https://en.wikipedia.org/wiki/Musical_notation",
+      "license": "CC-BY-SA-4.0",
+      "attribution": "Wikipedia contributors, \"Musical notation\""
+     },
+     {
+      "url": "https://en.wikipedia.org/wiki/Clef",
+      "license": "CC-BY-SA-4.0",
+      "attribution": "Wikipedia contributors, \"Clef\""
+     }
+    ],
+    "date": "2026-07-06"
+   },
+   "exposure": {
+    "uses": 0
+   },
+   "voice": "sourced"
+  },
+  {
+   "id": "researcher:slide-group:music/staff-clefs-pitch-notation:8",
+   "kernelId": "music/staff-clefs-pitch-notation",
+   "conceptName": "Staff and clefs",
+   "move": "slide-group",
+   "body": {
+    "slides": [
+     {
+      "title": "Introduction to the Staff",
+      "bullets": [
+       "The staff is the foundation of Western music notation.",
+       "It consists of five horizontal lines and four spaces.",
+       "Each line and space represents a different pitch."
+      ],
+      "speakerNotes": "In this lesson, we will learn how the staff and clef work together to indicate musical pitches. Start by understanding the basic structure of the staff.",
+      "altText": "A diagram showing a blank five-line staff with lines and spaces labeled from bottom to top."
+     },
+     {
+      "title": "The Role of the Clef",
+      "bullets": [
+       "A clef is a symbol that assigns pitches to staff positions.",
+       "Without a clef, the staff has no fixed pitch meaning.",
+       "Different clefs exist for different pitch ranges."
+      ],
+      "speakerNotes": "The clef is like a key that tells you which notes correspond to which lines and spaces. We will look at the most common clefs next.",
+      "altText": "A staff with a question mark, then a staff with a treble clef, illustrating the clef providing meaning."
+     },
+     {
+      "title": "Treble Clef",
+      "bullets": [
+       "Also called G-clef, it fixes the second line as G above middle C.",
+       "Lines from bottom: E, G, B, D, F.",
+       "Spaces from bottom: F, A, C, E."
+      ],
+      "speakerNotes": "The treble clef is used for high-pitched instruments like violin, flute, and the right hand of piano. Let's practice reading notes on this clef.",
+      "altText": "A treble clef on a staff with note names labeled on lines and spaces."
+     },
+     {
+      "title": "Bass Clef",
+      "bullets": [
+       "Also called F-clef, it fixes the fourth line as F below middle C.",
+       "Lines from bottom: G, B, D, F, A.",
+       "Spaces from bottom: A, C, E, G."
+      ],
+      "speakerNotes": "The bass clef is used for low-pitched instruments like cello, bassoon, and the left hand of piano. Notice how the same staff shape yields different pitches.",
+      "altText": "A bass clef on a staff with note names labeled on lines and spaces."
+     },
+     {
+      "title": "Alto and Tenor Clefs",
+      "bullets": [
+       "Alto clef places middle C on the third line.",
+       "Tenor clef places middle C on the fourth line.",
+       "These are used by instruments like viola and cello (high register)."
+      ],
+      "speakerNotes": "While less common, alto and tenor clefs are important for certain instruments. They reduce ledger lines for mid-range parts.",
+      "altText": "A staff with an alto clef and another with a tenor clef, showing the position of middle C."
+     },
+     {
+      "title": "Grand Staff",
+      "bullets": [
+       "Two staves joined by a brace, used for keyboard instruments.",
+       "Upper staff uses treble clef, lower staff uses bass clef.",
+       "Middle C is shared between the two staves on ledger lines."
+      ],
+      "speakerNotes": "The grand staff combines treble and bass clefs, allowing a wide pitch range to be notated. This is standard for piano and harp music.",
+      "altText": "A grand staff with treble clef on top, bass clef on bottom, and a brace connecting them."
+     },
+     {
+      "title": "Ledger Lines",
+      "bullets": [
+       "Short lines added above or below the staff for notes outside its range.",
+       "Each ledger line represents an extension of the staff pattern.",
+       "Common in both treble and bass clefs."
+      ],
+      "speakerNotes": "When notes go too high or low, we use ledger lines. They follow the same logic of alternating lines and spaces.",
+      "altText": "A staff with notes on ledger lines above and below, with note names indicated."
+     },
+     {
+      "title": "Summary",
+      "bullets": [
+       "The staff provides the canvas; the clef provides the key.",
+       "Know your clefs to read music for different instruments.",
+       "Practice with mnemonics to memorize note positions."
+      ],
+      "speakerNotes": "Today we covered how staff and clefs work together. Next time we will apply this to reading actual melodies. Keep practicing!",
+      "altText": "A split screen showing a treble clef staff and a bass clef staff with note names."
+     }
+    ]
+   },
+   "evidence": {
+    "fromGrade": null,
+    "sourced": true,
+    "teachQuote": "a musical symbol used to indicate which notes are represented by the lines and spaces on a musical staff."
+   },
+   "provenance": {
+    "origin": "researcher",
+    "sources": [
+     {
+      "url": "https://en.wikipedia.org/wiki/Staff_(music)",
+      "license": "CC-BY-SA-4.0",
+      "attribution": "Wikipedia contributors, \"Staff (music)\""
+     },
+     {
+      "url": "https://en.wikipedia.org/wiki/Musical_notation",
+      "license": "CC-BY-SA-4.0",
+      "attribution": "Wikipedia contributors, \"Musical notation\""
+     },
+     {
+      "url": "https://en.wikipedia.org/wiki/Clef",
+      "license": "CC-BY-SA-4.0",
+      "attribution": "Wikipedia contributors, \"Clef\""
+     }
+    ],
+    "date": "2026-07-06"
+   },
+   "exposure": {
+    "uses": 0
+   },
+   "voice": "sourced"
+  },
+  {
+   "id": "researcher:teach-segment:music/intervals:0",
+   "kernelId": "music/intervals",
+   "conceptName": "Interval (music)",
+   "move": "teach-segment",
+   "body": {
+    "minutes": 12,
+    "text": "In music theory, an interval is the difference in pitch between two sounds. It can describe the distance between two successive notes in a melody (melodic interval) or between two notes sounding together in a chord (harmonic interval). For example, the interval from C to E is called a major third. This name tells us two things: the number (third, meaning it spans three scale degrees: C-D-E) and the quality (major, meaning it covers four semitones). Intervals are fundamental building blocks of melodies and harmonies, and understanding them helps us analyze and create music. They are measured in semitones (the smallest step on a piano keyboard) or in cents for precise tuning. The same interval can be spelled differently, like G# to D (diminished fifth) versus G to D (perfect fifth), which affects its harmonic function despite sounding the same in equal temperament."
+   },
+   "evidence": {
+    "fromGrade": null,
+    "sourced": true,
+    "teachQuote": "In music theory, an interval is a difference in pitch between two sounds."
+   },
+   "provenance": {
+    "origin": "researcher",
+    "sources": [
+     {
+      "url": "https://en.wikipedia.org/wiki/Interval_(music)",
+      "license": "CC-BY-SA-4.0",
+      "attribution": "Wikipedia contributors, \"Interval (music)\""
+     },
+     {
+      "url": "https://en.wikipedia.org/wiki/List_of_pitch_intervals",
+      "license": "CC-BY-SA-4.0",
+      "attribution": "Wikipedia contributors, \"List of pitch intervals\""
+     }
+    ],
+    "date": "2026-07-06"
+   },
+   "exposure": {
+    "uses": 0
+   },
+   "voice": "sourced"
+  },
+  {
+   "id": "researcher:worked-example:music/intervals:1",
+   "kernelId": "music/intervals",
+   "conceptName": "Interval (music)",
+   "move": "worked-example",
+   "body": {
+    "minutes": 15,
+    "text": "Worked example: Identify the interval from C to G on a piano. Step 1: Count the number of letter names inclusively. C (1), D (2), E (3), F (4), G (5). So it is a fifth. Step 2: Determine the quality. The key signature of C major has no sharps or flats; both C and G are natural. The perfect fifth is 7 semitones. Count semitones: C to C# (1), D (2), D# (3), E (4), F (5), F# (6), G (7). Yes, 7 semitones. So the interval is a perfect fifth. Step 3: Verify: The perfect fifth is a common interval, like the opening of \"Twinkle Twinkle Little Star\" (C to G). In just intonation, its frequency ratio is 3:2."
+   },
+   "evidence": {
+    "fromGrade": null,
+    "sourced": true,
+    "teachQuote": "In music theory, an interval is a difference in pitch between two sounds."
+   },
+   "provenance": {
+    "origin": "researcher",
+    "sources": [
+     {
+      "url": "https://en.wikipedia.org/wiki/Interval_(music)",
+      "license": "CC-BY-SA-4.0",
+      "attribution": "Wikipedia contributors, \"Interval (music)\""
+     },
+     {
+      "url": "https://en.wikipedia.org/wiki/List_of_pitch_intervals",
+      "license": "CC-BY-SA-4.0",
+      "attribution": "Wikipedia contributors, \"List of pitch intervals\""
+     }
+    ],
+    "date": "2026-07-06"
+   },
+   "exposure": {
+    "uses": 0
+   },
+   "voice": "sourced"
+  },
+  {
+   "id": "researcher:reteach-script:music/intervals:2",
+   "kernelId": "music/intervals",
+   "conceptName": "Interval (music)",
+   "move": "reteach-script",
+   "body": {
+    "minutes": 10,
+    "text": "Let's try a different example: from D to F#. First, count letter names: D (1), E (2), F (3). That is a third. Now check the number of semitones: D to D# (1), E (2), F (3), F# (4). Four semitones means it is a major third. If the top note were F natural, that would be only 3 semitones, a minor third. So the same number (third) can be major or minor depending on the semitone count. Remember: major intervals are one semitone larger than minor intervals. This example shows how spelling and semitones work together."
+   },
+   "evidence": {
+    "fromGrade": null,
+    "sourced": true,
+    "teachQuote": "In music theory, an interval is a difference in pitch between two sounds."
+   },
+   "provenance": {
+    "origin": "researcher",
+    "sources": [
+     {
+      "url": "https://en.wikipedia.org/wiki/Interval_(music)",
+      "license": "CC-BY-SA-4.0",
+      "attribution": "Wikipedia contributors, \"Interval (music)\""
+     },
+     {
+      "url": "https://en.wikipedia.org/wiki/List_of_pitch_intervals",
+      "license": "CC-BY-SA-4.0",
+      "attribution": "Wikipedia contributors, \"List of pitch intervals\""
+     }
+    ],
+    "date": "2026-07-06"
+   },
+   "exposure": {
+    "uses": 0
+   },
+   "voice": "sourced"
+  },
+  {
+   "id": "researcher:guide:music/intervals:3",
+   "kernelId": "music/intervals",
+   "conceptName": "Interval (music)",
+   "move": "guide",
+   "body": {
+    "markdown": "If you missed the reading, start by understanding that an interval is the distance in pitch between two notes, not a time gap. Key terms: semitone (half step), whole tone (two half steps), interval number (second, third, etc., based on letter names), interval quality (perfect, major, minor, augmented, diminished). To identify an interval, first count the letter names (including both notes) to get the number. Then count the semitones using a keyboard or mental reference. For example, C to A is a sixth: C-D-E-F-G-A (6 letters). From C to A natural there are 9 semitones: that's a major sixth. If A were flat, it would be 8 semitones: minor sixth. Practice with simple intervals like perfect octave (12 semitones), major third (4 semitones), and perfect fifth (7 semitones). Self-check: 1) What is the interval from E to B? 2) Distinguish between a major second and a minor second."
+   },
+   "evidence": {
+    "fromGrade": null,
+    "sourced": true,
+    "teachQuote": "In music theory, an interval is a difference in pitch between two sounds."
+   },
+   "provenance": {
+    "origin": "researcher",
+    "sources": [
+     {
+      "url": "https://en.wikipedia.org/wiki/Interval_(music)",
+      "license": "CC-BY-SA-4.0",
+      "attribution": "Wikipedia contributors, \"Interval (music)\""
+     },
+     {
+      "url": "https://en.wikipedia.org/wiki/List_of_pitch_intervals",
+      "license": "CC-BY-SA-4.0",
+      "attribution": "Wikipedia contributors, \"List of pitch intervals\""
+     }
+    ],
+    "date": "2026-07-06"
+   },
+   "exposure": {
+    "uses": 0
+   },
+   "voice": "sourced"
+  },
+  {
+   "id": "researcher:discussion-tension:music/intervals:4",
+   "kernelId": "music/intervals",
+   "conceptName": "Interval (music)",
+   "move": "discussion-tension",
+   "body": {
+    "prompt": "If an augmented fourth and a diminished fifth sound the same on a piano (both 6 semitones), why do we use different names for them? Does spelling really matter?",
+    "tension": "The names reflect theoretical function and historical tuning differences, even though equal temperament makes them identical in sound. This creates a tension between practical hearing and notational tradition.",
+    "followUps": [
+     "In what musical contexts might the spelling of an interval affect how a performer interprets it?",
+     "Can you think of a piece where an augmented fourth feels different from a diminished fifth despite the same pitch class?"
+    ]
+   },
+   "evidence": {
+    "fromGrade": null,
+    "sourced": true,
+    "teachQuote": "In music theory, an interval is a difference in pitch between two sounds."
+   },
+   "provenance": {
+    "origin": "researcher",
+    "sources": [
+     {
+      "url": "https://en.wikipedia.org/wiki/Interval_(music)",
+      "license": "CC-BY-SA-4.0",
+      "attribution": "Wikipedia contributors, \"Interval (music)\""
+     },
+     {
+      "url": "https://en.wikipedia.org/wiki/List_of_pitch_intervals",
+      "license": "CC-BY-SA-4.0",
+      "attribution": "Wikipedia contributors, \"List of pitch intervals\""
+     }
+    ],
+    "date": "2026-07-06"
+   },
+   "exposure": {
+    "uses": 0
+   },
+   "voice": "sourced"
+  },
+  {
+   "id": "researcher:activity:music/intervals:5",
+   "kernelId": "music/intervals",
+   "conceptName": "Interval (music)",
+   "move": "activity",
+   "body": {
+    "task": "Given the following melody notes in C major: C, D, E, F, G, A, B, C. For each successive pair of notes (C-D, D-E, etc.), identify the interval by number and quality. Write them in the format: 'C to D: Major second'. For the last interval (B to C), also identify it as a minor second. Then, check your answers by counting semitones.",
+    "steps": [
+     "Write the sequence of note pairs.",
+     "Count the number of letter names inclusively for each pair.",
+     "Determine the quality using the key signature (C major has no sharps/flats) and semitone count.",
+     "Verify using a piano or reference chart."
+    ],
+    "rubricBands": [
+     "Excellent: All intervals correctly identified with number and quality, and semitone counts match.",
+     "Adequate: Most intervals correct, but one or two errors in quality or number.",
+     "Insufficient: Less than half correct or missing quality distinctions."
+    ]
+   },
+   "evidence": {
+    "fromGrade": null,
+    "sourced": true,
+    "teachQuote": "In music theory, an interval is a difference in pitch between two sounds."
+   },
+   "provenance": {
+    "origin": "researcher",
+    "sources": [
+     {
+      "url": "https://en.wikipedia.org/wiki/Interval_(music)",
+      "license": "CC-BY-SA-4.0",
+      "attribution": "Wikipedia contributors, \"Interval (music)\""
+     },
+     {
+      "url": "https://en.wikipedia.org/wiki/List_of_pitch_intervals",
+      "license": "CC-BY-SA-4.0",
+      "attribution": "Wikipedia contributors, \"List of pitch intervals\""
+     }
+    ],
+    "date": "2026-07-06"
+   },
+   "exposure": {
+    "uses": 0
+   },
+   "voice": "sourced"
+  },
+  {
+   "id": "researcher:faq-entry:music/intervals:6",
+   "kernelId": "music/intervals",
+   "conceptName": "Interval (music)",
+   "move": "faq-entry",
+   "body": {
+    "q": "Why are there different names for intervals with the same number of semitones?",
+    "a": "Different names (like augmented fourth vs. diminished fifth) reflect how the interval is spelled and its harmonic function. In equal temperament they sound the same, but in other tunings (like just intonation) they differ slightly. Also, in music theory, the spelling affects voice leading and chord analysis."
+   },
+   "evidence": {
+    "fromGrade": null,
+    "sourced": true,
+    "teachQuote": "In music theory, an interval is a difference in pitch between two sounds."
+   },
+   "provenance": {
+    "origin": "researcher",
+    "sources": [
+     {
+      "url": "https://en.wikipedia.org/wiki/Interval_(music)",
+      "license": "CC-BY-SA-4.0",
+      "attribution": "Wikipedia contributors, \"Interval (music)\""
+     },
+     {
+      "url": "https://en.wikipedia.org/wiki/List_of_pitch_intervals",
+      "license": "CC-BY-SA-4.0",
+      "attribution": "Wikipedia contributors, \"List of pitch intervals\""
+     }
+    ],
+    "date": "2026-07-06"
+   },
+   "exposure": {
+    "uses": 0
+   },
+   "voice": "sourced"
+  },
+  {
+   "id": "researcher:faq-entry:music/intervals:7",
+   "kernelId": "music/intervals",
+   "conceptName": "Interval (music)",
+   "move": "faq-entry",
+   "body": {
+    "q": "How do I know if an interval is major or minor?",
+    "a": "Major and minor apply to seconds, thirds, sixths, and sevenths. A major interval is one semitone larger than its minor counterpart. For example, major third = 4 semitones, minor third = 3 semitones. Use a keyboard to count semitones from the lower note, and compare to the major scale of the lower note."
+   },
+   "evidence": {
+    "fromGrade": null,
+    "sourced": true,
+    "teachQuote": "In music theory, an interval is a difference in pitch between two sounds."
+   },
+   "provenance": {
+    "origin": "researcher",
+    "sources": [
+     {
+      "url": "https://en.wikipedia.org/wiki/Interval_(music)",
+      "license": "CC-BY-SA-4.0",
+      "attribution": "Wikipedia contributors, \"Interval (music)\""
+     },
+     {
+      "url": "https://en.wikipedia.org/wiki/List_of_pitch_intervals",
+      "license": "CC-BY-SA-4.0",
+      "attribution": "Wikipedia contributors, \"List of pitch intervals\""
+     }
+    ],
+    "date": "2026-07-06"
+   },
+   "exposure": {
+    "uses": 0
+   },
+   "voice": "sourced"
+  },
+  {
+   "id": "researcher:slide-group:music/intervals:8",
+   "kernelId": "music/intervals",
+   "conceptName": "Interval (music)",
+   "move": "slide-group",
+   "body": {
+    "slides": [
+     {
+      "title": "What is an Interval?",
+      "bullets": [
+       "An interval is the difference in pitch between two sounds.",
+       "It can be melodic (successive) or harmonic (simultaneous).",
+       "Intervals are measured in semitones or cents.",
+       "They are named by number and quality."
+      ],
+      "speakerNotes": "Start by defining interval. Emphasize it's about pitch distance, not time. Use a piano to demonstrate C to C an octave vs. C to D a second.",
+      "altText": "A diagram showing two notes on a staff with a bracket labeled 'interval'."
+     },
+     {
+      "title": "Measuring Intervals",
+      "bullets": [
+       "Frequency ratio: e.g., octave 2:1, perfect fifth 3:2.",
+       "Cents: 1200 cents per octave, semitone = 100 cents.",
+       "Equal temperament vs. just intonation."
+      ],
+      "speakerNotes": "Explain that ratios give exact tuning but are not practical for all keys. Cents are logarithmic and allow precise measurement. Show a comparison.",
+      "altText": "A table with intervals, their frequency ratios, and cent values."
+     },
+     {
+      "title": "Interval Number",
+      "bullets": [
+       "Number is based on letter names (scale steps).",
+       "Count both notes inclusively.",
+       "Examples: C-E is a third, C-G is a fifth."
+      ],
+      "speakerNotes": "Demonstrate counting on the staff. Emphasize that number does not reflect semitones directly.",
+      "altText": "Staff showing C, D, E, F, G with arrows marking steps."
+     },
+     {
+      "title": "Interval Quality",
+      "bullets": [
+       "Perfect, major, minor, augmented, diminished.",
+       "Perfect intervals: unison, fourth, fifth, octave.",
+       "Major/minor for seconds, thirds, sixths, sevenths."
+      ],
+      "speakerNotes": "Explain that quality depends on semitone count. Use keyboard to show major vs. minor third.",
+      "altText": "Piano keyboard with highlighted keys for C-E (major third) and C-Eb (minor third)."
+     },
+     {
+      "title": "Enharmonic Equivalence",
+      "bullets": [
+       "Intervals with same sound but different spelling.",
+       "Example: augmented fourth (C-F#) and diminished fifth (C-Gb).",
+       "Spelling affects harmonic function."
+      ],
+      "speakerNotes": "Discuss why spelling matters in music theory despite same pitch. Use voice leading examples.",
+      "altText": "Two staves: one with C-F#, another with C-Gb labeled with interval names."
+     },
+     {
+      "title": "Ear Training with Intervals",
+      "bullets": [
+       "Recognize intervals by sound.",
+       "Use reference songs: minor second = Jaws theme.",
+       "Practice ascending and descending."
+      ],
+      "speakerNotes": "Play examples of common intervals and associate with familiar tunes. Encourage active listening.",
+      "altText": "A list of intervals with corresponding song examples."
+     },
+     {
+      "title": "Summary and Next Steps",
+      "bullets": [
+       "Interval = pitch distance, number + quality.",
+       "Practice identifying intervals on staff and by ear.",
+       "Apply to chord construction and melody analysis."
+      ],
+      "speakerNotes": "Recap key points. Assign homework and direct students to online interval trainers.",
+      "altText": "A graphic showing intervals with labels, like a ruler on a keyboard."
+     }
+    ]
+   },
+   "evidence": {
+    "fromGrade": null,
+    "sourced": true,
+    "teachQuote": "In music theory, an interval is a difference in pitch between two sounds."
+   },
+   "provenance": {
+    "origin": "researcher",
+    "sources": [
+     {
+      "url": "https://en.wikipedia.org/wiki/Interval_(music)",
+      "license": "CC-BY-SA-4.0",
+      "attribution": "Wikipedia contributors, \"Interval (music)\""
+     },
+     {
+      "url": "https://en.wikipedia.org/wiki/List_of_pitch_intervals",
+      "license": "CC-BY-SA-4.0",
+      "attribution": "Wikipedia contributors, \"List of pitch intervals\""
+     }
+    ],
+    "date": "2026-07-06"
+   },
+   "exposure": {
+    "uses": 0
+   },
+   "voice": "sourced"
+  },
+  {
+   "id": "researcher:teach-segment:music/scales-and-key-signatures:0",
+   "kernelId": "music/scales-and-key-signatures",
+   "conceptName": "Scales and key signatures",
+   "move": "teach-segment",
+   "body": {
+    "minutes": 12,
+    "text": "In music theory, a scale is a sequence of notes ordered by pitch that spans one octave, defined by a specific step pattern. For example, a major scale follows the pattern whole-whole-half-whole-whole-whole-half. The key signature is a set of sharps or flats placed at the beginning of a staff that indicates which notes must be consistently raised or lowered to maintain that pattern in a given key. For instance, the key of G major requires one sharp (F♯) to preserve the major scale pattern starting on G. Key signatures allow musicians to read music without having to write accidentals for every altered note, streamlining notation and clarifying the tonal center."
+   },
+   "evidence": {
+    "fromGrade": null,
+    "sourced": true,
+    "teachQuote": "any consecutive series of notes that form a progression between one note and its octave"
+   },
+   "provenance": {
+    "origin": "researcher",
+    "sources": [
+     {
+      "url": "https://en.wikipedia.org/wiki/Scale_(music)",
+      "license": "CC-BY-SA-4.0",
+      "attribution": "Wikipedia contributors, \"Scale (music)\""
+     },
+     {
+      "url": "https://en.wikipedia.org/wiki/Chromatic_scale",
+      "license": "CC-BY-SA-4.0",
+      "attribution": "Wikipedia contributors, \"Chromatic scale\""
+     },
+     {
+      "url": "https://en.wikipedia.org/wiki/Key_signature",
+      "license": "CC-BY-SA-4.0",
+      "attribution": "Wikipedia contributors, \"Key signature\""
+     }
+    ],
+    "date": "2026-07-06"
+   },
+   "exposure": {
+    "uses": 0
+   },
+   "voice": "sourced"
+  },
+  {
+   "id": "researcher:worked-example:music/scales-and-key-signatures:1",
+   "kernelId": "music/scales-and-key-signatures",
+   "conceptName": "Scales and key signatures",
+   "move": "worked-example",
+   "body": {
+    "minutes": 15,
+    "text": "Worked example: Let's determine the key signature for D major. Starting on D, apply the major scale pattern: whole step to E, whole to F♯ (since F♮ is a half step from E, we need F♯ for a whole), half to G, whole to A, whole to B, whole to C♯ (C♮ is half from B, so raise to C♯ for whole), half to D. So the D major scale uses F♯ and C♯. In standard key signatures, sharps appear in order: F♯, C♯, G♯, D♯, A♯, E♯, B♯. Therefore, D major's key signature has two sharps: F♯ and C♯. On the staff, these symbols are placed on the F and C lines/spaces at the beginning of each staff, indicating that all F and C notes throughout the piece are played as F♯ and C♯. This key signature matches the D major scale and its relative minor, B minor."
+   },
+   "evidence": {
+    "fromGrade": null,
+    "sourced": true,
+    "teachQuote": "any consecutive series of notes that form a progression between one note and its octave"
+   },
+   "provenance": {
+    "origin": "researcher",
+    "sources": [
+     {
+      "url": "https://en.wikipedia.org/wiki/Scale_(music)",
+      "license": "CC-BY-SA-4.0",
+      "attribution": "Wikipedia contributors, \"Scale (music)\""
+     },
+     {
+      "url": "https://en.wikipedia.org/wiki/Chromatic_scale",
+      "license": "CC-BY-SA-4.0",
+      "attribution": "Wikipedia contributors, \"Chromatic scale\""
+     },
+     {
+      "url": "https://en.wikipedia.org/wiki/Key_signature",
+      "license": "CC-BY-SA-4.0",
+      "attribution": "Wikipedia contributors, \"Key signature\""
+     }
+    ],
+    "date": "2026-07-06"
+   },
+   "exposure": {
+    "uses": 0
+   },
+   "voice": "sourced"
+  },
+  {
+   "id": "researcher:reteach-script:music/scales-and-key-signatures:2",
+   "kernelId": "music/scales-and-key-signatures",
+   "conceptName": "Scales and key signatures",
+   "move": "reteach-script",
+   "body": {
+    "minutes": 10,
+    "text": "Let's try another example: the key of F major. The major scale pattern starting on F: whole step to G, whole to A, half to B♭ (since B♮ is a half step above A, but we need a half step from A to B♭ to reach a whole step? Wait, check: F-G is whole, G-A whole, A to B♭ is half, then B♭-C whole, C-D whole, D-E whole, E-F half. Yes, so only B is flat. So F major has one flat: B♭. In the order of flats (B♭, E♭, A♭, D♭, G♭, C♭, F♭), B♭ is first. The key signature shows a flat on the B line. This tells you to play all B notes as B♭. Understanding key signatures helps you quickly identify the scale's notes and the piece's tonal center."
+   },
+   "evidence": {
+    "fromGrade": null,
+    "sourced": true,
+    "teachQuote": "any consecutive series of notes that form a progression between one note and its octave"
+   },
+   "provenance": {
+    "origin": "researcher",
+    "sources": [
+     {
+      "url": "https://en.wikipedia.org/wiki/Scale_(music)",
+      "license": "CC-BY-SA-4.0",
+      "attribution": "Wikipedia contributors, \"Scale (music)\""
+     },
+     {
+      "url": "https://en.wikipedia.org/wiki/Chromatic_scale",
+      "license": "CC-BY-SA-4.0",
+      "attribution": "Wikipedia contributors, \"Chromatic scale\""
+     },
+     {
+      "url": "https://en.wikipedia.org/wiki/Key_signature",
+      "license": "CC-BY-SA-4.0",
+      "attribution": "Wikipedia contributors, \"Key signature\""
+     }
+    ],
+    "date": "2026-07-06"
+   },
+   "exposure": {
+    "uses": 0
+   },
+   "voice": "sourced"
+  },
+  {
+   "id": "researcher:guide:music/scales-and-key-signatures:3",
+   "kernelId": "music/scales-and-key-signatures",
+   "conceptName": "Scales and key signatures",
+   "move": "guide",
+   "body": {
+    "markdown": "If you missed the reading, start by reviewing the definition of a scale: a series of notes spanning an octave with a specific step pattern. Then study how major scales are constructed using whole and half steps. Next, learn how key signatures derive from scales: each major key (except C) requires certain notes to be raised or lowered, and these are notated as sharps or flats in a fixed order. Use the circle of fifths to visualize relationships between keys. Key terms: scale, step, tonic, key signature, sharp, flat, natural, circle of fifths. Self-check prompts: 1. What is the whole-half step pattern for a major scale? 2. How many sharps are in the key of A major and what are they? (Answer: 3 sharps: F♯, C♯, G♯)."
+   },
+   "evidence": {
+    "fromGrade": null,
+    "sourced": true,
+    "teachQuote": "any consecutive series of notes that form a progression between one note and its octave"
+   },
+   "provenance": {
+    "origin": "researcher",
+    "sources": [
+     {
+      "url": "https://en.wikipedia.org/wiki/Scale_(music)",
+      "license": "CC-BY-SA-4.0",
+      "attribution": "Wikipedia contributors, \"Scale (music)\""
+     },
+     {
+      "url": "https://en.wikipedia.org/wiki/Chromatic_scale",
+      "license": "CC-BY-SA-4.0",
+      "attribution": "Wikipedia contributors, \"Chromatic scale\""
+     },
+     {
+      "url": "https://en.wikipedia.org/wiki/Key_signature",
+      "license": "CC-BY-SA-4.0",
+      "attribution": "Wikipedia contributors, \"Key signature\""
+     }
+    ],
+    "date": "2026-07-06"
+   },
+   "exposure": {
+    "uses": 0
+   },
+   "voice": "sourced"
+  },
+  {
+   "id": "researcher:discussion-tension:music/scales-and-key-signatures:4",
+   "kernelId": "music/scales-and-key-signatures",
+   "conceptName": "Scales and key signatures",
+   "move": "discussion-tension",
+   "body": {
+    "prompt": "Why might a composer choose to write in a key with many sharps or flats (e.g., C♯ major has 7 sharps) rather than using its enharmonic equivalent with fewer accidentals (D♭ major has 5 flats)?",
+    "tension": "Choosing key signature involves readability, instrument ranges, and tonal color; there is no single correct answer, and composers weigh practical notation against expressive intent.",
+    "followUps": [
+     "What are the advantages of D♭ major over C♯ major for a piano piece?",
+     "How does the choice of key signature affect the emotional character of a piece?"
+    ]
+   },
+   "evidence": {
+    "fromGrade": null,
+    "sourced": true,
+    "teachQuote": "any consecutive series of notes that form a progression between one note and its octave"
+   },
+   "provenance": {
+    "origin": "researcher",
+    "sources": [
+     {
+      "url": "https://en.wikipedia.org/wiki/Scale_(music)",
+      "license": "CC-BY-SA-4.0",
+      "attribution": "Wikipedia contributors, \"Scale (music)\""
+     },
+     {
+      "url": "https://en.wikipedia.org/wiki/Chromatic_scale",
+      "license": "CC-BY-SA-4.0",
+      "attribution": "Wikipedia contributors, \"Chromatic scale\""
+     },
+     {
+      "url": "https://en.wikipedia.org/wiki/Key_signature",
+      "license": "CC-BY-SA-4.0",
+      "attribution": "Wikipedia contributors, \"Key signature\""
+     }
+    ],
+    "date": "2026-07-06"
+   },
+   "exposure": {
+    "uses": 0
+   },
+   "voice": "sourced"
+  },
+  {
+   "id": "researcher:activity:music/scales-and-key-signatures:5",
+   "kernelId": "music/scales-and-key-signatures",
+   "conceptName": "Scales and key signatures",
+   "move": "activity",
+   "body": {
+    "task": "For each of the following major keys, write the key signature (list the sharps or flats in order) and identify the relative minor: G, D, A, E, B, F, B♭, E♭, A♭, D♭. Then, explain why the key of C major has no sharps or flats and how the key signature relates to its scale.",
+    "steps": [
+     "Use the circle of fifths to determine the number of sharps or flats.",
+     "Write the order of sharps (F, C, G, D, A, E, B) or flats (B, E, A, D, G, C, F) up to the needed number.",
+     "Identify the relative minor by counting down a minor third from the major tonic.",
+     "Check your answers with a reliable reference."
+    ],
+    "rubricBands": [
+     "Excellent: All key signatures and relative minors are correct; explanations are clear and demonstrate understanding of scale patterns and circle of fifths.",
+     "Adequate: Most key signatures and relative minors are correct; minor errors in order or missing explanation.",
+     "Insufficient: Many key signatures or relative minors are incorrect; no clear explanation."
+    ]
+   },
+   "evidence": {
+    "fromGrade": null,
+    "sourced": true,
+    "teachQuote": "any consecutive series of notes that form a progression between one note and its octave"
+   },
+   "provenance": {
+    "origin": "researcher",
+    "sources": [
+     {
+      "url": "https://en.wikipedia.org/wiki/Scale_(music)",
+      "license": "CC-BY-SA-4.0",
+      "attribution": "Wikipedia contributors, \"Scale (music)\""
+     },
+     {
+      "url": "https://en.wikipedia.org/wiki/Chromatic_scale",
+      "license": "CC-BY-SA-4.0",
+      "attribution": "Wikipedia contributors, \"Chromatic scale\""
+     },
+     {
+      "url": "https://en.wikipedia.org/wiki/Key_signature",
+      "license": "CC-BY-SA-4.0",
+      "attribution": "Wikipedia contributors, \"Key signature\""
+     }
+    ],
+    "date": "2026-07-06"
+   },
+   "exposure": {
+    "uses": 0
+   },
+   "voice": "sourced"
+  },
+  {
+   "id": "researcher:faq-entry:music/scales-and-key-signatures:6",
+   "kernelId": "music/scales-and-key-signatures",
+   "conceptName": "Scales and key signatures",
+   "move": "faq-entry",
+   "body": {
+    "q": "Why do we need key signatures? Can't we just use accidentals every time a note is sharp or flat?",
+    "a": "Key signatures eliminate the need to write accidentals for every altered note, making music easier to read and write. They also immediately establish the tonal center and scale, helping performers anticipate the harmonic context. Without key signatures, scores would be cluttered with accidentals, especially in keys with many sharps or flats."
+   },
+   "evidence": {
+    "fromGrade": null,
+    "sourced": true,
+    "teachQuote": "any consecutive series of notes that form a progression between one note and its octave"
+   },
+   "provenance": {
+    "origin": "researcher",
+    "sources": [
+     {
+      "url": "https://en.wikipedia.org/wiki/Scale_(music)",
+      "license": "CC-BY-SA-4.0",
+      "attribution": "Wikipedia contributors, \"Scale (music)\""
+     },
+     {
+      "url": "https://en.wikipedia.org/wiki/Chromatic_scale",
+      "license": "CC-BY-SA-4.0",
+      "attribution": "Wikipedia contributors, \"Chromatic scale\""
+     },
+     {
+      "url": "https://en.wikipedia.org/wiki/Key_signature",
+      "license": "CC-BY-SA-4.0",
+      "attribution": "Wikipedia contributors, \"Key signature\""
+     }
+    ],
+    "date": "2026-07-06"
+   },
+   "exposure": {
+    "uses": 0
+   },
+   "voice": "sourced"
+  },
+  {
+   "id": "researcher:faq-entry:music/scales-and-key-signatures:7",
+   "kernelId": "music/scales-and-key-signatures",
+   "conceptName": "Scales and key signatures",
+   "move": "faq-entry",
+   "body": {
+    "q": "How do I remember the order of sharps and flats?",
+    "a": "The order of sharps is: F, C, G, D, A, E, B (mnemonic: Father Charles Goes Down And Ends Battle). For flats, reverse: B, E, A, D, G, C, F (Battle Ends And Down Goes Charles Father). The circle of fifths also visually shows the order: going clockwise adds sharps, counterclockwise adds flats."
+   },
+   "evidence": {
+    "fromGrade": null,
+    "sourced": true,
+    "teachQuote": "any consecutive series of notes that form a progression between one note and its octave"
+   },
+   "provenance": {
+    "origin": "researcher",
+    "sources": [
+     {
+      "url": "https://en.wikipedia.org/wiki/Scale_(music)",
+      "license": "CC-BY-SA-4.0",
+      "attribution": "Wikipedia contributors, \"Scale (music)\""
+     },
+     {
+      "url": "https://en.wikipedia.org/wiki/Chromatic_scale",
+      "license": "CC-BY-SA-4.0",
+      "attribution": "Wikipedia contributors, \"Chromatic scale\""
+     },
+     {
+      "url": "https://en.wikipedia.org/wiki/Key_signature",
+      "license": "CC-BY-SA-4.0",
+      "attribution": "Wikipedia contributors, \"Key signature\""
+     }
+    ],
+    "date": "2026-07-06"
+   },
+   "exposure": {
+    "uses": 0
+   },
+   "voice": "sourced"
+  },
+  {
+   "id": "researcher:slide-group:music/scales-and-key-signatures:8",
+   "kernelId": "music/scales-and-key-signatures",
+   "conceptName": "Scales and key signatures",
+   "move": "slide-group",
+   "body": {
+    "slides": [
+     {
+      "title": "Scales and Key Signatures",
+      "bullets": [
+       "A scale is a series of notes spanning an octave with a fixed step pattern.",
+       "Major scale pattern: whole-whole-half-whole-whole-whole-half.",
+       "Key signatures indicate which notes are consistently sharped or flatted."
+      ],
+      "speakerNotes": "Today we'll explore scales and key signatures. We'll start with the definition of a scale and then see how key signatures derive from scales.",
+      "altText": "A diagram showing the notes of a scale with whole and half steps labeled."
+     },
+     {
+      "title": "The Major Scale Pattern",
+      "bullets": [
+       "Whole step (W) = two half steps; Half step (H) = one half step.",
+       "Pattern: W-W-H-W-W-W-H.",
+       "Example: C major uses all white keys: C-D-E-F-G-A-B-C."
+      ],
+      "speakerNotes": "Memorize this pattern. It works for any starting note. Let's practice on C major: no sharps or flats.",
+      "altText": "A piano keyboard with highlighted keys for the C major scale and step pattern labels."
+     },
+     {
+      "title": "Key Signatures Defined",
+      "bullets": [
+       "A key signature is a set of sharps or flats at the start of a staff.",
+       "It applies to all octaves of those notes throughout the piece.",
+       "It represents the notes of the scale for that key."
+      ],
+      "speakerNotes": "Key signatures tell you which notes are consistently altered, making music simpler to read. For example, one sharp means F sharp.",
+      "altText": "A staff with a treble clef and one sharp symbol on the F line."
+     },
+     {
+      "title": "Order of Sharps and Flats",
+      "bullets": [
+       "Sharps appear in order: F, C, G, D, A, E, B.",
+       "Flats appear in order: B, E, A, D, G, C, F.",
+       "This order follows the circle of fifths."
+      ],
+      "speakerNotes": "Knowing the order helps you quickly identify a key signature. For example, two sharps means F and C sharp.",
+      "altText": "A circle of fifths diagram showing key signatures with sharps and flats."
+     },
+     {
+      "title": "The Circle of Fifths",
+      "bullets": [
+       "A visual guide to key relationships.",
+       "Moving clockwise adds sharps; counterclockwise adds flats.",
+       "Each step is a perfect fifth up or down."
+      ],
+      "speakerNotes": "The circle of fifths is your best friend for learning key signatures. It also helps with modulation and relative minors.",
+      "altText": "A circle of fifths chart with major keys on the outer ring and minor keys on the inner ring."
+     },
+     {
+      "title": "Worked Example: D Major",
+      "bullets": [
+       "Apply major pattern to D: D-E-F♯-G-A-B-C♯-D.",
+       "Thus key signature: F♯ and C♯.",
+       "Relative minor: B minor (minor third below D)."
+      ],
+      "speakerNotes": "Let's go through D major step by step. Then find its relative minor. This is a typical exercise.",
+      "altText": "A staff showing the D major scale with accidentals, and the corresponding key signature."
+     },
+     {
+      "title": "Common Misconceptions",
+      "bullets": [
+       "Scales are not random sets of notes; they follow a pattern.",
+       "Key signatures are not optional; they define the key.",
+       "Chromatic scale uses all 12 notes, not just added accidentals."
+      ],
+      "speakerNotes": "Students often confuse these points. Remember, every scale has a structure, and key signatures are systematic.",
+      "altText": "A chart listing common misconceptions and correct explanations."
+     },
+     {
+      "title": "Practice Tips",
+      "bullets": [
+       "Memorize the circle of fifths.",
+       "Practice writing key signatures for all major keys.",
+       "Identify relative minors quickly."
+      ],
+      "speakerNotes": "Use flashcards or apps to drill key signatures. Try to name a key by its number of sharps or flats.",
+      "altText": "A student practicing with flashcards showing key signatures."
+     },
+     {
+      "title": "Summary",
+      "bullets": [
+       "Scales have fixed step patterns.",
+       "Key signatures derive from scales and show altered notes.",
+       "The circle of fifths organizes keys into a useful diagram."
+      ],
+      "speakerNotes": "Today we covered the basics of scales and key signatures. Next time we'll explore minor scales and more advanced concepts.",
+      "altText": "An overview infographic summarizing scales and key signatures."
+     }
+    ]
+   },
+   "evidence": {
+    "fromGrade": null,
+    "sourced": true,
+    "teachQuote": "any consecutive series of notes that form a progression between one note and its octave"
+   },
+   "provenance": {
+    "origin": "researcher",
+    "sources": [
+     {
+      "url": "https://en.wikipedia.org/wiki/Scale_(music)",
+      "license": "CC-BY-SA-4.0",
+      "attribution": "Wikipedia contributors, \"Scale (music)\""
+     },
+     {
+      "url": "https://en.wikipedia.org/wiki/Chromatic_scale",
+      "license": "CC-BY-SA-4.0",
+      "attribution": "Wikipedia contributors, \"Chromatic scale\""
+     },
+     {
+      "url": "https://en.wikipedia.org/wiki/Key_signature",
+      "license": "CC-BY-SA-4.0",
+      "attribution": "Wikipedia contributors, \"Key signature\""
+     }
+    ],
+    "date": "2026-07-06"
+   },
+   "exposure": {
+    "uses": 0
+   },
+   "voice": "sourced"
+  },
+  {
+   "id": "researcher:teach-segment:music/triads-and-seventh-chords:0",
+   "kernelId": "music/triads-and-seventh-chords",
+   "conceptName": "Triads and seventh chords",
+   "move": "teach-segment",
+   "body": {
+    "minutes": 12,
+    "text": "In music theory, a triad is the fundamental chord consisting of three notes stacked in thirds: the root, third, and fifth. For example, a C major triad includes the notes C (root), E (major third), and G (perfect fifth). Importantly, the root remains the same even when the chord is inverted—that is, when the third or fifth is the lowest note. Building on the triad, a seventh chord adds a fourth note a third above the fifth, forming a seventh interval above the root. For instance, a C dominant seventh chord (C7) adds B♭ to the C major triad. Seventh chords introduce more dissonance and are common in jazz, blues, and popular music. The most prevalent type is the dominant seventh, consisting of a major triad and a minor seventh."
+   },
+   "evidence": {
+    "fromGrade": null,
+    "sourced": true,
+    "teachQuote": "In music, a triad is a set of three notes (or \"pitch classes\") that can be stacked vertically in thirds."
+   },
+   "provenance": {
+    "origin": "researcher",
+    "sources": [
+     {
+      "url": "https://en.wikipedia.org/wiki/Triad_(music)",
+      "license": "CC-BY-SA-4.0",
+      "attribution": "Wikipedia contributors, \"Triad (music)\""
+     },
+     {
+      "url": "https://en.wikipedia.org/wiki/Triadic",
+      "license": "CC-BY-SA-4.0",
+      "attribution": "Wikipedia contributors, \"Triadic\""
+     },
+     {
+      "url": "https://en.wikipedia.org/wiki/Seventh_chord",
+      "license": "CC-BY-SA-4.0",
+      "attribution": "Wikipedia contributors, \"Seventh chord\""
+     }
+    ],
+    "date": "2026-07-06"
+   },
+   "exposure": {
+    "uses": 0
+   },
+   "voice": "sourced"
+  },
+  {
+   "id": "researcher:worked-example:music/triads-and-seventh-chords:1",
+   "kernelId": "music/triads-and-seventh-chords",
+   "conceptName": "Triads and seventh chords",
+   "move": "worked-example",
+   "body": {
+    "minutes": 15,
+    "text": "Worked example: Let’s construct a G dominant seventh chord step by step. First, identify the root: G. Build a G major triad: the major third above G is B, and the perfect fifth is D. So the triad is G–B–D. Next, add the minor seventh above G, which is F. (The minor seventh is 10 semitones above the root.) The complete chord is G–B–D–F. This is a dominant seventh chord because it consists of a major triad and a minor seventh. In the key of C major, G is the dominant (fifth scale degree), hence the name dominant seventh. Check the intervals: G to B is a major third, B to D is a minor third, and D to F is a minor third. Thus, the stack of thirds is major–minor–minor."
+   },
+   "evidence": {
+    "fromGrade": null,
+    "sourced": true,
+    "teachQuote": "In music, a triad is a set of three notes (or \"pitch classes\") that can be stacked vertically in thirds."
+   },
+   "provenance": {
+    "origin": "researcher",
+    "sources": [
+     {
+      "url": "https://en.wikipedia.org/wiki/Triad_(music)",
+      "license": "CC-BY-SA-4.0",
+      "attribution": "Wikipedia contributors, \"Triad (music)\""
+     },
+     {
+      "url": "https://en.wikipedia.org/wiki/Triadic",
+      "license": "CC-BY-SA-4.0",
+      "attribution": "Wikipedia contributors, \"Triadic\""
+     },
+     {
+      "url": "https://en.wikipedia.org/wiki/Seventh_chord",
+      "license": "CC-BY-SA-4.0",
+      "attribution": "Wikipedia contributors, \"Seventh chord\""
+     }
+    ],
+    "date": "2026-07-06"
+   },
+   "exposure": {
+    "uses": 0
+   },
+   "voice": "sourced"
+  },
+  {
+   "id": "researcher:reteach-script:music/triads-and-seventh-chords:2",
+   "kernelId": "music/triads-and-seventh-chords",
+   "conceptName": "Triads and seventh chords",
+   "move": "reteach-script",
+   "body": {
+    "minutes": 10,
+    "text": "Let’s revisit with a different example: an A minor seventh chord. Start with the A minor triad: A (root), C (minor third), E (perfect fifth). Add the minor seventh above A, which is G. The A minor seventh chord is A–C–E–G. This is a minor seventh chord (also called minor/minor seventh) because both the triad and the seventh are minor. Notice that the interval A to C is a minor third, C to E is a major third, and E to G is a minor third. This example shows that seventh chords can be built on any triad quality. Practice finding the notes for a D half-diminished seventh chord: D–F–A♭–C. Remember, the structure always involves stacked thirds."
+   },
+   "evidence": {
+    "fromGrade": null,
+    "sourced": true,
+    "teachQuote": "In music, a triad is a set of three notes (or \"pitch classes\") that can be stacked vertically in thirds."
+   },
+   "provenance": {
+    "origin": "researcher",
+    "sources": [
+     {
+      "url": "https://en.wikipedia.org/wiki/Triad_(music)",
+      "license": "CC-BY-SA-4.0",
+      "attribution": "Wikipedia contributors, \"Triad (music)\""
+     },
+     {
+      "url": "https://en.wikipedia.org/wiki/Triadic",
+      "license": "CC-BY-SA-4.0",
+      "attribution": "Wikipedia contributors, \"Triadic\""
+     },
+     {
+      "url": "https://en.wikipedia.org/wiki/Seventh_chord",
+      "license": "CC-BY-SA-4.0",
+      "attribution": "Wikipedia contributors, \"Seventh chord\""
+     }
+    ],
+    "date": "2026-07-06"
+   },
+   "exposure": {
+    "uses": 0
+   },
+   "voice": "sourced"
+  },
+  {
+   "id": "researcher:guide:music/triads-and-seventh-chords:3",
+   "kernelId": "music/triads-and-seventh-chords",
+   "conceptName": "Triads and seventh chords",
+   "move": "guide",
+   "body": {
+    "markdown": "If you missed the reading, start by reviewing the definitions: a triad is three notes in thirds; a seventh chord adds a seventh. Key terms: triad, root, third, fifth, seventh chord, inversion, dominant seventh, major seventh, minor seventh, half-diminished seventh, diminished seventh. Catch-up path: 1) Memorize the interval structures of the four triad types. 2) Understand that inversions do not change the root. 3) Learn the five common seventh chord types and their formulas. 4) Practice spelling chords from any root. Self-check prompts: 1) Spell an E♭ major triad and its first inversion. 2) What distinguishes a half-diminished seventh from a fully diminished seventh? Use the sources to confirm your answers."
+   },
+   "evidence": {
+    "fromGrade": null,
+    "sourced": true,
+    "teachQuote": "In music, a triad is a set of three notes (or \"pitch classes\") that can be stacked vertically in thirds."
+   },
+   "provenance": {
+    "origin": "researcher",
+    "sources": [
+     {
+      "url": "https://en.wikipedia.org/wiki/Triad_(music)",
+      "license": "CC-BY-SA-4.0",
+      "attribution": "Wikipedia contributors, \"Triad (music)\""
+     },
+     {
+      "url": "https://en.wikipedia.org/wiki/Triadic",
+      "license": "CC-BY-SA-4.0",
+      "attribution": "Wikipedia contributors, \"Triadic\""
+     },
+     {
+      "url": "https://en.wikipedia.org/wiki/Seventh_chord",
+      "license": "CC-BY-SA-4.0",
+      "attribution": "Wikipedia contributors, \"Seventh chord\""
+     }
+    ],
+    "date": "2026-07-06"
+   },
+   "exposure": {
+    "uses": 0
+   },
+   "voice": "sourced"
+  },
+  {
+   "id": "researcher:discussion-tension:music/triads-and-seventh-chords:4",
+   "kernelId": "music/triads-and-seventh-chords",
+   "conceptName": "Triads and seventh chords",
+   "move": "discussion-tension",
+   "body": {
+    "prompt": "Given that the harmonic seventh chord (4:5:6:7 ratio) sounds slightly different from the equal-tempered dominant seventh, should we consider it a distinct chord type or a variant of the dominant seventh?",
+    "tension": "This tension arises between the standard equal-tempered tuning used on most instruments and the just intonation preferred in blues and barbershop harmony, where the harmonic seventh is central.",
+    "followUps": [
+     "How does the use of the harmonic seventh affect chord function?",
+     "In what musical contexts does equal temperament become a limitation?"
+    ]
+   },
+   "evidence": {
+    "fromGrade": null,
+    "sourced": true,
+    "teachQuote": "In music, a triad is a set of three notes (or \"pitch classes\") that can be stacked vertically in thirds."
+   },
+   "provenance": {
+    "origin": "researcher",
+    "sources": [
+     {
+      "url": "https://en.wikipedia.org/wiki/Triad_(music)",
+      "license": "CC-BY-SA-4.0",
+      "attribution": "Wikipedia contributors, \"Triad (music)\""
+     },
+     {
+      "url": "https://en.wikipedia.org/wiki/Triadic",
+      "license": "CC-BY-SA-4.0",
+      "attribution": "Wikipedia contributors, \"Triadic\""
+     },
+     {
+      "url": "https://en.wikipedia.org/wiki/Seventh_chord",
+      "license": "CC-BY-SA-4.0",
+      "attribution": "Wikipedia contributors, \"Seventh chord\""
+     }
+    ],
+    "date": "2026-07-06"
+   },
+   "exposure": {
+    "uses": 0
+   },
+   "voice": "sourced"
+  },
+  {
+   "id": "researcher:activity:music/triads-and-seventh-chords:5",
+   "kernelId": "music/triads-and-seventh-chords",
+   "conceptName": "Triads and seventh chords",
+   "move": "activity",
+   "body": {
+    "task": "Compile a reference chart of triads and seventh chords. For each triad type (major, minor, diminished, augmented), specify the interval structure and provide an example in root position. Then for each of the five common seventh chord types (dominant, major, minor, half-diminished, diminished), list the triad and seventh qualities, and give a root position spelling. Finally, identify one well-known song that uses a dominant seventh chord and describe its effect.",
+    "steps": [
+     "List four triad types with intervals (e.g., major: M3 + m3).",
+     "List five seventh chord types with intervals.",
+     "Provide a musical example (e.g., Cmaj7 = C E G B).",
+     "Identify a song using a dominant seventh (e.g., 'I Feel Good' by James Brown uses C7).",
+     "Write a short explanation of the chord's role in that song."
+    ],
+    "rubricBands": [
+     "Excellent: Chart is complete, accurate, and includes correct musical examples with insightful analysis.",
+     "Adequate: Chart is mostly correct with minor errors in spelling or analysis; examples are provided but could be improved.",
+     "Insufficient: Chart is missing several elements or contains significant errors; no song example or analysis is given."
+    ]
+   },
+   "evidence": {
+    "fromGrade": null,
+    "sourced": true,
+    "teachQuote": "In music, a triad is a set of three notes (or \"pitch classes\") that can be stacked vertically in thirds."
+   },
+   "provenance": {
+    "origin": "researcher",
+    "sources": [
+     {
+      "url": "https://en.wikipedia.org/wiki/Triad_(music)",
+      "license": "CC-BY-SA-4.0",
+      "attribution": "Wikipedia contributors, \"Triad (music)\""
+     },
+     {
+      "url": "https://en.wikipedia.org/wiki/Triadic",
+      "license": "CC-BY-SA-4.0",
+      "attribution": "Wikipedia contributors, \"Triadic\""
+     },
+     {
+      "url": "https://en.wikipedia.org/wiki/Seventh_chord",
+      "license": "CC-BY-SA-4.0",
+      "attribution": "Wikipedia contributors, \"Seventh chord\""
+     }
+    ],
+    "date": "2026-07-06"
+   },
+   "exposure": {
+    "uses": 0
+   },
+   "voice": "sourced"
+  },
+  {
+   "id": "researcher:faq-entry:music/triads-and-seventh-chords:6",
+   "kernelId": "music/triads-and-seventh-chords",
+   "conceptName": "Triads and seventh chords",
+   "move": "faq-entry",
+   "body": {
+    "q": "If a triad is inverted, does it change the root?",
+    "a": "No. Inversion only changes which note is in the bass. The root remains the same regardless of order. For example, a C major triad in first inversion has E in the bass, but the root is still C."
+   },
+   "evidence": {
+    "fromGrade": null,
+    "sourced": true,
+    "teachQuote": "In music, a triad is a set of three notes (or \"pitch classes\") that can be stacked vertically in thirds."
+   },
+   "provenance": {
+    "origin": "researcher",
+    "sources": [
+     {
+      "url": "https://en.wikipedia.org/wiki/Triad_(music)",
+      "license": "CC-BY-SA-4.0",
+      "attribution": "Wikipedia contributors, \"Triad (music)\""
+     },
+     {
+      "url": "https://en.wikipedia.org/wiki/Triadic",
+      "license": "CC-BY-SA-4.0",
+      "attribution": "Wikipedia contributors, \"Triadic\""
+     },
+     {
+      "url": "https://en.wikipedia.org/wiki/Seventh_chord",
+      "license": "CC-BY-SA-4.0",
+      "attribution": "Wikipedia contributors, \"Seventh chord\""
+     }
+    ],
+    "date": "2026-07-06"
+   },
+   "exposure": {
+    "uses": 0
+   },
+   "voice": "sourced"
+  },
+  {
+   "id": "researcher:faq-entry:music/triads-and-seventh-chords:7",
+   "kernelId": "music/triads-and-seventh-chords",
+   "conceptName": "Triads and seventh chords",
+   "move": "faq-entry",
+   "body": {
+    "q": "Can any three notes be considered a triad?",
+    "a": "In standard music theory, no. A triad must be built of thirds. Some 20th-century theorists use 'triad' for any three pitches, but the conventional definition requires stacked thirds."
+   },
+   "evidence": {
+    "fromGrade": null,
+    "sourced": true,
+    "teachQuote": "In music, a triad is a set of three notes (or \"pitch classes\") that can be stacked vertically in thirds."
+   },
+   "provenance": {
+    "origin": "researcher",
+    "sources": [
+     {
+      "url": "https://en.wikipedia.org/wiki/Triad_(music)",
+      "license": "CC-BY-SA-4.0",
+      "attribution": "Wikipedia contributors, \"Triad (music)\""
+     },
+     {
+      "url": "https://en.wikipedia.org/wiki/Triadic",
+      "license": "CC-BY-SA-4.0",
+      "attribution": "Wikipedia contributors, \"Triadic\""
+     },
+     {
+      "url": "https://en.wikipedia.org/wiki/Seventh_chord",
+      "license": "CC-BY-SA-4.0",
+      "attribution": "Wikipedia contributors, \"Seventh chord\""
+     }
+    ],
+    "date": "2026-07-06"
+   },
+   "exposure": {
+    "uses": 0
+   },
+   "voice": "sourced"
+  },
+  {
+   "id": "researcher:slide-group:music/triads-and-seventh-chords:8",
+   "kernelId": "music/triads-and-seventh-chords",
+   "conceptName": "Triads and seventh chords",
+   "move": "slide-group",
+   "body": {
+    "slides": [
+     {
+      "title": "Triads and Seventh Chords",
+      "bullets": [
+       "Triads are the basic building blocks of harmony.",
+       "Seventh chords add color and tension.",
+       "Both are built by stacking thirds."
+      ],
+      "speakerNotes": "Today we explore triads and seventh chords. These chords form the foundation of Western harmony from classical to jazz.",
+      "altText": "A musical staff showing a C major triad and a C dominant seventh chord with note labels."
+     },
+     {
+      "title": "What is a Triad?",
+      "bullets": [
+       "A triad consists of three notes stacked in thirds.",
+       "The notes are called root, third, and fifth.",
+       "Inversions do not change the root identity."
+      ],
+      "speakerNotes": "Remember that even when the third or fifth is in the bass, the chord is still the same triad. Only the voicing changes.",
+      "altText": "Three staves showing a triad in root position, first inversion, and second inversion with labeled intervals."
+     },
+     {
+      "title": "Four Types of Triads",
+      "bullets": [
+       "Major: major third plus minor third.",
+       "Minor: minor third plus major third.",
+       "Diminished: two minor thirds.",
+       "Augmented: two major thirds."
+      ],
+      "speakerNotes": "Each quality has a distinctive sound. Major and minor are consonant; diminished and augmented are dissonant.",
+      "altText": "Four staves each with a different triad quality: C major, C minor, C diminished, C augmented."
+     },
+     {
+      "title": "Building Seventh Chords",
+      "bullets": [
+       "Add a seventh above the root to a triad.",
+       "The added note is a third above the fifth.",
+       "The most common is the dominant seventh chord."
+      ],
+      "speakerNotes": "Seventh chords increase harmonic tension. The dominant seventh is especially important in functional harmony.",
+      "altText": "A diagram showing a C major triad with an added Bb, forming a C7 chord."
+     },
+     {
+      "title": "Common Seventh Chord Types",
+      "bullets": [
+       "Dominant seventh: major triad + minor seventh.",
+       "Major seventh: major triad + major seventh.",
+       "Minor seventh: minor triad + minor seventh.",
+       "Half-diminished: diminished triad + minor seventh.",
+       "Diminished seventh: diminished triad + diminished seventh."
+      ],
+      "speakerNotes": "Learn the interval patterns. For example, a half-diminished chord is also called a minor seventh flat five.",
+      "altText": "A table listing the five seventh chord types with symbols and example notes."
+     },
+     {
+      "title": "Historical Development",
+      "bullets": [
+       "Triads became central in the Baroque period.",
+       "Sevenths were initially used as nonchord tones.",
+       "By the 19th century, sevenths were accepted as chord tones."
+      ],
+      "speakerNotes": "The growing acceptance of dissonance allowed seventh chords to become staples in jazz and popular music.",
+      "altText": "A timeline showing the increasing use of seventh chords from Baroque to modern times."
+     },
+     {
+      "title": "Inversions of Seventh Chords",
+      "bullets": [
+       "Seventh chords have three inversions: first, second, and third.",
+       "Each inversion has the seventh in a different position.",
+       "Voicing choices affect the chord's texture."
+      ],
+      "speakerNotes": "Inversion numbers are based on which chord tone is in the bass. Practice identifying inversions by the bass note.",
+      "altText": "Four staff notations of a G7 chord in root position and its three inversions."
+     },
+     {
+      "title": "Application and Analysis",
+      "bullets": [
+       "Dominant seventh chords often resolve to the tonic.",
+       "ii-V-I progressions are fundamental in jazz.",
+       "Seventh chords are used to create tension and release."
+      ],
+      "speakerNotes": "Try analyzing a simple song like 'Autumn Leaves' to see how seventh chords function. This will deepen your understanding.",
+      "altText": "Chord symbols for a ii-V-I progression in C major: Dm7, G7, Cmaj7."
+     }
+    ]
+   },
+   "evidence": {
+    "fromGrade": null,
+    "sourced": true,
+    "teachQuote": "In music, a triad is a set of three notes (or \"pitch classes\") that can be stacked vertically in thirds."
+   },
+   "provenance": {
+    "origin": "researcher",
+    "sources": [
+     {
+      "url": "https://en.wikipedia.org/wiki/Triad_(music)",
+      "license": "CC-BY-SA-4.0",
+      "attribution": "Wikipedia contributors, \"Triad (music)\""
+     },
+     {
+      "url": "https://en.wikipedia.org/wiki/Triadic",
+      "license": "CC-BY-SA-4.0",
+      "attribution": "Wikipedia contributors, \"Triadic\""
+     },
+     {
+      "url": "https://en.wikipedia.org/wiki/Seventh_chord",
+      "license": "CC-BY-SA-4.0",
+      "attribution": "Wikipedia contributors, \"Seventh chord\""
+     }
+    ],
+    "date": "2026-07-06"
+   },
+   "exposure": {
+    "uses": 0
+   },
+   "voice": "sourced"
+  },
+  {
+   "id": "researcher:teach-segment:music/rhythm-and-meter:0",
+   "kernelId": "music/rhythm-and-meter",
+   "conceptName": "Rhythm and meter",
+   "move": "teach-segment",
+   "body": {
+    "minutes": 12,
+    "text": "Rhythm and meter are foundational concepts in music that organize sound over time. Rhythm refers to the specific pattern of durations—the timing of notes and silences—that creates a sense of movement. However, not every sequence of sounds qualifies as rhythm; true rhythm requires a regulated succession of strong and weak elements. Meter, on the other hand, is the underlying framework of regularly recurring accents, such as downbeats, that listeners internalize. While rhythm is the surface pattern we hear, meter provides the hierarchical structure that groups beats into measures. For example, in a simple rock beat, the rhythm might be a pattern of eighth notes on the hi-hat, but the meter (often 4/4) organizes those hits into groups of four, with a stronger accent on beat one. Understanding the difference helps musicians both perform and compose with intentionality."
+   },
+   "evidence": {
+    "fromGrade": null,
+    "sourced": true,
+    "teachQuote": "movement marked by the regulated succession of strong and weak elements"
+   },
+   "provenance": {
+    "origin": "researcher",
+    "sources": [
+     {
+      "url": "https://en.wikipedia.org/wiki/Rhythm",
+      "license": "CC-BY-SA-4.0",
+      "attribution": "Wikipedia contributors, \"Rhythm\""
+     },
+     {
+      "url": "https://en.wikipedia.org/wiki/Rhythm_and_blues",
+      "license": "CC-BY-SA-4.0",
+      "attribution": "Wikipedia contributors, \"Rhythm and blues\""
+     },
+     {
+      "url": "https://en.wikipedia.org/wiki/Metre_(music)",
+      "license": "CC-BY-SA-4.0",
+      "attribution": "Wikipedia contributors, \"Metre (music)\""
+     }
+    ],
+    "date": "2026-07-06"
+   },
+   "exposure": {
+    "uses": 0
+   },
+   "voice": "sourced"
+  },
+  {
+   "id": "researcher:worked-example:music/rhythm-and-meter:1",
+   "kernelId": "music/rhythm-and-meter",
+   "conceptName": "Rhythm and meter",
+   "move": "worked-example",
+   "body": {
+    "minutes": 15,
+    "text": "Worked example: Consider a measure in 4/4 time with the following rhythm: quarter note on beat 1, two eighth notes on beat 2, quarter rest on beat 3, and four sixteenth notes on beat 4. Step 1: Identify the meter—4/4 means four beats per measure, with the quarter note getting one beat. Step 2: Recognize the strong and weak beats: beat 1 is strongest, beat 3 is medium strong, beats 2 and 4 are weak. Step 3: Parse the rhythm: beat 1: one sound (strong), beat 2: two equal notes (weak), beat 3: silence (felt as a rest), beat 4: four rapid notes (weak but faster subdivision). Step 4: Notice how the rhythm creates syncopation by placing activity on weak beats and resting on a strong beat. The pattern of durations (quarter, two eighths, rest, four sixteenths) is the rhythm, while the underlying 4/4 framework is the meter."
+   },
+   "evidence": {
+    "fromGrade": null,
+    "sourced": true,
+    "teachQuote": "movement marked by the regulated succession of strong and weak elements"
+   },
+   "provenance": {
+    "origin": "researcher",
+    "sources": [
+     {
+      "url": "https://en.wikipedia.org/wiki/Rhythm",
+      "license": "CC-BY-SA-4.0",
+      "attribution": "Wikipedia contributors, \"Rhythm\""
+     },
+     {
+      "url": "https://en.wikipedia.org/wiki/Rhythm_and_blues",
+      "license": "CC-BY-SA-4.0",
+      "attribution": "Wikipedia contributors, \"Rhythm and blues\""
+     },
+     {
+      "url": "https://en.wikipedia.org/wiki/Metre_(music)",
+      "license": "CC-BY-SA-4.0",
+      "attribution": "Wikipedia contributors, \"Metre (music)\""
+     }
+    ],
+    "date": "2026-07-06"
+   },
+   "exposure": {
+    "uses": 0
+   },
+   "voice": "sourced"
+  },
+  {
+   "id": "researcher:reteach-script:music/rhythm-and-meter:2",
+   "kernelId": "music/rhythm-and-meter",
+   "conceptName": "Rhythm and meter",
+   "move": "reteach-script",
+   "body": {
+    "minutes": 10,
+    "text": "Let's try a different example: a waltz in 3/4 meter. In 3/4, there are three beats per measure, and the strong beat is on beat one. The rhythm might be a dotted half note on beat one (lasting all three beats) or a pattern of quarter notes: long-short-short. If you tap your foot, you naturally emphasize the first beat. The rhythm is the specific arrangement of note lengths—like three quarter notes—while meter is the repeated pattern of strong-weak-weak. Remember: rhythm is what you actually play; meter is the expected recurring accent. Even if you change the rhythm, the meter stays the same. example: In a 3/4 measure, a rhythm of eighth notes (1 & 2 & 3 &) still falls within the three-beat meter with a strong first beat."
+   },
+   "evidence": {
+    "fromGrade": null,
+    "sourced": true,
+    "teachQuote": "movement marked by the regulated succession of strong and weak elements"
+   },
+   "provenance": {
+    "origin": "researcher",
+    "sources": [
+     {
+      "url": "https://en.wikipedia.org/wiki/Rhythm",
+      "license": "CC-BY-SA-4.0",
+      "attribution": "Wikipedia contributors, \"Rhythm\""
+     },
+     {
+      "url": "https://en.wikipedia.org/wiki/Rhythm_and_blues",
+      "license": "CC-BY-SA-4.0",
+      "attribution": "Wikipedia contributors, \"Rhythm and blues\""
+     },
+     {
+      "url": "https://en.wikipedia.org/wiki/Metre_(music)",
+      "license": "CC-BY-SA-4.0",
+      "attribution": "Wikipedia contributors, \"Metre (music)\""
+     }
+    ],
+    "date": "2026-07-06"
+   },
+   "exposure": {
+    "uses": 0
+   },
+   "voice": "sourced"
+  },
+  {
+   "id": "researcher:guide:music/rhythm-and-meter:3",
+   "kernelId": "music/rhythm-and-meter",
+   "conceptName": "Rhythm and meter",
+   "move": "guide",
+   "body": {
+    "markdown": "If you missed the reading, start by reviewing the definitions: rhythm is the pattern of durations in time, marked by strong and weak elements; meter is the regular recurring pattern of accents (like downbeats). The key distinction is that rhythm exists in the foreground (what you hear), while meter is the background structure (what you feel). Read the sections on pulse, beat, and measure to understand hierarchy. Key terms: pulse (basic steady beat), beat (a single pulse), measure (bar grouping beats), time signature (notation of meter), downbeat (first beat, strong), upbeats (weaker beats). Self-check prompts: 1) Listen to a song and tap along—are you tapping the rhythm or the meter? How do you know? 2) Write a one-measure rhythm in 4/4 that uses rests and syncopation; then explain which beats are strong and which are weak. This exercise will help you see the difference between the notated pattern (rhythm) and the metric framework."
+   },
+   "evidence": {
+    "fromGrade": null,
+    "sourced": true,
+    "teachQuote": "movement marked by the regulated succession of strong and weak elements"
+   },
+   "provenance": {
+    "origin": "researcher",
+    "sources": [
+     {
+      "url": "https://en.wikipedia.org/wiki/Rhythm",
+      "license": "CC-BY-SA-4.0",
+      "attribution": "Wikipedia contributors, \"Rhythm\""
+     },
+     {
+      "url": "https://en.wikipedia.org/wiki/Rhythm_and_blues",
+      "license": "CC-BY-SA-4.0",
+      "attribution": "Wikipedia contributors, \"Rhythm and blues\""
+     },
+     {
+      "url": "https://en.wikipedia.org/wiki/Metre_(music)",
+      "license": "CC-BY-SA-4.0",
+      "attribution": "Wikipedia contributors, \"Metre (music)\""
+     }
+    ],
+    "date": "2026-07-06"
+   },
+   "exposure": {
+    "uses": 0
+   },
+   "voice": "sourced"
+  },
+  {
+   "id": "researcher:discussion-tension:music/rhythm-and-meter:4",
+   "kernelId": "music/rhythm-and-meter",
+   "conceptName": "Rhythm and meter",
+   "move": "discussion-tension",
+   "body": {
+    "prompt": "Can a piece of music have a clear rhythm but ambiguous meter? How much does the listener's interpretation shape the perceived meter, versus what the composer notates?",
+    "tension": "This creates tension because meter is often considered an objective notated feature, but perception can differ—for example, hearing a march in 2/4 versus 4/4. The same rhythm might imply different meters depending on accents and tempo.",
+    "followUps": [
+     "What musical cues (dynamics, harmony, phrasing) influence your sense of meter?",
+     "Can you think of a song where the downbeat feels different on first listen versus after knowing the time signature?"
+    ]
+   },
+   "evidence": {
+    "fromGrade": null,
+    "sourced": true,
+    "teachQuote": "movement marked by the regulated succession of strong and weak elements"
+   },
+   "provenance": {
+    "origin": "researcher",
+    "sources": [
+     {
+      "url": "https://en.wikipedia.org/wiki/Rhythm",
+      "license": "CC-BY-SA-4.0",
+      "attribution": "Wikipedia contributors, \"Rhythm\""
+     },
+     {
+      "url": "https://en.wikipedia.org/wiki/Rhythm_and_blues",
+      "license": "CC-BY-SA-4.0",
+      "attribution": "Wikipedia contributors, \"Rhythm and blues\""
+     },
+     {
+      "url": "https://en.wikipedia.org/wiki/Metre_(music)",
+      "license": "CC-BY-SA-4.0",
+      "attribution": "Wikipedia contributors, \"Metre (music)\""
+     }
+    ],
+    "date": "2026-07-06"
+   },
+   "exposure": {
+    "uses": 0
+   },
+   "voice": "sourced"
+  },
+  {
+   "id": "researcher:activity:music/rhythm-and-meter:5",
+   "kernelId": "music/rhythm-and-meter",
+   "conceptName": "Rhythm and meter",
+   "move": "activity",
+   "body": {
+    "task": "Select a short piece of music (30 seconds) from any genre. Notate the rhythm of the melody or main pattern for 2 measures. Identify the meter (time signature) and mark which beats are strong, medium, and weak. Then write a paragraph explaining how the rhythm interacts with the meter, using terms like downbeat, upbeat, syncopation, and subdivision.",
+    "steps": [
+     "Choose a piece and listen carefully, tapping the beat.",
+     "Write out the rhythm for 2 measures using conventional notation or a simple notation (e.g., X for hit, . for rest).",
+     "Determine the meter and label the beat hierarchy (strong/weak).",
+     "Analyze: Are there any syncopations? Do accents in the rhythm align with strong beats?",
+     "Write a reflection paragraph."
+    ],
+    "rubricBands": [
+     "Excellent: Accurate notation, correct meter identification, insightful analysis of rhythm-meter interaction, and proper use of terminology.",
+     "Adequate: Mostly correct notation, meter identified with minor errors, reasonable analysis but lacks depth or some terms misused.",
+     "Insufficient: Inaccurate notation, wrong meter, little to no analysis, or misunderstanding of concepts."
+    ]
+   },
+   "evidence": {
+    "fromGrade": null,
+    "sourced": true,
+    "teachQuote": "movement marked by the regulated succession of strong and weak elements"
+   },
+   "provenance": {
+    "origin": "researcher",
+    "sources": [
+     {
+      "url": "https://en.wikipedia.org/wiki/Rhythm",
+      "license": "CC-BY-SA-4.0",
+      "attribution": "Wikipedia contributors, \"Rhythm\""
+     },
+     {
+      "url": "https://en.wikipedia.org/wiki/Rhythm_and_blues",
+      "license": "CC-BY-SA-4.0",
+      "attribution": "Wikipedia contributors, \"Rhythm and blues\""
+     },
+     {
+      "url": "https://en.wikipedia.org/wiki/Metre_(music)",
+      "license": "CC-BY-SA-4.0",
+      "attribution": "Wikipedia contributors, \"Metre (music)\""
+     }
+    ],
+    "date": "2026-07-06"
+   },
+   "exposure": {
+    "uses": 0
+   },
+   "voice": "sourced"
+  },
+  {
+   "id": "researcher:faq-entry:music/rhythm-and-meter:6",
+   "kernelId": "music/rhythm-and-meter",
+   "conceptName": "Rhythm and meter",
+   "move": "faq-entry",
+   "body": {
+    "q": "Is rhythm just any repeated pattern of sounds?",
+    "a": "No, not every repeated pattern is rhythm. The definition emphasizes a regulated succession of strong and weak elements. For example, a metronome ticks with equal strength—that's a pulse, not rhythm. Rhythm requires differentiation between accented and unaccented sounds, creating a hierarchy."
+   },
+   "evidence": {
+    "fromGrade": null,
+    "sourced": true,
+    "teachQuote": "movement marked by the regulated succession of strong and weak elements"
+   },
+   "provenance": {
+    "origin": "researcher",
+    "sources": [
+     {
+      "url": "https://en.wikipedia.org/wiki/Rhythm",
+      "license": "CC-BY-SA-4.0",
+      "attribution": "Wikipedia contributors, \"Rhythm\""
+     },
+     {
+      "url": "https://en.wikipedia.org/wiki/Rhythm_and_blues",
+      "license": "CC-BY-SA-4.0",
+      "attribution": "Wikipedia contributors, \"Rhythm and blues\""
+     },
+     {
+      "url": "https://en.wikipedia.org/wiki/Metre_(music)",
+      "license": "CC-BY-SA-4.0",
+      "attribution": "Wikipedia contributors, \"Metre (music)\""
+     }
+    ],
+    "date": "2026-07-06"
+   },
+   "exposure": {
+    "uses": 0
+   },
+   "voice": "sourced"
+  },
+  {
+   "id": "researcher:faq-entry:music/rhythm-and-meter:7",
+   "kernelId": "music/rhythm-and-meter",
+   "conceptName": "Rhythm and meter",
+   "move": "faq-entry",
+   "body": {
+    "q": "Are time signature and meter the same thing?",
+    "a": "Closely related but not identical. Time signature is the notation that indicates meter (e.g., 4/4), but meter is the perceived pattern of recurring accents. A piece notated in 4/4 could be felt in 2/2 if the tempo is fast. Meter is a listening experience, not just a written symbol."
+   },
+   "evidence": {
+    "fromGrade": null,
+    "sourced": true,
+    "teachQuote": "movement marked by the regulated succession of strong and weak elements"
+   },
+   "provenance": {
+    "origin": "researcher",
+    "sources": [
+     {
+      "url": "https://en.wikipedia.org/wiki/Rhythm",
+      "license": "CC-BY-SA-4.0",
+      "attribution": "Wikipedia contributors, \"Rhythm\""
+     },
+     {
+      "url": "https://en.wikipedia.org/wiki/Rhythm_and_blues",
+      "license": "CC-BY-SA-4.0",
+      "attribution": "Wikipedia contributors, \"Rhythm and blues\""
+     },
+     {
+      "url": "https://en.wikipedia.org/wiki/Metre_(music)",
+      "license": "CC-BY-SA-4.0",
+      "attribution": "Wikipedia contributors, \"Metre (music)\""
+     }
+    ],
+    "date": "2026-07-06"
+   },
+   "exposure": {
+    "uses": 0
+   },
+   "voice": "sourced"
+  },
+  {
+   "id": "researcher:slide-group:music/rhythm-and-meter:8",
+   "kernelId": "music/rhythm-and-meter",
+   "conceptName": "Rhythm and meter",
+   "move": "slide-group",
+   "body": {
+    "slides": [
+     {
+      "title": "What are Rhythm and Meter?",
+      "bullets": [
+       "Rhythm: patterns of duration in time.",
+       "Meter: regular recurring pattern of strong and weak beats.",
+       "They work together but are distinct concepts."
+      ],
+      "speakerNotes": "Introduce the day's topic. Emphasize that both are about organizing time but at different levels. Use a drumbeat example to illustrate.",
+      "altText": "Side-by-side diagrams: left shows uneven note lengths labeled 'rhythm'; right shows evenly spaced accents labeled 'meter'."
+     },
+     {
+      "title": "Definition of Rhythm",
+      "bullets": [
+       "From Greek 'rhythmos' meaning symmetry or flow.",
+       "Succession of strong and weak elements.",
+       "Not just any repetition; requires accent hierarchy."
+      ],
+      "speakerNotes": "Read the teachQuote. Point out that a machine-like tick lacks rhythm because all ticks are equal.",
+      "altText": "Text quote: 'movement marked by the regulated succession of strong and weak elements' with a heartbeat waveform."
+     },
+     {
+      "title": "Definition of Meter",
+      "bullets": [
+       "Regularly recurring accents (downbeats/upbeats).",
+       "Implied even when not sounded.",
+       "Provides the framework for rhythm."
+      ],
+      "speakerNotes": "Explain that meter is like a grid; we feel it even during rests. Use the example of tapping foot.",
+      "altText": "A measure in 4/4 with numbers 1-4 under each beat, showing beat 1 bolded."
+     },
+     {
+      "title": "Common Misconceptions",
+      "bullets": [
+       "Any repeated sound is not automatically rhythm.",
+       "Rhythm and meter are not the same.",
+       "Time signature is not the whole story of meter."
+      ],
+      "speakerNotes": "Address the three misconceptions from the lesson. Use student examples to clarify.",
+      "altText": "Three icons: a metronome (not rhythm), a confused venn diagram (rhythm vs meter), and a time signature alone (incomplete)."
+     },
+     {
+      "title": "Example: Simple Rock Beat",
+      "bullets": [
+       "Rhythm: hi-hat pattern of eighth notes.",
+       "Meter: 4/4 with accents on beats 1 and 3.",
+       "Kick on 1, snare on 2 and 4 create rhythm."
+      ],
+      "speakerNotes": "Play a short audio example. Ask students to identify rhythm (specific hits) vs meter (the four-beat framework).",
+      "altText": "Drum notation: hi-hat steady eighths, kick drum on beats 1 and 3, snare on 2 and 4."
+     },
+     {
+      "title": "Worked Example: 4/4 Measure",
+      "bullets": [
+       "Quarter on beat 1, two eighths on beat 2.",
+       "Quarter rest on beat 3, sixteenths on beat 4.",
+       "Rhythm pattern differs from beat hierarchy."
+      ],
+      "speakerNotes": "Walk through the worked example from the text. Show how rhythm can syncopate against meter.",
+      "altText": "Measure of music with the noted rhythm; below, numbers 1-4 with strength indicators (S, w, M, w)."
+     },
+     {
+      "title": "Reteach: Waltz in 3/4",
+      "bullets": [
+       "Three beats per measure: strong-weak-weak.",
+       "Rhythm can be dotted half note or quarter notes.",
+       "Meter stays constant even if rhythm changes."
+      ],
+      "speakerNotes": "Use the waltz example to reinforce. Have students clap the meter (tap on 1) and then clap the rhythm (the actual notes).",
+      "altText": "Two measures of waltz: first with a dotted half note, second with three quarter notes, with accents on beat 1."
+     },
+     {
+      "title": "Application and Analysis",
+      "bullets": [
+       "Listen to a short excerpt.",
+       "Notate its rhythm and identify meter.",
+       "Explain how they interact (syncopation, etc.)."
+      ],
+      "speakerNotes": "Preview the assignment. Play a familiar song and have students do a quick analysis in pairs.",
+      "altText": "A spectrogram with a timeline; overlaid text: 'Rhythm analysis' and 'Meter identification'."
+     },
+     {
+      "title": "Discussion: Objective vs Subjective Meter",
+      "bullets": [
+       "Notated meter may differ from felt meter.",
+       "Influenced by tempo, dynamics, phrasing.",
+       "How does this affect our understanding?"
+      ],
+      "speakerNotes": "Pose the discussion question. Encourage students to think of examples where they felt a different meter than written.",
+      "altText": "A split image: left side shows a time signature; right side shows a question mark with 'felt meter?'."
+     }
+    ]
+   },
+   "evidence": {
+    "fromGrade": null,
+    "sourced": true,
+    "teachQuote": "movement marked by the regulated succession of strong and weak elements"
+   },
+   "provenance": {
+    "origin": "researcher",
+    "sources": [
+     {
+      "url": "https://en.wikipedia.org/wiki/Rhythm",
+      "license": "CC-BY-SA-4.0",
+      "attribution": "Wikipedia contributors, \"Rhythm\""
+     },
+     {
+      "url": "https://en.wikipedia.org/wiki/Rhythm_and_blues",
+      "license": "CC-BY-SA-4.0",
+      "attribution": "Wikipedia contributors, \"Rhythm and blues\""
+     },
+     {
+      "url": "https://en.wikipedia.org/wiki/Metre_(music)",
+      "license": "CC-BY-SA-4.0",
+      "attribution": "Wikipedia contributors, \"Metre (music)\""
+     }
+    ],
+    "date": "2026-07-06"
+   },
+   "exposure": {
+    "uses": 0
+   },
+   "voice": "sourced"
+  },
+  {
+   "id": "researcher:teach-segment:music/harmony-and-progressions:0",
+   "kernelId": "music/harmony-and-progressions",
+   "conceptName": "Harmony and chord progressions",
+   "move": "teach-segment",
+   "body": {
+    "minutes": 12,
+    "text": "Harmony is the art of combining simultaneous pitches to produce chords, and chord progressions are sequences of chords that create musical movement and structure. For example, the I–IV–V–I progression in C major (C–F–G–C) is one of the most fundamental harmonic patterns in Western music. This progression establishes the tonic (C), moves to the subdominant (F), then to the dominant (G), creating tension that resolves back to the tonic. Chord progressions are the backbone of popular music, from rock to jazz, providing the harmonic framework for melodies and rhythms. By recognizing patterns like I–IV–V–I, you can analyze, compose, and transpose songs across keys, as seen in countless songs such as 'Wild Thing' by The Troggs. Understanding harmony and progressions enables deeper appreciation and practical musicianship."
+   },
+   "evidence": {
+    "fromGrade": null,
+    "sourced": true,
+    "teachQuote": "Chord progressions are the foundation of harmony in Western musical tradition from the common practice era of classical music to the 21st century."
+   },
+   "provenance": {
+    "origin": "researcher",
+    "sources": [
+     {
+      "url": "https://en.wikipedia.org/wiki/Harmony",
+      "license": "CC-BY-SA-4.0",
+      "attribution": "Wikipedia contributors, \"Harmony\""
+     },
+     {
+      "url": "https://en.wikipedia.org/wiki/Fifth_Harmony",
+      "license": "CC-BY-SA-4.0",
+      "attribution": "Wikipedia contributors, \"Fifth Harmony\""
+     },
+     {
+      "url": "https://en.wikipedia.org/wiki/Chord_progression",
+      "license": "CC-BY-SA-4.0",
+      "attribution": "Wikipedia contributors, \"Chord progression\""
+     }
+    ],
+    "date": "2026-07-06"
+   },
+   "exposure": {
+    "uses": 0
+   },
+   "voice": "sourced"
+  },
+  {
+   "id": "researcher:worked-example:music/harmony-and-progressions:1",
+   "kernelId": "music/harmony-and-progressions",
+   "conceptName": "Harmony and chord progressions",
+   "move": "worked-example",
+   "body": {
+    "minutes": 15,
+    "text": "Worked example: Analyze the 12-bar blues in the key of C. The progression uses only I, IV, and V chords. Steps: 1) Identify the key: C major means I=C, IV=F, V=G. 2) Bars 1-4: play C (I). 3) Bars 5-6: play F (IV). 4) Bars 7-8: return to C (I). 5) Bar 9: play G (V). 6) Bar 10: play F (IV). 7) Bars 11-12: play C (I). So the Roman numeral progression is I–I–I–I–IV–IV–I–I–V–IV–I–I. This pattern can be transposed to any key. For instance, in G major, the chords become G, C, D. The 12-bar blues is a classic example of how simple chord progressions form entire genres."
+   },
+   "evidence": {
+    "fromGrade": null,
+    "sourced": true,
+    "teachQuote": "Chord progressions are the foundation of harmony in Western musical tradition from the common practice era of classical music to the 21st century."
+   },
+   "provenance": {
+    "origin": "researcher",
+    "sources": [
+     {
+      "url": "https://en.wikipedia.org/wiki/Harmony",
+      "license": "CC-BY-SA-4.0",
+      "attribution": "Wikipedia contributors, \"Harmony\""
+     },
+     {
+      "url": "https://en.wikipedia.org/wiki/Fifth_Harmony",
+      "license": "CC-BY-SA-4.0",
+      "attribution": "Wikipedia contributors, \"Fifth Harmony\""
+     },
+     {
+      "url": "https://en.wikipedia.org/wiki/Chord_progression",
+      "license": "CC-BY-SA-4.0",
+      "attribution": "Wikipedia contributors, \"Chord progression\""
+     }
+    ],
+    "date": "2026-07-06"
+   },
+   "exposure": {
+    "uses": 0
+   },
+   "voice": "sourced"
+  },
+  {
+   "id": "researcher:reteach-script:music/harmony-and-progressions:2",
+   "kernelId": "music/harmony-and-progressions",
+   "conceptName": "Harmony and chord progressions",
+   "move": "reteach-script",
+   "body": {
+    "minutes": 10,
+    "text": "Let's revisit harmony with a different example. In the key of G major, the I–vi–IV–V progression uses chords G, Em, C, D. Harmony means combining notes to form chords, and chord progressions are the order in which these chords appear. For example, you hear this progression in many doo-wop songs. The Roman numerals show the relationship between chords, not specific pitches. So I is the tonic (G), vi is the relative minor (Em), IV is subdominant (C), and V is dominant (D). This pattern creates a satisfying emotional arc. By understanding the pattern, you can play it in any key—just shift the root and keep the quality (major/minor). Memorizing patterns is more powerful than memorizing chords."
+   },
+   "evidence": {
+    "fromGrade": null,
+    "sourced": true,
+    "teachQuote": "Chord progressions are the foundation of harmony in Western musical tradition from the common practice era of classical music to the 21st century."
+   },
+   "provenance": {
+    "origin": "researcher",
+    "sources": [
+     {
+      "url": "https://en.wikipedia.org/wiki/Harmony",
+      "license": "CC-BY-SA-4.0",
+      "attribution": "Wikipedia contributors, \"Harmony\""
+     },
+     {
+      "url": "https://en.wikipedia.org/wiki/Fifth_Harmony",
+      "license": "CC-BY-SA-4.0",
+      "attribution": "Wikipedia contributors, \"Fifth Harmony\""
+     },
+     {
+      "url": "https://en.wikipedia.org/wiki/Chord_progression",
+      "license": "CC-BY-SA-4.0",
+      "attribution": "Wikipedia contributors, \"Chord progression\""
+     }
+    ],
+    "date": "2026-07-06"
+   },
+   "exposure": {
+    "uses": 0
+   },
+   "voice": "sourced"
+  },
+  {
+   "id": "researcher:guide:music/harmony-and-progressions:3",
+   "kernelId": "music/harmony-and-progressions",
+   "conceptName": "Harmony and chord progressions",
+   "move": "guide",
+   "body": {
+    "markdown": "If you missed the reading, start by reviewing the sources on Harmony and Chord progression in the provided texts. Focus on key concepts: harmony is the combination of simultaneous pitches; chords are groups of three or more notes; chord progressions are sequences of chords that define a song's harmonic structure. Key terms: Tonic (I) – home chord; Dominant (V) – creates tension; Subdominant (IV) – prepares return to tonic; Roman numeral analysis – system for expressing chords relative to a key. Understand that in a major key, chords built on scale degrees 1, 4, 5 are major, on 2, 3, 6 are minor, and on 7 is diminished. Common progressions include I–IV–V–I and I–vi–IV–V. To catch up: read the 'Chord progression' article's Basic Theory section and the 'Harmony' article's paragraphs on vertical/horizontal dimensions. Self-check prompts: 1) Why is the V chord often described as 'dominant' and what function does it serve? 2) How does Roman numeral notation help in transposing a song to a different key?"
+   },
+   "evidence": {
+    "fromGrade": null,
+    "sourced": true,
+    "teachQuote": "Chord progressions are the foundation of harmony in Western musical tradition from the common practice era of classical music to the 21st century."
+   },
+   "provenance": {
+    "origin": "researcher",
+    "sources": [
+     {
+      "url": "https://en.wikipedia.org/wiki/Harmony",
+      "license": "CC-BY-SA-4.0",
+      "attribution": "Wikipedia contributors, \"Harmony\""
+     },
+     {
+      "url": "https://en.wikipedia.org/wiki/Fifth_Harmony",
+      "license": "CC-BY-SA-4.0",
+      "attribution": "Wikipedia contributors, \"Fifth Harmony\""
+     },
+     {
+      "url": "https://en.wikipedia.org/wiki/Chord_progression",
+      "license": "CC-BY-SA-4.0",
+      "attribution": "Wikipedia contributors, \"Chord progression\""
+     }
+    ],
+    "date": "2026-07-06"
+   },
+   "exposure": {
+    "uses": 0
+   },
+   "voice": "sourced"
+  },
+  {
+   "id": "researcher:discussion-tension:music/harmony-and-progressions:4",
+   "kernelId": "music/harmony-and-progressions",
+   "conceptName": "Harmony and chord progressions",
+   "move": "discussion-tension",
+   "body": {
+    "prompt": "Pop songs often rely on the same few chord progressions (e.g., I–V–vi–IV). Does this uniformity limit musical creativity, or does it provide a useful framework for expression?",
+    "tension": "Some critics argue that recycling progressions leads to homogenization, while defenders say the simplicity enables focus on melody, lyrics, and production. There's a tension between innovation and accessibility.",
+    "followUps": [
+     "Can a familiar progression still feel fresh if the rhythm, timbre, or melody changes?",
+     "Is there a difference between using a cliché progression and paying homage to a tradition?"
+    ]
+   },
+   "evidence": {
+    "fromGrade": null,
+    "sourced": true,
+    "teachQuote": "Chord progressions are the foundation of harmony in Western musical tradition from the common practice era of classical music to the 21st century."
+   },
+   "provenance": {
+    "origin": "researcher",
+    "sources": [
+     {
+      "url": "https://en.wikipedia.org/wiki/Harmony",
+      "license": "CC-BY-SA-4.0",
+      "attribution": "Wikipedia contributors, \"Harmony\""
+     },
+     {
+      "url": "https://en.wikipedia.org/wiki/Fifth_Harmony",
+      "license": "CC-BY-SA-4.0",
+      "attribution": "Wikipedia contributors, \"Fifth Harmony\""
+     },
+     {
+      "url": "https://en.wikipedia.org/wiki/Chord_progression",
+      "license": "CC-BY-SA-4.0",
+      "attribution": "Wikipedia contributors, \"Chord progression\""
+     }
+    ],
+    "date": "2026-07-06"
+   },
+   "exposure": {
+    "uses": 0
+   },
+   "voice": "sourced"
+  },
+  {
+   "id": "researcher:activity:music/harmony-and-progressions:5",
+   "kernelId": "music/harmony-and-progressions",
+   "conceptName": "Harmony and chord progressions",
+   "move": "activity",
+   "body": {
+    "task": "Select a popular song (e.g., 'Let It Be' by The Beatles) and identify the chord progression for the first 16 bars using Roman numerals. First, determine the key by listening for the tonic chord. Write down the actual chords (e.g., C, G, Am, F) and then convert them to Roman numerals (e.g., I, V, vi, IV). Finally, transpose that progression to a different key (e.g., from C major to G major) and write out the new chords. Submit your analysis with a brief explanation of your process.",
+    "steps": [
+     "Choose a song with clear, identifiable chords (use online chord charts if needed).",
+     "Listen and write down the chords in the order they appear for the first 16 bars.",
+     "Determine the key (the chord that feels like 'home').",
+     "Assign Roman numerals to each chord based on its scale degree.",
+     "Transpose the progression by shifting each chord to a new key while preserving the Roman numeral pattern."
+    ],
+    "rubricBands": [
+     "Excellent: Accurate chord identification, correct Roman numerals, successful transposition to a new key, and clear, well-reasoned explanation.",
+     "Adequate: Minor errors in chord identification or transposition, but overall demonstrates understanding of the concept.",
+     "Insufficient: Major mistakes in key determination or Roman numerals, transposition missing or incorrect, and no coherent explanation."
+    ]
+   },
+   "evidence": {
+    "fromGrade": null,
+    "sourced": true,
+    "teachQuote": "Chord progressions are the foundation of harmony in Western musical tradition from the common practice era of classical music to the 21st century."
+   },
+   "provenance": {
+    "origin": "researcher",
+    "sources": [
+     {
+      "url": "https://en.wikipedia.org/wiki/Harmony",
+      "license": "CC-BY-SA-4.0",
+      "attribution": "Wikipedia contributors, \"Harmony\""
+     },
+     {
+      "url": "https://en.wikipedia.org/wiki/Fifth_Harmony",
+      "license": "CC-BY-SA-4.0",
+      "attribution": "Wikipedia contributors, \"Fifth Harmony\""
+     },
+     {
+      "url": "https://en.wikipedia.org/wiki/Chord_progression",
+      "license": "CC-BY-SA-4.0",
+      "attribution": "Wikipedia contributors, \"Chord progression\""
+     }
+    ],
+    "date": "2026-07-06"
+   },
+   "exposure": {
+    "uses": 0
+   },
+   "voice": "sourced"
+  },
+  {
+   "id": "researcher:faq-entry:music/harmony-and-progressions:6",
+   "kernelId": "music/harmony-and-progressions",
+   "conceptName": "Harmony and chord progressions",
+   "move": "faq-entry",
+   "body": {
+    "q": "Do I have to memorize every chord progression?",
+    "a": "No. The goal is to understand patterns using Roman numerals. Once you learn common patterns like I–IV–V–I or I–vi–IV–V, you can play them in any key. Focus on recognizing the relationship between chords rather than memorizing specific chord names."
+   },
+   "evidence": {
+    "fromGrade": null,
+    "sourced": true,
+    "teachQuote": "Chord progressions are the foundation of harmony in Western musical tradition from the common practice era of classical music to the 21st century."
+   },
+   "provenance": {
+    "origin": "researcher",
+    "sources": [
+     {
+      "url": "https://en.wikipedia.org/wiki/Harmony",
+      "license": "CC-BY-SA-4.0",
+      "attribution": "Wikipedia contributors, \"Harmony\""
+     },
+     {
+      "url": "https://en.wikipedia.org/wiki/Fifth_Harmony",
+      "license": "CC-BY-SA-4.0",
+      "attribution": "Wikipedia contributors, \"Fifth Harmony\""
+     },
+     {
+      "url": "https://en.wikipedia.org/wiki/Chord_progression",
+      "license": "CC-BY-SA-4.0",
+      "attribution": "Wikipedia contributors, \"Chord progression\""
+     }
+    ],
+    "date": "2026-07-06"
+   },
+   "exposure": {
+    "uses": 0
+   },
+   "voice": "sourced"
+  },
+  {
+   "id": "researcher:faq-entry:music/harmony-and-progressions:7",
+   "kernelId": "music/harmony-and-progressions",
+   "conceptName": "Harmony and chord progressions",
+   "move": "faq-entry",
+   "body": {
+    "q": "Why are some chords major and some minor in a progression?",
+    "a": "In a major scale, each scale degree naturally produces a specific chord quality. For example, in C major, C (I) is major, Dm (ii) is minor, Em (iii) is minor, F (IV) is major, G (V) is major, Am (vi) is minor, Bdim (vii°) is diminished. This pattern is consistent across all major keys, so learning it once applies everywhere."
+   },
+   "evidence": {
+    "fromGrade": null,
+    "sourced": true,
+    "teachQuote": "Chord progressions are the foundation of harmony in Western musical tradition from the common practice era of classical music to the 21st century."
+   },
+   "provenance": {
+    "origin": "researcher",
+    "sources": [
+     {
+      "url": "https://en.wikipedia.org/wiki/Harmony",
+      "license": "CC-BY-SA-4.0",
+      "attribution": "Wikipedia contributors, \"Harmony\""
+     },
+     {
+      "url": "https://en.wikipedia.org/wiki/Fifth_Harmony",
+      "license": "CC-BY-SA-4.0",
+      "attribution": "Wikipedia contributors, \"Fifth Harmony\""
+     },
+     {
+      "url": "https://en.wikipedia.org/wiki/Chord_progression",
+      "license": "CC-BY-SA-4.0",
+      "attribution": "Wikipedia contributors, \"Chord progression\""
+     }
+    ],
+    "date": "2026-07-06"
+   },
+   "exposure": {
+    "uses": 0
+   },
+   "voice": "sourced"
+  },
+  {
+   "id": "researcher:slide-group:music/harmony-and-progressions:8",
+   "kernelId": "music/harmony-and-progressions",
+   "conceptName": "Harmony and chord progressions",
+   "move": "slide-group",
+   "body": {
+    "slides": [
+     {
+      "title": "What is Harmony?",
+      "bullets": [
+       "Harmony combines simultaneous notes to form chords.",
+       "It involves both vertical (chords) and horizontal (movement) dimensions.",
+       "Harmony creates emotion and structure in music."
+      ],
+      "speakerNotes": "Welcome to this lesson on harmony and chord progressions. We'll start by defining harmony and understanding its role in music.",
+      "altText": "A graphic showing three stacked notes forming a chord with a label 'Harmony'."
+     },
+     {
+      "title": "Chords and Triads",
+      "bullets": [
+       "A triad is a three-note chord built on a scale degree.",
+       "Major and minor triads differ by the middle note (third).",
+       "Chords are the building blocks of harmony."
+      ],
+      "speakerNotes": "Let's look at chords. A chord is a group of notes played together. The most common is a triad, which has a root, third, and fifth.",
+      "altText": "A staff showing C major triad (C-E-G) and C minor triad (C-Eb-G) side by side."
+     },
+     {
+      "title": "Chord Progressions Defined",
+      "bullets": [
+       "A chord progression is a sequence of chords.",
+       "It provides the harmonic foundation for a song.",
+       "Progressions can establish or contradict a key."
+      ],
+      "speakerNotes": "Chord progressions are what give a song its harmonic shape. They are the backbone over which melody and rhythm are built.",
+      "altText": "A timeline with three chord symbols: C, F, G, representing a progression."
+     },
+     {
+      "title": "Roman Numeral Analysis",
+      "bullets": [
+       "Roman numerals show a chord's function within the key.",
+       "I = tonic, IV = subdominant, V = dominant.",
+       "This system allows easy transposition to any key."
+      ],
+      "speakerNotes": "To analyze progressions, we use Roman numerals. They tell us the role of each chord, not the absolute note names. This makes transposing simple.",
+      "altText": "A chart listing scale degrees of C major with Roman numerals I through vii."
+     },
+     {
+      "title": "Common Progression: I–IV–V–I",
+      "bullets": [
+       "The most fundamental progression in Western music.",
+       "Creates a strong sense of departure and return.",
+       "Found in countless songs from classical to pop."
+      ],
+      "speakerNotes": "One of the most common progressions is I–IV–V–I. For example, in C major: C, F, G, C. This pattern is used everywhere.",
+      "altText": "Four chord boxes: C (I), F (IV), G (V), C (I) with arrows showing motion."
+     },
+     {
+      "title": "The 12-Bar Blues Example",
+      "bullets": [
+       "Uses only I, IV, and V chords over 12 bars.",
+       "A classic example: I–I–I–I–IV–IV–I–I–V–IV–I–I.",
+       "Pattern transposes easily; key determines specific chords."
+      ],
+      "speakerNotes": "Let's examine the 12-bar blues. It's a simple but powerful progression that underlies an entire genre. In C, it uses C, F, and G.",
+      "altText": "A 12-bar grid showing chord changes for the blues in C major."
+     },
+     {
+      "title": "Transposing Progressions",
+      "bullets": [
+       "Roman numerals let you move a progression to any key.",
+       "Keep the numeral pattern; shift the root note.",
+       "Practice: transpose I–IV–V–I from C to G."
+      ],
+      "speakerNotes": "One of the most useful skills is transposing. If you know the numerals, you can play the same progression in any key. Let's try it.",
+      "altText": "Two keyboards showing the same numeral pattern in C and G keys."
+     },
+     {
+      "title": "Summary and Next Steps",
+      "bullets": [
+       "Harmony = chords; chord progressions = sequences.",
+       "Roman numerals reveal harmonic function.",
+       "Practice analyzing songs to reinforce learning."
+      ],
+      "speakerNotes": "Today we covered the basics of harmony and chord progressions. Your assignment will help you apply this knowledge. Thank you.",
+      "altText": "A mind map connecting harmony, chords, progressions, Roman numerals, and analysis."
+     }
+    ]
+   },
+   "evidence": {
+    "fromGrade": null,
+    "sourced": true,
+    "teachQuote": "Chord progressions are the foundation of harmony in Western musical tradition from the common practice era of classical music to the 21st century."
+   },
+   "provenance": {
+    "origin": "researcher",
+    "sources": [
+     {
+      "url": "https://en.wikipedia.org/wiki/Harmony",
+      "license": "CC-BY-SA-4.0",
+      "attribution": "Wikipedia contributors, \"Harmony\""
+     },
+     {
+      "url": "https://en.wikipedia.org/wiki/Fifth_Harmony",
+      "license": "CC-BY-SA-4.0",
+      "attribution": "Wikipedia contributors, \"Fifth Harmony\""
+     },
+     {
+      "url": "https://en.wikipedia.org/wiki/Chord_progression",
+      "license": "CC-BY-SA-4.0",
+      "attribution": "Wikipedia contributors, \"Chord progression\""
+     }
+    ],
+    "date": "2026-07-06"
+   },
+   "exposure": {
+    "uses": 0
+   },
+   "voice": "sourced"
+  },
+  {
+   "id": "researcher:teach-segment:music/musical-form:0",
+   "kernelId": "music/musical-form",
+   "conceptName": "Musical form",
+   "move": "teach-segment",
+   "body": {
+    "minutes": 12,
+    "text": "Musical form refers to the structure of a composition—how its elements such as melody, harmony, and rhythm are organized over time. It is not simply the title or genre; for example, a piece called a fantasia implies improvisatory freedom, not a fixed pattern. Form is created through repetition and contrast of musical ideas. Using letter labels, the first idea is A, a contrasting section is B, and a return to A forms a ternary pattern (ABA). Think of a simple song like 'Happy Birthday': the first two phrases are similar (A), the third phrase contrasts (B), and the fourth returns to the opening (A). This AABA structure is a common form. Understanding form helps us grasp how a piece unfolds and creates meaning for the listener."
+   },
+   "evidence": {
+    "fromGrade": null,
+    "sourced": true,
+    "teachQuote": "The first statement of a musical idea is designated A. Subsequent contrasting sections are labeled B, C, D, and so on."
+   },
+   "provenance": {
+    "origin": "researcher",
+    "sources": [
+     {
+      "url": "https://en.wikipedia.org/wiki/Musical_form",
+      "license": "CC-BY-SA-4.0",
+      "attribution": "Wikipedia contributors, \"Musical form\""
+     },
+     {
+      "url": "https://en.wikipedia.org/wiki/Fantasia_(musical_form)",
+      "license": "CC-BY-SA-4.0",
+      "attribution": "Wikipedia contributors, \"Fantasia (musical form)\""
+     }
+    ],
+    "date": "2026-07-06"
+   },
+   "exposure": {
+    "uses": 0
+   },
+   "voice": "sourced"
+  },
+  {
+   "id": "researcher:worked-example:music/musical-form:1",
+   "kernelId": "music/musical-form",
+   "conceptName": "Musical form",
+   "move": "worked-example",
+   "body": {
+    "minutes": 15,
+    "text": "Worked example: Analyze the form of the 12-bar blues. Step 1: Identify the harmonic structure – it typically follows three phrases of four bars each: I-I-I-I, IV-IV-I-I, V-IV-I-I. Step 2: Notice that the first two phrases have the same harmony (I), so they are labeled A (first phrase) and A' (second phrase, same but with different lyrics). Step 3: The third phrase introduces a harmonic contrast (V then IV), making it a B section. Step 4: The entire form is A A' B, which is a standard 12-bar blues pattern. Step 5: Recognize that within each phrase there are smaller units (motives, riffs), but the large-scale form is built from these three sections. This labeling clarifies the organization and shows how repetition and contrast create a coherent structure."
+   },
+   "evidence": {
+    "fromGrade": null,
+    "sourced": true,
+    "teachQuote": "The first statement of a musical idea is designated A. Subsequent contrasting sections are labeled B, C, D, and so on."
+   },
+   "provenance": {
+    "origin": "researcher",
+    "sources": [
+     {
+      "url": "https://en.wikipedia.org/wiki/Musical_form",
+      "license": "CC-BY-SA-4.0",
+      "attribution": "Wikipedia contributors, \"Musical form\""
+     },
+     {
+      "url": "https://en.wikipedia.org/wiki/Fantasia_(musical_form)",
+      "license": "CC-BY-SA-4.0",
+      "attribution": "Wikipedia contributors, \"Fantasia (musical form)\""
+     }
+    ],
+    "date": "2026-07-06"
+   },
+   "exposure": {
+    "uses": 0
+   },
+   "voice": "sourced"
+  },
+  {
+   "id": "researcher:reteach-script:music/musical-form:2",
+   "kernelId": "music/musical-form",
+   "conceptName": "Musical form",
+   "move": "reteach-script",
+   "body": {
+    "minutes": 10,
+    "text": "Let's try a different example: the hymn 'Amazing Grace' in common meter. The form is strophic, meaning each verse uses the same melody but new words. If we label the melody's phrase structure, it is typically AABA: the first two phrases are similar (A), the third phrase is different (B), and the final phrase returns to the opening (A). This AABA pattern is a classic form. Even though the melody repeats for each verse, the overall song has a clear formal shape. So, form is about how the music is organized, whether it follows a standard pattern or not. In this example, the repetition of the melody across verses is part of its strophic form."
+   },
+   "evidence": {
+    "fromGrade": null,
+    "sourced": true,
+    "teachQuote": "The first statement of a musical idea is designated A. Subsequent contrasting sections are labeled B, C, D, and so on."
+   },
+   "provenance": {
+    "origin": "researcher",
+    "sources": [
+     {
+      "url": "https://en.wikipedia.org/wiki/Musical_form",
+      "license": "CC-BY-SA-4.0",
+      "attribution": "Wikipedia contributors, \"Musical form\""
+     },
+     {
+      "url": "https://en.wikipedia.org/wiki/Fantasia_(musical_form)",
+      "license": "CC-BY-SA-4.0",
+      "attribution": "Wikipedia contributors, \"Fantasia (musical form)\""
+     }
+    ],
+    "date": "2026-07-06"
+   },
+   "exposure": {
+    "uses": 0
+   },
+   "voice": "sourced"
+  },
+  {
+   "id": "researcher:guide:music/musical-form:3",
+   "kernelId": "music/musical-form",
+   "conceptName": "Musical form",
+   "move": "guide",
+   "body": {
+    "markdown": "If you missed the reading, start by reviewing the definition: musical form is the overall structure of a composition, shaped by repetition and contrast of elements like melody, harmony, and rhythm. To catch up: read the introduction on form in your textbook, then focus on the labeling system with letters (A, B, etc.). Key terms to know: phrase (a musical idea that is not self-contained), section (a larger unit), binary (AB), ternary (ABA), strophic (same music for each verse), through-composed (no repetition), free-form (no fixed pattern). Self-check prompts: 1. How can you distinguish between a binary and ternary form when listening? 2. Using letters, how would you label the form of the 12-bar blues described earlier? (Answer: A A' B). Practice by listening to a favorite song and mapping its sections with letters. Remember, form is about the big picture—how the piece is built from smaller ideas."
+   },
+   "evidence": {
+    "fromGrade": null,
+    "sourced": true,
+    "teachQuote": "The first statement of a musical idea is designated A. Subsequent contrasting sections are labeled B, C, D, and so on."
+   },
+   "provenance": {
+    "origin": "researcher",
+    "sources": [
+     {
+      "url": "https://en.wikipedia.org/wiki/Musical_form",
+      "license": "CC-BY-SA-4.0",
+      "attribution": "Wikipedia contributors, \"Musical form\""
+     },
+     {
+      "url": "https://en.wikipedia.org/wiki/Fantasia_(musical_form)",
+      "license": "CC-BY-SA-4.0",
+      "attribution": "Wikipedia contributors, \"Fantasia (musical form)\""
+     }
+    ],
+    "date": "2026-07-06"
+   },
+   "exposure": {
+    "uses": 0
+   },
+   "voice": "sourced"
+  },
+  {
+   "id": "researcher:discussion-tension:music/musical-form:4",
+   "kernelId": "music/musical-form",
+   "conceptName": "Musical form",
+   "move": "discussion-tension",
+   "body": {
+    "prompt": "Is a fantasia truly formless, or does it have its own hidden structure? How can we analyze music that deliberately avoids standard patterns?",
+    "tension": "The tension lies between the idea that form requires clear sections and the reality that even improvisatory music has some internal logic (e.g., motives, developmental processes). This challenges our definitions of what counts as form.",
+    "followUps": [
+     "Can a piece be both free-form and still have an underlying organizing principle?",
+     "How might we describe the form of an extended jazz improvisation?"
+    ]
+   },
+   "evidence": {
+    "fromGrade": null,
+    "sourced": true,
+    "teachQuote": "The first statement of a musical idea is designated A. Subsequent contrasting sections are labeled B, C, D, and so on."
+   },
+   "provenance": {
+    "origin": "researcher",
+    "sources": [
+     {
+      "url": "https://en.wikipedia.org/wiki/Musical_form",
+      "license": "CC-BY-SA-4.0",
+      "attribution": "Wikipedia contributors, \"Musical form\""
+     },
+     {
+      "url": "https://en.wikipedia.org/wiki/Fantasia_(musical_form)",
+      "license": "CC-BY-SA-4.0",
+      "attribution": "Wikipedia contributors, \"Fantasia (musical form)\""
+     }
+    ],
+    "date": "2026-07-06"
+   },
+   "exposure": {
+    "uses": 0
+   },
+   "voice": "sourced"
+  },
+  {
+   "id": "researcher:activity:music/musical-form:5",
+   "kernelId": "music/musical-form",
+   "conceptName": "Musical form",
+   "move": "activity",
+   "body": {
+    "task": "Choose a song (any genre) that you know well. Listen to it carefully and identify its sections (e.g., intro, verse, chorus, bridge, outro). Label these sections using letters (A, B, etc.) and note any repetitions or variations. Write a short essay (200-300 words) describing the form of the song, and include a diagram showing the sequence of sections. Explain how repetition and contrast create the overall structure.",
+    "steps": [
+     "Select a song and listen to it at least twice.",
+     "Create a timeline of the song and mark where sections change.",
+     "Assign a letter to each distinct section, using superscripts for variations (e.g., A1, A2).",
+     "Write an essay that explains the form and discusses how the sections relate to each other.",
+     "Submit both the diagram and the essay."
+    ],
+    "rubricBands": [
+     "Excellent: The analysis accurately identifies all sections, uses correct labeling, and provides a thoughtful explanation of how repetition and contrast shape the form.",
+     "Adequate: The analysis identifies most sections, uses reasonable labels, and gives a basic explanation of the form, though some details may be inaccurate or incomplete.",
+     "Insufficient: The analysis misses key sections, misapplies labels, or fails to explain how the form functions in the piece."
+    ]
+   },
+   "evidence": {
+    "fromGrade": null,
+    "sourced": true,
+    "teachQuote": "The first statement of a musical idea is designated A. Subsequent contrasting sections are labeled B, C, D, and so on."
+   },
+   "provenance": {
+    "origin": "researcher",
+    "sources": [
+     {
+      "url": "https://en.wikipedia.org/wiki/Musical_form",
+      "license": "CC-BY-SA-4.0",
+      "attribution": "Wikipedia contributors, \"Musical form\""
+     },
+     {
+      "url": "https://en.wikipedia.org/wiki/Fantasia_(musical_form)",
+      "license": "CC-BY-SA-4.0",
+      "attribution": "Wikipedia contributors, \"Fantasia (musical form)\""
+     }
+    ],
+    "date": "2026-07-06"
+   },
+   "exposure": {
+    "uses": 0
+   },
+   "voice": "sourced"
+  },
+  {
+   "id": "researcher:faq-entry:music/musical-form:6",
+   "kernelId": "music/musical-form",
+   "conceptName": "Musical form",
+   "move": "faq-entry",
+   "body": {
+    "q": "Does a piece have to follow a set pattern to have form?",
+    "a": "No. Form refers to any organizational structure, whether standard or unique. Pieces like fantasies are deliberately free-form, but they still have shape through motives, development, and climaxes. Form is about how the music is arranged, not about fitting a template."
+   },
+   "evidence": {
+    "fromGrade": null,
+    "sourced": true,
+    "teachQuote": "The first statement of a musical idea is designated A. Subsequent contrasting sections are labeled B, C, D, and so on."
+   },
+   "provenance": {
+    "origin": "researcher",
+    "sources": [
+     {
+      "url": "https://en.wikipedia.org/wiki/Musical_form",
+      "license": "CC-BY-SA-4.0",
+      "attribution": "Wikipedia contributors, \"Musical form\""
+     },
+     {
+      "url": "https://en.wikipedia.org/wiki/Fantasia_(musical_form)",
+      "license": "CC-BY-SA-4.0",
+      "attribution": "Wikipedia contributors, \"Fantasia (musical form)\""
+     }
+    ],
+    "date": "2026-07-06"
+   },
+   "exposure": {
+    "uses": 0
+   },
+   "voice": "sourced"
+  },
+  {
+   "id": "researcher:faq-entry:music/musical-form:7",
+   "kernelId": "music/musical-form",
+   "conceptName": "Musical form",
+   "move": "faq-entry",
+   "body": {
+    "q": "How do I know when a section changes?",
+    "a": "Listen for changes in melody, harmony, rhythm, texture, or instrumentation. A new section often introduces a contrasting idea or returns to a familiar one. Also watch for cadences that signal the end of a phrase. With practice, you'll start hearing these boundaries naturally."
+   },
+   "evidence": {
+    "fromGrade": null,
+    "sourced": true,
+    "teachQuote": "The first statement of a musical idea is designated A. Subsequent contrasting sections are labeled B, C, D, and so on."
+   },
+   "provenance": {
+    "origin": "researcher",
+    "sources": [
+     {
+      "url": "https://en.wikipedia.org/wiki/Musical_form",
+      "license": "CC-BY-SA-4.0",
+      "attribution": "Wikipedia contributors, \"Musical form\""
+     },
+     {
+      "url": "https://en.wikipedia.org/wiki/Fantasia_(musical_form)",
+      "license": "CC-BY-SA-4.0",
+      "attribution": "Wikipedia contributors, \"Fantasia (musical form)\""
+     }
+    ],
+    "date": "2026-07-06"
+   },
+   "exposure": {
+    "uses": 0
+   },
+   "voice": "sourced"
+  },
+  {
+   "id": "researcher:slide-group:music/musical-form:8",
+   "kernelId": "music/musical-form",
+   "conceptName": "Musical form",
+   "move": "slide-group",
+   "body": {
+    "slides": [
+     {
+      "title": "What is Musical Form?",
+      "bullets": [
+       "Form is the overall structure of a musical composition.",
+       "It organizes elements like melody, harmony, and rhythm over time.",
+       "Form creates coherence and guides the listener's experience.",
+       "It is not the same as genre or title."
+      ],
+      "speakerNotes": "Musical form is like the blueprints of a building. Just as architecture gives shape to a space, form gives shape to music. Emphasize that form is about the big picture, not just one element.",
+      "altText": "A diagram showing a building blueprint next to a musical score, illustrating the concept of structure."
+     },
+     {
+      "title": "Levels of Organization",
+      "bullets": [
+       "The smallest level is the passage: phrases and periods.",
+       "The piece level is the entire composition's large-scale form.",
+       "Beyond that, multi-movement works form a cycle."
+      ],
+      "speakerNotes": "Explain that form operates at multiple scales. A phrase is like a sentence, a period like a paragraph, and the whole piece like an essay. Use the 12-bar blues as an example of a passage-level form.",
+      "altText": "A pyramid diagram with three levels: Passage at bottom, Piece in middle, Cycle at top."
+     },
+     {
+      "title": "Labeling with Letters",
+      "bullets": [
+       "The first musical idea is labeled A.",
+       "Contrasting sections are B, C, D, etc.",
+       "Variations are marked with superscripts: A1, A2.",
+       "Lowercase letters indicate smaller subdivisions."
+      ],
+      "speakerNotes": "This system is a simple way to map form. Play a short excerpt and label it together, such as the opening of Beethoven's Symphony No. 5 (the first four notes are a motive, but section labeling would apply to larger chunks).",
+      "altText": "A musical score with sections highlighted and labeled A, B, A1, etc."
+     },
+     {
+      "title": "Binary and Ternary Forms",
+      "bullets": [
+       "Binary form has two contrasting sections: AB (or AABB).",
+       "Ternary form has three with a return: ABA.",
+       "The minuet and trio is binary on the small scale but ternary on the large scale."
+      ],
+      "speakerNotes": "Binary is like a statement and response; ternary feels like a journey and return. Play a minuet (AA) then trio (BB), then repeat the minuet (AB from minuet and trio combined gives ABA overall).",
+      "altText": "A diagram with two blocks labeled A and B for binary, and three blocks A, B, A for ternary."
+     },
+     {
+      "title": "Strophic and Through-Composed",
+      "bullets": [
+       "Strophic form repeats the same music for each verse.",
+       "Through-composed form has no large-scale repetition.",
+       "Many hymns and ballads are strophic; art songs sometimes through-composed."
+      ],
+      "speakerNotes": "Strophic is like a chain of identical units. Through-composed is like a story that never repeats. Play 'Amazing Grace' for strophic and a through-composed song like Schubert's 'Erlkönig'.",
+      "altText": "A row of identical boxes for strophic; a row of varied shapes for through-composed."
+     },
+     {
+      "title": "Free Form and Fantasia",
+      "bullets": [
+       "Free-form music relies on improvisation rather than fixed patterns.",
+       "A fantasia is a prime example of free form.",
+       "Even free form has internal logic and structure."
+      ],
+      "speakerNotes": "Fantasia means 'fantasy'—it's meant to sound improvisatory. But it often has hidden structure like motivic development. Play a short excerpt of a Bach fantasia to show it isn't random.",
+      "altText": "A musical score of a fantasia with notes flowing freely, but some recurring motifs circled."
+     },
+     {
+      "title": "Why Form Matters",
+      "bullets": [
+       "Form helps listeners follow and remember music.",
+       "Composers use form to balance unity and variety.",
+       "Analyzing form deepens our appreciation of a piece."
+      ],
+      "speakerNotes": "Understanding form is like having a roadmap. It lets you anticipate what comes next and notice when expectations are subverted. Encourage students to listen for form actively.",
+      "altText": "A person listening to music with a road map superimposed, showing sections like verses and chorus."
+     },
+     {
+      "title": "Applying Form Analysis",
+      "bullets": [
+       "Choose any song and label its sections with letters.",
+       "Look for repetition, contrast, and variation.",
+       "Diagram the sequence to see the structure clearly."
+      ],
+      "speakerNotes": "This slide sets up the assignment. Walk through the analysis of a popular song like 'We Will Rock You' (verse A, chorus B, etc.). Show a sample diagram.",
+      "altText": "A timeline diagram of a pop song showing intro, verse, chorus, verse, chorus, bridge, chorus, outro labeled with letters."
+     }
+    ]
+   },
+   "evidence": {
+    "fromGrade": null,
+    "sourced": true,
+    "teachQuote": "The first statement of a musical idea is designated A. Subsequent contrasting sections are labeled B, C, D, and so on."
+   },
+   "provenance": {
+    "origin": "researcher",
+    "sources": [
+     {
+      "url": "https://en.wikipedia.org/wiki/Musical_form",
+      "license": "CC-BY-SA-4.0",
+      "attribution": "Wikipedia contributors, \"Musical form\""
+     },
+     {
+      "url": "https://en.wikipedia.org/wiki/Fantasia_(musical_form)",
+      "license": "CC-BY-SA-4.0",
+      "attribution": "Wikipedia contributors, \"Fantasia (musical form)\""
+     }
+    ],
+    "date": "2026-07-06"
+   },
+   "exposure": {
+    "uses": 0
+   },
+   "voice": "sourced"
   }
  ]
 }

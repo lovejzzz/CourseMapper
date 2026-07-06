@@ -51401,6 +51401,225 @@
     "grade": null,
     "date": "2026-07-06"
    }
+  },
+  {
+   "id": "gapfill:music/staff-clefs-pitch-notation:Students-think-the-clef--6a30",
+   "kernelId": "music/staff-clefs-pitch-notation",
+   "conceptName": "Staff and clefs",
+   "stem": "Students think the clef is just a decorative sign at the start of a staff, so the notes are already fixed by the five lines and spaces and do not really change when you choose a different clef?",
+   "options": [
+    "It assigns a particular pitch to one line or space.",
+    "It dictates that all notes must be written on the bottom line.",
+    "It means the notes are already fixed by the five lines and spaces.",
+    "It is only used for identifying the instrument type."
+   ],
+   "correctIndex": 0,
+   "explanation": "A clef assigns a particular pitch to one line or space, and all other staff positions are determined relative to that reference note. This reference point is crucial for reading music correctly.",
+   "catches": true,
+   "confronts": true,
+   "familyKey": "students think the clef is just a decorative sign at the sta",
+   "provenance": {
+    "origin": "researcher",
+    "model": "e2b",
+    "grade": null,
+    "date": "2026-07-06"
+   }
+  },
+  {
+   "id": "gapfill:music/staff-clefs-pitch-notation:Students-think-every-sta-82c3",
+   "kernelId": "music/staff-clefs-pitch-notation",
+   "conceptName": "Staff and clefs",
+   "stem": "Students think every staff must always have exactly five lines, because they assume the staff is always the same in every kind of music and that extra or fewer lines would not count as a real staff?",
+   "options": [
+    "It is just a decorative sign at the start of the staff.",
+    "It dictates that all notes must be written on the bottom line.",
+    "It means the notes are already fixed by the five lines and spaces.",
+    "Percussion staves may have one to five or more lines."
+   ],
+   "correctIndex": 3,
+   "explanation": "The sources say a standard pitched staff usually has five lines, but percussion staves may have one to five or more lines, and guitar tablature can also use up to six or more lines.",
+   "catches": true,
+   "confronts": true,
+   "familyKey": "students think every staff must always have exactly five lin",
+   "provenance": {
+    "origin": "researcher",
+    "model": "e2b",
+    "grade": null,
+    "date": "2026-07-06"
+   }
+  },
+  {
+   "id": "gapfill:music/intervals:Students-may-think-an-in-8515",
+   "kernelId": "music/intervals",
+   "conceptName": "Interval (music)",
+   "stem": "When listening to a piece of music, how do you specifically define the interval between a high note and a low note?",
+   "options": [
+    "It is just any distance between notes because they sound like a generic time gap.",
+    "It is defined by the difference in pitch between the two sounds.",
+    "It is the same as the interval between two successive notes.",
+    "It depends on whether the notes sound simultaneously or successively."
+   ],
+   "correctIndex": 1,
+   "explanation": "An interval is defined by the sources as the difference in pitch between two sounds. This difference determines the melodic or harmonic quality of the interval. They sound different depending on whether the notes are successive or simultaneous.",
+   "bloom": "apply",
+   "difficulty": "apply",
+   "catches": true,
+   "confronts": true,
+   "familyKey": "students may think an interval in music is just any pair of ",
+   "provenance": {
+    "origin": "researcher",
+    "model": "e2b",
+    "grade": null,
+    "date": "2026-07-06"
+   }
+  },
+  {
+   "id": "gapfill:music/scales-and-key-signatures:Students-think-a-scale-i-afa6",
+   "kernelId": "music/scales-and-key-signatures",
+   "conceptName": "Scales and key signatures",
+   "stem": "Which characteristic best defines a specific scale?",
+   "options": [
+    "The scale is just any set of notes that happen sound good together.",
+    "It is a chromatic scale with extra accidentals added for decoration.",
+    "It is defined by its characteristic interval pattern and its first degree.",
+    "It is simply a set of notes that repeat only once per octave."
+   ],
+   "correctIndex": 2,
+   "explanation": "A scale is defined by its consecutive notes and characteristic interval pattern, and most scales repeat that pattern across octaves. This pattern distinguishes one scale from another.",
+   "bloom": "apply",
+   "difficulty": "apply",
+   "catches": true,
+   "confronts": true,
+   "familyKey": "students think a scale is just any set of notes that happen ",
+   "provenance": {
+    "origin": "researcher",
+    "model": "e2b",
+    "grade": null,
+    "date": "2026-07-06"
+   }
+  },
+  {
+   "id": "gapfill:music/triads-and-seventh-chords:Students-often-think-any-4c29",
+   "kernelId": "music/triads-and-seventh-chords",
+   "conceptName": "Triads and seventh chords",
+   "stem": "Apply your knowledge of seventh chords to identify the structure of a G7 chord. What components make up this specific chord?",
+   "options": [
+    "A major triad plus a perfect fifth.",
+    "A minor triad plus a minor seventh.",
+    "A major triad plus a harmonic seventh interval.",
+    "A diminished triad plus a minor third."
+   ],
+   "correctIndex": 2,
+   "explanation": "A G7 chord is a dominant seventh chord formed by a major triad plus a harmonic seventh interval. This application correctly identifies the required components.",
+   "bloom": "apply",
+   "difficulty": "apply",
+   "catches": false,
+   "confronts": false,
+   "familyKey": null,
+   "provenance": {
+    "origin": "researcher",
+    "model": "e2b",
+    "grade": null,
+    "date": "2026-07-06"
+   }
+  },
+  {
+   "id": "gapfill:music/rhythm-and-meter:Students-may-believe-met-339f",
+   "kernelId": "music/rhythm-and-meter",
+   "conceptName": "Rhythm and meter",
+   "stem": "A student believes that meter and rhythm are the same thing, because both seem to involve beats in music and both describe patterns that listeners can hear and count.",
+   "options": [
+    "Meter is the pattern of sounds; rhythm is the speed of the music.",
+    "Meter is the regular recurring pattern of strong and weak beats.",
+    "Rhythm is the grouping of beats; meter is the regular pattern of pulses.",
+    "Meter and rhythm are completely unrelated concepts in music."
+   ],
+   "correctIndex": 2,
+   "explanation": "Sources distinguish them: rhythm is the grouping of beats, while meter is the regular recurring pattern of strong and weak beats or accented pulses.",
+   "catches": true,
+   "confronts": true,
+   "familyKey": "students may believe meter and rhythm are the same thing bec",
+   "provenance": {
+    "origin": "researcher",
+    "model": "e2b",
+    "grade": null,
+    "date": "2026-07-06"
+   }
+  },
+  {
+   "id": "gapfill:music/harmony-and-progressions:Students-often-think-har-1b83",
+   "kernelId": "music/harmony-and-progressions",
+   "conceptName": "Harmony and chord progressions",
+   "stem": "Which of the following best describes the relationship between harmony and chord progressions in Western music?",
+   "options": [
+    "Harmony is simply the simultaneous sounding of any two notes.",
+    "Chord progressions are the defining feature upon which melody and rhythm are built.",
+    "Harmony is only a feature found in classical music structures.",
+    "Melody and rhythm are entirely independent of chord progressions."
+   ],
+   "correctIndex": 1,
+   "explanation": "Sources explain that harmony involves combining pitches into chords and progressions overlaps with but is not identical to melody, timbre, form, or counterpoint. Chord progressions are the foundation of harmony in Western musical tradition.",
+   "bloom": "apply",
+   "difficulty": "apply",
+   "catches": true,
+   "confronts": true,
+   "familyKey": "students often think harmony just means any two notes soundi",
+   "provenance": {
+    "origin": "researcher",
+    "model": "e2b",
+    "grade": null,
+    "date": "2026-07-06"
+   }
+  },
+  {
+   "id": "gapfill:music/harmony-and-progressions:Students-may-believe-cho-d08d",
+   "kernelId": "music/harmony-and-progressions",
+   "conceptName": "Harmony and chord progressions",
+   "stem": "When analyzing a popular blues song, which element should a musician primarily rely on to understand the underlying harmonic structure?",
+   "options": [
+    "The melody line is the most important element.",
+    "Chord progressions are only a feature of classical music.",
+    "The rhythm is the only thing that matters.",
+    "Chord progressions are foundational in blues and jazz music."
+   ],
+   "correctIndex": 3,
+   "explanation": "The sources state that chord progressions are foundational only in Western classical common-practice music, but they are also popular in traditional blues and jazz. Therefore, a musician must rely on understanding these progressions to analyze the song's harmonic structure.",
+   "bloom": "apply",
+   "difficulty": "apply",
+   "catches": true,
+   "confronts": true,
+   "familyKey": "students may believe chord progressions are only a feature o",
+   "provenance": {
+    "origin": "researcher",
+    "model": "e2b",
+    "grade": null,
+    "date": "2026-07-06"
+   }
+  },
+  {
+   "id": "gapfill:music/harmony-and-progressions:Students-may-believe-cho-ef62",
+   "kernelId": "music/harmony-and-progressions",
+   "conceptName": "Harmony and chord progressions",
+   "stem": "Given the key of A minor, which chords are the i, iv, and v chords?",
+   "options": [
+    "A major, D major, E major",
+    "A minor, D minor, E minor",
+    "C major, G major, F major",
+    "A minor, E minor, D major"
+   ],
+   "correctIndex": 1,
+   "explanation": "For example, the relative minor of C major is A minor, and in the key of A minor, the i, iv and v chords are A minor, D minor and E minor. This is a direct application of the provided example.",
+   "bloom": "apply",
+   "difficulty": "apply",
+   "catches": false,
+   "confronts": false,
+   "familyKey": null,
+   "provenance": {
+    "origin": "researcher",
+    "model": "e2b",
+    "grade": null,
+    "date": "2026-07-06"
+   }
   }
  ],
  "origins": {

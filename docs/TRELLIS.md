@@ -1734,3 +1734,24 @@ polishing a candidate that hasn't won.
   Named day-one-quality lever: richer first-touch surfaces (paid
   9-surface shaping ~$0.02/kernel judged 6.67 on lit). Music discipline
   born: 7 kernels, 28 verified items, full course at $0.05-once.
+
+- **2026-07-06 (the hybrid experiment + the surface lever — closing the
+  bake-off gaps).** **TRELLIS-HYBRID wired and measured** (TRELLIS_ITEMS
+  =e2b: E2B-MAX takes the composer's fresh-fill item seat through the
+  IDENTICAL blind solver; thin misconceptions fall back paid): music
+  fresh run 96/A · judge 4.67 · $0.103 (−62% vs composer-cold). Ledger
+  autopsy (author $0.006) showed the banked-first composer pulled the
+  factory's EXTRACTIVE surfaces, not fresh prose — the run re-confirmed
+  (third measurement: 4.33/4.67) that DAY-ONE PROSE is the single
+  quality gap and the item seat is irrelevant to it; clean prose-seam
+  test needs a factory-untouched course (queued). **SURFACE LEVER
+  measured**: paid 9-surface shaping for music ($0.173, E2B kept items)
+  -> $0 zero replay: **98/A · judge 5.0 [5,5,5] · $0.0000 · 238s ·
+  Tutor 35 items** — +0.67 judge, +2 grade; the 6.5 covered-course bar
+  still unmet on day-two virgin ground (content depth + documented ±1
+  judge variance). Honest maturity ladder recorded in BAKEOFF addendum:
+  4.33 (day one) -> 4.67 (hybrid) -> 5.0 (+surfaces) -> 6.67 (mature
+  deposits). Model card limits updated (day-one band DISCLOSED with the
+  priced maturation path). The publishable claim set: grade-A structure,
+  $0 replay, solver-verified items, offline Tutor, honest quality bands
+  — SIMULATED until the two-human packet.

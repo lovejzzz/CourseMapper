@@ -182,23 +182,64 @@ export async function composeLesson(
     if (quizItems.length < 6) stats.zeroShortQuiz = 6 - quizItems.length;
   } else if (quizItems.length < 6) {
     const need = 6 - quizItems.length;
-    const { result } = await callModel({
-      tier: tiers?.authorQuiz ?? 'cheap',
-      stage: 'authorQuiz',
-      ledger,
-      budgetUsd,
-      schema: FILL_ITEMS_SCHEMA,
-      schemaName: 'fill_items',
-      validate: (parsed) =>
-        Array.isArray(parsed?.quizItems) && parsed.quizItems.length === need
-          ? parsed.quizItems.every((q) => q.options?.length === 4)
-            ? []
-            : ['every item needs exactly 4 options']
-          : [`need exactly ${need} item(s)`],
-      maxOutputTokens: 2500,
-      system: `Author exactly ${need} application-level multiple-choice item(s) for the lesson below, grounded in the kernel facts. 4 distinct options; plausible half-learned mistakes as distractors; explanation 2-3 sentences confronting the tempting wrong answer.`,
-      user: JSON.stringify({ lesson: slice.lesson, concepts: slice.concepts, need }, null, 1),
-    });
+    // TRELLIS-HYBRID (TRELLIS_ITEMS=e2b): the local adaptive author takes the
+    // fresh-fill seat — items from the anchor kernel + the graph's OWN
+    // misconceptions for that concept, through the IDENTICAL blind solver
+    // below. Thin misconceptions (<2) fall back to the paid fill; the seat
+    // swap can never change what ships, only who wrote it.
+    let e2bFill = null;
+    if (process.env.TRELLIS_ITEMS === 'e2b') {
+      const conceptMisconceptions = (graph.misconceptions ?? []).filter((m) => m.conceptId === anchor.conceptId);
+      if (conceptMisconceptions.length >= 2) {
+        const { authorItemsE2BMax } = await import('../researcher/shape.mjs');
+        const { claimTokens } = await import('../knowledge/bankGapFill.mjs');
+        const anchorConcept = graph.concepts.find((c) => c.id === anchor.conceptId);
+        const cells = conceptMisconceptions.slice(0, 2).map((m) => ({
+          statement: m.statement,
+          corrective: m.corrective,
+          mustIncludeTwoOf: claimTokens(m.statement),
+          explanationMustIncludeHalfOf: claimTokens(m.corrective),
+        }));
+        const kernel = {
+          definition: anchorConcept?.name ?? anchor.conceptName,
+          facts: (anchorConcept?.kernelFacts ?? []).map((t) => ({ text: typeof t === 'string' ? t : t.text })),
+          misconceptions: conceptMisconceptions.map((m) => ({ text: m.statement, corrective: m.corrective })),
+        };
+        const shelf = bank?.items?.filter((b) => b.kernelId === anchor.kernelId) ?? [];
+        try {
+          const authored = await authorItemsE2BMax(
+            { id: anchor.kernelId, term: anchorConcept?.name ?? anchor.conceptName },
+            kernel,
+            cells,
+            shelf,
+          );
+          if (authored.filter((x) => x?.stem).length > 0)
+            e2bFill = { quizItems: authored.filter((x) => x?.stem).slice(0, need) };
+          stats.e2bFills = (stats.e2bFills ?? 0) + (e2bFill?.quizItems.length ?? 0);
+        } catch {
+          e2bFill = null; // fall back to the paid fill
+        }
+      }
+    }
+    const { result } = e2bFill
+      ? { result: e2bFill }
+      : await callModel({
+          tier: tiers?.authorQuiz ?? 'cheap',
+          stage: 'authorQuiz',
+          ledger,
+          budgetUsd,
+          schema: FILL_ITEMS_SCHEMA,
+          schemaName: 'fill_items',
+          validate: (parsed) =>
+            Array.isArray(parsed?.quizItems) && parsed.quizItems.length === need
+              ? parsed.quizItems.every((q) => q.options?.length === 4)
+                ? []
+                : ['every item needs exactly 4 options']
+              : [`need exactly ${need} item(s)`],
+          maxOutputTokens: 2500,
+          system: `Author exactly ${need} application-level multiple-choice item(s) for the lesson below, grounded in the kernel facts. 4 distinct options; plausible half-learned mistakes as distractors; explanation 2-3 sentences confronting the tempting wrong answer.`,
+          user: JSON.stringify({ lesson: slice.lesson, concepts: slice.concepts, need }, null, 1),
+        });
     // v0.2.1 SOLVER GATE: a cross-family seat answers each fresh item
     // BLIND; solver ≠ key → one re-author, then drop honestly (a 5-item
     // quiz is legal; a wrong key is not). The 'scarcity' class killer.

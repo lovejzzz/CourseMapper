@@ -47,7 +47,12 @@ card from SIMULATED to confirmed.
    DPO round 1 collapsed on the frozen bench (ranks well, writes badly at 105
    pairs). The item-verdict flywheel (102 pairs and growing) reopens DPO at
    ~300+.
-4. **Every claim is SIMULATED** until the two-human packet reads.
+4. **Day-one course quality on virgin ground is below the mature band** —
+   judge 4.33 (extractive surfaces) → 5.0 with the $0.17 paid surface pass;
+   covered courses with mature deposits read 6.67. The items are never the
+   gap (three measurements); first-touch PROSE is, and it matures with
+   deposits while the replay price stays $0.
+5. **Every claim is SIMULATED** until the two-human packet reads.
 
 ## 4. Reproduce
 
