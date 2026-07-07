@@ -95,7 +95,10 @@ export async function startS(options = {}) {
 }
 
 export async function sGenerate(
-  { system, user, source = '', task = 'skin', maxTokens, temperature },
+  // V2: schema (JSON Schema dict) / jsonMode (bool) engage llguidance
+  // grammar-constrained decoding on the g4 route (serve_g4.py) — parse
+  // validity by construction. Ignored by serve_s routes.
+  { system, user, source = '', task = 'skin', maxTokens, temperature, schema, jsonMode },
   { timeoutMs = 180_000 } = {},
 ) {
   const route = ROUTES[task] ? task : 'skin';
@@ -111,7 +114,16 @@ export async function sGenerate(
     }, timeoutMs);
   });
   entry.proc.stdin.write(
-    `${JSON.stringify({ id, system, user, source, ...(maxTokens ? { maxTokens } : {}), ...(temperature ? { temperature } : {}) })}\n`,
+    `${JSON.stringify({
+      id,
+      system,
+      user,
+      source,
+      ...(maxTokens ? { maxTokens } : {}),
+      ...(temperature ? { temperature } : {}),
+      ...(schema ? { schema } : {}),
+      ...(jsonMode ? { jsonMode: true } : {}),
+    })}\n`,
   );
   return promise;
 }

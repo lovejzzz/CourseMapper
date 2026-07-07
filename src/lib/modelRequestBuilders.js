@@ -1,4 +1,5 @@
 import { getGoogleModelBaseUrl } from './googleProvider';
+import { getLocalEndpoint } from './localProvider';
 import { buildOpenAIResponsesBody, parseOpenAIResponsesStreamChunk, prefersOpenAIResponsesApi } from './openaiProvider';
 
 function modelIsDefaultTemperatureOnly(provider, modelId) {
@@ -315,6 +316,31 @@ export function buildProviderTextRequest({
         generationConfig: googleGenerationConfig(controls),
       },
       parseChunk: (parsed) => parsed.candidates?.[0]?.content?.parts?.[0]?.text || null,
+      controls,
+    };
+  }
+
+  if (provider === 'local') {
+    // The house model server (npm run local-model): OpenAI chat shape at a
+    // local endpoint, keyless, SSE with keep-alive heartbeats. The server
+    // enforces json_object/json_schema at decode time (llguidance), so the
+    // full response_format contract is forwarded.
+    const responseFormat = openAiResponseFormat(controls);
+    return {
+      url: `${getLocalEndpoint()}/v1/chat/completions`,
+      headers: { 'Content-Type': 'application/json' },
+      body: {
+        model: modelId,
+        messages: [
+          { role: 'system', content: systemPrompt },
+          { role: 'user', content: userPrompt },
+        ],
+        ...(responseFormat ? { response_format: responseFormat } : {}),
+        max_tokens: controls.maxOutputTokens,
+        ...(controls.temperature !== undefined && { temperature: controls.temperature }),
+        stream: true,
+      },
+      parseChunk: (parsed) => parsed.choices?.[0]?.delta?.content || null,
       controls,
     };
   }

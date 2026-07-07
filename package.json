@@ -49,6 +49,7 @@
     "audit:v0857:sweep": "node scripts/v085QualitySweep.mjs --release-label v0.8.57 --count 34 --output-dir verification-output/v0.8.57-quality-sweep --no-progress",
     "audit:v0858:red-team": "node scripts/v0858RedTeamAudit.mjs",
     "audit:v0858:sweep": "node scripts/v085QualitySweep.mjs --release-label v0.8.58 --count 34 --output-dir verification-output/v0.8.58-export-torture --no-progress",
+    "local-model": "node scripts/crucible/e2bOpenAIShim.mjs",
     "crucible": "node scripts/crucible.mjs --courses all",
     "crucible:smoke": "node scripts/crucible.mjs --courses smoke",
     "crucible:dry": "node scripts/crucible.mjs --dry-run",

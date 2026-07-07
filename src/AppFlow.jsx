@@ -1901,7 +1901,7 @@ export default function AppFlow({ startupAction = null, onStartupHandled, onRetu
     async (requests = [], { courseMap: sourceCourseMap } = {}) => {
       const validRequests = Array.isArray(requests) ? requests.filter(Boolean) : [];
       if (validRequests.length === 0) return { patches: [], providerCallCount: 0 };
-      if (provider !== 'webllm' && !apiKey) {
+      if (provider !== 'webllm' && provider !== 'local' && !apiKey) {
         return { patches: [], providerCallCount: 0, error: 'No connected AI provider for blueprint patch mapping.' };
       }
       if (!modelId) {
@@ -2155,7 +2155,7 @@ export default function AppFlow({ startupAction = null, onStartupHandled, onRetu
 
   // ── Derived ──
   const canGenerate =
-    apiKey.trim() &&
+    (provider === 'local' ? apiStatus === 'connected' : apiKey.trim()) &&
     modelId &&
     (files.length > 0 || promptText.trim().length > 0) &&
     gen.status !== 'parsing' &&
@@ -2674,7 +2674,7 @@ export default function AppFlow({ startupAction = null, onStartupHandled, onRetu
           onQuickStart={handleQuickStart}
           canGenerate={
             (files.length > 0 || promptText.trim().length > 0) &&
-            apiKey.trim() &&
+            (provider === 'local' || apiKey.trim()) &&
             !!modelId &&
             apiStatus === 'connected'
           }

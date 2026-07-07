@@ -362,6 +362,78 @@ function parseDigestLine(text) {
   }
 }
 
+// ── E2B shim reroute (--llm e2b) ─────────────────────────────────────────────
+// Forward one intercepted api.openai.com request to the local shim. GET
+// /v1/models (the "Connected" key validation) is answered inline — the shim
+// only speaks POST. A stray stream:true call gets the shim's full JSON reply
+// re-wrapped as minimal SSE in the shape the app parses
+// (parseOpenAIResponsesStreamChunk / chat.completion.chunk deltas).
+async function forwardToLlmShim(route, llmShimUrl) {
+  const request = route.request();
+  const url = new URL(request.url());
+  if (request.method() !== 'POST') {
+    // The app filters this catalog through OPENAI_INCLUDE (useStreamReader
+    // fetchModelsFromProvider) — the id must be one it recognizes, so
+    // advertise the seeded modelId's family, not the actual local model.
+    await route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify({
+        object: 'list',
+        data: [
+          { id: 'gpt-5.4-mini', object: 'model', created: 1 },
+          { id: 'gpt-5.4', object: 'model', created: 1 },
+        ],
+      }),
+    });
+    return;
+  }
+  const postData = request.postData() || '';
+  let wantsStream = false;
+  try {
+    wantsStream = JSON.parse(postData)?.stream === true;
+  } catch {
+    /* empty */
+  }
+  try {
+    const upstream = await fetch(`${llmShimUrl}${url.pathname}`, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: postData,
+    });
+    const bodyText = await upstream.text();
+    if (!wantsStream) {
+      await route.fulfill({ status: upstream.status, contentType: 'application/json', body: bodyText });
+      return;
+    }
+    let payload = {};
+    try {
+      payload = JSON.parse(bodyText);
+    } catch {
+      /* empty */
+    }
+    const isResponses = url.pathname.includes('/responses');
+    const text = isResponses ? (payload.output_text ?? '') : (payload.choices?.[0]?.message?.content ?? '');
+    const events = isResponses
+      ? [
+          { type: 'response.output_text.delta', delta: text },
+          { type: 'response.completed', response: payload },
+        ]
+      : [
+          { id: 'e2b-shim', object: 'chat.completion.chunk', choices: [{ index: 0, delta: { role: 'assistant', content: text }, finish_reason: null }] },
+          { id: 'e2b-shim', object: 'chat.completion.chunk', choices: [{ index: 0, delta: {}, finish_reason: 'stop' }] },
+        ];
+    const sse = `${events.map((event) => `data: ${JSON.stringify(event)}`).join('\n\n')}\n\ndata: [DONE]\n\n`;
+    await route.fulfill({ status: 200, contentType: 'text/event-stream', body: sse });
+  } catch (error) {
+    await route.fulfill({
+      status: 502,
+      contentType: 'application/json',
+      body: JSON.stringify({ error: { message: `E2B shim unreachable: ${error.message}` } }),
+    });
+  }
+}
+
 /**
  * Generate ONE course end-to-end in a real browser and collect artifacts.
  *
@@ -397,6 +469,11 @@ export async function runCourseInBrowser({
   // 'coursemapper-provider' plus the provider-scoped key slot the app reads
   // (src/contexts/AIConfigContext.jsx getSavedApiKeyForProvider).
   provider = 'openai',
+  // E2B experiment (--llm e2b): reroute every api.openai.com call this
+  // context makes to the local OpenAI-compatible shim
+  // (scripts/crucible/e2bOpenAIShim.mjs) — the app compiler runs with the
+  // on-device model as its ONLY LLM, zero src/ changes, zero paid spend.
+  llmShimUrl = null,
 }) {
   const startedAt = Date.now();
   const deadlineAt = startedAt + overallTimeoutMs;
@@ -423,6 +500,9 @@ export async function runCourseInBrowser({
     acceptDownloads: true,
     viewport: headed ? { width: 1440, height: 960 } : { width: 1500, height: 1000 },
   });
+  if (llmShimUrl) {
+    await context.route('https://api.openai.com/**', (route) => forwardToLlmShim(route, llmShimUrl));
+  }
   const page = await context.newPage();
 
   // Every console message, timestamped, message text VERBATIM — the [CM]
@@ -516,11 +596,14 @@ export async function runCourseInBrowser({
     await generateButton.click();
 
     phase = 'generating-workspace';
-    // Generation can take 5+ minutes; bounded by the overall budget.
-    await page.getByTestId('workspace-shell').waitFor({ timeout: remaining(600_000) });
+    // Generation can take 5+ minutes; bounded by the overall budget. On-device
+    // LLM retry ladders run ~2min/call — shim rounds get 3× step caps so the
+    // app's own recovery path can finish instead of the driver aborting it.
+    const stepCap = llmShimUrl ? (cap) => remaining(cap ? cap * 3 : cap) : remaining;
+    await page.getByTestId('workspace-shell').waitFor({ timeout: stepCap(600_000) });
 
     phase = 'finalizing-package';
-    await ensurePackageReady(page, remaining);
+    await ensurePackageReady(page, stepCap);
 
     phase = 'downloading-zip';
     zipPath = path.join(outDir, `${course.id}-package.zip`);

@@ -131,6 +131,11 @@ export function getModelPricing(provider = '', modelId = '', inputTokens = 0) {
     return null;
   }
 
+  if (provider === 'local') {
+    // The house model runs on this device — every call is $0 by construction.
+    return pricing(0, 0, { source: 'local-model' });
+  }
+
   if (provider === 'deepseek') {
     if (/reasoner|v4-pro|r1/.test(id)) {
       return pricing(0.55, 2.19, { cachedInputPerMillion: 0.14 });

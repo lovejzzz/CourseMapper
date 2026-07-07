@@ -3,7 +3,7 @@
 AI-powered instructional design platform running on **CurriculumOS** — a deterministic course compiler linked to a **Curriculum Genome** of source-anchored, citable concept knowledge — with an embedded teaching assistant agent. Upload your syllabus and generate a structured Course Map, lesson plans, slide decks, rubrics, quizzes, assignments, discussion prompts, study guides, and a polished syllabus — all pedagogically aligned, validated, and fully editable. Then use the AI agent to revise, validate, research, and visualize your curriculum through natural conversation.
 
 **Live:** [https://edutool.dev](https://edutool.dev)
-**Current release:** v0.16.0
+**Current release:** v0.16.1
 
 ---
 
@@ -18,14 +18,34 @@ Course Mapper is a **purpose-built instructional design tool**, not a general ch
 5. **Cascade editing.** Edit one deliverable and the system automatically detects which other deliverables are affected and surgically regenerates just those lessons — no full regeneration.
 6. **Pedagogical validation.** Built-in Bloom's taxonomy alignment, objective coverage, cognitive load assessment, readability scoring, and difficulty progression checks — with auto-fix for common issues.
 7. **One-click package finalizer.** Export runs deterministic repair, targeted retry, readiness checks, and file verification before a package is marked ready. Save/load complete sessions as `.coursemapper` project files.
-8. **Multi-model support.** Supports OpenAI, Anthropic, Google, and DeepSeek with native tool calling per provider. Auto-detects key format and auto-rotates through models on failure.
+8. **Multi-model support — including a free local model.** Supports OpenAI, Anthropic, Google, and DeepSeek with native tool calling per provider, plus **Scion**, the house model that runs on your own machine at $0 per course (see “Scion” below). Auto-detects key format and auto-rotates through models on failure.
 9. **Privacy-first.** Static BYOK app by default. There is no Course Mapper backend server; project data is stored in your browser unless you explicitly sign in for Firebase cloud sync or export to Google Drive. API keys go directly to providers.
 
 > **What Course Mapper does NOT claim:** It does not fact-check content or verify citations. It does not replace instructor expertise. It is a drafting and productivity tool — it generates the scaffold, the instructor refines it.
 
 ---
 
-## Current Pipeline (v0.16.0)
+## Scion — the house model (Local provider)
+
+**Scion** is Course Mapper's own model: it runs on your machine, needs no API key, and compiles courses for **$0**. Pick **Provider: Local** on the landing page, start the server, and generate — nothing leaves your device.
+
+```bash
+npm run local-model   # serves Scion-1 at http://127.0.0.1:8799
+```
+
+**What it is.** The name is horticultural: a *scion* is the cultivated cutting grafted onto wild rootstock. The rootstock is Google's open-weights **Gemma 4 E2B** (Apache-2.0, ~4B parameters, Apple Silicon via mlx-vlm). The scion — the part we cultivated — is the harness grafted onto it:
+
+- **Grammar-constrained decoding** (llguidance): invalid JSON is impossible at the decode layer, and the app's own content contracts (per-lesson kernels, quiz item shapes, lint length floors) are enforced as the only legal output shape.
+- **Per-lesson generation with a progress cache**, so long on-device compiles ride the app's retry ladder instead of fighting timeouts.
+- **Self-verification**: every quiz answer key is re-solved blind; keys that fail a two-solve check are regenerated. Off-topic items are caught by a lexical topic gate. A self-refining polish pass rewrites draft prose into natural teaching voice.
+
+**Honest quality band** (measured, pooled multi-seat judge panels on identical courses): structural grade **A at parity** with paid models; prose and quiz-item fluency currently **ties our paid baseline at best** — pooled panels place it just below gpt-5.4-mini. Study guides already judge *above* the paid baseline. The gap is the target of an ongoing preference-training flywheel (every generation banks verified training pairs), so Scion improves release over release while its price never moves from $0.
+
+**Trade-offs**: slower than cloud APIs (a full 7-lesson package takes ~7–20 minutes on an M-series Mac), no tool-calling (the chat agent needs a cloud provider), and it requires the local server running. Privacy is absolute: prompts, syllabi, and generated courses never leave the machine.
+
+---
+
+## Current Pipeline (v0.16.1)
 
 The product ribbon and the code share one pipeline vocabulary: **Map -> Enrich -> Compile -> Verify -> Grade**. `src/lib/pipelineMachine.js` is the phase authority; UI surfaces should render from that machine instead of re-deriving state from raw generation/finalizer flags.
 

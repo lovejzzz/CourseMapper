@@ -86,7 +86,7 @@ function getCatalogSupport(model, key) {
 }
 
 function providerJsonModeSupport(provider) {
-  if (provider === 'openai' || provider === 'deepseek' || provider === 'google') return true;
+  if (provider === 'openai' || provider === 'deepseek' || provider === 'google' || provider === 'local') return true;
   if (provider === 'anthropic' || provider === 'webllm') return false;
   return UNKNOWN_SUPPORT;
 }
@@ -95,7 +95,7 @@ function providerToolSupport(provider) {
   if (provider === 'openai' || provider === 'deepseek' || provider === 'anthropic' || provider === 'google') {
     return true;
   }
-  if (provider === 'webllm') return false;
+  if (provider === 'webllm' || provider === 'local') return false;
   return UNKNOWN_SUPPORT;
 }
 
@@ -106,7 +106,7 @@ function providerStreamingSupport(provider, model) {
   if (methods.includes('streamGenerateContent')) return true;
   if (provider === 'openai' || provider === 'deepseek' || provider === 'anthropic' || provider === 'google')
     return true;
-  if (provider === 'webllm') return true;
+  if (provider === 'webllm' || provider === 'local') return true;
   return UNKNOWN_SUPPORT;
 }
 
@@ -188,6 +188,8 @@ function inferStructuredOutputControls(provider, modelId, supportsJsonMode) {
     provider === 'openai' ||
     provider === 'google' ||
     provider === 'deepseek' ||
+    // the local server enforces json_schema at decode time (llguidance)
+    provider === 'local' ||
     (provider === 'anthropic' && /claude-(?:fable|opus|sonnet|haiku)-(?:[4-9]|\d{2,})|claude-3-7/.test(id));
   const toolSchemaOnly = provider === 'anthropic' && supportsJsonSchema;
   return {

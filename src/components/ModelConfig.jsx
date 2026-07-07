@@ -61,6 +61,9 @@ const CREDIT_CHECK_TIMEOUT_MS = 10000;
  * Returns true if the key works, false if insufficient funds.
  */
 export async function checkCredits(provider, apiKey, modelId, onApiCallEvent, options = {}) {
+  // The local provider has no billing surface — liveness was already proven
+  // by the /v1/models fetch, and every call is $0.
+  if (provider === 'local') return true;
   try {
     let res;
     const timeoutMs = options.timeoutMs ?? CREDIT_CHECK_TIMEOUT_MS;
@@ -394,7 +397,9 @@ export default function ModelConfig() {
       setValidationMessage('');
     }
 
-    if (trimmedKey.length < 10) return;
+    // The local provider is keyless — validation is the /v1/models liveness
+    // probe inside the same debounce flow.
+    if (provider !== 'local' && trimmedKey.length < 10) return;
 
     // Only auto-detect provider from key prefix when the KEY changed,
     // not when the PROVIDER changed (stale key would fight the switch)
@@ -617,6 +622,7 @@ export default function ModelConfig() {
               <option value="anthropic">Anthropic</option>
               <option value="google">Google</option>
               <option value="deepseek">DeepSeek</option>
+              <option value="local">Local</option>
             </select>
             <svg
               className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400"
@@ -631,7 +637,30 @@ export default function ModelConfig() {
 
         {/* API Key / WebLLM Download Progress */}
         <div>
-          {provider === 'webllm' ? (
+          {provider === 'local' ? (
+            <>
+              <div className="block text-xs font-medium text-slate-500 mb-1.5 tracking-wide uppercase">
+                API Key
+              </div>
+              {apiStatus === 'connected' ? (
+                <div className="w-full rounded-squircle-xs bg-emerald-50/40 border border-emerald-200/50 px-3.5 py-2.5 text-sm text-emerald-700 flex items-center gap-2">
+                  <svg className="w-4 h-4 text-emerald-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
+                  </svg>
+                  Free
+                </div>
+              ) : apiStatus === 'validating' ? (
+                <div className="w-full rounded-squircle-xs bg-slate-50/60 border border-slate-200/40 px-3.5 py-2.5 text-sm text-slate-500">
+                  Checking local server…
+                </div>
+              ) : (
+                <div className="w-full rounded-squircle-xs bg-amber-50/40 border border-amber-200/50 px-3.5 py-2.5 text-sm text-amber-700">
+                  Server not running — start it with{' '}
+                  <code className="font-mono text-[12px] bg-amber-100/60 px-1.5 py-0.5 rounded">npm run local-model</code>
+                </div>
+              )}
+            </>
+          ) : provider === 'webllm' ? (
             <>
               <div className="block text-xs font-medium text-slate-500 mb-1.5 tracking-wide uppercase">
                 Local Model Status

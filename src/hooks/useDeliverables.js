@@ -5300,7 +5300,7 @@ export default function useDeliverables({
     async (courseMap) => {
       const voicePassLib = await import('../lib/voicePass');
       if (voicePassLib.readVoicePassMode() !== 'on') return { ran: false, reason: 'voice flag off' };
-      if (!provider || !modelId || (provider !== 'webllm' && !apiKey)) {
+      if (!provider || !modelId || (provider !== 'webllm' && provider !== 'local' && !apiKey)) {
         return { ran: false, reason: 'no model configured' };
       }
       const compiledForVoice = {};

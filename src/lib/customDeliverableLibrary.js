@@ -239,6 +239,24 @@ Pick the most fitting tone, style, length, icon, and color for "${trimmedName}".
       if (!res.ok) return null;
       const data = await res.json();
       responseText = useResponses ? extractOpenAIResponsesText(data) : data.choices?.[0]?.message?.content || '';
+    } else if (effectiveProvider === 'local') {
+      const { getLocalEndpoint } = await import('./localProvider');
+      const res = await fetch(`${getLocalEndpoint()}/v1/chat/completions`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          model: modelId,
+          stream: false,
+          response_format: { type: 'json_object' },
+          messages: [
+            { role: 'system', content: sysPrompt },
+            { role: 'user', content: userPrompt },
+          ],
+        }),
+      });
+      if (!res.ok) return null;
+      const data = await res.json();
+      responseText = data.choices?.[0]?.message?.content || '';
     } else if (effectiveProvider === 'deepseek') {
       const res = await fetch('https://api.deepseek.com/v1/chat/completions', {
         method: 'POST',

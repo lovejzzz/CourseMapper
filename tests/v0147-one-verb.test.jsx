@@ -184,7 +184,9 @@ describe('F1/F2 — source wiring (the header has ONE verb; the paths exist)', (
     expect(landing).toContain('data-testid="landing-setup-button"');
     expect(landing).toContain('data-testid="landing-quick-start"');
     expect(landing).toContain(
-      'const canQuickStart = Boolean(onQuickStart) && promptText.trim().length > 0 && Boolean(apiKey?.trim());',
+      // V2.1 Local provider: quick start stays gated on prompt + credentials,
+      // where the keyless local provider's credential is a connected server.
+      "(provider === 'local' ? apiStatus === 'connected' : Boolean(apiKey?.trim()))",
     );
     // The deliberate three-screen path stays — relabeled, not removed.
     expect(landing).toContain("{canQuickStart ? 'Adjust setup' : 'Continue'}");

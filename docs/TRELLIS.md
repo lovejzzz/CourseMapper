@@ -1771,3 +1771,103 @@ polishing a candidate that hasn't won.
   runs, quality tie inside Trellis at −21% cost); beats ds AS THE ROUTED
   SYSTEM (41/48 v 40/48) not as a bare model (pooled 96v84, one outright
   win run 5); battery cannot distinguish its items from paid.
+
+- **2026-07-06 (the compiler seat — E2B-MAX as the classic app's ONLY
+  LLM).** The owner's question: compiler cost → $0? Wired `crucible
+  --llm e2b` (scripts/crucible/e2bOpenAIShim.mjs + context.route reroute
+  of api.openai.com; dummy key, stubbed /v1/models catalog, 45-min
+  budget; run dirs suffixed --e2b, never paid history). Music-theory,
+  same grader + same 3-seat judge (paid arm re-judged 5.67 [6,7,4] —
+  bake-off number reproduced). **RESULT: 98/A · judge 3.33 [4,4,2] ·
+  $0.0000 · 217s vs paid 99/A · 5.67 · $0.0732 · 199s — NOT VIABLE
+  today** (BAKEOFF addendum 3). Root cause pinned by body autopsy
+  (SHIM_BODY_LOG): E2B's 18–44K-char JSON fails parse by NEAR-MISS
+  drift (CourseIR = ONE missing comma at char 2296; enrichment = small
+  bracket slips) → compiler falls back to deterministic mail-merge,
+  disclosed as the P1 the judges then score 3.33. E2B HELD every
+  sub-2K-token call (voice pass 8/8, texture 88→100; nativeSkeleton
+  valid twice) and single-shot speed is competitive (courseIR 63s v
+  41.5s paid; enrichment 87s v 60.9s) — but greedy decoding makes the
+  app's retry ladder byte-identical wasted work, and retry×queue blew
+  the finalize budget once the 2400-token shim cap was lifted (the cap
+  itself was the run-1 truncation artifact; fixed to honor request
+  budgets). json_repair rescues CourseIR WHOLE (all 6 keys) but only
+  ~59% of enrichment. Levers if ever revisited: repair tier in shim,
+  temperature>0 retries, per-lesson Pass B chunking (puts every call in
+  E2B's proven size band). Shim stays repair-free so the number is
+  honest. Session spend: $0 generation, ~$0.06 judges.
+
+- **2026-07-06 (E2B-MAX V2 roadmap authored — the monster campaign).**
+  Owner directive after the compiler-seat verdict: biggest
+  training/refine ever. **docs/E2B_MAX_V2_ROADMAP.md** pre-registers
+  the campaign: four engines (grammar-constrained decoding kills G1 by
+  construction · verdict flywheel to ≥3K pairs/seat at ~$5-10 · weights
+  reopened DPO-only seat-by-seat with §5 preconditions + C4 kill
+  condition · MAX² verifier-guided compute), five phases + proof
+  gauntlet, exit-bar table (items ≥ds same-run, prose day-one ≥6.0,
+  compiler seat within ±1 of paid at $0, registry→0, human packet).
+  Phase 0 (instruments + training-stack spike) is BLOCKING and next.
+  NOT STARTED — no lever moved this session.
+
+- **2026-07-07 (E2B-MAX V2 — the compiler-seat campaign, 16 rounds
+  overnight).** Goal-locked session: implement V2, refine until the
+  compiler seat beats gpt-5.4-mini. **RESULT: 3.33 → 5.83-best/5.2-pooled
+  at $0 — NOT beaten** (paid pooled 6.08/12 seats; best draw TIED 5.83
+  same-day; deepseek cross-family seats CONFIRM the gap is real, not
+  same-family bias). E2B WINS study guides (6.0-6.8 v 5.0-5.3), ties
+  lesson plans, loses quizzes. BUILT+PROVEN (BAKEOFF addendum 4):
+  llguidance grammar decoding in serve_g4 (whitespace knife-edge measured
+  3 ways; [ \n]{0,2} is the working point), kernel contract enforced from
+  the app's own lint floor (first-ever 7/7 local enrichment, round 10),
+  skeleton/CourseIR count pinning (25-lesson greedy hallucination),
+  per-lesson chunking + cross-window cache riding the app's retry ladder,
+  anti-space-run string pattern (killed a byte-identical 0.37-chars/token
+  degeneration), MAX² passes (best-of-2 mc by blind-solve agreement,
+  tie-break verify, topic gate, self-refine polish, ANSI sanitizer).
+  **PHASE-0 TRAINING SPIKE GREEN: ORPO preference training runs on
+  Gemma-4-E2B via mlx_vlm.lora** (13.2M LoRA params, smoke loss 13.3→7.8,
+  adapter trains+saves+serves) — the collapse-mandated preference-only
+  path exists; corpus at ≥3K pairs/seat (roadmap Phase 2) is the named
+  remaining lever for the last ~0.6 judge points. TRAPS: single judge
+  panels are noise (±0.9 across identical configs — pool 12+ seats);
+  prompt edits re-roll ALL greedy trajectories (post-passes are the safe
+  lever); the shim chunk cache makes same-process reruns non-independent.
+  Session spend: $0 generation, ≈$0.75 judges/panels total.
+
+- **2026-07-07 (V2.1 shipped: the Local provider + the campaign machinery
+  + the name).** docs/E2B_MAX_V21_ROADMAP.md pre-registers the plan; house
+  model name PROPOSED: **Scion** (the cultivated cutting grafted onto wild
+  rootstock — Gemma is the rootstock, the Trellis harness + house adapters
+  the scion; first trained cut = Scion-1; UI ships "E2B-MAX V2.1" until
+  blessed, swappable in src/lib/localProvider.js). **LOCAL PROVIDER LIVE
+  END-TO-END**: "Local (this device)" in the app's provider dropdown →
+  keyless Connected badge against `npm run local-model` (the V2 shim grew
+  CORS + GET /v1/models + SSE keep-alive heartbeats so long on-device
+  generations survive the app's 120s inactivity abort); wired through
+  fetchModelsFromProvider / buildProviderTextRequest / capabilities
+  (json_schema=decode-time llguidance) / $0 pricing rows / keyless gates in
+  AppFlow+useDeliverables+Landing quick-start; verified live in the browser
+  (screenshot: Local · E2B-MAX V2.1 · Connected · "$0 per course");
+  tests/local-provider.test.js gates the wiring (6 green; full suite's
+  genome/shard failures PROVEN pre-existing via stash-baseline). **CAMPAIGN
+  MACHINERY BUILT**: buildTeacherPairs.mjs (mini=chosen / E2B-greedy-under-
+  deployed-grammar=rejected; lesson + mc + keyTerm pair granularity;
+  near-identity/bad-chosen/bad-rejected drops COUNTED; idempotent ledger),
+  kernelSchemas.mjs (the shared per-lesson contract), run_orpo_g4.sh
+  (REFUSES <3000 pairs except --smoke; checkpoint gates listed),
+  serve_g4 G4_ADAPTERS env (adoption = env var, rollback = unset). First
+  corpus batch (music-theory + cs-python + geology) banking at session end.
+
+- **2026-07-07 (SCION adopted — the house model has its name).** Owner
+  blessed **Scion** (Gemma rootstock, house-cultivated graft; first cut =
+  Scion-1). UI copy simplified per owner: Provider **"Local"** · API key
+  **"Free"** · Model **"Scion-1"** — verified live (screenshot: Connected,
+  Free cell, Scion-1 in the model dropdown; server /v1/models announces
+  scion-1). Changelog: v0.16.1 entry gains the Scion + Local-provider
+  highlights (title stays contract-pinned; date → July 7); contract
+  release-contracts/v0.16.1.json gains 2 index-shifted claims with proofs —
+  **npm run audit:release-history PASSES (8 claims)**. README bumped
+  0.16.0→0.16.1 with a full "Scion — the house model" section (what it is,
+  how to run, honest quality band, trade-offs). Single naming source:
+  src/lib/localProvider.js. Corpus batch-1 banking in background
+  (126 pairs at cs-python lesson-13, ~$0.015 spent).

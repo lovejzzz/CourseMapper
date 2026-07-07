@@ -7,6 +7,7 @@
 //                             [--concurrency 2] [--max-spend 2.50] [--stranger]
 //                             [--authoring prose|native|both]
 //                             [--provider openai|anthropic|google]
+//                             [--llm e2b] [--shim-url http://127.0.0.1:8799]
 //                             [--judge] [--dry-run] [--headed] [--skip-generate <dir>]
 //                             [--calibrate] [--history] [--diff <roundDirA> <roundDirB>]
 //                             [--import-baseline] [--api-env <path>]
@@ -25,6 +26,16 @@
 //               (checkId, course, provider) — provider deltas are FINDINGS
 //               (drift documentation), never conflated with regression. Only
 //               P0s gate, same as openai rounds.
+//
+//   --llm e2b:  run the round's GENERATION on the local Gemma 4 E2B model —
+//               every api.openai.com call from the app is rerouted (playwright
+//               context.route) to scripts/crucible/e2bOpenAIShim.mjs, which
+//               must already be running (node scripts/crucible/e2bOpenAIShim.mjs).
+//               No paid key is needed for generation (a dummy key is seeded;
+//               the Connected probe is answered by the reroute). Run dirs are
+//               suffixed --e2b so E2B rounds never enter paid history. --judge
+//               still speaks real OpenAI and loads its own key. Per-course
+//               budget stretches to 45 minutes (on-device inference is slow).
 //
 //   --authoring: (V0.14.5 WS-B3) seed the app's 'coursemapper-authoring-mode'
 //                flag. 'prose' (default) keeps today's behavior and run-dir
@@ -1519,10 +1530,23 @@ async function runLiveRounds(options) {
   // v0.14.7 WS-D3: --voice off|on|both — voiced/quiet twins for the voice
   // pass proof rounds (applied after authoring, before provider suffixing).
   const voice = parseVoiceFlag(options.voice);
-  const courses = expandCoursesForProvider(
+  let courses = expandCoursesForProvider(
     expandCoursesForVoice(expandCoursesForAuthoring(baseCourses, authoring), voice),
     provider,
   );
+  // E2B experiment (--llm e2b): the app compiler runs against the LOCAL
+  // Gemma 4 E2B shim (scripts/crucible/e2bOpenAIShim.mjs) — api.openai.com is
+  // rerouted per browser context, no paid generation spend, no src/ change.
+  // Run dirs are suffixed --e2b (same pattern as provider suffixing) so these
+  // rounds never collide with paid history; baseId keeps baseline pairing.
+  const llmShimUrl = options.llm === 'e2b' ? (options.shimUrl || 'http://127.0.0.1:8799') : null;
+  if (options.llm && options.llm !== 'e2b') {
+    throw new Error(`--llm supports only "e2b" (got "${options.llm}")`);
+  }
+  if (llmShimUrl) {
+    if (provider !== 'openai') throw new Error('--llm e2b reroutes api.openai.com — use it with the openai provider');
+    courses = courses.map((course) => ({ ...course, baseId: course.baseId || course.id, id: `${course.id}--e2b` }));
+  }
   if (authoring !== 'prose') {
     log(`authoring mode: ${authoring} — ${courses.length} run(s) across ${baseCourses.length} course(s)`);
   }
@@ -1549,18 +1573,34 @@ async function runLiveRounds(options) {
   // actionable message (provider, env vars checked, expected key shape) —
   // a clean exit before any server, browser, or spend; never a mid-round crash.
   let apiKey;
-  try {
-    apiKey = await loadApiKey(apiEnvPath, provider);
-  } catch (error) {
-    log(`ABORTED: ${redactSecrets(error.message)}`);
-    process.exitCode = 1;
-    return;
+  if (llmShimUrl) {
+    // No paid key needed for generation — every api.openai.com call is
+    // intercepted before the network. The dummy passes the app's sk- shape
+    // check; the "Connected" probe is answered by the reroute itself.
+    apiKey = 'sk-e2b-local-shim-000000000000000000000000';
+    try {
+      const probe = await fetch(llmShimUrl, { method: 'GET' });
+      log(`LLM: Gemma 4 E2B via local shim ${llmShimUrl} (probe HTTP ${probe.status}) — $0 generation`);
+    } catch {
+      log(`ABORTED: --llm e2b but no shim answers at ${llmShimUrl} — start it first: node scripts/crucible/e2bOpenAIShim.mjs`);
+      process.exitCode = 1;
+      return;
+    }
+  } else {
+    try {
+      apiKey = await loadApiKey(apiEnvPath, provider);
+    } catch (error) {
+      log(`ABORTED: ${redactSecrets(error.message)}`);
+      process.exitCode = 1;
+      return;
+    }
   }
   // E1×E7: the advisory judge always speaks OpenAI (JUDGE_MODEL). On a
-  // non-openai round it needs its own key; when absent the judge is disabled
-  // (advisory — the round itself is unaffected).
+  // non-openai round (or an --llm e2b round, whose generation key is a dummy)
+  // it needs its own key; when absent the judge is disabled (advisory — the
+  // round itself is unaffected).
   let judgeApiKey = apiKey;
-  if (options.judge && provider !== 'openai') {
+  if (options.judge && (provider !== 'openai' || llmShimUrl)) {
     judgeApiKey = await loadApiKey(apiEnvPath, 'openai').catch((error) => {
       log(
         `--judge: no OpenAI key for the judge on a ${provider} round (${redactSecrets(error.message)}) — judge disabled`,
@@ -1597,7 +1637,13 @@ async function runLiveRounds(options) {
         await fs.mkdir(courseDir, { recursive: true });
         // E3: course.json carries the provider so --calibrate can namespace
         // this run's findings (absent on pre-E1 dirs → openai by default).
-        await writeJson(path.join(courseDir, 'course.json'), { ...course, provider, modelId, roundLabel });
+        await writeJson(path.join(courseDir, 'course.json'), {
+          ...course,
+          provider,
+          modelId,
+          roundLabel,
+          ...(llmShimUrl ? { llm: 'gemma-4-e2b (local shim)', llmShimUrl } : {}),
+        });
 
         if (!spendState.abortReason) {
           const decision = spendGuardDecision({ spentUsd: spendState.spentUsd, maxSpendUsd });
@@ -1649,6 +1695,10 @@ async function runLiveRounds(options) {
             voiceMode: course.voice,
             // E1: seed the app's provider switch + provider-scoped key slot.
             provider,
+            // --llm e2b: reroute api.openai.com to the local shim; on-device
+            // generation is slow, so the per-course budget stretches to 45min.
+            llmShimUrl,
+            ...(llmShimUrl ? { overallTimeoutMs: 45 * 60_000 } : {}),
           });
           attempts.push(runResult);
           if (runResult.status === 'passed') break;

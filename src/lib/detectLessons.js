@@ -261,6 +261,23 @@ ${text.slice(0, 8000)}`;
       if (!res.ok) return null;
       const data = await res.json();
       responseText = data.candidates?.[0]?.content?.parts?.[0]?.text || '';
+    } else if (effectiveProvider === 'local') {
+      const { getLocalEndpoint } = await import('./localProvider');
+      const res = await fetch(`${getLocalEndpoint()}/v1/chat/completions`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          model: modelId,
+          messages: [
+            { role: 'system', content: systemPrompt },
+            { role: 'user', content: userPrompt },
+          ],
+          stream: false,
+        }),
+      });
+      if (!res.ok) return null;
+      const data = await res.json();
+      responseText = data.choices?.[0]?.message?.content || '';
     } else if (effectiveProvider === 'deepseek') {
       const res = await fetch('https://api.deepseek.com/v1/chat/completions', {
         method: 'POST',

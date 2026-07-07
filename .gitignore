@@ -25,3 +25,4 @@ trellis/tendril/distill/s2-onnx/
 trellis/tendril/distill/adapters-g4/
 trellis/tendril/distill/data-g4/
 trellis/tendril/models/tendril-s2-web/
+trellis/tendril/distill/adapters-dpo/

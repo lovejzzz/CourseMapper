@@ -2,10 +2,12 @@ import { APP_VERSION } from './appVersion.js';
 
 export const CURRENT_RELEASE = {
   version: APP_VERSION,
-  date: 'July 3, 2026',
+  date: 'July 7, 2026',
   title: 'Field-Audit Fixes: the first real full course, and the cascade it exposed',
-  landingTitle: 'Field-Audit Fixes',
+  landingTitle: 'Field-Audit Fixes + Scion',
   highlights: [
+    'MEET SCION — the house model, running on your own machine for $0 per course. Scion is Google\u2019s open Gemma 4 E2B grafted with our harness: grammar-constrained decoding that makes invalid JSON impossible, per-lesson generation with self-verified quiz keys, topic gating, and a self-refining polish pass. The name is horticultural: a scion is the cultivated cutting grafted onto wild rootstock \u2014 Gemma is the rootstock, our cultivation is the scion. Honest quality band: structural grade A at parity with paid models; prose/item fluency currently ties our paid baseline at best (pooled panels place it just below gpt-5.4-mini) and improves with every training round of the flywheel.',
+    'A new "Local" provider on the landing page: pick Local, no API key needed (it\u2019s free \u2014 the model is yours), start the server with `npm run local-model`, and generate a full course package that never leaves your machine. Offline, private, unlimited regenerations.',
     'The first real user-run full course (Linear Algebra, 14 lessons) graded 99/A but was unshippable \u2014 and every root cause traced to one cascade. The genome\u2019s math shard was calculus-only, so a linear-algebra course linked 0 of 14 lessons; that collapse turned on the keyword source-finder, whose fallback providers were the ONLY ones searching without the course subject, so \u201cIndependent politician\u201d shipped for linear independence, \u201cLewis acids and bases\u201d for vector-space bases, and \u201c2025 Philippine general election\u201d for the midterm. This release fixes the cascade end to end.',
     'The genome now knows linear algebra: sixteen curated concept kernels (systems, matrices, vector spaces, independence, bases, determinants, eigenvalues, orthogonality, least squares, SVD, and more) join the math shard, taking a linear-algebra course from 0/14 to 10+/14 genome-linked lessons \u2014 which restores judgment, real citations, and grounded content instead of keyword bycatch.',
     'Off-topic readings can no longer ship or pass the grade: every open-knowledge provider now searches anchored to the course subject (not just OpenAlex), the token-relevance gate covers Wikipedia/Library-of-Congress/Internet-Archive instead of exempting exactly the fallback providers, OpenAlex requests are rate-limited with backoff so a 429 no longer swaps in ungated junk, math/physics/anatomy gain discipline allowlists, and the deep grader finally sees encyclopedic reading lines (which used to be invisible, scoring citations 100/100 over garbage).',
@@ -14,6 +16,7 @@ export const CURRENT_RELEASE = {
     'The truth surfaces stop lying: the CourseIR authoring pass repairs case-mismatched and dangling assessment references instead of discarding an entire 8k-token response, the run digest reports the real readiness-warning count (a \u201cready\u201d run no longer claims zero warnings while its own flagged-checks list one), the compiler duration telemetry times the compile instead of the whole pipeline, and voice-pass fallbacks record why they fell back.',
   ],
   landingHighlights: [
+    'Meet Scion: the house model \u2014 local, private, $0 per course.',
     'The first real full course exposed a whole cascade \u2014 now fixed end to end.',
     'The genome learns linear algebra: 0/14 \u2192 10+/14 lessons linked.',
     'Off-topic readings can no longer ship or pass the grade.',

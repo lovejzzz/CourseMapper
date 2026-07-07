@@ -1,6 +1,7 @@
 import { useRef, useCallback } from 'react';
 import { supportsCustomTemperature } from '../lib/agentProviders';
 import { DEFAULT_PROVIDER_TIMEOUT_MS, fetchWithTimeout } from '../lib/fetchWithTimeout';
+import { getLocalEndpoint, localModelOption } from '../lib/localProvider';
 import { failureEventFields, toClassifiedError } from '../lib/failureClassification';
 import { GOOGLE_ENDPOINT_FAMILIES, isVertexKey } from '../lib/googleProvider';
 import { buildProviderTextRequest } from '../lib/modelRequestBuilders';
@@ -888,6 +889,24 @@ export async function fetchModelsFromProvider(provider, apiKey, options = {}) {
     const models = await fetchGeminiApiModels(apiKey, onApiCallEvent, { signal: options?.signal, timeoutMs });
     if (models.length === 0) throw new Error('No Gemini models available');
     return models;
+  }
+
+  if (provider === 'local') {
+    // Keyless: "Connected" = the local server answering /v1/models. The
+    // static option is the source of truth for capabilities (no live probes
+    // against an on-device model); the server reply confirms liveness and
+    // can carry a display_name override.
+    if (typeof onApiCallEvent === 'function') {
+      onApiCallEvent({ type: 'modelDiscoveryCall', label: 'Check local model server', detail: 'local' });
+    }
+    const response = await fetchWithTimeout(`${getLocalEndpoint()}/v1/models`, requestOptions, timeoutMs);
+    if (!response.ok) throw new Error('Local model server is not responding — start it with: npm run local-model');
+    const data = await response.json().catch(() => ({}));
+    const served = Array.isArray(data?.data) ? data.data[0] : null;
+    const option = localModelOption();
+    if (served?.display_name) option.name = served.display_name;
+    if (served?.id) option.id = served.id;
+    return [option];
   }
 
   if (provider === 'deepseek') {
