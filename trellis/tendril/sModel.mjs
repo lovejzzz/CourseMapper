@@ -33,6 +33,14 @@ const ROUTES = {
   },
 };
 
+// Scion (the V2.1 house model name) IS the g4 server — the alias resolves
+// to the same route entry so skin/polish/fill seats share one loaded 4B
+// process with the items author instead of spawning a twin.
+export function resolveRoute(task) {
+  if (task === 'scion') return 'items';
+  return ROUTES[task] ? task : 'skin';
+}
+
 let nextId = 1;
 const servers = new Map(); // route -> { proc, pending }
 
@@ -101,7 +109,7 @@ export async function sGenerate(
   { system, user, source = '', task = 'skin', maxTokens, temperature, schema, jsonMode },
   { timeoutMs = 180_000 } = {},
 ) {
-  const route = ROUTES[task] ? task : 'skin';
+  const route = resolveRoute(task);
   const entry = await startRoute(route);
   const id = String(nextId++);
   const promise = new Promise((resolve, reject) => {

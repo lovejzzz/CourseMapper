@@ -129,6 +129,18 @@ describe('E1 — provider-aware API key parsing (pickApiKeyFromEnvText)', () => 
     expect(pickApiKeyFromEnvText('sk-bare-openai-key-12345', 'google')).toBe('');
   });
 
+  it('deepseek requires the sk- shape — prose comment lines are never keys (Scion session regression)', () => {
+    const withProse = [
+      'For openai use the project key below', // un-hashed prose over 20 chars
+      'OPENAI_API_KEY=sk-proj-openai-1234567890',
+      'Deepseek_API_KEY=sk-deepseek-key-1234567890',
+    ].join('\n');
+    expect(pickApiKeyFromEnvText(withProse, 'deepseek')).toBe('sk-deepseek-key-1234567890');
+    expect(pickApiKeyFromEnvText('just a sentence that is long enough', 'deepseek')).toBe('');
+    // …and an anthropic-shaped value is never a deepseek key.
+    expect(pickApiKeyFromEnvText('ANTHROPIC_API_KEY=sk-ant-api03-anthropic-key-123', 'deepseek')).toBe('');
+  });
+
   it('a mislabeled line is rejected by shape, never returned cross-provider', () => {
     // OPENAI_API_KEY carrying a Google-shaped value is not an OpenAI key…
     expect(pickApiKeyFromEnvText('OPENAI_API_KEY=AIzaSyMislabeled12345', 'openai')).toBe('');

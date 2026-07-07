@@ -53,6 +53,9 @@ export { pickApiKeyFromEnvText };
  * the driver exits on it before any server/browser/spend.
  */
 export async function loadApiKey(apiEnvPath = defaultApiEnvPath, provider = 'openai') {
+  // Scion (V2.1 D): the local provider is keyless — "credentials" are the
+  // running server, validated by the app's own /v1/models probe.
+  if (provider === 'local') return '';
   const rules = PROVIDER_KEY_RULES[provider];
   if (!rules) throw new Error(`Unknown provider "${provider}" (expected openai, anthropic, or google)`);
   for (const envVar of rules.envVars) {

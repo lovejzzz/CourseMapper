@@ -562,7 +562,7 @@ export default function useDeliverables({
         enrichmentPreferenceOverride() ??
         generationPlan?.blueprintEnrichment ??
         false;
-      const enrichmentModelAvailable = Boolean(provider && modelId && (provider === 'webllm' || apiKey));
+      const enrichmentModelAvailable = Boolean(provider && modelId && (provider === 'webllm' || provider === 'local' || apiKey));
       const blueprintEnrichmentRequested =
         costMode !== 'finalizerRetry' && blueprintCompiledFeatureIds.length > 0 && blueprintEnrichmentMode !== false;
       // v0.12.1: never let a degraded plan (bare capability profile →
@@ -1306,11 +1306,31 @@ export default function useDeliverables({
                 featureId: 'blueprintEnrichment',
                 task: 'blueprintEnrichment',
               });
+              // Scion (V2.1 D1/D2): the house model gets its REAL contract as
+              // response_format json_schema (decode-time enforcement replaces
+              // server-side prompt sniffing), greedy first attempts, and a
+              // sampled temperature only on recovery retries — identical
+              // greedy retries replay identical failures.
+              const scion = await (async () => {
+                if (provider !== 'local') return null;
+                const contracts = await import('../lib/scionContracts');
+                const mcCount = (prompt.itemPlan || []).filter((slot) => slot.type === 'multiple_choice').length || 4;
+                return {
+                  contracts,
+                  schema: contracts.kernelBatchSchemaProfile({
+                    expectedLessonIds,
+                    contentSourcedLessonIds,
+                    includeCourseLevel,
+                    mcCount,
+                  }),
+                };
+              })();
               const result = await streamProvider(provider, apiKey, modelId, prompt.systemPrompt, prompt.userPrompt, {
                 modelCapabilities,
                 generationPlan,
                 featureId: 'blueprintEnrichment',
                 task: 'blueprintEnrichment',
+                ...(scion ? { schema: scion.schema, temperature: recoveryAttempt > 0 ? 0.7 : 0 } : {}),
                 maxOutputTokens: nativeBatching.getNativePassBOutputTokenBudget({
                   lessonCount: chunk.length,
                   maxOutputTokens,
@@ -1322,7 +1342,57 @@ export default function useDeliverables({
                 onApiCallEvent: recordGenerationApiCallEvent,
                 signal: controller.signal,
               });
-              const parsed = parseNativePassBResponse(result?.fullText || '', {
+              // Scion (V2.1 D3/D4): the judge-moving passes run in the
+              // compiler where they are visible and testable; accepted
+              // regenerations feed the on-device flywheel.
+              let passBText = result?.fullText || '';
+              if (scion && scion.contracts.scionPassesEnabled()) {
+                try {
+                  const [{ applyScionKernelPasses }, { postFlywheelEvents }] = await Promise.all([
+                    import('../lib/scionPasses'),
+                    import('../lib/scionFlywheel'),
+                  ]);
+                  const generateJson = async ({ system, user, schemaProfile, maxOutputTokens: passTokens, temperature }) => {
+                    const passResult = await streamProvider(provider, apiKey, modelId, system, user, {
+                      modelCapabilities,
+                      generationPlan,
+                      featureId: 'blueprintEnrichment',
+                      task: 'scionPass',
+                      schema: schemaProfile,
+                      ...(temperature ? { temperature } : {}),
+                      maxOutputTokens: passTokens || 2000,
+                      allowProviderFallback: false,
+                      onApiCallEvent: recordGenerationApiCallEvent,
+                      signal: controller.signal,
+                    });
+                    return passResult?.fullText || '';
+                  };
+                  const passOutcome = await applyScionKernelPasses(passBText, {
+                    promptLessons: prompt.lessons,
+                    generateJson,
+                    contentSourcedLessonIds,
+                  });
+                  passBText = passOutcome.text;
+                  if (passOutcome.events.length > 0) {
+                    recordGenerationApiCallEvent({
+                      type: 'pipelineDecision',
+                      label: 'Scion quality passes',
+                      detail: passOutcome.events
+                        .map((event) => `${event.pass}:${event.lessonId}${event.action ? ` ${event.action}` : ''}`)
+                        .join(' · '),
+                      featureId: 'blueprintEnrichment',
+                      task: 'scionPass',
+                    });
+                    postFlywheelEvents(passOutcome.events, {
+                      course: blueprintCourseMap?.courseName || '',
+                      chunk: expectedLessonIds,
+                    });
+                  }
+                } catch {
+                  /* passes are best-effort — the draft ships */
+                }
+              }
+              const parsed = parseNativePassBResponse(passBText, {
                 prompt,
                 expectedLessonIds,
                 contentSourcedLessonIds,
@@ -5302,6 +5372,13 @@ export default function useDeliverables({
       if (voicePassLib.readVoicePassMode() !== 'on') return { ran: false, reason: 'voice flag off' };
       if (!provider || !modelId || (provider !== 'webllm' && provider !== 'local' && !apiKey)) {
         return { ran: false, reason: 'no model configured' };
+      }
+      // Scion (V2.1 D3): the in-compiler polish pass already rewrites the
+      // wordy surfaces per lesson — the voice pass is redundant there, and
+      // its schema-less batch call is the one remaining shape exposed to
+      // the measured greedy-degeneration mode. Skip, disclosed.
+      if (provider === 'local') {
+        return { ran: false, reason: 'scion profile: per-lesson polish pass covers voice' };
       }
       const compiledForVoice = {};
       for (const [fid, entry] of Object.entries(deliverables || {})) {

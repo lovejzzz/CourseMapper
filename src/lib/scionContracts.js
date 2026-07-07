@@ -176,7 +176,13 @@ export function kernelBatchSchemaProfile({
   return { name: 'kernel_lesson_batch', schema, strict: true };
 }
 
-/** The Pass A skeleton contract — sessions pinned to the requested count. */
+/**
+ * The Pass A skeleton contract — sessions pinned to the requested count
+ * (V2 measured a 25-session greedy hallucination on a 7-lesson course when
+ * unpinned), assessments REQUIRED with at least one per session (their
+ * titles fill compiled template slots course-wide), readings/resources
+ * optional per the prompt's own omission rules.
+ */
 export function skeletonSchemaProfile({ sessionCount }) {
   const count = Math.max(1, Number(sessionCount) || 1);
   const schema = {
@@ -193,7 +199,7 @@ export function skeletonSchemaProfile({ sessionCount }) {
           properties: {
             id: str(2, 6),
             order: { type: 'integer', minimum: 1, maximum: count },
-            title: str(5, 80),
+            title: str(5, 60),
             sectionTitles: arr(str(3, 60), 2, 4),
           },
           required: ['id', 'order', 'title', 'sectionTitles'],
@@ -201,12 +207,51 @@ export function skeletonSchemaProfile({ sessionCount }) {
         count,
         count,
       ),
+      assessments: arr(
+        {
+          type: 'object',
+          properties: {
+            id: str(2, 8),
+            title: str(5, 120),
+            kind: { type: 'string', enum: ['graded-artifact', 'in-class', 'exam', 'oral'] },
+            dueSession: { type: 'integer', minimum: 1, maximum: count },
+            weightPct: { type: 'integer', minimum: 0, maximum: 100 },
+          },
+          required: ['id', 'title', 'dueSession'],
+        },
+        count,
+        count * 3,
+      ),
+      readings: arr(
+        {
+          type: 'object',
+          properties: { id: str(2, 8), title: str(3, 160), dueSession: { type: 'integer', minimum: 1, maximum: count } },
+          required: ['id', 'title', 'dueSession'],
+        },
+        0,
+        count * 3,
+      ),
+      resources: arr(
+        {
+          type: 'object',
+          properties: { id: str(2, 8), title: str(3, 160), dueSession: { type: 'integer', minimum: 1, maximum: count } },
+          required: ['id', 'title', 'dueSession'],
+        },
+        0,
+        count * 3,
+      ),
     },
-    required: ['course', 'sessions'],
+    required: ['course', 'sessions', 'assessments'],
   };
   lockObjects(schema);
   return { name: 'course_skeleton', schema, strict: true };
 }
+
+// V2 measured the long-title cascade: syllabus-phrase session titles echo
+// into every compiled template slot. Scion gets an explicit concision rule
+// (the grammar backstop alone CLIPS mid-word — round 12).
+export const SCION_SKELETON_DIRECTIVE =
+  '\n\nSCION ADDITION: session titles are concise 2-4 word topic names that keep the discipline nouns (e.g. "Pitch Notation", "Triads and Sevenths") — never the full syllabus phrase.';
 
 // D3 pass gating: on by default for Scion; explicit opt-out only.
 export function scionPassesEnabled() {

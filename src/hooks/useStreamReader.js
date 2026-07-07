@@ -173,6 +173,7 @@ export default function useStreamReader() {
       featureId,
       task,
       schema,
+      temperature: temperatureOverride,
       onApiCallEvent,
       allowProviderFallback = true,
     } = opts;
@@ -244,6 +245,7 @@ export default function useStreamReader() {
       generationPlan,
       task,
       schema,
+      temperatureOverride,
     });
 
     let fullText = existingText;
@@ -385,6 +387,7 @@ export default function useStreamReader() {
               generationPlan,
               task,
               schema,
+              temperatureOverride,
             }));
             continue;
           }
@@ -499,6 +502,7 @@ export default function useStreamReader() {
             generationPlan,
             task,
             schema,
+            temperatureOverride,
           }));
           const delay = Math.min(1000 * Math.pow(2, attempt - 1), 8000);
           if (onRetry) onRetry(attempt, maxRetries, delay);

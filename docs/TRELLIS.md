@@ -1871,3 +1871,49 @@ polishing a candidate that hasn't won.
   how to run, honest quality band, trade-offs). Single naming source:
   src/lib/localProvider.js. Corpus batch-1 banking in background
   (126 pairs at cs-python lesson-13, ~$0.015 spent).
+
+- **2026-07-07 (the Scion-native compiler — Workstream D implemented).**
+  Roadmap §4b written and SHIPPED in the same session. **D1 contract
+  handoff**: src/lib/scionContracts.js is the single place the compiler
+  declares Scion's contracts — kernelBatchSchemaProfile (per-lesson kernel
+  + session fields, content-sourced variant, courseLevel envelope) and
+  skeletonSchemaProfile (session count PINNED, assessments REQUIRED ≥1/
+  session, concise-title directive) ship as response_format json_schema;
+  Pass B runs per-lesson for local (adaptiveProviderBatching returns 1);
+  server-side prompt-sniffing stays only for the legacy crucible reroute.
+  **D2 time-planner**: CourseIR direct authoring SKIPPED on Scion (never
+  passed acceptance; 60-90s saved, disclosed as a pipelineDecision);
+  greedy-deterministic default with temperatureOverride threaded
+  streamProvider→buildProviderTextRequest (recovery retries sample at 0.7);
+  server honors app-declared temperature on schema'd calls. **D3 passes in
+  the compiler**: src/lib/scionPasses.js ports blind-solve key verification
+  (two-solve tie-break), the lexical topic gate, and the self-refine polish
+  pass out of the server — wired into runPassBBatch on the RAW batch JSON
+  before parsing, events surfaced as a pipelineDecision. **D4 flywheel**:
+  pass events (chosen/rejected item pairs, polish outcomes) POST to the
+  local server's /v1/flywheel → data-g4-orpo/app-flywheel.jsonl — the
+  user's own usage grows the ORPO corpus, all on-device. Crucible gains
+  --provider local (keyless loadApiKey, default model scion-1).
+  tests/scion-compiler.test.js gates all four tiers (9 green; 15 with the
+  provider suite). CORPUS BATCH 1 COMPLETE: 234 pairs / $0.026 / zero
+  poison-filter hits (5 E2B truncations disclosed).
+
+- **2026-07-07 (Scion-native compiler PROVEN live end-to-end).** The app
+  talks directly to Scion via `crucible --provider local` (keyless). First
+  clean native run (round-2026-07-07T13-52): **98/A · 7/7 enriched ·
+  texture 96 · 1 false-positive P1 · judge 4.4 [5,5,4,4,4] single panel**.
+  All four D-tiers CONFIRMED in the telemetry: D1 skeleton+kernel shipped
+  as json_schema (per-lesson Pass B, batch size 1); D2 "skipped: Scion
+  time-planner" on CourseIR (disclosed pipelineDecision, ~75s saved),
+  greedy-first; D3 "Scion quality passes: mcVerify/polish" events fired
+  per lesson; D4 **17 real {rejected,chosen} preference pairs banked to
+  data-g4-orpo/app-flywheel.jsonl on-device** (the user's own generation
+  grows the ORPO corpus). Two product-path keyless gates found+fixed on
+  the way (enrichmentModelAvailable, App.jsx canGenerate) + voice pass
+  skipped on Scion (per-lesson polish covers it; its schema-less batch was
+  the last greedy-degeneration surface). HONEST BAND: native product path
+  judges below the harness-tuned shim path (4.4 v 5.0-5.8) — the delta is
+  the shim's best-of-2 mc tuning not yet ported + single-panel ±0.9 noise;
+  the quality lift is Workstream A (ORPO training), now fuelled by the live
+  flywheel. tests/scion-compiler.test.js (9) + local-provider (6) +
+  trellis scion (15) green; zero new suite failures (stash-verified).

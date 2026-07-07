@@ -29,6 +29,10 @@ export function getAdaptiveNativePassBBatchSize({
 } = {}) {
   const count = Math.max(0, Number(lessonCount) || 0);
   if (count <= 0) return 0;
+  // Scion (V2.1 D1): per-lesson calls are the measured optimum — every
+  // generation stays in the size band the local model lands reliably, each
+  // call fits any timeout, and the UI can report honest per-lesson progress.
+  if (modelCapabilities?.provider === 'local') return 1;
   const providerMaxOutputTokens = resolveProviderMaxOutputTokens({
     maxOutputTokens,
     generationPlan,

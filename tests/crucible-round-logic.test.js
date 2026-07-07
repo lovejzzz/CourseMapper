@@ -377,8 +377,10 @@ describe('V0.14.5 E1 — provider flag, defaults, and course expansion', () => {
       openai: 'gpt-5.4-mini',
       anthropic: 'claude-haiku-4-5',
       google: 'gemini-2.5-flash-lite',
+      // V2.1: the house model — keyless, $0, served by `npm run local-model`.
+      local: 'scion-1',
     });
-    expect(SUPPORTED_PROVIDERS).toEqual(['openai', 'anthropic', 'google']);
+    expect(SUPPORTED_PROVIDERS).toEqual(['openai', 'anthropic', 'google', 'local']);
   });
 
   it('openai keeps run-dir naming EXACTLY (history/baselines stay comparable)', () => {

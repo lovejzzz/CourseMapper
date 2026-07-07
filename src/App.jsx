@@ -136,7 +136,7 @@ export default function App() {
           onQuickStart={handleQuickStart}
           canGenerate={
             (files.length > 0 || promptText.trim().length > 0) &&
-            apiKey.trim() &&
+            (provider === 'local' || apiKey.trim()) &&
             !!modelId &&
             apiStatus === 'connected'
           }

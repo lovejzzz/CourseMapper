@@ -27,6 +27,19 @@ export async function tryAuthorDirectCourseIR({
   fullTextRef,
 } = {}) {
   if (!expectedLessonCount || !streamProvider) return { ok: false, skipped: true };
+  // Scion (V2.1 D2): CourseIR direct authoring has never once passed the
+  // acceptance gate on the house model (nor on paid mini) — on Scion the
+  // call costs 60-90s of deterministic fallback, so the time-planner skips
+  // straight to the skeleton path. Disclosed as a pipeline decision.
+  if (provider === 'local') {
+    recordApiCallEvent?.({
+      type: 'pipelineDecision',
+      stage: 'courseIRAuthoring',
+      label: 'CourseIR direct authoring plan',
+      detail: 'skipped: Scion time-planner (direct authoring never passes acceptance; skeleton path is the measured optimum)',
+    });
+    return { ok: false, skipped: true };
+  }
   const courseIRPlan = planCourseIRGeneration({
     courseMap: { courseName: '', lessons: [] },
     sourceText,

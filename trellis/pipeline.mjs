@@ -75,6 +75,16 @@ export async function runPipeline({
   }
 }
 
+// Exposure persistence, honestly frozen: a measurement run (--freeze-exposure)
+// must leave the asset store byte-identical or same-graph rulers drift
+// between arms. Returns whether the store was written.
+export async function persistExposure(store, freezeExposure) {
+  if (freezeExposure) return false;
+  const { writeFile } = await import('node:fs/promises');
+  await writeFile('trellis/bank/assets.json', JSON.stringify(store, null, 1));
+  return true;
+}
+
 async function runPipelineStages({
   syllabusText,
   graph,
@@ -278,6 +288,7 @@ async function runPipelineStages({
       }
     }
     let sGen = null;
+    let scion = null;
     if (zeroApi) {
       // $0 mode: Tendril-S serves skin/blend locally; a missing venv is a
       // HARD error — zero mode must never quietly fall back to paid calls.
@@ -285,6 +296,12 @@ async function runPipelineStages({
       await startS();
       sGen = sGenerate;
       digest.zero = 'ZERO-API mode: S-local skin/blend · banked exams · lexical entailment · no fresh fills · no model repair';
+      // SCION seats (SCION=skin,polish,fill): the house model takes judged
+      // seats locally — still $0, still gate-validated, disclosed below.
+      const { scionSeats } = await import('./composer/scion.mjs');
+      scion = scionSeats();
+      if (scion.size === 0) scion = null;
+      else digest.zero += `; SCION seats: ${[...scion].join('+')} (local house model, gate-validated)`;
     }
     const outcome = await composeAllLessons(graph, store, {
       ledger,
@@ -294,9 +311,26 @@ async function runPipelineStages({
       tendril: tendrilCtx,
       zero: zeroApi,
       sGenerate: sGen,
+      scion,
     });
     if (zeroApi && outcome.stats.zeroShortQuizzes) {
       digest.zero += `; ${outcome.stats.zeroShortQuizzes} lesson(s) shipped short quizzes (shelf-limited, disclosed)`;
+    }
+    if (scion) {
+      digest.scion = {
+        seats: [...scion],
+        ...(scion.has('skin') ? { skinned: `${outcome.stats.skinned}/${outcome.stats.skinOf}` } : {}),
+        ...(scion.has('polish')
+          ? { guidesPolished: `${outcome.stats.scionPolished ?? 0}/${outcome.stats.scionPolishAttempted ?? 0}` }
+          : {}),
+        ...(scion.has('fill')
+          ? {
+              fills: outcome.stats.scionFills ?? 0,
+              fillSelfRejected: outcome.stats.scionFillSelfRejected ?? 0,
+              disclosure: 'fills are SELF-verified (blind self-solve = key) — no paid solver runs in zero mode',
+            }
+          : {}),
+      };
     }
     var zeroSGenerate = sGen;
     if (tendrilCtx) {
@@ -306,8 +340,15 @@ async function runPipelineStages({
     // CAT-style anti-homogenization draw was a no-op and every
     // same-syllabus composition drew identical assets (found while
     // planning the homogenization index; e6 vs e6c measured it).
-    const { writeFile: writeStore } = await import('node:fs/promises');
-    await writeStore('trellis/bank/assets.json', JSON.stringify(store, null, 1));
+    // SCION session fix: --freeze-exposure was born UNCONSUMED (eec5635
+    // threaded the flag but never gated this write) — every "frozen"
+    // composer ruler since v0.1.1 still drifted the store. Measurement
+    // runs now genuinely freeze; the digest discloses which mode ran.
+    if (await persistExposure(store, freezeExposure)) {
+      digest.exposure = 'counters persisted (production run)';
+    } else {
+      digest.exposure = 'FROZEN — exposure counters NOT persisted (measurement run)';
+    }
     digest.composer = `assembled from ${store.assets.length} assets: reuse ${outcome.stats.reusePct}% by surface area (${outcome.stats.reusedParts} parts reused, ${outcome.stats.freshParts} fresh); skin ${outcome.stats.skinned}/${outcome.stats.skinOf} segments unified${outcome.stats.dupReuses ? `; ${outcome.stats.dupReuses} thin-shelf dup reuse(s)` : ''}${outcome.stats.solverRejected ? `; solver rejected ${outcome.stats.solverRejected} fresh item(s)` : ''}`;
     var composerOutcome = outcome;
   }

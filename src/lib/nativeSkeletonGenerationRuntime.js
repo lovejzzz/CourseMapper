@@ -54,16 +54,27 @@ export async function runNativeSkeletonGenerationFlow(input = [], output = []) {
       label: 'Native graph authoring — Pass A skeleton',
       detail: `${currentModelName} · typed skeleton (sessions, assessments, readings, resources)`,
     });
+    // Scion (V2.1 D1): the skeleton's real contract ships as json_schema —
+    // session count pinned (the 25-session hallucination class), assessments
+    // required, concise titles directed.
+    let skeletonSystemPrompt = nativeSkeletonPrompts.NATIVE_SKELETON_SYSTEM_PROMPT;
+    let skeletonSchema = null;
+    if (provider === 'local' && detected?.expected) {
+      const contracts = await import('./scionContracts.js');
+      skeletonSchema = contracts.skeletonSchemaProfile({ sessionCount: detected.expected });
+      skeletonSystemPrompt += contracts.SCION_SKELETON_DIRECTIVE;
+    }
     const skeletonResult = await streamProvider(
       provider,
       apiKey,
       modelId,
-      nativeSkeletonPrompts.NATIVE_SKELETON_SYSTEM_PROMPT,
+      skeletonSystemPrompt,
       skeletonUserPrompt,
       {
         maxOutputTokens: generationPlan?.courseMapOutputTokens || maxOutputTokens,
         modelCapabilities,
         generationPlan,
+        ...(skeletonSchema ? { schema: skeletonSchema } : {}),
         task: 'nativeSkeleton',
         onApiCallEvent: recordApiCallEvent,
         onChunk: (text, count) => {

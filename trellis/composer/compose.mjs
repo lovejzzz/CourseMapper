@@ -49,7 +49,7 @@ export async function composeLesson(
   graph,
   lessonId,
   store,
-  { ledger, budgetUsd, tiers, bank, courseUsed = null, tendril = null, zero = false } = {},
+  { ledger, budgetUsd, tiers, bank, courseUsed = null, tendril = null, zero = false, scion = null } = {},
 ) {
   const slice = buildLessonSlice(graph, lessonId);
   const lesson = graph.lessons.find((l) => l.id === lessonId);
@@ -149,7 +149,8 @@ export async function composeLesson(
     return clean;
   });
   if (quizItems.length < 6 && zero) {
-    // Zero mode never authors. Below the contract floor (3) the review
+    // Zero mode never authors (the Scion fill seat below is the one gated,
+    // disclosed exception). Below the contract floor (3) the review
     // cap relaxes first — an all-review synthesis week (the l14 class:
     // introduces only pseudo-concepts, reinforces 26) can only ever hold
     // Review: items, and labeled spaced retrieval beats an empty quiz.
@@ -178,6 +179,24 @@ export async function composeLesson(
         quizItems.push(clean);
       }
       stats.zeroReviewRelaxed = true;
+    }
+    // SCION fill seat — AFTER every bank rescue level (the rescue clears and
+    // re-selects the array, so authored items must join last): the house
+    // model authors the remainder locally through the researcher's own
+    // harness + gates, and each item ships only if Scion blind-solves it to
+    // its own key (self-verified, DISCLOSED as such; the paid solver never
+    // runs here). A rejected or inconclusive item stays unshipped.
+    if (scion?.has('fill') && quizItems.length < 6) {
+      const { scionFillItems } = await import('./scion.mjs');
+      const fill = await scionFillItems(graph, anchor, bank, 6 - quizItems.length, {
+        existingStems: quizItems.map((q) => q.stem),
+      });
+      for (const item of fill.items) {
+        quizItems.push(fresh(item));
+        itemConceptIds.push(anchor.conceptId);
+      }
+      stats.scionFills = (stats.scionFills ?? 0) + fill.items.length;
+      stats.scionFillSelfRejected = (stats.scionFillSelfRejected ?? 0) + (fill.selfRejected ?? 0);
     }
     if (quizItems.length < 6) stats.zeroShortQuiz = 6 - quizItems.length;
   } else if (quizItems.length < 6) {
@@ -346,7 +365,7 @@ export async function skinLesson(
   graph,
   lessonNumber,
   composed,
-  { ledger, budgetUsd, tier = 'nano', sGenerate = null } = {},
+  { ledger, budgetUsd, tier = 'nano', sGenerate = null, scionSkin = false } = {},
 ) {
   const lesson = graph.lessons[lessonNumber - 1];
   const segments = composed.plan.segments;
@@ -354,19 +373,25 @@ export async function skinLesson(
   try {
     // Zero-API path: Tendril-S locally, one segment per call — the exact
     // single-entry prompt it was distilled on. Same gates, same fallback.
+    // SCION skin seat: same shape, but the house 4B takes the calls with a
+    // zero-shot context-bearing prompt (Scion was never distilled on this
+    // task, so the training-distribution constraint does not bind it).
+    // The gate stack in applySkinRewrites is IDENTICAL either way.
     if (sGenerate) {
       const { SKIN_SYSTEM } = await import('../tendril/sModel.mjs');
+      const system = scionSkin ? (await import('./scion.mjs')).scionSkinSystem(graph, lesson) : SKIN_SYSTEM;
       const rewrites = [];
       for (const [index, seg] of segments.entries()) {
         try {
           const text = await sGenerate({
-            system: SKIN_SYSTEM,
+            system,
             user: JSON.stringify({ mode: seg.mode, text: seg.text }),
             source: seg.text,
+            ...(scionSkin ? { task: 'scion', maxTokens: 700 } : {}),
           });
           rewrites.push({ index, text });
         } catch {
-          // S failure on one segment keeps its source form
+          // a failed segment keeps its source form
         }
       }
       return applySkinRewrites(segments, rewrites, (n) => (skinned = n));
@@ -439,7 +464,7 @@ async function applySkinRewrites(segments, rewrites, setCount) {
 export async function composeAllLessons(
   graph,
   store,
-  { ledger, budgetUsd, tiers, bank, tendril = null, zero = false, sGenerate = null } = {},
+  { ledger, budgetUsd, tiers, bank, tendril = null, zero = false, sGenerate = null, scion = null } = {},
 ) {
   const authored = {};
   const failures = [];
@@ -455,13 +480,21 @@ export async function composeAllLessons(
         courseUsed,
         tendril,
         zero,
+        scion,
       });
       const skin = await skinLesson(graph, index + 1, composed, {
         ledger,
         budgetUsd,
         tier: tiers?.flywheel ?? 'nano',
         sGenerate,
+        scionSkin: Boolean(scion?.has('skin') && sGenerate),
       });
+      if (scion?.has('polish') && sGenerate) {
+        const { scionPolishGuide } = await import('./scion.mjs');
+        const polish = await scionPolishGuide(composed, { sGen: sGenerate });
+        totals.scionPolishAttempted = (totals.scionPolishAttempted ?? 0) + polish.attempted;
+        totals.scionPolished = (totals.scionPolished ?? 0) + polish.accepted;
+      }
       const errors = validateAuthoredLesson(composed);
       if (errors.length > 0) throw new Error(`composed lesson fails contract: ${errors.slice(0, 3).join('; ')}`);
       authored[lesson.id] = composed;
@@ -472,6 +505,10 @@ export async function composeAllLessons(
       totals.skinned += skin.skinned;
       totals.skinOf += skin.of;
       totals.solverRejected = (totals.solverRejected ?? 0) + (stats.solverRejected ?? 0);
+      if (stats.scionFills || stats.scionFillSelfRejected) {
+        totals.scionFills = (totals.scionFills ?? 0) + (stats.scionFills ?? 0);
+        totals.scionFillSelfRejected = (totals.scionFillSelfRejected ?? 0) + (stats.scionFillSelfRejected ?? 0);
+      }
       totals.dupReuses = (totals.dupReuses ?? 0) + (stats.dupReuses ?? 0);
       totals.tendrilFallbacks = (totals.tendrilFallbacks ?? 0) + (stats.tendrilFallbacks ?? 0);
       totals.zeroShortQuizzes = (totals.zeroShortQuizzes ?? 0) + (stats.zeroShortQuiz ? 1 : 0);

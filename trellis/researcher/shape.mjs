@@ -607,7 +607,7 @@ export function parseSolveLetter(text) {
 // suspect — rewrite once, keep the fix only if it now self-solves (and, for
 // catcher slots, still passes the gate). All local, $0; the paid solver stays
 // the final judge, this just stops known-bad items from reaching it.
-async function selfSolveIndex(item) {
+export async function selfSolveIndex(item) {
   const letters = ['A', 'B', 'C', 'D'];
   const system =
     'Answer the multiple-choice question. Reply with ONLY the single letter A, B, C, or D of the correct option.';

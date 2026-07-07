@@ -215,6 +215,9 @@ export function buildProviderTextRequest({
   generationPlan = null,
   task = 'generation',
   schema = null,
+  // Scion (V2.1 D2): greedy is deterministic — identical retries replay the
+  // identical failure, so retry temperature is caller-controlled per attempt.
+  temperatureOverride = undefined,
 }) {
   const controls = createRequestControls({
     provider,
@@ -324,8 +327,10 @@ export function buildProviderTextRequest({
     // The house model server (npm run local-model): OpenAI chat shape at a
     // local endpoint, keyless, SSE with keep-alive heartbeats. The server
     // enforces json_object/json_schema at decode time (llguidance), so the
-    // full response_format contract is forwarded.
+    // full response_format contract is forwarded. Temperature defaults to 0
+    // (greedy-deterministic); retries escalate via temperatureOverride.
     const responseFormat = openAiResponseFormat(controls);
+    const localTemperature = temperatureOverride ?? 0;
     return {
       url: `${getLocalEndpoint()}/v1/chat/completions`,
       headers: { 'Content-Type': 'application/json' },
@@ -337,7 +342,7 @@ export function buildProviderTextRequest({
         ],
         ...(responseFormat ? { response_format: responseFormat } : {}),
         max_tokens: controls.maxOutputTokens,
-        ...(controls.temperature !== undefined && { temperature: controls.temperature }),
+        ...(localTemperature > 0 ? { temperature: localTemperature } : {}),
         stream: true,
       },
       parseChunk: (parsed) => parsed.choices?.[0]?.delta?.content || null,

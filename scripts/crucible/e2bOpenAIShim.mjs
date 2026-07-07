@@ -872,6 +872,25 @@ const server = http.createServer(async (req, res) => {
     res.writeHead(404, corsHeaders()).end();
     return;
   }
+  if (req.url.includes('/flywheel')) {
+    // V2.1 D4: the app banks pass events (verified keys, regenerated items
+    // with rejected originals, polish outcomes) into the ORPO corpus dir —
+    // all localhost, nothing leaves the machine.
+    const rawBody = await readBody(req);
+    try {
+      const payload = JSON.parse(rawBody);
+      const rows = (payload?.events ?? []).map((event) => ({ ...event, context: payload?.context ?? {}, at: new Date().toISOString() }));
+      if (rows.length > 0) {
+        const flywheelPath = new URL('../../trellis/tendril/distill/data-g4-orpo/app-flywheel.jsonl', import.meta.url).pathname;
+        fs.appendFileSync(flywheelPath, rows.map((row) => JSON.stringify(row)).join('\n') + '\n');
+      }
+      res.writeHead(200, { 'Content-Type': 'application/json', ...corsHeaders() });
+      res.end(JSON.stringify({ banked: rows.length }));
+    } catch {
+      res.writeHead(400, corsHeaders()).end();
+    }
+    return;
+  }
   const raw = await readBody(req);
   let body = {};
   try {
@@ -923,6 +942,9 @@ const server = http.createServer(async (req, res) => {
   // Kernel/Pass-B calls: per-lesson chunked generation under the strict
   // contract derived from the app's own prompt + lint floor. CourseIR calls:
   // the app's embedded outputContract, lesson count clamped.
+  // D1 contract handoff: an app-declared schema call also controls its own
+  // temperature (greedy default; recovery retries sample) — honor it.
+  const declaredTemperature = Number(body.temperature) || 0;
   const kernel = contract.jsonMode ? kernelContract(system, user) : null;
   let isSkeleton = false;
   if (!kernel && contract.jsonMode) {
@@ -942,7 +964,7 @@ const server = http.createServer(async (req, res) => {
           user,
           maxTokens: requestedMaxTokens(body),
           ...contract,
-          ...(temperature > 0 ? { temperature } : {}),
+          ...(declaredTemperature > 0 ? { temperature: declaredTemperature } : temperature > 0 ? { temperature } : {}),
         });
     if (isSkeleton && text) text = await shortenSkeletonTitles(text);
   } catch (error) {

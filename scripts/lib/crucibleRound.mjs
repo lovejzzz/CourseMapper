@@ -162,6 +162,8 @@ export const PROVIDER_DEFAULT_MODELS = {
   openai: 'gpt-5.4-mini',
   anthropic: 'claude-haiku-4-5',
   google: 'gemini-2.5-flash-lite',
+  // Scion (V2.1 D): the house model — keyless; requires `npm run local-model`.
+  local: 'scion-1',
 };
 
 export const SUPPORTED_PROVIDERS = Object.keys(PROVIDER_DEFAULT_MODELS);
@@ -219,7 +221,10 @@ export const PROVIDER_KEY_RULES = {
   deepseek: {
     envVars: ['COURSEMAPPER_DEEPSEEK_API_KEY', 'DEEPSEEK_API_KEY'],
     keyNameRe: /DEEPSEEK/i,
-    valueShape: (value) => value.length > 20,
+    // Shape must match the hint: length-only accepted PROSE comment lines
+    // from api.ev as the key (found in the Scion session — the cross-family
+    // judge seat would 401 on a sentence). DeepSeek keys are sk-….
+    valueShape: (value) => value.startsWith('sk-') && !value.startsWith('sk-ant-') && value.length > 20,
     shapeHint: 'sk-…',
   },
 };
