@@ -7,7 +7,13 @@ import { describe, expect, it, vi } from 'vitest';
 
 vi.mock('../tendril/corpus.mjs', () => ({ corpusLog: vi.fn(async () => {}) }));
 
-import { guideRewriteRejection, scionFillItems, scionSeats, scionSkinSystem, scionPolishGuide } from '../composer/scion.mjs';
+import {
+  guideRewriteRejection,
+  scionFillItems,
+  scionSeats,
+  scionSkinSystem,
+  scionPolishGuide,
+} from '../composer/scion.mjs';
 import { resolveRoute } from '../tendril/sModel.mjs';
 import { skinLesson } from '../composer/compose.mjs';
 
@@ -30,7 +36,8 @@ describe('route resolution', () => {
 });
 
 describe('guideRewriteRejection', () => {
-  const original = '## Week 2 Guide\n\n- **term**: a definition that says something concrete about the topic at hand.\n- another line of study guidance for the week.\n';
+  const original =
+    '## Week 2 Guide\n\n- **term**: a definition that says something concrete about the topic at hand.\n- another line of study guidance for the week.\n';
   it('accepts an in-band rewrite that keeps structure', () => {
     const rewrite = original.replace('says something concrete', 'states something specific');
     expect(guideRewriteRejection(original, rewrite)).toBeNull();
@@ -40,12 +47,30 @@ describe('guideRewriteRejection', () => {
     expect(guideRewriteRejection(original, 'Too short.')).toBe('length-band');
     expect(guideRewriteRejection(original, original + original + original)).toBe('length-band');
   });
-  it('rejects heading and fence structure changes', () => {
+  it('rejects any heading or fence structure change (EXACT preservation)', () => {
+    // adding a heading changes the count → rejected (the music retitle class)
+    expect(guideRewriteRejection(original, '# New Title\n\n' + original)).toBe('heading-structure');
+    // removing a heading → rejected
     expect(guideRewriteRejection(original, original.replace('## Week 2 Guide', 'Week 2 Guide'))).toBe(
       'heading-structure',
     );
+    // fences are non-negotiable — stripping code fences is rejected
     const fenced = original + '```python\nx = 1\n```\n';
     expect(guideRewriteRejection(fenced, fenced.replace(/```/g, ''))).toBe('fence-structure');
+  });
+
+  it('rejects a rewrite that drops the non-reader "missed the reading" contract marker', () => {
+    // music guide sections ARE the catch-up section; polishing them away
+    // fails the classroom contract downstream (measured: 7/7 lessons threw)
+    const catchUp =
+      'If you missed the reading, start by reviewing the source on staff and clef. Then work through naming each line before the quiz, because the exam assumes it.';
+    const retitled =
+      'The staff is a set of five lines and four spaces. Review each line name carefully and then work through the quiz once you can name them all without help here.';
+    expect(guideRewriteRejection(catchUp, retitled)).toBe('non-reader-marker');
+    // a rewrite that KEEPS the marker and structure passes
+    const kept =
+      'If you missed the reading, begin with the source on staff and clef, then name each line before attempting the quiz since the exam assumes it here.';
+    expect(guideRewriteRejection(catchUp, kept)).toBeNull();
   });
 });
 
@@ -83,8 +108,16 @@ describe('scionFillItems', () => {
   const graph = {
     concepts: [{ id: 'c1', name: 'Intervals', genomeRef: 'music/intervals', kernelFacts: ['A fact.'] }],
     misconceptions: [
-      { conceptId: 'c1', statement: 'Interval quality depends only on letter distance between note names.', corrective: 'Quality depends on the exact semitone count, not letters alone.' },
-      { conceptId: 'c1', statement: 'A fifth is always perfect regardless of accidentals in the key.', corrective: 'Accidentals change the semitone count and can make a fifth diminished.' },
+      {
+        conceptId: 'c1',
+        statement: 'Interval quality depends only on letter distance between note names.',
+        corrective: 'Quality depends on the exact semitone count, not letters alone.',
+      },
+      {
+        conceptId: 'c1',
+        statement: 'A fifth is always perfect regardless of accidentals in the key.',
+        corrective: 'Accidentals change the semitone count and can make a fifth diminished.',
+      },
     ],
   };
   const anchor = { conceptId: 'c1', conceptName: 'Intervals', kernelId: 'music/intervals' };
@@ -96,7 +129,11 @@ describe('scionFillItems', () => {
   });
 
   it('ships only items the model blind-solves to its own key, and counts rejections', async () => {
-    const author = async () => [mkItem('Which interval spans C to G sharp in this melody?'), mkItem('What quality is the fifth from B to F in the bass line?'), mkItem('How many semitones separate E and A flat here?')];
+    const author = async () => [
+      mkItem('Which interval spans C to G sharp in this melody?'),
+      mkItem('What quality is the fifth from B to F in the bass line?'),
+      mkItem('How many semitones separate E and A flat here?'),
+    ];
     const solve = vi
       .fn()
       .mockResolvedValueOnce(1) // agrees
@@ -123,7 +160,10 @@ describe('scionFillItems', () => {
   });
 
   it('caps at need and skips concepts with no misconceptions', async () => {
-    const author = async () => [mkItem('Stem one about intervals and quality?'), mkItem('Stem two about semitone counting rules?')];
+    const author = async () => [
+      mkItem('Stem one about intervals and quality?'),
+      mkItem('Stem two about semitone counting rules?'),
+    ];
     const out = await scionFillItems(graph, anchor, { items: [] }, 1, { author, solve: async () => 1 });
     expect(out.items).toHaveLength(1);
     const bare = await scionFillItems({ ...graph, misconceptions: [] }, anchor, { items: [] }, 6, {

@@ -52,10 +52,23 @@ const POLISH_SYSTEM =
 
 const headingCount = (md) => (String(md).match(/^#{1,6} /gm) ?? []).length;
 const fenceCount = (md) => (String(md).match(/```/g) ?? []).length;
+// The non-reader catch-up marker is a CLASSROOM CONTRACT (voice/contracts.mjs
+// validateAuthoredLesson): studyGuideSection must carry a "missed the
+// reading? start here" path or the non-reader compliance bar breaks. On the
+// music course the guide section IS that catch-up prose, so polishing it is
+// exactly where a rewrite can silently destroy compliance.
+const NON_READER_RE = /missed the reading|if you (skipped|missed)/i;
 
-// Gate stack for a markdown rewrite: the skin contract's ±40% weighted
-// length band, plus structure preservation (headings and code fences are
-// load-bearing for the render layer and the grader's parsers).
+// Gate stack for a study-guide rewrite: the skin contract's ±40% weighted
+// length band + EXACT structure preservation (heading/fence counts) + the
+// non-reader marker. The gate is deliberately strict: the first music run
+// proved WHY. Its guide sections are headingless catch-up prose, and Scion's
+// instinct is to retitle them into a topic overview — which drops the
+// "missed the reading" section and fails the classroom contract downstream
+// (7/7 lessons threw). Structured guides (the cs course: real `##`/`###`
+// headings) polish cleanly because the model preserves the existing shape.
+// So this gate lets polish LAND where structure is real and REJECT where the
+// prose itself is the contract — quality stays monotonic, source form ships.
 export function guideRewriteRejection(original, rewrite) {
   const text = String(rewrite ?? '').trim();
   if (text.length === 0) return 'empty';
@@ -64,6 +77,7 @@ export function guideRewriteRejection(original, rewrite) {
   if (len < orig * 0.6 || len > orig * 1.4) return 'length-band';
   if (headingCount(text) !== headingCount(original)) return 'heading-structure';
   if (fenceCount(text) !== fenceCount(original)) return 'fence-structure';
+  if (NON_READER_RE.test(original) && !NON_READER_RE.test(text)) return 'non-reader-marker';
   return null;
 }
 
@@ -87,7 +101,14 @@ export async function scionPolishGuide(composed, { sGen = null } = {}) {
   }
   text = String(text ?? '').trim();
   const reason = guideRewriteRejection(original, text);
-  await corpusLog({ task: 'polish', model: 'scion', accepted: !reason, reason: reason ?? undefined, source: original, target: text });
+  await corpusLog({
+    task: 'polish',
+    model: 'scion',
+    accepted: !reason,
+    reason: reason ?? undefined,
+    source: original,
+    target: text,
+  });
   if (reason) return { attempted: 1, accepted: 0, reason };
   composed.studyGuideSection = text;
   return { attempted: 1, accepted: 1 };
@@ -109,7 +130,8 @@ export async function scionFillItems(
   { existingStems = [], author = null, solve = null } = {},
 ) {
   const conceptMisconceptions = (graph.misconceptions ?? []).filter((m) => m.conceptId === anchor.conceptId);
-  if (conceptMisconceptions.length === 0) return { items: [], attempted: 0, selfRejected: 0, skipped: 'no-misconceptions' };
+  if (conceptMisconceptions.length === 0)
+    return { items: [], attempted: 0, selfRejected: 0, skipped: 'no-misconceptions' };
   const { claimTokens } = await import('../knowledge/bankGapFill.mjs');
   const anchorConcept = graph.concepts.find((c) => c.id === anchor.conceptId);
   const cells = conceptMisconceptions.slice(0, 2).map((m) => ({
@@ -128,7 +150,12 @@ export async function scionFillItems(
   const solveFn = solve ?? (await import('../researcher/shape.mjs')).selfSolveIndex;
   let authored;
   try {
-    authored = await authorFn({ id: anchor.kernelId, term: anchorConcept?.name ?? anchor.conceptName }, kernel, cells, shelf);
+    authored = await authorFn(
+      { id: anchor.kernelId, term: anchorConcept?.name ?? anchor.conceptName },
+      kernel,
+      cells,
+      shelf,
+    );
   } catch {
     return { items: [], attempted: 0, selfRejected: 0 };
   }
