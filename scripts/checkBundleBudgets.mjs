@@ -44,14 +44,17 @@ const lazyChunkBudgets = [
   // exception to "do NOT raise for feature work", not a precedent: the
   // useDeliverables split (the chunk's named whale) remains the diet lane
   // and should claw this back below 255/76.5.
-  // v2.1 (July 2026): +1 KiB raw for the Scion "local" provider — its branch
-  // in buildProviderTextRequest is on the request hot path (every provider
-  // branch is), and its Pass B call site can't lazy-load the sync options.
-  // ALL lazy-able Scion code (contracts/passes/passB/flywheel) was pushed into
-  // a separate 11.5 KiB chunk (vite manualChunks 'scion'); gzip HELD at 77.
-  // Same documented-exception discipline as v0.15.187 — the useDeliverables
-  // split remains the claw-back lane.
-  { prefix: 'AppFlow-', rawKiB: 257, gzipKiB: 77, gzipSlackBytes: 256 },
+  // v2.1 (July 2026): +1 KiB raw / +1 KiB gzip for the Scion "local" provider
+  // — its branch in buildProviderTextRequest is on the request hot path (every
+  // provider branch is), and its Pass B call site can't lazy-load the sync
+  // options. ALL lazy-able Scion code (contracts/passes/passB/flywheel) was
+  // pushed into a separate 11.5 KiB chunk (vite manualChunks 'scion'). Budgets
+  // set from a CLEAN build on Node 22 (CI's runtime, which gzips ~0.1 KiB
+  // larger than local Node 25): measured 256.5 raw / 77.3 gzip — 257/78 give
+  // ~0.5/0.7 KiB margin over the reference platform. Same documented-exception
+  // discipline as v0.15.187; the useDeliverables split remains the claw-back
+  // lane.
+  { prefix: 'AppFlow-', rawKiB: 257, gzipKiB: 78, gzipSlackBytes: 256 },
   // v0.9.0: +12 KiB raw / +4 KiB gzip for the course-native agent (content
   // index + renderer reuse, digest card, journal — measured at 341.0 KiB raw
   // / 92.8 gzip). Deliberate feature growth; gzip headroom unchanged.
