@@ -37,12 +37,7 @@ export const DIAGNOSIS_PROFILES = {
 // the answered item's surfaces; returns { family|null, confidence,
 // wrongTop, nullTop }. family is the item's familyKey when the wrong side
 // wins by `margin` over the correct side (both must clear `floor`).
-export function diagnoseAgainstItem(
-  item,
-  answerVector,
-  vectorOf,
-  { floor = 0.35, margin = 0 } = {},
-) {
+export function diagnoseAgainstItem(item, answerVector, vectorOf, { floor = 0.35, margin = 0 } = {}) {
   const distractors = (item.options ?? []).filter((_, i) => i !== item.correctIndex);
   const correctText = item.options?.[item.correctIndex];
   const wrongTop = Math.max(...distractors.map((d) => cosine(answerVector, vectorOf(d))), -1);

@@ -6,24 +6,24 @@ frozen-ruler win; every retirement is a measured loss._
 
 ## 1. The roster (deployed, each behind its own passed ruler)
 
-| Seat | Model | Ruler that seated it |
-| --- | --- | --- |
-| Skin (factory) | Qwen2.5-0.5B s3b-800 | gate bench 71.7% (beats S2 61.7, nano 63.3) |
-| Blend (factory) | SmolLM2-135M S2 | gate bench 83.3% (beats nano 80.0) |
-| Dedupe/selection | tendril-e2c (ε=0.94) | adoption ruler: findings ≤1, battery in band |
-| Diagnosis (Tutor) | tendril-e2d @ m0.035 | joint bar with margin: 81.7%/19.2% |
-| **Items (NEXT ADOPTION)** | **Gemma 4 E2B zero-shot** | 10-kernel paired probe: **87% gates / 77% end-to-end vs ds 73%/73%**, $0, 1.7× faster |
-| Solver seat | deepseek (paid, BY DESIGN) | cross-family trust — never localized |
-| Judge seats | openai+deepseek (paid, BY DESIGN) | family diversity is the instrument |
+| Seat                      | Model                             | Ruler that seated it                                                                  |
+| ------------------------- | --------------------------------- | ------------------------------------------------------------------------------------- |
+| Skin (factory)            | Qwen2.5-0.5B s3b-800              | gate bench 71.7% (beats S2 61.7, nano 63.3)                                           |
+| Blend (factory)           | SmolLM2-135M S2                   | gate bench 83.3% (beats nano 80.0)                                                    |
+| Dedupe/selection          | tendril-e2c (ε=0.94)              | adoption ruler: findings ≤1, battery in band                                          |
+| Diagnosis (Tutor)         | tendril-e2d @ m0.035              | joint bar with margin: 81.7%/19.2%                                                    |
+| **Items (NEXT ADOPTION)** | **Gemma 4 E2B zero-shot**         | 10-kernel paired probe: **87% gates / 77% end-to-end vs ds 73%/73%**, $0, 1.7× faster |
+| Solver seat               | deepseek (paid, BY DESIGN)        | cross-family trust — never localized                                                  |
+| Judge seats               | openai+deepseek (paid, BY DESIGN) | family diversity is the instrument                                                    |
 
 ## 2. The item-authoring comparison (n=30 each, same kernels/gates/solver)
 
-| | E2B zero-shot | ds (paid) |
-| --- | --- | --- |
-| Gate acceptance | **26/30 (87%)** | 22/30 (73%) |
-| Failure signature | wrong keys ×3 (solver catches, costs nothing) | pasted/long options ×8 |
-| End-to-end accepted | **23/30** | 22/30 |
-| Speed / cost per kernel | 16.2s / **$0** | 27.1s / ~$0.002 |
+|                         | E2B zero-shot                                 | ds (paid)              |
+| ----------------------- | --------------------------------------------- | ---------------------- |
+| Gate acceptance         | **26/30 (87%)**                               | 22/30 (73%)            |
+| Failure signature       | wrong keys ×3 (solver catches, costs nothing) | pasted/long options ×8 |
+| End-to-end accepted     | **23/30**                                     | 22/30                  |
+| Speed / cost per kernel | 16.2s / **$0**                                | 27.1s / ~$0.002        |
 
 ## 3. Retired by measurement (do not relitigate)
 

@@ -32,7 +32,9 @@ export const SIBLING_EPSILON = 0.94;
 
 export async function buildTendrilContext(bank, { epsilon = SIBLING_EPSILON, embedder = null } = {}) {
   const emb = embedder ?? makeEmbedder();
-  const explanations = [...new Set((bank?.items ?? []).map((i) => i.explanation).filter((e) => typeof e === 'string' && e.length >= 8))];
+  const explanations = [
+    ...new Set((bank?.items ?? []).map((i) => i.explanation).filter((e) => typeof e === 'string' && e.length >= 8)),
+  ];
   const vectors = await cachedEmbed(explanations, { name: 'explanation-embeddings', embedder: emb });
   const explanationVec = new Map(explanations.map((text, i) => [text, vectors[i]]));
   const assetCache = await loadEmbeddingCache();

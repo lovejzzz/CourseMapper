@@ -1563,23 +1563,23 @@ polishing a candidate that hasn't won.
   ds 19/24 then 20/24 (variance driven by ds's OWN solver-reject
   rate; E2B's weak kernels stable). **rhyme-scheme 0/3 in BOTH runs**
   - E2B makes vague/meta ("how does THE TEXT correct...") items the
-  gate+solver correctly kill; NOTHING BAD SHIPS. Live-wire bug fixed:
-  **E2B's doubled-brace JSON** silently returned [] (invisible 0-item
-  failure) -> parseItemArray does string-aware balanced per-object
-  slicing (recovered abecedarian 0->3; +2 regression tests). **The
-  real win: zeroShapeItems** - researcher-zero could NOT author items
-  at $0 (documented gap); E2B now does, solver seat OPTIONAL (strict-
-  $0 gate-only + disclosed solverVerified:false, or injected solver
-  for ~$0.01/course). RS-5 intact. Cost/8-kernel: ds authoring
-  $0.0229 (E2B zeroes it) . solver $0.0261 (paid by design, both
-  authors). Also: transient DeepSeek ECONNRESET (uncaught
-  TypeError:terminated) crashed a run / hung a silent replicate loop -
-  bench now catches per-author, continues. **Adoption (not blanket):
-  E2B = default author for researcher-zero (capability win); opt-in
-  for paid researcher.mjs (ds keeps the lexically-dense edge).**
-  twinDepth deferred (batched-indexed contract, own bench). Queued:
-  dense-kernel prompt hardening (own A/B). Suite 22 tendril tests
-  green (+3).
+    gate+solver correctly kill; NOTHING BAD SHIPS. Live-wire bug fixed:
+    **E2B's doubled-brace JSON** silently returned [] (invisible 0-item
+    failure) -> parseItemArray does string-aware balanced per-object
+    slicing (recovered abecedarian 0->3; +2 regression tests). **The
+    real win: zeroShapeItems** - researcher-zero could NOT author items
+    at $0 (documented gap); E2B now does, solver seat OPTIONAL (strict-
+    $0 gate-only + disclosed solverVerified:false, or injected solver
+    for ~$0.01/course). RS-5 intact. Cost/8-kernel: ds authoring
+    $0.0229 (E2B zeroes it) . solver $0.0261 (paid by design, both
+    authors). Also: transient DeepSeek ECONNRESET (uncaught
+    TypeError:terminated) crashed a run / hung a silent replicate loop -
+    bench now catches per-author, continues. **Adoption (not blanket):
+    E2B = default author for researcher-zero (capability win); opt-in
+    for paid researcher.mjs (ds keeps the lexically-dense edge).**
+    twinDepth deferred (batched-indexed contract, own bench). Queued:
+    dense-kernel prompt hardening (own A/B). Suite 22 tendril tests
+    green (+3).
 
 - **2026-07-06 (v0.2 "make the zero pipeline the best" — do it all; three
   honest negatives, coverage stands).** Four levers greenlit; the rulers
@@ -1602,12 +1602,12 @@ polishing a candidate that hasn't won.
   trainer + 123 pairs is thin; needs a separate venv + a grown reject
   corpus. **L1 coverage = the lever still standing** (every low zero score
   is a coverage gap, not a model gap); scoped: needs a zero-deposit runner
-  + live run + zero-replay refusal->shipped. **docs/GEMMA4_LEVELS.md** = a
-  1->10 capability standard for E2B (each rung a frozen-ruler bar; currently
-  Level 6; also a shareable Artifact character sheet). Through-line: the
-  cheap paths to "best" don't exist — the zero pipeline improves by COVERAGE
-  (L1) and the two-human ANCHOR (Level 10), not by tuning an untunable 4B.
-  Suite 123 trellis tests green.
+  - live run + zero-replay refusal->shipped. **docs/GEMMA4_LEVELS.md** = a
+    1->10 capability standard for E2B (each rung a frozen-ruler bar; currently
+    Level 6; also a shareable Artifact character sheet). Through-line: the
+    cheap paths to "best" don't exist — the zero pipeline improves by COVERAGE
+    (L1) and the two-human ANCHOR (Level 10), not by tuning an untunable 4B.
+    Suite 123 trellis tests green.
 
 - **2026-07-06 (goal: "Gemma4 to level 10" — the ladder climb + the
   showdown).** L1 COVERAGE PROVEN: researchZero (the zero-deposit
@@ -1774,7 +1774,7 @@ polishing a candidate that hasn't won.
 
 - **2026-07-06 (the compiler seat — E2B-MAX as the classic app's ONLY
   LLM).** The owner's question: compiler cost → $0? Wired `crucible
-  --llm e2b` (scripts/crucible/e2bOpenAIShim.mjs + context.route reroute
+--llm e2b` (scripts/crucible/e2bOpenAIShim.mjs + context.route reroute
   of api.openai.com; dummy key, stubbed /v1/models catalog, 45-min
   budget; run dirs suffixed --e2b, never paid history). Music-theory,
   same grader + same 3-seat judge (paid arm re-judged 5.67 [6,7,4] —
@@ -1834,29 +1834,29 @@ polishing a candidate that hasn't won.
   lever); the shim chunk cache makes same-process reruns non-independent.
   Session spend: $0 generation, ≈$0.75 judges/panels total.
 
-- **2026-07-07 (V2.1 shipped: the Local provider + the campaign machinery
-  + the name).** docs/E2B_MAX_V21_ROADMAP.md pre-registers the plan; house
-  model name PROPOSED: **Scion** (the cultivated cutting grafted onto wild
-  rootstock — Gemma is the rootstock, the Trellis harness + house adapters
-  the scion; first trained cut = Scion-1; UI ships "E2B-MAX V2.1" until
-  blessed, swappable in src/lib/localProvider.js). **LOCAL PROVIDER LIVE
-  END-TO-END**: "Local (this device)" in the app's provider dropdown →
-  keyless Connected badge against `npm run local-model` (the V2 shim grew
-  CORS + GET /v1/models + SSE keep-alive heartbeats so long on-device
-  generations survive the app's 120s inactivity abort); wired through
-  fetchModelsFromProvider / buildProviderTextRequest / capabilities
-  (json_schema=decode-time llguidance) / $0 pricing rows / keyless gates in
-  AppFlow+useDeliverables+Landing quick-start; verified live in the browser
-  (screenshot: Local · E2B-MAX V2.1 · Connected · "$0 per course");
-  tests/local-provider.test.js gates the wiring (6 green; full suite's
-  genome/shard failures PROVEN pre-existing via stash-baseline). **CAMPAIGN
-  MACHINERY BUILT**: buildTeacherPairs.mjs (mini=chosen / E2B-greedy-under-
-  deployed-grammar=rejected; lesson + mc + keyTerm pair granularity;
-  near-identity/bad-chosen/bad-rejected drops COUNTED; idempotent ledger),
-  kernelSchemas.mjs (the shared per-lesson contract), run_orpo_g4.sh
-  (REFUSES <3000 pairs except --smoke; checkpoint gates listed),
-  serve_g4 G4_ADAPTERS env (adoption = env var, rollback = unset). First
-  corpus batch (music-theory + cs-python + geology) banking at session end.
+- \*\*2026-07-07 (V2.1 shipped: the Local provider + the campaign machinery
+  - the name).** docs/E2B_MAX_V21_ROADMAP.md pre-registers the plan; house
+    model name PROPOSED: **Scion** (the cultivated cutting grafted onto wild
+    rootstock — Gemma is the rootstock, the Trellis harness + house adapters
+    the scion; first trained cut = Scion-1; UI ships "E2B-MAX V2.1" until
+    blessed, swappable in src/lib/localProvider.js). **LOCAL PROVIDER LIVE
+    END-TO-END**: "Local (this device)" in the app's provider dropdown →
+    keyless Connected badge against `npm run local-model` (the V2 shim grew
+    CORS + GET /v1/models + SSE keep-alive heartbeats so long on-device
+    generations survive the app's 120s inactivity abort); wired through
+    fetchModelsFromProvider / buildProviderTextRequest / capabilities
+    (json_schema=decode-time llguidance) / $0 pricing rows / keyless gates in
+    AppFlow+useDeliverables+Landing quick-start; verified live in the browser
+    (screenshot: Local · E2B-MAX V2.1 · Connected · "$0 per course");
+    tests/local-provider.test.js gates the wiring (6 green; full suite's
+    genome/shard failures PROVEN pre-existing via stash-baseline). **CAMPAIGN
+    MACHINERY BUILT\*\*: buildTeacherPairs.mjs (mini=chosen / E2B-greedy-under-
+    deployed-grammar=rejected; lesson + mc + keyTerm pair granularity;
+    near-identity/bad-chosen/bad-rejected drops COUNTED; idempotent ledger),
+    kernelSchemas.mjs (the shared per-lesson contract), run_orpo_g4.sh
+    (REFUSES <3000 pairs except --smoke; checkpoint gates listed),
+    serve_g4 G4_ADAPTERS env (adoption = env var, rollback = unset). First
+    corpus batch (music-theory + cs-python + geology) banking at session end.
 
 - **2026-07-07 (SCION adopted — the house model has its name).** Owner
   blessed **Scion** (Gemma rootstock, house-cultivated graft; first cut =
@@ -1876,27 +1876,27 @@ polishing a candidate that hasn't won.
   Roadmap §4b written and SHIPPED in the same session. **D1 contract
   handoff**: src/lib/scionContracts.js is the single place the compiler
   declares Scion's contracts — kernelBatchSchemaProfile (per-lesson kernel
-  + session fields, content-sourced variant, courseLevel envelope) and
-  skeletonSchemaProfile (session count PINNED, assessments REQUIRED ≥1/
-  session, concise-title directive) ship as response_format json_schema;
-  Pass B runs per-lesson for local (adaptiveProviderBatching returns 1);
-  server-side prompt-sniffing stays only for the legacy crucible reroute.
-  **D2 time-planner**: CourseIR direct authoring SKIPPED on Scion (never
-  passed acceptance; 60-90s saved, disclosed as a pipelineDecision);
-  greedy-deterministic default with temperatureOverride threaded
-  streamProvider→buildProviderTextRequest (recovery retries sample at 0.7);
-  server honors app-declared temperature on schema'd calls. **D3 passes in
-  the compiler**: src/lib/scionPasses.js ports blind-solve key verification
-  (two-solve tie-break), the lexical topic gate, and the self-refine polish
-  pass out of the server — wired into runPassBBatch on the RAW batch JSON
-  before parsing, events surfaced as a pipelineDecision. **D4 flywheel**:
-  pass events (chosen/rejected item pairs, polish outcomes) POST to the
-  local server's /v1/flywheel → data-g4-orpo/app-flywheel.jsonl — the
-  user's own usage grows the ORPO corpus, all on-device. Crucible gains
-  --provider local (keyless loadApiKey, default model scion-1).
-  tests/scion-compiler.test.js gates all four tiers (9 green; 15 with the
-  provider suite). CORPUS BATCH 1 COMPLETE: 234 pairs / $0.026 / zero
-  poison-filter hits (5 E2B truncations disclosed).
+  - session fields, content-sourced variant, courseLevel envelope) and
+    skeletonSchemaProfile (session count PINNED, assessments REQUIRED ≥1/
+    session, concise-title directive) ship as response_format json_schema;
+    Pass B runs per-lesson for local (adaptiveProviderBatching returns 1);
+    server-side prompt-sniffing stays only for the legacy crucible reroute.
+    **D2 time-planner**: CourseIR direct authoring SKIPPED on Scion (never
+    passed acceptance; 60-90s saved, disclosed as a pipelineDecision);
+    greedy-deterministic default with temperatureOverride threaded
+    streamProvider→buildProviderTextRequest (recovery retries sample at 0.7);
+    server honors app-declared temperature on schema'd calls. **D3 passes in
+    the compiler**: src/lib/scionPasses.js ports blind-solve key verification
+    (two-solve tie-break), the lexical topic gate, and the self-refine polish
+    pass out of the server — wired into runPassBBatch on the RAW batch JSON
+    before parsing, events surfaced as a pipelineDecision. **D4 flywheel**:
+    pass events (chosen/rejected item pairs, polish outcomes) POST to the
+    local server's /v1/flywheel → data-g4-orpo/app-flywheel.jsonl — the
+    user's own usage grows the ORPO corpus, all on-device. Crucible gains
+    --provider local (keyless loadApiKey, default model scion-1).
+    tests/scion-compiler.test.js gates all four tiers (9 green; 15 with the
+    provider suite). CORPUS BATCH 1 COMPLETE: 234 pairs / $0.026 / zero
+    poison-filter hits (5 E2B truncations disclosed).
 
 - **2026-07-07 (Scion-native compiler PROVEN live end-to-end).** The app
   talks directly to Scion via `crucible --provider local` (keyless). First

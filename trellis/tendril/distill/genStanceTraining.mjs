@@ -63,7 +63,10 @@ export async function generateStanceTraining() {
     }
   }
   const targets = [...cells.values()];
-  const ledger = createRunLedger({ runId: `tendril-stance-training-r${ROUND}`, runDir: `trellis/runs/tendril-stance-training-r${ROUND}` });
+  const ledger = createRunLedger({
+    runId: `tendril-stance-training-r${ROUND}`,
+    runDir: `trellis/runs/tendril-stance-training-r${ROUND}`,
+  });
   const generated = [];
   const skipped = [];
   try {
@@ -113,7 +116,7 @@ export async function generateStanceTraining() {
           validate: (out) => (Array.isArray(out?.entries) && out.entries.length > 0 ? [] : ['entries required']),
         });
         generated.push(...result.entries);
-      } catch (error) {
+      } catch {
         skipped.push(...batch.map((t) => `${t.kernelId}::${t.family.slice(0, 20)}`));
       }
     }
@@ -134,7 +137,11 @@ if (process.env.STANCE_TRAIN === 'run' && !process.env.VITEST) {
   const corpus = await generateStanceTraining();
   console.log(
     JSON.stringify(
-      { entries: corpus.generated.length, excludedEvalKernels: corpus.excludedEvalKernels, skipped: corpus.skipped.length },
+      {
+        entries: corpus.generated.length,
+        excludedEvalKernels: corpus.excludedEvalKernels,
+        skipped: corpus.skipped.length,
+      },
       null,
       2,
     ),

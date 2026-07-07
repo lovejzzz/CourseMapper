@@ -31,12 +31,12 @@ and runtime cost is zero by construction.**
 
 40MB quantized ≈ 40–100M parameters. In 2026 that class:
 
-| Can do well | Cannot do |
-| --- | --- |
-| sentence embeddings (state-of-art at ~22M params) | author a lesson that panels at 8 |
-| classification into known categories | multi-constraint structured authoring |
+| Can do well                                            | Cannot do                                     |
+| ------------------------------------------------------ | --------------------------------------------- |
+| sentence embeddings (state-of-art at ~22M params)      | author a lesson that panels at 8              |
+| classification into known categories                   | multi-constraint structured authoring         |
 | short constrained rewrites in a narrow, trained domain | reliable instruction-following on novel tasks |
-| semantic similarity, ranking, retrieval | anything we currently pay mini for |
+| semantic similarity, ranking, retrieval                | anything we currently pay mini for            |
 
 Tendril never claims the right column. The library holds that
 intelligence (compiled once, verified, $0 at runtime); BYOK holds it
@@ -60,11 +60,11 @@ would fail as a generic product.
 
 ## 4. The family
 
-| Model | Size (quantized) | Base | Tier | Job |
-| --- | --- | --- | --- | --- |
-| **Tendril-E** | ~25MB | MiniLM-class embedder (Apache-2.0) | PROVEN — no speculation | embed, match, rank, dedupe, diagnose |
-| **Tendril-S** | ~40–80MB | SmolLM-class LM (Apache-2.0), task-distilled | AMBITIOUS — bench decides | gated seam-smoothing + localization |
-| Tendril-D | ~15–30MB | distilled classifier | FUTURE — only if E's zero-shot diagnosis <80% | typed-answer → misconception family |
+| Model         | Size (quantized) | Base                                         | Tier                                          | Job                                  |
+| ------------- | ---------------- | -------------------------------------------- | --------------------------------------------- | ------------------------------------ |
+| **Tendril-E** | ~25MB            | MiniLM-class embedder (Apache-2.0)           | PROVEN — no speculation                       | embed, match, rank, dedupe, diagnose |
+| **Tendril-S** | ~40–80MB         | SmolLM-class LM (Apache-2.0), task-distilled | AMBITIOUS — bench decides                     | gated seam-smoothing + localization  |
+| Tendril-D     | ~15–30MB         | distilled classifier                         | FUTURE — only if E's zero-shot diagnosis <80% | typed-answer → misconception family  |
 
 Runtime: ONNX Runtime Web / transformers.js on WebGPU, wasm fallback
 (slower, disclosed). One-time download, cached like any web asset;
@@ -73,8 +73,9 @@ whole bundle budget ≤110MB — smaller than one lecture video.
 ## 5. What each Tendril powers
 
 **Tendril-E (ships value on day one):**
+
 1. **Typed-answer diagnosis in the Tutor-in-a-File** — the student
-   *types*; E matches the answer to the nearest misconception family;
+   _types_; E matches the answer to the nearest misconception family;
    the corrective and reteach asset fire. MCQ becomes short-answer:
    the difference between a quiz and a tutor, and it is
    classification, which this size does well.
@@ -87,12 +88,10 @@ whole bundle budget ≤110MB — smaller than one lecture video.
    documents, match to kernels, run the battery: the public instrument
    stops requiring our format.
 
-**Tendril-S (the bet, distilled from our own exhaust):**
-5. **Runtime skin** — seam smoothing and course-context localization
-   in the free/offline path (today these are the only paid stages of a
-   reference-course composition).
-6. **Student-level rephrasing in the Tutor** — re-pitch an explanation
-   simpler, gate-checked against the corrective's key terms.
+**Tendril-S (the bet, distilled from our own exhaust):** 5. **Runtime skin** — seam smoothing and course-context localization
+in the free/offline path (today these are the only paid stages of a
+reference-course composition). 6. **Student-level rephrasing in the Tutor** — re-pitch an explanation
+simpler, gate-checked against the corrective's key terms.
 
 ## 6. The distillation asset nobody else has
 
@@ -146,18 +145,18 @@ next distillation corpus.
 
 ## 10. Phase 0 — Tendril-E (proven tier, ~$0 API)
 
-| # | Slice | Method | Exit bar |
-| --- | --- | --- | --- |
-| T-M0 | E in the toolchain | onnxruntime-web/transformers.js + MiniLM; embed the asset library once (build step, local compute) | embeddings cached; cold-load ≤3s on WebGPU reference hardware |
-| T-M1a | Semantic sibling dedupe | selection excludes candidates within cosine ε of course-used assets | **LA frozen ruler: J7 ≤1** (from 4) with battery in band |
-| T-M1b | Semantic selection A/B | cosine ranking vs token overlap | bench parity + panel spot ≥ current on frozen ruler |
-| T-M1c | Typed-answer diagnosis | student text → nearest family (bank distractors + paraphrases as eval set, held-out) | **≥80% family accuracy**; <80% → Tendril-D enters the roadmap |
+| #     | Slice                   | Method                                                                                             | Exit bar                                                      |
+| ----- | ----------------------- | -------------------------------------------------------------------------------------------------- | ------------------------------------------------------------- |
+| T-M0  | E in the toolchain      | onnxruntime-web/transformers.js + MiniLM; embed the asset library once (build step, local compute) | embeddings cached; cold-load ≤3s on WebGPU reference hardware |
+| T-M1a | Semantic sibling dedupe | selection excludes candidates within cosine ε of course-used assets                                | **LA frozen ruler: J7 ≤1** (from 4) with battery in band      |
+| T-M1b | Semantic selection A/B  | cosine ranking vs token overlap                                                                    | bench parity + panel spot ≥ current on frozen ruler           |
+| T-M1c | Typed-answer diagnosis  | student text → nearest family (bank distractors + paraphrases as eval set, held-out)               | **≥80% family accuracy**; <80% → Tendril-D enters the roadmap |
 
 ## 11. Phase 1 — the corpus and Tendril-S (the bet)
 
-| # | Slice | Method | Exit bar |
-| --- | --- | --- | --- |
-| T-M2 | Corpus extraction | script over run ledgers/artifacts: (source→accepted) pairs + rejects with reasons; counts published | ≥5k clean pairs or the honest count with implications |
+| #    | Slice                | Method                                                                                                                         | Exit bar                                                                          |
+| ---- | -------------------- | ------------------------------------------------------------------------------------------------------------------------------ | --------------------------------------------------------------------------------- |
+| T-M2 | Corpus extraction    | script over run ledgers/artifacts: (source→accepted) pairs + rejects with reasons; counts published                            | ≥5k clean pairs or the honest count with implications                             |
 | T-M3 | Distill + gate-bench | SmolLM-class base, LoRA fine-tune, int4 ONNX; run S through the SAME skin/blend gates on the frozen ruler vs the nano baseline | **gated acceptance ≥40%** (nano reference: 85–95%); below → fold-back per risk #1 |
 
 ## 12. Phase 2 — the artifact (the demo that shocks)

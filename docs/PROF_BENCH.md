@@ -88,16 +88,16 @@ compiler team never edits it in the same change that improves a KPI it
 feeds). Provenance, honestly labeled — DIRECTION from literature,
 NUMBER hand-set pending psychometric anchoring:
 
-| Constant group | Values | Literature direction | Number status |
-| --- | --- | --- | --- |
-| exposureStrength | reading .35 · session .30 · generation .55 · retrieval .60 | testing > generation > reading (Roediger & Karpicke 2006; generation effect, Slamecka & Graf 1978) | hand-set |
-| spacing bonus | ×1.25, min gap 2 ticks | distributed practice (Cepeda et al. 2006) | hand-set |
-| decay | half-life 4 ticks (sd 1.2) | Ebbinghaus-style forgetting | hand-set |
-| answering logistic | k=3.0, midpoint 1.1, guess floor .25 | 4-option guessing floor is arithmetic; IRT-shaped response curve | floor exact; curve hand-set |
-| misconception pull/immunity | .55 / 1.5 | conceptual-change literature (Posner et al. 1982): held beliefs distort until confronted | hand-set |
-| repair | P(repair)=.70 at feedback ≥.60; grounded .9 vs template .4 explanation quality | refutation + feedback quality effects (Muller et al. 2008) | hand-set |
-| prerequisite gate / contamination | .35–.55 cap; ×.60 exposure | knowledge-dependence; no direct coefficient source | hand-set |
-| genesis | base P=.08 ungrounded-material misconception seeding | plausible-direction only | hand-set, weakest anchor |
+| Constant group                    | Values                                                                         | Literature direction                                                                               | Number status               |
+| --------------------------------- | ------------------------------------------------------------------------------ | -------------------------------------------------------------------------------------------------- | --------------------------- |
+| exposureStrength                  | reading .35 · session .30 · generation .55 · retrieval .60                     | testing > generation > reading (Roediger & Karpicke 2006; generation effect, Slamecka & Graf 1978) | hand-set                    |
+| spacing bonus                     | ×1.25, min gap 2 ticks                                                         | distributed practice (Cepeda et al. 2006)                                                          | hand-set                    |
+| decay                             | half-life 4 ticks (sd 1.2)                                                     | Ebbinghaus-style forgetting                                                                        | hand-set                    |
+| answering logistic                | k=3.0, midpoint 1.1, guess floor .25                                           | 4-option guessing floor is arithmetic; IRT-shaped response curve                                   | floor exact; curve hand-set |
+| misconception pull/immunity       | .55 / 1.5                                                                      | conceptual-change literature (Posner et al. 1982): held beliefs distort until confronted           | hand-set                    |
+| repair                            | P(repair)=.70 at feedback ≥.60; grounded .9 vs template .4 explanation quality | refutation + feedback quality effects (Muller et al. 2008)                                         | hand-set                    |
+| prerequisite gate / contamination | .35–.55 cap; ×.60 exposure                                                     | knowledge-dependence; no direct coefficient source                                                 | hand-set                    |
+| genesis                           | base P=.08 ungrounded-material misconception seeding                           | plausible-direction only                                                                           | hand-set, weakest anchor    |
 
 ## Same-graph mode (v0.1.4 A1)
 

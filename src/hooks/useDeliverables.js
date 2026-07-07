@@ -562,7 +562,9 @@ export default function useDeliverables({
         enrichmentPreferenceOverride() ??
         generationPlan?.blueprintEnrichment ??
         false;
-      const enrichmentModelAvailable = Boolean(provider && modelId && (provider === 'webllm' || provider === 'local' || apiKey));
+      const enrichmentModelAvailable = Boolean(
+        provider && modelId && (provider === 'webllm' || provider === 'local' || apiKey),
+      );
       const blueprintEnrichmentRequested =
         costMode !== 'finalizerRetry' && blueprintCompiledFeatureIds.length > 0 && blueprintEnrichmentMode !== false;
       // v0.12.1: never let a degraded plan (bare capability profile →
@@ -1309,28 +1311,28 @@ export default function useDeliverables({
               // Scion (V2.1 D1/D2): the house model gets its REAL contract as
               // response_format json_schema (decode-time enforcement replaces
               // server-side prompt sniffing), greedy first attempts, and a
-              // sampled temperature only on recovery retries — identical
-              // greedy retries replay identical failures.
-              const scion = await (async () => {
-                if (provider !== 'local') return null;
-                const contracts = await import('../lib/scionContracts');
-                const mcCount = (prompt.itemPlan || []).filter((slot) => slot.type === 'multiple_choice').length || 4;
-                return {
-                  contracts,
-                  schema: contracts.kernelBatchSchemaProfile({
-                    expectedLessonIds,
-                    contentSourcedLessonIds,
-                    includeCourseLevel,
-                    mcCount,
-                  }),
-                };
-              })();
+              // sampled temperature only on recovery retries. The orchestration
+              // lives in a lazy chunk (scionPassB) so the local-only wiring
+              // never inflates the main AppFlow bundle.
+              // Scion (V2.1 D): all local-only compiler wiring lives in the
+              // lazy scionPassB chunk — the declared json_schema contract +
+              // greedy-first temperature (D1/D2) and the judge-moving passes +
+              // on-device flywheel (D3/D4). The main bundle carries none of it.
+              const scionMod = provider === 'local' ? await import('../lib/scionPassB') : null;
               const result = await streamProvider(provider, apiKey, modelId, prompt.systemPrompt, prompt.userPrompt, {
                 modelCapabilities,
                 generationPlan,
                 featureId: 'blueprintEnrichment',
                 task: 'blueprintEnrichment',
-                ...(scion ? { schema: scion.schema, temperature: recoveryAttempt > 0 ? 0.7 : 0 } : {}),
+                ...(scionMod
+                  ? scionMod.scionCallOpts({
+                      prompt,
+                      expectedLessonIds,
+                      contentSourcedLessonIds,
+                      includeCourseLevel,
+                      recoveryAttempt,
+                    })
+                  : {}),
                 maxOutputTokens: nativeBatching.getNativePassBOutputTokenBudget({
                   lessonCount: chunk.length,
                   maxOutputTokens,
@@ -1342,55 +1344,23 @@ export default function useDeliverables({
                 onApiCallEvent: recordGenerationApiCallEvent,
                 signal: controller.signal,
               });
-              // Scion (V2.1 D3/D4): the judge-moving passes run in the
-              // compiler where they are visible and testable; accepted
-              // regenerations feed the on-device flywheel.
               let passBText = result?.fullText || '';
-              if (scion && scion.contracts.scionPassesEnabled()) {
-                try {
-                  const [{ applyScionKernelPasses }, { postFlywheelEvents }] = await Promise.all([
-                    import('../lib/scionPasses'),
-                    import('../lib/scionFlywheel'),
-                  ]);
-                  const generateJson = async ({ system, user, schemaProfile, maxOutputTokens: passTokens, temperature }) => {
-                    const passResult = await streamProvider(provider, apiKey, modelId, system, user, {
-                      modelCapabilities,
-                      generationPlan,
-                      featureId: 'blueprintEnrichment',
-                      task: 'scionPass',
-                      schema: schemaProfile,
-                      ...(temperature ? { temperature } : {}),
-                      maxOutputTokens: passTokens || 2000,
-                      allowProviderFallback: false,
-                      onApiCallEvent: recordGenerationApiCallEvent,
-                      signal: controller.signal,
-                    });
-                    return passResult?.fullText || '';
-                  };
-                  const passOutcome = await applyScionKernelPasses(passBText, {
-                    promptLessons: prompt.lessons,
-                    generateJson,
-                    contentSourcedLessonIds,
-                  });
-                  passBText = passOutcome.text;
-                  if (passOutcome.events.length > 0) {
-                    recordGenerationApiCallEvent({
-                      type: 'pipelineDecision',
-                      label: 'Scion quality passes',
-                      detail: passOutcome.events
-                        .map((event) => `${event.pass}:${event.lessonId}${event.action ? ` ${event.action}` : ''}`)
-                        .join(' · '),
-                      featureId: 'blueprintEnrichment',
-                      task: 'scionPass',
-                    });
-                    postFlywheelEvents(passOutcome.events, {
-                      course: blueprintCourseMap?.courseName || '',
-                      chunk: expectedLessonIds,
-                    });
-                  }
-                } catch {
-                  /* passes are best-effort — the draft ships */
-                }
+              if (scionMod) {
+                passBText = await scionMod.runScionPasses({
+                  rawText: passBText,
+                  streamProvider,
+                  provider,
+                  apiKey,
+                  modelId,
+                  modelCapabilities,
+                  generationPlan,
+                  signal: controller.signal,
+                  recordEvent: recordGenerationApiCallEvent,
+                  prompt,
+                  expectedLessonIds,
+                  contentSourcedLessonIds,
+                  courseName: blueprintCourseMap?.courseName || '',
+                });
               }
               const parsed = parseNativePassBResponse(passBText, {
                 prompt,

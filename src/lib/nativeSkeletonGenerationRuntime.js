@@ -64,25 +64,18 @@ export async function runNativeSkeletonGenerationFlow(input = [], output = []) {
       skeletonSchema = contracts.skeletonSchemaProfile({ sessionCount: detected.expected });
       skeletonSystemPrompt += contracts.SCION_SKELETON_DIRECTIVE;
     }
-    const skeletonResult = await streamProvider(
-      provider,
-      apiKey,
-      modelId,
-      skeletonSystemPrompt,
-      skeletonUserPrompt,
-      {
-        maxOutputTokens: generationPlan?.courseMapOutputTokens || maxOutputTokens,
-        modelCapabilities,
-        generationPlan,
-        ...(skeletonSchema ? { schema: skeletonSchema } : {}),
-        task: 'nativeSkeleton',
-        onApiCallEvent: recordApiCallEvent,
-        onChunk: (text, count) => {
-          if (fullTextRef) fullTextRef.current = text;
-          updateGenerationProgress?.(text, count);
-        },
+    const skeletonResult = await streamProvider(provider, apiKey, modelId, skeletonSystemPrompt, skeletonUserPrompt, {
+      maxOutputTokens: generationPlan?.courseMapOutputTokens || maxOutputTokens,
+      modelCapabilities,
+      generationPlan,
+      ...(skeletonSchema ? { schema: skeletonSchema } : {}),
+      task: 'nativeSkeleton',
+      onApiCallEvent: recordApiCallEvent,
+      onChunk: (text, count) => {
+        if (fullTextRef) fullTextRef.current = text;
+        updateGenerationProgress?.(text, count);
       },
-    );
+    });
     const skeleton = nativeAuthoring.parseNativeSkeletonResponse(skeletonResult?.fullText || '', {
       expectedLessons: detected?.confidence === 'high' ? detected?.expected || null : null,
       sourceText: skeletonSource,

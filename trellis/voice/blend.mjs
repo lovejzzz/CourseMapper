@@ -125,7 +125,13 @@ export async function blendCorrectives(
         continue; // S failure keeps the appended form
       }
       if (!explanationGate(entry, text, accepted)) {
-        void logBlendPair({ task: 'blend-explanation', accepted: false, reason: 'explanation-gate', source: entry.explanation, target: text });
+        void logBlendPair({
+          task: 'blend-explanation',
+          accepted: false,
+          reason: 'explanation-gate',
+          source: entry.explanation,
+          target: text,
+        });
         continue;
       }
       const item = authored[entry.lessonId]?.quizItems?.[entry.itemIndex];
@@ -170,7 +176,13 @@ export async function blendCorrectives(
       if (!explanationGate(entry, text, accepted)) {
         // Tendril corpus (T-M2): gate verdicts are training labels;
         // fire-and-forget so logging can never slow or break a blend.
-        void logBlendPair({ task: 'blend-explanation', accepted: false, reason: 'explanation-gate', source: entry.explanation, target: text });
+        void logBlendPair({
+          task: 'blend-explanation',
+          accepted: false,
+          reason: 'explanation-gate',
+          source: entry.explanation,
+          target: text,
+        });
         continue;
       }
       const item = authored[entry.lessonId]?.quizItems?.[entry.itemIndex];

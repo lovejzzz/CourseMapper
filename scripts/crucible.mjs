@@ -1539,7 +1539,7 @@ async function runLiveRounds(options) {
   // rerouted per browser context, no paid generation spend, no src/ change.
   // Run dirs are suffixed --e2b (same pattern as provider suffixing) so these
   // rounds never collide with paid history; baseId keeps baseline pairing.
-  const llmShimUrl = options.llm === 'e2b' ? (options.shimUrl || 'http://127.0.0.1:8799') : null;
+  const llmShimUrl = options.llm === 'e2b' ? options.shimUrl || 'http://127.0.0.1:8799' : null;
   if (options.llm && options.llm !== 'e2b') {
     throw new Error(`--llm supports only "e2b" (got "${options.llm}")`);
   }
@@ -1582,7 +1582,9 @@ async function runLiveRounds(options) {
       const probe = await fetch(llmShimUrl, { method: 'GET' });
       log(`LLM: Gemma 4 E2B via local shim ${llmShimUrl} (probe HTTP ${probe.status}) — $0 generation`);
     } catch {
-      log(`ABORTED: --llm e2b but no shim answers at ${llmShimUrl} — start it first: node scripts/crucible/e2bOpenAIShim.mjs`);
+      log(
+        `ABORTED: --llm e2b but no shim answers at ${llmShimUrl} — start it first: node scripts/crucible/e2bOpenAIShim.mjs`,
+      );
       process.exitCode = 1;
       return;
     }

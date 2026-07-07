@@ -165,47 +165,49 @@ async function loadOrGenerateParaphrases(bank, ledger) {
   const BATCH = 10;
   for (let i = 0; i < kernels.length; i += BATCH) {
     const batch = kernels.slice(i, i + BATCH);
-    const result = await withNetworkRetry(() => callModel({
-      tier: 'ds',
-      stage: 'paraphrase-eval',
-      ledger,
-      system:
-        'You simulate students who hold specific misconceptions. For each misconception you receive, write exactly 2 short typed quiz answers (8-25 words) a real student holding that WRONG belief would type. Casual student language, occasional imprecision. Do NOT copy the misconception statement or the sample answer — express the same wrong belief in fresh words. Return JSON only.',
-      user: JSON.stringify({
-        instructions:
-          'Return {"kernels":[{"kernelId":"...","families":[{"family":"<verbatim family key>","answers":["...","..."]}]}]} covering every kernel and family given.',
-        kernels: batch,
-      }),
-      schema: {
-        type: 'object',
-        properties: {
-          kernels: {
-            type: 'array',
-            items: {
-              type: 'object',
-              properties: {
-                kernelId: { type: 'string' },
-                families: {
-                  type: 'array',
-                  items: {
-                    type: 'object',
-                    properties: {
-                      family: { type: 'string' },
-                      answers: { type: 'array', items: { type: 'string' } },
+    const result = await withNetworkRetry(() =>
+      callModel({
+        tier: 'ds',
+        stage: 'paraphrase-eval',
+        ledger,
+        system:
+          'You simulate students who hold specific misconceptions. For each misconception you receive, write exactly 2 short typed quiz answers (8-25 words) a real student holding that WRONG belief would type. Casual student language, occasional imprecision. Do NOT copy the misconception statement or the sample answer — express the same wrong belief in fresh words. Return JSON only.',
+        user: JSON.stringify({
+          instructions:
+            'Return {"kernels":[{"kernelId":"...","families":[{"family":"<verbatim family key>","answers":["...","..."]}]}]} covering every kernel and family given.',
+          kernels: batch,
+        }),
+        schema: {
+          type: 'object',
+          properties: {
+            kernels: {
+              type: 'array',
+              items: {
+                type: 'object',
+                properties: {
+                  kernelId: { type: 'string' },
+                  families: {
+                    type: 'array',
+                    items: {
+                      type: 'object',
+                      properties: {
+                        family: { type: 'string' },
+                        answers: { type: 'array', items: { type: 'string' } },
+                      },
+                      required: ['family', 'answers'],
                     },
-                    required: ['family', 'answers'],
                   },
                 },
+                required: ['kernelId', 'families'],
               },
-              required: ['kernelId', 'families'],
             },
           },
+          required: ['kernels'],
         },
-        required: ['kernels'],
-      },
-      schemaName: 'paraphrases',
-      validate: (out) => (Array.isArray(out?.kernels) && out.kernels.length > 0 ? [] : ['kernels array required']),
-    }));
+        schemaName: 'paraphrases',
+        validate: (out) => (Array.isArray(out?.kernels) && out.kernels.length > 0 ? [] : ['kernels array required']),
+      }),
+    );
     if (result) generated.push(...result.result.kernels);
     else skipped.push(...batch.map((k) => k.kernelId));
   }
@@ -291,8 +293,7 @@ async function loadOrGenerateCorrectParaphrases(bank, ledger) {
         system:
           'You simulate students who UNDERSTAND a concept correctly. For each quiz question and its correct answer, write exactly 2 short typed answers (8-25 words) a student who genuinely gets it would type. Casual student language. Do NOT copy the correct answer text — express the same correct idea in fresh words. Return JSON only.',
         user: JSON.stringify({
-          instructions:
-            'Return {"kernels":[{"kernelId":"...","answers":["...","..."]}]} covering every kernel given.',
+          instructions: 'Return {"kernels":[{"kernelId":"...","answers":["...","..."]}]} covering every kernel given.',
           kernels: batch,
         }),
         schema: {
@@ -427,7 +428,13 @@ async function evalContrastive(bank, embedder, ledger) {
       if (!ctx) continue;
       for (const answer of (fam.answers ?? []).slice(0, 2)) {
         if (typeof answer === 'string' && answer.length >= 8) {
-          wrongQueries.push({ kernelId: kernel.kernelId, family: fam.family, answer, correctText: ctx.correctText, ctx });
+          wrongQueries.push({
+            kernelId: kernel.kernelId,
+            family: fam.family,
+            answer,
+            correctText: ctx.correctText,
+            ctx,
+          });
         }
       }
     }
@@ -495,8 +502,7 @@ async function evalContrastive(bank, embedder, ledger) {
           cosineOf(q.answer, ctx.correctText),
           useExpl && ctx.explanation ? cosineOf(q.answer, ctx.explanation) : -1,
         );
-        const effMargin =
-          (mode === 'deployed' || mode === 'deployed2') && short ? Math.max(margin, 0.05) : margin;
+        const effMargin = (mode === 'deployed' || mode === 'deployed2') && short ? Math.max(margin, 0.05) : margin;
         const fires = wrongTop >= 0.35 && wrongTop > nullTop + effMargin;
         if (fires) {
           fired += 1;
@@ -596,7 +602,13 @@ async function evalContrastive(bank, embedder, ledger) {
       })),
   );
   const shortTexts = shortCorrectQueries
-    .flatMap((q) => [q.answer, q.ctx.correctText, q.ctx.explanation ?? '', q.family ?? '', ...(q.ctx.distractors ?? [])])
+    .flatMap((q) => [
+      q.answer,
+      q.ctx.correctText,
+      q.ctx.explanation ?? '',
+      q.family ?? '',
+      ...(q.ctx.distractors ?? []),
+    ])
     .filter(Boolean);
   const shortVecs = await cachedEmbed(shortTexts, { name: 'contrastive-eval', embedder });
   shortTexts.forEach((t, i) => vecOf.set(t, shortVecs[i]));

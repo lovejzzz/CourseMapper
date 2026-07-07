@@ -66,28 +66,28 @@ export async function buildTutorCourse(runDir) {
   let matched = 0;
   let total = 0;
   for (const lesson of graph.lessons) {
-  const art = authored[lesson.id];
-  if (!art?.quizItems?.length) continue;
-  const items = art.quizItems.map((item) => {
-    total += 1;
-    const b = bankMatch(item);
-    if (b) matched += 1;
-    const misconception = b
-      ? misconceptions.find((m) => m.kernelId === b.kernelId && m.familyKey === b.familyKey)
-      : null;
-    return {
-      stem: item.stem,
-      options: item.options,
-      correctIndex: item.correctIndex,
-      explanation: item.explanation,
-      familyKey: b?.familyKey ?? null,
-      kernelId: b?.kernelId ?? null,
-      corrective: misconception?.corrective ?? null,
-      misconception: misconception?.statement ?? null,
-      reteach: b ? reteachFor(b.kernelId) : null,
-      sibling: b ? siblingFor(b) : null,
-    };
-  });
+    const art = authored[lesson.id];
+    if (!art?.quizItems?.length) continue;
+    const items = art.quizItems.map((item) => {
+      total += 1;
+      const b = bankMatch(item);
+      if (b) matched += 1;
+      const misconception = b
+        ? misconceptions.find((m) => m.kernelId === b.kernelId && m.familyKey === b.familyKey)
+        : null;
+      return {
+        stem: item.stem,
+        options: item.options,
+        correctIndex: item.correctIndex,
+        explanation: item.explanation,
+        familyKey: b?.familyKey ?? null,
+        kernelId: b?.kernelId ?? null,
+        corrective: misconception?.corrective ?? null,
+        misconception: misconception?.statement ?? null,
+        reteach: b ? reteachFor(b.kernelId) : null,
+        sibling: b ? siblingFor(b) : null,
+      };
+    });
     lessons.push({ id: lesson.id, title: lesson.title, week: lesson.week, items });
   }
 
@@ -130,7 +130,10 @@ export async function writeTutorBundle(course, outDir, { assets = 'copy' } = {})
     return;
   }
   await cp('trellis/tendril/models/tendril-e2d', join(outDir, 'models', 'tendril-e2d'), { recursive: true });
-  await cp('node_modules/@huggingface/transformers/dist/transformers.min.js', join(outDir, 'vendor/transformers.min.js'));
+  await cp(
+    'node_modules/@huggingface/transformers/dist/transformers.min.js',
+    join(outDir, 'vendor/transformers.min.js'),
+  );
   // ORT probes backend variants at runtime (jsep/asyncify/jspi/plain) —
   // ship every loader+wasm pair it might resolve to.
   const { readdir: readDir } = await import('node:fs/promises');

@@ -1,399 +1,399 @@
 {
- "stamp": "SIMULATED instruments — deployment gates + non-identity + claim-preservation stand-in",
- "qwen-dpo": {
-  "overall": {
-   "total": 120,
-   "accepted": 45,
-   "rate": 0.375
+  "stamp": "SIMULATED instruments — deployment gates + non-identity + claim-preservation stand-in",
+  "qwen-dpo": {
+    "overall": {
+      "total": 120,
+      "accepted": 45,
+      "rate": 0.375
+    },
+    "byTask": {
+      "skin": {
+        "total": 60,
+        "accepted": 17,
+        "reasons": {
+          "length-band": 25,
+          "mode-example": 2,
+          "identity-noop": 14,
+          "terminal-punct": 2
+        },
+        "rate": 0.283
+      },
+      "blend": {
+        "total": 60,
+        "accepted": 28,
+        "reasons": {
+          "identity-noop": 21,
+          "length-band": 10,
+          "claim-loss": 1
+        },
+        "rate": 0.467
+      }
+    }
   },
-  "byTask": {
-   "skin": {
-    "total": 60,
-    "accepted": 17,
-    "reasons": {
-     "length-band": 25,
-     "mode-example": 2,
-     "identity-noop": 14,
-     "terminal-punct": 2
+  "tendril-s3": {
+    "overall": {
+      "total": 120,
+      "accepted": 62,
+      "rate": 0.517
     },
-    "rate": 0.283
-   },
-   "blend": {
-    "total": 60,
-    "accepted": 28,
-    "reasons": {
-     "identity-noop": 21,
-     "length-band": 10,
-     "claim-loss": 1
-    },
-    "rate": 0.467
-   }
-  }
- },
- "tendril-s3": {
-  "overall": {
-   "total": 120,
-   "accepted": 62,
-   "rate": 0.517
+    "byTask": {
+      "skin": {
+        "total": 60,
+        "accepted": 27,
+        "reasons": {
+          "mode-example": 2,
+          "length-band": 13,
+          "identity-noop": 18
+        },
+        "rate": 0.45
+      },
+      "blend": {
+        "total": 60,
+        "accepted": 35,
+        "reasons": {
+          "identity-noop": 15,
+          "length-band": 9,
+          "claim-loss": 1
+        },
+        "rate": 0.583
+      }
+    }
   },
-  "byTask": {
-   "skin": {
-    "total": 60,
-    "accepted": 27,
-    "reasons": {
-     "mode-example": 2,
-     "length-band": 13,
-     "identity-noop": 18
+  "tendril-s3b": {
+    "overall": {
+      "total": 120,
+      "accepted": 80,
+      "rate": 0.667
     },
-    "rate": 0.45
-   },
-   "blend": {
-    "total": 60,
-    "accepted": 35,
-    "reasons": {
-     "identity-noop": 15,
-     "length-band": 9,
-     "claim-loss": 1
-    },
-    "rate": 0.583
-   }
-  }
- },
- "tendril-s3b": {
-  "overall": {
-   "total": 120,
-   "accepted": 80,
-   "rate": 0.667
+    "byTask": {
+      "skin": {
+        "total": 60,
+        "accepted": 43,
+        "reasons": {
+          "identity-noop": 14,
+          "length-band": 2,
+          "mode-example": 1
+        },
+        "rate": 0.717
+      },
+      "blend": {
+        "total": 60,
+        "accepted": 37,
+        "reasons": {
+          "length-band": 4,
+          "identity-noop": 16,
+          "claim-loss": 3
+        },
+        "rate": 0.617
+      }
+    }
   },
-  "byTask": {
-   "skin": {
-    "total": 60,
-    "accepted": 43,
-    "reasons": {
-     "identity-noop": 14,
-     "length-band": 2,
-     "mode-example": 1
+  "gemma4-e2b-ft2": {
+    "overall": {
+      "total": 120,
+      "accepted": 16,
+      "rate": 0.133
     },
-    "rate": 0.717
-   },
-   "blend": {
-    "total": 60,
-    "accepted": 37,
-    "reasons": {
-     "length-band": 4,
-     "identity-noop": 16,
-     "claim-loss": 3
-    },
-    "rate": 0.617
-   }
-  }
- },
- "gemma4-e2b-ft2": {
-  "overall": {
-   "total": 120,
-   "accepted": 16,
-   "rate": 0.133
+    "byTask": {
+      "skin": {
+        "total": 60,
+        "accepted": 5,
+        "reasons": {
+          "mode-example": 2,
+          "identity-noop": 52,
+          "length-band": 1
+        },
+        "rate": 0.083
+      },
+      "blend": {
+        "total": 60,
+        "accepted": 11,
+        "reasons": {
+          "identity-noop": 45,
+          "length-band": 4
+        },
+        "rate": 0.183
+      }
+    }
   },
-  "byTask": {
-   "skin": {
-    "total": 60,
-    "accepted": 5,
-    "reasons": {
-     "mode-example": 2,
-     "identity-noop": 52,
-     "length-band": 1
+  "gemma4-e2b-ft": {
+    "overall": {
+      "total": 120,
+      "accepted": 32,
+      "rate": 0.267
     },
-    "rate": 0.083
-   },
-   "blend": {
-    "total": 60,
-    "accepted": 11,
-    "reasons": {
-     "identity-noop": 45,
-     "length-band": 4
-    },
-    "rate": 0.183
-   }
-  }
- },
- "gemma4-e2b-ft": {
-  "overall": {
-   "total": 120,
-   "accepted": 32,
-   "rate": 0.267
+    "byTask": {
+      "skin": {
+        "total": 60,
+        "accepted": 8,
+        "reasons": {
+          "mode-example": 2,
+          "identity-noop": 49,
+          "length-band": 1
+        },
+        "rate": 0.133
+      },
+      "blend": {
+        "total": 60,
+        "accepted": 24,
+        "reasons": {
+          "length-band": 5,
+          "identity-noop": 31
+        },
+        "rate": 0.4
+      }
+    }
   },
-  "byTask": {
-   "skin": {
-    "total": 60,
-    "accepted": 8,
-    "reasons": {
-     "mode-example": 2,
-     "identity-noop": 49,
-     "length-band": 1
+  "gemma4-e2b-zs": {
+    "overall": {
+      "total": 120,
+      "accepted": 76,
+      "rate": 0.633
     },
-    "rate": 0.133
-   },
-   "blend": {
-    "total": 60,
-    "accepted": 24,
-    "reasons": {
-     "length-band": 5,
-     "identity-noop": 31
-    },
-    "rate": 0.4
-   }
-  }
- },
- "gemma4-e2b-zs": {
-  "overall": {
-   "total": 120,
-   "accepted": 76,
-   "rate": 0.633
+    "byTask": {
+      "skin": {
+        "total": 60,
+        "accepted": 41,
+        "reasons": {
+          "mode-example": 3,
+          "terminal-punct": 7,
+          "length-band": 7,
+          "identity-noop": 2
+        },
+        "rate": 0.683
+      },
+      "blend": {
+        "total": 60,
+        "accepted": 35,
+        "reasons": {
+          "length-band": 24,
+          "claim-loss": 1
+        },
+        "rate": 0.583
+      }
+    }
   },
-  "byTask": {
-   "skin": {
-    "total": 60,
-    "accepted": 41,
-    "reasons": {
-     "mode-example": 3,
-     "terminal-punct": 7,
-     "length-band": 7,
-     "identity-noop": 2
+  "s2-web": {
+    "overall": {
+      "total": 60,
+      "accepted": 26,
+      "rate": 0.433
     },
-    "rate": 0.683
-   },
-   "blend": {
-    "total": 60,
-    "accepted": 35,
-    "reasons": {
-     "length-band": 24,
-     "claim-loss": 1
-    },
-    "rate": 0.583
-   }
-  }
- },
- "s2-web": {
-  "overall": {
-   "total": 60,
-   "accepted": 26,
-   "rate": 0.433
+    "byTask": {
+      "blend": {
+        "total": 60,
+        "accepted": 26,
+        "reasons": {
+          "length-band": 18,
+          "claim-loss": 15,
+          "identity-noop": 1
+        },
+        "rate": 0.433
+      }
+    }
   },
-  "byTask": {
-   "blend": {
-    "total": 60,
-    "accepted": 26,
-    "reasons": {
-     "length-band": 18,
-     "claim-loss": 15,
-     "identity-noop": 1
+  "qwen-skin": {
+    "overall": {
+      "total": 120,
+      "accepted": 65,
+      "rate": 0.542
     },
-    "rate": 0.433
-   }
-  }
- },
- "qwen-skin": {
-  "overall": {
-   "total": 120,
-   "accepted": 65,
-   "rate": 0.542
+    "byTask": {
+      "skin": {
+        "total": 60,
+        "accepted": 32,
+        "reasons": {
+          "identity-noop": 24,
+          "length-band": 4
+        },
+        "rate": 0.533
+      },
+      "blend": {
+        "total": 60,
+        "accepted": 33,
+        "reasons": {
+          "length-band": 10,
+          "claim-loss": 8,
+          "identity-noop": 9
+        },
+        "rate": 0.55
+      }
+    }
   },
-  "byTask": {
-   "skin": {
-    "total": 60,
-    "accepted": 32,
-    "reasons": {
-     "identity-noop": 24,
-     "length-band": 4
+  "qwen-blend": {
+    "overall": {
+      "total": 120,
+      "accepted": 70,
+      "rate": 0.583
     },
-    "rate": 0.533
-   },
-   "blend": {
-    "total": 60,
-    "accepted": 33,
-    "reasons": {
-     "length-band": 10,
-     "claim-loss": 8,
-     "identity-noop": 9
-    },
-    "rate": 0.55
-   }
-  }
- },
- "qwen-blend": {
-  "overall": {
-   "total": 120,
-   "accepted": 70,
-   "rate": 0.583
+    "byTask": {
+      "skin": {
+        "total": 60,
+        "accepted": 29,
+        "reasons": {
+          "mode-example": 14,
+          "identity-noop": 4,
+          "length-band": 13
+        },
+        "rate": 0.483
+      },
+      "blend": {
+        "total": 60,
+        "accepted": 41,
+        "reasons": {
+          "length-band": 11,
+          "identity-noop": 7,
+          "claim-loss": 1
+        },
+        "rate": 0.683
+      }
+    }
   },
-  "byTask": {
-   "skin": {
-    "total": 60,
-    "accepted": 29,
-    "reasons": {
-     "mode-example": 14,
-     "identity-noop": 4,
-     "length-band": 13
+  "smol-skin": {
+    "overall": {
+      "total": 120,
+      "accepted": 43,
+      "rate": 0.358
     },
-    "rate": 0.483
-   },
-   "blend": {
-    "total": 60,
-    "accepted": 41,
-    "reasons": {
-     "length-band": 11,
-     "identity-noop": 7,
-     "claim-loss": 1
-    },
-    "rate": 0.683
-   }
-  }
- },
- "smol-skin": {
-  "overall": {
-   "total": 120,
-   "accepted": 43,
-   "rate": 0.358
+    "byTask": {
+      "skin": {
+        "total": 60,
+        "accepted": 18,
+        "reasons": {
+          "length-band": 13,
+          "identity-noop": 28,
+          "terminal-punct": 1
+        },
+        "rate": 0.3
+      },
+      "blend": {
+        "total": 60,
+        "accepted": 25,
+        "reasons": {
+          "identity-noop": 11,
+          "length-band": 14,
+          "claim-loss": 10
+        },
+        "rate": 0.417
+      }
+    }
   },
-  "byTask": {
-   "skin": {
-    "total": 60,
-    "accepted": 18,
-    "reasons": {
-     "length-band": 13,
-     "identity-noop": 28,
-     "terminal-punct": 1
+  "smol-blend": {
+    "overall": {
+      "total": 120,
+      "accepted": 78,
+      "rate": 0.65
     },
-    "rate": 0.3
-   },
-   "blend": {
-    "total": 60,
-    "accepted": 25,
-    "reasons": {
-     "identity-noop": 11,
-     "length-band": 14,
-     "claim-loss": 10
-    },
-    "rate": 0.417
-   }
-  }
- },
- "smol-blend": {
-  "overall": {
-   "total": 120,
-   "accepted": 78,
-   "rate": 0.65
+    "byTask": {
+      "skin": {
+        "total": 60,
+        "accepted": 38,
+        "reasons": {
+          "mode-example": 3,
+          "terminal-punct": 6,
+          "identity-noop": 8,
+          "length-band": 5
+        },
+        "rate": 0.633
+      },
+      "blend": {
+        "total": 60,
+        "accepted": 40,
+        "reasons": {
+          "length-band": 9,
+          "identity-noop": 6,
+          "claim-loss": 5
+        },
+        "rate": 0.667
+      }
+    }
   },
-  "byTask": {
-   "skin": {
-    "total": 60,
-    "accepted": 38,
-    "reasons": {
-     "mode-example": 3,
-     "terminal-punct": 6,
-     "identity-noop": 8,
-     "length-band": 5
+  "tendril-s": {
+    "overall": {
+      "total": 120,
+      "accepted": 87,
+      "rate": 0.725
     },
-    "rate": 0.633
-   },
-   "blend": {
-    "total": 60,
-    "accepted": 40,
-    "reasons": {
-     "length-band": 9,
-     "identity-noop": 6,
-     "claim-loss": 5
-    },
-    "rate": 0.667
-   }
-  }
- },
- "tendril-s": {
-  "overall": {
-   "total": 120,
-   "accepted": 87,
-   "rate": 0.725
+    "byTask": {
+      "skin": {
+        "total": 60,
+        "accepted": 37,
+        "reasons": {
+          "identity-noop": 11,
+          "length-band": 10,
+          "mode-example": 2
+        },
+        "rate": 0.617
+      },
+      "blend": {
+        "total": 60,
+        "accepted": 50,
+        "reasons": {
+          "length-band": 6,
+          "claim-loss": 1,
+          "identity-noop": 3
+        },
+        "rate": 0.833
+      }
+    }
   },
-  "byTask": {
-   "skin": {
-    "total": 60,
-    "accepted": 37,
-    "reasons": {
-     "identity-noop": 11,
-     "length-band": 10,
-     "mode-example": 2
+  "smollm-base": {
+    "overall": {
+      "total": 120,
+      "accepted": 20,
+      "rate": 0.167
     },
-    "rate": 0.617
-   },
-   "blend": {
-    "total": 60,
-    "accepted": 50,
-    "reasons": {
-     "length-band": 6,
-     "claim-loss": 1,
-     "identity-noop": 3
-    },
-    "rate": 0.833
-   }
-  }
- },
- "smollm-base": {
-  "overall": {
-   "total": 120,
-   "accepted": 20,
-   "rate": 0.167
+    "byTask": {
+      "skin": {
+        "total": 60,
+        "accepted": 4,
+        "reasons": {
+          "length-band": 25,
+          "identity-noop": 18,
+          "terminal-punct": 12,
+          "mode-example": 1
+        },
+        "rate": 0.067
+      },
+      "blend": {
+        "total": 60,
+        "accepted": 16,
+        "reasons": {
+          "terminal-punct": 17,
+          "length-band": 12,
+          "identity-noop": 13,
+          "claim-loss": 2
+        },
+        "rate": 0.267
+      }
+    }
   },
-  "byTask": {
-   "skin": {
-    "total": 60,
-    "accepted": 4,
-    "reasons": {
-     "length-band": 25,
-     "identity-noop": 18,
-     "terminal-punct": 12,
-     "mode-example": 1
+  "nano": {
+    "overall": {
+      "total": 120,
+      "accepted": 86,
+      "rate": 0.717
     },
-    "rate": 0.067
-   },
-   "blend": {
-    "total": 60,
-    "accepted": 16,
-    "reasons": {
-     "terminal-punct": 17,
-     "length-band": 12,
-     "identity-noop": 13,
-     "claim-loss": 2
-    },
-    "rate": 0.267
-   }
+    "byTask": {
+      "skin": {
+        "total": 60,
+        "accepted": 38,
+        "reasons": {
+          "identity-noop": 16,
+          "code-fence": 1,
+          "mode-example": 5
+        },
+        "rate": 0.633
+      },
+      "blend": {
+        "total": 60,
+        "accepted": 48,
+        "reasons": {
+          "length-band": 10,
+          "identity-noop": 2
+        },
+        "rate": 0.8
+      }
+    }
   }
- },
- "nano": {
-  "overall": {
-   "total": 120,
-   "accepted": 86,
-   "rate": 0.717
-  },
-  "byTask": {
-   "skin": {
-    "total": 60,
-    "accepted": 38,
-    "reasons": {
-     "identity-noop": 16,
-     "code-fence": 1,
-     "mode-example": 5
-    },
-    "rate": 0.633
-   },
-   "blend": {
-    "total": 60,
-    "accepted": 48,
-    "reasons": {
-     "length-band": 10,
-     "identity-noop": 2
-    },
-    "rate": 0.8
-   }
-  }
- }
 }

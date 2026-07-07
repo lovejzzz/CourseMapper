@@ -13,6 +13,7 @@ top-to-bottom within its budget discipline. Ground rules (TRELLIS.md
 ## A · Measurement instruments
 
 ### A1 · PROF-BENCH classroom battery (`scripts/prof`, v1.1.0)
+
 - **State:** versioned, frozen, calibrated (digit tokens); runs in-pipeline
   at stage 7c and standalone; $0.
 - **Weakness:** learning-rule parameters are literature-grounded but
@@ -28,6 +29,7 @@ top-to-bottom within its budget discipline. Ground rules (TRELLIS.md
   repair; provenance table covers every constant in learningRules.json.
 
 ### A2 · Cross-family judge panel (`trellis/advisoryJudge.mjs`)
+
 - **State:** 2 openai + 1 deepseek-v4-pro seats, per-family scores,
   visible seat failures; bias measured ±1 and unflattering twice.
 - **Weakness:** samples ONE lesson's three artifacts — a package is 90+
@@ -41,6 +43,7 @@ top-to-bottom within its budget discipline. Ground rules (TRELLIS.md
   family seat spread ≤1 on two consecutive panels.
 
 ### A3 · Adjudicated read (charter protocol, `docs/adjudications/`)
+
 - **State:** protocol live; round one caught a class the panel missed
   (self-answering stem scored 7 by the panel, 5.5 by the read).
 - **Weakness:** cadence and blinding are undefined — reads happen when I
@@ -53,6 +56,7 @@ top-to-bottom within its budget discipline. Ground rules (TRELLIS.md
   extractor; cadence written into PROF_BENCH.md.
 
 ### A4 · Deep grader v1.8.0 (regression floor)
+
 - **State:** reframed as floor; both pipelines 96–99/A.
 - **Weakness:** none to fix at the floor role — the risk is scope creep
   back into "quality signal."
@@ -62,6 +66,7 @@ top-to-bottom within its budget discipline. Ground rules (TRELLIS.md
 - **Exit bar:** n/a (role held).
 
 ### A5 · Judgment layer J1–J12 + V1–V7 (in-pipeline gates)
+
 - **State:** converged — 1–6 residuals/run, all disclosed; J11 delegates
   to the bench matcher (no mirrors).
 - **Weakness:** J2 one-tier Bloom advisories linger in every findings
@@ -80,6 +85,7 @@ top-to-bottom within its budget discipline. Ground rules (TRELLIS.md
 ## B · Generation machinery
 
 ### B1 · Item bank + harvester (`knowledge/itemBank.mjs`, 1,452 items/72 kernels)
+
 - **State:** 60–70% weekly coverage, $0 selection, aesthetic gates
   (meta/length/truncation/fence), provenance-tracked.
 - **Weakness:** THE head-to-head finding — selection dedupes stems but
@@ -95,6 +101,7 @@ top-to-bottom within its budget discipline. Ground rules (TRELLIS.md
   ≥7.5 pooled on the A2 multi-lesson panel; bank ≥100 kernels.
 
 ### B2 · Gate-validated blends (options + explanations)
+
 - **State:** partial acceptance, nano→mini escalation, cosmetic by
   construction; 47–58 of ~60 accepted per run.
 - **Weakness:** the ~20% reject tail keeps pasted forms (LA math worst);
@@ -106,6 +113,7 @@ top-to-bottom within its budget discipline. Ground rules (TRELLIS.md
 - **Exit bar:** blend acceptance ≥90% on cs AND LA.
 
 ### B3 · Overnight batch transport (`providers.batchCallModels`)
+
 - **State:** mechanics proven (probe at batch rates, single-model
   partitioning fixed, honest transport digest); full-course validation
   still pending a queue-friendly window.
@@ -116,6 +124,7 @@ top-to-bottom within its budget discipline. Ground rules (TRELLIS.md
   and total ≤$0.10, digest telling the truth about both.
 
 ### B4 · Deterministic passes (splice + corrective pairing)
+
 - **State:** instrument-mirrored (imports the bench matcher), scoped
   honestly (no force-mapping), lesson-level dedupe, belief-length floor.
 - **Weakness:** splice fires less after the honesty fixes (by design) —
@@ -127,6 +136,7 @@ top-to-bottom within its budget discipline. Ground rules (TRELLIS.md
   splicing.
 
 ### B5 · Knowledge chain (genome link → flywheel + verify → entailment → readings verify)
+
 - **State:** all live; entailment downgrades 13–46 claims/run honestly;
   flywheel verification same-family (deepseek now available!).
 - **Plan:** flip flywheelVerify to the `ds` tier — TRUE cross-family
@@ -137,6 +147,7 @@ top-to-bottom within its budget discipline. Ground rules (TRELLIS.md
   updated; cost delta ≤$0.01/course.
 
 ### B6 · Export adapter (7 DOCX features + per-lesson PPTX)
+
 - **State:** 22 Office files, grader-parser round-trip OK.
 - **Weakness:** rubrics feature unmapped; PPTX theme fixed at 0.
 - **Plan:** low priority — map `rubrics` (assignment rubricBands exist in
@@ -144,6 +155,7 @@ top-to-bottom within its budget discipline. Ground rules (TRELLIS.md
 - **Exit bar:** 8 features round-trip.
 
 ### B7 · Replan/diff machinery (M4)
+
 - **State:** proven in the drill (locked weeks untouched, 2/7 lessons
   re-authored) but unused since — no bank/blend/bench integration.
 - **Plan:** one drill on a CURRENT run: replan bench11-trellis dropping
@@ -152,6 +164,7 @@ top-to-bottom within its budget discipline. Ground rules (TRELLIS.md
 - **Exit bar:** replan drill green on v0.1.3+ machinery, ≤$0.05.
 
 ### B8 · Hourly improvement cron
+
 - **State:** live, session-bound, budget-disciplined; cycle 1 (run
   interactively) retired a defect class.
 - **Weakness:** its priority list is frozen in the job prompt and now

@@ -16,38 +16,38 @@ very run and remains the factory.
 
 ## The head-to-head (identical graph, identical instruments)
 
-| Measure | Trellis (v016/v017 replays) | **Composer E6** | Δ |
-| --- | --- | --- | --- |
-| **Cost** | $0.160–0.177 | **$0.060** | **−63%** |
-| Calls | 68–82 | 45 | −40% |
-| Wall | 195–243 s | 239 s | ≈ |
-| Grader | 97–98/A | 98/A (P1=0) | ≈ |
-| **Panel overall** | 8 [8,8] | **7.67 [7,8]** | −0.33, in noise |
-| Quiz by lesson (L4/L8/L13) | 8 / 7 / 7 | 7.33 / 7 / 7 | flat, no decay |
-| Classroom repair | 0.554–0.603 | 0.530 | −0.02 under band |
-| Residual findings | 3–4 | 3 (zero catch/pairing classes) | ≈ |
-| Blend acceptance | 85–97% | **100%** (64/64 + 7/7) | ↑ |
-| **Reuse by surface area** | 57–64% (quiz only) | **95%** (222 reused / 17 fresh parts) | — |
+| Measure                    | Trellis (v016/v017 replays) | **Composer E6**                       | Δ                |
+| -------------------------- | --------------------------- | ------------------------------------- | ---------------- |
+| **Cost**                   | $0.160–0.177                | **$0.060**                            | **−63%**         |
+| Calls                      | 68–82                       | 45                                    | −40%             |
+| Wall                       | 195–243 s                   | 239 s                                 | ≈                |
+| Grader                     | 97–98/A                     | 98/A (P1=0)                           | ≈                |
+| **Panel overall**          | 8 [8,8]                     | **7.67 [7,8]**                        | −0.33, in noise  |
+| Quiz by lesson (L4/L8/L13) | 8 / 7 / 7                   | 7.33 / 7 / 7                          | flat, no decay   |
+| Classroom repair           | 0.554–0.603                 | 0.530                                 | −0.02 under band |
+| Residual findings          | 3–4                         | 3 (zero catch/pairing classes)        | ≈                |
+| Blend acceptance           | 85–97%                      | **100%** (64/64 + 7/7)                | ↑                |
+| **Reuse by surface area**  | 57–64% (quiz only)          | **95%** (222 reused / 17 fresh parts) | —                |
 
 ## Exit bars, scored
 
-| Bar | Measured | Verdict |
-| --- | --- | --- |
-| Reuse ≥80% | **95%** | MET |
-| Cost ≤$0.08 | **$0.060** | MET |
-| Panel ≥7.5 | **7.67 [7,8]** | MET |
+| Bar                                     | Measured                                                                           | Verdict             |
+| --------------------------------------- | ---------------------------------------------------------------------------------- | ------------------- |
+| Reuse ≥80%                              | **95%**                                                                            | MET                 |
+| Cost ≤$0.08                             | **$0.060**                                                                         | MET                 |
+| Panel ≥7.5                              | **7.67 [7,8]**                                                                     | MET                 |
 | No seam objection in adjudication top-3 | zero two-voices defects; panel notes read "classroom-ready", "excellent structure" | MET (one nit below) |
-| Classroom repair in band (0.554–0.603) | 0.530 | **PARTIAL** (−0.02) |
+| Classroom repair in band (0.554–0.603)  | 0.530                                                                              | **PARTIAL** (−0.02) |
 
 ## The adjudicated read (L8 — historically the weakest lesson)
 
-- **Plan ~8/10.** 50 minutes, coherent arc, and the skin is *visibly
-  working*: the reused list worked-example is explicitly bridged into
+- **Plan ~8/10.** 50 minutes, coherent arc, and the skin is _visibly
+  working_: the reused list worked-example is explicitly bridged into
   the strings context ("then tie it back to text processing: if you
   extract…"), and the reteach walks a native strings misconception
   ("Calling s.strip() changes s in place…") with its correction. One
   recorded nit: an instructor would prefer a native strings worked
-  example over a bridged list one — a *shelf-depth* artifact, not a
+  example over a bridged list one — a _shelf-depth_ artifact, not a
   seam failure.
 - **Quiz ~7/10.** The v0.1.5 all-review defect is fully dead: two
   labeled reviews + four genuine strings items. One flagged defect: Q4
@@ -86,11 +86,11 @@ $0 autopsy); durability of the panel score across fresh graphs.
 
 Three hypotheses, three verdicts on the frozen ruler:
 
-| Change | Verdict | Evidence |
-| --- | --- | --- |
-| Per-item claims | **CONFIRMED, kept** | repair 0.530 → 0.548 → **0.567 (in band)** |
-| Solver gate (cross-family, blind) | **kept** (correctness net; pass-open disclosed) | live at fresh fills + gap-fill intake |
-| 4+2 fresh quiz mix | **REJECTED, reverted** | quiz panel 7.11 → 6.11 at 2× cost (E6b) |
+| Change                            | Verdict                                         | Evidence                                   |
+| --------------------------------- | ----------------------------------------------- | ------------------------------------------ |
+| Per-item claims                   | **CONFIRMED, kept**                             | repair 0.530 → 0.548 → **0.567 (in band)** |
+| Solver gate (cross-family, blind) | **kept** (correctness net; pass-open disclosed) | live at fresh fills + gap-fill intake      |
+| 4+2 fresh quiz mix                | **REJECTED, reverted**                          | quiz panel 7.11 → 6.11 at 2× cost (E6b)    |
 
 **E6c (final config): panel 8 [7,9] · quiz mean 7.67 (L4 8.33 — the
 best quiz score any pipeline has posted on this ruler) · repair 0.567

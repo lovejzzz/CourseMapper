@@ -132,13 +132,13 @@ Scion traffic uses declared contracts only.
 
 ## 5. Exit bars (pre-registered)
 
-| Bar | Instrument | V2 today | **V2.1 bar** |
-| --- | --- | --- | --- |
-| Compiler seat | pooled ≥12-seat panels, same course | 5.2 (paid 6.08) | **> paid pooled** |
-| Quiz artifact | per-artifact panel means | 4.7–5.5 | **≥ 6.0** |
-| Frozen rulers | long-JSON, showdown, scoreboard, battery | green | **no drift at any adopted checkpoint** |
-| Local provider | app end-to-end, keyless | n/a | **generate a full course from the Landing page at $0** |
-| Honesty | disclosure discipline | — | quality band shown in-app until the gauntlet passes |
+| Bar            | Instrument                               | V2 today        | **V2.1 bar**                                           |
+| -------------- | ---------------------------------------- | --------------- | ------------------------------------------------------ |
+| Compiler seat  | pooled ≥12-seat panels, same course      | 5.2 (paid 6.08) | **> paid pooled**                                      |
+| Quiz artifact  | per-artifact panel means                 | 4.7–5.5         | **≥ 6.0**                                              |
+| Frozen rulers  | long-JSON, showdown, scoreboard, battery | green           | **no drift at any adopted checkpoint**                 |
+| Local provider | app end-to-end, keyless                  | n/a             | **generate a full course from the Landing page at $0** |
+| Honesty        | disclosure discipline                    | —               | quality band shown in-app until the gauntlet passes    |
 
 ## 6. The vision, one paragraph
 

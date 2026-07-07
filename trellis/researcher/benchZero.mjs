@@ -16,17 +16,37 @@ import { stopS } from '../tendril/sModel.mjs';
 
 const TARGETS = [
   { id: 'bench/epistemology', term: 'epistemology', discipline: 'philosophy', queries: ['Epistemology'] },
-  { id: 'bench/operant-conditioning', term: 'operant conditioning', discipline: 'psych', queries: ['Operant conditioning'] },
+  {
+    id: 'bench/operant-conditioning',
+    term: 'operant conditioning',
+    discipline: 'psych',
+    queries: ['Operant conditioning'],
+  },
   { id: 'bench/plate-tectonics', term: 'plate tectonics', discipline: 'geo', queries: ['Plate tectonics'] },
   { id: 'bench/supply-and-demand', term: 'supply and demand', discipline: 'econ', queries: ['Supply and demand'] },
   { id: 'bench/mitosis', term: 'mitosis', discipline: 'bio', queries: ['Mitosis'] },
   { id: 'bench/redshift', term: 'redshift', discipline: 'astro', queries: ['Redshift'] },
   { id: 'bench/photosynthesis', term: 'photosynthesis', discipline: 'bio', queries: ['Photosynthesis'] },
-  { id: 'bench/cognitive-dissonance', term: 'cognitive dissonance', discipline: 'psych', queries: ['Cognitive dissonance'] },
+  {
+    id: 'bench/cognitive-dissonance',
+    term: 'cognitive dissonance',
+    discipline: 'psych',
+    queries: ['Cognitive dissonance'],
+  },
   { id: 'bench/opportunity-cost', term: 'opportunity cost', discipline: 'econ', queries: ['Opportunity cost'] },
   { id: 'bench/natural-selection', term: 'natural selection', discipline: 'bio', queries: ['Natural selection'] },
-  { id: 'bench/french-revolution', term: 'the French Revolution', discipline: 'history', queries: ['French Revolution'] },
-  { id: 'bench/electromagnetic-induction', term: 'electromagnetic induction', discipline: 'physics', queries: ['Electromagnetic induction'] },
+  {
+    id: 'bench/french-revolution',
+    term: 'the French Revolution',
+    discipline: 'history',
+    queries: ['French Revolution'],
+  },
+  {
+    id: 'bench/electromagnetic-induction',
+    term: 'electromagnetic induction',
+    discipline: 'physics',
+    queries: ['Electromagnetic induction'],
+  },
 ];
 
 const SURFACE_COUNT = 9; // teach, worked, reteach, guide, discussion, activity, 2×faq, slides
@@ -75,11 +95,15 @@ async function judgePair(term, a, b, ledger) {
       seats[tier] = null; // failed seat stays visible, never silently dropped
     }
   }
-  const verdicts = Object.values(seats).filter(Boolean).map((s) => s.better);
+  const verdicts = Object.values(seats)
+    .filter(Boolean)
+    .map((s) => s.better);
   const agreement = verdicts.length === 2 && verdicts[0] === verdicts[1];
   const better = agreement ? verdicts[0] : verdicts.length === 1 ? verdicts[0] : 'split';
   const mean = (k) => {
-    const xs = Object.values(seats).filter(Boolean).map((s) => s[k]);
+    const xs = Object.values(seats)
+      .filter(Boolean)
+      .map((s) => s[k]);
     return xs.length ? xs.reduce((x, y) => x + y, 0) / xs.length : null;
   };
   return { zeroScore: mean('zeroScore'), paidScore: mean('paidScore'), better, agreement, seats };
@@ -89,7 +113,21 @@ if (process.env.RESEARCH_BENCH === 'run' && !process.env.VITEST) {
   const ledger = createRunLedger({ runId: 'researcher-zero-bench', runDir: 'trellis/runs/researcher-zero-bench' });
   const embedder = makeEmbedder();
   const rows = [];
-  const totals = { zeroMs: 0, paidMs: 0, zeroSurfaces: 0, paidSurfaces: 0, zeroFacts: 0, paidFactsKept: 0, paidFactsDropped: 0, wins: { zero: 0, paid: 0, tie: 0, split: 0 }, agreements: 0, zeroJudge: [], paidJudge: [], corroborated: 0, litMisconceptions: 0 };
+  const totals = {
+    zeroMs: 0,
+    paidMs: 0,
+    zeroSurfaces: 0,
+    paidSurfaces: 0,
+    zeroFacts: 0,
+    paidFactsKept: 0,
+    paidFactsDropped: 0,
+    wins: { zero: 0, paid: 0, tie: 0, split: 0 },
+    agreements: 0,
+    zeroJudge: [],
+    paidJudge: [],
+    corroborated: 0,
+    litMisconceptions: 0,
+  };
   try {
     for (const target of TARGETS) {
       const sources = await gatherSources(target.queries, { cap: 2 });
@@ -129,8 +167,22 @@ if (process.env.RESEARCH_BENCH === 'run' && !process.env.VITEST) {
       totals.paidJudge.push(judge.paidScore);
       rows.push({
         target: target.id,
-        zero: { ms: Math.round(zeroMs), facts: zKernel.facts.length, misconceptionsMined: zKernel.misconceptions.length, surfaces: `${zSurf.assets.length}/${SURFACE_COUNT}`, anchored: zeroAnchored, skin: zSurf.skin, rejected: zSurf.rejected },
-        paid: { ms: Math.round(paidMs), factsKept: pKernel.facts.length, factsDropped: pKernel.droppedFacts, surfaces: `${pSurf.assets.length}/${SURFACE_COUNT}`, rejected: pSurf.rejected },
+        zero: {
+          ms: Math.round(zeroMs),
+          facts: zKernel.facts.length,
+          misconceptionsMined: zKernel.misconceptions.length,
+          surfaces: `${zSurf.assets.length}/${SURFACE_COUNT}`,
+          anchored: zeroAnchored,
+          skin: zSurf.skin,
+          rejected: zSurf.rejected,
+        },
+        paid: {
+          ms: Math.round(paidMs),
+          factsKept: pKernel.facts.length,
+          factsDropped: pKernel.droppedFacts,
+          surfaces: `${pSurf.assets.length}/${SURFACE_COUNT}`,
+          rejected: pSurf.rejected,
+        },
         judge,
       });
     }
@@ -140,13 +192,26 @@ if (process.env.RESEARCH_BENCH === 'run' && !process.env.VITEST) {
   }
   const mean = (xs) => (xs.length ? (xs.reduce((a, b) => a + b, 0) / xs.length).toFixed(2) : null);
   const summary = {
-    stamp: 'SIMULATED — two judge seats across model families (openai+deepseek), blind, per-target shuffle; agreement reported, never averaged away; gates are the hard instrument',
+    stamp:
+      'SIMULATED — two judge seats across model families (openai+deepseek), blind, per-target shuffle; agreement reported, never averaged away; gates are the hard instrument',
     targets: rows.length,
-    speed: { zeroSecPerKernel: (totals.zeroMs / rows.length / 1000).toFixed(1), paidSecPerKernel: (totals.paidMs / rows.length / 1000).toFixed(1) },
+    speed: {
+      zeroSecPerKernel: (totals.zeroMs / rows.length / 1000).toFixed(1),
+      paidSecPerKernel: (totals.paidMs / rows.length / 1000).toFixed(1),
+    },
     surfaces: { zero: totals.zeroSurfaces, paid: totals.paidSurfaces, of: rows.length * SURFACE_COUNT },
     facts: { zero: totals.zeroFacts, paidKept: totals.paidFactsKept, paidDroppedUnanchored: totals.paidFactsDropped },
-    judge: { zeroMean: mean(totals.zeroJudge), paidMean: mean(totals.paidJudge), wins: totals.wins, seatAgreement: `${totals.agreements}/${rows.length}` },
-    truth: { corroboratedFacts: totals.corroborated, ofFacts: totals.zeroFacts, literatureMisconceptions: totals.litMisconceptions },
+    judge: {
+      zeroMean: mean(totals.zeroJudge),
+      paidMean: mean(totals.paidJudge),
+      wins: totals.wins,
+      seatAgreement: `${totals.agreements}/${rows.length}`,
+    },
+    truth: {
+      corroboratedFacts: totals.corroborated,
+      ofFacts: totals.zeroFacts,
+      literatureMisconceptions: totals.litMisconceptions,
+    },
     rows,
   };
   await writeFile('trellis/researcher/zero-bench.json', JSON.stringify(summary, null, 1));

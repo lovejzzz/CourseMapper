@@ -4,6 +4,18 @@ import react from '@vitejs/plugin-react';
 export default defineConfig({
   plugins: [react()],
   base: '/',
+  build: {
+    rollupOptions: {
+      output: {
+        // Scion (V2.1 D): the house-model compiler wiring is local-provider
+        // only — keep it in its own lazy chunk so it never inflates the main
+        // AppFlow bundle (whose budget ratchets down, never up for features).
+        manualChunks(id) {
+          if (/src\/lib\/scion(Contracts|Passes|PassB|Flywheel)\.js$/.test(id)) return 'scion';
+        },
+      },
+    },
+  },
   server: {
     port: 5173,
   },

@@ -85,19 +85,42 @@ describe('Scion-native compiler (V2.1 Workstream D)', () => {
     const lesson = {
       lessonId: 'lesson-1',
       mc: [
-        { q: 'Which interval has a 3:2 frequency ratio in just intonation today?', op: ['Minor third', 'Major second', 'Perfect fifth', 'Minor seventh'], ai: 0, ex: 'The perfect fifth is the 3:2 interval in just intonation.' },
+        {
+          q: 'Which interval has a 3:2 frequency ratio in just intonation today?',
+          op: ['Minor third', 'Major second', 'Perfect fifth', 'Minor seventh'],
+          ai: 0,
+          ex: 'The perfect fifth is the 3:2 interval in just intonation.',
+        },
       ],
-      scenario: { su: 'A musician hears two notes a perfect fifth apart and wants to name the interval by ear.', ma: 'A piano and staff paper' },
-      discussionPrompt: { pr: 'Is consonance culturally learned or acoustically inherent?', tn: 'Reasonable musicians disagree on nature versus nurture.', po: ['It is acoustic', 'It is learned'] },
-      assignmentCore: { td: 'Students transcribe three intervals played in class and defend each identification in one sentence.', pa: ['Three intervals', 'One page'] },
-      studyGuide: { sm: 'Intervals measure the distance between two pitches; the perfect fifth (3:2) anchors tuning systems across traditions and eras.', rs: 'Drill interval recognition daily with a partner at the keyboard.' },
+      scenario: {
+        su: 'A musician hears two notes a perfect fifth apart and wants to name the interval by ear.',
+        ma: 'A piano and staff paper',
+      },
+      discussionPrompt: {
+        pr: 'Is consonance culturally learned or acoustically inherent?',
+        tn: 'Reasonable musicians disagree on nature versus nurture.',
+        po: ['It is acoustic', 'It is learned'],
+      },
+      assignmentCore: {
+        td: 'Students transcribe three intervals played in class and defend each identification in one sentence.',
+        pa: ['Three intervals', 'One page'],
+      },
+      studyGuide: {
+        sm: 'Intervals measure the distance between two pitches; the perfect fifth (3:2) anchors tuning systems across traditions and eras.',
+        rs: 'Drill interval recognition daily with a partner at the keyboard.',
+      },
     };
     const calls = [];
     const generateJson = async ({ system, user, schemaProfile }) => {
       calls.push(schemaProfile.name);
       if (schemaProfile.name === 'blind_solve') return JSON.stringify({ answers: [2] }); // disagrees with ai:0 twice
       if (schemaProfile.name === 'mc_item') {
-        return JSON.stringify({ q: 'Which interval spans seven semitones and rings at a 3:2 ratio?', op: ['Perfect fourth', 'Perfect fifth', 'Major third', 'Octave'], ai: 1, ex: 'Seven semitones with the 3:2 just ratio defines the perfect fifth interval.' });
+        return JSON.stringify({
+          q: 'Which interval spans seven semitones and rings at a 3:2 ratio?',
+          op: ['Perfect fourth', 'Perfect fifth', 'Major third', 'Octave'],
+          ai: 1,
+          ex: 'Seven semitones with the 3:2 just ratio defines the perfect fifth interval.',
+        });
       }
       return JSON.stringify({
         scenario: lesson.scenario,
@@ -108,7 +131,9 @@ describe('Scion-native compiler (V2.1 Workstream D)', () => {
     };
     const raw = JSON.stringify({ lessons: [lesson] });
     const { text, events } = await applyScionKernelPasses(raw, {
-      promptLessons: [{ lessonId: 'lesson-1', title: 'Lesson 1: Intervals', topics: '1.1: Intervals; 1.2: Consonance' }],
+      promptLessons: [
+        { lessonId: 'lesson-1', title: 'Lesson 1: Intervals', topics: '1.1: Intervals; 1.2: Consonance' },
+      ],
       generateJson,
     });
     const patched = JSON.parse(text).lessons[0];
@@ -136,11 +161,17 @@ describe('Scion-native compiler (V2.1 Workstream D)', () => {
   });
 
   it('D4: the flywheel and pass wiring exist in the compiler (source wiring)', () => {
+    // The compiler lazy-loads the Scion orchestration (scionPassB) so the
+    // local-only wiring stays out of the main bundle chunk.
     const deliverables = fs.readFileSync('src/hooks/useDeliverables.js', 'utf8');
-    expect(deliverables).toContain('kernelBatchSchemaProfile');
-    expect(deliverables).toContain('applyScionKernelPasses');
-    expect(deliverables).toContain('postFlywheelEvents');
-    expect(deliverables).toContain("temperature: recoveryAttempt > 0 ? 0.7 : 0");
+    expect(deliverables).toContain("import('../lib/scionPassB')");
+    expect(deliverables).toContain('scionCallOpts');
+    expect(deliverables).toContain('runScionPasses');
+    const passB = fs.readFileSync('src/lib/scionPassB.js', 'utf8');
+    expect(passB).toContain('kernelBatchSchemaProfile');
+    expect(passB).toContain('applyScionKernelPasses');
+    expect(passB).toContain('postFlywheelEvents');
+    expect(passB).toContain('recoveryAttempt > 0 ? 0.7 : 0');
     const server = fs.readFileSync('scripts/crucible/e2bOpenAIShim.mjs', 'utf8');
     expect(server).toContain('/flywheel');
     expect(server).toContain('app-flywheel.jsonl');

@@ -295,7 +295,8 @@ async function runPipelineStages({
       const { startS, sGenerate } = await import('./tendril/sModel.mjs');
       await startS();
       sGen = sGenerate;
-      digest.zero = 'ZERO-API mode: S-local skin/blend · banked exams · lexical entailment · no fresh fills · no model repair';
+      digest.zero =
+        'ZERO-API mode: S-local skin/blend · banked exams · lexical entailment · no fresh fills · no model repair';
       // SCION seats (SCION=skin,polish,fill): the house model takes judged
       // seats locally — still $0, still gate-validated, disclosed below.
       const { scionSeats } = await import('./composer/scion.mjs');
@@ -508,7 +509,11 @@ async function runPipelineStages({
     const { blendCorrectives, blendSplicedOptions } = await import('./voice/blend.mjs');
     const optionBlend =
       composer && zeroApi
-        ? { candidates: 0, blended: 0, skipped: 'zero mode — S untrained on option rewrites; spliced forms ship (catch-gated)' }
+        ? {
+            candidates: 0,
+            blended: 0,
+            skipped: 'zero mode — S untrained on option rewrites; spliced forms ship (catch-gated)',
+          }
         : await blendSplicedOptions(graph, authored, { tier: tiers.flywheel, ledger, budgetUsd });
     if (optionBlend.candidates > 0) {
       digest.optionBlending = `${optionBlend.blended}/${optionBlend.candidates} spliced option(s) rewritten as concise reason-bearing distractors (voice, catch-gated)`;
@@ -591,7 +596,7 @@ async function runPipelineStages({
   if (zeroApi) {
     const { stopS } = await import('./tendril/sModel.mjs');
     stopS();
-    digest.zeroLedger = 'expected \$0.0000 — any nonzero total is a zero-mode BUG';
+    digest.zeroLedger = 'expected $0.0000 — any nonzero total is a zero-mode BUG';
   }
 
   // 8b · Tendril Tutor (composed runs): every course ships its offline

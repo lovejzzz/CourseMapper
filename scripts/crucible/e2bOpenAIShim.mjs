@@ -389,7 +389,12 @@ async function kernelChunkedGenerate({ system, user, kernel, temperature }) {
         return JSON.parse(text);
       } catch (error) {
         console.error(
-          JSON.stringify({ kernelChunk: label, attempt: attempt + 1, chars: text.length, parseError: String(error.message).slice(0, 90) }),
+          JSON.stringify({
+            kernelChunk: label,
+            attempt: attempt + 1,
+            chars: text.length,
+            parseError: String(error.message).slice(0, 90),
+          }),
         );
       }
     }
@@ -411,7 +416,9 @@ async function kernelChunkedGenerate({ system, user, kernel, temperature }) {
       lockObjects(schema);
       const parsed = await subCall(
         schema,
-        [courseLine, 'Return ONLY a JSON object with the courseLevel block, grounded in the course subject.'].join('\n'),
+        [courseLine, 'Return ONLY a JSON object with the courseLevel block, grounded in the course subject.'].join(
+          '\n',
+        ),
         'courseLevel',
       );
       if (parsed?.courseLevel) {
@@ -464,7 +471,11 @@ async function kernelChunkedGenerate({ system, user, kernel, temperature }) {
       };
       const [a, b] = [
         await subCall(half(['goal', 'outcomes', 'async', 'sync', 'facts', 'keyTerms']), subUser, `${lessonId}-a`),
-        await subCall(half(['scenario', 'discussionPrompt', 'assignmentCore', 'mc', 'studyGuide']), subUser, `${lessonId}-b`),
+        await subCall(
+          half(['scenario', 'discussionPrompt', 'assignmentCore', 'mc', 'studyGuide']),
+          subUser,
+          `${lessonId}-b`,
+        ),
       ];
       if (a?.lessons?.[0] && b?.lessons?.[0]) parsed = { lessons: [{ ...a.lessons[0], ...b.lessons[0] }] };
     }
@@ -596,7 +607,25 @@ async function kernelChunkedGenerate({ system, user, kernel, temperature }) {
   // Deterministic lexical check against the lesson's own topic words; only
   // violators pay a regeneration, so strong trajectories stay untouched.
   function topicWords(lessonId) {
-    const STOP = new Set(['lesson','week','music','musical','theory','course','with','that','this','from','what','which','into','their','between','using','based']);
+    const STOP = new Set([
+      'lesson',
+      'week',
+      'music',
+      'musical',
+      'theory',
+      'course',
+      'with',
+      'that',
+      'this',
+      'from',
+      'what',
+      'which',
+      'into',
+      'their',
+      'between',
+      'using',
+      'based',
+    ]);
     const summary = Array.isArray(kernel.lessonSummaries)
       ? kernel.lessonSummaries.find((lesson) => lesson?.lessonId === lessonId)
       : null;
@@ -789,15 +818,28 @@ async function kernelChunkedGenerate({ system, user, kernel, temperature }) {
     }
   }
   console.error(
-    JSON.stringify({ kernelCall: kernel.lessonIds.length, returned: lessons.length, skippedForBudget: skipped, courseLevel: Boolean(courseLevel) }),
+    JSON.stringify({
+      kernelCall: kernel.lessonIds.length,
+      returned: lessons.length,
+      skippedForBudget: skipped,
+      courseLevel: Boolean(courseLevel),
+    }),
   );
   // Round-21 judge lesson: a literal ANSI color sequence inside an answer
   // key read as "visible corruption" to every seat. Control characters have
   // no place in course prose - strip them from every string, deep.
   const sanitize = (node) => {
-    if (typeof node === 'string') return node.replace(/\u001b\[[0-9;]*m|[\u0000-\u0008\u000B-\u001F\u007F]/g, '').replace(/ {2,}/g, ' ').trim();
+    if (typeof node === 'string')
+      return (
+        node
+          // eslint-disable-next-line no-control-regex
+          .replace(/\u001b\[[0-9;]*m|[\u0000-\u0008\u000B-\u001F\u007F]/g, '')
+          .replace(/ {2,}/g, ' ')
+          .trim()
+      );
     if (Array.isArray(node)) return node.map(sanitize);
-    if (node && typeof node === 'object') return Object.fromEntries(Object.entries(node).map(([k, v]) => [k, sanitize(v)]));
+    if (node && typeof node === 'object')
+      return Object.fromEntries(Object.entries(node).map(([k, v]) => [k, sanitize(v)]));
     return node;
   };
   return JSON.stringify(sanitize({ lessons, ...(courseLevel ? { courseLevel } : {}) }));
@@ -860,7 +902,9 @@ const server = http.createServer(async (req, res) => {
       res.end(
         JSON.stringify({
           object: 'list',
-          data: [{ id: LOCAL_MODEL_ID, object: 'model', created: 1, owned_by: 'local', display_name: LOCAL_MODEL_NAME }],
+          data: [
+            { id: LOCAL_MODEL_ID, object: 'model', created: 1, owned_by: 'local', display_name: LOCAL_MODEL_NAME },
+          ],
         }),
       );
       return;
@@ -879,9 +923,14 @@ const server = http.createServer(async (req, res) => {
     const rawBody = await readBody(req);
     try {
       const payload = JSON.parse(rawBody);
-      const rows = (payload?.events ?? []).map((event) => ({ ...event, context: payload?.context ?? {}, at: new Date().toISOString() }));
+      const rows = (payload?.events ?? []).map((event) => ({
+        ...event,
+        context: payload?.context ?? {},
+        at: new Date().toISOString(),
+      }));
       if (rows.length > 0) {
-        const flywheelPath = new URL('../../trellis/tendril/distill/data-g4-orpo/app-flywheel.jsonl', import.meta.url).pathname;
+        const flywheelPath = new URL('../../trellis/tendril/distill/data-g4-orpo/app-flywheel.jsonl', import.meta.url)
+          .pathname;
         fs.appendFileSync(flywheelPath, rows.map((row) => JSON.stringify(row)).join('\n') + '\n');
       }
       res.writeHead(200, { 'Content-Type': 'application/json', ...corsHeaders() });
@@ -909,11 +958,25 @@ const server = http.createServer(async (req, res) => {
     // Responses API: instructions + input (string or message array).
     system = (body.instructions ?? '') + jsonHint;
     const input = body.input;
-    user = typeof input === 'string' ? input : (input ?? []).map((m) => (typeof m?.content === 'string' ? m.content : (m?.content ?? []).map((c) => c?.text ?? '').join(''))).join('\n');
+    user =
+      typeof input === 'string'
+        ? input
+        : (input ?? [])
+            .map((m) =>
+              typeof m?.content === 'string' ? m.content : (m?.content ?? []).map((c) => c?.text ?? '').join(''),
+            )
+            .join('\n');
   } else {
     const msgs = body.messages ?? [];
-    system = (msgs.filter((m) => m.role === 'system').map((m) => m.content).join('\n') || '') + jsonHint;
-    user = msgs.filter((m) => m.role !== 'system').map((m) => (typeof m.content === 'string' ? m.content : '')).join('\n');
+    system =
+      (msgs
+        .filter((m) => m.role === 'system')
+        .map((m) => m.content)
+        .join('\n') || '') + jsonHint;
+    user = msgs
+      .filter((m) => m.role !== 'system')
+      .map((m) => (typeof m.content === 'string' ? m.content : ''))
+      .join('\n');
   }
 
   const isResponsesShape = req.url.includes('/responses');
@@ -967,7 +1030,7 @@ const server = http.createServer(async (req, res) => {
           ...(declaredTemperature > 0 ? { temperature: declaredTemperature } : temperature > 0 ? { temperature } : {}),
         });
     if (isSkeleton && text) text = await shortenSkeletonTitles(text);
-  } catch (error) {
+  } catch {
     failures += 1;
     text = '';
   }
@@ -987,11 +1050,28 @@ const server = http.createServer(async (req, res) => {
       const events = isResponses
         ? [
             { type: 'response.output_text.delta', delta: text },
-            { type: 'response.completed', response: { id: 'e2b-shim', object: 'response', output_text: text, usage: { input_tokens: 0, output_tokens: 0 } } },
+            {
+              type: 'response.completed',
+              response: {
+                id: 'e2b-shim',
+                object: 'response',
+                output_text: text,
+                usage: { input_tokens: 0, output_tokens: 0 },
+              },
+            },
           ]
         : [
-            { id: 'e2b-shim', object: 'chat.completion.chunk', choices: [{ index: 0, delta: { role: 'assistant', content: text }, finish_reason: null }] },
-            { id: 'e2b-shim', object: 'chat.completion.chunk', choices: [{ index: 0, delta: {}, finish_reason: 'stop' }], usage: { prompt_tokens: 0, completion_tokens: 0, total_tokens: 0 } },
+            {
+              id: 'e2b-shim',
+              object: 'chat.completion.chunk',
+              choices: [{ index: 0, delta: { role: 'assistant', content: text }, finish_reason: null }],
+            },
+            {
+              id: 'e2b-shim',
+              object: 'chat.completion.chunk',
+              choices: [{ index: 0, delta: {}, finish_reason: 'stop' }],
+              usage: { prompt_tokens: 0, completion_tokens: 0, total_tokens: 0 },
+            },
           ];
       for (const event of events) res.write(`data: ${JSON.stringify(event)}\n\n`);
       res.write('data: [DONE]\n\n');
@@ -1002,8 +1082,19 @@ const server = http.createServer(async (req, res) => {
     return;
   }
   const payload = isResponses
-    ? { id: 'e2b-shim', object: 'response', output_text: text, output: [{ type: 'message', content: [{ type: 'output_text', text }] }], usage: { input_tokens: 0, output_tokens: 0 } }
-    : { id: 'e2b-shim', object: 'chat.completion', choices: [{ index: 0, message: { role: 'assistant', content: text }, finish_reason: 'stop' }], usage: { prompt_tokens: 0, completion_tokens: 0, total_tokens: 0 } };
+    ? {
+        id: 'e2b-shim',
+        object: 'response',
+        output_text: text,
+        output: [{ type: 'message', content: [{ type: 'output_text', text }] }],
+        usage: { input_tokens: 0, output_tokens: 0 },
+      }
+    : {
+        id: 'e2b-shim',
+        object: 'chat.completion',
+        choices: [{ index: 0, message: { role: 'assistant', content: text }, finish_reason: 'stop' }],
+        usage: { prompt_tokens: 0, completion_tokens: 0, total_tokens: 0 },
+      };
   res.writeHead(200, { 'Content-Type': 'application/json', ...corsHeaders() });
   res.end(JSON.stringify(payload));
 });

@@ -6,7 +6,7 @@
 //   PROMPT_AB=run npx vite-node trellis/researcher/itemPromptABBench.mjs
 import { readFile, writeFile } from 'node:fs/promises';
 import { authorItemsE2B } from './shape.mjs';
-import { claimTokens, gapItemRejection, gapfillId } from '../knowledge/bankGapFill.mjs';
+import { claimTokens, gapItemRejection } from '../knowledge/bankGapFill.mjs';
 import { solveGate } from '../composer/solver.mjs';
 import { createRunLedger } from '../telemetry.mjs';
 import { stopS } from '../tendril/sModel.mjs';

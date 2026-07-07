@@ -16,6 +16,11 @@ export default [
       '.firebase/**',
       // Background-task worktrees are separate checkouts that lint themselves.
       '.claude/**',
+      // Third-party / generated: Python venvs and the tutor's vendored WASM +
+      // minified runtime bundles are not our source — eslint scans the working
+      // tree regardless of .gitignore, so they must be excluded explicitly.
+      '**/.venv*/**',
+      'trellis/tendril/tutor/bundle/**',
     ],
   },
   js.configs.recommended,

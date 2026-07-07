@@ -107,7 +107,14 @@ async function verifyMcAnswers(lesson, promptLesson, generateJson, events) {
       });
       const fresh = JSON.parse(reply);
       if (fresh?.q && Array.isArray(fresh.op) && fresh.op.length === 4) {
-        events.push({ pass: 'mcVerify', lessonId: lesson.lessonId, item: index, action: 'regenerated', rejected: item, chosen: fresh });
+        events.push({
+          pass: 'mcVerify',
+          lessonId: lesson.lessonId,
+          item: index,
+          action: 'regenerated',
+          rejected: item,
+          chosen: fresh,
+        });
         items[index] = fresh;
       }
     } catch {
@@ -134,7 +141,14 @@ async function topicGate(lesson, promptLesson, generateJson, events) {
       });
       const fresh = JSON.parse(reply);
       if (fresh?.q && Array.isArray(fresh.op) && fresh.op.length === 4 && onTopic(fresh, words)) {
-        events.push({ pass: 'topicGate', lessonId: lesson.lessonId, item: index, action: 'regenerated', rejected: item, chosen: fresh });
+        events.push({
+          pass: 'topicGate',
+          lessonId: lesson.lessonId,
+          item: index,
+          action: 'regenerated',
+          rejected: item,
+          chosen: fresh,
+        });
         items[index] = fresh;
       }
     } catch {
@@ -221,7 +235,10 @@ async function polishProse(lesson, generateJson, events) {
  * @param {object} options { promptLessons, generateJson, contentSourcedLessonIds }
  * @returns {{ text: string, events: Array }}
  */
-export async function applyScionKernelPasses(rawText, { promptLessons = [], generateJson, contentSourcedLessonIds = [] } = {}) {
+export async function applyScionKernelPasses(
+  rawText,
+  { promptLessons = [], generateJson, contentSourcedLessonIds = [] } = {},
+) {
   let parsed = null;
   try {
     parsed = JSON.parse(rawText);

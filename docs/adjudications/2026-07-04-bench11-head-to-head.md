@@ -65,13 +65,13 @@ lists claim"_.
 
 ## Instrument agreement matrix (this head-to-head)
 
-| Instrument | Trellis | Current | Δ |
-|---|---|---|---|
-| Judge, openai seats | 8, 8 | 6, 6 | +2 |
-| Judge, deepseek seat | 9 | 5 | +4 |
-| Adjudicated read | ~8 | ~5 | +3 |
-| Grader | 98/A | 96–99/A | floor |
-| Classroom (v1.1) | repair 0.558 this draw; band 0.51–0.82 | carried baseline ~0 repair / 9% catch | large |
+| Instrument           | Trellis                                | Current                               | Δ     |
+| -------------------- | -------------------------------------- | ------------------------------------- | ----- |
+| Judge, openai seats  | 8, 8                                   | 6, 6                                  | +2    |
+| Judge, deepseek seat | 9                                      | 5                                     | +4    |
+| Adjudicated read     | ~8                                     | ~5                                    | +3    |
+| Grader               | 98/A                                   | 96–99/A                               | floor |
+| Classroom (v1.1)     | repair 0.558 this draw; band 0.51–0.82 | carried baseline ~0 repair / 9% catch | large |
 
 All three independent quality instruments agree on direction and
 approximate magnitude (+2 to +4). The cross-family seat did NOT

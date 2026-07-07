@@ -716,15 +716,15 @@ $0.006 of judging)._
 
 ### The convergence war (runs 3–9, one course, same tier)
 
-| Run | Change under test                     | Cost      | Judgment residuals | a2 repair   | a2 catch  |
-| --- | ------------------------------------- | --------- | ------------------ | ----------- | --------- |
-| 3   | checks + gates land                    | $0.31     | 19                 | 0.409       | 32%       |
-| 4   | instrument enforced in author retries  | $0.32 † | — (12/15 lessons dead) | —       | —         |
-| 5   | + reason-bearing distractors, fallback | $0.93     | 35                 | 0.634       | ≥60%      |
-| 6   | (one nano lesson death)                | $0.16 † | —                  | —           | —         |
-| 7   | deterministic passes own the instrument| **$0.18** | **1**              | **0.795 ✓** | 59%       |
-| 8   | catch top-up + quiz diet               | $0.21     | 1                  | 0.532 ‡   | 54% ‡   |
-| 9   | + reinforced-concept scope             | **$0.18** | **1**              | **0.769 ✓** | **≥60% ✓** |
+| Run | Change under test                       | Cost      | Judgment residuals     | a2 repair   | a2 catch   |
+| --- | --------------------------------------- | --------- | ---------------------- | ----------- | ---------- |
+| 3   | checks + gates land                     | $0.31     | 19                     | 0.409       | 32%        |
+| 4   | instrument enforced in author retries   | $0.32 †   | — (12/15 lessons dead) | —           | —          |
+| 5   | + reason-bearing distractors, fallback  | $0.93     | 35                     | 0.634       | ≥60%       |
+| 6   | (one nano lesson death)                 | $0.16 †   | —                      | —           | —          |
+| 7   | deterministic passes own the instrument | **$0.18** | **1**                  | **0.795 ✓** | 59%        |
+| 8   | catch top-up + quiz diet                | $0.21     | 1                      | 0.532 ‡     | 54% ‡      |
+| 9   | + reinforced-concept scope              | **$0.18** | **1**                  | **0.769 ✓** | **≥60% ✓** |
 
 † failed runs, spend ledgered. ‡ fresh intake produced a different
 graph (23 vs 16 concepts) — see finding 3.
@@ -739,7 +739,7 @@ Linear algebra never entered the refine loop. Two runs (before/after the
 scope fix): repair 0.42/0.45 (bar 0.70), catch —/57%, compliance
 0.31/0.31, 5 unexposed items. Grades 99/A both times, 4 honest
 residuals. The deterministic machinery transfers (98 correctives paired,
-12 splices, zero dead lessons); the *bars* do not transfer yet — math's
+12 splices, zero dead lessons); the _bars_ do not transfer yet — math's
 misconception density and prerequisite contamination behave differently
 from cs. The loop must run per discipline; one course's convergence is
 not a pipeline property.
@@ -761,7 +761,7 @@ not a pipeline property.
    item IS the integer-division catch) and scored 0% — the matcher drops
    tokens ≤3 chars. The honest bridge is **reason-bearing distractors**
    ("3, because the operands look like whole numbers"), which are better
-   quiz design *and* instrument-visible. Prompts teach this form now.
+   quiz design _and_ instrument-visible. Prompts teach this form now.
 4. **Intake variance dominates between-run a2 deltas.** Runs 7 vs 8:
    identical instrument code, repair 0.795 → 0.532 because a fresh intake
    drew a different graph. Same lesson as the judge-variance note: no
@@ -779,22 +779,22 @@ not a pipeline property.
 
 ### Exit bars, honestly scored
 
-| Bar (roadmap)                          | Measured                        | Verdict |
-| -------------------------------------- | ------------------------------- | ------- |
-| 1.1 a2 repair ≥ 0.70 on two courses    | cs 0.769–0.795 ✓ · LA 0.45 ✗  | PARTIAL |
-| 1.2 a2 catch ≥ 0.60, no meta-framed options | cs ≥60% ✓ (run 9) · LA 57% ✗ | PARTIAL |
-| 1.3 zero unexposed + exam solvability ≥0.5 | cs 0 + 0.585 ✓ · LA 5 ✗    | PARTIAL |
-| 1.4 a2 compliance ≤ 0.25               | cs 0.238–0.267 (straddles bar) · LA 0.31 ✗ | UNMET (structural: reteach earns half-credit by the sim's own rule) |
-| 2.1 judge quiz ≥ 8 at ≤ $0.13          | quiz 7/7 (two seats) at $0.18–0.21 | UNMET (both halves; causes named above) |
-| 2.2 readings verified                  | 2–3 of 4–5 promoted per run     | MET (partial promotion is the design) |
-| 3.1 100% of grounded claims checked    | 100% of kernel-cited claims     | MET     |
-| 3.2 failing battery cannot render ready | readiness forced needs_review  | MET     |
-| 3.3 flywheel facts carry verified status | same-family verify, disclosed | MET (cross-family key-gated) |
-| 4.1 Trellis ZIP opens in Word          | DOCX round-trip via grader parser | MET (parser proxy, disclosed) |
+| Bar (roadmap)                               | Measured                                   | Verdict                                                             |
+| ------------------------------------------- | ------------------------------------------ | ------------------------------------------------------------------- |
+| 1.1 a2 repair ≥ 0.70 on two courses         | cs 0.769–0.795 ✓ · LA 0.45 ✗               | PARTIAL                                                             |
+| 1.2 a2 catch ≥ 0.60, no meta-framed options | cs ≥60% ✓ (run 9) · LA 57% ✗               | PARTIAL                                                             |
+| 1.3 zero unexposed + exam solvability ≥0.5  | cs 0 + 0.585 ✓ · LA 5 ✗                    | PARTIAL                                                             |
+| 1.4 a2 compliance ≤ 0.25                    | cs 0.238–0.267 (straddles bar) · LA 0.31 ✗ | UNMET (structural: reteach earns half-credit by the sim's own rule) |
+| 2.1 judge quiz ≥ 8 at ≤ $0.13               | quiz 7/7 (two seats) at $0.18–0.21         | UNMET (both halves; causes named above)                             |
+| 2.2 readings verified                       | 2–3 of 4–5 promoted per run                | MET (partial promotion is the design)                               |
+| 3.1 100% of grounded claims checked         | 100% of kernel-cited claims                | MET                                                                 |
+| 3.2 failing battery cannot render ready     | readiness forced needs_review              | MET                                                                 |
+| 3.3 flywheel facts carry verified status    | same-family verify, disclosed              | MET (cross-family key-gated)                                        |
+| 4.1 Trellis ZIP opens in Word               | DOCX round-trip via grader parser          | MET (parser proxy, disclosed)                                       |
 
 The honest summary: **the machinery of v0.1.1 is fully built and the
 convergence problem is solved** (1 residual, $0.18, instrument
-guarantees deterministic); the *bars* are met on the course the loop ran
+guarantees deterministic); the _bars_ are met on the course the loop ran
 on and not yet on the held-out one, the compliance ruler is pinned near
 its structural ceiling, and cost sits $0.05 above target with both
 drivers identified (quiz output volume, corrective-append repetition).
@@ -837,13 +837,13 @@ judging), inside the roadmap's own estimate. All judge numbers below are
 
 ### The measured arc (cs-python, lean unless noted)
 
-| Run           | Change under test         | Cost   | a2 repair   | a2 catch | Judge overall | Judge quiz |
-| ------------- | ------------------------- | ------ | ----------- | -------- | ------------- | ---------- |
-| A/B lean      | blends v1                 | $0.216 | 0.433 ‡     | —        | 7.5 [7,8]     | 5 [5,5]    |
-| A/B thrift    | quiz on nano              | $0.163 | 0.376 ‡     | —        | 7.5 [7,8]     | 5.5 [5,6]  |
-| cs-final      | + spiral + option blend   | $0.194 | 0.717 ✓     | 52% ✗    | 8.5 [8,9]     | 7.5 [7,8]  |
-| thrift2       | thrift, full machinery    | **$0.110** | 0.729 ✓ | 52% ✗    | 7 [7,7]       | 5 [5,5]    |
-| **cs-verify** | + instrument-mirror splice | $0.233 | **0.740 ✓** | **✓**    | **9 [9,9]**   | 7.5 [7,8]  |
+| Run           | Change under test          | Cost       | a2 repair   | a2 catch | Judge overall | Judge quiz |
+| ------------- | -------------------------- | ---------- | ----------- | -------- | ------------- | ---------- |
+| A/B lean      | blends v1                  | $0.216     | 0.433 ‡     | —        | 7.5 [7,8]     | 5 [5,5]    |
+| A/B thrift    | quiz on nano               | $0.163     | 0.376 ‡     | —        | 7.5 [7,8]     | 5.5 [5,6]  |
+| cs-final      | + spiral + option blend    | $0.194     | 0.717 ✓     | 52% ✗    | 8.5 [8,9]     | 7.5 [7,8]  |
+| thrift2       | thrift, full machinery     | **$0.110** | 0.729 ✓     | 52% ✗    | 7 [7,7]       | 5 [5,5]    |
+| **cs-verify** | + instrument-mirror splice | $0.233     | **0.740 ✓** | **✓**    | **9 [9,9]**   | 7.5 [7,8]  |
 
 ‡ the A/B pair drew unlucky intake graphs (the §5h variance lesson,
 live again). The quiz's 5→7.5 recovery is the blending story: the A/B
@@ -859,13 +859,13 @@ over.
 
 ### Exit bars, honestly scored
 
-| Bar (v0.1.2)                                | Measured                                             | Verdict |
-| ------------------------------------------- | ---------------------------------------------------- | ------- |
-| 1 · a tier at ≤$0.13 with judge quiz ≥8     | thrift $0.110/quiz 5 · lean $0.19–0.23/quiz 7.5      | UNMET — frontier published per the bar's own fallback; lean stays default |
-| 2 · judge quiz ≥8, classroom repair ≥0.70   | quiz 7.5 [7,8] (two rounds) · repair 0.717–0.740 ✓   | HALF-MET — quiz +2.5 from the A/B floor, 0.5 short; residual cause named (spiral items read as scope drift) |
-| 3 · LA repair ≥0.60, ≤2 unexposed, cs no regression | LA 0.428–0.479 ✗ · unexposed 2–3 ≈ · cs 0.717–0.740 ✓ | UNMET on LA — misconception seed density is structural; catch bar now passes on ALL courses via the instrument-mirror splice |
-| 4 · 7–8 features as Office files, round-trip | 22 files (7 DOCX features + 15 PPTX), round-trip OK  | MET     |
-| 5 · multi-seat judge numbers + fresh packet | all verdicts 2-seat mean±range · packet resealed from cs-verify | MET (cross-family still key-gated) |
+| Bar (v0.1.2)                                        | Measured                                                        | Verdict                                                                                                                      |
+| --------------------------------------------------- | --------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------- |
+| 1 · a tier at ≤$0.13 with judge quiz ≥8             | thrift $0.110/quiz 5 · lean $0.19–0.23/quiz 7.5                 | UNMET — frontier published per the bar's own fallback; lean stays default                                                    |
+| 2 · judge quiz ≥8, classroom repair ≥0.70           | quiz 7.5 [7,8] (two rounds) · repair 0.717–0.740 ✓              | HALF-MET — quiz +2.5 from the A/B floor, 0.5 short; residual cause named (spiral items read as scope drift)                  |
+| 3 · LA repair ≥0.60, ≤2 unexposed, cs no regression | LA 0.428–0.479 ✗ · unexposed 2–3 ≈ · cs 0.717–0.740 ✓           | UNMET on LA — misconception seed density is structural; catch bar now passes on ALL courses via the instrument-mirror splice |
+| 4 · 7–8 features as Office files, round-trip        | 22 files (7 DOCX features + 15 PPTX), round-trip OK             | MET                                                                                                                          |
+| 5 · multi-seat judge numbers + fresh packet         | all verdicts 2-seat mean±range · packet resealed from cs-verify | MET (cross-family still key-gated)                                                                                           |
 
 ### What this round taught
 

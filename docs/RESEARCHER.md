@@ -34,12 +34,12 @@ The world wrote the library. We lacked the librarian.
 
 The stack completes:
 
-| Verb | Pipeline | What it does |
-| --- | --- | --- |
-| find | **The Researcher** | locate + verify + cite what the world already wrote |
-| judge | Trellis | the gate stack; the quality law for everything |
-| assemble | The Composer | $0 replay of the judged library |
-| serve | Tendril | on-device diagnosis/tutoring, offline, $0 |
+| Verb     | Pipeline           | What it does                                        |
+| -------- | ------------------ | --------------------------------------------------- |
+| find     | **The Researcher** | locate + verify + cite what the world already wrote |
+| judge    | Trellis            | the gate stack; the quality law for everything      |
+| assemble | The Composer       | $0 replay of the judged library                     |
+| serve    | Tendril            | on-device diagnosis/tutoring, offline, $0           |
 
 ## 3. The mechanism
 
@@ -114,12 +114,12 @@ The stack completes:
 
 ## 7. R0 — the gate experiment (both before-numbers already measured)
 
-| Gap | Before (measured) | R0 action | Exit bar |
-| --- | --- | --- | --- |
+| Gap                                 | Before (measured)                                                    | R0 action                                                     | Exit bar                                                                             |
+| ----------------------------------- | -------------------------------------------------------------------- | ------------------------------------------------------------- | ------------------------------------------------------------------------------------ |
 | zero-cs l13 "Debugging and Testing" | artifact panel 4.33; off-topic assembly (no debugging kernel/assets) | mine + shape + deposit ONE kernel + its move-assets and items | re-run zero-cs at $0: l13 artifacts ≥6 on a fresh panel; course mean ≥ previous 6.67 |
-| zero-lit (World Literature) | REFUSED all 14 lessons (kernels exist, zero prose assets) | research the 14 primary kernels' surfaces | zero-lit COMPOSES at $0: grade ≥95, disclosed findings, battery recorded |
-| Provenance | — | — | 100% of deposited assets carry license + URL + verbatim quote anchor |
-| Cost | memory-foundry reference $0.15–0.33 | — | total R0 research spend ≤ $0.35, ledgered |
+| zero-lit (World Literature)         | REFUSED all 14 lessons (kernels exist, zero prose assets)            | research the 14 primary kernels' surfaces                     | zero-lit COMPOSES at $0: grade ≥95, disclosed findings, battery recorded             |
+| Provenance                          | —                                                                    | —                                                             | 100% of deposited assets carry license + URL + verbatim quote anchor                 |
+| Cost                                | memory-foundry reference $0.15–0.33                                  | —                                                             | total R0 research spend ≤ $0.35, ledgered                                            |
 
 Fold-back: if shaping cannot clear the gates at reasonable acceptance,
 the gap stays a disclosed gap (the standing refusal behavior) and the
@@ -155,18 +155,19 @@ $0 by construction.
 $0.237 + panels $0.044) vs the ≤$0.35 bar and the $0.15–0.33
 memory-foundry reference.**
 
-| Bar | Result | Verdict |
-| --- | --- | --- |
+| Bar                             | Result                                                                                                                                               | Verdict                                                                                           |
+| ------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------- |
 | l13 artifacts ≥6 after research | Lesson Plans **4.33 → 7.0**, Quiz 5.67 → **6.67**, Study Guide 7.67 → 5.0 (on-topic now, weaker prose than the polished off-topic guide it replaced) | **PARTIAL (2/3)** — course mean 6.33 vs prior 6.67, Δ0.34 inside the standing judge-variance band |
-| zero-lit composes at $0 | **all 14 lessons, $0.0000, 96/A (P0=0 P1=0)**, battery 0.548, 46 findings disclosed unrepaired, **panel 6.67 [6,7]** | **MET** — a never-seen discipline now composes at the same panel level as cs |
-| Provenance | 15/15 kernels, 100% of facts quote-anchored to fetched sources; license + attribution on every deposit | **MET** |
-| Cost ≤ $0.35 | $0.281 all-in, ledgered across 6 run dirs | **MET** |
+| zero-lit composes at $0         | **all 14 lessons, $0.0000, 96/A (P0=0 P1=0)**, battery 0.548, 46 findings disclosed unrepaired, **panel 6.67 [6,7]**                                 | **MET** — a never-seen discipline now composes at the same panel level as cs                      |
+| Provenance                      | 15/15 kernels, 100% of facts quote-anchored to fetched sources; license + attribution on every deposit                                               | **MET**                                                                                           |
+| Cost ≤ $0.35                    | $0.281 all-in, ledgered across 6 run dirs                                                                                                            | **MET**                                                                                           |
 
 **What R0 deposited:** 15 kernels (cs/debugging, cs/testing + 13 lit),
 137 move-assets, 42 bank items (all through gapItemRejection + the blind
 solver seat), from 40+ Wikipedia sources (CC-BY-SA-4.0, attributed).
 
 **What the build itself surfaced (the real findings):**
+
 1. **Frozen graphs never consult the genome again** — baked kernelFacts
    short-circuit linking, so deposits were invisible to replays. Fix:
    `--relink` (argmax rebind, disclosed per concept) — rulers stay
@@ -216,16 +217,17 @@ by definition.
 **The bench (6 fresh cross-discipline targets, identical sources,
 paid side + judge $0.0425 — measurement only):**
 
-| Metric | Researcher-Zero ($0) | Paid shaper (ds) |
-| --- | --- | --- |
-| Speed / kernel | **2.7 s** | 49.1 s (**18× slower**) |
-| Cost / kernel | **$0.0000** | ~$0.007 |
-| Surfaces through gates | 52/54 | 53/54 |
-| Fact anchoring | **100% by construction** | 31 kept / 1 dropped post-hoc |
-| Teach-as-is (1 cross-family seat, blind, advisory) | **7.67** | 5.50 (zero wins 5–1) |
-| Misconceptions | **0/6 mined** — the honest hole | 2–3/target |
+| Metric                                             | Researcher-Zero ($0)            | Paid shaper (ds)             |
+| -------------------------------------------------- | ------------------------------- | ---------------------------- |
+| Speed / kernel                                     | **2.7 s**                       | 49.1 s (**18× slower**)      |
+| Cost / kernel                                      | **$0.0000**                     | ~$0.007                      |
+| Surfaces through gates                             | 52/54                           | 53/54                        |
+| Fact anchoring                                     | **100% by construction**        | 31 kept / 1 dropped post-hoc |
+| Teach-as-is (1 cross-family seat, blind, advisory) | **7.67**                        | 5.50 (zero wins 5–1)         |
+| Misconceptions                                     | **0/6 mined** — the honest hole | 2–3/target                   |
 
 **The three real findings:**
+
 1. **The first bench caught a live hallucination** — the 135M skin
    injected "problems with the 2+1 scale assumption" (in no source)
    and leaked instruction register ("Teach that…"); length/punct gates

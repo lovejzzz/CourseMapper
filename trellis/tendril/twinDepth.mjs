@@ -151,7 +151,7 @@ export async function twinDepthPass({ budgetUsd = 0.5 } = {}) {
             1,
           ),
         }));
-      } catch (error) {
+      } catch {
         rejections['batch-failed'] = (rejections['batch-failed'] ?? 0) + batch.length;
         continue;
       }
@@ -184,7 +184,8 @@ export async function twinDepthPass({ budgetUsd = 0.5 } = {}) {
         }
         const verdict = await solveGate(item, { ledger, budgetUsd });
         if (!verdict.ok) {
-          rejections[`solver:${verdict.reason ?? 'reject'}`] = (rejections[`solver:${verdict.reason ?? 'reject'}`] ?? 0) + 1;
+          rejections[`solver:${verdict.reason ?? 'reject'}`] =
+            (rejections[`solver:${verdict.reason ?? 'reject'}`] ?? 0) + 1;
           continue;
         }
         bank.items.push({
@@ -209,7 +210,13 @@ export async function twinDepthPass({ budgetUsd = 0.5 } = {}) {
   } finally {
     await ledger.flush();
   }
-  return { twinCells: allTwins.length, withCorrective: twins.length, authored, rejections, bankItems: bank.items.length };
+  return {
+    twinCells: allTwins.length,
+    withCorrective: twins.length,
+    authored,
+    rejections,
+    bankItems: bank.items.length,
+  };
 }
 
 // CLI — explicit env opt-in (spend-capable; the bankGapFill lesson).

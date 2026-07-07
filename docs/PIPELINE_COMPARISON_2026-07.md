@@ -7,30 +7,30 @@ the pipelines"._
 
 ## 1. What is being compared
 
-| | Architecture | One line |
-| --- | --- | --- |
-| **Compiler** | blueprint + templates; machine writes prose | the shipping app pipeline (v0.15.185+) |
-| **Trellis** | typed graph + deterministic judgment J1–J13; model writes, machine judges | the side-build that made quality inspectable |
-| **Composer** | assemble from a judged asset library; model only skins seams and fills gaps | the third architecture; Trellis is its factory |
-| **Composer + Tendril** | Composer + on-device embedding intelligence in selection/dedupe (and Tutor/S at runtime) | the current lab head |
+|                        | Architecture                                                                             | One line                                       |
+| ---------------------- | ---------------------------------------------------------------------------------------- | ---------------------------------------------- |
+| **Compiler**           | blueprint + templates; machine writes prose                                              | the shipping app pipeline (v0.15.185+)         |
+| **Trellis**            | typed graph + deterministic judgment J1–J13; model writes, machine judges                | the side-build that made quality inspectable   |
+| **Composer**           | assemble from a judged asset library; model only skins seams and fills gaps              | the third architecture; Trellis is its factory |
+| **Composer + Tendril** | Composer + on-device embedding intelligence in selection/dedupe (and Tutor/S at runtime) | the current lab head                           |
 
 ## 2. The table (per ~14-lesson course, draft/default tiers)
 
-| Metric | Compiler | Trellis | Composer | Composer+Tendril |
-| --- | --- | --- | --- | --- |
-| Grader | 99/A ⁽¹⁾ | 98–99/A ⁽²⁾ | 97/A ⁽³⁾ | 97/A ⁽⁴⁾ |
-| Judge panel (teach-as-is, cross-family) | **5–6 / 10** ⁽¹⁾ | **8–9 / 10** ⁽²⁾ | 7.67–9 / 10 ⁽³⁾ | (inherits Composer) |
-| Adjudicated read | ~5 ⁽¹⁾ | ~8 ⁽¹⁾ | — | — |
-| Prof classroom repair battery | — (teach-as-is 3.43, CI 2.70–4.16) ⁽⁵⁾ | 0.497–0.603 ⁽²⁾ | 0.518–0.545 ⁽³⁾ | 0.464–0.523 ⁽⁴⁾ |
-| Judgment findings shipped | opaque (no J-instruments) | 0–2 disclosed | 1–4 (J7 echo class) | **0 — echo eliminated** ⁽⁴⁾ |
-| Cost / course | $0.12 ⁽¹⁾ | $0.145–0.33 ⁽²⁾ | **$0.063–0.068** ⁽³⁾ | $0.088–0.096 ⁽⁴⁾ |
-| Wall time | ~217 s ⁽¹⁾ | 116–191 s ⁽²⁾ | ~3–8 min observed ⁽³⁾ | ~4–9 min observed ⁽⁴⁾ |
-| Reuse (marginal course) | 0% — every course full price | 0% + bank items | **95–99% by surface area** ⁽³⁾ | 99% ⁽⁴⁾ |
-| Wrong-key protection | none | J1 + repair | + blind cross-family solver gate | same |
-| Typed-answer tutoring | none | none | none | **81.7% family accuracy, on-device, $0** ⁽⁶⁾ |
-| Offline student artifact | none | none | none | **99MB Tutor bundle, WebGPU 0.3s** ⁽⁶⁾ |
-| $0-runtime rewrite model | — | — | — | **Tendril-S 72.5% ≥ nano 71.7% on deployment gates** ⁽⁶⁾ |
-| Diagnosis trajectory | — | — | — | false-fire 33.3%→21.7% at ~81% acc in two $0 rounds (E2b shelved 1.7pts from the joint bar) ⁽⁶⁾ |
+| Metric                                  | Compiler                               | Trellis          | Composer                         | Composer+Tendril                                                                                |
+| --------------------------------------- | -------------------------------------- | ---------------- | -------------------------------- | ----------------------------------------------------------------------------------------------- |
+| Grader                                  | 99/A ⁽¹⁾                               | 98–99/A ⁽²⁾      | 97/A ⁽³⁾                         | 97/A ⁽⁴⁾                                                                                        |
+| Judge panel (teach-as-is, cross-family) | **5–6 / 10** ⁽¹⁾                       | **8–9 / 10** ⁽²⁾ | 7.67–9 / 10 ⁽³⁾                  | (inherits Composer)                                                                             |
+| Adjudicated read                        | ~5 ⁽¹⁾                                 | ~8 ⁽¹⁾           | —                                | —                                                                                               |
+| Prof classroom repair battery           | — (teach-as-is 3.43, CI 2.70–4.16) ⁽⁵⁾ | 0.497–0.603 ⁽²⁾  | 0.518–0.545 ⁽³⁾                  | 0.464–0.523 ⁽⁴⁾                                                                                 |
+| Judgment findings shipped               | opaque (no J-instruments)              | 0–2 disclosed    | 1–4 (J7 echo class)              | **0 — echo eliminated** ⁽⁴⁾                                                                     |
+| Cost / course                           | $0.12 ⁽¹⁾                              | $0.145–0.33 ⁽²⁾  | **$0.063–0.068** ⁽³⁾             | $0.088–0.096 ⁽⁴⁾                                                                                |
+| Wall time                               | ~217 s ⁽¹⁾                             | 116–191 s ⁽²⁾    | ~3–8 min observed ⁽³⁾            | ~4–9 min observed ⁽⁴⁾                                                                           |
+| Reuse (marginal course)                 | 0% — every course full price           | 0% + bank items  | **95–99% by surface area** ⁽³⁾   | 99% ⁽⁴⁾                                                                                         |
+| Wrong-key protection                    | none                                   | J1 + repair      | + blind cross-family solver gate | same                                                                                            |
+| Typed-answer tutoring                   | none                                   | none             | none                             | **81.7% family accuracy, on-device, $0** ⁽⁶⁾                                                    |
+| Offline student artifact                | none                                   | none             | none                             | **99MB Tutor bundle, WebGPU 0.3s** ⁽⁶⁾                                                          |
+| $0-runtime rewrite model                | —                                      | —                | —                                | **Tendril-S 72.5% ≥ nano 71.7% on deployment gates** ⁽⁶⁾                                        |
+| Diagnosis trajectory                    | —                                      | —                | —                                | false-fire 33.3%→21.7% at ~81% acc in two $0 rounds (E2b shelved 1.7pts from the joint bar) ⁽⁶⁾ |
 
 **Provenance.** ⁽¹⁾ same-day head-to-head July 3 + PROF-BENCH v1.1
 bench11 July 4 (TRELLIS.md §20; docs/adjudications/2026-07-04-bench11):
@@ -97,13 +97,13 @@ Owner: "test it with different prompt, compare results with other
 pipelines." Course: **Introduction to CS with Python** (the one course
 all four pipelines have measured) + a deliberate out-of-coverage probe.
 
-| cs-python | Compiler | Trellis | Composer (paid) | **Composer ZERO** |
-| --- | --- | --- | --- | --- |
-| Grader | 99/A | 98/A | 97/A | **98/A (P0=0 P1=0** P2=6) |
-| Judge panel (cross-family) | 5–6 | 8–9 | 7.67 | **6.67 [6,7]** |
-| Cost | $0.12 | $0.145–0.177 | $0.068 | **$0.0000** |
-| Battery | — | 0.603 | 0.518 | 0.404 † |
-| Findings shipped | opaque | 0–2 | 1–4 | 2 (J2+J8, disclosed, unrepaired) |
+| cs-python                  | Compiler | Trellis      | Composer (paid) | **Composer ZERO**                |
+| -------------------------- | -------- | ------------ | --------------- | -------------------------------- |
+| Grader                     | 99/A     | 98/A         | 97/A            | **98/A (P0=0 P1=0** P2=6)        |
+| Judge panel (cross-family) | 5–6      | 8–9          | 7.67            | **6.67 [6,7]**                   |
+| Cost                       | $0.12    | $0.145–0.177 | $0.068          | **$0.0000**                      |
+| Battery                    | —        | 0.603        | 0.518           | 0.404 †                          |
+| Findings shipped           | opaque   | 0–2          | 1–4             | 2 (J2+J8, disclosed, unrepaired) |
 
 † zero withholds all grounding citations (the honest policy after the
 64% false-keep calibration), and claim refs double as the classroom's

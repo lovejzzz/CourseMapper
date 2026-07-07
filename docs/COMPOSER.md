@@ -29,18 +29,18 @@ cannot yet provide, and everything it authors joins the library.**
 
 ## 2. The inheritance (with receipts)
 
-| Ancestor | What it proved | The number |
-| --- | --- | --- |
-| Compiler (v0.x) | deterministic assembly is cheap, fast, reliable | $0.13, 217s, never crashes |
-| Compiler | machine prose is unteachable and uncurable | judge mean 4.1 over 14 rounds; 6 audits |
-| Trellis | AI prose passes judges when instruments own guarantees | judge 8 unanimous; blind Δ+2.8 |
-| Trellis | generation without reuse re-rolls quality dice every run | quiz 5–7.5 variance on identical code |
-| **The bank** | **judged content is course-agnostic and compounds** | 60–70% of quiz content at $0; variance collapsed to 7–8; 1,867 items in 2 days |
-| Gap-fill | you can author INTO the asset, deliberately | 28→77 multi-family kernels for $0.33 |
-| Exemplars | assets lift fresh generation nearby | L8 quiz 5→7 (with floors) |
-| Blends | machine-assembled text can be made to read as one voice, gate-safely | "pasted" complaints eliminated; quiz 5→7.5 |
-| Cross-family | a second model family breaks deadlocks a first cannot | ds filled 6/7 cells mini failed 5× |
-| PROF-BENCH | composition choices can be evaluated for $0 | same-graph Δ0.005 rulers |
+| Ancestor        | What it proved                                                       | The number                                                                     |
+| --------------- | -------------------------------------------------------------------- | ------------------------------------------------------------------------------ |
+| Compiler (v0.x) | deterministic assembly is cheap, fast, reliable                      | $0.13, 217s, never crashes                                                     |
+| Compiler        | machine prose is unteachable and uncurable                           | judge mean 4.1 over 14 rounds; 6 audits                                        |
+| Trellis         | AI prose passes judges when instruments own guarantees               | judge 8 unanimous; blind Δ+2.8                                                 |
+| Trellis         | generation without reuse re-rolls quality dice every run             | quiz 5–7.5 variance on identical code                                          |
+| **The bank**    | **judged content is course-agnostic and compounds**                  | 60–70% of quiz content at $0; variance collapsed to 7–8; 1,867 items in 2 days |
+| Gap-fill        | you can author INTO the asset, deliberately                          | 28→77 multi-family kernels for $0.33                                           |
+| Exemplars       | assets lift fresh generation nearby                                  | L8 quiz 5→7 (with floors)                                                      |
+| Blends          | machine-assembled text can be made to read as one voice, gate-safely | "pasted" complaints eliminated; quiz 5→7.5                                     |
+| Cross-family    | a second model family breaks deadlocks a first cannot                | ds filled 6/7 cells mini failed 5×                                             |
+| PROF-BENCH      | composition choices can be evaluated for $0                          | same-graph Δ0.005 rulers                                                       |
 
 The Composer is the hypothesis that **what happened to the quiz happens
 to everything**.
@@ -75,37 +75,47 @@ to everything**.
 ```jsonc
 // trellis/bank/assets.json — one entry
 {
-  "id": "gapfill:cs/while-loops:off-by-one-3",   // provenance-bearing id
-  "kernelId": "cs/while-loops",                  // genome anchor (REQUIRED)
-  "move": "item",                                // pedagogical move (taxonomy below)
-  "body": { /* move-specific shape */ },
-  "familyKey": "the last index of a five item…", // misconception family, when applicable
-  "evidence": {                                   // ONLY what instruments measured
-    "catches": true, "confronts": true,
-    "classroom": { "difficulty": 0.62, "discrimination": 0.41 },  // when battery-observed
-    "judgeTouched": 8                              // best panel score of a package containing it
+  "id": "gapfill:cs/while-loops:off-by-one-3", // provenance-bearing id
+  "kernelId": "cs/while-loops", // genome anchor (REQUIRED)
+  "move": "item", // pedagogical move (taxonomy below)
+  "body": {
+    /* move-specific shape */
   },
-  "provenance": { "origin": "harvest|gapfill|composer", "model": "…", "runId": "…", "benchVersion": "1.1.0", "date": "…" },
-  "exposure": { "uses": 14, "lastUsed": "…" },     // exposure control (§7)
-  "voice": "neutral"                                // stored voice-NEUTRAL; skin applies course voice
+  "familyKey": "the last index of a five item…", // misconception family, when applicable
+  "evidence": {
+    // ONLY what instruments measured
+    "catches": true,
+    "confronts": true,
+    "classroom": { "difficulty": 0.62, "discrimination": 0.41 }, // when battery-observed
+    "judgeTouched": 8, // best panel score of a package containing it
+  },
+  "provenance": {
+    "origin": "harvest|gapfill|composer",
+    "model": "…",
+    "runId": "…",
+    "benchVersion": "1.1.0",
+    "date": "…",
+  },
+  "exposure": { "uses": 14, "lastUsed": "…" }, // exposure control (§7)
+  "voice": "neutral", // stored voice-NEUTRAL; skin applies course voice
 }
 ```
 
 **The move taxonomy** (each move = one body schema + one gate profile +
 one skin profile):
 
-| Move | Body | Primary gates | Status |
-| --- | --- | --- | --- |
-| `item` | stem/options/key/explanation | catch, confront, aesthetics, dedupe | **live** (1,867) |
-| `worked-example` | problem/steps/result | correctness vs kernel facts, step count | genome has seeds |
-| `reteach-script` | segment text walking one example | worked-example regex, duration | extractable from runs |
-| `misconception-poll` | claim/reveal/correction | family match, corrective | extractable |
-| `explanation-passage` | 1-2 ¶ teaching one fact cluster | entailment vs kernel | extractable |
-| `analogy` | mapping + where-it-breaks | entailment + disclosed limits | gap-fill only |
-| `discussion-tension` | prompt/tension/followUps | non-yes/no check, J7 | extractable |
-| `activity` | task/steps/rubric bands | observable-behavior bands | extractable |
-| `primer` | 5-10 min prereq bridge | kernel entailment | extractable |
-| `faq-entry` | q/a | entailment | extractable |
+| Move                  | Body                             | Primary gates                           | Status                |
+| --------------------- | -------------------------------- | --------------------------------------- | --------------------- |
+| `item`                | stem/options/key/explanation     | catch, confront, aesthetics, dedupe     | **live** (1,867)      |
+| `worked-example`      | problem/steps/result             | correctness vs kernel facts, step count | genome has seeds      |
+| `reteach-script`      | segment text walking one example | worked-example regex, duration          | extractable from runs |
+| `misconception-poll`  | claim/reveal/correction          | family match, corrective                | extractable           |
+| `explanation-passage` | 1-2 ¶ teaching one fact cluster  | entailment vs kernel                    | extractable           |
+| `analogy`             | mapping + where-it-breaks        | entailment + disclosed limits           | gap-fill only         |
+| `discussion-tension`  | prompt/tension/followUps         | non-yes/no check, J7                    | extractable           |
+| `activity`            | task/steps/rubric bands          | observable-behavior bands               | extractable           |
+| `primer`              | 5-10 min prereq bridge           | kernel entailment                       | extractable           |
+| `faq-entry`           | q/a                              | entailment                              | extractable           |
 
 Assets are stored **voice-neutral** (instructional register, no course
 references, no week numbers) — the skin adds the course.
@@ -195,12 +205,12 @@ The one hard problem. Mechanism, all measured pieces:
 
 ## 8. Economics (extrapolated from measured behavior)
 
-| Phase | Library state | Course cost | Basis |
-| --- | --- | --- | --- |
-| Today (items only) | 1,867 assets, 1 move | $0.125–0.15 | measured |
-| E6 pilot (3–4 moves, cs) | ~2.5k assets | **$0.05–0.08 target** | quiz precedent: 60–70% reuse ⇒ stage cost →$0 |
-| Mature (8 moves × fixture disciplines) | ~8–12k assets | **$0.02–0.04** + skin (~$0.01) | fill rate →10–20%; skin is nano-class |
-| Overnight + mature | same | **~$0.015–0.025** | batch −50% on residual generation |
+| Phase                                  | Library state        | Course cost                    | Basis                                         |
+| -------------------------------------- | -------------------- | ------------------------------ | --------------------------------------------- |
+| Today (items only)                     | 1,867 assets, 1 move | $0.125–0.15                    | measured                                      |
+| E6 pilot (3–4 moves, cs)               | ~2.5k assets         | **$0.05–0.08 target**          | quiz precedent: 60–70% reuse ⇒ stage cost →$0 |
+| Mature (8 moves × fixture disciplines) | ~8–12k assets        | **$0.02–0.04** + skin (~$0.01) | fill rate →10–20%; skin is nano-class         |
+| Overnight + mature                     | same                 | **~$0.015–0.025**              | batch −50% on residual generation             |
 
 Library build-out is the capital cost: extrapolating gap-fill ($0.33
 per ~200 gated assets), a full 8-move × 100-kernel library ≈ **$15–25
@@ -276,16 +286,16 @@ fraction of the cost, on the hardest ruler we own?
 
 ## 13. Milestones
 
-| # | Milestone | Content | Est. cost |
-| --- | --- | --- | --- |
-| C0 | Asset schema + migration | items bank → assets.json (move: "item"); exposure counters; supersedes | $0 |
-| C1 | Multi-move harvest | worked-examples, reteach-scripts, polls, explanations from top-judged runs; gates per move | $0 |
-| C2 | Composition planner v0 | deterministic per-lesson move plan + candidate selection + exposure draw | $0 |
-| C3 | Voice skin v0 | seam pass + J14; gate-validated | ~$0.02/course |
-| C4 | **E6 pilot** | §12, full instruments | ≤$0.35 incl. panel |
-| C5 | Sim-steered planning | plan candidates scored by the battery; measured vs C2 on the frozen ruler | $0 + one replay |
-| C6 | Library build-out | gap-fill per move × fixture kernels, ds+mini mixed (the deadlock lesson) | $15–25 one-time |
-| C7 | Escalation lane | agent with tools for gate-failing courses; budget-capped | design after C5 |
+| #   | Milestone                | Content                                                                                    | Est. cost          |
+| --- | ------------------------ | ------------------------------------------------------------------------------------------ | ------------------ |
+| C0  | Asset schema + migration | items bank → assets.json (move: "item"); exposure counters; supersedes                     | $0                 |
+| C1  | Multi-move harvest       | worked-examples, reteach-scripts, polls, explanations from top-judged runs; gates per move | $0                 |
+| C2  | Composition planner v0   | deterministic per-lesson move plan + candidate selection + exposure draw                   | $0                 |
+| C3  | Voice skin v0            | seam pass + J14; gate-validated                                                            | ~$0.02/course      |
+| C4  | **E6 pilot**             | §12, full instruments                                                                      | ≤$0.35 incl. panel |
+| C5  | Sim-steered planning     | plan candidates scored by the battery; measured vs C2 on the frozen ruler                  | $0 + one replay    |
+| C6  | Library build-out        | gap-fill per move × fixture kernels, ds+mini mixed (the deadlock lesson)                   | $15–25 one-time    |
+| C7  | Escalation lane          | agent with tools for gate-failing courses; budget-capped                                   | design after C5    |
 
 C0–C4 fit in one working session. Nothing beyond C4 is committed until
 E6 reports.

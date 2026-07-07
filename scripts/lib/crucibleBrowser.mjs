@@ -423,8 +423,16 @@ async function forwardToLlmShim(route, llmShimUrl) {
           { type: 'response.completed', response: payload },
         ]
       : [
-          { id: 'e2b-shim', object: 'chat.completion.chunk', choices: [{ index: 0, delta: { role: 'assistant', content: text }, finish_reason: null }] },
-          { id: 'e2b-shim', object: 'chat.completion.chunk', choices: [{ index: 0, delta: {}, finish_reason: 'stop' }] },
+          {
+            id: 'e2b-shim',
+            object: 'chat.completion.chunk',
+            choices: [{ index: 0, delta: { role: 'assistant', content: text }, finish_reason: null }],
+          },
+          {
+            id: 'e2b-shim',
+            object: 'chat.completion.chunk',
+            choices: [{ index: 0, delta: {}, finish_reason: 'stop' }],
+          },
         ];
     const sse = `${events.map((event) => `data: ${JSON.stringify(event)}`).join('\n\n')}\n\ndata: [DONE]\n\n`;
     await route.fulfill({ status: 200, contentType: 'text/event-stream', body: sse });

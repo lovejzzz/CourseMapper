@@ -33,13 +33,13 @@ Course Mapper is a **purpose-built instructional design tool**, not a general ch
 npm run local-model   # serves Scion-1 at http://127.0.0.1:8799
 ```
 
-**What it is.** The name is horticultural: a *scion* is the cultivated cutting grafted onto wild rootstock. The rootstock is Google's open-weights **Gemma 4 E2B** (Apache-2.0, ~4B parameters, Apple Silicon via mlx-vlm). The scion — the part we cultivated — is the harness grafted onto it:
+**What it is.** The name is horticultural: a _scion_ is the cultivated cutting grafted onto wild rootstock. The rootstock is Google's open-weights **Gemma 4 E2B** (Apache-2.0, ~4B parameters, Apple Silicon via mlx-vlm). The scion — the part we cultivated — is the harness grafted onto it:
 
 - **Grammar-constrained decoding** (llguidance): invalid JSON is impossible at the decode layer, and the app's own content contracts (per-lesson kernels, quiz item shapes, lint length floors) are enforced as the only legal output shape.
 - **Per-lesson generation with a progress cache**, so long on-device compiles ride the app's retry ladder instead of fighting timeouts.
 - **Self-verification**: every quiz answer key is re-solved blind; keys that fail a two-solve check are regenerated. Off-topic items are caught by a lexical topic gate. A self-refining polish pass rewrites draft prose into natural teaching voice.
 
-**Honest quality band** (measured, pooled multi-seat judge panels on identical courses): structural grade **A at parity** with paid models; prose and quiz-item fluency currently **ties our paid baseline at best** — pooled panels place it just below gpt-5.4-mini. Study guides already judge *above* the paid baseline. The gap is the target of an ongoing preference-training flywheel (every generation banks verified training pairs), so Scion improves release over release while its price never moves from $0.
+**Honest quality band** (measured, pooled multi-seat judge panels on identical courses): structural grade **A at parity** with paid models; prose and quiz-item fluency currently **ties our paid baseline at best** — pooled panels place it just below gpt-5.4-mini. Study guides already judge _above_ the paid baseline. The gap is the target of an ongoing preference-training flywheel (every generation banks verified training pairs), so Scion improves release over release while its price never moves from $0.
 
 **Trade-offs**: slower than cloud APIs (a full 7-lesson package takes ~7–20 minutes on an M-series Mac), no tool-calling (the chat agent needs a cloud provider), and it requires the local server running. Privacy is absolute: prompts, syllabi, and generated courses never leave the machine.
 

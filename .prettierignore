@@ -20,3 +20,18 @@ scripts/normalizeSlideDecksRepair.mjs
 scripts/runInternalQualityNextCell.mjs
 scripts/updateQualityDashboard.mjs
 public/genome
+
+# Trellis generated data & caches — produced by tools that don't run prettier,
+# so they always re-drift and would re-break format:check (same rationale as
+# public/genome above). Source .mjs/.js in trellis/ is still formatted.
+trellis/bank
+trellis/tendril/cache
+trellis/tendril/outputs
+trellis/tendril/distill/data-g4
+trellis/tendril/distill/data-g4-orpo
+trellis/tendril/distill/*.json
+trellis/researcher/*.json
+trellis/composer/*-run*.json
+trellis/**/*-showdown*.json
+trellis/prof/**/*.json
+scripts/prof/scenarios/*.json

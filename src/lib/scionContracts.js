@@ -64,7 +64,11 @@ function kernelFieldSchemas({ mcCount = 4, keyTermCount = 4 } = {}) {
       properties: { pr: str(20, 300), tn: str(12, 300), po: arr(str(8, 200), 2, 3) },
       required: ['pr', 'tn', 'po'],
     },
-    assignmentCore: { type: 'object', properties: { td: str(45, 500), pa: arr(str(8, 160), 2, 4) }, required: ['td', 'pa'] },
+    assignmentCore: {
+      type: 'object',
+      properties: { td: str(45, 500), pa: arr(str(8, 160), 2, 4) },
+      required: ['td', 'pa'],
+    },
     mc: arr(
       {
         type: 'object',
@@ -225,7 +229,11 @@ export function skeletonSchemaProfile({ sessionCount }) {
       readings: arr(
         {
           type: 'object',
-          properties: { id: str(2, 8), title: str(3, 160), dueSession: { type: 'integer', minimum: 1, maximum: count } },
+          properties: {
+            id: str(2, 8),
+            title: str(3, 160),
+            dueSession: { type: 'integer', minimum: 1, maximum: count },
+          },
           required: ['id', 'title', 'dueSession'],
         },
         0,
@@ -234,7 +242,11 @@ export function skeletonSchemaProfile({ sessionCount }) {
       resources: arr(
         {
           type: 'object',
-          properties: { id: str(2, 8), title: str(3, 160), dueSession: { type: 'integer', minimum: 1, maximum: count } },
+          properties: {
+            id: str(2, 8),
+            title: str(3, 160),
+            dueSession: { type: 'integer', minimum: 1, maximum: count },
+          },
           required: ['id', 'title', 'dueSession'],
         },
         0,

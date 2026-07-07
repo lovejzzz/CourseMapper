@@ -40,7 +40,13 @@ for (const [i, t] of sample.entries()) {
     });
     outputs.push({ task: t.task, mode: t.mode, source: t.source, output: String(result).trim() });
   } catch (error) {
-    outputs.push({ task: t.task, mode: t.mode, source: t.source, output: '', error: String(error.message).slice(0, 80) });
+    outputs.push({
+      task: t.task,
+      mode: t.mode,
+      source: t.source,
+      output: '',
+      error: String(error.message).slice(0, 80),
+    });
   }
   if ((i + 1) % 20 === 0) console.log(`${i + 1}/${sample.length}`);
 }

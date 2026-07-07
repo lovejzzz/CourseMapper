@@ -18,12 +18,12 @@ tell its items from paid.
 
 The gaps, each with a ruler behind it:
 
-| # | Gap | Evidence |
-| --- | --- | --- |
-| G1 | **Long-JSON structural drift** ≥ ~15K chars — near-miss commas/brackets, plus the doubled-brace quirk (L2 crutch) | compiler-seat autopsy 2026-07-06: CourseIR one comma from valid; enrichment bracket slips; judge 3.33 at $0 |
-| G2 | **Day-one prose** — extractive surfaces judge 4.33–5.0 on virgin ground; THE single quality gap of the $0 pipeline, measured three times | bake-off arms 5/hybrid/surface-lever |
-| G3 | **Item polish** −1.0 blind-judge gap (teaches identically, reads rougher) | edu-bar.json |
-| G4 | **Dense-kernel blind spots + the unmet ≥ds bar** — pooled 67 v 80 /96; registry routes 2 kernels | showdown runs, scoreboard |
+| #   | Gap                                                                                                                                      | Evidence                                                                                                    |
+| --- | ---------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------- |
+| G1  | **Long-JSON structural drift** ≥ ~15K chars — near-miss commas/brackets, plus the doubled-brace quirk (L2 crutch)                        | compiler-seat autopsy 2026-07-06: CourseIR one comma from valid; enrichment bracket slips; judge 3.33 at $0 |
+| G2  | **Day-one prose** — extractive surfaces judge 4.33–5.0 on virgin ground; THE single quality gap of the $0 pipeline, measured three times | bake-off arms 5/hybrid/surface-lever                                                                        |
+| G3  | **Item polish** −1.0 blind-judge gap (teaches identically, reads rougher)                                                                | edu-bar.json                                                                                                |
+| G4  | **Dense-kernel blind spots + the unmet ≥ds bar** — pooled 67 v 80 /96; registry routes 2 kernels                                         | showdown runs, scoreboard                                                                                   |
 
 And one standing constraint that shapes everything below: **trainability is
 brittle.** SFT collapsed twice (26.7% → 13.3%; near-identity corpus taught
@@ -38,7 +38,7 @@ A 4B on-device model does not become a monster by weights alone. V2 is four
 engines compounding, cheapest and most certain first:
 
 1. **Determinism where determinism is possible** (decoding layer): make
-   invalid JSON *impossible*, not unlikely. G1 dies here, not in training.
+   invalid JSON _impossible_, not unlikely. G1 dies here, not in training.
 2. **The corpus is the monster** (data flywheel at scale): thousands of
    verdicted preference pairs from instruments we already trust, at ~$0
    authoring cost. No training run outruns a poisoned or tiny corpus.
@@ -201,18 +201,18 @@ latency, zero honesty regressions.
 
 The campaign ends with the same experiments that defined V1, rerun blind:
 
-| Bar | Instrument | V1 today | **V2 bar** |
-| --- | --- | --- | --- |
-| Long JSON | long-JSON bench (frozen replay) | 0% ≥15K chars | **100% parse-valid, ≥95% schema-valid** |
-| Items | showdown pooled /96, same-run | 67 v ds 80 | **≥ ds** (G4 closed) |
-| Registry | routed kernels | 2 | **0** |
-| Polish | blind-judge item gap | −1.0 | **≥ −0.5** |
-| Day-one prose | prose bench, virgin ground, $0 | 4.33 | **≥6.0** (stretch 6.5) |
-| Compiler seat | BAKEOFF addendum-3 protocol rerun | 3.33 v 5.67 | **within ±1 of paid mini** at $0 |
-| Teachability | classroom battery | 0.69 (parity) | **≥ parity everywhere** |
-| Stability | scoreboard, 5 runs | zero drift | **zero drift maintained** |
-| Honesty | gates + strict-$0 disclosure | 100% | **100%, untouched** |
-| The anchor | two-human packet (L10) | pending | **read** — the only SIMULATED→confirmed upgrade |
+| Bar           | Instrument                        | V1 today      | **V2 bar**                                      |
+| ------------- | --------------------------------- | ------------- | ----------------------------------------------- |
+| Long JSON     | long-JSON bench (frozen replay)   | 0% ≥15K chars | **100% parse-valid, ≥95% schema-valid**         |
+| Items         | showdown pooled /96, same-run     | 67 v ds 80    | **≥ ds** (G4 closed)                            |
+| Registry      | routed kernels                    | 2             | **0**                                           |
+| Polish        | blind-judge item gap              | −1.0          | **≥ −0.5**                                      |
+| Day-one prose | prose bench, virgin ground, $0    | 4.33          | **≥6.0** (stretch 6.5)                          |
+| Compiler seat | BAKEOFF addendum-3 protocol rerun | 3.33 v 5.67   | **within ±1 of paid mini** at $0                |
+| Teachability  | classroom battery                 | 0.69 (parity) | **≥ parity everywhere**                         |
+| Stability     | scoreboard, 5 runs                | zero drift    | **zero drift maintained**                       |
+| Honesty       | gates + strict-$0 disclosure      | 100%          | **100%, untouched**                             |
+| The anchor    | two-human packet (L10)            | pending       | **read** — the only SIMULATED→confirmed upgrade |
 
 The monster claim is the whole table, or it is not claimed.
 

@@ -171,7 +171,9 @@ export const strangerPool = [
       'Introduction to Philosophy, a 12-lesson introductory college course with weekly argument analyses and a midterm. Lessons cover: what philosophy is and how to read an argument; logic and the structure of valid arguments; the theory of knowledge and skepticism; the mind-body problem; personal identity; free will and determinism; arguments for and against the existence of God; the problem of evil; ethical theory and the good life; justice and political philosophy; the meaning of life; and a final philosophical essay.',
   },
   {
-    id: 'music-theory',
+    // Distinct id from the 7-lesson 'music-theory' above — a duplicate id made
+    // strangerPool non-unique and broke the day-of-year rotation test.
+    id: 'music-theory-survey',
     title: 'Fundamentals of Music Theory',
     lessonCount: 14,
     probeProfile: 'generic',

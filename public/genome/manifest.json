@@ -1,5 +1,5 @@
 {
-  "version": "2026-07-03",
+  "version": "2026-07-07",
   "generator": "curriculumos-foundry-v1",
   "conceptCount": 271,
   "shards": [
@@ -40,7 +40,7 @@
       "discipline": "cs",
       "level": "intro",
       "path": "cs-intro.json",
-      "conceptCount": 14,
+      "conceptCount": 12,
       "hash": "fbfb087cd78092d0"
     },
     {
@@ -80,7 +80,7 @@
       "discipline": "lit",
       "level": "intro",
       "path": "lit-intro.json",
-      "conceptCount": 47,
+      "conceptCount": 34,
       "hash": "10b1d402cc5a64f5"
     },
     {
@@ -138,12 +138,6 @@
       "path": "stats-intro.json",
       "conceptCount": 5,
       "hash": "d043fca784ae8f65"
-    },
-    {
-      "id": "music-intro",
-      "file": "music-intro.json",
-      "discipline": "music",
-      "conceptCount": 7
     }
   ],
   "archetypeShard": {

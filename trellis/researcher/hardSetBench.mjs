@@ -14,7 +14,7 @@ import { authorItemsE2BMax, disciplinePrompt } from './shape.mjs';
 import { claimTokens, gapItemRejection } from '../knowledge/bankGapFill.mjs';
 import { solveGate } from '../composer/solver.mjs';
 import { createRunLedger } from '../telemetry.mjs';
-import { stopS, sGenerate } from '../tendril/sModel.mjs';
+import { stopS } from '../tendril/sModel.mjs';
 import { corpusLog } from '../tendril/corpus.mjs';
 
 const HARD = [

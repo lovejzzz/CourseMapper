@@ -11,9 +11,15 @@ import { readFile, writeFile } from 'node:fs/promises';
 import { pipeline, env } from '@huggingface/transformers';
 env.localModelPath = 'trellis/tendril/models';
 env.allowLocalModels = true;
-const BLEND_SYSTEM = "You polish quiz explanations. The text contains corrective sentences that were pasted in mechanically, so it reads as two voices. Rewrite it as ONE natural explanation (2-3 sentences) that makes every corrective's content its own point — keep the key technical terms (a lexical gate checks this), never paste a corrective as a standalone sentence. Return only the rewritten explanation text.";
+const BLEND_SYSTEM =
+  "You polish quiz explanations. The text contains corrective sentences that were pasted in mechanically, so it reads as two voices. Rewrite it as ONE natural explanation (2-3 sentences) that makes every corrective's content its own point — keep the key technical terms (a lexical gate checks this), never paste a corrective as a standalone sentence. Return only the rewritten explanation text.";
 const gen = await pipeline('text-generation', 'tendril-s2-web', { dtype: process.env.WEB_DTYPE ?? 'q8' });
-const tests = (await readFile('trellis/tendril/distill/test-heldout.jsonl', 'utf8')).trim().split('\n').map((l) => JSON.parse(l)).filter((t) => t.task === 'blend').slice(0, 60);
+const tests = (await readFile('trellis/tendril/distill/test-heldout.jsonl', 'utf8'))
+  .trim()
+  .split('\n')
+  .map((l) => JSON.parse(l))
+  .filter((t) => t.task === 'blend')
+  .slice(0, 60);
 const out = [];
 const t0 = performance.now();
 for (const [i, t] of tests.entries()) {
@@ -33,5 +39,8 @@ for (const [i, t] of tests.entries()) {
   if ((i + 1) % 20 === 0) console.log(`${i + 1}/60`);
 }
 console.log('sec/sample:', ((performance.now() - t0) / 1000 / tests.length).toFixed(2));
-await writeFile(`trellis/tendril/distill/outputs/s2-web${process.env.WEB_DTYPE === 'fp32' ? '-fp32' : ''}.jsonl`, out.map((o) => JSON.stringify(o)).join('\n'));
+await writeFile(
+  `trellis/tendril/distill/outputs/s2-web${process.env.WEB_DTYPE === 'fp32' ? '-fp32' : ''}.jsonl`,
+  out.map((o) => JSON.stringify(o)).join('\n'),
+);
 console.log('wrote s2-web.jsonl');

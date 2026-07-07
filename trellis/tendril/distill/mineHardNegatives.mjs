@@ -19,7 +19,10 @@ const OUT = 'trellis/tendril/distill/hard-triplets.jsonl';
 
 async function loadCorpus() {
   const entries = [];
-  for (const path of ['trellis/tendril/distill/stance-training.json', 'trellis/tendril/distill/stance-training-2.json']) {
+  for (const path of [
+    'trellis/tendril/distill/stance-training.json',
+    'trellis/tendril/distill/stance-training-2.json',
+  ]) {
     if (!existsSync(path)) continue;
     const data = JSON.parse(await readFile(path, 'utf8'));
     entries.push(...(data.generated ?? []));
@@ -86,7 +89,13 @@ for (const { entry, correct, distractors } of contexts) {
 await writeFile(OUT, triplets.map((t) => JSON.stringify(t)).join('\n'));
 console.log(
   JSON.stringify(
-    { model: process.env.TENDRIL_MODEL ?? 'default', contexts: contexts.length, falseFires, misses, hardTriplets: triplets.length },
+    {
+      model: process.env.TENDRIL_MODEL ?? 'default',
+      contexts: contexts.length,
+      falseFires,
+      misses,
+      hardTriplets: triplets.length,
+    },
     null,
     2,
   ),

@@ -75,11 +75,11 @@ before and after), so the per-class deltas attribute to the seats, not to
 store drift. Because each seat touches a distinct artifact class, the paired
 deltas isolate cleanly: **plan Δ = skin, guide Δ = polish, quiz Δ = fill.**
 
-| Arm  | Overall | plan     | quiz     | guide    | Seat counts |
-| ---- | ------- | -------- | -------- | -------- | ----------- |
-| base | 6.92    | 7.08     | 6.19     | 7.11     | — |
-| +all | 7.00    | **7.56** | **5.78** | **7.53** | skin 62/73, polish 14/15, fill 2 |
-| Δ    | +0.08   | **+0.48**| **−0.41**| **+0.42**| |
+| Arm  | Overall | plan      | quiz      | guide     | Seat counts                      |
+| ---- | ------- | --------- | --------- | --------- | -------------------------------- |
+| base | 6.92    | 7.08      | 6.19      | 7.11      | —                                |
+| +all | 7.00    | **7.56**  | **5.78**  | **7.53**  | skin 62/73, polish 14/15, fill 2 |
+| Δ    | +0.08   | **+0.48** | **−0.41** | **+0.42** |                                  |
 
 The mature course sits **+1.4 above day-one** (6.9 vs 5.4), driven entirely
 by quizzes (6.2 vs 3.1) — the standing bank-maturity story. And the seat

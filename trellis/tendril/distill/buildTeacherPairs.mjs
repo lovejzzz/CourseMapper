@@ -75,14 +75,21 @@ async function miniKernel(apiKey, systemPrompt, userPrompt) {
   const data = await response.json();
   return {
     text: data.choices?.[0]?.message?.content ?? '',
-    costUsd:
-      ((data.usage?.prompt_tokens ?? 0) * 0.15 + (data.usage?.completion_tokens ?? 0) * 0.6) / 1e6,
+    costUsd: ((data.usage?.prompt_tokens ?? 0) * 0.15 + (data.usage?.completion_tokens ?? 0) * 0.6) / 1e6,
   };
 }
 
 function tokenOverlap(a, b) {
-  const ta = new Set(String(a).toLowerCase().match(/[a-z]{3,}/g) ?? []);
-  const tb = new Set(String(b).toLowerCase().match(/[a-z]{3,}/g) ?? []);
+  const ta = new Set(
+    String(a)
+      .toLowerCase()
+      .match(/[a-z]{3,}/g) ?? [],
+  );
+  const tb = new Set(
+    String(b)
+      .toLowerCase()
+      .match(/[a-z]{3,}/g) ?? [],
+  );
   if (ta.size === 0 || tb.size === 0) return 0;
   let hit = 0;
   for (const t of ta) if (tb.has(t)) hit += 1;
@@ -151,7 +158,7 @@ export async function buildPairs(courseIds) {
       let rejectedText = '';
       try {
         rejectedText = String(
-          await sGenerate(
+          (await sGenerate(
             {
               system: systemPrompt,
               user: userPrompt,
@@ -160,7 +167,7 @@ export async function buildPairs(courseIds) {
               schema: singleLessonEnvelope(`lesson-${index + 1}`),
             },
             { timeoutMs: 600_000 },
-          ) ?? '',
+          )) ?? '',
         );
       } catch (error) {
         console.error(`[pairs] ${doneKey} e2b failed: ${error.message}`);

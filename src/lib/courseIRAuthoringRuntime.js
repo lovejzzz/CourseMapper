@@ -36,7 +36,8 @@ export async function tryAuthorDirectCourseIR({
       type: 'pipelineDecision',
       stage: 'courseIRAuthoring',
       label: 'CourseIR direct authoring plan',
-      detail: 'skipped: Scion time-planner (direct authoring never passes acceptance; skeleton path is the measured optimum)',
+      detail:
+        'skipped: Scion time-planner (direct authoring never passes acceptance; skeleton path is the measured optimum)',
     });
     return { ok: false, skipped: true };
   }

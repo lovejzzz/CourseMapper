@@ -241,7 +241,11 @@ export async function loadBank(discipline, { dir = 'trellis/bank' } = {}) {
 // genomeRef, instrument-evidenced first, stem-deduped against each other,
 // correctIndex rotated for position variety. Course concept ids are mapped
 // back so claims stay legal in THIS course's ref enum.
-export function selectBankItems(slice, bank, { maxBanked = 4, perConcept = 3, excludeItem = null, reviewCap = 2 } = {}) {
+export function selectBankItems(
+  slice,
+  bank,
+  { maxBanked = 4, perConcept = 3, excludeItem = null, reviewCap = 2 } = {},
+) {
   if (!bank?.items?.length) return [];
   const conceptsInOrder = [...slice.concepts].sort((a, b) => {
     const aIntro = (slice.lesson.introduces ?? []).includes(a.id) ? 0 : 1;

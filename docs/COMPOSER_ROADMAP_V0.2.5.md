@@ -6,9 +6,9 @@ grinding on it) and the standing self-reuse validity caveat._
 ## 1 · Course-level asset dedup (echo dies at selection)
 
 - **Finding:** J7 echo in composed courses is the same asset (or a
-  >0.8 sibling) selected into multiple lessons — per-lesson exclusion
-  plus exposure counters reduce but don't prevent recurrence on thin
-  shelves.
+  > 0.8 sibling) selected into multiple lessons — per-lesson exclusion
+  > plus exposure counters reduce but don't prevent recurrence on thin
+  > shelves.
 - **Fix:** a course-level used-set threaded through composition; an
   asset never appears twice in one course. Thin-shelf fallback permits
   reuse and COUNTS it (`dupReuses`, disclosed in the digest).

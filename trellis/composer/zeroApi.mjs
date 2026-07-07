@@ -17,12 +17,18 @@ export function assembleExamsFromBank(graph, bank, { usedBankIds = new Set(), pe
   const conceptById = new Map(graph.concepts.map((c) => [c.id, c]));
   const exams = (graph.assessments ?? [])
     .filter((a) => a.kindOf === 'exam')
-    .sort((a, b) => (lessonWeek.get(a.anchor?.lessonId) ?? a.anchor?.week ?? 99) - (lessonWeek.get(b.anchor?.lessonId) ?? b.anchor?.week ?? 99));
+    .sort(
+      (a, b) =>
+        (lessonWeek.get(a.anchor?.lessonId) ?? a.anchor?.week ?? 99) -
+        (lessonWeek.get(b.anchor?.lessonId) ?? b.anchor?.week ?? 99),
+    );
   const authoredExams = {};
   let coveredFrom = 0;
   for (const exam of exams) {
     const upTo = lessonWeek.get(exam.anchor?.lessonId) ?? exam.anchor?.week ?? graph.course.weeks;
-    const cumulative = String(exam.registryKey ?? '').toLowerCase().includes('final');
+    const cumulative = String(exam.registryKey ?? '')
+      .toLowerCase()
+      .includes('final');
     const pool = lessons.filter((l) => l.week <= upTo && (cumulative || l.week > coveredFrom));
     coveredFrom = upTo;
     const conceptIds = [...new Set(pool.flatMap((l) => [...l.introduces, ...(l.reinforces ?? [])]))];
@@ -94,7 +100,10 @@ export function zeroEntailment(graph, authored) {
 export function zeroCourseWide(graph) {
   const { course, outcomes = [], assessments = [], sources = [], lessons = [] } = graph;
   const weeks = course.weeks ?? lessons.reduce((m, l) => Math.max(m, l.week), 0);
-  const outcomeLines = outcomes.slice(0, 6).map((o) => o.text ?? o.statement ?? '').filter(Boolean);
+  const outcomeLines = outcomes
+    .slice(0, 6)
+    .map((o) => o.text ?? o.statement ?? '')
+    .filter(Boolean);
   const kinds = [...new Set(assessments.map((a) => a.registryKey).filter(Boolean))];
   return {
     courseDescription:
@@ -112,7 +121,8 @@ export function zeroCourseWide(graph) {
       { q: 'How long is the course?', a: `${weeks} weeks, one lesson per week as scheduled.` },
       {
         q: 'What are the graded assessments?',
-        a: kinds.length > 0 ? kinds.join(', ') + ' — anchored to the weeks shown in the schedule.' : 'See the schedule.',
+        a:
+          kinds.length > 0 ? kinds.join(', ') + ' — anchored to the weeks shown in the schedule.' : 'See the schedule.',
       },
       {
         q: 'What if I miss a week?',

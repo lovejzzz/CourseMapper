@@ -126,7 +126,10 @@ export async function loadEmbeddingCache({ dir = CACHE_DIR, name = tagged('asset
   }
 }
 
-export async function embedAssetLibrary(store, { dir = CACHE_DIR, name = tagged('asset-embeddings'), embedder = null } = {}) {
+export async function embedAssetLibrary(
+  store,
+  { dir = CACHE_DIR, name = tagged('asset-embeddings'), embedder = null } = {},
+) {
   const emb = embedder ?? makeEmbedder();
   const prior = await loadEmbeddingCache({ dir, name });
   const entries = [];
@@ -217,5 +220,7 @@ if (
   const store = JSON.parse(await readFile('trellis/bank/assets.json', 'utf8'));
   const t0 = performance.now();
   const result = await embedAssetLibrary(store);
-  console.log(JSON.stringify({ model: ACTIVE_MODEL, ...result, seconds: ((performance.now() - t0) / 1000).toFixed(1) }, null, 2));
+  console.log(
+    JSON.stringify({ model: ACTIVE_MODEL, ...result, seconds: ((performance.now() - t0) / 1000).toFixed(1) }, null, 2),
+  );
 }
