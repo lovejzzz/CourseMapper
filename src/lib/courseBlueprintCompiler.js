@@ -22671,9 +22671,9 @@ function buildLessonPlanOutline(blueprint, lesson, { depth = 'flat' } = {}) {
         ? rotatedLessonTemplate(
             [
               `Open with a two-minute recap for students who missed the reading: state “${stripTerminalPunctuation(kernelFact)}” and one concrete example before the model begins, so no one works today's task cold.`,
-              `Begin with a short access recap: restate “${stripTerminalPunctuation(kernelFact)},” show one quick example, then ask students to use it in the model.`,
-              `Use the first two minutes to rebuild the reading anchor — “${stripTerminalPunctuation(kernelFact)}” — before students apply it to today's example.`,
-              `Start by giving late or unprepared readers the core evidence: “${stripTerminalPunctuation(kernelFact)}.” Then connect it to one visible ${concept} example.`,
+              `Begin with a short access recap for students who missed the reading: restate “${stripTerminalPunctuation(kernelFact)},” show one quick example, then ask students to use it in the model.`,
+              `Use the first two minutes to rebuild the reading anchor for students who missed the reading — “${stripTerminalPunctuation(kernelFact)}” — before they apply it to today's example.`,
+              `Start by giving students who missed the reading the core evidence: “${stripTerminalPunctuation(kernelFact)}.” Then connect it to one visible ${concept} example.`,
             ],
             lesson,
             2,
@@ -22681,9 +22681,9 @@ function buildLessonPlanOutline(blueprint, lesson, { depth = 'flat' } = {}) {
         : rotatedLessonTemplate(
             [
               `Open with a two-minute recap of the reading's central idea about ${concept} for students who missed the reading, so no one works today's task cold.`,
-              `Begin with a short access recap: name the reading's central ${concept} idea, then show how it appears in the first example.`,
-              `Use the first two minutes to rebuild the reading anchor for ${concept} before students apply it to today's model.`,
-              `Start by giving late or unprepared readers the core ${concept} evidence, then connect it to one visible example.`,
+              `Begin with a short access recap for students who missed the reading: name the reading's central ${concept} idea, then show how it appears in the first example.`,
+              `Use the first two minutes to rebuild the reading anchor for students who missed the reading before they apply ${concept} to today's model.`,
+              `Start by giving students who missed the reading the core ${concept} evidence, then connect it to one visible example.`,
             ],
             lesson,
             2,
