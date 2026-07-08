@@ -2,6 +2,7 @@ import { beforeEach, describe, expect, it } from 'vitest';
 import {
   applyApiCallBudgetEvent,
   createApiCallBudget,
+  formatEnrichmentOutcomeLabel,
   getApiCallBudgetTotal,
   recordPendingApiCallEvent,
 } from '../apiCallBudget';
@@ -67,6 +68,21 @@ describe('apiCallBudget', () => {
     expect(budget.creditCheckCalls).toBe(1);
     expect(budget.capabilityProbeCalls).toBe(1);
     expect(getApiCallBudgetTotal(budget)).toBe(3);
+  });
+
+  it('labels native-complete authoring with a kernel fallback without looking like hard partial coverage', () => {
+    expect(
+      formatEnrichmentOutcomeLabel({
+        modelStage: 'ran',
+        enrichedLessons: 6,
+        requestedLessons: 7,
+        missingLessons: [],
+        kernelLessons: 6,
+        kernelMissingLessons: [1],
+        authoredLessons: 7,
+        authoredMissingLessons: [],
+      }),
+    ).toBe('ran (7/7 authored; 6/7 kernels — lesson 1 kept compiler fallback)');
   });
 
   it('preserves failure classification details on recent events', () => {

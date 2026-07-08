@@ -244,6 +244,31 @@ const COURSE_SUBJECT_LEXICON = [
     signal: /\b(?:chemistry|chemical|biochem|organic chem)\b/i,
     terms: ['chemical', 'chemistry', 'molecul', 'reaction', 'compound', 'atom'],
   },
+  {
+    signal: /\b(?:music theory|music|musicianship|aural skills|ear training|harmony|counterpoint|notation)\b/i,
+    terms: [
+      'music',
+      'musical',
+      'notation',
+      'clef',
+      'rhythm',
+      'meter',
+      'harmony',
+      'harmonic',
+      'melody',
+      'melodic',
+      'chord',
+      'triad',
+      'tonal',
+      'tonality',
+      'pentatonic',
+      'diatonic',
+      'aural',
+      'staff',
+      'stave',
+      'tempo',
+    ],
+  },
 ];
 
 function courseSubjectTerms(courseName) {
@@ -611,6 +636,18 @@ function sourceCitation(source) {
   return `${authors}${year}. ${source.title}. ${provider}: ${source.url}${licenseTail}`;
 }
 
+function contextualSourceCitation(citation, session, topic) {
+  const base = cleanText(citation);
+  if (!base || /^for\s+[^:]{1,180}:\s/i.test(base)) return base;
+  const lessonTitle = stripLessonPrefix(session?.title || '');
+  const topicTitle = stripSectionPrefix(topic?.topic || topic?.query || '');
+  const contextParts = [];
+  if (lessonTitle) contextParts.push(lessonTitle);
+  if (topicTitle && topicTitle.toLowerCase() !== lessonTitle.toLowerCase()) contextParts.push(topicTitle);
+  const context = contextParts.join(': ');
+  return context ? `For ${context}: ${base}` : base;
+}
+
 function sourceFinderCourseContext(graph, miniShard) {
   return {
     course: { name: miniShard?.courseName || graph?.course?.name || graph?.courseName || graph?.title || '' },
@@ -657,8 +694,9 @@ export function attachSourceFinderResources(graph, miniShard, { maxSourcesPerTop
     const section = (session.sections || [])[0];
     if (!section) continue;
     for (const source of attachableTopicSources(graph, miniShard, topic).slice(0, maxSourcesPerTopic)) {
-      const citation = sourceCitation(source);
-      if (!citation || seen.has(citation.toLowerCase())) continue;
+      const rawCitation = sourceCitation(source);
+      if (!rawCitation || seen.has(rawCitation.toLowerCase())) continue;
+      const citation = contextualSourceCitation(rawCitation, session, topic);
       const resource = {
         id: nextId(),
         citation,
@@ -681,6 +719,7 @@ export function attachSourceFinderResources(graph, miniShard, { maxSourcesPerTop
       graph.resources.push(resource);
       if (!Array.isArray(section.resourceRefs)) section.resourceRefs = [];
       if (!section.resourceRefs.includes(resource.id)) section.resourceRefs.push(resource.id);
+      seen.add(rawCitation.toLowerCase());
       seen.add(citation.toLowerCase());
       attached += 1;
     }

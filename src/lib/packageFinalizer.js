@@ -482,8 +482,15 @@ export function buildEnrichmentCoverageIssues(enrichmentOutcome) {
   const requested = Number(enrichmentOutcome.requestedLessons) || 0;
   const enriched = Number(enrichmentOutcome.enrichedLessons) || 0;
   if (requested <= 0 || enriched >= requested) return [];
+  const authored = Number(enrichmentOutcome.authoredLessons) || 0;
+  const nativeAuthoringCovered = authored >= requested;
   const missingLessons = Array.isArray(enrichmentOutcome.missingLessons)
     ? enrichmentOutcome.missingLessons
+        .filter((lesson) => Number.isFinite(Number(lesson)))
+        .map((lesson) => Number(lesson))
+    : [];
+  const kernelMissingLessons = Array.isArray(enrichmentOutcome.kernelMissingLessons)
+    ? enrichmentOutcome.kernelMissingLessons
         .filter((lesson) => Number.isFinite(Number(lesson)))
         .map((lesson) => Number(lesson))
     : [];
@@ -491,13 +498,17 @@ export function buildEnrichmentCoverageIssues(enrichmentOutcome) {
   const lessonText =
     missingLessons.length > 0
       ? `lesson${missingLessons.length === 1 ? '' : 's'} ${missingLessons.join(', ')}`
-      : `${missingCount} lesson${missingCount === 1 ? '' : 's'}`;
+      : nativeAuthoringCovered && kernelMissingLessons.length > 0
+        ? `lesson${kernelMissingLessons.length === 1 ? '' : 's'} ${kernelMissingLessons.join(', ')}`
+        : `${missingCount} lesson${missingCount === 1 ? '' : 's'}`;
   return [
     normalizeReadinessIssue({
-      severity: 'blocker',
+      severity: nativeAuthoringCovered ? 'warning' : 'blocker',
       featureId: 'courseMap',
       label: 'Enrichment coverage',
-      message: `Enrichment covered ${enriched}/${requested} lessons; ${lessonText} fell back to template. Retry or repair enrichment before exporting a clean package.`,
+      message: nativeAuthoringCovered
+        ? `Kernel enrichment covered ${Number(enrichmentOutcome.kernelLessons) || enriched}/${requested} lessons; ${lessonText} kept compiler fallback, but native Pass B authored ${authored}/${requested} lessons. Review optional enrichment polish before publishing.`
+        : `Enrichment covered ${enriched}/${requested} lessons; ${lessonText} fell back to template. Retry or repair enrichment before exporting a clean package.`,
       source: 'enrichmentCoverage',
       retryable: false,
       autoFixable: false,

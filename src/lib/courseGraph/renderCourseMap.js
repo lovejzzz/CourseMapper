@@ -24,6 +24,20 @@ function withLabel(label, text) {
   return label ? `${label}. ${text}` : text;
 }
 
+function resourceAtom(resource) {
+  const citation = cleanText(resource?.citation);
+  if (!citation) return '';
+  const origin = cleanText(resource?.origin || resource?.provider).toLowerCase();
+  const topic = cleanText(resource?.sourceFinderTopic);
+  if (origin === 'source-finder' && topic) {
+    if (/^for\s+[^:]{1,180}:\s/i.test(citation)) return citation;
+    const prefix = `For ${topic}:`;
+    if (citation.toLowerCase().startsWith(prefix.toLowerCase())) return citation;
+    return `${prefix} ${citation}`;
+  }
+  return citation;
+}
+
 function stripLessonPrefix(value) {
   return cleanText(value).replace(/^(?:lesson|week)\s*\d+\s*[:.-]\s*/i, '');
 }
@@ -156,7 +170,7 @@ function renderSection(graph, session, section, options = {}) {
   const resourceAtoms = (section.resourceRefs || [])
     .map((id) => resourcesById.get(id))
     .filter(Boolean)
-    .map((resource) => resource.citation);
+    .map(resourceAtom);
 
   // v0.14.5 (A2a): instructor-named registry readings render as the LEADING
   // supportingResources items, verbatim (the fusion lesson: no casing

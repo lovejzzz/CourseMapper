@@ -444,6 +444,16 @@ export function formatEnrichmentOutcomeLabel(outcome) {
   if (outcome.modelStage === 'ran') {
     const requested = Number(outcome.requestedLessons) || 0;
     const missing = Array.isArray(outcome.missingLessons) ? outcome.missingLessons : [];
+    const authored = Number(outcome.authoredLessons) || 0;
+    const kernelLessons = Number(outcome.kernelLessons) || enriched;
+    const kernelMissing = Array.isArray(outcome.kernelMissingLessons) ? outcome.kernelMissingLessons : [];
+    if (requested > 0 && authored >= requested && kernelLessons < requested) {
+      return `ran (${authored}/${requested} authored; ${kernelLessons}/${requested} kernels${
+        kernelMissing.length > 0
+          ? ` — lesson${kernelMissing.length === 1 ? '' : 's'} ${kernelMissing.join(', ')} kept compiler fallback`
+          : ''
+      })`;
+    }
     if (requested > 0 && missing.length > 0) {
       return `ran (${enriched}/${requested} — lesson${missing.length === 1 ? '' : 's'} ${missing.join(', ')} fell back to template)`;
     }
