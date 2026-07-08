@@ -175,7 +175,7 @@ function resolveGenomeCitation(entry, { abbreviateLicense = false } = {}) {
 
   if (displayTitle) {
     const { url, license } = openTextbookUrl(rawLabel || displayTitle);
-    const href = textbookSectionUrl(sourceUrl || url, rawLabel || displayTitle);
+    const href = sourceUrl || textbookSectionUrl(url, rawLabel || displayTitle);
     const tail = abbreviateLicense ? ' (open textbook)' : ` (open textbook, ${license}${href ? ` — ${href}` : ''})`;
     return {
       dedupeKey: (rawLabel || displayTitle).toLowerCase(),

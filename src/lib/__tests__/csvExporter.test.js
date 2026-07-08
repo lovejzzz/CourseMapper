@@ -921,10 +921,10 @@ describe('deliverableToCsvRows — custom/unknown deliverables', () => {
     expect(rows[0][1]).toBe('value');
   });
 
-  it('stringifies nested objects in items', () => {
+  it('renders nested objects in items as readable key-value text', () => {
     const data = { items: [{ nested: { deep: true } }] };
     const { rows } = deliverableToCsvRows('custom_x', data);
-    expect(rows[0][0]).toBe('{"deep":true}');
+    expect(rows[0][0]).toBe('Deep: true');
   });
 
   it('omits internal compiler metadata from custom deliverable CSV exports', () => {
