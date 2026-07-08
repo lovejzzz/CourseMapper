@@ -158,6 +158,74 @@ async function topicGate(lesson, promptLesson, generateJson, events) {
 }
 
 const POLISH_FIELDS = ['scenario', 'discussionPrompt', 'assignmentCore', 'studyGuide'];
+const MC_EXPLANATION_MIN_LENGTH = 40;
+const MC_EXPLANATION_CAUSAL_PATTERN =
+  /\b(because|since|as|therefore|so|which|that|when|means|defines|explains|shows|signals|anchors|requires|matches)\b/i;
+
+function contentWords(value) {
+  return String(value || '')
+    .toLowerCase()
+    .match(/[a-z][a-z-]{3,}/g);
+}
+
+function explanationMentionsKey(item, explanation) {
+  const keyText = Array.isArray(item?.op) ? item.op[item.ai] : '';
+  const words = contentWords(keyText)?.filter((word) => !TOPIC_STOPWORDS.has(word)) || [];
+  if (words.length === 0) return true;
+  const text = String(explanation || '').toLowerCase();
+  return words.some((word) => text.includes(word));
+}
+
+function needsMcExplanationPolish(item) {
+  const explanation = String(item?.ex || '').trim();
+  if (explanation.length < MC_EXPLANATION_MIN_LENGTH) return true;
+  if (!MC_EXPLANATION_CAUSAL_PATTERN.test(explanation)) return true;
+  return !explanationMentionsKey(item, explanation);
+}
+
+function mcExplanationSchema(count) {
+  return {
+    type: 'object',
+    additionalProperties: false,
+    properties: {
+      ex: {
+        type: 'array',
+        items: { type: 'string', minLength: MC_EXPLANATION_MIN_LENGTH, maxLength: 300 },
+        minItems: count,
+        maxItems: count,
+      },
+    },
+    required: ['ex'],
+  };
+}
+
+async function polishMcExplanations(lesson, generateJson, events) {
+  const items = Array.isArray(lesson?.mc) ? lesson.mc : [];
+  if (items.length === 0) return;
+  if (!items.some(needsMcExplanationPolish)) return;
+  try {
+    const reply = await generateJson({
+      system:
+        'You improve quiz answer explanations. For each item, write ONE self-contained sentence teaching WHY the keyed option is correct, in subject terms a student reading alone understands. Never contradict the key. Return ONLY {"ex":[...]} in item order.',
+      user: JSON.stringify(items.map((item) => ({ q: item.q, op: item.op, ai: item.ai, currentEx: item.ex }))),
+      schemaProfile: { name: 'mc_explanations', schema: mcExplanationSchema(items.length), strict: true },
+      maxOutputTokens: 1600,
+    });
+    const fresh = JSON.parse(reply)?.ex;
+    if (!Array.isArray(fresh) || fresh.length !== items.length) return;
+    let changed = 0;
+    for (const [index, item] of items.entries()) {
+      const next = String(fresh[index] || '').trim();
+      if (next.length < MC_EXPLANATION_MIN_LENGTH || next === item.ex) continue;
+      item.ex = next;
+      changed += 1;
+    }
+    if (changed > 0) events.push({ pass: 'mcExplanationPolish', lessonId: lesson.lessonId, action: 'done', changed });
+  } catch {
+    /* explanations ship unchanged */
+  }
+}
+
 const POLISH_SCHEMA = {
   type: 'object',
   additionalProperties: false,
@@ -254,6 +322,7 @@ export async function applyScionKernelPasses(
     const promptLesson = promptLessons.find((entry) => entry?.lessonId === lesson?.lessonId) ?? null;
     await verifyMcAnswers(lesson, promptLesson, generateJson, events);
     await topicGate(lesson, promptLesson, generateJson, events);
+    await polishMcExplanations(lesson, generateJson, events);
     await polishProse(lesson, generateJson, events);
   }
   return { text: JSON.stringify(parsed), events };

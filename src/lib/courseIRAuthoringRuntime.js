@@ -11,6 +11,12 @@ import {
   validateCourseIR,
 } from './courseIR';
 
+export const SCION_FAST_NATIVE_SKELETON_SKIP_LESSON_FLOOR = 10;
+
+export function shouldSkipLocalNativeSkeleton({ provider, expectedLessonCount } = {}) {
+  return provider === 'local' && Number(expectedLessonCount) >= SCION_FAST_NATIVE_SKELETON_SKIP_LESSON_FLOOR;
+}
+
 export async function tryAuthorDirectCourseIR({
   expectedLessonCount,
   sourceText,
@@ -36,8 +42,7 @@ export async function tryAuthorDirectCourseIR({
       type: 'pipelineDecision',
       stage: 'courseIRAuthoring',
       label: 'CourseIR direct authoring plan',
-      detail:
-        'skipped: Scion time-planner (direct authoring never passes acceptance; skeleton path is the measured optimum)',
+      detail: 'skipped: Scion time-planner (direct authoring never passes acceptance; native plan chosen downstream)',
     });
     return { ok: false, skipped: true };
   }
@@ -356,6 +361,24 @@ export async function runNativeAuthoring(input = [], output = []) {
       ],
     );
     if (courseIRMap) return courseIRMap;
+  }
+
+  if (shouldSkipLocalNativeSkeleton({ provider, expectedLessonCount })) {
+    const detail = `skipped: Scion-1.2 fast path (${expectedLessonCount} lessons >= ${SCION_FAST_NATIVE_SKELETON_SKIP_LESSON_FLOOR}); local native skeleton is a measured fallback tax, so prose course-map authoring starts immediately`;
+    recordApiCallEvent?.({
+      type: 'pipelineDecision',
+      stage: 'nativeAuthoring',
+      label: 'Native graph authoring plan',
+      detail,
+    });
+    addLog?.(currentModelName, `Native authoring planned skip: ${detail}`, 'progress');
+    try {
+      const { stashNativeSkeleton } = await import('./nativeGraphAuthoring.js');
+      stashNativeSkeleton(null);
+    } catch {
+      /* stash clear is best-effort before the prose path */
+    }
+    return null;
   }
 
   const { runNativeSkeletonGenerationFlow } = await import('./nativeSkeletonGenerationRuntime.js');

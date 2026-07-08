@@ -25,6 +25,12 @@ import { runGenomeLinker } from '../src/lib/genome/runGenomeLinker.js';
 import { buildQuizItemPlan } from '../src/lib/blueprintEnrichmentPass.js';
 import { buildCourseBlueprint, compileBlueprintDeliverables } from '../src/lib/courseBlueprintCompiler.js';
 import { inferCourseDisciplines } from '../src/lib/genome/libraryShardLoader.js';
+import { deriveCourseGraphFromCourseMap } from '../src/lib/courseGraph/deriveFromCourseMap.js';
+import { attachGenomeResources } from '../src/lib/knowledge/readingListEngine.js';
+import {
+  buildSourceLedgerFromCourseGraph,
+  isTrustedConceptLinkedSourceLedgerRow,
+} from '../src/lib/knowledge/sourceLedger.js';
 
 function memoryStorage() {
   const map = new Map();
@@ -106,11 +112,16 @@ function linkCourse(course) {
     library,
     itemPlan: buildQuizItemPlan(6),
   });
+  const graph = deriveCourseGraphFromCourseMap(course, {
+    enrichmentOverlay: { lessonContent: linked.lessonContent },
+  });
+  attachGenomeResources(graph);
+  const sourceLedger = buildSourceLedgerFromCourseGraph(graph, { checkedAt: '2026-07-08T00:00:00.000Z' });
   const blueprint = buildCourseBlueprint(course, {
     enrichment: { lessonContent: linked.lessonContent, quality: { source: 'genome-only' } },
   });
   const compiled = compileBlueprintDeliverables(blueprint, ['lessonPlans', 'studyGuides', 'slideDecks', 'quizBank']);
-  return { linked, compiled };
+  return { linked, compiled, graph, sourceLedger };
 }
 
 // Collect the concept ids resolved across a linked course, per lesson.
@@ -191,7 +202,7 @@ describe('cs-intro shard proof (V0.14.1 4.1)', () => {
 });
 
 describe('geo-intro shard proof (V0.14.1 4.1)', () => {
-  const { linked, compiled } = linkCourse(GEOLOGY_COURSE);
+  const { linked, compiled, sourceLedger } = linkCourse(GEOLOGY_COURSE);
 
   // TODO (V0.14.1 4.2 — owned by another agent): once a 'geo' discipline regex
   // is added to inferCourseDisciplines in src/lib/genome/libraryShardLoader.js,
@@ -217,6 +228,17 @@ describe('geo-intro shard proof (V0.14.1 4.1)', () => {
     const allTerms = compiled.studyGuides.studyGuides.flatMap((guide) => guide.keyTerms || []);
     const cited = allTerms.filter((term) => /introduction to geology|opengeology/i.test(term.source || ''));
     expect(cited.length).toBeGreaterThanOrEqual(3);
+  });
+
+  it('exports OpenGeology genome rows as trusted concept-linked source proof', () => {
+    const geologyRows = (sourceLedger?.rows || []).filter((row) =>
+      /open\s*geology|introduction to geology/i.test([row.title, row.citation, row.url].join(' ')),
+    );
+    expect(geologyRows.length).toBeGreaterThanOrEqual(3);
+    expect(geologyRows.every(isTrustedConceptLinkedSourceLedgerRow)).toBe(true);
+    expect(geologyRows.every((row) => row.url.startsWith('https://opengeology.org/textbook/#section-'))).toBe(true);
+    expect(geologyRows.every((row) => /CC[-\s]BY[-\s]NC[-\s]SA\s*4\.0/i.test(row.license))).toBe(true);
+    expect(sourceLedger?.reviewRows || []).toHaveLength(0);
   });
 
   it('teaches the P-wave / S-wave anchor fact precisely', () => {

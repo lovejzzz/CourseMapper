@@ -162,8 +162,8 @@ export const PROVIDER_DEFAULT_MODELS = {
   openai: 'gpt-5.4-mini',
   anthropic: 'claude-haiku-4-5',
   google: 'gemini-2.5-flash-lite',
-  // Scion (V2.1 D): the house model — keyless; requires `npm run local-model`.
-  local: 'scion-1',
+  // Scion-1.2: the house model — keyless; requires `npm run local-model`.
+  local: 'scion-1.2',
 };
 
 export const SUPPORTED_PROVIDERS = Object.keys(PROVIDER_DEFAULT_MODELS);

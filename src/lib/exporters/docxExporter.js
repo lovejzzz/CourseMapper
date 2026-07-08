@@ -1,7 +1,12 @@
 import { loadPdfLibs, getDocx, getSaveAs, isInternalExportMetadataKey, resolveFeatureLabel } from './exporterUtils.js';
 import { expandKeys } from '../keyMaps.js';
 import { assertOfficeExportHasNoInternalText } from '../exportTextInspector.js';
-import { formatRequiredText, normalizeCourseRequirements } from './syllabusExportUtils.js';
+import {
+  formatList,
+  formatPlainValue,
+  formatRequiredText,
+  normalizeCourseRequirements,
+} from './syllabusExportUtils.js';
 
 // DOCX EXPORT
 // ════════════════════════════════════════════════════════════════
@@ -46,6 +51,30 @@ function humanizeQuestionType(type) {
   if (labels[type]) return labels[type];
   const spaced = String(type).replace(/[_-]+/g, ' ').trim();
   return spaced.charAt(0).toUpperCase() + spaced.slice(1);
+}
+
+function humanizeExportKey(key) {
+  return String(key || '')
+    .replace(/([a-z])([A-Z])/g, '$1 $2')
+    .replace(/[_-]+/g, ' ')
+    .replace(/^./, (s) => s.toUpperCase());
+}
+
+function formatNestedExportValue(value) {
+  if (value == null || value === '') return '';
+  if (typeof value === 'string') return value;
+  if (typeof value === 'number' || typeof value === 'boolean') return String(value);
+  if (Array.isArray(value)) {
+    return value.map(formatNestedExportValue).filter(Boolean).join('; ');
+  }
+  if (typeof value === 'object') {
+    return Object.entries(value)
+      .filter(([key, nested]) => !isInternalExportMetadataKey(key) && nested != null && nested !== '')
+      .map(([key, nested]) => `${humanizeExportKey(key)}: ${formatNestedExportValue(nested)}`)
+      .filter(Boolean)
+      .join(' · ');
+  }
+  return String(value);
 }
 
 // Type scale in half-points: 11pt body, 18pt doc title, 15pt section
@@ -1117,36 +1146,18 @@ export function _buildDocxContentShared(featureId, data, children, docx) {
           children.push(makeSubHeading('Exam Preparation'));
           if (Array.isArray(g.examPrep.keyTopicsToKnow) && g.examPrep.keyTopicsToKnow.length) {
             children.push(makeBold('Key Topics', ''));
-            g.examPrep.keyTopicsToKnow.forEach((t) =>
-              children.push(makeBullet(typeof t === 'string' ? t : JSON.stringify(t))),
-            );
+            g.examPrep.keyTopicsToKnow.forEach((t) => children.push(makeBullet(formatNestedExportValue(t))));
           }
           if (Array.isArray(g.examPrep.commonErrors) && g.examPrep.commonErrors.length) {
             children.push(makeBold('Common Errors', ''));
-            g.examPrep.commonErrors.forEach((e) =>
-              children.push(makeBullet(typeof e === 'string' ? e : JSON.stringify(e))),
-            );
+            g.examPrep.commonErrors.forEach((e) => children.push(makeBullet(formatNestedExportValue(e))));
           } else if (typeof g.examPrep.commonErrors === 'string') {
             children.push(makeBold('Common Errors', g.examPrep.commonErrors));
           }
           if (g.examPrep.reviewStrategy)
-            children.push(
-              makeBold(
-                'Review Strategy',
-                typeof g.examPrep.reviewStrategy === 'string'
-                  ? g.examPrep.reviewStrategy
-                  : JSON.stringify(g.examPrep.reviewStrategy),
-              ),
-            );
+            children.push(makeBold('Review Strategy', formatNestedExportValue(g.examPrep.reviewStrategy)));
           if (g.examPrep.timeManagement)
-            children.push(
-              makeBold(
-                'Time Management',
-                typeof g.examPrep.timeManagement === 'string'
-                  ? g.examPrep.timeManagement
-                  : JSON.stringify(g.examPrep.timeManagement),
-              ),
-            );
+            children.push(makeBold('Time Management', formatNestedExportValue(g.examPrep.timeManagement)));
         }
         // Legacy examTips
         if (g.examTips && !g.examPrep) children.push(makeBold('Exam Tips', g.examTips));
@@ -1284,7 +1295,11 @@ export function _buildDocxContentShared(featureId, data, children, docx) {
         // row since v0.15.187 but no exporter rendered them, so the schedule
         // a reviewer reads stayed title-only.
         const topicCell = (w) =>
-          [w.topic || '', w.coreIdeas || '', w.keyVocabulary ? `Key terms: ${w.keyVocabulary}.` : '']
+          [
+            formatPlainValue(w.topic),
+            formatList(w.coreIdeas),
+            w.keyVocabulary ? `Key terms: ${formatList(w.keyVocabulary)}.` : '',
+          ]
             .filter(Boolean)
             .join(' — ');
         children.push(
@@ -1297,10 +1312,10 @@ export function _buildDocxContentShared(featureId, data, children, docx) {
                     w.week || '',
                     (w.dates !== w.week && w.dates) || '',
                     topicCell(w),
-                    w.readings || '',
-                    w.assignments || '',
+                    formatList(w.readings),
+                    formatList(w.assignments),
                   ]
-                : [w.week || '', topicCell(w), w.readings || '', w.assignments || ''],
+                : [w.week || '', topicCell(w), formatList(w.readings), formatList(w.assignments)],
             ),
           ),
         );
@@ -1455,7 +1470,6 @@ export function _buildDocxContentShared(featureId, data, children, docx) {
       const arrKey = Object.keys(data).find((k) => Array.isArray(data[k]) && data[k].length > 0);
       const items = arrKey ? data[arrKey] : [data];
       const headerKeys = new Set(['lessonTitle', 'title', 'name', 'weekNumber', 'week', 'tiers']);
-      const toLabel = (k) => k.replace(/([a-z])([A-Z])/g, '$1 $2').replace(/^./, (s) => s.toUpperCase());
 
       for (const item of items) {
         const title = item.lessonTitle || item.title || item.name || 'Item';
@@ -1464,7 +1478,7 @@ export function _buildDocxContentShared(featureId, data, children, docx) {
 
         for (const [k, v] of Object.entries(item)) {
           if (headerKeys.has(k) || isInternalExportMetadataKey(k) || v == null || v === '') continue;
-          const label = toLabel(k);
+          const label = humanizeExportKey(k);
           if (typeof v === 'string') {
             if (v.length < 100) {
               children.push(makeBold(label, v));
@@ -1480,7 +1494,7 @@ export function _buildDocxContentShared(featureId, data, children, docx) {
               } else if (typeof el === 'object' && el !== null) {
                 const parts = Object.entries(el)
                   .filter(([ek, val]) => !isInternalExportMetadataKey(ek) && val != null && val !== '')
-                  .map(([ek, ev]) => `${toLabel(ek)}: ${typeof ev === 'string' ? ev : JSON.stringify(ev)}`);
+                  .map(([ek, ev]) => `${humanizeExportKey(ek)}: ${formatNestedExportValue(ev)}`);
                 children.push(makeBullet(parts.join(' · ')));
               }
             });
@@ -1488,8 +1502,7 @@ export function _buildDocxContentShared(featureId, data, children, docx) {
             children.push(makeSubHeading(label));
             for (const [sk, sv] of Object.entries(v)) {
               if (isInternalExportMetadataKey(sk)) continue;
-              if (sv != null && sv !== '')
-                children.push(makeBold(toLabel(sk), typeof sv === 'string' ? sv : JSON.stringify(sv)));
+              if (sv != null && sv !== '') children.push(makeBold(humanizeExportKey(sk), formatNestedExportValue(sv)));
             }
           } else {
             children.push(makeBold(label, String(v)));

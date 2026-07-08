@@ -1697,10 +1697,12 @@ async function runLiveRounds(options) {
             voiceMode: course.voice,
             // E1: seed the app's provider switch + provider-scoped key slot.
             provider,
-            // --llm e2b: reroute api.openai.com to the local shim; on-device
-            // generation is slow, so the per-course budget stretches to 45min.
+            // --provider local and --llm e2b both run through on-device
+            // generation. They are slow enough that the default 12-minute
+            // browser budget can expire before the app's own package
+            // finalizer exposes the readiness panel.
             llmShimUrl,
-            ...(llmShimUrl ? { overallTimeoutMs: 45 * 60_000 } : {}),
+            ...(provider === 'local' || llmShimUrl ? { overallTimeoutMs: 45 * 60_000 } : {}),
           });
           attempts.push(runResult);
           if (runResult.status === 'passed') break;

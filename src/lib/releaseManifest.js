@@ -2,30 +2,26 @@ import { APP_VERSION } from './appVersion.js';
 
 export const CURRENT_RELEASE = {
   version: APP_VERSION,
-  date: 'July 7, 2026',
-  title: 'Field-Audit Fixes: the first real full course, and the cascade it exposed',
-  landingTitle: 'Field-Audit Fixes + Scion',
+  date: 'July 8, 2026',
+  title: 'Scion-1.2: faster local courses, same strict gauntlet',
+  landingTitle: 'Scion-1.2 Fast Local',
   highlights: [
-    'MEET SCION — the house model, running on your own machine for $0 per course. Scion is Google\u2019s open Gemma 4 E2B grafted with our harness: grammar-constrained decoding that makes invalid JSON impossible, per-lesson generation with self-verified quiz keys, topic gating, and a self-refining polish pass. The name is horticultural: a scion is the cultivated cutting grafted onto wild rootstock \u2014 Gemma is the rootstock, our cultivation is the scion. Honest quality band: structural grade A at parity with paid models; prose/item fluency currently ties our paid baseline at best (pooled panels place it just below gpt-5.4-mini) and improves with every training round of the flywheel.',
-    'A new "Local" provider on the landing page: pick Local, no API key needed (it\u2019s free \u2014 the model is yours), start the server with `npm run local-model`, and generate a full course package that never leaves your machine. Offline, private, unlimited regenerations.',
-    'The first real user-run full course (Linear Algebra, 14 lessons) graded 99/A but was unshippable \u2014 and every root cause traced to one cascade. The genome\u2019s math shard was calculus-only, so a linear-algebra course linked 0 of 14 lessons; that collapse turned on the keyword source-finder, whose fallback providers were the ONLY ones searching without the course subject, so \u201cIndependent politician\u201d shipped for linear independence, \u201cLewis acids and bases\u201d for vector-space bases, and \u201c2025 Philippine general election\u201d for the midterm. This release fixes the cascade end to end.',
-    'The genome now knows linear algebra: sixteen curated concept kernels (systems, matrices, vector spaces, independence, bases, determinants, eigenvalues, orthogonality, least squares, SVD, and more) join the math shard, taking a linear-algebra course from 0/14 to 10+/14 genome-linked lessons \u2014 which restores judgment, real citations, and grounded content instead of keyword bycatch.',
-    'Off-topic readings can no longer ship or pass the grade: every open-knowledge provider now searches anchored to the course subject (not just OpenAlex), the token-relevance gate covers Wikipedia/Library-of-Congress/Internet-Archive instead of exempting exactly the fallback providers, OpenAlex requests are rate-limited with backoff so a 429 no longer swaps in ungated junk, math/physics/anatomy gain discipline allowlists, and the deep grader finally sees encyclopedic reading lines (which used to be invisible, scoring citations 100/100 over garbage).',
-    'The compiler stops shipping mail-merge: exam lessons get real cumulative exams built from the covered lessons\u2019 own authored atoms (never \u201cconnects X to the work in X\u201d), exam-day lessons get logistics plans and review guides instead of teaching boilerplate and homework, code-lab assessments get their own rubric criteria instead of a proof-set clone, rubric files carry their own lesson label (no more \u201cLesson 1\u201d on a Week 4 rubric) and exams get a Quiz-Bank handoff note instead of an empty file, and a Linear Algebra course no longer inherits a Python-programming course map.',
-    'Template grammar is repaired at the seam: \u201cyour the Week 4 sets\u201d and \u201ccontrasting two the Week 4 sets samples\u201d drop the doubled determiner, fused sentences regain their period, a course-wide lens noun (\u201cinvertibility judgment\u201d) is bound per-lesson instead of stamped into all 115 sites, raw citation strings stop splicing mid-sentence (\u201c\u2026Independent politician. Wikipedia: https:\u201d), slide bullets compose to fit instead of truncating with \u201c\u2026\u201d, the duplicate key-terms slide is de-duplicated, and the syllabus TOC field-code leak is gone.',
-    'The truth surfaces stop lying: the CourseIR authoring pass repairs case-mismatched and dangling assessment references instead of discarding an entire 8k-token response, the run digest reports the real readiness-warning count (a \u201cready\u201d run no longer claims zero warnings while its own flagged-checks list one), the compiler duration telemetry times the compile instead of the whole pipeline, and voice-pass fallbacks record why they fell back.',
+    'Scion-1.2 turns the slowest local course path into an explicit planner choice: semester-sized Local runs skip the native Pass A skeleton attempt that Scion-1.1 repeatedly paid for before falling back, and start the proven prose course-map path immediately. Short local courses still keep native skeleton authoring where the measured path is useful. The full four-course local browser gauntlet passed at 99 average overall, 95.25 average texture, 0 P0/P1, $0 cost, and 2242 seconds total — 26% faster than the 3044-second Scion-1.1 baseline.',
+    'Quality gates stay on while low-value calls are removed. The compiler still blind-solves quiz keys, regenerates two-solve-confirmed bad items, gates off-topic questions, and runs prose polish; quiz-explanation polish now skips only when the existing explanation already meets length, causal-language, and keyed-option checks.',
+    'The Scion gauntlet is now a Scion-1.2 proof harness: `scion12` resolves the real four-course set, the local server must advertise `scion-1.2`, reports write under `verification-output/scion-1.2-gauntlet`, and browser logs include HTTP status/URL lines for failed provider or local-server responses.',
+    'The Local provider surface migrates old Scion-1 and Scion-1.1 browser storage to Scion-1.2, keeps the keyless `$0 per course` flow, and documents the speed/quality trade-off in the README instead of pretending a local 4B model is cloud-fast.',
+    'Release truth is wired to v0.16.2: app version, package metadata, README, release contract, changelog, gauntlet helper, and focused regression tests all agree on Scion-1.2 before the branch is pushed.',
   ],
   landingHighlights: [
-    'Meet Scion: the house model \u2014 local, private, $0 per course.',
-    'The first real full course exposed a whole cascade \u2014 now fixed end to end.',
-    'The genome learns linear algebra: 0/14 \u2192 10+/14 lessons linked.',
-    'Off-topic readings can no longer ship or pass the grade.',
-    'Exams, rubrics, and lab briefs stop shipping mail-merge.',
-    'Template grammar, slide bullets, and honest gate counts all repaired.',
+    'Scion-1.2 passed the four-course local gauntlet 26% faster.',
+    'Quiz and prose quality gates stay on; only no-op polish calls are removed.',
+    'The Scion gauntlet now validates the `scion-1.2` local server.',
+    'Old Scion-1/1.1 browser settings migrate forward automatically.',
+    'v0.16.2 release surfaces point at the same proof contract.',
   ],
   proof: {
-    contract: 'release-contracts/v0.16.1.json',
-    roadmap: 'docs/ROADMAP_V016_READY_TO_TEACH.md',
+    contract: 'release-contracts/v0.16.2.json',
+    roadmap: 'docs/ROADMAP_SCION_1_2.md',
     auditCommand: 'npm run audit:release-history',
   },
 };
@@ -40,6 +36,21 @@ export const CURRENT_RELEASE_CHANGELOG = {
 };
 
 export const HISTORICAL_RELEASE_CHANGELOGS = [
+  {
+    version: '0.16.1',
+    date: 'July 7, 2026',
+    title: 'Field-Audit Fixes: the first real full course, and the cascade it exposed',
+    highlights: [
+      'MEET SCION — the house model, running on your own machine for $0 per course. Scion is Google\u2019s open Gemma 4 E2B grafted with our harness: grammar-constrained decoding that makes invalid JSON impossible, per-lesson generation with self-verified quiz keys, topic gating, and a self-refining polish pass. The name is horticultural: a scion is the cultivated cutting grafted onto wild rootstock \u2014 Gemma is the rootstock, our cultivation is the scion. Honest quality band: structural grade A at parity with paid models; prose/item fluency currently ties our paid baseline at best (pooled panels place it just below gpt-5.4-mini) and improves with every training round of the flywheel.',
+      'A new "Local" provider on the landing page: pick Local, no API key needed (it\u2019s free \u2014 the model is yours), start the server with `npm run local-model`, and generate a full course package that never leaves your machine. Offline, private, unlimited regenerations.',
+      'The first real user-run full course (Linear Algebra, 14 lessons) graded 99/A but was unshippable \u2014 and every root cause traced to one cascade. The genome\u2019s math shard was calculus-only, so a linear-algebra course linked 0 of 14 lessons; that collapse turned on the keyword source-finder, whose fallback providers were the ONLY ones searching without the course subject, so \u201cIndependent politician\u201d shipped for linear independence, \u201cLewis acids and bases\u201d for vector-space bases, and \u201c2025 Philippine general election\u201d for the midterm. This release fixes the cascade end to end.',
+      'The genome now knows linear algebra: sixteen curated concept kernels (systems, matrices, vector spaces, independence, bases, determinants, eigenvalues, orthogonality, least squares, SVD, and more) join the math shard, taking a linear-algebra course from 0/14 to 10+/14 genome-linked lessons \u2014 which restores judgment, real citations, and grounded content instead of keyword bycatch.',
+      'Off-topic readings can no longer ship or pass the grade: every open-knowledge provider now searches anchored to the course subject (not just OpenAlex), the token-relevance gate covers Wikipedia/Library-of-Congress/Internet-Archive instead of exempting exactly the fallback providers, OpenAlex requests are rate-limited with backoff so a 429 no longer swaps in ungated junk, math/physics/anatomy gain discipline allowlists, and the deep grader finally sees encyclopedic reading lines (which used to be invisible, scoring citations 100/100 over garbage).',
+      'The compiler stops shipping mail-merge: exam lessons get real cumulative exams built from the covered lessons\u2019 own authored atoms (never \u201cconnects X to the work in X\u201d), exam-day lessons get logistics plans and review guides instead of teaching boilerplate and homework, code-lab assessments get their own rubric criteria instead of a proof-set clone, rubric files carry their own lesson label (no more \u201cLesson 1\u201d on a Week 4 rubric) and exams get a Quiz-Bank handoff note instead of an empty file, and a Linear Algebra course no longer inherits a Python-programming course map.',
+      'Template grammar is repaired at the seam: \u201cyour the Week 4 sets\u201d and \u201ccontrasting two the Week 4 sets samples\u201d drop the doubled determiner, fused sentences regain their period, a course-wide lens noun (\u201cinvertibility judgment\u201d) is bound per-lesson instead of stamped into all 115 sites, raw citation strings stop splicing mid-sentence (\u201c\u2026Independent politician. Wikipedia: https:\u201d), slide bullets compose to fit instead of truncating with \u201c\u2026\u201d, the duplicate key-terms slide is de-duplicated, and the syllabus TOC field-code leak is gone.',
+      'The truth surfaces stop lying: the CourseIR authoring pass repairs case-mismatched and dangling assessment references instead of discarding an entire 8k-token response, the run digest reports the real readiness-warning count (a \u201cready\u201d run no longer claims zero warnings while its own flagged-checks list one), the compiler duration telemetry times the compile instead of the whole pipeline, and voice-pass fallbacks record why they fell back.',
+    ],
+  },
   {
     version: '0.16.0',
     date: 'July 2, 2026',

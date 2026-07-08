@@ -14,6 +14,7 @@ import {
 } from '../src/lib/scionContracts';
 import { applyScionKernelPasses } from '../src/lib/scionPasses';
 import { getAdaptiveNativePassBBatchSize } from '../src/lib/adaptiveProviderBatching';
+import { shouldSkipLocalNativeSkeleton } from '../src/lib/courseIRAuthoringRuntime';
 import { buildProviderTextRequest } from '../src/lib/modelRequestBuilders';
 
 describe('Scion-native compiler (V2.1 Workstream D)', () => {
@@ -81,6 +82,12 @@ describe('Scion-native compiler (V2.1 Workstream D)', () => {
     expect(runtime).toContain('Scion time-planner');
   });
 
+  it('D2: Scion-1.2 skips local native skeleton only for semester-scale courses', () => {
+    expect(shouldSkipLocalNativeSkeleton({ provider: 'local', expectedLessonCount: 15 })).toBe(true);
+    expect(shouldSkipLocalNativeSkeleton({ provider: 'local', expectedLessonCount: 7 })).toBe(false);
+    expect(shouldSkipLocalNativeSkeleton({ provider: 'openai', expectedLessonCount: 15 })).toBe(false);
+  });
+
   it('D3: passes fix keys, gate topics, and polish prose through the callback', async () => {
     const lesson = {
       lessonId: 'lesson-1',
@@ -119,7 +126,12 @@ describe('Scion-native compiler (V2.1 Workstream D)', () => {
           q: 'Which interval spans seven semitones and rings at a 3:2 ratio?',
           op: ['Perfect fourth', 'Perfect fifth', 'Major third', 'Octave'],
           ai: 1,
-          ex: 'Seven semitones with the 3:2 just ratio defines the perfect fifth interval.',
+          ex: 'Correct because it spans seven semitones.',
+        });
+      }
+      if (schemaProfile.name === 'mc_explanations') {
+        return JSON.stringify({
+          ex: ['A perfect fifth spans seven semitones, and the 3:2 ratio explains why that interval sounds stable.'],
         });
       }
       return JSON.stringify({
@@ -139,8 +151,59 @@ describe('Scion-native compiler (V2.1 Workstream D)', () => {
     const patched = JSON.parse(text).lessons[0];
     expect(events.some((event) => event.pass === 'mcVerify' && event.action === 'regenerated')).toBe(true);
     expect(patched.mc[0].ai).toBe(1); // the two-solve-confirmed regeneration landed
+    expect(patched.mc[0].ex).toMatch(/3:2 ratio explains why/i);
+    expect(events.some((event) => event.pass === 'mcExplanationPolish')).toBe(true);
     expect(events.some((event) => event.pass === 'polish')).toBe(true);
     expect(calls.filter((name) => name === 'blind_solve').length).toBe(2); // tie-break ran
+  });
+
+  it('D3: explanation polish skips already-teaching MC explanations', async () => {
+    const lesson = {
+      lessonId: 'lesson-1',
+      mc: [
+        {
+          q: 'Which interval has a 3:2 frequency ratio in just intonation today?',
+          op: ['Minor third', 'Major second', 'Perfect fifth', 'Minor seventh'],
+          ai: 2,
+          ex: 'A perfect fifth is correct because the 3:2 just-intonation ratio defines that stable interval.',
+        },
+      ],
+      scenario: {
+        su: 'A musician hears two notes a perfect fifth apart and wants to name the interval by ear.',
+        ma: 'A piano and staff paper',
+      },
+      discussionPrompt: {
+        pr: 'Is consonance culturally learned or acoustically inherent?',
+        tn: 'Reasonable musicians disagree on nature versus nurture.',
+        po: ['It is acoustic', 'It is learned'],
+      },
+      assignmentCore: {
+        td: 'Students transcribe three intervals played in class and defend each identification in one sentence.',
+        pa: ['Three intervals', 'One page'],
+      },
+      studyGuide: {
+        sm: 'Intervals measure the distance between two pitches; the perfect fifth (3:2) anchors tuning systems across traditions and eras.',
+        rs: 'Drill interval recognition daily with a partner at the keyboard.',
+      },
+    };
+    const calls = [];
+    const generateJson = async ({ schemaProfile }) => {
+      calls.push(schemaProfile.name);
+      if (schemaProfile.name === 'blind_solve') return JSON.stringify({ answers: [2] });
+      return JSON.stringify({
+        scenario: lesson.scenario,
+        discussionPrompt: lesson.discussionPrompt,
+        assignmentCore: lesson.assignmentCore,
+        studyGuide: lesson.studyGuide,
+      });
+    };
+    const { events } = await applyScionKernelPasses(JSON.stringify({ lessons: [lesson] }), {
+      promptLessons: [{ lessonId: 'lesson-1', title: 'Lesson 1: Intervals', topics: 'Intervals; Consonance' }],
+      generateJson,
+    });
+    expect(calls).not.toContain('mc_explanations');
+    expect(events.some((event) => event.pass === 'mcExplanationPolish')).toBe(false);
+    expect(events.some((event) => event.pass === 'polish')).toBe(true);
   });
 
   it('D3/D4: gates default ON and honor the explicit opt-out', () => {

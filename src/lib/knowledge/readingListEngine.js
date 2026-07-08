@@ -52,6 +52,12 @@ function cleanText(value) {
  */
 const OER_BOOK_REGISTRY = [
   {
+    match: /open\s*geology|introduction to geology/i,
+    url: 'https://opengeology.org/textbook/',
+    license: 'CC-BY-NC-SA-4.0',
+    attribution: 'An Introduction to Geology (opengeology.org)',
+  },
+  {
     match: /human nutrition/i,
     url: 'https://pressbooks.oer.hawaii.edu/humannutrition2/',
     license: 'CC BY 4.0',
@@ -85,6 +91,17 @@ function openTextbookUrl(label) {
   // V0.14.1 4.8: drop the "(see source)" placeholder — the appendix already
   // names the origin; an unregistered open source is just "open license".
   return { url: '', license: 'open license', attribution: label };
+}
+
+function textbookSectionUrl(url, label) {
+  if (!url || url.includes('#')) return url;
+  const section = cleanText((String(label || '').match(/§\s*([A-Za-z0-9.:-]+)/) || [])[1] || '');
+  if (!section) return url;
+  const slug = section
+    .toLowerCase()
+    .replace(/[^a-z0-9.:-]+/g, '-')
+    .replace(/^-+|-+$/g, '');
+  return slug ? `${url}#section-${encodeURIComponent(slug)}` : url;
 }
 
 /**
@@ -158,7 +175,7 @@ function resolveGenomeCitation(entry, { abbreviateLicense = false } = {}) {
 
   if (displayTitle) {
     const { url, license } = openTextbookUrl(rawLabel || displayTitle);
-    const href = sourceUrl || url;
+    const href = textbookSectionUrl(sourceUrl || url, rawLabel || displayTitle);
     const tail = abbreviateLicense ? ' (open textbook)' : ` (open textbook, ${license}${href ? ` — ${href}` : ''})`;
     return {
       dedupeKey: (rawLabel || displayTitle).toLowerCase(),
@@ -183,14 +200,15 @@ function resolveGenomeCitation(entry, { abbreviateLicense = false } = {}) {
   }
 
   const { url, license, attribution } = openTextbookUrl(rawLabel);
+  const href = textbookSectionUrl(url, rawLabel);
   const tail = abbreviateLicense ? ' (open textbook)' : ` (open textbook, ${license}${url ? ` — ${url}` : ''})`;
   return {
     dedupeKey: rawLabel.toLowerCase(),
     citation: `${rawLabel}${tail}`,
-    url,
+    url: href,
     license,
     attribution,
-    licenseGroupKey: licenseGroupKey(url, license),
+    licenseGroupKey: licenseGroupKey(href, license),
   };
 }
 
