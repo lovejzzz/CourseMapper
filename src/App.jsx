@@ -4,6 +4,7 @@ import { useAuth } from './contexts/AuthContext';
 import { useAIConfig } from './contexts/AIConfigContext';
 import { useCourse } from './contexts/CourseContext';
 import { useUI } from './contexts/UIContext';
+import { PUBLIC_SCION_PROVIDER_ID } from './lib/publicScionProvider';
 
 const Landing = lazy(() => import('./screens/Landing'));
 const AppFlow = lazy(() => import('./AppFlow'));
@@ -24,6 +25,7 @@ export default function App() {
   const { screen, setScreen, showProjectPicker, setShowProjectPicker } = useUI();
   const { files, promptText, setPromptText } = useCourse();
   const { provider, apiKey, apiStatus, modelId } = useAIConfig();
+  const providerIsKeyless = provider === 'local' || provider === PUBLIC_SCION_PROVIDER_ID;
   const [flowActive, setFlowActive] = useState(() => screen !== 'landing');
   const [startupAction, setStartupAction] = useState(null);
   const [hasSavedSession, setHasSavedSession] = useState(false);
@@ -136,7 +138,7 @@ export default function App() {
           onQuickStart={handleQuickStart}
           canGenerate={
             (files.length > 0 || promptText.trim().length > 0) &&
-            (provider === 'local' || apiKey.trim()) &&
+            (providerIsKeyless || apiKey.trim()) &&
             !!modelId &&
             apiStatus === 'connected'
           }

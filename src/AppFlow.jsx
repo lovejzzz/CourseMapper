@@ -58,6 +58,7 @@ import { useUI } from './contexts/UIContext';
 import { useCourse } from './contexts/CourseContext';
 import { warn } from './lib/logger';
 import { applyQualityToFinalizerResult, runDeterministicPackageFinalizer } from './lib/packageFinalizer';
+import { PUBLIC_SCION_PROVIDER_ID } from './lib/publicScionProvider';
 import { verifyPackageExports } from './lib/packageExportVerifier';
 import { generateCourseHealthReport } from './lib/pedagogicalValidator';
 // HelpDrawer removed — merged into ChatPanel
@@ -1901,7 +1902,7 @@ export default function AppFlow({ startupAction = null, onStartupHandled, onRetu
     async (requests = [], { courseMap: sourceCourseMap } = {}) => {
       const validRequests = Array.isArray(requests) ? requests.filter(Boolean) : [];
       if (validRequests.length === 0) return { patches: [], providerCallCount: 0 };
-      if (provider !== 'webllm' && provider !== 'local' && !apiKey) {
+      if (provider !== 'webllm' && provider !== 'local' && provider !== PUBLIC_SCION_PROVIDER_ID && !apiKey) {
         return { patches: [], providerCallCount: 0, error: 'No connected AI provider for blueprint patch mapping.' };
       }
       if (!modelId) {
@@ -2154,8 +2155,9 @@ export default function AppFlow({ startupAction = null, onStartupHandled, onRetu
   });
 
   // ── Derived ──
+  const providerIsKeyless = provider === 'local' || provider === PUBLIC_SCION_PROVIDER_ID;
   const canGenerate =
-    (provider === 'local' ? apiStatus === 'connected' : apiKey.trim()) &&
+    (providerIsKeyless ? apiStatus === 'connected' : apiKey.trim()) &&
     modelId &&
     (files.length > 0 || promptText.trim().length > 0) &&
     gen.status !== 'parsing' &&
@@ -2674,7 +2676,7 @@ export default function AppFlow({ startupAction = null, onStartupHandled, onRetu
           onQuickStart={handleQuickStart}
           canGenerate={
             (files.length > 0 || promptText.trim().length > 0) &&
-            (provider === 'local' || apiKey.trim()) &&
+            (providerIsKeyless || apiKey.trim()) &&
             !!modelId &&
             apiStatus === 'connected'
           }

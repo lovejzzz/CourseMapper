@@ -6,6 +6,12 @@ import { failureEventFields, toClassifiedError } from '../lib/failureClassificat
 import { GOOGLE_ENDPOINT_FAMILIES, isVertexKey } from '../lib/googleProvider';
 import { buildProviderTextRequest } from '../lib/modelRequestBuilders';
 import {
+  PUBLIC_SCION_BACKING_MODEL,
+  PUBLIC_SCION_MODELS_ENDPOINT,
+  PUBLIC_SCION_PROVIDER_ID,
+  publicScionModelOption,
+} from '../lib/publicScionProvider';
+import {
   buildApiUsageEvent,
   extractUsageFromProviderChunk,
   mergeReportedUsage,
@@ -233,7 +239,7 @@ export default function useStreamReader() {
       !supportsCustomTemperature(modelId) ||
       modelCapabilities?.supportsTemperature === false ||
       generationPlan?.useTemperature === false;
-    let { url, headers, body, parseChunk } = buildProviderTextRequest({
+    let { url, headers, body, parseChunk, parseTextResponse, parseJsonResponse } = buildProviderTextRequest({
       provider,
       apiKey,
       modelId,
@@ -375,7 +381,7 @@ export default function useStreamReader() {
               attempt: attempt + 1,
               maxRetries,
             });
-            ({ url, headers, body, parseChunk } = buildProviderTextRequest({
+            ({ url, headers, body, parseChunk, parseTextResponse, parseJsonResponse } = buildProviderTextRequest({
               provider,
               apiKey,
               modelId,
@@ -413,6 +419,71 @@ export default function useStreamReader() {
           });
           error.apiCallBudgetRecorded = true;
           throw error;
+        }
+
+        if (typeof parseTextResponse === 'function') {
+          const text = parseTextResponse(await response.text(), response);
+          fullText += text;
+          if (onChunk) onChunk(fullText, 1);
+          if (inactivityTimer) clearTimeout(inactivityTimer);
+          const usage = normalizeApiUsage(
+            {
+              prompt_tokens: response.headers.get('x-usage-prompt-text-tokens'),
+              completion_tokens: response.headers.get('x-usage-completion-text-tokens'),
+              total_tokens: response.headers.get('x-usage-total-tokens'),
+              source: 'response-headers',
+            },
+            { source: 'response-headers' },
+          );
+          const outputText = fullText.slice(String(existingText || '').length);
+          recordApiCallEvent({
+            type: 'providerResponseDone',
+            label: 'Provider response complete',
+            detail: `plain text, ${outputText.length} chars`,
+            stage: 'provider-response',
+            ...buildProviderTraceBase(),
+            attempt: attempt + 1,
+            maxRetries,
+            outputChars: outputText.length,
+            streamChunkCount: 1,
+            finishReason: 'stop',
+          });
+          recordUsage(usage, outputText, 'API usage');
+          return { fullText, finishReason: 'stop' };
+        }
+
+        if (typeof parseJsonResponse === 'function') {
+          const data = await response.json().catch(() => ({}));
+          const text = parseJsonResponse(data, response);
+          fullText += text;
+          if (onChunk) onChunk(fullText, 1);
+          if (inactivityTimer) clearTimeout(inactivityTimer);
+          const headerUsage = normalizeApiUsage(
+            {
+              prompt_tokens: response.headers.get('x-usage-prompt-text-tokens'),
+              completion_tokens: response.headers.get('x-usage-completion-text-tokens'),
+              total_tokens: response.headers.get('x-usage-total-tokens'),
+              source: 'response-headers',
+            },
+            { source: 'response-headers' },
+          );
+          const reportedUsage = data?.usage ? normalizeApiUsage(data.usage, { source: 'reported' }) : null;
+          const usage = reportedUsage || headerUsage;
+          const outputText = fullText.slice(String(existingText || '').length);
+          recordApiCallEvent({
+            type: 'providerResponseDone',
+            label: 'Provider response complete',
+            detail: `non-streaming JSON, ${outputText.length} chars`,
+            stage: 'provider-response',
+            ...buildProviderTraceBase(),
+            attempt: attempt + 1,
+            maxRetries,
+            outputChars: outputText.length,
+            streamChunkCount: 1,
+            finishReason: data?.choices?.[0]?.finish_reason || 'stop',
+          });
+          recordUsage(usage, outputText, 'API usage');
+          return { fullText, finishReason: data?.choices?.[0]?.finish_reason || 'stop' };
         }
 
         const reader = response.body.getReader();
@@ -490,7 +561,7 @@ export default function useStreamReader() {
           attempt++;
           fullText = existingText;
           // Rebuild request with current skipTemp state so temperature fix persists across retries
-          ({ url, headers, body, parseChunk } = buildProviderTextRequest({
+          ({ url, headers, body, parseChunk, parseTextResponse, parseJsonResponse } = buildProviderTextRequest({
             provider,
             apiKey,
             modelId,
@@ -911,6 +982,20 @@ export async function fetchModelsFromProvider(provider, apiKey, options = {}) {
     if (served?.display_name) option.name = served.display_name;
     if (served?.id) option.id = served.id;
     return [option];
+  }
+
+  if (provider === PUBLIC_SCION_PROVIDER_ID) {
+    if (typeof onApiCallEvent === 'function') {
+      onApiCallEvent({ type: 'modelDiscoveryCall', label: 'Fetch public Scion model catalog', detail: 'public' });
+    }
+    const response = await fetchWithTimeout(PUBLIC_SCION_MODELS_ENDPOINT, requestOptions, timeoutMs);
+    if (!response.ok) throw new Error('Scion Public is temporarily unavailable');
+    const models = await response.json().catch(() => []);
+    const available = Array.isArray(models)
+      ? models.some((model) => model?.name === PUBLIC_SCION_BACKING_MODEL || model?.aliases?.includes('openai'))
+      : false;
+    if (!available) throw new Error('Scion Public model is temporarily unavailable');
+    return [publicScionModelOption()];
   }
 
   if (provider === 'deepseek') {

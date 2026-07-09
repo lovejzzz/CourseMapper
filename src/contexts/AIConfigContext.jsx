@@ -2,6 +2,7 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { getSecure, setSecure, removeSecure } from '../lib/secureStorage';
 import { createBaseModelCapabilities, createGenerationPlan } from '../lib/modelCapabilities';
+import { PUBLIC_SCION_MODEL_ID, PUBLIC_SCION_MODEL_NAME, PUBLIC_SCION_PROVIDER_ID } from '../lib/publicScionProvider';
 
 const AIConfigContext = createContext(null);
 const ACTIVE_API_KEY_STORAGE_KEY = 'coursemapper-apikey';
@@ -48,8 +49,9 @@ export function AIConfigProvider({ children }) {
   const [apiStatus, setApiStatus] = useState('idle');
   const [modelName, setModelName] = useState(() => {
     try {
-      const storedProvider = localStorage.getItem('coursemapper-provider');
+      const storedProvider = normalizeStoredProvider(localStorage.getItem('coursemapper-provider'));
       if (storedProvider === 'webllm' || storedProvider === 'free') return '';
+      if (storedProvider === PUBLIC_SCION_PROVIDER_ID) return PUBLIC_SCION_MODEL_NAME;
       return localStorage.getItem('coursemapper-modelname') || '';
     } catch {
       return '';
@@ -57,8 +59,9 @@ export function AIConfigProvider({ children }) {
   });
   const [modelId, setModelId] = useState(() => {
     try {
-      const storedProvider = localStorage.getItem('coursemapper-provider');
+      const storedProvider = normalizeStoredProvider(localStorage.getItem('coursemapper-provider'));
       if (storedProvider === 'webllm' || storedProvider === 'free') return '';
+      if (storedProvider === PUBLIC_SCION_PROVIDER_ID) return PUBLIC_SCION_MODEL_ID;
       return localStorage.getItem('coursemapper-modelid') || '';
     } catch {
       return '';

@@ -1,6 +1,14 @@
 import { getGoogleModelBaseUrl } from './googleProvider';
 import { getLocalEndpoint } from './localProvider';
 import { buildOpenAIResponsesBody, parseOpenAIResponsesStreamChunk, prefersOpenAIResponsesApi } from './openaiProvider';
+import {
+  PUBLIC_SCION_BACKING_MODEL,
+  PUBLIC_SCION_CHAT_ENDPOINT,
+  PUBLIC_SCION_MAX_COMPLETION_TOKENS,
+  PUBLIC_SCION_MODEL_ID,
+  PUBLIC_SCION_PROVIDER_ID,
+  buildPublicScionMessages,
+} from './publicScionProvider';
 
 function modelIsDefaultTemperatureOnly(provider, modelId) {
   const id = String(modelId || '').toLowerCase();
@@ -347,6 +355,33 @@ export function buildProviderTextRequest({
       },
       parseChunk: (parsed) => parsed.choices?.[0]?.delta?.content || null,
       controls,
+    };
+  }
+
+  if (provider === PUBLIC_SCION_PROVIDER_ID) {
+    // Experimental anonymous route. Pollinations' legacy OpenAI-compatible
+    // endpoint is non-streaming for anonymous calls, but it returns the normal
+    // chat-completions JSON envelope, so CourseMapper can parse it safely.
+    // Keep structured output prompt-only; the app's repair/parser gates still
+    // validate whatever comes back.
+    const publicTemperature = temperatureOverride ?? controls.temperature ?? 0.3;
+    return {
+      url: PUBLIC_SCION_CHAT_ENDPOINT,
+      headers: { 'Content-Type': 'application/json' },
+      body: {
+        model: PUBLIC_SCION_BACKING_MODEL,
+        messages: buildPublicScionMessages(systemPrompt, userPrompt, { schema }),
+        max_tokens: Math.min(
+          controls.maxOutputTokens || PUBLIC_SCION_MAX_COMPLETION_TOKENS,
+          PUBLIC_SCION_MAX_COMPLETION_TOKENS,
+        ),
+        temperature: publicTemperature,
+        reasoning_effort: 'low',
+        stream: false,
+        private: true,
+      },
+      parseJsonResponse: (data) => data?.choices?.[0]?.message?.content || '',
+      controls: { ...controls, modelId: PUBLIC_SCION_MODEL_ID, apiMode: 'public-chat' },
     };
   }
 

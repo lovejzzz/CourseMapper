@@ -108,10 +108,14 @@ export default function PrivacyPolicy() {
                   DeepSeek Terms of Use
                 </a>
               </li>
+              <li>
+                <strong>Scion Public</strong> — an experimental keyless route backed by Pollinations' anonymous text
+                endpoint. It does not require your API key, but your prompt is still sent to that third-party endpoint.
+              </li>
             </ul>
             <p className="mt-2">
-              You provide your own API key to connect directly to your chosen provider. Course Mapper never stores or
-              transmits your API key to any server — it stays in your browser.
+              For key-based providers, you provide your own API key to connect directly to your chosen provider. Course
+              Mapper never stores or transmits your API key to any server — it stays in your browser.
             </p>
           </Section>
 

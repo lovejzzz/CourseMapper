@@ -87,7 +87,7 @@ function getCatalogSupport(model, key) {
 
 function providerJsonModeSupport(provider) {
   if (provider === 'openai' || provider === 'deepseek' || provider === 'google' || provider === 'local') return true;
-  if (provider === 'anthropic' || provider === 'webllm') return false;
+  if (provider === 'anthropic' || provider === 'webllm' || provider === 'public') return false;
   return UNKNOWN_SUPPORT;
 }
 
@@ -95,7 +95,7 @@ function providerToolSupport(provider) {
   if (provider === 'openai' || provider === 'deepseek' || provider === 'anthropic' || provider === 'google') {
     return true;
   }
-  if (provider === 'webllm' || provider === 'local') return false;
+  if (provider === 'webllm' || provider === 'local' || provider === 'public') return false;
   return UNKNOWN_SUPPORT;
 }
 
@@ -107,6 +107,7 @@ function providerStreamingSupport(provider, model) {
   if (provider === 'openai' || provider === 'deepseek' || provider === 'anthropic' || provider === 'google')
     return true;
   if (provider === 'webllm' || provider === 'local') return true;
+  if (provider === 'public') return false;
   return UNKNOWN_SUPPORT;
 }
 
@@ -177,6 +178,16 @@ function inferApiControls(provider, modelId) {
   }
   if (provider === 'webllm') {
     return { ...base, activeTextApi: 'local-chat', preferredTextApi: 'local-chat', endpointFamily: 'webllm' };
+  }
+  if (provider === 'public') {
+    return {
+      ...base,
+      activeTextApi: 'public-chat',
+      preferredTextApi: 'public-chat',
+      endpointFamily: 'pollinations-anonymous',
+      streamingProtocol: 'json',
+      supportsStreaming: false,
+    };
   }
   return base;
 }
@@ -918,7 +929,8 @@ export function createGenerationPlan(profile = {}) {
     // verbose contract. Set false here (or in a saved plan) to opt out.
     // courseMapOutputTokens stays unscaled: it is a cap, not a target —
     // unused budget is free, truncation-driven continuations are not.
-    leanCourseMapAtoms: profile.provider !== 'webllm' && structuredOutputMode !== 'prompt_only',
+    leanCourseMapAtoms:
+      profile.provider === 'public' || (profile.provider !== 'webllm' && structuredOutputMode !== 'prompt_only'),
     parallelFeatureCalls,
     retryConcurrency,
     initialStreamRetries: chunkStrategy === 'conservative' ? 3 : 2,

@@ -71,8 +71,8 @@ describe('local provider — the house model surface', () => {
   it('source wiring: the dropdown, keyless gates, and models branch exist', () => {
     const modelConfig = fs.readFileSync('src/components/ModelConfig.jsx', 'utf8');
     expect(modelConfig).toContain('<option value="local">Local</option>');
-    expect(modelConfig).toContain("if (provider === 'local') return true;"); // checkCredits
-    expect(modelConfig).toContain("provider !== 'local' && trimmedKey.length < 10"); // keyless validation gate
+    expect(modelConfig).toContain('if (isKeylessProvider(provider)) return true;'); // checkCredits
+    expect(modelConfig).toContain('!isKeylessProvider(provider) && trimmedKey.length < 10'); // keyless validation gate
     expect(modelConfig).toContain('npm run local-model'); // the not-running hint
 
     const streamReader = fs.readFileSync('src/hooks/useStreamReader.js', 'utf8');

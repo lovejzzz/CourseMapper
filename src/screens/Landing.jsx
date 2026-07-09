@@ -7,6 +7,7 @@ import UserMenu from '../components/UserMenu';
 import DarkModeToggle from '../components/DarkModeToggle';
 import AppLogo from '../components/AppLogo';
 import { LATEST_RELEASE } from '../lib/latestRelease';
+import { PUBLIC_SCION_PROVIDER_ID } from '../lib/publicScionProvider';
 
 const ACCEPTED_EXTENSIONS = [
   '.doc',
@@ -449,10 +450,11 @@ export default function Landing({
   // v0.14.7 WS-F2: quick start shows only when there is a prompt to act on
   // AND a stored API key ('coursemapper-apikey', surfaced via useAIConfig) —
   // one decision to first value, defaults for everything else.
+  const providerIsKeyless = provider === 'local' || provider === PUBLIC_SCION_PROVIDER_ID;
   const canQuickStart =
     Boolean(onQuickStart) &&
     promptText.trim().length > 0 &&
-    (provider === 'local' ? apiStatus === 'connected' : Boolean(apiKey?.trim()));
+    (providerIsKeyless ? apiStatus === 'connected' : Boolean(apiKey?.trim()));
 
   // Build a summary label for the collapsed AI config bar
   const configSummaryLabel = (() => {
@@ -461,6 +463,7 @@ export default function Landing({
     if (provider === 'anthropic') return `Anthropic · ${modelName || modelId || 'Claude'}`;
     if (provider === 'google') return `Google · ${modelName || modelId || 'Gemini'}`;
     if (provider === 'deepseek') return `DeepSeek · ${modelName || modelId || 'V3'}`;
+    if (provider === PUBLIC_SCION_PROVIDER_ID) return `Scion Public · ${modelName || modelId || 'anonymous'}`;
     if (provider === 'local') return `Local · ${modelName || modelId || 'Scion-1'}`;
     return modelName || modelId || provider || 'AI Model';
   })();

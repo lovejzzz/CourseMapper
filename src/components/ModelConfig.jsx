@@ -19,6 +19,7 @@ import {
   readEnrichmentPreference,
   saveEnrichmentPreference,
 } from '../lib/enrichmentPreference';
+import { PUBLIC_SCION_PROVIDER_ID } from '../lib/publicScionProvider';
 
 /**
  * Detect provider from API key prefix and auto-switch if mismatched.
@@ -56,6 +57,10 @@ const BILLING_URLS = {
 const MODEL_DISCOVERY_TIMEOUT_MS = 12000;
 const CREDIT_CHECK_TIMEOUT_MS = 10000;
 
+function isKeylessProvider(provider) {
+  return provider === 'local' || provider === PUBLIC_SCION_PROVIDER_ID;
+}
+
 /**
  * Make a tiny test completion to verify the key has credits.
  * Returns true if the key works, false if insufficient funds.
@@ -63,7 +68,7 @@ const CREDIT_CHECK_TIMEOUT_MS = 10000;
 export async function checkCredits(provider, apiKey, modelId, onApiCallEvent, options = {}) {
   // The local provider has no billing surface — liveness was already proven
   // by the /v1/models fetch, and every call is $0.
-  if (provider === 'local') return true;
+  if (isKeylessProvider(provider)) return true;
   try {
     let res;
     const timeoutMs = options.timeoutMs ?? CREDIT_CHECK_TIMEOUT_MS;
@@ -406,9 +411,11 @@ export default function ModelConfig() {
     }
 
     // The local provider is keyless — validation is the /v1/models liveness
-    // probe inside the same debounce flow.
+    // probe inside the same debounce flow, but do not auto-probe a restored
+    // Local selection until the user asks. Other keyless providers can validate
+    // normally through model discovery.
     if (isRestoredLocalProvider) return;
-    if (provider !== 'local' && trimmedKey.length < 10) return;
+    if (!isKeylessProvider(provider) && trimmedKey.length < 10) return;
 
     // Only auto-detect provider from key prefix when the KEY changed,
     // not when the PROVIDER changed (stale key would fight the switch)
@@ -653,6 +660,7 @@ export default function ModelConfig() {
               <option value="anthropic">Anthropic</option>
               <option value="google">Google</option>
               <option value="deepseek">DeepSeek</option>
+              <option value="public">Scion Public</option>
               <option value="local">Local</option>
             </select>
             <svg
@@ -712,6 +720,35 @@ export default function ModelConfig() {
                   <code className="mt-2 inline-flex font-mono text-[12px] bg-amber-100/60 px-1.5 py-0.5 rounded text-amber-700">
                     npm run local-model
                   </code>
+                </div>
+              )}
+            </>
+          ) : provider === PUBLIC_SCION_PROVIDER_ID ? (
+            <>
+              <div className="block text-xs font-medium text-slate-500 mb-1.5 tracking-wide uppercase">API Key</div>
+              {apiStatus === 'connected' ? (
+                <div className="w-full rounded-squircle-xs bg-emerald-50/40 border border-emerald-200/50 px-3.5 py-2.5 text-sm text-emerald-700 flex items-center gap-2">
+                  <svg
+                    className="w-4 h-4 text-emerald-500 shrink-0"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
+                  </svg>
+                  Free public beta
+                </div>
+              ) : apiStatus === 'validating' ? (
+                <div className="w-full rounded-squircle-xs bg-slate-50/60 border border-slate-200/40 px-3.5 py-2.5 text-sm text-slate-500">
+                  Checking public endpoint…
+                </div>
+              ) : apiStatus === 'error' ? (
+                <div className="w-full rounded-squircle-xs bg-red-50/40 border border-red-200/50 px-3.5 py-2.5 text-sm text-red-600">
+                  {validationErrorLabel}
+                </div>
+              ) : (
+                <div className="w-full rounded-squircle-xs bg-slate-50/60 border border-slate-200/40 px-3.5 py-2.5 text-sm text-slate-500">
+                  No key needed
                 </div>
               )}
             </>
@@ -888,7 +925,9 @@ export default function ModelConfig() {
                   ? 'Loading models...'
                   : apiStatus === 'error'
                     ? validationErrorLabel
-                    : 'Enter API key first'}
+                    : provider === PUBLIC_SCION_PROVIDER_ID
+                      ? 'Checking public endpoint...'
+                      : 'Enter API key first'}
             </div>
           )}
         </div>

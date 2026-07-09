@@ -75,6 +75,7 @@ import {
 } from '../lib/apiCallBudget';
 import { classifyError } from '../lib/failureClassification';
 import { traceLog } from '../lib/traceLog';
+import { PUBLIC_SCION_PROVIDER_ID } from '../lib/publicScionProvider';
 
 const PROVIDER_CALL_EVENT_TYPES = new Set([
   'deliverableChunkCall',
@@ -563,7 +564,9 @@ export default function useDeliverables({
         generationPlan?.blueprintEnrichment ??
         false;
       const enrichmentModelAvailable = Boolean(
-        provider && modelId && (provider === 'webllm' || provider === 'local' || apiKey),
+        provider &&
+        modelId &&
+        (provider === 'webllm' || provider === 'local' || provider === PUBLIC_SCION_PROVIDER_ID || apiKey),
       );
       const blueprintEnrichmentRequested =
         costMode !== 'finalizerRetry' && blueprintCompiledFeatureIds.length > 0 && blueprintEnrichmentMode !== false;
@@ -5340,7 +5343,11 @@ export default function useDeliverables({
     async (courseMap) => {
       const voicePassLib = await import('../lib/voicePass');
       if (voicePassLib.readVoicePassMode() !== 'on') return { ran: false, reason: 'voice flag off' };
-      if (!provider || !modelId || (provider !== 'webllm' && provider !== 'local' && !apiKey)) {
+      if (
+        !provider ||
+        !modelId ||
+        (provider !== 'webllm' && provider !== 'local' && provider !== PUBLIC_SCION_PROVIDER_ID && !apiKey)
+      ) {
         return { ran: false, reason: 'no model configured' };
       }
       // Scion (V2.1 D3): the in-compiler polish pass already rewrites the

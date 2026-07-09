@@ -136,6 +136,10 @@ export function getModelPricing(provider = '', modelId = '', inputTokens = 0) {
     return pricing(0, 0, { source: 'local-model' });
   }
 
+  if (provider === 'public') {
+    return pricing(0, 0, { source: 'public-anonymous' });
+  }
+
   if (provider === 'deepseek') {
     if (/reasoner|v4-pro|r1/.test(id)) {
       return pricing(0.55, 2.19, { cachedInputPerMillion: 0.14 });
