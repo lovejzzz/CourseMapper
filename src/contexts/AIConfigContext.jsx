@@ -18,7 +18,7 @@ function isKeylessProvider(provider) {
 }
 
 function normalizeStoredProvider(provider) {
-  if (provider === 'webllm' || provider === 'free') return PUBLIC_SCION_PROVIDER_ID;
+  if (provider === 'webllm' || provider === 'free' || provider === 'local') return PUBLIC_SCION_PROVIDER_ID;
   return provider || PUBLIC_SCION_PROVIDER_ID;
 }
 

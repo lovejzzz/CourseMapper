@@ -147,11 +147,11 @@ test.describe('Landing Page', () => {
     await expect(page.locator('text=AI Configuration')).toBeVisible({ timeout: 5000 });
   });
 
-  test('provider picker offers cloud providers and optional local server', async ({ page }) => {
+  test('provider picker offers public Scion and cloud providers', async ({ page }) => {
     const options = await page.getByLabel('Provider').locator('option').allTextContents();
 
-    expect(options).toEqual(['Scion', 'OpenAI', 'Anthropic', 'Google', 'DeepSeek', 'Scion Local (advanced)']);
-    expect(options.join(' ')).not.toContain('Local AI');
+    expect(options).toEqual(['Scion', 'OpenAI', 'Anthropic', 'Google', 'DeepSeek']);
+    expect(options.join(' ')).not.toContain('Local');
   });
 
   test('Resume restores the saved project model instead of the landing-page model', async ({ page }) => {

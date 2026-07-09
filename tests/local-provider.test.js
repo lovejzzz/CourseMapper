@@ -68,9 +68,10 @@ describe('local provider — the house model surface', () => {
     expect(profile.supportsTools).toBe(false);
   });
 
-  it('source wiring: the dropdown, keyless gates, and models branch exist', () => {
+  it('source wiring: local runtime stays internal and off the public provider picker', () => {
     const modelConfig = fs.readFileSync('src/components/ModelConfig.jsx', 'utf8');
-    expect(modelConfig).toContain('<option value="local">Scion Local (advanced)</option>');
+    expect(modelConfig).not.toContain('<option value="local">');
+    expect(modelConfig).toContain("provider === 'webllm' || provider === 'free' || provider === 'local'");
     expect(modelConfig).toContain('if (isKeylessProvider(provider)) return true;'); // checkCredits
     expect(modelConfig).toContain('!isKeylessProvider(provider) && trimmedKey.length < 10'); // keyless validation gate
     expect(modelConfig).toContain('npm run local-model'); // the not-running hint
@@ -78,6 +79,9 @@ describe('local provider — the house model surface', () => {
     const streamReader = fs.readFileSync('src/hooks/useStreamReader.js', 'utf8');
     expect(streamReader).toContain("if (provider === 'local') {");
     expect(streamReader).toContain('Local model server is not responding');
+
+    const aiConfig = fs.readFileSync('src/contexts/AIConfigContext.jsx', 'utf8');
+    expect(aiConfig).toContain("provider === 'webllm' || provider === 'free' || provider === 'local'");
 
     const landing = fs.readFileSync('src/screens/Landing.jsx', 'utf8');
     expect(landing).toContain("if (provider === 'local') return `Scion Local ·");

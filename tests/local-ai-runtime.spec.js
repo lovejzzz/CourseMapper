@@ -35,7 +35,7 @@ test.describe('Provider picker', () => {
     await expect(page.getByText('No API key or local server needed')).toHaveCount(0);
   });
 
-  test('does not probe a restored Local provider until the user checks the server', async ({ page }) => {
+  test('redirects stale Local provider settings to keyless Scion', async ({ page }) => {
     let localProbeCount = 0;
     await page.route('http://127.0.0.1:8799/v1/models', async (route) => {
       localProbeCount += 1;
@@ -51,16 +51,12 @@ test.describe('Provider picker', () => {
 
     await page.goto('/');
 
-    await expect(page.getByLabel('Provider')).toHaveValue('local');
-    await expect(page.getByRole('button', { name: 'Check server' })).toBeVisible();
+    await expect(page.getByLabel('Provider')).toHaveValue('public');
+    await expect(page.getByLabel('Provider').locator('option[value="local"]')).toHaveCount(0);
+    await expect(page.getByText('No API key or local server needed')).toBeVisible();
+    await expect(page.getByRole('button', { name: 'Check server' })).toHaveCount(0);
     await expect(page.getByText('Failed to fetch')).toHaveCount(0);
     await page.waitForTimeout(1000);
     expect(localProbeCount).toBe(0);
-
-    await page.getByRole('button', { name: 'Check server' }).click();
-
-    await expect.poll(() => localProbeCount).toBe(1);
-    await expect(page.getByText('Local offline')).toBeVisible();
-    await expect(page.getByText('Local server unavailable')).toHaveCount(2);
   });
 });

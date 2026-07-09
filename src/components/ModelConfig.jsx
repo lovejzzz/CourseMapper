@@ -278,9 +278,10 @@ export default function ModelConfig() {
     }
   }, [provider]);
 
-  // Local WebLLM is no longer selectable. Redirect stale saved values before any local runtime work starts.
+  // Browser/local model providers are no longer selectable in the public app.
+  // Redirect stale saved values before any local runtime work starts.
   useEffect(() => {
-    if (provider === 'webllm' || provider === 'free') {
+    if (provider === 'webllm' || provider === 'free' || provider === 'local') {
       setProvider(PUBLIC_SCION_PROVIDER_ID);
       return;
     }
@@ -661,7 +662,6 @@ export default function ModelConfig() {
               <option value="anthropic">Anthropic</option>
               <option value="google">Google</option>
               <option value="deepseek">DeepSeek</option>
-              <option value="local">Scion Local (advanced)</option>
             </select>
             <svg
               className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400"
