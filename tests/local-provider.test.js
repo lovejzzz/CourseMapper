@@ -1,5 +1,5 @@
 // V2.1 Workstream B — the Local provider (the house model on this device).
-// Gates the wiring that puts "Local (this device)" on the landing page:
+// Gates the wiring that keeps the local Scion server available as an advanced option:
 // keyless credential flow, the OpenAI-shaped request at the local endpoint,
 // $0 pricing, and decode-time json_schema capability (llguidance).
 import { describe, it, expect } from 'vitest';
@@ -70,7 +70,7 @@ describe('local provider — the house model surface', () => {
 
   it('source wiring: the dropdown, keyless gates, and models branch exist', () => {
     const modelConfig = fs.readFileSync('src/components/ModelConfig.jsx', 'utf8');
-    expect(modelConfig).toContain('<option value="local">Local</option>');
+    expect(modelConfig).toContain('<option value="local">Scion Local (advanced)</option>');
     expect(modelConfig).toContain('if (isKeylessProvider(provider)) return true;'); // checkCredits
     expect(modelConfig).toContain('!isKeylessProvider(provider) && trimmedKey.length < 10'); // keyless validation gate
     expect(modelConfig).toContain('npm run local-model'); // the not-running hint
@@ -80,7 +80,7 @@ describe('local provider — the house model surface', () => {
     expect(streamReader).toContain('Local model server is not responding');
 
     const landing = fs.readFileSync('src/screens/Landing.jsx', 'utf8');
-    expect(landing).toContain("if (provider === 'local') return `Local ·");
+    expect(landing).toContain("if (provider === 'local') return `Scion Local ·");
 
     const packageJson = fs.readFileSync('package.json', 'utf8');
     expect(packageJson).toContain('"local-model": "node scripts/crucible/e2bOpenAIShim.mjs"');

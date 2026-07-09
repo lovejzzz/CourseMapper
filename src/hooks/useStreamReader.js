@@ -5,12 +5,7 @@ import { getLocalEndpoint, localModelOption } from '../lib/localProvider';
 import { failureEventFields, toClassifiedError } from '../lib/failureClassification';
 import { GOOGLE_ENDPOINT_FAMILIES, isVertexKey } from '../lib/googleProvider';
 import { buildProviderTextRequest } from '../lib/modelRequestBuilders';
-import {
-  PUBLIC_SCION_BACKING_MODEL,
-  PUBLIC_SCION_MODELS_ENDPOINT,
-  PUBLIC_SCION_PROVIDER_ID,
-  publicScionModelOption,
-} from '../lib/publicScionProvider';
+import { PUBLIC_SCION_PROVIDER_ID, publicScionModelOption } from '../lib/publicScionProvider';
 import {
   buildApiUsageEvent,
   extractUsageFromProviderChunk,
@@ -986,15 +981,8 @@ export async function fetchModelsFromProvider(provider, apiKey, options = {}) {
 
   if (provider === PUBLIC_SCION_PROVIDER_ID) {
     if (typeof onApiCallEvent === 'function') {
-      onApiCallEvent({ type: 'modelDiscoveryCall', label: 'Fetch public Scion model catalog', detail: 'public' });
+      onApiCallEvent({ type: 'modelDiscoveryCall', label: 'Resolve public Scion model', detail: 'public' });
     }
-    const response = await fetchWithTimeout(PUBLIC_SCION_MODELS_ENDPOINT, requestOptions, timeoutMs);
-    if (!response.ok) throw new Error('Scion Public is temporarily unavailable');
-    const models = await response.json().catch(() => []);
-    const available = Array.isArray(models)
-      ? models.some((model) => model?.name === PUBLIC_SCION_BACKING_MODEL || model?.aliases?.includes('openai'))
-      : false;
-    if (!available) throw new Error('Scion Public model is temporarily unavailable');
     return [publicScionModelOption()];
   }
 

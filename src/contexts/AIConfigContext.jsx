@@ -2,15 +2,34 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { getSecure, setSecure, removeSecure } from '../lib/secureStorage';
 import { createBaseModelCapabilities, createGenerationPlan } from '../lib/modelCapabilities';
-import { PUBLIC_SCION_MODEL_ID, PUBLIC_SCION_MODEL_NAME, PUBLIC_SCION_PROVIDER_ID } from '../lib/publicScionProvider';
+import {
+  PUBLIC_SCION_MODEL_ID,
+  PUBLIC_SCION_MODEL_NAME,
+  PUBLIC_SCION_PROVIDER_ID,
+  publicScionModelOption,
+} from '../lib/publicScionProvider';
 
 const AIConfigContext = createContext(null);
 const ACTIVE_API_KEY_STORAGE_KEY = 'coursemapper-apikey';
 const PROVIDER_API_KEY_STORAGE_PREFIX = 'coursemapper-apikey-provider:';
+export const LOCAL_PROVIDER_OPT_IN_STORAGE_KEY = 'coursemapper-local-provider-opt-in';
+
+function hasLocalProviderOptIn() {
+  try {
+    return localStorage.getItem(LOCAL_PROVIDER_OPT_IN_STORAGE_KEY) === 'true';
+  } catch {
+    return false;
+  }
+}
+
+function isKeylessProvider(provider) {
+  return provider === 'local' || provider === PUBLIC_SCION_PROVIDER_ID;
+}
 
 function normalizeStoredProvider(provider) {
-  if (provider === 'webllm' || provider === 'free') return 'anthropic';
-  return provider || 'anthropic';
+  if (provider === 'webllm' || provider === 'free') return PUBLIC_SCION_PROVIDER_ID;
+  if (provider === 'local' && !hasLocalProviderOptIn()) return PUBLIC_SCION_PROVIDER_ID;
+  return provider || PUBLIC_SCION_PROVIDER_ID;
 }
 
 export function getProviderApiKeyStorageKey(provider) {
@@ -18,6 +37,7 @@ export function getProviderApiKeyStorageKey(provider) {
 }
 
 export function getSavedApiKeyForProvider(provider, { includeLegacy = false } = {}) {
+  if (isKeylessProvider(provider)) return '';
   try {
     const saved = provider ? getSecure(getProviderApiKeyStorageKey(provider)) : '';
     if (saved) return saved;
@@ -29,7 +49,7 @@ export function getSavedApiKeyForProvider(provider, { includeLegacy = false } = 
 
 export function saveApiKeyForProvider(provider, apiKey) {
   const trimmedKey = String(apiKey || '').trim();
-  if (!provider || provider === 'webllm' || !trimmedKey) return;
+  if (!provider || provider === 'webllm' || isKeylessProvider(provider) || !trimmedKey) return;
   try {
     setSecure(getProviderApiKeyStorageKey(provider), trimmedKey);
   } catch {}
@@ -40,13 +60,14 @@ export function AIConfigProvider({ children }) {
     try {
       return normalizeStoredProvider(localStorage.getItem('coursemapper-provider'));
     } catch {
-      return 'anthropic';
+      return PUBLIC_SCION_PROVIDER_ID;
     }
   });
   const [apiKey, setApiKey] = useState(() => {
+    if (isKeylessProvider(provider)) return '';
     return getSavedApiKeyForProvider(provider, { includeLegacy: true });
   });
-  const [apiStatus, setApiStatus] = useState('idle');
+  const [apiStatus, setApiStatus] = useState(() => (provider === PUBLIC_SCION_PROVIDER_ID ? 'connected' : 'idle'));
   const [modelName, setModelName] = useState(() => {
     try {
       const storedProvider = normalizeStoredProvider(localStorage.getItem('coursemapper-provider'));
@@ -67,12 +88,22 @@ export function AIConfigProvider({ children }) {
       return '';
     }
   });
-  const [availableModels, setAvailableModels] = useState([]);
-  const [maxOutputTokens, setMaxOutputTokens] = useState(16384);
+  const [availableModels, setAvailableModels] = useState(() =>
+    provider === PUBLIC_SCION_PROVIDER_ID ? [publicScionModelOption()] : [],
+  );
+  const [maxOutputTokens, setMaxOutputTokens] = useState(() =>
+    provider === PUBLIC_SCION_PROVIDER_ID ? publicScionModelOption().maxOutputTokens : 16384,
+  );
   const [modelCapabilities, setModelCapabilities] = useState(() => {
+    if (provider === PUBLIC_SCION_PROVIDER_ID) {
+      return createBaseModelCapabilities(PUBLIC_SCION_PROVIDER_ID, publicScionModelOption());
+    }
     try {
       const raw = localStorage.getItem('coursemapper-model-capabilities-current');
-      return raw ? JSON.parse(raw) : null;
+      const parsed = raw ? JSON.parse(raw) : null;
+      if (!parsed) return null;
+      const matchesCurrentModel = parsed.provider === provider && (!parsed.modelId || parsed.modelId === modelId);
+      return matchesCurrentModel ? parsed : null;
     } catch {
       return null;
     }
@@ -89,10 +120,11 @@ export function AIConfigProvider({ children }) {
   // ── Persist API key, provider & model to localStorage ──
   useEffect(() => {
     try {
+      if (isKeylessProvider(provider)) return;
       if (apiKey) setSecure(ACTIVE_API_KEY_STORAGE_KEY, apiKey);
       else removeSecure(ACTIVE_API_KEY_STORAGE_KEY);
     } catch {}
-  }, [apiKey]);
+  }, [apiKey, provider]);
 
   useEffect(() => {
     try {

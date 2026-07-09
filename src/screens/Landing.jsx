@@ -354,7 +354,7 @@ export default function Landing({
 
   // ── Auto-collapse AI config when already connected ──
   const isReady = apiStatus === 'connected';
-  const [configCollapsed, setConfigCollapsed] = useState(isReady);
+  const [configCollapsed, setConfigCollapsed] = useState(isReady && provider !== PUBLIC_SCION_PROVIDER_ID);
   const configManuallyExpandedRef = useRef(false);
 
   // Auto-collapse only when apiStatus transitions TO 'connected' (not on mount).
@@ -363,10 +363,15 @@ export default function Landing({
   useEffect(() => {
     const prev = prevApiStatusRef.current;
     prevApiStatusRef.current = apiStatus;
-    if (apiStatus === 'connected' && prev !== 'connected' && !configManuallyExpandedRef.current) {
+    if (
+      apiStatus === 'connected' &&
+      prev !== 'connected' &&
+      provider !== PUBLIC_SCION_PROVIDER_ID &&
+      !configManuallyExpandedRef.current
+    ) {
       setConfigCollapsed(true);
     }
-  }, [apiStatus]);
+  }, [apiStatus, provider]);
 
   const expandConfigForEditing = useCallback(() => {
     configManuallyExpandedRef.current = true;
@@ -463,8 +468,8 @@ export default function Landing({
     if (provider === 'anthropic') return `Anthropic · ${modelName || modelId || 'Claude'}`;
     if (provider === 'google') return `Google · ${modelName || modelId || 'Gemini'}`;
     if (provider === 'deepseek') return `DeepSeek · ${modelName || modelId || 'V3'}`;
-    if (provider === PUBLIC_SCION_PROVIDER_ID) return `Scion Public · ${modelName || modelId || 'anonymous'}`;
-    if (provider === 'local') return `Local · ${modelName || modelId || 'Scion-1'}`;
+    if (provider === PUBLIC_SCION_PROVIDER_ID) return `Scion · ${modelName || modelId || 'public'}`;
+    if (provider === 'local') return `Scion Local · ${modelName || modelId || 'Scion-1'}`;
     return modelName || modelId || provider || 'AI Model';
   })();
 

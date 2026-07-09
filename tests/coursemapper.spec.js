@@ -88,7 +88,7 @@ test.describe('Landing Page', () => {
     await expect(textarea).toHaveValue('My custom course about machine learning');
   });
 
-  test('Continue button is disabled without API key', async ({ page }) => {
+  test('Continue button is disabled without course input', async ({ page }) => {
     const continueBtn = landingSetupButton(page);
     await expect(continueBtn).toBeVisible();
     await expect(continueBtn).toBeDisabled();
@@ -150,7 +150,7 @@ test.describe('Landing Page', () => {
   test('provider picker offers cloud providers and optional local server', async ({ page }) => {
     const options = await page.getByLabel('Provider').locator('option').allTextContents();
 
-    expect(options).toEqual(['OpenAI', 'Anthropic', 'Google', 'DeepSeek', 'Local']);
+    expect(options).toEqual(['Scion', 'OpenAI', 'Anthropic', 'Google', 'DeepSeek', 'Scion Local (advanced)']);
     expect(options.join(' ')).not.toContain('Local AI');
   });
 

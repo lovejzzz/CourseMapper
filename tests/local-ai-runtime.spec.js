@@ -1,7 +1,7 @@
 import { expect, test } from '@playwright/test';
 
 test.describe('Provider picker', () => {
-  test('redirects stale local AI settings to a supported BYOK provider', async ({ page }) => {
+  test('redirects stale local browser settings to keyless Scion', async ({ page }) => {
     await page.addInitScript(() => {
       localStorage.clear();
       sessionStorage.clear();
@@ -12,14 +12,14 @@ test.describe('Provider picker', () => {
 
     await page.goto('/');
 
-    await expect(page.getByLabel('Provider')).toHaveValue('anthropic');
+    await expect(page.getByLabel('Provider')).toHaveValue('public');
     await expect(page.getByLabel('Provider').locator('option[value="webllm"]')).toHaveCount(0);
     await expect(page.getByText('Local browser model')).toHaveCount(0);
 
     await page
       .getByLabel('Describe your course')
       .fill('Design an 8 lesson graduate course on trauma-informed social work practice.');
-    await expect(page.getByTestId('landing-setup-button')).toBeDisabled();
+    await expect(page.getByTestId('landing-setup-button')).toBeEnabled();
   });
 
   test('does not probe a restored Local provider until the user checks the server', async ({ page }) => {
@@ -31,6 +31,7 @@ test.describe('Provider picker', () => {
     await page.addInitScript(() => {
       localStorage.clear();
       sessionStorage.clear();
+      localStorage.setItem('coursemapper-local-provider-opt-in', 'true');
       localStorage.setItem('coursemapper-provider', 'local');
       localStorage.setItem('coursemapper-modelid', 'scion-1');
       localStorage.setItem('coursemapper-modelname', 'Scion-1');

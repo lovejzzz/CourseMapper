@@ -1,6 +1,11 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { fetchModelsFromProvider } from '../hooks/useStreamReader';
-import { getSavedApiKeyForProvider, saveApiKeyForProvider, useAIConfig } from '../contexts/AIConfigContext';
+import {
+  LOCAL_PROVIDER_OPT_IN_STORAGE_KEY,
+  getSavedApiKeyForProvider,
+  saveApiKeyForProvider,
+  useAIConfig,
+} from '../contexts/AIConfigContext';
 import { WEBLLM_MODELS } from '../lib/webllmConstants';
 import { getGoogleModelBaseUrl } from '../lib/googleProvider';
 import { recordPendingApiCallEvent } from '../lib/apiCallPendingEvents';
@@ -248,6 +253,17 @@ export default function ModelConfig() {
   const [webllmError, setWebllmError] = useState(null);
   const webllmInitRef = useRef(false);
 
+  const handleProviderChange = useCallback(
+    (nextProvider) => {
+      try {
+        if (nextProvider === 'local') localStorage.setItem(LOCAL_PROVIDER_OPT_IN_STORAGE_KEY, 'true');
+        else if (nextProvider === PUBLIC_SCION_PROVIDER_ID) localStorage.removeItem(LOCAL_PROVIDER_OPT_IN_STORAGE_KEY);
+      } catch {}
+      setProvider(nextProvider);
+    },
+    [setProvider],
+  );
+
   // When provider changes, reset model state and restore that provider's trusted key.
   // Skip when provider hasn't actually changed (mount/remount/StrictMode).
   // Skip clearing apiKey when change was auto-detected from key prefix.
@@ -281,7 +297,7 @@ export default function ModelConfig() {
   // Local WebLLM is no longer selectable. Redirect stale saved values before any local runtime work starts.
   useEffect(() => {
     if (provider === 'webllm' || provider === 'free') {
-      setProvider('anthropic');
+      setProvider(PUBLIC_SCION_PROVIDER_ID);
       return;
     }
     if (provider !== 'webllm') {
@@ -419,7 +435,7 @@ export default function ModelConfig() {
 
     // Only auto-detect provider from key prefix when the KEY changed,
     // not when the PROVIDER changed (stale key would fight the switch)
-    if (!providerChanged) {
+    if (!providerChanged && !isKeylessProvider(provider)) {
       const detected = detectProvider(trimmedKey);
       if (detected && detected !== provider) {
         autoDetectedRef.current = true; // signal: don't clear apiKey
@@ -653,15 +669,15 @@ export default function ModelConfig() {
             <select
               id={providerId}
               value={provider}
-              onChange={(e) => setProvider(e.target.value)}
+              onChange={(e) => handleProviderChange(e.target.value)}
               className="input-glass w-full rounded-xl px-3.5 py-2.5 pr-9 text-sm text-slate-700 focus:outline-none appearance-none cursor-pointer"
             >
+              <option value="public">Scion</option>
               <option value="openai">OpenAI</option>
               <option value="anthropic">Anthropic</option>
               <option value="google">Google</option>
               <option value="deepseek">DeepSeek</option>
-              <option value="public">Scion Public</option>
-              <option value="local">Local</option>
+              <option value="local">Scion Local (advanced)</option>
             </select>
             <svg
               className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400"
@@ -678,7 +694,9 @@ export default function ModelConfig() {
         <div>
           {provider === 'local' ? (
             <>
-              <div className="block text-xs font-medium text-slate-500 mb-1.5 tracking-wide uppercase">API Key</div>
+              <div className="block text-xs font-medium text-slate-500 mb-1.5 tracking-wide uppercase">
+                Local server
+              </div>
               {apiStatus === 'connected' ? (
                 <div className="w-full rounded-squircle-xs bg-emerald-50/40 border border-emerald-200/50 px-3.5 py-2.5 text-sm text-emerald-700 flex items-center gap-2">
                   <svg
@@ -707,7 +725,7 @@ export default function ModelConfig() {
                     <span>
                       {apiStatus === 'error'
                         ? validationErrorLabel
-                        : 'Start the local model server when you want to use Local.'}
+                        : 'Advanced Scion runtime for your own local server.'}
                     </span>
                     <button
                       type="button"
@@ -725,7 +743,7 @@ export default function ModelConfig() {
             </>
           ) : provider === PUBLIC_SCION_PROVIDER_ID ? (
             <>
-              <div className="block text-xs font-medium text-slate-500 mb-1.5 tracking-wide uppercase">API Key</div>
+              <div className="block text-xs font-medium text-slate-500 mb-1.5 tracking-wide uppercase">Access</div>
               {apiStatus === 'connected' ? (
                 <div className="w-full rounded-squircle-xs bg-emerald-50/40 border border-emerald-200/50 px-3.5 py-2.5 text-sm text-emerald-700 flex items-center gap-2">
                   <svg
@@ -736,11 +754,11 @@ export default function ModelConfig() {
                   >
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
                   </svg>
-                  Free public beta
+                  No API key or local server needed
                 </div>
               ) : apiStatus === 'validating' ? (
                 <div className="w-full rounded-squircle-xs bg-slate-50/60 border border-slate-200/40 px-3.5 py-2.5 text-sm text-slate-500">
-                  Checking public endpoint…
+                  Preparing Scion…
                 </div>
               ) : apiStatus === 'error' ? (
                 <div className="w-full rounded-squircle-xs bg-red-50/40 border border-red-200/50 px-3.5 py-2.5 text-sm text-red-600">
@@ -748,7 +766,7 @@ export default function ModelConfig() {
                 </div>
               ) : (
                 <div className="w-full rounded-squircle-xs bg-slate-50/60 border border-slate-200/40 px-3.5 py-2.5 text-sm text-slate-500">
-                  No key needed
+                  No setup needed
                 </div>
               )}
             </>
@@ -926,7 +944,7 @@ export default function ModelConfig() {
                   : apiStatus === 'error'
                     ? validationErrorLabel
                     : provider === PUBLIC_SCION_PROVIDER_ID
-                      ? 'Checking public endpoint...'
+                      ? 'Scion ready'
                       : 'Enter API key first'}
             </div>
           )}
