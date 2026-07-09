@@ -60,6 +60,113 @@ describe('buildDeliverableDocxBlob', () => {
     expect(xml).not.toContain('Internal proof packet');
   });
 
+  it('renders nested custom deliverable values without raw JSON syntax', async () => {
+    const filePath = 'Custom/Lesson 01 - Evidence Reflection.docx';
+    const blob = await buildDeliverableDocxBlob(
+      'custom_reflection',
+      {
+        items: [
+          {
+            lessonTitle: 'Lesson 1',
+            title: 'Evidence Reflection',
+            responsePlan: {
+              prompts: ['Name the musical evidence.', 'Explain how it supports the notation choice.'],
+              review: { checks: ['accuracy', 'specific example'] },
+            },
+            checklist: [
+              {
+                item: 'Submit one annotated measure.',
+                evidenceTypes: ['staff placement', 'clef cue'],
+              },
+            ],
+          },
+        ],
+      },
+      'Music Theory Fundamentals',
+    );
+
+    const text = (await extractedDocxParagraphs(blob, filePath)).join('\n');
+
+    expect(text).toContain('Prompts: Name the musical evidence.; Explain how it supports the notation choice.');
+    expect(text).toContain('Evidence Types: staff placement; clef cue');
+    expect(text).not.toMatch(/"\s*:\s*\[/);
+  });
+
+  it('renders nested study-guide exam-prep values without raw JSON syntax', async () => {
+    const filePath = 'Study Guides/Lesson 01 - Staff and Clefs - Study Guides.docx';
+    const blob = await buildDeliverableDocxBlob(
+      'studyGuides',
+      {
+        guides: [
+          {
+            lessonTitle: 'Lesson 1: Staff and Clefs',
+            overview: 'Use staff structure and clefs to place notes accurately.',
+            examPrep: {
+              keyTopicsToKnow: [
+                {
+                  topic: 'Staff placement',
+                  checks: ['line or space', 'clef context'],
+                },
+              ],
+              commonErrors: [
+                {
+                  error: 'Reading a note without checking the clef.',
+                  fixSteps: ['identify the clef', 'count from the reference note'],
+                },
+              ],
+              reviewStrategy: {
+                steps: ['name the clef', 'mark the line or space', 'say the pitch aloud'],
+              },
+            },
+          },
+        ],
+      },
+      'Music Theory Fundamentals',
+    );
+
+    const text = (await extractedDocxParagraphs(blob, filePath)).join('\n');
+
+    expect(text).toContain('Topic: Staff placement');
+    expect(text).toContain('Checks: line or space; clef context');
+    expect(text).toContain('Steps: name the clef; mark the line or space; say the pitch aloud');
+    expect(text).not.toMatch(/"\s*:\s*\[/);
+  });
+
+  it('renders nested syllabus schedule values without raw JSON syntax', async () => {
+    const filePath = 'Syllabus/Music Theory Fundamentals - Syllabus.docx';
+    const blob = await buildDeliverableDocxBlob(
+      'syllabus',
+      {
+        syllabus: {
+          courseTitle: 'Music Theory Fundamentals',
+          requiredTexts: [
+            {
+              title: 'Open notation packet',
+              note: { sections: ['staff', 'clefs'] },
+            },
+          ],
+          weeklySchedule: [
+            {
+              week: 'Lesson 1',
+              topic: 'Staff and clefs',
+              coreIdeas: ['staff structure', 'clef context'],
+              readings: [{ title: 'Notation primer', sections: ['lines', 'spaces'] }],
+              assignments: [{ title: 'Listening and Notation Exercises', tasks: ['identify', 'notate'] }],
+            },
+          ],
+        },
+      },
+      'Music Theory Fundamentals',
+    );
+
+    const text = (await extractedDocxParagraphs(blob, filePath)).join('\n');
+
+    expect(text).toContain('Sections: staff; clefs');
+    expect(text).toContain('Title: Notation primer');
+    expect(text).toContain('Tasks: identify; notate');
+    expect(text).not.toMatch(/"\s*:\s*\[/);
+  });
+
   it('renders lesson-plan grouping as student-facing class format text', async () => {
     const blob = await buildDeliverableDocxBlob(
       'lessonPlans',

@@ -461,7 +461,7 @@ export default function Landing({
     if (provider === 'anthropic') return `Anthropic · ${modelName || modelId || 'Claude'}`;
     if (provider === 'google') return `Google · ${modelName || modelId || 'Gemini'}`;
     if (provider === 'deepseek') return `DeepSeek · ${modelName || modelId || 'V3'}`;
-    if (provider === 'local') return `Local · ${modelName || modelId || 'Scion-1'}`;
+    if (provider === 'local') return `Local · ${modelName || modelId || 'Scion-1.2'}`;
     return modelName || modelId || provider || 'AI Model';
   })();
 

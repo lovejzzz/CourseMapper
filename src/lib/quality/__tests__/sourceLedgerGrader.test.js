@@ -1437,4 +1437,42 @@ describe('source-ledger quality checks', () => {
     const evidence = citationFindings.map((finding) => finding.evidence || '').join(' ');
     expect(evidence).toMatch(/Independent politician|Lewis acids and bases/);
   });
+
+  it('accepts source-finder music encyclopedia citations when rendered with lesson topic context', async () => {
+    const result = await grade({
+      fileProvider: createMemoryFileProvider({
+        'PACKAGE_MANIFEST.json': JSON.stringify({
+          courseName: 'Music Theory Fundamentals',
+          lessonScope: 'all',
+          requestedFeatures: ['lessonPlans'],
+          readiness: { status: 'ready', blockers: 0, warnings: 0, checkedSections: null },
+          files: [
+            { path: 'Lesson Plans/Lesson 02 - Pitch Notation - Lesson Plan.txt', feature: 'lessonPlans' },
+            { path: 'Lesson Plans/Lesson 04 - Scales and Keys - Lesson Plan.txt', feature: 'lessonPlans' },
+          ],
+        }),
+        'Lesson Plans/Lesson 02 - Pitch Notation - Lesson Plan.txt': [
+          'Lesson 2: Pitch Notation',
+          'Materials',
+          'For Pitch Notation: Wikipedia contributors. Musical note. Wikipedia: https://en.wikipedia.org/wiki/Musical_note (CC BY-SA 4.0)',
+        ].join('\n'),
+        'Lesson Plans/Lesson 04 - Scales and Keys - Lesson Plan.txt': [
+          'Lesson 4: Scales and Keys',
+          'Materials',
+          'For Scales and Keys: Wikipedia contributors. Pentatonic scale. Wikipedia: https://en.wikipedia.org/wiki/Pentatonic_scale (CC BY-SA 4.0)',
+          'Instructor Action: Return criterion-level feedback that points to the clearest en.wikipedia.org use and one targeted key-signature improvement.',
+        ].join('\n'),
+      }),
+      course: { title: 'Music Theory Fundamentals', featureIds: ['lessonPlans'] },
+    });
+
+    const citationFindings = result.findings.filter((finding) => finding.dimension === 'citations');
+    expect(citationFindings).not.toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          detail: 'citation shares zero vocabulary with the course discipline (possible off-topic reading)',
+        }),
+      ]),
+    );
+  });
 });

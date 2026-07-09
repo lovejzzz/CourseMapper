@@ -1506,13 +1506,17 @@ export default function useDeliverables({
             }
 
             const enrichedLessonCount = Object.keys(lessonContent).length;
+            const authoredLessonCount = Object.keys(nativeAuthored).length;
+            const coverageMissingLessonNumbers = allLessonIndices
+              .filter((lessonIdx) => !lessonContent[lessonIdOf(lessonIdx)] && !nativeAuthored[lessonIdOf(lessonIdx)])
+              .map((lessonIdx) => lessonIdx + 1);
             if (enrichedLessonCount === 0 && Object.keys(nativeAuthored).length === 0) {
               appendLog('⚠ Native Pass B produced no usable payloads', 'warn');
               stageDecisions.modelStage = 'failed: no usable Pass B payloads';
               return genomeOnlyEnrichment();
             }
             appendLog(
-              `✓ Native Pass B authored ${Object.keys(nativeAuthored).length} lesson(s) of outcomes + activities onto the skeleton (${enrichedLessonCount} lesson kernel${enrichedLessonCount === 1 ? '' : 's'} total)`,
+              `✓ Native Pass B authored ${authoredLessonCount} lesson(s); ${enrichedLessonCount} kernel${enrichedLessonCount === 1 ? '' : 's'}`,
               'done',
             );
             abortMapRef.current.delete(abortKey);
@@ -1531,7 +1535,10 @@ export default function useDeliverables({
               coverage: {
                 requestedLessons: allLessonIndices.length,
                 enrichedLessons: enrichedLessonCount,
-                missingLessons: missingLessonNumbers,
+                missingLessons: coverageMissingLessonNumbers,
+                kernelLessons: enrichedLessonCount,
+                kernelMissingLessons: missingLessonNumbers,
+                authoredLessons: authoredLessonCount,
               },
               ...(genomeTelemetry ? { genomeTelemetry } : {}),
               ...(genomeLinkPowers ? { genomeLinkPowers } : {}),
@@ -2056,15 +2063,27 @@ export default function useDeliverables({
         // missing lesson numbers) so partial enrichment reads as
         // "ran (12/14 — lessons 13, 14 fell back to template)" everywhere
         // (digest pipeline line, PACKAGE_MANIFEST, finalizer warning).
+        const enrichmentCoverage = blueprintEnrichment?.coverage || null;
         const enrichmentOutcome = {
           modelStage: blueprintEnrichment?.stageDecisions?.modelStage || 'none',
-          enrichedLessons: blueprintEnrichment?.lessonContent
-            ? Object.keys(blueprintEnrichment.lessonContent).length
-            : 0,
-          ...(blueprintEnrichment?.coverage
+          enrichedLessons: Number.isFinite(Number(enrichmentCoverage?.enrichedLessons))
+            ? Number(enrichmentCoverage.enrichedLessons)
+            : blueprintEnrichment?.lessonContent
+              ? Object.keys(blueprintEnrichment.lessonContent).length
+              : 0,
+          ...(enrichmentCoverage
             ? {
-                requestedLessons: blueprintEnrichment.coverage.requestedLessons,
-                missingLessons: blueprintEnrichment.coverage.missingLessons,
+                requestedLessons: enrichmentCoverage.requestedLessons,
+                missingLessons: enrichmentCoverage.missingLessons,
+                ...(Number.isFinite(Number(enrichmentCoverage.kernelLessons))
+                  ? { kernelLessons: Number(enrichmentCoverage.kernelLessons) }
+                  : {}),
+                ...(Array.isArray(enrichmentCoverage.kernelMissingLessons)
+                  ? { kernelMissingLessons: enrichmentCoverage.kernelMissingLessons }
+                  : {}),
+                ...(Number.isFinite(Number(enrichmentCoverage.authoredLessons))
+                  ? { authoredLessons: Number(enrichmentCoverage.authoredLessons) }
+                  : {}),
               }
             : {}),
         };

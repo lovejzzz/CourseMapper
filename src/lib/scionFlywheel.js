@@ -1,8 +1,9 @@
 // src/lib/scionFlywheel.js — the house-model flywheel hook (V2.1 D4).
-// Local generations bank training signal ON-DEVICE: pass events (verified
-// keys, regenerated items with their rejected originals, polish outcomes)
-// POST to the local server, which appends them to the ORPO corpus directory.
-// Nothing leaves the machine — the server is localhost by construction.
+// Local generations can bank training signal ON-DEVICE: pass events
+// (verified keys, regenerated items with their rejected originals, polish
+// outcomes) POST to the local server, which appends them to the Scion eval
+// ledger. This is opt-in because full examples are storage, even though
+// nothing leaves the machine.
 // Fire-and-forget: the flywheel must never slow or fail a generation.
 import { getLocalEndpoint } from './localProvider';
 import { scionFlywheelEnabled } from './scionContracts';

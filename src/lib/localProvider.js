@@ -8,12 +8,14 @@
 // SCION (adopted 2026-07-07): the house model's name. In horticulture, the
 // scion is the cultivated cutting grafted onto wild rootstock — Gemma is the
 // rootstock; the Trellis harness and the house adapters are the scion. The
-// first trained cut ships as Scion-1 (lab config name: E2B-MAX V2.1).
+// current cut ships as Scion-1.2: Scion-1.1's compiler-native pass promotion
+// plus an adaptive local fast path for semester-sized courses.
 
 export const LOCAL_PROVIDER_ID = 'local';
 export const DEFAULT_LOCAL_ENDPOINT = 'http://127.0.0.1:8799';
-export const LOCAL_MODEL_ID = 'scion-1';
-export const LOCAL_MODEL_NAME = 'Scion-1';
+export const SCION_RELEASE = '1.2';
+export const LOCAL_MODEL_ID = 'scion-1.2';
+export const LOCAL_MODEL_NAME = 'Scion-1.2';
 
 export function getLocalEndpoint() {
   try {

@@ -16891,6 +16891,10 @@ function compileStudyGuides(blueprint) {
       const studyArtifact = specificity.artifact;
       const lessonSourceCue = safeLessonEvidenceCue(lesson, lens);
       const keyTerms = studyGuideTermsForLesson(lesson);
+      const kernelScenarioMaterials = stripTerminalPunctuation(
+        cleanText(lesson.enrichment?.kernel?.scenario?.materials),
+      );
+      const kernelFactCheck = stripTerminalPunctuation(cleanText(lesson.enrichment?.kernel?.facts?.[1]));
       const dataScienceEvidenceCue =
         'validation metrics, model-performance evidence, data-quality checks, threshold tradeoffs, and fairness or limitation evidence';
       const enrichedMisconceptions = (lesson.enrichment?.keyTerms || [])
@@ -17102,13 +17106,18 @@ function compileStudyGuides(blueprint) {
           // v0.15.187 atom routing: when the kernel names the actual material
           // students analyze, the first practice move works on THAT material
           // and rehearses a real authored fact — not a generic note format.
-          ...(cleanText(lesson.enrichment?.kernel?.scenario?.materials)
+          ...(kernelScenarioMaterials
             ? [
-                `Work directly with ${stripTerminalPunctuation(cleanText(lesson.enrichment.kernel.scenario.materials))}: mark the detail that best supports the ${primaryConcept} claim, the detail that complicates it, and the decision each one points to.${
-                  lesson.enrichment?.kernel?.facts?.[1]
-                    ? ` Check your reading against this: ${stripTerminalPunctuation(lesson.enrichment.kernel.facts[1])}.`
-                    : ''
-                }`,
+                `${rotatedLessonTemplate(
+                  [
+                    `Work directly with ${kernelScenarioMaterials}: mark the detail that best supports the ${primaryConcept} claim, the detail that complicates it, and the decision each one points to.`,
+                    `Use ${kernelScenarioMaterials} as the evidence packet: name the strongest ${primaryConcept} detail, one complication, and the decision each detail supports.`,
+                    `Annotate ${kernelScenarioMaterials} for ${primaryConcept}: circle the clearest support, box the counter-detail, and write the decision each one changes.`,
+                    `Read ${kernelScenarioMaterials} twice: first for the ${primaryConcept} evidence, then for the detail that would revise the decision.`,
+                  ],
+                  lesson,
+                  2,
+                )}${kernelFactCheck ? ` Check your reading against this: ${kernelFactCheck}.` : ''}`,
               ]
             : []),
           ...(isDataScience
@@ -20783,16 +20792,43 @@ function buildDiscussionFollowUps(lesson, phrase) {
   return [
     `What evidence from ${lesson.title} most strongly supports your position on ${concept}?`,
     positions.length >= 2
-      ? `A classmate will argue: “${positions[1]}.” What evidence would you need to answer them — or to concede — before revising ${artifact}?`
+      ? rotatedLessonTemplate(
+          [
+            `A classmate will argue: “${positions[1]}.” What evidence would you need to answer them — or to concede — before revising ${artifact}?`,
+            `A classmate will argue: “${positions[1]}.” Name the evidence that would make that challenge stronger, then state what would make you revise ${artifact}.`,
+            `A classmate will argue: “${positions[1]}.” Which part can you answer now, which part still needs proof, and what would trigger a ${artifact} revision?`,
+            `A classmate will argue: “${positions[1]}.” What observation would make their position fair, and how would that change ${artifact}?`,
+          ],
+          lesson,
+          1,
+        )
       : lessonVariant(lesson, [
           `Which alternative reading of the same evidence about ${concept} would challenge your claim, and why might another student prefer it for ${artifact}?`,
           `What source detail could weaken your ${concept} interpretation, and how would that change the next ${artifact} move?`,
           `Which peer claim would force you to qualify your evidence about ${concept} before revising ${artifact}?`,
           `Where could another student reasonably read the evidence differently, and what would that mean for ${artifact}?`,
         ]),
-    `If the ${concept} evidence changed, what part of ${artifact} would you revise first?`,
+    rotatedLessonTemplate(
+      [
+        `If the ${concept} evidence changed, what part of ${artifact} would you revise first?`,
+        `Which line of ${artifact} depends most on the current ${concept} evidence, and how would you adjust it if the evidence shifted?`,
+        `If a new ${concept} example contradicted your draft, where would ${artifact} need the first revision?`,
+        `What part of ${artifact} is most vulnerable to a change in ${concept} evidence, and what revision would follow?`,
+      ],
+      lesson,
+      2,
+    ),
     tension
-      ? `The live tension: ${tension}. Which side does your evidence actually support, and what finding would change your mind?`
+      ? rotatedLessonTemplate(
+          [
+            `The live tension: ${tension}. Which side does your evidence actually support, and what finding would change your mind?`,
+            `The live tension: ${tension}. Decide which claim is stronger today, then name the evidence that would overturn that decision.`,
+            `The live tension: ${tension}. Which side is better supported by this lesson's evidence, and what observation would change your conclusion?`,
+            `The live tension: ${tension}. What does your evidence settle, what remains uncertain, and what would make you switch sides?`,
+          ],
+          lesson,
+          3,
+        )
       : lessonVariant(lesson, [
           `Which limit, risk, or ethical concern should change how you frame ${artifact}?`,
           `Which assumption in your ${artifact} reasoning needs the clearest evidence check before you revise?`,
@@ -20813,7 +20849,16 @@ function buildDiscussionFacilitationTips(lesson, protocol) {
   const concept = safeLessonPrimaryConcept(lesson);
   const artifact = safeLessonArtifact(lesson);
   return {
-    opening: `Launch with two minutes of silent note-making on which ${concept} evidence source seems strongest for ${artifact}, then name the protocol: ${protocol.participationPattern}.`,
+    opening: rotatedLessonTemplate(
+      [
+        `Launch with two minutes of silent note-making on which ${concept} evidence source seems strongest for ${artifact}, then name the protocol: ${protocol.participationPattern}.`,
+        `Start with a private evidence rank: students choose the ${concept} source they trust most for ${artifact}, then enter ${protocol.participationPattern}.`,
+        `Open by having students mark one ${concept} source detail that could change ${artifact}; use that note to begin ${protocol.participationPattern}.`,
+        `Give students two minutes to choose a defensible ${concept} evidence move for ${artifact}, then move into ${protocol.participationPattern}.`,
+      ],
+      lesson,
+      1,
+    ),
     ifStalls: lessonVariant(lesson, [
       `Ask students to compare the strongest and weakest evidence choices for ${artifact}, or switch to a quick pair exchange before reopening the ${format.toLowerCase()}.`,
       `If momentum drops, have pairs mark one strong and one weak evidence move in ${artifact}, then reopen the ${format.toLowerCase()} from that contrast.`,
@@ -22623,8 +22668,26 @@ function buildLessonPlanOutline(blueprint, lesson, { depth = 'flat' } = {}) {
       // the reading can still do today's work. The recap is the reading's
       // content, compressed — not a replacement for it.
       catchUpPlan: kernelFact
-        ? `Open with a two-minute recap for students who missed the reading: state “${stripTerminalPunctuation(kernelFact)}” and one concrete example before the model begins, so no one works today's task cold.`
-        : `Open with a two-minute recap of the reading's central idea about ${concept} for students who missed the reading, so no one works today's task cold.`,
+        ? rotatedLessonTemplate(
+            [
+              `Open with a two-minute recap for students who missed the reading: state “${stripTerminalPunctuation(kernelFact)}” and one concrete example before the model begins, so no one works today's task cold.`,
+              `Begin with a short access recap for students who missed the reading: restate “${stripTerminalPunctuation(kernelFact)},” show one quick example, then ask students to use it in the model.`,
+              `Use the first two minutes to rebuild the reading anchor for students who missed the reading — “${stripTerminalPunctuation(kernelFact)}” — before they apply it to today's example.`,
+              `Start by giving students who missed the reading the core evidence: “${stripTerminalPunctuation(kernelFact)}.” Then connect it to one visible ${concept} example.`,
+            ],
+            lesson,
+            2,
+          )
+        : rotatedLessonTemplate(
+            [
+              `Open with a two-minute recap of the reading's central idea about ${concept} for students who missed the reading, so no one works today's task cold.`,
+              `Begin with a short access recap for students who missed the reading: name the reading's central ${concept} idea, then show how it appears in the first example.`,
+              `Use the first two minutes to rebuild the reading anchor for students who missed the reading before they apply ${concept} to today's model.`,
+              `Start by giving students who missed the reading the core ${concept} evidence, then connect it to one visible example.`,
+            ],
+            lesson,
+            2,
+          ),
       instructorRole: `Model thinking aloud and annotate the exemplar for ${concept}.`,
       grouping: lessonVariant(lesson, [
         'Instructor model with guided notes',

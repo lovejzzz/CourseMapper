@@ -252,7 +252,7 @@ describe('shard-key display names (4.8)', () => {
     const { citation, url, license } = graph.resources[0];
     expect(citation).toContain('OpenStax astronomy 2e §2.1');
     expect(citation).toContain('CC BY 4.0');
-    expect(url).toBe('https://openstax.org/books/astronomy-2e');
+    expect(url).toBe('https://openstax.org/books/astronomy-2e#section-2.1');
     expect(license).toBe('CC BY 4.0');
   });
 });

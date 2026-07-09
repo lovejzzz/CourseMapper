@@ -24,6 +24,9 @@ const MODEL_DISPLAY_NAMES = {
   // in crucibleRound.mjs for why these exact ids).
   'claude-haiku-4-5': 'Claude Haiku 4.5',
   'gemini-2.5-flash-lite': 'Gemini 2.5 Flash Lite',
+  'scion-1': 'Scion-1',
+  'scion-1.1': 'Scion-1.1',
+  'scion-1.2': 'Scion-1.2',
 };
 
 export function modelDisplayName(modelId) {
@@ -528,6 +531,11 @@ export async function runCourseInBrowser({
   page.on('pageerror', (error) => {
     appendConsoleLine(`${new Date().toISOString()} [pageerror] ${redactSecrets(error.message)}`);
   });
+  page.on('response', (response) => {
+    const statusCode = response.status();
+    if (statusCode < 400) return;
+    appendConsoleLine(`${new Date().toISOString()} [response] HTTP ${statusCode} ${redactSecrets(response.url())}`);
+  });
 
   let phase = 'starting';
   let zipPath = null;
@@ -608,9 +616,11 @@ export async function runCourseInBrowser({
 
     phase = 'generating-workspace';
     // Generation can take 5+ minutes; bounded by the overall budget. On-device
-    // LLM retry ladders run ~2min/call — shim rounds get 3× step caps so the
-    // app's own recovery path can finish instead of the driver aborting it.
-    const stepCap = llmShimUrl ? (cap) => remaining(cap ? cap * 3 : cap) : remaining;
+    // LLM retry ladders run ~2min/call — local Scion and shim rounds get 3×
+    // step caps so the app's own recovery/finalizer path can finish instead
+    // of the driver aborting while the readiness panel is intentionally hidden.
+    const slowLocalModel = provider === 'local' || Boolean(llmShimUrl);
+    const stepCap = slowLocalModel ? (cap) => remaining(cap ? cap * 3 : cap) : remaining;
     await page.getByTestId('workspace-shell').waitFor({ timeout: stepCap(600_000) });
 
     phase = 'finalizing-package';

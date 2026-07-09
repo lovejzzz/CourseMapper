@@ -14,6 +14,7 @@ import {
 import { buildProviderTextRequest } from '../src/lib/modelRequestBuilders';
 import { estimateUsageCost } from '../src/lib/apiUsageCost';
 import { createBaseModelCapabilities } from '../src/lib/modelCapabilities';
+import { normalizeStoredModelId, normalizeStoredModelName } from '../src/contexts/AIConfigContext';
 
 describe('local provider — the house model surface', () => {
   it('ships a static model option with decode-time schema support', () => {
@@ -59,6 +60,35 @@ describe('local provider — the house model surface', () => {
       usage: { prompt_tokens: 100000, completion_tokens: 100000 },
     });
     expect(cost.costUsd).toBe(0);
+  });
+
+  it('migrates stale Scion-1 local model storage to Scion-1.2', () => {
+    expect(normalizeStoredModelId('local', '')).toBe(LOCAL_MODEL_ID);
+    expect(normalizeStoredModelId('local', 'scion-1')).toBe(LOCAL_MODEL_ID);
+    expect(normalizeStoredModelId('local', 'scion-1.1')).toBe(LOCAL_MODEL_ID);
+    expect(normalizeStoredModelName('local', 'Scion-1', LOCAL_MODEL_ID)).toBe(LOCAL_MODEL_NAME);
+    expect(normalizeStoredModelName('local', 'Scion-1.1', LOCAL_MODEL_ID)).toBe(LOCAL_MODEL_NAME);
+    expect(normalizeStoredModelId('openai', 'gpt-4o-mini')).toBe('gpt-4o-mini');
+  });
+
+  it('guards the Scion-1.2 browser gauntlet against stale local shim metadata', () => {
+    const source = fs.readFileSync('scripts/lib/scionGauntlet.mjs', 'utf8');
+    expect(source).toContain('SCION_MODEL_MISMATCH');
+    expect(source).toContain('requires ${expectedModel}');
+  });
+
+  it('gives local Scion browser runs the slow on-device timeout budget', () => {
+    const crucible = fs.readFileSync('scripts/crucible.mjs', 'utf8');
+    const browser = fs.readFileSync('scripts/lib/crucibleBrowser.mjs', 'utf8');
+    expect(crucible).toContain("provider === 'local' || llmShimUrl");
+    expect(browser).toContain("provider === 'local' || Boolean(llmShimUrl)");
+  });
+
+  it('serializes Scion shim generations behind the streaming heartbeat', () => {
+    const shim = fs.readFileSync('scripts/crucible/e2bOpenAIShim.mjs', 'utf8');
+    expect(shim).toContain('generationTail');
+    expect(shim).toContain('enqueueGeneration');
+    expect(shim).toContain("res.write(': keepalive");
   });
 
   it('capability profile enables json_schema (llguidance enforces at decode time)', () => {

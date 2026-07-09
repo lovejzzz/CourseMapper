@@ -1,6 +1,6 @@
 {
   "name": "course-mapper",
-  "version": "0.16.1",
+  "version": "0.16.2",
   "type": "module",
   "description": "AI-powered course syllabus to course map generator",
   "scripts": {
@@ -50,6 +50,11 @@
     "audit:v0858:red-team": "node scripts/v0858RedTeamAudit.mjs",
     "audit:v0858:sweep": "node scripts/v085QualitySweep.mjs --release-label v0.8.58 --count 34 --output-dir verification-output/v0.8.58-export-torture --no-progress",
     "local-model": "node scripts/crucible/e2bOpenAIShim.mjs",
+    "scion:gauntlet": "node scripts/scionGauntlet.mjs --run --courses scion12 --provider local --concurrency 1",
+    "scion:gauntlet:smoke": "node scripts/scionGauntlet.mjs --run --courses music-theory --provider local --concurrency 1",
+    "scion:gauntlet:report": "node scripts/scionGauntlet.mjs --latest --courses scion12 --provider local",
+    "scion:adapter-gauntlet": "node scripts/scionAdapterGauntlet.mjs",
+    "scion:ledger": "node scripts/scionLedger.mjs",
     "crucible": "node scripts/crucible.mjs --courses all",
     "crucible:smoke": "node scripts/crucible.mjs --courses smoke",
     "crucible:dry": "node scripts/crucible.mjs --dry-run",

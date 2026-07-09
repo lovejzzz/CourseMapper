@@ -346,6 +346,73 @@ describe('source finder mini-shard', () => {
     expect(titles).not.toContain('Lewis acids and bases in organic synthesis');
   }, 15000);
 
+  it('keeps music-theory encyclopedia sources without letting homonym bycatch through', async () => {
+    const graph = createEmptyCourseGraph({ courseName: 'Music Theory Fundamentals' });
+    graph.sessions = [
+      {
+        id: 's2',
+        number: 2,
+        title: 'Lesson 2: Pitch Notation',
+        sections: [{ topic: '2.1: pitch notation' }],
+      },
+      {
+        id: 's4',
+        number: 4,
+        title: 'Lesson 4: Scales and Keys',
+        sections: [{ topic: '4.1: scales and keys' }],
+      },
+    ];
+    graph.concepts = [
+      { id: 'c2', term: 'pitch notation' },
+      { id: 'c4', term: 'scales and keys' },
+    ];
+    graph.edges.teaches = [
+      { from: 's2', to: 'c2' },
+      { from: 's4', to: 'c4' },
+    ];
+
+    const miniShard = await findCourseSources(graph, {
+      storage: memoryStorage(),
+      maxTopics: 2,
+      limitPerTopic: 2,
+      minUsefulSources: 1,
+      providers: {
+        searchScholarlyReadings: vi.fn(async () => []),
+        searchCrossrefWorks: vi.fn(async () => []),
+        searchBookMetadata: vi.fn(async () => []),
+        searchWikipediaPages: vi.fn(async (query) => {
+          if (/pitch/i.test(query)) {
+            return [
+              source('wikipedia', 'Pitch (sports field)', {
+                abstract: 'A pitch is a field for football and cricket match play.',
+              }),
+              source('wikipedia', 'Musical note', {
+                abstract:
+                  'A musical note is a symbol for pitch and duration on a staff, using clef placement and rhythm.',
+              }),
+            ];
+          }
+          return [
+            source('wikipedia', 'Scale (map)', {
+              abstract: 'A map scale compares distance on a map with geographic distance in the world.',
+            }),
+            source('wikipedia', 'Pentatonic scale', {
+              abstract: 'A five-note musical collection used in melody, harmony, key centers, and tonal practice.',
+            }),
+          ];
+        }),
+      },
+    });
+
+    const titles = miniShard.topics.flatMap((topic) => topic.sources.map((item) => item.title));
+    expect(titles).toEqual(['Musical note', 'Pentatonic scale']);
+
+    attachSourceFinderResources(graph, miniShard);
+    const map = renderCourseMapFromGraph(graph);
+    expect(map.lessons[0].sections[0].supportingResources).toContain('For Pitch Notation:');
+    expect(map.lessons[1].sections[0].supportingResources).toContain('For Scales and Keys:');
+  }, 15000);
+
   it('does not cache topics whose providers were rate-limited (degraded results)', async () => {
     const storage = memoryStorage();
     const rateLimitedResult = () => {
@@ -647,6 +714,9 @@ describe('source finder mini-shard', () => {
     expect(graph.sessions[0].sections[0].resourceRefs).toContain(graph.resources[0].id);
 
     const map = renderCourseMapFromGraph(graph);
+    expect(map.lessons[0].sections[0].supportingResources).toContain(
+      'For Motion in one dimension: displacement velocity acceleration:',
+    );
     expect(map.lessons[0].sections[0].supportingResources).toContain('Open study of displacement velocity');
   });
 

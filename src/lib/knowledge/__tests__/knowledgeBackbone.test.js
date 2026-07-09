@@ -180,7 +180,7 @@ describe('reading-list engine (P2)', () => {
     expect(graph.resources).toHaveLength(2);
     expect(graph.resources[0].origin).toBe('genome');
     expect(graph.resources[0].license).toBe('CC BY 4.0');
-    expect(graph.resources[0].url).toBe('https://openstax.org/books/astronomy-2e');
+    expect(graph.resources[0].url).toBe('https://openstax.org/books/astronomy-2e#section-2.1');
     expect(graph.sessions[0].sections[0].resourceRefs).toEqual([graph.resources[0].id]);
     // Idempotent: a second pass adds nothing.
     expect(attachGenomeResources(graph)).toBe(0);

@@ -18,6 +18,13 @@ const PORT = Number(process.argv[2] ?? 8799);
 const BODY_LOG = process.env.SHIM_BODY_LOG || '';
 let calls = 0;
 let failures = 0;
+let generationTail = Promise.resolve();
+
+async function enqueueGeneration(work) {
+  const run = generationTail.then(work, work);
+  generationTail = run.catch(() => {});
+  return run;
+}
 
 function readBody(req) {
   return new Promise((resolve) => {
@@ -29,14 +36,16 @@ function readBody(req) {
 
 async function generate({ system, user, maxTokens, schema, jsonMode, temperature }) {
   calls += 1;
-  // task:'items' is the g4 venv route. timeoutMs is queue-INCLUSIVE (serve_g4
-  // is serial; the compiler batches parallel calls) — 20min so a deep queue
-  // is slow, not a fake failure.
-  const text = await sGenerate(
-    { system, user, task: 'items', maxTokens, schema, jsonMode, temperature },
-    { timeoutMs: 1_200_000 },
-  );
-  return String(text ?? '');
+  return enqueueGeneration(async () => {
+    // task:'items' is the g4 venv route. timeoutMs is queue-INCLUSIVE
+    // (serve_g4 is serial; the compiler batches parallel calls) — 20min so a
+    // deep queue is slow, not a fake failure.
+    const text = await sGenerate(
+      { system, user, task: 'items', maxTokens, schema, jsonMode, temperature },
+      { timeoutMs: 1_200_000 },
+    );
+    return String(text ?? '');
+  });
 }
 
 // V2: pull the app's ACTUAL output contract out of either API shape so
@@ -880,8 +889,8 @@ function requestedMaxTokens(body) {
 // CORS-open (localhost origins), GET /v1/models for the Connected probe, and
 // real SSE with keep-alive heartbeats for stream:true — long on-device
 // generations must not trip the app's 120s stream-inactivity timeout.
-const LOCAL_MODEL_ID = process.env.LOCAL_MODEL_ID || 'scion-1';
-const LOCAL_MODEL_NAME = process.env.LOCAL_MODEL_NAME || 'Scion-1';
+const LOCAL_MODEL_ID = process.env.LOCAL_MODEL_ID || 'scion-1.2';
+const LOCAL_MODEL_NAME = process.env.LOCAL_MODEL_NAME || 'Scion-1.2';
 
 function corsHeaders() {
   return {

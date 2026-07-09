@@ -1855,8 +1855,11 @@ function isScholarlyCitationLine(line) {
   // shipped "Wikipedia contributors. Independent politician." as a lesson
   // reading and scored citations 100/100 because these lines carry no
   // author-head/year/DOI and were INVISIBLE to the relevance gate. A line that
-  // names a Wikipedia/LoC/Internet Archive source is a checkable citation.
-  if (/\bwikipedia contributors\b|\bwikipedia\.org\b|\barchive\.org\b|\bloc\.gov\b/i.test(text)) return true;
+  // names a Wikipedia/LoC/Internet Archive source is a checkable citation, but
+  // a teaching-action sentence that merely mentions "en.wikipedia.org use" is
+  // not a citation.
+  if (/\bwikipedia contributors\b/i.test(text)) return true;
+  if (/\b(?:wikipedia|library of congress|internet archive):\s*https?:\/\//i.test(text)) return true;
   // Raw shard-key leaks are a hygiene-only citation signal (checked separately).
   if (/:reference\s*§/i.test(text)) return true;
   return false;

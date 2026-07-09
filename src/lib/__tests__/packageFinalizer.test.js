@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { buildCourseBlueprint, compileBlueprintDeliverable } from '../courseBlueprintCompiler';
 import {
   applyQualityToFinalizerResult,
+  buildEnrichmentCoverageIssues,
   evaluateStrictPackageReadiness,
   runDeterministicPackageFinalizer,
 } from '../packageFinalizer';
@@ -169,6 +170,28 @@ describe('packageFinalizer', () => {
         }),
       ]),
     );
+  });
+
+  it('warns instead of blocking when native Pass B authored every lesson but one optional kernel fell back', () => {
+    const issues = buildEnrichmentCoverageIssues({
+      modelStage: 'ran',
+      enrichedLessons: 6,
+      requestedLessons: 7,
+      missingLessons: [],
+      kernelLessons: 6,
+      kernelMissingLessons: [1],
+      authoredLessons: 7,
+      authoredMissingLessons: [],
+    });
+
+    expect(issues).toEqual([
+      expect.objectContaining({
+        source: 'enrichmentCoverage',
+        severity: 'warning',
+        message:
+          'Kernel enrichment covered 6/7 lessons; lesson 1 kept compiler fallback, but native Pass B authored 7/7 lessons. Review optional enrichment polish before publishing.',
+      }),
+    ]);
   });
 
   it('can include classroom-readiness warnings in strict export readiness', () => {

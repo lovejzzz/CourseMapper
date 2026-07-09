@@ -1,0 +1,113 @@
+{
+  "version": "0.16.2",
+  "date": "July 8, 2026",
+  "title": "Scion-1.2: faster local courses, same strict gauntlet",
+  "status": "verified-current",
+  "proofSummary": {
+    "local": [
+      "npx vitest run tests/local-provider.test.js tests/scion-compiler.test.js tests/crucible-round-logic.test.js tests/scion11-gauntlet.test.js",
+      "node scripts/scionGauntlet.mjs --run --courses scion12 --provider local --concurrency 1 --label scion-1.2-full-gauntlet-r1",
+      "npm run audit:release-history",
+      "npm run build && npm run bundle:check"
+    ],
+    "ciFast": {
+      "status": "pending-push",
+      "note": "Fast verification runs on the pushed v0.16.2 commit; the run URL is recorded once green."
+    },
+    "ciDeep": {
+      "status": "local-only",
+      "note": "The Scion-1.2 release bar is the local four-course Scion gauntlet plus focused unit, release-history, build, and bundle checks in this worktree. Deep proof continues on its normal schedule."
+    },
+    "deploy": {
+      "status": "pending-push",
+      "note": "Pages build and deploy run after the pushed v0.16.2 commit."
+    },
+    "liveProvider": {
+      "status": "local-only",
+      "note": "This release changes the Local provider path and is proven through the local Scion server/gauntlet, not through a paid cloud provider."
+    },
+    "manualHuman": {
+      "status": "not-applicable",
+      "note": "No external instructor review or professor-adoption claim is made for Scion-1.2."
+    }
+  },
+  "claims": [
+    {
+      "id": "v0162-scion-fast-native-plan",
+      "status": "verified-current",
+      "changelogHighlightIndex": 0,
+      "summary": "Scion-1.2 skips native Pass A skeleton generation for Local semester-sized courses (10+ lessons) and starts the proven prose course-map path immediately, while keeping native skeleton enabled for shorter local courses. The full local gauntlet passed at 99 average overall, 95.25 average texture, 0 P0/P1, $0, and 2242 seconds total, 26% faster than the 3044-second Scion-1.1 baseline.",
+      "anchors": [
+        "src/lib/courseIRAuthoringRuntime.js",
+        "tests/scion-compiler.test.js",
+        "scripts/lib/scionGauntlet.mjs"
+      ],
+      "proofCommands": [
+        "npx vitest run tests/scion-compiler.test.js",
+        "node scripts/scionGauntlet.mjs --run --courses scion12 --provider local --concurrency 1 --label scion-1.2-full-gauntlet-r1"
+      ],
+      "proofScopes": ["unit", "browser-live"]
+    },
+    {
+      "id": "v0162-scion-selective-polish",
+      "status": "verified-current",
+      "changelogHighlightIndex": 1,
+      "summary": "Scion quality passes still blind-solve quiz keys, regenerate confirmed bad items, gate off-topic questions, and polish prose. Quiz-explanation polish skips only explanations that already meet the minimum length, causal-language, and keyed-option checks.",
+      "anchors": ["src/lib/scionPasses.js", "tests/scion-compiler.test.js"],
+      "proofCommands": ["npx vitest run tests/scion-compiler.test.js"],
+      "proofScopes": ["unit"]
+    },
+    {
+      "id": "v0162-scion-gauntlet-harness",
+      "status": "verified-current",
+      "changelogHighlightIndex": 2,
+      "summary": "The Scion gauntlet now defaults to Scion-1.2, accepts the scion12 course alias, rejects stale local servers that do not advertise scion-1.2, writes reports under verification-output/scion-1.2-gauntlet, and records HTTP response failures in browser logs.",
+      "anchors": [
+        "scripts/lib/scionGauntlet.mjs",
+        "scripts/scionGauntlet.mjs",
+        "scripts/lib/crucibleBrowser.mjs",
+        "tests/scion11-gauntlet.test.js",
+        "tests/local-provider.test.js"
+      ],
+      "proofCommands": [
+        "npx vitest run tests/scion11-gauntlet.test.js tests/local-provider.test.js",
+        "node scripts/scionGauntlet.mjs --latest --courses scion12 --provider local"
+      ],
+      "proofScopes": ["unit", "browser-live"]
+    },
+    {
+      "id": "v0162-local-provider-migration",
+      "status": "verified-current",
+      "changelogHighlightIndex": 3,
+      "summary": "Local provider defaults, shim metadata, browser display names, stale storage migration, package scripts, and README instructions now point to Scion-1.2 while preserving keyless $0 generation.",
+      "anchors": [
+        "src/lib/localProvider.js",
+        "src/contexts/AIConfigContext.jsx",
+        "scripts/crucible/e2bOpenAIShim.mjs",
+        "scripts/lib/crucibleRound.mjs",
+        "README.md",
+        "tests/local-provider.test.js",
+        "tests/crucible-round-logic.test.js"
+      ],
+      "proofCommands": ["npx vitest run tests/local-provider.test.js tests/crucible-round-logic.test.js"],
+      "proofScopes": ["unit", "doc"]
+    },
+    {
+      "id": "v0162-release-surfaces",
+      "status": "verified-current",
+      "changelogHighlightIndex": 4,
+      "summary": "The app version, package metadata, release manifest, latest-release surface, README, release contract, and Scion-1.2 roadmap all agree on v0.16.2.",
+      "anchors": [
+        "src/lib/appVersion.js",
+        "package.json",
+        "package-lock.json",
+        "src/lib/releaseManifest.js",
+        "release-contracts/v0.16.2.json",
+        "docs/ROADMAP_SCION_1_2.md",
+        "tests/v0155-release-truth-ledger.test.js"
+      ],
+      "proofCommands": ["npx vitest run tests/v0155-release-truth-ledger.test.js", "npm run audit:release-history"],
+      "proofScopes": ["unit", "doc", "static-audit"]
+    }
+  ]
+}

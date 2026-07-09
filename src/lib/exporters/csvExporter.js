@@ -11,6 +11,31 @@ function esc(val) {
   return str.includes(',') || str.includes('\n') || str.includes('"') ? `"${str}"` : str;
 }
 
+function humanizeExportKey(key) {
+  return String(key || '')
+    .replace(/([a-z])([A-Z])/g, '$1 $2')
+    .replace(/[_-]+/g, ' ')
+    .replace(/^./, (s) => s.toUpperCase());
+}
+
+function formatNestedExportValue(value) {
+  if (value == null || value === '') return '';
+  if (typeof value === 'string') return value;
+  if (typeof value === 'number' || typeof value === 'boolean') return String(value);
+  if (Array.isArray(value)) return value.map(formatNestedExportValue).filter(Boolean).join('; ');
+  if (typeof value === 'object') {
+    return Object.entries(value)
+      .filter(
+        ([nestedKey, nestedValue]) =>
+          !isInternalExportMetadataKey(nestedKey) && nestedValue != null && nestedValue !== '',
+      )
+      .map(([nestedKey, nestedValue]) => `${humanizeExportKey(nestedKey)}: ${formatNestedExportValue(nestedValue)}`)
+      .filter(Boolean)
+      .join(' · ');
+  }
+  return String(value);
+}
+
 function formatSourceArtifacts(artifacts) {
   if (!Array.isArray(artifacts) || artifacts.length === 0) return '';
   return artifacts
@@ -359,24 +384,10 @@ export function deliverableToCsvRows(featureId, data) {
           if (v == null) return '';
           if (typeof v === 'string') return v;
           if (Array.isArray(v)) {
-            return v
-              .map((x) => {
-                if (typeof x === 'string') return x;
-                if (x && typeof x === 'object') {
-                  return JSON.stringify(
-                    Object.fromEntries(
-                      Object.entries(x).filter(([nestedKey]) => !isInternalExportMetadataKey(nestedKey)),
-                    ),
-                  );
-                }
-                return JSON.stringify(x);
-              })
-              .join('; ');
+            return v.map(formatNestedExportValue).filter(Boolean).join('; ');
           }
           if (typeof v === 'object') {
-            return JSON.stringify(
-              Object.fromEntries(Object.entries(v).filter(([nestedKey]) => !isInternalExportMetadataKey(nestedKey))),
-            );
+            return formatNestedExportValue(v);
           }
           return String(v);
         }),

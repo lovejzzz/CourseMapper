@@ -545,6 +545,12 @@ function normalizeSourceIdentity(value = '') {
     .toLowerCase();
 }
 
+function normalizeSourceUrlIdentity(value = '') {
+  const raw = cleanSourceText(value, 600);
+  if (/#section-/i.test(raw)) return raw.replace(/\/+$/g, '').toLowerCase();
+  return normalizeSourceIdentity(raw);
+}
+
 function normalizeSourceFingerprintText(value = '', maxLength = 600) {
   let text = cleanSourceText(value, maxLength);
   for (let index = 0; index < 3; index += 1) {
@@ -591,7 +597,7 @@ function sourceLedgerWorkFingerprintKeys(row = {}) {
 function sourceLedgerIdentityKeys(row = {}) {
   const strongKeys = [
     row.doi ? `doi:${normalizeSourceIdentity(row.doi).replace(/^doi:/, '')}` : '',
-    row.url ? `url:${normalizeSourceIdentity(row.url)}` : '',
+    row.url ? `url:${normalizeSourceUrlIdentity(row.url)}` : '',
   ].filter(Boolean);
   const workKeys = sourceLedgerWorkFingerprintKeys(row);
   if (strongKeys.length > 0 || workKeys.length > 0) return [...strongKeys, ...workKeys];

@@ -1,6 +1,7 @@
 // src/contexts/AIConfigContext.jsx — AI provider/model configuration state
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { getSecure, setSecure, removeSecure } from '../lib/secureStorage';
+import { LOCAL_MODEL_ID, LOCAL_MODEL_NAME, LOCAL_PROVIDER_ID } from '../lib/localProvider';
 import { createBaseModelCapabilities, createGenerationPlan } from '../lib/modelCapabilities';
 
 const AIConfigContext = createContext(null);
@@ -10,6 +11,20 @@ const PROVIDER_API_KEY_STORAGE_PREFIX = 'coursemapper-apikey-provider:';
 function normalizeStoredProvider(provider) {
   if (provider === 'webllm' || provider === 'free') return 'anthropic';
   return provider || 'anthropic';
+}
+
+export function normalizeStoredModelId(provider, modelId) {
+  if (provider !== LOCAL_PROVIDER_ID) return modelId || '';
+  const value = String(modelId || '').trim();
+  if (!value || value === 'scion-1' || value === 'scion-1.1') return LOCAL_MODEL_ID;
+  return value;
+}
+
+export function normalizeStoredModelName(provider, modelName, modelId) {
+  if (provider !== LOCAL_PROVIDER_ID) return modelName || '';
+  const value = String(modelName || '').trim();
+  if (!value || value === 'Scion-1' || value === 'Scion-1.1' || modelId === LOCAL_MODEL_ID) return LOCAL_MODEL_NAME;
+  return value;
 }
 
 export function getProviderApiKeyStorageKey(provider) {
@@ -49,8 +64,13 @@ export function AIConfigProvider({ children }) {
   const [modelName, setModelName] = useState(() => {
     try {
       const storedProvider = localStorage.getItem('coursemapper-provider');
+      const normalizedProvider = normalizeStoredProvider(storedProvider);
       if (storedProvider === 'webllm' || storedProvider === 'free') return '';
-      return localStorage.getItem('coursemapper-modelname') || '';
+      return normalizeStoredModelName(
+        normalizedProvider,
+        localStorage.getItem('coursemapper-modelname'),
+        localStorage.getItem('coursemapper-modelid'),
+      );
     } catch {
       return '';
     }
@@ -58,8 +78,9 @@ export function AIConfigProvider({ children }) {
   const [modelId, setModelId] = useState(() => {
     try {
       const storedProvider = localStorage.getItem('coursemapper-provider');
+      const normalizedProvider = normalizeStoredProvider(storedProvider);
       if (storedProvider === 'webllm' || storedProvider === 'free') return '';
-      return localStorage.getItem('coursemapper-modelid') || '';
+      return normalizeStoredModelId(normalizedProvider, localStorage.getItem('coursemapper-modelid'));
     } catch {
       return '';
     }
@@ -96,6 +117,13 @@ export function AIConfigProvider({ children }) {
       localStorage.setItem('coursemapper-provider', provider);
     } catch {}
   }, [provider]);
+
+  useEffect(() => {
+    const nextModelId = normalizeStoredModelId(provider, modelId);
+    const nextModelName = normalizeStoredModelName(provider, modelName, nextModelId);
+    if (nextModelId !== modelId) setModelId(nextModelId);
+    if (nextModelName !== modelName) setModelName(nextModelName);
+  }, [provider, modelId, modelName]);
 
   useEffect(() => {
     try {

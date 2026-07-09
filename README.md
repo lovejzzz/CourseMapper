@@ -3,7 +3,7 @@
 AI-powered instructional design platform running on **CurriculumOS** — a deterministic course compiler linked to a **Curriculum Genome** of source-anchored, citable concept knowledge — with an embedded teaching assistant agent. Upload your syllabus and generate a structured Course Map, lesson plans, slide decks, rubrics, quizzes, assignments, discussion prompts, study guides, and a polished syllabus — all pedagogically aligned, validated, and fully editable. Then use the AI agent to revise, validate, research, and visualize your curriculum through natural conversation.
 
 **Live:** [https://edutool.dev](https://edutool.dev)
-**Current release:** v0.16.1
+**Current release:** v0.16.2
 
 ---
 
@@ -30,7 +30,7 @@ Course Mapper is a **purpose-built instructional design tool**, not a general ch
 **Scion** is Course Mapper's own model: it runs on your machine, needs no API key, and compiles courses for **$0**. Pick **Provider: Local** on the landing page, start the server, and generate — nothing leaves your device.
 
 ```bash
-npm run local-model   # serves Scion-1 at http://127.0.0.1:8799
+npm run local-model   # serves Scion-1.2 at http://127.0.0.1:8799
 ```
 
 **What it is.** The name is horticultural: a _scion_ is the cultivated cutting grafted onto wild rootstock. The rootstock is Google's open-weights **Gemma 4 E2B** (Apache-2.0, ~4B parameters, Apple Silicon via mlx-vlm). The scion — the part we cultivated — is the harness grafted onto it:
@@ -41,11 +41,17 @@ npm run local-model   # serves Scion-1 at http://127.0.0.1:8799
 
 **Honest quality band** (measured, pooled multi-seat judge panels on identical courses): structural grade **A at parity** with paid models; prose and quiz-item fluency currently **ties our paid baseline at best** — pooled panels place it just below gpt-5.4-mini. Study guides already judge _above_ the paid baseline. The gap is the target of an ongoing preference-training flywheel (every generation banks verified training pairs), so Scion improves release over release while its price never moves from $0.
 
-**Trade-offs**: slower than cloud APIs (a full 7-lesson package takes ~7–20 minutes on an M-series Mac), no tool-calling (the chat agent needs a cloud provider), and it requires the local server running. Privacy is absolute: prompts, syllabi, and generated courses never leave the machine.
+**Scion-1.2 speed plan**: the compiler now skips the measured large-course native-skeleton fallback tax for Local semester-sized courses, while keeping native skeleton authoring for compact courses where it can still help. Quiz-key verification, topic gating, and prose polish remain enabled; quiz-explanation polish skips only explanations that already meet the teaching-quality floor. The verified four-course Scion-1.2 gauntlet passed at 99 average overall, 95.25 average texture, zero P0/P1 findings, $0 cost, and 2242s total generation time — 26% faster than the Scion-1.1 baseline. The gauntlet is the speed/quality source of truth:
+
+```bash
+npm run scion:gauntlet
+```
+
+**Trade-offs**: slower than cloud APIs (Scion is local and privacy-first, not cloud-fast), no tool-calling (the chat agent needs a cloud provider), and it requires the local server running. Privacy is absolute: prompts, syllabi, and generated courses never leave the machine.
 
 ---
 
-## Current Pipeline (v0.16.1)
+## Current Pipeline (v0.16.2)
 
 The product ribbon and the code share one pipeline vocabulary: **Map -> Enrich -> Compile -> Verify -> Grade**. `src/lib/pipelineMachine.js` is the phase authority; UI surfaces should render from that machine instead of re-deriving state from raw generation/finalizer flags.
 
