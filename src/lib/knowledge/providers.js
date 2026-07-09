@@ -15,7 +15,8 @@
  *    deterministic compile never depends on the network;
  *  - results are cached in localStorage keyed by provider + query + ISO
  *    week, so a course regenerated in the same week makes zero new calls;
- *  - OpenAlex keeps the polite-pool mailto.
+ *  - OpenAlex requests stay bounded because anonymous access has a small
+ *    daily allowance; mailto no longer changes the quota pool.
  */
 
 const CACHE_PREFIX = 'cm-knowledge:';
@@ -88,12 +89,11 @@ function cacheSet(key, value) {
 }
 
 // v0.16.1: the Linear Algebra field run fired 14+ parallel OpenAlex GETs
-// (readings attach + cache warm + source finder) and got 429'd out of the
-// polite pool — the ONLY anchored, discipline-gated provider went dark and
-// ungated fallbacks filled the slots. Two defenses: a per-host concurrency
-// gate, and a bounded retry that honors Retry-After. A request that is still
-// rate-limited after retries throws an error tagged rateLimited so callers
-// can tell "provider throttled us" apart from "provider had nothing".
+// (readings attach + cache warm + source finder) and exhausted anonymous
+// quota. Keep a per-host concurrency gate far below OpenAlex's per-second
+// ceiling; with that guard in place, treat a 429 as exhausted daily allowance
+// instead of retrying it into more delay and console noise. Transient 5xx
+// responses remain bounded.
 const HOST_CONCURRENCY = 4;
 const hostSlots = new Map(); // host -> { active: number, waiters: Array<() => void> }
 
@@ -155,9 +155,13 @@ async function cachedFetchJson(cacheKey, url, { signal, timeoutMs = 8000, rateLi
       if (signal) signal.addEventListener('abort', () => controller.abort(), { once: true });
       try {
         const res = await fetch(url, { signal: controller.signal });
-        if (res.status === 429 || res.status === 503) {
+        if (res.status === 429) {
           const error = new Error(`${res.status}`);
           error.rateLimited = true;
+          throw error;
+        }
+        if (res.status >= 500) {
+          const error = new Error(`${res.status}`);
           lastError = error;
           if (attempt < rateLimitRetries) {
             const retryAfterSeconds = Number(res.headers?.get?.('retry-after'));

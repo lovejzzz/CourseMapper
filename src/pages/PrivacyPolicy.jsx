@@ -109,7 +109,7 @@ export default function PrivacyPolicy() {
                 </a>
               </li>
               <li>
-                <strong>Scion Public</strong> — an experimental keyless route backed by Pollinations' anonymous text
+                <strong>Scion Draft</strong> — an experimental keyless route backed by Pollinations' anonymous text
                 endpoint. It does not require your API key, but your prompt is still sent to that third-party endpoint.
               </li>
             </ul>

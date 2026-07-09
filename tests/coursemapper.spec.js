@@ -150,7 +150,7 @@ test.describe('Landing Page', () => {
   test('provider picker offers public Scion and cloud providers', async ({ page }) => {
     const options = await page.getByLabel('Provider').locator('option').allTextContents();
 
-    expect(options).toEqual(['Scion', 'OpenAI', 'Anthropic', 'Google', 'DeepSeek']);
+    expect(options).toEqual(['Scion Draft (free)', 'OpenAI', 'Anthropic', 'Google', 'DeepSeek']);
     expect(options.join(' ')).not.toContain('Local');
   });
 

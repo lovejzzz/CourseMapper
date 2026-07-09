@@ -90,7 +90,7 @@ describe('knowledge providers (P0)', () => {
     expect(works[0].license).toBe('cc-by');
     expect(works[0].attribution).toContain('OpenAlex');
     expect(works[0].abstract).toContain('Testing improves retention');
-    // Polite pool + retraction filter are part of the contract.
+    // Contact attribution + retraction filter are part of the contract.
     const url = fetch.mock.calls[0][0];
     expect(url).toContain('mailto=');
     expect(url).toContain('is_retracted:false');
@@ -123,6 +123,19 @@ describe('knowledge providers (P0)', () => {
     vi.stubGlobal('fetch', fetchMock);
     await searchScholarlyReadings('kepler laws');
     await searchScholarlyReadings('kepler laws');
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+  });
+
+  it('does not retry OpenAlex 429 responses that indicate exhausted anonymous quota', async () => {
+    const fetchMock = vi.fn().mockResolvedValue({
+      ok: false,
+      status: 429,
+      headers: { get: () => '1' },
+    });
+    vi.stubGlobal('fetch', fetchMock);
+    const works = await searchScholarlyReadings('quota exhausted topic');
+    expect(works).toEqual([]);
+    expect(works.rateLimited).toBe(true);
     expect(fetchMock).toHaveBeenCalledTimes(1);
   });
 

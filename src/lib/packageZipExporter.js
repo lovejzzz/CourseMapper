@@ -1643,6 +1643,17 @@ export async function buildCourseMaterialsZip({
     courseGraph: sourceManifestGraph,
     courseMap,
   });
+  // Persist the run digest's wider pipeline disclosure in the ZIP. The
+  // normalized package state stays authoritative for overlapping fields, but
+  // native-authoring fallbacks and grounding metrics must survive without the
+  // browser console so an offline regrade can reach the same verdict.
+  const disclosedPipelineState =
+    qualityOptions.digest?.pipeline || finalPipelineState
+      ? {
+          ...(qualityOptions.digest?.pipeline || {}),
+          ...(finalPipelineState || {}),
+        }
+      : null;
   const sourceReportMarkdown = buildSourceReportMarkdown({
     courseName: safeCourseName,
     sourceLedger: sourceLedgerBundle,
@@ -1680,7 +1691,7 @@ export async function buildCourseMaterialsZip({
     files,
     requestedFeatureIds,
     requiredAssets,
-    pipelineState: finalPipelineState,
+    pipelineState: disclosedPipelineState,
     assessments: manifestAssessments?.entries || null,
     assessmentSummary: manifestAssessments?.summary || null,
     readings: buildManifestReadings(readingsRegistry),

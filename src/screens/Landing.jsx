@@ -468,7 +468,7 @@ export default function Landing({
     if (provider === 'anthropic') return `Anthropic · ${modelName || modelId || 'Claude'}`;
     if (provider === 'google') return `Google · ${modelName || modelId || 'Gemini'}`;
     if (provider === 'deepseek') return `DeepSeek · ${modelName || modelId || 'V3'}`;
-    if (provider === PUBLIC_SCION_PROVIDER_ID) return `Scion · ${modelName || modelId || 'public'}`;
+    if (provider === PUBLIC_SCION_PROVIDER_ID) return `Scion Draft · ${modelName || modelId || 'public'}`;
     if (provider === 'local') return `Scion Local · ${modelName || modelId || 'Scion-1'}`;
     return modelName || modelId || provider || 'AI Model';
   })();

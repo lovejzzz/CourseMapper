@@ -315,6 +315,19 @@ export async function runNativeAuthoring(input = [], output = []) {
     setUserEdits,
   ] = output;
 
+  // Anonymous Scion only implements the compact course-map contract. Sending
+  // the native CourseIR/skeleton contracts through its prompt wrapper returns
+  // lesson JSON, guarantees a schema rejection, and wastes a provider call.
+  if (provider === 'public') {
+    recordApiCallEvent?.({
+      type: 'pipelineDecision',
+      stage: 'courseIRAuthoring',
+      label: 'Native authoring plan',
+      detail: 'skipped: Scion Draft uses the compact course-map contract; native skeleton authoring is unavailable',
+    });
+    return null;
+  }
+
   if (expectedLessonCount) {
     const courseIRMap = await runDirectCourseIRGenerationFlow(
       [
