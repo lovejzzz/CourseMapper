@@ -147,10 +147,10 @@ test.describe('Landing Page', () => {
     await expect(page.locator('text=AI Configuration')).toBeVisible({ timeout: 5000 });
   });
 
-  test('provider picker no longer offers free local AI', async ({ page }) => {
+  test('provider picker offers cloud providers and optional local server', async ({ page }) => {
     const options = await page.getByLabel('Provider').locator('option').allTextContents();
 
-    expect(options).toEqual(['OpenAI', 'Anthropic', 'Google', 'DeepSeek']);
+    expect(options).toEqual(['OpenAI', 'Anthropic', 'Google', 'DeepSeek', 'Local']);
     expect(options.join(' ')).not.toContain('Local AI');
   });
 

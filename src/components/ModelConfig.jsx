@@ -220,12 +220,18 @@ export default function ModelConfig() {
   const modelIdSelectId = 'ai-model-select';
   const [capabilityStatus, setCapabilityStatus] = useState('idle');
   const [validationMessage, setValidationMessage] = useState('');
+  const [localProbeAttempt, setLocalProbeAttempt] = useState(0);
   // v0.12.1: user-facing subject-matter enrichment control (auto/on/off).
   const [enrichmentPref, setEnrichmentPref] = useState(readEnrichmentPreference);
   const handleEnrichmentPref = (mode) => {
     setEnrichmentPref(mode);
     saveEnrichmentPreference(mode);
   };
+  const triggerLocalServerCheck = useCallback(() => {
+    setValidationMessage('');
+    setApiStatus('validating');
+    setLocalProbeAttempt((attempt) => attempt + 1);
+  }, [setApiStatus]);
   const latestConfigRef = useRef({ apiStatus, availableModels, modelId });
 
   useEffect(() => {
@@ -389,6 +395,8 @@ export default function ModelConfig() {
       (cachedState.apiStatus === 'connected' || cachedState.apiStatus === 'no_funds') &&
       Boolean(cachedState.modelId) &&
       cachedState.availableModels.some((model) => model.id === cachedState.modelId);
+    const isRestoredLocalProvider =
+      provider === 'local' && !providerChanged && !apiKeyChanged && localProbeAttempt === 0;
 
     if (!hasSelectableCachedModel) {
       setApiStatus('idle');
@@ -399,6 +407,7 @@ export default function ModelConfig() {
 
     // The local provider is keyless — validation is the /v1/models liveness
     // probe inside the same debounce flow.
+    if (isRestoredLocalProvider) return;
     if (provider !== 'local' && trimmedKey.length < 10) return;
 
     // Only auto-detect provider from key prefix when the KEY changed,
@@ -463,7 +472,19 @@ export default function ModelConfig() {
         }
       } catch (error) {
         if (cancelled) return;
-        setValidationMessage(isTimeoutError(error) ? 'Validation timed out' : error?.message || 'Could not validate');
+        const localUnavailable =
+          provider === 'local' &&
+          !isTimeoutError(error) &&
+          (/failed to fetch/i.test(error?.message || '') || error instanceof TypeError);
+        setValidationMessage(
+          isTimeoutError(error)
+            ? provider === 'local'
+              ? 'Local model server timed out'
+              : 'Validation timed out'
+            : localUnavailable
+              ? 'Local server unavailable'
+              : error?.message || 'Could not validate',
+        );
         setApiStatus('error');
       }
     }, 800);
@@ -486,6 +507,7 @@ export default function ModelConfig() {
     setProvider,
     applyBaseCapabilityProfile,
     detectCapabilitiesForModel,
+    localProbeAttempt,
   ]);
 
   function handleModelChange(e) {
@@ -591,7 +613,16 @@ export default function ModelConfig() {
             </svg>
           </a>
         )}
-        {apiStatus === 'error' && (
+        {apiStatus === 'error' && provider === 'local' && (
+          <span
+            title={validationErrorLabel}
+            className="ml-auto flex items-center gap-1.5 text-[10px] font-semibold text-amber-600 bg-amber-50/60 px-2.5 py-1 rounded-pill border border-amber-100/50"
+          >
+            <span className="inline-flex rounded-full h-2 w-2 bg-amber-500"></span>
+            <span className="max-w-[180px] truncate">Local offline</span>
+          </span>
+        )}
+        {apiStatus === 'error' && provider !== 'local' && (
           <span
             title={validationErrorLabel}
             className="ml-auto flex items-center gap-1.5 text-[10px] font-semibold text-red-500 bg-red-50/60 px-2.5 py-1 rounded-pill border border-red-100/50"
@@ -657,9 +688,28 @@ export default function ModelConfig() {
                   Checking local server…
                 </div>
               ) : (
-                <div className="w-full rounded-squircle-xs bg-amber-50/40 border border-amber-200/50 px-3.5 py-2.5 text-sm text-amber-700">
-                  Server not running — start it with{' '}
-                  <code className="font-mono text-[12px] bg-amber-100/60 px-1.5 py-0.5 rounded">
+                <div
+                  className={`w-full rounded-squircle-xs border px-3.5 py-2.5 text-sm ${
+                    apiStatus === 'error'
+                      ? 'bg-amber-50/40 border-amber-200/50 text-amber-700'
+                      : 'bg-slate-50/60 border-slate-200/40 text-slate-600'
+                  }`}
+                >
+                  <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                    <span>
+                      {apiStatus === 'error'
+                        ? validationErrorLabel
+                        : 'Start the local model server when you want to use Local.'}
+                    </span>
+                    <button
+                      type="button"
+                      onClick={triggerLocalServerCheck}
+                      className="inline-flex w-fit items-center justify-center rounded-pill border border-slate-200/80 bg-white/80 px-2.5 py-1 text-[11px] font-semibold text-slate-600 shadow-sm transition hover:border-slate-300 hover:text-slate-800"
+                    >
+                      Check server
+                    </button>
+                  </div>
+                  <code className="mt-2 inline-flex font-mono text-[12px] bg-amber-100/60 px-1.5 py-0.5 rounded text-amber-700">
                     npm run local-model
                   </code>
                 </div>
@@ -828,11 +878,17 @@ export default function ModelConfig() {
             </select>
           ) : (
             <div className="w-full rounded-squircle-xs bg-white/70 border border-slate-200/70 px-3.5 py-2.5 text-sm font-medium text-slate-600">
-              {apiStatus === 'validating'
-                ? 'Loading models...'
-                : apiStatus === 'error'
-                  ? validationErrorLabel
-                  : 'Enter API key first'}
+              {provider === 'local'
+                ? apiStatus === 'validating'
+                  ? 'Checking local server...'
+                  : apiStatus === 'error'
+                    ? validationErrorLabel
+                    : 'Check local server first'
+                : apiStatus === 'validating'
+                  ? 'Loading models...'
+                  : apiStatus === 'error'
+                    ? validationErrorLabel
+                    : 'Enter API key first'}
             </div>
           )}
         </div>
