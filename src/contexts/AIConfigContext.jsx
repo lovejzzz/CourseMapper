@@ -12,15 +12,6 @@ import {
 const AIConfigContext = createContext(null);
 const ACTIVE_API_KEY_STORAGE_KEY = 'coursemapper-apikey';
 const PROVIDER_API_KEY_STORAGE_PREFIX = 'coursemapper-apikey-provider:';
-export const LOCAL_PROVIDER_OPT_IN_STORAGE_KEY = 'coursemapper-local-provider-opt-in';
-
-function hasLocalProviderOptIn() {
-  try {
-    return localStorage.getItem(LOCAL_PROVIDER_OPT_IN_STORAGE_KEY) === 'true';
-  } catch {
-    return false;
-  }
-}
 
 function isKeylessProvider(provider) {
   return provider === 'local' || provider === PUBLIC_SCION_PROVIDER_ID;
@@ -28,7 +19,6 @@ function isKeylessProvider(provider) {
 
 function normalizeStoredProvider(provider) {
   if (provider === 'webllm' || provider === 'free') return PUBLIC_SCION_PROVIDER_ID;
-  if (provider === 'local' && !hasLocalProviderOptIn()) return PUBLIC_SCION_PROVIDER_ID;
   return provider || PUBLIC_SCION_PROVIDER_ID;
 }
 

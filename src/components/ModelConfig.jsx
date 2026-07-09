@@ -1,11 +1,6 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { fetchModelsFromProvider } from '../hooks/useStreamReader';
-import {
-  LOCAL_PROVIDER_OPT_IN_STORAGE_KEY,
-  getSavedApiKeyForProvider,
-  saveApiKeyForProvider,
-  useAIConfig,
-} from '../contexts/AIConfigContext';
+import { getSavedApiKeyForProvider, saveApiKeyForProvider, useAIConfig } from '../contexts/AIConfigContext';
 import { WEBLLM_MODELS } from '../lib/webllmConstants';
 import { getGoogleModelBaseUrl } from '../lib/googleProvider';
 import { recordPendingApiCallEvent } from '../lib/apiCallPendingEvents';
@@ -252,17 +247,6 @@ export default function ModelConfig() {
   const [webllmProgress, setWebllmProgress] = useState(null); // { text, progress }
   const [webllmError, setWebllmError] = useState(null);
   const webllmInitRef = useRef(false);
-
-  const handleProviderChange = useCallback(
-    (nextProvider) => {
-      try {
-        if (nextProvider === 'local') localStorage.setItem(LOCAL_PROVIDER_OPT_IN_STORAGE_KEY, 'true');
-        else if (nextProvider === PUBLIC_SCION_PROVIDER_ID) localStorage.removeItem(LOCAL_PROVIDER_OPT_IN_STORAGE_KEY);
-      } catch {}
-      setProvider(nextProvider);
-    },
-    [setProvider],
-  );
 
   // When provider changes, reset model state and restore that provider's trusted key.
   // Skip when provider hasn't actually changed (mount/remount/StrictMode).
@@ -669,7 +653,7 @@ export default function ModelConfig() {
             <select
               id={providerId}
               value={provider}
-              onChange={(e) => handleProviderChange(e.target.value)}
+              onChange={(e) => setProvider(e.target.value)}
               className="input-glass w-full rounded-xl px-3.5 py-2.5 pr-9 text-sm text-slate-700 focus:outline-none appearance-none cursor-pointer"
             >
               <option value="public">Scion</option>

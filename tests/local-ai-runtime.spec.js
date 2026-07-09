@@ -1,7 +1,7 @@
 import { expect, test } from '@playwright/test';
 
 test.describe('Provider picker', () => {
-  test('redirects stale local browser settings to keyless Scion', async ({ page }) => {
+  test('redirects stale browser-local WebLLM settings to keyless Scion', async ({ page }) => {
     await page.addInitScript(() => {
       localStorage.clear();
       sessionStorage.clear();
@@ -22,6 +22,19 @@ test.describe('Provider picker', () => {
     await expect(page.getByTestId('landing-setup-button')).toBeEnabled();
   });
 
+  test('restores the cloud provider the user chose last time', async ({ page }) => {
+    await page.addInitScript(() => {
+      localStorage.clear();
+      sessionStorage.clear();
+      localStorage.setItem('coursemapper-provider', 'google');
+    });
+
+    await page.goto('/');
+
+    await expect(page.getByLabel('Provider')).toHaveValue('google');
+    await expect(page.getByText('No API key or local server needed')).toHaveCount(0);
+  });
+
   test('does not probe a restored Local provider until the user checks the server', async ({ page }) => {
     let localProbeCount = 0;
     await page.route('http://127.0.0.1:8799/v1/models', async (route) => {
@@ -31,7 +44,6 @@ test.describe('Provider picker', () => {
     await page.addInitScript(() => {
       localStorage.clear();
       sessionStorage.clear();
-      localStorage.setItem('coursemapper-local-provider-opt-in', 'true');
       localStorage.setItem('coursemapper-provider', 'local');
       localStorage.setItem('coursemapper-modelid', 'scion-1');
       localStorage.setItem('coursemapper-modelname', 'Scion-1');
