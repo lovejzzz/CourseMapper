@@ -124,6 +124,8 @@ export function buildApiTraceSummary(event = {}, budget = {}, { verbose = false 
     approxInputTokens: Number.isFinite(event.approxInputTokens) ? event.approxInputTokens : undefined,
     outputChars: Number.isFinite(event.outputChars) ? event.outputChars : undefined,
     streamChunkCount: Number.isFinite(event.streamChunkCount) ? event.streamChunkCount : undefined,
+    finishReason: event.finishReason || '',
+    constrainedTier: event.constrainedTier || '',
     hasSchema: event.hasSchema,
     calls: getApiCallBudgetTotal(budget),
     counters: apiCounters(budget),

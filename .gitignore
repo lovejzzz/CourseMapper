@@ -23,6 +23,9 @@ trellis/tendril/.venv-g4/
 trellis/tendril/distill/s2-fused/
 trellis/tendril/distill/s2-onnx/
 trellis/tendril/distill/adapters-g4/
+trellis/tendril/distill/adapters-*/
 trellis/tendril/distill/data-g4/
+trellis/tendril/distill/data-g4-atoms/
 trellis/tendril/models/tendril-s2-web/
 trellis/tendril/distill/adapters-dpo/
+trellis/tendril/distill/**/*.safetensors

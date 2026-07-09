@@ -12,7 +12,7 @@ import {
   scionPassesEnabled,
   scionFlywheelEnabled,
 } from '../src/lib/scionContracts';
-import { applyScionKernelPasses } from '../src/lib/scionPasses';
+import { applyScionKernelPasses, summarizeScionPassEvents } from '../src/lib/scionPasses';
 import { getAdaptiveNativePassBBatchSize } from '../src/lib/adaptiveProviderBatching';
 import { shouldSkipLocalNativeSkeleton } from '../src/lib/courseIRAuthoringRuntime';
 import { buildProviderTextRequest } from '../src/lib/modelRequestBuilders';
@@ -135,10 +135,22 @@ describe('Scion-native compiler (V2.1 Workstream D)', () => {
         });
       }
       return JSON.stringify({
-        scenario: lesson.scenario,
-        discussionPrompt: lesson.discussionPrompt,
-        assignmentCore: lesson.assignmentCore,
-        studyGuide: lesson.studyGuide,
+        scenario: {
+          ...lesson.scenario,
+          su: 'A musician hears two notes a perfect fifth apart and names the interval by ear before checking the staff.',
+        },
+        discussionPrompt: {
+          ...lesson.discussionPrompt,
+          tn: 'Reasonable musicians can disagree about nature and nurture while still citing the interval evidence.',
+        },
+        assignmentCore: {
+          ...lesson.assignmentCore,
+          td: 'Students transcribe three intervals played in class, then defend each identification with one precise sentence.',
+        },
+        studyGuide: {
+          ...lesson.studyGuide,
+          rs: 'Practice interval recognition daily with a partner at the keyboard before the next quiz.',
+        },
       });
     };
     const raw = JSON.stringify({ lessons: [lesson] });
@@ -154,6 +166,7 @@ describe('Scion-native compiler (V2.1 Workstream D)', () => {
     expect(patched.mc[0].ex).toMatch(/3:2 ratio explains why/i);
     expect(events.some((event) => event.pass === 'mcExplanationPolish')).toBe(true);
     expect(events.some((event) => event.pass === 'polish')).toBe(true);
+    expect(summarizeScionPassEvents(events).accepted).toBeGreaterThan(0);
     expect(calls.filter((name) => name === 'blind_solve').length).toBe(2); // tie-break ran
   });
 
@@ -191,7 +204,10 @@ describe('Scion-native compiler (V2.1 Workstream D)', () => {
       calls.push(schemaProfile.name);
       if (schemaProfile.name === 'blind_solve') return JSON.stringify({ answers: [2] });
       return JSON.stringify({
-        scenario: lesson.scenario,
+        scenario: {
+          ...lesson.scenario,
+          su: 'A musician hears two notes a perfect fifth apart and names the interval by ear before checking the staff.',
+        },
         discussionPrompt: lesson.discussionPrompt,
         assignmentCore: lesson.assignmentCore,
         studyGuide: lesson.studyGuide,
@@ -206,18 +222,34 @@ describe('Scion-native compiler (V2.1 Workstream D)', () => {
     expect(events.some((event) => event.pass === 'polish')).toBe(true);
   });
 
-  it('D3/D4: gates default ON and honor the explicit opt-out', () => {
+  it('D3: quality telemetry ignores aggregate done markers after field-level counts', () => {
+    const summary = summarizeScionPassEvents([
+      { pass: 'polish', action: 'accepted', lessonId: 'lesson-1', field: 'scenario' },
+      { pass: 'polish', action: 'rejected', lessonId: 'lesson-1', field: 'studyGuide', reason: 'claim-loss' },
+      { pass: 'polish', action: 'done', lessonId: 'lesson-1', changed: 1 },
+    ]);
+
+    expect(summary).toMatchObject({
+      attempted: 2,
+      accepted: 1,
+      rejected: 1,
+      reasons: { 'claim-loss': 1 },
+    });
+    expect(summary.byPass.polish).toMatchObject({ attempted: 2, accepted: 1, rejected: 1 });
+  });
+
+  it('D3/D4: gates default ON, while full flywheel storage is explicit opt-in', () => {
     expect(isScionProvider('local')).toBe(true);
     expect(scionPassesEnabled()).toBe(true);
-    expect(scionFlywheelEnabled()).toBe(true);
+    expect(scionFlywheelEnabled()).toBe(false);
     const store = new Map([
       ['coursemapper-scion-passes', 'off'],
-      ['coursemapper-scion-flywheel', 'off'],
+      ['coursemapper-scion-flywheel', 'on'],
     ]);
     globalThis.localStorage = { getItem: (key) => store.get(key) ?? null };
     try {
       expect(scionPassesEnabled()).toBe(false);
-      expect(scionFlywheelEnabled()).toBe(false);
+      expect(scionFlywheelEnabled()).toBe(true);
     } finally {
       delete globalThis.localStorage;
     }

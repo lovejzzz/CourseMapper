@@ -117,6 +117,66 @@ describe('runDigest', () => {
     expect(text).toMatch(/cost:/);
   });
 
+  it('surfaces Scion quality-pass telemetry without storing examples', () => {
+    let budget = createApiCallBudget({ runId: 'run-scion-quality' });
+    budget = applyApiCallBudgetEvent(budget, {
+      type: 'scionPassTelemetry',
+      label: 'Scion pass telemetry',
+      detail: 'attempted 5, accepted 3, rejected 2 (identity-noop:1, claim-loss:1)',
+      scionQuality: {
+        attempted: 5,
+        accepted: 3,
+        rejected: 2,
+        skipped: 0,
+        fallbackUsed: 1,
+        reasons: { 'identity-noop': 1, 'claim-loss': 1 },
+        byPass: {
+          polish: {
+            attempted: 3,
+            accepted: 2,
+            rejected: 1,
+            skipped: 0,
+            fallbackUsed: 0,
+            reasons: { 'identity-noop': 1 },
+          },
+        },
+      },
+    });
+    budget = applyApiCallBudgetEvent(budget, {
+      type: 'scionPassTelemetry',
+      label: 'Scion pass telemetry',
+      detail: 'attempted 1, accepted 0, rejected 1 (finish-length:1)',
+      scionQuality: {
+        attempted: 1,
+        accepted: 0,
+        rejected: 1,
+        skipped: 0,
+        fallbackUsed: 1,
+        reasons: { 'finish-length': 1 },
+        byPass: {
+          mcExplanationPolish: {
+            attempted: 1,
+            accepted: 0,
+            rejected: 1,
+            skipped: 0,
+            fallbackUsed: 1,
+            reasons: { 'finish-length': 1 },
+          },
+        },
+      },
+    });
+
+    const digest = buildRunDigest({ budget, generation: { provider: 'local', lessonCount: 1 } });
+    expect(digest.scionQuality).toMatchObject({
+      attempted: 6,
+      accepted: 3,
+      rejected: 3,
+      fallbackUsed: 2,
+    });
+    expect(digest.scionQuality.reasons).toMatchObject({ 'identity-noop': 1, 'claim-loss': 1, 'finish-length': 1 });
+    expect(formatRunDigest(digest)).toContain('scion quality: 3/6 accepted, 3 rejected');
+  });
+
   it('counts generation-stage repair retries in the digest gate summary', () => {
     let budget = createApiCallBudget({ runId: 'run-repair-retry' });
     budget = applyApiCallBudgetEvent(budget, {

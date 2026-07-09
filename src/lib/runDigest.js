@@ -64,6 +64,25 @@ function buildReadinessChecks(finish = {}) {
   return [...blockerChecks, ...warningChecks].slice(0, 12);
 }
 
+function normalizeScionQuality(summary = null) {
+  if (!summary || typeof summary !== 'object') return null;
+  return {
+    attempted: Number(summary.attempted) || 0,
+    accepted: Number(summary.accepted) || 0,
+    rejected: Number(summary.rejected) || 0,
+    skipped: Number(summary.skipped) || 0,
+    fallbackUsed: Number(summary.fallbackUsed) || 0,
+    reasons: { ...(summary.reasons || {}) },
+    byPass: { ...(summary.byPass || {}) },
+  };
+}
+
+function formatReasonCounts(reasons = {}) {
+  return Object.entries(reasons || {})
+    .map(([reason, count]) => `${reason}:${count}`)
+    .join(', ');
+}
+
 /**
  * @param {object} args
  *  - budget: the api call budget (usageLedger, pipeline, counters, tokenUsage)
@@ -94,6 +113,7 @@ export function buildRunDigest({ budget = {}, exportVerification = null, finish 
       message: String(check.message || '').slice(0, 200),
     }));
   const models = [...new Set(ledger.map((row) => row.modelId).filter(Boolean))];
+  const scionQuality = normalizeScionQuality(budget.scionQuality);
 
   // v0.12.1 content-risk gate: a package whose deliverables were compiled
   // deterministically with NO enrichment contribution (no model stage, no
@@ -186,6 +206,7 @@ export function buildRunDigest({ budget = {}, exportVerification = null, finish 
       providerCalls: ledger.length,
     },
     pipeline: { ...(budget.pipeline || {}) },
+    scionQuality,
     compilerSavings: budget.compilerSavings || null,
     cost: {
       totalUsd: budget.tokenUsage?.costUsd ?? null,
@@ -273,6 +294,12 @@ export function formatRunDigest(digest) {
   if (Object.keys(digest.pipeline).length > 0) {
     lines.push('pipeline:');
     lines.push(...pipelineLines(digest.pipeline));
+  }
+  if (digest.scionQuality && digest.scionQuality.attempted + digest.scionQuality.skipped > 0) {
+    const reasons = formatReasonCounts(digest.scionQuality.reasons);
+    lines.push(
+      `  scion quality: ${digest.scionQuality.accepted}/${digest.scionQuality.attempted} accepted, ${digest.scionQuality.rejected} rejected${digest.scionQuality.skipped ? `, ${digest.scionQuality.skipped} skipped` : ''}${digest.scionQuality.fallbackUsed ? `, ${digest.scionQuality.fallbackUsed} fallback` : ''}${reasons ? ` (${reasons})` : ''}`,
+    );
   }
   if (digest.compilerSavings?.compiledFeatureCount) {
     lines.push(

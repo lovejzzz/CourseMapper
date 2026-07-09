@@ -317,12 +317,28 @@ export async function startLocalScionServer({
   model = SCION_MODEL_ID,
   logPath = path.join(SCION_GAUNTLET_ROOT, 'local-model.log'),
 } = {}) {
-  try {
-    const existing = await waitForLocalScionServer(endpoint, { timeoutMs: 1500, expectedModel: model });
-    return { started: false, endpoint, logPath, models: existing.modelIds, stop: async () => {} };
-  } catch (error) {
-    if (error?.code === 'SCION_MODEL_MISMATCH') throw error;
-    /* start a managed server below */
+  if (!adapter) {
+    try {
+      const existing = await waitForLocalScionServer(endpoint, { timeoutMs: 1500, expectedModel: model });
+      return { started: false, endpoint, logPath, models: existing.modelIds, stop: async () => {} };
+    } catch (error) {
+      if (error?.code === 'SCION_MODEL_MISMATCH') throw error;
+      /* start a managed server below */
+    }
+  } else {
+    try {
+      const existing = await fetchLocalScionModels(endpoint);
+      if (existing.modelIds.length > 0) {
+        const error = new Error(
+          `${endpoint} is already serving ${existing.modelIds.join(', ')}. Stop the existing local server before running an adapter gauntlet, or choose a free port.`,
+        );
+        error.code = 'SCION_ADAPTER_SERVER_CONFLICT';
+        throw error;
+      }
+    } catch (error) {
+      if (error?.code === 'SCION_ADAPTER_SERVER_CONFLICT') throw error;
+      /* no server responded; start a managed adapter server below */
+    }
   }
   await fs.mkdir(path.dirname(logPath), { recursive: true });
   await fs.writeFile(logPath, `# ${SCION_MODEL_NAME} local server\nstarted=${new Date().toISOString()}\n`);

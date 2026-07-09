@@ -7,7 +7,7 @@
 //   runScionPasses           — the D3 quality passes + D4 flywheel on the raw
 //                              batch JSON, returning the processed text
 import { kernelBatchSchemaProfile, scionPassesEnabled } from './scionContracts';
-import { applyScionKernelPasses } from './scionPasses';
+import { applyScionKernelPasses, formatScionPassSummary } from './scionPasses';
 import { postFlywheelEvents } from './scionFlywheel';
 
 /**
@@ -69,7 +69,11 @@ export async function runScionPasses({
         onApiCallEvent: recordEvent,
         signal,
       });
-      return passResult?.fullText || '';
+      return {
+        text: passResult?.fullText || '',
+        finishReason: passResult?.finishReason || passResult?.stopReason || '',
+        constrainedTier: passResult?.constrainedTier || passResult?.constrained || '',
+      };
     };
     const passOutcome = await applyScionKernelPasses(rawText, {
       promptLessons: prompt.lessons,
@@ -86,8 +90,16 @@ export async function runScionPasses({
         featureId: 'blueprintEnrichment',
         task: 'scionPass',
       });
-      postFlywheelEvents(passOutcome.events, { course: courseName, chunk: expectedLessonIds });
     }
+    recordEvent({
+      type: 'scionPassTelemetry',
+      label: 'Scion pass telemetry',
+      detail: formatScionPassSummary(passOutcome.telemetry),
+      featureId: 'blueprintEnrichment',
+      task: 'scionPass',
+      scionQuality: passOutcome.telemetry,
+    });
+    postFlywheelEvents(passOutcome.events, { course: courseName, chunk: expectedLessonIds });
     return passOutcome.text;
   }
 }

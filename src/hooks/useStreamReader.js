@@ -55,6 +55,15 @@ function estimateCharsAsTokens(...values) {
   return Math.round(values.reduce((sum, value) => sum + String(value || '').length, 0) / 4);
 }
 
+function extractFinishReason(provider, parsed) {
+  if (provider === 'google') return parsed?.candidates?.[0]?.finishReason || '';
+  return parsed?.choices?.[0]?.finish_reason || parsed?.response?.status || '';
+}
+
+function extractConstrainedTier(parsed) {
+  return parsed?.constrained || parsed?.response?.constrained || parsed?.choices?.[0]?.constrained || '';
+}
+
 /**
  * Shared SSE stream reader with auto-retry and exponential backoff.
  * Streams directly from the selected provider in the static BYOK build.
@@ -420,6 +429,8 @@ export default function useStreamReader() {
         let buffer = '';
         let chunkCount = 0;
         let reportedUsage = null;
+        let finishReason = '';
+        let constrainedTier = '';
 
         while (true) {
           armInactivityTimer();
@@ -443,6 +454,8 @@ export default function useStreamReader() {
               const parsed = JSON.parse(data);
               const chunkUsage = extractUsageFromProviderChunk(provider, parsed);
               if (chunkUsage) reportedUsage = mergeReportedUsage(reportedUsage, chunkUsage);
+              finishReason = extractFinishReason(provider, parsed) || finishReason;
+              constrainedTier = extractConstrainedTier(parsed) || constrainedTier;
               const text = parseChunk(parsed);
               if (text) {
                 fullText += text;
@@ -469,9 +482,11 @@ export default function useStreamReader() {
           maxRetries,
           outputChars: outputText.length,
           streamChunkCount: chunkCount,
+          ...(finishReason ? { finishReason } : {}),
+          ...(constrainedTier ? { constrainedTier } : {}),
         });
         recordUsage(reportedUsage, outputText, 'API usage');
-        return { fullText };
+        return { fullText, finishReason, constrainedTier };
       } catch (rawErr) {
         if (inactivityTimer) clearTimeout(inactivityTimer);
         let err = rawErr;

@@ -13,6 +13,8 @@
 //
 // All passes are best-effort: any failure ships the draft unchanged.
 
+import { acceptRewriteCandidate } from './quality/rewriteCandidateGate';
+
 const TOPIC_STOPWORDS = new Set([
   'lesson',
   'week',
@@ -32,6 +34,82 @@ const TOPIC_STOPWORDS = new Set([
   'using',
   'based',
 ]);
+
+const ACCEPTED_ACTIONS = new Set(['accepted', 'regenerated']);
+
+function eventCount(event) {
+  const count = Number(event?.count);
+  return Number.isFinite(count) && count > 0 ? Math.floor(count) : 1;
+}
+
+function recordRejected(events, pass, lessonId, reason, extra = {}) {
+  events.push({ pass, lessonId, action: 'rejected', reason, ...extra });
+}
+
+function recordAccepted(events, pass, lessonId, extra = {}) {
+  events.push({ pass, lessonId, action: 'accepted', ...extra });
+}
+
+async function generateText(generateJson, request, events, pass, lessonId) {
+  const result = await generateJson(request);
+  const finishReason = typeof result === 'object' && result ? result.finishReason || result.stopReason || '' : '';
+  if (/length/i.test(String(finishReason || ''))) {
+    recordRejected(events, pass, lessonId, 'finish-length', { finishReason });
+  }
+  if (typeof result === 'string') return result;
+  return result?.text || result?.fullText || '';
+}
+
+export function summarizeScionPassEvents(events = []) {
+  const summary = { attempted: 0, accepted: 0, rejected: 0, skipped: 0, fallbackUsed: 0, reasons: {}, byPass: {} };
+  const ensurePass = (pass) => {
+    const key = pass || 'scion';
+    if (!summary.byPass[key]) {
+      summary.byPass[key] = { attempted: 0, accepted: 0, rejected: 0, skipped: 0, fallbackUsed: 0, reasons: {} };
+    }
+    return summary.byPass[key];
+  };
+  for (const event of events || []) {
+    if (!event) continue;
+    const pass = ensurePass(event.pass);
+    const count = eventCount(event);
+    const action = event.action || '';
+    if (action === 'done') continue;
+    if (action === 'skipped') {
+      summary.skipped += count;
+      pass.skipped += count;
+      continue;
+    }
+    summary.attempted += count;
+    pass.attempted += count;
+    if (ACCEPTED_ACTIONS.has(action)) {
+      summary.accepted += count;
+      pass.accepted += count;
+      continue;
+    }
+    if (action === 'rejected') {
+      const reason = event.reason || 'rejected';
+      summary.rejected += count;
+      pass.rejected += count;
+      summary.reasons[reason] = (summary.reasons[reason] || 0) + count;
+      pass.reasons[reason] = (pass.reasons[reason] || 0) + count;
+      if (reason === 'schema-fallback' || reason === 'finish-length') {
+        summary.fallbackUsed += count;
+        pass.fallbackUsed += count;
+      }
+    }
+  }
+  return summary;
+}
+
+export function formatScionPassSummary(summary = {}) {
+  const reasons = Object.entries(summary.reasons || {})
+    .map(([reason, count]) => `${reason}:${count}`)
+    .join(', ');
+  return `attempted ${summary.attempted || 0}, accepted ${summary.accepted || 0}, rejected ${
+    summary.rejected || 0
+  }${summary.skipped ? `, skipped ${summary.skipped}` : ''}${reasons ? ` (${reasons})` : ''}`;
+}
 
 const MC_ITEM_SCHEMA = {
   type: 'object',
@@ -55,7 +133,7 @@ function onTopic(item, words) {
   return words.some((word) => text.includes(word));
 }
 
-async function blindSolve(items, generateJson) {
+async function blindSolve(items, generateJson, events, lessonId) {
   const schema = {
     type: 'object',
     additionalProperties: false,
@@ -69,14 +147,26 @@ async function blindSolve(items, generateJson) {
     },
     required: ['answers'],
   };
-  const reply = await generateJson({
-    system:
-      'You are answering a quiz cold. For each question pick the index (0-3) of the correct option. Return ONLY {"answers":[...]} in question order.',
-    user: JSON.stringify(items.map((item) => ({ q: item.q, op: item.op }))),
-    schemaProfile: { name: 'blind_solve', schema, strict: true },
-    maxOutputTokens: 200,
-  });
-  const parsed = JSON.parse(reply)?.answers;
+  const reply = await generateText(
+    generateJson,
+    {
+      system:
+        'You are answering a quiz cold. For each question pick the index (0-3) of the correct option. Return ONLY {"answers":[...]} in question order.',
+      user: JSON.stringify(items.map((item) => ({ q: item.q, op: item.op }))),
+      schemaProfile: { name: 'blind_solve', schema, strict: true },
+      maxOutputTokens: 200,
+    },
+    events,
+    'mcVerify',
+    lessonId,
+  );
+  let parsed = null;
+  try {
+    parsed = JSON.parse(reply)?.answers;
+  } catch {
+    recordRejected(events, 'mcVerify', lessonId, 'schema-fallback');
+    return null;
+  }
   return Array.isArray(parsed) ? parsed : null;
 }
 
@@ -88,24 +178,42 @@ async function blindSolve(items, generateJson) {
 async function verifyMcAnswers(lesson, promptLesson, generateJson, events) {
   const items = Array.isArray(lesson?.mc) ? lesson.mc : [];
   if (items.length === 0) return;
-  const first = await blindSolve(items, generateJson).catch(() => null);
-  if (!first) return;
+  const first = await blindSolve(items, generateJson, events, lesson.lessonId).catch(() => null);
+  if (!first) {
+    recordRejected(events, 'mcVerify', lesson.lessonId, 'solver', { count: items.length });
+    return;
+  }
   const disagreements = items.map((item, index) => first[index] !== undefined && first[index] !== item.ai);
   if (!disagreements.some(Boolean)) return;
-  const second = await blindSolve(items, generateJson).catch(() => null);
+  const second = await blindSolve(items, generateJson, events, lesson.lessonId).catch(() => null);
   for (const [index, item] of items.entries()) {
     if (!disagreements[index]) continue;
-    if (!second || second[index] !== first[index]) continue; // solves disagree — keep the item
+    if (!second || second[index] !== first[index]) {
+      recordRejected(events, 'mcVerify', lesson.lessonId, 'solver', { item: index });
+      continue; // solves disagree — keep the item
+    }
     try {
-      const reply = await generateJson({
-        system:
-          'You write flawless quiz items. Replace a faulty multiple-choice item (its key disagreed with two blind solves). Same concept, same difficulty, tests ONLY the listed lesson topics. The answer key (ai) MUST be verifiably correct. Return ONLY the item JSON object.',
-        user: `Lesson: ${JSON.stringify(promptLesson ?? {})}\nFaulty item: ${JSON.stringify(item)}`,
-        schemaProfile: { name: 'mc_item', schema: MC_ITEM_SCHEMA, strict: true },
-        maxOutputTokens: 2000,
-        temperature: 0.7,
-      });
-      const fresh = JSON.parse(reply);
+      const reply = await generateText(
+        generateJson,
+        {
+          system:
+            'You write flawless quiz items. Replace a faulty multiple-choice item (its key disagreed with two blind solves). Same concept, same difficulty, tests ONLY the listed lesson topics. The answer key (ai) MUST be verifiably correct. Return ONLY the item JSON object.',
+          user: `Lesson: ${JSON.stringify(promptLesson ?? {})}\nFaulty item: ${JSON.stringify(item)}`,
+          schemaProfile: { name: 'mc_item', schema: MC_ITEM_SCHEMA, strict: true },
+          maxOutputTokens: 2000,
+          temperature: 0.7,
+        },
+        events,
+        'mcVerify',
+        lesson.lessonId,
+      );
+      let fresh = null;
+      try {
+        fresh = JSON.parse(reply);
+      } catch {
+        recordRejected(events, 'mcVerify', lesson.lessonId, 'schema-fallback', { item: index });
+        continue;
+      }
       if (fresh?.q && Array.isArray(fresh.op) && fresh.op.length === 4) {
         events.push({
           pass: 'mcVerify',
@@ -116,8 +224,11 @@ async function verifyMcAnswers(lesson, promptLesson, generateJson, events) {
           chosen: fresh,
         });
         items[index] = fresh;
+      } else {
+        recordRejected(events, 'mcVerify', lesson.lessonId, 'schema-fallback', { item: index });
       }
     } catch {
+      recordRejected(events, 'mcVerify', lesson.lessonId, 'schema-fallback', { item: index });
       /* keep the original item */
     }
   }
@@ -131,15 +242,27 @@ async function topicGate(lesson, promptLesson, generateJson, events) {
   for (const [index, item] of items.entries()) {
     if (onTopic(item, words)) continue;
     try {
-      const reply = await generateJson({
-        system:
-          'You write flawless quiz items. Replace an OFF-TOPIC item with one testing ONLY the listed lesson topics, same difficulty. The answer key (ai) MUST be verifiably correct. Return ONLY the item JSON object.',
-        user: `Lesson topics: ${words.join(', ')}\nOff-topic item: ${JSON.stringify(item)}`,
-        schemaProfile: { name: 'mc_item', schema: MC_ITEM_SCHEMA, strict: true },
-        maxOutputTokens: 2000,
-        temperature: 0.7,
-      });
-      const fresh = JSON.parse(reply);
+      const reply = await generateText(
+        generateJson,
+        {
+          system:
+            'You write flawless quiz items. Replace an OFF-TOPIC item with one testing ONLY the listed lesson topics, same difficulty. The answer key (ai) MUST be verifiably correct. Return ONLY the item JSON object.',
+          user: `Lesson topics: ${words.join(', ')}\nOff-topic item: ${JSON.stringify(item)}`,
+          schemaProfile: { name: 'mc_item', schema: MC_ITEM_SCHEMA, strict: true },
+          maxOutputTokens: 2000,
+          temperature: 0.7,
+        },
+        events,
+        'topicGate',
+        lesson.lessonId,
+      );
+      let fresh = null;
+      try {
+        fresh = JSON.parse(reply);
+      } catch {
+        recordRejected(events, 'topicGate', lesson.lessonId, 'schema-fallback', { item: index });
+        continue;
+      }
       if (fresh?.q && Array.isArray(fresh.op) && fresh.op.length === 4 && onTopic(fresh, words)) {
         events.push({
           pass: 'topicGate',
@@ -150,8 +273,11 @@ async function topicGate(lesson, promptLesson, generateJson, events) {
           chosen: fresh,
         });
         items[index] = fresh;
+      } else {
+        recordRejected(events, 'topicGate', lesson.lessonId, fresh ? 'claim-loss' : 'schema-fallback', { item: index });
       }
     } catch {
+      recordRejected(events, 'topicGate', lesson.lessonId, 'schema-fallback', { item: index });
       /* keep the original item */
     }
   }
@@ -204,24 +330,54 @@ async function polishMcExplanations(lesson, generateJson, events) {
   if (items.length === 0) return;
   if (!items.some(needsMcExplanationPolish)) return;
   try {
-    const reply = await generateJson({
-      system:
-        'You improve quiz answer explanations. For each item, write ONE self-contained sentence teaching WHY the keyed option is correct, in subject terms a student reading alone understands. Never contradict the key. Return ONLY {"ex":[...]} in item order.',
-      user: JSON.stringify(items.map((item) => ({ q: item.q, op: item.op, ai: item.ai, currentEx: item.ex }))),
-      schemaProfile: { name: 'mc_explanations', schema: mcExplanationSchema(items.length), strict: true },
-      maxOutputTokens: 1600,
-    });
-    const fresh = JSON.parse(reply)?.ex;
-    if (!Array.isArray(fresh) || fresh.length !== items.length) return;
+    const reply = await generateText(
+      generateJson,
+      {
+        system:
+          'You improve quiz answer explanations. For each item, write ONE self-contained sentence teaching WHY the keyed option is correct, in subject terms a student reading alone understands. Never contradict the key. Return ONLY {"ex":[...]} in item order.',
+        user: JSON.stringify(items.map((item) => ({ q: item.q, op: item.op, ai: item.ai, currentEx: item.ex }))),
+        schemaProfile: { name: 'mc_explanations', schema: mcExplanationSchema(items.length), strict: true },
+        maxOutputTokens: 1600,
+      },
+      events,
+      'mcExplanationPolish',
+      lesson.lessonId,
+    );
+    let fresh = null;
+    try {
+      fresh = JSON.parse(reply)?.ex;
+    } catch {
+      recordRejected(events, 'mcExplanationPolish', lesson.lessonId, 'schema-fallback', { count: items.length });
+      return;
+    }
+    if (!Array.isArray(fresh) || fresh.length !== items.length) {
+      recordRejected(events, 'mcExplanationPolish', lesson.lessonId, 'schema-fallback', { count: items.length });
+      return;
+    }
     let changed = 0;
     for (const [index, item] of items.entries()) {
       const next = String(fresh[index] || '').trim();
-      if (next.length < MC_EXPLANATION_MIN_LENGTH || next === item.ex) continue;
+      const keyText = Array.isArray(item?.op) ? item.op[item.ai] || '' : '';
+      const gate = acceptRewriteCandidate({
+        task: 'mcExplanationPolish',
+        source: item.ex || `${item.q} ${keyText}`,
+        output: next,
+        claimSource: `${item.q} ${keyText}`,
+        minLengthRatio: 0.35,
+        maxLengthRatio: 3,
+        requireTerminal: true,
+      });
+      if (!gate.ok || !explanationMentionsKey(item, next)) {
+        recordRejected(events, 'mcExplanationPolish', lesson.lessonId, gate.reason || 'claim-loss', { item: index });
+        continue;
+      }
       item.ex = next;
       changed += 1;
+      recordAccepted(events, 'mcExplanationPolish', lesson.lessonId, { item: index });
     }
     if (changed > 0) events.push({ pass: 'mcExplanationPolish', lessonId: lesson.lessonId, action: 'done', changed });
   } catch {
+    recordRejected(events, 'mcExplanationPolish', lesson.lessonId, 'schema-fallback', { count: items.length });
     /* explanations ship unchanged */
   }
 }
@@ -276,23 +432,53 @@ async function polishProse(lesson, generateJson, events) {
   if (!POLISH_FIELDS.every((field) => lesson?.[field])) return;
   const fields = Object.fromEntries(POLISH_FIELDS.map((field) => [field, lesson[field]]));
   try {
-    const reply = await generateJson({
-      system:
-        'You are a veteran professor polishing draft course text. Rewrite each value MINIMALLY so it reads as natural, confident teaching prose — one voice, plain sentences, no filler. NEVER change technical content, terms, numbers, or the meaning; never add new claims. Return ONLY the JSON object with the same shape.',
-      user: JSON.stringify(fields),
-      schemaProfile: { name: 'prose_polish', schema: POLISH_SCHEMA, strict: true },
-      maxOutputTokens: 4000,
-    });
-    const polished = JSON.parse(reply);
+    const reply = await generateText(
+      generateJson,
+      {
+        system:
+          'You are a veteran professor polishing draft course text. Rewrite each value MINIMALLY so it reads as natural, confident teaching prose — one voice, plain sentences, no filler. NEVER change technical content, terms, numbers, or the meaning; never add new claims. Return ONLY the JSON object with the same shape.',
+        user: JSON.stringify(fields),
+        schemaProfile: { name: 'prose_polish', schema: POLISH_SCHEMA, strict: true },
+        maxOutputTokens: 4000,
+      },
+      events,
+      'polish',
+      lesson.lessonId,
+    );
+    let polished = null;
+    try {
+      polished = JSON.parse(reply);
+    } catch {
+      recordRejected(events, 'polish', lesson.lessonId, 'schema-fallback', { count: POLISH_FIELDS.length });
+      return;
+    }
+    let accepted = 0;
     for (const field of POLISH_FIELDS) {
       const before = JSON.stringify(fields[field] ?? '');
       const after = JSON.stringify(polished[field] ?? '');
-      if (after.length >= before.length * 0.6 && after.length <= before.length * 1.4) {
+      if (after === before) {
+        recordRejected(events, 'polish', lesson.lessonId, 'identity-noop', { field });
+        continue;
+      }
+      const gate = acceptRewriteCandidate({
+        task: 'prosePolish',
+        source: before,
+        output: after,
+        claimSource: before,
+        requireTerminal: false,
+        rejectIdentity: false,
+      });
+      if (gate.ok) {
         lesson[field] = polished[field];
+        accepted += 1;
+        recordAccepted(events, 'polish', lesson.lessonId, { field });
+      } else {
+        recordRejected(events, 'polish', lesson.lessonId, gate.reason, { field });
       }
     }
-    events.push({ pass: 'polish', lessonId: lesson.lessonId, action: 'done' });
+    if (accepted > 0) events.push({ pass: 'polish', lessonId: lesson.lessonId, action: 'done', changed: accepted });
   } catch {
+    recordRejected(events, 'polish', lesson.lessonId, 'schema-fallback', { count: POLISH_FIELDS.length });
     /* draft ships unchanged */
   }
 }
@@ -301,7 +487,7 @@ async function polishProse(lesson, generateJson, events) {
  * Apply all Scion passes to a raw Pass B batch response.
  * @param {string} rawText the model's batch JSON
  * @param {object} options { promptLessons, generateJson, contentSourcedLessonIds }
- * @returns {{ text: string, events: Array }}
+ * @returns {{ text: string, events: Array, telemetry: object }}
  */
 export async function applyScionKernelPasses(
   rawText,
@@ -311,10 +497,12 @@ export async function applyScionKernelPasses(
   try {
     parsed = JSON.parse(rawText);
   } catch {
-    return { text: rawText, events: [] };
+    return { text: rawText, events: [], telemetry: summarizeScionPassEvents([]) };
   }
   const lessons = Array.isArray(parsed?.lessons) ? parsed.lessons : [];
-  if (lessons.length === 0 || typeof generateJson !== 'function') return { text: rawText, events: [] };
+  if (lessons.length === 0 || typeof generateJson !== 'function') {
+    return { text: rawText, events: [], telemetry: summarizeScionPassEvents([]) };
+  }
   const contentSourced = new Set(contentSourcedLessonIds);
   const events = [];
   for (const lesson of lessons) {
@@ -325,5 +513,5 @@ export async function applyScionKernelPasses(
     await polishMcExplanations(lesson, generateJson, events);
     await polishProse(lesson, generateJson, events);
   }
-  return { text: JSON.stringify(parsed), events };
+  return { text: JSON.stringify(parsed), events, telemetry: summarizeScionPassEvents(events) };
 }

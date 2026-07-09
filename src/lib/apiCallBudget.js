@@ -44,6 +44,82 @@ function cloneFeatureUsage(featureUsage = {}) {
   );
 }
 
+function cloneReasonCounts(reasons = {}) {
+  return Object.fromEntries(
+    Object.entries(reasons || {})
+      .map(([reason, count]) => [reason, Number(count) || 0])
+      .filter(([, count]) => count > 0),
+  );
+}
+
+function cloneScionQuality(summary = null) {
+  if (!summary || typeof summary !== 'object') return null;
+  return {
+    attempted: Number(summary.attempted) || 0,
+    accepted: Number(summary.accepted) || 0,
+    rejected: Number(summary.rejected) || 0,
+    skipped: Number(summary.skipped) || 0,
+    fallbackUsed: Number(summary.fallbackUsed) || 0,
+    reasons: cloneReasonCounts(summary.reasons),
+    byPass: Object.fromEntries(
+      Object.entries(summary.byPass || {}).map(([pass, passSummary]) => [
+        pass,
+        {
+          attempted: Number(passSummary.attempted) || 0,
+          accepted: Number(passSummary.accepted) || 0,
+          rejected: Number(passSummary.rejected) || 0,
+          skipped: Number(passSummary.skipped) || 0,
+          fallbackUsed: Number(passSummary.fallbackUsed) || 0,
+          reasons: cloneReasonCounts(passSummary.reasons),
+        },
+      ]),
+    ),
+  };
+}
+
+function mergeReasonCounts(previous = {}, incoming = {}) {
+  const merged = { ...(previous || {}) };
+  for (const [reason, count] of Object.entries(incoming || {})) {
+    const amount = Number(count) || 0;
+    if (amount > 0) merged[reason] = (Number(merged[reason]) || 0) + amount;
+  }
+  return cloneReasonCounts(merged);
+}
+
+function mergeScionQuality(previous = null, incoming = null) {
+  const base = cloneScionQuality(previous) || cloneScionQuality({});
+  const next = cloneScionQuality(incoming);
+  if (!next) return base;
+  const merged = {
+    attempted: base.attempted + next.attempted,
+    accepted: base.accepted + next.accepted,
+    rejected: base.rejected + next.rejected,
+    skipped: base.skipped + next.skipped,
+    fallbackUsed: base.fallbackUsed + next.fallbackUsed,
+    reasons: mergeReasonCounts(base.reasons, next.reasons),
+    byPass: { ...(base.byPass || {}) },
+  };
+  for (const [pass, passSummary] of Object.entries(next.byPass || {})) {
+    const prevPass = merged.byPass[pass] || {
+      attempted: 0,
+      accepted: 0,
+      rejected: 0,
+      skipped: 0,
+      fallbackUsed: 0,
+      reasons: {},
+    };
+    merged.byPass[pass] = {
+      attempted: (Number(prevPass.attempted) || 0) + passSummary.attempted,
+      accepted: (Number(prevPass.accepted) || 0) + passSummary.accepted,
+      rejected: (Number(prevPass.rejected) || 0) + passSummary.rejected,
+      skipped: (Number(prevPass.skipped) || 0) + passSummary.skipped,
+      fallbackUsed: (Number(prevPass.fallbackUsed) || 0) + passSummary.fallbackUsed,
+      reasons: mergeReasonCounts(prevPass.reasons, passSummary.reasons),
+    };
+  }
+  return merged;
+}
+
 function normalizeFeatureIds(value) {
   if (Array.isArray(value)) return value.filter(Boolean);
   if (value) return [value];
@@ -142,6 +218,7 @@ export function createApiCallBudget(overrides = {}) {
     // v0.10.1: pipeline decision trail for the run digest — small strings
     // recording what each stage did and WHY skipped stages were skipped.
     pipeline: { ...(overrides.pipeline || {}) },
+    scionQuality: cloneScionQuality(overrides.scionQuality),
     // v0.13.1: structured enrichment outcome for the digest's content-risk
     // gate. MUST be carried here — every event rebuilds the budget through
     // this constructor, so any field not listed is silently dropped by the
@@ -263,6 +340,8 @@ export function applyApiCallBudgetEvent(currentBudget, event = {}) {
     'compiledFeatureCount',
     'compiledFeatureIds',
     'compilerSource',
+    'finishReason',
+    'constrainedTier',
   ].forEach((key) => {
     if (event[key] !== undefined && event[key] !== '') eventMetadata[key] = event[key];
   });
@@ -389,6 +468,10 @@ export function applyApiCallBudgetEvent(currentBudget, event = {}) {
     if (shouldRecordPipelineDecision) {
       next.pipeline = { ...next.pipeline, [stage]: event.detail || '' };
     }
+  }
+  if (event.type === 'scionPassTelemetry' || event.scionQuality) {
+    next.scionQuality = mergeScionQuality(next.scionQuality, event.scionQuality);
+    if (event.detail) next.pipeline = { ...next.pipeline, scionQualityPasses: event.detail };
   }
   if (usage) {
     next.tokenUsage = addUsageTotals(next.tokenUsage || {}, usage, {

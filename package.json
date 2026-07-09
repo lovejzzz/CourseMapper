@@ -53,6 +53,8 @@
     "scion:gauntlet": "node scripts/scionGauntlet.mjs --run --courses scion12 --provider local --concurrency 1",
     "scion:gauntlet:smoke": "node scripts/scionGauntlet.mjs --run --courses music-theory --provider local --concurrency 1",
     "scion:gauntlet:report": "node scripts/scionGauntlet.mjs --latest --courses scion12 --provider local",
+    "scion:adapter-gauntlet": "node scripts/scionAdapterGauntlet.mjs",
+    "scion:ledger": "node scripts/scionLedger.mjs",
     "crucible": "node scripts/crucible.mjs --courses all",
     "crucible:smoke": "node scripts/crucible.mjs --courses smoke",
     "crucible:dry": "node scripts/crucible.mjs --dry-run",

@@ -274,11 +274,13 @@ export function scionPassesEnabled() {
   }
 }
 
-// D4 flywheel gating: on by default (local-only, nothing leaves the machine).
+// D4 flywheel gating: explicit opt-in only. Aggregate Scion telemetry is
+// storage-free and always safe; banking full chosen/rejected examples is a
+// deliberate local training/eval action.
 export function scionFlywheelEnabled() {
   try {
-    return localStorage.getItem('coursemapper-scion-flywheel') !== 'off';
+    return localStorage.getItem('coursemapper-scion-flywheel') === 'on';
   } catch {
-    return true;
+    return false;
   }
 }
