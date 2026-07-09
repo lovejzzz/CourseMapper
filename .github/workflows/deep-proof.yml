@@ -1,20 +1,17 @@
 name: Deep proof gates
 
 # Deep proof is the heavy battery. It is NOT a per-commit gate on main: routine
-# commits are covered by Fast verification. Deep proof runs nightly, on every
-# release/** branch, and on demand via workflow_dispatch.
+# commits are covered by Fast verification. Deep proof runs on every release/**
+# branch and on demand via workflow_dispatch.
 #
 # Policy:
 # - App/runtime gates stay strict everywhere: broken build/export/download,
 #   failing E2E, rules failures, or package-integrity failures should make the
 #   workflow red.
 # - Educational-quality gates are strict for workflow_dispatch and release/**
-#   pushes, but advisory for scheduled runs. Nightly quality regressions upload
-#   reports and warnings without making GitHub look broken.
+#   pushes.
 on:
   workflow_dispatch:
-  schedule:
-    - cron: '0 9 * * *'
   push:
     branches:
       - 'release/**'
@@ -51,9 +48,6 @@ jobs:
           if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
             run_deep=true
             reason="manual dispatch"
-          elif [[ "${{ github.event_name }}" == "schedule" ]]; then
-            run_deep=true
-            reason="nightly schedule"
           elif [[ "${{ github.ref }}" == refs/heads/release/* ]]; then
             run_deep=true
             reason="release branch"
@@ -162,7 +156,7 @@ jobs:
 
       - name: Educational quality gates
         env:
-          DEEP_PROOF_QUALITY_MODE: ${{ github.event_name == 'schedule' && 'advisory' || 'strict' }}
+          DEEP_PROOF_QUALITY_MODE: strict
         run: npm run audit:deep-quality -- --mode "$DEEP_PROOF_QUALITY_MODE"
 
       - name: Upload quality reports
