@@ -369,9 +369,10 @@ describe('checkCredits', () => {
     container.remove();
   });
 
-  it('uses a password input so API keys are redacted from accessibility snapshots', async () => {
+  it('keeps restored API keys out of the rendered password input', async () => {
+    const savedApiKey = 'sk-proj-redacted-from-snapshots';
     localStorage.setItem('coursemapper-provider', 'openai');
-    saveApiKeyForProvider('openai', 'sk-proj-redacted-from-snapshots');
+    saveApiKeyForProvider('openai', savedApiKey);
 
     const container = document.createElement('div');
     document.body.appendChild(container);
@@ -388,6 +389,9 @@ describe('checkCredits', () => {
     const apiKeyInput = container.querySelector('#ai-api-key-input');
     expect(apiKeyInput).not.toBeNull();
     expect(apiKeyInput.type).toBe('password');
+    expect(apiKeyInput.value).toBe('');
+    expect(apiKeyInput.placeholder).toContain('Saved API key');
+    expect(container.textContent).not.toContain(savedApiKey);
 
     act(() => {
       root.unmount();
