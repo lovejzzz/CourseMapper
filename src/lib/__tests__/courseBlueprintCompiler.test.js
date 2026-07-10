@@ -1648,6 +1648,16 @@ describe('courseBlueprintCompiler', () => {
         reviewFocus: expect.stringContaining('error analysis'),
       }),
     });
+
+    const highDemandMap = makeQuantitativeProblemSetCourseMap();
+    highDemandMap.lessons[0].sections[0].learningObjectives =
+      'Evaluate two linear-equation strategies and create a verified correction for a flawed worked solution.';
+    const highDemandBlueprint = buildCourseBlueprint(highDemandMap);
+    expect(highDemandBlueprint.courseWorkload.workloadBalanceStatus).toBe('balanced');
+    expect(highDemandBlueprint.courseWorkload.workloadReviewCount).toBe(0);
+    expect(
+      Math.max(...highDemandBlueprint.courseWorkload.lessonRows.map((row) => row.outOfClassMinutes)),
+    ).toBeLessThanOrEqual(150);
   });
 
   it('decodes inferential statistics as statistics-inference instead of generic analysis logs', () => {
@@ -6177,6 +6187,11 @@ describe('courseBlueprintCompiler', () => {
         reviewFocus: expect.stringContaining('debugging evidence'),
       }),
     });
+    expect(blueprint.courseWorkload.workloadBalanceStatus).toBe('balanced');
+    expect(blueprint.courseWorkload.workloadReviewCount).toBe(0);
+    expect(Math.max(...blueprint.courseWorkload.lessonRows.map((row) => row.outOfClassMinutes))).toBeLessThanOrEqual(
+      150,
+    );
   });
 
   it('decodes data science courses as analytics notebooks with validation and bias evidence', () => {

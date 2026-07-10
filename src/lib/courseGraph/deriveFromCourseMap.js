@@ -68,7 +68,7 @@ const ASSESSMENT_KIND_RULES = [
 //    graded-artifact ("in-class" when it is a review session) — or another
 //    artifact noun is the head ("Final Project", "Final Oral Performance").
 const EXAM_PREP_QUALIFIER_RE =
-  /\b(?:(?:midterm|final)s?(?:\s+exam)?|exam)\s+(?:preparation|prep|review|readiness|practice|study|checklist|reflection)\b/i;
+  /\b(?:(?:midterm|final)s?(?:\s+exam)?|exam)\s+(?:preparation|prep|review|readiness|practice|study|checklist|reflection|blueprint|integration)\b|\bexam[\s-]+style\b/i;
 const EXAM_HEAD_RE = /\b(?:midterm|final)\s+exam\b|\bexam\s*:|^\s*exam\b|\bcomprehensive\s+(?:exam|assessment)\b/i;
 const BARE_MIDTERM_FINAL_RE = /^\s*(?:midterm|final)s?\s*(?:\(\s*\d+(?:\.\d+)?\s*%\s*\))?\s*$/i;
 const NON_EXAM_ASSESSMENT_HEAD_RE =
