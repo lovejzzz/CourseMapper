@@ -225,6 +225,9 @@ export default function ModelConfig() {
   const modelIdSelectId = 'ai-model-select';
   const [capabilityStatus, setCapabilityStatus] = useState('idle');
   const [validationMessage, setValidationMessage] = useState('');
+  // Keep restored credentials out of the rendered DOM. A draft only exists
+  // while the user is actively entering a replacement key.
+  const [apiKeyDraft, setApiKeyDraft] = useState('');
   const [localProbeAttempt, setLocalProbeAttempt] = useState(0);
   // v0.12.1: user-facing subject-matter enrichment control (auto/on/off).
   const [enrichmentPref, setEnrichmentPref] = useState(readEnrichmentPreference);
@@ -274,9 +277,16 @@ export default function ModelConfig() {
       // prefix — keep the key so validation can proceed
       autoDetectedRef.current = false;
     } else {
+      setApiKeyDraft('');
       setApiKey(getSavedApiKeyForProvider(provider));
     }
   }, [provider]);
+
+  // Once a replacement key validates, stop rendering it in the input. The
+  // trusted value remains in configuration state and secure storage.
+  useEffect(() => {
+    if (apiStatus === 'connected') setApiKeyDraft('');
+  }, [apiStatus]);
 
   // Browser/local model providers are no longer selectable in the public app.
   // Redirect stale saved values before any local runtime work starts.
@@ -851,9 +861,16 @@ export default function ModelConfig() {
                   data-lpignore="true"
                   data-form-type="other"
                   style={{ WebkitTextSecurity: 'disc' }}
-                  value={apiKey}
-                  onChange={(e) => setApiKey(e.target.value)}
-                  placeholder={PLACEHOLDER[provider] || 'Enter API key...'}
+                  value={apiKeyDraft}
+                  onChange={(e) => {
+                    setApiKeyDraft(e.target.value);
+                    setApiKey(e.target.value);
+                  }}
+                  placeholder={
+                    apiKey && !apiKeyDraft
+                      ? 'Saved API key — type to replace…'
+                      : PLACEHOLDER[provider] || 'Enter API key...'
+                  }
                   className={`input-glass w-full rounded-squircle-xs px-3.5 py-2.5 text-sm focus:outline-none pr-10 ${
                     apiStatus === 'connected'
                       ? '!border-emerald-300/60 !bg-emerald-50/30 text-slate-700'
