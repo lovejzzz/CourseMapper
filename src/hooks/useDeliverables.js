@@ -75,7 +75,11 @@ import {
 } from '../lib/apiCallBudget';
 import { classifyError } from '../lib/failureClassification';
 import { traceLog } from '../lib/traceLog';
-import { PUBLIC_SCION_PROVIDER_ID } from '../lib/publicScionProvider';
+import {
+  PUBLIC_SCION_KERNEL_CONCURRENCY,
+  PUBLIC_SCION_KERNEL_LESSONS_PER_CALL,
+  PUBLIC_SCION_PROVIDER_ID,
+} from '../lib/publicScionProvider';
 
 const PROVIDER_CALL_EVENT_TYPES = new Set([
   'deliverableChunkCall',
@@ -560,7 +564,7 @@ export default function useDeliverables({
       // structured-output models) → off.
       const blueprintEnrichmentMode =
         provider === PUBLIC_SCION_PROVIDER_ID
-          ? false
+          ? 'required'
           : (generationOptions.useBlueprintEnrichment ??
             enrichmentPreferenceOverride() ??
             generationPlan?.blueprintEnrichment ??
@@ -624,10 +628,12 @@ export default function useDeliverables({
             modelCapabilities,
           })
         : 4;
+      const plannedEnrichmentBatchSize =
+        provider === PUBLIC_SCION_PROVIDER_ID ? PUBLIC_SCION_KERNEL_LESSONS_PER_CALL : plannedNativePassBBatchSize;
       const plannedEnrichmentCalls = !blueprintEnrichmentRequested
         ? 0
         : generationOptions.lessonContentEnrichment !== false
-          ? Math.max(1, Math.ceil(enrichmentLessonCount / Math.max(1, plannedNativePassBBatchSize)))
+          ? Math.max(1, Math.ceil(enrichmentLessonCount / Math.max(1, plannedEnrichmentBatchSize)))
           : 1;
       const plannedEnrichmentRecoveryReserve =
         blueprintEnrichmentRequested && generationOptions.lessonContentEnrichment !== false && enrichmentLessonCount > 1
@@ -1647,7 +1653,7 @@ export default function useDeliverables({
             const lessonId = `lesson-${lessonIndex + 1}`;
             return !lessonContent[lessonId] || Boolean(partialOverlays[lessonId]);
           });
-          const chunkSize = 4;
+          const chunkSize = provider === PUBLIC_SCION_PROVIDER_ID ? PUBLIC_SCION_KERNEL_LESSONS_PER_CALL : 4;
           // v0.14.7 WS-A: enrichment chunks are independent (kernels are
           // keyed by lessonId and the P2.1 expectedLessonIds guard prevents
           // cross-chunk overwrites), so they run CONCURRENTLY in groups of
@@ -1735,7 +1741,7 @@ export default function useDeliverables({
           // no longer blocks the next group), with the same cache warm-up as
           // native Pass B — complete chunk #1 alone so the shared prompt
           // prefix is cached before the fan-out.
-          const enrichmentConcurrency = 4;
+          const enrichmentConcurrency = provider === PUBLIC_SCION_PROVIDER_ID ? PUBLIC_SCION_KERNEL_CONCURRENCY : 4;
           if (enrichmentChunks.length >= 3) {
             await runEnrichmentChunk(enrichmentChunks[0]);
             const enrichmentLimit = pLimit(enrichmentConcurrency);

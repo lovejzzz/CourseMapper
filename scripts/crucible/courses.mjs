@@ -131,6 +131,14 @@ export const referenceCourses = [
 // P0 exit gate and the pass/fail summary.
 export const strangerPool = [
   {
+    id: 'ux-design-studio',
+    title: 'User Experience Design Studio',
+    lessonCount: 12,
+    probeProfile: 'generic',
+    prompt:
+      'User Experience Design Studio, a 12-lesson project-based undergraduate course with critique sessions, design journals, usability testing labs, prototype reviews, and a final portfolio case study. Lessons cover: human-centered design foundations; research planning and ethics; contextual interviews and observation; affinity mapping and insight synthesis; personas; journey maps and service blueprints; information architecture; task flows and interaction patterns; low-fidelity wireframes; interactive prototyping; accessibility and usability evaluation; and design handoff with portfolio storytelling.',
+  },
+  {
     id: 'music-theory',
     title: 'Music Theory Fundamentals',
     lessonCount: 7,

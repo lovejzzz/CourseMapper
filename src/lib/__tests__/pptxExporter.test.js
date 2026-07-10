@@ -273,5 +273,76 @@ describe('pptxExporter', () => {
       // proving short rows adopted the min instead of keeping their own fit.
       expect(sizes[0]).toBeLessThan(1600);
     });
+
+    it('shrinks long summary checklists as one list so they stay above the footer', async () => {
+      const longCheck =
+        'Name the specific evidence that changed your interpretation, explain the design consequence, and identify the next action you will take before the following critique';
+      const blob = await buildSlideDeckPptxBlob(
+        {
+          decks: [
+            {
+              lessonTitle: 'Lesson 3: Contextual interviews',
+              slides: [
+                {
+                  title: 'Carry the evidence forward',
+                  type: 'summary',
+                  bullets: [
+                    longCheck,
+                    `${longCheck} while connecting the observation to the research question`,
+                    `${longCheck} and state what would disconfirm your current assumption`,
+                    `${longCheck} in the next interview`,
+                  ],
+                  notes: 'Close with an evidence-based next-use check.',
+                },
+              ],
+            },
+          ],
+        },
+        'User Experience Design Studio',
+        0,
+      );
+      const zip = await loadPptxZip(blob);
+      const xml = await zip.file('ppt/slides/slide1.xml').async('string');
+
+      const runSizes = [...xml.matchAll(/<a:rPr[^>]*\bsz="(\d+)"/g)].map((match) => Number(match[1]));
+      const summarySizes = runSizes.filter((size) => size >= 1100 && size <= 1600);
+
+      expect(summarySizes.length).toBeGreaterThanOrEqual(4);
+      expect(new Set(summarySizes)).toEqual(new Set([1100]));
+      expect(xml).not.toMatch(/following critique[^<]*\n<\/a:t>/);
+    });
+
+    it('does not double-space dense content bullets with redundant literal newlines', async () => {
+      const bullets = [
+        'Students may assume contextual inquiry is only about watching users, not asking questions; the correction is that it combines observation with guided questioning.',
+        'A weak claim says think-aloud only records verbal output; stronger reasoning connects the narration to mental models and decision points.',
+        'Thinking elicitation is not a yes-or-no prompt; it uses iterative, open-ended questions to reveal nuanced reasoning.',
+      ];
+      const blob = await buildSlideDeckPptxBlob(
+        {
+          decks: [
+            {
+              lessonTitle: 'Lesson 3: Contextual interviews',
+              slides: [
+                {
+                  title: 'Common pitfalls in contextual interviews and observation',
+                  type: 'content',
+                  bullets,
+                  notes: 'Correct each misconception with evidence.',
+                },
+              ],
+            },
+          ],
+        },
+        'User Experience Design Studio',
+        0,
+      );
+      const zip = await loadPptxZip(blob);
+      const xml = await zip.file('ppt/slides/slide1.xml').async('string');
+
+      expect(xml).not.toMatch(/guided questioning[^<]*\n<\/a:t>/);
+      expect(xml).not.toMatch(/decision points[^<]*\n<\/a:t>/);
+      expect(xml).not.toMatch(/nuanced reasoning[^<]*\n<\/a:t>/);
+    });
   });
 });

@@ -8,6 +8,7 @@ import {
   PUBLIC_SCION_MODEL_ID,
   PUBLIC_SCION_PROVIDER_ID,
   buildPublicScionMessages,
+  repairPublicScionJsonText,
 } from './publicScionProvider';
 
 function modelIsDefaultTemperatureOnly(provider, modelId) {
@@ -370,7 +371,7 @@ export function buildProviderTextRequest({
       headers: { 'Content-Type': 'application/json' },
       body: {
         model: PUBLIC_SCION_BACKING_MODEL,
-        messages: buildPublicScionMessages(systemPrompt, userPrompt, { schema }),
+        messages: buildPublicScionMessages(systemPrompt, userPrompt, { schema, task }),
         max_tokens: Math.min(
           controls.maxOutputTokens || PUBLIC_SCION_MAX_COMPLETION_TOKENS,
           PUBLIC_SCION_MAX_COMPLETION_TOKENS,
@@ -380,7 +381,7 @@ export function buildProviderTextRequest({
         stream: false,
         private: true,
       },
-      parseJsonResponse: (data) => data?.choices?.[0]?.message?.content || '',
+      parseJsonResponse: (data) => repairPublicScionJsonText(data?.choices?.[0]?.message?.content || ''),
       controls: { ...controls, modelId: PUBLIC_SCION_MODEL_ID, apiMode: 'public-chat' },
     };
   }

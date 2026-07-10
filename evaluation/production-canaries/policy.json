@@ -10,5 +10,5 @@
   "maximumDuplicateTopics": 0,
   "minimumSuccessfulRequests": 1,
   "minimumPackageFiles": 10,
-  "runs": ["runs/2026-07-09-ux-design-studio-scion.json"]
+  "runs": ["runs/2026-07-09-ux-design-studio-scion.json", "runs/2026-07-10-ux-design-studio-scion-enriched.json"]
 }

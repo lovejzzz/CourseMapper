@@ -46,7 +46,7 @@ The canary policy lives in [`production-canaries/policy.json`](production-canari
 
 A proof-eligible run must retain the generated ZIP, trace, and console log by content hash and include fresh rendered visual QA. Operational success alone is recorded but cannot satisfy the release gate.
 
-The seeded User Experience Design Studio run is intentionally honest: four live Scion calls succeeded, the package was structurally valid, and it scored 89/B, but it has one P1, no durable artifact retention, and no fresh rendered visual pass. It is therefore useful operational evidence and **not** release proof.
+The original User Experience Design Studio run is intentionally preserved at 89/B with one P1. The follow-up enriched Scion run records the real improvement to 99/A, 12/12 authored lesson kernels, zero P0/P1 findings, and a 6.8 vs 6.4 advisory model-panel result against GPT-5.6-luna + Compiler. Its ZIP, digest, and console log are hash-verified in the local workspace, and fresh rendered QA passed for the representative 13-slide deck and three-page quiz. The artifacts are not durably retained, so both runs remain useful operational evidence and **neither is release proof**.
 
 ## Current claim
 

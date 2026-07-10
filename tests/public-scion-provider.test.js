@@ -5,15 +5,20 @@ import { createBaseModelCapabilities, createGenerationPlan } from '../src/lib/mo
 import {
   PUBLIC_SCION_BACKING_MODEL,
   PUBLIC_SCION_CHAT_ENDPOINT,
+  PUBLIC_SCION_KERNEL_CONCURRENCY,
+  PUBLIC_SCION_KERNEL_LESSONS_PER_CALL,
   PUBLIC_SCION_MAX_COMPLETION_TOKENS,
   PUBLIC_SCION_MODEL_ID,
   PUBLIC_SCION_MODEL_NAME,
   PUBLIC_SCION_PROVIDER_ID,
   buildPublicScionMessages,
+  extractPublicScionKernelLessons,
   extractPublicScionLessonWindow,
   extractPublicScionPriorLessonTitles,
   extractPublicScionTotalLessonCount,
+  extractPublicScionVoiceSurfaces,
   publicScionModelOption,
+  repairPublicScionJsonText,
 } from '../src/lib/publicScionProvider';
 
 describe('Scion Public provider', () => {
@@ -64,6 +69,73 @@ describe('Scion Public provider', () => {
     expect(req.body.messages[1].content).not.toContain('presentationFormat');
     expect(req.parseJsonResponse({ choices: [{ message: { content: '{"ok":true}' } }] })).toBe('{"ok":true}');
     expect(req.controls.apiMode).toBe('public-chat');
+  });
+
+  it('builds a dedicated one-lesson knowledge-kernel request for public enrichment', () => {
+    const profile = createBaseModelCapabilities(PUBLIC_SCION_PROVIDER_ID, publicScionModelOption());
+    const userPrompt = `Course: User Experience Design Studio
+Lessons:
+[{"lessonId":"lesson-4","title":"Lesson 4: Affinity Mapping","objectives":"Synthesize interview observations into patterns","topics":"4.1: Affinity Mapping","readings":"Handout: synthesis guide"}]
+Also include the courseLevel object once (not per lesson), grounded in the same source facts.
+Return ONLY valid JSON matching the kernel shape from the instructions.`;
+    expect(extractPublicScionKernelLessons(userPrompt)).toEqual([
+      {
+        lessonId: 'lesson-4',
+        title: 'Lesson 4: Affinity Mapping',
+        objectives: 'Synthesize interview observations into patterns',
+        topics: '4.1: Affinity Mapping',
+        readings: 'Handout: synthesis guide',
+      },
+    ]);
+
+    const req = buildProviderTextRequest({
+      provider: PUBLIC_SCION_PROVIDER_ID,
+      apiKey: '',
+      modelId: PUBLIC_SCION_MODEL_ID,
+      systemPrompt: 'Verbose kernel instructions that the public route replaces.',
+      userPrompt,
+      modelCapabilities: profile,
+      generationPlan: createGenerationPlan(profile),
+      maxOutputTokens: 2400,
+      task: 'blueprintEnrichment',
+    });
+
+    expect(PUBLIC_SCION_KERNEL_LESSONS_PER_CALL).toBe(1);
+    expect(PUBLIC_SCION_KERNEL_CONCURRENCY).toBe(1);
+    expect(req.body.max_tokens).toBe(PUBLIC_SCION_MAX_COMPLETION_TOKENS);
+    expect(req.body.messages[0].content).toContain('subject-matter and assessment writer');
+    expect(req.body.messages[1].content).toContain('LESSONS TO AUTHOR');
+    expect(req.body.messages[1].content).toContain('Lesson 4: Affinity Mapping');
+    expect(req.body.messages[1].content).toContain('Write exactly 4 mc items');
+    expect(req.body.messages[1].content).toContain('Also return one compact courseLevel object');
+    expect(req.body.messages[1].content).not.toContain('compact CourseMapper lessons');
+  });
+
+  it('preserves voice surfaces while shrinking the public rewrite contract', () => {
+    const surface = {
+      surfaceId: 'assignments:lesson-1:overview',
+      directive: { register: 'direct and brisk', length: '30-70 words' },
+      text: 'Analyze the interview notes, then explain which behavioral pattern should shape the first prototype.',
+      grounding: {
+        lessonTitle: 'Lesson 1: Contextual Interviews',
+        kernel: { terms: [{ term: 'contextual inquiry', definition: 'Observation and interviewing in context.' }] },
+      },
+    };
+    const prompt = `Rewrite each surface.
+
+Surfaces (JSON):
+${JSON.stringify([surface], null, 2)}
+
+Respond with JSON only, exactly this shape:
+{"rewrites":[]}`;
+    expect(extractPublicScionVoiceSurfaces(prompt)).toEqual([surface]);
+
+    const messages = buildPublicScionMessages('voice system', prompt, { task: 'voicePass' });
+    expect(messages[0].content).toContain('instructor and prose editor');
+    expect(messages[1].content).toContain(surface.surfaceId);
+    expect(messages[1].content).toContain('between 25 and 70 words');
+    expect(messages[1].content).toContain('no two rewrites may begin with the same three words');
+    expect(messages[1].content).not.toContain('compact CourseMapper lesson');
   });
 
   it('extracts a bounded public lesson window from generation and continuation prompts', () => {
@@ -125,5 +197,52 @@ Continue generating the REMAINING lessons (Lesson 10 through Lesson 12).`;
       usage: { prompt_tokens: 10000, completion_tokens: 10000 },
     });
     expect(cost.costUsd).toBe(0);
+  });
+
+  it('repairs only common public JSON syntax defects before strict content linting', () => {
+    const missingMcBrace =
+      '{"lessons":[{"lessonId":"lesson-2","mc":[{"q":"Which choice is correct?","op":["A","B","C","D"],"ai":1,"ex":"Because B matches the source."]],"studyGuide":{"sm":"A sufficiently long subject summary for the study guide body.","rs":"Compare the four choices and explain the distinction."}}]}';
+    const bareQuote =
+      '{"lessons":[{"lessonId":"lesson-4","facts":["A design insight explains the "why" behind a recurring pattern."]}]}';
+    const missingFinalStringQuote =
+      '{"lessons":[{"lessonId":"lesson-10","studyGuide":{"sm":"A sufficiently long subject summary for the study guide body.","rs":"Compare prototype fidelity levels and explain when each is useful.}}]}';
+
+    expect(() => JSON.parse(missingMcBrace)).toThrow();
+    expect(JSON.parse(repairPublicScionJsonText(missingMcBrace)).lessons[0].mc).toHaveLength(1);
+    expect(() => JSON.parse(bareQuote)).toThrow();
+    expect(JSON.parse(repairPublicScionJsonText(bareQuote)).lessons[0].facts[0]).toContain('"why"');
+    expect(() => JSON.parse(missingFinalStringQuote)).toThrow();
+    expect(JSON.parse(repairPublicScionJsonText(missingFinalStringQuote)).lessons[0].studyGuide.rs).toContain(
+      'prototype fidelity',
+    );
+  });
+
+  it('realigns a public mc key only when its explanation uniquely supports another option', () => {
+    const mismatched = {
+      lessons: [
+        {
+          lessonId: 'lesson-2',
+          mc: [
+            {
+              q: 'What is the primary purpose of a sampling frame?',
+              op: [
+                'To list all potential participants',
+                'To ensure random selection',
+                'To define the study budget',
+                'To schedule interview times',
+              ],
+              ai: 1,
+              ex: 'A sampling frame provides a complete list of potential participants for accurate sampling.',
+            },
+          ],
+        },
+      ],
+    };
+    const repaired = JSON.parse(repairPublicScionJsonText(JSON.stringify(mismatched)));
+    expect(repaired.lessons[0].mc[0].ai).toBe(0);
+
+    mismatched.lessons[0].mc[0].ex = 'This option is correct under the stated conditions.';
+    const ambiguous = JSON.parse(repairPublicScionJsonText(JSON.stringify(mismatched)));
+    expect(ambiguous.lessons[0].mc[0].ai).toBe(1);
   });
 });

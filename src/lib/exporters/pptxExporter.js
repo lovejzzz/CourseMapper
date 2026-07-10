@@ -1195,7 +1195,7 @@ async function buildSlideForDeck(pptx, deck, theme, slideIndex, totalSlides, opt
       const halfBullets = Math.ceil(s.bullets.length / 2);
       const recapBullets = s.bullets.slice(0, halfBullets);
       const recapText = recapBullets.map((b) => ({
-        text: `${b}\n`,
+        text: b,
         options: {
           bullet: { code: '2714' },
           fontSize: 13,
@@ -1248,7 +1248,7 @@ async function buildSlideForDeck(pptx, deck, theme, slideIndex, totalSlides, opt
       const todayBullets = s.bullets.slice(halfBullets);
       if (todayBullets.length > 0) {
         const todayText = todayBullets.map((b) => ({
-          text: `${b}\n`,
+          text: b,
           options: {
             bullet: { code: '25B6' }, // ▶
             fontSize: 14,
@@ -1358,7 +1358,7 @@ async function buildSlideForDeck(pptx, deck, theme, slideIndex, totalSlides, opt
 
       if (mainBullets.length > 0) {
         const bulletText = mainBullets.map((b) => ({
-          text: `${b}\n`,
+          text: b,
           options: {
             bullet: { code: '25CF' },
             fontSize: 16,
@@ -1617,7 +1617,7 @@ async function buildSlideForDeck(pptx, deck, theme, slideIndex, totalSlides, opt
 
     if (s.bullets?.length > 0) {
       const bulletText = s.bullets.map((b, bi) => ({
-        text: `${b}\n`,
+        text: b,
         options: {
           bullet: { type: 'number', style: '1)', startAt: bi + 1 },
           fontSize: 16,
@@ -1710,11 +1710,24 @@ async function buildSlideForDeck(pptx, deck, theme, slideIndex, totalSlides, opt
     });
 
     if (s.bullets?.length > 0) {
-      const bulletText = s.bullets.map((b) => ({
-        text: `${b}\n`,
+      const summaryBullets = s.bullets.map((bullet) => String(bullet || '').trim()).filter(Boolean);
+      // Summary slides sit immediately above the accent footer. Generated
+      // carry-forward checks can be several lines longer than ordinary
+      // takeaways, so a fixed 16pt list can visually spill outside its text
+      // box and into the footer even though the OOXML bounds are valid.
+      // Size the complete list as one unit and keep a readable 11pt floor.
+      const summaryBodyW = W - 1.5;
+      const summaryBodyH = H - 3.0;
+      const summaryFontSize = autoFitBullets(summaryBullets, summaryBodyW, summaryBodyH, FONT_BODY, 16, 11, 1.5, 12);
+      const bulletText = summaryBullets.map((b) => ({
+        // `breakLine` already creates the next bullet paragraph. A literal
+        // trailing newline creates a second visual line inside that paragraph
+        // in PowerPoint/LibreOffice and was the actual source of the footer
+        // collision found by rendered-package QA.
+        text: b,
         options: {
           bullet: { code: '2714' },
-          fontSize: 16,
+          fontSize: summaryFontSize,
           color: 'D0E8FF',
           breakLine: true,
           paraSpaceAfter: 12,
@@ -1724,8 +1737,8 @@ async function buildSlideForDeck(pptx, deck, theme, slideIndex, totalSlides, opt
       slide.addText(bulletText, {
         x: 0.7,
         y: 2.1,
-        w: W - 1.5,
-        h: H - 3.0,
+        w: summaryBodyW,
+        h: summaryBodyH,
         fontFace: FONT_BODY,
         valign: 'top',
       });
@@ -1793,7 +1806,7 @@ async function buildSlideForDeck(pptx, deck, theme, slideIndex, totalSlides, opt
       addDecisionMatrix(pptx, slide, theme, nativeVisual, tracker);
     } else if (s.bullets?.length > 0) {
       const bulletText = s.bullets.map((b) => ({
-        text: `${b}\n`,
+        text: b,
         options: {
           bullet: true,
           fontSize: 16,
@@ -1910,7 +1923,7 @@ async function buildSlideForDeck(pptx, deck, theme, slideIndex, totalSlides, opt
       const plotSize = autoFitBullets(bullets, plotLeftW, plotLeftH, FONT_BODY, 14, 10, 1.4, 10);
       slide.addText(
         bullets.map((b, bi) => ({
-          text: `${b}\n`,
+          text: b,
           options: {
             bullet: { code: '25CF' },
             fontSize: plotSize,
@@ -1950,7 +1963,7 @@ async function buildSlideForDeck(pptx, deck, theme, slideIndex, totalSlides, opt
           leftBullets.map((b) => maybeProcessLatex(b, hasLatex, { color: theme.bodyText, fontSizePt: twoColSize })),
         );
         const leftText = leftProcessed.map((r, bi) => ({
-          text: `${r.text}\n`,
+          text: r.text,
           options: {
             bullet: { code: '25CF' },
             fontSize: twoColSize,
@@ -1975,7 +1988,7 @@ async function buildSlideForDeck(pptx, deck, theme, slideIndex, totalSlides, opt
           rightBullets.map((b) => maybeProcessLatex(b, hasLatex, { color: '444444', fontSizePt: twoColSize })),
         );
         const rightText = rightProcessed.map((r) => ({
-          text: `${r.text}\n`,
+          text: r.text,
           options: {
             bullet: { code: '25CF' },
             fontSize: twoColSize,
@@ -2014,7 +2027,7 @@ async function buildSlideForDeck(pptx, deck, theme, slideIndex, totalSlides, opt
           bullets.map((b) => maybeProcessLatex(b, hasLatex, { color: theme.bodyText, fontSizePt: oneColSize })),
         );
         const bulletText = oneColProcessed.map((r, bi) => ({
-          text: `${r.text}\n`,
+          text: r.text,
           options: {
             bullet: { code: '25CF' },
             fontSize: oneColSize,

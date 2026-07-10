@@ -955,6 +955,16 @@ describe('Syllabus post-processing', () => {
     expect(findPublishabilityPlaceholders(text, { limit: 10 })).toEqual([]);
   });
 
+  it('does not treat placeholder content as unfinished when it is the subject being taught', () => {
+    const text = 'A low-fidelity prototype uses basic shapes and placeholder content to test functionality and layout.';
+
+    expect(findPublishabilityPlaceholders(text, { limit: 10 })).toEqual([]);
+    expect(findPublishabilityPlaceholders('Replace this placeholder content before release.', { limit: 10 })).toEqual([
+      'this placeholder content',
+      'Replace this placeholder',
+    ]);
+  });
+
   it('replaces unresolved local-fact placeholders with finished course-relative language', () => {
     const result = normalizeSyllabusPublishability({
       syllabus: {

@@ -363,12 +363,14 @@ describe('E4 — ledger diffing', () => {
 });
 
 describe('V0.14.5 E1 — provider flag, defaults, and course expansion', () => {
-  it('parseProviderFlag defaults to openai and accepts the three supported providers', () => {
+  it('parseProviderFlag defaults to openai and accepts paid, local, and public providers', () => {
     expect(parseProviderFlag(undefined)).toBe('openai');
     expect(parseProviderFlag(true)).toBe('openai');
     expect(parseProviderFlag('')).toBe('openai');
     expect(parseProviderFlag('anthropic')).toBe('anthropic');
     expect(parseProviderFlag('GOOGLE')).toBe('google');
+    expect(parseProviderFlag('local')).toBe('local');
+    expect(parseProviderFlag('PUBLIC')).toBe('public');
     expect(() => parseProviderFlag('azure')).toThrow(/--provider must be/);
   });
 
@@ -379,8 +381,9 @@ describe('V0.14.5 E1 — provider flag, defaults, and course expansion', () => {
       google: 'gemini-2.5-flash-lite',
       // V2.1: the house model — keyless, $0, served by `npm run local-model`.
       local: 'scion-1',
+      public: 'scion-public',
     });
-    expect(SUPPORTED_PROVIDERS).toEqual(['openai', 'anthropic', 'google', 'local']);
+    expect(SUPPORTED_PROVIDERS).toEqual(['openai', 'anthropic', 'google', 'local', 'public']);
   });
 
   it('openai keeps run-dir naming EXACTLY (history/baselines stay comparable)', () => {

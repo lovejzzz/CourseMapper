@@ -4,6 +4,8 @@
 // CourseMapper/Scion compiler path through Pollinations' anonymous legacy text
 // endpoint, which is public, CORS-enabled, and aggressively rate-limited.
 
+import { jsonrepair } from 'jsonrepair';
+
 export const PUBLIC_SCION_PROVIDER_ID = 'public';
 export const PUBLIC_SCION_MODEL_ID = 'scion-public';
 export const PUBLIC_SCION_MODEL_NAME = 'Scion Draft';
@@ -13,9 +15,109 @@ export const PUBLIC_SCION_CHAT_ENDPOINT = 'https://text.pollinations.ai/openai';
 export const PUBLIC_SCION_MODELS_ENDPOINT = 'https://text.pollinations.ai/models';
 export const PUBLIC_SCION_MAX_COMPLETION_TOKENS = 1500;
 export const PUBLIC_SCION_MAX_LESSONS_PER_CALL = 3;
+export const PUBLIC_SCION_KERNEL_LESSONS_PER_CALL = 1;
+export const PUBLIC_SCION_KERNEL_CONCURRENCY = 1;
 
 export function isPublicScionProvider(provider) {
   return provider === PUBLIC_SCION_PROVIDER_ID;
+}
+
+const ANSWER_ALIGNMENT_STOP_WORDS = new Set([
+  'a',
+  'an',
+  'and',
+  'are',
+  'as',
+  'at',
+  'be',
+  'because',
+  'by',
+  'for',
+  'from',
+  'in',
+  'is',
+  'it',
+  'of',
+  'on',
+  'or',
+  'that',
+  'the',
+  'this',
+  'to',
+  'which',
+  'with',
+]);
+
+function answerAlignmentTokens(value) {
+  return new Set(
+    String(value || '')
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, ' ')
+      .split(/\s+/)
+      .filter((token) => token.length >= 3 && !ANSWER_ALIGNMENT_STOP_WORDS.has(token)),
+  );
+}
+
+function alignPublicScionAnswerIndices(parsed) {
+  if (!parsed || !Array.isArray(parsed.lessons)) return parsed;
+  for (const lesson of parsed.lessons) {
+    if (!Array.isArray(lesson?.mc)) continue;
+    for (const item of lesson.mc) {
+      const options = Array.isArray(item?.op) ? item.op : Array.isArray(item?.options) ? item.options : [];
+      const explanation = item?.ex ?? item?.explanation;
+      if (options.length !== 4 || !explanation) continue;
+      const explanationTokens = answerAlignmentTokens(explanation);
+      const scores = options.map((option) => {
+        const optionTokens = answerAlignmentTokens(option);
+        return [...optionTokens].filter((token) => explanationTokens.has(token)).length;
+      });
+      const currentIndex = Number(item?.ai ?? item?.answerIndex);
+      const bestScore = Math.max(...scores);
+      const bestIndices = scores
+        .map((score, index) => (score === bestScore ? index : -1))
+        .filter((index) => index >= 0);
+      const currentScore = Number.isInteger(currentIndex) && currentIndex >= 0 ? scores[currentIndex] || 0 : 0;
+      if (bestScore >= 2 && bestIndices.length === 1 && bestScore >= currentScore + 1) {
+        if ('ai' in item) item.ai = bestIndices[0];
+        else item.answerIndex = bestIndices[0];
+      }
+    }
+  }
+  return parsed;
+}
+
+/**
+ * Repair syntax only; the normal kernel parser and per-atom quality lints
+ * still decide what content may compile. Valid JSON passes through byte for
+ * byte, while complete-but-malformed anonymous responses get one local repair.
+ */
+export function repairPublicScionJsonText(text = '') {
+  const raw = String(text || '')
+    .replace(/^```json\s*/i, '')
+    .replace(/^```\s*/i, '')
+    .replace(/```\s*$/i, '')
+    .trim();
+  if (!raw) return '';
+  let parsed = null;
+  try {
+    parsed = JSON.parse(raw);
+  } catch {
+    const prepared = raw.replace(/\]\s*\]\s*,\s*"studyGuide"\s*:/g, '}],"studyGuide":');
+    const candidates = [prepared];
+    if (/[^"]\}\}\]\}$/.test(prepared)) {
+      candidates.push(prepared.replace(/(\}\}\]\})$/, '"$1'));
+    }
+    for (const candidate of candidates) {
+      try {
+        parsed = JSON.parse(jsonrepair(candidate));
+        break;
+      } catch {
+        // Try the next narrow completion candidate before preserving raw.
+      }
+    }
+  }
+  if (!parsed) return raw;
+  return JSON.stringify(alignPublicScionAnswerIndices(parsed));
 }
 
 export function publicScionModelOption() {
@@ -160,12 +262,170 @@ TEMPLATE TO FILL:
 ${JSON.stringify(template)}`;
 }
 
-export function buildPublicScionMessages(systemPrompt, userPrompt, { schema = null } = {}) {
+export function extractPublicScionKernelLessons(userPrompt = '') {
+  const text = String(userPrompt || '');
+  const lessonsMarker = 'Lessons:\n';
+  const start = text.indexOf(lessonsMarker);
+  if (start < 0) return [];
+
+  const tail = text.slice(start + lessonsMarker.length);
+  const boundaryMarkers = ['\nAlso include the courseLevel', '\nRomanization recovery', '\nReturn ONLY valid JSON'];
+  const boundaries = boundaryMarkers.map((marker) => tail.indexOf(marker)).filter((index) => index >= 0);
+  const jsonText = tail.slice(0, boundaries.length > 0 ? Math.min(...boundaries) : tail.length).trim();
+  try {
+    const parsed = JSON.parse(jsonText);
+    return Array.isArray(parsed) ? parsed.filter((lesson) => lesson && typeof lesson === 'object').slice(0, 4) : [];
+  } catch {
+    return [];
+  }
+}
+
+function buildPublicScionKernelPrompt(userPrompt) {
+  const text = String(userPrompt || '');
+  const lessons = extractPublicScionKernelLessons(text).slice(0, PUBLIC_SCION_KERNEL_LESSONS_PER_CALL);
+  const course = text.match(/^Course:\s*(.+)$/im)?.[1]?.trim() || 'Untitled Course';
+  const includeCourseLevel = /Also include the courseLevel object once/i.test(text);
+  const lessonTemplates = lessons.map((lesson) => ({
+    lessonId: lesson.lessonId || 'lesson-1',
+    facts: ['A specific subject claim of twenty or more characters.'],
+    keyTerms: [
+      {
+        tr: 'disciplinary term',
+        df: 'A precise subject definition with at least forty characters.',
+        eg: 'A concrete example grounded in this lesson topic.',
+        mi: 'A plausible student misunderstanding about the term.',
+        cx: 'A direct correction that explains why that misunderstanding fails.',
+      },
+    ],
+    scenario: {
+      su: 'A concrete two-sentence case, dataset, design, or text for students to analyze.',
+      ma: 'The specific material, observation, data, design, or passage they examine.',
+    },
+    discussionPrompt: {
+      pr: 'A genuinely debatable question grounded in the subject?',
+      tn: 'Why informed people can reasonably disagree.',
+      po: ['One defensible position with a reason.', 'A contrasting defensible position with a reason.'],
+    },
+    assignmentCore: {
+      td: 'Two concrete sentences naming the case or material students analyze and the response they produce.',
+      pa: ['A measurable scope or length constraint.', 'A specific source, method, or format constraint.'],
+    },
+    mc: [
+      {
+        q: 'A complete content-bearing question grounded in this lesson topic?',
+        op: ['Plausible option A', 'Plausible option B', 'Plausible option C', 'Plausible option D'],
+        ai: 0,
+        ex: 'Why the keyed answer is correct in subject terms.',
+      },
+    ],
+    studyGuide: {
+      sm: 'A concise subject summary of at least sixty characters that connects the lesson concepts.',
+      rs: 'A concrete retrieval or comparison strategy students can use to review.',
+    },
+  }));
+  const template = {
+    lessons: lessonTemplates,
+    ...(includeCourseLevel
+      ? {
+          courseLevel: {
+            signatureTerms: ['4-8 recurring disciplinary terms'],
+            lens: {
+              domain: 'course domain',
+              evidenceNoun: 'specific evidence noun',
+              decisionNoun: 'specific decision noun',
+              learnerRole: 'student role',
+              exampleNoun: 'specific example noun',
+            },
+            styleNotes: ['One short discipline-specific writing rule'],
+            discussionProtocol: {
+              format: 'A short named critique or discussion format',
+              participationPattern: 'inspect, interpret, challenge, revise',
+              artifactUse: 'What students examine or produce during the exchange.',
+              reviewFocus: 'Three discipline-specific qualities the instructor listens for.',
+            },
+          },
+        }
+      : {}),
+  };
+
+  return `COURSE: ${clip(course, 160)}
+LESSONS TO AUTHOR:
+${JSON.stringify(lessons)}
+
+TASK:
+Write one compact university-level knowledge kernel for every listed lesson. Use the exact lessonId. Use only the listed title, topics, objectives, and readings; do not invent citations, URLs, page numbers, statistics, or named studies.
+
+Rules:
+- Return ONLY valid JSON. No Markdown, commentary, or trailing text.
+- Return exactly ${lessons.length} lesson object${lessons.length === 1 ? '' : 's'}.
+- Write 5 facts per lesson. Each fact is 8-20 words, at least 20 characters, and states subject knowledge rather than course process.
+- Write 3 keyTerms per lesson. Every df is at least 40 characters; eg is concrete; mi is a plausible misconception; cx directly corrects mi.
+- Write one scenario with a specific 2-sentence su of at least 40 characters and concrete ma.
+- Write one genuinely debatable discussionPrompt: pr is at least 25 characters and ends with ?, tn names the tension, po has 2-3 defensible positions.
+- Write one assignmentCore: td is at least 60 characters and names the actual case, data, design, or text plus what students produce; pa has 2-4 concrete constraints.
+- Write exactly 4 mc items. Every q is at least 20 characters; op has exactly 4 plausible homogeneous options; ai is 0-3; ex explains the answer. Never use all/none of the above.
+- Write studyGuide.sm as a 60-300 character subject summary and studyGuide.rs as a 30-200 character concrete review strategy.
+- Never mention artifacts, evidence moves, success criteria, rubrics, submissions, "the lesson", "this lesson", or "this course".
+${
+  includeCourseLevel
+    ? '- Also return one compact courseLevel object with source-grounded signatureTerms, lens, styleNotes, and a complete discussionProtocol.\n'
+    : ''
+}- Preserve the exact nesting and abbreviated keys shown below.
+
+TEMPLATE TO FILL:
+${JSON.stringify(template)}`;
+}
+
+export function extractPublicScionVoiceSurfaces(userPrompt = '') {
+  const text = String(userPrompt || '');
+  const marker = 'Surfaces (JSON):\n';
+  const start = text.indexOf(marker);
+  if (start < 0) return [];
+  const tail = text.slice(start + marker.length);
+  const end = tail.indexOf('\n\nRespond with JSON only');
+  const jsonText = tail.slice(0, end >= 0 ? end : tail.length).trim();
+  try {
+    const parsed = JSON.parse(jsonText);
+    return Array.isArray(parsed) ? parsed.filter((surface) => surface && typeof surface === 'object').slice(0, 8) : [];
+  } catch {
+    return [];
+  }
+}
+
+function buildPublicScionVoicePrompt(userPrompt) {
+  const surfaces = extractPublicScionVoiceSurfaces(userPrompt);
+  return `SURFACES:
+${JSON.stringify(surfaces)}
+
+TASK:
+Rewrite each surface as concise instructor prose. Return one rewrite for every surfaceId.
+
+Rules:
+- Return ONLY valid JSON shaped as {"rewrites":[{"surfaceId":"...","text":"..."}]}.
+- Keep every rewrite between 25 and 70 words. Use sentence-case prose with no headings or bullets.
+- Follow each surface's register directive while varying sentence openings; no two rewrites may begin with the same three words.
+- Ground every detail in that surface's text or grounding. Never invent names, facts, numbers, citations, readings, or registry ids.
+- A sentence containing "Anchor your post in" is frozen: copy that entire sentence verbatim.
+- Refer to assessments and readings naturally. Do not rename them.
+- Prefer concrete kernel terms and examples over generic course language.`;
+}
+
+export function buildPublicScionMessages(systemPrompt, userPrompt, { schema = null, task = 'generation' } = {}) {
+  const kernelTask = task === 'blueprintEnrichment';
+  const voiceTask = task === 'voicePass';
   const system = [
     'Reasoning: low.',
-    'You are CourseMapper Scion Public, a compact course-map planner for anonymous public inference.',
+    kernelTask
+      ? 'You are CourseMapper Scion Public, a concise university subject-matter and assessment writer.'
+      : voiceTask
+        ? 'You are CourseMapper Scion Public, a precise university instructor and prose editor.'
+        : 'You are CourseMapper Scion Public, a compact course-map planner for anonymous public inference.',
     'Return the final JSON immediately. Do not deliberate in visible output.',
-    'Use compact lean atoms; the application expands them into instructor-facing prose.',
+    kernelTask
+      ? 'Write accurate lesson substance; the application validates each atom before compiling it into materials.'
+      : voiceTask
+        ? 'Rewrite only the supplied prose; the application rejects ungrounded or repetitive changes.'
+        : 'Use compact lean atoms; the application expands them into instructor-facing prose.',
     'Return only valid JSON with no Markdown fences, prose preamble, or trailing commentary.',
     schema
       ? 'The app will validate the returned object against its requested shape, so preserve required keys and arrays.'
@@ -178,6 +438,13 @@ export function buildPublicScionMessages(systemPrompt, userPrompt, { schema = nu
     .join('\n');
   return [
     { role: 'system', content: system },
-    { role: 'user', content: buildCompactPublicScionPrompt(userPrompt) },
+    {
+      role: 'user',
+      content: kernelTask
+        ? buildPublicScionKernelPrompt(userPrompt)
+        : voiceTask
+          ? buildPublicScionVoicePrompt(userPrompt)
+          : buildCompactPublicScionPrompt(userPrompt),
+    },
   ];
 }

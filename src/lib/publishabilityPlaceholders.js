@@ -6,7 +6,7 @@ export const PUBLISHABILITY_PLACEHOLDER_PATTERNS = [
   /distractor rationale needed/i,
   /lorem ipsum/i,
   /model response required/i,
-  /\bplaceholder (?:text|content)\b/i,
+  /\b(?:this|generic|sample|unresolved) placeholder (?:text|content)\b/i,
   /\breplace (?:this )?placeholder\b/i,
   /\[(?:verify|tbd)[^\]]*\]/i,
   /\[(?:instructor|office)[^\]]*\]/i,

@@ -933,7 +933,9 @@ export default function ModelConfig() {
             >
               {availableModels.map((m) => (
                 <option key={m.id} value={m.id}>
-                  {provider === PUBLIC_SCION_PROVIDER_ID ? 'Scion Draft · compact planner' : describeModelOption(m)}
+                  {provider === PUBLIC_SCION_PROVIDER_ID
+                    ? 'Scion Draft · planner + lesson writer'
+                    : describeModelOption(m)}
                 </option>
               ))}
             </select>
@@ -987,8 +989,8 @@ export default function ModelConfig() {
           className="mt-4 rounded-squircle-xs border border-amber-200/70 bg-amber-50/60 px-3.5 py-3 text-xs leading-relaxed text-amber-900 dark:border-amber-400/30 dark:bg-amber-400/10 dark:text-amber-100"
           data-testid="scion-draft-boundary"
         >
-          Scion Draft plans a compact course map. Package materials compile locally without subject-matter enrichment,
-          so review and revise them before publishing.
+          Scion Draft plans the course, writes compact lesson knowledge kernels, and compiles the package locally. Its
+          anonymous model can still make mistakes, so review and revise materials before publishing.
         </div>
       )}
       {hasSelectableModels && provider !== PUBLIC_SCION_PROVIDER_ID && (

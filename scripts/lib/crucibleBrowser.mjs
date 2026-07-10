@@ -24,6 +24,7 @@ const MODEL_DISPLAY_NAMES = {
   // in crucibleRound.mjs for why these exact ids).
   'claude-haiku-4-5': 'Claude Haiku 4.5',
   'gemini-2.5-flash-lite': 'Gemini 2.5 Flash Lite',
+  'scion-public': 'Scion Draft',
 };
 
 export function modelDisplayName(modelId) {
@@ -55,7 +56,7 @@ export { pickApiKeyFromEnvText };
 export async function loadApiKey(apiEnvPath = defaultApiEnvPath, provider = 'openai') {
   // Scion (V2.1 D): the local provider is keyless — "credentials" are the
   // running server, validated by the app's own /v1/models probe.
-  if (provider === 'local') return '';
+  if (provider === 'local' || provider === 'public') return '';
   const rules = PROVIDER_KEY_RULES[provider];
   if (!rules) throw new Error(`Unknown provider "${provider}" (expected openai, anthropic, or google)`);
   for (const envVar of rules.envVars) {
