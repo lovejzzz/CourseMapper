@@ -3,6 +3,8 @@ name: Fast verification
 on:
   pull_request:
   push:
+    branches:
+      - main
   workflow_dispatch:
 
 permissions:
@@ -52,10 +54,6 @@ jobs:
       - name: Pull request evaluation
         if: github.event_name == 'pull_request'
         run: npm run audit:evaluation:pr -- --changed-from "${{ github.event.pull_request.base.sha }}"
-
-      - name: Branch push evaluation
-        if: github.event_name == 'push' && github.ref != 'refs/heads/main'
-        run: npm run audit:evaluation:pr -- --changed-from "${{ github.event.before }}"
 
       - name: Main evaluation
         if: github.event_name == 'workflow_dispatch' || (github.event_name == 'push' && github.ref == 'refs/heads/main')
