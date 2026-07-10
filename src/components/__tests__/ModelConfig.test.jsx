@@ -369,6 +369,32 @@ describe('checkCredits', () => {
     container.remove();
   });
 
+  it('uses a password input so API keys are redacted from accessibility snapshots', async () => {
+    localStorage.setItem('coursemapper-provider', 'openai');
+    saveApiKeyForProvider('openai', 'sk-proj-redacted-from-snapshots');
+
+    const container = document.createElement('div');
+    document.body.appendChild(container);
+    const root = createRoot(container);
+
+    await act(async () => {
+      root.render(
+        <AIConfigProvider>
+          <ModelConfig />
+        </AIConfigProvider>,
+      );
+    });
+
+    const apiKeyInput = container.querySelector('#ai-api-key-input');
+    expect(apiKeyInput).not.toBeNull();
+    expect(apiKeyInput.type).toBe('password');
+
+    act(() => {
+      root.unmount();
+    });
+    container.remove();
+  });
+
   it('restores saved API keys when switching back to a provider', async () => {
     vi.useFakeTimers();
 

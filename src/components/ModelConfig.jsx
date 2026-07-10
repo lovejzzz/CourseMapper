@@ -845,7 +845,7 @@ export default function ModelConfig() {
               <div className="relative">
                 <input
                   id={apiKeyId}
-                  type="text"
+                  type="password"
                   autoComplete="off"
                   data-1p-ignore
                   data-lpignore="true"
