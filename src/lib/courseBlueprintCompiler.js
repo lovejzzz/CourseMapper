@@ -14093,18 +14093,47 @@ function registryReadingTitlesForLesson(registry, lessonNumber) {
   return registry.filter((entry) => entry.dueSession === lessonNumber).map((entry) => entry.title);
 }
 
+function registryArtifactTeachingPriority(entry = {}) {
+  if (entry.kind === 'exam') return 100;
+  if (entry.kind === 'oral') return 90;
+  const title = cleanText(entry.title).toLowerCase();
+  if (
+    /\b(?:projects?|portfolios?|prototypes?|designs?|tasks?|memos?|briefs?|reports?|papers?|essays?|presentations?|labs?|practicals?|cases?|analyses|maps?|plans?|performances?|problem sets?)\b/.test(
+      title,
+    )
+  ) {
+    return 70;
+  }
+  if (/\b(?:quiz|test|check|exit ticket|retrieval)\b/.test(title)) return 30;
+  return 50;
+}
+
+function registryWeightIsSourceExplicit(entry = {}) {
+  return /\b\d{1,3}\s*%/.test(cleanText(entry.sourceText || entry.title));
+}
+
 // v0.14.3 (C1 falsification fix): the lesson's central artifact name on the
-// registry path — the verbatim title of the highest-weight non-in-class
-// entry due that lesson (exams/orals included: a review week's central
-// artifact IS its exam). Returns '' when no registry or no entries, which
-// keeps the legacy fusion path in charge for map-only compiles.
+// registry path stays verbatim, but the compiler no longer lets a one-point
+// rounding edge in compiler-distributed weights make a low-stakes quiz hide
+// a studio task, lab, memo, prototype, or other teachable product. Fully
+// explicit source percentages still own the ranking; otherwise exams/orals
+// lead, then production/performance artifacts, then retrieval checks.
+// Returns '' when no registry or no entries, which keeps the legacy fusion
+// path in charge for map-only compiles.
 function registryStudentArtifactTitle(registry, lessonNumber) {
   if (!Array.isArray(registry)) return '';
   const forLesson = registry.filter((entry) => entry.dueSession === lessonNumber);
   if (forLesson.length === 0) return '';
   const gradeable = forLesson.filter((entry) => entry.kind !== 'in-class');
   const pool = gradeable.length > 0 ? gradeable : forLesson;
-  const ranked = [...pool].sort((a, b) => (b.weightPct ?? -1) - (a.weightPct ?? -1));
+  const allWeightsExplicit = pool.length > 0 && pool.every(registryWeightIsSourceExplicit);
+  const ranked = [...pool].sort((a, b) => {
+    if (allWeightsExplicit) return (b.weightPct ?? -1) - (a.weightPct ?? -1);
+    return (
+      registryArtifactTeachingPriority(b) - registryArtifactTeachingPriority(a) ||
+      (b.weightPct ?? -1) - (a.weightPct ?? -1)
+    );
+  });
   return dedupeNumberedAssessmentEcho(ranked[0].title);
 }
 
@@ -21691,7 +21720,14 @@ function buildSlideDeckIrForLesson(blueprint, lesson, index) {
           ? teachingMoves.practiceMove
           : `${sentenceCase(modality.signaturePractice)}. ${teachingMoves.practiceMove}`,
         modality.evidenceRoutine,
-        `${teachingMoves.feedbackMove} Debrief by naming the revision choice for ${artifact}.`,
+        lessonVariant(lesson, [
+          `${teachingMoves.feedbackMove} Close by naming the revision choice for ${artifact}.`,
+          `Use the feedback routine to identify the strongest move, then mark the next ${artifact} revision.`,
+          `Before the debrief ends, record which feedback changes ${artifact} and why.`,
+          `Translate the critique into one evidence-backed ${artifact} revision and name the reason for it.`,
+          `End with a revision commitment: what will change in ${artifact}, and which evidence supports that change?`,
+          `Have each learner name the feedback they will use, the ${artifact} move it changes, and the evidence they will preserve.`,
+        ]),
       ],
       // v0.12.1: real practice timing from the lesson's session plan — the
       // hardcoded 10 printed "Duration: 10 min" on slide 8 of all 58 audited
@@ -22711,7 +22747,14 @@ function buildLessonPlanOutline(blueprint, lesson, { depth = 'flat' } = {}) {
               ? `Seed the two camps if teams converge: “${stripTerminalPunctuation(kernelDiscussion.positions[0])}” versus “${stripTerminalPunctuation(kernelDiscussion.positions[1])}.” `
               : ''
           }A claim counts only when it uses ${kernelTermA?.term || concept} precisely. ${modality.artifactCheck}`
-        : `Require each group to cite at least one reading, example, or class note about ${concept} before they report out. ${modality.artifactCheck}`,
+        : lessonVariant(lesson, [
+            `Require each group to cite one reading, example, or class note about ${concept} before reporting out. ${modality.artifactCheck}`,
+            `Ask teams to underline the evidence behind their ${concept} choice and show where it changes ${artifact}.`,
+            `Before the share-out, have each group name its claim, strongest source detail, and one limitation.`,
+            `Press every team to distinguish observed ${concept} evidence from assumptions before accepting the recommendation.`,
+            `Use the report-out to test whether the group can trace a source detail through reasoning to a visible ${artifact} move.`,
+            `Have listeners challenge one evidence gap, then give the presenting team a minute to revise its ${concept} decision.`,
+          ]),
       instructorRole: `Moderate the ${stripLessonPrefix(lesson.title)} tradeoff discussion and calibrate ${artifact} against ${modality.studentProduct}.`,
       grouping: lessonVariant(lesson, [
         'Small groups then share-out',
@@ -22763,7 +22806,14 @@ function buildLessonPlanOutline(blueprint, lesson, { depth = 'flat' } = {}) {
                     `Students improve ${artifact} through ${kernelTermA.term}${kernelCitation ? ` from ${kernelCitation}` : ''}; the draft should identify the evidence behind the changed decision.`,
                     `Students refine ${artifact} by tying ${kernelTermA.term} to one defensible move${kernelCitation ? ` from ${kernelCitation}` : ''}; the work should show the evidence that changed their next step.`,
                   ])
-                : `Students draft ${artifact} while using the lesson success criteria, feedback prompts, and exemplar moves to guide each revision.`,
+                : lessonVariant(lesson, [
+                    `Students draft ${artifact}, checking each revision against the lesson criteria and one exemplar move.`,
+                    `Students build ${artifact} in short passes: claim, evidence, reasoning, then a feedback-led revision.`,
+                    `Students create the first usable ${artifact} version and annotate where the strongest evidence changes the work.`,
+                    `Students revise ${artifact} from the criteria outward, strengthening the weakest evidence-to-decision link first.`,
+                    `Students work independently on ${artifact}, pausing once to compare the draft with an exemplar and record the next edit.`,
+                    `Students produce a reviewable ${artifact} draft, apply one feedback prompt, and explain the resulting change.`,
+                  ]),
       instructorNotes:
         deep && kernelMisconception
           ? lessonVariant(lesson, [
@@ -22799,7 +22849,14 @@ function buildLessonPlanOutline(blueprint, lesson, { depth = 'flat' } = {}) {
               `Students name the evidence that changed their view of “${stripTerminalPunctuation(kernelMisconception.misconception)}” and connect it to the next ${artifact} move.`,
               `Students explain what the warm-up claim missed, then cite the lesson evidence that makes the correction useful for ${artifact}.`,
             ])
-          : `Students share one revision they made to ${artifact}, one question they still have about ${concept}, and one way today’s ${modality.mode} work prepares them for the next artifact.`,
+          : lessonVariant(lesson, [
+              `Students share one ${artifact} revision, the ${concept} evidence behind it, and the question they will carry into the next task.`,
+              `Each learner names what changed in ${artifact}, which ${concept} signal prompted the change, and what still needs testing.`,
+              `Close with a before-and-after comparison: students point to one ${artifact} move strengthened by today’s ${modality.mode} work.`,
+              `Students write a two-line transfer note connecting today’s ${concept} decision to the next artifact checkpoint.`,
+              `Invite one-minute reports: the revision made, the evidence preserved, and the next uncertainty in ${artifact}.`,
+              `Students leave with a concrete handoff note explaining how ${concept} will shape their next ${artifact} decision.`,
+            ]),
       instructorNotes:
         deep && kernelMisconception
           ? lessonVariant(lesson, [
@@ -22808,7 +22865,14 @@ function buildLessonPlanOutline(blueprint, lesson, { depth = 'flat' } = {}) {
               `Sort closure notes by correction quality: secure responses explain the failed idea, partial responses need one more ${concept} example, and weak responses trigger reteaching.`,
               `Use the closure notes as misconception evidence: keep examples that show the correction clearly, flag partial reasoning, and choose the next ${concept} retrieval prompt from the pattern.`,
             ])
-          : `${stripTerminalPunctuation(modality.feedbackRoutine)}; ground the debrief in ${artifact} evidence about ${concept}. Use closure responses to decide whether the next lesson should review ${concept} before extending it.`,
+          : lessonVariant(lesson, [
+              `${stripTerminalPunctuation(modality.feedbackRoutine)}; ground the debrief in ${artifact} evidence about ${concept}. Use closure responses to plan the next review move.`,
+              `Ask students to point to the feedback that changed ${artifact}; sort the responses by secure, partial, and missing ${concept} evidence.`,
+              `Compare two revision notes aloud, then use the class pattern to decide whether ${concept} needs retrieval practice next lesson.`,
+              `Collect the closure notes as evidence: look for a visible ${concept} decision, a justified ${artifact} change, and one unresolved question.`,
+              `Use the final ${artifact} comparisons to identify which ${concept} move is secure and which needs a short follow-up example.`,
+              `End by sampling revision rationales; carry the most common ${concept} gap into the next lesson’s opening check.`,
+            ]),
       instructorRole: `Synthesize patterns from ${stripLessonPrefix(lesson.title)} and set up the next lesson.`,
       grouping: lessonVariant(lesson, [
         'Whole class plus individual closure note',

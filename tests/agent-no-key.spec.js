@@ -283,7 +283,7 @@ test.describe('Agent no-key behavior', () => {
     await agentPanel.getByTestId('workspace-model-recovery-action').click();
     await expect(page.getByTestId('workspace-model-config-panel')).toBeVisible({ timeout: 10000 });
     await expect(page.getByTestId('workspace-shell')).toBeVisible();
-    await expect(page.locator('h1:has-text("Everything you need")')).toHaveCount(0);
+    await expect(page.locator('h1:has-text("Turn a syllabus")')).toHaveCount(0);
 
     expect(aiRequests).toEqual([]);
     expect(consoleErrors.filter((text) => text.includes('NO_API_KEY'))).toEqual([]);
@@ -296,7 +296,7 @@ test.describe('Agent no-key behavior', () => {
 
     await expect(panel.getByText('AI Configuration')).toBeVisible();
     await expect(panel.getByLabel('Provider')).toHaveValue('openai');
-    await expect(page.locator('h1:has-text("Everything you need")')).toHaveCount(0);
+    await expect(page.locator('h1:has-text("Turn a syllabus")')).toHaveCount(0);
   });
 
   test('opens model configuration from the recovery banner action', async ({ page }) => {
@@ -362,7 +362,7 @@ test.describe('Agent no-key behavior', () => {
 
     await expect(panel.getByLabel('API Key')).toHaveAttribute('placeholder', 'sk-ant-...');
     await expect(page.getByTestId('workspace-shell')).toBeVisible();
-    await expect(page.locator('h1:has-text("Everything you need")')).toHaveCount(0);
+    await expect(page.locator('h1:has-text("Turn a syllabus")')).toHaveCount(0);
   });
 
   test('persists the recovered model choice after closing and reopening settings', async ({ page }) => {

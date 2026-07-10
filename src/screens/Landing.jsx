@@ -6,6 +6,7 @@ import { useCourse } from '../contexts/CourseContext';
 import UserMenu from '../components/UserMenu';
 import DarkModeToggle from '../components/DarkModeToggle';
 import AppLogo from '../components/AppLogo';
+import SetupProgress from '../components/SetupProgress';
 import { LATEST_RELEASE } from '../lib/latestRelease';
 import { PUBLIC_SCION_PROVIDER_ID } from '../lib/publicScionProvider';
 
@@ -354,7 +355,7 @@ export default function Landing({
 
   // ── Auto-collapse AI config when already connected ──
   const isReady = apiStatus === 'connected';
-  const [configCollapsed, setConfigCollapsed] = useState(isReady && provider !== PUBLIC_SCION_PROVIDER_ID);
+  const [configCollapsed, setConfigCollapsed] = useState(isReady);
   const configManuallyExpandedRef = useRef(false);
 
   // Auto-collapse only when apiStatus transitions TO 'connected' (not on mount).
@@ -363,12 +364,7 @@ export default function Landing({
   useEffect(() => {
     const prev = prevApiStatusRef.current;
     prevApiStatusRef.current = apiStatus;
-    if (
-      apiStatus === 'connected' &&
-      prev !== 'connected' &&
-      provider !== PUBLIC_SCION_PROVIDER_ID &&
-      !configManuallyExpandedRef.current
-    ) {
+    if (apiStatus === 'connected' && prev !== 'connected' && !configManuallyExpandedRef.current) {
       setConfigCollapsed(true);
     }
   }, [apiStatus, provider]);
@@ -468,7 +464,10 @@ export default function Landing({
     if (provider === 'anthropic') return `Anthropic · ${modelName || modelId || 'Claude'}`;
     if (provider === 'google') return `Google · ${modelName || modelId || 'Gemini'}`;
     if (provider === 'deepseek') return `DeepSeek · ${modelName || modelId || 'V3'}`;
-    if (provider === PUBLIC_SCION_PROVIDER_ID) return `Scion Draft · ${modelName || modelId || 'public'}`;
+    if (provider === PUBLIC_SCION_PROVIDER_ID) {
+      const label = modelName || modelId || '';
+      return !label || /^Scion Draft/i.test(label) ? 'Scion Draft' : `Scion Draft · ${label}`;
+    }
     if (provider === 'local') return `Scion Local · ${modelName || modelId || 'Scion-1'}`;
     return modelName || modelId || provider || 'AI Model';
   })();
@@ -495,14 +494,19 @@ export default function Landing({
         <div className="mx-auto flex w-full max-w-4xl flex-col">
           <section className="text-center animate-fade-up">
             <h1 className="text-3xl font-semibold leading-[1.08] text-slate-950 dark:text-white sm:text-4xl md:whitespace-nowrap">
-              Everything you need to teach/learn a course.
+              Turn a syllabus into a teachable course.
             </h1>
+            <p className="mx-auto mt-3 max-w-2xl text-body-lg text-ink-muted sm:text-sm">
+              Build the course map, instructor materials, and student resources as one aligned workspace.
+            </p>
           </section>
 
-          <div className="mt-8">
+          <div className="mt-7">
             <section className="rounded-[28px] border border-slate-200/80 bg-white/80 p-4 shadow-[0_24px_80px_rgba(15,23,42,0.08)] backdrop-blur-xl dark:border-slate-700/80 dark:bg-slate-950/70 dark:shadow-[0_24px_80px_rgba(0,0,0,0.35)] sm:p-5">
-              <div className="text-center">
+              <SetupProgress current="brief" />
+              <div className="mt-5 text-center">
                 <h2 className="text-base font-semibold text-slate-900 dark:text-white">Start a course workspace</h2>
+                <p className="mt-1 text-body text-ink-muted">Describe the course or attach what you already have.</p>
               </div>
 
               {!promptText && files.length === 0 && (
@@ -512,7 +516,7 @@ export default function Landing({
                     data-testid="sample-courses-shuffle"
                     onClick={shuffleCourseExamples}
                     title="Shuffle sample courses"
-                    className="tactile rounded-full px-0.5 py-1 text-xs font-semibold text-slate-500 transition-colors hover:text-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-300 dark:text-slate-400 dark:hover:text-blue-200 dark:focus:ring-blue-500/50"
+                    className="tactile min-h-11 min-w-11 rounded-full px-2 text-xs font-semibold text-slate-500 transition-colors hover:text-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-300 dark:text-slate-400 dark:hover:text-blue-200 dark:focus:ring-blue-500/50"
                   >
                     Try
                   </button>
@@ -522,7 +526,7 @@ export default function Landing({
                       data-testid="course-example-chip"
                       data-example-text={text}
                       onClick={() => (onExampleSelect ? onExampleSelect(text) : setPromptText(text))}
-                      className="tactile flex items-center gap-1.5 rounded-full border border-slate-200 bg-white px-3 py-1.5 text-xs font-medium text-slate-600 transition-all duration-200 hover:border-blue-200 hover:bg-blue-50 hover:text-blue-600 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300 dark:hover:border-blue-400/40 dark:hover:bg-blue-400/10 dark:hover:text-blue-200"
+                      className="tactile flex min-h-11 items-center gap-1.5 rounded-full border border-slate-200 bg-white px-3 text-xs font-medium text-slate-600 transition-all duration-200 hover:border-blue-200 hover:bg-blue-50 hover:text-blue-600 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300 dark:hover:border-blue-400/40 dark:hover:bg-blue-400/10 dark:hover:text-blue-200"
                     >
                       {label}
                     </button>
@@ -705,16 +709,23 @@ export default function Landing({
 
               <div className="mt-5">
                 {configCollapsed ? (
-                  <div className="flex flex-wrap items-center justify-center gap-3 text-sm text-slate-500 dark:text-slate-400">
+                  <div
+                    data-testid="ai-config-summary"
+                    className="flex flex-wrap items-center justify-center gap-x-3 gap-y-2 rounded-xl border border-line-strong bg-surface-alt/80 px-3 py-2 text-sm text-ink-muted"
+                  >
                     <span className="flex items-center gap-1.5">
                       <span className="inline-block h-2 w-2 rounded-full bg-emerald-400" />
                       {configSummaryLabel}
                     </span>
-                    <span className="text-slate-300 dark:text-slate-600">·</span>
-                    <span className="font-medium text-emerald-600 dark:text-emerald-300">Connected</span>
+                    <span className="font-semibold text-status-success">Connected</span>
+                    {provider === PUBLIC_SCION_PROVIDER_ID && (
+                      <span className="rounded-full bg-status-warning-soft px-2 py-1 text-label font-semibold text-status-warning">
+                        Review before publishing
+                      </span>
+                    )}
                     <button
                       onClick={expandConfigForEditing}
-                      className="tactile flex items-center gap-1 text-blue-600 transition-colors duration-150 hover:text-blue-800 dark:text-blue-300 dark:hover:text-blue-100"
+                      className="tactile flex min-h-11 items-center gap-1 rounded-lg px-2 text-blue-600 transition-colors duration-150 hover:bg-blue-50 hover:text-blue-800 dark:text-blue-300 dark:hover:bg-blue-400/10 dark:hover:text-blue-100"
                     >
                       <svg className="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path
@@ -732,7 +743,7 @@ export default function Landing({
                     {isReady && (
                       <button
                         onClick={collapseConfig}
-                        className="tactile absolute right-3 top-3 z-10 flex h-7 w-7 items-center justify-center rounded-lg text-slate-400 transition-all duration-200 hover:bg-slate-100 hover:text-slate-600 dark:hover:bg-slate-800 dark:hover:text-slate-200"
+                        className="tactile absolute right-2 top-2 z-10 flex h-11 w-11 items-center justify-center rounded-lg text-slate-400 transition-all duration-200 hover:bg-slate-100 hover:text-slate-600 dark:hover:bg-slate-800 dark:hover:text-slate-200"
                         title="Collapse AI config"
                         aria-label="Collapse AI configuration"
                       >
@@ -746,38 +757,6 @@ export default function Landing({
                 )}
               </div>
 
-              <button
-                data-testid="landing-setup-button"
-                onClick={onGenerate}
-                disabled={!canGenerate || isGenerating}
-                className={`tactile btn-glow mt-5 w-full rounded-lg px-8 py-4 text-sm font-semibold tracking-wide transition-all duration-300 ${
-                  canGenerate && !isGenerating
-                    ? 'bg-slate-950 text-white shadow-lg shadow-slate-950/15 hover:brightness-110 dark:bg-white dark:text-slate-950 dark:shadow-white/10'
-                    : 'cursor-not-allowed bg-slate-200/90 text-slate-500 shadow-none dark:bg-slate-800 dark:text-slate-500'
-                }`}
-              >
-                {isGenerating ? (
-                  <span className="flex items-center justify-center gap-2.5">
-                    <svg className="h-4 w-4 animate-spin" fill="none" viewBox="0 0 24 24">
-                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                      <path
-                        className="opacity-75"
-                        fill="currentColor"
-                        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"
-                      />
-                    </svg>
-                    Generating...
-                  </span>
-                ) : (
-                  <span className="flex items-center justify-center gap-2.5">
-                    {canQuickStart ? 'Adjust setup' : 'Continue'}
-                    <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" />
-                    </svg>
-                  </span>
-                )}
-              </button>
-
               {canQuickStart && (
                 <>
                   <button
@@ -785,14 +764,57 @@ export default function Landing({
                     data-testid="landing-quick-start"
                     onClick={() => onQuickStart(promptText)}
                     disabled={isGenerating}
-                    className="tactile mt-3 w-full rounded-lg border border-slate-200 bg-white/80 px-8 py-3 text-sm font-semibold text-slate-700 transition-all duration-200 hover:border-blue-200 hover:bg-blue-50 hover:text-blue-600 disabled:cursor-not-allowed disabled:opacity-50 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200 dark:hover:border-blue-400/40 dark:hover:bg-blue-400/10 dark:hover:text-blue-200"
+                    className="tactile btn-glow mt-5 w-full rounded-lg bg-slate-950 px-8 py-4 text-sm font-semibold tracking-wide text-white shadow-lg shadow-slate-950/15 transition-all duration-300 hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-white dark:text-slate-950 dark:shadow-white/10"
                   >
-                    Generate with defaults
+                    <span className="flex items-center justify-center gap-2.5">
+                      Generate full course
+                      <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M13 10V3L4 14h7v7l9-11h-7z"
+                        />
+                      </svg>
+                    </span>
                   </button>
-                  <p className="mt-1.5 text-center text-xs text-slate-500 dark:text-slate-400">
-                    Quick start — every deliverable, default settings, straight to the workspace.
-                  </p>
                 </>
+              )}
+
+              <button
+                data-testid="landing-setup-button"
+                onClick={onGenerate}
+                disabled={!canGenerate || isGenerating}
+                className={`tactile w-full rounded-lg px-8 py-3 text-sm font-semibold transition-all duration-200 ${
+                  canQuickStart
+                    ? 'mt-3 border border-line-strong bg-surface text-ink-tertiary hover:bg-surface-alt'
+                    : 'mt-5'
+                } ${
+                  canGenerate && !isGenerating
+                    ? canQuickStart
+                      ? ''
+                      : 'bg-slate-950 text-white shadow-lg shadow-slate-950/15 hover:brightness-110 dark:bg-white dark:text-slate-950'
+                    : 'cursor-not-allowed bg-slate-200/90 text-slate-500 shadow-none dark:bg-slate-800 dark:text-slate-500'
+                }`}
+              >
+                <span className="flex items-center justify-center gap-2.5">
+                  {isGenerating ? 'Preparing…' : canQuickStart ? 'Customize package' : 'Continue to materials'}
+                  <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" />
+                  </svg>
+                </span>
+              </button>
+
+              {!canGenerate && !isGenerating && (
+                <p data-testid="landing-requirement" className="mt-2 text-center text-body text-ink-muted">
+                  Describe a course or attach a syllabus to continue.
+                </p>
+              )}
+
+              {canQuickStart && (
+                <p className="mt-2 text-center text-body text-ink-muted">
+                  Full course uses every material with editable defaults. Customize to choose a smaller package.
+                </p>
               )}
             </section>
           </div>

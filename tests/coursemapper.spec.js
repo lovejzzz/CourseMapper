@@ -33,7 +33,7 @@ test.describe('Landing Page', () => {
 
   test('renders logo and tagline', async ({ page }) => {
     await expect(page.locator('img[alt="EduTool.dev"]')).toBeVisible();
-    await expect(page.locator('h1')).toHaveText('Everything you need to teach/learn a course.');
+    await expect(page.locator('h1')).toHaveText('Turn a syllabus into a teachable course.');
     await expect(page.getByText('Start a course workspace')).toBeVisible();
     await expect(page.getByText('Start with what you have.')).toHaveCount(0);
     await expect(page.getByText('From source to package')).toHaveCount(0);
@@ -142,12 +142,15 @@ test.describe('Landing Page', () => {
     expect(await page.locator('html').getAttribute('class')).toContain('dark');
   });
 
-  test('ModelConfig panel is visible for unconfigured state', async ({ page }) => {
-    // When no API key is stored, the full ModelConfig should show (not collapsed)
-    await expect(page.locator('text=AI Configuration')).toBeVisible({ timeout: 5000 });
+  test('connected Scion starts collapsed and Edit reveals its configuration', async ({ page }) => {
+    await expect(page.getByTestId('ai-config-summary')).toBeVisible({ timeout: 5000 });
+    await expect(page.getByText('AI Configuration')).toHaveCount(0);
+    await page.getByRole('button', { name: 'Edit' }).click();
+    await expect(page.getByText('AI Configuration')).toBeVisible({ timeout: 5000 });
   });
 
   test('provider picker offers public Scion and cloud providers', async ({ page }) => {
+    await page.getByRole('button', { name: 'Edit' }).click();
     const options = await page.getByLabel('Provider').locator('option').allTextContents();
 
     expect(options).toEqual(['Scion Draft (free)', 'OpenAI', 'Anthropic', 'Google', 'DeepSeek']);
@@ -279,7 +282,7 @@ test.describe('Landing Page', () => {
     await expect(page.getByText('Start a new project?')).toBeVisible();
     await page.getByRole('button', { name: 'Start New Project', exact: true }).click();
 
-    await expect(page.locator('h1')).toHaveText('Everything you need to teach/learn a course.');
+    await expect(page.locator('h1')).toHaveText('Turn a syllabus into a teachable course.');
     expect(await page.evaluate(() => localStorage.getItem('coursemapper-project'))).toBeNull();
   });
 
@@ -478,7 +481,7 @@ test.describe('Landing Page', () => {
 // ─────────────────────────────────────────────────────────────────────────────
 
 test.describe('Lazy Shell', () => {
-  test('keeps AppFlow off the landing page until Continue is clicked', async ({ page }) => {
+  test('prefetches AppFlow while the landing page stays interactive', async ({ page }) => {
     await page.route('https://api.openai.com/v1/models', (route) =>
       route.fulfill({
         status: 200,
@@ -512,15 +515,15 @@ test.describe('Lazy Shell', () => {
     });
 
     await page.goto('/');
-    await expect(page.locator('h1:has-text("Everything you need")')).toBeVisible({ timeout: 10000 });
+    await expect(page.locator('h1:has-text("Turn a syllabus")')).toBeVisible({ timeout: 10000 });
     await expect(page.locator('text=Connected').first()).toBeVisible({ timeout: 10000 });
-    await page.waitForTimeout(250);
-    expect(appFlowRequests.length, 'AppFlow should not be requested on initial landing load').toBe(0);
+    await expect.poll(() => appFlowRequests.length, { timeout: 5000 }).toBeGreaterThan(0);
+    await expect(page.getByTestId('landing-requirement')).toBeVisible();
 
     await page.getByTestId('course-example-chip').first().click();
     await landingSetupButton(page).click();
     await expect(page.getByRole('heading', { name: 'Choose materials' })).toBeVisible({ timeout: 10000 });
-    expect(appFlowRequests.length, 'AppFlow should be requested after leaving landing').toBeGreaterThan(0);
+    await expect(page.getByText('Loading…')).toHaveCount(0);
   });
 });
 
@@ -571,6 +574,10 @@ test.describe('Configure Generation', () => {
     await expect(page.locator('h1:has-text("Configure generation")')).toBeVisible({ timeout: 10000 });
     await expect(page.getByTestId('config-sticky-action')).toBeVisible();
     await expect(page.getByTestId('config-generate-button')).toBeVisible();
+    const courseMapSettings = page.getByRole('button', { name: 'Expand Course Map settings' });
+    await expect(courseMapSettings).toHaveAttribute('aria-expanded', 'false');
+    await expect(page.getByTestId('deliverable-preview-courseMap')).toHaveCount(0);
+    await courseMapSettings.click();
     await expect(page.getByTestId('deliverable-preview-courseMap')).toContainText('Course Map — 8 lessons');
     await expect(page.getByTestId('preview-course-context')).toContainText('Spanish for Healthcare Professionals');
     await expect(page.getByTestId('deliverable-preview-courseMap')).not.toContainText('Machine Learning');
@@ -759,7 +766,7 @@ test.describe('Configure Generation', () => {
 test.describe('Hash Routing', () => {
   test('/ renders the landing page', async ({ page }) => {
     await page.goto('/');
-    await expect(page.locator('h1:has-text("Everything you need")')).toBeVisible({ timeout: 10000 });
+    await expect(page.locator('h1:has-text("Turn a syllabus")')).toBeVisible({ timeout: 10000 });
   });
 
   test('#/changelog renders the changelog page', async ({ page }) => {
@@ -785,7 +792,7 @@ test.describe('Hash Routing', () => {
 
   test('#/faq redirects to #/', async ({ page }) => {
     await page.goto('/#/faq');
-    await expect(page.locator('h1:has-text("Everything you need")')).toBeVisible({ timeout: 10000 });
+    await expect(page.locator('h1:has-text("Turn a syllabus")')).toBeVisible({ timeout: 10000 });
   });
 
   test('footer link navigates to privacy page', async ({ page }) => {
@@ -1167,7 +1174,10 @@ test.describe('Model Configuration', () => {
     await page.reload();
     await expect(page.locator('h1')).toBeVisible({ timeout: 10000 });
 
-    // In unconfigured state, ModelConfig should be expanded with its title
+    // Public Scion is ready without a key, so first-run configuration starts
+    // collapsed. Editing the compact summary still reveals the full panel.
+    await expect(page.getByTestId('ai-config-summary')).toBeVisible({ timeout: 5000 });
+    await page.getByRole('button', { name: /^Edit$/ }).click();
     await expect(page.locator('text=AI Configuration')).toBeVisible({ timeout: 5000 });
   });
 
@@ -1229,7 +1239,7 @@ test.describe('Model Configuration', () => {
     await expect.poll(() => page.evaluate(() => localStorage.getItem('coursemapper-modelid'))).toBe('gpt-4o-mini');
   });
 
-  test('provider picker restores the saved API key for each provider', async ({ page }) => {
+  test('provider picker restores saved credentials without rendering secret values', async ({ page }) => {
     const openaiKey = 'sk-proj-openai-saved-key-for-e2e-1234567890';
     const googleKey = 'AIzaGoogleSavedKeyForE2E00000000000000000';
     await page.route('https://api.openai.com/v1/models', async (route) => {
@@ -1284,16 +1294,20 @@ test.describe('Model Configuration', () => {
 
     const providerSelect = page.locator('#ai-provider-select');
     const apiKeyInput = page.locator('#ai-api-key-input');
-    await expect(apiKeyInput).toHaveValue(openaiKey);
+    await expect(apiKeyInput).toHaveValue('');
+    await expect(apiKeyInput).toHaveAttribute('placeholder', /Saved API key/);
 
     await providerSelect.selectOption('google');
-    await expect(apiKeyInput).toHaveValue(googleKey);
+    await expect(apiKeyInput).toHaveValue('');
+    await expect(apiKeyInput).toHaveAttribute('placeholder', /Saved API key/);
 
     await providerSelect.selectOption('anthropic');
     await expect(apiKeyInput).toHaveValue('');
+    await expect(apiKeyInput).not.toHaveAttribute('placeholder', /Saved API key/);
 
     await providerSelect.selectOption('openai');
-    await expect(apiKeyInput).toHaveValue(openaiKey);
+    await expect(apiKeyInput).toHaveValue('');
+    await expect(apiKeyInput).toHaveAttribute('placeholder', /Saved API key/);
   });
 });
 

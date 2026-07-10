@@ -260,7 +260,7 @@ export default function ColumnEditor({ columns, setColumns }) {
                     e.stopPropagation();
                     removeColumn(idx);
                   }}
-                  className="opacity-0 group-hover:opacity-100 ml-0.5 p-0.5 text-indigo-300 hover:text-red-400 transition-all rounded"
+                  className="ml-0.5 flex h-11 w-11 items-center justify-center rounded text-indigo-300 opacity-70 transition-all hover:text-red-400 focus:opacity-100 group-hover:opacity-100 sm:h-7 sm:w-7 sm:opacity-0"
                   aria-label={`Remove column ${col.label}`}
                 >
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -275,7 +275,7 @@ export default function ColumnEditor({ columns, setColumns }) {
         {/* Add column */}
         <button
           onClick={addColumn}
-          className="tactile inline-flex items-center gap-1.5 px-3.5 py-2 rounded-squircle-xs text-xs font-medium text-slate-400 border border-dashed border-slate-200/60 hover:border-indigo-400/40 hover:text-indigo-500 hover:bg-indigo-50/30 transition-all duration-200"
+          className="tactile inline-flex min-h-11 items-center gap-1.5 rounded-squircle-xs border border-dashed border-slate-200/60 px-3.5 text-xs font-medium text-slate-400 transition-all duration-200 hover:border-indigo-400/40 hover:bg-indigo-50/30 hover:text-indigo-500"
         >
           <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />

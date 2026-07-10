@@ -190,11 +190,13 @@ describe('projectKernelToSurfaces', () => {
     expect(shortAnswer.type).toBe('short_answer');
     expect(shortAnswer.question).toContain('city council');
     expect(shortAnswer.question).not.toContain('Greenhouse effect');
-    expect(shortAnswer.question).toContain('identify the most relevant course concept or method');
-    expect(shortAnswer.question).toContain('name one limitation or next piece of evidence');
+    expect(shortAnswer.question).toMatch(/(?:identify|select|choose|name).{0,80}(?:concept|method)/i);
+    expect(shortAnswer.question).toMatch(/(?:limitation|boundary|next piece of evidence|additional evidence)/i);
     expect(shortAnswer.answer.length).toBeGreaterThanOrEqual(30);
     expect(shortAnswer.answer).toContain('Greenhouse effect');
-    expect(shortAnswer.answer).toContain('not a broader causal claim without additional evidence');
+    expect(shortAnswer.answer).toMatch(
+      /(?:not a broader|cannot establish|do not prove|needs another source|case-specific|remaining limitation)/i,
+    );
     expect(shortAnswer.scoringGuidance).toContain('Mauna Loa');
 
     const essay = byIndex[5];

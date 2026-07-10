@@ -615,7 +615,7 @@ export default function CourseMapPreview({
   const totalColumnWeight = colKeys.reduce((total, key) => total + (COLUMN_WEIGHTS[key] || 1), 0);
 
   return (
-    <div ref={wrapperRef} className="glass rounded-squircle shadow-glass-lg p-7">
+    <div ref={wrapperRef} className="glass rounded-squircle p-4 shadow-glass-lg sm:p-7">
       {/* v0.14.4: flex-wrap + a non-wrapping title keep "Course Map Preview"
           on one line while the ml-auto controls group drops below it on narrow
           viewports (mobile) instead of squeezing the title to three lines. */}
@@ -665,7 +665,7 @@ export default function CourseMapPreview({
           <div
             role="group"
             aria-label="Table density"
-            className="flex items-center rounded-full border border-slate-200 dark:border-slate-700 bg-white/60 dark:bg-slate-900/60 p-0.5"
+            className="hidden items-center rounded-full border border-slate-200 bg-white/60 p-0.5 sm:flex dark:border-slate-700 dark:bg-slate-900/60"
           >
             {['comfortable', 'compact'].map((mode) => (
               <button
@@ -686,7 +686,8 @@ export default function CourseMapPreview({
           </div>
         </div>
       </h2>
-      <div className="mb-5" />
+      <p className="mb-3 text-body text-ink-muted sm:hidden">Swipe the table to review every course-map field.</p>
+      <div className="mb-3 sm:mb-5" />
 
       <div
         ref={tableRef}
@@ -694,7 +695,7 @@ export default function CourseMapPreview({
         onMouseLeave={handleMouseLeave}
         className="overflow-auto rounded-squircle-sm max-h-[70vh] shadow-glass border border-white/30"
       >
-        <table className="min-w-full table-fixed" role="grid" aria-label="Course Map">
+        <table className="min-w-[1100px] table-fixed sm:min-w-full" role="grid" aria-label="Course Map">
           {/* A1: width hierarchy lives in the colgroup (table-fixed reads the
               first row) — slim fixed section column, objectives widest, manual
               drag-resize still wins via colWidths. */}

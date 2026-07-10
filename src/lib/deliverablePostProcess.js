@@ -473,9 +473,16 @@ function getFaqQuestionCategory(question = {}) {
 }
 
 const FAQ_TEXTURE_REPEAT_PATTERNS = [
+  /\bstart by identifying the main topic\b/i,
+  /\bthis lesson builds toward the course goals\b/i,
   /\bprepared response names the relevant\b/i,
   /\bconcrete piece of lesson evidence\b/i,
   /\bclass, office hours, or a study group\b/i,
+  /\bstrong work should answer the prompt directly\b/i,
+  /\breturn to the assigned learning materials\b/i,
+  /\bcommon mistake is to memorize isolated terms\b/i,
+  /\byour answer is specific enough when another reader\b/i,
+  /\bcarry forward the vocabulary, examples, and evidence habits\b/i,
   /\bas a checklist\b/i,
 ];
 
@@ -648,14 +655,42 @@ export function normalizeCourseFaqQuestionVariety(data, courseMap = null) {
             : null;
       const exampleKey =
         question?.concreteExample !== undefined ? 'concreteExample' : question?.ce !== undefined ? 'ce' : null;
-      if (actionKey)
-        nextQuestion[actionKey] =
-          `Use the ${lessonTitle} prompt as a checklist and mark one evidence point before drafting.`;
-      if (connectionKey)
-        nextQuestion[connectionKey] = `Connects directly to ${repair.q.replace(/\?$/, '').toLowerCase()}.`;
-      if (exampleKey)
-        nextQuestion[exampleKey] =
-          `A strong ${lessonTitle} answer names the concept, cites lesson evidence, and explains the decision made.`;
+      if (actionKey) {
+        nextQuestion[actionKey] = pickFaqRepairTemplate(
+          [
+            `Mark the ${lessonTitle} task verb, then attach one evidence point before drafting.`,
+            `Write the claim first and identify which ${lessonTitle} example will support it.`,
+            `Choose one ${lessonTitle} criterion, test the current answer against it, and revise the weakest link.`,
+            `Before drafting, name the decision, the evidence source, and the boundary the ${lessonTitle} response must respect.`,
+          ],
+          lessonIndex,
+          questionIndex,
+        );
+      }
+      if (connectionKey) {
+        nextQuestion[connectionKey] = pickFaqRepairTemplate(
+          [
+            `Prepares students to answer: ${repair.q.replace(/\?$/, '')}.`,
+            `Makes the ${lessonTitle} evidence requirement visible before submission.`,
+            `Links the lesson concept to the decision students must defend in assessed work.`,
+            `Turns the support question into a concrete readiness check for ${lessonTitle}.`,
+          ],
+          lessonIndex,
+          questionIndex + 1,
+        );
+      }
+      if (exampleKey) {
+        nextQuestion[exampleKey] = pickFaqRepairTemplate(
+          [
+            `A defensible ${lessonTitle} response pairs one precise claim with evidence and a stated implication.`,
+            `For ${lessonTitle}, the reader should be able to trace the course term, source detail, and resulting decision.`,
+            `A complete answer shows what the evidence supports, what it does not prove, and what action follows.`,
+            `The strongest response uses a lesson-specific example and explains why it changes the recommendation.`,
+          ],
+          lessonIndex,
+          questionIndex + 2,
+        );
+      }
       return nextQuestion;
     });
     return changed ? { ...lesson, [questionKey]: questions } : lesson;
@@ -704,7 +739,8 @@ export function buildFallbackCourseFaq(courseMap, config = {}, scopeIndices = nu
   };
 
   const normalizedCounts = normalizeCourseFaqQuestionCounts(fallback, config);
-  return normalizeCourseFaqCategories(normalizedCounts.data).data;
+  const normalizedCategories = normalizeCourseFaqCategories(normalizedCounts.data);
+  return normalizeCourseFaqQuestionVariety(normalizedCategories.data, courseMap).data;
 }
 
 function isBlankOrRepairPlaceholder(value) {

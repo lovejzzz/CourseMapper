@@ -13,6 +13,9 @@ import {
 } from '../lib/customDeliverableLibrary';
 import { FEATURES, COLOR_MAP } from '../lib/featureCatalog';
 import { APP_VERSION } from '../lib/appVersion';
+import SetupProgress from '../components/SetupProgress';
+
+export const RECOMMENDED_FEATURE_IDS = ['courseMap', 'syllabus', 'lessonPlans', 'assignments', 'rubrics', 'quizBank'];
 
 // ── Color choices for custom deliverables ────────────────────────────────────
 const CUSTOM_COLOR_CHOICES = ['violet', 'indigo', 'sky', 'teal', 'emerald', 'amber', 'orange', 'rose', 'cyan'];
@@ -498,6 +501,11 @@ export default function FeatureSelect({
     setSelected(['courseMap']);
   }
 
+  function selectRecommended() {
+    const visibleIds = new Set(visibleFeatures.map((feature) => feature.id));
+    setSelected(RECOMMENDED_FEATURE_IDS.filter((id) => visibleIds.has(id)));
+  }
+
   function handleSaveCustom(def) {
     const saved = saveCustomDeliverable(def, user?.uid);
     setCustomDeliverables(listCustomDeliverables());
@@ -526,6 +534,34 @@ export default function FeatureSelect({
     setSelected((prev) => prev.filter((id) => id !== featureId));
   }
 
+  const continuationAction = (
+    <div
+      data-testid="feature-select-sticky-action"
+      className="sticky top-3 z-20 mb-5 rounded-2xl border border-slate-200/80 bg-white/95 p-3 text-center shadow-lg backdrop-blur-xl dark:border-slate-700 dark:bg-slate-950/95"
+    >
+      <button
+        data-testid="feature-select-continue"
+        onClick={onNext}
+        disabled={selectedCount === 0}
+        className={`tactile btn-glow w-full rounded-squircle-xs px-10 py-4 text-sm font-semibold tracking-wide transition-all duration-300 ${
+          selectedCount > 0
+            ? 'text-white bg-slate-950 shadow-lg shadow-slate-950/12 hover:bg-slate-800'
+            : 'bg-slate-200 text-slate-400 cursor-not-allowed shadow-none'
+        }`}
+      >
+        <span className="flex items-center justify-center gap-2.5">
+          Review generation
+          <span className="text-white/70">
+            · {selectedMaterialCount === 0 ? 'Course Map only' : `${selectedMaterialCount} materials`}
+          </span>
+          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" />
+          </svg>
+        </span>
+      </button>
+    </div>
+  );
+
   return (
     <div className="landing-shell noise-overlay flex min-h-screen flex-col text-slate-900 dark:text-slate-100">
       {/* Header */}
@@ -533,7 +569,7 @@ export default function FeatureSelect({
         <div className="mx-auto flex w-full max-w-7xl items-center justify-between">
           <button
             onClick={onBack}
-            className="tactile flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-medium text-slate-500 transition-all duration-200 hover:bg-white/70 hover:text-slate-900 dark:text-slate-400 dark:hover:bg-slate-900 dark:hover:text-slate-100"
+            className="tactile flex min-h-11 items-center gap-1.5 rounded-lg px-3 text-xs font-medium text-slate-500 transition-all duration-200 hover:bg-white/70 hover:text-slate-900 dark:text-slate-400 dark:hover:bg-slate-900 dark:hover:text-slate-100"
           >
             <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
@@ -542,7 +578,7 @@ export default function FeatureSelect({
           </button>
           <button
             onClick={() => setShowHelp(true)}
-            className="tactile flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-semibold text-slate-500 transition-colors hover:text-blue-600 dark:text-slate-400 dark:hover:text-blue-200"
+            className="tactile flex min-h-11 items-center gap-1.5 rounded-lg px-3 text-xs font-semibold text-slate-500 transition-colors hover:text-blue-600 dark:text-slate-400 dark:hover:text-blue-200"
           >
             <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path
@@ -560,15 +596,19 @@ export default function FeatureSelect({
       {/* Main */}
       <main className="flex flex-1 flex-col items-center px-5 py-6 pb-0 sm:px-8">
         <div className="w-full max-w-3xl animate-fade-up">
+          <SetupProgress current="materials" />
+
           {/* Title */}
           <div className="mb-6 text-center">
-            <p className="mb-3 text-[10px] font-semibold uppercase tracking-[0.28em] text-blue-600 dark:text-blue-300">
-              Workspace setup
-            </p>
-            <h1 className="text-2xl font-semibold tracking-tight text-slate-950 dark:text-white sm:text-3xl">
+            <h1 className="mt-5 text-2xl font-semibold tracking-tight text-slate-950 dark:text-white sm:text-3xl">
               Choose materials
             </h1>
+            <p className="mx-auto mt-2 max-w-xl text-body-lg text-ink-muted">
+              Start with a balanced set or choose only what this course needs.
+            </p>
           </div>
+
+          {continuationAction}
 
           {developerTemplates.length > 0 && (
             <div className="mb-4 rounded-2xl border border-blue-200/70 bg-white/80 px-4 py-3 shadow-sm dark:border-blue-400/20 dark:bg-slate-950/70">
@@ -615,12 +655,22 @@ export default function FeatureSelect({
                   Course Map + {selectedMaterialCount} material{selectedMaterialCount === 1 ? '' : 's'}.
                 </p>
               </div>
-              <button
-                onClick={allSelected ? deselectAll : selectAll}
-                className="w-fit rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs font-bold text-slate-600 transition-colors hover:border-blue-200 hover:bg-blue-50 hover:text-blue-700 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300 dark:hover:border-blue-400/40 dark:hover:bg-blue-400/10 dark:hover:text-blue-200"
-              >
-                {allSelected ? 'Clear selection' : 'Select all'}
-              </button>
+              <div className="flex flex-wrap gap-2">
+                <button
+                  type="button"
+                  data-testid="feature-select-recommended"
+                  onClick={selectRecommended}
+                  className="min-h-11 rounded-lg border border-accent/30 bg-accent-soft px-3 text-xs font-bold text-accent-text transition-colors hover:border-accent/50"
+                >
+                  Recommended set
+                </button>
+                <button
+                  onClick={allSelected ? deselectAll : selectAll}
+                  className="min-h-11 w-fit rounded-lg border border-slate-200 bg-white px-3 text-xs font-bold text-slate-600 transition-colors hover:border-blue-200 hover:bg-blue-50 hover:text-blue-700 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300 dark:hover:border-blue-400/40 dark:hover:bg-blue-400/10 dark:hover:text-blue-200"
+                >
+                  {allSelected ? 'Clear selection' : 'Select all'}
+                </button>
+              </div>
             </div>
 
             {/* v0.13: the course structure isn't a deliverable choice — it is
@@ -665,7 +715,8 @@ export default function FeatureSelect({
                     onClick={() => toggle(feature.id)}
                     onMouseEnter={() => setHoveredId(feature.id)}
                     onMouseLeave={() => setHoveredId(null)}
-                    className={`tactile group relative flex min-h-[82px] items-start gap-3 rounded-xl border p-3 text-left transition-all duration-200 ${
+                    aria-pressed={isSelected}
+                    className={`tactile group relative flex min-h-24 items-start gap-3 rounded-xl border p-3 text-left transition-all duration-200 ${
                       isSelected
                         ? 'border-slate-950 bg-white shadow-sm dark:border-slate-200 dark:bg-slate-900'
                         : 'border-slate-200 bg-white/65 hover:border-slate-300 hover:bg-white dark:border-slate-800 dark:bg-slate-900/65 dark:hover:border-slate-700'
@@ -762,7 +813,7 @@ export default function FeatureSelect({
                           </span>
                         )}
                       </div>
-                      <p className="mt-1 line-clamp-1 text-xs leading-relaxed text-slate-500 dark:text-slate-400">
+                      <p className="mt-1 line-clamp-2 text-xs leading-relaxed text-slate-500 dark:text-slate-400">
                         {feature.description}
                       </p>
                     </div>
@@ -805,36 +856,12 @@ export default function FeatureSelect({
               </button>
             </div>
           </section>
-
-          {/* Next button */}
-          <div
-            data-testid="feature-select-sticky-action"
-            className="mt-5 rounded-2xl border border-slate-200/80 bg-white p-3 text-center shadow-sm dark:border-slate-700 dark:bg-slate-950"
-          >
-            <button
-              data-testid="feature-select-continue"
-              onClick={onNext}
-              disabled={selectedCount === 0}
-              className={`tactile btn-glow w-full rounded-squircle-xs px-10 py-4 text-sm font-semibold tracking-wide transition-all duration-300 ${
-                selectedCount > 0
-                  ? 'text-white bg-slate-950 shadow-lg shadow-slate-950/12 hover:bg-slate-800'
-                  : 'bg-slate-200 text-slate-400 cursor-not-allowed shadow-none'
-              }`}
-            >
-              <span className="flex items-center justify-center gap-2.5">
-                Continue
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" />
-                </svg>
-              </span>
-            </button>
-          </div>
         </div>
       </main>
 
       {/* Footer */}
       <footer className="py-4 text-center">
-        <div className="flex items-center justify-center gap-3 text-[10px] text-slate-300/70">
+        <div className="flex items-center justify-center gap-3 text-xs text-ink-muted">
           <a href="#/changelog" className="font-medium hover:text-indigo-500 transition-colors duration-200">
             v{APP_VERSION}
           </a>

@@ -379,6 +379,39 @@ describe('Course FAQ post-processing', () => {
     expect(validation.valid).toBe(true);
   });
 
+  it('varies fallback FAQ sentence families across a full course', () => {
+    const courseMap = {
+      lessons: Array.from({ length: 12 }, (_, index) => ({
+        title: `Lesson ${index + 1}: Studio Decision ${index + 1}`,
+        sections: [
+          {
+            topicSection: `Evidence pattern ${index + 1}`,
+            learningObjectives: `Students evaluate evidence pattern ${index + 1} and justify a design decision.`,
+            weeklyAssessments: `Decision memo ${index + 1}.`,
+            asyncActivities: `Inspect case ${index + 1} and draft a recommendation.`,
+          },
+        ],
+      })),
+    };
+
+    const fallback = buildFallbackCourseFaq(courseMap, { questionsPerLesson: 8 });
+    const answers = fallback.faqs.flatMap((lesson) => lesson.qs.map((question) => question.an));
+    const technicalAnswers = fallback.faqs.map(
+      (lesson) => lesson.qs.find((question) => question.ca === 'Technical Help')?.an || '',
+    );
+    const assessmentActions = fallback.faqs.map(
+      (lesson) => lesson.qs.find((question) => question.ca === 'Assessment Prep' && question.sa)?.sa || '',
+    );
+    const text = answers.join(' ');
+
+    expect(fallback.faqs.every((lesson) => lesson.qs.length === 8)).toBe(true);
+    expect(new Set(technicalAnswers).size).toBeGreaterThanOrEqual(3);
+    expect(new Set(assessmentActions).size).toBeGreaterThanOrEqual(4);
+    expect(text).not.toMatch(/return to the assigned learning materials/i);
+    expect(text).not.toMatch(/carry forward the vocabulary, examples, and evidence habits/i);
+    expect(text).not.toMatch(/common mistake is to memorize isolated terms/i);
+  });
+
   it('uses only the first numbered assessment item in fallback FAQ prep questions', () => {
     const courseMap = {
       lessons: [

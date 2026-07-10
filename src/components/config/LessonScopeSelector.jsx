@@ -39,7 +39,7 @@ export default function LessonScopeSelector({
       <div className="flex gap-2">
         <button
           onClick={() => setLessonScope({ type: 'all' })}
-          className={`tactile flex-1 py-2.5 rounded-lg text-xs font-semibold transition-all duration-200 ${
+          className={`tactile min-h-11 flex-1 rounded-lg text-xs font-semibold transition-all duration-200 ${
             lessonScope.type === 'all'
               ? 'bg-slate-950 text-white shadow-sm dark:bg-white dark:text-slate-950'
               : 'border border-slate-200 bg-white/80 text-slate-600 hover:bg-white dark:border-slate-700 dark:bg-slate-950/60 dark:text-slate-300 dark:hover:bg-slate-950'
@@ -49,7 +49,7 @@ export default function LessonScopeSelector({
         </button>
         <button
           onClick={() => setLessonScope({ type: 'specific', indices: lessonScope.indices || [] })}
-          className={`tactile flex-1 py-2.5 rounded-lg text-xs font-semibold transition-all duration-200 ${
+          className={`tactile min-h-11 flex-1 rounded-lg text-xs font-semibold transition-all duration-200 ${
             lessonScope.type === 'specific'
               ? 'bg-slate-950 text-white shadow-sm dark:bg-white dark:text-slate-950'
               : 'border border-slate-200 bg-white/80 text-slate-600 hover:bg-white dark:border-slate-700 dark:bg-slate-950/60 dark:text-slate-300 dark:hover:bg-slate-950'
@@ -84,14 +84,14 @@ export default function LessonScopeSelector({
                 <div className="flex gap-2">
                   <button
                     onClick={() => setLessonScope({ type: 'specific', indices: rows.map((r) => r.index) })}
-                    className="text-[10px] font-semibold text-blue-600 hover:text-blue-800 transition-colors dark:text-blue-200"
+                    className="min-h-11 px-2 text-[10px] font-semibold text-blue-600 transition-colors hover:text-blue-800 dark:text-blue-200"
                   >
                     Select all
                   </button>
                   <span className="text-slate-300 text-[10px]">·</span>
                   <button
                     onClick={() => setLessonScope({ type: 'specific', indices: [] })}
-                    className="text-[10px] font-semibold text-slate-400 hover:text-slate-600 transition-colors"
+                    className="min-h-11 px-2 text-[10px] font-semibold text-slate-400 transition-colors hover:text-slate-600"
                   >
                     Clear
                   </button>
@@ -110,7 +110,7 @@ export default function LessonScopeSelector({
                           : [...current, index].sort((a, b) => a - b);
                         setLessonScope({ type: 'specific', indices: next });
                       }}
-                      className={`tactile text-left px-3 py-2 rounded-lg text-[11px] transition-all duration-150 ${
+                      className={`tactile min-h-11 rounded-lg px-3 py-2 text-left text-[11px] transition-all duration-150 ${
                         isSelected
                           ? 'bg-slate-950 text-white shadow-sm dark:bg-white dark:text-slate-950'
                           : 'border border-slate-200 bg-white/80 text-slate-600 hover:bg-white dark:border-slate-700 dark:bg-slate-950/60 dark:text-slate-300'

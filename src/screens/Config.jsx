@@ -4,6 +4,7 @@ import { FEATURES, COLOR_MAP } from '../lib/featureCatalog';
 import ColumnEditor from '../components/ColumnEditor';
 import InstitutionProfileCard from '../components/config/InstitutionProfileCard';
 import LessonScopeSelector from '../components/config/LessonScopeSelector';
+import SetupProgress from '../components/SetupProgress';
 import { getCustomDeliverable, listCustomDeliverables, toFeatureEntry } from '../lib/customDeliverableLibrary';
 import { detectExpectedLessons } from '../lib/detectLessons';
 import { PREVIEW_EXAMPLES } from '../lib/previewExamples';
@@ -13,6 +14,7 @@ import { useCourse } from '../contexts/CourseContext';
 import { useAIConfig } from '../contexts/AIConfigContext';
 import { fetchOpenAIImageModels, OPENAI_IMAGE_MODEL_FALLBACKS, OPENAI_SLIDE_IMAGE_MODEL } from '../lib/imageSearch';
 import { APP_VERSION } from '../lib/appVersion';
+import { PUBLIC_SCION_PROVIDER_ID } from '../lib/publicScionProvider';
 import {
   applyModelAwareDeliverableDefaults,
   createModelAwareConfigPlan,
@@ -1925,7 +1927,7 @@ export default function Config({
     columns,
     setColumns,
   } = useCourse();
-  const [expandedId, setExpandedId] = useState('courseMap');
+  const [expandedId, setExpandedId] = useState(null);
   const modelConfigPlan = useMemo(
     () =>
       createModelAwareConfigPlan(
@@ -1954,6 +1956,51 @@ export default function Config({
 
   const scopeValid = lessonScope.type === 'all' || lessonScope.indices?.length > 0;
 
+  const generationAction = (
+    <div
+      data-testid="config-sticky-action"
+      className="sticky top-3 z-20 rounded-2xl border border-slate-200/80 bg-white/95 p-3 shadow-lg backdrop-blur-xl dark:border-slate-700 dark:bg-slate-950/95"
+    >
+      {provider === PUBLIC_SCION_PROVIDER_ID && (
+        <div
+          data-testid="scion-generation-boundary"
+          className="mb-3 flex items-start gap-2 rounded-xl bg-status-warning-soft px-3 py-2 text-left text-body text-status-warning"
+        >
+          <svg className="mt-0.5 h-4 w-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
+            />
+          </svg>
+          <span>Scion Draft is free and anonymous. Review generated materials before publishing.</span>
+        </div>
+      )}
+      {lessonScope.type === 'specific' && !scopeValid && (
+        <p className="text-center text-xs text-amber-500 mb-2">Select at least one lesson to continue.</p>
+      )}
+      <button
+        data-testid="config-generate-button"
+        onClick={onGenerate}
+        disabled={!canGenerate || !scopeValid}
+        className={`tactile btn-glow w-full py-4 rounded-squircle-xs font-semibold text-sm tracking-wide transition-all duration-300 ${
+          canGenerate && scopeValid
+            ? 'text-white bg-slate-950 shadow-lg shadow-slate-950/12 hover:bg-slate-800'
+            : 'bg-slate-200 text-slate-400 cursor-not-allowed shadow-none'
+        }`}
+      >
+        <span className="flex items-center justify-center gap-2.5">
+          Generate workspace
+          <span className="hidden text-white/70 sm:inline">· {scopeDescription}</span>
+          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+          </svg>
+        </span>
+      </button>
+    </div>
+  );
+
   return (
     <>
       <div className="landing-shell noise-overlay flex min-h-screen flex-col text-slate-900 dark:text-slate-100">
@@ -1962,7 +2009,7 @@ export default function Config({
           <div className="mx-auto flex w-full max-w-7xl items-center justify-between">
             <button
               onClick={onBack}
-              className="tactile flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-medium text-slate-500 transition-all duration-200 hover:bg-white/70 hover:text-slate-900 dark:text-slate-400 dark:hover:bg-slate-900 dark:hover:text-slate-100"
+              className="tactile flex min-h-11 items-center gap-1.5 rounded-lg px-3 text-xs font-medium text-slate-500 transition-all duration-200 hover:bg-white/70 hover:text-slate-900 dark:text-slate-400 dark:hover:bg-slate-900 dark:hover:text-slate-100"
             >
               <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
@@ -1971,7 +2018,7 @@ export default function Config({
             </button>
             <button
               onClick={() => setShowHelp(true)}
-              className="tactile flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-semibold text-slate-500 transition-colors hover:text-blue-600 dark:text-slate-400 dark:hover:text-blue-200"
+              className="tactile flex min-h-11 items-center gap-1.5 rounded-lg px-3 text-xs font-semibold text-slate-500 transition-colors hover:text-blue-600 dark:text-slate-400 dark:hover:text-blue-200"
             >
               <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path
@@ -1989,18 +2036,19 @@ export default function Config({
         {/* Main */}
         <main className="flex flex-1 flex-col items-center px-5 py-6 pb-0 sm:px-8">
           <div className="w-full max-w-3xl animate-fade-up space-y-5">
+            <SetupProgress current="generate" />
+
             {/* Step badge + title */}
             <div className="mb-2 text-center">
-              <p className="mb-3 text-[10px] font-semibold uppercase tracking-[0.28em] text-blue-600 dark:text-blue-300">
-                Generation setup
-              </p>
-              <h1 className="text-2xl font-semibold tracking-tight text-slate-950 dark:text-white sm:text-3xl">
+              <h1 className="mt-5 text-2xl font-semibold tracking-tight text-slate-950 dark:text-white sm:text-3xl">
                 Configure generation
               </h1>
               <p className="mx-auto mt-2 max-w-xl text-sm text-slate-500 dark:text-slate-400">
                 Set the lesson scope. Tune only what needs to be different.
               </p>
             </div>
+
+            {generationAction}
 
             <div className="rounded-2xl border border-slate-200/80 bg-white/86 p-4 shadow-sm dark:border-slate-700/80 dark:bg-slate-950/70 sm:p-5">
               <div className="mb-4 flex flex-col gap-2 border-b border-slate-100 pb-4 sm:flex-row sm:items-center sm:justify-between dark:border-slate-800">
@@ -2077,7 +2125,7 @@ export default function Config({
                           {/* Accordion header */}
                           <button
                             onClick={() => setExpandedId(isExpanded ? null : feature.id)}
-                            className="w-full flex items-center gap-3 px-4 py-3 text-left"
+                            className="flex min-h-12 w-full items-center gap-3 px-4 py-3 text-left"
                             aria-expanded={isExpanded}
                             aria-label={`${isExpanded ? 'Collapse' : 'Expand'} ${feature.label} settings`}
                           >
@@ -2119,40 +2167,12 @@ export default function Config({
                 )}
               </div>
             </div>
-
-            {/* ── Generate button ── */}
-            <div
-              data-testid="config-sticky-action"
-              className="rounded-2xl border border-slate-200/80 bg-white p-3 shadow-sm dark:border-slate-700 dark:bg-slate-950"
-            >
-              {lessonScope.type === 'specific' && !scopeValid && (
-                <p className="text-center text-xs text-amber-500 mb-2">Select at least one lesson to continue.</p>
-              )}
-              <button
-                data-testid="config-generate-button"
-                onClick={onGenerate}
-                disabled={!canGenerate || !scopeValid}
-                className={`tactile btn-glow w-full py-4 rounded-squircle-xs font-semibold text-sm tracking-wide transition-all duration-300 ${
-                  canGenerate && scopeValid
-                    ? 'text-white bg-slate-950 shadow-lg shadow-slate-950/12 hover:bg-slate-800'
-                    : 'bg-slate-200 text-slate-400 cursor-not-allowed shadow-none'
-                }`}
-              >
-                <span className="flex items-center justify-center gap-2.5">
-                  Generate workspace
-                  <span className="hidden text-white/70 sm:inline">· {scopeDescription}</span>
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
-                  </svg>
-                </span>
-              </button>
-            </div>
           </div>
         </main>
 
         {/* Footer */}
         <footer className="py-4 text-center">
-          <div className="flex items-center justify-center gap-3 text-xs text-slate-300/70">
+          <div className="flex items-center justify-center gap-3 text-xs text-ink-muted">
             <a href="#/changelog" className="font-medium hover:text-indigo-500 transition-colors duration-200">
               v{APP_VERSION}
             </a>

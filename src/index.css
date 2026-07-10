@@ -1203,11 +1203,25 @@ body {
   }
 }
 
-/* Touch-friendly minimum tap target */
+/* Touch-friendly minimum tap target. v0.16.3 raises the first-use and
+   workspace controls to the platform-standard 44px floor. */
 @media (max-width: 768px) {
   button,
-  a[role='button'] {
-    min-height: 36px;
+  a[role='button'],
+  summary[role='button'],
+  summary[aria-label] {
+    min-height: 44px;
+  }
+
+  button[aria-label],
+  summary[aria-label] {
+    min-width: 44px;
+  }
+
+  footer a {
+    display: inline-flex;
+    min-height: 44px;
+    align-items: center;
   }
 }
 

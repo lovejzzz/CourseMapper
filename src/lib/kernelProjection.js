@@ -388,7 +388,7 @@ function scenarioEvidenceRequirement(setup, evidenceNoun = 'case') {
  * four moves the stem asks them to make: select the concept, bound the claim,
  * cite the case, and state what more evidence would be needed.
  */
-function composeEvidenceBoundedShortAnswer(scenario, term, fact) {
+function composeEvidenceBoundedShortAnswer(scenario, term, fact, seed = 0) {
   const sentences = [];
   const termName = cleanText(term?.term);
   const definition = definitionAsClause(term);
@@ -398,11 +398,19 @@ function composeEvidenceBoundedShortAnswer(scenario, term, fact) {
   );
   const materials = stripTerminalPeriod(cleanText(scenario?.materials));
   const factClause = stripTerminalPeriod(fact);
+  const variantSeed = projectionTextSeed(seed, termName, definition, setup, materials, factClause);
 
   if (termName && definition) {
     sentences.push(
       ensureSentence(
-        `The best-supported conclusion is that ${termName} is the most relevant concept for interpreting the case: ${lowercaseLead(definition)}`,
+        projectionVariant(variantSeed, [
+          `The best-supported conclusion is that ${termName} is the most relevant concept for interpreting the case: ${lowercaseLead(definition)}`,
+          `${termName} is the strongest interpretive lens here because ${lowercaseLead(definition)}`,
+          `The evidence points first to ${termName}: ${lowercaseLead(definition)}`,
+          `Use ${termName} to frame the conclusion because ${lowercaseLead(definition)}`,
+          `The most defensible method is ${termName}, which ${lowercaseLead(definition)}`,
+          `${termName} best fits the decision in this case: ${lowercaseLead(definition)}`,
+        ]),
       ),
     );
   } else if (termName) {
@@ -411,15 +419,46 @@ function composeEvidenceBoundedShortAnswer(scenario, term, fact) {
     sentences.push(ensureSentence(definition));
   }
 
-  if (setup) sentences.push(ensureSentence(`The decisive case evidence is that ${lowercaseLead(setup)}`));
+  if (setup) {
+    sentences.push(
+      ensureSentence(
+        projectionVariant(variantSeed + 1, [
+          `The decisive case evidence is that ${lowercaseLead(setup)}`,
+          `The case establishes that ${lowercaseLead(setup)}`,
+          `Start from the observable situation: ${lowercaseLead(setup)}`,
+          `The relevant decision context is that ${lowercaseLead(setup)}`,
+          `The supplied case shows that ${lowercaseLead(setup)}`,
+          `The interpretation rests on this case detail: ${lowercaseLead(setup)}`,
+        ]),
+      ),
+    );
+  }
   if (factClause && factClause.toLowerCase() !== definition.toLowerCase()) {
-    sentences.push(ensureSentence(`The disciplinary anchor is that ${lowercaseLead(factClause)}`));
+    sentences.push(
+      ensureSentence(
+        projectionVariant(variantSeed + 2, [
+          `The disciplinary anchor is that ${lowercaseLead(factClause)}`,
+          `Course evidence adds that ${lowercaseLead(factClause)}`,
+          `The key disciplinary principle is that ${lowercaseLead(factClause)}`,
+          `This interpretation is grounded by the fact that ${lowercaseLead(factClause)}`,
+          `The relevant course claim is that ${lowercaseLead(factClause)}`,
+          `A second anchor comes from the lesson: ${lowercaseLead(factClause)}`,
+        ]),
+      ),
+    );
   }
 
   sentences.push(
     materials
       ? ensureSentence(
-          `Use ${lowercaseLead(materials)} to test this interpretation; the supplied evidence supports a bounded next decision, not a broader causal claim without additional evidence`,
+          projectionVariant(variantSeed + 3, [
+            `Use ${lowercaseLead(materials)} to test this interpretation; the supplied evidence supports a bounded next decision, not a broader causal claim without additional evidence`,
+            `Check the conclusion against ${lowercaseLead(materials)}. Those materials justify the next decision but cannot establish a wider cause without more evidence`,
+            `${materials} can support this limited recommendation; those materials do not prove that the same explanation applies beyond the case`,
+            `Test the claim with ${lowercaseLead(materials)}, then keep the boundary explicit: the evidence guides this decision, while broader generalization needs another source`,
+            `The evidence check is ${lowercaseLead(materials)}. It supports a case-specific action, not an unrestricted causal conclusion`,
+            `Ground the recommendation in ${lowercaseLead(materials)} and name the remaining limitation before extending the claim`,
+          ]),
         )
       : 'The supplied evidence supports a bounded interpretation and next decision, not a broader causal claim without additional evidence.',
   );
@@ -432,7 +471,7 @@ function composeEvidenceBoundedShortAnswer(scenario, term, fact) {
     .trim();
 }
 
-function buildShortAnswerItem(kernel, index) {
+function buildShortAnswerItem(kernel, index, seed = 0) {
   const term = bestShortAnswerTerm(kernel);
   if (!term || !cleanText(term.term)) return null;
   const setup = cleanText(kernel?.scenario?.setup);
@@ -446,9 +485,24 @@ function buildShortAnswerItem(kernel, index) {
   const materials =
     stripTerminalPeriod(kernel?.scenario?.materials) || (setup ? 'the scenario evidence' : 'the lesson example');
   const evidenceRequirement = scenarioEvidenceRequirement(setup || exampleAnchor, setup ? 'case' : 'example');
-  const scoringGuidance = `Full credit requires four visible moves: name ${term.term}; state a bounded conclusion; cite ${materials}; and identify one limitation or next piece of evidence. Do not award full credit for merely defining the term.`;
+  const variantSeed = projectionTextSeed(seed, term.term, setup, materials, evidenceRequirement, index);
+  const scoringGuidance = projectionVariant(variantSeed, [
+    `Full credit requires four visible moves: name ${term.term}; state a bounded conclusion; cite ${materials}; and identify one limitation or next piece of evidence. Do not award full credit for merely defining the term.`,
+    `Award full credit only when the response selects ${term.term}, makes a case-bounded claim, uses ${materials}, and states a limitation or additional evidence need. A definition alone is insufficient.`,
+    `Look for concept selection (${term.term}), a defensible conclusion, explicit use of ${materials}, and one boundary or next evidence request. Missing any move keeps the answer incomplete.`,
+    `Score four moves: relevant method, bounded conclusion, case evidence from ${materials}, and a limitation. Do not treat terminology recall as analysis.`,
+    `A complete response identifies ${term.term}, ties its conclusion to ${materials}, limits the claim, and names what evidence would change the decision.`,
+    `Full-credit work makes the reasoning trace visible: ${term.term} → conclusion → evidence in ${materials} → boundary or next evidence.`,
+  ]);
   const questionTail = setup
-    ? `Without assuming a hidden cause, identify the most relevant course concept or method, state the best-supported conclusion, cite ${evidenceRequirement}, and name one limitation or next piece of evidence.`
+    ? projectionVariant(variantSeed + 1, [
+        `Without assuming a hidden cause, identify the most relevant course concept or method, state the best-supported conclusion, cite ${evidenceRequirement}, and name one limitation or next piece of evidence.`,
+        `Select the course concept or method that best fits, give a bounded conclusion, cite ${evidenceRequirement}, and identify one limitation or additional evidence need.`,
+        `Name the most defensible course lens, explain what the case supports, point to ${evidenceRequirement}, and state one boundary or next piece of evidence.`,
+        `Choose the relevant concept or method without inferring hidden motives, use ${evidenceRequirement} to justify the conclusion, and name one limitation.`,
+        `Identify the course principle that should guide the decision, cite ${evidenceRequirement}, distinguish support from assumption, and request one next piece of evidence.`,
+        `Which course method best explains the evidence? State a case-bounded conclusion, reference ${evidenceRequirement}, and name an alternative or limitation.`,
+      ])
     : `Identify the most relevant course concept or method, explain the best-supported conclusion, cite ${evidenceRequirement}, and name one boundary or next piece of evidence.`;
   return {
     index,
@@ -459,7 +513,7 @@ function buildShortAnswerItem(kernel, index) {
     distractorRationales: [],
     // v0.14.1 (1.5): the model answer engages the scenario instead of gluing
     // anchor-fact + definition.
-    answer: composeEvidenceBoundedShortAnswer(kernel?.scenario, term, fact),
+    answer: composeEvidenceBoundedShortAnswer(kernel?.scenario, term, fact, variantSeed),
     explanation: '',
     scoringGuidance,
   };
@@ -608,7 +662,7 @@ export function projectKernelToSurfaces(kernel, { itemPlan = [] } = {}) {
       resolvedKernel?.keyTerms?.[0]?.term,
       resolvedKernel?.discussionPrompt?.prompt,
     );
-    const shortAnswer = buildShortAnswerItem(resolvedKernel, shortAnswerSlot.index);
+    const shortAnswer = buildShortAnswerItem(resolvedKernel, shortAnswerSlot.index, lessonSeed);
     if (shortAnswer) quizItems.push(shortAnswer);
   }
   if (essaySlot) {

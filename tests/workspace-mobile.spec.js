@@ -102,6 +102,38 @@ test.describe('Generated workspace mobile layout', () => {
       await expect(page.getByTestId('workspace-agent-panel')).toBeHidden();
       await expectNoHorizontalOverflow(page);
 
+      const switcherTargetHeights = await page
+        .getByTestId('mobile-workspace-switcher')
+        .getByRole('button')
+        .evaluateAll((buttons) => buttons.map((button) => button.getBoundingClientRect().height));
+      expect(Math.min(...switcherTargetHeights)).toBeGreaterThanOrEqual(44);
+
+      const courseTitleWhiteSpace = await page
+        .getByRole('heading', { level: 1 })
+        .evaluate((heading) => window.getComputedStyle(heading).whiteSpace);
+      expect(courseTitleWhiteSpace).toBe('normal');
+
+      await page
+        .getByTestId('workspace-deliverable-tabs')
+        .getByRole('button', { name: 'Course Map', exact: true })
+        .click();
+      if (viewport.width < 640) {
+        await expect(page.getByText('Swipe the table to review every course-map field.')).toBeVisible();
+        const tableOverflow = await page.getByRole('grid', { name: 'Course Map' }).evaluate((table) => ({
+          clientWidth: table.parentElement?.clientWidth || 0,
+          scrollWidth: table.parentElement?.scrollWidth || 0,
+        }));
+        expect(tableOverflow.scrollWidth).toBeGreaterThan(tableOverflow.clientWidth);
+      } else {
+        await expect(page.getByText('Swipe the table to review every course-map field.')).toBeHidden();
+      }
+
+      const collapseLessonTarget = await page.getByRole('button', { name: 'Collapse lesson 1' }).boundingBox();
+      // Chromium may report an exact 44px CSS target a fraction below 44
+      // after device-pixel conversion (for example 43.99997px at 768px).
+      expect(collapseLessonTarget.width).toBeGreaterThanOrEqual(43.9);
+      expect(collapseLessonTarget.height).toBeGreaterThanOrEqual(43.9);
+
       await page.getByTestId('mobile-workspace-switcher').getByRole('button', { name: 'Agent' }).click();
       await expect(page.getByTestId('workspace-agent-panel')).toBeVisible();
       await expect(page.getByTestId('workspace-content-panel')).toBeHidden();

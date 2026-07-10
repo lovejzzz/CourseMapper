@@ -7,7 +7,8 @@ import { useUI } from './contexts/UIContext';
 import { PUBLIC_SCION_PROVIDER_ID } from './lib/publicScionProvider';
 
 const Landing = lazy(() => import('./screens/Landing'));
-const AppFlow = lazy(() => import('./AppFlow'));
+const loadAppFlow = () => import('./AppFlow');
+const AppFlow = lazy(loadAppFlow);
 const ProjectPicker = lazy(() => import('./components/ProjectPicker'));
 
 const STORAGE_KEY = 'coursemapper-project';
@@ -41,6 +42,20 @@ export default function App() {
       // Ignore unreadable saved sessions; the dismiss action can clear them.
     }
   }, []);
+
+  // Keep the landing bundle lean, then warm the main flow while the user is
+  // reading or entering a brief. The click should preserve continuity instead
+  // of replacing the whole page with a generic loading interstitial.
+  useEffect(() => {
+    if (flowActive) return undefined;
+    const preload = () => loadAppFlow().catch(() => {});
+    if ('requestIdleCallback' in window) {
+      const requestId = window.requestIdleCallback(preload, { timeout: 1500 });
+      return () => window.cancelIdleCallback?.(requestId);
+    }
+    const timeoutId = window.setTimeout(preload, 300);
+    return () => window.clearTimeout(timeoutId);
+  }, [flowActive]);
 
   const setDeveloperMode = useCallback((nextValue) => {
     setDeveloperModeState((previous) => {
