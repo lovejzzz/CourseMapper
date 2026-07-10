@@ -8,6 +8,20 @@ CourseMapper now separates three different questions that the old 40-fixture sco
 
 The 40 fixtures remain valuable, but only as contract tests. They do not constitute independent evidence that a course is teachable.
 
+For model improvement, use the paired quiz diagnostic on two saved real generations. It compares authoring behaviors instead of trusting model names, surfaces only measured reference advantages as learning targets, preserves candidate advantages, and calls out shared weaknesses:
+
+```bash
+npm run audit:quiz:contrast -- \
+  --candidate /path/to/scion/project.json \
+  --reference /path/to/reference/project.json \
+  --candidate-label Scion \
+  --reference-label Reference
+```
+
+The report is written to `verification-output/quiz-contrast/latest.md`. A single pair is directional evidence for prompt and compiler changes; it is not a substitute for the independent benchmark or production canaries.
+
+If an advisory model judge is added to a paired comparison, run the same packet twice with the order reversed (`A/B` and `B/A`). Normalize scores back to the real packet labels. If the preferred packet flips with position, either packet's score moves by more than two points, or both readings prefer the same letter position while the underlying packet preference flips, mark the judge verdict **inconclusive**. Do not average an order-biased pair into a claimed win.
+
 ## Gate profiles
 
 | Profile      | Contract fixtures                                 | Instructor benchmark | Production canaries | Allowed claim                                    |
@@ -46,7 +60,7 @@ The canary policy lives in [`production-canaries/policy.json`](production-canari
 
 A proof-eligible run must retain the generated ZIP, trace, and console log by content hash and include fresh rendered visual QA. Operational success alone is recorded but cannot satisfy the release gate.
 
-The original User Experience Design Studio run is intentionally preserved at 89/B with one P1. The follow-up enriched Scion run records the real improvement to 99/A, 12/12 authored lesson kernels, zero P0/P1 findings, and a 6.8 vs 6.4 advisory model-panel result against GPT-5.6-luna + Compiler. Its ZIP, digest, and console log are hash-verified in the local workspace, and fresh rendered QA passed for the representative 13-slide deck and three-page quiz. The artifacts are not durably retained, so both runs remain useful operational evidence and **neither is release proof**.
+The original User Experience Design Studio run is intentionally preserved at 89/B with one P1. The latest local follow-up records the real improvement to 99/A, 12/12 authored lesson kernels, and zero P0/P1 findings. Its deterministic paired quiz diagnostic matches the Luna packet's applied-MC share, preserves Scion's stronger contrastive rationales, and clears the cue-free plus claim-evidence-boundary short-answer checks that both earlier packets failed. An order-reversed advisory judge preferred the second packet in both orders and moved one packet by more than two points, so that verdict is correctly recorded as inconclusive rather than a model win. Fresh rendered QA passed for representative quiz documents. The artifacts are not durably retained, so the runs remain useful operational evidence and **are not release proof**.
 
 ## Current claim
 

@@ -141,7 +141,19 @@ export function repairPublicScionJsonText(text = '') {
   try {
     parsed = JSON.parse(raw);
   } catch {
-    const prepared = raw.replace(/\]\s*\]\s*,\s*"studyGuide"\s*:/g, '}],"studyGuide":');
+    const prepared = raw
+      // Anonymous responses sometimes close an option array with ]" before
+      // continuing to ai/ex. The extra quote makes the otherwise complete
+      // lesson impossible for jsonrepair to disambiguate on its own.
+      .replace(/\]"\s*,\s*"(ai|answerIndex|ex|explanation)"\s*:/g, '],"$1":')
+      // The same malformed family may close an MC object with ] before the
+      // next item or the study-guide sibling. These replacements are limited
+      // to the known kernel keys so valid strings containing brackets remain
+      // untouched.
+      .replace(/"\]\}\s*,\s*\{"q"/g, '"},{"q"')
+      .replace(/"\]\s*,\s*\{"q"/g, '"},{"q"')
+      .replace(/"\]\]\s*,\s*"studyGuide"\s*:/g, '"}],"studyGuide":')
+      .replace(/\]\s*\]\s*,\s*"studyGuide"\s*:/g, '}],"studyGuide":');
     const candidates = [prepared];
     if (/[^"]\}\}\]\}$/.test(prepared)) {
       candidates.push(prepared.replace(/(\}\}\]\})$/, '"$1'));
@@ -404,7 +416,8 @@ Rules:
 - Return exactly ${lessons.length} lesson object${lessons.length === 1 ? '' : 's'}.
 - Write 5 facts per lesson. Each fact is 8-20 words, at least 20 characters, and states subject knowledge rather than course process.
 - Write 3 keyTerms per lesson. Every df is at least 40 characters; eg is concrete; mi is a plausible misconception; cx directly corrects mi.
-- Write one scenario with a specific 2-sentence su of at least 40 characters and concrete ma.
+- Write one decision-ready scenario. su has exactly 2 specific sentences: first name the context and decision; second give at least 2 inspectable observations, results, quotes, or constraints that bound the conclusion. ma names the concrete artifacts students can inspect.
+- Keep each scenario focused on one construct or decision target. Do not mix accessibility, usability, preference, learning, or performance evidence unless the task explicitly asks students to compare those constructs.
 - Write one genuinely debatable discussionPrompt: pr is at least 25 characters and ends with ?, tn names the tension, po has 2-3 defensible positions.
 - Write one assignmentCore: td is at least 60 characters and names the actual case, data, design, or text plus what students produce; pa has 2-4 concrete constraints.
 - Write exactly 4 mc items: one concept distinction, one concrete case application, one field-note evidence analysis, and one flawed-method evaluation.

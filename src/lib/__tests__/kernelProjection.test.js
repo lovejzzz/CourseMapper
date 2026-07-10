@@ -172,13 +172,18 @@ describe('projectKernelToSurfaces', () => {
     const shortAnswer = byIndex[3];
     expect(shortAnswer.type).toBe('short_answer');
     expect(shortAnswer.question).toContain('city council');
-    expect(shortAnswer.question).toContain('Greenhouse effect');
+    expect(shortAnswer.question).not.toContain('Greenhouse effect');
+    expect(shortAnswer.question).toContain('identify the most relevant course concept or method');
+    expect(shortAnswer.question).toContain('name one limitation or next piece of evidence');
     expect(shortAnswer.answer.length).toBeGreaterThanOrEqual(30);
+    expect(shortAnswer.answer).toContain('Greenhouse effect');
+    expect(shortAnswer.answer).toContain('not a broader causal claim without additional evidence');
     expect(shortAnswer.scoringGuidance).toContain('Mauna Loa');
 
     const essay = byIndex[5];
     expect(essay.type).toBe('essay');
     expect(essay.question).toContain('emissions cuts or adaptation');
+    expect(essay.question).not.toContain('dataset..');
     expect(essay.scoringGuidance).toMatch(/opposing view|alternative|counterclaim/i);
     expect(essay.scoringGuidance).not.toContain('state a clear position, engage at least one opposing view');
     expect(shortAnswer.scoringGuidance).not.toContain('partial credit for correct concepts supported by thin evidence');
@@ -297,11 +302,43 @@ describe('projectKernelToSurfaces', () => {
     const shortAnswer = payload.quizItems.find((item) => item.type === 'short_answer');
     expect(shortAnswer).toBeTruthy();
     expect(shortAnswer.question).toMatch(/CO2 and methane absorb infrared radiation/);
-    expect(shortAnswer.question).toContain('Greenhouse effect');
+    expect(shortAnswer.question).not.toContain('Greenhouse effect');
+    expect(shortAnswer.question).toContain('Identify the most relevant course concept or method');
     expect(shortAnswer.answer).toMatch(/greenhouse effect/i);
     // No term carries a correction, so the misconception-tension essay
     // fallback has nothing gradeable and the essay frame is omitted.
     expect(payload.quizItems.map((item) => item.type)).not.toContain('essay');
+  });
+
+  it('keys the short answer to the term best supported by the scenario instead of the first term', () => {
+    const payload = projectKernelToSurfaces(
+      {
+        ...KERNEL,
+        keyTerms: [
+          {
+            term: 'Card Sorting',
+            definition: 'A method where participants organize cards into groups that make sense to them.',
+            example: 'Participants group product cards into candidate categories.',
+          },
+          {
+            term: 'Navigation Structure',
+            definition: 'The hierarchy of links that lets users move through a website or application.',
+            example: 'A flat menu and a multi-level menu provide different navigation structures.',
+          },
+        ],
+        scenario: {
+          setup:
+            'A startup must decide between a flat navigation menu and a multi-level hierarchy. The team compares user-flow data with two navigation mockups.',
+          materials: 'user-flow analytics and the two prototype navigation mockups.',
+        },
+        facts: ['Navigation hierarchy changes how users move between product categories.', ...KERNEL.facts],
+      },
+      { itemPlan },
+    );
+    const shortAnswer = payload.quizItems.find((item) => item.type === 'short_answer');
+    expect(shortAnswer.answer).toContain('Navigation Structure');
+    expect(shortAnswer.answer).not.toContain('Card Sorting is the most relevant');
+    expect(shortAnswer.scoringGuidance).not.toContain('mockups..');
   });
 
   it('builds a misconception-tension essay when the discussion prompt is missing but a correction exists', () => {

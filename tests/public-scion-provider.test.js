@@ -112,6 +112,9 @@ Return ONLY valid JSON matching the kernel shape from the instructions.`;
       'At least 3 mc stems include specific observed behavior or evidence',
     );
     expect(req.body.messages[1].content).toContain('Never infer motive from one ambiguous behavior');
+    expect(req.body.messages[1].content).toContain('one decision-ready scenario');
+    expect(req.body.messages[1].content).toContain('at least 2 inspectable observations');
+    expect(req.body.messages[1].content).toContain('focused on one construct or decision target');
     expect(req.body.messages[1].content).toContain('Also return one compact courseLevel object');
     expect(req.body.messages[1].content).not.toContain('compact CourseMapper lessons');
   });
@@ -220,6 +223,18 @@ Continue generating the REMAINING lessons (Lesson 10 through Lesson 12).`;
     expect(JSON.parse(repairPublicScionJsonText(missingFinalStringQuote)).lessons[0].studyGuide.rs).toContain(
       'prototype fidelity',
     );
+  });
+
+  it('repairs malformed MC option-array and item closers without changing content', () => {
+    const malformed =
+      '{"lessons":[{"lessonId":"lesson-2","mc":[{"q":"Which action is best?","op":["A","B","C","D"]","ai":1,"ex":"B uses the evidence."]},{"q":"Which flaw matters?","op":["A","B","C","D"]","ai":0,"ex":"A identifies the sampling flaw."]],"studyGuide":{"sm":"A sufficiently long subject summary connecting research planning with ethical safeguards.","rs":"Compare each decision with the supplied evidence before choosing an answer."}}]}';
+
+    const repaired = JSON.parse(repairPublicScionJsonText(malformed));
+    expect(repaired.lessons[0].lessonId).toBe('lesson-2');
+    expect(repaired.lessons[0].mc).toHaveLength(2);
+    expect(repaired.lessons[0].mc[0]).toMatchObject({ ai: 1, ex: 'B uses the evidence.' });
+    expect(repaired.lessons[0].mc[1].op).toEqual(['A', 'B', 'C', 'D']);
+    expect(repaired.lessons[0].studyGuide.rs).toContain('supplied evidence');
   });
 
   it('realigns a public mc key only when its explanation uniquely supports another option', () => {

@@ -4,8 +4,12 @@ import {
   buildQuizDepthFindings,
   extractMultipleChoiceQuizStems,
   extractMultipleChoiceQuizItems,
+  extractShortAnswerQuizItems,
   isAppliedQuizStem,
+  isClaimEvidenceBoundaryShortAnswer,
+  isConceptCuedCompilerShortAnswer,
   summarizeAppliedQuizDepth,
+  summarizeConstructedResponseDepth,
   summarizeUnsupportedQuizInferences,
 } from '../quizItemDepth.js';
 
@@ -75,6 +79,34 @@ describe('quiz item depth', () => {
       },
     ];
     expect(summarizeUnsupportedQuizInferences(files)).toMatchObject({ total: 2, risky: 1 });
+  });
+
+  it('distinguishes concept-cued compiler frames from claim-evidence-boundary tasks', () => {
+    const oldFrame =
+      'A participant pauses twice at checkout. Using Contextual Inquiry, analyze what this evidence shows and justify your conclusion.';
+    const boundedTask =
+      'A participant pauses twice at checkout and asks for help. Without assuming a hidden cause, identify the most relevant course method, state the best-supported conclusion, cite two case details, and name one limitation or next piece of evidence.';
+    expect(isConceptCuedCompilerShortAnswer(oldFrame)).toBe(true);
+    expect(isClaimEvidenceBoundaryShortAnswer(oldFrame)).toBe(false);
+    expect(isConceptCuedCompilerShortAnswer(boundedTask)).toBe(false);
+    expect(isClaimEvidenceBoundaryShortAnswer(boundedTask)).toBe(true);
+  });
+
+  it('extracts and summarizes short-answer reasoning depth', () => {
+    const files = [
+      {
+        paragraphs: [
+          'Q1 (Short answer, 4 pts, ~5 min): A participant pauses twice. Use Contextual Inquiry to interpret the evidence and defend a conclusion.',
+          'Q2 (Short answer, 4 pts, ~5 min): A participant pauses twice and asks for help. Identify the most relevant method, cite two case details, and name one limitation or next piece of evidence.',
+        ],
+      },
+    ];
+    expect(extractShortAnswerQuizItems(files[0].paragraphs)).toHaveLength(2);
+    expect(summarizeConstructedResponseDepth(files)).toMatchObject({
+      total: 2,
+      conceptCued: 1,
+      claimEvidenceBoundary: 1,
+    });
   });
 
   it('turns package-level depth into normal grader findings', () => {

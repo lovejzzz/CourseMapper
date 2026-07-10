@@ -3,6 +3,7 @@ import { lintItemAdmission } from '../itemAdmissionLint.js';
 const APPLIED_MCQ_P1_FLOOR = 0.15;
 const APPLIED_MCQ_P2_FLOOR = 0.35;
 const UNSUPPORTED_INFERENCE_P1_COUNT = 4;
+const CONSTRUCTED_RESPONSE_TARGET = 0.5;
 
 /**
  * Small, browser-safe heuristics for detecting whether a multiple-choice stem
@@ -18,7 +19,7 @@ const ACTION_RE =
 const EVIDENCE_RE =
   /\b(?:field ?notes?|data|results?|recordings?|quotes?|observations?|tests?|diagrams?|passages?|equations?|tables?|logs?|outputs?|responses?|transcripts?|samples?|stud(?:y|ies)|surveys?|screens?|forms?|interfaces?|prototypes?|wireframes?|behavio(?:u)?rs?|patterns?|cases?|scenarios?|sites?|artifacts?|drafts?|materials?)\b/i;
 const REASONING_RE =
-  /\b(?:what should|which (?:response|interpretation|conclusion|action|change|claim|finding|inference|method|evidence|approach|choice|use|move)|how should|what does this|best (?:reflects|explains|supports|addresses)|what (?:problem|issue)|most (?:useful|relevant|clearly|evident)|reveals?|supports?|indicates?|suggests?)\b/i;
+  /\b(?:what should|which (?:(?:next|best|first)\s+)?(?:response|interpretation|conclusion|action|step|change|claim|finding|inference|method|evidence|approach|choice|use|move)|how should|what does this|best (?:reflects|explains|supports|addresses)|what (?:problem|issue)|most (?:useful|relevant|clearly|evident)|reveals?|supports?|indicates?|suggests?)\b/i;
 
 function normalizeStem(value) {
   return String(value || '')
@@ -48,6 +49,62 @@ export function extractMultipleChoiceQuizItems(paragraphs = []) {
     items.push({ question: normalizeStem(match[1]), options });
   }
   return items;
+}
+
+export function extractShortAnswerQuizItems(paragraphs = []) {
+  const lines = Array.isArray(paragraphs) ? paragraphs : String(paragraphs || '').split(/\r?\n/);
+  const items = [];
+  for (const value of lines) {
+    const line = normalizeStem(value);
+    if (/^Answer Key\b/i.test(line)) break;
+    const match = /^Q\d+\s*\(\s*Short answer\b[^)]*\)\s*:\s*(.+)$/i.exec(line);
+    if (match) items.push({ question: normalizeStem(match[1]) });
+  }
+  return items;
+}
+
+/**
+ * Detect the old deterministic projection frame. Naming a concept can be
+ * valid in a focused application task, but this exact frame also generated a
+ * model answer whose main move was simply identifying that named concept.
+ */
+export function isConceptCuedCompilerShortAnswer(stem) {
+  const text = normalizeStem(stem);
+  return /\b(?:using|use|apply|connect)\s+[A-Z][A-Za-z0-9 &'’/-]{1,60}(?:,|\s+to)\s+(?:analy[sz]e|interpret|state|explain|make|the scenario)\b/i.test(
+    text,
+  );
+}
+
+export function isClaimEvidenceBoundaryShortAnswer(stem) {
+  const text = normalizeStem(stem);
+  const selectsConcept =
+    /\b(?:identify|select|choose|name)\b.{0,80}\b(?:concept|method|framework|principle|rule|lens)\b/i.test(text);
+  const usesEvidence =
+    /\b(?:cite|use|reference|point to|draw on)\b.{0,80}\b(?:evidence|detail|observation|result|quote|case)\b/i.test(
+      text,
+    );
+  const boundsClaim =
+    /\b(?:limit(?:ation)?|boundary|alternative|next piece of evidence|additional evidence|does not prove)\b/i.test(
+      text,
+    );
+  return selectsConcept && usesEvidence && boundsClaim;
+}
+
+export function summarizeConstructedResponseDepth(files = []) {
+  const items = files.flatMap((file) =>
+    extractShortAnswerQuizItems(Array.isArray(file) ? file : file?.paragraphs || file?.text || []),
+  );
+  const conceptCuedItems = items.filter((item) => isConceptCuedCompilerShortAnswer(item.question));
+  const claimEvidenceBoundaryItems = items.filter((item) => isClaimEvidenceBoundaryShortAnswer(item.question));
+  return {
+    items,
+    conceptCuedItems,
+    claimEvidenceBoundaryItems,
+    total: items.length,
+    conceptCued: conceptCuedItems.length,
+    claimEvidenceBoundary: claimEvidenceBoundaryItems.length,
+    claimEvidenceBoundaryShare: items.length > 0 ? claimEvidenceBoundaryItems.length / items.length : 0,
+  };
 }
 
 export function isAppliedQuizStem(stem) {
@@ -116,6 +173,22 @@ export function buildQuizDepthFindings(files = []) {
       file: 'quizBank',
       detail: `${inference.risky} multiple-choice stem${inference.risky === 1 ? '' : 's'} ask${inference.risky === 1 ? 's' : ''} for an inference that the supplied evidence cannot uniquely support`,
       evidence: String(inference.riskyItems[0]?.question || '').slice(0, 180),
+    });
+  }
+
+  const constructed = summarizeConstructedResponseDepth(files);
+  if (
+    constructed.total >= 12 &&
+    (constructed.conceptCued >= Math.ceil(constructed.total / 2) ||
+      constructed.claimEvidenceBoundaryShare < CONSTRUCTED_RESPONSE_TARGET)
+  ) {
+    findings.push({
+      severity: 'P2',
+      dimension: 'substance',
+      file: 'quizBank',
+      detail:
+        'short-answer bank does not consistently require independent concept selection plus claim-evidence-boundary reasoning',
+      evidence: `${constructed.conceptCued}/${constructed.total} concept-cued compiler frames; ${constructed.claimEvidenceBoundary}/${constructed.total} explicit claim-evidence-boundary tasks`,
     });
   }
   return findings;

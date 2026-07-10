@@ -88,7 +88,7 @@ function wordCount(text) {
 }
 
 const BEHAVIOR_INFERENCE_STEM_RE =
-  /\b(?:which interpretation|what does this suggest|what (?:does this )?indicate|what likely explains|which (?:factor|reason) most likely explains)\b/i;
+  /\b(?:which interpretation|what does this suggest|what (?:does this )?indicate|what likely explains|which (?:factor|reason) most likely explains|which (?:evidence(?: type)?|observation|factor|reason) (?:best|most likely) explains)\b/i;
 const AMBIGUOUS_BEHAVIOR_RE =
   /\b(?:hesitat\w*|paus\w*|laugh\w*|glanc\w*|look(?:ed|s|ing)?|click\w*|tap\w*|avoid\w*|wait\w*|reopen\w*|us(?:e|es|ed|ing))\b/i;
 const CORROBORATING_CONTEXT_RE =
@@ -118,6 +118,10 @@ const ABSENCE_OVERCLAIM_RE =
   /\bconclud\w*\b[^?]{0,180}\bbecause\b[^?]{0,120}\b(?:avoided|did not|never|no observed)\b[^?]{0,120}\b(?:unnecessary|unused|not needed|irrelevant)\b/i;
 const ABSENCE_LIMIT_KEY_RE =
   /\b(?:does not prove|cannot conclude|insufficient|observation alone|absence of use|avoidance|discoverability|visibility|need(?:s)? (?:a )?(?:follow-up|comparison|test|more evidence))\b/i;
+const POLICY_JUDGMENT_KEY_RE =
+  /\b(?:(?:violat|break|ignor|follow|compl|adher)\w*\b[^.]{0,60}\b(?:policy|rule|requirement)|(?:policy|rule|requirement)\b[^.]{0,60}\b(?:violat|break|ignor|follow|compl|adher)\w*)\b/i;
+const POLICY_CONTEXT_RE =
+  /\b(?:policy|rule|requirement|required|allowed|prohibited|forbidden|must|may not|procedure states?|guideline states?)\b/i;
 
 export function hasUnsupportedCausalInference(item) {
   const stem = cleanText(item?.question);
@@ -133,6 +137,20 @@ export function hasUnsupportedAbsenceInference(item) {
   const answerIndex = Number(item?.answerIndex);
   const key = Number.isInteger(answerIndex) && answerIndex >= 0 ? cleanText(options[answerIndex]) : '';
   return !ABSENCE_LIMIT_KEY_RE.test(`${key} ${cleanText(item?.explanation)}`);
+}
+
+/**
+ * A behavior or quote can establish what someone did, but it cannot establish
+ * policy compliance or violation unless the stem supplies the policy. This is
+ * separate from motive inference: even an explicit "I skipped it" quote does
+ * not tell students whether skipping was allowed.
+ */
+export function hasUnsupportedPolicyInference(item) {
+  const options = Array.isArray(item?.options) ? item.options : [];
+  const answerIndex = Number(item?.answerIndex);
+  const key = Number.isInteger(answerIndex) && answerIndex >= 0 ? cleanText(options[answerIndex]) : '';
+  if (!POLICY_JUDGMENT_KEY_RE.test(key)) return false;
+  return !POLICY_CONTEXT_RE.test(cleanText(item?.question));
 }
 
 /**
@@ -200,5 +218,6 @@ export function lintItemAdmission(item) {
   if (hasUnsupportedBehaviorInference(item)) issues.push('unsupported-behavior-inference');
   if (hasUnsupportedCausalInference(item)) issues.push('unsupported-causal-inference');
   if (hasUnsupportedAbsenceInference(item)) issues.push('unsupported-absence-inference');
+  if (hasUnsupportedPolicyInference(item)) issues.push('unsupported-policy-inference');
   return issues;
 }

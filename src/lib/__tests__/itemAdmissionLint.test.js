@@ -6,6 +6,7 @@ import {
   hasUnsupportedAbsenceInference,
   hasUnsupportedBehaviorInference,
   hasUnsupportedCausalInference,
+  hasUnsupportedPolicyInference,
   lintItemAdmission,
 } from '../itemAdmissionLint.js';
 import { lintEnrichedQuizItem } from '../blueprintEnrichmentPass.js';
@@ -172,5 +173,44 @@ describe('itemAdmissionLint (test-wiseness battery)', () => {
       explanation: 'Absence of use in one observation cannot establish that the feature is unnecessary.',
     };
     expect(hasUnsupportedAbsenceInference(supported)).toBe(false);
+  });
+
+  it('rejects a policy judgment when the stem never supplies the policy', () => {
+    const unsupported = {
+      question:
+        'A cashier says, "I skip the receipt step when customers are in a hurry." Which interpretation is most supported by the evidence?',
+      options: [
+        'The cashier is intentionally violating company policy',
+        'The cashier is following an allowed rush-hour procedure',
+        'The cashier is unaware of the receipt setting',
+        'The cashier is trying to reduce transaction errors',
+      ],
+      answerIndex: 0,
+    };
+    expect(hasUnsupportedPolicyInference(unsupported)).toBe(true);
+    expect(lintItemAdmission(unsupported)).toContain('unsupported-policy-inference');
+
+    const supported = {
+      ...unsupported,
+      question:
+        'Company policy requires a receipt offer for every transaction. A cashier says, "I skip the receipt step when customers are in a hurry." Which interpretation is most supported?',
+    };
+    expect(hasUnsupportedPolicyInference(supported)).toBe(false);
+  });
+
+  it('rejects an invented explanation for one recorded pause', () => {
+    const unsupported = {
+      question:
+        'A field note records that a user repeatedly pauses while selecting items. Which evidence type best explains this pause?',
+      options: [
+        'The user is distracted by a notification',
+        'The user is uncertain about availability',
+        'The user is experiencing a technical glitch',
+        'The user is reading the product description',
+      ],
+      answerIndex: 1,
+    };
+    expect(hasUnsupportedBehaviorInference(unsupported)).toBe(true);
+    expect(lintItemAdmission(unsupported)).toContain('unsupported-behavior-inference');
   });
 });

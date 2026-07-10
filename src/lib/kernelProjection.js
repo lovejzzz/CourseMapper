@@ -119,6 +119,38 @@ function bestFactFor(reference, facts = []) {
   return best;
 }
 
+function bestShortAnswerTerm(kernel) {
+  const terms = Array.isArray(kernel?.keyTerms)
+    ? kernel.keyTerms.filter((term) => cleanText(term?.term) && cleanText(term?.definition))
+    : [];
+  if (terms.length < 2) return terms[0] || null;
+  const setup = cleanText(kernel?.scenario?.setup);
+  const materials = cleanText(kernel?.scenario?.materials);
+  if (!setup && !materials) return terms[0];
+
+  const ranked = terms
+    .map((term, index) => {
+      const labelScore = overlapScore(term.term, setup) * 4 + overlapScore(term.term, materials) * 2;
+      return {
+        term,
+        index,
+        labelScore,
+        score:
+          labelScore +
+          overlapScore(`${term.definition} ${term.example || ''}`, setup) +
+          overlapScore(`${term.definition} ${term.example || ''}`, materials) * 0.5,
+      };
+    })
+    .sort((a, b) => b.score - a.score || a.index - b.index);
+  const best = ranked[0];
+  const first = ranked.find((candidate) => candidate.index === 0);
+  // The first term is the model's intended anchor. Override it only when a
+  // different term's NAME appears in the evidence packet and its total fit is
+  // stronger. Definition-only overlap can be a false friend (for example,
+  // "reflects" selecting Albedo in a CO2 scenario that "reflects a signal").
+  return best.index !== 0 && best.labelScore > 0 && best.score > first.score ? best.term : first.term;
+}
+
 /**
  * Match each wrong option to a term misconception by content-word overlap.
  * All wrong options must match — a partially matched rationale set reads as
@@ -316,8 +348,67 @@ export function composeScenarioAnswer(scenario, term, fact, { position = '', cou
     .trim();
 }
 
-function buildShortAnswerItem(kernel, index, seed = 0) {
-  const term = kernel?.keyTerms?.[0];
+function scenarioEvidenceRequirement(setup, evidenceNoun = 'case') {
+  const text = cleanText(setup);
+  const sentences = text.split(/(?<=[.!?])\s+/).filter(Boolean);
+  const hasMultipleClauses = /[,;]\s*(?:and|but|then|while)\b|\b(?:but|while|whereas|then)\b/i.test(text);
+  return sentences.length >= 2 || hasMultipleClauses
+    ? `at least two ${evidenceNoun} details`
+    : `the decisive ${evidenceNoun} detail`;
+}
+
+/**
+ * A short-answer key for the evidence-selection task below. Unlike the essay
+ * answer, this deliberately does not hand students a position. It models the
+ * four moves the stem asks them to make: select the concept, bound the claim,
+ * cite the case, and state what more evidence would be needed.
+ */
+function composeEvidenceBoundedShortAnswer(scenario, term, fact) {
+  const sentences = [];
+  const termName = cleanText(term?.term);
+  const definition = definitionAsClause(term);
+  const setup = stripTerminalPeriod(cleanText(scenario?.setup)).replace(
+    /^(?:consider|imagine|suppose(?:\s+that)?|picture|examine)\s+/i,
+    '',
+  );
+  const materials = stripTerminalPeriod(cleanText(scenario?.materials));
+  const factClause = stripTerminalPeriod(fact);
+
+  if (termName && definition) {
+    sentences.push(
+      ensureSentence(
+        `The best-supported conclusion is that ${termName} is the most relevant concept for interpreting the case: ${lowercaseLead(definition)}`,
+      ),
+    );
+  } else if (termName) {
+    sentences.push(ensureSentence(`The most relevant concept or method is ${termName}`));
+  } else if (definition) {
+    sentences.push(ensureSentence(definition));
+  }
+
+  if (setup) sentences.push(ensureSentence(`The decisive case evidence is that ${lowercaseLead(setup)}`));
+  if (factClause && factClause.toLowerCase() !== definition.toLowerCase()) {
+    sentences.push(ensureSentence(`The disciplinary anchor is that ${lowercaseLead(factClause)}`));
+  }
+
+  sentences.push(
+    materials
+      ? ensureSentence(
+          `Use ${lowercaseLead(materials)} to test this interpretation; the supplied evidence supports a bounded next decision, not a broader causal claim without additional evidence`,
+        )
+      : 'The supplied evidence supports a bounded interpretation and next decision, not a broader causal claim without additional evidence.',
+  );
+
+  return sentences
+    .filter(Boolean)
+    .join(' ')
+    .replace(/\.{2,}/g, '.')
+    .replace(/\s{2,}/g, ' ')
+    .trim();
+}
+
+function buildShortAnswerItem(kernel, index) {
+  const term = bestShortAnswerTerm(kernel);
   if (!term || !cleanText(term.term)) return null;
   const setup = cleanText(kernel?.scenario?.setup);
   const fact = bestFactFor(term, kernel.facts) || kernel.facts?.[0] || '';
@@ -327,34 +418,13 @@ function buildShortAnswerItem(kernel, index, seed = 0) {
   // item — the only alternative is the subject-free template frame.
   const exampleAnchor = cleanText(term.example) || cleanText(fact);
   if (!setup && !exampleAnchor) return null;
-  const materials = cleanText(kernel?.scenario?.materials) || (setup ? 'the scenario evidence' : 'the lesson example');
-  const variantSeed = projectionTextSeed(seed, setup || exampleAnchor, term.term, materials, fact, index);
-  const scoringGuidance = projectionVariant(variantSeed, [
-    `Full credit uses ${term.term} accurately, cites ${materials}, and reaches a defensible conclusion; give partial credit when the concept is right but the evidence is thin.`,
-    `Score for three visible moves: correct ${term.term} language, direct use of ${materials}, and a conclusion the evidence can support.`,
-    `A strong answer names ${term.term}, points to the ${setup ? 'scenario' : 'example'} evidence, and explains the conclusion; answers with accurate ideas but weak support earn partial credit.`,
-    `Award full credit only when ${term.term}, ${materials}, and the final claim work together; unsupported concept recall should stay below full credit.`,
-    `Look for accurate ${term.term} use, a concrete reference to ${materials}, and a conclusion that does not outrun the evidence.`,
-    `Give full credit when the response uses ${term.term} to interpret ${materials} and explains why the conclusion follows.`,
-  ]);
-  const questionTail = projectionVariant(
-    variantSeed,
-    setup
-      ? [
-          `Using ${term.term}, analyze what this evidence shows and justify your conclusion.`,
-          `Use ${term.term} to interpret the evidence and defend a conclusion.`,
-          `Apply ${term.term} to the scenario and explain what conclusion the evidence supports.`,
-          `Using ${term.term}, state the best-supported conclusion and explain the evidence behind it.`,
-          `Connect ${term.term} to the scenario evidence and explain the reasoning it supports.`,
-          `Use ${term.term} to make a supported claim from the scenario evidence.`,
-        ]
-      : [
-          `Using ${term.term}, explain what this example shows and justify your conclusion.`,
-          `Use ${term.term} to interpret this example and defend a conclusion.`,
-          `Explain how ${term.term} applies here and what conclusion the evidence supports.`,
-          `Using ${term.term}, state the best-supported conclusion and explain the reasoning behind it.`,
-        ],
-  );
+  const materials =
+    stripTerminalPeriod(kernel?.scenario?.materials) || (setup ? 'the scenario evidence' : 'the lesson example');
+  const evidenceRequirement = scenarioEvidenceRequirement(setup || exampleAnchor, setup ? 'case' : 'example');
+  const scoringGuidance = `Full credit requires four visible moves: name ${term.term}; state a bounded conclusion; cite ${materials}; and identify one limitation or next piece of evidence. Do not award full credit for merely defining the term.`;
+  const questionTail = setup
+    ? `Without assuming a hidden cause, identify the most relevant course concept or method, state the best-supported conclusion, cite ${evidenceRequirement}, and name one limitation or next piece of evidence.`
+    : `Identify the most relevant course concept or method, explain the best-supported conclusion, cite ${evidenceRequirement}, and name one boundary or next piece of evidence.`;
   return {
     index,
     type: 'short_answer',
@@ -364,7 +434,7 @@ function buildShortAnswerItem(kernel, index, seed = 0) {
     distractorRationales: [],
     // v0.14.1 (1.5): the model answer engages the scenario instead of gluing
     // anchor-fact + definition.
-    answer: composeScenarioAnswer(kernel?.scenario, term, fact, { seed: variantSeed }),
+    answer: composeEvidenceBoundedShortAnswer(kernel?.scenario, term, fact),
     explanation: '',
     scoringGuidance,
   };
@@ -391,7 +461,7 @@ function buildEssayItem(kernel, index, seed = 0) {
     )}." Evaluate this claim — what does the course evidence actually support?`;
     positions = [cleanText(contested.correction), cleanText(contested.misconception)];
   }
-  const materials = cleanText(kernel?.scenario?.materials) || 'the assigned materials';
+  const materials = stripTerminalPeriod(kernel?.scenario?.materials) || 'the assigned materials';
   const counterposition = positions[1] ? ` (for example: ${stripTerminalPeriod(positions[1]).toLowerCase()})` : '';
   const sampleFact = term ? bestFactFor(term, kernel.facts) : kernel.facts?.[0] || '';
   const variantSeed = projectionTextSeed(seed, prompt, term?.term, materials, positions[0], positions[1], index);
@@ -511,7 +581,7 @@ export function projectKernelToSurfaces(kernel, { itemPlan = [] } = {}) {
       kernel?.keyTerms?.[0]?.term,
       kernel?.discussionPrompt?.prompt,
     );
-    const shortAnswer = buildShortAnswerItem(kernel, shortAnswerSlot.index, lessonSeed);
+    const shortAnswer = buildShortAnswerItem(kernel, shortAnswerSlot.index);
     if (shortAnswer) quizItems.push(shortAnswer);
   }
   if (essaySlot) {

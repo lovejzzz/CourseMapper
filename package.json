@@ -41,6 +41,7 @@
     "audit:evaluation:pr": "node scripts/evaluationSystemAudit.mjs --profile pr",
     "audit:evaluation:main": "node scripts/evaluationSystemAudit.mjs --profile main",
     "audit:evaluation:release": "node scripts/evaluationSystemAudit.mjs --profile release",
+    "audit:quiz:contrast": "node scripts/quizContrastAudit.mjs",
     "audit:deep-quality": "node scripts/deepProofQualityGate.mjs",
     "audit:self": "node scripts/internalSelfImprovementAudit.mjs",
     "audit:self:rounds": "node scripts/internalSelfImprovementAudit.mjs --rounds 5",
