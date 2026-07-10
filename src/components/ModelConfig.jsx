@@ -657,7 +657,7 @@ export default function ModelConfig() {
               onChange={(e) => setProvider(e.target.value)}
               className="input-glass w-full rounded-xl px-3.5 py-2.5 pr-9 text-sm text-slate-700 focus:outline-none appearance-none cursor-pointer"
             >
-              <option value="public">Scion</option>
+              <option value="public">Scion Draft (free)</option>
               <option value="openai">OpenAI</option>
               <option value="anthropic">Anthropic</option>
               <option value="google">Google</option>
@@ -727,18 +727,23 @@ export default function ModelConfig() {
             </>
           ) : provider === PUBLIC_SCION_PROVIDER_ID ? (
             <>
-              <div className="block text-xs font-medium text-slate-500 mb-1.5 tracking-wide uppercase">Access</div>
+              <div className="block text-xs font-medium text-slate-500 mb-1.5 tracking-wide uppercase">Draft mode</div>
               {apiStatus === 'connected' ? (
-                <div className="w-full rounded-squircle-xs bg-emerald-50/40 border border-emerald-200/50 px-3.5 py-2.5 text-sm text-emerald-700 flex items-center gap-2">
+                <div className="flex w-full items-center gap-2 rounded-squircle-xs border border-amber-200/70 bg-amber-50/60 px-3.5 py-2.5 text-sm text-amber-800 dark:border-amber-400/30 dark:bg-amber-400/10 dark:text-amber-200">
                   <svg
-                    className="w-4 h-4 text-emerald-500 shrink-0"
+                    className="h-4 w-4 shrink-0 text-amber-500 dark:text-amber-300"
                     fill="none"
                     stroke="currentColor"
                     viewBox="0 0 24 24"
                   >
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2.5}
+                      d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
+                    />
                   </svg>
-                  No API key or local server needed
+                  No key needed · review drafts before publishing
                 </div>
               ) : apiStatus === 'validating' ? (
                 <div className="w-full rounded-squircle-xs bg-slate-50/60 border border-slate-200/40 px-3.5 py-2.5 text-sm text-slate-500">
@@ -911,7 +916,7 @@ export default function ModelConfig() {
             >
               {availableModels.map((m) => (
                 <option key={m.id} value={m.id}>
-                  {describeModelOption(m)}
+                  {provider === PUBLIC_SCION_PROVIDER_ID ? 'Scion Draft · compact planner' : describeModelOption(m)}
                 </option>
               ))}
             </select>
@@ -928,7 +933,7 @@ export default function ModelConfig() {
                   : apiStatus === 'error'
                     ? validationErrorLabel
                     : provider === PUBLIC_SCION_PROVIDER_ID
-                      ? 'Scion ready'
+                      ? 'Scion Draft ready'
                       : 'Enter API key first'}
             </div>
           )}
@@ -960,7 +965,16 @@ export default function ModelConfig() {
           ))}
         </div>
       )}
-      {hasSelectableModels && (
+      {hasSelectableModels && provider === PUBLIC_SCION_PROVIDER_ID && (
+        <div
+          className="mt-4 rounded-squircle-xs border border-amber-200/70 bg-amber-50/60 px-3.5 py-3 text-xs leading-relaxed text-amber-900 dark:border-amber-400/30 dark:bg-amber-400/10 dark:text-amber-100"
+          data-testid="scion-draft-boundary"
+        >
+          Scion Draft plans a compact course map. Package materials compile locally without subject-matter enrichment,
+          so review and revise them before publishing.
+        </div>
+      )}
+      {hasSelectableModels && provider !== PUBLIC_SCION_PROVIDER_ID && (
         <div className="mt-4" data-testid="enrichment-preference">
           <label className="block text-xs font-medium text-slate-500 mb-1.5 tracking-wide uppercase">
             Subject-matter enrichment

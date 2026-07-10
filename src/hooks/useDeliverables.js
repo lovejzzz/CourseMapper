@@ -559,10 +559,12 @@ export default function useDeliverables({
       // Config preference → the generation plan's default ('adaptive' for
       // structured-output models) → off.
       const blueprintEnrichmentMode =
-        generationOptions.useBlueprintEnrichment ??
-        enrichmentPreferenceOverride() ??
-        generationPlan?.blueprintEnrichment ??
-        false;
+        provider === PUBLIC_SCION_PROVIDER_ID
+          ? false
+          : (generationOptions.useBlueprintEnrichment ??
+            enrichmentPreferenceOverride() ??
+            generationPlan?.blueprintEnrichment ??
+            false);
       const enrichmentModelAvailable = Boolean(
         provider &&
         modelId &&
@@ -978,23 +980,9 @@ export default function useDeliverables({
           ? scopeIndices
           : (blueprintCourseMap.lessons || []).map((_, lessonIdx) => lessonIdx);
 
-        // v0.15.186: warm the open-readings cache WHILE enrichment authors
-        // content. The knowledge queries derive from lesson titles — identical
-        // between this preliminary graph and the post-enrichment graph — and
-        // results cache weekly in localStorage, so the authoritative attach
-        // after compile becomes a cache hit instead of up to 8s/topic of
-        // network wait on the critical path. Fire-and-forget: a failure here
-        // is invisible because the real attach below still runs.
-        void (async () => {
-          try {
-            const [graphLib, knowledge] = await Promise.all([import('../lib/courseGraph'), import('../lib/knowledge')]);
-            const prefetchGraph = graphLib.deriveCourseGraphFromCourseMap(blueprintCourseMap);
-            knowledge.attachGenomeResources(prefetchGraph);
-            await knowledge.attachOpenReadings(prefetchGraph);
-          } catch {
-            // best-effort cache warm only
-          }
-        })();
+        // Source retrieval runs once after the authoritative graph is built.
+        // A speculative prefetch here raced cache writes and doubled anonymous
+        // OpenAlex requests on larger courses.
 
         // ── Stage 1: CurriculumOS genome linker — free, deterministic, and
         // independent of the enrichment flag and model availability. Library
@@ -2230,10 +2218,17 @@ export default function useDeliverables({
         try {
           const knowledge = await import('../lib/knowledge');
           genomeResourceCount = knowledge.attachGenomeResources(courseGraph);
-          openReadingCount = await knowledge.attachOpenReadings(courseGraph);
+          openReadingCount = await knowledge.attachOpenReadings(courseGraph, { maxSessions: 8 });
           let coverage = knowledge.knowledgeCoverage(courseGraph);
           if (knowledge.shouldRunSourceFinder?.(coverage)) {
-            const sourceMiniShard = await knowledge.findCourseSources(courseGraph, { maxTopics: 8, limitPerTopic: 3 });
+            const sourceMiniShard = await knowledge.findCourseSources(courseGraph, {
+              maxTopics: 8,
+              limitPerTopic: 3,
+              // The reading-list pass above already queried OpenAlex. Source
+              // finder should use complementary providers, not spend the same
+              // anonymous quota again for the same lesson topics.
+              providers: { openalex: async () => [] },
+            });
             sourceFinderCount = knowledge.attachSourceFinderResources(courseGraph, sourceMiniShard, {
               maxSourcesPerTopic: 1,
             });

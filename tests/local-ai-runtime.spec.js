@@ -32,7 +32,7 @@ test.describe('Provider picker', () => {
     await page.goto('/');
 
     await expect(page.getByLabel('Provider')).toHaveValue('google');
-    await expect(page.getByText('No API key or local server needed')).toHaveCount(0);
+    await expect(page.getByText('No key needed · review drafts before publishing')).toHaveCount(0);
   });
 
   test('redirects stale Local provider settings to keyless Scion', async ({ page }) => {
@@ -53,7 +53,9 @@ test.describe('Provider picker', () => {
 
     await expect(page.getByLabel('Provider')).toHaveValue('public');
     await expect(page.getByLabel('Provider').locator('option[value="local"]')).toHaveCount(0);
-    await expect(page.getByText('No API key or local server needed')).toBeVisible();
+    await expect(page.getByText('No key needed · review drafts before publishing')).toBeVisible();
+    await expect(page.getByTestId('scion-draft-boundary')).toBeVisible();
+    await expect(page.getByTestId('enrichment-preference')).toHaveCount(0);
     await expect(page.getByRole('button', { name: 'Check server' })).toHaveCount(0);
     await expect(page.getByText('Failed to fetch')).toHaveCount(0);
     await page.waitForTimeout(1000);

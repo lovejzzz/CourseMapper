@@ -11,6 +11,8 @@ import {
   PUBLIC_SCION_PROVIDER_ID,
   buildPublicScionMessages,
   extractPublicScionLessonWindow,
+  extractPublicScionPriorLessonTitles,
+  extractPublicScionTotalLessonCount,
   publicScionModelOption,
 } from '../src/lib/publicScionProvider';
 
@@ -81,6 +83,39 @@ describe('Scion Public provider', () => {
     const messages = buildPublicScionMessages('system', 'Create a 3-lesson music theory course.');
     expect(messages[1].content).toContain('Create 3 compact CourseMapper lessons');
     expect(messages[1].content).toContain('Create a 3-lesson music theory course.');
+  });
+
+  it('carries prior lesson titles into continuation prompts and forbids repeats', () => {
+    const prompt = `Here are the lessons already generated:
+1. Lesson 1: Design Research
+2. Lesson 2: Personas and Journey Maps
+3. Lesson 3: Information Architecture and Wireframes
+
+Continue generating the REMAINING lessons (Lesson 4 through Lesson 12).`;
+    expect(extractPublicScionPriorLessonTitles(prompt)).toEqual([
+      'Lesson 1: Design Research',
+      'Lesson 2: Personas and Journey Maps',
+      'Lesson 3: Information Architecture and Wireframes',
+    ]);
+    const messages = buildPublicScionMessages('system', prompt);
+    expect(messages[1].content).toContain('PRIOR LESSONS (do not repeat)');
+    expect(messages[1].content).toContain('Lesson 3: Information Architecture and Wireframes');
+    expect(messages[1].content).toContain('must introduce a distinct topic');
+    expect(messages[1].content).toContain('one combined lesson and name both concepts in its title');
+    expect(messages[1].content).toContain('normal spaced words');
+  });
+
+  it('marks the last continuation as a final window and pins the final source item', () => {
+    const prompt = `You previously generated a partial Course Map with 9 lessons, but the syllabus has 12 lessons/weeks total.
+
+Here are the lessons already generated:
+1. Lesson 1: Foundations
+
+Continue generating the REMAINING lessons (Lesson 10 through Lesson 12).`;
+    expect(extractPublicScionTotalLessonCount(prompt)).toBe(12);
+    const messages = buildPublicScionMessages('system', prompt);
+    expect(messages[1].content).toContain('FINAL WINDOW: Lessons 10-12 of 12');
+    expect(messages[1].content).toContain('Lesson 12 MUST name the final source outline item');
   });
 
   it('reports public anonymous calls as $0', () => {

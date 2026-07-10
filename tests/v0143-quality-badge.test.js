@@ -140,7 +140,7 @@ function buildPackageFixture(courseName = 'Physical Geology') {
   return { courseMap: displayMap, deliverables, graph };
 }
 
-async function buildPackage({ courseName = 'Physical Geology', quality = {} } = {}) {
+async function buildPackage({ courseName = 'Physical Geology', quality = {}, pipelineState = PIPELINE_STATE } = {}) {
   const { courseMap, deliverables, graph } = buildPackageFixture(courseName);
   const result = await buildCourseMaterialsZip({
     courseMap,
@@ -148,7 +148,7 @@ async function buildPackage({ courseName = 'Physical Geology', quality = {} } = 
     deliverables,
     featureIds: ['courseMap', ...GEO_FEATURES],
     courseGraph: graph,
-    pipelineState: { ...PIPELINE_STATE },
+    pipelineState: { ...pipelineState },
     quality,
   });
   return { ...result, fixture: { courseMap, deliverables, graph } };
@@ -263,7 +263,7 @@ describe('A5(2) — healthy package ships its own audit', () => {
     expect(regrade.findings.filter((finding) => /quality_report/i.test(finding.file))).toEqual([]);
   }, 120000);
 
-  it('QUALITY_REPORT surfaces digest-only native authoring fallback caveats', async () => {
+  it('manifest and QUALITY_REPORT preserve native authoring fallback caveats offline', async () => {
     const digest = healthyDigest();
     digest.pipeline = {
       ...(digest.pipeline || {}),
@@ -277,8 +277,8 @@ describe('A5(2) — healthy package ships its own audit', () => {
     const zip = await JSZip.loadAsync(await result.blob.arrayBuffer());
     const manifest = JSON.parse(await zip.file('PACKAGE_MANIFEST.json').async('string'));
     const report = await zip.file('QUALITY_REPORT.md').async('string');
-    expect(manifest.pipeline.nativeAuthoring).toBeUndefined();
-    expect(report).toContain('**[honesty] native fallback missing manifest**');
+    expect(manifest.pipeline.nativeAuthoring).toContain('fell back to prose');
+    expect(report).toContain('**[substance] native authoring fell back to prose**');
     expect(report).toContain('degenerate-skeleton (1 assessment for 8 lessons)');
 
     const regrade = await grade({
@@ -289,7 +289,17 @@ describe('A5(2) — healthy package ships its own audit', () => {
     });
     expect(
       regrade.findings.some(
-        (finding) => finding.dimension === 'honesty' && finding.detail === 'native fallback missing manifest',
+        (finding) => finding.dimension === 'substance' && finding.detail === 'native authoring fell back to prose',
+      ),
+    ).toBe(true);
+
+    const offlineRegrade = await grade({
+      fileProvider: createMemoryFileProvider(await fileMapFromZip(result.blob)),
+      course: GEO_COURSE,
+    });
+    expect(
+      offlineRegrade.findings.some(
+        (finding) => finding.dimension === 'substance' && finding.detail === 'native authoring fell back to prose',
       ),
     ).toBe(true);
   }, 120000);
@@ -320,6 +330,48 @@ describe('A5(2) — healthy package ships its own audit', () => {
         (finding) => finding.dimension === 'honesty' && finding.detail === 'native fallback missing manifest',
       ),
     ).toBe(false);
+  }, 120000);
+
+  it('offline grading detects unenriched compiled packages and caps major findings below A', async () => {
+    const result = await buildPackage({
+      quality: false,
+      pipelineState: {
+        ...PIPELINE_STATE,
+        genomeLinker: '0 genome + 0 cached of 4 lessons (0 concepts, 0 citations, 0 bridges)',
+        enrichment: 'none',
+      },
+    });
+    const offlineRegrade = await grade({
+      fileProvider: createMemoryFileProvider(await fileMapFromZip(result.blob)),
+      course: GEO_COURSE,
+    });
+    expect(
+      offlineRegrade.findings.some(
+        (finding) =>
+          finding.severity === 'P1' &&
+          finding.detail === 'deliverables compiled without enrichment, creating mail-merge content risk',
+      ),
+    ).toBe(true);
+    expect(offlineRegrade.overall.score).toBeLessThanOrEqual(89);
+    expect(offlineRegrade.overall.grade).toBe('B');
+  }, 120000);
+
+  it('console-assisted grading catches legacy native fallback packages that did not disclose it in the manifest', async () => {
+    const result = await buildPackage({ quality: false });
+    const fileMap = await fileMapFromZip(result.blob);
+    const manifest = JSON.parse(new TextDecoder().decode(fileMap['PACKAGE_MANIFEST.json']));
+    delete manifest.pipeline.nativeAuthoring;
+    fileMap['PACKAGE_MANIFEST.json'] = JSON.stringify(manifest, null, 2);
+    const regrade = await grade({
+      fileProvider: createMemoryFileProvider(fileMap),
+      consoleLogText: `${healthyConsoleLog()}\n[CM][API] nativeAuthoringFellBack {"detail":"fell back to prose: degenerate-skeleton"}`,
+      course: GEO_COURSE,
+    });
+    expect(
+      regrade.findings.some(
+        (finding) => finding.dimension === 'honesty' && finding.detail === 'native fallback missing manifest',
+      ),
+    ).toBe(true);
   }, 120000);
 });
 

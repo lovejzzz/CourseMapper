@@ -3079,7 +3079,7 @@ function formatWorkloadLine({
 }
 
 function buildWorkloadEstimate({ resources, hasAssessment, bloomsLevel, artifactTitle = '' }) {
-  const beforeClassMinutes = resources.length > 0 ? Math.min(75, 20 + resources.length * 8) : 20;
+  const resourcePreparationMinutes = resources.length > 0 ? Math.min(75, 20 + resources.length * 8) : 20;
   // v0.16 E5 (Prof department catch — "estimates remain too low for a
   // beginner programming course with weekly autograded work and labs"):
   // hands-on/technical artifacts carry a realistic after-class floor.
@@ -3090,8 +3090,20 @@ function buildWorkloadEstimate({ resources, hasAssessment, bloomsLevel, artifact
     /\b(?:coding lab|hands-on lab|programming|problem sets?|debugging|source code|lab report|compiler?s?)\b/i.test(
       cleanText(artifactTitle),
     );
+  // Technical weeks already reserve a substantial build/debug block after
+  // class, so cap their reading/setup estimate at one hour. This preserves a
+  // realistic 90-minute technical floor without creating an overloaded
+  // default week when a long resource list is present.
+  const beforeClassMinutes = technicalArtifact ? Math.min(60, resourcePreparationMinutes) : resourcePreparationMinutes;
   const afterClassBase = hasAssessment ? (technicalArtifact ? 90 : 55) : technicalArtifact ? 60 : 35;
-  const afterClassMinutes = ['Evaluate', 'Create'].includes(bloomsLevel) ? afterClassBase + 20 : afterClassBase;
+  const rawAfterClassMinutes = ['Evaluate', 'Create'].includes(bloomsLevel) ? afterClassBase + 20 : afterClassBase;
+  // Deterministic blueprints should ship a balanced default workload, not
+  // knowingly mint a review-heavy week because a technical artifact and a
+  // longer resource list happen to add up to 154 minutes. Keep the realistic
+  // technical floor while trimming only the amount above the documented
+  // 150-minute out-of-class ceiling; instructors can still raise the local
+  // estimate after review.
+  const afterClassMinutes = Math.min(rawAfterClassMinutes, 150 - beforeClassMinutes);
   const inClassMinutes = DEFAULT_CLASS_SESSION_MINUTES;
   const totalStudentMinutes = beforeClassMinutes + inClassMinutes + afterClassMinutes;
   return {

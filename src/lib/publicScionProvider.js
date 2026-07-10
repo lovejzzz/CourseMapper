@@ -6,7 +6,7 @@
 
 export const PUBLIC_SCION_PROVIDER_ID = 'public';
 export const PUBLIC_SCION_MODEL_ID = 'scion-public';
-export const PUBLIC_SCION_MODEL_NAME = 'Scion Public';
+export const PUBLIC_SCION_MODEL_NAME = 'Scion Draft';
 export const PUBLIC_SCION_BACKING_MODEL = 'openai-fast';
 export const PUBLIC_SCION_TEXT_ENDPOINT = 'https://text.pollinations.ai/';
 export const PUBLIC_SCION_CHAT_ENDPOINT = 'https://text.pollinations.ai/openai';
@@ -73,9 +73,35 @@ export function extractPublicScionLessonWindow(userPrompt = '') {
   };
 }
 
+export function extractPublicScionTotalLessonCount(userPrompt = '') {
+  const text = String(userPrompt || '');
+  const match =
+    text.match(/has\s+(\d+)\s+lessons(?:\/weeks)?\s+total/i) ||
+    text.match(/EXACTLY\s+(\d+)\s+lesson/i) ||
+    text.match(/approximately\s+(\d+)\s+lessons/i);
+  const total = Number(match?.[1]);
+  return Number.isInteger(total) && total > 0 ? total : null;
+}
+
+export function extractPublicScionPriorLessonTitles(userPrompt = '') {
+  const text = String(userPrompt || '');
+  const block = text.match(
+    /Here are the lessons already generated:\s*\n([\s\S]*?)(?:\n\s*Continue generating the REMAINING lessons|$)/i,
+  );
+  if (!block?.[1]) return [];
+  return block[1]
+    .split('\n')
+    .map((line) => line.replace(/^\s*\d+\.\s*/, '').trim())
+    .filter(Boolean)
+    .slice(0, 24);
+}
+
 function buildCompactPublicScionPrompt(userPrompt) {
   const source = extractPublicScionSource(userPrompt);
   const { start, count, continuation } = extractPublicScionLessonWindow(userPrompt);
+  const totalLessonCount = extractPublicScionTotalLessonCount(userPrompt);
+  const isFinalWindow = continuation && totalLessonCount && start + count - 1 >= totalLessonCount;
+  const priorLessonTitles = continuation ? extractPublicScionPriorLessonTitles(userPrompt) : [];
   const lessonsLabel = count === 1 ? `Lesson ${start}` : `Lesson ${start} through Lesson ${start + count - 1}`;
   const wrapper = continuation
     ? 'Return this JSON shape: {"lessons":[...new lesson objects only...]}.'
@@ -101,6 +127,9 @@ function buildCompactPublicScionPrompt(userPrompt) {
   return `SOURCE:
 ${source}
 
+${priorLessonTitles.length > 0 ? `PRIOR LESSONS (do not repeat):\n${priorLessonTitles.map((title) => `- ${title}`).join('\n')}\n` : ''}
+${isFinalWindow ? `FINAL WINDOW: Lessons ${start}-${start + count - 1} of ${totalLessonCount}. Work backward from the end of SOURCE so Lesson ${totalLessonCount} names the final source outline item.\n` : ''}
+
 TASK:
 Create ${count} compact CourseMapper lesson${count === 1 ? '' : 's'} for ${lessonsLabel}. ${wrapper}
 
@@ -114,12 +143,17 @@ Rules:
 - Use 2 learningObjectives, 2 weeklyAssessments, 2 asyncActivities, and 2 syncActivities.
 - Reuse each objective's main topic words in one assessment and one activity.
 - Use lesson titles like "Lesson ${start}: Topic".
+- Lesson titles use normal spaced words; never use abbreviations, camelCase, or glued words.
 - Use topicSection like "${start}.1: Topic".
 - Include exactly these section keys: learningGoals, topicSection, learningObjectives, weeklyAssessments, asyncActivities, syncActivities, supportingResources.
 - learningGoals, learningObjectives, weeklyAssessments, asyncActivities, syncActivities, and supportingResources are arrays of compact atoms.
 - learningObjectives start with Bloom verbs and never include "Students will be able to".
 - Make every topic, assessment, and activity specific to the source.
-- Omit readings and specialTools unless the source names them.
+- Every new lesson must introduce a distinct topic not used in PRIOR LESSONS.
+- Advance through later source concepts; never recycle an earlier topic as a new lesson title.
+- Treat concepts joined by "and" inside one source outline item as one combined lesson and name both concepts in its title.
+- In continuation windows, prioritize the later unused SOURCE items.
+${isFinalWindow ? `- This is the FINAL WINDOW: Lesson ${totalLessonCount} MUST name the final source outline item; never place an earlier concept after it.\n` : ''}- Omit readings and specialTools unless the source names them.
 - Preserve the template nesting: lessons[] contains only objects, never strings.
 
 TEMPLATE TO FILL:

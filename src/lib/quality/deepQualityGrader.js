@@ -110,7 +110,9 @@ import { computeTexture, textureDocsFromFiles, buildTextureAdvisories, TEXTURE_V
 // 1.8.0 — v0.15.186: boilerplate net covers studyGuides/lessonPlans/quizBank/
 // assignments (calibrated bars 0.35/0.7); texture weight 10 → 25 so a fully
 // templated package leaves the A band; texture < 60 is a P1.
-export const GRADER_VERSION = '1.8.0';
+// 1.9.0 — offline manifest/log grading preserves native and unenriched compile
+// caveats, and any P1 major review finding caps the package below the A band.
+export const GRADER_VERSION = '1.9.0';
 
 // ── Dimension weights & letter bands (documented in the module header) ──────
 // v0.15.186: texture weight 10 → 25. At 10/120 a fully templated package
@@ -1162,7 +1164,18 @@ function checkHonesty(findings, { manifest }, consoleLogText, digest) {
     });
   }
 
-  addDigestCaveatFindings(findings, [digest?.pipeline?.nativeAuthoring].concat(digest?.gates?.flaggedChecks || []));
+  const consoleCaveats = log
+    .split('\n')
+    .filter((line) =>
+      /nativeAuthoringFellBack|native authoring.*fell back|compiled without enrichment|mail-merge risk/i.test(line),
+    );
+  addDigestCaveatFindings(
+    findings,
+    [digest?.pipeline?.nativeAuthoring].concat(digest?.gates?.flaggedChecks || [], consoleCaveats),
+    {
+      nativeAuthoringDisclosed: Boolean(manifest?.pipeline?.nativeAuthoring),
+    },
+  );
 
   // Unexplained console errors/warnings (allowlist dev noise).
   const ALLOWLIST =
@@ -1270,17 +1283,27 @@ function parsePartialCoverage(message) {
   return { enriched, requested, missing: Math.max(0, requested - enriched), coverage: enriched / requested };
 }
 
-function addDigestCaveatFindings(findings, flaggedChecks = []) {
+function hasFinding(findings, detail) {
+  return findings.list.some((finding) => finding.detail === detail);
+}
+
+function addDigestCaveatFindings(findings, flaggedChecks = [], { nativeAuthoringDisclosed = false } = {}) {
   const seen = new Set();
   for (const check of flaggedChecks || []) {
     const message = check?.message || check || '';
     if (/fell back to prose|nativeAuthoringFellBack|degenerate-skeleton|native authoring.*fell back/i.test(message)) {
-      findings.add({
-        severity: 'P2',
-        dimension: 'honesty',
-        detail: 'native fallback missing manifest',
-        evidence: message,
-      });
+      const detail = nativeAuthoringDisclosed
+        ? 'native authoring fell back to prose'
+        : 'native fallback missing manifest';
+      if (!hasFinding(findings, detail)) {
+        findings.add({
+          severity: 'P2',
+          dimension: nativeAuthoringDisclosed ? 'substance' : 'honesty',
+          file: nativeAuthoringDisclosed ? 'PACKAGE_MANIFEST.json' : 'run digest / console',
+          detail,
+          evidence: message,
+        });
+      }
     }
     if (/compiled without enrichment|mail-merge risk/i.test(message)) {
       const key = 'compiled-without-enrichment';
@@ -1289,7 +1312,7 @@ function addDigestCaveatFindings(findings, flaggedChecks = []) {
       findings.add({
         severity: 'P1',
         dimension: 'substance',
-        file: 'run digest',
+        file: 'run digest / console',
         detail: 'deliverables compiled without enrichment, creating mail-merge content risk',
         evidence: message,
       });
@@ -1328,6 +1351,41 @@ function addDigestCaveatFindings(findings, flaggedChecks = []) {
         evidence: message,
       });
     }
+  }
+}
+
+function addManifestPipelineCaveatFindings(findings, manifest) {
+  const pipeline = manifest?.pipeline || {};
+  const nativeAuthoring = String(pipeline.nativeAuthoring || '');
+  if (
+    /fell back to prose|nativeAuthoringFellBack|degenerate-skeleton|native authoring.*fell back/i.test(
+      nativeAuthoring,
+    ) &&
+    !hasFinding(findings, 'native authoring fell back to prose')
+  ) {
+    findings.add({
+      severity: 'P2',
+      dimension: 'substance',
+      file: 'PACKAGE_MANIFEST.json',
+      detail: 'native authoring fell back to prose',
+      evidence: nativeAuthoring,
+    });
+  }
+
+  const enrichment = String(pipeline.enrichment || '').trim();
+  if (
+    /^(?:none|off|skipped\b)/i.test(enrichment) &&
+    Array.isArray(manifest?.requestedFeatures) &&
+    manifest.requestedFeatures.length > 0 &&
+    !hasFinding(findings, 'deliverables compiled without enrichment, creating mail-merge content risk')
+  ) {
+    findings.add({
+      severity: 'P1',
+      dimension: 'substance',
+      file: 'PACKAGE_MANIFEST.json',
+      detail: 'deliverables compiled without enrichment, creating mail-merge content risk',
+      evidence: `enrichment: ${enrichment}; ${pipeline.genomeLinker || pipeline.groundingMetrics || 'no grounding evidence'}`,
+    });
   }
 }
 
@@ -1397,7 +1455,9 @@ function checkHonestyFromDigest(findings, { manifest }, honesty) {
     });
   }
 
-  addDigestCaveatFindings(findings, honesty.flaggedChecks || []);
+  addDigestCaveatFindings(findings, honesty.flaggedChecks || [], {
+    nativeAuthoringDisclosed: Boolean(manifest?.pipeline?.nativeAuthoring),
+  });
 
   // Console-noise scan + mass-repair-fill scan: console-only, excluded here —
   // see IN_APP_EXCLUDED_CHECKS for the documented reasons.
@@ -3225,6 +3285,7 @@ export async function grade({
   // path passes honestyFromDigest(budget, digest) (v0.14.3 WS-A A2).
   if (honesty) checkHonestyFromDigest(findings, pkg, honesty);
   else checkHonesty(findings, pkg, consoleLogText, digest);
+  addManifestPipelineCaveatFindings(findings, pkg.manifest);
   // V0.14.3 WS-B2: the genome bar (genome-expecting courses only).
   checkGenomeBar(findings, pkg, course, consoleLogText, honesty);
   checkUnevaluatedCourseJudgment(findings, pkg, course, consoleLogText, honesty);
@@ -3287,9 +3348,10 @@ export async function grade({
     // v0.14.5 (A5): the manifest readings registry size.
     readingsCount: Array.isArray(pkg.manifest?.readings) ? pkg.manifest.readings.length : 0,
   };
-  // A package with any P0 is not A-quality, even if the weighted dimensions
-  // remain numerically high. P0 means instructor handoff is unsafe.
+  // A package with a major review finding cannot retain an A, even if weighted
+  // dimension penalties leave the average numerically high.
   if (stats.p0 > 0) overallScore = Math.min(overallScore, 74);
+  else if (stats.p1 > 0) overallScore = Math.min(overallScore, 89);
 
   return {
     scores,

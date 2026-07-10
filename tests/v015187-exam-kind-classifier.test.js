@@ -44,6 +44,60 @@ describe('exam kind classification is consistent compile-to-manifest', () => {
     expect(classifyAssessmentKind('exam review guide 3: evidence table and rationale')).toBe('graded-artifact');
   });
 
+  it('does not turn exam-preparation artifacts or integration lessons into exam papers', () => {
+    expect(classifyAssessmentKind('Exam blueprint worksheet with labeled neuron diagram')).toBe('graded-artifact');
+    expect(classifyAssessmentKind('Exam-style short response with developmental concept')).toBe('graded-artifact');
+    expect(classifyAssessmentKind('Final exam blueprint response with symptom concept')).toBe('graded-artifact');
+    expect(classifyAssessmentKind('Disorders, Treatment, and Final Exam Integration')).toBe('graded-artifact');
+  });
+
+  it('keeps a final-exam integration lesson on the full teaching path', () => {
+    const course = {
+      courseName: 'Introduction to Psychology Lecture',
+      lessons: [
+        {
+          title: 'Lesson 1: Scientific Thinking and Psychology Claims',
+          sections: [
+            {
+              topicSection: 'Scientific reasoning, theory, hypothesis, replication',
+              learningGoals: 'Students distinguish evidence-backed claims from opinion.',
+              learningObjectives: 'Explain how psychologists test claims and diagnose one misconception.',
+              weeklyAssessments: 'Concept check quiz with retrieval question and corrected explanation.',
+              asyncActivities: 'Read lecture notes and complete a practice quiz.',
+              syncActivities: 'Lecture concept check with clicker questions and wrong-answer sorting.',
+              supportingResources: 'Lecture notes; misconception list; practice quiz',
+            },
+          ],
+        },
+        {
+          title: 'Lesson 2: Disorders, Treatment, and Final Exam Integration',
+          sections: [
+            {
+              topicSection: 'Psychological disorder, treatment option, symptom evidence, exam integration',
+              learningGoals: 'Students integrate disorder and treatment concepts for exam transfer.',
+              learningObjectives: 'Analyze a symptom scenario and justify a treatment concept.',
+              weeklyAssessments: 'Final exam blueprint response with symptom concept and misconception repair.',
+              asyncActivities: 'Review lecture notes and annotate a symptom scenario.',
+              syncActivities: 'Concept integration clinic with retrieval and transfer practice.',
+              supportingResources: 'Disorder notes; treatment comparison; exam blueprint',
+            },
+          ],
+        },
+      ],
+    };
+    const blueprint = buildCourseBlueprint(course);
+    const compiled = compileBlueprintDeliverables(blueprint, ['lessonPlans', 'quizBank'], {
+      enforceCompilerContract: false,
+    });
+
+    expect(compiled.lessonPlans.lessonPlans).toHaveLength(2);
+    expect(compiled.lessonPlans.lessonPlans[1].examDay).toBeUndefined();
+    expect(compiled.lessonPlans.lessonPlans[1].classSessionPlan).toBeTruthy();
+    expect(compiled.lessonPlans.lessonPlans[1].teachingIntent).toBeTruthy();
+    expect(compiled.quizBank.quizzes).toHaveLength(2);
+    expect(compiled.quizBank.quizzes.filter((entry) => entry.kind === 'exam')).toHaveLength(0);
+  });
+
   it('compiles a real exam paper for an exam-titled assessment on the graph path', () => {
     const blueprint = buildBlueprintFromGraph(deriveCourseGraphFromCourseMap(COURSE));
     const compiled = compileBlueprintDeliverables(blueprint, ['quizBank'], {});

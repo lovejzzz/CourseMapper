@@ -81,6 +81,12 @@ describe('Scion-native compiler (V2.1 Workstream D)', () => {
     expect(runtime).toContain('Scion time-planner');
   });
 
+  it('D2: anonymous Scion skips unsupported native skeleton authoring (source wiring)', () => {
+    const runtime = fs.readFileSync('src/lib/courseIRAuthoringRuntime.js', 'utf8');
+    expect(runtime).toContain("if (provider === 'public') {");
+    expect(runtime).toContain('Scion Draft uses the compact course-map contract');
+  });
+
   it('D3: passes fix keys, gate topics, and polish prose through the callback', async () => {
     const lesson = {
       lessonId: 'lesson-1',
