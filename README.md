@@ -18,30 +18,45 @@ Course Mapper is a **purpose-built instructional design tool**, not a general ch
 5. **Cascade editing.** Edit one deliverable and the system automatically detects which other deliverables are affected and surgically regenerates just those lessons — no full regeneration.
 6. **Pedagogical validation.** Built-in Bloom's taxonomy alignment, objective coverage, cognitive load assessment, readability scoring, and difficulty progression checks — with auto-fix for common issues.
 7. **One-click package finalizer.** Export runs deterministic repair, targeted retry, readiness checks, and file verification before a package is marked ready. Save/load complete sessions as `.coursemapper` project files.
-8. **Multi-model support — including a free local model.** Supports OpenAI, Anthropic, Google, and DeepSeek with native tool calling per provider, plus **Scion**, the house model that runs on your own machine at $0 per course (see “Scion” below). Auto-detects key format and auto-rotates through models on failure.
-9. **Privacy-first.** Static BYOK app by default. There is no Course Mapper backend server; project data is stored in your browser unless you explicitly sign in for Firebase cloud sync or export to Google Drive. API keys go directly to providers.
+8. **Multi-model support — including a free Scion path.** Supports OpenAI, Anthropic, Google, and DeepSeek with native tool calling per provider, plus **Scion Draft**, the keyless Course Mapper authoring route (see “Scion” below). Auto-detects key format and auto-rotates through compatible cloud models on failure.
+9. **Privacy-first BYOK path.** There is no Course Mapper application backend in the default bring-your-own-key flow; project data is stored in your browser unless you explicitly enable a connected service. API keys go directly to the selected provider. Scion Draft is a separate public route: it needs no key, but sends the generation prompt to its third-party anonymous text endpoint.
 
 > **What Course Mapper does NOT claim:** It does not fact-check content or verify citations. It does not replace instructor expertise. It is a drafting and productivity tool — it generates the scaffold, the instructor refines it.
 
 ---
 
-## Scion — the house model (Local provider)
+## Scion — Course Mapper's constrained authoring system
 
-**Scion** is Course Mapper's own model: it runs on your machine, needs no API key, and compiles courses for **$0**. Pick **Provider: Local** on the landing page, start the server, and generate — nothing leaves your device.
+**Scion is the name of Course Mapper's $0 course-authoring path, not a claim that Course Mapper trained a new foundation model.** The name is horticultural: a _scion_ is a cultivated cutting grafted onto rootstock. In this system, a backing text model supplies compact course knowledge; Course Mapper supplies the cultivation — contracts, deterministic compilation, admission checks, recovery, grading, and export.
+
+### What the website uses
+
+The hosted site currently exposes **Scion Draft (free)**. It is a keyless, experimental route backed by Pollinations' anonymous text endpoint and its `openai-fast` model. Scion Draft plans the course and authors compact lesson kernels; Course Mapper then compiles those kernels in the browser into the selected deliverables.
+
+No API key is required and Course Mapper prices the route at $0. It is not an offline or private route: the prompt and relevant uploaded text are sent to the third-party endpoint. The service can also be rate-limited or unavailable. Do not send sensitive material, and review every generated course before using it with students.
+
+### What makes the route “Scion”
+
+Scion is a system rather than one model call:
+
+1. **Constrained authoring.** The model writes a compact course map and one lesson-specific knowledge kernel at a time instead of attempting nine finished deliverables in free-form prose.
+2. **Admission and recovery.** Course Mapper repairs narrowly defined response-shape defects, aligns recoverable answer keys, and rejects weak quiz atoms, unsupported inferences, and malformed content instead of silently treating them as good output.
+3. **Deterministic compilation.** The same accepted kernel is projected into lesson plans, slides, assignments, rubrics, quizzes, discussions, study guides, and the package manifest. Structure, numbering, answer-key rotation, alignment, and file generation are compiler-owned.
+4. **Layered evaluation.** Contract fixtures catch compiler regressions; real paired generations reveal authoring-behavior gaps; independent instructors and retained production canaries are required before Course Mapper can claim that materials are independently validated or production-proven.
+
+The current paired diagnostic does **not** show that Scion “beats” a named reference model. On one User Experience Design Studio pair, Scion matched the reference's applied multiple-choice share and produced stronger contrastive rationales and less cue-dependent short answers; the reference still produced more decision-ready scenarios. That is directional evidence for improving Scion's scenario authoring, not a general model ranking. An order-reversed advisory judge also showed position bias, so its apparent winner was correctly marked inconclusive.
+
+See [evaluation/README.md](evaluation/README.md) for the gate definitions, claim boundary, and `npm run audit:quiz:contrast` workflow.
+
+### Local research route
+
+The repository also contains a separate experimental local Scion server built around an open-weight Gemma research harness:
 
 ```bash
-npm run local-model   # serves Scion-1 at http://127.0.0.1:8799
+npm run local-model # serves the local Scion-compatible endpoint at http://127.0.0.1:8799
 ```
 
-**What it is.** The name is horticultural: a _scion_ is the cultivated cutting grafted onto wild rootstock. The rootstock is Google's open-weights **Gemma 4 E2B** (Apache-2.0, ~4B parameters, Apple Silicon via mlx-vlm). The scion — the part we cultivated — is the harness grafted onto it:
-
-- **Grammar-constrained decoding** (llguidance): invalid JSON is impossible at the decode layer, and the app's own content contracts (per-lesson kernels, quiz item shapes, lint length floors) are enforced as the only legal output shape.
-- **Per-lesson generation with a progress cache**, so long on-device compiles ride the app's retry ladder instead of fighting timeouts.
-- **Self-verification**: every quiz answer key is re-solved blind; keys that fail a two-solve check are regenerated. Off-topic items are caught by a lexical topic gate. A self-refining polish pass rewrites draft prose into natural teaching voice.
-
-**Honest quality band** (measured, pooled multi-seat judge panels on identical courses): structural grade **A at parity** with paid models; prose and quiz-item fluency currently **ties our paid baseline at best** — pooled panels place it just below gpt-5.4-mini. Study guides already judge _above_ the paid baseline. The gap is the target of an ongoing preference-training flywheel (every generation banks verified training pairs), so Scion improves release over release while its price never moves from $0.
-
-**Trade-offs**: slower than cloud APIs (a full 7-lesson package takes ~7–20 minutes on an M-series Mac), no tool-calling (the chat agent needs a cloud provider), and it requires the local server running. Privacy is absolute: prompts, syllabi, and generated courses never leave the machine.
+That local route is for development and evaluation and is not the Scion Draft option in the hosted provider picker. When it is run fully on-device, its prompts stay on that device; its hardware, model, and speed trade-offs are different from the public website route.
 
 ---
 
@@ -104,7 +119,7 @@ Most AI tools regenerate everything with every request and bill you for every wo
 1. **One model pass reads your syllabus** and emits a compact course map as lean atoms — short, source-grounded phrases. The compiler renders the instructor-facing prose, numbering, and stems, and derives the alignment-audit, delivery-format, and technology columns itself (computed from your actual objective↔assessment↔activity mapping, not asserted by a model).
 2. **One knowledge kernel per lesson** (a few budgeted model calls for the whole course) supplies the facts, key terms with misconceptions, a working scenario, a debatable tension, the assignment task, and quiz stems — each piece of knowledge written **once**, validated item-by-item against assessment-writing rules (Haladyna), meta-content checks, and source-grounding rules.
 3. **The compiler projects that kernel everywhere**: misconceptions become quiz distractor feedback _and_ study-guide warnings; facts become slide assertions _and_ quiz explanations; the scenario frames the short-answer and essay items; the tension drives the discussion. All **9 deliverables compile with zero additional AI calls** — IDs, point values, Bloom's ladders, answer-key rotation, accessibility structure, and provenance records are compiler-owned and reproducible.
-4. **Deterministic gates judge the output** — a 132-case blueprint matrix, a 40-sample gold audit, substance/meta-content measurement, export verification down to the Office XML — and a per-run **cost report** shows every model call with its token split, including hidden reasoning tokens.
+4. **Deterministic gates judge the output** — a 132-case blueprint matrix, contract fixtures, substance/meta-content measurement, and export verification down to the Office XML — while a per-run **cost report** shows every model call with its token split, including hidden reasoning tokens. The full 40-fixture suite is a regression contract, not proof that a course is teachable; that stronger claim requires the independent-instructor benchmark and retained production canaries described in [evaluation/README.md](evaluation/README.md).
 
 **What this buys you:**
 
@@ -155,6 +170,7 @@ The full architecture lives in [docs/CURRICULUMOS_V1_DESIGN.md](docs/CURRICULUMO
 
 Go to [edutool.dev](https://edutool.dev). On the landing page:
 
+- **Scion Draft (free)** — Generate without an API key through the experimental public Scion route. Your prompt is sent to the route's third-party anonymous text endpoint, so do not use it for sensitive material.
 - **Bring your own key** — Select your provider (OpenAI, Anthropic, Google, or DeepSeek) and paste your API key. The app auto-detects key format and switches the provider dropdown.
 - Restored workspaces can reconfigure a missing or expired key in place from the Agent header by clicking the current model/config label.
 

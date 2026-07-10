@@ -35,36 +35,39 @@
   },
   "claims": [
     {
-      "id": "v0161-scion-house-model",
+      "id": "v0161-scion-system-boundary",
       "status": "verified-current",
       "changelogHighlightIndex": 0,
-      "summary": "Scion is the house model: Gemma 4 E2B rootstock grafted with the Trellis harness (llguidance grammar-constrained decoding, per-lesson kernel contracts from the app's own lint floor, blind-solve key verification with regeneration, topic gating, self-refine polish). Honest band disclosed: structural grade A at parity; pooled >=12-seat judge panels place prose/item fluency at 5.2-5.83 vs gpt-5.4-mini's 6.08 (best draw tied) \u2014 documented in docs/BAKEOFF_2026-07-06.md addendum 4 and improving via the teacher-preference ORPO flywheel (docs/E2B_MAX_V21_ROADMAP.md).",
+      "summary": "Scion is the complete constrained authoring route, not a newly trained foundation model: a backing model supplies compact course and lesson kernels while Course Mapper supplies contracts, admission checks, deterministic compilation, grading, and export. The hosted Scion Draft route and the separate local Gemma research server have different trust and runtime boundaries.",
       "anchors": [
-        "scripts/crucible/e2bOpenAIShim.mjs",
-        "trellis/tendril/distill/serve_g4.py",
-        "docs/BAKEOFF_2026-07-06.md",
-        "docs/E2B_MAX_V21_ROADMAP.md"
+        "src/lib/publicScionProvider.js",
+        "src/lib/scionContracts.js",
+        "src/lib/scionPasses.js",
+        "src/lib/localProvider.js",
+        "README.md"
       ],
       "proofCommands": [
-        "npx vitest run tests/local-provider.test.js",
-        "LONGJSON=run npx vite-node trellis/tendril/distill/bench/longJsonBench.mjs"
+        "npx vitest run tests/public-scion-provider.test.js tests/scion-compiler.test.js tests/local-provider.test.js"
       ],
-      "proofScopes": ["unit", "browser-live"]
+      "proofScopes": ["unit", "static-audit"]
     },
     {
-      "id": "v0161-local-provider",
+      "id": "v0161-scion-route-separation",
       "status": "verified-current",
       "changelogHighlightIndex": 1,
-      "summary": "The Local provider ships on the landing page: keyless (API key cell reads Free), model Scion-1, served by npm run local-model (CORS + GET /v1/models + SSE keep-alive heartbeats); wired through fetchModelsFromProvider, buildProviderTextRequest, capability inference (json_schema enforced at decode time), $0 pricing rows, and keyless generation gates; verified live in the browser and gated by tests/local-provider.test.js.",
+      "summary": "The hosted provider picker exposes Scion Draft as a keyless public route backed by Pollinations and explicitly warns that prompts leave the browser. The local Scion-compatible server remains a separate development and evaluation route and is not selectable in the hosted app.",
       "anchors": [
+        "src/lib/publicScionProvider.js",
         "src/lib/localProvider.js",
         "src/components/ModelConfig.jsx",
-        "src/hooks/useStreamReader.js",
-        "src/lib/modelRequestBuilders.js",
-        "tests/local-provider.test.js"
+        "src/pages/PrivacyPolicy.jsx",
+        "tests/public-scion-provider.test.js",
+        "tests/coursemapper.spec.js"
       ],
-      "proofCommands": ["npx vitest run tests/local-provider.test.js"],
-      "proofScopes": ["unit", "browser-live"]
+      "proofCommands": [
+        "npx vitest run tests/public-scion-provider.test.js tests/local-provider.test.js tests/scion-compiler.test.js"
+      ],
+      "proofScopes": ["unit", "static-audit"]
     },
     {
       "id": "v0161-field-audit-cascade",

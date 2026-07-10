@@ -6,8 +6,8 @@ export const CURRENT_RELEASE = {
   title: 'Field-Audit Fixes: the first real full course, and the cascade it exposed',
   landingTitle: 'Field-Audit Fixes + Scion',
   highlights: [
-    'MEET SCION — the house model, running on your own machine for $0 per course. Scion is Google\u2019s open Gemma 4 E2B grafted with our harness: grammar-constrained decoding that makes invalid JSON impossible, per-lesson generation with self-verified quiz keys, topic gating, and a self-refining polish pass. The name is horticultural: a scion is the cultivated cutting grafted onto wild rootstock \u2014 Gemma is the rootstock, our cultivation is the scion. Honest quality band: structural grade A at parity with paid models; prose/item fluency currently ties our paid baseline at best (pooled panels place it just below gpt-5.4-mini) and improves with every training round of the flywheel.',
-    'A new "Local" provider on the landing page: pick Local, no API key needed (it\u2019s free \u2014 the model is yours), start the server with `npm run local-model`, and generate a full course package that never leaves your machine. Offline, private, unlimited regenerations.',
+    'MEET SCION \u2014 Course Mapper\u2019s constrained $0 authoring system. The hosted site exposes Scion Draft, a keyless experimental route backed by Pollinations\u2019 anonymous `openai-fast` endpoint: the backing model writes compact course and lesson kernels, while Course Mapper supplies the contracts, admission checks, deterministic compiler, grader, and export pipeline. Scion is the whole cultivated route, not a claim that Course Mapper trained a new foundation model.',
+    'The two Scion routes are now explicit instead of conflated. Scion Draft is the hosted website option: no API key, but prompts are sent to a public third-party endpoint and materials must be reviewed. `npm run local-model` starts a separate experimental local Gemma research server for development; it is not the Scion Draft option in the hosted provider picker.',
     'The first real user-run full course (Linear Algebra, 14 lessons) graded 99/A but was unshippable \u2014 and every root cause traced to one cascade. The genome\u2019s math shard was calculus-only, so a linear-algebra course linked 0 of 14 lessons; that collapse turned on the keyword source-finder, whose fallback providers were the ONLY ones searching without the course subject, so \u201cIndependent politician\u201d shipped for linear independence, \u201cLewis acids and bases\u201d for vector-space bases, and \u201c2025 Philippine general election\u201d for the midterm. This release fixes the cascade end to end.',
     'The genome now knows linear algebra: sixteen curated concept kernels (systems, matrices, vector spaces, independence, bases, determinants, eigenvalues, orthogonality, least squares, SVD, and more) join the math shard, taking a linear-algebra course from 0/14 to 10+/14 genome-linked lessons \u2014 which restores judgment, real citations, and grounded content instead of keyword bycatch.',
     'Off-topic readings can no longer ship or pass the grade: every open-knowledge provider now searches anchored to the course subject (not just OpenAlex), the token-relevance gate covers Wikipedia/Library-of-Congress/Internet-Archive instead of exempting exactly the fallback providers, OpenAlex requests are rate-limited with backoff so a 429 no longer swaps in ungated junk, math/physics/anatomy gain discipline allowlists, and the deep grader finally sees encyclopedic reading lines (which used to be invisible, scoring citations 100/100 over garbage).',
@@ -16,7 +16,7 @@ export const CURRENT_RELEASE = {
     'The truth surfaces stop lying: the CourseIR authoring pass repairs case-mismatched and dangling assessment references instead of discarding an entire 8k-token response, the run digest reports the real readiness-warning count (a \u201cready\u201d run no longer claims zero warnings while its own flagged-checks list one), the compiler duration telemetry times the compile instead of the whole pipeline, and voice-pass fallbacks record why they fell back.',
   ],
   landingHighlights: [
-    'Meet Scion: the house model \u2014 local, private, $0 per course.',
+    'Meet Scion Draft: keyless $0 authoring, with an explicit public-route trust boundary.',
     'The first real full course exposed a whole cascade \u2014 now fixed end to end.',
     'The genome learns linear algebra: 0/14 \u2192 10+/14 lessons linked.',
     'Off-topic readings can no longer ship or pass the grade.',
@@ -37,6 +37,21 @@ export const CURRENT_RELEASE_CHANGELOG = {
   date: CURRENT_RELEASE.date,
   title: CURRENT_RELEASE.title,
   highlights: CURRENT_RELEASE.highlights,
+  sections: [
+    {
+      label: 'July 10 post-release refinement',
+      icon: 'QA',
+      color: 'emerald',
+      items: [
+        'Scion Draft is now documented and evaluated as the complete keyless authoring route — anonymous backing model, compact lesson kernels, deterministic compiler, admission checks, and export grader — rather than being presented as a standalone model or confused with the separate local Gemma research server.',
+        'The evaluation system is layered: the 40 fixtures remain strict compiler-contract tests, while independent instructor review and hash-retained production canaries are the evidence required for teachability and production claims. Pull requests can pass the compiler contract without implying that the release gate has passed.',
+        'A reusable paired quiz diagnostic now compares measured authoring behaviors instead of trusting model labels or one aggregate score. On the User Experience Design Studio pair, Scion matched the reference on applied multiple-choice items, led on contrastive rationales and cue-free short answers, and exposed decision-ready scenarios as the remaining reference advantage.',
+        'Public Scion quiz authoring now asks for evidence-bounded claims, independent concept selection, and scenario decisions; admission rejects unsupported policy or causal inferences, while narrow syntax recovery and answer-key alignment salvage only responses whose content still passes the normal quality gates.',
+        'Advisory A/B judging must run in both orders. If preference flips with position, one packet moves by more than two points, or the judge simply favors the same letter position, the verdict is recorded as inconclusive instead of being averaged into a model win.',
+        'A real 12-lesson browser follow-up reached 99/A with 12/12 authored kernels and zero P0/P1/P2 findings, and representative quiz documents passed rendered inspection. Because those artifacts are not durably retained and the result is one course pair, it remains operational evidence rather than release proof.',
+      ],
+    },
+  ],
 };
 
 export const HISTORICAL_RELEASE_CHANGELOGS = [
