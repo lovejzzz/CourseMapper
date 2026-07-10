@@ -54,6 +54,11 @@ function answerAlignmentTokens(value) {
       .toLowerCase()
       .replace(/[^a-z0-9]+/g, ' ')
       .split(/\s+/)
+      .map((token) => {
+        if (/^(?:ask|asks|asked|asking|question|questions)$/.test(token)) return 'question';
+        if (token.length > 4 && token.endsWith('s') && !token.endsWith('ss')) return token.slice(0, -1);
+        return token;
+      })
       .filter((token) => token.length >= 3 && !ANSWER_ALIGNMENT_STOP_WORDS.has(token)),
   );
 }
@@ -81,6 +86,40 @@ function alignPublicScionAnswerIndices(parsed) {
         if ('ai' in item) item.ai = bestIndices[0];
         else item.answerIndex = bestIndices[0];
       }
+    }
+  }
+  return parsed;
+}
+
+const PUBLIC_SCION_LESSON_FIELDS = [
+  'facts',
+  'keyTerms',
+  'scenario',
+  'discussionPrompt',
+  'assignmentCore',
+  'mc',
+  'studyGuide',
+];
+
+function findNestedLessonField(value, field, depth = 0) {
+  if (!value || typeof value !== 'object' || depth > 5) return undefined;
+  for (const child of Object.values(value)) {
+    if (!child || typeof child !== 'object') continue;
+    if (!Array.isArray(child) && Object.prototype.hasOwnProperty.call(child, field)) return child[field];
+    const nested = findNestedLessonField(child, field, depth + 1);
+    if (nested !== undefined) return nested;
+  }
+  return undefined;
+}
+
+function liftNestedPublicScionLessonFields(parsed) {
+  if (!parsed || !Array.isArray(parsed.lessons)) return parsed;
+  for (const lesson of parsed.lessons) {
+    if (!lesson || typeof lesson !== 'object') continue;
+    for (const field of PUBLIC_SCION_LESSON_FIELDS) {
+      if (lesson[field] !== undefined) continue;
+      const nested = findNestedLessonField(lesson, field);
+      if (nested !== undefined) lesson[field] = nested;
     }
   }
   return parsed;
@@ -117,7 +156,7 @@ export function repairPublicScionJsonText(text = '') {
     }
   }
   if (!parsed) return raw;
-  return JSON.stringify(alignPublicScionAnswerIndices(parsed));
+  return JSON.stringify(alignPublicScionAnswerIndices(liftNestedPublicScionLessonFields(parsed)));
 }
 
 export function publicScionModelOption() {
@@ -312,10 +351,15 @@ function buildPublicScionKernelPrompt(userPrompt) {
     },
     mc: [
       {
-        q: 'A complete content-bearing question grounded in this lesson topic?',
-        op: ['Plausible option A', 'Plausible option B', 'Plausible option C', 'Plausible option D'],
+        q: 'A concrete 25-50 word subject case asking which interpretation, diagnosis, or next action is best?',
+        op: [
+          'Plausible methodological claim or action A',
+          'Plausible methodological claim or action B',
+          'Plausible methodological claim or action C',
+          'Plausible methodological claim or action D',
+        ],
         ai: 0,
-        ex: 'Why the keyed answer is correct in subject terms.',
+        ex: 'Why the key wins and the closest distractor fails in subject terms.',
       },
     ],
     studyGuide: {
@@ -363,7 +407,12 @@ Rules:
 - Write one scenario with a specific 2-sentence su of at least 40 characters and concrete ma.
 - Write one genuinely debatable discussionPrompt: pr is at least 25 characters and ends with ?, tn names the tension, po has 2-3 defensible positions.
 - Write one assignmentCore: td is at least 60 characters and names the actual case, data, design, or text plus what students produce; pa has 2-4 concrete constraints.
-- Write exactly 4 mc items. Every q is at least 20 characters; op has exactly 4 plausible homogeneous options; ai is 0-3; ex explains the answer. Never use all/none of the above.
+- Write exactly 4 mc items: one concept distinction, one concrete case application, one field-note evidence analysis, and one flawed-method evaluation.
+- At least 3 mc stems include specific observed behavior or evidence. Options are parallel, plausible methodological claims or actions; distractors reflect real misconceptions. Every q is 25-50 words; op has exactly 4 options; ai is 0-3; ex explains why the key wins and the closest distractor fails.
+- Never infer motive from one ambiguous behavior. Pair behavior with context, a quote, a second observation, or an outcome so exactly one option is supported.
+- Forbidden after one behavior: "what does this suggest/indicate", "which interpretation", or "what likely explains". Instead ask which neutral follow-up or evidence-collection action comes next, or key an option saying the observation alone is insufficient.
+- Never ask students to guess a cause from outcome rates alone; include a study-setup detail that rules out competing explanations. Keep every option at the same decision stage (all diagnosis methods or all design changes, never a mix).
+- Never write pure vocabulary recall, tool trivia, NOT/EXCEPT questions, always/never options, or all/none of the above.
 - Write studyGuide.sm as a 60-300 character subject summary and studyGuide.rs as a 30-200 character concrete review strategy.
 - Never mention artifacts, evidence moves, success criteria, rubrics, submissions, "the lesson", "this lesson", or "this course".
 ${

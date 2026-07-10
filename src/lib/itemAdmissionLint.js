@@ -12,7 +12,9 @@
  *  - clang association: the key shares conspicuously more stem vocabulary
  *    than any distractor,
  *  - grammatical cue: the stem's trailing article ("a"/"an") fits only the key,
- *  - longest-option cue: the key is much longer than every distractor.
+ *  - longest-option cue: the key is much longer than every distractor,
+ *  - unsupported behavior inference: the stem asks students to infer a cause
+ *    from one ambiguous behavior and offers no evidence-limited answer.
  */
 
 const STOP_WORDS = new Set([
@@ -85,6 +87,54 @@ function wordCount(text) {
   return cleanText(text).split(/\s+/).filter(Boolean).length;
 }
 
+const BEHAVIOR_INFERENCE_STEM_RE =
+  /\b(?:which interpretation|what does this suggest|what (?:does this )?indicate|what likely explains|which (?:factor|reason) most likely explains)\b/i;
+const AMBIGUOUS_BEHAVIOR_RE =
+  /\b(?:hesitat\w*|paus\w*|laugh\w*|glanc\w*|look(?:ed|s|ing)?|click\w*|tap\w*|avoid\w*|wait\w*|reopen\w*|us(?:e|es|ed|ing))\b/i;
+const CORROBORATING_CONTEXT_RE =
+  /(?:\b(?:said|reported|explained|because|citing|according to|follow-up|second observation|task result|completion rate|error rate)\b|\d+\s*%)/i;
+const EVIDENCE_LIMIT_OPTION_RE =
+  /\b(?:cannot (?:be )?(?:determined|inferred)|insufficient evidence|not enough evidence|requires? (?:more|additional) (?:context|evidence)|needs? (?:more|additional) (?:context|evidence)|ask (?:the )?(?:user|participant)|record (?:the )?behavior|multiple (?:possible )?(?:causes|explanations)|avoid (?:assuming|inferring))\b/i;
+
+/**
+ * A pause, laugh, glance, or repeated click can support a follow-up question,
+ * but it cannot by itself establish confusion, motive, or interface causality.
+ * Such a stem is admissible only when it supplies corroborating context or
+ * gives students an evidence-limited option.
+ */
+export function hasUnsupportedBehaviorInference(item) {
+  const stem = cleanText(item?.question);
+  if (!BEHAVIOR_INFERENCE_STEM_RE.test(stem) || !AMBIGUOUS_BEHAVIOR_RE.test(stem)) return false;
+  if (CORROBORATING_CONTEXT_RE.test(stem)) return false;
+  const options = Array.isArray(item?.options) ? item.options : [];
+  return !options.some((option) => EVIDENCE_LIMIT_OPTION_RE.test(cleanText(option)));
+}
+
+const UNSUPPORTED_CAUSE_STEM_RE =
+  /\bwhich\b[^?]{0,100}\b(?:likely contributed|likely caused|most likely (?:caused|contributed|explains))\b/i;
+const CAUSAL_CONTEXT_RE =
+  /\b(?:because|due to|after|when|while|citing|reports? that|shows? that|observes? that|notes? that|compared with|following)\b/i;
+const ABSENCE_OVERCLAIM_RE =
+  /\bconclud\w*\b[^?]{0,180}\bbecause\b[^?]{0,120}\b(?:avoided|did not|never|no observed)\b[^?]{0,120}\b(?:unnecessary|unused|not needed|irrelevant)\b/i;
+const ABSENCE_LIMIT_KEY_RE =
+  /\b(?:does not prove|cannot conclude|insufficient|observation alone|absence of use|avoidance|discoverability|visibility|need(?:s)? (?:a )?(?:follow-up|comparison|test|more evidence))\b/i;
+
+export function hasUnsupportedCausalInference(item) {
+  const stem = cleanText(item?.question);
+  if (!UNSUPPORTED_CAUSE_STEM_RE.test(stem) || CAUSAL_CONTEXT_RE.test(stem)) return false;
+  const options = Array.isArray(item?.options) ? item.options : [];
+  return !options.some((option) => EVIDENCE_LIMIT_OPTION_RE.test(cleanText(option)));
+}
+
+export function hasUnsupportedAbsenceInference(item) {
+  const stem = cleanText(item?.question);
+  if (!ABSENCE_OVERCLAIM_RE.test(stem)) return false;
+  const options = Array.isArray(item?.options) ? item.options : [];
+  const answerIndex = Number(item?.answerIndex);
+  const key = Number.isInteger(answerIndex) && answerIndex >= 0 ? cleanText(options[answerIndex]) : '';
+  return !ABSENCE_LIMIT_KEY_RE.test(`${key} ${cleanText(item?.explanation)}`);
+}
+
 /**
  * Clang association: a test-wise cue where the key echoes the stem's
  * vocabulary while distractors don't. Flags when the key shares ≥2 more
@@ -147,5 +197,8 @@ export function lintItemAdmission(item) {
   if (hasClangAssociationCue(item)) issues.push('clang-association-cue');
   if (hasGrammaticalCue(item)) issues.push('grammatical-cue');
   if (hasLongestOptionCue(item)) issues.push('longest-option-cue');
+  if (hasUnsupportedBehaviorInference(item)) issues.push('unsupported-behavior-inference');
+  if (hasUnsupportedCausalInference(item)) issues.push('unsupported-causal-inference');
+  if (hasUnsupportedAbsenceInference(item)) issues.push('unsupported-absence-inference');
   return issues;
 }

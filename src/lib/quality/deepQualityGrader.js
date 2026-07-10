@@ -74,6 +74,7 @@ import {
 } from './artifactDefectPatterns.js';
 // V0.14.7 WS-D D1 introduced the texture metric; v0.15.6 makes it score-bearing.
 import { computeTexture, textureDocsFromFiles, buildTextureAdvisories, TEXTURE_VERSION } from './textureMetric.js';
+import { addPackageQuizDepthFindings } from './quizItemDepth.js';
 
 // v0.14.3 WS-A A3: the grader version stamped into manifest.quality. Bump on
 // any change to checks, weights, or severity penalties so a package's quality
@@ -112,7 +113,9 @@ import { computeTexture, textureDocsFromFiles, buildTextureAdvisories, TEXTURE_V
 // templated package leaves the A band; texture < 60 is a P1.
 // 1.9.0 — offline manifest/log grading preserves native and unenriched compile
 // caveats, and any P1 major review finding caps the package below the A band.
-export const GRADER_VERSION = '1.9.0';
+// 1.10.0 — quiz substance now verifies that Apply/Analyze/Evaluate MC items
+// contain a concrete case or evidence to reason from, rather than trusting tags.
+export const GRADER_VERSION = '1.10.0';
 
 // ── Dimension weights & letter bands (documented in the module header) ──────
 // v0.15.186: texture weight 10 → 25. At 10/120 a fully templated package
@@ -3292,6 +3295,7 @@ export async function grade({
   checkCitations(findings, pkg, course);
   checkPromptArtifactContamination(findings, pkg, course);
   checkSubstance(findings, pkg, course);
+  addPackageQuizDepthFindings(findings, pkg.files);
   checkDiscipline(findings, pkg, course);
   checkFormat(findings, pkg);
   // v0.14.5 WS-C (C3): native-visual bar — self-arming on the cmViz marker,

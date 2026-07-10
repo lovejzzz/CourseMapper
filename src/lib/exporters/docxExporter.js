@@ -270,10 +270,11 @@ export function _buildDocxContentShared(featureId, data, children, docx) {
   const theme = activeTheme();
   const exportTitle = docx.exportTitle || '';
 
-  const makeHeading = (text) =>
+  const makeHeading = (text, { pageBreakBefore = false } = {}) =>
     new Paragraph({
       heading: HeadingLevel.HEADING_2,
       keepNext: true,
+      pageBreakBefore,
       spacing: { line: LINE_SP, before: 420, after: 140 },
       // Accent bar in the left margin anchors each lesson section.
       border: { left: { style: BorderStyle.SINGLE, size: 24, color: theme.accent, space: 10 } },
@@ -317,8 +318,9 @@ export function _buildDocxContentShared(featureId, data, children, docx) {
         }),
       ],
     });
-  const makeBold = (label, text) =>
+  const makeBold = (label, text, { keepNext = false } = {}) =>
     new Paragraph({
+      keepNext,
       spacing: { line: SINGLE_SP, before: 40, after: 60 },
       children: [
         // v0.12.1: an explicit "Label: value" separator — the old two-space
@@ -404,8 +406,9 @@ export function _buildDocxContentShared(featureId, data, children, docx) {
       indent: { left: 360 },
       children: [new TextRun({ text: text || '', italics: true, size: BODY_SIZE, font: FONT, color: theme.metaColor })],
     });
-  const makeNumbered = (num, text) =>
+  const makeNumbered = (num, text, { keepNext = false } = {}) =>
     new Paragraph({
+      keepNext,
       spacing: { line: SINGLE_SP, before: 20, after: 50 },
       indent: { left: 360 },
       children: [
@@ -771,13 +774,22 @@ export function _buildDocxContentShared(featureId, data, children, docx) {
             q.points && `${q.points} pts`,
             q.estimatedMinutes && `~${q.estimatedMinutes} min`,
           ].filter(Boolean);
-          children.push(makeBold(`Q${j + 1}` + (qMeta.length ? ` (${qMeta.join(', ')})` : ''), q.question || ''));
+          const options = Array.isArray(q.options) ? q.options : [];
+          children.push(
+            makeBold(`Q${j + 1}` + (qMeta.length ? ` (${qMeta.join(', ')})` : ''), q.question || '', {
+              keepNext: options.length > 0,
+            }),
+          );
           // Lettered options read as an exam paper, not a bullet list. The
           // compiler bakes "A. " into the option text — strip it so the
           // exporter's own letter doesn't double up ("A. A. unit elastic").
-          if (q.options)
-            q.options.forEach((o, oi) =>
-              children.push(makeNumbered(String.fromCharCode(65 + (oi % 26)), stripOptionLetter(o))),
+          if (options.length > 0)
+            options.forEach((o, oi) =>
+              children.push(
+                makeNumbered(String.fromCharCode(65 + (oi % 26)), stripOptionLetter(o), {
+                  keepNext: oi < options.length - 1,
+                }),
+              ),
             );
         }
 
@@ -786,8 +798,10 @@ export function _buildDocxContentShared(featureId, data, children, docx) {
           (q) => q.answer || q.explanation || q.sampleAnswer || q.rubricHints || q.scoringGuidance,
         );
         if (hasKeyContent) {
-          children.push(new Paragraph({ children: [new PageBreak()] }));
-          children.push(makeHeading(`Answer Key — ${quiz.lessonTitle || 'Quiz'}`));
+          // Put the break ON the heading. A standalone page-break paragraph
+          // can itself flow onto the next page when the question paper fills
+          // page 1, producing a completely blank page before the key.
+          children.push(makeHeading(`Answer Key — ${quiz.lessonTitle || 'Quiz'}`, { pageBreakBefore: true }));
           let prevObjectiveAligned = '';
           const allTags = new Set();
           for (let j = 0; j < questions.length; j++) {

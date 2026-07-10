@@ -107,6 +107,11 @@ Return ONLY valid JSON matching the kernel shape from the instructions.`;
     expect(req.body.messages[1].content).toContain('LESSONS TO AUTHOR');
     expect(req.body.messages[1].content).toContain('Lesson 4: Affinity Mapping');
     expect(req.body.messages[1].content).toContain('Write exactly 4 mc items');
+    expect(req.body.messages[1].content).toContain('one field-note evidence analysis');
+    expect(req.body.messages[1].content).toContain(
+      'At least 3 mc stems include specific observed behavior or evidence',
+    );
+    expect(req.body.messages[1].content).toContain('Never infer motive from one ambiguous behavior');
     expect(req.body.messages[1].content).toContain('Also return one compact courseLevel object');
     expect(req.body.messages[1].content).not.toContain('compact CourseMapper lessons');
   });
@@ -244,5 +249,63 @@ Continue generating the REMAINING lessons (Lesson 10 through Lesson 12).`;
     mismatched.lessons[0].mc[0].ex = 'This option is correct under the stated conditions.';
     const ambiguous = JSON.parse(repairPublicScionJsonText(JSON.stringify(mismatched)));
     expect(ambiguous.lessons[0].mc[0].ai).toBe(1);
+  });
+
+  it('realigns a public key when the rationale uses a question/steps paraphrase', () => {
+    const response = {
+      lessons: [
+        {
+          lessonId: 'lesson-3',
+          mc: [
+            {
+              q: 'Which contextual follow-up is best?',
+              op: [
+                'Ask about the specific steps taken during that session',
+                'Ask how the participant felt overall',
+                'Ask about unrelated library resources',
+                'Ask what they would change generally',
+              ],
+              ai: 1,
+              ex: 'Following up with step-by-step questions targets contextual detail; other options are broader.',
+            },
+          ],
+        },
+      ],
+    };
+    const repaired = JSON.parse(repairPublicScionJsonText(JSON.stringify(response)));
+    expect(repaired.lessons[0].mc[0].ai).toBe(0);
+  });
+
+  it('lifts lesson fields that anonymous JSON accidentally nests under a sibling field', () => {
+    const malformedShape = {
+      lessons: [
+        {
+          lessonId: 'lesson-3',
+          discussionPrompt: {
+            pr: 'Which interpretation is defensible?',
+            assignmentCore: {
+              td: 'Analyze the supplied observation and produce a concise evidence-backed recommendation.',
+              mc: [
+                {
+                  q: 'A participant reports success but reopens the same screen twice. Which conclusion is best supported?',
+                  op: ['A', 'B', 'C', 'D'],
+                  ai: 0,
+                  ex: 'A is best supported because it accounts for the observed reopening behavior.',
+                },
+              ],
+              studyGuide: {
+                sm: 'A sufficiently long summary that connects observation with interpretation.',
+                rs: 'Compare every claim with the supplied observation before selecting it.',
+              },
+            },
+          },
+        },
+      ],
+    };
+
+    const repaired = JSON.parse(repairPublicScionJsonText(JSON.stringify(malformedShape)));
+    expect(repaired.lessons[0].assignmentCore.td).toContain('supplied observation');
+    expect(repaired.lessons[0].mc).toHaveLength(1);
+    expect(repaired.lessons[0].studyGuide.rs).toContain('Compare every claim');
   });
 });

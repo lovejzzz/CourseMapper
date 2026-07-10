@@ -17566,9 +17566,10 @@ function buildMultipleChoiceQuestion({
   prompt,
   correct,
   plan,
+  artifactOverride = '',
 }) {
   const id = quizQuestionId(lesson, index);
-  const artifact = stripTerminalPunctuation(lesson.studentArtifact);
+  const artifact = stripTerminalPunctuation(artifactOverride || lesson.studentArtifact);
   const { answer, options, misconceptionSourced } = buildMultipleChoiceOptions({
     lesson,
     index,
@@ -17737,11 +17738,12 @@ export function buildQuizAtomsForLesson(lesson, blueprint, options = {}) {
   // the lesson's scenario seed and evidence plan — the old instructor-meta
   // frames ("Which instructor question…", "Which feedback move…") shipped
   // verbatim whenever enrichment did not overlay those slots.
-  const scenario =
-    lesson.throughlineCase?.lessonCaseName ||
-    [lens.exampleNoun, secondary].filter(Boolean).map(stripTerminalPunctuation).join(' focused on ');
   const evidenceCue = lesson.evidencePlan?.sourceCue || 'the assigned course materials';
   const lessonFocus = stripLessonPrefix(lesson.title);
+  const decisionNoun = stripTerminalPunctuation(cleanText(lens.decisionNoun || 'decision'));
+  const quizDecision = lessonFocus.toLowerCase().includes(decisionNoun.toLowerCase())
+    ? lessonFocus
+    : `${lessonFocus} ${decisionNoun}`;
   const quizPlan = buildQuizQuestionPlan({ lesson, assessment, targetCount: 6 });
   const atoms = [
     buildMultipleChoiceQuestion({
@@ -17752,9 +17754,10 @@ export function buildQuizAtomsForLesson(lesson, blueprint, options = {}) {
       objective: quizPlan[0].objective,
       concept,
       use: quizPlan[0].use,
-      prompt: `Which statement best explains why ${concept} matters for ${artifact}?`,
-      correct: `${sentenceCase(concept)} helps students choose relevant evidence and justify the decision in ${artifact}.`,
+      prompt: `Which statement best explains why ${concept} matters for a ${quizDecision}?`,
+      correct: `${sentenceCase(concept)} helps a team choose relevant evidence and justify the ${decisionNoun}.`,
       plan: quizPlan[0],
+      artifactOverride: quizDecision,
     }),
     buildMultipleChoiceQuestion({
       lesson,
@@ -17765,18 +17768,19 @@ export function buildQuizAtomsForLesson(lesson, blueprint, options = {}) {
       concept,
       use: quizPlan[1].use,
       prompt: lessonVariant(lesson, [
-        `A student is preparing ${artifact}. Which action best applies ${concept} from ${lessonFocus}?`,
-        `During ${lessonFocus}, which move would make ${artifact} show ${concept} most clearly?`,
-        `Which preparation choice best uses ${concept} before a student submits ${artifact}?`,
-        `A draft of ${artifact} needs stronger ${concept} evidence. Which action should happen next?`,
+        `A student team is preparing a ${quizDecision}. Which action best applies ${concept}?`,
+        `During a ${lessonFocus} case review, which move uses ${concept} most clearly?`,
+        `Which preparation choice best uses ${concept} before recommending a ${decisionNoun}?`,
+        `A ${quizDecision} needs stronger ${concept} evidence. Which action should happen next?`,
       ]),
       correct: lessonVariant(lesson, [
-        `Use ${concept} to select a concrete example, connect it to the objective, and revise the artifact before submission.`,
-        `Choose evidence that shows ${concept} in action, explain why it fits the objective, and revise ${artifact}.`,
-        `Apply ${concept} by testing one source detail against the objective before editing ${artifact}.`,
-        `Connect ${concept} to an inspectable example, then use the feedback or criterion to improve ${artifact}.`,
+        `Use ${concept} to select a concrete example, connect it to the objective, and revise the ${decisionNoun}.`,
+        `Choose evidence that shows ${concept} in action, explain why it fits the objective, and revise the ${decisionNoun}.`,
+        `Apply ${concept} by testing one source detail against the objective before making the ${decisionNoun}.`,
+        `Connect ${concept} to an inspectable example, then use the result to improve the ${decisionNoun}.`,
       ]),
       plan: quizPlan[1],
+      artifactOverride: quizDecision,
     }),
     buildMultipleChoiceQuestion({
       lesson,
@@ -17786,9 +17790,10 @@ export function buildQuizAtomsForLesson(lesson, blueprint, options = {}) {
       objective: quizPlan[2].objective,
       concept: secondary,
       use: quizPlan[2].use,
-      prompt: `In the ${scenario}, which approach best applies ${secondary} to strengthen ${artifact}?`,
-      correct: `Test ${secondary} against two pieces of evidence from ${evidenceCue} and keep the one that better supports ${artifact}.`,
+      prompt: `In the ${lessonFocus} case, a student team reviews ${evidenceCue}. Which approach best applies ${secondary} before recommending a ${decisionNoun}?`,
+      correct: `Compare two details from ${evidenceCue}, explain how each bears on ${secondary}, and choose the better-supported ${decisionNoun}.`,
       plan: quizPlan[2],
+      artifactOverride: quizDecision,
     }),
     // v0.15.188 (Prof catch): when the assessment is AUTOGRADED, the weekly
     // quiz must be machine-scorable — an essay under an "autograded quiz"
@@ -17807,8 +17812,9 @@ export function buildQuizAtomsForLesson(lesson, blueprint, options = {}) {
           concept,
           use: quizPlan[3].use,
           prompt: `Which statement most accurately describes ${concept}?`,
-          correct: `${sentenceCase(concept)} is used to ${lowercaseSentenceLead(stripTerminalPunctuation(quizPlan[3].objective || `support the work in ${artifact}`))}.`,
+          correct: `${sentenceCase(concept)} is used to ${lowercaseSentenceLead(stripTerminalPunctuation(quizPlan[3].objective || `support the ${decisionNoun}`))}.`,
           plan: quizPlan[3],
+          artifactOverride: quizDecision,
         })
       : buildShortAnswerQuestion({
           lesson,
@@ -17827,14 +17833,15 @@ export function buildQuizAtomsForLesson(lesson, blueprint, options = {}) {
       objective: quizPlan[4].objective,
       concept,
       use: quizPlan[4].use,
-      prompt: `Which use of evidence best supports a claim about ${concept} in ${artifact}?`,
+      prompt: `Which use of evidence from ${evidenceCue} best supports a claim for a ${quizDecision}?`,
       correct: lessonVariant(lesson, [
-        `Cite a specific detail from ${evidenceCue} that shows ${concept} at work in ${artifact}, then state what that detail changes.`,
-        `Use an inspectable ${evidenceCue} detail to show ${concept} at work, then explain the ${artifact} choice it changes.`,
-        `Choose a concrete clue from ${evidenceCue}, connect it to ${concept}, and name the resulting change in ${artifact}.`,
-        `Point to the ${evidenceCue} evidence, explain how it proves ${concept}, and revise the relevant ${artifact} claim.`,
+        `Cite a specific detail from ${evidenceCue} that shows ${concept} at work, then state what it changes in the ${decisionNoun}.`,
+        `Use an inspectable ${evidenceCue} detail to show ${concept} at work, then explain the ${decisionNoun} it changes.`,
+        `Choose a concrete clue from ${evidenceCue}, connect it to ${concept}, and name the resulting ${decisionNoun} change.`,
+        `Point to the ${evidenceCue} evidence, explain how it supports ${concept}, and revise the relevant ${decisionNoun} claim.`,
       ]),
       plan: quizPlan[4],
+      artifactOverride: quizDecision,
     }),
     machineScored
       ? buildMultipleChoiceQuestion({
@@ -17845,9 +17852,10 @@ export function buildQuizAtomsForLesson(lesson, blueprint, options = {}) {
           objective: quizPlan[5].objective,
           concept: secondary,
           use: quizPlan[5].use,
-          prompt: `A classmate applies ${secondary} while preparing ${artifact}. Which choice best uses it correctly?`,
-          correct: `Apply ${secondary} to a concrete detail from ${evidenceCue}, then revise the ${artifact} decision it changes.`,
+          prompt: `A classmate applies ${secondary} while preparing a ${quizDecision}. Which choice best uses it correctly?`,
+          correct: `Apply ${secondary} to a concrete detail from ${evidenceCue}, then revise the ${decisionNoun} it changes.`,
           plan: quizPlan[5],
+          artifactOverride: quizDecision,
         })
       : buildEssayQuestion({
           lesson,

@@ -172,7 +172,10 @@ describe('buildDeliverableDocxBlob', () => {
     // Answer key exists on its own page, after the questions.
     expect(xml).toContain('Answer Key — Lesson 3: Elasticity');
     expect(xml.indexOf('Answer Key')).toBeGreaterThan(xml.indexOf('Demand is:'));
-    expect(xml).toContain('<w:br w:type="page"/>');
+    // The answer heading owns the break. A standalone page-break paragraph
+    // can spill to a new page and then create a second, blank page.
+    expect(xml).toContain('<w:pageBreakBefore/>');
+    expect(xml).not.toContain('<w:br w:type="page"/>');
     // Long short-answer keys stay sentence case (the callout label would
     // have uppercased them).
     expect(xml).toContain('Price cuts raise revenue only when demand is elastic');

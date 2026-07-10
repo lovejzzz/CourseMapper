@@ -12,6 +12,7 @@ export default defineConfig({
         // AppFlow bundle (whose budget ratchets down, never up for features).
         manualChunks(id) {
           if (/src\/lib\/scion(Contracts|Passes|PassB|Flywheel)\.js$/.test(id)) return 'scion';
+          if (/src\/lib\/quality\/quizItemDepth\.js$/.test(id)) return 'quizItemDepth';
         },
       },
     },

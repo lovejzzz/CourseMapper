@@ -121,6 +121,9 @@ describe('A1 — unit-integrity, authored-first quiz overlay', () => {
       expect(atom.options.join(' ')).toContain('Reads and executes Python code directly');
       expect(atom.enrichmentSource).toBe('lesson-content-enrichment');
     }
+    for (const atom of atoms.filter((item) => item.enrichmentSource !== 'lesson-content-enrichment')) {
+      expect(JSON.stringify([atom.question, atom.options])).not.toMatch(/Autograded quiz|Week\s*1 quiz/i);
+    }
   });
 });
 
