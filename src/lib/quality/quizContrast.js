@@ -4,15 +4,12 @@ import {
   isClaimEvidenceBoundaryShortAnswer,
   isConceptCuedCompilerShortAnswer,
 } from './quizItemDepth.js';
+import { analyzeDecisionScenario, isConcreteScenarioMaterials } from '../scenarioContract.js';
 
-const DECISION_CONSTRAINT_RE =
-  /\b(?:but|however|while|whereas|although|must decide|trade-?off|constraint|conflict|cannot|fails?|difficult|confus(?:e|ed|ing|ion)|hesitat(?:e|es|ed|ing|ion)|delay(?:s|ed)?|unsure|disagree|complaint|problem)\b/i;
 const RATIONALE_CONTRAST_RE =
   /\b(?:whereas|while|but|rather than|instead|unlike|other options?|closest distractor|fails?|does not|do not)\b/i;
 const BOUNDED_ANSWER_RE =
   /\b(?:limit(?:ation)?|boundary|trade-?off|alternative|additional evidence|does not prove|not a broader|cannot establish|competing interpretation)\b/i;
-const GENERIC_MATERIALS_RE =
-  /^(?:the\s+)?(?:scenario|case|lesson|course|source)?\s*(?:evidence|materials?|example|data|text|artifact)s?\.?$/i;
 
 function text(value) {
   return String(value || '')
@@ -36,22 +33,22 @@ export function parseSavedCourseGraph(project) {
 }
 
 export function isDecisionReadyScenario(scenario = {}) {
-  const setup = text(scenario.setup || scenario.su);
-  const materials = text(scenario.materials || scenario.ma);
-  const evidenceShape = /\d|["“”]|[,;:]|\b(?:observ|record|report|result|quote|note|show|find|data)\w*\b/i.test(setup);
-  return (
-    words(setup) >= 20 && DECISION_CONSTRAINT_RE.test(setup) && evidenceShape && isConcreteScenarioMaterials(materials)
-  );
+  return analyzeDecisionScenario(scenario).ready;
 }
 
-export function isConcreteScenarioMaterials(value) {
-  const materialText = text(value);
-  return words(materialText) >= 4 && !GENERIC_MATERIALS_RE.test(materialText);
-}
+export { isConcreteScenarioMaterials };
 
 function lessonRows(graph) {
   const lessonContent = graph?.enrichmentOverlay?.lessonContent || {};
-  return Object.entries(lessonContent).map(([lessonId, content]) => {
+  const sessionLessonIds = (Array.isArray(graph?.sessions) ? graph.sessions : [])
+    .map((session, index) => {
+      const number = Number(session?.number);
+      return `lesson-${Number.isInteger(number) && number > 0 ? number : index + 1}`;
+    })
+    .filter(Boolean);
+  const lessonIds = [...new Set([...sessionLessonIds, ...Object.keys(lessonContent)])];
+  return lessonIds.map((lessonId) => {
+    const content = lessonContent[lessonId] || {};
     const items = Array.isArray(content?.quizItems) ? content.quizItems : [];
     return {
       lessonId,
@@ -72,9 +69,8 @@ export function analyzeQuizProject(project, { label = 'project' } = {}) {
   const lessons = lessonRows(graph);
   const multipleChoice = lessons.flatMap((lesson) => lesson.multipleChoice);
   const shortAnswers = lessons.flatMap((lesson) => lesson.shortAnswers);
-  const scenarios = lessons
-    .map((lesson) => lesson.scenario)
-    .filter((scenario) => text(scenario?.setup || scenario?.su));
+  const scenarios = lessons.map((lesson) => lesson.scenario);
+  const presentScenarios = scenarios.filter((scenario) => text(scenario?.setup || scenario?.su));
 
   const applied = multipleChoice.filter((item) => isAppliedQuizStem(item.question));
   const unsupported = multipleChoice.filter((item) =>
@@ -83,11 +79,13 @@ export function analyzeQuizProject(project, { label = 'project' } = {}) {
   const contrastiveRationales = multipleChoice.filter((item) => RATIONALE_CONTRAST_RE.test(text(item.explanation)));
   const decisionReady = scenarios.filter(isDecisionReadyScenario);
   const concreteMaterials = scenarios.filter((scenario) =>
-    isConcreteScenarioMaterials(scenario.materials || scenario.ma),
+    isConcreteScenarioMaterials(scenario?.materials || scenario?.ma),
   );
+  const derivedScenarios = scenarios.filter((scenario) => scenario?.source === 'derived-kernel-fallback');
   const cueFree = shortAnswers.filter((item) => !isConceptCuedCompilerShortAnswer(item.question));
   const claimEvidenceBoundary = shortAnswers.filter((item) => isClaimEvidenceBoundaryShortAnswer(item.question));
   const boundedAnswers = shortAnswers.filter((item) => BOUNDED_ANSWER_RE.test(text(item.answer)));
+  const weakScenario = scenarios.find((scenario) => !isDecisionReadyScenario(scenario));
 
   return {
     label,
@@ -96,17 +94,20 @@ export function analyzeQuizProject(project, { label = 'project' } = {}) {
       appliedMultipleChoice: metric(applied.length, multipleChoice.length),
       supportedMultipleChoice: metric(multipleChoice.length - unsupported.length, multipleChoice.length),
       contrastiveRationales: metric(contrastiveRationales.length, multipleChoice.length),
-      decisionReadyScenarios: metric(decisionReady.length, scenarios.length),
-      concreteScenarioMaterials: metric(concreteMaterials.length, scenarios.length),
+      scenarioCoverage: metric(presentScenarios.length, lessons.length),
+      decisionReadyScenarios: metric(decisionReady.length, lessons.length),
+      concreteScenarioMaterials: metric(concreteMaterials.length, lessons.length),
+      derivedScenarioFallbacks: metric(derivedScenarios.length, lessons.length),
       cueFreeShortAnswers: metric(cueFree.length, shortAnswers.length),
       claimEvidenceBoundaryShortAnswers: metric(claimEvidenceBoundary.length, shortAnswers.length),
       boundedModelAnswers: metric(boundedAnswers.length, shortAnswers.length),
       averageScenarioWords: {
         value:
-          scenarios.length > 0
+          presentScenarios.length > 0
             ? Number(
                 (
-                  scenarios.reduce((sum, scenario) => sum + words(scenario.setup || scenario.su), 0) / scenarios.length
+                  presentScenarios.reduce((sum, scenario) => sum + words(scenario.setup || scenario.su), 0) /
+                  presentScenarios.length
                 ).toFixed(1),
               )
             : 0,
@@ -114,7 +115,8 @@ export function analyzeQuizProject(project, { label = 'project' } = {}) {
     },
     examples: {
       decisionReadyScenario: text(decisionReady[0]?.setup || decisionReady[0]?.su),
-      weakScenario: text(scenarios.find((scenario) => !isDecisionReadyScenario(scenario))?.setup),
+      weakScenario: text(weakScenario?.setup),
+      weakScenarioIssues: weakScenario ? analyzeDecisionScenario(weakScenario).issues : [],
       conceptCuedShortAnswer: text(
         shortAnswers.find((item) => isConceptCuedCompilerShortAnswer(item.question))?.question,
       ),
@@ -122,6 +124,49 @@ export function analyzeQuizProject(project, { label = 'project' } = {}) {
         shortAnswers.find((item) => isClaimEvidenceBoundaryShortAnswer(item.question))?.question,
       ),
     },
+  };
+}
+
+export const QUIZ_CONTRAST_RELEASE_BARS = Object.freeze({
+  minimumLessons: 12,
+  appliedMultipleChoice: 0.55,
+  supportedMultipleChoice: 1,
+  contrastiveRationales: 0.9,
+  scenarioCoverage: 1,
+  decisionReadyScenarios: 0.9,
+  concreteScenarioMaterials: 0.9,
+  cueFreeShortAnswers: 1,
+  claimEvidenceBoundaryShortAnswers: 1,
+});
+
+export function evaluateQuizReleaseBars(profile, bars = QUIZ_CONTRAST_RELEASE_BARS) {
+  const checks = [
+    {
+      key: 'minimumLessons',
+      label: 'lesson denominator',
+      actual: profile?.totals?.lessons || 0,
+      required: bars.minimumLessons,
+      passed: (profile?.totals?.lessons || 0) >= bars.minimumLessons,
+      display: `${profile?.totals?.lessons || 0}/${bars.minimumLessons} lessons`,
+    },
+    ...Object.entries(bars)
+      .filter(([key]) => key !== 'minimumLessons')
+      .map(([key, required]) => {
+        const actual = profile?.metrics?.[key]?.share || 0;
+        return {
+          key,
+          label: COMPARISON_DIMENSIONS.find((dimension) => dimension.key === key)?.label || key,
+          actual,
+          required,
+          passed: actual >= required,
+          display: `${(actual * 100).toFixed(1)}% / >= ${(required * 100).toFixed(1)}%`,
+        };
+      }),
+  ];
+  return {
+    status: checks.every((check) => check.passed) ? 'passed' : 'failed',
+    checks,
+    failures: checks.filter((check) => !check.passed),
   };
 }
 
@@ -141,6 +186,11 @@ const COMPARISON_DIMENSIONS = [
     key: 'contrastiveRationales',
     label: 'contrastive rationales',
     lesson: 'Explain why the key wins and why the nearest plausible distractor fails.',
+  },
+  {
+    key: 'scenarioCoverage',
+    label: 'scenario coverage',
+    lesson: 'Keep one accepted or grounded scenario for every lesson; missing scenarios count against the score.',
   },
   {
     key: 'decisionReadyScenarios',
@@ -202,6 +252,7 @@ export function compareQuizProjects(candidateProject, referenceProject, options 
   return {
     candidate,
     reference,
+    releaseBars: evaluateQuizReleaseBars(candidate),
     learning: { learn, preserve, shared },
     claimBoundary:
       'This paired diagnostic identifies authoring patterns worth testing. One course pair is directional evidence, not proof of general model superiority.',

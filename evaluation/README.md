@@ -12,13 +12,14 @@ For model improvement, use the paired quiz diagnostic on two saved real generati
 
 ```bash
 npm run audit:quiz:contrast -- \
+  --strict \
   --candidate /path/to/scion/project.json \
   --reference /path/to/reference/project.json \
   --candidate-label Scion \
   --reference-label Reference
 ```
 
-The report is written to `verification-output/quiz-contrast/latest.md`. A single pair is directional evidence for prompt and compiler changes; it is not a substitute for the independent benchmark or production canaries.
+The report is written to `verification-output/quiz-contrast/latest.md`. `--strict` exits nonzero unless the candidate covers at least 12 lessons and clears the explicit applied-reasoning, supported-inference, contrastive-rationale, scenario, and short-answer bars. A single pair is still directional evidence for prompt and compiler changes; passing strict mode is not a substitute for the independent benchmark or production canaries.
 
 If an advisory model judge is added to a paired comparison, run the same packet twice with the order reversed (`A/B` and `B/A`). Normalize scores back to the real packet labels. If the preferred packet flips with position, either packet's score moves by more than two points, or both readings prefer the same letter position while the underlying packet preference flips, mark the judge verdict **inconclusive**. Do not average an order-biased pair into a claimed win.
 
@@ -60,7 +61,7 @@ The canary policy lives in [`production-canaries/policy.json`](production-canari
 
 A proof-eligible run must retain the generated ZIP, trace, and console log by content hash and include fresh rendered visual QA. Operational success alone is recorded but cannot satisfy the release gate.
 
-The original User Experience Design Studio run is intentionally preserved at 89/B with one P1. The latest local follow-up records the real improvement to 99/A, 12/12 authored lesson kernels, and zero P0/P1 findings. Its deterministic paired quiz diagnostic matches the Luna packet's applied-MC share, preserves Scion's stronger contrastive rationales, and clears the cue-free plus claim-evidence-boundary short-answer checks that both earlier packets failed. An order-reversed advisory judge preferred the second packet in both orders and moved one packet by more than two points, so that verdict is correctly recorded as inconclusive rather than a model win. Fresh rendered QA passed for representative quiz documents. The artifacts are not durably retained, so the runs remain useful operational evidence and **are not release proof**.
+The original User Experience Design Studio run is intentionally preserved at 89/B with one P1. The final v0.16.2 local follow-up (`round-2026-07-10T16-48-15-154Z`) records 99/A, 12/12 enriched lesson kernels, zero P0/P1/P2 findings, and every strict paired-quiz bar green. Against the saved reference packet it measured 67.6% vs. 59.1% applied MC, 100% vs. 100% supported inference, 100% vs. 9.1% contrastive rationales, 100% vs. 58.3% decision-ready scenarios, and 100% vs. 0% for both cue-free and claim-evidence-boundary short answers. No reference advantage cleared the 10-point learning threshold. An earlier order-reversed advisory judge preferred the second packet in both orders and moved one packet by more than two points, so that verdict remains inconclusive rather than a model win. Rendered QA covered representative Lessons 1, 8, and 12; it found and then verified the fix for a blank trailing quiz page. The artifacts are local rather than durably retained in the canary store, so this remains operational evidence and **is not production-canary proof**.
 
 ## Current claim
 

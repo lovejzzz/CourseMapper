@@ -3,7 +3,7 @@
 AI-powered instructional design platform running on **CurriculumOS** — a deterministic course compiler linked to a **Curriculum Genome** of source-anchored, citable concept knowledge — with an embedded teaching assistant agent. Upload your syllabus and generate a structured Course Map, lesson plans, slide decks, rubrics, quizzes, assignments, discussion prompts, study guides, and a polished syllabus — all pedagogically aligned, validated, and fully editable. Then use the AI agent to revise, validate, research, and visualize your curriculum through natural conversation.
 
 **Live:** [https://edutool.dev](https://edutool.dev)
-**Current release:** v0.16.1
+**Current release:** v0.16.2
 
 ---
 
@@ -31,7 +31,7 @@ Course Mapper is a **purpose-built instructional design tool**, not a general ch
 
 ### What the website uses
 
-The hosted site currently exposes **Scion Draft (free)**. It is a keyless, experimental route backed by Pollinations' anonymous text endpoint and its `openai-fast` model. Scion Draft plans the course and authors compact lesson kernels; Course Mapper then compiles those kernels in the browser into the selected deliverables.
+The hosted site currently exposes **Scion Draft (free)**. It is a keyless, experimental route through Pollinations' anonymous legacy text endpoint. Course Mapper requests Pollinations' `openai-fast` alias, but Pollinations chooses and may change the actual anonymous backing model; Scion therefore does not promise a fixed foundation-model identity. Scion Draft plans the course and authors compact lesson kernels; Course Mapper then compiles those kernels in the browser into the selected deliverables.
 
 No API key is required and Course Mapper prices the route at $0. It is not an offline or private route: the prompt and relevant uploaded text are sent to the third-party endpoint. The service can also be rate-limited or unavailable. Do not send sensitive material, and review every generated course before using it with students.
 
@@ -40,13 +40,14 @@ No API key is required and Course Mapper prices the route at $0. It is not an of
 Scion is a system rather than one model call:
 
 1. **Constrained authoring.** The model writes a compact course map and one lesson-specific knowledge kernel at a time instead of attempting nine finished deliverables in free-form prose.
-2. **Admission and recovery.** Course Mapper repairs narrowly defined response-shape defects, aligns recoverable answer keys, and rejects weak quiz atoms, unsupported inferences, and malformed content instead of silently treating them as good output.
-3. **Deterministic compilation.** The same accepted kernel is projected into lesson plans, slides, assignments, rubrics, quizzes, discussions, study guides, and the package manifest. Structure, numbering, answer-key rotation, alignment, and file generation are compiler-owned.
-4. **Layered evaluation.** Contract fixtures catch compiler regressions; real paired generations reveal authoring-behavior gaps; independent instructors and retained production canaries are required before Course Mapper can claim that materials are independently validated or production-proven.
+2. **One evidence-to-decision contract.** A scenario is accepted only when it has concrete context, an actionable decision or problem, inspectable evidence, a real tension or constraint, and specific materials. The same explainable contract drives prompting, admission, projection, and evaluation.
+3. **Admission and grounded recovery.** Course Mapper repairs narrowly defined response-shape defects, aligns recoverable answer keys, and rejects weak quiz atoms, unsupported inferences, and malformed content. If an authored scenario fails, the compiler may build a zero-call fallback only from already-admitted facts, examples, and misconception/correction atoms; the saved scenario records that provenance.
+4. **Deterministic compilation.** The same accepted kernel is projected into lesson plans, slides, assignments, rubrics, quizzes, discussions, study guides, and the package manifest. Structure, numbering, answer-key rotation, alignment, rationale framing, and file generation are compiler-owned.
+5. **Layered evaluation.** Contract fixtures catch compiler regressions; a strict paired diagnostic measures applied reasoning, supported inference, rationale contrast, scenario coverage/readiness, and cue-free claim-evidence-boundary answers; independent instructors and retained production canaries are still required before Course Mapper can claim independent validation or production proof.
 
-The current paired diagnostic does **not** show that Scion “beats” a named reference model. On one User Experience Design Studio pair, Scion matched the reference's applied multiple-choice share and produced stronger contrastive rationales and less cue-dependent short answers; the reference still produced more decision-ready scenarios. That is directional evidence for improving Scion's scenario authoring, not a general model ranking. An order-reversed advisory judge also showed position bias, so its apparent winner was correctly marked inconclusive.
+The current paired diagnostic does **not** show that Scion “beats” a named reference model. On one final User Experience Design Studio pair, Scion measured 67.6% vs. 59.1% on applied multiple-choice reasoning, 100% vs. 100% on supported inference, 100% vs. 9.1% on contrastive rationales, and 100% vs. 58.3% on decision-ready scenarios. Scion's cue-free and claim-evidence-boundary short answers were 100% vs. 0% in that saved pair. No measured reference advantage cleared the diagnostic's 10-point learning threshold; that is directional evidence about one pair, not a general model ranking. An earlier order-reversed advisory judge also showed position bias, so its apparent winner was correctly marked inconclusive.
 
-See [evaluation/README.md](evaluation/README.md) for the gate definitions, claim boundary, and `npm run audit:quiz:contrast` workflow.
+See [evaluation/README.md](evaluation/README.md) for the gate definitions, claim boundary, and `npm run audit:quiz:contrast -- --strict ...` workflow.
 
 ### Local research route
 
@@ -60,7 +61,7 @@ That local route is for development and evaluation and is not the Scion Draft op
 
 ---
 
-## Current Pipeline (v0.16.1)
+## Current Pipeline (v0.16.2)
 
 The product ribbon and the code share one pipeline vocabulary: **Map -> Enrich -> Compile -> Verify -> Grade**. `src/lib/pipelineMachine.js` is the phase authority; UI surfaces should render from that machine instead of re-deriving state from raw generation/finalizer flags.
 

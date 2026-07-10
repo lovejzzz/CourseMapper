@@ -4,12 +4,16 @@ import {
   aggregateOrderReversedJudgments,
   analyzeQuizProject,
   compareQuizProjects,
+  evaluateQuizReleaseBars,
   isDecisionReadyScenario,
 } from '../quizContrast.js';
 
-function savedProject(lessonContent) {
+function savedProject(lessonContent, sessionCount = 0) {
   return {
-    courseGraphJson: JSON.stringify({ enrichmentOverlay: { lessonContent } }),
+    courseGraphJson: JSON.stringify({
+      sessions: Array.from({ length: sessionCount }, (_, index) => ({ number: index + 1 })),
+      enrichmentOverlay: { lessonContent },
+    }),
   };
 }
 
@@ -86,6 +90,26 @@ describe('quiz model contrast', () => {
     expect(profile.metrics.appliedMultipleChoice.percent).toBe(100);
     expect(profile.metrics.decisionReadyScenarios.percent).toBe(100);
     expect(profile.metrics.claimEvidenceBoundaryShortAnswers.percent).toBe(100);
+    expect(profile.examples.weakScenarioIssues).toEqual([]);
+  });
+
+  it('counts missing lesson scenarios against coverage and readiness', () => {
+    const project = savedProject({
+      ...JSON.parse(strong.courseGraphJson).enrichmentOverlay.lessonContent,
+      'lesson-2': { kernel: { scenario: null }, quizItems: [] },
+    });
+    const profile = analyzeQuizProject(project);
+    expect(profile.metrics.scenarioCoverage).toMatchObject({ count: 1, total: 2, percent: 50 });
+    expect(profile.metrics.decisionReadyScenarios).toMatchObject({ count: 1, total: 2, percent: 50 });
+    expect(profile.examples.weakScenarioIssues).toContain('scenario-missing');
+  });
+
+  it('uses all course sessions as the scenario denominator when enrichment drops a lesson', () => {
+    const project = savedProject(JSON.parse(strong.courseGraphJson).enrichmentOverlay.lessonContent, 2);
+    const profile = analyzeQuizProject(project);
+    expect(profile.totals.lessons).toBe(2);
+    expect(profile.metrics.scenarioCoverage).toMatchObject({ count: 1, total: 2, percent: 50 });
+    expect(profile.metrics.decisionReadyScenarios).toMatchObject({ count: 1, total: 2, percent: 50 });
   });
 
   it('turns only observed reference advantages into learning recommendations', () => {
@@ -102,6 +126,13 @@ describe('quiz model contrast', () => {
       ]),
     );
     expect(comparison.claimBoundary).toContain('directional evidence');
+  });
+
+  it('fails explicit release bars instead of treating a relative win as readiness', () => {
+    const profile = analyzeQuizProject(strong);
+    const result = evaluateQuizReleaseBars(profile);
+    expect(result.status).toBe('failed');
+    expect(result.failures.map((check) => check.key)).toContain('minimumLessons');
   });
 
   it('invalidates an order-reversed judge result that follows the B position', () => {

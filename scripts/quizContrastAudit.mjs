@@ -12,6 +12,7 @@ function parseArgs(argv) {
     candidateLabel: 'candidate',
     referenceLabel: 'reference',
     output: path.join(process.cwd(), 'verification-output', 'quiz-contrast'),
+    strict: false,
   };
   for (let index = 0; index < argv.length; index += 1) {
     const arg = argv[index];
@@ -20,6 +21,7 @@ function parseArgs(argv) {
     else if (arg === '--candidate-label') args.candidateLabel = argv[++index] || args.candidateLabel;
     else if (arg === '--reference-label') args.referenceLabel = argv[++index] || args.referenceLabel;
     else if (arg === '--output') args.output = path.resolve(argv[++index] || args.output);
+    else if (arg === '--strict') args.strict = true;
     else if (arg === '--help' || arg === '-h') args.help = true;
   }
   return args;
@@ -50,6 +52,17 @@ function renderMarkdown(report, args) {
     ...rows,
     '',
     `- Average scenario length: ${report.candidate.metrics.averageScenarioWords.value} vs ${report.reference.metrics.averageScenarioWords.value} words`,
+    `- Derived scenario fallbacks: ${report.candidate.metrics.derivedScenarioFallbacks.count}/${report.candidate.metrics.derivedScenarioFallbacks.total} vs ${report.reference.metrics.derivedScenarioFallbacks.count}/${report.reference.metrics.derivedScenarioFallbacks.total}`,
+    `- First candidate scenario failure: ${report.candidate.examples.weakScenarioIssues.join(', ') || 'none'}`,
+    `- First reference scenario failure: ${report.reference.examples.weakScenarioIssues.join(', ') || 'none'}`,
+    '',
+    '## Candidate release bars',
+    '',
+    `**${report.releaseBars.status.toUpperCase()}**`,
+    '',
+    ...report.releaseBars.checks.map(
+      (check) => `- ${check.passed ? 'PASS' : 'FAIL'} — ${check.label}: ${check.display}`,
+    ),
     '',
     '## Learn from the reference',
     '',
@@ -96,7 +109,9 @@ async function main() {
   console.log(`Reference advantages: ${report.learning.learn.length}`);
   console.log(`Candidate advantages: ${report.learning.preserve.length}`);
   console.log(`Shared weaknesses: ${report.learning.shared.length}`);
+  console.log(`Release bars: ${report.releaseBars.status}`);
   console.log(`Report: ${path.join(args.output, 'latest.md')}`);
+  if (args.strict && report.releaseBars.status !== 'passed') process.exitCode = 1;
 }
 
 main().catch((error) => {

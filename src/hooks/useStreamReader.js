@@ -5,7 +5,13 @@ import { getLocalEndpoint, localModelOption } from '../lib/localProvider';
 import { failureEventFields, toClassifiedError } from '../lib/failureClassification';
 import { GOOGLE_ENDPOINT_FAMILIES, isVertexKey } from '../lib/googleProvider';
 import { buildProviderTextRequest } from '../lib/modelRequestBuilders';
-import { PUBLIC_SCION_PROVIDER_ID, publicScionModelOption } from '../lib/publicScionProvider';
+import {
+  PUBLIC_SCION_MIN_RETRIES,
+  PUBLIC_SCION_PROVIDER_ID,
+  publicScionModelOption,
+  publicScionKernelResponseNeedsRetry,
+  publicScionRetryDelay,
+} from '../lib/publicScionProvider';
 import {
   buildApiUsageEvent,
   extractUsageFromProviderChunk,
@@ -181,6 +187,14 @@ export default function useStreamReader() {
     const recordApiCallEvent = (event) => {
       if (typeof onApiCallEvent === 'function') onApiCallEvent(event);
     };
+    // The anonymous public endpoint occasionally returns an upstream error
+    // without CORS headers. Browsers surface that as a retryable network
+    // failure, not an HTTP status. Give this keyless route two additional,
+    // deliberately slower recovery attempts so a brief provider wobble does
+    // not drop an entire lesson kernel. Other providers retain their caller-
+    // selected retry policy.
+    const retryLimit =
+      provider === PUBLIC_SCION_PROVIDER_ID ? Math.max(maxRetries, PUBLIC_SCION_MIN_RETRIES) : maxRetries;
     const recordUsage = (reportedUsage, outputText, label = 'API usage') => {
       const usageEvent = buildApiUsageEvent({
         provider,
@@ -234,6 +248,7 @@ export default function useStreamReader() {
       !supportsCustomTemperature(modelId) ||
       modelCapabilities?.supportsTemperature === false ||
       generationPlan?.useTemperature === false;
+    let requestTemperature = temperatureOverride;
     let { url, headers, body, parseChunk, parseTextResponse, parseJsonResponse } = buildProviderTextRequest({
       provider,
       apiKey,
@@ -246,7 +261,7 @@ export default function useStreamReader() {
       generationPlan,
       task,
       schema,
-      temperatureOverride,
+      temperatureOverride: requestTemperature,
     });
 
     let fullText = existingText;
@@ -312,7 +327,7 @@ export default function useStreamReader() {
       return { fullText };
     };
 
-    while (attempt <= maxRetries) {
+    while (attempt <= retryLimit) {
       const controller = new AbortController();
       abortControllerRef.current = controller;
 
@@ -343,11 +358,11 @@ export default function useStreamReader() {
         recordApiCallEvent({
           type: 'providerRequestStart',
           label: 'Provider request start',
-          detail: `${task || featureId || 'generation'} attempt ${attempt + 1}/${maxRetries + 1}`,
+          detail: `${task || featureId || 'generation'} attempt ${attempt + 1}/${retryLimit + 1}`,
           stage: 'provider-request',
           ...buildProviderTraceBase(),
           attempt: attempt + 1,
-          maxRetries,
+          maxRetries: retryLimit,
         });
         armInactivityTimer();
         const response = await fetch(url, {
@@ -374,7 +389,7 @@ export default function useStreamReader() {
               stage: 'provider-fallback',
               ...buildProviderTraceBase(),
               attempt: attempt + 1,
-              maxRetries,
+              maxRetries: retryLimit,
             });
             ({ url, headers, body, parseChunk, parseTextResponse, parseJsonResponse } = buildProviderTextRequest({
               provider,
@@ -388,7 +403,7 @@ export default function useStreamReader() {
               generationPlan,
               task,
               schema,
-              temperatureOverride,
+              temperatureOverride: requestTemperature,
             }));
             continue;
           }
@@ -409,7 +424,7 @@ export default function useStreamReader() {
             stage: 'provider-response',
             ...buildProviderTraceBase(),
             attempt: attempt + 1,
-            maxRetries,
+            maxRetries: retryLimit,
             ...failureEventFields(error, { provider, modelId }),
           });
           error.apiCallBudgetRecorded = true;
@@ -438,7 +453,7 @@ export default function useStreamReader() {
             stage: 'provider-response',
             ...buildProviderTraceBase(),
             attempt: attempt + 1,
-            maxRetries,
+            maxRetries: retryLimit,
             outputChars: outputText.length,
             streamChunkCount: 1,
             finishReason: 'stop',
@@ -450,6 +465,11 @@ export default function useStreamReader() {
         if (typeof parseJsonResponse === 'function') {
           const data = await response.json().catch(() => ({}));
           const text = parseJsonResponse(data, response);
+          if (publicScionKernelResponseNeedsRetry(text, userPrompt, task)) {
+            const incomplete = new Error('Public Scion returned an incomplete lesson-kernel response.');
+            incomplete.retryable = true;
+            throw incomplete;
+          }
           fullText += text;
           if (onChunk) onChunk(fullText, 1);
           if (inactivityTimer) clearTimeout(inactivityTimer);
@@ -472,7 +492,7 @@ export default function useStreamReader() {
             stage: 'provider-response',
             ...buildProviderTraceBase(),
             attempt: attempt + 1,
-            maxRetries,
+            maxRetries: retryLimit,
             outputChars: outputText.length,
             streamChunkCount: 1,
             finishReason: data?.choices?.[0]?.finish_reason || 'stop',
@@ -532,7 +552,7 @@ export default function useStreamReader() {
           stage: 'provider-response',
           ...buildProviderTraceBase(),
           attempt: attempt + 1,
-          maxRetries,
+          maxRetries: retryLimit,
           outputChars: outputText.length,
           streamChunkCount: chunkCount,
         });
@@ -552,9 +572,12 @@ export default function useStreamReader() {
         }
         const classifiedError = toClassifiedError(err, { provider, modelId, task });
 
-        if (attempt < maxRetries && isRetryableError(classifiedError)) {
+        if (attempt < retryLimit && isRetryableError(classifiedError)) {
           attempt++;
           fullText = existingText;
+          if (provider === PUBLIC_SCION_PROVIDER_ID) {
+            requestTemperature = Math.min(1, (requestTemperature ?? 0.3) + 0.15);
+          }
           // Rebuild request with current skipTemp state so temperature fix persists across retries
           ({ url, headers, body, parseChunk, parseTextResponse, parseJsonResponse } = buildProviderTextRequest({
             provider,
@@ -568,15 +591,18 @@ export default function useStreamReader() {
             generationPlan,
             task,
             schema,
-            temperatureOverride,
+            temperatureOverride: requestTemperature,
           }));
-          const delay = Math.min(1000 * Math.pow(2, attempt - 1), 8000);
-          if (onRetry) onRetry(attempt, maxRetries, delay);
+          const delay =
+            provider === PUBLIC_SCION_PROVIDER_ID
+              ? publicScionRetryDelay(attempt)
+              : Math.min(1000 * Math.pow(2, attempt - 1), 8000);
+          if (onRetry) onRetry(attempt, retryLimit, delay);
           await sleep(delay);
           continue;
         }
 
-        if (attempt < maxRetries && !isRetryableError(classifiedError)) {
+        if (attempt < retryLimit && !isRetryableError(classifiedError)) {
           recordApiCallEvent({
             type: 'retrySuppressed',
             label: 'Retry suppressed',
@@ -584,7 +610,7 @@ export default function useStreamReader() {
             stage: 'stream-retry',
             ...buildProviderTraceBase(),
             attempt: attempt + 1,
-            maxRetries,
+            maxRetries: retryLimit,
             ...failureEventFields(classifiedError, { provider, modelId }),
           });
         }

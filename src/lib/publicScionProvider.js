@@ -9,6 +9,9 @@ import { jsonrepair } from 'jsonrepair';
 export const PUBLIC_SCION_PROVIDER_ID = 'public';
 export const PUBLIC_SCION_MODEL_ID = 'scion-public';
 export const PUBLIC_SCION_MODEL_NAME = 'Scion Draft';
+// Pollinations accepts this legacy request alias but may route it to a
+// different anonymous backing model. UI/docs must not present it as a fixed
+// foundation-model identity.
 export const PUBLIC_SCION_BACKING_MODEL = 'openai-fast';
 export const PUBLIC_SCION_TEXT_ENDPOINT = 'https://text.pollinations.ai/';
 export const PUBLIC_SCION_CHAT_ENDPOINT = 'https://text.pollinations.ai/openai';
@@ -17,6 +20,13 @@ export const PUBLIC_SCION_MAX_COMPLETION_TOKENS = 1500;
 export const PUBLIC_SCION_MAX_LESSONS_PER_CALL = 3;
 export const PUBLIC_SCION_KERNEL_LESSONS_PER_CALL = 1;
 export const PUBLIC_SCION_KERNEL_CONCURRENCY = 1;
+export const PUBLIC_SCION_MIN_RETRIES = 4;
+export const PUBLIC_SCION_ENRICHMENT_RECOVERY_CALLS = 4;
+
+export function publicScionRetryDelay(attempt) {
+  const retryNumber = Math.max(1, Number(attempt) || 1);
+  return Math.min(2500 * 2 ** (retryNumber - 1), 10000);
+}
 
 export function isPublicScionProvider(provider) {
   return provider === PUBLIC_SCION_PROVIDER_ID;
@@ -171,6 +181,23 @@ export function repairPublicScionJsonText(text = '') {
   return JSON.stringify(alignPublicScionAnswerIndices(liftNestedPublicScionLessonFields(parsed)));
 }
 
+export function publicScionKernelResponseNeedsRetry(responseText, userPrompt, task) {
+  if (task !== 'blueprintEnrichment') return false;
+  const expectedIds = extractPublicScionKernelLessons(userPrompt)
+    .map((lesson) => lesson?.lessonId)
+    .filter(Boolean);
+  if (expectedIds.length === 0) return false;
+  try {
+    const parsed = JSON.parse(repairPublicScionJsonText(responseText));
+    const returnedIds = new Set(
+      (Array.isArray(parsed?.lessons) ? parsed.lessons : []).map((lesson) => lesson?.lessonId).filter(Boolean),
+    );
+    return expectedIds.some((lessonId) => !returnedIds.has(lessonId));
+  } catch {
+    return true;
+  }
+}
+
 export function publicScionModelOption() {
   return {
     id: PUBLIC_SCION_MODEL_ID,
@@ -320,7 +347,12 @@ export function extractPublicScionKernelLessons(userPrompt = '') {
   if (start < 0) return [];
 
   const tail = text.slice(start + lessonsMarker.length);
-  const boundaryMarkers = ['\nAlso include the courseLevel', '\nRomanization recovery', '\nReturn ONLY valid JSON'];
+  const boundaryMarkers = [
+    '\nAlso include the courseLevel',
+    '\nRomanization recovery',
+    '\nRecovery attempt',
+    '\nReturn ONLY valid JSON',
+  ];
   const boundaries = boundaryMarkers.map((marker) => tail.indexOf(marker)).filter((index) => index >= 0);
   const jsonText = tail.slice(0, boundaries.length > 0 ? Math.min(...boundaries) : tail.length).trim();
   try {
@@ -335,6 +367,8 @@ function buildPublicScionKernelPrompt(userPrompt) {
   const text = String(userPrompt || '');
   const lessons = extractPublicScionKernelLessons(text).slice(0, PUBLIC_SCION_KERNEL_LESSONS_PER_CALL);
   const course = text.match(/^Course:\s*(.+)$/im)?.[1]?.trim() || 'Untitled Course';
+  const recoveryAttempt = Math.max(0, Number(text.match(/Recovery attempt\s+(\d+)/i)?.[1]) || 0);
+  const requiredLessonIds = lessons.map((lesson) => lesson.lessonId || 'lesson-1');
   const includeCourseLevel = /Also include the courseLevel object once/i.test(text);
   const lessonTemplates = lessons.map((lesson) => ({
     lessonId: lesson.lessonId || 'lesson-1',
@@ -349,8 +383,8 @@ function buildPublicScionKernelPrompt(userPrompt) {
       },
     ],
     scenario: {
-      su: 'A concrete two-sentence case, dataset, design, or text for students to analyze.',
-      ma: 'The specific material, observation, data, design, or passage they examine.',
+      su: 'A concrete two-sentence context with an actionable decision or problem and a real tension or constraint.',
+      ma: 'The specific records, observations, data, design, or passage students inspect to make the decision.',
     },
     discussionPrompt: {
       pr: 'A genuinely debatable question grounded in the subject?',
@@ -414,9 +448,14 @@ Write one compact university-level knowledge kernel for every listed lesson. Use
 Rules:
 - Return ONLY valid JSON. No Markdown, commentary, or trailing text.
 - Return exactly ${lessons.length} lesson object${lessons.length === 1 ? '' : 's'}.
-- Write 5 facts per lesson. Each fact is 8-20 words, at least 20 characters, and states subject knowledge rather than course process.
+- The lessons array MUST contain these exact ids: ${requiredLessonIds.join(', ')}. Returning {"lessons":[]} or an error object is invalid.
+${
+  recoveryAttempt > 0
+    ? `- RECOVERY ${recoveryAttempt}: a previous response was incomplete. Re-author the full requested lesson now; do not summarize, apologize, or repeat an empty response.\n`
+    : ''
+}- Write 5 facts per lesson. Each fact is 8-20 words, at least 20 characters, and states subject knowledge rather than course process.
 - Write 3 keyTerms per lesson. Every df is at least 40 characters; eg is concrete; mi is a plausible misconception; cx directly corrects mi.
-- Write one decision-ready scenario. su has exactly 2 specific sentences: first name the context and decision; second give at least 2 inspectable observations, results, quotes, or constraints that bound the conclusion. ma names the concrete artifacts students can inspect.
+- Write one decision-ready scenario. Across su and ma, include a concrete context, an actionable decision or problem, at least 2 inspectable observations/results/records/artifacts, and a real tension or constraint. su has exactly 2 specific sentences; ma names the evidence packet rather than saying "scenario evidence" or "course materials". Evidence may live in ma instead of being repeated in su.
 - Keep each scenario focused on one construct or decision target. Do not mix accessibility, usability, preference, learning, or performance evidence unless the task explicitly asks students to compare those constructs.
 - Write one genuinely debatable discussionPrompt: pr is at least 25 characters and ends with ?, tn names the tension, po has 2-3 defensible positions.
 - Write one assignmentCore: td is at least 60 characters and names the actual case, data, design, or text plus what students produce; pa has 2-4 concrete constraints.

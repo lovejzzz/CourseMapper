@@ -1169,7 +1169,7 @@ describe('fix 9 — a lesson regen merges into the bank without destroying exams
 // ════════════════════════════════════════════════════════════════════════════
 // Round-3 polish — the final A+ wave over the round-2026-06-11T16-55-45-448Z
 // live artifacts. Four P2-class residuals:
-//   R3.1 pinyin coverage 8/15: language courses now spend the SAME 2-call
+//   R3.1 pinyin coverage 8/15: language courses spend the provider-aware
 //        kernel recovery budget on lessons whose parsed CJK keyTerms came
 //        back without rm (missing lessons keep priority).
 //   R3.3 study guides chanted the lesson title (world-lit L4: 5 mentions in
@@ -1302,16 +1302,17 @@ describe('round-3 polish 1 — romanization recovery shares the kernel recovery 
     expect(mergeRomanizationRecovery(untouched, { keyTerms: [] })).toBe(untouched);
   });
 
-  it('the hook wires the recovery into the SAME 2-call budget, missing lessons first', () => {
+  it('the hook wires recovery into the provider-aware budget, missing lessons first', () => {
     // The recovery loop lives inside the useDeliverables hook (not importable
     // without a React harness) — this contract pins the wiring: the gap scan
-    // is language-gated, the shared cap stays at 2 calls, romanization
-    // lessons only fill batch slots missing lessons leave open, and returns
-    // merge instead of overwriting.
+    // is language-gated, paid routes stay at 2 calls while the anonymous
+    // public route can reserve 4, romanization lessons only fill batch slots
+    // missing lessons leave open, and returns merge instead of overwriting.
     const source = fs.readFileSync(path.join(TEST_DIR, '../src/hooks/useDeliverables.js'), 'utf8');
     expect(source).toContain('const languageCourse = courseUsesNonLatinScript(blueprintCourseMap);');
     expect(source).toMatch(/listRomanizationGapIndices = \(\) =>\s*\n\s*languageCourse\s*\n?\s*\?/);
-    expect(source).toContain('enrichmentRecoveryCalls < 2 &&');
+    expect(source).toContain('provider === PUBLIC_SCION_PROVIDER_ID ? PUBLIC_SCION_ENRICHMENT_RECOVERY_CALLS : 2');
+    expect(source).toContain('enrichmentRecoveryCalls < enrichmentRecoveryCallLimit &&');
     expect(source).toContain('(listMissingLessonIndices().length > 0 || listRomanizationGapIndices().length > 0)');
     expect(source).toMatch(
       /listRomanizationGapIndices\(\)\.slice\(\s*0,\s*Math\.max\(0,\s*chunkSize - missingChunk\.length\),?\s*\)/,

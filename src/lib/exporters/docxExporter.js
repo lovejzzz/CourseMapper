@@ -754,7 +754,8 @@ export function _buildDocxContentShared(featureId, data, children, docx) {
       const expanded = expandKeys('quizBank', data);
       const key = expanded.quizzes ? 'quizzes' : 'quizBank';
       const stripOptionLetter = (option) => String(option ?? '').replace(/^[A-Z][.)]\s+/, '');
-      for (const quiz of expanded[key] || []) {
+      const quizzes = expanded[key] || [];
+      for (const [quizIndex, quiz] of quizzes.entries()) {
         children.push(makeHeading(quiz.lessonTitle || 'Quiz'));
         // v0.14.1 round 2 (bug 1): registry exam entries carry an examScope
         // ("Covers Lessons 1–7: …") — print it so the exam document states
@@ -846,7 +847,13 @@ export function _buildDocxContentShared(featureId, data, children, docx) {
           // Tags once per quiz instead of after every question.
           if (allTags.size > 0) children.push(makeItalic(`Tags: ${[...allTags].join(', ')}`));
         }
-        children.push(new Paragraph({ spacing: { before: 200, after: 100 }, children: [] }));
+        // Separate quizzes inside a bundled document, but never append an
+        // empty spacer after the final quiz. When a long answer key lands
+        // exactly at the bottom margin, Word/LibreOffice can push that final
+        // empty paragraph onto a completely blank trailing page.
+        if (quizIndex < quizzes.length - 1) {
+          children.push(new Paragraph({ spacing: { before: 200, after: 100 }, children: [] }));
+        }
       }
       break;
     }

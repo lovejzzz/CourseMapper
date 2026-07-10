@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import {
   buildSlideContentFromKernel,
+  ensureContrastiveExplanation,
   matchDistractorRationales,
   projectKernelToSurfaces,
 } from '../kernelProjection.js';
@@ -11,6 +12,7 @@ import {
   lintEnrichedSlideContent,
   normalizeAbsorbedCourseLevel,
   parseLessonKernelResponse,
+  selectEnrichmentRecoveryChunk,
 } from '../blueprintEnrichmentPass.js';
 import { buildCourseBlueprint, compileBlueprintDeliverables } from '../courseBlueprintCompiler.js';
 import { auditSubstance } from '../contentQualityChecks.js';
@@ -115,6 +117,21 @@ describe('matchDistractorRationales', () => {
     const sparseTerms = [TERMS[0]];
     expect(matchDistractorRationales(MC_ITEM, sparseTerms)).toEqual([]);
     expect(matchDistractorRationales(MC_ITEM, [])).toEqual([]);
+  });
+});
+
+describe('ensureContrastiveExplanation', () => {
+  it('preserves authored contrastive rationales byte for byte', () => {
+    const item = { ...MC_ITEM, explanation: 'The key fits the evidence, while the other options do not.' };
+    expect(ensureContrastiveExplanation(item)).toBe(item.explanation);
+  });
+
+  it('names the nearest authored distractor when the explanation is one-sided', () => {
+    const explanation = ensureContrastiveExplanation(MC_ITEM);
+    expect(explanation).toContain(MC_ITEM.explanation);
+    expect(explanation).toMatch(/By contrast/);
+    expect(MC_ITEM.options.slice(1).some((option) => explanation.includes(option))).toBe(true);
+    expect(explanation).toContain('does not address the same evidence or decision criterion');
   });
 });
 
@@ -370,6 +387,27 @@ describe('projectKernelToSurfaces', () => {
     expect(types).not.toContain('short_answer');
     expect(types).not.toContain('essay');
   });
+
+  it('derives a grounded scenario when the authored scenario is missing', () => {
+    const fallbackKernel = {
+      ...KERNEL,
+      scenario: null,
+      keyTerms: KERNEL.keyTerms.map((term, index) => ({
+        ...term,
+        correction:
+          index === 0
+            ? 'Greenhouse warming comes from absorption and re-emission of outgoing longwave radiation.'
+            : `The accurate correction for ${term.term} distinguishes the mechanism from the misconception.`,
+      })),
+    };
+    const payload = projectKernelToSurfaces(fallbackKernel, { itemPlan });
+    expect(payload.kernel.scenario.source).toBe('derived-kernel-fallback');
+    expect(payload.kernel.scenario.setup).toContain(fallbackKernel.keyTerms[0].example);
+    expect(payload.kernel.scenario.setup).toContain(fallbackKernel.keyTerms[0].misconception);
+    expect(payload.quizItems.find((item) => item.type === 'short_answer')?.question).toContain(
+      fallbackKernel.keyTerms[0].example,
+    );
+  });
 });
 
 describe('kernel parse → project → compile (end to end)', () => {
@@ -425,6 +463,18 @@ describe('kernel parse → project → compile (end to end)', () => {
     const courseLevel = normalizeAbsorbedCourseLevel(parsed.courseLevel, prompt.lessons);
     expect(courseLevel.signatureTerms).toContain('greenhouse effect');
     expect(courseLevel.quality.source).toBe('kernel-chunk-1');
+  });
+
+  it('makes recovery prompts cache-distinct and rotates across missing lessons', () => {
+    const recoveryOne = buildLessonKernelPrompt(COURSE_MAP, [0], { recoveryAttempt: 1 });
+    const recoveryTwo = buildLessonKernelPrompt(COURSE_MAP, [0], { recoveryAttempt: 2 });
+    expect(recoveryOne.systemPrompt).toBe(recoveryTwo.systemPrompt);
+    expect(recoveryOne.userPrompt).toContain('Recovery attempt 1');
+    expect(recoveryTwo.userPrompt).toContain('Recovery attempt 2');
+    expect(recoveryOne.userPrompt).not.toBe(recoveryTwo.userPrompt);
+    expect(selectEnrichmentRecoveryChunk([8, 10], [], 1)).toEqual([8]);
+    expect(selectEnrichmentRecoveryChunk([8, 10], [8], 1)).toEqual([10]);
+    expect(selectEnrichmentRecoveryChunk([8], [8], 1)).toEqual([8]);
   });
 
   it('drops invalid kernel atoms individually and keeps the lesson', () => {

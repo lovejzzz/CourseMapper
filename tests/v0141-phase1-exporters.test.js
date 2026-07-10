@@ -37,6 +37,7 @@ const KERNEL = {
       definition: 'Frost wedging is the widening of rock cracks as freezing water expands.',
       example: 'Granite boulders splitting after repeated hard winters',
       misconception: 'Students think rocks crack from cold alone rather than from water expanding inside them.',
+      correction: 'Water freezing inside existing cracks expands and forces the granite apart.',
     },
     {
       term: 'mechanical weathering',
@@ -111,7 +112,7 @@ describe('1.5 composeScenarioAnswer', () => {
     expect(shortAnswer).toBeTruthy();
     // The answer engages the stem's own scenario — the audit found the bare
     // definition of weathering shipped twice as a "Sample Answer".
-    expect(shortAnswer.answer).toContain('granite boulders');
+    expect(shortAnswer.answer.toLowerCase()).toContain('granite boulders');
     expect(shortAnswer.answer).toContain('frost wedging');
     expect(shortAnswer.answer).not.toBe(KERNEL.keyTerms[0].definition);
     expect(shortAnswer.answer).not.toMatch(/\.\./);

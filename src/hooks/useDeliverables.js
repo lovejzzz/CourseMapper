@@ -76,6 +76,7 @@ import {
 import { classifyError } from '../lib/failureClassification';
 import { traceLog } from '../lib/traceLog';
 import {
+  PUBLIC_SCION_ENRICHMENT_RECOVERY_CALLS,
   PUBLIC_SCION_KERNEL_CONCURRENCY,
   PUBLIC_SCION_KERNEL_LESSONS_PER_CALL,
   PUBLIC_SCION_PROVIDER_ID,
@@ -635,9 +636,11 @@ export default function useDeliverables({
         : generationOptions.lessonContentEnrichment !== false
           ? Math.max(1, Math.ceil(enrichmentLessonCount / Math.max(1, plannedEnrichmentBatchSize)))
           : 1;
+      const enrichmentRecoveryCallLimit =
+        provider === PUBLIC_SCION_PROVIDER_ID ? PUBLIC_SCION_ENRICHMENT_RECOVERY_CALLS : 2;
       const plannedEnrichmentRecoveryReserve =
         blueprintEnrichmentRequested && generationOptions.lessonContentEnrichment !== false && enrichmentLessonCount > 1
-          ? 2
+          ? enrichmentRecoveryCallLimit
           : 0;
       const costPlan = buildApiCostPlan({
         source: costMode,
@@ -1577,6 +1580,7 @@ export default function useDeliverables({
             normalizeAbsorbedCourseLevel,
             parseBlueprintEnrichmentResponse,
             parseLessonKernelResponse,
+            selectEnrichmentRecoveryChunk,
           } = await import('../lib/blueprintEnrichmentPass');
           const decision = chooseBlueprintEnrichmentPath(blueprintCourseMap, {
             mode: blueprintEnrichmentMode,
@@ -1776,12 +1780,18 @@ export default function useDeliverables({
                 )
               : [];
           let enrichmentRecoveryCalls = 0;
+          const attemptedMissingLessonIndices = new Set();
           while (
-            enrichmentRecoveryCalls < 2 &&
+            enrichmentRecoveryCalls < enrichmentRecoveryCallLimit &&
             (listMissingLessonIndices().length > 0 || listRomanizationGapIndices().length > 0)
           ) {
             if (!hasProviderCallBudget()) break;
-            const missingChunk = listMissingLessonIndices().slice(0, chunkSize);
+            const missingChunk = selectEnrichmentRecoveryChunk(
+              listMissingLessonIndices(),
+              [...attemptedMissingLessonIndices],
+              chunkSize,
+            );
+            missingChunk.forEach((lessonIdx) => attemptedMissingLessonIndices.add(lessonIdx));
             const romanizationChunk = listRomanizationGapIndices().slice(
               0,
               Math.max(0, chunkSize - missingChunk.length),
@@ -1797,6 +1807,7 @@ export default function useDeliverables({
             const retryPrompt = buildLessonKernelPrompt(blueprintCourseMap, retryChunk, {
               questionsPerLesson: getGenerationConfig('quizBank')?.questionsPerLesson,
               includeCourseLevel: false,
+              recoveryAttempt: enrichmentRecoveryCalls,
               ...(romanizationChunk.length > 0 ? { romanizationFocus } : {}),
             });
             const retryDetailParts = [
@@ -1813,7 +1824,7 @@ export default function useDeliverables({
                 missingChunk.length > 0
                   ? 'Enrich lesson kernels (recovery)'
                   : 'Enrich lesson kernels (romanization recovery)',
-              detail: `Recovery ${enrichmentRecoveryCalls}/2 for ${retryDetailParts.join(
+              detail: `Recovery ${enrichmentRecoveryCalls}/${enrichmentRecoveryCallLimit} for ${retryDetailParts.join(
                 ' + ',
               )} — ${retryPrompt.approxInputTokens} input tokens estimated`,
               featureId: 'blueprintEnrichment',
@@ -1831,6 +1842,9 @@ export default function useDeliverables({
                   generationPlan,
                   featureId: 'blueprintEnrichment',
                   task: 'blueprintEnrichment',
+                  ...(provider === PUBLIC_SCION_PROVIDER_ID
+                    ? { temperature: 0.45 + enrichmentRecoveryCalls * 0.15 }
+                    : {}),
                   allowProviderFallback: maxProviderCalls === null || getRemainingProviderCalls() > 0,
                   onApiCallEvent: recordGenerationApiCallEvent,
                   signal: controller.signal,

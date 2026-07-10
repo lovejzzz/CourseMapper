@@ -18,6 +18,8 @@
  * framing sentences are compiled.
  */
 
+import { resolveDecisionScenario } from './scenarioContract';
+
 const STOP_WORDS = new Set([
   'about',
   'after',
@@ -117,6 +119,29 @@ function bestFactFor(reference, facts = []) {
     }
   }
   return best;
+}
+
+const CONTRASTIVE_EXPLANATION_RE =
+  /\b(?:whereas|while|but|rather than|instead|unlike|other options?|closest (?:alternative|distractor)|fails?|does not|do not|by contrast)\b/i;
+
+/**
+ * Preserve a model-written contrast when it exists. Otherwise, use the
+ * authored options to identify the nearest competing answer and add a
+ * bounded comparison frame. The compiler contributes no new subject claim:
+ * it only points back to the explanation's evidence or decision criterion.
+ */
+export function ensureContrastiveExplanation(item) {
+  const explanation = cleanText(item?.explanation);
+  if (!explanation || CONTRASTIVE_EXPLANATION_RE.test(explanation)) return explanation;
+  const options = Array.isArray(item?.options) ? item.options.map(cleanText).filter(Boolean) : [];
+  const answerIndex = Number(item?.answerIndex);
+  const distractors = options
+    .map((option, index) => ({ option, index, score: overlapScore(option, explanation) }))
+    .filter(({ index }) => index !== answerIndex)
+    .sort((left, right) => right.score - left.score || left.index - right.index);
+  const closest = distractors[0]?.option;
+  if (!closest) return explanation;
+  return `${ensureSentence(explanation)} By contrast, “${stripTerminalPeriod(closest)}” does not address the same evidence or decision criterion.`;
 }
 
 function bestShortAnswerTerm(kernel) {
@@ -501,13 +526,15 @@ function buildEssayItem(kernel, index, seed = 0) {
  * @returns {object} payload consumed by the existing overlay machinery
  */
 export function projectKernelToSurfaces(kernel, { itemPlan = [] } = {}) {
+  const resolvedScenario = resolveDecisionScenario(kernel);
+  const resolvedKernel = { ...kernel, scenario: resolvedScenario };
   const mcSlots = itemPlan.filter((slot) => slot.type === 'multiple_choice');
   const shortAnswerSlot = itemPlan.find((slot) => slot.type === 'short_answer');
   const essaySlot = itemPlan.find((slot) => slot.type === 'essay');
-  const keyTerms = Array.isArray(kernel?.keyTerms) ? kernel.keyTerms : [];
+  const keyTerms = Array.isArray(resolvedKernel?.keyTerms) ? resolvedKernel.keyTerms : [];
 
   const quizItems = [];
-  const mcItems = Array.isArray(kernel?.mc) ? kernel.mc : [];
+  const mcItems = Array.isArray(resolvedKernel?.mc) ? resolvedKernel.mc : [];
   // Cross-lesson quiz dedupe (v0.14.1 4.6) happens UPSTREAM of this slice: by
   // the time the pool reaches the projection, concept identity is gone
   // (composeLessonFromConcepts flattens per-kernel mcBanks into `kernel.mc`),
@@ -522,7 +549,7 @@ export function projectKernelToSurfaces(kernel, { itemPlan = [] } = {}) {
       answerIndex: Number(item.answerIndex) || 0,
       distractorRationales: matchDistractorRationales(item, keyTerms),
       answer: '',
-      explanation: cleanText(item.explanation),
+      explanation: ensureContrastiveExplanation(item),
       scoringGuidance: '',
     });
   });
@@ -555,7 +582,7 @@ export function projectKernelToSurfaces(kernel, { itemPlan = [] } = {}) {
         question: cleanText(walkthroughItem.question),
         options: walkthroughItem.options,
         answerIndex: Number(walkthroughItem.answerIndex) || 0,
-        explanation: cleanText(walkthroughItem.explanation),
+        explanation: ensureContrastiveExplanation(walkthroughItem),
       };
     }
     const extensionBase = itemPlan.reduce((max, slot) => Math.max(max, Number(slot?.index) || 0), -1) + 1;
@@ -569,56 +596,56 @@ export function projectKernelToSurfaces(kernel, { itemPlan = [] } = {}) {
         answerIndex: Number(item.answerIndex) || 0,
         distractorRationales: matchDistractorRationales(item, keyTerms),
         answer: '',
-        explanation: cleanText(item.explanation),
+        explanation: ensureContrastiveExplanation(item),
         scoringGuidance: '',
       });
     });
   }
   if (shortAnswerSlot) {
     const lessonSeed = projectionTextSeed(
-      kernel?.scenario?.setup,
-      kernel?.scenario?.materials,
-      kernel?.keyTerms?.[0]?.term,
-      kernel?.discussionPrompt?.prompt,
+      resolvedKernel?.scenario?.setup,
+      resolvedKernel?.scenario?.materials,
+      resolvedKernel?.keyTerms?.[0]?.term,
+      resolvedKernel?.discussionPrompt?.prompt,
     );
-    const shortAnswer = buildShortAnswerItem(kernel, shortAnswerSlot.index);
+    const shortAnswer = buildShortAnswerItem(resolvedKernel, shortAnswerSlot.index);
     if (shortAnswer) quizItems.push(shortAnswer);
   }
   if (essaySlot) {
     const lessonSeed = projectionTextSeed(
-      kernel?.scenario?.setup,
-      kernel?.scenario?.materials,
-      kernel?.keyTerms?.[0]?.term,
-      kernel?.discussionPrompt?.prompt,
+      resolvedKernel?.scenario?.setup,
+      resolvedKernel?.scenario?.materials,
+      resolvedKernel?.keyTerms?.[0]?.term,
+      resolvedKernel?.discussionPrompt?.prompt,
     );
-    const essay = buildEssayItem(kernel, essaySlot.index, lessonSeed);
+    const essay = buildEssayItem(resolvedKernel, essaySlot.index, lessonSeed);
     if (essay) quizItems.push(essay);
   }
   quizItems.sort((a, b) => a.index - b.index);
 
-  const slideContent = buildSlideContentFromKernel(kernel);
-  const discussionPrompt = kernel?.discussionPrompt
+  const slideContent = buildSlideContentFromKernel(resolvedKernel);
+  const discussionPrompt = resolvedKernel?.discussionPrompt
     ? {
-        prompt: cleanText(kernel.discussionPrompt.prompt),
-        tension: cleanText(kernel.discussionPrompt.tension),
-        positions: (kernel.discussionPrompt.positions || []).map(cleanText).filter(Boolean),
+        prompt: cleanText(resolvedKernel.discussionPrompt.prompt),
+        tension: cleanText(resolvedKernel.discussionPrompt.tension),
+        positions: (resolvedKernel.discussionPrompt.positions || []).map(cleanText).filter(Boolean),
       }
     : null;
-  const assignmentCore = kernel?.assignmentCore
+  const assignmentCore = resolvedKernel?.assignmentCore
     ? {
-        taskDescription: cleanText(kernel.assignmentCore.taskDescription),
-        parameters: (kernel.assignmentCore.parameters || []).map(cleanText).filter(Boolean),
+        taskDescription: cleanText(resolvedKernel.assignmentCore.taskDescription),
+        parameters: (resolvedKernel.assignmentCore.parameters || []).map(cleanText).filter(Boolean),
       }
     : null;
 
   // v0.13.3: optional quantitative worked example — projected into the
   // lesson-plan mini-lesson and the study guide.
   const workedExample =
-    kernel?.workedExample && cleanText(kernel.workedExample.problem)
+    resolvedKernel?.workedExample && cleanText(resolvedKernel.workedExample.problem)
       ? {
-          problem: cleanText(kernel.workedExample.problem),
-          steps: (kernel.workedExample.steps || []).map(cleanText).filter(Boolean),
-          result: cleanText(kernel.workedExample.result),
+          problem: cleanText(resolvedKernel.workedExample.problem),
+          steps: (resolvedKernel.workedExample.steps || []).map(cleanText).filter(Boolean),
+          result: cleanText(resolvedKernel.workedExample.result),
         }
       : null;
 
@@ -646,9 +673,13 @@ export function projectKernelToSurfaces(kernel, { itemPlan = [] } = {}) {
     // application slide — never the same item the quiz slots consumed.
     ...(mcWalkthrough ? { mcWalkthrough } : {}),
     kernel: {
-      facts: Array.isArray(kernel?.facts) ? kernel.facts.map(cleanText).filter(Boolean) : [],
-      scenario: kernel?.scenario
-        ? { setup: cleanText(kernel.scenario.setup), materials: cleanText(kernel.scenario.materials) }
+      facts: Array.isArray(resolvedKernel?.facts) ? resolvedKernel.facts.map(cleanText).filter(Boolean) : [],
+      scenario: resolvedKernel?.scenario
+        ? {
+            setup: cleanText(resolvedKernel.scenario.setup),
+            materials: cleanText(resolvedKernel.scenario.materials),
+            source: cleanText(resolvedKernel.scenario.source) || 'authored',
+          }
         : null,
     },
   };

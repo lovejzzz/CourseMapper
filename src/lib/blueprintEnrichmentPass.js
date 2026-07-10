@@ -2,6 +2,7 @@ import { cleanText, stripLessonPrefix } from './compilerText';
 import { expandKeys } from './keyMaps';
 import { lintItemAdmission } from './itemAdmissionLint';
 import { projectKernelToSurfaces } from './kernelProjection';
+import { lintDecisionScenario } from './scenarioContract';
 
 const DEFAULT_MAX_LESSONS = 12;
 const MAX_TEXT_CHARS = 320;
@@ -1094,8 +1095,8 @@ function buildKernelSchema() {
           wr: 'the numeric result with units',
         },
         scenario: {
-          su: '2-3 sentence concrete case/dataset/text setup students can analyze',
-          ma: 'the specific materials, data, or text students examine',
+          su: '2-3 sentence concrete context plus an actionable decision/problem, evidence details, and a real tension or constraint',
+          ma: 'the specific records, observations, data, design, or text students inspect to make the decision',
         },
         discussionPrompt: {
           pr: 'a genuinely debatable disciplinary question',
@@ -1151,6 +1152,7 @@ export function buildLessonKernelPrompt(courseMap, lessonIndices, options = {}) 
   const keyTermsPerLesson = Math.max(3, Math.min(6, Number(options.keyTermsPerLesson) || 4));
   const mcCount = itemPlan.filter((slot) => slot.type === 'multiple_choice').length;
   const includeCourseLevel = options.includeCourseLevel === true;
+  const recoveryAttempt = Math.max(0, Number(options.recoveryAttempt) || 0);
   const lessons = summarizeLessonsForContent(courseMap, lessonIndices);
 
   const systemPrompt = [
@@ -1160,6 +1162,7 @@ export function buildLessonKernelPrompt(courseMap, lessonIndices, options = {}) 
       .filter((slot) => slot.type === 'multiple_choice')
       .map((slot) => `${slot.bloom} (${slot.note})`)
       .join('; ')}.`,
+    'Scenario contract: setup gives a concrete context, an actionable decision or problem, inspectable evidence, and a real tension or constraint; materials names the specific evidence packet. Do not use generic labels such as "scenario evidence" or "course materials".',
     KERNEL_KEY_LEGEND,
     // v0.14.1 round-2 (fix 4): language courses pair every non-Latin term
     // with its romanization (rm) so study guides can render "你好 (nǐ hǎo)".
@@ -1204,6 +1207,11 @@ export function buildLessonKernelPrompt(courseMap, lessonIndices, options = {}) 
     ...(romanizationFocusLines.length > 0
       ? ['Romanization recovery — these lessons returned non-Latin keyTerms without rm:', ...romanizationFocusLines]
       : []),
+    ...(recoveryAttempt > 0
+      ? [
+          `Recovery attempt ${recoveryAttempt}: the previous response for these exact lessons was incomplete or failed admission. Re-author every requested lesson in full; do not summarize, apologize, or return an error object.`,
+        ]
+      : []),
     // OpenAI's json_object response format requires the word "JSON" in an
     // INPUT message — the system prompt maps to `instructions`, which the
     // guard does not scan. Without this line every kernel call 400s
@@ -1221,6 +1229,13 @@ export function buildLessonKernelPrompt(courseMap, lessonIndices, options = {}) 
   };
 }
 
+export function selectEnrichmentRecoveryChunk(missingLessonIndices, attemptedLessonIndices, limit = 4) {
+  const missing = asArray(missingLessonIndices).filter((index) => Number.isInteger(index) && index >= 0);
+  const attempted = new Set(asArray(attemptedLessonIndices));
+  const unattempted = missing.filter((index) => !attempted.has(index));
+  return (unattempted.length > 0 ? unattempted : missing).slice(0, Math.max(1, Number(limit) || 1));
+}
+
 export function lintKernelFact(fact) {
   const issues = [];
   const text = cleanText(fact);
@@ -1231,10 +1246,9 @@ export function lintKernelFact(fact) {
 }
 
 export function lintKernelScenario(scenario) {
-  const issues = [];
-  if (cleanText(scenario?.setup).length < 40) issues.push('scenario-too-short');
+  const issues = lintDecisionScenario(scenario);
   if (META_SURFACE_RE.test(cleanText(scenario?.setup))) issues.push('meta-scenario');
-  return issues;
+  return [...new Set(issues)];
 }
 
 /** Course-level block absorbed into kernel chunk #1 (replaces the standalone call). */

@@ -119,9 +119,9 @@ describe('WS-A (2) — the rewritten loop keeps its contract (source pins)', () 
 
   it('the recovery pass stays serial (small, sequential by design)', () => {
     const afterLoop = hookSource.split('const enrichmentConcurrency')[1] || '';
-    expect(afterLoop).toContain('enrichmentRecoveryCalls < 2');
+    expect(afterLoop).toContain('enrichmentRecoveryCalls < enrichmentRecoveryCallLimit');
     // The recovery while-loop awaits inside the loop body (serial), not via Promise.all.
-    const recoveryBlock = afterLoop.split('enrichmentRecoveryCalls < 2')[1].slice(0, 4000);
+    const recoveryBlock = afterLoop.split('enrichmentRecoveryCalls < enrichmentRecoveryCallLimit')[1].slice(0, 4000);
     expect(recoveryBlock).not.toContain('Promise.all');
   });
 

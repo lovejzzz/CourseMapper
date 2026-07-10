@@ -5,9 +5,11 @@ import { createBaseModelCapabilities, createGenerationPlan } from '../src/lib/mo
 import {
   PUBLIC_SCION_BACKING_MODEL,
   PUBLIC_SCION_CHAT_ENDPOINT,
+  PUBLIC_SCION_ENRICHMENT_RECOVERY_CALLS,
   PUBLIC_SCION_KERNEL_CONCURRENCY,
   PUBLIC_SCION_KERNEL_LESSONS_PER_CALL,
   PUBLIC_SCION_MAX_COMPLETION_TOKENS,
+  PUBLIC_SCION_MIN_RETRIES,
   PUBLIC_SCION_MODEL_ID,
   PUBLIC_SCION_MODEL_NAME,
   PUBLIC_SCION_PROVIDER_ID,
@@ -18,10 +20,33 @@ import {
   extractPublicScionTotalLessonCount,
   extractPublicScionVoiceSurfaces,
   publicScionModelOption,
+  publicScionKernelResponseNeedsRetry,
+  publicScionRetryDelay,
   repairPublicScionJsonText,
 } from '../src/lib/publicScionProvider';
 
 describe('Scion Public provider', () => {
+  it('reserves extra admission recovery calls for the anonymous route', () => {
+    expect(PUBLIC_SCION_ENRICHMENT_RECOVERY_CALLS).toBe(4);
+  });
+
+  it('uses a bounded slower retry ladder for intermittent anonymous CORS failures', () => {
+    expect(PUBLIC_SCION_MIN_RETRIES).toBe(4);
+    expect([1, 2, 3, 4, 5].map(publicScionRetryDelay)).toEqual([2500, 5000, 10000, 10000, 10000]);
+  });
+
+  it('retries incomplete public kernel envelopes instead of accepting cached empty output', () => {
+    const prompt = `Course: Interface Design\nLessons:\n[{"lessonId":"lesson-9","title":"Wireframes"}]\nReturn ONLY valid JSON.`;
+    expect(publicScionKernelResponseNeedsRetry('{"lessons":[]}', prompt, 'blueprintEnrichment')).toBe(true);
+    expect(
+      publicScionKernelResponseNeedsRetry('{"lessons":[{"lessonId":"lesson-8"}]}', prompt, 'blueprintEnrichment'),
+    ).toBe(true);
+    expect(
+      publicScionKernelResponseNeedsRetry('{"lessons":[{"lessonId":"lesson-9"}]}', prompt, 'blueprintEnrichment'),
+    ).toBe(false);
+    expect(publicScionKernelResponseNeedsRetry('{"lessons":[]}', prompt, 'course-map')).toBe(false);
+  });
+
   it('ships a keyless anonymous model option with prompt-only structure support', () => {
     const option = publicScionModelOption();
     expect(option.id).toBe(PUBLIC_SCION_MODEL_ID);
@@ -117,6 +142,15 @@ Return ONLY valid JSON matching the kernel shape from the instructions.`;
     expect(req.body.messages[1].content).toContain('focused on one construct or decision target');
     expect(req.body.messages[1].content).toContain('Also return one compact courseLevel object');
     expect(req.body.messages[1].content).not.toContain('compact CourseMapper lessons');
+
+    const recoveryMessages = buildPublicScionMessages(
+      'kernel system',
+      `${userPrompt}\nRecovery attempt 2: the previous response was incomplete.`,
+      { task: 'blueprintEnrichment' },
+    );
+    expect(recoveryMessages[1].content).toContain('lesson-4');
+    expect(recoveryMessages[1].content).toContain('RECOVERY 2');
+    expect(recoveryMessages[1].content).toContain('Returning {"lessons":[]}');
   });
 
   it('preserves voice surfaces while shrinking the public rewrite contract', () => {

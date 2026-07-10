@@ -184,6 +184,7 @@ describe('buildDeliverableDocxBlob', () => {
     expect(xml.match(/Tags: /g)?.length || 0).toBe(1);
     // Tables are pct-width, never the old fixed letter-width grid.
     expect(xml).not.toContain('w:w="9360"');
+    expect(xml).not.toContain('<w:spacing w:before="200" w:after="100"/></w:pPr></w:p><w:sectPr>');
   });
 
   it('keeps quiz answer callout labels separated in extracted DOCX text', async () => {
