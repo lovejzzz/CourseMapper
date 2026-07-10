@@ -166,7 +166,10 @@ jobs:
           name: deep-proof-quality-reports
           path: |
             verification-output/deep-proof-quality-gate/**
+            verification-output/contract-quality-audit/latest.*
             verification-output/gold-sample-quality-audit/latest.*
+            verification-output/independent-benchmark/**
+            verification-output/production-canary/**
             verification-output/expert-review-quality-audit/latest.*
             verification-output/external-quality-proof-packet/latest.*
           if-no-files-found: ignore

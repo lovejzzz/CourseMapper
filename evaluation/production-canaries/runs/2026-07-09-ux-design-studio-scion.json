@@ -1,0 +1,72 @@
+{
+  "schemaVersion": 1,
+  "runId": "2026-07-09-ux-design-studio-scion",
+  "generatedAt": "2026-07-10T01:45:46.517Z",
+  "appVersion": "0.16.1",
+  "course": {
+    "title": "User Experience Design Studio",
+    "domain": "studio-lab",
+    "lessonCount": 12
+  },
+  "provider": {
+    "family": "public-scion",
+    "mode": "live",
+    "simulated": false
+  },
+  "requests": {
+    "total": 4,
+    "successful": 4,
+    "httpStatuses": [200, 200, 200, 200],
+    "elapsedMs": [10249, 25181, 29488, 30411]
+  },
+  "generation": {
+    "lessonsProduced": 12,
+    "duplicateTopics": 0
+  },
+  "package": {
+    "sha256": "66992dae3ba557ba1029c1d3c404a62abb9d6fe9154fc4be1daeba2d37875311",
+    "fileCount": 101,
+    "manifestDeliverables": 99,
+    "bytes": 1807696,
+    "officeStructuralValidation": "pass"
+  },
+  "quality": {
+    "score": 89,
+    "grade": "B",
+    "p0": 0,
+    "p1": 1,
+    "p2": 0,
+    "textureScore": 92
+  },
+  "evidence": {
+    "traceSha256": "c156902aae79c9433a66db912f2f35da7cbf46e54228260f0975eeea9bcf62ab",
+    "consoleLogSha256": "cc9418f8ae59e22bce58853143a4f42daf7b9e3777534ce1203bba58d88b2c25",
+    "retention": {
+      "status": "hash-only-local",
+      "location": "ephemeral local test directory"
+    },
+    "visualQa": {
+      "status": "structural-only",
+      "reviewedAt": ""
+    },
+    "artifacts": {
+      "zip": {
+        "path": "",
+        "sha256": "66992dae3ba557ba1029c1d3c404a62abb9d6fe9154fc4be1daeba2d37875311"
+      },
+      "trace": {
+        "path": "",
+        "sha256": "c156902aae79c9433a66db912f2f35da7cbf46e54228260f0975eeea9bcf62ab"
+      },
+      "consoleLog": {
+        "path": "",
+        "sha256": "cc9418f8ae59e22bce58853143a4f42daf7b9e3777534ce1203bba58d88b2c25"
+      }
+    }
+  },
+  "notes": [
+    "This is a real live-provider run, not a fixture.",
+    "The package passed structural Office validation; fresh rendered visual QA was not completed.",
+    "One P1 remained, so this run is operational evidence but not release-proof evidence."
+  ]
+}

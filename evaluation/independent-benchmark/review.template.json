@@ -1,0 +1,33 @@
+{
+  "schemaVersion": 1,
+  "rubricVersion": "1.0.0",
+  "caseId": "REPLACE_WITH_CASE_ID",
+  "reviewerId": "PSEUDONYMOUS_REVIEWER_ID",
+  "reviewerRole": "external-instructor",
+  "independent": true,
+  "conflictOfInterest": false,
+  "reviewedAt": "YYYY-MM-DD",
+  "reviewedPackageVersion": "REPLACE_WITH_PACKAGE_VERSION",
+  "sourceSha256": "REPLACE_WITH_SOURCE_SHA256",
+  "packageSha256": "REPLACE_WITH_PACKAGE_SHA256",
+  "wouldTeach": false,
+  "minimalEditVerdict": "major-edits",
+  "estimatedEditMinutes": 0,
+  "dimensionScores": {
+    "instructional-alignment": { "score": 0, "evidence": "" },
+    "teachability": { "score": 0, "evidence": "" },
+    "assessment-authenticity": { "score": 0, "evidence": "" },
+    "feedback-and-revision": { "score": 0, "evidence": "" },
+    "student-readiness": { "score": 0, "evidence": "" },
+    "source-fidelity": { "score": 0, "evidence": "" }
+  },
+  "requiredEdits": [
+    {
+      "artifact": "",
+      "location": "",
+      "change": "",
+      "reason": ""
+    }
+  ],
+  "notes": ""
+}

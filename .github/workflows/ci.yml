@@ -16,10 +16,12 @@ jobs:
   verify-fast:
     name: Fast verification
     runs-on: ubuntu-latest
-    timeout-minutes: 25
+    timeout-minutes: 60
 
     steps:
       - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
 
       - uses: actions/setup-node@v6
         with:
@@ -46,10 +48,34 @@ jobs:
           npm run test:blueprint:quality:fast
           npm run audit:deliverables
           npm run audit:pipeline
-          npm run audit:gold:ci
+
+      - name: Pull request evaluation
+        if: github.event_name == 'pull_request'
+        run: npm run audit:evaluation:pr -- --changed-from "${{ github.event.pull_request.base.sha }}"
+
+      - name: Branch push evaluation
+        if: github.event_name == 'push' && github.ref != 'refs/heads/main'
+        run: npm run audit:evaluation:pr -- --changed-from "${{ github.event.before }}"
+
+      - name: Main evaluation
+        if: github.event_name == 'workflow_dispatch' || (github.event_name == 'push' && github.ref == 'refs/heads/main')
+        run: npm run audit:evaluation:main
 
       - name: Build
         run: npm run build
 
       - name: Bundle budgets
         run: npm run bundle:check
+
+      - name: Upload evaluation reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: layered-evaluation-reports
+          path: |
+            verification-output/contract-quality-audit/**
+            verification-output/gold-sample-quality-audit/latest.*
+            verification-output/independent-benchmark/**
+            verification-output/production-canary/**
+            verification-output/evaluation-system/**
+          if-no-files-found: ignore

@@ -19,13 +19,30 @@ const QUALITY_GATES = [
     args: ['run', 'audit:deliverables'],
   },
   {
-    label: 'Gold sample quality audit',
+    label: 'Full compiler contract audit',
     command: 'npm',
-    args: ['run', 'audit:gold'],
+    args: ['run', 'audit:contract:full'],
     reports: [
+      'verification-output/contract-quality-audit/latest.md',
+      'verification-output/contract-quality-audit/latest.json',
       'verification-output/gold-sample-quality-audit/latest.md',
       'verification-output/gold-sample-quality-audit/latest.json',
     ],
+  },
+  {
+    label: 'Independent instructor benchmark',
+    command: 'npm',
+    args: ['run', 'audit:benchmark:strict'],
+    reports: [
+      'verification-output/independent-benchmark/latest.md',
+      'verification-output/independent-benchmark/latest.json',
+    ],
+  },
+  {
+    label: 'Production canary audit',
+    command: 'npm',
+    args: ['run', 'audit:canary:strict'],
+    reports: ['verification-output/production-canary/latest.md', 'verification-output/production-canary/latest.json'],
   },
   {
     label: 'Internal expert-style audit',

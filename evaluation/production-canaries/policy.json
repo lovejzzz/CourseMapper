@@ -1,0 +1,14 @@
+{
+  "schemaVersion": 1,
+  "maximumAgeDays": 45,
+  "minimumCompletedRuns": 3,
+  "minimumDomains": 2,
+  "requiredProviderFamilies": ["public-scion"],
+  "minimumQualityScore": 85,
+  "maximumP0Findings": 0,
+  "maximumP1Findings": 0,
+  "maximumDuplicateTopics": 0,
+  "minimumSuccessfulRequests": 1,
+  "minimumPackageFiles": 10,
+  "runs": ["runs/2026-07-09-ux-design-studio-scion.json"]
+}
